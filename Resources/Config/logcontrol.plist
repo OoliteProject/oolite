@@ -65,6 +65,7 @@
 	ai.pop									= inherit;
 	ai.error								= $aiError;
 	ai.error.recursion						= inherit;
+	ai.error.recursion.stackTrace			= inherit;
 	ai.error.stackOverflow					= inherit;
 	ai.error.stackOverflow.dump				= inherit;
 	ai.setTakeOffFromPlanet.noPlanet		= $aiError;
@@ -274,6 +275,7 @@
 	script.error.addPlanet.noPosition		= inherit;
 	script.error.exception					= inherit;
 	
+	script.javaScript.context				= no;
 	script.javaScript.load.success			= no;
 	script.javaScript.load.failed			= $scriptError;
 	script.javaScript.init.success			= no;

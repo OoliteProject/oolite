@@ -8197,7 +8197,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
-- (NSArray*) listBeaconsWithCode:(NSString*) code
+- (NSArray *) listBeaconsWithCode:(NSString *)code
 {
 	NSMutableArray* result = [NSMutableArray array];
 	ShipEntity* beacon = [self firstBeacon];
@@ -8213,7 +8213,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
-- (void) allShipsDoScriptEvent:(NSString*) event andReactToAIMessage:(NSString*) message
+- (void) allShipsDoScriptEvent:(NSString *)event andReactToAIMessage:(NSString *)message
 {
 	int i;
 	int ent_count = n_entities;
@@ -8223,12 +8223,15 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		if (sortedEntities[i]->isShip)
 			my_ships[ship_count++] = [sortedEntities[i] retain];	// retained
 	
-	for (i = 0; i < ship_count; i++)
+	if (message != nil)
 	{
-		ShipEntity* se = my_ships[i];
-		[se doScriptEvent:event];
-		[[se getAI] reactToMessage:message];
-		[se release]; //	released
+		for (i = 0; i < ship_count; i++)
+		{
+			ShipEntity* se = my_ships[i];
+			[se doScriptEvent:event];
+			[[se getAI] reactToMessage:message context:@"global message"];
+			[se release]; //	released
+		}
 	}
 }
 

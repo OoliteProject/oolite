@@ -1713,7 +1713,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
 			[self setStatus:STATUS_IN_FLIGHT];
 			[self doScriptEvent:@"shipLaunchedFromStation" withArgument:stationLaunchedFrom];
-			[shipAI reactToMessage: @"LAUNCHED OKAY"];
+			[shipAI reactToMessage:@"LAUNCHED OKAY" context:@"launched"];
 		}
 		else
 		{
@@ -2923,7 +2923,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = maxFlightSpeed;
 		if (range < desired_range)
 		{
-			[shipAI reactToMessage:@"DESIRED_RANGE_ACHIEVED"];
+			[shipAI reactToMessage:@"DESIRED_RANGE_ACHIEVED" context:@"BEHAVIOUR_INTERCEPT_TARGET"];
 		}
 		desired_speed = maxFlightSpeed * [self trackPrimaryTarget:delta_t:NO];
 	}
@@ -2982,7 +2982,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			frustration += delta_t;
 			if (frustration > 10.0)	// 10s of frustration
 			{
-				[shipAI reactToMessage:@"FRUSTRATED"];
+				[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_INTERCEPT_TARGET"];
 				frustration -= 5.0;	//repeat after another five seconds' frustration
 			}
 		}
@@ -3237,7 +3237,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		frustration += delta_t;
 		if (frustration > 3.0)	// 3s of frustration
 		{
-			[shipAI reactToMessage:@"FRUSTRATED"];
+			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_ATTACK_FLY_TO_TARGET"];
 			// THIS IS HERE AS A TEST ONLY
 			// BREAK OFF
 			jink.x = (ranrot_rand() % 256) - 128.0;
@@ -3419,7 +3419,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (frustration > 15.0 / max_flight_pitch)	// allow more time for slow ships.
 	{
 		frustration = 0.0;
-		[shipAI reactToMessage:@"FRUSTRATED"];
+		[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FACE_DESTINATION"];
 		if(flightPitch == old_pitch) flightPitch = 0.5 * max_flight_pitch; // hack to get out of frustration.
 	}	
 	
@@ -3478,7 +3478,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		frustration += delta_t;
 		if (frustration > 15.0)
 		{
-			if (!leadShip) [shipAI reactToMessage:@"FRUSTRATED"]; // escorts never reach their destination when following leader.
+			if (!leadShip) [shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FORMATION_FORM_UP"]; // escorts never reach their destination when following leader.
 			else if (distance > 0.5 * scannerRange) 
 			{
 				flightPitch = max_flight_pitch; // hack to get out of frustration.
@@ -3545,7 +3545,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			frustration += delta_t;
 			if ((frustration > slowdownTime * 10.0 && slowdownTime > 0)||(frustration > 15.0))	// 10x slowdownTime or 15s of frustration
 			{
-				[shipAI reactToMessage:@"FRUSTRATED"];
+				[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FLY_TO_DESTINATION"];
 				frustration -= slowdownTime * 5.0;	//repeat after another five units of frustration
 			}
 		}
@@ -3694,7 +3694,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			frustration += delta_t;
 			if (frustration > 15.0)	// 15s of frustration
 			{
-				[shipAI reactToMessage:@"FRUSTRATED"];
+				[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FLY_THRU_NAVPOINTS"];
 				frustration -= 15.0;	//repeat after another 15s of frustration
 			}
 		}
@@ -4813,12 +4813,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		if (!wasNearPlanetSurface && isNearPlanetSurface)
 		{
 			[self doScriptEvent:@"shipApproachingPlanetSurface" withArgument:nearest];
-			[shipAI reactToMessage:@"APPROACHING_SURFACE"];
+			[shipAI reactToMessage:@"APPROACHING_SURFACE" context:@"flight update"];
 		}
 		if (wasNearPlanetSurface && !isNearPlanetSurface)
 		{
 			[self doScriptEvent:@"shipLeavingPlanetSurface" withArgument:nearest];
-			[shipAI reactToMessage:@"LEAVING_SURFACE"];
+			[shipAI reactToMessage:@"LEAVING_SURFACE" context:@"flight update"];
 		}
 	}
 	
@@ -6371,7 +6371,7 @@ BOOL class_masslocks(int some_class)
 	// always do target lost
 	[self doScriptEvent:@"shipTargetLost" withArgument:target];
 	if (target == nil) [shipAI message:@"TARGET_LOST"];	// stale target? no major urgency.
-	else [shipAI reactToMessage:@"TARGET_LOST"];	// execute immediately otherwise.
+	else [shipAI reactToMessage:@"TARGET_LOST" context:@"flight updates"];	// execute immediately otherwise.
 }
 
 
@@ -7735,7 +7735,7 @@ BOOL class_masslocks(int some_class)
 		[self doScriptEvent:@"shipFiredMissile" withArgument:missile andArgument:target_ship];
 		[target_ship setPrimaryAggressor:self];
 		[target_ship doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
-		[target_ship reactToAIMessage:@"INCOMING_MISSILE"];
+		[target_ship reactToAIMessage:@"INCOMING_MISSILE" context:@"hay guise, someone's shooting at me!"];
 	}
 	
 	if (cloaking_device_active && cloakPassive)
@@ -9239,7 +9239,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		{
 			[auth setFound_target:aggressor_ship];
 			[auth doScriptEvent:@"offenceCommittedNearby" withArgument:aggressor_ship andArgument:self];
-			[auth reactToAIMessage:@"OFFENCE_COMMITTED"];
+			[auth reactToAIMessage:@"OFFENCE_COMMITTED" context:@"combat update"];
 		}
 	}
 }
@@ -9486,6 +9486,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
+#if OO_SALVAGE_SUPPORT
+// Never used.
 - (void) claimAsSalvage
 {
 	// Create a bouy and beacon where the hulk is.
@@ -9561,7 +9563,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		[pilot setReportAIMessages:YES];
 		[pilot addTarget:self];
 		[pilot setStateMachine:@"pilotAI.plist"];
-		[self reactToAIMessage:@"FOUND_PILOT"];
+		[self reactToAIMessage:@"FOUND_PILOT" context:@"flight update"];
 	}
 }
 
@@ -9569,8 +9571,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (void) pilotArrived
 {
 	[self setHulk:NO];
-	[self reactToAIMessage:@"PILOT_ARRIVED"];
+	[self reactToAIMessage:@"PILOT_ARRIVED" context:@"flight update"];
 }
+#endif
 
 
 #ifndef NDEBUG
@@ -9722,9 +9725,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) reactToAIMessage:(NSString *)message
+- (void) reactToAIMessage:(NSString *)message context:(NSString *)debugContext
 {
-	[shipAI reactToMessage:message];
+	[shipAI reactToMessage:message context:debugContext];
 }
 
 
@@ -9737,14 +9740,14 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (void) doScriptEvent:(NSString *)scriptEvent andReactToAIMessage:(NSString *)aiMessage
 {
 	[self doScriptEvent:scriptEvent];
-	[self reactToAIMessage:aiMessage];
+	[self reactToAIMessage:aiMessage context:nil];
 }
 
 
 - (void) doScriptEvent:(NSString *)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage
 {
 	[self doScriptEvent:scriptEvent withArgument:argument];
-	[self reactToAIMessage:aiMessage];
+	[self reactToAIMessage:aiMessage context:nil];
 }
 
 

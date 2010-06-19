@@ -1070,7 +1070,7 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 		return NO;
 	}
 	
-	[thisEnt reactToAIMessage:message];
+	[thisEnt reactToAIMessage:message context:@"JavaScript reactToAIMessage()"];
 	return YES;
 }
 

@@ -983,7 +983,9 @@ MA 02110-1301, USA.
 	else
 	{
 		if ([hazard isShip] && (weapon_energy * 24.0 > [hazard energy]))
-			[shipAI reactToMessage:@"HAZARD_CAN_BE_DESTROYED"];
+		{
+			[shipAI reactToMessage:@"HAZARD_CAN_BE_DESTROYED" context:@"checkCourseToDestination"];
+		}
 		
 		destination = [UNIVERSE getSafeVectorFromEntity:self toDistance:desired_range fromPoint:destination];
 		[shipAI message:@"WAYPOINT_SET"];
@@ -1145,13 +1147,18 @@ static WormholeEntity *whole = nil;
 {
 	NSEnumerator		*shipEnum = nil;
 	ShipEntity			*ship = nil;
+	NSString			*context = nil;
 	
 	if (whole == nil)  return;
+	
+#ifndef NDEBUG
+	context = [NSString stringWithFormat:@"%@ wormholeEscorts", [self shortDescription]];
+#endif
 	
 	for (shipEnum = [self escortEnumerator]; (ship = [shipEnum nextObject]); )
 	{
 		[ship addTarget:whole];
-		[ship reactToAIMessage:@"ENTER WORMHOLE"];
+		[ship reactToAIMessage:@"ENTER WORMHOLE" context:context];
 	}
 	
 	// We now have no escorts..
@@ -1169,7 +1176,7 @@ static WormholeEntity *whole = nil;
 	for (shipEnum = [[self group] objectEnumerator]; (ship = [shipEnum nextObject]); )
 	{
 		[ship addTarget:whole];
-		[ship reactToAIMessage:@"ENTER WORMHOLE"];
+		[ship reactToAIMessage:@"ENTER WORMHOLE" context:@"wormholeGroup"];
 	}
 }
 
@@ -1479,7 +1486,7 @@ static WormholeEntity *whole = nil;
 	if ([self group] == nil)		// ship is alone!
 	{
 		found_target = primaryTarget;
-		[shipAI reactToMessage:@"GROUP_ATTACK_TARGET"];
+		[shipAI reactToMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
 		return;
 	}
 	
@@ -1488,7 +1495,7 @@ static WormholeEntity *whole = nil;
 	for (shipEnum = [[self group] objectEnumerator]; (ship = [shipEnum nextObject]); )
 	{
 		[ship setFound_target:target];
-		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET"];
+		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
 	}
 }
 
@@ -1534,7 +1541,11 @@ static WormholeEntity *whole = nil;
 	ShipEntity *mother = [self owner];
 	if (mother != nil && mother != self)
 	{
-		[mother reactToAIMessage:msgString];
+		NSString *context = nil;
+#ifndef NDEBUG
+		context = [NSString stringWithFormat:@"%@ messageMother", [self shortDescription]];
+#endif
+		[mother reactToAIMessage:msgString context:context];
 	}
 }
 
@@ -1831,7 +1842,7 @@ static WormholeEntity *whole = nil;
 	{
 		int die_roll = 1 + (ranrot_rand() % die_sides);
 		NSString* result = [NSString stringWithFormat:@"ROLL_%d", die_roll];
-		[shipAI reactToMessage: result];
+		[shipAI reactToMessage:result context:@"rollD:"];
 	}
 	else
 	{
@@ -2351,7 +2362,7 @@ static WormholeEntity *whole = nil;
 	// if none available report to the AI and exit
 	if (!n_dests)
 	{
-		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE"];
+		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE" context:@"performHyperSpaceExit[WithoutReplacing]"];
 		
 		// If no systems exist near us, the AI is switched to a different state, so we do not need
 		// the nearby destinations array anymore.
@@ -2365,7 +2376,7 @@ static WormholeEntity *whole = nil;
 	if (blocker)
 	{
 		found_target = [blocker universalID];
-		[shipAI reactToMessage:@"WITCHSPACE BLOCKED"];
+		[shipAI reactToMessage:@"WITCHSPACE BLOCKED" context:@"performHyperSpaceExit[WithoutReplacing]"];
 		[sDests release];
 		sDests = nil;
 		return NO;
@@ -2410,7 +2421,7 @@ static WormholeEntity *whole = nil;
 	// tell the ship we're about to jump (so it can inform escorts etc).
 	primaryTarget = [whole universalID];
 	found_target = primaryTarget;
-	[shipAI reactToMessage:@"WITCHSPACE OKAY"];	// must be a reaction, the ship is about to disappear
+	[shipAI reactToMessage:@"WITCHSPACE OKAY" context:@"performHyperSpaceExit[WithoutReplacing]"];	// must be a reaction, the ship is about to disappear
 	
 	[self enterWormhole:whole replacing:replace];	// TODO
 	
@@ -2473,10 +2484,19 @@ static WormholeEntity *whole = nil;
 			break;
 			
 		default:
+		{
 			if ([self isPolice])
+			{
 				[[UNIVERSE entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
-			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL"];
+			}
+			
+			NSString *context = nil;
+#ifndef NDEBUG
+			context = [NSString stringWithFormat:@"%@ broadcastDistressMessage", [other shortDescription]];
+#endif
+			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL" context:context];
 			break;
+		}
 	}
 }
 

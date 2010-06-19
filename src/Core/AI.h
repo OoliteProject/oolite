@@ -89,7 +89,8 @@ MA 02110-1301, USA.
 
 - (unsigned) stackDepth;
 
-- (void) reactToMessage:(NSString *) message;
+// Immediately handle a message. This is the core dispatcher. DebugContext is a textual hint for diagnostics.
+- (void) reactToMessage:(NSString *) message context:(NSString *)debugContext;
 
 - (void) takeAction:(NSString *) action;
 

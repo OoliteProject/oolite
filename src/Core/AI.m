@@ -281,7 +281,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	{
 		[self restorePreviousStateMachine];
 		if (message == nil)  message = @"RESTARTED";
-		[self reactToMessage:message];
+		[self reactToMessage:message context:@"suspended AI restart"];
 	}
 }
 
@@ -311,7 +311,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 			Attempted fix: new delayed dispatch with trampoline, see -[AI setStateMachine:afterDelay:].
 			 -- Ahruman, 20070706
 		*/
-		[self reactToMessage:@"ENTER"];
+		[self reactToMessage:@"ENTER" context:@"changing AI"];
 		
 		// refresh name
 		[self refreshOwnerDesc];
@@ -331,10 +331,13 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 			Attempted fix: new delayed dispatch with trampoline, see -[AI setState:afterDelay:].
 			 -- Ahruman, 20070706
 		*/
-		[self reactToMessage:@"EXIT"];
-		[currentState release];
-		currentState = [stateName retain];
-		[self reactToMessage:@"ENTER"];
+		[self reactToMessage:@"EXIT" context:@"changing state"];
+		if (currentState != stateName)
+		{
+			[currentState release];
+			currentState = [stateName copy];
+		}
+		[self reactToMessage:@"ENTER" context:@"changing state"];
 	}
 }
 
@@ -369,7 +372,23 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 }
 
 
-- (void) reactToMessage:(NSString *)message
+#ifndef NDEBUG
+typedef struct AIStackElement AIStackElement;
+struct AIStackElement
+{
+	AIStackElement			*back;
+	ShipEntity				*owner;
+	NSString				*aiName;
+	NSString				*state;
+	NSString				*message;
+	NSString				*context;
+};
+
+static AIStackElement *sStack;
+#endif
+
+
+- (void) reactToMessage:(NSString *) message context:(NSString *)debugContext
 {
 	unsigned		i;
 	NSArray			*actions = nil;
@@ -386,6 +405,20 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	*/
 	if (message == nil || owner == nil || [owner universalID] == NO_TARGET)  return;
 	
+#ifndef NDEBUG
+	// Push debug stack frame.
+	if (debugContext == nil)  debugContext = @"unspecified";
+	AIStackElement stackElement =
+	{
+		.back = sStack,
+		.owner = owner,
+		.aiName = stateMachineName,
+		.state = currentState,
+		.message = message,
+		.context = debugContext
+	};
+	sStack = &stackElement;
+#endif
 	
 	/*	CRASH when calling reactToMessage: FOO in state FOO causes infinite
 		recursion.
@@ -395,7 +428,21 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	*/
 	if (recursionLimiter > kRecursionLimiter)
 	{
-		OOLogERR(@"ai.error.recursion", @"AI reactToMessage: recursion in AI %@, state %@, aborting. It is not valid to call reactToMessage: FOO in state FOO.", stateMachineName, currentState);
+		OOLogERR(@"ai.error.recursion", @"AI dispatch: hit stack depth limit in AI %@, state %@ handling message %@ in context \"%@\", aborting.", stateMachineName, currentState, message, debugContext);
+		
+#ifndef NDEBUG
+		AIStackElement *stack = sStack;
+		unsigned depth = 0;
+		while (stack != NULL)
+		{
+			OOLog(@"ai.error.recursion.stackTrace", @"%4u  %@ - %@:%@.%@ (%@)", depth++, [stack->owner shortDescription], stack->aiName, stack->state, stack->message, stack->context);
+			stack = stack->back;
+		}
+		
+		// unwind.
+		sStack = sStack->back;
+#endif
+		
 		return;
 	}
 	
@@ -405,7 +452,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 #ifndef NDEBUG
 	if (currentState != nil && ![message isEqual:@"UPDATE"] && [owner reportAIMessages])
 	{
-		OOLog(@"ai.message.receive", @"AI %@ for %@ in state '%@' receives message '%@'", stateMachineName, ownerDesc, currentState, message);
+		OOLog(@"ai.message.receive", @"AI %@ for %@ in state '%@' receives message '%@'. Context: %@, stack depth: %u", stateMachineName, ownerDesc, currentState, message, debugContext, recursionLimiter);
 	}
 #endif
 	
@@ -418,16 +465,17 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	sCurrentlyRunningAI = self;
 	if ([actions count] > 0)
 	{
+		++recursionLimiter;
 		NS_DURING
-			++recursionLimiter;
 			for (i = 0; i < [actions count]; i++)
 			{
 				[self takeAction:[actions objectAtIndex:i]];
 			}
-			--recursionLimiter;
 		NS_HANDLER
-			--recursionLimiter;
+			OOLog(kOOLogException, @"Squashing exception %@:%@ in AI handler %@:%@.%@", [localException name], [localException reason], stateMachineName, currentState, message);
 		NS_ENDHANDLER
+		
+		--recursionLimiter;
 	}
 	else
 	{
@@ -439,7 +487,12 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 			}
 		}
 	}
+	
 	sCurrentlyRunningAI = previousRunning;
+#ifndef NDEBUG
+	// Unwind stack.
+	sStack = sStack->back;
+#endif
 	
 #ifdef OO_BRAIN_AI
 	if (rulingInstinct != nil)
@@ -525,7 +578,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	
 	if ([[self owner] universalID] == NO_TARGET || stateMachine == nil)  return;  // don't think until launched
 	
-	[self reactToMessage:@"UPDATE"];
+	[self reactToMessage:@"UPDATE" context:@"periodic update"];
 
 	if ([pendingMessages count] > 0)  ms_list = [pendingMessages allObjects];
 	[pendingMessages removeAllObjects];
@@ -534,7 +587,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	{
 		for (i = 0; i < [ms_list count]; i++)
 		{
-			[self reactToMessage:[ms_list objectAtIndex:i]];
+			[self reactToMessage:[ms_list objectAtIndex:i] context:@"handling deferred message"];
 		}
 	}
 }

@@ -380,7 +380,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 #endif
 	
-	[shipAI reactToMessage:@"DOCKING_REQUESTED"];	// react to the request	
+	[shipAI reactToMessage:@"DOCKING_REQUESTED" context:@"requestDockingCoordinates"];	// react to the request	
 	
 	if	(magnitude2([self velocity]) > 1.0)		// no docking while moving
 	{
@@ -1431,15 +1431,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		switch (level)
 		{
 			case STATION_ALERT_LEVEL_GREEN:
-				[shipAI reactToMessage:@"GREEN_ALERT"];
+				[shipAI reactToMessage:@"GREEN_ALERT" context:nil];
 				break;
 				
 			case STATION_ALERT_LEVEL_YELLOW:
-				[shipAI reactToMessage:@"YELLOW_ALERT"];
+				[shipAI reactToMessage:@"YELLOW_ALERT" context:nil];
 				break;
 				
 			case STATION_ALERT_LEVEL_RED:
-				[shipAI reactToMessage:@"RED_ALERT"];
+				[shipAI reactToMessage:@"RED_ALERT" context:nil];
 				break;
 		}
 	}
@@ -2020,7 +2020,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[self sendExpandedMessage:DESC(@"station-docking-clearance-not-required") toShip:other];
 		if ([other isPlayer])
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
-		[shipAI reactToMessage:@"DOCKING_REQUESTED"];	// react to the request	
+		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
 		last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
 		result = @"DOCKING_CLEARANCE_NOT_REQUIRED";
 	}
@@ -2101,7 +2101,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if ([other isPlayer])
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 		result = @"DOCKING_CLEARANCE_GRANTED";
-		[shipAI reactToMessage:@"DOCKING_REQUESTED"];	// react to the request	
+		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
 	}
 	return result;
 }
