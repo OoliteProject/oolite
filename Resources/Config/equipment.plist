@@ -177,6 +177,7 @@
 		"Provides life support, entertainment and comfort for a single passenger.",
 		{
 			available_to_all = true;
+			available_to_NPCs = false;
 			requires_cargo_space = 5;
 		}
 	),
@@ -186,6 +187,7 @@
 		"Removes a passenger berth.",
 		{
 			available_to_all = true;
+			available_to_NPCs = false;
 			requires_free_passenger_berth = true;
 		}
 	),

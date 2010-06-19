@@ -45,13 +45,18 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, 
 enum
 {
 	// Property IDs
+	kEquipmentInfo_canAwardMultiple,
+	kEquipmentInfo_canBeDamaged,
 	kEquipmentInfo_description,
 	kEquipmentInfo_effectiveTechLevel,
 	kEquipmentInfo_equipmentKey,
 	kEquipmentInfo_incompatibleEquipment,
 	kEquipmentInfo_isAvailableToAll,
+	kEquipmentInfo_isAvailableToNPCs,
+	kEquipmentInfo_isAvailableToPlayer,
 	kEquipmentInfo_isExternalStore,				// is missile or mine
 	kEquipmentInfo_isPortableBetweenShips,
+	kEquipmentInfo_isVisible,
 	kEquipmentInfo_name,
 	kEquipmentInfo_price,
 	kEquipmentInfo_requiredCargoSpace,
@@ -72,13 +77,18 @@ enum
 static JSPropertySpec sEquipmentInfoProperties[] =
 {
 	// JS name							ID											flags
+	{ "canAwardMultiple",				kEquipmentInfo_canAwardMultiple,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "canBeDamaged",					kEquipmentInfo_canBeDamaged,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "description",					kEquipmentInfo_description,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "incompatibleEquipment",			kEquipmentInfo_incompatibleEquipment,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isAvailableToAll",				kEquipmentInfo_isAvailableToAll,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isAvailableToNPCs",				kEquipmentInfo_isAvailableToNPCs,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isAvailableToPlayer",			kEquipmentInfo_isAvailableToPlayer,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isExternalStore",				kEquipmentInfo_isExternalStore,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPortableBetweenShips",			kEquipmentInfo_isPortableBetweenShips,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isVisible",						kEquipmentInfo_isVisible,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "name",							kEquipmentInfo_name,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "price",							kEquipmentInfo_price,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "requiredCargoSpace",				kEquipmentInfo_requiredCargoSpace,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -205,6 +215,14 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			result = [eqType name];
 			break;
 			
+		case kEquipmentInfo_canAwardMultiple:
+			*outValue = BOOLToJSVal([eqType canAwardMultiple]);
+			break;
+			
+		case kEquipmentInfo_canBeDamaged:
+			*outValue = BOOLToJSVal([eqType canBeDamaged]);
+			break;
+			
 		case kEquipmentInfo_description:
 			result = [eqType descriptiveText];
 			break;
@@ -223,6 +241,14 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			
 		case kEquipmentInfo_isAvailableToAll:
 			*outValue = BOOLToJSVal([eqType isAvailableToAll]);
+			break;
+			
+		case kEquipmentInfo_isAvailableToNPCs:
+			*outValue = BOOLToJSVal([eqType isAvailableToNPCs]);
+			break;
+			
+		case kEquipmentInfo_isAvailableToPlayer:
+			*outValue = BOOLToJSVal([eqType isAvailableToPlayer]);
 			break;
 			
 		case kEquipmentInfo_requiresEmptyPylon:
@@ -259,6 +285,10 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			
 		case kEquipmentInfo_isPortableBetweenShips:
 			*outValue = BOOLToJSVal([eqType isPortableBetweenShips]);
+			break;
+			
+		case kEquipmentInfo_isVisible:
+			*outValue = BOOLToJSVal([eqType isVisible]);
 			break;
 			
 		case kEquipmentInfo_requiredCargoSpace:

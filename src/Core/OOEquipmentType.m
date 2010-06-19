@@ -178,6 +178,8 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_requiresNonFullFuel = YES;
 		}
 		_isVisible = YES;
+		_isAvailableToPlayer = YES;
+		_isAvailableToNPCs = YES;
 	}
 	
 	if (OK && [info count] > EQUIPMENT_EXTRA_INFO_INDEX)
@@ -194,6 +196,9 @@ static NSDictionary		*sMissilesRegistry = nil;
 			if ((strict && !strictModeCompatible) || (!strict && strictModeOnly))  OK = NO;
 			
 			_isAvailableToAll = [extra oo_boolForKey:@"available_to_all" defaultValue:_isAvailableToAll];
+			_isAvailableToPlayer = [extra oo_boolForKey:@"available_to_player" defaultValue:_isAvailableToPlayer];
+			_isAvailableToNPCs = [extra oo_boolForKey:@"available_to_NPCs" defaultValue:_isAvailableToNPCs];
+			
 			_isMissileOrMine = [extra oo_boolForKey:@"is_external_store" defaultValue:_isMissileOrMine];
 			_requiresEmptyPylon = [extra oo_boolForKey:@"requires_empty_pylon" defaultValue:_requiresEmptyPylon];
 			_requiresMountedPylon = [extra oo_boolForKey:@"requires_mounted_pylon" defaultValue:_requiresMountedPylon];
@@ -423,6 +428,18 @@ static NSDictionary		*sMissilesRegistry = nil;
 - (BOOL) isVisible
 {
 	return _isVisible;
+}
+
+
+- (BOOL) isAvailableToPlayer
+{
+	return _isAvailableToPlayer;
+}
+
+
+- (BOOL) isAvailableToNPCs
+{
+	return _isAvailableToNPCs;
 }
 
 

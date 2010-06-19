@@ -1461,6 +1461,7 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 {
 	ShipEntity					*thisEnt = nil;
 	NSString					*key = nil;
+	OOEquipmentType				*eqType = nil;
 	BOOL						result;
 	BOOL						isBerth;
 	BOOL						exists;
@@ -1476,23 +1477,14 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 	
 	if (exists)
 	{
+		eqType = [OOEquipmentType equipmentTypeWithIdentifier:key];
+		result = YES;
+		
 		isBerth = [key isEqualToString:@"EQ_PASSENGER_BERTH"];
 		// can't add fuel as equipment, can add multiple berths if there's space.
-		result = ![key isEqualToString:@"EQ_FUEL"] && (![thisEnt hasEquipmentItem:key] ||
-				(isBerth && [thisEnt availableCargoSpace] >= 5));
-		if (result)
-		{
-			if ( ([key isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)
-				|| (![thisEnt isPlayer] && (isBerth || [key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"]))
-				|| ([key isEqualToString:@"EQ_MISSILE_REMOVAL"] && [thisEnt missileCount] == 0) )
-			{
-				result = NO;
-			}
-			else
-			{
-				result = [thisEnt canAddEquipment:key];
-			}
-		}
+		if ([key isEqualToString:@"EQ_FUEL"])  result = NO;
+		
+		if (result)  result = [thisEnt canAddEquipment:key];
 	}
 	else
 	{

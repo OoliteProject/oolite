@@ -2110,7 +2110,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 
 - (BOOL) canAddEquipment:(NSString *)equipmentKey
-{	
+{
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
 		equipmentKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
@@ -2122,7 +2122,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (missiles >= max_missiles) return NO;
 	}
 	
-	if ([self hasEquipmentItem:equipmentKey])  return NO;
+	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	
+	if (![eqType canAwardMultiple] && [self hasEquipmentItem:equipmentKey])  return NO;
 	if (![self equipmentValidToAdd:equipmentKey])  return NO;
 	
 	return YES;
@@ -2254,6 +2256,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([eqType requiresFreePassengerBerth] && [self passengerCount] >= [self passengerCapacity])  return NO;
 	if ([eqType requiresFullFuel] && [self fuel] < [self fuelCapacity])  return NO;
 	if ([eqType requiresNonFullFuel] && [self fuel] >= [self fuelCapacity])  return NO;
+	if ([self isPlayer])
+	{
+		if (![eqType isAvailableToPlayer])  return NO;
+	}
+	else
+	{
+		if (![eqType isAvailableToNPCs])  return NO;
+	}
 	
 	return YES;
 }
