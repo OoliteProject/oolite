@@ -52,8 +52,20 @@ this.global = (function () { return this; } ).call();
 /**** Utilities, not intended to be retired ****/
 
 
+/*	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__
+	extension.
+*/
+if (typeof Object.getPrototypeOf !== "function")
+{
+	Object.getPrototypeOf = function (object)
+	{
+		return object.__proto__;
+	}
+}
+
+
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
-Ship.__proto__.spawnOne = function (role)
+Object.getPrototypeOf(Ship).spawnOne = function (role)
 {
 	var result = this.spawn(role, 1);
 	return result ? result[0] : null;
@@ -77,23 +89,11 @@ if (typeof String.prototype.trim !== "function")
 	String.prototype.trim = function ()
 	{
 		var	str = this.replace(/^\s\s*/, ''),
-				  ws = /\s/,
-				  i = str.length;
+			 ws = /\s/,
+			  i = str.length;
 		while (ws.test(str.charAt(--i))){}
 		return str.slice(0, i + 1);
 	};
-}
-
-
-/*	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__
-	extension.
-*/
-if (typeof Object.getPrototypeOf !== "function")
-{
-	Object.getPrototypeOf = function (object)
-	{
-		return object.__proto__;
-	}
 }
 
 

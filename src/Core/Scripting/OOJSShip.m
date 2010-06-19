@@ -166,12 +166,12 @@ enum
 	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
 	kShip_primaryRole,			// Primary role, string, read/write
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
-	kShip_roles,				// roles, array, read-only
 	kShip_roleProbabilities,	// roles and probabilities, dictionary, read-only
+	kShip_roles,				// roles, array, read-only
 	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
-	kShip_scannerRange,			// scanner range, double, read-only
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
+	kShip_scannerRange,			// scanner range, double, read-only
 	kShip_script,				// script, Script, read-only
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
 	kShip_speed,				// current flight speed, double, read-only
@@ -270,37 +270,38 @@ static JSPropertySpec sShipProperties[] =
 static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
-	{ "setScript",				ShipSetScript,				1 },
-	{ "setAI",					ShipSetAI,					1 },
-	{ "switchAI",				ShipSwitchAI,				1 },
-	{ "exitAI",					ShipExitAI,					0 },
-	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
+	{ "abandonShip",			ShipAbandonShip,			0 },
+	{ "addPassenger",			ShipAddPassenger,			0 },	// Documented as PlayerShip
+	{ "awardContract",			ShipAwardContract,			0 },	// Documented as PlayerShip
+	{ "awardEquipment",			ShipAwardEquipment,			1 },
+	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
+	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ "deployEscorts",			ShipDeployEscorts,			0 },
 	{ "dockEscorts",			ShipDockEscorts,			0 },
-	{ "hasRole",				ShipHasRole,				1 },
+	{ "dumpCargo",				ShipDumpCargo,				0 },
 	{ "ejectItem",				ShipEjectItem,				1 },
 	{ "ejectSpecificItem",		ShipEjectSpecificItem,		1 },
-	{ "dumpCargo",				ShipDumpCargo,				0 },
-	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },
-	{ "spawn",					ShipSpawn,					1 },
-	{ "explode",				ShipExplode,				0 },
-	{ "remove",					ShipRemove,					0 },
-	{ "commsMessage",			ShipCommsMessage,			1 },
-	{ "fireECM",				ShipFireECM,				0 },
-	{ "abandonShip",			ShipAbandonShip,			0 },
-	{ "addPassenger",			ShipAddPassenger,			0 },
-	{ "awardContract",			ShipAwardContract,			0 },
-	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },	// Should be deprecated in favour of equipment object model?
-	{ "awardEquipment",			ShipAwardEquipment,			1 },	// Should be deprecated in favour of equipment object model
-	{ "removeEquipment",		ShipRemoveEquipment,		1 },	// Should be deprecated in favour of equipment object model
 	{ "equipmentStatus",		ShipEquipmentStatus,		1 },
-	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
-	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
-	{ "fireMissile",			ShipFireMissile,			0 },
-	{ "setCargo",				ShipSetCargo,				1 },
-	{ "setMaterials",			ShipSetMaterials,			1 },
-	{ "setShaders",				ShipSetShaders,				1 },
+	{ "exitAI",					ShipExitAI,					0 },
 	{ "exitSystem",				ShipExitSystem,				0 },
+	{ "explode",				ShipExplode,				0 },
+	{ "fireECM",				ShipFireECM,				0 },
+	{ "fireMissile",			ShipFireMissile,			0 },
+	{ "hasRole",				ShipHasRole,				1 },
+	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
+	{ "remove",					ShipRemove,					0 },
+	{ "removeEquipment",		ShipRemoveEquipment,		1 },
+	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },	// Deliberately not documented
+	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
+	{ "setAI",					ShipSetAI,					1 },
+	{ "setCargo",				ShipSetCargo,				1 },
+	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
+	{ "setMaterials",			ShipSetMaterials,			1 },
+	{ "setScript",				ShipSetScript,				1 },
+	{ "setShaders",				ShipSetShaders,				2 },
+	{ "spawn",					ShipSpawn,					1 },
+	// spawnOne() is defined in the prefix script.
+	{ "switchAI",				ShipSwitchAI,				1 },
 	{ 0 }
 };
 
@@ -1750,7 +1751,7 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 	NSDictionary			*materials;
 	NSDictionary			*shaders;
 	BOOL					withShaders = NO;
-	BOOL 					fromShaders = [@"setShaders" isEqualTo:JSValToNSString(context,*outResult)];
+	BOOL 					fromShaders = [@"setShaders" isEqualToString:JSValToNSString(context,*outResult)];
 	
 	*outResult = JSVAL_FALSE;
 	

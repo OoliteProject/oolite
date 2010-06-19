@@ -185,7 +185,7 @@ static JSFunctionSpec sScriptMethods[] =
 	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
 	if (!problem)
 	{
-		OOJSStartTimeLimiter();
+		OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
 		if (!JS_ExecuteScript(context, _jsSelf, script, &returnValue))
 		{
 			problem = @"could not run script";
