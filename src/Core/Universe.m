@@ -7686,9 +7686,12 @@ double estimatedTimeForJourney(double distance, int hops)
 							{
 								price += eqPrice;
 								[extras addObject:equipmentKey];
-								[description appendFormat:DESC(@"extra-@-@-(long-description)"), eqShortDesc, [eqLongDesc lowercaseString]];
-								[short_description appendFormat:short_extras_string, eqShortDesc];
-								short_extras_string = @" %@.";
+								if ([item isVisible])
+								{
+									[description appendFormat:DESC(@"extra-@-@-(long-description)"), eqShortDesc, [eqLongDesc lowercaseString]];
+									[short_description appendFormat:short_extras_string, eqShortDesc];
+									short_extras_string = @" %@.";
+								}
 								customised = YES;
 								[options removeObject:equipmentKey]; //dont add twice
 							}

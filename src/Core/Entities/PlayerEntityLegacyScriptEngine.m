@@ -1235,7 +1235,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	{
 		OOLog(kOOLogSyntaxAwardEquipment, @"***** SCRIPT ERROR: in %@, CANNOT award damaged equipment:'%@'. Undamaged version already equipped.", CurrentScriptDesc(), equipString);
 	}
-	else if ([eqType canAwardMultiple] || ![self hasEquipmentItem:equipString])
+	else if ([eqType canCarryMultiple] || ![self hasEquipmentItem:equipString])
 	{
 		[self addEquipmentItem:equipString];
 	}

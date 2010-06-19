@@ -2124,7 +2124,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	
-	if (![eqType canAwardMultiple] && [self hasEquipmentItem:equipmentKey])  return NO;
+	if (![eqType canCarryMultiple] && [self hasEquipmentItem:equipmentKey])  return NO;
 	if (![self equipmentValidToAdd:equipmentKey])  return NO;
 	
 	return YES;

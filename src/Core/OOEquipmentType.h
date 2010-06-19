@@ -93,7 +93,7 @@ SOFTWARE.
 - (BOOL) isMissileOrMine;
 - (BOOL) isPortableBetweenShips;
 
-- (BOOL) canAwardMultiple;
+- (BOOL) canCarryMultiple;
 - (BOOL) canBeDamaged;
 - (BOOL) isVisible;				// Visible in UI?
 

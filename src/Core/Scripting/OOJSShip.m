@@ -1529,7 +1529,7 @@ static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc,
 	}
 	else
 	{
-		OK = [eqType canAwardMultiple] || ![thisEnt hasEquipmentItem:identifier];
+		OK = [eqType canCarryMultiple] || ![thisEnt hasEquipmentItem:identifier];
 	}
 	
 	if (OK)

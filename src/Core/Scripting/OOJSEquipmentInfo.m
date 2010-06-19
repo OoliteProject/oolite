@@ -45,8 +45,8 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, 
 enum
 {
 	// Property IDs
-	kEquipmentInfo_canAwardMultiple,
 	kEquipmentInfo_canBeDamaged,
+	kEquipmentInfo_canCarryMultiple,
 	kEquipmentInfo_description,
 	kEquipmentInfo_effectiveTechLevel,
 	kEquipmentInfo_equipmentKey,
@@ -77,8 +77,8 @@ enum
 static JSPropertySpec sEquipmentInfoProperties[] =
 {
 	// JS name							ID											flags
-	{ "canAwardMultiple",				kEquipmentInfo_canAwardMultiple,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "canBeDamaged",					kEquipmentInfo_canBeDamaged,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "canCarryMultiple",				kEquipmentInfo_canCarryMultiple,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "description",					kEquipmentInfo_description,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -215,8 +215,8 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			result = [eqType name];
 			break;
 			
-		case kEquipmentInfo_canAwardMultiple:
-			*outValue = BOOLToJSVal([eqType canAwardMultiple]);
+		case kEquipmentInfo_canCarryMultiple:
+			*outValue = BOOLToJSVal([eqType canCarryMultiple]);
 			break;
 			
 		case kEquipmentInfo_canBeDamaged:

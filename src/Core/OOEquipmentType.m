@@ -393,11 +393,11 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
-- (BOOL) canAwardMultiple
+- (BOOL) canCarryMultiple
 {
 	/*	Hard-coded for now. What would be the ramifications of making this
-	 a plist attribute?
-	 */
+		a plist attribute?
+	*/
 	if ([self isMissileOrMine])  return YES;
 	
 	if ([_identifier isEqualToString:@"EQ_PASSENGER_BERTH"] ||
