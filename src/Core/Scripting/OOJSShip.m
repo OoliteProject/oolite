@@ -290,7 +290,6 @@ static JSFunctionSpec sShipMethods[] =
 	{ "fireMissile",			ShipFireMissile,			0 },
 	{ "hasRole",				ShipHasRole,				1 },
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
-	{ "sendAIMessage",			ShipSendAIMessage,			1 },
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
 	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },	// Deliberately not documented
@@ -1078,7 +1077,7 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 }
 
 
-// sendIMessage(message : String)
+// sendAIMessage(message : String)
 static JSBool ShipSendAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;

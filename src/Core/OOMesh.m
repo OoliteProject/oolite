@@ -1068,7 +1068,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
-
 - (BOOL)loadData:(NSString *)filename
 {
 	NSScanner			*scanner;
