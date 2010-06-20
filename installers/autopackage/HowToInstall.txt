@@ -1,0 +1,77 @@
+.package Installation Instructions
+----------------------------------
+Start by uninstalling any Oolite (repository installation).
+If you have already installed Oolite from a .package, it 
+will be automatically uninstalled without affecting any of 
+your save-games or add-ons.
+
+Then execute the following:
+(replace <package_name> with the actual name of the 
+.package file - without the '<' and '>' characters)
+	$ chmod u+x <package_name>.package
+	$ ./<package_name>.package
+
+Accept the download of the autopackage runtime and 
+the GTK (needed only once). You will be prompted for 
+a password with root privileges. If you don't provide it, 
+the installation will be visible only to your user.
+
+To remove oolite execute
+(as root if you provided a password during installation)
+	$ package remove oolite
+
+Following the installation you may start Oolite from 
+Games/Oolite menu or by executing:
+	$ oolite
+from a terminal.
+
+
+
+Documentation
+-------------
+Oolite documentation can be found in
+(if password was not provided during installation)
+~/.local/lib/Oolite/doc/
+or
+(if password was provided during installation)
+/usr/lib/Oolite/doc/
+Feel free to also visit the Oolite wiki http://wiki.alioth.net/index.php/Oolite_Main_Page
+
+
+
+Oolite Expansion Packs (i.e. add-ons)
+-------------------------------------
+Create the AddOns folder:
+   $ mkdir ~/.Oolite/AddOns/
+and copy the add-on ".oxp" folder into ~/.Oolite/AddOns/
+
+
+
+Oolite Paths
+------------
+Note: The root-path for Oolite installation is either
+~/.local (if password was not provided during installation)
+or
+/usr (if password was provided during installation)
+
+During the .package installation Oolite will create the following:
+<root-path>/lib/Oolite/ (application folder for binaries, resources and documentation)
+<root-path>/bin/oolite (this is what you execute to run Oolite)
+<root-path>/bin/oolite-update (this is what you execute to update oolite)
+
+Following the first run, Oolite will create:
+~/.Oolite/ (logs and add-ons)
+~/.Oolite/Logs/ (Latest.log and Previous.log text-files)
+~/GNUstep/ (GNUstep defaults and caches)
+~/oolite-saves/ (save-games and screenshots)
+
+Following the first in-game screenshot taken (using the "*" key):
+~/oolite-saves/snapshots/
+will be created to store the in-game screenshot
+
+
+
+For further assistance, feel free to join in http://aegidian.org/bb
+Add-ons may be freely downloaded from http://wiki.alioth.net/index.php/OXP
+
+For more information on autopackage packaging visit http://autopackage.org
