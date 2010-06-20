@@ -1376,13 +1376,16 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// highlight the name of the currently selected system
 	//
-	sys = nearby_systems + targetIdx;
-	star.x = (float)(sys->seed_d * hscale + hoffset);
-	star.y = (float)(sys->seed_b * vscale + voffset);
-	
-	if (![player showInfoFlag])
+	if( targetIdx != -1 )
 	{
-		OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+		sys = nearby_systems + targetIdx;
+		star.x = (float)(sys->seed_d * hscale + hoffset);
+		star.y = (float)(sys->seed_b * vscale + voffset);
+
+		if (![player showInfoFlag])
+		{
+			OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+		}
 	}
 	
 	// draw cross-hairs over current location
