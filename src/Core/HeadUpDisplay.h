@@ -272,4 +272,5 @@ MA 02110-1301, USA.
 void OODrawString(NSString *text, double x, double y, double z, NSSize siz);
 void OODrawHilightedString(NSString *text, double x, double y, double z, NSSize siz);
 void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
+void OODrawHilightedPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
 NSRect OORectFromString(NSString *text, double x, double y, NSSize siz);

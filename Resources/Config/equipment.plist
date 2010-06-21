@@ -151,6 +151,7 @@
 		"Alien drone ship.",
 		{
 			strict_mode_compatible = true;
+			available_to_player = false;
 		}
 	),
 	(	/* Thargoid equipment, standardised name. Incompatible with non-thargoid ships. Not buyable because of its TL. */
@@ -159,6 +160,7 @@
 		"Alien drone ship.",
 		{
 			strict_mode_compatible = true;
+			available_to_player = false;
 		}
 	),
 	(
@@ -249,11 +251,14 @@
 			available_to_all = true;
 		}
 	),
-	/* next item has a TL too high to be available - FIXME: shall we move it to TL 100? */
+	/* NPC equipment, incompatible with player ship. Not buyable because of its TL. */
 	(
-		99, 150000, "Thargoid Laser",
+		100, 150000, "Thargoid Laser",
 		"EQ_WEAPON_THARGOID_LASER",
 		"Captured Thargoid weapon, self-aiming."
+		{
+			available_to_player = false;
+		}
 	),
 	(
 		6, 25000, "Quirium Cascade Mine",
@@ -319,10 +324,13 @@
 		"EQ_MILITARY_SCANNER_FILTER",
 		"Filters out the jamming signals from MASC'M devices."
 	),
-	/* NPC equipment, incompatible with player ship. Not buyable because of its TL.*/
+	/* NPC equipment, incompatible with player ship. Not buyable because of its TL. */
 	(
 		100, 147500, "Shield Enhancers",
 		"EQ_SHIELD_ENHANCER",
 		"Shield enhancing technology dramatically increases the capability of standard defensive shields."
+		{
+			available_to_player = false;
+		}
 	)
 )

@@ -2688,6 +2688,35 @@ NSRect OORectFromString(NSString *text, double x, double y, NSSize siz)
 	return NSMakeRect(x, y, w, siz.height);
 }
 
+void drawHighlight(double x, double y, double z, NSSize siz, double alpha)
+{
+	// Rounded corners, fading 'shadow' version
+	OOGL(glColor4f(0.0f, 0.0f, 0.0f, alpha * 0.4f));	// dark translucent shadow
+	
+	OOGLBEGIN(GL_POLYGON);
+	// thin 'halo' around the 'solid' highlight
+	glVertex3f(x , y + siz.height + 3.0f, z);
+	glVertex3f(x + siz.width + 4.0f, y + siz.height + 3.0f, z);
+	glVertex3f(x + siz.width + 5.0f, y + siz.height + 1.0f, z);
+	glVertex3f(x + siz.width + 5.0f, y + 3.0f, z);
+	glVertex3f(x + siz.width + 4.0f, y + 1.0f, z);
+	glVertex3f(x, y + 1.0f, z);
+	glVertex3f(x - 1.0f, y + 3.0f, z);
+	glVertex3f(x - 1.0f, y + siz.height + 1.0f, z);
+	OOGLEND();
+	
+	OOGLBEGIN(GL_POLYGON);
+	glVertex3f(x + 1.0f, y + siz.height + 2.0f, z);
+	glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.0f, z);
+	glVertex3f(x + siz.width + 4.0f, y + siz.height + 1.0f, z);
+	glVertex3f(x + siz.width + 4.0f, y + 3.0f, z);
+	glVertex3f(x + siz.width + 3.0f, y + 2.0f, z);
+	glVertex3f(x + 1.0f, y + 2.0f, z);
+	glVertex3f(x, y + 3.0f, z);
+	glVertex3f(x, y + siz.height + 1.0f, z);
+	OOGLEND();
+
+}
 
 void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 {
@@ -2722,49 +2751,12 @@ void OODrawHilightedString(NSString *text, double x, double y, double z, NSSize 
 	
 	// get the physical dimensions of the string
 	NSSize strsize = OORectFromString(text, 0.0f, 0.0f, siz).size;
+	strsize.width += 0.5f;
 	
 	OOGL(glPushAttrib(GL_CURRENT_BIT));	// save the text colour
 	OOGL(glGetFloatv(GL_CURRENT_COLOR, color));	// we need the original colour's alpha.
 	
-	// Rounded corners, fading 'shadow' version
-	OOGL(glColor4f(0.0f, 0.0f, 0.0f, color[3] * 0.4f));	// dark translucent shadow
-	
-	OOGLBEGIN(GL_POLYGON);
-	// thin 'halo' around the 'solid' highlight
-	glVertex3f(x , y + strsize.height + 3.0f, z);
-	glVertex3f(x + strsize.width + 4.0f, y + strsize.height + 3.0f, z);
-	glVertex3f(x + strsize.width + 5.0f, y + strsize.height + 1.0f, z);
-	glVertex3f(x + strsize.width + 5.0f, y + 3.0f, z);
-	glVertex3f(x + strsize.width + 4.0f, y + 1.0f, z);
-	glVertex3f(x, y + 1.0f, z);
-	glVertex3f(x - 1.0f, y + 3.0f, z);
-	glVertex3f(x - 1.0f, y + strsize.height + 1.0f, z);
-	OOGLEND();
-	
-	OOGLBEGIN(GL_POLYGON);
-	glVertex3f(x + 1.0f, y + strsize.height + 2.0f, z);
-	glVertex3f(x + strsize.width + 3.0f, y + strsize.height + 2.0f, z);
-	glVertex3f(x + strsize.width + 4.0f, y + strsize.height + 1.0f, z);
-	glVertex3f(x + strsize.width + 4.0f, y + 3.0f, z);
-	glVertex3f(x + strsize.width + 3.0f, y + 2.0f, z);
-	glVertex3f(x + 1.0f, y + 2.0f, z);
-	glVertex3f(x, y + 3.0f, z);
-	glVertex3f(x, y + strsize.height + 1.0f, z);
-	OOGLEND();
-	
-	/*
-	
-	// Original, square corners version,
-	glColor4f(0.0f, 0.0f, 1.0f, color[3] * 0.7f);	// blue highlihgt
-	
-	OOGLBEGIN(GL_QUADS);
-	glVertex3f(x, y + strsize.height + 2.0f, z);
-	glVertex3f(x + strsize.width + 4.0f, y + strsize.height + 2.0f, z);
-	glVertex3f(x + strsize.width + 4.0f, y + 2.0f, z);
-	glVertex3f(x, y + 2.0f, z);
-	OOGLEND();
-	
-	*/
+	drawHighlight(x, y, z, strsize, color[3]);
 	
 	OOGL(glPopAttrib());	//restore the colour
 	
@@ -2792,12 +2784,14 @@ void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, N
 	
 	OOGLBEGIN(GL_QUADS);
 		glColor4f(ce1, 1.0, 0.0, 1.0);
+		// see OODrawHilightedPlanetInfo
 		cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
 		glColor3fv(&govcol[gov * 3]);
 		cx += drawCharacterQuad(gov, cx, y, z, siz) - 1.0;		// charcters 0..7 are government symbols
 		glColor4f(0.5, 1.0, 1.0, 1.0);
 		if (tl > 9)
 		{
+			// not inteded for TL > 20!
 			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - 2.0;
 		}
 		cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2, z, siz);
@@ -2807,7 +2801,34 @@ void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, N
 	
 	[OOTexture applyNone];
 	OOGL(glDisable(GL_TEXTURE_2D));
+}
+
+
+void OODrawHilightedPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz)
+{
+	float	color[4];
+	int		tl = tec + 1;
 	
+	NSSize	hisize;
+	
+	// get the physical dimensions
+	hisize.height = siz.height;
+	hisize.width = 0.0f;
+	
+	// see OODrawPlanetInfo
+	hisize.width += siz.width * sGlyphWidths[23 - eco];
+	hisize.width += siz.width * sGlyphWidths[gov] - 1.0;
+	if (tl > 9) hisize.width += siz.width * sGlyphWidths[49] - 2.0;
+	hisize.width += siz.width * sGlyphWidths[48 + (tl % 10)];
+	
+	OOGL(glPushAttrib(GL_CURRENT_BIT));	// save the text colour
+	OOGL(glGetFloatv(GL_CURRENT_COLOR, color));	// we need the original colour's alpha.
+	
+	drawHighlight(x, y - 2.0f, z, hisize, color[3]);
+	
+	OOGL(glPopAttrib());	//restore the colour
+	
+	OODrawPlanetInfo(gov, eco, tec, x, y, z, siz);
 }
 
 

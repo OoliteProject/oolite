@@ -1386,6 +1386,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		{
 			OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
 		}
+		else
+		{
+			OODrawHilightedPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
+		}
 	}
 	
 	// draw cross-hairs over current location
