@@ -255,7 +255,7 @@
 	(
 		100, 150000, "Thargoid Laser",
 		"EQ_WEAPON_THARGOID_LASER",
-		"Captured Thargoid weapon, self-aiming."
+		"Captured Thargoid weapon, self-aiming.",
 		{
 			available_to_player = false;
 		}
@@ -328,7 +328,7 @@
 	(
 		100, 147500, "Shield Enhancers",
 		"EQ_SHIELD_ENHANCER",
-		"Shield enhancing technology dramatically increases the capability of standard defensive shields."
+		"Shield enhancing technology dramatically increases the capability of standard defensive shields.",
 		{
 			available_to_player = false;
 		}
