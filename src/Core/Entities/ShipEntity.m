@@ -898,7 +898,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 }
 
 
-- (GLfloat)doesHitLine:(Vector)v0: (Vector)v1;
+- (GLfloat)doesHitLine:(Vector)v0: (Vector)v1
 {
 	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
 	Vector u1 = vector_between(position, v1);
@@ -908,7 +908,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 }
 
 
-- (GLfloat) doesHitLine:(Vector)v0: (Vector)v1 :(ShipEntity **)hitEntity;
+- (GLfloat) doesHitLine:(Vector)v0: (Vector)v1 :(ShipEntity **)hitEntity
 {
 	if (hitEntity)
 		hitEntity[0] = (ShipEntity*)nil;
@@ -949,7 +949,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 }
 
 
-- (GLfloat)doesHitLine:(Vector)v0: (Vector)v1 withPosition:(Vector)o andIJK:(Vector)i :(Vector)j :(Vector)k;
+- (GLfloat)doesHitLine:(Vector)v0: (Vector)v1 withPosition:(Vector)o andIJK:(Vector)i :(Vector)j :(Vector)k
 {
 	Vector u0 = vector_between(o, v0);	// relative to origin of model / octree
 	Vector u1 = vector_between(o, v1);
@@ -2180,7 +2180,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role;
+- (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role
 {
 	/* 	The generated missile equipment type provides for backward compatibility with pre-1.74 OXPs  missile_roles
 		and follows this template:
@@ -7008,7 +7008,7 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (GLfloat) rollToMatchUp:(Vector) up_vec rotating:(GLfloat) match_roll;
+- (GLfloat) rollToMatchUp:(Vector)up_vec rotating:(GLfloat)match_roll
 {
 	GLfloat cosTheta = dot_product(up_vec, v_up);	// == cos of angle between up vectors
 	GLfloat sinTheta = dot_product(up_vec, v_right);
@@ -9478,7 +9478,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (void) setTrackCloseContacts:(BOOL) value
 {
-	if (value == trackCloseContacts)  return;
+	if (value == (BOOL)trackCloseContacts)  return;
 	
 	trackCloseContacts = value;
 	[closeContactsInfo release];

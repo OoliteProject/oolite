@@ -945,7 +945,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) exitAIWithMessage:(NSString *)message;
+- (void) exitAIWithMessage:(NSString *)message
 {
 	if ([message length] == 0)  message = @"RESTARTED";
 	[shipAI exitStateMachineWithMessage:message];

@@ -69,7 +69,7 @@ static GameController *sSharedController = nil;
 	if (sSharedController != nil)
 	{
 		[self release];
-		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one GameController to exist at a time.", __FUNCTION__];
+		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one GameController to exist at a time.", __PRETTY_FUNCTION__];
 	}
 	
 	self = [super init];

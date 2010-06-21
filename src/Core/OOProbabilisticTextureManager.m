@@ -171,7 +171,7 @@ SOFTWARE.
 		if (selection <= _prob[i])  return _textures[i];
 	}
 	
-	OOLog(@"probabilisticTextureManager.internalFailure", @"%s: overrun! Choosing last texture.", __FUNCTION__);
+	OOLog(@"probabilisticTextureManager.internalFailure", @"%s: overrun! Choosing last texture.", __PRETTY_FUNCTION__);
 	return _textures[_count - 1];
 }
 

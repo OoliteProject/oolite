@@ -259,7 +259,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 }
 
 
-- (oneway void)debugMonitorShowConsole:(in OODebugMonitor *)debugMonitor;
+- (oneway void)debugMonitorShowConsole:(in OODebugMonitor *)debugMonitor
 {
 	[self sendPacket:kOOTCPPacket_ShowConsole
 	   withParameters:nil];

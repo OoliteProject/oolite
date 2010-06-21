@@ -386,7 +386,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 			OOJSProfileExit(&oojsProfilerStackFrame); \
 		} \
 		OO_UNREACHABLE(); \
-		OOJSUnreachable(__FUNCTION__, __FILE__, __LINE__); \
+		OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); \
 		return rval; \
 	}
 

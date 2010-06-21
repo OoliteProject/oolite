@@ -172,7 +172,7 @@ static BOOL IsLegacyNormalMode(OOMeshNormalMode mode)
 	}
 	
 #ifndef NDEBUG
-	[NSException raise:NSInvalidArgumentException format:@"Unexpected normal mode in %s", __FUNCTION__];
+	[NSException raise:NSInvalidArgumentException format:@"Unexpected normal mode in %s", __PRETTY_FUNCTION__];
 #endif
 	return NO;	
 }
@@ -193,7 +193,7 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 	}
 	
 #ifndef NDEBUG
-	[NSException raise:NSInvalidArgumentException format:@"Unexpected normal mode in %s", __FUNCTION__];
+	[NSException raise:NSInvalidArgumentException format:@"Unexpected normal mode in %s", __PRETTY_FUNCTION__];
 #endif
 	return NO;
 }
@@ -460,7 +460,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	NS_HANDLER
 		if (!brokenInRender)
 		{
-			OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __FUNCTION__, self, [localException name], [localException reason]);
+			OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __PRETTY_FUNCTION__, self, [localException name], [localException reason]);
 			brokenInRender = YES;
 		}
 		if ([[localException name] hasPrefix:@"Oolite"])  [UNIVERSE handleOoliteException:localException];	// handle these ourself

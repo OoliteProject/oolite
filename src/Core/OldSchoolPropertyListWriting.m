@@ -66,7 +66,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 				else if ([foundString isEqual:@"\\"]) [newString appendString:@"\\\\"];
 				else
 				{
-					[NSException raise:NSInternalInconsistencyException format:@"%s: expected \" or newline, found %@", __FUNCTION__, foundString];
+					[NSException raise:NSInternalInconsistencyException format:@"%s: expected \" or newline, found %@", __PRETTY_FUNCTION__, foundString];
 				}
 				
 				// Use rest of string…

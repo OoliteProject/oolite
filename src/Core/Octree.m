@@ -690,7 +690,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 
 
 
-- (NSDictionary*)	dict;
+- (NSDictionary *) dict
 {
 	return [NSDictionary dictionaryWithObjectsAndKeys:
 		[NSNumber numberWithFloat:radius],	@"radius",

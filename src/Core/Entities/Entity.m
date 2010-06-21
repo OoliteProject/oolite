@@ -536,7 +536,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (void) throwSparks;
+- (void) throwSparks
 {
 	// do nothing for now
 }
@@ -629,7 +629,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
+- (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity
 {
 	if ((otherEntity)&&(zero_distance > otherEntity->zero_distance))
 		return NSOrderedAscending;
@@ -963,7 +963,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void)subEntityReallyDied:(ShipEntity *)sub
 {
-	OOLog(@"entity.bug", @"%s called for non-ship entity %p by %p", __FUNCTION__, self, sub);
+	OOLog(@"entity.bug", @"%s called for non-ship entity %p by %p", __PRETTY_FUNCTION__, self, sub);
 }
 
 

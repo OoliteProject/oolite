@@ -643,7 +643,7 @@ static BOOL CheckRegExps(NSString *string, id regexps)
 }
 
 
-- (NSDictionary *) lookUpPerGPUSettingsWithVersionString:(NSString *)versionStr extensionsString:(NSString *)extensionsStr;
+- (NSDictionary *) lookUpPerGPUSettingsWithVersionString:(NSString *)versionStr extensionsString:(NSString *)extensionsStr
 {
 	NSArray *configurations = [ResourceManager arrayFromFilesNamed:@"gpu-settings.plist"
 														  inFolder:@"Config"

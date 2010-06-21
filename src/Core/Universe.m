@@ -204,7 +204,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (gSharedUniverse != nil)
 	{
 		[self release];
-		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one Universe to exist at a time.", __FUNCTION__];
+		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one Universe to exist at a time.", __PRETTY_FUNCTION__];
 	}
 	
 	self = [super init];
@@ -6840,7 +6840,7 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSMutableDictionary *) localPlanetInfoOverrides;
+- (NSMutableDictionary *) localPlanetInfoOverrides
 {
 	return localPlanetInfoOverrides;
 }
@@ -7804,7 +7804,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	return [price1 compare:price2];
 }
 
-- (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary*) dict;
+- (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary *)dict
 {
 	// get basic information about the craft
 	OOCreditsQuantity	base_price = 0ULL;

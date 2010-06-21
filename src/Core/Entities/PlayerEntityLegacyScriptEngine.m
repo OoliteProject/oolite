@@ -1410,7 +1410,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) useSpecialCargo:(NSString *)descriptionString;
+- (void) useSpecialCargo:(NSString *)descriptionString
 {
 	if (scriptTarget != self)  return;
 

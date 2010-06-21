@@ -2241,7 +2241,7 @@ static NSTimeInterval	time_last_frame;
 #if OOLITE_SPEECH_SYNTH
 	if ((guiSelectedRow == GUI_ROW(GAME,SPEECH))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
-		if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)
+		if ([gameView isDown:gvArrowKeyRight] != [self isSpeechOn])
 			[self playChangedOption];
 		isSpeechOn = [gameView isDown:gvArrowKeyRight];
 		NSString *message = DESC(isSpeechOn ? @"gameoptions-spoken-messages-yes" : @"gameoptions-spoken-messages-no");

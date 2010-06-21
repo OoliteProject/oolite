@@ -1415,7 +1415,7 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
-- (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
+- (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity
 {
 	return NSOrderedDescending;  // always the most near
 }
@@ -2910,7 +2910,7 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
-- (void) AddToAdjustTime:(double) seconds ;
+- (void) AddToAdjustTime:(double)seconds
 {
 	ship_clock_adjust += seconds;
 }

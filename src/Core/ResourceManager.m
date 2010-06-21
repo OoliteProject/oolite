@@ -934,7 +934,7 @@ static NSMutableDictionary *sStringCache;
 				}
 			}
 		NS_HANDLER
-			OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __FUNCTION__, [localException name], [localException reason], path);
+			OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __PRETTY_FUNCTION__, [localException name], [localException reason], path);
 			// Ignore exception and keep loading other scripts.
 		NS_ENDHANDLER
 		

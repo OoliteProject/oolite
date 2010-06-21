@@ -68,7 +68,7 @@ OOINLINE void bounding_box_add_vector(BoundingBox *box, Vector vec)
 }
 
 
-void bounding_box_add_xyz(BoundingBox *box, GLfloat x, GLfloat y, GLfloat z)
+OOINLINE void bounding_box_add_xyz(BoundingBox *box, GLfloat x, GLfloat y, GLfloat z)
 {
 	assert(box != NULL);
 	box->min.x = OOMin_f(box->min.x, x);

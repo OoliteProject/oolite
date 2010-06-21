@@ -305,7 +305,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 }
 
 
-- (BOOL)readStereoCreatingLeftBuffer:(float **)outLeftBuffer rightBuffer:(float **)outRightBuffer withFrameCount:(size_t *)outSize;
+- (BOOL)readStereoCreatingLeftBuffer:(float **)outLeftBuffer rightBuffer:(float **)outRightBuffer withFrameCount:(size_t *)outSize
 {
 	float					*bufferL = NULL, *bufferR = NULL, *dstL, *dstR, **src;
 	size_t					sizeInFrames = 0, remaining;

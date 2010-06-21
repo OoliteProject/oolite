@@ -97,7 +97,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 - (id) init
 {
 	[self release];
-	[NSException raise:NSInternalInconsistencyException format:@"%s, believed dead, called.", __FUNCTION__];
+	[NSException raise:NSInternalInconsistencyException format:@"%s, believed dead, called.", __PRETTY_FUNCTION__];
 	return nil;
 }
 
@@ -285,7 +285,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 }
 
 
-- (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
+- (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed
 {
 	BOOL	procGen = NO;
 #if ALLOW_PROCEDURAL_PLANETS
@@ -660,7 +660,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 
 // TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
+- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if ([UNIVERSE breakPatternHide] || translucent || immediate)   return; // DON'T DRAW
 	[self drawUnconditionally];

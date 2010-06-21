@@ -213,7 +213,7 @@ static void InitAsyncWorkManager(void)
 - (void) waitForTaskToComplete:(id<OOAsyncWorkTask>)task
 {
 	OOLogGenericSubclassResponsibility();
-	[NSException raise:NSInternalInconsistencyException format:@"%s called.", __FUNCTION__];
+	[NSException raise:NSInternalInconsistencyException format:@"%s called.", __PRETTY_FUNCTION__];
 }
 
 @end
@@ -271,7 +271,7 @@ static void InitAsyncWorkManager(void)
 	
 #if OO_DEBUG
 	NSParameterAssert([(id)task respondsToSelector:@selector(completeAsyncTask)]);
-	NSAssert1(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread self] isMainThread], @"%s can only be called from the main thread.", __FUNCTION__);
+	NSAssert1(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread self] isMainThread], @"%s can only be called from the main thread.", __PRETTY_FUNCTION__);
 #endif
 	
 	[_pendingOpsLock lock];

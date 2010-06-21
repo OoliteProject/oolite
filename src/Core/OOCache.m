@@ -693,7 +693,7 @@ static NSString *CacheNodeGetDescription(OOCacheNode *node)
 static OOCacheNode *TreeSplay(OOCacheNode **root, id<OOCacheComparable> key)
 {
 	NSComparisonResult		order;
-	OOCacheNode				N = { leftChild: NULL, rightChild: NULL };
+	OOCacheNode				N = { .leftChild = NULL, .rightChild = NULL };
 	OOCacheNode				*node = NULL, *temp = NULL, *l = &N, *r = &N;
 	BOOL					exact = NO;
 	
@@ -808,7 +808,7 @@ static OOCacheNode *TreeInsert(OOCacheImpl *cache, id<OOCacheComparable> key, id
 			else
 			{
 				// Key already exists, which we should have caught above
-				OOLog(@"dataCache.inconsistency", @"%s() internal inconsistency for cache \"%@\", insertion failed.", __FUNCTION__, cache->name);
+				OOLog(@"dataCache.inconsistency", @"%s() internal inconsistency for cache \"%@\", insertion failed.", __PRETTY_FUNCTION__, cache->name);
 				CacheNodeFree(cache, node);
 				return NULL;
 			}

@@ -731,7 +731,7 @@ FAIL:
 }
 
 
-- (void) drawEntity:(BOOL) immediate:(BOOL) translucent;
+- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if ([UNIVERSE breakPatternHide])  return;
 	

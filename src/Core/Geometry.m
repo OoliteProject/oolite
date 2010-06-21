@@ -133,7 +133,7 @@ MA 02110-1301, USA.
 	return YES;
 }
 
-- (BOOL) testCornersWithinGeometry:(GLfloat) corner;
+- (BOOL) testCornersWithinGeometry:(GLfloat)corner
 {
 	// enumerate over triangles
 	// calculate normal for each one
@@ -191,7 +191,7 @@ static float volumecount;
 	return [octreeRepresentation autorelease];
 }
 
-- (id) octreeWithinRadius:(GLfloat) octreeRadius toDepth: (int) depth;
+- (id) octreeWithinRadius:(GLfloat)octreeRadius toDepth:(int)depth
 {
 	//
 	GLfloat offset = 0.5f * octreeRadius;
@@ -341,7 +341,7 @@ static float volumecount;
 	}
 }
 
-- (void) x_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) x;
+- (void) x_axisSplitBetween:(Geometry *)g_plus :(Geometry *)g_minus :(GLfloat)x
 {
 	// test each triangle splitting against x == 0.0
 	//
@@ -471,7 +471,7 @@ static float volumecount;
 	[g_minus translate: make_vector(x, 0.0f, 0.0f)];
 }
 
-- (void) y_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) y;
+- (void) y_axisSplitBetween:(Geometry *)g_plus :(Geometry *)g_minus :(GLfloat)y
 {
 	// test each triangle splitting against y == 0.0
 	//

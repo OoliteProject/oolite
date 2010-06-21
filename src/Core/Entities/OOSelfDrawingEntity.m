@@ -106,7 +106,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	NS_HANDLER
 		if ([[localException name] isEqual: OOLITE_EXCEPTION_DATA_NOT_FOUND])
 		{
-			OOLog(kOOLogFileNotFound, @"***** Oolite Data Not Found Exception : '%@' in %s *****", [localException reason], __FUNCTION__);
+			OOLog(kOOLogFileNotFound, @"***** Oolite Data Not Found Exception : '%@' in %s *****", [localException reason], __PRETTY_FUNCTION__);
 		}
 		[localException retain];
 		[mypool release];

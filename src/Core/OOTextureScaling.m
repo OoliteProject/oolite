@@ -344,7 +344,7 @@ BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDime
 {
 	if (EXPECT_NOT(width != OORoundUpToPowerOf2(width) || height != OORoundUpToPowerOf2(height)))
 	{
-		OOLog(kOOLogParameterError, @"Non-power-of-two dimensions (%ux%u) passed to %s() - ignoring, data will be junk.", width, height, __FUNCTION__);
+		OOLog(kOOLogParameterError, @"Non-power-of-two dimensions (%ux%u) passed to %s() - ignoring, data will be junk.", width, height, __PRETTY_FUNCTION__);
 		return NO;
 	}
 	if (EXPECT_NOT(textureBytes == NULL))
@@ -369,7 +369,7 @@ BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDime
 	}
 	
 
-	OOLog(kOOLogParameterError, @"%s(): bad pixmap format (%@) - ignoring, data will be junk.", __FUNCTION__, OOPixMapFormatName(format));
+	OOLog(kOOLogParameterError, @"%s(): bad pixmap format (%@) - ignoring, data will be junk.", __PRETTY_FUNCTION__, OOPixMapFormatName(format));
 	return NO;
 }
 
