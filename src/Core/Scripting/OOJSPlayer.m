@@ -81,24 +81,24 @@ static JSExtendedClass sPlayerClass =
 enum
 {
 	// Property IDs
-	kPlayer_name,					// Player name, string, read-only
-	kPlayer_score,					// kill count, integer, read/write
-	kPlayer_credits,				// credit balance, float, read/write
-	kPlayer_rank,					// rank, string, read-only
-	kPlayer_legalStatus,			// legalStatus, string, read-only
-	kPlayer_alertCondition,			// alert level, integer, read-only
-	kPlayer_alertTemperature,		// cabin temperature alert flag, boolean, read-only
-	kPlayer_alertMassLocked,		// mass lock alert flag, boolean, read-only
 	kPlayer_alertAltitude,			// low altitude alert flag, boolean, read-only
+	kPlayer_alertCondition,			// alert level, integer, read-only
 	kPlayer_alertEnergy,			// low energy alert flag, boolean, read-only
 	kPlayer_alertHostiles,			// hostiles present alert flag, boolean, read-only
-	kPlayer_trumbleCount,			// number of trumbles, integer, read-only
+	kPlayer_alertMassLocked,		// mass lock alert flag, boolean, read-only
+	kPlayer_alertTemperature,		// cabin temperature alert flag, boolean, read-only
+	kPlayer_bounty,					// bounty, unsigned int, read/write
 	kPlayer_contractReputation,		// reputation for cargo contracts, integer, read only
-	kPlayer_passengerReputation,		// reputation for passenger contracts, integer, read only
+	kPlayer_credits,				// credit balance, float, read/write
 #if DOCKING_CLEARANCE_ENABLED
-	kPlayer_dockingClearanceStatus,		// docking clearance status, string, read only
+	kPlayer_dockingClearanceStatus,	// docking clearance status, string, read only
 #endif
-	kPlayer_bounty					// bounty, unsigned int, read/write
+	kPlayer_legalStatus,			// legalStatus, string, read-only
+	kPlayer_name,					// Player name, string, read-only
+	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read-only
+	kPlayer_rank,					// rank, string, read-only
+	kPlayer_score,					// kill count, integer, read/write
+	kPlayer_trumbleCount,			// number of trumbles, integer, read-only
 };
 
 
@@ -130,13 +130,13 @@ static JSPropertySpec sPlayerProperties[] =
 static JSFunctionSpec sPlayerMethods[] =
 {
 	// JS name							Function							min args
+	{ "addMessageToArrivalReport",		PlayerAddMessageToArrivalReport,	1 },
 	{ "commsMessage",					PlayerCommsMessage,					1 },
 	{ "consoleMessage",					PlayerConsoleMessage,				1 },
-	{ "increaseContractReputation",		PlayerIncreaseContractReputation,	0 },
 	{ "decreaseContractReputation",		PlayerDecreaseContractReputation,	0 },
-	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
 	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation,	0 },
-	{ "addMessageToArrivalReport",		PlayerAddMessageToArrivalReport,	1 },
+	{ "increaseContractReputation",		PlayerIncreaseContractReputation,	0 },
+	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
 	{ 0 }
 };
 

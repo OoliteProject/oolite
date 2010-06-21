@@ -82,7 +82,7 @@ static JSPropertySpec sPlanetProperties[] =
 	{ "hasAtmosphere",			kPlanet_hasAtmosphere,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "radius",					kPlanet_radius,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "texture",				kPlanet_texture,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "orientation",			kPlanet_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "orientation",			kPlanet_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// Not documented since it's inherited from Entity
 	{ 0 }
 };
 

@@ -75,17 +75,17 @@ static JSExtendedClass sStationClass =
 enum
 {
 	// Property IDs
-	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
-	kStation_hasNPCTraffic,
 	kStation_alertCondition,
+	kStation_dockedContractors, // miners and scavengers.
+	kStation_dockedDefenders,
+	kStation_dockedPolice,
+	kStation_equipmentPriceFactor,
+	kStation_equivalentTechLevel,
+	kStation_hasNPCTraffic,
+	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
 #if DOCKING_CLEARANCE_ENABLED
 	kStation_requiresDockingClearance,
 #endif
-	kStation_dockedContractors, // miners and scavengers.
-	kStation_dockedPolice,
-	kStation_dockedDefenders,
-	kStation_equivalentTechLevel,
-	kStation_equipmentPriceFactor,
 	kStation_suppressArrivalReports,
 };
 
@@ -113,14 +113,14 @@ static JSFunctionSpec sStationMethods[] =
 {
 	// JS name					Function						min args
 	{ "dockPlayer",				StationDockPlayer,				0 },
-	{ "launchShipWithRole",		StationLaunchShipWithRole,		1 },
 	{ "launchDefenseShip",		StationLaunchDefenseShip,		0 },
-	{ "launchScavenger",		StationLaunchScavenger,			0 },
 	{ "launchMiner",			StationLaunchMiner,				0 },
-	{ "launchPirateShip",		StationLaunchPirateShip,		0 },
-	{ "launchShuttle",			StationLaunchShuttle,			0 },
 	{ "launchPatrol",			StationLaunchPatrol,			0 },
+	{ "launchPirateShip",		StationLaunchPirateShip,		0 },
 	{ "launchPolice",			StationLaunchPolice,			0 },
+	{ "launchScavenger",		StationLaunchScavenger,			0 },
+	{ "launchShipWithRole",		StationLaunchShipWithRole,		1 },
+	{ "launchShuttle",			StationLaunchShuttle,			0 },
 	{ 0 }
 };
 

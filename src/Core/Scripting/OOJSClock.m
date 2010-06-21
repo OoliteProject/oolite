@@ -32,10 +32,6 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 
 
-// Minimum allowable interval for repeating timers.
-#define kMinInterval 0.25
-
-
 static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 
 // Methods

@@ -74,8 +74,6 @@ OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature *si
 		if (sTemplates[i] != NULL && strcmp(sTemplates[i], typeCode) == 0)  return i;
 	}
 	
-	OOLog(@"shader.uniform.unknownType", @"Cannot bind method with unknown type code \"%s\".", typeCode);
-	
 	return kOOShaderUniformTypeInvalid;
 }
 

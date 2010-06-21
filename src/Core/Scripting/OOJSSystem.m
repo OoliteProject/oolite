@@ -98,27 +98,27 @@ static JSClass sSystemClass =
 enum
 {
 	// Property IDs
-	kSystem_ID,					// planet number, integer, read-only
-	kSystem_name,				// name, string, read/write
-	kSystem_description,		// description, string, read/write
-	kSystem_inhabitantsDescription, // description of inhabitant species, string, read/write
-	kSystem_government,			// government ID, integer, read/write
+	kSystem_allShips,				// ships in system, array of Ship, read-only
+	kSystem_description,			// description, string, read/write
+	kSystem_economy,				// economy ID, integer, read/write
+	kSystem_economyDescription,		// economy ID description, string, read-only
+	kSystem_government,				// government ID, integer, read/write
 	kSystem_governmentDescription,	// government ID description, string, read-only
-	kSystem_economy,			// economy ID, integer, read/write
-	kSystem_economyDescription,	// economy ID description, string, read-only
-	kSystem_techLevel,			// tech level ID, integer, read/write
-	kSystem_population,			// population, integer, read/write
-	kSystem_productivity,		// productivity, integer, read/write
-	kSystem_isInterstellarSpace, // is interstellar space, boolean, read-only
-	kSystem_mainStation,		// system's main station, Station, read-only
-	kSystem_mainPlanet,			// system's main planet, Planet, read-only
-	kSystem_sun,				// system's sun, Planet, read-only
-	kSystem_planets,			// planets in system, array of Planet, read-only
-	kSystem_allShips,			// ships in system, array of Ship, read-only
-	kSystem_info,				// system info dictionary, SystemInfo, read/write
-	kSystem_pseudoRandomNumber,	// constant-per-system pseudorandom number in [0..1), double, read-only
-	kSystem_pseudoRandom100,	// constant-per-system pseudorandom number in [0..100), integer, read-only
-	kSystem_pseudoRandom256		// constant-per-system pseudorandom number in [0..256), integer, read-only
+	kSystem_ID,						// planet number, integer, read-only
+	kSystem_info,					// system info dictionary, SystemInfo, read/write
+	kSystem_inhabitantsDescription,	// description of inhabitant species, string, read/write
+	kSystem_isInterstellarSpace,	// is interstellar space, boolean, read-only
+	kSystem_mainPlanet,				// system's main planet, Planet, read-only
+	kSystem_mainStation,			// system's main station, Station, read-only
+	kSystem_name,					// name, string, read/write
+	kSystem_planets,				// planets in system, array of Planet, read-only
+	kSystem_population,				// population, integer, read/write
+	kSystem_productivity,			// productivity, integer, read/write
+	kSystem_pseudoRandom100,		// constant-per-system pseudorandom number in [0..100), integer, read-only
+	kSystem_pseudoRandom256,		// constant-per-system pseudorandom number in [0..256), integer, read-only
+	kSystem_pseudoRandomNumber,		// constant-per-system pseudorandom number in [0..1), double, read-only
+	kSystem_sun,					// system's sun, Planet, read-only
+	kSystem_techLevel,				// tech level ID, integer, read/write
 };
 
 
@@ -153,28 +153,27 @@ static JSPropertySpec sSystemProperties[] =
 static JSFunctionSpec sSystemMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				SystemToString,				0 },
-	{ "addPlanet",				SystemAddPlanet,			1 },
-	{ "addMoon",				SystemAddMoon,				1 },
-	{ "sendAllShipsAway",		SystemSendAllShipsAway,		1 },
-	{ "countShipsWithPrimaryRole", SystemCountShipsWithPrimaryRole, 1 },
-	{ "countShipsWithRole",		SystemCountShipsWithRole,	1 },
-	{ "shipsWithPrimaryRole",	SystemShipsWithPrimaryRole,	1 },
-	{ "shipsWithRole",			SystemShipsWithRole,		1 },
-	{ "entitiesWithScanClass",	SystemEntitiesWithScanClass, 1 },
-	{ "filteredEntities",		SystemFilteredEntities,		2 },
+	{ "toString",						SystemToString,				0 },
+	{ "addGroup",						SystemAddGroup,				3 },
+	{ "addGroupToRoute",				SystemAddGroupToRoute,		2 },
+	{ "addMoon",						SystemAddMoon,				1 },
+	{ "addPlanet",						SystemAddPlanet,			1 },
+	{ "addShips",						SystemAddShips,				3 },
+	{ "addShipsToRoute",				SystemAddShipsToRoute,		2 },
+	{ "countShipsWithPrimaryRole",		SystemCountShipsWithPrimaryRole, 1 },
+	{ "countShipsWithRole",				SystemCountShipsWithRole,	1 },
+	{ "entitiesWithScanClass",			SystemEntitiesWithScanClass, 1 },
+	{ "filteredEntities",				SystemFilteredEntities,		2 },
+	{ "sendAllShipsAway",				SystemSendAllShipsAway,		1 },
+	{ "shipsWithPrimaryRole",			SystemShipsWithPrimaryRole,	1 },
+	{ "shipsWithRole",					SystemShipsWithRole,		1 },
 	
-	{ "addShips",				SystemAddShips,				3 },
-	{ "addGroup",				SystemAddGroup,				3 },
-	{ "addShipsToRoute",		SystemAddShipsToRoute,		2 },
-	{ "addGroupToRoute",		SystemAddGroupToRoute,		2 },
-	
-	{ "legacy_addShips",		SystemLegacyAddShips,		2 },
-	{ "legacy_addSystemShips",	SystemLegacyAddSystemShips,	3 },
-	{ "legacy_addShipsAt",		SystemLegacyAddShipsAt,		6 },
-	{ "legacy_addShipsAtPrecisely", SystemLegacyAddShipsAtPrecisely, 6 },
-	{ "legacy_addShipsWithinRadius", SystemLegacyAddShipsWithinRadius, 7 },
-	{ "legacy_spawnShip",		SystemLegacySpawnShip,		1 },
+	{ "legacy_addShips",				SystemLegacyAddShips,		2 },
+	{ "legacy_addSystemShips",			SystemLegacyAddSystemShips,	3 },
+	{ "legacy_addShipsAt",				SystemLegacyAddShipsAt,		6 },
+	{ "legacy_addShipsAtPrecisely",		SystemLegacyAddShipsAtPrecisely, 6 },
+	{ "legacy_addShipsWithinRadius",	SystemLegacyAddShipsWithinRadius, 7 },
+	{ "legacy_spawnShip",				SystemLegacySpawnShip,		1 },
 	{ 0 }
 };
 
@@ -767,13 +766,13 @@ static JSBool AddShipsOrGroup(JSContext *context, JSObject *this, uintN argc, js
 	OOJSPauseTimeLimiter();
 	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.
 	result = [UNIVERSE addShipsAt:where withRole:role quantity:count withinRadius:radius asGroup:isGroup];
-	OOJSResumeTimeLimiter();
 	
 	if (isGroup && result != nil)
 	{
 		if ([(NSArray *)result count] > 0) result = [(ShipEntity *)[(NSArray *)result objectAtIndex:0] group];
 		else result = nil;
 	}
+	OOJSResumeTimeLimiter();
 	
 	*outResult = [result javaScriptValueInContext:context];
 	
