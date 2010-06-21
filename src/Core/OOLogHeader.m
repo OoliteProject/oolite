@@ -31,6 +31,7 @@ SOFTWARE.
 #import "OOOXPVerifier.h"
 #import "Universe.h"
 #import "OOStellarBody.h"
+#import "OOJavaScriptEngine.h"
 
 
 static NSString *AdditionalLogHeaderInfo(void);
@@ -133,6 +134,10 @@ void OOPrintLogHeader(void)
 	
 	#if DEBUG_GRAPHVIZ
 		@"debug GraphViz support",
+	#endif
+	
+	#if OOJS_PROFILE
+		@"JavaScript profiling",
 	#endif
 	
 		nil];

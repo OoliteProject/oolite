@@ -78,6 +78,11 @@ MA 02110-1301, USA.
 #define OOJS_STACK_SIZE			8192
 
 
+#if !OOLITE_NATIVE_EXCEPTIONS
+#warning Native exceptions apparently not available. JavaScript functions are not exception-safe.
+#endif
+
+
 #ifdef MOZILLA_1_8_BRANCH
 #error Oolite and libjs must be built with MOZILLA_1_8_BRANCH undefined.
 #endif
@@ -113,9 +118,6 @@ static void RegisterStandardObjectConverters(JSContext *context);
 
 static id JSArrayConverter(JSContext *context, JSObject *object);
 static id JSGenericObjectConverter(JSContext *context, JSObject *object);
-
-static JSBool ContextCallback(JSContext *context, uintN contextOp);
-static JSBool BranchCallback(JSContext *context, JSScript *script);
 
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report)
@@ -253,7 +255,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		exit(1);
 	}
 	
-	JS_SetContextCallback(runtime, ContextCallback);
+	JS_SetContextCallback(runtime, OOJSContextCallback);
 
 	// create a context and associate it with the JS run time
 	mainContext = JS_NewContext(runtime, OOJS_STACK_SIZE);
@@ -558,189 +560,6 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
 #endif
 
 
-
-#if 1 // OO_DEBUG
-#define OOJS_DEBUG_LIMITER	1
-#else
-#define OOJS_DEBUG_LIMITER	0
-#endif
-
-
-static unsigned sLimiterStartDepth;
-static int sLimiterPauseDepth;
-static OOHighResTimeValue sLimiterStart;
-static OOHighResTimeValue sLimiterPauseStart;
-static double sLimiterTimeLimit;
-static unsigned long sBranchCount;
-enum
-{
-	/*	Inverse proportion of BranchCallback calls on which we test the time
-	 limit. Must be a power of two!
-	 */
-#if OOJS_DEBUG_LIMITER
-	kMaxBranchCount = (1 << 8)	// 256
-#else
-	kMaxBranchCount = (1 << 18)	// 262144
-#endif
-};
-
-#if OOJS_DEBUG_LIMITER
-#define OOJS_TIME_LIMIT		(0.05)	// seconds
-#else
-#define OOJS_TIME_LIMIT		(0.25)	// seconds
-#endif
-
-#ifndef NDEBUG
-static const char *sLastStartedFile;
-static unsigned sLastStartedLine;
-static const char *sLastStoppedFile;
-static unsigned sLastStoppedLine;
-#endif
-
-
-#ifndef NDEBUG
-void OOJSStartTimeLimiterWithTimeLimit_(OOTimeDelta limit, const char *file, unsigned line)
-#else
-void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit)
-#endif
-{
-	if (sLimiterStartDepth++ == 0)
-	{
-		if (limit <= 0.0)  limit = OOJS_TIME_LIMIT;
-		sLimiterTimeLimit = limit;
-		sLimiterPauseDepth = 0;
-		
-		OODisposeHighResTime(sLimiterStart);
-		sLimiterStart = OOGetHighResTime();
-	}
-	
-#ifndef NDEBUG
-	sLastStartedFile = file;
-	sLastStartedLine = line;
-#endif
-}
-
-
-#ifndef NDEBUG
-void OOJSStopTimeLimiter_(const char *file, unsigned line)
-#else
-void OOJSStopTimeLimiter(void)
-#endif
-{
-#ifndef NDEBUG
-	if (sLimiterStartDepth == 0)
-	{
-		OOLog(@"bug.javaScript.limiterDepth", @"Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it. (Last start: %@:%u, last valid stop: %@:%u, this stop attempt: %@:%u.)", OOLogAbbreviatedFileName(sLastStartedFile), sLastStartedLine, OOLogAbbreviatedFileName(sLastStoppedFile), sLastStoppedLine, OOLogAbbreviatedFileName(file), line);
-		return;
-	}
-	
-	sLastStoppedFile = file;
-	sLastStoppedLine = line;
-#endif
-	
-	if (--sLimiterStartDepth == 0)  sLimiterTimeLimit = 0.0;
-}
-
-
-void OOJSPauseTimeLimiter(void)
-{
-	if (sLimiterPauseDepth++ == 0)
-	{
-		OODisposeHighResTime(sLimiterPauseStart);
-		sLimiterPauseStart = OOGetHighResTime();
-	}
-}
-
-
-void OOJSResumeTimeLimiter(void)
-{
-	if (--sLimiterPauseDepth == 0)
-		
-	{
-		OOHighResTimeValue now = OOGetHighResTime();
-		OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterPauseStart, now);
-		OODisposeHighResTime(now);
-		
-		sLimiterTimeLimit += elapsed;
-	}
-}
-
-
-#ifndef NDEBUG
-OOHighResTimeValue OOJSCopyTimeLimiterNominalStartTime(void)
-{
-	return sLimiterStart;
-}
-
-
-void OOJSResetTimeLimiter(void)
-{
-	OODisposeHighResTime(sLimiterStart);
-	sLimiterStart = OOGetHighResTime();	
-}
-
-
-OOTimeDelta OOJSGetTimeLimiterLimit(void)
-{
-	return sLimiterTimeLimit;
-}
-
-
-void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
-{
-	sLimiterTimeLimit = limit;
-}
-#endif
-
-
-
-static JSBool BranchCallback(JSContext *context, JSScript *script)
-{
-	// This will be called a _lot_. Efficiency is important.
-	if (EXPECT(sBranchCount++ & (kMaxBranchCount - 1)))
-	{
-		return YES;
-	}
-	
-	// One in kMaxBranchCount calls, check if the timer has overflowed.
-	sBranchCount = 0;
-	
-#ifndef NDEBUG
-	if (sLimiterStartDepth == 0)
-	{
-		OOLog(@"bug.javaScript.limiterInactive", @"JavaScript branch callback hit while time limiter inactive. This is an internal error, please report it. bugs@oolite.org");
-	}
-#endif
-	
-	if (sLimiterPauseDepth > 0)  return YES;
-	
-	OOHighResTimeValue now = OOGetHighResTime();
-	OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
-	OODisposeHighResTime(now);
-	
-	if (elapsed < sLimiterTimeLimit)  return YES;
-	
-	OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
-#ifndef NDEBUG
-	OOJSDumpStack(@"script.javaScript.stackTrace.timeLimit", context);
-#endif
-	
-	// FIXME: we really should put something in the JS log here, but since that's implemented in JS there are complications.
-	
-	return NO;
-}
-
-
-static JSBool ContextCallback(JSContext *context, uintN contextOp)
-{
-	if (contextOp == JSCONTEXT_NEW)
-	{
-		JS_SetBranchCallback(context, BranchCallback);
-	}
-	return YES;
-}
-
-
 static NSString *CallerPrefix(NSString *scriptClass, NSString *function)
 {
 	if (function == nil)  return @"";
@@ -781,6 +600,27 @@ void OOReportJSErrorWithArguments(JSContext *context, NSString *format, va_list 
 	JS_ReportError(context, "%s", [msg UTF8String]);
 	[msg release];
 }
+
+
+#if OOLITE_NATIVE_EXCEPTIONS
+
+void OOJSReportWrappedException(JSContext *context, NSException *exception)
+{
+	if (exception != nil)  OOReportJSError(context, @"Native exception: %@", [exception reason]);
+	else  OOReportJSError(context, @"Unidentified native exception");
+}
+
+
+#ifndef NDEBUG
+
+void OOJSUnreachable(const char *function, const char *file, unsigned line)
+{
+	OOLog(@"fatal.unreachable", @"Supposedly unreachable statement reached in %s (%@:%u) -- terminating.", function, OOLogAbbreviatedFileName(file), line);
+	abort();
+}
+
+#endif
+#endif
 
 
 void OOReportJSWarning(JSContext *context, NSString *format, ...)

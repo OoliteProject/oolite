@@ -3,7 +3,7 @@
 OOJavaScriptEngine.h
 
 JavaScript support for Oolite
-Copyright (C) 2007 David Taylor and Jens Ayton.
+Copyright (C) 2007-2010 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -29,9 +29,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import <jsapi.h>
 
-#ifndef NDEBUG
-#import "OOProfilingStopwatch.h"
-#endif
+#import "OOJSEngineTimeManagement.h"
 
 #define OOJSENGINE_MONITOR_SUPPORT	(!defined(NDEBUG))
 
@@ -318,64 +316,6 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 #endif
 
 
-/*	Time limiter
-	
-	The time limiter stops scripts from running an arbitrarily long time.
-	
-	The time limiter must be started before calling into JavaScript code. Calls
-	to OOJSStartTimeLimiter() and OOJSStopTimeLimiter() must be balanced, and
-	may be nested.
-	OOJSStartTimeLimiterWithTimeLimit() is like OOJSStartTimeLimiter(), but
-	specifies a custom time limit. This limit is only used if the limiter is
-	actually stopped.
-	
-	The time limiter can be paused and resumed for native operations that are
-	known to be slow. OOJSPauseTimeLimiter() and OOJSResumeTimeLimiter() must
-	be balanced and can be nested, but the nest count may be negative - it is
-	valid to call OOJSResumeTimeLimiter() followed by OOJSPauseTimeLimiter().
-*/
-#define OOJSStartTimeLimiter()  OOJSStartTimeLimiterWithTimeLimit(0.0)
-
-#ifndef NDEBUG
-#define OOJSStartTimeLimiterWithTimeLimit(limit)  OOJSStartTimeLimiterWithTimeLimit_(limit, OOLOG_FILE_NAME, __LINE__)
-#define OOJSStopTimeLimiter()  OOJSStopTimeLimiter_(OOLOG_FILE_NAME, __LINE__)
-void OOJSStartTimeLimiterWithTimeLimit_(OOTimeDelta limit, const char *file, unsigned line);
-void OOJSStopTimeLimiter_(const char *file, unsigned line);
-#else
-void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit);
-void OOJSStopTimeLimiter(void);
-#endif
-
-void OOJSPauseTimeLimiter(void);
-void OOJSResumeTimeLimiter(void);
-
-
-#define kOOJSLongTimeLimit (2.0)
-
-
-#ifndef NDEBUG
-/*	Profiling support. Should not be used for anything else.
-	
-	OOJSCopyTimeLimiterNominalStartTime()
-	Copy the nominal start time for the time limiter. This is the actual time
-	with any time extensions (paused periods) added in.
-	
-	OOJSResetTimeLimiter()
-	Set the time limiter start time to now.
-	
-	OOJSGetTimeLimiterLimit()
-	OOJSSetTimeLimiterLimit()
-	Manipulate the timeout.
-*/
-OOHighResTimeValue OOJSCopyTimeLimiterNominalStartTime(void);
-
-void OOJSResetTimeLimiter(void);
-OOTimeDelta OOJSGetTimeLimiterLimit(void);
-void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
-
-#endif
-
-
 #if OOJSENGINE_MONITOR_SUPPORT
 
 /*	Protocol for debugging "monitor" object.
@@ -408,6 +348,97 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 
 @end
 
+#endif
+
+
+/*
+	Exception safety and profiling macros.
+	
+	Every JavaScript native callback that could concievably cause an
+	Objective-C exception should begin with OOJS_NATIVE_ENTER() and end with
+	OOJS_NATIVE_EXIT. Callbacks which have been carefully audited for potential
+	exceptions, and support functions called from JavaScript native callbacks,
+	may start with OOJS_PROFILE_ENTER and end with OOJS_PROFILE_EXIT to be
+	included in profiling reports.
+	
+	Functions using either of these pairs _must_ return before
+	OOJS_NATIVE_EXIT/OOJS_PROFILE_EXIT, or they will crash in OOJSUnreachable()
+	in debug builds.
+	
+	For functions with a non-boolean return type, OOJS_PROFILE_EXIT should be
+	replaced with OOJS_PROFILE_EXIT_VAL(returnValue). The returnValue is never
+	used (and should be a constant expression), but is required to placate the
+	compiler.
+*/
+
+#if OOLITE_NATIVE_EXCEPTIONS
+
+#if OOJS_PROFILE
+
+#define OOJS_PROFILE_ENTER \
+	{ \
+		OOJS_DECLARE_PROFILE_STACK_FRAME(oojsProfilerStackFrame) \
+		@try { \
+			OOJSProfileEnter(&oojsProfilerStackFrame, __PRETTY_FUNCTION__);
+
+	#define OOJS_PROFILE_EXIT_VAL(rval) \
+		} @finally { \
+			OOJSProfileExit(&oojsProfilerStackFrame); \
+		} \
+		OO_UNREACHABLE(); \
+		OOJSUnreachable(__FUNCTION__, __FILE__, __LINE__); \
+		return rval; \
+	}
+
+#define OOJS_PROFILE_ENTER_FOR_NATIVE OOJS_PROFILE_ENTER
+
+#else
+
+#define OOJS_PROFILE_ENTER			{
+#define OOJS_PROFILE_EXIT_VAL(rval)	} return (rval);
+#define OOJS_PROFILE_ENTER_FOR_NATIVE @try {
+
+#endif	// OOJS_PROFILE
+
+#define OOJS_NATIVE_ENTER(cx) \
+	{ \
+		JSContext *oojsProfileContext = (cx); \
+		OOJS_PROFILE_ENTER_FOR_NATIVE
+
+#define OOJS_NATIVE_EXIT \
+		} @catch(NSException *exception) { \
+			OOJSReportWrappedException(oojsProfileContext, exception); \
+			return NO; \
+		} @catch(...) { \
+			OOJSReportWrappedException(oojsProfileContext, nil); \
+			return NO; \
+		OOJS_PROFILE_EXIT_VAL(NO) \
+	}
+
+
+void OOJSReportWrappedException(JSContext *context, NSException *exception);
+
+#ifndef NDEBUG
+void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_RETURN_FUNC;
+#else
+#define OOJSUnreachable(function, line) do {} while (0)
+#endif
+
+#else	// OOLITE_NATIVE_EXCEPTIONS
+
+// These introduce a scope to ensure proper nesting.
+#define OOJS_PROFILE_ENTER			{
+#define OOJS_PROFILE_EXIT_VAL(rval)	} return (rval);
+
+#define OOJS_NATIVE_ENTER(cx)	OOJS_PROFILE_ENTER
+#define OOJS_NATIVE_EXIT		OOJS_PROFILE_EXIT_VAL(NO)
+
+#endif	// OOLITE_NATIVE_EXCEPTIONS
+
+
+#define OOJS_PROFILE_EXIT OOJS_PROFILE_EXIT_VAL(NO)
+
+
 
 /*	OOJSDumpStack()
 	
@@ -417,6 +448,4 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #else
 #define OOJSDumpStack(lmc, cx)  do {} while (0)
-#endif
-
 #endif

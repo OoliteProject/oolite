@@ -275,6 +275,7 @@ OOLITE_RSRC_MGMT_FILES = \
 OOLITE_SCRIPTING_FILES = \
 	EntityOOJavaScriptExtensions.m \
 	OOJavaScriptEngine.m \
+	OOJSEngineTimeManagement.m \
 	OOJSCall.m \
 	OOJSClock.m \
 	OOJSEntity.m \

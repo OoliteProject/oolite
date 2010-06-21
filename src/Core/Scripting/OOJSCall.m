@@ -81,6 +81,8 @@ OOINLINE BOOL MethodExpectsParameter(MethodType type)	{ return type == kMethodTy
 
 BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassName, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString				*selectorString = nil;
 	SEL						selector = NULL;
 	NSString				*paramString = nil;
@@ -179,11 +181,13 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 	}
 	else
 	{
-		OOReportJSError(context, @"%@.call(): %@ does not respond to method %@.", jsClassName, object, selectorString);
+		OOReportJSError(context, @"%@.call(): %@ does not respond to method %@.", jsClassName, [object shortDescription], selectorString);
 		error = YES;
 	}
 	
 	return !error;
+	
+	OOJS_NATIVE_EXIT
 }
 
 

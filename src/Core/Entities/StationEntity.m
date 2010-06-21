@@ -2274,7 +2274,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 @implementation StationEntity (OOWireframeDockingBox)
 
-
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	Vector				adjustedPosition;
@@ -2300,6 +2299,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		
 		OOGL(glPopMatrix());
 	}
+}
+
+
+// Added to test exception wrapping in JS engine. If this is an ancient issue, delete this method. -- Ahruman 2010-06-21
+- (void) TEMPExceptionTest
+{
+	[NSException raise:@"TestException" format:@"This is a test exception which shouldn't crash the game."];
 }
 
 @end

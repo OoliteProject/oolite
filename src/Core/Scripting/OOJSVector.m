@@ -492,6 +492,8 @@ static JSBool VectorToSource(JSContext *context, JSObject *this, uintN argc, jsv
 // add(v : vectorExpression) : Vector3D
 static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv, result;
 	
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &thisv))) return NO;
@@ -500,6 +502,8 @@ static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *a
 	result = vector_add(thisv, thatv);
 	
 	return VectorToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 

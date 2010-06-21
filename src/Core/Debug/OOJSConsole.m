@@ -76,14 +76,18 @@ static JSBool ConsoleDisplayMessagesInClass(JSContext *context, JSObject *this, 
 static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleWriteLogMarker(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleWriteMemoryStats(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+#if OOJS_PROFILE
 static JSBool ConsoleProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleGetProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+#endif
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
-static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, OOTimeDelta *totalTime, OOTimeDelta *jsTime, OOTimeDelta *extensionTime);
+#if OOJS_PROFILE
+static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, OOTimeDelta *totalTime, OOTimeDelta *jsTime, OOTimeDelta *extensionTime, NSDictionary **profileDict);
+#endif
 
 
 static JSClass sConsoleClass =
@@ -180,8 +184,10 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "setDisplayMessagesInClass",		ConsoleSetDisplayMessagesInClass,	2 },
 	{ "writeLogMarker",					ConsoleWriteLogMarker,				0 },
 	{ "writeMemoryStats",				ConsoleWriteMemoryStats,			0 },
+#if OOJS_PROFILE
 	{ "profile",						ConsoleProfile,						1 },
 	{ "getProfile",						ConsoleGetProfile,					1 },
+#endif
 	{ 0 }
 };
 
@@ -696,15 +702,24 @@ static JSBool ConsoleWriteMemoryStats(JSContext *context, JSObject *this, uintN 
 }
 
 
+#if OOJS_PROFILE
+
 // function profile(func : function [, Object this = debugConsole.script]) : String
 static JSBool ConsoleProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOTimeDelta totalTime, jsTime, extensionTime;
+	NSDictionary *profileDict = nil;
 	
-	JSBool result = PerformProfiling(context, @"profile", argc, argv, &totalTime, &jsTime, &extensionTime);
+	if (EXPECT_NOT(OOJSIsProfiling()))
+	{
+		OOReportJSError(context, @"Console.profile() may not be used recursively.");
+		return NO;
+	}
+	
+	JSBool result = PerformProfiling(context, @"profile", argc, argv, &totalTime, &jsTime, &extensionTime, &profileDict);
 	if (result)
 	{
-		NSString *profileDesc = [NSString stringWithFormat:@"%g seconds (%g seconds JavaScript, %g seconds extension time)", totalTime, jsTime, extensionTime];
+		NSString *profileDesc = [NSString stringWithFormat:@"%g seconds (%g seconds JavaScript, %g seconds extension time)\n%@", totalTime, jsTime, extensionTime, profileDict];
 		*outResult = [profileDesc javaScriptValueInContext:context];
 	}
 	
@@ -716,8 +731,15 @@ static JSBool ConsoleProfile(JSContext *context, JSObject *this, uintN argc, jsv
 static JSBool ConsoleGetProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOTimeDelta totalTime, jsTime, extensionTime;
+	NSDictionary *profileDict = nil;
 	
-	JSBool result = PerformProfiling(context, @"getProfile", argc, argv, &totalTime, &jsTime, &extensionTime);
+	if (EXPECT_NOT(OOJSIsProfiling()))
+	{
+		OOReportJSError(context, @"Console.profile() may not be used recursively.");
+		return NO;
+	}
+	
+	JSBool result = PerformProfiling(context, @"getProfile", argc, argv, &totalTime, &jsTime, &extensionTime, &profileDict);
 	if (result)
 	{
 		JSObject *profilingResult = JS_NewObject(context, NULL, NULL, NULL);
@@ -738,6 +760,8 @@ static JSBool ConsoleGetProfile(JSContext *context, JSObject *this, uintN argc, 
 			{
 				JS_SetProperty(context, profilingResult, "extensionTime", &value);
 			}
+			value = [profileDict javaScriptValueInContext:context];
+			JS_SetProperty(context, profilingResult, "nativeFunctions", &value);
 		}
 	}
 	
@@ -745,9 +769,9 @@ static JSBool ConsoleGetProfile(JSContext *context, JSObject *this, uintN argc, 
 }
 
 
-static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, OOTimeDelta *totalTime, OOTimeDelta *jsTime, OOTimeDelta *extensionTime)
+static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, OOTimeDelta *totalTime, OOTimeDelta *jsTime, OOTimeDelta *extensionTime, NSDictionary **profileDict)
 {
-	assert(totalTime != NULL && jsTime != NULL && extensionTime != NULL);
+	assert(totalTime != NULL && jsTime != NULL && extensionTime != NULL && profileDict != NULL);
 	
 	// Get function.
 	jsval function = argv[0];
@@ -770,9 +794,11 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 	JSObject *thisObj;
 	if (!JS_ValueToObject(context, this, &thisObj))  thisObj = NULL;
 	
+	OOJSBeginProfiling();
+	
 	// Fiddle with time limiter.
 	// We want to save the current limit, reset the limiter, set the time limit to a long time, and record the current time.
-#define LONG_TIME (1e7)	// A long time - 115.7 days - but, crucually, finite.
+#define LONG_TIME (1e7)	// A long time - 115.7 days - but, crucially, finite.
 	OOTimeDelta originalLimit = OOJSGetTimeLimiterLimit();
 	OOJSSetTimeLimiterLimit(LONG_TIME);
 	OOJSResetTimeLimiter();
@@ -790,6 +816,8 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 	*extensionTime = OOJSGetTimeLimiterLimit() - LONG_TIME;
 	*jsTime = *totalTime - *extensionTime;
 	
+	*profileDict = OOJSEndProfiling();
+	
 	// Restore original timer state.
 	OOJSSetTimeLimiterLimit(originalLimit);
 	OOJSResetTimeLimiter();
@@ -802,5 +830,7 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 	
 	return result;
 }
+
+#endif // OOJS_PROFILE
 
 #endif /* OO_EXCLUDE_DEBUG_SUPPORT */
