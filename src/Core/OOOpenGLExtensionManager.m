@@ -643,17 +643,39 @@ static BOOL CheckRegExps(NSString *string, id regexps)
 }
 
 
+OOInteger CompareGPUSettingsByPriority(id a, id b, void *context)
+{
+	NSString		*keyA = a;
+	NSString		*keyB = b;
+	NSDictionary	*configurations = context;
+	NSDictionary	*dictA = [configurations oo_dictionaryForKey:keyA];
+	NSDictionary	*dictB = [configurations oo_dictionaryForKey:keyB];
+	double			precedenceA = [dictA oo_doubleForKey:@"precedence" defaultValue:1];
+	double			precedenceB = [dictB oo_doubleForKey:@"precedence" defaultValue:1];
+	
+	if (precedenceA > precedenceB)  return NSOrderedAscending;
+	if (precedenceA < precedenceB)  return NSOrderedDescending;
+	
+	return [keyA caseInsensitiveCompare:keyB];
+}
+
+
 - (NSDictionary *) lookUpPerGPUSettingsWithVersionString:(NSString *)versionStr extensionsString:(NSString *)extensionsStr
 {
-	NSArray *configurations = [ResourceManager arrayFromFilesNamed:@"gpu-settings.plist"
-														  inFolder:@"Config"
-														  andMerge:YES];
-	NSEnumerator *configEnum = nil;
+	NSDictionary *configurations = [ResourceManager dictionaryFromFilesNamed:@"gpu-settings.plist"
+																	inFolder:@"Config"
+																	andMerge:YES];
+	
+	NSArray *keys = [[configurations allKeys] sortedArrayUsingFunction:CompareGPUSettingsByPriority context:configurations];
+	
+	NSEnumerator *keyEnum = nil;
+	NSString *key = nil;
 	NSDictionary *config = nil;
 	
-	for (configEnum = [configurations objectEnumerator]; (config = [configEnum nextObject]); )
+	for (keyEnum = [keys objectEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		if (EXPECT_NOT(![config isKindOfClass:[NSDictionary class]]))  continue;
+		config = [configurations oo_dictionaryForKey:key];
+		if (EXPECT_NOT(config == nil))  continue;
 		
 		NSDictionary *match = [config oo_dictionaryForKey:@"match"];
 		NSString *expr = nil;
@@ -670,7 +692,7 @@ static BOOL CheckRegExps(NSString *string, id regexps)
 		expr = [match oo_stringForKey:@"extensions"];
 		if (!CheckRegExps(extensionsStr, expr))  continue;
 		
-		OOLog(@"rendering.opengl.gpuSpecific", @"Matched GPU configuration \"%@\".", [config oo_stringForKey:@"name"]);
+		OOLog(@"rendering.opengl.gpuSpecific", @"Matched GPU configuration \"%@\".", key);
 		return config;
 	}
 	

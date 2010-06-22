@@ -30,6 +30,15 @@
 								queried in debug console as:
 								console.glFragmentShaderTextureUnitCount
 	
+	Other keys:
+		match					Defines the conditions in which the settings
+								dictionary is used; see "Matching dictionaries"
+								below.
+		precedence				Affects the order in which settings
+								dictionaries are considered. Higher precedence
+								dictionaries are considered before lower ones.
+								The default precedence is 1.
+	
 	Matching dictionaries:
 		"match" dictionaries contain regular expressions tested against any of
 		"vendor", "renderer", "version" and "extensions". These are displayed
@@ -41,9 +50,9 @@
 		match.
 		Any backslashes in regexps must be escaped (i.e., doubled).
 */
-(
+{
+	"NVIDIA GeForce FX family" =
 	{
-		name = "NVIDIA GeForce FX family";
 		match =
 		{
 			vendor = "NVIDIA";
@@ -51,9 +60,12 @@
 			renderer = "GeForce.*\\b5\\d{3}(?!\\d)|NV3\\dMAP";
 		};
 		default_shader_level = "SHADERS_SIMPLE";
-	},
+		
+		// FIXME: dust apparently invisible with shaders on Mac OS X 10.4.11 if smooth_points. Other systems?
+	};
+	
+	"Intel GMA 900/950 family" =
 	{
-		name = "Intel GMA 900/950 family";
 		match =
 		{
 			vendor = "Tungsten|Intel";
@@ -67,9 +79,10 @@
 		default_shader_level = "SHADERS_SIMPLE";
 		smooth_points = false;		// Point smoothing is not supported in hardware.
 		use_dust_shader = false;	// Vertex shaders are emulated on CPU.
-	},
+	};
+	
+	"ATI R300 family" =
 	{
-		name = "ATI R300 family";
 		match =
 		{
 			vendor = "AT[Ii]";
@@ -77,9 +90,10 @@
 		};
 		maximum_shader_level = "SHADERS_SIMPLE";
 		default_shader_level = "SHADERS_SIMPLE";
-	},
+	};
+	
+	"ATI R300 family (X/Mesa)" =
 	{
-		name = "ATI R300 family (X/Mesa)";
 		match =
 		{
 			vendor = "DRI R300 Project";
@@ -91,9 +105,10 @@
 		// Assuming same for anti-aliased points.
 		smooth_points = false; 
 		smooth_lines = false;
-	},
+	};
+	
+	"ATI R300 family (X/Gallium3D)" =
 	{
-		name = "ATI R300 family (X/Gallium3D)";
 		match =
 		{
 			vendor = "X\\.Org R300 Project";
@@ -105,9 +120,10 @@
 		// (Correct as of commit df3590f.)
 		smooth_points = false; 
 		smooth_lines = false;
-	},
+	};
+	
+	"VirtualBox" =
 	{
-		name = "VirtualBox";
 		match =
 		{
 			vendor = "Humper";
@@ -115,5 +131,5 @@
 			version = "Chromium 1\\.9$";
 		};
 		maximum_shader_level = "SHADERS_OFF";
-	}
-)
+	};
+}
