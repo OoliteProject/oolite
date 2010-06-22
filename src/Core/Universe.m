@@ -944,15 +944,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 			if (![a_station isStation] || ![a_station validForAddToUniverse])
 			{
 				OOLog(@"universe.setup.badStation", @"Could not create built-in Coriolis station! Generating a stationless system.");
-				[a_station release];
-				a_station = nil;
+				DESTROY(a_station);
 			}
 		}
 	}
 	
 	if (a_station != nil)
 	{
-		[a_station setOrientation: q_station];
+		[a_station setOrientation:q_station];
 		[a_station setPosition: stationPos];
 		[a_station setPitch: 0.0];
 		[a_station setScanClass: CLASS_STATION];

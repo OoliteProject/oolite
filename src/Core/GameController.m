@@ -617,8 +617,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 
 		// Create an NSOpenGLContext with the FullScreen pixel format.  By specifying the non-FullScreen context as our "shareContext", we automatically inherit all of the textures, display lists, and other OpenGL objects it has defined.
 		fullScreenContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:[gameView openGLContext]];
-		[pixelFormat release];
-		pixelFormat = nil;
+		DESTROY(pixelFormat);
 
 		if (fullScreenContext == nil)
 		{
