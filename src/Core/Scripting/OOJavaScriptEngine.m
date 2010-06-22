@@ -604,9 +604,9 @@ void OOReportJSErrorWithArguments(JSContext *context, NSString *format, va_list 
 
 #if OOLITE_NATIVE_EXCEPTIONS
 
-void OOJSReportWrappedException(JSContext *context, NSException *exception)
+void OOJSReportWrappedException(JSContext *context, id exception)
 {
-	if (exception != nil)  OOReportJSError(context, @"Native exception: %@", [exception reason]);
+	if ([exception isKindOfClass:[NSException class]])  OOReportJSError(context, @"Native exception: %@", [exception reason]);
 	else  OOReportJSError(context, @"Unidentified native exception");
 }
 

@@ -406,17 +406,14 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 		OOJS_PROFILE_ENTER_FOR_NATIVE
 
 #define OOJS_NATIVE_EXIT \
-		} @catch(NSException *exception) { \
+		} @catch(id exception) { \
 			OOJSReportWrappedException(oojsProfileContext, exception); \
-			return NO; \
-		} @catch(...) { \
-			OOJSReportWrappedException(oojsProfileContext, nil); \
 			return NO; \
 		OOJS_PROFILE_EXIT_VAL(NO) \
 	}
 
 
-void OOJSReportWrappedException(JSContext *context, NSException *exception);
+void OOJSReportWrappedException(JSContext *context, id exception);
 
 #ifndef NDEBUG
 void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_RETURN_FUNC;
