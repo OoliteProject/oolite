@@ -61,6 +61,7 @@ static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uin
 static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemLegacyToCoordinates(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -164,6 +165,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "countShipsWithRole",				SystemCountShipsWithRole,	1 },
 	{ "entitiesWithScanClass",			SystemEntitiesWithScanClass, 1 },
 	{ "filteredEntities",				SystemFilteredEntities,		2 },
+	{ "legacyToCoordinates",			SystemLegacyToCoordinates,	2 },
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,		1 },
 	{ "shipsWithPrimaryRole",			SystemShipsWithPrimaryRole,	1 },
 	{ "shipsWithRole",					SystemShipsWithRole,		1 },
@@ -713,6 +715,35 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 }
 
 
+// system.legacyToCoordinates(coordScheme : String, coords : vectorExpression)
+static JSBool SystemLegacyToCoordinates(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Vector				where;
+	NSString			*role = nil;
+	NSString			*coordScheme = nil;
+	NSString			*arg = nil;
+	uintN				consumed = 0;
+	
+	coordScheme = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(coordScheme == nil ||
+				   argc < 2 ||
+				   !VectorFromArgumentListNoError(context, argc - 1, argv + 1, &where, &consumed)))
+	{
+		OOReportJSBadArguments(context, @"System", @"legacyToCoordinates", argc, argv, nil, @"coordinate scheme, coordinates");
+		return NO;
+	}
+	
+	OOJSPauseTimeLimiter();
+	arg = [NSString stringWithFormat:@"%@ %f %f %f", coordScheme, where.x, where.y, where.z];
+
+	VectorToJSValue(context, [UNIVERSE coordinatesFromCoordinateSystemString:arg], outResult);
+
+	OOJSResumeTimeLimiter();
+	
+	return YES;
+}
+
+
 // Shared implementation of addShips() and addGroup().
 static JSBool AddShipsOrGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isGroup)
 {
@@ -956,7 +987,7 @@ static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN a
 }
 
 
-// legacy_addShipsAtPrecisely(role : String, count : Number, coordScheme : Number, coords : vectorExpression)
+// legacy_addShipsAtPrecisely(role : String, count : Number, coordScheme : String, coords : vectorExpression)
 static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -988,7 +1019,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this
 }
 
 
-// legacy_addShipsWithinRadius(role : String, count : Number, coordScheme : Number, coords : vectorExpression, radius : Number)
+// legacy_addShipsWithinRadius(role : String, count : Number, coordScheme : String, coords : vectorExpression, radius : Number)
 static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
