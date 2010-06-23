@@ -108,15 +108,15 @@ function isExecutableJavaScript(code : String) : Boolean
 	unbalanced braces or parentheses. (Used in consolePerformJSCommand() below.)
 
 function profile(func : function [, this : Object]) : String
-	Time the specified function, and note the portion of the time spent in
-	JavaScript and the portion spent in "extension time", i.e. Oolite-native
-	code that doesn't count towards the safety time limit.
+	Time the specified function, report the time spent in various Oolite
+	functions and how much time is excluded from the time limiter mechanism.
 	NOTE: while profile() is running, the time limiter is effectively disabled
 	(specifically, it's set to ten million seconds).
 
 function getProfile(func : function [, this : Object]) : Object
-	Like profile(), but returns an object with numeric properties "totalTime",
-	"jsTime" and "extensionTime".
+	Like profile(), but returns an object, which is more amenable to processing
+	in scripts. To see the structure of the object, run:
+	  console.getProfile(function(){PS.position.add([0, 0, 0])}).call("description")
 
 function writeLogMarker()
 	Writes a separator to the log.

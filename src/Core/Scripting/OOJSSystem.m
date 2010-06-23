@@ -719,7 +719,6 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 static JSBool SystemLegacyToCoordinates(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector				where;
-	NSString			*role = nil;
 	NSString			*coordScheme = nil;
 	NSString			*arg = nil;
 	uintN				consumed = 0;

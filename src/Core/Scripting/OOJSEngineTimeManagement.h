@@ -88,8 +88,12 @@ void OOJSResumeTimeLimiter(void);
 	Manipulate the timeout.
 */
 
+
+@class OOTimeProfile, OOTimeProfileEntry;
+
+
 void OOJSBeginProfiling(void);
-NSDictionary *OOJSEndProfiling(void);
+OOTimeProfile *OOJSEndProfiling(void);
 BOOL OOJSIsProfiling(void);
 
 OOHighResTimeValue OOJSCopyTimeLimiterNominalStartTime(void);
@@ -112,6 +116,60 @@ struct OOJSProfileStackFrame
 #define OOJS_DECLARE_PROFILE_STACK_FRAME(name) OOJSProfileStackFrame name;
 void OOJSProfileEnter(OOJSProfileStackFrame *frame, const char *function);
 void OOJSProfileExit(OOJSProfileStackFrame *frame);
+
+
+@interface OOTimeProfile: NSObject
+{
+@private
+	double						_totalTime;
+	double						_nativeTime;
+	double						_extensionTime;
+	
+	double						_profilerOverhead;
+	
+	NSArray						*_profileEntries;
+}
+
+- (double) totalTime;
+- (double) javaScriptTime;
+- (double) nativeTime;
+- (double) extensionTime;
+- (double) nonExtensionTime;
+- (double) profilerOverhead;
+
+- (NSArray *) profileEntries;	// Array of OOTimeProfileEntry
+
+@end
+
+
+@interface OOTimeProfileEntry: NSObject
+{
+@private
+	NSString					*_function;
+	unsigned long				_hitCount;
+	double						_totalTimeSum;
+	double						_selfTimeSum;
+	double						_totalTimeMax;
+	double						_selfTimeMax;
+}
+
+- (NSString *) description;
+
+- (NSString *) function;
+- (OOUInteger) hitCount;
+- (double) totalTimeSum;
+- (double) selfTimeSum;
+- (double) totalTimeAverage;
+- (double) selfTimeAverage;
+- (double) totalTimeMax;
+- (double) selfTimeMax;
+
+- (NSComparisonResult) compareByTotalTime:(OOTimeProfileEntry *)other;
+- (NSComparisonResult) compareByTotalTimeReverse:(OOTimeProfileEntry *)other;
+- (NSComparisonResult) compareBySelfTime:(OOTimeProfileEntry *)other;
+- (NSComparisonResult) compareBySelfTimeReverse:(OOTimeProfileEntry *)other;
+
+@end
 
 #else
 

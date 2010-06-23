@@ -159,6 +159,8 @@ void InitOOJSVector(JSContext *context, JSObject *global)
 
 JSObject *JSVectorWithVector(JSContext *context, Vector vector)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSObject				*result = NULL;
 	Vector					*private = NULL;
 	
@@ -176,11 +178,15 @@ JSObject *JSVectorWithVector(JSContext *context, Vector vector)
 	if (EXPECT_NOT(result == NULL)) free(private);
 	
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSObject				*object = NULL;
 	
 	if (EXPECT_NOT(outValue == NULL)) return NO;
@@ -190,6 +196,8 @@ BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue)
 	
 	*outValue = OBJECT_TO_JSVAL(object);
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -209,6 +217,8 @@ BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)
 
 BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					*private = NULL;
 	Entity					*entity = nil;
 	jsuint					arrayLength;
@@ -254,6 +264,8 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	}
 	
 	return NO;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -289,6 +301,8 @@ BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 
 static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed, BOOL permitNumberList)
 {
+	OOJS_PROFILE_ENTER
+	
 	double				x, y, z;
 	
 	if (outConsumed != NULL)  *outConsumed = 0;
@@ -324,7 +338,11 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 	if (outConsumed != NULL)  *outConsumed = 3;
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
+
+
 BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)
 {
 	return VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO);
