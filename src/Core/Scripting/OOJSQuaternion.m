@@ -39,6 +39,9 @@ MA 02110-1301, USA.
 static JSObject *sQuaternionPrototype;
 
 
+static BOOL GetThisQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion *outQuaternion, NSString *method)  NONNULL_FUNC;
+
+
 static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 static void QuaternionFinalize(JSContext *context, JSObject *this);
@@ -170,7 +173,7 @@ BOOL QuaternionToJSValue(JSContext *context, Quaternion quaternion, jsval *outVa
 {
 	JSObject				*object = NULL;
 	
-	if (EXPECT_NOT(outValue == NULL)) return NO;
+	assert(outValue != NULL);
 	
 	object = JSQuaternionWithQuaternion(context, quaternion);
 	if (EXPECT_NOT(object == NULL)) return NO;
@@ -196,7 +199,7 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	jsval					arrayW, arrayX, arrayY, arrayZ;
 	jsdouble				dVal;
 	
-	if (EXPECT_NOT(outQuaternion == NULL || quaternionObj == NULL)) return NO;
+	assert(outQuaternion != NULL && quaternionObj != NULL);
 	
 	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
@@ -241,11 +244,21 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 }
 
 
+static BOOL GetThisQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion *outQuaternion, NSString *method)
+{
+	if (EXPECT(JSObjectGetQuaternion(context, quaternionObj, outQuaternion)))  return YES;
+	
+	jsval arg = OBJECT_TO_JSVAL(quaternionObj);
+	OOReportJSBadArguments(context, @"Quaternion", method, 1, &arg, @"Invalid target object", @"Quaternion");
+	return NO;
+}
+
+
 BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion quaternion)
 {
 	Quaternion				*private = NULL;
 	
-	if (EXPECT_NOT(quaternionObj == NULL)) return NO;
+	assert(quaternionObj != NULL);
 	
 	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
@@ -258,30 +271,13 @@ BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quat
 }
 
 
-BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed)
-{
-	if (QuaternionFromArgumentListNoError(context, argc, argv, outQuaternion, outConsumed))  return YES;
-	else
-	{
-		OOReportJSBadArguments(context, scriptClass, function, argc, argv,
-									   @"Could not construct quaternion from parameters",
-									   @"Quaternion, Entity or four numbers");
-		return NO;
-	}
-}
-
-
 static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed, BOOL permitNumberList)
 {
 	double				w, x, y, z;
 	
+	assert(argc != 0 && argv != NULL && outQuaternion != NULL);
+	
 	if (outConsumed != NULL)  *outConsumed = 0;
-	// Sanity checks.
-	if (EXPECT_NOT(argc == 0 || argv == NULL || outQuaternion == NULL))
-	{
-		OOLogGenericParameterError();
-		return NO;
-	}
 	
 	// Is first object a quaternion or entity?
 	if (JSVAL_IS_OBJECT(argv[0]))
@@ -309,6 +305,19 @@ static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN 
 	if (outConsumed != NULL)  *outConsumed = 4;
 
 	return YES;
+}
+
+
+BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed)
+{
+	if (QuaternionFromArgumentListNoErrorInternal(context, argc, argv, outQuaternion, outConsumed, NO))  return YES;
+	else
+	{
+		OOReportJSBadArguments(context, scriptClass, function, argc, argv,
+							   @"Could not construct quaternion from parameters",
+							   @"Quaternion, Entity or four numbers");
+		return NO;
+	}
 }
 
 
@@ -362,7 +371,11 @@ static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval na
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quaternion))) return NO;
-	JS_ValueToNumber(context, *value, &dval);
+	if (EXPECT_NOT(!JS_ValueToNumber(context, *value, &dval)))
+	{
+		OOReportJSError(context, @"Quaternion property accessor: Invalid value %@ -- expected number.", [NSString stringWithJavaScriptValue:OBJECT_TO_JSVAL(this) inContext:context]);
+		return NO;
+	}
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -465,7 +478,7 @@ static JSBool QuaternionToString(JSContext *context, JSObject *this, uintN argc,
 {
 	Quaternion				thisq;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"toString"))) return NO;
 	
 	*outResult = [QuaternionDescription(thisq) javaScriptValueInContext:context];
 	return YES;
@@ -477,7 +490,7 @@ static JSBool QuaternionToSource(JSContext *context, JSObject *this, uintN argc,
 {
 	Quaternion				thisq;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"toSource"))) return NO;
 	
 	*outResult = [[NSString stringWithFormat:@"Quaternion(%g, %g, %g, %g)", thisq.w, thisq.x, thisq.y, thisq.z]
 				  javaScriptValueInContext:context];
@@ -490,7 +503,7 @@ static JSBool QuaternionMultiply(JSContext *context, JSObject *this, uintN argc,
 {
 	Quaternion				thisq, thatq, result;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"multiply"))) return NO;
 	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Quaternion", @"multiply", argc, argv, &thatq, NULL)))  return NO;
 	
 	result = quaternion_multiply(thisq, thatq);
@@ -505,7 +518,7 @@ static JSBool QuaternionDot(JSContext *context, JSObject *this, uintN argc, jsva
 	Quaternion				thisq, thatq;
 	double					result;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"dot"))) return NO;
 	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Quaternion", @"dot", argc, argv, &thatq, NULL)))  return NO;
 	
 	result = quaternion_dot_product(thisq, thatq);
@@ -522,7 +535,7 @@ static JSBool QuaternionRotate(JSContext *context, JSObject *this, uintN argc, j
 	double					angle;
 	uintN					consumed;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"rotate"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Quaternion", @"rotate", argc, argv, &axis, &consumed)))  return NO;
 	argv += consumed;
 	argc -= consumed;
@@ -543,7 +556,7 @@ static JSBool QuaternionRotateX(JSContext *context, JSObject *this, uintN argc, 
 	Quaternion				quat;
 	double					angle;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quat))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &quat, @"rotateX"))) return NO;
 	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateX", argc, argv, &angle, NULL)))  return NO;
 	
 	quaternion_rotate_about_x(&quat, angle);
@@ -558,7 +571,7 @@ static JSBool QuaternionRotateY(JSContext *context, JSObject *this, uintN argc, 
 	Quaternion				quat;
 	double					angle;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quat))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &quat, @"rotateY"))) return NO;
 	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateY", argc, argv, &angle, NULL)))  return NO;
 	
 	quaternion_rotate_about_y(&quat, angle);
@@ -573,7 +586,7 @@ static JSBool QuaternionRotateZ(JSContext *context, JSObject *this, uintN argc, 
 	Quaternion				quat;
 	double					angle;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quat))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &quat, @"rotateZ"))) return NO;
 	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateZ", argc, argv, &angle, NULL)))  return NO;
 	
 	quaternion_rotate_about_z(&quat, angle);
@@ -587,7 +600,7 @@ static JSBool QuaternionNormalize(JSContext *context, JSObject *this, uintN argc
 {
 	Quaternion				quat;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quat))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &quat, @"normalize"))) return NO;
 	
 	quaternion_normalize(&quat);
 	
@@ -601,7 +614,7 @@ static JSBool QuaternionVectorForward(JSContext *context, JSObject *this, uintN 
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"vectorForward()"))) return NO;
 	
 	result = vector_forward_from_quaternion(thisq);
 	
@@ -615,7 +628,7 @@ static JSBool QuaternionVectorUp(JSContext *context, JSObject *this, uintN argc,
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"vectorUp"))) return NO;
 	
 	result = vector_up_from_quaternion(thisq);
 	
@@ -629,7 +642,7 @@ static JSBool QuaternionVectorRight(JSContext *context, JSObject *this, uintN ar
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"vectorRight"))) return NO;
 	
 	result = vector_right_from_quaternion(thisq);
 	
@@ -645,7 +658,7 @@ static JSBool QuaternionToArray(JSContext *context, JSObject *this, uintN argc, 
 	BOOL					OK = YES;
 	jsval					nVal;
 	
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"toArray"))) return NO;
 	
 	result = JS_NewArrayObject(context, 0, NULL);
 	if (result != NULL)
@@ -667,6 +680,8 @@ static JSBool QuaternionToArray(JSContext *context, JSObject *this, uintN argc, 
 	return YES;
 }
 
+
+// *** Static methods ***
 
 // random() : Quaternion
 static JSBool QuaternionStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
