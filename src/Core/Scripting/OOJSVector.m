@@ -305,9 +305,9 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 	
 	double				x, y, z;
 	
-	if (outConsumed != NULL)  *outConsumed = 0;
-	// Sanity checks.
 	assert(argc != 0 && argv != NULL && outQuaternion != NULL);
+	
+	if (outConsumed != NULL)  *outConsumed = 0;
 	
 	// Is first object a vector, array or entity?
 	if (JSVAL_IS_OBJECT(argv[0]))
