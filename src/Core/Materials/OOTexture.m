@@ -81,23 +81,10 @@ OOTextureInfo				gOOTextureInfo;
 
 @interface OOTexture (OOPrivate)
 
-- (void)setUpTexture;
-- (void)uploadTexture;
-- (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
-#if OO_TEXTURE_CUBE_MAP
-- (void) uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
-#endif
-
-- (GLenum) glTextureTarget;
-
 - (void) addToCaches;
 + (OOTexture *) existingTextureForKey:(NSString *)key;
 
 - (void) forceRebind;
-
-#if OOTEXTURE_RELOADABLE
-- (BOOL) isReloadable;
-#endif
 
 + (void)checkExtensions;
 
