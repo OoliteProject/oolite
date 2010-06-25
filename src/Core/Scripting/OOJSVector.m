@@ -305,7 +305,7 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 	
 	double				x, y, z;
 	
-	assert(argc != 0 && argv != NULL && outQuaternion != NULL);
+	assert(argc != 0 && argv != NULL && outVector != NULL);
 	
 	if (outConsumed != NULL)  *outConsumed = 0;
 	
