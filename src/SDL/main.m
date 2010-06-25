@@ -84,38 +84,43 @@ int main(int argc, char *argv[])
 	// pool.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	OOLoggingInit();
-
-	// dajt: allocate and set the NSApplication delegate manually because not
-	// using NIB to do this
-	controller = [[GameController alloc] init];
 	
-	// Release anything allocated during the controller initialisation that
-	// is no longer required.
-	[pool release];
+	NS_DURING
+		// dajt: allocate and set the NSApplication delegate manually because not
+		// using NIB to do this
+		controller = [[GameController alloc] init];
+		
+		// Release anything allocated during the controller initialisation that
+		// is no longer required.
+		DESTROY(pool);
 
-	for (i = 1; i < argc; i++)
-	{
-		// The commented out lines below do not seem to do anything, at least on Windows.
-		// The -fullscreen argument processing has been implemented in the loadFullscreenSettings
-		// method, inside src/SDL/MyOpenGLView.m.
-		/*
-		 -------- Begin commented out section --------
-		if (strcmp("-fullscreen", argv[i]) == 0)
-			[controller setFullScreenMode: YES];
-		--------- End commented out section --------
-		*/
-
-		if (strcmp("-load", argv[i]) == 0)
+		for (i = 1; i < argc; i++)
 		{
-			i++;
-			if (i < argc)
-				[controller setPlayerFileToLoad: [NSString stringWithCString: argv[i]]];
-		}
-	}
+			// The commented out lines below do not seem to do anything, at least on Windows.
+			// The -fullscreen argument processing has been implemented in the loadFullscreenSettings
+			// method, inside src/SDL/MyOpenGLView.m.
+			/*
+			 -------- Begin commented out section --------
+			if (strcmp("-fullscreen", argv[i]) == 0)
+				[controller setFullScreenMode: YES];
+			--------- End commented out section --------
+			*/
 
-	// Call applicationDidFinishLaunching because NSApp is not running in
-	// GNUstep port.
-	[controller applicationDidFinishLaunching: nil];
+			if (strcmp("-load", argv[i]) == 0)
+			{
+				i++;
+				if (i < argc)
+					[controller setPlayerFileToLoad: [NSString stringWithCString: argv[i]]];
+			}
+		}
+
+		// Call applicationDidFinishLaunching because NSApp is not running in
+		// GNUstep port.
+		[controller applicationDidFinishLaunching: nil];
+	NS_HANDLER
+		OOLogERR(kOOLogException, @"Root exception handler hit - terminating. This is an internal error, please report it. Exception name: %@, reason: %@", [localException name], [localException reason]);
+		return EXIT_FAILURE;
+	NS_ENDHANDLER
 #endif
 
 	// never reached
