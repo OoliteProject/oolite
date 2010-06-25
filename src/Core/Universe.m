@@ -8469,8 +8469,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (void) startSpeakingString:(NSString *) text
 {
-	size_t length = [text length];
-	espeak_Synth([text UTF8String], length + 1 /* inc. NULL */, 0, POS_CHARACTER, length, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
+	NSData *utf8 = [text dataUsingEncoding:NSUTF8StringEncoding];
+	
+	if (utf8 != nil)
+	{
+		const char *bytes = [utf8 bytes];
+		size_t length = strlen(bytes);
+		espeak_Synth([text UTF8String], length + 1 /* inc. NULL */, 0, POS_CHARACTER, length, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
+	}
 }
 
 - (void) stopSpeaking
