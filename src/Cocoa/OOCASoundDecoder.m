@@ -26,6 +26,8 @@ SOFTWARE.
 
 */
 
+#define OV_EXCLUDE_STATIC_CALLBACKS
+
 #import "OOCASoundDecoder.h"
 #import <stdio.h>
 #import <vorbis/vorbisfile.h>

@@ -410,6 +410,8 @@
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
+		1A47B7F711D4A76A0035F6EA /* libOggForOolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47B7F511D4A76A0035F6EA /* libOggForOolite.a */; };
+		1A47B7F811D4A76A0035F6EA /* libVorbisAllForOolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47B7F611D4A76A0035F6EA /* libVorbisAllForOolite.a */; };
 		1A49FAE7114C026B0015D5F8 /* cobra3_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */; };
 		1A4FB23A0C8D6A9A00DC8E1F /* jsautocfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB2390C8D6A9A00DC8E1F /* jsautocfg.h */; };
 		1A4FB23C0C8D6AA900DC8E1F /* jsapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB23B0C8D6AA900DC8E1F /* jsapi.h */; };
@@ -1568,6 +1570,8 @@
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
+		1A47B7F511D4A76A0035F6EA /* libOggForOolite.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOggForOolite.a; path = "deps/Cocoa-deps/Ogg Vorbis/libOggForOolite.a"; sourceTree = "<group>"; };
+		1A47B7F611D4A76A0035F6EA /* libVorbisAllForOolite.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libVorbisAllForOolite.a; path = "deps/Cocoa-deps/Ogg Vorbis/libVorbisAllForOolite.a"; sourceTree = "<group>"; };
 		1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra3_redux1.dat; sourceTree = "<group>"; };
 		1A4FB2390C8D6A9A00DC8E1F /* jsautocfg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsautocfg.h; path = xcode/jsautocfg.h; sourceTree = "<group>"; };
 		1A4FB23B0C8D6AA900DC8E1F /* jsapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsapi.h; path = src/jsapi.h; sourceTree = "<group>"; };
@@ -1929,6 +1933,8 @@
 				1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */,
 				1A4FB4BA0C8E11D800DC8E1F /* libmozjs_for_oolite.a in Frameworks */,
 				1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */,
+				1A47B7F711D4A76A0035F6EA /* libOggForOolite.a in Frameworks */,
+				1A47B7F811D4A76A0035F6EA /* libVorbisAllForOolite.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3106,6 +3112,8 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1A47B7F511D4A76A0035F6EA /* libOggForOolite.a */,
+				1A47B7F611D4A76A0035F6EA /* libVorbisAllForOolite.a */,
 				1AEAAC6C0BA457C3000705D0 /* SpiderMonkey */,
 				1A71E6FB0BCE345800CD5C13 /* libpng */,
 				1A71E8780BCE8EB100CD5C13 /* libz.dylib */,
@@ -3806,14 +3814,9 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_2)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_3)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_4)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_5)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_6)",
+					"\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/src/\"",
+					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
@@ -3822,15 +3825,12 @@
 				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
+				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
-				OTHER_LDFLAGS = (
-					"$(OTHER_LDFLAGS_QUOTED_FOR_TARGET_1)",
-					"$(OTHER_LDFLAGS_QUOTED_FOR_TARGET_2)",
-				);
-				OTHER_LDFLAGS_QUOTED_FOR_TARGET_1 = "\"$(OGGVORBISROOT)/libOgg.a\"";
-				OTHER_LDFLAGS_QUOTED_FOR_TARGET_2 = "\"$(OGGVORBISROOT)/libVorbisAll.a\"";
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
@@ -3869,14 +3869,9 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_2)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_3)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_4)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_5)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_6)",
+					"\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/src/\"",
+					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
@@ -3884,14 +3879,14 @@
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
+				);
 				OTHER_LDFLAGS = (
 					"$(OTHER_LDFLAGS_QUOTED_FOR_TARGET_1)",
 					"$(OTHER_LDFLAGS_QUOTED_FOR_TARGET_2)",
 				);
-				OTHER_LDFLAGS_QUOTED_FOR_TARGET_1 = "\"$(OGGVORBISROOT)/libOgg.a\"";
-				OTHER_LDFLAGS_QUOTED_FOR_TARGET_2 = "\"$(OGGVORBISROOT)/libVorbisAll.a\"";
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
@@ -3977,14 +3972,9 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_2)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_3)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_4)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_5)",
-					"$(HEADER_SEARCH_PATHS_QUOTED_6)",
+					"\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/src/\"",
+					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
@@ -3992,14 +3982,10 @@
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
-				OTHER_LDFLAGS = (
-					"$(OTHER_LDFLAGS_QUOTED_FOR_TARGET_1)",
-					"$(OTHER_LDFLAGS_QUOTED_FOR_TARGET_2)",
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
-				OTHER_LDFLAGS_QUOTED_FOR_TARGET_1 = "\"$(OGGVORBISROOT)/libOgg.a\"";
-				OTHER_LDFLAGS_QUOTED_FOR_TARGET_2 = "\"$(OGGVORBISROOT)/libVorbisAll.a\"";
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
