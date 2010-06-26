@@ -137,3 +137,29 @@ There are now several outcomes:
 After testing each non-lethal path, return to the nova system. The sun should
 be overlarge, there should be no ships except you, some asteroids and a
 witchbuoy, and you should be overheating.
+
+
+Trumbles:
+Sell 1t of food, then exit station and reenter (using
+PS.mainStation.dockPlayer()) as many times as required for the Trumble to be
+offered.
+
+
+Constrictor:
+Launch from station, spawn one thargon with the console and kill it, then
+reeenter. Mission will be offered. Orrara, the mission's final arrival point
+is next door. Unfortunately, not all hints can be tested with this savegame,
+other than the last one (there's a really dangerous pirate here).
+
+
+Thargoid plans:
+Do a Galactic Hyperspace and dock. The mission will be offered. It's a bit of
+work to go to Ceerdi and then Birera, so you can edit the save game coords if
+you want to get fast. Important to make sure that an increased number of
+Thargoid occurences happen and that the mission objectives are correctly listed
+in the manifest screen.
+
+
+Cloaking Device:
+Just jump to the system already targeted in the save game and the three Asps
+will be waiting for you. 
