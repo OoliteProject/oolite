@@ -420,6 +420,16 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		// Pass through to allow clearing of normal key as well.
 	}
 	
+	/*	HACK: treat f12 as alias to cmd-F for compatibility with helpful forum
+		advice etc.
+	*/
+	if (key == NSF12FunctionKey)
+	{
+		commandF = NO;
+		f12 = NO;
+		return;
+	};
+	
 	isAlphabetKeyDown = NO;
 	if ((key >= 0)&&(key < [self numKeys])&&(keys[key]))
 	{
@@ -476,6 +486,29 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	keycodetrans[keycode] = key;	// record the chracter we got for pressing the hardware at key location 'keycode'
 	
+	/*	HACK: treat f12 as alias to cmd-F for compatibility with helpful forum
+		advice etc.
+	*/
+	if (key == NSF12FunctionKey)
+	{
+		if (!f12)
+		{
+			f12 = YES;
+			
+			if (![gameController inFullScreenMode])
+			{
+				// Command-F is handled by menu action in non-fullscreen mode; simulate.
+				[gameController performSelector:@selector(goFullscreen:) withObject:nil afterDelay:0.0];
+			}
+			else
+			{
+				commandF = YES;
+			}
+		}
+		
+		return;
+	};
+	
 	if ((key >= 0)&&(key < [self numKeys])&&(!keys[key]))
 	{
 		keys[key] = YES;
@@ -516,7 +549,9 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	else
 	{
 		if (key > [self numKeys])
+		{
 			OOLog(kOOLogKeyCodeOutOfRange, @"Translated key: %d out of range", key);
+		}
 	}
 } 
 

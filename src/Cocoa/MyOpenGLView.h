@@ -92,6 +92,7 @@ extern int debug;
 	BOOL				isAlphabetKeyDown;
 	BOOL				commandQ;
 	BOOL				commandF;
+	BOOL				f12;
 	
 	int					keycodetrans[255];
 	
