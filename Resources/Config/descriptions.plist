@@ -1282,4 +1282,8 @@
 	"espeak-default-voice"	= "default";
 	
 	"speech-synthesis-incoming-message"	= "Incoming message.";
+	
+	// Mac multi-screen handling
+	"oolite-mac-bad-display" = "The display configuration has changed in a way that may impact Oolite’s performance.";
+	"oolite-mac-bad-display-2" = "Oolite’s main window is now on a screen which is not connected to a graphics processor compatible with Oolite. Oolite should continue to work, but performance may be degraded.";
 }

@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import <Carbon/Carbon.h>
 #import "JoystickHandler.h"
 #import "NSFileManagerOOExtensions.h"
+#import "OOGraphicsResetManager.h"
 
 #ifndef NDEBUG
 #import <Foundation/NSDebug.h>
@@ -66,7 +67,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	// Pixel Format Attributes for the View-based (non-FullScreen) NSOpenGLContext
 	NSOpenGLPixelFormatAttribute attrs[] =
 	{
-//		// Specify that we want a windowed OpenGL context.
+		// Specify that we want a windowed OpenGL context.
+		// Must be first or we'll hit an assert in -[GameController goFullscreen:].
 		NSOpenGLPFAWindow,
 		
 		// We may be on a multi-display system (and each screen may be driven by a different renderer), so we need to specify which screen we want to take over.
@@ -94,6 +96,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		0
 	};
 	
+	_pixelFormatAttributes = [[NSData alloc] initWithBytes:attrs length:sizeof attrs];
+	
 	// Create our non-FullScreen pixel format.
 	NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] autorelease];
 	
@@ -107,14 +111,17 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		
 	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
 	
+	_virtualScreen = [[self openGLContext] currentVirtualScreen];
+	
 	return self;
 }
 
 
 - (void) dealloc
 {
-	if (typedString)
-		[typedString release];
+	DESTROY(typedString);
+	DESTROY(_pixelFormatAttributes);
+	
 	[super dealloc];
 }
 
@@ -222,6 +229,48 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (void) noteMovedToBadDisplay
+{
+	NSRunInformationalAlertPanel(DESC(@"oolite-mac-bad-display"), @"%@", nil, nil, nil, DESC(@"oolite-mac-bad-display-2"));
+}
+
+
+- (void) update
+{
+	NSOpenGLContext *context = [self openGLContext];
+	
+	[context update];
+	int virtualScreen = [context currentVirtualScreen];
+	if (virtualScreen != _virtualScreen)
+	{
+		@try
+		{
+			[[OOGraphicsResetManager sharedManager] resetGraphicsState];
+			_virtualScreen = virtualScreen;
+		}
+		@catch (NSException *exception)
+		{
+			/*	Graphics reset failed, most likely because of OpenGL context
+				incompatibility. Reset to previous "virtual screen" (i.e.,
+				renderer). OS X's OpenGL implementation will take care of
+				copying 
+			*/
+			[context setCurrentVirtualScreen:_virtualScreen];
+			[[OOGraphicsResetManager sharedManager] resetGraphicsState];	// If this throws, we're screwed.
+			
+			if ([[self gameController] inFullScreenMode])
+			{
+				[[self gameController] pauseFullScreenModeToPerform:@selector(noteMovedToBadDisplay) onTarget:self];
+			}
+			else
+			{
+				[self noteMovedToBadDisplay];
+			}
+		}
+	}
+}
+
+
 - (void) initialiseGLWithSize:(NSSize) v_size
 {
 	viewSize = v_size;
@@ -240,6 +289,12 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	[[self openGLContext] flushBuffer];
 	
 	m_glContextInitialized = YES;
+}
+
+
+- (NSData *)pixelFormatAttributes
+{
+	return _pixelFormatAttributes;
 }
 
 

@@ -192,6 +192,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) filterOutNonStrictEquipment;
 - (void) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged;
 
+// Set shader effects level without logging or triggering a reset -- should only be used directly during startup.
+- (void) setShaderEffectsLevelDirectly:(OOShaderSetting)value;
+
 @end
 
 
@@ -208,6 +211,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	}
 	
 	self = [super init];
+	if (self == nil)  return nil;
+	
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];	
+	
 	[self setGameView:inGameView];
 	gSharedUniverse = self;
 	
@@ -217,13 +224,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	// init OpenGL extension manager (must be done before any other threads might use it)
 	[OOOpenGLExtensionManager sharedManager];
+	[self setShaderEffectsLevelDirectly:[prefs oo_intForKey:@"shader-mode"
+											   defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultShaderSetting]]];
 	
 	[OOMaterial setUp];
 	
 	// Preload cache
 	[OOCacheManager sharedCache];
 	
-	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];	
 	strict = [prefs oo_boolForKey:@"strict-gameplay" defaultValue:NO];
 	
 	// init the Resource Manager
@@ -241,11 +249,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 #if ALLOW_PROCEDURAL_PLANETS
 	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
 #endif
-	
-	BOOL logResets = OOLogWillDisplayMessagesInClass(@"rendering.reset.start");
-	OOLogSetDisplayMessagesInClass(@"rendering.reset.start", NO);
-	[self setShaderEffectsLevel:[prefs oo_intForKey:@"shader-mode" defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultShaderSetting]]];
-	OOLogSetDisplayMessagesInClass(@"rendering.reset.start", logResets);
 	
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
@@ -8386,16 +8389,15 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (void) setShaderEffectsLevel:(OOShaderSetting)value transiently:(BOOL)transiently
 {
-	OOShaderSetting max = [[OOOpenGLExtensionManager sharedManager] maximumShaderSetting];
+	OOShaderSetting old = [self shaderEffectsLevel];
+	[self setShaderEffectsLevelDirectly:value];
+	OOShaderSetting new = [self shaderEffectsLevel];
 	
-	if (value < SHADERS_MIN)  value = SHADERS_MIN;
-	if (max < value)  value = max;
-	
-	if (value != shaderEffectsLevel)
+	if (old != new)
 	{
 		OOLog(@"rendering.opengl.shader.mode", @"Shader mode set to %@.", ShaderSettingToString(value));
-		shaderEffectsLevel = value;
 		if (!transiently)  [[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-mode"];
+		
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
 	}
 }
@@ -9205,13 +9207,24 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	unsigned i = [_preloadingPlanetMaterials count];
 	while (i--)
 	{
-		if (![_preloadingPlanetMaterials objectAtIndex:i] || [[_preloadingPlanetMaterials objectAtIndex:i] isFinishedLoading])
+		if ([[_preloadingPlanetMaterials objectAtIndex:i] isFinishedLoading])
 		{
 			[_preloadingPlanetMaterials removeObjectAtIndex:i];
 		}
 	}
 }
 #endif
+
+
+- (void) setShaderEffectsLevelDirectly:(OOShaderSetting)value
+{
+	OOShaderSetting max = [[OOOpenGLExtensionManager sharedManager] maximumShaderSetting];
+	
+	if (value < SHADERS_MIN)  value = SHADERS_MIN;
+	if (max < value)  value = max;
+	
+	shaderEffectsLevel = value;
+}
 
 @end
 

@@ -108,7 +108,10 @@ extern int debug;
 	GLfloat				display_z;
 	GLfloat				x_offset, y_offset;
 	
-	JoystickHandler *stickHandler;
+	int					_virtualScreen;
+	NSData				*_pixelFormatAttributes;
+	
+	JoystickHandler		*stickHandler;
 }
 
 
@@ -128,6 +131,8 @@ extern int debug;
 - (void) setGameController:(GameController *) controller;
 
 - (void) initialiseGLWithSize:(NSSize) v_size;
+
+- (NSData *)pixelFormatAttributes;
 
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;

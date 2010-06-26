@@ -161,8 +161,6 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 
 - (id)init
 {
-	const GLubyte		*versionString = NULL, *curr = NULL;
-	
 	self = [super init];
 	if (self != nil)
 	{
@@ -171,105 +169,117 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 		[lock ooSetName:@"OOOpenGLExtensionManager extension set lock"];
 #endif
 		
-		NSString *extensionsStr = [NSString stringWithUTF8String:(char *)glGetString(GL_EXTENSIONS)];
-		extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
-		
-		vendor = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_VENDOR)];
-		renderer = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_RENDERER)];
-		
-		versionString = glGetString(GL_VERSION);
-		if (versionString != NULL)
-		{
-			/*	String is supposed to be "major.minorFOO" or
-				"major.minor.releaseFOO" where FOO is an empty string or
-				a string beginning with space.
-			*/
-			curr = versionString;
-			major = IntegerFromString(&curr);
-			if (*curr == '.')
-			{
-				curr++;
-				minor = IntegerFromString(&curr);
-			}
-			if (*curr == '.')
-			{
-				curr++;
-				release = IntegerFromString(&curr);
-			}
-		}
-		
-		/*	For aesthetic reasons, cause the ResourceManager to initialize its
-			search paths here. If we don't, the search path dump ends up in
-			the middle of the OpenGL stuff.
-		*/
-		[ResourceManager paths];
-		
-		OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\")\nVendor: %@\nRenderer: %@", major, minor, release, versionString, vendor, renderer);
-		OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%u):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
-		
-		if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion])
-		{
-			OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
-			[NSException raise:@"OoliteOpenGLTooOldException"
-						format:@"Oolite requires at least OpenGL %u.1%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
-		}
-		
-		NSString *versionStr = [[[NSString alloc] initWithUTF8String:(const char *)versionString] autorelease];
-		NSDictionary *gpuConfig = [self lookUpPerGPUSettingsWithVersionString:versionStr extensionsString:extensionsStr];
-		
-#if OO_SHADERS
-		[self checkShadersSupported];
-		
-		if (shadersAvailable)
-		{
-			defaultShaderSetting = StringToShaderSetting([gpuConfig oo_stringForKey:@"default_shader_level"
-																	   defaultValue:@"SHADERS_FULL"]);
-			maximumShaderSetting = StringToShaderSetting([gpuConfig oo_stringForKey:@"maximum_shader_level"
-																	   defaultValue:@"SHADERS_FULL"]);
-			if (maximumShaderSetting <= SHADERS_OFF)
-			{
-				shadersAvailable = NO;
-				maximumShaderSetting = SHADERS_NOT_SUPPORTED;
-				OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (disallowed for GPU type \"%@\").", [gpuConfig oo_stringForKey:@"name" defaultValue:renderer]);
-			}
-			if (maximumShaderSetting < defaultShaderSetting)
-			{
-				defaultShaderSetting = maximumShaderSetting;
-			}
-			
-			if (shadersAvailable)
-			{
-				OOLog(kOOLogOpenGLShaderSupport, @"Shaders are supported.");
-			}
-		}
-		else
-		{
-			defaultShaderSetting = SHADERS_NOT_SUPPORTED;
-			maximumShaderSetting = SHADERS_NOT_SUPPORTED;
-		}
-		
-		GLint texImageUnitOverride = [gpuConfig oo_unsignedIntegerForKey:@"texture_image_units" defaultValue:textureImageUnitCount];
-		if (texImageUnitOverride < textureImageUnitCount)  textureImageUnitCount = texImageUnitOverride;
-#endif
-		
-#if OO_USE_VBO
-		[self checkVBOSupported];
-#endif
-#if OO_USE_FBO
-		[self checkFBOSupported];
-#endif
-#if OO_MULTITEXTURE
-		[self checkTextureCombinersSupported];
-		GLint texUnitOverride = [gpuConfig oo_unsignedIntegerForKey:@"texture_units" defaultValue:textureUnitCount];
-		if (texUnitOverride < textureUnitCount)  textureUnitCount = texUnitOverride;
-#endif
-		
-		usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];
-		useLineSmoothing = [gpuConfig oo_boolForKey:@"smooth_lines" defaultValue:YES];
-		useDustShader = [gpuConfig oo_boolForKey:@"use_dust_shader" defaultValue:YES];
+		[self reset];
 	}
 	
 	return self;
+}
+
+
+- (void) reset
+{
+	const GLubyte		*versionString = NULL, *curr = NULL;
+	
+	DESTROY(extensions);
+	DESTROY(vendor);
+	DESTROY(renderer);
+	
+	NSString *extensionsStr = [NSString stringWithUTF8String:(char *)glGetString(GL_EXTENSIONS)];
+	extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
+	
+	vendor = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_VENDOR)];
+	renderer = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_RENDERER)];
+	
+	versionString = glGetString(GL_VERSION);
+	if (versionString != NULL)
+	{
+		/*	String is supposed to be "major.minorFOO" or
+		 "major.minor.releaseFOO" where FOO is an empty string or
+		 a string beginning with space.
+		 */
+		curr = versionString;
+		major = IntegerFromString(&curr);
+		if (*curr == '.')
+		{
+			curr++;
+			minor = IntegerFromString(&curr);
+		}
+		if (*curr == '.')
+		{
+			curr++;
+			release = IntegerFromString(&curr);
+		}
+	}
+	
+	/*	For aesthetic reasons, cause the ResourceManager to initialize its
+	 search paths here. If we don't, the search path dump ends up in
+	 the middle of the OpenGL stuff.
+	 */
+	[ResourceManager paths];
+	
+	OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\"). Vendor: \"%@\". Renderer: \"%@\".", major, minor, release, versionString, vendor, renderer);
+	OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%u):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
+	
+	if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion])
+	{
+		OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
+		[NSException raise:@"OoliteOpenGLTooOldException"
+					format:@"Oolite requires at least OpenGL %u.1%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
+	}
+	
+	NSString *versionStr = [[[NSString alloc] initWithUTF8String:(const char *)versionString] autorelease];
+	NSDictionary *gpuConfig = [self lookUpPerGPUSettingsWithVersionString:versionStr extensionsString:extensionsStr];
+	
+#if OO_SHADERS
+	[self checkShadersSupported];
+	
+	if (shadersAvailable)
+	{
+		defaultShaderSetting = StringToShaderSetting([gpuConfig oo_stringForKey:@"default_shader_level"
+																   defaultValue:@"SHADERS_FULL"]);
+		maximumShaderSetting = StringToShaderSetting([gpuConfig oo_stringForKey:@"maximum_shader_level"
+																   defaultValue:@"SHADERS_FULL"]);
+		if (maximumShaderSetting <= SHADERS_OFF)
+		{
+			shadersAvailable = NO;
+			maximumShaderSetting = SHADERS_NOT_SUPPORTED;
+			OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (disallowed for GPU type \"%@\").", [gpuConfig oo_stringForKey:@"name" defaultValue:renderer]);
+		}
+		if (maximumShaderSetting < defaultShaderSetting)
+		{
+			defaultShaderSetting = maximumShaderSetting;
+		}
+		
+		if (shadersAvailable)
+		{
+			OOLog(kOOLogOpenGLShaderSupport, @"Shaders are supported.");
+		}
+	}
+	else
+	{
+		defaultShaderSetting = SHADERS_NOT_SUPPORTED;
+		maximumShaderSetting = SHADERS_NOT_SUPPORTED;
+	}
+	
+	GLint texImageUnitOverride = [gpuConfig oo_unsignedIntegerForKey:@"texture_image_units" defaultValue:textureImageUnitCount];
+	if (texImageUnitOverride < textureImageUnitCount)  textureImageUnitCount = texImageUnitOverride;
+#endif
+	
+#if OO_USE_VBO
+	[self checkVBOSupported];
+#endif
+#if OO_USE_FBO
+	[self checkFBOSupported];
+#endif
+#if OO_MULTITEXTURE
+	[self checkTextureCombinersSupported];
+	GLint texUnitOverride = [gpuConfig oo_unsignedIntegerForKey:@"texture_units" defaultValue:textureUnitCount];
+	if (texUnitOverride < textureUnitCount)  textureUnitCount = texUnitOverride;
+#endif
+	
+	usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];
+	useLineSmoothing = [gpuConfig oo_boolForKey:@"smooth_lines" defaultValue:YES];
+	useDustShader = [gpuConfig oo_boolForKey:@"use_dust_shader" defaultValue:YES];
 }
 
 
@@ -280,9 +290,9 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
 	[lock release];
 #endif
-	[extensions release];
-	[vendor release];
-	[renderer release];
+	DESTROY(extensions);
+	DESTROY(vendor);
+	DESTROY(renderer);
 	
 	[super dealloc];
 }

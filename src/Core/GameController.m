@@ -575,40 +575,13 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		
 		originalDisplayMode = (NSDictionary *)CGDisplayCurrentMode(kCGDirectMainDisplay);
 		
-		// Pixel Format Attributes for the FullScreen NSOpenGLContext
-		NSOpenGLPixelFormatAttribute attrs[] = {
-
-			// Specify that we want a full-screen OpenGL context.
-			NSOpenGLPFAFullScreen,
-//			// and that we want a windowed OpenGL context.
-//			NSOpenGLPFAWindow,
-
-			// We may be on a multi-display system (and each screen may be driven by a different renderer), so we need to specify which screen we want to take over.
-			// For this demo, we'll specify the main screen.
-			NSOpenGLPFAScreenMask, CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay),
-
-			// Specifying "NoRecovery" gives us a context that cannot fall back to the software renderer.
-			// This makes the View-based context compatible with the fullscreen context, enabling us to use the "shareContext"
-			// feature to share textures, display lists, and other OpenGL objects between the two.
-			NSOpenGLPFANoRecovery,
-			
-			// Attributes Common to FullScreen and non-FullScreen
-			NSOpenGLPFACompliant,
-			
-			NSOpenGLPFAColorSize, 32,
-			NSOpenGLPFADepthSize, 32,
-			NSOpenGLPFADoubleBuffer,
-			NSOpenGLPFAAccelerated,
-#if FSAA
-			// Need a preference or other sane way to activate this
-			NSOpenGLPFAMultisample,
-			NSOpenGLPFASampleBuffers, 1,
-			NSOpenGLPFASamples,4,
-#endif
-			0
-		};
+		NSMutableData *attrData = [[gameView pixelFormatAttributes] mutableCopy];
+		NSOpenGLPixelFormatAttribute *attrs = [attrData mutableBytes];
+		NSAssert(attrs[0] == NSOpenGLPFAWindow, @"Pixel format does not meet my strenuous expectations!");
+		attrs[0] = NSOpenGLPFAFullScreen;
+		
 		GLint rendererID;
-
+		
 		// Create the FullScreen NSOpenGLContext with the attributes listed above.
 		NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
 		

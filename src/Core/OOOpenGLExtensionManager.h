@@ -149,6 +149,8 @@ SOFTWARE.
 
 + (id)sharedManager;
 
+- (void) reset;
+
 - (BOOL)haveExtension:(NSString *)extension;
 
 - (BOOL)shadersSupported;

@@ -27,6 +27,7 @@ SOFTWARE.
 
 #import "OOGraphicsResetManager.h"
 #import "OOTexture.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 static OOGraphicsResetManager *sSingleton = nil;
@@ -76,6 +77,7 @@ static OOGraphicsResetManager *sSingleton = nil;
 	OOLog(@"rendering.reset.start", @"Resetting graphics state.");
 	OOLogIndentIf(@"rendering.reset.start");
 	
+	[[OOOpenGLExtensionManager sharedManager] reset];
 	[OOTexture rebindAllTextures];
 	
 	for (clientEnum = [clients objectEnumerator]; (client = [[clientEnum nextObject] pointerValue]); )
