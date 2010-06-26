@@ -32,7 +32,7 @@ SOFTWARE.
 #import "OOLoggingExtended.h"
 
 
-#if 1 // OO_DEBUG
+#if OO_DEBUG
 #define OOJS_DEBUG_LIMITER	1
 #else
 #define OOJS_DEBUG_LIMITER	0
