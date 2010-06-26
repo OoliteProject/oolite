@@ -61,7 +61,6 @@ static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uin
 static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemLegacyToCoordinates(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -165,7 +164,6 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "countShipsWithRole",				SystemCountShipsWithRole,	1 },
 	{ "entitiesWithScanClass",			SystemEntitiesWithScanClass, 1 },
 	{ "filteredEntities",				SystemFilteredEntities,		2 },
-	{ "legacyToCoordinates",			SystemLegacyToCoordinates,	2 },
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,		1 },
 	{ "shipsWithPrimaryRole",			SystemShipsWithPrimaryRole,	1 },
 	{ "shipsWithRole",					SystemShipsWithRole,		1 },
@@ -712,34 +710,6 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 	{
 		return NO;
 	}
-}
-
-
-// system.legacyToCoordinates(coordScheme : String, coords : vectorExpression)
-static JSBool SystemLegacyToCoordinates(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	Vector				where;
-	NSString			*coordScheme = nil;
-	NSString			*arg = nil;
-	uintN				consumed = 0;
-	
-	coordScheme = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(coordScheme == nil ||
-				   argc < 2 ||
-				   !VectorFromArgumentListNoError(context, argc - 1, argv + 1, &where, &consumed)))
-	{
-		OOReportJSBadArguments(context, @"System", @"legacyToCoordinates", argc, argv, nil, @"coordinate scheme, coordinates");
-		return NO;
-	}
-	
-	OOJSPauseTimeLimiter();
-	arg = [NSString stringWithFormat:@"%@ %f %f %f", coordScheme, where.x, where.y, where.z];
-
-	VectorToJSValue(context, [UNIVERSE coordinatesFromCoordinateSystemString:arg], outResult);
-
-	OOJSResumeTimeLimiter();
-	
-	return YES;
 }
 
 
