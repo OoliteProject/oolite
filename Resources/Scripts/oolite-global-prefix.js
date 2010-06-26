@@ -65,7 +65,7 @@ if (typeof Object.getPrototypeOf !== "function")
 
 
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
-Object.getPrototypeOf(Ship).spawnOne = function (role)
+Object.getPrototypeOf(Ship).spawnOne = function Ship_spawnOne(role)
 {
 	var result = this.spawn(role, 1);
 	return result ? result[0] : null;
@@ -73,7 +73,7 @@ Object.getPrototypeOf(Ship).spawnOne = function (role)
 
 
 // mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.
-mission.addMessageTextKey = function(textKey)
+mission.addMessageTextKey = function mission_addMessageTextKey(textKey)
 {
 	mission.addMessageText((textKey ? expandMissionText(textKey) : null));
 }
@@ -86,7 +86,7 @@ mission.addMessageTextKey = function(textKey)
 */
 if (typeof String.prototype.trim !== "function")
 {
-	String.prototype.trim = function ()
+	String.prototype.trim = function String_trim()
 	{
 		var	str = this.replace(/^\s\s*/, ''),
 			 ws = /\s/,
@@ -100,7 +100,7 @@ if (typeof String.prototype.trim !== "function")
 /*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
 	certain distance.
 */
-SystemInfo.systemsInRange = function(range)
+SystemInfo.systemsInRange = function SystemInfo_systemsInRange(range)
 {
 	if (range === undefined)
 	{
@@ -128,6 +128,38 @@ SystemInfo.systemsInRange = function(range)
 	{
 		return (other.systemID !== thisSystem.systemID) && (thisSystem.distanceToSystem(other) <= range);
 	});
+}
+
+
+/*	system.scrambledPseudoRandom(salt : Number (integer)) : Number
+	
+	This function converts system.pseudoRandomNumber to an effectively
+	arbitrary different value that is also stable per system. Every combination
+	of system and salt produces a different number.
+	
+	This should generally be used in preference to system.pseudoRandomNumber,
+	because multiple OXPs using system.pseudoRandomNumber to make the same kind
+	of decision will cause unwanted clustering. For example, if three different
+	OXPs add a station to a system when system.pseudoRandomNumber <= 0.25,
+	their stations will always appear in the same system. If they instead use
+	system.scrambledPseudoRandomNumber() with different salt values, there will
+	be no obvious correlation between the different stations’ distributions.
+*/
+system.scrambledPseudoRandomNumber = function system_scrambledPseudoRandomNumber(salt)
+{
+	// Convert from float in [0..1) with 24 bits of precision to integer.
+	var n = Math.floor(system.pseudoRandomNumber * 16777216.0);
+	
+	// Add salt to enable generation of different sequences.
+	n += salt;
+	
+	// Scramble with basic LCG psuedo-random number generator.
+	n = (214013 * n + 2531011) & 0xFFFFFFFF;
+	n = (214013 * n + 2531011) & 0xFFFFFFFF;
+	n = (214013 * n + 2531011) & 0xFFFFFFFF;
+	
+	// Convert from (effectively) 32-bit signed integer to float in [0..1).
+	return n / 4294967296.0 + 0.5;
 }
 
 
