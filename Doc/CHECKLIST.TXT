@@ -76,14 +76,14 @@ There are now several outcomes:
 * The bastard: dock with the main station and get the following message (with
   solar.png as a background):
     You've arrived at an unfortunate time, Commander.
-	
-	Our sun has become unstable and is due to go nova at any moment. All our
-	ships are evacuating the system, the last few refugees have come here to
-	find a ship to take them to safety.
+    
+    Our sun has become unstable and is due to go nova at any moment. All our
+    ships are evacuating the system, the last few refugees have come here to
+    find a ship to take them to safety.
     
     Please, please help us to escape!
       [No, sorry.]
-	  [Okay, I'll help]
+      [Okay, I'll help]
   Select [No, sorry.] You will get a comms message saying "Coward! You chose
   not to help the refugees!" (FIXME: this appears behind the station UI.
   Should it be removed, or deferred until launching?)
@@ -97,10 +97,10 @@ There are now several outcomes:
   should get the following message (with solar.png as a background):
   
     Commander, you should be ashamed.
-	Those people you left behind had placed all their hopes on you and you
-	just left them to their fate.
-	
-	Such cowardly behaviour hasn't gone unnoticed.
+    Those people you left behind had placed all their hopes on you and you
+    just left them to their fate.
+    
+    Such cowardly behaviour hasn't gone unnoticed.
   
   missionVariables.nova should now be "NOVA_HERO".
   
@@ -113,15 +113,15 @@ There are now several outcomes:
   Dock at any (other) main station, and get the following message:
   
     Commander, we thank you.
-	
-	You've brought us all to safety but we have no money with which we can
-	reward you - our last credits were taken by those who took us to the space
-	station.
-	
-	Instead we offer you undying gratitude... and what few valuable
-	possessions we can spare.
-	
-	You are our hero!
+    
+    You've brought us all to safety but we have no money with which we can
+    reward you - our last credits were taken by those who took us to the space
+    station.
+    
+    Instead we offer you undying gratitude... and what few valuable
+    possessions we can spare.
+    
+    You are our hero!
   
   You should have 100 g of gemstones (and nothing else) in your cargo hold.
   missionVariables.nova should now be "NOVA_HERO".
