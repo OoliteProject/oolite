@@ -2640,13 +2640,20 @@ static NSTimeInterval	time_last_frame;
 		stickHandler=[gameView getStickHandler];
 	}
 	numSticks=[stickHandler getNumSticks];
-	deadzone = STICK_DEADZONE / [stickHandler getSensitivity];
+	if (mouse_control_on)
+	{
+		deadzone = 0.0;
+	}
+	else
+	{
+		deadzone = STICK_DEADZONE / [stickHandler getSensitivity];
+	}
 	
 	/*	DJS: Handle inputs on the joy roll/pitch axis.
 	 Mouse control on takes precidence over joysticks.
 	 We have to assume the player has a reason for switching mouse
 	 control on if they have a joystick - let them do it. */
-	if(mouse_control_on)
+	if (mouse_control_on)
 	{
 		virtualStick=[gameView virtualJoystickPosition];
 		double sensitivity = 2.0;
@@ -2654,7 +2661,7 @@ static NSTimeInterval	time_last_frame;
 		virtualStick.y *= sensitivity;
 		reqYaw = virtualStick.x;
 	}
-	else if(numSticks)
+	else if (numSticks > 0)
 	{
 		virtualStick=[stickHandler getRollPitchAxis];
 		if((virtualStick.x == STICK_AXISUNASSIGNED ||
