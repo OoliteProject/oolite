@@ -53,14 +53,14 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 - (void)connectToGrowl:unused;
 - (void)disconnectFromGrowl:unused;
 - (void)connectionDied:unused;
-- (void)displayGrowlNotificiationWithTitle:(NSString *)inTitle andMessage:(NSString *)inMessage fromApp:(NSString *) inAppname;
+- (void)displayGrowlNotificationWithTitle:(NSString *)inTitle andMessage:(NSString *)inMessage fromApp:(NSString *) inAppname;
 
 @end
 
 
 @implementation Groolite
 
-- (void)displayGrowlNotificiationWithTitle:(NSString *)inTitle andMessage:(NSString *)inMessage fromApp:(NSString *) inAppname
+- (void)displayGrowlNotificationWithTitle:(NSString *)inTitle andMessage:(NSString *)inMessage fromApp:(NSString *) inAppname
 {
 	PlayerEntity			*player;
 	NSString				*notificationString;
@@ -245,7 +245,7 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 		message = nil;
 	}
 	
-	[self displayGrowlNotificiationWithTitle:title andMessage:message fromApp:appname];
+	[self displayGrowlNotificationWithTitle:title andMessage:message fromApp:appname];
 }
 
 

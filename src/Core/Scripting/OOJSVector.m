@@ -70,7 +70,6 @@ static JSBool VectorRotateBy(JSContext *context, JSObject *this, uintN argc, jsv
 static JSBool VectorToArray(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 // Static methods
-static JSBool VectorStaticFromCoordinateSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorStaticRandomDirection(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -149,7 +148,6 @@ static JSFunctionSpec sVectorMethods[] =
 static JSFunctionSpec sVectorStaticMethods[] =
 {
 	// JS name						Function							min args
-	{ "vectorFromCoordinateSystem",	VectorStaticFromCoordinateSystem,	2, },
 	{ "interpolate",				VectorStaticInterpolate,			3, },
 	{ "random",						VectorStaticRandom,					0, },
 	{ "randomDirection",			VectorStaticRandomDirection, 		0, },
@@ -834,42 +832,6 @@ static JSBool VectorFromCoordinateSystem(JSContext *context, JSObject *this, uin
 
 
 // *** Static methods ***
-
-
-// vectorFromCoordinateSystem(coords : vectorExpression, coordScheme : String)
-static JSBool VectorStaticFromCoordinateSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	Vector				where;
-	NSString			*coordScheme = nil;
-	NSString			*arg = nil;
-	uintN				consumed = 0;
-	BOOL				OK = YES;
-	
-	if (!VectorFromArgumentListNoError(context, argc, argv, &where, &consumed))
-	{
-		OK = NO;
-	}
-	
-	if (argc > consumed)
-	{
-		coordScheme = JSValToNSString(context, argv[consumed]);
-	}
-	
-	if (EXPECT_NOT(coordScheme == nil || OK == NO))
-	{
-		OOReportJSBadArguments(context, @"Vector3D", @"vectorWithCoordinateSystem", argc, argv, nil, @"coordinates, coordinate system");
-		return NO;
-	}
-	
-	OOJSPauseTimeLimiter();
-	
-	arg = [NSString stringWithFormat:@"%@ %f %f %f", coordScheme, where.x, where.y, where.z];
-	VectorToJSValue(context, [UNIVERSE coordinatesFromCoordinateSystemString:arg], outResult);
-
-	OOJSResumeTimeLimiter();
-	
-	return YES;
-}
 
 
 // interpolate(v : Vector3D, u : Vector3D, alpha : Number) : Vector3D
