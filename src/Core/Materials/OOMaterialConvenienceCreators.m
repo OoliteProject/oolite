@@ -387,6 +387,7 @@ static void SynthEmissionAndIllumination(OOMaterialSynthContext *context)
 	NSDictionary *illuminationMapSpec = [context->inConfig oo_illuminationMapSpecifier];
 	NSDictionary *emissionAndIlluminationSpec = [context->inConfig oo_emissionAndIlluminationMapSpecifier];
 	BOOL isCombinedSpec = NO;
+	BOOL haveIlluminationMap = NO;
 	
 	if (emissionMapSpec == nil && emissionAndIlluminationSpec != nil)
 	{
@@ -397,29 +398,35 @@ static void SynthEmissionAndIllumination(OOMaterialSynthContext *context)
 	if (emissionMapSpec != nil && context->texturesUsed < context->maxTextures)
 	{
 		/*	FIXME: at this point, if there is an illumination map, we should
-		 consider merging it into the emission map using
-		 OOCombinedEmissionMapGenerator if the total number of texture
-		 specifiers is greater than context->maxTextures. This will
-		 require adding a new type of texture specifier - not a big deal.
-		 -- Ahruman 2010-05-21
-		 */
+			consider merging it into the emission map using
+			OOCombinedEmissionMapGenerator if the total number of texture
+			specifiers is greater than context->maxTextures. This will
+			require adding a new type of texture specifier - not a big deal.
+			-- Ahruman 2010-05-21
+		*/
 		AddTexture(context, @"uEmissionMap", nil, isCombinedSpec ? @"OOSTD_EMISSION_AND_ILLUMINATION_MAP" : @"OOSTD_EMISSION_MAP", emissionMapSpec);
 		/*	Note that this sets emission_color, not emission_modulate_color.
-		 This is because the emission colour value is sent through the
-		 standard OpenGL emission colour attribute by OOBasicMaterial.
-		 */
+			This is because the emission colour value is sent through the
+			standard OpenGL emission colour attribute by OOBasicMaterial.
+		*/
 		AddColorIfAppropriate(context, @selector(oo_emissionModulateColor), kOOMaterialEmissionColorName, @"OOSTD_EMISSION");
+		
+		haveIlluminationMap = isCombinedSpec;
 	}
 	else
 	{
-		// No emission map, use overall emission colour if specified.
+		//	No emission map, use overall emission colour if specified.
 		AddColorIfAppropriate(context, @selector(oo_emissionColor), kOOMaterialEmissionColorName, @"OOSTD_EMISSION");
 	}
-	
 	
 	if (illuminationMapSpec != nil && context->texturesUsed < context->maxTextures)
 	{
 		AddTexture(context, @"uIlluminationMap", nil, @"OOSTD_ILLUMINATION_MAP", illuminationMapSpec);
+		haveIlluminationMap = YES;
+	}
+	
+	if (haveIlluminationMap)
+	{
 		AddMacroColorIfAppropriate(context, @selector(oo_illuminationModulateColor), @"OOSTD_ILLUMINATION_COLOR");
 	}
 }
