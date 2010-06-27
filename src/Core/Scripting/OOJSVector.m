@@ -288,6 +288,8 @@ static BOOL GetThisVector(JSContext *context, JSObject *vectorObj, Vector *outVe
 
 BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					*private = NULL;
 	
 	if (EXPECT_NOT(vectorObj == NULL))  return NO;
@@ -300,6 +302,8 @@ BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)
 	}
 	
 	return NO;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -366,6 +370,8 @@ BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, 
 
 static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector				vector;
 	GLfloat				value;
 	
@@ -392,11 +398,15 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsval name, 
 	}
 	
 	return JS_NewDoubleValue(context, value, outValue);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector				vector;
 	jsdouble			dval;
 	
@@ -428,11 +438,15 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsval name, 
 	}
 	
 	return JSVectorSetVector(context, this, vector);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static void VectorFinalize(JSContext *context, JSObject *this)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					*private = NULL;
 	
 	private = JS_GetInstancePrivate(context, this, &sVectorClass.base, NULL);
@@ -440,11 +454,15 @@ static void VectorFinalize(JSContext *context, JSObject *this)
 	{
 		free(private);
 	}
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
 static JSBool VectorConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					vector = kZeroVector;
 	Vector					*private = NULL;
 	
@@ -480,11 +498,15 @@ static JSBool VectorConstruct(JSContext *context, JSObject *this, uintN argc, js
 	}
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSBool VectorEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv;
 	
 	*outEqual = NO;
@@ -494,6 +516,8 @@ static JSBool VectorEquality(JSContext *context, JSObject *this, jsval value, JS
 	
 	*outEqual = vector_equal(thisv, thatv);
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -502,18 +526,24 @@ static JSBool VectorEquality(JSContext *context, JSObject *this, jsval value, JS
 // toString() : String
 static JSBool VectorToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	Vector					thisv;
 	
 	if (EXPECT_NOT(!GetThisVector(context, this, &thisv, @"toString"))) return NO;
 	
 	*outResult = [VectorDescription(thisv) javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // toSource() : String
 static JSBool VectorToSource(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	Vector					thisv;
 	
 	if (EXPECT_NOT(!GetThisVector(context, this, &thisv, @"toSource"))) return NO;
@@ -521,6 +551,8 @@ static JSBool VectorToSource(JSContext *context, JSObject *this, uintN argc, jsv
 	*outResult = [[NSString stringWithFormat:@"Vector3D(%g, %g, %g)", thisv.x, thisv.y, thisv.z]
 				  javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -545,6 +577,8 @@ static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *a
 // subtract(v : vectorExpression) : Vector3D
 static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv, result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, this, &thisv, @"subtract"))) return NO;
@@ -553,12 +587,16 @@ static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsv
 	result = vector_subtract(thisv, thatv);
 	
 	return VectorToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // distanceTo(v : vectorExpression) : Number
 static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv;
 	GLfloat					result;
 	
@@ -568,12 +606,16 @@ static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, j
 	result = distance(thisv, thatv);
 	
 	return JS_NewDoubleValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // squaredDistanceTo(v : vectorExpression) : Number
 static JSBool VectorSquaredDistanceTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv;
 	GLfloat					result;
 	
@@ -583,12 +625,16 @@ static JSBool VectorSquaredDistanceTo(JSContext *context, JSObject *this, uintN 
 	result = distance2(thisv, thatv);
 	
 	return JS_NewDoubleValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // multiply(n : Number) : Vector3D
 static JSBool VectorMultiply(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, result;
 	double					scalar;
 	
@@ -598,12 +644,16 @@ static JSBool VectorMultiply(JSContext *context, JSObject *this, uintN argc, jsv
 	result = vector_multiply_scalar(thisv, scalar);
 	
 	return VectorToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // dot(v : vectorExpression) : Number
 static JSBool VectorDot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv;
 	GLfloat					result;
 	
@@ -613,12 +663,16 @@ static JSBool VectorDot(JSContext *context, JSObject *this, uintN argc, jsval *a
 	result = dot_product(thisv, thatv);
 	
 	return JS_NewDoubleValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // angleTo(v : vectorExpression) : Number
 static JSBool VectorAngleTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv;
 	GLfloat					result;
 	
@@ -628,12 +682,16 @@ static JSBool VectorAngleTo(JSContext *context, JSObject *this, uintN argc, jsva
 	result = acosf(dot_product(vector_normal(thisv), vector_normal(thatv)));
 	
 	return JS_NewDoubleValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // cross(v : vectorExpression) : Vector3D
 static JSBool VectorCross(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv, result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, this, &thisv, @"cross"))) return NO;
@@ -642,12 +700,16 @@ static JSBool VectorCross(JSContext *context, JSObject *this, uintN argc, jsval 
 	result = true_cross_product(thisv, thatv);
 	
 	return VectorToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // tripleProduct(v : vectorExpression, u : vectorExpression) : Number
 static JSBool VectorTripleProduct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv, theotherv;
 	GLfloat					result;
 	uintN					consumed;
@@ -661,12 +723,16 @@ static JSBool VectorTripleProduct(JSContext *context, JSObject *this, uintN argc
 	result = triple_product(thisv, thatv, theotherv);
 	
 	return JS_NewDoubleValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // direction() : Vector3D
 static JSBool VectorDirection(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, this, &thisv, @"direction"))) return NO;
@@ -674,12 +740,16 @@ static JSBool VectorDirection(JSContext *context, JSObject *this, uintN argc, js
 	result = vector_normal(thisv);
 	
 	return VectorToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // magnitude() : Number
 static JSBool VectorMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv;
 	GLfloat					result;
 	
@@ -688,12 +758,16 @@ static JSBool VectorMagnitude(JSContext *context, JSObject *this, uintN argc, js
 	result = magnitude(thisv);
 	
 	return JS_NewDoubleValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // squaredMagnitude() : Number
 static JSBool VectorSquaredMagnitude(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv;
 	GLfloat					result;
 	
@@ -702,12 +776,16 @@ static JSBool VectorSquaredMagnitude(JSContext *context, JSObject *this, uintN a
 	result = magnitude2(thisv);
 	
 	return JS_NewDoubleValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // rotationTo(v : vectorExpression [, limit : Number]) : Quaternion
 static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, thatv;
 	double					limit;
 	BOOL					gotLimit;
@@ -730,12 +808,16 @@ static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, j
 	else  result = quaternion_rotation_between(thisv, thatv);
 	
 	return QuaternionToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // rotateBy(q : quaternionExpression) : Vector3D
 static JSBool VectorRotateBy(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv, result;
 	Quaternion				q;
 	
@@ -745,12 +827,16 @@ static JSBool VectorRotateBy(JSContext *context, JSObject *this, uintN argc, jsv
 	result = quaternion_rotate_vector(q, thisv);
 	
 	return VectorToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // toArray() : Array
 static JSBool VectorToArray(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					thisv;
 	JSObject				*result = NULL;
 	jsval					nVal;
@@ -774,12 +860,16 @@ static JSBool VectorToArray(JSContext *context, JSObject *this, uintN argc, jsva
 	}
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // toCoordinateSystem(coordScheme : String)
 static JSBool VectorToCoordinateSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	Vector				thisv;
 	NSString			*coordScheme = nil;
 	
@@ -800,12 +890,16 @@ static JSBool VectorToCoordinateSystem(JSContext *context, JSObject *this, uintN
 	OOJSResumeTimeLimiter();
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // fromCoordinateSystem(coordScheme : String)
 static JSBool VectorFromCoordinateSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	Vector				thisv;
 	NSString			*coordScheme = nil;
 	NSString			*arg = nil;	
@@ -828,6 +922,8 @@ static JSBool VectorFromCoordinateSystem(JSContext *context, JSObject *this, uin
 	OOJSResumeTimeLimiter();
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -837,6 +933,8 @@ static JSBool VectorFromCoordinateSystem(JSContext *context, JSObject *this, uin
 // interpolate(v : Vector3D, u : Vector3D, alpha : Number) : Vector3D
 static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector					av, bv;
 	double					interp;
 	Vector					result;
@@ -864,37 +962,51 @@ INSUFFICIENT_ARGUMENTS:
 								   @"Insufficient parameters",
 								   @"vector expression, vector expression and number");
 	return NO;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // random([maxLength : Number]) : Vector3D
 static JSBool VectorStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	double					maxLength;
 	
 	if (argc == 0 || !NumberFromArgumentListNoError(context, argc, argv, &maxLength, NULL))  maxLength = 1.0;
 	
 	return VectorToJSValue(context, OOVectorRandomSpatial(maxLength), outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // randomDirection([scale : Number]) : Vector3D
 static JSBool VectorStaticRandomDirection(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	double					scale;
 	
 	if (argc == 0 || !NumberFromArgumentListNoError(context, argc, argv, &scale, NULL))  scale = 1.0;
 	
 	return VectorToJSValue(context, vector_multiply_scalar(OORandomUnitVector(), scale), outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // randomDirectionAndLength([maxLength : Number]) : Vector3D
 static JSBool VectorStaticRandomDirectionAndLength(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	double					maxLength;
 	
 	if (argc == 0 || !NumberFromArgumentListNoError(context, argc, argv, &maxLength, NULL))  maxLength = 1.0;
 	
 	return VectorToJSValue(context, OOVectorRandomSpatial(maxLength), outResult);
+	
+	OOJS_PROFILE_EXIT
 }

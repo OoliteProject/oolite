@@ -149,6 +149,8 @@ void InitOOJSQuaternion(JSContext *context, JSObject *global)
 
 JSObject *JSQuaternionWithQuaternion(JSContext *context, Quaternion quaternion)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSObject				*result = NULL;
 	Quaternion				*private = NULL;
 	
@@ -166,11 +168,15 @@ JSObject *JSQuaternionWithQuaternion(JSContext *context, Quaternion quaternion)
 	if (EXPECT_NOT(result == NULL)) free(private);
 	
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 BOOL QuaternionToJSValue(JSContext *context, Quaternion quaternion, jsval *outValue)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSObject				*object = NULL;
 	
 	assert(outValue != NULL);
@@ -180,6 +186,8 @@ BOOL QuaternionToJSValue(JSContext *context, Quaternion quaternion, jsval *outVa
 	
 	*outValue = OBJECT_TO_JSVAL(object);
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -193,6 +201,8 @@ BOOL JSValueToQuaternion(JSContext *context, jsval value, Quaternion *outQuatern
 
 BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion *outQuaternion)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				*private = NULL;
 	Entity					*entity = nil;
 	jsuint					arrayLength;
@@ -241,6 +251,8 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	}
 	
 	return NO;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -256,6 +268,8 @@ static BOOL GetThisQuaternion(JSContext *context, JSObject *quaternionObj, Quate
 
 BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion quaternion)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				*private = NULL;
 	
 	assert(quaternionObj != NULL);
@@ -268,11 +282,15 @@ BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quat
 	}
 	
 	return NO;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed, BOOL permitNumberList)
 {
+	OOJS_PROFILE_ENTER
+	
 	double				w, x, y, z;
 	
 	assert(argc != 0 && argv != NULL && outQuaternion != NULL);
@@ -305,6 +323,8 @@ static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN 
 	if (outConsumed != NULL)  *outConsumed = 4;
 
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -331,6 +351,8 @@ BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *ar
 
 static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion			quaternion;
 	GLfloat				value;
 	
@@ -361,11 +383,15 @@ static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval na
 	}
 	
 	return JS_NewDoubleValue(context, value, outValue);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion			quaternion;
 	jsdouble			dval;
 	
@@ -401,6 +427,8 @@ static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval na
 	}
 	
 	return JSQuaternionSetQuaternion(context, this, quaternion);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -418,6 +446,8 @@ static void QuaternionFinalize(JSContext *context, JSObject *this)
 
 static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				quaternion = kZeroQuaternion;
 	Quaternion				*private = NULL;
 	
@@ -453,11 +483,15 @@ static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc
 	}
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				thisq, thatq;
 	
 	// Note: "return YES" means no error, not equality.
@@ -468,6 +502,8 @@ static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value
 	
 	*outEqual = quaternion_equal(thisq, thatq);
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -476,18 +512,24 @@ static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value
 // toString() : String
 static JSBool QuaternionToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	Quaternion				thisq;
 	
 	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"toString"))) return NO;
 	
 	*outResult = [QuaternionDescription(thisq) javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // toSource() : String
 static JSBool QuaternionToSource(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	Quaternion				thisq;
 	
 	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"toSource"))) return NO;
@@ -495,12 +537,16 @@ static JSBool QuaternionToSource(JSContext *context, JSObject *this, uintN argc,
 	*outResult = [[NSString stringWithFormat:@"Quaternion(%g, %g, %g, %g)", thisq.w, thisq.x, thisq.y, thisq.z]
 				  javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // multiply(q : quaternionExpression) : Quaternion
 static JSBool QuaternionMultiply(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				thisq, thatq, result;
 	
 	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"multiply"))) return NO;
@@ -509,12 +555,16 @@ static JSBool QuaternionMultiply(JSContext *context, JSObject *this, uintN argc,
 	result = quaternion_multiply(thisq, thatq);
 	
 	return QuaternionToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // dot(q : quaternionExpression) : Number
 static JSBool QuaternionDot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				thisq, thatq;
 	double					result;
 	
@@ -524,12 +574,16 @@ static JSBool QuaternionDot(JSContext *context, JSObject *this, uintN argc, jsva
 	result = quaternion_dot_product(thisq, thatq);
 	
 	return JS_NewDoubleValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // rotate(axis : vectorExpression, angle : Number) : Quaternion
 static JSBool QuaternionRotate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				thisq;
 	Vector					axis;
 	double					angle;
@@ -547,12 +601,16 @@ static JSBool QuaternionRotate(JSContext *context, JSObject *this, uintN argc, j
 	// Else no angle specified, so don't rotate and pass value through unchanged.
 	
 	return QuaternionToJSValue(context, thisq, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // rotateX(angle : Number) : Quaternion
 static JSBool QuaternionRotateX(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				quat;
 	double					angle;
 	
@@ -562,12 +620,16 @@ static JSBool QuaternionRotateX(JSContext *context, JSObject *this, uintN argc, 
 	quaternion_rotate_about_x(&quat, angle);
 	
 	return QuaternionToJSValue(context, quat, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // rotateY(angle : Number) : Quaternion
 static JSBool QuaternionRotateY(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				quat;
 	double					angle;
 	
@@ -577,12 +639,16 @@ static JSBool QuaternionRotateY(JSContext *context, JSObject *this, uintN argc, 
 	quaternion_rotate_about_y(&quat, angle);
 	
 	return QuaternionToJSValue(context, quat, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // rotateZ(angle : Number) : Quaternion
 static JSBool QuaternionRotateZ(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				quat;
 	double					angle;
 	
@@ -592,12 +658,16 @@ static JSBool QuaternionRotateZ(JSContext *context, JSObject *this, uintN argc, 
 	quaternion_rotate_about_z(&quat, angle);
 	
 	return QuaternionToJSValue(context, quat, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // normalize() : Quaternion
 static JSBool QuaternionNormalize(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				quat;
 	
 	if (EXPECT_NOT(!GetThisQuaternion(context, this, &quat, @"normalize"))) return NO;
@@ -605,12 +675,16 @@ static JSBool QuaternionNormalize(JSContext *context, JSObject *this, uintN argc
 	quaternion_normalize(&quat);
 	
 	return QuaternionToJSValue(context, quat, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // vectorForward() : Vector
 static JSBool QuaternionVectorForward(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				thisq;
 	Vector					result;
 	
@@ -619,12 +693,16 @@ static JSBool QuaternionVectorForward(JSContext *context, JSObject *this, uintN 
 	result = vector_forward_from_quaternion(thisq);
 	
 	return VectorToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // vectorUp() : Vector
 static JSBool QuaternionVectorUp(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				thisq;
 	Vector					result;
 	
@@ -633,12 +711,16 @@ static JSBool QuaternionVectorUp(JSContext *context, JSObject *this, uintN argc,
 	result = vector_up_from_quaternion(thisq);
 	
 	return VectorToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // vectorRight() : Vector
 static JSBool QuaternionVectorRight(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				thisq;
 	Vector					result;
 	
@@ -647,12 +729,16 @@ static JSBool QuaternionVectorRight(JSContext *context, JSObject *this, uintN ar
 	result = vector_right_from_quaternion(thisq);
 	
 	return VectorToJSValue(context, result, outResult);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 // toArray() : Array
 static JSBool QuaternionToArray(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	Quaternion				thisq;
 	JSObject				*result = NULL;
 	BOOL					OK = YES;
@@ -678,6 +764,8 @@ static JSBool QuaternionToArray(JSContext *context, JSObject *this, uintN argc, 
 	
 	if (!OK)  *outResult = JSVAL_VOID;
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -686,5 +774,9 @@ static JSBool QuaternionToArray(JSContext *context, JSObject *this, uintN argc, 
 // random() : Quaternion
 static JSBool QuaternionStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	return QuaternionToJSValue(context, OORandomQuaternion(), outResult);
+	
+	OOJS_PROFILE_EXIT
 }

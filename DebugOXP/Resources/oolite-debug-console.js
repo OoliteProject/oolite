@@ -182,7 +182,7 @@ this.macros =
 // ****  Convenience functions -- copy this script and add your own here.
 
 // List the enumerable properties of an object.
-this.dumpObjectShort = function (x)
+this.dumpObjectShort = function dumpObjectShort(x)
 {
 	consoleMessage("dumpObject", x.toString() + ":");
 	for (var prop in x)
@@ -195,7 +195,7 @@ this.dumpObjectShort = function (x)
 }
 
 
-this.performLegacyCommand = function (x)
+this.performLegacyCommand = function performLegacyCommand(x)
 {
 	var [command, params] = x.getOneToken();
 	return player.ship.call(command, params);
@@ -203,7 +203,7 @@ this.performLegacyCommand = function (x)
 
 
 // List the enumerable properties of an object, and their values.
-this.dumpObjectLong = function (x)
+this.dumpObjectLong = function dumpObjectLong(x)
 {
 	consoleMessage("dumpObject", x.toString() + ":");
 	for (var prop in x)
@@ -217,7 +217,7 @@ this.dumpObjectLong = function (x)
 
 
 // Print the objects in a list on lines.
-this.printList = function (l)
+this.printList = function printList(l)
 {
 	var length = l.length;
 	
@@ -229,7 +229,7 @@ this.printList = function (l)
 }
 
 
-this.setColorFromString = function (string, typeName)
+this.setColorFromString = function setColorFromString(string, typeName)
 { 
 	// Slice of the first component, where components are separated by one or more spaces.
 	var [key, value] = string.getOneToken();
@@ -247,7 +247,7 @@ this.setColorFromString = function (string, typeName)
 
 // ****  Conosole command handler
 
-this.consolePerformJSCommand = function (command)
+this.consolePerformJSCommand = function consolePerformJSCommand(command)
 {
 	var originalCommand = command;
 	while (command.charAt(0) == " ")
@@ -290,7 +290,7 @@ this.consolePerformJSCommand = function (command)
 }
 
 
-this.evaluate = function (command, type, PARAM)
+this.evaluate = function evaluate(command, type, PARAM)
 {
 	var result = eval(command);
 	if (result !== undefined)
@@ -304,7 +304,7 @@ this.evaluate = function (command, type, PARAM)
 
 // ****  Macro handling
 
-this.setMacro = function (parameters)
+this.setMacro = function setMacro(parameters)
 {
 	if (!parameters)  return;
 	
@@ -325,7 +325,7 @@ this.setMacro = function (parameters)
 }
 
 
-this.deleteMacro = function (parameters)
+this.deleteMacro = function deleteMacro(parameters)
 {
 	if (!parameters)  return;
 	
@@ -347,7 +347,7 @@ this.deleteMacro = function (parameters)
 }
 
 
-this.showMacro = function (parameters)
+this.showMacro = function showMacro(parameters)
 {
 	if (!parameters)  return;
 	
@@ -366,7 +366,7 @@ this.showMacro = function (parameters)
 }
 
 
-this.performMacro = function (command)
+this.performMacro = function performMacro(command)
 {
 	if (!command)  return;
 	
@@ -417,7 +417,7 @@ this.performMacro = function (command)
 	""      -->  ["", null]
 	" "     -->  ["", null]
  */
-String.prototype.getOneToken = function ()
+String.prototype.getOneToken = function getOneToken()
 {
 	var matcher = /\s+/g;		// Regular expression to match one or more spaces.
 	matcher.lastIndex = 0;
@@ -445,7 +445,7 @@ String.prototype.getOneToken = function ()
 	string literal as a JavaScript literal. (Used in performMacro() to echo
 	macro expansion.)
  */
-String.prototype.substituteEscapeCodes = function ()
+String.prototype.substituteEscapeCodes = function substituteEscapeCodes()
 {
 	var string = this.replace(/\\/g, "\\\\");	// Convert \ to \\ -- must be first since we’ll be introducing new \s below.
 	
@@ -491,7 +491,7 @@ function consoleMessage()
 
 
 // Add inspect() method to all entities, to show inspector palette (Mac OS X only; no effect on other platforms).
-Object.getPrototypeOf(Entity).inspect = function ()
+Object.getPrototypeOf(Entity).inspect = function inspect()
 {
 	debugConsole.inspectEntity(this);
 }

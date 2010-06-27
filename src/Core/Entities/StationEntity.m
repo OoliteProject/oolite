@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 
 #import "OOScript.h"
+#import "OOJavaScriptEngine.h"
 #import "OODebugGLDrawing.h"
 #import "OODebugFlags.h"
 
@@ -711,6 +712,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (id)initWithKey:(NSString *)key definition:(NSDictionary *)dict
 {
+	OOJS_PROFILE_ENTER
+	
 	self = [super initWithKey:key definition:dict];
 	if (self != nil)
 	{
@@ -722,6 +725,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	return self;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -755,6 +760,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
+	OOJS_PROFILE_ENTER
 	
 	isShip = YES;
 	isStation = YES;
@@ -828,6 +834,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[self setGroup:[self stationGroup]];
 	}
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -848,7 +856,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		port_position.y += bb.max.z * vk.y;
 		port_position.z += bb.max.z * vk.z;
 	}
-	
 }
 
 

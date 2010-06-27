@@ -72,6 +72,7 @@ MA 02110-1301, USA.
 #import "OOAsyncWorkManager.h"
 #import "OODebugFlags.h"
 #import "OOLoggingExtended.h"
+#import "OOJavaScriptEngine.h"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -2382,9 +2383,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (ShipEntity *) addShipAt:(Vector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius
 {
-	OOGovernmentID		government = [[self currentSystemData] oo_unsignedCharForKey:KEY_GOVERNMENT];
+	OOJS_PROFILE_ENTER
+	
 	ShipEntity  		*ship = [self newShipWithRole:role]; // is retained
-	if (ship)
+	
+	if (ship != nil)
 	{
 		if (radius == NSNotFound)
 		{
@@ -2406,46 +2409,60 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		}
 		
 		if ([ship hasRole:@"cargopod"]) [self fillCargopodWithRandomCargo:ship];
-		if ([ship scanClass] == CLASS_NOT_SET) [ship setScanClass: CLASS_NEUTRAL];	
+		OOScanClass scanClass = [ship scanClass];
+		if (scanClass == CLASS_NOT_SET)
+		{
+			scanClass = CLASS_NEUTRAL;
+			[ship setScanClass:scanClass];
+		}
 
-		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
+		if (!(scanClass == CLASS_CARGO || scanClass == CLASS_ROCK) && ![ship crew] && ![ship isUnpiloted])
+		{
 			[ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: role
-				andOriginalSystem: systems[Ranrot() & 255]]]];
+				[OOCharacter randomCharacterWithRole:role
+				andOriginalSystem:systems[Ranrot() & 255]]]];
+		}
 		
 		[ship setPosition:pos];
-		Quaternion qr;
-		quaternion_set_random(&qr);
-		[ship setOrientation:qr];
+		[ship setOrientation:OORandomQuaternion()];
 		
-		if ([role isEqual:@"trader"])
+		BOOL trader = [role isEqualToString:@"trader"];
+		if (trader)
 		{
 			// half of traders created anywhere will now have cargo. 
 			if (randf() > 0.5f)
-				[ship setCargoFlag:(randf() < 0.66f ? CARGO_FLAG_FULL_PLENTIFUL : CARGO_FLAG_FULL_SCARCE)];	// most of them will carry the cargo produced in-system.
-			
-			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
 			{
-				int nx = [ship pendingEscortCount] - 2 * (1 + (Ranrot() & 3));	// remove 2,4,6, or 8 escorts
-				[ship setPendingEscortCount:(nx > 0) ? nx : 0];
+				[ship setCargoFlag:(randf() < 0.66f ? CARGO_FLAG_FULL_PLENTIFUL : CARGO_FLAG_FULL_SCARCE)];	// most of them will carry the cargo produced in-system.
+			}
+			
+			uint8_t pendingEscortCount = [ship pendingEscortCount];
+			if (pendingEscortCount > 0)
+			{
+				OOGovernmentID government = [[self currentSystemData] oo_unsignedCharForKey:KEY_GOVERNMENT];
+				if ((Ranrot() % 7) < government)	// remove escorts if we feel safe
+				{
+					int nx = pendingEscortCount - 2 * (1 + (Ranrot() & 3));	// remove 2,4,6, or 8 escorts
+					[ship setPendingEscortCount:(nx > 0) ? nx : 0];
+				}
 			}
 		}
 		
-		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)	// nothing extra to do
+		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)
+		{
+			// nothing extra to do
 			[self addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally
+		}
 		else	// witchpace incoming traders & pirates need extra settings.
 		{
-			if ([role isEqual:@"trader"])
+			if (trader)
 			{
 				[ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
-				if (randf() > 0.10)
-					[ship switchAITo:@"route1traderAI.plist"];
-				else
-					[ship switchAITo:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
+				if (randf() > 0.10)  [ship switchAITo:@"route1traderAI.plist"];
+				else  [ship switchAITo:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
 			}
 			else if ([role isEqual:@"pirate"])
 			{
-				[ship setBounty: (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
+				[ship setBounty:(Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
 			}
 			
 			// Status changes inside the following call: AI state GLOBAL, then STATUS_EXITING_WITCHSPACE, 
@@ -2457,11 +2474,15 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		[ship release];
 	}
 	return ship;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (NSArray *) addShipsAt:(Vector)pos withRole:(NSString *)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup
 {
+	OOJS_PROFILE_ENTER
+	
 	NSMutableArray		*ships = [NSMutableArray arrayWithCapacity:count];
 	ShipEntity			*ship = nil;
 	OOShipGroup			*group = nil;
@@ -2485,6 +2506,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	if ([ships count] == 0) return nil;
 	
 	return [[ships copy] autorelease];
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -2876,6 +2899,8 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (NSString *) randomShipKeyForRoleRespectingConditions:(NSString *)role
 {
+	OOJS_PROFILE_ENTER
+	
 	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
 	NSString				*shipKey = nil;
 	OOMutableProbabilitySet	*pset = nil;
@@ -2918,11 +2943,15 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 	// If we got here, some ships existed but all failed conditions test.
 	return nil;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (ShipEntity *) newShipWithRole:(NSString *)role
 {
+	OOJS_PROFILE_ENTER
+	
 	ShipEntity				*ship = nil;
 	NSString				*shipKey = nil;
 	NSDictionary			*shipInfo = nil;
@@ -2954,11 +2983,15 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	}
 	
 	return ship;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy
 {
+	OOJS_PROFILE_ENTER
+	
 	NSDictionary	*shipDict = nil;
 	ShipEntity		*ship = nil;
 	
@@ -2990,6 +3023,8 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 	// MKW 20090327 - retain count is actually 2!
 	return ship;   // retain count = 1
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -3001,6 +3036,8 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (Class) shipClassForShipDictionary:(NSDictionary *)dict
 {
+	OOJS_PROFILE_ENTER
+	
 	if (dict == nil)  return Nil;
 	
 	BOOL		isStation = NO;
@@ -3017,6 +3054,8 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	isStation = [dict oo_boolForKey:@"is_carrier" defaultValue:isStation];
 	
 	return isStation ? [StationEntity class] : [ShipEntity class];
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -4881,6 +4920,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 									inRange:(double)range
 								   ofEntity:(Entity *)e1
 {
+	OOJS_PROFILE_ENTER
+	
 	unsigned		i;
 	Vector			p1;
 	NSMutableArray	*result = nil;
@@ -4905,6 +4946,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	}
 	
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -6067,6 +6110,8 @@ static NSDictionary	*sCachedSystemData = nil;
 
 - (NSDictionary *) generateSystemData:(Random_Seed) s_seed useCache:(BOOL) useCache
 {
+	OOJS_PROFILE_ENTER
+	
 	static Random_Seed	cachedSeed = {0};
 	
 	if (useCache)
@@ -6134,11 +6179,15 @@ static NSDictionary	*sCachedSystemData = nil;
 	[systemdata release];
 	
 	return sCachedSystemData;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (NSDictionary *) currentSystemData
 {
+	OOJS_PROFILE_ENTER
+	
 	if (![self inInterstellarSpace])
 	{
 		return [self generateSystemData:system_seed];
@@ -6167,6 +6216,8 @@ static NSDictionary	*sCachedSystemData = nil;
 		
 		return interstellarDict;
 	}
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -8088,20 +8139,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (Vector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed
 {
-#if 0
-	Vector result;
-	
-	if (resetSeed)
-	{
-		seed_RNG_only_for_planet_description(system_seed);
-	}
-	
-	result.x = SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);   // offset by a set amount, up to 12.8 km
-	result.y = SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
-	result.z = SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
-	
-	return result;
-#else
 	if (resetSeed)
 	{
 		// Generate three random numbers so that anything implicitly relying on PRNG state is unchanged...
@@ -8112,7 +8149,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	}
 	
 	return kZeroVector;
-#endif
 }
 
 

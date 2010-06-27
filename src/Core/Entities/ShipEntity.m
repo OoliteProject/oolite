@@ -85,6 +85,7 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 
 #import "OOScript.h"
+#import "OOJavaScriptEngine.h"
 
 
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
@@ -176,6 +177,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 // Designated initializer
 - (id)initWithKey:(NSString *)key definition:(NSDictionary *)dict
 {
+	OOJS_PROFILE_ENTER
+	
 	if (dict == nil)
 	{
 		// Is there any reason we should allow nil dictionary here? I think not. --Ahruman 2008-04-27
@@ -210,11 +213,15 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		maxFlightSpeed = 300;
 	}
 	return self;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (BOOL) setUpFromDictionary:(NSDictionary *) shipDict
 {
+	OOJS_PROFILE_ENTER
+	
 	// Settings shared by players & NPCs.
 	//
 	// In order for default values to work and float values to not be junk,
@@ -375,11 +382,15 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) shipDict
 {
+	OOJS_PROFILE_ENTER
+	
 	if (![self setUpFromDictionary:shipDict]) return NO;
 	
 	// NPC-only settings.
@@ -564,11 +575,15 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	[self setShipScript:[shipDict oo_stringForKey:@"script"]];
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (BOOL) setUpSubEntities: (NSDictionary *) shipDict
 {
+	OOJS_PROFILE_ENTER
+	
 	unsigned int	i;
 	NSArray			*plumes = [shipDict oo_arrayForKey:@"exhaust"];
 	
@@ -591,11 +606,15 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	no_draw_distance = _profileRadius * _profileRadius * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 2.0;
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (BOOL) setUpOneSubentity:(NSDictionary *) subentDict
 {
+	OOJS_PROFILE_ENTER
+	
 	NSString			*type = nil;
 	
 	type = [subentDict oo_stringForKey:@"type"];
@@ -607,6 +626,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	{
 		return [self setUpOneStandardSubentity:subentDict asTurret:[type isEqualToString:@"ball_turret"]];
 	}
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -4989,7 +5010,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		return;
 	}
 	//do not set to hulk here when crew is nill (or 0).  Some things like missiles have no crew.
-	if (crew != nil) [crew autorelease];
+	[crew autorelease];
 	crew = [crewArray copy];
 }
 

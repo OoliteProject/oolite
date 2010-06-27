@@ -116,12 +116,8 @@ MA 02110-1301, USA.
 	
 	OOCharacter	*castmember = [[[OOCharacter alloc] initWithGenSeed: r_seed andOriginalSystemSeed: o_seed] autorelease];
 	
-	if ([castmember castInRole: c_role])
-		return castmember;
-	else
-	{
-		return castmember;
-	}
+	[castmember castInRole: c_role];
+	return castmember;
 }
 
 + (OOCharacter *) characterWithDictionary:(NSDictionary *) c_dict

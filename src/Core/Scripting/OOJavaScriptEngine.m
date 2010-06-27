@@ -498,63 +498,71 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
 {
 	if (!OOLogWillDisplayMessagesInClass(logMessageClass))  return;
 	
-	JSStackFrame *frame = NULL;
-	unsigned idx = 0;
-	while (JS_FrameIterator(context, &frame) != NULL)
-	{
-		JSScript *script = JS_GetFrameScript(context, frame);
-		NSString *desc = nil;
-		
-		if (script != NULL)
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	NS_DURING
+		JSStackFrame *frame = NULL;
+		unsigned idx = 0;
+		while (JS_FrameIterator(context, &frame) != NULL)
 		{
-			const char *fileName = JS_GetScriptFilename(context, script);
-			jsbytecode *PC = JS_GetFramePC(context, frame);
-			unsigned lineNo = JS_PCToLineNumber(context, script, PC);
+			JSScript *script = JS_GetFrameScript(context, frame);
+			NSString *desc = nil;
 			
-			NSString *fileNameObj = [NSString stringWithUTF8String:fileName];
-			if (fileNameObj == nil)  fileNameObj = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];
-			NSString *shortFileName = [fileNameObj lastPathComponent];
-			if (![[shortFileName lowercaseString] isEqualToString:@"script.js"])  fileNameObj = shortFileName;
-			
-			NSString *funcDesc = nil;
-			JSFunction *function = JS_GetFrameFunction(context, frame);
-			if (function != NULL)
+			if (script != NULL)
 			{
-				JSString *funcName = JS_GetFunctionId(function);
-				if (funcName != NULL)
+				const char *fileName = JS_GetScriptFilename(context, script);
+				jsbytecode *PC = JS_GetFramePC(context, frame);
+				unsigned lineNo = JS_PCToLineNumber(context, script, PC);
+				
+				NSString *fileNameObj = [NSString stringWithUTF8String:fileName];
+				if (fileNameObj == nil)  fileNameObj = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];
+				NSString *shortFileName = [fileNameObj lastPathComponent];
+				if (![[shortFileName lowercaseString] isEqualToString:@"script.js"])  fileNameObj = shortFileName;
+				
+				NSString *funcDesc = nil;
+				JSFunction *function = JS_GetFrameFunction(context, frame);
+				if (function != NULL)
 				{
-					funcDesc = [NSString stringWithJavaScriptString:funcName];
-					if (!JS_IsConstructorFrame(context, frame))
+					JSString *funcName = JS_GetFunctionId(function);
+					if (funcName != NULL)
 					{
-						funcDesc = [funcDesc stringByAppendingString:@"()"];
+						funcDesc = [NSString stringWithJavaScriptString:funcName];
+						if (!JS_IsConstructorFrame(context, frame))
+						{
+							funcDesc = [funcDesc stringByAppendingString:@"()"];
+						}
+						else
+						{
+							funcDesc = [NSString stringWithFormat:@"new %@()", funcDesc];
+						}
+						
 					}
 					else
 					{
-						funcDesc = [NSString stringWithFormat:@"new %@()", funcDesc];
+						funcDesc = @"<anonymous function>";
 					}
-					
 				}
 				else
 				{
-					funcDesc = @"<anonymous function>";
+					funcDesc = @"<not a function frame>";
 				}
+				
+				desc = [NSString stringWithFormat:@"%@:%u %@", fileNameObj, lineNo, funcDesc];
 			}
-			else
+			else if (JS_IsNativeFrame(context, frame))
 			{
-				funcDesc = @"<not a function frame>";
+				desc = @"<Oolite native>";
 			}
 			
-			desc = [NSString stringWithFormat:@"%@:%u %@", fileNameObj, lineNo, funcDesc];
+			OOLog(@"js.stackFrame", @"%4u %@", idx, desc);
+			
+			idx++;
 		}
-		else if (JS_IsNativeFrame(context, frame))
-		{
-			desc = @"<Oolite native>";
-		}
-		
-		OOLog(@"js.stackFrame", @"%4u %@", idx, desc);
-		
-		idx++;
-	}
+	NS_HANDLER
+		OOLog(kOOLogException, @"Exception during JavaScript stack trace: %@:%@", [localException name], [localException reason]);
+	NS_ENDHANDLER
+	
+	[pool release];
 }
 
 #endif
@@ -583,11 +591,15 @@ void OOReportJSErrorForCaller(JSContext *context, NSString *scriptClass, NSStrin
 	va_list					args;
 	NSString				*msg = nil;
 	
-	va_start(args, format);
-	msg = [[NSString alloc] initWithFormat:format arguments:args];
-	va_end(args);
-	
-	OOReportJSError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+	NS_DURING
+		va_start(args, format);
+		msg = [[NSString alloc] initWithFormat:format arguments:args];
+		va_end(args);
+		
+		OOReportJSError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+	NS_HANDLER
+		// Squash any secondary errors during error handling.
+	NS_ENDHANDLER
 	[msg release];
 }
 
@@ -596,8 +608,12 @@ void OOReportJSErrorWithArguments(JSContext *context, NSString *format, va_list 
 {
 	NSString				*msg = nil;
 	
-	msg = [[NSString alloc] initWithFormat:format arguments:args];
-	JS_ReportError(context, "%s", [msg UTF8String]);
+	NS_DURING
+		msg = [[NSString alloc] initWithFormat:format arguments:args];
+		JS_ReportError(context, "%s", [msg UTF8String]);
+	NS_HANDLER
+		// Squash any secondary errors during error handling.
+	NS_ENDHANDLER
 	[msg release];
 }
 
@@ -606,8 +622,12 @@ void OOReportJSErrorWithArguments(JSContext *context, NSString *format, va_list 
 
 void OOJSReportWrappedException(JSContext *context, id exception)
 {
-	if ([exception isKindOfClass:[NSException class]])  OOReportJSError(context, @"Native exception: %@", [exception reason]);
-	else  OOReportJSError(context, @"Unidentified native exception");
+	if (!JS_IsExceptionPending(context))
+	{
+		if ([exception isKindOfClass:[NSException class]])  OOReportJSError(context, @"Native exception: %@", [exception reason]);
+		else  OOReportJSError(context, @"Unidentified native exception");
+	}
+	// Else, let the pending exception propagate.
 }
 
 
@@ -638,11 +658,15 @@ void OOReportJSWarningForCaller(JSContext *context, NSString *scriptClass, NSStr
 	va_list					args;
 	NSString				*msg = nil;
 	
-	va_start(args, format);
-	msg = [[NSString alloc] initWithFormat:format arguments:args];
-	va_end(args);
-	
-	OOReportJSWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+	NS_DURING
+		va_start(args, format);
+		msg = [[NSString alloc] initWithFormat:format arguments:args];
+		va_end(args);
+		
+		OOReportJSWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+	NS_HANDLER
+	// Squash any secondary errors during error handling.
+	NS_ENDHANDLER
 	[msg release];
 }
 
@@ -651,8 +675,12 @@ void OOReportJSWarningWithArguments(JSContext *context, NSString *format, va_lis
 {
 	NSString				*msg = nil;
 	
-	msg = [[NSString alloc] initWithFormat:format arguments:args];
-	JS_ReportWarning(context, "%s", [msg UTF8String]);
+	NS_DURING
+		msg = [[NSString alloc] initWithFormat:format arguments:args];
+		JS_ReportWarning(context, "%s", [msg UTF8String]);
+	NS_HANDLER
+	// Squash any secondary errors during error handling.
+	NS_ENDHANDLER
 	[msg release];
 }
 
@@ -665,11 +693,15 @@ void OOReportJSBadPropertySelector(JSContext *context, NSString *className, jsin
 
 void OOReportJSBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription)
 {
-	if (message == nil)  message = @"Invalid arguments";
-	message = [NSString stringWithFormat:@"%@ %@", message, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]];
-	if (expectedArgsDescription != nil)  message = [NSString stringWithFormat:@"%@ -- expected %@", message, expectedArgsDescription];
-	
-	OOReportJSErrorForCaller(context, scriptClass, function, @"%@.", message);
+	NS_DURING
+		if (message == nil)  message = @"Invalid arguments";
+		message = [NSString stringWithFormat:@"%@ %@", message, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]];
+		if (expectedArgsDescription != nil)  message = [NSString stringWithFormat:@"%@ -- expected %@", message, expectedArgsDescription];
+		
+		OOReportJSErrorForCaller(context, scriptClass, function, @"%@.", message);
+	NS_HANDLER
+	// Squash any secondary errors during error handling.
+	NS_ENDHANDLER
 }
 
 
@@ -693,6 +725,8 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 
 BOOL NumberFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed)
 {
+	OOJS_PROFILE_ENTER
+	
 	double					value;
 	
 	// Sanity checks.
@@ -713,11 +747,15 @@ BOOL NumberFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, 
 	*outNumber = value;
 	if (outConsumed != NULL)  *outConsumed = 1;
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static BOOL ExtractString(NSString *string, jschar **outString, size_t *outLength)
 {
+	OOJS_PROFILE_ENTER
+	
 	assert(outString != NULL && outLength != NULL);
 	assert(sizeof (unichar) == sizeof (jschar));	// Should both be 16 bits
 	
@@ -729,11 +767,15 @@ static BOOL ExtractString(NSString *string, jschar **outString, size_t *outLengt
 	
 	[string getCharacters:(unichar *)*outString];
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 BOOL JSGetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
 {
+	OOJS_PROFILE_ENTER
+	
 	jschar					*buffer = NULL;
 	size_t					length;
 	BOOL					OK = NO;
@@ -752,11 +794,15 @@ BOOL JSGetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval
 	
 	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return OK;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
 {
+	OOJS_PROFILE_ENTER
+	
 	jschar					*buffer = NULL;
 	size_t					length;
 	BOOL					OK = NO;
@@ -775,11 +821,15 @@ BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval
 	
 	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return OK;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs)
 {
+	OOJS_PROFILE_ENTER
+	
 	jschar					*buffer = NULL;
 	size_t					length;
 	BOOL					OK = NO;
@@ -798,11 +848,15 @@ BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, js
 	
 	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return OK;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSObject				*result = NULL;
 	unsigned				i;
 	unsigned				count;
@@ -832,11 +886,15 @@ static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 	NS_ENDHANDLER
 	
 	return (JSObject *)result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSObject				*object = NULL;
 	BOOL					OK = YES;
 	
@@ -858,6 +916,8 @@ static BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 	
 	JS_LeaveLocalRootScopeWithResult(context, *value);
 	return OK;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -867,6 +927,8 @@ static BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 */
 static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dictionary)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSObject				*result = NULL;
 	BOOL					OK = YES;
 	NSEnumerator			*keyEnum = nil;
@@ -918,11 +980,15 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 	}
 	
 	return (JSObject *)result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary, jsval *value)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSObject				*object = NULL;
 	BOOL					OK = YES;
 	
@@ -944,6 +1010,8 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	
 	JS_LeaveLocalRootScopeWithResult(context, *value);
 	return OK;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -969,6 +1037,8 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 
 - (NSString *)javaScriptDescriptionWithClassName:(NSString *)className
 {
+	OOJS_PROFILE_ENTER
+	
 	NSString				*components = nil;
 	NSString				*description = nil;
 	
@@ -985,6 +1055,8 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	}
 	
 	return description;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -1000,18 +1072,28 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 
 + (id) valueWithJSValue:(jsval)value inContext:(JSContext *)context
 {
+	OOJS_PROFILE_ENTER
+	
 	return [[[self alloc] initWithJSValue:value inContext:context] autorelease];
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 + (id) valueWithJSObject:(JSObject *)object inContext:(JSContext *)context
 {
+	OOJS_PROFILE_ENTER
+	
 	return [[[self alloc] initWithJSObject:object inContext:context] autorelease];
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (id) initWithJSValue:(jsval)value inContext:(JSContext *)context
 {
+	OOJS_PROFILE_ENTER
+	
 	self = [super init];
 	if (self != nil)
 	{
@@ -1028,6 +1110,8 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	}
 	return self;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -1060,6 +1144,8 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 // Convert a JSString to an NSString.
 + (id)stringWithJavaScriptString:(JSString *)string
 {
+	OOJS_PROFILE_ENTER
+	
 	jschar					*chars = NULL;
 	size_t					length;
 	
@@ -1067,11 +1153,15 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	length = JS_GetStringLength(string);
 	
 	return [NSString stringWithCharacters:chars length:length];
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 + (id)stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
+	OOJS_PROFILE_ENTER
+	
 	// In some cases we didn't test the original stringWith... function for nil, causing difficult
 	// to track crashes. We now have two similar functions: stringWith... which never returns nil and 
 	// stringOrNilWith... (alias JSValToNSString) which can return nil and is used in most cases.
@@ -1080,11 +1170,15 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	if (JSVAL_IS_NULL(value))  return @"null";
 
 	return [self stringOrNilWithJavaScriptValue:value inContext:context];
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 + (id)stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
+	OOJS_PROFILE_ENTER
+	
 	JSString				*string = NULL;
 	BOOL					tempCtxt = NO;
 
@@ -1099,11 +1193,15 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	return [NSString stringWithJavaScriptString:string];
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 + (id)stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context
 {
+	OOJS_PROFILE_ENTER
+	
 	if (params == NULL && count != 0) return nil;
 	
 	uintN					i;
@@ -1133,11 +1231,15 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	
 	[result appendString:@")"];
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
+	OOJS_PROFILE_ENTER
+	
 	size_t					length;
 	unichar					*buffer = NULL;
 	JSString				*string = NULL;
@@ -1154,11 +1256,15 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	free(buffer);
 	
 	return STRING_TO_JSVAL(string);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 + (id)concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context
 {
+	OOJS_PROFILE_ENTER
+	
 	size_t					i;
 	NSMutableString			*result = nil;
 	NSString				*element = nil;
@@ -1178,11 +1284,15 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	}
 	
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (NSString *)escapedForJavaScriptLiteral
 {
+	OOJS_PROFILE_ENTER
+	
 	NSMutableString			*result = nil;
 	unsigned				i, length;
 	unichar					c;
@@ -1240,6 +1350,8 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	}
 	[pool release];
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 @end
@@ -1303,6 +1415,8 @@ const char *JSValueTypeDbg(jsval val)
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
+	OOJS_PROFILE_ENTER
+	
 	jsval					result;
 	BOOL					isFloat = NO;
 	long long				longLongValue;
@@ -1342,6 +1456,8 @@ const char *JSValueTypeDbg(jsval val)
 	}
 	
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 @end
@@ -1359,6 +1475,8 @@ const char *JSValueTypeDbg(jsval val)
 
 JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	id						object = nil;
 	NSString				*description = nil;
 	JSClass					*jsClass = NULL;
@@ -1381,11 +1499,15 @@ JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, j
 	
 	*outResult = [description javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 void JSObjectWrapperFinalize(JSContext *context, JSObject *this)
 {
+	OOJS_PROFILE_ENTER
+	
 	id object = JS_GetPrivate(context, this);
 	if (object != nil)
 	{
@@ -1393,11 +1515,15 @@ void JSObjectWrapperFinalize(JSContext *context, JSObject *this)
 		[object release];
 		JS_SetPrivate(context, this, nil);
 	}
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
 JSBool JSObjectWrapperEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
 {
+	OOJS_PROFILE_ENTER
+	
 	id						thisObj, thatObj;
 	
 	thisObj = JSObjectToObject(context, this);
@@ -1405,11 +1531,15 @@ JSBool JSObjectWrapperEquality(JSContext *context, JSObject *this, jsval value, 
 	
 	*outEqual = [thisObj isEqual:thatObj];
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSFunctionPredicateParameter	*param = parameter;
 	jsval							args[1];
 	jsval							rval = JSVAL_VOID;
@@ -1440,17 +1570,25 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	}
 	
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 BOOL JSEntityIsJavaScriptVisiblePredicate(Entity *entity, void *parameter)
 {
+	OOJS_PROFILE_ENTER
+	
 	return [entity isVisibleToScripts];
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter)
 {
+	OOJS_PROFILE_ENTER
+	
 	if (![entity isVisibleToScripts])  return NO;
 	if ([entity isShip])
 	{
@@ -1476,6 +1614,8 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter)
 	}
 	
 	return YES;	// would happen if we added a new script-visible class
+	
+	OOJS_PROFILE_EXIT
 }
 
 

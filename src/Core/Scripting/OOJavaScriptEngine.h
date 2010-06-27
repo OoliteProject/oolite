@@ -433,7 +433,8 @@ void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_
 #endif	// OOLITE_NATIVE_EXCEPTIONS
 
 
-#define OOJS_PROFILE_EXIT OOJS_PROFILE_EXIT_VAL(NO)
+#define OOJS_PROFILE_EXIT		OOJS_PROFILE_EXIT_VAL(NO)
+#define OOJS_PROFILE_EXIT_VOID	return; OOJS_PROFILE_EXIT_VAL()
 
 
 
