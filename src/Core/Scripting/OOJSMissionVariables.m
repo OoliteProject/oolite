@@ -147,8 +147,14 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 	
 	if (JSVAL_IS_STRING(name))
 	{
-		NSString	*key = KeyForName(context, name);
-		NSString	*objValue = JSValToNSString(context,*value);
+		NSString *key = KeyForName(context, name);
+		if (key == nil)
+		{
+			OOReportJSError(context, @"Mission variable names may not begin with an underscore.");
+			return NO;
+		}
+		
+		NSString *objValue = JSValToNSString(context, *value);
 		
 		if ([objValue isKindOfClass:[NSNull class]])  objValue = nil;
 		[player setMissionVariable:objValue forKey:key];
