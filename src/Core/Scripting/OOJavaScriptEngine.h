@@ -389,6 +389,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 		OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); \
 		return rval; \
 	}
+#define OOJS_PROFILE_EXIT_VOID return; OOJS_PROFILE_EXIT_VAL()
 
 #define OOJS_PROFILE_ENTER_FOR_NATIVE OOJS_PROFILE_ENTER
 
@@ -396,6 +397,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 
 #define OOJS_PROFILE_ENTER			{
 #define OOJS_PROFILE_EXIT_VAL(rval)	} return (rval);
+#define OOJS_PROFILE_EXIT_VOID		} return;
 #define OOJS_PROFILE_ENTER_FOR_NATIVE @try {
 
 #endif	// OOJS_PROFILE
@@ -426,7 +428,7 @@ void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_
 // These introduce a scope to ensure proper nesting.
 #define OOJS_PROFILE_ENTER			{
 #define OOJS_PROFILE_EXIT_VAL(rval)	} return (rval);
-#define OOJS_PROFILE_EXIT_VAL_VOID	} return;
+#define OOJS_PROFILE_EXIT_VOID		} return;
 
 #define OOJS_NATIVE_ENTER(cx)	OOJS_PROFILE_ENTER
 #define OOJS_NATIVE_EXIT		OOJS_PROFILE_EXIT_VAL(NO)
@@ -435,7 +437,6 @@ void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_
 
 
 #define OOJS_PROFILE_EXIT		OOJS_PROFILE_EXIT_VAL(NO)
-#define OOJS_PROFILE_EXIT_VOID		OOJS_PROFILE_EXIT_VAL_VOID
 
 
 
