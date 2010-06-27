@@ -1,12 +1,12 @@
 /*
 
-oolite-constrictor-hunt-mission.js
+oolite-constrictor.js
 
-Script for Constrictor hunt mission.
+Ship script for Constrictor Hunt mission.
 
 
 Oolite
-Copyright © 2004-2008 Giles C Williams and contributors
+Copyright © 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

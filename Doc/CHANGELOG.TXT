@@ -1,3 +1,31 @@
+Changes between Oolite 1.74 and Oolite 1.74.1:
+
+* Scripts can once again award and check for trumbles, and the standard trumble
+  mission once again works. (Limitation: scripts cannot increase the number of
+  trumbles by awarding more. This will be fixed in 1.75.)
+* The nova mission once again awards the appropriate reward on a successful
+  outcome.
+* No more "Witchspace engine malfunction" message when entering a post-nova
+  system.
+* When docked at a secondary station, the default selection on the game menu
+  screen is "Game Options" rather than "Begin New Game".
+* Fixed annoying audio latency when playing first sound under Mac OS X.
+* Fixed several JavaScript interface bugs that could cause a faulty script to
+  halt without any error message.
+* Adjusted graphics settings: shader mode is now restricted to Simple for
+  Intel GMA 950 and ATI Radeon R300 GPU families, and some other tweaks.
+* Fixed a material synthesis bug where illumination_modulate_color was ignored
+  when using emission_and_illumination_map in shader mode (material test suite
+  test case 7).
+* Possible fix for random freezes when using speech synthesis in Windows.
+* Various minor bug fixes and tweaks.
+
+New JavaScript methods:
+* vector3D.fromCoordinateSystem()
+* vector3D.toCoordinateSystem()
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.73.4 and Oolite 1.74:
 
 Gameplay
@@ -20,10 +48,10 @@ Gameplay
 Graphics
 * The default shader mode is now Full except on first-generation shader-
   capable systems. Full shader mode will be disabled on some or all of those
-  systems in future, but is currently enabled for testing purposes.
+   systems in future, but is currently enabled for testing purposes.
 * [Mac] Enabled "Detailed Planets" option.
 * Flashers and particle effects look better. Very large flashers no longer pop
-  into view at unexpectedly close range.
+   into view at unexpectedly close range.
 * Reduced aliasing artefacts ("twinkling") in star field and distant flashers/
   particles.
 * Many of the built-in ships have been edited to fix minor lighting issues.
@@ -47,7 +75,6 @@ Bug fixes
 * Hot ships now dump hot cargo (and escape pods).
 * Ships can no longer be sold with both types of energy unit (the regular one
   is removed).
-* Cargo bay extensions now work again as expected.
 * [Mac] Full screen mode is once again restored when relaunching as
   appropriate.
 * [Mac] No longer freezes indefinitely while waiting for iTunes to respond if,
@@ -198,13 +225,11 @@ OXP/scripting
 * Giving player a trumble may fail if they already have some.
 * Better error reporting in various situations.
 
-
 New world events:
 * compassTargetChanged()
 * guiScreenWillChange()
 * missionScreenOpportunity()
 * shipSpawned() (Sent immediately after ship event of the same name)
-
 
 New ship events:
 * shipCloakActivated()
@@ -212,7 +237,6 @@ New ship events:
 * shipRemoved()
 * shipTargetDestroyed() - replaces shipDestroyedTarget()
 * shipTargetLost() - replaces shipLostTarget()
-
 
 New JavaScript properties and methods:
 * expandMissionText()
@@ -307,7 +331,6 @@ New JavaScript properties and methods:
 * systemInfo.routeToSystem()
 * SystemInfo.filteredSystems()
 
-
 Deprecated JavaScript properties and methods:
 * mission.choice - convert to mission.runScreen().
 * mission.runMissionScreen() - convert to mission.runScreen().
@@ -323,7 +346,6 @@ Deprecated JavaScript properties and methods:
 * ship.availableCargoSpace - use ship.cargoSpaceAvailable instead.
 * ship.cargoCapacity - use ship.cargoSpaceCapacity instead.
 * timer.isPersistent - no replacement.
-
 
 New/modified shipdata keys:
 * auto_ai (fuzzy boolean, default: true): now applies to escorts.
@@ -348,7 +370,6 @@ New/modified shipdata keys:
   "escort_role", "escort_ship", "has_shipyard", "is_carrier" and "scan_class".
   If both are present, the new one is used. like_ship merging does the right
   thing.
-
 
 New AI commands:
 * checkAegis
