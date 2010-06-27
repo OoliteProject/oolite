@@ -142,6 +142,13 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 			if (noErr != AUGraphInitialize(_graph)) OK = NO;
 		}
 		
+		if (OK)
+		{
+			// Force CA to do any lazy setup.
+			AUGraphStart(_graph);
+			AUGraphStop(_graph);
+		}
+		
 		if (!OK)
 		{
 			static bool onlyOnce;
