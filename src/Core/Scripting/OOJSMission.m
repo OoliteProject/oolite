@@ -31,14 +31,12 @@ MA 02110-1301, USA.
 #import "PlayerEntityScriptMethods.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOMusicController.h"
 
-
-static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 static JSBool MissionMarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionUnmarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -56,21 +54,11 @@ static JSClass sMissionClass =
 	JS_PropertyStub,
 	JS_PropertyStub,
 	JS_PropertyStub,
-	MissionSetProperty,
+	JS_PropertyStub,
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
 	JS_FinalizeStub
-};
-
-
-enum
-{
-	// Property IDs
-	kMission_background,		// mission background image, string.
-	kMission_foreground,		// missionforeground image, string.
-	kMission_title,				// title of mission screen, string.
-	kMission_3DModel,			// mission 3D model: role, string.
 };
 
 
@@ -80,7 +68,7 @@ static JSFunctionSpec sMissionMethods[] =
 	{ "addMessageText",			MissionAddMessageText,		1 },
 	{ "markSystem",				MissionMarkSystem,			1 },
 	{ "unmarkSystem",			MissionUnmarkSystem,		1 },
-	{ "runScreen",				MissionRunScreen,			0 },
+	{ "runScreen",				MissionRunScreen,			2 },
 	{ "setInstructions",		MissionSetInstructions,		1 },
 	{ "setInstructionsKey",		MissionSetInstructionsKey,	1 },
 	{ 0 }
@@ -101,7 +89,7 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 void MissionRunCallback()
 {
 	// don't do anything if we don't have a function.
-	if(JSVAL_IS_NULL(sCallbackFunction))  return;
+	if (JSVAL_IS_NULL(sCallbackFunction))  return;
 	
 	jsval				argval = JSVAL_VOID;
 	jsval				rval = JSVAL_VOID;
@@ -153,50 +141,13 @@ void MissionRunCallback()
 }
 
 
-static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
-{
-	PlayerEntity				*player = nil;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
-	
-	player = OOPlayerForScripting();
-	
-	switch (JSVAL_TO_INT(name))
-	{
-		case kMission_title:
-			[player setMissionTitle:JSValToNSString(context,*value)];
-			break;
-		
-		case kMission_foreground:
-			// If value can't be converted to a string this will clear the foreground image.
-			[player setMissionImage:JSValToNSString(context,*value)];
-			break;
-		
-		case kMission_3DModel:
-			// If value can't be converted to a string this will clear the (entity/ship) model.
-			if([player status] == STATUS_IN_FLIGHT && JSVAL_IS_STRING(*value)) OOReportJSWarning(context, @"Mission.runScreen: model will not be displayed while in flight.");
-			[player showShipModel:JSValToNSString(context, *value)];
-			break;
-		
-		case kMission_background:
-			// If value can't be converted to a string this will clear the background image.
-			[player setMissionBackground:JSValToNSString(context,*value)];
-			break;
-			
-		default:
-			OOReportJSBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
-			return NO;
-	}
-	
-	return YES;
-}
-
-
 // *** Methods ***
 
 // markSystem(systemCoords : String)
 static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*params = nil;
 	
@@ -204,12 +155,16 @@ static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, j
 	[player addMissionDestination:params];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // unmarkSystem(systemCoords : String)
 static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*params = nil;
 	
@@ -217,12 +172,16 @@ static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc,
 	[player removeMissionDestination:params];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // addMessageText(text : String)
 static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*text = nil;
 	
@@ -232,46 +191,28 @@ static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN ar
 	[player addLiteralMissionText:text];
 	
 	return YES;
-}
-
-
-// setMusic(musicName : String)
-static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity		*player = OOPlayerForScripting();
-	NSString			*key = nil;
 	
-	key =  JSValToNSString(context,argv[0]);
-	[player setMissionMusic:key];
-	
-	return YES;
-}
-
-
-// setChoicesKey(choicesKey : String)
-static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity		*player = OOPlayerForScripting();
-	NSString			*key = nil;
-	
-	key = JSValToNSString(context,argv[0]);
-	[player setMissionChoices:key];
-	
-	return YES;
+	OOJS_NATIVE_EXIT
 }
 
 
 // setInstructionsKey(instructionsKey: String [, missionKey : String])
 static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	*outResult = [@"textKey" javaScriptValueInContext:context];
 	return MissionSetInstructions(context, this, argc, argv, outResult);
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // setInstructions(instructions: String [, missionKey : String])
 static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*text = nil;
 	NSString			*missionKey = nil;
@@ -302,41 +243,52 @@ static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN a
 	
 	*outResult = JSVAL_VOID;	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+OOINLINE NSString *GetParameterString(JSContext *context, JSObject *object, const char *key)
+{
+	jsval value = JSVAL_NULL;
+	if (JS_GetProperty(context, object, key, &value))
+	{
+		return JSValToNSString(context, value);
+	}
+	return nil;
 }
 
 
 // runScreen(params: dict, callBack:function) - if the callback function is null, emulate the old style runMissionScreen
 static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity		*player = OOPlayerForScripting();
 	jsval				function = JSVAL_NULL;
 	jsval				value = JSVAL_NULL;
-	jsval				noWarning = [@"noWarning" javaScriptValueInContext:context];
-	JSObject			*params = JS_NewObject(context, NULL, NULL, NULL);
+	JSObject			*params = JSVAL_NULL;
 	
+	// No mission screens during intro.
 	if ([player guiScreen] == GUI_SCREEN_INTRO1 || [player guiScreen] == GUI_SCREEN_INTRO2)
 	{
 		*outResult = JSVAL_FALSE;
 		return YES;
 	}
 	
-	if (argc>0) {
-		if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_OBJECT(argv[0]))
-		{
-			OOReportJSWarning(context, @"Mission.runScreen: expected %@ instead of '%@'.", @"object", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
-			*outResult = JSVAL_FALSE;
-			return YES;
-		}
-		
-		if (!JSVAL_IS_NULL(argv[0]) && JSVAL_IS_OBJECT(argv[0])) params = JSVAL_TO_OBJECT(argv[0]);
+	// Validate arguments.
+	if (!JSVAL_IS_OBJECT(argv[0]) || JSVAL_IS_NULL(argv[0]))
+	{
+		OOReportJSBadArguments(context, @"mission", @"runScreen", argc, argv, nil, @"parameter object");
+		return NO;
 	}
+	params = JSVAL_TO_OBJECT(argv[0]);
 	
 	if (argc > 1) function = argv[1];
 	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
 	{
-		OOReportJSWarning(context, @"Mission.runScreen: expected %@ instead of '%@'.", @"function", [NSString stringWithJavaScriptValue:argv[1] inContext:context]);
-		*outResult = JSVAL_FALSE;
-		return YES;
+		OOReportJSBadArguments(context, @"mission", @"runScreen", argc - 1, argv + 1, nil, @"function");
+		return NO;
 	}
 	
 	if (function != JSVAL_NULL)
@@ -352,58 +304,62 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 		}
 	}
 	
-	if (JS_GetProperty(context, params, "title", &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
+	// Apply settings.
+	if (JS_GetProperty(context, params, "title", &value))
 	{
-		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_title), &value);
+		[player setMissionTitle:JSValToNSString(context, value)];
 	}
 	else
 	{
-		if (JS_GetProperty(context, params, "titleKey", &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
+		NSString *titleKey = GetParameterString(context, params, "titleKey");
+		if (titleKey != nil)
 		{
-			NSString *titleKey = [[UNIVERSE missiontext] oo_stringForKey:JSValToNSString(context, value)];
+			titleKey = [[UNIVERSE missiontext] oo_stringForKey:titleKey];
 			titleKey = ExpandDescriptionForCurrentSystem(titleKey);
 			titleKey = [player replaceVariablesInString:titleKey];
 			[player setMissionTitle:titleKey];
 		}
 	}
 	
-	if (JS_GetProperty(context, params, "music", &value))
-		MissionSetMusic(context, this, 1, &value, &noWarning);
-	
-	// Make sure the overlay is not set! (could be set as legacy script's 'background')
-	value = JSVAL_NULL;
-	MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
-	
-	if (JS_GetProperty(context, params, "overlay", &value))
-		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
+	[[OOMusicController	sharedController] setMissionMusic:GetParameterString(context, params, "music")];
+	[player setMissionImage:GetParameterString(context, params, "overlay")];
+	[player setMissionBackground:GetParameterString(context, params, "background")];
 	
 	if (JS_GetProperty(context, params, "model", &value))
-		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_3DModel), &value);
-	
-	if (JS_GetProperty(context, params, "background", &value))
-		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_background), &value);
-	
-	sCallbackFunction = function;
-	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(sCallbackFunction)];
-		
-	if (JS_GetProperty(context, params, "message", &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
-		[player addLiteralMissionText: JSValToNSString(context, value)];
-	else
 	{
-		if (JS_GetProperty(context, params, "messageKey", &value))
-			[player addMissionText: JSValToNSString(context, value)];
+		if ([player status] == STATUS_IN_FLIGHT && JSVAL_IS_STRING(value))
+		{
+			OOReportJSWarning(context, @"Mission.runScreen: model will not be displayed while in flight.");
+		}
+		[player showShipModel:JSValToNSString(context, value)];
 	}
 	
-	if (JS_GetProperty(context, params, "choicesKey", &value))
-		MissionSetChoicesKey(context, this, 1, &value, &noWarning);
+	// Start the mission screen.
+	sCallbackFunction = function;
+	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(sCallbackFunction)];
+	
+	// Apply more settings. (These must be done after starting the screen for legacy reasons.)
+	NSString *message = GetParameterString(context, params, "message");
+	if (message != nil)
+	{
+		[player addLiteralMissionText:message];
+	}
+	else
+	{
+		NSString *messageKey = GetParameterString(context, params, "messageKey");
+		if (messageKey != nil)  [player addMissionText:messageKey];
+	}
+	
+	[player setMissionChoices:GetParameterString(context, params, "choicesKey")];
 	
 	// now clean up!
-	value = JSVAL_NULL;
-	MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
-	MissionSetProperty(context, this, INT_TO_JSVAL(kMission_background), &value);
-	MissionSetProperty(context, this, INT_TO_JSVAL(kMission_title), &value);
-	MissionSetMusic(context, this, 1, &value, &noWarning);
+	[player setMissionImage:nil];
+	[player setMissionBackground:nil];
+	[player setMissionTitle:nil];
+	[player setMissionMusic:nil];
 	
 	*outResult = JSVAL_TRUE;
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
