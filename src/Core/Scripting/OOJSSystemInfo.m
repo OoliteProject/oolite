@@ -273,16 +273,22 @@ void InitOOJSSystemInfo(JSContext *context, JSObject *global)
 
 BOOL GetJSSystemInfoForCurrentSystem(JSContext *context, jsval *outInfo)
 {
+	OOJS_PROFILE_ENTER
+	
 	OOJSPauseTimeLimiter();
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	BOOL result = GetJSSystemInfoForSystem(context, [player currentGalaxyID], [player currentSystemID], outInfo);
 	OOJSResumeTimeLimiter();
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 BOOL GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID system, jsval *outInfo)
 {
+	OOJS_PROFILE_ENTER
+	
 	// Use cached object if possible.
 	if (sCachedSystemInfo != NULL &&
 		sCachedGalaxy == galaxy &&
@@ -312,29 +318,43 @@ BOOL GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID 
 		sCachedSystem = system;
 		return YES;
 	}
-	else  return NO;
+	return NO;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static void SystemInfoFinalize(JSContext *context, JSObject *this)
 {
+	OOJS_PROFILE_ENTER
+	
 	[(id)JS_GetPrivate(context, this) release];
 	JS_SetPrivate(context, this, nil);
 	
 	// Clear now-stale cache entry if appropriate.
 	if (sCachedSystemInfo == this)  sCachedSystemInfo = NULL;
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
 static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	OOJS_PROFILE_ENTER	// Any exception will be converted in SystemInfoSetProperty()
+	
 	jsval v = JSVAL_VOID;
 	return SystemInfoSetProperty(context, this, name, &v);
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	volatile NSPoint coords;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	if (this == sSystemInfoPrototype)
 	{
 		// Let SpiderMonkey handle access to the prototype object (where info will be nil).
@@ -356,7 +376,7 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 			case kSystemInfo_coordinates:
 				if (sameGalaxy && !savedInterstellarInfo)
 				{
-					NSPoint coords = [info coordinates];
+					coords = [info coordinates];
 					// Convert from internal scale to light years.
 					coords.x *= 0.4;
 					coords.y *= 0.2; // y-axis had a different scale than x-axis
@@ -418,6 +438,8 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 		}
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -429,6 +451,8 @@ static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsval na
 		return YES;
 	}
 	
+	OOJS_NATIVE_ENTER(context);
+	
 	if (JSVAL_IS_STRING(name))
 	{
 		NSString		*key = [NSString stringWithJavaScriptValue:name inContext:context];
@@ -437,12 +461,16 @@ static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsval na
 		[info setValue:JSValToNSString(context, *value) forKey:key];
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // distanceToSystem(sys : SystemInfo) : Number
 static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	if(!JSVAL_IS_OBJECT(argv[0]))
 	{
 		OOReportJSBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, argv, nil, @"SystemInfo");
@@ -467,12 +495,16 @@ static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uin
 	NSPoint otherCoord = [otherInfo coordinates];
 	
 	return JS_NewDoubleValue(context, distanceBetweenPlanetPositions(thisCoord.x, thisCoord.y, otherCoord.x, otherCoord.y), outResult);
+	
+	OOJS_NATIVE_EXIT
 }
 
 
-// routeToSystem(sys : SystemInfo [, optimizedBy : String]) : Dictionary
+// routeToSystem(sys : SystemInfo [, optimizedBy : String]) : Object
 static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSDictionary *result = nil;
 	OORouteType routeType = OPTIMIZED_BY_JUMPS;
 	
@@ -501,22 +533,29 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN 
 		routeType = StringToRouteType(JSValToNSString(context, argv[1]));
 	}
 	
+	OOJSPauseTimeLimiter();
 	result = [UNIVERSE routeFromSystem:[thisInfo system] toSystem:[otherInfo system] optimizedBy:routeType];
+	OOJSResumeTimeLimiter();
+	
 	if (result != nil)
 	{
 		*outResult = [result javaScriptValueInContext:context];
-		return YES;
 	}
 	else
 	{
-		return NO;
+		*outResult = JSVAL_NULL;
 	}
+	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // filteredSystems(this : Object, predicate : Function) : Array
 static JSBool SystemInfoStaticFilteredSystems(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	// Get this and predicate arguments.
 	jsval predicate = argv[1];
 	JSObject *jsThis = NULL;
@@ -575,4 +614,6 @@ static JSBool SystemInfoStaticFilteredSystems(JSContext *context, JSObject *this
 	
 	OOJSResumeTimeLimiter();
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }

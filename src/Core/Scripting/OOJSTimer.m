@@ -235,6 +235,8 @@ void InitOOJSTimer(JSContext *context, JSObject *global)
 
 static BOOL JSTimerGetTimer(JSContext *context, JSObject *entityObj, OOJSTimer **outTimer)
 {
+	OOJS_PROFILE_ENTER
+	
 	id						value = nil;
 	
 	value = JSObjectToObject(context, entityObj);
@@ -244,15 +246,19 @@ static BOOL JSTimerGetTimer(JSContext *context, JSObject *entityObj, OOJSTimer *
 		return YES;
 	}
 	return NO;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	OOJSTimer				*timer = nil;
 	BOOL					OK = NO;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &timer))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -275,16 +281,21 @@ static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsval name, j
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL					OK = YES;
 	OOJSTimer				*timer = nil;
 	double					fValue;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &timer))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -313,11 +324,15 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsval name, j
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static void TimerFinalize(JSContext *context, JSObject *this)
 {
+	OOJS_PROFILE_ENTER
+	
 	OOJSTimer				*timer = nil;
 	
 	if (JSTimerGetTimer(context, this, &timer))
@@ -329,12 +344,16 @@ static void TimerFinalize(JSContext *context, JSObject *this)
 		[timer release];
 		JS_SetPrivate(context, this, NULL);
 	}
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
 // new Timer(this : Object, function : Function, delay : Number [, interval : Number]) : Timer
 static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	JSObject				*this = NULL;
 	jsval					function = JSVAL_VOID;
 	double					delay;
@@ -399,8 +418,9 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 		*outResult = JSVAL_NULL;
 	}
 
-	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -409,22 +429,30 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 // start() : Boolean
 static JSBool TimerStart(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOJSTimer					*thisTimer = nil;
 	
 	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &thisTimer)))  return NO;
 	
 	*outResult = BOOLToJSVal([thisTimer scheduleTimer]);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // stop()
 static JSBool TimerStop(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOJSTimer					*thisTimer = nil;
 	
 	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &thisTimer)))  return NO;
 	
 	[thisTimer unscheduleTimer];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

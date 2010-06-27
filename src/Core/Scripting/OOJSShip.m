@@ -329,11 +329,14 @@ JSObject *JSShipPrototype(void)
 
 static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	ShipEntity					*entity = nil;
 	id							result = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;	// NOTE: entity may be nil.
 	if (EXPECT_NOT(!JS_EnterLocalRootScope(context)))  return NO;
 	
@@ -681,11 +684,17 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 	}
 	JS_LeaveLocalRootScope(context);
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	ShipEntity					*entity = nil;
 	ShipEntity					*target = nil;
@@ -697,7 +706,6 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	OOShipGroup					*group = nil;
 	OOColor						*colorForScript = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -944,6 +952,8 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 		OOReportJSWarning(context, @"Invalid value type for this property. Value not set.");
 	}
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -952,6 +962,8 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 // setScript(scriptName : String)
 static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
 	
@@ -970,12 +982,16 @@ static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsva
 	
 	[thisEnt setShipScript:name];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // setAI(aiName : String)
 static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
 	
@@ -994,12 +1010,16 @@ static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *a
 	
 	[thisEnt setAITo:name];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // switchAI(aiName : String)
 static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
 	
@@ -1018,12 +1038,16 @@ static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval
 	
 	[thisEnt switchAITo:name];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // exitAI()
 static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	AI						*thisAI = nil;
 	NSString				*message = nil;
@@ -1050,12 +1074,16 @@ static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *
 		[thisAI exitStateMachineWithMessage:message];
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // reactToAIMessage(message : String)
 static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*message = nil;
 	
@@ -1074,12 +1102,16 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 	
 	[thisEnt reactToAIMessage:message context:@"JavaScript reactToAIMessage()"];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // sendAIMessage(message : String)
 static JSBool ShipSendAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*message = nil;
 	
@@ -1098,36 +1130,48 @@ static JSBool ShipSendAIMessage(JSContext *context, JSObject *this, uintN argc, 
 	
 	[thisEnt sendAIMessage:message];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // deployEscorts()
 static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	
 	[thisEnt deployEscorts];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // dockEscorts()
 static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	
 	[thisEnt dockEscorts];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // hasRole(role : String) : Boolean
 static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*role = nil;
 	
@@ -1141,12 +1185,16 @@ static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval 
 	
 	*outResult = BOOLToJSVal([thisEnt hasRole:role]);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // ejectItem(role : String) : Ship
 static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*role = nil;
 	ShipEntity				*result = nil;
@@ -1162,12 +1210,16 @@ static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsva
 	result = [thisEnt ejectShipOfRole:role];
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // ejectSpecificItem(itemKey : String) : Ship
 static JSBool ShipEjectSpecificItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*itemKey = nil;
 	ShipEntity				*result = nil;
@@ -1183,12 +1235,16 @@ static JSBool ShipEjectSpecificItem(JSContext *context, JSObject *this, uintN ar
 	result = [thisEnt ejectShipOfType:itemKey];
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // dumpCargo() : Ship
 static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	ShipEntity				*result = nil;
 	
@@ -1203,12 +1259,16 @@ static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsva
 	result = [thisEnt dumpCargoItem];
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // spawn(role : String [, number : count]) : Array
 static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*role = nil;
 	int32					count = 1;
@@ -1228,19 +1288,27 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 	
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // explode()
 static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	return RemoveOrExplodeShip(context, this, argc, argv, outResult, YES);
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // remove([suppressDeathEvent : Boolean = false])
 static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	JSBool					suppressDeathEvent = NO;
 	
@@ -1265,12 +1333,16 @@ static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *
 		[thisEnt removeScript];
 	}
 	return RemoveOrExplodeShip(context, this, argc, argv, outResult, NO);
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // runLegacyShipActions(target : Ship, actions : Array)
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	PlayerEntity			*player = nil;
 	ShipEntity				*target = nil;
@@ -1295,12 +1367,16 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 							  forTarget:target];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // commsMessage(message : String)
 static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*message = nil;
 	
@@ -1317,12 +1393,16 @@ static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, j
 		[thisEnt commsMessage:message withUnpilotedOverride:YES];
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // fireECM()
 static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	BOOL					OK;
 	
@@ -1335,12 +1415,16 @@ static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval 
 	}
 	*outResult = BOOLToJSVal(OK);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // abandonShip()
 static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
@@ -1354,12 +1438,16 @@ static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, js
 	
 	*outResult = BOOLToJSVal(hasPod);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // addPassenger(name: string, start: int, destination: int, eta: double, fee: double)
 static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity			*thisEnt = nil;
 	BOOL				OK = YES;
 	
@@ -1400,12 +1488,16 @@ static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, j
 	
 	*outResult = BOOLToJSVal(OK);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // awardContract(quantity: int, commodity: string, start: int, destination: int, eta: double, fee: double)
 static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity			*thisEnt = nil;
 	BOOL				OK = JSVAL_IS_INT(argv[0]);
 	NSString 			*key = nil;
@@ -1453,12 +1545,16 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 	
 	*outResult = BOOLToJSVal(OK);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // canAwardEquipment(type : equipmentInfoExpression)
 static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity					*thisEnt = nil;
 	NSString					*key = nil;
 	OOEquipmentType				*eqType = nil;
@@ -1495,12 +1591,16 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 	
 	*outResult = BOOLToJSVal(result);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // awardEquipment(type : equipmentInfoExpression)
 static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity					*thisEnt = nil;
 	OOEquipmentType				*eqType = nil;
 	NSString					*identifier = nil;
@@ -1579,12 +1679,16 @@ static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc,
 	
 	*outResult = BOOLToJSVal(OK);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // removeEquipment(type : equipmentInfoExpression)
 static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity					*thisEnt = nil;
 	NSString					*key = nil;
 	BOOL						OK = YES;
@@ -1628,12 +1732,16 @@ static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc
 	
 	*outResult = BOOLToJSVal(OK);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // setEquipmentStatus(type : equipmentInfoExpression, status : String)
 static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	// equipment status accepted: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED"
 	
 	ShipEntity				*thisEnt = nil;
@@ -1709,12 +1817,16 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 	
 	*outResult = BOOLToJSVal(hasOK || hasDamaged);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // equipmentStatus(type : equipmentInfoExpression) : String
 static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	// values returned: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED", @"EQUIPMENT_UNAVAILABLE"
 	
 	ShipEntity				*thisEnt = nil;
@@ -1739,12 +1851,16 @@ static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc
 	
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // selectNewMissile()
 static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*result = @"EQ_MISSILE";
 	
@@ -1757,12 +1873,16 @@ static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN arg
 	
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // fireMissile()
 static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity			*thisEnt = nil;
 	id					result = nil;
 	
@@ -1778,11 +1898,15 @@ static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, js
 	
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 // setCargo(cargoType : String [, number : count])
 static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	NSString				*cargoType = nil;
 	OOCargoType				commodity = CARGO_UNDEFINED;
@@ -1803,12 +1927,16 @@ static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval
 	
 	*outResult = BOOLToJSVal(commodity != CARGO_UNDEFINED);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // setMaterials(params: dict,[shaders:dict])  // sets materials dictionary. Optional parameter sets the shaders dictionary too.
 static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	JSObject				*params = NULL;
 	NSDictionary			*materials;
@@ -1879,12 +2007,16 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 	
 	*outResult = JSVAL_TRUE;
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // setShaders(params: dict) 
 static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	
 	*outResult = JSVAL_FALSE;
@@ -1904,12 +2036,16 @@ static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsv
 	argv[1] = argv[0];
 	*outResult = [@"setShaders" javaScriptValueInContext:context];
 	return ShipSetMaterials(context, this, 2, argv, outResult);
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // exitSystem([int systemID])
 static JSBool ShipExitSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity			*thisEnt = nil;
 	int32				systemID = -1;
 	BOOL				OK = NO;
@@ -1935,6 +2071,8 @@ static JSBool ShipExitSystem(JSContext *context, JSObject *this, uintN argc, jsv
 	*outResult = BOOLToJSVal(OK);
 
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -1972,6 +2110,8 @@ static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, 
 
 static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo)
 {
+	OOJS_PROFILE_ENTER
+	
 	unsigned		offset = isCargo ? 2 : 1;
 	NSString		*functionName = isCargo ? @"awardContract" : @"addPassenger";
 	jsdouble		fValue;
@@ -1998,4 +2138,6 @@ static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, js
 	}
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }

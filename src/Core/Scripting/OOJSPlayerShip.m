@@ -202,11 +202,13 @@ JSObject *JSPlayerShipObject(void)
 
 static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
+	if (!JSVAL_IS_INT(name))  return YES;
+	
 	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*player = OOPlayerForScripting();
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -313,11 +315,17 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 	
 	if (OK && result != nil)  *outValue = [result javaScriptValueInContext:context];
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	OOJS_NATIVE_ENTER(context)
+	
+	if (!JSVAL_IS_INT(name))  return YES;
+	
 	BOOL						OK = NO;
 	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
@@ -325,8 +333,6 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 	NSString					*sValue = nil;
 	OOGalacticHyperspaceBehaviour ghBehaviour;
 	Vector						vValue;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -432,24 +438,31 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // *** Methods ***
 
-
 // launch()
 static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	[OOPlayerForScripting() launchFromStation];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // removeAllCargo()
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlayerEntity			*player = OOPlayerForScripting();
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity *player = OOPlayerForScripting();
 	
 	if ([player isDocked])
 	{
@@ -461,12 +474,16 @@ static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN
 		OOReportJSError(context, @"%@removeAllCargo only works when docked.",@"PlayerShip.");
 		return NO;
 	}
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // useSpecialCargo(name : String)
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity			*player = OOPlayerForScripting();
 	NSString				*name = nil;
 	
@@ -479,12 +496,16 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 	
 	[player useSpecialCargo:JSValToNSString(context, argv[0])];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // engageAutopilotToStation(stationForDocking : Station) : Boolean
 static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity			*player = OOPlayerForScripting();
 	StationEntity			*stationForDocking = nil;
 	
@@ -495,26 +516,33 @@ static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *t
 		return NO;
 	}
 	
-	BOOL OK = [player engageAutopilotToStation:stationForDocking];
-	*outResult = OK ? JSVAL_TRUE : JSVAL_FALSE;
+	*outResult = BOOLToJSVal([player engageAutopilotToStation:stationForDocking]);
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // disengageAutopilot()
 static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity			*player = OOPlayerForScripting();
 	
 	[player disengageAutopilot];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression) : Boolean
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity			*player = OOPlayerForScripting();
 	NSString				*key = nil;
 	OOEquipmentType			*eqType = nil;
@@ -533,8 +561,9 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObjec
 		return NO;
 	}
 	
-	BOOL OK = [player assignToActivePylon:key];
-	*outResult = OK ? JSVAL_TRUE : JSVAL_FALSE;
+	*outResult = BOOLToJSVal([player assignToActivePylon:key]);
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

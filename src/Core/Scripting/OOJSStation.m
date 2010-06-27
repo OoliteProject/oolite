@@ -134,6 +134,8 @@ void InitOOJSStation(JSContext *context, JSObject *global)
 
 static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, StationEntity **outEntity)
 {
+	OOJS_PROFILE_ENTER
+	
 	BOOL						result;
 	Entity						*entity = nil;
 	
@@ -147,6 +149,8 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 	
 	*outEntity = (StationEntity *)entity;
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -169,9 +173,12 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 
 static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	StationEntity				*entity = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -223,18 +230,22 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 			return NO;
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	StationEntity				*entity = nil;
 	JSBool						bValue;
 	int32						iValue;
 	
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -278,6 +289,8 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -287,6 +300,8 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 // Proposed and written by Frame 20090729
 static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity	*player = OOPlayerForScripting();
 	
 	if ([player isDocked])
@@ -305,12 +320,16 @@ static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, 
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	[player enterDock:stationForDockingPlayer];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // launchShipWithRole(role : String [, abortAllDockings : boolean]) : shipEntity
 static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	StationEntity *station = nil;
 	ShipEntity	*result = nil;
 	JSBool		abortAllDockings = NO;
@@ -331,11 +350,15 @@ static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uint
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool StationLaunchDefenseShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	StationEntity *station = nil;
 	ShipEntity	*result = nil;
 	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
@@ -344,11 +367,15 @@ static JSBool StationLaunchDefenseShip(JSContext *context, JSObject *this, uintN
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool StationLaunchScavenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	StationEntity *station = nil;
 	ShipEntity	*result = nil;
 	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
@@ -357,11 +384,15 @@ static JSBool StationLaunchScavenger(JSContext *context, JSObject *this, uintN a
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool StationLaunchMiner(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	StationEntity *station = nil;
 	ShipEntity	*result = nil;
 	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
@@ -370,11 +401,15 @@ static JSBool StationLaunchMiner(JSContext *context, JSObject *this, uintN argc,
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool StationLaunchPirateShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	StationEntity *station = nil;
 	ShipEntity	*result = nil;
 	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
@@ -383,11 +418,15 @@ static JSBool StationLaunchPirateShip(JSContext *context, JSObject *this, uintN 
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool StationLaunchShuttle(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	StationEntity *station = nil;
 	ShipEntity	*result = nil;
 	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
@@ -396,11 +435,15 @@ static JSBool StationLaunchShuttle(JSContext *context, JSObject *this, uintN arg
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool StationLaunchPatrol(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	StationEntity *station = nil;
 	ShipEntity	*result = nil;
 	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
@@ -409,11 +452,15 @@ static JSBool StationLaunchPatrol(JSContext *context, JSObject *this, uintN argc
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool StationLaunchPolice(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	StationEntity *station = nil;
 	NSArray	*result = nil;
 	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
@@ -422,4 +469,6 @@ static JSBool StationLaunchPolice(JSContext *context, JSObject *this, uintN argc
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

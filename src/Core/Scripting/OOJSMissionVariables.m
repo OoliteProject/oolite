@@ -67,6 +67,8 @@ void InitOOJSMissionVariables(JSContext *context, JSObject *global)
 
 static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity				*player = OOPlayerForScripting();
 	
 	if (JSVAL_IS_STRING(name))
@@ -75,11 +77,15 @@ static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this,
 		[player setMissionVariable:nil forKey:key];
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity				*player = OOPlayerForScripting();
 	
 	if (JSVAL_IS_STRING(name))
@@ -113,11 +119,15 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 		}
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity				*player = OOPlayerForScripting();
 	
 	if (JSVAL_IS_STRING(name))
@@ -129,4 +139,6 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 		[player setMissionVariable:objValue forKey:key];
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

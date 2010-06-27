@@ -180,11 +180,13 @@ PlayerEntity *OOPlayerForScripting(void)
 
 static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*player = OOPlayerForScripting();
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -274,17 +276,21 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	if (OK && result != nil)  *outValue = [result javaScriptValueInContext:context];
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
 	int32						iValue;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -319,6 +325,8 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -327,6 +335,8 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 // commsMessage(message : String [, duration : Number])
 static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString				*message = nil;
 	double					time = 4.5;
 	BOOL					gotTime = YES;
@@ -341,12 +351,16 @@ static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc,
 	
 	[UNIVERSE addCommsMessage:message forCount:time];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // consoleMessage(message : String [, duration : Number])
 static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString				*message = nil;
 	double					time = 3.0;
 	BOOL					gotTime = YES;
@@ -361,43 +375,63 @@ static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN arg
 	
 	[UNIVERSE addMessage:message forCount:time];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // increaseContractReputation()
 static JSBool PlayerIncreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	[OOPlayerForScripting() increaseContractReputation];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // decreaseContractReputation()
 static JSBool PlayerDecreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	[OOPlayerForScripting() decreaseContractReputation];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // increasePassengerReputation()
 static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	[OOPlayerForScripting() increasePassengerReputation];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // decreasePassengerReputation()
 static JSBool PlayerDecreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	[OOPlayerForScripting() decreasePassengerReputation];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
-// addMessageToReport(message : String)
+// addMessageToArrivalReport(message : String)
 static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString				*report = nil;
 	
 	report = JSValToNSString(context, argv[0]);
@@ -409,4 +443,6 @@ static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this
 	
 	[OOPlayerForScripting() addMessageToReport:report];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

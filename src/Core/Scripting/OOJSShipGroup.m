@@ -120,11 +120,14 @@ static BOOL JSShipGroupGetShipGroup(JSContext *context, JSObject *entityObj, OOS
 
 static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
-	OOShipGroup			*group = nil;
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
+	OOShipGroup				*group = nil;
 	BOOL					OK = NO;
 	id						result = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -159,16 +162,21 @@ static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsval nam
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL					OK = NO;
 	OOShipGroup			*group = nil;
 	ShipEntity				*shipValue = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -192,12 +200,16 @@ static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsval nam
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // new ShipGroup([name : String [, leader : Ship]]) : ShipGroup
 static JSBool ShipGroupConstruct(JSContext *context, JSObject *inThis, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString				*name = nil;
 	ShipEntity				*leader = nil;
 	OOShipGroup				*group = nil;
@@ -227,6 +239,8 @@ static JSBool ShipGroupConstruct(JSContext *context, JSObject *inThis, uintN arg
 	*outResult = [group javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -265,6 +279,8 @@ static JSBool ShipGroupConstruct(JSContext *context, JSObject *inThis, uintN arg
 // addShip(ship : Ship)
 static JSBool ShipGroupAddShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOShipGroup				*thisGroup = nil;
 	ShipEntity				*ship = nil;
 	
@@ -281,12 +297,16 @@ static JSBool ShipGroupAddShip(JSContext *context, JSObject *this, uintN argc, j
 	
 	[thisGroup addShip:ship];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // removeShip(ship : Ship)
 static JSBool ShipGroupRemoveShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOShipGroup				*thisGroup = nil;
 	ShipEntity				*ship = nil;
 	
@@ -303,12 +323,16 @@ static JSBool ShipGroupRemoveShip(JSContext *context, JSObject *this, uintN argc
 	
 	[thisGroup removeShip:ship];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // containsShip(ship : Ship) : Boolean
 static JSBool ShipGroupContainsShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOShipGroup				*thisGroup = nil;
 	ShipEntity				*ship = nil;
 	
@@ -330,4 +354,6 @@ static JSBool ShipGroupContainsShip(JSContext *context, JSObject *this, uintN ar
 	
 	*outResult = BOOLEAN_TO_JSVAL([thisGroup containsShip:ship]);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

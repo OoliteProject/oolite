@@ -124,10 +124,13 @@ void InitOOJSSun(JSContext *context, JSObject *global)
 
 static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	OOSunEntity					*sun = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -151,6 +154,8 @@ static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsv
 			OOReportJSBadPropertySelector(context, @"Sun", JSVAL_TO_INT(name));
 	}
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -159,6 +164,8 @@ static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsv
 // goNova([delay : Number])
 static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOSunEntity					*sun = nil;
 	jsdouble					delay = 0;
 	
@@ -167,12 +174,16 @@ static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *a
 	
 	[sun setGoingNova:YES inTime:delay];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // cancelNova()
 static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOSunEntity					*sun = nil;
 	
 	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
@@ -182,4 +193,6 @@ static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsva
 		[sun setGoingNova:NO inTime:0];
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

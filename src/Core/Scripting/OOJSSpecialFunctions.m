@@ -65,15 +65,23 @@ OOJSValue *JSSpecialFunctionsObjectWrapper(JSContext *context)
 
 static JSBool SpecialToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER
+	
 	*outResult = STRING_TO_JSVAL(JS_NewStringCopyZ(context, "[object OoliteSpecialFunctions]"));
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSBool SpecialJSWarning(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_PROFILE_ENTER	// These functions are exception-safe
+	
 	OOSetJSWarningOrErrorStackSkip(1);
 	OOReportJSWarning(context, @"%@", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
 	OOSetJSWarningOrErrorStackSkip(0);
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }

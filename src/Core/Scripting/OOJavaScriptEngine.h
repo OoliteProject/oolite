@@ -404,12 +404,12 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 
 #define OOJS_NATIVE_ENTER(cx) \
 	{ \
-		JSContext *oojsProfileContext = (cx); \
+		JSContext *oojsNativeContext = (cx); \
 		OOJS_PROFILE_ENTER_FOR_NATIVE
 
 #define OOJS_NATIVE_EXIT \
 		} @catch(id exception) { \
-			OOJSReportWrappedException(oojsProfileContext, exception); \
+			OOJSReportWrappedException(oojsNativeContext, exception); \
 			return NO; \
 		OOJS_PROFILE_EXIT_VAL(NO) \
 	}

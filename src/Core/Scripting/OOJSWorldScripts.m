@@ -60,6 +60,8 @@ void InitOOJSWorldScripts(JSContext *context, JSObject *global)
 
 static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity				*player = OOPlayerForScripting();
 	NSString					*scriptName = nil;
 	id							script = nil;
@@ -80,11 +82,15 @@ static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsval 
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool WorldScriptsEnumerate(JSContext *context, JSObject *object)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	/*	In order to support enumeration of world scripts (e.g.,
 		for (name in worldScripts) { ... }), define each property on demand.
 		Since world scripts cannot be deleted, we don't need to worry about
@@ -106,15 +112,21 @@ static JSBool WorldScriptsEnumerate(JSContext *context, JSObject *object)
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool GetWorldScriptNames(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSArray					*names = nil;
 	
 	names = [OOPlayerForScripting() worldScriptNames];
 	*outValue = [names javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

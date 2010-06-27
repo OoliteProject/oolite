@@ -127,10 +127,12 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	OOPlanetEntity				*planet = nil;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -162,17 +164,22 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
 	}
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL					OK = YES;
 	OOPlanetEntity			*planet = nil;
 	NSString				*sValue = nil;
 	Quaternion				qValue;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -217,4 +224,6 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }

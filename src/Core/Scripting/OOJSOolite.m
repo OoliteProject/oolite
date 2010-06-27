@@ -95,9 +95,11 @@ void InitOOJSOolite(JSContext *context, JSObject *global)
 
 static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
-	id						result = nil;
-	
 	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
+	id						result = nil;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -131,6 +133,8 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	if (result != nil)  *outValue = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -155,6 +159,8 @@ static NSArray *VersionComponents(void)
 */
 static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	id						components = nil;
 	NSEnumerator			*componentEnum = nil;
 	id						component = nil;
@@ -185,4 +191,6 @@ static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN arg
 	// Else leave as JSVAL_VOID
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
