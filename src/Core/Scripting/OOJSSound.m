@@ -114,6 +114,8 @@ void InitOOJSSound(JSContext *context, JSObject *global)
 
 OOSound *SoundFromJSValue(JSContext *context, jsval value)
 {
+	OOJS_PROFILE_ENTER
+	
 	if (JSVAL_IS_STRING(value))
 	{
 		return GetNamedSound(JSValToNSString(context, value));
@@ -122,6 +124,8 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 	{
 		return JSValueToObjectOfClass(context, value, [OOSound class]);
 	}
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -129,6 +133,8 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 
 static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOSound						*sound = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
@@ -146,6 +152,8 @@ static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsval name, j
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -171,6 +179,8 @@ static OOSound *GetNamedSound(NSString *name)
 // load(name : String) : Sound
 static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString					*name = nil;
 	OOSound						*sound = nil;
 	
@@ -181,16 +191,23 @@ static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, js
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	sound = GetNamedSound(name);
 	*outResult = [sound javaScriptValueInContext:context];
 	if (*outResult == JSVAL_VOID)  *outResult = JSVAL_NULL;	// No sound by that name
+	OOJSResumeTimeLimiter();
+	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // playMusic(name : String [, loop : Boolean])
 static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString					*name = nil;
 	JSBool						loop = NO;
 	
@@ -209,15 +226,23 @@ static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN arg
 		}
 	}
 	
+	OOJSPauseTimeLimiter();
 	[[OOMusicController sharedController] playMusicNamed:name loop:loop];
+	OOJSResumeTimeLimiter();
+	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString					*name = nil;
 	
+	OOJSPauseTimeLimiter();
 	if (argc > 0)
 	{
 		name = JSValToNSString(context, argv[0]);
@@ -232,7 +257,11 @@ static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN arg
 	{
 		[[OOMusicController sharedController] stop];
 	}
+	OOJSResumeTimeLimiter();
+	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 

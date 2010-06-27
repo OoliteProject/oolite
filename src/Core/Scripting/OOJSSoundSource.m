@@ -125,9 +125,12 @@ static JSBool SoundSourceConstruct(JSContext *context, JSObject *this, uintN arg
 
 static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	OOSoundSource				*soundSource = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSSoundSourceGetSoundSource(context, this, &soundSource)) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -154,23 +157,30 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsval n
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	OOSoundSource				*soundSource = nil;
 	int32						iValue;
 	JSBool						bValue;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSSoundSourceGetSoundSource(context, this, &soundSource)) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
 		case kSoundSource_sound:
+			OOJSPauseTimeLimiter();
 			[soundSource setSound:SoundFromJSValue(context, *value)];
+			OOJSResumeTimeLimiter();
 			OK = YES;
 			break;
 			
@@ -197,6 +207,8 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval n
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -205,6 +217,8 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval n
 // play([count : Number])
 static JSBool SoundSourcePlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOSoundSource			*thisv = nil;
 	int32					count = 0;
 	
@@ -220,53 +234,78 @@ static JSBool SoundSourcePlay(JSContext *context, JSObject *this, uintN argc, js
 		if (count > 100)  count = 100;
 		[thisv setRepeatCount:count];
 	}
+	
+	OOJSPauseTimeLimiter();
 	[thisv play];
+	OOJSResumeTimeLimiter();
+	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // stop()
 static JSBool SoundSourceStop(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOSoundSource			*thisv = nil;
 	
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, this, &thisv))) return NO;
 	
+	OOJSPauseTimeLimiter();
 	[thisv stop];
+	OOJSResumeTimeLimiter();
+	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // playOrRepeat()
 static JSBool SoundSourcePlayOrRepeat(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOSoundSource			*thisv = nil;
 	
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, this, &thisv))) return NO;
 	
+	OOJSPauseTimeLimiter();
 	[thisv playOrRepeat];
+	OOJSResumeTimeLimiter();
+	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // playSound(sound : SoundExpression [, count : Number])
 static JSBool SoundSourcePlaySound(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOSoundSource			*thisv;
 	OOSound					*sound = nil;
 	int32					count = 0;
 	
+	OOJSPauseTimeLimiter();
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, this, &thisv))) return NO;
 	sound = SoundFromJSValue(context, argv[0]);
 	if (sound == nil)
 	{
 		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, argv, nil, @"sound or sound name");
+		OOJSResumeTimeLimiter();
 		return NO;
 	}
 	
 	if (argc > 1 && !JS_ValueToInt32(context, argv[1], &count))
 	{
 		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, argv, nil, @"sound or sound name and optional integer count");
+		OOJSResumeTimeLimiter();
 		return NO;
 	}
 	
@@ -277,7 +316,11 @@ static JSBool SoundSourcePlaySound(JSContext *context, JSObject *this, uintN arg
 		[thisv setRepeatCount:count];
 	}
 	[thisv play];
+	OOJSResumeTimeLimiter();
+	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 

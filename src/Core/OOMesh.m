@@ -53,6 +53,8 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 #import "NSObjectOOExtensions.h"
 
+#import "OOJavaScriptEngine.h"
+
 
 // If set, collision octree depth varies depending on the size of the mesh.
 #define ADAPTIVE_OCTREE_DEPTH		1
@@ -807,6 +809,8 @@ materialDictionary:(NSDictionary *)materialDict
 	  shaderMacros:(NSDictionary *)macros
 shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
+	OOJS_PROFILE_ENTER
+	
 	self = [super init];
 	if (self == nil)  return nil;
 	
@@ -853,6 +857,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	[pool release];
 	return self;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -912,6 +918,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (NSDictionary *)modelData
 {
+	OOJS_PROFILE_ENTER
+	
 	NSNumber			*vertCnt = nil,
 						*faceCnt = nil;
 	NSData				*vertData = nil,
@@ -976,11 +984,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						normData, @"normal data",
 						tanData, @"tangent data",
 						nil];
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (BOOL)setModelFromModelData:(NSDictionary *)dict name:(NSString *)fileName
 {
+	OOJS_PROFILE_ENTER
+	
 	NSData				*vertData = nil,
 						*normData = nil,
 						*tanData = nil,
@@ -1065,11 +1077,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	}
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (BOOL)loadData:(NSString *)filename
 {
+	OOJS_PROFILE_ENTER
+	
 	NSScanner			*scanner;
 	NSDictionary		*cacheData = nil;
 	BOOL				failFlag = NO;
@@ -1530,11 +1546,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	PROFILE(@"finished setUpVertexArrays");
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (void) checkNormalsAndAdjustWinding
 {
+	OOJS_PROFILE_ENTER
+	
 	Vector				calculatedNormal;
 	OOMeshFaceCount		i;
 	
@@ -1576,11 +1596,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			_faces[i].t[2] = f0;
 		}
 	}
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
 - (void) generateFaceTangents
 {
+	OOJS_PROFILE_ENTER
+	
 	OOMeshFaceCount	i;
 	for (i = 0; i < faceCount; i++)
 	{
@@ -1614,6 +1638,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		Vector tangent = vector_subtract(vector_multiply_scalar(vProjAB, dsAC), vector_multiply_scalar(vProjAC, dsAB));
 		face->tangent = cross_product(nA, tangent);	// Rotate 90 degrees. Done this way because I'm too lazy to grok the code above.
 	}
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
@@ -1637,6 +1663,8 @@ static float FaceAreaBroken(GLuint *vertIndices, Vector *vertices)
 
 - (void) calculateVertexNormalsAndTangents
 {
+	OOJS_PROFILE_ENTER
+	
 	OOUInteger	i,j;
 	float		triangle_area[faceCount];
 	
@@ -1668,6 +1696,8 @@ static float FaceAreaBroken(GLuint *vertIndices, Vector *vertices)
 		_normals[i] = normal_sum;
 		_tangents[i] = tangent_sum;
 	}
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
@@ -1689,6 +1719,8 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 
 - (void) calculateVertexTangents
 {
+	OOJS_PROFILE_ENTER
+	
 	/*	This is conceptually broken.
 		At the moment, it's calculating one tangent per "input" vertex. It should
 		be calculating one tangent per "real" vertex, where a "real" vertex is
@@ -1726,11 +1758,15 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 		
 		_tangents[i] = tangent_sum;
 	}
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
 - (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(OOMeshVertexCount)v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup
 {
+	OOJS_PROFILE_ENTER
+	
 	assert(outNormal != NULL && outTangent != NULL);
 	
 	OOUInteger j;
@@ -1751,11 +1787,15 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	
 	*outNormal = vector_normal_or_fallback(normal_sum, kBasisZVector);
 	*outTangent = vector_normal_or_fallback(tangent_sum, kBasisXVector);
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
 - (BOOL) setUpVertexArrays
 {
+	OOJS_PROFILE_ENTER
+	
 	OOUInteger	fi, vi, mi;
 	
 	if (![self allocateVertexArrayBuffersWithCount:faceCount])  return NO;
@@ -1842,11 +1882,15 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	
 	_displayLists.count = tri_index;	// total number of triangle vertices
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 - (void) calculateBoundingVolumes
 {
+	OOJS_PROFILE_ENTER
+	
 	OOMeshVertexCount	i;
 	double				d_squared, length_longest_axis, length_shortest_axis;
 	GLfloat				result;
@@ -1878,6 +1922,8 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	maxDrawDistance = d_squared * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;	// no longer based on the collision radius
 	
 	collisionRadius = sqrt(result);
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
@@ -1953,7 +1999,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 		glVertex3f(v.x, v.y, v.z);
 		glVertex3f(t.x, t.y, t.z);
 		
-		// Draw binormal
+		// Draw bitangent
 		glColor3f(0.0f, 1.0f, 0.0f);
 		b = vector_add(v, vector_multiply_scalar(b, 3.0f));
 		glVertex3f(v.x, v.y, v.z);
