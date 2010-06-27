@@ -221,6 +221,8 @@ static void InitOOJSConsole(JSContext *context, JSObject *global)
 
 JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 {
+	OOJS_PROFILE_ENTER
+	
 	OOJavaScriptEngine		*engine = nil;
 	JSObject				*object = NULL;
 	JSObject				*settingsObject = NULL;
@@ -265,12 +267,16 @@ JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 	
 	return object;
 	// Analyzer: object leaked. (x2) [Expected, objects are retained by JS object.]
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -337,16 +343,20 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	int32						iValue;
 	NSString					*sValue = nil;
 	JSBool						bValue = NO;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -391,6 +401,8 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -428,13 +440,19 @@ static BOOL DoWeDefineAllDebugFlags(enum OODebugFlags flags)
 
 static void ConsoleFinalize(JSContext *context, JSObject *this)
 {
+	OOJS_PROFILE_ENTER
+	
 	[(id)JS_GetPrivate(context, this) release];
 	JS_SetPrivate(context, this, nil);
+	
+	OOJS_PROFILE_EXIT_VOID
 }
 
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*key = nil;
 	id					monitor = nil;
 	
@@ -452,11 +470,15 @@ static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, 
 	[monitor setConfigurationValue:nil forKey:key];
 	*outValue = JSVAL_TRUE;
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*key = nil;
 	id					value = nil;
 	id					monitor = nil;
@@ -475,11 +497,15 @@ static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsv
 	*outValue = [value javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsval name, jsval *inValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*key = nil;
 	id					value = nil;
 	id					monitor = nil;
@@ -514,6 +540,8 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 	OOJSResumeTimeLimiter();
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -522,16 +550,21 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 // function consoleMessage(colorCode : String, message : String [, emphasisStart : Number, emphasisLength : Number]) : void
 static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	NSRange				emphasisRange = {0, 0};
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	id					monitor = nil;
 	NSString			*colorKey = nil,
 						*message = nil;
-	NSRange				emphasisRange = {0, 0};
 	jsdouble			location, length;
 	
-	monitor = JSObjectToObject(context, this);
-	if (![monitor isKindOfClass:[OODebugMonitor class]])
+	OOJSPauseTimeLimiter();
+	monitor = JSObjectToObjectOfClass(context, this, [OODebugMonitor class]);
+	if (monitor == nil)
 	{
 		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
+		OOJSResumeTimeLimiter();
 		return NO;
 	}
 	
@@ -544,7 +577,7 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 		if (JS_ValueToNumber(context, argv[2], &location) &&
 			JS_ValueToNumber(context, argv[3], &length))
 		{
-			emphasisRange = NSMakeRange(location, length);
+			emphasisRange = (NSRange){location, length};
 		}
 	}
 	
@@ -567,14 +600,19 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 							colorKey:colorKey
 					   emphasisRange:emphasisRange];
 	}
+	OOJSResumeTimeLimiter();
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function clearConsole() : void
 static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	id					monitor = nil;
 	
 	monitor = JSObjectToObject(context, this);
@@ -586,23 +624,31 @@ static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc
 	
 	[monitor clearJSConsole];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function scriptStack() : Array
 static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSArray				*result = nil;
 	
 	result = [OOJSScript scriptStack];
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function inspectEntity(entity : Entity) : void
 static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	Entity				*entity = nil;
 	
 	if (JSValueToEntity(context, argv[0], &entity))
@@ -616,12 +662,16 @@ static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN arg
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function __callObjCMethod(selector : String [, ...]) : Object
 static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	id						object = nil;
 	
 	object = JSObjectToObject(context, this);
@@ -636,12 +686,16 @@ static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN ar
 	OOJSResumeTimeLimiter();
 	
 	return result;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function isExecutableJavaScript(this : Object, string : String) : Boolean
 static JSBool ConsoleIsExecutableJavaScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	JSObject				*target = NULL;
 	JSString				*string = NULL;
 	
@@ -650,26 +704,37 @@ static JSBool ConsoleIsExecutableJavaScript(JSContext *context, JSObject *this, 
 	if (!JS_ValueToObject(context, argv[0], &target) || !JSVAL_IS_STRING(argv[1]))  return YES;	// Fail silently
 	string = JSVAL_TO_STRING(argv[1]);
 	
+	OOJSPauseTimeLimiter();
 	*outResult = BOOLEAN_TO_JSVAL(JS_BufferIsCompilableUnit(context, target, JS_GetStringBytes(string), JS_GetStringLength(string)));
+	OOJSResumeTimeLimiter();
+	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function displayMessagesInClass(class : String) : Boolean
 static JSBool ConsoleDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString				*messageClass = nil;
 	
 	messageClass = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
 	*outResult = BOOLEAN_TO_JSVAL(OOLogWillDisplayMessagesInClass(messageClass));
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function setDisplayMessagesInClass(class : String, flag : Boolean) : void
 static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString				*messageClass = nil;
 	JSBool					flag;
 	
@@ -680,25 +745,35 @@ static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *thi
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function writeLogMarker() : void
 static JSBool ConsoleWriteLogMarker(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOLogInsertMarker();
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function writeMemoryStats() : void
 static JSBool ConsoleWriteMemoryStats(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOJSPauseTimeLimiter();
 	[[OODebugMonitor sharedDebugMonitor] dumpMemoryStatistics];
 	OOJSResumeTimeLimiter();
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -707,6 +782,8 @@ static JSBool ConsoleWriteMemoryStats(JSContext *context, JSObject *this, uintN 
 // function profile(func : function [, Object this = debugConsole.script]) : String
 static JSBool ConsoleProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOTimeProfile *profile = nil;
 	
 	if (EXPECT_NOT(OOJSIsProfiling()))
@@ -725,12 +802,16 @@ static JSBool ConsoleProfile(JSContext *context, JSObject *this, uintN argc, jsv
 	
 	[pool release];
 	return result;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // function getProfile(func : function [, Object this = debugConsole.script]) : Object { totalTime : Number, jsTime : Number, extensionTime : Number }
 static JSBool ConsoleGetProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	OOTimeProfile *profile = nil;
 	
 	if (EXPECT_NOT(OOJSIsProfiling()))
@@ -749,6 +830,8 @@ static JSBool ConsoleGetProfile(JSContext *context, JSObject *this, uintN argc, 
 	
 	[pool release];
 	return result;
+	
+	OOJS_NATIVE_EXIT
 }
 
 

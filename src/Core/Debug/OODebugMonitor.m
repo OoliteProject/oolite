@@ -202,7 +202,9 @@ static OODebugMonitor *sSingleton = nil;
 
 - (oneway void)performJSConsoleCommand:(in NSString *)command
 {
+	OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
 	[_script doEvent:@"consolePerformJSCommand" withArgument:command];
+	OOJSStopTimeLimiter();
 }
 
 
@@ -211,6 +213,7 @@ static OODebugMonitor *sSingleton = nil;
 			  emphasisRange:(NSRange)emphasisRange
 {
 	if (string == nil)  return;
+	OOJSPauseTimeLimiter();
 	NS_DURING
 		[_debugger debugMonitor:self
 				jsConsoleOutput:string
@@ -219,6 +222,7 @@ static OODebugMonitor *sSingleton = nil;
 	NS_HANDLER
 		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to send JavaScript console text to debugger: %@ -- %@", [localException name], [localException reason]);
 	NS_ENDHANDLER
+	OOJSResumeTimeLimiter();
 }
 
 
@@ -233,21 +237,25 @@ static OODebugMonitor *sSingleton = nil;
 
 - (void)clearJSConsole
 {
+	OOJSPauseTimeLimiter();
 	NS_DURING
 		[_debugger debugMonitorClearConsole:self];
 	NS_HANDLER
 		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to clear JavaScript console: %@ -- %@", [localException name], [localException reason]);
 	NS_ENDHANDLER
+	OOJSResumeTimeLimiter();
 }
 
 
 - (void)showJSConsole
 {
+	OOJSPauseTimeLimiter();
 	NS_DURING
 		[_debugger debugMonitorShowConsole:self];
 	NS_HANDLER
 		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to show JavaScript console: %@ -- %@", [localException name], [localException reason]);
 	NS_ENDHANDLER
+	OOJSResumeTimeLimiter();
 }
 
 

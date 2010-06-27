@@ -81,7 +81,7 @@ OOINLINE BOOL MethodExpectsParameter(MethodType type)	{ return type == kMethodTy
 
 BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassName, uintN argc, jsval *argv, jsval *outResult)
 {
-	OOJS_NATIVE_ENTER(context)
+	OOJS_PROFILE_ENTER
 	
 	NSString				*selectorString = nil;
 	SEL						selector = NULL;
@@ -187,7 +187,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 	
 	return !error;
 	
-	OOJS_NATIVE_EXIT
+	OOJS_PROFILE_EXIT
 }
 
 
