@@ -2910,7 +2910,7 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
-- (void) AddToAdjustTime:(double)seconds
+- (void) addToAdjustTime:(double)seconds
 {
 	ship_clock_adjust += seconds;
 }

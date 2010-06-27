@@ -113,13 +113,16 @@ void InitOOJSClock(JSContext *context, JSObject *global)
 
 static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	PlayerEntity				*player = nil;
 	double						clockTime;
 	
 	player = OOPlayerForScripting();
 	clockTime = [player clockTime];
-	if (!JSVAL_IS_INT(name))  return YES;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -179,6 +182,8 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, j
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -187,26 +192,36 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, j
 // toString() : String
 static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	*outResult = [[OOPlayerForScripting() dial_clock] javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // clockStringForTime(time : Number) : String
 static JSBool ClockClockStringForTime(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	double						time;
 	
 	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &time)))  return NO;
 	
 	*outResult = [ClockToString(time, NO) javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // clockAddSeconds(seconds : Number) : String
 static JSBool ClockAddSeconds(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	double						time;
 	
 	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &time)))  return YES;	// no-op
@@ -218,8 +233,10 @@ static JSBool ClockAddSeconds(JSContext *context, JSObject *this, uintN argc, js
 		return YES;
 	}
 	
-	[OOPlayerForScripting() AddToAdjustTime:time];
+	[OOPlayerForScripting() addToAdjustTime:time];
 	
 	*outResult = JSVAL_TRUE;
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

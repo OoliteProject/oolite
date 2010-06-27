@@ -131,10 +131,12 @@ void SetUpOOJSGlobal(JSContext *context, JSObject *global)
 
 static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	PlayerEntity				*player = OOPlayerForScripting();
 	id							result = nil;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -157,15 +159,19 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	if (result != nil)  *outValue = [result javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	jsdouble					fValue;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -182,6 +188,8 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsval name, 
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -190,6 +198,8 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsval name, 
 // log([messageClass : String,] message : string, ...)
 static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*message = nil;
 	NSString			*messageClass = nil;
 	
@@ -203,23 +213,28 @@ static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *a
 		messageClass = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
 		message = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@", " inContext:context];
 	}
+	
+	OOJSPauseTimeLimiter();
 	OOLog(messageClass, @"%@", message);
 	
 #if OOJSENGINE_MONITOR_SUPPORT
-	OOJSPauseTimeLimiter();
 	[[OOJavaScriptEngine sharedEngine] sendMonitorLogMessage:message
 											withMessageClass:nil
 												   inContext:context];
-	OOJSResumeTimeLimiter();
 #endif
+	OOJSResumeTimeLimiter();
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // expandDescription(description : String [, locals : object (dictionary)]) : String
 static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*string = nil;
 	NSDictionary		*locals = nil;
 	
@@ -238,12 +253,16 @@ static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN 
 	*outResult = [string javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // expandMissionText(textKey : String [, locals : object (dictionary)]) : String
 static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*string = nil;
 	NSMutableString		*mString = nil;
 	NSDictionary		*locals = nil;
@@ -272,14 +291,17 @@ static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN 
 		*outResult = JSVAL_NULL;
 	}
 
-	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // displayNameForCommodity(commodityName : String) : String
 static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*string = nil;
 	
 	string = JSValToNSString(context,argv[0]);
@@ -292,24 +314,32 @@ static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, 
 	*outResult = [string javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // randomName() : String
 static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*string = nil;
 	
 	string = RandomDigrams();
 	*outResult = [string javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // randomInhabitantsDescription() : String
 static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*string = nil;
 	Random_Seed			aSeed;
 	JSBool				isPlural = YES;
@@ -321,12 +351,16 @@ static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *t
 	*outResult = [string javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // setScreenBackground(name : String) : Boolean
 static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	*outResult = JSVAL_FALSE;
 	NSString 		*value = JSValToNSString(context, argv[0]);
 	PlayerEntity	*player = OOPlayerForScripting();
@@ -339,12 +373,16 @@ static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uint
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 // setScreenOverlay(name : String) : Boolean
 static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	*outResult = JSVAL_FALSE;
 	NSString 		*value = JSValToNSString(context, argv[0]);
 	
@@ -354,4 +392,6 @@ static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN a
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

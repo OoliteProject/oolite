@@ -152,10 +152,14 @@ void InitOOJSEquipmentInfo(JSContext *context, JSObject *global)
 
 OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value)
 {
+	OOJS_PROFILE_ENTER
+	
 	id objValue = JSValueToObject(context, value);
 	if ([objValue isKindOfClass:[OOEquipmentType class]])  return objValue;
 	if ([objValue isKindOfClass:[NSString class]])  return [OOEquipmentType equipmentTypeWithIdentifier:objValue];
 	return nil;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -167,6 +171,8 @@ NSString *JSValueToEquipmentKey(JSContext *context, jsval value)
 
 NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *outExists)
 {
+	OOJS_PROFILE_ENTER
+	
 	NSString *result = nil;
 	BOOL exists = NO;
 	id objValue = JSValueToObject(context, value);
@@ -191,6 +197,8 @@ NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *ou
 	
 	if (outExists != NULL)  *outExists = exists;
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -198,10 +206,13 @@ NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *ou
 
 static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	OOEquipmentType				*eqType = nil;
 	id							result = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	eqType = JSObjectToObjectOfClass(context, this, [OOEquipmentType class]);
 	if (EXPECT_NOT(eqType == nil))  return NO;
 	
@@ -322,16 +333,21 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 		*outValue = [result javaScriptValueInContext:context];
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	OOEquipmentType				*eqType = nil;
 	int32						iValue;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	eqType = JSObjectToObjectOfClass(context, this, [OOEquipmentType class]);
 	if (EXPECT_NOT(eqType == nil))  return NO;
 	
@@ -362,13 +378,19 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	*outValue = [[OOEquipmentType allEquipmentTypes] javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }
 	
 
@@ -408,6 +430,8 @@ static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, js
 // infoForKey(key : String): EquipmentInfo
 static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString					*key = nil;
 	
 	key = JSValToNSString(context, argv[0]);
@@ -420,4 +444,6 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, 
 	*outResult = [[OOEquipmentType equipmentTypeWithIdentifier:key] javaScriptValueInContext:context];
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

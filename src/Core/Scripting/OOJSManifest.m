@@ -215,6 +215,8 @@ static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsval n
 
 static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*entity = OOPlayerForScripting();
@@ -342,12 +344,15 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name
 
 	if (OK && result != nil)  *outValue = [result javaScriptValueInContext:context];	
 	return OK;
-
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	PlayerEntity				*entity = OOPlayerForScripting();
 	int32						iValue;
@@ -546,7 +551,8 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	}
 	
 	return OK;
-
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -555,8 +561,12 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 // toString() : String
 static JSBool ManifestToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	NSString			*ret = @"[Manifest Object]";
 	
 	*outResult = [ret javaScriptValueInContext:context];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
 }

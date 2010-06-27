@@ -153,6 +153,8 @@ JSObject *JSEntityPrototype(void)
 
 BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Entity **outEntity, uintN *outConsumed)
 {
+	OOJS_PROFILE_ENTER
+	
 	// Sanity checks.
 	if (outConsumed != NULL)  *outConsumed = 0;
 	if (EXPECT_NOT(argc == 0 || argv == NULL || outEntity == NULL))
@@ -175,16 +177,21 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	// Success.
 	if (outConsumed != NULL)  *outConsumed = 1;
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL						OK = NO;
 	Entity						*entity = nil;
 	id							result = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	JSEntityGetEntity(context, this, &entity);
 	if (entity == nil)
 	{
@@ -287,18 +294,23 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 		OK = YES;
 	}
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }
 
 
 static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
 	BOOL				OK = NO;
 	Entity				*entity = nil;
 	double				fValue;
 	Vector				vValue;
 	Quaternion			qValue;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSEntityGetEntity(context, this, &entity))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
@@ -333,4 +345,6 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 	}
 	
 	return OK;
+	
+	OOJS_NATIVE_EXIT
 }

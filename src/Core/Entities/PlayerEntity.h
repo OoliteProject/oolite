@@ -602,7 +602,7 @@ typedef enum
 - (double) clockTime;		// Note that this is not an OOTimeAbsolute
 - (double) clockTimeAdjusted;	// Note that this is not an OOTimeAbsolute
 - (BOOL) clockAdjusting;
-- (void) AddToAdjustTime:(double) seconds ;
+- (void) addToAdjustTime:(double) seconds ;
 
 - (NSString *) dial_clock;
 - (NSString *) dial_clock_adjusted;
