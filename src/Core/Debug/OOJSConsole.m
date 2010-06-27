@@ -71,6 +71,7 @@ static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc
 static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ConsoleSetUpCallObjC(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleIsExecutableJavaScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -93,7 +94,7 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 static JSClass sConsoleClass =
 {
 	"Console",
-	JSCLASS_HAS_PRIVATE | JSCLASS_IS_ANONYMOUS,
+	JSCLASS_HAS_PRIVATE,
 	
 	JS_PropertyStub,				// addProperty
 	JS_PropertyStub,				// delProperty
@@ -178,7 +179,7 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "clearConsole",					ConsoleClearConsole,				0 },
 	{ "scriptStack",					ConsoleScriptStack,					0 },
 	{ "inspectEntity",					ConsoleInspectEntity,				1 },
-	{ "__callObjCMethod",				ConsoleCallObjCMethod,				1 },
+	{ "__setUpCallObjC",				ConsoleSetUpCallObjC,				1, JSPROP_READONLY },
 	{ "isExecutableJavaScript",			ConsoleIsExecutableJavaScript,		2 },
 	{ "displayMessagesInClass",			ConsoleDisplayMessagesInClass,		1 },
 	{ "setDisplayMessagesInClass",		ConsoleSetDisplayMessagesInClass,	2 },
@@ -667,7 +668,7 @@ static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN arg
 }
 
 
-// function __callObjCMethod(selector : String [, ...]) : Object
+// function callObjC(selector : String [, ...]) : Object
 static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOJS_NATIVE_ENTER(context)
@@ -686,6 +687,25 @@ static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN ar
 	OOJSResumeTimeLimiter();
 	
 	return result;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// function __setUpCallObjC(object) -- object is expected to be Object.prototye.
+static JSBool ConsoleSetUpCallObjC(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	if (EXPECT_NOT(!JSVAL_IS_OBJECT(argv[0])))
+	{
+		OOReportJSBadArguments(context, @"Console", @"__setUpCallObjC", argc, argv, nil, @"Object.prototype");
+		return NO;
+	}
+	
+	JSObject *obj = JSVAL_TO_OBJECT(argv[0]);
+	JS_DefineFunction(context, obj, "callObjC", ConsoleCallObjCMethod, 1, JSPROP_PERMANENT | JSPROP_READONLY);
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

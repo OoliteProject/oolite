@@ -34,34 +34,47 @@ MA 02110-1301, USA.
 
 static NSString *KeyForName(JSContext *context, jsval name)
 {
-	return [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
+	NSCParameterAssert(JSVAL_IS_STRING(name));
+	
+	NSString *key = [NSString stringWithJavaScriptString:JSVAL_TO_STRING(name)];
+	if ([key hasPrefix:@"_"])  return nil;
+	return [@"mission_" stringByAppendingString:key];
 }
 
 
 static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool MissionVariablesEnumerate(JSContext *cx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp);
 
 
-static JSClass sMissionVariablesClass =
+static JSExtendedClass sMissionVariablesClass =
 {
-	"MissionVariables",
-	JSCLASS_IS_ANONYMOUS,
+	{
+		"MissionVariables",
+		JSCLASS_NEW_ENUMERATE | JSCLASS_IS_EXTENDED,
+		
+		JS_PropertyStub,
+		MissionVariablesDeleteProperty,
+		MissionVariablesGetProperty,
+		MissionVariablesSetProperty,
+		(JSEnumerateOp)MissionVariablesEnumerate,
+		JS_ResolveStub,
+		JS_ConvertStub,
+		JS_FinalizeStub
+	},
 	
-	JS_PropertyStub,
-	MissionVariablesDeleteProperty,
-	MissionVariablesGetProperty,
-	MissionVariablesSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
+	NULL,
+	NULL,
+	NULL,
+	
+	JSCLASS_NO_RESERVED_MEMBERS
 };
 
 
 void InitOOJSMissionVariables(JSContext *context, JSObject *global)
 {
-	JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass.base, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 
@@ -90,8 +103,10 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 	
 	if (JSVAL_IS_STRING(name))
 	{
-		NSString	*key = KeyForName(context, name);
-		id			value = [player missionVariableForKey:key];
+		NSString *key = KeyForName(context, name);
+		if (key == nil)  return YES;
+		
+		id value = [player missionVariableForKey:key];
 		
 		*outValue = JSVAL_VOID;
 		if ([value isKindOfClass:[NSString class]])	// Currently there should only be strings, but we may want to change this.
@@ -139,6 +154,55 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 		[player setMissionVariable:objValue forKey:key];
 	}
 	return YES;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JSIterateOp enumOp, jsval *state, jsid *idp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSEnumerator *mvarEnumerator = JSVAL_TO_PRIVATE(*state);
+	
+	switch (enumOp)
+	{
+		case JSENUMERATE_INIT:
+		{
+			// -allKeys implicitly makes a copy, which is good since the enumerating code might mutate.
+			NSArray *mvars = [[[PlayerEntity sharedPlayer] missionVariables] allKeys];
+			mvarEnumerator = [[mvars objectEnumerator] retain];
+			*state = PRIVATE_TO_JSVAL(mvarEnumerator);
+			if (idp != NULL)
+			{
+				*idp = INT_TO_JSVAL([mvars count]);
+			}
+			return YES;
+		}
+		
+		case JSENUMERATE_NEXT:
+		{
+			id next = [mvarEnumerator nextObject];
+			if (next != nil)
+			{
+				NSCAssert1([next hasPrefix:@"mission_"] || next == nil, @"Mission variable key without \"mission_\" prefix: %@.", next);
+				next = [next substringFromIndex:8];
+				
+				jsval val = [next javaScriptValueInContext:context];
+				return JS_ValueToId(context, val, idp);
+			}
+			// else:
+			*state = JSVAL_NULL;
+			// Fall through.
+		}
+		
+		case JSENUMERATE_DESTROY:
+		{
+			[mvarEnumerator release];
+			if (idp != NULL)  return JS_ValueToId(context, JSVAL_VOID, idp);
+			return YES;
+		}
+	}
 	
 	OOJS_NATIVE_EXIT
 }

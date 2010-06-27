@@ -69,6 +69,8 @@ static NSData *CompiledScriptData(JSContext *context, JSScript *script);
 static JSScript *ScriptWithCompiledData(JSContext *context, NSData *data);
 #endif
 
+static NSString *StrippedName(NSString *string);
+
 
 static JSClass sScriptClass =
 {
@@ -202,7 +204,7 @@ static JSFunctionSpec sScriptMethods[] =
 	{
 		// Get display attributes from script
 		DESTROY(name);
-		name = [[[self propertyNamed:@"name"] description] copy];
+		name = [StrippedName([[self propertyNamed:@"name"] description]) copy];
 		if (name == nil)
 		{
 			name = [[self scriptNameFromPath:path] retain];
@@ -582,7 +584,7 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	if (0 == [theName length]) theName = path;
 	
-	return [theName stringByAppendingString:@".anon-script"];
+	return StrippedName([theName stringByAppendingString:@".anon-script"]);
 }
 
 @end
@@ -708,3 +710,12 @@ static JSScript *ScriptWithCompiledData(JSContext *context, NSData *data)
 	return result;
 }
 #endif
+
+
+static NSString *StrippedName(NSString *string)
+{
+	static NSCharacterSet *invalidSet = nil;
+	if (invalidSet == nil)  invalidSet = [[NSCharacterSet characterSetWithCharactersInString:@"_ \t\n\r\v"] retain];
+	
+	return [string stringByTrimmingCharactersInSet:invalidSet];
+}

@@ -291,6 +291,8 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
+	
 	if (function != JSVAL_NULL)
 	{
 		sCallbackScript = [[[OOJSScript currentlyRunningScript] weakRefUnderlyingObject] retain];
@@ -357,6 +359,8 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	[player setMissionBackground:nil];
 	[player setMissionTitle:nil];
 	[player setMissionMusic:nil];
+	
+	OOJSResumeTimeLimiter();
 	
 	*outResult = JSVAL_TRUE;
 	return YES;

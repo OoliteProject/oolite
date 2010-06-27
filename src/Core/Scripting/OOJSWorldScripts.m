@@ -38,7 +38,7 @@ static JSBool GetWorldScriptNames(JSContext *context, JSObject *this, jsval name
 static JSClass sWorldScriptsClass =
 {
 	"WorldScripts",
-	JSCLASS_IS_ANONYMOUS,
+	0,
 	
 	JS_PropertyStub,
 	JS_PropertyStub,

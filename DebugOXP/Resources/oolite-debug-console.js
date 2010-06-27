@@ -491,11 +491,10 @@ function consoleMessage()
 
 
 // Add inspect() method to all entities, to show inspector palette (Mac OS X only; no effect on other platforms).
-Object.getPrototypeOf(Entity).inspect = function inspect()
+Entity.inspect = function inspect()
 {
 	debugConsole.inspectEntity(this);
 }
 
 
-// Add call() method to all entities (calls an Objective-C method directly), now only available with debug OXP to avoid abuse.
-Object.getPrototypeOf(Entity).call = debugConsole.__callObjCMethod;
+debugConsole.__setUpCallObjC(Object.prototype);

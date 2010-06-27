@@ -50,7 +50,7 @@ static JSExtendedClass sSystemInfoClass =
 {
 	{
 		"SystemInfo",
-		JSCLASS_IS_ANONYMOUS | JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
+		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
 		
 		JS_PropertyStub,
 		SystemInfoDeleteProperty,
