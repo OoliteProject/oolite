@@ -119,7 +119,7 @@ SystemInfo.systemsInRange = function SystemInfo_systemsInRange(range)
 		}
 		else
 		{
-			special.jsWarning("systemsInRange() called from the wrong context. Returning empty array.");
+			special.jsWarning("systemsInRange() called in the wrong context. Returning empty array.");
 			return [];
 		}
 	}

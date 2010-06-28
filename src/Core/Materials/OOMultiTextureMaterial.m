@@ -40,6 +40,12 @@ SOFTWARE.
 
 - (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
 {
+	if (![[OOOpenGLExtensionManager sharedManager] textureCombinersSupported])
+	{
+		[self release];
+		return nil;
+	}
+	
 	NSDictionary *diffuseSpec = [configuration oo_diffuseMapSpecifierWithDefaultName:name];
 	NSDictionary *emissionSpec = [configuration oo_emissionMapSpecifier];
 	NSDictionary *illuminationSpec = [configuration oo_illuminationMapSpecifier];
