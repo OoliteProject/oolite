@@ -91,9 +91,6 @@ function clearConsole()
 function inspectEntity(entity : Entity)
 	Show inspector palette for entity (Mac OS X only).
 
-function __callObjCMethod()
-	Implements call() for entities.
-
 function displayMessagesInClass(class : String) : Boolean
 	Returns true if the specified log message class is enabled, false otherwise.
 
@@ -116,7 +113,7 @@ function profile(func : function [, this : Object]) : String
 function getProfile(func : function [, this : Object]) : Object
 	Like profile(), but returns an object, which is more amenable to processing
 	in scripts. To see the structure of the object, run:
-	  console.getProfile(function(){PS.position.add([0, 0, 0])}).call("description")
+	  console.getProfile(function(){PS.position.add([0, 0, 0])}).callObjC("description")
 
 function writeLogMarker()
 	Writes a separator to the log.
@@ -198,7 +195,7 @@ this.dumpObjectShort = function dumpObjectShort(x)
 this.performLegacyCommand = function performLegacyCommand(x)
 {
 	var [command, params] = x.getOneToken();
-	return player.ship.call(command, params);
+	return player.ship.callObjC(command, params);
 }
 
 
