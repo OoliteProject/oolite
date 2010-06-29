@@ -737,7 +737,6 @@ static NSTimeInterval	time_last_frame;
 				exceptionContext = @"shoot";
 				//  shoot 'a'
 				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_reload_time))
-					
 				{
 					if ([self fireMainWeapon])
 					{
@@ -3008,7 +3007,7 @@ static NSTimeInterval	time_last_frame;
 		if (!spacePressed)
 		{
 			[UNIVERSE displayMessage:@"" forCount:1.0];
-			shot_time = 31.0;	// force restart
+			shot_time = INITIAL_SHOT_TIME;	// forces immediate restart
 		}
 		spacePressed = YES;
 	}
@@ -3324,6 +3323,7 @@ static BOOL toggling_music;
 	if ([UNIVERSE displayGUI]) [self switchToMainView];
 	[UNIVERSE setViewDirection:viewDirection];
 	currentWeaponFacing = viewDirection;
+	[self currentWeaponStats];
 }
 
 @end

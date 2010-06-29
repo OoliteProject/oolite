@@ -287,6 +287,7 @@ typedef enum
 	GLfloat					forward_shield, aft_shield;
 	GLfloat					weapon_temp;
 	GLfloat					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp;
+	OOTimeDelta				forward_shot_time, aft_shot_time, port_shot_time, starboard_shot_time;
 	GLfloat					weapon_energy_per_shot, weapon_heat_increment_per_shot, weapon_reload_time;
 	
 	int						chosen_weapon_facing;   // for purchasing weapons
@@ -580,6 +581,8 @@ typedef enum
 - (GLfloat) dialYaw;
 - (GLfloat) dialSpeed;
 - (GLfloat) dialHyperSpeed;
+
+- (void) currentWeaponStats;
 
 - (GLfloat) dialForwardShield;
 - (GLfloat) dialAftShield;

@@ -97,7 +97,7 @@ static NSString * const kOOLogBuyMountedOK			= @"equip.buy.mounted";
 static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
 
 static PlayerEntity *sSharedPlayer = nil;
-static GLfloat sBaseMass = 0.0;
+static GLfloat		sBaseMass = 0.0;
 
 
 @interface PlayerEntity (OOPrivate)
@@ -1054,6 +1054,11 @@ static GLfloat sBaseMass = 0.0;
 	aft_weapon_temp			= 0.0f;
 	port_weapon_temp		= 0.0f;
 	starboard_weapon_temp	= 0.0f;
+	forward_shot_time		= INITIAL_SHOT_TIME;
+	aft_shot_time			= INITIAL_SHOT_TIME;
+	port_shot_time			= INITIAL_SHOT_TIME;
+	starboard_shot_time		= INITIAL_SHOT_TIME;
+
 	ship_temperature		= 60.0f;
 	alertFlags				= 0;
 	hyperspeed_engaged		= NO;
@@ -1479,7 +1484,7 @@ static GLfloat sBaseMass = 0.0;
 	[self updateTrumbles:delta_t];
 	
 	OOEntityStatus status = [self status];
-	if (status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2)
+	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2))
 	{
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
 		[self setGuiToIntroFirstGo:YES];	//set up demo mode
@@ -1556,8 +1561,13 @@ static GLfloat sBaseMass = 0.0;
 	aft_weapon_temp = fmaxf(aft_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
 	port_weapon_temp = fmaxf(port_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
 	starboard_weapon_temp = fmaxf(starboard_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	// update time from last shot.
+	forward_shot_time+=delta_t;
+	aft_shot_time+=delta_t;
+	port_shot_time+=delta_t;
+	starboard_shot_time+=delta_t;
 	
-	// copy new temp to main temp
+	// copy new temp & shot time to main temp & shot time
 	switch (currentWeaponFacing)
 	{
 		case VIEW_GUI_DISPLAY:
@@ -1566,15 +1576,19 @@ static GLfloat sBaseMass = 0.0;
 		case VIEW_FORWARD:
 		case VIEW_CUSTOM:
 			weapon_temp = forward_weapon_temp;
+			shot_time = forward_shot_time;
 			break;
 		case VIEW_AFT:
 			weapon_temp = aft_weapon_temp;
+			shot_time = aft_shot_time;
 			break;
 		case VIEW_PORT:
 			weapon_temp = port_weapon_temp;
+			shot_time = port_shot_time;
 			break;
 		case VIEW_STARBOARD:
 			weapon_temp = starboard_weapon_temp;
+			shot_time = starboard_shot_time;
 			break;
 	}
 
@@ -1879,7 +1893,7 @@ static GLfloat sBaseMass = 0.0;
 
 - (void) updateClocks:(OOTimeDelta)delta_t
 {
-	shot_time += delta_t;
+	// shot_time += delta_t; // dealt with in bookkeeping
 	script_time += delta_t;
 	ship_clock += delta_t;
 	if (ship_clock_adjust > 0.0)				// adjust for coming out of warp (add LY * LY hrs)
@@ -3532,21 +3546,11 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
-- (BOOL) fireMainWeapon
+- (void) currentWeaponStats
 {
-	int weapon_to_be_fired = [self weaponForView: currentWeaponFacing];
+	int currentWeapon = [self weaponForView: currentWeaponFacing];
 
-	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= 0.85)
-	{
-		[self playWeaponOverheated];
-		[UNIVERSE addMessage:DESC(@"weapon-overheat") forCount:3.0];
-		return NO;
-	}
-
-	if (weapon_to_be_fired == WEAPON_NONE)
-		return NO;
-
-	switch (weapon_to_be_fired)
+	switch (currentWeapon)
 	{
 		case WEAPON_PLASMA_CANNON :
 			weapon_energy =						6.0f;
@@ -3585,6 +3589,24 @@ static GLfloat sBaseMass = 0.0;
 			weaponRange = 30000;
 			break;
 	}
+}
+
+
+- (BOOL) fireMainWeapon
+{
+	int weapon_to_be_fired = [self weaponForView: currentWeaponFacing];
+
+	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= 0.85)
+	{
+		[self playWeaponOverheated];
+		[UNIVERSE addMessage:DESC(@"weapon-overheat") forCount:3.0];
+		return NO;
+	}
+
+	if (weapon_to_be_fired == WEAPON_NONE)
+		return NO;
+
+	[self currentWeaponStats];
 
 	if (energy <= weapon_energy_per_shot)
 	{
@@ -3603,15 +3625,19 @@ static GLfloat sBaseMass = 0.0;
 		case VIEW_BREAK_PATTERN:
 		case VIEW_FORWARD:
 			forward_weapon_temp += weapon_heat_increment_per_shot;
+			forward_shot_time = 0.0;
 			break;
 		case VIEW_AFT:
 			aft_weapon_temp += weapon_heat_increment_per_shot;
+			aft_shot_time = 0.0;
 			break;
 		case VIEW_PORT:
 			port_weapon_temp += weapon_heat_increment_per_shot;
+			port_shot_time = 0.0;
 			break;
 		case VIEW_STARBOARD:
 			starboard_weapon_temp += weapon_heat_increment_per_shot;
+			starboard_shot_time = 0.0;
 			break;
 		case VIEW_CUSTOM:
 			break;

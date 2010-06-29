@@ -197,7 +197,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	
 	zero_distance = SCANNER_MAX_RANGE2 * 2.0;
 	weapon_recharge_rate = 6.0;
-	shot_time = 100000.0;
+	shot_time = INITIAL_SHOT_TIME;
 	ship_temperature = SHIP_MIN_CABIN_TEMP;
 	
 	if (![self setUpShipFromDictionary:dict])

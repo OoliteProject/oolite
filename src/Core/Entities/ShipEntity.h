@@ -94,6 +94,7 @@ MA 02110-1301, USA.
 #define MAX_SCAN_NUMBER					16
 
 #define BASELINE_SHIELD_LEVEL			128.0f			// Max shield level with no boosters.
+#define INITIAL_SHOT_TIME				100.0
 
 #define	MIN_FUEL						0				// minimum fuel required for afterburner use
 

@@ -68,7 +68,7 @@ static JSFunctionSpec sMissionMethods[] =
 	{ "addMessageText",			MissionAddMessageText,		1 },
 	{ "markSystem",				MissionMarkSystem,			1 },
 	{ "unmarkSystem",			MissionUnmarkSystem,		1 },
-	{ "runScreen",				MissionRunScreen,			2 },
+	{ "runScreen",				MissionRunScreen,			1 }, // the callback function is optional!
 	{ "setInstructions",		MissionSetInstructions,		1 },
 	{ "setInstructionsKey",		MissionSetInstructionsKey,	1 },
 	{ 0 }
