@@ -1333,7 +1333,11 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_QUOTE: keys[39] = YES; break;				// '
 					case SDLK_LEFTBRACKET: keys[91] = YES; break;			// [
 					case SDLK_RIGHTBRACKET: keys[93] = YES; break;			// ]
-					case SDLK_HOME: keys[gvHomeKey] = YES; break;	
+					case SDLK_HOME: keys[gvHomeKey] = YES; break;
+					case SDLK_END: keys[gvEndKey] = YES; break;
+					case SDLK_INSERT: keys[gvInsertKey] = YES; break;
+					case SDLK_PAGEUP: keys[gvPageUpKey] = YES; break;
+					case SDLK_PAGEDOWN: keys[gvPageDownKey] = YES; break;
 					case SDLK_SPACE: keys[32] = YES; break;
 					case SDLK_RETURN: keys[13] = YES; break;
 					case SDLK_TAB: keys[9] = YES; break;
@@ -1522,6 +1526,10 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_LEFTBRACKET: keys[91] = NO; break;			// [
 					case SDLK_RIGHTBRACKET: keys[93] = NO; break;			// ]
 					case SDLK_HOME: keys[gvHomeKey] = NO; break;
+					case SDLK_END: keys[gvEndKey] = NO; break;
+					case SDLK_INSERT: keys[gvInsertKey] = NO; break;
+					case SDLK_PAGEUP: keys[gvPageUpKey] = NO; break;
+					case SDLK_PAGEDOWN: keys[gvPageDownKey] = NO; break;
 					case SDLK_SPACE: keys[32] = NO; break;
 					case SDLK_RETURN: keys[13] = NO; break;
 					case SDLK_TAB: keys[9] = NO; break;

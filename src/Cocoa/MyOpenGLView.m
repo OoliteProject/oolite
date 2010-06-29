@@ -686,6 +686,22 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			key = gvDeleteKey;
 			break;
 			
+		case NSInsertFunctionKey:
+			key = gvInsertKey;
+			break;
+			
+		case NSEndFunctionKey:
+			key = gvEndKey;
+			break;
+			
+		case NSPageUpFunctionKey:
+			key = gvPageUpKey;
+			break;
+			
+		case NSPageDownFunctionKey:
+			key = gvPageDownKey;
+			break;
+			
 		default:
 			break;
 	}
