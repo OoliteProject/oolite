@@ -25,15 +25,7 @@ export CFLAGS
 
 export GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
-patch:
-	debian/apply-patches
-	touch patch
-
-unpatch:
-	debian/apply-patches -R
-	rm -f patch
-
-build: patch build-stamp
+build: build-stamp
 build-stamp:
 	dh_testdir
 	$(MAKE) -C $(JS_SRC)/fdlibm -f Makefile.ref BUILD_OPT=1
@@ -41,7 +33,7 @@ build-stamp:
 	$(GSMAKE) libespeak=yes
 	touch $@
 
-clean: clean-stamp unpatch
+clean: clean-stamp
 clean-stamp:
 	dh_testdir
 	rm -f build-stamp
