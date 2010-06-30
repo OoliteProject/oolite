@@ -2244,6 +2244,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if ([UNIVERSE breakPatternOver])
 	{
+		[self resetExhaustPlumes];
 		// time to check the script!
 		[self checkScript];
 		// next check in 10s
