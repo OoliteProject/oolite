@@ -559,7 +559,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		player = [[PlayerEntity sharedPlayer] retain];	// retained here
 	}
 	
-
 	[self setUpSpace];
 	
 	[player leaveWitchspace];
@@ -5150,7 +5149,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	(void)mouseDelta;
 #endif
 	
-	if ((viewDirection != vd)|(viewDirection = VIEW_CUSTOM))
+	if (viewDirection != vd || viewDirection == VIEW_CUSTOM)
 	{
 		viewDirection = vd;
 		if (ms)

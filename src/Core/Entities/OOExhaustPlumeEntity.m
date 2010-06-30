@@ -86,6 +86,10 @@ MA 02110-1301, USA.
 
 - (void) update:(OOTimeDelta) delta_t
 {
+	// don't draw if there's no ship, or if we're just jumping out of whitchspace/docked at a station!
+	ShipEntity  *ship = [self owner];
+	if (EXPECT_NOT(ship == nil || ([ship isPlayer] && [ship suppressFlightNotifications]))) return;
+
 	OOTimeAbsolute now = [UNIVERSE getTime];
 	if ([UNIVERSE getTime] > _trackTime + kTimeStep)
 	{
@@ -97,9 +101,6 @@ MA 02110-1301, USA.
 	const GLfloat s1[8] = { 0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707};
 	const GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
 	
-	ShipEntity  *ship = [self owner];
-	if (ship == nil)  return;
-	
 	Quaternion shipQrotation = [ship normalOrientation];
 	
 	Frame zero;
@@ -107,7 +108,8 @@ MA 02110-1301, USA.
 	int dam = [ship damage];
 	GLfloat speed = [ship speedFactor];
 	
-	if (speed <= 0)  return;	// don't draw if there's no fire!
+	// don't draw if not moving.
+	if (EXPECT_NOT(speed <= 0.001f)) return;
 	
 	GLfloat hyper_fade = 8.0f / (8.0f + speed * speed * speed);
 	
@@ -115,7 +117,7 @@ MA 02110-1301, USA.
 	GLfloat red_factor = speed * ex_emissive[0] * (ranrot_rand() % 11) * 0.1;	// random fluctuations
 	GLfloat green_factor = speed * ex_emissive[1] * hyper_fade;
 	
-	if (speed > 1.0)	// afterburner!
+	if (speed > 1.0f)	// afterburner!
 	{
 		red_factor = 1.5;
 	}

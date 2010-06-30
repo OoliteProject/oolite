@@ -1268,6 +1268,12 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 }
 
 
+- (BOOL) suppressFlightNotifications
+{
+	return suppressAegisMessages;
+}
+
+
 - (OOScanClass) scanClass
 {
 	if (cloaking_device_active)

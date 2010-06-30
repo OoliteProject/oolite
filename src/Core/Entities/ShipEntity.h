@@ -415,9 +415,10 @@ MA 02110-1301, USA.
 
 - (void) setDefaultWeaponOffsets;
 
-- (BOOL)isFrangible;
+- (BOOL) isFrangible;
+- (BOOL) suppressFlightNotifications;
 
-- (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other;
+- (void) respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other;
 
 // Equipment
 - (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons;	// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment. If includeWeapons is NO, missiles and primary weapons are not checked.

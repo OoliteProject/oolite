@@ -1058,7 +1058,6 @@ static GLfloat		sBaseMass = 0.0;
 	aft_shot_time			= INITIAL_SHOT_TIME;
 	port_shot_time			= INITIAL_SHOT_TIME;
 	starboard_shot_time		= INITIAL_SHOT_TIME;
-
 	ship_temperature		= 60.0f;
 	alertFlags				= 0;
 	hyperspeed_engaged		= NO;
@@ -1555,13 +1554,13 @@ static GLfloat		sBaseMass = 0.0;
 	GLfloat		air_friction = 0.0f;
 	air_friction = 0.5f * [UNIVERSE airResistanceFactor];
 	
-	UPDATE_STAGE(@"updating weapon temperatures");
-	// cool all weapons
+	UPDATE_STAGE(@"updating weapon temperatures and shot times");
+	// cool all weapons.
 	forward_weapon_temp = fmaxf(forward_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
 	aft_weapon_temp = fmaxf(aft_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
 	port_weapon_temp = fmaxf(port_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
 	starboard_weapon_temp = fmaxf(starboard_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
-	// update time from last shot.
+	// update shot times.
 	forward_shot_time+=delta_t;
 	aft_shot_time+=delta_t;
 	port_shot_time+=delta_t;
@@ -1593,18 +1592,20 @@ static GLfloat		sBaseMass = 0.0;
 	}
 
 	// cloaking device
-	UPDATE_STAGE(@"updating cloaking device");
 	if ([self hasCloakingDevice] && cloaking_device_active)
 	{
+		UPDATE_STAGE(@"updating cloaking device");
+		
 		energy -= (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
 		if (energy < CLOAKING_DEVICE_MIN_ENERGY)
 			[self deactivateCloakingDevice];
 	}
 
 	// military_jammer
-	UPDATE_STAGE(@"updating military jammer");
 	if ([self hasMilitaryJammer])
 	{
+		UPDATE_STAGE(@"updating military jammer");
+		
 		if (military_jammer_active)
 		{
 			energy -= (float)delta_t * MILITARY_JAMMER_ENERGY_RATE;
@@ -1648,9 +1649,10 @@ static GLfloat		sBaseMass = 0.0;
 	forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
 	aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
 	
-	UPDATE_STAGE(@"updating ECM");
 	if (ecm_in_operation)
 	{
+		UPDATE_STAGE(@"updating ECM");
+		
 		if (energy > 0.0)
 			energy -= (float)(ECM_ENERGY_DRAIN_FACTOR * delta_t);		// drain energy because of the ECM
 		else
@@ -1800,10 +1802,10 @@ static GLfloat		sBaseMass = 0.0;
 	
 	
 	// fuel leakage
-	UPDATE_STAGE(@"updating fuel leakage");
-	
 	if ((fuel_leak_rate > 0.0)&&(fuel > 0))
 	{
+		UPDATE_STAGE(@"updating fuel leakage");
+		
 		fuel_accumulator -= (float)(fuel_leak_rate * delta_t);
 		while ((fuel_accumulator < 0)&&(fuel > 0))
 		{
@@ -1893,7 +1895,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) updateClocks:(OOTimeDelta)delta_t
 {
-	// shot_time += delta_t; // dealt with in bookkeeping
+	// shot_time += delta_t; // all shot times now dealt with inside bookkeeping
 	script_time += delta_t;
 	ship_clock += delta_t;
 	if (ship_clock_adjust > 0.0)				// adjust for coming out of warp (add LY * LY hrs)

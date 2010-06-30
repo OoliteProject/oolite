@@ -2558,7 +2558,7 @@ static NSTimeInterval	time_last_frame;
 	
 	if ([gameView isDown:key_custom_view])
 	{
-		if (!customView_pressed && [_customViews count] != 0 && ![UNIVERSE displayCursor])
+		if (!customView_pressed && [_customViews count] != 0 && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)
 		{
 			if ([UNIVERSE viewDirection] == VIEW_CUSTOM)	// already in custom view mode
 			{
