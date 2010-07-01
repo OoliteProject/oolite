@@ -427,6 +427,7 @@ enum
 - (unsigned) countShipsWithRole:(NSString *)role;
 - (unsigned) countShipsWithPrimaryRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity;
 - (unsigned) countShipsWithPrimaryRole:(NSString *)role;
+- (unsigned) countShipsWithScanClass:(OOScanClass)scanClass inRange:(double)range ofEntity:(Entity *)entity;
 - (void) sendShipsWithPrimaryRole:(NSString *)role messageToAI:(NSString *)message;
 
 

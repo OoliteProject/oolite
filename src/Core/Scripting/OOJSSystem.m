@@ -59,6 +59,7 @@ static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsva
 static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemCountEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -164,6 +165,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "addShipsToRoute",				SystemAddShipsToRoute,		2 },
 	{ "countShipsWithPrimaryRole",		SystemCountShipsWithPrimaryRole, 1 },
 	{ "countShipsWithRole",				SystemCountShipsWithRole,	1 },
+	{ "countEntitiesWithScanClass",		SystemCountEntitiesWithScanClass,	1 },
 	{ "entitiesWithScanClass",			SystemEntitiesWithScanClass, 1 },
 	{ "filteredEntities",				SystemFilteredEntities,		2 },
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,		1 },
@@ -664,6 +666,45 @@ static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc
 }
 
 
+// countEntitiesWithScanClass(scanClass : String [, relativeTo : Entity [, range : Number]]) : Number
+static JSBool SystemCountEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString			*scString = nil;
+	OOScanClass			scanClass = CLASS_NOT_SET;
+	Entity				*relativeTo = nil;
+	double				range = -1;
+	
+	scString = JSValToNSString(context, *argv);
+	if (scString == nil)
+	{
+		OOReportJSBadArguments(context, @"System", @"countEntitiesWithScanClass", argc, argv, nil, @"scan class and optional reference entity and range");
+		return NO;
+	}
+	
+	scanClass = StringToScanClass(scString);
+	if (EXPECT_NOT(scanClass == CLASS_NOT_SET))
+	{
+		OOReportJSErrorForCaller(context, @"System", @"countEntitiesWithScanClass", @"Invalid scan class specifier \"%@\"", scString);
+		return NO;
+	}
+	
+	// Get optional arguments
+	argc--;
+	argv++;
+	if (!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  return NO;
+	
+	OOJSPauseTimeLimiter();
+	*outResult = INT_TO_JSVAL([UNIVERSE countShipsWithScanClass:scanClass inRange:range ofEntity:relativeTo]);
+	OOJSResumeTimeLimiter();
+	
+	return YES;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
 // entitiesWithScanClass(scanClass : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
 static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
@@ -834,7 +875,7 @@ static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN ar
 	OOJSPauseTimeLimiter();
 	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.	
 	result = [UNIVERSE addShipsToRoute:route withRole:role quantity:count routeFraction:where asGroup:isGroup];
-	OOJSPauseTimeLimiter();
+	OOJSResumeTimeLimiter();
 	
 	if (isGroup && result != nil)
 	{

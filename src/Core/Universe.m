@@ -4819,6 +4819,15 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
+- (unsigned) countShipsWithScanClass:(OOScanClass)scanClass inRange:(double)range ofEntity:(Entity *)entity
+{
+	return [self countShipsMatchingPredicate:HasScanClassPredicate
+							   parameter:[NSNumber numberWithInt:scanClass]
+								 inRange:range
+								ofEntity:entity];
+}
+
+
 - (unsigned) countShipsWithPrimaryRole:(NSString *)role
 {
 	return [self countShipsWithPrimaryRole:role inRange:-1 ofEntity:nil];
