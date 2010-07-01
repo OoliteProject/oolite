@@ -137,8 +137,8 @@ enum
 #define OO_LOCALIZATION_TOOLS	1
 #endif
 
-#ifndef NEW_FUEL_PRICES
-#define NEW_FUEL_PRICES	0
+#ifndef MASS_DEPENDENT_FUEL_PRICES
+#define MASS_DEPENDENT_FUEL_PRICES	1
 #endif
 
 

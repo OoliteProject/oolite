@@ -97,7 +97,7 @@ extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 
 
-#if NEW_FUEL_PRICES
+#if MASS_DEPENDENT_FUEL_PRICES
 static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 {	
 	// if anything is wrong, default to cobra3 value.
@@ -327,7 +327,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0f];
 	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
 	
-#if NEW_FUEL_PRICES
+#if MASS_DEPENDENT_FUEL_PRICES
 	// set up fuel scooping & charging
 	if ([UNIVERSE strict])
 	{

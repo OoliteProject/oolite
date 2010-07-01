@@ -111,6 +111,10 @@ void OOPrintLogHeader(void)
 		@"spoken messages",
 	#endif
 	
+	#if MASS_DEPENDENT_FUEL_PRICES
+		@"mass/fuel pricing",
+	#endif
+	
 	// Debug features
 	#if OO_CHECK_GL_HEAVY
 		@"heavy OpenGL error checking",

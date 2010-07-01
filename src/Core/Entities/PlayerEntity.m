@@ -1231,7 +1231,7 @@ static GLfloat		sBaseMass = 0.0;
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	[self doWorldScriptEvent:@"startUp" withArguments:nil timeLimit:kOOJSLongTimeLimit];
 	
-#if NEW_FUEL_PRICES && !defined(NDEBUG)
+#if MASS_DEPENDENT_FUEL_PRICES && !defined(NDEBUG)
 	// For testing purposes only...
 	static BOOL reported = NO;
 	if (!reported)
@@ -1245,7 +1245,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			ShipEntity *calc = [UNIVERSE newShipWithName:[playerships objectAtIndex:i]];
 			GLfloat rate = [calc fuelChargeRate];
-			OOLog(@"temp.calcFuelChargeRate", @"%32s: %6.2f", [[playerships objectAtIndex:i] UTF8String], rate);
+			OOLog(@"player.ship.fuel", @"Mass/Fuel ratio %24s: %5.2f", [[playerships objectAtIndex:i] UTF8String], rate);
 			[calc release];
 		}
 	}
@@ -1258,7 +1258,7 @@ static GLfloat		sBaseMass = 0.0;
 	compassTarget = nil;
 	if (![super setUpFromDictionary:shipDict]) return NO;
 	
-	// boostrap base mass!
+	// boostrap base mass at program startup!
 	if (sBaseMass == 0.0 && [[self shipDataKey] isEqualTo:PLAYER_SHIP_DESC])
 	{
 		sBaseMass = [self mass];
