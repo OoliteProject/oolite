@@ -2224,7 +2224,17 @@ static GLfloat		sBaseMass = 0.0;
 			[self doScriptEvent:@"playerJumpFailed" withArgument:@"insufficient fuel"];
 			go = NO;
 		}
-		
+		if ((![UNIVERSE inInterstellarSpace]) && equal_seeds(system_seed,target_system_seed))
+		{
+			//dont allow player to hyperspace to current location.  
+			//Note interstellar space will have a system_seed place we came from 
+			[UNIVERSE clearPreviousMessage];
+			[UNIVERSE addMessage:DESC(@"witch-too-far") forCount: 4.5];
+			[self playWitchjumpInsufficientFuel];
+			[self setStatus:STATUS_IN_FLIGHT];
+			[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
+			go = NO; // naughty, you cant hyperspace to your own system.
+		}
 		if (go)
 		{
 			UPDATE_STAGE(@"JUMP!");
@@ -4627,7 +4637,11 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) enterWitchspace
 {
-
+	if (!([UNIVERSE inInterstellarSpace]) && equal_seeds(system_seed,target_system_seed))
+	{
+		[self setStatus:STATUS_IN_FLIGHT];
+		return; // naughty, you cant hyperspace to your own system.
+	}
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
 	
@@ -4660,6 +4674,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			[self playWitchjumpFailure];
 			[self takeInternalDamage];
+			[self setStatus:STATUS_IN_FLIGHT];
 			return;
 		}
 	}

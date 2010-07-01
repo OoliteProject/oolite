@@ -1463,41 +1463,42 @@ static NSTimeInterval	time_last_frame;
 					pling_pressed = NO;
 				}
 			}
-			
-			if ([[gameView typedString] length] > 0)
+			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
-				planetSearchString = [[[gameView typedString] lowercaseString] retain];
-				NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString];
-				if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
+				if ([[gameView typedString] length] > 0)
 				{
-					// always reset the found system index at the beginning of a new search
-					if ([planetSearchString length] == 1) [[UNIVERSE gui] targetNextFoundSystem:0];
-					found_system_seed = [UNIVERSE findSystemAtCoords:search_coords withGalaxySeed:galaxy_seed];
-					moving = YES;
-					cursor_coordinates = search_coords;
+					planetSearchString = [[[gameView typedString] lowercaseString] retain];
+					NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString];
+					if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
+					{
+						// always reset the found system index at the beginning of a new search
+						if ([planetSearchString length] == 1) [[UNIVERSE gui] targetNextFoundSystem:0];
+						found_system_seed = [UNIVERSE findSystemAtCoords:search_coords withGalaxySeed:galaxy_seed];
+						moving = YES;
+						cursor_coordinates = search_coords;
+					}
+					else
+					{
+						found_system_seed = kNilRandomSeed;
+						[gameView resetTypedString];
+						if (planetSearchString) [planetSearchString release];
+						planetSearchString = nil;
+					}
 				}
 				else
 				{
-					found_system_seed = kNilRandomSeed;
-					[gameView resetTypedString];
+					if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
+					{
+							found_system_seed = kNilRandomSeed;
+							[UNIVERSE findSystemCoordinatesWithPrefix:@""];
+					}
 					if (planetSearchString) [planetSearchString release];
 					planetSearchString = nil;
 				}
-			}
-			else
-			{
-				if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
-				{
-					found_system_seed = kNilRandomSeed;
-					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
-				}
-				if (planetSearchString) [planetSearchString release];
-				planetSearchString = nil;
-			}
 			
-			moving |= (searchStringLength != [[gameView typedString] length]);
-			searchStringLength = [[gameView typedString] length];
-			
+				moving |= (searchStringLength != [[gameView typedString] length]);
+				searchStringLength = [[gameView typedString] length];
+			}
 		case GUI_SCREEN_SHORT_RANGE_CHART:
 			
 			show_info_flag = ([gameView isDown:key_map_info] && ![UNIVERSE strict]);
