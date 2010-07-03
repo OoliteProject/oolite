@@ -85,7 +85,7 @@ OOWeakReferenceSupport implementation is also simple:
 @end
 
 
-Written by Jens Ayton in 2007 for Oolite.
+Copyright (C) 2007-2010 Jens Ayton
 This code is hereby placed in the public domain.
 
 */

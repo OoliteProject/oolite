@@ -2,7 +2,7 @@
 
 OOWeakReference.m
 
-Written by Jens Ayton in 2007 for Oolite.
+Written by Jens Ayton in 2007-2010 for Oolite.
 This code is hereby placed in the public domain.
 
 */

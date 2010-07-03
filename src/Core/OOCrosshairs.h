@@ -3,7 +3,7 @@
 //  Oolite
 //
 //  Created by Jens Ayton on 2008-12-16.
-//  Copyright 2008 Jens Ayton. All rights reserved.
+//  Copyright 2008-2010 Jens Ayton. All rights reserved.
 //
 
 #import "OOCocoa.h"
