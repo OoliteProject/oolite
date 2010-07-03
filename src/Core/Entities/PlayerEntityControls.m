@@ -1463,6 +1463,7 @@ static NSTimeInterval	time_last_frame;
 					pling_pressed = NO;
 				}
 			}
+			
 			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
 				if ([[gameView typedString] length] > 0)
@@ -1489,13 +1490,13 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
 					{
-							found_system_seed = kNilRandomSeed;
-							[UNIVERSE findSystemCoordinatesWithPrefix:@""];
+						found_system_seed = kNilRandomSeed;
+						[UNIVERSE findSystemCoordinatesWithPrefix:@""];
 					}
 					if (planetSearchString) [planetSearchString release];
 					planetSearchString = nil;
 				}
-			
+				
 				moving |= (searchStringLength != [[gameView typedString] length]);
 				searchStringLength = [[gameView typedString] length];
 			}

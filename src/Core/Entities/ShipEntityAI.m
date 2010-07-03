@@ -802,6 +802,7 @@ MA 02110-1301, USA.
 	// Notify own ship script that we are being attacked.	
 	ShipEntity *hunter = [missile owner];
 	[self doScriptEvent:@"shipBeingAttacked" withArgument:hunter];
+	[hunter doScriptEvent:@"shipAttackedOther" withArgument:self];
 	
 	if ([self isPolice])
 	{

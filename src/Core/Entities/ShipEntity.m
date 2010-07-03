@@ -2029,6 +2029,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		source = from;
 	}	
 	[self doScriptEvent:@"shipBeingAttacked" withArgument:source andReactToAIMessage:@"ATTACKED"];
+	if ([source isShip]) [(ShipEntity *)source doScriptEvent:@"shipAttackedOther" withArgument:self];
 }
 
 
