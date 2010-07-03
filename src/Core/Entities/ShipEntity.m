@@ -3514,9 +3514,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (frustration > 15.0)
 		{
 			if (!leadShip) [shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FORMATION_FORM_UP"]; // escorts never reach their destination when following leader.
-			else if (distance > 0.5 * scannerRange) 
+			else if (distance > 0.5 * scannerRange && !pitching_over) 
 			{
-				flightPitch = max_flight_pitch; // hack to get out of frustration.
+				pitching_over = YES; // Force the ship in a 180 degree turn. Do it here to allow escorts to break out formation for some seconds.
 			}
 			frustration = 0;
 		}
@@ -6730,9 +6730,9 @@ BOOL class_masslocks(int some_class)
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
-				stick_roll = - max_flight_roll * reverse * 0.125 * factor;
+				stick_roll = - max_flight_roll * reverse * 0.125 * factor; // note#
 			if (d_right < -min_d)
-				stick_roll = + max_flight_roll * reverse * 0.125 * factor;
+				stick_roll = + max_flight_roll * reverse * 0.125 * factor; // note#
 		}
 		if (d_up < -min_d)
 		{
@@ -6740,9 +6740,9 @@ BOOL class_masslocks(int some_class)
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
-				stick_roll = + max_flight_roll * reverse * 0.125 * factor;
+				stick_roll = + max_flight_roll * reverse * 0.125 * factor; // note#
 			if (d_right < -min_d)
-				stick_roll = - max_flight_roll * reverse * 0.125 * factor;
+				stick_roll = - max_flight_roll * reverse * 0.125 * factor; // note#
 		}
 
 		if (stick_roll == 0.0)
@@ -6756,6 +6756,17 @@ BOOL class_masslocks(int some_class)
 				stick_pitch = + max_flight_pitch * reverse * 0.125 * factor;
 		}
 	}
+	/*	#  note
+		It seems that doing a reverse sign stick_roll when flying away from a target is mathematical wrong.
+		It leads to turning in the wrong direction, with as result that stick_roll never will be zero, so the following
+		stick_pitch correction never takes place. That ships still fly from the target is because of the fail-safe
+		mechanism with the pitching_over variable. Result is that the ship is not flying exactly away from the target
+		but at an angle. Untill a certain distance where correction stop and the ship just flies away.
+		However, from game perspective this behaviour is wanted as it makes the ship a more difficult target to shoot
+		down when starting to fly away.
+		On the other hand does it interfere with the jink mechanisme that was also intended to prevent flying away
+		at a straight angle at close range. So it might be worth to correct the bug and check if jink is working for this.
+	*/
 
 	// end rule-of-thumb manoeuvres
 
@@ -6914,6 +6925,7 @@ BOOL class_masslocks(int some_class)
 	double stick_pitch = 0.0;
 
 	double reverse = 1.0;
+	double reversePlayer = 1.0;
 
 	double min_d = 0.004;
 	double max_cos = 0.995;  // was 0.85; should match default value of max_cos in behaviour_fly_to_destination!
@@ -6922,7 +6934,10 @@ BOOL class_masslocks(int some_class)
 		reverse = -reverse;
 
 	if (isPlayer)
+	{
 		reverse = -reverse;
+		reversePlayer = -1;
+	}
 
 	relPos = vector_subtract(destination, position);
 	double range2 = magnitude2(relPos);
@@ -6947,8 +6962,18 @@ BOOL class_masslocks(int some_class)
 	stick_pitch = 0.0;
 	stick_roll = 0.0;
 	
-	// check if we are flying toward the destination..
-	if ((d_forward < max_cos)||(retreat))	// not on course so we must adjust controls..
+	// pitching_over is currently only set in behaviour_formation_form_up, for escorts.
+	if (pitching_over)
+	{
+		if (reverse * d_up > 0) // pitch up
+			stick_pitch = -max_flight_pitch;
+		else
+			stick_pitch = max_flight_pitch;
+		pitching_over = (reverse * d_forward < 0.707);
+	}
+
+	// check if we are flying toward (or away from) the destination..
+	if (reverse * d_forward < max_cos)	// not on course so we must adjust controls..
 	{
 
 		if (d_forward <= -max_cos)  // hack to avoid just flying away from the destination
@@ -6962,19 +6987,20 @@ BOOL class_masslocks(int some_class)
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
-				stick_roll = - max_flight_roll * reverse * 0.125 * factor;  //roll_roll * reverse;
+				stick_roll = - max_flight_roll * reversePlayer * 0.125 * factor;  // only reverse sign for the player;
 			if (d_right < -min_d)
-				stick_roll = + max_flight_roll * reverse * 0.125 * factor; //roll_roll * reverse;
+				stick_roll = + max_flight_roll * reversePlayer * 0.125 * factor;
 		}
+
 		if (d_up < -min_d)
 		{
 			int factor = sqrt(fabs(d_right) / fabs(min_d));
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
-				stick_roll = + max_flight_roll * reverse * 0.125 * factor;  //roll_roll * reverse;
+				stick_roll = + max_flight_roll * reversePlayer * 0.125 * factor;  // only reverse sign for the player;
 			if (d_right < -min_d)
-				stick_roll = - max_flight_roll * reverse * 0.125 * factor; //roll_roll * reverse;
+				stick_roll = - max_flight_roll * reversePlayer * 0.125 * factor;
 		}
 
 		if (stick_roll == 0.0)
@@ -6985,7 +7011,7 @@ BOOL class_masslocks(int some_class)
 			if (d_up > min_d)
 				stick_pitch = - max_flight_pitch * reverse * 0.125 * factor;  //pitch_pitch * reverse;
 			if (d_up < -min_d)
-				stick_pitch = + max_flight_pitch * reverse * 0.125 * factor;  //pitch_pitch * reverse;
+				stick_pitch = + max_flight_pitch * reverse * 0.125 * factor;
 		}
 	}
 
@@ -9416,10 +9442,16 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		Entity* rescuer = [UNIVERSE entityForUniversalID:rescuer_id];
 		if ((switcher_id == primaryAggressor)&&(switcher_id == primaryTarget)&&(switcher)&&(rescuer)&&(rescuer->isShip)&&(thanked_ship_id != rescuer_id)&&(scanClass != CLASS_THARGOID))
 		{
+			ShipEntity* rescueShip = (ShipEntity*)rescuer;
 			if (scanClass == CLASS_POLICE)
-				[self sendExpandedMessage:@"[police-thanks-for-assist]" toShip:(ShipEntity*)rescuer];
+			{
+				[self sendExpandedMessage:@"[police-thanks-for-assist]" toShip:rescueShip];
+				[rescueShip setBounty:[rescueShip bounty] * 0.80];	// lower bounty by 20%
+			}
 			else
-				[self sendExpandedMessage:@"[thanks-for-assist]" toShip:(ShipEntity*)rescuer];
+			{
+				[self sendExpandedMessage:@"[thanks-for-assist]" toShip:rescueShip];
+			}
 			thanked_ship_id = rescuer_id;
 			[(ShipEntity*)switcher setBounty:[(ShipEntity*)switcher bounty] + 5 + (ranrot_rand() & 15)];	// reward
 		}

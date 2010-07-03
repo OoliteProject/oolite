@@ -199,7 +199,7 @@
 		);
 		"DESIRED_RANGE_ACHIEVED" = (scanForRandomMerchantman);
 		"NOTHING_FOUND" = ("setStateTo: TRAVEL_TO_LURK_AREA"); 
-		"TARGET_FOUND" = (groupAttackTarget); 
+		"TARGET_FOUND" = (setTargetToFoundTarget, groupAttackTarget); 
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
 	};
 }
