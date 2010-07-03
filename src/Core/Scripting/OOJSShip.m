@@ -1284,7 +1284,9 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	result = [thisEnt spawnShipsWithRole:role count:count];
+	OOJSResumeTimeLimiter();
 	
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
