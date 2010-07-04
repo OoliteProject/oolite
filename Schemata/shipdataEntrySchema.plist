@@ -109,6 +109,7 @@
 		has_scoop_message = "boolean";
 		
 		rotating = "boolean";
+		station_roll = "float";
 		defense_ship = "$shipKey";
 		defense_ship_role = "$shipRole";
 		has_npc_traffic = "fuzzyBoolean";

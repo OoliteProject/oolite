@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 
 this.name			= "oolite-default-ship-script";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2007–2010 the Oolite team.";
+this.copyright		= "© 2007-2010 the Oolite team.";
 this.description	= "Standard script for ships.";
 this.version		= "1.75";
 

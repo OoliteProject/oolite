@@ -7,7 +7,7 @@ exist so the player isn’t a special case.
 
 
 Oolite
-Copyright © 2004–2010 Giles C Williams and contributors
+Copyright © 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -30,5 +30,5 @@ MA 02110-1301, USA.
 this.name			= "oolite-default-player-script";
 this.author			= "Jens Ayton";
 this.description	= "Standard script for player ship.";
-this.copyright		= "© 2008–2010 the Oolite team.";
+this.copyright		= "© 2007-2010 the Oolite team.";
 this.version		= "1.75";

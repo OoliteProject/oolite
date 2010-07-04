@@ -283,6 +283,7 @@
 		knownStationKeys =
 		(
 			"rotating",
+			"station_roll",
 			"defense_ship",
 			"defense_ship_role",
 			"has_npc_traffic",
