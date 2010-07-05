@@ -459,7 +459,10 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[self setUp];
 		if ([self setCommanderDataFromDictionary:fileDic])
 		{
+			// Remember the savegame target.
+			Random_Seed target = target_system_seed;
 			[self completeSetUp];
+			target_system_seed = target;
 		}
 		else
 		{

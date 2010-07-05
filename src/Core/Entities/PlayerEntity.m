@@ -913,9 +913,21 @@ static GLfloat		sBaseMass = 0.0;
 	forward_shield = [self maxForwardShieldLevel];
 	aft_shield = [self maxAftShieldLevel];
 	
-	//  things...
+	// Where are we? What system are we targeting?
+	BOOL sameCoords = (cursor_coordinates.x == galaxy_coordinates.x && cursor_coordinates.y == galaxy_coordinates.y);
+	
 	system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	NSString *sysName = [UNIVERSE getSystemName:[self system_seed]];
+
+	// Should we be in the other overlapping system? TODO: find the right system_seed in a better way.
+	if (![sysName isEqualToString:[dict oo_stringForKey:@"current_system_name"]])
+	{
+		galaxy_coordinates.y+=0.1;
+		system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+	}
+	
+	if (sameCoords) target_system_seed = system_seed;
+	else target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 
 #if WORMHOLE_SCANNER
 	// wormholes
