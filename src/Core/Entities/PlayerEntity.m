@@ -1895,7 +1895,8 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) updateClocks:(OOTimeDelta)delta_t
 {
-	// shot_time += delta_t; // all shot times now dealt with inside bookkeeping
+	// shot time updates are still needed here for STATUS_DEAD!
+	shot_time += delta_t;
 	script_time += delta_t;
 	ship_clock += delta_t;
 	if (ship_clock_adjust > 0.0)				// adjust for coming out of warp (add LY * LY hrs)
