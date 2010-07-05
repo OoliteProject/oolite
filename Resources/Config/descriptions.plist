@@ -680,6 +680,13 @@
 		"Negative. %H security scans indicate your ship has a criminal record.",
 		"Docking clearance is denied, as per GalCop Station Security Regulations."
 	);
+	"station-docking-clearance-denied" =
+	(
+		"Docking clearance refused to all hostile vessels.",
+		"Docking not allowed. You are not welcome.",
+		"Negative. Your ship cannot dock here.",
+		"Docking clearance denied."
+	);
 	"station-docking-clearance-granted-until-@" =
 	(
 		"You are cleared to dock. Please proceed. Clearance expires at %@",

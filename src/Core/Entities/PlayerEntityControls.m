@@ -384,16 +384,25 @@ static NSTimeInterval	time_last_frame;
 }
 
 
-- (void) targetNewSystem:(int) direction
+- (void) targetNewSystem:(int) direction whileTyping:(BOOL) whileTyping
 {
 	target_system_seed = [[UNIVERSE gui] targetNextFoundSystem:direction];
 	cursor_coordinates.x = target_system_seed.d;
 	cursor_coordinates.y = target_system_seed.b;
 	found_system_seed = target_system_seed;
-	[[UNIVERSE gameView] resetTypedString];
-	if (planetSearchString) [planetSearchString release];
-	planetSearchString = nil;
+	if (!whileTyping)
+	{
+		[[UNIVERSE gameView] resetTypedString];
+		if (planetSearchString) [planetSearchString release];
+		planetSearchString = nil;
+	}
 	cursor_moving = YES;
+}
+
+
+- (void) targetNewSystem:(int) direction
+{
+	[self targetNewSystem:direction whileTyping:NO];
 }
 
 @end
@@ -1474,9 +1483,10 @@ static NSTimeInterval	time_last_frame;
 					{
 						// always reset the found system index at the beginning of a new search
 						if ([planetSearchString length] == 1) [[UNIVERSE gui] targetNextFoundSystem:0];
-						found_system_seed = [UNIVERSE findSystemAtCoords:search_coords withGalaxySeed:galaxy_seed];
-						moving = YES;
-						cursor_coordinates = search_coords;
+						
+						// Always select the right one out of 2 overlapping systems.
+						[self targetNewSystem:1 whileTyping:YES];
+						[self targetNewSystem:-1  whileTyping:YES];
 					}
 					else
 					{

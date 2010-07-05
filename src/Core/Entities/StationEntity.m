@@ -2078,6 +2078,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 		result = @"DOCKING_CLEARANCE_DENIED_SHIP_FUGITIVE";
 	}
+	
+	if (result == nil && [other hasHostileTarget]) // do not grant docking clearance to hostile ships.
+	{
+		[self sendExpandedMessage:DESC(@"station-docking-clearance-denied") toShip:other];
+		if ([other isPlayer])
+			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+		result = @"DOCKING_CLEARANCE_DENIED_SHIP_HOSTILE";
+	}
 
 	// Put ship in queue if we've got incoming or outgoing traffic
 	if (result == nil && [shipsOnApproach count] && last_launch_time < timeNow)
