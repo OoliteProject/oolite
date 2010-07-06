@@ -6568,6 +6568,25 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
+- (Random_Seed) findSystemFromName:(NSString *) sysName
+{
+	if (sysName == nil) return kNilRandomSeed;	// no match found!
+	
+	NSString 	*system_name = nil;
+	NSString	*match = [sysName lowercaseString];
+	int i;
+	for (i = 0; i < 256; i++)
+	{
+		system_name = [system_names[i] lowercaseString];
+		if ([system_name isEqualToString:match])
+		{
+			return systems[i];
+		}
+	}
+	return kNilRandomSeed;	// no match found!
+}
+
+
 - (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
 	return systems[[self findSystemNumberAtCoords:coords withGalaxySeed:gal_seed]];

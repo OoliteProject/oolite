@@ -484,8 +484,10 @@ static GLfloat		sBaseMass = 0.0;
 		[result setObject:found_seed	forKey:@"found_system_seed"];
 	}
 	
-	// Write the name of the current system. Useful for looking up saved game information.
+	// Write the name of the current system. Useful for overlapping systems and for looking up saved game information.
 	[result setObject:[UNIVERSE getSystemName:[self system_seed]] forKey:@"current_system_name"];
+	// Write the name of the targeted system. Useful for overlapping systems.
+	[result setObject:[UNIVERSE getSystemName:[self target_system_seed]] forKey:@"target_system_name"];
 	
 	[result setObject:player_name		forKey:@"player_name"];
 	
@@ -914,20 +916,30 @@ static GLfloat		sBaseMass = 0.0;
 	aft_shield = [self maxAftShieldLevel];
 	
 	// Where are we? What system are we targeting?
-	BOOL sameCoords = (cursor_coordinates.x == galaxy_coordinates.x && cursor_coordinates.y == galaxy_coordinates.y);
+	// current_system_name and target_system_name, if present on the savegame,
+	// are the only way - at present - to distinguish between overlapping systems. Kaks 20100706
 	
-	system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	NSString *sysName = [UNIVERSE getSystemName:[self system_seed]];
-
-	// Should we be in the other overlapping system? TODO: find the right system_seed in a better way.
-	if (![sysName isEqualToString:[dict oo_stringForKey:@"current_system_name"]])
+	// If we have the current system name, let's see if it matches the current system.
+	NSString *sysName = [dict oo_stringForKey:@"current_system_name"];
+	system_seed = [UNIVERSE findSystemFromName:sysName];
+	
+	if (is_nil_seed(system_seed) || (galaxy_coordinates.x != system_seed.d && galaxy_coordinates.y != system_seed.b))
 	{
-		galaxy_coordinates.y+=0.1;
+		// no match found, find the system from the coordinates.
 		system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 	}
 	
-	if (sameCoords) target_system_seed = system_seed;
-	else target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	// If we have a target system name, let's see if it matches the system at the cursor coordinates.
+	sysName = [dict oo_stringForKey:@"target_system_name"];
+	target_system_seed = [UNIVERSE findSystemFromName:sysName];
+	
+	if (is_nil_seed(target_system_seed) || (cursor_coordinates.x != target_system_seed.d && cursor_coordinates.y != target_system_seed.b))
+	{
+		// no match found, find the system from the coordinates.
+		BOOL sameCoords = (cursor_coordinates.x == galaxy_coordinates.x && cursor_coordinates.y == galaxy_coordinates.y);
+		if (sameCoords) target_system_seed = system_seed;
+		else target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	}
 
 #if WORMHOLE_SCANNER
 	// wormholes
