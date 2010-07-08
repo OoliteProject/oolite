@@ -1479,6 +1479,9 @@ static NSMutableDictionary* currentShipyard = nil;
 	[ship setPitch: M_PI/25.0];
 	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
 	[[ship getAI] setStateMachine: @"nullAI.plist"];
+	id subEntStatus = [shipData objectForKey:@"subentities_status"];
+	// show missing subentities if there's a subentities_status key
+	if (subEntStatus != nil) [ship deserializeShipSubEntitiesFrom:(NSString *)subEntStatus];
 	[UNIVERSE addEntity: ship];
 	[ship setStatus: STATUS_COCKPIT_DISPLAY];
 	

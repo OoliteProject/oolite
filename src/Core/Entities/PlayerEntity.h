@@ -698,6 +698,7 @@ typedef enum
 - (void) addEquipmentFromCollection:(id)equipment;	// equipment may be an array, a set, a dictionary whose values are all YES, or a string.
  
 - (void) getFined;
+- (void) reduceTradeInFactorBy:(int)value;
 
 - (void) setDefaultViewOffsets;
 - (void) setDefaultCustomViews;

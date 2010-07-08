@@ -955,7 +955,13 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDesc];
 	if(shipDict != nil)
 	{
-		[self showShipyardModel:shipDesc shipData:shipDict personality:personality];
+		NSMutableDictionary * dict = [[NSMutableDictionary alloc] initWithCapacity:[shipDict count] + 1];
+		[dict setDictionary:shipDict];
+		id subEntStatus = [cdr objectForKey:@"subentities_status"];
+		// don't add it to the dictionary if there's no subentities_status key
+		if (subEntStatus != nil) [dict setObject:subEntStatus forKey:@"subentities_status"];
+		[self showShipyardModel:shipDesc shipData:dict personality:personality];
+		[dict release];
 		shipName = [shipDict oo_stringForKey:@"display_name"];
 		if (shipName == nil) shipName = [shipDict oo_stringForKey:KEY_NAME];
 	}

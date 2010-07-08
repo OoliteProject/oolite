@@ -82,8 +82,8 @@ MA 02110-1301, USA.
 
 // 10m/s forward drift
 #define	OG_ELITE_FORWARD_DRIFT			10.0f
-
 #define PLAYER_DEFAULT_NAME				@"Jameson"
+#define SUBENTITY_REPAIR_PREMIUM		0.4f
 
 enum
 {
@@ -501,6 +501,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setInteger:aft_weapon_type		forKey:@"aft_weapon"];
 	[result oo_setInteger:port_weapon_type		forKey:@"port_weapon"];
 	[result oo_setInteger:starboard_weapon_type	forKey:@"starboard_weapon"];
+	[result setObject:[self serializeShipSubEntities] forKey:@"subentities_status"];
 	
 	[result oo_setInteger:max_cargo + 5 * max_passengers	forKey:@"max_cargo"];
 	
@@ -940,6 +941,9 @@ static GLfloat		sBaseMass = 0.0;
 		if (sameCoords) target_system_seed = system_seed;
 		else target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	}
+	
+	// restore subentities status
+	[self deserializeShipSubEntitiesFrom:[dict oo_stringForKey:@"subentities_status"]];
 
 #if WORMHOLE_SCANNER
 	// wormholes
@@ -5871,9 +5875,11 @@ static NSString *last_outfitting_key=nil;
 				{
 					price = (PLAYER_MAX_FUEL - fuel) * pricePerUnit * fuel_charge_rate;
 				}
-				else if ([eqKey isEqual:@"EQ_RENOVATION"])
+				else if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 				{
 					price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
+					int subEntMissing = [self maxShipSubEntities] - [[[self shipSubEntityEnumerator] allObjects] count];
+					price += subEntMissing * price * SUBENTITY_REPAIR_PREMIUM;
 				}
 				else price = pricePerUnit;
 				
@@ -5886,7 +5892,7 @@ static NSString *last_outfitting_key=nil;
 					price /= 2.0;
 					[gui setColor:[OOColor orangeColor] forRow:row];
 				}
-				if ([eqKey isEqual:@"EQ_RENOVATION"])
+				if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 				{
 					[gui setColor:[OOColor orangeColor] forRow:row];
 				}
@@ -6297,6 +6303,8 @@ static NSString *last_outfitting_key=nil;
 	if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 	{
 		price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
+		int subEntMissing = [self maxShipSubEntities] - [[[self shipSubEntityEnumerator] allObjects] count];
+		price += subEntMissing * price * SUBENTITY_REPAIR_PREMIUM;
 	}
 	
 	if (dockedStation)
@@ -6417,7 +6425,10 @@ static NSString *last_outfitting_key=nil;
 		
 		credits -= price;
 		ship_trade_in_factor += 5 + techLevel;	// you get better value at high-tech repair bases
-		if (ship_trade_in_factor > 100) ship_trade_in_factor = 100;		
+		if (ship_trade_in_factor > 100) ship_trade_in_factor = 100;
+		[self clearSubEntities];
+		[self setUpSubEntities];
+		
 		return YES;
 	}
 
@@ -6847,7 +6858,7 @@ static NSString *last_outfitting_key=nil;
 
 - (BOOL) canAddEquipment:(NSString *)equipmentKey
 {
-	if ([equipmentKey isEqual:@"EQ_RENOVATION"] && !((75 <= ship_trade_in_factor) && (ship_trade_in_factor < 85)))  return NO;
+	if ([equipmentKey isEqualToString:@"EQ_RENOVATION"] && !(ship_trade_in_factor < 85 || [[[self shipSubEntityEnumerator] allObjects] count] < [self maxShipSubEntities]))  return NO;
 	if (![super canAddEquipment:equipmentKey])  return NO;
 	
 	NSArray *conditions = [[OOEquipmentType equipmentTypeWithIdentifier:equipmentKey] conditions];
@@ -7096,6 +7107,13 @@ static NSString *last_outfitting_key=nil;
 	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(DESC(@"fined-@-credits")), OOCredits(fine)];
 	[self addMessageToReport:fined_message];
 	ship_clock_adjust = 24 * 3600;	// take up a day
+}
+
+
+- (void) reduceTradeInFactorBy:(int)value
+{
+	ship_trade_in_factor -= value;
+	if (ship_trade_in_factor < 75) ship_trade_in_factor = 75;
 }
 
 

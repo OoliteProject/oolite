@@ -360,7 +360,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	[self setLaserColor:color];
 	
 	[self clearSubEntities];
-	[self setUpSubEntities: shipDict];
+	[self setUpSubEntities];
 	
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
@@ -580,14 +580,94 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 }
 
 
-- (BOOL) setUpSubEntities: (NSDictionary *) shipDict
+- (void) setSubIdx:(OOUInteger)value
+{
+	_subIdx = value;
+}
+
+
+- (OOUInteger) subIdx
+{
+	return _subIdx;
+}
+
+
+- (OOUInteger) maxShipSubEntities
+{
+	return _maxShipSubIdx;
+}
+
+
+- (NSString *) repeatString:(NSString *)str times:(uint)times
+{
+
+	if (times == 0)  return @"";
+	
+	NSMutableString		*result = [NSMutableString stringWithCapacity:[str length] * times]; 
+	uint 				i;
+	
+	for (i = 0; i < times; i++)
+	{
+	    [result appendString:str];
+	}
+	
+	return result;
+	
+}
+
+ 
+- (NSString *) serializeShipSubEntities
+{	
+	NSMutableString		*result = [NSMutableString stringWithCapacity:4];
+	NSEnumerator		*subEnum = nil;
+	ShipEntity			*se = nil;
+	OOUInteger			diff,i = 0;
+	
+	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
+	{
+		diff = [se subIdx] - i;
+		i += diff + 1;
+		[result appendString:[self repeatString:@"0" times:diff]];
+		[result appendString:@"1"];
+	}
+	// add trailing zeroes
+	[result appendString:[self repeatString:@"0" times:[self maxShipSubEntities] - i]];
+	return result;
+}
+
+
+- (void) deserializeShipSubEntitiesFrom:(NSString *)string
+{
+	NSArray				*subEnts = [[self shipSubEntityEnumerator] allObjects];
+	int					i,idx, start = [subEnts count] - 1;
+	int					strMaxIdx = [string length] - 1;
+		
+	ShipEntity			*se = nil;
+	
+	for (i = start; i >= 0; i--)
+	{
+		se = (ShipEntity *)[subEnts objectAtIndex:i];
+		idx = [se subIdx]; // should be identical to i, but better safe than sorry...
+		if (idx <= strMaxIdx && [[string substringWithRange:NSMakeRange(idx, 1)] isEqualToString:@"0"])
+		{
+			[se setSuppressExplosion:NO];
+			[se setEnergy:1];
+			[se takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
+		}
+	}
+}
+
+
+- (BOOL) setUpSubEntities
 {
 	OOJS_PROFILE_ENTER
 	
 	unsigned int	i;
+	NSDictionary	*shipDict = [self shipInfoDictionary];
 	NSArray			*plumes = [shipDict oo_arrayForKey:@"exhaust"];
 	
 	_profileRadius = collision_radius;
+	_maxShipSubIdx = 0;
 	
 	for (i = 0; i < [plumes count]; i++)
 	{
@@ -677,6 +757,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	}
 	
 	[self addSubEntity:subentity];
+	[subentity setSubIdx:_maxShipSubIdx];
+	_maxShipSubIdx++;
 	[subentity release];
 	
 	return YES;
@@ -733,6 +815,12 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	[subEntities makeObjectsPerformSelector:@selector(setOwner:) withObject:nil];	// Ensure backlinks are broken
 	[subEntities release];
 	subEntities = nil;
+	
+	// reset size & mass!
+	collision_radius = [self findCollisionRadius];
+	_profileRadius = collision_radius;
+	float density = [[self shipInfoDictionary] oo_floatForKey:@"density" defaultValue:1.0f];
+	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
 }
 
 
@@ -811,6 +899,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 {
 	return [subEntities containsObject:sub];
 }
+
 
 - (NSEnumerator *)subEntityEnumerator
 {
@@ -5592,6 +5681,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		[UNIVERSE addEntity:this_ship];
 		[this_ship setPosition:this_pos];
 		[this_ship release];
+		if ([parent isPlayer])
+		{
+			// make the parent ship less reliable.
+			[(PlayerEntity *)parent reduceTradeInFactorBy:3];
+		}
 	}
 	
 	Vector xposition = position;
@@ -5949,6 +6043,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	
 	[sub setOwner:nil];
 	[subEntities removeObject:sub];
+	// TODO: recalculate parent ship mass & collision radius!
 }
 
 

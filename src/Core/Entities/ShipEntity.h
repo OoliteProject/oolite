@@ -232,7 +232,8 @@ MA 02110-1301, USA.
 	OOUniversalID			targetStation;				// for docking
 	OOUniversalID			found_target;				// from scans
 	OOUniversalID			target_laser_hit;			// u-id for the entity hit by the last laser shot
-	OOUniversalID			owner_id;					// u-id for the controlling owner of this entity (* turrets *)
+	OOUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
+	OOUInteger				_maxShipSubIdx;				// serialisation index - the number of ship subentities inside the shipdata
 	double					launch_time;				// time at which launched
 	
 	GLfloat					frustration,				// degree of dissatisfaction with the current behavioural state, factor used to test this
@@ -378,6 +379,13 @@ MA 02110-1301, USA.
 
 - (void) clearSubEntities;	// Releases and clears subentity array, after making sure subentities don't think ship is owner.
 
+// subentities management
+- (NSString *) serializeShipSubEntities;
+- (void) deserializeShipSubEntitiesFrom:(NSString *)string;
+- (OOUInteger) maxShipSubEntities;
+- (void) setSubIdx:(OOUInteger)value;
+- (OOUInteger) subIdx;
+
 - (Octree *) octree;
 - (float) volume;
 
@@ -406,7 +414,7 @@ MA 02110-1301, USA.
 - (id)initWithKey:(NSString *)key definition:(NSDictionary *)dict;
 - (BOOL)setUpFromDictionary:(NSDictionary *) shipDict;
 - (BOOL)setUpShipFromDictionary:(NSDictionary *) shipDict;
-- (BOOL)setUpSubEntities:(NSDictionary *) shipDict;
+- (BOOL)setUpSubEntities;
 
 - (NSString *) shipDataKey;
 - (void)setShipDataKey:(NSString *)key;

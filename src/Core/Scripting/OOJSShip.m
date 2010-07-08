@@ -76,6 +76,7 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipRestoreSubEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -178,6 +179,7 @@ enum
 	kShip_speed,				// current flight speed, double, read-only
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read only
 	kShip_subEntities,			// subentities, array of Ship, read-only
+	kShip_subEntityCapacity,	// max subentities for this ship, int, read-only
 	kShip_target,				// target, Ship, read/write
 	kShip_temperature,			// hull temperature, double, read/write
 	kShip_thrust,				// the ship's thrust, double, read/write
@@ -192,16 +194,25 @@ enum
 static JSPropertySpec sShipProperties[] =
 {
 	// JS name					ID							flags
+	{ "aftWeapon",				kShip_aftWeapon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "AI",						kShip_AI,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "AIState",				kShip_AIState,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "beaconCode",				kShip_beaconCode,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "bounty",					kShip_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "contracts",				kShip_contracts,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "desiredSpeed",			kShip_desiredSpeed,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "displayName",			kShip_displayName,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "entityPersonality",		kShip_entityPersonality,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "equipment",				kShip_equipment,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "escorts",				kShip_escorts,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "group",					kShip_group,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "escortGroup",			kShip_escortGroup,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "forwardWeapon",			kShip_forwardWeapon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "fuel",					kShip_fuel,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "fuelChargeRate",			kShip_fuelChargeRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "group",					kShip_group,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "hasHostileTarget",		kShip_hasHostileTarget,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "heatInsulation",			kShip_heatInsulation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -222,48 +233,40 @@ static JSPropertySpec sShipProperties[] =
 	{ "isThargoid",				kShip_isThargoid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isWeapon",				kShip_isWeapon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "lightsActive",			kShip_lightsActive,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "maxSpeed",				kShip_maxSpeed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "maxThrust",				kShip_maxThrust,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "missileCapacity",		kShip_missileCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "missiles",				kShip_missiles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "name",					kShip_name,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "passengerCount",			kShip_passengerCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "passengerCapacity",		kShip_passengerCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "passengers",				kShip_passengers,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "portWeapon",				kShip_portWeapon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "potentialCollider",		kShip_potentialCollider,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "primaryRole",			kShip_primaryRole,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "reportAIMessages",		kShip_reportAIMessages,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "roleProbabilities",		kShip_roleProbabilities,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "roles",					kShip_roles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "savedCoordinates",		kShip_savedCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "scannerRange",			kShip_scannerRange,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "script",					kShip_script,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptInfo",				kShip_scriptInfo,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "name",					kShip_name,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "displayName",			kShip_displayName,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "speed",					kShip_speed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "desiredSpeed",			kShip_desiredSpeed,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "starboardWeapon",		kShip_starboardWeapon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "subEntities",			kShip_subEntities,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "subEntityCapacity",		kShip_subEntityCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "target",					kShip_target,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "temperature",			kShip_temperature,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "thrust",					kShip_thrust,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "thrustVector",			kShip_thrustVector,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "trackCloseContacts",		kShip_trackCloseContacts,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "velocity",				kShip_velocity,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "weaponRange",			kShip_weaponRange,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "withinStationAegis",		kShip_withinStationAegis,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "trackCloseContacts",		kShip_trackCloseContacts,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "passengerCount",			kShip_passengerCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "passengerCapacity",		kShip_passengerCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "missileCapacity",		kShip_missileCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "savedCoordinates",		kShip_savedCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "equipment",				kShip_equipment,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "forwardWeapon",			kShip_forwardWeapon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "aftWeapon",				kShip_aftWeapon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "portWeapon",				kShip_portWeapon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "starboardWeapon",		kShip_starboardWeapon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "missiles",				kShip_missiles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "passengers",				kShip_passengers,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 // contracts instead of cargo to distinguish them from the manifest
-	{ "contracts",				kShip_contracts,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "maxThrust",				kShip_maxThrust,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "thrust",					kShip_thrust,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "lightsActive",			kShip_lightsActive,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "velocity",				kShip_velocity,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "thrustVector",			kShip_thrustVector,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -292,6 +295,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
+	{ "restoreSubEntities",		ShipRestoreSubEntities,		0 },
 	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },	// Deliberately not documented
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
 	{ "sendAIMessage",			ShipSendAIMessage,			1 },
@@ -373,21 +377,26 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_fuel:
 			OK = JS_NewDoubleValue(context, [entity fuel] * 0.1, outValue);
 			break;
-		
+			
 		case kShip_fuelChargeRate:
 			OK = JS_NewDoubleValue(context, [entity fuelChargeRate], outValue);
 			break;
-
+			
 		case kShip_bounty:
 			*outValue = INT_TO_JSVAL([entity bounty]);
 			OK = YES;
 			break;
-		
+			
 		case kShip_subEntities:
 			result = [entity subEntitiesForScript];
 			if (result == nil)  result = [NSNull null];
 			break;
-		
+			
+		case kShip_subEntityCapacity:
+			*outValue = INT_TO_JSVAL([entity maxShipSubEntities]);
+			OK = YES;
+			break;
+			
 		case kShip_hasSuspendedAI:
 			*outValue = BOOLToJSVal([[entity getAI] hasSuspendedStateMachines]);
 			OK = YES;
@@ -1737,6 +1746,29 @@ static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc
 	
 	OOJS_NATIVE_EXIT
 }
+
+
+// restoreSubEntities()
+static JSBool ShipRestoreSubEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	ShipEntity				*thisEnt = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
+
+	OOUInteger subCount = [[thisEnt subEntitiesForScript] count];
+
+	[thisEnt clearSubEntities];
+	[thisEnt setUpSubEntities];
+	
+	*outResult = BOOLToJSVal([[thisEnt subEntitiesForScript] count] - subCount > 0);
+	
+	return YES;
+	
+	OOJS_NATIVE_EXIT
+}
+
 
 
 // setEquipmentStatus(type : equipmentInfoExpression, status : String)
