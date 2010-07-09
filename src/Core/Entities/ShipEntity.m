@@ -267,7 +267,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
 	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = SHIPENTITY_MAX_MISSILES;
 	if (missiles > max_missiles) missiles = max_missiles;
-	missile_load_time = [shipDict oo_floatForKey:@"missile_load_time" defaultValue:0];
+	missile_load_time = OOMax_d(0.0, [shipDict oo_doubleForKey:@"missile_load_time" defaultValue:0.0]); // no negative load times
 	missile_launch_time = [UNIVERSE getTime] + missile_load_time;
 	
 	// upgrades:
@@ -7913,6 +7913,18 @@ BOOL class_masslocks(int some_class)
 - (void) setIsMissileFlag:(BOOL)newValue
 {
 	isMissile = !!newValue; // set the isMissile flag, used for tracking submunitions
+}
+
+
+- (OOTimeDelta) missileLoadTime
+{
+	return missile_load_time;
+}
+
+
+- (void) setMissileLoadTime:(OOTimeDelta)newMissileLoadTime
+{
+	missile_load_time = OOMax_d(0.0, newMissileLoadTime);
 }
 
 

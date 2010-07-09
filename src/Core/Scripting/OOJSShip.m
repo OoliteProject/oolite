@@ -159,6 +159,7 @@ enum
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
 	kShip_maxThrust,			// maximum thrust, double, read-only
 	kShip_missileCapacity,		// max missiles capacity, integer, read-only
+	kShip_missileLoadTime,			// missile load time, double, read/write
 	kShip_missiles,				// the ship's missiles / external storage, array of equipmentTypes, read only
 	kShip_name,					// name, string, read-only
 	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
@@ -237,6 +238,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "maxSpeed",				kShip_maxSpeed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "maxThrust",				kShip_maxThrust,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "missileCapacity",		kShip_missileCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "missileLoadTime",			kShip_missileLoadTime,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "missiles",				kShip_missiles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "name",					kShip_name,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "passengerCount",			kShip_passengerCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -610,6 +612,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			*outValue = INT_TO_JSVAL([entity missileCapacity]);
 			OK = YES;
 			break;
+			
+		case kShip_missileLoadTime:
+			OK = JS_NewDoubleValue(context, [entity missileLoadTime], outValue);
+			break;
 		
 		case kShip_savedCoordinates:
 			OK = VectorToJSValue(context, [entity coordinates], outValue);
@@ -846,6 +852,21 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				[entity setCloaked:bValue];
 				OK = YES;
+			}
+			break;
+			
+		case kShip_missileLoadTime:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0.0)
+				{
+					OOReportJSError(context, @"Ship.%@ [setter]: cannot set negative missile load time (%fs).", @"missileLoadTime", fValue);
+				}
+				else
+				{
+					[entity setMissileLoadTime:fValue];
+					OK = YES;
+				}
 			}
 			break;
 		

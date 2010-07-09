@@ -777,6 +777,8 @@ BOOL	class_masslocks(int some_class);
 - (ShipEntity *) fireMissileWithIdentifier:(NSString *) identifier andTarget:(Entity *) target;
 - (BOOL) isMissileFlagSet;
 - (void) setIsMissileFlag:(BOOL)newValue;
+- (OOTimeDelta) missileLoadTime;
+- (void) setMissileLoadTime:(OOTimeDelta)newMissileLoadTime;
 - (BOOL) fireECM;
 - (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;
