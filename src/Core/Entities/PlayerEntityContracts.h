@@ -92,11 +92,10 @@ MA 02110-1301, USA.
 
 - (void) setGuiToShipyardScreen:(unsigned) skip;
 
-- (void) showShipyardInfoForSelection;
-
-- (void) showTradeInInformationFooter;
-
 - (void) showShipyardModel:(NSString *)shipKey shipData:(NSDictionary *)shipDict personality:(uint16_t)personality;
+- (void) showShipyardInfoForSelection;
+- (OOInteger) missingSubEntitiesAdjustment;
+- (void) showTradeInInformationFooter;
 
 - (BOOL) buySelectedShip;
 

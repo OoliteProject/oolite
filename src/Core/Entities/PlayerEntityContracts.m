@@ -1489,6 +1489,14 @@ static NSMutableDictionary* currentShipyard = nil;
 }
 
 
+- (OOInteger) missingSubEntitiesAdjustment;
+{
+	// each missing subentity depreciates the ship by 5%, up to a maximum of 35% depreciation.
+	int percent = 5 * ([self maxShipSubEntities] - [[[self shipSubEntityEnumerator] allObjects] count]);
+	return (percent > 35 ? 35 : percent);
+}
+
+
 - (OOCreditsQuantity) tradeInValue
 {
 	// returns down to ship_trade_in_factor% of the full credit value of your ship
@@ -1504,6 +1512,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		-- Ahruman 20070707, fix applied 20070708
 	*/
 	unsigned long long value = [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]];
+	value -= cunningFee(value * 0.006 * [self missingSubEntitiesAdjustment]);	// TODO: 0.006 might need rethinking.
 	value = ((value * 75 * ship_trade_in_factor) + 5000) / 10000;	// Multiply by two percentages, divide by 100*100. The +5000 is to get normal rounding.
 	return value * 10;
 }

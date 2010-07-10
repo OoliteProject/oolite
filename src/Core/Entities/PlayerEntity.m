@@ -83,7 +83,6 @@ MA 02110-1301, USA.
 // 10m/s forward drift
 #define	OG_ELITE_FORWARD_DRIFT			10.0f
 #define PLAYER_DEFAULT_NAME				@"Jameson"
-#define SUBENTITY_REPAIR_PREMIUM		0.4f
 
 enum
 {
@@ -4689,11 +4688,11 @@ static GLfloat		sBaseMass = 0.0;
 	BOOL misjump = [self scriptedMisjump] || ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
 	
 	//wear and tear on all jumps (inc misjumps and failures)
-	if (2 * market_rnd < ship_trade_in_factor)			// every eight jumps or so
-		ship_trade_in_factor -= 1 + (market_rnd & 3);	// drop the price down towards 75%
-	if (ship_trade_in_factor < 75)
-		ship_trade_in_factor = 75;						// lower limit for trade in value is 75%
-	
+	if (2 * market_rnd < ship_trade_in_factor)
+	{
+		// every eight jumps or so drop the price down towards 75%
+		[self reduceTradeInFactorBy:1 + (market_rnd & 3)];
+	}
 	if (malfunc)
 	{
 		if (randf() > 0.5)
@@ -5878,8 +5877,7 @@ static NSString *last_outfitting_key=nil;
 				else if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 				{
 					price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
-					int subEntMissing = [self maxShipSubEntities] - [[[self shipSubEntityEnumerator] allObjects] count];
-					price += subEntMissing * price * SUBENTITY_REPAIR_PREMIUM;
+					price += price * (0.1 * [self missingSubEntitiesAdjustment]);
 				}
 				else price = pricePerUnit;
 				
@@ -6303,8 +6301,7 @@ static NSString *last_outfitting_key=nil;
 	if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 	{
 		price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
-		int subEntMissing = [self maxShipSubEntities] - [[[self shipSubEntityEnumerator] allObjects] count];
-		price += subEntMissing * price * SUBENTITY_REPAIR_PREMIUM;
+		price += price * (0.1 * [self missingSubEntitiesAdjustment]);
 	}
 	
 	if (dockedStation)
