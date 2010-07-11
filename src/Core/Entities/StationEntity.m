@@ -2025,7 +2025,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		// TODO: We're potentially cancelling docking at another station, so
 		//       ensure we clear the timer to allow NPC traffic.  If we
 		//       don't, normal traffic will resume once the timer runs out.
-		[self sendExpandedMessage:DESC(@"station-docking-clearance-not-required") toShip:other];
+		
+		// No clearance is needed, but don't send friendly messages to hostile ships!
+		if (!(([other isPlayer] && [other hasHostileTarget]) || (self == [UNIVERSE station] && [other bounty] > 50)))
+			[self sendExpandedMessage:DESC(@"station-docking-clearance-not-required") toShip:other];
 		if ([other isPlayer])
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	

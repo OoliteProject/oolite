@@ -7816,7 +7816,7 @@ static NSString *last_outfitting_key=nil;
 #if DOCKING_CLEARANCE_ENABLED
 - (BOOL)clearedToDock
 {
-	return dockingClearanceStatus > DOCKING_CLEARANCE_STATUS_REQUESTED;
+	return dockingClearanceStatus > DOCKING_CLEARANCE_STATUS_REQUESTED || dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
 }
 
 

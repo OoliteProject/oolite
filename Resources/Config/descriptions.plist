@@ -582,8 +582,7 @@
 		"You are on final approach.",
 		"Beginning final approach sequence."
 	);
-	// /general docking
-	// station
+	// /general docking - main station
 	"station-welcome" =
 	(
 		"Welcome to %H space dock.",

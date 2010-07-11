@@ -641,6 +641,8 @@ static NSTimeInterval	time_last_frame;
 			
 			if (![UNIVERSE displayCursor])
 			{
+				BOOL isOkayToUseAutopilot = legalStatus <= 50;	// used for C, shift-C, & shift-D (same condition handled inside station code for docking clearance)
+				
 				exceptionContext = @"afterburner";
 				if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel]) &&
 					[self hasFuelInjection] &&
@@ -970,8 +972,9 @@ static NSTimeInterval	time_last_frame;
 					if ([self hasDockingComputer] && !autopilot_key_pressed)   // look for the 'c' key
 					{
 						BOOL isUsingDockingAI = [[shipAI name] isEqual: PLAYER_DOCKING_AI_NAME];
-						BOOL isOkayToUseAutopilot = YES;
 						
+						if (!isOkayToUseAutopilot) [UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
+
 						if (isUsingDockingAI)
 						{
 							if ([self checkForAegis] != AEGIS_IN_DOCKING_RANGE)
@@ -1001,8 +1004,9 @@ static NSTimeInterval	time_last_frame;
 					{
 						StationEntity* primeTarget = [self primaryTarget];
 						BOOL primeTargetIsHostile = [self hasHostileTarget];
-						if (primeTarget != nil && [primeTarget isStation] && 
-							!primeTargetIsHostile)
+						isOkayToUseAutopilot = isOkayToUseAutopilot && primeTarget == [UNIVERSE station];
+						if (primeTarget != nil && [primeTarget isStation] &&
+							(!primeTargetIsHostile || isOkayToUseAutopilot))
 						{
 							[self engageAutopilotToStation:primeTarget];
 							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
@@ -1036,7 +1040,7 @@ static NSTimeInterval	time_last_frame;
 							StationEntity *the_station = [UNIVERSE station];
 							if (the_station)
 							{
-								if (legalStatus > 50)
+								if (!isOkayToUseAutopilot)
 								{
 									[self setStatus:STATUS_AUTOPILOT_ENGAGED];
 									[self interpretAIMessage:@"DOCKING_REFUSED"];
@@ -1085,7 +1089,7 @@ static NSTimeInterval	time_last_frame;
 					if (!docking_clearance_request_key_pressed)
 					{
 						Entity *primeTarget = [self primaryTarget];
-						if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
+						if (primeTarget != nil && [primeTarget isStation] && [primeTarget isKindOfClass:[StationEntity class]])
 						{
 							NSString *stationDockingClearanceStatus = [(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
 							if (stationDockingClearanceStatus != nil)
@@ -3046,7 +3050,7 @@ static BOOL toggling_music;
 	
 	if ([gameView isDown:key_autopilot])   // look for the 'c' key
 	{
-		if (([self hasDockingComputer]) && (!autopilot_key_pressed))   // look for the 'c' key
+		if ([self hasDockingComputer] && !autopilot_key_pressed)   // look for the 'c' key
 		{
 			[self disengageAutopilot];
 			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
@@ -3055,6 +3059,18 @@ static BOOL toggling_music;
 	}
 	else
 		autopilot_key_pressed = NO;
+	
+	if ([gameView isDown:key_autopilot_target])   // look for the 'C' key
+	{
+		if ([self hasDockingComputer] && !target_autopilot_key_pressed)   // look for the 'C' key
+		{
+			[self disengageAutopilot];
+			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
+		}
+		target_autopilot_key_pressed = YES;
+	}
+	else
+		target_autopilot_key_pressed = NO;
 	
 	if (([gameView isDown:key_docking_music]))   // look for the 's' key
 	{
