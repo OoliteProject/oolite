@@ -5993,9 +5993,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			}
 		}
 		
-		NSEnumerator	*subEnum = nil;
+		// Explode subentities. We use a temporary copy because the subentity array will be mutated.
+		NSEnumerator	*subEnum = [[NSArray arrayWithArray:subEntities] objectEnumeratorFilteredWithSelector:@selector(isShip)];
 		ShipEntity		*se = nil;
-		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
+		while (se = [subEnum nextObject], se != nil)
 		{
 			[se setSuppressExplosion:suppressExplosion];
 			[se setPosition:[se absolutePositionForSubentity]];
@@ -6005,8 +6006,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		[self clearSubEntities];
 
 		// momentum from explosions
-		desired_range = collision_radius * 2.5;
-		[self dealMomentumWithinDesiredRange: 0.125 * mass];
+		desired_range = collision_radius * 2.5f;
+		[self dealMomentumWithinDesiredRange:0.125f * mass];
 		
 		if (self != [PlayerEntity sharedPlayer])	// was if !isPlayer - but I think this may cause ghosts (Who's "I"? -- Ahruman)
 		{

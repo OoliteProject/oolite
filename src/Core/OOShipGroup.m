@@ -50,7 +50,7 @@ enum
 @public
 	OOShipGroup				*_group;
 	OOUInteger				_index, _updateCount;
-	BOOL					_performCleanup;
+	BOOL					_considerCleanup, _cleanupNeeded;
 }
 
 - (id) initWithShipGroup:(OOShipGroup *)group;
@@ -458,7 +458,7 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator)
 	
 	OOShipGroup				*group = enumerator->_group;
 	ShipEntity				*result = nil;
-	BOOL					considerCleanup = NO;
+	BOOL					cleanupNeeded = NO;
 	
 	if (enumerator->_updateCount != group->_updateCount)
 	{
@@ -476,11 +476,18 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator)
 		
 		// If we got here, the group contains a stale reference to a dead ship.
 		group->_members[enumerator->_index] = group->_members[--group->_count];
-		considerCleanup = YES;
+		cleanupNeeded = YES;
 	}
 	
-	// Clean up.
-	if (considerCleanup && enumerator->_performCleanup)  [group cleanUp];
+	// Clean-up handling. Only perform actual clean-up at end of iteration.
+	if (enumerator->_considerCleanup)
+	{
+		enumerator->_cleanupNeeded = enumerator->_cleanupNeeded && cleanupNeeded;
+		if (enumerator->_cleanupNeeded && result == nil)
+		{
+			[group cleanUp];
+		}
+	}
 	
 	return result;
 }
@@ -542,7 +549,7 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator)
 	if ((self = [super init]))
 	{
 		_group = [group retain];
-		_performCleanup = YES;
+		_considerCleanup = YES;
 		_updateCount = [_group updateCount];
 	}
 	
@@ -564,7 +571,7 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator)
 
 - (void) setPerformCleanup:(BOOL)flag
 {
-	_performCleanup = flag;
+	_considerCleanup = flag;
 }
 
 @end

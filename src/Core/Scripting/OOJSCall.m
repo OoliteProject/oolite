@@ -123,14 +123,20 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 			switch (type)
 			{
 				case kMethodTypeVoidObject:
+					[object performSelector:selector withObject:paramString];
+					break;
+					
 				case kMethodTypeObjectObject:
 					result = [object performSelector:selector withObject:paramString];
 					break;
 					
 				case kMethodTypeObjectVoid:
-				case kMethodTypeVoidVoid:
 					result = [object performSelector:selector];
 					if ([selectorString hasSuffix:@"_bool"])  result = [NSNumber numberWithBool:OOBooleanFromObject(result, NO)];
+					break;
+					
+				case kMethodTypeVoidVoid:
+					[object performSelector:selector];
 					break;
 					
 				case kMethodTypeCharVoid:
