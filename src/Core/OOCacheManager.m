@@ -23,16 +23,13 @@ MA 02110-1301, USA.
 */
 
 #import "OOCacheManager.h"
-#import "OOCache.h"
 #import "OOPListParsing.h"
 #import "OODeepCopy.h"
+#import "OOCollectionExtractors.h"
 
 
-#define AUTO_PRUNE				0
-#define PRUNE_BEFORE_FLUSH		0
 #define WRITE_ASYNC				1
-#define WRITE_ASYNC_DEEP_COPY	0
-#define PROFILE_WRITES			1
+#define PROFILE_WRITES			0
 
 
 // Use the (presumed) most efficient plist format for each platform.
@@ -75,7 +72,7 @@ static NSString * const kCacheKeyCaches						= @"caches";
 enum
 {
 	kEndianTagValue			= 0x0123456789ABCDEFULL,
-	kFormatVersionValue		= 41
+	kFormatVersionValue		= 42
 };
 
 
@@ -163,7 +160,7 @@ static OOCacheManager *sSingleton = nil;
 
 - (id)objectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey
 {
-	OOCache					*cache = nil;
+	NSMutableDictionary		*cache = nil;
 	id						result = nil;
 	
 	// Sanity check
@@ -198,7 +195,7 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)setObject:(id)inObject forKey:(NSString *)inKey inCache:(NSString *)inCacheKey
 {
-	OOCache					*cache = nil;
+	NSMutableDictionary		*cache = nil;
 	
 	// Sanity check
 	if (inObject == nil || inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil object, key or cacheKey.");
@@ -208,25 +205,24 @@ static OOCacheManager *sSingleton = nil;
 	cache = [_caches objectForKey:inCacheKey];
 	if (cache == nil)
 	{
-		cache = [[[OOCache alloc] init] autorelease];
+		cache = [NSMutableDictionary dictionary];
 		if (cache == nil)
 		{
 			OOLog(kOOLogDataCacheSetFailed, @"Failed to create cache for key \"%@\".", inCacheKey);
 			return;
 		}
-		[cache setName:inCacheKey];
-		[cache setAutoPrune:AUTO_PRUNE];
 		[_caches setObject:cache forKey:inCacheKey];
 	}
 	
 	[cache setObject:inObject forKey:inKey];
+	_dirty = YES;
 	OOLog(kOOLogDataCacheSetSuccess, @"Updated entry %@ in cache \"%@\".", inKey, inCacheKey);
 }
 
 
 - (void)removeObjectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey
 {
-	OOCache					*cache = nil;
+	NSMutableDictionary		*cache = nil;
 	
 	// Sanity check
 	if (inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil key or cacheKey.");
@@ -237,6 +233,7 @@ static OOCacheManager *sSingleton = nil;
 		if (nil != [cache objectForKey:inKey])
 		{
 			[cache removeObjectForKey:inKey];
+			_dirty = YES;
 			OOLog(kOOLogDataCacheRemoveSuccess, @"Removed entry keyed %@ from cache \"%@\".", inKey, inCacheKey);
 		}
 		else
@@ -259,6 +256,7 @@ static OOCacheManager *sSingleton = nil;
 	if (nil != [_caches objectForKey:inCacheKey])
 	{
 		[_caches removeObjectForKey:inCacheKey];
+		_dirty = YES;
 		OOLog(kOOLogDataCacheClearSuccess, @"Cleared cache \"%@\".", inCacheKey);
 	}
 	else
@@ -272,6 +270,7 @@ static OOCacheManager *sSingleton = nil;
 {
 	[self clear];
 	_caches = [[NSMutableDictionary alloc] init];
+	_dirty = YES;
 }
 
 
@@ -279,28 +278,6 @@ static OOCacheManager *sSingleton = nil;
 {
 	[self clear];
 	[self loadCache];
-}
-
-
-- (void)setPruneThreshold:(unsigned)inThreshold forCache:(NSString *)inCacheKey
-{
-	OOCache				*cache = nil;
-	
-	cache = [_caches objectForKey:inCacheKey];
-	if (cache != nil)
-	{
-		[cache setPruneThreshold:inThreshold];
-	}
-}
-
-
-- (unsigned)pruneThresholdForCache:(NSString *)inCacheKey
-{
-	OOCache				*cache = nil;
-	
-	cache = [_caches objectForKey:inCacheKey];
-	if (cache != nil)  return [cache pruneThreshold];
-	else  return kOOCacheDefaultPruneThreshold;
 }
 
 
@@ -402,6 +379,7 @@ static OOCacheManager *sSingleton = nil;
 	
 	// If loading failed, or there was a version or endianness conflict
 	if (_caches == nil) _caches = [[NSMutableDictionary alloc] init];
+	[self markClean];
 }
 
 
@@ -427,10 +405,6 @@ static OOCacheManager *sSingleton = nil;
 	OOLog(@"dataCache.willWrite", @"About to write cache.");
 #endif
 	
-#if PRUNE_BEFORE_FLUSH
-	[[_caches allValues] makeObjectsPerformSelector:@selector(prune)];
-#endif
-	
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
 	endianTag = [NSData dataWithBytes:&endianTagValue length:sizeof endianTagValue];
 	formatVersion = [NSNumber numberWithUnsignedInt:kFormatVersionValue];
@@ -448,25 +422,17 @@ static OOCacheManager *sSingleton = nil;
 	[newCache setObject:endianTag forKey:kCacheKeyEndianTag];
 	[newCache setObject:pListRep forKey:kCacheKeyCaches];
 	
-#if PROFILE_WRITES && (!WRITE_ASYNC || WRITE_ASYNC_DEEP_COPY)
+#if PROFILE_WRITES && !WRITE_ASYNC
 	OOTimeDelta prepareT = [stopwatch reset];
 #endif
 	
 #if WRITE_ASYNC
 	NSDictionary *cacheData = newCache;
-#if WRITE_ASYNC_DEEP_COPY
-	// This shouldn't be necessary, and if used slows async flushing down to slower than sync flushing.
-	cacheData = [OODeepCopy(cacheData) autorelease];
-#endif
 	_scheduledWrite = [[OOAsyncCacheWriter alloc] initWithCacheContents:cacheData];
 	
 #if PROFILE_WRITES
 	OOTimeDelta endT = [stopwatch reset];
-#if WRITE_ASYNC_DEEP_COPY
-	OOLog(@"dataCache.profile", @"Time to prepare cache data: %g seconds; time to deep copy and set up async writer, %g seconds.", prepareT, endT);
-#else
 	OOLog(@"dataCache.profile", @"Time to prepare cache data: %g seconds.", endT);
-#endif
 #endif
 	
 	[[OOAsyncWorkManager sharedAsyncWorkManager] addTask:_scheduledWrite priority:kOOAsyncPriorityLow];
@@ -497,26 +463,13 @@ static OOCacheManager *sSingleton = nil;
 
 - (BOOL)dirty
 {
-	NSEnumerator				*cacheEnum = nil;
-	OOCache						*cache = nil;
-	
-	for (cacheEnum = [_caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
-	{
-		if ([cache dirty]) return YES;
-	}
-	return NO;
+	return _dirty;
 }
 
 
 - (void)markClean
 {
-	NSEnumerator				*cacheEnum = nil;
-	OOCache						*cache = nil;
-	
-	for (cacheEnum = [_caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
-	{
-		[cache markClean];
-	}
+	_dirty = NO;
 }
 
 
@@ -604,7 +557,7 @@ static OOCacheManager *sSingleton = nil;
 	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
 	id							value = nil;
-	OOCache						*cache = nil;
+	NSMutableDictionary			*cache = nil;
 	
 	if (inDict == nil ) return;
 	
@@ -613,13 +566,14 @@ static OOCacheManager *sSingleton = nil;
 	
 	for (keyEnum = [inDict keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		value = [inDict objectForKey:key];
-		cache = [[OOCache alloc] initWithPList:value];
-		if (cache != nil)
+		value = [inDict oo_dictionaryForKey:key];
+		if (value != nil)
 		{
-			[cache setName:key];
-			[_caches setObject:cache forKey:key];
-			[cache release];
+			cache = [NSMutableDictionary dictionaryWithDictionary:value];
+			if (cache != nil)
+			{
+				[_caches setObject:cache forKey:key];
+			}
 		}
 	}
 }
@@ -627,22 +581,7 @@ static OOCacheManager *sSingleton = nil;
 
 - (NSDictionary *)dictionaryOfCaches
 {
-	NSMutableDictionary			*dict = nil;
-	NSEnumerator				*keyEnum = nil;
-	id							key = nil;
-	OOCache						*cache = nil;
-	id							pList = nil;
-	
-	dict = [NSMutableDictionary dictionaryWithCapacity:[_caches count]];
-	for (keyEnum = [_caches keyEnumerator]; (key = [keyEnum nextObject]); )
-	{
-		cache = [_caches objectForKey:key];
-		pList = [cache pListRepresentation];
-		
-		if (pList != nil)  [dict setObject:pList forKey:key];
-	}
-	
-	return dict;
+	return OODeepCopy(_caches);
 }
 
 
@@ -774,74 +713,6 @@ static OOCacheManager *sSingleton = nil;
 }
 
 @end
-
-
-#if DEBUG_GRAPHVIZ
-@interface OOCache (DebugGraphViz)
-- (NSString *) generateGraphVizBodyWithRootNamed:(NSString *)rootName;
-@end
-
-
-@implementation OOCacheManager (DebugGraphViz)
-
-- (NSString *) generateGraphViz
-{
-	NSMutableString			*result = nil;
-	NSEnumerator			*cacheEnum = nil;
-	OOCache					*cache = nil;
-	NSString				*cacheRootName = nil;
-	NSString				*cacheGraphViz = nil;
-	
-	result = [NSMutableString string];
-	
-	// Header
-	[result appendString:
-		@"// OOCacheManager dump\n\n"
-		"digraph caches\n"
-		"{\n"
-		"\tgraph [charset=\"UTF-8\", label=\"OOCacheManager debug dump\", labelloc=t, labeljust=l];\n\t\n"];
-	
-	// Node representing cache manager
-	[result appendString:@"\tcacheManger [label=OOCacheManager shape=Mdiamond];\n"];
-	
-	// Nodes and arcs for individual caches, and arcs from cache manager to each cache.
-	for (cacheEnum = [_caches objectEnumerator]; (cache = [cacheEnum nextObject]); )
-	{
-		cacheRootName = [NSString stringWithFormat:@"cache_%p", cache];
-		cacheGraphViz = [cache generateGraphVizBodyWithRootNamed:cacheRootName];
-		[result appendString:@"\t\n"];
-		[result appendString:cacheGraphViz];
-		[result appendFormat:@"\tcacheManger -> %@ [color=green constraint=true];\n", cacheRootName];
-	}
-	
-	[result appendString:@"}\n"];
-	
-	return result;
-}
-
-
-- (void) writeGraphVizToURL:(NSURL *)url
-{
-	NSString			*graphViz = nil;
-	NSData				*data = nil;
-	
-	graphViz = [self generateGraphViz];
-	data = [graphViz dataUsingEncoding:NSUTF8StringEncoding];
-	
-	if (data != nil)
-	{
-		[data writeToURL:url atomically:YES];
-	}
-}
-
-
-- (void) writeGraphVizToPath:(NSString *)path
-{
-	[self writeGraphVizToURL:[NSURL fileURLWithPath:path]];
-}
-
-@end
-#endif
 
 
 #if WRITE_ASYNC

@@ -35,7 +35,6 @@
 #import "OOOpenGLExtensionManager.h"
 #import "OOMacroOpenGL.h"
 #import "OOCPUInfo.h"
-#import "OOCache.h"
 #import "OOPixMap.h"
 
 #ifndef NDEBUG

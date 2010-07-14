@@ -803,7 +803,6 @@ static NSMutableDictionary *sStringCache;
 		OOLog(@"resourceManager.foundFile", @"Found %@/%@ at %@", folderName, fileName, filePath);
 		if (useCache)
 		{
-			[cache setPruneThreshold:500 forCache:@"resolved paths"];
 			[cache setObject:result forKey:cacheKey inCache:@"resolved paths"];
 		}
 	}
@@ -1037,11 +1036,11 @@ static NSMutableDictionary *sStringCache;
 			[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
 		}
 		
-		OOLog(@"searchPaths.dumpAll", @"Unrestricted Mode - Resources paths:\n    %@", [displayPaths componentsJoinedByString:@"\n    "]);
+		OOLog(@"searchPaths.dumpAll", @"Unrestricted mode - resource paths:\n    %@", [displayPaths componentsJoinedByString:@"\n    "]);
 	}
 	else
 	{
-		OOLog(@"searchPaths.dumpAll", @"Strict Mode - Resources path:\n    %@",
+		OOLog(@"searchPaths.dumpAll", @"Strict mode - resource path:\n    %@",
 			[[[self builtInPath] stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]);
 	}
 }

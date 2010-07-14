@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
-#import "OOCache.h"
 
 
 enum
@@ -47,6 +46,7 @@ enum
 	NSMutableDictionary		*_caches;
 	id						_scheduledWrite;
 	BOOL					_permitWrites;
+	BOOL					_dirty;
 }
 
 + (id)sharedCache;
@@ -57,14 +57,6 @@ enum
 - (void)clearCache:(NSString *)inCacheKey;
 - (void)clearAllCaches;
 - (void) reloadAllCaches;
-
-/*	Prune thresholds:
-	when the number of objects in a cache reaches the prune threshold, old
-	objects are removed until the object count is no more than 80% of the
-	prune threshold.
-*/
-- (void)setPruneThreshold:(unsigned)inThreshold forCache:(NSString *)inCacheKey;
-- (unsigned)pruneThresholdForCache:(NSString *)inCacheKey;
 
 - (void)setAllowCacheWrites:(BOOL)flag;
 
