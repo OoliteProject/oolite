@@ -749,6 +749,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	{
 		[subentity setBehaviour:BEHAVIOUR_TRACK_AS_TURRET];
 		[subentity setWeaponRechargeRate:[subentDict oo_floatForKey:@"fire_rate" defaultValue:TURRET_SHOT_FREQUENCY]];
+		[subentity setWeaponEnergy:[subentDict oo_floatForKey:@"weapon_energy" defaultValue:TURRET_TYPICAL_ENERGY]];
 		[subentity setStatus: STATUS_ACTIVE];
 	}
 	else
@@ -4719,6 +4720,12 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 - (void) setWeaponRechargeRate:(float)value
 {
 	weapon_recharge_rate = value;
+}
+
+
+- (void) setWeaponEnergy:(float)value
+{
+	weapon_energy = value;
 }
 
 
