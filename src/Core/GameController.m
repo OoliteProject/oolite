@@ -999,6 +999,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 			[fmgr createDirectoryAtPath:path attributes:nil];
 		}
 	}
+	return url;
 }
 
 #else

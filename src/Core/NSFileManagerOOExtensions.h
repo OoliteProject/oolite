@@ -30,10 +30,18 @@ MA 02110-1301, USA.
 
 #define SAVEDIR "oolite-saves"
 
+#if OOLITE_SDL
+#define SNAPSHOTDIR "snapshots"
+#endif
+
 @interface NSFileManager (OOExtensions)
 
 - (NSArray*) commanderContentsOfPath:(NSString*) savePath;
 - (NSString*) defaultCommanderPath;
+
+#if OOLITE_SDL
+- (BOOL) chdirToSnapshotPath;
+#endif
 
 @end
 
