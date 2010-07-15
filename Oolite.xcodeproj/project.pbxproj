@@ -76,6 +76,8 @@
 		1A11C2B211CFC35000F3EE77 /* OOJSEngineTimeManagement.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A11C2B011CFC35000F3EE77 /* OOJSEngineTimeManagement.m */; };
 		1A11F84A0F35F60C001C886C /* OOJSShipGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A11F8480F35F60C001C886C /* OOJSShipGroup.m */; };
 		1A11F84B0F35F60C001C886C /* OOJSShipGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A11F8490F35F60C001C886C /* OOJSShipGroup.h */; };
+		1A143A4811EF22C5001BAB8D /* JAPersistentFileReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A143A4611EF22C5001BAB8D /* JAPersistentFileReference.h */; };
+		1A143A4911EF22C5001BAB8D /* JAPersistentFileReference.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A143A4711EF22C5001BAB8D /* JAPersistentFileReference.m */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
 		1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */; };
 		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
@@ -1222,6 +1224,8 @@
 		1A11C2B011CFC35000F3EE77 /* OOJSEngineTimeManagement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSEngineTimeManagement.m; sourceTree = "<group>"; };
 		1A11F8480F35F60C001C886C /* OOJSShipGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSShipGroup.m; sourceTree = "<group>"; };
 		1A11F8490F35F60C001C886C /* OOJSShipGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSShipGroup.h; sourceTree = "<group>"; };
+		1A143A4611EF22C5001BAB8D /* JAPersistentFileReference.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JAPersistentFileReference.h; sourceTree = "<group>"; };
+		1A143A4711EF22C5001BAB8D /* JAPersistentFileReference.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JAPersistentFileReference.m; sourceTree = "<group>"; };
 		1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-unknown-ship.dat"; sourceTree = "<group>"; };
 		1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSkyDrawable.h; sourceTree = "<group>"; };
 		1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSkyDrawable.m; sourceTree = "<group>"; };
@@ -2735,6 +2739,8 @@
 				1A1E99B50EF04837008B48E2 /* OOProgressBar.m */,
 				1AAF56160F1A198400A2F2E6 /* Comparison.h */,
 				1A5A798D105044DD00A8F4B5 /* OOPrefixHeader.h */,
+				1A143A4611EF22C5001BAB8D /* JAPersistentFileReference.h */,
+				1A143A4711EF22C5001BAB8D /* JAPersistentFileReference.m */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -3350,6 +3356,7 @@
 				1A062C8911B28D8A00727C1D /* NSObjectOOExtensions.h in Headers */,
 				1AABA83E11B941D1003487D5 /* OOPixMapTextureLoader.h in Headers */,
 				1A11C2B111CFC35000F3EE77 /* OOJSEngineTimeManagement.h in Headers */,
+				1A143A4811EF22C5001BAB8D /* JAPersistentFileReference.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3731,6 +3738,7 @@
 				1A062C8A11B28D8A00727C1D /* NSObjectOOExtensions.m in Sources */,
 				1AABA83F11B941D1003487D5 /* OOPixMapTextureLoader.m in Sources */,
 				1A11C2B211CFC35000F3EE77 /* OOJSEngineTimeManagement.m in Sources */,
+				1A143A4911EF22C5001BAB8D /* JAPersistentFileReference.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

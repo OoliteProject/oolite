@@ -313,9 +313,15 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	unsigned char   *blue = (unsigned char *) malloc( nPixels);
 	
 	// backup the previous directory
-	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
+	NSString *originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
 	// use the snapshots directory
-	[[NSFileManager defaultManager] chdirToSnapshotPath];
+	NSString *snapshotsDirectory = [[[GameController sharedController] snapshotsURLCreatingIfNeeded:YES] path];
+	if (![[NSFileManager defaultManager] changeCurrentDirectoryPath:snapshotsDirectory])
+	{
+		NSBeep();
+		OOLog(@"savedSnapshot.defaultPath.chdir.failed", @"Could not navigate to %@", snapshotsDirectory);
+		return;
+	}
 	
 	static unsigned		imageNo = 0;
 	NSString			*pathToPic = nil;

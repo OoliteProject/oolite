@@ -30,18 +30,10 @@ MA 02110-1301, USA.
 
 #define SAVEDIR "oolite-saves"
 
-#if OOLITE_MAC_OS_X
- #define SNAPSHOTDIR "Desktop/Oolite Screen Shots"
-#else
- #define SNAPSHOTDIR "snapshots"
-#endif
-
-
 @interface NSFileManager (OOExtensions)
 
 - (NSArray*) commanderContentsOfPath:(NSString*) savePath;
 - (NSString*) defaultCommanderPath;
-- (BOOL)chdirToSnapshotPath;
 
 @end
 

@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "NSFileManagerOOExtensions.h"
 #import "ResourceManager.h"
 #import "OOPListParsing.h"
+#import "GameController.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.NSFileManagerOOExtensions"
 
@@ -113,34 +114,6 @@ MA 02110-1301, USA.
 	}
 	
 	return savedir;
-}
-
-
-- (BOOL) chdirToSnapshotPath
-{
-#if OOLITE_MAC_OS_X
-	// Macs: the default path for snapshots is ~/Desktop/Oolite Snap Shots
-	NSString *savedir = [NSHomeDirectory() stringByAppendingPathComponent:@SNAPSHOTDIR];
-#else
-	// SDL: the default path for snapshots is oolite.app/oolite-saves/snapshots
-	NSString *savedir = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
-#endif
-	if (![self changeCurrentDirectoryPath: savedir])
-	{
-	   // it probably doesn't exist.
-		if (![self createDirectoryAtPath: savedir attributes: nil])
-		{
-			OOLog(@"savedSnapshot.defaultPath.create.failed", @"Unable to create directory %@", savedir);
-			return NO;
-		}
-		if (![self changeCurrentDirectoryPath: savedir])
-		{
-			OOLog(@"savedSnapshot.defaultPath.chdir.failed", @"Created %@ but couldn't make it the current directory.", savedir);
-			return NO;
-		}
-	}
-	
-	return YES;
 }
 
 @end

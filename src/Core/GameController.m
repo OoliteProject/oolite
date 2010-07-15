@@ -39,6 +39,10 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 
+#if OOLITE_MAC_OS_X
+#import "JAPersistentFileReference.h"
+#endif
+
 
 static GameController *sSharedController = nil;
 
@@ -789,9 +793,81 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 }
 
 
+- (NSURL *) snapshotsURLCreatingIfNeeded:(BOOL)create
+{
+	BOOL stale = NO;
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	NSDictionary *snapshotDirDict = [prefs dictionaryForKey:@"snapshots-directory-reference"];
+	NSURL *url = nil;
+	NSString *name = DESC(@"snapshots-directory-name-mac");
+	
+	if (snapshotDirDict != nil)
+	{
+		url = JAURLFromPersistentFileReference(snapshotDirDict, kJAPersistentFileReferenceWithoutUI | kJAPersistentFileReferenceWithoutMounting, &stale);
+		if (url != nil)
+		{
+			NSString *existingName = [[url path] lastPathComponent];
+			if ([existingName compare:name options:NSCaseInsensitiveSearch] != 0)
+			{
+				// Check name from previous access, because we might have changed localizations.
+				NSString *originalOldName = [prefs stringForKey:@"snapshots-directory-name"];
+				if ([existingName compare:originalOldName options:NSCaseInsensitiveSearch] != 0)
+				{
+					url = nil;
+				}
+			}
+		}
+	}
+	
+	if (url == nil)
+	{
+		NSString *path = nil;
+		NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES);
+		if ([searchPaths count] > 0)
+		{
+			path = [[searchPaths objectAtIndex:0] stringByAppendingPathComponent:name];
+		}
+		url = [NSURL fileURLWithPath:path];
+		
+		if (url != nil)
+		{
+			stale = YES;
+			if (create)
+			{
+				NSFileManager *fmgr = [NSFileManager defaultManager];
+				if (![fmgr fileExistsAtPath:path])
+				{
+#if OOLITE_LEOPARD
+					[fmgr createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:NULL];
+#else
+					[fmgr createDirectoryAtPath:path attributes:nil];
+#endif
+				}
+			}
+		}
+	}
+	
+	if (stale)
+	{
+		snapshotDirDict = JAPersistentFileReferenceFromURL(url);
+		if (snapshotDirDict != nil)
+		{
+			[prefs setObject:snapshotDirDict forKey:@"snapshots-directory-reference"];
+			[prefs setObject:[[url path] lastPathComponent] forKey:@"snapshots-directory-name"];
+		}
+		else
+		{
+			[prefs removeObjectForKey:@"snapshots-directory-reference"];
+		}
+	}
+	
+	return url;
+}
+
+
 - (IBAction) showSnapshotsAction:sender
 {
-	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:[NSHomeDirectory() stringByAppendingPathComponent:@SNAPSHOTDIR]]]; // also in myOpenGLView snapShot
+	[[NSWorkspace sharedWorkspace] openURL:[self snapshotsURLCreatingIfNeeded:YES]];
 }
 
 
@@ -847,7 +923,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	if (action == @selector(showSnapshotsAction:))
 	{
 		BOOL	pathIsDirectory;
-		if(![[NSFileManager defaultManager] fileExistsAtPath:[NSHomeDirectory() stringByAppendingPathComponent:@SNAPSHOTDIR] isDirectory:&pathIsDirectory]) return NO;
+		if(![[NSFileManager defaultManager] fileExistsAtPath:[[self snapshotsURLCreatingIfNeeded:NO] path] isDirectory:&pathIsDirectory]) return NO;
 		return pathIsDirectory;
 	}
 	
@@ -907,6 +983,22 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 - (BOOL) inFullScreenMode
 {
 	return [gameView inFullScreenMode];
+}
+
+
+- (NSURL *) snapshotsURLCreatingIfNeeded:(BOOL)create
+{
+	NSURL *url = [NSURL fileURLWithPath:[NSHomeDirectory() stringByAppendingPathComponent:DESC(@"snapshots-directory-name")]];
+	
+	if (create)
+	{
+		NSString *path = [url path];
+		NSFileManager *fmgr = [NSFileManager defaultManager];
+		if (![fmgr fileExistsAtPath:path])
+		{
+			[fmgr createDirectoryAtPath:path attributes:nil];
+		}
+	}
 }
 
 #else

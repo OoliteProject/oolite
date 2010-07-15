@@ -1196,6 +1196,10 @@
 	"gameoverscreen-game-over"		= "Game Over";
 	"gameoverscreen-press-space"	= "Press Space";
 	
+	// Screen shots
+	"snapshots-directory-name"		= "snapshots";
+	"snapshots-directory-name-mac"	= "Oolite Screen Shots";
+	
 	// Various HUD dials and/or messages and miscellaneous strings
 	"no-target-string"				= "No target";
 	"communications-log-string"		= "Communications Log";
