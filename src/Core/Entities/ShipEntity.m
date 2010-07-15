@@ -226,9 +226,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	//
 	// In order for default values to work and float values to not be junk,
 	// replace nil with empty dictionary. -- Ahruman 2008-04-28
-	if (shipDict == nil)  shipDict = [NSDictionary dictionary];
-	
 	shipinfoDictionary = [shipDict copy];
+	if (shipinfoDictionary == nil)  shipinfoDictionary = [[NSDictionary alloc] init];
 	shipDict = shipinfoDictionary;	// Ensure no mutation.
 	
 	// set these flags explicitly.
@@ -303,10 +302,10 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
 	}
 	
-	if (name !=nil) [name autorelease];
+	[name autorelease];
 	name = [[shipDict oo_stringForKey:@"name" defaultValue:@"?"] copy];
 	
-	if (displayName !=nil) [displayName autorelease];
+	[displayName autorelease];
 	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
 	
 	// Load the model (must be before subentities)

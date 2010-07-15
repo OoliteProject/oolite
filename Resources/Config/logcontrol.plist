@@ -118,6 +118,7 @@
 	dataCache.set.failed					= $dataCacheError;
 	dataCache.remove.success				= $dataCacheDebug;
 	dataCache.clear.success					= $dataCacheDebug;
+	dataCache.prune							= $dataCacheDebug;
 	
 	
 	display.modes.noneFound					= $error;
