@@ -37,7 +37,12 @@ SOFTWARE.
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 #define BookmarkDataSupported() (YES)
 #else
+#if __ppc__ || __ppc64__
+// Bookmark data is only available in Snow Leopard and later, which excludes PPC systems.
+#define BookmarkDataSupported() (NO)
+#else
 #define BookmarkDataSupported() ([NSURL instancesRespondToSelector:@selector(bookmarkDataWithOptions:includingResourceValuesForKeys:relativeToURL:error:)])
+#endif
 
 @interface NSURL (SnowLeopardMethods)
 
@@ -79,6 +84,7 @@ NSDictionary *JAPersistentFileReferenceFromURL(NSURL *url)
 				{
 					[result setObject:aliasData forKey:kAliasKey];
 				}
+				DisposeHandle((Handle)alias);
 			}
 		}
 	}
@@ -160,6 +166,7 @@ NSURL *JAURLFromPersistentFileReference(NSDictionary *fileRef, JAPersistentFileR
 					result = (NSURL *)CFURLCreateFromFSRef(kCFAllocatorDefault, &fsRef);
 					[result autorelease];
 				}
+				DisposeHandle((Handle)alias);
 			}
 		}
 		else  staleIfFile = YES;
