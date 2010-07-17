@@ -109,7 +109,8 @@
 		"WITCHSPACE BLOCKED" = (setTargetToFoundTarget,
 					setDestinationWithinTarget,
 					"setDesiredRangeTo: 10000.0",
-					performFlyToRangeFromDestination
+					performFlyToRangeFromDestination,
+					setSpeedToCruiseSpeed
 		);
 		"WITCHSPACE UNAVAILABLE" = ("setStateTo: DOCK_WITH_STATION");
 		UPDATE = (performHyperSpaceExit, "pauseAI: 5.0");
