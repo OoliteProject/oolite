@@ -1735,6 +1735,12 @@ static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc
 	}
 	// berths are not in hasOneEquipmentItem
 	OK = [thisEnt hasOneEquipmentItem:key includeMissiles:YES] || ([key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0);
+	if (!OK)
+	{
+		// Allow removal of damaged equipment.
+		key = [key stringByAppendingString:@"_DAMAGED"];
+		OK = [thisEnt hasOneEquipmentItem:key includeMissiles:NO];
+	}
 	if (OK)
 	{
 		//exceptions

@@ -4209,9 +4209,10 @@ static GLfloat		sBaseMass = 0.0;
 		[self removeEquipmentItem:system_key];
 		if (![UNIVERSE strict])
 		{
-			[self addEquipmentItem:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
+			NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
+			[self addEquipmentItem:damagedKey];	// for possible future repair.
 			[self doScriptEvent:@"equipmentDamaged" withArgument:system_key];
-			if (![self hasEquipmentItem:system_name])	// Because script may have undamaged it
+			if (![self hasEquipmentItem:system_name] && [self hasEquipmentItem:damagedKey])	// Because script may have undamaged it or removed it.
 			{
 				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
 			}
