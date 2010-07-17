@@ -215,7 +215,7 @@
 	(
 		10, 6000, "Witchdrive Fuel Injectors",
 		"EQ_FUEL_INJECTION",
-		"A convertor added to your in-system drive that can inject unused witch-drive fuel into your exhaust, massively increasing your speed."
+		"A converter added to your in-system drive that can inject unused witch-drive fuel into your exhaust, massively increasing your speed."
 	),
 	(
 		11, 4500, "Scanner Targeting Enhancement",
