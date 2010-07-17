@@ -4208,21 +4208,30 @@ static GLfloat		sBaseMass = 0.0;
 		[UNIVERSE clearPreviousMessage];
 		[self removeEquipmentItem:system_key];
 		NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
-		
 		if (![UNIVERSE strict])
 		{
+			NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
 			[self addEquipmentItem:damagedKey];	// for possible future repair.
 			[self doScriptEvent:@"equipmentDamaged" withArgument:system_key];
+			
+			if (![self hasEquipmentItem:system_name] && [self hasEquipmentItem:damagedKey])
+			{
+				/*
+					Display "foo damaged" message only if no script has
+					repaired or removed the equipment item. (If a script does
+					either of those and wants a message, it can write it
+					itself.)
+				*/
+				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
+			}
 		}
 		else
 		{
 			[self doScriptEvent:@"equipmentDestroyed" withArgument:system_key];
-		}
-		
-		// after scripts are executed, this piece of equipment can be undamaged, damaged, or destroyed. Let's show the right message, if needed.
-		if (![self hasEquipmentItem:system_name])	// damaged, or possibly destroyed via script.
-		{
-			[UNIVERSE addMessage:[NSString stringWithFormat:DESC([self hasEquipmentItem:damagedKey] ? @"@-damaged" : @"@-destroyed"), system_name] forCount:4.5];
+			if (![self hasEquipmentItem:system_name])	// Because script may have undestroyed it
+			{
+				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), system_name] forCount:4.5];
+			}
 		}
 		
 		// if Docking Computers have been selected to take damage and they happen to be on, switch them off
