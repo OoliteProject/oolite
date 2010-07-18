@@ -304,7 +304,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 			[self bindAttributes:attributeBindings];
 			OOGL(glLinkProgramARB(program));
 			
-			OK = ValidateShaderObject(vertexShader, [NSString stringWithFormat:@"%@/%@", vertexName, fragmentName]);
+			OK = ValidateShaderObject(program, [NSString stringWithFormat:@"%@/%@", vertexName, fragmentName]);
 		}
 		else  OK = NO;
 	}
