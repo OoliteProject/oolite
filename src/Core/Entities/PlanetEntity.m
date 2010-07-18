@@ -386,29 +386,25 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
 	
-	if (_texture == nil)
+	if (isTextureImage)
 	{
+		// standard overlay colours.
+		land_hsb.x = 0.0;	land_hsb.y = 0.0;	land_hsb.z = 1.0;	// non-saturated fully bright (white)
+		sea_hsb.x = 0.0;	sea_hsb.y = 1.0;	sea_hsb.z = 1.0;	// fully-saturated fully bright (red)	
+		// override the mainPlanet texture colour...
+		[self setTextureColorForPlanet:!![dict objectForKey:@"mainForLocalSystem"] inSystem:[dict oo_boolForKey:@"mainForLocalSystem" defaultValue:NO]];
+	}
+	else
+	{
+		// random land & sea colours.
 		land_hsb.x = gen_rnd_number() / 256.0;  land_hsb.y = gen_rnd_number() / 256.0;  land_hsb.z = 0.5 + gen_rnd_number() / 512.0;
 		sea_hsb.x = gen_rnd_number() / 256.0;  sea_hsb.y = gen_rnd_number() / 256.0;  sea_hsb.z = 0.5 + gen_rnd_number() / 512.0;
 		while (dot_product(land_hsb,sea_hsb) > .80) // make sure land and sea colors differ significantly
 		{
 			sea_hsb.x = gen_rnd_number() / 256.0;  sea_hsb.y = gen_rnd_number() / 256.0;  sea_hsb.z = 0.5 + gen_rnd_number() / 512.0;
 		}
-	}
-	else
-	{
-		land_hsb.x = 0.0;	land_hsb.y = 0.0;	land_hsb.z = 1.0;	// non-saturated fully bright (white)
-		sea_hsb.x = 0.0;	sea_hsb.y = 1.0;	sea_hsb.z = 1.0;	// fully-saturated fully bright (red)
-	}
-	
-	if (isTextureImage)
-	{
-		// override the mainPlanet texture colour...
-		[self setTextureColorForPlanet:!![dict objectForKey:@"mainForLocalSystem"] inSystem:[dict oo_boolForKey:@"mainForLocalSystem" defaultValue:NO]];
-	}
-	else
-	{
-		// possibly get land_hsb and sea_hsb from planetinfo.plist entry
+		
+		// assign land_hsb and sea_hsb overrides from planetinfo.plist if they're there.
 		ScanVectorFromString([dict objectForKey:@"land_hsb_color"], &land_hsb);
 		ScanVectorFromString([dict objectForKey:@"sea_hsb_color"], &sea_hsb);
 		

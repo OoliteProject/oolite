@@ -2631,6 +2631,23 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 #else
 		OOPlanetEntity* doppelganger = nil;
 		NSMutableDictionary *planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:target_system_seed]];
+
+#if 1
+		// sunlight position for F7 screen is chosen pseudo randomly from  4 different positions.
+		if (target_system_seed.b & 8)
+		{
+			_sysInfoLight = (target_system_seed.b & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
+		}
+		else
+		{
+			_sysInfoLight = (target_system_seed.d & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
+		}
+#else
+		// basic sunlight position for F7 screen.
+		_sysInfoLight = (Vector){ -12000.0, -5000.0, -10000.0 };
+#endif
+
+		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin
 		
 		if ([i_key isEqualToString:@"local-planet"] && [UNIVERSE sun])
 		{
@@ -2641,7 +2658,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				[planetInfo setObject:texture forKey:@"_oo_textureObject"];
 				[planetInfo oo_setBool:[mainPlanet isExplicitlyTextured] forKey:@"_oo_isExplicitlyTextured"];
 				[planetInfo oo_setBool:YES forKey:@"mainForLocalSystem"];
-				[planetInfo oo_setQuaternion:[mainPlanet orientation] forKey:@"orientation"];
+				//[planetInfo oo_setQuaternion:[mainPlanet orientation] forKey:@"orientation"]; // the orientation is overwritten later on, without regard for the real planet's orientation.
 			}
 		}
 		
@@ -2653,20 +2670,19 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 #endif
 		
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
+		
 		// miniature radii are roughly between 60 and 120. Place miniatures with a radius bigger than 60 a bit futher away.
 		model_p0 = vector_multiply_scalar(model_p0, 1 - 0.5 * ((60 - [doppelganger radius]) / 60));
-
-		Quaternion model_q = { 0.912871, 0.365148, 0.182574, 0.0 }; // pole at top right.
-		_sysInfoLight = (Vector){ -12000.0, -5000.0, -10000.0 };	// TODO: sysinfo light coming from different places, depending on planet shown.
-		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin for pole
-#if !NEW_PLANETS
-		if ([doppelganger isTextured])
-		{
-			model_q = make_quaternion( 0.707, 0.314, 0.707, 0.0 );
-		}
-#endif
+		
 		model_p0 = vector_add(model_p0, off);
-
+		
+#if NEW_PLANETS
+		Quaternion model_q = { 0.912871, 0.365148, 0.182574, 0.0 }; // pole at top right for new planets.
+#else
+		// Only one quaternion needed.
+		//model_q = make_quaternion( 0.707, 0.314, 0.707, 0.0 );
+		Quaternion model_q = { 0.833492, 0.333396, 0.440611, 0.0 }; // TODO: find a better quaternion value.
+#endif
 		OOLog(kOOLogDebugProcessSceneStringAddMiniPlanet, @"::::: adding %@ to scene:'%@'", i_key, doppelganger);
 		[doppelganger setOrientation: model_q];
 		[doppelganger setPosition: model_p0];
