@@ -4207,7 +4207,6 @@ static GLfloat		sBaseMass = 0.0;
 		[self setScriptTarget:self];
 		[UNIVERSE clearPreviousMessage];
 		[self removeEquipmentItem:system_key];
-		NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
 		if (![UNIVERSE strict])
 		{
 			NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
