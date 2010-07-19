@@ -973,8 +973,6 @@ static NSTimeInterval	time_last_frame;
 					{
 						BOOL isUsingDockingAI = [[shipAI name] isEqual: PLAYER_DOCKING_AI_NAME];
 						
-						if (!isOkayToUseAutopilot) [UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
-
 						if (isUsingDockingAI)
 						{
 							if ([self checkForAegis] != AEGIS_IN_DOCKING_RANGE)
@@ -982,6 +980,10 @@ static NSTimeInterval	time_last_frame;
 								isOkayToUseAutopilot = NO;
 								[self playAutopilotOutOfRange];
 								[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
+							}
+							else
+							{
+								if (!isOkayToUseAutopilot) [UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
 							}
 						}
 						

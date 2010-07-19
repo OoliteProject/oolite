@@ -5746,7 +5746,7 @@ static NSString *last_outfitting_key=nil;
 	unsigned			i = 0;
 	NSEnumerator		*eqEnum = nil;
 	OOEquipmentType		*eqType = nil;
-	unsigned		available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
+	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];	// use defaults  explicitly
 
 	
 	if (eqKeyForSelectFacing != nil) // Weapons purchase subscreen.
