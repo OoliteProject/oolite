@@ -56,14 +56,14 @@ else
 			GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
 		endif
 	else
+		oolite_LIB_DIRS += -Ldeps/Linux-deps/$(HOST_ARCH)/lib_linker
+		ADDITIONAL_OBJC_LIBS += -lpng14 -lSDL_mixer -lSDL -lgnustep-base
+		ADDITIONAL_INCLUDE_DIRS += -Ideps/Linux-deps/include
 		ifeq ($(ESPEAK),yes)
-			ADDITIONAL_OBJC_LIBS += -lpulse -lespeak
+			ADDITIONAL_OBJC_LIBS += -lespeak
 			ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
 			GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
 		endif
-		ADDITIONAL_OBJC_LIBS += -lpng14 -lSDL_mixer -lSDL -lgnustep-base
-		ADDITIONAL_INCLUDE_DIRS += -Ideps/Linux-deps/include
-		oolite_LIB_DIRS += -Ldeps/Linux-deps/$(HOST_ARCH)/lib_linker
 	endif
 endif
 ifeq ($(profile),yes)
