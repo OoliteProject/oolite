@@ -30,12 +30,23 @@ from a terminal.
 Troubleshoot speech feature
 ---------------------------
 If you encounter issues with the oolite speech feature,
-you could try using the alternative PulseAudio speech library:
-(You need to have PulseAudio installed to try the following workaround!)
+you could try one of the following workarounds:
+1. If your system has libportaudio.so.2 installed:
+        cd [/usr or ~/.local]/lib/Oolite/oolite-deps/lib/
+        [sudo] mv libportaudio.so.2 libportaudio.so.2.oolite
+Note: If libportaudio.so.2 is not part of your default installation,
+you could get it from your distro's repository.
 
-cd [/usr or ~/.local]/lib/Oolite/oolite-deps/lib/
-[sudo] cp -p libespeak.so.1 libespeak.so.1.portaudio
-[sudo] cp -p libespeak.so.1.pulseaudio libespeak.so.1
+2. If your system is configured with PulseAudio:
+        cd [/usr or ~/.local]/lib/Oolite/oolite-deps/lib/
+        [sudo] cp -p libespeak.so.1 libespeak.so.1.portaudio
+        [sudo] cp -p libespeak.so.1.pulseaudio libespeak.so.1
+Note: If PulseAudio is not part of your default installation,
+you could get it from your distro's repository.
+
+In any case you may turn the speech synthesis off, 
+from Oolite ingame options. For further assistance, 
+feel free to join in http://aegidian.org/bb
 
 
 
@@ -55,7 +66,12 @@ Oolite Expansion Packs (i.e. add-ons)
 -------------------------------------
 Create the AddOns folder:
    $ mkdir ~/.Oolite/AddOns/
-and copy the add-on ".oxp" folder into ~/.Oolite/AddOns/
+and copy any add-on ".oxp" folder into ~/.Oolite/AddOns/
+
+If you have installed Oolite system-wide, providing a password 
+during installation, you may copy any add-on ".oxp" folder 
+into /usr/lib/Oolite/AddOns/ making your add-ons available to
+any user.
 
 
 
