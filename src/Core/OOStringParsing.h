@@ -49,14 +49,10 @@ Random_Seed RandomSeedFromString(NSString *abcdefString);
 NSString *StringFromRandomSeed(Random_Seed seed);
 
 
-NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed);
-NSString *ExpandDescriptionForSeedName(NSString *text, Random_Seed seed, NSString *name);
+NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed, NSString *name);
 NSString *ExpandDescriptionForCurrentSystem(NSString *text);
 
-NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed seed, NSDictionary *locals);
-NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_Seed seed, NSDictionary *locals, NSString *name);
-NSString *ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *locals, NSString *pName);
-NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDictionary *locals);
+NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *locals, NSString *pName);
 
 NSString *DescriptionForSystem(Random_Seed seed,NSString *name);
 NSString *DescriptionForCurrentSystem(void);

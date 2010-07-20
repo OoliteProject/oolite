@@ -258,7 +258,7 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	{
 		// Method with argument; substitute [description] expressions.
 		locals = [player localVariablesForMission:sCurrentMissionKey];
-		expandedString = ExpandDescriptionsWithLocalsForCurrentSystem(argumentString, locals);
+		expandedString = ExpandDescriptionsWithOptions(argumentString, [player system_seed], nil, locals, nil);
 		
 #if SUPPORT_TRACE_MESSAGES
 		if (![expandedString isEqualToString:argumentString])

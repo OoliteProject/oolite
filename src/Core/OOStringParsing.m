@@ -250,14 +250,7 @@ NSString *StringFromRandomSeed(Random_Seed seed)
 }
 
 
-NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed)
-{
-	return ExpandDescriptionForSeedName(text, seed, nil);
-
-}
-
-
-NSString *ExpandDescriptionForSeedName(NSString *text, Random_Seed seed, NSString *name)
+NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed, NSString *name)
 {
 	// to enable variables to return strings that can be expanded (eg. @"[commanderName_string]")
 	// we're going to loop until every expansion has been done!
@@ -273,7 +266,7 @@ NSString *ExpandDescriptionForSeedName(NSString *text, Random_Seed seed, NSStrin
 	do
 	{
 		old_desc = result;
-		result = ExpandDescriptionsWithLocalsForSystemSeedName(result, seed, nil, name);
+		result = ExpandDescriptionsWithOptions(result, seed, nil, nil, name);
 	} while (--stack_check && ![result isEqual:old_desc]);
 	
 	if (!stack_check)
@@ -288,23 +281,11 @@ NSString *ExpandDescriptionForSeedName(NSString *text, Random_Seed seed, NSStrin
 
 NSString *ExpandDescriptionForCurrentSystem(NSString *text)
 {
-	return ExpandDescriptionForSeed(text, [[PlayerEntity sharedPlayer] system_seed]);
+	return ExpandDescriptionForSeed(text, [[PlayerEntity sharedPlayer] system_seed], nil);
 }
 
 
-NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed seed, NSDictionary *locals)
-{
-	return ExpandDescriptionsWithLocalsForSystemSeedName(text, seed, locals, nil);
-}
-
-
-NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_Seed seed, NSDictionary *locals, NSString *pName)
-{
-	return ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(text, seed, nil, locals, pName);
-}
-
-
-NSString *ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *pName)
+NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *pName)
 {
 	PlayerEntity		*player = [PlayerEntity sharedPlayer];
 	NSMutableString		*partial = [[text mutableCopy] autorelease];
@@ -470,14 +451,14 @@ NSString *ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(NSString *te
 			if (!err)
 			{
 				intVal = [stringID intValue];
-				if ( intVal < 256 )
+				if (intVal < 256)
 				{
-					[partial	replaceOccurrencesOfString:[NSString stringWithFormat:@"%%J%@",stringID]
+					[partial replaceOccurrencesOfString:[NSString stringWithFormat:@"%%J%@",stringID]
 											 withString:[UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:(OOSystemID)intVal]] 
-												options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
+												options:NSLiteralSearch
+												  range:NSMakeRange(0, [partial length])];
 				}
-				else
-					err = YES;
+				else  err = YES;
 			}
 		}
 		if (err)
@@ -509,14 +490,14 @@ NSString *ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(NSString *te
 
 NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDictionary *locals)
 {
-	return ExpandDescriptionsWithLocalsForSystemSeed(text, [[PlayerEntity sharedPlayer] system_seed], locals);
+	return ExpandDescriptionsWithOptions(text, [[PlayerEntity sharedPlayer] system_seed], nil, locals, nil);
 }
 
 
 NSString *DescriptionForSystem(Random_Seed seed,NSString *name)
 {
 	seed_RNG_only_for_planet_description(seed);
-	return ExpandDescriptionForSeedName(@"[system-description-string]", seed, name);
+	return ExpandDescriptionForSeed(@"[system-description-string]", seed, name);
 }
 
 

@@ -169,15 +169,15 @@ MA 02110-1301, USA.
 	
 	// determine the character's name
 	seed_RNG_only_for_planet_description(genSeed);
-	NSString* genName;
+	NSString *genName = nil;
 	if ([speciesString hasPrefix:@"human"])
-		genName = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", genSeed), ExpandDescriptionForSeed(@"[nom]", genSeed)];
+		genName = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", genSeed, nil), ExpandDescriptionForSeed(@"[nom]", genSeed, nil)];
 	else
-		genName = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", genSeed), ExpandDescriptionForSeed(@"%R", genSeed)];
+		genName = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", genSeed, nil), ExpandDescriptionForSeed(@"%R", genSeed, nil)];
 	
 	[self setName: genName];
 	
-	[self setShortDescription: [NSString stringWithFormat:ExpandDescriptionForSeed(@"[character-a-@-from-@]", genSeed), speciesString, planetName]];
+	[self setShortDescription: [NSString stringWithFormat:ExpandDescriptionForSeed(@"[character-a-@-from-@]", genSeed, nil), speciesString, planetName]];
 	[self setLongDescription: [self shortDescription]];
 	
 	// determine legalStatus for a completely random character
@@ -250,7 +250,7 @@ MA 02110-1301, USA.
 		if (legalStatus > 50)  legalDesc = @"fugitive";
 		
 		[self setLongDescription:
-			ExpandDescriptionForSeed([NSString stringWithFormat:@"%@ is a [21] %@ from %@", [self name], legalDesc, [self planetOfOrigin]], genSeed)];
+			ExpandDescriptionForSeed([NSString stringWithFormat:@"%@ is a [21] %@ from %@", [self name], legalDesc, [self planetOfOrigin]], genSeed, nil)];
 		
 		specialSetUpDone = YES;
 	}

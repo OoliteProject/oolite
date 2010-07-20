@@ -249,7 +249,7 @@ static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN 
 		overrides = JSValueToObjectOfClass(context, argv[1], [NSDictionary class]);
 	}
 	
-	string = ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(string, [[PlayerEntity sharedPlayer] system_seed], overrides, nil, nil);
+	string = ExpandDescriptionsWithOptions(string, [[PlayerEntity sharedPlayer] system_seed], overrides, nil, nil);
 	*outResult = [string javaScriptValueInContext:context];
 	
 	return YES;
@@ -281,7 +281,7 @@ static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN 
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
 	if (string != nil)
 	{
-		mString = [ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(string, [[PlayerEntity sharedPlayer] system_seed], overrides, nil, nil) mutableCopy];
+		mString = [ExpandDescriptionsWithOptions(string, [[PlayerEntity sharedPlayer] system_seed], overrides, nil, nil) mutableCopy];
 		[mString replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:(NSRange){ 0, [mString length] }];
 		*outResult = [mString javaScriptValueInContext:context];
 		[mString release];

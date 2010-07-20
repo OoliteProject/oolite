@@ -5141,7 +5141,7 @@ static GLfloat		sBaseMass = 0.0;
 			government_desc = DESC(@"nova-system-government");
 			economy_desc = DESC(@"nova-system-economy");
 			inhabitants = DESC(@"nova-system-inhabitants");
-			system_desc = ExpandDescriptionForSeed(@"[nova-system-description]", target_system_seed);
+			system_desc = ExpandDescriptionForSeed(@"[nova-system-description]", target_system_seed, nil);
 		}
 		
 		[gui clearAndKeepBackground:!guiChanged];

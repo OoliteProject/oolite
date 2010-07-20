@@ -7196,10 +7196,10 @@ double estimatedTimeForJourney(double distance, int hops)
 			
 			// determine the passenger's name
 			seed_RNG_only_for_planet_description(passenger_seed);
-			NSString* passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed), ExpandDescriptionForSeed(@"%R", passenger_seed)];
+			NSString *passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed, nil), ExpandDescriptionForSeed(@"%R", passenger_seed, nil)];
 			// If passenger is a human, make his name more... human like.
 			if ([[passenger_species_string componentsSeparatedByString:@" "] containsObject:DESC(@"human-word")])
-				passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed), ExpandDescriptionForSeed(@"[nom]", passenger_seed)];
+				passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed, nil), ExpandDescriptionForSeed(@"[nom]", passenger_seed, nil)];
 			
 			// determine information about the route...
 			NSDictionary* routeInfo = [self routeFromSystem:start toSystem:passenger_destination optimizedBy:OPTIMIZED_BY_JUMPS];
