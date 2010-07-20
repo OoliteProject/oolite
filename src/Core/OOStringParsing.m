@@ -352,10 +352,10 @@ NSString *ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(NSString *te
 		middle = [partial substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];
 		
 		// Overrides override all else.
-		part = ReplaceVariables(middle, NULL, overrides);
+		value = [overrides objectForKey:middle];
 		
 		// check all_descriptions for an array that's keyed to middle
-		value = [all_descriptions objectForKey:middle];
+		if (value == nil)  value = [all_descriptions objectForKey:middle];
 		if ([value isKindOfClass:[NSArray class]] && [value count] > 0)
 		{
 			rnd = gen_rnd_number() % [value count];
@@ -364,7 +364,7 @@ NSString *ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(NSString *te
 		}
 		else if ([value isKindOfClass:[NSString class]])
 		{
-			part = [all_descriptions objectForKey:middle];
+			part = value;
 		}
 		else if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""])
 		{
