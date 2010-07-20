@@ -345,6 +345,9 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 		after = [partial substringWithRange:NSMakeRange(p2,[partial length] - p2)];
 		middle = [partial substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];
 		
+		// replace all local variables first!
+		part = ReplaceVariables(middle, NULL, locals);
+			
 		// check all_descriptions for an array that's keyed to middle
 		value = [all_descriptions objectForKey:middle];
 		if ([value isKindOfClass:[NSArray class]] && [value count] > 0)
@@ -398,11 +401,6 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 					}
 				}
 			}
-		}
-		else
-		{
-			// do replacement of mission and local variables here instead
-			part = ReplaceVariables(middle, NULL, locals);
 		}
 		
 		partial = [NSMutableString stringWithFormat:@"%@%@%@",before,part,after];
