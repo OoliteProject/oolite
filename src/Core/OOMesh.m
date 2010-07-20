@@ -102,6 +102,35 @@ static OOTimeDelta Profile(NSString *tag, OOProfilingStopwatch *stopwatch, OOTim
 #endif
 
 
+/*	VertexFaceRef
+	List of indices of faces used by a given vertex.
+	Always access using the provided functions.
+	
+	NOTE: VFRAddFace may use autoreleased memory. All accesses to a given VFR
+	must be inside the same autorelease pool.
+*/
+enum
+{
+#if OOLITE_64_BIT
+	kVertexFaceDefInternalCount	= 11	// sizeof (VertexFaceRef) = 32
+#else
+	kVertexFaceDefInternalCount	= 5		// sizeof (VertexFaceRef) = 16
+#endif
+};
+
+typedef struct VertexFaceRef
+{
+	uint16_t			internCount;
+	uint16_t			internFaces[kVertexFaceDefInternalCount];
+	NSMutableArray		*extra;
+} VertexFaceRef;
+
+
+static void VFRAddFace(VertexFaceRef *vfr, OOUInteger index);
+static OOUInteger VFRGetCount(VertexFaceRef *vfr);
+static OOUInteger VFRGetFaceAtIndex(VertexFaceRef *vfr, OOUInteger index);
+
+
 @interface OOMesh (Private) <NSMutableCopying, OOGraphicsResetClient>
 
 - (id)initWithName:(NSString *)name
@@ -115,8 +144,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 - (BOOL) loadData:(NSString *)filename;
 - (void) checkNormalsAndAdjustWinding;
 - (void) generateFaceTangents;
-- (void) calculateVertexNormalsAndTangents;
-- (void) calculateVertexTangents;
+- (void) calculateVertexNormalsAndTangentsWithFaceRefs:(VertexFaceRef *)faceRefs;
+- (void) calculateVertexTangentsWithFaceRefs:(VertexFaceRef *)faceRefs;
 
 - (void) deleteDisplayLists;
 
@@ -1214,15 +1243,27 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			failString = [NSString stringWithFormat:@"%@Failed to read NFACES\n",failString];
 		}
 		
-		if (![self allocateFaceBuffersWithCount:faceCount])
+		// Allocate face->vertex table.
+		size_t faceRefSize = sizeof (VertexFaceRef) * vertexCount;
+		VertexFaceRef *faceRefs = calloc(1, faceRefSize);
+		if (faceRefs != NULL)
+		{
+			// use an NSData to effectively autorelease it.
+			NSData *faceRefHolder = [NSData dataWithBytesNoCopy:faceRefs length:faceRefSize freeWhenDone:YES];
+			if (faceRefHolder == nil)
+			{
+				free(faceRefs);
+				faceRefs = NULL;
+			}
+		}
+		
+		if (faceRefs == NULL || ![self allocateFaceBuffersWithCount:faceCount])
 		{
 			OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices, %u faces).", filename, vertexCount, faceCount);
 			return NO;
 		}
 		
 		// get vertex data
-		//
-		//[scanner setScanLocation:0];	//reset
 		if ([scanner scanString:@"VERTEX" intoString:NULL])
 		{
 			for (j = 0; j < vertexCount; j++)
@@ -1251,7 +1292,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		}
 
 		// get face data
-		//
 		if ([scanner scanString:@"FACES" intoString:NULL])
 		{
 			for (j = 0; j < faceCount; j++)
@@ -1315,6 +1355,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 							if ([scanner scanInt:&vi])
 							{
 								_faces[j].vertex[i] = vi;
+								if (faceRefs != NULL)  VFRAddFace(&faceRefs[vi], j);
 							}
 							else
 							{
@@ -1518,13 +1559,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 				OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices).", filename, vertexCount);
 				return NO;
 			}
-			[self calculateVertexNormalsAndTangents];	// SLOW
+			[self calculateVertexNormalsAndTangentsWithFaceRefs:faceRefs];
 			PROFILE(@"finished calculateVertexNormalsAndTangents");
 			
 		}
 		else if (IsPerVertexNormalMode(_normalMode) && !explicitTangents)
 		{
-			[self calculateVertexTangents];
+			[self calculateVertexTangentsWithFaceRefs:faceRefs];
 			PROFILE(@"finished calculateVertexTangents");
 		}
 		
@@ -1542,7 +1583,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	PROFILE(@"finished calculateBoundingVolumes");
 	
 	// set up vertex arrays for drawing
-	if (![self setUpVertexArrays])  return NO;	// VERY SLOW
+	if (![self setUpVertexArrays])  return NO;
 	PROFILE(@"finished setUpVertexArrays");
 	
 	return YES;
@@ -1661,9 +1702,11 @@ static float FaceAreaBroken(GLuint *vertIndices, Vector *vertices)
 }
 
 
-- (void) calculateVertexNormalsAndTangents
+- (void) calculateVertexNormalsAndTangentsWithFaceRefs:(VertexFaceRef *)faceRefs
 {
 	OOJS_PROFILE_ENTER
+	
+	NSParameterAssert(faceRefs != NULL);
 	
 	OOUInteger	i,j;
 	float		triangle_area[faceCount];
@@ -1679,15 +1722,15 @@ static float FaceAreaBroken(GLuint *vertIndices, Vector *vertices)
 		Vector normal_sum = kZeroVector;
 		Vector tangent_sum = kZeroVector;
 		
-		for (j = 0; j < faceCount; j++)
+		VertexFaceRef *vfr = &faceRefs[i];
+		OOUInteger fIter, fCount = VFRGetCount(vfr);
+		for (fIter = 0; fIter < fCount; fIter++)
 		{
-			BOOL is_shared = ((_faces[j].vertex[0] == i)||(_faces[j].vertex[1] == i)||(_faces[j].vertex[2] == i));
-			if (is_shared)
-			{
-				float t = triangle_area[j]; // weight sum by area
-				normal_sum = vector_add(normal_sum, vector_multiply_scalar(_faces[j].normal, t));
-				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, t));
-			}
+			j = VFRGetFaceAtIndex(vfr, fIter);
+			
+			float t = triangle_area[j]; // weight sum by area
+			normal_sum = vector_add(normal_sum, vector_multiply_scalar(_faces[j].normal, t));
+			tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, t));
 		}
 		
 		normal_sum = vector_normal_or_fallback(normal_sum, kBasisZVector);
@@ -1717,9 +1760,11 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 }
 
 
-- (void) calculateVertexTangents
+- (void) calculateVertexTangentsWithFaceRefs:(VertexFaceRef *)faceRefs
 {
 	OOJS_PROFILE_ENTER
+	
+	NSParameterAssert(faceRefs != NULL);
 	
 	/*	This is conceptually broken.
 		At the moment, it's calculating one tangent per "input" vertex. It should
@@ -1744,14 +1789,14 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	{
 		Vector tangent_sum = kZeroVector;
 		
-		for (j = 0; j < faceCount; j++)
+		VertexFaceRef *vfr = &faceRefs[i];
+		OOUInteger fIter, fCount = VFRGetCount(vfr);
+		for (fIter = 0; fIter < fCount; fIter++)
 		{
-			BOOL is_shared = ((_faces[j].vertex[0] == i)||(_faces[j].vertex[1] == i)||(_faces[j].vertex[2] == i));
-			if (is_shared)
-			{
-				float t = triangle_area[j]; // weight sum by area
-				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, t));
-			}
+			j = VFRGetFaceAtIndex(vfr, fIter);
+			
+			float t = triangle_area[j]; // weight sum by area
+			tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, t));
 		}
 		
 		tangent_sum = vector_normal_or_fallback(tangent_sum, kBasisXVector);
@@ -2163,6 +2208,39 @@ static NSString * const kOOCacheOctrees = @"octrees";
 	{
 		[[self sharedCache] setObject:[inOctree dict] forKey:inKey inCache:kOOCacheOctrees];
 	}
+}
+
+
+static void VFRAddFace(VertexFaceRef *vfr, OOUInteger index)
+{
+	NSCParameterAssert(vfr != NULL);
+	
+	if (index < UINT16_MAX && vfr->internCount < kVertexFaceDefInternalCount)
+	{
+		vfr->internFaces[vfr->internCount++] = index;
+	}
+	else
+	{
+		if (vfr->extra == nil)  vfr->extra = [NSMutableArray array];
+		[vfr->extra addObject:[NSNumber numberWithInt:index]];
+	}
+}
+
+
+static OOUInteger VFRGetCount(VertexFaceRef *vfr)
+{
+	NSCParameterAssert(vfr != NULL);
+	
+	return vfr->internCount + [vfr->extra count];
+}
+
+
+static OOUInteger VFRGetFaceAtIndex(VertexFaceRef *vfr, OOUInteger index)
+{
+	NSCParameterAssert(vfr != NULL && index < VFRGetCount(vfr));
+	
+	if (index < vfr->internCount)  return vfr->internFaces[index];
+	else  return [vfr->extra oo_unsignedIntegerAtIndex:index - vfr->internCount];
 }
 
 @end
