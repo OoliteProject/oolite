@@ -55,6 +55,7 @@ NSString *ExpandDescriptionForCurrentSystem(NSString *text);
 
 NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed seed, NSDictionary *locals);
 NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_Seed seed, NSDictionary *locals, NSString *name);
+NSString *ExpandDescriptionsWithOverridesAndLocalsForSystemSeedName(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *locals, NSString *pName);
 NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDictionary *locals);
 
 NSString *DescriptionForSystem(Random_Seed seed,NSString *name);
