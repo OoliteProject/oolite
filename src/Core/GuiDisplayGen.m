@@ -1525,7 +1525,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		[self setText:[NSString stringWithFormat:DESC(@"long-range-chart-distance-f"), distance] forRow:18];
 		NSString *travelTimeLine = @"";
-		if (advancedNavArrayMode != OPTIMIZED_BY_NONE)
+		if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
 		{
 			travelTimeLine = [NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), time];
 		}
