@@ -903,25 +903,25 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 
 - (NSEnumerator *)subEntityEnumerator
 {
-	return [subEntities objectEnumerator];
+	return [[self subEntities] objectEnumerator];
 }
 
 
 - (NSEnumerator *)shipSubEntityEnumerator
 {
-	return [subEntities objectEnumeratorFilteredWithSelector:@selector(isShip)];
+	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isShip)];
 }
 
 
 - (NSEnumerator *)flasherEnumerator
 {
-	return [subEntities objectEnumeratorFilteredWithSelector:@selector(isFlasher)];
+	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isFlasher)];
 }
 
 
 - (NSEnumerator *)exhaustEnumerator
 {
-	return [subEntities objectEnumeratorFilteredWithSelector:@selector(isExhaust)];
+	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isExhaust)];
 }
 
 
@@ -5999,10 +5999,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			}
 		}
 		
-		// Explode subentities. We use a temporary copy because the subentity array will be mutated.
-		NSEnumerator	*subEnum = [[NSArray arrayWithArray:subEntities] objectEnumeratorFilteredWithSelector:@selector(isShip)];
+		// Explode subentities.
+		NSEnumerator	*subEnum = nil;
 		ShipEntity		*se = nil;
-		while (se = [subEnum nextObject], se != nil)
+		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 		{
 			[se setSuppressExplosion:suppressExplosion];
 			[se setPosition:[se absolutePositionForSubentity]];
