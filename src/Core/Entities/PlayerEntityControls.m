@@ -2599,9 +2599,9 @@ static NSTimeInterval	time_last_frame;
 	{
 		if (!scanner_zoom_rate)
 		{
-			if ([hud scanner_zoom] < 5.0)
+			if ([hud scannerZoom] < 5.0)
 			{
-				if (([hud scanner_zoom] > 1.0)||(!zoom_pressed))
+				if (([hud scannerZoom] > 1.0)||(!zoom_pressed))
 					scanner_zoom_rate = SCANNER_ZOOM_RATE_UP;
 			}
 			else
@@ -2618,7 +2618,7 @@ static NSTimeInterval	time_last_frame;
 	// Unzoom scanner 'Z'
 	if ([gameView isDown:key_scanner_unzoom] && ([gameView allowingStringInput] == gvStringInputNo)) // look for the 'Z' key
 	{
-		if ((!scanner_zoom_rate)&&([hud scanner_zoom] > 1.0))
+		if ((!scanner_zoom_rate)&&([hud scannerZoom] > 1.0))
 			scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
 	}
 	

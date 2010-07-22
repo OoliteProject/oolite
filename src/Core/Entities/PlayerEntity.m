@@ -1847,7 +1847,7 @@ static GLfloat		sBaseMass = 0.0;
 	UPDATE_STAGE(@"updating scanner zoom");
 	if (scanner_zoom_rate)
 	{
-		double z = [hud scanner_zoom];
+		double z = [hud scannerZoom];
 		double z1 = z + scanner_zoom_rate * delta_t;
 		if (scanner_zoom_rate > 0.0)
 		{
@@ -2753,8 +2753,9 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL) switchHudTo:(NSString *)hudFileName
 {
-	NSDictionary *hudDict = nil;
-	BOOL theHudIsHidden = NO;
+	NSDictionary 	*hudDict = nil;
+	BOOL 			theHudIsHidden = NO;
+	double			scannerZoom = 1.0;
 	
 	if (!hudFileName)  return NO;
 	
@@ -2766,7 +2767,11 @@ static GLfloat		sBaseMass = 0.0;
 		return NO;
 	}
 	
-	if (hud != nil)  theHudIsHidden = [hud isHidden];
+	if (hud != nil)
+	{
+		theHudIsHidden = [hud isHidden];
+		scannerZoom = [hud scannerZoom];
+	}
 	
 	// buggy oxp could override hud.plist with a non-dictionary.
 	if (hudDict != nil)
@@ -2774,7 +2779,7 @@ static GLfloat		sBaseMass = 0.0;
 		[hud setHidden:NO];
 		DESTROY(hud);
 		hud = [[HeadUpDisplay alloc] initWithDictionary:hudDict inFile:hudFileName];
-		[hud setScannerZoom:1.0];
+		[hud setScannerZoom:scannerZoom];
 		[hud resizeGuis: hudDict];
 		[hud setHidden:theHudIsHidden]; // reset hidden status to what it was originally.
 	}

@@ -231,7 +231,7 @@ MA 02110-1301, USA.
 - (NSString *) hudName;
 - (void) setHudName:(NSString *)newHudName;
 
-- (double) scanner_zoom;
+- (double) scannerZoom;
 - (void) setScannerZoom:(double) value;
 
 - (GLfloat) overallAlpha;
