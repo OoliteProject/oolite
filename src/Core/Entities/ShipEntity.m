@@ -2055,17 +2055,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			bounding_box_add_vector(&totalBoundingBox, sebb.min);
 		}
 	}
-	
 }
-
-
-// override Entity version...
-//
-- (double) speed
-{
-	return sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z + flightSpeed * flightSpeed);
-}
-
 
 
 - (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other

@@ -696,7 +696,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (double) speed
 {
-	return magnitude2(velocity);
+	return magnitude([self velocity]);
 }
 
 
