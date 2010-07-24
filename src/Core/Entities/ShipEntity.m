@@ -1258,6 +1258,14 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		
 		if (escorter == nil)  break;
 		
+		// spread them around a little randomly
+		double dd = escorter->collision_radius;
+		ex_pos.x += dd * 6.0 * (randf() - 0.5);
+		ex_pos.y += dd * 6.0 * (randf() - 0.5);
+		ex_pos.z += dd * 6.0 * (randf() - 0.5);
+		
+		[escorter setPosition:ex_pos];	// minimise lollipop flash
+		
 		if ([escorter crew] == nil)
 		{
 			[escorter setCrew:[NSArray arrayWithObject:
@@ -1265,13 +1273,6 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 		}
 		
-		// spread them around a little randomly
-		double dd = escorter->collision_radius;
-		ex_pos.x += dd * 6.0 * (randf() - 0.5);
-		ex_pos.y += dd * 6.0 * (randf() - 0.5);
-		ex_pos.z += dd * 6.0 * (randf() - 0.5);
-		
-		[escorter setPosition:ex_pos];
 		[escorter setPrimaryRole:defaultRole];	//for mothership
 		[escorter setScanClass:scanClass];		// you are the same as I
 		if ([self bounty] == 0)  [escorter setBounty:0];	// Avoid dirty escorts for clean mothers

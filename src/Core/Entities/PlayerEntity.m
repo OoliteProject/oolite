@@ -2309,8 +2309,11 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) performLaunchingUpdates:(OOTimeDelta)delta_t
 {
-	// synchronise player's & launching station's spins.
-	if (![UNIVERSE breakPatternHide])  flightRoll = launchRoll;
+	if (![UNIVERSE breakPatternHide])
+	{
+		flightRoll = launchRoll;	// synchronise player's & launching station's spins.
+		[self doBookkeeping:delta_t];	// don't show ghost exhaust plumes from previous docking!
+	}
 	
 	if ([UNIVERSE breakPatternOver])
 	{
@@ -4331,7 +4334,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self setStatus:STATUS_DOCKING];
 	dockedStation = station;
 	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
-
+	
 	ident_engaged = NO;
 	afterburner_engaged = NO;
 	autopilot_engaged = NO;
@@ -4343,21 +4346,18 @@ static GLfloat		sBaseMass = 0.0;
 	[self safeAllMissiles];
 	primaryTarget = NO_TARGET; // must happen before showing break_pattern to supress active reticule.
 	[self clearTargetMemory];
-
+	
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setDisplayCursor:NO];
-
+	
 	[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
-
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:YES];
 	[self playDockWithStation];
-
 	[station noteDockedShip:self];
-
+	
 	[[UNIVERSE gameView] clearKeys];	// try to stop key bounces
-
 }
 
 
@@ -4371,25 +4371,19 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self setStatus:STATUS_DOCKED];
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
-
+	
 	[self loseTargetStatus];
-
-	Vector launchPos = [dockedStation position];
-	[self setPosition:launchPos];
-
+	
+	[self setPosition:[dockedStation position]];
 	[self setOrientation:kIdentityQuaternion];	// reset orientation to dock
 	
 	flightRoll = 0.0f;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;
 	flightSpeed = 0.0f;
-
+	
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
-	// [self safeAllMissiles];
-
-	// primaryTarget = NO_TARGET;
-	// [self clearTargetMemory];
 	
 	forward_shield =	[self maxForwardShieldLevel];
 	aft_shield =		[self maxAftShieldLevel];

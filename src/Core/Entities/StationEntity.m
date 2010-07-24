@@ -1495,9 +1495,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 			if (sunskimmer) 
 			{
-				[ship switchAITo:@"route2sunskimAI.plist"];
-				if([ship heatInsulation] < 7) [ship setHeatInsulation:7]; 
-				// even with this value the slow sunskim-anaconda will burn in a big sun.
+				[UNIVERSE makeSunSkimmer:ship andSetAI:YES];
 			}
 			else
 			{

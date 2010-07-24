@@ -1359,6 +1359,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
 			if (pirate_ship)
 			{
+				[pirate_ship setPosition:launchPos];
 				if (![pirate_ship crew])
 				{
 					[pirate_ship setCrew:[NSArray arrayWithObject:
@@ -1370,7 +1371,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				{
 					[pirate_ship setScanClass: CLASS_NEUTRAL];
 				}
-				[pirate_ship setPosition:launchPos];
 				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() & 7)];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
 				[pirate_ship setGroup:wolfpackGroup];
@@ -1422,9 +1422,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		thargoid_ship = [self newShipWithRole:@"thargoid"];   // retain count = 1
 		if (thargoid_ship)
 		{
+			[thargoid_ship setPosition:launchPos];
 			if ([thargoid_ship scanClass] == CLASS_NOT_SET)
 				[thargoid_ship setScanClass: CLASS_THARGOID];
-			[thargoid_ship setPosition:launchPos];
 			[thargoid_ship setBounty:100];
 			[self addEntity:thargoid_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			[thargoid_ship release];
@@ -1454,7 +1454,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		
 		[pool release];
 	}
-
 	
 	//	Now do route2 planet -> sun
 	
@@ -1480,6 +1479,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		trader_ship = [self newShipWithRole:@"sunskim-trader"];   // retain count = 1
 		if (trader_ship)
 		{
+			[trader_ship setPosition:launchPos];
 			if (![trader_ship crew])
 			{
 				OOCharacter *crewperson = [OOCharacter randomCharacterWithRole:@"trader"
@@ -1487,15 +1487,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[trader_ship setCrew:[NSArray arrayWithObject:crewperson]];
 			}
 			
-			[trader_ship setPrimaryRole:@"trader"];	// set this to allow escorts to pair with the ship
 			if ([trader_ship scanClass] == CLASS_NOT_SET)
 			{
 				[trader_ship setScanClass: CLASS_NEUTRAL];
 			}
-			[trader_ship setPosition:launchPos];
 			[trader_ship setBounty:0];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-			if([trader_ship heatInsulation] < 7) [trader_ship setHeatInsulation:7]; // With this value most ships will survive the sun trip.
+			[trader_ship setPrimaryRole:@"trader"];	// set this to allow escorts to pair with the ship
+			[self makeSunSkimmer:trader_ship andSetAI:NO];
 			
 			if (([trader_ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
 			{
@@ -1543,14 +1542,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
 			if (pirate_ship)
 			{
+				[pirate_ship setPosition: launchPos];
 				if (![pirate_ship crew])
 					[pirate_ship setCrew:[NSArray arrayWithObject:
 						[OOCharacter randomCharacterWithRole:@"pirate"
 						andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
 				
-				if ([pirate_ship scanClass] == CLASS_NOT_SET)
-					[pirate_ship setScanClass: CLASS_NEUTRAL];
-				[pirate_ship setPosition: launchPos];
+				if ([pirate_ship scanClass] == CLASS_NOT_SET) [pirate_ship setScanClass: CLASS_NEUTRAL];
 				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7)];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
 				[pirate_ship setGroup:wolfpackGroup];
@@ -1637,9 +1635,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		asteroid = [self newShipWithRole:@"asteroid"];   // retain count = 1
 		if (asteroid)
 		{
+			[asteroid setPosition:launchPos];
 			if ([asteroid scanClass] == CLASS_NOT_SET)
 				[asteroid setScanClass: CLASS_ROCK];
-			[asteroid setPosition:launchPos];
 			[asteroid setVelocity:spawnVel];
 			[self addEntity:asteroid];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			[asteroid release];
@@ -1661,9 +1659,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		hermit = (StationEntity *)[self newShipWithRole:@"rockhermit"];   // retain count = 1
 		if (hermit)
 		{
+			[hermit setPosition:launchPos];
 			if ([hermit scanClass] == CLASS_NOT_SET)
 				[hermit setScanClass: CLASS_ROCK];
-			[hermit setPosition:launchPos];
 			[hermit setVelocity:spawnVel];
 			[self addEntity:hermit];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			[hermit release];
@@ -1672,8 +1670,40 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 #endif
 		}
 	}
-	
 	return rocks;
+}
+
+
+- (ShipEntity *) addShipWithRole:(NSString *)desc launchPos:(Vector)launchPos rfactor:(GLfloat)rfactor
+{
+	if (rfactor != 0.0)
+	{
+		// Calculate the position as soon as possible, to minimise 'lollipop flash'
+	 	launchPos.x += rfactor*(randf() - randf());
+		launchPos.y += rfactor*(randf() - randf());
+		launchPos.z += rfactor*(randf() - randf());
+	}
+	
+	ShipEntity  *ship = [self newShipWithRole:desc];   // retain count = 1
+	
+	if (ship)
+	{
+		[ship setPosition:launchPos];	// minimise 'lollipop flash'
+		
+		// Deal with scripted cargopods and ensure they are filled with something.
+		if ([ship hasRole:@"cargopod"]) [self fillCargopodWithRandomCargo:ship];
+		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
+			[ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: desc
+				andOriginalSystem: systems[Ranrot() & 255]]]];
+		
+		if ([ship scanClass] == CLASS_NOT_SET)
+			[ship setScanClass: CLASS_NEUTRAL];
+		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		[ship release];
+		return ship;
+	}
+	return nil;
 }
 
 
@@ -1690,33 +1720,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	launchPos.x *= route_fraction; launchPos.y *= route_fraction; launchPos.z *= route_fraction;
 	launchPos.x += h1_pos.x;		launchPos.y += h1_pos.y;		launchPos.z += h1_pos.z;
 	
-	launchPos.x += SCANNER_MAX_RANGE*(randf() - randf());
-	launchPos.y += SCANNER_MAX_RANGE*(randf() - randf());
-	launchPos.z += SCANNER_MAX_RANGE*(randf() - randf());
-	
-	ShipEntity  *ship;
-	ship = [self newShipWithRole:desc];   // retain count = 1
-	
-	// Deal with scripted cargopods and ensure they are filled with something.
-	if (ship && [ship hasRole:@"cargopod"])
-	{		
-		[self fillCargopodWithRandomCargo:ship];
-	}
-	
-	if (ship)
-	{
-		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
-			[ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[Ranrot() & 255]]]];
-		
-		if ([ship scanClass] == CLASS_NOT_SET)
-			[ship setScanClass: CLASS_NEUTRAL];
-		[ship setPosition:launchPos];
-		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		[ship release];
-	}
-	
+	[self addShipWithRole:desc launchPos:launchPos rfactor:SCANNER_MAX_RANGE];
 }
 
 
@@ -1988,35 +1992,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		rfactor = SCANNER_MAX_RANGE;
 	if (rfactor < 1000)
 		rfactor = 1000;
-	launchPos.x += rfactor*(randf() - randf());
-	launchPos.y += rfactor*(randf() - randf());
-	launchPos.z += rfactor*(randf() - randf());
 	
-	ShipEntity  *ship;
-	ship = [self newShipWithRole:desc];   // retain count = 1
-	
-	// Deal with scripted cargopods and ensure they are filled with something.
-	if (ship && [ship hasRole:@"cargopod"])
-	{		
-		[self fillCargopodWithRandomCargo:ship];
-	}
-	
-	if (ship)
-	{
-		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
-			[ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[Ranrot() & 255]]]];
-		
-		if ([ship scanClass] == CLASS_NOT_SET)
-			[ship setScanClass: CLASS_NEUTRAL];
-		[ship setPosition:launchPos];
-		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		[ship release];
-		return YES;
-	}
-	
-	return NO;
+	return ([self addShipWithRole:desc launchPos:launchPos rfactor:rfactor] != nil);
 }
 
 
@@ -2034,27 +2011,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	GLfloat	walk_factor = 2.0;
 	while (i < howMany)
 	{
-		ShipEntity  *ship;
-		ship = [self newShipWithRole:desc];   // retain count = 1
-		if (!ship)
-			return NO;
+	 	ShipEntity  *ship = [self addShipWithRole:desc launchPos:pos rfactor:0.0];
+		if (ship == nil) return NO;
+		OOScanClass scanClass = [ship scanClass];
+		[ship setScanClass:CLASS_NO_DRAW];	// avoid lollipop flash
 		
-		// Deal with scripted cargopods and ensure they are filled with something.
-		if (ship && [ship hasRole:@"cargopod"])
-		{		
-			[self fillCargopodWithRandomCargo:ship];
-		}
-		
-		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
-			[ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[Ranrot() & 255]]]];
-		
-		GLfloat safe_distance2 = 2.0 * ship->collision_radius * ship->collision_radius * PROXIMITY_WARN_DISTANCE2;
-		
-		BOOL safe;
-		
-		int limit_count = 8;
+		GLfloat		safe_distance2 = 2.0 * ship->collision_radius * ship->collision_radius * PROXIMITY_WARN_DISTANCE2;
+		BOOL		safe;
+		int			limit_count = 8;
 		
 		v_from_center = kZeroVector;
 		do
@@ -2089,12 +2053,10 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				}
 			}
 			
-			
 		} while (!safe);
 		
-		if ([ship scanClass] == CLASS_NOT_SET)
-			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:ship_pos];
+		[ship setScanClass:scanClass == CLASS_NOT_SET ? CLASS_NEUTRAL : scanClass];
 		
 		Quaternion qr;
 		quaternion_set_random(&qr);
@@ -2193,48 +2155,19 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	pos.y += 0.5 * (randf() + randf()) * (bbox.max.y - bbox.min.y);
 	pos.z += 0.5 * (randf() + randf()) * (bbox.max.z - bbox.min.z);
 	
-	
-	ShipEntity  *ship;
-	ship = [self newShipWithRole:desc];   // retain count = 1
-	
-	// Deal with scripted cargopods and ensure they are filled with something.
-	if (ship && [ship hasRole:@"cargopod"])
-	{		
-		[self fillCargopodWithRandomCargo:ship];
-	}
-	
-	if (ship)
-	{
-		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
-			[ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[Ranrot() & 255]]]];
-		
-		if ([ship scanClass] == CLASS_NOT_SET)
-			[ship setScanClass: CLASS_NEUTRAL];
-		[ship setPosition: pos];
-		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		[ship release];
-		
-		return YES;	// success at last!
-	}
-	return NO;
+	return ([self addShipWithRole:desc launchPos:pos rfactor:0.0] != nil);
 }
 
 
 - (BOOL) spawnShip:(NSString *) shipdesc
 {
-	ShipEntity* ship;
-	NSDictionary* shipdict = nil;
+	ShipEntity		*ship;
+	NSDictionary	*shipdict = nil;
 	
 	shipdict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipdesc];
 	if (shipdict == nil)  return NO;
 	
-	ship = [self newShipWithName:shipdesc];	// retain count is 1
-	
-	if (ship == nil)  return NO;
-	
-	// set any spawning characteristics
+	// spawning characteristics
 	NSDictionary	*spawndict = [shipdict oo_dictionaryForKey:@"spawn"];
 	Vector			pos, rpos, spos;
 	NSString		*positionString = nil;
@@ -2243,13 +2176,19 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	positionString = [spawndict oo_stringForKey:@"position"];
 	if (positionString != nil)
 	{
-		if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
-		{
-			OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"position",@"entity",shipdesc);
-		}
-		
 		pos = [self coordinatesFromCoordinateSystemString:positionString];
-		[ship setPosition:pos];
+		ship = [self addShipWithRole:shipdesc launchPos:pos rfactor:0.0];
+	}
+	else
+	{
+		// if position is not specified, we'll assume witchpoint, the standard entry point for ships.
+		ship = [self addShipWithRole:shipdesc launchPos:[self getWitchspaceExitPosition] rfactor:SCANNER_MAX_RANGE];
+	}
+	
+	if (ship == nil)  return NO;
+	if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
+	{
+		OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"position",@"entity",shipdesc);
 	}
 	
 	// facing_position
@@ -2311,9 +2250,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		{
 			[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 			if (randf() > 0.10)
+			{
 				[ship switchAITo:@"route1traderAI.plist"];
+			}
 			else
-				[ship switchAITo:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
+			{
+				[self makeSunSkimmer:ship andSetAI:YES];
+			}
 			
 			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
 			{
@@ -2350,32 +2293,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	quaternion_set_random(&spawn_q);
 	spawn_pos = vector_add([entity position], vector_multiply_scalar(vector_forward_from_quaternion(spawn_q), offset));
 	
-	ship = [self newShipWithRole:desc];   // retain count = 1
-	
-	// Deal with scripted cargopods and ensure they are filled with something.
-	if ([ship hasRole:@"cargopod"])
-	{		
-		[self fillCargopodWithRandomCargo:ship];
-	}
-	
-	if (ship != nil)
-	{
-		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
-		{
-			[ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: desc
-				andOriginalSystem: systems[Ranrot() & 255]]]];
-		}
-		
-		if ([ship scanClass] == CLASS_NOT_SET)
-		{
-			[ship setScanClass: CLASS_NEUTRAL];
-		}
-		[ship setPosition:spawn_pos];
-		[ship setOrientation:spawn_q];
-		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		[ship release];
-	}
+	ship = [self addShipWithRole:desc launchPos:spawn_pos rfactor:0.0];
+	[ship setOrientation:spawn_q];
 	
 	return ship;
 }
@@ -2385,29 +2304,31 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 {
 	OOJS_PROFILE_ENTER
 	
+	// minimise the time between creating ship & assigning position.
+	if (radius == NSNotFound)
+	{
+		GLfloat scalar = 1.0;
+		[self coordinatesForPosition:pos withCoordinateSystem:@"abs" returningScalar:&scalar];
+		//	randomise
+		GLfloat rfactor = scalar;
+		if (rfactor > SCANNER_MAX_RANGE)
+			rfactor = SCANNER_MAX_RANGE;
+		if (rfactor < 1000)
+			rfactor = 1000;
+		pos.x += rfactor*(randf() - randf());
+		pos.y += rfactor*(randf() - randf());
+		pos.z += rfactor*(randf() - randf());
+	}
+	else
+	{
+		pos = vector_add(pos, OOVectorRandomSpatial(radius));
+	}
+	
 	ShipEntity  		*ship = [self newShipWithRole:role]; // is retained
 	
 	if (ship != nil)
 	{
-		if (radius == NSNotFound)
-		{
-			GLfloat scalar = 1.0;
-			[self coordinatesForPosition:pos withCoordinateSystem:@"abs" returningScalar:&scalar];
-			//	randomise
-			GLfloat rfactor = scalar;
-			if (rfactor > SCANNER_MAX_RANGE)
-				rfactor = SCANNER_MAX_RANGE;
-			if (rfactor < 1000)
-				rfactor = 1000;
-			pos.x += rfactor*(randf() - randf());
-			pos.y += rfactor*(randf() - randf());
-			pos.z += rfactor*(randf() - randf());
-		}
-		else
-		{
-			pos = vector_add(pos, OOVectorRandomSpatial(radius));
-		}
-		
+		[ship setPosition:pos];
 		if ([ship hasRole:@"cargopod"]) [self fillCargopodWithRandomCargo:ship];
 		OOScanClass scanClass = [ship scanClass];
 		if (scanClass == CLASS_NOT_SET)
@@ -2415,7 +2336,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			scanClass = CLASS_NEUTRAL;
 			[ship setScanClass:scanClass];
 		}
-
+		
 		if (!(scanClass == CLASS_CARGO || scanClass == CLASS_ROCK) && ![ship crew] && ![ship isUnpiloted])
 		{
 			[ship setCrew:[NSArray arrayWithObject:
@@ -2423,7 +2344,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				andOriginalSystem:systems[Ranrot() & 255]]]];
 		}
 		
-		[ship setPosition:pos];
 		[ship setOrientation:OORandomQuaternion()];
 		
 		BOOL trader = [role isEqualToString:@"trader"];
@@ -2457,8 +2377,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			if (trader)
 			{
 				[ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
-				if (randf() > 0.10)  [ship switchAITo:@"route1traderAI.plist"];
-				else  [ship switchAITo:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
+				if (randf() > 0.10) 
+				{
+					[ship switchAITo:@"route1traderAI.plist"];
+				}
+				else
+				{
+					[self makeSunSkimmer:ship andSetAI:YES];
+				}
 			}
 			else if ([role isEqual:@"pirate"])
 			{
@@ -7525,10 +7451,18 @@ double estimatedTimeForJourney(double distance, int hops)
 		rotate_seed(&contract_seed);
 		rotate_seed(&contract_seed);
 		rotate_seed(&contract_seed);
-		
 	}
 	
 	return [NSArray arrayWithArray:resultArray];
+}
+
+
+- (void) makeSunSkimmer:(ShipEntity *) ship andSetAI:(BOOL)setAI
+{
+	if (setAI) [ship switchAITo:@"route2sunskimAI.plist"];	// perfectly acceptable for both route 2 & 3
+	// anacondas are expecially slow, and might burn up when sunskimming. Let's increase their insulation!
+	float minInsulation = [[ship name] isEqualToString:@"Anaconda"] ? 8.0f : 7.0f;
+	if ([ship heatInsulation] < minInsulation) [ship setHeatInsulation:minInsulation];
 }
 
 

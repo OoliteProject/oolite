@@ -116,8 +116,7 @@ enum
 
 #define PLANETINFO_UNIVERSAL_KEY			@"universal"
 
-#define MAX_ENTITY_UID						1000
-
+// Derived constants (MIN_ENTITY_UID, MAX_ENTITY_UID) are defined in OOTypes.h
 #define	UNIVERSE_MAX_ENTITIES				2048
 
 #define OOLITE_EXCEPTION_LOOPING			@"OoliteLoopingException"
@@ -319,6 +318,7 @@ enum
 - (void) populateSpaceFromActiveWormholes;
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos;
 - (int)	scatterAsteroidsAt:(Vector) spawnPos withVelocity:(Vector) spawnVel includingRockHermit:(BOOL) spawnHermit;
+- (void) makeSunSkimmer:(ShipEntity *) ship andSetAI:(BOOL)setAI;
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction;
 - (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar;
 - (NSString *) expressPosition:(Vector) pos inCoordinateSystem:(NSString *) system;

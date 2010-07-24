@@ -168,7 +168,7 @@ MA 02110-1301, USA.
 
 - (void) freezeShipVars
 {
-	if ([ship universalID] != 0)
+	if ([ship universalID] != NO_TARGET)
 	{
 		saved_destination = ship->destination;
 		saved_desired_range = ship->desired_range;
@@ -180,7 +180,7 @@ MA 02110-1301, USA.
 
 - (void) unfreezeShipVars
 {
-	if ([ship universalID] != 0)
+	if ([ship universalID] != NO_TARGET)
 	{
 		ship->destination = saved_destination;
 		ship->desired_range	= saved_desired_range;
@@ -192,7 +192,7 @@ MA 02110-1301, USA.
 
 - (void) setShipVars
 {
-	if ([ship universalID] != 0)
+	if ([ship universalID] != NO_TARGET)
 	{
 		ship->destination = destination;
 		ship->desired_range	= desired_range;
@@ -204,7 +204,7 @@ MA 02110-1301, USA.
 
 - (void) getShipVars
 {
-	if ([ship universalID] != 0)
+	if ([ship universalID] != NO_TARGET)
 	{
 		destination = ship->destination;
 		desired_range = ship->desired_range;
