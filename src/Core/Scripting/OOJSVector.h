@@ -43,10 +43,10 @@ BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)  NONNUL
 	all of them numbers, treat them as [x, y, z]  components. For anything
 	else, return NO. (Other implicit conversions may be added in future.)
 */
-BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector)  NONNULL_FUNC;
+BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector)  GCC_ATTR((nonnull (1, 3)));
 
 //	Set the value of a JS vector object.
-BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)  NONNULL_FUNC;
+BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)  GCC_ATTR((nonnull (1)));
 
 
 /*	VectorFromArgumentList()
