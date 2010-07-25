@@ -232,7 +232,8 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	jsval					arrayX, arrayY, arrayZ;
 	jsdouble				x, y, z;
 	
-	assert(outVector != NULL && vectorObj != NULL);
+	// JSObjectGetVector is used to test the validity of vectorObj & outVector!
+	if (EXPECT_NOT(outVector == NULL || vectorObj == NULL)) return NO;
 	
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Vector...
@@ -329,7 +330,7 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 	
 	if (!permitNumberList)  return NO;
 	
-	// As a special case for VectorConstruct(), look for four numbers.
+	// As a special case for VectorConstruct(), look for three numbers.
 	if (argc < 3)  return NO;
 	
 	// Given a string, JS_ValueToNumber() returns YES but provides a NaN number.
