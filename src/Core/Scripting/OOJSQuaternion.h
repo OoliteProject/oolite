@@ -43,10 +43,10 @@ BOOL JSValueToQuaternion(JSContext *context, jsval value, Quaternion *outQuatern
 	anything else, return NO. (Other implicit conversions may be added in
 	future.)
 */
-BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion *outQuaternion)  NONNULL_FUNC;
+BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion *outQuaternion)  GCC_ATTR((nonnull (1, 4)));
 
 //	Set the value of a JS quaternion object.
-BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion quaternion)  NONNULL_FUNC;
+BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion quaternion)  GCC_ATTR((nonnull (1)));
 
 
 /*	QuaternionFromArgumentList()

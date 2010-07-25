@@ -203,13 +203,16 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 {
 	OOJS_PROFILE_ENTER
 	
+	assert(outQuaternion != NULL);
+	
 	Quaternion				*private = NULL;
 	Entity					*entity = nil;
 	jsuint					arrayLength;
 	jsval					arrayW, arrayX, arrayY, arrayZ;
 	jsdouble				dVal;
 	
-	assert(outQuaternion != NULL && quaternionObj != NULL);
+	// quaternionObj can legitimately be NULL, e.g. when JS_NULL is converted to a JSObject *.
+	if (quaternionObj == NULL) return NO;
 	
 	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
@@ -293,7 +296,8 @@ static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN 
 	
 	double				w, x, y, z;
 	
-	assert(argc != 0 && argv != NULL && outQuaternion != NULL);
+	if (EXPECT_NOT(argc == 0))  return NO;
+	assert(argv != NULL && outQuaternion != NULL);
 	
 	if (outConsumed != NULL)  *outConsumed = 0;
 	
@@ -491,6 +495,8 @@ static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc
 static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
 {
 	OOJS_PROFILE_ENTER
+	
+	assert(outEqual != NULL);
 	
 	Quaternion				thisq, thatq;
 	
