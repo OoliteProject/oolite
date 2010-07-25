@@ -226,14 +226,16 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 {
 	OOJS_PROFILE_ENTER
 	
+	assert(outVector != NULL);
+	
 	Vector					*private = NULL;
 	Entity					*entity = nil;
 	jsuint					arrayLength;
 	jsval					arrayX, arrayY, arrayZ;
 	jsdouble				x, y, z;
 	
-	// JSObjectGetVector is used to test the validity of vectorObj & outVector!
-	if (EXPECT_NOT(outVector == NULL || vectorObj == NULL)) return NO;
+	// vectorObj can legitimately be NULL, e.g. when JS_NULL is converted to a JSObject *.
+	if (vectorObj == NULL) return NO;
 	
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Vector...
@@ -507,6 +509,8 @@ static JSBool VectorConstruct(JSContext *context, JSObject *this, uintN argc, js
 static JSBool VectorEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
 {
 	OOJS_PROFILE_ENTER
+	
+	assert(outEqual != NULL);
 	
 	Vector					thisv, thatv;
 	
