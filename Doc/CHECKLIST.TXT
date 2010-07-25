@@ -21,7 +21,7 @@ use PS.awardEquipment("EQ_ADVANCED_NAVIGATIONAL_ARRAY") so you can check the
 star chart grid easily.
 
 The system names should be:
-Lave-Inoran-Divera-Cebitza-Zaxeed-Oratedge-Tiared-Soladiar-Quator
+Lave-Inoran-Divera-Cebitiza-Zaxeed-Oratedge-Tiared-Soladiar-Quator
 (Quator is 7.2 LY north of Lave; the sequence of jumps causes some drift.)
 
 Checklist-files/Galaxies contains three or four screen shots for each system.
