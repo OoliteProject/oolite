@@ -4642,7 +4642,10 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	target_system_seed = system_seed;
 	
+	// let's make a fresh start!
 	legalStatus = 0;
+	cursor_coordinates.x = system_seed.d;
+	cursor_coordinates.y = system_seed.b;
 	
 	[self witchEnd];
 	
