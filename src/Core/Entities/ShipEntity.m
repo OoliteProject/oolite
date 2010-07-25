@@ -3185,9 +3185,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = max_available_speed; // use afterburner to approach
 
 
-	// if within 0.75km of the target's six or twelve then vector in attack
-	if (distance < 750.0)
-	{
+	// if within 0.75km of the target's six or twelve, or if target at standstill for 62.5% of non-thargoid ships (!), then vector in attack
+	if (distance < 750.0 || (target_speed == 0.0 && ![self isThargoid] && ([self universalID] & 7) > 2))
+ 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		frustration = 0.0;
 		desired_speed = OOMax_d(target_speed, 0.4 * maxFlightSpeed);   // within the weapon's range don't use afterburner
