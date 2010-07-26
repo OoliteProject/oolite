@@ -1712,8 +1712,9 @@ static GLfloat		sBaseMass = 0.0;
 		if ([self hasScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
 		{
 			fuel_accumulator += (float)(delta_t * flightSpeed * 0.010 / fuel_charge_rate);
-			scoopsActive = YES;
-			while (fuel_accumulator > 1.0)
+			// are we fast enough to collect any fuel?
+			scoopsActive = YES && flightSpeed > 0.1f;
+			while (fuel_accumulator > 1.0f)
 			{
 				[self setFuel:[self fuel] + 1];
 				fuel_accumulator -= 1.0f;
@@ -6677,7 +6678,8 @@ static NSString *last_outfitting_key=nil;
 		}
 
 		[gui clearAndKeepBackground:!guiChanged];
-		[gui setTitle:[NSString stringWithFormat:DESC(@"@-commodity-market"),[UNIVERSE getSystemName:system_seed]]];
+		
+		[gui setTitle:[UNIVERSE sun] != nil ? [NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
