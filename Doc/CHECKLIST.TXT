@@ -52,14 +52,10 @@ asteroids and possibly ships launched by the station (e.g. a patrol Viper).
 
 NOTE: normally, you are expected to leave the nova system using a galactic
 jump. However, you'll want to go back to the system for testing purposes, so
-award yourself some fule (PS.fuel = 7) when you arrive and use a normal jump.
+award yourself some fuel (PS.fuel = 7) when you arrive and use a normal jump.
 
 There are now several outcomes:
-* The coward: Leave the system with a galactic jump, or by giving youself fuel
-  through the console. (It's also possible to get this outcome by following
-  another ship through a wormhole - you're likely to come across some if you
-  hyperspeed straight towards the station - or by using OXP equipment to get
-  fuel.)
+* The coward: Leave the system without docking.
   
   Confirm that missionVariables.nova is "NOVA_ESCAPE_OTHER". Dock at the main
   station, and you should get the following message (with solar.png as a
@@ -88,10 +84,10 @@ There are now several outcomes:
   not to help the refugees!" (FIXME: this appears behind the station UI.
   Should it be removed, or deferred until launching?)
   Immediately leave the station. The station should explode behind you.
-  Initiate galactic hyperspace jump with alacrity. The sun should go nova nine
-  seconds after you selected [No, sorry]. (This is visible as a rising cabin
-  temperature, not to mention a growing sun. In full shader mode, your ship
-  should be glowing pink by the time you jump.)
+  Leave the system with alacrity. The sun should go nova nine seconds after
+  you selected [No, sorry]. (This is visible as a rising cabin temperature,
+  not to mention a growing sun. In full shader mode, your ship should be\
+  glowing pink by the time you jump.)
   
   Verify that missionVariables.nova is "NOVA_ESCAPE_COWARD", then dock. You
   should get the following message (with solar.png as a background):
@@ -141,7 +137,7 @@ witchbuoy, and you should be overheating.
 
 Trumbles:
 Sell 1t of food, then exit station and reenter (using
-PS.mainStation.dockPlayer()) as many times as required for the Trumble to be
+S.mainStation.dockPlayer()) as many times as required for the Trumble to be
 offered.
 
 

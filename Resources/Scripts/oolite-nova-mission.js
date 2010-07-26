@@ -36,7 +36,7 @@ this.copyright		= "© 2008-2010 the Oolite team.";
 this.version		= "1.75";
 
 
-this.missionOffers = function ()
+this.missionScreenOpportunity = function ()
 {
 	if (!player.ship.docked)  { return; }
 
@@ -230,12 +230,6 @@ this.shipLaunchedEscapePod = function ()
 	{
 		missionVariables.nova = "NOVA_ESCAPE_POD";
 	}
-};
-
-
-this.missionScreenOpportunity = function ()
-{
-	this.missionOffers();
 };
 
 

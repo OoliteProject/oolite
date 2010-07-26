@@ -10,10 +10,10 @@ A sanitized script is an array of zero or more sanitized statements.
 A sanitized statement is an array whose first element is a boolean indicating
 whether it's a conditional statement (true) or an action statement (false).
 
-A conditinal statement has three additional elements. The first is a sanitized
-condition (see below). The second is a sanitized script to execute if the
-condition evaluates to true. The third is a sanitized script to execute if the
-condition evaluates to false.
+A conditional statement has three additional elements. The first is an array
+of sanitized conditions (see below). The second is a sanitized script to
+execute if the condition evaluates to true. The third is a sanitized script to
+execute if the condition evaluates to false.
 
 An action statement has one or two additional elements, both strings. The
 first is a selector. If the selector ends with a colon (i.e., takes an
