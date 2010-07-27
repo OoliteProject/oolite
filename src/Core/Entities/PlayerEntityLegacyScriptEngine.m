@@ -1388,8 +1388,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
 		}
 	}
-
-	if(forceRemoval && [self status] != STATUS_DOCKED)
+	
+	if (forceRemoval && [self status] != STATUS_DOCKED)
 	{
 		int i;
 		for (i = [cargo count]-1; i >=0; i--)
@@ -1401,12 +1401,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				[cargo removeObjectAtIndex:i];
 		}
 	}
-
+	
 	[shipCommodityData release];
 	shipCommodityData = [manifest mutableCopy];
 	
-	[specialCargo release];
-	specialCargo = nil;
+	DESTROY(specialCargo);
+	
+	[self calculateCurrentCargo];
 }
 
 

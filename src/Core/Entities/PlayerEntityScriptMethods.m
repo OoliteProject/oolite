@@ -187,15 +187,14 @@ MA 02110-1301, USA.
 	else
 	{	// docked
 		// like purchasing a commodity
-		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-		NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]];
-		int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
+		NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
+		NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
+		int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
 		while ((amount)&&(current_cargo < max_cargo))
 		{
 			manifest_quantity++;
 			amount--;
-			if (unit == UNITS_TONS)
-				current_cargo++;
+			if (unit == UNITS_TONS)  current_cargo++;
 		}
 		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
 		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];

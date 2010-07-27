@@ -188,7 +188,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	NSString			*extension = nil;
 	NSString			*path = nil;
 	
-	if (fileName == nil)  return nil;
+	if ([fileName length] == 0)  return nil;
 	
 	extension = [[fileName pathExtension] lowercaseString];
 	if ([extension isEqualToString:@"js"] || [extension isEqualToString:@"es"])

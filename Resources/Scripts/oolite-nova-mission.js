@@ -221,6 +221,7 @@ this.startUp = function ()
 {
 	// Remove all event handlers once the mission is over.
 	if (missionVariables.nova === "NOVA_HERO") { this.cleanUp(); }
+	delete this.startUp;
 }
 
 

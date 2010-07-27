@@ -6620,6 +6620,46 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (OOCargoQuantity) cargoQuantityOnBoard
+{
+	if ([self specialCargo] != nil)
+	{
+		return [self maxCargo];
+	}	
+	
+	/*
+		The cargo array is nil when the player ship is docked, due to action in unloadCargopods. For
+		this reason, we must use a slightly more complex method to determine the quantity of cargo
+		carried in this case - Nikos 20090830
+
+		Optimised this method, to compensate for increased usage - Kaks 20091002
+	*/
+	NSArray				*manifest = [NSArray arrayWithArray:[self shipCommodityData]];
+	OOInteger			i, count = [manifest count];
+	OOCargoQuantity		cargoQtyOnBoard = 0;
+	
+	for (i = count - 1; i >= 0 ; i--)
+	{
+		NSArray *commodityInfo = [NSArray arrayWithArray:[manifest objectAtIndex:i]];
+		OOCargoQuantity quantity = [commodityInfo oo_intAtIndex:MARKET_QUANTITY];
+		
+		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
+		OOMassUnit commodityUnits = [UNIVERSE unitsForCommodity:i];
+		
+		if (commodityUnits != UNITS_TONS)
+		{
+			if (commodityUnits == UNITS_KILOGRAMS) quantity = (quantity + 500) / 1000;
+			else quantity = (quantity + 500000) / 1000000;	// grams
+		}
+		cargoQtyOnBoard += quantity;
+	}
+	cargoQtyOnBoard += [[self cargo] count];
+	
+	return cargoQtyOnBoard;
+}
+
+
+
 - (NSMutableArray *) localMarket
 {
 	StationEntity			*station = nil;

@@ -5292,48 +5292,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (OOCargoQuantity) cargoQuantityOnBoard
 {
-	OOCargoQuantity		cargoQtyOnBoard = 0;
-	int i;
-	
-	if ([self isPlayer] && ([(PlayerEntity*)self specialCargo] != nil))
-	{
-		return [self maxCargo];
-	}	
-	
-	if ([self isPlayer]) // always use this method to avoid inconsistencies  - Kaks 20091002
-	{
-		/*
-	  	  The cargo array is nil when the player ship is docked, due to action in unloadCargopods. For
-	  	  this reason, we must use a slightly more complex method to determine the quantity of cargo
-	  	  carried in this case - Nikos 20090830
-		  
-		  Optimised this method, to compensate for increased usage - Kaks 20091002
-		*/
-		PlayerEntity*	player = [PlayerEntity sharedPlayer];
-		NSArray* manifest = [NSArray arrayWithArray:[player shipCommodityData]];
-		OOMassUnit			commodityUnits = UNITS_TONS;
-		OOCargoQuantity		quantity = 0;
-		for (i = [manifest count] - 1; i >= 0 ; i--)
-		{
-			NSArray*	commodityInfo = [NSArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]];
-			quantity = [commodityInfo oo_intAtIndex:MARKET_QUANTITY];
-			// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
-			commodityUnits = [UNIVERSE unitsForCommodity:i];
-			if (commodityUnits != UNITS_TONS)
-			{
-				if (commodityUnits == UNITS_KILOGRAMS) quantity = (quantity + 500) / 1000;
-				else quantity = (quantity + 500000) / 1000000;	// grams
-			}
-			cargoQtyOnBoard += quantity;
-		}
-		cargoQtyOnBoard += [[self cargo] count];
-	}
-	else	// NPCs only method
-	{
-		cargoQtyOnBoard = [[self cargo] count];
-	}
-	
-	return cargoQtyOnBoard;
+	return [[self cargo] count];
 }
 
 
