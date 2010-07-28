@@ -490,24 +490,24 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (![self sun])
 	{
 		// we're in witchspace or this is the first launch...		
-		// save the player
-		PlayerEntity*	player = [PlayerEntity sharedPlayer];
-		// save the docked craft
-		Entity*			dockedStation = [player dockedStation];
-		// jump to the nearest system
-		Random_Seed s_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:[player galaxy_seed]];
-		[player setSystem_seed:s_seed];
-		closeSystems = nil;
-		// I think we need to do this too!
-		[self setSystemTo: s_seed];
 		
+		PlayerEntity	*player = [PlayerEntity sharedPlayer];
+		Entity			*dockedStation = [player dockedStation];
+		NSPoint			coords = [player galaxy_coordinates];
+		// check the nearest system
+		Random_Seed s_seed = [self findSystemAtCoords:coords withGalaxySeed:[player galaxy_seed]];
+		BOOL interstel =[(StationEntity *)dockedStation interstellarUndockingAllowed] && (s_seed.d != coords.x || s_seed.b != coords.y);
+
 		// remove everything except the player and the docked station
-		if (dockedStation)
-		{
+		if (dockedStation && !interstel)
+		{	// jump to the nearest system
+			[player setSystem_seed:s_seed];
+			closeSystems = nil;
+			[self setSystemTo: s_seed];
 			int index = 0;
 			while ([entities count] > 2)
 			{
-				Entity* ent = [entities objectAtIndex:index];
+				Entity *ent = [entities objectAtIndex:index];
 				if ((ent != player)&&(ent != dockedStation))
 				{
 					if (ent->isStation)  // clear out queues
@@ -522,11 +522,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		}
 		else
 		{
-			[self removeAllEntitiesExceptPlayer:NO];	// get rid of witchspace sky etc. if still extant
+			if (!dockedStation) [self removeAllEntitiesExceptPlayer:NO];	// get rid of witchspace sky etc. if still extant
 		}
 		
-		[self setUpSpace];	// first launch
+		if (!dockedStation || !interstel) [self setUpSpace];	// first launch
 	}
+	
 	
 	if(!autoSaveNow) [self setViewDirection:VIEW_FORWARD];
 	displayGUI = NO;

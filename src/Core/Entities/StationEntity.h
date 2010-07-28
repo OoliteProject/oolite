@@ -92,11 +92,12 @@ typedef enum
 	double					last_patrol_report_time;
 	double					patrol_launch_interval;
 	
-	BOOL				suppress_arrival_reports;			
+	BOOL					suppress_arrival_reports;			
 	
 #if DOCKING_CLEARANCE_ENABLED
-	BOOL 				requiresDockingClearance;	
+	BOOL					requiresDockingClearance;	
 #endif
+	BOOL					interstellarUndockingAllowed;
 	
 }
 
@@ -165,9 +166,9 @@ typedef enum
 - (ShipEntity *) launchIndependentShip:(NSString*) role;
 
 - (void) noteDockedShip:(ShipEntity *) ship;
-
-- (BOOL)hasNPCTraffic;
-- (void)setHasNPCTraffic:(BOOL)flag;
+- (BOOL) interstellarUndockingAllowed;
+- (BOOL) hasNPCTraffic;
+- (void) setHasNPCTraffic:(BOOL)flag;
 
 - (OOStationAlertLevel) alertLevel;
 - (void) setAlertLevel:(OOStationAlertLevel)level signallingScript:(BOOL)signallingScript;

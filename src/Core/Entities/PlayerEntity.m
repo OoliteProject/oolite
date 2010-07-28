@@ -4502,7 +4502,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	ship_clock_adjust = 600.0;			// 10 minutes to leave dock
 	
-	[self setStatus: STATUS_LAUNCHING];	// Required before shipWillLaunchFromStation so Planet.setTexture() will work.
+	[self setStatus: STATUS_LAUNCHING];	// Required before shipWillLaunchFromStation.
 	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 	
 	[station launchShip:self];

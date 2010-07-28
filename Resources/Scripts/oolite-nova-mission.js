@@ -279,7 +279,7 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 
 this.shipLaunchedFromStation = function()
 {
-	if ((system.sun.isGoingNova || system.sun.hasGoneNova) && missionVariables.nova === "NOVA_ESCAPE_COWARD")
+	if (system.sun && (system.sun.isGoingNova || system.sun.hasGoneNova) && missionVariables.nova === "NOVA_ESCAPE_COWARD")
 	{
 		this.blowUpAllStations();
 	}

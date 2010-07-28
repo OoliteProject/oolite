@@ -298,7 +298,8 @@
 			"equipment_price_factor",
 			"requires_docking_clearance",
 			"docking_pattern_model",
-			"market"
+			"market",
+			"interstellar_undocking"
 		);
 		knownPlayerKeys =
 		(
