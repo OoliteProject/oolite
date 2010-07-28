@@ -1149,6 +1149,8 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	jschar					*chars = NULL;
 	size_t					length;
 	
+	if (string == NULL)  return nil;
+	
 	chars = JS_GetStringChars(string);
 	length = JS_GetStringLength(string);
 	
