@@ -315,9 +315,6 @@ enum
 - (void) setMainLightPosition: (Vector) sunPos;
 - (OOPlanetEntity *) setUpPlanet;
 
-- (void) populateSpaceFromActiveWormholes;
-- (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos;
-- (int)	scatterAsteroidsAt:(Vector) spawnPos withVelocity:(Vector) spawnVel includingRockHermit:(BOOL) spawnHermit;
 - (void) makeSunSkimmer:(ShipEntity *) ship andSetAI:(BOOL)setAI;
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction;
 - (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar;
