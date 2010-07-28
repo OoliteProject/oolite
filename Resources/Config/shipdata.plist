@@ -436,12 +436,38 @@
 		};
 		likely_cargo = 4;
 		debris_role = "boulder";
+		heat_insulation = 5;
 	};
 	"asteroid-alternative" =
 	{
 		like_ship = "asteroid";
 		model = "asteroid1.dat";
 		roles = "asteroid";
+	};
+	"oolite-cinder" =
+	{
+		// Cinders are spawned as debris in post-nova systems.
+		roles = "cinder";
+		like_ship = "asteroid";
+		heat_insulation = 10000;	// Ridiculously high to survive post-nova environment.
+	};
+	"oolite-cinder-alternative" =
+	{
+		roles = "cinder";
+		like_ship = "asteroid-alternative";
+		heat_insulation = 10000;
+	};
+	"oolite-cinder-small" =
+	{
+		roles = "cinder(0.5)";
+		like_ship = "boulder";
+		heat_insulation = 10000;
+	};
+	"oolite-cinder-small-alternative" =
+	{
+		roles = "cinder(0.5)";
+		like_ship = "boulder-alternative";
+		heat_insulation = 10000;
 	};
 	"barrel" =
 	{
@@ -770,6 +796,7 @@
 			};
 		};
 		debris_role = "splinter";
+		heat_insulation = 3;
 	};
 	"boulder-alternative" =
 	{

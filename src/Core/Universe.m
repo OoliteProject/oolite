@@ -179,8 +179,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) resetSystemDataCache;
 
 - (void) populateSpaceFromActiveWormholes;
-- (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos;
-- (int)	scatterAsteroidsAt:(Vector) spawnPos withVelocity:(Vector) spawnVel includingRockHermit:(BOOL) spawnHermit;
+- (void) populateSpaceFromHyperPoint:(Vector)h1_pos toPlanetPosition:(Vector)p1_pos andSunPosition:(Vector)s1_pos;
+- (int)	scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
 
 #if OO_LOCALIZATION_TOOLS
 #if DEBUG_GRAPHVIZ
@@ -1032,8 +1032,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		int i;
 		for (i = 0; i < 3; i++)
 		{
-			[self scatterAsteroidsAt:planetPos withVelocity:kZeroVector includingRockHermit:NO];
-			[self scatterAsteroidsAt:witchPos withVelocity:kZeroVector includingRockHermit:NO];
+			[self scatterAsteroidsAt:planetPos withVelocity:kZeroVector includingRockHermit:NO asCinders:YES];
+			[self scatterAsteroidsAt:witchPos withVelocity:kZeroVector includingRockHermit:NO asCinders:YES];
 		}
 		
 	}
@@ -8793,7 +8793,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		
 		totalRocks += [self scatterAsteroidsAt:launchPos
 								  withVelocity:kZeroVector
-						   includingRockHermit:includeHermit];
+						   includingRockHermit:includeHermit
+									 asCinders:NO];
 		
 		[pool release];
 	}
@@ -8956,31 +8957,34 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		
 		totalRocks += [self scatterAsteroidsAt:launchPos
 								  withVelocity:kZeroVector
-						   includingRockHermit:includeHermit];
+						   includingRockHermit:includeHermit
+									 asCinders:NO];
 		[pool release];
 	}
 	
 }
 
 
-- (int) scatterAsteroidsAt:(Vector) spawnPos withVelocity:(Vector) spawnVel includingRockHermit:(BOOL) spawnHermit
+- (int) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders
 {
-	int rocks = 0;
-	Vector		launchPos;
-	int i;
-	int clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
+	OOUInteger	rocks = 0;
+//	Vector		launchPos;
+	OOUInteger	i, clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
+	
+	NSString	*role = asCinders ? @"cinder" : @"asteroid";
+	
 	for (i = 0; i < clusterSize; i++)
 	{
-		ShipEntity*	asteroid;
-		launchPos.x = spawnPos.x + SCANNER_MAX_RANGE * (randf() - randf());
-		launchPos.y = spawnPos.y + SCANNER_MAX_RANGE * (randf() - randf());
-		launchPos.z = spawnPos.z + SCANNER_MAX_RANGE * (randf() - randf());
-		asteroid = [self newShipWithRole:@"asteroid"];   // retain count = 1
-		if (asteroid)
+		Vector launchPos = vector_add(spawnPos, OOVectorRandomRadial(SCANNER_MAX_RANGE));
+		
+		ShipEntity *asteroid = [self newShipWithRole:role];   // retain count = 1
+		if (asteroid != nil)
 		{
 			[asteroid setPosition:launchPos];
 			if ([asteroid scanClass] == CLASS_NOT_SET)
+			{
 				[asteroid setScanClass: CLASS_ROCK];
+			}
 			[asteroid setVelocity:spawnVel];
 			[self addEntity:asteroid];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			[asteroid release];
@@ -8995,22 +8999,19 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	if (spawnHermit)
 	{
-		StationEntity*	hermit;
-		launchPos.x = spawnPos.x + 0.5 * SCANNER_MAX_RANGE * (randf() - randf());
-		launchPos.y = spawnPos.y + 0.5 * SCANNER_MAX_RANGE * (randf() - randf());
-		launchPos.z = spawnPos.z + 0.5 * SCANNER_MAX_RANGE * (randf() - randf());
-		hermit = (StationEntity *)[self newShipWithRole:@"rockhermit"];   // retain count = 1
-		if (hermit)
+		Vector launchPos = vector_add(spawnPos, OOVectorRandomRadial(SCANNER_MAX_RANGE));
+		
+		ShipEntity *hermit = (StationEntity *)[self newShipWithRole:@"rockhermit"];   // retain count = 1
+		if (hermit != nil)
 		{
 			[hermit setPosition:launchPos];
 			if ([hermit scanClass] == CLASS_NOT_SET)
+			{
 				[hermit setScanClass: CLASS_ROCK];
+			}
 			[hermit setVelocity:spawnVel];
 			[self addEntity:hermit];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			[hermit release];
-#if DEAD_STORE
-			clusterSize++;
-#endif
 		}
 	}
 	return rocks;
