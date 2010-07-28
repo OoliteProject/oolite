@@ -300,7 +300,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	NSArray* names = [passenger_record allKeys];
 	for (i = 0; i < [names count]; i++)
 	{
-		double dest_eta = [(NSNumber*)[passenger_record objectForKey:[names objectAtIndex:i]] doubleValue] - ship_clock;
+		double dest_eta = [passenger_record oo_doubleForKey:[names objectAtIndex:i]] - ship_clock;
 		if (dest_eta < 0)
 		{
 			// check they're not STILL on board
@@ -743,12 +743,36 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[NSNumber numberWithInt:0],												CONTRACT_KEY_PREMIUM,
 		NULL];
 	
-	// extra check, just in case. TODO: stop adding passengers with duplicate names?
-	if ([passengers count] >= max_passengers) return NO;
-
+	// extra checks, just in case.
+	if ([passengers count] >= max_passengers || [passenger_record objectForKey:Name] != nil) return NO;
+		
 	[passengers addObject:passenger_info];
 	[passenger_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
 	return YES;
+}
+
+
+- (BOOL) removePassenger:(NSString*)Name	// removes the first passenger that answers to Name, returns NO if none found
+{	
+	// extra check, just in case.
+	if ([passengers count] == 0) return NO;
+	
+	unsigned			i;
+	
+	for (i = 0; i < [passengers count]; i++)
+	{
+		NSDictionary	*this_info = (NSDictionary *)[passengers objectAtIndex:i];
+		NSString		*this_name = [this_info oo_stringForKey:PASSENGER_KEY_NAME];
+		
+		if ([Name isEqualToString:this_name])
+		{
+			[passengers removeObjectAtIndex:i];
+			[passenger_record removeObjectForKey:Name];
+			return YES;
+		}
+	}
+	
+	return NO;
 }
 
 

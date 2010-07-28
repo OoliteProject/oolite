@@ -76,6 +76,7 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipRemovePassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRestoreSubEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -297,6 +298,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
+	{ "removePassenger",		ShipRemovePassenger,		1 },	// Documented as PlayerShip
 	{ "restoreSubEntities",		ShipRestoreSubEntities,		0 },
 	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },	// Deliberately not documented
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
@@ -1516,6 +1518,7 @@ static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, j
 		JS_ValueToNumber(context, argv[3], &eta);
 		JS_ValueToNumber(context, argv[4], &fee);
 		OK = [(PlayerEntity*)thisEnt addPassenger:name start:JSVAL_TO_INT(argv[1]) destination:JSVAL_TO_INT(argv[2]) eta:eta fee:fee];
+		if (!OK) OOReportJSWarning(context, @"Ship.%@(): cannot %@.", @"addPassenger", @"add passenger. Duplicate name perhaps?");
 	}
 	
 	*outResult = BOOLToJSVal(OK);
@@ -1766,6 +1769,40 @@ static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc
 		}
 		else
 			[thisEnt removeEquipmentItem:key];
+	}
+	
+	*outResult = BOOLToJSVal(OK);
+	return YES;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// removePassenger(name :string)
+static JSBool ShipRemovePassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	ShipEntity					*thisEnt = nil;
+	NSString					*key = nil;
+	BOOL						OK = YES;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
+	
+	if (EXPECT_NOT(!JSVAL_IS_STRING(argv[0])))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"removePassenger", argc, argv, nil, @"name");
+		return NO;
+	}
+	
+	key = JSValToNSString(context, argv[0]);
+	OK = [thisEnt passengerCount] > 0 && [key length] > 0;
+	
+	if (OK)
+	{
+		// must be the player's ship!
+		if ([thisEnt isPlayer]) OK = [(PlayerEntity*)thisEnt removePassenger:key];
+		else OK = NO;
 	}
 	
 	*outResult = BOOLToJSVal(OK);

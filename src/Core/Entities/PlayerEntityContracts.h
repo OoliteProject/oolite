@@ -80,6 +80,7 @@ MA 02110-1301, USA.
 - (void) highlightSystemFromGuiContractsScreen;
 
 - (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee;	// for js scripting
+- (BOOL) removePassenger:(NSString*)Name;	// for js scripting
 - (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee;	// for js scripting.
 - (NSArray *) passengerList;
 - (NSArray *) contractList;
