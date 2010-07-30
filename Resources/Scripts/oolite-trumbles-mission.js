@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 
-/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+/*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
 /*global guiScreen, mission, missionVariables, player*/
 
 
@@ -37,25 +37,8 @@ this.description	= "Random offers of trumbles.";
 this.version		= "1.75";
 
 
-this.startUp = function ()
-{
-	/*	For simplicity, ensure that missionVariables.trumbles is never
-		undefined when running the rest of the script. If it could be
-		undefined, it would be necessary to test for undefinedness before
-		doing any tests on the value, like so:
-			if (missionVariables.trumbles && missionVariables.trumbles == "FOO")
-	*/
-	if (!missionVariables.trumbles)
-	{
-		missionVariables.trumbles = "";
-	}
-};
-
-
 this.missionScreenOpportunity = function ()
 {
-	if (!player.ship.docked)  { return; }	// Player might have been forcibly undocked by another script.
-	
 	/*	In the pre-JavaScript implementation, the mission variable was set to
 		OFFER_MADE while the mission screen was shown. If the player lanched
 		in that state, the offer would never be made again -- unless some
@@ -69,35 +52,39 @@ this.missionScreenOpportunity = function ()
 	}
 	
 	if (player.ship.dockedStation.isMainStation &&
-		missionVariables.trumbles === "" &&
+		!missionVariables.trumbles &&
 		!missionVariables.novacount &&		// So the offers eventually stop for long-time players who keep refusing.
 		player.credits > 6553.5)
 	{
 		missionVariables.trumbles = "BUY_ME";
 	}
 	
-	if (missionVariables.trumbles === "BUY_ME" && player.trumbleCount === 0 &&
+	if (missionVariables.trumbles === "BUY_ME" &&
+		player.trumbleCount === 0 &&
 		Math.random() < 0.2) // 20% chance of trumble being offered.
 	{
-		// Show the mission screen
-		mission.runScreen({titleKey:"oolite_trumble_title", messageKey:"oolite_trumble_offer", background:"trumblebox.png", choicesKey:"oolite_trumble_offer_yesno"}, this.trumbleOffered);
+		// Show the mission screen.
+		mission.runScreen({
+			titleKey: "oolite_trumble_title",
+			messageKey: "oolite_trumble_offer",
+			background: "trumblebox.png",
+			choicesKey: "oolite_trumble_offer_yesno"
+		},
+		function (choice)
+		{
+			if (choice === "OOLITE_TRUMBLE_YES")
+			{
+				missionVariables.trumbles = "TRUMBLE_BOUGHT";
+				player.credits -= 30;
+				player.ship.awardEquipment("EQ_TRUMBLE");
+			}
+			else
+			{
+				missionVariables.trumbles = "NOT_NOW";
+			}
+		});
 	}
 };
-
-
-this.trumbleOffered = function(choice)
-{
-	if (choice === "OOLITE_TRUMBLE_YES")
-	{
-		missionVariables.trumbles = "TRUMBLE_BOUGHT";
-		player.credits -= 30;
-		player.ship.awardEquipment("EQ_TRUMBLE");
-	}
-	else
-	{
-		missionVariables.trumbles = "NOT_NOW";
-	}
-}
 
 
 this.shipWillExitWitchspace = function ()

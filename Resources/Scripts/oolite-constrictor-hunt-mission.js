@@ -26,7 +26,8 @@ MA 02110-1301, USA.
 */
 
 
-/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+// jslint bug: the "laxbreak" setting doesn't reliably work, which causes complaints about case indentation.
+/*jslint white: true, laxbreak: true, undef: true, eqeqeq: true, bitwise: true, newcap: true, immed: true */
 /*global galaxyNumber, guiScreen, mission, missionVariables, player, system*/
 
 
@@ -36,9 +37,9 @@ this.copyright		= "© 2008-2010 the Oolite team.";
 this.version		= "1.75";
 
 
-this.cleanUp = function ()
+this._cleanUp = function ()
 {
-	// Remove  event handlers.
+	// Remove event handlers.
 	delete this.guiScreenChanged;
 	delete this.missionScreenOpportunity;
 	delete this.shipExitedWitchspace;
@@ -46,70 +47,91 @@ this.cleanUp = function ()
 };
 
 
-this.addToScreen = function ()
+/**** Event handlers ****/
+
+
+this.startUp = function ()
 {
-	if (guiScreen === "GUI_SCREEN_SYSTEM_DATA")
+	// Remove event handlers once the mission is over.
+	if (missionVariables.conhunt === "MISSION_COMPLETE")
 	{
-		if (galaxyNumber === 0)
+		this._cleanUp();
+	}
+	
+	delete this.startUp;
+};
+
+
+this.guiScreenChanged = function ()
+{
+	if (galaxyNumber < 2 && missionVariables.conhunt === "STAGE_1")
+	{
+		if (guiScreen === "GUI_SCREEN_SYSTEM_DATA")
 		{
-			switch (system.ID)
+			if (galaxyNumber === 0)
 			{
-				case 28:
-				case 36:
-				case 150:
-					mission.addMessageTextKey("constrictor_hunt_0_" + system.ID);
-					break;
-					
-				default:
-					break;
+				switch (system.ID)
+				{
+					case 28:
+					case 36:
+					case 150:
+						mission.addMessageTextKey("constrictor_hunt_0_" + system.ID);
+						break;
+						
+					default:
+						break;
+				}
 			}
-		}
-		if (galaxyNumber === 1)
-		{
-			switch (system.ID)
+			if (galaxyNumber === 1)
 			{
-				case 3:
-				case 5:
-				case 16:
-				case 26:
-				case 32:
-				case 68:
-				case 106:
-				case 107:
-				case 162:
-				case 164:
-				case 184:
-				case 192:
-				case 220:
-					mission.addMessageTextKey("constrictor_hunt_1_A");
-					break;
-					
-				case 253:
-				case 79:
-				case 53:
-				case 118:
-				case 193:
-					mission.addMessageTextKey("constrictor_hunt_1_" + system.ID);
-					break;
-					
-				default:
-					break;
+				switch (system.ID)
+				{
+					case 3:
+					case 5:
+					case 16:
+					case 26:
+					case 32:
+					case 68:
+					case 106:
+					case 107:
+					case 162:
+					case 164:
+					case 184:
+					case 192:
+					case 220:
+						mission.addMessageTextKey("constrictor_hunt_1_A");
+						break;
+						
+					case 253:
+					case 79:
+					case 53:
+					case 118:
+					case 193:
+						mission.addMessageTextKey("constrictor_hunt_1_" + system.ID);
+						break;
+						
+					default:
+						break;
+				}
 			}
 		}
 	}
 };
 
 
-this.missionOffers = function ()
-{	
-	if (!player.ship.docked)  { return; }
-	
+// this function is potentially called multiple times.
+this.missionScreenOpportunity = function ()
+{
 	if (player.ship.dockedStation.isMainStation)
 	{
 		if (galaxyNumber < 2 && !missionVariables.conhunt && player.score > 255)
 		{
 			// there are no options to deal with, we don't need a callback function.
-			mission.runScreen({titleKey:"constrictor_hunt_title", messageKey:"constrictor_hunt_brief1", model: "constrictor"});
+			mission.runScreen({
+				titleKey: "constrictor_hunt_title",
+				messageKey: "constrictor_hunt_brief1",
+				model: "constrictor"
+			});
 			if (galaxyNumber === 0)
 			{
 				mission.addMessageTextKey("constrictor_hunt_brief1a"); // galaxy = 0
@@ -124,19 +146,23 @@ this.missionOffers = function ()
 		}
 		if (missionVariables.conhunt === "CONSTRICTOR_DESTROYED")  // Variable is set by the ship script
 		{
-			mission.runScreen({titleKey:"constrictor_hunt_title", messageKey:"constrictor_hunt_debrief", model: "constrictor"});
+			mission.runScreen({
+				titleKey: "constrictor_hunt_title",
+				messageKey: "constrictor_hunt_debrief",
+				model: "constrictor"
+			});
 			player.credits += 5000;
 			player.bounty = 0;	  // legal status
 			player.score += 256;  // ship kills
 			mission.setInstructions(null);  // reset the mission briefing
 			missionVariables.conhunt = "MISSION_COMPLETE";
-			this.cleanUp();
+			this._cleanUp();
 		}
 	}
 };
 
 
-this.setUpShips = function ()
+this.shipExitedWitchspace = this.shipLaunchedFromStation = function ()
 {
 	if (galaxyNumber === 1 &&
 		system.ID === 193 &&
@@ -146,36 +172,4 @@ this.setUpShips = function ()
 		var constrictor = system.addShips("constrictor", 1);
 		constrictor[0].bounty = 250; // Ensure a bounty, in case it was missing in a custom shipdata.plist.
 	}
-};
-
-
-/**** Event handlers ****/
-
-
-this.startUp = function ()
-{
-	// Remove event handlers once the mission is over.
-	if (missionVariables.conhunt === "MISSION_COMPLETE") { this.cleanUp(); }
-};
-
-
-this.guiScreenChanged = function ()
-{
-	if (galaxyNumber < 2 && missionVariables.conhunt === "STAGE_1")
-	{
-		this.addToScreen();
-	}
-};
-
-
-// this function is potentially called multiple times
-this.missionScreenOpportunity = function ()
-{
-	this.missionOffers();
-};
-
-
-this.shipExitedWitchspace = this.shipLaunchedFromStation = function ()
-{
-	this.setUpShips();
 };

@@ -12,7 +12,7 @@
 		"TARGET_DESTROYED" = ("setStateTo: LURK");
 		"TARGET_LOST" = ("setStateTo: LURK");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
-		UPDATE = ("sendScriptMessage: checkDistance", "pauseAI: 5.0");
+		UPDATE = ("sendScriptMessage: _checkDistance", "pauseAI: 5.0");
 	};
 	FLEE =
 	{
@@ -23,7 +23,7 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle, "pauseAI: 10.0");
 		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
-		UPDATE = ("sendScriptMessage: checkDistance", "pauseAI: 5.0");
+		UPDATE = ("sendScriptMessage: _checkDistance", "pauseAI: 5.0");
 	};
 	"TRAVEL_TO_LURK_AREA" =
 	{
@@ -33,7 +33,7 @@
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"EXITED WITCHSPACE" = ("setStateTo: LURK");
-		UPDATE = ("sendScriptMessage: checkDistance", "pauseAI: 1.0");
+		UPDATE = ("sendScriptMessage: _checkDistance", "pauseAI: 1.0");
 	};
 	LURK =
 	{
@@ -44,7 +44,7 @@
 		"ODDS_GOOD" = (groupAttackTarget);
 		"ODDS_LEVEL" = (groupAttackTarget);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
-		UPDATE = ("sendScriptMessage: checkDistance", "scanForNearestShipWithPrimaryRole: player", "pauseAI: 5.0");
+		UPDATE = ("sendScriptMessage: _checkDistance", "scanForNearestShipWithPrimaryRole: player", "pauseAI: 5.0");
 	};
 	"ENTER_WORMHOLE" =
 	{

@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 
-/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+/*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
 /*global missionVariables, player*/
 
 
@@ -36,42 +36,54 @@ this.copyright		= "© 2008-2010 the Oolite team.";
 this.version		= "1.75";
 
 
-this.legalPoints = 0;
+/*
+	To avoid being attacked by other ships, the Constrictor goes legal when
+	the player is well out of range. When this happens, the "real" bounty
+	is stored in _legalPoints.
+*/
+this._legalPoints = 0;
+
 
 this.shipSpawned = function ()
 {
-	this.legalPoints = this.ship.bounty;
+	this._legalPoints = this.ship.bounty;
 	this.ship.bounty = 0;
-	if (player.score > 512) this.ship.awardEquipment("EQ_SHIELD_BOOSTER"); // Player is Dangerous
-	if (player.score > 2560) this.ship.awardEquipment("EQ_SHIELD_ENHANCER"); // Player is Deadly
+	if (player.score > 512)
+	{
+		this.ship.awardEquipment("EQ_SHIELD_BOOSTER"); // Player is Dangerous
+	}
+	if (player.score > 2560)
+	{
+		this.ship.awardEquipment("EQ_SHIELD_ENHANCER"); // Player is Deadly
+	}
 	this.ship.energy = this.ship.maxEnergy; // start with all energy banks full.
 };
 
 
 this.shipDied = function (killer)
 {
-    if(killer.isPlayer)
+    if (killer.isPlayer)
 	{
 		missionVariables.conhunt = "CONSTRICTOR_DESTROYED";
 	}
 };
 
 
-this.checkDistance = function ()
+this._checkDistance = function ()
 {
 	if (player.ship.position.distanceTo(this.ship) < 50000)
 	{
-		if(this.legalPoints > 0)
+		if (this._legalPoints > 0)
 		{
-			this.ship.bounty = this.legalPoints;
-			this.legalPoints = 0;
+			this.ship.bounty = this._legalPoints;
+			this._legalPoints = 0;
 		}
 	}
 	else
 	{
-		if(this.legalPoints === 0)
+		if (this._legalPoints === 0)
 		{
-			this.legalPoints = this.ship.bounty;
+			this._legalPoints = this.ship.bounty;
 			this.ship.bounty = 0;
 		}
 	}

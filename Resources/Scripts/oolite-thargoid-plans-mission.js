@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 
-/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+/*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
 /*global EquipmentInfo, Timer, galaxyNumber, guiScreen, mission, missionVariables, player, system*/
 
 
@@ -36,9 +36,77 @@ this.copyright		= "© 2008-2010 the Oolite team.";
 this.version		= "1.75";
 
 
-this.missionOffers = function ()
+this._setUpShips = function ()
 {
-	if (!player.ship.docked)  { return; }
+	function addThargoids()
+	{
+		this._waveCount++; // 5 loops of adding in the legacy script with a script timer.
+		if (this._waveCount > 5)
+		{
+			this._thargoidTimer.stop();
+			return;
+		}
+		if (system.countShipsWithRole("thargoid") < 2)
+		{
+			system.legacy_addSystemShips("thargoid", 1, 0.33);
+			system.legacy_addSystemShips("thargoid", 1, 0.66);
+		}
+		if (system.countShipsWithRole("thargoid") < 5 && Math.random() < 0.5)
+		{
+			system.legacy_addShips("thargoid", 1);
+		}
+	}
+	
+	if (missionVariables.thargplans === "RUNNING" && galaxyNumber === 2)
+	{
+		if (this._thargoidTimer)
+		{
+			this._thargoidTimer.start();
+		}
+		else
+		{
+			this._thargoidTimer = new Timer(this, addThargoids, 10, 10);
+		}
+	}
+};
+
+
+this._cleanUp = function ()
+{
+	/*	After the mission is complete, it's good 
+		practice to remove the event handlers. The
+		less event handlers, the smoother the game 
+		experience.
+		From 1.74, loading a saved game - or restarting
+		the game - reloads all world scripts,including
+		all handlers. Calling _cleanUp from startUp
+		after the mission is finished allows us to keep
+		the gaming experience as smooth as possible.
+	*/
+	delete this.missionScreenOpportunity;
+	delete this.shipLaunchedFromStation;
+	delete this.shipExitedWitchspace;
+};
+
+
+/**** Event handlers ****/
+
+this.startUp = function ()
+{
+	this._waveCount = 0;  // should be zero on the first launch after a reset.
+	if (missionVariables.thargplans === "MISSION_COMPLETE")
+	{
+		this._cleanUp();
+	}
+};
+
+
+this.missionScreenOpportunity = function ()
+{
+	if (!player.ship.docked)
+	{
+		return;
+	}
 	
 	if (player.ship.dockedStation.isMainStation)
 	{
@@ -49,7 +117,10 @@ this.missionOffers = function ()
 				player.score > 1280 &&
 				system.ID !== 83)
 			{
-				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_brief1"});
+				mission.runScreen({
+					titleKey: "thargoid_plans_title",
+					messageKey: "thargoid_plans_brief1"
+				});
 				missionVariables.thargplans = "PRELUDE";
 				mission.setInstructionsKey("thargoid_plans_info1");
 				mission.markSystem(83);
@@ -58,7 +129,11 @@ this.missionOffers = function ()
 				system.ID === 83)
 			{
 				mission.unmarkSystem(83);
-				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_brief2", model: "thargoid"});
+				mission.runScreen({
+					titleKey: "thargoid_plans_title",
+					messageKey: "thargoid_plans_brief2",
+					model: "thargoid"
+				});
 				missionVariables.thargplans = "RUNNING";
 				mission.setInstructionsKey("thargoid_plans_info2");
 				mission.markSystem(36);
@@ -66,7 +141,11 @@ this.missionOffers = function ()
 			else if (missionVariables.thargplans === "RUNNING" &&
 					 system.ID === 36)
 			{
-				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_debrief", model: "thargoid"});
+				mission.runScreen({
+					titleKey: "thargoid_plans_title",
+					messageKey: "thargoid_plans_debrief",
+					model: "thargoid"
+				});
 				player.score += 256; // ship kills
 				mission.setInstructions(null);  // reset the mission briefing
 				missionVariables.thargplans = "MISSION_COMPLETE";
@@ -79,91 +158,21 @@ this.missionOffers = function ()
 				player.ship.awardEquipment("EQ_NAVAL_ENERGY_UNIT");
 				EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").effectiveTechLevel = 13;
 				mission.unmarkSystem(36);
-				this.cleanUp();
+				this._cleanUp();
 			}
 		}
 	}
 };
 
 
-this.addTargoids = function ()
-{
-	this.loopcount++; // 5 loops of adding in the legacy script with a script timer.
-	if (this.loopcount > 5)
-	{
-		this.targoidTimer.stop();
-		return;
-	}
-	if (system.countShipsWithRole("thargoid") < 2)
-	{
-		system.legacy_addSystemShips("thargoid", 1, 0.33);
-		system.legacy_addSystemShips("thargoid", 1, 0.66);
-	}
-	if (system.countShipsWithRole("thargoid") < 5 && Math.random() < 0.5)
-	{
-		system.legacy_addShips("thargoid", 1);
-	}
-};
-
-
-this.setUpShips = function ()
-{
-	if (missionVariables.thargplans === "RUNNING" && galaxyNumber === 2)
-	{
-		if (this.targoidTimer)
-		{
-			this.targoidTimer.start();
-		}
-		else
-		{
-			this.targoidTimer = new Timer(this, this.addTargoids, 10, 10);
-		}
-	}
-};
-
-
-this.cleanUp = function()
-{
-	/*	After the mission is complete, it's good 
-		practice to remove the event handlers. The
-		less event handlers, the smoother the game 
-		experience.
-		From 1.74, loading a savegame - or restarting
-		the game - reloads all world scripts,including
-		all handlers. Calling cleanUp from startUp
-		after the mission is finished allows us to keep
-		the gaming experience as smooth as possible.
-	*/
-	delete this.missionScreenOpportunity;
-	delete this.shipLaunchedFromStation;
-	delete this.shipExitedWitchspace;
-}
-
-
-/**** Event handlers ****/
-
-
-this.startUp = function ()
-{
-	this.loopcount = 0;  // should be zero on the first launch after a reset.
-	if (missionVariables.thargplans === "MISSION_COMPLETE") { this.cleanUp(); }
-};
-
-
-this.missionScreenOpportunity = function ()
-{
-	this.missionOffers();
-};
-
-
 this.shipLaunchedFromStation = function ()
 {
-	this.setUpShips();
+	this._setUpShips();
 };
 
 
 this.shipExitedWitchspace = function ()
 {
-	this.loopcount = 0;
-	this.setUpShips();
+	this._waveCount = 0;
+	this._setUpShips();
 };

@@ -36,8 +36,9 @@ MA 02110-1301, USA.
 */
 
 
-/*jslint bitwise: true, undef: true, undef: true, eqeqeq: true, newcap: true*/
-/*global Entity, global, mission, player, Quaternion, Ship, special, system, Vector3D, SystemInfo*/
+// NOTE: for jslint to work, you must comment out the use of __proto__.
+/*jslint white: true, undef: true, eqeqeq: true, bitwise: false, regexp: true, newcap: true, immed: true */
+/*global Entity, global, mission, player, Quaternion, Ship, special, system, Vector3D, SystemInfo, expandMissionText*/
 
 
 this.name			= "oolite-global-prefix";
@@ -48,16 +49,13 @@ this.version		= "1.75";
 
 /**** Utilities, not intended to be retired ****/
 
-
-/*	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__
-	extension.
-*/
+//	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__ extension.
 if (typeof Object.getPrototypeOf !== "function")
 {
 	Object.getPrototypeOf = function (object)
 	{
 		return object.__proto__;
-	}
+	};
 }
 
 
@@ -73,7 +71,7 @@ Object.getPrototypeOf(Ship).spawnOne = function Ship_spawnOne(role)
 mission.addMessageTextKey = function mission_addMessageTextKey(textKey)
 {
 	mission.addMessageText((textKey ? expandMissionText(textKey) : null));
-}
+};
 
 
 /*	string.trim(): remove leading and trailing whitespace.
@@ -88,7 +86,7 @@ if (typeof String.prototype.trim !== "function")
 		var	str = this.replace(/^\s\s*/, ''),
 			 ws = /\s/,
 			  i = str.length;
-		while (ws.test(str.charAt(--i))){}
+		while (ws.test(str.charAt(--i))) {}
 		return str.slice(0, i + 1);
 	};
 }
@@ -121,11 +119,11 @@ SystemInfo.systemsInRange = function SystemInfo_systemsInRange(range)
 		}
 	}
 	
-	return SystemInfo.filteredSystems(this, function(other)
+	return SystemInfo.filteredSystems(this, function (other)
 	{
 		return (other.systemID !== thisSystem.systemID) && (thisSystem.distanceToSystem(other) <= range);
 	});
-}
+};
 
 
 /*	system.scrambledPseudoRandom(salt : Number (integer)) : Number
@@ -157,13 +155,13 @@ system.scrambledPseudoRandomNumber = function system_scrambledPseudoRandomNumber
 	
 	// Convert from (effectively) 32-bit signed integer to float in [0..1).
 	return n / 4294967296.0 + 0.5;
-}
+};
 
 
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
 
 // Define a function that is an alias for another function.
-this.defineCompatibilityAlias = function (oldName, newName)
+this._defineCompatibilityAlias = function (oldName, newName)
 {
 	global[oldName] = function ()
 	{
@@ -173,7 +171,7 @@ this.defineCompatibilityAlias = function (oldName, newName)
 };
 
 // Define a read-only property that is an alias for another property.
-this.defineCompatibilityGetter = function (constructorName, oldName, newName)
+this._defineCompatibilityGetter = function (constructorName, oldName, newName)
 {
 	var getter = function ()
 	{
@@ -184,7 +182,7 @@ this.defineCompatibilityGetter = function (constructorName, oldName, newName)
 };
 
 // Define a write-only property that is an alias for another property.
-this.defineCompatibilitySetter = function (constructorName, oldName, newName)
+this._defineCompatibilitySetter = function (constructorName, oldName, newName)
 {
 	var setter = function (value)
 	{
@@ -195,14 +193,14 @@ this.defineCompatibilitySetter = function (constructorName, oldName, newName)
 };
 
 // Define a read/write property that is an alias for another property.
-this.defineCompatibilityGetterAndSetter = function (constructorName, oldName, newName)
+this._defineCompatibilityGetterAndSetter = function (constructorName, oldName, newName)
 {
-	this.defineCompatibilityGetter(constructorName, oldName, newName);
-	this.defineCompatibilitySetter(constructorName, oldName, newName);
+	this._defineCompatibilityGetter(constructorName, oldName, newName);
+	this._defineCompatibilitySetter(constructorName, oldName, newName);
 };
 
 // Define a write-only property that is an alias for a function.
-this.defineCompatibilityWriteOnly = function (constructorName, oldName, funcName)
+this._defineCompatibilityWriteOnly = function (constructorName, oldName, funcName)
 {
 	var getter = function ()
 	{
@@ -219,8 +217,8 @@ this.defineCompatibilityWriteOnly = function (constructorName, oldName, funcName
 };
 
 // Define a compatibility getter for a property that's moved to another property.
-// Example: to map player.docked to player.ship.docked, this.defineCompatibilitySubGetter("player", "ship", "docked")
-this.defineCompatibilitySubGetter = function (singletonName, subName, propName)
+// Example: to map player.docked to player.ship.docked, this._defineCompatibilitySubGetter("player", "ship", "docked")
+this._defineCompatibilitySubGetter = function (singletonName, subName, propName)
 {
 	var getter = function ()
 	{
@@ -231,7 +229,7 @@ this.defineCompatibilitySubGetter = function (singletonName, subName, propName)
 };
 
 // Define a compatibility setter for a property that's moved to another property.
-this.defineCompatibilitySubSetter = function (singletonName, subName, propName)
+this._defineCompatibilitySubSetter = function (singletonName, subName, propName)
 {
 	var setter = function (value)
 	{
@@ -242,14 +240,14 @@ this.defineCompatibilitySubSetter = function (singletonName, subName, propName)
 };
 
 // Define a compatibility getter and setter for a property that's moved to another property.
-this.defineCompatibilitySubGetterAndSetter = function (singletonName, subName, propName)
+this._defineCompatibilitySubGetterAndSetter = function (singletonName, subName, propName)
 {
-	this.defineCompatibilitySubGetter(singletonName, subName, propName);
-	this.defineCompatibilitySubSetter(singletonName, subName, propName);
+	this._defineCompatibilitySubGetter(singletonName, subName, propName);
+	this._defineCompatibilitySubSetter(singletonName, subName, propName);
 };
 
 // Like defineCompatibilitySubGetter() et al, for methods.
-this.defineCompatibilitySubMethod = function (singletonName, subName, methodName)
+this._defineCompatibilitySubMethod = function (singletonName, subName, methodName)
 {
 	global[singletonName][methodName] = function ()
 	{

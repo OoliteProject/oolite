@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 
-/*jslint bitwise: true, undef: true, undef: true, eqeqeq: true, newcap: true*/
+/*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
 
 
 this.name			= "oolite-default-ship-script";
