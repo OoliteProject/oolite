@@ -461,11 +461,8 @@ String.prototype.substituteEscapeCodes = function substituteEscapeCodes()
 
 // ****  Load-time set-up
 
-// Get the global object for easy reference
-this.console.global = (function () { return this; } ).call();
-
 // Make console globally visible as debugConsole
-this.console.global.debugConsole = this.console;
+global.debugConsole = this.console;
 debugConsole.script = this;
 
 if (debugConsole.settings["macros"])  this.macros = debugConsole.settings["macros"];

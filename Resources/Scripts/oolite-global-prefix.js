@@ -46,9 +46,6 @@ this.copyright		= "© 2009-2010 the Oolite team.";
 this.version		= "1.75";
 
 
-this.global = (function () { return this; } ).call();
-
-
 /**** Utilities, not intended to be retired ****/
 
 

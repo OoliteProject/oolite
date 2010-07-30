@@ -84,6 +84,7 @@ enum
 {
 	// Property IDs
 	kGlobal_galaxyNumber,		// galaxy number, integer, read-only
+	kGlobal_global,				// global.global.global.global, integer, read-only
 	kGlobal_guiScreen,			// current GUI screen, string, read-only
 	kGlobal_timeAccelerationFactor	// time acceleration, float, read/write
 };
@@ -119,6 +120,7 @@ void CreateOOJSGlobal(JSContext *context, JSObject **outGlobal)
 	assert(outGlobal != NULL);
 	
 	*outGlobal = JS_NewObject(context, &sGlobalClass, NULL, NULL);
+	JS_DefineProperty(context, *outGlobal, "global", OBJECT_TO_JSVAL(*outGlobal), NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 }
 
 
