@@ -7721,7 +7721,7 @@ static NSString *last_outfitting_key=nil;
 	NSEnumerator	*scriptEnum = [worldScripts objectEnumerator];
 	OOScript		*theScript;
 	// FIXME: does this work ok in all situations? Needs fixing if not.
-	while ((theScript = [scriptEnum nextObject]) && gui_screen != GUI_SCREEN_MISSION)
+	while ((theScript = [scriptEnum nextObject]) && gui_screen != GUI_SCREEN_MISSION && [self isDocked])
 	{
 		[theScript doEvent:message withArguments:nil];
 	}
