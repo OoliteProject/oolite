@@ -179,7 +179,8 @@ enum
 	
 	NSString				*currentMessage;
 	OOTimeAbsolute			messageRepeatTime;
-	
+	OOTimeAbsolute			countdown_messageRepeatTime; 	// Getafix(4/Aug/2010) - Quickfix countdown messages colliding with weapon overheat messages.
+									//                       For proper handling of message dispatching, code refactoring is needed.
 	GuiDisplayGen			*gui;
 	GuiDisplayGen			*message_gui;
 	GuiDisplayGen			*comm_log_gui;

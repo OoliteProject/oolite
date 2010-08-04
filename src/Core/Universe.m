@@ -4704,11 +4704,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) displayCountdownMessage:(NSString *) text forCount:(OOTimeDelta)count
 {
-	if (![currentMessage isEqual:text])
+	if (![currentMessage isEqual:text] && universal_time >= countdown_messageRepeatTime)
 	{
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
-		
+		countdown_messageRepeatTime=universal_time + count;
 		[message_gui printLineNoScroll:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
 	}
 }
