@@ -2926,6 +2926,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
 		{
+			[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_SYSTEM_DATA) andArgument:GUIScreenIDToString(gui_screen)];
 			[self setGuiToSystemDataScreen];
 		}
 	}
