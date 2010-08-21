@@ -1665,7 +1665,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			
 		case GUI_SCREEN_SYSTEM_DATA:
-			if ([self status] == STATUS_DOCKED && dockedStation == [UNIVERSE station] && [gameView isDown:key_contract_info] && ![UNIVERSE strict])  // '?' toggle between maps/info and contract screen
+			if ([self status] == STATUS_DOCKED && dockedStation == [UNIVERSE station] && [gameView isDown:key_contract_info] && ![UNIVERSE strict] && [self hasHyperspaceMotor])  // '?' toggle between maps/info and contract screen
 			{
 				if (!queryPressed)
 				{
@@ -2986,7 +2986,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (!switching_market_screens)
 			{
-				if ((gui_screen == GUI_SCREEN_MARKET)&&(dockedStation == [UNIVERSE station])&&(![UNIVERSE strict]))
+				if ((gui_screen == GUI_SCREEN_MARKET)&&(dockedStation == [UNIVERSE station])&&(![UNIVERSE strict] && [self hasHyperspaceMotor]))
 				{
 					[gameView clearKeys];
 					[self setGuiToContractsScreen];
