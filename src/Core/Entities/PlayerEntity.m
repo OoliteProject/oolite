@@ -4708,6 +4708,7 @@ static GLfloat		sBaseMass = 0.0;
 			[self playWitchjumpFailure];
 			[self takeInternalDamage];
 			[self setStatus:STATUS_IN_FLIGHT];
+			[self doScriptEvent:@"playerJumpFailed" withArgument:@"malfunction"];
 			return;
 		}
 	}
