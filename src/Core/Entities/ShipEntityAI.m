@@ -2430,7 +2430,7 @@ static WormholeEntity *whole = nil;
 	// tell the ship we're about to jump (so it can inform escorts etc).
 	primaryTarget = [whole universalID];
 	found_target = primaryTarget;
-	[shipAI reactToMessage:@"WITCHSPACE OKAY" context:@"performHyperSpaceExit[WithoutReplacing]"];	// must be a reaction, the ship is about to disappear
+	[shipAI reactToMessage:@"WITCHSPACE OKAY" context:@"performHyperSpaceExit"];	// must be a reaction, the ship is about to disappear
 	
 	[self enterWormhole:whole replacing:replace];	// TODO
 	

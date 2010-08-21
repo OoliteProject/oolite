@@ -137,6 +137,7 @@ enum
 	kShip_fuelChargeRate,		// fuel scoop rate & charge multiplier, float, read-only
 	kShip_group,				// group, ShipGroup, read/write
 	kShip_hasHostileTarget,		// has hostile target, boolean, read-only
+	kShip_hasHyperspaceMotor,	// has hyperspace motor, boolean, read-only
 	kShip_hasSuspendedAI,		// AI has suspended states, boolean, read-only
 	kShip_heatInsulation,		// hull heat insulation, double, read/write
 	kShip_isBeacon,				// is beacon, boolean, read-only
@@ -216,6 +217,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "fuelChargeRate",			kShip_fuelChargeRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "group",					kShip_group,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "hasHostileTarget",		kShip_hasHostileTarget,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "hasHyperspaceMotor",		kShip_hasHyperspaceMotor,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "heatInsulation",			kShip_heatInsulation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "isBeacon",				kShip_isBeacon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -474,11 +476,16 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			*outValue = BOOLToJSVal([entity hasHostileTarget]);
 			OK = YES;
 			break;
-			
+		
+		case kShip_hasHyperspaceMotor:
+			*outValue = BOOLToJSVal([entity hasHyperspaceMotor]);
+			OK = YES;
+			break;
+		
 		case kShip_weaponRange:
 			OK = JS_NewDoubleValue(context, [entity weaponRange], outValue);
 			break;
-			
+		
 		case kShip_scannerRange:
 			OK = JS_NewDoubleValue(context, [entity scannerRange], outValue);
 			break;

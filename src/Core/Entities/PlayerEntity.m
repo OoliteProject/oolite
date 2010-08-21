@@ -132,6 +132,7 @@ static GLfloat		sBaseMass = 0.0;
 - (NSArray*) contractsListForScriptingFromArray:(NSArray *) contracts_array forCargo:(BOOL)forCargo;
 
 - (void) witchStart;
+- (void) witchJumpTo:(Random_Seed)sTo standard:(BOOL)standard;
 - (void) witchEnd;
 
 @end
@@ -4654,25 +4655,10 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-//it is impossible to have a misjump here
-- (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
+// now with added misjump goodness!
+- (void) enterWormhole:(WormholeEntity *) w_hole
 {
-	// don't do anything with the player's target
-	system_seed = [w_hole destination];
-	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"wormhole"];
-	
-	[self witchStart];
-
-	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
-	double distance = distanceBetweenPlanetPositions(system_seed.d,system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
-
-	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
-	
-	legalStatus /= 2;	// 'another day, another system'
-	
-	[self witchEnd];
+	[self witchJumpTo:[w_hole destination] standard:NO];
 }
 
 
@@ -4683,13 +4669,17 @@ static GLfloat		sBaseMass = 0.0;
 		[self setStatus:STATUS_IN_FLIGHT];
 		return; // naughty, you cant hyperspace to your own system.
 	}
+	[self witchJumpTo:target_system_seed standard:YES];
+}
+
+
+- (void) witchJumpTo:(Random_Seed)sTo standard:(BOOL)standard
+{
+	// don't do anything with the player's target
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
-	
+	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:(standard ? @"standard jump" : @"wormhole")];
 	[self witchStart];
 	
-	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
-
 	//  perform any check here for forced witchspace encounters
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
@@ -4699,14 +4689,16 @@ static GLfloat		sBaseMass = 0.0;
 	// 75% of the time a malfunction means a misjump
 	BOOL misjump = [self scriptedMisjump] || ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
 	
-	//wear and tear on all jumps (inc misjumps and failures)
+	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
 	if (2 * market_rnd < ship_trade_in_factor)
 	{
 		// every eight jumps or so drop the price down towards 75%
 		[self reduceTradeInFactorBy:1 + (market_rnd & 3)];
 	}
-	if (malfunc)
+	
+	if (standard && malfunc)
 	{
+		// some malfunctions will start fuel leaks, some will result in no witchjump at all.
 		if (randf() > 0.5)
 		{
 			[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
@@ -4719,37 +4711,38 @@ static GLfloat		sBaseMass = 0.0;
 			return;
 		}
 	}
-	double distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	//burn full fuel to create wormhole, but only take time for distance traveled
-	fuel -= 10.0 * distance; // fuel cost to target system
 	
+	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
+	double distance = distanceBetweenPlanetPositions(sTo.d,sTo.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	ship_clock_adjust = distance * distance * (misjump ? 2700.0 : 3600.0);	// LY * LY hrs - misjumps take 3/4 time of the full jump, they're not the same as a jump of half the length!
+	
+	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
+	
+	if (standard)
+	{
+		// burn the full fuel amount to create the wormhole
+		fuel -= 10.0 * distance; // fuel cost to target system
+	}
 	if (!misjump)
 	{
-		system_seed = target_system_seed;
-		
+		system_seed = sTo;
 		legalStatus /= 2;								// 'another day, another system'
-		
 		[self witchEnd];
-		
-		if (market_rnd < 8)
-			[self erodeReputation];						// every 32 systems or so, drop back towards 'unknown'
-		ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs.	
+		if (market_rnd < 8) [self erodeReputation];		// every 32 systems or so, drop back towards 'unknown'
 	}
 	else
 	{
-		//misjumps do not erode your reputation (perhaps for passenger contracts they should...)
-		//nor do they change legal status
-
-		// move sort of halfway there...
-		galaxy_coordinates.x += target_system_seed.d;
-		galaxy_coordinates.y += target_system_seed.b;
+		// Misjump: move halfway there!
+		// misjumps do not change legal status.
+		if (randf() < 0.1) [self erodeReputation];		// once every 10 misjumps - should be much rarer than successful jumps!
+		
+		galaxy_coordinates.x += sTo.d;
+		galaxy_coordinates.y += sTo.b;
 		galaxy_coordinates.x /= 2;
 		galaxy_coordinates.y /= 2;
-		ship_clock_adjust = (distance * distance * 3600.0) * 3/4; // misjumps take 3/4 time of the full jump, this is not the same as a jump of half the length	
 		[self playWitchjumpMisjump];
 		[UNIVERSE set_up_universe_from_misjump];
-	}							
-
+	}
 }
 
 
