@@ -435,11 +435,13 @@
 	"witch-to-@-in-f-seconds"		= "Witchspace to %@ in %.0f s.";
 	"witch-blocked-by-@"			= "Witchspace jump aborted (too close to %@.)";
 	"witch-user-abort"				= "Witchspace jump aborted.";
+	"witch-no-motor"				= "Ship incapable of witchspace jump.";
 	"witch-no-target"				= "No target system set.";
 	"witch-no-fuel"					= "Insufficient fuel for witchspace jump.";
 	"witch-too-far"					= "Engines incapable of witchspace jump to that target.";
 	"witch-engine-malfunction"		= "Witchspace engine malfunction!";
 	"witch-galactic-in-f-seconds"	= "Intergalactic jump in %.0f s.";
+	"witch-user-galactic-abort"		= "Intergalactic jump aborted.";
 	"game-paused"					= "Game paused.\nPress F2 for options, P to resume.";
 	"game-paused-docked"			= "Game paused. Press P to resume.";
 	"game-saved"					= "Game saved.";

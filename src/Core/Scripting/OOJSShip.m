@@ -2159,7 +2159,7 @@ static JSBool ShipExitSystem(JSContext *context, JSObject *this, uintN argc, jsv
 	{
 		if (!JS_ValueToInt32(context, argv[0], &systemID) || systemID < 0 || 255 < systemID)
 		{
-			OOReportJSWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"exitSystem", @"system ID",[NSString stringWithJavaScriptValue:argv[0] inContext:context]);
+			OOReportJSBadArguments(context, @"Ship", @"exitSystem", argc, argv, nil, @"system ID");
 			return NO;
 		}
 	}

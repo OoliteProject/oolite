@@ -1622,6 +1622,7 @@
 		energy_recharge_rate = 4;
 		exhaust = ("0.0 0.0 -20.0 5.0 4.0 4.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
+		hyperspace_motor = no;
 		has_scoop = yes;
 		has_shield_booster = 0.4;
 		likely_cargo = 1;
@@ -1705,6 +1706,7 @@
 		exhaust = ("-7.5 0.0 -35.58 4.0 4.0 5.0", "7.5 0.0 -35.58 4.0 4.0 5.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
+		hyperspace_motor = no;
 		has_fuel_injection = 0.65;
 		has_scoop = 0.95;
 		has_shield_booster = 0.5;
@@ -1736,6 +1738,7 @@
 		energy_recharge_rate = 3;
 		exhaust = ("0.0 0.0 -27.5 10.0 8.0 12.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
+		hyperspace_motor = no;
 		has_scoop = 0.95;
 		has_shield_booster = 0.25;
 		likely_cargo = 1;
@@ -1765,6 +1768,7 @@
 		energy_recharge_rate = 3;
 		exhaust = ("0.0 0.0 -27.5 10.0 8.0 12.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
+		hyperspace_motor = no;
 		likely_cargo = 1;
 		max_cargo = 4;
 		max_energy = 240;
@@ -2366,6 +2370,7 @@
 			"-6.7 -6.7 -17.5 4.0 4.0 5.0"
 		);
 		forward_weapon_type = "WEAPON_NONE";
+		hyperspace_motor = no;
 		max_cargo = 30;
 		max_energy = 120;
 		max_flight_pitch = 0.9;
@@ -2391,6 +2396,7 @@
 		energy_recharge_rate = 2;
 		exhaust = ("0.0 0.0 -17.0 8.0 6.0 12.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
+		hyperspace_motor = no;
 		max_energy = 240;
 		max_flight_pitch = 1.6;
 		max_flight_roll = 2.8;
@@ -2415,6 +2421,7 @@
 		energy_recharge_rate = 2.5;
 		exhaust = ("0.0 0.0 -17.0 8.0 6.0 12.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
+		hyperspace_motor = no;
 		max_energy = 240;
 		max_flight_pitch = 1.8;
 		max_flight_roll = 2.8;
@@ -2537,6 +2544,7 @@
 		energy_recharge_rate = 3;
 		exhaust = ("6.125 -0.75 -17.5 3.0 3.0 4.0", "-6.125 -0.75 -17.5 3.0 3.0 4.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
+		hyperspace_motor = no;
 		max_cargo = 12;
 		max_energy = 150;
 		max_flight_pitch = 1;
@@ -2688,6 +2696,7 @@
 		energy_recharge_rate = 2;
 		exhaust = ("0.0 0.0 -17.5 7.0 6.0 6.0");
 		forward_weapon_type = "WEAPON_NONE";
+		hyperspace_motor = no;
 		likely_cargo = 1;
 		max_cargo = 2;
 		max_energy = 75;

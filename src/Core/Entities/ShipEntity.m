@@ -296,6 +296,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	if (![UNIVERSE strict])
 	{
 		hyperspaceMotorSpinTime = [shipDict oo_floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
+		if(![shipDict oo_boolForKey:@"hyperspace_motor" defaultValue:YES]) hyperspaceMotorSpinTime = -1;
 	}
 	else
 	{
@@ -2214,6 +2215,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (BOOL) hasAllEquipment:(id)equipmentKeys
 {
 	return [self hasAllEquipment:equipmentKeys includeWeapons:NO];
+}
+
+
+- (BOOL) hasHyperspaceMotor
+{
+	return hyperspaceMotorSpinTime >= 0;
 }
 
 

@@ -4847,7 +4847,7 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setText:shipName forRow:0 align:GUI_ALIGN_CENTER];
 		
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-present-system"), systemName, nil]	forRow:1];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-hyperspace-system"), targetSystemName, nil] forRow:2];
+		if ([self hasHyperspaceMotor]) [gui setArray:[NSArray arrayWithObjects:DESC(@"status-hyperspace-system"), targetSystemName, nil] forRow:2];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-condition"), alert_desc, nil]			forRow:3];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-fuel"), fuel_desc, nil]				forRow:4];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-cash"), credits_desc, nil]			forRow:5];
@@ -5327,7 +5327,7 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setTitle:DESC(@"short-range-chart-title")];
 		[gui setText:targetSystemName forRow:19];
 		[gui setText:[NSString stringWithFormat:DESC(@"short-range-chart-distance-f"), distance]   forRow:20];
-		[gui setText:((distance > 0 && distance <= fuel/10.0f) ? [NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:21];
+		if ([self hasHyperspaceMotor]) [gui setText:((distance > 0 && distance <= fuel/10.0f) ? [NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:21];
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */

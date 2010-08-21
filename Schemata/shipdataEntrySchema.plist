@@ -101,6 +101,7 @@
 		is_carrier = "boolean";
 		isCarrier = "boolean";
 		no_boulders = "fuzzyBoolean";
+		hyperspace_motor = "boolean";
 		hyperspace_motor_spin_time = "positiveFloat";
 		throw_sparks = "boolean";
 		max_missiles = "positiveInteger";

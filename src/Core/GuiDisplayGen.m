@@ -44,6 +44,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 
+- (void) drawCrossHairsWithSize:(GLfloat) size x:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawEqptList: (NSArray *)eqptList z:(GLfloat)z;
@@ -1227,6 +1228,21 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
+- (void) drawCrossHairsWithSize:(GLfloat) size x:(GLfloat)x y:(GLfloat)y z:(GLfloat)z
+{
+	OOGLBEGIN(GL_QUADS);
+		glVertex3f(x - 1,	y - size,	z);
+		glVertex3f(x + 1,	y - size,	z);
+		glVertex3f(x + 1,	y + size,	z);
+		glVertex3f(x - 1,	y + size,	z);
+		glVertex3f(x - size,	y - 1,	z);
+		glVertex3f(x + size,	y - 1,	z);
+		glVertex3f(x + size,	y + 1,	z);
+		glVertex3f(x - size,	y + 1,	z);
+	OOGLEND();
+}
+
+
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
@@ -1255,13 +1271,17 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// get a list of systems marked as contract destinations
 	NSArray* markedDestinations = [player markedDestinations];
-
-	// draw fuel range circle
-	//
-	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
-	OOGL(glLineWidth(2.0f));
+	
+	// get present location
 	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
-	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
+
+	if ([player hasHyperspaceMotor])
+	{
+		// draw fuel range circle
+		OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
+		OOGL(glLineWidth(2.0f));
+		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
+	}
 		
 	// draw marks and stars
 	//
@@ -1395,31 +1415,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	// draw cross-hairs over current location
 	//
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
-	OOGLBEGIN(GL_QUADS);
-		glVertex3f(x + cu.x - 1,	y + cu.y - 14,	z);
-		glVertex3f(x + cu.x + 1,	y + cu.y - 14,	z);
-		glVertex3f(x + cu.x + 1,	y + cu.y + 14,	z);
-		glVertex3f(x + cu.x - 1,	y + cu.y + 14,	z);
-		glVertex3f(x + cu.x - 14,	y + cu.y - 1,	z);
-		glVertex3f(x + cu.x + 14,	y + cu.y - 1,	z);
-		glVertex3f(x + cu.x + 14,	y + cu.y + 1,	z);
-		glVertex3f(x + cu.x - 14,	y + cu.y + 1,	z);
-	OOGLEND();
+	[self drawCrossHairsWithSize:14 x:x + cu.x y:y + cu.y z:z];
 	
 	// draw cross hairs over cursor
 	//
 	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	//	red
 	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
-	OOGLBEGIN(GL_QUADS);
-		glVertex3f(x + cu.x - 1,	y + cu.y - 7,	z);
-		glVertex3f(x + cu.x + 1,	y + cu.y - 7,	z);
-		glVertex3f(x + cu.x + 1,	y + cu.y + 7,	z);
-		glVertex3f(x + cu.x - 1,	y + cu.y + 7,	z);
-		glVertex3f(x + cu.x - 7,	y + cu.y - 1,	z);
-		glVertex3f(x + cu.x + 7,	y + cu.y - 1,	z);
-		glVertex3f(x + cu.x + 7,	y + cu.y + 1,	z);
-		glVertex3f(x + cu.x - 7,	y + cu.y + 1,	z);
-	OOGLEND();
+	[self drawCrossHairsWithSize:7 x:x + cu.x y:y + cu.y z:z];
 }
 
 
@@ -1536,40 +1538,25 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		[self setText:DESC(@"long-range-chart-system-unreachable")  forRow:18];
 	}
 	
-	// draw fuel range circle
-	//
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
 	OOGL(glLineWidth(2.0f));
 	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
-	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
+	
+	if ([player hasHyperspaceMotor])
+	{
+		// draw fuel range circle
+		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
+	}
 	
 	// draw cross-hairs over current location
 	//
-	OOGLBEGIN(GL_QUADS);
-		glVertex3f(x + cu.x - 1,	y + cu.y - 14,	z);
-		glVertex3f(x + cu.x + 1,	y + cu.y - 14,	z);
-		glVertex3f(x + cu.x + 1,	y + cu.y + 14,	z);
-		glVertex3f(x + cu.x - 1,	y + cu.y + 14,	z);
-		glVertex3f(x + cu.x - 14,	y + cu.y - 1,	z);
-		glVertex3f(x + cu.x + 14,	y + cu.y - 1,	z);
-		glVertex3f(x + cu.x + 14,	y + cu.y + 1,	z);
-		glVertex3f(x + cu.x - 14,	y + cu.y + 1,	z);
-	OOGLEND();
+	[self drawCrossHairsWithSize:12 x:x + cu.x y:y + cu.y z:z];
 	
 	// draw cross hairs over cursor
 	//
 	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	//	red
 	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
-	OOGLBEGIN(GL_QUADS);
-		glVertex3f(x + cu.x - 1,	y + cu.y - 7,	z);
-		glVertex3f(x + cu.x + 1,	y + cu.y - 7,	z);
-		glVertex3f(x + cu.x + 1,	y + cu.y + 7,	z);
-		glVertex3f(x + cu.x - 1,	y + cu.y + 7,	z);
-		glVertex3f(x + cu.x - 7,	y + cu.y - 1,	z);
-		glVertex3f(x + cu.x + 7,	y + cu.y - 1,	z);
-		glVertex3f(x + cu.x + 7,	y + cu.y + 1,	z);
-		glVertex3f(x + cu.x - 7,	y + cu.y + 1,	z);
-	OOGLEND();
+	[self drawCrossHairsWithSize:6 x:x + cu.x y:y + cu.y z:z];
 	
 	// draw marks
 	//

@@ -273,6 +273,7 @@
 			"is_carrier",
 			"isCarrier",
 			"no_boulders",
+			"hyperspace_motor",
 			"hyperspace_motor_spin_time",
 			"throw_sparks",
 			"max_missiles",

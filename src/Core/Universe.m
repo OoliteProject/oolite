@@ -5843,7 +5843,6 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed
 {
 	return [self getSystemInhabitants:s_seed plural:YES];
@@ -7403,16 +7402,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	if (ship_aft_weapon)
 	{
 		weapon_key = WeaponTypeToEquipmentString(ship_aft_weapon);
-		if (base_weapon_key)
+		if (base_weapon_key != nil) // aft weapon was defined as a base weapon
 		{
-			if (weapon_key)
-			{
-				ship_main_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
-			}
-			else
-			{
-				ship_main_weapons_value += [UNIVERSE getEquipmentPriceForKey:base_weapon_key] / 10;
-			}
+			ship_main_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;	//take weapon downgrades into account
 		}
 		else
 		{
@@ -7430,15 +7422,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		ship_other_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
 	}
 	
-	// add on extra weapons - base weapons
-	extra_equipment_value += ship_main_weapons_value - base_weapons_value;
+	// add on extra weapons, take away the value of the base weapons
 	extra_equipment_value += ship_other_weapons_value;
+	extra_equipment_value += ship_main_weapons_value - base_weapons_value;
 	
 	int i;
 	NSString *eq_key = nil;
 	
 	// shipyard.plist settings might have duplicate keys.
-	
 	// cull possible duplicates from inside base equipment
 	for (i = [base_extra_equipment count]-1; i > 0;i--)
 	{

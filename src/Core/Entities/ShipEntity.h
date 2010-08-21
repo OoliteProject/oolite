@@ -438,6 +438,7 @@ MA 02110-1301, USA.
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey;	// Actual test if equipment satisfies validation criteria.
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey;
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition;
+- (BOOL) hasHyperspaceMotor;
 
 - (NSEnumerator *) equipmentEnumerator;
 - (unsigned) equipmentCount;

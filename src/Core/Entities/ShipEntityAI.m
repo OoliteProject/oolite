@@ -2349,6 +2349,12 @@ static WormholeEntity *whole = nil;
 
 - (BOOL) performHyperSpaceExitReplace:(BOOL)replace toSystem:(OOSystemID)systemID
 {
+	if(![self hasHyperspaceMotor])
+	{
+		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE" context:@"performHyperSpaceExit"];
+		return NO;
+	}
+	
 	// The [UNIVERSE nearbyDestinationsWithinRange:] method is very expensive, so cache
 	// its results.
 	static NSArray	*sDests = nil;
@@ -2365,7 +2371,7 @@ static WormholeEntity *whole = nil;
 	// if none available report to the AI and exit
 	if (!n_dests)
 	{
-		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE" context:@"performHyperSpaceExit[WithoutReplacing]"];
+		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE" context:@"performHyperSpaceExit"];
 		
 		// If no systems exist near us, the AI is switched to a different state, so we do not need
 		// the nearby destinations array anymore.
@@ -2379,7 +2385,7 @@ static WormholeEntity *whole = nil;
 	if (blocker)
 	{
 		found_target = [blocker universalID];
-		[shipAI reactToMessage:@"WITCHSPACE BLOCKED" context:@"performHyperSpaceExit[WithoutReplacing]"];
+		[shipAI reactToMessage:@"WITCHSPACE BLOCKED" context:@"performHyperSpaceExit"];
 		[sDests release];
 		sDests = nil;
 		return NO;
