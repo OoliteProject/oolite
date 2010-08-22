@@ -61,7 +61,7 @@ static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amo
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
-static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive);
+static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary* propertiesReticleTargetSensitive);
 static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
 
 
@@ -202,7 +202,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	overallAlpha = [hudinfo oo_floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
 	
 	reticleTargetSensitive = [hudinfo oo_boolForKey:@"reticle_target_sensitive" defaultValue:NO];
-	
+	propertiesReticleTargetSensitive = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
+										[NSNumber numberWithBool:YES], @"isAccurate", 
+										[NSNumber numberWithDouble:[UNIVERSE getTime]], @"timeLastAccuracyProbabilityCalculation", 
+										nil];
+
 	cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:YES];
 	
 	last_transmitter = NO_TARGET;
@@ -353,6 +357,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (void) setReticleTargetSensitive:(BOOL) newReticleTargetSensitiveValue
 {
 	reticleTargetSensitive = !!newReticleTargetSensitiveValue; // ensure YES or NO.
+}
+
+
+- (NSMutableDictionary *) propertiesReticleTargetSensitive
+{
+	return propertiesReticleTargetSensitive;
 }
 
 
@@ -1894,7 +1904,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	if ([player primaryTargetID] != NO_TARGET)
 	{
-		hudDrawReticleOnTarget([player primaryTarget], player, z1, alpha, reticleTargetSensitive);
+		hudDrawReticleOnTarget([player primaryTarget], player, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive);
 		[self drawDirectionCue:info];
 	}
 }
@@ -2441,7 +2451,7 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive)
+static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary* propertiesReticleTargetSensitive)
 {
 	ShipEntity		*target_ship = nil;
 	NSString		*legal_desc = nil;
@@ -2540,6 +2550,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	//rotate to face player1
 	GLMultOOMatrix(back_mat);
 	// draw the reticle
+	float range = sqrtf(target->zero_distance) - target->collision_radius;
 #if WORMHOLE_SCANNER
 	// Draw reticle cyan for Wormholes
 	if ([target isWormhole] )
@@ -2549,8 +2560,55 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	else
 #endif
 	{
-		// If reticle is target sensitive, draw target box in red when target passes through crosshairs.
-		if (reticleTargetSensitive && [UNIVERSE getFirstEntityTargetedByPlayer] == [player1 primaryTarget])
+		// Reticle sensitivity accuracy calculation
+		BOOL			isTargeted=NO;
+		GLfloat 		target_distance;   // Not used. Just to give a memory plaeholder for getFirstEntityHitByLaserFromEntity to return a value
+		GLfloat			probabilityAccuracy;
+		
+		// Only if target is within player's weapon range, we mind for reticle accuracy
+		if (range < [player1 weaponRange])
+		{
+			// After MAX_ACCURACY_RANGE km start decreasing high accuracy probability by ACCURACY_PROBABILITY_DECREASE_FACTOR%
+			if (range > MAX_ACCURACY_RANGE)   
+			{
+				// Every one second re-evaluate accuracy
+				if ([UNIVERSE getTime] > [propertiesReticleTargetSensitive oo_doubleForKey:@"timeLastAccuracyProbabilityCalculation"] + 1) 
+				{
+					probabilityAccuracy = 1-(range-MAX_ACCURACY_RANGE)*ACCURACY_PROBABILITY_DECREASE_FACTOR; 
+					// Make sure probability does not go below a minimum
+					probabilityAccuracy = probabilityAccuracy < MIN_PROBABILITY_ACCURACY ? MIN_PROBABILITY_ACCURACY : probabilityAccuracy;
+					[propertiesReticleTargetSensitive setObject:[NSNumber numberWithBool:((randf() < probabilityAccuracy) ? YES : NO)] forKey:@"isAccurate"];
+			
+					// Store the time the last accuracy probability has been performed
+					[propertiesReticleTargetSensitive setObject:[NSNumber numberWithDouble:[UNIVERSE getTime]] forKey:@"timeLastAccuracyProbabilityCalculation"];
+				}			
+				if ([propertiesReticleTargetSensitive oo_boolForKey:@"isAccurate"])
+				{
+					// high accuracy reticle
+					isTargeted = ([UNIVERSE getFirstEntityHitByLaserFromEntity:player1 inView:[UNIVERSE viewDirection] offset:make_vector(0,0,0) rangeFound: &target_distance] == [target universalID]) ? YES : NO;
+				}
+				else
+				{
+					// low accuracy reticle
+					isTargeted = ([UNIVERSE getFirstEntityTargetedByPlayer] == target) ? YES : NO;
+				}
+			}
+			else
+			{
+					// high accuracy reticle
+					isTargeted = ([UNIVERSE getFirstEntityHitByLaserFromEntity:player1 inView:[UNIVERSE viewDirection] offset:make_vector(0,0,0) rangeFound: &target_distance] == [target universalID]) ? YES : NO;
+			}
+		}
+		
+		// If reticle is target sensitive, draw target box in red 
+		// when target passes through laser hit-point(with decreasing accuracy) 
+		// and is within hit-range.
+		//
+		// NOTE: The following condition also considers (indirectly) the player's weapon range.
+		//       'isTargeted' is initialised to FALSE. Only if target is within the player's weapon range,
+		//       it might change value. Therefore, it is not necessary to add '&& range < [player1 weaponRange]'
+		//       to the following condition.
+		if (reticleTargetSensitive && isTargeted)
 		{
 			GLColorWithOverallAlpha(red_color, alpha);
 		}
@@ -2574,7 +2632,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	OOGLEND();
 	
 	// add text for reticle here
-	float range = (sqrtf(target->zero_distance) - target->collision_radius) * 0.001f;
+	range *= 0.001f;
 	NSSize textsize = NSMakeSize(rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
 	float line_height = rdist * ONE_SIXTYFOURTH;
 	NSString*	info = (legal_desc == nil)? [NSString stringWithFormat:@"%0.3f km", range] : [NSString stringWithFormat:@"%0.3f km (%@)", range, legal_desc];

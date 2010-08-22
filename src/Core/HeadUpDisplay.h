@@ -183,6 +183,10 @@ MA 02110-1301, USA.
 
 #define ONE_EIGHTH				0.125
 
+#define MAX_ACCURACY_RANGE			7000   // 7.000km
+#define ACCURACY_PROBABILITY_DECREASE_FACTOR	0.000035f   // for every 1000km decrease by 3.5% the chance of high accuracy
+#define MIN_PROBABILITY_ACCURACY		0.35f   // floor value for probability of high accuracy is 35%
+
 
 
 @class Entity, PlayerEntity, OpenGLSprite;
@@ -205,7 +209,8 @@ MA 02110-1301, USA.
 	
 	GLfloat				overallAlpha;
 	
-	BOOL				reticleTargetSensitive;
+	BOOL				reticleTargetSensitive;   // TO DO: Move this into the propertiesReticleTargetSensitive structure (Getafix - 2010/08/21)
+	NSMutableDictionary *propertiesReticleTargetSensitive;
 	
 	BOOL				cloakIndicatorOnStatusLight;
 	
@@ -239,6 +244,7 @@ MA 02110-1301, USA.
 
 - (BOOL) reticleTargetSensitive;
 - (void) setReticleTargetSensitive:(BOOL) newReticleTargetSensitiveValue;
+- (NSMutableDictionary *) propertiesReticleTargetSensitive;
 
 - (BOOL) isHidden;
 - (void) setHidden:(BOOL)newValue;
