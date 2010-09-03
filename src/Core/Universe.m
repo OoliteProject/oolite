@@ -1553,7 +1553,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		[ship setOrientation:qr];
 		
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		[ship release];
 		
 		ship_positions[i] = ship_pos;
 		i++;
@@ -1708,7 +1707,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	
 	[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-	[ship release];
 	
 	return YES;
 }
