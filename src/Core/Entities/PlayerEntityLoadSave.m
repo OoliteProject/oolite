@@ -142,6 +142,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	tmp_name = player_name;
 	tmp_path = save_path;
 	
+	[self doScriptEvent:@"playerWillSaveGame" withArgument:@"autoSave"];
+	
 	NSString *saveName = player_name;
 	if (![player_name hasSuffix:DESC(@"autosave-commander-suffix")])
 				saveName = [player_name stringByAppendingString:DESC(@"autosave-commander-suffix")];
@@ -179,6 +181,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[NSException raise:@"OoliteGameNotSavedException"
 					format:@"ERROR no file name returned by [[gameView gameController] playerFileToLoad]"];
 	}
+	
+	[self doScriptEvent:@"playerWillSaveGame" withArgument:@"quickSave"];
 	
 	[self writePlayerToPath:path];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
@@ -577,6 +581,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		NSArray*	path_components = [[sp filename] pathComponents];
 		NSString*   new_name = [[path_components objectAtIndex:[path_components count]-1] stringByDeletingPathExtension];
 		
+		[self doScriptEvent:@"playerWillSaveGame" withArgument:@"standardSave"];
+		
 		[player_name release];
 		player_name = [new_name copy];
 		
@@ -628,8 +634,9 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 - (void)nativeSavePlayer:(NSString *)cdrName
 {
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	
 	NSString *savePath = [dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
+	
+	[self doScriptEvent:@"playerWillSaveGame" withArgument:@"standardSave"];
 	
 	[player_name release];
 	player_name = [cdrName copy];
