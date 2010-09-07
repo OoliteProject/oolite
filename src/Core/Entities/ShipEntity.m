@@ -7033,7 +7033,7 @@ BOOL class_masslocks(int some_class)
 	}
 
 	// check if we are flying toward (or away from) the destination..
-	if (reverse * d_forward < max_cos)	// not on course so we must adjust controls..
+	if ((d_forward < max_cos)||(retreat))	// not on course so we must adjust controls..
 	{
 
 		if (d_forward <= -max_cos)  // hack to avoid just flying away from the destination
