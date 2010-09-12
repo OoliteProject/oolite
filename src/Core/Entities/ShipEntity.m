@@ -3129,6 +3129,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	desired_speed = max_available_speed;
 	if (range < COMBAT_IN_RANGE_FACTOR * weaponRange)
 	{
+		jink.x = (ranrot_rand() % 256) - 128.0;
+		jink.y = (ranrot_rand() % 256) - 128.0;
+		jink.z = 1000.0;
 		behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 	}
 	else
@@ -3176,9 +3179,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double	slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
-		double last_success_factor = success_factor; // EW
+		double last_success_factor = success_factor;
 	double distance = [self rangeToDestination];
-		success_factor = distance; // EW
+		success_factor = distance;
 		
 	if (range < slow_down_range)
 	{
@@ -3217,9 +3220,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	double confidenceFactor = [self trackDestination:delta_t :NO];
 	
-	if(success_factor > last_success_factor || confidenceFactor < 0.85) frustration += delta_t;  // EW
+	if(success_factor > last_success_factor || confidenceFactor < 0.85) frustration += delta_t;
 	else if(frustration > 0.0) frustration -= delta_t;
-	if(frustration > 10)  // EW
+	if(frustration > 10)
 	{
 		frustration = 0.0;
 		if (randf() < 0.4) 
@@ -3408,6 +3411,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			if (randf() < 0.3) desired_speed = maxFlightSpeed * (([self hasFuelInjection] && (fuel > MIN_FUEL)) ? [self afterburnerFactor] : 1);
 			else if (range > COMBAT_IN_RANGE_FACTOR * weaponRange && randf() < 0.3) behaviour = BEHAVIOUR_ATTACK_TARGET;
+			
+			jink.x = (ranrot_rand() % 256) - 128.0;
+			jink.y = (ranrot_rand() % 256) - 128.0;
+			jink.z /= 2; // move the z-offset closer to the target than before.
 			frustration = 0.0;
 		}
 	}
@@ -3462,10 +3469,30 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
+	double last_range = success_factor;
+	success_factor = range;
+
 	if (range > desired_range || range == 0)
 		[shipAI message:@"REACHED_SAFETY"];
 	else
 		desired_speed = max_available_speed;
+
+	if (range > last_range)	// improvement
+	{
+		frustration -= 0.25 * delta_t;
+		if (frustration < 0.0)
+			frustration = 0.0;
+	}
+	else
+	{
+		frustration += delta_t;
+		if (frustration > 15.0)	// 15s of frustration
+		{
+			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FLEE_TARGET"];
+			frustration = 0.0;
+		}
+	}
+	
 	[self trackPrimaryTarget:delta_t:YES];
 
 	int missile_chance = 0;
@@ -6713,7 +6740,7 @@ BOOL class_masslocks(int some_class)
 	}
 
 	//jink if retreating
-	if (retreat && (range2 > 250000.0))	// don't jink if closer than 500m - just RUN
+	if (retreat) // calculate jink position when flying away from target.
 	{
 		Vector vx, vy, vz;
 		if (target->isShip)
@@ -6730,9 +6757,11 @@ BOOL class_masslocks(int some_class)
 			vy = vector_up_from_quaternion(q);
 			vz = vector_forward_from_quaternion(q);
 		}
-		relPos.x += jink.x * vx.x + jink.y * vy.x + jink.z * vz.x;
-		relPos.y += jink.x * vx.y + jink.y * vy.y + jink.z * vz.y;
-		relPos.z += jink.x * vx.z + jink.y * vy.z + jink.z * vz.z;
+		
+		double rangeModifier = (range2 > 250000.0) ? 1 : (range2 / 250000.0); // don't jink to strong when closer than 500m
+		relPos.x += (jink.x * vx.x + jink.y * vy.x + jink.z * vz.x) * rangeModifier;
+		relPos.y += (jink.x * vx.y + jink.y * vy.y + jink.z * vz.y) * rangeModifier;
+		relPos.z += (jink.x * vx.z + jink.y * vy.z + jink.z * vz.z) * rangeModifier;
 	}
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
@@ -6790,9 +6819,9 @@ BOOL class_masslocks(int some_class)
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
-				stick_roll = - max_flight_roll * reverse * 0.125 * factor; // note#
+				stick_roll = - max_flight_roll * 0.125 * factor; // note#
 			if (d_right < -min_d)
-				stick_roll = + max_flight_roll * reverse * 0.125 * factor; // note#
+				stick_roll = + max_flight_roll * 0.125 * factor; // note#
 		}
 		if (d_up < -min_d)
 		{
@@ -6800,9 +6829,9 @@ BOOL class_masslocks(int some_class)
 			if (factor > 8)
 				factor = 8;
 			if (d_right > min_d)
-				stick_roll = + max_flight_roll * reverse * 0.125 * factor; // note#
+				stick_roll = + max_flight_roll * 0.125 * factor; // note#
 			if (d_right < -min_d)
-				stick_roll = - max_flight_roll * reverse * 0.125 * factor; // note#
+				stick_roll = - max_flight_roll * 0.125 * factor; // note#
 		}
 
 		if (stick_roll == 0.0)
@@ -6817,6 +6846,7 @@ BOOL class_masslocks(int some_class)
 		}
 	}
 	/*	#  note
+		Eric 3-7-2010:
 		It seems that doing a reverse sign stick_roll when flying away from a target is mathematical wrong.
 		It leads to turning in the wrong direction, with as result that stick_roll never will be zero, so the following
 		stick_pitch correction never takes place. That ships still fly from the target is because of the fail-safe
@@ -6824,8 +6854,15 @@ BOOL class_masslocks(int some_class)
 		but at an angle. Untill a certain distance where correction stop and the ship just flies away.
 		However, from game perspective this behaviour is wanted as it makes the ship a more difficult target to shoot
 		down when starting to fly away.
-		On the other hand does it interfere with the jink mechanisme that was also intended to prevent flying away
-		at a straight angle at close range. So it might be worth to correct the bug and check if jink is working for this.
+		On the other hand does it interfere with the jink mechanisme that was also intended to make it fly away
+		at a straight angle when not at close range.
+		Eric 9-9-2010: After some testing:
+		The jink was programmed to do nothing within 500 meters so the ship and just fly away in direct line from the target.
+		Because of the bug the ships always rolled to the wrong side needed to fly away in direct line resulting in making it
+		a difficult target. When fixing the bug, the ship really flys away in direct line during the first 500 meters,
+		making it a easy target for the player. This means that the ships also should jink at close range. Only at close
+		range the jink offset from the target must be made smaller to prevent the ship flying "away" in the direction
+		of the target.
 	*/
 
 	// end rule-of-thumb manoeuvres
