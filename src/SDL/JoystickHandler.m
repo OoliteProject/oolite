@@ -222,19 +222,8 @@ MA 02110-1301, USA.
                    function: (int)function
                       stick: (int)stickNum
 {
-   int i, j;
    Sint16 axisvalue=SDL_JoystickGetAxis(stick[stickNum], axis);
-   for(i=0; i < MAX_AXES; i++)
-   {
-      for(j=0; j < MAX_STICKS; j++)
-      {
-         if(axismap[j][i] == function)
-         {
-            axismap[j][i] = STICK_NOFUNCTION;
-            break;
-         }
-      }
-   }
+   [self unsetAxisFunction: function];
    axismap[stickNum][axis]=function;
 
    // initialize the throttle to what it's set to now (or else the
@@ -375,18 +364,22 @@ MA 02110-1301, USA.
    // certain function? Convert axis value to a double.
    double axisvalue=(double)evt->value;
 
-   // Is there a callback we need to make?
-   if(cbObject && (cbHardware & HW_AXIS) && abs(axisvalue) > AXCBTHRESH)
+   // First check if there is a callback and...
+   if(cbObject && (cbHardware & HW_AXIS)) 
    {
-      NSLog(@"Callback...");
-      NSDictionary *fnDict=[NSDictionary dictionaryWithObjectsAndKeys:
-          [NSNumber numberWithBool: YES], STICK_ISAXIS,
-          [NSNumber numberWithInt: evt->which], STICK_NUMBER, 
-          [NSNumber numberWithInt: evt->axis], STICK_AXBUT,
-           nil];
-      cbHardware=0;
-      [cbObject performSelector:cbSelector withObject:fnDict];
-      cbObject=nil;
+      // ...then check if axis moved more than AXCBTHRESH - (fix for BUG #17482)
+      if(abs(axisvalue) > AXCBTHRESH) 
+	  {
+         NSLog(@"Callback...");
+         NSDictionary *fnDict=[NSDictionary dictionaryWithObjectsAndKeys:
+             [NSNumber numberWithBool: YES], STICK_ISAXIS,
+             [NSNumber numberWithInt: evt->which], STICK_NUMBER, 
+             [NSNumber numberWithInt: evt->axis], STICK_AXBUT,
+              nil];
+         cbHardware=0;
+         [cbObject performSelector:cbSelector withObject:fnDict];
+         cbObject=nil;
+      }
 
       // we are done.
       return;

@@ -8029,7 +8029,8 @@ static NSString *last_outfitting_key=nil;
 	ADD_FLAG_IF_SET(using_mining_laser);
 	ADD_FLAG_IF_SET(mouse_control_on);
 	ADD_FLAG_IF_SET(isSpeechOn);
-	ADD_FLAG_IF_SET(keyboardRollPitchOverride);
+	ADD_FLAG_IF_SET(keyboardRollOverride);   // Handle keyboard roll...
+	ADD_FLAG_IF_SET(keyboardPitchOverride);  // ...and pitch override separately - (fix for BUG #17490)
 	ADD_FLAG_IF_SET(keyboardYawOverride);
 	ADD_FLAG_IF_SET(waitingForStickCallback);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";

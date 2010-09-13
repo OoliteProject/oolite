@@ -509,7 +509,8 @@ static NSTimeInterval	time_last_frame;
 						/*	Ensure the keyboard pitch override (intended to lock
 						 out the joystick if the player runs to the keyboard)
 						 is reset */
-						keyboardRollPitchOverride = NO;
+						keyboardRollOverride = NO;
+						keyboardPitchOverride = NO;
 						keyboardYawOverride = NO;
 						mouse_x_axis_map_to_yaw = [gameView isCtrlDown];
 					}
@@ -671,24 +672,23 @@ static NSTimeInterval	time_last_frame;
 	#if OOLITE_HAVE_JOYSTICK
 				// DJS: Thrust can be an axis or a button. Axis takes precidence.
 				double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
-				if(reqSpeed == STICK_AXISUNASSIGNED || [stickHandler getNumSticks] == 0)
+				// Updated DJS original code to fix BUG #17482 - (Getafix 2010/09/13)
+				if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
 				{
-					// DJS: original keyboard code
-					if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
-					{
-						flightSpeed += speed_delta * delta_t;
-					}
+					flightSpeed += speed_delta * delta_t;
+				}
 					
-					// ** tgape ** - decrease obviously means no hyperspeed
-					if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
-					{
-						flightSpeed -= speed_delta * delta_t;
+				// ** tgape ** - decrease obviously means no hyperspeed
+				if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
+				{
+					flightSpeed -= speed_delta * delta_t;
 						
-						// ** tgape ** - decrease obviously means no hyperspeed
-						hyperspeed_engaged = NO;
-					}
-				} // DJS: STICK_NOFUNCTION else...a joystick axis is assigned to thrust.
-				else
+					// ** tgape ** - decrease obviously means no hyperspeed
+					hyperspeed_engaged = NO;
+				}
+
+				NSDictionary *functionForThrustAxis = [[stickHandler getAxisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_THRUST] stringValue]];
+				if([stickHandler getNumSticks] != 0 && functionForThrustAxis != nil)
 				{
 					if (flightSpeed < maxFlightSpeed * reqSpeed)
 					{
@@ -698,7 +698,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						flightSpeed -= speed_delta * delta_t;
 					}
-				} // DJS: end joystick thrust axis
+				} // DJS: end joystick thrust axis (Getafix - End code update for fixing BUG #17482)
 	#else
 				if (([gameView isDown:key_increase_speed])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
 				{
@@ -2690,20 +2690,27 @@ static NSTimeInterval	time_last_frame;
 	else if (numSticks > 0)
 	{
 		virtualStick=[stickHandler getRollPitchAxis];
-		if((virtualStick.x == STICK_AXISUNASSIGNED ||
-		   virtualStick.y == STICK_AXISUNASSIGNED) ||
-		   (fabs(virtualStick.x) < deadzone &&
-		    fabs(virtualStick.y) < deadzone))
+		// handle roll separately (fix for BUG #17490)
+		if((virtualStick.x == STICK_AXISUNASSIGNED) || (fabs(virtualStick.x) < deadzone))
 		{
 			// Not assigned or deadzoned - set to zero.
 			virtualStick.x=0;
-			virtualStick.y=0;
 		}
-		else if(virtualStick.x != 0 ||
-				virtualStick.y != 0)
+		else if(virtualStick.x != 0)
 		{
 			// cancel keyboard override, stick has been waggled
-			keyboardRollPitchOverride=NO;
+			keyboardRollOverride=NO;
+		}
+		// handle pitch separately (fix for BUG #17490)
+		if((virtualStick.y == STICK_AXISUNASSIGNED) || (fabs(virtualStick.y) < deadzone))
+		{
+			// Not assigned or deadzoned - set to zero.
+			virtualStick.y=0;
+		}
+		else if(virtualStick.y != 0)
+		{
+			// cancel keyboard override, stick has been waggled
+			keyboardPitchOverride=NO;
 		}
 		// handle yaw separately from pitch/roll
 		reqYaw = [stickHandler getAxisState: AXIS_YAW];
@@ -2729,20 +2736,20 @@ static NSTimeInterval	time_last_frame;
 	{
 		if ([gameView isDown:key_roll_left])
 		{
-			keyboardRollPitchOverride=YES;
+			keyboardRollOverride=YES;
 			if (flightRoll > 0.0)  flightRoll = 0.0;
 			[self decrease_flight_roll:delta_t*roll_delta];
 			rolling = YES;
 		}
 		if ([gameView isDown:key_roll_right])
 		{
-			keyboardRollPitchOverride=YES;
+			keyboardRollOverride=YES;
 			if (flightRoll < 0.0)  flightRoll = 0.0;
 			[self increase_flight_roll:delta_t*roll_delta];
 			rolling = YES;
 		}
 	}
-	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollPitchOverride)
+	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride)
 	{
 		double stick_roll = max_flight_roll * virtualStick.x;
 		if (flightRoll < stick_roll)
@@ -2779,20 +2786,20 @@ static NSTimeInterval	time_last_frame;
 	{
 		if ([gameView isDown:key_pitch_back])
 		{
-			keyboardRollPitchOverride=YES;
+			keyboardPitchOverride=YES;
 			if (flightPitch < 0.0)  flightPitch = 0.0;
 			[self increase_flight_pitch:delta_t*pitch_delta];
 			pitching = YES;
 		}
 		if ([gameView isDown:key_pitch_forward])
 		{
-			keyboardRollPitchOverride=YES;
+			keyboardPitchOverride=YES;
 			if (flightPitch > 0.0)  flightPitch = 0.0;
 			[self decrease_flight_pitch:delta_t*pitch_delta];
 			pitching = YES;
 		}
 	}
-	if(mouse_control_on || (numSticks && !keyboardRollPitchOverride))
+	if(mouse_control_on || (numSticks && !keyboardPitchOverride))
 	{
 		double stick_pitch = max_flight_pitch * virtualStick.y;
 		if (flightPitch < stick_pitch)
