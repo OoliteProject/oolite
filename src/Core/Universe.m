@@ -7064,6 +7064,8 @@ double estimatedTimeForJourney(double distance, int hops)
 			[description appendFormat:@"%@:", shipName];
 			[short_description appendFormat:@"%@:", shipName];
 			
+			unsigned available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];	// use defaults  explicitly
+
 			OOWeaponType fwd_weapon = EquipmentStringToWeaponTypeSloppy(fwd_weapon_string);
 			OOWeaponType aft_weapon = EquipmentStringToWeaponTypeSloppy(aft_weapon_string);
 			//port and starboard weapons are not modified in the shipyard
@@ -7143,7 +7145,7 @@ double estimatedTimeForJourney(double distance, int hops)
 						{
 							OOWeaponType new_weapon = EquipmentStringToWeaponTypeSloppy(equipmentKey);
 							//fit best weapon forward
-							if (new_weapon > fwd_weapon)
+							if (available_facings & WEAPON_FACING_FORWARD && new_weapon > fwd_weapon)
 							{
 								//again remember to divide price by 10 to get credits from tenths of credit
 								price -= [self getEquipmentPriceForKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
@@ -7157,7 +7159,7 @@ double estimatedTimeForJourney(double distance, int hops)
 							else 
 							{
 								//if less good than current forward, try fitting is to rear
-								if (!aft_weapon || new_weapon > aft_weapon)
+								if (available_facings & WEAPON_FACING_AFT && (!aft_weapon || new_weapon > aft_weapon))
 								{
 									price -= [self getEquipmentPriceForKey:aft_weapon_string] * 90 / 1000;	// 90% credits
 									price += eqPrice;
