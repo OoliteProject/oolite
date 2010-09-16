@@ -936,7 +936,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	NSDictionary *atmo_dictionary = [NSDictionary dictionaryWithObject:@"0" forKey:@"percent_cloud"];
 	[atmosphere autorelease];
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary];
+	atmosphere = [self planetType] == STELLAR_TYPE_MOON ? nil : [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary];
 	
 	rotationAxis = kBasisYVector;
 	
