@@ -2534,7 +2534,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	NSString	*identifier = [eqType identifier];
 	unsigned	i;
 	
-	if ([identifier isEqualToString:@"thargon"]) identifier = @"EQ_THARGON";
 	for (i = 0; i < missiles; i++)
 	{
 		if ([[missile_list[i] identifier] isEqualTo:identifier])
@@ -5694,7 +5693,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	[self setStatus:STATUS_DEAD];
 	
 	NS_DURING
-		if ([self isThargoid])  [self broadcastThargoidDestroyed];
+	if ([self isThargoid] && [roleSet hasRole:@"thargoid-mothership"])  [self broadcastThargoidDestroyed];
 		
 		if (!suppressExplosion)
 		{

@@ -9,7 +9,20 @@
 		"ENERGY_LOW" = ("setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"TARGET_DESTROYED" = ("setStateTo: DOCK_WITH_STATION");
-		"TARGET_LOST" = ("setStateTo: DOCK_WITH_STATION");
+		"TARGET_LOST" = ("setStateTo: CLEAR_STATION"); 
+	};
+	"CLEAR_STATION" =
+	{
+		ENTER = 
+		(
+			getWitchspaceEntryCoordinates, setDestinationFromCoordinates,
+			"setDesiredRangeTo: 100.0", "setSpeedFactorTo: 0.75",
+			performFlyToRangeFromDestination, "pauseAI: 5"
+		);
+		ATTACKED = (switchLightsOn, setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
+		"GROUP_ATTACK_TARGET" = (switchLightsOn, setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		UPDATE = ("setStateTo: DOCK_WITH_STATION", "pauseAI: 5.0");
 	};
 	"DOCK_WITH_STATION" =
 	{

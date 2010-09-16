@@ -195,6 +195,7 @@
 		"setStateTo:",
 		"debugMessage:",
 		"disengageAutopilot",		// Only useful for player root AI
+		"thargonCheckMother",
 				
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",

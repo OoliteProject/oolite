@@ -1207,7 +1207,6 @@
 		name = "Constrictor";
 		pilot = "constrictor-mission-thief";	// key to entry in characters.plist
 		roles = "constrictor";
-		script = "oolite-constrictor.js";
 		thrust = 50;
 		weapon_position_aft = "0.0 -4.5 -30.0";
 		weapon_position_forward = "0.0 0.0 27.5";

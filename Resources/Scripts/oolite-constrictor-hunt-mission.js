@@ -171,5 +171,8 @@ this.shipExitedWitchspace = this.shipLaunchedFromStation = function ()
 	{
 		var constrictor = system.addShips("constrictor", 1);
 		constrictor[0].bounty = 250; // Ensure a bounty, in case it was missing in a custom shipdata.plist.
+		// Attach script here and not in shipdata, so that like_ship copies of the constrictor have no mission script,
+		// only the version used for the mission will have the script now.
+		constrictor[0].setScript("oolite-constrictor.js");
 	}
 };

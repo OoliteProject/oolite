@@ -10,21 +10,19 @@
 		"TARGET_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL");
 		"TARGET_LOST" = ("setStateTo: CHECK_FOR_CONTROL");
 		"NOTHING_FOUND" = ("setStateTo: CHECK_FOR_CONTROL");
-		UPDATE = ("scanForNearestShipHavingRole: thargoid-mothership", "pauseAI: 5.0");
+		UPDATE = (thargonCheckMother, "pauseAI: 5.0");
 	};
 	"CHECK_FOR_CONTROL" =
 	 {
 		ENTER = ("setSpeedTo: 0.0", performTumble);
-		"THARGOID_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL");
 		"TARGET_FOUND" = ("setStateTo: LOOK_FOR_TARGETS");
 		"NOTHING_FOUND" = (becomeUncontrolledThargon);
-		UPDATE = ("scanForNearestShipHavingRole: thargoid-mothership", "pauseAI: 1.0");
+		UPDATE = (thargonCheckMother, "pauseAI: 1.0");
 	};
 	"LOOK_FOR_TARGETS" =
 	 {
 		ENTER = (scanForNonThargoid, "pauseAI: 1.0");
-		"THARGOID_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
-		UPDATE = (scanForNonThargoid, "pauseAI: 10.0");
+		"NOTHING_FOUND" = ("pauseAI: 10.0", "setStateTo: CHECK_FOR_CONTROL");
 	};
 }

@@ -167,6 +167,7 @@ MA 02110-1301, USA.
 
 - (void) scanForThargoid;
 - (void) scanForNonThargoid;
+- (void) thargonCheckMother;
 - (void) becomeUncontrolledThargon;
 
 - (void) checkDistanceTravelled;
@@ -1318,6 +1319,30 @@ static WormholeEntity *whole = nil;
 	
 	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
 	else  [shipAI message:@"NOTHING_FOUND"];
+}
+
+
+- (void) thargonCheckMother
+{
+	ShipEntity   *mother = [self owner];
+	if (mother == nil && [self group])  mother = [[self group] leader];
+	
+	double	maxRange2 = scannerRange * scannerRange;
+	
+	if (mother && magnitude2(vector_subtract(mother->position, position)) < maxRange2)
+	{
+		[shipAI message:@"TARGET_FOUND"]; // no need for scanning, we still have our mother.
+	}
+	else
+	{
+		// we lost the old mother, search for a new one
+		[self scanForNearestShipHavingRole:@"thargoid-mothership"]; // the scan will send further AI messages.
+		if (found_target != NO_TARGET && [UNIVERSE entityForUniversalID:found_target])
+		{
+			[self setOwner:[UNIVERSE entityForUniversalID:found_target]];
+			[self setGroup:[[self owner] group]];
+		};
+	}
 }
 
 
