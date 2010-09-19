@@ -367,6 +367,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return instructions(universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 
+	BoundingBox bb = [ship boundingBox];
+	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
+		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)))
+	{
+		return instructions(universalID, ship->position, 0, 100, @"TOO_BIG_TO_DOCK", nil, NO);
+	}
+	
 #if DOCKING_CLEARANCE_ENABLED
 	// If the ship is not on its docking approach and the player has
 	// requested or even been granted docking clearance, then tell the
@@ -1234,6 +1241,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	if (![ship isShip])  return;
 	
+	BoundingBox bb = [ship boundingBox];
+	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
+		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)))
+	{
+		OOLog(@"station.launchShip.failed", @"Canceled a launch for a %@ with role %@, that is to big for the docking port of the %@.",
+			  [ship displayName], [ship primaryRole], [self displayName]);
+		return;
+	}
+	
 	Vector launchPos = position;
 	Vector launchVel = velocity;
 	double launchSpeed = 0.5 * [ship maxFlightSpeed];
@@ -1244,7 +1260,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	Quaternion q1 = orientation;
 	q1 = quaternion_multiply(port_orientation, q1);
 	Vector launchVector = vector_forward_from_quaternion(q1);
-	BoundingBox bb = [ship boundingBox];
+	
 	if ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y))
 	{
 		quaternion_rotate_about_axis(&q1, launchVector, M_PI*0.5);  // to account for the slot being at 90 degrees to vertical

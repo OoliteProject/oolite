@@ -19,6 +19,7 @@
 		"TRY_AGAIN_LATER" = ("pauseAI: 30.0", "setStateTo: ABORT");
 		"COLLISION" = ("setStateTo: ABORT");
 		"RESTART_DOCKING" = ("setStateTo: GLOBAL");
+		"TOO_BIG_TO_DOCK" = ("exitAIWithMessage: DOCKING_REFUSED");
 		DOCKED = ("setStateTo: EXIT_SYSTEM");
 		"NO_STATION_FOUND" = ("setStateTo: EXIT_SYSTEM");
 		UPDATE = ("pauseAI: 2");

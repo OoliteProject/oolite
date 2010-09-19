@@ -32,7 +32,8 @@
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
 		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
-		"NO_STATION_FOUND" = ("setAITo: exitingTraderAI.plist");
+		"DOCKING_REFUSED" = ("switchAITo: route2sunskimAI.plist");
+		"NO_STATION_FOUND" = ("switchAITo: exitingTraderAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 1.5"); 
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
@@ -53,7 +54,8 @@
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, setTargetToStation, "setAITo: dockingAI.plist");
 		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
-		"NO_STATION_FOUND" = ("setAITo: exitingTraderAI.plist");
+		"DOCKING_REFUSED" = ("switchAITo: route2sunskimAI.plist");
+		"NO_STATION_FOUND" = ("switchAITo: exitingTraderAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 1.5"); 
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
