@@ -292,7 +292,7 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 {
 	if (!missionVariables.nova && galaxyNumber === 3)
 	{
-		if (missionVariables.novacount !== undefined)
+		if (missionVariables.novacount !== null) // " !== undefined" always returns true for missionVariables!
 		{
 			missionVariables.novacount++;
 		}

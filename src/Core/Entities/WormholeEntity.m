@@ -192,6 +192,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	[ring release];
 		
 	// Should probably pass the wormhole, but they have no JS representation
+	[ship setStatus:STATUS_ENTERING_WITCHSPACE];
 	[ship doScriptEvent:@"shipWillEnterWormhole"];
 	[[ship getAI] message:@"ENTERED_WITCHSPACE"];
 	

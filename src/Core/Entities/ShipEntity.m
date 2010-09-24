@@ -9077,6 +9077,9 @@ BOOL class_masslocks(int some_class)
 	// can't pair with self
 	if (self == other_ship)  return NO;
 
+	// no longer in flight, probably entered wormhole without telling escorts.
+	if ([self status] != STATUS_IN_FLIGHT)  return NO;
+	
 	//increased stack depth at which it can accept escorts to avoid rejections at this stage.
 	//doesn't seem to have any adverse effect for now. - Kaks.
 	if ([shipAI stackDepth] > 3)

@@ -1211,7 +1211,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (void) addShipToLaunchQueue:(ShipEntity *) ship
+- (void) addShipToLaunchQueue:(ShipEntity *) ship :(BOOL) priority
 {
 	[self sanityCheckShipsOnApproach];
 	if (!launchQueue)
@@ -1219,7 +1219,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (ship)
 	{
 		[ship setStatus: STATUS_DOCKED];
-		[launchQueue addObject:ship];
+		if (priority)
+			[launchQueue insertObject: ship atIndex: 0];
+		else 
+			[launchQueue addObject:ship];
 	}
 }
 
@@ -1527,7 +1530,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			}
 		}
 		
-		[self addShipToLaunchQueue:ship];
+		[self addShipToLaunchQueue:ship :NO];
 
 		OOShipGroup *escortGroup = [ship escortGroup];
 		if ([ship group] == nil) [ship setGroup:escortGroup];
@@ -1591,7 +1594,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					[escort_ship setOwner:ship];
 					
 					[escort_ship switchAITo:@"escortAI.plist"];
-					[self addShipToLaunchQueue:escort_ship];
+					[self addShipToLaunchQueue:escort_ship :NO];
 					
 					[escort_ship release];
 				}
@@ -1666,7 +1669,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[police_ship setScanClass:CLASS_POLICE];
 			[police_ship setBounty:0];
 			[police_ship switchAITo:@"policeInterceptAI.plist"];
-			[self addShipToLaunchQueue:police_ship];
+			[self addShipToLaunchQueue:police_ship :YES];
 			[police_ship autorelease];
 			defenders_launched++;
 			[result addObject:police_ship];
@@ -1752,7 +1755,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ((scanClass != CLASS_ROCK)&&(scanClass != CLASS_STATION))
 		[defense_ship setScanClass: scanClass];	// same as self
 	
-	[self addShipToLaunchQueue:defense_ship];
+	[self addShipToLaunchQueue:defense_ship :YES];
 	[defense_ship autorelease];
 	[self abortAllDockings];
 	
@@ -1783,7 +1786,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[scavenger_ship setScanClass: CLASS_NEUTRAL];
 		[scavenger_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[scavenger_ship switchAITo:@"scavengerAI.plist"];
-		[self addShipToLaunchQueue:scavenger_ship];
+		[self addShipToLaunchQueue:scavenger_ship :NO];
 		[scavenger_ship autorelease];
 	}
 	return scavenger_ship;
@@ -1815,7 +1818,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[miner_ship setScanClass:CLASS_NEUTRAL];
 		[miner_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[miner_ship switchAITo:@"minerAI.plist"];
-		[self addShipToLaunchQueue:miner_ship];
+		[self addShipToLaunchQueue:miner_ship :NO];
 		[miner_ship autorelease];
 	}
 	return miner_ship;
@@ -1862,7 +1865,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		//**Lazygun** added 30 Nov 04 to put a bounty on those pirates' heads.
 		[pirate_ship setBounty: 10 + floor(randf() * 20)];	// modified for variety
 
-		[self addShipToLaunchQueue:pirate_ship];
+		[self addShipToLaunchQueue:pirate_ship :NO];
 		[pirate_ship autorelease];
 		[self abortAllDockings];
 	}
@@ -1887,7 +1890,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
 		[shuttle_ship switchAITo:@"fallingShuttleAI.plist"];
-		[self addShipToLaunchQueue:shuttle_ship];
+		[self addShipToLaunchQueue:shuttle_ship :NO];
 		
 		[shuttle_ship autorelease];
 	}
@@ -1912,7 +1915,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 		[escort_ship switchAITo:@"escortAI.plist"];
-		[self addShipToLaunchQueue:escort_ship];
+		[self addShipToLaunchQueue:escort_ship :NO];
 		
 		[escort_ship release];
 	}
@@ -1950,7 +1953,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[patrol_ship setBounty:0];
 			[patrol_ship setGroup:[self stationGroup]];	// who's your Daddy
 			[patrol_ship switchAITo:@"planetPatrolAI.plist"];
-			[self addShipToLaunchQueue:patrol_ship];
+			[self addShipToLaunchQueue:patrol_ship :NO];
 			[self acceptPatrolReportFrom:patrol_ship];
 			[patrol_ship autorelease];
 			return patrol_ship;
@@ -1973,7 +1976,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (ship->scanClass == CLASS_NOT_SET) [ship setScanClass: CLASS_NEUTRAL];
 		[ship setPrimaryRole:role];
 		[ship setGroup:[self stationGroup]];	// who's your Daddy
-		[self addShipToLaunchQueue:ship];
+		[self addShipToLaunchQueue:ship :NO];
 		[ship release];
 	}
 }

@@ -157,7 +157,7 @@ typedef enum
 
 - (void) abortDockingForShip:(ShipEntity *) ship;
 
-- (void) addShipToLaunchQueue:(ShipEntity *) ship;
+- (void) addShipToLaunchQueue:(ShipEntity *) ship :(BOOL) priority;
 
 - (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
 
