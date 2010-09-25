@@ -3275,39 +3275,8 @@ static BOOL toggling_music;
 			}
 			else
 			{
-				int guiSelectedRow = [gui selectedRow];
-				if ([gameView isDown:gvArrowKeyDown])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						if ([gui setSelectedRow:guiSelectedRow + 1])
-						{
-							[self playMenuNavigationDown];
-						}
-						else
-						{
-							[self playMenuNavigationNot];
-						}
-						timeLastKeyPress = script_time;
-					}
-				}
-				if ([gameView isDown:gvArrowKeyUp])
-				{
-					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-					{
-						if ([gui setSelectedRow:guiSelectedRow - 1])
-						{
-							[self playMenuNavigationUp];
-						}
-						else
-						{
-							[self playMenuNavigationNot];
-						}
-						timeLastKeyPress = script_time;
-					}
-				}
-				upDownKeyPressed = (([gameView isDown:gvArrowKeyUp])||([gameView isDown:gvArrowKeyDown]));
-				
+				[self handleGUIUpDownArrowKeys];
+					
 				if ([gameView isDown:13])	//  '<enter/return>'
 				{
 					if (!selectPressed)
