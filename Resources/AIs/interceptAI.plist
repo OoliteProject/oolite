@@ -18,6 +18,7 @@
 		"ENERGY_FULL" = ("setStateTo: ATTACK_SHIP");
 		"TARGET_LOST" = (performIdle, switchLightsOff, exitAI);
 		"TARGET_DESTROYED" = (performIdle, switchLightsOff, exitAI);
+		"REACHED_SAFETY" = (performIdle, switchLightsOff, exitAI); 
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 	};
 }

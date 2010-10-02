@@ -166,6 +166,7 @@ typedef enum
 - (ShipEntity *) launchIndependentShip:(NSString*) role;
 
 - (void) noteDockedShip:(ShipEntity *) ship;
+- (void) addShipToStationCount:(ShipEntity *) ship;
 - (BOOL) interstellarUndockingAllowed;
 - (BOOL) hasNPCTraffic;
 - (void) setHasNPCTraffic:(BOOL)flag;

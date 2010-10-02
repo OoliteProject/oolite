@@ -1246,8 +1246,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	BoundingBox bb = [ship boundingBox];
 	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
-		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)))
+		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)) && ![ship isPlayer])
 	{
+		[self addShipToStationCount: ship]; // restore ship count for station.
 		OOLog(@"station.launchShip.failed", @"Canceled a launch for a %@ with role %@, that is to big for the docking port of the %@.",
 			  [ship displayName], [ship primaryRole], [self displayName]);
 		return;
@@ -1300,16 +1301,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	// set last launch time to avoid clashes with outgoing ships
 	last_launch_time = [UNIVERSE getTime];
-	if ([ship isShuttle])  docked_shuttles++;
-	else if ([ship isTrader] && ![ship isPlayer])  docked_traders++;
-	else if (([ship isPolice] && ![ship isEscort]) || [ship hasPrimaryRole:@"hermit-ship"] || [ship hasPrimaryRole:@"defense_ship"])
-	{
-		if (0 < defenders_launched)  defenders_launched--;
-	}
-	else if ([ship hasPrimaryRole:@"scavenger"] || [ship hasPrimaryRole:@"miner"])	// treat miners and scavengers alike!
-	{
-		if (0 < scavengers_launched)  scavengers_launched--;
-	}
+	[self addShipToStationCount: ship];
 	
 	OOUniversalID	ship_id = [ship universalID];
 	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:ship_id];
@@ -1343,6 +1335,20 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 	}
 #endif
+}
+
+- (void) addShipToStationCount:(ShipEntity *) ship
+{
+ 	if ([ship isShuttle])  docked_shuttles++;
+	else if ([ship isTrader] && ![ship isPlayer])  docked_traders++;
+	else if (([ship isPolice] && ![ship isEscort]) || [ship hasPrimaryRole:@"defense_ship"])
+	{
+		if (0 < defenders_launched)  defenders_launched--;
+	}
+	else if ([ship hasPrimaryRole:@"scavenger"] || [ship hasPrimaryRole:@"miner"])	// treat miners and scavengers alike!
+	{
+		if (0 < scavengers_launched)  scavengers_launched--;
+	}
 }
 
 

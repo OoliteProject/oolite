@@ -4137,7 +4137,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) markAsOffender:(int)offence_value
 {
-	legalStatus |= offence_value;
+	if (![self isCloaked]) legalStatus |= offence_value;
 }
 
 

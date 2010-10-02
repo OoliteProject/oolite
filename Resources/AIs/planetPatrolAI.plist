@@ -24,8 +24,8 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, checkTargetLegalStatus);
 		"TARGET_MINOR_OFFENDER" = (markTargetForFines);
 		"TARGET_MARKED" = ("sendTargetCommsMessage: [police-warning]");
-		"TARGET_OFFENDER" = ("sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist");
-		"TARGET_FUGITIVE" = ("setAITo: interceptAI.plist");
+		"TARGET_OFFENDER" = ("sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist", groupAttackTarget);
+		"TARGET_FUGITIVE" = ("setAITo: interceptAI.plist", groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 		"INCOMING_MISSILE" = (setTargetToFoundTarget, "markTargetForOffence: 15",
 					"setAITo: delayedReactToAttackAI.plist");

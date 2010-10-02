@@ -3163,7 +3163,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// deal with collisions and lost targets
 	if (proximity_alert != NO_TARGET)
 	{
-		[self avoidCollision];
+		if (proximity_alert == primaryTarget)
+		{
+			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET; // this behaviour will handle proximity_alert.
+		}
+		else
+		{
+			[self avoidCollision];
+		}
+		return;
 	}
 	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
 	{
@@ -3220,7 +3228,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double confidenceFactor = [self trackDestination:delta_t :NO];
 	
 	if(success_factor > last_success_factor || confidenceFactor < 0.85) frustration += delta_t;
-	else if(frustration > 0.0) frustration -= delta_t;
+	else if(frustration > 0.0) frustration -= delta_t * 0.75;
 	if(frustration > 10)
 	{
 		frustration = 0.0;
@@ -3304,13 +3312,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((range < COMBAT_IN_RANGE_FACTOR * weaponRange)||(proximity_alert != NO_TARGET))
 	{
-		if (proximity_alert == NO_TARGET)
+		if (proximity_alert == NO_TARGET || proximity_alert == primaryTarget)
 		{
 			if (aft_weapon_type == WEAPON_NONE)
 			{
 				jink.x = (ranrot_rand() % 256) - 128.0;
 				jink.y = (ranrot_rand() % 256) - 128.0;
-				jink.z = 1000.0;
+				jink.z = range * COMBAT_WEAPON_RANGE_FACTOR; // range= ~440 for pulse weapon and ~1050 for military laser. 
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 				frustration = 0.0;
 			}
@@ -3325,6 +3333,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
+			return;
 		}
 	}
 	else
@@ -3363,8 +3372,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (frustration > 3.0)	// 3s of frustration
 		{
 			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_ATTACK_FLY_TO_TARGET"];
-			// THIS IS HERE AS A TEST ONLY
-			// BREAK OFF
 			jink.x = (ranrot_rand() % 256) - 128.0;
 			jink.y = (ranrot_rand() % 256) - 128.0;
 			jink.z = 1000.0;
@@ -3419,9 +3426,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || flightSpeed > (scannerRange - range) * max_flight_pitch / 6.28)
 	{
-		jink.x = 0.0;
-		jink.y = 0.0;
-		jink.z = 0.0;
+		jink = kZeroVector;
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 		frustration = 0.0;
 	}
@@ -3437,6 +3442,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self fireMissile];
 	}
 	[self activateCloakingDevice];
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+		[self avoidCollision];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3447,15 +3454,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	if (range > weaponRange || range > 0.8 * scannerRange || range == 0)
 	{
-		jink.x = 0.0;
-		jink.y = 0.0;
-		jink.z = 0.0;
+		jink = kZeroVector;
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		frustration = 0.0;
 	}
 	[self trackPrimaryTarget:delta_t:YES];
 	[self fireAftWeapon:range];
 	[self activateCloakingDevice];
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+		[self avoidCollision];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -4445,9 +4452,12 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		return;
 	}
 
-	if (isStation || (other->isStation)) // don't be alarmed close to stations -- is this sensible? we dont mind crashing into carriers?
+	if (isStation) // don't be alarmed close to stations -- is this sensible? we dont mind crashing with carriers?
 		return;
 
+	if ((other->isStation) && (behaviour == BEHAVIOUR_FLY_TO_DESTINATION || [self status] == STATUS_LAUNCHING || dockingInstructions != nil))
+		return;  // Ships in BEHAVIOUR_FLY_TO_DESTINATION should have their own check for a clear flightpath.
+	
 	if ((scanClass == CLASS_CARGO)||(scanClass == CLASS_BUOY)||(scanClass == CLASS_MISSILE)||(scanClass == CLASS_ROCK))	// rocks and stuff don't get alarmed easily
 		return;
 
@@ -6845,24 +6855,17 @@ BOOL class_masslocks(int some_class)
 		}
 	}
 	/*	#  note
-		Eric 3-7-2010:
-		It seems that doing a reverse sign stick_roll when flying away from a target is mathematical wrong.
-		It leads to turning in the wrong direction, with as result that stick_roll never will be zero, so the following
-		stick_pitch correction never takes place. That ships still fly from the target is because of the fail-safe
-		mechanism with the pitching_over variable. Result is that the ship is not flying exactly away from the target
-		but at an angle. Untill a certain distance where correction stop and the ship just flies away.
-		However, from game perspective this behaviour is wanted as it makes the ship a more difficult target to shoot
-		down when starting to fly away.
-		On the other hand does it interfere with the jink mechanisme that was also intended to make it fly away
-		at a straight angle when not at close range.
-		Eric 9-9-2010: After some testing:
-		The jink was programmed to do nothing within 500 meters so the ship and just fly away in direct line from the target.
-		Because of the bug the ships always rolled to the wrong side needed to fly away in direct line resulting in making it
-		a difficult target. When fixing the bug, the ship really flys away in direct line during the first 500 meters,
-		making it a easy target for the player. This means that the ships also should jink at close range. Only at close
-		range the jink offset from the target must be made smaller to prevent the ship flying "away" in the direction
-		of the target.
-	*/
+		Eric 9-9-2010: Removed the "reverse" variable from the stick_roll calculation. This was mathematical wrong and
+		made the ship roll in the wrong direction, preventing the ship to fly away in a straight line from the target.
+		This means all the places were a jink was set, this jink never worked correctly. The main reason a ship still
+		managed to turn at close range was probably by the fail-safe mechanisme with the "pitching_over" variable.
+		The jink was programmed to do nothing within 500 meters of the ship and just fly away in direct line from the target
+		in that range. Because of the bug the ships always rolled to the wrong side needed to fly away in direct line
+		resulting in making it a difficult target.
+		After fixing the bug, the ship realy flew away in direct line during the first 500 meters, making it a easy target
+		for the player. All jink settings are retested and changed to give a turning behaviour that felt like the old
+		situation, but now more deliberately set.
+	 */
 
 	// end rule-of-thumb manoeuvres
 
@@ -7200,11 +7203,8 @@ BOOL class_masslocks(int some_class)
 	Entity  *target = [self primaryTarget];
 	if (target == nil)   // leave now!
 		return 0.0;
-	delta = target->position;
-	delta.x -= position.x;
-	delta.y -= position.y;
-	delta.z -= position.z;
-	dist = sqrt(delta.x*delta.x + delta.y*delta.y + delta.z*delta.z);
+	delta = vector_subtract(target->position, position);
+	dist = magnitude(delta);
 	dist -= target->collision_radius;
 	dist -= collision_radius;
 	return dist;
@@ -8991,7 +8991,7 @@ BOOL class_masslocks(int some_class)
 
 - (void) markAsOffender:(int)offence_value
 {
-	if (scanClass != CLASS_POLICE)  bounty |= offence_value;
+	if (scanClass != CLASS_POLICE && ![self isCloaked])  bounty |= offence_value;
 }
 
 
@@ -9806,6 +9806,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		NS_ENDHANDLER
 		OOLogPopIndent();
 	}
+	OOLog(@"dumpState.shipEntity", @"Jink position: %@", VectorDescription(jink));
 	OOLog(@"dumpState.shipEntity", @"Frustration: %g", frustration);
 	OOLog(@"dumpState.shipEntity", @"Success factor: %g", success_factor);
 	OOLog(@"dumpState.shipEntity", @"Shots fired: %u", shot_counter);
