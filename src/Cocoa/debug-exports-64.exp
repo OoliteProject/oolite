@@ -24,9 +24,11 @@ _OOLogInsertMarker
 _OOLogSetDisplayMessagesInClass
 _OOLogSetShowFileAndLine
 _OOLogSetShowFunction
+_OOLogSetShowTime
 _OOLogSetShowMessageClass
 _OOLogShowFileAndLine
 _OOLogShowFunction
+_OOLogShowTime
 _OOLogShowMessageClass
 _OOLogWillDisplayMessagesInClass
 _OOLogHandlerGetLogPath

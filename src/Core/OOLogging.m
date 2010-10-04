@@ -94,6 +94,7 @@ static THREAD_LOCAL OOLogIndentStackElement
 #endif
 static BOOL						sShowFunction = NO;
 static BOOL						sShowFileAndLine = NO;
+static BOOL						sShowTime = NO;
 static BOOL						sShowClass = YES;
 static BOOL						sDefaultDisplay = YES;
 static BOOL						sOverrideInEffect = NO;
@@ -451,6 +452,11 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 			}
 		}
 		
+		if (sShowTime)
+		{
+			formattedMessage = [NSString stringWithFormat:@"%@ %@", [[NSDate date] descriptionWithCalendarFormat:@"%H:%M:%S.%F" timeZone:nil locale:nil], formattedMessage];
+		}
+		
 		// Apply indentation
 		indentLevel = GetIndentLevel();
 		if (indentLevel != 0)
@@ -524,6 +530,24 @@ void OOLogSetShowFileAndLine(BOOL flag)
 	{
 		sShowFileAndLine = flag;
 		[[NSUserDefaults standardUserDefaults] setBool:flag forKey:@"logging-show-file-and-line"];
+	}
+}
+
+
+BOOL OOLogShowTime(void)
+{
+	return sShowTime;
+}
+
+
+void OOLogSetShowTime(BOOL flag)
+{
+	flag = !!flag;	// YES or NO, not 42.
+	
+	if (flag != sShowTime)
+	{
+		sShowTime = flag;
+		[[NSUserDefaults standardUserDefaults] setBool:flag forKey:@"logging-show-time"];
 	}
 }
 
@@ -719,6 +743,7 @@ static void LoadExplicitSettings(void)
 	// Load display settings
 	sShowFunction = [prefs oo_boolForKey:@"logging-show-function" defaultValue:sShowFunction];
 	sShowFileAndLine = [prefs oo_boolForKey:@"logging-show-file-and-line" defaultValue:sShowFileAndLine];
+	sShowTime = [prefs oo_boolForKey:@"logging-show-time" defaultValue:sShowTime];
 	sShowClass = [prefs oo_boolForKey:@"logging-show-class" defaultValue:sShowClass];
 	
 	OOLogInternal(OOLOG_SETTING_SET, @"Settings: %@", sExplicitSettings);

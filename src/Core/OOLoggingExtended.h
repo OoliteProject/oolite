@@ -47,6 +47,8 @@ BOOL OOLogShowFunction(void);
 void OOLogSetShowFunction(BOOL flag);
 BOOL OOLogShowFileAndLine(void);
 void OOLogSetShowFileAndLine(BOOL flag);
+BOOL OOLogShowTime(void);
+void OOLogSetShowTime(BOOL flag);
 BOOL OOLogShowMessageClass(void);
 void OOLogSetShowMessageClass(BOOL flag);
 
