@@ -1575,6 +1575,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	ShipEntity *pod = nil;
 	
 	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
+	if (!pod)
+	{
+		[UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape-capsule"]];
+		OOLog(@"shipEntity.noEscapePod", @"Ship %@ has no correct escape_pod_model defined. Now using default capsule.", self);
+	}
+	
 	if (pod)
 	{
 		[pod setOwner:self];
@@ -4297,6 +4303,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE_FACTOR;
 		
 		behaviour = BEHAVIOUR_AVOID_COLLISION;
+		pitching_over = YES;
 	}
 }
 
@@ -7061,7 +7068,8 @@ BOOL class_masslocks(int some_class)
 	stick_pitch = 0.0;
 	stick_roll = 0.0;
 	
-	// pitching_over is currently only set in behaviour_formation_form_up, for escorts.
+	// pitching_over is currently only set in behaviour_formation_form_up, for escorts and in avoidCollision.
+	// This allows for immediate pitch corrections instead of first waiting untill roll has completed.
 	if (pitching_over)
 	{
 		if (reverse * d_up > 0) // pitch up
@@ -8782,6 +8790,8 @@ BOOL class_masslocks(int some_class)
 			thrust = thrust * 0.5;
 			desired_speed = 0.0;
 			//[self setHulk:YES];	// already set inside launcEscapeCapsule
+			if ([self group]) [self setGroup:nil]; // remove self from group.
+			if ([self owner]) [self setOwner:nil];
 
 			if ([self hasEscorts])
 			{

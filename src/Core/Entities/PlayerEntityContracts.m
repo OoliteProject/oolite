@@ -96,6 +96,29 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 							  withContextName:[NSString stringWithFormat:@"<character \"%@\" script>", [rescuee name]]
 									forTarget:nil];
 		}
+		else if ([rescuee insuranceCredits] && [rescuee legalStatus])
+		{
+			float reward = (5.0 + government) * [rescuee legalStatus];
+			float insurance = 10 * [rescuee insuranceCredits];
+			if (government > (Ranrot() & 7) || reward >= insurance)
+			{
+				// claim bounty for capture, ignore insurance
+				[result appendFormat:DESC(@"capture-reward-for-@@-@-credits-@-alt"),
+				 [rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO),
+				 OOStringFromDeciCredits(insurance, YES, NO)];
+				
+			}
+			else
+			{
+				// claim insurance reward with reduction of bounty
+				[result appendFormat:DESC(@"rescue-reward-for-@@-@-credits-@-alt"),
+				 [rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(insurance - reward, YES, NO),
+				 OOStringFromDeciCredits(reward, YES, NO)];
+				reward = insurance - reward;
+			}
+			credits += reward;
+			added_entry = YES;
+		}
 		else if ([rescuee insuranceCredits])
 		{
 			// claim insurance reward

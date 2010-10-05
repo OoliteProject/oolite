@@ -1251,8 +1251,16 @@
 	"character-a-@-from-@"			= "a %@ from %@";
 	
 	// rewards and bounties from escapepods
-	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@  ₢.\n";
-	"capture-reward-for-@@-@-credits" = "For capturing %@, %@, you’re paid a bounty of %@  ₢.\n";
+	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@ ₢.\n";
+	"capture-reward-for-@@-@-credits" = "For capturing %@, %@, you’re paid a bounty of %@ ₢.\n";
+	"rescue-reward-for-@@-@-credits-@-alt" = (
+							"For rescuing %@, %@, their insurance pays %@ ₢. This includes a %@ ₢ bribe for clearing the offender status.\n",
+							"Police officers are waiting for %@, %@, but after a hasty discussion and an exchange of Credits they depart. Insurance pays you %@ ₢. (%@ ₢ went into the bribe).\n"
+							);
+	"capture-reward-for-@@-@-credits-@-alt" = (
+							"For capturing %@, %@, you’re paid a bounty of %@ ₢. The insurance fee of %@ goes to governmental taxes.\n",
+							"Police officers escort the loudly protesting %@, %@, away. You receive a bounty chit worth %@ ₢ instead of an insurance payment of %@ ₢.\n"
+							);
 	
 	// Commodity names
 	"commodity-name food"			= "Food";
