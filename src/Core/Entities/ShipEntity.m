@@ -3541,7 +3541,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		behaviour = BEHAVIOUR_FLY_TO_DESTINATION;
 	}
-	if (proximity_alert != NO_TARGET)
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 	{
 		[self avoidCollision];
 	}
@@ -4462,7 +4462,10 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	if (isStation) // don't be alarmed close to stations -- is this sensible? we dont mind crashing with carriers?
 		return;
 
-	if ((other->isStation) && (behaviour == BEHAVIOUR_FLY_TO_DESTINATION || [self status] == STATUS_LAUNCHING || dockingInstructions != nil))
+	if ((other->isStation) && (behaviour == BEHAVIOUR_FLY_RANGE_FROM_DESTINATION || 
+							   behaviour == BEHAVIOUR_FLY_TO_DESTINATION || 
+							   [self status] == STATUS_LAUNCHING || 
+							   dockingInstructions != nil))
 		return;  // Ships in BEHAVIOUR_FLY_TO_DESTINATION should have their own check for a clear flightpath.
 	
 	if ((scanClass == CLASS_CARGO)||(scanClass == CLASS_BUOY)||(scanClass == CLASS_MISSILE)||(scanClass == CLASS_ROCK))	// rocks and stuff don't get alarmed easily
@@ -7950,7 +7953,7 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) activateCloakingDevice
 {
-	if (![self hasCloakingDevice])  return NO;
+	if (![self hasCloakingDevice] || cloaking_device_active)  return cloaking_device_active; // no changes.
 	
 	if (!cloaking_device_active)  cloaking_device_active = (energy > CLOAKING_DEVICE_START_ENERGY * maxEnergy);
 	if (cloaking_device_active)  [self doScriptEvent:@"shipCloakActivated"];
