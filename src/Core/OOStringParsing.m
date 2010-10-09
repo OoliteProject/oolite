@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "OOFunctionAttributes.h"
 #import "OOCollectionExtractors.h"
+#import "ResourceManager.h"
 
 
 static NSString * const kOOLogStringVectorConversion			= @"strings.conversion.vector";
@@ -530,7 +531,17 @@ NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *local
 		{
 			if ([token hasSuffix:@"_number"] || [token hasSuffix:@"_bool"] || [token hasSuffix:@"_string"])
 			{
-				SEL value_selector = NSSelectorFromString(token);
+				// whitelist.plist contains query method aliases for compatibility with previous versions.
+				// We have to account also for those or we may end up with erroneous (as in incompatible
+				// with older Oolite versions) text replacement - Nikos 20101009
+				NSDictionary* whitelistDict = [ResourceManager whitelistDictionary];
+				NSString* processedToken = nil;
+				
+				// run the token through whitelist check for registered query method aliases
+				processedToken = [[whitelistDict oo_dictionaryForKey:@"query_method_aliases"] oo_stringForKey:token];
+				if (processedToken == nil)  processedToken = token;
+				
+				SEL value_selector = NSSelectorFromString(processedToken);
 				if ([target respondsToSelector:value_selector]) effeciveTarget = target;
 				else if (target != player && [player respondsToSelector:value_selector]) effeciveTarget = player;
 				else effeciveTarget = nil;
