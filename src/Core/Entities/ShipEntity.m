@@ -1577,7 +1577,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
 	if (!pod)
 	{
-		[UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape-capsule"]];
+		pod = [UNIVERSE newShipWithRole:@"escape-capsule"];
 		OOLog(@"shipEntity.noEscapePod", @"Ship %@ has no correct escape_pod_model defined. Now using default capsule.", self);
 	}
 	
@@ -4468,7 +4468,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 							   dockingInstructions != nil))
 		return;  // Ships in BEHAVIOUR_FLY_TO_DESTINATION should have their own check for a clear flightpath.
 	
-	if ((scanClass == CLASS_CARGO)||(scanClass == CLASS_BUOY)||(scanClass == CLASS_MISSILE)||(scanClass == CLASS_ROCK))	// rocks and stuff don't get alarmed easily
+	if (!crew) // Ships without pilot (cargo, rocks, missiles, buoys etc) will not get alarmed. (escape-pods have pilots)
 		return;
 
 	// check vectors
