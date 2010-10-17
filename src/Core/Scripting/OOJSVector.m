@@ -237,8 +237,9 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	// vectorObj can legitimately be NULL, e.g. when JS_NULL is converted to a JSObject *.
 	if (vectorObj == NULL) return NO;
 	
+	// If this is a (JS) Vector...
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass.base, NULL);
-	if (private != NULL)	// If this is a (JS) Vector...
+	if (private != NULL)	
 	{
 		*outVector = *private;
 		return YES;
@@ -273,6 +274,19 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 		}
 	}
 	
+	/*
+		If it's actually a Vector3D but with no private field (this happens for
+		Vector3D.prototype)...
+		
+		NOTE: it would be prettier to do this at the top when we handle normal
+		Vector3Ds, but it's a rare case which should be kept off the fast path.
+	*/
+	if (JS_InstanceOf(context, vectorObj, &sVectorClass.base, NULL))
+	{
+		*outVector = kZeroVector;
+		return YES;
+	}
+	
 	return NO;
 	
 	OOJS_PROFILE_EXIT
@@ -301,6 +315,12 @@ BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)
 	if (private != NULL)	// If this is a (JS) Vector...
 	{
 		*private = vector;
+		return YES;
+	}
+	
+	if (JS_InstanceOf(context, vectorObj, &sVectorClass.base, NULL))
+	{
+		// Silently fail for the prototype.
 		return YES;
 	}
 	

@@ -253,6 +253,19 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 		}
 	}
 	
+	/*
+		If it's actually a Quaternion but with no private field (this happens for
+		Quaternion.prototype)...
+		
+		NOTE: it would be prettier to do this at the top when we handle normal
+		Vector3Ds, but it's a rare case which should be kept off the fast path.
+	*/
+	if (JS_InstanceOf(context, quaternionObj, &sQuaternionClass.base, NULL))
+	{
+		*outQuaternion = kZeroQuaternion;
+		return YES;
+	}
+	
 	return NO;
 	
 	OOJS_PROFILE_EXIT
@@ -281,6 +294,12 @@ BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quat
 	if (private != NULL)	// If this is a (JS) Quaternion...
 	{
 		*private = quaternion;
+		return YES;
+	}
+	
+	if (JS_InstanceOf(context, quaternionObj, &sQuaternionClass.base, NULL))
+	{
+		// Silently fail for the prototype.
 		return YES;
 	}
 	
