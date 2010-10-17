@@ -2023,9 +2023,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				[escort setEscortDestination:[self coordinatesForEscortPosition:i++]];
 			}
-		}
-		if ([self escortGroup] != nil) 
-		{
+
 			ShipEntity *leader = [[self escortGroup] leader];
 			if (leader != nil && ([leader scanClass] != [self scanClass])) {
 				OOLog(@"ship.sanityCheck.failed", @"Ship %@ escorting %@ with wrong scanclass!", self, leader);
@@ -3134,9 +3132,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	desired_speed = max_available_speed;
 	if (range < COMBAT_IN_RANGE_FACTOR * weaponRange)
 	{
-		jink.x = (ranrot_rand() % 256) - 128.0;
-		jink.y = (ranrot_rand() % 256) - 128.0;
-		jink.z = 1000.0;
+		if (!pitching_over) // don't change jink in the middle of a sharp turn.
+		{
+			// For most AIs, is behaviour_attack_target called as starting behaviour on every hit.
+			// Target can both fly towards or away from ourselves here. Both situations
+			// need a different jink.z for optimal collision avoidance at high speed approach and low speed dogfighting.
+			ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+			float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
+			jink.x = (ranrot_rand() % 256) - 128.0;
+			jink.y = (ranrot_rand() % 256) - 128.0;
+			jink.z =  range * COMBAT_WEAPON_RANGE_FACTOR - relativeSpeed / max_flight_pitch;
+		}
+
 		behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 	}
 	else
@@ -3152,6 +3159,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		}
+		jink = kZeroVector;
 	}
 	frustration = 0.0;	// behaviour changed, so reset frustration
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
@@ -3172,6 +3180,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (proximity_alert == primaryTarget)
 		{
 			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET; // this behaviour will handle proximity_alert.
+			[self behaviour_attack_fly_from_target: delta_t]; // do it now.
 		}
 		else
 		{
@@ -3322,11 +3331,30 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			if (aft_weapon_type == WEAPON_NONE)
 			{
+				/*
+				jink.z has a great influence on the dogfight expecience at close range. Strongest jink behaviour for a frontal approaching
+				ship is achieved with a z-distance at the size of the actual distance. However, to allow fast flying ships avoiding collisions,
+				the jink point should be defined closer to the ship itself.
+				*/
+				ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
 				jink.x = (ranrot_rand() % 256) - 128.0;
 				jink.y = (ranrot_rand() % 256) - 128.0;
-				jink.z = range * COMBAT_WEAPON_RANGE_FACTOR; // range= ~440 for pulse weapon and ~1050 for military laser. 
+				jink.z = range * COMBAT_WEAPON_RANGE_FACTOR - relativeSpeed / max_flight_pitch; // range= ~440 for pulse weapon and ~1050 for military laser. 
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 				frustration = 0.0;
+				if (proximity_alert == primaryTarget && range > 1500)
+				{
+					/*	FIXME: (EW, 17-10-2010), sometimes the proximity_alert is set at great distance. Witnessed > 10 000 m
+						Problem is in the proximity_alert is not always reset.
+						Analysis: In universe.m a list is maintained with all ships that are within one combined collision radius
+						from each other. That list is used in CollisionRegion.m to generate aproximity_alert. It first clears
+						all alerts on that list, but when the ship was not on the list it stays on.
+					*/
+					jink.z = 1000; // reset value
+					// OOLog(@"dumpState.proximity.error", @"Proximity alert during combat at %g meter.", range);
+				}
+					
 			}
 			else
 			{
@@ -3335,6 +3363,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
 				frustration = 0.0;
 			}
+			proximity_alert = NO_TARGET; // EW test to see if this fixes some faulty alerts.
 		}
 		else
 		{
@@ -3427,6 +3456,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			jink.x = (ranrot_rand() % 256) - 128.0;
 			jink.y = (ranrot_rand() % 256) - 128.0;
 			jink.z /= 2; // move the z-offset closer to the target than before.
+			desired_speed = flightSpeed * 2; // increase speed a bit.
 			frustration = 0.0;
 		}
 	}
@@ -9068,7 +9098,11 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) canAcceptEscort:(ShipEntity *)potentialEscort
 {
-	//this condition has to be checked first! 
+	//this condition has to be checked first!
+	if (dockingInstructions) // we are busy with docking.
+	{
+		return NO;
+	}
 	if (![self isEscort] && ([self hasRole:@"police"] || [self hasRole:@"interceptor"]))
 	{
 		return [potentialEscort hasRole:@"wingman"];

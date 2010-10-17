@@ -9,30 +9,13 @@
 		"ATTACKED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, fireMissile, "setStateTo: ATTACK_SHIP");
 		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_TARGETS");
-		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
+		"TARGET_FOUND" = ("rollD: 4");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_TARGETS");
-		UPDATE = ("pauseAI: 15.0", "setStateTo: THARGON_COUNTDOWN1");
-	};
-	"THARGON_COUNTDOWN1" =
-	{
-		"ATTACKED" = (setTargetToPrimaryAggressor, performAttack, fireMissile, "setStateTo: THARGON_COUNTDOWN2");
-		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: THARGON_COUNTDOWN2");
-		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_TARGETS");
-		"TARGET_LOST" = ("setStateTo: LOOK_FOR_TARGETS");
-		UPDATE = (scanForNonThargoid, "pauseAI: 15.0", "setStateTo: THARGON_COUNTDOWN2");
-	};
-	"THARGON_COUNTDOWN2" =
-	{
-		"ATTACKED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_TARGETS");
-		"TARGET_LOST" = ("setStateTo: LOOK_FOR_TARGETS");
-		"TARGET_FOUND" = (setTargetToFoundTarget, performAttack);
-		UPDATE = ("rollD: 4");
-		"ROLL_1" = (scanForNonThargoid, "pauseAI: 15.0", "setStateTo: ATTACK_SHIP");
-		"ROLL_2" = (fireMissile, "pauseAI: 15.0", "setStateTo: ATTACK_SHIP");
-		"ROLL_3" = ("pauseAI: 15.0", "setStateTo: ATTACK_SHIP");
-		"ROLL_4" = ("pauseAI: 30.0", "setStateTo: LOOK_FOR_TARGETS");
+		"ROLL_1" = (setTargetToFoundTarget);
+		"ROLL_2" = (setTargetToFoundTarget, fireMissile);
+		"ROLL_3" = ("pauseAI: 45.0");
+		"ROLL_4" = ("setStateTo: LOOK_FOR_TARGETS");
+		UPDATE = (scanForNonThargoid, "pauseAI: 30.0");
 	};
 	"LOOK_FOR_TARGETS" =
 	 {

@@ -842,7 +842,7 @@ MA 02110-1301, USA.
 	}
 	
 	// RUN AWAY !!
-	jink = make_vector(0.0f, 0.0f, 1000.0f);
+	// jink = make_vector(0.0f, 0.0f, 1000.0f); // jink is now handled in performFlee
 	desired_range = 10000;
 	[self performFlee];
 	[shipAI message:@"FLEEING"];
@@ -1329,7 +1329,7 @@ static WormholeEntity *whole = nil;
 	
 	double	maxRange2 = scannerRange * scannerRange;
 	
-	if (mother && magnitude2(vector_subtract(mother->position, position)) < maxRange2)
+	if (mother && mother != self && magnitude2(vector_subtract(mother->position, position)) < maxRange2)
 	{
 		[shipAI message:@"TARGET_FOUND"]; // no need for scanning, we still have our mother.
 	}
