@@ -105,6 +105,7 @@ static BOOL				switching_market_screens;
 static BOOL				switching_equipship_screens;
 static BOOL				zoom_pressed;
 static BOOL				customView_pressed;
+static BOOL				weaponsOnlineToggle_pressed;
 
 static unsigned			searchStringLength;
 static double			timeLastKeyPress;
@@ -197,6 +198,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_inject_fuel,			'i'			);
 	
 	LOAD_KEY_SETTING(key_fire_lasers,			'a'			);
+	LOAD_KEY_SETTING(key_weapons_online_toggle,		'_'			);
 	LOAD_KEY_SETTING(key_launch_missile,			'm'			);
 	LOAD_KEY_SETTING(key_next_missile,			'y'			);
 	LOAD_KEY_SETTING(key_ecm,				'e'			);
@@ -755,6 +757,30 @@ static NSTimeInterval	time_last_frame;
 					}
 				}
 				
+				exceptionContext = @"weapons online toggle";
+				// weapons online / offline toggle '_'
+				if ([gameView isDown:key_weapons_online_toggle])
+				{
+					if (!weaponsOnlineToggle_pressed)
+					{
+						NSString*	weaponsOnlineToggleMsg;
+						
+						[self setWeaponsOnline:![self weaponsOnline]];
+						weaponsOnlineToggleMsg = [self weaponsOnline] ? DESC(@"weapons-systems-online") : DESC(@"weapons-systems-offline");
+						if ([self weaponsOnline])
+						{
+							[self playWeaponsOnline];
+						}
+						else
+						{
+							[self playWeaponsOffline];
+						}
+						[UNIVERSE addMessage:weaponsOnlineToggleMsg forCount:2.0];
+						weaponsOnlineToggle_pressed = YES;
+					}
+				}
+				else  weaponsOnlineToggle_pressed = NO;
+				
 				exceptionContext = @"missile fire";
 				//  shoot 'm'   // launch missile
 				if ([gameView isDown:key_launch_missile] || joyButtonState[BUTTON_LAUNCHMISSILE])
@@ -935,8 +961,10 @@ static NSTimeInterval	time_last_frame;
 				if (([gameView isDown:key_energy_bomb] || joyButtonState[BUTTON_ENERGYBOMB]) && [self hasEnergyBomb])
 				{
 					// original energy bomb routine
-					[self fireEnergyBomb];
-					[self removeEquipmentItem:@"EQ_ENERGY_BOMB"];
+					if ([self fireEnergyBomb])
+					{
+						[self removeEquipmentItem:@"EQ_ENERGY_BOMB"];
+					}
 				}
 				
 				exceptionContext = @"escape pod";

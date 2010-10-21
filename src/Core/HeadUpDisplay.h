@@ -132,6 +132,11 @@ MA 02110-1301, USA.
 #define CLOCK_DISPLAY_WIDTH			12
 #define CLOCK_DISPLAY_HEIGHT		12
 
+#define WEAPONSOFFLINETEXT_DISPLAY_X	-175
+#define WEAPONSOFFLINETEXT_DISPLAY_Y	2
+#define WEAPONSOFFLINETEXT_WIDTH	8
+#define WEAPONSOFFLINETEXT_HEIGHT	8
+
 #define FPSINFO_DISPLAY_X			-300
 #define FPSINFO_DISPLAY_Y			220
 #define FPSINFO_DISPLAY_WIDTH		12
@@ -222,6 +227,7 @@ MA 02110-1301, USA.
 	OOCrosshairs		*_crosshairs;
 	OOWeaponType		_lastWeaponType;
 	GLfloat				_lastOverallAlpha;
+	BOOL				_lastWeaponsOnline;
 	NSDictionary		*_crosshairOverrides;
 	OOColor				*_crosshairColor;
 	GLfloat				_crosshairScale;

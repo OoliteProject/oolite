@@ -160,6 +160,18 @@ static OOSoundSource		*sAfterburnerSources[2];
 }
 
 
+- (void) playWeaponsOnline
+{
+	[self playInterfaceBeep:@"[weapons-online]"];
+}
+
+
+- (void) playWeaponsOffline
+{
+	[self playInterfaceBeep:@"[weapons-offline]"];
+}
+
+
 - (void) playCargoJettisioned
 {
 	[self playInterfaceBeep:@"[cargo-jettisoned]"];

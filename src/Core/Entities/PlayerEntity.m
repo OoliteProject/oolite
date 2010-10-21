@@ -497,6 +497,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[result oo_setInteger:galaxy_number	forKey:@"galaxy_number"];
 	
+	[result oo_setBool:[self weaponsOnline]	forKey:@"weapons_online"];
+	
 	[result oo_setInteger:forward_weapon_type	forKey:@"forward_weapon"];
 	[result oo_setInteger:aft_weapon_type		forKey:@"aft_weapon"];
 	[result oo_setInteger:port_weapon_type		forKey:@"port_weapon"];
@@ -830,6 +832,8 @@ static GLfloat		sBaseMass = 0.0;
 	port_weapon_type = [dict oo_intForKey:@"port_weapon"];
 	starboard_weapon_type = [dict oo_intForKey:@"starboard_weapon"];
 	
+	weapons_online = [dict oo_boolForKey:@"weapons_online" defaultValue:YES];
+	
 	legalStatus = [dict oo_intForKey:@"legal_status"];
 	market_rnd = [dict oo_intForKey:@"market_rnd"];
 	ship_kills = [dict oo_intForKey:@"ship_kills"];
@@ -1155,6 +1159,8 @@ static GLfloat		sBaseMass = 0.0;
 	starboard_weapon_type	= WEAPON_NONE;
 	[self setWeaponDataFromType:forward_weapon_type]; 
 	scannerRange = (float)SCANNER_MAX_RANGE; 
+	
+	weapons_online			= YES;
 	
 	ecm_in_operation = NO;
 	compassMode = COMPASS_MODE_BASIC;
@@ -3450,6 +3456,8 @@ static GLfloat		sBaseMass = 0.0;
 
 	if (missile == nil) return nil;
 	
+	if (![self weaponsOnline])  return nil;
+	
 	launchingMissile = YES;
 	replacingMissile = NO;
 
@@ -3487,6 +3495,10 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (!mine)
 		return nil;
+		
+	if (![self weaponsOnline])
+		return nil;
+		
 	[mine setOwner: self];
 	[mine setBehaviour: BEHAVIOUR_IDLE];
 	[self dumpItem: mine];	// includes UNIVERSE addEntity: CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL ( the last one starts the timer !)
@@ -3579,6 +3591,8 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL) fireEnergyBomb
 {
+	if (![self weaponsOnline])  return NO;
+
 	NSArray* targets = [UNIVERSE getEntitiesWithinRange:SCANNER_MAX_RANGE ofEntity:self];
 	if ([targets count] > 0)
 	{
@@ -3643,10 +3657,31 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (BOOL) weaponsOnline
+{
+	return weapons_online;
+}
+
+
+- (void) setWeaponsOnline:(BOOL)newValue
+{
+	newValue = !!newValue;	// YES or NO, not 42
+	if (weapons_online != newValue)
+	{
+		weapons_online = newValue;
+	}
+}
+
+
 - (BOOL) fireMainWeapon
 {
 	int weapon_to_be_fired = [self weaponForView: currentWeaponFacing];
 
+	if (![self weaponsOnline])
+	{
+		return NO;
+	}
+	
 	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= 0.85)
 	{
 		[self playWeaponOverheated];

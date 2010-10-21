@@ -407,6 +407,8 @@ typedef enum
 #ifndef NDEBUG
 	OOKeyCode				key_dump_target_state;
 #endif
+
+	OOKeyCode				key_weapons_online_toggle;
 	
 	// save-file
 	NSString				*save_path;
@@ -477,6 +479,8 @@ typedef enum
 							keyboardPitchOverride: 1,  // ...and pitch override separately - (fix for BUG #17490)  
 							keyboardYawOverride: 1,
 							waitingForStickCallback: 1,
+							
+							weapons_online: 1,
 							
 							launchingMissile: 1,
 							replacingMissile: 1;
@@ -648,6 +652,9 @@ typedef enum
 
 - (BOOL) fireEnergyBomb;
 - (ShipEntity *) launchMine:(ShipEntity *)mine;
+
+- (BOOL) weaponsOnline;
+- (void) setWeaponsOnline:(BOOL)newValue;
 
 - (BOOL) fireMainWeapon;
 - (OOWeaponType) weaponForView:(OOViewID)view;

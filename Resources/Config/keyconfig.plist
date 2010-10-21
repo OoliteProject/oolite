@@ -11,6 +11,7 @@
 	key_inject_fuel				= "i";
 
 	key_fire_lasers				= "a";
+	key_weapons_online_toggle		= "_";
 	key_launch_missile			= "m";
 	key_next_missile			= "y";
 	key_ecm						= "e";

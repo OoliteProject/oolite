@@ -112,6 +112,7 @@ enum
 - (void) drawStatusLight:(NSDictionary *) info;
 - (void) drawDirectionCue:(NSDictionary *) info;
 - (void) drawClock:(NSDictionary *) info;
+- (void) drawWeaponsOfflineText:(NSDictionary *) info;
 - (void) drawFPSInfoCounter:(NSDictionary *) info;
 - (void) drawScoopStatus:(NSDictionary *) info;
 - (void) drawStickSenitivityIndicator:(NSDictionary *) info;
@@ -496,6 +497,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	PlayerEntity				*player = [PlayerEntity sharedPlayer];
 	OOViewID					viewID = [UNIVERSE viewDirection];
 	OOWeaponType				weapon = [player weaponForView:viewID];
+	BOOL					weaponsOnline = [player weaponsOnline];
 	NSArray						*points = nil;
 	
 	if (viewID == VIEW_CUSTOM ||
@@ -508,7 +510,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		return;
 	}
 	
-	if (weapon != _lastWeaponType || overallAlpha != _lastOverallAlpha)
+	if (weapon != _lastWeaponType || overallAlpha != _lastOverallAlpha || weaponsOnline != _lastWeaponsOnline)
 	{
 		[_crosshairs release];
 		_crosshairs = nil;
@@ -516,16 +518,18 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	if (_crosshairs == nil)
 	{
+		GLfloat useAlpha = weaponsOnline ? overallAlpha : overallAlpha * 0.5f;
+		
 		// Make new crosshairs object
 		points = [self crosshairDefinitionForWeaponType:weapon];
 		
 		_crosshairs = [[OOCrosshairs alloc] initWithPoints:points
 													 scale:_crosshairScale
 													 color:_crosshairColor
-											  overallAlpha:overallAlpha];
-		
+											  overallAlpha:useAlpha];
 		_lastWeaponType = weapon;
-		_lastOverallAlpha = overallAlpha;
+		_lastOverallAlpha = useAlpha;
+		_lastWeaponsOnline = weaponsOnline;
 	}
 	
 	[_crosshairs render];
@@ -1845,6 +1849,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:MISSILE_ICON_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
 	
+	if (![player weaponsOnline])  alpha *= 0.2f;	// darken missile display if weapons are offline
+	
 	if (![player dialIdentEngaged])
 	{
 		OOMissileStatus status = [player dialMissileStatus];
@@ -2070,6 +2076,33 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	GLColorWithOverallAlpha(green_color, alpha);
 	OODrawString([player dial_clock], x, y, z1, siz);
+}
+
+
+- (void) drawWeaponsOfflineText:(NSDictionary *) info
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	
+	if (![player weaponsOnline])
+	{
+		int				x;
+		int				y;
+		NSSize			siz;
+		GLfloat		alpha = overallAlpha;
+		
+		x = [info oo_intForKey:X_KEY defaultValue:WEAPONSOFFLINETEXT_DISPLAY_X] +
+			[[UNIVERSE gameView] x_offset] *
+			[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+		y = [info oo_intForKey:Y_KEY defaultValue:WEAPONSOFFLINETEXT_DISPLAY_Y] +
+			[[UNIVERSE gameView] y_offset] *
+			[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
+		siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:WEAPONSOFFLINETEXT_WIDTH];
+		siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:WEAPONSOFFLINETEXT_HEIGHT];
+		alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+	
+		GLColorWithOverallAlpha(green_color, alpha);
+		OODrawString(DESC(@"weapons-systems-offline"), x, y, z1, siz);
+	}
 }
 
 

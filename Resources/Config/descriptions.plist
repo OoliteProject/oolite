@@ -465,6 +465,8 @@
 	"energy-bomb-activated"			= "Energy bomb triggered.";
 	"weapon-overheat"				= "Weapon system overheated.";
 	"weapon-out-of-juice"			= "Weapon system inactive (no energy left).";
+	"weapons-systems-online"		= "Weapons systems online.";
+	"weapons-systems-offline"		= "Weapons systems offline.";
 	"escape-sequence"				= "Escape sequence active.";
 	"@-ejected"						= "%@ ejected.";
 	"@-ready-to-eject"				= "Ready to eject %@.";
