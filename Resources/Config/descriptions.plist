@@ -1046,6 +1046,7 @@
 	"stickmapper-disarm-secondary"		= "Disarm secondary";
 	"stickmapper-target-nearest-incoming-missile"	= "Target nearest incoming missile";
 	"stickmapper-cycle-secondary"		= "Cycle secondary";
+	"stickmapper-weapons-online-toggle"	= "Weapons online toggle";
 	"stickmapper-ECM"			= "ECM";
 	"stickmapper-toggle-ID"			= "Toggle ID";
 	"stickmapper-fuel-injection"		= "Fuel Injection";

@@ -759,7 +759,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"weapons online toggle";
 				// weapons online / offline toggle '_'
-				if ([gameView isDown:key_weapons_online_toggle])
+				if ([gameView isDown:key_weapons_online_toggle] || joyButtonState[BUTTON_WEAPONSONLINETOGGLE])
 				{
 					if (!weaponsOnlineToggle_pressed)
 					{
