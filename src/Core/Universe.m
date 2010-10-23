@@ -1506,7 +1506,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		OOScanClass scanClass = [ship scanClass];
 		[ship setScanClass:CLASS_NO_DRAW];	// avoid lollipop flash
 		
-		GLfloat		safe_distance2 = 2.0 * ship->collision_radius * ship->collision_radius * PROXIMITY_WARN_DISTANCE2;
+		GLfloat		safe_distance2 = ship->collision_radius * ship->collision_radius * SAFE_ADDITION_FACTOR2;
 		BOOL		safe;
 		int			limit_count = 8;
 		
@@ -4518,7 +4518,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (NSString*) collisionDescription
 {
 	if (universeRegion)
-		return	[NSString stringWithFormat:@"c%d", universeRegion->checks_this_tick];
+		return	[NSString stringWithFormat:@"p%d - c%d", universeRegion->checks_this_tick, universeRegion->checks_within_range];
 	else
 		return	@"-";
 }
@@ -5094,6 +5094,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) filterSortedLists
 {
+	/*
+	Eric, 17-10-2010: raised the area to be not filtered out, from the combined collision size to 2x this size.
+	This allows this filtered list to be used also for proximity_alert and not only for collisions. Before the
+	proximity_alert could only trigger when already very near a collision. To late for ships to react.
+	This does raise the number of entities in the collision chain with as result that the number of pairs to compair
+	becomes significant larger. However, almost all of these extra pairs are dealt with by a simple distance check.
+	I currently see no noticeable negative effect while playing, but this change might still give some trouble I missed.
+	*/
 	Entity	*e0, *next;
 	GLfloat start, finish, next_start, next_finish;
 	
@@ -5112,21 +5120,21 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	while (e0)
 	{
 		// here we are either at the start of the list or just past a gap
-		start = e0->position.z - e0->collision_radius;
-		finish = start + 2.0f * e0->collision_radius;
+		start = e0->position.z - 2.0f * e0->collision_radius;
+		finish = start + 4.0f * e0->collision_radius;
 		next = e0->z_next;
 		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->z_next;
 		if (next)
 		{
-			next_start = next->position.z - next->collision_radius;
+			next_start = next->position.z - 2.0f * next->collision_radius;
 			if (next_start < finish)
 			{
 				// e0 and next overlap
 				while ((next)&&(next_start < finish))
 				{
 					// skip forward to the next gap or the end of the list
-					next_finish = next_start + 2.0f * next->collision_radius;
+					next_finish = next_start + 4.0f * next->collision_radius;
 					if (next_finish > finish)
 						finish = next_finish;
 					e0 = next;
@@ -5134,7 +5142,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
 						next = next->z_next;
 					if (next)
-						next_start = next->position.z - next->collision_radius;
+						next_start = next->position.z - 2.0f * next->collision_radius;
 				}
 				// now either (next == nil) or (next_start >= finish)-which would imply a gap!
 			}
@@ -5158,22 +5166,22 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	while (e0)
 	{
 		// here we are either at the start of the list or just past a gap
-		start = e0->position.y - e0->collision_radius;
-		finish = start + 2.0f * e0->collision_radius;
+		start = e0->position.y - 2.0f * e0->collision_radius;
+		finish = start + 4.0f * e0->collision_radius;
 		next = e0->y_next;
 		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->y_next;
 		if (next)
 		{
 			
-			next_start = next->position.y - next->collision_radius;
+			next_start = next->position.y - 2.0f * next->collision_radius;
 			if (next_start < finish)
 			{
 				// e0 and next overlap
 				while ((next)&&(next_start < finish))
 				{
 					// skip forward to the next gap or the end of the list
-					next_finish = next_start + 2.0f * next->collision_radius;
+					next_finish = next_start + 4.0f * next->collision_radius;
 					if (next_finish > finish)
 						finish = next_finish;
 					e0 = next;
@@ -5181,7 +5189,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
 						next = next->y_next;
 					if (next)
-						next_start = next->position.y - next->collision_radius;
+						next_start = next->position.y - 2.0f * next->collision_radius;
 				}
 				// now either (next == nil) or (next_start >= finish)-which would imply a gap!
 			}
@@ -5205,21 +5213,21 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	while (e0)
 	{
 		// here we are either at the start of the list or just past a gap
-		start = e0->position.x - e0->collision_radius;
-		finish = start + 2.0f * e0->collision_radius;
+		start = e0->position.x - 2.0f * e0->collision_radius;
+		finish = start + 4.0f * e0->collision_radius;
 		next = e0->x_next;
 		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->x_next;
 		if (next)
 		{
-			next_start = next->position.x - next->collision_radius;
+			next_start = next->position.x - 2.0f * next->collision_radius;
 			if (next_start < finish)
 			{
 				// e0 and next overlap
 				while ((next)&&(next_start < finish))
 				{
 					// skip forward to the next gap or the end of the list
-					next_finish = next_start + 2.0f * next->collision_radius;
+					next_finish = next_start + 4.0f * next->collision_radius;
 					if (next_finish > finish)
 						finish = next_finish;
 					e0 = next;
@@ -5227,7 +5235,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
 						next = next->x_next;
 					if (next)
-						next_start = next->position.x - next->collision_radius;
+						next_start = next->position.x - 2.0f * next->collision_radius;
 				}
 				// now either (next == nil) or (next_start >= finish)-which would imply a gap!
 			}
@@ -5251,21 +5259,21 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	while (e0)
 	{
 		// here we are either at the start of the list or just past a gap
-		start = e0->position.y - e0->collision_radius;
-		finish = start + 2.0f * e0->collision_radius;
+		start = e0->position.y - 2.0f * e0->collision_radius;
+		finish = start + 4.0f * e0->collision_radius;
 		next = e0->y_next;
 		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->y_next;
 		if (next)
 		{
-			next_start = next->position.y - next->collision_radius;
+			next_start = next->position.y - 2.0f * next->collision_radius;
 			if (next_start < finish)
 			{
 				// e0 and next overlap
 				while ((next)&&(next_start < finish))
 				{
 					// skip forward to the next gap or the end of the list
-					next_finish = next_start + 2.0f * next->collision_radius;
+					next_finish = next_start + 4.0f * next->collision_radius;
 					if (next_finish > finish)
 						finish = next_finish;
 					e0 = next;
@@ -5273,7 +5281,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
 						next = next->y_next;
 					if (next)
-						next_start = next->position.y - next->collision_radius;
+						next_start = next->position.y - 2.0f * next->collision_radius;
 				}
 				// now either (next == nil) or (next_start >= finish)-which would imply a gap!
 			}
@@ -5297,14 +5305,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	while (e0)
 	{
 		// here we are either at the start of the list or just past a gap
-		start = e0->position.z - e0->collision_radius;
-		finish = start + 2.0f * e0->collision_radius;
+		start = e0->position.z - 2.0f * e0->collision_radius;
+		finish = start + 4.0f * e0->collision_radius;
 		next = e0->z_next;
 		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->z_next;
 		if (next)
 		{
-			next_start = next->position.z - next->collision_radius;
+			next_start = next->position.z - 2.0f * next->collision_radius;
 			if (next_start < finish)
 			{
 				// e0 and next overlap
@@ -5313,7 +5321,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					// chain e0 to next in collision
 					e0->collision_chain = next;
 					// skip forward to the next gap or the end of the list
-					next_finish = next_start + 2.0f * next->collision_radius;
+					next_finish = next_start + 4.0f * next->collision_radius;
 					if (next_finish > finish)
 						finish = next_finish;
 					e0 = next;
@@ -5321,7 +5329,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
 						next = next->z_next;
 					if (next)
-						next_start = next->position.z - next->collision_radius;
+						next_start = next->position.z - 2.0f * next->collision_radius;
 				}
 				// now either (next == nil) or (next_start >= finish)-which would imply a gap!
 				e0->collision_chain = nil;	// end the collision chain

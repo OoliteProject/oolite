@@ -3346,13 +3346,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				if (proximity_alert == primaryTarget && range > 1500)
 				{
 					/*	FIXME: (EW, 17-10-2010), sometimes the proximity_alert is set at great distance. Witnessed > 10 000 m
-						Problem is in the proximity_alert is not always reset.
+						Problem is that the proximity_alert is not always reset.
 						Analysis: In universe.m a list is maintained with all ships that are within one combined collision radius
-						from each other. That list is used in CollisionRegion.m to generate aproximity_alert. It first clears
-						all alerts on that list, but when the ship was not on the list it stays on.
+						from each other. That list is used in CollisionRegion.m to generate aproximity_alert. CollisionRegion first clears
+						all alerts on that list, but when the ship was not on the list, generated in universe.m, it stays on.
 					*/
 					jink.z = 1000; // reset value
-					// OOLog(@"dumpState.proximity.error", @"Proximity alert during combat at %g meter.", range);
+					OOLog(@"dumpState.proximity.error", @"Proximity alert during combat at %g meter.", range);
 				}
 					
 			}
@@ -4489,6 +4489,9 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		return;
 	}
 
+	if ([other mass] < 2000) // we are not alerted by small objects. (a cargopod has a mass of about 1000)
+		return;
+	
 	if (isStation) // don't be alarmed close to stations -- is this sensible? we dont mind crashing with carriers?
 		return;
 
@@ -4500,7 +4503,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	
 	if (!crew) // Ships without pilot (cargo, rocks, missiles, buoys etc) will not get alarmed. (escape-pods have pilots)
 		return;
-
+	
 	// check vectors
 	Vector vdiff = vector_between(position, other->position);
 	GLfloat d_forward = dot_product(vdiff, v_forward);
@@ -4512,7 +4515,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	double cr2 = collision_radius * 2.0 + other->collision_radius;	cr2 *= cr2;	// check with twice the combined radius
 
 	if (d2 > cr2) // we're okay
-		return;
+	return;
 
 	if (behaviour == BEHAVIOUR_AVOID_COLLISION)	//	already avoiding something
 	{

@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 	GLfloat				border_radius;		// additiønal, border radius of the region (typically 32km or some value > the scanner range)
 
 	int					checks_this_tick;
+	int					checks_within_range;
 
 	NSMutableArray		*subregions;
 	

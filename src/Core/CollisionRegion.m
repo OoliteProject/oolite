@@ -341,12 +341,17 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	
 	// test for collisions in each subregion
 	//
+	/* There are never subregions created in the current code, so skip this check for now.
+	 
 	int n_subs = [subregions count];
 	for (i = 0; i < n_subs; i++)
 		[(CollisionRegion*)[subregions objectAtIndex: i] findCollisions];
+	 
+	*/
 	//
 	
 	checks_this_tick = 0;
+	checks_within_range = 0;
 	
 	// test each entity in this region against the entities in its collision chain
 	//
@@ -360,24 +365,25 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 		e2 = e1->collision_chain;
 		while (e2 != nil)
 		{
-#ifndef NDEBUG
-			if (gDebugFlags & DEBUG_COLLISIONS)
-			{
-				OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
-					e1, (e1->collisionTestFilter)?@"YES":@"NO", e2, (e2->collisionTestFilter)?@"YES":@"NO");
-			}
-#endif
-			
 			checks_this_tick++;
 			
 			p2 = e2->position;
 			r2 = e2->collision_radius;
 			r0 = r1 + r2;
-			p2.x -= p1.x;   p2.y -= p1.y;   p2.z -= p1.z;
-			dist2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
+			p2 = vector_subtract(p2, p1);
+			dist2 = magnitude2(p2);
 			min_dist2 = r0 * r0;
 			if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
 			{
+#ifndef NDEBUG
+				if (gDebugFlags & DEBUG_COLLISIONS)
+				{
+					OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
+						  e1, (e1->collisionTestFilter)?@"YES":@"NO", e2, (e2->collisionTestFilter)?@"YES":@"NO");
+				}
+#endif
+				checks_within_range++;
+				
 				if ((e1->isShip) && (e2->isShip))
 				{
 					if ((dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) || (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1))
