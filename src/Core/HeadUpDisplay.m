@@ -263,7 +263,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[gui setMaxAlpha: [[gui_info objectForKey:ALPHA_KEY] floatValue]];
 	else
 		[gui setMaxAlpha: 1.0];
-	[gui setAlpha: 1.0];
 }
 
 
@@ -279,7 +278,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		[self resizeGui:gui withInfo:gui_info];
 	}
-	// At the moment comms log needs alpha to be reset to 0.
+	[gui setAlpha: 1.0];	// message_gui needs this.
+	
+	// And now set up the comms log
+	
 	gui = [UNIVERSE comm_log_gui];
 	gui_info = [info objectForKey:@"comm_log_gui"];
 
@@ -287,7 +289,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		[self resizeGui:gui withInfo:gui_info];
 	}
-	[gui setAlpha: 0.0];
+	[gui setAlpha: 0.0];	// comm_log_gui needs this.
 }
 
 

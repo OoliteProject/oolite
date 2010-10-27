@@ -304,7 +304,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		return;
 	}
-	if (duration <= 0.0)
+	if (duration == 0.0)
 		fade_sign = -1000.0f;
 	else
 		fade_sign = (float)(-fade_alpha / duration);
