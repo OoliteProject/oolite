@@ -204,7 +204,8 @@ MA 02110-1301, USA.
 	
 	OOWeaponType			forward_weapon_type;		// type of forward weapon (allows lasers, plasma cannon, others)
 	OOWeaponType			aft_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
-	GLfloat					weapon_energy;				// energy used/delivered by weapon
+	GLfloat					weapon_damage;				// energy damage dealt by weapon
+	GLfloat					weapon_damage_override;		// custom energy damage dealt by front laser, if applicable
 	GLfloat					weaponRange;				// range of the weapon (in meters)
 	
 	GLfloat					scannerRange;				// typically 25600

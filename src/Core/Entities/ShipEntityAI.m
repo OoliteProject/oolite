@@ -992,7 +992,7 @@ MA 02110-1301, USA.
 		[shipAI message:@"COURSE_OK"]; // Avoid going into a waypoint.plist for far away objects, it cripples the main AI a bit in its funtionality.
 	else
 	{
-		if ([hazard isShip] && (weapon_energy * 24.0 > [hazard energy]))
+		if ([hazard isShip] && (weapon_damage * 24.0 > [hazard energy]))
 		{
 			[shipAI reactToMessage:@"HAZARD_CAN_BE_DESTROYED" context:@"checkCourseToDestination"];
 		}

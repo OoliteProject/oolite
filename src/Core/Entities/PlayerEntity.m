@@ -1157,7 +1157,6 @@ static GLfloat		sBaseMass = 0.0;
 	aft_weapon_type			= WEAPON_NONE;
 	port_weapon_type		= WEAPON_NONE;
 	starboard_weapon_type	= WEAPON_NONE;
-	[self setWeaponDataFromType:forward_weapon_type]; 
 	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
 	weapons_online			= YES;
@@ -1221,6 +1220,7 @@ static GLfloat		sBaseMass = 0.0;
 	customViewOffset		= kZeroVector;
 	
 	currentWeaponFacing		= VIEW_FORWARD;
+	[self currentWeaponStats];
 	
 	[save_path autorelease];
 	save_path = nil;
@@ -1306,7 +1306,7 @@ static GLfloat		sBaseMass = 0.0;
 	yaw_delta =			2.0f * max_flight_yaw;
 	
 	energy = maxEnergy;
-	if (forward_weapon_type == WEAPON_NONE) [self setWeaponDataFromType:forward_weapon_type]; 
+	//if (forward_weapon_type == WEAPON_NONE) [self setWeaponDataFromType:forward_weapon_type]; 
 	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
 	[roleSet release];
@@ -2787,12 +2787,12 @@ static GLfloat		sBaseMass = 0.0;
 	// buggy oxp could override hud.plist with a non-dictionary.
 	if (hudDict != nil)
 	{
-		[hud setHidden:NO];
+		[hud setHidden:YES];	// hide the hud while rebuilding it.
 		DESTROY(hud);
 		hud = [[HeadUpDisplay alloc] initWithDictionary:hudDict inFile:hudFileName];
 		[hud setScannerZoom:scannerZoom];
-		[hud resizeGuis: hudDict];
-		[hud setHidden:theHudIsHidden]; // reset hidden status to what it was originally.
+		[hud resetGuis: hudDict];
+		[hud setHidden:theHudIsHidden]; // now show it, or reset it to what it was before.
 	}
 	
 	return YES;
@@ -3614,44 +3614,45 @@ static GLfloat		sBaseMass = 0.0;
 - (void) currentWeaponStats
 {
 	int currentWeapon = [self weaponForView: currentWeaponFacing];
-
+	// Did find & correct a minor mismatch between player and NPC weapon stats. This is the resulting code - Kaks 20101027
+	
+	// Basic stats: weapon_damage & weaponRange (weapon_recharge_rate is not used by the player)
+	[self setWeaponDataFromType:currentWeapon];
+	
+	// Advanced stats: all the other stats used by the player!
 	switch (currentWeapon)
 	{
 		case WEAPON_PLASMA_CANNON :
-			weapon_energy =						6.0f;
-			weapon_energy_per_shot =			6.0f;
-			weapon_heat_increment_per_shot =	8.0f;
-			weapon_reload_time =				0.25f;
-			weaponRange = 5000;
+			weapon_energy_use =			6.0f;
+			weapon_shot_temperature =	8.0f;
+			weapon_reload_time =		0.25f;
 			break;
 		case WEAPON_PULSE_LASER :
-			weapon_energy =						15.0f;
-			weapon_energy_per_shot =			1.0f;
-			weapon_heat_increment_per_shot =	8.0f;
-			weapon_reload_time =				0.5f;
-			weaponRange = 12500;
+			weapon_energy_use =			0.8f;
+			weapon_shot_temperature =	7.0f;
+			weapon_reload_time =		0.5f;
 			break;
 		case WEAPON_BEAM_LASER :
-			weapon_energy =						15.0f;
-			weapon_energy_per_shot =			1.0f;
-			weapon_heat_increment_per_shot =	8.0f;
-			weapon_reload_time =				0.1f;
-			weaponRange = 15000;
+			weapon_energy_use =			1.0f;
+			weapon_shot_temperature =	8.0f;
+			weapon_reload_time =		0.1f;
 			break;
 		case WEAPON_MINING_LASER :
-			weapon_energy =						50.0f;
-			weapon_energy_per_shot =			1.0f;
-			weapon_heat_increment_per_shot =	8.0f;
-			weapon_reload_time =				2.5f;
-			weaponRange = 12500;
+			weapon_energy_use =			1.4f;
+			weapon_shot_temperature =	10.0f;
+			weapon_reload_time =		2.5f;
 			break;
 		case WEAPON_THARGOID_LASER :
 		case WEAPON_MILITARY_LASER :
-			weapon_energy =						23.0f;
-			weapon_energy_per_shot =			1.0f;
-			weapon_heat_increment_per_shot =	8.0f;
-			weapon_reload_time =				0.1f;
-			weaponRange = 30000;
+			weapon_energy_use =			1.2f;
+			weapon_shot_temperature =	8.0f;
+			weapon_reload_time =		0.1f;
+			break;
+		case WEAPON_NONE:
+		case WEAPON_UNDEFINED:
+			weapon_energy_use =			0.0f;
+			weapon_shot_temperature =	0.0f;
+			weapon_reload_time =		0.1f;
 			break;
 	}
 }
@@ -3694,7 +3695,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	[self currentWeaponStats];
 
-	if (energy <= weapon_energy_per_shot)
+	if (energy <= weapon_energy_use)
 	{
 		[UNIVERSE addMessage:DESC(@"weapon-out-of-juice") forCount:3.0];
 		return NO;
@@ -3702,7 +3703,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	using_mining_laser = (weapon_to_be_fired == WEAPON_MINING_LASER);
 
-	energy -= weapon_energy_per_shot;
+	energy -= weapon_energy_use;
 
 	switch (currentWeaponFacing)
 	{
@@ -3710,19 +3711,19 @@ static GLfloat		sBaseMass = 0.0;
 		case VIEW_NONE:
 		case VIEW_BREAK_PATTERN:
 		case VIEW_FORWARD:
-			forward_weapon_temp += weapon_heat_increment_per_shot;
+			forward_weapon_temp += weapon_shot_temperature;
 			forward_shot_time = 0.0;
 			break;
 		case VIEW_AFT:
-			aft_weapon_temp += weapon_heat_increment_per_shot;
+			aft_weapon_temp += weapon_shot_temperature;
 			aft_shot_time = 0.0;
 			break;
 		case VIEW_PORT:
-			port_weapon_temp += weapon_heat_increment_per_shot;
+			port_weapon_temp += weapon_shot_temperature;
 			port_shot_time = 0.0;
 			break;
 		case VIEW_STARBOARD:
-			starboard_weapon_temp += weapon_heat_increment_per_shot;
+			starboard_weapon_temp += weapon_shot_temperature;
 			starboard_shot_time = 0.0;
 			break;
 		case VIEW_CUSTOM:

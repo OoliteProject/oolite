@@ -411,9 +411,10 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	// Start with full energy banks.
 	energy = maxEnergy;
 	
-	// setWeaponDataFromType inside setUpFromDictionary should set weapon_energy from the front laser.
-	// no weapon_energy? It's a missile: set weapon_energy from shipdata!
-	if (weapon_energy == 0.0) weapon_energy = [shipDict oo_floatForKey:@"weapon_energy"];
+	// setWeaponDataFromType inside setUpFromDictionary should set weapon_damage from the front laser.
+	// no weapon_damage? It's a missile: set weapon_damage from shipdata!
+	if (weapon_damage == 0.0) weapon_damage_override = weapon_damage = [shipDict oo_floatForKey:@"weapon_energy"]; // any damage value for missiles/bombs
+	else weapon_damage_override = OOClamp_0_max_f([shipinfoDictionary oo_floatForKey:@"weapon_energy" defaultValue:weapon_damage],50.0); // front laser damage can be modified, within limits!
 
 	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:(float)SCANNER_MAX_RANGE];
 	
@@ -2398,7 +2399,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	OOEquipmentType			*eqType = nil;
 	NSString				*lcEquipmentKey = [equipmentKey lowercaseString];
-	BOOL					isEqThargon = [lcEquipmentKey hasPrefix:@"thargon"] || [lcEquipmentKey hasSuffix:@"thargon"];
+	BOOL					isEqThargon = [lcEquipmentKey hasSuffix:@"thargon"] || [lcEquipmentKey hasPrefix:@"thargon"];
 	
 	if([lcEquipmentKey isEqualToString:@"thargon"]) equipmentKey = @"EQ_THARGON";
 	
@@ -2489,7 +2490,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentTypeCheckKey];
 	if (eqType == nil)  return;
 	
-	if ([eqType isMissileOrMine] || ([self isThargoid] && ([lcEquipmentKey hasPrefix:@"thargon"] || [lcEquipmentKey hasSuffix:@"thargon"])))
+	if ([eqType isMissileOrMine] || ([self isThargoid] && ([lcEquipmentKey hasSuffix:@"thargon"] || [lcEquipmentKey hasPrefix:@"thargon"])))
 	{
 		[self removeExternalStore:eqType];
 	}
@@ -2686,9 +2687,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (missileType == nil) OOLogERR(@"ship.setUp.missiles", @"could not resolve missile / mine type for ship \"%@\". Original missile role:\"%@\".", [self name],_missileRole);
 	
 	role = [[missileType identifier] lowercaseString];
-	thargoidMissile = [self isThargoid] && ([role hasPrefix:@"thargon"] || [role hasSuffix:@"thargon"]);
+	thargoidMissile = [self isThargoid] && ([role hasSuffix:@"thargon"] || [role hasPrefix:@"thargon"]);
 
-	if ( thargoidMissile || (!thargoidMissile && [missileType isMissileOrMine]))
+	if (thargoidMissile || (!thargoidMissile && [missileType isMissileOrMine]))
 	{
 		return missileType;
 	}
@@ -4748,38 +4749,38 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	switch (weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON:
-			weapon_energy =			6.0;
+			weapon_damage =			6.0;
 			weapon_recharge_rate =	0.25;
 			weaponRange =			5000;
 			break;
 		case WEAPON_PULSE_LASER:
-			weapon_energy =			15.0;
+			weapon_damage =			15.0;
 			weapon_recharge_rate =	0.33;
 			weaponRange =			12500;
 			break;
 		case WEAPON_BEAM_LASER:
-			weapon_energy =			15.0;
+			weapon_damage =			15.0;
 			weapon_recharge_rate =	0.25;
 			weaponRange =			15000;
 			break;
 		case WEAPON_MINING_LASER:
-			weapon_energy =			50.0;
+			weapon_damage =			50.0;
 			weapon_recharge_rate =	0.5;
 			weaponRange =			12500;
 			break;
 		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
-			weapon_energy =			12.5;
+			weapon_damage =			12.5;
 			weapon_recharge_rate =	0.5;
 			weaponRange =			17500;
 			break;
 		case WEAPON_MILITARY_LASER:
-			weapon_energy =			23.0;
+			weapon_damage =			23.0;
 			weapon_recharge_rate =	0.20;
 			weaponRange =			30000;
 			break;
 		case WEAPON_NONE:
 		case WEAPON_UNDEFINED:
-			weapon_energy =			0.0;	// indicating no weapon!
+			weapon_damage =			0.0;	// indicating no weapon!
 			weapon_recharge_rate =	0.20;	// maximum rate
 			weaponRange =			32000;
 			break;
@@ -4801,7 +4802,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 - (void) setWeaponEnergy:(float)value
 {
-	weapon_energy = value;
+	weapon_damage = value;
 }
 
 
@@ -5616,7 +5617,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			Vector p2 = vector_subtract([e2 position], position);
 			double ecr = [e2 collisionRadius];
 			double d2 = magnitude2(p2) - ecr * ecr;
-			double damage = weapon_energy*desired_range/d2;
+			double damage = weapon_damage * desired_range/d2;
 			[e2 takeEnergyDamage:damage from:self becauseOf:[self owner]];
 		}
 	}
@@ -7291,14 +7292,10 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (BOOL) fireMainWeapon:(double) range
+- (BOOL) fireWeapon:(OOWeaponType)weapon_type direction:(OOViewID)direction range:(double)range
 {
-	//
-	// set the values for the forward weapon
-	//
-	[self setWeaponDataFromType:forward_weapon_type];
-	weapon_energy = OOClamp_0_max_f([shipinfoDictionary oo_floatForKey:@"weapon_energy" defaultValue:weapon_energy],50.0);
-	
+
+
 	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
 	
@@ -7306,13 +7303,13 @@ BOOL class_masslocks(int some_class)
 		return NO;
 	if (range > weaponRange)
 		return NO;
-	if (![self onTarget:YES])
+	if (![self onTarget:direction == VIEW_FORWARD])
 		return NO;
 		
 	//
 
 	BOOL fired = NO;
-	switch (forward_weapon_type)
+	switch (weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON :
 			[self firePlasmaShotAtOffset:0.0 speed:NPC_PLASMA_SPEED color:[OOColor yellowColor]];
@@ -7323,7 +7320,7 @@ BOOL class_masslocks(int some_class)
 		case WEAPON_BEAM_LASER :
 		case WEAPON_MINING_LASER :
 		case WEAPON_MILITARY_LASER :
-			[self fireLaserShotInDirection: VIEW_FORWARD];
+			[self fireLaserShotInDirection: direction];
 			fired = YES;
 			break;
 		
@@ -7337,7 +7334,7 @@ BOOL class_masslocks(int some_class)
 			// Do nothing
 			break;
 	}
-
+	
 	//can we fire lasers from our subentities?
 	NSEnumerator	*subEnum = nil;
 	ShipEntity		*se = nil;
@@ -7355,62 +7352,25 @@ BOOL class_masslocks(int some_class)
 }
 
 
+- (BOOL) fireMainWeapon:(double) range
+{
+	// set the values from forward_weapon_type.
+	// OXPs can override the default front laser energy damage.
+	
+	[self setWeaponDataFromType:forward_weapon_type];
+	weapon_damage = weapon_damage_override;
+	
+	return [self fireWeapon:forward_weapon_type direction:VIEW_FORWARD range:range];
+}
+
+
 - (BOOL) fireAftWeapon:(double) range
 {
-	//
-	// save the existing weapon values
-	//
-	double weapon_energy1 = weapon_energy;
-	double weapon_recharge_rate1 = weapon_recharge_rate;
-	double weapon_range1 = weaponRange;
-	//
-	// set new values from aft_weapon_type
-	//
+	// set the values from aft_weapon_type.
+	
 	[self setWeaponDataFromType:aft_weapon_type];
-
-	if ([self shotTime] < weapon_recharge_rate)
-		return NO;
-	if (![self onTarget:NO])
-		return NO;
-	if (range > randf() * weaponRange)
-		return NO;
-
-	BOOL fired = YES;
-	switch (aft_weapon_type)
-	{
-		case WEAPON_PLASMA_CANNON :
-			[self firePlasmaShotAtOffset:0.0 speed:NPC_PLASMA_SPEED color:[OOColor yellowColor] direction:VIEW_AFT];
-			break;
-
-		case WEAPON_PULSE_LASER :
-		case WEAPON_BEAM_LASER :
-		case WEAPON_MINING_LASER :
-		case WEAPON_MILITARY_LASER :
-			[self fireLaserShotInDirection:VIEW_AFT];
-			break;
-		case WEAPON_THARGOID_LASER :
-			[self fireDirectLaserShot];
-			break;
-		
-		case WEAPON_UNDEFINED:
-		case WEAPON_NONE:
-			// do nothing
-			fired = NO;
-			break;
-	}
 	
-	// restore previous values
-	weapon_energy = weapon_energy1;
-	weapon_recharge_rate = weapon_recharge_rate1;
-	weaponRange = weapon_range1;
-	//
-	
-	if (fired && cloaking_device_active && cloakPassive)
-	{
-		[self deactivateCloakingDevice];
-	}
-
-	return fired;
+	return [self fireWeapon:aft_weapon_type direction:VIEW_AFT range:range];
 }
 
 
@@ -7454,7 +7414,7 @@ BOOL class_masslocks(int some_class)
 	
 	OOPlasmaShotEntity *shot = [[OOPlasmaShotEntity alloc] initWithPosition:origin
 																   velocity:vel
-																	 energy:weapon_energy
+																	 energy:weapon_damage
 																   duration:TURRET_SHOT_DURATION
 																	  color:laser_color];
 	
@@ -7515,13 +7475,13 @@ BOOL class_masslocks(int some_class)
 		if (subent && [victim isFrangible])
 		{
 			// do 1% bleed-through damage...
-			[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf: parent];
+			[victim takeEnergyDamage: 0.01 * weapon_damage from:subent becauseOf: parent];
 			victim = subent;
 		}
 
 		if (hit_at_range < weaponRange)
 		{
-			[victim takeEnergyDamage:weapon_energy from:self becauseOf: parent];	// a very palpable hit
+			[victim takeEnergyDamage:weapon_damage from:self becauseOf: parent];	// a very palpable hit
 
 			[shot setCollisionRadius: hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
@@ -7580,13 +7540,13 @@ BOOL class_masslocks(int some_class)
 		if (subent != nil && [victim isFrangible])
 		{
 			// do 1% bleed-through damage...
-			[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
+			[victim takeEnergyDamage: 0.01 * weapon_damage from:subent becauseOf:self];
 			victim = subent;
 		}
 
 		if (hit_at_range * hit_at_range < range_limit2)
 		{
-			[victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
+			[victim takeEnergyDamage:weapon_damage from:self becauseOf:self];	// a very palpable hit
 
 			[shot setCollisionRadius: hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
@@ -7603,9 +7563,9 @@ BOOL class_masslocks(int some_class)
 	[self resetShotTime];
 	
 	// random laser over-heating for AI ships
-	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
+	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_damage)&&(![self isMining]))
 	{
-		shot_time -= (randf() * weapon_energy);
+		shot_time -= (randf() * weapon_damage);
 	}
 	
 	return YES;
@@ -7661,13 +7621,13 @@ BOOL class_masslocks(int some_class)
 		if (subent != nil && [victim isFrangible])
 		{
 			// do 1% bleed-through damage...
-			[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
+			[victim takeEnergyDamage: 0.01 * weapon_damage from:subent becauseOf:self];
 			victim = subent;
 		}
 
 		if (hit_at_range * hit_at_range < range_limit2)
 		{
-			[victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
+			[victim takeEnergyDamage:weapon_damage from:self becauseOf:self];	// a very palpable hit
 
 			[shot setCollisionRadius:hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
@@ -7684,9 +7644,9 @@ BOOL class_masslocks(int some_class)
 	[self resetShotTime];
 
 	// random laser over-heating for AI ships
-	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
+	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_damage)&&(![self isMining]))
 	{
-		shot_time -= (randf() * weapon_energy);
+		shot_time -= (randf() * weapon_damage);
 	}
 
 	return YES;
@@ -7795,7 +7755,7 @@ BOOL class_masslocks(int some_class)
 	
 	OOPlasmaShotEntity *shot = [[OOPlasmaShotEntity alloc] initWithPosition:origin
 																   velocity:vel
-																	 energy:weapon_energy
+																	 energy:weapon_damage
 																   duration:MAIN_PLASMA_DURATION
 																	  color:color];
 	

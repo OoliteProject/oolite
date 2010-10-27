@@ -288,7 +288,7 @@ typedef enum
 	GLfloat					weapon_temp;
 	GLfloat					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp;
 	OOTimeDelta				forward_shot_time, aft_shot_time, port_shot_time, starboard_shot_time;
-	GLfloat					weapon_energy_per_shot, weapon_heat_increment_per_shot, weapon_reload_time;
+	GLfloat					weapon_energy_use, weapon_shot_temperature, weapon_reload_time;
 	
 	int						chosen_weapon_facing;   // for purchasing weapons
 	

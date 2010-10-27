@@ -266,11 +266,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) resizeGuis:(NSDictionary *) info
+- (void) resetGuis:(NSDictionary *) info
 {
-	// check for entries in hud plist for comm_log_gui and message_gui
-	// then resize and reposition them accordingly. Puzzingly, message_gui and comm_log_gui
-	// have completely different alpha fading behaviours. TODO: refactor the underlying code!
+	// check for entries in hud.plist for message_gui and comm_log_gui
+	// then resize and reposition them accordingly.
 	
 	GuiDisplayGen*	gui = [UNIVERSE message_gui];
 	NSDictionary*	gui_info = [info objectForKey:@"message_gui"];
@@ -278,7 +277,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		[self resizeGui:gui withInfo:gui_info];
 	}
-	[gui setAlpha: 1.0];	// message_gui needs this.
+	[gui setAlpha: 1.0];	// message_gui is always visible.
 	
 	// And now set up the comms log
 	
@@ -291,7 +290,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[UNIVERSE setPermanentCommLog:[gui_info oo_boolForKey:@"permanent" defaultValue:NO]];
 		[self resizeGui:gui withInfo:gui_info];
 	}
-	[gui setAlpha: [UNIVERSE permanentCommLog]? 1.0 : 0.0];	// comm_log_gui needs this.
+	[gui setAlpha: [UNIVERSE permanentCommLog]? 1.0 : 0.0];	// comm_log_gui is normally invisible most of the time, unless permanent.
 }
 
 
