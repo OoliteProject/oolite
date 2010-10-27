@@ -233,80 +233,61 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 //------------------------------------------------------------------------------------//
 
 
+- (void) resizeGui:(GuiDisplayGen*)gui withInfo:(NSDictionary *) gui_info
+{
+	Vector pos = [gui drawPosition];
+	if ([gui_info objectForKey:X_KEY])
+		pos.x = [[gui_info objectForKey:X_KEY] floatValue] +
+			[[UNIVERSE gameView] x_offset] *
+			[gui_info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	if ([gui_info objectForKey:Y_KEY])
+		pos.y = [[gui_info objectForKey:Y_KEY] floatValue] + 
+			[[UNIVERSE gameView] y_offset] *
+			[gui_info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
+	[gui setDrawPosition:pos];
+	NSSize		siz =	[gui	size];
+	int			rht =	[gui	rowHeight];
+	NSString*	title =	[gui	title];
+	if ([gui_info objectForKey:WIDTH_KEY])
+		siz.width = [[gui_info objectForKey:WIDTH_KEY] floatValue];
+	if ([gui_info objectForKey:HEIGHT_KEY])
+		siz.height = [[gui_info objectForKey:HEIGHT_KEY] floatValue];
+	if ([gui_info objectForKey:ROW_HEIGHT_KEY])
+		rht = [[gui_info objectForKey:ROW_HEIGHT_KEY] intValue];
+	if ([gui_info objectForKey:TITLE_KEY])
+		title = [NSString stringWithFormat:@"%@", [gui_info objectForKey:TITLE_KEY]];
+	[gui resizeTo:siz characterHeight:rht title:title];
+	if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
+		[gui setBackgroundColor:[OOColor colorFromString:[gui_info oo_stringForKey:BACKGROUND_RGBA_KEY]]];
+	if ([gui_info objectForKey:ALPHA_KEY])
+		[gui setMaxAlpha: [[gui_info objectForKey:ALPHA_KEY] floatValue]];
+	else
+		[gui setMaxAlpha: 1.0];
+	[gui setAlpha: 1.0];
+}
+
+
 - (void) resizeGuis:(NSDictionary *) info
 {
 	// check for entries in hud plist for comm_log_gui and message_gui
-	// resize and reposition them accordingly
+	// then resize and reposition them accordingly. Puzzingly, message_gui and comm_log_gui
+	// have completely different alpha fading behaviours. TODO: refactor the underlying code!
 	
-	GuiDisplayGen* message_gui = [UNIVERSE message_gui];
-	if ((message_gui)&&([info objectForKey:@"message_gui"]))
+	GuiDisplayGen*	gui = [UNIVERSE message_gui];
+	NSDictionary*	gui_info = [info objectForKey:@"message_gui"];
+	if (gui && gui_info)
 	{
-		NSDictionary* gui_info = (NSDictionary*)[info objectForKey:@"message_gui"];
-		Vector pos = [message_gui drawPosition];
-		if ([gui_info objectForKey:X_KEY])
-			pos.x = [[gui_info objectForKey:X_KEY] floatValue] +
-				[[UNIVERSE gameView] x_offset] *
-				[gui_info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-		if ([gui_info objectForKey:Y_KEY])
-			pos.y = [[gui_info objectForKey:Y_KEY] floatValue] +
-				[[UNIVERSE gameView] y_offset] *
-				[gui_info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-		[message_gui setDrawPosition:pos];
-		NSSize		siz =	[message_gui	size];
-		int			rht =	[message_gui	rowHeight];
-		NSString*	title =	[message_gui	title];
-		if ([gui_info objectForKey:WIDTH_KEY])
-			siz.width = [[gui_info objectForKey:WIDTH_KEY] floatValue];
-		if ([gui_info objectForKey:HEIGHT_KEY])
-			siz.height = [[gui_info objectForKey:HEIGHT_KEY] floatValue];
-		if ([gui_info objectForKey:ROW_HEIGHT_KEY])
-			rht = [[gui_info objectForKey:ROW_HEIGHT_KEY] intValue];
-		if ([gui_info objectForKey:TITLE_KEY])
-			title = [NSString stringWithFormat:@"%@", [gui_info objectForKey:TITLE_KEY]];
-		[message_gui resizeTo:siz characterHeight:rht title:title];
-		if ([gui_info objectForKey:ALPHA_KEY])
-			[message_gui setAlpha: [[gui_info objectForKey:ALPHA_KEY] floatValue]];
-		else
-			[message_gui setAlpha: 1.0];
-		if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
-			[message_gui setBackgroundColor:[OOColor colorFromString:[gui_info oo_stringForKey:BACKGROUND_RGBA_KEY]]];
+		[self resizeGui:gui withInfo:gui_info];
 	}
-	
-	GuiDisplayGen* comm_log_gui = [UNIVERSE comm_log_gui];
-	if ((comm_log_gui)&&([info objectForKey:@"comm_log_gui"]))
+	// At the moment comms log needs alpha to be reset to 0.
+	gui = [UNIVERSE comm_log_gui];
+	gui_info = [info objectForKey:@"comm_log_gui"];
+
+	if (gui && gui_info)
 	{
-		NSDictionary* gui_info = (NSDictionary*)[info objectForKey:@"comm_log_gui"];
-		Vector pos = [comm_log_gui drawPosition];
-		if ([gui_info objectForKey:X_KEY])
-			pos.x = [[gui_info objectForKey:X_KEY] floatValue] +
-				[[UNIVERSE gameView] x_offset] *
-				[gui_info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-		if ([gui_info objectForKey:Y_KEY])
-			pos.y = [[gui_info objectForKey:Y_KEY] floatValue] + 
-				[[UNIVERSE gameView] y_offset] *
-				[gui_info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-		[comm_log_gui setDrawPosition:pos];
-		NSSize		siz =	[comm_log_gui	size];
-		int			rht =	[comm_log_gui	rowHeight];
-		NSString*	title =	[comm_log_gui	title];
-		if ([gui_info objectForKey:WIDTH_KEY])
-			siz.width = [[gui_info objectForKey:WIDTH_KEY] floatValue];
-		if ([gui_info objectForKey:HEIGHT_KEY])
-			siz.height = [[gui_info objectForKey:HEIGHT_KEY] floatValue];
-		if ([gui_info objectForKey:ROW_HEIGHT_KEY])
-			rht = [[gui_info objectForKey:ROW_HEIGHT_KEY] intValue];
-		if ([gui_info objectForKey:TITLE_KEY])
-			title = [NSString stringWithFormat:@"%@", [gui_info objectForKey:TITLE_KEY]];
-		[comm_log_gui resizeTo:siz characterHeight:rht title:title];
-		if ([gui_info objectForKey:ALPHA_KEY])
-			[comm_log_gui setAlpha: [[gui_info objectForKey:ALPHA_KEY] floatValue]];
-		else
-			[comm_log_gui setAlpha: 1.0];
-		if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
-			[comm_log_gui setBackgroundColor:[OOColor colorFromString:[gui_info oo_stringForKey:BACKGROUND_RGBA_KEY]]];
+		[self resizeGui:gui withInfo:gui_info];
 	}
-	
-	
+	[gui setAlpha: 0.0];
 }
 
 

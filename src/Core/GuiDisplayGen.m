@@ -65,6 +65,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	pixel_row_center = size_in_pixels.width / 2;
 	pixel_row_height = MAIN_GUI_ROW_HEIGHT;
 	pixel_row_start	= MAIN_GUI_PIXEL_ROW_START;		// first position down the page...
+	max_alpha = 1.0;
 
 	pixel_text_size = NSMakeSize(0.9f * pixel_row_height, pixel_row_height);	// main gui has 18x20 characters
 	
@@ -119,6 +120,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	pixel_row_center = size_in_pixels.width / 2;
 	pixel_row_height = gui_row_height;
 	pixel_row_start	= gui_row_start;		// first position down the page...
+	max_alpha = 1;
 
 	pixel_text_size = NSMakeSize(pixel_row_height, pixel_row_height);
 	
@@ -302,9 +304,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		return;
 	}
-	fade_sign = (float)(-fade_alpha / duration);
-	fade_from_time = now_time;
-	fade_duration = duration;
+	if (duration <= 0.0)
+		fade_sign = -1000.0f;
+	else
+		fade_sign = (float)(-fade_alpha / duration);
 }
 
 
@@ -316,7 +319,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) setAlpha:(GLfloat) an_alpha
 {
-	fade_alpha = an_alpha;
+	fade_alpha = an_alpha * max_alpha;
+}
+
+
+- (void) setMaxAlpha:(GLfloat) an_alpha
+{
+	max_alpha = an_alpha;
 }
 
 

@@ -103,9 +103,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	BOOL			showTextCursor;
 	OOGUIRow		currentRow;
 	
+	GLfloat			max_alpha;				// main alpha setting
 	GLfloat			fade_alpha;			// for fade-in / fade-out
-	OOTimeDelta		fade_duration;		// period
-	OOTimeAbsolute	fade_from_time;		// from [universe getTime]
 	GLfloat			fade_sign;			//	-1.0 to 1.0
 	int				statusPage; 		// status  screen: paging equipped items
 	int				foundSystem;
@@ -146,6 +145,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (GLfloat) alpha;
 - (void) setAlpha:(GLfloat) an_alpha;
+- (void) setMaxAlpha:(GLfloat) an_alpha;
 
 - (void) setBackgroundColor:(OOColor*) color;
 
