@@ -243,7 +243,7 @@ enum
 	OOSunEntity				*cachedSun;
 	NSMutableArray			*allPlanets;
 	
-	NSArray				*closeSystems;
+	NSArray					*closeSystems;
 	
 	BOOL					strict;
 	
@@ -284,6 +284,8 @@ enum
 #endif
 	
 	BOOL					_pauseMessage;
+	BOOL					_autoCommLog;
+	BOOL					_permanentCommLog;
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
@@ -655,6 +657,10 @@ double estimatedTimeForJourney(double distance, int hops);
 // True if textual pause message (as opposed to overlay) is being shown.
 - (BOOL) pauseMessageVisible;
 - (void) setPauseMessageVisible:(BOOL)value;
+
+- (BOOL) permanentCommLog;
+- (void) setPermanentCommLog:(BOOL)value;
+- (void) setAutoCommLog:(BOOL)value;
 
 @end
 

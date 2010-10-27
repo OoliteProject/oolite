@@ -1692,15 +1692,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		spos = [ship position];
 		Quaternion q1;
 		rpos = [self coordinatesFromCoordinateSystemString:positionString];
-		rpos.x -= spos.x;	rpos.y -= spos.y;	rpos.z -= spos.z; // position relative to ship
+		rpos.x = spos.x - rpos.x;	rpos.y = spos.y - rpos.y;	rpos.z = spos.z - rpos.z; // position relative to ship
 		if (rpos.x || rpos.y || rpos.z)
 		{
 			rpos = vector_normal(rpos);
 			q1 = quaternion_rotation_between(make_vector(0,0,1), rpos);
-			
-			GLfloat check = dot_product(vector_forward_from_quaternion(q1), rpos);
-			if (check < 0)
-				quaternion_rotate_about_axis(&q1, vector_right_from_quaternion(q1), M_PI);	// 180 degree flip
 			
 			[ship setOrientation:q1];
 		}
@@ -4797,7 +4793,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) addCommsMessage:(NSString *)text forCount:(OOTimeDelta)count
 {
-	[self addCommsMessage:text forCount:count andShowComms:YES logOnly:NO];
+	[self addCommsMessage:text forCount:count andShowComms:_autoCommLog logOnly:NO];
 }
 
 
@@ -4835,7 +4831,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) showCommsLog:(OOTimeDelta)how_long
 {
 	[comm_log_gui setAlpha:1.0];
-	[comm_log_gui fadeOutFromTime:[self getTime] overDuration:how_long];
+	if (![self permanentCommLog]) [comm_log_gui fadeOutFromTime:[self getTime] overDuration:how_long];
 }
 
 
@@ -8076,6 +8072,24 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 - (void) setPauseMessageVisible:(BOOL)value
 {
 	_pauseMessage = value;
+}
+
+
+- (BOOL) permanentCommLog
+{
+	return _permanentCommLog;
+}
+
+
+- (void) setPermanentCommLog:(BOOL)value
+{
+	_permanentCommLog = value;
+}
+
+
+- (void) setAutoCommLog:(BOOL)value
+{
+	_autoCommLog = value;
 }
 
 

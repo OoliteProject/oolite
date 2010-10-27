@@ -237,11 +237,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	Vector pos = [gui drawPosition];
 	if ([gui_info objectForKey:X_KEY])
-		pos.x = [[gui_info objectForKey:X_KEY] floatValue] +
+		pos.x = [gui_info oo_floatForKey:X_KEY] +
 			[[UNIVERSE gameView] x_offset] *
 			[gui_info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
 	if ([gui_info objectForKey:Y_KEY])
-		pos.y = [[gui_info objectForKey:Y_KEY] floatValue] + 
+		pos.y = [gui_info oo_floatForKey:Y_KEY] + 
 			[[UNIVERSE gameView] y_offset] *
 			[gui_info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	[gui setDrawPosition:pos];
@@ -249,18 +249,18 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	int			rht =	[gui	rowHeight];
 	NSString*	title =	[gui	title];
 	if ([gui_info objectForKey:WIDTH_KEY])
-		siz.width = [[gui_info objectForKey:WIDTH_KEY] floatValue];
+		siz.width = [gui_info oo_floatForKey:WIDTH_KEY];
 	if ([gui_info objectForKey:HEIGHT_KEY])
-		siz.height = [[gui_info objectForKey:HEIGHT_KEY] floatValue];
+		siz.height = [gui_info oo_floatForKey:HEIGHT_KEY];
 	if ([gui_info objectForKey:ROW_HEIGHT_KEY])
-		rht = [[gui_info objectForKey:ROW_HEIGHT_KEY] intValue];
+		rht = [gui_info oo_floatForKey:ROW_HEIGHT_KEY];
 	if ([gui_info objectForKey:TITLE_KEY])
-		title = [NSString stringWithFormat:@"%@", [gui_info objectForKey:TITLE_KEY]];
+		title = [gui_info oo_stringForKey:TITLE_KEY];
 	[gui resizeTo:siz characterHeight:rht title:title];
 	if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
 		[gui setBackgroundColor:[OOColor colorFromString:[gui_info oo_stringForKey:BACKGROUND_RGBA_KEY]]];
 	if ([gui_info objectForKey:ALPHA_KEY])
-		[gui setMaxAlpha: [[gui_info objectForKey:ALPHA_KEY] floatValue]];
+		[gui setMaxAlpha: [gui_info oo_floatForKey:ALPHA_KEY]];
 	else
 		[gui setMaxAlpha: 1.0];
 }
@@ -287,9 +287,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 	if (gui && gui_info)
 	{
+		[UNIVERSE setAutoCommLog:[gui_info oo_boolForKey:@"automatic" defaultValue:YES]];
+		[UNIVERSE setPermanentCommLog:[gui_info oo_boolForKey:@"permanent" defaultValue:NO]];
 		[self resizeGui:gui withInfo:gui_info];
 	}
-	[gui setAlpha: 0.0];	// comm_log_gui needs this.
+	[gui setAlpha: [UNIVERSE permanentCommLog]? 1.0 : 0.0];	// comm_log_gui needs this.
 }
 
 
