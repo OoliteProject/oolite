@@ -182,6 +182,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) populateSpaceFromHyperPoint:(Vector)h1_pos toPlanetPosition:(Vector)p1_pos andSunPosition:(Vector)s1_pos;
 - (int)	scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
 
+- (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary;
+
 #if OO_LOCALIZATION_TOOLS
 #if DEBUG_GRAPHVIZ
 - (void) dumpDebugGraphViz;
@@ -4659,7 +4661,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSString *) screenBackgroundNameForKey:(NSString *)key
 {
-	NSString *value = [screenBackgrounds oo_stringForKey:key];
+	NSString *value = [self chooseStringForKey:key inDictionary:screenBackgrounds];
 	
 	if (value != nil)
 	{
@@ -5471,10 +5473,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSString *)descriptionForKey:(NSString *)key
 {
-	id object = [[self descriptions] objectForKey:key];
-	if ([object isKindOfClass:[NSString class]])  return object;
-	else if ([object isKindOfClass:[NSArray class]] && [object count] > 0)  return [object oo_stringAtIndex:Ranrot() % [object count]];
-	return nil;
+	return [self chooseStringForKey:key inDictionary:[self descriptions]];
 }
 
 
@@ -9039,6 +9038,15 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		}
 	}
 	return rocks;
+}
+
+
+- (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary
+{
+	id object = [dictionary objectForKey:key];
+	if ([object isKindOfClass:[NSString class]])  return object;
+	else if ([object isKindOfClass:[NSArray class]] && [object count] > 0)  return [object oo_stringAtIndex:Ranrot() % [object count]];
+	return nil;
 }
 
 
