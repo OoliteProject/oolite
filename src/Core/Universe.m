@@ -970,6 +970,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		[a_station setEquivalentTechLevel:techlevel];
 		[self addEntity:a_station];		// STATUS_IN_FLIGHT, AI state GLOBAL
 		[a_station setStatus:STATUS_ACTIVE];	// For backward compatibility. Might not be needed.
+		[a_station setAllowsFastDocking:true];	// Main stations always allow fast docking.
 	}
 	
 	cachedSun = a_sun;

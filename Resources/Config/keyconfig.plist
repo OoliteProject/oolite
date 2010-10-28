@@ -35,8 +35,7 @@
 	key_rotate_cargo			= "R";
 
 	key_autopilot				= "c";
-	key_autopilot_target		= "C";
-	key_autodock				= "D";
+	key_autodock				= "C";
 	key_docking_clearance_request		= "L";
 
 	key_snapshot				= "*";

@@ -98,7 +98,7 @@ typedef enum
 	BOOL					requiresDockingClearance;	
 #endif
 	BOOL					interstellarUndockingAllowed;
-	
+	BOOL					allowsFastDocking;
 }
 
 - (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q;
@@ -198,6 +198,9 @@ typedef enum
 - (BOOL) requiresDockingClearance;
 - (void) setRequiresDockingClearance:(BOOL)newValue;
 #endif
+
+- (BOOL) allowsFastDocking;
+- (void) setAllowsFastDocking:(BOOL)newValue;
 
 - (NSString *) dockingPatternModelFileName;
 - (NSString *) marketOverrideName;

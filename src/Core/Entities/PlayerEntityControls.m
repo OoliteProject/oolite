@@ -75,7 +75,6 @@ static BOOL				cloak_pressed;
 static BOOL				rotateCargo_pressed;
 static BOOL				autopilot_key_pressed;
 static BOOL				fast_autopilot_key_pressed;
-static BOOL				target_autopilot_key_pressed;
 #if DOCKING_CLEARANCE_ENABLED
 static BOOL				docking_clearance_request_key_pressed;
 #endif
@@ -135,6 +134,8 @@ static NSTimeInterval	time_last_frame;
 - (void) pollDemoControls:(double) delta_t;
 - (void) handleMissionCallback;
 - (void) switchToThisView:(OOViewID) viewDirection;
+
+- (void) handleAutopilotOn:(BOOL)fastDocking;
 
 @end
 
@@ -224,8 +225,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_rotate_cargo,			'R'			);
 	
 	LOAD_KEY_SETTING(key_autopilot,				'c'			);
-	LOAD_KEY_SETTING(key_autopilot_target,			'C'			);
-	LOAD_KEY_SETTING(key_autodock,				'D'			);
+	LOAD_KEY_SETTING(key_autodock,				'C'			);
 #if DOCKING_CLEARANCE_ENABLED
 	LOAD_KEY_SETTING(key_docking_clearance_request, 	'L'			);
 #endif
@@ -644,8 +644,6 @@ static NSTimeInterval	time_last_frame;
 			
 			if (![UNIVERSE displayCursor])
 			{
-				BOOL isOkayToUseAutopilot = legalStatus <= 50;	// used for C, shift-C, & shift-D (same condition handled inside station code for docking clearance)
-				
 				exceptionContext = @"afterburner";
 				if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel]) &&
 					[self hasFuelInjection] &&
@@ -997,29 +995,9 @@ static NSTimeInterval	time_last_frame;
 				// autopilot 'c'
 				if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU])   // look for the 'c' key
 				{
-					if ([self hasDockingComputer] && !autopilot_key_pressed)   // look for the 'c' key
+					if ([self hasDockingComputer] && (!autopilot_key_pressed))
 					{
-						BOOL isUsingDockingAI = [[shipAI name] isEqual: PLAYER_DOCKING_AI_NAME];
-						
-						if (isUsingDockingAI)
-						{
-							if ([self checkForAegis] != AEGIS_IN_DOCKING_RANGE)
-							{
-								isOkayToUseAutopilot = NO;
-								[self playAutopilotOutOfRange];
-								[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
-							}
-							else
-							{
-								if (!isOkayToUseAutopilot) [UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
-							}
-						}
-						
-						if (isOkayToUseAutopilot)
-						{
-							[self engageAutopilotToStation:[UNIVERSE station]];
-							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
-						}
+						[self handleAutopilotOn:false];
 					}
 					autopilot_key_pressed = YES;
 				}
@@ -1027,84 +1005,12 @@ static NSTimeInterval	time_last_frame;
 					autopilot_key_pressed = NO;
 				
 				exceptionContext = @"autopilot shift-C";
-				// autopilot 'C' - dock with target
-				if ([gameView isDown:key_autopilot_target])   // look for the 'C' key
+				// autopilot 'C' - fast-autopilot
+				if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'C' key
 				{
-					if ([self hasDockingComputer] && (!target_autopilot_key_pressed))
+					if ([self hasDockingComputer] && (!fast_autopilot_key_pressed))
 					{
-						StationEntity* primeTarget = [self primaryTarget];
-						BOOL primeTargetIsHostile = [self hasHostileTarget];
-						isOkayToUseAutopilot = isOkayToUseAutopilot && primeTarget == [UNIVERSE station];
-						if (primeTarget != nil && [primeTarget isStation] &&
-							(!primeTargetIsHostile || isOkayToUseAutopilot))
-						{
-							[self engageAutopilotToStation:primeTarget];
-							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
-						}
-						else
-						{
-							[self playAutopilotCannotDockWithTarget];
-							if (primeTargetIsHostile && [primeTarget isStation])
-							{
-								[UNIVERSE addMessage:DESC(@"autopilot-target-docking-instructions-denied") forCount:4.5];
-							}
-							else
-							{
-								[UNIVERSE addMessage:DESC(@"autopilot-cannot-dock-with-target") forCount:4.5];
-							}
-						}
-					}
-					target_autopilot_key_pressed = YES;
-				}
-				else
-					target_autopilot_key_pressed = NO;
-				
-				exceptionContext = @"autopilot shift-D";
-				// autopilot 'D'
-				if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'D' key
-				{
-					if ([self hasDockingComputer] && (!fast_autopilot_key_pressed))   // look for the 'D' key
-					{
-						if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
-						{
-							StationEntity *the_station = [UNIVERSE station];
-							if (the_station)
-							{
-								if (!isOkayToUseAutopilot)
-								{
-									[self setStatus:STATUS_AUTOPILOT_ENGAGED];
-									[self interpretAIMessage:@"DOCKING_REFUSED"];
-								}
-								else
-								{
-									if (legalStatus > 0)
-									{
-										// there's a slight chance you'll be fined for your past offences when autodocking
-										int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
-										int government = 1 + [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT];	// 1..8
-										if ([UNIVERSE inInterstellarSpace])  government = 2;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
-										fine_chance /= government;
-										if (fine_chance < legalStatus)
-										{
-											[self markForFines];
-										}
-									}
-	#if DOCKING_CLEARANCE_ENABLED
-									[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-	#endif
-									ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
-									ident_engaged = NO;
-									[self safeAllMissiles];
-									[UNIVERSE setViewDirection:VIEW_FORWARD];
-									[self enterDock:the_station];
-								}
-							}
-						}
-						else
-						{
-							[self playAutopilotOutOfRange];
-							[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
-						}
+						[self handleAutopilotOn:true];
 					}
 					fast_autopilot_key_pressed = YES;
 				}
@@ -3107,19 +3013,7 @@ static BOOL toggling_music;
 	}
 	else
 		autopilot_key_pressed = NO;
-	
-	if ([gameView isDown:key_autopilot_target])   // look for the 'C' key
-	{
-		if ([self hasDockingComputer] && !target_autopilot_key_pressed)   // look for the 'C' key
-		{
-			[self disengageAutopilot];
-			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
-		}
-		target_autopilot_key_pressed = YES;
-	}
-	else
-		target_autopilot_key_pressed = NO;
-	
+
 	if (([gameView isDown:key_docking_music]))   // look for the 's' key
 	{
 		if (!toggling_music)
@@ -3368,6 +3262,116 @@ static BOOL toggling_music;
 	[UNIVERSE setViewDirection:viewDirection];
 	currentWeaponFacing = viewDirection;
 	[self currentWeaponStats];
+}
+
+// Called on c or Shift-C
+- (void) handleAutopilotOn:(BOOL)fastDocking
+{
+	BOOL	isOkayToUseAutopilot	= NO;
+	Entity	*target					= nil;
+
+	// Check alert condition - on red alert, abort
+	isOkayToUseAutopilot = [self alertCondition] != ALERT_CONDITION_RED;
+	if( !isOkayToUseAutopilot )
+	{
+		[self playAutopilotCannotDockWithTarget];
+		[UNIVERSE addMessage:DESC(@"autopilot-red-alert") forCount:4.5];
+		goto abort;
+	}
+
+	// Check if current target is dockable
+	target = [self primaryTarget];
+	isOkayToUseAutopilot = target && [target isStation] && [target isKindOfClass:[StationEntity class]];
+	// Otherwise check for nearby dockables
+	if( !isOkayToUseAutopilot )
+	{
+		Universe  *uni        = UNIVERSE;
+		Entity    **entities  = uni->sortedEntities;	// grab the public sorted list
+		int       nStations   = 0;
+		int       i;
+
+		for( i = 0; i < uni->n_entities && nStations < 2; i++ )
+		{
+			if( entities[i]->isStation && [entities[i] isKindOfClass:[StationEntity class]] &&
+					entities[i]->zero_distance <= SCANNER_MAX_RANGE2 )
+			{
+				nStations++;
+				target = entities[i];
+			}
+		}
+		// If we found no targets, check for main station Aegis.
+		// If we found one target, dock with it.
+		// If we found multiple targets, abort.
+		switch(nStations)
+		{
+			case 0:
+				if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
+				{
+					isOkayToUseAutopilot = YES;
+					target = [UNIVERSE station];
+				}
+				else
+				{
+					[self playAutopilotOutOfRange];
+					[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
+					goto abort;
+				}
+				break;
+			case 1:
+				isOkayToUseAutopilot = YES;
+				break;
+			default:
+				[self playAutopilotCannotDockWithTarget];
+				[UNIVERSE addMessage:DESC(@"autopilot-multiple-targets") forCount:4.5];
+				goto abort;
+		}
+	}
+
+	// We found a dockable, check whether we can dock with it
+	StationEntity *ts = (StationEntity*)target;
+
+	// Deny docking if player is fugitive or station is hostile
+	if( legalStatus > 50 || [ts isHostileTo:self] )
+	{
+		[self playAutopilotCannotDockWithTarget];
+		if(ts == [UNIVERSE station] )
+			[UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
+		else
+			[UNIVERSE addMessage:DESC(@"autopilot-target-docking-instructions-denied") forCount:4.5];
+	}
+	// If we're fast-docking, perform the docking logic
+	else if( fastDocking && [ts allowsFastDocking] )
+	{
+		if (legalStatus > 0)
+		{
+			// there's a slight chance you'll be fined for your past offences when autodocking
+			int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
+			int government = 1 + [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT];	// 1..8
+			if ([UNIVERSE inInterstellarSpace])  government = 2;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
+			fine_chance /= government;
+			if (fine_chance < legalStatus)
+			{
+				[self markForFines];
+			}
+		}
+#if DOCKING_CLEARANCE_ENABLED
+		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+#endif
+		ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
+		ident_engaged = NO;
+		[self safeAllMissiles];
+		[UNIVERSE setViewDirection:VIEW_FORWARD];
+		[self enterDock:ts];
+	}
+	// Standard docking - engage autopilot
+	else
+	{
+		[self engageAutopilotToStation:ts];
+		[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
+	}
+abort:
+	// Clean-up code, if any
+	return;
 }
 
 @end

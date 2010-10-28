@@ -582,6 +582,7 @@ MA 02110-1301, USA.
 - (BOOL)isUnpiloted;	// Has unpiloted = yes in its shipdata.plist entry
 
 - (BOOL) hasHostileTarget;
+- (BOOL) isHostileTo:(Entity *)entity;
 
 - (GLfloat) weaponRange;
 - (void) setWeaponRange:(GLfloat) value;

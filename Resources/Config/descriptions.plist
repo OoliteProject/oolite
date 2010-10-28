@@ -432,6 +432,8 @@
 	"autopilot-cannot-dock-with-target" = "Target is not capable of autopilot-docking.";
 	"autopilot-target-docking-instructions-denied" = "Target has denied broadcast of docking instructions.";
 	"autopilot-denied"				= "Station refuses to issue docking instructions.";
+	"autopilot-multiple-targets"	= "Multiple autopilot targets in vicinity.";
+	"autopilot-red-alert"			= "Red Alert! Cannot engage autopilot.";
 	"witch-to-@-in-f-seconds"		= "Witchspace to %@ in %.0f s.";
 	"witch-blocked-by-@"			= "Witchspace jump aborted (too close to %@.)";
 	"witch-user-abort"				= "Witchspace jump aborted.";

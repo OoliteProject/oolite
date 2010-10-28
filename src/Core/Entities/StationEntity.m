@@ -809,6 +809,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:
 		universalInfo != nil ?	[universalInfo oo_boolForKey:@"stations_require_docking_clearance" defaultValue:NO] : NO];
 #endif
+	allowsFastDocking = [dict oo_boolForKey:@"allows_fast_docking" defaultValue:NO];
 	
 	NSString *defaultBreakPattern = [universalInfo oo_stringForKey:@"default_dockpattern_model" defaultValue:[universalInfo oo_stringForKey:@"default_breakpattern_model"]];
 	if (defaultBreakPattern == nil)  defaultBreakPattern = @"oolite-tunnel.dat";
@@ -2167,6 +2168,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	requiresDockingClearance = !!newValue;	// Ensure yes or no
 }
 #endif
+
+- (BOOL) allowsFastDocking
+{
+	return allowsFastDocking;
+}
+
+- (void) setAllowsFastDocking:(BOOL)newValue
+{
+	allowsFastDocking = !!newValue;	// Ensure yes or no
+}
 
 
 - (BOOL) isRotatingStation

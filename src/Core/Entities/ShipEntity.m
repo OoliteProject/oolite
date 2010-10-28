@@ -4731,6 +4731,10 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	return IsBehaviourHostile(behaviour);
 }
 
+- (BOOL) isHostileTo:(Entity *)entity
+{
+	return ([self hasHostileTarget] && [self primaryTarget] == entity);
+}
 
 - (GLfloat) weaponRange
 {
