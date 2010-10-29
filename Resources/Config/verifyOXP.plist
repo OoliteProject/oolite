@@ -300,7 +300,8 @@
 			"requires_docking_clearance",
 			"docking_pattern_model",
 			"market",
-			"interstellar_undocking"
+			"interstellar_undocking",
+			"allows_fast_docking"
 		);
 		knownPlayerKeys =
 		(

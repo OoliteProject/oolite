@@ -29,9 +29,9 @@
 					"spacing" = positiveInteger;
 					"n_bars" = positiveInteger;
 					
-					// These are for use with the resizeGuis: selector, which isn't actually useful at this time.
+					// These are for use with the resetGuis: selector.
 					"message_gui" = $guiParameters;
-					"comm_log_gui" = $guiParameters;
+					"comm_log_gui" = $commGuiParameters;
 				};
 				allowOthers = NO;
 				requiredKeys = ( "selector" );
@@ -82,7 +82,8 @@
 		};
 		$floatZeroToTwo =
 		{
-			// Alpha can reasonably be two for aegis, since it's scaled by 0.5.
+			// Alpha can reasonably be two for aegis, since it's scaled by 0.5. 
+			// Why the inconsistency? Kaks 20101029
 			type = positiveFloat;
 			maximum = 2;
 		};
@@ -119,6 +120,24 @@
 			type = dictionary;
 			schema =
 			{
+				"x" = integer;
+				"y" = integer;
+				"width" = positiveFloat;
+				"height" = positiveFloat;
+				"row_height" = positiveInteger;
+				"alpha" = $floatZeroToOne;
+				"background_rgba" = string;
+				"title" = string;
+			};
+			allowOthers = NO;
+		};
+		$commGuiParameters =
+		{
+			type = dictionary;
+			schema =
+			{
+				"automatic" = boolean;
+				"permanent" = boolean;
 				"x" = integer;
 				"y" = integer;
 				"width" = positiveFloat;

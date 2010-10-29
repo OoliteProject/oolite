@@ -127,6 +127,7 @@
 		docking_pattern_model = "$modelName";
 		market = "string";
 		interstellar_undocking = "boolean";
+		allows_fast_docking = "boolean";
 		
 		extra_equipment = "$extraEquipmentDictionary";
 		hud = "$hudFileName";
