@@ -3288,7 +3288,7 @@ static BOOL toggling_music;
 		Universe  *uni        = UNIVERSE;
 		Entity    **entities  = uni->sortedEntities;	// grab the public sorted list
 		int       nStations   = 0;
-		int       i;
+		unsigned  i;
 
 		for( i = 0; i < uni->n_entities && nStations < 2; i++ )
 		{
