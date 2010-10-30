@@ -3299,39 +3299,43 @@ static BOOL toggling_music;
 				target = entities[i];
 			}
 		}
-		// If we found no targets, check for main station Aegis.
 		// If we found one target, dock with it.
-		// If we found multiple targets, abort.
-		switch(nStations)
+		// If inside the Aegis, dock with the main station.
+		// If outside the Aegis and we found multiple targets, abort.
+		
+		if (nStations == 1)
 		{
-			case 0:
-				if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
-				{
-					isOkayToUseAutopilot = YES;
-					target = [UNIVERSE station];
-				}
-				else
+			isOkayToUseAutopilot = YES;
+		}
+		else
+		{
+			if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
+			{
+				isOkayToUseAutopilot = YES;
+				target = [UNIVERSE station];
+			}
+			else
+			{
+				if (nStations == 0)
 				{
 					[self playAutopilotOutOfRange];
 					[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
-					goto abort;
 				}
-				break;
-			case 1:
-				isOkayToUseAutopilot = YES;
-				break;
-			default:
-				[self playAutopilotCannotDockWithTarget];
-				[UNIVERSE addMessage:DESC(@"autopilot-multiple-targets") forCount:4.5];
+				else
+				{
+					[self playAutopilotCannotDockWithTarget];
+					[UNIVERSE addMessage:DESC(@"autopilot-multiple-targets") forCount:4.5];
+				}
 				goto abort;
+			}
 		}
 	}
 
 	// We found a dockable, check whether we can dock with it
 	StationEntity *ts = (StationEntity*)target;
 
-	// Deny docking if player is fugitive or station is hostile
-	if( legalStatus > 50 || [ts isHostileTo:self] )
+	// Deny if station is hostile or player is a fugitive trying to dock at the main station.
+	if( (legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self] )
 	{
 		[self playAutopilotCannotDockWithTarget];
 		if(ts == [UNIVERSE station] )
