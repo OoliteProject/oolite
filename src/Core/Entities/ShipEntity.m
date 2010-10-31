@@ -3133,19 +3133,31 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	desired_speed = max_available_speed;
 	if (range < COMBAT_IN_RANGE_FACTOR * weaponRange)
 	{
-		if (!pitching_over) // don't change jink in the middle of a sharp turn.
-		{
-			// For most AIs, is behaviour_attack_target called as starting behaviour on every hit.
-			// Target can both fly towards or away from ourselves here. Both situations
-			// need a different jink.z for optimal collision avoidance at high speed approach and low speed dogfighting.
-			ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
-			float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
-			jink.x = (ranrot_rand() % 256) - 128.0;
-			jink.y = (ranrot_rand() % 256) - 128.0;
-			jink.z =  range * COMBAT_WEAPON_RANGE_FACTOR - relativeSpeed / max_flight_pitch;
-		}
+		if (aft_weapon_type == WEAPON_NONE)
+		{	
+			if (!pitching_over) // don't change jink in the middle of a sharp turn.
+			{
+				/*
+				For most AIs, is behaviour_attack_target called as starting behaviour on every hit.
+				Target can both fly towards or away from ourselves here. Both situations
+				need a different jink.z for optimal collision avoidance at high speed approach and low speed dogfighting.
+				The COMBAT_JINK_OFFSET intentionally over-compensates the range for collision radii to send ships towards
+				the target at low speeds.
+				*/
+				ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
+				jink.x = (ranrot_rand() % 256) - 128.0;
+				jink.y = (ranrot_rand() % 256) - 128.0;
+				jink.z =  range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch;
+			}
 
-		behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+		}
+		else
+		{
+			jink = kZeroVector;
+			behaviour = BEHAVIOUR_RUNNING_DEFENSE;
+		}
 	}
 	else
 	{
@@ -3341,21 +3353,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
 				jink.x = (ranrot_rand() % 256) - 128.0;
 				jink.y = (ranrot_rand() % 256) - 128.0;
-				jink.z = range * COMBAT_WEAPON_RANGE_FACTOR - relativeSpeed / max_flight_pitch; // range= ~440 for pulse weapon and ~1050 for military laser. 
+				jink.z = range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch; // range= ~440 for pulse weapon and ~1050 for military laser. 
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 				frustration = 0.0;
-				if (proximity_alert == primaryTarget && range > 1500)
-				{
-					/*	FIXME: (EW, 17-10-2010), sometimes the proximity_alert is set at great distance. Witnessed > 10 000 m
-						Problem is that the proximity_alert is not always reset.
-						Analysis: In universe.m a list is maintained with all ships that are within one combined collision radius
-						from each other. That list is used in CollisionRegion.m to generate aproximity_alert. CollisionRegion first clears
-						all alerts on that list, but when the ship was not on the list, generated in universe.m, it stays on.
-					*/
-					jink.z = 1000; // reset value
-					OOLog(@"dumpState.proximity.error", @"Proximity alert during combat at %g meter.", range);
-				}
-					
 			}
 			else
 			{
@@ -3364,7 +3364,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
 				frustration = 0.0;
 			}
-			proximity_alert = NO_TARGET; // EW test to see if this fixes some faulty alerts.
 		}
 		else
 		{
@@ -3456,8 +3455,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			
 			jink.x = (ranrot_rand() % 256) - 128.0;
 			jink.y = (ranrot_rand() % 256) - 128.0;
-			jink.z /= 2; // move the z-offset closer to the target than before.
-			desired_speed = flightSpeed * 2; // increase speed a bit.
+			if (randf() < 0.3)
+			{
+				jink.z /= 2; // move the z-offset closer to the target to let him fly away from the target.
+				desired_speed = flightSpeed * 2; // increase speed a bit.
+			}
 			frustration = 0.0;
 		}
 	}
@@ -6815,10 +6817,20 @@ BOOL class_masslocks(int some_class)
 			vz = vector_forward_from_quaternion(q);
 		}
 		
-		double rangeModifier = (range2 > 250000.0) ? 1 : (range2 / 250000.0); // don't jink to strong when closer than 500m
-		relPos.x += (jink.x * vx.x + jink.y * vy.x + jink.z * vz.x) * rangeModifier;
-		relPos.y += (jink.x * vx.y + jink.y * vy.y + jink.z * vz.y) * rangeModifier;
-		relPos.z += (jink.x * vx.z + jink.y * vy.z + jink.z * vz.z) * rangeModifier;
+		BOOL avoidCollision = NO;
+		if (range2 < collision_radius * target->collision_radius * 100.0) // Check direction within 10 * collision radius.
+		{
+			Vector targetDirection = kBasisZVector;
+			if (!vector_equal(relPos, kZeroVector))  targetDirection = vector_normal(relPos);
+			avoidCollision  =  (dot_product(targetDirection, v_forward) > -0.1); // is flying toward target or only slightly outward.
+		}
+		
+		if (!avoidCollision)  // it is safe to jink
+		{
+			relPos.x += (jink.x * vx.x + jink.y * vy.x + jink.z * vz.x);
+			relPos.y += (jink.x * vx.y + jink.y * vy.y + jink.z * vz.y);
+			relPos.z += (jink.x * vx.z + jink.y * vy.z + jink.z * vz.z);
+		}
 	}
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
