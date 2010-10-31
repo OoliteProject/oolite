@@ -653,7 +653,7 @@ static BOOL CheckRegExps(NSString *string, id regexps)
 }
 
 
-OOInteger CompareGPUSettingsByPriority(id a, id b, void *context)
+NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void *context)
 {
 	NSString		*keyA = a;
 	NSString		*keyB = b;
