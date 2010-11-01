@@ -3264,18 +3264,20 @@ static BOOL toggling_music;
 	[self currentWeaponStats];
 }
 
+
 // Called on c or Shift-C
 - (void) handleAutopilotOn:(BOOL)fastDocking
 {
-	BOOL	isOkayToUseAutopilot	= NO;
-	Entity	*target					= nil;
+	BOOL		isOkayToUseAutopilot	= NO;
+	Entity		*target					= nil;
+	NSString	*message				= nil;
 
 	// Check alert condition - on red alert, abort
 	isOkayToUseAutopilot = [self alertCondition] != ALERT_CONDITION_RED;
 	if( !isOkayToUseAutopilot )
 	{
 		[self playAutopilotCannotDockWithTarget];
-		[UNIVERSE addMessage:DESC(@"autopilot-red-alert") forCount:4.5];
+		message = DESC(@"autopilot-red-alert");
 		goto abort;
 	}
 
@@ -3289,7 +3291,7 @@ static BOOL toggling_music;
 		Entity    **entities  = uni->sortedEntities;	// grab the public sorted list
 		int       nStations   = 0;
 		unsigned  i;
-
+		
 		for( i = 0; i < uni->n_entities && nStations < 2; i++ )
 		{
 			if( entities[i]->isStation && [entities[i] isKindOfClass:[StationEntity class]] &&
@@ -3309,7 +3311,7 @@ static BOOL toggling_music;
 		}
 		else
 		{
-			if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
+			if ( [self withinStationAegis] && ( nStations == 0 || legalStatus <= 50 ) )
 			{
 				isOkayToUseAutopilot = YES;
 				target = [UNIVERSE station];
@@ -3318,13 +3320,24 @@ static BOOL toggling_music;
 			{
 				if (nStations == 0)
 				{
-					[self playAutopilotOutOfRange];
-					[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
+/* Do we want to provide this feedback? If not, we need to remove the descriptions.plist key. -kaks 20101031
+					// did we have a non-dockable entity targeted?
+					if (target != nil)
+					{
+						[self playAutopilotCannotDockWithTarget];
+						message = DESC(@"autopilot-cannot-dock-with-target");
+					}
+					else
+*/
+					{
+						[self playAutopilotOutOfRange];
+						message = DESC(@"autopilot-out-of-range");
+					}
 				}
 				else
 				{
 					[self playAutopilotCannotDockWithTarget];
-					[UNIVERSE addMessage:DESC(@"autopilot-multiple-targets") forCount:4.5];
+					message = DESC(@"autopilot-multiple-targets");
 				}
 				goto abort;
 			}
@@ -3335,16 +3348,13 @@ static BOOL toggling_music;
 	StationEntity *ts = (StationEntity*)target;
 
 	// Deny if station is hostile or player is a fugitive trying to dock at the main station.
-	if( (legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self] )
+	if ( (legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self] )
 	{
 		[self playAutopilotCannotDockWithTarget];
-		if(ts == [UNIVERSE station] )
-			[UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
-		else
-			[UNIVERSE addMessage:DESC(@"autopilot-target-docking-instructions-denied") forCount:4.5];
+		message = (ts == [UNIVERSE station] ? DESC(@"autopilot-denied") : DESC(@"autopilot-target-docking-instructions-denied"));
 	}
 	// If we're fast-docking, perform the docking logic
-	else if( fastDocking && [ts allowsFastDocking] )
+	else if ( fastDocking && [ts allowsFastDocking] )
 	{
 		if (legalStatus > 0)
 		{
@@ -3371,10 +3381,12 @@ static BOOL toggling_music;
 	else
 	{
 		[self engageAutopilotToStation:ts];
-		[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
+		message = DESC(@"autopilot-on");
 	}
+	
 abort:
-	// Clean-up code, if any
+	// Clean-up code
+	if (message != nil) [UNIVERSE addMessage:message forCount:4.5];
 	return;
 }
 
