@@ -72,6 +72,7 @@ enum
 	kPlanet_radius,				// Radius of planet in metres, read-only
 	kPlanet_texture,			// Planet texture read / write
 	kPlanet_orientation,		// orientation, quaternion, read/write
+	kPlanet_rotationalVelocity,	// read/write
 };
 
 
@@ -83,6 +84,7 @@ static JSPropertySpec sPlanetProperties[] =
 	{ "radius",					kPlanet_radius,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "texture",				kPlanet_texture,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "orientation",			kPlanet_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// Not documented since it's inherited from Entity
+	{ "rotationalVelocity",		kPlanet_rotationalVelocity,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -160,6 +162,10 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 			OK = QuaternionToJSValue(context, [planet normalOrientation], outValue);
 			break;
 		
+		case kPlanet_rotationalVelocity:
+			OK = JS_NewDoubleValue(context, [planet rotationalVelocity], outValue);
+			break;
+		
 		default:
 			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
 	}
@@ -175,10 +181,11 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL					OK = YES;
+	BOOL					OK = NO;
 	OOPlanetEntity			*planet = nil;
 	NSString				*sValue = nil;
 	Quaternion				qValue;
+	jsdouble				dValue;
 	
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
@@ -193,13 +200,12 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 			{
 				if (sValue == nil)
 				{
-					OK = NO;
 					OOReportJSWarning(context, @"Expected texture string. Value not set.");
 				}
-			}
-			else
-			{
-				OK = NO;
+				else
+				{
+					OK = YES;
+				}
 			}
 			
 			if (OK)
@@ -217,10 +223,18 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 				OK = YES;
 			}
 			break;
+
+		case kPlanet_rotationalVelocity:
+			if (JS_ValueToNumber(context, *value, &dValue))
+			{
+				[planet setRotationalVelocity:dValue];
+				OK = YES;
+			}
+			break;
 			
 		default:
 			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
-			OK = NO;
+			break;
 	}
 	
 	return OK;

@@ -482,6 +482,13 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	root_planet = self;
 	
 	rotationAxis = kBasisYVector;
+
+	/* MKW - rotate planet based on current time.
+	 *     - do it here so that we catch all planets (OXP-added and otherwise! */
+	long time = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
+	time %= 86400;
+	quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * time);
+
 	[self setStatus:STATUS_ACTIVE];
 	
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
@@ -995,6 +1002,16 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 - (void) setRadius:(double) rad
 {
 	collision_radius = rad;
+}
+
+- (double) rotationalVelocity
+{
+	return rotational_velocity;
+}
+
+- (void) setRotationalVelocity:(double) v
+{
+	rotational_velocity = v;
 }
 
 

@@ -2687,6 +2687,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogDebugProcessSceneStringAddMiniPlanet, @"::::: adding %@ to scene:'%@'", i_key, doppelganger);
 		[doppelganger setOrientation: model_q];
 		[doppelganger setPosition: model_p0];
+		/* MKW - add rotation based on current time 
+		 *     - necessary to duplicate the rotation already performed in PlanetEntity.m since we reset the orientation above. */
+		long deltaT = [self clockTimeAdjusted];
+		deltaT %= 86400;
+		[doppelganger update: deltaT];
 		[UNIVERSE addEntity:doppelganger];
 		
 		return YES;

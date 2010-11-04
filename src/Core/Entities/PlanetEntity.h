@@ -114,6 +114,8 @@ typedef struct
 
 - (double) radius;	// metres
 - (void) setRadius:(double) rad;
+- (double) rotationalVelocity;
+- (void) setRotationalVelocity:(double) v;
 - (void) rescaleTo:(double) rad;
 
 - (BOOL) hasAtmosphere;
