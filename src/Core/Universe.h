@@ -301,6 +301,9 @@ enum
 
 - (void) reinitAndShowDemo:(BOOL)showDemo;
 
+- (ShipEntity*)demoShip;
+- (void) setDemoShip:(ShipEntity*)ship;
+
 - (int) obj_count;
 #ifndef NDEBUG
 - (void) obj_dump;

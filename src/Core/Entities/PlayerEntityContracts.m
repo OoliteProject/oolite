@@ -1441,7 +1441,6 @@ static NSMutableDictionary* currentShipyard = nil;
 		[gui setText:@"" forRow:i];
 		[gui setColor:[OOColor greenColor] forRow:i];
 	}
-	[UNIVERSE removeDemoShips];
 
 	if (info)
 	{
@@ -1505,12 +1504,16 @@ static NSMutableDictionary* currentShipyard = nil;
 - (void) showShipyardModel:(NSString *)shipKey shipData:(NSDictionary *)shipData personality:(uint16_t)personality
 {
 	ShipEntity		*ship;
+	ShipEntity * demoShip = [[[UNIVERSE demoShip] retain] autorelease];
+	[UNIVERSE removeDemoShips];
 		
 	if (shipKey == nil || dockedStation == nil)  return;
 	if (shipData == nil)  shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipData == nil)  return;
 	
 	Quaternion		q2 = { (GLfloat)0.707f, (GLfloat)0.707f, (GLfloat)0.0f, (GLfloat)0.0f };
+    if( demoShip != nil )
+        q2 = [demoShip orientation];
 	
 	ship = [[ProxyPlayerEntity alloc] initWithKey:shipKey definition:shipData];
 	if (personality != ENTITY_PERSONALITY_INVALID)  [ship setEntityPersonalityInt:personality];
@@ -1530,6 +1533,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	// show missing subentities if there's a subentities_status key
 	if (subEntStatus != nil) [ship deserializeShipSubEntitiesFrom:(NSString *)subEntStatus];
 	[UNIVERSE addEntity: ship];
+	[UNIVERSE setDemoShip:ship];
 	[ship setStatus: STATUS_COCKPIT_DISPLAY];
 	
 	[ship release];

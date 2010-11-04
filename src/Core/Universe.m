@@ -418,6 +418,20 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
+- (ShipEntity*) demoShip
+{
+	return demo_ship;
+}
+
+- (void) setDemoShip:(ShipEntity*)ship
+{
+	// MKW - we don't retain here, so caller must ensure that 'ship' is in the
+	// Universe's entity list.  Otherwise we would have to fix a LOT of places
+	// which use the demo_ship member.
+	demo_ship = ship;
+}
+
+
 - (int) obj_count
 {
 	return [entities count];
@@ -3736,6 +3750,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	closeSystems = nil;
 	firstBeacon = NO_TARGET;
 	lastBeacon = NO_TARGET;
+	demo_ship = nil;
 	
 	no_update = updating;	// restore drawing
 }

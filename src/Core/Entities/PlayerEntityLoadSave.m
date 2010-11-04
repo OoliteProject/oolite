@@ -923,7 +923,6 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 - (void) showCommanderShip:(int)cdrArrayIndex
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
-	[UNIVERSE removeDemoShips];
 	NSDictionary *cdr=[cdrDetailArray objectAtIndex: cdrArrayIndex];
 	
 	[gui setText:@"" forRow:CDRDESCROW align:GUI_ALIGN_LEFT];
