@@ -2689,9 +2689,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[doppelganger setPosition: model_p0];
 		/* MKW - add rotation based on current time 
 		 *     - necessary to duplicate the rotation already performed in PlanetEntity.m since we reset the orientation above. */
-		long deltaT = [self clockTimeAdjusted];
-		deltaT %= 86400;
-		[doppelganger update: deltaT];
+		int		days, secs;
+		double   clock = [self clockTimeAdjusted];
+		days = floor(clock / 86400.0);
+		secs = floor(clock - days * 86400.0);
+		[doppelganger update: secs];
 		[UNIVERSE addEntity:doppelganger];
 		
 		return YES;
