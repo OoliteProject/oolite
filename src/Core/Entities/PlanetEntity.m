@@ -232,10 +232,10 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	scanClass = CLASS_NO_DRAW;
 	
-	orientation.w =  M_SQRT1_2;
-	orientation.x =  M_SQRT1_2;
-	orientation.y =  0.0;
-	orientation.z =  0.0;
+	// orientation.w =  M_SQRT1_2; // is already planet->orientation
+	// orientation.x =  M_SQRT1_2;
+	// orientation.y =  0.0;
+	// orientation.z =  0.0;
 	
 	planet_type =   STELLAR_TYPE_ATMOSPHERE;
 	
@@ -256,7 +256,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	root_planet = planet;
 	
-	rotationAxis = kBasisYVector;
+	rotationAxis = vector_up_from_quaternion(orientation);
 	
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
 	
@@ -481,7 +481,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	root_planet = self;
 	
-	rotationAxis = kBasisYVector;
+	rotationAxis = vector_up_from_quaternion(orientation);
 
 	/* MKW - rotate planet based on current time.
 	 *     - do it here so that we catch all planets (OXP-added and otherwise! */
@@ -621,7 +621,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 		
 		case STELLAR_TYPE_MINIATURE:
 			// normal planetary rotation
-			//quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
 			if (atmosphere) [atmosphere update:delta_t];
 			quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * delta_t);
 			[self orientationChanged];
@@ -630,7 +629,8 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 		case STELLAR_TYPE_ATMOSPHERE:
 			{
 				// atmospheric rotation
-				quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
+				//quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
+				quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * delta_t);
 				[self orientationChanged];
 			}
 			break;
@@ -650,8 +650,9 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 - (void) setOrientation:(Quaternion)inOrientation
 {
-	rotationAxis = quaternion_rotate_vector(inOrientation, kBasisYVector);
+	rotationAxis = vector_up_from_quaternion(inOrientation);
 	[super setOrientation:inOrientation];
+	if (atmosphere) [atmosphere setOrientation:inOrientation];
 }
 
 
@@ -947,7 +948,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	[atmosphere autorelease];
 	atmosphere = [self hasAtmosphere] ? [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary] : nil;
 	
-	rotationAxis = kBasisYVector;
+	//rotationAxis = vector_up_from_quaternion(orientation);
 	
 	return [self isTextured];
 }
@@ -1013,6 +1014,10 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 - (void) setRotationalVelocity:(double) v
 {
+	if (atmosphere) // change rotation speed proportionally
+	{
+		[atmosphere setRotationalVelocity:[atmosphere rotationalVelocity] * v / [self rotationalVelocity]];
+	}
 	rotational_velocity = v;
 }
 
