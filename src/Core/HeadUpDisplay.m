@@ -1456,11 +1456,24 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		NSSize dial_size = NSMakeSize(siz.width,qy - 2);
 		int cy = y - (n_bars - 1) * qy / 2;
 		double energy = [player dialEnergy]*n_bars;
-		[player setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([player status] == STATUS_IN_FLIGHT))];
+		// MKW - ensure we don't alert the player every time they use energy if they only have 1 energybank
+		//[player setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([player status] == STATUS_IN_FLIGHT))];
+		bool energyCritical = false;
+		if( [player status] == STATUS_IN_FLIGHT )
+		{
+			if( n_bars > 1 )
+				energyCritical = energy < 1.0 ;
+			else
+				energyCritical = energy < 0.8; 
+		}
+		[player setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
 		int i;
 		for (i = 0; i < n_bars; i++)
 		{
-			GLColorWithOverallAlpha(yellow_color, alpha);
+			if( energyCritical )
+				GLColorWithOverallAlpha(red_color, alpha);
+			else
+				GLColorWithOverallAlpha(yellow_color, alpha);
 			if (energy > 1.0)
 				hudDrawBarAt(x, cy, z1, dial_size, 1.0);
 			if ((energy > 0.0)&&(energy <= 1.0))
