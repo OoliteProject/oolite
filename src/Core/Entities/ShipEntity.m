@@ -8094,11 +8094,7 @@ BOOL class_masslocks(int some_class)
 		{
 			[self dumpItem:jetto];	// CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL
 			[cargo removeObjectAtIndex:0];
-			[[UNIVERSE findShipsMatchingPredicate:YESPredicate
-									   parameter:nil
-										 inRange:SCANNER_MAX_RANGE2
-										ofEntity:self]
-					makeObjectsPerformSelector:@selector(sendAIMessage:) withObject:@"CARGO_DUMPED"];
+			[self broadcastAIMessage:@"CARGO_DUMPED"]; // goes only to 16 nearby ships in range, but that should be enough.
 		}
 	}
 	
@@ -9453,9 +9449,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		return;	// don't send the same message too often
 	[lastRadioMessage autorelease];
 	lastRadioMessage = [message_text retain];
-	Vector delta = other_ship->position;
-	delta.x -= position.x;  delta.y -= position.y;  delta.z -= position.z;
-	double d2 = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
+
+	double d2 = distance2(position, [other_ship position]);
 	if (d2 > scannerRange * scannerRange)
 		return;					// out of comms range
 	if (!other_ship)
@@ -9511,9 +9506,14 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* ship = scanned_ships[i];
-		[ship receiveCommsMessage: expandedMessage];
-		if ([ship isPlayer])
-			messageTime = 6.0;
+		if (![ship isPlayer]) [ship receiveCommsMessage: expandedMessage];
+	}
+	
+	PlayerEntity *player = [PlayerEntity sharedPlayer]; // make sure that the player always receives a message when in range
+	if (distance2(position, [player position]) < SCANNER_MAX_RANGE2)
+	{
+		[player receiveCommsMessage: expandedMessage];
+		messageTime = 6.0;
 	}
 	[UNIVERSE resetCommsLogColor];
 }
@@ -9533,6 +9533,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (void) receiveCommsMessage:(NSString *) message_text
 {
 	// ignore messages for now
+	[self doScriptEvent:@"commsMessageReceived" withArgument:message_text];
 }
 
 
