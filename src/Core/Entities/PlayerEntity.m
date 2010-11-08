@@ -6242,11 +6242,18 @@ static NSString *last_outfitting_key=nil;
 - (void) noteGuiChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen
 {
 	// No events triggered if we're changing screens while paused, or if screen never actually changed.
-	if (![[UNIVERSE gameController] gameIsPaused] && fromScreen != toScreen)
+	if( fromScreen != toScreen )
 	{
-		[self doScriptEvent:@"guiScreenChanged"
-			   withArgument:GUIScreenIDToString(toScreen)
+		// MKW - release demo ship, if we have one (NOTE: doesn't do anything if we don't)
+		[scanned_ships[0] release];
+		scanned_ships[0] = nil;
+
+		if (![[UNIVERSE gameController] gameIsPaused])
+		{
+			[self doScriptEvent:@"guiScreenChanged"
+				withArgument:GUIScreenIDToString(toScreen)
 				andArgument:GUIScreenIDToString(fromScreen)];
+		}
 	}
 }
 
