@@ -106,6 +106,7 @@ enum
 	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-only
+	kPlayerShip_weaponsOnline,					// weapons online status, boolean, read-only
 };
 
 
@@ -135,6 +136,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "scriptedMisjump",				kPlayerShip_scriptedMisjump,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "specialCargo",					kPlayerShip_specialCargo,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "targetSystem",					kPlayerShip_targetSystem,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }			
 };
 
@@ -285,10 +287,12 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			*outValue = BOOLToJSVal([player scriptedMisjump]);
 			OK = YES;
 			break;
+			
 		case kPlayerShip_scoopOverride:
 			*outValue = BOOLToJSVal([player scoopOverride]);
 			OK = YES;
 			break;
+			
 		case kPlayerShip_compassTarget:
 			result = [player compassTarget];
 			OK = YES;
@@ -306,6 +310,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			
 		case kPlayerShip_hudHidden:
 			*outValue = BOOLToJSVal([[player hud] isHidden]);
+			OK = YES;
+			break;
+			
+		case kPlayerShip_weaponsOnline:
+			*outValue = BOOLToJSVal([player weaponsOnline]);
 			OK = YES;
 			break;
 		
