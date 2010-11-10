@@ -70,7 +70,8 @@ enum
 	kEquipmentInfo_requiresNonCleanLegalRecord,
 	kEquipmentInfo_requiresNonFullFuel,
 	kEquipmentInfo_scriptInfo,					// arbitrary data for scripts, dictionary, read-only
-	kEquipmentInfo_techLevel,
+	kEquipmentInfo_scriptName,
+	kEquipmentInfo_techLevel
 };
 
 
@@ -102,6 +103,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "requiresNonCleanLegalRecord",	kEquipmentInfo_requiresNonCleanLegalRecord,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "requiresNonFullFuel",			kEquipmentInfo_requiresNonFullFuel,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptInfo",						kEquipmentInfo_scriptInfo,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "scriptName",						kEquipmentInfo_scriptName,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "techLevel",						kEquipmentInfo_techLevel,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
@@ -321,6 +323,11 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 		case kEquipmentInfo_scriptInfo:
 			result = [eqType scriptInfo];
 			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than undefined
+			break;
+			
+		case kEquipmentInfo_scriptName:
+			result = [eqType scriptName];
+			if (result == nil) result = @"";
 			break;
 			
 		default:

@@ -843,12 +843,13 @@ BOOL	class_masslocks(int some_class);
 
 - (void) broadcastHitByLaserFrom:(ShipEntity*) aggressor_ship;
 
-- (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship;
-- (void) broadcastAIMessage:(NSString *) ai_message;
 // Unpiloted ships cannot broadcast messages, unless the unpilotedOverride is set to YES.
+- (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship;
+- (void) sendMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship withUnpilotedOverride:(BOOL)unpilotedOverride;
+- (void) broadcastAIMessage:(NSString *) ai_message;
 - (void) broadcastMessage:(NSString *) message_text withUnpilotedOverride:(BOOL) unpilotedOverride;
 - (void) setCommsMessageColor;
-- (void) receiveCommsMessage:(NSString *) message_text;
+- (void) receiveCommsMessage:(NSString *) message_text from:(ShipEntity *) other;
 - (void) commsMessage:(NSString *)valueString withUnpilotedOverride:(BOOL)unpilotedOverride;
 
 - (BOOL) markForFines;

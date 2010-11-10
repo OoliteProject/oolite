@@ -429,7 +429,7 @@
 	"autopilot-on"					= "Autopilot engaged.";
 	"autopilot-off"					= "Autopilot disengaged.";
 	"autopilot-out-of-range"		= "Could not contact station for docking instructions.";
-	"autopilot-cannot-dock-with-target" = "Target is not capable of autopilot-docking.";
+	"autopilot-cannot-dock-with-target" = "Target is not capable of autopilot-docking.";	// string not used at tne moment. Remove? kaks 20101031
 	"autopilot-target-docking-instructions-denied" = "Target has denied broadcast of docking instructions.";
 	"autopilot-denied"				= "Station refuses to issue docking instructions.";
 	"autopilot-multiple-targets"	= "Multiple autopilot targets in vicinity.";
@@ -484,6 +484,10 @@
 	"cloak-on"						= "Cloaking device activated.";
 	"cloak-off"						= "Cloaking device deactivated.";
 	"cloak-low-juice"				= "Not enough energy to activate cloaking device.";
+	// equipment usage
+	"equipment-primed-@"			= "Equipment primed: %@.";
+	"equipment-primed-none"			= "Equipment primed: none.";
+	"equipment-primed-none-available"	= "No equipment can be primed.";
 	
 	// Assorted messages sent out by ships etc..
 	/*	%H - homeworld
@@ -1037,27 +1041,29 @@
 	"shaderfx-full"							= "Full";
 	
 	// StickMapper screen
-	"stickmapper-roll"			= "Roll";
-	"stickmapper-pitch"			= "Pitch";
-	"stickmapper-yaw"			= "Yaw";
-	"stickmapper-increase-thrust"		= "Increase thrust";
-	"stickmapper-decrease-thrust"		= "Decrease thrust";
-	"stickmapper-primary-weapon"		= "Primary weapon";
-	"stickmapper-secondary-weapon"		= "Secondary weapon";
+	"stickmapper-roll"				= "Roll";
+	"stickmapper-pitch"				= "Pitch";
+	"stickmapper-yaw"				= "Yaw";
+	"stickmapper-increase-thrust"	= "Increase thrust";
+	"stickmapper-decrease-thrust"	= "Decrease thrust";
+	"stickmapper-primary-weapon"	= "Primary weapon";
+	"stickmapper-secondary-weapon"	= "Secondary weapon";
 	"stickmapper-arm-secondary"		= "Arm secondary";
-	"stickmapper-disarm-secondary"		= "Disarm secondary";
+	"stickmapper-disarm-secondary"	= "Disarm secondary";
 	"stickmapper-target-nearest-incoming-missile"	= "Target nearest incoming missile";
-	"stickmapper-cycle-secondary"		= "Cycle secondary";
+	"stickmapper-cycle-secondary"	= "Cycle secondary";
 	"stickmapper-weapons-online-toggle"	= "Weapons online toggle";
-	"stickmapper-ECM"			= "ECM";
+	"stickmapper-ECM"				= "ECM";
 	"stickmapper-toggle-ID"			= "Toggle ID";
-	"stickmapper-fuel-injection"		= "Fuel Injection";
+	"stickmapper-fuel-injection"	= "Fuel Injection";
 	"stickmapper-hyperspeed"		= "Hyperspeed";
 	"stickmapper-roll/pitch-precision-toggle"	= "Roll/pitch precision toggle";
 	"stickmapper-view-forward"		= "View Forward";
 	"stickmapper-view-aft"			= "View Aft";
 	"stickmapper-view-port"			= "View Port";
-	"stickmapper-view-starboard"		= "View Starboard";
+	"stickmapper-view-starboard"	= "View Starboard";
+	"stickmapper-prime-equipment"	= "Prime Equipment";
+	"stickmapper-activate-equipment"	= "Activate Equipment";
 	
 	"music-mode" =
 	(

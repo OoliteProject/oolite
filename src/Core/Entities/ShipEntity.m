@@ -2512,11 +2512,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			[_equipment removeObject:[equipmentKey stringByAppendingString:@"_DAMAGED"]];
 		}
 		if ([_equipment count] == 0)  [self removeAllEquipment];
-		if (isPlayer)
-		{
-			if([equipmentKey isEqualToString:@"EQ_ADVANCED_COMPASS"]) [(PlayerEntity*)self setCompassMode:COMPASS_MODE_BASIC];
-		}
-		else
+		if (!isPlayer)
 		{
 			if([equipmentKey isEqualToString:@"EQ_SHIELD_BOOSTER"])
 			{
@@ -5234,7 +5230,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	[properties setObject:self forKey:@"ship"];
 	
 	[script autorelease];
-	script = [OOScript nonLegacyScriptFromFileNamed:script_name properties:properties];
+	script = [OOScript JSScriptFromFileNamed:script_name properties:properties];
 	
 	if (script == nil)
 	{
@@ -5247,7 +5243,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		actions = [shipinfoDictionary oo_arrayForKey:@"setup_actions"];
 		if (actions)  [properties setObject:actions forKey:@"legacy_setupActions"];
 		
-		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"
+		script = [OOScript JSScriptFromFileNamed:@"oolite-default-ship-script.js"
 											 properties:properties];
 	}
 	[script retain];
@@ -9439,12 +9435,33 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
+- (void) sendMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship withUnpilotedOverride:(BOOL)unpilotedOverride
+{
+	if (!other_ship || !message_text) return;
+	if (!crew && !unpilotedOverride) return;
+	
+	double d2 = distance2(position, [other_ship position]);
+	if (d2 > scannerRange * scannerRange)
+		return;					// out of comms range
+
+	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(message_text); // consistent with broadcast message.
+
+	if (other_ship->isPlayer)
+	{
+		[self setCommsMessageColor];
+		[(PlayerEntity *)other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", displayName, expandedMessage] from:self];
+		messageTime = 6.0;
+		[UNIVERSE resetCommsLogColor];
+	}
+	else
+		[other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", displayName, expandedMessage] from:self];
+}
+
+
 - (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship
 {
-	if (!other_ship)
-		return;
-	if (!crew)
-		return;	// nobody to send the signal
+	if (!other_ship || !crew)
+		return;	// nobody to receive or send the signal
 	if ((lastRadioMessage) && (messageTime > 0.0) && [message_text isEqual:lastRadioMessage])
 		return;	// don't send the same message too often
 	[lastRadioMessage autorelease];
@@ -9453,8 +9470,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	double d2 = distance2(position, [other_ship position]);
 	if (d2 > scannerRange * scannerRange)
 		return;					// out of comms range
-	if (!other_ship)
-		return;
+	
 	NSMutableString *localExpandedMessage = [NSMutableString stringWithString:message_text];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[self:name]"
 							withString:[self displayName]
@@ -9471,11 +9487,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
 	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(localExpandedMessage);
-	[self setCommsMessageColor];
-	[other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", displayName, expandedMessage]];
-	if (other_ship->isPlayer)
-		messageTime = 6.0;
-	[UNIVERSE resetCommsLogColor];
+	[self sendMessage:expandedMessage toShip:other_ship withUnpilotedOverride:NO];
 }
 
 
@@ -9500,22 +9512,22 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	if (!crew && !unpilotedOverride)
 		return;	// nobody to send the signal and no override for unpiloted craft is set
 
-	[self setCommsMessageColor];
 	[self checkScanner];
 	unsigned i;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity* ship = scanned_ships[i];
-		if (![ship isPlayer]) [ship receiveCommsMessage: expandedMessage];
+		if (![ship isPlayer]) [ship receiveCommsMessage:expandedMessage from:self];
 	}
 	
 	PlayerEntity *player = [PlayerEntity sharedPlayer]; // make sure that the player always receives a message when in range
 	if (distance2(position, [player position]) < SCANNER_MAX_RANGE2)
 	{
-		[player receiveCommsMessage: expandedMessage];
+		[self setCommsMessageColor];
+		[player receiveCommsMessage:expandedMessage from:self];
 		messageTime = 6.0;
+		[UNIVERSE resetCommsLogColor];
 	}
-	[UNIVERSE resetCommsLogColor];
 }
 
 
@@ -9530,10 +9542,10 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) receiveCommsMessage:(NSString *) message_text
+- (void) receiveCommsMessage:(NSString *) message_text from:(ShipEntity *) other
 {
-	// ignore messages for now
-	[self doScriptEvent:@"commsMessageReceived" withArgument:message_text];
+	// Too complex for AI scripts to handle, JS event only.
+	[self doScriptEvent:@"commsMessageReceived" withArgument:message_text andArgument:other];
 }
 
 

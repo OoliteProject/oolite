@@ -2689,11 +2689,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[doppelganger setPosition: model_p0];
 		/* MKW - add rotation based on current time 
 		 *     - necessary to duplicate the rotation already performed in PlanetEntity.m since we reset the orientation above. */
-		int		days, secs;
-		double   clock = [self clockTimeAdjusted];
-		days = floor(clock / 86400.0);
-		secs = floor(clock - days * 86400.0);
-		[doppelganger update: secs];
+		int		deltaT = floor(fmod([self clockTimeAdjusted], 86400));
+		[doppelganger update: deltaT];
 		[UNIVERSE addEntity:doppelganger];
 		
 		return YES;
@@ -2739,18 +2736,82 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (BOOL) mapKey:(NSString *)keycode toOXP:(OOScript *)oxp
+- (BOOL) addEqScriptForKey:(NSString *)eq_key
 {
-	OOScript *s = [oxpKeys objectForKey:keycode];
-	if (s == nil)
+	if (eq_key == nil) return NO;
+	
+	NSString			*key = nil;
+	NSString			*scriptName = [[OOEquipmentType equipmentTypeWithIdentifier:eq_key] scriptName];
+	
+	OOLog(@"player.equipmentScript", @"Added equipment %@, with the following script property: '%@'.", eq_key, scriptName);
+
+	if (scriptName == nil) return NO;
+	
+	NSMutableDictionary	*properties = [NSMutableDictionary dictionary];
+	unsigned			i, c = [eqScripts count];
+	
+	// no duplicates!
+	for (i = 0; i < c; i++)
 	{
-		if (oxpKeys == nil)  oxpKeys = [[NSMutableDictionary alloc] init];
-		
-		[oxpKeys setObject:oxp forKey:keycode];
-		return YES;
+		key = [[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0];
+		if ([key isEqualToString: eq_key]) return NO;
 	}
 	
-	return NO;
+	[properties setObject:self forKey:@"ship"];
+	[properties setObject:eq_key forKey:@"equipmentKey"];
+	OOScript *s = [OOScript JSScriptFromFileNamed:scriptName properties:properties];
+	
+	OOLog(@"player.equipmentScript", @"Script '%@': installation %@successful.", scriptName,(s == nil ? @"un" : @""));
+
+	if (s == nil) return NO;
+	[s retain];
+	[eqScripts addObject:[NSArray arrayWithObjects:eq_key,s,nil]];
+	if (primedEquipment == [eqScripts count] - 1) primedEquipment++;	// if primed-none, keep it as primed-none.
+	OOLog(@"player.equipmentScript", @"Scriptable equipment available: %u.",[eqScripts count]);
+	return YES;
+}
+
+
+- (void) removeEqScriptForKey:(NSString *)eq_key
+{
+	if (eq_key == nil) return;
+	
+	NSString			*key = nil;
+	unsigned			i, c = [eqScripts count];
+	
+	for (i = 0; i < c; i++)
+	{
+		key = [[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0];
+		if ([key isEqualToString: eq_key]) 
+		{
+			OOScript *s =[[eqScripts oo_arrayAtIndex:i] objectAtIndex:1];
+			[eqScripts removeObjectAtIndex:i];
+			DESTROY(s);
+			if (i == primedEquipment) primedEquipment = c;	// primed-none
+			else if (i < primedEquipment) primedEquipment--; // track the primed equipment
+			if (c == primedEquipment) primedEquipment--; // the array has shrunk by one!
+
+			OOLog(@"player.equipmentScript", @"Removed equipment %@, with the following script property: '%@'.", eq_key, [[OOEquipmentType equipmentTypeWithIdentifier:eq_key] scriptName]);
+		}
+	}
+}
+
+
+- (unsigned) getEqScriptIndexForKey:(NSString *)eq_key
+{
+	unsigned			i, c = [eqScripts count];
+	
+	if (eq_key == nil) return c;
+	
+	NSString			*key = nil;
+	
+	for (i = 0; i < c; i++)
+	{
+		key = [[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0];
+		if ([key isEqualToString: eq_key]) return i;
+	}
+	
+	return c;
 }
 
 

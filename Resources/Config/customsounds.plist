@@ -19,9 +19,10 @@
 	"[missile-armed]"				= "[@beep]";
 	"[mine-armed]"					= "[@beep]";
 	"[missile-safe]"				= "[@boop]";
+	"[next-equipment-selected]"		= "[@click]";
 	"[next-missile-selected]"		= "[@click]";
-	"[weapons-online]"			= "[@beep]";
-	"[weapons-offline]"			= "[@boop]";
+	"[weapons-online]"				= "[@beep]";
+	"[weapons-offline]"				= "[@boop]";
 	"[save-overwrite-yes]"			= "[@beep]";			// Player selects Overwrite on "are you sure you want to overwrite?" alert on save screen
 	"[save-overwrite-no]"			= "[@boop]";			// Player selects Cancel on "are you sure you want to overwrite?" alert on save screen
 	"[buy-commodity]"				= "buy.ogg";

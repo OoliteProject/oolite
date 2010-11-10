@@ -485,11 +485,8 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 	/* MKW - rotate planet based on current time.
 	 *     - do it here so that we catch all planets (OXP-added and otherwise! */
-    int		days, secs;
-    double   clock = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
-    days = floor(clock / 86400.0);
-    secs = floor(clock - days * 86400.0);
-	quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * secs);
+	int		deltaT = floor(fmod([[PlayerEntity sharedPlayer] clockTimeAdjusted], 86400));
+	quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * deltaT);
 
 	[self setStatus:STATUS_ACTIVE];
 	

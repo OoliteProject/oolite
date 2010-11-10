@@ -484,7 +484,7 @@ static GLfloat		sBaseMass = 0.0;
 		[result setObject:found_seed	forKey:@"found_system_seed"];
 	}
 	
-	// Write the name of the current system. Useful for overlapping systems and for looking up saved game information.
+	// Write the name of the current system. Useful for looking up saved game information and for overlapping systems.
 	[result setObject:[UNIVERSE getSystemName:[self system_seed]] forKey:@"current_system_name"];
 	// Write the name of the targeted system. Useful for overlapping systems.
 	[result setObject:[UNIVERSE getSystemName:[self target_system_seed]] forKey:@"target_system_name"];
@@ -591,6 +591,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[result setObject:equipment forKey:@"extra_equipment"];
 	}
+	[result setObject:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0] forKey:@"primed_equipment"];
 	
 	// reputation
 	[result setObject:reputation forKey:@"reputation"];
@@ -768,8 +769,10 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 	
+	eqScripts = [[NSMutableArray alloc] init];
 	[self addEquipmentFromCollection:equipment];
-	
+	primedEquipment = [self getEqScriptIndexForKey:[dict oo_stringForKey:@"primed_equipment"]];	// if key not found primedEquipment is set to primed-none
+
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
 	else  compassMode = COMPASS_MODE_BASIC;
 	compassTarget = nil;
@@ -878,14 +881,6 @@ static GLfloat		sBaseMass = 0.0;
 	NSArray *missileRoles = [dict oo_arrayForKey:@"missile_roles"];
 	if (missileRoles != nil)
 	{
-		/*
-		// The loop will clamp the equipped missiles to max_missiles, there's no need to clamp missileRoles
-		if (max_missiles < [missileRoles count])
-		{
-			missileRoles = [missileRoles subarrayWithRange:NSMakeRange(0, max_missiles)];
-		}
-		*/
-		
 		for (i = 0, missiles = 0; i < [missileRoles count] && missiles < max_missiles; i++)
 		{
 			NSString *missile_desc = [missileRoles oo_stringAtIndex:i];
@@ -1173,7 +1168,10 @@ static GLfloat		sBaseMass = 0.0;
 	missiles				= PLAYER_STARTING_MISSILES;
 	max_missiles			= PLAYER_STARTING_MAX_MISSILES;
 	
-	[self setActiveMissile: 0];
+	[eqScripts release];
+	eqScripts = [[NSMutableArray alloc] init];
+	primedEquipment = 0;
+	[self setActiveMissile:0];
 	for (i = 0; i < missiles; i++)
 	{
 		[missile_entity[i] release];
@@ -1364,12 +1362,12 @@ static GLfloat		sBaseMass = 0.0;
 	// Load js script
 	[script autorelease];
 	NSDictionary *scriptProperties = [NSDictionary dictionaryWithObject:self forKey:@"ship"];
-	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict oo_stringForKey:@"script"] 
+	script = [OOScript JSScriptFromFileNamed:[shipDict oo_stringForKey:@"script"] 
 										 properties:scriptProperties];
 	if (script == nil)
 	{
 		// Do not switch to using a default value above; we want to use the default script if loading fails.
-		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-player-script.js"
+		script = [OOScript JSScriptFromFileNamed:@"oolite-default-player-script.js"
 											 properties:scriptProperties];
 	}
 	[script retain];
@@ -6963,6 +6961,12 @@ static NSString *last_outfitting_key=nil;
 
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey
 {
+	[self addEquipmentItem:equipmentKey withValidation:YES];
+}
+
+
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition
+{
 	// deal with trumbles..
 	if ([equipmentKey isEqualToString:@"EQ_TRUMBLE"])
 	{
@@ -6981,12 +6985,23 @@ static NSString *last_outfitting_key=nil;
 		return NO;
 	}
 	
-	if ([equipmentKey isEqual:@"EQ_ADVANCED_COMPASS"])
-	{
-		[self setCompassMode:COMPASS_MODE_PLANET];
-	}
+	BOOL OK = [super addEquipmentItem:equipmentKey withValidation:validateAddition];
 	
-	return [super addEquipmentItem:equipmentKey];
+	if (OK)
+	{
+		if ([equipmentKey isEqual:@"EQ_ADVANCED_COMPASS"])	[self setCompassMode:COMPASS_MODE_PLANET];
+		
+		[self addEqScriptForKey:equipmentKey];
+	}
+	return OK;
+}
+
+
+- (void) removeEquipmentItem:(NSString *)equipmentKey
+{
+	[self removeEqScriptForKey:equipmentKey];
+	if([equipmentKey isEqualToString:@"EQ_ADVANCED_COMPASS"]) [self setCompassMode:COMPASS_MODE_BASIC];
+	[super removeEquipmentItem:equipmentKey];
 }
 
 
@@ -7170,9 +7185,10 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) receiveCommsMessage:(NSString *) message_text
+- (void) receiveCommsMessage:(NSString *) message_text from:(ShipEntity *) other
 {
 	[UNIVERSE addCommsMessage:message_text forCount:4.5];
+	[super receiveCommsMessage:message_text from:other];
 }
 
 

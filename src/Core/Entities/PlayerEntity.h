@@ -227,7 +227,7 @@ typedef enum
 	
 	NSMutableArray			*commLog;
 
-	NSMutableDictionary		*oxpKeys;
+	NSMutableArray			*eqScripts;
 	
 	NSString				*missionBackgroundTexture;
 	NSString				*missionForegroundTexture;
@@ -302,6 +302,7 @@ typedef enum
 	OOAlertCondition		lastScriptAlertCondition;
 	OOMissileStatus			missile_status;
 	unsigned				activeMissile;
+	unsigned				primedEquipment;
 	
 	OOCargoQuantity			current_cargo;
 	
@@ -352,6 +353,9 @@ typedef enum
 	OOKeyCode				key_launch_missile;
 	OOKeyCode				key_next_missile;
 	OOKeyCode				key_ecm;
+	
+	OOKeyCode				key_prime_equipment;
+	OOKeyCode				key_activate_equipment;
 	
 	OOKeyCode				key_target_missile;
 	OOKeyCode				key_untarget_missile;

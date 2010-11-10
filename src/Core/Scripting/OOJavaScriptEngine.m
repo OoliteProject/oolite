@@ -320,7 +320,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	sSharedEngine = self;
 	
 	// Run prefix script.
-	[OOJSScript nonLegacyScriptFromFileNamed:@"oolite-global-prefix.js"
+	[OOJSScript JSScriptFromFileNamed:@"oolite-global-prefix.js"
 								  properties:[NSDictionary dictionaryWithObject:JSSpecialFunctionsObjectWrapper(mainContext)
 																		 forKey:@"special"]];
 	

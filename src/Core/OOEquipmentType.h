@@ -30,6 +30,7 @@ SOFTWARE.
 
 #import "OOCocoa.h"
 #import "OOTypes.h"
+#import "OOScript.h"
 
 
 @interface OOEquipmentType: NSObject <NSCopying>
@@ -59,6 +60,7 @@ SOFTWARE.
 	NSSet					*_incompatibleEquipment;
 	NSArray					*_conditions;
 	NSDictionary			*_scriptInfo;
+	NSString				*_script;
 	
 	struct JSObject			*_jsSelf;
 }
@@ -109,6 +111,7 @@ SOFTWARE.
 - (NSArray *) conditions;
 
 - (NSDictionary *) scriptInfo;
+- (NSString *) scriptName;
 
 @end
 

@@ -154,6 +154,12 @@ static OOSoundSource		*sAfterburnerSources[2];
 }
 
 
+- (void) playNextEquipmentSelected
+{
+	[self playInterfaceBeep:@"[next-equipment-selected]"];
+}
+
+
 - (void) playNextMissileSelected
 {
 	[self playInterfaceBeep:@"[next-missile-selected]"];

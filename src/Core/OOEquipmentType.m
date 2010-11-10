@@ -251,6 +251,10 @@ static NSDictionary		*sMissilesRegistry = nil;
 			
 			_scriptInfo = [extra oo_dictionaryForKey:@"script_info"];
 			[_scriptInfo retain];
+			
+			_script = [extra oo_stringForKey:@"script"];
+			if (_script != nil && ![OOScript JSScriptFromFileNamed:_script properties:nil])  _script = nil;
+			[_script retain];
 		}
 	}
 	
@@ -273,6 +277,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	DESTROY(_incompatibleEquipment);
 	DESTROY(_conditions);
 	DESTROY(_scriptInfo);
+	DESTROY(_script);
 	
 	[super dealloc];
 }
@@ -476,6 +481,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 - (NSDictionary *) scriptInfo
 {
 	return _scriptInfo;
+}
+
+
+- (NSString *) scriptName
+{
+	return _script;
 }
 
 

@@ -51,6 +51,10 @@ MA 02110-1301, USA.
 
 #import "JoystickHandler.h"
 
+#import "OOScript.h"
+#import "OOJavaScriptEngine.h"
+#import "OOEquipmentType.h"
+
 #if OOLITE_MAC_OS_X
 #import "Groolite.h"
 #endif
@@ -63,6 +67,8 @@ static BOOL				pause_pressed;
 static BOOL				compass_mode_pressed;
 static BOOL				next_target_pressed;
 static BOOL				previous_target_pressed;
+static BOOL				prime_equipment_pressed;
+static BOOL				activate_equipment_pressed;
 static BOOL				next_missile_pressed;
 static BOOL				fire_missile_pressed;
 static BOOL				target_missile_pressed;
@@ -194,30 +200,33 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_yaw_left,				','			);
 	LOAD_KEY_SETTING(key_yaw_right,				'.'			);
 	
-	LOAD_KEY_SETTING(key_increase_speed,			'w'			);
-	LOAD_KEY_SETTING(key_decrease_speed,			's'			);
+	LOAD_KEY_SETTING(key_increase_speed,		'w'			);
+	LOAD_KEY_SETTING(key_decrease_speed,		's'			);
 	LOAD_KEY_SETTING(key_inject_fuel,			'i'			);
 	
 	LOAD_KEY_SETTING(key_fire_lasers,			'a'			);
-	LOAD_KEY_SETTING(key_weapons_online_toggle,		'_'			);
-	LOAD_KEY_SETTING(key_launch_missile,			'm'			);
+	LOAD_KEY_SETTING(key_weapons_online_toggle,	'_'			);
+	LOAD_KEY_SETTING(key_launch_missile,		'm'			);
 	LOAD_KEY_SETTING(key_next_missile,			'y'			);
-	LOAD_KEY_SETTING(key_ecm,				'e'			);
+	LOAD_KEY_SETTING(key_ecm,					'e'			);
 	
-	LOAD_KEY_SETTING(key_target_missile,			't'			);
-	LOAD_KEY_SETTING(key_untarget_missile,			'u'			);
+	LOAD_KEY_SETTING(key_prime_equipment,		'N'			);
+	LOAD_KEY_SETTING(key_activate_equipment,	'n'			);
+	
+	LOAD_KEY_SETTING(key_target_missile,		't'			);
+	LOAD_KEY_SETTING(key_untarget_missile,		'u'			);
 #if TARGET_INCOMING_MISSILES
-	LOAD_KEY_SETTING(key_target_incoming_missile,		'T'			);
+	LOAD_KEY_SETTING(key_target_incoming_missile,	'T'			);
 #endif
 	LOAD_KEY_SETTING(key_ident_system,			'r'			);
 	
 	LOAD_KEY_SETTING(key_scanner_zoom,			'z'			);
-	LOAD_KEY_SETTING(key_scanner_unzoom,			'Z'			);
+	LOAD_KEY_SETTING(key_scanner_unzoom,		'Z'			);
 	
-	LOAD_KEY_SETTING(key_launch_escapepod,			27	/* esc */	);
+	LOAD_KEY_SETTING(key_launch_escapepod,		27	/* esc */	);
 	LOAD_KEY_SETTING(key_energy_bomb,			'\t'			);
 	
-	LOAD_KEY_SETTING(key_galactic_hyperspace,		'g'			);
+	LOAD_KEY_SETTING(key_galactic_hyperspace,	'g'			);
 	LOAD_KEY_SETTING(key_hyperspace,			'h'			);
 	LOAD_KEY_SETTING(key_jumpdrive,				'j'			);
 	
@@ -233,7 +242,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_snapshot,				'*'			);
 	LOAD_KEY_SETTING(key_docking_music,			's'			);
 	
-	LOAD_KEY_SETTING(key_advanced_nav_array,		'^'			);
+	LOAD_KEY_SETTING(key_advanced_nav_array,	'^'			);
 	LOAD_KEY_SETTING(key_map_home,				gvHomeKey		);
 	LOAD_KEY_SETTING(key_map_info,				'i'			);
 	
@@ -242,19 +251,19 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_mouse_control,			'M'			);
 	
 	LOAD_KEY_SETTING(key_comms_log,				'`'			);
-	LOAD_KEY_SETTING(key_next_compass_mode,			'\\'			);
+	LOAD_KEY_SETTING(key_next_compass_mode,		'\\'		);
 	
-	LOAD_KEY_SETTING(key_cloaking_device,			'0'			);
+	LOAD_KEY_SETTING(key_cloaking_device,		'0'			);
 	
-	LOAD_KEY_SETTING(key_contract_info,			'\?'			);
+	LOAD_KEY_SETTING(key_contract_info,			'\?'		);
 	
 	LOAD_KEY_SETTING(key_next_target,			'+'			);
-	LOAD_KEY_SETTING(key_previous_target,			'-'			);
+	LOAD_KEY_SETTING(key_previous_target,		'-'			);
 	
 	LOAD_KEY_SETTING(key_custom_view,			'v'			);
 	
 #ifndef NDEBUG
-	LOAD_KEY_SETTING(key_dump_target_state,			'H'			);
+	LOAD_KEY_SETTING(key_dump_target_state,		'H'			);
 #endif
 	
 	if (key_yaw_left == key_roll_left && key_yaw_left == ',')  key_yaw_left = 0;
@@ -858,7 +867,56 @@ static NSTimeInterval	time_last_frame;
 					ident_pressed = YES;
 				}
 				else  ident_pressed = NO;
-	#if TARGET_INCOMING_MISSILES
+				
+				exceptionContext = @"prime equipment";
+				// prime equipment 'N' - selects equipment to use with keypress
+				if ([gameView isDown:key_prime_equipment] || joyButtonState[BUTTON_PRIMEEQUIPMENT])
+				{
+
+					if (!prime_equipment_pressed)
+					{
+
+						// cycle through all the relevant equipment.
+						unsigned c = [eqScripts count];
+						primedEquipment++;
+						if (primedEquipment > c) primedEquipment = 0;
+						
+						if (primedEquipment == c)
+						{
+							if (c > 0)
+							{
+								[self playNextEquipmentSelected];
+								[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"equipment-primed-none")] forCount:2.0];
+							}
+							else [UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"equipment-primed-none-available")] forCount:2.0];
+						}
+						else
+						{
+							[self playNextEquipmentSelected];
+							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"equipment-primed-@"), [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] name]] forCount:2.0];
+						}
+					}
+					prime_equipment_pressed = YES;
+				}
+				else  prime_equipment_pressed = NO;
+				
+				exceptionContext = @"activate equipment";
+				// activate equipment 'n' - runs the activated() function inside the equipment's script.
+				if ([gameView isDown:key_activate_equipment] || joyButtonState[BUTTON_ACTIVATEEQUIPMENT])
+				{
+
+				if (!activate_equipment_pressed)
+					{
+						// primedEquipment == [eqScripts count] means we don't want to activate any equipment.
+						if(primedEquipment < [eqScripts count])
+							[(OOScript *)[[eqScripts oo_arrayAtIndex:primedEquipment] objectAtIndex:1] doEvent:@"activated" withArguments:nil];
+					}
+					activate_equipment_pressed = YES;
+				}
+				else  activate_equipment_pressed = NO;
+				
+#if TARGET_INCOMING_MISSILES
+				exceptionContext = @"incoming missile T";
 				// target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
 				if ([gameView isDown:key_target_incoming_missile] || joyButtonState[BUTTON_TARGETINCOMINGMISSILE])
 				{
@@ -869,7 +927,7 @@ static NSTimeInterval	time_last_frame;
 					target_incoming_missile_pressed = YES;
 				}
 				else  target_incoming_missile_pressed = NO;
-	#endif
+#endif
 				
 				exceptionContext = @"missile T";
 				//  shoot 't'   // switch on missile targeting
@@ -2496,9 +2554,9 @@ static NSTimeInterval	time_last_frame;
 		else
 			virtualView.y = 0.0;
 	}
-
+	
 	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
-
+	
 	//  view keys
 	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD] || ((([gameView isDown:key_hyperspace] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART) || joyButtonState[BUTTON_HYPERDRIVE]) && [UNIVERSE displayGUI]))
 	{

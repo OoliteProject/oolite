@@ -453,6 +453,16 @@ MA 02110-1301, USA.
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_WEAPONSONLINETOGGLE]];
 	[funcList addObject:
+	 [self makeStickGuiDict: DESC(@"stickmapper-prime-equipment")
+				  allowable: HW_BUTTON
+					 axisfn: STICK_NOFUNCTION
+					  butfn: BUTTON_PRIMEEQUIPMENT]];
+	[funcList addObject:
+	 [self makeStickGuiDict: DESC(@"stickmapper-activate-equipment")
+				  allowable: HW_BUTTON
+					 axisfn: STICK_NOFUNCTION
+					  butfn: BUTTON_ACTIVATEEQUIPMENT]];
+	[funcList addObject:
 	 [self makeStickGuiDict: DESC(@"stickmapper-ECM")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION

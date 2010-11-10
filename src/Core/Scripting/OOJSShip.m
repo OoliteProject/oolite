@@ -149,6 +149,7 @@ enum
 	kShip_isJamming,			// jamming scanners, boolean, read/write (if jammer installed)
 	kShip_isMine,				// is mine, boolean, read-only
 	kShip_isMissile,			// is missile, boolean, read-only
+	kShip_isPiloted,			// is piloted, boolean, read-only (includes stations)
 	kShip_isPirate,				// is pirate, boolean, read-only
 	kShip_isPirateVictim,		// is pirate victim, boolean, read-only
 	kShip_isPlayer,				// is player, boolean, read-only
@@ -228,6 +229,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "isJamming",				kShip_isJamming,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isMine",					kShip_isMine,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isMissile",				kShip_isMissile,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isPiloted",				kShip_isPiloted,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPirate",				kShip_isPirate,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPirateVictim",			kShip_isPirateVictim,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPlayer",				kShip_isPlayer,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -241,7 +243,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "maxSpeed",				kShip_maxSpeed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "maxThrust",				kShip_maxThrust,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "missileCapacity",		kShip_missileCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "missileLoadTime",			kShip_missileLoadTime,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "missileLoadTime",		kShip_missileLoadTime,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "missiles",				kShip_missiles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "name",					kShip_name,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "passengerCount",			kShip_passengerCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -594,6 +596,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_isDerelict:
 			*outValue = BOOLToJSVal([entity isHulk]);
+			OK = YES;
+			break;
+			
+		case kShip_isPiloted:
+			*outValue = BOOLToJSVal([entity isPlayer] || [[entity crew] count] > 0);
 			OK = YES;
 			break;
 			
@@ -1413,25 +1420,30 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 }
 
 
-// commsMessage(message : String)
+// commsMessage(message : String[,target : Ship])
 static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	ShipEntity				*thisEnt = nil;
 	NSString				*message = nil;
+	ShipEntity				*target = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	message = JSValToNSString(context, *argv);
-	if (EXPECT_NOT(message == nil))
+	if (EXPECT_NOT(message == nil)|| ( argc > 1 && EXPECT_NOT(!JSVAL_IS_OBJECT(argv[1]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(argv[1]), &target))))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"commsMessage", argc, argv, nil, @"message");
+		OOReportJSBadArguments(context, @"Ship", @"commsMessage", argc, argv, nil, @"message and optional target");
 		return NO;
 	}
 	
-	if (![thisEnt isPlayer])
+	if (target == nil)
 	{
-		[thisEnt commsMessage:message withUnpilotedOverride:YES];
+		[thisEnt commsMessage:message withUnpilotedOverride:YES];	// generic broadcast
+	}
+	else
+	{
+		[thisEnt sendMessage:message toShip:target withUnpilotedOverride:YES];	// ship-to-ship narrowcast
 	}
 	return YES;
 	

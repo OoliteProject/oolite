@@ -11,12 +11,15 @@
 	key_inject_fuel				= "i";
 
 	key_fire_lasers				= "a";
-	key_weapons_online_toggle		= "_";
+	key_weapons_online_toggle	= "_";
 	key_launch_missile			= "m";
 	key_next_missile			= "y";
 	key_ecm						= "e";
 
-	key_target_incoming_missile		= "T";
+	key_prime_equipment			= "N";
+	key_activate_equipment		= "n";
+
+	key_target_incoming_missile	= "T";
 	key_target_missile			= "t";
 	key_untarget_missile		= "u";
 	key_ident_system			= "r";
@@ -36,7 +39,7 @@
 
 	key_autopilot				= "c";
 	key_autodock				= "C";
-	key_docking_clearance_request		= "L";
+	key_docking_clearance_request	= "L";
 
 	key_snapshot				= "*";
 	key_docking_music			= "s";

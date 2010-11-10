@@ -235,7 +235,10 @@ typedef enum
 
 - (void) playSound:(NSString *) soundName;
 
-- (BOOL) mapKey:(NSString *) keycode toOXP:(OOScript *)oxp;
+- (BOOL) addEqScriptForKey:(NSString *)eq_key;
+- (void) removeEqScriptForKey:(NSString *)eq_key;
+- (unsigned) getEqScriptIndexForKey:(NSString *)eq_key;
+
 - (void) targetNearestHostile;
 #if TARGET_INCOMING_MISSILES
 - (void) targetNearestIncomingMissile;
