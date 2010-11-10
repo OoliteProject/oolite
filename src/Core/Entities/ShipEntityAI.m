@@ -704,48 +704,29 @@ MA 02110-1301, USA.
 	/*- calculates coordinates from the nearest station it can find, or just fly 10s forward -*/
 	if (!UNIVERSE)
 	{
-		coordinates = position;
-		coordinates.x += v_forward.x * maxFlightSpeed * 10.0;
-		coordinates.y += v_forward.y * maxFlightSpeed * 10.0;
-		coordinates.z += v_forward.z * maxFlightSpeed * 10.0;
+		Vector  vr = vector_multiply_scalar(v_forward, maxFlightSpeed * 10.0);  // 10 second flying away
+		coordinates = vector_add(position, vr);
 		return;
 	}
 	//
 	// find the nearest station...
 	//
-	[self checkScanner];
+	// we don't use "checkScanner" because we must rely on finding a present station.
 	//
-	StationEntity *station =  nil;
-	double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
-	unsigned i;
-	for (i = 0; i < n_scanned_ships; i++)
+	StationEntity	*station =  nil;
+	station = [UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
+											   parameter:nil
+										relativeToEntity:self];
+	
+	if (station && distance2([station position], position) < SCANNER_MAX_RANGE2) // there is a station in range.
 	{
-		if (scanned_ships[i]->isStation)
-		{
-			StationEntity *thing = (StationEntity *)scanned_ships[i];
-			GLfloat range2 = distance2_scanned_ships[i];
-			if (range2 < nearest2)
-			{
-				station = thing;
-				nearest2 = range2;
-			}
-		}
-	}
-
-	if (station)
-	{
-		coordinates = station->position;
-		Vector  vr = vector_right_from_quaternion(station->orientation);
-		coordinates.x += 10000 * vr.x;  // 10km from station
-		coordinates.y += 10000 * vr.y;
-		coordinates.z += 10000 * vr.z;
+		Vector  vr = vector_multiply_scalar([station rightVector], 10000);  // 10km from station
+		coordinates = vector_add([station position], vr);
 	}
 	else
 	{
-		coordinates = position;
-		coordinates.x += v_forward.x * maxFlightSpeed * 10.0;
-		coordinates.y += v_forward.y * maxFlightSpeed * 10.0;
-		coordinates.z += v_forward.z * maxFlightSpeed * 10.0;
+		Vector  vr = vector_multiply_scalar(v_forward, maxFlightSpeed * 10.0);  // 10 second flying away
+		coordinates = vector_add(position, vr);
 	}
 }
 
@@ -842,7 +823,6 @@ MA 02110-1301, USA.
 	}
 	
 	// RUN AWAY !!
-	// jink = make_vector(0.0f, 0.0f, 1000.0f); // jink is now handled in performFlee
 	desired_range = 10000;
 	[self performFlee];
 	[shipAI message:@"FLEEING"];
