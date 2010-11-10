@@ -6961,7 +6961,7 @@ static NSString *last_outfitting_key=nil;
 
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey
 {
-	[self addEquipmentItem:equipmentKey withValidation:YES];
+	return [self addEquipmentItem:equipmentKey withValidation:YES];
 }
 
 

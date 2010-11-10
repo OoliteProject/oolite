@@ -878,8 +878,19 @@ static NSTimeInterval	time_last_frame;
 
 						// cycle through all the relevant equipment.
 						unsigned c = [eqScripts count];
-						primedEquipment++;
-						if (primedEquipment > c) primedEquipment = 0;
+						
+						// if Ctrl is held down at the same time as the prime equipment key,
+						// cycle relevant equipment in reverse
+						if (![gameView isCtrlDown])
+						{
+							primedEquipment++;
+							if (primedEquipment > c) primedEquipment = 0;
+						}
+						else
+						{
+							if (primedEquipment > 0)  primedEquipment--;
+							else  primedEquipment = c;
+						}
 						
 						if (primedEquipment == c)
 						{
