@@ -591,7 +591,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[result setObject:equipment forKey:@"extra_equipment"];
 	}
-	[result setObject:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0] forKey:@"primed_equipment"];
+	if (primedEquipment < [eqScripts count]) [result setObject:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0] forKey:@"primed_equipment"];
 	
 	// reputation
 	[result setObject:reputation forKey:@"reputation"];
