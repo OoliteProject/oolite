@@ -4573,6 +4573,9 @@ static GLfloat		sBaseMass = 0.0;
 	ident_engaged = NO;
 	
 	[UNIVERSE removeDemoShips];
+	// MKW - ensure GUI Screen ship is removed
+	[scanned_ships[0] release];
+	scanned_ships[0] = nil;
 	
 	[self playLaunchFromStation];
 }
@@ -5593,6 +5596,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	BOOL			canLoadOrSave = NO;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	OOGUIScreenID	oldScreen = gui_screen;
 
 	if ([self status] == STATUS_DOCKED)
 	{
@@ -5683,6 +5687,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self noteGuiChangeFrom:oldScreen to:gui_screen]; 
 }
 
 
@@ -6242,10 +6247,20 @@ static NSString *last_outfitting_key=nil;
 	// No events triggered if we're changing screens while paused, or if screen never actually changed.
 	if( fromScreen != toScreen )
 	{
-		// MKW - release demo ship, if we have one (NOTE: doesn't do anything if we don't)
-		[scanned_ships[0] release];
-		scanned_ships[0] = nil;
+		// MKW - release GUI Screen ship, if we have one
+		switch(fromScreen)
+		{
+			case GUI_SCREEN_SHIPYARD:
+			case GUI_SCREEN_LOAD:
+			case GUI_SCREEN_SAVE:
+				[scanned_ships[0] release];
+				scanned_ships[0] = nil;
+				break;
+			default:
+				// Nothing
+				break;
 
+		}
 		if (![[UNIVERSE gameController] gameIsPaused])
 		{
 			[self doScriptEvent:@"guiScreenChanged"
