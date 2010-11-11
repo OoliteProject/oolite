@@ -7187,7 +7187,7 @@ static NSString *last_outfitting_key=nil;
 
 - (void) receiveCommsMessage:(NSString *) message_text from:(ShipEntity *) other
 {
-	[UNIVERSE addCommsMessage:message_text forCount:4.5];
+	[UNIVERSE addCommsMessage:[NSString stringWithFormat:@"%@:\n %@", [other displayName], message_text] forCount:4.5];
 	[super receiveCommsMessage:message_text from:other];
 }
 

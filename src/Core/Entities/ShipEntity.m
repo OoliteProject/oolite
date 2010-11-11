@@ -3639,9 +3639,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double eta = (distance - desired_range) / flightSpeed;
 	if(eta < 0) eta = 0;
 	if ((eta < 5.0)&&(leadShip)&&(leadShip->isShip))
-		desired_speed = [leadShip flightSpeed] * (1 + eta * 0.05); // EW: This code works better, specialy at low speeds.
-		// desired_speed = [leadShip flightSpeed] * 1.25; // EW Original code, escorts always fly 25% to fast or drop speed 50% later on.
-		// this speed dropping does not work well at low speeds leading to escorts "waggling".
+		desired_speed = [leadShip flightSpeed] * (1 + eta * 0.05);
 	else
 		desired_speed = maxFlightSpeed;
 
@@ -9449,12 +9447,12 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	if (other_ship->isPlayer)
 	{
 		[self setCommsMessageColor];
-		[(PlayerEntity *)other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", displayName, expandedMessage] from:self];
+		[(PlayerEntity *)other_ship receiveCommsMessage:expandedMessage from:self];
 		messageTime = 6.0;
 		[UNIVERSE resetCommsLogColor];
 	}
 	else
-		[other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", displayName, expandedMessage] from:self];
+		[other_ship receiveCommsMessage:expandedMessage from:self];
 }
 
 
@@ -9507,7 +9505,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (void) broadcastMessage:(NSString *) message_text withUnpilotedOverride:(BOOL) unpilotedOverride
 {
-	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", displayName, ExpandDescriptionForCurrentSystem(message_text)];
+	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(message_text); // consistent with broadcast message.
+
 
 	if (!crew && !unpilotedOverride)
 		return;	// nobody to send the signal and no override for unpiloted craft is set
