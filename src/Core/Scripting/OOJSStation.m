@@ -87,6 +87,7 @@ enum
 	kStation_requiresDockingClearance,
 #endif
 	kStation_allowsFastDocking,
+	kStation_allowsAutoDocking,
 	kStation_suppressArrivalReports,
 };
 
@@ -101,6 +102,7 @@ static JSPropertySpec sStationProperties[] =
 	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 #endif
 	{ "allowsFastDocking",		kStation_allowsFastDocking,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "allowsAutoDocking",		kStation_allowsAutoDocking,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "dockedContractors",		kStation_dockedContractors,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "dockedPolice",			kStation_dockedPolice,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "dockedDefenders",		kStation_dockedDefenders,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -206,6 +208,10 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 		case kStation_allowsFastDocking:
 			*outValue = BOOLToJSVal([entity allowsFastDocking]);
 			break;
+			
+		case kStation_allowsAutoDocking:
+			*outValue = BOOLToJSVal([entity allowsAutoDocking]);
+			break;
 
 		case kStation_dockedContractors:
 			*outValue = INT_TO_JSVAL([entity dockedContractors]);
@@ -286,6 +292,14 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setAllowsFastDocking:bValue];
+				OK = YES;
+			}
+			break;
+			
+		case kStation_allowsAutoDocking:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setAllowsAutoDocking:bValue];
 				OK = YES;
 			}
 			break;

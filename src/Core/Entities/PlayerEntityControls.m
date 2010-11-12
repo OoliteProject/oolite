@@ -3416,8 +3416,14 @@ static BOOL toggling_music;
 	// We found a dockable, check whether we can dock with it
 	StationEntity *ts = (StationEntity*)target;
 
+	// If station is not transmitting docking instructions, we cannot use autopilot.
+	if (![ts allowsAutoDocking])
+	{
+		[self playAutopilotCannotDockWithTarget];
+		message = [NSString stringWithFormat:DESC(@"autopilot-station-@-does-not-allow-autodocking"), [ts displayName]];
+	}
 	// Deny if station is hostile or player is a fugitive trying to dock at the main station.
-	if ( (legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self] )
+	else if ( (legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self] )
 	{
 		[self playAutopilotCannotDockWithTarget];
 		message = (ts == [UNIVERSE station] ? DESC(@"autopilot-denied") : DESC(@"autopilot-target-docking-instructions-denied"));

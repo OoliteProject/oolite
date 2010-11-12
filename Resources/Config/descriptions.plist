@@ -429,6 +429,7 @@
 	"autopilot-on"					= "Autopilot engaged.";
 	"autopilot-off"					= "Autopilot disengaged.";
 	"autopilot-out-of-range"		= "Could not contact station for docking instructions.";
+	"autopilot-station-@-does-not-allow-autodocking" = "Could not establish SinCorn RemLock protocol link with %@.";
 	"autopilot-cannot-dock-with-target" = "Target is not capable of autopilot-docking.";	// string not used at tne moment. Remove? kaks 20101031
 	"autopilot-target-docking-instructions-denied" = "Target has denied broadcast of docking instructions.";
 	"autopilot-denied"				= "Station refuses to issue docking instructions.";
