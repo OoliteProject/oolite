@@ -1757,8 +1757,13 @@ static GLfloat		sBaseMass = 0.0;
 		UPDATE_STAGE(@"resetting after escape");
 		
 		[[UNIVERSE entityForUniversalID:found_target] becomeExplosion];	// blow up the doppelganger
-		[self setTargetToNearestStation];
-		if ([self primaryTarget])
+		primaryTarget = NO_TARGET;
+		[self setTargetToNearestFriendlyStation];
+		if([self primaryTarget] == NO_TARGET)
+		{
+			if (![UNIVERSE inInterstellarSpace]) [self setTargetToSystemStation];	// in regular systems even unfriendly main stations will rescue the player.
+		}
+		if ([self primaryTarget] != NO_TARGET)
 		{
 			// restore player ship
 			ShipEntity *player_ship = [UNIVERSE newShipWithName:[self shipDataKey]];	// retained
@@ -1769,7 +1774,16 @@ static GLfloat		sBaseMass = 0.0;
 				[player_ship release];						// we only wanted it for its polygons!
 			}
 			[UNIVERSE setViewDirection:VIEW_FORWARD];
+			
+			// reset legal status again! Could have changed if, for example, a previously launched missile hits a clean NPC while in the escape pod.
+			legalStatus = 0;
+			bounty = 0;
 			[self enterDock:(StationEntity *)[self primaryTarget]];
+		}
+		else
+		{
+			// The friendly interstellar station could be killed during eject.
+			[self setStatus:STATUS_DEAD];
 		}
 	}
 	
@@ -3871,16 +3885,17 @@ static GLfloat		sBaseMass = 0.0;
 	Vector  rel_pos;
 	double  d_forward;
 	BOOL	internal_damage = NO;	// base chance
+	
+	if ([self status] == STATUS_DEAD)
+		return;
+	
 	if (amount < 0) 
 	{
-		OOLog(@"player.ship.damage",  @"Player took negative scrape damage %.3f so we made it positive", amount);		
+		OOLog(@"player.ship.damage",  @"Player took negative scrape damage %.3f so we made it positive", amount);
 		amount = -amount;
 	}
 	OOLog(@"player.ship.damage",  @"Player took %.3f scrape damage from %@", amount, ent);
-
-	if ([self status] == STATUS_DEAD)
-		return;
-
+	
 	[[ent retain] autorelease];
 	rel_pos = ent ? [ent position] : kZeroVector;
 	rel_pos = vector_subtract(rel_pos, position);
@@ -4018,9 +4033,12 @@ static GLfloat		sBaseMass = 0.0;
 	ShipEntity		*escapePod = nil;
 	OOUniversalID	result = NO_TARGET;
 	
+	if ([UNIVERSE displayGUI]) [self switchToMainView];	// Clear the F7 screen!
+	[UNIVERSE setViewDirection:VIEW_FORWARD];
+	
 	if ([self status] == STATUS_DEAD) return NO;
 	
-	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// firstly
+	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// now set up the escape sequence.
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 #if DOCKING_CLEARANCE_ENABLED
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
@@ -4046,7 +4064,6 @@ static GLfloat		sBaseMass = 0.0;
 		[self setMesh:[escapePod mesh]];
 	}
 	
-	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	flightSpeed = 1.0f;
 	flightPitch = 0.2f * (randf() - 0.5f);
 	flightRoll = 0.2f * (randf() - 0.5f);

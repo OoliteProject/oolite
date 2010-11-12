@@ -354,6 +354,8 @@ enum
 
 // Turn main station into just another station, for blowUpStation.
 - (void) unMagicMainStation;
+// find a valid station in interstellar space
+- (StationEntity *) stationFriendlyTo:(ShipEntity *) ship;
 
 - (void) resetBeacons;
 - (ShipEntity *) firstBeacon;

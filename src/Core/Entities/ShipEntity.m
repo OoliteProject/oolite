@@ -8028,12 +8028,13 @@ BOOL class_masslocks(int some_class)
 	ShipEntity			*mainPod = nil;
 	unsigned			n_pods, i;
 	
-	/*	BUG: player can't launch escape pod in interstellar space (because
-		there is no standard place for ressurection), but NPCs can.
-		FIX: don't let NPCs do it either. Submitted by Cmdr James.
-		-- Ahruman 20070822
+	/*
+		CHANGE: both player & NPCs can now launch escape pods in interstellar
+		space, but only if there's a friendly station/carrier nearby! -- Kaks 20101112
 	*/
-	if ([UNIVERSE station] == nil)  return NO_TARGET;
+	BOOL wSpace = [UNIVERSE inInterstellarSpace];
+	if (EXPECT_NOT(!wSpace && [UNIVERSE station] == nil))  return NO_TARGET;
+	if (EXPECT_NOT(wSpace && [UNIVERSE stationFriendlyTo:self] == nil))  return NO_TARGET;
 	
 	// check number of pods aboard -- require at least one.
 	n_pods = [shipinfoDictionary oo_unsignedIntForKey:@"has_escape_pod"];
@@ -9258,11 +9259,10 @@ BOOL class_masslocks(int some_class)
 }
 
 
-// Exosed to AI
-- (void) setTargetToNearestStation
+- (void) setTargetToNearestStationIncludingHostiles:(BOOL) includeHostiles
 {
 	// check if the groupID (parent ship) points to a station...
-	Entity* mother = [[self group] leader];
+	Entity		*mother = [[self group] leader];
 	if ([mother isStation])
 	{
 		primaryTarget = [mother universalID];
@@ -9273,24 +9273,24 @@ BOOL class_masslocks(int some_class)
 	/*- selects the nearest station it can find -*/
 	if (!UNIVERSE)
 		return;
-	int			ent_count =		UNIVERSE->n_entities;
-	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+	int			ent_count = UNIVERSE->n_entities;
+	Entity		**uni_entities = UNIVERSE->sortedEntities;	// grab the public sorted list
+	Entity		*my_entities[ent_count];
 	int i;
 	int station_count = 0;
 	for (i = 0; i < ent_count; i++)
 		if (uni_entities[i]->isStation)
 			my_entities[station_count++] = [uni_entities[i] retain];		//	retained
 	//
-	StationEntity* station =  nil;
-	double nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
+	StationEntity *thing = nil, *station = nil;
+	double range2, nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
 	for (i = 0; i < station_count; i++)
 	{
-		StationEntity* thing = (StationEntity*)my_entities[i];
-		double range2 = distance2(position, thing->position);
-		if (range2 < nearest2)
+		thing = (StationEntity *)my_entities[i];
+		range2 = distance2(position, thing->position);
+		if (range2 < nearest2 && (includeHostiles || ![thing isHostileTo:self]))
 		{
-			station = (StationEntity *)thing;
+			station = thing;
 			nearest2 = range2;
 		}
 	}
@@ -9309,7 +9309,20 @@ BOOL class_masslocks(int some_class)
 }
 
 
-// Exosed to AI
+- (void) setTargetToNearestFriendlyStation
+{
+	[self setTargetToNearestStationIncludingHostiles:NO];
+}
+
+
+// Exposed to AI
+- (void) setTargetToNearestStation
+{
+	[self setTargetToNearestStationIncludingHostiles:YES];
+}
+
+
+// Exposed to AI
 - (void) setTargetToSystemStation
 {
 	StationEntity* system_station = [UNIVERSE station];

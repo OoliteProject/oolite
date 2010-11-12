@@ -416,6 +416,19 @@ static NSTimeInterval	time_last_frame;
 	[self targetNewSystem:direction whileTyping:NO];
 }
 
+
+- (void) switchToMainView
+{
+	gui_screen = GUI_SCREEN_MAIN;
+	if (showDemoShips)
+	{
+		[self setShowDemoShips: NO];
+		[UNIVERSE removeDemoShips];
+	}
+	[(MyOpenGLView *)[UNIVERSE gameView] allowStringInput:NO];
+	[UNIVERSE setDisplayCursor:NO];
+}
+
 @end
 
 
@@ -1036,8 +1049,8 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"escape pod";
 				//  shoot 'escape'   // Escape pod launch
-				if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod] && [UNIVERSE station] != nil)
-					
+				if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod]
+												&& ([UNIVERSE inInterstellarSpace] ? [UNIVERSE stationFriendlyTo:self] != nil : [UNIVERSE station] != nil))
 				{
 					found_target = [self launchEscapeCapsule];
 				}
@@ -2522,19 +2535,6 @@ static NSTimeInterval	time_last_frame;
 		[gameView clearKeys];
 		[self setGuiToLoadSaveScreen];
 	}
-}
-
-
-- (void) switchToMainView
-{
-	gui_screen = GUI_SCREEN_MAIN;
-	if (showDemoShips)
-	{
-		[self setShowDemoShips: NO];
-		[UNIVERSE removeDemoShips];
-	}
-	[(MyOpenGLView *)[UNIVERSE gameView] allowStringInput:NO];
-	[UNIVERSE setDisplayCursor:NO];
 }
 
 

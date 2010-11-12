@@ -832,6 +832,7 @@ BOOL	class_masslocks(int some_class);
 - (void) deployEscorts;
 - (void) dockEscorts;
 
+- (void) setTargetToNearestFriendlyStation;
 - (void) setTargetToNearestStation;
 - (void) setTargetToSystemStation;
 

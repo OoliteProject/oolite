@@ -503,7 +503,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		// check the nearest system
 		Random_Seed s_seed = [self findSystemAtCoords:coords withGalaxySeed:[player galaxy_seed]];
 		BOOL interstel =[(StationEntity *)dockedStation interstellarUndockingAllowed] && (s_seed.d != coords.x || s_seed.b != coords.y);
-
+		
 		// remove everything except the player and the docked station
 		if (dockedStation && !interstel)
 		{	// jump to the nearest system
@@ -533,7 +533,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		
 		if (!dockedStation || !interstel) [self setUpSpace];	// first launch
 	}
-	
 	
 	if(!autoSaveNow) [self setViewDirection:VIEW_FORWARD];
 	displayGUI = NO;
@@ -725,7 +724,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[a_planet setPosition:(Vector){ 0, 0, planet_zpos }];
 	[a_planet setEnergy:1000000.0];
 	
-	if ([self planet])
+	if ([allPlanets count]>0)	// F7 sets [UNIVERSE planet], which can lead to some trouble! TODO: track down where exactly that happens!
 	{
 		OOPlanetEntity *tmp=[allPlanets objectAtIndex:0];
 		[self addEntity:a_planet];
@@ -2175,6 +2174,12 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
+static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
+{
+	return [entity isStation] && ![(ShipEntity *)entity isHostileTo:parameter];
+}
+
+
 - (StationEntity *) station
 {
 	if (cachedSun != nil && cachedStation == nil)
@@ -2186,9 +2191,17 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (StationEntity *) stationFriendlyTo:(ShipEntity *) ship
+{
+	// In interstellar space we select a random friendly carrier as mainStation.
+	// No caching: friendly status can change!
+	return [self findOneEntityMatchingPredicate:IsFriendlyStationPredicate parameter:ship];
+}
+
+
 - (OOPlanetEntity *) planet
 {
-	if (cachedPlanet == nil && [allPlanets count] != 0)
+	if (cachedPlanet == nil && [allPlanets count] > 0)
 	{
 		cachedPlanet = [allPlanets objectAtIndex:0];
 	}
