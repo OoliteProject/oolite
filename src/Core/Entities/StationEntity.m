@@ -945,6 +945,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		
 			// damage the ship according to velocity but don't collide
 			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:self];
+			[self doScriptEvent:@"shipCollided" withArgument:ship andReactToAIMessage:@"COLLISION"];
+			[ship doScriptEvent:@"shipCollided" withArgument:self andReactToAIMessage:@"COLLISION"];
 			
 			Vector delta;
 			delta.x = 0.5 * (arbb.max.x + arbb.min.x) * correction_factor;
