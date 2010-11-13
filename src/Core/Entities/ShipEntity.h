@@ -803,7 +803,7 @@ BOOL	class_masslocks(int some_class);
 - (void) scoopIn:(ShipEntity *)other;
 - (void) scoopUp:(ShipEntity *)other;
 
-- (void) abandonShip;
+- (BOOL) abandonShip;
 
 - (void) takeScrapeDamage:(double) amount from:(Entity *) ent;
 - (void) takeHeatDamage:(double) amount;

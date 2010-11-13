@@ -222,6 +222,7 @@
 		"deployEscorts",
 		"dockEscorts",
 		"setTargetToNearestStation",
+		"setTargetToNearestFriendlyStation",
 		"setTargetToSystemStation",
 		"setUpEscorts",
 		"fireMissile"
@@ -422,6 +423,7 @@
 		"scanForNearestShipWithRole:" = "scanForNearestShipWithPrimaryRole:";
 		"launchDefenceShip"= "launchDefenseShip";
 		"setTargetToStation" = "setTargetToNearestStation";
+		"setTargetToFriendlyStation" = "setTargetToNearestFriendlyStation";
 		"performDocking" = "doNothing";
 		"exitAI" = ("exitAIWithMessage:", "RESTARTED");
 		"throwSparks" = "ai_throwSparks";

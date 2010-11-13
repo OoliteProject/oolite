@@ -1,8 +1,22 @@
 {
 	GLOBAL =
 	{
+		ENTER = ("setSpeedFactorTo: 1.0", "setStateTo: HEAD_FOR_PLANET");
+	};
+	"HEAD_FOR_PLANET" =
+	{
+		ENTER = (setCourseToPlanet, checkCourseToDestination);
+		"NOTHING_FOUND" = ("setStateTo: MOVE_AWAY");
+		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
 		"DESIRED_RANGE_ACHIEVED" = (landOnPlanet);
 		"APPROACHING_SURFACE" = (landOnPlanet);
-		UPDATE = (setCourseToPlanet, "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination, "pauseAI: 10.0");
+		UPDATE = (setCourseToPlanet, checkCourseToDestination, "pauseAI: 10.0");
+	};
+	"MOVE_AWAY" =
+	{
+		ENTER = (setDestinationToCurrentLocation, "setDesiredRangeTo: 7000.0", checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dumbAI.plist");
+		UPDATE = (checkCourseToDestination, "pauseAI: 10.0");
 	};
 }

@@ -1207,6 +1207,7 @@
 	"mission-information"			= "Mission Information";
 	
 	// Game Over screen
+	"gameoverscreen-escape-pod"		= "Life Support Failure!";
 	"gameoverscreen-score-@-f"		= "Score: %@, %.1f ₢";
 	"gameoverscreen-game-over"		= "Game Over";
 	"gameoverscreen-press-space"	= "Press Space";

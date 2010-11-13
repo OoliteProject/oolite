@@ -1049,9 +1049,8 @@ static NSTimeInterval	time_last_frame;
 				}
 				
 				exceptionContext = @"escape pod";
-				//  shoot 'escape'   // Escape pod launch - NOTE: Requires double press within a specific time interval
-				if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod]
-												&& ([UNIVERSE inInterstellarSpace] ? [UNIVERSE stationFriendlyTo:self] != nil : [UNIVERSE station] != nil))
+				//  shoot 'escape'   // Escape pod launch - NOTE: Allowed at all times, but requires double press within a specific time interval
+				if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod])
 				{
 					static OOTimeDelta 	escapePodKeyResetTime;
 					if (!escapePodKey_pressed)

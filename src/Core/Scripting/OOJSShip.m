@@ -1482,14 +1482,7 @@ static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, js
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
-	BOOL hasPod = [thisEnt hasEscapePod];
-
-	if (hasPod)
-	{
-		[thisEnt abandonShip];
-	}
-	
-	*outResult = BOOLToJSVal(hasPod);
+	*outResult = BOOLToJSVal([thisEnt hasEscapePod] && [thisEnt abandonShip]);
 	return YES;
 	
 	OOJS_NATIVE_EXIT

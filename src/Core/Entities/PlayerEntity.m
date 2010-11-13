@@ -120,6 +120,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) performDeadUpdates:(OOTimeDelta)delta_t;
 - (void) updateTargeting;
 - (BOOL) isValidTarget:(Entity*)target;
+- (void) showGameOver;
 #if WORMHOLE_SCANNER
 - (void) addScannedWormhole:(WormholeEntity*)wormhole;
 - (void) updateWormholes;
@@ -1755,16 +1756,17 @@ static GLfloat		sBaseMass = 0.0;
 	if ((status == STATUS_ESCAPE_SEQUENCE)&&(shot_time > ESCAPE_SEQUENCE_TIME))
 	{
 		UPDATE_STAGE(@"resetting after escape");
-		
-		[[UNIVERSE entityForUniversalID:found_target] becomeExplosion];	// blow up the doppelganger
+		ShipEntity	*doppelganger = [UNIVERSE entityForUniversalID:found_target];
 		primaryTarget = NO_TARGET;
-		[self setTargetToNearestFriendlyStation];
-		if([self primaryTarget] == NO_TARGET)
+		[self setTargetToSystemStation];
+		// reset legal status again! Could have changed if a previously launched missile hits a clean NPC while in the escape pod.
+		legalStatus = 0;
+		bounty = 0;
+		[self doScriptEvent:@"escapePodSequenceOver"];	// allow oxps to override the escape pod target!
+		
+		if ([[self primaryTarget] isStation]) // also fails if primaryTarget is NO_TARGET
 		{
-			if (![UNIVERSE inInterstellarSpace]) [self setTargetToSystemStation];	// in regular systems even unfriendly main stations will rescue the player.
-		}
-		if ([self primaryTarget] != NO_TARGET)
-		{
+			[doppelganger becomeExplosion];	// blow up the doppelganger
 			// restore player ship
 			ShipEntity *player_ship = [UNIVERSE newShipWithName:[self shipDataKey]];	// retained
 			if (player_ship)
@@ -1775,15 +1777,16 @@ static GLfloat		sBaseMass = 0.0;
 			}
 			[UNIVERSE setViewDirection:VIEW_FORWARD];
 			
-			// reset legal status again! Could have changed if, for example, a previously launched missile hits a clean NPC while in the escape pod.
-			legalStatus = 0;
-			bounty = 0;
 			[self enterDock:(StationEntity *)[self primaryTarget]];
 		}
-		else
+		else	// no target? target is not a station? game over!
 		{
-			// The friendly interstellar station could be killed during eject.
 			[self setStatus:STATUS_DEAD];
+			//[self playGameOver];	// no death explosion sounds for player pods
+			// no shipDied events for player pods, either
+			[UNIVERSE displayMessage:DESC(@"gameoverscreen-escape-pod") forCount:30.0];
+			[UNIVERSE displayMessage:@"" forCount:30.0];
+			[self showGameOver];
 		}
 	}
 	
@@ -2407,6 +2410,21 @@ static GLfloat		sBaseMass = 0.0;
 	// Target is neither a wormhole nor a ship
 	return NO;
 }
+
+
+- (void) showGameOver
+{
+	NSString *scoreMS = [NSString stringWithFormat:DESC(@"gameoverscreen-score-@-f"),
+							KillCountToRatingAndKillString(ship_kills),credits/10.0];
+
+	[UNIVERSE displayMessage:DESC(@"gameoverscreen-game-over") forCount:30.0];
+	[UNIVERSE displayMessage:@"" forCount:30.0];
+	[UNIVERSE displayMessage:scoreMS forCount:30.0];
+	[UNIVERSE displayMessage:@"" forCount:30.0];
+	[UNIVERSE displayMessage:DESC(@"gameoverscreen-press-space") forCount:30.0];
+	[self resetShotTime];
+}
+
 
 // Check for lost targeting - both on the ships' main target as well as each
 // missile.
@@ -4318,10 +4336,7 @@ static GLfloat		sBaseMass = 0.0;
 	if ([self isDocked])  return;	// Can't die while docked. (Doing so would cause breakage elsewhere.)
 	
 	OOLog(@"player.ship.damage",  @"Player destroyed by %@ due to %@", whom, why);	
-	NSString *scoreMS = [NSString stringWithFormat:DESC(@"gameoverscreen-score-@-f"),
-							KillCountToRatingAndKillString(ship_kills),credits/10.0];
-
-
+	
 	if (![[UNIVERSE gameController] playerFileToLoad])
 		[[UNIVERSE gameController] setPlayerFileToLoad: save_path];	// make sure we load the correct game
 	
@@ -4333,12 +4348,12 @@ static GLfloat		sBaseMass = 0.0;
 	[self becomeLargeExplosion:4.0];
 	[self moveForward:100.0];
 	
-	[self playGameOver];
-	
 	flightSpeed = 160.0f;
 	[[UNIVERSE message_gui] clear]; 	// No messages for the dead.
 	[self suppressTargetLost];			// No target lost messages when dead.
 	[self setStatus:STATUS_DEAD];
+	[self playGameOver];
+
 	// Let event scripts check for specific equipment on board when the player dies.
 	if (whom == nil)  whom = (id)[NSNull null];
 	[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
@@ -4346,13 +4361,8 @@ static GLfloat		sBaseMass = 0.0;
 	// Then remove the equipment. This should avoid accidental scooping / equipment damage when dead.
 	[self removeAllEquipment];
 	[self loseTargetStatus];
+	[self showGameOver];
 
-	[UNIVERSE displayMessage:DESC(@"gameoverscreen-game-over") forCount:30.0];
-	[UNIVERSE displayMessage:@"" forCount:30.0];
-	[UNIVERSE displayMessage:scoreMS forCount:30.0];
-	[UNIVERSE displayMessage:@"" forCount:30.0];
-	[UNIVERSE displayMessage:DESC(@"gameoverscreen-press-space") forCount:30.0];
-	[self resetShotTime];
 }
 
 

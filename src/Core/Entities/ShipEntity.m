@@ -8030,11 +8030,8 @@ BOOL class_masslocks(int some_class)
 	
 	/*
 		CHANGE: both player & NPCs can now launch escape pods in interstellar
-		space, but only if there's a friendly station/carrier nearby! -- Kaks 20101112
+		space. -- Kaks 20101113
 	*/
-	BOOL wSpace = [UNIVERSE inInterstellarSpace];
-	if (EXPECT_NOT(!wSpace && [UNIVERSE station] == nil))  return NO_TARGET;
-	if (EXPECT_NOT(wSpace && [UNIVERSE stationFriendlyTo:self] == nil))  return NO_TARGET;
 	
 	// check number of pods aboard -- require at least one.
 	n_pods = [shipinfoDictionary oo_unsignedIntForKey:@"has_escape_pod"];
@@ -8767,24 +8764,26 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (void) abandonShip
+- (BOOL) abandonShip
 {
+	BOOL OK = NO;
 	if ([self isPlayer] && [(PlayerEntity *)self isDocked])
 	{
 		OOLog(@"ShipEntity.abandonShip.failed", @"Player cannot abandon ship while docked.");
-		return;
+		return OK;
 	}
 	
 	if (![self hasEscapePod])
 	{
 		OOLog(@"ShipEntity.abandonShip.failed", @"Ship abandonment was requested for %@, but this ship does not carry escape pod(s).", self);
-		return;
+		return OK;
 	}
 		
-	if ([self launchEscapeCapsule] != NO_TARGET)	// -launchEscapeCapsule takes care of everyhing for the player
+	if (EXPECT([self launchEscapeCapsule] != NO_TARGET))	// -launchEscapeCapsule takes care of everyhing for the player
 	{
 		if (![self isPlayer])
 		{
+			OK = YES;
 			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
 			[shipAI setStateMachine:@"nullAI.plist"];
 			behaviour = BEHAVIOUR_IDLE;
@@ -8792,7 +8791,7 @@ BOOL class_masslocks(int some_class)
 			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
 			thrust = thrust * 0.5;
 			desired_speed = 0.0;
-			//[self setHulk:YES];	// already set inside launcEscapeCapsule
+			//[self setHulk:YES];	// already set inside launchEscapeCapsule
 			if ([self group]) [self setGroup:nil]; // remove self from group.
 			if ([self owner]) [self setOwner:nil];
 
@@ -8817,9 +8816,10 @@ BOOL class_masslocks(int some_class)
 	}
 	else
 	{
+		// this shouldn't happen any more!
 		OOLog(@"ShipEntity.abandonShip.notPossible", @"Ship %@ cannot be abandoned at this time.", self);
-		// e.g. in interstellar space or in a system without station.
 	}
+	return OK;
 }
 
 
@@ -9309,6 +9309,7 @@ BOOL class_masslocks(int some_class)
 }
 
 
+// Exposed to AI
 - (void) setTargetToNearestFriendlyStation
 {
 	[self setTargetToNearestStationIncludingHostiles:NO];
