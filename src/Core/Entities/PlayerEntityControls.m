@@ -111,6 +111,7 @@ static BOOL				switching_equipship_screens;
 static BOOL				zoom_pressed;
 static BOOL				customView_pressed;
 static BOOL				weaponsOnlineToggle_pressed;
+static BOOL				escapePodKey_pressed;
 
 static unsigned			searchStringLength;
 static double			timeLastKeyPress;
@@ -1048,11 +1049,24 @@ static NSTimeInterval	time_last_frame;
 				}
 				
 				exceptionContext = @"escape pod";
-				//  shoot 'escape'   // Escape pod launch
+				//  shoot 'escape'   // Escape pod launch - NOTE: Requires double press within a specific time interval
 				if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod]
 												&& ([UNIVERSE inInterstellarSpace] ? [UNIVERSE stationFriendlyTo:self] != nil : [UNIVERSE station] != nil))
 				{
-					found_target = [self launchEscapeCapsule];
+					static OOTimeDelta 	escapePodKeyResetTime;
+					if (!escapePodKey_pressed)
+					{
+						escapePodKey_pressed = YES;
+						// first keypress will unregister in KEY_REPEAT_INTERVAL seconds
+						escapePodKeyResetTime = [NSDate timeIntervalSinceReferenceDate] + KEY_REPEAT_INTERVAL;
+						[gameView supressKeysUntilKeyUp];
+					}
+					else
+					{
+						OOTimeDelta timeNow = [NSDate timeIntervalSinceReferenceDate];
+						escapePodKey_pressed = NO;
+						if (timeNow < escapePodKeyResetTime)  found_target = [self launchEscapeCapsule];
+					}
 				}
 				
 				exceptionContext = @"dump cargo";
