@@ -201,6 +201,7 @@ enum {
 - (void) setDefaultMapping;
 - (void) clearMappings;
 - (void) clearStickStates;
+- (void) clearStickButtonState: (int)stickButton;
 - (void) decodeAxisEvent: (SDL_JoyAxisEvent *)evt;
 - (void) decodeButtonEvent: (SDL_JoyButtonEvent *)evt;
 - (void) decodeHatEvent: (SDL_JoyHatEvent *)evt;

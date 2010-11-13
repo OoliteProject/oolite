@@ -127,5 +127,6 @@ enum {
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;
 - (const BOOL *) getAllButtonStates;
+- (void) clearStickButtonState: (int)stickButton;
 
 @end

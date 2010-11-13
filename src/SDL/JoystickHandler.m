@@ -341,6 +341,15 @@ MA 02110-1301, USA.
 }
 
 
+- (void) clearStickButtonState: (int)stickButton
+{
+	if (stickButton >= 0 && stickButton < BUTTON_end)
+	{
+		butstate[stickButton] = 0;
+	}
+}
+
+
 - (void)setCallback: (SEL) selector
              object: (id) obj
            hardware: (char)hwflags

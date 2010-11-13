@@ -1059,7 +1059,11 @@ static NSTimeInterval	time_last_frame;
 						escapePodKey_pressed = YES;
 						// first keypress will unregister in KEY_REPEAT_INTERVAL seconds
 						escapePodKeyResetTime = [NSDate timeIntervalSinceReferenceDate] + KEY_REPEAT_INTERVAL;
-						[gameView supressKeysUntilKeyUp];
+						[gameView clearKey:key_launch_escapepod];
+						if ([stickHandler getNumSticks])
+						{
+							[stickHandler clearStickButtonState:BUTTON_ESCAPE];
+						}
 					}
 					else
 					{

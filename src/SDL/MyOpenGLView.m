@@ -1013,6 +1013,15 @@ MA 02110-1301, USA.
 }
 
 
+- (void) clearKey: (int)theKey
+{
+	if (theKey >= 0 && theKey < [self numKeys])
+	{
+		keys[theKey] = NO;
+	}
+}
+
+
 - (BOOL) isAlphabetKeyDown
 {
 	return isAlphabetKeyDown = NO;;

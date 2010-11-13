@@ -752,6 +752,15 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (void) clearKey: (int)theKey
+{
+	if (theKey >= 0 && theKey < [self numKeys])
+	{
+		keys[theKey] = NO;
+	}
+}
+
+
 - (BOOL) isAlphabetKeyDown
 {
 	return isAlphabetKeyDown = NO;

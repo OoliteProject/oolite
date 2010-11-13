@@ -72,4 +72,10 @@ JoystickHandler *sSharedStickHandler = nil;
 	return butstate;
 }
 
+
+- (void) clearStickButtonState: (int)stickButton
+{
+	// stub method
+}
+
 @end

@@ -154,6 +154,7 @@ extern int debug;
 
 - (void) clearKeys;
 - (void) clearMouse;
+- (void) clearKey: (int)theKey;
 - (BOOL) isAlphabetKeyDown;
 - (void) supressKeysUntilKeyUp; // DJS
 - (BOOL) isDown: (int) key;
