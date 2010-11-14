@@ -779,8 +779,8 @@ static NSTimeInterval	time_last_frame;
 				}
 				
 				exceptionContext = @"weapons online toggle";
-				// weapons online / offline toggle '_'
-				if ([gameView isDown:key_weapons_online_toggle] || joyButtonState[BUTTON_WEAPONSONLINETOGGLE])
+				// weapons online / offline toggle '_' - non-strict mode only
+				if (([gameView isDown:key_weapons_online_toggle] || joyButtonState[BUTTON_WEAPONSONLINETOGGLE]) && ![UNIVERSE strict])
 				{
 					if (!weaponsOnlineToggle_pressed)
 					{
@@ -1049,7 +1049,9 @@ static NSTimeInterval	time_last_frame;
 				}
 				
 				exceptionContext = @"escape pod";
-				//  shoot 'escape'   // Escape pod launch - NOTE: Allowed at all times, but requires double press within a specific time interval
+				//  shoot 'escape'   // Escape pod launch - NOTE: Allowed at all times, but requires double press within a specific time interval.
+							// Double press not available in strict mode or when the "escape-pod-activation-immediate" override is in the 
+							// user defaults file.
 				if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod])
 				{
 					BOOL	goodToLaunch = [UNIVERSE strict] || [[NSUserDefaults standardUserDefaults] boolForKey:@"escape-pod-activation-immediate"];
