@@ -36,6 +36,8 @@ MA 02110-1301, USA.
 
 #import "OOConstToString.h"
 #import "OOFunctionAttributes.h"
+#import "OOCollectionExtractors.h"
+#import "OOStringParsing.h"
 
 
 static JSObject		*sPlayerPrototype;
@@ -52,7 +54,7 @@ static JSBool PlayerDecreaseContractReputation(JSContext *context, JSObject *thi
 static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerDecreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-
+static JSBool PlayerSetEscapePodDestination(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sPlayerClass =
@@ -137,6 +139,7 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation,	0 },
 	{ "increaseContractReputation",		PlayerIncreaseContractReputation,	0 },
 	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
+	{ "setEscapePodDestination",		PlayerSetEscapePodDestination,		1 },	// null destination must be set explicitly
 	{ 0 }
 };
 
@@ -443,6 +446,92 @@ static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this
 	
 	[OOPlayerForScripting() addMessageToReport:report];
 	return YES;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// setEscapePodDestination(Entity | 'NEARBY_SYSTEM')
+static JSBool PlayerSetEscapePodDestination(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOJS_NATIVE_ENTER(context)
+	if (EXPECT_NOT(![UNIVERSE blockJSPlayerShipProps]))
+	{
+		OOReportJSError(context, @"Player.setEscapePodDestination() only works while the escape pod is in flight.");
+		return NO;
+	}
+	
+	BOOL			OK = NO;
+	id				destValue = NO;
+	PlayerEntity	*player = OOPlayerForScripting();
+	
+	if (argc == 1)
+	{
+		destValue = JSValueToObject(context, argv[0]);
+		
+		if (!destValue || [destValue isKindOfClass:[ShipEntity class]])
+		{
+			// if destValue is anything rather than NO or a station, don't do anything, keep OK == NO
+			if (!destValue)
+			{
+				[player setDockTarget:NULL];
+				OK = YES;
+			}
+			else if ([destValue isStation])
+			{
+				[player setDockTarget:destValue];
+				OK = YES;
+			}
+		}
+		else
+		{
+			if ([destValue isKindOfClass:[NSString class]])
+			{
+				if ([destValue isEqualToString:@"NEARBY_SYSTEM"])
+				{
+					// find the nearest system with a main station, or die in the attempt!
+					[player setDockTarget:NULL];
+					
+					NSMutableArray	*sDests = [UNIVERSE nearbyDestinationsWithinRange: 7];
+					int 			i = 0, nDests = [sDests count];
+					if (nDests > 0)	for (i = --nDests; i > 0; i--)
+						if ([(NSDictionary*)[sDests objectAtIndex:i] oo_boolForKey:@"nova"]) [sDests removeObjectAtIndex:i];
+					
+					// i is back to 0, nDests could have changed...
+					nDests = [sDests count];
+					if (nDests > 0)	// we have a system with a main station!
+					{
+						if (nDests > 1) i = ranrot_rand() % nDests;	// any nearby system will do.
+						NSDictionary * dest = [sDests objectAtIndex:i];
+						// add more time until rescue, with overheads for entering witchspace in case of overlapping systems.
+						double dist = [dest oo_doubleForKey:@"distance"];
+						[player addToAdjustTime:(.1 + dist) * (ranrot_rand() & 127)];
+						
+						OOLog(@"kaks",@"system selected: %d",[dest oo_stringForKey:@"sysID"]);
+						
+						// at the end of the docking sequence we'll check if the target system is the same as the system we're in...
+						[player setTargetSystemSeed:RandomSeedFromString([dest oo_stringForKey:@"system_seed"])];
+					}
+					OK = YES;					
+				}
+			}
+			else
+			{
+				JSBool		bValue;
+				if (JS_ValueToBoolean(context, argv[0], &bValue) && bValue == NO)
+				{
+					[player setDockTarget:NULL];
+					OK = YES;
+				}
+			}
+		}
+	}
+	
+	if (OK == NO)
+	{
+		OOReportJSBadArguments(context, @"Player", @"setEscapePodDestination", argc, argv, nil, @"a valid station, null, or 'NEARBY_SYSTEM'");
+	}
+	return OK;
 	
 	OOJS_NATIVE_EXIT
 }

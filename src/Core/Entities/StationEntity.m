@@ -943,10 +943,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		{
 			GLfloat correction_factor = -arbb.min.z / (arbb.max.z - arbb.min.z);	// proportion of ship inside
 		
-			// damage the ship according to velocity but don't collide
+			// damage the ship according to velocity - don't send collision messages to AIs to avoid problems.
 			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:self];
-			[self doScriptEvent:@"shipCollided" withArgument:ship andReactToAIMessage:@"COLLISION"];
-			[ship doScriptEvent:@"shipCollided" withArgument:self]; // no COLLISION message to AI because dockingAI.plist aborts.
+			[self doScriptEvent:@"shipCollided" withArgument:ship]; // no COLLISION message to station AI, carriers would move away!
+			[ship doScriptEvent:@"shipCollided" withArgument:self]; // no COLLISION message to ship AI, dockingAI.plist would abort.
 			
 			Vector delta;
 			delta.x = 0.5 * (arbb.max.x + arbb.min.x) * correction_factor;

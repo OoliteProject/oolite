@@ -286,6 +286,8 @@ enum
 	BOOL					_pauseMessage;
 	BOOL					_autoCommLog;
 	BOOL					_permanentCommLog;
+	
+	BOOL					_blockJSPlayerShipProps;
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
@@ -663,6 +665,9 @@ double estimatedTimeForJourney(double distance, int hops);
 - (BOOL) permanentCommLog;
 - (void) setPermanentCommLog:(BOOL)value;
 - (void) setAutoCommLog:(BOOL)value;
+
+- (BOOL) blockJSPlayerShipProps;
+- (void) setBlockJSPlayerShipProps:(BOOL)value;
 
 @end
 

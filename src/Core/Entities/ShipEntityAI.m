@@ -2404,7 +2404,6 @@ static WormholeEntity *whole = nil;
 		return NO;
 	}
 	
-
 	if (systemID == -1)
 	{
 		// select one at random
@@ -2417,10 +2416,9 @@ static WormholeEntity *whole = nil;
 	else
 	{
 		targetSystem = [UNIVERSE systemSeedForSystemNumber:systemID];
-		NSString* targetName = [UNIVERSE getSystemName:targetSystem];
 		
 		for (i = 0; i < n_dests; i++)
-			if ([targetName isEqualToString:[(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"name"]]) break;
+			if (systemID == [(NSDictionary*)[sDests objectAtIndex:i] oo_intForKey:@"sysID"]) break;
 		
 		if (i == n_dests)	// no match found
 		{
@@ -2429,7 +2427,7 @@ static WormholeEntity *whole = nil;
 			return NO;
 		}
 	}
-	double dist = [[(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
+	double dist = [(NSDictionary*)[sDests objectAtIndex:i] oo_doubleForKey:@"distance"];
 	if (dist > [self maxHyperspaceDistance] || dist > fuel/10) 
 	{
 		OOLogWARN(@"script.debug", @"DEBUG: %@ Jumping %d which is further than allowed.  I have %d fuel", self, dist, fuel);
@@ -2445,7 +2443,7 @@ static WormholeEntity *whole = nil;
 	found_target = primaryTarget;
 	[shipAI reactToMessage:@"WITCHSPACE OKAY" context:@"performHyperSpaceExit"];	// must be a reaction, the ship is about to disappear
 	
-	[self enterWormhole:whole replacing:replace];	// TODO
+	[self enterWormhole:whole replacing:replace];
 	
 	// If we have reached this code, it means that the ship has already entered hyperspace,
 	// the destinations array is therefore no longer required and can be released.

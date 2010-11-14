@@ -276,7 +276,7 @@ id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredC
 #define DEFINE_JS_OBJECT_GETTER(NAME, CLASS) \
 OOINLINE BOOL NAME(JSContext *context, JSObject *inObject, CLASS **outObject) \
 { \
-	if (outObject == NULL)  return NO; \
+	if (EXPECT_NOT(outObject == NULL))  return NO; \
 	*outObject = JSObjectToObjectOfClass(context, inObject, [CLASS class]); \
 	return *outObject != nil; \
 }

@@ -6033,24 +6033,27 @@ static NSDictionary	*sCachedSystemData = nil;
 		return result;
 	}
 	if (range > 7.0) range = 7.0; // limit to systems within 7LY
-		Random_Seed here = [self systemSeed];
+	Random_Seed here = [self systemSeed];
 	
 	// make list of connected systems
 	NSArray *systemsToCheck = nil;
-
+	
 	systemsToCheck = [[self neighboursToRandomSeed: here]copy];
-
-	unsigned short int i;
+	
+	Random_Seed system;
+	unsigned short int i,sysId;
 	for (i = 0; i < [systemsToCheck count]; i++)
 	{
-		Random_Seed system = systems[[[systemsToCheck objectAtIndex:i] intValue]];
+		sysId = [systemsToCheck oo_intAtIndex:i];
+		system = systems[sysId];
 		dist = distanceBetweenPlanetPositions(here.d, here.b, system.d, system.b);
 		if (dist <= range)	
 		{
 			[result addObject: [NSDictionary dictionaryWithObjectsAndKeys:
 								StringFromRandomSeed(system), @"system_seed",
 								[NSNumber numberWithDouble:dist], @"distance",
-								[self getSystemName:system], @"name",
+								[NSNumber numberWithInt:sysId], @"sysID",
+								[[self generateSystemData:system] oo_stringForKey:@"sun_gone_nova" defaultValue:@"0"], @"nova",
 								nil]];
 		}
 	}
@@ -8106,6 +8109,18 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
+- (BOOL) blockJSPlayerShipProps
+{
+	return _blockJSPlayerShipProps;
+}
+
+
+- (void) setBlockJSPlayerShipProps:(BOOL)value
+{
+	_blockJSPlayerShipProps = value;
+}
+
+
 - (void *) suppressClangStuff
 {
 	return _preloadingPlanetMaterials;
@@ -8314,7 +8329,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
-	closeSystems = nil;
+	// closeSystems = nil;	// done inside setUpSpace!
 	[self setUpSpace];
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	

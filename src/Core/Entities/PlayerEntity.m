@@ -465,6 +465,13 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) setTargetSystemSeed:(Random_Seed) s_seed;
+{
+	target_system_seed = s_seed;
+	cursor_coordinates = NSMakePoint(s_seed.d, s_seed.b);
+}
+
+
 - (NSDictionary *) commanderDataDictionary
 {
 	NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -1041,6 +1048,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	show_info_flag = NO;
 	
+	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	[worldScripts release];
 	worldScripts = [[ResourceManager loadScripts] retain];
 	
@@ -1289,6 +1297,8 @@ static GLfloat		sBaseMass = 0.0;
 - (BOOL) setUpShipFromDictionary:(NSDictionary *)shipDict
 {
 	compassTarget = nil;
+	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
+	
 	if (![super setUpFromDictionary:shipDict]) return NO;
 	
 	// boostrap base mass at program startup!
@@ -1894,13 +1904,27 @@ static bool minShieldLevelPercentageInitialised = false;
 	{
 		UPDATE_STAGE(@"resetting after escape");
 		ShipEntity	*doppelganger = [UNIVERSE entityForUniversalID:found_target];
-		primaryTarget = NO_TARGET;
-		[self setTargetToSystemStation];
-		// reset legal status again! Could have changed if a previously launched missile hits a clean NPC while in the escape pod.
+		// reset legal status again! Could have changed if a previously launched missile hit a clean NPC while in the escape pod.
 		legalStatus = 0;
 		bounty = 0;
-		[self doScriptEvent:@"escapePodSequenceOver"];	// allow oxps to override the escape pod target!
-		
+		// no access to all player.ship properties while inside the escape pod,
+		// we're not supposed to be inside our ship anymore! 
+		[self doScriptEvent:@"escapePodSequenceOver"];	// allow oxps to override the escape pod target
+		if (!equal_seeds(target_system_seed, system_seed)) // overridden: we're going to a nearby system!
+		{
+			OOLog(@"kaks",@"Updating systems!");
+
+			system_seed = target_system_seed;
+			[UNIVERSE setSystemTo:system_seed];
+			galaxy_coordinates.x = system_seed.d;
+			galaxy_coordinates.y = system_seed.b;
+			[UNIVERSE setUpSpace];
+			[self setDockTarget:[UNIVERSE station]];
+			[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
+			[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
+		}
+		primaryTarget = _dockTarget;	// main station in the original system, unless overridden.
+		[UNIVERSE setBlockJSPlayerShipProps:NO];	// re-enable player.ship!
 		if ([[self primaryTarget] isStation]) // also fails if primaryTarget is NO_TARGET
 		{
 			[doppelganger becomeExplosion];	// blow up the doppelganger
@@ -4194,6 +4218,13 @@ static bool minShieldLevelPercentageInitialised = false;
 	if ([self status] == STATUS_DEAD) return NO;
 	
 	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// now set up the escape sequence.
+	
+	/*
+		While inside the escape pod, we need to block access to all player.ship properties,
+		since we're not supposed to be inside our ship anymore! -- Kaks 20101114
+	*/
+	
+	[UNIVERSE setBlockJSPlayerShipProps:YES]; 	// no player.ship properties while inside the pod!
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 #if DOCKING_CLEARANCE_ENABLED
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
@@ -4229,7 +4260,11 @@ static bool minShieldLevelPercentageInitialised = false;
 	//remove escape pod
 	[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
 	
-	[self doScriptEvent:@"shipLaunchedEscapePod" withArgument:escapePod];
+	// set up the standard location where the escape pod will dock.
+	target_system_seed = system_seed;			// we're staying in this system
+	[self setDockTarget:[UNIVERSE station]];	// we're docking at the main station, if there is one
+	
+	[self doScriptEvent:@"shipLaunchedEscapePod" withArgument:escapePod];	// no player.ship properties should be available to script
 	
 	// reset legal status
 	legalStatus = 0;
@@ -8028,6 +8063,7 @@ static NSString *last_outfitting_key=nil;
 	scripted_misjump = !!newValue;
 }
 
+
 - (BOOL) scoopOverride
 {
 	return scoopOverride;
@@ -8039,6 +8075,15 @@ static NSString *last_outfitting_key=nil;
 	scoopOverride = !!newValue;
 	[self setScoopsActive];
 }
+
+
+- (void) setDockTarget:(ShipEntity *)entity
+{
+if ([entity isStation]) _dockTarget = [entity universalID];
+else _dockTarget = NO_TARGET;
+	//_dockTarget = [entity isStation] ? [entity universalID]: NO_TARGET;
+}
+
 
 - (NSString *) captainName
 {
