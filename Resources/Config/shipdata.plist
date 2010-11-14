@@ -1277,7 +1277,7 @@
 				size = 12;
 				color = { hue = 90; };
 				frequency = 1;
-				phase = -1.2;
+				phase = -1.4;
 				position = ( 0, 92, 375 );
 			},
 			{
@@ -1318,7 +1318,7 @@
 				size = 12;
 				color = { hue = 90; };
 				frequency = 1;
-				phase = -1.2;
+				phase = -1.4;
 				position = ( 0, -92, 375 );
 			},
 			{
