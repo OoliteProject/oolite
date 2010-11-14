@@ -1052,24 +1052,31 @@ static NSTimeInterval	time_last_frame;
 				//  shoot 'escape'   // Escape pod launch - NOTE: Allowed at all times, but requires double press within a specific time interval
 				if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod])
 				{
-					static OOTimeDelta 	escapePodKeyResetTime;
-					if (!escapePodKey_pressed)
+					BOOL	goodToLaunch = [UNIVERSE strict] || [[NSUserDefaults standardUserDefaults] boolForKey:@"escape-pod-activation-immediate"];
+					static	OOTimeDelta 	escapePodKeyResetTime;
+					
+					if (!goodToLaunch)
 					{
-						escapePodKey_pressed = YES;
-						// first keypress will unregister in KEY_REPEAT_INTERVAL seconds
-						escapePodKeyResetTime = [NSDate timeIntervalSinceReferenceDate] + KEY_REPEAT_INTERVAL;
-						[gameView clearKey:key_launch_escapepod];
-						if ([stickHandler getNumSticks])
+						if (!escapePodKey_pressed)
 						{
-							[stickHandler clearStickButtonState:BUTTON_ESCAPE];
+							escapePodKey_pressed = YES;
+							// first keypress will unregister in KEY_REPEAT_INTERVAL seconds
+							escapePodKeyResetTime = [NSDate timeIntervalSinceReferenceDate] + KEY_REPEAT_INTERVAL;
+							[gameView clearKey:key_launch_escapepod];
+							if ([stickHandler getNumSticks])
+							{
+								[stickHandler clearStickButtonState:BUTTON_ESCAPE];
+							}
+						}
+						else
+						{
+							OOTimeDelta timeNow = [NSDate timeIntervalSinceReferenceDate];
+							escapePodKey_pressed = NO;
+							if (timeNow < escapePodKeyResetTime)  goodToLaunch = YES;
 						}
 					}
-					else
-					{
-						OOTimeDelta timeNow = [NSDate timeIntervalSinceReferenceDate];
-						escapePodKey_pressed = NO;
-						if (timeNow < escapePodKeyResetTime)  found_target = [self launchEscapeCapsule];
-					}
+					if (goodToLaunch)
+						found_target = [self launchEscapeCapsule];
 				}
 				
 				exceptionContext = @"dump cargo";
