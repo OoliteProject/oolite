@@ -492,7 +492,7 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, JSObject *this, 
 					// find the nearest system with a main station, or die in the attempt!
 					[player setDockTarget:NULL];
 					
-					NSMutableArray	*sDests = [UNIVERSE nearbyDestinationsWithinRange: 7];
+					NSMutableArray	*sDests = (NSMutableArray *)[UNIVERSE nearbyDestinationsWithinRange: 7];
 					int 			i = 0, nDests = [sDests count];
 					if (nDests > 0)	for (i = --nDests; i > 0; i--)
 						if ([(NSDictionary*)[sDests objectAtIndex:i] oo_boolForKey:@"nova"]) [sDests removeObjectAtIndex:i];
