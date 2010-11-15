@@ -505,9 +505,7 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, JSObject *this, 
 						NSDictionary * dest = [sDests objectAtIndex:i];
 						// add more time until rescue, with overheads for entering witchspace in case of overlapping systems.
 						double dist = [dest oo_doubleForKey:@"distance"];
-						[player addToAdjustTime:(.1 + dist) * (ranrot_rand() & 127)];
-						
-						OOLog(@"kaks",@"system selected: %d",[dest oo_stringForKey:@"sysID"]);
+						[player addToAdjustTime:(.2 + dist * dist) * 3600.0 + 5400.0 * (ranrot_rand() & 127)];
 						
 						// at the end of the docking sequence we'll check if the target system is the same as the system we're in...
 						[player setTargetSystemSeed:RandomSeedFromString([dest oo_stringForKey:@"system_seed"])];

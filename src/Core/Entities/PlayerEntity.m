@@ -1912,8 +1912,6 @@ static bool minShieldLevelPercentageInitialised = false;
 		[self doScriptEvent:@"escapePodSequenceOver"];	// allow oxps to override the escape pod target
 		if (!equal_seeds(target_system_seed, system_seed)) // overridden: we're going to a nearby system!
 		{
-			OOLog(@"kaks",@"Updating systems!");
-
 			system_seed = target_system_seed;
 			[UNIVERSE setSystemTo:system_seed];
 			galaxy_coordinates.x = system_seed.d;
