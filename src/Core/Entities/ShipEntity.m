@@ -1190,6 +1190,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	NSString		*escortRole = nil;
 	NSString		*escortShipKey = nil;
 	NSString		*autoAI = nil;
+	NSString		*pilotRole = nil;
 	NSDictionary	*autoAIMap = nil;
 	NSDictionary	*escortShipDict = nil;
 	AI				*escortAI = nil;
@@ -1243,6 +1244,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	}
 	[escortGroup setLeader:self];
 	
+	pilotRole = bounty ? @"pirate" : @"hunter"; // hunters have insurancies, pirates not.
+	
 	while (_pendingEscortCount > 0)
 	{
 		Vector ex_pos = [self coordinatesForEscortPosition:[escortGroup count] - 1]; // this adds ship 1 on position 1 etc. 
@@ -1271,7 +1274,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		if ([escorter crew] == nil)
 		{
 			[escorter setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: @"hunter"
+				[OOCharacter randomCharacterWithRole: pilotRole
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 		}
 		
@@ -9068,22 +9071,23 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) canAcceptEscort:(ShipEntity *)potentialEscort
 {
-	//this condition has to be checked first!
 	if (dockingInstructions) // we are busy with docking.
 	{
 		return NO;
 	}
-	if (![self isEscort] && ([self hasRole:@"police"] || [self hasRole:@"interceptor"]))
+	BOOL isEscort = [self isEscort];
+	//police has to be checked first!
+	if (!isEscort && [self hasPrimaryRole:@"police"]) // interceptors always should have police as primaryRole.
 	{
-		return [potentialEscort hasRole:@"wingman"];
+		return [potentialEscort hasPrimaryRole:@"wingman"];
 	}
 	if ([self bounty] == 0 && [potentialEscort bounty] != 0) // clean mothers can only accept clean escorts
 	{
 		return NO;
 	}
-	if (![self isEscort])
+	if (!isEscort)
 	{
-		return [potentialEscort hasRole:@"escort"];
+		return [potentialEscort hasPrimaryRole:@"escort"];
 	}
 	return NO;
 }
@@ -9116,7 +9120,7 @@ BOOL class_masslocks(int some_class)
 		unsigned escortCount = [escortGroup count] - 1;
 		
 		//however the system's patrols don't have escorts inside their dictionary 
-		if (maxEscorts == 0 && ([self hasRole:@"police"] || [self hasRole:@"interceptor"] || [self hasRole:@"hunter"]))
+		if (maxEscorts == 0 && ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"]))
 		{
 			maxEscorts = MAX_ESCORTS;
 		}

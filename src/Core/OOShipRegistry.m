@@ -1245,8 +1245,17 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	if ([colors count] == 0)
 	{
 		colorDesc = [declaration objectForKey:@"color"];
-		if (colorDesc == nil)  colorDesc = @"redColor";
-		colors = [NSArray arrayWithObject:colorDesc];
+		if (colorDesc == nil) colorDesc = @"redColor";
+		if ([colorDesc isKindOfClass:[NSArray class]])
+		{
+			// an easy made error is adding an array to "color" instead of "colors"
+			OOLogWARN(@"shipData.load.warning.flasher.badColor", @"Changing flasher for ship %@ from a color to a colors definition.", shipKey);
+			colors = colorDesc;
+		}
+		else
+		{
+			colors = [NSArray arrayWithObject:colorDesc];
+		}
 	}
 	
 	position = [declaration oo_vectorForKey:@"position"];

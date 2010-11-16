@@ -1545,7 +1545,7 @@ static WormholeEntity *whole = nil;
 		{
 			// become free-lance police :)
 			[shipAI setStateMachine:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
-			[self setPrimaryRole:@"police"];
+			[self setPrimaryRole:@"police"]; // other wingman can now select this ship as leader.
 		}
 	}
 

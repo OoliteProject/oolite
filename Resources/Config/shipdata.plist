@@ -866,12 +866,22 @@
 				size = 150;
 				colors = ({ hue = 30; saturation = 0; brightness = 0.85; }, { hue = 60; }, { hue = 30; });
 			},
-/*			Old flashers. Replaced by the multicolour ones above.
-			"*FLASHER* 0 0 60 60 0.15 1 150",	
-			"*FLASHER* 0 0 -60 30 0.15 0.0 150",
-*/
-			"*FLASHER* 0 0 60 5 2 0.0 25",
-			"*FLASHER* 0 0 -60 5 2 0.0 25"
+			{
+				type = "flasher";
+				size = 25;
+				color = { hue = 5; };
+				frequency = 2;
+				phase = 0.0;
+				position = ( 0, 0, 60 );
+			},
+			{
+				type = "flasher";
+				size = 25;
+				color = { hue = 5; };
+				frequency = 2;
+				phase = 0.0;
+				position = ( 0, 0, -60 );
+			}
 		);
 		thrust = 100;
 		unpiloted = yes;
@@ -1409,7 +1419,12 @@
 		rotating = yes;
 		subentities =
 		(
-			"dock-flat 0 0 392 1 0 0 1",
+			{
+				subentity_key = "dock-flat";
+				orientation = ( 1, 0, 0, 1);	// rotated 90 degrees
+				position = ( 0, 0, 392 );
+				is_dock = true;
+			},
 			"*FLASHER* 0 92 360 60.0 1 -0.50 12",
 			"*FLASHER* 0 92 315 75.0 1 -0.60 12",
 			"*FLASHER* 0 92 270 90.0 1 -0.70 12",
@@ -1475,9 +1490,35 @@
 		scan_class = "CLASS_CARGO";
 		subentities =
 		(
-			"*FLASHER* 0.0 4.42 -1.54\t0.0 2 0.0 2.0",
-			"*FLASHER* 3.83 -2.21 -1.54\t0.0 2 0.0 2.0",
-			"*FLASHER* -3.83 -2.21 -1.54\t0.0 2 0.0 2.0"
+			{
+				type = flasher;
+				size = 2;
+				colors =  (whiteColor, clearColor, clearColor);
+				frequency = 1.0;
+				phase = 0.0;
+				position = (0.0, 0.0, 4.42);
+			},
+			{
+				type = flasher;
+				size = 2;
+				color =  redColor;
+				phase = 0.0;
+				position = (0.0, 4.42, -1.54);
+			},
+			{
+				type = flasher;
+				size = 2;
+				color = redColor;
+				phase = 0.0;
+				position = (3.83, -2.21, -1.54);
+			},
+			{
+				type = flasher;
+				size = 2;
+				color = redColor;
+				phase = 0.0;
+				position = (-3.83, -2.21, -1.54);
+			}
 		);
 		thrust = 5;
 		weapon_position_aft = "0.0 0.0 -1.67";
@@ -1676,7 +1717,12 @@
 		rotating = yes;
 		subentities =
 		(
-			"dock-flat 0 0 500 1 0 0 1",
+			{
+				subentity_key = "dock-flat";
+				orientation = ( 1, 0, 0, 1);	// rotated 90 degrees
+				position = ( 0, 0, 500 );
+				is_dock = true;
+			},
 			"*FLASHER* 0 92 475 60.0 1 -0.50 12",
 			"*FLASHER* 0 92 425 75.0 1 -0.60 12",
 			"*FLASHER* 0 92 375 90.0 1 -0.70 12",
@@ -2314,14 +2360,54 @@
 		docking_pattern_model = "oolite-rocktunnel.dat";
 		smooth = yes;
 		subentities = (
-			"hermit-docking-slit 0 0 0 1 0 0 0",
-			"hermitage 15 -80 210 1 0 0 0",
-			"strut 0 -105 205 1 0 0 0",
-			"strut 30 -105 205 1 0 0 0",
-			"*FLASHER* 0 -16 -78 20.0 1 0.5 12",
-			"*FLASHER* 0 16 -78 20.0 1 0.5 12",
-			"*FLASHER* 16 0 -78 30.0 1 0.0 12",
-			"*FLASHER* -16 0 -78 30.0 1 0.0 12"
+			{
+				subentity_key = "hermit-docking-slit";
+				is_dock = true;
+			},
+			{
+				subentity_key = "hermitage";
+				position = ( 15, -80, 210);
+			},
+			{
+				subentity_key = "strut";
+				position = ( 0, -105, 205);
+			},
+			{
+				subentity_key = "strut";
+				position = ( 30, -105, 205);
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 20; };
+				frequency = 1;
+				phase = 0.5;
+				position = ( 0.0, -16.0, -78.0);
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 20; };
+				frequency = 1;
+				phase = 0.5;
+				position = ( 0.0, 16.0, -78.0);
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 30; };
+				frequency = 1;
+				phase = 0.0;
+				position = ( 16.0, 0.0, -78.0);
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 30; };
+				frequency = 1;
+				phase = 0.0;
+				position = ( -16.0, 0.0, -78.0);
+			}
 		);
 		thrust = 100;
 		weapon_energy = 0;
@@ -2596,18 +2682,90 @@
 		roles = "police";
 		scan_class = "CLASS_POLICE";
 		subentities = (
-			"*FLASHER* -25.00 0.0 -27.50 260.0 2 0.5 8",
-			"*FLASHER* -21.88 0.0 -20.63 260.0 2 0.6 8",
-			"*FLASHER* -18.75 0.0 -13.75 260.0 2 0.7 8",
-			"*FLASHER* -15.63 0.0 -6.88 260.0 2 0.8 8",
-			"*FLASHER* -12.50 0.0 0.00 260.0 2 0.9 8",
-			"*FLASHER* 25.00 0.0 -27.50 310.0 2 0 8",
-			"*FLASHER* 21.88 0.0 -20.63 310.0 2 0.1 8",
-			"*FLASHER* 18.75 0.0 -13.75 310.0 2 0.2 8",
-			"*FLASHER* 15.63 0.0 -6.88 310.0 2 0.3 8",
-			"*FLASHER* 12.50 0.0 0.00 310.0 2 0.4 8",
-			"*FLASHER* -12.50 8.0 -27.50 260.0 2 0 8",
-			"*FLASHER* 12.50 8.0 -27.50 310.0 2 0.25 8"
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.5;
+				position = (-25.0, 0.0, -27.5);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.6;
+				position = (-21.88, 0.0, -20.63);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.7;
+				position = (-18.75, 0.0, -13.75);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.8;
+				position = (-15.63, 0.0, -6.88);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.9;
+				position = (-12.50, 0.0, 0.00);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.0;
+				position = (25, 0, -27.5);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.1;
+				position = (21.88, 0.0, -20.63);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.2;
+				position = (18.75, 0.0, -13.75);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.3;
+				position = (15.63, 0.0, -6.88);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.4;
+				position = (12.50, 0.0, 0.0);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.0;
+				position = (-12.50, 8.0, -27.5);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.25;
+				position = (12.50, 8.0, -27.5);
+			}
 		);
 		thrust = 32;
 		weapon_position_aft = "0.0 0.0 -27.5";
@@ -2643,18 +2801,90 @@
 		roles = "interceptor wingman";
 		scan_class = "CLASS_POLICE";
 		subentities = (
-			"*FLASHER* -32.00 0.00 -22.00 260.0 2 0.5 8",
-			"*FLASHER* -29.25 0.00 -15.25 260.0 2 0.6 8",
-			"*FLASHER* -26.50 0.00 -8.50 260.0 2 0.7 8",
-			"*FLASHER* -23.75 0.00 -1.75 260.0 2 0.8 8",
-			"*FLASHER* -21.00 0.00 5.00 260.0 2 0.9 8",
-			"*FLASHER* 32.00 0.00 -22.00 310.0 2 0 8",
-			"*FLASHER* 29.25 0.00 -15.25 310.0 2 0.1 8",
-			"*FLASHER* 26.50 0.00 -8.50 310.0 2 0.2 8",
-			"*FLASHER* 23.75 0.00 -1.75 310.0 2 0.3 8",
-			"*FLASHER* 21.00 0.00 5.00 310.0 2 0.4 8",
-			"*FLASHER* -16 10 -32 260.0 2 0 8",
-			"*FLASHER* 16 10 -32 310.0 2 0.25 8"
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.5;
+				position = (-32.00, 0.0, -22.00);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.6;
+				position = (-29.25, 0.0, -15.25);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.7;
+				position = (-26.50, 0.0, -8.50);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.8;
+				position = (-23.75, 0.0, -1.75);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.9;
+				position = (-21.00, 0.0, 5.00);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.0;
+				position = (32.00, 0, -22.00);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.1;
+				position = (29.25, 0.0, -15.25);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.2;
+				position = (26.50, 0.0, -8.50);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.3;
+				position = (23.75, 0.0, -1.75);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.4;
+				position = (21.00, 0.0, 5.00);
+			},
+			{
+				type = flasher;
+				color = { hue = 260; };
+				initially_on = no;
+				phase = 0.0;
+				position = (-16.0, 10.0, -32.0);
+			},
+			{
+				type = flasher;
+				color = { hue = 310; };
+				initially_on = no;
+				phase = 0.25;
+				position = (16.0, 10.0, -32.0);
+			}
 		);
 		thrust = 50;
 		weapon_position_aft = "0.0 -8.0 -32.0";
@@ -2681,6 +2911,7 @@
 		model = "viper_redux.dat";
 		name = "GalCop Viper";
 		roles = "wingman";
+		scan_class = "CLASS_POLICE";
 		thrust = 36;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 -2.67 18.33";
