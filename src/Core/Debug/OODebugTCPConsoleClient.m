@@ -359,7 +359,7 @@ noteChangedConfigrationValue:(in id)newValue
 - (void) sendDictionary:(NSDictionary *)dictionary
 {
 	NSData					*data = nil;
-	NSString				*errorDesc = nil;
+	NSString				*errorDesc = NULL;
 	size_t					count;
 	const uint8_t			*bytes = NULL;
 	uint32_t				header;
@@ -372,7 +372,7 @@ noteChangedConfigrationValue:(in id)newValue
 	
 	if (data == nil)
 	{
-		OOLog(@"debugTCP.conversionFailure", @"Could not convert dictionary to data for transmission to debug console: %@", errorDesc ? errorDesc : @"unknown error.");
+		OOLog(@"debugTCP.conversionFailure", @"Could not convert dictionary to data for transmission to debug console: %@", errorDesc != NULL ? errorDesc : @"unknown error.");
 #if OOLITE_RELEASE_PLIST_ERROR_STRINGS
 		[errorDesc autorelease];
 #endif

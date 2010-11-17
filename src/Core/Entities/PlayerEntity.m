@@ -5561,7 +5561,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		[gui setTitle:DESC(@"short-range-chart-title")];
 		[gui setText:targetSystemName forRow:19];
 		[gui setText:[NSString stringWithFormat:DESC(@"short-range-chart-distance-f"), distance]   forRow:20];
-		if ([self hasHyperspaceMotor]) [gui setText:((distance > 0 && distance <= fuel/10.0f) ? [NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:21];
+		if ([self hasHyperspaceMotor]) [gui setText:((distance > 0.0 && distance <= (double)fuel/10.0) ? [NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:21];
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
@@ -6972,7 +6972,7 @@ static NSString *last_outfitting_key=nil;
 
 		[gui clearAndKeepBackground:!guiChanged];
 		
-		[gui setTitle:[UNIVERSE sun] != nil ? [NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
+		[gui setTitle:[UNIVERSE sun] != NULL ? [NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
