@@ -611,12 +611,14 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		OOCargoQuantity	cargoSpaceRequired = [info oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
 		OOMassUnit		cargoUnits = [UNIVERSE unitsForCommodity:[info oo_intForKey:CARGO_KEY_TYPE]];
 		
-		if (cargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired /= 1000;
-		if (cargoUnits == UNITS_GRAMS)  cargoSpaceRequired /= 1000000;
+		if (cargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired = (cargoSpaceRequired + 500) / 1000; // if more than 500kg, count as 1t
+		if (cargoUnits == UNITS_GRAMS)  cargoSpaceRequired = (cargoSpaceRequired + 500000) / 1000000; // if more than 500000g, count as 1t
 		
 		float premium = [info oo_floatForKey:CONTRACT_KEY_PREMIUM];
-		if ((cargoSpaceRequired > max_cargo - current_cargo)||(premium * 10 > credits))
+		if ((cargoSpaceRequired > max_cargo - current_cargo)||(premium * 10 > credits)) 
+		{
 			[contract_market removeObjectAtIndex:i--];
+		}
 	}
 		
 	// GUI stuff
@@ -689,8 +691,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			NSDictionary		*contract_info = [contract_market oo_dictionaryAtIndex:i];
 			OOCargoQuantity		cargo_space_required = [contract_info oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
 			OOMassUnit			cargo_units = [UNIVERSE unitsForCommodity:[contract_info oo_unsignedIntForKey:CARGO_KEY_TYPE]];
-			if (cargo_units == UNITS_KILOGRAMS)	cargo_space_required /= 1000;
-			if (cargo_units == UNITS_GRAMS)		cargo_space_required /= 1000000;
+			if (cargo_units == UNITS_KILOGRAMS)	cargo_space_required = (cargo_space_required + 500) / 1000; // if more than 500kg, count as 1t
+			if (cargo_units == UNITS_GRAMS)		cargo_space_required = (cargo_space_required + 500000) / 1000000; // if more than 500000g, count as 1t
 			
 			float premium = [(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] floatValue];
 			BOOL not_possible = ((cargo_space_required > max_cargo - current_cargo)||(premium * 10 > credits));
