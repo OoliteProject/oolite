@@ -491,7 +491,7 @@ static NSTimeInterval	time_last_frame;
 			if (!taking_snapshot)
 			{
 				taking_snapshot = YES;
-				[gameView snapShot];
+				[gameView snapShot:nil]; // nil filename so that the program auto-names the snapshot
 			}
 		}
 		else

@@ -180,7 +180,7 @@ extern int debug;
 - (void) updateScreenWithVideoMode:(BOOL) v_mode;
 - (void) display;
 
-- (void) snapShot;
+- (BOOL) snapShot:(NSString *)filename;
 #if SNAPSHOTS_PNG_FORMAT
 - (BOOL) pngSaveSurface:(NSString *)fileName withSurface:(SDL_Surface *)surf;
 #endif

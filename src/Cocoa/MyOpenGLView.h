@@ -142,7 +142,7 @@ extern int debug;
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;
 
-- (void) snapShot;
+- (BOOL) snapShot:(NSString *)filename;
 
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;

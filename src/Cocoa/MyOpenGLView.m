@@ -298,8 +298,9 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
-- (void) snapShot
+- (BOOL) snapShot:(NSString *)filename
 {
+	BOOL snapShotOK = YES;
 	int w = viewSize.width;
 	int h = viewSize.height;
 	
@@ -320,17 +321,29 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	{
 		NSBeep();
 		OOLog(@"savedSnapshot.defaultPath.chdir.failed", @"Could not navigate to %@", snapshotsDirectory);
-		return;
+		return NO;
 	}
 	
 	static unsigned		imageNo = 0;
 	NSString			*pathToPic = nil;
 	
-	do
+	if (filename != nil) 
 	{
-		imageNo++;
-		pathToPic = [NSString stringWithFormat:@"oolite-%03d.png",imageNo];
-	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
+		pathToPic = [NSString stringWithString:filename];
+		pathToPic = [filename stringByAppendingString:@".png"];
+	}
+	if (filename == nil || [[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	{
+		if ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+		{
+			OOLog(@"screenshot.filenameExists", @"Snapshot with filename %@ already exists - saving with auto-generated filename.", pathToPic);
+		}
+		do
+		{
+			imageNo++;
+			pathToPic = [NSString stringWithFormat:@"oolite-%03d.png",imageNo];
+		} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
+	}
 	
 	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, w, h);
 	
@@ -377,6 +390,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	// return to the previous directory
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
+	return snapShotOK;
 }
 
 

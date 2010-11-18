@@ -768,8 +768,9 @@ MA 02110-1301, USA.
 }
 
 
-- (void) snapShot
+- (BOOL) snapShot:(NSString *)filename
 {
+	BOOL snapShotOK = YES;
 	SDL_Surface* tmpSurface;
 	int w = viewSize.width;
 	int h = viewSize.height;
@@ -785,16 +786,32 @@ MA 02110-1301, USA.
 	static unsigned		imageNo = 0;
 	NSString			*pathToPic = nil;
 	
-	do
+	if (filename != nil)
 	{
-		imageNo++;
+		pathToPic = [NSString stringWithString:filename];
 #if SNAPSHOTS_PNG_FORMAT
-		pathToPic = [NSString stringWithFormat:@"oolite-%03d.png",imageNo];
+		pathToPic = [filename stringByAppendingString:@".png"];
 #else
-		pathToPic = [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo];
+		pathToPic = [filename stringByAppendingString:@".bmp"];
 #endif
-	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
-	
+	}
+	if (filename == nil || [[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	{
+		if ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+		{
+			OOLog(@"screenshot.filenameExists", @"Snapshot with filename %@ already exists - saving with auto-generated filename.", pathToPic);
+		}
+		do
+		{
+			imageNo++;
+#if SNAPSHOTS_PNG_FORMAT
+			pathToPic = [NSString stringWithFormat:@"oolite-%03d.png",imageNo];
+#else
+			pathToPic = [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo];
+#endif
+		} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
+	}
+		
 	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, w, h);
 	
 	unsigned char *pixls = malloc(surface->w * surface->h * 3);
@@ -820,15 +837,21 @@ MA 02110-1301, USA.
 	if(![self pngSaveSurface:pathToPic withSurface:tmpSurface])
 	{
 		OOLog(@"screenshotPNG", @"Failed to save %@", pathToPic);
+		snapShotOK = NO;
 	}
 #else
-	SDL_SaveBMP(tmpSurface, [pathToPic UTF8String]);
+	if (SDL_SaveBMP(tmpSurface, [pathToPic UTF8String]) == -1)
+	{
+		OOLog(@"screenshotBMP", @"Failed to save %@", pathToPic);
+		snapShotOK = NO;
+	}
 #endif
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
 	
 	// return to the previous directory
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
+	return snapShotOK;
 }
 
 

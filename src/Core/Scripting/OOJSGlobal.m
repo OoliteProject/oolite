@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOTexture.h"
 #import "GuiDisplayGen.h"
+#import "MyOpenGLView.h"
 
 
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -62,6 +63,7 @@ static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, j
 static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool GlobalTakeSnapShot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSClass sGlobalClass =
@@ -111,6 +113,7 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "randomInhabitantsDescription",	GlobalRandomInhabitantsDescription,	1 },
 	{ "setScreenBackground",			GlobalSetScreenBackground,			1 },
 	{ "setScreenOverlay",				GlobalSetScreenOverlay,				1 },
+	{ "takeSnapShot",				GlobalTakeSnapShot,				1 },
 	{ 0 }
 };
 
@@ -394,6 +397,21 @@ static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN a
 	}
 	
 	return YES;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool GlobalTakeSnapShot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	*outResult = JSVAL_FALSE;
+	NSString 		*value = JSValToNSString(context, argv[0]);
+	
+	*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gameView] snapShot:value]);
+	
+	return *outResult;
 	
 	OOJS_NATIVE_EXIT
 }
