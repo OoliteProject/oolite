@@ -669,7 +669,7 @@ typedef enum
 
 - (void) enterGalacticWitchspace;
 
-- (void) takeInternalDamage;
+- (BOOL) takeInternalDamage;
 
 - (void) loseTargetStatus;
 

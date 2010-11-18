@@ -4426,23 +4426,24 @@ static bool minShieldLevelPercentageInitialised = false;
 }
 
 
-- (void) takeInternalDamage
+- (BOOL) takeInternalDamage
 {
 	unsigned n_cargo = max_cargo;
 	unsigned n_mass = [self mass] / 10000;
-	unsigned n_considered = n_cargo + n_mass;
+	unsigned n_considered = (n_cargo + n_mass) * ship_trade_in_factor / 100; // a lower value of n_considered means more vulnerable to damage.
 	unsigned damage_to = n_considered ? (ranrot_rand() % n_considered) : 0;	// n_considered can be 0 for small ships.
+	BOOL     result = NO;
 	// cargo damage
 	if (damage_to < [cargo count])
 	{
 		ShipEntity* pod = (ShipEntity*)[cargo objectAtIndex:damage_to];
 		NSString* cargo_desc = [UNIVERSE displayNameForCommodity:[pod commodityType]];
 		if (!cargo_desc)
-			return;
+			return NO;
 		[UNIVERSE clearPreviousMessage];
 		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), cargo_desc] forCount:4.5];
 		[cargo removeObject:pod];
-		return;
+		return YES;
 	}
 	else
 	{
@@ -4456,7 +4457,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		OOEquipmentType	*eqType = [OOEquipmentType equipmentTypeWithIdentifier:system_key];
 		NSString		*system_name = [eqType name];
 		
-		if (![eqType canBeDamaged] || system_name == nil)  return;
+		if (![eqType canBeDamaged] || system_name == nil)  return NO;
 		
 		// set the following so removeEquipment works on the right entity
 		[self setScriptTarget:self];
@@ -4493,11 +4494,15 @@ static bool minShieldLevelPercentageInitialised = false;
 		{
 			[self disengageAutopilot];
 		}
-		return;
+		return YES;
 	}
 	//cosmetic damage
 	if (((damage_to & 7) == 7)&&(ship_trade_in_factor > 75))
+	{
 		ship_trade_in_factor--;
+		result = YES;
+	}
+	return result;
 }
 
 
@@ -4915,11 +4920,6 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (void) witchJumpTo:(Random_Seed)sTo standard:(BOOL)standard
 {
-	// don't do anything with the player's target
-	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:(standard ? @"standard jump" : @"wormhole")];
-	[self witchStart];
-	
 	//  perform any check here for forced witchspace encounters
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
@@ -4939,19 +4939,23 @@ static bool minShieldLevelPercentageInitialised = false;
 	if (standard && malfunc)
 	{
 		// some malfunctions will start fuel leaks, some will result in no witchjump at all.
-		if (randf() > 0.5)
-		{
-			[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
-		}
-		else
+		if ([self takeInternalDamage])  // Depending on ship type and loaded cargo, will this return 20 - 50% true.
 		{
 			[self playWitchjumpFailure];
-			[self takeInternalDamage];
 			[self setStatus:STATUS_IN_FLIGHT];
 			[self doScriptEvent:@"playerJumpFailed" withArgument:@"malfunction"];
 			return;
 		}
+		else
+		{
+			[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
+		}
 	}
+	
+	// don't do anything with the player's target
+	[self setStatus:STATUS_ENTERING_WITCHSPACE];
+	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:(standard ? @"standard jump" : @"wormhole")];
+	[self witchStart];
 	
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
 	double distance = distanceBetweenPlanetPositions(sTo.d,sTo.b,galaxy_coordinates.x,galaxy_coordinates.y);
