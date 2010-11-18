@@ -35,6 +35,8 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
 
+#import "NSFileManagerOOExtensions.h"
+
 
 #if OOJSENGINE_MONITOR_SUPPORT
 
@@ -246,7 +248,7 @@ static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN 
 	string = JSValToNSString(context, argv[0]);
 	if (string == nil)
 	{
-		OOReportJSBadArguments(context, @"System", @"expandDescription", argc, argv, nil, @"string");
+		OOReportJSBadArguments(context, nil, @"expandDescription", argc, argv, nil, @"string");
 		return NO;
 	}
 	if (argc > 1)
@@ -275,7 +277,7 @@ static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN 
 	string = JSValToNSString(context, argv[0]);
 	if (string == nil)
 	{
-		OOReportJSBadArguments(context, @"System", @"expandMissionText", argc, argv, nil, @"string");
+		OOReportJSBadArguments(context, nil, @"expandMissionText", argc, argv, nil, @"string");
 		return NO;
 	}
 	if (argc > 1)
@@ -312,7 +314,7 @@ static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, 
 	string = JSValToNSString(context,argv[0]);
 	if (string == nil)
 	{
-		OOReportJSBadArguments(context, @"System", @"displayNameForCommodity", argc, argv, nil, @"string");
+		OOReportJSBadArguments(context, nil, @"displayNameForCommodity", argc, argv, nil, @"string");
 		return NO;
 	}
 	string = CommodityDisplayNameForSymbolicName(string);
@@ -402,12 +404,47 @@ static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN a
 }
 
 
+// takeSnapShot([name : alphanumeric String]) : Boolean
 static JSBool GlobalTakeSnapShot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	*outResult = JSVAL_FALSE;
-	NSString 		*value = JSValToNSString(context, argv[0]);
+	NSString				*value = nil;
+	NSMutableCharacterSet	*allowedChars = (NSMutableCharacterSet *)[NSCharacterSet characterSetWithCharactersInString:@"_-"];
+	
+	[allowedChars formUnionWithCharacterSet:[NSCharacterSet alphanumericCharacterSet]];
+	
+	if (argc > 0)
+	{
+		value = JSValToNSString(context, argv[0]);
+		if (EXPECT_NOT(value == nil || [value rangeOfCharacterFromSet:[allowedChars invertedSet]].location != NSNotFound))
+		{
+			OOReportJSBadArguments(context, nil, @"takeSnapShot", argc, argv, nil, @"alphanumeric string");
+			return NO;
+		}
+	}
+	
+
+	NSString				*playerFileDirectory = [[NSFileManager defaultManager] defaultCommanderPath];
+	// OOLITE_LEOPARD is true for mac osx >= 10.5, this method should work in both gnustep & osx < 10.5
+#if !OOLITE_LEOPARD
+	NSDictionary			*attr = [[NSFileManager defaultManager] fileSystemAttributesAtPath:playerFileDirectory];
+#else
+	// this method should work for osx >= 10.5 (the method above is deprecated in 10.5)
+	NSError					*error = nil;
+	NSDictionary			*attr = [[NSFileManager defaultManager] attributesOfFileSystemForPath:playerFileDirectory error:&error];
+	if (!error)
+#endif
+	{
+		double freeSpace = [[attr objectForKey:NSFileSystemFreeSize] doubleValue];
+		if (freeSpace < 1073741824) // less than 1 GB free on disk?
+		{
+			OOReportJSWarning(context, @"takeSnapShot: function disabled when free disk space is less than 1GB.");
+			return YES;
+		}
+	}
+	
 	
 	*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gameView] snapShot:value]);
 	
