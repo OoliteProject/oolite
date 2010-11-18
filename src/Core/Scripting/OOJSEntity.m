@@ -68,6 +68,7 @@ static JSExtendedClass sEntityClass =
 enum
 {
 	// Property IDs
+	kEntity_collisionRadius,	// collision radius, double, read-only.
 	kEntity_distanceTravelled,	// distance travelled, double, read-only.
 	kEntity_energy,				// energy, double, read-write.
 	kEntity_heading,			// heading, vector, read-only (like orientation but ignoring twist angle)
@@ -92,6 +93,7 @@ enum
 static JSPropertySpec sEntityProperties[] =
 {
 	// JS name					ID							flags
+	{ "collisionRadius",		kEntity_collisionRadius,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "distanceTravelled",		kEntity_distanceTravelled,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "energy",					kEntity_energy,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "heading",				kEntity_heading,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -204,6 +206,10 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	switch (JSVAL_TO_INT(name))
 	{
+		case kEntity_collisionRadius:
+			OK = JS_NewDoubleValue(context, [entity collisionRadius], outValue);
+			break;
+	
 		case kEntity_position:
 			OK = VectorToJSValue(context, [entity position], outValue);
 			break;
