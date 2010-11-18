@@ -411,7 +411,7 @@ static JSBool GlobalTakeSnapShot(JSContext *context, JSObject *this, uintN argc,
 	
 	*outResult = JSVAL_FALSE;
 	NSString				*value = nil;
-	NSMutableCharacterSet	*allowedChars = (NSMutableCharacterSet *)[NSCharacterSet characterSetWithCharactersInString:@"_-"];
+	NSMutableCharacterSet	*allowedChars = [NSMutableCharacterSet characterSetWithCharactersInString:@"_-"];
 	
 	[allowedChars formUnionWithCharacterSet:[NSCharacterSet alphanumericCharacterSet]];
 	
