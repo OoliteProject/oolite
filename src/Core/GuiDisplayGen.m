@@ -614,6 +614,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	}
 }
 
+
 - (void) leaveLastLine
 {
 	unsigned i;
@@ -627,6 +628,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	}
 	rowFadeTime[i]	= 0.4f; // fade the last line...
 }
+
 
 - (void) printLongText:(NSString *)str
 				 align:(OOGUIAlignment) alignment

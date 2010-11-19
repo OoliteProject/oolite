@@ -816,6 +816,14 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 					url = nil;
 				}
 			}
+			
+			// did we put the old directory in the trash?
+			Boolean inTrash = false;
+			const UInt8* utfPath = (UInt8*)[[url path] UTF8String];
+			
+			OSStatus err = DetermineIfPathIsEnclosedByFolder(kOnAppropriateDisk, kTrashFolderType, utfPath, false, &inTrash);
+			// if so, create a new directory.
+			if (err == noErr && inTrash == true) url = nil;
 		}
 	}
 	
