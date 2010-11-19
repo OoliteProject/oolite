@@ -324,25 +324,40 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		return NO;
 	}
 	
+	BOOL				withFilename = (filename != nil);
 	static unsigned		imageNo = 0;
+	unsigned			tmpImageNo = 0;
 	NSString			*pathToPic = nil;
+	NSString			*baseName = @"oolite";
 	
-	if (filename != nil) 
+	if (withFilename) 
 	{
-		pathToPic = [NSString stringWithString:filename];
+		baseName = filename;
 		pathToPic = [filename stringByAppendingString:@".png"];
 	}
-	if (filename == nil || [[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	else
 	{
-		if ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
-		{
-			OOLog(@"screenshot.filenameExists", @"Snapshot with filename %@ already exists - saving with auto-generated filename.", pathToPic);
-		}
+		tmpImageNo = imageNo;
+	}
+	
+	if (withFilename && [[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	{
+		OOLog(@"screenshot.filenameExists", @"Snapshot \"%@.png\" already exists - adding numerical sequence.", pathToPic);
+		pathToPic = nil;
+	}
+	
+	if (pathToPic == nil) 
+	{
 		do
 		{
-			imageNo++;
-			pathToPic = [NSString stringWithFormat:@"oolite-%03d.png",imageNo];
+			tmpImageNo++;
+			pathToPic = [NSString stringWithFormat:@"%@-%03d.png", baseName, tmpImageNo];
 		} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
+	}
+	
+	if (!withFilename)
+	{
+		imageNo = tmpImageNo;
 	}
 	
 	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, w, h);

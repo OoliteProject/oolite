@@ -783,35 +783,48 @@ MA 02110-1301, USA.
 	// use the snapshots directory
 	[[NSFileManager defaultManager] chdirToSnapshotPath];
 	
+	BOOL				withFilename = (filename != nil);
 	static unsigned		imageNo = 0;
+	unsigned			tmpImageNo = 0;
 	NSString			*pathToPic = nil;
+	NSString			*baseName = @"oolite";
 	
-	if (filename != nil)
-	{
-		pathToPic = [NSString stringWithString:filename];
 #if SNAPSHOTS_PNG_FORMAT
-		pathToPic = [filename stringByAppendingString:@".png"];
+	NSString			*extension = @".png";
 #else
-		pathToPic = [filename stringByAppendingString:@".bmp"];
+	NSString			*extension = @".bmp";
 #endif
-	}
-	if (filename == nil || [[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	
+	if (withFilename) 
 	{
-		if ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
-		{
-			OOLog(@"screenshot.filenameExists", @"Snapshot with filename %@ already exists - saving with auto-generated filename.", pathToPic);
-		}
+		baseName = filename;
+		pathToPic = [filename stringByAppendingString:extension];
+	}
+	else
+	{
+		tmpImageNo = imageNo;
+	}
+	
+	if (withFilename && [[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	{
+		OOLog(@"screenshot.filenameExists", @"Snapshot \"%@%@\" already exists - adding numerical sequence.", pathToPic, extension);
+		pathToPic = nil;
+	}
+
+	if (pathToPic == nil) 
+	{
 		do
 		{
-			imageNo++;
-#if SNAPSHOTS_PNG_FORMAT
-			pathToPic = [NSString stringWithFormat:@"oolite-%03d.png",imageNo];
-#else
-			pathToPic = [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo];
-#endif
+			tmpImageNo++;
+			pathToPic = [NSString stringWithFormat:@"%@-%03d%@", baseName, tmpImageNo, extension];
 		} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
 	}
-		
+	
+	if (!withFilename)
+	{
+		imageNo = tmpImageNo;
+	}
+			
 	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, w, h);
 	
 	unsigned char *pixls = malloc(surface->w * surface->h * 3);

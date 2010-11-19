@@ -1000,7 +1000,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	{
 		OOReportJSWarning(context, @"Invalid value type for this property. Value not set.");
 	}
-	return OK;
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
