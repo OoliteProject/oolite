@@ -5674,6 +5674,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
 		[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, context, nil]];
+		if (![whom isKindOfClass:[NSNull class]] && [whom isShip])  [(ShipEntity *)whom doScriptEvent:@"shipKilledOther" withArguments:[NSArray arrayWithObjects:self, context, nil]];
 	}
 	
 	[self becomeExplosion];
