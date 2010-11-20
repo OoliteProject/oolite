@@ -495,14 +495,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 {
 	if (![self sun])
 	{
-		// we're in witchspace or this is the first launch...		
+		// we're in witchspace...		
 		
 		PlayerEntity	*player = [PlayerEntity sharedPlayer];
-		Entity			*dockedStation = [player dockedStation];
+		StationEntity	*dockedStation = [player dockedStation];
 		NSPoint			coords = [player galaxy_coordinates];
 		// check the nearest system
 		Random_Seed s_seed = [self findSystemAtCoords:coords withGalaxySeed:[player galaxy_seed]];
-		BOOL interstel =[(StationEntity *)dockedStation interstellarUndockingAllowed] && (s_seed.d != coords.x || s_seed.b != coords.y);
+		BOOL interstel =[dockedStation interstellarUndockingAllowed] && (s_seed.d != coords.x || s_seed.b != coords.y);
 		
 		// remove everything except the player and the docked station
 		if (dockedStation && !interstel)
@@ -531,7 +531,33 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 			if (!dockedStation) [self removeAllEntitiesExceptPlayer:NO];	// get rid of witchspace sky etc. if still extant
 		}
 		
-		if (!dockedStation || !interstel) [self setUpSpace];	// first launch
+		if (!dockedStation || !interstel) 
+		{
+			[self setUpSpace];	// launching from station that jumped from interstellar space to normal space.
+			if (dockedStation)
+			{
+				if ([dockedStation maxFlightSpeed] > 0) // we are a carrier: exit near the WitchspaceExitPosition
+				{
+					float		d1 = (float)(SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5));
+					Vector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
+					Quaternion	q1;
+					
+					quaternion_set_random(&q1);
+					if (abs((int)d1) < 2750)	
+					{
+						d1 += ((d1 > 0.0)? 2750.0f: -2750.0f); // no closer than 2750m. Carriers are bigger than player ships.
+					}
+					Vector		v1 = vector_forward_from_quaternion(q1);
+					pos.x += v1.x * d1; // randomise exit position
+					pos.y += v1.y * d1;
+					pos.z += v1.z * d1;
+					
+					[dockedStation setPosition: pos];
+				}
+				[player doScriptEvent:@"shipWillExitWitchspace"];
+				[player doScriptEvent:@"shipExitedWitchspace"];
+			}
+		}
 	}
 	
 	if(!autoSaveNow) [self setViewDirection:VIEW_FORWARD];
