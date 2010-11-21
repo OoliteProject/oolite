@@ -148,8 +148,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		origin = [UNIVERSE systemSeed];
 		destination = s_seed;
 		distance = distanceBetweenPlanetPositions(destination.d, destination.b, origin.d, origin.b);
-		witch_mass = [ship mass]; // NB the [ship mass] is added again on suckInShip. 
-		
+		witch_mass = 200000.0; // MKW 2010.11.21 - originally the ship's mass was added twice - once here and once in suckInShip.  Instead, we give each wormhole a minimum mass.
+		if ([ship isPlayer])
+			witch_mass = [ship mass]; // The player ship never gets sucked in, so add its mass here.
+
 		if (sun && ([sun willGoNova] || [sun goneNova]) && witch_mass > 240000) 
 			shrink_factor = witch_mass / 240000; // don't allow longstanding wormholes in nova systems. (60 sec * WORMHOLE_SHRINK_RATE = 240 000)
 		else
@@ -165,15 +167,35 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 }
 
 
+- (void) setMisjump
+{
+	double distance = distanceBetweenPlanetPositions(origin.d, origin.b, destination.d, destination.b);
+
+	arrival_time -= (distance * distance * 3600.0) - (distance * distance * 2700.0);
+	destination = origin;
+}
+
+
 - (BOOL) suckInShip:(ShipEntity *) ship
 {
-	if (equal_seeds(destination, [UNIVERSE systemSeed]))
-		return NO;	// far end of the wormhole!
-	
 	if (!ship)
 		return NO;
 
 	double now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
+
+	if (now > arrival_time)
+		return NO;	// far end of the wormhole!
+	
+	// MKW 2010.11.18 - calculate time it takes for ship to reach wormhole
+	// This is for AI ships which get told to enter the wormhole even though they
+	// may still be some distance from it when the player exits the system
+	float d = distance(position, [ship position]);
+	float afterburnerFactor = [ship hasFuelInjection] && [ship fuel] > MIN_FUEL ? [ship afterburnerFactor] : 1.0;
+	float shipSpeed = [ship maxFlightSpeed] * afterburnerFactor;
+	now += d / shipSpeed;
+	if( now > expiry_time )
+		return NO;
+
 	[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 						ship, @"ship",
 						[NSNumber numberWithDouble: now + travel_time - arrival_time], @"time",
@@ -340,10 +362,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (NSString *) descriptionComponents
 {
-	double now = [UNIVERSE getTime];
+	double now = [[PlayerEntity sharedPlayer] clockTime];
 	return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs arrival: %@",
 		[UNIVERSE getSystemName:destination],
-		WORMHOLE_EXPIRES_TIMEINTERVAL - now,
+		expiry_time - now,
 		ClockToString(arrival_time, false)];
 }
 
@@ -361,7 +383,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (BOOL) canCollide
 {
-	if (equal_seeds(destination, [UNIVERSE systemSeed]))
+	if ([[PlayerEntity sharedPlayer] clockTime] > arrival_time)
 	{
 		return NO;	// far end of the wormhole!
 	}

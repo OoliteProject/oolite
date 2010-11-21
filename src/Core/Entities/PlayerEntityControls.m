@@ -1150,61 +1150,24 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"hyperspace";
 				// hyperspace 'h'
-				if ([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
+				if ( ([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE]) &&
+					  [self hasHyperspaceMotor] )	// look for the 'h' key
 				{
 					if (!hyperspace_pressed)
 					{
-						double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-						BOOL		jumpOK = YES;
-						
-						if (![self hasHyperspaceMotor])
+						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 						{
-							[self playHyperspaceNoFuel];
+							// abort!
+							BOOL wasGalactic = galactic_witchjump;
+							galactic_witchjump = NO;
+							[self setStatus:STATUS_IN_FLIGHT];
+							[self playHyperspaceAborted];
+							// say it!
 							[UNIVERSE clearPreviousMessage];
-							[UNIVERSE addMessage:DESC(@"witch-no-motor") forCount:3.0];
-							jumpOK = NO;
+							[UNIVERSE addMessage:DESC(wasGalactic ? @"witch-user-galactic-abort" : @"witch-user-abort") forCount:3.0];
+							[self doScriptEvent:@"playerCancelledJumpCountdown"];
 						}
-						else
-						{
-							if (equal_seeds(target_system_seed, system_seed))
-							{
-								[self playHyperspaceNoTarget];
-								[UNIVERSE clearPreviousMessage];
-								[UNIVERSE addMessage:DESC(@"witch-no-target") forCount:3.0];
-								jumpOK = NO;
-							}
-							
-							if (distance > 7)
-							{
-								[self playHyperspaceNoFuel];
-								[UNIVERSE clearPreviousMessage];
-								[UNIVERSE addMessage:DESC(@"witch-too-far") forCount:3.0];
-								jumpOK = NO;
-							}
-							else if ((10.0 * distance > fuel)||(fuel == 0))
-							{
-								[self playHyperspaceNoFuel];
-								[UNIVERSE clearPreviousMessage];
-								[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount:3.0];
-								jumpOK = NO;
-							}
-							
-							if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
-							{
-								// abort!
-								jumpOK = NO;
-								BOOL wasGalactic = galactic_witchjump;
-								galactic_witchjump = NO;
-								[self setStatus:STATUS_IN_FLIGHT];
-								[self playHyperspaceAborted];
-								// say it!
-								[UNIVERSE clearPreviousMessage];
-								[UNIVERSE addMessage:DESC(wasGalactic ? @"witch-user-galactic-abort" : @"witch-user-abort") forCount:3.0];
-								[self doScriptEvent:@"playerCancelledJumpCountdown"];
-							}
-						}
-						
-						if (jumpOK)
+		                else if ([self witchJumpChecklist:false])
 						{
 							galactic_witchjump = NO;
 							witchspaceCountdown = hyperspaceMotorSpinTime;
@@ -1230,12 +1193,9 @@ static NSTimeInterval	time_last_frame;
 				{
 					if (!galhyperspace_pressed)
 					{
-						BOOL	jumpOK = YES;
-						
 						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 						{
 							// abort!
-							jumpOK = NO;
 							BOOL wasGalactic = galactic_witchjump;
 							galactic_witchjump = NO;
 							[self setStatus:STATUS_IN_FLIGHT];
@@ -1245,8 +1205,7 @@ static NSTimeInterval	time_last_frame;
 							[UNIVERSE addMessage:DESC(wasGalactic ? @"witch-user-galactic-abort" : @"witch-user-abort") forCount:3.0];
 							[self doScriptEvent:@"playerCancelledJumpCountdown"];
 						}
-						
-						if (jumpOK)
+						else
 						{
 							galactic_witchjump = YES;
 							witchspaceCountdown = hyperspaceMotorSpinTime;

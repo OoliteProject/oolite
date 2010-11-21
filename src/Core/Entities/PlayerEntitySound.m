@@ -267,6 +267,10 @@ static OOSoundSource		*sAfterburnerSources[2];
 	[self playInterfaceBeep:@"[witch-blocked-by-@]"];
 }
 
+- (void) playHyperspaceDistanceTooGreat
+{
+	[self playInterfaceBeep:@"[witch-too-far]"];
+}
 
 - (void) playCloakingDeviceOn
 {

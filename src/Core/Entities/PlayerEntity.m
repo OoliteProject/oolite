@@ -133,7 +133,7 @@ static GLfloat		sBaseMass = 0.0;
 - (NSArray*) contractsListForScriptingFromArray:(NSArray *) contracts_array forCargo:(BOOL)forCargo;
 
 - (void) witchStart;
-- (void) witchJumpTo:(Random_Seed)sTo standard:(BOOL)standard;
+- (void) witchJumpTo:(Random_Seed)sTo misjump:(BOOL)misjump;
 - (void) witchEnd;
 
 @end
@@ -471,6 +471,11 @@ static GLfloat		sBaseMass = 0.0;
 	cursor_coordinates = NSMakePoint(s_seed.d, s_seed.b);
 }
 
+
+- (WormholeEntity *) wormhole
+{
+    return wormhole;
+}
 
 - (NSDictionary *) commanderDataDictionary
 {
@@ -1429,6 +1434,8 @@ static GLfloat		sBaseMass = 0.0;
 	[scannedWormholes release];
 	scannedWormholes = nil;
 #endif
+	[wormhole release];
+	wormhole = nil;
 
 	int i;
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)  [missile_entity[i] release];
@@ -2370,8 +2377,6 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	if (witchspaceCountdown == 0.0f)
 	{
-		BOOL go = YES;
-		
 		UPDATE_STAGE(@"preloading planet textures");
 		if (!galactic_witchjump)
 		{
@@ -2389,71 +2394,10 @@ static bool minShieldLevelPercentageInitialised = false;
 		{
 			// FIXME: how to preload target system for hyperspace jump?
 		}
-		
-		// check nearby masses
-		UPDATE_STAGE(@"checking for mass blockage");
-		ShipEntity* blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
-		if (blocker)
-		{
-			[UNIVERSE clearPreviousMessage];
-			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-blocked-by-@"), [blocker name]] forCount: 4.5];
-			[self playWitchjumpBlocked];
-			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"playerJumpFailed" withArgument:@"blocked"];
-			go = NO;
-		}
-		
-		// check max distance permitted
-		UPDATE_STAGE(@"checking jump range");
-		double jump_distance = 0.0;
-		if (!galactic_witchjump)
-		{
-			jump_distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-			if (jump_distance > [self maxHyperspaceDistance])
-			{
-				[UNIVERSE clearPreviousMessage];
-				[UNIVERSE addMessage:DESC(@"witch-too-far") forCount: 4.5];
-				[self playWitchjumpDistanceTooGreat];
-				[self setStatus:STATUS_IN_FLIGHT];
-				[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
-				go = NO;
-			}
-		}
-		
-		// check fuel level
-		UPDATE_STAGE(@"checking fuel requirements");
-		double		fuel_required = 10.0 * jump_distance;
-		if (galactic_witchjump)
-			fuel_required = 0.0;
-		if (fuel < fuel_required)
-		{
-			[UNIVERSE clearPreviousMessage];
-			[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount: 4.5];
-			[self playWitchjumpInsufficientFuel];
-			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"playerJumpFailed" withArgument:@"insufficient fuel"];
-			go = NO;
-		}
-		if (!galactic_witchjump && ![UNIVERSE inInterstellarSpace] && equal_seeds(system_seed,target_system_seed))
-		{
-			//dont allow player to hyperspace to current location.  
-			//Note interstellar space will have a system_seed place we came from 
-			[UNIVERSE clearPreviousMessage];
-			[UNIVERSE addMessage:DESC(@"witch-too-far") forCount: 4.5];
-			[self playWitchjumpInsufficientFuel];
-			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
-			go = NO; // naughty, you cant hyperspace to your own system.
-		}
-		if (go)
-		{
-			UPDATE_STAGE(@"JUMP!");
-			[self safeAllMissiles];
-			[UNIVERSE setViewDirection:VIEW_FORWARD];
-			currentWeaponFacing = VIEW_FORWARD;
-			if (galactic_witchjump)  [self enterGalacticWitchspace];
-			else  [self enterWitchspace];
-		}
+
+		UPDATE_STAGE(@"JUMP!");
+		if (galactic_witchjump)  [self enterGalacticWitchspace];
+		else  [self enterWitchspace];
 	}
 	
 	STAGE_TRACKING_END
@@ -4785,6 +4729,10 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (void) witchStart
 {
+	[self safeAllMissiles];
+	[UNIVERSE setViewDirection:VIEW_FORWARD];
+	currentWeaponFacing = VIEW_FORWARD;
+
 	[self transitionToAegisNone];
 	suppressAegisMessages=YES;
 	hyperspeed_engaged = NO;
@@ -4824,8 +4772,101 @@ static bool minShieldLevelPercentageInitialised = false;
 }
 
 
+- (BOOL) witchJumpChecklist:(BOOL)isGalacticJump
+{
+	BOOL jumpOK = NO;
+
+	// Perform this check only when doing the actual jump
+	if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
+	{
+		// check nearby masses
+		//UPDATE_STAGE(@"checking for mass blockage");
+		ShipEntity* blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
+		if (blocker)
+		{
+			[UNIVERSE clearPreviousMessage];
+			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-blocked-by-@"), [blocker name]] forCount: 4.5];
+			[self playWitchjumpBlocked];
+			[self setStatus:STATUS_IN_FLIGHT];
+			[self doScriptEvent:@"playerJumpFailed" withArgument:@"blocked"];
+			goto done;
+		}
+	}
+
+	// For galactic hyperspace jumps we skip the remaining checks
+	if (isGalacticJump)
+	{
+		jumpOK = YES;
+		goto done;
+	}
+
+	// Check we're not jumping into the current system
+	if (!([UNIVERSE inInterstellarSpace]) && equal_seeds(system_seed,target_system_seed))
+	{
+		//dont allow player to hyperspace to current location.
+		//Note interstellar space will have a system_seed place we came from
+		[UNIVERSE clearPreviousMessage];
+		[UNIVERSE addMessage:DESC(@"witch-no-target") forCount: 4.5];
+		if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
+		{
+			[self playWitchjumpInsufficientFuel];
+			[self setStatus:STATUS_IN_FLIGHT];
+			[self doScriptEvent:@"playerJumpFailed" withArgument:@"no target"];
+		}
+		else
+			[self playHyperspaceNoTarget];
+
+		goto done;
+	}
+
+	// check max distance permitted
+	double jump_distance = MAX(0.1, distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y));
+	if (jump_distance > [self maxHyperspaceDistance])
+	{
+		[UNIVERSE clearPreviousMessage];
+		[UNIVERSE addMessage:DESC(@"witch-too-far") forCount: 4.5];
+		if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
+		{
+			[self playWitchjumpDistanceTooGreat];
+			[self setStatus:STATUS_IN_FLIGHT];
+			[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
+		}
+		else
+			[self playHyperspaceDistanceTooGreat];
+
+		goto done;
+	}
+
+	// check fuel level
+	if (fuel < 10.0 * jump_distance)
+	{
+		[UNIVERSE clearPreviousMessage];
+		[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount: 4.5];
+		if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
+		{
+			[self playWitchjumpInsufficientFuel];
+			[self setStatus:STATUS_IN_FLIGHT];
+			[self doScriptEvent:@"playerJumpFailed" withArgument:@"insufficient fuel"];
+		}
+		else
+			[self playHyperspaceNoFuel];
+
+		goto done;
+	}
+
+	// All checks passed
+	jumpOK = YES;
+
+done:
+	return jumpOK;
+}
+
+
 - (void) enterGalacticWitchspace
 {
+	if (![self witchJumpChecklist:true])
+		return;
+
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"galactic jump"];
 	
@@ -4901,42 +4942,34 @@ static bool minShieldLevelPercentageInitialised = false;
 
 
 // now with added misjump goodness!
+// MKW 2010.11.18 - misjump no longer relies on reliability of own ship, rather on that of the wormhole generator
+//                - TODO: allow scriptedMisjump & forced misjump in this scenario?
 - (void) enterWormhole:(WormholeEntity *) w_hole
 {
-	[self witchJumpTo:[w_hole destination] standard:NO];
+	BOOL misjump = [self scriptedMisjump] || flightPitch == max_flight_pitch || randf() > 0.995;
+	wormhole = [w_hole retain];
+	[self addScannedWormhole:wormhole];
+	[self setStatus:STATUS_ENTERING_WITCHSPACE];
+	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"wormhole"];
+	[self witchJumpTo:[w_hole destination] misjump:misjump];
 }
-
 
 - (void) enterWitchspace
 {
-	if (!([UNIVERSE inInterstellarSpace]) && equal_seeds(system_seed,target_system_seed))
+	if (![self witchJumpChecklist:false])
 	{
-		[self setStatus:STATUS_IN_FLIGHT];
-		return; // naughty, you cant hyperspace to your own system.
+		goto done;
 	}
-	[self witchJumpTo:target_system_seed standard:YES];
-}
-
-
-- (void) witchJumpTo:(Random_Seed)sTo standard:(BOOL)standard
-{
 	//  perform any check here for forced witchspace encounters
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
-		malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
+		    malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
 
 	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
 	// 75% of the time a malfunction means a misjump
 	BOOL misjump = [self scriptedMisjump] || ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
-	
-	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
-	if (2 * market_rnd < ship_trade_in_factor)
-	{
-		// every eight jumps or so drop the price down towards 75%
-		[self reduceTradeInFactorBy:1 + (market_rnd & 3)];
-	}
-	
-	if (standard && malfunc)
+
+	if (malfunc && !misjump)
 	{
 		// some malfunctions will start fuel leaks, some will result in no witchjump at all.
 		if ([self takeInternalDamage])  // Depending on ship type and loaded cargo, will this return 20 - 50% true.
@@ -4944,18 +4977,43 @@ static bool minShieldLevelPercentageInitialised = false;
 			[self playWitchjumpFailure];
 			[self setStatus:STATUS_IN_FLIGHT];
 			[self doScriptEvent:@"playerJumpFailed" withArgument:@"malfunction"];
-			return;
+			goto done;
 		}
 		else
 		{
 			[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
 		}
 	}
-	
-	// don't do anything with the player's target
+
+	// From this point forward we are -definitely- witchjumping
+
+	// burn the full fuel amount to create the wormhole
+	double jump_distance = MAX(0.1, distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y));
+	fuel -= 10.0 * jump_distance; // fuel cost to target system
+
+	// NEW: Create the players' wormhole
+	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_seed fromShip:self];
+	[self addScannedWormhole:wormhole];
+
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:(standard ? @"standard jump" : @"wormhole")];
+	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
+	[self witchJumpTo:target_system_seed misjump:misjump];
+
+done:
+	return;
+}
+
+
+- (void) witchJumpTo:(Random_Seed)sTo misjump:(BOOL)misjump
+{
 	[self witchStart];
+
+	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
+	if (2 * market_rnd < ship_trade_in_factor)
+	{
+		// every eight jumps or so drop the price down towards 75%
+		[self reduceTradeInFactorBy:1 + (market_rnd & 3)];
+	}
 	
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
 	double distance = distanceBetweenPlanetPositions(sTo.d,sTo.b,galaxy_coordinates.x,galaxy_coordinates.y);
@@ -4963,11 +5021,6 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	
-	if (standard)
-	{
-		// burn the full fuel amount to create the wormhole
-		fuel -= 10.0 * distance; // fuel cost to target system
-	}
 	if (!misjump)
 	{
 		system_seed = sTo;
@@ -4985,6 +5038,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		galaxy_coordinates.y += sTo.b;
 		galaxy_coordinates.x /= 2;
 		galaxy_coordinates.y /= 2;
+		[wormhole setMisjump];
 		[self playWitchjumpMisjump];
 		[UNIVERSE set_up_universe_from_misjump];
 	}
@@ -5006,6 +5060,9 @@ static bool minShieldLevelPercentageInitialised = false;
 	pos.x += v1.x * d1; // randomise exit position
 	pos.y += v1.y * d1;
 	pos.z += v1.z * d1;
+
+	[wormhole release];
+	wormhole = nil;
 
 	position = pos;
 	orientation = [UNIVERSE getWitchspaceExitRotation];
@@ -8206,21 +8263,21 @@ else _dockTarget = NO_TARGET;
 //
 // Wormhole Scanner support functions
 //
-- (void)addScannedWormhole:(WormholeEntity*)wormhole
+- (void)addScannedWormhole:(WormholeEntity*)whole
 {
 	assert(scannedWormholes != nil);
-	assert(wormhole != nil);
+	assert(whole != nil);
 	
 	// Only add if we don't have it already!
 	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
 	WormholeEntity * wh;
 	while ((wh = [wormholes nextObject]))
 	{
-		if ([wh universalID] == [wormhole universalID])
+		if ([wh universalID] == [whole universalID])
 			return;
 	}
-	[wormhole setScannedAt:[self clockTimeAdjusted]];
-	[scannedWormholes addObject:wormhole];
+	[whole setScannedAt:[self clockTimeAdjusted]];
+	[scannedWormholes addObject:whole];
 }
 
 // Checks through our array of wormholes for any which have expired

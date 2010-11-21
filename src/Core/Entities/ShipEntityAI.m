@@ -236,6 +236,8 @@ MA 02110-1301, USA.
 
 - (void) addFuel:(NSString *) fuel_number;
 
+- (void) enterPlayerWormhole;
+
 - (void) enterTargetWormhole;
 
 - (void) scriptActionOnTarget:(NSString *) action;
@@ -2148,6 +2150,12 @@ static WormholeEntity *whole = nil;
 	[self setFuel:[self fuel] + [fuel_number intValue] * 10];
 }
 
+- (void) enterPlayerWormhole
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	WormholeEntity	*whole = [player wormhole];
+	[whole suckInShip:self];
+}
 
 - (void) enterTargetWormhole
 {
@@ -2155,11 +2163,15 @@ static WormholeEntity *whole = nil;
 	ShipEntity		*targEnt = [self primaryTarget];
 	double found_d2 = scannerRange * scannerRange;
 
-	if (targEnt && targEnt->isWormhole && distance2(position, targEnt->position) < found_d2)
+	if (targEnt && (distance2(position, [targEnt position]) < found_d2))
 	{
-		whole = (WormholeEntity*)targEnt;
+		if ([targEnt isWormhole])
+			whole = (WormholeEntity *)targEnt;
+		else if ([targEnt isPlayer])
+			whole = [[PlayerEntity sharedPlayer] wormhole];
 	}
-	else
+	
+	if (!whole)
 	{
 		// locate nearest wormhole
 		int				ent_count =		UNIVERSE->n_entities;

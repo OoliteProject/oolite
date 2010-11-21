@@ -70,6 +70,7 @@ typedef enum
 
 - (Random_Seed) origin;
 - (Random_Seed) destination;
+- (void) setMisjump;	// Adjusts arrival time and target system for misjumping
 
 - (double) expiryTime;	// Time at which the wormholes entrance closes
 - (double) arrivalTime;	// Time at which the wormholes exit opens

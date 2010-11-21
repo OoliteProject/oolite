@@ -177,6 +177,7 @@
 		"checkForNormalSpace",
 		"requestDockingCoordinates",
 		"recallDockingInstructions",
+		"enterPlayerWormhole",
 		"enterTargetWormhole",
 		"scriptActionOnTarget:",
 		"safeScriptActionOnTarget:",

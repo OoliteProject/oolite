@@ -27,9 +27,7 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-#if WORMHOLE_SCANNER
 #import "WormholeEntity.h"
-#endif
 #import "ShipEntity.h"
 #import "OOTypes.h"
 
@@ -516,6 +514,7 @@ typedef enum
 #if WORMHOLE_SCANNER
 	NSMutableArray *scannedWormholes;
 #endif
+        WormholeEntity * wormhole;
 }
 
 + (PlayerEntity *)sharedPlayer;
@@ -667,6 +666,7 @@ typedef enum
 
 - (void) rotateCargo;
 
+- (BOOL) witchJumpChecklist:(BOOL)isGalacticJump;
 - (void) enterGalacticWitchspace;
 
 - (BOOL) takeInternalDamage;
@@ -793,5 +793,7 @@ typedef enum
 #if WORMHOLE_SCANNER
 - (NSArray *) scannedWormholes;
 #endif
+
+- (WormholeEntity *) wormhole;
 
 @end

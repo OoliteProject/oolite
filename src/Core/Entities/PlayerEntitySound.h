@@ -84,6 +84,7 @@ MA 02110-1301, USA.
 - (void) playHyperspaceNoTarget;
 - (void) playHyperspaceNoFuel;
 - (void) playHyperspaceBlocked;
+- (void) playHyperspaceDistanceTooGreat;
 
 
 /*	Hyperspace sounds; only one at a time. These get their own pool since
