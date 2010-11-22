@@ -4997,6 +4997,7 @@ done:
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
+	if ([self scriptedMisjump]) misjump = YES; // a script could just have changed this to true;
 	[self witchJumpTo:target_system_seed misjump:misjump];
 
 done:
