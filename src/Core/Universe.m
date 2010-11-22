@@ -6084,7 +6084,6 @@ static NSDictionary	*sCachedSystemData = nil;
 		}
 	}
 	[systemsToCheck release];
-	systemsToCheck = nil;
 	return result;
 }
 
@@ -7167,7 +7166,6 @@ double estimatedTimeForJourney(double distance, int hops)
 							if ([extras containsObject:key])
 							{
 								[options removeObject:equipmentKey];
-								eqPrice = 0;
 								break;
 							}
 						}
@@ -7180,7 +7178,6 @@ double estimatedTimeForJourney(double distance, int hops)
 							if ([extras containsObject:@"EQ_ENERGY_UNIT"])
 							{
 								[options removeObject:equipmentKey];
-								eqPrice = 0;
 								break;
 							}
 					}

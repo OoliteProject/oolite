@@ -751,6 +751,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		[subentity setBehaviour:BEHAVIOUR_TRACK_AS_TURRET];
 		[subentity setWeaponRechargeRate:[subentDict oo_floatForKey:@"fire_rate" defaultValue:TURRET_SHOT_FREQUENCY]];
 		[subentity setWeaponEnergy:[subentDict oo_floatForKey:@"weapon_energy" defaultValue:TURRET_TYPICAL_ENERGY]];
+		[subentity setWeaponRange:[subentDict oo_floatForKey:@"weapon_range" defaultValue:TURRET_SHOT_RANGE]];
 		[subentity setStatus: STATUS_ACTIVE];
 	}
 	else
@@ -5310,13 +5311,27 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setBounty:(OOCreditsQuantity) amount
 {
-	bounty = amount;
+	if ([self isSubEntity]) 
+	{
+		[[self parentEntity] setBounty:amount];
+	}
+	else 
+	{
+		bounty = amount;
+	}
 }
 
 
 - (OOCreditsQuantity) bounty
 {
-	return bounty;
+	if ([self isSubEntity]) 
+	{
+		return [[self parentEntity] bounty];
+	}
+	else 
+	{		
+		return bounty;
+	}
 }
 
 
@@ -5326,7 +5341,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		return 5 * collision_radius;
 	if (scanClass == CLASS_ROCK)
 		return 0;
-	return bounty;
+	return [self bounty];
 }
 
 
@@ -5661,7 +5676,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setHulk:(BOOL)isNowHulk
 {
-	isHulk = isNowHulk;
+	if (![self isSubEntity]) 
+	{
+		isHulk = isNowHulk;
+	}
 }
 
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)context
@@ -7404,7 +7422,7 @@ BOOL class_masslocks(int some_class)
 {
 	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
-	if (range > TURRET_SHOT_RANGE * 1.01) // 1% more than max range - open up just slightly early
+	if (range > weaponRange * 1.01) // 1% more than max range - open up just slightly early
 		return NO;
 	
 	Vector		origin = position;
@@ -7429,7 +7447,7 @@ BOOL class_masslocks(int some_class)
 	OOPlasmaShotEntity *shot = [[OOPlasmaShotEntity alloc] initWithPosition:origin
 																   velocity:vel
 																	 energy:weapon_damage
-																   duration:TURRET_SHOT_DURATION
+																   duration:weaponRange/TURRET_SHOT_SPEED
 																	  color:laser_color];
 	
 	[shot autorelease];
@@ -8783,7 +8801,7 @@ BOOL class_masslocks(int some_class)
 		return OK;
 	}
 		
-	if (EXPECT([self launchEscapeCapsule] != NO_TARGET))	// -launchEscapeCapsule takes care of everyhing for the player
+	if (EXPECT([self launchEscapeCapsule] != NO_TARGET))	// -launchEscapeCapsule takes care of everything for the player
 	{
 		if (![self isPlayer])
 		{
@@ -8797,8 +8815,7 @@ BOOL class_masslocks(int some_class)
 			desired_speed = 0.0;
 			//[self setHulk:YES];	// already set inside launchEscapeCapsule
 			if ([self group]) [self setGroup:nil]; // remove self from group.
-			if ([self owner]) [self setOwner:nil];
-
+			if (![self isSubEntity] && [self owner]) [self setOwner:nil]; //unset owner, but not if we are a subent
 			if ([self hasEscorts])
 			{
 				OOShipGroup			*escortGroup = [self escortGroup];
@@ -9008,7 +9025,11 @@ BOOL class_masslocks(int some_class)
 
 - (void) markAsOffender:(int)offence_value
 {
-	if (scanClass != CLASS_POLICE && ![self isCloaked])  bounty |= offence_value;
+	if (![self isPolice] && ![self isCloaked] && self != [UNIVERSE station])
+	{
+		if ([self isSubEntity]) [[self parentEntity]markAsOffender:offence_value];
+		else bounty |= offence_value;
+	}
 }
 
 

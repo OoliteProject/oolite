@@ -200,6 +200,7 @@
 			"forward_weapon_type",
 			"aft_weapon_type",
 			"weapon_energy",
+			"weapon_range", //added 2010-10-31 by cmdr_james for variable range plasma turrets
 			"scanner_range",
 			"fuel_charge_rate",
 			"missiles",

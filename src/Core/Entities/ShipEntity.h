@@ -624,6 +624,10 @@ MA 02110-1301, USA.
 
 - (void)setThrustForDemo:(float)factor;
 
+/*
+ Sets the bounty on this ship to amount.  
+ Does not check to see if the ship is allowed to have a bounty, for example if it is police.
+ */
 - (void) setBounty:(OOCreditsQuantity) amount;
 - (OOCreditsQuantity) bounty;
 
@@ -817,6 +821,10 @@ BOOL	class_masslocks(int some_class);
 - (void) leaveWitchspace;
 - (void) witchspaceLeavingEffects;
 
+/* 
+   Mark this ship as an offender, this is different to setBounty as some ships such as police 
+   are not markable.  The final bounty may not be equal to existing bounty plus offence_value.
+ */
 - (void) markAsOffender:(int)offence_value;
 
 - (void) switchLightsOn;

@@ -20,6 +20,7 @@
 		forward_weapon_type = "$weaponType";
 		aft_weapon_type = "$weaponType";
 		weapon_energy = "positiveFloat";
+		weapon_range = "positiveFloat";
 		scanner_range = "positiveFloat";
 		fuel_charge_rate = "positiveFloat";
 		missiles = "positiveInteger";
