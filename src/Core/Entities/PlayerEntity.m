@@ -4610,26 +4610,23 @@ static bool minShieldLevelPercentageInitialised = false;
 	}
 #endif
 		
-	// if not being fined, it's time to check the script - can trigger legacy missions
-	if (!being_fined)  [self checkScript];
+	// apply any pending fines. (No need to check gui_screen as fines is no longer an on-screen message).
+	if (being_fined && ![[UNIVERSE sun] willGoNova]) [self getFined];
+
+	// it's time to check the script - can trigger legacy missions
+	if (gui_screen != GUI_SCREEN_MISSION)  [self checkScript]; // a scripted pilot could have created a mission screen.
 	
 	[self doScriptEvent:@"shipDockedWithStation" withArgument:dockedStation];
 
 	// if we've not switched to the mission screen yet then proceed normally..
 	if (gui_screen != GUI_SCREEN_MISSION)
 	{
-		// apply any pending fines, if not done above.
-		if (being_fined) [self getFined];
-		[self setGuiToStatusScreen];	// also displays docking reports if needed.
+		[self setGuiToStatusScreen];
 	}
 	[[OOCacheManager sharedCache] flush];
 	
-	// If we're showing the report screen, we don't want to do anything now.
-	if (gui_screen != GUI_SCREEN_REPORT)
-	{
-		// When a mission screen is started, any on-screen message is removed immediately.
-		[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
-	}
+	// When a mission screen is started, any on-screen message is removed immediately.
+	[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];	// also displays docking reports first.
 }
 
 
@@ -5088,13 +5085,6 @@ done:
 
 - (void) setGuiToStatusScreen
 {
-	// intercept any docking messages
-	if ([dockingReport length] > 0 && [self isDocked] && ![dockedStation suppressArrivalReports])
-	{
-		[self setGuiToDockingReportScreen];	// go here instead!
-		return;
-	}
-
 	NSString		*systemName = nil;
 	NSString		*targetSystemName = nil;
 	NSString		*text = nil;
@@ -8053,6 +8043,15 @@ static NSString *last_outfitting_key=nil;
 {
 	NSEnumerator	*scriptEnum = [worldScripts objectEnumerator];
 	OOScript		*theScript;
+
+	// Check for the pressence of report messages first.
+	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] > 0 && [self isDocked] && ![dockedStation suppressArrivalReports])
+	{
+		[self setGuiToDockingReportScreen];	// go here instead!
+		[[UNIVERSE message_gui] clear];
+		return YES;
+	}
+
 	// FIXME: does this work ok in all situations? Needs fixing if not.
 	while ((theScript = [scriptEnum nextObject]) && gui_screen != GUI_SCREEN_MISSION && [self isDocked])
 	{
@@ -8061,7 +8060,7 @@ static NSString *last_outfitting_key=nil;
 	
 	if (gui_screen == GUI_SCREEN_MISSION)
 	{
-		// remove any fines messages from the screen!
+		// remove any comms/console messages from the screen!
 		[[UNIVERSE message_gui] clear];
 		return YES;
 	}
