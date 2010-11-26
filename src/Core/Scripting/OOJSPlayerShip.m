@@ -113,6 +113,7 @@ enum
 	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-only
+	kPlayerShip_viewID,					// view direction ID, string, read-only
 	kPlayerShip_weaponsOnline,					// weapons online status, boolean, read-only
 };
 
@@ -143,6 +144,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "scriptedMisjump",				kPlayerShip_scriptedMisjump,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "specialCargo",					kPlayerShip_specialCargo,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "targetSystem",					kPlayerShip_targetSystem,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "viewID",						kPlayerShip_viewID,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }			
 };
@@ -323,6 +325,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			
 		case kPlayerShip_weaponsOnline:
 			*outValue = BOOLToJSVal([player weaponsOnline]);
+			OK = YES;
+			break;
+			
+		case kPlayerShip_viewID:
+			result = ViewIDToString([UNIVERSE viewDirection]);
 			OK = YES;
 			break;
 		

@@ -420,6 +420,7 @@ static NSTimeInterval	time_last_frame;
 
 - (void) switchToMainView
 {
+	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_MAIN;
 	if (showDemoShips)
 	{
@@ -428,6 +429,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	[(MyOpenGLView *)[UNIVERSE gameView] allowStringInput:NO];
 	[UNIVERSE setDisplayCursor:NO];
+	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 }
 
 @end

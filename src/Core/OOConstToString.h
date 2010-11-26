@@ -45,6 +45,8 @@ OOInstinctID StringToInstinct(NSString *string) PURE_FUNC;
 
 NSString *BehaviourToString(OOBehaviour behaviour) CONST_FUNC;
 
+NSString *ViewIDToString(OOViewID viewID) CONST_FUNC;
+
 NSString *GovernmentToString(OOGovernmentID government);
 
 NSString *EconomyToString(OOEconomyID economy);
