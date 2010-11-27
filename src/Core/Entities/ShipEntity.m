@@ -3027,9 +3027,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	if (primaryTarget == NO_TARGET)
 	{
-		behaviour = BEHAVIOUR_IDLE;
-		frustration = 0.0;
-		[self noteLostTarget];
+		[self noteLostTargetAndGoIdle];
 		return;
 	}
 	[self trackPrimaryTarget:delta_t:NO];
@@ -3058,6 +3056,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// = BEHAVIOUR_COLLECT_TARGET
 		ShipEntity*	target = [self primaryTarget];
+		if (!target)
+		{
+			[self noteLostTargetAndGoIdle];
+			return;
+		}
 		double target_speed = [target speed];
 		double eta = range / (flightSpeed - target_speed);
 		double last_success_factor = success_factor;
@@ -3078,25 +3081,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			desired_speed += target_speed;
 			if (target_speed > maxFlightSpeed)
 			{
-				behaviour = BEHAVIOUR_IDLE;
-				frustration = 0.0;
-				[self noteLostTarget];
+				[self noteLostTargetAndGoIdle];
 				return;
 			}
 		}
-		//
-		if (target)	// check introduced to stop crash at next line
-		{
-			destination = target->position;
-			desired_range = 0.5 * target->collision_radius;
-			[self trackDestination: delta_t : NO];
-		}
-		else
-		{
-			behaviour = BEHAVIOUR_IDLE;
-			frustration = 0.0;
-			[self noteLostTarget];
-		}
+
+		destination = target->position;
+		desired_range = 0.5 * target->collision_radius;
+		[self trackDestination: delta_t : NO];
+
 		//
 		if (distance < last_distance)	// improvement
 		{
@@ -3203,9 +3196,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
 	{
-		behaviour = BEHAVIOUR_IDLE;
-		frustration = 0.0;
-		[self noteLostTarget];
+		[self noteLostTargetAndGoIdle];
 		return;
 	}
 
@@ -3295,9 +3286,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	if (primaryTarget == NO_TARGET || range > SCANNER_MAX_RANGE) 
 	{
-		behaviour = BEHAVIOUR_IDLE;
-		frustration = 0.0;
-		[self noteLostTarget];
+		[self noteLostTargetAndGoIdle];
 		desired_speed = maxFlightSpeed * 0.375;
 		return;
 	}
@@ -3333,11 +3322,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	if (primaryTarget == NO_TARGET)
 	{
-		behaviour = BEHAVIOUR_IDLE;
-		frustration = 0.0;
-		[self noteLostTarget];
+		[self noteLostTargetAndGoIdle];
 		return;
 	}
+	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 	if ((range < COMBAT_IN_RANGE_FACTOR * weaponRange)||(proximity_alert != NO_TARGET))
 	{
 		if (proximity_alert == NO_TARGET || proximity_alert == primaryTarget)
@@ -3349,7 +3337,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				ship is achieved with a z-distance at the size of the actual distance. However, to allow fast flying ships avoiding collisions,
 				the jink point should be defined closer to the ship itself.
 				*/
-				ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
 				jink.x = (ranrot_rand() % 256) - 128.0;
 				jink.y = (ranrot_rand() % 256) - 128.0;
@@ -3375,9 +3362,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (range > SCANNER_MAX_RANGE)
 		{
-			behaviour = BEHAVIOUR_IDLE;
-			frustration = 0.0;
-			[self noteLostTarget];
+			[self noteLostTargetAndGoIdle];
 			return;
 		}
 	}
@@ -3386,7 +3371,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
 	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
-	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
 	if (range <= slow_down_range)
 		desired_speed = OOMax_d(target_speed, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
@@ -3440,9 +3424,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (primaryTarget == NO_TARGET)
 	{
-		behaviour = BEHAVIOUR_IDLE;
-		frustration = 0.0;
-		[self noteLostTarget];
+		[self noteLostTargetAndGoIdle];
 		return;
 	}
 	if (last_success_factor > success_factor) // our target is closing in.
@@ -6572,6 +6554,13 @@ BOOL class_masslocks(int some_class)
 }
 
 
+- (void) noteLostTargetAndGoIdle
+{
+	behaviour = BEHAVIOUR_IDLE;
+	frustration = 0.0;
+	[self noteLostTarget];
+}
+
 - (void) noteTargetDestroyed:(ShipEntity *)target
 {
 	[self collectBountyFor:(ShipEntity *)target];
@@ -6792,9 +6781,7 @@ BOOL class_masslocks(int some_class)
 
 	if (!target)   // leave now!
 	{
-		behaviour = BEHAVIOUR_IDLE;
-		frustration = 0.0;
-		[self noteLostTarget];	// NOTE: was AI message: rather than reactToMessage:
+		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
 		return 0.0;
 	}
 
@@ -6808,9 +6795,7 @@ BOOL class_masslocks(int some_class)
 
 	if (range2 > SCANNER_MAX_RANGE2)
 	{
-		behaviour = BEHAVIOUR_IDLE;
-		frustration = 0.0;
-		[self noteLostTarget];	// NOTE: was AI message: rather than reactToMessage:
+		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
 		return 0.0;
 	}
 

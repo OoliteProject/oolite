@@ -1199,10 +1199,12 @@ static WormholeEntity *whole = nil;
 	[self checkScanner];
 	//
 	GLfloat d2;
-	GLfloat found_d2 = SCANNER_MAX_RANGE2;
 	NSString* distress_message;
 	found_target = NO_TARGET;
 	BOOL	is_buoy = (scanClass == CLASS_BUOY);
+	ShipEntity*	aggressor_ship = [UNIVERSE entityForUniversalID:primaryAggressor];
+	
+	if (!primaryAggressor) return;
 	
 	if (messageTime > 2.0 * randf())
 		return;					// don't send too many distress messages at once, space them out semi-randomly
@@ -1217,32 +1219,34 @@ static WormholeEntity *whole = nil;
 	{
 		ShipEntity*	ship = scanned_ships[i];
 		d2 = distance2_scanned_ships[i];
-		if (d2 < found_d2)
+	
+		// tell it! //
+		if (ship->isPlayer)
 		{
-			// tell it! //
-			if (ship->isPlayer)
+			if ((primaryAggressor == [ship universalID])&&(energy < 0.375 * maxEnergy)&&(!is_buoy))
 			{
-				if ((primaryAggressor == [ship universalID])&&(energy < 0.375 * maxEnergy)&&(!is_buoy))
-				{
-					[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(@"[beg-for-mercy]") toShip:ship];
-					[self ejectCargo];
-					[self performFlee];
-				}
-				else
-					[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(distress_message) toShip:ship];
-				// reset the thanked_ship_id
-				//
-				thanked_ship_id = NO_TARGET;
+				[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(@"[beg-for-mercy]") toShip:ship];
+				[self ejectCargo];
+				[self performFlee];
 			}
-			if ([self bounty] == 0) // Only clean ships can have their distress calls accepted
-			{
-				if (ship->isStation)
-					[ship acceptDistressMessageFrom:self];
-				if ([ship hasPrimaryRole:@"police"])	// Not isPolice because we don't want wingmen shooting off... but what about interceptors?
-					[ship acceptDistressMessageFrom:self];
-				if ([ship hasPrimaryRole:@"hunter"])
-					[ship acceptDistressMessageFrom:self];
-			}
+			else
+				[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(distress_message) toShip:ship];
+			// reset the thanked_ship_id
+			//
+			thanked_ship_id = NO_TARGET;
+		}
+		else if ([self bounty] == 0 && [ship crew]) // Only clean ships can have their distress calls accepted
+		{
+			[ship doScriptEvent:@"distressMessageReceived" withArgument:aggressor_ship andArgument:self];
+			
+			// we only can send distressMessages to ships that are known to have a "ACCEPT_DISTRESS_CALL" reaction
+			// in their AI, or they might react wrong on the added found_target.
+			if (ship->isStation)
+				[ship acceptDistressMessageFrom:self];
+			if ([ship hasPrimaryRole:@"police"])
+				[ship acceptDistressMessageFrom:self];
+			if ([ship hasPrimaryRole:@"hunter"])
+				[ship acceptDistressMessageFrom:self];
 		}
 	}
 }
@@ -2503,33 +2507,17 @@ static WormholeEntity *whole = nil;
 - (void) acceptDistressMessageFrom:(ShipEntity *)other
 {
 	found_target = [[other primaryTarget] universalID];
-	switch (behaviour)
+	if ([self isPolice])
 	{
-		case BEHAVIOUR_ATTACK_TARGET :
-		case BEHAVIOUR_ATTACK_FLY_TO_TARGET :
-		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET :
-			// busy - ignore the request
-			break;
-			
-		case BEHAVIOUR_FLEE_TARGET :
-			// scared - ignore the request;
-			break;
-			
-		default:
-		{
-			if ([self isPolice])
-			{
-				[[UNIVERSE entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
-			}
-			
-			NSString *context = nil;
-#ifndef NDEBUG
-			context = [NSString stringWithFormat:@"%@ broadcastDistressMessage", [other shortDescription]];
-#endif
-			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL" context:context];
-			break;
-		}
+		[[UNIVERSE entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
 	}
+	
+	NSString *context = nil;
+#ifndef NDEBUG
+	context = [NSString stringWithFormat:@"%@ broadcastDistressMessage", [other shortDescription]];
+#endif
+	[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL" context:context];
+
 }
 
 @end

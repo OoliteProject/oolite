@@ -70,6 +70,8 @@
 		ENTER = ("setSpeedTo: 0.0", performIdle);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
+		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
 		"NOTHING_FOUND" = (checkAegis, "setStateTo: HEAD_FOR_SUN");
@@ -80,6 +82,8 @@
 		ENTER = ("setSpeedTo: 0.0", performIdle);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
+		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
 		"NOTHING_FOUND" = (checkAegis, "setStateTo: HEAD_FOR_PLANET");

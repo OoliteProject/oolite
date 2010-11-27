@@ -742,6 +742,7 @@ BOOL	class_masslocks(int some_class);
 - (int) primaryTargetID;
 
 - (void) noteLostTarget;
+- (void) noteLostTargetAndGoIdle;
 - (void) noteTargetDestroyed:(ShipEntity *)target;
 
 - (OOBehaviour) behaviour;

@@ -40,6 +40,8 @@
 		ENTER = ("setSpeedTo: 0.0", performIdle);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		"DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setAITo: receivingDockingAI.plist");
+		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
@@ -52,6 +54,8 @@
 		ENTER = ("setSpeedTo: 0.0", performIdle);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		"DOCKING_REQUESTED" = ("setSpeedFactorTo: 0.0", "setAITo: receivingDockingAI.plist");
+		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
@@ -64,6 +68,7 @@
 		ENTER = (scanForFormationLeader);
 		RESTARTED = ("setStateTo: INBOUND_LOOT");
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
+		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = ("switchAITo: escortAI.plist");
 		"NOTHING_FOUND" = (checkForNormalSpace);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
@@ -75,6 +80,7 @@
 		ENTER = (scanForFormationLeader);
 		RESTARTED = ("setStateTo: OUTBOUND_LOOT");
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
+		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = ("switchAITo: escortAI.plist");
 		"NOTHING_FOUND" = (checkForNormalSpace);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
