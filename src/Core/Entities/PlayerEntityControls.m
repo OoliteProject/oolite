@@ -140,7 +140,8 @@ static NSTimeInterval	time_last_frame;
 - (void) pollDockedControls:(double) delta_t;
 - (void) pollDemoControls:(double) delta_t;
 - (void) handleMissionCallback;
-- (void) switchToThisView:(OOViewID) viewDirection;
+- (void) switchToThisView:(OOViewID)viewDirection;
+- (void) switchToThisView:(OOViewID)viewDirection andProcessWeaponFacing:(BOOL)processWeaponFacing;
 
 - (void) handleAutopilotOn:(BOOL)fastDocking;
 
@@ -2585,9 +2586,7 @@ static NSTimeInterval	time_last_frame;
 			
 			[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex]];
 			
-			if ([UNIVERSE displayGUI])
-				[self switchToMainView];
-			[UNIVERSE setViewDirection:VIEW_CUSTOM];
+			[self switchToThisView:VIEW_CUSTOM andProcessWeaponFacing:NO]; // weapon facing must not change, we just want an external view
 		}
 		customView_pressed = YES;
 	}
@@ -3312,12 +3311,28 @@ static BOOL toggling_music;
 }
 
 
-- (void) switchToThisView:(OOViewID) viewDirection
+- (void) switchToThisView:(OOViewID)viewDirection
 {
+	[self switchToThisView:viewDirection andProcessWeaponFacing:YES];
+}
+
+
+- (void) switchToThisView:(OOViewID)viewDirection andProcessWeaponFacing:(BOOL)processWeaponFacing
+{
+	OOViewID oldViewDirection = [UNIVERSE viewDirection];
 	if ([UNIVERSE displayGUI]) [self switchToMainView];
 	[UNIVERSE setViewDirection:viewDirection];
-	currentWeaponFacing = viewDirection;
-	[self currentWeaponStats];
+	if (processWeaponFacing)
+	{
+		currentWeaponFacing = viewDirection;
+		[self currentWeaponStats];
+	}
+	if ((oldViewDirection != viewDirection || viewDirection == VIEW_CUSTOM) && ![[UNIVERSE gameController] gameIsPaused])
+	{
+		[self doScriptEvent:@"viewDirectionChanged"
+				withArgument:ViewIDToString(viewDirection)
+				andArgument:ViewIDToString(oldViewDirection)];
+	}
 }
 
 
