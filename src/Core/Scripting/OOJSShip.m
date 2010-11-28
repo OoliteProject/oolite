@@ -140,6 +140,7 @@ enum
 	kShip_hasHostileTarget,		// has hostile target, boolean, read-only
 	kShip_hasHyperspaceMotor,	// has hyperspace motor, boolean, read-only
 	kShip_hasSuspendedAI,		// AI has suspended states, boolean, read-only
+	kShip_heading,				// forwardVector of a ship, read-only
 	kShip_heatInsulation,		// hull heat insulation, double, read/write
 	kShip_isBeacon,				// is beacon, boolean, read-only
 	kShip_isBoulder,			// is a boulder (generates splinters), boolean, read/write
@@ -190,6 +191,9 @@ enum
 	kShip_thrust,				// the ship's thrust, double, read/write
 	kShip_thrustVector,			// thrust-related component of velocity, vector, read-only
 	kShip_trackCloseContacts,	// generate close contact events, boolean, read/write
+	kShip_vectorForward,		// forwardVector of a ship, read-only
+	kShip_vectorRight,			// rightVector of a ship, read-only
+	kShip_vectorUp,				// upVector of a ship, read-only
 	kShip_velocity,				// velocity, vector, read/write
 	kShip_weaponRange,			// weapon range, double, read-only
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
@@ -223,6 +227,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "hasHyperspaceMotor",		kShip_hasHyperspaceMotor,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "heatInsulation",			kShip_heatInsulation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "heading",				kShip_heading,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isBeacon",				kShip_isBeacon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isCloaked",				kShip_isCloaked,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "isCargo",				kShip_isCargo,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -272,6 +277,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "thrust",					kShip_thrust,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "thrustVector",			kShip_thrustVector,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "trackCloseContacts",		kShip_trackCloseContacts,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "vectorForward",			kShip_vectorForward,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "vectorRight",			kShip_vectorRight,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "vectorUp",				kShip_vectorUp,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "velocity",				kShip_velocity,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "weaponRange",			kShip_weaponRange,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "withinStationAegis",		kShip_withinStationAegis,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -439,6 +447,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_heatInsulation:
 			OK = JS_NewDoubleValue(context, [entity heatInsulation], outValue);
+			break;
+			
+		case kShip_heading:
+			OK = VectorToJSValue(context, [entity forwardVector], outValue);
 			break;
 			
 		case kShip_entityPersonality:
@@ -696,6 +708,18 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_lightsActive:
 			*outValue = BOOLToJSVal([entity lightsActive]);
 			OK = YES;
+			break;
+			
+		case kShip_vectorRight:
+			OK = VectorToJSValue(context, [entity rightVector], outValue);
+			break;
+			
+		case kShip_vectorForward:
+			OK = VectorToJSValue(context, [entity forwardVector], outValue);
+			break;
+			
+		case kShip_vectorUp:
+			OK = VectorToJSValue(context, [entity upVector], outValue);
 			break;
 			
 		case kShip_velocity:
