@@ -91,7 +91,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		OOCharacter* rescuee = (OOCharacter*)[rescuees objectAtIndex: i];
 		if ([rescuee script])
 		{
-			[self runUnsanitizedScriptActions:[rescuee script]
+			[rescuee doScriptEvent:@"unloadCharacter"];
+		}
+		else if ([rescuee legacyScript])
+		{
+			[self runUnsanitizedScriptActions:[rescuee legacyScript]
 							allowingAIMethods:YES
 							  withContextName:[NSString stringWithFormat:@"<character \"%@\" script>", [rescuee name]]
 									forTarget:nil];

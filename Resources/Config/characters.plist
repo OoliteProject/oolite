@@ -4,36 +4,41 @@
 		"random_seed" = "1 3 5 7 11 13";	// fix the name and details, but use the key to keep it secret
 		bounty = 1000;	// not actually used, we do the reward in the script
 		origin = 7;		// system number seven (Lave in Galaxy 0)
-		"script_actions" =
-		(
-			/*
-				check if docked
-				print congratulatory message from the Imperial Navy
-				award a special bounty
-			*/
-			{
-				conditions =
-				(
-					"status_string equal STATUS_DOCKED"
-				);
-				do =
-				(
-					{
-						conditions =
-						(
-							"gui_screen_string notequal GUI_SCREEN_MISSION"
-						);
-						do = (
-							"setMissionMusic: none",
-							"setMissionImage: none",
-							"showShipModel: none",
-							"setGuiToMissionScreen"
-						);
-					},
-					"awardCredits: 1000",
-					"addMissionText: constrictor_hunt_thief_captured"
-				);
-			}
-		);
+		script = "oolite-constrictor-pilot.js";
+	};
+	
+/*
+	For ships added in custom roles, Oolite will always add a randomised pilot.
+	When you want control over the bounty and insurance of the pilot, you can define
+	a specific pilot for your ship by using one of the following character keys as pilot
+	in shipdata.plist. e.g.:  "pilot" = "oolite-trader";
+*/
+	"oolite-hunter" =
+	{
+		role = "hunter";
+	};
+	"oolite-miner" =
+	{
+		role = "miner";
+	};
+	"oolite-passenger" =
+	{
+		role = "passenger";
+	};
+	"oolite-pirate" =
+	{
+		role = "pirate";
+	};
+	"oolite-police" =
+	{
+		role = "police";
+	};
+	"oolite-slave" =
+	{
+		role = "slave";
+	};
+	"oolite-trader" =
+	{
+		role = "trader";
 	};
 }

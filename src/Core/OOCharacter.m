@@ -64,7 +64,7 @@ MA 02110-1301, USA.
 #ifdef OO_BRAIN_AI
 	[brain release];
 #endif
-	
+	DESTROY(_script);
 	[super dealloc];
 }
 
@@ -239,7 +239,6 @@ MA 02110-1301, USA.
 	BOOL		specialSetUpDone = NO;
 	
 	role = [role lowercaseString];
-	
 	if ([role isEqual:@"pirate"])
 	{
 		// determine legalStatus for a completely random character
@@ -255,7 +254,7 @@ MA 02110-1301, USA.
 		specialSetUpDone = YES;
 	}
 	
-	if ([role isEqual:@"trader"])
+	else if ([role isEqual:@"trader"])
 	{
 		[self setLegalStatus: 0];	// clean
 
@@ -277,7 +276,7 @@ MA 02110-1301, USA.
 		specialSetUpDone = YES;
 	}
 	
-	if ([role isEqual:@"hunter"])
+	else if ([role isEqual:@"hunter"])
 	{
 		[self setLegalStatus:0];	// clean
 		int insurance_index = gen_rnd_number() & 0x03;
@@ -286,21 +285,21 @@ MA 02110-1301, USA.
 		specialSetUpDone = YES;
 	}
 	
-	if ([role isEqual:@"police"])
+	else if ([role isEqual:@"police"])
 	{
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:125];
 		specialSetUpDone = YES;
 	}
 	
-	if ([role isEqual:@"miner"])
+	else if ([role isEqual:@"miner"])
 	{
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:25];
 		specialSetUpDone = YES;
 	}
 	
-	if ([role isEqual:@"passenger"])
+	else if ([role isEqual:@"passenger"])
 	{
 		[self setLegalStatus:0];	// clean
 		int insurance_index = gen_rnd_number() & 0x03;
@@ -321,7 +320,7 @@ MA 02110-1301, USA.
 		specialSetUpDone = YES;
 	}
 	
-	if ([role isEqual:@"slave"])
+	else if ([role isEqual:@"slave"])
 	{
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:0];
@@ -377,7 +376,7 @@ MA 02110-1301, USA.
 }
 
 
-- (NSArray *)script
+- (NSArray *)legacyScript
 {
 	return script_actions;
 }
@@ -450,16 +449,41 @@ MA 02110-1301, USA.
 }
 
 
-- (void)setScript:(NSArray *)some_actions
+- (void)setLegacyScript:(NSArray *)some_actions
 {
 	[script_actions autorelease];
 	script_actions = [some_actions copy];
 }
 
 
+- (OOScript *)script;
+{
+	return _script;
+}
+
+- (void) setCharacterScript:(NSString *)script_name
+{
+	NSMutableDictionary		*properties = nil;
+	
+	properties = [NSMutableDictionary dictionary];
+	[properties setObject:self forKey:@"character"];
+	
+	[_script autorelease];
+	_script = [OOScript JSScriptFromFileNamed:script_name properties:properties];
+	
+	[_script retain];
+}
+
+
+- (void) doScriptEvent:(NSString *)message
+{
+	[_script doEvent:message withArguments:nil];
+}
+
 - (void) setCharacterFromDictionary:(NSDictionary *) dict
 {
 	id					origin = nil;
+	Random_Seed			g_seed = kNilRandomSeed;
 	
 	origin = [dict objectForKey:@"origin"];
 	if ([origin isKindOfClass:[NSNumber class]] ||
@@ -474,19 +498,35 @@ MA 02110-1301, USA.
 		if (is_nil_seed(seed))
 		{
 			OOLogERR(@"character.load.unknownSystem", @"could not find a system named '%@' in this galaxy.", origin);
+			[self setOriginSystemSeed:[UNIVERSE systemSeedForSystemNumber:ranrot_rand() & 0xff]];
 		}
 		else
 		{
 			[self setOriginSystemSeed:seed];
 		}
 	}
+	else
+	{
+		// no origin defined, select one at random.
+		[self setOriginSystemSeed:[UNIVERSE systemSeedForSystemNumber:ranrot_rand() & 0xff]];
+	}
+
 	
 	if ([dict objectForKey:@"random_seed"])
 	{
-		Random_Seed g_seed = RandomSeedFromString([dict oo_stringForKey:@"random_seed"]);
-		[self setGenSeed: g_seed];
-		[self basicSetUp];
+		g_seed = RandomSeedFromString([dict oo_stringForKey:@"random_seed"]);  // returns kNilRandomSeed on failure
 	}
+	else
+	{
+		g_seed.a = (ranrot_rand() & 0xff);
+		g_seed.b = (ranrot_rand() & 0xff);
+		g_seed.c = (ranrot_rand() & 0xff);
+		g_seed.d = (ranrot_rand() & 0xff);
+		g_seed.e = (ranrot_rand() & 0xff);
+		g_seed.f = (ranrot_rand() & 0xff);
+	}
+	[self setGenSeed: g_seed];
+	[self basicSetUp];
 	
 	if ([dict oo_stringForKey:@"role"])  [self castInRole:[dict oo_stringForKey:@"role"]];
 	if ([dict oo_stringForKey:@"name"])  [self setName:[dict oo_stringForKey:@"name"]];
@@ -495,7 +535,9 @@ MA 02110-1301, USA.
 	if ([dict objectForKey:@"legal_status"])  [self setLegalStatus:[dict oo_intForKey:@"legal_status"]];
 	if ([dict objectForKey:@"bounty"])  [self setLegalStatus:[dict oo_intForKey:@"bounty"]];
 	if ([dict objectForKey:@"insurance"])  [self setInsuranceCredits:[dict oo_unsignedLongLongForKey:@"insurance"]];
-	if ([dict oo_arrayForKey:@"script_actions"])  [self setScript:[dict oo_arrayForKey:@"script_actions"]];
+	if ([dict oo_stringForKey:@"script"]) [self setCharacterScript:[dict oo_stringForKey:@"script"]];
+	if ([dict oo_arrayForKey:@"script_actions"])  [self setLegacyScript:[dict oo_arrayForKey:@"script_actions"]];
+	
 }
 
 @end

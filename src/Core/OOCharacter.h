@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "OOTypes.h"
 #import "legacy_random.h"
+#import "OOScript.h"
 
 #ifdef OO_BRAIN_AI
 @class OOBrain;
@@ -47,6 +48,7 @@ MA 02110-1301, USA.
 #endif
 	
 	NSArray				*script_actions;
+	OOScript			*_script;
 }
 
 - (id) initWithGenSeed:(Random_Seed)g_seed andOriginalSystemSeed:(Random_Seed)s_seed;
@@ -83,8 +85,11 @@ MA 02110-1301, USA.
 - (OOCreditsQuantity) insuranceCredits;
 - (void) setInsuranceCredits:(OOCreditsQuantity)value;
 
-- (NSArray *) script;
-- (void) setScript:(NSArray *)some_actions;
+- (NSArray *) legacyScript;
+- (void) setLegacyScript:(NSArray *)some_actions;
+- (OOScript *)script;
+- (void) setCharacterScript:(NSString *)script_name;
+- (void) doScriptEvent:(NSString *)message;
 
 #ifdef OO_BRAIN_AI
 - (OOBrain *) brain;
