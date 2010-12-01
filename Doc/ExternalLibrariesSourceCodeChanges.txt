@@ -8,7 +8,7 @@ The various ports of Oolite are using a number of external libraries for graphic
 3. SpiderMonkey v1.7 (all platforms) - certain JS macro definitions required by Oolite not guaranteed or non-existent in standard library.
 4. eSpeak v1.43.03 (Windows) - Special build of the Windows speech synthesis libespeak.dll to enable asynchronous playback. Also, defaults the eSpeak data directory to Resources/espeak-data.
 
-The changes made in the source code of each of these libraries is as follows:
+The changes made in the source code of each of these libraries are as follows:
 
 1. gnustep-base v1.15.3 (Windows)
 
@@ -65,7 +65,7 @@ The entire source code of the library with the modifications included can be fou
 	gettimeofday.c
 	speak_lib.cpp
 	speech.h
-    from deps/Windows-x86-deps/eSpeakWin32ChangedFiles to <espeakSourceFolder>/src.
+    from deps/Windows-x86-deps/OOeSpeakWin32DLLBuild to <espeakSourceFolder>/src.
   - Rename the file <eSpeakSourceFolder>/src/portaudio19.h to portaudio.h.
   - Copy the file speak_lib.h from <espeakSourceFolder>/platforms/windows/windows_dll/src to <espeakSourceFolder>/src.
   - Start up MinGW/MSYS and change working directory to the <espeakSourceFolder>/src folder.
