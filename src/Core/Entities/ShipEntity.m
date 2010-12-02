@@ -3767,12 +3767,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE_FACTOR;
 			destination = prox_ship->position;
 		}
-		double dq = [self trackDestination:delta_t:YES];
-		if (dq >= 0)
-			dq = 0.5 * dq + 0.5;
-		else
-			dq = 0.0;
-		desired_speed = maxFlightSpeed * dq;
+		double dq = [self trackDestination:delta_t:YES]; // returns 0 when heading towards prox_ship
+		// Heading towards target with desired_speed > 0, avoids collisions better than setting desired_speed to zero.
+		// (tested with boa class cruiser on collisioncourse with buoy)
+		desired_speed = maxFlightSpeed * (0.5 * dq + 0.5);
 	}
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
@@ -8109,16 +8107,15 @@ BOOL class_masslocks(int some_class)
 	AI		*jettoAI = nil;
 	Vector	start;
 
-	double  eject_speed = 20.0;
+	double  eject_speed = [jetto crew] ? 60.0 : 20.0;
 	double  eject_reaction = -eject_speed * [jetto mass] / [self mass];
 	double	jcr = jetto->collision_radius;
 
-	Quaternion  random_direction;
-	Vector  vel, v_eject;
+	Quaternion  jetto_orientation = kIdentityQuaternion;
+	Vector  vel, v_eject, v_eject_normal;
 	Vector  rpos = position;
-	double random_roll =	((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
-	double random_pitch =   ((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
-	quaternion_set_random(&random_direction);
+	double jetto_roll =	0;
+	double jetto_pitch = 0;
 
 	// default launching position
 	start.x = 0.0;						// in the middle
@@ -8144,6 +8141,7 @@ BOOL class_masslocks(int some_class)
 	
 	rpos = vector_add(rpos, v_eject);
 	v_eject = vector_normal(v_eject);
+	v_eject_normal = v_eject;
 	
 	v_eject.x += (randf() - randf())/eject_speed;
 	v_eject.y += (randf() - randf())/eject_speed;
@@ -8153,12 +8151,26 @@ BOOL class_masslocks(int some_class)
 	velocity = vector_add(velocity, vector_multiply_scalar(v_eject, eject_reaction));
 	
 	[jetto setPosition:rpos];
-	[jetto setOrientation:random_direction];
-	[jetto setRoll:random_roll];
-	[jetto setPitch:random_pitch];
+	if ([jetto crew]) // jetto has a crew, so assume it is an escape pod.
+	{
+		// orient the pod away from the ship to avoid colliding with it.
+		Vector pod_cross = fast_cross_product(kBasisZVector, v_eject_normal); // kBasisZVector is vectorForward of kIdentityQuaternion
+		double pod_angle = acosf(dot_product(kBasisZVector, v_eject_normal));
+		quaternion_rotate_about_axis(&jetto_orientation, pod_cross, -pod_angle); // rotate vectorForward to v_eject_normal.
+	}
+	else
+	{
+		// It is true cargo, let it tumble.
+		jetto_roll =	((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
+		jetto_pitch =   ((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
+		quaternion_set_random(&jetto_orientation);
+	}
+
+	[jetto setOrientation:jetto_orientation];
+	[jetto setRoll:jetto_roll];
+	[jetto setPitch:jetto_pitch];
 	[jetto setVelocity:vel];
 	[jetto setScanClass: CLASS_CARGO];
-	//[jetto setStatus: STATUS_IN_FLIGHT];
 	[jetto setTemperature:[self randomEjectaTemperature]];
 	[UNIVERSE addEntity:jetto];	// STATUS_IN_FLIGHT, AI state GLOBAL
 
