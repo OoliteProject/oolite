@@ -488,6 +488,11 @@ MA 02110-1301, USA.
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_PRECISION]];
 	[funcList addObject:
+	 [self makeStickGuiDict: DESC(@"stickmapper-snapshot")
+				  allowable: HW_BUTTON
+					 axisfn: STICK_NOFUNCTION
+					  butfn: BUTTON_SNAPSHOT]];
+	[funcList addObject:
 	 [self makeStickGuiDict: DESC(@"stickmapper-escape-pod")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION

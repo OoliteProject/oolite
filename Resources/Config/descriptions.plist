@@ -1059,6 +1059,7 @@
 	"stickmapper-fuel-injection"	= "Fuel Injection";
 	"stickmapper-hyperspeed"		= "Hyperspeed";
 	"stickmapper-roll/pitch-precision-toggle"	= "Roll/pitch precision toggle";
+	"stickmapper-snapshot"			= "Take Snapshot";
 	"stickmapper-view-forward"		= "View Forward";
 	"stickmapper-view-aft"			= "View Aft";
 	"stickmapper-view-port"			= "View Port";

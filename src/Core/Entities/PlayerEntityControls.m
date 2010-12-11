@@ -447,6 +447,13 @@ static NSTimeInterval	time_last_frame;
 	// does fullscreen / quit / snapshot
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	
+	// get joystick information - needed for mapping the snapshot key
+	if(!stickHandler)
+	{
+		stickHandler=[gameView getStickHandler];
+	}
+	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
+	
 	NS_DURING
 		//  command-key controls
 		if ([[gameView gameController] inFullScreenMode])
@@ -488,7 +495,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		
 		//  snapshot
-		if ([gameView isDown:key_snapshot])   //  '*' key
+		if ([gameView isDown:key_snapshot] || joyButtonState[BUTTON_SNAPSHOT])   //  '*' key
 		{
 			exceptionContext = @"snapshot";
 			if (!taking_snapshot)
