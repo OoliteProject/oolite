@@ -41,26 +41,20 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 
-static JSExtendedClass sPlanetClass =
+static JSClass sPlanetClass =
 {
-	{
-		"Planet",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		PlanetGetProperty,		// getProperty
-		PlanetSetProperty,		// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize,// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"Planet",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	PlanetGetProperty,		// getProperty
+	PlanetSetProperty,		// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	JSObjectWrapperFinalize,// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -91,8 +85,8 @@ static JSPropertySpec sPlanetProperties[] =
 
 void InitOOJSPlanet(JSContext *context, JSObject *global)
 {
-	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass.base, NULL, 0, sPlanetProperties, NULL, NULL, NULL);
-	JSRegisterObjectConverter(&sPlanetClass.base, JSBasicPrivateObjectConverter);
+	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass, NULL, 0, sPlanetProperties, NULL, NULL, NULL);
+	JSRegisterObjectConverter(&sPlanetClass, JSBasicPrivateObjectConverter);
 }
 
 
@@ -106,7 +100,7 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
-	*outClass = &sPlanetClass.base;
+	*outClass = &sPlanetClass;
 	*outPrototype = sPlanetPrototype;
 }
 

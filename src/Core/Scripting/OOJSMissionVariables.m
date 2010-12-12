@@ -48,33 +48,25 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 static JSBool MissionVariablesEnumerate(JSContext *cx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp);
 
 
-static JSExtendedClass sMissionVariablesClass =
+static JSClass sMissionVariablesClass =
 {
-	{
-		"MissionVariables",
-		JSCLASS_NEW_ENUMERATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,
-		MissionVariablesDeleteProperty,
-		MissionVariablesGetProperty,
-		MissionVariablesSetProperty,
-		(JSEnumerateOp)MissionVariablesEnumerate,
-		JS_ResolveStub,
-		JS_ConvertStub,
-		JS_FinalizeStub
-	},
+	"MissionVariables",
+	JSCLASS_NEW_ENUMERATE,
 	
-	NULL,
-	NULL,
-	NULL,
-	
-	JSCLASS_NO_RESERVED_MEMBERS
+	JS_PropertyStub,
+	MissionVariablesDeleteProperty,
+	MissionVariablesGetProperty,
+	MissionVariablesSetProperty,
+	(JSEnumerateOp)MissionVariablesEnumerate,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_FinalizeStub
 };
 
 
 void InitOOJSMissionVariables(JSContext *context, JSObject *global)
 {
-	JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass.base, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 

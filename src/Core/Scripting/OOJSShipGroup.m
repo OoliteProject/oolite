@@ -42,26 +42,20 @@ static JSBool ShipGroupRemoveShip(JSContext *context, JSObject *this, uintN argc
 static JSBool ShipGroupContainsShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
-static JSExtendedClass sShipGroupClass =
+static JSClass sShipGroupClass =
 {
-	{
-		"ShipGroup",
-		JSCLASS_HAS_PRIVATE,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		ShipGroupGetProperty,	// getProperty
-		ShipGroupSetProperty,	// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize,// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"ShipGroup",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	ShipGroupGetProperty,	// getProperty
+	ShipGroupSetProperty,	// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	JSObjectWrapperFinalize,// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -99,8 +93,8 @@ static JSFunctionSpec sShipGroupMethods[] =
 
 void InitOOJSShipGroup(JSContext *context, JSObject *global)
 {
-	sShipGroupPrototype = JS_InitClass(context, global, NULL, &sShipGroupClass.base, ShipGroupConstruct, 0, sShipGroupProperties, sShipGroupMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sShipGroupClass.base, JSBasicPrivateObjectConverter);
+	sShipGroupPrototype = JS_InitClass(context, global, NULL, &sShipGroupClass, ShipGroupConstruct, 0, sShipGroupProperties, sShipGroupMethods, NULL, NULL);
+	JSRegisterObjectConverter(&sShipGroupClass, JSBasicPrivateObjectConverter);
 }
 
 
@@ -252,7 +246,7 @@ static JSBool ShipGroupConstruct(JSContext *context, JSObject *inThis, uintN arg
 	
 	if (_jsSelf == NULL)
 	{
-		_jsSelf = JS_NewObject(context, &sShipGroupClass.base, sShipGroupPrototype, NULL);
+		_jsSelf = JS_NewObject(context, &sShipGroupClass, sShipGroupPrototype, NULL);
 		if (_jsSelf != NULL)
 		{
 			if (!JS_SetPrivate(context, _jsSelf, [self retain]))  _jsSelf = NULL;

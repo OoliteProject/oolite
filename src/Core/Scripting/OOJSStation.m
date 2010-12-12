@@ -49,26 +49,20 @@ static JSBool StationLaunchPatrol(JSContext *context, JSObject *this, uintN argc
 static JSBool StationLaunchPolice(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
-static JSExtendedClass sStationClass =
+static JSClass sStationClass =
 {
-	{
-		"Station",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		StationGetProperty,		// getProperty
-		StationSetProperty,		// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize,// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"Station",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	StationGetProperty,		// getProperty
+	StationSetProperty,		// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	JSObjectWrapperFinalize,// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -131,8 +125,8 @@ static JSFunctionSpec sStationMethods[] =
 
 void InitOOJSStation(JSContext *context, JSObject *global)
 {
-	sStationPrototype = JS_InitClass(context, global, JSShipPrototype(), &sStationClass.base, NULL, 0, sStationProperties, sStationMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sStationClass.base, JSBasicPrivateObjectConverter);
+	sStationPrototype = JS_InitClass(context, global, JSShipPrototype(), &sStationClass, NULL, 0, sStationProperties, sStationMethods, NULL, NULL);
+	JSRegisterObjectConverter(&sStationClass, JSBasicPrivateObjectConverter);
 }
 
 
@@ -162,7 +156,7 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
-	*outClass = &sStationClass.base;
+	*outClass = &sStationClass;
 	*outPrototype = sStationPrototype;
 }
 

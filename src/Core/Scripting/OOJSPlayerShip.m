@@ -65,26 +65,20 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, u
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
-static JSExtendedClass sPlayerShipClass =
+static JSClass sPlayerShipClass =
 {
-	{
-		"PlayerShip",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		PlayerShipGetProperty,	// getProperty
-		PlayerShipSetProperty,	// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize,// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"PlayerShip",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	PlayerShipGetProperty,	// getProperty
+	PlayerShipSetProperty,	// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	JSObjectWrapperFinalize,// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -165,11 +159,11 @@ static JSFunctionSpec sPlayerShipMethods[] =
 
 void InitOOJSPlayerShip(JSContext *context, JSObject *global)
 {
-	sPlayerShipPrototype = JS_InitClass(context, global, JSShipPrototype(), &sPlayerShipClass.base, NULL, 0, sPlayerShipProperties, sPlayerShipMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sPlayerShipClass.base, JSBasicPrivateObjectConverter);
+	sPlayerShipPrototype = JS_InitClass(context, global, JSShipPrototype(), &sPlayerShipClass, NULL, 0, sPlayerShipProperties, sPlayerShipMethods, NULL, NULL);
+	JSRegisterObjectConverter(&sPlayerShipClass, JSBasicPrivateObjectConverter);
 	
 	// Create ship object as a property of the player object.
-	sPlayerShipObject = JS_DefineObject(context, JSPlayerObject(), "ship", &sPlayerShipClass.base, sPlayerShipPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	sPlayerShipObject = JS_DefineObject(context, JSPlayerObject(), "ship", &sPlayerShipClass, sPlayerShipPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	JS_SetPrivate(context, sPlayerShipObject, [[PlayerEntity sharedPlayer] weakRetain]);
 	[[PlayerEntity sharedPlayer] setJSSelf:sPlayerShipObject context:context];
 	// Analyzer: object leaked. [Expected, object is retained by JS object.]
@@ -178,7 +172,7 @@ void InitOOJSPlayerShip(JSContext *context, JSObject *global)
 
 JSClass *JSPlayerShipClass(void)
 {
-	return &sPlayerShipClass.base;
+	return &sPlayerShipClass;
 }
 
 

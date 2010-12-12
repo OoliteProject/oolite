@@ -57,26 +57,20 @@ static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this
 static JSBool PlayerSetEscapePodDestination(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
-static JSExtendedClass sPlayerClass =
+static JSClass sPlayerClass =
 {
-	{
-		"Player",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		PlayerGetProperty,		// getProperty
-		PlayerSetProperty,		// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize,// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"Player",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	PlayerGetProperty,		// getProperty
+	PlayerSetProperty,		// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	JSObjectWrapperFinalize,// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -146,17 +140,17 @@ static JSFunctionSpec sPlayerMethods[] =
 
 void InitOOJSPlayer(JSContext *context, JSObject *global)
 {
-	sPlayerPrototype = JS_InitClass(context, global, NULL, &sPlayerClass.base, NULL, 0, sPlayerProperties, sPlayerMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sPlayerClass.base, JSBasicPrivateObjectConverter);
+	sPlayerPrototype = JS_InitClass(context, global, NULL, &sPlayerClass, NULL, 0, sPlayerProperties, sPlayerMethods, NULL, NULL);
+	JSRegisterObjectConverter(&sPlayerClass, JSBasicPrivateObjectConverter);
 	
 	// Create player object as a property of the global object.
-	sPlayerObject = JS_DefineObject(context, global, "player", &sPlayerClass.base, sPlayerPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	sPlayerObject = JS_DefineObject(context, global, "player", &sPlayerClass, sPlayerPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 
 JSClass *JSPlayerClass(void)
 {
-	return &sPlayerClass.base;
+	return &sPlayerClass;
 }
 
 

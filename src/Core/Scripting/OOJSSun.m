@@ -41,26 +41,20 @@ static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *a
 static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
-static JSExtendedClass sSunClass =
+static JSClass sSunClass =
 {
-	{
-		"Sun",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		SunGetProperty,			// getProperty
-		JS_PropertyStub,		// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize,// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"Sun",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	SunGetProperty,			// getProperty
+	JS_PropertyStub,		// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	JSObjectWrapperFinalize,// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -94,8 +88,8 @@ static JSFunctionSpec sSunMethods[] =
 
 void InitOOJSSun(JSContext *context, JSObject *global)
 {
-	sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass.base, NULL, 0, sSunProperties, sSunMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sSunClass.base, JSBasicPrivateObjectConverter);
+	sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass, NULL, 0, sSunProperties, sSunMethods, NULL, NULL);
+	JSRegisterObjectConverter(&sSunClass, JSBasicPrivateObjectConverter);
 }
 
 
@@ -109,7 +103,7 @@ void InitOOJSSun(JSContext *context, JSObject *global)
 
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
-	*outClass = &sSunClass.base;
+	*outClass = &sSunClass;
 	*outPrototype = sSunPrototype;
 }
 

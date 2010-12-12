@@ -205,14 +205,6 @@ BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, js
 void JSObjectWrapperFinalize(JSContext *context, JSObject *this);
 
 
-/*	JSObjectWrapperEquality
-	
-	Comparator for JS classes whose private storage is a retained object;
-	wraps isEqual.
-*/
-JSBool JSObjectWrapperEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual);
-
-
 @interface NSString (OOJavaScriptExtensions)
 
 // Convert a JSString to an NSString.

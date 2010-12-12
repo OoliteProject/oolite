@@ -118,26 +118,20 @@ static JSFunctionSpec sEquipmentInfoStaticMethods[] =
 };
 
 
-static JSExtendedClass sEquipmentInfoClass =
+static JSClass sEquipmentInfoClass =
 {
-	{
-		"EquipmentInfo",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
+	"EquipmentInfo",
+	JSCLASS_HAS_PRIVATE,
 
-		JS_PropertyStub,			// addProperty
-		JS_PropertyStub,			// delProperty
-		EquipmentInfoGetProperty,	// getProperty
-		EquipmentInfoSetProperty,	// setProperty
-		JS_EnumerateStub,			// enumerate
-		JS_ResolveStub,				// resolve
-		JS_ConvertStub,				// convert
-		JSObjectWrapperFinalize,	// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,		// equality
-	NULL,							// outerObject
-	NULL,							// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	JS_PropertyStub,			// addProperty
+	JS_PropertyStub,			// delProperty
+	EquipmentInfoGetProperty,	// getProperty
+	EquipmentInfoSetProperty,	// setProperty
+	JS_EnumerateStub,			// enumerate
+	JS_ResolveStub,				// resolve
+	JS_ConvertStub,				// convert
+	JSObjectWrapperFinalize,	// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -145,10 +139,10 @@ static JSExtendedClass sEquipmentInfoClass =
 
 void InitOOJSEquipmentInfo(JSContext *context, JSObject *global)
 {
-	sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass.base, NULL, 0, sEquipmentInfoProperties, NULL, NULL, sEquipmentInfoStaticMethods);
+	sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass, NULL, 0, sEquipmentInfoProperties, NULL, NULL, sEquipmentInfoStaticMethods);
 	JS_DefineProperty(context, sEquipmentInfoPrototype, "allEquipment", JSVAL_NULL, EquipmentInfoGetAllEqipment, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 	
-	JSRegisterObjectConverter(&sEquipmentInfoClass.base, JSBasicPrivateObjectConverter);
+	JSRegisterObjectConverter(&sEquipmentInfoClass, JSBasicPrivateObjectConverter);
 }
 
 
@@ -407,7 +401,7 @@ static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, js
 {
 	if (_jsSelf == NULL)
 	{
-		_jsSelf = JS_NewObject(context, &sEquipmentInfoClass.base, sEquipmentInfoPrototype, NULL);
+		_jsSelf = JS_NewObject(context, &sEquipmentInfoClass, sEquipmentInfoPrototype, NULL);
 		if (_jsSelf != NULL)
 		{
 			if (!JS_SetPrivate(context, _jsSelf, [self retain]))  _jsSelf = NULL;

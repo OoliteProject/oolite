@@ -46,7 +46,6 @@ static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval na
 static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 static void QuaternionFinalize(JSContext *context, JSObject *this);
 static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual);
 
 // Methods
 static JSBool QuaternionToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -67,26 +66,20 @@ static JSBool QuaternionToArray(JSContext *context, JSObject *this, uintN argc, 
 static JSBool QuaternionStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
-static JSExtendedClass sQuaternionClass =
+static JSClass sQuaternionClass =
 {
-	{
-		"Quaternion",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		QuaternionGetProperty,	// getProperty
-		QuaternionSetProperty,	// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		QuaternionFinalize,		// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	QuaternionEquality,			// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"Quaternion",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	QuaternionGetProperty,	// getProperty
+	QuaternionSetProperty,	// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	QuaternionFinalize,		// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -143,7 +136,7 @@ static JSFunctionSpec sQuaternionStaticMethods[] =
 
 void InitOOJSQuaternion(JSContext *context, JSObject *global)
 {
-	sQuaternionPrototype = JS_InitClass(context, global, NULL, &sQuaternionClass.base, QuaternionConstruct, 4, sQuaternionProperties, sQuaternionMethods, NULL, sQuaternionStaticMethods);
+	sQuaternionPrototype = JS_InitClass(context, global, NULL, &sQuaternionClass, QuaternionConstruct, 4, sQuaternionProperties, sQuaternionMethods, NULL, sQuaternionStaticMethods);
 }
 
 
@@ -159,7 +152,7 @@ JSObject *JSQuaternionWithQuaternion(JSContext *context, Quaternion quaternion)
 	
 	*private = quaternion;
 	
-	result = JS_NewObject(context, &sQuaternionClass.base, sQuaternionPrototype, NULL);
+	result = JS_NewObject(context, &sQuaternionClass, sQuaternionPrototype, NULL);
 	if (result != NULL)
 	{
 		if (!JS_SetPrivate(context, result, private))  result = NULL;
@@ -214,7 +207,7 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	// quaternionObj can legitimately be NULL, e.g. when JS_NULL is converted to a JSObject *.
 	if (quaternionObj == NULL) return NO;
 	
-	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass.base, NULL);
+	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
 	{
 		*outQuaternion = *private;
@@ -260,7 +253,7 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 		NOTE: it would be prettier to do this at the top when we handle normal
 		Vector3Ds, but it's a rare case which should be kept off the fast path.
 	*/
-	if (JS_InstanceOf(context, quaternionObj, &sQuaternionClass.base, NULL))
+	if (JS_InstanceOf(context, quaternionObj, &sQuaternionClass, NULL))
 	{
 		*outQuaternion = kZeroQuaternion;
 		return YES;
@@ -290,14 +283,14 @@ BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quat
 	
 	assert(quaternionObj != NULL);
 	
-	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass.base, NULL);
+	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
 	{
 		*private = quaternion;
 		return YES;
 	}
 	
-	if (JS_InstanceOf(context, quaternionObj, &sQuaternionClass.base, NULL))
+	if (JS_InstanceOf(context, quaternionObj, &sQuaternionClass, NULL))
 	{
 		// Silently fail for the prototype.
 		return YES;
@@ -459,7 +452,7 @@ static void QuaternionFinalize(JSContext *context, JSObject *this)
 {
 	Quaternion				*private = NULL;
 	
-	private = JS_GetInstancePrivate(context, this, &sQuaternionClass.base, NULL);
+	private = JS_GetInstancePrivate(context, this, &sQuaternionClass, NULL);
 	if (private != NULL)
 	{
 		free(private);
@@ -480,7 +473,7 @@ static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc
     //	If called without new, replace this with a new Vector object.
     if (!JS_IsConstructing(context))
 	{
-        this = JS_NewObject(context, &sQuaternionClass.base, NULL, NULL);
+        this = JS_NewObject(context, &sQuaternionClass, NULL, NULL);
         if (this == NULL)  return NO;
 		*outResult = OBJECT_TO_JSVAL(this);
     }
@@ -505,27 +498,6 @@ static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc
 		return NO;
 	}
 	
-	return YES;
-	
-	OOJS_PROFILE_EXIT
-}
-
-
-static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
-{
-	OOJS_PROFILE_ENTER
-	
-	assert(outEqual != NULL);
-	
-	Quaternion				thisq, thatq;
-	
-	// Note: "return YES" means no error, not equality.
-	*outEqual = NO;
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;	// This is not a quaternion?
-	if (EXPECT_NOT(!JSVAL_IS_OBJECT(value))) return YES;						// Non-object value - not equal
-	if (EXPECT_NOT(!JSObjectGetQuaternion(context, JSVAL_TO_OBJECT(value), &thatq))) return YES;	// Non-quaternion value - not equal
-	
-	*outEqual = quaternion_equal(thisq, thatq);
 	return YES;
 	
 	OOJS_PROFILE_EXIT

@@ -42,26 +42,20 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 
-static JSExtendedClass sEntityClass =
+static JSClass sEntityClass =
 {
-	{
-		"Entity",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		EntityGetProperty,		// getProperty
-		EntitySetProperty,		// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize,// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"Entity",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	EntityGetProperty,		// getProperty
+	EntitySetProperty,		// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	JSObjectWrapperFinalize,// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -126,8 +120,8 @@ static JSFunctionSpec sEntityMethods[] =
 
 void InitOOJSEntity(JSContext *context, JSObject *global)
 {
-	sEntityPrototype = JS_InitClass(context, global, NULL, &sEntityClass.base, NULL, 0, sEntityProperties, sEntityMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sEntityClass.base, JSBasicPrivateObjectConverter);
+	sEntityPrototype = JS_InitClass(context, global, NULL, &sEntityClass, NULL, 0, sEntityProperties, sEntityMethods, NULL, NULL);
+	JSRegisterObjectConverter(&sEntityClass, JSBasicPrivateObjectConverter);
 }
 
 
@@ -144,7 +138,7 @@ BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity)
 
 JSClass *JSEntityClass(void)
 {
-	return &sEntityClass.base;
+	return &sEntityClass;
 }
 
 

@@ -92,26 +92,20 @@ static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, 
 static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo);
 
 
-static JSExtendedClass sShipClass =
+static JSClass sShipClass =
 {
-	{
-		"Ship",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		ShipGetProperty,		// getProperty
-		ShipSetProperty,		// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize,// finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"Ship",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	ShipGetProperty,		// getProperty
+	ShipSetProperty,		// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	JSObjectWrapperFinalize,// finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -331,14 +325,14 @@ static JSFunctionSpec sShipMethods[] =
 
 void InitOOJSShip(JSContext *context, JSObject *global)
 {
-	sShipPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sShipClass.base, NULL, 0, sShipProperties, sShipMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sShipClass.base, JSBasicPrivateObjectConverter);
+	sShipPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sShipClass, NULL, 0, sShipProperties, sShipMethods, NULL, NULL);
+	JSRegisterObjectConverter(&sShipClass, JSBasicPrivateObjectConverter);
 }
 
 
 JSClass *JSShipClass(void)
 {
-	return &sShipClass.base;
+	return &sShipClass;
 }
 
 

@@ -47,26 +47,20 @@ static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN arg
 static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
-static JSExtendedClass sSoundClass =
+static JSClass sSoundClass =
 {
-	{
-		"Sound",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
-		SoundGetProperty,		// getProperty
-		JS_PropertyStub,		// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize, // finalize
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality. Relies on the fact that the resource manager will always return the same object for a given sound name.
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"Sound",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,		// addProperty
+	JS_PropertyStub,		// delProperty
+	SoundGetProperty,		// getProperty
+	JS_PropertyStub,		// setProperty
+	JS_EnumerateStub,		// enumerate
+	JS_ResolveStub,			// resolve
+	JS_ConvertStub,			// convert
+	JSObjectWrapperFinalize, // finalize
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -107,8 +101,8 @@ static JSFunctionSpec sSoundStaticMethods[] =
 
 void InitOOJSSound(JSContext *context, JSObject *global)
 {
-	sSoundPrototype = JS_InitClass(context, global, NULL, &sSoundClass.base, NULL, 0, sSoundProperties, sSoundMethods, NULL, sSoundStaticMethods);
-	JSRegisterObjectConverter(&sSoundClass.base, JSBasicPrivateObjectConverter);
+	sSoundPrototype = JS_InitClass(context, global, NULL, &sSoundClass, NULL, 0, sSoundProperties, sSoundMethods, NULL, sSoundStaticMethods);
+	JSRegisterObjectConverter(&sSoundClass, JSBasicPrivateObjectConverter);
 }
 
 
@@ -272,7 +266,7 @@ static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN arg
 	JSObject					*jsSelf = NULL;
 	jsval						result = JSVAL_NULL;
 	
-	jsSelf = JS_NewObject(context, &sSoundClass.base, sSoundPrototype, NULL);
+	jsSelf = JS_NewObject(context, &sSoundClass, sSoundPrototype, NULL);
 	if (jsSelf != NULL)
 	{
 		if (!JS_SetPrivate(context, jsSelf, [self retain]))  jsSelf = NULL;

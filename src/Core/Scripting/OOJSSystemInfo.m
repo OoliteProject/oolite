@@ -46,26 +46,20 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN 
 static JSBool SystemInfoStaticFilteredSystems(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
-static JSExtendedClass sSystemInfoClass =
+static JSClass sSystemInfoClass =
 {
-	{
-		"SystemInfo",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,
-		SystemInfoDeleteProperty,
-		SystemInfoGetProperty,
-		SystemInfoSetProperty,
-		JS_EnumerateStub,
-		JS_ResolveStub,
-		JS_ConvertStub,
-		SystemInfoFinalize,
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"SystemInfo",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,
+	SystemInfoDeleteProperty,
+	SystemInfoGetProperty,
+	SystemInfoSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	SystemInfoFinalize,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -250,7 +244,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 	JSObject					*jsSelf = NULL;
 	jsval						result = JSVAL_NULL;
 	
-	jsSelf = JS_NewObject(context, &sSystemInfoClass.base, sSystemInfoPrototype, NULL);
+	jsSelf = JS_NewObject(context, &sSystemInfoClass, sSystemInfoPrototype, NULL);
 	if (jsSelf != NULL)
 	{
 		if (!JS_SetPrivate(context, jsSelf, [self retain]))  jsSelf = NULL;
@@ -266,8 +260,8 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 void InitOOJSSystemInfo(JSContext *context, JSObject *global)
 {
-	sSystemInfoPrototype = JS_InitClass(context, global, NULL, &sSystemInfoClass.base, NULL, 0, sSystemInfoProperties, sSystemInfoMethods, NULL, sSystemInfoStaticMethods);
-	JSRegisterObjectConverter(&sSystemInfoClass.base, JSBasicPrivateObjectConverter);
+	sSystemInfoPrototype = JS_InitClass(context, global, NULL, &sSystemInfoClass, NULL, 0, sSystemInfoProperties, sSystemInfoMethods, NULL, sSystemInfoStaticMethods);
+	JSRegisterObjectConverter(&sSystemInfoClass, JSBasicPrivateObjectConverter);
 }
 
 

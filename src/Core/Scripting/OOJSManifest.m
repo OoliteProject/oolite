@@ -45,26 +45,20 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 static JSBool ManifestToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
-static JSExtendedClass sManifestClass =
+static JSClass sManifestClass =
 {
-	{
-		"Manifest",
-		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
-		
-		JS_PropertyStub,
-		ManifestDeleteProperty,
-		ManifestGetProperty,
-		ManifestSetProperty,
-		JS_EnumerateStub,
-		JS_ResolveStub,
-		JS_ConvertStub,
-		JSObjectWrapperFinalize,
-		JSCLASS_NO_OPTIONAL_MEMBERS
-	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
-	JSCLASS_NO_RESERVED_MEMBERS
+	"Manifest",
+	JSCLASS_HAS_PRIVATE,
+	
+	JS_PropertyStub,
+	ManifestDeleteProperty,
+	ManifestGetProperty,
+	ManifestSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JSObjectWrapperFinalize,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 
@@ -179,7 +173,7 @@ static JSFunctionSpec sManifestMethods[] =
 	JSObject					*jsSelf = NULL;
 	jsval						result = JSVAL_NULL;
 	
-	jsSelf = JS_NewObject(context, &sManifestClass.base, sManifestPrototype, NULL);
+	jsSelf = JS_NewObject(context, &sManifestClass, sManifestPrototype, NULL);
 	if (jsSelf != NULL)
 	{
 		if (!JS_SetPrivate(context, jsSelf, [self retain]))  jsSelf = NULL;
@@ -194,15 +188,15 @@ static JSFunctionSpec sManifestMethods[] =
 
 void InitOOJSManifest(JSContext *context, JSObject *global)
 {
-	sManifestPrototype = JS_InitClass(context, global, NULL, &sManifestClass.base, NULL, 0, sManifestProperties, sManifestMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sManifestClass.base, JSBasicPrivateObjectConverter);
+	sManifestPrototype = JS_InitClass(context, global, NULL, &sManifestClass, NULL, 0, sManifestProperties, sManifestMethods, NULL, NULL);
+	JSRegisterObjectConverter(&sManifestClass, JSBasicPrivateObjectConverter);
 	
 	// Create manifest object as a property of the player.ship object.
-	sManifestObject = JS_DefineObject(context, JSPlayerShipObject(), "manifest", &sManifestClass.base, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	sManifestObject = JS_DefineObject(context, JSPlayerShipObject(), "manifest", &sManifestClass, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	JS_SetPrivate(context, sManifestObject, NULL);
 	
 	// Also define manifest object as a property of the global object.
-	JS_DefineObject(context, global, "manifest", &sManifestClass.base, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineObject(context, global, "manifest", &sManifestClass, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 

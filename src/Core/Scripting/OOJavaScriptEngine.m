@@ -1531,22 +1531,6 @@ void JSObjectWrapperFinalize(JSContext *context, JSObject *this)
 }
 
 
-JSBool JSObjectWrapperEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
-{
-	OOJS_PROFILE_ENTER
-	
-	id						thisObj, thatObj;
-	
-	thisObj = JSObjectToObject(context, this);
-	thatObj = JSValueToObject(context, value);
-	
-	*outEqual = [thisObj isEqual:thatObj];
-	return YES;
-	
-	OOJS_PROFILE_EXIT
-}
-
-
 BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 {
 	OOJS_PROFILE_ENTER
