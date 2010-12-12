@@ -141,7 +141,7 @@ static OODebugMonitor *sSingleton = nil;
 	
 	if (_jsSelf != NULL)
 	{
-		[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_jsSelf];
+		[[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:&_jsSelf];
 	}
 	
 	[super dealloc];

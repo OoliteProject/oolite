@@ -3435,7 +3435,14 @@
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */;
 			projectDirPath = "";
 			projectReferences = (

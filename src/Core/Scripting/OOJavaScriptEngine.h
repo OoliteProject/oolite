@@ -34,9 +34,10 @@ MA 02110-1301, USA.
 #define OOJSENGINE_MONITOR_SUPPORT	(!defined(NDEBUG))
 
 
-// Macro to selectively compile with JS 1.8 support.
-// To be removed when switching to JS 1.8 as default, once FF 3 is final.
-#define OOJSENGINE_JS_18 (defined JSFUN_FAST_NATIVE)
+// TEMP: macro for update to trunk SpiderMonkey.
+#ifndef OO_NEW_JS
+#define OO_NEW_JS				0
+#endif
 
 
 @protocol OOJavaScriptEngineMonitor;
@@ -81,7 +82,8 @@ enum
 - (JSContext *)acquireContext;
 - (void)releaseContext:(JSContext *)context;
 
-- (void) removeGCRoot:(void *)rootPtr;
+- (void) removeGCObjectRoot:(JSObject **)rootPtr;
+- (void) removeGCValueRoot:(jsval *)rootPtr;
 
 @end
 
@@ -365,7 +367,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 	OOJS_NATIVE_EXIT/OOJS_PROFILE_EXIT, or they will crash in OOJSUnreachable()
 	in debug builds.
 	
-	For functions with a non-boolean return type, OOJS_PROFILE_EXIT should be
+	For functions with a non-scalar return type, OOJS_PROFILE_EXIT should be
 	replaced with OOJS_PROFILE_EXIT_VAL(returnValue). The returnValue is never
 	used (and should be a constant expression), but is required to placate the
 	compiler.
@@ -431,12 +433,12 @@ void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_
 #define OOJS_PROFILE_EXIT_VOID		} return;
 
 #define OOJS_NATIVE_ENTER(cx)	OOJS_PROFILE_ENTER
-#define OOJS_NATIVE_EXIT		OOJS_PROFILE_EXIT_VAL(NO)
 
 #endif	// OOLITE_NATIVE_EXCEPTIONS
 
 
-#define OOJS_PROFILE_EXIT		OOJS_PROFILE_EXIT_VAL(NO)
+#define OOJS_PROFILE_EXIT		OOJS_PROFILE_EXIT_VAL(0)
+#define OOJS_PROFILE_EXIT_JSVAL	OOJS_PROFILE_EXIT_VAL(JSVAL_VOID)
 
 
 
@@ -448,4 +450,64 @@ void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_
 void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #else
 #define OOJSDumpStack(lmc, cx)  do {} while (0)
+#endif
+
+
+
+
+
+/***** Transitional compatibility stuff - remove when switching to OO_NEW_JS permanently. *****/
+
+static inline JSClass * OOJS_GetClass(JSContext *cx, JSObject *obj)
+{
+#if JS_THREADSAFE
+	return JS_GetClass(cx, obj);
+#else
+	return JS_GetClass(obj);
+#endif
+}
+
+
+#if OO_NEW_JS
+// Before removing, switch to JSVAL_TO_DOUBLE() everywhere.
+static JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
+{
+	NSCParameterAssert(rval != NULL);
+	*rval = DOUBLE_TO_JSVAL(d);
+	return YES;
+}
+
+#define OOJSVAL_TO_DOUBLE JSVAL_TO_DOUBLE
+#else
+// In old API, jsvals could be pointers to doubles; in new, they're actual doubles.
+#define OOJSVAL_TO_DOUBLE(val) (*JSVAL_TO_DOUBLE(val))
+#endif
+
+
+
+#ifndef OO_NEW_JS
+#warning The following compatibility stuff can be removed when OO_NEW_JS is.
+#endif
+
+#ifndef JS_TYPED_ROOTING_API
+/*
+	Compatibility functions to map new JS GC entry points to old ones.
+	At the time of writing, the new versions in trunk SpiderMonkey all map
+	to the same thing behind the scenes, they're just type-safe wrappers.
+*/
+static inline JSBool JS_AddValueRoot(JSContext *cx, jsval *vp) { return JS_AddRoot(cx, vp); }
+static inline JSBool JS_AddStringRoot(JSContext *cx, JSString **rp) { return JS_AddRoot(cx, rp); }
+static inline JSBool JS_AddObjectRoot(JSContext *cx, JSObject **rp) { return JS_AddRoot(cx, rp); }
+static inline JSBool JS_AddGCThingRoot(JSContext *cx, void **rp) { return JS_AddRoot(cx, rp); }
+
+static inline JSBool JS_AddNamedValueRoot(JSContext *cx, jsval *vp, const char *name) { return JS_AddNamedRoot(cx, vp, name); }
+static inline JSBool JS_AddNamedStringRoot(JSContext *cx, JSString **rp, const char *name) { return JS_AddNamedRoot(cx, rp, name); }
+static inline JSBool JS_AddNamedObjectRoot(JSContext *cx, JSObject **rp, const char *name) { return JS_AddNamedRoot(cx, rp, name); }
+static inline JSBool JS_AddNamedGCThingRoot(JSContext *cx, void **rp, const char *name) { return JS_AddNamedRoot(cx, rp, name); }
+
+static inline void JS_RemoveValueRoot(JSContext *cx, jsval *vp) { JS_RemoveRoot(cx, vp); }
+static inline void JS_RemoveStringRoot(JSContext *cx, JSString **rp) { JS_RemoveRoot(cx, rp); }
+static inline void JS_RemoveObjectRoot(JSContext *cx, JSObject **rp) { JS_RemoveRoot(cx, rp); }
+static inline void JS_RemoveGCThingRoot(JSContext *cx, void **rp) { JS_RemoveRoot(cx, rp); }
+
 #endif

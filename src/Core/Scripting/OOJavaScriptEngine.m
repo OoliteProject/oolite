@@ -66,9 +66,9 @@ MA 02110-1301, USA.
 #import <stdlib.h>
 
 
-#if OOJSENGINE_JS_18
-#define OOJSENGINE_JSVERSION		JSVERSION_1_8
-#define OOJSENGINE_CONTEXT_OPTIONS	JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK | JSOPTION_RELIMIT | JSOPTION_ANONFUNFIX
+#if OO_NEW_JS
+#define OOJSENGINE_JSVERSION		JSVERSION_ECMA_5
+#define OOJSENGINE_CONTEXT_OPTIONS	JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_RELIMIT | JSOPTION_ANONFUNFIX
 #else
 #define OOJSENGINE_JSVERSION		JSVERSION_1_7
 #define OOJSENGINE_CONTEXT_OPTIONS	JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK
@@ -81,12 +81,7 @@ MA 02110-1301, USA.
 #if !OOLITE_NATIVE_EXCEPTIONS
 #warning Native exceptions apparently not available. JavaScript functions are not exception-safe.
 #endif
-
-
-#ifdef MOZILLA_1_8_BRANCH
-#error Oolite and libjs must be built with MOZILLA_1_8_BRANCH undefined.
-#endif
-#ifdef JS_THREADSAFE
+#ifdef JS_THREADSAFE && !OO_NEW_JS
 #error Oolite and libjs must be built with JS_THREADSAFE undefined.
 #endif
 
@@ -439,12 +434,22 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 }
 
 
-- (void) removeGCRoot:(void *)rootPtr
+- (void) removeGCObjectRoot:(JSObject **)rootPtr
 {
 	JSContext				*context = NULL;
 	
 	context = [self acquireContext];
-	JS_RemoveRoot(context, rootPtr);
+	JS_RemoveObjectRoot(context, rootPtr);
+	[self releaseContext:context];
+}
+
+
+- (void) removeGCValueRoot:(jsval *)rootPtr
+{
+	JSContext				*context = NULL;
+	
+	context = [self acquireContext];
+	JS_RemoveValueRoot(context, rootPtr);
 	[self releaseContext:context];
 }
 
@@ -549,7 +554,11 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
 				
 				desc = [NSString stringWithFormat:@"%@:%u %@", fileNameObj, lineNo, funcDesc];
 			}
-			else if (JS_IsNativeFrame(context, frame))
+			else if (JS_IsDebuggerFrame(context, frame))
+			{
+				desc = @"<debugger frame>";
+			}
+			else
 			{
 				desc = @"<Oolite native>";
 			}
@@ -947,7 +956,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 				if ([key isKindOfClass:[NSString class]] && [key length] != 0)
 				{
 					value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
-					if (value != JSVAL_VOID)
+					if (!JSVAL_IS_VOID(value))
 					{
 						OK = JSSetNSProperty(context, result, key, &value);
 						if (EXPECT_NOT(!OK))  break;
@@ -959,7 +968,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 					if (0 < index)
 					{
 						value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
-						if (value != JSVAL_VOID)
+						if (!JSVAL_IS_VOID(value))
 						{
 							OK = JS_SetElement(context, (JSObject *)result, index, &value);
 							if (EXPECT_NOT(!OK))  break;
@@ -1105,7 +1114,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		}
 		
 		_val = value;
-		JS_AddNamedRoot(context, &_val, "OOJSValue");
+		JS_AddNamedValueRoot(context, &_val, "OOJSValue");
 		
 		if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	}
@@ -1124,14 +1133,14 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 - (void) dealloc
 {
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	JS_RemoveRoot(context, &_val);
+	JS_RemoveValueRoot(context, &_val);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	[super dealloc];
 }
 
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval) javaScriptValueInContext:(JSContext *)context
 {
 	return _val;
 }
@@ -1142,7 +1151,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 @implementation NSString (OOJavaScriptExtensions)
 
 // Convert a JSString to an NSString.
-+ (id)stringWithJavaScriptString:(JSString *)string
++ (id) stringWithJavaScriptString:(JSString *)string
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1160,7 +1169,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
-+ (id)stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
++ (id) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1177,7 +1186,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
-+ (id)stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
++ (id) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1200,7 +1209,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
-+ (id)stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context
++ (id) stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1221,7 +1230,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		{
 			[result appendFormat:@"\"%@\"", valString];
 		}
-		else if (val && JSVAL_IS_OBJECT(val) && JS_IsArrayObject(context, JSVAL_TO_OBJECT(val)))
+		else if (JSVAL_IS_OBJECT(val) && JS_IsArrayObject(context, JSVAL_TO_OBJECT(val)))
 		{
 			[result appendFormat:@"[%@]", valString ];
 		}
@@ -1238,7 +1247,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval) javaScriptValueInContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1259,11 +1268,11 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	
 	return STRING_TO_JSVAL(string);
 	
-	OOJS_PROFILE_EXIT
+	OOJS_PROFILE_EXIT_JSVAL
 }
 
 
-+ (id)concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context
++ (id) concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1382,7 +1391,7 @@ const char *JSValueTypeDbg(jsval val)
 	if (JSVAL_IS_BOOLEAN(val))  return "boolean";
 	if (JSVAL_IS_NULL(val))  return "null";
 	if (JSVAL_IS_VOID(val))  return "void";
-	if (JSVAL_IS_OBJECT(val))  return JS_GetClass(JSVAL_TO_OBJECT(val))->name;
+	if (JSVAL_IS_OBJECT(val))  return OOJS_GetClass(NULL, JSVAL_TO_OBJECT(val))->name;	// Fun fact: although a context is required if JS_THREADSAFE is defined, it isn't actually used.
 	return "unknown";
 }
 
@@ -1459,7 +1468,7 @@ const char *JSValueTypeDbg(jsval val)
 	
 	return result;
 	
-	OOJS_PROFILE_EXIT
+	OOJS_PROFILE_EXIT_JSVAL
 }
 
 @end
@@ -1491,7 +1500,7 @@ JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, j
 	}
 	if (description == nil)
 	{
-		jsClass = JS_GetClass(this);
+		jsClass = OOJS_GetClass(context, this);
 		if (jsClass != NULL)
 		{
 			description = [NSString stringWithFormat:@"[object %@]", [NSString stringWithUTF8String:jsClass->name]];
@@ -1633,7 +1642,7 @@ id JSValueToObject(JSContext *context, jsval value)
 	}
 	if (JSVAL_IS_DOUBLE(value))
 	{
-		return [NSNumber numberWithDouble:*JSVAL_TO_DOUBLE(value)];
+		return [NSNumber numberWithDouble:OOJSVAL_TO_DOUBLE(value)];
 	}
 	if (JSVAL_IS_BOOLEAN(value))
 	{
@@ -1660,7 +1669,7 @@ id JSObjectToObject(JSContext *context, JSObject *object)
 	
 	if (object == NULL)  return nil;
 	
-	class = JS_GetClass(object);
+	class = OOJS_GetClass(context, object);
 	wrappedClass = [NSValue valueWithPointer:class];
 	if (wrappedClass != nil)  wrappedConverter = [sObjectConverters objectForKey:wrappedClass];
 	if (wrappedConverter != nil)
@@ -1729,13 +1738,13 @@ static void RegisterStandardObjectConverters(JSContext *context)
 	
 	// Create an array in order to get array class.
 	templateObject = JS_NewArrayObject(context, 0, NULL);
-	class = JS_GetClass(templateObject);
+	class = OOJS_GetClass(context, templateObject);
 	JSRegisterObjectConverter(class, JSArrayConverter);
 	
 	// Likewise, create a blank object to get its class.
 	// This is not documented (not much is) but JS_NewObject falls back to Object if passed a NULL class.
 	templateObject = JS_NewObject(context, NULL, NULL, NULL);
-	class = JS_GetClass(templateObject);
+	class = OOJS_GetClass(context, templateObject);
 	JSRegisterObjectConverter(class, JSGenericObjectConverter);
 }
 
@@ -1777,12 +1786,9 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object)
 	JSIdArray					*ids;
 	jsint						i;
 	NSMutableDictionary			*result = nil;
-	jsval						propKey = JSVAL_VOID,
-								value = JSVAL_VOID;
+	jsval						value = JSVAL_VOID;
 	id							objKey = nil;
 	id							objValue = nil;
-	jsint						intKey;
-	JSString					*stringKey = NULL;
 	
 	/*	Convert a JS Object to an NSDictionary by calling
 		JSValueToObject() on all its enumerable properties. This is desireable
@@ -1799,33 +1805,53 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object)
 	result = [NSMutableDictionary dictionaryWithCapacity:ids->length];
 	for (i = 0; i != ids->length; ++i)
 	{
-		propKey = value = JSVAL_VOID;
+		jsid thisID = ids->vector[i];
+		
+#if OO_NEW_JS
+		if (JSID_IS_STRING(thisID))
+		{
+			objKey = [NSString stringWithJavaScriptString:JSID_TO_STRING(thisID)];
+		}
+		else if (JSID_IS_INT(thisID))
+		{
+			objKey = [NSNumber numberWithInt:JSID_TO_INT(thisID)];
+		}
+		else
+		{
+			objKey = nil;
+		}
+		
+		value = JSVAL_VOID;
+		if (objKey != nil && !JS_LookupPropertyById(context, object, thisID, &value))  value = JSVAL_VOID;
+#else
+		jsval propKey = value = JSVAL_VOID;
 		objKey = nil;
 		
-		if (JS_IdToValue(context, ids->vector[i], &propKey))
+		if (JS_IdToValue(context, thisID, &propKey))
 		{
-			// Properties with string keys
+			// Properties with string keys.
 			if (JSVAL_IS_STRING(propKey))
 			{
-				stringKey = JSVAL_TO_STRING(propKey);
+				JSString *stringKey = JSVAL_TO_STRING(propKey);
 				if (JS_LookupProperty(context, object, JS_GetStringBytes(stringKey), &value))
 				{
 					objKey = [NSString stringWithJavaScriptString:stringKey];
 				}
 			}
 			
-			// Properties with int keys
+			// Properties with int keys.
 			else if (JSVAL_IS_INT(propKey))
 			{
-				intKey = JSVAL_TO_INT(propKey);
+				jsint intKey = JSVAL_TO_INT(propKey);
 				if (JS_GetElement(context, object, intKey, &value))
 				{
 					objKey = [NSNumber numberWithInt:intKey];
 				}
 			}
 		}
+#endif
 		
-		if (objKey != nil && value != JSVAL_VOID)
+		if (objKey != nil && JSVAL_IS_VOID(value))
 		{
 			objValue = JSValueToObject(context, value);
 			if (objValue != nil)

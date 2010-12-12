@@ -83,7 +83,7 @@ MA 02110-1301, USA.
 {
 	if (jsSelf != NULL)
 	{
-		[[OOJavaScriptEngine sharedEngine] removeGCRoot:&jsSelf];
+		[[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:&jsSelf];
 		jsSelf = NULL;
 	}
 }

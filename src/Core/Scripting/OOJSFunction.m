@@ -109,7 +109,7 @@ MA 02110-1301, USA.
 
 - (void) dealloc
 {
-	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_function];
+	[[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:(JSObject **)&_function];
 	
 	[super dealloc];
 }

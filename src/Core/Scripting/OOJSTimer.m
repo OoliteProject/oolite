@@ -94,8 +94,8 @@ static JSClass sTimerClass;
 	[_owningScript release];
 	
 	// Allow garbage collection.
-	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_jsThis];
-	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_function];
+	[[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:&_jsThis];
+	[[OOJavaScriptEngine sharedEngine] removeGCValueRoot:&_function];
 	
 	[super dealloc];
 }
