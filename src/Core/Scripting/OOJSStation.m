@@ -35,8 +35,8 @@ static JSObject		*sStationPrototype;
 static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, StationEntity **outEntity);
 
 
-static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool StationGetProperty(OOJS_PROP_ARGS);
+static JSBool StationSetProperty(OOJS_PROP_ARGS);
 
 static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -169,9 +169,9 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 @end
 
 
-static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool StationGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -179,60 +179,60 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 	
 	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kStation_isMainStation:
-			*outValue = BOOLToJSVal(entity == [UNIVERSE station]);
+			*value = BOOLToJSVal(entity == [UNIVERSE station]);
 			break;
 		
 		case kStation_hasNPCTraffic:
-			*outValue = BOOLToJSVal([entity hasNPCTraffic]);
+			*value = BOOLToJSVal([entity hasNPCTraffic]);
 			break;
 		
 		case kStation_alertCondition:
-			*outValue = INT_TO_JSVAL([entity alertLevel]);
+			*value = INT_TO_JSVAL([entity alertLevel]);
 			break;
 			
 #if DOCKING_CLEARANCE_ENABLED
 		case kStation_requiresDockingClearance:
-			*outValue = BOOLToJSVal([entity requiresDockingClearance]);
+			*value = BOOLToJSVal([entity requiresDockingClearance]);
 			break;
 #endif
 			
 		case kStation_allowsFastDocking:
-			*outValue = BOOLToJSVal([entity allowsFastDocking]);
+			*value = BOOLToJSVal([entity allowsFastDocking]);
 			break;
 			
 		case kStation_allowsAutoDocking:
-			*outValue = BOOLToJSVal([entity allowsAutoDocking]);
+			*value = BOOLToJSVal([entity allowsAutoDocking]);
 			break;
 
 		case kStation_dockedContractors:
-			*outValue = INT_TO_JSVAL([entity dockedContractors]);
+			*value = INT_TO_JSVAL([entity dockedContractors]);
 			break;
 			
 		case kStation_dockedPolice:
-			*outValue = INT_TO_JSVAL([entity dockedPolice]);
+			*value = INT_TO_JSVAL([entity dockedPolice]);
 			break;
 			
 		case kStation_dockedDefenders:
-			*outValue = INT_TO_JSVAL([entity dockedDefenders]);
+			*value = INT_TO_JSVAL([entity dockedDefenders]);
 			break;
 			
 		case kStation_equivalentTechLevel:
-			*outValue = INT_TO_JSVAL([entity equivalentTechLevel]);
+			*value = INT_TO_JSVAL([entity equivalentTechLevel]);
 			break;
 			
 		case kStation_equipmentPriceFactor:
-			JS_NewDoubleValue(context, [entity equipmentPriceFactor], outValue);
+			JS_NewDoubleValue(context, [entity equipmentPriceFactor], value);
 			break;
 			
 		case kStation_suppressArrivalReports:
-			*outValue = BOOLToJSVal([entity suppressArrivalReports]);
+			*value = BOOLToJSVal([entity suppressArrivalReports]);
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Station", OOJS_PROPID_INT);
 			return NO;
 	}
 	return YES;
@@ -241,9 +241,9 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 }
 
 
-static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool StationSetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -254,7 +254,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 	
 	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kStation_hasNPCTraffic:
 			if (JS_ValueToBoolean(context, *value, &bValue))
@@ -307,7 +307,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Station", OOJS_PROPID_INT);
 	}
 	
 	return OK;

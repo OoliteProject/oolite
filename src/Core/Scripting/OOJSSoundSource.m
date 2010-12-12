@@ -34,7 +34,7 @@ static JSObject *sSoundSourcePrototype;
 DEFINE_JS_OBJECT_GETTER(JSSoundSourceGetSoundSource, OOSoundSource)
 
 
-static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS);
 static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool SoundSourceConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
@@ -117,9 +117,9 @@ static JSBool SoundSourceConstruct(JSContext *context, JSObject *this, uintN arg
 
 // *** Implementation stuff ***
 
-static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -127,26 +127,26 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsval n
 	
 	if (!JSSoundSourceGetSoundSource(context, this, &soundSource)) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kSoundSource_sound:
-			*outValue = [[soundSource sound] javaScriptValueInContext:context];
+			*value = [[soundSource sound] javaScriptValueInContext:context];
 			break;
 			
 		case kSoundSource_isPlaying:
-			*outValue = BOOLToJSVal([soundSource isPlaying]);
+			*value = BOOLToJSVal([soundSource isPlaying]);
 			break;
 			
 		case kSoundSource_loop:
-			*outValue = BOOLToJSVal([soundSource loop]);
+			*value = BOOLToJSVal([soundSource loop]);
 			break;
 			
 		case kSoundSource_repeatCount:
-			*outValue = INT_TO_JSVAL([soundSource repeatCount]);
+			*value = INT_TO_JSVAL([soundSource repeatCount]);
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"SoundSource", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"SoundSource", OOJS_PROPID_INT);
 			return NO;
 	}
 	
@@ -156,9 +156,9 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsval n
 }
 
 
-static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -169,7 +169,7 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval n
 	
 	if (!JSSoundSourceGetSoundSource(context, this, &soundSource)) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kSoundSource_sound:
 			OOJSPauseTimeLimiter();
@@ -197,7 +197,7 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval n
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"SoundSource", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"SoundSource", OOJS_PROPID_INT);
 	}
 	
 	return OK;

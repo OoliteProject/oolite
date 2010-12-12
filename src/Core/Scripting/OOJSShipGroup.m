@@ -32,8 +32,8 @@ MA 02110-1301, USA.
 static JSObject *sShipGroupPrototype;
 
 
-static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool ShipGroupGetProperty(OOJS_PROP_ARGS);
+static JSBool ShipGroupSetProperty(OOJS_PROP_ARGS);
 static JSBool ShipGroupConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 // Methods
@@ -112,9 +112,9 @@ static BOOL JSShipGroupGetShipGroup(JSContext *context, JSObject *entityObj, OOS
 }
 
 
-static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool ShipGroupGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -124,7 +124,7 @@ static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsval nam
 	
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group))) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kShipGroup_ships:
 			result = [group memberArray];
@@ -141,17 +141,17 @@ static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsval nam
 			break;
 			
 		case kShipGroup_count:
-			*outValue = INT_TO_JSVAL([group count]);
+			*value = INT_TO_JSVAL([group count]);
 			OK = YES;
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"ShipGroup", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"ShipGroup", OOJS_PROPID_INT);
 	}
 	
 	if (!OK && result != nil)
 	{
-		*outValue = [result javaScriptValueInContext:context];
+		*value = [result javaScriptValueInContext:context];
 		OK = YES;
 	}
 	
@@ -161,9 +161,9 @@ static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsval nam
 }
 
 
-static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool ShipGroupSetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -173,7 +173,7 @@ static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsval nam
 	
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group))) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kShipGroup_leader:
 			shipValue = JSValueToObjectOfClass(context, *value, [ShipEntity class]);
@@ -190,7 +190,7 @@ static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsval nam
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"ShipGroup", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"ShipGroup", OOJS_PROPID_INT);
 	}
 	
 	return OK;

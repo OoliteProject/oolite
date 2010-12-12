@@ -50,8 +50,8 @@ static NSComparisonResult CompareEntitiesByDistance(id a, id b, void *relativeTo
 
 static JSBool AddShipsOrGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isGroup) NONNULL_FUNC;
 
-static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool SystemGetProperty(OOJS_PROP_ARGS);
+static JSBool SystemSetProperty(OOJS_PROP_ARGS);
 
 static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -200,9 +200,9 @@ void InitOOJSSystem(JSContext *context, JSObject *global)
 }
 
 
-static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool SystemGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -220,10 +220,10 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	systemData = [UNIVERSE generateSystemData:sCurrentSystem];
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kSystem_ID:
-			*outValue = INT_TO_JSVAL([player currentSystemID]);
+			*value = INT_TO_JSVAL([player currentSystemID]);
 			break;
 		
 		case kSystem_name:
@@ -242,7 +242,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		case kSystem_government:
-			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_GOVERNMENT]);
+			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_GOVERNMENT]);
 			break;
 			
 		case kSystem_governmentDescription:
@@ -252,7 +252,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		case kSystem_economy:
-			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_ECONOMY]);
+			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_ECONOMY]);
 			break;
 			
 		case kSystem_economyDescription:
@@ -262,19 +262,19 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kSystem_techLevel:
-			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_TECHLEVEL]);
+			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_TECHLEVEL]);
 			break;
 			
 		case kSystem_population:
-			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_POPULATION]);
+			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_POPULATION]);
 			break;
 			
 		case kSystem_productivity:
-			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_PRODUCTIVITY]);
+			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_PRODUCTIVITY]);
 			break;
 			
 		case kSystem_isInterstellarSpace:
-			*outValue = BOOLToJSVal([UNIVERSE inInterstellarSpace]);
+			*value = BOOLToJSVal([UNIVERSE inInterstellarSpace]);
 			break;
 			
 		case kSystem_mainStation:
@@ -304,36 +304,36 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		case kSystem_info:
-			if (!GetJSSystemInfoForCurrentSystem(context, outValue))  return NO;
+			if (!GetJSSystemInfoForCurrentSystem(context, value))  return NO;
 			break;
 		
 		case kSystem_pseudoRandomNumber:
-			JS_NewDoubleValue(context, [player systemPseudoRandomFloat], outValue);
+			JS_NewDoubleValue(context, [player systemPseudoRandomFloat], value);
 			break;
 			
 		case kSystem_pseudoRandom100:
-			*outValue = INT_TO_JSVAL([player systemPseudoRandom100]);
+			*value = INT_TO_JSVAL([player systemPseudoRandom100]);
 			break;
 			
 		case kSystem_pseudoRandom256:
-			*outValue = INT_TO_JSVAL([player systemPseudoRandom256]);
+			*value = INT_TO_JSVAL([player systemPseudoRandom256]);
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"System", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"System", OOJS_PROPID_INT);
 			return NO;
 	}
 	
-	if (result != nil)  *outValue = [result javaScriptValueInContext:context];
+	if (result != nil)  *value = [result javaScriptValueInContext:context];
 	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool SystemSetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -351,7 +351,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	if (system == -1)  return YES;	// Can't change anything in interstellar space.
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kSystem_name:
 			stringValue = JSValToNSString(context, *value);
@@ -427,7 +427,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"System", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"System", OOJS_PROPID_INT);
 	}
 	
 	return OK;

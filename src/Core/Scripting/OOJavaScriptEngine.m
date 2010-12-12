@@ -696,6 +696,7 @@ void OOReportJSWarningWithArguments(JSContext *context, NSString *format, va_lis
 
 void OOReportJSBadPropertySelector(JSContext *context, NSString *className, jsint selector)
 {
+	// FIXME: after API upgrade, should take a jsid and decode it.
 	OOReportJSError(context, @"Internal error: bad property identifier %i in property accessor for class %@.", selector, className);
 }
 

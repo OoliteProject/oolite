@@ -54,8 +54,8 @@ MA 02110-1301, USA.
 extern NSString * const kOOLogDebugMessage;
 
 
-static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool GlobalGetProperty(OOJS_PROP_ARGS);
+static JSBool GlobalSetProperty(OOJS_PROP_ARGS);
 
 static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -136,19 +136,19 @@ void SetUpOOJSGlobal(JSContext *context, JSObject *global)
 }
 
 
-static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool GlobalGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity				*player = OOPlayerForScripting();
 	id							result = nil;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kGlobal_galaxyNumber:
-			*outValue = INT_TO_JSVAL([player currentGalaxyID]);
+			*value = INT_TO_JSVAL([player currentGalaxyID]);
 			break;
 			
 		case kGlobal_guiScreen:
@@ -156,31 +156,31 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		case kGlobal_timeAccelerationFactor:
-			JS_NewDoubleValue(context, [UNIVERSE timeAccelerationFactor], outValue);
+			JS_NewDoubleValue(context, [UNIVERSE timeAccelerationFactor], value);
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Global", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Global", OOJS_PROPID_INT);
 			return NO;
 	}
 	
-	if (result != nil)  *outValue = [result javaScriptValueInContext:context];
+	if (result != nil)  *value = [result javaScriptValueInContext:context];
 	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool GlobalSetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
 	BOOL						OK = NO;
 	jsdouble					fValue;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kGlobal_timeAccelerationFactor:
 			if (JS_ValueToNumber(context, *value, &fValue))
@@ -191,7 +191,7 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 	
 		default:
-			OOReportJSBadPropertySelector(context, @"Global", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Global", OOJS_PROPID_INT);
 	}
 	
 	return OK;

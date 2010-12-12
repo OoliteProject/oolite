@@ -460,9 +460,11 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #define OOJS_RETURN_QUATERNION(value)	do { jsval jsresult; BOOL OK = QuaternionToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
 #define OOJS_RETURN_DOUBLE(value)		do { JS_SET_RVAL(context, vp, DOUBLE_TO_JSVAL(value)); return YES; } while (0)
 
-#define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsid id_id, jsval *value
-#define OOJS_PROPID_IS_INT()			JSID_IS_INT(id_id)
-#define OOJS_PROPID_INT					JSID_TO_INT(id_id)
+#define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsid propID, jsval *value
+#define OOJS_PROPID_IS_INT				JSID_IS_INT(propID)
+#define OOJS_PROPID_INT					JSID_TO_INT(propID)
+#define OOJS_PROPID_IS_STRING			JSID_IS_STRING(propID)
+#define OOJS_PROPID_STRING				JSID_TO_STRING(propID)
 
 #else
 #define OOJS_NATIVE_ARGS				JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult
@@ -479,9 +481,11 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #define OOJS_RETURN_QUATERNION(value)	do { return QuaternionToJSValue(context, value, outResult); } while (0)
 #define OOJS_RETURN_DOUBLE(value)		do { return JS_NewDoubleValue(context, result, outResult); } while (0)
 
-#define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsval id_val, jsval *value
-#define OOJS_PROPID_IS_INT()			JSVAL_IS_INT(id_val)
-#define OOJS_PROPID_INT					JSVAL_TO_INT(id_val)
+#define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsval propID, jsval *value
+#define OOJS_PROPID_IS_INT				JSVAL_IS_INT(propID)
+#define OOJS_PROPID_INT					JSVAL_TO_INT(propID)
+#define OOJS_PROPID_IS_STRING			JSVAL_IS_STRING(propID)
+#define OOJS_PROPID_STRING				JSVAL_TO_STRING(propID)
 #endif
 
 #define OOJS_ARG(n)						(OOJS_ARGV[(n)])

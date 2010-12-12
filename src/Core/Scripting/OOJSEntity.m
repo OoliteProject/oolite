@@ -38,8 +38,8 @@ MA 02110-1301, USA.
 static JSObject		*sEntityPrototype;
 
 
-static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool EntityGetProperty(OOJS_PROP_ARGS);
+static JSBool EntitySetProperty(OOJS_PROP_ARGS);
 
 
 static JSClass sEntityClass =
@@ -179,9 +179,9 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 }
 
 
-static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -192,28 +192,28 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 	JSEntityGetEntity(context, this, &entity);
 	if (entity == nil)
 	{
-		if (JSVAL_TO_INT(name) == kEntity_isValid)  *outValue = JSVAL_FALSE;
-		else  *outValue = JSVAL_VOID;
+		if (OOJS_PROPID_INT == kEntity_isValid)  *value = JSVAL_FALSE;
+		else  *value = JSVAL_VOID;
 		
 		return YES;
 	}
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kEntity_collisionRadius:
-			OK = JS_NewDoubleValue(context, [entity collisionRadius], outValue);
+			OK = JS_NewDoubleValue(context, [entity collisionRadius], value);
 			break;
 	
 		case kEntity_position:
-			OK = VectorToJSValue(context, [entity position], outValue);
+			OK = VectorToJSValue(context, [entity position], value);
 			break;
 		
 		case kEntity_orientation:
-			OK = QuaternionToJSValue(context, [entity normalOrientation], outValue);
+			OK = QuaternionToJSValue(context, [entity normalOrientation], value);
 			break;
 		
 		case kEntity_heading:
-			OK = VectorToJSValue(context, vector_forward_from_quaternion([entity normalOrientation]), outValue);
+			OK = VectorToJSValue(context, vector_forward_from_quaternion([entity normalOrientation]), value);
 			break;
 		
 		case kEntity_status:
@@ -225,7 +225,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kEntity_mass:
-			OK = JS_NewDoubleValue(context, [entity mass], outValue);
+			OK = JS_NewDoubleValue(context, [entity mass], value);
 			break;
 		
 		case kEntity_owner:
@@ -235,63 +235,63 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kEntity_energy:
-			OK = JS_NewDoubleValue(context, [entity energy], outValue);
+			OK = JS_NewDoubleValue(context, [entity energy], value);
 			break;
 		
 		case kEntity_maxEnergy:
-			OK = JS_NewDoubleValue(context, [entity maxEnergy], outValue);
+			OK = JS_NewDoubleValue(context, [entity maxEnergy], value);
 			break;
 		
 		case kEntity_isValid:
-			*outValue = JSVAL_TRUE;
+			*value = JSVAL_TRUE;
 			OK = YES;
 			break;
 		
 		case kEntity_isShip:
-			*outValue = BOOLToJSVal([entity isShip]);
+			*value = BOOLToJSVal([entity isShip]);
 			OK = YES;
 			break;
 		
 		case kEntity_isStation:
-			*outValue = BOOLToJSVal([entity isStation]);
+			*value = BOOLToJSVal([entity isStation]);
 			OK = YES;
 			break;
 			
 		case kEntity_isSubEntity:
-			*outValue = BOOLToJSVal([entity isSubEntity]);
+			*value = BOOLToJSVal([entity isSubEntity]);
 			OK = YES;
 			break;
 		
 		case kEntity_isPlayer:
-			*outValue = BOOLToJSVal([entity isPlayer]);
+			*value = BOOLToJSVal([entity isPlayer]);
 			OK = YES;
 			break;
 			
 		case kEntity_isPlanet:
-			*outValue = BOOLToJSVal([entity isPlanet] && ![entity isSun]);
+			*value = BOOLToJSVal([entity isPlanet] && ![entity isSun]);
 			OK = YES;
 			break;
 			
 		case kEntity_isSun:
-			*outValue = BOOLToJSVal([entity isSun]);
+			*value = BOOLToJSVal([entity isSun]);
 			OK = YES;
 			break;
 		
 		case kEntity_distanceTravelled:
-			OK = JS_NewDoubleValue(context, [entity distanceTravelled], outValue);
+			OK = JS_NewDoubleValue(context, [entity distanceTravelled], value);
 			break;
 		
 		case kEntity_spawnTime:
-			OK = JS_NewDoubleValue(context, [entity spawnTime], outValue);
+			OK = JS_NewDoubleValue(context, [entity spawnTime], value);
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Entity", OOJS_PROPID_INT);
 	}
 	
 	if (result != nil)
 	{
-		*outValue = [result javaScriptValueInContext:context];
+		*value = [result javaScriptValueInContext:context];
 		OK = YES;
 	}
 	return OK;
@@ -300,9 +300,9 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 }
 
 
-static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool EntitySetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -314,7 +314,7 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	if (EXPECT_NOT(!JSEntityGetEntity(context, this, &entity))) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kEntity_position:
 			if (JSValueToVector(context, *value, &vValue))
@@ -343,7 +343,7 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Entity", OOJS_PROPID_INT);
 	}
 	
 	return OK;

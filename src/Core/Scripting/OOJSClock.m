@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 
 
-static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool ClockGetProperty(OOJS_PROP_ARGS);
 
 // Methods
 static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -111,9 +111,9 @@ void InitOOJSClock(JSContext *context, JSObject *global)
 }
 
 
-static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool ClockGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -124,61 +124,61 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, j
 	player = OOPlayerForScripting();
 	clockTime = [player clockTime];
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kClock_absoluteSeconds:
-			OK = JS_NewDoubleValue(context, [UNIVERSE getTime], outValue);
+			OK = JS_NewDoubleValue(context, [UNIVERSE getTime], value);
 			break;
 			
 		case kClock_seconds:
-			OK = JS_NewDoubleValue(context, clockTime, outValue);
+			OK = JS_NewDoubleValue(context, clockTime, value);
 			break;
 			
 		case kClock_minutes:
-			OK = JS_NewDoubleValue(context, floor(clockTime / 60.0), outValue);
+			OK = JS_NewDoubleValue(context, floor(clockTime / 60.0), value);
 			break;
 			
 		case kClock_hours:
-			OK = JS_NewDoubleValue(context, floor(clockTime / 3600.0), outValue);
+			OK = JS_NewDoubleValue(context, floor(clockTime / 3600.0), value);
 			break;
 			
 		case kClock_secondsComponent:
-			*outValue = INT_TO_JSVAL(fmod(clockTime, 60.0));
+			*value = INT_TO_JSVAL(fmod(clockTime, 60.0));
 			OK = YES;
 			break;
 			
 		case kClock_minutesComponent:
-			*outValue = INT_TO_JSVAL(fmod(floor(clockTime / 60.0), 60.0));
+			*value = INT_TO_JSVAL(fmod(floor(clockTime / 60.0), 60.0));
 			OK = YES;
 			break;
 			
 		case kClock_hoursComponent:
-			*outValue = INT_TO_JSVAL(fmod(floor(clockTime / 3600.0), 24.0));
+			*value = INT_TO_JSVAL(fmod(floor(clockTime / 3600.0), 24.0));
 			OK = YES;
 			break;
 			
 		case kClock_days:
 		case kClock_daysComponent:
-			*outValue = INT_TO_JSVAL(floor(clockTime / 86400.0));
+			*value = INT_TO_JSVAL(floor(clockTime / 86400.0));
 			OK = YES;
 			break;
 			
 		case kClock_clockString:
-			*outValue = [[player dial_clock] javaScriptValueInContext:context];
+			*value = [[player dial_clock] javaScriptValueInContext:context];
 			OK = YES;
 			break;
 			
 		case kClock_isAdjusting:
-			*outValue = BOOLToJSVal([player clockAdjusting]);
+			*value = BOOLToJSVal([player clockAdjusting]);
 			OK = YES;
 			break;
 			
 		case kClock_legacy_scriptTimer:
-			OK = JS_NewDoubleValue(context, [OOPlayerForScripting() scriptTimer], outValue);
+			OK = JS_NewDoubleValue(context, [OOPlayerForScripting() scriptTimer], value);
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Clock", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Clock", OOJS_PROPID_INT);
 	}
 	
 	return OK;

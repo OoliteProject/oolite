@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 
 
-static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool OoliteGetProperty(OOJS_PROP_ARGS);
 
 static NSString *VersionString(void);
 static NSArray *VersionComponents(void);
@@ -93,15 +93,15 @@ void InitOOJSOolite(JSContext *context, JSObject *global)
 }
 
 
-static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool OoliteGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
 	id						result = nil;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kOolite_version:
 			result = VersionComponents();
@@ -114,11 +114,11 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kOolite_jsVersion:
-			*outValue = INT_TO_JSVAL(JS_GetVersion(context));
+			*value = INT_TO_JSVAL(JS_GetVersion(context));
 			break;
 		
 		case kOolite_jsVersionString:
-			*outValue = STRING_TO_JSVAL(JS_NewStringCopyZ(context, JS_VersionToString(JS_GetVersion(context))));
+			*value = STRING_TO_JSVAL(JS_NewStringCopyZ(context, JS_VersionToString(JS_GetVersion(context))));
 			break;
 		
 		case kOolite_gameSettings:
@@ -127,11 +127,11 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Oolite", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Oolite", OOJS_PROPID_INT);
 			return NO;
 	}
 	
-	if (result != nil)  *outValue = [result javaScriptValueInContext:context];
+	if (result != nil)  *value = [result javaScriptValueInContext:context];
 	return YES;
 	
 	OOJS_NATIVE_EXIT

@@ -39,7 +39,7 @@ DEFINE_JS_OBJECT_GETTER(JSSoundGetSound, OOSound)
 static OOSound *GetNamedSound(NSString *name);
 
 
-static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool SoundGetProperty(OOJS_PROP_ARGS);
 
 // Static methods
 static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -125,23 +125,23 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 
 // *** Implementation stuff ***
 
-static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool SoundGetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	OOSound						*sound = nil;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	if (EXPECT_NOT(!JSSoundGetSound(context, this, &sound))) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kSound_name:
-			*outValue = [[sound name] javaScriptValueInContext:context];
+			*value = [[sound name] javaScriptValueInContext:context];
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Sound", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Sound", OOJS_PROPID_INT);
 			return NO;
 	}
 	

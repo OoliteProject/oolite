@@ -391,7 +391,7 @@ static JSBool VectorGetProperty(OOJS_PROP_ARGS)
 	Vector				vector;
 	GLfloat				fValue;
 	
-	if (!OOJS_PROPID_IS_INT())  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))  return NO;
 	
 	switch (OOJS_PROPID_INT)
@@ -426,7 +426,7 @@ static JSBool VectorSetProperty(OOJS_PROP_ARGS)
 	Vector				vector;
 	jsdouble			dval;
 	
-	if (!OOJS_PROPID_IS_INT())  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))  return NO;
 	if (EXPECT_NOT(!JS_ValueToNumber(context, *value, &dval)))
 	{

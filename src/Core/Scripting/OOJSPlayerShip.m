@@ -54,8 +54,8 @@ static JSObject		*sPlayerShipPrototype;
 static JSObject		*sPlayerShipObject;
 
 
-static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS);
+static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS);
 
 static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -205,25 +205,25 @@ JSObject *JSPlayerShipObject(void)
 @end
 
 
-static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) {*outValue = JSVAL_VOID; return YES;}
-	if (EXPECT_NOT(!JSVAL_IS_INT(name)))  return YES;
+	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) {*value = JSVAL_VOID; return YES;}
+	if (EXPECT_NOT(!OOJS_PROPID_IS_INT))  return YES;
 	
 	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*player = OOPlayerShipForScripting();
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kPlayerShip_fuelLeakRate:
-			OK = JS_NewDoubleValue(context, [player fuelLeakRate], outValue);
+			OK = JS_NewDoubleValue(context, [player fuelLeakRate], value);
 			break;
 			
 		case kPlayerShip_docked:
-			*outValue = BOOLToJSVal([player isDocked]);
+			*value = BOOLToJSVal([player isDocked]);
 			OK = YES;
 			break;
 			
@@ -239,7 +239,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 			
 		case kPlayerShip_reticleTargetSensitive:
-			*outValue = BOOLToJSVal([[player hud] reticleTargetSensitive]);
+			*value = BOOLToJSVal([[player hud] reticleTargetSensitive]);
 			OK = YES;
 			break;
 			
@@ -249,51 +249,51 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 			
 		case kPlayerShip_galacticHyperspaceFixedCoords:
-			OK = NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], outValue);
+			OK = NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], value);
 			break;
 			
 		case kPlayerShip_forwardShield:
-			OK = JS_NewDoubleValue(context, [player forwardShieldLevel], outValue);
+			OK = JS_NewDoubleValue(context, [player forwardShieldLevel], value);
 			break;
 			
 		case kPlayerShip_aftShield:
-			OK = JS_NewDoubleValue(context, [player aftShieldLevel], outValue);
+			OK = JS_NewDoubleValue(context, [player aftShieldLevel], value);
 			break;
 			
 		case kPlayerShip_maxForwardShield:
-			OK = JS_NewDoubleValue(context, [player maxForwardShieldLevel], outValue);
+			OK = JS_NewDoubleValue(context, [player maxForwardShieldLevel], value);
 			break;
 			
 		case kPlayerShip_maxAftShield:
-			OK = JS_NewDoubleValue(context, [player maxAftShieldLevel], outValue);
+			OK = JS_NewDoubleValue(context, [player maxAftShieldLevel], value);
 			break;
 			
 		case kPlayerShip_forwardShieldRechargeRate:
 		case kPlayerShip_aftShieldRechargeRate:
 			// No distinction made internally
-			OK = JS_NewDoubleValue(context, [player shieldRechargeRate], outValue);
+			OK = JS_NewDoubleValue(context, [player shieldRechargeRate], value);
 			break;
 			
 		case kPlayerShip_galaxyCoordinates:
-			OK = NSPointToVectorJSValue(context, [player galaxy_coordinates], outValue);
+			OK = NSPointToVectorJSValue(context, [player galaxy_coordinates], value);
 			break;
 			
 		case kPlayerShip_cursorCoordinates:
-			OK = NSPointToVectorJSValue(context, [player cursor_coordinates], outValue);
+			OK = NSPointToVectorJSValue(context, [player cursor_coordinates], value);
 			break;
 			
 		case kPlayerShip_targetSystem:
-			*outValue = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
+			*value = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
 			OK = YES;
 			break;
 
 		case kPlayerShip_scriptedMisjump:
-			*outValue = BOOLToJSVal([player scriptedMisjump]);
+			*value = BOOLToJSVal([player scriptedMisjump]);
 			OK = YES;
 			break;
 			
 		case kPlayerShip_scoopOverride:
-			*outValue = BOOLToJSVal([player scoopOverride]);
+			*value = BOOLToJSVal([player scoopOverride]);
 			OK = YES;
 			break;
 			
@@ -313,12 +313,12 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 			
 		case kPlayerShip_hudHidden:
-			*outValue = BOOLToJSVal([[player hud] isHidden]);
+			*value = BOOLToJSVal([[player hud] isHidden]);
 			OK = YES;
 			break;
 			
 		case kPlayerShip_weaponsOnline:
-			*outValue = BOOLToJSVal([player weaponsOnline]);
+			*value = BOOLToJSVal([player weaponsOnline]);
 			OK = YES;
 			break;
 			
@@ -328,22 +328,22 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"PlayerShip", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"PlayerShip", OOJS_PROPID_INT);
 	}
 	
-	if (OK && result != nil)  *outValue = [result javaScriptValueInContext:context];
+	if (OK && result != nil)  *value = [result javaScriptValueInContext:context];
 	return OK;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) return YES;
-	if (EXPECT_NOT(!JSVAL_IS_INT(name)))  return YES;
+	if (EXPECT_NOT(!OOJS_PROPID_IS_INT))  return YES;
 	
 	BOOL						OK = NO;
 	PlayerEntity				*player = OOPlayerShipForScripting();
@@ -353,7 +353,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 	OOGalacticHyperspaceBehaviour ghBehaviour;
 	Vector						vValue;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kPlayerShip_fuelLeakRate:
 			if (JS_ValueToNumber(context, *value, &fValue))
@@ -453,7 +453,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"PlayerShip", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"PlayerShip", OOJS_PROPID_INT);
 	}
 	
 	return OK;

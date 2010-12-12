@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 
 
-static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool WorldScriptsGetProperty(OOJS_PROP_ARGS);
 static JSBool WorldScriptsEnumerate(JSContext *cx, JSObject *obj);
 
 static JSBool GetWorldScriptNames(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -58,7 +58,7 @@ void InitOOJSWorldScripts(JSContext *context, JSObject *global)
 }
 
 
-static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool WorldScriptsGetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -66,18 +66,20 @@ static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsval 
 	NSString					*scriptName = nil;
 	id							script = nil;
 	
-	scriptName = JSValToNSString(context, name);
+	if (!OOJS_PROPID_IS_STRING)  return YES;
+	scriptName = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
+	
 	if (scriptName != nil)
 	{
 		script = [[player worldScriptsByName] objectForKey:scriptName];
 		if (script != nil)
 		{
 			/*	If script is an OOJSScript, this should return a JS Script
-			 object. For other OOScript subclasses, it will return
-			 JSVAL_NULL. If no script exists, the value will be
-			 JSVAL_VOID.
-			 */
-			*outValue = [script javaScriptValueInContext:context];
+				object. For other OOScript subclasses, it will return
+				JSVAL_NULL. If no script exists, the value will be
+				JSVAL_VOID.
+			*/
+			*value = [script javaScriptValueInContext:context];
 		}
 	}
 	

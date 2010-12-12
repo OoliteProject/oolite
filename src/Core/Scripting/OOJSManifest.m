@@ -38,9 +38,9 @@ static JSObject	*sManifestObject;
 
 
 
-static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
-static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool ManifestDeleteProperty(OOJS_PROP_ARGS);
+static JSBool ManifestGetProperty(OOJS_PROP_ARGS);
+static JSBool ManifestSetProperty(OOJS_PROP_ARGS);
 
 static JSBool ManifestToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
@@ -134,7 +134,7 @@ static JSPropertySpec sManifestProperties[] =
 };
 
 
-static int sManifestCaseInsensitiveLimit = kManifest_gemstones + 1;
+static const unsigned kManifestCaseInsensitiveLimit = kManifest_gemstones + 1;
 
 
 static JSFunctionSpec sManifestMethods[] =
@@ -143,6 +143,9 @@ static JSFunctionSpec sManifestMethods[] =
 	{ "toString",				ManifestToString,	0 },
 	{ 0 }
 };
+
+
+static NSDictionary *sManifestNameMap;
 
 
 // Helper class wrapped by JS Manifest objects
@@ -197,6 +200,18 @@ void InitOOJSManifest(JSContext *context, JSObject *global)
 	
 	// Also define manifest object as a property of the global object.
 	JS_DefineObject(context, global, "manifest", &sManifestClass, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	
+	// Create dictionary mapping commodity names to tinyids.
+	NSMutableDictionary *manifestNameMap = [NSMutableDictionary dictionaryWithCapacity:kManifestCaseInsensitiveLimit];
+	unsigned i;
+	for (i = 0; i < kManifestCaseInsensitiveLimit; i++)
+	{
+		NSString *key = [NSString stringWithUTF8String:sManifestProperties[i].name];
+		NSNumber *value = [NSNumber numberWithInt:sManifestProperties[i].tinyid];
+		[manifestNameMap setObject:value forKey:key];
+	}
+	
+	sManifestNameMap = [[NSMutableDictionary alloc] initWithDictionary:manifestNameMap];
 }
 
 
@@ -207,34 +222,55 @@ static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsval n
 }
 
 
-static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+#if OO_NEW_JS
+typedef jsid PropertyID;
+#define PROP_IS_INT JSID_IS_INT
+#define PROP_TO_INT JSID_TO_INT
+#define PROP_IS_STRING JSID_IS_STRING
+#define PROP_TO_STRING JSID_TO_STRING
+#else
+typedef jsval PropertyID;
+#define PROP_IS_INT JSVAL_IS_INT
+#define PROP_TO_INT JSVAL_TO_INT
+#define PROP_IS_STRING JSVAL_IS_STRING
+#define PROP_TO_STRING JSVAL_TO_STRING
+#endif
+
+static BOOL GetCommodityID(PropertyID property, unsigned *outCommodity)
+{
+	NSCParameterAssert(outCommodity != NULL);
+	
+	if (PROP_IS_INT(property))
+	{
+		*outCommodity = PROP_TO_INT(property);
+		return *outCommodity < kManifestCaseInsensitiveLimit;
+	}
+	else if (PROP_IS_STRING(property))
+	{
+		NSString *key = [[NSString stringWithJavaScriptString:PROP_TO_STRING(property)] lowercaseString];
+		NSNumber *value = [sManifestNameMap objectForKey:key];
+		if (value == nil)  return NO;
+		
+		*outCommodity = [value intValue];
+		return YES;
+	}
+	
+	return NO;
+}
+
+
+static JSBool ManifestGetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*entity = OOPlayerForScripting();
+	unsigned					commodity;
 	
-	if (JSVAL_IS_STRING(name))	// Is it a case insensitive commodity identifier?
-	{
-		//FIXME: there must be a better way of doing this.
-		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] UTF8String];
-		int				i;
-		
-		for (i=0; i<sManifestCaseInsensitiveLimit; i++)
-		{
-			if (strcmp(sManifestProperties[i].name, str) == 0) 
-			{
-				name = INT_TO_JSVAL(sManifestProperties[i].tinyid);
-				break;
-			}
-		}
-	}
-	
-	if (!JSVAL_IS_INT(name))  return YES;
-	//if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;	// NOTE: to be added if we get NPCs with manifests.
+	if (!GetCommodityID(propID, &commodity))  return YES;
 
-	switch (JSVAL_TO_INT(name))
+	switch (commodity)
 	{
 		case kManifest_list:
 			result = [entity cargoListForScripting];
@@ -242,136 +278,118 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name
 			break;
 			
 		case kManifest_food:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FOOD]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FOOD]);
 			OK = YES;
 			break;
 			
 		case kManifest_textiles:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_TEXTILES]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_TEXTILES]);
 			OK = YES;
 			break;
 			
 		case kManifest_radioactives:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_RADIOACTIVES]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_RADIOACTIVES]);
 			OK = YES;
 			break;
 			
 		case kManifest_slaves:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_SLAVES]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_SLAVES]);
 			OK = YES;
 			break;
 			
 		case kManifest_liquor_wines:
 		case kManifest_liquorwines:
 		case kManifest_liquorWines:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LIQUOR_WINES]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LIQUOR_WINES]);
 			OK = YES;
 			break;
 			
 		case kManifest_luxuries:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LUXURIES]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LUXURIES]);
 			OK = YES;
 			break;
 			
 		case kManifest_narcotics:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_NARCOTICS]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_NARCOTICS]);
 			OK = YES;
 			break;
 			
 		case kManifest_computers:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_COMPUTERS]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_COMPUTERS]);
 			OK = YES;
 			break;
 			
 		case kManifest_machinery:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MACHINERY]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MACHINERY]);
 			OK = YES;
 			break;
 			
 		case kManifest_alloys:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALLOYS]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALLOYS]);
 			OK = YES;
 			break;
 			
 		case kManifest_firearms:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FIREARMS]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FIREARMS]);
 			OK = YES;
 			break;
 			
 		case kManifest_furs:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FURS]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FURS]);
 			OK = YES;
 			break;
 			
 		case kManifest_minerals:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MINERALS]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MINERALS]);
 			OK = YES;
 			break;
 			
 		case kManifest_gold:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GOLD]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GOLD]);
 			OK = YES;
 			break;
 			
 		case kManifest_platinum:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_PLATINUM]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_PLATINUM]);
 			OK = YES;
 			break;
 			
 		case kManifest_gem_stones:
 		case kManifest_gemstones:
 		case kManifest_gemStones:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GEM_STONES]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GEM_STONES]);
 			OK = YES;
 			break;
 			
 		case kManifest_alien_items:
 		case kManifest_alienitems:
 		case kManifest_alienItems:
-			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALIEN_ITEMS]);
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALIEN_ITEMS]);
 			OK = YES;
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Manifest", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Manifest", commodity);
 	}
 
-	if (OK && result != nil)  *outValue = [result javaScriptValueInContext:context];	
+	if (OK && result != nil)  *value = [result javaScriptValueInContext:context];	
 	return OK;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool ManifestSetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	BOOL						OK = NO;
 	PlayerEntity				*entity = OOPlayerForScripting();
 	int32						iValue;
-	int							commodity;
+	unsigned					commodity;
 	
-	if (JSVAL_IS_STRING(name))	// Is it a case insensitive commodity identifier?
-	{
-		//FIXME: there must be a better way of doing this.
-		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] UTF8String];
-		int				i;
-		
-		for (i=0; i<sManifestCaseInsensitiveLimit; i++)
-		{
-			if (strcmp(sManifestProperties[i].name, str) == 0) 
-			{
-				name = INT_TO_JSVAL(sManifestProperties[i].tinyid);
-				break;
-			}
-		}
-	}
+	if (!GetCommodityID(propID, &commodity))  return YES;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
-	//if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
-	
-	commodity = JSVAL_TO_INT(name);
 	// we can always change gold, platinum & gem-stones quantities, even with special cargo
 	if ([entity specialCargo] && (commodity < kManifest_gold || commodity > kManifest_gemStones))
 	{
@@ -541,7 +559,7 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Manifest", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Manifest", commodity);
 	}
 	
 	return OK;

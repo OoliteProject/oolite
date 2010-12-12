@@ -37,8 +37,8 @@ DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, OOPlanetEntity)
 static JSObject		*sPlanetPrototype;
 
 
-static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool PlanetGetProperty(OOJS_PROP_ARGS);
+static JSBool PlanetSetProperty(OOJS_PROP_ARGS);
 
 
 static JSClass sPlanetClass =
@@ -121,9 +121,9 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 @end
 
 
-static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool PlanetGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -131,37 +131,37 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 	OOPlanetEntity				*planet = nil;
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kPlanet_isMainPlanet:
-			*outValue = BOOLToJSVal(planet == (id)[UNIVERSE planet]);
+			*value = BOOLToJSVal(planet == (id)[UNIVERSE planet]);
 			OK = YES;
 			break;
 			
 		case kPlanet_radius:
-			OK = JS_NewDoubleValue(context, [planet radius], outValue);
+			OK = JS_NewDoubleValue(context, [planet radius], value);
 			break;
 			
 		case kPlanet_hasAtmosphere:
-			*outValue = BOOLToJSVal([planet hasAtmosphere]);
+			*value = BOOLToJSVal([planet hasAtmosphere]);
 			OK = YES;
 			break;
 			
 		case kPlanet_texture:
-			*outValue = [[planet textureFileName] javaScriptValueInContext:context];
+			*value = [[planet textureFileName] javaScriptValueInContext:context];
 			OK = YES;
 			break;
 			
 		case kPlanet_orientation:
-			OK = QuaternionToJSValue(context, [planet normalOrientation], outValue);
+			OK = QuaternionToJSValue(context, [planet normalOrientation], value);
 			break;
 		
 		case kPlanet_rotationalVelocity:
-			OK = JS_NewDoubleValue(context, [planet rotationalVelocity], outValue);
+			OK = JS_NewDoubleValue(context, [planet rotationalVelocity], value);
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Planet", OOJS_PROPID_INT);
 	}
 	return OK;
 	
@@ -169,9 +169,9 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 }
 
 
-static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool PlanetSetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -183,7 +183,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kPlanet_texture:
 			// all error messages are self contained
@@ -227,7 +227,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Planet", OOJS_PROPID_INT);
 			break;
 	}
 	

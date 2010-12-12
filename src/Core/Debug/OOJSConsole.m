@@ -61,8 +61,8 @@ static JSObject *sConsolePrototype = NULL;
 static JSObject *sConsoleSettingsPrototype = NULL;
 
 
-static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool ConsoleGetProperty(OOJS_PROP_ARGS);
+static JSBool ConsoleSetProperty(OOJS_PROP_ARGS);
 static void ConsoleFinalize(JSContext *context, JSObject *this);
 
 // Methods
@@ -83,8 +83,8 @@ static JSBool ConsoleGetProfile(JSContext *context, JSObject *this, uintN argc, 
 #endif
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS);
+static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS);
 
 #if OOJS_PROFILE
 static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, OOTimeProfile **profile);
@@ -273,57 +273,57 @@ JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 }
 
 
-static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 #ifndef NDEBUG
 		case kConsole_debugFlags:
-			*outValue = INT_TO_JSVAL(gDebugFlags);
+			*value = INT_TO_JSVAL(gDebugFlags);
 			break;
 #endif		
 			
 		case kConsole_shaderMode:
-			*outValue = [ShaderSettingToString([UNIVERSE shaderEffectsLevel]) javaScriptValueInContext:context];
+			*value = [ShaderSettingToString([UNIVERSE shaderEffectsLevel]) javaScriptValueInContext:context];
 			break;
 			
 		case kConsole_maximumShaderMode:
-			*outValue = [ShaderSettingToString([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]) javaScriptValueInContext:context];
+			*value = [ShaderSettingToString([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]) javaScriptValueInContext:context];
 			break;
 			
 		case kConsole_reducedDetailMode:
-			*outValue = BOOLToJSVal([UNIVERSE reducedDetail]);
+			*value = BOOLToJSVal([UNIVERSE reducedDetail]);
 			break;
 			
 		case kConsole_displayFPS:
-			*outValue = BOOLToJSVal([UNIVERSE displayFPS]);
+			*value = BOOLToJSVal([UNIVERSE displayFPS]);
 			break;
 			
 		case kConsole_platformDescription:
-			*outValue = [OOPlatformDescription() javaScriptValueInContext:context];
+			*value = [OOPlatformDescription() javaScriptValueInContext:context];
 			break;
 			
 		case kConsole_glVendorString:
-			*outValue = [[[OOOpenGLExtensionManager sharedManager] vendorString] javaScriptValueInContext:context];
+			*value = [[[OOOpenGLExtensionManager sharedManager] vendorString] javaScriptValueInContext:context];
 			break;
 			
 		case kConsole_glRendererString:
-			*outValue = [[[OOOpenGLExtensionManager sharedManager] rendererString] javaScriptValueInContext:context];
+			*value = [[[OOOpenGLExtensionManager sharedManager] rendererString] javaScriptValueInContext:context];
 			break;
 			
 		case kConsole_glFixedFunctionTextureUnitCount:
-			*outValue = INT_TO_JSVAL([[OOOpenGLExtensionManager sharedManager] textureUnitCount]);
+			*value = INT_TO_JSVAL([[OOOpenGLExtensionManager sharedManager] textureUnitCount]);
 			break;
 			
 		case kConsole_glFragmentShaderTextureUnitCount:
-			*outValue = INT_TO_JSVAL([[OOOpenGLExtensionManager sharedManager] textureImageUnitCount]);
+			*value = INT_TO_JSVAL([[OOOpenGLExtensionManager sharedManager] textureImageUnitCount]);
 			break;
 			
-#define DEBUG_FLAG_CASE(x) case kConsole_##x: *outValue = INT_TO_JSVAL(x); break;
+#define DEBUG_FLAG_CASE(x) case kConsole_##x: *value = INT_TO_JSVAL(x); break;
 		DEBUG_FLAG_CASE(DEBUG_LINKED_LISTS);
 		DEBUG_FLAG_CASE(DEBUG_COLLISIONS);
 		DEBUG_FLAG_CASE(DEBUG_DOCKING);
@@ -339,7 +339,7 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 #undef DEBUG_FLAG_CASE
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Console", OOJS_PROPID_INT);
 			return NO;
 	}
 	
@@ -349,9 +349,9 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 }
 
 
-static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -359,7 +359,7 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 	NSString					*sValue = nil;
 	JSBool						bValue = NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 #ifndef NDEBUG
 		case kConsole_debugFlags:
@@ -397,7 +397,7 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Console", OOJS_PROPID_INT);
 			return NO;
 	}
 	
@@ -450,16 +450,15 @@ static void ConsoleFinalize(JSContext *context, JSObject *this)
 }
 
 
-static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool ConsoleSettingsDeleteProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString			*key = nil;
 	id					monitor = nil;
 	
-	if (!JSVAL_IS_STRING(name))  return NO;
-	
-	key = [NSString stringWithJavaScriptValue:name inContext:context];
+	if (!OOJS_PROPID_IS_STRING)  return NO;
+	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 	
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
@@ -469,23 +468,23 @@ static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, 
 	}
 	
 	[monitor setConfigurationValue:nil forKey:key];
-	*outValue = JSVAL_TRUE;
+	*value = JSVAL_TRUE;
 	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString			*key = nil;
-	id					value = nil;
+	id					settingValue = nil;
 	id					monitor = nil;
 	
-	if (!JSVAL_IS_STRING(name))  return YES;
-	key = [NSString stringWithJavaScriptValue:name inContext:context];
+	if (!OOJS_PROPID_IS_STRING)  return YES;
+	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 	
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
@@ -494,8 +493,8 @@ static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsv
 		return NO;
 	}
 	
-	value = [monitor configurationValueForKey:key];
-	*outValue = [value javaScriptValueInContext:context];
+	settingValue = [monitor configurationValueForKey:key];
+	*value = [settingValue javaScriptValueInContext:context];
 	
 	return YES;
 	
@@ -503,16 +502,16 @@ static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsv
 }
 
 
-static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsval name, jsval *inValue)
+static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString			*key = nil;
-	id					value = nil;
+	id					settingValue = nil;
 	id					monitor = nil;
 	
-	if (!JSVAL_IS_STRING(name))  return YES;
-	key = [NSString stringWithJavaScriptValue:name inContext:context];
+	if (!OOJS_PROPID_IS_STRING)  return YES;
+	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 	
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
@@ -522,20 +521,20 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 	}
 	
 	OOJSPauseTimeLimiter();
-	if (JSVAL_IS_NULL(*inValue) || JSVAL_IS_VOID(*inValue))
+	if (JSVAL_IS_NULL(*value) || JSVAL_IS_VOID(*value))
 	{
 		[monitor setConfigurationValue:nil forKey:key];
 	}
 	else
 	{
-		value = JSValueToObject(context, *inValue);
-		if (value != nil)
+		settingValue = JSValueToObject(context, *value);
+		if (settingValue != nil)
 		{
-			[monitor setConfigurationValue:value forKey:key];
+			[monitor setConfigurationValue:settingValue forKey:key];
 		}
 		else
 		{
-			OOReportJSWarning(context, @"debugConsole.settings: could not convert %@ to native object.", [NSString stringWithJavaScriptValue:*inValue inContext:context]);
+			OOReportJSWarning(context, @"debugConsole.settings: could not convert %@ to native object.", [NSString stringWithJavaScriptValue:*value inContext:context]);
 		}
 	}
 	OOJSResumeTimeLimiter();

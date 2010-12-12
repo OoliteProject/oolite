@@ -36,7 +36,7 @@ DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, OOSunEntity)
 static JSObject		*sSunPrototype;
 
 
-static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool SunGetProperty(OOJS_PROP_ARGS);
 static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
@@ -116,9 +116,9 @@ void InitOOJSSun(JSContext *context, JSObject *global)
 @end
 
 
-static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool SunGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -127,25 +127,25 @@ static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsv
 	
 	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 			
 		case kSun_radius:
-			OK = JS_NewDoubleValue(context, [sun radius], outValue);
+			OK = JS_NewDoubleValue(context, [sun radius], value);
 			break;
 			
 		case kSun_hasGoneNova:
-			*outValue = BOOLToJSVal([sun goneNova]);
+			*value = BOOLToJSVal([sun goneNova]);
 			OK = YES;
 			break;
 			
 		case kSun_isGoingNova:
-			*outValue = BOOLToJSVal([sun willGoNova] && ![sun goneNova]);
+			*value = BOOLToJSVal([sun willGoNova] && ![sun goneNova]);
 			OK = YES;
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Sun", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Sun", OOJS_PROPID_INT);
 	}
 	return OK;
 	

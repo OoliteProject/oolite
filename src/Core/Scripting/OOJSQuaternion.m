@@ -42,8 +42,8 @@ static JSObject *sQuaternionPrototype;
 static BOOL GetThisQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion *outQuaternion, NSString *method)  NONNULL_FUNC;
 
 
-static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool QuaternionGetProperty(OOJS_PROP_ARGS);
+static JSBool QuaternionSetProperty(OOJS_PROP_ARGS);
 static void QuaternionFinalize(JSContext *context, JSObject *this);
 static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
@@ -365,53 +365,53 @@ BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *ar
 
 // *** Implementation stuff ***
 
-static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool QuaternionGetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_PROFILE_ENTER
 	
 	Quaternion			quaternion;
-	GLfloat				value;
+	GLfloat				fValue;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quaternion))) return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kQuaternion_w:
-			value = quaternion.w;
+			fValue = quaternion.w;
 			break;
 		
 		case kQuaternion_x:
-			value = quaternion.x;
+			fValue = quaternion.x;
 			break;
 		
 		case kQuaternion_y:
-			value = quaternion.y;
+			fValue = quaternion.y;
 			break;
 		
 		case kQuaternion_z:
-			value = quaternion.z;
+			fValue = quaternion.z;
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Quaternion", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Quaternion", OOJS_PROPID_INT);
 			return NO;
 	}
 	
-	return JS_NewDoubleValue(context, value, outValue);
+	return JS_NewDoubleValue(context, fValue, value);
 	
 	OOJS_PROFILE_EXIT
 }
 
 
-static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool QuaternionSetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_PROFILE_ENTER
 	
 	Quaternion			quaternion;
 	jsdouble			dval;
 	
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quaternion))) return NO;
 	if (EXPECT_NOT(!JS_ValueToNumber(context, *value, &dval)))
 	{
@@ -419,7 +419,7 @@ static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval na
 		return NO;
 	}
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kQuaternion_w:
 			quaternion.w = dval;
@@ -438,7 +438,7 @@ static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Quaternion", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Quaternion", OOJS_PROPID_INT);
 			return NO;
 	}
 	

@@ -50,8 +50,8 @@ DEFINE_JS_OBJECT_GETTER(JSShipGetShipEntity, ShipEntity)
 static JSObject *sShipPrototype;
 
 
-static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool ShipGetProperty(OOJS_PROP_ARGS);
+static JSBool ShipSetProperty(OOJS_PROP_ARGS);
 
 static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -342,9 +342,9 @@ JSObject *JSShipPrototype(void)
 }
 
 
-static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool ShipGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -353,10 +353,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 	id							result = nil;
 	
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;	// NOTE: entity may be nil.
-	if (EXPECT_NOT([entity isPlayer] && [UNIVERSE blockJSPlayerShipProps])) {*outValue = JSVAL_VOID; return YES;}
+	if (EXPECT_NOT([entity isPlayer] && [UNIVERSE blockJSPlayerShipProps])) {*value = JSVAL_VOID; return YES;}
 	if (EXPECT_NOT(!JS_EnterLocalRootScope(context)))  return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kShip_name:
 			result = [entity name];
@@ -387,15 +387,15 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 			
 		case kShip_fuel:
-			OK = JS_NewDoubleValue(context, [entity fuel] * 0.1, outValue);
+			OK = JS_NewDoubleValue(context, [entity fuel] * 0.1, value);
 			break;
 			
 		case kShip_fuelChargeRate:
-			OK = JS_NewDoubleValue(context, [entity fuelChargeRate], outValue);
+			OK = JS_NewDoubleValue(context, [entity fuelChargeRate], value);
 			break;
 			
 		case kShip_bounty:
-			*outValue = INT_TO_JSVAL([entity bounty]);
+			*value = INT_TO_JSVAL([entity bounty]);
 			OK = YES;
 			break;
 			
@@ -405,12 +405,12 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 			
 		case kShip_subEntityCapacity:
-			*outValue = INT_TO_JSVAL([entity maxShipSubEntities]);
+			*value = INT_TO_JSVAL([entity maxShipSubEntities]);
 			OK = YES;
 			break;
 			
 		case kShip_hasSuspendedAI:
-			*outValue = BOOLToJSVal([[entity getAI] hasSuspendedStateMachines]);
+			*value = BOOLToJSVal([[entity getAI] hasSuspendedStateMachines]);
 			OK = YES;
 			break;
 			
@@ -436,24 +436,24 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 			
 		case kShip_temperature:
-			OK = JS_NewDoubleValue(context, [entity temperature] / SHIP_MAX_CABIN_TEMP, outValue);
+			OK = JS_NewDoubleValue(context, [entity temperature] / SHIP_MAX_CABIN_TEMP, value);
 			break;
 			
 		case kShip_heatInsulation:
-			OK = JS_NewDoubleValue(context, [entity heatInsulation], outValue);
+			OK = JS_NewDoubleValue(context, [entity heatInsulation], value);
 			break;
 			
 		case kShip_heading:
-			OK = VectorToJSValue(context, [entity forwardVector], outValue);
+			OK = VectorToJSValue(context, [entity forwardVector], value);
 			break;
 			
 		case kShip_entityPersonality:
-			*outValue = INT_TO_JSVAL([entity entityPersonalityInt]);
+			*value = INT_TO_JSVAL([entity entityPersonalityInt]);
 			OK = YES;
 			break;
 			
 		case kShip_isBeacon:
-			*outValue = BOOLToJSVal([entity isBeacon]);
+			*value = BOOLToJSVal([entity isBeacon]);
 			OK = YES;
 			break;
 			
@@ -463,17 +463,17 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_isFrangible:
-			*outValue = BOOLToJSVal([entity isFrangible]);
+			*value = BOOLToJSVal([entity isFrangible]);
 			OK = YES;
 			break;
 		
 		case kShip_isCloaked:
-			*outValue = BOOLToJSVal([entity isCloaked]);
+			*value = BOOLToJSVal([entity isCloaked]);
 			OK = YES;
 			break;
 			
 		case kShip_isJamming:
-			*outValue = BOOLToJSVal([entity isJammingScanning]);
+			*value = BOOLToJSVal([entity isJammingScanning]);
 			OK = YES;
 			break;
 		
@@ -483,58 +483,58 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_hasHostileTarget:
-			*outValue = BOOLToJSVal([entity hasHostileTarget]);
+			*value = BOOLToJSVal([entity hasHostileTarget]);
 			OK = YES;
 			break;
 		
 		case kShip_hasHyperspaceMotor:
-			*outValue = BOOLToJSVal([entity hasHyperspaceMotor]);
+			*value = BOOLToJSVal([entity hasHyperspaceMotor]);
 			OK = YES;
 			break;
 		
 		case kShip_weaponRange:
-			OK = JS_NewDoubleValue(context, [entity weaponRange], outValue);
+			OK = JS_NewDoubleValue(context, [entity weaponRange], value);
 			break;
 		
 		case kShip_scannerRange:
-			OK = JS_NewDoubleValue(context, [entity scannerRange], outValue);
+			OK = JS_NewDoubleValue(context, [entity scannerRange], value);
 			break;
 		
 		case kShip_reportAIMessages:
-			*outValue = BOOLToJSVal([entity reportAIMessages]);
+			*value = BOOLToJSVal([entity reportAIMessages]);
 			OK = YES;
 			break;
 		
 		case kShip_withinStationAegis:
-			*outValue = BOOLToJSVal([entity withinStationAegis]);
+			*value = BOOLToJSVal([entity withinStationAegis]);
 			OK = YES;
 			break;
 			
 		case kShip_cargoSpaceCapacity:
-			*outValue = INT_TO_JSVAL([entity maxCargo]);
+			*value = INT_TO_JSVAL([entity maxCargo]);
 			OK = YES;
 			break;
 			
 		case kShip_cargoSpaceUsed:
-			*outValue = INT_TO_JSVAL([entity maxCargo] - [entity availableCargoSpace]);
+			*value = INT_TO_JSVAL([entity maxCargo] - [entity availableCargoSpace]);
 			OK = YES;
 			break;
 			
 		case kShip_cargoSpaceAvailable:
-			*outValue = INT_TO_JSVAL([entity availableCargoSpace]);
+			*value = INT_TO_JSVAL([entity availableCargoSpace]);
 			OK = YES;
 			break;
 			
 		case kShip_speed:
-			OK = JS_NewDoubleValue(context, [entity flightSpeed], outValue);
+			OK = JS_NewDoubleValue(context, [entity flightSpeed], value);
 			break;
 			
 		case kShip_desiredSpeed:
-			OK = JS_NewDoubleValue(context, [entity desiredSpeed], outValue);
+			OK = JS_NewDoubleValue(context, [entity desiredSpeed], value);
 			break;
 			
 		case kShip_maxSpeed:
-			OK = JS_NewDoubleValue(context, [entity maxFlightSpeed], outValue);
+			OK = JS_NewDoubleValue(context, [entity maxFlightSpeed], value);
 			break;
 			
 		case kShip_script:
@@ -543,72 +543,72 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 			
 		case kShip_isPirate:
-			*outValue = BOOLToJSVal([entity isPirate]);
+			*value = BOOLToJSVal([entity isPirate]);
 			OK = YES;
 			break;
 			
 		case kShip_isPlayer:
-			*outValue = BOOLToJSVal([entity isPlayer]);
+			*value = BOOLToJSVal([entity isPlayer]);
 			OK = YES;
 			break;
 			
 		case kShip_isPolice:
-			*outValue = BOOLToJSVal([entity isPolice]);
+			*value = BOOLToJSVal([entity isPolice]);
 			OK = YES;
 			break;
 			
 		case kShip_isThargoid:
-			*outValue = BOOLToJSVal([entity isThargoid]);
+			*value = BOOLToJSVal([entity isThargoid]);
 			OK = YES;
 			break;
 			
 		case kShip_isTrader:
-			*outValue = BOOLToJSVal([entity isTrader]);
+			*value = BOOLToJSVal([entity isTrader]);
 			OK = YES;
 			break;
 			
 		case kShip_isPirateVictim:
-			*outValue = BOOLToJSVal([entity isPirateVictim]);
+			*value = BOOLToJSVal([entity isPirateVictim]);
 			OK = YES;
 			break;
 			
 		case kShip_isMissile:
-			*outValue = BOOLToJSVal([entity isMissile]);
+			*value = BOOLToJSVal([entity isMissile]);
 			OK = YES;
 			break;
 			
 		case kShip_isMine:
-			*outValue = BOOLToJSVal([entity isMine]);
+			*value = BOOLToJSVal([entity isMine]);
 			OK = YES;
 			break;
 			
 		case kShip_isWeapon:
-			*outValue = BOOLToJSVal([entity isWeapon]);
+			*value = BOOLToJSVal([entity isWeapon]);
 			OK = YES;
 			break;
 			
 		case kShip_isRock:
-			*outValue = BOOLToJSVal([entity scanClass] == CLASS_ROCK);	// hermits and asteroids!
+			*value = BOOLToJSVal([entity scanClass] == CLASS_ROCK);	// hermits and asteroids!
 			OK = YES;
 			break;
 			
 		case kShip_isBoulder:
-			*outValue = BOOLToJSVal([entity isBoulder]);
+			*value = BOOLToJSVal([entity isBoulder]);
 			OK = YES;
 			break;
 			
 		case kShip_isCargo:
-			*outValue = BOOLToJSVal([entity scanClass] == CLASS_CARGO && [entity commodityAmount] > 0);
+			*value = BOOLToJSVal([entity scanClass] == CLASS_CARGO && [entity commodityAmount] > 0);
 			OK = YES;
 			break;
 			
 		case kShip_isDerelict:
-			*outValue = BOOLToJSVal([entity isHulk]);
+			*value = BOOLToJSVal([entity isHulk]);
 			OK = YES;
 			break;
 			
 		case kShip_isPiloted:
-			*outValue = BOOLToJSVal([entity isPlayer] || [[entity crew] count] > 0);
+			*value = BOOLToJSVal([entity isPlayer] || [[entity crew] count] > 0);
 			OK = YES;
 			break;
 			
@@ -618,31 +618,31 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 			
 		case kShip_trackCloseContacts:
-			*outValue = BOOLToJSVal([entity trackCloseContacts]);
+			*value = BOOLToJSVal([entity trackCloseContacts]);
 			OK = YES;
 			break;
 			
 		case kShip_passengerCount:
-			*outValue = INT_TO_JSVAL([entity passengerCount]);
+			*value = INT_TO_JSVAL([entity passengerCount]);
 			OK = YES;
 			break;
 			
 		case kShip_passengerCapacity:
-			*outValue = INT_TO_JSVAL([entity passengerCapacity]);
+			*value = INT_TO_JSVAL([entity passengerCapacity]);
 			OK = YES;
 			break;
 
 		case kShip_missileCapacity:
-			*outValue = INT_TO_JSVAL([entity missileCapacity]);
+			*value = INT_TO_JSVAL([entity missileCapacity]);
 			OK = YES;
 			break;
 			
 		case kShip_missileLoadTime:
-			OK = JS_NewDoubleValue(context, [entity missileLoadTime], outValue);
+			OK = JS_NewDoubleValue(context, [entity missileLoadTime], value);
 			break;
 		
 		case kShip_savedCoordinates:
-			OK = VectorToJSValue(context, [entity coordinates], outValue);
+			OK = VectorToJSValue(context, [entity coordinates], value);
 			break;
 		
 		case kShip_equipment:
@@ -692,45 +692,45 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_maxThrust:
-			OK = JS_NewDoubleValue(context, [entity maxThrust], outValue);
+			OK = JS_NewDoubleValue(context, [entity maxThrust], value);
 			break;
 			
 		case kShip_thrust:
-			OK = JS_NewDoubleValue(context, [entity thrust], outValue);
+			OK = JS_NewDoubleValue(context, [entity thrust], value);
 			break;
 			
 		case kShip_lightsActive:
-			*outValue = BOOLToJSVal([entity lightsActive]);
+			*value = BOOLToJSVal([entity lightsActive]);
 			OK = YES;
 			break;
 			
 		case kShip_vectorRight:
-			OK = VectorToJSValue(context, [entity rightVector], outValue);
+			OK = VectorToJSValue(context, [entity rightVector], value);
 			break;
 			
 		case kShip_vectorForward:
-			OK = VectorToJSValue(context, [entity forwardVector], outValue);
+			OK = VectorToJSValue(context, [entity forwardVector], value);
 			break;
 			
 		case kShip_vectorUp:
-			OK = VectorToJSValue(context, [entity upVector], outValue);
+			OK = VectorToJSValue(context, [entity upVector], value);
 			break;
 			
 		case kShip_velocity:
-			OK = VectorToJSValue(context, [entity velocity], outValue);
+			OK = VectorToJSValue(context, [entity velocity], value);
 			break;
 			
 		case kShip_thrustVector:
-			OK = VectorToJSValue(context, [entity thrustVector], outValue);
+			OK = VectorToJSValue(context, [entity thrustVector], value);
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Ship", OOJS_PROPID_INT);
 	}
 	
 	if (result != nil)
 	{
-		*outValue = [result javaScriptValueInContext:context];
+		*value = [result javaScriptValueInContext:context];
 		OK = YES;
 	}
 	JS_LeaveLocalRootScope(context);
@@ -740,9 +740,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 }
 
 
-static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -760,7 +760,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
 	if (EXPECT_NOT([entity isPlayer] && [UNIVERSE blockJSPlayerShipProps])) { *value = JSVAL_VOID; return YES;}
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kShip_name:
 			if ([entity isPlayer])
@@ -1012,7 +1012,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Ship", OOJS_PROPID_INT);
 	}
 	if (OK == NO)
 	{

@@ -38,8 +38,8 @@ static OOSystemID sCachedSystem;
 
 
 static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
-static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS);
+static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS);
 static void SystemInfoFinalize(JSContext *context, JSObject *this);
 static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -343,7 +343,7 @@ static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsval
 }
 
 
-static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 {
 	volatile NSPoint coords;
 	
@@ -361,11 +361,11 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 	BOOL sameGalaxy = [[PlayerEntity sharedPlayer] currentGalaxyID] == [info galaxy];
 	
 	
-	if (JSVAL_IS_INT(name))
+	if (OOJS_PROPID_IS_INT)
 	{
 		BOOL OK = NO;
 		
-		switch (JSVAL_TO_INT(name))
+		switch (OOJS_PROPID_INT)
 		{
 			case kSystemInfo_coordinates:
 				if (sameGalaxy && !savedInterstellarInfo)
@@ -374,60 +374,59 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 					// Convert from internal scale to light years.
 					coords.x *= 0.4;
 					coords.y *= 0.2; // y-axis had a different scale than x-axis
-					OK = NSPointToVectorJSValue(context, coords, outValue);
+					OK = NSPointToVectorJSValue(context, coords, value);
 				}
 				else
 				{
 					OOReportJSError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ? @"invalid interstellar space reference" : @"other galaxies");
-					*outValue = JSVAL_VOID;
+					*value = JSVAL_VOID;
 					// OK remains NO
 				}
 				break;
 				
 			case kSystemInfo_galaxyID:
-				*outValue = INT_TO_JSVAL([info galaxy]);
+				*value = INT_TO_JSVAL([info galaxy]);
 				OK = YES;
 				break;
 				
 			case kSystemInfo_systemID:
-				*outValue = INT_TO_JSVAL([info system]);
+				*value = INT_TO_JSVAL([info system]);
 				OK = YES;
 				break;
 				
 			default:
-				OOReportJSBadPropertySelector(context, @"SystemInfo", JSVAL_TO_INT(name));
+				OOReportJSBadPropertySelector(context, @"SystemInfo", OOJS_PROPID_INT);
 		}
 		
 		return OK;
 	}
-	else if (JSVAL_IS_STRING(name))
+	else if (OOJS_PROPID_IS_STRING)
 	{
-		NSString		*key = [NSString stringWithJavaScriptValue:name inContext:context];
-		id				value = nil;
+		NSString		*key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 		
 		if (!sameGalaxy || savedInterstellarInfo)
 		{
 			OOReportJSError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ?  @"invalid interstellar space reference" : @"other galaxies");
-			*outValue = JSVAL_VOID;
+			*value = JSVAL_VOID;
 			return NO;
 		}
 		
-		value = [info valueForKey:key];
+		id propValue = [info valueForKey:key];
 		
-		if (value != nil)
+		if (propValue != nil)
 		{
-			if ([value isKindOfClass:[NSNumber class]] || OOIsNumberLiteral(value, YES))
+			if ([propValue isKindOfClass:[NSNumber class]] || OOIsNumberLiteral(propValue, YES))
 			{
-				BOOL OK = JS_NewDoubleValue(context, [value doubleValue], outValue);
+				BOOL OK = JS_NewDoubleValue(context, [propValue doubleValue], value);
 				if (!OK)
 				{
-					*outValue = JSVAL_VOID;
+					*value = JSVAL_VOID;
 					return NO;
 				}
 			}
 			else
 			{
-				*outValue = [value javaScriptValueInContext:context];
+				*value = [propValue javaScriptValueInContext:context];
 			}
 		}
 	}
@@ -437,7 +436,7 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 }
 
 
-static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS)
 {
 	if (this == sSystemInfoPrototype)
 	{
@@ -447,9 +446,9 @@ static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsval na
 	
 	OOJS_NATIVE_ENTER(context);
 	
-	if (JSVAL_IS_STRING(name))
+	if (OOJS_PROPID_IS_STRING)
 	{
-		NSString		*key = [NSString stringWithJavaScriptValue:name inContext:context];
+		NSString		*key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 		OOSystemInfo	*info = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
 		
 		[info setValue:JSValToNSString(context, *value) forKey:key];

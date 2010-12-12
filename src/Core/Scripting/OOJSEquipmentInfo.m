@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 static JSObject *sEquipmentInfoPrototype;
 
 
-static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS);
 static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 
 static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -200,9 +200,9 @@ NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *ou
 
 // *** Implementation stuff ***
 
-static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -212,7 +212,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 	eqType = JSObjectToObjectOfClass(context, this, [OOEquipmentType class]);
 	if (EXPECT_NOT(eqType == nil))  return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kEquipmentInfo_equipmentKey:
 			result = [eqType identifier];
@@ -223,11 +223,11 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			break;
 			
 		case kEquipmentInfo_canCarryMultiple:
-			*outValue = BOOLToJSVal([eqType canCarryMultiple]);
+			*value = BOOLToJSVal([eqType canCarryMultiple]);
 			break;
 			
 		case kEquipmentInfo_canBeDamaged:
-			*outValue = BOOLToJSVal([eqType canBeDamaged]);
+			*value = BOOLToJSVal([eqType canBeDamaged]);
 			break;
 			
 		case kEquipmentInfo_description:
@@ -235,71 +235,71 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			break;
 			
 		case kEquipmentInfo_techLevel:
-			*outValue = INT_TO_JSVAL([eqType techLevel]);
+			*value = INT_TO_JSVAL([eqType techLevel]);
 			break;
 			
 		case kEquipmentInfo_effectiveTechLevel:
-			*outValue = INT_TO_JSVAL([eqType effectiveTechLevel]);
+			*value = INT_TO_JSVAL([eqType effectiveTechLevel]);
 			break;
 			
 		case kEquipmentInfo_price:
-			*outValue = INT_TO_JSVAL([eqType price]);
+			*value = INT_TO_JSVAL([eqType price]);
 			break;
 			
 		case kEquipmentInfo_isAvailableToAll:
-			*outValue = BOOLToJSVal([eqType isAvailableToAll]);
+			*value = BOOLToJSVal([eqType isAvailableToAll]);
 			break;
 			
 		case kEquipmentInfo_isAvailableToNPCs:
-			*outValue = BOOLToJSVal([eqType isAvailableToNPCs]);
+			*value = BOOLToJSVal([eqType isAvailableToNPCs]);
 			break;
 			
 		case kEquipmentInfo_isAvailableToPlayer:
-			*outValue = BOOLToJSVal([eqType isAvailableToPlayer]);
+			*value = BOOLToJSVal([eqType isAvailableToPlayer]);
 			break;
 			
 		case kEquipmentInfo_requiresEmptyPylon:
-			*outValue = BOOLToJSVal([eqType requiresEmptyPylon]);
+			*value = BOOLToJSVal([eqType requiresEmptyPylon]);
 			break;
 			
 		case kEquipmentInfo_requiresMountedPylon:
-			*outValue = BOOLToJSVal([eqType requiresMountedPylon]);
+			*value = BOOLToJSVal([eqType requiresMountedPylon]);
 			break;
 			
 		case kEquipmentInfo_requiresCleanLegalRecord:
-			*outValue = BOOLToJSVal([eqType requiresCleanLegalRecord]);
+			*value = BOOLToJSVal([eqType requiresCleanLegalRecord]);
 			break;
 			
 		case kEquipmentInfo_requiresNonCleanLegalRecord:
-			*outValue = BOOLToJSVal([eqType requiresNonCleanLegalRecord]);
+			*value = BOOLToJSVal([eqType requiresNonCleanLegalRecord]);
 			break;
 			
 		case kEquipmentInfo_requiresFreePassengerBerth:
-			*outValue = BOOLToJSVal([eqType requiresFreePassengerBerth]);
+			*value = BOOLToJSVal([eqType requiresFreePassengerBerth]);
 			break;
 			
 		case kEquipmentInfo_requiresFullFuel:
-			*outValue = BOOLToJSVal([eqType requiresFullFuel]);
+			*value = BOOLToJSVal([eqType requiresFullFuel]);
 			break;
 			
 		case kEquipmentInfo_requiresNonFullFuel:
-			*outValue = BOOLToJSVal([eqType requiresNonFullFuel]);
+			*value = BOOLToJSVal([eqType requiresNonFullFuel]);
 			break;
 			
 		case kEquipmentInfo_isExternalStore:
-			*outValue = BOOLToJSVal([eqType isMissileOrMine]);
+			*value = BOOLToJSVal([eqType isMissileOrMine]);
 			break;
 			
 		case kEquipmentInfo_isPortableBetweenShips:
-			*outValue = BOOLToJSVal([eqType isPortableBetweenShips]);
+			*value = BOOLToJSVal([eqType isPortableBetweenShips]);
 			break;
 			
 		case kEquipmentInfo_isVisible:
-			*outValue = BOOLToJSVal([eqType isVisible]);
+			*value = BOOLToJSVal([eqType isVisible]);
 			break;
 			
 		case kEquipmentInfo_requiredCargoSpace:
-			*outValue = BOOLToJSVal([eqType requiredCargoSpace]);
+			*value = BOOLToJSVal([eqType requiredCargoSpace]);
 			break;
 			
 		case kEquipmentInfo_requiresEquipment:
@@ -325,13 +325,13 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"EquipmentInfo", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"EquipmentInfo", OOJS_PROPID_INT);
 			return NO;
 	}
 	
 	if (result != nil)
 	{
-		*outValue = [result javaScriptValueInContext:context];
+		*value = [result javaScriptValueInContext:context];
 	}
 	return YES;
 	
@@ -339,9 +339,9 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 }
 
 
-static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool EquipmentInfoSetProperty(OOJS_PROP_ARGS)
 {
-	if (!JSVAL_IS_INT(name))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -352,7 +352,7 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval
 	eqType = JSObjectToObjectOfClass(context, this, [OOEquipmentType class]);
 	if (EXPECT_NOT(eqType == nil))  return NO;
 	
-	switch (JSVAL_TO_INT(name))
+	switch (OOJS_PROPID_INT)
 	{
 		case kEquipmentInfo_effectiveTechLevel:
 			if ([eqType techLevel] != kOOVariableTechLevel)  return YES;	// Only TL-99 items can be modified in this way
@@ -375,7 +375,7 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"EquipmentInfo", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"EquipmentInfo", OOJS_PROPID_INT);
 	}
 	
 	return OK;

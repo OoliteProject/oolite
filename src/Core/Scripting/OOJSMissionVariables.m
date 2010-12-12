@@ -32,19 +32,29 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 
 
-static NSString *KeyForName(JSContext *context, jsval name)
+#if OO_NEW_JS
+typedef jsid PropertyID;
+#define PROP_IS_STRING JSID_IS_STRING
+#define PROP_TO_STRING JSID_TO_STRING
+#else
+typedef jsval PropertyID;
+#define PROP_IS_STRING JSVAL_IS_STRING
+#define PROP_TO_STRING JSVAL_TO_STRING
+#endif
+
+static NSString *KeyForPropertyID(JSContext *context, PropertyID propID)
 {
-	NSCParameterAssert(JSVAL_IS_STRING(name));
+	NSCParameterAssert(PROP_IS_STRING(propID));
 	
-	NSString *key = [NSString stringWithJavaScriptString:JSVAL_TO_STRING(name)];
+	NSString *key = [NSString stringWithJavaScriptString:PROP_TO_STRING(propID)];
 	if ([key hasPrefix:@"_"])  return nil;
 	return [@"mission_" stringByAppendingString:key];
 }
 
 
 static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool MissionVariablesGetProperty(OOJS_PROP_ARGS);
+static JSBool MissionVariablesSetProperty(OOJS_PROP_ARGS);
 static JSBool MissionVariablesEnumerate(JSContext *cx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp);
 
 
@@ -70,15 +80,15 @@ void InitOOJSMissionVariables(JSContext *context, JSObject *global)
 }
 
 
-static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool MissionVariablesDeleteProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity				*player = OOPlayerForScripting();
 	
-	if (JSVAL_IS_STRING(name))
+	if (OOJS_PROPID_IS_STRING)
 	{
-		NSString	*key = KeyForName(context, name);
+		NSString *key = KeyForPropertyID(context, propID);
 		[player setMissionVariable:nil forKey:key];
 	}
 	return YES;
@@ -87,42 +97,42 @@ static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this,
 }
 
 
-static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool MissionVariablesGetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity				*player = OOPlayerForScripting();
 	
-	if (JSVAL_IS_STRING(name))
+	if (OOJS_PROPID_IS_STRING)
 	{
-		NSString *key = KeyForName(context, name);
+		NSString *key = KeyForPropertyID(context, propID);
 		if (key == nil)  return YES;
 		
-		id value = [player missionVariableForKey:key];
+		id mvar = [player missionVariableForKey:key];
 		
-		*outValue = JSVAL_VOID;
-		if ([value isKindOfClass:[NSString class]])	// Currently there should only be strings, but we may want to change this.
+		*value = JSVAL_VOID;
+		if ([mvar isKindOfClass:[NSString class]])	// Currently there should only be strings, but we may want to change this.
 		{
-			if (OOIsNumberLiteral(value, YES))
+			if (OOIsNumberLiteral(mvar, YES))
 			{
-				BOOL OK = JS_NewDoubleValue(context, [value doubleValue], outValue);
-				if (!OK) *outValue = JSVAL_VOID;
+				BOOL OK = JS_NewDoubleValue(context, [mvar doubleValue], value);
+				if (!OK) *value = JSVAL_VOID;
 			}
 		}
 		
-		if (value != nil && JSVAL_IS_VOID(*outValue))
+		if (mvar != nil && JSVAL_IS_VOID(*value))
 		{
-			*outValue = [value javaScriptValueInContext:context];
+			*value = [mvar javaScriptValueInContext:context];
 		}
 		
-		if (JSVAL_IS_VOID(*outValue))
+		if (JSVAL_IS_VOID(*value))
 		{
 			/*	"undefined" is the normal JS expectation, but "null" is easier
 				to deal with. For instance, foo = missionVaraibles.undefinedThing
 				is an error if JSVAL_VOID is used, but fine if JSVAL_NULL is
 				used.
 			*/
-			*outValue = JSVAL_NULL;
+			*value = JSVAL_NULL;
 		}
 	}
 	return YES;
@@ -131,15 +141,15 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 }
 
 
-static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool MissionVariablesSetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity				*player = OOPlayerForScripting();
 	
-	if (JSVAL_IS_STRING(name))
+	if (OOJS_PROPID_IS_STRING)
 	{
-		NSString *key = KeyForName(context, name);
+		NSString *key = KeyForPropertyID(context, propID);
 		if (key == nil)
 		{
 			OOReportJSError(context, @"Mission variable names may not begin with an underscore.");
