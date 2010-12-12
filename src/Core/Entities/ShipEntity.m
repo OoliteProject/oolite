@@ -1245,8 +1245,15 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	}
 	[escortGroup setLeader:self];
 	
-	pilotRole = bounty ? @"pirate" : @"hunter"; // hunters have insurancies, pirates not.
-	
+	if ([self isPolice])
+	{
+		pilotRole = @"police"; // police are always insured.
+	}
+	else
+	{
+		pilotRole = bounty ? @"pirate" : @"hunter"; // hunters have insurancies, pirates not.
+	}
+
 	while (_pendingEscortCount > 0)
 	{
 		Vector ex_pos = [self coordinatesForEscortPosition:[escortGroup count] - 1]; // this adds ship 1 on position 1 etc. 
@@ -9094,20 +9101,18 @@ BOOL class_masslocks(int some_class)
 	{
 		return NO;
 	}
-	BOOL isEscort = [self isEscort];
-	//police has to be checked first!
-	if (!isEscort && [self hasPrimaryRole:@"police"]) // interceptors always should have police as primaryRole.
+	if (scanClass != [potentialEscort scanClass]) // this makes sure that wingman can only select police.
 	{
-		return [potentialEscort hasPrimaryRole:@"wingman"];
+		return NO;
 	}
 	if ([self bounty] == 0 && [potentialEscort bounty] != 0) // clean mothers can only accept clean escorts
 	{
 		return NO;
 	}
-	if (!isEscort)
+	if (![self isEscort]) // self is NOT wingman or escort
 	{
-		return [potentialEscort hasPrimaryRole:@"escort"];
-	}
+		return [potentialEscort isEscort]; // is wingman or escort
+	}	
 	return NO;
 }
 	
