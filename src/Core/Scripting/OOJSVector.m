@@ -1032,7 +1032,7 @@ static JSBool VectorStaticRandomDirectionAndLength(JSContext *context, JSObject 
 	
 	if (argc == 0 || !NumberFromArgumentListNoError(context, argc, argv, &maxLength, NULL))  maxLength = 1.0;
 	
-	return VectorToJSValue(context, OOVectorRandomSpatial(maxLength), outResult);
+	return VectorToJSValue(context, OOVectorRandomRadial(maxLength), outResult);
 	
 	OOJS_PROFILE_EXIT
 }
