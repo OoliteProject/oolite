@@ -42,9 +42,9 @@ static OOSound *GetNamedSound(NSString *name);
 static JSBool SoundGetProperty(OOJS_PROP_ARGS);
 
 // Static methods
-static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS);
+static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS);
+static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS);
 
 
 static JSClass sSoundClass =
@@ -171,7 +171,7 @@ static OOSound *GetNamedSound(NSString *name)
 // *** Static methods ***
 
 // load(name : String) : Sound
-static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -198,7 +198,7 @@ static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, js
 
 
 // playMusic(name : String [, loop : Boolean])
-static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -230,7 +230,7 @@ static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN arg
 }
 
 
-static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

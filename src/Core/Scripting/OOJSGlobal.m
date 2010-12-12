@@ -57,15 +57,15 @@ extern NSString * const kOOLogDebugMessage;
 static JSBool GlobalGetProperty(OOJS_PROP_ARGS);
 static JSBool GlobalSetProperty(OOJS_PROP_ARGS);
 
-static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool GlobalTakeSnapShot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool GlobalLog(OOJS_NATIVE_ARGS);
+static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS);
+static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS);
+static JSBool GlobalDisplayNameForCommodity(OOJS_NATIVE_ARGS);
+static JSBool GlobalRandomName(OOJS_NATIVE_ARGS);
+static JSBool GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS);
+static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS);
+static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS);
+static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS);
 
 
 static JSClass sGlobalClass =
@@ -203,7 +203,7 @@ static JSBool GlobalSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // log([messageClass : String,] message : string, ...)
-static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool GlobalLog(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -238,7 +238,7 @@ static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *a
 
 
 // expandDescription(description : String [, overrides : object (dictionary)]) : String
-static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -266,7 +266,7 @@ static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN 
 
 
 // expandMissionText(textKey : String [, overrides : object (dictionary)]) : String
-static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -305,7 +305,7 @@ static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN 
 
 
 // displayNameForCommodity(commodityName : String) : String
-static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool GlobalDisplayNameForCommodity(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -327,7 +327,7 @@ static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, 
 
 
 // randomName() : String
-static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool GlobalRandomName(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -343,7 +343,7 @@ static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, j
 
 
 // randomInhabitantsDescription() : String
-static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -364,7 +364,7 @@ static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *t
 
 
 // setScreenBackground(name : String) : Boolean
-static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -386,7 +386,7 @@ static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uint
 
 
 // setScreenOverlay(name : String) : Boolean
-static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -405,7 +405,7 @@ static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN a
 
 
 // takeSnapShot([name : alphanumeric String]) : Boolean
-static JSBool GlobalTakeSnapShot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

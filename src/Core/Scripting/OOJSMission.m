@@ -34,12 +34,12 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 
 
-static JSBool MissionMarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionUnmarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool MissionMarkSystem(OOJS_NATIVE_ARGS);
+static JSBool MissionUnmarkSystem(OOJS_NATIVE_ARGS);
+static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS);
+static JSBool MissionSetInstructions(OOJS_NATIVE_ARGS);
+static JSBool MissionSetInstructionsKey(OOJS_NATIVE_ARGS);
+static JSBool MissionRunScreen(OOJS_NATIVE_ARGS);
 
 //  Mission screen  callback varibables
 static jsval			sCallbackFunction = JSVAL_NULL;
@@ -178,7 +178,7 @@ static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc,
 
 
 // addMessageText(text : String)
-static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -197,7 +197,7 @@ static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN ar
 
 
 // setInstructionsKey(instructionsKey: String [, missionKey : String])
-static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool MissionSetInstructionsKey(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -209,7 +209,7 @@ static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uint
 
 
 // setInstructions(instructions: String [, missionKey : String])
-static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool MissionSetInstructions(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -260,7 +260,7 @@ OOINLINE NSString *GetParameterString(JSContext *context, JSObject *object, cons
 
 
 // runScreen(params: dict, callBack:function) - if the callback function is null, emulate the old style runMissionScreen
-static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

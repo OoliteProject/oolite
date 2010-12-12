@@ -173,11 +173,11 @@ static JSClass sTimerClass;
 static JSBool TimerGetProperty(OOJS_PROP_ARGS);
 static JSBool TimerSetProperty(OOJS_PROP_ARGS);
 static void TimerFinalize(JSContext *context, JSObject *this);
-static JSBool TimerConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool TimerConstruct(OOJS_NATIVE_ARGS);
 
 // Methods
-static JSBool TimerStart(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool TimerStop(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool TimerStart(OOJS_NATIVE_ARGS);
+static JSBool TimerStop(OOJS_NATIVE_ARGS);
 
 
 static JSClass sTimerClass =
@@ -427,7 +427,7 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 // *** Methods ***
 
 // start() : Boolean
-static JSBool TimerStart(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool TimerStart(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -443,7 +443,7 @@ static JSBool TimerStart(JSContext *context, JSObject *this, uintN argc, jsval *
 
 
 // stop()
-static JSBool TimerStop(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool TimerStop(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

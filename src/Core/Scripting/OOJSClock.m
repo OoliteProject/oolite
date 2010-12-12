@@ -35,9 +35,9 @@ MA 02110-1301, USA.
 static JSBool ClockGetProperty(OOJS_PROP_ARGS);
 
 // Methods
-static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ClockClockStringForTime(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ClockAddSeconds(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool JSClockToString(OOJS_NATIVE_ARGS);
+static JSBool ClockClockStringForTime(OOJS_NATIVE_ARGS);
+static JSBool ClockAddSeconds(OOJS_NATIVE_ARGS);
 
 
 static JSClass sClockClass =
@@ -190,7 +190,7 @@ static JSBool ClockGetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // toString() : String
-static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool JSClockToString(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -202,7 +202,7 @@ static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, js
 
 
 // clockStringForTime(time : Number) : String
-static JSBool ClockClockStringForTime(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ClockClockStringForTime(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -218,7 +218,7 @@ static JSBool ClockClockStringForTime(JSContext *context, JSObject *this, uintN 
 
 
 // clockAddSeconds(seconds : Number) : String
-static JSBool ClockAddSeconds(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ClockAddSeconds(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

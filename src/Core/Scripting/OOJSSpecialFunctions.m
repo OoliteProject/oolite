@@ -29,8 +29,8 @@ MA 02110-1301, USA.
 static JSObject		*sSpecialFunctionsObject;
 
 
-static JSBool SpecialToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SpecialJSWarning(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SpecialToString(OOJS_NATIVE_ARGS);
+static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS);
 
 
 static JSFunctionSpec sSpecialFunctionsMethods[] =
@@ -63,7 +63,7 @@ OOJSValue *JSSpecialFunctionsObjectWrapper(JSContext *context)
 }
 
 
-static JSBool SpecialToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SpecialToString(OOJS_NATIVE_ARGS)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -74,7 +74,7 @@ static JSBool SpecialToString(JSContext *context, JSObject *this, uintN argc, js
 }
 
 
-static JSBool SpecialJSWarning(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS)
 {
 	OOJS_PROFILE_ENTER	// These functions are exception-safe
 	

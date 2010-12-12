@@ -34,12 +34,12 @@ static JSObject *sShipGroupPrototype;
 
 static JSBool ShipGroupGetProperty(OOJS_PROP_ARGS);
 static JSBool ShipGroupSetProperty(OOJS_PROP_ARGS);
-static JSBool ShipGroupConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipGroupConstruct(OOJS_NATIVE_ARGS);
 
 // Methods
-static JSBool ShipGroupAddShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipGroupRemoveShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipGroupContainsShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipGroupAddShip(OOJS_NATIVE_ARGS);
+static JSBool ShipGroupRemoveShip(OOJS_NATIVE_ARGS);
+static JSBool ShipGroupContainsShip(OOJS_NATIVE_ARGS);
 
 
 static JSClass sShipGroupClass =
@@ -271,7 +271,7 @@ static JSBool ShipGroupConstruct(JSContext *context, JSObject *inThis, uintN arg
 // *** Methods ***
 
 // addShip(ship : Ship)
-static JSBool ShipGroupAddShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipGroupAddShip(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -297,7 +297,7 @@ static JSBool ShipGroupAddShip(JSContext *context, JSObject *this, uintN argc, j
 
 
 // removeShip(ship : Ship)
-static JSBool ShipGroupRemoveShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipGroupRemoveShip(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -323,7 +323,7 @@ static JSBool ShipGroupRemoveShip(JSContext *context, JSObject *this, uintN argc
 
 
 // containsShip(ship : Ship) : Boolean
-static JSBool ShipGroupContainsShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipGroupContainsShip(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

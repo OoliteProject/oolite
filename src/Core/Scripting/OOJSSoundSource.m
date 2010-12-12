@@ -36,13 +36,13 @@ DEFINE_JS_OBJECT_GETTER(JSSoundSourceGetSoundSource, OOSoundSource)
 
 static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS);
 static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool SoundSourceConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SoundSourceConstruct(OOJS_NATIVE_ARGS);
 
 // Methods
-static JSBool SoundSourcePlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SoundSourceStop(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SoundSourcePlayOrRepeat(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SoundSourcePlaySound(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS);
+static JSBool SoundSourceStop(OOJS_NATIVE_ARGS);
+static JSBool SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS);
+static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS);
 
 
 static JSClass sSoundSourceClass =
@@ -104,7 +104,7 @@ void InitOOJSSoundSource(JSContext *context, JSObject *global)
 }
 
 
-static JSBool SoundSourceConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SoundSourceConstruct(OOJS_NATIVE_ARGS)
 {
 	OOSoundSource				*soundSource = nil;
 	
@@ -209,7 +209,7 @@ static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // play([count : Number])
-static JSBool SoundSourcePlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -240,7 +240,7 @@ static JSBool SoundSourcePlay(JSContext *context, JSObject *this, uintN argc, js
 
 
 // stop()
-static JSBool SoundSourceStop(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SoundSourceStop(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -259,7 +259,7 @@ static JSBool SoundSourceStop(JSContext *context, JSObject *this, uintN argc, js
 
 
 // playOrRepeat()
-static JSBool SoundSourcePlayOrRepeat(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -278,7 +278,7 @@ static JSBool SoundSourcePlayOrRepeat(JSContext *context, JSObject *this, uintN 
 
 
 // playSound(sound : SoundExpression [, count : Number])
-static JSBool SoundSourcePlaySound(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

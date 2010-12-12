@@ -48,38 +48,38 @@ static NSArray *FindJSVisibleEntities(EntityFilterPredicate predicate, void *par
 static NSArray *FindShips(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
 static NSComparisonResult CompareEntitiesByDistance(id a, id b, void *relativeTo);
 
-static JSBool AddShipsOrGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isGroup) NONNULL_FUNC;
+static JSBool AddShipsOrGroup(OOJS_NATIVE_ARGS, BOOL isGroup) NONNULL_FUNC;
 
 static JSBool SystemGetProperty(OOJS_PROP_ARGS);
 static JSBool SystemSetProperty(OOJS_PROP_ARGS);
 
-static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemCountEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemToString(OOJS_NATIVE_ARGS);
+static JSBool SystemAddPlanet(OOJS_NATIVE_ARGS);
+static JSBool SystemAddMoon(OOJS_NATIVE_ARGS);
+static JSBool SystemSendAllShipsAway(OOJS_NATIVE_ARGS);
+static JSBool SystemCountShipsWithPrimaryRole(OOJS_NATIVE_ARGS);
+static JSBool SystemCountShipsWithRole(OOJS_NATIVE_ARGS);
+static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS);
+static JSBool SystemShipsWithPrimaryRole(OOJS_NATIVE_ARGS);
+static JSBool SystemShipsWithRole(OOJS_NATIVE_ARGS);
+static JSBool SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS);
+static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS);
 
-static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemAddGroupToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemAddShips(OOJS_NATIVE_ARGS);
+static JSBool SystemAddGroup(OOJS_NATIVE_ARGS);
+static JSBool SystemAddShipsToRoute(OOJS_NATIVE_ARGS);
+static JSBool SystemAddGroupToRoute(OOJS_NATIVE_ARGS);
 
-static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemLegacyAddShips(OOJS_NATIVE_ARGS);
+static JSBool SystemLegacyAddSystemShips(OOJS_NATIVE_ARGS);
+static JSBool SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS);
+static JSBool SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS);
+static JSBool SystemLegacyAddShipsWithinRadius(OOJS_NATIVE_ARGS);
+static JSBool SystemLegacySpawnShip(OOJS_NATIVE_ARGS);
 
-static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemStaticInfoForSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemStaticSystemNameForID(OOJS_NATIVE_ARGS);
+static JSBool SystemStaticSystemIDForName(OOJS_NATIVE_ARGS);
+static JSBool SystemStaticInfoForSystem(OOJS_NATIVE_ARGS);
 
 
 static JSClass sSystemClass =
@@ -439,7 +439,7 @@ static JSBool SystemSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // toString() : String
-static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemToString(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -455,7 +455,7 @@ static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsv
 
 
 // addPlanet(key : String) : Planet
-static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemAddPlanet(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -482,7 +482,7 @@ static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, js
 
 
 // addMoon(key : String) : Planet
-static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemAddMoon(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -509,7 +509,7 @@ static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsva
 
 
 // sendAllShipsAway()
-static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemSendAllShipsAway(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -523,7 +523,7 @@ static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN a
 
 
 // countShipsWithPrimaryRole(role : String [, relativeTo : Entity [, range : Number]]) : Number
-static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemCountShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -554,7 +554,7 @@ static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, JSObject *this
 
 
 // countShipsWithRole(role : String [, relativeTo : Entity [, range : Number]]) : Number
-static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemCountShipsWithRole(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -585,7 +585,7 @@ static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN
 
 
 // shipsWithPrimaryRole(role : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
-static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -626,7 +626,7 @@ static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uin
 
 
 // shipsWithRole(role : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
-static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemShipsWithRole(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -667,7 +667,7 @@ static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc
 
 
 // countEntitiesWithScanClass(scanClass : String [, relativeTo : Entity [, range : Number]]) : Number
-static JSBool SystemCountEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -706,7 +706,7 @@ static JSBool SystemCountEntitiesWithScanClass(JSContext *context, JSObject *thi
 
 
 // entitiesWithScanClass(scanClass : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
-static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -755,7 +755,7 @@ static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, ui
 
 
 // filteredEntities(this : Object, predicate : Function [, relativeTo : Entity [, range : Number]]) : Array (Entity)
-static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -801,7 +801,7 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 
 
 // addShips(role : String, count : Number [, position: Vector [, radius: Number]]) : Array
-static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemAddShips(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -812,7 +812,7 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 
 
 // addGroup(role : String, count : Number [, position: Vector [, radius: Number]]) : Array
-static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemAddGroup(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -823,7 +823,7 @@ static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsv
 
 
 // addShipsToRoute(role : String, count : Number [, position: Number [, route: String]])
-static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemAddShipsToRoute(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -891,7 +891,7 @@ static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN ar
 
 
 // addGroupToRoute(role : String, count : Number,  position: Number[, route: String])
-static JSBool SystemAddGroupToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemAddGroupToRoute(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -910,7 +910,7 @@ static JSBool SystemAddGroupToRoute(JSContext *context, JSObject *this, uintN ar
 
 
 // legacy_addShips(role : String, count : Number)
-static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemLegacyAddShips(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -938,7 +938,7 @@ static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN arg
 
 
 // legacy_addSystemShips(role : String, count : Number, location : Number)
-static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemLegacyAddSystemShips(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -968,7 +968,7 @@ static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uin
 
 
 // legacy_addShipsAt(role : String, count : Number, coordScheme : String, coords : vectorExpression)
-static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1004,7 +1004,7 @@ static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN a
 
 
 // legacy_addShipsAtPrecisely(role : String, count : Number, coordScheme : String, coords : vectorExpression)
-static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1040,7 +1040,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this
 
 
 // legacy_addShipsWithinRadius(role : String, count : Number, coordScheme : String, coords : vectorExpression, radius : Number)
-static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemLegacyAddShipsWithinRadius(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1079,7 +1079,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *thi
 
 
 // legacy_spawnShip(key : string)
-static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemLegacySpawnShip(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1106,7 +1106,7 @@ static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN ar
 // *** Static methods ***
 
 // systemNameForID(ID : Number) : String
-static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemStaticSystemNameForID(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1126,7 +1126,7 @@ static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, ui
 
 
 // systemIDForName(name : String) : Number
-static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemStaticSystemIDForName(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1150,7 +1150,7 @@ static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, ui
 
 
 // infoForSystem(galaxyID : Number, systemID : Number) : SystemInfo
-static JSBool SystemStaticInfoForSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemStaticInfoForSystem(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1188,7 +1188,7 @@ static JSBool SystemStaticInfoForSystem(JSContext *context, JSObject *this, uint
 // *** Helper functions ***
 
 // Shared implementation of addShips() and addGroup().
-static JSBool AddShipsOrGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isGroup)
+static JSBool AddShipsOrGroup(OOJS_NATIVE_ARGS, BOOL isGroup)
 {
 	OOJS_PROFILE_ENTER
 	

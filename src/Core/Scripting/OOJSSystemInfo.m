@@ -41,9 +41,9 @@ static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsval
 static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS);
 static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS);
 static void SystemInfoFinalize(JSContext *context, JSObject *this);
-static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemInfoStaticFilteredSystems(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS);
+static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS);
+static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS);
 
 
 static JSClass sSystemInfoClass =
@@ -460,7 +460,7 @@ static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS)
 
 
 // distanceToSystem(sys : SystemInfo) : Number
-static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -494,7 +494,7 @@ static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uin
 
 
 // routeToSystem(sys : SystemInfo [, optimizedBy : String]) : Object
-static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -545,7 +545,7 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN 
 
 
 // filteredSystems(this : Object, predicate : Function) : Array
-static JSBool SystemInfoStaticFilteredSystems(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

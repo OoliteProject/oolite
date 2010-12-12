@@ -42,7 +42,7 @@ static JSBool ManifestDeleteProperty(OOJS_PROP_ARGS);
 static JSBool ManifestGetProperty(OOJS_PROP_ARGS);
 static JSBool ManifestSetProperty(OOJS_PROP_ARGS);
 
-static JSBool ManifestToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ManifestToString(OOJS_NATIVE_ARGS);
 
 
 static JSClass sManifestClass =
@@ -571,7 +571,7 @@ static JSBool ManifestSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // toString() : String
-static JSBool ManifestToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ManifestToString(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

@@ -36,7 +36,7 @@ static JSBool OoliteGetProperty(OOJS_PROP_ARGS);
 static NSString *VersionString(void);
 static NSArray *VersionComponents(void);
 
-static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool OoliteCompareVersion(OOJS_NATIVE_ARGS);
 
 
 static JSClass sOoliteClass =
@@ -157,7 +157,7 @@ static NSArray *VersionComponents(void)
 	if (0 < oolite.compareVersion("1.70"))  log("Old version of Oolite!")
 	else  this.doStuffThatRequires170()
 */
-static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool OoliteCompareVersion(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

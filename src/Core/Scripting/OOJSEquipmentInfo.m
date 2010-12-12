@@ -39,7 +39,7 @@ static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, js
 
 
 // Methods
-static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS);
 
 
 enum
@@ -429,7 +429,7 @@ static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, js
 // *** Static methods ***
 
 // infoForKey(key : String): EquipmentInfo
-static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

@@ -53,43 +53,43 @@ static JSObject *sShipPrototype;
 static JSBool ShipGetProperty(OOJS_PROP_ARGS);
 static JSBool ShipSetProperty(OOJS_PROP_ARGS);
 
-static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipSendAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipEjectSpecificItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipRemovePassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipRestoreSubEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipExitSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSetScript(OOJS_NATIVE_ARGS);
+static JSBool ShipSetAI(OOJS_NATIVE_ARGS);
+static JSBool ShipSwitchAI(OOJS_NATIVE_ARGS);
+static JSBool ShipExitAI(OOJS_NATIVE_ARGS);
+static JSBool ShipReactToAIMessage(OOJS_NATIVE_ARGS);
+static JSBool ShipSendAIMessage(OOJS_NATIVE_ARGS);
+static JSBool ShipDeployEscorts(OOJS_NATIVE_ARGS);
+static JSBool ShipDockEscorts(OOJS_NATIVE_ARGS);
+static JSBool ShipHasRole(OOJS_NATIVE_ARGS);
+static JSBool ShipEjectItem(OOJS_NATIVE_ARGS);
+static JSBool ShipEjectSpecificItem(OOJS_NATIVE_ARGS);
+static JSBool ShipDumpCargo(OOJS_NATIVE_ARGS);
+static JSBool ShipSpawn(OOJS_NATIVE_ARGS);
+static JSBool ShipExplode(OOJS_NATIVE_ARGS);
+static JSBool ShipRemove(OOJS_NATIVE_ARGS);
+static JSBool ShipRunLegacyScriptActions(OOJS_NATIVE_ARGS);
+static JSBool ShipCommsMessage(OOJS_NATIVE_ARGS);
+static JSBool ShipFireECM(OOJS_NATIVE_ARGS);
+static JSBool ShipAbandonShip(OOJS_NATIVE_ARGS);
+static JSBool ShipAddPassenger(OOJS_NATIVE_ARGS);
+static JSBool ShipAwardContract(OOJS_NATIVE_ARGS);
+static JSBool ShipCanAwardEquipment(OOJS_NATIVE_ARGS);
+static JSBool ShipAwardEquipment(OOJS_NATIVE_ARGS);
+static JSBool ShipRemoveEquipment(OOJS_NATIVE_ARGS);
+static JSBool ShipRemovePassenger(OOJS_NATIVE_ARGS);
+static JSBool ShipRestoreSubEntities(OOJS_NATIVE_ARGS);
+static JSBool ShipEquipmentStatus(OOJS_NATIVE_ARGS);
+static JSBool ShipSetEquipmentStatus(OOJS_NATIVE_ARGS);
+static JSBool ShipSelectNewMissile(OOJS_NATIVE_ARGS);
+static JSBool ShipFireMissile(OOJS_NATIVE_ARGS);
+static JSBool ShipSetCargo(OOJS_NATIVE_ARGS);
+static JSBool ShipSetMaterials(OOJS_NATIVE_ARGS);
+static JSBool ShipSetShaders(OOJS_NATIVE_ARGS);
+static JSBool ShipExitSystem(OOJS_NATIVE_ARGS);
 
-static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
-static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo);
+static BOOL RemoveOrExplodeShip(OOJS_NATIVE_ARGS, BOOL explode);
+static BOOL ValidateContracts(OOJS_NATIVE_ARGS, BOOL isCargo);
 
 
 static JSClass sShipClass =
@@ -1027,7 +1027,7 @@ static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // setScript(scriptName : String)
-static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSetScript(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1056,7 +1056,7 @@ static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsva
 
 
 // setAI(aiName : String)
-static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSetAI(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1085,7 +1085,7 @@ static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *a
 
 
 // switchAI(aiName : String)
-static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSwitchAI(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1114,7 +1114,7 @@ static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval
 
 
 // exitAI()
-static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipExitAI(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1152,7 +1152,7 @@ static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *
 
 
 // reactToAIMessage(message : String)
-static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipReactToAIMessage(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1181,7 +1181,7 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 
 
 // sendAIMessage(message : String)
-static JSBool ShipSendAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSendAIMessage(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1210,7 +1210,7 @@ static JSBool ShipSendAIMessage(JSContext *context, JSObject *this, uintN argc, 
 
 
 // deployEscorts()
-static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipDeployEscorts(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1227,7 +1227,7 @@ static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, 
 
 
 // dockEscorts()
-static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipDockEscorts(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1244,7 +1244,7 @@ static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, js
 
 
 // hasRole(role : String) : Boolean
-static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipHasRole(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1268,7 +1268,7 @@ static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval 
 
 
 // ejectItem(role : String) : Ship
-static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipEjectItem(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1294,7 +1294,7 @@ static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsva
 
 
 // ejectSpecificItem(itemKey : String) : Ship
-static JSBool ShipEjectSpecificItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipEjectSpecificItem(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1320,7 +1320,7 @@ static JSBool ShipEjectSpecificItem(JSContext *context, JSObject *this, uintN ar
 
 
 // dumpCargo() : Ship
-static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipDumpCargo(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1345,7 +1345,7 @@ static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsva
 
 
 // spawn(role : String [, number : count]) : Array
-static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSpawn(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1377,7 +1377,7 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 
 
 // explode()
-static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipExplode(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1388,7 +1388,7 @@ static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval 
 
 
 // remove([suppressDeathEvent : Boolean = false])
-static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipRemove(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1423,7 +1423,7 @@ static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *
 
 
 // runLegacyShipActions(target : Ship, actions : Array)
-static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipRunLegacyScriptActions(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1458,7 +1458,7 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 
 
 // commsMessage(message : String[,target : Ship])
-static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipCommsMessage(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1490,7 +1490,7 @@ static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, j
 
 
 // fireECM()
-static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipFireECM(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1513,7 +1513,7 @@ static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval 
 
 
 // abandonShip()
-static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipAbandonShip(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1530,7 +1530,7 @@ static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, js
 
 
 // addPassenger(name: string, start: int, destination: int, eta: double, fee: double)
-static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipAddPassenger(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1582,7 +1582,7 @@ static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, j
 
 
 // awardContract(quantity: int, commodity: string, start: int, destination: int, eta: double, fee: double)
-static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipAwardContract(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1640,7 +1640,7 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 
 
 // canAwardEquipment(type : equipmentInfoExpression)
-static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipCanAwardEquipment(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1687,7 +1687,7 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 
 
 // awardEquipment(type : equipmentInfoExpression)
-static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipAwardEquipment(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1776,7 +1776,7 @@ static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc,
 
 
 // removeEquipment(type : equipmentInfoExpression)
-static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipRemoveEquipment(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1836,7 +1836,7 @@ static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc
 
 
 // removePassenger(name :string)
-static JSBool ShipRemovePassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipRemovePassenger(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1871,7 +1871,7 @@ static JSBool ShipRemovePassenger(JSContext *context, JSObject *this, uintN argc
 
 
 // restoreSubEntities()
-static JSBool ShipRestoreSubEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipRestoreSubEntities(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1895,7 +1895,7 @@ static JSBool ShipRestoreSubEntities(JSContext *context, JSObject *this, uintN a
 
 
 // setEquipmentStatus(type : equipmentInfoExpression, status : String)
-static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSetEquipmentStatus(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1981,7 +1981,7 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 
 
 // equipmentStatus(type : equipmentInfoExpression) : String
-static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipEquipmentStatus(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -2016,7 +2016,7 @@ static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc
 
 
 // selectNewMissile()
-static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSelectNewMissile(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -2039,7 +2039,7 @@ static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN arg
 
 
 // fireMissile()
-static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipFireMissile(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -2064,7 +2064,7 @@ static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, js
 }
 
 // setCargo(cargoType : String [, number : count])
-static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSetCargo(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -2095,7 +2095,7 @@ static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval
 
 
 // setMaterials(params: dict,[shaders:dict])  // sets materials dictionary. Optional parameter sets the shaders dictionary too.
-static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSetMaterials(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -2176,7 +2176,7 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 
 
 // setShaders(params: dict) 
-static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSetShaders(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -2206,7 +2206,7 @@ static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsv
 
 
 // exitSystem([int systemID])
-static JSBool ShipExitSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipExitSystem(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -2241,7 +2241,7 @@ static JSBool ShipExitSystem(JSContext *context, JSObject *this, uintN argc, jsv
 }
 
 
-static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode)
+static BOOL RemoveOrExplodeShip(OOJS_NATIVE_ARGS, BOOL explode)
 {
 	ShipEntity				*thisEnt = nil;
 	
@@ -2274,7 +2274,7 @@ static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, 
 }
 
 
-static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo)
+static BOOL ValidateContracts(OOJS_NATIVE_ARGS, BOOL isCargo)
 {
 	OOJS_PROFILE_ENTER
 	

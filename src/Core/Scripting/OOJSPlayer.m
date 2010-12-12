@@ -47,14 +47,14 @@ static JSObject		*sPlayerObject;
 static JSBool PlayerGetProperty(OOJS_PROP_ARGS);
 static JSBool PlayerSetProperty(OOJS_PROP_ARGS);
 
-static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerIncreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerDecreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerDecreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerSetEscapePodDestination(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerCommsMessage(OOJS_NATIVE_ARGS);
+static JSBool PlayerConsoleMessage(OOJS_NATIVE_ARGS);
+static JSBool PlayerIncreaseContractReputation(OOJS_NATIVE_ARGS);
+static JSBool PlayerDecreaseContractReputation(OOJS_NATIVE_ARGS);
+static JSBool PlayerIncreasePassengerReputation(OOJS_NATIVE_ARGS);
+static JSBool PlayerDecreasePassengerReputation(OOJS_NATIVE_ARGS);
+static JSBool PlayerAddMessageToArrivalReport(OOJS_NATIVE_ARGS);
+static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS);
 
 
 static JSClass sPlayerClass =
@@ -330,7 +330,7 @@ static JSBool PlayerSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // commsMessage(message : String [, duration : Number])
-static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerCommsMessage(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -354,7 +354,7 @@ static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc,
 
 
 // consoleMessage(message : String [, duration : Number])
-static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerConsoleMessage(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -378,7 +378,7 @@ static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN arg
 
 
 // increaseContractReputation()
-static JSBool PlayerIncreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerIncreaseContractReputation(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -390,7 +390,7 @@ static JSBool PlayerIncreaseContractReputation(JSContext *context, JSObject *thi
 
 
 // decreaseContractReputation()
-static JSBool PlayerDecreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerDecreaseContractReputation(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -402,7 +402,7 @@ static JSBool PlayerDecreaseContractReputation(JSContext *context, JSObject *thi
 
 
 // increasePassengerReputation()
-static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerIncreasePassengerReputation(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -414,7 +414,7 @@ static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *th
 
 
 // decreasePassengerReputation()
-static JSBool PlayerDecreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerDecreasePassengerReputation(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -425,7 +425,7 @@ static JSBool PlayerDecreasePassengerReputation(JSContext *context, JSObject *th
 }
 
 // addMessageToArrivalReport(message : String)
-static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerAddMessageToArrivalReport(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -446,7 +446,7 @@ static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this
 
 
 // setEscapePodDestination(Entity | 'NEARBY_SYSTEM')
-static JSBool PlayerSetEscapePodDestination(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	if (EXPECT_NOT(![UNIVERSE blockJSPlayerShipProps]))

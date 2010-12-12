@@ -57,12 +57,12 @@ static JSObject		*sPlayerShipObject;
 static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS);
 static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS);
 
-static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerShipLaunch(OOJS_NATIVE_ARGS);
+static JSBool PlayerShipRemoveAllCargo(OOJS_NATIVE_ARGS);
+static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS);
+static JSBool PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS);
+static JSBool PlayerShipDisengageAutopilot(OOJS_NATIVE_ARGS);
+static JSBool PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS);
 
 
 static JSClass sPlayerShipClass =
@@ -465,7 +465,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // launch()
-static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerShipLaunch(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -479,7 +479,7 @@ static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, j
 
 
 // removeAllCargo()
-static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerShipRemoveAllCargo(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -503,7 +503,7 @@ static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN
 
 
 // useSpecialCargo(name : String)
-static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -527,7 +527,7 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 
 
 // engageAutopilotToStation(stationForDocking : Station) : Boolean
-static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -552,7 +552,7 @@ static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *t
 
 
 // disengageAutopilot()
-static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerShipDisengageAutopilot(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -568,7 +568,7 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, u
 
 
 // awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression) : Boolean
-static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	

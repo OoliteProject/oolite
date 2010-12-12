@@ -37,8 +37,8 @@ static JSObject		*sSunPrototype;
 
 
 static JSBool SunGetProperty(OOJS_PROP_ARGS);
-static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SunGoNova(OOJS_NATIVE_ARGS);
+static JSBool SunCancelNova(OOJS_NATIVE_ARGS);
 
 
 static JSClass sSunClass =
@@ -156,7 +156,7 @@ static JSBool SunGetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // goNova([delay : Number])
-static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SunGoNova(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -174,7 +174,7 @@ static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *a
 
 
 // cancelNova()
-static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SunCancelNova(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
