@@ -62,7 +62,7 @@ MA 02110-1301, USA.
 			if (!JS_SetPrivate(context, jsSelf, [self weakRetain]))  jsSelf = NULL;
 		}
 		
-		if (jsSelf != NULL)  OO_AddJSGCRoot(context, &jsSelf, "Entity jsSelf");
+		if (jsSelf != NULL)  OOJS_AddGCObjectRoot(context, &jsSelf, "Entity jsSelf");
 	}
 	
 	if (jsSelf != NULL)  result = OBJECT_TO_JSVAL(jsSelf);

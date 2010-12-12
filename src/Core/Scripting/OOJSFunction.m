@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 	if ((self = [super init]))
 	{
 		_function = function;
-		OO_AddJSGCRoot(context, &_function, "OOJSFunction._function");
+		OOJS_AddGCObjectRoot(context, (JSObject **)&_function, "OOJSFunction._function");
 	}
 	
 	return self;
@@ -163,7 +163,7 @@ MA 02110-1301, USA.
 	for (i = 0; i < argc; i++)
 	{
 		argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
-		OO_AddJSGCRoot(context, &argv[i], "OOJSFunction argv");
+		OOJS_AddGCValueRoot(context, &argv[i], "OOJSFunction argv");
 	}
 	
 	JSObject *scopeObj = NULL;

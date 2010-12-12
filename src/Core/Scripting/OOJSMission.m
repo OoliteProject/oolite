@@ -81,8 +81,8 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 	JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	
 	// Ensure JS objects are rooted.
-	OO_AddJSGCRoot(context, &sCallbackFunction, "Pending mission callback function");
-	OO_AddJSGCRoot(context, &sCallbackThis, "Pending mission callback this");
+	OOJS_AddGCValueRoot(context, &sCallbackFunction, "Pending mission callback function");
+	OOJS_AddGCValueRoot(context, &sCallbackThis, "Pending mission callback this");
 }
 
 
@@ -105,8 +105,8 @@ void MissionRunCallback()
 	JSObject			*cbThis = NULL;
 	OOJSScript			*cbScript = sCallbackScript;
 	
-	OO_AddJSGCRoot(context, &cbFunction, "Mission callback function");
-	OO_AddJSGCRoot(context, &cbThis, "Mission callback this");
+	OOJS_AddGCValueRoot(context, &cbFunction, "Mission callback function");
+	OOJS_AddGCObjectRoot(context, &cbThis, "Mission callback this");
 	cbFunction = sCallbackFunction;
 	cbScript = sCallbackScript;
 	JS_ValueToObject(context, sCallbackThis, &cbThis);

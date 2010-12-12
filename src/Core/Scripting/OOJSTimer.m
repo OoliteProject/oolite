@@ -65,10 +65,10 @@ static JSClass sTimerClass;
 		NSAssert(JSVAL_IS_OBJECT(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to init OOJSTimer with a function that isn't.");
 		
 		_jsThis = jsThis;
-		OO_AddJSGCRoot(context, &_jsThis, "OOJSTimer this");
+		OOJS_AddGCObjectRoot(context, &_jsThis, "OOJSTimer this");
 		
 		_function = function;
-		OO_AddJSGCRoot(context, &_function, "OOJSTimer function");
+		OOJS_AddGCValueRoot(context, &_function, "OOJSTimer function");
 		
 		_jsSelf = jsSelf;
 		if (_jsSelf != NULL)

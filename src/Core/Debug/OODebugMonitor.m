@@ -856,7 +856,7 @@ FIXME: this works with CRLF and LF, but not CR.
 		_jsSelf = DebugMonitorToJSConsole(context, self);
 		if (_jsSelf != NULL)
 		{
-			if (!OO_AddJSGCRoot(context, &_jsSelf, "debug console"))
+			if (!OOJS_AddGCObjectRoot(context, &_jsSelf, "debug console"))
 			{
 				_jsSelf = NULL;
 			}

@@ -197,16 +197,6 @@ BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, js
 @end
 
 
-/*	JSObjectWrapperToString
-	
-	Implementation of toString() for JS classes whose private storage is an
-	Objective-C object reference (generally an OOWeakReference).
-	
-	Calls -javaScriptDescription and, if that fails, -description.
-*/
-JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-
-
 /*	JSObjectWrapperFinalize
 	
 	Finalizer for JS classes whose private storage is a retained object
@@ -304,7 +294,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 
 /*	JS root handling
 	
-	The name parameter to JS_AddNamedRoot is assigned with no overhead, not
+	The name parameter to JS_AddNamed*Root is assigned with no overhead, not
 	copied, but the strings serve no purpose in a release build so we may as
 	well strip them out.
 	
@@ -312,9 +302,15 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 	string literal.
 */
 #ifdef NDEBUG
-#define OO_AddJSGCRoot(context, root, name)  JS_AddRoot((context), (root))
+#define OOJS_AddGCValueRoot(context, root, name)	JS_AddValueRoot((context), (root))
+#define OOJS_AddGCStringRoot(context, root, name)	JS_AddStringRoot((context), (root))
+#define OOJS_AddGCObjectRoot(context, root, name)	JS_AddObjectRoot((context), (root))
+#define OOJS_AddGCThingRoot(context, root, name)	JS_AddGCThingRoot((context), (root))
 #else
-#define OO_AddJSGCRoot(context, root, name)  JS_AddNamedRoot((context), (root), "" name)
+#define OOJS_AddGCValueRoot(context, root, name)	JS_AddNamedValueRoot((context), (root), "" name)
+#define OOJS_AddGCStringRoot(context, root, name)	JS_AddNamedStringRoot((context), (root), "" name)
+#define OOJS_AddGCObjectRoot(context, root, name)	JS_AddNamedObjectRoot((context), (root), "" name)
+#define OOJS_AddGCThingRoot(context, root, name)	JS_AddNamedGCThingRoot((context), (root), "" name)
 #endif
 
 
@@ -454,6 +450,64 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 
 
 
+/***** Helpers to write callbacks and abstract API changes. *****/
+
+#if OO_NEW_JS
+// Native callback conventions have changed.
+#define OOJS_NATIVE_ARGS				JSContext *context, uintN argc, jsval *vp
+#define OOJS_CALLEE						JS_CALLEE(context, vp)
+#define OOJS_THIS_VAL					JS_THIS(context, vp)
+#define OOJS_THIS						JS_THIS_OBJECT(context, vp)
+#define OOJS_ARGV						JS_ARGV(context, vp)
+#define OOJS_RVAL						JS_RVAL(context, vp)
+#define OOJS_SET_RVAL(v)				JS_SET_RVAL(context, vp, v)
+
+#define OOJS_IS_CONSTRUCTING			JS_IsConstructing(context, vp)
+
+#define OOJS_RETURN_VECTOR(value)		do { jsval jsresult; BOOL OK = VectorToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
+#define OOJS_RETURN_QUATERNION(value)	do { jsval jsresult; BOOL OK = QuaternionToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
+#define OOJS_RETURN_DOUBLE(value)		do { JS_SET_RVAL(context, vp, DOUBLE_TO_JSVAL(value)); return YES; } while (0)
+
+#define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsid id_id, jsval *value
+#define OOJS_PROPID_IS_INT()			JSID_IS_INT(id_id)
+#define OOJS_PROPID_INT					JSID_TO_INT(id_id)
+
+#else
+#define OOJS_NATIVE_ARGS				JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult
+#define OOJS_CALLEE						argv[-2]
+#define OOJS_THIS_VAL					OBJECT_TO_JSVAL(this)
+#define OOJS_THIS						this
+#define OOJS_ARGV						argv
+#define OOJS_RVAL						(*outResult)
+#define OOJS_SET_RVAL(v)				do { *outResult = (v); } while (0)
+
+#define OOJS_IS_CONSTRUCTING			JS_IsConstructing(context)
+
+#define OOJS_RETURN_VECTOR(value)		do { return VectorToJSValue(context, value, outResult); } while (0)
+#define OOJS_RETURN_QUATERNION(value)	do { return QuaternionToJSValue(context, value, outResult); } while (0)
+#define OOJS_RETURN_DOUBLE(value)		do { return JS_NewDoubleValue(context, result, outResult); } while (0)
+
+#define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsval id_val, jsval *value
+#define OOJS_PROPID_IS_INT()			JSVAL_IS_INT(id_val)
+#define OOJS_PROPID_INT					JSVAL_TO_INT(id_val)
+#endif
+
+#define OOJS_ARG(n)						(OOJS_ARGV[(n)])
+
+
+
+
+/*	JSObjectWrapperToString
+	
+	Implementation of toString() for JS classes whose private storage is an
+	Objective-C object reference (generally an OOWeakReference).
+	
+	Calls -javaScriptDescription and, if that fails, -description.
+*/
+JSBool JSObjectWrapperToString(OOJS_NATIVE_ARGS);
+
+
+
 
 
 /***** Transitional compatibility stuff - remove when switching to OO_NEW_JS permanently. *****/
@@ -470,7 +524,7 @@ static inline JSClass * OOJS_GetClass(JSContext *cx, JSObject *obj)
 
 #if OO_NEW_JS
 // Before removing, switch to JSVAL_TO_DOUBLE() everywhere.
-static JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
+static inline JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
 {
 	NSCParameterAssert(rval != NULL);
 	*rval = DOUBLE_TO_JSVAL(d);

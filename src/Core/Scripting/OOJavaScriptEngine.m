@@ -81,7 +81,7 @@ MA 02110-1301, USA.
 #if !OOLITE_NATIVE_EXCEPTIONS
 #warning Native exceptions apparently not available. JavaScript functions are not exception-safe.
 #endif
-#ifdef JS_THREADSAFE && !OO_NEW_JS
+#if defined(JS_THREADSAFE) && !OO_NEW_JS
 #error Oolite and libjs must be built with JS_THREADSAFE undefined.
 #endif
 
@@ -1484,7 +1484,7 @@ const char *JSValueTypeDbg(jsval val)
 @end
 
 
-JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+JSBool JSObjectWrapperToString(OOJS_NATIVE_ARGS)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1492,7 +1492,7 @@ JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, j
 	NSString				*description = nil;
 	JSClass					*jsClass = NULL;
 	
-	object = JSObjectToObject(context, this);
+	object = JSObjectToObject(context, OOJS_THIS);
 	if (object != nil)
 	{
 		description = [object javaScriptDescription];
@@ -1500,7 +1500,7 @@ JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, j
 	}
 	if (description == nil)
 	{
-		jsClass = OOJS_GetClass(context, this);
+		jsClass = OOJS_GetClass(context, OOJS_THIS);
 		if (jsClass != NULL)
 		{
 			description = [NSString stringWithFormat:@"[object %@]", [NSString stringWithUTF8String:jsClass->name]];
@@ -1508,7 +1508,7 @@ JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, j
 	}
 	if (description == nil)  description = @"[object]";
 	
-	*outResult = [description javaScriptValueInContext:context];
+	OOJS_SET_RVAL([description javaScriptValueInContext:context]);
 	return YES;
 	
 	OOJS_PROFILE_EXIT

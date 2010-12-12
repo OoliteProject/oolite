@@ -137,7 +137,7 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	if (!problem)
 	{
-		if (!OO_AddJSGCRoot(context, &_jsSelf, "Script object"))
+		if (!OOJS_AddGCObjectRoot(context, &_jsSelf, "Script object"))
 		{
 			problem = @"could not add JavaScript root object";
 		}
@@ -241,8 +241,8 @@ static JSFunctionSpec sScriptMethods[] =
 	DESTROY(filePath);
 	
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	JSObjectWrapperFinalize(context, _jsSelf);	// Release weakref to self
-	JS_RemoveRoot(context, &_jsSelf);			// Unroot jsSelf
+	JSObjectWrapperFinalize(context, _jsSelf);		// Release weakref to self
+	JS_RemoveObjectRoot(context, &_jsSelf);			// Unroot jsSelf
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	[weakSelf weakRefDrop];
@@ -322,7 +322,7 @@ static JSFunctionSpec sScriptMethods[] =
 	OK = JS_GetProperty(context, _jsSelf, [eventName UTF8String], &value);
 	
 #if SUPPORT_CHANGED_HANDLERS
-	if (!OK || value == JSVAL_VOID)
+	if (!OK || JSVAL_IS_VOID(value))
 	{
 		// Look up event name in renaming table.
 		static NSDictionary		*changedHandlers = nil;
@@ -344,11 +344,11 @@ static JSFunctionSpec sScriptMethods[] =
 		if ([oldNames isKindOfClass:[NSString class]])  oldNames = [NSArray arrayWithObject:oldNames];
 		if ([oldNames isKindOfClass:[NSArray class]])
 		{
-			for (oldNameEnum = [oldNames objectEnumerator]; (oldName = [oldNameEnum nextObject]) && value == JSVAL_VOID && OK; )
+			for (oldNameEnum = [oldNames objectEnumerator]; (oldName = [oldNameEnum nextObject]) && JSVAL_IS_VOID(value) && OK; )
 			{
 				OK = JS_GetProperty(context, _jsSelf, [oldName UTF8String], &value);
 				
-				if (OK && value != JSVAL_VOID)
+				if (OK && !JSVAL_IS_VOID(value))
 				{
 					key = [NSString stringWithFormat:@"%@\n%@", self->name, oldName];
 					if (![notedChanges containsObject:key])
@@ -362,7 +362,7 @@ static JSFunctionSpec sScriptMethods[] =
 	}
 #endif
 	
-	if (OK && value != JSVAL_VOID)
+	if (OK && !JSVAL_IS_VOID(value))
 	{
 		function = JS_ValueToFunction(context, value);
 	}
@@ -407,7 +407,7 @@ static JSFunctionSpec sScriptMethods[] =
 				for (i = 0; i != argc; ++i)
 				{
 					argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
-					OO_AddJSGCRoot(context, &argv[i], "JSScript event parameter");
+					OOJS_AddGCValueRoot(context, &argv[i], "JSScript event parameter");
 				}
 			}
 			else  argc = 0;
@@ -423,7 +423,7 @@ static JSFunctionSpec sScriptMethods[] =
 		{
 			for (i = 0; i != argc; ++i)
 			{
-				JS_RemoveRoot(context, &argv[i]);
+				JS_RemoveValueRoot(context, &argv[i]);
 			}
 			free(argv);
 		}

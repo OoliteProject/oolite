@@ -45,7 +45,7 @@ static JSFunctionSpec sSpecialFunctionsMethods[] =
 void InitOOJSSpecialFunctions(JSContext *context, JSObject *global)
 {
 	sSpecialFunctionsObject = JS_NewObject(context, NULL, NULL, NULL);
-	OO_AddJSGCRoot(context, &sSpecialFunctionsObject, "OOJSSpecialFunctions");
+	OOJS_AddGCObjectRoot(context, &sSpecialFunctionsObject, "OOJSSpecialFunctions");
 	JS_DefineFunctions(context, sSpecialFunctionsObject, sSpecialFunctionsMethods);
 	JS_SealObject(context, sSpecialFunctionsObject, NO);
 }
