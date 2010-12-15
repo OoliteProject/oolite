@@ -178,17 +178,19 @@ static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS)
 	NSString					*name = nil;
 	OOSound						*sound = nil;
 	
-	name = JSValToNSString(context, argv[0]);
+	name = JSValToNSString(context, OOJS_ARG(0));
 	if (name == nil)
 	{
-		OOReportJSBadArguments(context, @"Sound", @"load", argc, argv, nil, @"string");
+		OOReportJSBadArguments(context, @"Sound", @"load", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	
 	OOJSPauseTimeLimiter();
+	
 	sound = GetNamedSound(name);
-	*outResult = [sound javaScriptValueInContext:context];
-	if (*outResult == JSVAL_VOID)  *outResult = JSVAL_NULL;	// No sound by that name
+	if (sound != nil)  OOJS_SET_RVAL([sound javaScriptValueInContext:context]);
+	else  OOJS_SET_RVAL(JSVAL_VOID); // No sound by that name
+	
 	OOJSResumeTimeLimiter();
 	
 	return YES;
@@ -205,17 +207,17 @@ static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
 	NSString					*name = nil;
 	JSBool						loop = NO;
 	
-	name = JSValToNSString(context, argv[0]);
+	name = JSValToNSString(context, OOJS_ARG(0));
 	if (name == nil)
 	{
-		OOReportJSBadArguments(context, @"Sound", @"playMusic", 1, &argv[0], nil, @"string");
+		OOReportJSBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	if (argc >= 2)
 	{
-		if (!JS_ValueToBoolean(context, argv[1], &loop))
+		if (!JS_ValueToBoolean(context, OOJS_ARG(1), &loop))
 		{
-			OOReportJSBadArguments(context, @"Sound", @"playMusic", 1, &argv[1], nil, @"boolean");
+			OOReportJSBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV + 1, nil, @"boolean");
 			return NO;
 		}
 	}
@@ -239,10 +241,10 @@ static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 	OOJSPauseTimeLimiter();
 	if (argc > 0)
 	{
-		name = JSValToNSString(context, argv[0]);
+		name = JSValToNSString(context, OOJS_ARG(0));
 		if (name == nil)
 		{
-			OOReportJSBadArguments(context, @"Sound", @"stopMusic", argc, argv, nil, @"string or no argument");
+			OOReportJSBadArguments(context, @"Sound", @"stopMusic", argc, OOJS_ARGV, nil, @"string or no argument");
 			return NO;
 		}
 		[[OOMusicController sharedController] stopMusicNamed:name];

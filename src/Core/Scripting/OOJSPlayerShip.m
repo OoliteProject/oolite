@@ -512,14 +512,14 @@ static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	NSString				*name = nil;
 	
-	name = JSValToNSString(context, argv[0]);
+	name = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(name == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, argv, nil, @"special cargo description");
+		OOReportJSBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, OOJS_ARGV, nil, @"special cargo description");
 		return NO;
 	}
 	
-	[player useSpecialCargo:JSValToNSString(context, argv[0])];
+	[player useSpecialCargo:JSValToNSString(context, OOJS_ARG(0))];
 	return YES;
 	
 	OOJS_NATIVE_EXIT
@@ -531,21 +531,19 @@ static JSBool PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) return YES;
+	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  return YES;
 	
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	StationEntity			*stationForDocking = nil;
 	
-	stationForDocking = JSValueToObjectOfClass(context, argv[0], [StationEntity class]);
+	stationForDocking = JSValueToObjectOfClass(context, OOJS_ARG(0), [StationEntity class]);
 	if (stationForDocking == nil)
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"engageAutopilot", argc, argv, nil, @"station for docking");
+		OOReportJSBadArguments(context, @"PlayerShip", @"engageAutopilot", argc, OOJS_ARGV, nil, @"station for docking");
 		return NO;
 	}
 	
-	*outResult = BOOLToJSVal([player engageAutopilotToStation:stationForDocking]);
-	
-	return YES;
+	OOJS_RETURN_BOOL([player engageAutopilotToStation:stationForDocking]);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -578,23 +576,21 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS)
 	NSString				*key = nil;
 	OOEquipmentType			*eqType = nil;
 	
-	key = JSValueToEquipmentKey(context, argv[0]);
+	key = JSValueToEquipmentKey(context, OOJS_ARG(0));
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, argv, nil, @"equipment type");
+		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"equipment type");
 		return NO;
 	}
 	
 	eqType = [OOEquipmentType equipmentTypeWithIdentifier:key];
 	if (EXPECT_NOT(![eqType isMissileOrMine]))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, argv, nil, @"external store");
+		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"external store");
 		return NO;
 	}
 	
-	*outResult = BOOLToJSVal([player assignToActivePylon:key]);
-	
-	return YES;
+	OOJS_RETURN_BOOL([player assignToActivePylon:key]);
 	
 	OOJS_NATIVE_EXIT
 }

@@ -193,10 +193,7 @@ static JSBool ClockGetProperty(OOJS_PROP_ARGS)
 static JSBool JSClockToString(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
-	
-	*outResult = [[OOPlayerForScripting() dial_clock] javaScriptValueInContext:context];
-	return YES;
-	
+	OOJS_RETURN_OBJECT([OOPlayerForScripting() dial_clock]);
 	OOJS_NATIVE_EXIT
 }
 
@@ -208,11 +205,9 @@ static JSBool ClockClockStringForTime(OOJS_NATIVE_ARGS)
 	
 	double						time;
 	
-	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &time)))  return NO;
+	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARG(0), &time)))  return NO;
 	
-	*outResult = [ClockToString(time, NO) javaScriptValueInContext:context];
-	return YES;
-	
+	OOJS_RETURN_OBJECT(ClockToString(time, NO));
 	OOJS_NATIVE_EXIT
 }
 
@@ -224,19 +219,16 @@ static JSBool ClockAddSeconds(OOJS_NATIVE_ARGS)
 	
 	double						time;
 	
-	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &time)))  return YES;	// no-op
+	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARG(0), &time)))  return NO;
 	if (time > 2592000.0f || time < 1.0f)	// 30 * 24 * 3600
 	{
 		OOReportJSWarning(context, @"Clock.addSeconds: use a value between 1 and 2592000 (30 days).");
-
-		*outResult = JSVAL_FALSE;
-		return YES;
+		
+		OOJS_RETURN_BOOL(NO);
 	}
 	
 	[OOPlayerForScripting() addToAdjustTime:time];
 	
-	*outResult = JSVAL_TRUE;
-	return YES;
-	
+	OOJS_RETURN_BOOL(YES);
 	OOJS_NATIVE_EXIT
 }

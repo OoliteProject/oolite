@@ -163,8 +163,8 @@ static JSBool SunGoNova(OOJS_NATIVE_ARGS)
 	OOSunEntity					*sun = nil;
 	jsdouble					delay = 0;
 	
-	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
-	if (argc > 0 && EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &delay)))  return NO;
+	if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun))) return NO;
+	if (argc > 0 && EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARG(0), &delay)))  return NO;
 	
 	[sun setGoingNova:YES inTime:delay];
 	return YES;
@@ -180,7 +180,7 @@ static JSBool SunCancelNova(OOJS_NATIVE_ARGS)
 	
 	OOSunEntity					*sun = nil;
 	
-	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
+	if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun))) return NO;
 	
 	if ([sun willGoNova] && ![sun goneNova])
 	{

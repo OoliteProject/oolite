@@ -33,9 +33,9 @@ static JSObject *sEquipmentInfoPrototype;
 
 
 static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS);
-static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool EquipmentInfoSetProperty(OOJS_PROP_ARGS);
 
-static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool EquipmentInfoGetAllEqipment(OOJS_PROP_ARGS);
 
 
 // Methods
@@ -384,11 +384,11 @@ static JSBool EquipmentInfoSetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool EquipmentInfoGetAllEqipment(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	*outValue = [[OOEquipmentType allEquipmentTypes] javaScriptValueInContext:context];
+	*value = [[OOEquipmentType allEquipmentTypes] javaScriptValueInContext:context];
 	return YES;
 	
 	OOJS_NATIVE_EXIT
@@ -435,16 +435,14 @@ static JSBool EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS)
 	
 	NSString					*key = nil;
 	
-	key = JSValToNSString(context, argv[0]);
+	key = JSValToNSString(context, OOJS_ARG(0));
 	if (key == nil)
 	{
-		OOReportJSBadArguments(context, @"EquipmentInfo", @"infoForKey", argc, argv, nil, @"string");
+		OOReportJSBadArguments(context, @"EquipmentInfo", @"infoForKey", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	
-	*outResult = [[OOEquipmentType equipmentTypeWithIdentifier:key] javaScriptValueInContext:context];
-	
-	return YES;
+	OOJS_RETURN_OBJECT([OOEquipmentType equipmentTypeWithIdentifier:key]);
 	
 	OOJS_NATIVE_EXIT
 }
