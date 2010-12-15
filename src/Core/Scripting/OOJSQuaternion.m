@@ -466,24 +466,27 @@ static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS)
 	
 	Quaternion				quaternion = kZeroQuaternion;
 	Quaternion				*private = NULL;
+#if OO_NEW_JS
+	JSObject				*this = OOJS_THIS;
+#endif
 	
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NO;
 	
     //	If called without new, replace this with a new Vector object.
-    if (!JS_IsConstructing(context))
+    if (!OOJS_IS_CONSTRUCTING)
 	{
         this = JS_NewObject(context, &sQuaternionClass, NULL, NULL);
         if (this == NULL)  return NO;
-		*outResult = OBJECT_TO_JSVAL(this);
+		OOJS_SET_RVAL(OBJECT_TO_JSVAL(this));
     }
 	
 	if (argc != 0)
 	{
-		if (EXPECT_NOT(!QuaternionFromArgumentListNoErrorInternal(context, argc, argv, &quaternion, NULL, YES)))
+		if (EXPECT_NOT(!QuaternionFromArgumentListNoErrorInternal(context, argc, OOJS_ARGV, &quaternion, NULL, YES)))
 		{
 			free(private);
-			OOReportJSBadArguments(context, NULL, NULL, argc, argv,
+			OOReportJSBadArguments(context, NULL, NULL, argc, OOJS_ARGV,
 								   @"Could not construct quaternion from parameters",
 								   @"Vector, Entity or array of four numbers");
 			return NO;
@@ -513,9 +516,9 @@ static JSBool QuaternionToString(OOJS_NATIVE_ARGS)
 	
 	Quaternion				thisq;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"toString"))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"toString"))) return NO;
 	
-	*outResult = [QuaternionDescription(thisq) javaScriptValueInContext:context];
+	OOJS_SET_RVAL([QuaternionDescription(thisq) javaScriptValueInContext:context]);
 	return YES;
 	
 	OOJS_NATIVE_EXIT
@@ -529,10 +532,10 @@ static JSBool QuaternionToSource(OOJS_NATIVE_ARGS)
 	
 	Quaternion				thisq;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"toSource"))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"toSource"))) return NO;
 	
-	*outResult = [[NSString stringWithFormat:@"Quaternion(%g, %g, %g, %g)", thisq.w, thisq.x, thisq.y, thisq.z]
-				  javaScriptValueInContext:context];
+	NSString *str = [NSString stringWithFormat:@"Quaternion(%g, %g, %g, %g)", thisq.w, thisq.x, thisq.y, thisq.z];
+	OOJS_SET_RVAL([str javaScriptValueInContext:context]);
 	return YES;
 	
 	OOJS_NATIVE_EXIT
@@ -546,12 +549,12 @@ static JSBool QuaternionMultiply(OOJS_NATIVE_ARGS)
 	
 	Quaternion				thisq, thatq, result;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"multiply"))) return NO;
-	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Quaternion", @"multiply", argc, argv, &thatq, NULL)))  return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"multiply"))) return NO;
+	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Quaternion", @"multiply", argc, OOJS_ARGV, &thatq, NULL)))  return NO;
 	
 	result = quaternion_multiply(thisq, thatq);
 	
-	return QuaternionToJSValue(context, result, outResult);
+	OOJS_RETURN_QUATERNION(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -565,12 +568,12 @@ static JSBool QuaternionDot(OOJS_NATIVE_ARGS)
 	Quaternion				thisq, thatq;
 	double					result;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"dot"))) return NO;
-	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Quaternion", @"dot", argc, argv, &thatq, NULL)))  return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"dot"))) return NO;
+	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Quaternion", @"dot", argc, OOJS_ARGV, &thatq, NULL)))  return NO;
 	
 	result = quaternion_dot_product(thisq, thatq);
 	
-	return JS_NewDoubleValue(context, result, outResult);
+	OOJS_RETURN_DOUBLE(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -585,8 +588,11 @@ static JSBool QuaternionRotate(OOJS_NATIVE_ARGS)
 	Vector					axis;
 	double					angle;
 	uintN					consumed;
+#if OO_NEW_JS
+	jsval					*argv = OOJS_ARGV;
+#endif
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"rotate"))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"rotate"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Quaternion", @"rotate", argc, argv, &axis, &consumed)))  return NO;
 	argv += consumed;
 	argc -= consumed;
@@ -597,7 +603,7 @@ static JSBool QuaternionRotate(OOJS_NATIVE_ARGS)
 	}
 	// Else no angle specified, so don't rotate and pass value through unchanged.
 	
-	return QuaternionToJSValue(context, thisq, outResult);
+	OOJS_RETURN_QUATERNION(thisq);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -611,12 +617,12 @@ static JSBool QuaternionRotateX(OOJS_NATIVE_ARGS)
 	Quaternion				quat;
 	double					angle;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &quat, @"rotateX"))) return NO;
-	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateX", argc, argv, &angle, NULL)))  return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &quat, @"rotateX"))) return NO;
+	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateX", argc, OOJS_ARGV, &angle, NULL)))  return NO;
 	
 	quaternion_rotate_about_x(&quat, angle);
 	
-	return QuaternionToJSValue(context, quat, outResult);
+	OOJS_RETURN_QUATERNION(quat);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -630,12 +636,12 @@ static JSBool QuaternionRotateY(OOJS_NATIVE_ARGS)
 	Quaternion				quat;
 	double					angle;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &quat, @"rotateY"))) return NO;
-	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateY", argc, argv, &angle, NULL)))  return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &quat, @"rotateY"))) return NO;
+	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateY", argc, OOJS_ARGV, &angle, NULL)))  return NO;
 	
 	quaternion_rotate_about_y(&quat, angle);
 	
-	return QuaternionToJSValue(context, quat, outResult);
+	OOJS_RETURN_QUATERNION(quat);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -649,12 +655,12 @@ static JSBool QuaternionRotateZ(OOJS_NATIVE_ARGS)
 	Quaternion				quat;
 	double					angle;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &quat, @"rotateZ"))) return NO;
-	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateZ", argc, argv, &angle, NULL)))  return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &quat, @"rotateZ"))) return NO;
+	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateZ", argc, OOJS_ARGV, &angle, NULL)))  return NO;
 	
 	quaternion_rotate_about_z(&quat, angle);
 	
-	return QuaternionToJSValue(context, quat, outResult);
+	OOJS_RETURN_QUATERNION(quat);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -667,11 +673,11 @@ static JSBool QuaternionNormalize(OOJS_NATIVE_ARGS)
 	
 	Quaternion				quat;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &quat, @"normalize"))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &quat, @"normalize"))) return NO;
 	
 	quaternion_normalize(&quat);
 	
-	return QuaternionToJSValue(context, quat, outResult);
+	OOJS_RETURN_QUATERNION(quat);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -685,11 +691,11 @@ static JSBool QuaternionVectorForward(OOJS_NATIVE_ARGS)
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"vectorForward()"))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"vectorForward()"))) return NO;
 	
 	result = vector_forward_from_quaternion(thisq);
 	
-	return VectorToJSValue(context, result, outResult);
+	OOJS_RETURN_VECTOR(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -703,11 +709,11 @@ static JSBool QuaternionVectorUp(OOJS_NATIVE_ARGS)
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"vectorUp"))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"vectorUp"))) return NO;
 	
 	result = vector_up_from_quaternion(thisq);
 	
-	return VectorToJSValue(context, result, outResult);
+	OOJS_RETURN_VECTOR(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -721,11 +727,11 @@ static JSBool QuaternionVectorRight(OOJS_NATIVE_ARGS)
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"vectorRight"))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"vectorRight"))) return NO;
 	
 	result = vector_right_from_quaternion(thisq);
 	
-	return VectorToJSValue(context, result, outResult);
+	OOJS_RETURN_VECTOR(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -741,13 +747,13 @@ static JSBool QuaternionToArray(OOJS_NATIVE_ARGS)
 	BOOL					OK = YES;
 	jsval					nVal;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, this, &thisq, @"toArray"))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"toArray"))) return NO;
 	
 	result = JS_NewArrayObject(context, 0, NULL);
 	if (result != NULL)
 	{
 		// We do this at the top because *outResult is a GC root.
-		*outResult = OBJECT_TO_JSVAL(result);
+		OOJS_SET_RVAL(OBJECT_TO_JSVAL(result));
 		
 		if (JS_NewNumberValue(context, thisq.w, &nVal))  JS_SetElement(context, result, 0, &nVal);
 		else  OK = NO;
@@ -759,7 +765,7 @@ static JSBool QuaternionToArray(OOJS_NATIVE_ARGS)
 		else  OK = NO;
 	}
 	
-	if (!OK)  *outResult = JSVAL_VOID;
+	if (!OK)  OOJS_SET_RVAL(JSVAL_VOID);
 	return YES;
 	
 	OOJS_PROFILE_EXIT
@@ -773,7 +779,7 @@ static JSBool QuaternionStaticRandom(OOJS_NATIVE_ARGS)
 {
 	OOJS_PROFILE_ENTER
 	
-	return QuaternionToJSValue(context, OORandomQuaternion(), outResult);
+	OOJS_RETURN_QUATERNION(OORandomQuaternion());
 	
 	OOJS_PROFILE_EXIT
 }

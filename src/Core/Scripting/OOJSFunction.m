@@ -177,7 +177,7 @@ MA 02110-1301, USA.
 	
 	for (i = 0; i < argc; i++)
 	{
-		JS_RemoveRoot(context, &argv[i]);
+		JS_RemoveValueRoot(context, &argv[i]);
 	}
 	
 	return OK;

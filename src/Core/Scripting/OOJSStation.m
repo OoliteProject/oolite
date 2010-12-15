@@ -332,7 +332,7 @@ static JSBool StationDockPlayer(OOJS_NATIVE_ARGS)
 	}
 	
 	StationEntity *stationForDockingPlayer = nil;
-	JSStationGetStationEntity(context, this, &stationForDockingPlayer); 
+	JSStationGetStationEntity(context, OOJS_THIS, &stationForDockingPlayer); 
 	
 #if DOCKING_CLEARANCE_ENABLED
 	[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
@@ -356,23 +356,21 @@ static JSBool StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
 	ShipEntity	*result = nil;
 	JSBool		abortAllDockings = NO;
 	
-	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
 	
-	if (argc > 1)  JS_ValueToBoolean(context, argv[1], &abortAllDockings);
+	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARG(1), &abortAllDockings);
 	
-	NSString *shipRole = JSValToNSString(context, argv[0]);
+	NSString *shipRole = JSValToNSString(context, OOJS_ARG(1));
 	if (EXPECT_NOT(shipRole == nil))
 	{
-		OOReportJSBadArguments(context, @"Station", @"launchShipWithRole", argc, argv, nil, @"shipRole");
+		OOReportJSBadArguments(context, @"Station", @"launchShipWithRole", argc, OOJS_ARGV, nil, @"shipRole");
 		return NO;
 	}
 	
 	result = [station launchIndependentShip:shipRole];
 	if (abortAllDockings) [station abortAllDockings];
-	*outResult = [result javaScriptValueInContext:context];
 	
-	return YES;
-	
+	OOJS_RETURN_OBJECT(result);
 	OOJS_NATIVE_EXIT
 }
 
@@ -382,14 +380,9 @@ static JSBool StationLaunchDefenseShip(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	ShipEntity	*result = nil;
-	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
-		
-	result = [station launchDefenseShip];
-	*outResult = [result javaScriptValueInContext:context];
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
 	
-	return YES;
-	
+	OOJS_RETURN_OBJECT([station launchDefenseShip]);
 	OOJS_NATIVE_EXIT
 }
 
@@ -399,14 +392,9 @@ static JSBool StationLaunchScavenger(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	ShipEntity	*result = nil;
-	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
 	
-	result = [station launchScavenger];
-	*outResult = [result javaScriptValueInContext:context];
-	
-	return YES;
-	
+	OOJS_RETURN_OBJECT([station launchScavenger]);
 	OOJS_NATIVE_EXIT
 }
 
@@ -416,14 +404,9 @@ static JSBool StationLaunchMiner(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	ShipEntity	*result = nil;
-	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
 	
-	result = [station launchMiner];
-	*outResult = [result javaScriptValueInContext:context];
-	
-	return YES;
-	
+	OOJS_RETURN_OBJECT([station launchMiner]);
 	OOJS_NATIVE_EXIT
 }
 
@@ -433,14 +416,9 @@ static JSBool StationLaunchPirateShip(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	ShipEntity	*result = nil;
-	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
 	
-	result = [station launchPirateShip];
-	*outResult = [result javaScriptValueInContext:context];
-	
-	return YES;
-	
+	OOJS_RETURN_OBJECT([station launchPirateShip]);
 	OOJS_NATIVE_EXIT
 }
 
@@ -450,14 +428,9 @@ static JSBool StationLaunchShuttle(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	ShipEntity	*result = nil;
-	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
 	
-	result = [station launchShuttle];
-	*outResult = [result javaScriptValueInContext:context];
-	
-	return YES;
-	
+	OOJS_RETURN_OBJECT([station launchShuttle]);
 	OOJS_NATIVE_EXIT
 }
 
@@ -467,14 +440,9 @@ static JSBool StationLaunchPatrol(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	ShipEntity	*result = nil;
-	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
 	
-	result = [station launchPatrol];
-	*outResult = [result javaScriptValueInContext:context];
-	
-	return YES;
-	
+	OOJS_RETURN_OBJECT([station launchPatrol]);
 	OOJS_NATIVE_EXIT
 }
 
@@ -484,13 +452,8 @@ static JSBool StationLaunchPolice(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	NSArray	*result = nil;
-	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
 	
-	result = [station launchPolice];
-	*outResult = [result javaScriptValueInContext:context];
-	
-	return YES;
-	
+	OOJS_RETURN_OBJECT([station launchPolice]);
 	OOJS_NATIVE_EXIT
 }

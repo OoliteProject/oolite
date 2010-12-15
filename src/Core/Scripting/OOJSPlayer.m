@@ -338,11 +338,11 @@ static JSBool PlayerCommsMessage(OOJS_NATIVE_ARGS)
 	double					time = 4.5;
 	BOOL					gotTime = YES;
 	
-	message = JSValToNSString(context, argv[0]);
-	if (argc > 1)  gotTime = JS_ValueToNumber(context, argv[1], &time);
+	message = JSValToNSString(context, OOJS_ARG(0));
+	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARG(1), &time);
 	if (message == nil || !gotTime)
 	{
-		OOReportJSBadArguments(context, @"Player", @"commsMessage", argc, argv, nil, @"message and optional duration");
+		OOReportJSBadArguments(context, @"Player", @"commsMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
 		return NO;
 	}
 	
@@ -362,11 +362,11 @@ static JSBool PlayerConsoleMessage(OOJS_NATIVE_ARGS)
 	double					time = 3.0;
 	BOOL					gotTime = YES;
 	
-	message = JSValToNSString(context, argv[0]);
-	if (argc > 1)  gotTime = JS_ValueToNumber(context, argv[1], &time);
+	message = JSValToNSString(context, OOJS_ARG(0));
+	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARG(1), &time);
 	if (message == nil || !gotTime)
 	{
-		OOReportJSBadArguments(context, @"Player", @"consoleMessage", argc, argv, nil, @"message and optional duration");
+		OOReportJSBadArguments(context, @"Player", @"consoleMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
 		return NO;
 	}
 	
@@ -431,10 +431,10 @@ static JSBool PlayerAddMessageToArrivalReport(OOJS_NATIVE_ARGS)
 	
 	NSString				*report = nil;
 	
-	report = JSValToNSString(context, argv[0]);
+	report = JSValToNSString(context, OOJS_ARG(0));
 	if (report == nil)
 	{
-		OOReportJSBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, argv, nil, @"arrival message");
+		OOReportJSBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, OOJS_ARGV, nil, @"arrival message");
 		return NO;
 	}
 	
@@ -461,7 +461,7 @@ static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 	
 	if (argc == 1)
 	{
-		destValue = JSValueToObject(context, argv[0]);
+		destValue = JSValueToObject(context, OOJS_ARG(0));
 		
 		if (!destValue || [destValue isKindOfClass:[ShipEntity class]])
 		{
@@ -494,10 +494,15 @@ static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 						// 4.70 fuel to get there, 2.35 to fly back = 7ly fuel, plus rounding error.
 						rescueRange = [UNIVERSE strict] ? 2.35 : 3.5;
 					}
-					NSMutableArray	*sDests = (NSMutableArray *)[UNIVERSE nearbyDestinationsWithinRange: rescueRange];
+					NSMutableArray	*sDests = (NSMutableArray *)[UNIVERSE nearbyDestinationsWithinRange:rescueRange];
 					int 			i = 0, nDests = [sDests count];
 					if (nDests > 0)	for (i = --nDests; i > 0; i--)
-						if ([(NSDictionary*)[sDests objectAtIndex:i] oo_boolForKey:@"nova"]) [sDests removeObjectAtIndex:i];
+					{
+						if ([(NSDictionary*)[sDests objectAtIndex:i] oo_boolForKey:@"nova"])
+						{
+							[sDests removeObjectAtIndex:i];
+						}
+					}
 					
 					// i is back to 0, nDests could have changed...
 					nDests = [sDests count];
@@ -518,7 +523,7 @@ static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 			else
 			{
 				JSBool		bValue;
-				if (JS_ValueToBoolean(context, argv[0], &bValue) && bValue == NO)
+				if (JS_ValueToBoolean(context, OOJS_ARG(0), &bValue) && bValue == NO)
 				{
 					[player setDockTarget:NULL];
 					OK = YES;
@@ -529,7 +534,7 @@ static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 	
 	if (OK == NO)
 	{
-		OOReportJSBadArguments(context, @"Player", @"setEscapePodDestination", argc, argv, nil, @"a valid station, null, or 'NEARBY_SYSTEM'");
+		OOReportJSBadArguments(context, @"Player", @"setEscapePodDestination", argc, OOJS_ARGV, nil, @"a valid station, null, or 'NEARBY_SYSTEM'");
 	}
 	return OK;
 	

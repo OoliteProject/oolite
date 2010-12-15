@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 static JSBool WorldScriptsGetProperty(OOJS_PROP_ARGS);
 static JSBool WorldScriptsEnumerate(JSContext *cx, JSObject *obj);
 
-static JSBool GetWorldScriptNames(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool GetWorldScriptNames(OOJS_PROP_ARGS);
 
 
 static JSClass sWorldScriptsClass =
@@ -119,14 +119,12 @@ static JSBool WorldScriptsEnumerate(JSContext *context, JSObject *object)
 }
 
 
-static JSBool GetWorldScriptNames(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+static JSBool GetWorldScriptNames(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	NSArray					*names = nil;
-	
-	names = [OOPlayerForScripting() worldScriptNames];
-	*outValue = [names javaScriptValueInContext:context];
+	NSArray *names = [OOPlayerForScripting() worldScriptNames];
+	*value = [names javaScriptValueInContext:context];
 	
 	return YES;
 	

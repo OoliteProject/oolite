@@ -52,7 +52,7 @@ static NSString *KeyForPropertyID(JSContext *context, PropertyID propID)
 }
 
 
-static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool MissionVariablesDeleteProperty(OOJS_PROP_ARGS);
 static JSBool MissionVariablesGetProperty(OOJS_PROP_ARGS);
 static JSBool MissionVariablesSetProperty(OOJS_PROP_ARGS);
 static JSBool MissionVariablesEnumerate(JSContext *cx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp);
@@ -176,6 +176,9 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 	switch (enumOp)
 	{
 		case JSENUMERATE_INIT:
+#if OO_NEW_JS
+		case JSENUMERATE_INIT_ALL:	// For ES5 Object.getOwnPropertyNames(). Since we have no non-enumerable properties, this is the same as _INIT.
+#endif
 		{
 			// -allKeys implicitly makes a copy, which is good since the enumerating code might mutate.
 			NSArray *mvars = [[[PlayerEntity sharedPlayer] missionVariables] allKeys];
@@ -183,7 +186,11 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 			*state = PRIVATE_TO_JSVAL(mvarEnumerator);
 			if (idp != NULL)
 			{
+#if OO_NEW_JS
+				*idp = INT_TO_JSID([mvars count]);
+#else
 				*idp = INT_TO_JSVAL([mvars count]);
+#endif
 			}
 			return YES;
 		}
@@ -207,7 +214,14 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 		case JSENUMERATE_DESTROY:
 		{
 			[mvarEnumerator release];
-			if (idp != NULL)  return JS_ValueToId(context, JSVAL_VOID, idp);
+			if (idp != NULL)
+			{
+#if OO_NEW_JS
+				*idp = JSID_VOID;
+#else
+				return JS_ValueToId(context, JSVAL_VOID, idp);
+#endif
+			}
 			return YES;
 		}
 	}

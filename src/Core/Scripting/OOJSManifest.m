@@ -42,8 +42,6 @@ static JSBool ManifestDeleteProperty(OOJS_PROP_ARGS);
 static JSBool ManifestGetProperty(OOJS_PROP_ARGS);
 static JSBool ManifestSetProperty(OOJS_PROP_ARGS);
 
-static JSBool ManifestToString(OOJS_NATIVE_ARGS);
-
 
 static JSClass sManifestClass =
 {
@@ -137,14 +135,6 @@ static JSPropertySpec sManifestProperties[] =
 static const unsigned kManifestCaseInsensitiveLimit = kManifest_gemstones + 1;
 
 
-static JSFunctionSpec sManifestMethods[] =
-{
-	// JS name					Function					min args
-	{ "toString",				ManifestToString,	0 },
-	{ 0 }
-};
-
-
 static NSDictionary *sManifestNameMap;
 
 
@@ -191,7 +181,7 @@ static NSDictionary *sManifestNameMap;
 
 void InitOOJSManifest(JSContext *context, JSObject *global)
 {
-	sManifestPrototype = JS_InitClass(context, global, NULL, &sManifestClass, NULL, 0, sManifestProperties, sManifestMethods, NULL, NULL);
+	sManifestPrototype = JS_InitClass(context, global, NULL, &sManifestClass, NULL, 0, sManifestProperties, NULL, NULL, NULL);
 	JSRegisterObjectConverter(&sManifestClass, JSBasicPrivateObjectConverter);
 	
 	// Create manifest object as a property of the player.ship object.
@@ -215,10 +205,10 @@ void InitOOJSManifest(JSContext *context, JSObject *global)
 }
 
 
-static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool ManifestDeleteProperty(OOJS_PROP_ARGS)
 {
 	jsval v = JSVAL_VOID;
-	return ManifestSetProperty(context, this, name, &v);
+	return ManifestSetProperty(context, this, propID, &v);
 }
 
 
@@ -563,22 +553,6 @@ static JSBool ManifestSetProperty(OOJS_PROP_ARGS)
 	}
 	
 	return OK;
-	
-	OOJS_NATIVE_EXIT
-}
-
-
-// *** Methods ***
-
-// toString() : String
-static JSBool ManifestToString(OOJS_NATIVE_ARGS)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	NSString			*ret = @"[Manifest Object]";
-	
-	*outResult = [ret javaScriptValueInContext:context];
-	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

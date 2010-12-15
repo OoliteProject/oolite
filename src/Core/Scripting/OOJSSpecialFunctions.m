@@ -29,14 +29,12 @@ MA 02110-1301, USA.
 static JSObject		*sSpecialFunctionsObject;
 
 
-static JSBool SpecialToString(OOJS_NATIVE_ARGS);
 static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS);
 
 
 static JSFunctionSpec sSpecialFunctionsMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				SpecialToString,			0 },
 	{ "jsWarning",				SpecialJSWarning,			1 },
 	{ 0 }
 };
@@ -47,7 +45,11 @@ void InitOOJSSpecialFunctions(JSContext *context, JSObject *global)
 	sSpecialFunctionsObject = JS_NewObject(context, NULL, NULL, NULL);
 	OOJS_AddGCObjectRoot(context, &sSpecialFunctionsObject, "OOJSSpecialFunctions");
 	JS_DefineFunctions(context, sSpecialFunctionsObject, sSpecialFunctionsMethods);
+#if OO_NEW_JS
+	JS_FreezeObject(context, sSpecialFunctionsObject);
+#else
 	JS_SealObject(context, sSpecialFunctionsObject, NO);
+#endif
 }
 
 
@@ -63,23 +65,12 @@ OOJSValue *JSSpecialFunctionsObjectWrapper(JSContext *context)
 }
 
 
-static JSBool SpecialToString(OOJS_NATIVE_ARGS)
-{
-	OOJS_PROFILE_ENTER
-	
-	*outResult = STRING_TO_JSVAL(JS_NewStringCopyZ(context, "[object OoliteSpecialFunctions]"));
-	return YES;
-	
-	OOJS_PROFILE_EXIT
-}
-
-
 static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS)
 {
 	OOJS_PROFILE_ENTER	// These functions are exception-safe
 	
 	OOSetJSWarningOrErrorStackSkip(1);
-	OOReportJSWarning(context, @"%@", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
+	OOReportJSWarning(context, @"%@", [NSString stringWithJavaScriptValue:OOJS_ARG(0) inContext:context]);
 	OOSetJSWarningOrErrorStackSkip(0);
 	return YES;
 	

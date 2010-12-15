@@ -448,6 +448,7 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #if OO_NEW_JS
 // Native callback conventions have changed.
 #define OOJS_NATIVE_ARGS				JSContext *context, uintN argc, jsval *vp
+#define OOJS_NATIVE_CALLTHROUGH			context, argc, vp
 #define OOJS_CALLEE						JS_CALLEE(context, vp)
 #define OOJS_THIS_VAL					JS_THIS(context, vp)
 #define OOJS_THIS						JS_THIS_OBJECT(context, vp)
@@ -469,6 +470,7 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 
 #else
 #define OOJS_NATIVE_ARGS				JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult
+#define OOJS_NATIVE_CALLTHROUGH			context, this, argc, argv, outResult
 #define OOJS_CALLEE						argv[-2]
 #define OOJS_THIS_VAL					OBJECT_TO_JSVAL(this)
 #define OOJS_THIS						this
@@ -490,6 +492,10 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #endif
 
 #define OOJS_ARG(n)						(OOJS_ARGV[(n)])
+#define OOJS_RETURN_VOID				do { OOJS_SET_RVAL(JSVAL_VOID); return YES; } while (0)
+#define OOJS_RETURN_BOOL(v)				do { OOJS_SET_RVAL(BOOLToJSVal(v)); return YES; } while (0)
+#define OOJS_RETURN_INT(v)				do { OOJS_SET_RVAL(INT_TO_JSVAL(v)); return YES; } while (0)
+#define OOJS_RETURN_OBJECT(o)			do { OOJS_SET_RVAL([o javaScriptValueInContext:context]); return YES; } while (0)
 
 
 

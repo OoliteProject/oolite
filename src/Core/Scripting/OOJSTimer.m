@@ -350,17 +350,21 @@ static void TimerFinalize(JSContext *context, JSObject *this)
 
 
 // new Timer(this : Object, function : Function, delay : Number [, interval : Number]) : Timer
-static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, jsval *argv, jsval *outResult)
+static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	JSObject				*this = NULL;
 	jsval					function = JSVAL_VOID;
 	double					delay;
 	double					interval = -1.0;
 	OOJSTimer				*timer = nil;
+#if OO_NEW_JS
+	JSObject				*this = NULL;
+#else
+	this = NULL;
+#endif
 	
-    if (!JS_IsConstructing(context))
+    if (!OOJS_IS_CONSTRUCTING)
 	{
 		OOReportJSError(context, @"Timer() cannot be called as a function, it must be used as a constructor (as in new Timer(...)).");
 		return NO;
@@ -368,34 +372,34 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	
 	if (argc < 3)
 	{
-		OOReportJSBadArguments(context, nil, @"Timer", argc, argv, @"Invalid arguments in constructor", @"(object, function, number [, number])");
+		OOReportJSBadArguments(context, nil, @"Timer", argc, OOJS_ARGV, @"Invalid arguments in constructor", @"(object, function, number [, number])");
 		return NO;
 	}
 	
-	if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_VOID(argv[0]))
+	if (!JSVAL_IS_NULL(OOJS_ARG(0)) && !JSVAL_IS_VOID(OOJS_ARG(0)))
 	{
-		if (!JS_ValueToObject(context, argv[0], &this))
+		if (!JS_ValueToObject(context, OOJS_ARG(0), &this))
 		{
-			OOReportJSBadArguments(context, nil, @"Timer", 1, argv, @"Invalid argument in constructor", @"object");
+			OOReportJSBadArguments(context, nil, @"Timer", 1, OOJS_ARGV, @"Invalid argument in constructor", @"object");
 			return NO;
 		}
 	}
 	
-	function = argv[1];
+	function = OOJS_ARG(1);
 	if (JS_ValueToFunction(context, function) == NULL)
 	{
-		OOReportJSBadArguments(context, nil, @"Timer", 1, argv + 1, @"Invalid argument in constructor", @"function");
+		OOReportJSBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 1, @"Invalid argument in constructor", @"function");
 		return NO;
 	}
 	
-	if (!JS_ValueToNumber(context, argv[2], &delay) || isnan(delay))
+	if (!JS_ValueToNumber(context, OOJS_ARG(2), &delay) || isnan(delay))
 	{
-		OOReportJSBadArguments(context, nil, @"Timer", 1, argv + 2, @"Invalid argument in constructor", @"number");
+		OOReportJSBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 2, @"Invalid argument in constructor", @"number");
 		return NO;
 	}
 	
 	// Fourth argument is optional.
-	if (3 < argc && !JS_ValueToNumber(context, argv[3], &interval))  interval = -1;
+	if (3 < argc && !JS_ValueToNumber(context, OOJS_ARG(3), &interval))  interval = -1;
 	
 	// Ensure interval is not too small.
 	if (0.0 < interval && interval < kMinInterval)  interval = kMinInterval;
@@ -404,7 +408,7 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 									interval:interval
 									function:function
 										this:this
-									  jsSelf:JSVAL_TO_OBJECT(*outResult)];
+									  jsSelf:JSVAL_TO_OBJECT(OOJS_RVAL)];
 	if (timer != nil)
 	{
 		if (delay >= 0)	// Leave in stopped state if delay is negative
@@ -415,7 +419,7 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	}
 	else
 	{
-		*outResult = JSVAL_NULL;
+		OOJS_SET_RVAL(JSVAL_NULL);
 	}
 
 	return YES;
@@ -433,11 +437,9 @@ static JSBool TimerStart(OOJS_NATIVE_ARGS)
 	
 	OOJSTimer					*thisTimer = nil;
 	
-	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &thisTimer)))  return NO;
+	if (EXPECT_NOT(!JSTimerGetTimer(context, OOJS_THIS, &thisTimer)))  return NO;
 	
-	*outResult = BOOLToJSVal([thisTimer scheduleTimer]);
-	return YES;
-	
+	OOJS_RETURN_BOOL([thisTimer scheduleTimer]);
 	OOJS_NATIVE_EXIT
 }
 
@@ -449,7 +451,7 @@ static JSBool TimerStop(OOJS_NATIVE_ARGS)
 	
 	OOJSTimer					*thisTimer = nil;
 	
-	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &thisTimer)))  return NO;
+	if (EXPECT_NOT(!JSTimerGetTimer(context, OOJS_THIS, &thisTimer)))  return NO;
 	
 	[thisTimer unscheduleTimer];
 	return YES;
