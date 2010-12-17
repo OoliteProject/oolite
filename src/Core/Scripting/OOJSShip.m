@@ -2071,11 +2071,15 @@ static JSBool ShipSetCargo(OOJS_NATIVE_ARGS)
 // setMaterials(params: dict, [shaders: dict])  // sets materials dictionary. Optional parameter sets the shaders dictionary too.
 static JSBool ShipSetMaterials(OOJS_NATIVE_ARGS)
 {
+	OOJS_NATIVE_ENTER(context)
+	
 	ShipEntity				*thisEnt = nil;
 	
 	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  return YES;
 	
 	return ShipSetMaterialsInternal(OOJS_NATIVE_CALLTHROUGH, thisEnt, NO);
+	
+	OOJS_NATIVE_EXIT
 }
 
 
@@ -2103,7 +2107,7 @@ static JSBool ShipSetShaders(OOJS_NATIVE_ARGS)
 
 static JSBool ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity *thisEnt, BOOL fromShaders)
 {
-	OOJS_NATIVE_ENTER(context)
+	OOJS_PROFILE_ENTER
 	
 	JSObject				*params = NULL;
 	NSDictionary			*materials;
@@ -2176,7 +2180,7 @@ static JSBool ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity *thisEnt, BO
 	
 	OOJS_RETURN_BOOL(success);
 	
-	OOJS_NATIVE_EXIT
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -2210,6 +2214,8 @@ static JSBool ShipExitSystem(OOJS_NATIVE_ARGS)
 
 static BOOL RemoveOrExplodeShip(OOJS_NATIVE_ARGS, BOOL explode)
 {
+	OOJS_PROFILE_ENTER
+	
 	ShipEntity				*thisEnt = nil;
 	
 	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt)) OOJS_RETURN_VOID;	// stale reference, no-op.
@@ -2238,6 +2244,8 @@ static BOOL RemoveOrExplodeShip(OOJS_NATIVE_ARGS, BOOL explode)
 	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 

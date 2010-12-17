@@ -364,7 +364,7 @@ static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
 	this = NULL;
 #endif
 	
-    if (!OOJS_IS_CONSTRUCTING)
+	if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING))
 	{
 		OOReportJSError(context, @"Timer() cannot be called as a function, it must be used as a constructor (as in new Timer(...)).");
 		return NO;

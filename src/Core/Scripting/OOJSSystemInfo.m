@@ -37,7 +37,7 @@ static OOGalaxyID sCachedGalaxy;
 static OOSystemID sCachedSystem;
 
 
-static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+static JSBool SystemInfoDeleteProperty(OOJS_PROP_ARGS);
 static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS);
 static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS);
 static void SystemInfoFinalize(JSContext *context, JSObject *this);
@@ -332,12 +332,12 @@ static void SystemInfoFinalize(JSContext *context, JSObject *this)
 }
 
 
-static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+static JSBool SystemInfoDeleteProperty(OOJS_PROP_ARGS)
 {
 	OOJS_PROFILE_ENTER	// Any exception will be converted in SystemInfoSetProperty()
 	
 	jsval v = JSVAL_VOID;
-	return SystemInfoSetProperty(context, this, name, &v);
+	return SystemInfoSetProperty(context, this, propID, &v);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -464,16 +464,16 @@ static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if(!JSVAL_IS_OBJECT(argv[0]))
+	if(!JSVAL_IS_OBJECT(OOJS_ARG(0)))
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, argv, nil, @"SystemInfo");
+		OOReportJSBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
-	OOSystemInfo *thisInfo = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
-	OOSystemInfo *otherInfo  = JSObjectToObjectOfClass(context, JSVAL_TO_OBJECT(argv[0]), [OOSystemInfo class]);
+	OOSystemInfo *thisInfo = JSObjectToObjectOfClass(context, OOJS_THIS, [OOSystemInfo class]);
+	OOSystemInfo *otherInfo  = JSObjectToObjectOfClass(context, JSVAL_TO_OBJECT(OOJS_ARG(0)), [OOSystemInfo class]);
 	if (thisInfo == nil || otherInfo == nil)
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, argv, nil, @"SystemInfo");
+		OOReportJSBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
 	
@@ -487,7 +487,7 @@ static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS)
 	NSPoint thisCoord = [thisInfo coordinates];
 	NSPoint otherCoord = [otherInfo coordinates];
 	
-	return JS_NewDoubleValue(context, distanceBetweenPlanetPositions(thisCoord.x, thisCoord.y, otherCoord.x, otherCoord.y), outResult);
+	OOJS_RETURN_DOUBLE(distanceBetweenPlanetPositions(thisCoord.x, thisCoord.y, otherCoord.x, otherCoord.y));
 	
 	OOJS_NATIVE_EXIT
 }
@@ -501,16 +501,16 @@ static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS)
 	NSDictionary *result = nil;
 	OORouteType routeType = OPTIMIZED_BY_JUMPS;
 	
-	if(!JSVAL_IS_OBJECT(argv[0]))
+	if(!JSVAL_IS_OBJECT(OOJS_ARG(0)))
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"routeToSystem", argc, argv, nil, @"SystemInfo");
+		OOReportJSBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
-	OOSystemInfo *thisInfo = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
-	OOSystemInfo *otherInfo  = JSObjectToObjectOfClass(context, JSVAL_TO_OBJECT(argv[0]), [OOSystemInfo class]);
+	OOSystemInfo *thisInfo = JSObjectToObjectOfClass(context, OOJS_THIS, [OOSystemInfo class]);
+	OOSystemInfo *otherInfo  = JSObjectToObjectOfClass(context, JSVAL_TO_OBJECT(OOJS_ARG(0)), [OOSystemInfo class]);
 	if (thisInfo == nil || otherInfo == nil)
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"routeToSystem", argc, argv, nil, @"SystemInfo");
+		OOReportJSBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
 	
@@ -523,22 +523,14 @@ static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS)
 	
 	if (argc >= 2)
 	{
-		routeType = StringToRouteType(JSValToNSString(context, argv[1]));
+		routeType = StringToRouteType(JSValToNSString(context, OOJS_ARG(1)));
 	}
 	
 	OOJSPauseTimeLimiter();
 	result = [UNIVERSE routeFromSystem:[thisInfo system] toSystem:[otherInfo system] optimizedBy:routeType];
 	OOJSResumeTimeLimiter();
 	
-	if (result != nil)
-	{
-		*outResult = [result javaScriptValueInContext:context];
-	}
-	else
-	{
-		*outResult = JSVAL_NULL;
-	}
-	return YES;
+	OOJS_RETURN_OBJECT(result);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -550,11 +542,11 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	// Get this and predicate arguments.
-	jsval predicate = argv[1];
+	jsval predicate = OOJS_ARG(1);
 	JSObject *jsThis = NULL;
-	if (EXPECT_NOT(!JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(predicate)) || !JS_ValueToObject(context, argv[0], &jsThis)))
+	if (EXPECT_NOT(!JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(predicate)) || !JS_ValueToObject(context, OOJS_ARG(0), &jsThis)))
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"filteredSystems", argc, argv, nil, @"this and predicate function");
+		OOReportJSBadArguments(context, @"SystemInfo", @"filteredSystems", argc, OOJS_ARGV, nil, @"this and predicate function");
 		return NO;
 	}
 	
@@ -601,7 +593,7 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 	
 	if (OK)
 	{
-		*outResult = [result javaScriptValueInContext:context];
+		OOJS_SET_RVAL([result javaScriptValueInContext:context]);
 	}
 	[pool release];
 	

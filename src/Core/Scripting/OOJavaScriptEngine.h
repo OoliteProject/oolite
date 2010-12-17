@@ -482,7 +482,7 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 
 #define OOJS_RETURN_VECTOR(value)		do { return VectorToJSValue(context, value, outResult); } while (0)
 #define OOJS_RETURN_QUATERNION(value)	do { return QuaternionToJSValue(context, value, outResult); } while (0)
-#define OOJS_RETURN_DOUBLE(value)		do { return JS_NewDoubleValue(context, result, outResult); } while (0)
+#define OOJS_RETURN_DOUBLE(value)		do { return JS_NewDoubleValue(context, value, outResult); } while (0)
 
 #define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsval propID, jsval *value
 #define OOJS_PROPID_IS_INT				JSVAL_IS_INT(propID)

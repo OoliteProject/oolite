@@ -225,7 +225,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 {
 	assert(sSharedEngine == nil);
 	
-#ifndef NDEBUG
+#if OO_NEW_JS
+	JS_SetCStringsAreUTF8();
+#else
 	// This one is causing trouble for the Linux crowd. :-/
 	if (!JS_CStringsAreUTF8())
 	{
