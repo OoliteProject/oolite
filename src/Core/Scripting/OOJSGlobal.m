@@ -213,12 +213,12 @@ static JSBool GlobalLog(OOJS_NATIVE_ARGS)
 	if (argc < 2)
 	{
 		messageClass = kOOLogDebugMessage;
-		message = JSValToNSString(context,argv[0]);
+		message = JSValToNSString(context,OOJS_ARG(0));
 	}
 	else
 	{
-		messageClass = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
-		message = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@", " inContext:context];
+		messageClass = [NSString stringWithJavaScriptValue:OOJS_ARG(0) inContext:context];
+		message = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV + 1 count:argc - 1 separator:@", " inContext:context];
 	}
 	
 	OOJSPauseTimeLimiter();
@@ -245,21 +245,19 @@ static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS)
 	NSString			*string = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = JSValToNSString(context, argv[0]);
+	string = JSValToNSString(context, OOJS_ARG(0));
 	if (string == nil)
 	{
-		OOReportJSBadArguments(context, nil, @"expandDescription", argc, argv, nil, @"string");
+		OOReportJSBadArguments(context, nil, @"expandDescription", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	if (argc > 1)
 	{
-		overrides = JSValueToObjectOfClass(context, argv[1], [NSDictionary class]);
+		overrides = JSValueToObjectOfClass(context, OOJS_ARG(1), [NSDictionary class]);
 	}
 	
 	string = ExpandDescriptionsWithOptions(string, [[PlayerEntity sharedPlayer] system_seed], overrides, nil, nil);
-	*outResult = [string javaScriptValueInContext:context];
-	
-	return YES;
+	OOJS_RETURN_OBJECT(string);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -274,31 +272,27 @@ static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS)
 	NSMutableString		*mString = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = JSValToNSString(context, argv[0]);
+	string = JSValToNSString(context, OOJS_ARG(0));
 	if (string == nil)
 	{
-		OOReportJSBadArguments(context, nil, @"expandMissionText", argc, argv, nil, @"string");
+		OOReportJSBadArguments(context, nil, @"expandMissionText", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	if (argc > 1)
 	{
-		overrides = JSValueToObjectOfClass(context, argv[1], [NSDictionary class]);
+		overrides = JSValueToObjectOfClass(context, OOJS_ARG(1), [NSDictionary class]);
 	}
 	
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
 	if (string != nil)
 	{
-		mString = [ExpandDescriptionsWithOptions(string, [[PlayerEntity sharedPlayer] system_seed], overrides, nil, nil) mutableCopy];
+		string = ExpandDescriptionsWithOptions(string, [[PlayerEntity sharedPlayer] system_seed], overrides, nil, nil);
+		mString = [NSMutableString stringWithString:string];
 		[mString replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:(NSRange){ 0, [mString length] }];
-		*outResult = [mString javaScriptValueInContext:context];
-		[mString release];
+		string = mString;
 	}
-	else
-	{
-		*outResult = JSVAL_NULL;
-	}
-
-	return YES;
+	
+	OOJS_RETURN_OBJECT(string);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -311,16 +305,14 @@ static JSBool GlobalDisplayNameForCommodity(OOJS_NATIVE_ARGS)
 	
 	NSString			*string = nil;
 	
-	string = JSValToNSString(context,argv[0]);
+	string = JSValToNSString(context,OOJS_ARG(0));
 	if (string == nil)
 	{
-		OOReportJSBadArguments(context, nil, @"displayNameForCommodity", argc, argv, nil, @"string");
+		OOReportJSBadArguments(context, nil, @"displayNameForCommodity", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	string = CommodityDisplayNameForSymbolicName(string);
-	*outResult = [string javaScriptValueInContext:context];
-	
-	return YES;
+	OOJS_RETURN_OBJECT(string);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -334,9 +326,7 @@ static JSBool GlobalRandomName(OOJS_NATIVE_ARGS)
 	NSString			*string = nil;
 	
 	string = RandomDigrams();
-	*outResult = [string javaScriptValueInContext:context];
-	
-	return YES;
+	OOJS_RETURN_OBJECT(string);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -351,13 +341,11 @@ static JSBool GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS)
 	Random_Seed			aSeed;
 	JSBool				isPlural = YES;
 	
-	if (!JS_ValueToBoolean(context, argv[0], &isPlural))  isPlural = NO;
+	if (!JS_ValueToBoolean(context, OOJS_ARG(0), &isPlural))  isPlural = NO;
 	
 	make_pseudo_random_seed(&aSeed);
 	string = [UNIVERSE generateSystemInhabitants:aSeed plural:isPlural];
-	*outResult = [string javaScriptValueInContext:context];
-	
-	return YES;
+	OOJS_RETURN_OBJECT(string);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -368,18 +356,18 @@ static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	*outResult = JSVAL_FALSE;
-	NSString 		*value = JSValToNSString(context, argv[0]);
+	NSString 		*value = JSValToNSString(context, OOJS_ARG(0));
 	PlayerEntity	*player = OOPlayerForScripting();
+	BOOL			result = NO;
 	
 	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
 	{
-		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setBackgroundTextureName:value]);
+		result = [[UNIVERSE gui] setBackgroundTextureName:value];
 		// add some permanence to the override if we're in the equip ship screen
-		if (*outResult == JSVAL_TRUE && [player guiScreen] == GUI_SCREEN_EQUIP_SHIP) [player setTempBackground:value];
+		if (result && [player guiScreen] == GUI_SCREEN_EQUIP_SHIP)  [player setTempBackground:value];
 	}
 	
-	return YES;
+	OOJS_RETURN_BOOL(result);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -390,15 +378,15 @@ static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	*outResult = JSVAL_FALSE;
-	NSString 		*value = JSValToNSString(context, argv[0]);
+	BOOL			result = NO;
+	NSString 		*value = JSValToNSString(context, OOJS_ARG(0));
 	
 	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
 	{
-		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setForegroundTextureName:value]);
+		result = [[UNIVERSE gui] setForegroundTextureName:value];
 	}
 	
-	return YES;
+	OOJS_RETURN_BOOL(result);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -409,7 +397,6 @@ static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	*outResult = JSVAL_FALSE;
 	NSString				*value = nil;
 	NSMutableCharacterSet	*allowedChars = (NSMutableCharacterSet *)[NSMutableCharacterSet alphanumericCharacterSet];
 	
@@ -417,15 +404,14 @@ static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 	
 	if (argc > 0)
 	{
-		value = JSValToNSString(context, argv[0]);
+		value = JSValToNSString(context, OOJS_ARG(0));
 		if (EXPECT_NOT(value == nil || [value rangeOfCharacterFromSet:[allowedChars invertedSet]].location != NSNotFound))
 		{
-			OOReportJSBadArguments(context, nil, @"takeSnapShot", argc, argv, nil, @"alphanumeric string");
+			OOReportJSBadArguments(context, nil, @"takeSnapShot", argc, OOJS_ARGV, nil, @"alphanumeric string");
 			return NO;
 		}
 	}
 	
-
 	NSString				*playerFileDirectory = [[NSFileManager defaultManager] defaultCommanderPath];
 	// OOLITE_LEOPARD is true for mac osx >= 10.5, this method should work in both gnustep & osx < 10.5
 #if !OOLITE_LEOPARD
@@ -446,9 +432,7 @@ static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 	}
 	
 	
-	*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gameView] snapShot:value]);
-	
-	return *outResult;
+	OOJS_RETURN_BOOL([[UNIVERSE gameView] snapShot:value]);
 	
 	OOJS_NATIVE_EXIT
 }

@@ -41,9 +41,11 @@ static JSBool MissionSetInstructions(OOJS_NATIVE_ARGS);
 static JSBool MissionSetInstructionsKey(OOJS_NATIVE_ARGS);
 static JSBool MissionRunScreen(OOJS_NATIVE_ARGS);
 
+static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey);
+
 //  Mission screen  callback varibables
-static jsval			sCallbackFunction = JSVAL_NULL;
-static jsval			sCallbackThis = JSVAL_NULL;
+static jsval			sCallbackFunction;
+static jsval			sCallbackThis;
 static OOJSScript		*sCallbackScript = nil;
 
 static JSClass sMissionClass =
@@ -77,6 +79,9 @@ static JSFunctionSpec sMissionMethods[] =
 
 void InitOOJSMission(JSContext *context, JSObject *global)
 {
+	sCallbackFunction = JSVAL_NULL;
+	sCallbackThis = JSVAL_NULL;
+	
 	JSObject *missionPrototype = JS_InitClass(context, global, NULL, &sMissionClass, NULL, 0, NULL, sMissionMethods, NULL, NULL);
 	JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	
@@ -136,22 +141,22 @@ void MissionRunCallback()
 	// Manage that memory.
 	[engine releaseContext:context];
 	[cbScript release];
-	JS_RemoveRoot(context, &cbFunction);
-	JS_RemoveRoot(context, &cbThis);
+	JS_RemoveValueRoot(context, &cbFunction);
+	JS_RemoveObjectRoot(context, &cbThis);
 }
 
 
 // *** Methods ***
 
 // markSystem(systemCoords : String)
-static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool MissionMarkSystem(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*params = nil;
 	
-	params = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:context];
+	params = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV count:argc separator:@" " inContext:context];
 	[player addMissionDestination:params];
 	
 	return YES;
@@ -161,14 +166,14 @@ static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, j
 
 
 // unmarkSystem(systemCoords : String)
-static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+static JSBool MissionUnmarkSystem(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*params = nil;
 	
-	params = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:context];
+	params = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV count:argc separator:@" " inContext:context];
 	[player removeMissionDestination:params];
 	
 	return YES;
@@ -187,7 +192,7 @@ static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS)
 	
 	// Found "FIXME: warning if no mission screen running.",,,
 	// However: used routinely by the Constrictor mission in F7, without mission screens.
-	text = JSValToNSString(context,argv[0]);
+	text = JSValToNSString(context, OOJS_ARG(0));
 	[player addLiteralMissionText:text];
 	
 	return YES;
@@ -199,17 +204,18 @@ static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS)
 // setInstructionsKey(instructionsKey: String [, missionKey : String])
 static JSBool MissionSetInstructionsKey(OOJS_NATIVE_ARGS)
 {
-	OOJS_NATIVE_ENTER(context)
-	
-	*outResult = [@"textKey" javaScriptValueInContext:context];
-	return MissionSetInstructions(context, this, argc, argv, outResult);
-	
-	OOJS_NATIVE_EXIT
+	return MissionSetInstructionsInternal(OOJS_NATIVE_CALLTHROUGH, YES);
 }
 
 
 // setInstructions(instructions: String [, missionKey : String])
 static JSBool MissionSetInstructions(OOJS_NATIVE_ARGS)
+{
+	return MissionSetInstructionsInternal(OOJS_NATIVE_CALLTHROUGH, NO);
+}
+
+
+static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -217,12 +223,11 @@ static JSBool MissionSetInstructions(OOJS_NATIVE_ARGS)
 	NSString			*text = nil;
 	NSString			*missionKey = nil;
 	
-	text = JSValToNSString(context,argv[0]);
-	if ([text isKindOfClass:[NSNull class]])  text = nil;
+	text = JSValToNSString(context, OOJS_ARG(0));
 	
 	if (argc > 1)
 	{
-		missionKey = [NSString stringWithJavaScriptValue:argv[1] inContext:context];
+		missionKey = [NSString stringWithJavaScriptValue:OOJS_ARG(1) inContext:context];
 	}
 	else
 	{
@@ -231,17 +236,20 @@ static JSBool MissionSetInstructions(OOJS_NATIVE_ARGS)
 	
 	if (text != nil)
 	{
-		if ([@"textKey" isEqualTo:JSValToNSString(context,*outResult)])
+		if (isKey)
+		{
 			[player setMissionDescription:text forMission:missionKey];
+		}
 		else
+		{
 			[player setMissionInstructions:text forMission:missionKey];
+		}
 	}
 	else
 	{
 		[player clearMissionDescriptionForMission:missionKey];
 	}
 	
-	*outResult = JSVAL_VOID;	
 	return YES;
 	
 	OOJS_NATIVE_EXIT
@@ -267,38 +275,37 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	PlayerEntity		*player = OOPlayerForScripting();
 	jsval				function = JSVAL_NULL;
 	jsval				value = JSVAL_NULL;
-	JSObject			*params = JSVAL_NULL;
+	JSObject			*params = NULL;
 	
 	// No mission screens during intro.
 	if ([player guiScreen] == GUI_SCREEN_INTRO1 || [player guiScreen] == GUI_SCREEN_INTRO2)
 	{
-		*outResult = JSVAL_FALSE;
-		return YES;
+		OOJS_RETURN_BOOL(NO);
 	}
 	
 	// Validate arguments.
-	if (!JSVAL_IS_OBJECT(argv[0]) || JSVAL_IS_NULL(argv[0]))
+	if (!JSVAL_IS_OBJECT(OOJS_ARG(0)) || JSVAL_IS_NULL(OOJS_ARG(0)))
 	{
-		OOReportJSBadArguments(context, @"mission", @"runScreen", argc, argv, nil, @"parameter object");
+		OOReportJSBadArguments(context, @"mission", @"runScreen", argc, OOJS_ARGV, nil, @"parameter object");
 		return NO;
 	}
-	params = JSVAL_TO_OBJECT(argv[0]);
+	params = JSVAL_TO_OBJECT(OOJS_ARG(0));
 	
-	if (argc > 1) function = argv[1];
+	if (argc > 1) function = OOJS_ARG(1);
 	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
 	{
-		OOReportJSBadArguments(context, @"mission", @"runScreen", argc - 1, argv + 1, nil, @"function");
+		OOReportJSBadArguments(context, @"mission", @"runScreen", argc - 1, OOJS_ARGV + 1, nil, @"function");
 		return NO;
 	}
 	
 	OOJSPauseTimeLimiter();
 	
-	if (function != JSVAL_NULL)
+	if (!JSVAL_IS_NULL(function))
 	{
 		sCallbackScript = [[[OOJSScript currentlyRunningScript] weakRefUnderlyingObject] retain];
 		if (argc > 2)
 		{
-			sCallbackThis = argv[2];
+			sCallbackThis = OOJS_ARG(2);
 		}
 		else
 		{
@@ -362,8 +369,7 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	
 	OOJSResumeTimeLimiter();
 	
-	*outResult = JSVAL_TRUE;
-	return YES;
+	OOJS_RETURN_BOOL(YES);
 	
 	OOJS_NATIVE_EXIT
 }
