@@ -65,7 +65,10 @@ static JSBool GlobalRandomName(OOJS_NATIVE_ARGS);
 static JSBool GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS);
 static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS);
 static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS);
+
+#ifndef NDEBUG
 static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS);
+#endif
 
 
 static JSClass sGlobalClass =
@@ -115,7 +118,9 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "randomInhabitantsDescription",	GlobalRandomInhabitantsDescription,	1 },
 	{ "setScreenBackground",			GlobalSetScreenBackground,			1 },
 	{ "setScreenOverlay",				GlobalSetScreenOverlay,				1 },
-	{ "takeSnapShot",				GlobalTakeSnapShot,				1 },
+#ifndef NDEBUG
+	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
+#endif
 	{ 0 }
 };
 
@@ -392,6 +397,7 @@ static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
 }
 
 
+#ifndef NDEBUG
 // takeSnapShot([name : alphanumeric String]) : Boolean
 static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 {
@@ -436,3 +442,4 @@ static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 	
 	OOJS_NATIVE_EXIT
 }
+#endif
