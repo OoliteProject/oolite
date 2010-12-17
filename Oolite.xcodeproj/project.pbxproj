@@ -728,6 +728,8 @@
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
 		2B9C82F411784AAB000A79F7 /* oolite-tunnel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 2B9C82F311784AAB000A79F7 /* oolite-tunnel.dat */; };
 		2BC3CA14119F6279000DD54F /* oolite-rocktunnel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 2BC3CA13119F6279000DD54F /* oolite-rocktunnel.dat */; };
+		B372438912BB72E7004890B3 /* oolite-constrictor-pilot.js in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = B372438812BB72E7004890B3 /* oolite-constrictor-pilot.js */; };
+		B372438A12BB730A004890B3 /* oolite-constrictor-pilot.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = B372438812BB72E7004890B3 /* oolite-constrictor-pilot.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1118,6 +1120,7 @@
 				1A572FC60D84B640003D4A26 /* oolite-default-ship-script.js in Copy Scripts */,
 				1A572FC70D84B640003D4A26 /* oolite-cloaking-device-mission.js in Copy Scripts */,
 				1A572FC80D84B640003D4A26 /* oolite-constrictor.js in Copy Scripts */,
+				B372438A12BB730A004890B3 /* oolite-constrictor-pilot.js in Copy Scripts */,
 				1A572FC90D84B640003D4A26 /* oolite-constrictor-hunt-mission.js in Copy Scripts */,
 				1A572FCA0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js in Copy Scripts */,
 				1A572FCB0D84B640003D4A26 /* oolite-cloaking-device-pod.js in Copy Scripts */,
@@ -1160,6 +1163,7 @@
 			dstSubfolderSpec = 16;
 			files = (
 				1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */,
+				B372438912BB72E7004890B3 /* oolite-constrictor-pilot.js in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1921,6 +1925,7 @@
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "javascript-errors.plist"; sourceTree = "<group>"; };
 		2B9C82F311784AAB000A79F7 /* oolite-tunnel.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-tunnel.dat"; sourceTree = "<group>"; };
 		2BC3CA13119F6279000DD54F /* oolite-rocktunnel.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-rocktunnel.dat"; sourceTree = "<group>"; };
+		B372438812BB72E7004890B3 /* oolite-constrictor-pilot.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-constrictor-pilot.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2440,6 +2445,7 @@
 				1A572FBB0D84B640003D4A26 /* oolite-default-ship-script.js */,
 				1A572FBC0D84B640003D4A26 /* oolite-cloaking-device-mission.js */,
 				1A572FBD0D84B640003D4A26 /* oolite-constrictor.js */,
+				B372438812BB72E7004890B3 /* oolite-constrictor-pilot.js */,
 				1A572FBE0D84B640003D4A26 /* oolite-constrictor-hunt-mission.js */,
 				1A572FBF0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js */,
 				1A572FC00D84B640003D4A26 /* oolite-cloaking-device-pod.js */,
