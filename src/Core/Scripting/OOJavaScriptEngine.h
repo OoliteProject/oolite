@@ -492,10 +492,11 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #endif
 
 #define OOJS_ARG(n)						(OOJS_ARGV[(n)])
-#define OOJS_RETURN_VOID				do { OOJS_SET_RVAL(JSVAL_VOID); return YES; } while (0)
-#define OOJS_RETURN_BOOL(v)				do { OOJS_SET_RVAL(BOOLToJSVal(v)); return YES; } while (0)
-#define OOJS_RETURN_INT(v)				do { OOJS_SET_RVAL(INT_TO_JSVAL(v)); return YES; } while (0)
-#define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_SET_RVAL(o_ ? [o_ javaScriptValueInContext:context] : JSVAL_NULL); return YES; } while (0)
+#define OOJS_RETURN(v)					do { OOJS_SET_RVAL(v); return YES; } while (0)
+#define OOJS_RETURN_VOID				OOJS_RETURN(JSVAL_VOID)
+#define OOJS_RETURN_BOOL(v)				OOJS_RETURN(BOOLToJSVal(v))
+#define OOJS_RETURN_INT(v)				OOJS_RETURN(INT_TO_JSVAL(v))
+#define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ javaScriptValueInContext:context] : JSVAL_NULL); } while (0)
 
 
 

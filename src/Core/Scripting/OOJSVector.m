@@ -892,13 +892,11 @@ static JSBool VectorToCoordinateSystem(OOJS_NATIVE_ARGS)
 	
 	OOJSPauseTimeLimiter();
 	
-	jsval result;
-	VectorToJSValue(context, [UNIVERSE legacyPositionFrom:thisv asCoordinateSystem:coordScheme], &result);
+	Vector result = [UNIVERSE legacyPositionFrom:thisv asCoordinateSystem:coordScheme];
 
 	OOJSResumeTimeLimiter();
 	
-	OOJS_SET_RVAL(result);
-	return YES;
+	OOJS_RETURN_VECTOR(result);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -911,7 +909,6 @@ static JSBool VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
 	
 	Vector				thisv;
 	NSString			*coordScheme = nil;
-	NSString			*arg = nil;	
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"fromCoordinateSystem"))) return NO;
 
@@ -925,14 +922,12 @@ static JSBool VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
 		
 	OOJSPauseTimeLimiter();
 	
-	arg = [NSString stringWithFormat:@"%@ %f %f %f", coordScheme, thisv.x, thisv.y, thisv.z];
-	jsval result;
-	VectorToJSValue(context, [UNIVERSE coordinatesFromCoordinateSystemString:arg], &result);
+	NSString *arg = [NSString stringWithFormat:@"%@ %f %f %f", coordScheme, thisv.x, thisv.y, thisv.z];
+	Vector result = [UNIVERSE coordinatesFromCoordinateSystemString:arg];
 	
 	OOJSResumeTimeLimiter();
 	
-	OOJS_SET_RVAL(result);
-	return YES;
+	OOJS_RETURN_VECTOR(result);
 	
 	OOJS_NATIVE_EXIT
 }
