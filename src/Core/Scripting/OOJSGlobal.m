@@ -129,7 +129,12 @@ void CreateOOJSGlobal(JSContext *context, JSObject **outGlobal)
 {
 	assert(outGlobal != NULL);
 	
+#if OO_NEW_JS
+	*outGlobal = JS_NewCompartmentAndGlobalObject(context, &sGlobalClass, NULL);
+#else
 	*outGlobal = JS_NewObject(context, &sGlobalClass, NULL, NULL);
+#endif
+	JS_SetGlobalObject(context, *outGlobal);
 	JS_DefineProperty(context, *outGlobal, "global", OBJECT_TO_JSVAL(*outGlobal), NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 }
 

@@ -264,6 +264,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		exit(1);
 	}
 	
+	JS_BeginRequest(mainContext);
+	
 	JS_SetOptions(mainContext, OOJSENGINE_CONTEXT_OPTIONS);
 	JS_SetVersion(mainContext, OOJSENGINE_JSVERSION);
 	
@@ -313,6 +315,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSSystemInfo(mainContext, globalObject);
 	InitOOJSEquipmentInfo(mainContext, globalObject);
 	InitOOJSShipGroup(mainContext, globalObject);
+	
+	JS_EndRequest(mainContext);
 	
 	sSharedEngine = self;
 	
@@ -1117,7 +1121,9 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		}
 		
 		_val = value;
+		JS_BeginRequest(context);
 		JS_AddNamedValueRoot(context, &_val, "OOJSValue");
+		JS_EndRequest(context);
 		
 		if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	}

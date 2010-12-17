@@ -105,13 +105,13 @@ static JSFunctionSpec sScriptMethods[] =
 
 @implementation OOJSScript
 
-+ (id)scriptWithPath:(NSString *)path properties:(NSDictionary *)properties
++ (id) scriptWithPath:(NSString *)path properties:(NSDictionary *)properties
 {
 	return [[[self alloc] initWithPath:path properties:properties] autorelease];
 }
 
 
-- (id)initWithPath:(NSString *)path properties:(NSDictionary *)properties
+- (id) initWithPath:(NSString *)path properties:(NSDictionary *)properties
 {
 	OOJavaScriptEngine		*engine = nil;
 	JSContext				*context = NULL;
@@ -127,6 +127,7 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	engine = [OOJavaScriptEngine sharedEngine];
 	context = [engine acquireContext];
+	JS_BeginRequest(context);
 	
 	// Set up JS object
 	if (!problem)
@@ -226,8 +227,9 @@ static JSFunctionSpec sScriptMethods[] =
 		self = nil;
 	}
 	
+	JS_EndRequest(context);
 	[engine releaseContext:context];
-
+	
 	return self;
 	// Analyzer: object leaked. [Expected, object is retained by JS object.]
 }
@@ -241,8 +243,12 @@ static JSFunctionSpec sScriptMethods[] =
 	DESTROY(filePath);
 	
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JS_BeginRequest(context);
+	
 	JSObjectWrapperFinalize(context, _jsSelf);		// Release weakref to self
 	JS_RemoveObjectRoot(context, &_jsSelf);			// Unroot jsSelf
+	
+	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	[weakSelf weakRefDrop];
