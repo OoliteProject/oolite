@@ -265,21 +265,7 @@ void InitOOJSSystemInfo(JSContext *context, JSObject *global)
 }
 
 
-BOOL GetJSSystemInfoForCurrentSystem(JSContext *context, jsval *outInfo)
-{
-	OOJS_PROFILE_ENTER
-	
-	OOJSPauseTimeLimiter();
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
-	BOOL result = GetJSSystemInfoForSystem(context, [player currentGalaxyID], [player currentSystemID], outInfo);
-	OOJSResumeTimeLimiter();
-	return result;
-	
-	OOJS_PROFILE_EXIT
-}
-
-
-BOOL GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID system, jsval *outInfo)
+jsval GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID system)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -288,33 +274,28 @@ BOOL GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID 
 		sCachedGalaxy == galaxy &&
 		sCachedSystem == system)
 	{
-		*outInfo = OBJECT_TO_JSVAL(sCachedSystemInfo);
-		return YES;
+		return OBJECT_TO_JSVAL(sCachedSystemInfo);
 	}
 	
 	// If not, create a new one.
 	OOJSPauseTimeLimiter();
 	OOSystemInfo *info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
-	*outInfo = [info javaScriptValueInContext:context];
+	if (EXPECT_NOT(info == nil))
+	{
+		OOReportJSWarning(context, @"Could not create system info object for galaxy %u, system %i.", galaxy, system);
+	}
+	
+	jsval result = info ? [info javaScriptValueInContext:context] : JSVAL_NULL;
 	OOJSResumeTimeLimiter();
 	
-	if (info == nil)
-	{
-		OOReportJSError(context, @"Could not create system info object for galaxy %u, system %i.", galaxy, system);
-		return NO;
-	}
+	// Cache is not a root; we clear it in finalize if necessary.
+	sCachedSystemInfo = JSVAL_TO_OBJECT(result);
+	sCachedGalaxy = galaxy;
+	sCachedSystem = system;
 	
-	if (JSVAL_IS_OBJECT(*outInfo) && !JSVAL_IS_NULL(*outInfo))
-	{
-		// Cache is not a root; we clear it in finalize if necessary.
-		sCachedSystemInfo = JSVAL_TO_OBJECT(*outInfo);
-		sCachedGalaxy = galaxy;
-		sCachedSystem = system;
-		return YES;
-	}
-	return NO;
+	return result;
 	
-	OOJS_PROFILE_EXIT
+	OOJS_PROFILE_EXIT_JSVAL
 }
 
 

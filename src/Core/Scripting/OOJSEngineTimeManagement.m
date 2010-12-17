@@ -44,6 +44,8 @@ static int sLimiterPauseDepth;
 static OOHighResTimeValue sLimiterStart;
 static OOHighResTimeValue sLimiterPauseStart;
 static double sLimiterTimeLimit;
+
+#if !OO_NEW_JS
 static unsigned long sBranchCount;
 enum
 {
@@ -56,6 +58,7 @@ enum
 	kMaxBranchCount = (1 << 18)	// 262144
 #endif
 };
+#endif
 
 #if OOJS_DEBUG_LIMITER
 #define OOJS_TIME_LIMIT		(0.05)	// seconds
@@ -167,6 +170,7 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
 
 
 
+#if !OO_NEW_JS
 static JSBool BranchCallback(JSContext *context, JSScript *script)
 {
 	// This will be called a _lot_. Efficiency is important.
@@ -202,14 +206,18 @@ static JSBool BranchCallback(JSContext *context, JSScript *script)
 	
 	return NO;
 }
+#endif
 
 
 JSBool OOJSContextCallback(JSContext *context, uintN contextOp)
 {
+#if !OO_NEW_JS
+	// FIXME: new API has an equivalent, but it needs some work.
 	if (contextOp == JSCONTEXT_NEW)
 	{
 		JS_SetBranchCallback(context, BranchCallback);
 	}
+#endif
 	return YES;
 }
 

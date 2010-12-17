@@ -32,5 +32,5 @@ MA 02110-1301, USA.
 
 void InitOOJSSystemInfo(JSContext *context, JSObject *global);
 
-BOOL GetJSSystemInfoForCurrentSystem(JSContext *context, jsval *outInfo);
-BOOL GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID system, jsval *outInfo);
+// Returns JSVAL_NULL on failure (with a JS warning, but no exception).
+jsval GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID system);

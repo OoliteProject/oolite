@@ -678,10 +678,12 @@ static JSBool ConsoleCallObjCMethod(OOJS_NATIVE_ARGS)
 	}
 	
 	OOJSPauseTimeLimiter();
-	BOOL result = OOJSCallObjCObjectMethod(context, object, [object jsClassName], argc, OOJS_ARGV, outResult);
+	jsval result;
+	BOOL OK = OOJSCallObjCObjectMethod(context, object, [object jsClassName], argc, OOJS_ARGV, &result);
 	OOJSResumeTimeLimiter();
 	
-	return result;
+	OOJS_SET_RVAL(result);
+	return OK;
 	
 	OOJS_NATIVE_EXIT
 }

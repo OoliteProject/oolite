@@ -306,7 +306,7 @@ static JSBool SystemGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kSystem_info:
-			if (!GetJSSystemInfoForCurrentSystem(context, value))  return NO;
+			*value = GetJSSystemInfoForSystem(context, [player currentGalaxyID], [player currentSystemID]);
 			break;
 		
 		case kSystem_pseudoRandomNumber:
@@ -1062,11 +1062,7 @@ static JSBool SystemStaticInfoForSystem(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
-	BOOL result = GetJSSystemInfoForSystem(context, galaxyID, systemID, outResult);
-	OOJSResumeTimeLimiter();
-	
-	return result;
+	OOJS_RETURN(GetJSSystemInfoForSystem(context, galaxyID, systemID));
 	
 	OOJS_NATIVE_EXIT
 }
