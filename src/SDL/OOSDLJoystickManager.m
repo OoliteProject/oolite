@@ -94,7 +94,7 @@ MA 02110-1301, USA.
 
 - (NSString *) nameOfJoystick:(int)stickNumber
 {
-	return [NSString stringWithUTF8String:SDL_JoystickName(num)];
+	return [NSString stringWithUTF8String:SDL_JoystickName(stickNumber)];
 }
 
 

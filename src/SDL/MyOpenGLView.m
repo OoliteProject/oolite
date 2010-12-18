@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 #import "Universe.h"
-#import "JoystickHandlerSDL.h"
+#import "OOSDLJoystickManager.h"
 #import "SDL_syswm.h"
 #import "OOSound.h"
 #import "NSFileManagerOOExtensions.h" // to find savedir
@@ -127,7 +127,7 @@ MA 02110-1301, USA.
 	
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
 	
-	[JoystickHandler setStickHandlerClass:[JoystickHandlerSDL class]];
+	[OOJoystickManager setStickHandlerClass:[OOSDLJoystickManager class]];
 	// end TODO
 	
 	[OOSound setUp];
@@ -275,9 +275,6 @@ MA 02110-1301, USA.
 {
 	if (typedString)
 		[typedString release];
-		
-	if ([JoystickHandler sharedStickHandler])
-		[[JoystickHandler sharedStickHandler] release];
 		
 	if (screenSizes)
 		[screenSizes release];
@@ -1179,7 +1176,7 @@ MA 02110-1301, USA.
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
 			case SDL_JOYHATMOTION:
-				[[JoystickHandler sharedStickHandler] handleSDLEvent: &event];
+				[[OOJoystickManager sharedStickHandler] handleSDLEvent: &event];
 				break;
 				
 			case SDL_MOUSEBUTTONDOWN:
