@@ -17,6 +17,7 @@
 			dependencies = (
 				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
 				1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */,
+				1A09EFBD12BD118300BF7F48 /* PBXTargetDependency */,
 			);
 			name = "Build All";
 			productName = "Build All";
@@ -742,7 +743,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A09EF4F12BD0C1900BF7F48 /* LeopardFeatures.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 8D576316048677EA00EA77CD /* Oolite Leopard support.bundle */;
+			remoteGlobalIDString = 8D576316048677EA00EA77CD;
+			remoteInfo = LeopardFeatures;
+		};
+		1A09EFBC12BD118300BF7F48 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A09EF4F12BD0C1900BF7F48 /* LeopardFeatures.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D57630D048677EA00EA77CD /* LeopardFeatures */;
 			remoteInfo = LeopardFeatures;
 		};
 		1A274D2410C1EE02004CDDF5 /* PBXContainerItemProxy */ = {
@@ -3760,6 +3768,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1A09EFBD12BD118300BF7F48 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LeopardFeatures;
+			targetProxy = 1A09EFBC12BD118300BF7F48 /* PBXContainerItemProxy */;
+		};
 		1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = DebugOXP;

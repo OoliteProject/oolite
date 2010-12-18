@@ -17,6 +17,7 @@
 			dependencies = (
 				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
 				1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */,
+				1A09EFAE12BD117400BF7F48 /* PBXTargetDependency */,
 			);
 			name = "Build All";
 			productName = "Build All";
@@ -740,6 +741,13 @@
 			proxyType = 2;
 			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
 			remoteInfo = "Oolite-docktile";
+		};
+		1A09EFAD12BD117400BF7F48 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A8DF4EC12BD060C006D580F /* LeopardFeatures.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D57630D048677EA00EA77CD /* LeopardFeatures */;
+			remoteInfo = LeopardFeatures;
 		};
 		1A274D2410C1EE02004CDDF5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -3819,6 +3827,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1A09EFAE12BD117400BF7F48 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LeopardFeatures;
+			targetProxy = 1A09EFAD12BD117400BF7F48 /* PBXContainerItemProxy */;
+		};
 		1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = DebugOXP;
