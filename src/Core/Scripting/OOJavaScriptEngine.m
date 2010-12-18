@@ -445,7 +445,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JSContext				*context = NULL;
 	
 	context = [self acquireContext];
+	JS_BeginRequest(context);
 	JS_RemoveObjectRoot(context, rootPtr);
+	JS_EndRequest(context);
 	[self releaseContext:context];
 }
 
@@ -455,7 +457,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JSContext				*context = NULL;
 	
 	context = [self acquireContext];
+	JS_BeginRequest(context);
 	JS_RemoveValueRoot(context, rootPtr);
+	JS_EndRequest(context);
 	[self releaseContext:context];
 }
 
