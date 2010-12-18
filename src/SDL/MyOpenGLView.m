@@ -276,7 +276,7 @@ MA 02110-1301, USA.
 	if (typedString)
 		[typedString release];
 		
-	if ([JoystickHandler sharedStickHandler])	// double brackets to silence compiler warning
+	if ([JoystickHandler sharedStickHandler])
 		[[JoystickHandler sharedStickHandler] release];
 		
 	if (screenSizes)
