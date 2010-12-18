@@ -69,12 +69,11 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "NSFileManagerOOExtensions.h"
 
-#if OOLITE_MAC_OS_X
-#import "Groolite.h"
-#endif
-#if OOLITE_SDL
 #import "JoystickHandler.h"
 #import "PlayerEntityStickMapper.h"
+
+#if OOLITE_MAC_OS_X
+#import "Groolite.h"
 #endif
 
 
@@ -5763,23 +5762,18 @@ done:
 			[gui setText:DESC(@"gameoptions-play-in-fullscreen") forRow:GUI_ROW(GAME,DISPLAYSTYLE) align:GUI_ALIGN_CENTER];
 		}
 		[gui setKey: GUI_KEY_OK forRow: GUI_ROW(GAME,DISPLAYSTYLE)];
-
-
+#endif
+		
 		[gui setText:DESC(@"gameoptions-joystick-configuration") forRow: GUI_ROW(GAME,STICKMAPPER) align: GUI_ALIGN_CENTER];
-		if ([[gameView getStickHandler] getNumSticks])
+		if ([[JoystickHandler sharedStickHandler] getNumSticks])
 		{
-			// TODO: Modify input code to put this in a better place
-			stickHandler=[gameView getStickHandler];
-			numSticks=[stickHandler getNumSticks];
-			// end TODO
-
 			[gui setKey: GUI_KEY_OK forRow: GUI_ROW(GAME,STICKMAPPER)];
 		}
 		else
 		{
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,STICKMAPPER)];
 		}
-#endif
+		
 		NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-music-mode-@"), [UNIVERSE descriptionForArrayKey:@"music-mode" index:[[OOMusicController sharedController] mode]]];
 		[gui setText:message forRow:GUI_ROW(GAME,MUSIC)  align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,MUSIC)];

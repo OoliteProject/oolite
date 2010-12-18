@@ -448,11 +448,7 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	
 	// get joystick information - needed for mapping the snapshot key
-	if(!stickHandler)
-	{
-		stickHandler=[gameView getStickHandler];
-	}
-	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
+	const BOOL *joyButtonState = [[JoystickHandler sharedStickHandler] getAllButtonStates];
 	
 	NS_DURING
 		//  command-key controls
@@ -594,17 +590,14 @@ static NSTimeInterval	time_last_frame;
 
 - (void) pollFlightControls:(double)delta_t
 {
-	MyOpenGLView  *gameView = [UNIVERSE gameView];
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	
 	NSString * volatile	exceptionContext = @"setup";
 	
 	NS_DURING
 		exceptionContext = @"joystick handling";
-		// DJS: TODO: Sort where SDL keeps its stuff.
-		if(!stickHandler)
-		{
-			stickHandler=[gameView getStickHandler];
-		}
-		const BOOL *joyButtonState = [stickHandler getAllButtonStates];
+		const BOOL *joyButtonState = [[JoystickHandler sharedStickHandler] getAllButtonStates];
 		
 		BOOL paused = [[gameView gameController] gameIsPaused];
 		double speed_delta = 5.0 * thrust;
@@ -2544,15 +2537,11 @@ static NSTimeInterval	time_last_frame;
 		return;
 	
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	JoystickHandler *stickHandler = [JoystickHandler sharedStickHandler];
 	
 	NSPoint			virtualView = NSZeroPoint;
 	double			view_threshold = 0.5;
-
-	if (!stickHandler)
-	{
-		stickHandler = [gameView getStickHandler];
-	}
-
+	
 	if ([stickHandler getNumSticks])
 	{
 		virtualView = [stickHandler getViewAxis];
@@ -2606,7 +2595,7 @@ static NSTimeInterval	time_last_frame;
 		customView_pressed = NO;
 	
 	// Zoom scanner 'z'
-	if ([gameView isDown:key_scanner_zoom] && ([gameView allowingStringInput] == gvStringInputNo)) // look for the 'z' key
+	if (([gameView isDown:key_scanner_zoom] && ([gameView allowingStringInput] == gvStringInputNo)) || joyButtonState[BUTTON_SCANNERZOOM]) // look for the 'z' key
 	{
 		if (!scanner_zoom_rate)
 		{
@@ -2657,16 +2646,12 @@ static NSTimeInterval	time_last_frame;
 - (void) pollFlightArrowKeyControls:(double)delta_t
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	int				numSticks = [stickHandler getNumSticks];
 	NSPoint			virtualStick = NSZeroPoint;
 	double			reqYaw = 0.0;
 	double			deadzone;
 	
-	// TODO: Rework who owns the stick.
-	if(!stickHandler)
-	{
-		stickHandler=[gameView getStickHandler];
-	}
-	numSticks=[stickHandler getNumSticks];
 	if (mouse_control_on)
 	{
 		deadzone = 0.0;
@@ -2690,7 +2675,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	else if (numSticks > 0)
 	{
-		virtualStick=[stickHandler getRollPitchAxis];
+		virtualStick = [stickHandler getRollPitchAxis];
 		// handle roll separately (fix for BUG #17490)
 		if((virtualStick.x == STICK_AXISUNASSIGNED) || (fabs(virtualStick.x) < deadzone))
 		{

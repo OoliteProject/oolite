@@ -73,6 +73,7 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 #import "OOLoggingExtended.h"
 #import "OOJavaScriptEngine.h"
+#import "JoystickHandler.h"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -229,6 +230,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	allPlanets = [[NSMutableArray alloc] init];
 	
 	OOCPUInfoInit();
+	[JoystickHandler sharedStickHandler];
 	
 	// init OpenGL extension manager (must be done before any other threads might use it)
 	[OOOpenGLExtensionManager sharedManager];

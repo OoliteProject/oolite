@@ -83,8 +83,11 @@ enum
 #endif
 #if OOLITE_SPEECH_SYNTH
 	GUI_ROW_GAMEOPTIONS_SPEECH,
+#if !OOLITE_MAC_OS_X
+	// FIXME: should have voice option for OS X
 	GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE,
 	GUI_ROW_GAMEOPTIONS_SPEECH_GENDER,
+#endif
 #endif
 	GUI_ROW_GAMEOPTIONS_MUSIC,
 	GUI_ROW_GAMEOPTIONS_SPACER2,
@@ -96,10 +99,9 @@ enum
 	GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS,
 #endif
 	GUI_ROW_GAMEOPTIONS_SHADEREFFECTS,
-#if OOLITE_SDL
-	GUI_ROW_GAMEOPTIONS_SPACER_SDLSTICKMAPPER,
+	
+	GUI_ROW_GAMEOPTIONS_SPACER_STICKMAPPER,
 	GUI_ROW_GAMEOPTIONS_STICKMAPPER,
-#endif
 	GUI_ROW_GAMEOPTIONS_SPACER3,
 	GUI_ROW_GAMEOPTIONS_BACK,
 	
@@ -491,11 +493,6 @@ typedef enum
 	unsigned int			voice_no;
 	BOOL					voice_gender_m;
 #endif
-
-	// Note: joystick stuff does nothing under OS X.
-	// Keeping track of joysticks
-	int						numSticks;
-	JoystickHandler			*stickHandler;
   
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;

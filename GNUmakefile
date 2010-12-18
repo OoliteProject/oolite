@@ -43,7 +43,7 @@ else
 		LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_OPT.OBJ
     endif
 	ADDITIONAL_INCLUDE_DIRS = -I$(LIBJS_SRC_DIR)  -I$(LIBJS_BIN_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
-	ADDITIONAL_OBJC_LIBS = $(LIBJS_BIN_DIR)/libjs.a -lGLU -lGL
+	ADDITIONAL_OBJC_LIBS = $(LIBJS_BIN_DIR)/libjs.a -lGLU -lGL -lX11
 	ADDITIONAL_CFLAGS = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags`
 	ADDITIONAL_OBJCFLAGS = -Wall -std=c99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags`
 	oolite_LIB_DIRS += -L/usr/X11R6/lib/
@@ -361,6 +361,7 @@ OOLITE_MISC_FILES = \
 	AIGraphViz.m \
 	GameController.m \
 	JoystickHandler.m \
+	JoystickHandlerSDL.m \
 	main.m \
 	MyOpenGLView.m \
 	OOCharacter.m \

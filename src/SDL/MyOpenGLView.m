@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 #import "Universe.h"
-#import "JoystickHandler.h" // TODO: Not here!
+#import "JoystickHandlerSDL.h"
 #import "SDL_syswm.h"
 #import "OOSound.h"
 #import "NSFileManagerOOExtensions.h" // to find savedir
@@ -127,9 +127,9 @@ MA 02110-1301, USA.
 	
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
 	
-	stickHandler=[[JoystickHandler alloc] init];
+	[JoystickHandler setHandlerClass:[JoystickHandlerSDL class]];
 	// end TODO
-
+	
 	[OOSound setUp];
 
 	// Generate the window caption, containing the version number and the date the executable was compiled.
@@ -1864,12 +1864,6 @@ keys[a] = NO; keys[b] = NO; \
 	}
 	OOLog(@"display.mode.unknown", @"Screen size unknown!");
 	return NSMakeSize(800, 600);
-}
-
-
-- (JoystickHandler *) getStickHandler
-{
-	return stickHandler;
 }
 
 

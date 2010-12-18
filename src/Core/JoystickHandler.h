@@ -2,6 +2,7 @@
 
 JoystickHandler.h
 By Dylan Smith
+ modified by Alex Smith
 
 JoystickHandler handles joystick events from SDL, and translates them
 into the appropriate action via a lookup table. The lookup table is
@@ -33,59 +34,63 @@ MA 02110-1301, USA.
 
 */
 
+#import <Foundation/Foundation.h>
+
 // Enums are used here rather than a more complex ObjC object because
 // these are required very frequently (once per frame) so must be light
 // on CPU cycles (try and avoid too many objc sendmsgs).
 // Controls that can be an axis
 enum {
-  AXIS_ROLL,
-  AXIS_PITCH,
-  AXIS_YAW,
-  AXIS_PRECISION,
-  AXIS_THRUST,
-  AXIS_VIEWX,
-  AXIS_VIEWY,
-  AXIS_end
-} axfn;
+	AXIS_ROLL,
+	AXIS_PITCH,
+	AXIS_YAW,
+	AXIS_PRECISION,
+	AXIS_THRUST,
+	AXIS_VIEWX,
+	AXIS_VIEWY,
+	AXIS_end
+};
 
 // Controls that can be a button
 enum {
-  BUTTON_INCTHRUST,
-  BUTTON_DECTHRUST,
-  BUTTON_SCANNERZOOM,
-  BUTTON_JETTISON,
-  BUTTON_COMPASSMODE,
-  BUTTON_COMMSLOG,
-  BUTTON_DOCKCPU,
-  BUTTON_DOCKCPUFAST,
-  BUTTON_FUELINJECT,
-  BUTTON_HYPERSPEED,
-  BUTTON_HYPERDRIVE,
-  BUTTON_GALACTICDRIVE,
-  BUTTON_FIRE,
-  BUTTON_ARMMISSILE,
-  BUTTON_LAUNCHMISSILE,
-  BUTTON_PRIMEEQUIPMENT,
-  BUTTON_ACTIVATEEQUIPMENT,
-  BUTTON_UNARM,
+	BUTTON_INCTHRUST,
+	BUTTON_DECTHRUST,
+	BUTTON_SCANNERZOOM,
+	BUTTON_JETTISON,
+	BUTTON_COMPASSMODE,
+	BUTTON_COMMSLOG,
+	BUTTON_DOCKCPU,
+	BUTTON_DOCKCPUFAST,
+	BUTTON_FUELINJECT,
+	BUTTON_HYPERSPEED,
+	BUTTON_HYPERDRIVE,
+	BUTTON_GALACTICDRIVE,
+	BUTTON_FIRE,
+	BUTTON_ARMMISSILE,
+	BUTTON_LAUNCHMISSILE,
+	BUTTON_PRIMEEQUIPMENT,
+	BUTTON_ACTIVATEEQUIPMENT,
+	BUTTON_UNARM,
 #if TARGET_INCOMING_MISSILES
-  BUTTON_TARGETINCOMINGMISSILE,
+	BUTTON_TARGETINCOMINGMISSILE,
 #endif
-  BUTTON_CYCLEMISSILE,
-  BUTTON_ENERGYBOMB,
-  BUTTON_WEAPONSONLINETOGGLE,
-  BUTTON_ID,
-  BUTTON_ECM,
-  BUTTON_ESCAPE,
-  BUTTON_CLOAK,
-  BUTTON_PRECISION,
-  BUTTON_SNAPSHOT,
-  BUTTON_VIEWFORWARD,
-  BUTTON_VIEWAFT,
-  BUTTON_VIEWPORT,
-  BUTTON_VIEWSTARBOARD,
-  BUTTON_end
-} butfn;
+	BUTTON_CYCLEMISSILE,
+	BUTTON_ENERGYBOMB,
+	BUTTON_WEAPONSONLINETOGGLE,
+	BUTTON_ID,
+	BUTTON_ECM,
+	BUTTON_ESCAPE,
+	BUTTON_CLOAK,
+	BUTTON_PRECISION,
+	BUTTON_VIEWFORWARD,
+	BUTTON_VIEWAFT,
+	BUTTON_VIEWPORT,
+	BUTTON_VIEWSTARBOARD,
+#if !NDEBUG
+	BUTTON_SNAPSHOT,
+#endif
+	BUTTON_end
+};
 
 // Stick constants
 #define MAX_STICKS 2
@@ -98,7 +103,12 @@ enum {
 #define STICK_PRECISIONDIV 98304 // 3 times more precise
 #define STICK_NORMALDIV 32768
 #define STICK_PRECISIONFAC (STICK_PRECISIONDIV/STICK_NORMALDIV)
+
+#ifdef OOLITE_MAC_OS_X
+#define STICK_DEADZONE	0.0025
+#else
 #define STICK_DEADZONE	0.05
+#endif
 
 // Kind of stick device (these are bits - if any more are added,
 // the next one is 4 and so on).
@@ -120,10 +130,63 @@ enum {
 // an NSDictionary
 #define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
 
-#import <Foundation/Foundation.h>
+
+
+//SDL Abstracted constants
+
+#if OOLITE_SDL
+
 #import <SDL.h>
 
-@interface JoystickHandler : NSObject
+#define JOYAXISMOTION		SDL_JOYAXISMOTION
+#define JOYBUTTONDOWN		SDL_JOYBUTTONDOWN
+#define JOYBUTTONUP		SDL_JOYBUTTONUP
+#define JOYBUTTON_PRESSED	SDL_PRESSED
+#define JOYBUTTON_RELEASED	SDL_RELEASED
+
+typedef SDL_JoyButtonEvent JoyButtonEvent;
+typedef SDL_JoyAxisEvent JoyAxisEvent;
+typedef SDL_JoyHatEvent JoyHatEvent;
+
+#else
+
+#define JOYAXISMOTION 1
+#define JOYBUTTONDOWN 2
+#define JOYBUTTONUP   3
+#define JOYBUTTON_PRESSED 4
+#define JOYBUTTON_RELEASED 5
+
+// Abstracted SDL event types
+typedef struct
+{
+	uint32_t		type; 
+	uint8_t			which;
+	uint8_t			axis;
+	int				value;
+} JoyAxisEvent;
+
+typedef struct
+{
+	uint32_t		type; 
+	uint8_t			which;
+	uint8_t			button;
+	int				state;
+	
+} JoyButtonEvent;
+
+typedef struct
+{
+	uint32_t		type; 
+	uint8_t			which;
+	uint8_t			hat;
+	uint8_t			value; 
+	uint8_t			padding;	
+} JoyHatEvent;
+
+#endif //OOLITE_SDL
+
+
+@interface JoystickHandler: NSObject 
 {
    @protected
 
@@ -132,8 +195,8 @@ enum {
       int8_t buttonmap[MAX_STICKS][MAX_BUTTONS];
       double axstate[AXIS_end];
       BOOL butstate[BUTTON_end];
-      Uint8 hatstate[MAX_STICKS][MAX_HATS];
-      SDL_Joystick *stick[MAX_STICKS];
+      uint8_t hatstate[MAX_STICKS][MAX_HATS];
+//      SDL_Joystick *stick[MAX_STICKS];
       BOOL precisionMode;
       int numSticks;
 
@@ -143,7 +206,12 @@ enum {
       SEL cbSelector;
       int cbFunc;
       char cbHardware;
+	  BOOL invertPitch ;
+	
 }
+
++ (id) sharedStickHandler;
++ (void) setHandlerClass:(Class)aClass;
 
 // General.
 // Note: handleSDLEvent returns a BOOL (YES we handled it or NO we
@@ -151,7 +219,6 @@ enum {
 // the GameView event loop can just go through an NSArray of handlers
 // until it finds a handler that handles the event.
 - (id) init;
-- (BOOL) handleSDLEvent: (SDL_Event *)evt;
 
 // Roll/pitch axis
 - (NSPoint) getRollPitchAxis;
@@ -203,10 +270,15 @@ enum {
 - (void) clearMappings;
 - (void) clearStickStates;
 - (void) clearStickButtonState: (int)stickButton;
-- (void) decodeAxisEvent: (SDL_JoyAxisEvent *)evt;
-- (void) decodeButtonEvent: (SDL_JoyButtonEvent *)evt;
-- (void) decodeHatEvent: (SDL_JoyHatEvent *)evt;
+- (void) decodeAxisEvent: (JoyAxisEvent *)evt;
+- (void) decodeButtonEvent: (JoyButtonEvent *)evt;
+- (void) decodeHatEvent: (JoyHatEvent *)evt;
 - (void) saveStickSettings;
 - (void) loadStickSettings;
+
+
+//Methods that should be overridden by all subclasses
+- (char*) getJoystickName:(int)stickNumber;
+- (int16_t) getAxisWithStick:(int) stickNum axis:(int) axisNum ;
 
 @end

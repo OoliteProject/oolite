@@ -1067,6 +1067,8 @@
 	"stickmapper-prime-equipment"	= "Prime Equipment";
 	"stickmapper-activate-equipment"	= "Activate Equipment";
 	"stickmapper-escape-pod"		= "Escape Pod";
+	"stickmapper-cloak"				= "Cloaking Device Toggle";
+	"stickmapper-scanner-zoom"		= "Scanner Zoom";
 	
 	"music-mode" =
 	(

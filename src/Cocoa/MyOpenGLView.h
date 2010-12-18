@@ -34,7 +34,6 @@ MA 02110-1301, USA.
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
 
 @class Entity, GameController;
-@class JoystickHandler;
 
 enum GameViewKeys
 {
@@ -115,8 +114,6 @@ extern int debug;
 	
 	int					_virtualScreen;
 	NSData				*_pixelFormatAttributes;
-	
-	JoystickHandler		*stickHandler;
 }
 
 
@@ -146,8 +143,6 @@ extern int debug;
 
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
-
-- (JoystickHandler *)getStickHandler; // DJS
 
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;

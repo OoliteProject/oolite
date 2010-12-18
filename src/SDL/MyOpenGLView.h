@@ -41,7 +41,6 @@ MA 02110-1301, USA.
 #define SNAPSHOTS_PNG_FORMAT		1
 
 @class Entity, GameController, OpenGLSprite;
-@class JoystickHandler;
 
 enum GameViewKeys
 {
@@ -131,9 +130,8 @@ extern int debug;
 	BOOL				fullScreen;
 
 	// Windowed mode
-	NSSize currentWindowSize;
-	SDL_Surface* surface;
-	JoystickHandler *stickHandler;
+	NSSize				currentWindowSize;
+	SDL_Surface			*surface;
 	
 	BOOL				showSplashScreen;
 	
@@ -206,8 +204,6 @@ extern int debug;
 - (NSSize) currentScreenSize;
 
 - (void) pollControls;
-
-- (JoystickHandler *)getStickHandler; // DJS
 
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;

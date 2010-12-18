@@ -2238,7 +2238,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLfloat			x, y;
 	NSSize			siz;
 	BOOL			mouse;
-	JoystickHandler	*stick;
+	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
 	GLfloat			alpha = overallAlpha;
 	
 	mouse = [[PlayerEntity sharedPlayer] isMouseControlOn];
@@ -2252,8 +2252,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
 	
-	stick = [[UNIVERSE gameView] getStickHandler];
-	GLfloat div = [stick getSensitivity];
+	GLfloat div = [stickHandler getSensitivity];
 	
 	GLColorWithOverallAlpha(black_color, alpha / 4);
 	GLDrawFilledOval(x, y, z1, siz, 10);
@@ -2272,7 +2271,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 				GLColorWithOverallAlpha(lightgray_color, alpha);
 		}
 		
-		if ([stick getNumSticks])
+		if ([stickHandler getNumSticks])
 		{
 			siz.width -= _crosshairWidth * line_width / 2;
 			siz.height -= _crosshairWidth * line_width / 2;
