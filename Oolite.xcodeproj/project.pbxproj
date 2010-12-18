@@ -794,7 +794,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A8DF4EC12BD060C006D580F /* LeopardFeatures.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 8D576316048677EA00EA77CD /* Oolite Leopard support.bundle */;
+			remoteGlobalIDString = 8D576316048677EA00EA77CD;
 			remoteInfo = LeopardFeatures;
 		};
 		1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */ = {
