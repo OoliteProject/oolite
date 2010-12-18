@@ -360,8 +360,8 @@ OOLITE_MISC_FILES = \
 	AI.m \
 	AIGraphViz.m \
 	GameController.m \
-	OOJoystickManager \
-	OOSDLJoystickManager \
+	OOJoystickManager.m \
+	OOSDLJoystickManager.m \
 	main.m \
 	MyOpenGLView.m \
 	OOCharacter.m \
