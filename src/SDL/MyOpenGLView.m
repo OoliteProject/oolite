@@ -127,7 +127,7 @@ MA 02110-1301, USA.
 	
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
 	
-	[JoystickHandler setHandlerClass:[JoystickHandlerSDL class]];
+	[JoystickHandler setStickHandlerClass:[JoystickHandlerSDL class]];
 	// end TODO
 	
 	[OOSound setUp];
@@ -276,8 +276,8 @@ MA 02110-1301, USA.
 	if (typedString)
 		[typedString release];
 		
-	if (stickHandler)
-		[stickHandler release];
+	if ([JoystickHandler sharedStickHandler])	// double brackets to silence compiler warning
+		[[JoystickHandler sharedStickHandler] release];
 		
 	if (screenSizes)
 		[screenSizes release];
@@ -1179,7 +1179,7 @@ MA 02110-1301, USA.
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
 			case SDL_JOYHATMOTION:
-				[stickHandler handleSDLEvent: &event];
+				[[JoystickHandler sharedStickHandler] handleSDLEvent: &event];
 				break;
 				
 			case SDL_MOUSEBUTTONDOWN:
