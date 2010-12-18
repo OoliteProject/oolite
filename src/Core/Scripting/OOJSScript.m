@@ -323,7 +323,7 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-- (JSFunction *) functionNamed:(NSString *)eventName context:(JSContext *)context
+- (JSFunction *) functionNamed:(NSString *)eventName contextWithRequest:(JSContext *)context
 {
 	BOOL						OK;
 	jsval						value;
@@ -392,8 +392,9 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	engine = [OOJavaScriptEngine sharedEngine];
 	context = [engine acquireContext];
+	JS_BeginRequest(context);
 	
-	function = [self functionNamed:eventName context:context];
+	function = [self functionNamed:eventName contextWithRequest:context];
 	if (function != NULL)
 	{
 		OOLog(@"script.trace.javaScript.event", @"Calling [%@].%@()", [self name], eventName);
@@ -451,6 +452,7 @@ static JSFunctionSpec sScriptMethods[] =
 		OK = YES;
 	}
 	
+	JS_EndRequest(context);
 	[engine releaseContext:context];
 	
 	return OK;
