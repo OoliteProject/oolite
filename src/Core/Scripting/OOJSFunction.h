@@ -50,12 +50,12 @@ MA 02110-1301, USA.
 - (NSString *) name;
 - (JSFunction *) function;
 
-// Raw evaluation. Context may not be NULL.
-- (BOOL) evaluateWithContext:(JSContext *)context
-					   scope:(JSObject *)jsThis
-						argc:(uintN)argc
-						argv:(jsval *)argv
-					  result:(jsval *)result;
+// Raw evaluation. Context may not be NULL. JS_BeginRequest()/JS_EndReqest() are caller's responsibility.
+- (BOOL) evaluateInRequestWithContext:(JSContext *)context
+								scope:(JSObject *)jsThis
+								 argc:(uintN)argc
+								 argv:(jsval *)argv
+							   result:(jsval *)result;
 
 // Object-wrapper evaluation.
 - (id) evaluateWithContext:(JSContext *)context

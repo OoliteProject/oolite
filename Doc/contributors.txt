@@ -25,7 +25,7 @@ Darren Salt (dsalt/_ds_)
 Adam Sampson
 Chip Richards (caracal)
 rion
-Rob C Skilton (KZ9999)
+Rob C. Skilton (KZ9999)
 Alex Smith
 Dylan Smith (winston)
 stardotstar

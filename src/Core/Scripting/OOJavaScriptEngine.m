@@ -1260,22 +1260,31 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 {
 	OOJS_PROFILE_ENTER
 	
-	size_t					length;
+	size_t					length = [self length];
 	unichar					*buffer = NULL;
 	JSString				*string = NULL;
 	
-	length = [self length];
-	if (length == 0)  return JS_GetEmptyStringValue(context);
-	
-	buffer = malloc(length * sizeof *buffer);
-	if (buffer == NULL) return JSVAL_VOID;
-	
-	[self getCharacters:buffer];
-	
-	string = JS_NewUCStringCopyN(context, buffer, length);
-	free(buffer);
-	
-	return STRING_TO_JSVAL(string);
+	if (length == 0)
+	{
+		JS_BeginRequest(context);
+		jsval result = JS_GetEmptyStringValue(context);
+		JS_EndRequest(context);
+		return result;
+	}
+	else
+	{
+		buffer = malloc(length * sizeof *buffer);
+		if (buffer == NULL) return JSVAL_VOID;
+		
+		[self getCharacters:buffer];
+		
+		JS_BeginRequest(context);
+		string = JS_NewUCStringCopyN(context, buffer, length);
+		JS_EndRequest(context);
+		
+		free(buffer);
+		return STRING_TO_JSVAL(string);
+	}
 	
 	OOJS_PROFILE_EXIT_JSVAL
 }

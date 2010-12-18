@@ -42,7 +42,9 @@ MA 02110-1301, USA.
 	if ((self = [super init]))
 	{
 		_function = function;
+		JS_BeginRequest(context);
 		OOJS_AddGCObjectRoot(context, (JSObject **)&_function, "OOJSFunction._function");
+		JS_EndRequest(context);
 	}
 	
 	return self;
@@ -83,9 +85,11 @@ MA 02110-1301, USA.
 		if (buffer == NULL)  OK = NO;
 	}
 	
+	JS_BeginRequest(context);
 	if (OK)
 	{
 		[code getCharacters:buffer];
+		
 		function = JS_CompileUCFunction(context, scope, [name UTF8String], argCount, argNames, buffer, length, [fileName UTF8String], lineNumber);
 		if (function == NULL)  OK = NO;
 		
@@ -100,6 +104,7 @@ MA 02110-1301, USA.
 	{
 		DESTROY(self);
 	}
+	JS_EndRequest(context);
 	
 	if (releaseContext)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
@@ -136,11 +141,11 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) evaluateWithContext:(JSContext *)context
-					   scope:(JSObject *)jsThis
-						argc:(uintN)argc
-						argv:(jsval *)argv
-					  result:(jsval *)result
+- (BOOL) evaluateInRequestWithContext:(JSContext *)context
+								scope:(JSObject *)jsThis
+								 argc:(uintN)argc
+								 argv:(jsval *)argv
+							   result:(jsval *)result
 {
 	[OOJSScript pushScript:nil];
 	OOJSStartTimeLimiter();
@@ -160,6 +165,8 @@ MA 02110-1301, USA.
 	OOUInteger i, argc = [arguments count];
 	jsval argv[argc];
 	
+	JS_BeginRequest(context);
+	
 	for (i = 0; i < argc; i++)
 	{
 		argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
@@ -169,16 +176,18 @@ MA 02110-1301, USA.
 	JSObject *scopeObj = NULL;
 	BOOL OK = YES;
 	if (jsThis != nil)  OK = JS_ValueToObject(context, [jsThis javaScriptValueInContext:context], &scopeObj);
-	if (OK)  OK = [self evaluateWithContext:context
-									  scope:scopeObj
-									   argc:argc
-									   argv:argv
-									 result:result];
+	if (OK)  OK = [self evaluateInRequestWithContext:context
+											   scope:scopeObj
+												argc:argc
+												argv:argv
+											  result:result];
 	
 	for (i = 0; i < argc; i++)
 	{
 		JS_RemoveValueRoot(context, &argv[i]);
 	}
+	
+	JS_EndRequest(context);
 	
 	return OK;
 }
@@ -203,6 +212,7 @@ MA 02110-1301, USA.
 								scope:(id)jsThis
 							arguments:(NSArray *)arguments
 {
+	JS_BeginRequest(context);
 	jsval result;
 	BOOL OK = [self evaluateWithContext:context
 								  scope:jsThis
@@ -210,6 +220,7 @@ MA 02110-1301, USA.
 								 result:&result];
 	JSBool retval = NO;
 	if (OK)  OK = JS_ValueToBoolean(context, result, &retval);
+	JS_EndRequest(context);
 	
 	return OK && retval;
 }

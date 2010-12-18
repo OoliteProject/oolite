@@ -62,7 +62,7 @@ static RunningStack		*sRunningStack = NULL;
 
 static void AddStackToArrayReversed(NSMutableArray *array, RunningStack *stack);
 
-static JSScript *LoadScriptWithName(JSContext *context, NSString *name, JSObject *object, NSString **outErrorMessage);
+static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject *object, JSObject **outScriptObject, NSString **outErrorMessage);
 
 #if OO_CACHE_JS_SCRIPTS
 static NSData *CompiledScriptData(JSContext *context, JSScript *script);
@@ -117,7 +117,8 @@ static JSFunctionSpec sScriptMethods[] =
 	JSContext				*context = NULL;
 	NSString				*problem = nil;		// Acts as error flag.
 	JSScript				*script = NULL;
-	jsval					returnValue;
+	JSObject				*scriptObject = NULL;
+	jsval					returnValue = JSVAL_VOID;
 	NSEnumerator			*keyEnum = nil;
 	NSString				*key = nil;
 	id						property = nil;
@@ -136,12 +137,14 @@ static JSFunctionSpec sScriptMethods[] =
 		if (_jsSelf == NULL) problem = @"allocation failure";
 	}
 	
-	if (!problem)
+	if (!problem && !OOJS_AddGCObjectRoot(context, &_jsSelf, "Script object"))
 	{
-		if (!OOJS_AddGCObjectRoot(context, &_jsSelf, "Script object"))
-		{
-			problem = @"could not add JavaScript root object";
-		}
+		problem = @"could not add JavaScript root object";
+	}
+	
+	if (!problem && !OOJS_AddGCObjectRoot(context, &scriptObject, "Script GC holder"))
+	{
+		problem = @"could not add JavaScript root object";
 	}
 	
 	if (!problem)
@@ -161,7 +164,7 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	if (!problem)
 	{
-		script = LoadScriptWithName(context, path, _jsSelf, &problem);
+		script = LoadScriptWithName(context, path, _jsSelf, &scriptObject, &problem);
 	}
 	
 	// Set properties.
@@ -198,6 +201,7 @@ static JSFunctionSpec sScriptMethods[] =
 		// We don't need the script any more - the event handlers hang around as long as the JS object exists.
 		JS_DestroyScript(context, script);
 	}
+	JS_RemoveObjectRoot(context, &scriptObject);
 	
 	sRunningStack = stackElement.back;
 	
@@ -623,7 +627,7 @@ static void AddStackToArrayReversed(NSMutableArray *array, RunningStack *stack)
 }
 
 
-static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject *object, NSString **outErrorMessage)
+static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject *object, JSObject **outScriptObject, NSString **outErrorMessage)
 {
 #if OO_CACHE_JS_SCRIPTS
 	OOCacheManager				*cache = nil;
@@ -632,7 +636,7 @@ static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject
 	NSData						*data = nil;
 	JSScript					*script = NULL;
 	
-	assert(outErrorMessage != NULL);
+	NSCParameterAssert(outScriptObject != NULL && outErrorMessage != NULL);
 	*outErrorMessage = nil;
 	
 #if OO_CACHE_JS_SCRIPTS
@@ -653,7 +657,8 @@ static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject
 		else
 		{
 			script = JS_CompileUCScript(context, object, [data bytes], [data length] / sizeof(unichar), [path UTF8String], 1);
-			if (script == NULL)  *outErrorMessage = @"compilation failed";
+			if (script != NULL)  *outScriptObject = JS_NewScriptObject(context, script);
+			else  *outErrorMessage = @"compilation failed";
 		}
 		
 #if OO_CACHE_JS_SCRIPTS
