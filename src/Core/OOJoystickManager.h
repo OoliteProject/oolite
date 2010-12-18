@@ -1,8 +1,8 @@
 /*
 
-JoystickHandler.h
+OOJoystickManager.h
 By Dylan Smith
- modified by Alex Smith
+modified by Alex Smith and Jens Ayton
 
 JoystickHandler handles joystick events from SDL, and translates them
 into the appropriate action via a lookup table. The lookup table is
@@ -13,6 +13,7 @@ Conversion methods are provided to convert between the internal
 representation and an NSDictionary (for loading/saving user defaults
 and for use in areas where portability/ease of coding are more important
 than performance such as the GUI)
+
 
 Oolite
 Copyright (C) 2004-2010 Giles C Williams and contributors
@@ -34,7 +35,8 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOCocoa.h"
+
 
 // Enums are used here rather than a more complex ObjC object because
 // these are required very frequently (once per frame) so must be light
@@ -186,7 +188,7 @@ typedef struct
 #endif //OOLITE_SDL
 
 
-@interface JoystickHandler: NSObject 
+@interface OOJoystickManager: NSObject 
 {
    @protected
 
@@ -198,7 +200,6 @@ typedef struct
       uint8_t hatstate[MAX_STICKS][MAX_HATS];
 //      SDL_Joystick *stick[MAX_STICKS];
       BOOL precisionMode;
-      int numSticks;
 
       // Handle callbacks - the object, selector to call
       // the desired function, and the hardware (axis or button etc.)
@@ -221,29 +222,22 @@ typedef struct
 - (id) init;
 
 // Roll/pitch axis
-- (NSPoint) getRollPitchAxis;
+- (NSPoint) rollPitchAxis;
 
 // View axis
-- (NSPoint) getViewAxis;
+- (NSPoint) viewAxis;
 
-// Setting button and axis functions
-- (void) setFunctionForAxis: (int)axis
-                   function: (int)function
-                      stick: (int)stickNum;
-- (void) setFunctionForButton: (int)button
-                     function: (int)function
-                        stick: (int)stickNum;
 // convert a dictionary into the internal function map
-- (void) setFunction: (int)function withDict: (NSDictionary *)stickFn;
-- (void) unsetAxisFunction: (int)function;
-- (void) unsetButtonFunction: (int)function;
+- (void) setFunction:(int)function withDict: (NSDictionary *)stickFn;
+- (void) unsetAxisFunction:(int)function;
+- (void) unsetButtonFunction:(int)function;
 
 // Accessors and discovery about the hardware.
 // These work directly on the internal lookup table so to be fast
 // since they are likely to be called by the game loop.
-- (int) getNumSticks;
-- (BOOL) getButtonState: (int)function;
-- (double) getAxisState: (int)function;
+- (OOUInteger) joystickCount;
+- (BOOL) getButtonState:(int)function;
+- (double) getAxisState:(int)function;
 - (double) getSensitivity;
 
 // This one just returns a pointer to the entire state array to
@@ -251,18 +245,18 @@ typedef struct
 - (const BOOL *) getAllButtonStates;
 
 // Hardware introspection.
-- (NSArray *)listSticks;
+- (NSArray *) listSticks;
 
 // These use NSDictionary/NSArray since they are used outside the game
 // loop and are needed for loading/saving defaults.
-- (NSDictionary *)getAxisFunctions;
-- (NSDictionary *)getButtonFunctions;
+- (NSDictionary *) axisFunctions;
+- (NSDictionary *) buttonFunctions;
 
 // Set a callback for the next moved axis/pressed button. hwflags
 // is in the form HW_AXIS | HW_BUTTON (or just one of).
-- (void)setCallback: (SEL)selector
-             object: (id)obj
-           hardware: (char)hwflags;
+- (void)setCallback:(SEL)selector
+             object:(id)obj
+           hardware:(char)hwflags;
 - (void)clearCallback;
 
 // Methods generally only used by this class.
@@ -278,7 +272,7 @@ typedef struct
 
 
 //Methods that should be overridden by all subclasses
-- (char*) getJoystickName:(int)stickNumber;
+- (NSString *) nameOfJoystick:(int)stickNumber;
 - (int16_t) getAxisWithStick:(int) stickNum axis:(int) axisNum ;
 
 @end

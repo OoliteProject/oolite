@@ -1,0 +1,9 @@
+# Symbols used by Oolite Leopard support.bundle
+_OOLogWithFunctionFileAndLine
+_OOLogWillDisplayMessagesInClass
+_OOLogIndent
+_OOLogOutdent
+
+.objc_class_name_OOJoystickManager
+_OBJC_CLASS_$_OOJoystickManager
+_OBJC_METACLASS_$_OOJoystickManager

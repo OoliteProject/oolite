@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OODebugFlags.h"
 
-#import "JoystickHandler.h"
+#import "OOJoystickManager.h"
 
 #import "OOScript.h"
 #import "OOJavaScriptEngine.h"
@@ -86,11 +86,11 @@ static BOOL				docking_clearance_request_key_pressed;
 #endif
 #ifndef NDEBUG
 static BOOL				dump_target_state_pressed;
+static BOOL				taking_snapshot;
 #endif
 static BOOL				hide_hud_pressed;
 static BOOL				f_key_pressed;
 static BOOL				m_key_pressed;
-static BOOL				taking_snapshot;
 static BOOL				pling_pressed;
 static BOOL				cursor_moving;
 static BOOL				disc_operation_in_progress;
@@ -447,9 +447,6 @@ static NSTimeInterval	time_last_frame;
 	// does fullscreen / quit / snapshot
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	
-	// get joystick information - needed for mapping the snapshot key
-	const BOOL *joyButtonState = [[JoystickHandler sharedStickHandler] getAllButtonStates];
-	
 	NS_DURING
 		//  command-key controls
 		if ([[gameView gameController] inFullScreenMode])
@@ -490,7 +487,9 @@ static NSTimeInterval	time_last_frame;
 			}
 		}
 		
+#ifndef NDEBUG
 		//  snapshot
+		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 		if ([gameView isDown:key_snapshot] || joyButtonState[BUTTON_SNAPSHOT])   //  '*' key
 		{
 			exceptionContext = @"snapshot";
@@ -504,6 +503,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			taking_snapshot = NO;
 		}
+#endif
 		
 		// FPS display
 		if ([gameView isDown:key_show_fps])   //  'F' key
@@ -591,13 +591,13 @@ static NSTimeInterval	time_last_frame;
 - (void) pollFlightControls:(double)delta_t
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
-	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	
 	NSString * volatile	exceptionContext = @"setup";
 	
 	NS_DURING
 		exceptionContext = @"joystick handling";
-		const BOOL *joyButtonState = [[JoystickHandler sharedStickHandler] getAllButtonStates];
+		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 		
 		BOOL paused = [[gameView gameController] gameIsPaused];
 		double speed_delta = 5.0 * thrust;
@@ -610,9 +610,9 @@ static NSTimeInterval	time_last_frame;
 			NSPoint			virtualView = NSZeroPoint;
 			double			view_threshold = 0.5;
 			
-			if ([stickHandler getNumSticks])
+			if ([stickHandler joystickCount])
 			{
-				virtualView = [stickHandler getViewAxis];
+				virtualView = [stickHandler viewAxis];
 				if (virtualView.y == STICK_AXISUNASSIGNED)
 					virtualView.y = 0.0;
 				if (virtualView.x == STICK_AXISUNASSIGNED)
@@ -713,8 +713,8 @@ static NSTimeInterval	time_last_frame;
 					hyperspeed_engaged = NO;
 				}
 
-				NSDictionary *functionForThrustAxis = [[stickHandler getAxisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_THRUST] stringValue]];
-				if([stickHandler getNumSticks] != 0 && functionForThrustAxis != nil)
+				NSDictionary *functionForThrustAxis = [[stickHandler axisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_THRUST] stringValue]];
+				if([stickHandler joystickCount] != 0 && functionForThrustAxis != nil)
 				{
 					if (flightSpeed < maxFlightSpeed * reqSpeed)
 					{
@@ -1068,7 +1068,7 @@ static NSTimeInterval	time_last_frame;
 							// first keypress will unregister in KEY_REPEAT_INTERVAL seconds
 							escapePodKeyResetTime = [NSDate timeIntervalSinceReferenceDate] + KEY_REPEAT_INTERVAL;
 							[gameView clearKey:key_launch_escapepod];
-							if ([stickHandler getNumSticks])
+							if ([stickHandler joystickCount])
 							{
 								[stickHandler clearStickButtonState:BUTTON_ESCAPE];
 							}
@@ -2537,14 +2537,14 @@ static NSTimeInterval	time_last_frame;
 		return;
 	
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
-	JoystickHandler *stickHandler = [JoystickHandler sharedStickHandler];
+	OOJoystickManager *stickHandler = [OOJoystickManager sharedStickHandler];
 	
 	NSPoint			virtualView = NSZeroPoint;
 	double			view_threshold = 0.5;
 	
-	if ([stickHandler getNumSticks])
+	if ([stickHandler joystickCount])
 	{
-		virtualView = [stickHandler getViewAxis];
+		virtualView = [stickHandler viewAxis];
 		if (virtualView.y == STICK_AXISUNASSIGNED)
 			virtualView.y = 0.0;
 		if (virtualView.x == STICK_AXISUNASSIGNED)
@@ -2646,8 +2646,8 @@ static NSTimeInterval	time_last_frame;
 - (void) pollFlightArrowKeyControls:(double)delta_t
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
-	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
-	int				numSticks = [stickHandler getNumSticks];
+	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
+	int				numSticks = [stickHandler joystickCount];
 	NSPoint			virtualStick = NSZeroPoint;
 	double			reqYaw = 0.0;
 	double			deadzone;
@@ -2675,7 +2675,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	else if (numSticks > 0)
 	{
-		virtualStick = [stickHandler getRollPitchAxis];
+		virtualStick = [stickHandler rollPitchAxis];
 		// handle roll separately (fix for BUG #17490)
 		if((virtualStick.x == STICK_AXISUNASSIGNED) || (fabs(virtualStick.x) < deadzone))
 		{

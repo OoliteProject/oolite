@@ -1051,24 +1051,24 @@
 	"stickmapper-secondary-weapon"	= "Secondary weapon";
 	"stickmapper-arm-secondary"		= "Arm secondary";
 	"stickmapper-disarm-secondary"	= "Disarm secondary";
-	"stickmapper-target-nearest-incoming-missile"	= "Target nearest incoming missile";
+	"stickmapper-target-nearest-incoming-missile"	= "Target incoming missile";
 	"stickmapper-cycle-secondary"	= "Cycle secondary";
 	"stickmapper-weapons-online-toggle"	= "Weapons online toggle";
 	"stickmapper-ECM"				= "ECM";
 	"stickmapper-toggle-ID"			= "Toggle ID";
-	"stickmapper-fuel-injection"	= "Fuel Injection";
+	"stickmapper-fuel-injection"	= "Fuel injection";
 	"stickmapper-hyperspeed"		= "Hyperspeed";
 	"stickmapper-roll/pitch-precision-toggle"	= "Roll/pitch precision toggle";
-	"stickmapper-snapshot"			= "Take Snapshot";
-	"stickmapper-view-forward"		= "View Forward";
-	"stickmapper-view-aft"			= "View Aft";
-	"stickmapper-view-port"			= "View Port";
-	"stickmapper-view-starboard"	= "View Starboard";
-	"stickmapper-prime-equipment"	= "Prime Equipment";
-	"stickmapper-activate-equipment"	= "Activate Equipment";
-	"stickmapper-escape-pod"		= "Escape Pod";
-	"stickmapper-cloak"				= "Cloaking Device Toggle";
-	"stickmapper-scanner-zoom"		= "Scanner Zoom";
+	"stickmapper-snapshot"			= "Take snapshot";
+	"stickmapper-view-forward"		= "View forward";
+	"stickmapper-view-aft"			= "View aft";
+	"stickmapper-view-port"			= "View port";
+	"stickmapper-view-starboard"	= "View starboard";
+	"stickmapper-prime-equipment"	= "Prime equipment";
+	"stickmapper-activate-equipment"	= "Activate equipment";
+	"stickmapper-escape-pod"		= "Escape pod";
+	"stickmapper-cloak"				= "Cloaking device";
+	"stickmapper-scanner-zoom"		= "Scanner zoom";
 	
 	"music-mode" =
 	(

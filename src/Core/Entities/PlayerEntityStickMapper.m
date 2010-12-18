@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityStickMapper.h"
 #import "PlayerEntityControls.h"
-#import "JoystickHandler.h"
+#import "OOJoystickManager.h"
 #import "OOTexture.h"
 
 @implementation PlayerEntity (StickMapper)
@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 - (void) setGuiToStickMapperScreen:(unsigned)skip
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	NSArray			*stickList = [stickHandler listSticks];
 	unsigned		i;
 	
@@ -71,7 +71,7 @@ MA 02110-1301, USA.
 - (void) stickMapperInputHandler:(GuiDisplayGen *)gui
 							view:(MyOpenGLView *)gameView
 {
-	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	
 	// Don't do anything if the user is supposed to be selecting
 	// a function - other than look for Escape.
@@ -147,7 +147,7 @@ MA 02110-1301, USA.
 // is set. The dictionary contains the thing that was pressed/moved.
 - (void) updateFunction: (NSDictionary *)hwDict
 {
-	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	waitingForStickCallback = NO;
 	
 	// Right time and the right place?
@@ -205,7 +205,7 @@ MA 02110-1301, USA.
 
 - (void) removeFunction:(int)idx
 {
-	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	NSDictionary	*entry = [stickFunctions objectAtIndex:idx];
 	NSNumber		*butfunc = [entry objectForKey:KEY_BUTTONFN];
 	NSNumber		*axfunc = [entry objectForKey:KEY_AXISFN];
@@ -235,7 +235,7 @@ MA 02110-1301, USA.
 - (void) displayFunctionList: (GuiDisplayGen *)gui
 						skip: (unsigned) skip
 {
-	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	
 	unsigned i;
 	[gui setColor: [OOColor greenColor] forRow: GUI_ROW_HEADING];
@@ -247,8 +247,8 @@ MA 02110-1301, USA.
 	{
 		stickFunctions=[self getStickFunctionList];
 	}
-	NSDictionary *assignedAxes=[stickHandler getAxisFunctions];
-	NSDictionary *assignedButs=[stickHandler getButtonFunctions];
+	NSDictionary *assignedAxes=[stickHandler axisFunctions];
+	NSDictionary *assignedButs=[stickHandler buttonFunctions];
 	
 	unsigned n_functions = [stickFunctions count];
 	int n_rows, start_row, previous = 0;
@@ -495,11 +495,13 @@ MA 02110-1301, USA.
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_PRECISION]];
+#ifndef NDEBUG
 	[funcList addObject:
 	 [self makeStickGuiDict: DESC(@"stickmapper-snapshot")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_SNAPSHOT]];
+#endif
 	[funcList addObject:
 	 [self makeStickGuiDict: DESC(@"stickmapper-escape-pod")
 				  allowable: HW_BUTTON

@@ -1,6 +1,6 @@
 /*
 
-JoystickHandler.h
+OOSDLJoystickManager.h
 By Dylan Smith
 
 JoystickHandler handles joystick events from SDL, and translates them
@@ -42,10 +42,11 @@ MA 02110-1301, USA.
 
 
 
-@interface JoystickHandlerSDL : JoystickHandler
+@interface OOSDLJoystickManager: OOJoystickManager
 {
-   @protected
-      SDL_Joystick *stick[MAX_STICKS];
+@private
+	SDL_Joystick		*stick[MAX_STICKS];
+	OOUInteger			stickCount;
 }
 
 - (id) init;

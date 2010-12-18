@@ -1,6 +1,6 @@
 /*
 
-JoystickHandler.m
+OOJoystickManager.m
 By Dylan Smith
 modified by Alex Smith
 
@@ -24,9 +24,10 @@ MA 02110-1301, USA.
 
 */
 
-#import "JoystickHandler.h"
+#import "OOJoystickManager.h"
 #import "OOLogging.h"
 #import "OOCollectionExtractors.h"
+
 
 #define kOOLogUnconvertedNSLog @"unclassified.JoystickHandler"
 
@@ -35,13 +36,28 @@ static Class sStickHandlerClass = Nil;
 static id sSharedStickHandler = nil;
 
 
-@implementation JoystickHandler
+@interface OOJoystickManager (Private)
+
+// Setting button and axis functions
+- (void) setFunctionForAxis:(int)axis
+                   function:(int)function
+                      stick:(int)stickNum;
+
+- (void) setFunctionForButton:(int)button
+                     function:(int)function
+                        stick:(int)stickNum;
+
+@end
+
+
+
+@implementation OOJoystickManager
 
 + (id) sharedStickHandler
 {
 	if (sSharedStickHandler == nil)
 	{
-		if (sStickHandlerClass == Nil)  sStickHandlerClass = [JoystickHandler class];
+		if (sStickHandlerClass == Nil)  sStickHandlerClass = [OOJoystickManager class];
 		sSharedStickHandler = [[sStickHandlerClass alloc] init];
 	}
 	return sSharedStickHandler;
@@ -51,7 +67,7 @@ static id sSharedStickHandler = nil;
 + (BOOL) setStickHandlerClass:(Class)aClass
 {
 	NSAssert(sStickHandlerClass == nil, @"Can't set joystick handler class after joystick handler is initialized.");
-	NSParameterAssert(aClass == Nil || [aClass isSubclassOfClass:[JoystickHandler class]]);
+	NSParameterAssert(aClass == Nil || [aClass isSubclassOfClass:[OOJoystickManager class]]);
 	
 	sStickHandlerClass = aClass;
 	return YES;
@@ -79,13 +95,13 @@ static id sSharedStickHandler = nil;
 
 
 
-- (NSPoint) getRollPitchAxis
+- (NSPoint) rollPitchAxis
 {
 	return NSMakePoint(axstate[AXIS_ROLL], axstate[AXIS_PITCH]);
 }
 
 
-- (NSPoint) getViewAxis
+- (NSPoint) viewAxis
 {
 	return NSMakePoint(axstate[AXIS_VIEWX], axstate[AXIS_VIEWY]);
 }
@@ -116,17 +132,18 @@ static id sSharedStickHandler = nil;
 
 - (NSArray *)listSticks
 {
-	int i;
+	OOUInteger i, stickCount = [self joystickCount];
+	
 	NSMutableArray *stickList = [NSMutableArray array];
-	for (i = 0; i < numSticks; i++)
+	for (i = 0; i < stickCount; i++)
 	{
-		[stickList addObject: [NSString stringWithFormat: @"%s", [self getJoystickName:i]]];
+		[stickList addObject:[self nameOfJoystick:i]];
 	}
 	return stickList;
 }
 
 
-- (NSDictionary *)getAxisFunctions
+- (NSDictionary *) axisFunctions
 {
 	int i,j;
 	NSMutableDictionary *fnList = [NSMutableDictionary dictionary];
@@ -152,7 +169,7 @@ static id sSharedStickHandler = nil;
 }
 
 
-- (NSDictionary *)getButtonFunctions
+- (NSDictionary *)buttonFunctions
 {
 	int i, j;
 	NSMutableDictionary *fnList = [NSMutableDictionary dictionary];
@@ -408,7 +425,6 @@ static id sSharedStickHandler = nil;
 			axstate[function] = axisvalue / 32768;         
 	}
 	if ((function == AXIS_PITCH) && invertPitch) axstate[function] = -1.0*axstate[function];
-	
 }
 
 
@@ -493,23 +509,22 @@ static id sSharedStickHandler = nil;
 		}                                                                            
 	}                                                                               
 	
-	hatstate[evt->which][evt->hat] = evt->value;                                    
-}                                                                                  
+	hatstate[evt->which][evt->hat] = evt->value;
+}
 
 
-
-- (int) getNumSticks
+- (OOUInteger) joystickCount
 {
-	return numSticks;
+	return 0;
 }
 
 
 - (void) saveStickSettings
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	[defaults setObject: [self getAxisFunctions]
+	[defaults setObject: [self axisFunctions]
 				 forKey: AXIS_SETTINGS];
-	[defaults setObject: [self getButtonFunctions]
+	[defaults setObject: [self buttonFunctions]
 				 forKey: BUTTON_SETTINGS];
 	
 	[defaults synchronize];
@@ -552,9 +567,9 @@ static id sSharedStickHandler = nil;
 
 // These get overidden by subclasses
 
-- (char *) getJoystickName:(int)stickNumber
+- (NSString *) nameOfJoystick:(int)stickNumber
 {
-	return "NOT IMPLEMENTED";
+	return @"Dummy joystick";
 }
 
 - (int16_t) getAxisWithStick:(int)stickNum axis:(int)axisNum 

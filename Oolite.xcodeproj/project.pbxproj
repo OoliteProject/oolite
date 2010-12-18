@@ -59,6 +59,8 @@
 		1A0729DA0EF56D1200B0F925 /* OOConvertSystemDescriptions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */; };
 		1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */; };
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
+		1A09F10C12BD2F5400BF7F48 /* OOJoystickManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A09F10A12BD2F5400BF7F48 /* OOJoystickManager.h */; };
+		1A09F10D12BD2F5400BF7F48 /* OOJoystickManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A09F10B12BD2F5400BF7F48 /* OOJoystickManager.m */; };
 		1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */; };
 		1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */; };
 		1A0BF3D610DAE2B30099984D /* cobra1_redux2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */; };
@@ -547,7 +549,6 @@
 		1A8BB8EB0E8311F900122974 /* OONullTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8BB8E90E8311F900122974 /* OONullTexture.m */; };
 		1A8C981D117A380800D8AB7E /* OOCombinedEmissionMapGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8C97E5117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.m */; };
 		1A8C981E117A380800D8AB7E /* OOCombinedEmissionMapGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8C97E4117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.h */; };
-		1A8DF43312BCFE34006D580F /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8DF40112BCFC18006D580F /* JoystickHandler.m */; };
 		1A8DF4F312BD063A006D580F /* Oolite Leopard support.bundle in Copy System-specific Bundles */ = {isa = PBXBuildFile; fileRef = 1A8DF4F112BD060C006D580F /* Oolite Leopard support.bundle */; };
 		1A8DF50C12BD072A006D580F /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
 		1A9322970DF53C33003FD306 /* OOJSSystemInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9322950DF53C33003FD306 /* OOJSSystemInfo.h */; };
@@ -1226,7 +1227,7 @@
 		1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSDictionaryOOExtensions.m; sourceTree = "<group>"; };
 		1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilitySet.h; sourceTree = "<group>"; };
 		1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilitySet.m; sourceTree = "<group>"; };
-		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports.exp"; sourceTree = "<group>"; };
+		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "debug-exports.exp"; path = "src/Cocoa/debug-exports.exp"; sourceTree = "<group>"; };
 		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = DebugOXP/DebugOXP.xcodeproj; sourceTree = SOURCE_ROOT; };
 		1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSObjectOOExtensions.h; sourceTree = "<group>"; };
 		1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSObjectOOExtensions.m; sourceTree = "<group>"; };
@@ -1236,6 +1237,10 @@
 		1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConvertSystemDescriptions.m; sourceTree = "<group>"; };
 		1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OldSchoolPropertyListWriting.h; sourceTree = "<group>"; };
 		1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OldSchoolPropertyListWriting.m; sourceTree = "<group>"; };
+		1A09F0E012BD289D00BF7F48 /* release-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "release-exports.exp"; path = "src/Cocoa/release-exports.exp"; sourceTree = "<group>"; };
+		1A09F0EA12BD293500BF7F48 /* release-exports-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "release-exports-64.exp"; path = "src/Cocoa/release-exports-64.exp"; sourceTree = "<group>"; };
+		1A09F10A12BD2F5400BF7F48 /* OOJoystickManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJoystickManager.h; sourceTree = "<group>"; };
+		1A09F10B12BD2F5400BF7F48 /* OOJoystickManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJoystickManager.m; sourceTree = "<group>"; };
 		1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux1.dat; sourceTree = "<group>"; };
 		1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux2.dat; sourceTree = "<group>"; };
 		1A0BF3D710DAE2EC0099984D /* mamba_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mamba_redux1.dat; sourceTree = "<group>"; };
@@ -1740,8 +1745,6 @@
 		1A8BB8E90E8311F900122974 /* OONullTexture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OONullTexture.m; sourceTree = "<group>"; };
 		1A8C97E4117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCombinedEmissionMapGenerator.h; sourceTree = "<group>"; };
 		1A8C97E5117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCombinedEmissionMapGenerator.m; sourceTree = "<group>"; };
-		1A8DF40112BCFC18006D580F /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
-		1A8DF40212BCFC18006D580F /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
 		1A8DF4EC12BD060C006D580F /* LeopardFeatures.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LeopardFeatures.xcodeproj; path = "Mac-specific/LeopardFeatures/LeopardFeatures.xcodeproj"; sourceTree = "<group>"; };
 		1A9322950DF53C33003FD306 /* OOJSSystemInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSystemInfo.h; sourceTree = "<group>"; };
 		1A9322960DF53C33003FD306 /* OOJSSystemInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSystemInfo.m; sourceTree = "<group>"; };
@@ -1853,7 +1856,7 @@
 		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; languageSpecificationIdentifier = plist; path = autoAImap.plist; sourceTree = "<group>"; };
 		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
 		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
-		1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports-64.exp"; sourceTree = "<group>"; };
+		1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "debug-exports-64.exp"; path = "src/Cocoa/debug-exports-64.exp"; sourceTree = "<group>"; };
 		1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-options.xcconfig"; path = "src/Cocoa/oolite-options.xcconfig"; sourceTree = "<group>"; };
 		1ADA564710CD68D800E891B8 /* OOStellarBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOStellarBody.h; sourceTree = "<group>"; };
 		1ADA576710CDB1C300E891B8 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
@@ -2524,6 +2527,11 @@
 		1A5BF2710916D45B00BF238F /* External bundles */ = {
 			isa = PBXGroup;
 			children = (
+				1A0517D10C7B376700BA5CCA /* debug-exports.exp */,
+				1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */,
+				1A09F0E012BD289D00BF7F48 /* release-exports.exp */,
+				1A09F0EA12BD293500BF7F48 /* release-exports-64.exp */,
+				1A8071D70C0480AC00BA1935 /* Debug OXP */,
 				1A8DF4EC12BD060C006D580F /* LeopardFeatures.xcodeproj */,
 				1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */,
 				1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */,
@@ -2709,8 +2717,6 @@
 			isa = PBXGroup;
 			children = (
 				1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */,
-				1A0517D10C7B376700BA5CCA /* debug-exports.exp */,
-				1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */,
 			);
 			name = "Debug OXP";
 			path = src/Cocoa;
@@ -2946,8 +2952,8 @@
 				25161126099544390037C2E1 /* GuiDisplayGen.m */,
 				1AC545040D4D228400C90E5B /* OOEncodingConverter.h */,
 				1AC545050D4D228400C90E5B /* OOEncodingConverter.m */,
-				1A8DF40212BCFC18006D580F /* JoystickHandler.h */,
-				1A8DF40112BCFC18006D580F /* JoystickHandler.m */,
+				1A09F10A12BD2F5400BF7F48 /* OOJoystickManager.h */,
+				1A09F10B12BD2F5400BF7F48 /* OOJoystickManager.m */,
 			);
 			name = "User Interface";
 			sourceTree = "<group>";
@@ -3149,7 +3155,6 @@
 				1A3D68FB11C7F4D400651B08 /* CHECKLIST.TXT */,
 				1A8A3BE90B963F02007D20B8 /* Source */,
 				1A5BF2710916D45B00BF238F /* External bundles */,
-				1A8071D70C0480AC00BA1935 /* Debug OXP */,
 				1A2314300B9C667F00EF0852 /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
@@ -3398,6 +3403,7 @@
 				1AABA83E11B941D1003487D5 /* OOPixMapTextureLoader.h in Headers */,
 				1A11C2B111CFC35000F3EE77 /* OOJSEngineTimeManagement.h in Headers */,
 				1A143A4811EF22C5001BAB8D /* JAPersistentFileReference.h in Headers */,
+				1A09F10C12BD2F5400BF7F48 /* OOJoystickManager.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3797,8 +3803,8 @@
 				1AABA83F11B941D1003487D5 /* OOPixMapTextureLoader.m in Sources */,
 				1A11C2B211CFC35000F3EE77 /* OOJSEngineTimeManagement.m in Sources */,
 				1A143A4911EF22C5001BAB8D /* JAPersistentFileReference.m in Sources */,
-				1A8DF43312BCFE34006D580F /* JoystickHandler.m in Sources */,
 				1A8DF50C12BD072A006D580F /* PlayerEntityStickMapper.m in Sources */,
+				1A09F10D12BD2F5400BF7F48 /* OOJoystickManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3925,8 +3931,8 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				EXPORTED_SYMBOLS_FILE = "";
-				"EXPORTED_SYMBOLS_FILE[arch=x86_64]" = "";
+				EXPORTED_SYMBOLS_FILE = "src/Cocoa/release-exports.exp";
+				"EXPORTED_SYMBOLS_FILE[arch=x86_64]" = "src/Cocoa/release-exports-64.exp";
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -3940,7 +3946,7 @@
 					"OO_EXCLUDE_DEBUG_SUPPORT=1",
 				);
 				GCC_REUSE_STRINGS = YES;
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/src/\"",

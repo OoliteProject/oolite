@@ -1,6 +1,6 @@
 /*
 
-JoystickHandler.m
+OOSDLJoystickManager.m
 By Dylan Smith
 
 Oolite
@@ -23,24 +23,24 @@ MA 02110-1301, USA.
 
 */
 
-#import "JoystickHandlerSDL.h"
+#import "OOSDLJoystickManager.h"
 #import "OOLogging.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.JoystickHandler"
+#define kOOLogUnconvertedNSLog @"unclassified.OOSDLJoystickManager"
 
 
-@implementation JoystickHandlerSDL
+@implementation OOSDLJoystickManager
 
 - (id) init
 {
    int i;
 
    // Find and open the sticks.
-   numSticks=SDL_NumJoysticks();
-   OOLog(@"joystickHandler.init", @"Number of joysticks detected: %d", numSticks);
-   if(numSticks)
+   stickCount = SDL_NumJoysticks();
+   OOLog(@"joystick.init", @"Number of joysticks detected: %ld", (long)stickCount);
+   if(stickCount)
    {
-      for(i = 0; i < numSticks; i++)
+      for(i = 0; i < stickCount; i++)
       {
          // it's doubtful MAX_STICKS will ever get exceeded, but
          // we need to be defensive.
@@ -84,12 +84,19 @@ MA 02110-1301, USA.
 }
 
 
-
 // Overrides
-- (char*) getJoystickName: (int) num
+
+- (OOUInteger) joystickCount
 {
-	return (char*) SDL_JoystickName(num);
+	return stickCount;
 }
+
+
+- (NSString *) nameOfJoystick:(int)stickNumber
+{
+	return [NSString stringWithUTF8String:SDL_JoystickName(num)];
+}
+
 
 - (int16_t) getAxisWithStick:(int) stickNum axis:(int) axisNum 
 {

@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 #import "OOCrosshairs.h"
 #import "OOConstToString.h"
 #import "OOStringParsing.h"
-#import "JoystickHandler.h"
+#import "OOJoystickManager.h"
 
 
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
@@ -2238,7 +2238,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLfloat			x, y;
 	NSSize			siz;
 	BOOL			mouse;
-	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	GLfloat			alpha = overallAlpha;
 	
 	mouse = [[PlayerEntity sharedPlayer] isMouseControlOn];
@@ -2271,7 +2271,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 				GLColorWithOverallAlpha(lightgray_color, alpha);
 		}
 		
-		if ([stickHandler getNumSticks])
+		if ([stickHandler joystickCount])
 		{
 			siz.width -= _crosshairWidth * line_width / 2;
 			siz.height -= _crosshairWidth * line_width / 2;

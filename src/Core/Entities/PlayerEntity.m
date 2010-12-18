@@ -69,7 +69,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "NSFileManagerOOExtensions.h"
 
-#import "JoystickHandler.h"
+#import "OOJoystickManager.h"
 #import "PlayerEntityStickMapper.h"
 
 #if OOLITE_MAC_OS_X
@@ -5765,7 +5765,7 @@ done:
 #endif
 		
 		[gui setText:DESC(@"gameoptions-joystick-configuration") forRow: GUI_ROW(GAME,STICKMAPPER) align: GUI_ALIGN_CENTER];
-		if ([[JoystickHandler sharedStickHandler] getNumSticks])
+		if ([[OOJoystickManager sharedStickHandler] joystickCount])
 		{
 			[gui setKey: GUI_KEY_OK forRow: GUI_ROW(GAME,STICKMAPPER)];
 		}

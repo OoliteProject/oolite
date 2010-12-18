@@ -161,7 +161,10 @@
 	input.keyMapping.keyPress.keyUp			= inherit;
 	
 	
-	joystickHandler.init					= yes;
+	joystick.init							= yes;	// SDL only
+	joystick.connect						= yes;	// Mac only
+	joystick.connect.element				= no;
+	joystick.remove							= no;
 	
 	
 	loading.complete						= yes;
@@ -184,6 +187,7 @@
 	
 	player.ship								= no;
 	player.ship.damage						= no;
+	player.equipmentScript					= $scriptDebugOn;
 	
 	$plistError								= $error;
 	plist.parse.failed						= $plistError;
