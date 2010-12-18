@@ -29,18 +29,20 @@ MA 02110-1301, USA.
 
 @implementation PlayerEntity (StickMapper)
 
-- (void) setGuiToStickMapperScreen: (unsigned)skip
+- (void) setGuiToStickMapperScreen:(unsigned)skip
 {
-	GuiDisplayGen *gui=[UNIVERSE gui];
-	NSArray *stickList=[stickHandler listSticks];
-	unsigned i;
-	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
-	tabStop[0]=50;
-	tabStop[1]=210;
-	tabStop[2]=320;
-	[gui setTabStops: tabStop];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	NSArray			*stickList = [stickHandler listSticks];
+	unsigned		i;
 	
-	gui_screen=GUI_SCREEN_STICKMAPPER;
+	OOGUITabStop	tabStop[GUI_MAX_COLUMNS];
+	tabStop[0] = 50;
+	tabStop[1] = 210;
+	tabStop[2] = 320;
+	[gui setTabStops:tabStop];
+	
+	gui_screen = GUI_SCREEN_STICKMAPPER;
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:@"Configure Joysticks"]];
 	
@@ -66,9 +68,11 @@ MA 02110-1301, USA.
 }
 
 
-- (void) stickMapperInputHandler: (GuiDisplayGen *)gui
-							view: (MyOpenGLView *)gameView
+- (void) stickMapperInputHandler:(GuiDisplayGen *)gui
+							view:(MyOpenGLView *)gameView
 {
+	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	
 	// Don't do anything if the user is supposed to be selecting
 	// a function - other than look for Escape.
 	if(waitingForStickCallback)
@@ -143,7 +147,8 @@ MA 02110-1301, USA.
 // is set. The dictionary contains the thing that was pressed/moved.
 - (void) updateFunction: (NSDictionary *)hwDict
 {
-	waitingForStickCallback=NO;
+	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	waitingForStickCallback = NO;
 	
 	// Right time and the right place?
 	if(gui_screen != GUI_SCREEN_STICKMAPPER)
@@ -198,22 +203,23 @@ MA 02110-1301, USA.
 }
 
 
-- (void) removeFunction: (int)idx
+- (void) removeFunction:(int)idx
 {
-	selFunctionIdx=idx;
-	NSDictionary *entry=[stickFunctions objectAtIndex: idx];
-	NSNumber *butfunc=[entry objectForKey: KEY_BUTTONFN];
-	NSNumber *axfunc=[entry objectForKey: KEY_AXISFN];
+	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	NSDictionary	*entry = [stickFunctions objectAtIndex:idx];
+	NSNumber		*butfunc = [entry objectForKey:KEY_BUTTONFN];
+	NSNumber		*axfunc = [entry objectForKey:KEY_AXISFN];
+	selFunctionIdx = idx;
 	
 	// Some things can have either axis or buttons - make sure we clear
 	// both!
 	if(butfunc)
 	{
-		[stickHandler unsetButtonFunction: [butfunc intValue]];
+		[stickHandler unsetButtonFunction:[butfunc intValue]];
 	}
 	if(axfunc)
 	{
-		[stickHandler unsetAxisFunction: [axfunc intValue]];
+		[stickHandler unsetAxisFunction:[axfunc intValue]];
 	}
 	[stickHandler saveStickSettings];
 	
@@ -229,6 +235,8 @@ MA 02110-1301, USA.
 - (void) displayFunctionList: (GuiDisplayGen *)gui
 						skip: (unsigned) skip
 {
+	JoystickHandler	*stickHandler = [JoystickHandler sharedStickHandler];
+	
 	unsigned i;
 	[gui setColor: [OOColor greenColor] forRow: GUI_ROW_HEADING];
 	[gui setArray: [NSArray arrayWithObjects:

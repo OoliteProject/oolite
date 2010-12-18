@@ -48,12 +48,13 @@ static id sSharedStickHandler = nil;
 }
 
 
-+ (void) setHandlerClass:(Class)aClass
++ (BOOL) setStickHandlerClass:(Class)aClass
 {
 	NSAssert(sStickHandlerClass == nil, @"Can't set joystick handler class after joystick handler is initialized.");
 	NSParameterAssert(aClass == Nil || [aClass isSubclassOfClass:[JoystickHandler class]]);
 	
 	sStickHandlerClass = aClass;
+	return YES;
 }
 
 

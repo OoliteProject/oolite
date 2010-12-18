@@ -61,6 +61,9 @@ _kOOLogUnconvertedNSLog
 _ShaderSettingToString
 _OOSoundRegisterDebugMonitor
 
+# Symbols used by Leopard features bundle
+.objc_class_name_JoystickHandler
+
 # Debug value formatter support
 _JSValueToStrDbg
 _JSObjectToStrDbg

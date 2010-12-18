@@ -211,7 +211,7 @@ typedef struct
 }
 
 + (id) sharedStickHandler;
-+ (void) setHandlerClass:(Class)aClass;
++ (BOOL) setStickHandlerClass:(Class)aClass;
 
 // General.
 // Note: handleSDLEvent returns a BOOL (YES we handled it or NO we

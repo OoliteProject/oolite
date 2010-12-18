@@ -12,6 +12,7 @@
 			buildConfigurationList = 1AD267680C8305A200B4BFD1 /* Build configuration list for PBXAggregateTarget "Build All" */;
 			buildPhases = (
 				1AD267610C83057F00B4BFD1 /* Copy Debug OXP */,
+				1A8DF4F912BD0650006D580F /* Copy System-specific Bundles */,
 			);
 			dependencies = (
 				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
@@ -545,8 +546,9 @@
 		1A8BB8EB0E8311F900122974 /* OONullTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8BB8E90E8311F900122974 /* OONullTexture.m */; };
 		1A8C981D117A380800D8AB7E /* OOCombinedEmissionMapGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8C97E5117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.m */; };
 		1A8C981E117A380800D8AB7E /* OOCombinedEmissionMapGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8C97E4117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.h */; };
-		1A8DF40412BCFC18006D580F /* JoystickHandler.h in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A8DF40212BCFC18006D580F /* JoystickHandler.h */; };
 		1A8DF43312BCFE34006D580F /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8DF40112BCFC18006D580F /* JoystickHandler.m */; };
+		1A8DF4F312BD063A006D580F /* Oolite Leopard support.bundle in Copy System-specific Bundles */ = {isa = PBXBuildFile; fileRef = 1A8DF4F112BD060C006D580F /* Oolite Leopard support.bundle */; };
+		1A8DF50C12BD072A006D580F /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
 		1A9322970DF53C33003FD306 /* OOJSSystemInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9322950DF53C33003FD306 /* OOJSSystemInfo.h */; };
 		1A9322980DF53C33003FD306 /* OOJSSystemInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9322960DF53C33003FD306 /* OOJSSystemInfo.m */; };
 		1A9400BE0BAF0ECD005F6CF3 /* OOStringParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9400BD0BAF0ECD005F6CF3 /* OOStringParsing.m */; };
@@ -728,7 +730,6 @@
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
 		2B9C82F411784AAB000A79F7 /* oolite-tunnel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 2B9C82F311784AAB000A79F7 /* oolite-tunnel.dat */; };
 		2BC3CA14119F6279000DD54F /* oolite-rocktunnel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 2BC3CA13119F6279000DD54F /* oolite-rocktunnel.dat */; };
-		B372438912BB72E7004890B3 /* oolite-constrictor-pilot.js in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = B372438812BB72E7004890B3 /* oolite-constrictor-pilot.js */; };
 		B372438A12BB730A004890B3 /* oolite-constrictor-pilot.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = B372438812BB72E7004890B3 /* oolite-constrictor-pilot.js */; };
 /* End PBXBuildFile section */
 
@@ -788,6 +789,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13;
 			remoteInfo = "libpng-custom";
+		};
+		1A8DF4F012BD060C006D580F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A8DF4EC12BD060C006D580F /* LeopardFeatures.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8D576316048677EA00EA77CD /* Oolite Leopard support.bundle */;
+			remoteInfo = LeopardFeatures;
 		};
 		1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1156,6 +1164,17 @@
 			name = "Copy Shaders";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A8DF4F912BD0650006D580F /* Copy System-specific Bundles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Oolite.app/Contents/PlugIns;
+			dstSubfolderSpec = 16;
+			files = (
+				1A8DF4F312BD063A006D580F /* Oolite Leopard support.bundle in Copy System-specific Bundles */,
+			);
+			name = "Copy System-specific Bundles";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1AD267610C83057F00B4BFD1 /* Copy Debug OXP */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1163,8 +1182,6 @@
 			dstSubfolderSpec = 16;
 			files = (
 				1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */,
-				B372438912BB72E7004890B3 /* oolite-constrictor-pilot.js in Copy Debug OXP */,
-				1A8DF40412BCFC18006D580F /* JoystickHandler.h in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1717,6 +1734,7 @@
 		1A8C97E5117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCombinedEmissionMapGenerator.m; sourceTree = "<group>"; };
 		1A8DF40112BCFC18006D580F /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
 		1A8DF40212BCFC18006D580F /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
+		1A8DF4EC12BD060C006D580F /* LeopardFeatures.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LeopardFeatures.xcodeproj; path = "Mac-specific/LeopardFeatures/LeopardFeatures.xcodeproj"; sourceTree = "<group>"; };
 		1A9322950DF53C33003FD306 /* OOJSSystemInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSystemInfo.h; sourceTree = "<group>"; };
 		1A9322960DF53C33003FD306 /* OOJSSystemInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSystemInfo.m; sourceTree = "<group>"; };
 		1A9400BD0BAF0ECD005F6CF3 /* OOStringParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOStringParsing.m; sourceTree = "<group>"; };
@@ -2495,13 +2513,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		1A5BF2710916D45B00BF238F /* Extras */ = {
+		1A5BF2710916D45B00BF238F /* External bundles */ = {
 			isa = PBXGroup;
 			children = (
+				1A8DF4EC12BD060C006D580F /* LeopardFeatures.xcodeproj */,
 				1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */,
 				1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */,
 			);
-			name = Extras;
+			name = "External bundles";
 			sourceTree = "<group>";
 		};
 		1A5DBA980BC000DC00D57389 /* Scripting */ = {
@@ -2993,6 +3012,14 @@
 			name = Groolite;
 			sourceTree = "<group>";
 		};
+		1A8DF4ED12BD060C006D580F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A8DF4F112BD060C006D580F /* Oolite Leopard support.bundle */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		1AA2E7061191E39600DFBA23 /* Build stuff */ = {
 			isa = PBXGroup;
 			children = (
@@ -3113,7 +3140,7 @@
 				1A37D1ED1049B2E400BC8976 /* CHANGELOG.TXT */,
 				1A3D68FB11C7F4D400651B08 /* CHECKLIST.TXT */,
 				1A8A3BE90B963F02007D20B8 /* Source */,
-				1A5BF2710916D45B00BF238F /* Extras */,
+				1A5BF2710916D45B00BF238F /* External bundles */,
 				1A8071D70C0480AC00BA1935 /* Debug OXP */,
 				1A2314300B9C667F00EF0852 /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
@@ -3457,6 +3484,10 @@
 					ProjectRef = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
 				},
 				{
+					ProductGroup = 1A8DF4ED12BD060C006D580F /* Products */;
+					ProjectRef = 1A8DF4EC12BD060C006D580F /* LeopardFeatures.xcodeproj */;
+				},
+				{
 					ProductGroup = 1A4FB2340C8D6A7500DC8E1F /* Products */;
 					ProjectRef = 1A6B50370C8B42480035DFCC /* libjs.xcodeproj */;
 				},
@@ -3505,6 +3536,13 @@
 			fileType = archive.ar;
 			path = libmozjs_for_oolite.a;
 			remoteRef = 1A4FB2370C8D6A7500DC8E1F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1A8DF4F112BD060C006D580F /* Oolite Leopard support.bundle */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "Oolite Leopard support.bundle";
+			remoteRef = 1A8DF4F012BD060C006D580F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -3752,6 +3790,7 @@
 				1A11C2B211CFC35000F3EE77 /* OOJSEngineTimeManagement.m in Sources */,
 				1A143A4911EF22C5001BAB8D /* JAPersistentFileReference.m in Sources */,
 				1A8DF43312BCFE34006D580F /* JoystickHandler.m in Sources */,
+				1A8DF50C12BD072A006D580F /* PlayerEntityStickMapper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4106,8 +4145,6 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				PRODUCT_NAME = "Build All";
-				RUN_CLANG_STATIC_ANALYZER = YES;
-				ZERO_LINK = NO;
 			};
 			name = Deployment;
 		};

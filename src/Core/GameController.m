@@ -41,6 +41,8 @@ MA 02110-1301, USA.
 
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
+
+static void LoadSystemSpecificBundles(void);
 #endif
 
 
@@ -70,6 +72,10 @@ static GameController *sSharedController = nil;
 
 - (id) init
 {
+#if OOLITE_MAC_OS_X
+	LoadSystemSpecificBundles();
+#endif
+	
 	if (sSharedController != nil)
 	{
 		[self release];
@@ -1301,3 +1307,49 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 }
 
 @end
+
+
+#if OOLITE_MAC_OS_X
+#define PACK_VERSION(maj, min)  (((maj) << 16) | (min))
+enum
+{
+	kSystemVersion10_5 = PACK_VERSION(10, 5)
+};
+
+
+static void LoadOneSystemSpecificBundle(NSString *name);
+
+
+static void LoadSystemSpecificBundles(void)
+{
+	SInt32 majorVersion, minorVersion;
+	if (Gestalt(gestaltSystemVersionMajor, &majorVersion) != noErr)  majorVersion = 0;
+	if (Gestalt(gestaltSystemVersionMinor, &minorVersion) != noErr)  minorVersion = 0;
+	
+	long packedVersion = PACK_VERSION(majorVersion, minorVersion);
+	if (packedVersion >= kSystemVersion10_5)
+	{
+		LoadOneSystemSpecificBundle(@"Oolite Leopard support");
+	}
+}
+
+
+static void LoadOneSystemSpecificBundle(NSString *name)
+{
+	NSString *path = [[[NSBundle mainBundle] builtInPlugInsPath] stringByAppendingPathComponent:[name stringByAppendingPathExtension:@"bundle"]];
+	NSBundle *bundle = [NSBundle bundleWithPath:path];
+	
+	if (bundle != nil)
+	{
+		[bundle load];
+		Class cl = [bundle principalClass];
+		[[[cl alloc] init] release];
+	}
+	else
+	{
+		OOLog(@"mac.systemSpecific.load.failed", @"Failed to load %@", path);
+	}
+}
+
+#endif
+
