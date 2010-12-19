@@ -128,12 +128,14 @@ static JSClass sTimerClass;
 - (void) timerFired
 {
 	jsval					rval = JSVAL_VOID;
-	id						object = nil;
-	JSContext				*context = NULL;
 	NSString				*description = nil;
 	
+	OOJavaScriptEngine *engine = [OOJavaScriptEngine sharedEngine];
+	JSContext *context = [engine acquireContext];
+	JS_BeginRequest(context);
+	
 	// stop and remove the timer if _jsThis (the first parameter in the constructor) dies.
-	object = JSObjectToObject(context, _jsThis);
+	id object = JSObjectToObject(context, _jsThis);
 	if (object != nil)
 	{
 		description = [object javaScriptDescription];
@@ -148,12 +150,15 @@ static JSClass sTimerClass;
 	}
 	
 	[OOJSScript pushScript:_owningScript];
-	[[OOJavaScriptEngine sharedEngine] callJSFunction:_function
-											forObject:_jsThis
-												 argc:0
-												 argv:NULL
-											   result:&rval];
+	[engine callJSFunction:_function
+				 forObject:_jsThis
+					  argc:0
+					  argv:NULL
+					result:&rval];
 	[OOJSScript popScript:_owningScript];
+	
+	JS_EndRequest(context);
+	[engine releaseContext:context];
 }
 
 
