@@ -467,14 +467,13 @@ static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS)
 	Quaternion				quaternion = kZeroQuaternion;
 	Quaternion				*private = NULL;
 #if OO_NEW_JS
-	JSObject				*this = OOJS_THIS;
+	JSObject				*this = NULL;
 #endif
 	
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NO;
 	
-    //	If called without new, replace this with a new Vector object.
-    if (!OOJS_IS_CONSTRUCTING)
+    if (OOJS_CASTABLE_CONSTRUCTOR_CREATE)
 	{
         this = JS_NewObject(context, &sQuaternionClass, NULL, NULL);
         if (this == NULL)  return NO;

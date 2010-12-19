@@ -457,6 +457,7 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #define OOJS_SET_RVAL(v)				JS_SET_RVAL(context, vp, v)
 
 #define OOJS_IS_CONSTRUCTING			JS_IsConstructing(context, vp)
+#define OOJS_CASTABLE_CONSTRUCTOR_CREATE	1
 
 #define OOJS_RETURN_VECTOR(value)		do { jsval jsresult; BOOL OK = VectorToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
 #define OOJS_RETURN_QUATERNION(value)	do { jsval jsresult; BOOL OK = QuaternionToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
@@ -479,6 +480,7 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #define OOJS_SET_RVAL(v)				do { *outResult = (v); } while (0)
 
 #define OOJS_IS_CONSTRUCTING			JS_IsConstructing(context)
+#define OOJS_CASTABLE_CONSTRUCTOR_CREATE	(!OOJS_IS_CONSTRUCTING)
 
 #define OOJS_RETURN_VECTOR(value)		do { return VectorToJSValue(context, value, outResult); } while (0)
 #define OOJS_RETURN_QUATERNION(value)	do { return QuaternionToJSValue(context, value, outResult); } while (0)
