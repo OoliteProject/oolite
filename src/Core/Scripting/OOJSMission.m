@@ -110,6 +110,8 @@ void MissionRunCallback()
 	JSObject			*cbThis = NULL;
 	OOJSScript			*cbScript = sCallbackScript;
 	
+	JS_BeginRequest(context);
+	
 	OOJS_AddGCValueRoot(context, &cbFunction, "Mission callback function");
 	OOJS_AddGCObjectRoot(context, &cbThis, "Mission callback this");
 	cbFunction = sCallbackFunction;
@@ -139,10 +141,12 @@ void MissionRunCallback()
 	[OOJSScript popScript:cbScript];
 	
 	// Manage that memory.
-	[engine releaseContext:context];
 	[cbScript release];
 	JS_RemoveValueRoot(context, &cbFunction);
 	JS_RemoveObjectRoot(context, &cbThis);
+	
+	JS_EndRequest(context);
+	[engine releaseContext:context];
 }
 
 
