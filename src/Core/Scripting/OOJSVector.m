@@ -949,15 +949,15 @@ static JSBool VectorStaticInterpolate(OOJS_NATIVE_ARGS)
 	jsval					*inArgv = argv;
 	
 	if (EXPECT_NOT(argc < 3))  goto INSUFFICIENT_ARGUMENTS;
-	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"interpolate", argc, OOJS_ARGV, &av, &consumed)))  return NO;
+	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"interpolate", argc, argv, &av, &consumed)))  return NO;
 	argc -= consumed;
 	argv += consumed;
 	if (EXPECT_NOT(argc < 2))  goto INSUFFICIENT_ARGUMENTS;
-	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"interpolate", argc, OOJS_ARGV, &bv, &consumed)))  return NO;
+	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"interpolate", argc, argv, &bv, &consumed)))  return NO;
 	argc -= consumed;
 	argv += consumed;
 	if (EXPECT_NOT(argc < 1))  goto INSUFFICIENT_ARGUMENTS;
-	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Vector3D", @"interpolate", argc, OOJS_ARGV, &interp, NULL)))  return NO;
+	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Vector3D", @"interpolate", argc, argv, &interp, NULL)))  return NO;
 	
 	result = OOVectorInterpolate(av, bv, interp);
 	
