@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "OODeepCopy.h"
 #import "OOCollectionExtractors.h"
+#import "OOJavaScriptEngine.h"
 
 
 #define WRITE_ASYNC				1
@@ -72,7 +73,7 @@ static NSString * const kCacheKeyCaches						= @"caches";
 enum
 {
 	kEndianTagValue			= 0x0123456789ABCDEFULL,
-	kFormatVersionValue		= 42
+	kFormatVersionValue		= 42 + (OO_NEW_JS ? 100 : 0)
 };
 
 
