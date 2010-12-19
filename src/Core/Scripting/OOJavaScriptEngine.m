@@ -1146,7 +1146,9 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 - (void) dealloc
 {
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JS_BeginRequest(context);
 	JS_RemoveValueRoot(context, &_val);
+	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	[super dealloc];

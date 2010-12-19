@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #endif
 
 // Enable support for old event handler names through changedScriptHandlers.plist.
-#define SUPPORT_CHANGED_HANDLERS 1
+#define SUPPORT_CHANGED_HANDLERS 0
 
 
 #import "OOJSScript.h"
@@ -323,13 +323,14 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-- (JSFunction *) functionNamed:(NSString *)eventName contextWithRequest:(JSContext *)context
+- (jsval) functionValueNamed:(NSString *)eventName contextWithRequest:(JSContext *)context
 {
 	BOOL						OK;
 	jsval						value;
-	JSFunction					*function = NULL;
+	JSObject					*fakeRoot;	// Unneeded, but oldjs JS_GetMethod needs it to exist.
 	
-	OK = JS_GetProperty(context, _jsSelf, [eventName UTF8String], &value);
+	// FIXME: this should be caching name->jsid mappings.
+	OK = JS_GetMethod(context, _jsSelf, [eventName UTF8String], &fakeRoot, &value);
 	
 #if SUPPORT_CHANGED_HANDLERS
 	if (!OK || JSVAL_IS_VOID(value))
@@ -356,7 +357,7 @@ static JSFunctionSpec sScriptMethods[] =
 		{
 			for (oldNameEnum = [oldNames objectEnumerator]; (oldName = [oldNameEnum nextObject]) && JSVAL_IS_VOID(value) && OK; )
 			{
-				OK = JS_GetProperty(context, _jsSelf, [oldName UTF8String], &value);
+				OK = JS_GetMethod(context, _jsSelf, [oldName UTF8String], NULL, value);
 				
 				if (OK && !JSVAL_IS_VOID(value))
 				{
@@ -372,11 +373,8 @@ static JSFunctionSpec sScriptMethods[] =
 	}
 #endif
 	
-	if (OK && !JSVAL_IS_VOID(value))
-	{
-		function = JS_ValueToFunction(context, value);
-	}
-	return function;
+	if (OK)  return value;
+	else  return JSVAL_VOID;
 }
 
 
@@ -384,7 +382,7 @@ static JSFunctionSpec sScriptMethods[] =
 {
 	BOOL					OK = YES;
 	jsval					value = JSVAL_VOID;
-	JSFunction				*function = NULL;
+	jsval					function;
 	uintN					i, argc;
 	jsval					*argv = NULL;
 	OOJavaScriptEngine		*engine = nil;
@@ -394,8 +392,8 @@ static JSFunctionSpec sScriptMethods[] =
 	context = [engine acquireContext];
 	JS_BeginRequest(context);
 	
-	function = [self functionNamed:eventName contextWithRequest:context];
-	if (function != NULL)
+	function = [self functionValueNamed:eventName contextWithRequest:context];
+	if (!JSVAL_IS_VOID(function))
 	{
 		OOLog(@"script.trace.javaScript.event", @"Calling [%@].%@()", [self name], eventName);
 		OOLogIndentIf(@"script.trace.javaScript.event");
@@ -426,7 +424,7 @@ static JSFunctionSpec sScriptMethods[] =
 		
 		// Actually call the function.
 		OOJSStartTimeLimiter();
-		OK = JS_CallFunction(context, _jsSelf, function, argc, argv, &value);
+		OK = JS_CallFunctionValue(context, _jsSelf, function, argc, argv, &value);
 		OOJSStopTimeLimiter();
 		
 		// Re-garbage-collectibalize the arguments and free the array.
