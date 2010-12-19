@@ -40,9 +40,9 @@ static JSClass sTimerClass;
 
 - (id) initWithDelay:(OOTimeAbsolute)delay
 			interval:(OOTimeDelta)interval
+			 context:(JSContext *)context
 			function:(jsval)function
-				this:(JSObject *)jsThis
-			  jsSelf:(JSObject *)jsSelf;
+				this:(JSObject *)jsThis;
 
 @end
 
@@ -51,17 +51,13 @@ static JSClass sTimerClass;
 
 - (id) initWithDelay:(OOTimeAbsolute)delay
 			interval:(OOTimeDelta)interval
+			 context:(JSContext *)context
 			function:(jsval)function
 				this:(JSObject *)jsThis
-			  jsSelf:(JSObject *)jsSelf
 {
-	JSContext				*context = NULL;
-	
 	self = [super initWithNextTime:[UNIVERSE getTime] + delay interval:interval];
 	if (self != nil)
 	{
-		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-		
 		NSAssert(JSVAL_IS_OBJECT(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to init OOJSTimer with a function that isn't.");
 		
 		_jsThis = jsThis;
@@ -70,7 +66,7 @@ static JSClass sTimerClass;
 		_function = function;
 		OOJS_AddGCValueRoot(context, &_function, "OOJSTimer function");
 		
-		_jsSelf = jsSelf;
+		_jsSelf = JS_NewObject(context, &sTimerClass, sTimerPrototype, NULL);
 		if (_jsSelf != NULL)
 		{
 			if (!JS_SetPrivate(context, _jsSelf, [self retain]))  _jsSelf = NULL;
@@ -82,7 +78,6 @@ static JSClass sTimerClass;
 		}
 		
 		_owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
-		[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	}
 	
 	return self;
@@ -358,11 +353,7 @@ static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
 	double					delay;
 	double					interval = -1.0;
 	OOJSTimer				*timer = nil;
-#if OO_NEW_JS
-	JSObject				*this = NULL;
-#else
-	this = NULL;
-#endif
+	JSObject				*callbackThis = NULL;
 	
 	if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING))
 	{
@@ -378,7 +369,7 @@ static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
 	
 	if (!JSVAL_IS_NULL(OOJS_ARG(0)) && !JSVAL_IS_VOID(OOJS_ARG(0)))
 	{
-		if (!JS_ValueToObject(context, OOJS_ARG(0), &this))
+		if (!JS_ValueToObject(context, OOJS_ARG(0), &callbackThis))
 		{
 			OOReportJSBadArguments(context, nil, @"Timer", 1, OOJS_ARGV, @"Invalid argument in constructor", @"object");
 			return NO;
@@ -406,23 +397,17 @@ static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
 	
 	timer = [[OOJSTimer alloc] initWithDelay:delay
 									interval:interval
+									 context:context
 									function:function
-										this:this
-									  jsSelf:JSVAL_TO_OBJECT(OOJS_RVAL)];
-	if (timer != nil)
+										this:callbackThis];
+	if (EXPECT_NOT(!timer))  return NO;
+	
+	if (delay >= 0)	// Leave in stopped state if delay is negative
 	{
-		if (delay >= 0)	// Leave in stopped state if delay is negative
-		{
-			[timer scheduleTimer];
-		}
-		[timer release];	// The JS object retains the ObjC object.
+		[timer scheduleTimer];
 	}
-	else
-	{
-		OOJS_SET_RVAL(JSVAL_NULL);
-	}
-
-	return YES;
+	[timer autorelease];
+	OOJS_RETURN_OBJECT(timer);
 	
 	OOJS_NATIVE_EXIT
 }
