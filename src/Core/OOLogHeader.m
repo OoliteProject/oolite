@@ -209,6 +209,11 @@ NSString *OOPlatformDescription(void)
 #define CPUFAMILY_INTEL_CORE2	CPUFAMILY_INTEL_6_15
 #endif
 
+#ifndef CPUFAMILY_INTEL_WESTMERE
+// Copied from OS X 10.6 SDK
+#define CPUFAMILY_INTEL_WESTMERE	0x573b5eec
+#endif
+
 #ifndef CPU_TYPE_ARM
 #define CPU_TYPE_ARM			((cpu_type_t) 12)
 #define CPU_SUBTYPE_ARM_ALL		((cpu_subtype_t) 0)
@@ -308,8 +313,12 @@ static NSString *GetCPUDescription(void)
 					subTypeStr = @" (Nehalem)";
 					break;
 					
+				case CPUFAMILY_INTEL_WESTMERE:
+					subTypeStr = @" (Westmere)";
+					break;
+					
 				default:
-					subTypeStr = [NSString stringWithFormat:@" (family %u)", sysCPUFamily];
+					subTypeStr = [NSString stringWithFormat:@" (family %x)", sysCPUFamily];
 			}
 			break;
 		

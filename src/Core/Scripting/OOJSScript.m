@@ -142,10 +142,12 @@ static JSFunctionSpec sScriptMethods[] =
 		problem = @"could not add JavaScript root object";
 	}
 	
+#if OO_NEW_JS
 	if (!problem && !OOJS_AddGCObjectRoot(context, &scriptObject, "Script GC holder"))
 	{
 		problem = @"could not add JavaScript root object";
 	}
+#endif
 	
 	if (!problem)
 	{
@@ -201,7 +203,9 @@ static JSFunctionSpec sScriptMethods[] =
 		// We don't need the script any more - the event handlers hang around as long as the JS object exists.
 		JS_DestroyScript(context, script);
 	}
+#if OO_NEW_JS
 	JS_RemoveObjectRoot(context, &scriptObject);
+#endif
 	
 	sRunningStack = stackElement.back;
 	
@@ -657,8 +661,10 @@ static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject
 		else
 		{
 			script = JS_CompileUCScript(context, object, [data bytes], [data length] / sizeof(unichar), [path UTF8String], 1);
+#if OO_NEW_JS
 			if (script != NULL)  *outScriptObject = JS_NewScriptObject(context, script);
-			else  *outErrorMessage = @"compilation failed";
+#endif
+			if (script == NULL)  *outErrorMessage = @"compilation failed";
 		}
 		
 #if OO_CACHE_JS_SCRIPTS
