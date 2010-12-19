@@ -144,6 +144,10 @@ void OOPrintLogHeader(void)
 		@"JavaScript profiling",
 	#endif
 	
+	#if OO_NEW_JS
+		@"updated JavaScript (experimental)",
+	#endif
+	
 		nil];
 	
 	// systemString: NSString with system type and possibly version.
