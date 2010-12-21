@@ -5443,6 +5443,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (double) cruiseSpeed
+{
+	return cruiseSpeed;
+}
+
+
 - (void) increase_flight_speed:(double) delta
 {
 	double factor = 1.0;
@@ -9161,10 +9167,12 @@ BOOL class_masslocks(int some_class)
 			{
 				[self setGroup:escortGroup];
 			}
-			else if ([self group] != escortGroup) [[self group] addShip:other_ship];
+			else if ([self group] != escortGroup)  [[self group] addShip:other_ship];
 			
-			if(([other_ship maxFlightSpeed] < cruiseSpeed) && ([other_ship maxFlightSpeed] > cruiseSpeed * 0.3)) 
-					cruiseSpeed = [other_ship maxFlightSpeed] * 0.99;
+			if (([other_ship maxFlightSpeed] < cruiseSpeed) && ([other_ship maxFlightSpeed] > cruiseSpeed * 0.3))
+			{
+				cruiseSpeed = [other_ship maxFlightSpeed] * 0.99;
+			}
 
 			OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
 			

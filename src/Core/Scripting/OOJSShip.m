@@ -122,6 +122,7 @@ enum
 	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
 	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
 	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
+	kShip_cruiseSpeed,			// desired cruising speed, number, read only
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_displayName,			// name displayed on screen, string, read-only
 	kShip_entityPersonality,	// per-ship random number, int, read-only
@@ -208,6 +209,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	// contracts instead of cargo to distinguish them from the manifest
 	{ "contracts",				kShip_contracts,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "cruiseSpeed",			kShip_cruiseSpeed,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "desiredSpeed",			kShip_desiredSpeed,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "displayName",			kShip_displayName,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "entityPersonality",		kShip_entityPersonality,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -534,6 +536,10 @@ static JSBool ShipGetProperty(OOJS_PROP_ARGS)
 			
 		case kShip_speed:
 			OK = JS_NewDoubleValue(context, [entity flightSpeed], value);
+			break;
+			
+		case kShip_cruiseSpeed:
+			OK = JS_NewDoubleValue(context, [entity cruiseSpeed], value);
 			break;
 			
 		case kShip_desiredSpeed:

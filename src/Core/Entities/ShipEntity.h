@@ -659,6 +659,8 @@ MA 02110-1301, USA.
 - (double) desiredSpeed;
 - (void) setDesiredSpeed:(double) amount;
 
+- (double) cruiseSpeed;
+
 - (Vector) thrustVector;
 - (void) setTotalVelocity:(Vector)vel;	// Set velocity to vel - thrustVector, effectively setting the instanteneous velocity to vel.
 
