@@ -15,7 +15,7 @@ OO_EXCLUDE_DEBUG_SUPPORT = no
 OO_OXP_VERIFIER_ENABLED = yes
 OO_LOCALIZATION_TOOLS = yes
 DEBUG_GRAPHVIZ = yes
-JS_ECMAv5 = yes
+JS_ECMAv5 = no
 use_deps = no
 
 vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
