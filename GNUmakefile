@@ -15,6 +15,7 @@ OO_EXCLUDE_DEBUG_SUPPORT = no
 OO_OXP_VERIFIER_ENABLED = yes
 OO_LOCALIZATION_TOOLS = yes
 DEBUG_GRAPHVIZ = yes
+JS_ECMAv5 = yes
 use_deps = no
 
 vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
@@ -24,16 +25,28 @@ GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
 GNUSTEP_OBJ_DIR_BASENAME := $(GNUSTEP_OBJ_DIR_NAME)
 HOST_ARCH := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	ADDITIONAL_INCLUDE_DIRS = -Ideps/Windows-x86-deps/include -Ideps/Cross-platform-deps/SpiderMonkey/js/src -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
-	ADDITIONAL_OBJC_LIBS = -lglu32 -lopengl32 -lpng14.dll -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lgnustep-base -ljs32 -lwinmm -mwindows
+	ifeq ($(JS_ECMAv5),yes)
+		JS_INCLUDE_DIR = deps/Windows-x86-deps/JS32ECMAv5/include
+		JS_LIB_DIR = deps/Windows-x86-deps/JS32ECMAv5/lib
+		JS_IMPORT_LIBRARY = js32ECMAv5
+	else
+		JS_INCLUDE_DIR = deps/Cross-platform-deps/SpiderMonkey/js/src
+		JS_LIB_DIR =
+		JS_IMPORT_LIBRARY = js32
+	endif
+	ADDITIONAL_INCLUDE_DIRS = -Ideps/Windows-x86-deps/include -I$(JS_INCLUDE_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
+	ADDITIONAL_OBJC_LIBS = -lglu32 -lopengl32 -lpng14.dll -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lwinmm -mwindows
 	ADDITIONAL_CFLAGS = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags`
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
 	ADDITIONAL_OBJCFLAGS = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import `sdl-config --cflags`
-	oolite_LIB_DIRS += -L/usr/local/lib -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib
+	oolite_LIB_DIRS += -L/usr/local/lib -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib -L$(JS_LIB_DIR)
 	ifeq ($(ESPEAK),yes)
 		ADDITIONAL_OBJC_LIBS += -lespeak.dll
 		ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
 		GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
+	endif
+	ifeq ($(JS_ECMAv5),yes)
+		ADDITIONAL_OBJCFLAGS+=-DOO_NEW_JS=1
 	endif
 else
 	LIBJS_SRC_DIR = deps/Cross-platform-deps/SpiderMonkey/js/src
