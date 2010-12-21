@@ -43,7 +43,7 @@ static JSObject *sSystemPrototype;
 
 
 // Support functions for entity search methods.
-static BOOL GetRelativeToAndRange(JSContext *context, uintN *ioArgc, jsval **ioArgv, Entity **outRelativeTo, double *outRange) NONNULL_FUNC;
+static BOOL GetRelativeToAndRange(JSContext *context, NSString *methodName, uintN *ioArgc, jsval **ioArgv, Entity **outRelativeTo, double *outRange);
 static NSArray *FindJSVisibleEntities(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
 static NSArray *FindShips(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
 static NSComparisonResult CompareEntitiesByDistance(id a, id b, void *relativeTo);
@@ -542,7 +542,7 @@ static JSBool SystemCountShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 	// Get optional arguments
 	argc -= 1;
 	jsval *argv = OOJS_ARGV + 1;
-	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
+	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"countShipsWithPrimaryRole", &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	OOJSPauseTimeLimiter();
 	unsigned result = [UNIVERSE countShipsWithPrimaryRole:role inRange:range ofEntity:relativeTo];
@@ -573,7 +573,7 @@ static JSBool SystemCountShipsWithRole(OOJS_NATIVE_ARGS)
 	// Get optional arguments
 	argc -= 1;
 	jsval *argv = OOJS_ARGV + 1;
-	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
+	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"countShipsWithRole", &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	OOJSPauseTimeLimiter();
 	unsigned result = [UNIVERSE countShipsWithRole:role inRange:range ofEntity:relativeTo];
@@ -605,7 +605,7 @@ static JSBool SystemShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 	// Get optional arguments
 	argc -= 1;
 	jsval *argv = OOJS_ARGV + 1;
-	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
+	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"shipsWithPrimaryRole", &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
 	OOJSPauseTimeLimiter();
@@ -638,7 +638,7 @@ static JSBool SystemShipsWithRole(OOJS_NATIVE_ARGS)
 	// Get optional arguments
 	argc -= 1;
 	jsval *subargv = OOJS_ARGV + 1;
-	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &subargv, &relativeTo, &range)))  return NO;
+	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"shipsWithRole", &argc, &subargv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
 	OOJSPauseTimeLimiter();
@@ -678,7 +678,7 @@ static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 	// Get optional arguments
 	argc -= 1;
 	jsval *argv = OOJS_ARGV + 1;
-	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
+	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"countEntitiesWithScanClass", &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	OOJSPauseTimeLimiter();
 	unsigned result = [UNIVERSE countShipsWithScanClass:scanClass inRange:range ofEntity:relativeTo];
@@ -718,7 +718,7 @@ static JSBool SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 	// Get optional arguments
 	argc -= 1;
 	jsval *argv = OOJS_ARGV + 1;
-	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
+	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"entitiesWithScanClass", &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
 	OOJSPauseTimeLimiter();
@@ -753,7 +753,7 @@ static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS)
 	// Get optional arguments
 	argc -= 2;
 	jsval *argv = OOJS_ARGV + 2;
-	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
+	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"filteredEntities", &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
 	JSFunctionPredicateParameter param = { context, function, jsThis, NO };
@@ -1202,7 +1202,7 @@ static JSBool SystemAddShipsOrGroupToRoute(OOJS_NATIVE_ARGS, BOOL isGroup)
 }
 
 
-static BOOL GetRelativeToAndRange(JSContext *context, uintN *ioArgc, jsval **ioArgv, Entity **outRelativeTo, double *outRange)
+static BOOL GetRelativeToAndRange(JSContext *context, NSString *methodName, uintN *ioArgc, jsval **ioArgv, Entity **outRelativeTo, double *outRange)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1212,14 +1212,22 @@ static BOOL GetRelativeToAndRange(JSContext *context, uintN *ioArgc, jsval **ioA
 	// Get optional argument relativeTo : Entity
 	if (*ioArgc != 0)
 	{
-		if (!JSValueToEntity(context, **ioArgv, outRelativeTo))  return NO;
+		if (EXPECT_NOT(!JSValueToEntity(context, **ioArgv, outRelativeTo)))
+		{
+			OOReportJSBadArguments(context, @"System", methodName, 1, *ioArgv, nil, @"entity");
+			return NO;
+		}
 		(*ioArgv)++; (*ioArgc)--;
 	}
 	
 	// Get optional argument range : Number
 	if (*ioArgc != 0)
 	{
-		if (!JS_ValueToNumber(context, **ioArgv, outRange))  return NO;
+		if (!EXPECT_NOT(JS_ValueToNumber(context, **ioArgv, outRange)))
+		{
+			OOReportJSBadArguments(context, @"System", methodName, 1, *ioArgv, nil, @"number");
+			return NO;
+		}
 		(*ioArgv)++; (*ioArgc)--;
 	}
 	
