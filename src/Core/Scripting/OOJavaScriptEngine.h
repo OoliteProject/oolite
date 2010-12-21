@@ -470,12 +470,12 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #define OOJS_PROPID_STRING				JSID_TO_STRING(propID)
 
 #else
-#define OOJS_NATIVE_ARGS				JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult
-#define OOJS_NATIVE_CALLTHROUGH			context, this, argc, argv, outResult
-#define OOJS_CALLEE						argv[-2]
-#define OOJS_THIS_VAL					OBJECT_TO_JSVAL(this)
-#define OOJS_THIS						this
-#define OOJS_ARGV						argv
+#define OOJS_NATIVE_ARGS				JSContext *context, JSObject *this_, uintN argc, jsval *argv_, jsval *outResult
+#define OOJS_NATIVE_CALLTHROUGH			context, this_, argc, argv_, outResult
+#define OOJS_CALLEE						argv_[-2]
+#define OOJS_THIS_VAL					OBJECT_TO_JSVAL(this_)
+#define OOJS_THIS						this_
+#define OOJS_ARGV						argv_
 #define OOJS_RVAL						(*outResult)
 #define OOJS_SET_RVAL(v)				do { *outResult = (v); } while (0)
 

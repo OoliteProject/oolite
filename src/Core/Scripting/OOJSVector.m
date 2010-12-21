@@ -481,9 +481,7 @@ static JSBool VectorConstruct(OOJS_NATIVE_ARGS)
 	
 	Vector					vector = kZeroVector;
 	Vector					*private = NULL;
-#if OO_NEW_JS
 	JSObject				*this = NULL;
-#endif
 	
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NO;
@@ -711,9 +709,7 @@ static JSBool VectorTripleProduct(OOJS_NATIVE_ARGS)
 	Vector					thisv, thatv, theotherv;
 	GLfloat					result;
 	uintN					consumed;
-#if OO_NEW_JS
 	jsval					*argv = OOJS_ARGV;
-#endif
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"tripleProduct"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"tripleProduct", argc, argv, &thatv, &consumed)))  return NO;
@@ -792,9 +788,7 @@ static JSBool VectorRotationTo(OOJS_NATIVE_ARGS)
 	BOOL					gotLimit;
 	Quaternion				result;
 	uintN					consumed;
-#if OO_NEW_JS
 	jsval					*argv = OOJS_ARGV;
-#endif
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"rotationTo"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"rotationTo", argc, OOJS_ARGV, &thatv, &consumed)))  return NO;
@@ -943,9 +937,7 @@ static JSBool VectorStaticInterpolate(OOJS_NATIVE_ARGS)
 	Vector					result;
 	uintN					consumed;
 	uintN					inArgc = argc;
-#if OO_NEW_JS
 	jsval					*argv = OOJS_ARGV;
-#endif
 	jsval					*inArgv = argv;
 	
 	if (EXPECT_NOT(argc < 3))  goto INSUFFICIENT_ARGUMENTS;

@@ -637,8 +637,8 @@ static JSBool SystemShipsWithRole(OOJS_NATIVE_ARGS)
 	
 	// Get optional arguments
 	argc -= 1;
-	jsval *argv = OOJS_ARGV + 1;
-	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
+	jsval *subargv = OOJS_ARGV + 1;
+	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &subargv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
 	OOJSPauseTimeLimiter();

@@ -466,9 +466,7 @@ static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS)
 	
 	Quaternion				quaternion = kZeroQuaternion;
 	Quaternion				*private = NULL;
-#if OO_NEW_JS
 	JSObject				*this = NULL;
-#endif
 	
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NO;
@@ -587,9 +585,7 @@ static JSBool QuaternionRotate(OOJS_NATIVE_ARGS)
 	Vector					axis;
 	double					angle;
 	uintN					consumed;
-#if OO_NEW_JS
 	jsval					*argv = OOJS_ARGV;
-#endif
 	
 	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"rotate"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Quaternion", @"rotate", argc, argv, &axis, &consumed)))  return NO;
