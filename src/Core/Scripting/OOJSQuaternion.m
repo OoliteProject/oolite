@@ -477,6 +477,12 @@ static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS)
         if (this == NULL)  return NO;
 		OOJS_SET_RVAL(OBJECT_TO_JSVAL(this));
     }
+	else
+	{
+#if !OO_NEW_JS
+		this = this_;
+#endif
+	}
 	
 	if (argc != 0)
 	{
