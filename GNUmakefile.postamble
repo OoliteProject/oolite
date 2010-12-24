@@ -30,6 +30,17 @@ ifeq ($(debug),no)
 endif
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	$(CP) -r -u -f deps/Windows-x86-deps/DLLs/*.dll $(PROGDIR)
+        ifeq ($(JS_ECMAv5),yes)
+                ifeq ($(debug),yes)
+			rm $(PROGDIR)/js32ECMAv5.dll
+                else
+			rm $(PROGDIR)/js32ECMAv5dbg.dll
+                endif
+		rm $(PROGDIR)/js32.dll
+        else
+		rm $(PROGDIR)/js32ECMAv5dbg.dll
+		rm $(PROGDIR)/js32ECMAv5.dll
+        endif		
 endif
 
 after-clean::

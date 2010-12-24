@@ -28,7 +28,11 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	ifeq ($(JS_ECMAv5),yes)
 		JS_INCLUDE_DIR = deps/Windows-x86-deps/JS32ECMAv5/include
 		JS_LIB_DIR = deps/Windows-x86-deps/JS32ECMAv5/lib
-		JS_IMPORT_LIBRARY = js32ECMAv5
+		ifeq ($(debug),yes)
+			JS_IMPORT_LIBRARY = js32ECMAv5dbg
+		else
+			JS_IMPORT_LIBRARY = js32ECMAv5
+		endif
 	else
 		JS_INCLUDE_DIR = deps/Cross-platform-deps/SpiderMonkey/js/src
 		JS_LIB_DIR =
