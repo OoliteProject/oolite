@@ -2012,6 +2012,8 @@ static JSBool ShipEquipmentStatus(OOJS_NATIVE_ARGS)
 	if ([thisEnt hasEquipmentItem:key])  OOJS_RETURN(strOK);
 	else if ([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]])  OOJS_RETURN(strDamaged);
 	
+	OOJS_RETURN(strUnavailable);
+	
 	OOJS_NATIVE_EXIT
 }
 
