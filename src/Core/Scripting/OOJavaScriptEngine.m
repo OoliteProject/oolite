@@ -113,6 +113,8 @@ static void RegisterStandardObjectConverters(JSContext *context);
 
 static id JSArrayConverter(JSContext *context, JSObject *object);
 static id JSGenericObjectConverter(JSContext *context, JSObject *object);
+static id JSStringConverter(JSContext *context, JSObject *object);
+static id JSNumberConverter(JSContext *context, JSObject *object);
 
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report)
@@ -1039,25 +1041,25 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 
 @implementation NSObject (OOJavaScriptConversion)
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval) javaScriptValueInContext:(JSContext *)context
 {
 	return JSVAL_VOID;
 }
 
 
-- (NSString *)jsClassName
+- (NSString *) jsClassName
 {
 	return nil;
 }
 
 
-- (NSString *)javaScriptDescription
+- (NSString *) javaScriptDescription
 {
 	return [self javaScriptDescriptionWithClassName:[self jsClassName]];
 }
 
 
-- (NSString *)javaScriptDescriptionWithClassName:(NSString *)className
+- (NSString *) javaScriptDescriptionWithClassName:(NSString *)className
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1391,6 +1393,12 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	OOJS_PROFILE_EXIT
 }
 
+
+- (NSString *) jsClassName
+{
+	return @"String";
+}
+
 @end
 
 
@@ -1495,6 +1503,12 @@ const char *JSValueTypeDbg(jsval val)
 	return result;
 	
 	OOJS_PROFILE_EXIT_JSVAL
+}
+
+
+- (NSString *) jsClassName
+{
+	return @"Number";
 }
 
 @end
@@ -1756,6 +1770,20 @@ static void RegisterStandardObjectConverters(JSContext *context)
 	templateObject = JS_NewObject(context, NULL, NULL, NULL);
 	class = OOJS_GetClass(context, templateObject);
 	JSRegisterObjectConverter(class, JSGenericObjectConverter);
+	
+	// String object wrappers.
+	if (JS_ValueToObject(context, JS_GetEmptyStringValue(context), &templateObject))
+	{
+		class = OOJS_GetClass(context, templateObject);
+		JSRegisterObjectConverter(class, JSStringConverter);
+	}
+	
+	// Number object wrappers.
+	if (JS_ValueToObject(context, INT_TO_JSVAL(0), &templateObject))
+	{
+		class = OOJS_GetClass(context, templateObject);
+		JSRegisterObjectConverter(class, JSNumberConverter);
+	}
 }
 
 static id JSArrayConverter(JSContext *context, JSObject *array)
@@ -1873,4 +1901,21 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object)
 	
 	JS_DestroyIdArray(context, ids);
 	return result;
+}
+
+
+static id JSStringConverter(JSContext *context, JSObject *object)
+{
+	return [NSString stringOrNilWithJavaScriptValue:OBJECT_TO_JSVAL(object) inContext:context];
+}
+
+
+static id JSNumberConverter(JSContext *context, JSObject *object)
+{
+	jsdouble value;
+	if (JS_ValueToNumber(context, OBJECT_TO_JSVAL(object), &value))
+	{
+		return [NSNumber numberWithDouble:value];
+	}
+	return nil;
 }
