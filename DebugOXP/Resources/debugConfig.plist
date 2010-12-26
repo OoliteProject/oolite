@@ -46,7 +46,7 @@
 	
 	// Macro definitions for the console macro system (implemented in oolite-debug-console.js).
 	// Note that these call simple functions in oolite-debug-console.js, not magic functions provided by Oolite.
-	macros =
+	defaultMacros =
 	{
 		// Manipulating macros
 		"setM"		= "setMacro(PARAM)";

@@ -168,12 +168,13 @@ this.$				= null;
 // **** Macros
 
 // Normally, these will be overwritten with macros from the config plist.
-this.macros =
+this.defaultMacros =
 {
 	setM:		"setMacro(PARAM)",
 	delM:		"deleteMacro(PARAM)",
 	showM:		"showMacro(PARAM)"
 };
+this.macros = {};
 
 
 // ****  Convenience functions -- copy this script and add your own here.
@@ -307,6 +308,11 @@ this.setMacro = function setMacro(parameters)
 	
 	// Split at first series of spaces
 	var [name, body] = parameters.getOneToken();
+	if (defaultMacros[name])
+	{
+		consoleMessage("macro-error", "Built-in macro " + name + " cannot be replaced.");
+		return;
+	}
 	
 	if (body)
 	{
@@ -330,6 +336,12 @@ this.deleteMacro = function deleteMacro(parameters)
 	
 	if (name.charAt(0) == ":" && name != ":")  name = name.substring(1);
 	
+	if (defaultMacros[name])
+	{
+		consoleMessage("macro-error", "Built-in macro " + name + " cannot be deleted.");
+		return;
+	}
+	
 	if (macros[name])
 	{
 		delete macros[name];
@@ -344,6 +356,14 @@ this.deleteMacro = function deleteMacro(parameters)
 }
 
 
+this.resolveMacro = function resolveMacro(name)
+{
+	if (defaultMacros[name])  return defaultMacros[name];
+	else  if (macros[name])  return macros[name];
+	else  return null;
+}
+
+
 this.showMacro = function showMacro(parameters)
 {
 	if (!parameters)  return;
@@ -352,9 +372,10 @@ this.showMacro = function showMacro(parameters)
 	
 	if (name.charAt(0) == ":" && name != ":")  name = name.substring(1);
 	
-	if (macros[name])
+	var macro = resolveMacro(name);
+	if (macro)
 	{
-		consoleMessage("macro-info", ":" + name + " = " + macros[name]);
+		consoleMessage("macro-info", ":" + name + " = " + macro);
 	}
 	else
 	{
@@ -372,24 +393,20 @@ this.performMacro = function performMacro(command)
 	
 	// Split at first series of spaces
 	var [macroName, parameters] = command.getOneToken();
-	if (macros[macroName] !== undefined)
+	var expansion = resolveMacro(macroName);
+	if (expansion)
 	{
-		var expansion = macros[macroName];
-		
-		if (expansion)
+		// Show macro expansion.
+		var displayExpansion = expansion;
+		if (parameters)
 		{
-			// Show macro expansion.
-			var displayExpansion = expansion;
-			if (parameters)
-			{
-				// Substitute parameter string into display expansion, going from 'foo(PARAM)' to 'foo("parameters")'.
-				displayExpansion = displayExpansion.replace(/PARAM/g, '"' + parameters.substituteEscapeCodes() + '"');
-			}
-			consoleMessage("macro-expansion", "> " + displayExpansion);
-			
-			// Perform macro.
-			this.evaluate(expansion, "macro", parameters);
+			// Substitute parameter string into display expansion, going from 'foo(PARAM)' to 'foo("parameters")'.
+			displayExpansion = displayExpansion.replace(/PARAM/g, '"' + parameters.substituteEscapeCodes() + '"');
 		}
+		consoleMessage("macro-expansion", "> " + displayExpansion);
+		
+		// Perform macro.
+		this.evaluate(expansion, "macro", parameters);
 	}
 	else
 	{
@@ -466,6 +483,7 @@ global.debugConsole = this.console;
 debugConsole.script = this;
 
 if (debugConsole.settings["macros"])  this.macros = debugConsole.settings["macros"];
+if (debugConsole.settings["defaultMacros"])  this.defaultMacros = debugConsole.settings["defaultMacros"];
 
 /*	As a convenience, make player, player.ship, system and missionVariables
 	available to console commands as short variables:
