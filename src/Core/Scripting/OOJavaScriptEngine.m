@@ -1889,7 +1889,7 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object)
 		}
 #endif
 		
-		if (objKey != nil && JSVAL_IS_VOID(value))
+		if (objKey != nil && !JSVAL_IS_VOID(value))
 		{
 			objValue = JSValueToObject(context, value);
 			if (objValue != nil)

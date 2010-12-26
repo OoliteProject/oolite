@@ -503,12 +503,12 @@ void OOJSProfileExit(OOJSProfileStackFrame *frame)
 - (NSDictionary *) propertyListRepresentation
 {
 	NSArray *profileEntries = [self profileEntries];
-	NSMutableArray *convertedEntires = [NSMutableArray arrayWithCapacity:[profileEntries count]];
+	NSMutableArray *convertedEntries = [NSMutableArray arrayWithCapacity:[profileEntries count]];
 	NSEnumerator *entryEnum = nil;
 	OOTimeProfileEntry *entry = nil;
 	for (entryEnum = [profileEntries objectEnumerator]; (entry = [entryEnum nextObject]); )
 	{
-		[convertedEntires addObject:[entry propertyListRepresentation]];
+		[convertedEntries addObject:[entry propertyListRepresentation]];
 	}
 	
 	return [NSDictionary dictionaryWithObjectsAndKeys:

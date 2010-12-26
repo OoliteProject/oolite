@@ -845,7 +845,7 @@ static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS)
 	JSBool result = PerformProfiling(context, @"getProfile", argc, OOJS_ARGV, &profile);
 	if (result)
 	{
-		OOJS_SET_RVAL([[profile description] javaScriptValueInContext:context]);
+		OOJS_SET_RVAL([profile javaScriptValueInContext:context]);
 	}
 	
 	[pool release];
