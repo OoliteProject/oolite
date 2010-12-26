@@ -1978,16 +1978,27 @@ static JSBool ShipEquipmentStatus(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	// values returned: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED", @"EQUIPMENT_UNAVAILABLE"
-	// FIXME: use interned strings?
+	/*
+		Interned string constants.
+		Interned strings are guaranteed to survive for the lifetime of the JS
+		runtime, which lasts as long as Oolite is running.
+	*/
+	static jsval strOK, strDamaged, strUnavailable;
+	static BOOL inited = NO;
+	if (EXPECT_NOT(!inited))
+	{
+		inited = YES;
+		strOK = STRING_TO_JSVAL(JS_InternString(context, "EQUIPMENT_OK"));
+		strDamaged = STRING_TO_JSVAL(JS_InternString(context, "EQUIPMENT_DAMAGED"));
+		strUnavailable = STRING_TO_JSVAL(JS_InternString(context, "EQUIPMENT_UNAVAILABLE"));
+	}
 	
 	ShipEntity				*thisEnt = nil;
 	NSString				*key = nil;
-	NSString				*result = @"EQUIPMENT_UNAVAILABLE";
 	
 	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	// stale reference, no-op.
 	{
-		OOJS_RETURN_OBJECT(result);
+		OOJS_RETURN(strUnavailable);
 	}
 	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  return YES;
 	
@@ -1998,10 +2009,8 @@ static JSBool ShipEquipmentStatus(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	if ([thisEnt hasEquipmentItem:key])  result = @"EQUIPMENT_OK";
-	else if ([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]])  result = @"EQUIPMENT_DAMAGED";
-	
-	OOJS_RETURN_OBJECT(result);
+	if ([thisEnt hasEquipmentItem:key])  OOJS_RETURN(strOK);
+	else if ([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]])  OOJS_RETURN(strDamaged);
 	
 	OOJS_NATIVE_EXIT
 }
