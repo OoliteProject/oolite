@@ -45,8 +45,6 @@ _JS_ResolveStub
 _OOReportJSBadPropertySelector
 _OOReportJSError
 _JS_InternString
-_JS_AddNamedRoot
-_JS_RemoveRoot
 _JSValueToObject
 _JS_ValueToNumber
 _JS_SetProperty

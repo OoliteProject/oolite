@@ -53,6 +53,7 @@
 		1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */; };
 		1A062C8911B28D8A00727C1D /* NSObjectOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */; };
 		1A062C8A11B28D8A00727C1D /* NSObjectOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */; };
+		1A06F0A212CA580A00FB681A /* libnspr4_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */; };
 		1A06F2861196E5B100AFA5B4 /* OOCASoundDebugMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */; };
 		1A06F3151196FB6F00AFA5B4 /* oolite-player-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */; };
 		1A0729D90EF56D1200B0F925 /* OOConvertSystemDescriptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */; };
@@ -599,6 +600,7 @@
 		1AB4AEB90D688AD9003076D6 /* OOLogHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */; settings = {COMPILER_FLAGS = $SNAPSHOT_MACROS; }; };
 		1AB5E1EF12BD628500C334DD /* OOJoystickManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB5E1ED12BD628500C334DD /* OOJoystickManager.h */; };
 		1AB5E1F012BD628500C334DD /* OOJoystickManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB5E1EE12BD628500C334DD /* OOJoystickManager.m */; };
+		1AB7761012CA2EE0001478BB /* libjs_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760212CA2E53001478BB /* libjs_for_oolite.a */; };
 		1AB784F90D554F7B00517983 /* OOJSSoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB784F70D554F7B00517983 /* OOJSSoundSource.h */; };
 		1AB784FA0D554F7B00517983 /* OOJSSoundSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB784F80D554F7B00517983 /* OOJSSoundSource.m */; };
 		1AB8128F0E90179C00A84923 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
@@ -787,6 +789,27 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13;
 			remoteInfo = "libpng-custom";
+		};
+		1AB7760112CA2E53001478BB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC046055464E500DB518D;
+			remoteInfo = libjs;
+		};
+		1AB7760312CA2E53001478BB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1AB25ACA12CA1CB100C67F42;
+			remoteInfo = libnspr;
+		};
+		1AB7763412CA33FB001478BB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = libjs;
 		};
 		1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1780,6 +1803,7 @@
 		1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogHeader.m; sourceTree = "<group>"; };
 		1AB5E1ED12BD628500C334DD /* OOJoystickManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJoystickManager.h; sourceTree = "<group>"; };
 		1AB5E1EE12BD628500C334DD /* OOJoystickManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJoystickManager.m; sourceTree = "<group>"; };
+		1AB775FC12CA2E53001478BB /* libjs.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libjs.xcodeproj; path = "deps/Cocoa-deps/libjs/libjs.xcodeproj"; sourceTree = "<group>"; };
 		1AB784F70D554F7B00517983 /* OOJSSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSoundSource.h; sourceTree = "<group>"; };
 		1AB784F80D554F7B00517983 /* OOJSSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSoundSource.m; sourceTree = "<group>"; };
 		1AB813070E90D8E500A84923 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
@@ -1947,6 +1971,8 @@
 				1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */,
 				1A47B7F711D4A76A0035F6EA /* libOggForOolite.a in Frameworks */,
 				1A47B7F811D4A76A0035F6EA /* libVorbisAllForOolite.a in Frameworks */,
+				1A06F0A212CA580A00FB681A /* libnspr4_for_oolite.a in Frameworks */,
+				1AB7761012CA2EE0001478BB /* libjs_for_oolite.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3040,6 +3066,15 @@
 			path = OXPVerifier;
 			sourceTree = "<group>";
 		};
+		1AB775FD12CA2E53001478BB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1AB7760212CA2E53001478BB /* libjs_for_oolite.a */,
+				1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		1AC0E9380B974D8700C46994 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
@@ -3115,6 +3150,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1AB775FC12CA2E53001478BB /* libjs.xcodeproj */,
 				1A47B7F511D4A76A0035F6EA /* libOggForOolite.a */,
 				1A47B7F611D4A76A0035F6EA /* libVorbisAllForOolite.a */,
 				1A71E6FB0BCE345800CD5C13 /* libpng */,
@@ -3391,6 +3427,7 @@
 			dependencies = (
 				1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */,
 				1A3E01A911C574E1000FF226 /* PBXTargetDependency */,
+				1AB7763512CA33FB001478BB /* PBXTargetDependency */,
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
@@ -3424,7 +3461,7 @@
 				BuildIndependentTargetsInParallel = YES;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
-			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-newjs" */;
+			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-newjs2" */;
 			compatibilityVersion = "Xcode 3.1";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
@@ -3444,6 +3481,10 @@
 				{
 					ProductGroup = 1A09EF5012BD0C1900BF7F48 /* Products */;
 					ProjectRef = 1A09EF4F12BD0C1900BF7F48 /* LeopardFeatures.xcodeproj */;
+				},
+				{
+					ProductGroup = 1AB775FD12CA2E53001478BB /* Products */;
+					ProjectRef = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
 				},
 				{
 					ProductGroup = 1A01BCE011C569DF0011197F /* Products */;
@@ -3490,6 +3531,20 @@
 			fileType = wrapper.cfbundle;
 			path = Oolite.mdimporter;
 			remoteRef = 1A3E019511C574AC000FF226 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1AB7760212CA2E53001478BB /* libjs_for_oolite.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libjs_for_oolite.a;
+			remoteRef = 1AB7760112CA2E53001478BB /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libnspr4_for_oolite.a;
+			remoteRef = 1AB7760312CA2E53001478BB /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -3788,6 +3843,11 @@
 			target = 1A71E6F20BCE340C00CD5C13 /* libpng-custom */;
 			targetProxy = 1A71E6F60BCE343400CD5C13 /* PBXContainerItemProxy */;
 		};
+		1AB7763512CA33FB001478BB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libjs;
+			targetProxy = 1AB7763412CA33FB001478BB /* PBXContainerItemProxy */;
+		};
 		1AD267560C83052600B4BFD1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 0865423506B8447D000CA0AB /* Oolite */;
@@ -3811,7 +3871,6 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREFIX_HEADER = src/Cocoa/OOPrefixHeader.h;
-				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"OO_NEW_JS=1",
 					"OO_CHECK_GL_HEAVY=1",
@@ -3824,7 +3883,6 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/deps/Cocoa-deps/SpiderMonkey/include/\"",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
@@ -3834,21 +3892,14 @@
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
-					"\"$(SPIDERMONKEY_LIB_PATH)\"",
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
-				OTHER_LDFLAGS = (
-					"-lnspr4",
-					"-ljs_static",
-				);
 				PRODUCT_NAME = "Oolite-newjs";
-				SDKROOT = macosx10.5;
 				SECTORDER_FLAGS = "";
-				SPIDERMONKEY_LIB_PATH = "$SRCROOT/deps/Cocoa-deps/SpiderMonkey/$CONFIGURATION/";
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SYMROOT)/$(CONFIGURATION)/js/include/\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wextra",
@@ -3874,17 +3925,16 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREFIX_HEADER = src/Cocoa/OOPrefixHeader.h;
-				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					$OOLITE_OPTION_MACROS,
 					NDEBUG,
 					"OO_EXCLUDE_DEBUG_SUPPORT=1",
+					"OO_NEW_JS=1",
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/deps/Cocoa-deps/SpiderMonkey/include/\"",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
@@ -3893,22 +3943,15 @@
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
-					"\"$(SPIDERMONKEY_LIB_PATH)\"",
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
-				);
-				OTHER_LDFLAGS = (
-					"-lnspr4",
-					"-ljs_static",
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Oolite-newjs";
 				SECTORDER_FLAGS = "";
-				SPIDERMONKEY_LIB_PATH = "$SRCROOT/deps/Cocoa-deps/SpiderMonkey/$CONFIGURATION/";
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SYMROOT)/$(CONFIGURATION)/js/include/\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
-					"-Wextra",
 					"-Wno-unused-parameter",
 					"-Wno-missing-field-initializers",
 				);
@@ -3978,16 +4021,15 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREFIX_HEADER = src/Cocoa/OOPrefixHeader.h;
-				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"DEBUG_GRAPHVIZ=1",
 					$OOLITE_OPTION_MACROS,
+					"OO_NEW_JS=1",
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/deps/Cocoa-deps/SpiderMonkey/include/\"",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
@@ -3996,22 +4038,15 @@
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
-					"\"$(SPIDERMONKEY_LIB_PATH)\"",
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
-				);
-				OTHER_LDFLAGS = (
-					"-lnspr4",
-					"-ljs_static",
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Oolite-newjs";
 				SECTORDER_FLAGS = "";
-				SPIDERMONKEY_LIB_PATH = "$SRCROOT/deps/Cocoa-deps/SpiderMonkey/$CONFIGURATION/";
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SYMROOT)/$(CONFIGURATION)/js/include/\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
-					"-Wextra",
 					"-Wno-unused-parameter",
 					"-Wno-missing-field-initializers",
 				);
@@ -4133,7 +4168,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
 		};
-		08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-newjs" */ = {
+		08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-newjs2" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				08B31CB108FE63D70038D42F /* Debug */,

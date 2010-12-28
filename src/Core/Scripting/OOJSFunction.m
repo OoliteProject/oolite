@@ -63,7 +63,7 @@ MA 02110-1301, USA.
 	BOOL						OK = YES;
 	BOOL						releaseContext = NO;
 	jschar						*buffer = NULL;
-	size_t						length;
+	size_t						length = 0;
 	JSFunction					*function;
 	
 	if (context == NULL)
