@@ -9,7 +9,7 @@
 
 
 
-#ifdef NDEBUG
+#ifdef DEBUG
 // Debug flags.
 
 // Support aggressive garbage collection (in Oolite, use the js-gc-zeal default, ranging from 0 to 2).

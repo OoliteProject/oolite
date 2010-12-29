@@ -1444,7 +1444,7 @@
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
-				PUBLIC_HEADERS_FOLDER_PATH = js/include/;
+				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/js/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/";
 			};
@@ -1533,11 +1533,14 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
-				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"",
+				);
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
-				PUBLIC_HEADERS_FOLDER_PATH = js/include/;
+				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/js/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/";
 			};
@@ -1557,7 +1560,7 @@
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
-				PUBLIC_HEADERS_FOLDER_PATH = js/include/;
+				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/js/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/";
 			};
