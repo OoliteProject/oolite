@@ -930,7 +930,10 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
 	NSMutableArray		*flags = nil;
 	NSString			*flagsString = nil;
-	Entity				*owner = [self owner];
+	id					owner = [self owner];
+	
+	if (owner == self)  owner = @"self";
+	else if (owner == nil)  owner = @"none";
 	
 	OOLog(@"dumpState.entity", @"Universal ID: %u", universalID);
 	OOLog(@"dumpState.entity", @"Scan class: %@", ScanClassToString(scanClass));
@@ -940,7 +943,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);
 	OOLog(@"dumpState.entity", @"Energy: %g of %g", energy, maxEnergy);
 	OOLog(@"dumpState.entity", @"Mass: %g", mass);
-	if (owner != nil)  OOLog(@"dumpState.entity", @"Owner: %@", owner);
+	OOLog(@"dumpState.entity", @"Owner: %@", owner);
 	
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
