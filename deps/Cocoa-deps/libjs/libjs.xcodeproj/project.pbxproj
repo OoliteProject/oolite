@@ -1444,7 +1444,7 @@
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
-				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
+				PUBLIC_HEADERS_FOLDER_PATH = js/include/;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/js/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/";
 			};
@@ -1540,7 +1540,7 @@
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
-				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
+				PUBLIC_HEADERS_FOLDER_PATH = js/include/;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/js/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/";
 			};
@@ -1560,7 +1560,7 @@
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
-				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
+				PUBLIC_HEADERS_FOLDER_PATH = js/include/;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/js/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/";
 			};
