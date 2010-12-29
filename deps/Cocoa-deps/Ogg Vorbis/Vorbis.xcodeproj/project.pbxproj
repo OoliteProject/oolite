@@ -40,14 +40,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1AE3451D12CB72E100FD8C62 /* Ogg.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 1ADE32A40975807900961AE2 /* libogg_for_oolite.a */;
+			remoteGlobalIDString = 1ADE32A40975807900961AE2;
 			remoteInfo = LibOgg;
 		};
 		1AE3452412CB72E900FD8C62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1AE3451D12CB72E100FD8C62 /* Ogg.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1ADE32A30975807900961AE2 /* LibOgg */;
+			remoteGlobalIDString = 1ADE32A30975807900961AE2;
 			remoteInfo = LibOgg;
 		};
 /* End PBXContainerItemProxy section */

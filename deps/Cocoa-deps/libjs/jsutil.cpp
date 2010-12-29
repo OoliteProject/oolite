@@ -83,11 +83,10 @@ JS_PUBLIC_API(void) JS_Assert(const char *s, const char *file, JSIntn ln)
 /* BEGIN OOLITE */
 #if 1
 	OOLogWithPrefix(CFSTR("javascript.assert"), NULL, file, ln, CFSTR(""), CFSTR("Assertion failure: %s, at %@:%d"), s, OOLogAbbreviatedFileName(file), ln);
+	__builtin_trap();
 #else
     fprintf(stderr, "Assertion failure: %s, at %s:%d\n", s, file, ln);
     fflush(stderr);
-#endif
-/* END OOLITE */
 	
 #if defined(WIN32)
     /*
@@ -106,6 +105,9 @@ JS_PUBLIC_API(void) JS_Assert(const char *s, const char *file, JSIntn ln)
 #else
     raise(SIGABRT);  /* To continue from here in GDB: "signal 0". */
 #endif
+	
+#endif
+	/* END OOLITE */
 }
 
 #ifdef JS_BASIC_STATS

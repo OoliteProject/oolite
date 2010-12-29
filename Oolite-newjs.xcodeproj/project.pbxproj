@@ -53,7 +53,6 @@
 		1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */; };
 		1A062C8911B28D8A00727C1D /* NSObjectOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */; };
 		1A062C8A11B28D8A00727C1D /* NSObjectOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */; };
-		1A06F0A212CA580A00FB681A /* libnspr4_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */; };
 		1A06F2861196E5B100AFA5B4 /* OOCASoundDebugMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */; };
 		1A06F3151196FB6F00AFA5B4 /* oolite-player-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */; };
 		1A0729D90EF56D1200B0F925 /* OOConvertSystemDescriptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */; };
@@ -656,6 +655,7 @@
 		1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455012CB77A700FD8C62 /* libogg_for_oolite.a */; };
 		1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
+		1AEA203512CB9B0500EC0F43 /* libnspr4_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */; };
 		1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
 		1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */; };
 		1AEB491B119D5AAA007BD514 /* OORegExpMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEB4919119D5AAA007BD514 /* OORegExpMatcher.m */; };
@@ -1997,10 +1997,10 @@
 				1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */,
 				1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */,
 				1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */,
-				1A06F0A212CA580A00FB681A /* libnspr4_for_oolite.a in Frameworks */,
 				1AB7761012CA2EE0001478BB /* libjs_for_oolite.a in Frameworks */,
 				1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */,
 				1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */,
+				1AEA203512CB9B0500EC0F43 /* libnspr4_for_oolite.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3469,11 +3469,11 @@
 			buildRules = (
 			);
 			dependencies = (
-				1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */,
-				1A3E01A911C574E1000FF226 /* PBXTargetDependency */,
 				1AB7763512CA33FB001478BB /* PBXTargetDependency */,
+				1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */,
 				1AE3455A12CB77CB00FD8C62 /* PBXTargetDependency */,
 				1AE3455C12CB77CD00FD8C62 /* PBXTargetDependency */,
+				1A3E01A911C574E1000FF226 /* PBXTargetDependency */,
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
@@ -3967,13 +3967,12 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREFIX_HEADER = src/Cocoa/OOPrefixHeader.h;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"OO_NEW_JS=1",
 					"OO_CHECK_GL_HEAVY=1",
 					"OO_DEBUG=1",
 					"DEBUG_GRAPHVIZ=1",
-					DEBUG,
+					"DEBUG=1",
 					$OOLITE_OPTION_MACROS,
 				);
 				GCC_REUSE_STRINGS = YES;
@@ -4020,7 +4019,6 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
-				GCC_PREFIX_HEADER = src/Cocoa/OOPrefixHeader.h;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					$OOLITE_OPTION_MACROS,
 					NDEBUG,
@@ -4115,7 +4113,6 @@
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
-				GCC_PREFIX_HEADER = src/Cocoa/OOPrefixHeader.h;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"DEBUG_GRAPHVIZ=1",
 					$OOLITE_OPTION_MACROS,

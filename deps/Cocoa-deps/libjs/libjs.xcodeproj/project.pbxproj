@@ -6,12 +6,23 @@
 	objectVersion = 45;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		1A8D6F3512CB946A0007FC6A /* Update Code */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 1A8D6F4912CB94CA0007FC6A /* Build configuration list for PBXAggregateTarget "Update Code" */;
+			buildPhases = (
+				1A8D6F3412CB946A0007FC6A /* Update Code */,
+			);
+			dependencies = (
+			);
+			name = "Update Code";
+			productName = "Update Code";
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		1A06F08212CA563500FB681A /* jsopcode.tbl in Headers */ = {isa = PBXBuildFile; fileRef = 1A06F07D12CA561C00FB681A /* jsopcode.tbl */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A06F08712CA564A00FB681A /* jsproto.tbl in Headers */ = {isa = PBXBuildFile; fileRef = 1A06F07E12CA561C00FB681A /* jsproto.tbl */; settings = {ATTRIBUTES = (Public, ); }; };
-		1A06F0BC12CA58B300FB681A /* prulock.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BC412CA1D7200C67F42 /* prulock.c */; };
-		1A06F0BF12CA58B900FB681A /* prucpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BC212CA1D7200C67F42 /* prucpu.c */; };
-		1A06F0C112CA58BA00FB681A /* prustack.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BC512CA1D7200C67F42 /* prustack.c */; };
 		1A06F0D312CA59CF00FB681A /* jsnum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F0D212CA59CF00FB681A /* jsnum.cpp */; };
 		1A06F0D412CA59DC00FB681A /* jspropertytree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F0CE12CA59A400FB681A /* jspropertytree.cpp */; };
 		1A06F0D512CA59DD00FB681A /* jsparse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F0D012CA59B300FB681A /* jsparse.cpp */; };
@@ -51,87 +62,6 @@
 		1A06F1D212CA6C1800FB681A /* checks.cc in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F1D112CA6C1800FB681A /* checks.cc */; };
 		1A63DE9112CA9C5C00508CDB /* jsclone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A63DE9012CA9C5C00508CDB /* jsclone.cpp */; };
 		1AB25AA712CA1B6E00C67F42 /* jsapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AA612CA1B6E00C67F42 /* jsapi.cpp */; };
-		1AB25BD612CA1D7200C67F42 /* rcascii.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25ADE12CA1D7200C67F42 /* rcascii.h */; };
-		1AB25BD712CA1D7200C67F42 /* rcbase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25ADF12CA1D7200C67F42 /* rcbase.cpp */; };
-		1AB25BD812CA1D7200C67F42 /* rcbase.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AE012CA1D7200C67F42 /* rcbase.h */; };
-		1AB25BD912CA1D7200C67F42 /* rccv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AE112CA1D7200C67F42 /* rccv.cpp */; };
-		1AB25BDA12CA1D7200C67F42 /* rccv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AE212CA1D7200C67F42 /* rccv.h */; };
-		1AB25BDB12CA1D7200C67F42 /* rcfileio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AE312CA1D7200C67F42 /* rcfileio.cpp */; };
-		1AB25BDC12CA1D7200C67F42 /* rcfileio.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AE412CA1D7200C67F42 /* rcfileio.h */; };
-		1AB25BDD12CA1D7200C67F42 /* rcinrval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AE512CA1D7200C67F42 /* rcinrval.cpp */; };
-		1AB25BDE12CA1D7200C67F42 /* rcinrval.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AE612CA1D7200C67F42 /* rcinrval.h */; };
-		1AB25BDF12CA1D7200C67F42 /* rcio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AE712CA1D7200C67F42 /* rcio.cpp */; };
-		1AB25BE012CA1D7200C67F42 /* rcio.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AE812CA1D7200C67F42 /* rcio.h */; };
-		1AB25BE112CA1D7200C67F42 /* rclock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AE912CA1D7200C67F42 /* rclock.cpp */; };
-		1AB25BE212CA1D7200C67F42 /* rclock.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AEA12CA1D7200C67F42 /* rclock.h */; };
-		1AB25BE312CA1D7200C67F42 /* rcmon.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AEB12CA1D7200C67F42 /* rcmon.h */; };
-		1AB25BE412CA1D7200C67F42 /* rcnetdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AEC12CA1D7200C67F42 /* rcnetdb.cpp */; };
-		1AB25BE512CA1D7200C67F42 /* rcnetdb.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AED12CA1D7200C67F42 /* rcnetdb.h */; };
-		1AB25BE612CA1D7200C67F42 /* rcnetio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AEE12CA1D7200C67F42 /* rcnetio.cpp */; };
-		1AB25BE712CA1D7200C67F42 /* rcnetio.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AEF12CA1D7200C67F42 /* rcnetio.h */; };
-		1AB25BE812CA1D7200C67F42 /* rcthread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AF012CA1D7200C67F42 /* rcthread.cpp */; };
-		1AB25BE912CA1D7200C67F42 /* rcthread.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AF112CA1D7200C67F42 /* rcthread.h */; };
-		1AB25BEA12CA1D7200C67F42 /* rctime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AF212CA1D7200C67F42 /* rctime.cpp */; };
-		1AB25BEB12CA1D7200C67F42 /* rctime.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AF312CA1D7200C67F42 /* rctime.h */; };
-		1AB25BF312CA1D7200C67F42 /* prdir.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0112CA1D7200C67F42 /* prdir.c */; };
-		1AB25BF412CA1D7200C67F42 /* prfdcach.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0212CA1D7200C67F42 /* prfdcach.c */; };
-		1AB25BF512CA1D7200C67F42 /* prfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0312CA1D7200C67F42 /* prfile.c */; };
-		1AB25BF612CA1D7200C67F42 /* prio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0412CA1D7200C67F42 /* prio.c */; };
-		1AB25BF712CA1D7200C67F42 /* priometh.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0512CA1D7200C67F42 /* priometh.c */; };
-		1AB25BF812CA1D7200C67F42 /* pripv6.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0612CA1D7200C67F42 /* pripv6.c */; };
-		1AB25BF912CA1D7200C67F42 /* prlayer.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0712CA1D7200C67F42 /* prlayer.c */; };
-		1AB25BFA12CA1D7200C67F42 /* prlog.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0812CA1D7200C67F42 /* prlog.c */; };
-		1AB25BFB12CA1D7200C67F42 /* prmapopt.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0912CA1D7200C67F42 /* prmapopt.c */; };
-		1AB25BFC12CA1D7200C67F42 /* prmmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0A12CA1D7200C67F42 /* prmmap.c */; };
-		1AB25BFD12CA1D7200C67F42 /* prmwait.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0B12CA1D7200C67F42 /* prmwait.c */; };
-		1AB25BFE12CA1D7200C67F42 /* prpolevt.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0C12CA1D7200C67F42 /* prpolevt.c */; };
-		1AB25BFF12CA1D7200C67F42 /* prprf.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0D12CA1D7200C67F42 /* prprf.c */; };
-		1AB25C0012CA1D7200C67F42 /* prscanf.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0E12CA1D7200C67F42 /* prscanf.c */; };
-		1AB25C0112CA1D7200C67F42 /* prsocket.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0F12CA1D7200C67F42 /* prsocket.c */; };
-		1AB25C0212CA1D7200C67F42 /* prstdio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B1012CA1D7200C67F42 /* prstdio.c */; };
-		1AB25C0312CA1D7200C67F42 /* prlink.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B1412CA1D7200C67F42 /* prlink.c */; };
-		1AB25C0412CA1D7200C67F42 /* prmalloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B1912CA1D7200C67F42 /* prmalloc.c */; };
-		1AB25C0512CA1D7200C67F42 /* prmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B1A12CA1D7200C67F42 /* prmem.c */; };
-		1AB25C1F12CA1D7200C67F42 /* prosdep.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B4012CA1D7200C67F42 /* prosdep.c */; };
-		1AB25C2312CA1D7200C67F42 /* darwin.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B4612CA1D7200C67F42 /* darwin.c */; };
-		1AB25C4B12CA1D7200C67F42 /* unix.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7012CA1D7200C67F42 /* unix.c */; };
-		1AB25C4C12CA1D7200C67F42 /* unix_errors.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7112CA1D7200C67F42 /* unix_errors.c */; };
-		1AB25C4E12CA1D7200C67F42 /* uxpoll.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7312CA1D7200C67F42 /* uxpoll.c */; };
-		1AB25C4F12CA1D7200C67F42 /* uxproces.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7412CA1D7200C67F42 /* uxproces.c */; };
-		1AB25C5012CA1D7200C67F42 /* uxrng.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7512CA1D7200C67F42 /* uxrng.c */; };
-		1AB25C5112CA1D7200C67F42 /* uxshm.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7612CA1D7200C67F42 /* uxshm.c */; };
-		1AB25C5212CA1D7200C67F42 /* uxwrap.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7712CA1D7200C67F42 /* uxwrap.c */; };
-		1AB25C6512CA1D7200C67F42 /* prseg.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9112CA1D7200C67F42 /* prseg.c */; };
-		1AB25C6612CA1D7200C67F42 /* prshm.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9212CA1D7200C67F42 /* prshm.c */; };
-		1AB25C6712CA1D7200C67F42 /* prshma.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9312CA1D7200C67F42 /* prshma.c */; };
-		1AB25C6912CA1D7200C67F42 /* pralarm.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9912CA1D7200C67F42 /* pralarm.c */; };
-		1AB25C6A12CA1D7200C67F42 /* pratom.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9A12CA1D7200C67F42 /* pratom.c */; };
-		1AB25C6B12CA1D7200C67F42 /* praton.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9B12CA1D7200C67F42 /* praton.c */; };
-		1AB25C6C12CA1D7200C67F42 /* prcountr.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9C12CA1D7200C67F42 /* prcountr.c */; };
-		1AB25C6D12CA1D7200C67F42 /* prdtoa.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9D12CA1D7200C67F42 /* prdtoa.c */; };
-		1AB25C6E12CA1D7200C67F42 /* prenv.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9E12CA1D7200C67F42 /* prenv.c */; };
-		1AB25C6F12CA1D7200C67F42 /* prerr.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9F12CA1D7200C67F42 /* prerr.c */; };
-		1AB25C7012CA1D7200C67F42 /* prerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA212CA1D7200C67F42 /* prerror.c */; };
-		1AB25C7112CA1D7200C67F42 /* prerrortable.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA312CA1D7200C67F42 /* prerrortable.c */; };
-		1AB25C7212CA1D7200C67F42 /* prinit.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA412CA1D7200C67F42 /* prinit.c */; };
-		1AB25C7312CA1D7200C67F42 /* prinrval.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA512CA1D7200C67F42 /* prinrval.c */; };
-		1AB25C7412CA1D7200C67F42 /* pripc.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA612CA1D7200C67F42 /* pripc.c */; };
-		1AB25C7512CA1D7200C67F42 /* pripcsem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA712CA1D7200C67F42 /* pripcsem.c */; };
-		1AB25C7612CA1D7200C67F42 /* prlog2.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA812CA1D7200C67F42 /* prlog2.c */; };
-		1AB25C7712CA1D7200C67F42 /* prlong.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA912CA1D7200C67F42 /* prlong.c */; };
-		1AB25C7812CA1D7200C67F42 /* prnetdb.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BAA12CA1D7200C67F42 /* prnetdb.c */; };
-		1AB25C7912CA1D7200C67F42 /* prolock.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BAB12CA1D7200C67F42 /* prolock.c */; };
-		1AB25C7A12CA1D7200C67F42 /* prrng.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BAC12CA1D7200C67F42 /* prrng.c */; };
-		1AB25C7B12CA1D7200C67F42 /* prsystem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BAD12CA1D7200C67F42 /* prsystem.c */; };
-		1AB25C7C12CA1D7200C67F42 /* prthinfo.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BAE12CA1D7200C67F42 /* prthinfo.c */; };
-		1AB25C7D12CA1D7200C67F42 /* prtime.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BAF12CA1D7200C67F42 /* prtime.c */; };
-		1AB25C7E12CA1D7200C67F42 /* prtpool.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BB012CA1D7200C67F42 /* prtpool.c */; };
-		1AB25C7F12CA1D7200C67F42 /* prtrace.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BB112CA1D7200C67F42 /* prtrace.c */; };
-		1AB25C8112CA1D7200C67F42 /* prvrsion.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BB512CA1D7200C67F42 /* prvrsion.c */; };
-		1AB25C8212CA1D7200C67F42 /* ptio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BB912CA1D7200C67F42 /* ptio.c */; };
-		1AB25C8312CA1D7200C67F42 /* ptmisc.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBA12CA1D7200C67F42 /* ptmisc.c */; };
-		1AB25C8412CA1D7200C67F42 /* ptsynch.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBB12CA1D7200C67F42 /* ptsynch.c */; };
-		1AB25C8512CA1D7200C67F42 /* ptthread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBC12CA1D7200C67F42 /* ptthread.c */; };
 		1AB7761512CA2F85001478BB /* jsarray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7761412CA2F85001478BB /* jsarray.cpp */; };
 		1AB7762512CA3182001478BB /* jsutil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7762412CA3182001478BB /* jsutil.cpp */; };
 		1AB7762E12CA33C9001478BB /* jsfun.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7762D12CA33C9001478BB /* jsfun.cpp */; };
@@ -241,14 +171,33 @@
 		1AB7788512CA5306001478BB /* resource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB7777512CA493A001478BB /* resource.h */; };
 		1AB7788A12CA5320001478BB /* js-config.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AB612CA1C1D00C67F42 /* js-config.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AB7788B12CA5320001478BB /* jsautocfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AEA203012CB9AF200EC0F43 /* ptthread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBC12CA1D7200C67F42 /* ptthread.c */; };
+		1AEA207012CB9C7200EC0F43 /* ptsynch.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBB12CA1D7200C67F42 /* ptsynch.c */; };
+		1AEA207312CB9C8E00EC0F43 /* prmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B1A12CA1D7200C67F42 /* prmem.c */; };
+		1AEA207912CB9CBB00EC0F43 /* pratom.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9A12CA1D7200C67F42 /* pratom.c */; };
+		1AEA208012CB9CE800EC0F43 /* os_Darwin_universal.s in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA207F12CB9CE800EC0F43 /* os_Darwin_universal.s */; };
+		1AEA208912CB9D6F00EC0F43 /* prtpd.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BCF12CA1D7200C67F42 /* prtpd.c */; };
+		1AEA209212CB9E8600EC0F43 /* pr-oolite-shim.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */; };
+		1AEA20A412CBA01900EC0F43 /* ptio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BB912CA1D7200C67F42 /* ptio.c */; };
+		1AEA20C112CBA25200EC0F43 /* prinrval.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA512CA1D7200C67F42 /* prinrval.c */; };
+		1AEA20C612CBA31700EC0F43 /* unix.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7012CA1D7200C67F42 /* unix.c */; };
+		1AEA20CA12CBA33700EC0F43 /* prerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA212CA1D7200C67F42 /* prerror.c */; };
+		1AEA20CE12CBA34E00EC0F43 /* unix_errors.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7112CA1D7200C67F42 /* unix_errors.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		1AB777FC12CA5013001478BB /* PBXContainerItemProxy */ = {
+		1A8D6F3B12CB948E0007FC6A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 1AB25AC112CA1CB100C67F42;
+			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A;
+			remoteInfo = "Update Code";
+		};
+		1AEA203112CB9AF900EC0F43 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1AB25AC112CA1CB100C67F42 /* libnspr */;
 			remoteInfo = libnspr;
 		};
 /* End PBXContainerItemProxy section */
@@ -554,6 +503,13 @@
 		1AB7781B12CA51CE001478BB /* jsarena.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsarena.cpp; sourceTree = "<group>"; };
 		1AB7781D12CA51E6001478BB /* jshash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jshash.cpp; sourceTree = "<group>"; };
 		1AB7782112CA5220001478BB /* jsscan.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsscan.cpp; sourceTree = "<group>"; };
+		1AEA1FBB12CB97A600EC0F43 /* jstracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jstracer.cpp; sourceTree = "<group>"; };
+		1AEA1FBC12CB97B500EC0F43 /* jsprobes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsprobes.cpp; sourceTree = "<group>"; };
+		1AEA1FBF12CB981C00EC0F43 /* jsanalyze.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsanalyze.cpp; sourceTree = "<group>"; };
+		1AEA1FC012CB982100EC0F43 /* dtoa.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dtoa.c; sourceTree = "<group>"; };
+		1AEA206312CB9C2C00EC0F43 /* pr-oolite-prefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "pr-oolite-prefix.h"; sourceTree = "<group>"; };
+		1AEA207F12CB9CE800EC0F43 /* os_Darwin_universal.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = os_Darwin_universal.s; sourceTree = "<group>"; };
+		1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "pr-oolite-shim.m"; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libjs_for_oolite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libjs_for_oolite.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -579,11 +535,14 @@
 			isa = PBXGroup;
 			children = (
 				1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */,
+				1AEA206312CB9C2C00EC0F43 /* pr-oolite-prefix.h */,
 				1A06F18D12CA697100FB681A /* js-oolite-prefix.h */,
 				1AB25AB612CA1C1D00C67F42 /* js-config.h */,
 				1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */,
 				1AB7750D12CA243C001478BB /* _pr_bld.h */,
 				1AB7762412CA3182001478BB /* jsutil.cpp */,
+				1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */,
+				1AEA207F12CB9CE800EC0F43 /* os_Darwin_universal.s */,
 				1AB25A7712CA178000C67F42 /* js */,
 				1AB25ACE12CA1D7100C67F42 /* nspr */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -661,14 +620,16 @@
 				1A06F07B12CA560A00FB681A /* tables */,
 				1A06F1AB12CA6B4A00FB681A /* methodjit */,
 				1A06F1B212CA6B7500FB681A /* v8-dtoa */,
+				1AEA1FC012CB982100EC0F43 /* dtoa.c */,
+				1AEA1FBF12CB981C00EC0F43 /* jsanalyze.cpp */,
 				1AB25AA612CA1B6E00C67F42 /* jsapi.cpp */,
 				1AB7781B12CA51CE001478BB /* jsarena.cpp */,
 				1AB7761412CA2F85001478BB /* jsarray.cpp */,
 				1AB7768612CA37C9001478BB /* jsatom.cpp */,
 				1A06F0DC12CA5A4F00FB681A /* jsbool.cpp */,
 				1A06F0DE12CA5A6900FB681A /* jsbuiltins.cpp */,
-				1AB7764E12CA34D7001478BB /* jscntxt.cpp */,
 				1A63DE9012CA9C5C00508CDB /* jsclone.cpp */,
+				1AB7764E12CA34D7001478BB /* jscntxt.cpp */,
 				1A06F14512CA63C200FB681A /* jscompartment.cpp */,
 				1AB7768812CA37CF001478BB /* jsdate.cpp */,
 				1AB7764912CA34B6001478BB /* jsdbgapi.cpp */,
@@ -693,16 +654,18 @@
 				1AB7765B12CA3576001478BB /* json.cpp */,
 				1AB7764112CA3437001478BB /* jsopcode.cpp */,
 				1A06F0D012CA59B300FB681A /* jsparse.cpp */,
+				1A06F15112CA646E00FB681A /* jsprf.cpp */,
+				1AEA1FBC12CB97B500EC0F43 /* jsprobes.cpp */,
 				1A06F15D12CA64EF00FB681A /* jspropertycache.cpp */,
 				1A06F0CE12CA59A400FB681A /* jspropertytree.cpp */,
 				1AB7766512CA35CA001478BB /* jsproxy.cpp */,
-				1A06F15112CA646E00FB681A /* jsprf.cpp */,
 				1A06F14D12CA643600FB681A /* jsreflect.cpp */,
 				1A06F0E612CA5AC800FB681A /* jsregexp.cpp */,
 				1AB7782112CA5220001478BB /* jsscan.cpp */,
 				1AB7781712CA51B9001478BB /* jsscope.cpp */,
 				1AB7763C12CA3415001478BB /* jsscript.cpp */,
 				1AB7768112CA3743001478BB /* jsstr.cpp */,
+				1AEA1FBB12CB97A600EC0F43 /* jstracer.cpp */,
 				1A06F0FB12CA5C0E00FB681A /* jstypedarray.cpp */,
 				1A06F15512CA64AB00FB681A /* jswrapper.cpp */,
 				1AB7765812CA3564001478BB /* jsxdrapi.cpp */,
@@ -1068,18 +1031,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1AB25BD612CA1D7200C67F42 /* rcascii.h in Headers */,
-				1AB25BD812CA1D7200C67F42 /* rcbase.h in Headers */,
-				1AB25BDA12CA1D7200C67F42 /* rccv.h in Headers */,
-				1AB25BDC12CA1D7200C67F42 /* rcfileio.h in Headers */,
-				1AB25BDE12CA1D7200C67F42 /* rcinrval.h in Headers */,
-				1AB25BE012CA1D7200C67F42 /* rcio.h in Headers */,
-				1AB25BE212CA1D7200C67F42 /* rclock.h in Headers */,
-				1AB25BE312CA1D7200C67F42 /* rcmon.h in Headers */,
-				1AB25BE512CA1D7200C67F42 /* rcnetdb.h in Headers */,
-				1AB25BE712CA1D7200C67F42 /* rcnetio.h in Headers */,
-				1AB25BE912CA1D7200C67F42 /* rcthread.h in Headers */,
-				1AB25BEB12CA1D7200C67F42 /* rctime.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1187,7 +1138,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1AB25AC612CA1CB100C67F42 /* Build configuration list for PBXNativeTarget "libnspr" */;
 			buildPhases = (
-				1AB7752612CA24D1001478BB /* ShellScript */,
 				1AB25AC212CA1CB100C67F42 /* Headers */,
 				1AB25AC312CA1CB100C67F42 /* Sources */,
 				1AB25AC512CA1CB100C67F42 /* Frameworks */,
@@ -1195,6 +1145,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				1A8D6F3C12CB948E0007FC6A /* PBXTargetDependency */,
 			);
 			name = libnspr;
 			productName = libjs;
@@ -1212,7 +1163,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				1AB777FD12CA5013001478BB /* PBXTargetDependency */,
+				1AEA203212CB9AF900EC0F43 /* PBXTargetDependency */,
 			);
 			name = libjs;
 			productName = libjs;
@@ -1240,18 +1191,20 @@
 			targets = (
 				D2AAC045055464E500DB518D /* libjs */,
 				1AB25AC112CA1CB100C67F42 /* libnspr */,
+				1A8D6F3512CB946A0007FC6A /* Update Code */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		1AB7752612CA24D1001478BB /* ShellScript */ = {
+		1A8D6F3412CB946A0007FC6A /* Update Code */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Update Code";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1265,78 +1218,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1AB25BD712CA1D7200C67F42 /* rcbase.cpp in Sources */,
-				1AB25BD912CA1D7200C67F42 /* rccv.cpp in Sources */,
-				1AB25BDB12CA1D7200C67F42 /* rcfileio.cpp in Sources */,
-				1AB25BDD12CA1D7200C67F42 /* rcinrval.cpp in Sources */,
-				1AB25BDF12CA1D7200C67F42 /* rcio.cpp in Sources */,
-				1AB25BE112CA1D7200C67F42 /* rclock.cpp in Sources */,
-				1AB25BE412CA1D7200C67F42 /* rcnetdb.cpp in Sources */,
-				1AB25BE612CA1D7200C67F42 /* rcnetio.cpp in Sources */,
-				1AB25BE812CA1D7200C67F42 /* rcthread.cpp in Sources */,
-				1AB25BEA12CA1D7200C67F42 /* rctime.cpp in Sources */,
-				1AB25BF312CA1D7200C67F42 /* prdir.c in Sources */,
-				1AB25BF412CA1D7200C67F42 /* prfdcach.c in Sources */,
-				1AB25BF512CA1D7200C67F42 /* prfile.c in Sources */,
-				1AB25BF612CA1D7200C67F42 /* prio.c in Sources */,
-				1AB25BF712CA1D7200C67F42 /* priometh.c in Sources */,
-				1AB25BF812CA1D7200C67F42 /* pripv6.c in Sources */,
-				1AB25BF912CA1D7200C67F42 /* prlayer.c in Sources */,
-				1AB25BFA12CA1D7200C67F42 /* prlog.c in Sources */,
-				1AB25BFB12CA1D7200C67F42 /* prmapopt.c in Sources */,
-				1AB25BFC12CA1D7200C67F42 /* prmmap.c in Sources */,
-				1AB25BFD12CA1D7200C67F42 /* prmwait.c in Sources */,
-				1AB25BFE12CA1D7200C67F42 /* prpolevt.c in Sources */,
-				1AB25BFF12CA1D7200C67F42 /* prprf.c in Sources */,
-				1AB25C0012CA1D7200C67F42 /* prscanf.c in Sources */,
-				1AB25C0112CA1D7200C67F42 /* prsocket.c in Sources */,
-				1AB25C0212CA1D7200C67F42 /* prstdio.c in Sources */,
-				1AB25C0312CA1D7200C67F42 /* prlink.c in Sources */,
-				1AB25C0412CA1D7200C67F42 /* prmalloc.c in Sources */,
-				1AB25C0512CA1D7200C67F42 /* prmem.c in Sources */,
-				1AB25C1F12CA1D7200C67F42 /* prosdep.c in Sources */,
-				1AB25C2312CA1D7200C67F42 /* darwin.c in Sources */,
-				1AB25C4B12CA1D7200C67F42 /* unix.c in Sources */,
-				1AB25C4C12CA1D7200C67F42 /* unix_errors.c in Sources */,
-				1AB25C4E12CA1D7200C67F42 /* uxpoll.c in Sources */,
-				1AB25C4F12CA1D7200C67F42 /* uxproces.c in Sources */,
-				1AB25C5012CA1D7200C67F42 /* uxrng.c in Sources */,
-				1AB25C5112CA1D7200C67F42 /* uxshm.c in Sources */,
-				1AB25C5212CA1D7200C67F42 /* uxwrap.c in Sources */,
-				1AB25C6512CA1D7200C67F42 /* prseg.c in Sources */,
-				1AB25C6612CA1D7200C67F42 /* prshm.c in Sources */,
-				1AB25C6712CA1D7200C67F42 /* prshma.c in Sources */,
-				1AB25C6912CA1D7200C67F42 /* pralarm.c in Sources */,
-				1AB25C6A12CA1D7200C67F42 /* pratom.c in Sources */,
-				1AB25C6B12CA1D7200C67F42 /* praton.c in Sources */,
-				1AB25C6C12CA1D7200C67F42 /* prcountr.c in Sources */,
-				1AB25C6D12CA1D7200C67F42 /* prdtoa.c in Sources */,
-				1AB25C6E12CA1D7200C67F42 /* prenv.c in Sources */,
-				1AB25C6F12CA1D7200C67F42 /* prerr.c in Sources */,
-				1AB25C7012CA1D7200C67F42 /* prerror.c in Sources */,
-				1AB25C7112CA1D7200C67F42 /* prerrortable.c in Sources */,
-				1AB25C7212CA1D7200C67F42 /* prinit.c in Sources */,
-				1AB25C7312CA1D7200C67F42 /* prinrval.c in Sources */,
-				1AB25C7412CA1D7200C67F42 /* pripc.c in Sources */,
-				1AB25C7512CA1D7200C67F42 /* pripcsem.c in Sources */,
-				1AB25C7612CA1D7200C67F42 /* prlog2.c in Sources */,
-				1AB25C7712CA1D7200C67F42 /* prlong.c in Sources */,
-				1AB25C7812CA1D7200C67F42 /* prnetdb.c in Sources */,
-				1AB25C7912CA1D7200C67F42 /* prolock.c in Sources */,
-				1AB25C7A12CA1D7200C67F42 /* prrng.c in Sources */,
-				1AB25C7B12CA1D7200C67F42 /* prsystem.c in Sources */,
-				1AB25C7C12CA1D7200C67F42 /* prthinfo.c in Sources */,
-				1AB25C7D12CA1D7200C67F42 /* prtime.c in Sources */,
-				1AB25C7E12CA1D7200C67F42 /* prtpool.c in Sources */,
-				1AB25C7F12CA1D7200C67F42 /* prtrace.c in Sources */,
-				1AB25C8112CA1D7200C67F42 /* prvrsion.c in Sources */,
-				1AB25C8212CA1D7200C67F42 /* ptio.c in Sources */,
-				1AB25C8312CA1D7200C67F42 /* ptmisc.c in Sources */,
-				1AB25C8412CA1D7200C67F42 /* ptsynch.c in Sources */,
-				1AB25C8512CA1D7200C67F42 /* ptthread.c in Sources */,
-				1A06F0BC12CA58B300FB681A /* prulock.c in Sources */,
-				1A06F0BF12CA58B900FB681A /* prucpu.c in Sources */,
-				1A06F0C112CA58BA00FB681A /* prustack.c in Sources */,
+				1AEA203012CB9AF200EC0F43 /* ptthread.c in Sources */,
+				1AEA207012CB9C7200EC0F43 /* ptsynch.c in Sources */,
+				1AEA207312CB9C8E00EC0F43 /* prmem.c in Sources */,
+				1AEA207912CB9CBB00EC0F43 /* pratom.c in Sources */,
+				1AEA208012CB9CE800EC0F43 /* os_Darwin_universal.s in Sources */,
+				1AEA208912CB9D6F00EC0F43 /* prtpd.c in Sources */,
+				1AEA209212CB9E8600EC0F43 /* pr-oolite-shim.m in Sources */,
+				1AEA20A412CBA01900EC0F43 /* ptio.c in Sources */,
+				1AEA20C112CBA25200EC0F43 /* prinrval.c in Sources */,
+				1AEA20C612CBA31700EC0F43 /* unix.c in Sources */,
+				1AEA20CA12CBA33700EC0F43 /* prerror.c in Sources */,
+				1AEA20CE12CBA34E00EC0F43 /* unix_errors.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1410,14 +1303,40 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		1AB777FD12CA5013001478BB /* PBXTargetDependency */ = {
+		1A8D6F3C12CB948E0007FC6A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A8D6F3512CB946A0007FC6A /* Update Code */;
+			targetProxy = 1A8D6F3B12CB948E0007FC6A /* PBXContainerItemProxy */;
+		};
+		1AEA203212CB9AF900EC0F43 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 1AB25AC112CA1CB100C67F42 /* libnspr */;
-			targetProxy = 1AB777FC12CA5013001478BB /* PBXContainerItemProxy */;
+			targetProxy = 1AEA203112CB9AF900EC0F43 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		1A8D6F3612CB946A0007FC6A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Update Code";
+			};
+			name = Debug;
+		};
+		1A8D6F3712CB946A0007FC6A /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Update Code";
+			};
+			name = Deployment;
+		};
+		1A8D6F3812CB946A0007FC6A /* TestRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Update Code";
+			};
+			name = TestRelease;
+		};
 		1AB25A6D12CA13A000C67F42 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1460,6 +1379,7 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREFIX_HEADER = "pr-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"DARWIN=1",
 					"MDCPUCFG=\"<md/_darwin.cfg>\"",
@@ -1483,6 +1403,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
+				GCC_PREFIX_HEADER = "pr-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"DARWIN=1",
 					"MDCPUCFG=\"<md/_darwin.cfg>\"",
@@ -1506,6 +1427,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
+				GCC_PREFIX_HEADER = "pr-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"DARWIN=1",
 					"MDCPUCFG=\"<md/_darwin.cfg>\"",
@@ -1595,6 +1517,16 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		1A8D6F4912CB94CA0007FC6A /* Build configuration list for PBXAggregateTarget "Update Code" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A8D6F3612CB946A0007FC6A /* Debug */,
+				1A8D6F3712CB946A0007FC6A /* Deployment */,
+				1A8D6F3812CB946A0007FC6A /* TestRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deployment;
+		};
 		1AB25AC612CA1CB100C67F42 /* Build configuration list for PBXNativeTarget "libnspr" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

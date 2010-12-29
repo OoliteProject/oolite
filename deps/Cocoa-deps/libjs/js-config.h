@@ -16,7 +16,7 @@
 #define	JS_GC_ZEAL						1
 
 // Thread safety required for API compatibility testing, not actually used.
-// FIXME: TEMPORARILY OFF WHILE SETTING UP XCODE PROJECT
+// Defined in js-oolite-prefix.h because jslock uses it before including js-config.h.
 // #define	JS_THREADSAFE				1
 #else
 // Non-debug flags.
