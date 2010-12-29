@@ -656,6 +656,7 @@
 		1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
 		1AEA203512CB9B0500EC0F43 /* libnspr4_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */; };
+		1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEA229D12CBD18600EC0F43 /* CoreServices.framework */; };
 		1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
 		1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */; };
 		1AEB491B119D5AAA007BD514 /* OORegExpMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEB4919119D5AAA007BD514 /* OORegExpMatcher.m */; };
@@ -1897,6 +1898,7 @@
 		1AE3454B12CB77A700FD8C62 /* Ogg.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Ogg.xcodeproj; path = "deps/Cocoa-deps/Ogg Vorbis/Ogg.xcodeproj"; sourceTree = "<group>"; };
 		1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Vorbis.xcodeproj; path = "deps/Cocoa-deps/Ogg Vorbis/Vorbis.xcodeproj"; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
+		1AEA229D12CBD18600EC0F43 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		1AEB48D1119D51BD007BD514 /* gpu-settings.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "gpu-settings.plist"; sourceTree = "<group>"; };
 		1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OORegExpMatcher.h; sourceTree = "<group>"; };
 		1AEB4919119D5AAA007BD514 /* OORegExpMatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OORegExpMatcher.m; sourceTree = "<group>"; };
@@ -2001,6 +2003,7 @@
 				1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */,
 				1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */,
 				1AEA203512CB9B0500EC0F43 /* libnspr4_for_oolite.a in Frameworks */,
+				1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3187,6 +3190,7 @@
 				1A2314300B9C667F00EF0852 /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
+				1AEA229D12CBD18600EC0F43 /* CoreServices.framework */,
 			);
 			name = Oolite_GUSTO;
 			sourceTree = "<group>";

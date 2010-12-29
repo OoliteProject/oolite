@@ -48,7 +48,7 @@
 		1A06F16A12CA656F00FB681A /* RegexJIT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A06F16912CA656F00FB681A /* RegexJIT.h */; };
 		1A06F18212CA693B00FB681A /* pcre_compile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F18112CA693B00FB681A /* pcre_compile.cpp */; };
 		1A06F18412CA693F00FB681A /* pcre_exec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F18312CA693F00FB681A /* pcre_exec.cpp */; };
-		1A06F18E12CA697100FB681A /* js-oolite-prefix.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A06F18D12CA697100FB681A /* js-oolite-prefix.h */; };
+		1A06F18E12CA697100FB681A /* js-oolite-prefix.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A06F18D12CA697100FB681A /* js-oolite-prefix.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A06F19512CA6A4C00FB681A /* pcre_xclass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F19412CA6A4C00FB681A /* pcre_xclass.cpp */; };
 		1A06F19912CA6A5A00FB681A /* pcre_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F19812CA6A5A00FB681A /* pcre_tables.cpp */; };
 		1A06F19F12CA6A7400FB681A /* pcre_ucp_searchfuncs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F19E12CA6A7400FB681A /* pcre_ucp_searchfuncs.cpp */; };
@@ -72,7 +72,6 @@
 		1AB7765512CA3539001478BB /* jsgc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7765412CA3539001478BB /* jsgc.cpp */; };
 		1AB7765912CA3564001478BB /* jsxdrapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7765812CA3564001478BB /* jsxdrapi.cpp */; };
 		1AB7765C12CA3576001478BB /* json.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7765B12CA3576001478BB /* json.cpp */; };
-		1AB7766012CA359A001478BB /* jslock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7765F12CA359A001478BB /* jslock.cpp */; };
 		1AB7766612CA35CA001478BB /* jsproxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7766512CA35CA001478BB /* jsproxy.cpp */; };
 		1AB7766A12CA3601001478BB /* jsobj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7766912CA3601001478BB /* jsobj.cpp */; };
 		1AB7766C12CA3606001478BB /* jsinterp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7766B12CA3606001478BB /* jsinterp.cpp */; };
@@ -183,6 +182,39 @@
 		1AEA20C612CBA31700EC0F43 /* unix.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7012CA1D7200C67F42 /* unix.c */; };
 		1AEA20CA12CBA33700EC0F43 /* prerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA212CA1D7200C67F42 /* prerror.c */; };
 		1AEA20CE12CBA34E00EC0F43 /* unix_errors.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7112CA1D7200C67F42 /* unix_errors.c */; };
+		1AEA215112CBBC1500EC0F43 /* Writer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA214F12CBBC1500EC0F43 /* Writer.cpp */; };
+		1AEA215212CBBC1500EC0F43 /* Writer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA215012CBBC1500EC0F43 /* Writer.h */; };
+		1AEA215712CBBC4100EC0F43 /* nanojit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA215612CBBC4100EC0F43 /* nanojit.h */; };
+		1AEA216212CBBCAD00EC0F43 /* avmplus.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA216112CBBCAD00EC0F43 /* avmplus.h */; };
+		1AEA216512CBBCC800EC0F43 /* njconfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA216312CBBCC800EC0F43 /* njconfig.h */; };
+		1AEA216612CBBCC800EC0F43 /* njcpudetect.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA216412CBBCC800EC0F43 /* njcpudetect.h */; };
+		1AEA217712CBBFA600EC0F43 /* jstracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA1FBB12CB97A600EC0F43 /* jstracer.cpp */; };
+		1AEA218D12CBC22400EC0F43 /* jsbuiltins.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F0DE12CA5A6900FB681A /* jsbuiltins.cpp */; };
+		1AEA219312CBC26100EC0F43 /* LIR.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA219212CBC26100EC0F43 /* LIR.cpp */; };
+		1AEA219512CBC26700EC0F43 /* LIR.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA219412CBC26700EC0F43 /* LIR.h */; };
+		1AEA21C412CBC5AB00EC0F43 /* CodeAlloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA21C212CBC5AB00EC0F43 /* CodeAlloc.cpp */; };
+		1AEA21C512CBC5AB00EC0F43 /* CodeAlloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA21C312CBC5AB00EC0F43 /* CodeAlloc.h */; };
+		1AEA21C812CBC5C400EC0F43 /* Fragmento.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA21C612CBC5C400EC0F43 /* Fragmento.cpp */; };
+		1AEA21C912CBC5C400EC0F43 /* Fragmento.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA21C712CBC5C400EC0F43 /* Fragmento.h */; };
+		1AEA21CE12CBC5D600EC0F43 /* VMPI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA21CC12CBC5D600EC0F43 /* VMPI.cpp */; };
+		1AEA21CF12CBC5D600EC0F43 /* VMPI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA21CD12CBC5D600EC0F43 /* VMPI.h */; };
+		1AEA21D612CBC5F100EC0F43 /* Assembler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA21D412CBC5F100EC0F43 /* Assembler.cpp */; };
+		1AEA21D712CBC5F100EC0F43 /* Assembler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA21D512CBC5F100EC0F43 /* Assembler.h */; };
+		1AEA21DE12CBC63100EC0F43 /* NativeUniversal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA21DD12CBC63100EC0F43 /* NativeUniversal.cpp */; };
+		1AEA21E812CBC6AA00EC0F43 /* Native.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA21E312CBC6AA00EC0F43 /* Native.h */; };
+		1AEA21E912CBC6AA00EC0F43 /* NativeCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA21E412CBC6AA00EC0F43 /* NativeCommon.h */; };
+		1AEA21EA12CBC6AA00EC0F43 /* Nativei386.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA21E512CBC6AA00EC0F43 /* Nativei386.h */; };
+		1AEA21EB12CBC6AA00EC0F43 /* NativePPC.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA21E612CBC6AA00EC0F43 /* NativePPC.h */; };
+		1AEA21EC12CBC6AA00EC0F43 /* NativeX64.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA21E712CBC6AA00EC0F43 /* NativeX64.h */; };
+		1AEA21F812CBC75F00EC0F43 /* avmplus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA21F712CBC75F00EC0F43 /* avmplus.cpp */; };
+		1AEA21FE12CBC78000EC0F43 /* njconfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA21FD12CBC78000EC0F43 /* njconfig.cpp */; };
+		1AEA220212CBC78D00EC0F43 /* RegAlloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA220112CBC78D00EC0F43 /* RegAlloc.cpp */; };
+		1AEA220412CBC79600EC0F43 /* RegAlloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA220312CBC79600EC0F43 /* RegAlloc.h */; };
+		1AEA220812CBC7A500EC0F43 /* Allocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA220712CBC7A500EC0F43 /* Allocator.cpp */; };
+		1AEA220A12CBC7A800EC0F43 /* Allocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA220912CBC7A800EC0F43 /* Allocator.h */; };
+		1AEA220E12CBC7BF00EC0F43 /* Containers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA220D12CBC7BF00EC0F43 /* Containers.cpp */; };
+		1AEA221012CBC7C200EC0F43 /* Containers.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA220F12CBC7C200EC0F43 /* Containers.h */; };
+		1AEA225A12CBCD1100EC0F43 /* jslock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA225912CBCD1100EC0F43 /* jslock.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -510,6 +542,40 @@
 		1AEA206312CB9C2C00EC0F43 /* pr-oolite-prefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "pr-oolite-prefix.h"; sourceTree = "<group>"; };
 		1AEA207F12CB9CE800EC0F43 /* os_Darwin_universal.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = os_Darwin_universal.s; sourceTree = "<group>"; };
 		1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "pr-oolite-shim.m"; sourceTree = "<group>"; };
+		1AEA214F12CBBC1500EC0F43 /* Writer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Writer.cpp; sourceTree = "<group>"; };
+		1AEA215012CBBC1500EC0F43 /* Writer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Writer.h; sourceTree = "<group>"; };
+		1AEA215612CBBC4100EC0F43 /* nanojit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nanojit.h; sourceTree = "<group>"; };
+		1AEA216112CBBCAD00EC0F43 /* avmplus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avmplus.h; sourceTree = "<group>"; };
+		1AEA216312CBBCC800EC0F43 /* njconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = njconfig.h; sourceTree = "<group>"; };
+		1AEA216412CBBCC800EC0F43 /* njcpudetect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = njcpudetect.h; sourceTree = "<group>"; };
+		1AEA219212CBC26100EC0F43 /* LIR.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LIR.cpp; sourceTree = "<group>"; };
+		1AEA219412CBC26700EC0F43 /* LIR.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LIR.h; sourceTree = "<group>"; };
+		1AEA21C212CBC5AB00EC0F43 /* CodeAlloc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CodeAlloc.cpp; sourceTree = "<group>"; };
+		1AEA21C312CBC5AB00EC0F43 /* CodeAlloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CodeAlloc.h; sourceTree = "<group>"; };
+		1AEA21C612CBC5C400EC0F43 /* Fragmento.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Fragmento.cpp; sourceTree = "<group>"; };
+		1AEA21C712CBC5C400EC0F43 /* Fragmento.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Fragmento.h; sourceTree = "<group>"; };
+		1AEA21CC12CBC5D600EC0F43 /* VMPI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VMPI.cpp; sourceTree = "<group>"; };
+		1AEA21CD12CBC5D600EC0F43 /* VMPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VMPI.h; sourceTree = "<group>"; };
+		1AEA21D412CBC5F100EC0F43 /* Assembler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Assembler.cpp; sourceTree = "<group>"; };
+		1AEA21D512CBC5F100EC0F43 /* Assembler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Assembler.h; sourceTree = "<group>"; };
+		1AEA21DD12CBC63100EC0F43 /* NativeUniversal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NativeUniversal.cpp; sourceTree = "<group>"; };
+		1AEA21E012CBC69E00EC0F43 /* Nativei386.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Nativei386.cpp; sourceTree = "<group>"; };
+		1AEA21E112CBC69E00EC0F43 /* NativePPC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NativePPC.cpp; sourceTree = "<group>"; };
+		1AEA21E212CBC69E00EC0F43 /* NativeX64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NativeX64.cpp; sourceTree = "<group>"; };
+		1AEA21E312CBC6AA00EC0F43 /* Native.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Native.h; sourceTree = "<group>"; };
+		1AEA21E412CBC6AA00EC0F43 /* NativeCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeCommon.h; sourceTree = "<group>"; };
+		1AEA21E512CBC6AA00EC0F43 /* Nativei386.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Nativei386.h; sourceTree = "<group>"; };
+		1AEA21E612CBC6AA00EC0F43 /* NativePPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativePPC.h; sourceTree = "<group>"; };
+		1AEA21E712CBC6AA00EC0F43 /* NativeX64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeX64.h; sourceTree = "<group>"; };
+		1AEA21F712CBC75F00EC0F43 /* avmplus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = avmplus.cpp; sourceTree = "<group>"; };
+		1AEA21FD12CBC78000EC0F43 /* njconfig.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = njconfig.cpp; sourceTree = "<group>"; };
+		1AEA220112CBC78D00EC0F43 /* RegAlloc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RegAlloc.cpp; sourceTree = "<group>"; };
+		1AEA220312CBC79600EC0F43 /* RegAlloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RegAlloc.h; sourceTree = "<group>"; };
+		1AEA220712CBC7A500EC0F43 /* Allocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Allocator.cpp; sourceTree = "<group>"; };
+		1AEA220912CBC7A800EC0F43 /* Allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Allocator.h; sourceTree = "<group>"; };
+		1AEA220D12CBC7BF00EC0F43 /* Containers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Containers.cpp; sourceTree = "<group>"; };
+		1AEA220F12CBC7C200EC0F43 /* Containers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Containers.h; sourceTree = "<group>"; };
+		1AEA225912CBCD1100EC0F43 /* jslock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jslock.cpp; sourceTree = "<group>"; };
 		D2AAC046055464E500DB518D /* libjs_for_oolite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libjs_for_oolite.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -535,14 +601,7 @@
 			isa = PBXGroup;
 			children = (
 				1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */,
-				1AEA206312CB9C2C00EC0F43 /* pr-oolite-prefix.h */,
-				1A06F18D12CA697100FB681A /* js-oolite-prefix.h */,
-				1AB25AB612CA1C1D00C67F42 /* js-config.h */,
-				1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */,
-				1AB7750D12CA243C001478BB /* _pr_bld.h */,
-				1AB7762412CA3182001478BB /* jsutil.cpp */,
-				1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */,
-				1AEA207F12CB9CE800EC0F43 /* os_Darwin_universal.s */,
+				1AEA214D12CBBBD600EC0F43 /* Oolite-specific hacks */,
 				1AB25A7712CA178000C67F42 /* js */,
 				1AB25ACE12CA1D7100C67F42 /* nspr */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -617,8 +676,10 @@
 			isa = PBXGroup;
 			children = (
 				1AB7772112CA4931001478BB /* headers */,
-				1A06F07B12CA560A00FB681A /* tables */,
 				1A06F1AB12CA6B4A00FB681A /* methodjit */,
+				1AEA215512CBBC2500EC0F43 /* nanojit */,
+				1A06F07B12CA560A00FB681A /* tables */,
+				1AEA214E12CBBC1500EC0F43 /* tracejit */,
 				1A06F1B212CA6B7500FB681A /* v8-dtoa */,
 				1AEA1FC012CB982100EC0F43 /* dtoa.c */,
 				1AEA1FBF12CB981C00EC0F43 /* jsanalyze.cpp */,
@@ -1024,6 +1085,69 @@
 			name = headers;
 			sourceTree = "<group>";
 		};
+		1AEA214D12CBBBD600EC0F43 /* Oolite-specific hacks */ = {
+			isa = PBXGroup;
+			children = (
+				1AEA206312CB9C2C00EC0F43 /* pr-oolite-prefix.h */,
+				1A06F18D12CA697100FB681A /* js-oolite-prefix.h */,
+				1AB25AB612CA1C1D00C67F42 /* js-config.h */,
+				1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */,
+				1AB7750D12CA243C001478BB /* _pr_bld.h */,
+				1AB7762412CA3182001478BB /* jsutil.cpp */,
+				1AEA225912CBCD1100EC0F43 /* jslock.cpp */,
+				1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */,
+				1AEA207F12CB9CE800EC0F43 /* os_Darwin_universal.s */,
+				1AEA21DD12CBC63100EC0F43 /* NativeUniversal.cpp */,
+			);
+			name = "Oolite-specific hacks";
+			sourceTree = "<group>";
+		};
+		1AEA214E12CBBC1500EC0F43 /* tracejit */ = {
+			isa = PBXGroup;
+			children = (
+				1AEA214F12CBBC1500EC0F43 /* Writer.cpp */,
+				1AEA215012CBBC1500EC0F43 /* Writer.h */,
+			);
+			path = tracejit;
+			sourceTree = "<group>";
+		};
+		1AEA215512CBBC2500EC0F43 /* nanojit */ = {
+			isa = PBXGroup;
+			children = (
+				1AEA220912CBC7A800EC0F43 /* Allocator.h */,
+				1AEA220712CBC7A500EC0F43 /* Allocator.cpp */,
+				1AEA21D512CBC5F100EC0F43 /* Assembler.h */,
+				1AEA21D412CBC5F100EC0F43 /* Assembler.cpp */,
+				1AEA216112CBBCAD00EC0F43 /* avmplus.h */,
+				1AEA21F712CBC75F00EC0F43 /* avmplus.cpp */,
+				1AEA21C312CBC5AB00EC0F43 /* CodeAlloc.h */,
+				1AEA21C212CBC5AB00EC0F43 /* CodeAlloc.cpp */,
+				1AEA220F12CBC7C200EC0F43 /* Containers.h */,
+				1AEA220D12CBC7BF00EC0F43 /* Containers.cpp */,
+				1AEA21C712CBC5C400EC0F43 /* Fragmento.h */,
+				1AEA21C612CBC5C400EC0F43 /* Fragmento.cpp */,
+				1AEA219412CBC26700EC0F43 /* LIR.h */,
+				1AEA219212CBC26100EC0F43 /* LIR.cpp */,
+				1AEA215612CBBC4100EC0F43 /* nanojit.h */,
+				1AEA21E312CBC6AA00EC0F43 /* Native.h */,
+				1AEA21E412CBC6AA00EC0F43 /* NativeCommon.h */,
+				1AEA21E512CBC6AA00EC0F43 /* Nativei386.h */,
+				1AEA21E012CBC69E00EC0F43 /* Nativei386.cpp */,
+				1AEA21E612CBC6AA00EC0F43 /* NativePPC.h */,
+				1AEA21E112CBC69E00EC0F43 /* NativePPC.cpp */,
+				1AEA21E712CBC6AA00EC0F43 /* NativeX64.h */,
+				1AEA21E212CBC69E00EC0F43 /* NativeX64.cpp */,
+				1AEA220312CBC79600EC0F43 /* RegAlloc.h */,
+				1AEA220112CBC78D00EC0F43 /* RegAlloc.cpp */,
+				1AEA216312CBBCC800EC0F43 /* njconfig.h */,
+				1AEA21FD12CBC78000EC0F43 /* njconfig.cpp */,
+				1AEA216412CBBCC800EC0F43 /* njcpudetect.h */,
+				1AEA21CD12CBC5D600EC0F43 /* VMPI.h */,
+				1AEA21CC12CBC5D600EC0F43 /* VMPI.cpp */,
+			);
+			path = nanojit;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -1128,6 +1252,24 @@
 				1AB7788512CA5306001478BB /* resource.h in Headers */,
 				1A06F16A12CA656F00FB681A /* RegexJIT.h in Headers */,
 				1A06F18E12CA697100FB681A /* js-oolite-prefix.h in Headers */,
+				1AEA215212CBBC1500EC0F43 /* Writer.h in Headers */,
+				1AEA215712CBBC4100EC0F43 /* nanojit.h in Headers */,
+				1AEA216212CBBCAD00EC0F43 /* avmplus.h in Headers */,
+				1AEA216512CBBCC800EC0F43 /* njconfig.h in Headers */,
+				1AEA216612CBBCC800EC0F43 /* njcpudetect.h in Headers */,
+				1AEA219512CBC26700EC0F43 /* LIR.h in Headers */,
+				1AEA21C512CBC5AB00EC0F43 /* CodeAlloc.h in Headers */,
+				1AEA21C912CBC5C400EC0F43 /* Fragmento.h in Headers */,
+				1AEA21CF12CBC5D600EC0F43 /* VMPI.h in Headers */,
+				1AEA21D712CBC5F100EC0F43 /* Assembler.h in Headers */,
+				1AEA21E812CBC6AA00EC0F43 /* Native.h in Headers */,
+				1AEA21E912CBC6AA00EC0F43 /* NativeCommon.h in Headers */,
+				1AEA21EA12CBC6AA00EC0F43 /* Nativei386.h in Headers */,
+				1AEA21EB12CBC6AA00EC0F43 /* NativePPC.h in Headers */,
+				1AEA21EC12CBC6AA00EC0F43 /* NativeX64.h in Headers */,
+				1AEA220412CBC79600EC0F43 /* RegAlloc.h in Headers */,
+				1AEA220A12CBC7A800EC0F43 /* Allocator.h in Headers */,
+				1AEA221012CBC7C200EC0F43 /* Containers.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1156,6 +1298,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "libjs" */;
 			buildPhases = (
+				1AEA217E12CBC08D00EC0F43 /* Assemble imacros */,
 				D2AAC043055464E500DB518D /* Headers */,
 				D2AAC044055464E500DB518D /* Sources */,
 				D289987405E68DCB004EDB86 /* Frameworks */,
@@ -1211,6 +1354,23 @@
 			shellPath = /bin/sh;
 			shellScript = "cd \"$SRCROOT/../scripts\"\n./update-mozilla.sh\n\ntouch \"$SRCROOT/_pr_bld.h\"\n";
 		};
+		1AEA217E12CBC08D00EC0F43 /* Assemble imacros */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/imacros.jsasm",
+			);
+			name = "Assemble imacros";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/imacros.c.out",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "python \"$JS_SRC_PATH/imacro_asm.py\" \"$JS_SRC_PATH/imacros.jsasm\" \"$DERIVED_FILE_DIR/imacros.c.out\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -1248,7 +1408,6 @@
 				1AB7765512CA3539001478BB /* jsgc.cpp in Sources */,
 				1AB7765912CA3564001478BB /* jsxdrapi.cpp in Sources */,
 				1AB7765C12CA3576001478BB /* json.cpp in Sources */,
-				1AB7766012CA359A001478BB /* jslock.cpp in Sources */,
 				1AB7766612CA35CA001478BB /* jsproxy.cpp in Sources */,
 				1AB7766A12CA3601001478BB /* jsobj.cpp in Sources */,
 				1AB7766C12CA3606001478BB /* jsinterp.cpp in Sources */,
@@ -1297,6 +1456,21 @@
 				1A06F1CC12CA6BDB00FB681A /* platform.cc in Sources */,
 				1A06F1D212CA6C1800FB681A /* checks.cc in Sources */,
 				1A63DE9112CA9C5C00508CDB /* jsclone.cpp in Sources */,
+				1AEA215112CBBC1500EC0F43 /* Writer.cpp in Sources */,
+				1AEA217712CBBFA600EC0F43 /* jstracer.cpp in Sources */,
+				1AEA218D12CBC22400EC0F43 /* jsbuiltins.cpp in Sources */,
+				1AEA219312CBC26100EC0F43 /* LIR.cpp in Sources */,
+				1AEA21C412CBC5AB00EC0F43 /* CodeAlloc.cpp in Sources */,
+				1AEA21C812CBC5C400EC0F43 /* Fragmento.cpp in Sources */,
+				1AEA21CE12CBC5D600EC0F43 /* VMPI.cpp in Sources */,
+				1AEA21D612CBC5F100EC0F43 /* Assembler.cpp in Sources */,
+				1AEA21DE12CBC63100EC0F43 /* NativeUniversal.cpp in Sources */,
+				1AEA21F812CBC75F00EC0F43 /* avmplus.cpp in Sources */,
+				1AEA21FE12CBC78000EC0F43 /* njconfig.cpp in Sources */,
+				1AEA220212CBC78D00EC0F43 /* RegAlloc.cpp in Sources */,
+				1AEA220812CBC7A500EC0F43 /* Allocator.cpp in Sources */,
+				1AEA220E12CBC7BF00EC0F43 /* Containers.cpp in Sources */,
+				1AEA225A12CBCD1100EC0F43 /* jslock.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1320,6 +1494,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "Update Code";
+				SYMROOT = ../../../build;
 			};
 			name = Debug;
 		};
@@ -1327,6 +1502,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "Update Code";
+				SYMROOT = ../../../build;
 			};
 			name = Deployment;
 		};
@@ -1334,6 +1510,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "Update Code";
+				SYMROOT = ../../../build;
 			};
 			name = TestRelease;
 		};
@@ -1361,11 +1538,13 @@
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "NDEBUG=1";
 				INSTALL_PATH = /usr/local/lib;
+				JS_SRC_PATH = "$(MOZILLA_PATH)/js/src";
+				MOZILLA_PATH = "$(SRCROOT)/../../Cross-platform-deps/mozilla/";
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/js/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(JS_SRC_PATH) $(MOZILLA_PATH)/nsprpub/pr/include/";
 			};
 			name = TestRelease;
 		};
@@ -1460,11 +1639,13 @@
 					"MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"",
 				);
 				INSTALL_PATH = /usr/local/lib;
+				JS_SRC_PATH = "$(MOZILLA_PATH)/js/src";
+				MOZILLA_PATH = "$(SRCROOT)/../../Cross-platform-deps/mozilla/";
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/js/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(JS_SRC_PATH) $(MOZILLA_PATH)/nsprpub/pr/include/";
 			};
 			name = Debug;
 		};
@@ -1480,11 +1661,13 @@
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "NDEBUG=1";
 				INSTALL_PATH = /usr/local/lib;
+				JS_SRC_PATH = "$(MOZILLA_PATH)/js/src";
+				MOZILLA_PATH = "$(SRCROOT)/../../Cross-platform-deps/mozilla/";
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/js/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(JS_SRC_PATH) $(MOZILLA_PATH)/nsprpub/pr/include/";
 			};
 			name = Deployment;
 		};

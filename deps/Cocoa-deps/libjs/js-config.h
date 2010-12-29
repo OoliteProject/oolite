@@ -2,6 +2,9 @@
 #define js_config_h___
 
 
+#include "js-oolite-prefix.h"
+
+
 #define XP_UNIX
 #define XP_MACOSX
 
@@ -32,28 +35,12 @@
 #undef	JS_SYS_TYPES_H_DEFINES_EXACT_SIZE_TYPES
 #undef	JS_HAVE___INTN
 
-#if __ppc__ || __i386__
-#define JS_BYTES_PER_WORD				4
-#define JS_BITS_PER_WORD_LOG2			5
-#elif __ppc64__ || __x86_64__
-#define JS_BYTES_PER_WORD				8
-#define JS_BITS_PER_WORD_LOG2			6
-#else
-#error Unknown platform.
-#endif
+
 
 #define JS_ALIGN_OF_POINTER		JS_BYTES_PER_WORD
 
-// TraceMonkey, YARR JIT and JaegerMonkey, aka the Go Faster Switches.
-// FIXME: TEMPORARILY OFF WHILE SETTING UP XCODE PROJECT
-//#define	JS_TRACER					1
-//#define	JS_METHODJIT				1
-//#define	ENABLE_YARR_JIT				1
-
-
 
 #define HAVE_VA_LIST_AS_ARRAY			1
-#define JS_HAS_NATIVE_COMPARE_AND_SWAP	1
 #define NSPR_LOCK						1
 
 
