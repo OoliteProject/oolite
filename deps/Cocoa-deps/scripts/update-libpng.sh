@@ -72,7 +72,7 @@ fi
 
 # Download libpng source.
 echo "Downloading libpng source from $DESIREDURL..."
-curl "-q#gsS" -o $TEMPFILE $DESIREDURL
+curl -qgsS -o $TEMPFILE $DESIREDURL
 RESULT=$?
 if [ ! $RESULT ]
 then
@@ -82,6 +82,7 @@ fi
 
 
 # Expand tarball.
+echo "Download complete, expanding archive..."
 tar -xkf $TEMPFILE -C $TEMPDIR
 if [ ! $? ]
 then

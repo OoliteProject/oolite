@@ -71,8 +71,8 @@ fi
 
 
 # Download mozilla source.
-echo "Downloading libjs source from $DESIREDURL..."
-curl "-q#gsS" -o $TEMPFILE $DESIREDURL
+echo "Downloading libjs source from $DESIREDURL... (This is slow. Have some coffee.)"
+curl -qgsS -o $TEMPFILE $DESIREDURL
 RESULT=$?
 if [ ! $RESULT ]
 then
@@ -82,6 +82,7 @@ fi
 
 
 # Expand tarball.
+echo "Download complete, expanding archive... (This is also slow. Have a cigar.)"
 tar -xkf $TEMPFILE -C $TEMPDIR
 if [ ! $? ]
 then
@@ -118,6 +119,7 @@ fi
 echo $DESIREDURL > $VERSIONFILE
 
 # Remove temp directory.
+echo "Cleaning up."
 rm -rf $TEMPDIR
 
 echo "Successfully updated libjs."
