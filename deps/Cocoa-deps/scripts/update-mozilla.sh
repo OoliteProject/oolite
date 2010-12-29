@@ -73,10 +73,8 @@ fi
 # Download mozilla source.
 echo "Downloading libjs source from $DESIREDURL... (This is slow. Have some coffee.)"
 curl -qgsS -o $TEMPFILE $DESIREDURL
-RESULT=$?
-if [ ! $RESULT ]
+if [ ! $? ]
 then
-	echo "Result is $RESULT"
 	fail "could not download $DESIREDURL"
 fi
 

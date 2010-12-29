@@ -73,10 +73,8 @@ fi
 # Download libpng source.
 echo "Downloading libpng source from $DESIREDURL..."
 curl -qgsS -o $TEMPFILE $DESIREDURL
-RESULT=$?
-if [ ! $RESULT ]
+if [ ! $? ]
 then
-	echo "Result is $RESULT"
 	fail "could not download $DESIREDURL"
 fi
 

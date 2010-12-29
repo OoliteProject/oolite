@@ -584,8 +584,8 @@
 				1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */,
 				1AB7750D12CA243C001478BB /* _pr_bld.h */,
 				1AB7762412CA3182001478BB /* jsutil.cpp */,
-				1AB25A7712CA178000C67F42 /* src */,
-				1AB25ACE12CA1D7100C67F42 /* src */,
+				1AB25A7712CA178000C67F42 /* js */,
+				1AB25ACE12CA1D7100C67F42 /* nspr */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 			);
 			name = libjs;
@@ -654,7 +654,7 @@
 			path = "v8-dtoa";
 			sourceTree = "<group>";
 		};
-		1AB25A7712CA178000C67F42 /* src */ = {
+		1AB25A7712CA178000C67F42 /* js */ = {
 			isa = PBXGroup;
 			children = (
 				1AB7772112CA4931001478BB /* headers */,
@@ -710,11 +710,11 @@
 				1A06F15912CA64D000FB681A /* prmjtime.cpp */,
 				1A06F16512CA653E00FB681A /* yarr */,
 			);
-			name = src;
+			name = js;
 			path = "../../Cross-platform-deps/mozilla/js/src";
 			sourceTree = "<group>";
 		};
-		1AB25ACE12CA1D7100C67F42 /* src */ = {
+		1AB25ACE12CA1D7100C67F42 /* nspr */ = {
 			isa = PBXGroup;
 			children = (
 				1AB25ADB12CA1D7200C67F42 /* cplus */,
@@ -729,7 +729,7 @@
 				1AB25BB612CA1D7200C67F42 /* pthreads */,
 				1AB25AD012CA1D7100C67F42 /* bthreads */,
 			);
-			name = src;
+			name = nspr;
 			path = "../../Cross-platform-deps/mozilla/nsprpub/pr/src";
 			sourceTree = SOURCE_ROOT;
 		};
@@ -1440,6 +1440,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "NDEBUG=1";
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;
@@ -1552,7 +1553,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
-				INFOPLIST_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "NDEBUG=1";
 				INSTALL_PATH = /usr/local/lib;
 				OTHER_CFLAGS = "-Wno-invalid-offsetof";
 				PRODUCT_NAME = js_for_oolite;

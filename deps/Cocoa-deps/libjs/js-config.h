@@ -1,11 +1,16 @@
 #ifndef js_config_h___
 #define js_config_h___
 
-#ifndef NDEBUG
-// Debug flags.
 
 #define XP_UNIX
 #define XP_MACOSX
+
+#define STATIC_JS_API
+
+
+
+#ifdef NDEBUG
+// Debug flags.
 
 // Support aggressive garbage collection (in Oolite, use the js-gc-zeal default, ranging from 0 to 2).
 #define	JS_GC_ZEAL						1
@@ -13,11 +18,12 @@
 // Thread safety required for API compatibility testing, not actually used.
 // FIXME: TEMPORARILY OFF WHILE SETTING UP XCODE PROJECT
 // #define	JS_THREADSAFE				1
-
-#define DEBUG							1
 #else
+// Non-debug flags.
 #define JS_NO_JSVAL_JSID_STRUCT_TYPES	1
 #endif
+
+
 
 // Don't implement CTypes (foreign function interface for XUL chrome).
 #undef	JS_HAS_CTYPES
