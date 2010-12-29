@@ -418,8 +418,6 @@
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
-		1A47B7F711D4A76A0035F6EA /* libOggForOolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47B7F511D4A76A0035F6EA /* libOggForOolite.a */; };
-		1A47B7F811D4A76A0035F6EA /* libVorbisAllForOolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47B7F611D4A76A0035F6EA /* libVorbisAllForOolite.a */; };
 		1A49FAE7114C026B0015D5F8 /* cobra3_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */; };
 		1A4FB3350C8DC86800DC8E1F /* OOJSOolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */; };
 		1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */; };
@@ -655,6 +653,8 @@
 		1AE242C61054226900EAA7F2 /* OOFlasherEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */; };
 		1AE24373105439B500EAA7F2 /* OOLightParticleEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */; };
 		1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */; };
+		1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455012CB77A700FD8C62 /* libogg_for_oolite.a */; };
+		1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
 		1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
 		1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */; };
@@ -817,6 +817,34 @@
 			proxyType = 1;
 			remoteGlobalIDString = 0865423506B8447D000CA0AB;
 			remoteInfo = Oolite;
+		};
+		1AE3454F12CB77A700FD8C62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AE3454B12CB77A700FD8C62 /* Ogg.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1ADE32A40975807900961AE2;
+			remoteInfo = LibOgg;
+		};
+		1AE3455512CB77AC00FD8C62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1ADE327709757FBE00961AE2;
+			remoteInfo = LibVorbis;
+		};
+		1AE3455912CB77CB00FD8C62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AE3454B12CB77A700FD8C62 /* Ogg.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 1ADE32A30975807900961AE2;
+			remoteInfo = LibOgg;
+		};
+		1AE3455B12CB77CD00FD8C62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 1ADE327609757FBE00961AE2;
+			remoteInfo = LibVorbis;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -1610,8 +1638,6 @@
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
-		1A47B7F511D4A76A0035F6EA /* libOggForOolite.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOggForOolite.a; path = "deps/Cocoa-deps/Ogg Vorbis/libOggForOolite.a"; sourceTree = "<group>"; };
-		1A47B7F611D4A76A0035F6EA /* libVorbisAllForOolite.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libVorbisAllForOolite.a; path = "deps/Cocoa-deps/Ogg Vorbis/libVorbisAllForOolite.a"; sourceTree = "<group>"; };
 		1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra3_redux1.dat; sourceTree = "<group>"; };
 		1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSOolite.h; sourceTree = "<group>"; };
 		1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSOolite.m; sourceTree = "<group>"; };
@@ -1868,6 +1894,8 @@
 		1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFlasherEntity.m; sourceTree = "<group>"; };
 		1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLightParticleEntity.h; sourceTree = "<group>"; };
 		1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLightParticleEntity.m; sourceTree = "<group>"; };
+		1AE3454B12CB77A700FD8C62 /* Ogg.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Ogg.xcodeproj; path = "deps/Cocoa-deps/Ogg Vorbis/Ogg.xcodeproj"; sourceTree = "<group>"; };
+		1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Vorbis.xcodeproj; path = "deps/Cocoa-deps/Ogg Vorbis/Vorbis.xcodeproj"; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
 		1AEB48D1119D51BD007BD514 /* gpu-settings.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "gpu-settings.plist"; sourceTree = "<group>"; };
 		1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OORegExpMatcher.h; sourceTree = "<group>"; };
@@ -1969,10 +1997,10 @@
 				1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */,
 				1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */,
 				1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */,
-				1A47B7F711D4A76A0035F6EA /* libOggForOolite.a in Frameworks */,
-				1A47B7F811D4A76A0035F6EA /* libVorbisAllForOolite.a in Frameworks */,
 				1A06F0A212CA580A00FB681A /* libnspr4_for_oolite.a in Frameworks */,
 				1AB7761012CA2EE0001478BB /* libjs_for_oolite.a in Frameworks */,
+				1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */,
+				1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3130,6 +3158,22 @@
 			name = Drawables;
 			sourceTree = "<group>";
 		};
+		1AE3454C12CB77A700FD8C62 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1AE3455012CB77A700FD8C62 /* libogg_for_oolite.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1AE3455212CB77AC00FD8C62 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */ = {
 			isa = PBXGroup;
 			children = (
@@ -3151,8 +3195,8 @@
 			isa = PBXGroup;
 			children = (
 				1AB775FC12CA2E53001478BB /* libjs.xcodeproj */,
-				1A47B7F511D4A76A0035F6EA /* libOggForOolite.a */,
-				1A47B7F611D4A76A0035F6EA /* libVorbisAllForOolite.a */,
+				1AE3454B12CB77A700FD8C62 /* Ogg.xcodeproj */,
+				1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */,
 				1A71E6FB0BCE345800CD5C13 /* libpng */,
 				1A71E8780BCE8EB100CD5C13 /* libz.dylib */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
@@ -3428,6 +3472,8 @@
 				1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */,
 				1A3E01A911C574E1000FF226 /* PBXTargetDependency */,
 				1AB7763512CA33FB001478BB /* PBXTargetDependency */,
+				1AE3455A12CB77CB00FD8C62 /* PBXTargetDependency */,
+				1AE3455C12CB77CD00FD8C62 /* PBXTargetDependency */,
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
@@ -3488,12 +3534,20 @@
 					ProjectRef = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
 				},
 				{
+					ProductGroup = 1AE3454C12CB77A700FD8C62 /* Products */;
+					ProjectRef = 1AE3454B12CB77A700FD8C62 /* Ogg.xcodeproj */;
+				},
+				{
 					ProductGroup = 1A01BCE011C569DF0011197F /* Products */;
 					ProjectRef = 1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */;
 				},
 				{
 					ProductGroup = 1A3E018F11C574AC000FF226 /* Products */;
 					ProjectRef = 1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */;
+				},
+				{
+					ProductGroup = 1AE3455212CB77AC00FD8C62 /* Products */;
+					ProjectRef = 1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -3548,6 +3602,20 @@
 			remoteRef = 1AB7760312CA2E53001478BB /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		1AE3455012CB77A700FD8C62 /* libogg_for_oolite.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libogg_for_oolite.a;
+			remoteRef = 1AE3454F12CB77A700FD8C62 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libvorbis_for_oolite.a;
+			remoteRef = 1AE3455512CB77AC00FD8C62 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -3584,7 +3652,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/deps/Cocoa-deps/scripts\"\n./update-libpng.sh\n";
+			shellScript = "cd \"$SRCROOT/deps/Cocoa-deps/scripts\"\n./update-library.sh libpng tbz\n";
 			showEnvVarsInLog = 0;
 		};
 		1AA2E7471191E4B400DFBA23 /* Copy Schemata */ = {
@@ -3871,6 +3939,16 @@
 			target = 0865423506B8447D000CA0AB /* Oolite */;
 			targetProxy = 1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */;
 		};
+		1AE3455A12CB77CB00FD8C62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LibOgg;
+			targetProxy = 1AE3455912CB77CB00FD8C62 /* PBXContainerItemProxy */;
+		};
+		1AE3455C12CB77CD00FD8C62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LibVorbis;
+			targetProxy = 1AE3455B12CB77CD00FD8C62 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -3900,9 +3978,7 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
-				);
+				HEADER_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
@@ -3917,7 +3993,7 @@
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				PRODUCT_NAME = "Oolite-newjs";
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "\"$(SYMROOT)/$(CONFIGURATION)/js/include/\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SYMROOT)/$(CONFIGURATION)/include/\"/** \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wextra",
@@ -3952,9 +4028,7 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
-				);
+				HEADER_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
@@ -3967,7 +4041,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = "Oolite-newjs";
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "\"$(SYMROOT)/$(CONFIGURATION)/js/include/\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SYMROOT)/$(CONFIGURATION)/include/\"/** \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wno-unused-parameter",
@@ -4047,9 +4121,7 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
-				);
+				HEADER_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
@@ -4062,7 +4134,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = "Oolite-newjs";
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "\"$(SYMROOT)/$(CONFIGURATION)/js/include/\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SYMROOT)/$(CONFIGURATION)/include/\"/** \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wno-unused-parameter",

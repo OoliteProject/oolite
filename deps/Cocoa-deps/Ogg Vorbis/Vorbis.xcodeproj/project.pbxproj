@@ -29,13 +29,33 @@
 		1ADE32990975800C00961AE2 /* vorbisenc.c in Sources */ = {isa = PBXBuildFile; fileRef = F5D8F65E03389C830112CE8F /* vorbisenc.c */; };
 		1ADE329A0975800E00961AE2 /* vorbisfile.c in Sources */ = {isa = PBXBuildFile; fileRef = F5D8F65F03389C830112CE8F /* vorbisfile.c */; };
 		1ADE329B0975800E00961AE2 /* window.c in Sources */ = {isa = PBXBuildFile; fileRef = F5D8F66003389C830112CE8F /* window.c */; };
+		1AE3450812CB71BD00FD8C62 /* vorbisenc.h in Headers */ = {isa = PBXBuildFile; fileRef = F58520BA0191D12B01A802FE /* vorbisenc.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AE3450912CB71BD00FD8C62 /* vorbisfile.h in Headers */ = {isa = PBXBuildFile; fileRef = F58520BB0191D12B01A802FE /* vorbisfile.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AE3450A12CB71BE00FD8C62 /* codec.h in Headers */ = {isa = PBXBuildFile; fileRef = F58520B90191D12B01A802FE /* codec.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AE3452312CB72E300FD8C62 /* libogg_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3452212CB72E100FD8C62 /* libogg_for_oolite.a */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		1AE3452112CB72E100FD8C62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AE3451D12CB72E100FD8C62 /* Ogg.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1ADE32A40975807900961AE2 /* libogg_for_oolite.a */;
+			remoteInfo = LibOgg;
+		};
+		1AE3452412CB72E900FD8C62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AE3451D12CB72E100FD8C62 /* Ogg.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 1ADE32A30975807900961AE2 /* LibOgg */;
+			remoteInfo = LibOgg;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		1ADE327709757FBE00961AE2 /* libVorbisAllForOolite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libVorbisAllForOolite.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		730F23F0091827B100AB638C /* Info.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = Info.plist; sourceTree = "<group>"; };
-		730F23FA0918281100AB638C /* Ogg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Ogg.framework; path = /Library/Frameworks/Ogg.framework; sourceTree = "<absolute>"; };
+		1ADE327709757FBE00961AE2 /* libvorbis_for_oolite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libvorbis_for_oolite.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-targets.xcconfig"; path = "../../../src/Cocoa/oolite-targets.xcconfig"; sourceTree = SOURCE_ROOT; };
+		1AE3451D12CB72E100FD8C62 /* Ogg.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Ogg.xcodeproj; sourceTree = "<group>"; };
 		F58520B90191D12B01A802FE /* codec.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec.h; sourceTree = "<group>"; };
 		F58520BA0191D12B01A802FE /* vorbisenc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vorbisenc.h; sourceTree = "<group>"; };
 		F58520BB0191D12B01A802FE /* vorbisfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vorbisfile.h; sourceTree = "<group>"; };
@@ -111,6 +131,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1AE3452312CB72E300FD8C62 /* libogg_for_oolite.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,7 +141,7 @@
 		034768DFFF38A50411DB9C8B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1ADE327709757FBE00961AE2 /* libVorbisAllForOolite.a */,
+				1ADE327709757FBE00961AE2 /* libvorbis_for_oolite.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -128,44 +149,35 @@
 		0867D691FE84028FC02AAC07 /* vorbis */ = {
 			isa = PBXGroup;
 			children = (
-				F58520B70191D12B01A802FE /* Headers */,
-				F5D8F60803389C830112CE8F /* lib */,
-				089C1665FE841158C02AAC07 /* Resources */,
-				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
+				1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */,
+				F58520B70191D12B01A802FE /* vorbis */,
+				F5D8F60803389C830112CE8F /* Source */,
 				034768DFFF38A50411DB9C8B /* Products */,
+				1AE3451D12CB72E100FD8C62 /* Ogg.xcodeproj */,
 			);
 			name = vorbis;
 			sourceTree = "<group>";
 		};
-		0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */ = {
+		1AE3451E12CB72E100FD8C62 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				730F23FA0918281100AB638C /* Ogg.framework */,
+				1AE3452212CB72E100FD8C62 /* libogg_for_oolite.a */,
 			);
-			name = "External Frameworks and Libraries";
+			name = Products;
 			sourceTree = "<group>";
 		};
-		089C1665FE841158C02AAC07 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				730F23F0091827B100AB638C /* Info.plist */,
-				089C1666FE841158C02AAC07 /* InfoPlist.strings */,
-			);
-			name = Resources;
-			sourceTree = "<group>";
-		};
-		F58520B70191D12B01A802FE /* Headers */ = {
+		F58520B70191D12B01A802FE /* vorbis */ = {
 			isa = PBXGroup;
 			children = (
 				F58520B90191D12B01A802FE /* codec.h */,
 				F58520BA0191D12B01A802FE /* vorbisenc.h */,
 				F58520BB0191D12B01A802FE /* vorbisfile.h */,
 			);
-			name = Headers;
-			path = ../include/vorbis;
+			name = vorbis;
+			path = "../../Cross-platform-deps/libvorbis/include/vorbis";
 			sourceTree = SOURCE_ROOT;
 		};
-		F5D8F60803389C830112CE8F /* lib */ = {
+		F5D8F60803389C830112CE8F /* Source */ = {
 			isa = PBXGroup;
 			children = (
 				F5D8F60A03389C830112CE8F /* analysis.c */,
@@ -216,8 +228,8 @@
 				F5D8F66003389C830112CE8F /* window.c */,
 				F5D8F66103389C830112CE8F /* window.h */,
 			);
-			name = lib;
-			path = ../lib;
+			name = Source;
+			path = "../../Cross-platform-deps/libvorbis/lib";
 			sourceTree = "<group>";
 		};
 		F5D8F61003389C830112CE8F /* books */ = {
@@ -285,6 +297,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1AE3450812CB71BD00FD8C62 /* vorbisenc.h in Headers */,
+				1AE3450912CB71BD00FD8C62 /* vorbisfile.h in Headers */,
+				1AE3450A12CB71BE00FD8C62 /* codec.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,6 +310,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1ADE328009757FEC00961AE2 /* Build configuration list for PBXNativeTarget "LibVorbis" */;
 			buildPhases = (
+				1AE3450C12CB71CB00FD8C62 /* Update Code */,
 				1ADE327309757FBE00961AE2 /* Headers */,
 				1ADE327409757FBE00961AE2 /* Sources */,
 				1ADE327509757FBE00961AE2 /* Frameworks */,
@@ -302,10 +318,11 @@
 			buildRules = (
 			);
 			dependencies = (
+				1AE3452512CB72E900FD8C62 /* PBXTargetDependency */,
 			);
 			name = LibVorbis;
 			productName = LibVorbis;
-			productReference = 1ADE327709757FBE00961AE2 /* libVorbisAllForOolite.a */;
+			productReference = 1ADE327709757FBE00961AE2 /* libvorbis_for_oolite.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -315,16 +332,56 @@
 			isa = PBXProject;
 			buildConfigurationList = 730F23F3091827B200AB638C /* Build configuration list for PBXProject "Vorbis" */;
 			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 0867D691FE84028FC02AAC07 /* vorbis */;
 			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 1AE3451E12CB72E100FD8C62 /* Products */;
+					ProjectRef = 1AE3451D12CB72E100FD8C62 /* Ogg.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				1ADE327609757FBE00961AE2 /* LibVorbis */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		1AE3452212CB72E100FD8C62 /* libogg_for_oolite.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libogg_for_oolite.a;
+			remoteRef = 1AE3452112CB72E100FD8C62 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1AE3450C12CB71CB00FD8C62 /* Update Code */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Update Code";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/../scripts\"\n./update-library.sh libvorbis tbz\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1ADE327409757FBE00961AE2 /* Sources */ = {
@@ -358,92 +415,123 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXVariantGroup section */
-		089C1666FE841158C02AAC07 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				089C1667FE841158C02AAC07 /* English */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
+/* Begin PBXTargetDependency section */
+		1AE3452512CB72E900FD8C62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LibOgg;
+			targetProxy = 1AE3452412CB72E900FD8C62 /* PBXContainerItemProxy */;
 		};
-/* End PBXVariantGroup section */
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		1ADE328109757FEC00961AE2 /* Development */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[sdk=macosx10.6][arch=*]" = com.apple.compilers.llvm.clang.1_0;
-				INSTALL_PATH = /usr/local/lib;
-				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.5][arch=*]" = 10.5;
-				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
-				PREBINDING = NO;
-				PRODUCT_NAME = LibVorbis;
-				"SDKROOT[arch=x86_64]" = macosx10.5;
-				ZERO_LINK = YES;
-			};
-			name = Development;
-		};
 		1ADE328209757FEC00961AE2 /* Deployment */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[sdk=macosx10.6][arch=*]" = com.apple.compilers.llvm.clang.1_0;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				HEADER_SEARCH_PATHS = (
-					../lib,
-					../../,
+					"../../Cross-platform-deps/libvorbis/include",
+					"$(SYMROOT)/$(CONFIGURATION)/include",
 				);
 				INSTALL_PATH = /usr/local/lib;
-				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.5][arch=*]" = 10.5;
-				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
+				LLVM_LTO = YES;
 				PREBINDING = NO;
-				PRODUCT_NAME = VorbisAllForOolite;
-				"SDKROOT[arch=x86_64]" = macosx10.5;
+				PRODUCT_NAME = vorbis_for_oolite;
+				PUBLIC_HEADERS_FOLDER_PATH = include/vorbis;
+				SYMROOT = ../../../build;
+				USER_HEADER_SEARCH_PATHS = "../../Cross-platform-deps/libvorbis/lib";
 				ZERO_LINK = NO;
 			};
 			name = Deployment;
 		};
-		1ADE328309757FEC00961AE2 /* Default */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[sdk=macosx10.6][arch=*]" = com.apple.compilers.llvm.clang.1_0;
-				INSTALL_PATH = /usr/local/lib;
-				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.5][arch=*]" = 10.5;
-				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
-				PREBINDING = NO;
-				PRODUCT_NAME = LibVorbis;
-				"SDKROOT[arch=x86_64]" = macosx10.5;
-				ZERO_LINK = YES;
-			};
-			name = Default;
-		};
-		730F23F4091827B200AB638C /* Development */ = {
+		1AE3458412CB7A9B00FD8C62 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = (
+					x86_64,
 					ppc,
 					i386,
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
+				GCC_VERSION = 4.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
 				SDKROOT = macosx10.4;
+				"SDKROOT[arch=x86_64]" = macosx10.6;
 			};
-			name = Development;
+			name = Debug;
+		};
+		1AE3458512CB7A9B00FD8C62 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
+			buildSettings = {
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
+				HEADER_SEARCH_PATHS = (
+					"../../Cross-platform-deps/libvorbis/include",
+					"$(SYMROOT)/$(CONFIGURATION)/include",
+				);
+				INSTALL_PATH = /usr/local/lib;
+				LLVM_LTO = YES;
+				PREBINDING = NO;
+				PRODUCT_NAME = vorbis_for_oolite;
+				PUBLIC_HEADERS_FOLDER_PATH = include/vorbis;
+				SYMROOT = ../../../build;
+				USER_HEADER_SEARCH_PATHS = "../../Cross-platform-deps/libvorbis/lib";
+				ZERO_LINK = NO;
+			};
+			name = Debug;
+		};
+		1AE3458612CB7A9E00FD8C62 /* TestRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					x86_64,
+					ppc,
+					i386,
+				);
+				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
+				GCC_VERSION = 4.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
+				SDKROOT = macosx10.4;
+				"SDKROOT[arch=x86_64]" = macosx10.6;
+			};
+			name = TestRelease;
+		};
+		1AE3458712CB7A9E00FD8C62 /* TestRelease */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
+			buildSettings = {
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
+				HEADER_SEARCH_PATHS = (
+					"../../Cross-platform-deps/libvorbis/include",
+					"$(SYMROOT)/$(CONFIGURATION)/include",
+				);
+				INSTALL_PATH = /usr/local/lib;
+				LLVM_LTO = YES;
+				PREBINDING = NO;
+				PRODUCT_NAME = vorbis_for_oolite;
+				PUBLIC_HEADERS_FOLDER_PATH = include/vorbis;
+				SYMROOT = ../../../build;
+				USER_HEADER_SEARCH_PATHS = "../../Cross-platform-deps/libvorbis/lib";
+				ZERO_LINK = NO;
+			};
+			name = TestRelease;
 		};
 		730F23F5091827B200AB638C /* Deployment */ = {
 			isa = XCBuildConfiguration;
@@ -462,41 +550,28 @@
 			};
 			name = Deployment;
 		};
-		730F23F6091827B200AB638C /* Default */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
-				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				SDKROOT = macosx10.4;
-			};
-			name = Default;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
 		1ADE328009757FEC00961AE2 /* Build configuration list for PBXNativeTarget "LibVorbis" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1ADE328109757FEC00961AE2 /* Development */,
 				1ADE328209757FEC00961AE2 /* Deployment */,
-				1ADE328309757FEC00961AE2 /* Default */,
+				1AE3458512CB7A9B00FD8C62 /* Debug */,
+				1AE3458712CB7A9E00FD8C62 /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
+			defaultConfigurationName = Deployment;
 		};
 		730F23F3091827B200AB638C /* Build configuration list for PBXProject "Vorbis" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				730F23F4091827B200AB638C /* Development */,
 				730F23F5091827B200AB638C /* Deployment */,
-				730F23F6091827B200AB638C /* Default */,
+				1AE3458412CB7A9B00FD8C62 /* Debug */,
+				1AE3458612CB7A9E00FD8C62 /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
+			defaultConfigurationName = Deployment;
 		};
 /* End XCConfigurationList section */
 	};

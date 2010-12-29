@@ -1,16 +1,19 @@
 #! /bin/bash
 
+LIBNAME=$1
+EXTENSION=$2
+
+
 cd ..
 
-
 # Paths relative to .., i.e. Cocoa-deps.
-TEMPDIR="temp-download-libpng"
-TARGETDIR="../Cross-platform-deps/libpng"
+TEMPDIR="temp-download-$LIBNAME"
+TARGETDIR="../Cross-platform-deps/$LIBNAME"
 
-URLFILE="../URLs/libpng.url"
+URLFILE="../URLs/$LIBNAME.url"
 VERSIONFILE="$TARGETDIR/current.url"
 
-TEMPFILE="$TEMPDIR/libpng.tbz"
+TEMPFILE="$TEMPDIR/$LIBNAME.$EXTENSION"
 
 
 DESIREDURL=`head -n 1 $URLFILE`
@@ -30,7 +33,7 @@ function fail
 }
 
 
-# Determine whether an update is desireable, and whether there's libpng code in place.
+# Determine whether an update is desireable, and whether there's code in place.
 if [ -d $TARGETDIR ]
 then
 	LIBRARY_PRESENT=1
@@ -39,18 +42,18 @@ then
 		CURRENTURL=`head -n 1 $VERSIONFILE`
 		if [ $DESIREDURL = $CURRENTURL ]
 		then
-			echo "libpng is up to date."
+			echo "$LIBNAME is up to date."
 			exit 0
 		else
-			echo "libpng is out of date."
+			echo "$LIBNAME is out of date."
 		fi
 	else
-		echo "current.url not present, assuming libpng is out of date."
+		echo "current.url not present, assuming $LIBNAME is out of date."
 		CURRENTURL="disk"
 	fi
 else
 	LIBRARY_PRESENT=0
-	echo "libpng not present, initial download needed."
+	echo "$LIBNAME not present, initial download needed."
 fi
 
 
@@ -70,8 +73,8 @@ then
 fi
 
 
-# Download libpng source.
-echo "Downloading libpng source from $DESIREDURL..."
+# Download $LIBNAME source.
+echo "Downloading $LIBNAME source from $DESIREDURL..."
 curl -qgsS -o $TEMPFILE $DESIREDURL
 if [ ! $? ]
 then
@@ -96,10 +99,10 @@ rm -rf $TARGETDIR
 
 
 # Move new code into place.
-mv $TEMPDIR/libpng* $TARGETDIR
+mv $TEMPDIR/$LIBNAME* $TARGETDIR
 if [ ! $? ]
 then
-	echo "error: could not move expanded libpng source into place."
+	echo "error: could not move expanded $LIBNAME source into place."
 	exit 1
 fi
 
@@ -109,4 +112,4 @@ echo $DESIREDURL > $VERSIONFILE
 # Remove temp directory.
 rm -rf $TEMPDIR
 
-echo "Successfully updated libpng."
+echo "Successfully updated $LIBNAME."
