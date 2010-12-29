@@ -3439,6 +3439,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1A71E6FC0BCE345800CD5C13 /* Build configuration list for PBXNativeTarget "libpng-custom" */;
 			buildPhases = (
+				1AA0D03212CAB13100BB883D /* Update Code */,
 				1A71E6EF0BCE340C00CD5C13 /* Headers */,
 				1A71E6F00BCE340C00CD5C13 /* Sources */,
 				1A71E6F10BCE340C00CD5C13 /* Frameworks */,
@@ -3461,7 +3462,7 @@
 				BuildIndependentTargetsInParallel = YES;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
-			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-newjs2" */;
+			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-newjs" */;
 			compatibilityVersion = "Xcode 3.1";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
@@ -3569,6 +3570,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		1AA0D03212CAB13100BB883D /* Update Code */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/deps/URLs/libpng.url",
+				"$(SRCROOT)/deps/Cocoa-deps/libpng/current.url",
+			);
+			name = "Update Code";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/deps/Cocoa-deps/scripts\"\n./update-libpng.sh\n";
+			showEnvVarsInLog = 0;
+		};
 		1AA2E7471191E4B400DFBA23 /* Copy Schemata */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -4168,7 +4186,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
 		};
-		08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-newjs2" */ = {
+		08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-newjs" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				08B31CB108FE63D70038D42F /* Debug */,
