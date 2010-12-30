@@ -20,7 +20,7 @@
 
 // TraceMonkey, YARR JIT and JaegerMonkey, aka the Go Faster Switches.
 #define	JS_TRACER						1
-#if !defined(DEBUG) && (__i386__ || __x86_64__)
+#if (__i386__ || __x86_64__)
 #define	JS_METHODJIT					1
 #endif
 //#define	ENABLE_YARR_JIT				1

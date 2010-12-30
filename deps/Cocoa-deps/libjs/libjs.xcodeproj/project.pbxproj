@@ -195,7 +195,6 @@
 		1AD05E3A12CD18B100704F1D /* testGCChunkAlloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1B12CD18B100704F1D /* testGCChunkAlloc.cpp */; };
 		1AD05E3B12CD18B100704F1D /* testGetPropertyDefault.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1C12CD18B100704F1D /* testGetPropertyDefault.cpp */; };
 		1AD05E3C12CD18B100704F1D /* testIntString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1D12CD18B100704F1D /* testIntString.cpp */; };
-		1AD05E3D12CD18B100704F1D /* testIsAboutToBeFinalized.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1E12CD18B100704F1D /* testIsAboutToBeFinalized.cpp */; };
 		1AD05E3E12CD18B100704F1D /* testLookup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1F12CD18B100704F1D /* testLookup.cpp */; };
 		1AD05E3F12CD18B100704F1D /* testNewObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2012CD18B100704F1D /* testNewObject.cpp */; };
 		1AD05E4012CD18B100704F1D /* testOps.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2112CD18B100704F1D /* testOps.cpp */; };
@@ -1855,7 +1854,6 @@
 				1AD05E3A12CD18B100704F1D /* testGCChunkAlloc.cpp in Sources */,
 				1AD05E3B12CD18B100704F1D /* testGetPropertyDefault.cpp in Sources */,
 				1AD05E3C12CD18B100704F1D /* testIntString.cpp in Sources */,
-				1AD05E3D12CD18B100704F1D /* testIsAboutToBeFinalized.cpp in Sources */,
 				1AD05E3E12CD18B100704F1D /* testLookup.cpp in Sources */,
 				1AD05E3F12CD18B100704F1D /* testNewObject.cpp in Sources */,
 				1AD05E4012CD18B100704F1D /* testOps.cpp in Sources */,
