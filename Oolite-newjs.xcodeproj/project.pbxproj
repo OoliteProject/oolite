@@ -812,6 +812,13 @@
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = libjs;
 		};
+		1AD05EB912CD1B4700704F1D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1AD05E0812CD189100704F1D;
+			remoteInfo = "jsapi-tests";
+		};
 		1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -3103,6 +3110,7 @@
 			children = (
 				1AB7760212CA2E53001478BB /* libjs_for_oolite.a */,
 				1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */,
+				1AD05EBA12CD1B4700704F1D /* jsapi-tests */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3605,6 +3613,13 @@
 			fileType = archive.ar;
 			path = libnspr4_for_oolite.a;
 			remoteRef = 1AB7760312CA2E53001478BB /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1AD05EBA12CD1B4700704F1D /* jsapi-tests */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = "jsapi-tests";
+			remoteRef = 1AD05EB912CD1B4700704F1D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1AE3455012CB77A700FD8C62 /* libogg_for_oolite.a */ = {

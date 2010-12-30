@@ -74,7 +74,7 @@
 	which includes a "check()" macro that breaks the build.
 */
 #if __cplusplus
-extern "C" extern void MakeDataExecutable(void *baseAddress, unsigned long length);
+extern "C" void MakeDataExecutable(void *baseAddress, unsigned long length);
 #endif
 #endif
 

@@ -181,14 +181,75 @@
 		1AB7788512CA5306001478BB /* resource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB7777512CA493A001478BB /* resource.h */; };
 		1AB7788A12CA5320001478BB /* js-config.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AB612CA1C1D00C67F42 /* js-config.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AB7788B12CA5320001478BB /* jsautocfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AD05E2E12CD18B100704F1D /* selfTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E0F12CD18B100704F1D /* selfTest.cpp */; };
+		1AD05E3012CD18B100704F1D /* testClassGetter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1112CD18B100704F1D /* testClassGetter.cpp */; };
+		1AD05E3112CD18B100704F1D /* testCloneScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1212CD18B100704F1D /* testCloneScript.cpp */; };
+		1AD05E3212CD18B100704F1D /* testConservativeGC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1312CD18B100704F1D /* testConservativeGC.cpp */; };
+		1AD05E3312CD18B100704F1D /* testContexts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1412CD18B100704F1D /* testContexts.cpp */; };
+		1AD05E3412CD18B100704F1D /* testDebugger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1512CD18B100704F1D /* testDebugger.cpp */; };
+		1AD05E3512CD18B100704F1D /* testDeepFreeze.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1612CD18B100704F1D /* testDeepFreeze.cpp */; };
+		1AD05E3612CD18B100704F1D /* testDefineGetterSetterNonEnumerable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1712CD18B100704F1D /* testDefineGetterSetterNonEnumerable.cpp */; };
+		1AD05E3712CD18B100704F1D /* testDefineProperty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1812CD18B100704F1D /* testDefineProperty.cpp */; };
+		1AD05E3812CD18B100704F1D /* testExtendedEq.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1912CD18B100704F1D /* testExtendedEq.cpp */; };
+		1AD05E3912CD18B100704F1D /* testFuncCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1A12CD18B100704F1D /* testFuncCallback.cpp */; };
+		1AD05E3A12CD18B100704F1D /* testGCChunkAlloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1B12CD18B100704F1D /* testGCChunkAlloc.cpp */; };
+		1AD05E3B12CD18B100704F1D /* testGetPropertyDefault.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1C12CD18B100704F1D /* testGetPropertyDefault.cpp */; };
+		1AD05E3C12CD18B100704F1D /* testIntString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1D12CD18B100704F1D /* testIntString.cpp */; };
+		1AD05E3D12CD18B100704F1D /* testIsAboutToBeFinalized.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1E12CD18B100704F1D /* testIsAboutToBeFinalized.cpp */; };
+		1AD05E3E12CD18B100704F1D /* testLookup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1F12CD18B100704F1D /* testLookup.cpp */; };
+		1AD05E3F12CD18B100704F1D /* testNewObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2012CD18B100704F1D /* testNewObject.cpp */; };
+		1AD05E4012CD18B100704F1D /* testOps.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2112CD18B100704F1D /* testOps.cpp */; };
+		1AD05E4112CD18B100704F1D /* testPropCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2212CD18B100704F1D /* testPropCache.cpp */; };
+		1AD05E4212CD18B100704F1D /* tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2312CD18B100704F1D /* tests.cpp */; };
+		1AD05E4312CD18B100704F1D /* testSameValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2512CD18B100704F1D /* testSameValue.cpp */; };
+		1AD05E4412CD18B100704F1D /* testScriptObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2612CD18B100704F1D /* testScriptObject.cpp */; };
+		1AD05E4512CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2712CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp */; };
+		1AD05E4612CD18B100704F1D /* testThreadGC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2812CD18B100704F1D /* testThreadGC.cpp */; };
+		1AD05E4712CD18B100704F1D /* testThreads.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2912CD18B100704F1D /* testThreads.cpp */; };
+		1AD05E4812CD18B100704F1D /* testTrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2A12CD18B100704F1D /* testTrap.cpp */; };
+		1AD05E4912CD18B100704F1D /* testUTF8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2B12CD18B100704F1D /* testUTF8.cpp */; };
+		1AD05E4A12CD18B100704F1D /* testVersion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2C12CD18B100704F1D /* testVersion.cpp */; };
+		1AD05E4B12CD18B100704F1D /* testXDR.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2D12CD18B100704F1D /* testXDR.cpp */; };
+		1AD05E4E12CD18C900704F1D /* libjs_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libjs_for_oolite.a */; };
+		1AD05E6C12CD1ABE00704F1D /* libnspr4_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB25ACA12CA1CB100C67F42 /* libnspr4_for_oolite.a */; };
+		1AD05ECA12CD1F5300704F1D /* pripc.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA612CA1D7200C67F42 /* pripc.c */; };
+		1AD05EE612CD208D00704F1D /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AD05EE512CD208D00704F1D /* CoreFoundation.framework */; };
+		1AD05EEC12CD209C00704F1D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AD05EEB12CD209C00704F1D /* Foundation.framework */; };
+		1AD05EF812CD20ED00704F1D /* prinit.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA412CA1D7200C67F42 /* prinit.c */; };
+		1AD05F0412CD217100704F1D /* uxproces.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7412CA1D7200C67F42 /* uxproces.c */; };
+		1AD05F0512CD218300704F1D /* prlink.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B1412CA1D7200C67F42 /* prlink.c */; };
+		1AD05F0612CD219D00704F1D /* priometh.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0512CA1D7200C67F42 /* priometh.c */; };
+		1AD05F0912CD21B900704F1D /* prnetdb.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BAA12CA1D7200C67F42 /* prnetdb.c */; };
+		1AD05F0A12CD21CA00704F1D /* prlayer.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0712CA1D7200C67F42 /* prlayer.c */; };
+		1AD05F0B12CD21D800704F1D /* darwin.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B4612CA1D7200C67F42 /* darwin.c */; };
+		1AD05F0F12CD220C00704F1D /* prmmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0A12CA1D7200C67F42 /* prmmap.c */; };
+		1AD05F1212CD222000704F1D /* pr-oolite-shim.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */; };
+		1AD05F1412CD224100704F1D /* jsapitests-oolite-shim.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05F1312CD224100704F1D /* jsapitests-oolite-shim.m */; };
+		1AD05F1812CD22B500704F1D /* ptio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BB912CA1D7200C67F42 /* ptio.c */; };
+		1AD05F1A12CD22C800704F1D /* prmwait.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0B12CA1D7200C67F42 /* prmwait.c */; };
+		1AD05F1B12CD22D600704F1D /* prprf.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0D12CA1D7200C67F42 /* prprf.c */; };
+		1AD05F2312CD230800704F1D /* prtime.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BAF12CA1D7200C67F42 /* prtime.c */; };
+		1AD05F2D12CD237200704F1D /* prenv.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9E12CA1D7200C67F42 /* prenv.c */; };
+		1AD05F3112CD237F00704F1D /* prdtoa.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9D12CA1D7200C67F42 /* prdtoa.c */; };
+		1AD05F3512CD239700704F1D /* prseg.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9112CA1D7200C67F42 /* prseg.c */; };
+		1AD05F3C12CD23DF00704F1D /* prscanf.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0E12CA1D7200C67F42 /* prscanf.c */; };
+		1AD05F3F12CD23F400704F1D /* prfdcach.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0212CA1D7200C67F42 /* prfdcach.c */; };
+		1AD05F4212CD241A00704F1D /* prosdep.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B4012CA1D7200C67F42 /* prosdep.c */; };
+		1AD05F4912CD245100704F1D /* prmapopt.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B0912CA1D7200C67F42 /* prmapopt.c */; };
+		1AD05F4C12CD246C00704F1D /* prstdio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B1012CA1D7200C67F42 /* prstdio.c */; };
+		1AD05F4F12CD247D00704F1D /* prrwlock.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BCD12CA1D7200C67F42 /* prrwlock.c */; };
+		1AD05F5112CD248A00704F1D /* prcmon.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BC912CA1D7200C67F42 /* prcmon.c */; };
+		1AD05F5612CD24BF00704F1D /* prerr.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9F12CA1D7200C67F42 /* prerr.c */; };
+		1AD05F5B12CD24FC00704F1D /* ptmisc.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBA12CA1D7200C67F42 /* ptmisc.c */; };
+		1AD05F6012CD251F00704F1D /* prerrortable.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA312CA1D7200C67F42 /* prerrortable.c */; };
+		1AD05F6A12CD256200704F1D /* praton.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9B12CA1D7200C67F42 /* praton.c */; };
+		1AD05F7C12CD274E00704F1D /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AD05F7B12CD274E00704F1D /* CoreServices.framework */; };
 		1AEA203012CB9AF200EC0F43 /* ptthread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBC12CA1D7200C67F42 /* ptthread.c */; };
 		1AEA207012CB9C7200EC0F43 /* ptsynch.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBB12CA1D7200C67F42 /* ptsynch.c */; };
 		1AEA207312CB9C8E00EC0F43 /* prmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B1A12CA1D7200C67F42 /* prmem.c */; };
 		1AEA207912CB9CBB00EC0F43 /* pratom.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9A12CA1D7200C67F42 /* pratom.c */; };
 		1AEA208012CB9CE800EC0F43 /* os_Darwin_universal.s in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA207F12CB9CE800EC0F43 /* os_Darwin_universal.s */; };
 		1AEA208912CB9D6F00EC0F43 /* prtpd.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BCF12CA1D7200C67F42 /* prtpd.c */; };
-		1AEA209212CB9E8600EC0F43 /* pr-oolite-shim.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */; };
-		1AEA20A412CBA01900EC0F43 /* ptio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BB912CA1D7200C67F42 /* ptio.c */; };
 		1AEA20C112CBA25200EC0F43 /* prinrval.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA512CA1D7200C67F42 /* prinrval.c */; };
 		1AEA20C612CBA31700EC0F43 /* unix.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B7012CA1D7200C67F42 /* unix.c */; };
 		1AEA20CA12CBA33700EC0F43 /* prerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA212CA1D7200C67F42 /* prerror.c */; };
@@ -255,6 +316,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A;
 			remoteInfo = "Update Code";
+		};
+		1AD05E4C12CD18C000704F1D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D /* libjs */;
+			remoteInfo = libjs;
 		};
 		1AEA203112CB9AF900EC0F43 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -578,6 +646,42 @@
 		1AB7781B12CA51CE001478BB /* jsarena.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsarena.cpp; sourceTree = "<group>"; };
 		1AB7781D12CA51E6001478BB /* jshash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jshash.cpp; sourceTree = "<group>"; };
 		1AB7782112CA5220001478BB /* jsscan.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsscan.cpp; sourceTree = "<group>"; };
+		1AD05E0812CD189100704F1D /* jsapi-tests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "jsapi-tests"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AD05E0F12CD18B100704F1D /* selfTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = selfTest.cpp; sourceTree = "<group>"; };
+		1AD05E1012CD18B100704F1D /* testBug604087.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testBug604087.cpp; sourceTree = "<group>"; };
+		1AD05E1112CD18B100704F1D /* testClassGetter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testClassGetter.cpp; sourceTree = "<group>"; };
+		1AD05E1212CD18B100704F1D /* testCloneScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testCloneScript.cpp; sourceTree = "<group>"; };
+		1AD05E1312CD18B100704F1D /* testConservativeGC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testConservativeGC.cpp; sourceTree = "<group>"; };
+		1AD05E1412CD18B100704F1D /* testContexts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testContexts.cpp; sourceTree = "<group>"; };
+		1AD05E1512CD18B100704F1D /* testDebugger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testDebugger.cpp; sourceTree = "<group>"; };
+		1AD05E1612CD18B100704F1D /* testDeepFreeze.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testDeepFreeze.cpp; sourceTree = "<group>"; };
+		1AD05E1712CD18B100704F1D /* testDefineGetterSetterNonEnumerable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testDefineGetterSetterNonEnumerable.cpp; sourceTree = "<group>"; };
+		1AD05E1812CD18B100704F1D /* testDefineProperty.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testDefineProperty.cpp; sourceTree = "<group>"; };
+		1AD05E1912CD18B100704F1D /* testExtendedEq.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testExtendedEq.cpp; sourceTree = "<group>"; };
+		1AD05E1A12CD18B100704F1D /* testFuncCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testFuncCallback.cpp; sourceTree = "<group>"; };
+		1AD05E1B12CD18B100704F1D /* testGCChunkAlloc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testGCChunkAlloc.cpp; sourceTree = "<group>"; };
+		1AD05E1C12CD18B100704F1D /* testGetPropertyDefault.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testGetPropertyDefault.cpp; sourceTree = "<group>"; };
+		1AD05E1D12CD18B100704F1D /* testIntString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testIntString.cpp; sourceTree = "<group>"; };
+		1AD05E1E12CD18B100704F1D /* testIsAboutToBeFinalized.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testIsAboutToBeFinalized.cpp; sourceTree = "<group>"; };
+		1AD05E1F12CD18B100704F1D /* testLookup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testLookup.cpp; sourceTree = "<group>"; };
+		1AD05E2012CD18B100704F1D /* testNewObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testNewObject.cpp; sourceTree = "<group>"; };
+		1AD05E2112CD18B100704F1D /* testOps.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testOps.cpp; sourceTree = "<group>"; };
+		1AD05E2212CD18B100704F1D /* testPropCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testPropCache.cpp; sourceTree = "<group>"; };
+		1AD05E2312CD18B100704F1D /* tests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tests.cpp; sourceTree = "<group>"; };
+		1AD05E2412CD18B100704F1D /* tests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
+		1AD05E2512CD18B100704F1D /* testSameValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testSameValue.cpp; sourceTree = "<group>"; };
+		1AD05E2612CD18B100704F1D /* testScriptObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testScriptObject.cpp; sourceTree = "<group>"; };
+		1AD05E2712CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testSetPropertyWithNativeGetterStubSetter.cpp; sourceTree = "<group>"; };
+		1AD05E2812CD18B100704F1D /* testThreadGC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testThreadGC.cpp; sourceTree = "<group>"; };
+		1AD05E2912CD18B100704F1D /* testThreads.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testThreads.cpp; sourceTree = "<group>"; };
+		1AD05E2A12CD18B100704F1D /* testTrap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testTrap.cpp; sourceTree = "<group>"; };
+		1AD05E2B12CD18B100704F1D /* testUTF8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testUTF8.cpp; sourceTree = "<group>"; };
+		1AD05E2C12CD18B100704F1D /* testVersion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testVersion.cpp; sourceTree = "<group>"; };
+		1AD05E2D12CD18B100704F1D /* testXDR.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testXDR.cpp; sourceTree = "<group>"; };
+		1AD05EE512CD208D00704F1D /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		1AD05EEB12CD209C00704F1D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		1AD05F1312CD224100704F1D /* jsapitests-oolite-shim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "jsapitests-oolite-shim.m"; sourceTree = "<group>"; };
+		1AD05F7B12CD274E00704F1D /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		1AEA1FBB12CB97A600EC0F43 /* jstracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jstracer.cpp; sourceTree = "<group>"; };
 		1AEA1FBC12CB97B500EC0F43 /* jsprobes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsprobes.cpp; sourceTree = "<group>"; };
 		1AEA1FBF12CB981C00EC0F43 /* jsanalyze.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsanalyze.cpp; sourceTree = "<group>"; };
@@ -691,6 +795,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AD05E0612CD189100704F1D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AD05E4E12CD18C900704F1D /* libjs_for_oolite.a in Frameworks */,
+				1AD05E6C12CD1ABE00704F1D /* libnspr4_for_oolite.a in Frameworks */,
+				1AD05EE612CD208D00704F1D /* CoreFoundation.framework in Frameworks */,
+				1AD05EEC12CD209C00704F1D /* Foundation.framework in Frameworks */,
+				1AD05F7C12CD274E00704F1D /* CoreServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D289987405E68DCB004EDB86 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -708,7 +824,11 @@
 				1AEA214D12CBBBD600EC0F43 /* Oolite-specific hacks */,
 				1AB25A7712CA178000C67F42 /* js */,
 				1AB25ACE12CA1D7100C67F42 /* nspr */,
+				1AD05E0D12CD189700704F1D /* jsapi-tests */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
+				1AD05EE512CD208D00704F1D /* CoreFoundation.framework */,
+				1AD05EEB12CD209C00704F1D /* Foundation.framework */,
+				1AD05F7B12CD274E00704F1D /* CoreServices.framework */,
 			);
 			name = libjs;
 			sourceTree = "<group>";
@@ -1150,6 +1270,7 @@
 			children = (
 				D2AAC046055464E500DB518D /* libjs_for_oolite.a */,
 				1AB25ACA12CA1CB100C67F42 /* libnspr4_for_oolite.a */,
+				1AD05E0812CD189100704F1D /* jsapi-tests */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1245,6 +1366,45 @@
 			name = headers;
 			sourceTree = "<group>";
 		};
+		1AD05E0D12CD189700704F1D /* jsapi-tests */ = {
+			isa = PBXGroup;
+			children = (
+				1AD05E0F12CD18B100704F1D /* selfTest.cpp */,
+				1AD05E1012CD18B100704F1D /* testBug604087.cpp */,
+				1AD05E1112CD18B100704F1D /* testClassGetter.cpp */,
+				1AD05E1212CD18B100704F1D /* testCloneScript.cpp */,
+				1AD05E1312CD18B100704F1D /* testConservativeGC.cpp */,
+				1AD05E1412CD18B100704F1D /* testContexts.cpp */,
+				1AD05E1512CD18B100704F1D /* testDebugger.cpp */,
+				1AD05E1612CD18B100704F1D /* testDeepFreeze.cpp */,
+				1AD05E1712CD18B100704F1D /* testDefineGetterSetterNonEnumerable.cpp */,
+				1AD05E1812CD18B100704F1D /* testDefineProperty.cpp */,
+				1AD05E1912CD18B100704F1D /* testExtendedEq.cpp */,
+				1AD05E1A12CD18B100704F1D /* testFuncCallback.cpp */,
+				1AD05E1B12CD18B100704F1D /* testGCChunkAlloc.cpp */,
+				1AD05E1C12CD18B100704F1D /* testGetPropertyDefault.cpp */,
+				1AD05E1D12CD18B100704F1D /* testIntString.cpp */,
+				1AD05E1E12CD18B100704F1D /* testIsAboutToBeFinalized.cpp */,
+				1AD05E1F12CD18B100704F1D /* testLookup.cpp */,
+				1AD05E2012CD18B100704F1D /* testNewObject.cpp */,
+				1AD05E2112CD18B100704F1D /* testOps.cpp */,
+				1AD05E2212CD18B100704F1D /* testPropCache.cpp */,
+				1AD05E2312CD18B100704F1D /* tests.cpp */,
+				1AD05E2412CD18B100704F1D /* tests.h */,
+				1AD05E2512CD18B100704F1D /* testSameValue.cpp */,
+				1AD05E2612CD18B100704F1D /* testScriptObject.cpp */,
+				1AD05E2712CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp */,
+				1AD05E2812CD18B100704F1D /* testThreadGC.cpp */,
+				1AD05E2912CD18B100704F1D /* testThreads.cpp */,
+				1AD05E2A12CD18B100704F1D /* testTrap.cpp */,
+				1AD05E2B12CD18B100704F1D /* testUTF8.cpp */,
+				1AD05E2C12CD18B100704F1D /* testVersion.cpp */,
+				1AD05E2D12CD18B100704F1D /* testXDR.cpp */,
+			);
+			name = "jsapi-tests";
+			path = "../../Cross-platform-deps/mozilla/js/src/jsapi-tests";
+			sourceTree = "<group>";
+		};
 		1AEA214D12CBBBD600EC0F43 /* Oolite-specific hacks */ = {
 			isa = PBXGroup;
 			children = (
@@ -1257,6 +1417,7 @@
 				1AEA225912CBCD1100EC0F43 /* jslock.cpp */,
 				1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */,
 				1AEA23D412CC003800EC0F43 /* js-oolite-shim.cpp */,
+				1AD05F1312CD224100704F1D /* jsapitests-oolite-shim.m */,
 				1AEA207F12CB9CE800EC0F43 /* os_Darwin_universal.s */,
 				1AEA21DD12CBC63100EC0F43 /* NativeUniversal.cpp */,
 				1A27960112CCB66600C9E94D /* ConditionalShims */,
@@ -1532,6 +1693,23 @@
 			productReference = 1AB25ACA12CA1CB100C67F42 /* libnspr4_for_oolite.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		1AD05E0712CD189100704F1D /* jsapi-tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AD05E0E12CD189700704F1D /* Build configuration list for PBXNativeTarget "jsapi-tests" */;
+			buildPhases = (
+				1AD05E0512CD189100704F1D /* Sources */,
+				1AD05E0612CD189100704F1D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1AD05E4D12CD18C000704F1D /* PBXTargetDependency */,
+			);
+			name = "jsapi-tests";
+			productName = "jsapi-tests";
+			productReference = 1AD05E0812CD189100704F1D /* jsapi-tests */;
+			productType = "com.apple.product-type.tool";
+		};
 		D2AAC045055464E500DB518D /* libjs */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "libjs" */;
@@ -1573,6 +1751,7 @@
 				D2AAC045055464E500DB518D /* libjs */,
 				1AB25AC112CA1CB100C67F42 /* libnspr */,
 				1A8D6F3512CB946A0007FC6A /* Update Code */,
+				1AD05E0712CD189100704F1D /* jsapi-tests */,
 			);
 		};
 /* End PBXProject section */
@@ -1591,6 +1770,7 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "cd \"$SRCROOT/../scripts\"\n./update-mozilla.sh\n\ntouch \"$SRCROOT/_pr_bld.h\"\n";
+			showEnvVarsInLog = 0;
 		};
 		1AEA217E12CBC08D00EC0F43 /* Assemble imacros */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1622,12 +1802,75 @@
 				1AEA207912CB9CBB00EC0F43 /* pratom.c in Sources */,
 				1AEA208012CB9CE800EC0F43 /* os_Darwin_universal.s in Sources */,
 				1AEA208912CB9D6F00EC0F43 /* prtpd.c in Sources */,
-				1AEA209212CB9E8600EC0F43 /* pr-oolite-shim.m in Sources */,
-				1AEA20A412CBA01900EC0F43 /* ptio.c in Sources */,
 				1AEA20C112CBA25200EC0F43 /* prinrval.c in Sources */,
 				1AEA20C612CBA31700EC0F43 /* unix.c in Sources */,
 				1AEA20CA12CBA33700EC0F43 /* prerror.c in Sources */,
 				1AEA20CE12CBA34E00EC0F43 /* unix_errors.c in Sources */,
+				1AD05ECA12CD1F5300704F1D /* pripc.c in Sources */,
+				1AD05EF812CD20ED00704F1D /* prinit.c in Sources */,
+				1AD05F0412CD217100704F1D /* uxproces.c in Sources */,
+				1AD05F0512CD218300704F1D /* prlink.c in Sources */,
+				1AD05F0612CD219D00704F1D /* priometh.c in Sources */,
+				1AD05F0912CD21B900704F1D /* prnetdb.c in Sources */,
+				1AD05F0A12CD21CA00704F1D /* prlayer.c in Sources */,
+				1AD05F0B12CD21D800704F1D /* darwin.c in Sources */,
+				1AD05F0F12CD220C00704F1D /* prmmap.c in Sources */,
+				1AD05F1212CD222000704F1D /* pr-oolite-shim.m in Sources */,
+				1AD05F1812CD22B500704F1D /* ptio.c in Sources */,
+				1AD05F1A12CD22C800704F1D /* prmwait.c in Sources */,
+				1AD05F1B12CD22D600704F1D /* prprf.c in Sources */,
+				1AD05F2312CD230800704F1D /* prtime.c in Sources */,
+				1AD05F2D12CD237200704F1D /* prenv.c in Sources */,
+				1AD05F3112CD237F00704F1D /* prdtoa.c in Sources */,
+				1AD05F3512CD239700704F1D /* prseg.c in Sources */,
+				1AD05F3C12CD23DF00704F1D /* prscanf.c in Sources */,
+				1AD05F3F12CD23F400704F1D /* prfdcach.c in Sources */,
+				1AD05F4212CD241A00704F1D /* prosdep.c in Sources */,
+				1AD05F4912CD245100704F1D /* prmapopt.c in Sources */,
+				1AD05F4C12CD246C00704F1D /* prstdio.c in Sources */,
+				1AD05F4F12CD247D00704F1D /* prrwlock.c in Sources */,
+				1AD05F5112CD248A00704F1D /* prcmon.c in Sources */,
+				1AD05F5612CD24BF00704F1D /* prerr.c in Sources */,
+				1AD05F5B12CD24FC00704F1D /* ptmisc.c in Sources */,
+				1AD05F6012CD251F00704F1D /* prerrortable.c in Sources */,
+				1AD05F6A12CD256200704F1D /* praton.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AD05E0512CD189100704F1D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AD05E2E12CD18B100704F1D /* selfTest.cpp in Sources */,
+				1AD05E3012CD18B100704F1D /* testClassGetter.cpp in Sources */,
+				1AD05E3112CD18B100704F1D /* testCloneScript.cpp in Sources */,
+				1AD05E3212CD18B100704F1D /* testConservativeGC.cpp in Sources */,
+				1AD05E3312CD18B100704F1D /* testContexts.cpp in Sources */,
+				1AD05E3412CD18B100704F1D /* testDebugger.cpp in Sources */,
+				1AD05E3512CD18B100704F1D /* testDeepFreeze.cpp in Sources */,
+				1AD05E3612CD18B100704F1D /* testDefineGetterSetterNonEnumerable.cpp in Sources */,
+				1AD05E3712CD18B100704F1D /* testDefineProperty.cpp in Sources */,
+				1AD05E3812CD18B100704F1D /* testExtendedEq.cpp in Sources */,
+				1AD05E3912CD18B100704F1D /* testFuncCallback.cpp in Sources */,
+				1AD05E3A12CD18B100704F1D /* testGCChunkAlloc.cpp in Sources */,
+				1AD05E3B12CD18B100704F1D /* testGetPropertyDefault.cpp in Sources */,
+				1AD05E3C12CD18B100704F1D /* testIntString.cpp in Sources */,
+				1AD05E3D12CD18B100704F1D /* testIsAboutToBeFinalized.cpp in Sources */,
+				1AD05E3E12CD18B100704F1D /* testLookup.cpp in Sources */,
+				1AD05E3F12CD18B100704F1D /* testNewObject.cpp in Sources */,
+				1AD05E4012CD18B100704F1D /* testOps.cpp in Sources */,
+				1AD05E4112CD18B100704F1D /* testPropCache.cpp in Sources */,
+				1AD05E4212CD18B100704F1D /* tests.cpp in Sources */,
+				1AD05E4312CD18B100704F1D /* testSameValue.cpp in Sources */,
+				1AD05E4412CD18B100704F1D /* testScriptObject.cpp in Sources */,
+				1AD05E4512CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp in Sources */,
+				1AD05E4612CD18B100704F1D /* testThreadGC.cpp in Sources */,
+				1AD05E4712CD18B100704F1D /* testThreads.cpp in Sources */,
+				1AD05E4812CD18B100704F1D /* testTrap.cpp in Sources */,
+				1AD05E4912CD18B100704F1D /* testUTF8.cpp in Sources */,
+				1AD05E4A12CD18B100704F1D /* testVersion.cpp in Sources */,
+				1AD05E4B12CD18B100704F1D /* testXDR.cpp in Sources */,
+				1AD05F1412CD224100704F1D /* jsapitests-oolite-shim.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1738,6 +1981,11 @@
 			target = 1A8D6F3512CB946A0007FC6A /* Update Code */;
 			targetProxy = 1A8D6F3B12CB948E0007FC6A /* PBXContainerItemProxy */;
 		};
+		1AD05E4D12CD18C000704F1D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* libjs */;
+			targetProxy = 1AD05E4C12CD18C000704F1D /* PBXContainerItemProxy */;
+		};
 		1AEA203212CB9AF900EC0F43 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 1AB25AC112CA1CB100C67F42 /* libnspr */;
@@ -1789,6 +2037,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_CW_ASM_SYNTAX = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
@@ -1814,6 +2063,7 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREFIX_HEADER = "pr-oolite-prefix.h";
@@ -1839,6 +2089,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PREFIX_HEADER = "pr-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
@@ -1863,6 +2114,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PREFIX_HEADER = "pr-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
@@ -1880,6 +2132,63 @@
 			};
 			name = TestRelease;
 		};
+		1AD05E0A12CD189100704F1D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				INSTALL_PATH = /usr/local/bin;
+				LIBRARY_SEARCH_PATHS = "$(SYMROOT)";
+				PREBINDING = NO;
+				PRODUCT_NAME = "jsapi-tests";
+				SYMROOT = ../../../build;
+			};
+			name = Debug;
+		};
+		1AD05E0B12CD189100704F1D /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				INSTALL_PATH = /usr/local/bin;
+				LIBRARY_SEARCH_PATHS = "$(SYMROOT)";
+				PREBINDING = NO;
+				PRODUCT_NAME = "jsapi-tests";
+				SYMROOT = ../../../build;
+				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
+		1AD05E0C12CD189100704F1D /* TestRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				INSTALL_PATH = /usr/local/bin;
+				LIBRARY_SEARCH_PATHS = "$(SYMROOT)";
+				PREBINDING = NO;
+				PRODUCT_NAME = "jsapi-tests";
+				SYMROOT = ../../../build;
+			};
+			name = TestRelease;
+		};
 		1DEB91EC08733DB70010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
@@ -1889,6 +2198,7 @@
 				GCC_CW_ASM_SYNTAX = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
@@ -1916,6 +2226,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_CW_ASM_SYNTAX = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
@@ -1978,6 +2289,16 @@
 				1AB25AC712CA1CB100C67F42 /* Debug */,
 				1AB25AC812CA1CB100C67F42 /* Deployment */,
 				1AB25AC912CA1CB100C67F42 /* TestRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deployment;
+		};
+		1AD05E0E12CD189700704F1D /* Build configuration list for PBXNativeTarget "jsapi-tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AD05E0A12CD189100704F1D /* Debug */,
+				1AD05E0B12CD189100704F1D /* Deployment */,
+				1AD05E0C12CD189100704F1D /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;

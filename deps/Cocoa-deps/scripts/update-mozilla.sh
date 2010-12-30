@@ -71,7 +71,7 @@ fi
 
 
 # Download mozilla source.
-echo "Downloading libjs source from $DESIREDURL... (This is slow. Have some coffee.)"
+echo "Downloading libjs source from $DESIREDURL..."
 curl -qgsS -o $TEMPFILE $DESIREDURL
 if [ ! $? ]
 then
@@ -80,7 +80,7 @@ fi
 
 
 # Expand tarball.
-echo "Download complete, expanding archive... (This is also slow. Have a cigar.)"
+echo "Download complete, expanding archive..."
 tar -xkf $TEMPFILE -C $TEMPDIR
 if [ ! $? ]
 then
