@@ -8,8 +8,7 @@
 		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel);
 		"RED_ALERT" = (launchDefenseShip, groupAttackTarget);
 		"YELLOW_ALERT" = ("setStateTo: IDLE");
-		"CONDITION_YELLOW" = ("setStateTo: IDLE");
-		"CONDITION_GREEN" = ("setStateTo: CHECK_FOR_DEBRIS");
+		"GREEN_ALERT" = ("setStateTo: CHECK_FOR_DEBRIS");
 		"INCOMING_MISSILE" = (increaseAlertLevel);
 		"ENERGY_FULL" = ("pauseAI: 20.0", "setStateTo: IDLE");
 		"TARGET_DESTROYED" = ("pauseAI: 20.0", "setStateTo: IDLE");

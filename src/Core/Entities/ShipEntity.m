@@ -1844,7 +1844,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	if ([self status] == STATUS_LAUNCHING)
 	{
-		if ([UNIVERSE getTime] > launch_time + LAUNCH_DELAY)		// move for while before thinking
+		if ([UNIVERSE getTime] > launch_time + launch_delay)		// move for while before thinking
 		{
 			StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
 			[self setStatus:STATUS_IN_FLIGHT];
@@ -5164,6 +5164,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		launch_time = [UNIVERSE getTime];
 	}
+}
+
+- (void) setLaunchDelay:(double) delay
+{
+	launch_delay = delay;
 }
 
 
@@ -8930,9 +8935,10 @@ BOOL class_masslocks(int some_class)
 
 - (void) leaveDock:(StationEntity *)station
 {
+	// FIXME: this code is never used, but when used it would orient the ship to the station and not to the dock.
 	if (station == nil)  return;
 	
-	Vector stat_f = vector_forward_from_quaternion([station orientation]);
+	Vector stat_f = [station forwardVector];
 	[self setPosition:vector_add([station position], vector_multiply_scalar(stat_f, 500.0f))];
 	
 	[self setOrientation:[station orientation]];

@@ -395,7 +395,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (![shipsOnHold objectForKey:shipID])
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
-		[self performStop];
+		//[self performStop]; // This should be handled by "DOCKING_REQUESTED" in the AI itself.
 		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
@@ -404,23 +404,23 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (![shipsOnHold objectForKey:shipID])
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
-		[self performStop];
+		//[self performStop];
 		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	// rolling is okay for some
-	if	(fabs(flightPitch) > 0.01)		// rolling
+	if	(fabs(flightRoll) > 0.01 && ![self isRotatingStation])		// rolling
 	{
 		Vector portPos = [self getPortPosition];
 		Vector portDir = vector_forward_from_quaternion(port_orientation);		
 		BOOL isOffCentre = (fabs(portPos.x) + fabs(portPos.y) > 0.0f)|(fabs(portDir.x) + fabs(portDir.y) > 0.0f);
 
-		if ( isOffCentre && ![self isRotatingStation])
+		if (isOffCentre)
 		{
 			if (![shipsOnHold objectForKey:shipID])
 				[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 			[shipsOnHold setObject: shipID forKey: shipID];
-			[self performStop];
+			//[self performStop];
 			return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
@@ -615,9 +615,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	//
 	NSMutableArray*		coordinatesStack =  [NSMutableArray arrayWithCapacity: MAX_DOCKING_STAGES];
-	double port_depth = 250;	// 250m deep standard port
+	double port_depth = 250;	// 250m deep standard port.
+	
 	//
 	int i;
+	double corridor_length;
 	for (i = corridor_count - 1; i >= 0; i--)
 	{
 		NSMutableDictionary*	nextCoords =	[NSMutableDictionary dictionaryWithCapacity:3];
@@ -630,12 +632,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		
 		[nextCoords setObject:[NSNumber numberWithInt: corridor_count - i] forKey:@"docking_stage"];
 
-		[nextCoords setObject:[NSNumber numberWithFloat: s * port_depth * offset]				forKey:@"rx"];
-		[nextCoords setObject:[NSNumber numberWithFloat: c * port_depth * offset]				forKey:@"ry"];
-		[nextCoords setObject:[NSNumber numberWithFloat: port_depth * corridor_distance[i]]		forKey:@"rz"];
-
+		[nextCoords setObject:[NSNumber numberWithFloat: s * port_depth * offset]	forKey:@"rx"];
+		[nextCoords setObject:[NSNumber numberWithFloat: c * port_depth * offset]	forKey:@"ry"];
+		corridor_length = port_depth * corridor_distance[i];
+		 // add the lenght inside the station to the corridor, except for the final position, inside the dock.
+		if (corridor_distance[i] > 0) corridor_length += port_corridor;
+		[nextCoords setObject:[NSNumber numberWithFloat: corridor_length]	forKey:@"rz"];
 		[nextCoords setObject:[NSNumber numberWithFloat: corridor_speed[i]] forKey:@"speed"];
-
 		[nextCoords setObject:[NSNumber numberWithFloat: corridor_range[i]] forKey:@"range"];
 		
 		if (corridor_rotate[i])
@@ -776,6 +779,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	double port_radius = [dict oo_nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
 	port_position = make_vector(0, 0, port_radius);
 	port_orientation = kIdentityQuaternion;
+	port_corridor = 0;
 	
 	// port_dimensions can be set for rock-hermits and other specials
 	port_dimensions = make_vector(69, 69, 250);
@@ -861,13 +865,24 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	BoundingBox bb = [port_model boundingBox];
 	port_dimensions = make_vector(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
 
+	Vector vk = vector_forward_from_quaternion(dock_q);
+	
 	if (bb.max.z > 0.0)
 	{
-		Vector vk = vector_forward_from_quaternion(dock_q);
 		port_position.x += bb.max.z * vk.x;
 		port_position.y += bb.max.z * vk.y;
 		port_position.z += bb.max.z * vk.z;
 	}
+	
+	// check if start is within bounding box...
+	Vector start = port_position;
+	while (	(start.x > boundingBox.min.x)&&(start.x < boundingBox.max.x)&&
+		   (start.y > boundingBox.min.y)&&(start.y < boundingBox.max.y)&&
+		   (start.z > boundingBox.min.z)&&(start.z < boundingBox.max.z) )
+	{
+		start = vector_add(start, vector_multiply_scalar(vk, port_dimensions.z));
+	}
+	port_corridor = start.z - port_position.z; // length of the docking tunnel.
 }
 
 
@@ -1262,7 +1277,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	Vector launchPos = position;
 	Vector launchVel = velocity;
 	double launchSpeed = 0.5 * [ship maxFlightSpeed];
-	if (maxFlightSpeed > 0 && flightSpeed > 0)
+	if (maxFlightSpeed > 0 && flightSpeed > 0) // is self a carrier in flight.
 	{
 		launchSpeed = 0.5 * [ship maxFlightSpeed] * (1.0 + flightSpeed/maxFlightSpeed);
 	}
@@ -1284,19 +1299,24 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ([ship hasEscorts]) no_docking_while_launching = YES;
 	// launch speed
 	launchVel = vector_add(launchVel, vector_multiply_scalar(launchVector, launchSpeed));
-	[ship setSpeed:sqrt(magnitude2(launchVel))];
+	launchSpeed = magnitude(launchVel);
+	[ship setSpeed:launchSpeed];
 	[ship setVelocity:launchVel];
 	// orientation
 	[ship setRoll:flightRoll];
 	[ship setPitch:0.0];
 	[UNIVERSE addEntity:ship];
 	[ship setStatus: STATUS_LAUNCHING];
+	[ship setDesiredSpeed:launchSpeed]; // must be set after initialising the AI to correct any speed set by AI
 	last_launch_time = [UNIVERSE getTime];
-	[[ship getAI] setNextThinkTime:last_launch_time + 2]; // pause while launching
+	double delay = port_corridor/launchSpeed + 2 * port_dimensions.z/launchSpeed; // pause until 2 portlengths outside of the station.
+	[ship setLaunchDelay:delay];
+	[[ship getAI] setNextThinkTime:last_launch_time + delay]; // pause while launching
 	
 	[ship resetExhaustPlumes];	// resets stuff for tracking/exhausts
 	
-	[self doScriptEvent:@"stationLaunchedShip" withArgument:ship];
+	[self doScriptEvent:@"stationLaunchedShip" withArgument:ship andReactToAIMessage: @"STATION_LAUNCHED_SHIP"];
+	[ship doScriptEvent:@"shipWillLaunchFromStation" withArgument:self];
 }
 
 
@@ -1779,7 +1799,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	ShipEntity  *scavenger_ship;
 	
-	unsigned scavs = [UNIVERSE countShipsWithRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"scavenger"];
+	unsigned scavs = [UNIVERSE countShipsWithPrimaryRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"scavenger"];
 	
 	if (scavs >= max_scavengers)  return nil;
 	if (scavengers_launched >= max_scavengers)  return nil;
@@ -1809,7 +1829,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	ShipEntity  *miner_ship;
 	
-	int		n_miners = [UNIVERSE countShipsWithRole:@"miner" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"miner"];
+	int		n_miners = [UNIVERSE countShipsWithPrimaryRole:@"miner" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"miner"];
 	
 	if (n_miners >= 1)	// just the one
 		return nil;

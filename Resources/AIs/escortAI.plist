@@ -60,6 +60,8 @@
 		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
 		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
+		"NOT_ESCORTING" = ("rollD: 10");
+		"ROLL_1" = ("setStateTo: CHOOSE_NEW_CAREER");
 		"TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort);
 		"NOTHING_FOUND" = ("setStateTo: CHOOSE_NEW_CAREER");
 		"FRUSTRATED" = ("setStateTo: CHOOSE_NEW_CAREER");

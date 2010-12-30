@@ -12,6 +12,7 @@
 		"FRUSTRATED" = ("setSpeedFactorTo: 0.1", "setDesiredRangeTo: 1000.0", exitAI);
 		"LAUNCHED OKAY" = ("exitAIWithMessage: LAUNCHED OKAY");
 		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
+		"DOCKING_REQUESTED" = ("exitAIWithMessage: DOCKING_REQUESTED");
 		UPDATE = (performFlyToRangeFromDestination, 
 				checkCourseToDestination, "pauseAI: 2.0");
 	};
@@ -25,5 +26,6 @@
 		ATTACKED = ("exitAIWithMessage: ATTACKED");
 		"DESIRED_RANGE_ACHIEVED" = ("setDesiredRangeTo: 1000.0", exitAI);
 		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
+		"DOCKING_REQUESTED" = ("exitAIWithMessage: DOCKING_REQUESTED");
 	};
 }

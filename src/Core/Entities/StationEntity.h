@@ -68,6 +68,7 @@ typedef enum
 	Quaternion				port_orientation;
 	Vector  				port_dimensions;
 	ShipEntity				*port_model;
+	double					port_corridor;				// corridor length inside station.
 	
 	NSString				*dockingPatternModelFileName;
 	

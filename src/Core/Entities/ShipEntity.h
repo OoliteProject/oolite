@@ -40,8 +40,6 @@ MA 02110-1301, USA.
 #define RAIDER_MAX_CARGO				5
 #define MERCHANTMAN_MAX_CARGO			125
 
-#define LAUNCH_DELAY					2.0f
-
 #define PIRATES_PREFER_PLAYER			YES
 
 #define TURRET_MINIMUM_COS				0.20f
@@ -238,6 +236,7 @@ MA 02110-1301, USA.
 	OOUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
 	OOUInteger				_maxShipSubIdx;				// serialisation index - the number of ship subentities inside the shipdata
 	double					launch_time;				// time at which launched
+	double					launch_delay;				// delay for thinking after launch
 	
 	GLfloat					frustration,				// degree of dissatisfaction with the current behavioural state, factor used to test this
 							success_factor;
@@ -353,6 +352,7 @@ MA 02110-1301, USA.
 - (void) removeScript;
 - (OOScript *) shipScript;
 - (double) frustration;
+- (void) setLaunchDelay:(double) delay;
 
 - (void) interpretAIMessage:(NSString *)message;
 

@@ -468,7 +468,9 @@ static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS)
 	NSPoint thisCoord = [thisInfo coordinates];
 	NSPoint otherCoord = [otherInfo coordinates];
 	
+	OOJSPauseTimeLimiter();
 	OOJS_RETURN_DOUBLE(distanceBetweenPlanetPositions(thisCoord.x, thisCoord.y, otherCoord.x, otherCoord.y));
+	OOJSResumeTimeLimiter();
 	
 	OOJS_NATIVE_EXIT
 }
