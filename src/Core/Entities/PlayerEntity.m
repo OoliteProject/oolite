@@ -3823,7 +3823,9 @@ static bool minShieldLevelPercentageInitialised = false;
 	}
 
 	if (weapon_to_be_fired == WEAPON_NONE)
+	{
 		return NO;
+	}
 
 	[self currentWeaponStats];
 
@@ -3888,10 +3890,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
 	}	
 	
-	if (weaponFired)
-		return YES;
-	else
-		return NO;
+	return weaponFired;
 }
 
 

@@ -1,0 +1,3 @@
+These files conditionally include the corresponding files from
+js/src/methodjit if JS_METHODJIT is defined. This is necessary because we
+can't use methodjit (JaegerMonkey) on PowerPC.

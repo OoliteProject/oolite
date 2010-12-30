@@ -336,6 +336,7 @@
 		1A26D0F50BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
 		1A26D0F60BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
 		1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A3042F410C16DA60056219D /* Debug.oxp */; };
+		1A27965012CCC09A00C9E94D /* libnspr4_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */; };
 		1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */; };
 		1A27DB3C0C4E349F00CB4CE8 /* OOOXPVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB390C4E349F00CB4CE8 /* OOOXPVerifierStage.h */; };
 		1A27DB3D0C4E349F00CB4CE8 /* OOOXPVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A27DB3A0C4E349F00CB4CE8 /* OOOXPVerifierStage.m */; };
@@ -655,7 +656,6 @@
 		1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455012CB77A700FD8C62 /* libogg_for_oolite.a */; };
 		1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
-		1AEA203512CB9B0500EC0F43 /* libnspr4_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */; };
 		1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEA229D12CBD18600EC0F43 /* CoreServices.framework */; };
 		1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
 		1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */; };
@@ -2002,8 +2002,8 @@
 				1AB7761012CA2EE0001478BB /* libjs_for_oolite.a in Frameworks */,
 				1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */,
 				1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */,
-				1AEA203512CB9B0500EC0F43 /* libnspr4_for_oolite.a in Frameworks */,
 				1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */,
+				1A27965012CCC09A00C9E94D /* libnspr4_for_oolite.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

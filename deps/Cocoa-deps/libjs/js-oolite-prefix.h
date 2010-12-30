@@ -20,7 +20,9 @@
 
 // TraceMonkey, YARR JIT and JaegerMonkey, aka the Go Faster Switches.
 #define	JS_TRACER						1
-//#define	JS_METHODJIT				1
+#if !defined(DEBUG) && (__i386__ || __x86_64__)
+#define	JS_METHODJIT					1
+#endif
 //#define	ENABLE_YARR_JIT				1
 
 
@@ -28,6 +30,10 @@
 #define	FEATURE_NANOJIT					1
 #endif
 
+#if JS_METHODJIT
+#define JS_MONOIC						1
+#define JS_POLYIC						1
+#endif
 
 
 #if __ppc__
@@ -43,11 +49,15 @@
 #define JS_BYTES_PER_WORD				4
 #define JS_BITS_PER_WORD_LOG2			5
 #define AVMPLUS_IA32					1
+#define JS_CPU_X86						1
+#define JS_NUNBOX32						1
 #elif __x86_64__
 #define JS_BYTES_PER_WORD				8
 #define JS_BITS_PER_WORD_LOG2			6
 #define AVMPLUS_64BIT					1
 #define AVMPLUS_AMD64					1
+#define JS_CPU_X64						1
+#define JS_PUNBOX64						1
 #else
 #error Unknown platform.
 #endif

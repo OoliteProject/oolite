@@ -82,7 +82,7 @@ JS_PUBLIC_API(void) JS_Assert(const char *s, const char *file, JSIntn ln)
 {
 /* BEGIN OOLITE */
 #if 1
-	OOLogWithPrefix(CFSTR("javascript.assert"), NULL, file, ln, CFSTR(""), CFSTR("Assertion failure: %s, at %@:%d"), s, OOLogAbbreviatedFileName(file), ln);
+	OOLogWithPrefix(CFSTR("javascript.assert"), NULL, file, ln, CFSTR(""), CFSTR("ASSERTION FAILURE at %@:%d: %s"), OOLogAbbreviatedFileName(file), ln, s);
 	__builtin_trap();
 #else
     fprintf(stderr, "Assertion failure: %s, at %s:%d\n", s, file, ln);

@@ -112,6 +112,10 @@ static JS_ALWAYS_INLINE int
 NativeCompareAndSwap(volatile jsword *w, jsword ov, jsword nv)
 {
 /* BEGIN OOLITE */
+#if JS_VERSION != 185
+#error Libjs version has changed; jslock.cpp must be updated or replaced.
+#endif
+
 // JS_HAS_NATIVE_COMPARE_AND_SWAP is incorrectly defined in PPC Mac builds.
 #undef JS_HAS_NATIVE_COMPARE_AND_SWAP
 #define JS_HAS_NATIVE_COMPARE_AND_SWAP 1
