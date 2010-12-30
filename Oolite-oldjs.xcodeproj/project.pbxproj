@@ -6,24 +6,6 @@
 	objectVersion = 45;
 	objects = {
 
-/* Begin PBXAggregateTarget section */
-		1AD267500C83050800B4BFD1 /* Build All */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 1AD267680C8305A200B4BFD1 /* Build configuration list for PBXAggregateTarget "Build All" */;
-			buildPhases = (
-				1AD267610C83057F00B4BFD1 /* Copy Debug OXP */,
-				1A8DF4F912BD0650006D580F /* Copy System-specific Bundles */,
-			);
-			dependencies = (
-				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
-				1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */,
-				1A09EFAE12BD117400BF7F48 /* PBXTargetDependency */,
-			);
-			name = "Build All";
-			productName = "Build All";
-		};
-/* End PBXAggregateTarget section */
-
 /* Begin PBXBuildFile section */
 		083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */ = {isa = PBXBuildFile; fileRef = 083325DB09DDBCDE00F5B8E4 /* OOColor.h */; };
 		083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 083325DC09DDBCDE00F5B8E4 /* OOColor.m */; };
@@ -334,7 +316,6 @@
 		1A26D0EB0BCF9D3B0073F257 /* OOTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */; };
 		1A26D0F50BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
 		1A26D0F60BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
-		1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A3042F410C16DA60056219D /* Debug.oxp */; };
 		1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */; };
 		1A27DB3C0C4E349F00CB4CE8 /* OOOXPVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB390C4E349F00CB4CE8 /* OOOXPVerifierStage.h */; };
 		1A27DB3D0C4E349F00CB4CE8 /* OOOXPVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A27DB3A0C4E349F00CB4CE8 /* OOOXPVerifierStage.m */; };
@@ -549,7 +530,6 @@
 		1A8BB8EB0E8311F900122974 /* OONullTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8BB8E90E8311F900122974 /* OONullTexture.m */; };
 		1A8C981D117A380800D8AB7E /* OOCombinedEmissionMapGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8C97E5117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.m */; };
 		1A8C981E117A380800D8AB7E /* OOCombinedEmissionMapGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8C97E4117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.h */; };
-		1A8DF4F312BD063A006D580F /* Oolite Leopard support.bundle in Copy System-specific Bundles */ = {isa = PBXBuildFile; fileRef = 1A8DF4F112BD060C006D580F /* Oolite Leopard support.bundle */; };
 		1A8DF50C12BD072A006D580F /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
 		1A9322970DF53C33003FD306 /* OOJSSystemInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9322950DF53C33003FD306 /* OOJSSystemInfo.h */; };
 		1A9322980DF53C33003FD306 /* OOJSSystemInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9322960DF53C33003FD306 /* OOJSSystemInfo.m */; };
@@ -743,20 +723,6 @@
 			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
 			remoteInfo = "Oolite-docktile";
 		};
-		1A09EFAD12BD117400BF7F48 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A8DF4EC12BD060C006D580F /* LeopardFeatures.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D57630D048677EA00EA77CD;
-			remoteInfo = LeopardFeatures;
-		};
-		1A274D2410C1EE02004CDDF5 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
-			remoteInfo = DebugOXP;
-		};
 		1A3042F310C16DA60056219D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
@@ -805,13 +771,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = 8D576316048677EA00EA77CD;
 			remoteInfo = LeopardFeatures;
-		};
-		1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 0865423506B8447D000CA0AB;
-			remoteInfo = Oolite;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -1173,28 +1132,6 @@
 			name = "Copy Shaders";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A8DF4F912BD0650006D580F /* Copy System-specific Bundles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Oolite.app/Contents/PlugIns;
-			dstSubfolderSpec = 16;
-			files = (
-				1A8DF4F312BD063A006D580F /* Oolite Leopard support.bundle in Copy System-specific Bundles */,
-			);
-			name = "Copy System-specific Bundles";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1AD267610C83057F00B4BFD1 /* Copy Debug OXP */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = AddOns;
-			dstSubfolderSpec = 16;
-			files = (
-				1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */,
-			);
-			name = "Copy Debug OXP";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -1205,7 +1142,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite-oldjs.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Oolite-oldjs.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A00C65310663D3700A8737D /* OOProfilingStopwatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProfilingStopwatch.h; sourceTree = "<group>"; };
@@ -2013,7 +1950,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* Oolite-oldjs.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */,
 			);
 			name = Products;
@@ -3451,7 +3388,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite-oldjs.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -3480,7 +3417,7 @@
 				BuildIndependentTargetsInParallel = YES;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
-			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
+			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-oldjs" */;
 			compatibilityVersion = "Xcode 3.1";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
@@ -3516,7 +3453,6 @@
 			);
 			projectRoot = "";
 			targets = (
-				1AD267500C83050800B4BFD1 /* Build All */,
 				0865423506B8447D000CA0AB /* Oolite */,
 				1A71E6F20BCE340C00CD5C13 /* libpng-custom */,
 			);
@@ -3833,16 +3769,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		1A09EFAE12BD117400BF7F48 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = LeopardFeatures;
-			targetProxy = 1A09EFAD12BD117400BF7F48 /* PBXContainerItemProxy */;
-		};
-		1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = DebugOXP;
-			targetProxy = 1A274D2410C1EE02004CDDF5 /* PBXContainerItemProxy */;
-		};
 		1A3E01A911C574E1000FF226 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Oolite-importer";
@@ -3857,11 +3783,6 @@
 			isa = PBXTargetDependency;
 			target = 1A71E6F20BCE340C00CD5C13 /* libpng-custom */;
 			targetProxy = 1A71E6F60BCE343400CD5C13 /* PBXContainerItemProxy */;
-		};
-		1AD267560C83052600B4BFD1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 0865423506B8447D000CA0AB /* Oolite */;
-			targetProxy = 1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -3910,7 +3831,7 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
-				PRODUCT_NAME = Oolite;
+				PRODUCT_NAME = "Oolite-oldjs";
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
@@ -3967,7 +3888,7 @@
 					"$(OTHER_LDFLAGS_QUOTED_FOR_TARGET_2)",
 				);
 				PREBINDING = NO;
-				PRODUCT_NAME = Oolite;
+				PRODUCT_NAME = "Oolite-oldjs";
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
@@ -4066,7 +3987,7 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				PREBINDING = NO;
-				PRODUCT_NAME = Oolite;
+				PRODUCT_NAME = "Oolite-oldjs";
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
@@ -4135,49 +4056,6 @@
 			};
 			name = Deployment;
 		};
-		1AD267690C8305A200B4BFD1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				PRODUCT_NAME = "Build All";
-			};
-			name = Debug;
-		};
-		1AD2676A0C8305A200B4BFD1 /* Deployment */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				PRODUCT_NAME = "Build All";
-			};
-			name = Deployment;
-		};
-		1AD2676B0C8305A200B4BFD1 /* TestRelease */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
-				PRODUCT_NAME = "Build All";
-			};
-			name = TestRelease;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -4191,7 +4069,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
 		};
-		08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */ = {
+		08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite-oldjs" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				08B31CB108FE63D70038D42F /* Debug */,
@@ -4207,16 +4085,6 @@
 				1A71E6FD0BCE345800CD5C13 /* Debug */,
 				1A71E6FE0BCE345800CD5C13 /* Deployment */,
 				1A0832D60C2F105000E3AE25 /* TestRelease */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Deployment;
-		};
-		1AD267680C8305A200B4BFD1 /* Build configuration list for PBXAggregateTarget "Build All" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				1AD267690C8305A200B4BFD1 /* Debug */,
-				1AD2676A0C8305A200B4BFD1 /* Deployment */,
-				1AD2676B0C8305A200B4BFD1 /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
