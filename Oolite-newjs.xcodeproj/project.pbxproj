@@ -60,7 +60,7 @@
 		1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */; };
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
 		1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
-		1A09EF5512BD0C1E00BF7F48 /* Oolite Leopard support.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 1A09EF5412BD0C1900BF7F48 /* Oolite Leopard support.bundle */; };
+		1A09EF5512BD0C1E00BF7F48 /* Oolite Leopard support.bundle in Copy Plug-Ins */ = {isa = PBXBuildFile; fileRef = 1A09EF5412BD0C1900BF7F48 /* Oolite Leopard support.bundle */; };
 		1A09EF5812BD0C4100BF7F48 /* Oolite Leopard support.bundle in Copy System-specific Bundles */ = {isa = PBXBuildFile; fileRef = 1A09EF5412BD0C1900BF7F48 /* Oolite Leopard support.bundle */; };
 		1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */; };
 		1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */; };
@@ -856,6 +856,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				1A09EF5512BD0C1E00BF7F48 /* Oolite Leopard support.bundle in Copy Plug-Ins */,
 			);
 			name = "Copy Plug-Ins";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3635,7 +3636,6 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
-				1A09EF5512BD0C1E00BF7F48 /* Oolite Leopard support.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
