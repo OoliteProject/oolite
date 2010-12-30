@@ -2134,6 +2134,7 @@
 		};
 		1AD05E0A12CD189100704F1D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
@@ -2142,13 +2143,19 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"",
+					DEBUG,
+				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
 				INSTALL_PATH = /usr/local/bin;
 				LIBRARY_SEARCH_PATHS = "$(SYMROOT)";
+				MOZILLA_PATH = "$(SRCROOT)/../../Cross-platform-deps/mozilla/";
 				PREBINDING = NO;
 				PRODUCT_NAME = "jsapi-tests";
 				SYMROOT = ../../../build;
+				USER_HEADER_SEARCH_PATHS = "$(MOZILLA_PATH)/nsprpub/pr/include/";
 			};
 			name = Debug;
 		};
@@ -2161,13 +2168,16 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
 				INSTALL_PATH = /usr/local/bin;
 				LIBRARY_SEARCH_PATHS = "$(SYMROOT)";
+				MOZILLA_PATH = "$(SRCROOT)/../../Cross-platform-deps/mozilla/";
 				PREBINDING = NO;
 				PRODUCT_NAME = "jsapi-tests";
 				SYMROOT = ../../../build;
+				USER_HEADER_SEARCH_PATHS = "$(MOZILLA_PATH)/nsprpub/pr/include/";
 				ZERO_LINK = NO;
 			};
 			name = Deployment;
@@ -2179,13 +2189,16 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
 				INSTALL_PATH = /usr/local/bin;
 				LIBRARY_SEARCH_PATHS = "$(SYMROOT)";
+				MOZILLA_PATH = "$(SRCROOT)/../../Cross-platform-deps/mozilla/";
 				PREBINDING = NO;
 				PRODUCT_NAME = "jsapi-tests";
 				SYMROOT = ../../../build;
+				USER_HEADER_SEARCH_PATHS = "$(MOZILLA_PATH)/nsprpub/pr/include/";
 			};
 			name = TestRelease;
 		};

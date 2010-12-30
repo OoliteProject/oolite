@@ -223,11 +223,11 @@ static JSBool GlobalLog(OOJS_NATIVE_ARGS)
 	if (argc < 2)
 	{
 		messageClass = kOOLogDebugMessage;
-		message = JSValToNSString(context,OOJS_ARG(0));
+		message = JSValToNSString(context, OOJS_ARG(0));
 	}
 	else
 	{
-		messageClass = [NSString stringWithJavaScriptValue:OOJS_ARG(0) inContext:context];
+		messageClass = JSValToNSString(context, OOJS_ARG(0));
 		message = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV + 1 count:argc - 1 separator:@", " inContext:context];
 	}
 	
