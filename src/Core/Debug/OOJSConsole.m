@@ -117,6 +117,7 @@ enum
 	kConsole_reducedDetailMode,					// reduced detail mode, boolean, read/write
 	kConsole_displayFPS,						// display FPS (and related info), boolean, read/write
 	kConsole_platformDescription,				// Information about system we're running on in unspecified format, string, read-only
+	kConsole_pedanticMode,						// JS pedantic mode (JS_STRICT flag, not the same as "use strict"), boolean (default true), read/write
 	
 	kConsole_glVendorString,					// OpenGL GL_VENDOR string, string, read-only
 	kConsole_glRendererString,					// OpenGL GL_RENDERER string, string, read-only
@@ -148,6 +149,7 @@ static JSPropertySpec sConsoleProperties[] =
 	{ "reducedDetailMode",					kConsole_reducedDetailMode,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "displayFPS",							kConsole_displayFPS,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "platformDescription",				kConsole_platformDescription,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "pedanticMode",						kConsole_pedanticMode,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "glVendorString",						kConsole_glVendorString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "glRendererString",					kConsole_glRendererString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "glFixedFunctionTextureUnitCount",	kConsole_glFixedFunctionTextureUnitCount,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -307,6 +309,13 @@ static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
 			*value = [OOPlatformDescription() javaScriptValueInContext:context];
 			break;
 			
+		case kConsole_pedanticMode:
+			{
+				uint32_t options = JS_GetOptions(context);
+				*value = BOOLToJSVal(options & JSOPTION_STRICT);
+			}
+			break;
+			
 		case kConsole_glVendorString:
 			*value = [[[OOOpenGLExtensionManager sharedManager] vendorString] javaScriptValueInContext:context];
 			break;
@@ -393,6 +402,17 @@ static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[UNIVERSE setDisplayFPS:bValue];
+			}
+			break;
+			
+		case kConsole_pedanticMode:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				uint32_t options = JS_GetOptions(context);
+				if (bValue)  options |= JSOPTION_STRICT;
+				else  options &= ~JSOPTION_STRICT;
+				
+				JS_SetOptions(context, options);
 			}
 			break;
 			
