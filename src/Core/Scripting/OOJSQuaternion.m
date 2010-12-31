@@ -215,7 +215,7 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	}
 	
 	// If it's an entity, use its orientation.
-	if (JSEntityGetEntity(context, quaternionObj, &entity))
+	if (OOJSEntityGetEntity(context, quaternionObj, &entity))
 	{
 		*outQuaternion = [entity orientation];
 		return YES;

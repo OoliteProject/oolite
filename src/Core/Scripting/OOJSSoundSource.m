@@ -31,9 +31,6 @@ MA 02110-1301, USA.
 static JSObject *sSoundSourcePrototype;
 
 
-DEFINE_JS_OBJECT_GETTER(JSSoundSourceGetSoundSource, OOSoundSource)
-
-
 static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS);
 static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS);
 static JSBool SoundSourceConstruct(OOJS_NATIVE_ARGS);
@@ -93,6 +90,9 @@ static JSFunctionSpec sSoundSourceMethods[] =
 	{ "playSound",				SoundSourcePlaySound,		1, },
 	{ 0 }
 };
+
+
+DEFINE_JS_OBJECT_GETTER(JSSoundSourceGetSoundSource, &sSoundSourceClass, sSoundSourcePrototype, OOSoundSource)
 
 
 // *** Public ***
@@ -238,7 +238,7 @@ static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS)
 	[thisv play];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -257,7 +257,7 @@ static JSBool SoundSourceStop(OOJS_NATIVE_ARGS)
 	[thisv stop];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -276,7 +276,7 @@ static JSBool SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS)
 	[thisv playOrRepeat];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -317,7 +317,7 @@ static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS)
 	[thisv play];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

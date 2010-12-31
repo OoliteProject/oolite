@@ -35,14 +35,14 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 
 
-static JSObject		*sEntityPrototype;
+JSObject		*gOOEntityJSPrototype;
 
 
 static JSBool EntityGetProperty(OOJS_PROP_ARGS);
 static JSBool EntitySetProperty(OOJS_PROP_ARGS);
 
 
-static JSClass sEntityClass =
+JSClass gOOEntityJSClass =
 {
 	"Entity",
 	JSCLASS_HAS_PRIVATE,
@@ -120,8 +120,8 @@ static JSFunctionSpec sEntityMethods[] =
 
 void InitOOJSEntity(JSContext *context, JSObject *global)
 {
-	sEntityPrototype = JS_InitClass(context, global, NULL, &sEntityClass, NULL, 0, sEntityProperties, sEntityMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sEntityClass, JSBasicPrivateObjectConverter);
+	gOOEntityJSPrototype = JS_InitClass(context, global, NULL, &gOOEntityJSClass, NULL, 0, sEntityProperties, sEntityMethods, NULL, NULL);
+	JSRegisterObjectConverter(&gOOEntityJSClass, JSBasicPrivateObjectConverter);
 }
 
 
@@ -129,22 +129,10 @@ BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity)
 {
 	if (JSVAL_IS_OBJECT(value))
 	{
-		return JSEntityGetEntity(context, JSVAL_TO_OBJECT(value), outEntity);
+		return OOJSEntityGetEntity(context, JSVAL_TO_OBJECT(value), outEntity);
 	}
 	
 	return NO;
-}
-
-
-JSClass *JSEntityClass(void)
-{
-	return &sEntityClass;
-}
-
-
-JSObject *JSEntityPrototype(void)
-{
-	return sEntityPrototype;
 }
 
 
@@ -189,7 +177,7 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 	Entity						*entity = nil;
 	id							result = nil;
 	
-	JSEntityGetEntity(context, this, &entity);
+	OOJSEntityGetEntity(context, this, &entity);
 	if (entity == nil)
 	{
 		if (OOJS_PROPID_INT == kEntity_isValid)  *value = JSVAL_FALSE;
@@ -312,7 +300,7 @@ static JSBool EntitySetProperty(OOJS_PROP_ARGS)
 	Vector				vValue;
 	Quaternion			qValue;
 	
-	if (EXPECT_NOT(!JSEntityGetEntity(context, this, &entity))) return NO;
+	if (EXPECT_NOT(!OOJSEntityGetEntity(context, this, &entity)))  return YES;	// Do nothing.
 	
 	switch (OOJS_PROPID_INT)
 	{

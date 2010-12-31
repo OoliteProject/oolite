@@ -347,7 +347,7 @@ static JSBool PlayerCommsMessage(OOJS_NATIVE_ARGS)
 	}
 	
 	[UNIVERSE addCommsMessage:message forCount:time];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -371,7 +371,7 @@ static JSBool PlayerConsoleMessage(OOJS_NATIVE_ARGS)
 	}
 	
 	[UNIVERSE addMessage:message forCount:time];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -383,7 +383,7 @@ static JSBool PlayerIncreaseContractReputation(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	[OOPlayerForScripting() increaseContractReputation];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -395,7 +395,7 @@ static JSBool PlayerDecreaseContractReputation(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	[OOPlayerForScripting() decreaseContractReputation];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -407,7 +407,7 @@ static JSBool PlayerIncreasePassengerReputation(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	[OOPlayerForScripting() increasePassengerReputation];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -419,7 +419,7 @@ static JSBool PlayerDecreasePassengerReputation(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	[OOPlayerForScripting() decreasePassengerReputation];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -439,7 +439,7 @@ static JSBool PlayerAddMessageToArrivalReport(OOJS_NATIVE_ARGS)
 	}
 	
 	[OOPlayerForScripting() addMessageToReport:report];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

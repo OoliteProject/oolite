@@ -1553,8 +1553,7 @@ JSBool JSObjectWrapperToString(OOJS_NATIVE_ARGS)
 	}
 	if (description == nil)  description = @"[object]";
 	
-	OOJS_SET_RVAL([description javaScriptValueInContext:context]);
-	return YES;
+	OOJS_RETURN_OBJECT(description);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -1659,7 +1658,67 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter)
 }
 
 
+static NSMapTable *sRegisteredSubClasses;
+
+void OOJSRegisterSubclass(JSClass *subclass, JSClass *superclass)
+{
+	NSCParameterAssert(subclass != NULL && superclass != NULL);
+	
+	if (sRegisteredSubClasses == NULL)
+	{
+		sRegisteredSubClasses = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks, NSNonOwnedPointerMapValueCallBacks, 0);
+	}
+	
+	NSCAssert(NSMapGet(sRegisteredSubClasses, subclass) == NULL, @"A JS class cannot be registered as a subclass of multiple classes.");
+	
+	NSMapInsertKnownAbsent(sRegisteredSubClasses, subclass, superclass);
+}
+
+
+BOOL OOJSIsSubclass(JSClass *putativeSubclass, JSClass *superclass)
+{
+	NSCParameterAssert(putativeSubclass != NULL && superclass != NULL);
+	NSCAssert(sRegisteredSubClasses != NULL, @"OOJSIsSubclass() called before any subclasses registered (disallowed for hot path efficiency).");
+	
+	do
+	{
+		if (putativeSubclass == superclass)  return YES;
+		
+		putativeSubclass = NSMapGet(sRegisteredSubClasses, putativeSubclass);
+	}
+	while (putativeSubclass != NULL);
+	
+	return NO;
+}
+
+
+BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *requiredJSClass, Class requiredObjCClass, id *outObject)
+{
+	NSCParameterAssert(context != NULL && object != NULL && requiredJSClass != NULL && requiredObjCClass != Nil && outObject != NULL);
+	
+	JSClass *actualClass = JS_GetClass(context, object);
+	if (EXPECT_NOT(!OOJSIsSubclass(actualClass, requiredJSClass)))
+	{
+		OOReportJSError(context, @"Native method expected %s, got %@.", requiredJSClass->name, JSObjectToNSString(context, object));
+		return NO;
+	}
+	NSCAssert(actualClass->flags & JSCLASS_HAS_PRIVATE, @"Native object accessor requires JS class with private storage.");
+	
+	*outObject = JS_GetPrivate(context, object);
+	
+#ifndef NDEBUG
+	if (EXPECT_NOT(*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass]))
+	{
+		OOReportJSError(context, @"Native method expected %@ from %s and got correct JS type but incorrect native object %@", requiredObjCClass, requiredJSClass->name, *outObject);
+		return NO;
+	}
+#endif
+	return YES;
+}
+
+
 static NSMutableDictionary *sObjectConverters;
+
 
 id JSValueToObject(JSContext *context, jsval value)
 {

@@ -450,7 +450,6 @@ static BOOL DoWeDefineAllDebugFlags(enum OODebugFlags flags)
 		case DEBUG_NO_DUST:
 		case DEBUG_NO_SHADER_FALLBACK:
 		case DEBUG_SHADER_VALIDATION:
-		
 		case DEBUG_MISC:
 			return YES;
 	}
@@ -622,7 +621,7 @@ static JSBool ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
 	}
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -643,7 +642,7 @@ static JSBool ConsoleClearConsole(OOJS_NATIVE_ARGS)
 	}
 	
 	[monitor clearJSConsole];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -677,7 +676,7 @@ static JSBool ConsoleInspectEntity(OOJS_NATIVE_ARGS)
 		}
 	}
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -722,7 +721,7 @@ static JSBool ConsoleSetUpCallObjC(OOJS_NATIVE_ARGS)
 	
 	JSObject *obj = JSVAL_TO_OBJECT(OOJS_ARG(0));
 	JS_DefineFunction(context, obj, "callObjC", ConsoleCallObjCMethod, 1, JSPROP_PERMANENT | JSPROP_READONLY);
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -736,14 +735,17 @@ static JSBool ConsoleIsExecutableJavaScript(OOJS_NATIVE_ARGS)
 	BOOL					result = NO;
 	JSObject				*target = NULL;
 	
-	if (argc < 2)  return YES;
-	if (!JS_ValueToObject(context, OOJS_ARG(0), &target) || !JSVAL_IS_STRING(OOJS_ARG(1)))  return YES;	// Fail silently
+	if (argc < 2 || !JS_ValueToObject(context, OOJS_ARG(0), &target) || !JSVAL_IS_STRING(OOJS_ARG(1)))
+	{
+		OOJS_RETURN_BOOL(NO);	// Fail silently
+	}
 	
 	OOJSPauseTimeLimiter();
 #if OO_NEW_JS
+	// FIXME: this must be possible using just JSAPI functions.
 	NSString *string = JSValToNSString(context, OOJS_ARG(1));
-	const char *utf8 = [string UTF8String];
-	result = JS_BufferIsCompilableUnit(context, target, utf8, strlen(utf8));
+	NSData *stringData = [string dataUsingEncoding:NSUTF8StringEncoding];
+	result = JS_BufferIsCompilableUnit(context, target, [stringData bytes], [stringData length]);
 #else
 	JSString *string = JSVAL_TO_STRING(OOJS_ARG(1));
 	result = JS_BufferIsCompilableUnit(context, target, JS_GetStringBytes(string), JS_GetStringLength(string));
@@ -783,8 +785,7 @@ static JSBool ConsoleSetDisplayMessagesInClass(OOJS_NATIVE_ARGS)
 	{
 		OOLogSetDisplayMessagesInClass(messageClass, flag);
 	}
-	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -796,7 +797,7 @@ static JSBool ConsoleWriteLogMarker(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	OOLogInsertMarker();
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -811,7 +812,7 @@ static JSBool ConsoleWriteMemoryStats(OOJS_NATIVE_ARGS)
 	[[OODebugMonitor sharedDebugMonitor] dumpMemoryStatistics];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

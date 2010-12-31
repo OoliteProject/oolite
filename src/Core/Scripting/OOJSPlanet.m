@@ -31,9 +31,6 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 
 
-DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, OOPlanetEntity)
-
-
 static JSObject		*sPlanetPrototype;
 
 
@@ -83,10 +80,14 @@ static JSPropertySpec sPlanetProperties[] =
 };
 
 
+DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, &sPlanetClass, sPlanetPrototype, OOPlanetEntity)
+
+
 void InitOOJSPlanet(JSContext *context, JSObject *global)
 {
 	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass, NULL, 0, sPlanetProperties, NULL, NULL, NULL);
 	JSRegisterObjectConverter(&sPlanetClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterSubclass(&sPlanetClass, JSEntityClass());
 }
 
 

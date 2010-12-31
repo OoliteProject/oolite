@@ -127,6 +127,7 @@ void InitOOJSStation(JSContext *context, JSObject *global)
 {
 	sStationPrototype = JS_InitClass(context, global, JSShipPrototype(), &sStationClass, NULL, 0, sStationProperties, sStationMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sStationClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterSubclass(&sStationClass, JSShipClass());
 }
 
 
@@ -140,7 +141,7 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 	if (outEntity == NULL)  return NO;
 	*outEntity = nil;
 	
-	result = JSEntityGetEntity(context, stationObj, &entity);
+	result = OOJSEntityGetEntity(context, stationObj, &entity);
 	if (!result)  return NO;
 	
 	if (![entity isKindOfClass:[StationEntity class]])  return NO;
@@ -326,22 +327,20 @@ static JSBool StationDockPlayer(OOJS_NATIVE_ARGS)
 	
 	PlayerEntity	*player = OOPlayerForScripting();
 	
-	if ([player isDocked])
+	if (EXPECT(![player isDocked]))
 	{
-		return YES; //fail silently
-	}
-	
-	StationEntity *stationForDockingPlayer = nil;
-	JSStationGetStationEntity(context, OOJS_THIS, &stationForDockingPlayer); 
-	
+		StationEntity *stationForDockingPlayer = nil;
+		JSStationGetStationEntity(context, OOJS_THIS, &stationForDockingPlayer); 
+		
 #if DOCKING_CLEARANCE_ENABLED
-	[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+		[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif
-
-	[player safeAllMissiles];
-	[UNIVERSE setViewDirection:VIEW_FORWARD];
-	[player enterDock:stationForDockingPlayer];
-	return YES;
+		
+		[player safeAllMissiles];
+		[UNIVERSE setViewDirection:VIEW_FORWARD];
+		[player enterDock:stationForDockingPlayer];
+	}
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -356,7 +355,7 @@ static JSBool StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
 	ShipEntity	*result = nil;
 	JSBool		abortAllDockings = NO;
 	
-	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARG(1), &abortAllDockings);
 	
@@ -380,7 +379,7 @@ static JSBool StationLaunchDefenseShip(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	OOJS_RETURN_OBJECT([station launchDefenseShip]);
 	OOJS_NATIVE_EXIT
@@ -392,7 +391,7 @@ static JSBool StationLaunchScavenger(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	OOJS_RETURN_OBJECT([station launchScavenger]);
 	OOJS_NATIVE_EXIT
@@ -404,7 +403,7 @@ static JSBool StationLaunchMiner(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	OOJS_RETURN_OBJECT([station launchMiner]);
 	OOJS_NATIVE_EXIT
@@ -416,7 +415,7 @@ static JSBool StationLaunchPirateShip(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	OOJS_RETURN_OBJECT([station launchPirateShip]);
 	OOJS_NATIVE_EXIT
@@ -428,7 +427,7 @@ static JSBool StationLaunchShuttle(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	OOJS_RETURN_OBJECT([station launchShuttle]);
 	OOJS_NATIVE_EXIT
@@ -440,7 +439,7 @@ static JSBool StationLaunchPatrol(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	OOJS_RETURN_OBJECT([station launchPatrol]);
 	OOJS_NATIVE_EXIT
@@ -452,7 +451,7 @@ static JSBool StationLaunchPolice(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	StationEntity *station = nil;
-	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  return YES; // stale reference, no-op
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	OOJS_RETURN_OBJECT([station launchPolice]);
 	OOJS_NATIVE_EXIT

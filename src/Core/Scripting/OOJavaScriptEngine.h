@@ -233,6 +233,12 @@ OOINLINE NSString *JSValToNSString(JSContext *context, jsval value)
 }
 
 
+OOINLINE NSString *JSObjectToNSString(JSContext *context, JSObject *object)
+{
+	return [NSString stringOrNilWithJavaScriptValue:OBJECT_TO_JSVAL(object) inContext:context];
+}
+
+
 // OOEntityFilterPredicate wrapping a JavaScript function.
 typedef struct
 {
@@ -252,18 +258,62 @@ BOOL JSEntityIsJavaScriptVisiblePredicate(Entity *entity, void *parameter);
 BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter);
 
 
+// These require a request on context.
 id JSValueToObject(JSContext *context, jsval value);
 id JSObjectToObject(JSContext *context, JSObject *object);
 id JSValueToObjectOfClass(JSContext *context, jsval value, Class requiredClass);
 id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredClass);
 
-#define DEFINE_JS_OBJECT_GETTER(NAME, CLASS) \
-OOINLINE BOOL NAME(JSContext *context, JSObject *inObject, CLASS **outObject) \
+
+/*
+	DEFINE_JS_OBJECT_GETTER()
+	Defines a helper to extract Objective-C objects from the private field of
+	JS objects, with runtime type checking. The generated accessor requires
+	a request on context.
+	
+	Types which extend other types, such as entity subtypes, must register
+	their relationships with OOJSRegisterSubclass() below.
+	
+	The signature of the generator is:
+	BOOL <name(JSContext *context, JSObject *inObject, <class>** outObject)
+	If it returns NO, inObject is of the wrong class and an error has been
+	raised. Otherwise, outOjbect is either a native object of the specified
+	class (or a subclass) or nil.
+*/
+#define DEFINE_JS_OBJECT_GETTER(NAME, JSCLASS, JSPROTO, OBJCCLASSNAME) \
+static BOOL NAME(JSContext *context, JSObject *inObject, OBJCCLASSNAME **outObject)  GCC_ATTR((unused)); \
+static BOOL NAME(JSContext *context, JSObject *inObject, OBJCCLASSNAME **outObject) \
 { \
-	if (EXPECT_NOT(outObject == NULL))  return NO; \
-	*outObject = JSObjectToObjectOfClass(context, inObject, [CLASS class]); \
-	return *outObject != nil; \
+	NSCParameterAssert(outObject != NULL); \
+	static Class cls = Nil; \
+	if (EXPECT_NOT(cls == Nil))  cls = [OBJCCLASSNAME class]; \
+	return OOJSObjectGetterImpl(context, inObject, JSCLASS, cls, (id *)outObject); \
 }
+// For DEFINE_JS_OBJECT_GETTER()'s use.
+BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *requiredJSClass, Class requiredObjCClass, id *outObject);
+
+
+/*
+	Subclass relationships.
+	
+	JSAPI doesn't have a concept of subclassing, as JavaScript doesn't have a
+	concept of classes, but Oolite reflects part of its class hierarchy as
+	related JSClasses whose prototypes inherit each other. For instance,
+	JS Entity methods work on JS Ships. In order for this to work,
+	OOJSEntityGetEntity() must be able to know that Ship is a subclass of
+	Entity. This is done using OOJSIsSubclass().
+	
+	void OOJSRegisterSubclass(JSClass *subclass, JSClass *superclass)
+	Register subclass as a subclass of superclass. Subclass must not previously
+	have been registered as a subclass of any class (i.e., single inheritance
+	is required).
+ 
+	BOOL OOJSIsSubclass(JSClass *putativeSubclass, JSClass *superclass)
+	Test whether putativeSubclass is a equal to superclass or a registered
+	subclass of superclass, recursively.
+*/
+void OOJSRegisterSubclass(JSClass *subclass, JSClass *superclass);
+BOOL OOJSIsSubclass(JSClass *putativeSubclass, JSClass *superclass);
 
 
 /*	Support for JSValueToObject()
@@ -496,6 +546,7 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #define OOJS_ARG(n)						(OOJS_ARGV[(n)])
 #define OOJS_RETURN(v)					do { OOJS_SET_RVAL(v); return YES; } while (0)
 #define OOJS_RETURN_VOID				OOJS_RETURN(JSVAL_VOID)
+#define OOJS_RETURN_NULL				OOJS_RETURN(JSVAL_NULL)
 #define OOJS_RETURN_BOOL(v)				OOJS_RETURN(BOOLToJSVal(v))
 #define OOJS_RETURN_INT(v)				OOJS_RETURN(INT_TO_JSVAL(v))
 #define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ javaScriptValueInContext:context] : JSVAL_NULL); } while (0)

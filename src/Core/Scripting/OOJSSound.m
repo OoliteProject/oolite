@@ -33,9 +33,6 @@ MA 02110-1301, USA.
 static JSObject *sSoundPrototype;
 
 
-DEFINE_JS_OBJECT_GETTER(JSSoundGetSound, OOSound)
-
-
 static OOSound *GetNamedSound(NSString *name);
 
 
@@ -95,6 +92,9 @@ static JSFunctionSpec sSoundStaticMethods[] =
 	{ "stopMusic",				SoundStaticStopMusic,		0, },
 	{ 0 }
 };
+
+
+DEFINE_JS_OBJECT_GETTER(JSSoundGetSound, &sSoundClass, sSoundPrototype, OOSound)
 
 
 // *** Public ***
@@ -186,14 +186,10 @@ static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS)
 	}
 	
 	OOJSPauseTimeLimiter();
-	
 	sound = GetNamedSound(name);
-	if (sound != nil)  OOJS_SET_RVAL([sound javaScriptValueInContext:context]);
-	else  OOJS_SET_RVAL(JSVAL_VOID); // No sound by that name
-	
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_OBJECT(sound);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -226,7 +222,7 @@ static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
 	[[OOMusicController sharedController] playMusicNamed:name loop:loop];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -255,7 +251,7 @@ static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 	}
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

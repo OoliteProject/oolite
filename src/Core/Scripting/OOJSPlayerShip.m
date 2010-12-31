@@ -161,6 +161,7 @@ void InitOOJSPlayerShip(JSContext *context, JSObject *global)
 {
 	sPlayerShipPrototype = JS_InitClass(context, global, JSShipPrototype(), &sPlayerShipClass, NULL, 0, sPlayerShipProperties, sPlayerShipMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sPlayerShipClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterSubclass(&sPlayerShipClass, JSShipClass());
 	
 	// Create ship object as a property of the player object.
 	sPlayerShipObject = JS_DefineObject(context, JSPlayerObject(), "ship", &sPlayerShipClass, sPlayerShipPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
@@ -209,7 +210,7 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) {*value = JSVAL_VOID; return YES;}
+	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) { *value = JSVAL_VOID; return YES; }
 	if (EXPECT_NOT(!OOJS_PROPID_IS_INT))  return YES;
 	
 	BOOL						OK = NO;
@@ -433,7 +434,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 				}
 				else
 				{
-					OOReportJSError(context, @"%@hud could not be changed to %@",@"PlayerShip.", sValue);
+					OOReportJSError(context, @"PlayerShip.hud could not be changed to %@", sValue);
 					OK = NO;
 				}
 			}
@@ -469,10 +470,10 @@ static JSBool PlayerShipLaunch(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) return YES;
+	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
 	
 	[OOPlayerShipForScripting() launchFromStation];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -483,18 +484,18 @@ static JSBool PlayerShipRemoveAllCargo(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) return YES;
+	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
 	
 	PlayerEntity *player = OOPlayerShipForScripting();
 	
 	if ([player isDocked])
 	{
 		[player removeAllCargo];
-		return YES;
+		OOJS_RETURN_VOID;
 	}
 	else
 	{
-		OOReportJSError(context, @"%@removeAllCargo only works when docked.",@"PlayerShip.");
+		OOReportJSError(context, @"PlayerShip.removeAllCargo only works when docked.");
 		return NO;
 	}
 	
@@ -507,7 +508,7 @@ static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) return YES;
+	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
 	
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	NSString				*name = nil;
@@ -520,7 +521,7 @@ static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
 	}
 	
 	[player useSpecialCargo:JSValToNSString(context, OOJS_ARG(0))];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -531,7 +532,7 @@ static JSBool PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  return YES;
+	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
 	
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	StationEntity			*stationForDocking = nil;
@@ -554,12 +555,12 @@ static JSBool PlayerShipDisengageAutopilot(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) return YES;
+	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
 	
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	
 	[player disengageAutopilot];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -570,7 +571,7 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) return YES;
+	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
 	
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	NSString				*key = nil;

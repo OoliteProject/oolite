@@ -30,9 +30,6 @@ MA 02110-1301, USA.
 #import "OOSunEntity.h"
 
 
-DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, OOSunEntity)
-
-
 static JSObject		*sSunPrototype;
 
 
@@ -86,10 +83,14 @@ static JSFunctionSpec sSunMethods[] =
 };
 
 
+DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, &sSunClass, sSunPrototype, OOSunEntity)
+
+
 void InitOOJSSun(JSContext *context, JSObject *global)
 {
 	sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass, NULL, 0, sSunProperties, sSunMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sSunClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterSubclass(&sSunClass, JSEntityClass());
 }
 
 
@@ -163,11 +164,11 @@ static JSBool SunGoNova(OOJS_NATIVE_ARGS)
 	OOSunEntity					*sun = nil;
 	jsdouble					delay = 0;
 	
-	if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun))) return NO;
+	if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))  return NO;
 	if (argc > 0 && EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARG(0), &delay)))  return NO;
 	
 	[sun setGoingNova:YES inTime:delay];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -180,13 +181,13 @@ static JSBool SunCancelNova(OOJS_NATIVE_ARGS)
 	
 	OOSunEntity					*sun = nil;
 	
-	if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun))) return NO;
+	if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))  return NO;
 	
 	if ([sun willGoNova] && ![sun goneNova])
 	{
 		[sun setGoingNova:NO inTime:0];
 	}
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

@@ -34,10 +34,12 @@ void InitOOJSEntity(JSContext *context, JSObject *global);
 
 BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);	// Value may be Entity or integer (OOUniversalID).
 
-DEFINE_JS_OBJECT_GETTER(JSEntityGetEntity, Entity)
+JSClass gOOEntityJSClass;
+JSObject *gOOEntityJSPrototype;
+DEFINE_JS_OBJECT_GETTER(OOJSEntityGetEntity, &gOOEntityJSClass, gOOEntityJSPrototype, Entity)
 
-JSClass *JSEntityClass(void);
-JSObject *JSEntityPrototype(void);
+OOINLINE JSClass *JSEntityClass(void)  { return &gOOEntityJSClass; }
+OOINLINE JSObject *JSEntityPrototype(void)  { return gOOEntityJSPrototype; }
 
 
 /*	EntityFromArgumentList()

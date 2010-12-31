@@ -238,7 +238,7 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	}
 	
 	// If it's an entity, use its position.
-	if (JSEntityGetEntity(context, vectorObj, &entity))
+	if (OOJSEntityGetEntity(context, vectorObj, &entity))
 	{
 		*outVector = [entity position];
 		return YES;
