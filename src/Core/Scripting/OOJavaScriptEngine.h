@@ -269,7 +269,7 @@ id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredC
 	DEFINE_JS_OBJECT_GETTER()
 	Defines a helper to extract Objective-C objects from the private field of
 	JS objects, with runtime type checking. The generated accessor requires
-	a request on context.
+	a request on context. Weakrefs are automatically unpacked.
 	
 	Types which extend other types, such as entity subtypes, must register
 	their relationships with OOJSRegisterSubclass() below.

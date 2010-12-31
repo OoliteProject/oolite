@@ -346,12 +346,6 @@ JSObject *JSShipPrototype(void)
 }
 
 
-static BOOL GetThisShip(JSContext *context, JSObject *this, ShipEntity **outEntity)
-{
-	return JSShipGetShipEntity(context, this, outEntity) && !([*outEntity isPlayer] && [UNIVERSE blockJSPlayerShipProps]);
-}
-
-
 static JSBool ShipGetProperty(OOJS_PROP_ARGS)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
@@ -362,8 +356,8 @@ static JSBool ShipGetProperty(OOJS_PROP_ARGS)
 	ShipEntity					*entity = nil;
 	id							result = nil;
 	
-	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return YES;	// NOTE: entity may be nil.
-	if (EXPECT_NOT([entity isPlayer] && [UNIVERSE blockJSPlayerShipProps])) {*value = JSVAL_VOID; return YES;}
+	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity)))  return NO;
+	if (OOIsStaleEntity(entity)) { *value = JSVAL_VOID; return YES; }
 	if (EXPECT_NOT(!JS_EnterLocalRootScope(context)))  return NO;
 	
 	switch (OOJS_PROPID_INT)
@@ -771,8 +765,8 @@ static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 	OOShipGroup					*group = nil;
 	OOColor						*colorForScript = nil;
 	
-	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return YES;
-	if (EXPECT_NOT([entity isPlayer] && [UNIVERSE blockJSPlayerShipProps])) { *value = JSVAL_VOID; return YES;}
+	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
+	if (OOIsStaleEntity(entity)) { *value = JSVAL_VOID; return YES; }
 	
 	switch (OOJS_PROPID_INT)
 	{
@@ -1040,6 +1034,12 @@ static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 
 // *** Methods ***
 
+#define GET_THIS_SHIP(THISENT) do { \
+	if (EXPECT_NOT(!JSShipGetShipEntity(context, OOJS_THIS, &THISENT)))  return NO; /* Exception */ \
+	if (OOIsStaleEntity(THISENT))  OOJS_RETURN_VOID; \
+} while (0)
+
+
 // setScript(scriptName : String)
 static JSBool ShipSetScript(OOJS_NATIVE_ARGS)
 {
@@ -1048,7 +1048,7 @@ static JSBool ShipSetScript(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt)) OOJS_RETURN_VOID;	// stale reference, no-op.
+	GET_THIS_SHIP(thisEnt);
 	name = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(name == nil))
 	{
@@ -1057,8 +1057,7 @@ static JSBool ShipSetScript(OOJS_NATIVE_ARGS)
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
 	{
-		if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
-		OOReportJSErrorForCaller(context, @"Ship", @"setScript", @"Cannot change script for player.");
+		OOReportJSErrorForCaller(context, @"Ship", @"setScript", @"Not valid for player ship.");
 		return NO;
 	}
 	
@@ -1077,7 +1076,7 @@ static JSBool ShipSetAI(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt)) OOJS_RETURN_VOID;	// stale reference, no-op.
+	GET_THIS_SHIP(thisEnt);
 	name = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(name == nil))
 	{
@@ -1086,8 +1085,7 @@ static JSBool ShipSetAI(OOJS_NATIVE_ARGS)
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
 	{
-		if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
-		OOReportJSErrorForCaller(context, @"Ship", @"setAI", @"Cannot modify AI for player.");
+		OOReportJSErrorForCaller(context, @"Ship", @"setAI", @"Not valid for player ship.");
 		return NO;
 	}
 	
@@ -1106,7 +1104,7 @@ static JSBool ShipSwitchAI(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt)) OOJS_RETURN_VOID;	// stale reference, no-op.
+	GET_THIS_SHIP(thisEnt);
 	name = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(name == nil))
 	{
@@ -1115,8 +1113,7 @@ static JSBool ShipSwitchAI(OOJS_NATIVE_ARGS)
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
 	{
-		if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
-		OOReportJSErrorForCaller(context, @"Ship", @"switchAI", @"Cannot modify AI for player.");
+		OOReportJSErrorForCaller(context, @"Ship", @"switchAI", @"Not valid for player ship.");
 		return NO;
 	}
 	
@@ -1136,12 +1133,10 @@ static JSBool ShipExitAI(OOJS_NATIVE_ARGS)
 	AI						*thisAI = nil;
 	NSString				*message = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt)) OOJS_RETURN_VOID;	// stale reference, no-op.
+	GET_THIS_SHIP(thisEnt);
 	if (EXPECT_NOT([thisEnt isPlayer]))
 	{
-		if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
-	
-		OOReportJSErrorForCaller(context, @"Ship", @"exitAI", @"Cannot modify AI for player.");
+		OOReportJSErrorForCaller(context, @"Ship", @"exitAI", @"Not valid for player ship.");
 		return NO;
 	}
 	thisAI = [thisEnt getAI];
@@ -1173,7 +1168,7 @@ static JSBool ShipReactToAIMessage(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	NSString				*message = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt)) OOJS_RETURN_VOID;	// stale reference, no-op.
+	GET_THIS_SHIP(thisEnt);
 	message = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(message == nil))
 	{
@@ -1182,8 +1177,7 @@ static JSBool ShipReactToAIMessage(OOJS_NATIVE_ARGS)
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
 	{
-		if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
-		OOReportJSErrorForCaller(context, @"Ship", @"reactToAIMessage", @"Cannot modify AI for player.");
+		OOReportJSErrorForCaller(context, @"Ship", @"reactToAIMessage", @"Not valid for player ship.");
 		return NO;
 	}
 	
@@ -1202,7 +1196,7 @@ static JSBool ShipSendAIMessage(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	NSString				*message = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt)) OOJS_RETURN_VOID;	// stale reference, no-op.
+	GET_THIS_SHIP(thisEnt);
 	message = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(message == nil))
 	{
@@ -1211,8 +1205,7 @@ static JSBool ShipSendAIMessage(OOJS_NATIVE_ARGS)
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
 	{
-		if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
-		OOReportJSErrorForCaller(context, @"Ship", @"sendAIMessage", @"Cannot modify AI for player.");
+		OOReportJSErrorForCaller(context, @"Ship", @"sendAIMessage", @"Not valid for player ship.");
 		return NO;
 	}
 	
@@ -1230,7 +1223,7 @@ static JSBool ShipDeployEscorts(OOJS_NATIVE_ARGS)
 	
 	ShipEntity				*thisEnt = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	[thisEnt deployEscorts];
 	OOJS_RETURN_VOID;
@@ -1246,7 +1239,7 @@ static JSBool ShipDockEscorts(OOJS_NATIVE_ARGS)
 	
 	ShipEntity				*thisEnt = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	[thisEnt dockEscorts];
 	OOJS_RETURN_VOID;
@@ -1263,7 +1256,7 @@ static JSBool ShipHasRole(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	NSString				*role = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	role = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
@@ -1286,7 +1279,7 @@ static JSBool ShipEjectItem(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	NSString				*role = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	role = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
@@ -1309,7 +1302,7 @@ static JSBool ShipEjectSpecificItem(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	NSString				*itemKey = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	itemKey = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(itemKey == nil))
@@ -1331,7 +1324,7 @@ static JSBool ShipDumpCargo(OOJS_NATIVE_ARGS)
 	
 	ShipEntity				*thisEnt = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	
 	if (EXPECT_NOT([thisEnt isPlayer] && [(PlayerEntity *)thisEnt isDocked]))
@@ -1357,7 +1350,7 @@ static JSBool ShipSpawn(OOJS_NATIVE_ARGS)
 	BOOL					gotCount = YES;
 	NSArray					*result = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	role = JSValToNSString(context, OOJS_ARG(0));
 	if (argc > 1)  gotCount = JS_ValueToInt32(context, OOJS_ARG(1), &count);
@@ -1396,7 +1389,7 @@ static JSBool ShipRemove(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	JSBool					suppressDeathEvent = NO;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	if ([thisEnt isPlayer])
 	{
@@ -1433,8 +1426,7 @@ static JSBool ShipRunLegacyScriptActions(OOJS_NATIVE_ARGS)
 	NSArray					*actions = nil;
 	
 	player = OOPlayerForScripting();
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
-	
+	GET_THIS_SHIP(thisEnt);
 	
 	actions = JSValueToObject(context, OOJS_ARG(1));
 	if (EXPECT_NOT(!JSVAL_IS_OBJECT(OOJS_ARG(0)) ||
@@ -1445,11 +1437,14 @@ static JSBool ShipRunLegacyScriptActions(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	[player setScriptTarget:thisEnt];
-	[player runUnsanitizedScriptActions:actions
-					  allowingAIMethods:YES
-						withContextName:[NSString stringWithFormat:@"<ship \"%@\" legacy actions>", [thisEnt name]]
-							  forTarget:target];
+	if (target != nil)	// Not stale reference
+	{
+		[player setScriptTarget:thisEnt];
+		[player runUnsanitizedScriptActions:actions
+						  allowingAIMethods:YES
+							withContextName:[NSString stringWithFormat:@"<ship \"%@\" legacy actions>", [thisEnt name]]
+								  forTarget:target];
+	}
 	
 	OOJS_RETURN_VOID;
 	
@@ -1466,7 +1461,7 @@ static JSBool ShipCommsMessage(OOJS_NATIVE_ARGS)
 	NSString				*message = nil;
 	ShipEntity				*target = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	message = JSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(message == nil)|| ( argc > 1 && EXPECT_NOT(!JSVAL_IS_OBJECT(OOJS_ARG(1)) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARG(1)), &target))))
@@ -1475,11 +1470,11 @@ static JSBool ShipCommsMessage(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	if (target == nil)
+	if (argc < 2)
 	{
 		[thisEnt commsMessage:message withUnpilotedOverride:YES];	// generic broadcast
 	}
-	else
+	else if (target != nil)  // Not stale reference
 	{
 		[thisEnt sendMessage:message toShip:target withUnpilotedOverride:YES];	// ship-to-ship narrowcast
 	}
@@ -1497,7 +1492,7 @@ static JSBool ShipFireECM(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	BOOL					OK;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	OK = [thisEnt fireECM];
 	if (!OK)
@@ -1518,9 +1513,7 @@ static JSBool ShipAbandonShip(OOJS_NATIVE_ARGS)
 	
 	ShipEntity				*thisEnt = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	OOJS_RETURN_VOID;	// stale reference, no-op.
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
-	
+	GET_THIS_SHIP(thisEnt);
 	OOJS_RETURN_BOOL([thisEnt hasEscapePod] && [thisEnt abandonShip]);
 	
 	OOJS_NATIVE_EXIT
@@ -1534,11 +1527,9 @@ static JSBool ShipAddPassenger(OOJS_NATIVE_ARGS)
 	
 	ShipEntity			*thisEnt = nil;
 	BOOL				OK = YES;
-	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	OOJS_RETURN_VOID;	// stale reference, no-op.
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
-	
 	NSString			*name = nil;
+	
+	GET_THIS_SHIP(thisEnt);
 	
 	if (argc == 5)
 	{
@@ -1588,8 +1579,7 @@ static JSBool ShipAwardContract(OOJS_NATIVE_ARGS)
 	NSString 			*key = nil;
 	int 				qty = 0;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	OOJS_RETURN_VOID;	// stale reference, no-op.
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	if (OK && argc == 6)
 	{
@@ -1651,8 +1641,7 @@ static JSBool ShipCanAwardEquipment(OOJS_NATIVE_ARGS)
 	BOOL						isBerth;
 	BOOL						exists;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	OOJS_RETURN_VOID;	// stale reference, no-op.
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	key = JSValueToEquipmentKeyRelaxed(context, OOJS_ARG(0), &exists);
 	if (EXPECT_NOT(key == nil))
@@ -1695,8 +1684,7 @@ static JSBool ShipAwardEquipment(OOJS_NATIVE_ARGS)
 	BOOL						OK = YES;
 	BOOL						berth;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	OOJS_RETURN_VOID;	// stale reference, no-op.
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	eqType = JSValueToEquipmentType(context, OOJS_ARG(0));
 	if (EXPECT_NOT(eqType == nil))
@@ -1781,8 +1769,7 @@ static JSBool ShipRemoveEquipment(OOJS_NATIVE_ARGS)
 	NSString					*key = nil;
 	BOOL						OK = YES;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	OOJS_RETURN_VOID;	// stale reference, no-op.
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	key = JSValueToEquipmentKey(context, OOJS_ARG(0));
 	if (EXPECT_NOT(key == nil))
@@ -1840,8 +1827,7 @@ static JSBool ShipRemovePassenger(OOJS_NATIVE_ARGS)
 	NSString					*key = nil;
 	BOOL						OK = YES;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	OOJS_RETURN_VOID;	// stale reference, no-op.
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	if (EXPECT_NOT(!JSVAL_IS_STRING(OOJS_ARG(0))))
 	{
@@ -1872,8 +1858,7 @@ static JSBool ShipRestoreSubEntities(OOJS_NATIVE_ARGS)
 	
 	ShipEntity				*thisEnt = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	OOJS_RETURN_VOID;	// stale reference, no-op.
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	OOUInteger subCount = [[thisEnt subEntitiesForScript] count];
 	
@@ -1901,8 +1886,7 @@ static JSBool ShipSetEquipmentStatus(OOJS_NATIVE_ARGS)
 	NSString				*status = nil;
 	BOOL					hasOK = NO, hasDamaged = NO;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	OOJS_RETURN_VOID;	// stale reference, no-op.
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	if (EXPECT_NOT([UNIVERSE strict]))
 	{
@@ -1995,11 +1979,7 @@ static JSBool ShipEquipmentStatus(OOJS_NATIVE_ARGS)
 	ShipEntity				*thisEnt = nil;
 	NSString				*key = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	// stale reference, no-op.
-	{
-		OOJS_RETURN(strUnavailable);
-	}
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	key = JSValueToEquipmentKey(context, OOJS_ARG(0));
 	if (EXPECT_NOT(key == nil))
@@ -2024,7 +2004,7 @@ static JSBool ShipSelectNewMissile(OOJS_NATIVE_ARGS)
 	
 	ShipEntity				*thisEnt = nil;
 	
-	if (EXPECT_NOT(GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	NSString *result = [[thisEnt selectMissile] identifier];
 	// if there's a badly defined missile, selectMissile may return nil
@@ -2044,7 +2024,7 @@ static JSBool ShipFireMissile(OOJS_NATIVE_ARGS)
 	ShipEntity			*thisEnt = nil;
 	id					result = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt) || [thisEnt isPlayer])  OOJS_RETURN_VOID;	// stale reference, no-op, or player ship
+	GET_THIS_SHIP(thisEnt);
 	
 	if (argc > 0)  result = [thisEnt fireMissileWithIdentifier:JSValToNSString(context, OOJS_ARG(0)) andTarget:[thisEnt primaryTarget]];
 	else  result = [thisEnt fireMissile];
@@ -2065,7 +2045,7 @@ static JSBool ShipSetCargo(OOJS_NATIVE_ARGS)
 	int32					count = 1;
 	BOOL					gotCount = YES;
 	
-	if (EXPECT_NOT(GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	cargoType = JSValToNSString(context, OOJS_ARG(0));
 	if (argc > 1)  gotCount = JS_ValueToInt32(context, OOJS_ARG(1), &count);
@@ -2091,7 +2071,7 @@ static JSBool ShipSetMaterials(OOJS_NATIVE_ARGS)
 	
 	ShipEntity				*thisEnt = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	return ShipSetMaterialsInternal(OOJS_NATIVE_CALLTHROUGH, thisEnt, NO);
 	
@@ -2106,7 +2086,7 @@ static JSBool ShipSetShaders(OOJS_NATIVE_ARGS)
 	
 	ShipEntity				*thisEnt = nil;
 	
-	if (EXPECT_NOT(!GetThisShip(context, OOJS_THIS, &thisEnt)))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	if (JSVAL_IS_NULL(OOJS_ARG(0)) || (!JSVAL_IS_NULL(OOJS_ARG(0)) && !JSVAL_IS_OBJECT(OOJS_ARG(0))))
 	{
@@ -2131,11 +2111,7 @@ static JSBool ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity *thisEnt, BO
 	BOOL					withShaders = NO;
 	BOOL					success = NO;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt))	// stale reference, no-op, or player ship
-	{
-		OOJS_RETURN_BOOL(YES);
-	}
-	if (EXPECT_NOT([thisEnt isPlayer] && [UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	GET_THIS_SHIP(thisEnt);
 	
 	if (JSVAL_IS_NULL(OOJS_ARG(0)) || (!JSVAL_IS_NULL(OOJS_ARG(0)) && !JSVAL_IS_OBJECT(OOJS_ARG(0))))
 	{
@@ -2209,7 +2185,12 @@ static JSBool ShipExitSystem(OOJS_NATIVE_ARGS)
 	int32				systemID = -1;
 	BOOL				OK = NO;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt) || [thisEnt isPlayer])  OOJS_RETURN_VOID;	// stale reference, no-op, or player ship
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT([thisEnt isPlayer]))
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"exitSystem", @"Not valid for player ship.");
+		return NO;
+	}
 	
 	if (argc > 0)
 	{
@@ -2234,15 +2215,14 @@ static BOOL RemoveOrExplodeShip(OOJS_NATIVE_ARGS, BOOL explode)
 	
 	ShipEntity				*thisEnt = nil;
 	
-	if (!JSShipGetShipEntity(context, OOJS_THIS, &thisEnt)) OOJS_RETURN_VOID;	// stale reference, no-op.
+	GET_THIS_SHIP(thisEnt);
 	
 	if (EXPECT_NOT([thisEnt isPlayer]))
 	{
-		if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+		NSCAssert(explode, @"RemoveOrExplodeShip(): shouldn't be called for player with !explode.");	// player.ship.remove() is blocked by caller.
 		PlayerEntity *player = (PlayerEntity *)thisEnt;
-		assert(explode);	// Handled by caller.
 		
-		if (EXPECT_NOT([player isDocked]))
+		if ([player isDocked])
 		{
 			OOReportJSError(context, @"Cannot explode() player's ship while docked.");
 			return NO;

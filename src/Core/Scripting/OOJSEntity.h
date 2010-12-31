@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import <Foundation/Foundation.h>
 #import "OOJavaScriptEngine.h"
+#import "Universe.h"
 
 @class Entity;
 
@@ -54,3 +55,9 @@ OOINLINE JSObject *JSEntityPrototype(void)  { return gOOEntityJSPrototype; }
 	log.
 */
 BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Entity **outEntity, uintN *outConsumed);
+
+
+OOINLINE BOOL OOIsStaleEntity(Entity *entity)
+{
+	return entity == nil || (entity->isPlayer && [UNIVERSE blockJSPlayerShipProps]);
+}

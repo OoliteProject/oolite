@@ -1696,6 +1696,18 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 {
 	NSCParameterAssert(context != NULL && object != NULL && requiredJSClass != NULL && requiredObjCClass != Nil && outObject != NULL);
 	
+	/*
+		Ensure it's a valid type of JS object. This is absolutely necessary,
+		because if we don't check it we'll crash trying to get the private
+		field of something that isn't an ObjC object wrapper - for example,
+		Ship.setAI.call(new Vector3D, "") is valid JavaScript.
+		
+		Alternatively, we could abuse JSCLASS_PRIVATE_IS_NSISUPPORTS as a
+		flag for ObjC object wrappers (SpiderMonkey only uses it internally
+		in a debug function we don't use), but we'd still need to do an
+		Objective-C class test, and I don't think that's any faster.
+		TODO: profile.
+	*/
 	JSClass *actualClass = JS_GetClass(context, object);
 	if (EXPECT_NOT(!OOJSIsSubclass(actualClass, requiredJSClass)))
 	{
@@ -1704,15 +1716,18 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 	}
 	NSCAssert(actualClass->flags & JSCLASS_HAS_PRIVATE, @"Native object accessor requires JS class with private storage.");
 	
-	*outObject = JS_GetPrivate(context, object);
+	// Get the underlying object.
+	*outObject = [(id)JS_GetPrivate(context, object) weakRefUnderlyingObject];
 	
 #ifndef NDEBUG
+	// Double-check that the underlying object is of the expected ObjC class.
 	if (EXPECT_NOT(*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass]))
 	{
 		OOReportJSError(context, @"Native method expected %@ from %s and got correct JS type but incorrect native object %@", requiredObjCClass, requiredJSClass->name, *outObject);
 		return NO;
 	}
 #endif
+	
 	return YES;
 }
 
