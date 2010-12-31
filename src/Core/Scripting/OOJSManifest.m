@@ -258,110 +258,119 @@ static JSBool ManifestGetProperty(OOJS_PROP_ARGS)
 	PlayerEntity				*entity = OOPlayerForScripting();
 	unsigned					commodity;
 	
-	if (!GetCommodityID(propID, &commodity))  return YES;
-
-	switch (commodity)
+	if (GetCommodityID(propID, &commodity))
 	{
-		case kManifest_list:
-			result = [entity cargoListForScripting];
-			OK = YES;
-			break;
-			
-		case kManifest_food:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FOOD]);
-			OK = YES;
-			break;
-			
-		case kManifest_textiles:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_TEXTILES]);
-			OK = YES;
-			break;
-			
-		case kManifest_radioactives:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_RADIOACTIVES]);
-			OK = YES;
-			break;
-			
-		case kManifest_slaves:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_SLAVES]);
-			OK = YES;
-			break;
-			
-		case kManifest_liquor_wines:
-		case kManifest_liquorwines:
-		case kManifest_liquorWines:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LIQUOR_WINES]);
-			OK = YES;
-			break;
-			
-		case kManifest_luxuries:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LUXURIES]);
-			OK = YES;
-			break;
-			
-		case kManifest_narcotics:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_NARCOTICS]);
-			OK = YES;
-			break;
-			
-		case kManifest_computers:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_COMPUTERS]);
-			OK = YES;
-			break;
-			
-		case kManifest_machinery:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MACHINERY]);
-			OK = YES;
-			break;
-			
-		case kManifest_alloys:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALLOYS]);
-			OK = YES;
-			break;
-			
-		case kManifest_firearms:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FIREARMS]);
-			OK = YES;
-			break;
-			
-		case kManifest_furs:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FURS]);
-			OK = YES;
-			break;
-			
-		case kManifest_minerals:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MINERALS]);
-			OK = YES;
-			break;
-			
-		case kManifest_gold:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GOLD]);
-			OK = YES;
-			break;
-			
-		case kManifest_platinum:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_PLATINUM]);
-			OK = YES;
-			break;
-			
-		case kManifest_gem_stones:
-		case kManifest_gemstones:
-		case kManifest_gemStones:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GEM_STONES]);
-			OK = YES;
-			break;
-			
-		case kManifest_alien_items:
-		case kManifest_alienitems:
-		case kManifest_alienItems:
-			*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALIEN_ITEMS]);
-			OK = YES;
-			break;
-			
-		default:
-			OOReportJSBadPropertySelector(context, @"Manifest", commodity);
+		switch (commodity)
+		{
+				
+			case kManifest_food:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FOOD]);
+				OK = YES;
+				break;
+				
+			case kManifest_textiles:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_TEXTILES]);
+				OK = YES;
+				break;
+				
+			case kManifest_radioactives:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_RADIOACTIVES]);
+				OK = YES;
+				break;
+				
+			case kManifest_slaves:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_SLAVES]);
+				OK = YES;
+				break;
+				
+			case kManifest_liquor_wines:
+			case kManifest_liquorwines:
+			case kManifest_liquorWines:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LIQUOR_WINES]);
+				OK = YES;
+				break;
+				
+			case kManifest_luxuries:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LUXURIES]);
+				OK = YES;
+				break;
+				
+			case kManifest_narcotics:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_NARCOTICS]);
+				OK = YES;
+				break;
+				
+			case kManifest_computers:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_COMPUTERS]);
+				OK = YES;
+				break;
+				
+			case kManifest_machinery:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MACHINERY]);
+				OK = YES;
+				break;
+				
+			case kManifest_alloys:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALLOYS]);
+				OK = YES;
+				break;
+				
+			case kManifest_firearms:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FIREARMS]);
+				OK = YES;
+				break;
+				
+			case kManifest_furs:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FURS]);
+				OK = YES;
+				break;
+				
+			case kManifest_minerals:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MINERALS]);
+				OK = YES;
+				break;
+				
+			case kManifest_gold:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GOLD]);
+				OK = YES;
+				break;
+				
+			case kManifest_platinum:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_PLATINUM]);
+				OK = YES;
+				break;
+				
+			case kManifest_gem_stones:
+			case kManifest_gemstones:
+			case kManifest_gemStones:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GEM_STONES]);
+				OK = YES;
+				break;
+				
+			case kManifest_alien_items:
+			case kManifest_alienitems:
+			case kManifest_alienItems:
+				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALIEN_ITEMS]);
+				OK = YES;
+				break;
+		}
 	}
-
+	else
+	{
+		if (!OOJS_PROPID_IS_INT)  return YES;
+		
+		switch (OOJS_PROPID_INT)
+		{
+			case kManifest_list:
+				result = [entity cargoListForScripting];
+				OK = YES;
+				break;
+				
+			default:
+				OOReportJSBadPropertySelector(context, @"Manifest", OOJS_PROPID_INT);
+		}
+	}
+		
 	if (OK && result != nil)  *value = [result javaScriptValueInContext:context];	
 	return OK;
 	
