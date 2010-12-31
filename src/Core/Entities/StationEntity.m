@@ -804,6 +804,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	equipmentPriceFactor = [dict oo_nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
 	equipmentPriceFactor = OOMax_f(equipmentPriceFactor, 0.5f);
 	hasNPCTraffic = [dict oo_fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:YES];
+	hasPatrolShips = [dict oo_fuzzyBooleanForKey:@"has_patrol_ships" defaultValue:NO];
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
 	NSDictionary *universalInfo = [[UNIVERSE planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
 	
@@ -1212,9 +1213,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	// testing patrols
-	if ((unitime > (last_patrol_report_time + patrol_launch_interval))&&(isMainStation))
+	if (unitime > (last_patrol_report_time + patrol_launch_interval))
 	{
-		if (![self hasNPCTraffic] || [self launchPatrol] != nil)
+		if (!((isMainStation && [self hasNPCTraffic]) || hasPatrolShips) || [self launchPatrol] != nil)
 			last_patrol_report_time = unitime;
 	}
 }
@@ -1309,7 +1310,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[ship setStatus: STATUS_LAUNCHING];
 	[ship setDesiredSpeed:launchSpeed]; // must be set after initialising the AI to correct any speed set by AI
 	last_launch_time = [UNIVERSE getTime];
-	double delay = port_corridor/launchSpeed + 2 * port_dimensions.z/launchSpeed; // pause until 2 portlengths outside of the station.
+	double delay = (port_corridor + 2 * port_dimensions.z)/launchSpeed; // pause until 2 portlengths outside of the station.
 	[ship setLaunchDelay:delay];
 	[[ship getAI] setNextThinkTime:last_launch_time + delay]; // pause while launching
 	

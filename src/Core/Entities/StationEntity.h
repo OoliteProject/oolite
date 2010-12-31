@@ -74,6 +74,7 @@ typedef enum
 	
 	unsigned				no_docking_while_launching: 1,
 							hasNPCTraffic: 1;
+	BOOL					hasPatrolShips;
 	
 	OOUniversalID			planet;
 	

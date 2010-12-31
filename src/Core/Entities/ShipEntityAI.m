@@ -1442,7 +1442,7 @@ static WormholeEntity *whole = nil;
 #endif
 
 	}
-	[self setOwner:NULL];
+	[self setOwner:self];
 	[shipAI message:@"NOT_ESCORTING"];
 }
 
@@ -1585,8 +1585,8 @@ static WormholeEntity *whole = nil;
 	if (magnitude2(r_pos) < 1000000 || patrol_counter == 0)
 	{
 		Entity *the_sun = [UNIVERSE sun];
-		Entity *the_station = [self owner]; // was: [UNIVERSE station];  // let it work for any station.
-		if(!the_station) the_station = [UNIVERSE station];
+		ShipEntity *the_station = [[self group] leader];
+		if(!the_station || ![the_station isStation]) the_station = [UNIVERSE station];
 		if ((!the_sun)||(!the_station))
 			return;
 		Vector sun_pos = the_sun->position;
@@ -1595,7 +1595,7 @@ static WormholeEntity *whole = nil;
 		Vector vSun = make_vector(0, 0, 1);
 		if (sun_dir.x||sun_dir.y||sun_dir.z)
 			vSun = vector_normal(sun_dir);
-		Vector v0 = vector_forward_from_quaternion(the_station->orientation);
+		Vector v0 = [the_station forwardVector];
 		Vector v1 = cross_product(v0, vSun);
 		Vector v2 = cross_product(v0, v1);
 		switch (patrol_counter)
@@ -1631,7 +1631,9 @@ static WormholeEntity *whole = nil;
 			if (randf() < .25)
 			{
 				// consider docking
+				targetStation = [the_station universalID];
 				[self setAITo:@"dockingAI.plist"];
+				return;
 			}
 			else
 			{
@@ -1686,7 +1688,10 @@ static WormholeEntity *whole = nil;
 
 - (void) patrolReportIn
 {
-	[[UNIVERSE station] acceptPatrolReportFrom:self];
+	// Set a report time in the patrolled station to delay a new launch.
+	ShipEntity *the_station = [[self group] leader];
+	if(!the_station || ![the_station isStation]) the_station = [UNIVERSE station];
+	[(StationEntity*)the_station acceptPatrolReportFrom:self];
 }
 
 

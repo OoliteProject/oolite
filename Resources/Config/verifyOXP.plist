@@ -289,6 +289,7 @@
 			"defense_ship",
 			"defense_ship_role",
 			"has_npc_traffic",
+			"has_patrol_ships",
 			"has_shipyard",
 			"hasShipyard",
 			"port_radius",
@@ -302,7 +303,8 @@
 			"docking_pattern_model",
 			"market",
 			"interstellar_undocking",
-			"allows_fast_docking"
+			"allows_fast_docking",
+			"allows_auto_docking"
 		);
 		knownPlayerKeys =
 		(

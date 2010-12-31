@@ -738,6 +738,7 @@ BOOL	class_masslocks(int some_class);
 
 - (void) setFound_target:(Entity *) targetEntity;
 - (void) setPrimaryAggressor:(Entity *) targetEntity;
+- (void) setTargetStation:(Entity *) targetEntity;
 - (void) addTarget:(Entity *) targetEntity;
 - (void) removeTarget:(Entity *) targetEntity;
 - (id) primaryTarget;

@@ -6511,6 +6511,13 @@ BOOL class_masslocks(int some_class)
 }
 
 
+- (void) setTargetStation:(Entity *) targetEntity
+{
+	if (targetEntity)
+		targetStation = [targetEntity universalID];
+}
+
+
 - (void) addTarget:(Entity *) targetEntity
 {
 	if (targetEntity == self)  return;
@@ -9288,7 +9295,7 @@ BOOL class_masslocks(int some_class)
 		// act individually now!
 		if ([escort group] == escortGroup)  [escort setGroup:nil];
 		if ([escort owner] == self)  [escort setOwner:nil];
-		if(target && [target isStation]) [escort addTarget:target];
+		if(target && [target isStation]) [escort setTargetStation:target];
 		
 		[ai setStateMachine:@"dockingAI.plist" afterDelay:delay];
 		[ai setState:@"ABORT" afterDelay:delay + 0.25];
