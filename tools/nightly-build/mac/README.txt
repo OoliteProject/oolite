@@ -1,18 +1,19 @@
 Running Mac nightly builds:
 * Get a Mac, install Xcode, etc.
-* Check out Oolite in the same directory as the build script. The working
-  copy is expected to be called "trunk"; this can be changed with the
-  REPO_DIR_SETTING in build. Download libpng source and put it in
-  deps/Cross-platform-deps/libpng.
+* If you haven't built Oolite on this machine, install the RBSplitView
+  Interface Builder plug-in as per the "Running Oolite-Mac" article on
+  EliteWiki.
 * Change config/ftp_url to something suitable, and add whatever credentials
   are necessary to config/ftp_credentials (including the appropriate curl
   command line switches, e.g. "-u user:password").
 * Set appropriate path and user info in org.oolite.oolite.nightly.plist.
 * Copy org.oolite.oolite.nightly.plist to /Library/LaunchAgents, and change
   its owner and group to root:wheel.
-* Run sudo launchtl load /Library/LaunchAgents/org.oolite.oolite.nightly.plist
+* Run this command:
+  sudo launchctl load /Library/LaunchAgents/org.oolite.oolite.nightly.plist
 
-To test the build, run ./build.
+To test the build, run ./build-nighly. The code will be checked out
+automatically and dependencies will be downloaded.
 
 A directory named "var" will appear alongside the build script when it is
 run. This contains a number of log files as well as files tracking build
