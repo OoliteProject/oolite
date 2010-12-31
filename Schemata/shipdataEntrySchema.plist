@@ -115,6 +115,7 @@
 		defense_ship = "$shipKey";
 		defense_ship_role = "$shipRole";
 		has_npc_traffic = "fuzzyBoolean";
+		has_patrol_ships = "fuzzyBoolean";
 		has_shipyard = "$hasShipyard";
 		hasShipyard = "$hasShipyard";
 		port_radius = "positiveFloat";
