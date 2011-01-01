@@ -29,7 +29,11 @@ MA 02110-1301, USA.
 #import "OOPriorityQueue.h"
 
 
-static OOPriorityQueue *sTimers = nil;
+static OOPriorityQueue	*sTimers;
+
+// During an update, new timers must be deferred to avoid an infinite loop.
+static BOOL				sUpdating;
+static NSMutableArray	*sDeferredTimers;
 
 
 @implementation OOScriptTimer
@@ -125,8 +129,17 @@ static OOPriorityQueue *sTimers = nil;
 	if (_isScheduled)  return YES;
 	if (![self isValidForScheduling])  return NO;
 	
-	if (sTimers == nil)  sTimers = [[OOPriorityQueue alloc] initWithComparator:@selector(compareByNextFireTime:)];
-	[sTimers addObject:self];
+	if (EXPECT(!sUpdating))
+	{
+		if (EXPECT_NOT(sTimers == nil))  sTimers = [[OOPriorityQueue alloc] initWithComparator:@selector(compareByNextFireTime:)];
+		[sTimers addObject:self];
+	}
+	else
+	{
+		if (sDeferredTimers == nil)  sDeferredTimers = [[NSMutableArray alloc] init];
+		[sDeferredTimers addObject:self];
+	}
+	
 	_isScheduled = YES;
 	return YES;
 }
@@ -150,6 +163,8 @@ static OOPriorityQueue *sTimers = nil;
 	OOScriptTimer		*timer = nil;
 	OOTimeAbsolute		now;
 	
+	sUpdating = YES;
+	
 	now = [UNIVERSE getTime];
 	for (;;)
 	{
@@ -162,6 +177,14 @@ static OOPriorityQueue *sTimers = nil;
 		
 		[timer timerFired];
 	}
+	
+	if (sDeferredTimers != nil)
+	{
+		[sTimers addObjects:sDeferredTimers];
+		DESTROY(sDeferredTimers);
+	}
+	
+	sUpdating = NO;
 }
 
 
