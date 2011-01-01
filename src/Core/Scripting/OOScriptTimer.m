@@ -43,22 +43,23 @@ static NSMutableArray	*sDeferredTimers;
 {
 	OOTimeAbsolute			now;
 	
-	self = [super init];
-	if (self != nil)
+	if ((self = [super init]))
 	{
 		if (interval <= 0.0)  interval = -1.0;
 		
 		now = [UNIVERSE getTime];
 		if (nextTime < 0.0)  nextTime = now + interval;
-		if (nextTime < now)
+		if (nextTime < now && interval < 0)
 		{
 			// Negative or old nextTime and negative interval = meaningless.
 			[self release];
 			self = nil;
 		}
-		
-		_nextTime = nextTime;
-		_interval = interval;
+		else
+		{
+			_nextTime = nextTime;
+			_interval = interval;
+		}
 	}
 	
 	return self;
@@ -172,8 +173,11 @@ static NSMutableArray	*sDeferredTimers;
 		if (timer == nil || now < [timer nextTime])  break;
 		
 		[sTimers removeNextObject];
-		timer->_isScheduled = NO;
-		[timer scheduleTimer];	// Must reschedule before firing so that unscheduling works.
+		if (timer->_isScheduled)
+		{
+			timer->_isScheduled = NO;
+			[timer scheduleTimer];	// Must reschedule before firing so that unscheduling works.
+		}
 		
 		[timer timerFired];
 	}
