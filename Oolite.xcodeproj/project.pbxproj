@@ -436,7 +436,6 @@
 		1A572FCC0D84B640003D4A26 /* oolite-global-prefix.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC10D84B640003D4A26 /* oolite-global-prefix.js */; };
 		1A572FCD0D84B640003D4A26 /* oolite-thargoid-warship.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */; };
 		1A572FE50D84B6A3003D4A26 /* oolite-constrictor-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */; };
-		1A5A798E105044DD00A8F4B5 /* OOPrefixHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5A798D105044DD00A8F4B5 /* OOPrefixHeader.h */; };
 		1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5AA3220C0098AF0029C78A /* OOOpenGL.m */; };
 		1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */; };
 		1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */; };
@@ -1654,7 +1653,6 @@
 		1A572FC10D84B640003D4A26 /* oolite-global-prefix.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-global-prefix.js"; sourceTree = "<group>"; };
 		1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-thargoid-warship.js"; sourceTree = "<group>"; };
 		1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-constrictor-AI.plist"; sourceTree = "<group>"; };
-		1A5A798D105044DD00A8F4B5 /* OOPrefixHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPrefixHeader.h; sourceTree = "<group>"; };
 		1A5AA3220C0098AF0029C78A /* OOOpenGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGL.m; sourceTree = "<group>"; };
 		1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToString.h; sourceTree = "<group>"; };
 		1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConstToString.m; sourceTree = "<group>"; };
@@ -2798,7 +2796,6 @@
 				1A1E99B40EF04837008B48E2 /* OOProgressBar.h */,
 				1A1E99B50EF04837008B48E2 /* OOProgressBar.m */,
 				1AAF56160F1A198400A2F2E6 /* Comparison.h */,
-				1A5A798D105044DD00A8F4B5 /* OOPrefixHeader.h */,
 				1A143A4611EF22C5001BAB8D /* JAPersistentFileReference.h */,
 				1A143A4711EF22C5001BAB8D /* JAPersistentFileReference.m */,
 			);
@@ -3389,7 +3386,6 @@
 				1A11F84B0F35F60C001C886C /* OOJSShipGroup.h in Headers */,
 				1A20F7060F36EE0500156DE9 /* OOExcludeObjectEnumerator.h in Headers */,
 				1ADA8AB30F42DBA80001BEC9 /* OODeepCopy.h in Headers */,
-				1A5A798E105044DD00A8F4B5 /* OOPrefixHeader.h in Headers */,
 				1A43F28B105170A8003FDE8B /* OONSOperation.h in Headers */,
 				1AE242C51054226900EAA7F2 /* OOFlasherEntity.h in Headers */,
 				1AE24373105439B500EAA7F2 /* OOLightParticleEntity.h in Headers */,
@@ -3974,7 +3970,6 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
-					"OO_NEW_JS=1",
 					"OO_CHECK_GL_HEAVY=1",
 					"OO_DEBUG=1",
 					"DEBUG_GRAPHVIZ=1",
@@ -4029,7 +4024,6 @@
 					$OOLITE_OPTION_MACROS,
 					NDEBUG,
 					"OO_EXCLUDE_DEBUG_SUPPORT=1",
-					"OO_NEW_JS=1",
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
@@ -4122,7 +4116,6 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"DEBUG_GRAPHVIZ=1",
 					$OOLITE_OPTION_MACROS,
-					"OO_NEW_JS=1",
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
