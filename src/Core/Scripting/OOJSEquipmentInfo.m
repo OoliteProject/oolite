@@ -135,6 +135,9 @@ static JSClass sEquipmentInfoClass =
 };
 
 
+DEFINE_JS_OBJECT_GETTER(JSEquipmentInfoGetEquipmentType, &sEquipmentInfoClass, sEquipmentInfoPrototype, OOEquipmentType);
+
+
 // *** Public ***
 
 void InitOOJSEquipmentInfo(JSContext *context, JSObject *global)
@@ -150,9 +153,17 @@ OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value)
 {
 	OOJS_PROFILE_ENTER
 	
-	id objValue = JSValueToObject(context, value);
-	if ([objValue isKindOfClass:[OOEquipmentType class]])  return objValue;
-	if ([objValue isKindOfClass:[NSString class]])  return [OOEquipmentType equipmentTypeWithIdentifier:objValue];
+	if (JSVAL_IS_OBJECT(value))
+	{
+		JSObject *object = JSVAL_TO_OBJECT(value);
+		if (JS_InstanceOf(context, JSVAL_TO_OBJECT(value), &sEquipmentInfoClass, NULL))
+		{
+			return (OOEquipmentType *)JS_GetPrivate(context, object);
+		}
+	}
+	
+	NSString *string = JSValToNSString(context, value);
+	if (string != nil)  return [OOEquipmentType equipmentTypeWithIdentifier:string];
 	return nil;
 	
 	OOJS_PROFILE_EXIT
@@ -209,8 +220,7 @@ static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
 	OOEquipmentType				*eqType = nil;
 	id							result = nil;
 	
-	eqType = JSObjectToObjectOfClass(context, this, [OOEquipmentType class]);
-	if (EXPECT_NOT(eqType == nil))  return NO;
+	if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, this, &eqType)))  return NO;
 	
 	switch (OOJS_PROPID_INT)
 	{
@@ -349,8 +359,7 @@ static JSBool EquipmentInfoSetProperty(OOJS_PROP_ARGS)
 	OOEquipmentType				*eqType = nil;
 	int32						iValue;
 	
-	eqType = JSObjectToObjectOfClass(context, this, [OOEquipmentType class]);
-	if (EXPECT_NOT(eqType == nil))  return NO;
+	if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, this, &eqType)))  return NO;
 	
 	switch (OOJS_PROPID_INT)
 	{

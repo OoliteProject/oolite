@@ -91,24 +91,13 @@ static JSFunctionSpec sShipGroupMethods[] =
 };
 
 
+DEFINE_JS_OBJECT_GETTER(JSShipGroupGetShipGroup, &sShipGroupClass, sShipGroupPrototype, OOShipGroup);
+
+
 void InitOOJSShipGroup(JSContext *context, JSObject *global)
 {
 	sShipGroupPrototype = JS_InitClass(context, global, NULL, &sShipGroupClass, ShipGroupConstruct, 0, sShipGroupProperties, sShipGroupMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sShipGroupClass, JSBasicPrivateObjectConverter);
-}
-
-
-static BOOL JSShipGroupGetShipGroup(JSContext *context, JSObject *entityObj, OOShipGroup **outShipGroup)
-{
-	id						value = nil;
-	
-	value = JSObjectToObjectOfClass(context, entityObj, [OOShipGroup class]);
-	if (value != nil && outShipGroup != NULL)
-	{
-		*outShipGroup = value;
-		return YES;
-	}
-	return NO;
 }
 
 
@@ -284,14 +273,14 @@ static JSBool ShipGroupAddShip(OOJS_NATIVE_ARGS)
 	ship = JSValueToObjectOfClass(context, OOJS_ARG(0), [ShipEntity class]);
 	if (ship == nil)
 	{
-		if (JSVAL_IS_NULL(OOJS_ARG(0)))  return YES;	// OK, do nothing for null ship.
+		if (JSVAL_IS_NULL(OOJS_ARG(0)))  OOJS_RETURN_VOID;	// OK, do nothing for null ship.
 		
 		OOReportJSBadArguments(context, @"ShipGroup", @"addShip", 1, OOJS_ARGV, nil, @"ship");
 		return NO;
 	}
 	
 	[thisGroup addShip:ship];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -310,14 +299,14 @@ static JSBool ShipGroupRemoveShip(OOJS_NATIVE_ARGS)
 	ship = JSValueToObjectOfClass(context, OOJS_ARG(0), [ShipEntity class]);
 	if (ship == nil)
 	{
-		if (JSVAL_IS_NULL(OOJS_ARG(0)))  return YES;	// OK, do nothing for null ship.
+		if (JSVAL_IS_NULL(OOJS_ARG(0)))  OOJS_RETURN_VOID;	// OK, do nothing for null ship.
 		
 		OOReportJSBadArguments(context, @"ShipGroup", @"removeShip", 1, OOJS_ARGV, nil, @"ship");
 		return NO;
 	}
 	
 	[thisGroup removeShip:ship];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
