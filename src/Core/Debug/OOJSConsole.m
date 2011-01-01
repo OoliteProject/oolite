@@ -77,6 +77,7 @@ static JSBool ConsoleDisplayMessagesInClass(OOJS_NATIVE_ARGS);
 static JSBool ConsoleSetDisplayMessagesInClass(OOJS_NATIVE_ARGS);
 static JSBool ConsoleWriteLogMarker(OOJS_NATIVE_ARGS);
 static JSBool ConsoleWriteMemoryStats(OOJS_NATIVE_ARGS);
+static JSBool ConsoleGarbageCollect(OOJS_NATIVE_ARGS);
 #if OOJS_PROFILE
 static JSBool ConsoleProfile(OOJS_NATIVE_ARGS);
 static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS);
@@ -189,6 +190,7 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "setDisplayMessagesInClass",		ConsoleSetDisplayMessagesInClass,	2 },
 	{ "writeLogMarker",					ConsoleWriteLogMarker,				0 },
 	{ "writeMemoryStats",				ConsoleWriteMemoryStats,			0 },
+	{ "garbageCollect",					ConsoleGarbageCollect,				0 },
 #if OOJS_PROFILE
 	{ "profile",						ConsoleProfile,						1 },
 	{ "getProfile",						ConsoleGetProfile,					1 },
@@ -826,6 +828,21 @@ static JSBool ConsoleWriteMemoryStats(OOJS_NATIVE_ARGS)
 	OOJSResumeTimeLimiter();
 	
 	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// function garbageCollect() : string
+static JSBool ConsoleGarbageCollect(OOJS_NATIVE_ARGS)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	uint32_t bytesBefore = JS_GetGCParameter(JS_GetRuntime(context), JSGC_BYTES);
+	JS_GC(context);
+	uint32_t bytesAfter = JS_GetGCParameter(JS_GetRuntime(context), JSGC_BYTES);
+	
+	OOJS_RETURN_OBJECT(([NSString stringWithFormat:@"Bytes before: %u Bytes after: %u", bytesBefore, bytesAfter]));
 	
 	OOJS_NATIVE_EXIT
 }
