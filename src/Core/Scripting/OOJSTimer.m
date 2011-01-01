@@ -226,28 +226,13 @@ static JSFunctionSpec sTimerMethods[] =
 };
 
 
+DEFINE_JS_OBJECT_GETTER(JSTimerGetTimer, &sTimerClass, sTimerPrototype, OOJSTimer);
+
+
 void InitOOJSTimer(JSContext *context, JSObject *global)
 {
 	sTimerPrototype = JS_InitClass(context, global, NULL, &sTimerClass, TimerConstruct, 0, sTimerProperties, sTimerMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sTimerClass, JSBasicPrivateObjectConverter);
-}
-
-
-static BOOL JSTimerGetTimer(JSContext *context, JSObject *entityObj, OOJSTimer **outTimer)
-{
-	OOJS_PROFILE_ENTER
-	
-	id						value = nil;
-	
-	value = JSObjectToObject(context, entityObj);
-	if ([value isKindOfClass:[OOJSTimer class]] && outTimer != NULL)
-	{
-		*outTimer = value;
-		return YES;
-	}
-	return NO;
-	
-	OOJS_PROFILE_EXIT
 }
 
 
@@ -259,6 +244,7 @@ static JSBool TimerGetProperty(OOJS_PROP_ARGS)
 	
 	OOJSTimer				*timer = nil;
 	BOOL					OK = NO;
+	
 	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &timer))) return NO;
 	
 	switch (OOJS_PROPID_INT)
@@ -333,9 +319,9 @@ static void TimerFinalize(JSContext *context, JSObject *this)
 {
 	OOJS_PROFILE_ENTER
 	
-	OOJSTimer				*timer = nil;
+	OOJSTimer *timer = (OOJSTimer *)JS_GetPrivate(context, this);
 	
-	if (JSTimerGetTimer(context, this, &timer))
+	if (timer != nil)
 	{
 		if ([timer isScheduled])
 		{
@@ -430,6 +416,7 @@ static JSBool TimerStart(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!JSTimerGetTimer(context, OOJS_THIS, &thisTimer)))  return NO;
 	
 	OOJS_RETURN_BOOL([thisTimer scheduleTimer]);
+	
 	OOJS_NATIVE_EXIT
 }
 
@@ -444,7 +431,7 @@ static JSBool TimerStop(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!JSTimerGetTimer(context, OOJS_THIS, &thisTimer)))  return NO;
 	
 	[thisTimer unscheduleTimer];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
