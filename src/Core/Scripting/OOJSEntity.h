@@ -57,6 +57,11 @@ OOINLINE JSObject *JSEntityPrototype(void)  { return gOOEntityJSPrototype; }
 BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Entity **outEntity, uintN *outConsumed);
 
 
+/*
+	For scripting purposes, a JS entity object is a stale reference if its
+	underlying ObjC object is nil, or if it refers to the player and the
+	
+*/
 OOINLINE BOOL OOIsStaleEntity(Entity *entity)
 {
 	return entity == nil || (entity->isPlayer && [UNIVERSE blockJSPlayerShipProps]);
