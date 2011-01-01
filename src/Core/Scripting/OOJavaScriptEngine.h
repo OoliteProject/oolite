@@ -232,6 +232,9 @@ void JSObjectWrapperFinalize(JSContext *context, JSObject *this);
 @end
 
 
+OOINLINE NSString *JSValToNSString(JSContext *context, jsval value) ALWAYS_INLINE_FUNC;
+OOINLINE NSString *JSObjectToNSString(JSContext *context, JSObject *object) ALWAYS_INLINE_FUNC;
+
 OOINLINE NSString *JSValToNSString(JSContext *context, jsval value)
 {
 	return [NSString stringOrNilWithJavaScriptValue:value inContext:context];
@@ -268,6 +271,7 @@ id JSValueToObject(JSContext *context, jsval value);
 id JSObjectToObject(JSContext *context, JSObject *object);
 id JSValueToObjectOfClass(JSContext *context, jsval value, Class requiredClass);
 id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredClass);
+
 
 OOINLINE JSClass *OOJS_GetClass(JSContext *cx, JSObject *obj)  ALWAYS_INLINE_FUNC;
 OOINLINE JSClass *OOJS_GetClass(JSContext *cx, JSObject *obj)
@@ -577,6 +581,7 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 
 #define OOJS_ARG(n)						(OOJS_ARGV[(n)])
 #define OOJS_RETURN(v)					do { OOJS_SET_RVAL(v); return YES; } while (0)
+#define OOJS_RETURN_JSOBJECT(o)			OOJS_RETURN(OBJECT_TO_JSVAL(o))
 #define OOJS_RETURN_VOID				OOJS_RETURN(JSVAL_VOID)
 #define OOJS_RETURN_NULL				OOJS_RETURN(JSVAL_NULL)
 #define OOJS_RETURN_BOOL(v)				OOJS_RETURN(BOOLToJSVal(v))

@@ -163,7 +163,7 @@ static JSBool MissionMarkSystem(OOJS_NATIVE_ARGS)
 	params = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV count:argc separator:@" " inContext:context];
 	[player addMissionDestination:params];
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -180,7 +180,7 @@ static JSBool MissionUnmarkSystem(OOJS_NATIVE_ARGS)
 	params = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV count:argc separator:@" " inContext:context];
 	[player removeMissionDestination:params];
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -199,7 +199,7 @@ static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS)
 	text = JSValToNSString(context, OOJS_ARG(0));
 	[player addLiteralMissionText:text];
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -254,7 +254,7 @@ static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey)
 		[player clearMissionDescriptionForMission:missionKey];
 	}
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

@@ -211,7 +211,7 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) { *value = JSVAL_VOID; return YES; }
-	if (EXPECT_NOT(!OOJS_PROPID_IS_INT))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	BOOL						OK = NO;
 	id							result = nil;
@@ -344,7 +344,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) return YES;
-	if (EXPECT_NOT(!OOJS_PROPID_IS_INT))  return YES;
+	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	BOOL						OK = NO;
 	PlayerEntity				*player = OOPlayerShipForScripting();

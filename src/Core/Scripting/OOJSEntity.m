@@ -177,12 +177,11 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 	Entity						*entity = nil;
 	id							result = nil;
 	
-	OOJSEntityGetEntity(context, this, &entity);
-	if (entity == nil)
-	{
+	if (EXPECT_NOT(!OOJSEntityGetEntity(context, this, &entity))) return NO;
+	if (OOIsStaleEntity(entity))
+	{ 
 		if (OOJS_PROPID_INT == kEntity_isValid)  *value = JSVAL_FALSE;
-		else  *value = JSVAL_VOID;
-		
+		else  { *value = JSVAL_VOID; }
 		return YES;
 	}
 	
@@ -300,7 +299,8 @@ static JSBool EntitySetProperty(OOJS_PROP_ARGS)
 	Vector				vValue;
 	Quaternion			qValue;
 	
-	if (EXPECT_NOT(!OOJSEntityGetEntity(context, this, &entity)))  return YES;	// Do nothing.
+	if (EXPECT_NOT(!OOJSEntityGetEntity(context, this, &entity)))  return NO;
+	if (OOIsStaleEntity(entity))  return YES;
 	
 	switch (OOJS_PROPID_INT)
 	{

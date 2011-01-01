@@ -538,7 +538,6 @@ static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS)
 	{
         this = JS_NewObject(context, &sQuaternionClass, NULL, NULL);
         if (this == NULL)  return NO;
-		OOJS_SET_RVAL(OBJECT_TO_JSVAL(this));
     }
 	else
 	{
@@ -567,7 +566,7 @@ static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	return YES;
+	OOJS_RETURN_JSOBJECT(this);
 	
 	OOJS_PROFILE_EXIT
 }

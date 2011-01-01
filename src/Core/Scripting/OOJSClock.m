@@ -193,7 +193,9 @@ static JSBool ClockGetProperty(OOJS_PROP_ARGS)
 static JSBool JSClockToString(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
+	
 	OOJS_RETURN_OBJECT([OOPlayerForScripting() dial_clock]);
+	
 	OOJS_NATIVE_EXIT
 }
 
@@ -208,6 +210,7 @@ static JSBool ClockClockStringForTime(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARG(0), &time)))  return NO;
 	
 	OOJS_RETURN_OBJECT(ClockToString(time, NO));
+	
 	OOJS_NATIVE_EXIT
 }
 
@@ -230,5 +233,6 @@ static JSBool ClockAddSeconds(OOJS_NATIVE_ARGS)
 	[OOPlayerForScripting() addToAdjustTime:time];
 	
 	OOJS_RETURN_BOOL(YES);
+	
 	OOJS_NATIVE_EXIT
 }

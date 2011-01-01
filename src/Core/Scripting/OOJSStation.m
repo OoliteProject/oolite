@@ -178,7 +178,8 @@ static JSBool StationGetProperty(OOJS_PROP_ARGS)
 	
 	StationEntity				*entity = nil;
 	
-	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
+	if (!JSStationGetStationEntity(context, this, &entity))  return NO;
+	if (entity == nil)  { *value = JSVAL_VOID; return YES; }
 	
 	switch (OOJS_PROPID_INT)
 	{
@@ -254,6 +255,7 @@ static JSBool StationSetProperty(OOJS_PROP_ARGS)
 	int32						iValue;
 	
 	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
+	if (entity == nil)  return YES;
 	
 	switch (OOJS_PROPID_INT)
 	{

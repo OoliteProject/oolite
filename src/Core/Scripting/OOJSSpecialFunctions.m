@@ -72,7 +72,8 @@ static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS)
 	OOSetJSWarningOrErrorStackSkip(1);
 	OOReportJSWarning(context, @"%@", [NSString stringWithJavaScriptValue:OOJS_ARG(0) inContext:context]);
 	OOSetJSWarningOrErrorStackSkip(0);
-	return YES;
+	
+	OOJS_RETURN_VOID;
 	
 	OOJS_PROFILE_EXIT
 }

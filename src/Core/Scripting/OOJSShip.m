@@ -766,7 +766,7 @@ static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 	OOColor						*colorForScript = nil;
 	
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
-	if (OOIsStaleEntity(entity)) { *value = JSVAL_VOID; return YES; }
+	if (OOIsStaleEntity(entity))  return YES;
 	
 	switch (OOJS_PROPID_INT)
 	{

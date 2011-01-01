@@ -578,6 +578,11 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 	{
 		OOJS_SET_RVAL([result javaScriptValueInContext:context]);
 	}
+	else
+	{
+		OOJS_SET_RVAL(JSVAL_VOID);
+	}
+
 	[pool release];
 	
 	OOJSResumeTimeLimiter();

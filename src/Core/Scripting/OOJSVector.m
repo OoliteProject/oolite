@@ -449,12 +449,13 @@ BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, 
 
 static JSBool VectorGetProperty(OOJS_PROP_ARGS)
 {
+	if (!OOJS_PROPID_IS_INT)  return YES;
+	
 	OOJS_PROFILE_ENTER
 	
 	Vector				vector;
 	GLfloat				fValue;
 	
-	if (!OOJS_PROPID_IS_INT)  return YES;
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))  return NO;
 	
 	switch (OOJS_PROPID_INT)
@@ -484,12 +485,13 @@ static JSBool VectorGetProperty(OOJS_PROP_ARGS)
 
 static JSBool VectorSetProperty(OOJS_PROP_ARGS)
 {
+	if (!OOJS_PROPID_IS_INT)  return YES;
+	
 	OOJS_PROFILE_ENTER
 	
 	Vector				vector;
 	jsdouble			dval;
 	
-	if (!OOJS_PROPID_IS_INT)  return YES;
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))  return NO;
 	if (EXPECT_NOT(!JS_ValueToNumber(context, *value, &dval)))
 	{
@@ -553,7 +555,6 @@ static JSBool VectorConstruct(OOJS_NATIVE_ARGS)
 	{
         this = JS_NewObject(context, &sVectorClass, NULL, NULL);
         if (this == NULL)  return NO;
-		OOJS_SET_RVAL(OBJECT_TO_JSVAL(this));
     }
 	else
 	{
@@ -582,7 +583,7 @@ static JSBool VectorConstruct(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	return YES;
+	OOJS_RETURN_JSOBJECT(this);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -913,7 +914,7 @@ static JSBool VectorToArray(OOJS_NATIVE_ARGS)
 	result = JS_NewArrayObject(context, 0, NULL);
 	if (result != NULL)
 	{
-		// We do this at the top because *outResult is a GC root.
+		// We do this at the top because the return value slot is a GC root.
 		OOJS_SET_RVAL(OBJECT_TO_JSVAL(result));
 		
 		if (JS_NewNumberValue(context, thisv.x, &nVal) && JS_SetElement(context, result, 0, &nVal) &&

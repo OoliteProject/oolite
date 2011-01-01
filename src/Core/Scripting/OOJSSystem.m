@@ -503,8 +503,6 @@ static JSBool SystemAddMoon(OOJS_NATIVE_ARGS)
 	
 	OOJS_RETURN_OBJECT(planet);
 	
-	return YES;
-	
 	OOJS_NATIVE_EXIT
 }
 
@@ -517,7 +515,7 @@ static JSBool SystemSendAllShipsAway(OOJS_NATIVE_ARGS)
 	PlayerEntity *player = OOPlayerForScripting();
 	
 	[player sendAllShipsAway];
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -819,7 +817,7 @@ static JSBool SystemLegacyAddShips(OOJS_NATIVE_ARGS)
 	while (count--)  [UNIVERSE witchspaceShipWithPrimaryRole:role];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -849,7 +847,7 @@ static JSBool SystemLegacyAddSystemShips(OOJS_NATIVE_ARGS)
 	while (count--)  [UNIVERSE addShipWithRole:role nearRouteOneAt:position];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -885,7 +883,7 @@ static JSBool SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS)
 	[player addShipsAt:arg];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -921,7 +919,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS)
 	[player addShipsAtPrecisely:arg];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -960,7 +958,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(OOJS_NATIVE_ARGS)
 	[player addShipsWithinRadius:arg];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -985,7 +983,7 @@ static JSBool SystemLegacySpawnShip(OOJS_NATIVE_ARGS)
 	[UNIVERSE spawnShip:key];
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

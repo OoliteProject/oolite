@@ -192,9 +192,6 @@ static JSBool OoliteCompareVersion(OOJS_NATIVE_ARGS)
 	{
 		OOJS_RETURN_VOID;
 	}
-
-	
-	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

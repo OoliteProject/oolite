@@ -241,7 +241,7 @@ static JSBool GlobalLog(OOJS_NATIVE_ARGS)
 #endif
 	OOJSResumeTimeLimiter();
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -438,7 +438,7 @@ static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 		if (freeSpace < 1073741824) // less than 1 GB free on disk?
 		{
 			OOReportJSWarning(context, @"takeSnapShot: function disabled when free disk space is less than 1GB.");
-			return YES;
+			OOJS_RETURN_BOOL(NO);
 		}
 	}
 	
