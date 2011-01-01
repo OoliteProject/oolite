@@ -192,6 +192,63 @@ BOOL JSValueToQuaternion(JSContext *context, jsval value, Quaternion *outQuatern
 }
 
 
+#if OO_DEBUG
+
+typedef struct
+{
+	OOUInteger			quatCount;
+	OOUInteger			entityCount;
+	OOUInteger			arrayCount;
+	OOUInteger			protoCount;
+	OOUInteger			failCount;
+} QuaternionStatistics;
+static QuaternionStatistics sQuaternionConversionStats;
+
+
+@implementation PlayerEntity (JSQuaternionStatistics)
+
+// :setM quatStats PS.callObjC("reportJSQuaternionStatistics")
+// :quatStats
+
+- (NSString *) reportJSQuaternionStatistics
+{
+	QuaternionStatistics *stats = &sQuaternionConversionStats;
+	
+	OOUInteger sum = stats->quatCount + stats->entityCount + stats->arrayCount + stats->protoCount;
+	double convFac = 100.0 / sum;
+	
+	return [NSString stringWithFormat:
+		   @"quaternion-to-quaternion conversions: %lu (%g %%)\n"
+			"    entity-to-quaternion conversions: %lu (%g %%)\n"
+			"     array-to-quaternion conversions: %lu (%g %%)\n"
+			"       prototype-to-zero conversions: %lu (%g %%)\n"
+			"                  failed conversions: %lu (%g %%)\n"
+			"                               total: %lu",
+			(long)stats->quatCount, stats->quatCount * convFac,
+			(long)stats->entityCount, stats->entityCount * convFac,
+			(long)stats->arrayCount, stats->arrayCount * convFac,
+			(long)stats->protoCount, stats->protoCount * convFac,
+			(long)stats->failCount, stats->failCount * convFac,
+			(long)sum];
+}
+
+
+- (void) clearJSQuaternionStatistics
+{
+	memset(&sQuaternionConversionStats, 0, sizeof sQuaternionConversionStats);
+}
+
+@end
+
+#define COUNT(FIELD) do { sQuaternionConversionStats.FIELD++; } while (0)
+
+#else
+
+#define COUNT(FIELD) do {} while (0)
+
+#endif
+
+
 BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion *outQuaternion)
 {
 	OOJS_PROFILE_ENTER
@@ -209,6 +266,7 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
 	{
+		COUNT(quatCount);
 		*outQuaternion = *private;
 		return YES;
 	}
@@ -216,6 +274,7 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	// If it's an entity, use its orientation.
 	if (OOJSIsMemberOfSubclass(context, quaternionObj, JSEntityClass()))
 	{
+		COUNT(entityCount);
 		Entity *entity = JS_GetPrivate(context, quaternionObj);
 		*outQuaternion = [entity orientation];
 		return YES;
@@ -241,6 +300,8 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 				outQuaternion->y = dVal;
 				if (!JS_ValueToNumber(context, arrayZ, &dVal))  return NO;
 				outQuaternion->z = dVal;
+				
+				COUNT(arrayCount);
 				return YES;
 			}
 		}
@@ -251,14 +312,16 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 		Quaternion.prototype)...
 		
 		NOTE: it would be prettier to do this at the top when we handle normal
-		Vector3Ds, but it's a rare case which should be kept off the fast path.
+		Quaternions, but it's a rare case which should be kept off the fast path.
 	*/
 	if (JS_InstanceOf(context, quaternionObj, &sQuaternionClass, NULL))
 	{
+		COUNT(protoCount);
 		*outQuaternion = kZeroQuaternion;
 		return YES;
 	}
 	
+	COUNT(failCount);
 	return NO;
 	
 	OOJS_PROFILE_EXIT
@@ -491,7 +554,7 @@ static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS)
 			free(private);
 			OOReportJSBadArguments(context, NULL, NULL, argc, OOJS_ARGV,
 								   @"Could not construct quaternion from parameters",
-								   @"Vector, Entity or array of four numbers");
+								   @"Quaternion, Entity or array of four numbers");
 			return NO;
 		}
 	}

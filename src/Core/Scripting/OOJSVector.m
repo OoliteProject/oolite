@@ -214,6 +214,64 @@ BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)
 }
 
 
+#if OO_DEBUG
+
+typedef struct
+{
+	OOUInteger			vectorCount;
+	OOUInteger			entityCount;
+	OOUInteger			arrayCount;
+	OOUInteger			protoCount;
+	OOUInteger			failCount;
+} VectorStatistics;
+static VectorStatistics sVectorConversionStats;
+
+
+@implementation PlayerEntity (JSVectorStatistics)
+
+// :setM vectorStats PS.callObjC("reportJSVectorStatistics")
+// :vectorStats
+
+- (NSString *) reportJSVectorStatistics
+{
+	VectorStatistics *stats = &sVectorConversionStats;
+	
+	OOUInteger sum = stats->vectorCount + stats->entityCount + stats->arrayCount + stats->protoCount;
+	double convFac = 100.0 / sum;
+	if (sum == 0)  convFac = 0;
+	
+	return [NSString stringWithFormat:
+		   @" vector-to-vector conversions: %lu (%g %%)\n"
+			" entity-to-vector conversions: %lu (%g %%)\n"
+			"  array-to-vector conversions: %lu (%g %%)\n"
+			"prototype-to-zero conversions: %lu (%g %%)\n"
+			"           failed conversions: %lu (%g %%)\n"
+			"                        total: %lu",
+			(long)stats->vectorCount, stats->vectorCount * convFac,
+			(long)stats->entityCount, stats->entityCount * convFac,
+			(long)stats->arrayCount, stats->arrayCount * convFac,
+			(long)stats->protoCount, stats->protoCount * convFac,
+			(long)stats->failCount, stats->failCount * convFac,
+			(long)sum];
+}
+
+
+- (void) clearJSVectorStatistics
+{
+	memset(&sVectorConversionStats, 0, sizeof sVectorConversionStats);
+}
+
+@end
+
+#define COUNT(FIELD) do { sVectorConversionStats.FIELD++; } while (0)
+
+#else
+
+#define COUNT(FIELD) do {} while (0)
+
+#endif
+
+
 BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector)
 {
 	OOJS_PROFILE_ENTER
@@ -232,6 +290,7 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass, NULL);
 	if (private != NULL)	
 	{
+		COUNT(vectorCount);
 		*outVector = *private;
 		return YES;
 	}
@@ -239,6 +298,7 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	// If it's an entity, use its position.
 	if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClass()))
 	{
+		COUNT(entityCount);
 		Entity *entity = JS_GetPrivate(context, vectorObj);
 		*outVector = [entity position];
 		return YES;
@@ -259,6 +319,7 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 					JS_ValueToNumber(context, arrayY, &y) &&
 					JS_ValueToNumber(context, arrayZ, &z))
 				{
+					COUNT(arrayCount);
 					*outVector = make_vector(x, y, z);
 					return YES;
 				}
@@ -275,10 +336,12 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	*/
 	if (JS_InstanceOf(context, vectorObj, &sVectorClass, NULL))
 	{
+		COUNT(protoCount);
 		*outVector = kZeroVector;
 		return YES;
 	}
 	
+	COUNT(failCount);
 	return NO;
 	
 	OOJS_PROFILE_EXIT
