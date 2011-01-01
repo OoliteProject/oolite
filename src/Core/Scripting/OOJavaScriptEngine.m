@@ -1708,7 +1708,7 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 		Objective-C class test, and I don't think that's any faster.
 		TODO: profile.
 	*/
-	JSClass *actualClass = JS_GetClass(context, object);
+	JSClass *actualClass = OOJS_GetClass(context, object);
 	if (EXPECT_NOT(!OOJSIsSubclass(actualClass, requiredJSClass)))
 	{
 		OOReportJSError(context, @"Native method expected %s, got %@.", requiredJSClass->name, JSObjectToNSString(context, object));
