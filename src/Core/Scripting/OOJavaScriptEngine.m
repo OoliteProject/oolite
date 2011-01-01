@@ -1715,7 +1715,10 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 {
 	OOJS_PROFILE_ENTER
 	
-	NSCParameterAssert(context != NULL && object != NULL && requiredJSClass != NULL && requiredObjCClass != Nil && outObject != NULL);
+	NSCParameterAssert(context != NULL && object != NULL && requiredJSClass != NULL && outObject != NULL);
+#ifndef NDEBUG
+	NSCParameterAssert(requiredObjCClass != Nil);
+#endif
 	
 	/*
 		Ensure it's a valid type of JS object. This is absolutely necessary,
