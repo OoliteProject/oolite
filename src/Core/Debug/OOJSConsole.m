@@ -118,6 +118,7 @@ enum
 	kConsole_displayFPS,						// display FPS (and related info), boolean, read/write
 	kConsole_platformDescription,				// Information about system we're running on in unspecified format, string, read-only
 	kConsole_pedanticMode,						// JS pedantic mode (JS_STRICT flag, not the same as "use strict"), boolean (default true), read/write
+	kConsole_showErrorLocations,				// Show error/warning source locations, boolean (default true), read/write
 	
 	kConsole_glVendorString,					// OpenGL GL_VENDOR string, string, read-only
 	kConsole_glRendererString,					// OpenGL GL_RENDERER string, string, read-only
@@ -150,6 +151,7 @@ static JSPropertySpec sConsoleProperties[] =
 	{ "displayFPS",							kConsole_displayFPS,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "platformDescription",				kConsole_platformDescription,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "pedanticMode",						kConsole_pedanticMode,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "showErrorLocations",					kConsole_showErrorLocations,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "glVendorString",						kConsole_glVendorString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "glRendererString",					kConsole_glRendererString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "glFixedFunctionTextureUnitCount",	kConsole_glFixedFunctionTextureUnitCount,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -316,6 +318,10 @@ static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
 			}
 			break;
 			
+		case kConsole_showErrorLocations:
+			*value = BOOLToJSVal([[OOJavaScriptEngine sharedEngine] showErrorLocations]);
+			break;
+			
 		case kConsole_glVendorString:
 			*value = [[[OOOpenGLExtensionManager sharedManager] vendorString] javaScriptValueInContext:context];
 			break;
@@ -413,6 +419,13 @@ static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 				else  options &= ~JSOPTION_STRICT;
 				
 				JS_SetOptions(context, options);
+			}
+			break;
+			
+		case kConsole_showErrorLocations:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[[OOJavaScriptEngine sharedEngine] setShowErrorLocations:bValue];
 			}
 			break;
 			

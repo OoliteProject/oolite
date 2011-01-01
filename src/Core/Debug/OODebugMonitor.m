@@ -5,7 +5,7 @@ OODebugMonitor.m
 
 Oolite debug support
 
-Copyright (C) 2007-2010 Jens Ayton
+Copyright (C) 2007-2011 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -117,8 +117,12 @@ static OODebugMonitor *sSingleton = nil;
 		// If no script, just make console visible globally as debugConsole.
 		if (_script == nil)
 		{
+			JS_BeginRequest(context);
+			
 			JSObject *global = [jsEng globalObject];
 			JS_DefineProperty(context, global, "debugConsole", [self javaScriptValueInContext:context], NULL, NULL, JSPROP_ENUMERATE);
+			
+			JS_EndRequest(context);
 		}
 		
 		[jsEng releaseContext:context];
@@ -753,7 +757,8 @@ FIXME: this works with CRLF and LF, but not CR.
 - (oneway void)jsEngine:(in byref OOJavaScriptEngine *)engine
 				context:(in JSContext *)context
 				  error:(in JSErrorReport *)errorReport
-			  stackSkip:(unsigned)stackSkip
+			  stackSkip:(in unsigned)stackSkip
+		showingLocation:(in BOOL)showLocation
 			withMessage:(in NSString *)message
 {
 	NSString					*colorKey = nil;
@@ -806,7 +811,7 @@ FIXME: this works with CRLF and LF, but not CR.
 		[formattedMessage appendFormat:@"\n    Active script: %@", scriptLine];
 	}
 	
-	if (stackSkip == 0)
+	if (showLocation && stackSkip == 0)
 	{
 		// Append file name and line
 		if (errorReport->filename != NULL)  filePath = [NSString stringWithUTF8String:errorReport->filename];

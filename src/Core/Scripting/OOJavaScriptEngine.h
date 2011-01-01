@@ -51,12 +51,14 @@ enum
 
 @interface OOJavaScriptEngine: NSObject
 {
+@private
 	JSRuntime						*runtime;
 	JSContext						*mainContext;
 	JSContext						*contextPool[kOOJavaScriptEngineContextPoolCount];
 	uint8_t							contextPoolCount;
 	uint8_t							mainContextInUse;
 	JSObject						*globalObject;
+	BOOL							_showErrorLocations;
 #if OOJSENGINE_MONITOR_SUPPORT
 	id<OOJavaScriptEngineMonitor>	monitor;
 #endif
@@ -84,6 +86,9 @@ enum
 
 - (void) removeGCObjectRoot:(JSObject **)rootPtr;
 - (void) removeGCValueRoot:(jsval *)rootPtr;
+
+- (BOOL) showErrorLocations;
+- (void) setShowErrorLocations:(BOOL)value;
 
 @end
 
@@ -388,7 +393,6 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 /*	Protocol for debugging "monitor" object.
 	The monitor is an object -- in Oolite, or via Distributed Objects -- which
 	is provided with debugging information by the OOJavaScriptEngine.
-	Currently, this is implemented in the Debug OXP.
 */
 
 @protocol OOJavaScriptEngineMonitor <NSObject>
@@ -398,6 +402,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 				context:(in JSContext *)context
 				  error:(in JSErrorReport *)errorReport
 			  stackSkip:(in unsigned)stackSkip
+		showingLocation:(in BOOL)showLocation
 			withMessage:(in NSString *)message;
 
 // Sent for JS log messages. Note: messageClass will be nil of Log() is used rather than LogWithClass().

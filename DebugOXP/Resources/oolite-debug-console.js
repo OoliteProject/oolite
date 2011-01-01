@@ -43,6 +43,19 @@ debugFlags : Number (integer, read/write)
 	the ^= operator (XOR assign) can be thought of as a “toggle option”
 	command.
 
+platformDescription : String (read-only)
+	Information about the system Oolite is running on. The format of this
+	string is not guaranteed, do not attempt to parse it.
+
+showErrorLocations
+	true if file an line should be shown when reporting JavaScript errors and
+	warnings. Default: true.
+
+showErrorLocationsDuringConsoleEval
+	Override value for showErrorLocations used while evaluating code entered
+	in the console. Default: false. (This information is generally not useful
+	for code passed to eval().)
+
 shaderMode : String (read/write)
 	A string specifying the current shader mode. One of the following:
 		"SHADERS_NOT_SUPPORTED"
@@ -74,10 +87,6 @@ displayFPS : Boolean (read/write)
 glVendorString : String (read-only)
 glRendererString : String (read-only)
 	Information about the OpenGL renderer.
-
-platformDescription : String (read-only)
-	Information about the system Oolite is running on. The format of this
-	string is not guaranteed, do not attempt to parse it.
 
 	
 function consoleMessage(colorCode : String, message : String [, emphasisStart : Number, emphasisLength : Number])
@@ -132,7 +141,7 @@ result
 
 Oolite Debug OXP
 
-Copyright © 2007-2010 Jens Ayton
+Copyright © 2007-2011 the Oolite team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -156,7 +165,7 @@ SOFTWARE.
 
 this.name			= "oolite-debug-console";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2007-2010 the Oolite team.";
+this.copyright		= "© 2007-2011 the Oolite team.";
 this.description	= "Debug console script.";
 this.version		= "1.75";
 
@@ -290,7 +299,20 @@ this.consolePerformJSCommand = function consolePerformJSCommand(command)
 
 this.evaluate = function evaluate(command, type, PARAM)
 {
-	var result = eval(command);
+	var showErrorLocations = debugConsole.showErrorLocations;
+	debugConsole.showErrorLocations = debugConsole.showErrorLocationsDuringConsoleEval;
+	try
+	{
+		var result = eval(command);
+	}
+	catch (e)
+	{
+		// console.showErrorLocations must be reset _after_ the exception is handed.
+		this.resetErrorLocTimer = new Timer(this, function () { console.showErrorLocations = showErrorLocations; delete this.resetErrorLocTimer; }, 0);
+		throw e;
+	}
+	console.showErrorLocations = showErrorLocations;
+	
 	if (result !== undefined)
 	{
 		if (result === null)  result = "null";
@@ -482,8 +504,12 @@ String.prototype.substituteEscapeCodes = function substituteEscapeCodes()
 global.debugConsole = this.console;
 debugConsole.script = this;
 
+// Load macros
 if (debugConsole.settings["macros"])  this.macros = debugConsole.settings["macros"];
 if (debugConsole.settings["defaultMacros"])  this.defaultMacros = debugConsole.settings["defaultMacros"];
+
+// By default, suppress error location messages when evaluating console input (because it's usually unhelpful)
+debugConsole.showErrorLocationsDuringConsoleEval = false;
 
 /*	As a convenience, make player, player.ship, system and missionVariables
 	available to console commands as short variables:

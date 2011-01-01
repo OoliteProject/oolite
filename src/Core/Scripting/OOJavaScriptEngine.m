@@ -130,6 +130,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	NSString		*messageClass = nil;
 	NSString		*highlight = @"*****";
 	NSString		*activeScript = nil;
+	BOOL			showLocation = [[OOJavaScriptEngine sharedEngine] showErrorLocations];
 	
 	OOJSPauseTimeLimiter();
 	
@@ -179,7 +180,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	if (activeScript == nil)  activeScript = @"<unidentified script>";
 	OOLog(messageClass, @"%@ JavaScript %@ (%@): %@", highlight, severity, activeScript, messageText);
 	
-	if (sErrorHandlerStackSkip == 0)
+	if (!showLocation && sErrorHandlerStackSkip == 0)
 	{
 		// Second line: where error occured, and line if provided. (The line is only provided for compile-time errors, not run-time errors.)
 		if ([lineBuf length] != 0)
@@ -230,7 +231,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 - (id) init
 {
-	assert(sSharedEngine == nil);
+	NSAssert(sSharedEngine == nil, @"Attempt to create multiple OOJavaScriptEngines.");
 	
 #if OO_NEW_JS
 	JS_SetCStringsAreUTF8();
@@ -243,19 +244,21 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	}
 #endif
 	
-	self = [super init];
+	if (!(self = [super init]))  return nil;
+	
+	_showErrorLocations = YES;
 	
 	assert(sizeof(jschar) == sizeof(unichar));
-
+	
 	// set up global JS variables, including global and custom objects
-
+	
 	// initialize the JS run time, and return result in runtime
 	runtime = JS_NewRuntime(8L * 1024L * 1024L);
 	
 	// if runtime creation failed, end the program here
 	if (runtime == NULL)
 	{
-		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript %@.", @"runtime");
+		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript runtime.");
 		exit(1);
 	}
 	
@@ -267,7 +270,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// if context creation failed, end the program here
 	if (mainContext == NULL)
 	{
-		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript %@.", @"context");
+		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript context.");
 		exit(1);
 	}
 	
@@ -414,7 +417,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		// if context creation failed, end the program here
 		if (context == NULL)
 		{
-			OOLog(@"script.javaScript.error", @"***** FATAL ERROR: failed to create JavaScript %@.", @"context");
+			OOLog(@"script.javaScript.error", @"***** FATAL ERROR: failed to create JavaScript context.");
 			exit(1);
 		}
 		
@@ -472,6 +475,18 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	[self releaseContext:context];
 }
 
+
+- (BOOL) showErrorLocations
+{
+	return _showErrorLocations;
+}
+
+
+- (void) setShowErrorLocations:(BOOL)value
+{
+	_showErrorLocations = !!value;
+}
+
 @end
 
 
@@ -494,9 +509,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 			 withMessage:(NSString *)message
 			   inContext:(JSContext *)theContext
 {
-	if ([monitor respondsToSelector:@selector(jsEngine:context:error:stackSkip:withMessage:)])
+	if ([monitor respondsToSelector:@selector(jsEngine:context:error:stackSkip:showingLocation:withMessage:)])
 	{
-		[monitor jsEngine:self context:theContext error:errorReport stackSkip:sErrorHandlerStackSkip withMessage:message];
+		[monitor jsEngine:self context:theContext error:errorReport stackSkip:sErrorHandlerStackSkip showingLocation:[self showErrorLocations] withMessage:message];
 	}
 }
 
