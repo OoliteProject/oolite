@@ -5,7 +5,7 @@ OOJSEntity.h
 JavaScript proxy for entities.
 
 Oolite
-Copyright (C) 2004-2010 Giles C Williams and contributors
+Copyright (C) 2004-2011 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -60,7 +60,8 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 /*
 	For scripting purposes, a JS entity object is a stale reference if its
 	underlying ObjC object is nil, or if it refers to the player and the
-	
+	blockJSPlayerShipProps flag is in effect (i.e., the escape pod sequence is
+	active).
 */
 OOINLINE BOOL OOIsStaleEntity(Entity *entity)
 {

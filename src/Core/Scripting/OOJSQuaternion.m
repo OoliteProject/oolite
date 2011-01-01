@@ -199,7 +199,6 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	assert(outQuaternion != NULL);
 	
 	Quaternion				*private = NULL;
-	Entity					*entity = nil;
 	jsuint					arrayLength;
 	jsval					arrayW, arrayX, arrayY, arrayZ;
 	jsdouble				dVal;
@@ -215,8 +214,9 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	}
 	
 	// If it's an entity, use its orientation.
-	if (OOJSEntityGetEntity(context, quaternionObj, &entity))
+	if (OOJSIsMemberOfSubclass(context, quaternionObj, JSEntityClass()))
 	{
+		Entity *entity = JS_GetPrivate(context, quaternionObj);
 		*outQuaternion = [entity orientation];
 		return YES;
 	}

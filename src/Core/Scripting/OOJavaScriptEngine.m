@@ -3,7 +3,7 @@
 OOJavaScriptEngine.m
 
 JavaScript support for Oolite
-Copyright (C) 2007-2010 David Taylor and Jens Ayton.
+Copyright (C) 2007-2011 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1692,8 +1692,14 @@ BOOL OOJSIsSubclass(JSClass *putativeSubclass, JSClass *superclass)
 }
 
 
-BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *requiredJSClass, Class requiredObjCClass, id *outObject)
+BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *requiredJSClass,
+#ifndef NDEBUG
+	Class requiredObjCClass,
+#endif
+	id *outObject)
 {
+	OOJS_PROFILE_ENTER
+	
 	NSCParameterAssert(context != NULL && object != NULL && requiredJSClass != NULL && requiredObjCClass != Nil && outObject != NULL);
 	
 	/*
@@ -1729,6 +1735,8 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 #endif
 	
 	return YES;
+	
+	OOJS_PROFILE_EXIT
 }
 
 

@@ -3,7 +3,7 @@
 OOJSVector.m
 
 Oolite
-Copyright (C) 2004-2010 Giles C Williams and contributors
+Copyright (C) 2004-2011 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -221,13 +221,12 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	assert(outVector != NULL);
 	
 	Vector					*private = NULL;
-	Entity					*entity = nil;
 	jsuint					arrayLength;
 	jsval					arrayX, arrayY, arrayZ;
 	jsdouble				x, y, z;
 	
 	// vectorObj can legitimately be NULL, e.g. when JS_NULL is converted to a JSObject *.
-	if (vectorObj == NULL) return NO;
+	if (EXPECT_NOT(vectorObj == NULL)) return NO;
 	
 	// If this is a (JS) Vector...
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass, NULL);
@@ -238,8 +237,9 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	}
 	
 	// If it's an entity, use its position.
-	if (OOJSEntityGetEntity(context, vectorObj, &entity))
+	if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClass()))
 	{
+		Entity *entity = JS_GetPrivate(context, vectorObj);
 		*outVector = [entity position];
 		return YES;
 	}

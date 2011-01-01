@@ -3,7 +3,7 @@
 OOJavaScriptEngine.h
 
 JavaScript support for Oolite
-Copyright (C) 2007-2010 David Taylor and Jens Ayton.
+Copyright (C) 2007-2011 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -264,6 +264,16 @@ id JSObjectToObject(JSContext *context, JSObject *object);
 id JSValueToObjectOfClass(JSContext *context, jsval value, Class requiredClass);
 id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredClass);
 
+OOINLINE JSClass *OOJS_GetClass(JSContext *cx, JSObject *obj)  ALWAYS_INLINE_FUNC;
+OOINLINE JSClass *OOJS_GetClass(JSContext *cx, JSObject *obj)
+{
+#if JS_THREADSAFE
+	return JS_GetClass(cx, obj);
+#else
+	return JS_GetClass(obj);
+#endif
+}
+
 
 /*
 	DEFINE_JS_OBJECT_GETTER()
@@ -280,6 +290,7 @@ id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredC
 	raised. Otherwise, outOjbect is either a native object of the specified
 	class (or a subclass) or nil.
 */
+#ifndef NDEBUG
 #define DEFINE_JS_OBJECT_GETTER(NAME, JSCLASS, JSPROTO, OBJCCLASSNAME) \
 static BOOL NAME(JSContext *context, JSObject *inObject, OBJCCLASSNAME **outObject)  GCC_ATTR((unused)); \
 static BOOL NAME(JSContext *context, JSObject *inObject, OBJCCLASSNAME **outObject) \
@@ -289,8 +300,20 @@ static BOOL NAME(JSContext *context, JSObject *inObject, OBJCCLASSNAME **outObje
 	if (EXPECT_NOT(cls == Nil))  cls = [OBJCCLASSNAME class]; \
 	return OOJSObjectGetterImpl(context, inObject, JSCLASS, cls, (id *)outObject); \
 }
+#else
+#define DEFINE_JS_OBJECT_GETTER(NAME, JSCLASS, JSPROTO, OBJCCLASSNAME) \
+OOINLINE BOOL NAME(JSContext *context, JSObject *inObject, OBJCCLASSNAME **outObject) \
+{ \
+	return OOJSObjectGetterImpl(context, inObject, JSCLASS, (id *)outObject); \
+}
+#endif
+
 // For DEFINE_JS_OBJECT_GETTER()'s use.
+#ifndef NDEBUG
 BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *requiredJSClass, Class requiredObjCClass, id *outObject);
+#else
+BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *requiredJSClass, id *outObject);
+#endif
 
 
 /*
@@ -314,6 +337,10 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 */
 void OOJSRegisterSubclass(JSClass *subclass, JSClass *superclass);
 BOOL OOJSIsSubclass(JSClass *putativeSubclass, JSClass *superclass);
+OOINLINE BOOL OOJSIsMemberOfSubclass(JSContext *context, JSObject *object, JSClass *superclass)
+{
+	return OOJSIsSubclass(OOJS_GetClass(context, object), superclass);
+}
 
 
 /*	Support for JSValueToObject()
@@ -568,15 +595,6 @@ JSBool JSObjectWrapperToString(OOJS_NATIVE_ARGS);
 
 
 /***** Transitional compatibility stuff - remove when switching to OO_NEW_JS permanently. *****/
-
-static inline JSClass * OOJS_GetClass(JSContext *cx, JSObject *obj)
-{
-#if JS_THREADSAFE
-	return JS_GetClass(cx, obj);
-#else
-	return JS_GetClass(obj);
-#endif
-}
 
 
 #if OO_NEW_JS
