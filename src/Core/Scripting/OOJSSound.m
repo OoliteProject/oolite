@@ -155,7 +155,7 @@ static OOSound *GetNamedSound(NSString *name)
 {
 	OOSound						*sound = nil;
 	
-	if ([name hasPrefix:@"["] && [name hasSuffix:@"["])
+	if ([name hasPrefix:@"["] && [name hasSuffix:@"]"])
 	{
 		sound = [OOSound soundWithCustomSoundKey:name];
 	}
