@@ -173,13 +173,15 @@ static NSMutableArray	*sDeferredTimers;
 		if (timer == nil || now < [timer nextTime])  break;
 		
 		[sTimers removeNextObject];
+		
+		// Must fire before rescheduling so that the timer callback can stop itself. -- Ahruman 2011-01-01
+		[timer timerFired];
+		
 		if (timer->_isScheduled)
 		{
 			timer->_isScheduled = NO;
 			[timer scheduleTimer];	// Must reschedule before firing so that unscheduling works.
 		}
-		
-		[timer timerFired];
 	}
 	
 	if (sDeferredTimers != nil)
