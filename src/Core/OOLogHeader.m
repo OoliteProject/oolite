@@ -144,8 +144,8 @@ void OOPrintLogHeader(void)
 		@"JavaScript profiling",
 	#endif
 	
-	#if OO_NEW_JS
-		@"updated JavaScript (experimental)",
+	#if !OO_NEW_JS
+		@"OUTDATED JAVASCRIPT ENGINE",
 	#endif
 	
 		nil];
