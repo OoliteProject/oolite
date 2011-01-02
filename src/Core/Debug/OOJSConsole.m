@@ -3,9 +3,8 @@
 OOJSConsole.m
 
 
-Oolite Debug OXP
-
-Copyright (C) 2007-2011 Jens Ayton
+Oolite
+Copyright (C) 2004-2011 Giles C Williams and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
