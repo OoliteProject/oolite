@@ -29,6 +29,9 @@ MA 02110-1301, USA.
 /*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
 
 
+"use strict";
+
+
 this.name			= "oolite-default-ship-script";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007-2010 the Oolite team.";

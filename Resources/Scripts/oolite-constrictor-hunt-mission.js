@@ -31,6 +31,9 @@ MA 02110-1301, USA.
 /*global galaxyNumber, guiScreen, mission, missionVariables, player, system*/
 
 
+"use strict";
+
+
 this.name			= "oolite-constrictor-hunt";
 this.author			= "Eric Walch";
 this.copyright		= "© 2008-2010 the Oolite team.";

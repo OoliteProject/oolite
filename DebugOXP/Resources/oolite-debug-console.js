@@ -163,6 +163,9 @@ SOFTWARE.
 
 */
 
+"use strict";
+
+
 this.name			= "oolite-debug-console";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007-2011 the Oolite team.";

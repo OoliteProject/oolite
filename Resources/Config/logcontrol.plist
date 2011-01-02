@@ -297,6 +297,8 @@
 	script.javaScript.stackTrace.timeLimit	= yes;					// ...for time limiter
 	script.javaScript.stackTrace.warning	= inherit;				// ...for warnings
 	
+	script.javaScript.warning.uselessExpr	= no;					// A bug in SpiderMonkey causes this warning to be raised when "use strict" is seen in pedantic mode, even though "use strict" is respected.
+	
 	script.load								= no;
 	script.load.badName						= $scriptError;
 	script.load.notFound					= $scriptError;

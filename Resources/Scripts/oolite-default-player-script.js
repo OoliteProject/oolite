@@ -27,6 +27,9 @@ MA 02110-1301, USA.
 */
 
 
+"use strict";
+
+
 this.name			= "oolite-default-player-script";
 this.author			= "Jens Ayton";
 this.description	= "Standard script for player ship.";

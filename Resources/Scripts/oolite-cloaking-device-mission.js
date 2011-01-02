@@ -30,6 +30,9 @@ MA 02110-1301, USA.
 /*global galaxyNumber, missionVariables, system*/
 
 
+"use strict";
+
+
 this.name			= "oolite-cloaking-device";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007-2010 the Oolite team.";

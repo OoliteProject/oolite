@@ -41,6 +41,9 @@ MA 02110-1301, USA.
 /*global Entity, global, mission, player, Quaternion, Ship, special, system, Vector3D, SystemInfo, expandMissionText*/
 
 
+"use strict";
+
+
 this.name			= "oolite-global-prefix";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2009-2010 the Oolite team.";

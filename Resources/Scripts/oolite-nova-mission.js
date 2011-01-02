@@ -30,6 +30,9 @@ MA 02110-1301, USA.
 /*global Timer, expandDescription, galaxyNumber, guiScreen, mission, missionVariables, player, system*/
 
 
+"use strict";
+
+
 this.name			= "oolite-nova";
 this.author			= "Eric Walch, Jens Ayton, Kaks";
 this.copyright		= "© 2008-2010 the Oolite team.";
