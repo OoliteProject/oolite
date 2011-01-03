@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 /*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
 
 
-// "use strict";	//FIXME: can't delete legacy_fooActions.
+"use strict";
 
 
 this.name			= "oolite-default-ship-script";
@@ -50,9 +50,7 @@ if (this.legacy_launchActions !== undefined)
 		*/
 		this.ship.runLegacyScriptActions(this.ship, this.legacy_launchActions);
 		
-		// These can only be used once; keeping them around after that is pointless.
 		delete this.shipSpawned;
-		delete this.legacy_launchActions;
 	};
 }
 
@@ -110,5 +108,4 @@ if (this.legacy_setupActions !== undefined)
 		future. Do not use it in your own scripts.
 	*/
 	this.ship.runLegacyScriptActions(this.ship, this.legacy_setupActions);
-	delete this.legacy_setupActions;
 }
