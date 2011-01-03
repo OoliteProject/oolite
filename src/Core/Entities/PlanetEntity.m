@@ -50,11 +50,17 @@ MA 02110-1301, USA.
 #define kUntexturedPlanetModel	@"icosahedron.dat"
 
 
+#if OOLITE_MAC_OS_X && !OOLITE_LEOPARD
+#define NSIntegerMapKeyCallBacks	NSIntMapKeyCallBacks
+#define NSIntegerMapValueCallBacks	NSIntMapValueCallBacks
+#endif
+
+
 // straight c
 static Vector base_vertex_array[10400];
 static int base_terrain_array[10400];
 static OOUInteger next_free_vertex;
-NSMutableDictionary*	edge_to_vertex = nil;
+static NSMapTable *sEdgeToVertex;
 
 static int n_triangles[MAX_SUBDIVIDE];
 static int triangle_start[MAX_SUBDIVIDE];
@@ -89,7 +95,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 @end
 
-static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
+static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 
 
 @implementation PlanetEntity
@@ -1098,20 +1104,25 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	if (lastOneWasTextured != isTextured)
 	{
-		DESTROY(edge_to_vertex);
+		if (sEdgeToVertex != NULL)
+		{
+			NSFreeMapTable(sEdgeToVertex);
+			sEdgeToVertex = NULL;
+		}
 		lastOneWasTextured = isTextured;
 	}
 	
-	if (edge_to_vertex == nil)
+	if (sEdgeToVertex == NULL)
 	{
-		edge_to_vertex = [[NSMutableDictionary dictionaryWithCapacity:7680] retain];	// make a new one
-
+		sEdgeToVertex = NSCreateMapTable(NSIntegerMapKeyCallBacks, NSIntegerMapValueCallBacks, 7680);	// make a new one
 		next_free_vertex = 0;
 		
 		// set first 12 or 14 vertices
 		OOMeshVertexCount vi;
 		for (vi = 0; vi < vertexCount; vi++)
+		{
 			base_vertex_array[next_free_vertex++] =  vertices[vi];
+		}
 		
 		// set first 20 triangles
 		
@@ -1181,44 +1192,49 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	[mypool release];
 }
 
-
-static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
+	
+static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 {
-	NSString* key = [[NSString alloc] initWithFormat:@"%d:%d", (va < vb)? va:vb, (va < vb)? vb:va];
-	NSObject* num = [edge_to_vertex objectForKey:key];
-	if (num)
+	if (va < vb)
 	{
-		[key release];
-		return [(NSNumber*)num intValue];
+		GLushort temp = va;
+		va = vb;
+		vb = temp;
+	}
+	void *key = (void *)(((uintptr_t)va << 16) | vb);
+	uintptr_t num = (uintptr_t)NSMapGet(sEdgeToVertex, key);
+	if (num != 0)
+	{
+		// Overall cache hit rate is just over 83 %.
+		return num - 1;
 	}
 	else
 	{
-		int vindex = next_free_vertex++;
-
+		unsigned vindex = next_free_vertex++;
+		NSCAssert(vindex < sizeof base_vertex_array / sizeof *base_vertex_array, @"Vertex array overflow in planet setup.");
+		
 		// calculate position of new vertex
 		Vector pos = vector_add(base_vertex_array[va], base_vertex_array[vb]);
 		pos = vector_normal(pos);	// guaranteed non-zero
 		base_vertex_array[vindex] = pos;
-
+		
 		if (textured)
 		{
 			//calculate new texture coordinates
-			NSPoint	uva = NSMakePoint(texture_uv_array[va * 2], texture_uv_array[va * 2 + 1]);
-			NSPoint	uvb = NSMakePoint(texture_uv_array[vb * 2], texture_uv_array[vb * 2 + 1]);
+			NSPoint	uva = (NSPoint){ texture_uv_array[va * 2], texture_uv_array[va * 2 + 1] };
+			NSPoint	uvb = (NSPoint){ texture_uv_array[vb * 2], texture_uv_array[vb * 2 + 1] };
 			
 			// if either of these is the polar vertex treat it specially to help with polar distortion:
-			if ((uva.y == 0.0)||(uva.y == 1.0))
-				uva.x = uvb.x;
-			if ((uvb.y == 0.0)||(uvb.y == 1.0))
-				uvb.x = uva.x;
+			if (uva.y == 0.0 || uva.y == 1.0)  uva.x = uvb.x;
+			if (uvb.y == 0.0 || uvb.y == 1.0)  uvb.x = uva.x;
 			
 			texture_uv_array[vindex * 2] = 0.5 * (uva.x + uvb.x);
 			texture_uv_array[vindex * 2 + 1] = 0.5 * (uva.y + uvb.y);
 		}
 		
 		// add new edge to the look-up
-		[edge_to_vertex setObject:[NSNumber numberWithInt:vindex] forKey:key];
-		[key release];
+		num = vindex + 1;
+		NSMapInsertKnownAbsent(sEdgeToVertex, key, (void *)num);
 		return vindex;
 	}
 }
