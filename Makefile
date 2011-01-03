@@ -85,7 +85,7 @@ deps-release-deployment: $(DEPS)
 	
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
-	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
+	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes use_newjs=yes
 
 $(LIBJS):
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
