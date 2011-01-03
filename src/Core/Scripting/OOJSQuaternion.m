@@ -438,12 +438,13 @@ BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *ar
 
 static JSBool QuaternionGetProperty(OOJS_PROP_ARGS)
 {
+	if (!OOJS_PROPID_IS_INT)  return YES;
+	
 	OOJS_PROFILE_ENTER
 	
 	Quaternion			quaternion;
 	GLfloat				fValue;
 	
-	if (!OOJS_PROPID_IS_INT)  return YES;
 	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quaternion))) return NO;
 	
 	switch (OOJS_PROPID_INT)
@@ -477,12 +478,13 @@ static JSBool QuaternionGetProperty(OOJS_PROP_ARGS)
 
 static JSBool QuaternionSetProperty(OOJS_PROP_ARGS)
 {
+	if (!OOJS_PROPID_IS_INT)  return YES;
+	
 	OOJS_PROFILE_ENTER
 	
 	Quaternion			quaternion;
 	jsdouble			dval;
 	
-	if (!OOJS_PROPID_IS_INT)  return YES;
 	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quaternion))) return NO;
 	if (EXPECT_NOT(!JS_ValueToNumber(context, *value, &dval)))
 	{
