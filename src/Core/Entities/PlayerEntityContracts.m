@@ -1518,10 +1518,10 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	Quaternion		q2 = { (GLfloat)0.707f, (GLfloat)0.707f, (GLfloat)0.0f, (GLfloat)0.0f };
 	// MKW - retrieve last demo ships' orientation and release it
-    if( scanned_ships[0] != nil )
+    if( demoShip != nil )
 	{
-        q2 = [scanned_ships[0] orientation];
-		[scanned_ships[0] release];
+        q2 = [demoShip orientation];
+		[demoShip release];
 	}
 	
 	ship = [[ProxyPlayerEntity alloc] initWithKey:shipKey definition:shipData];
@@ -1543,7 +1543,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	if (subEntStatus != nil) [ship deserializeShipSubEntitiesFrom:(NSString *)subEntStatus];
 	[UNIVERSE addEntity: ship];
 	// MKW - save demo ship for its rotation
-	scanned_ships[0] = [ship retain];
+	demoShip = [ship retain];
 	
 	[ship setStatus: STATUS_COCKPIT_DISPLAY];
 	

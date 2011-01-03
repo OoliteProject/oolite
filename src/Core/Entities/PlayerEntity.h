@@ -509,9 +509,11 @@ typedef enum
 	OODockingClearanceStatus dockingClearanceStatus;
 #endif
 #if WORMHOLE_SCANNER
-	NSMutableArray *scannedWormholes;
+	NSMutableArray			*scannedWormholes;
 #endif
-        WormholeEntity * wormhole;
+	WormholeEntity			*wormhole;
+
+	ShipEntity				*demoShip; // Used while docked to maintain demo ship rotation.
 }
 
 + (PlayerEntity *)sharedPlayer;

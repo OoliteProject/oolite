@@ -1264,6 +1264,8 @@ static GLfloat		sBaseMass = 0.0;
 	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
 	
 	[self setCloaked:NO];
+
+	demoShip = nil;
 	
 	[[OOMusicController sharedController] stop];
 	[OOScriptTimer noteGameReset];
@@ -4715,8 +4717,8 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	[UNIVERSE removeDemoShips];
 	// MKW - ensure GUI Screen ship is removed
-	[scanned_ships[0] release];
-	scanned_ships[0] = nil;
+	[demoShip release];
+	demoShip = nil;
 	
 	[self playLaunchFromStation];
 }
@@ -6495,8 +6497,8 @@ static NSString *last_outfitting_key=nil;
 			case GUI_SCREEN_SHIPYARD:
 			case GUI_SCREEN_LOAD:
 			case GUI_SCREEN_SAVE:
-				[scanned_ships[0] release];
-				scanned_ships[0] = nil;
+				[demoShip release];
+				demoShip = nil;
 				break;
 			default:
 				// Nothing

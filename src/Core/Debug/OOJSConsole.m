@@ -831,6 +831,10 @@ static JSBool ConsoleWriteMemoryStats(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_EXIT
 }
 
+// MKW - the old JS does not have JS_GetGCParameter()
+#if OO_NEW_JS == 0
+#define JS_GetGCParameter(...) (0)
+#endif
 
 // function garbageCollect() : string
 static JSBool ConsoleGarbageCollect(OOJS_NATIVE_ARGS)
