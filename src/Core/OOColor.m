@@ -338,45 +338,6 @@ MA 02110-1301, USA.
 }
 
 
-// find a point on the sea->land scale
-+ (OOColor *) planetTextureColor:(OOCGFloat) q:(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor
-{
-	float hi = 0.33;
-	float oh = 1.0 / hi;
-	float ih = 1.0 / (1.0 - hi);
-	if (q <= 0.0)
-		return seaColor;
-	if (q > 1.0)
-		return [OOColor whiteColor];
-	if (q < 0.01)
-		return [paleSeaColor blendedColorWithFraction: q * 100.0 ofColor: landColor];
-	if (q > hi)
-		return [paleLandColor blendedColorWithFraction: (q - hi) * ih ofColor: [OOColor whiteColor]];	// snow capped peaks
-	return [paleLandColor blendedColorWithFraction: (hi - q) * oh ofColor: landColor];
-}
-
-
-// find a point on the sea->land scale given impress and bias
-+ (OOColor *) planetTextureColor:(OOCGFloat) q:(OOCGFloat) impress:(OOCGFloat) bias :(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor
-{
-	float maxq = impress + bias;
-	
-	float hi = 0.66667 * maxq;
-	float oh = 1.0 / hi;
-	float ih = 1.0 / (1.0 - hi);
-	
-	if (q <= 0.0)
-		return seaColor;
-	if (q > 1.0)
-		return [OOColor whiteColor];
-	if (q < 0.01)
-		return [paleSeaColor blendedColorWithFraction: q * 100.0 ofColor: landColor];
-	if (q > hi)
-		return [paleLandColor blendedColorWithFraction: (q - hi) * ih ofColor: [OOColor whiteColor]];	// snow capped peaks
-	return [paleLandColor blendedColorWithFraction: (hi - q) * oh ofColor: landColor];
-}
-
-
 - (NSString *) descriptionComponents
 {
 	return [NSString stringWithFormat:@"%g, %g, %g, %g", rgba[0], rgba[1], rgba[2], rgba[3]];

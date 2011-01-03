@@ -83,12 +83,8 @@ typedef struct
 + (OOColor *)brownColor;	/* 0.6, 0.4, 0.2 RGB */
 + (OOColor *)clearColor;	/* 0.0 white, 0.0 alpha */
 
-/* Blend using the NSCalibratedRGB color space. Both colors are converted into the calibrated RGB color space, and they are blended by taking fraction of color and 1 - fraction of the receiver. The result is in the calibrated RGB color space. If the colors cannot be converted into the calibrated RGB color space the blending fails and nil is returned.
-*/
+//	Linear blend in working colour space (no attempt at gamma correction).
 - (OOColor *)blendedColorWithFraction:(float)fraction ofColor:(OOColor *)color;
-
-+ (OOColor *) planetTextureColor:(OOCGFloat) q:(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor;
-+ (OOColor *) planetTextureColor:(OOCGFloat) q:(OOCGFloat) impress:(OOCGFloat) bias :(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor;
 
 /* Get the red, green, or blue components of NSCalibratedRGB or NSDeviceRGB colors.
 */

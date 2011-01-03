@@ -62,8 +62,68 @@ static NSString * const kOOLogPlanetTextureGen			= @"texture.planet.generate";
 
 #if ALLOW_PROCEDURAL_PLANETS
 
-static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias);
-static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias, OOColor* seaColor, OOColor* paleSeaColor, OOColor* landColor, OOColor* paleLandColor);
+#import "OOTextureGenerator.h"	// For FloatRGB
+
+
+static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key)
+{
+	OOColor *color = [dictionary objectForKey:key];
+	NSCAssert1([color isKindOfClass:[OOColor class]], @"Expected OOColor, got %@", [color class]);
+	
+	return (FloatRGB){ [color redComponent], [color greenComponent], [color blueComponent] };
+}
+
+
+OOINLINE float Lerp(float v0, float v1, float fraction)
+{
+	// Linear interpolation - equivalent to v0 * (1.0f - fraction) + v1 * fraction.
+	return v0 + fraction * (v1 - v0);
+}
+
+
+static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
+{
+	return (FloatRGB)
+	{
+		Lerp(a.r, b.r, fraction),
+		Lerp(a.g, b.g, fraction),
+		Lerp(a.b, b.b, fraction)
+	};
+}
+
+
+static FloatRGB PlanetTextureColor(float q, float impress, float bias, FloatRGB seaColor, FloatRGB paleSeaColor, FloatRGB landColor, FloatRGB paleLandColor)
+{
+	const FloatRGB kWhite = { 1.0, 1.0, 1.0 };
+	float maxq = impress + bias;
+	
+	float hi = 0.66667 * maxq;
+	float oh = 1.0 / hi;
+	float ih = 1.0 / (1.0 - hi);
+	
+	if (q <= 0.0)
+	{
+		return seaColor;
+	}
+	if (q > 1.0)
+	{
+		return (FloatRGB){ 1.0f, 1.0f, 1.0f };
+	}
+	if (q < 0.01)
+	{
+		return Blend(q * 100.0f, paleSeaColor, landColor);
+	}
+	if (q > hi)
+	{
+		return Blend((q - hi) * ih, paleLandColor, kWhite);	// snow capped peaks
+	}
+	
+	return Blend((hi - q) * oh, paleLandColor, landColor);
+}
+
+
+static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, OOColor* cloudcolor, float impress, float bias);
+static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, float impress, float bias, FloatRGB seaColor, FloatRGB paleSeaColor, FloatRGB landColor, FloatRGB paleLandColor);
 
 #endif
 
@@ -180,15 +240,15 @@ static NSMutableDictionary	*textureUniversalDictionary = nil;
 	
 	OOLog(kOOLogPlanetTextureGen, @"genning texture for land_fraction %.5f", land_fraction);
 	
-	OOColor* land_color = (OOColor*)[planetInfo objectForKey:@"land_color"];
-	OOColor* sea_color = (OOColor*)[planetInfo objectForKey:@"sea_color"];
-	OOColor* polar_land_color = (OOColor*)[planetInfo objectForKey:@"polar_land_color"];
-	OOColor* polar_sea_color = (OOColor*)[planetInfo objectForKey:@"polar_sea_color"];
-
-	// Pale sea colour gives a better transition between land and sea., Backported from the new planets code.
-	OOColor* pale_sea_color = [polar_sea_color blendedColorWithFraction:0.45 ofColor:[sea_color blendedColorWithFraction:0.7 ofColor:land_color]];
+	FloatRGB land_color = FloatRGBFromDictColor(planetInfo, @"land_color");
+	FloatRGB sea_color = FloatRGBFromDictColor(planetInfo, @"sea_color");
+	FloatRGB polar_land_color = FloatRGBFromDictColor(planetInfo, @"polar_land_color");
+	FloatRGB polar_sea_color = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
 	
-	fillSquareImageWithPlanetTex(imageBuffer, texture_w, 4, 1.0, sea_bias,
+	// Pale sea colour gives a better transition between land and sea., Backported from the new planets code.
+	FloatRGB pale_sea_color = Blend(0.45, polar_sea_color, Blend(0.7, sea_color, land_color));
+	
+	fillSquareImageWithPlanetTex(imageBuffer, texture_w, 1.0, sea_bias,
 		sea_color,
 		pale_sea_color,
 		land_color,
@@ -215,7 +275,7 @@ static NSMutableDictionary	*textureUniversalDictionary = nil;
 	*textureWidth = texture_w;
 	*textureHeight = texture_h;
 	
-	fillSquareImageDataWithCloudTexture( imageBuffer, texture_w, 4, color, impress, bias);
+	fillSquareImageDataWithCloudTexture( imageBuffer, texture_w, color, impress, bias);
 	
 	return YES;
 }
@@ -296,7 +356,7 @@ static float q_factor(float* accbuffer, int x, int y, int width, BOOL polar_y_sm
 }
 
 
-static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias)
+static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, OOColor* cloudcolor, float impress, float bias)
 {
 	float accbuffer[width * width];
 	int x, y;
@@ -323,43 +383,29 @@ static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
 	{
 		float q = q_factor( accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
-				
-		if (nplanes == 1)
-			imageBuffer[ y * width + x ] = 255 * q;
-		if (nplanes == 3)
-		{
-			imageBuffer[ 0 + 3 * (y * width + x) ] = 255 * rgba[0] * q;
-			imageBuffer[ 1 + 3 * (y * width + x) ] = 255 * rgba[1] * q;
-			imageBuffer[ 2 + 3 * (y * width + x) ] = 255 * rgba[2] * q;
-		}
-		if (nplanes == 4)
-		{
-			imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * rgba[0];
-			imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * rgba[1];
-			imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * rgba[2];
-			imageBuffer[ 3 + 4 * (y * width + x) ] = 255 * rgba[3] * q;
-		}
+		
+		imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * rgba[0];
+		imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * rgba[1];
+		imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * rgba[2];
+		imageBuffer[ 3 + 4 * (y * width + x) ] = 255 * rgba[3] * q;
 	}
 #if DEBUG_DUMP
-	if (nplanes == 4)
-	{
-		NSString *name = [NSString stringWithFormat:@"atmosphere-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low];
-		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file %@.", name]);
-		
-		[[UNIVERSE gameView] dumpRGBAToFileNamed:name
-										   bytes:imageBuffer
-										   width:width
-										  height:width
-										rowBytes:width * 4];
-	}
+	NSString *name = [NSString stringWithFormat:@"atmosphere-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low];
+	OOLog(@"planetTex.dump", [NSString stringWithFormat:@"Saving generated texture to file %@.", name]);
+	
+	[[UNIVERSE gameView] dumpRGBAToFileNamed:name
+									   bytes:imageBuffer
+									   width:width
+									  height:width
+									rowBytes:width * 4];
 #endif
 }
 
-static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
-	OOColor* seaColor,
-	OOColor* paleSeaColor,
-	OOColor* landColor,
-	OOColor* paleLandColor)
+static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, float impress, float bias,
+	FloatRGB seaColor,
+	FloatRGB paleSeaColor,
+	FloatRGB landColor,
+	FloatRGB paleLandColor)
 {
 	float accbuffer[width * width];
 	int x, y;
@@ -392,43 +438,25 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 		
 		GLfloat shade = powf( norm.z, 3.2);
 		
-		OOColor* color = [OOColor planetTextureColor:q:impress:bias :seaColor :paleSeaColor :landColor :paleLandColor];
+		FloatRGB color = PlanetTextureColor(q, impress, bias, seaColor, paleSeaColor, landColor, paleLandColor);
 		
-		float red = [color redComponent];
-		float green = [color greenComponent];
-		float blue = [color blueComponent];
+		color.r *= shade;
+		color.g *= shade;
+		color.b *= shade;
 		
-		red *= shade;
-		green *= shade;
-		blue *= shade;
-		
-		if (nplanes == 1)
-			imageBuffer[ y * width + x ] = 255 * q;
-		if (nplanes == 3)
-		{
-			imageBuffer[ 0 + 3 * (y * width + x) ] = 255 * red;
-			imageBuffer[ 1 + 3 * (y * width + x) ] = 255 * green;
-			imageBuffer[ 2 + 3 * (y * width + x) ] = 255 * blue;
-		}
-		if (nplanes == 4)
-		{
-			imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * red;
-			imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * green;
-			imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * blue;
-			imageBuffer[ 3 + 4 * (y * width + x) ] = 255;
-		}
+		imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * color.r;
+		imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * color.g;
+		imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * color.b;
+		imageBuffer[ 3 + 4 * (y * width + x) ] = 255;
 	}
 #if DEBUG_DUMP
-	if (nplanes == 4)
-	{
-		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file planet-%u-%u-old.", sNoiseSeed.high, sNoiseSeed.low]);
-		
-		[[UNIVERSE gameView] dumpRGBAToFileNamed:[NSString stringWithFormat:@"planet-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low]
-										   bytes:imageBuffer
-										   width:width
-										  height:width
-										rowBytes:width * 4];
-	}
+	OOLog(@"planetTex.dump", [NSString stringWithFormat:@"Saving generated texture to file planet-%u-%u-old.", sNoiseSeed.high, sNoiseSeed.low]);
+	
+	[[UNIVERSE gameView] dumpRGBAToFileNamed:[NSString stringWithFormat:@"planet-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low]
+									   bytes:imageBuffer
+									   width:width
+									  height:width
+									rowBytes:width * 4];
 #endif
 }
 
