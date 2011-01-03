@@ -219,6 +219,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one Universe to exist at a time.", __PRETTY_FUNCTION__];
 	}
 	
+	OO_DEBUG_PROGRESS(@"Universe initWithGameView:");
+	
 	self = [super init];
 	if (self == nil)  return nil;
 	
@@ -251,7 +253,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	// Set up the internal game strings
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
 	// DESC expansion is now possible!
-	[[GameController sharedController] logProgress:DESC(@"initialising-universe")];
 	
 	reducedDetail = [prefs oo_boolForKey:@"reduced-detail-graphics" defaultValue:NO];
 	autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
@@ -300,18 +301,16 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[player setStatus:STATUS_START_GAME];
 	[player setShowDemoShips: YES];
 	
-	[[GameController sharedController] logProgress:DESC(@"populating-space")];	
-	
 	[self initPlayerSettings];
 	
 	universeRegion = [[CollisionRegion alloc] initAsUniverse];
 	entitiesDeadThisUpdate = [[NSMutableSet alloc] init];
 	framesDoneThisUpdate = 0;
 	
+	[[GameController sharedController] logProgress:DESC(@"initializing-debug-support")];
 	OOInitDebugSupport();
 	
 	[[GameController sharedController] logProgress:DESC(@"running-scripts")];
-	
 	[player completeSetUp];
 	
 #if OO_LOCALIZATION_TOOLS
@@ -788,8 +787,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	OOColor				*pale_bgcolor;
 	BOOL				sunGoneNova;
 	
+	[[GameController sharedController] logProgress:DESC(@"populating-space")];
+	
 	sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
 	
+	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - clearSubRegions, sky, dust");
 	[universeRegion clearSubregions];
 	
 	// fixed entities (part of the graphics system really) come first...
@@ -825,15 +827,19 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[(DustEntity *)thing setDustColor:pale_bgcolor]; 
 	[thing release];
 	/*--*/
+	OO_DEBUG_POP_PROGRESS();
 	
 	// actual entities next...
 	
+	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - planet");
 	a_planet=[self setUpPlanet];
 	double planet_radius = [a_planet radius];
+	OO_DEBUG_POP_PROGRESS();
 	
 	// set the system seed for random number generation
 	seed_for_planet_description(system_seed);
 	
+	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - sun");
 	/*- space sun -*/
 	double		sun_radius;
 	double		sun_distance;
@@ -914,7 +920,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	// set the lighting only after we know which sun we have.
 	[self setLighting];
+	OO_DEBUG_POP_PROGRESS();
 	
+	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - main station");
 	/*- space station -*/
 	stationPos = [a_planet position];
 	double  station_orbit = 2.0 * planet_radius;
@@ -931,9 +939,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (techlevel > 10)
 	{
 		if (system_seed.f & 0x03)   // 3 out of 4 get this type
+		{
 			defaultStationDesc = @"dodecahedron";
+		}
 		else
+		{
 			defaultStationDesc = @"icosahedron";
+		}
 	}
 	
 	//// possibly systeminfo has an override for the station
@@ -999,19 +1011,27 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		[a_station setStatus:STATUS_ACTIVE];	// For backward compatibility. Might not be needed.
 		[a_station setAllowsFastDocking:true];	// Main stations always allow fast docking.
 	}
+	OO_DEBUG_POP_PROGRESS();
 	
 	cachedSun = a_sun;
 	cachedPlanet = a_planet;
 	cachedStation = a_station;
 	closeSystems = nil;
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
+	OO_DEBUG_POP_PROGRESS();
 	
+	
+	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - populate from wormholes");
 	[self populateSpaceFromActiveWormholes];
+	OO_DEBUG_POP_PROGRESS();
 	
 	witchPos = [self randomizeFromSeedAndGetWitchspaceExitPosition]; //we need to use this value a few times, without resetting PRNG
 	
+	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - populate from hyperpoint");
 	[self populateSpaceFromHyperPoint:witchPos toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
+	OO_DEBUG_POP_PROGRESS();
 	
+	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - nav beacons");
 	if (a_station != nil)
 	{
 		/*- nav beacon -*/
@@ -1040,9 +1060,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		[nav_buoy release];
 	}
 	/*--*/
+	OO_DEBUG_POP_PROGRESS();
 	
 	if (sunGoneNova)
 	{
+		OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - post-nova");
+		
 		Vector v0 = make_vector(0,0,34567.89);
 		Vector planetPos = a_planet->position;
 		double min_safe_dist2 = 5000000.0 * 5000000.0;
@@ -1066,6 +1089,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 			[self scatterAsteroidsAt:witchPos withVelocity:kZeroVector includingRockHermit:NO asCinders:YES];
 		}
 		
+		OO_DEBUG_POP_PROGRESS();
 	}
 	
 	[a_sun release];
@@ -1075,10 +1099,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	NSArray *script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
 	if (script_actions != nil)
 	{
+		OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - legacy script_actions");
 		[[PlayerEntity sharedPlayer] runUnsanitizedScriptActions:script_actions
 											   allowingAIMethods:NO
 												 withContextName:@"<system script_actions>"
 													   forTarget:nil];
+		OO_DEBUG_POP_PROGRESS();
 	}
 }
 
@@ -8348,25 +8374,34 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
+// FIXME: how is this stuff "player settings"?
 - (void) initPlayerSettings
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
-	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player shipDataKey]]];	// the standard cobra at this point
 	
+	OO_DEBUG_PUSH_PROGRESS(@"Wormhole and character reset");
 	if (activeWormholes) [activeWormholes autorelease];
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
 	if (characterPool) [characterPool autorelease];
 	characterPool = [[NSMutableArray arrayWithCapacity:256] retain];
+	OO_DEBUG_POP_PROGRESS();
 	
+	OO_DEBUG_PUSH_PROGRESS(@"localPlanetInfoOverrides reset");
 	// these lines are needed here to reset systeminfo and long range chart properly
 	[localPlanetInfoOverrides removeAllObjects];
+	OO_DEBUG_POP_PROGRESS();
 	
+	OO_DEBUG_PUSH_PROGRESS(@"Galaxy reset");
 	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
-	// closeSystems = nil;	// done inside setUpSpace!
+	OO_DEBUG_POP_PROGRESS();
 	[self setUpSpace];
-	[self setViewDirection:VIEW_GUI_DISPLAY];
 	
+	OO_DEBUG_PUSH_PROGRESS(@"Player init: setUpShipFromDictionary", __PRETTY_FUNCTION__);
+	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player shipDataKey]]];	// the standard cobra at this point
+	OO_DEBUG_POP_PROGRESS();
+	
+	[self setViewDirection:VIEW_GUI_DISPLAY];
 	[player setPosition:[[self station] position]];
 	[player setOrientation:kIdentityQuaternion];
 }

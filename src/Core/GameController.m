@@ -205,7 +205,7 @@ static GameController *sSharedController = nil;
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	NS_DURING
-		// if not verifying oxps, ensure that gameView is drawn to using beginSplashScreen:
+		// if not verifying oxps, ensure that gameView is drawn to using beginSplashScreen
 		// OpenGL is initialised and that allows textures to initialise too.
 
 #if OO_OXP_VERIFIER_ENABLED
@@ -223,15 +223,11 @@ static GameController *sSharedController = nil;
 		[self beginSplashScreen];
 #endif
 		
-		//[self logProgress:@"Getting display modes..."]; //cannot localise strings before loading OXPs
-		[self logProgress:@"..."]; //language neutral
 		[self getDisplayModes];
 		
 		// moved to before the Universe is created
 		if (expansionPathsToInclude)
 		{
-			//[self logProgress:@"Loading selected expansion packs..."]; //cannot localise strings before loading OXPs
-			[self logProgress:@".........."]; //language neutral
 			for (i = 0; i < [expansionPathsToInclude count]; i++)
 			{
 				[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
@@ -242,7 +238,6 @@ static GameController *sSharedController = nil;
 		//[self logProgress:DESC(@"Initialising universe")]; // DESC expansions only possible after Universe init
 		[[Universe alloc] initWithGameView:gameView];
 		
-		[self logProgress:DESC(@"loading-player")];
 		[self loadPlayerIfRequired];
 		
 		[self logProgress:@""];
@@ -270,10 +265,10 @@ static GameController *sSharedController = nil;
 
 - (void) loadPlayerIfRequired
 {
-	if (playerFileToLoad)
+	if (playerFileToLoad != nil)
 	{
-		PlayerEntity	*player = [PlayerEntity sharedPlayer];
-		[player loadPlayerFromFile:playerFileToLoad];
+		[self logProgress:DESC(@"loading-player")];
+		[[PlayerEntity sharedPlayer] loadPlayerFromFile:playerFileToLoad];
 	}
 }
 
@@ -281,19 +276,18 @@ static GameController *sSharedController = nil;
 - (void) beginSplashScreen
 {
 #if !OOLITE_HAVE_APPKIT
-
-	if(!gameView){
+	if(!gameView)
+	{
 		gameView = [MyOpenGLView alloc];
 		[gameView init];
 		[gameView setGameController:self];
 		[gameView initSplashScreen];
 	}
-	
 #else
-
 	[gameView updateScreen];
-	
 #endif
+	
+	_splashStart = [[NSDate alloc] init];
 }
 
 
@@ -1020,14 +1014,64 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	#error Unknown environment!
 #endif
 
-
-#if OOLITE_HAVE_APPKIT
-
 - (void) logProgress:(NSString *)message
 {
+#if OOLITE_HAVE_APPKIT
 	[splashProgressTextField setStringValue:message];	[splashProgressTextField display];
+#endif
+	OOLog(@"startup.progress", @"===== [%.2f s] %@", -[_splashStart timeIntervalSinceNow], message);
 }
 
+
+#if OO_DEBUG
+- (void) debugLogProgress:(NSString *)format, ...
+{
+	va_list args;
+	va_start(args, format);
+	[self debugLogProgress:format arguments:args];
+	va_end(args);
+}
+
+
+- (void) debugLogProgress:(NSString *)format arguments:(va_list)arguments;
+{
+	NSString *message = [[[NSString alloc] initWithFormat:format arguments:arguments] autorelease];
+	[self logProgress:message];
+}
+
+
+static NSMutableArray *sMessageStack;
+
+- (void) debugPushProgressMessage:(NSString *)format, ...;
+{
+	if (sMessageStack == nil)  sMessageStack = [[NSMutableArray alloc] init];
+	[sMessageStack addObject:[splashProgressTextField stringValue]];
+	
+	va_list args;
+	va_start(args, format);
+	[self debugLogProgress:format arguments:args];
+	va_end(args);
+	
+	OOLogIndentIf(@"startup.progress");
+}
+
+
+- (void) debugPopProgressMessage
+{
+	if ([sMessageStack count] > 0)
+	{
+		OOLogOutdentIf(@"startup.progress");
+		
+		NSString *message = [sMessageStack lastObject];
+		[self debugLogProgress:message];
+		[sMessageStack removeLastObject];
+	}
+}
+
+#endif
+
+
+#if OOLITE_HAVE_APPKIT
 
 - (void) setProgressBarValue:(float)value
 {
@@ -1041,6 +1085,9 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	[gameWindow setAcceptsMouseMovedEvents:YES];
 	[gameWindow setContentView:gameView];
 	[gameWindow makeFirstResponder:gameView];
+	
+	OOLogSetDisplayMessagesInClass(@"startup.progress", NO);
+	[_splashStart release];
 }
 
 
@@ -1101,9 +1148,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 }
 
 #elif OOLITE_SDL
-
-- (void) logProgress:(NSString *)message
-{}
 
 - (void) setProgressBarValue:(float)value
 {}

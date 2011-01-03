@@ -937,11 +937,11 @@
 	"load-previous-commander-no"	= "n"; // Defines the key that corresponds to the no answer to load-previous-commander.
 	
 	// Loading screen (currently Mac only)
-	"loading-ships"					= "Loading ship data…";
-	"initialising-universe"			= "Initialising universe…";
-	"loading-player"				= "Loading player…";
-	"populating-space"				= "Populating space…";
-	"running-scripts"				= "Running scripts…";
+	"loading-ships"					= "Loading ship data";
+	"populating-space"				= "Populating space";
+	"initializing-debug-support"	= "Initializing debug support";
+	"running-scripts"				= "Running scripts";
+	"loading-player"				= "Loading saved game";
 	
 	// Status screen
 	"status-commander-@"			= "Commander %@";

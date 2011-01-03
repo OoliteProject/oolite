@@ -94,6 +94,8 @@ MA 02110-1301, USA.
 	NSMutableArray			*expansionPathsToInclude;
 
 	NSTimer					*timer;
+	
+	NSDate					*_splashStart;
 
 	/*  GDC example code */
 
@@ -156,7 +158,13 @@ MA 02110-1301, USA.
 - (void) loadPlayerIfRequired;
 
 - (void) beginSplashScreen;
-- (void) logProgress:(NSString*) message;
+- (void) logProgress:(NSString *)message;
+#if OO_DEBUG
+- (void) debugLogProgress:(NSString *)format, ...;
+- (void) debugLogProgress:(NSString *)format arguments:(va_list)arguments;
+- (void) debugPushProgressMessage:(NSString *)format, ...;
+- (void) debugPopProgressMessage;
+#endif
 - (void) setProgressBarValue:(float)value;	// Negative for hidden
 - (void) endSplashScreen;
 
@@ -173,3 +181,14 @@ MA 02110-1301, USA.
 - (NSURL *) snapshotsURLCreatingIfNeeded:(BOOL)create;
 
 @end
+
+
+#if OO_DEBUG
+#define OO_DEBUG_PROGRESS(...)		[[GameController sharedController] debugLogProgress:__VA_ARGS__]
+#define OO_DEBUG_PUSH_PROGRESS(...)	[[GameController sharedController] debugPushProgressMessage:__VA_ARGS__]
+#define OO_DEBUG_POP_PROGRESS()		[[GameController sharedController] debugPopProgressMessage]
+#else
+#define OO_DEBUG_PROGRESS(...)		do {} while (0)
+#define OO_DEBUG_PUSH_PROGRESS(...)	do {} while (0)
+#define OO_DEBUG_POP_PROGRESS()		do {} while (0)
+#endif
