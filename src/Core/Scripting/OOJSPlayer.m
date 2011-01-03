@@ -449,7 +449,8 @@ static JSBool PlayerAddMessageToArrivalReport(OOJS_NATIVE_ARGS)
 static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
-	if (EXPECT_NOT(![UNIVERSE blockJSPlayerShipProps]))
+	
+	if (EXPECT_NOT(!OOIsPlayerStale()))
 	{
 		OOReportJSError(context, @"Player.setEscapePodDestination() only works while the escape pod is in flight.");
 		return NO;

@@ -63,7 +63,14 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	blockJSPlayerShipProps flag is in effect (i.e., the escape pod sequence is
 	active).
 */
+OOINLINE BOOL OOIsPlayerStale(void)
+{
+	extern Entity *gOOJSPlayerIfStale;
+	return gOOJSPlayerIfStale != nil;
+}
+
 OOINLINE BOOL OOIsStaleEntity(Entity *entity)
 {
-	return entity == nil || (entity->isPlayer && [UNIVERSE blockJSPlayerShipProps]);
+	extern Entity *gOOJSPlayerIfStale;
+	return entity == nil || (entity == gOOJSPlayerIfStale);
 }

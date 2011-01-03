@@ -286,8 +286,6 @@ enum
 	BOOL					_pauseMessage;
 	BOOL					_autoCommLog;
 	BOOL					_permanentCommLog;
-	
-	BOOL					_blockJSPlayerShipProps;
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
@@ -676,17 +674,13 @@ double estimatedTimeForJourney(double distance, int hops);
 	The purpose of this is that it makes UNIVERSE essentially a read-only
 	global with zero overhead.
 */
-extern Universe *gSharedUniverse;
-#ifndef NDEBUG
 OOINLINE Universe *GetUniverse(void) INLINE_CONST_FUNC;
 OOINLINE Universe *GetUniverse(void)
 {
+	extern Universe *gSharedUniverse;
 	return gSharedUniverse;
 }
 #define UNIVERSE GetUniverse()
-#else
-#define UNIVERSE gSharedUniverse	// Just in case the overhead isn't zero. :-p
-#endif
 
 
 // Only for use with string literals, and only for looking up strings.

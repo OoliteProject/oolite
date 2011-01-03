@@ -8134,15 +8134,24 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
+Entity *gOOJSPlayerIfStale = nil;
+
 - (BOOL) blockJSPlayerShipProps
 {
-	return _blockJSPlayerShipProps;
+	return gOOJSPlayerIfStale != nil;
 }
 
 
 - (void) setBlockJSPlayerShipProps:(BOOL)value
 {
-	_blockJSPlayerShipProps = value;
+	if (value)
+	{
+		gOOJSPlayerIfStale = [PlayerEntity sharedPlayer];
+	}
+	else
+	{
+		gOOJSPlayerIfStale = nil;
+	}
 }
 
 

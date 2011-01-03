@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 
 // the following line results in NaN when requesting blocked numeric values, instead of undefined, as expected...
 // checking for blocked props within each function for now.
-// #define OOPlayerShipForScripting() (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]) ? NULL : OOPlayerForScripting())
+// #define OOPlayerShipForScripting() (EXPECT_NOT(OOIsPlayerStale()) ? NULL : OOPlayerForScripting())
 
 #define OOPlayerShipForScripting() ( OOPlayerForScripting())
 
@@ -212,7 +212,7 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) { *value = JSVAL_VOID; return YES; }
+	if (EXPECT_NOT(OOIsPlayerStale())) { *value = JSVAL_VOID; return YES; }
 	
 	BOOL						OK = NO;
 	id							result = nil;
@@ -346,7 +346,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps])) return YES;
+	if (EXPECT_NOT(OOIsPlayerStale())) return YES;
 	
 	BOOL						OK = NO;
 	PlayerEntity				*player = OOPlayerShipForScripting();
@@ -472,7 +472,7 @@ static JSBool PlayerShipLaunch(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
 	[OOPlayerShipForScripting() launchFromStation];
 	OOJS_RETURN_VOID;
@@ -486,7 +486,7 @@ static JSBool PlayerShipRemoveAllCargo(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
 	PlayerEntity *player = OOPlayerShipForScripting();
 	
@@ -510,7 +510,7 @@ static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	NSString				*name = nil;
@@ -534,7 +534,7 @@ static JSBool PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	StationEntity			*stationForDocking = nil;
@@ -557,7 +557,7 @@ static JSBool PlayerShipDisengageAutopilot(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	
@@ -573,7 +573,7 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT([UNIVERSE blockJSPlayerShipProps]))  OOJS_RETURN_VOID;
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	NSString				*key = nil;
