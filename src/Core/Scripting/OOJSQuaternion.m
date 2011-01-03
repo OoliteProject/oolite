@@ -593,8 +593,7 @@ static JSBool QuaternionToString(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"toString"))) return NO;
 	
-	OOJS_SET_RVAL([QuaternionDescription(thisq) javaScriptValueInContext:context]);
-	return YES;
+	OOJS_RETURN_OBJECT(QuaternionDescription(thisq));
 	
 	OOJS_NATIVE_EXIT
 }
@@ -610,8 +609,7 @@ static JSBool QuaternionToSource(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"toSource"))) return NO;
 	
 	NSString *str = [NSString stringWithFormat:@"Quaternion(%g, %g, %g, %g)", thisq.w, thisq.x, thisq.y, thisq.z];
-	OOJS_SET_RVAL([str javaScriptValueInContext:context]);
-	return YES;
+	OOJS_RETURN_OBJECT(str);
 	
 	OOJS_NATIVE_EXIT
 }

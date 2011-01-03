@@ -510,13 +510,14 @@ static JSBool ConsoleSettingsDeleteProperty(OOJS_PROP_ARGS)
 
 static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS)
 {
+	if (!OOJS_PROPID_IS_STRING)  return YES;
+	
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString			*key = nil;
 	id					settingValue = nil;
 	id					monitor = nil;
 	
-	if (!OOJS_PROPID_IS_STRING)  return YES;
 	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 	
 	monitor = JSObjectToObject(context, this);
@@ -537,13 +538,14 @@ static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS)
 
 static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS)
 {
+	if (!OOJS_PROPID_IS_STRING)  return YES;
+	
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString			*key = nil;
 	id					settingValue = nil;
 	id					monitor = nil;
 	
-	if (!OOJS_PROPID_IS_STRING)  return YES;
 	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 	
 	monitor = JSObjectToObject(context, this);
