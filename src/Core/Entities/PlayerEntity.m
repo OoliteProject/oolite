@@ -4443,7 +4443,11 @@ static bool minShieldLevelPercentageInitialised = false;
 	OOLog(@"player.ship.damage",  @"Player destroyed by %@ due to %@", whom, why);	
 	
 	if (![[UNIVERSE gameController] playerFileToLoad])
+	{
 		[[UNIVERSE gameController] setPlayerFileToLoad: save_path];	// make sure we load the correct game
+	}
+	
+	[UNIVERSE setBlockJSPlayerShipProps:YES];	// Treat JS player as stale entity.
 	
 	energy = 0.0f;
 	afterburner_engaged = NO;
