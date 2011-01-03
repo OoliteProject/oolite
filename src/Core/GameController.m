@@ -1044,13 +1044,16 @@ static NSMutableArray *sMessageStack;
 
 - (void) debugPushProgressMessage:(NSString *)format, ...;
 {
-	if (sMessageStack == nil)  sMessageStack = [[NSMutableArray alloc] init];
-	[sMessageStack addObject:[splashProgressTextField stringValue]];
-	
-	va_list args;
-	va_start(args, format);
-	[self debugLogProgress:format arguments:args];
-	va_end(args);
+	if (splashProgressTextField != nil)
+	{
+		if (sMessageStack == nil)  sMessageStack = [[NSMutableArray alloc] init];
+		[sMessageStack addObject:[splashProgressTextField stringValue]];
+		
+		va_list args;
+		va_start(args, format);
+		[self debugLogProgress:format arguments:args];
+		va_end(args);
+	}
 	
 	OOLogIndentIf(@"startup.progress");
 }
@@ -1071,23 +1074,33 @@ static NSMutableArray *sMessageStack;
 #endif
 
 
+- (void) endSplashScreen
+{
+	OOLogSetDisplayMessagesInClass(@"startup.progress", NO);
+	
+#if OOLITE_HAVE_APPKIT
+	// These views will be released when we replace the content view.
+	splashProgressTextField = nil;
+	splashView = nil;
+	progressBar = nil;
+	
+	[gameWindow setAcceptsMouseMovedEvents:YES];
+	[gameWindow setContentView:gameView];
+	[gameWindow makeFirstResponder:gameView];
+	
+	[_splashStart release];
+#elif OOLITE_SDL
+	[gameView endSplashScreen];
+#endif
+}
+
+
 #if OOLITE_HAVE_APPKIT
 
 - (void) setProgressBarValue:(float)value
 {
 	[progressBar setDoubleValue:value];
 	[progressBar display];
-}
-
-
-- (void) endSplashScreen
-{
-	[gameWindow setAcceptsMouseMovedEvents:YES];
-	[gameWindow setContentView:gameView];
-	[gameWindow makeFirstResponder:gameView];
-	
-	OOLogSetDisplayMessagesInClass(@"startup.progress", NO);
-	[_splashStart release];
 }
 
 
@@ -1152,10 +1165,7 @@ static NSMutableArray *sMessageStack;
 - (void) setProgressBarValue:(float)value
 {}
 
-- (void) endSplashScreen
-{	
-	[gameView endSplashScreen];
-}
+
 - (void) exitApp
 {
 	[[NSUserDefaults standardUserDefaults] synchronize];
