@@ -1277,26 +1277,6 @@ static GLfloat		sBaseMass = 0.0;
 	dockedStation = [UNIVERSE station];
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	[self doWorldScriptEvent:@"startUp" withArguments:nil timeLimit:kOOJSLongTimeLimit];
-	
-#if MASS_DEPENDENT_FUEL_PRICES && !defined(NDEBUG)
-	// For testing purposes only...
-	static BOOL reported = NO;
-	if (!reported)
-	{
-		reported = YES;
-		
-		NSArray *playerships = [[OOShipRegistry sharedRegistry] playerShipKeys];
-		OOUInteger i, count = [playerships count];
-		
-		for (i = 0; i < count; ++i)
-		{
-			ShipEntity *calc = [UNIVERSE newShipWithName:[playerships objectAtIndex:i]];
-			GLfloat rate = [calc fuelChargeRate];
-			OOLog(@"player.ship.fuel", @"Mass/Fuel ratio %24s: %5.2f", [[playerships objectAtIndex:i] UTF8String], rate);
-			[calc release];
-		}
-	}
-#endif
 }
 
 
