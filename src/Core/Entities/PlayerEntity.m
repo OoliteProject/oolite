@@ -3,7 +3,7 @@
 PlayerEntity.m
 
 Oolite
-Copyright (C) 2004-2010 Giles C Williams and contributors
+Copyright (C) 2004-2011 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1924,8 +1924,14 @@ static bool minShieldLevelPercentageInitialised = false;
 			[UNIVERSE setSystemTo:system_seed];
 			galaxy_coordinates.x = system_seed.d;
 			galaxy_coordinates.y = system_seed.b;
+			
 			[UNIVERSE setUpSpace];
 			[self setDockTarget:[UNIVERSE station]];
+			// send world script events to let oxps know we're in a new system.
+			// all player.ship properties are still disabled at this stage.
+			[self doScriptEvent:@"shipWillExitWitchspace"];
+			[self doScriptEvent:@"shipExitedWitchspace"];
+			
 			[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 			[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 		}
@@ -6380,11 +6386,26 @@ static NSString *last_outfitting_key=nil;
 		
 		// in non-strict mode, ask to load previous commander only if we have at least one save file.
 		// in strict mode, always ask to load previous commander.
+		
 		NSFileManager *saveFileManager = [NSFileManager defaultManager];
 		NSArray *cdrArray = [saveFileManager commanderContentsOfPath: [[UNIVERSE gameController] playerFileDirectory]];
+		unsigned j;
+		BOOL fileExists, isDir, oneCdr = NO;
 		
-		if ([UNIVERSE strict] || [cdrArray count] > 0)
+		for(j = 0; j < [cdrArray count] && !oneCdr; j++)
 		{
+			NSString*	path = [cdrArray objectAtIndex:j];
+			fileExists = [saveFileManager fileExistsAtPath:path isDirectory:&isDir];
+			
+			if (fileExists && !isDir && [[[path pathExtension] lowercaseString] isEqualToString:@"oolite-save"])
+			{
+				oneCdr = YES;
+			}
+		}
+				
+		if ([UNIVERSE strict] || oneCdr)
+		{
+			
 			text = DESC(@"load-previous-commander");
 		}
 		else

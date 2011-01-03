@@ -3,7 +3,7 @@
 PlayerEntityControls.m
 
 Oolite
-Copyright (C) 2004-2010 Giles C Williams and contributors
+Copyright (C) 2004-2011 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1158,21 +1158,19 @@ static NSTimeInterval	time_last_frame;
 				{
 					if (!hyperspace_pressed)
 					{
+						galactic_witchjump = NO;
 						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 						{
 							// abort!
-							BOOL wasGalactic = galactic_witchjump;
-							galactic_witchjump = NO;
 							[self setStatus:STATUS_IN_FLIGHT];
 							[self playHyperspaceAborted];
 							// say it!
 							[UNIVERSE clearPreviousMessage];
-							[UNIVERSE addMessage:DESC(wasGalactic ? @"witch-user-galactic-abort" : @"witch-user-abort") forCount:3.0];
+							[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
 							[self doScriptEvent:@"playerCancelledJumpCountdown"];
 						}
-		                else if ([self witchJumpChecklist:false])
+						else if ([self witchJumpChecklist:false])
 						{
-							galactic_witchjump = NO;
 							witchspaceCountdown = hyperspaceMotorSpinTime;
 							[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
 							[self playStandardHyperspace];
@@ -1199,21 +1197,22 @@ static NSTimeInterval	time_last_frame;
 						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 						{
 							// abort!
-							BOOL wasGalactic = galactic_witchjump;
 							galactic_witchjump = NO;
 							[self setStatus:STATUS_IN_FLIGHT];
 							[self playHyperspaceAborted];
 							// say it!
 							[UNIVERSE clearPreviousMessage];
-							[UNIVERSE addMessage:DESC(wasGalactic ? @"witch-user-galactic-abort" : @"witch-user-abort") forCount:3.0];
+							[UNIVERSE addMessage:DESC(@"witch-user-galactic-abort") forCount:3.0];
 							[self doScriptEvent:@"playerCancelledJumpCountdown"];
 						}
 						else
 						{
 							galactic_witchjump = YES;
-							witchspaceCountdown = hyperspaceMotorSpinTime;
-							// even if we don't have a witchspace motor, we can still do a galactic jump (!)
-							if(![self hasHyperspaceMotor]) witchspaceCountdown = DEFAULT_HYPERSPACE_SPIN_TIME;
+							
+							// even if we don't have a witchspace motor, we can still do a default galactic jump (!)
+							if(EXPECT([self hasHyperspaceMotor])) witchspaceCountdown = hyperspaceMotorSpinTime;
+							else witchspaceCountdown = DEFAULT_HYPERSPACE_SPIN_TIME;
+							
 							[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
 							[self playGalacticHyperspace];
 							// say it!

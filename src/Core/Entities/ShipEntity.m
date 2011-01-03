@@ -4,7 +4,7 @@ ShipEntity.m
 
 
 Oolite
-Copyright (C) 2004-2010 Giles C Williams and contributors
+Copyright (C) 2004-2011 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -3228,8 +3228,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = max_available_speed; // use afterburner to approach
 
 
-	// if within 0.75km of the target's six or twelve, or if target at standstill for 62.5% of non-thargoid ships (!), then vector in attack
-	if (distance < 750.0 || (target_speed == 0.0 && ![self isThargoid] && ([self universalID] & 7) > 2))
+	// if within 0.75km of the target's six or twelve, or if target almost at standstill for 62.5% of non-thargoid ships (!),
+	// then vector in attack. 
+	if (distance < 750.0 || (target_speed < 0.2 && ![self isThargoid] && ([self universalID] & 14) > 4))
  	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		frustration = 0.0;

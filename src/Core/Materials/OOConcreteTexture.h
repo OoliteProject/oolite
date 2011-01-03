@@ -6,7 +6,7 @@ Standard implementation of OOTexture. This is an implementation detail, use
 OOTexture instead.
 
 
-Copyright (C) 2007-2010 Jens Ayton and contributors
+Copyright (C) 2007-2011 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

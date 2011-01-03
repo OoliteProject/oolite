@@ -85,7 +85,7 @@ OOWeakReferenceSupport implementation is also simple:
 @end
 
 
-Copyright (C) 2007-2010 Jens Ayton
+Copyright (C) 2007-2011 Jens Ayton
 This code is hereby placed in the public domain.
 
 */

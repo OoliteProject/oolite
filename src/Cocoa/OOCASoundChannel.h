@@ -9,7 +9,7 @@ OOSoundSource to play an OOSound.
 
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2010 Jens Ayton
+Copyright (C) 2005-2011 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

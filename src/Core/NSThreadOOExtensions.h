@@ -5,7 +5,7 @@ NSThreadOOExtensions.h
 Utility methods for NSThread and NS*Lock.
 
  
-Copyright (C) 2007-2010 Jens Ayton
+Copyright (C) 2007-2011 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

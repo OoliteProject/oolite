@@ -3,7 +3,7 @@
 MyOpenGLView.m
 
 Oolite
-Copyright (C) 2004-2010 Giles C Williams and contributors
+Copyright (C) 2004-2011 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -240,21 +240,21 @@ MA 02110-1301, USA.
 - (void) endSplashScreen
 {
 	if (!showSplashScreen) return;
-
+	
 #if OOLITE_WINDOWS
-  
+	
 	wasFullScreen = !fullScreen;
 	updateContext = YES;
 	ShowWindow(SDL_Window,SW_RESTORE);
 	[self initialiseGLWithSize: firstScreen];
-  
+	
 #else
-
+	
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
-
+	
 	videoModeFlags |= (fullScreen) ? SDL_FULLSCREEN : SDL_RESIZABLE;
 	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
-
+	
 	if (!surface && fullScreen == YES)
 	{
 		[self setFullScreenMode: NO];
@@ -262,13 +262,13 @@ MA 02110-1301, USA.
 		videoModeFlags |= SDL_RESIZABLE;
 		surface = SDL_SetVideoMode(currentWindowSize.width, currentWindowSize.height, 32, videoModeFlags);
 	}
-
+	
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 	
 #endif
- 
-	[self autoShowMouse];
+	
 	[self updateScreen];
+	[self autoShowMouse];
 }
 
 - (void) dealloc
@@ -624,7 +624,7 @@ MA 02110-1301, USA.
 #endif
 	viewSize = v_size;
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
-
+	SDL_GL_SwapBuffers();	// clear the buffer before resize
 #if OOLITE_WINDOWS
 
 	if (!updateContext) return;

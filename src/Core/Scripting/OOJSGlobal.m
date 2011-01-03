@@ -434,7 +434,7 @@ static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 	if (!error)
 #endif
 	{
-		double freeSpace = [[attr objectForKey:NSFileSystemFreeSize] doubleValue];
+		double freeSpace = [attr oo_doubleForKey:NSFileSystemFreeSize];
 		if (freeSpace < 1073741824) // less than 1 GB free on disk?
 		{
 			OOReportJSWarning(context, @"takeSnapShot: function disabled when free disk space is less than 1GB.");
