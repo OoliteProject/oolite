@@ -222,6 +222,7 @@ typedef struct
 	OOUInteger			entityCount;
 	OOUInteger			arrayCount;
 	OOUInteger			protoCount;
+	OOUInteger			nullCount;
 	OOUInteger			failCount;
 } VectorStatistics;
 static VectorStatistics sVectorConversionStats;
@@ -245,12 +246,14 @@ static VectorStatistics sVectorConversionStats;
 			" entity-to-vector conversions: %lu (%g %%)\n"
 			"  array-to-vector conversions: %lu (%g %%)\n"
 			"prototype-to-zero conversions: %lu (%g %%)\n"
+			"             null conversions: %lu (%g %%)\n"
 			"           failed conversions: %lu (%g %%)\n"
 			"                        total: %lu",
 			(long)stats->vectorCount, stats->vectorCount * convFac,
 			(long)stats->entityCount, stats->entityCount * convFac,
 			(long)stats->arrayCount, stats->arrayCount * convFac,
 			(long)stats->protoCount, stats->protoCount * convFac,
+			(long)stats->nullCount, stats->nullCount * convFac,
 			(long)stats->failCount, stats->failCount * convFac,
 			(long)sum];
 }
@@ -284,28 +287,23 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	jsdouble				x, y, z;
 	
 	// vectorObj can legitimately be NULL, e.g. when JS_NULL is converted to a JSObject *.
-	if (EXPECT_NOT(vectorObj == NULL)) return NO;
+	if (EXPECT_NOT(vectorObj == NULL))
+	{
+		COUNT(nullCount);
+		return NO;
+	}
 	
 	// If this is a (JS) Vector...
 	private = JS_GetInstancePrivate(context, vectorObj, &sVectorClass, NULL);
-	if (private != NULL)	
+	if (EXPECT(private != NULL))
 	{
 		COUNT(vectorCount);
 		*outVector = *private;
 		return YES;
 	}
 	
-	// If it's an entity, use its position.
-	if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClass()))
-	{
-		COUNT(entityCount);
-		Entity *entity = JS_GetPrivate(context, vectorObj);
-		*outVector = [entity position];
-		return YES;
-	}
-	
 	// If it's an array...
-	if (JS_IsArrayObject(context, vectorObj))
+	if (EXPECT(JS_IsArrayObject(context, vectorObj)))
 	{
 		// ...and it has exactly three elements...
 		if (JS_GetArrayLength(context, vectorObj, &arrayLength) && arrayLength == 3)
@@ -325,6 +323,15 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 				}
 			}
 		}
+	}
+	
+	// If it's an entity, use its position.
+	if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClass()))
+	{
+		COUNT(entityCount);
+		Entity *entity = JS_GetPrivate(context, vectorObj);
+		*outVector = [entity position];
+		return YES;
 	}
 	
 	/*

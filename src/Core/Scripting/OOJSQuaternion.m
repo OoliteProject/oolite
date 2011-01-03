@@ -200,6 +200,7 @@ typedef struct
 	OOUInteger			entityCount;
 	OOUInteger			arrayCount;
 	OOUInteger			protoCount;
+	OOUInteger			nullCount;
 	OOUInteger			failCount;
 } QuaternionStatistics;
 static QuaternionStatistics sQuaternionConversionStats;
@@ -222,12 +223,14 @@ static QuaternionStatistics sQuaternionConversionStats;
 			"    entity-to-quaternion conversions: %lu (%g %%)\n"
 			"     array-to-quaternion conversions: %lu (%g %%)\n"
 			"       prototype-to-zero conversions: %lu (%g %%)\n"
+			"                    null conversions: %lu (%g %%)\n"
 			"                  failed conversions: %lu (%g %%)\n"
 			"                               total: %lu",
 			(long)stats->quatCount, stats->quatCount * convFac,
 			(long)stats->entityCount, stats->entityCount * convFac,
 			(long)stats->arrayCount, stats->arrayCount * convFac,
 			(long)stats->protoCount, stats->protoCount * convFac,
+			(long)stats->nullCount, stats->nullCount * convFac,
 			(long)stats->failCount, stats->failCount * convFac,
 			(long)sum];
 }
@@ -261,27 +264,23 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	jsdouble				dVal;
 	
 	// quaternionObj can legitimately be NULL, e.g. when JS_NULL is converted to a JSObject *.
-	if (quaternionObj == NULL) return NO;
+	if (EXPECT_NOT(quaternionObj == NULL))
+	{
+		COUNT(nullCount);
+		return NO;
+	}
 	
+	// If this is a (JS) Quaternion...
 	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass, NULL);
-	if (private != NULL)	// If this is a (JS) Quaternion...
+	if (EXPECT(private != NULL))
 	{
 		COUNT(quatCount);
 		*outQuaternion = *private;
 		return YES;
 	}
 	
-	// If it's an entity, use its orientation.
-	if (OOJSIsMemberOfSubclass(context, quaternionObj, JSEntityClass()))
-	{
-		COUNT(entityCount);
-		Entity *entity = JS_GetPrivate(context, quaternionObj);
-		*outQuaternion = [entity orientation];
-		return YES;
-	}
-	
 	// If it's an array...
-	if (JS_IsArrayObject(context, quaternionObj))
+	if (EXPECT(JS_IsArrayObject(context, quaternionObj)))
 	{
 		// ...and it has exactly four elements...
 		if (JS_GetArrayLength(context, quaternionObj, &arrayLength) && arrayLength == 4)
@@ -305,6 +304,15 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 				return YES;
 			}
 		}
+	}
+	
+	// If it's an entity, use its orientation.
+	if (OOJSIsMemberOfSubclass(context, quaternionObj, JSEntityClass()))
+	{
+		COUNT(entityCount);
+		Entity *entity = JS_GetPrivate(context, quaternionObj);
+		*outQuaternion = [entity orientation];
+		return YES;
 	}
 	
 	/*
