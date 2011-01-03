@@ -50,7 +50,7 @@ MA 02110-1301, USA.
 #define kUntexturedPlanetModel	@"icosahedron.dat"
 
 
-#if OOLITE_MAC_OS_X && !OOLITE_LEOPARD
+#if !OOLITE_MAC_OS_X || !OOLITE_LEOPARD
 #define NSIntegerMapKeyCallBacks	NSIntMapKeyCallBacks
 #define NSIntegerMapValueCallBacks	NSIntMapValueCallBacks
 #endif
