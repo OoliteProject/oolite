@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 /*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
 
 
-"use strict";
+// "use strict";	//FIXME: can't delete legacy_fooActions.
 
 
 this.name			= "oolite-default-ship-script";
