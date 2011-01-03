@@ -133,6 +133,14 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 #endif
 
 
+// OODebugLog() is only included in debug builds.
+#if OO_DEBUG
+#define OODebugLog OOLog
+#else
+#define OODebugLog(...)  do {} while (0)
+#endif
+
+
 // *** Predefined message classes.
 /*	These are general coding error types. Generally a subclass should be used
 	for each instance -- for instance, -[Entity warnAboutHostiles] uses

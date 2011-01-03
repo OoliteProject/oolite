@@ -164,12 +164,7 @@ static OOCacheManager *sSingleton = nil;
 	NSMutableDictionary		*cache = nil;
 	id						result = nil;
 	
-	// Sanity check
-	if (inCacheKey == nil || inKey == nil)
-	{
-		OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil key or cacheKey.");
-		return nil;
-	}
+	NSParameterAssert(inKey != nil && inCacheKey != nil);
 	
 	cache = [_caches objectForKey:inCacheKey];
 	if (cache != nil)
@@ -177,16 +172,16 @@ static OOCacheManager *sSingleton = nil;
 		result = [cache objectForKey:inKey];
 		if (result != nil)
 		{
-			OOLog(kOOLogDataCacheRetrieveSuccess, @"Retrieved \"%@\" cache object %@.", inCacheKey, inKey);
+			OODebugLog(kOOLogDataCacheRetrieveSuccess, @"Retrieved \"%@\" cache object %@.", inCacheKey, inKey);
 		}
 		else
 		{
-			OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrieve \"%@\" cache object %@ -- no such entry.", inCacheKey, inKey);
+			OODebugLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrieve \"%@\" cache object %@ -- no such entry.", inCacheKey, inKey);
 		}
 	}
 	else
 	{
-		OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retreive\"%@\" cache object %@ -- no such cache.", inCacheKey, inKey);
+		OODebugLog(kOOLogDataCacheRetrieveFailed, @"Failed to retreive\"%@\" cache object %@ -- no such cache.", inCacheKey, inKey);
 	}
 	
 	return result;
@@ -198,10 +193,9 @@ static OOCacheManager *sSingleton = nil;
 {
 	NSMutableDictionary		*cache = nil;
 	
-	// Sanity check
-	if (inObject == nil || inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil object, key or cacheKey.");
+	NSParameterAssert(inObject != nil && inKey != nil && inCacheKey != nil);
 	
-	if (_caches == nil)  return;
+	if (EXPECT_NOT(_caches == nil))  return;
 	
 	cache = [_caches objectForKey:inCacheKey];
 	if (cache == nil)
@@ -209,7 +203,7 @@ static OOCacheManager *sSingleton = nil;
 		cache = [NSMutableDictionary dictionary];
 		if (cache == nil)
 		{
-			OOLog(kOOLogDataCacheSetFailed, @"Failed to create cache for key \"%@\".", inCacheKey);
+			OODebugLog(kOOLogDataCacheSetFailed, @"Failed to create cache for key \"%@\".", inCacheKey);
 			return;
 		}
 		[_caches setObject:cache forKey:inCacheKey];
@@ -217,7 +211,7 @@ static OOCacheManager *sSingleton = nil;
 	
 	[cache setObject:inObject forKey:inKey];
 	_dirty = YES;
-	OOLog(kOOLogDataCacheSetSuccess, @"Updated entry %@ in cache \"%@\".", inKey, inCacheKey);
+	OODebugLog(kOOLogDataCacheSetSuccess, @"Updated entry %@ in cache \"%@\".", inKey, inCacheKey);
 }
 
 
@@ -225,8 +219,7 @@ static OOCacheManager *sSingleton = nil;
 {
 	NSMutableDictionary		*cache = nil;
 	
-	// Sanity check
-	if (inCacheKey == nil || inKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameters -- nil key or cacheKey.");
+	NSParameterAssert(inKey != nil && inCacheKey != nil);
 	
 	cache = [_caches objectForKey:inCacheKey];
 	if (cache != nil)
@@ -235,34 +228,33 @@ static OOCacheManager *sSingleton = nil;
 		{
 			[cache removeObjectForKey:inKey];
 			_dirty = YES;
-			OOLog(kOOLogDataCacheRemoveSuccess, @"Removed entry keyed %@ from cache \"%@\".", inKey, inCacheKey);
+			OODebugLog(kOOLogDataCacheRemoveSuccess, @"Removed entry keyed %@ from cache \"%@\".", inKey, inCacheKey);
 		}
 		else
 		{
-			OOLog(kOOLogDataCacheRemoveSuccess, @"No need to remove non-existent entry keyed %@ from cache \"%@\".", inKey, inCacheKey);
+			OODebugLog(kOOLogDataCacheRemoveSuccess, @"No need to remove non-existent entry keyed %@ from cache \"%@\".", inKey, inCacheKey);
 		}
 	}
 	else
 	{
-		OOLog(kOOLogDataCacheRemoveSuccess, @"No need to remove entry keyed %@ from non-existent cache \"%@\".", inKey, inCacheKey);
+		OODebugLog(kOOLogDataCacheRemoveSuccess, @"No need to remove entry keyed %@ from non-existent cache \"%@\".", inKey, inCacheKey);
 	}
 }
 
 
 - (void)clearCache:(NSString *)inCacheKey
 {
-	// Sanity check
-	if (inCacheKey == nil)  OOLog(kOOLogDataCacheParamError, @"Bad parameter -- nil cacheKey.");
+	NSParameterAssert(inCacheKey != nil);
 	
 	if (nil != [_caches objectForKey:inCacheKey])
 	{
 		[_caches removeObjectForKey:inCacheKey];
 		_dirty = YES;
-		OOLog(kOOLogDataCacheClearSuccess, @"Cleared cache \"%@\".", inCacheKey);
+		OODebugLog(kOOLogDataCacheClearSuccess, @"Cleared cache \"%@\".", inCacheKey);
 	}
 	else
 	{
-		OOLog(kOOLogDataCacheClearSuccess, @"No need to clear non-existent cache \"%@\".", inCacheKey);
+		OODebugLog(kOOLogDataCacheClearSuccess, @"No need to clear non-existent cache \"%@\".", inCacheKey);
 	}
 }
 

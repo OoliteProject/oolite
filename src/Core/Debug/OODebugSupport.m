@@ -33,6 +33,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OODebugMonitor.h"
 #import "OODebugTCPConsoleClient.h"
+#import "GameController.h"
 
 #if OOLITE_MAC_OS_X
 static id LoadDebugPlugIn(NSString *path);
@@ -119,6 +120,8 @@ void OOInitDebugSupport(void)
 // Note: it should in principle be possible to use this code to load a plug-in under GNUstep, too.
 static id LoadDebugPlugIn(NSString *path)
 {
+	OO_DEBUG_PUSH_PROGRESS(@"Loading debug plug-in");
+	
 	Class					principalClass = Nil;
 	NSString				*bundlePath = nil;
 	NSBundle				*bundle = nil;
@@ -143,6 +146,8 @@ static id LoadDebugPlugIn(NSString *path)
 	{
 		OOLog(@"debugOXP.load.failed", @"Failed to load debug OXP plug-in from %@.", bundlePath);
 	}
+	
+	OO_DEBUG_POP_PROGRESS();
 	
 	return debugController;
 }
