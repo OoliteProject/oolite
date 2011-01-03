@@ -4462,16 +4462,14 @@ static bool minShieldLevelPercentageInitialised = false;
 	[self suppressTargetLost];			// No target lost messages when dead.
 	[self setStatus:STATUS_DEAD];
 	[self playGameOver];
-
-	// Let event scripts check for specific equipment on board when the player dies.
+	
+	// Let event scripts know the player died.
 	if (whom == nil)  whom = (id)[NSNull null];
 	[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
 	[self setStatus:STATUS_DEAD]; // set dead again in case a script managed to revive the player.
-	// Then remove the equipment. This should avoid accidental scooping / equipment damage when dead.
-	[self removeAllEquipment];
+	[self removeAllEquipment];			// No scooping / equipment damage when dead.
 	[self loseTargetStatus];
 	[self showGameOver];
-
 }
 
 

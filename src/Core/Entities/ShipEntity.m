@@ -100,27 +100,13 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 #if MASS_DEPENDENT_FUEL_PRICES
 static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 {	
+	static const GLfloat massCharge = 0.65;	// the closer to 1 this number is, the more the fuel price changes from ship to ship.
+	static const GLfloat baseCharge = 1.0 - massCharge; // proportion of price that doesn't change with ship's mass.
+	
 	// if anything is wrong, default to cobra3 value.
-	if (my_mass == 0.0 || base_mass == 0.0) return 1.0;
+	if (my_mass <= 0.0 || base_mass <= 0.0) return 1.0;
 	
-	GLfloat x = my_mass / base_mass;
-	
-	static const GLfloat b = 0.6;
-	static const GLfloat c = 0.4;
-	
-/*
-	static const GLfloat a = 0.0;
-	static const GLfloat n = 1.0;
-	
-	// axⁿ+bx+c, where x is mass(player)/mass(base)
-	// result is normalised so that player==base gives 1.0
-	// base is normally the default player ship
-	
-	GLfloat result = (a * powf (x, n) + b * x + c) / (a + b + c);
-*/
-	
-	// given the const values above, we can use a simpler alternative to get the same result:
-	GLfloat result = b * x + c;
+	GLfloat result = (massCharge * my_mass / base_mass) + baseCharge;
 	
 	// round the result to the second decimal digit.
 	return (roundf ((float) (result * 100.0)) / 100.0);
