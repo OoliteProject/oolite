@@ -382,12 +382,12 @@ static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int
 	
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
 	{
-		float q = q_factor( accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
+		float q = q_factor(accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
 		
-		imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * rgba[0];
-		imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * rgba[1];
-		imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * rgba[2];
-		imageBuffer[ 3 + 4 * (y * width + x) ] = 255 * rgba[3] * q;
+		imageBuffer[0 + 4 * (y * width + x) ] = 255 * rgba[0];
+		imageBuffer[1 + 4 * (y * width + x) ] = 255 * rgba[1];
+		imageBuffer[2 + 4 * (y * width + x) ] = 255 * rgba[2];
+		imageBuffer[3 + 4 * (y * width + x) ] = 255 * rgba[3] * q;
 	}
 #if DEBUG_DUMP
 	NSString *name = [NSString stringWithFormat:@"atmosphere-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low];
@@ -425,12 +425,12 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 	
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
 	{
-		float q = q_factor( accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
+		float q = q_factor(accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
 
-		float yN = q_factor( accbuffer, x, y - 1, width, YES, pole_value, NO, 0.0, impress, bias);
-		float yS = q_factor( accbuffer, x, y + 1, width, YES, pole_value, NO, 0.0, impress, bias);
-		float yW = q_factor( accbuffer, x - 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
-		float yE = q_factor( accbuffer, x + 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yN = q_factor(accbuffer, x, y - 1, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yS = q_factor(accbuffer, x, y + 1, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yW = q_factor(accbuffer, x - 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
+		float yE = q_factor(accbuffer, x + 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
 
 		Vector norm = make_vector( 24.0 * (yW - yE), 24.0 * (yS - yN), 2.0);
 		
@@ -444,10 +444,10 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 		color.g *= shade;
 		color.b *= shade;
 		
-		imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * color.r;
-		imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * color.g;
-		imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * color.b;
-		imageBuffer[ 3 + 4 * (y * width + x) ] = 255;
+		imageBuffer[0 + 4 * (y * width + x)] = 255 * color.r;
+		imageBuffer[1 + 4 * (y * width + x)] = 255 * color.g;
+		imageBuffer[2 + 4 * (y * width + x)] = 255 * color.b;
+		imageBuffer[3 + 4 * (y * width + x)] = 255;
 	}
 #if DEBUG_DUMP
 	OOLog(@"planetTex.dump", [NSString stringWithFormat:@"Saving generated texture to file planet-%u-%u-old.", sNoiseSeed.high, sNoiseSeed.low]);
