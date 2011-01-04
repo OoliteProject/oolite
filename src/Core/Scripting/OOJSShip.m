@@ -2263,7 +2263,7 @@ static BOOL ValidateContracts(OOJS_NATIVE_ARGS, BOOL isCargo)
 		OOReportJSBadArguments(context, @"Ship", functionName, argc - 1, OOJS_ARGV + 1, nil, @"destination:system ID");
 		return NO;
 	}
-	if(!JS_ValueToNumber(context, OOJS_ARG(offset + 2), &fValue) || fValue <= [[PlayerEntity sharedPlayer] clockTime])
+	if(!JS_ValueToNumber(context, OOJS_ARG(offset + 2), &fValue) || fValue <= [PLAYER clockTime])
 	{
 		OOReportJSBadArguments(context, @"Ship", functionName, argc - 2, OOJS_ARGV + 2, nil, @"eta:future time");
 		return NO;

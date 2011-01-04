@@ -66,7 +66,7 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 	NSString				*notificationString;
 	NSString				*displayString;
 	
-	player = [PlayerEntity sharedPlayer];
+	player = PLAYER;
 	
 	if (!inTitle)
 		return;	// catch blank messages

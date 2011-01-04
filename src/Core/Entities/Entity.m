@@ -858,7 +858,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void) update:(OOTimeDelta) delta_t
 {
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	PlayerEntity *player = PLAYER;
 	if (player)
 	{
 		if ([self status] != STATUS_COCKPIT_DISPLAY)
@@ -1004,7 +1004,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
 	NSString *result = [self descriptionForObjDumpBasic];
 	
-	result = [result stringByAppendingFormat:@" range: %g (visible: %@)", distance([self position], [[PlayerEntity sharedPlayer] position]), [self isVisible] ? @"yes" : @"no"];
+	result = [result stringByAppendingFormat:@" range: %g (visible: %@)", distance([self position], [PLAYER position]), [self isVisible] ? @"yes" : @"no"];
 	
 	return result;
 }

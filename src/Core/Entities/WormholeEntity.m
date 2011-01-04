@@ -141,7 +141,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 	if ((self = [self init]))
 	{
-		double		now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
+		double		now = [PLAYER clockTimeAdjusted];
 		double		distance;
 		OOSunEntity	*sun = [UNIVERSE sun];
 
@@ -161,7 +161,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		travel_time = (distance * distance * 3600); // Taken from PlayerEntity.h
 		arrival_time = now + travel_time;
 		position = [ship position];
-		zero_distance = distance2([[PlayerEntity sharedPlayer] position], position);
+		zero_distance = distance2([PLAYER position], position);
 	}	
 	return self;
 }
@@ -181,7 +181,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	if (!ship)
 		return NO;
 
-	double now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
+	double now = [PLAYER clockTimeAdjusted];
 
 	if (now > arrival_time)
 		return NO;	// far end of the wormhole!
@@ -227,7 +227,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (void) disgorgeShips
 {
-	double now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
+	double now = [PLAYER clockTimeAdjusted];
 	int n_ships = [shipsInTransit count];
 	NSMutableArray * shipsStillInTransit = [[NSMutableArray alloc] initWithCapacity:n_ships];
 	
@@ -362,7 +362,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (NSString *) descriptionComponents
 {
-	double now = [[PlayerEntity sharedPlayer] clockTime];
+	double now = [PLAYER clockTime];
 	return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs arrival: %@",
 		[UNIVERSE getSystemName:destination],
 		expiry_time - now,
@@ -383,7 +383,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (BOOL) canCollide
 {
-	if ([[PlayerEntity sharedPlayer] clockTime] > arrival_time)
+	if ([PLAYER clockTime] > arrival_time)
 	{
 		return NO;	// far end of the wormhole!
 	}
@@ -401,7 +401,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 {
 	[super update:delta_t];
 	
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	assert(player != nil);
 	rotMatrix = OOMatrixForBillboard(position, [player position]);
 	double now = [player clockTimeAdjusted];

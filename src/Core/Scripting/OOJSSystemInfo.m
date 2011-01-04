@@ -224,7 +224,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 - (Random_Seed) systemSeed
 {
-	NSAssert([[PlayerEntity sharedPlayer] currentGalaxyID] == _galaxy, @"Attempt to use -[OOSystemInfo systemSeed] from a different galaxy.");
+	NSAssert([PLAYER currentGalaxyID] == _galaxy, @"Attempt to use -[OOSystemInfo systemSeed] from a different galaxy.");
 	return [UNIVERSE systemSeedForSystemNumber:_system];
 }
 
@@ -233,7 +233,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 {
 	if ([UNIVERSE inInterstellarSpace] && _system == -1) 
 	{
-		return [[PlayerEntity sharedPlayer] galaxy_coordinates];
+		return [PLAYER galaxy_coordinates];
 	}
 	return [UNIVERSE coordinatesForSystem:[self systemSeed]];
 }
@@ -339,7 +339,7 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 	OOSystemInfo	*info = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
 	// What if we're trying to access a saved witchspace systemInfo object?
 	BOOL savedInterstellarInfo = ![UNIVERSE inInterstellarSpace] && [info system] == -1;
-	BOOL sameGalaxy = [[PlayerEntity sharedPlayer] currentGalaxyID] == [info galaxy];
+	BOOL sameGalaxy = [PLAYER currentGalaxyID] == [info galaxy];
 	
 	
 	if (OOJS_PROPID_IS_INT)
@@ -540,7 +540,7 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 	
 	// Iterate over systems.
 	BOOL OK = YES;
-	OOGalaxyID galaxy = [[PlayerEntity sharedPlayer] currentGalaxyID];
+	OOGalaxyID galaxy = [PLAYER currentGalaxyID];
 	OOSystemID system;
 	for (system = 0; system <= kOOMaximumSystemID; system++)
 	{

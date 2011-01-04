@@ -1002,7 +1002,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	if (alpha > 0.05f)
 	{
-		PlayerEntity* player = [PlayerEntity sharedPlayer];
+		PlayerEntity* player = PLAYER;
 		
 		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 		
@@ -1256,7 +1256,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	PlayerEntity* player = PLAYER;
 
 	if (!player)
 		return;
@@ -1380,7 +1380,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow
 	
-	Random_Seed target = [[PlayerEntity sharedPlayer] target_system_seed];	
+	Random_Seed target = [PLAYER target_system_seed];	
 	NSString *targetName = [UNIVERSE getSystemName:target];
 	
 	int targetIdx = -1;
@@ -1438,8 +1438,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (Random_Seed) targetNextFoundSystem:(int)direction // +1 , 0 , -1
 {
-	Random_Seed sys = [[PlayerEntity sharedPlayer] target_system_seed];
-	if ([[PlayerEntity sharedPlayer] guiScreen] != GUI_SCREEN_LONG_RANGE_CHART) return sys;
+	Random_Seed sys = [PLAYER target_system_seed];
+	if ([PLAYER guiScreen] != GUI_SCREEN_LONG_RANGE_CHART) return sys;
 	
 	BOOL		*systems_found = [UNIVERSE systems_found];
 	unsigned 	i, first = 0, last = 0, count = 0;
@@ -1485,7 +1485,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
-	PlayerEntity*	player = [PlayerEntity sharedPlayer];
+	PlayerEntity*	player = PLAYER;
 	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint			cursor_coordinates = [player cursor_coordinates];
 	Random_Seed		galaxy_seed = [player galaxy_seed];
@@ -1672,7 +1672,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy
 {
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	Random_Seed		g_seed, g_seed2;
 	int				i, j;
 	double			hscale = size_in_pixels.width / 256.0;

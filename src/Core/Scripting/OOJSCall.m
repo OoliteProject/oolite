@@ -93,7 +93,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 	
 	if ([object isKindOfClass:[ShipEntity class]])
 	{
-		[[PlayerEntity sharedPlayer] setScriptTarget:object];
+		[PLAYER setScriptTarget:object];
 	}
 	
 	selectorString = JSValToNSString(context,argv[0]);

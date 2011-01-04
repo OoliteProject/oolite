@@ -168,7 +168,7 @@ JSObject *JSPlayerObject(void)
 
 PlayerEntity *OOPlayerForScripting(void)
 {
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	PlayerEntity *player = PLAYER;
 	[player setScriptTarget:player];
 	
 	return player;

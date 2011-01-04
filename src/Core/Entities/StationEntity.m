@@ -167,7 +167,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (NSMutableArray *) initialiseLocalMarketWithRandomFactor:(int) random_factor
 {
-	return [self initialiseMarketWithSeed:[[PlayerEntity sharedPlayer] system_seed] andRandomFactor:random_factor];
+	return [self initialiseMarketWithSeed:[PLAYER system_seed] andRandomFactor:random_factor];
 }
 
 
@@ -272,7 +272,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[shipsOnApproach removeAllObjects];
 
 #if DOCKING_CLEARANCE_ENABLED
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	PlayerEntity *player = PLAYER;
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
 	if (isDockingStation && player && [player status] == STATUS_IN_FLIGHT &&
 			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
@@ -378,7 +378,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// If the ship is not on its docking approach and the player has
 	// requested or even been granted docking clearance, then tell the
 	// ship to wait.
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	PlayerEntity *player = PLAYER;
 	BOOL isDockingStation = self == [player getTargetDockStation];
 	if (isDockingStation && ![shipsOnApproach objectForKey:shipID] &&
 			player && [player status] == STATUS_IN_FLIGHT &&
@@ -1132,7 +1132,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[super update:delta_t];
 	
 #if DOCKING_CLEARANCE_ENABLED
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	PlayerEntity *player = PLAYER;
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT)
 	{
@@ -1342,7 +1342,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[self doScriptEvent:@"otherShipDocked" withArgument:ship];
 	
 #if DOCKING_CLEARANCE_ENABLED
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	PlayerEntity *player = PLAYER;
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
 			[player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED)
@@ -2020,7 +2020,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (self == [UNIVERSE station])  return;
 	
 	// launch docked ships if possible
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	PlayerEntity* player = PLAYER;
 	if ((player)&&([player status] == STATUS_DOCKED)&&([player dockedStation] == self))
 	{
 		// undock the player!
@@ -2068,7 +2068,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	NSString	*result = nil;
 	double		timeNow = [UNIVERSE getTime];
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	
 	[UNIVERSE clearPreviousMessage];
 
@@ -2258,7 +2258,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{		
 		if ([determinant isKindOfClass:[NSArray class]])
 		{
-			return [[PlayerEntity sharedPlayer] scriptTestConditions:OOSanitizeLegacyScriptConditions(determinant, nil)];
+			return [PLAYER scriptTestConditions:OOSanitizeLegacyScriptConditions(determinant, nil)];
 		}
 		else
 		{

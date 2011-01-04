@@ -266,7 +266,7 @@ static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS)
 		overrides = JSValueToObjectOfClass(context, OOJS_ARG(1), [NSDictionary class]);
 	}
 	
-	string = ExpandDescriptionsWithOptions(string, [[PlayerEntity sharedPlayer] system_seed], overrides, nil, nil);
+	string = ExpandDescriptionsWithOptions(string, [PLAYER system_seed], overrides, nil, nil);
 	OOJS_RETURN_OBJECT(string);
 	
 	OOJS_NATIVE_EXIT
@@ -296,7 +296,7 @@ static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS)
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
 	if (string != nil)
 	{
-		string = ExpandDescriptionsWithOptions(string, [[PlayerEntity sharedPlayer] system_seed], overrides, nil, nil);
+		string = ExpandDescriptionsWithOptions(string, [PLAYER system_seed], overrides, nil, nil);
 		mString = [NSMutableString stringWithString:string];
 		[mString replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:(NSRange){ 0, [mString length] }];
 		string = mString;

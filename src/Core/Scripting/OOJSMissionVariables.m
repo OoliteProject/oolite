@@ -181,7 +181,7 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 #endif
 		{
 			// -allKeys implicitly makes a copy, which is good since the enumerating code might mutate.
-			NSArray *mvars = [[[PlayerEntity sharedPlayer] missionVariables] allKeys];
+			NSArray *mvars = [[PLAYER missionVariables] allKeys];
 			mvarEnumerator = [[mvars objectEnumerator] retain];
 			*state = PRIVATE_TO_JSVAL(mvarEnumerator);
 			if (idp != NULL)

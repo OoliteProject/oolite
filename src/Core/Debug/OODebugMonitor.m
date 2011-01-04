@@ -529,7 +529,7 @@ typedef struct
 		[self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
 	}
 #if WORMHOLE_SCANNER
-	for (entityEnum = [[[PlayerEntity sharedPlayer] scannedWormholes] objectEnumerator]; (entity = [entityEnum nextObject]); )
+	for (entityEnum = [[PLAYER scannedWormholes] objectEnumerator]; (entity = [entityEnum nextObject]); )
 	{
 		[self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
 	}

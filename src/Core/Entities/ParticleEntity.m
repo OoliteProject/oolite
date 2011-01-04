@@ -549,7 +549,7 @@ FAIL:
 			case PARTICLE_FRAGBURST:
 			case PARTICLE_BURST2:
 				{
-					PlayerEntity *player = [PlayerEntity sharedPlayer];
+					PlayerEntity *player = PLAYER;
 					assert(player != nil);
 					rotMatrix = [player drawRotationMatrix];
 				}
@@ -597,7 +597,7 @@ FAIL:
 - (void) updateEnergyMine:(double) delta_t
 {
 	// new billboard routine (working at last!)
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	assert(player != nil);
 	rotMatrix = OOMatrixForBillboard(position, [player position]);
 	
@@ -956,7 +956,7 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 			break;
 		case	VIEW_CUSTOM:
 		{
-			PlayerEntity *player = [PlayerEntity sharedPlayer];
+			PlayerEntity *player = PLAYER;
 			Vector vi = [player customViewRightVector];		vi.x *= xx;	vi.y *= xx;	vi.z *= xx;
 			Vector vj = [player customViewUpVector];		vj.x *= yy;	vj.y *= yy;	vj.z *= yy;
 			glTexCoord2f(0.0, 1.0);	glVertex3f(x - vi.x - vj.x, y - vi.y - vj.y, z - vi.z - vj.z);

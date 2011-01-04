@@ -323,7 +323,7 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (void)runWithTarget:(Entity *)target
 {
-	[self doEvent:@"tickle" withArguments:[NSArray arrayWithObject:[[PlayerEntity sharedPlayer] status_string]]];
+	[self doEvent:@"tickle" withArguments:[NSArray arrayWithObject:[PLAYER status_string]]];
 }
 
 

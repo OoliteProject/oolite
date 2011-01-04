@@ -157,7 +157,7 @@ SOFTWARE.
 	OOGL(glDepthMask(GL_TRUE));
 	
 	OOGL(glLoadIdentity());
-	GLTranslateOOVector(vector_flip([[PlayerEntity sharedPlayer] position]));
+	GLTranslateOOVector(vector_flip([PLAYER position]));
 	
 	NSEnumerator	*planetEnum = nil;
 	OOPlanetEntity	*planet = nil;

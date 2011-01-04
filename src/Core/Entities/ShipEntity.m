@@ -325,9 +325,9 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	else
 	{
 		GLfloat rate = 1.0;
-		if ([PlayerEntity sharedPlayer] != nil)
+		if (PLAYER != nil)
 		{
-			rate = calcFuelChargeRate (mass, [[PlayerEntity sharedPlayer] baseMass]);
+			rate = calcFuelChargeRate (mass, [PLAYER baseMass]);
 		}
 		fuel_charge_rate = (rate > 0.0) ? rate : 1.0;
 		
@@ -1821,7 +1821,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		//if (script != nil && [self scanClass] != CLASS_ROCK && ([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_LAUNCHING))
 		if (script != nil && ([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_LAUNCHING|| [self status] == STATUS_BEING_SCOOPED))
 		{
-			PlayerEntity *player = [PlayerEntity sharedPlayer];
+			PlayerEntity *player = PLAYER;
 			[player setScriptTarget:self];
 			[self doScriptEvent:@"shipSpawned"];
 			if ([self status] != STATUS_DEAD)  [player doScriptEvent:@"shipSpawned" withArgument:self];
@@ -5678,7 +5678,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	// STATUS_DEAD, which is the opposite of what was happening inside becomeExplosion - Nikos.
 	if (script != nil)
 	{
-		[[PlayerEntity sharedPlayer] setScriptTarget:self];
+		[PLAYER setScriptTarget:self];
 		[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, context, nil]];
 		if (![whom isKindOfClass:[NSNull class]] && [whom isShip])  [(ShipEntity *)whom doScriptEvent:@"shipKilledOther" withArguments:[NSArray arrayWithObjects:self, context, nil]];
 	}
@@ -6062,7 +6062,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		desired_range = collision_radius * 2.5f;
 		[self dealMomentumWithinDesiredRange:0.125f * mass];
 		
-		if (self != [PlayerEntity sharedPlayer])	// was if !isPlayer - but I think this may cause ghosts (Who's "I"? -- Ahruman)
+		if (self != PLAYER)	// was if !isPlayer - but I think this may cause ghosts (Who's "I"? -- Ahruman)
 		{
 			if (isPlayer)
 			{
@@ -6074,7 +6074,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			[UNIVERSE removeEntity:self];
 		}
 	NS_HANDLER
-		if (self != [PlayerEntity sharedPlayer])  [UNIVERSE removeEntity:self];
+		if (self != PLAYER)  [UNIVERSE removeEntity:self];
 		[localException raise];
 	NS_ENDHANDLER
 }
@@ -6237,7 +6237,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		//scripting
 		if (script != nil)
 		{
-			[[PlayerEntity sharedPlayer] setScriptTarget:self];
+			[PLAYER setScriptTarget:self];
 			[self doScriptEvent:@"shipDied"];	// FIXME: params missing
 		}
 		
@@ -8032,7 +8032,7 @@ BOOL class_masslocks(int some_class)
 	[UNIVERSE addEntity:bomb];	// STATUS_IN_FLIGHT, AI state GLOBAL
 	[bomb release];
 	
-	if (self != [PlayerEntity sharedPlayer])	// get the heck out of here
+	if (self != PLAYER)	// get the heck out of here
 	{
 		[self addTarget:bomb];
 		[self setBehaviour:BEHAVIOUR_FLEE_TARGET];
@@ -8223,7 +8223,7 @@ BOOL class_masslocks(int some_class)
 			else if ([ent isStellarObject])
 			{
 				[self getDestroyedBy:ent context:[ent isSun] ? @"hit a sun" : @"hit a planet"];
-				if (self == [PlayerEntity sharedPlayer]) [self retain];
+				if (self == PLAYER) [self retain];
 			}
 			else if ([ent isWormhole])
 			{
@@ -8527,7 +8527,7 @@ BOOL class_masslocks(int some_class)
 		case CARGO_SCRIPTED_ITEM:
 			{
 				//scripting
-				PlayerEntity *player = [PlayerEntity sharedPlayer];
+				PlayerEntity *player = PLAYER;
 				[player setScriptTarget:self];
 				[other doScriptEvent:@"shipWasScooped" withArgument:self];
 				[self doScriptEvent:@"shipScoopedOther" withArgument:other];
@@ -9572,7 +9572,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		if (![ship isPlayer]) [ship receiveCommsMessage:expandedMessage from:self];
 	}
 	
-	PlayerEntity *player = [PlayerEntity sharedPlayer]; // make sure that the player always receives a message when in range
+	PlayerEntity *player = PLAYER; // make sure that the player always receives a message when in range
 	if (distance2(position, [player position]) < SCANNER_MAX_RANGE2)
 	{
 		[self setCommsMessageColor];

@@ -163,10 +163,12 @@ void InitOOJSPlayerShip(JSContext *context, JSObject *global)
 	JSRegisterObjectConverter(&sPlayerShipClass, JSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sPlayerShipClass, JSShipClass());
 	
+	PlayerEntity *player = [PlayerEntity sharedPlayer];	// NOTE: at time of writing, this creates the player entity. Don't use PLAYER here.
+	
 	// Create ship object as a property of the player object.
 	sPlayerShipObject = JS_DefineObject(context, JSPlayerObject(), "ship", &sPlayerShipClass, sPlayerShipPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-	JS_SetPrivate(context, sPlayerShipObject, [[PlayerEntity sharedPlayer] weakRetain]);
-	[[PlayerEntity sharedPlayer] setJSSelf:sPlayerShipObject context:context];
+	JS_SetPrivate(context, sPlayerShipObject, [player weakRetain]);
+	[player setJSSelf:sPlayerShipObject context:context];
 	// Analyzer: object leaked. [Expected, object is retained by JS object.]
 }
 

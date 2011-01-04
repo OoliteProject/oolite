@@ -240,7 +240,7 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	NSString				*expandedString = nil;
 	SEL						selector = NULL;
 	NSMutableDictionary		*locals = nil;
-	PlayerEntity			*player = [PlayerEntity sharedPlayer];
+	PlayerEntity			*player = PLAYER;
 	
 	selectorString = [statement objectAtIndex:1];
 	if ([statement count] > 2)  argumentString = [statement objectAtIndex:2];
@@ -283,7 +283,7 @@ static BOOL TestScriptConditions(NSArray *conditions)
 {
 	NSEnumerator			*condEnum = nil;
 	NSArray					*condition = nil;
-	PlayerEntity			*player = [PlayerEntity sharedPlayer];
+	PlayerEntity			*player = PLAYER;
 	
 	for (condEnum = [conditions objectEnumerator]; (condition = [condEnum nextObject]); )
 	{
@@ -2042,7 +2042,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[UNIVERSE removeDemoShips];	// get rid of any pre-existing models on display
 	if ([shipKey isEqualToString:@"none"] || [shipKey length] == 0)  return;
 	
-	[[PlayerEntity sharedPlayer] setShowDemoShips: YES];
+	[PLAYER setShowDemoShips: YES];
 	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
 	ship = [UNIVERSE newShipWithRole: shipKey];   // retain count = 1
 	if (ship)

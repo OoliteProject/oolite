@@ -491,7 +491,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 
 	/* MKW - rotate planet based on current time.
 	 *     - do it here so that we catch all planets (OXP-added and otherwise! */
-	int		deltaT = floor(fmod([[PlayerEntity sharedPlayer] clockTimeAdjusted], 86400));
+	int		deltaT = floor(fmod([PLAYER clockTimeAdjusted], 86400));
 	quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * deltaT);
 
 	[self setStatus:STATUS_ACTIVE];
@@ -907,7 +907,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 		if (isLocal)
 			ScanVectorFromString([[UNIVERSE currentSystemData] objectForKey:@"texture_hsb_color"], &land_hsb);
 		else
-			ScanVectorFromString([[UNIVERSE generateSystemData:[[PlayerEntity sharedPlayer] target_system_seed]] objectForKey:@"texture_hsb_color"], &land_hsb);
+			ScanVectorFromString([[UNIVERSE generateSystemData:[PLAYER target_system_seed]] objectForKey:@"texture_hsb_color"], &land_hsb);
 	}
 	
 	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);

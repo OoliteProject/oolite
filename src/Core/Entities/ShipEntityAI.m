@@ -2161,7 +2161,7 @@ static WormholeEntity *whole = nil;
 
 - (void) enterPlayerWormhole
 {
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	WormholeEntity	*whole = [player wormhole];
 	[whole suckInShip:self];
 }
@@ -2177,7 +2177,7 @@ static WormholeEntity *whole = nil;
 		if ([targEnt isWormhole])
 			whole = (WormholeEntity *)targEnt;
 		else if ([targEnt isPlayer])
-			whole = [[PlayerEntity sharedPlayer] wormhole];
+			whole = [PLAYER wormhole];
 	}
 	
 	if (!whole)
@@ -2216,7 +2216,7 @@ static WormholeEntity *whole = nil;
 
 - (void) scriptActionOnTarget:(NSString *)action
 {
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	ShipEntity		*targEnt = [self primaryTarget];
 	ShipEntity		*oldTarget = nil;
 	
@@ -2250,7 +2250,7 @@ static WormholeEntity *whole = nil;
 
 - (void) safeScriptActionOnTarget:(NSString *)action
 {
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	ShipEntity		*targEnt = [self primaryTarget];
 	ShipEntity		*oldTarget = nil;
 	

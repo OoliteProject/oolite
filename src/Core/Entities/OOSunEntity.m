@@ -220,7 +220,7 @@ MA 02110-1301, USA.
 {
 	[super update:delta_t];
 	
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	assert(player != nil);
 	rotMatrix = OOMatrixForBillboard(position, [player position]);
 	

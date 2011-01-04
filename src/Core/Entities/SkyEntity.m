@@ -163,7 +163,7 @@ MA 02110-1301, USA.
 
 - (void) update:(OOTimeDelta) delta_t
 {
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	PlayerEntity *player = PLAYER;
 	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
 	if (player != nil)  position = player->position;
 }

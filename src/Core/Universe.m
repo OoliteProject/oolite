@@ -459,7 +459,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) sleepytime:(id)sender
 {
 	// deal with the machine going to sleep, or player pressing 'p'.
-	PlayerEntity 	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity 	*player = PLAYER;
 	
 	[self setPauseMessageVisible:NO];
 	
@@ -498,7 +498,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	{
 		// we're in witchspace...		
 		
-		PlayerEntity	*player = [PlayerEntity sharedPlayer];
+		PlayerEntity	*player = PLAYER;
 		StationEntity	*dockedStation = [player dockedStation];
 		NSPoint			coords = [player galaxy_coordinates];
 		// check the nearest system
@@ -590,7 +590,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	}
 	else
 	{
-		player = [[PlayerEntity sharedPlayer] retain];	// retained here
+		player = [PLAYER retain];	// retained here
 	}
 	
 	[self setUpSpace];
@@ -625,7 +625,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	}
 	else
 	{
-		player = [[PlayerEntity sharedPlayer] retain];	// retained here
+		player = [PLAYER retain];	// retained here
 	}
 	
 	[self set_up_witchspace];
@@ -644,7 +644,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	// new system is hyper-centric : witchspace exit point is origin
 	
 	Entity				*thing;
-	PlayerEntity*		player = [PlayerEntity sharedPlayer];
+	PlayerEntity*		player = PLAYER;
 	Quaternion			randomQ;
 	
 	NSMutableDictionary *systeminfo = [NSMutableDictionary dictionaryWithCapacity:4];
@@ -1100,7 +1100,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (script_actions != nil)
 	{
 		OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - legacy script_actions");
-		[[PlayerEntity sharedPlayer] runUnsanitizedScriptActions:script_actions
+		[PLAYER runUnsanitizedScriptActions:script_actions
 											   allowingAIMethods:NO
 												 withContextName:@"<system script_actions>"
 													   forTarget:nil];
@@ -2108,7 +2108,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	{
 		if (forDocking)
 		{
-			StationEntity *station = [[PlayerEntity sharedPlayer] dockedStation];
+			StationEntity *station = [PLAYER dockedStation];
 			breakPatternModelFileName = [station dockingPatternModelFileName];
 		}
 		else
@@ -2145,7 +2145,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) setupIntroFirstGo: (BOOL) justCobra
 {
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	PlayerEntity* player = PLAYER;
 	ShipEntity		*ship;
 	Quaternion		q2;
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
@@ -2355,7 +2355,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (BOOL) breakPatternHide
 {
-	Entity* player = [PlayerEntity sharedPlayer];
+	Entity* player = PLAYER;
 	return ((breakPatternCounter > 5)||(!player)||([player status] == STATUS_DOCKING));
 }
 
@@ -2373,7 +2373,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	if (conditions == nil)  return YES;
 	
 	// Check conditions
-	return [[PlayerEntity sharedPlayer] scriptTestConditions:conditions];
+	return [PLAYER scriptTestConditions:conditions];
 }
 
 
@@ -2895,7 +2895,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:8];
 	
 	[result oo_setBool:reducedDetail forKey:@"reducedDetailGraphics"];
-	[result oo_setBool:[[PlayerEntity sharedPlayer] isSpeechOn] forKey:@"speechOn"];
+	[result oo_setBool:[PLAYER isSpeechOn] forKey:@"speechOn"];
 	[result oo_setBool:autoSave forKey:@"autosave"];
 	[result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
 #if ALLOW_PROCEDURAL_PLANETS
@@ -3054,7 +3054,7 @@ static const OOMatrix	starboard_matrix =
 			return;
 			
 		case VIEW_CUSTOM:
-			player = [PlayerEntity sharedPlayer];
+			player = PLAYER;
 			*outMatrix = [player customViewMatrix];
 			*outForward = [player customViewForwardVector];
 			*outUp = [player customViewUpVector];
@@ -3097,7 +3097,7 @@ static const OOMatrix	starboard_matrix =
 			int				ent_count =	n_entities;
 			Entity			*my_entities[ent_count];
 			int				draw_count = 0;
-			PlayerEntity	*player = [PlayerEntity sharedPlayer];
+			PlayerEntity	*player = PLAYER;
 			Entity			*drawthing = nil;
 			BOOL			demoShipMode = [player showDemoShips];
 			
@@ -3418,7 +3418,7 @@ static const OOMatrix	starboard_matrix =
 {
 	OOGL(glDisable(GL_TEXTURE_2D));	// for background sheets
 	
-	float overallAlpha = [[[PlayerEntity sharedPlayer] hud] overallAlpha];
+	float overallAlpha = [[PLAYER hud] overallAlpha];
 	if (displayGUI)
 	{
 		if (displayCursor)  cursor_row = [gui drawGUI:1.0 drawCursor:YES];
@@ -3433,7 +3433,7 @@ static const OOMatrix	starboard_matrix =
 - (id)entityForUniversalID:(OOUniversalID)u_id
 {
 	if (u_id == 100)
-		return [PlayerEntity sharedPlayer];	// the player
+		return PLAYER;	// the player
 	
 	if (MAX_ENTITY_UID < u_id)
 	{
@@ -3695,7 +3695,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		
 		// maintain sorted list (and for the scanner relative position)
 		Vector entity_pos = entity->position;
-		Vector delta = vector_between(entity_pos, ((PlayerEntity *)[PlayerEntity sharedPlayer])->position);
+		Vector delta = vector_between(entity_pos, ((PlayerEntity *)PLAYER)->position);
 		double z_distance = magnitude2(delta);
 		entity->zero_distance = z_distance;
 		entity->relativePosition = delta;
@@ -4190,7 +4190,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 - (Entity *)getFirstEntityTargetedByPlayer
 {
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	Entity			*hit_entity = nil;
 	double			nearest = SCANNER_MAX_RANGE - 100;	// 100m shorter than range at which target is lost
 	int				i;
@@ -4627,7 +4627,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			break;
 			
 		case VIEW_CUSTOM:
-			ms = [[PlayerEntity sharedPlayer] customViewDescription];
+			ms = [PLAYER customViewDescription];
 			displayGUI = NO;   // switch off any text displays
 			break;
 			
@@ -4811,7 +4811,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	if (![currentMessage isEqual:text] || forceDisplay || universal_time >= messageRepeatTime)
 	{
 #if OOLITE_SPEECH_SYNTH
-		PlayerEntity* player = [PlayerEntity sharedPlayer];
+		PlayerEntity* player = PLAYER;
 		//speech synthesis
 		if ([player isSpeechOn])
 		{
@@ -4869,11 +4869,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) addCommsMessage:(NSString *)text forCount:(OOTimeDelta)count andShowComms:(BOOL)showComms logOnly:(BOOL)logOnly
 {
-	if ([[PlayerEntity sharedPlayer] showDemoShips]) return;
+	if ([PLAYER showDemoShips]) return;
 	
 	if (![currentMessage isEqualToString:text] || universal_time >= messageRepeatTime)
 	{
-		PlayerEntity* player = [PlayerEntity sharedPlayer];
+		PlayerEntity* player = PLAYER;
 		
 		if (!logOnly)
 		{
@@ -4920,7 +4920,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		NS_DURING
 			int i;
-			PlayerEntity*	player = [PlayerEntity sharedPlayer];
+			PlayerEntity*	player = PLAYER;
 			int				ent_count = n_entities;
 			Entity*			my_entities[ent_count];
 			
@@ -5454,7 +5454,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) setSystemTo:(Random_Seed) s_seed
 {
 	NSDictionary	*systemData;
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	PlayerEntity	*player = PLAYER;
 	OOEconomyID		economy;
 	
 	[self setGalaxy_seed: [player galaxy_seed]];
@@ -5823,14 +5823,14 @@ static NSDictionary	*sCachedSystemData = nil;
 		OOSunEntity* the_sun = [self sun];
 		if ([key isEqualToString:KEY_ECONOMY])
 		{	
-			if([self station]) [[self station] initialiseLocalMarketWithRandomFactor:[[PlayerEntity sharedPlayer] random_factor]];
+			if([self station]) [[self station] initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
 		}
 		else if ([key isEqualToString:KEY_TECHLEVEL])
 		{	
 			if([self station]){
 				[[self station] setEquivalentTechLevel:[object intValue]];
 				[[self station] setLocalShipyard:[self shipsForSaleForSystem:system_seed
-								withTL:[object intValue] atTime:[[PlayerEntity sharedPlayer] clockTime]]];
+								withTL:[object intValue] atTime:[PLAYER clockTime]]];
 			}
 		}
 		else if ([key isEqualToString:@"sun_color"] || [key isEqualToString:@"star_count_multiplier"] ||
@@ -6611,7 +6611,7 @@ double estimatedTimeForJourney(double distance, int hops)
 
 - (NSArray *) passengersForLocalSystemAtTime:(OOTimeAbsolute) current_time
 {
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	PlayerEntity* player = PLAYER;
 	int player_repute = [player passengerReputation];
 	
 	int start = [self currentSystemID];
@@ -6827,7 +6827,7 @@ double estimatedTimeForJourney(double distance, int hops)
 
 - (NSArray *) contractsForLocalSystemAtTime:(double) current_time
 {
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	PlayerEntity* player = PLAYER;
 	
 	int player_repute = [player contractReputation];
 	
@@ -7029,7 +7029,7 @@ double estimatedTimeForJourney(double distance, int hops)
 - (Random_Seed) marketSeed
 {
 	Random_Seed		ret = system_seed;
-	int random_factor = [[PlayerEntity sharedPlayer] clockTime];
+	int random_factor = [PLAYER clockTime];
 	
 	// ship sold time is generated by ship_seed.a << 16 + ship_seed.b << 8 + ship_seed.c
 	// added to (long)(current_time + 0x800000) & 0xffffffffff000000
@@ -7056,7 +7056,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	
 	float					tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
 	unsigned				i;
-	PlayerEntity			*player = [PlayerEntity sharedPlayer];
+	PlayerEntity			*player = PLAYER;
 	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
 	RANROTSeed				personalitySeed = RanrotSeedFromRandomSeed(ship_seed);
 	
@@ -7994,7 +7994,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		{
 			exception = [ooliteException retain];
 			
-			PlayerEntity* player = [PlayerEntity sharedPlayer];
+			PlayerEntity* player = PLAYER;
 			[player setStatus:STATUS_HANDLING_ERROR];
 			
 			OOLog(kOOLogException, @"***** Handling Fatal : %@ : %@ *****",[exception name], [exception reason]);
@@ -8172,7 +8172,7 @@ Entity *gOOJSPlayerIfStale = nil;
 {
 	if (value)
 	{
-		gOOJSPlayerIfStale = [PlayerEntity sharedPlayer];
+		gOOJSPlayerIfStale = PLAYER;
 	}
 	else
 	{
@@ -8308,7 +8308,7 @@ Entity *gOOJSPlayerIfStale = nil;
 - (void) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged
 {
 	no_update = YES;
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	PlayerEntity* player = PLAYER;
 	assert(player != nil);
 	
 	[self removeAllEntitiesExceptPlayer:NO];
@@ -8377,7 +8377,7 @@ Entity *gOOJSPlayerIfStale = nil;
 // FIXME: how is this stuff "player settings"?
 - (void) initPlayerSettings
 {
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	PlayerEntity* player = PLAYER;
 	
 	OO_DEBUG_PUSH_PROGRESS(@"Wormhole and character reset");
 	if (activeWormholes) [activeWormholes autorelease];

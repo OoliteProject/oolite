@@ -992,7 +992,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	//-------------------------------------------------------------------------------------------------------------------------
 	
 	// Store the current galaxy seed because findSystemNumberAtCoords may alter it in a while.
-	PlayerEntity		*player = [PlayerEntity sharedPlayer];
+	PlayerEntity		*player = PLAYER;
 	Random_Seed		player_galaxy_seed = [player galaxy_seed];	
 	
 	int			galNumber;

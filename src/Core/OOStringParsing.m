@@ -285,13 +285,13 @@ NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed, NSString *n
 
 NSString *ExpandDescriptionForCurrentSystem(NSString *text)
 {
-	return ExpandDescriptionForSeed(text, [[PlayerEntity sharedPlayer] system_seed], nil);
+	return ExpandDescriptionForSeed(text, [PLAYER system_seed], nil);
 }
 
 
 NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *pName)
 {
-	PlayerEntity		*player = [PlayerEntity sharedPlayer];
+	PlayerEntity		*player = PLAYER;
 	NSMutableString		*partial = [[text mutableCopy] autorelease];
 	NSMutableDictionary	*all_descriptions = [[[UNIVERSE descriptions] mutableCopy] autorelease];
 	id					value = nil;
@@ -495,7 +495,7 @@ NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDict
 
 NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDictionary *locals)
 {
-	return ExpandDescriptionsWithOptions(text, [[PlayerEntity sharedPlayer] system_seed], nil, locals, nil);
+	return ExpandDescriptionsWithOptions(text, [PLAYER system_seed], nil, locals, nil);
 }
 
 
@@ -508,7 +508,7 @@ NSString *DescriptionForSystem(Random_Seed seed,NSString *name)
 
 NSString *DescriptionForCurrentSystem(void)
 {
-	return DescriptionForSystem([[PlayerEntity sharedPlayer] system_seed], [UNIVERSE getSystemName:[[PlayerEntity sharedPlayer] system_seed]]);
+	return DescriptionForSystem([PLAYER system_seed], [UNIVERSE getSystemName:[PLAYER system_seed]]);
 }
 
 
@@ -524,7 +524,7 @@ NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *local
 	
 	tokens = ScanTokensFromString(string);
 	resultString = [NSMutableString stringWithString:string];
-	player = [PlayerEntity sharedPlayer];
+	player = PLAYER;
 	if (target == nil) target = player;
 	
 	for (tokenEnum = [tokens objectEnumerator]; (token = [tokenEnum nextObject]); )

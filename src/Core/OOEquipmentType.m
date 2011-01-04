@@ -515,7 +515,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	tl = [self techLevel];
 	if (tl == kOOVariableTechLevel)
 	{
-		missionVar = [[PlayerEntity sharedPlayer] missionVariableForKey:[@"mission_TL_FOR_" stringByAppendingString:[self identifier]]];
+		missionVar = [PLAYER missionVariableForKey:[@"mission_TL_FOR_" stringByAppendingString:[self identifier]]];
 		tl = OOUIntegerFromObject(missionVar, tl);
 	}
 	

@@ -35,46 +35,46 @@ MA 02110-1301, USA.
 // Clock time.
 - (GLfloat) clock
 {
-	return [[PlayerEntity sharedPlayer] clockTime];
+	return [PLAYER clockTime];
 }
 
 
 // System "flavour" numbers.
 - (unsigned) pseudoFixedD100
 {
-	return [[PlayerEntity sharedPlayer] systemPseudoRandom100];
+	return [PLAYER systemPseudoRandom100];
 }
 
 - (unsigned) pseudoFixedD256
 {
-	return [[PlayerEntity sharedPlayer] systemPseudoRandom256];
+	return [PLAYER systemPseudoRandom256];
 }
 
 
 // System attributes.
 - (unsigned) systemGovernment
 {
-	return [[[PlayerEntity sharedPlayer] systemGovernment_number] unsignedIntValue];
+	return [[PLAYER systemGovernment_number] unsignedIntValue];
 }
 
 - (unsigned) systemEconomy
 {
-	return [[[PlayerEntity sharedPlayer] systemEconomy_number] unsignedIntValue];
+	return [[PLAYER systemEconomy_number] unsignedIntValue];
 }
 
 - (unsigned) systemTechLevel
 {
-	return [[[PlayerEntity sharedPlayer] systemTechLevel_number] unsignedIntValue];
+	return [[PLAYER systemTechLevel_number] unsignedIntValue];
 }
 
 - (unsigned) systemPopulation
 {
-	return [[[PlayerEntity sharedPlayer] systemPopulation_number] unsignedIntValue];
+	return [[PLAYER systemPopulation_number] unsignedIntValue];
 }
 
 - (unsigned) systemProductivity
 {
-	return [[[PlayerEntity sharedPlayer] systemProductivity_number] unsignedIntValue];
+	return [[PLAYER systemProductivity_number] unsignedIntValue];
 }
 
 @end

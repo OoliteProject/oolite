@@ -157,7 +157,7 @@ static OOTexture *sBlobTexture = nil;
 	[[self texture] apply];
 	
 	OOViewID viewDir = [UNIVERSE viewDirection];
-	if (viewDir != VIEW_GUI_DISPLAY)  GLMultOOMatrix([[PlayerEntity sharedPlayer] drawRotationMatrix]);
+	if (viewDir != VIEW_GUI_DISPLAY)  GLMultOOMatrix([PLAYER drawRotationMatrix]);
 	
 	/*	NOTE: nominal diameter is actual radius, because of the black border
 		in the texture. However, the offset along the view axis is not
@@ -228,7 +228,7 @@ static OOTexture *sBlobTexture = nil;
 			
 		case VIEW_CUSTOM:
 			{
-				PlayerEntity *player = [PlayerEntity sharedPlayer];
+				PlayerEntity *player = PLAYER;
 				Vector vi = [player customViewRightVector];		vi.x *= _diameter;	vi.y *= _diameter;	vi.z *= _diameter;
 				Vector vj = [player customViewUpVector];		vj.x *= _diameter;	vj.y *= _diameter;	vj.z *= _diameter;
 				Vector vk = [player customViewForwardVector];	vk.x *= viewOffset;	vk.y *= viewOffset;	vk.z *= viewOffset;

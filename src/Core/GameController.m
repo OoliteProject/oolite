@@ -268,7 +268,7 @@ static GameController *sSharedController = nil;
 	if (playerFileToLoad != nil)
 	{
 		[self logProgress:DESC(@"loading-player")];
-		[[PlayerEntity sharedPlayer] loadPlayerFromFile:playerFileToLoad];
+		[PLAYER loadPlayerFromFile:playerFileToLoad];
 	}
 }
 

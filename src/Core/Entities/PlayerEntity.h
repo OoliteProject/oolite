@@ -796,3 +796,18 @@ typedef enum
 - (WormholeEntity *) wormhole;
 
 @end
+
+
+/*	Use PLAYER to refer to the shared player object in cases where it is
+	assumed to exist (i.e., except during early initialization).
+*/
+OOINLINE PlayerEntity *OOGetPlayer(void) INLINE_CONST_FUNC;
+OOINLINE PlayerEntity *OOGetPlayer(void)
+{
+	extern PlayerEntity *gOOPlayer;
+#if OO_DEBUG
+	NSCAssert(gOOPlayer != nil, @"PLAYER used when PLAYER has not been called.");
+#endif
+	return gOOPlayer;
+}
+#define PLAYER OOGetPlayer()

@@ -145,7 +145,7 @@ enum
 	if (shaderMode == kShaderModeOn)  return;
 #endif
 	
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	PlayerEntity* player = PLAYER;
 	assert(player != nil);
 	
 	zero_distance = 0.0;
@@ -218,7 +218,7 @@ enum
 
 - (Vector) offsetPlayerPosition
 {
-	return vector_subtract([[PlayerEntity sharedPlayer] position], make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
+	return vector_subtract([PLAYER position], make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
 }
 
 
@@ -238,7 +238,7 @@ enum
 
 - (Vector) warpVector
 {
-	return vector_multiply_scalar([[PlayerEntity sharedPlayer] velocity], 1.0f / HYPERSPEED_FACTOR);
+	return vector_multiply_scalar([PLAYER velocity], 1.0f / HYPERSPEED_FACTOR);
 }
 
 
@@ -246,7 +246,7 @@ enum
 {
 	if ([UNIVERSE breakPatternHide] || !translucent)  return;	// DON'T DRAW
 	
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	PlayerEntity* player = PLAYER;
 	assert(player != nil);
 	
 #ifndef NDEBUG

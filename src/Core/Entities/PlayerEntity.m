@@ -94,7 +94,7 @@ enum
 static NSString * const kOOLogBuyMountedOK			= @"equip.buy.mounted";
 static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
 
-static PlayerEntity *sSharedPlayer = nil;
+PlayerEntity		*gOOPlayer = nil;
 static GLfloat		sBaseMass = 0.0;
 
 
@@ -142,8 +142,8 @@ static GLfloat		sBaseMass = 0.0;
 
 + (PlayerEntity *)sharedPlayer
 {
-	if (EXPECT_NOT(sSharedPlayer == nil))  [[PlayerEntity alloc] init];
-	return sSharedPlayer;
+	if (EXPECT_NOT(gOOPlayer == nil))  [[PlayerEntity alloc] init];
+	return gOOPlayer;
 	// Analyzer: object leaked. [Expected.]
 }
 
@@ -1007,15 +1007,15 @@ static GLfloat		sBaseMass = 0.0;
 */
 - (id) init
 {
-	NSAssert(sSharedPlayer == nil, @"Expected only one PlayerEntity to exist at a time.");
-	sSharedPlayer = self;
-	return sSharedPlayer;
+	NSAssert(gOOPlayer == nil, @"Expected only one PlayerEntity to exist at a time.");
+	gOOPlayer = self;
+	return gOOPlayer;
 }
 
 
 - (void) deferredInit
 {
-	NSAssert(sSharedPlayer == self, @"Expected only one PlayerEntity to exist at a time.");
+	NSAssert(gOOPlayer == self, @"Expected only one PlayerEntity to exist at a time.");
 	NSAssert([super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]] == self, @"PlayerEntity requires -[ShipEntity initWithKey:definition:] to return unmodified self.");
 	
 	compassMode = COMPASS_MODE_BASIC;
