@@ -65,17 +65,13 @@ static GameController *sSharedController = nil;
 
 + (id)sharedController
 {
-	if (sSharedController == nil)  sSharedController = [[self alloc] init];
+	if (sSharedController == nil)  [[self alloc] init];
 	return sSharedController;
 }
 
 
 - (id) init
 {
-#if OOLITE_MAC_OS_X
-	LoadSystemSpecificBundles();
-#endif
-	
 	if (sSharedController != nil)
 	{
 		[self release];
@@ -221,6 +217,10 @@ static GameController *sSharedController = nil;
 		
 #else
 		[self beginSplashScreen];
+#endif
+		
+#if OOLITE_MAC_OS_X
+	LoadSystemSpecificBundles();
 #endif
 		
 		[self getDisplayModes];
@@ -1383,7 +1383,9 @@ static void LoadSystemSpecificBundles(void)
 	long packedVersion = PACK_VERSION(majorVersion, minorVersion);
 	if (packedVersion >= kSystemVersion10_5)
 	{
+		OO_DEBUG_PUSH_PROGRESS(@"Loading Leopard support bundle");
 		LoadOneSystemSpecificBundle(@"Oolite Leopard support");
+		OO_DEBUG_POP_PROGRESS();
 	}
 }
 
