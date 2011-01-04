@@ -333,7 +333,6 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 @end
 
 
-
 NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *pName)
 {
 	BOOL				textIsMutable = NO;
@@ -461,14 +460,12 @@ NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDict
 		
 		text = [NSMutableString stringWithFormat:@"%@%@%@", before, part, after];
 		textIsMutable = YES;
-		mutated = YES;
 	}
 	
 	if ([text rangeOfString:@"%"].location != NSNotFound)
 	{
 		NSMutableString *partial = (textIsMutable) ? (NSMutableString *)text : [NSMutableString stringWithString:text];
 		if (pName == nil)  pName = [UNIVERSE getSystemName:seed];
-		mutated = YES;
 		
 		[partial replaceOccurrencesOfString:@"%H"
 								 withString:pName
