@@ -391,7 +391,7 @@
 		1A3591830C1C382700E52220 /* nebulatextures.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3591810C1C382700E52220 /* nebulatextures.plist */; };
 		1A3591840C1C382700E52220 /* startextures.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3591820C1C382700E52220 /* startextures.plist */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
-		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; };
+		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; settings = {COMPILER_FLAGS = "-fvisibility=default"; }; };
 		1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A04610BC547DC00B5E2D9 /* OOTypes.h */; };
 		1A3ACFEB0C5FF33A00EC50A7 /* OOJSShip.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3ACFE90C5FF33A00EC50A7 /* OOJSShip.h */; };
 		1A3ACFEC0C5FF33A00EC50A7 /* OOJSShip.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */; };
@@ -595,7 +595,7 @@
 		1AB4AEB80D688AD9003076D6 /* OOLogHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB4AEB60D688AD9003076D6 /* OOLogHeader.h */; };
 		1AB4AEB90D688AD9003076D6 /* OOLogHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */; settings = {COMPILER_FLAGS = $SNAPSHOT_MACROS; }; };
 		1AB5E1EF12BD628500C334DD /* OOJoystickManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB5E1ED12BD628500C334DD /* OOJoystickManager.h */; };
-		1AB5E1F012BD628500C334DD /* OOJoystickManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB5E1EE12BD628500C334DD /* OOJoystickManager.m */; };
+		1AB5E1F012BD628500C334DD /* OOJoystickManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB5E1EE12BD628500C334DD /* OOJoystickManager.m */; settings = {COMPILER_FLAGS = "-fvisibility=default"; }; };
 		1AB7761012CA2EE0001478BB /* libjs_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760212CA2E53001478BB /* libjs_for_oolite.a */; };
 		1AB784F90D554F7B00517983 /* OOJSSoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB784F70D554F7B00517983 /* OOJSSoundSource.h */; };
 		1AB784FA0D554F7B00517983 /* OOJSSoundSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB784F80D554F7B00517983 /* OOJSSoundSource.m */; };
@@ -1255,7 +1255,6 @@
 		1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSDictionaryOOExtensions.m; sourceTree = "<group>"; };
 		1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilitySet.h; sourceTree = "<group>"; };
 		1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilitySet.m; sourceTree = "<group>"; };
-		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports.exp"; sourceTree = "<group>"; };
 		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = DebugOXP/DebugOXP.xcodeproj; sourceTree = SOURCE_ROOT; };
 		1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSObjectOOExtensions.h; sourceTree = "<group>"; };
 		1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSObjectOOExtensions.m; sourceTree = "<group>"; };
@@ -1876,7 +1875,8 @@
 		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; languageSpecificationIdentifier = plist; path = autoAImap.plist; sourceTree = "<group>"; };
 		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
 		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
-		1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports-64.exp"; sourceTree = "<group>"; };
+		1AD5A81A12D3A9FD00B62503 /* exports-debug-32.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-32.exp"; path = "src/Cocoa/exports-debug-32.exp"; sourceTree = "<group>"; };
+		1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-64.exp"; path = "src/Cocoa/exports-debug-64.exp"; sourceTree = "<group>"; };
 		1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-options.xcconfig"; path = "src/Cocoa/oolite-options.xcconfig"; sourceTree = "<group>"; };
 		1ADA564710CD68D800E891B8 /* OOStellarBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOStellarBody.h; sourceTree = "<group>"; };
 		1ADA576710CDB1C300E891B8 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
@@ -2735,8 +2735,6 @@
 			isa = PBXGroup;
 			children = (
 				1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */,
-				1A0517D10C7B376700BA5CCA /* debug-exports.exp */,
-				1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */,
 			);
 			name = "Debug OXP";
 			path = src/Cocoa;
@@ -3054,6 +3052,8 @@
 				1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */,
 				1ABFEE2110507987005AA752 /* oolite-nonshared.xcconfig */,
 				1A6A3A7E1135E0F200697AF8 /* oolite-snapshot.xcconfig */,
+				1AD5A81A12D3A9FD00B62503 /* exports-debug-32.exp */,
+				1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */,
 			);
 			name = "Build stuff";
 			sourceTree = "<group>";
@@ -4013,8 +4013,8 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
-				EXPORTED_SYMBOLS_FILE = "";
-				"EXPORTED_SYMBOLS_FILE[arch=x86_64]" = "";
+				EXPORTED_SYMBOLS_FILE = "src/Cocoa/exports-release.exp";
+				"EXPORTED_SYMBOLS_FILE[arch=x86_64]" = "src/Cocoa/exports-release.exp";
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
