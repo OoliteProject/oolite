@@ -155,7 +155,7 @@ MA 02110-1301, USA.
 	// Right time and the right place?
 	if(gui_screen != GUI_SCREEN_STICKMAPPER)
 	{
-		NSLog(@"updateFunction: Oops, we weren't expecting that callback");
+		OOLog(@"joystick.configure.error", @"%s called when not on stick mapper screen.", __PRETTY_FUNCTION__);
 		return;
 	}
 	
