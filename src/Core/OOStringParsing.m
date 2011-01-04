@@ -373,8 +373,8 @@ NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDict
 		// Specials override descriptions.plist
 		if (value == nil)
 		{
-			static NSMapTable *specials = nil;
-			if (EXPECT_NOT(specials == nil))
+			static NSMapTable *specials = NULL;
+			if (EXPECT_NOT(specials == NULL))
 			{
 				specials = SpecialSubstitutionSelectors();
 			}
