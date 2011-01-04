@@ -191,20 +191,7 @@ this.macros = {};
 
 // ****  Convenience functions -- copy this script and add your own here.
 
-// List the enumerable properties of an object.
-this.dumpObjectShort = function dumpObjectShort(x)
-{
-	consoleMessage("dumpObject", x.toString() + ":");
-	for (var prop in x)
-	{
-		if (prop.hasOwnProperty(name))
-		{
-			consoleMessage("dumpObject", "    " + prop);
-		}
-	}
-}
-
-
+// Call an Objective-C method, such as a legacy script command, on the player.
 this.performLegacyCommand = function performLegacyCommand(x)
 {
 	var [command, params] = x.getOneToken();
@@ -212,17 +199,18 @@ this.performLegacyCommand = function performLegacyCommand(x)
 }
 
 
-// List the enumerable properties of an object, and their values.
-this.dumpObjectLong = function dumpObjectLong(x)
+// List the properties and values of an object.
+this.dumpObject = function dumpObject(x)
 {
-	consoleMessage("dumpObject", x.toString() + ":");
-	for (var prop in x)
+	var description;
+	if (typeof x == "object")
 	{
-		if (prop.hasOwnProperty(name))
-		{
-			consoleMessage("dumpObject", "    " + prop + " = " + x[prop]);
-		}
+		if (Array.isArray(x))  description = prettifyArray(x);
+		else  description = prettifyObject(x);
 	}
+	else  description = prettify(x);
+	
+	consoleMessage("dumpObject", description);
 }
 
 
@@ -320,8 +308,130 @@ this.evaluate = function evaluate(command, type, PARAM)
 	{
 		if (result === null)  result = "null";
 		else  this.$ = result;
-		consoleMessage("command-result", result.toString());
+		consoleMessage("command-result", prettify(result));
 	}
+}
+
+
+this.prettifyArray = function prettifyArray(value, indent)
+{
+	// NOTE: value may be an Arguments object.
+	var i, length = value.length;
+	var result = "[";
+	for (i = 0; i < length; i++)
+	{
+		if (i > 0)  result += ", ";
+		result += prettifyElement(value[i], indent);
+	}
+	result += "]";
+	
+	return result;
+}
+
+this.prettifyObject = function prettifyObject(value, indent)
+{
+	indent = indent || "";
+	var subIndent = indent + "\t";
+	
+	var appendedAny = false;
+	var result = "{";
+	var separator = ",\n" + subIndent;
+	for (var key in value)
+	{
+		if (appendedAny)  result += separator;
+		else  result += "\n" + subIndent;
+
+		/*
+			Highlighting inherited properties sounds desireable, but in practice
+			it’s likely to be confusing since most host objects’ apparent
+			instance properties are actually inherited accessor-based properties.
+		*/
+		// if (!value.hasOwnProperty(key))  result += ">> ";
+		
+		// Quote string if necessary.
+		if (isClassicIdentifier(key)) result += key;
+		else  result += '"' + key.substituteEscapeCodes() + '"';
+		
+		result += ": " + prettifyElement(value[key], subIndent);
+		appendedAny = true;
+	}
+	if (appendedAny)  result += "\n" + indent;
+	result += "}";
+	
+	return result;
+}
+
+
+this.prettifyFunction = function prettifyFunction(value, indent)
+{
+	var funcDesc = value.toString();
+	if (indent)
+	{
+		funcDesc = funcDesc.replace(/\n/g, "\n" + indent);
+	}
+	return funcDesc;
+}
+
+
+this.prettify = function prettify(value, indent)
+{
+	try
+	{
+		if (value === undefined)  return "undefined";
+		if (value === null)  return "null";
+		
+		var type = typeof value;
+		if (type == "boolean" ||
+			type == "number" ||
+			type == "xml" ||
+			value.constructor === Number ||
+			value.constructor === Boolean)
+		{
+			return value.toString();
+		}
+		
+		if (type == "string" || value.constructor === String)
+		{
+			return value;
+		}
+		
+		if (type == "function")
+		{
+			return prettifyFunction(value, indent);
+		}
+		
+		if (Array.isArray(value))  return prettifyArray(value, indent);
+		
+		var stringValue = value.toString();
+		if (stringValue == "[object Object]")
+		{
+			return prettifyObject(value, indent);
+		}
+		if (stringValue == "[object Arguments]" && value.length !== undefined)
+		{
+			return prettifyArray(value, indent);
+		}
+		
+		return stringValue;
+	}
+	catch (e)
+	{
+		return value.toString();
+	}
+}
+
+
+this.prettifyElement = function prettifyElement(value, indent)
+{
+	if (value === undefined)  return "undefined";
+	if (value === null)  return "null";
+	
+	if (typeof value == "string" || value.constructor === String)
+	{
+		return '"' + value.substituteEscapeCodes() + '"';
+	}
+	
+	return prettify(value, indent);
 }
 
 
@@ -498,6 +608,85 @@ String.prototype.substituteEscapeCodes = function substituteEscapeCodes()
 	string = string.replace(/\"/g, "\\\"");		// " to \"
 
 	return string;
+}
+
+
+this.isClassicIdentifier = function isClassicIdentifier(string)
+{
+	/*
+		JavaScript allows any Unicode letter or digit in an indentifier.
+		However, JavaScript regexps don’t have shortcuts for Unicode letters
+		and digits. Smort!
+		Therefore, this function only returns true for ASCII identifiers.
+	*/
+	if (!string)  return false;	// Note that the empty string is a falsey value.
+	
+	if (/[^\w\$]/.test(string))  return false;	// Contains non-identifier characters.
+	if (/\d/.test(string[0]))  return false;	// Starts with a digit.
+	
+	var reservedWords =
+	[
+	 // ECMAScript 5 keywords.
+	 "break",
+	 "case",
+	 "catch",
+	 "continue",
+	 "debugger",
+	 "default",
+	 "delete",
+	 "do",
+	 "else",
+	 "finally",
+	 "for",
+	 "function",
+	 "if",
+	 "in",
+	 "instanceof",
+	 "typeof",
+	 "new",
+	 "var",
+	 "return",
+	 "void",
+	 "switch",
+	 "while",
+	 "this",
+	 "with",
+	 "throw",
+	 "try",
+	 
+	 // Future reserved words.
+	 "class",
+	 "enum",
+	 "extends",
+	 "super",
+	 "const",
+	 "export",
+	 "import",
+	 
+	 // Strict Mode future reserved words.
+	 "implements",
+	 "let",
+	 "private",
+	 "public",
+	 "interface",
+	 "package",
+	 "protected",
+	 "static",
+	 "yield",
+	 
+	 // Literals.
+	 "null",
+	 "true",
+	 "false",
+	 
+	 // Not formally reserved, but potentially confusing or with special rules.
+	 "undefined",
+	 "eval",
+	 "arguments"
+	];
+	if (reservedWords.indexOf(string) != -1)  return false;
+	
+	return true;
 }
 
 

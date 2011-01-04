@@ -58,8 +58,7 @@
 		"resetM"	= "delete console.settings.macros; macros = console.settings.macros; undefined";
 		
 		// Examining (“dumping”) objects
-		"d"			= "dumpObjectLong(eval(PARAM))";
-		"ds"		= "dumpObjectShort(eval(PARAM))";
+		"d"			= "dumpObject(eval(PARAM))";
 		
 		// Clearing the console
 		"clr"		= "console.clearConsole()";
