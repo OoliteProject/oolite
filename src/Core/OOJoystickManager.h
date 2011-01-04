@@ -140,11 +140,25 @@ enum {
 
 #import <SDL.h>
 
-#define JOYAXISMOTION		SDL_JOYAXISMOTION
-#define JOYBUTTONDOWN		SDL_JOYBUTTONDOWN
-#define JOYBUTTONUP		SDL_JOYBUTTONUP
-#define JOYBUTTON_PRESSED	SDL_PRESSED
-#define JOYBUTTON_RELEASED	SDL_RELEASED
+enum
+{
+	JOYAXISMOTION		= SDL_JOYAXISMOTION,
+	JOYBUTTONDOWN		= SDL_JOYBUTTONDOWN,
+	JOYBUTTONUP			= SDL_JOYBUTTONUP,
+	JOYBUTTON_PRESSED	= SDL_PRESSED,
+	JOYBUTTON_RELEASED	= SDL_RELEASED,
+	JOYHAT_MOTION		= SDL_JOYHATMOTION,
+
+	JOYHAT_CENTERED		= SDL_HAT_CENTERED,
+	JOYHAT_UP			= SDL_HAT_UP,
+	JOYHAT_RIGHT		= SDL_HAT_RIGHT,
+	JOYHAT_DOWN			= SDL_HAT_DOWN,
+	JOYHAT_LEFT			= SDL_HAT_LEFT,
+	JOYHAT_RIGHTUP		= SDL_HAT_RIGHTUP,
+	JOYHAT_RIGHTDOWN	= SDL_HAT_RIGHTDOWN,
+	JOYHAT_LEFTUP		= SDL_HAT_LEFTUP,
+	JOYHAT_LEFTDOWN		= SDL_HAT_LEFTDOWN,
+};
 
 typedef SDL_JoyButtonEvent JoyButtonEvent;
 typedef SDL_JoyAxisEvent JoyAxisEvent;
@@ -152,16 +166,30 @@ typedef SDL_JoyHatEvent JoyHatEvent;
 
 #else
 
-#define JOYAXISMOTION 1
-#define JOYBUTTONDOWN 2
-#define JOYBUTTONUP   3
-#define JOYBUTTON_PRESSED 4
-#define JOYBUTTON_RELEASED 5
+enum
+{
+	JOYAXISMOTION,
+	JOYBUTTONDOWN,
+	JOYBUTTONUP,
+	JOYBUTTON_PRESSED,
+	JOYBUTTON_RELEASED,
+	JOYHAT_MOTION,
+	
+	JOYHAT_CENTERED		= 0x00,
+	JOYHAT_UP			= 0x01,
+	JOYHAT_RIGHT		= 0x02,
+	JOYHAT_DOWN			= 0x04,
+	JOYHAT_LEFT			= 0x08,
+	JOYHAT_RIGHTUP		= (JOYHAT_RIGHT|JOYHAT_UP),
+	JOYHAT_RIGHTDOWN	= (JOYHAT_RIGHT|JOYHAT_DOWN),
+	JOYHAT_LEFTUP		= (JOYHAT_LEFT|JOYHAT_UP),
+	JOYHAT_LEFTDOWN		= (JOYHAT_LEFT|JOYHAT_DOWN),
+};
 
 // Abstracted SDL event types
 typedef struct
 {
-	uint32_t		type; 
+	uint32_t		type;
 	uint8_t			which;
 	uint8_t			axis;
 	int				value;
@@ -169,7 +197,7 @@ typedef struct
 
 typedef struct
 {
-	uint32_t		type; 
+	uint32_t		type;
 	uint8_t			which;
 	uint8_t			button;
 	int				state;
@@ -178,7 +206,7 @@ typedef struct
 
 typedef struct
 {
-	uint32_t		type; 
+	uint32_t		type;
 	uint8_t			which;
 	uint8_t			hat;
 	uint8_t			value; 
@@ -190,25 +218,22 @@ typedef struct
 
 @interface OOJoystickManager: NSObject 
 {
-   @protected
-
-      // Axis/button mapping arrays
-      int8_t axismap[MAX_STICKS][MAX_AXES];
-      int8_t buttonmap[MAX_STICKS][MAX_BUTTONS];
-      double axstate[AXIS_end];
-      BOOL butstate[BUTTON_end];
-      uint8_t hatstate[MAX_STICKS][MAX_HATS];
-//      SDL_Joystick *stick[MAX_STICKS];
-      BOOL precisionMode;
-
-      // Handle callbacks - the object, selector to call
-      // the desired function, and the hardware (axis or button etc.)
-      id cbObject;
-      SEL cbSelector;
-      int cbFunc;
-      char cbHardware;
-	  BOOL invertPitch ;
+@protected
+	// Axis/button mapping arrays
+	int8_t		axismap[MAX_STICKS][MAX_AXES];
+	int8_t		buttonmap[MAX_STICKS][MAX_BUTTONS];
+	double		axstate[AXIS_end];
+	BOOL		butstate[BUTTON_end];
+	uint8_t		hatstate[MAX_STICKS][MAX_HATS];
+	BOOL		precisionMode;
 	
+	// Handle callbacks - the object, selector to call
+	// the desired function, and the hardware (axis or button etc.)
+	id			cbObject;
+	SEL			cbSelector;
+	int			cbFunc;
+	char		cbHardware;
+	BOOL		invertPitch;
 }
 
 + (id) sharedStickHandler;

@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 #import "PlayerEntityControls.h"
 #import "OOJoystickManager.h"
 #import "OOTexture.h"
+#import "OOCollectionExtractors.h"
+
 
 @implementation PlayerEntity (StickMapper)
 
@@ -160,46 +162,56 @@ MA 02110-1301, USA.
 	// What moved?
 	int function;
 	NSDictionary *entry = [stickFunctions objectAtIndex:selFunctionIdx];
-	if([(NSNumber *)[hwDict objectForKey: STICK_ISAXIS] boolValue] == YES)
+	if([hwDict oo_boolForKey:STICK_ISAXIS])
 	{
-		function=[(NSNumber *)[entry objectForKey: KEY_AXISFN] intValue];
+		function=[entry oo_intForKey: KEY_AXISFN];
 		if (function == AXIS_THRUST)
 		{
-			[stickHandler unsetButtonFunction: BUTTON_INCTHRUST];
-			[stickHandler unsetButtonFunction: BUTTON_DECTHRUST];
+			[stickHandler unsetButtonFunction:BUTTON_INCTHRUST];
+			[stickHandler unsetButtonFunction:BUTTON_DECTHRUST];
 		}
 		if (function == AXIS_VIEWX)
 		{
-			[stickHandler unsetButtonFunction: BUTTON_VIEWPORT];
-			[stickHandler unsetButtonFunction: BUTTON_VIEWSTARBOARD];
+			[stickHandler unsetButtonFunction:BUTTON_VIEWPORT];
+			[stickHandler unsetButtonFunction:BUTTON_VIEWSTARBOARD];
 		}
 		if (function == AXIS_VIEWY)
 		{
-			[stickHandler unsetButtonFunction: BUTTON_VIEWFORWARD];
-			[stickHandler unsetButtonFunction: BUTTON_VIEWAFT];
+			[stickHandler unsetButtonFunction:BUTTON_VIEWFORWARD];
+			[stickHandler unsetButtonFunction:BUTTON_VIEWAFT];
 		}
 	}
 	else
 	{
-		function=[(NSNumber *)[entry objectForKey: KEY_BUTTONFN] intValue];
+		function = [entry oo_intForKey:KEY_BUTTONFN];
 		if (function == BUTTON_INCTHRUST || function == BUTTON_DECTHRUST)
-			[stickHandler unsetAxisFunction: AXIS_THRUST];
+		{
+			[stickHandler unsetAxisFunction:AXIS_THRUST];
+		}
 		if (function == BUTTON_VIEWPORT || function == BUTTON_VIEWSTARBOARD)
-			[stickHandler unsetAxisFunction: AXIS_VIEWX];
+		{
+			[stickHandler unsetAxisFunction:AXIS_VIEWX];
+		}
 		if (function == BUTTON_VIEWFORWARD || function == BUTTON_VIEWAFT)
-			[stickHandler unsetAxisFunction: AXIS_VIEWY];
+		{
+			[stickHandler unsetAxisFunction:AXIS_VIEWY];
+		}
 	}
-	[stickHandler setFunction: function withDict: hwDict];
+	[stickHandler setFunction:function withDict:hwDict];
 	[stickHandler saveStickSettings];
 	
 	// Update the GUI (this will refresh the function list).
 	unsigned skip;
 	if (selFunctionIdx < MAX_ROWS_FUNCTIONS)
+	{
 		skip = 0;
+	}
 	else
+	{
 		skip = ((selFunctionIdx - 1) / (MAX_ROWS_FUNCTIONS - 2)) * (MAX_ROWS_FUNCTIONS - 2) + 1;
+	}
 	
-	[self setGuiToStickMapperScreen: skip];
+	[self setGuiToStickMapperScreen:skip];
 }
 
 
@@ -232,23 +244,23 @@ MA 02110-1301, USA.
 }
 
 
-- (void) displayFunctionList: (GuiDisplayGen *)gui
-						skip: (unsigned) skip
+- (void) displayFunctionList:(GuiDisplayGen *)gui
+						skip:(unsigned) skip
 {
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	
 	unsigned i;
-	[gui setColor: [OOColor greenColor] forRow: GUI_ROW_HEADING];
-	[gui setArray: [NSArray arrayWithObjects:
-					@"Function", @"Assigned to", @"Type", nil]
-		   forRow: GUI_ROW_HEADING];
+	[gui setColor:[OOColor greenColor] forRow: GUI_ROW_HEADING];
+	[gui setArray:[NSArray arrayWithObjects:
+				   @"Function", @"Assigned to", @"Type", nil]
+		   forRow:GUI_ROW_HEADING];
 	
 	if(!stickFunctions)
 	{
-		stickFunctions=[self getStickFunctionList];
+		stickFunctions = [self getStickFunctionList];
 	}
-	NSDictionary *assignedAxes=[stickHandler axisFunctions];
-	NSDictionary *assignedButs=[stickHandler buttonFunctions];
+	NSDictionary *assignedAxes = [stickHandler axisFunctions];
+	NSDictionary *assignedButs = [stickHandler buttonFunctions];
 	
 	unsigned n_functions = [stickFunctions count];
 	int n_rows, start_row, previous = 0;
@@ -291,10 +303,10 @@ MA 02110-1301, USA.
 		{
 			NSString *allowedThings;
 			NSString *assignment;
-			NSDictionary *entry=[stickFunctions objectAtIndex: i + skip];
-			NSString *axFuncKey=[(NSNumber *)[entry objectForKey: KEY_AXISFN] stringValue];
-			NSString *butFuncKey=[(NSNumber *)[entry objectForKey: KEY_BUTTONFN] stringValue];
-			int allowable=[(NSNumber *)[entry objectForKey: KEY_ALLOWABLE] intValue];
+			NSDictionary *entry = [stickFunctions objectAtIndex: i + skip];
+			NSString *axFuncKey = [entry oo_stringForKey:KEY_AXISFN];
+			NSString *butFuncKey = [entry oo_stringForKey:KEY_BUTTONFN];
+			int allowable = [entry oo_intForKey:KEY_ALLOWABLE];
 			switch(allowable)
 			{
 				case HW_AXIS:
@@ -399,147 +411,147 @@ MA 02110-1301, USA.
 	NSMutableArray *funcList=[[NSMutableArray alloc] init];
 	
 	[funcList addObject: 
-	 [self makeStickGuiDict: DESC(@"stickmapper-roll")
-				  allowable: HW_AXIS
-					 axisfn: AXIS_ROLL
-					  butfn: STICK_NOFUNCTION]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-roll")
+				  allowable:HW_AXIS
+					 axisfn:AXIS_ROLL
+					  butfn:STICK_NOFUNCTION]];
 	[funcList addObject: 
-	 [self makeStickGuiDict: DESC(@"stickmapper-pitch")
-				  allowable: HW_AXIS
-					 axisfn: AXIS_PITCH
-					  butfn: STICK_NOFUNCTION]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-pitch")
+				  allowable:HW_AXIS
+					 axisfn:AXIS_PITCH
+					  butfn:STICK_NOFUNCTION]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-yaw")
-				  allowable: HW_AXIS
-					 axisfn: AXIS_YAW
-					  butfn: STICK_NOFUNCTION]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-yaw")
+				  allowable:HW_AXIS
+					 axisfn:AXIS_YAW
+					  butfn:STICK_NOFUNCTION]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-increase-thrust")
-				  allowable: HW_AXIS|HW_BUTTON
-					 axisfn: AXIS_THRUST
-					  butfn: BUTTON_INCTHRUST]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-increase-thrust")
+				  allowable:HW_AXIS|HW_BUTTON
+					 axisfn:AXIS_THRUST
+					  butfn:BUTTON_INCTHRUST]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-decrease-thrust")
-				  allowable: HW_AXIS|HW_BUTTON
-					 axisfn: AXIS_THRUST
-					  butfn: BUTTON_DECTHRUST]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-decrease-thrust")
+				  allowable:HW_AXIS|HW_BUTTON
+					 axisfn:AXIS_THRUST
+					  butfn:BUTTON_DECTHRUST]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-primary-weapon")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_FIRE]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-primary-weapon")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_FIRE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-secondary-weapon")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_LAUNCHMISSILE]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-secondary-weapon")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_LAUNCHMISSILE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-arm-secondary")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_ARMMISSILE]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-arm-secondary")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_ARMMISSILE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-disarm-secondary")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_UNARM]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-disarm-secondary")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_UNARM]];
 #if TARGET_INCOMING_MISSILES
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-target-nearest-incoming-missile")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_TARGETINCOMINGMISSILE]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-target-nearest-incoming-missile")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_TARGETINCOMINGMISSILE]];
 #endif
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-cycle-secondary")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_CYCLEMISSILE]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-cycle-secondary")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_CYCLEMISSILE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-weapons-online-toggle")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_WEAPONSONLINETOGGLE]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-weapons-online-toggle")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_WEAPONSONLINETOGGLE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-prime-equipment")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_PRIMEEQUIPMENT]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-prime-equipment")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_PRIMEEQUIPMENT]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-activate-equipment")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_ACTIVATEEQUIPMENT]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-activate-equipment")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_ACTIVATEEQUIPMENT]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-ECM")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_ECM]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-ECM")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_ECM]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-toggle-ID")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_ID]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-toggle-ID")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_ID]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-fuel-injection")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_FUELINJECT]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-fuel-injection")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_FUELINJECT]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-hyperspeed")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_HYPERSPEED]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-hyperspeed")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_HYPERSPEED]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-roll/pitch-precision-toggle")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_PRECISION]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-roll/pitch-precision-toggle")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_PRECISION]];
 #ifndef NDEBUG
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-snapshot")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_SNAPSHOT]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-snapshot")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_SNAPSHOT]];
 #endif
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-escape-pod")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_ESCAPE]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-escape-pod")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_ESCAPE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-cloak")
-				  allowable: HW_BUTTON
-					 axisfn: STICK_NOFUNCTION
-					  butfn: BUTTON_CLOAK]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-cloak")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_CLOAK]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-view-forward")
-				  allowable: HW_AXIS|HW_BUTTON
-					 axisfn: AXIS_VIEWY
-					  butfn: BUTTON_VIEWFORWARD]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-view-forward")
+				  allowable:HW_AXIS|HW_BUTTON
+					 axisfn:AXIS_VIEWY
+					  butfn:BUTTON_VIEWFORWARD]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-view-aft")
-				  allowable: HW_AXIS|HW_BUTTON
-					 axisfn: AXIS_VIEWY
-					  butfn: BUTTON_VIEWAFT]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-view-aft")
+				  allowable:HW_AXIS|HW_BUTTON
+					 axisfn:AXIS_VIEWY
+					  butfn:BUTTON_VIEWAFT]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-view-port")
-				  allowable: HW_AXIS|HW_BUTTON
-					 axisfn: AXIS_VIEWX
-					  butfn: BUTTON_VIEWPORT]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-view-port")
+				  allowable:HW_AXIS|HW_BUTTON
+					 axisfn:AXIS_VIEWX
+					  butfn:BUTTON_VIEWPORT]];
 	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-view-starboard")
-				  allowable: HW_AXIS|HW_BUTTON
-					 axisfn: AXIS_VIEWX
-					  butfn: BUTTON_VIEWSTARBOARD]];
+	 [self makeStickGuiDict:DESC(@"stickmapper-view-starboard")
+				  allowable:HW_AXIS|HW_BUTTON
+					 axisfn:AXIS_VIEWX
+					  butfn:BUTTON_VIEWSTARBOARD]];
 	return funcList;
 }
 
 
-- (NSDictionary *)makeStickGuiDict: (NSString *)what
-						 allowable: (int)allowable
-							axisfn: (int)axisfn
-							 butfn: (int)butfn
+- (NSDictionary *)makeStickGuiDict:(NSString *)what
+						 allowable:(int)allowable
+							axisfn:(int)axisfn
+							 butfn:(int)butfn
 {
 	NSMutableDictionary *guiDict=[[NSMutableDictionary alloc] init];
 	if ([what length] > 30)  what = [[what substringToIndex:28] stringByAppendingString:@"..."];

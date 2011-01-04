@@ -175,19 +175,19 @@ static id sSharedStickHandler = nil;
 	NSMutableDictionary *fnList = [NSMutableDictionary dictionary];
 	
 	// Add buttons
-	for (i = 0; i < MAX_AXES; i++)
+	for (i = 0; i < MAX_BUTTONS; i++)
 	{
 		for (j = 0; j < MAX_STICKS; j++)
 		{
 			if(buttonmap[j][i] >= 0)
 			{
-				NSDictionary *fnDict=[NSDictionary dictionaryWithObjectsAndKeys:
-									  [NSNumber numberWithBool:NO], STICK_ISAXIS, 
-									  [NSNumber numberWithInt:j], STICK_NUMBER, 
-									  [NSNumber numberWithInt:i], STICK_AXBUT, 
-									  nil];
-				[fnList setValue: fnDict
-						  forKey: ENUMKEY(buttonmap[j][i])];
+				NSDictionary *fnDict = [NSDictionary dictionaryWithObjectsAndKeys:
+										[NSNumber numberWithBool:NO], STICK_ISAXIS, 
+										[NSNumber numberWithInt:j], STICK_NUMBER, 
+										[NSNumber numberWithInt:i], STICK_AXBUT, 
+										nil];
+				[fnList setValue:fnDict
+						  forKey:ENUMKEY(buttonmap[j][i])];
 			}
 		}
 	}
@@ -220,6 +220,8 @@ static id sSharedStickHandler = nil;
                    function:(int)function
                       stick:(int)stickNum
 {
+	NSParameterAssert(axis < MAX_AXES && stickNum < MAX_STICKS);
+	
 	int16_t axisvalue = [self getAxisWithStick:stickNum axis:axis];
 	[self unsetAxisFunction:function];
 	axismap[stickNum][axis] = function;
@@ -242,6 +244,8 @@ static id sSharedStickHandler = nil;
                      function:(int)function 
                         stick:(int)stickNum
 {
+	NSParameterAssert(button < MAX_BUTTONS && stickNum < MAX_STICKS);
+	
 	int i, j;
 	for (i = 0; i < MAX_BUTTONS; i++)
 	{
@@ -522,10 +526,10 @@ static id sSharedStickHandler = nil;
 - (void) saveStickSettings
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	[defaults setObject: [self axisFunctions]
-				 forKey: AXIS_SETTINGS];
-	[defaults setObject: [self buttonFunctions]
-				 forKey: BUTTON_SETTINGS];
+	[defaults setObject:[self axisFunctions]
+				 forKey:AXIS_SETTINGS];
+	[defaults setObject:[self buttonFunctions]
+				 forKey:BUTTON_SETTINGS];
 	
 	[defaults synchronize];
 }
