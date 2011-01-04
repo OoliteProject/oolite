@@ -34,6 +34,9 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 
 
+#define NSMakeRange(loc, len) ((NSRange){loc, len})
+
+
 static NSString * const kOOLogStringVectorConversion			= @"strings.conversion.vector";
 static NSString * const kOOLogStringQuaternionConversion		= @"strings.conversion.quaternion";
 static NSString * const kOOLogStringVecAndQuatConversion		= @"strings.conversion.vectorAndQuaternion";
@@ -344,9 +347,10 @@ NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDict
 			part = [value oo_stringAtIndex:rnd];
 			if (part == nil)  part = @"";
 		}
-		else if ([value isKindOfClass:[NSString class]])
+		else if ([value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSNumber class]])
 		{
-			part = value;
+			// FIXME: would it not be sufficient to accept any non-nil value here?
+			part = [value description];
 		}
 		else if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""])
 		{
@@ -557,7 +561,7 @@ NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *local
 		if (replacement != nil) [resultString replaceOccurrencesOfString:token withString:replacement options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
 	}
 
-	OOLog(kOOLogDebugReplaceVariablesInString, @"EXPANSION: \"%@\" becomes \"%@\"", string, resultString);
+	OOExtraLog(kOOLogDebugReplaceVariablesInString, @"EXPANSION: \"%@\" becomes \"%@\"", string, resultString);
 
 	return resultString;
 }
