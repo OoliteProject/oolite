@@ -52,16 +52,6 @@ this.version		= "1.75";
 
 /**** Utilities, not intended to be retired ****/
 
-//	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__ extension.
-if (typeof Object.getPrototypeOf !== "function")
-{
-	Object.getPrototypeOf = function (object)
-	{
-		return object.__proto__;
-	};
-}
-
-
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
 Object.getPrototypeOf(Ship).spawnOne = function Ship_spawnOne(role)
 {
@@ -75,24 +65,6 @@ mission.addMessageTextKey = function mission_addMessageTextKey(textKey)
 {
 	mission.addMessageText((textKey ? expandMissionText(textKey) : null));
 };
-
-
-/*	string.trim(): remove leading and trailing whitespace.
-	Implementation by Steve Leviathan, see:
-	http://blog.stevenlevithan.com/archives/faster-trim-javascript
-	Note: as of ECMAScript 5th Edition, this will be a core language method.
-*/
-if (typeof String.prototype.trim !== "function")
-{
-	String.prototype.trim = function String_trim()
-	{
-		var	str = this.replace(/^\s\s*/, ''),
-			 ws = /\s/,
-			  i = str.length;
-		while (ws.test(str.charAt(--i))) {}
-		return str.slice(0, i + 1);
-	};
-}
 
 
 /*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
@@ -159,6 +131,44 @@ system.scrambledPseudoRandomNumber = function system_scrambledPseudoRandomNumber
 	// Convert from (effectively) 32-bit signed integer to float in [0..1).
 	return n / 4294967296.0 + 0.5;
 };
+
+
+/**** Built-in in ECMAScript 5, to be removed when Linux builds transition ****/
+
+//	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__ extension.
+if (typeof Object.getPrototypeOf !== "function")
+{
+	Object.getPrototypeOf = function (object)
+	{
+		return object.__proto__;
+	};
+}
+
+/*	string.trim(): remove leading and trailing whitespace.
+	Implementation by Steve Leviathan, see:
+	http://blog.stevenlevithan.com/archives/faster-trim-javascript
+	Note: as of ECMAScript 5th Edition, this will be a core language method.
+*/
+if (typeof String.prototype.trim !== "function")
+{
+	String.prototype.trim = function String_trim()
+	{
+		var	str = this.replace(/^\s\s*/, ''),
+			 ws = /\s/,
+			  i = str.length;
+		while (ws.test(str.charAt(--i))) {}
+		return str.slice(0, i + 1);
+	};
+}
+
+// Array.isArray(object): true if object is an array.
+if (typeof Array.isArray !== "function")
+{
+	Array.isArray = function Array_isArray(object)
+	{
+		return object && object.constructor === [].constructor;
+	}
+}
 
 
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
