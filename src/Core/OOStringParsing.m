@@ -289,11 +289,55 @@ NSString *ExpandDescriptionForCurrentSystem(NSString *text)
 }
 
 
+static NSMapTable *SpecialSubstitutionSelectors(void)
+{
+	/*
+		Special substitution selectors:
+		These substitution keys map to methods on the player entity. They
+		have higher precedence than descriptions.plist entries, but lower
+		than explicit overrides.
+		
+		creditsFormattedForSubstitution is defined below, the rest are in
+		PlayerEntityLegacyScriptEngine.m.
+	*/
+	
+	struct { NSString *key; SEL selector; } selectors[] =
+	{
+		{ @"commander_name", @selector(commanderName_string) },
+		{ @"commander_shipname", @selector(commanderShip_string) },
+		{ @"commander_shipdisplayname", @selector(commanderShipDisplayName_string) },
+		{ @"commander_rank", @selector(commanderRank_string) },
+		{ @"commander_legal_status", @selector(commanderLegalStatus_string) },
+		{ @"commander_bounty", @selector(commanderLegalStatus_number) },
+		{ @"credits_number", @selector(creditsFormattedForSubstitution) }
+	};
+	unsigned i, count = sizeof selectors / sizeof *selectors;
+	
+	NSMapTable *result = NSCreateMapTable(NSObjectMapKeyCallBacks, NSNonOwnedPointerMapValueCallBacks, count);
+	for (i = 0; i < count; i++)
+	{
+		NSMapInsertKnownAbsent(result, selectors[i].key, selectors[i].selector);
+	}
+	
+	return result;
+}
+
+
+@implementation PlayerEntity (OOStringParsingSubstition)
+
+- (NSString *) creditsFormattedForSubstitution
+{
+	return OOStringFromDeciCredits([self deciCredits], YES, NO);
+}
+
+@end
+
+
+
 NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *pName)
 {
-	PlayerEntity		*player = PLAYER;
-	NSMutableString		*partial = [[text mutableCopy] autorelease];
-	NSMutableDictionary	*all_descriptions = [[[UNIVERSE descriptions] mutableCopy] autorelease];
+	BOOL				textIsMutable = NO;
+	NSDictionary		*descriptions = nil;
 	id					value = nil;
 	NSString			*part = nil, *before = nil, *after = nil, *middle = nil;
 	OOUInteger			sub, rnd, opt;
@@ -302,27 +346,15 @@ NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDict
 	NSArray				*sysDescItem = nil;
 	OOUInteger			sysDescCount = 0, descItemCount;
 	
-	// always add player info when possible, they might be nested ( fixes berlios bug #16369 )
-	// at startup shared_player hasn't got a ship yet, so check for that before adding the player info.
-	if ([player commanderShip_string])
+	for (;;)
 	{
-		[all_descriptions setObject:[player commanderName_string] forKey:@"commander_name"];
-		[all_descriptions setObject:[player commanderShip_string] forKey:@"commander_shipname"];
-		[all_descriptions setObject:[player commanderShipDisplayName_string] forKey:@"commander_shipdisplayname"];
-		[all_descriptions setObject:[player commanderRank_string] forKey:@"commander_rank"];
-		[all_descriptions setObject:[player commanderLegalStatus_string] forKey:@"commander_legal_status"];
-		[all_descriptions setObject:[NSString stringWithFormat:@"%@",[player commanderLegalStatus_number]] forKey:@"commander_bounty"];
-	}
-	[all_descriptions setObject:OOStringFromDeciCredits([player deciCredits], YES, NO) forKey:@"credits_number"];
-	if (pName == nil)  pName = [UNIVERSE getSystemName:seed];
-	
-	while ([partial rangeOfString:@"["].location != NSNotFound)
-	{
-		p1 = [partial rangeOfString:@"["].location;
-		// now either find the first occurrence of ']', or NSNotFound !
-		p2 = [partial rangeOfString:@"]"].location;
+		p1 = [text rangeOfString:@"["].location;
+		if (EXPECT(p1 == NSNotFound))  break;
 		
-		if (p2 == NSNotFound)
+		// now either find the first occurrence of ']', or NSNotFound !
+		p2 = [text rangeOfString:@"]"].location;
+		
+		if (EXPECT_NOT(p2 == NSNotFound))
 		{
 			OOLogWARN(@"strings.expand", @"Cannot expand string without the closing bracket ( ] ).");
 			break; // keep parsing the string for other tokens !
@@ -332,164 +364,201 @@ NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDict
 			p2++;
 		}
 		
-		before = [partial substringWithRange:NSMakeRange(0, p1)];
-		after = [partial substringWithRange:NSMakeRange(p2,[partial length] - p2)];
-		middle = [partial substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];
+		before = [text substringWithRange:NSMakeRange(0, p1)];
+		after =  [text substringWithRange:NSMakeRange(p2,[text length] - p2)];
+		middle = [text substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];
 		
 		// Overrides override all else.
 		value = [overrides objectForKey:middle];
 		
-		// check all_descriptions for an array that's keyed to middle
-		if (value == nil)  value = [all_descriptions objectForKey:middle];
-		if ([value isKindOfClass:[NSArray class]] && [value count] > 0)
+		// Specials override descriptions.plist
+		if (value == nil)
 		{
-			rnd = gen_rnd_number() % [value count];
-			part = [value oo_stringAtIndex:rnd];
-			if (part == nil)  part = @"";
-		}
-		else if ([value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSNumber class]])
-		{
-			// FIXME: would it not be sufficient to accept any non-nil value here?
-			part = [value description];
-		}
-		else if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""])
-		{
-			part = @"";
-			
-			// if all characters are all from the set "0123456789" interpret it as a number in system_description array
-			if (![middle isEqual:@""])
+			static NSMapTable *specials = nil;
+			if (EXPECT_NOT(specials == nil))
 			{
-				if (sysDesc == nil)
-				{
-					sysDesc = [all_descriptions oo_arrayForKey:@"system_description"];
-					sysDescCount = [sysDesc count];
-				}
+				specials = SpecialSubstitutionSelectors();
+			}
+			
+			SEL selector = NSMapGet(specials, middle);
+			if (selector != NULL)
+			{
+				value = [PLAYER performSelector:selector];
+			}
+		}
+		
+		// check descriptions.plist for an array that's keyed to middle
+		if (value == nil)
+		{
+			if (descriptions == nil)  descriptions = [UNIVERSE descriptions];
+			
+			value = [descriptions objectForKey:middle];
+			
+			if ([value isKindOfClass:[NSArray class]] && [value count] > 0)
+			{
+				rnd = gen_rnd_number() % [value count];
+				part = [value oo_stringAtIndex:rnd];
+				if (part == nil)  part = @"";
+			}
+			else if ([value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSNumber class]])
+			{
+				// FIXME: would it not be sufficient to accept any non-nil value here?
+				part = [value description];
+			}
+			else if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""])
+			{
+				part = @"";
 				
-				sub = [middle intValue];
-				rnd = gen_rnd_number();
-				
-				if (sub < sysDescCount)
+				// if all characters are all from the set "0123456789" interpret it as a number in system_description array
+				if (![middle isEqual:@""])
 				{
-					sysDescItem = [sysDesc oo_arrayAtIndex:sub];
-					if (sysDescItem != nil)
+					if (sysDesc == nil)
 					{
-						descItemCount = [sysDescItem count];
-						if (descItemCount == 5)
+						sysDesc = [descriptions oo_arrayForKey:@"system_description"];
+						sysDescCount = [sysDesc count];
+					}
+					
+					sub = [middle intValue];
+					rnd = gen_rnd_number();
+					
+					if (sub < sysDescCount)
+					{
+						sysDescItem = [sysDesc oo_arrayAtIndex:sub];
+						if (sysDescItem != nil)
 						{
-							// Time-honoured Elite-compatible way for five items
-							opt = 0;
-							if (rnd >= 0x33) opt++;
-							if (rnd >= 0x66) opt++;
-							if (rnd >= 0x99) opt++;
-							if (rnd >= 0xCC) opt++;
+							descItemCount = [sysDescItem count];
+							if (descItemCount == 5)
+							{
+								// Time-honoured Elite-compatible way for five items
+								opt = 0;
+								if (rnd >= 0x33) opt++;
+								if (rnd >= 0x66) opt++;
+								if (rnd >= 0x99) opt++;
+								if (rnd >= 0xCC) opt++;
+							}
+							else
+							{
+								// General way
+								opt = (rnd * descItemCount) / 256;
+							}
+							
+							part = [sysDescItem objectAtIndex:opt];
 						}
-						else
-						{
-							// General way
-							opt = (rnd * descItemCount) / 256;
-						}
-						
-						part = [sysDescItem objectAtIndex:opt];
 					}
 				}
 			}
+			else
+			{
+				// do replacement of mission and local variables here instead.
+				part = ReplaceVariables(middle, NULL, legacyLocals);
+			}
 		}
 		else
 		{
-			// do replacement of mission and local variables here instead.
-			part = ReplaceVariables(middle, NULL, legacyLocals);
+			// Note: no array lookups for local overrides.
+			part = value;
 		}
 		
-		
-		partial = [NSMutableString stringWithFormat:@"%@%@%@", before, part, after];
+		text = [NSMutableString stringWithFormat:@"%@%@%@", before, part, after];
+		textIsMutable = YES;
+		mutated = YES;
 	}
 	
-	[partial replaceOccurrencesOfString:@"%H"
-							 withString:pName
-								options:NSLiteralSearch
-								  range:NSMakeRange(0, [partial length])];
-	
-	[partial replaceOccurrencesOfString:@"%I"
-							 withString:[NSString stringWithFormat:@"%@%@",pName, DESC(@"planetname-derivative-suffix")]
-								options:NSLiteralSearch
-								  range:NSMakeRange(0, [partial length])];
-	
-	[partial replaceOccurrencesOfString:@"%R"
-							 withString:OldRandomDigrams()
-								options:NSLiteralSearch
-								  range:NSMakeRange(0, [partial length])];
-	
-	[partial replaceOccurrencesOfString:@"%N"
-							 withString:NewRandomDigrams()
-								options:NSLiteralSearch
-								  range:NSMakeRange(0, [partial length])];
-	
-	
-	// Now replace  all occurrences of %J000 to %J255 with the corresponding  system name. 
-	
-	NSRange foundToken, foundID;
-	NSString *stringID=@"";
-	char s;
-	BOOL err=NO;
-	int intVal;
-	
-    foundToken = [partial rangeOfString:@"%J"];
-	
-    while (foundToken.location != NSNotFound)
-    {
-		foundID=NSMakeRange(foundToken.location+2,3);
-		if(foundID.location+3 > [partial length])
+	if ([text rangeOfString:@"%"].location != NSNotFound)
+	{
+		NSMutableString *partial = (textIsMutable) ? (NSMutableString *)text : [NSMutableString stringWithString:text];
+		if (pName == nil)  pName = [UNIVERSE getSystemName:seed];
+		mutated = YES;
+		
+		[partial replaceOccurrencesOfString:@"%H"
+								 withString:pName
+									options:NSLiteralSearch
+									  range:NSMakeRange(0, [partial length])];
+		
+		[partial replaceOccurrencesOfString:@"%I"
+								 withString:[NSString stringWithFormat:@"%@%@",pName, DESC(@"planetname-derivative-suffix")]
+									options:NSLiteralSearch
+									  range:NSMakeRange(0, [partial length])];
+		
+		[partial replaceOccurrencesOfString:@"%R"
+								 withString:OldRandomDigrams()
+									options:NSLiteralSearch
+									  range:NSMakeRange(0, [partial length])];
+		
+		[partial replaceOccurrencesOfString:@"%N"
+								 withString:NewRandomDigrams()
+									options:NSLiteralSearch
+									  range:NSMakeRange(0, [partial length])];
+		
+		
+		// Now replace  all occurrences of %J000 to %J255 with the corresponding  system name. 
+		
+		NSRange foundToken, foundID;
+		NSString *stringID=@"";
+		char s;
+		BOOL err=NO;
+		int intVal;
+		
+		foundToken = [partial rangeOfString:@"%J"];
+		
+		while (foundToken.location != NSNotFound)
 		{
-			err = YES;
-			stringID=[partial substringFromIndex:foundID.location];
-		}
-		else
-		{
-			stringID = [partial substringWithRange:foundID];
-			// these 3 characters must be numerical: 000 to 255
-			s=[stringID characterAtIndex:0];
-			if (s < '0' || s > '2') err = YES;
-			s=[stringID characterAtIndex:1];
-			if (s < '0' || s > '9') err = YES;
-			s=[stringID characterAtIndex:2];
-			if (s < '0' || s > '9') err = YES;
-			if (!err)
+			foundID = NSMakeRange(foundToken.location+2,3);
+			if(foundID.location + 3 > [partial length])
 			{
-				intVal = [stringID intValue];
-				if (intVal < 256)
+				err = YES;
+				stringID=[partial substringFromIndex:foundID.location];
+			}
+			else
+			{
+				stringID = [partial substringWithRange:foundID];
+				// these 3 characters must be numerical: 000 to 255
+				s=[stringID characterAtIndex:0];
+				if (s < '0' || s > '2') err = YES;
+				s=[stringID characterAtIndex:1];
+				if (s < '0' || s > '9') err = YES;
+				s=[stringID characterAtIndex:2];
+				if (s < '0' || s > '9') err = YES;
+				if (!err)
 				{
-					[partial replaceOccurrencesOfString:[NSString stringWithFormat:@"%%J%@",stringID]
-											 withString:[UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:(OOSystemID)intVal]] 
-												options:NSLiteralSearch
-												  range:NSMakeRange(0, [partial length])];
+					intVal = [stringID intValue];
+					if (intVal < 256)
+					{
+						[partial replaceOccurrencesOfString:[NSString stringWithFormat:@"%%J%@",stringID]
+												 withString:[UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:(OOSystemID)intVal]] 
+													options:NSLiteralSearch
+													  range:NSMakeRange(0, [partial length])];
+					}
+					else  err = YES;
 				}
-				else  err = YES;
 			}
-		}
-		if (err)
-		{
-			static NSMutableSet *warned = nil;
-			if (![warned containsObject:stringID])
+			if (err)
 			{
-				OOLogWARN(@"strings.expand", @"'%%J%@' not a planetary system number - use %%Jxxx, where xxx is a number from 000 to 255",stringID);
-				if (warned == nil)  warned = [[NSMutableSet alloc] init];
-				[warned addObject:stringID];
+				static NSMutableSet *warned = nil;
+				if (![warned containsObject:stringID])
+				{
+					OOLogWARN(@"strings.expand", @"'%%J%@' not a planetary system number - use %%Jxxx, where xxx is a number from 000 to 255",stringID);
+					if (warned == nil)  warned = [[NSMutableSet alloc] init];
+					[warned addObject:stringID];
+				}
+				err = NO; // keep parsing the string for other %J tokens!
 			}
-			err = NO; // keep parsing the string for other %J tokens!
+			
+			if (foundID.location + 5 > [partial length])
+			{
+				foundToken.location=NSNotFound;
+			}
+			else
+			{
+				foundToken = [[partial substringFromIndex:foundID.location] rangeOfString:@"%J"];
+				if (foundToken.location!=NSNotFound) foundToken.location += foundID.location;
+			}
 		}
 		
-		if (foundID.location + 5 > [partial length])
-		{
-			foundToken.location=NSNotFound;
-		}
-		else
-		{
-			foundToken = [[partial substringFromIndex:foundID.location] rangeOfString:@"%J"];
-			if (foundToken.location!=NSNotFound) foundToken.location += foundID.location;
-		}
-    }
+		text = partial;
+	}
 	
-	return partial; 
+	return text; 
 }
 
 
