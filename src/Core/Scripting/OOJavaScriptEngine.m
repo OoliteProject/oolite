@@ -170,40 +170,43 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// Log message class
 	messageClass = [NSString stringWithFormat:@"script.javaScript.%@.%@", severity, errorName];
 	
-	// First line: problem description
-	
-	// avoid windows DEP exceptions!
-	OOJSScript *thisScript = [[OOJSScript currentlyRunningScript] weakRetain];
-	activeScript = [[thisScript weakRefUnderlyingObject] displayName];
-	[thisScript release];
-	
-	if (activeScript == nil)  activeScript = @"<unidentified script>";
-	OOLog(messageClass, @"%@ JavaScript %@ (%@): %@", highlight, severity, activeScript, messageText);
-	
-	if (!showLocation && sErrorHandlerStackSkip == 0)
+	// Skip the rest if this is a warning being ignored.
+	if ((report->flags & JSREPORT_WARNING) == 0 || OOLogWillDisplayMessagesInClass(messageClass))
 	{
-		// Second line: where error occured, and line if provided. (The line is only provided for compile-time errors, not run-time errors.)
-		if ([lineBuf length] != 0)
+		// First line: problem description
+		// avoid windows DEP exceptions!
+		OOJSScript *thisScript = [[OOJSScript currentlyRunningScript] weakRetain];
+		activeScript = [[thisScript weakRefUnderlyingObject] displayName];
+		[thisScript release];
+		
+		if (activeScript == nil)  activeScript = @"<unidentified script>";
+		OOLog(messageClass, @"%@ JavaScript %@ (%@): %@", highlight, severity, activeScript, messageText);
+		
+		if (!showLocation && sErrorHandlerStackSkip == 0)
 		{
-			OOLog(messageClass, @"      %s, line %d: %@", report->filename, report->lineno, lineBuf);
+			// Second line: where error occured, and line if provided. (The line is only provided for compile-time errors, not run-time errors.)
+			if ([lineBuf length] != 0)
+			{
+				OOLog(messageClass, @"      %s, line %d: %@", report->filename, report->lineno, lineBuf);
+			}
+			else
+			{
+				OOLog(messageClass, @"      %s, line %d.", report->filename, report->lineno);
+			}
 		}
-		else
-		{
-			OOLog(messageClass, @"      %s, line %d.", report->filename, report->lineno);
-		}
-	}
-	
+		
 #ifndef NDEBUG
-	OOJSDumpStack([NSString stringWithFormat:@"script.javaScript.stackTrace.%@", severity], context);
+		OOJSDumpStack([NSString stringWithFormat:@"script.javaScript.stackTrace.%@", severity], context);
 #endif
-	
+		
 #if OOJSENGINE_MONITOR_SUPPORT
-	JSExceptionState *exState = JS_SaveExceptionState(context);
-	[[OOJavaScriptEngine sharedEngine] sendMonitorError:report
-											withMessage:messageText
-											  inContext:context];
-	JS_RestoreExceptionState(context, exState);
+		JSExceptionState *exState = JS_SaveExceptionState(context);
+		[[OOJavaScriptEngine sharedEngine] sendMonitorError:report
+												withMessage:messageText
+												  inContext:context];
+		JS_RestoreExceptionState(context, exState);
 #endif
+	}
 	
 	OOJSResumeTimeLimiter();
 }
