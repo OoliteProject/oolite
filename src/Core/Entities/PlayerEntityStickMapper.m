@@ -159,7 +159,7 @@ MA 02110-1301, USA.
 	
 	// What moved?
 	int function;
-	NSDictionary *entry=[stickFunctions objectAtIndex: selFunctionIdx];
+	NSDictionary *entry = [stickFunctions objectAtIndex:selFunctionIdx];
 	if([(NSNumber *)[hwDict objectForKey: STICK_ISAXIS] boolValue] == YES)
 	{
 		function=[(NSNumber *)[entry objectForKey: KEY_AXISFN] intValue];
@@ -512,11 +512,6 @@ MA 02110-1301, USA.
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_CLOAK]];
-	[funcList addObject:
-	 [self makeStickGuiDict: DESC(@"stickmapper-view-forward")
-				  allowable: HW_AXIS|HW_BUTTON
-					 axisfn: AXIS_VIEWY
-					  butfn: BUTTON_VIEWFORWARD]];
 	[funcList addObject:
 	 [self makeStickGuiDict: DESC(@"stickmapper-view-forward")
 				  allowable: HW_AXIS|HW_BUTTON
