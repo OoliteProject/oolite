@@ -243,6 +243,9 @@
 		1AD05F6012CD251F00704F1D /* prerrortable.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BA312CA1D7200C67F42 /* prerrortable.c */; };
 		1AD05F6A12CD256200704F1D /* praton.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B9B12CA1D7200C67F42 /* praton.c */; };
 		1AD05F7C12CD274E00704F1D /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AD05F7B12CD274E00704F1D /* CoreServices.framework */; };
+		1AD5A78C12D38C4A00B62503 /* RegexJIT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F16712CA656900FB681A /* RegexJIT.cpp */; settings = {COMPILER_FLAGS = "-include assembler/wtf/Platform.h"; }; };
+		1AD5A7A612D38E8400B62503 /* RegexCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD5A7A412D38E8400B62503 /* RegexCompiler.cpp */; };
+		1AD5A7A712D38E8400B62503 /* RegexCompiler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD5A7A512D38E8400B62503 /* RegexCompiler.h */; };
 		1AEA203012CB9AF200EC0F43 /* ptthread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBC12CA1D7200C67F42 /* ptthread.c */; };
 		1AEA207012CB9C7200EC0F43 /* ptsynch.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25BBB12CA1D7200C67F42 /* ptsynch.c */; };
 		1AEA207312CB9C8E00EC0F43 /* prmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25B1A12CA1D7200C67F42 /* prmem.c */; };
@@ -681,6 +684,8 @@
 		1AD05EEB12CD209C00704F1D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1AD05F1312CD224100704F1D /* jsapitests-oolite-shim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "jsapitests-oolite-shim.m"; sourceTree = "<group>"; };
 		1AD05F7B12CD274E00704F1D /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		1AD5A7A412D38E8400B62503 /* RegexCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RegexCompiler.cpp; sourceTree = "<group>"; };
+		1AD5A7A512D38E8400B62503 /* RegexCompiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RegexCompiler.h; sourceTree = "<group>"; };
 		1AEA1FBB12CB97A600EC0F43 /* jstracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jstracer.cpp; sourceTree = "<group>"; };
 		1AEA1FBC12CB97B500EC0F43 /* jsprobes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsprobes.cpp; sourceTree = "<group>"; };
 		1AEA1FBF12CB981C00EC0F43 /* jsanalyze.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsanalyze.cpp; sourceTree = "<group>"; };
@@ -857,6 +862,8 @@
 			children = (
 				1A06F16912CA656F00FB681A /* RegexJIT.h */,
 				1A06F16712CA656900FB681A /* RegexJIT.cpp */,
+				1AD5A7A512D38E8400B62503 /* RegexCompiler.h */,
+				1AD5A7A412D38E8400B62503 /* RegexCompiler.cpp */,
 			);
 			path = yarr;
 			sourceTree = "<group>";
@@ -960,6 +967,7 @@
 				1A06F07B12CA560A00FB681A /* tables */,
 				1AEA214E12CBBC1500EC0F43 /* tracejit */,
 				1A06F1B212CA6B7500FB681A /* v8-dtoa */,
+				1A06F16512CA653E00FB681A /* yarr */,
 				1AEA1FC012CB982100EC0F43 /* dtoa.c */,
 				1AEA1FBF12CB981C00EC0F43 /* jsanalyze.cpp */,
 				1AB25AA612CA1B6E00C67F42 /* jsapi.cpp */,
@@ -1011,7 +1019,6 @@
 				1AB7765812CA3564001478BB /* jsxdrapi.cpp */,
 				1AB7767F12CA3737001478BB /* jsxml.cpp */,
 				1A06F15912CA64D000FB681A /* prmjtime.cpp */,
-				1A06F16512CA653E00FB681A /* yarr */,
 			);
 			name = js;
 			path = "../../Cross-platform-deps/mozilla/js/src";
@@ -1668,6 +1675,7 @@
 				1AEA230D12CBED6F00EC0F43 /* RepatchBuffer.h in Headers */,
 				1AEA230E12CBED7000EC0F43 /* X86Assembler.h in Headers */,
 				1AEA23E212CC012C00EC0F43 /* ExecutableAllocator.h in Headers */,
+				1AD5A7A712D38E8400B62503 /* RegexCompiler.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1968,6 +1976,8 @@
 				1A27961F12CCB84900C9E94D /* FastArithmeticShim.cpp in Sources */,
 				1A27965A12CCC15C00C9E94D /* ImmutableSyncShim.cpp in Sources */,
 				1A27967F12CCC55B00C9E94D /* PolyICShim.cpp in Sources */,
+				1AD5A78C12D38C4A00B62503 /* RegexJIT.cpp in Sources */,
+				1AD5A7A612D38E8400B62503 /* RegexCompiler.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2040,7 +2050,10 @@
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "NDEBUG=1";
-				HEADER_SEARCH_PATHS = "$(JS_SRC_PATH)/assembler";
+				HEADER_SEARCH_PATHS = (
+					"$(JS_SRC_PATH)/assembler",
+					"$(JS_SRC_PATH)/yarr",
+				);
 				INSTALL_PATH = /usr/local/lib;
 				JS_SRC_PATH = "$(MOZILLA_PATH)/js/src";
 				MOZILLA_PATH = "$(SRCROOT)/../../Cross-platform-deps/mozilla/";
@@ -2217,7 +2230,10 @@
 					"DEBUG=1",
 					"MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"",
 				);
-				HEADER_SEARCH_PATHS = "$(JS_SRC_PATH)/assembler";
+				HEADER_SEARCH_PATHS = (
+					"$(JS_SRC_PATH)/assembler",
+					"$(JS_SRC_PATH)/yarr",
+				);
 				INSTALL_PATH = /usr/local/lib;
 				JS_SRC_PATH = "$(MOZILLA_PATH)/js/src";
 				MOZILLA_PATH = "$(SRCROOT)/../../Cross-platform-deps/mozilla/";
@@ -2242,7 +2258,10 @@
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "NDEBUG=1";
-				HEADER_SEARCH_PATHS = "$(JS_SRC_PATH)/assembler";
+				HEADER_SEARCH_PATHS = (
+					"$(JS_SRC_PATH)/assembler",
+					"$(JS_SRC_PATH)/yarr",
+				);
 				INSTALL_PATH = /usr/local/lib;
 				JS_SRC_PATH = "$(MOZILLA_PATH)/js/src";
 				MOZILLA_PATH = "$(SRCROOT)/../../Cross-platform-deps/mozilla/";

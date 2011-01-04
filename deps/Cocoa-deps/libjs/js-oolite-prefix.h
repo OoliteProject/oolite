@@ -10,7 +10,6 @@
 	included from js-config.h as well.
 */
 
-#define	ENABLE_YARR_JIT					0
 #define __STDC_LIMIT_MACROS				1
 
 #ifdef DEBUG
@@ -18,12 +17,12 @@
 #define	JS_THREADSAFE					1
 #endif
 
-// TraceMonkey, YARR JIT and JaegerMonkey, aka the Go Faster Switches.
+// TraceMonkey, JaegerMonkey, and YARR (regexp) JIT, aka the Go Faster Switches.
 #define	JS_TRACER						1
 #if (__i386__ || __x86_64__)
 #define	JS_METHODJIT					1
+#define	ENABLE_YARR_JIT					1
 #endif
-//#define	ENABLE_YARR_JIT				1
 
 
 #if JS_TRACER || JS_METHODJIT
@@ -51,6 +50,7 @@
 #define AVMPLUS_IA32					1
 #define JS_CPU_X86						1
 #define JS_NUNBOX32						1
+#define WTF_CPU_X86						1
 #elif __x86_64__
 #define JS_BYTES_PER_WORD				8
 #define JS_BITS_PER_WORD_LOG2			6
@@ -58,6 +58,7 @@
 #define AVMPLUS_AMD64					1
 #define JS_CPU_X64						1
 #define JS_PUNBOX64						1
+#define WTF_CPU_X86_64					1
 #else
 #error Unknown platform.
 #endif
