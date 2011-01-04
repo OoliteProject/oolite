@@ -284,6 +284,20 @@ OOINLINE JSClass *OOJS_GetClass(JSContext *cx, JSObject *obj)
 }
 
 
+/*	OOJSStringTableToDictionary(context, value);
+	
+	Treat an arbitrary JavaScript object as a dictionary mapping strings to
+	strings, and convert to a corresponding NSDictionary. The values are
+	converted to strings using JS_ValueToString().
+	
+	Only enumerable own (i.e., not inherited) properties with string keys are
+	included.
+	
+	Requires a request on context.
+*/
+NSDictionary *OOJSStringTableToDictionary(JSContext *context, jsval value);
+
+
 /*
 	DEFINE_JS_OBJECT_GETTER()
 	Defines a helper to extract Objective-C objects from the private field of

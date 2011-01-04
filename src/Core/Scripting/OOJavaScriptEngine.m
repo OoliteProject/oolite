@@ -1761,6 +1761,79 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 }
 
 
+NSDictionary *OOJSStringTableToDictionary(JSContext *context, jsval tableValue)
+{
+	JSObject					*tableObject = NULL;
+	JSIdArray					*ids;
+	jsint						i;
+	NSMutableDictionary			*result = nil;
+	jsval						value = JSVAL_VOID;
+	id							objKey = nil;
+	id							objValue = nil;
+	
+	if (EXPECT_NOT(!JS_ValueToObject(context, tableValue, &tableObject)))
+	{
+		return nil;
+	}
+	
+	ids = JS_Enumerate(context, tableObject);
+	if (EXPECT_NOT(ids == NULL))
+	{
+		return nil;
+	}
+	
+	result = [NSMutableDictionary dictionaryWithCapacity:ids->length];
+	for (i = 0; i != ids->length; ++i)
+	{
+		jsid thisID = ids->vector[i];
+		
+#if OO_NEW_JS
+		if (JSID_IS_STRING(thisID))
+		{
+			objKey = [NSString stringWithJavaScriptString:JSID_TO_STRING(thisID)];
+		}
+		else
+		{
+			objKey = nil;
+		}
+		
+		value = JSVAL_VOID;
+		if (objKey != nil && !JS_LookupPropertyById(context, tableObject, thisID, &value))  value = JSVAL_VOID;
+#else
+		jsval propKey = value = JSVAL_VOID;
+		objKey = nil;
+		
+		if (JS_IdToValue(context, thisID, &propKey))
+		{
+			// Properties with string keys.
+			if (JSVAL_IS_STRING(propKey))
+			{
+				JSString *stringKey = JSVAL_TO_STRING(propKey);
+				if (JS_LookupProperty(context, tableObject, JS_GetStringBytes(stringKey), &value))
+				{
+					objKey = [NSString stringWithJavaScriptString:stringKey];
+				}
+			}
+		}
+#endif
+		
+		if (objKey != nil && !JSVAL_IS_VOID(value))
+		{
+			// Note: we want nulls and undefines included, so not JSValToNSString().
+			objValue = [NSString stringWithJavaScriptValue:value inContext:context];
+			
+			if (objValue != nil)
+			{
+				[result setObject:objValue forKey:objKey];
+			}
+		}
+	}
+	
+	JS_DestroyIdArray(context, ids);
+	return result;
+}
+
+
 static NSMutableDictionary *sObjectConverters;
 
 
@@ -1792,22 +1865,22 @@ id JSValueToObject(JSContext *context, jsval value)
 }
 
 
-id JSObjectToObject(JSContext *context, JSObject *object)
+id JSObjectToObject(JSContext *context, JSObject *tableObject)
 {
 	NSValue					*wrappedClass = nil;
 	NSValue					*wrappedConverter = nil;
 	JSClassConverterCallback converter = NULL;
 	JSClass					*class = NULL;
 	
-	if (object == NULL)  return nil;
+	if (tableObject == NULL)  return nil;
 	
-	class = OOJS_GetClass(context, object);
+	class = OOJS_GetClass(context, tableObject);
 	wrappedClass = [NSValue valueWithPointer:class];
 	if (wrappedClass != nil)  wrappedConverter = [sObjectConverters objectForKey:wrappedClass];
 	if (wrappedConverter != nil)
 	{
 		converter = [wrappedConverter pointerValue];
-		return converter(context, object);
+		return converter(context, tableObject);
 	}
 	return nil;
 }
@@ -1821,15 +1894,15 @@ id JSValueToObjectOfClass(JSContext *context, jsval value, Class requiredClass)
 }
 
 
-id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredClass)
+id JSObjectToObjectOfClass(JSContext *context, JSObject *tableObject, Class requiredClass)
 {
-	id result = JSObjectToObject(context, object);
+	id result = JSObjectToObject(context, tableObject);
 	if (![result isKindOfClass:requiredClass])  result = nil;
 	return result;
 }
 
 
-id JSBasicPrivateObjectConverter(JSContext *context, JSObject *object)
+id JSBasicPrivateObjectConverter(JSContext *context, JSObject *tableObject)
 {
 	id						result;
 	
@@ -1837,7 +1910,7 @@ id JSBasicPrivateObjectConverter(JSContext *context, JSObject *object)
 		weakRefUnderlyingObject returns the object itself. For nil, of course,
 		it returns nil.
 	*/
-	result = JS_GetPrivate(context, object);
+	result = JS_GetPrivate(context, tableObject);
 	return [result weakRefUnderlyingObject];
 }
 
@@ -1899,7 +1972,7 @@ static id JSArrayConverter(JSContext *context, JSObject *array)
 	jsuint						i, count;
 	id							*values = NULL;
 	jsval						value = JSVAL_VOID;
-	id							object = nil;
+	id							tableObject = nil;
 	NSArray						*result = nil;
 	
 	// Convert a JS array to an NSArray by calling JSValueToObject() on all its elements.
@@ -1916,9 +1989,9 @@ static id JSArrayConverter(JSContext *context, JSObject *array)
 		value = JSVAL_VOID;
 		if (!JS_GetElement(context, array, i, &value))  value = JSVAL_VOID;
 		
-		object = JSValueToObject(context, value);
-		if (object == nil)  object = [NSNull null];
-		values[i] = object;
+		tableObject = JSValueToObject(context, value);
+		if (tableObject == nil)  tableObject = [NSNull null];
+		values[i] = tableObject;
 	}
 	
 	result = [NSArray arrayWithObjects:values count:count];
@@ -1927,7 +2000,7 @@ static id JSArrayConverter(JSContext *context, JSObject *array)
 }
 
 
-static id JSGenericObjectConverter(JSContext *context, JSObject *object)
+static id JSGenericObjectConverter(JSContext *context, JSObject *tableObject)
 {
 	JSIdArray					*ids;
 	jsint						i;
@@ -1945,8 +2018,11 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object)
 		heirarchy. Also, note that prototype properties are not included.
 	*/
 	
-	ids = JS_Enumerate(context, object);
-	if (ids == NULL)  return nil;
+	ids = JS_Enumerate(context, tableObject);
+	if (EXPECT_NOT(ids == NULL))
+	{
+		return nil;
+	}
 	
 	result = [NSMutableDictionary dictionaryWithCapacity:ids->length];
 	for (i = 0; i != ids->length; ++i)
@@ -1968,7 +2044,7 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object)
 		}
 		
 		value = JSVAL_VOID;
-		if (objKey != nil && !JS_LookupPropertyById(context, object, thisID, &value))  value = JSVAL_VOID;
+		if (objKey != nil && !JS_LookupPropertyById(context, tableObject, thisID, &value))  value = JSVAL_VOID;
 #else
 		jsval propKey = value = JSVAL_VOID;
 		objKey = nil;
@@ -1979,7 +2055,7 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object)
 			if (JSVAL_IS_STRING(propKey))
 			{
 				JSString *stringKey = JSVAL_TO_STRING(propKey);
-				if (JS_LookupProperty(context, object, JS_GetStringBytes(stringKey), &value))
+				if (JS_LookupProperty(context, tableObject, JS_GetStringBytes(stringKey), &value))
 				{
 					objKey = [NSString stringWithJavaScriptString:stringKey];
 				}
@@ -1989,7 +2065,7 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object)
 			else if (JSVAL_IS_INT(propKey))
 			{
 				jsint intKey = JSVAL_TO_INT(propKey);
-				if (JS_GetElement(context, object, intKey, &value))
+				if (JS_GetElement(context, tableObject, intKey, &value))
 				{
 					objKey = [NSNumber numberWithInt:intKey];
 				}
@@ -2012,16 +2088,16 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object)
 }
 
 
-static id JSStringConverter(JSContext *context, JSObject *object)
+static id JSStringConverter(JSContext *context, JSObject *tableObject)
 {
-	return [NSString stringOrNilWithJavaScriptValue:OBJECT_TO_JSVAL(object) inContext:context];
+	return [NSString stringOrNilWithJavaScriptValue:OBJECT_TO_JSVAL(tableObject) inContext:context];
 }
 
 
-static id JSNumberConverter(JSContext *context, JSObject *object)
+static id JSNumberConverter(JSContext *context, JSObject *tableObject)
 {
 	jsdouble value;
-	if (JS_ValueToNumber(context, OBJECT_TO_JSVAL(object), &value))
+	if (JS_ValueToNumber(context, OBJECT_TO_JSVAL(tableObject), &value))
 	{
 		return [NSNumber numberWithDouble:value];
 	}

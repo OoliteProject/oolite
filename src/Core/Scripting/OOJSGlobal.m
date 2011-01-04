@@ -263,7 +263,7 @@ static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS)
 	}
 	if (argc > 1)
 	{
-		overrides = JSValueToObjectOfClass(context, OOJS_ARG(1), [NSDictionary class]);
+		overrides = OOJSStringTableToDictionary(context, OOJS_ARG(1));
 	}
 	
 	string = ExpandDescriptionsWithOptions(string, [PLAYER system_seed], overrides, nil, nil);
@@ -290,7 +290,7 @@ static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS)
 	}
 	if (argc > 1)
 	{
-		overrides = JSValueToObjectOfClass(context, OOJS_ARG(1), [NSDictionary class]);
+		overrides = OOJSStringTableToDictionary(context, OOJS_ARG(1));
 	}
 	
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
