@@ -1782,7 +1782,7 @@
 		1A9406820BAF66D6005F6CF3 /* OOVoxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOVoxel.h; sourceTree = "<group>"; };
 		1A9406830BAF66D6005F6CF3 /* OOVoxel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOVoxel.m; sourceTree = "<group>"; };
 		1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTriangle.h; sourceTree = "<group>"; };
-		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
+		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.make; };
 		1A94D5AC0D65A6960072C805 /* OOLight.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLight.m; sourceTree = "<group>"; };
 		1A94D5AD0D65A6960072C805 /* OOLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLight.h; sourceTree = "<group>"; };
 		1A94D5B30D65A6B40072C805 /* OOCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCamera.h; sourceTree = "<group>"; };

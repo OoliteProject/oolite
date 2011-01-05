@@ -43,7 +43,7 @@ static JSFunctionSpec sSpecialFunctionsMethods[] =
 void InitOOJSSpecialFunctions(JSContext *context, JSObject *global)
 {
 	sSpecialFunctionsObject = JS_NewObject(context, NULL, NULL, NULL);
-	OOJS_AddGCObjectRoot(context, &sSpecialFunctionsObject, "OOJSSpecialFunctions");
+	OOJSAddGCObjectRoot(context, &sSpecialFunctionsObject, "OOJSSpecialFunctions");
 	JS_DefineFunctions(context, sSpecialFunctionsObject, sSpecialFunctionsMethods);
 #if OO_NEW_JS
 	JS_FreezeObject(context, sSpecialFunctionsObject);
@@ -69,9 +69,9 @@ static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS)
 {
 	OOJS_PROFILE_ENTER	// These functions are exception-safe
 	
-	OOSetJSWarningOrErrorStackSkip(1);
-	OOReportJSWarning(context, @"%@", [NSString stringWithJavaScriptValue:OOJS_ARG(0) inContext:context]);
-	OOSetJSWarningOrErrorStackSkip(0);
+	OOJSSetWarningOrErrorStackSkip(1);
+	OOJSReportWarning(context, @"%@", [NSString stringWithJavaScriptValue:OOJS_ARG(0) inContext:context]);
+	OOJSSetWarningOrErrorStackSkip(0);
 	
 	OOJS_RETURN_VOID;
 	

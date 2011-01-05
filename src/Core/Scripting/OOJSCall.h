@@ -42,10 +42,10 @@ MA 02110-1301, USA.
 	NSMethodSignature.)
 	
 	If the method returns an object, *outResult will be set to that object's
-	-javaScriptValueInContext:. Otherwise, it will be left unchanged.
+	-oo_jsValueInContext:. Otherwise, it will be left unchanged.
 	
 	argv is assumed to contain at least one value.
 */
-BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassName, uintN argc, jsval *argv, jsval *outResult);
+BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *oo_jsClassName, uintN argc, jsval *argv, jsval *outResult);
 
 #endif

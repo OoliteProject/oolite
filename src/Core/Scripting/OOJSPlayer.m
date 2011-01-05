@@ -69,7 +69,7 @@ static JSClass sPlayerClass =
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert
-	JSObjectWrapperFinalize,// finalize
+	OOJSObjectWrapperFinalize,// finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -141,7 +141,7 @@ static JSFunctionSpec sPlayerMethods[] =
 void InitOOJSPlayer(JSContext *context, JSObject *global)
 {
 	sPlayerPrototype = JS_InitClass(context, global, NULL, &sPlayerClass, NULL, 0, sPlayerProperties, sPlayerMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sPlayerClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sPlayerClass, OOJSBasicPrivateObjectConverter);
 	
 	// Create player object as a property of the global object.
 	sPlayerObject = JS_DefineObject(context, global, "player", &sPlayerClass, sPlayerPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
@@ -202,12 +202,12 @@ static JSBool PlayerGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayer_rank:
-			*value = [KillCountToRatingString([player score]) javaScriptValueInContext:context];
+			*value = [KillCountToRatingString([player score]) oo_jsValueInContext:context];
 			OK = YES;
 			break;
 			
 		case kPlayer_legalStatus:
-			*value = [LegalStatusToString([player bounty]) javaScriptValueInContext:context];
+			*value = [LegalStatusToString([player bounty]) oo_jsValueInContext:context];
 			OK = YES;
 			break;
 			
@@ -217,27 +217,27 @@ static JSBool PlayerGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayer_alertTemperature:
-			*value = BOOLToJSVal([player alertFlags] & ALERT_FLAG_TEMP);
+			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_TEMP);
 			OK = YES;
 			break;
 			
 		case kPlayer_alertMassLocked:
-			*value = BOOLToJSVal([player alertFlags] & ALERT_FLAG_MASS_LOCK);
+			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_MASS_LOCK);
 			OK = YES;
 			break;
 			
 		case kPlayer_alertAltitude:
-			*value = BOOLToJSVal([player alertFlags] & ALERT_FLAG_ALT);
+			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_ALT);
 			OK = YES;
 			break;
 			
 		case kPlayer_alertEnergy:
-			*value = BOOLToJSVal([player alertFlags] & ALERT_FLAG_ENERGY);
+			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_ENERGY);
 			OK = YES;
 			break;
 			
 		case kPlayer_alertHostiles:
-			*value = BOOLToJSVal([player alertFlags] & ALERT_FLAG_HOSTILES);
+			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_HOSTILES);
 			OK = YES;
 			break;
 			
@@ -257,7 +257,7 @@ static JSBool PlayerGetProperty(OOJS_PROP_ARGS)
 		
 #if DOCKING_CLEARANCE_ENABLED	
 		case kPlayer_dockingClearanceStatus:
-			*value = [DockingClearanceStatusToString([player getDockingClearanceStatus]) javaScriptValueInContext:context];
+			*value = [DockingClearanceStatusToString([player getDockingClearanceStatus]) oo_jsValueInContext:context];
 			OK = YES;
 			break;
 #endif
@@ -268,10 +268,10 @@ static JSBool PlayerGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Player", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Player", OOJS_PROPID_INT);
 	}
 	
-	if (OK && result != nil)  *value = [result javaScriptValueInContext:context];
+	if (OK && result != nil)  *value = [result oo_jsValueInContext:context];
 	return OK;
 	
 	OOJS_NATIVE_EXIT
@@ -318,7 +318,7 @@ static JSBool PlayerSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Player", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Player", OOJS_PROPID_INT);
 	}
 	
 	return OK;
@@ -338,11 +338,11 @@ static JSBool PlayerCommsMessage(OOJS_NATIVE_ARGS)
 	double					time = 4.5;
 	BOOL					gotTime = YES;
 	
-	message = JSValToNSString(context, OOJS_ARG(0));
+	message = OOJSValToNSString(context, OOJS_ARG(0));
 	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARG(1), &time);
 	if (message == nil || !gotTime)
 	{
-		OOReportJSBadArguments(context, @"Player", @"commsMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
+		OOJSReportBadArguments(context, @"Player", @"commsMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
 		return NO;
 	}
 	
@@ -362,11 +362,11 @@ static JSBool PlayerConsoleMessage(OOJS_NATIVE_ARGS)
 	double					time = 3.0;
 	BOOL					gotTime = YES;
 	
-	message = JSValToNSString(context, OOJS_ARG(0));
+	message = OOJSValToNSString(context, OOJS_ARG(0));
 	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARG(1), &time);
 	if (message == nil || !gotTime)
 	{
-		OOReportJSBadArguments(context, @"Player", @"consoleMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
+		OOJSReportBadArguments(context, @"Player", @"consoleMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
 		return NO;
 	}
 	
@@ -431,10 +431,10 @@ static JSBool PlayerAddMessageToArrivalReport(OOJS_NATIVE_ARGS)
 	
 	NSString				*report = nil;
 	
-	report = JSValToNSString(context, OOJS_ARG(0));
+	report = OOJSValToNSString(context, OOJS_ARG(0));
 	if (report == nil)
 	{
-		OOReportJSBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, OOJS_ARGV, nil, @"arrival message");
+		OOJSReportBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, OOJS_ARGV, nil, @"arrival message");
 		return NO;
 	}
 	
@@ -452,7 +452,7 @@ static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!OOIsPlayerStale()))
 	{
-		OOReportJSError(context, @"Player.setEscapePodDestination() only works while the escape pod is in flight.");
+		OOJSReportError(context, @"Player.setEscapePodDestination() only works while the escape pod is in flight.");
 		return NO;
 	}
 	
@@ -462,7 +462,7 @@ static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 	
 	if (argc == 1)
 	{
-		destValue = JSValueToObject(context, OOJS_ARG(0));
+		destValue = OOJSNativeObjectFromJSValue(context, OOJS_ARG(0));
 		
 		if (!destValue || [destValue isKindOfClass:[ShipEntity class]])
 		{
@@ -535,7 +535,7 @@ static JSBool PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 	
 	if (OK == NO)
 	{
-		OOReportJSBadArguments(context, @"Player", @"setEscapePodDestination", argc, OOJS_ARGV, nil, @"a valid station, null, or 'NEARBY_SYSTEM'");
+		OOJSReportBadArguments(context, @"Player", @"setEscapePodDestination", argc, OOJS_ARGV, nil, @"a valid station, null, or 'NEARBY_SYSTEM'");
 	}
 	return OK;
 	

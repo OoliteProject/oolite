@@ -360,7 +360,7 @@ static BOOL GetThisVector(JSContext *context, JSObject *vectorObj, Vector *outVe
 	if (EXPECT(JSObjectGetVector(context, vectorObj, outVector)))  return YES;
 	
 	jsval arg = OBJECT_TO_JSVAL(vectorObj);
-	OOReportJSBadArguments(context, @"Vector3D", method, 1, &arg, @"Invalid target object", @"Vector3D");
+	OOJSReportBadArguments(context, @"Vector3D", method, 1, &arg, @"Invalid target object", @"Vector3D");
 	return NO;
 }
 
@@ -438,7 +438,7 @@ BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	if (VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO))  return YES;
 	else
 	{
-		OOReportJSBadArguments(context, scriptClass, function, argc, argv,
+		OOJSReportBadArguments(context, scriptClass, function, argc, argv,
 							   @"Could not construct vector from parameters",
 							   @"Vector, Entity or array of three numbers");
 		return NO;
@@ -480,7 +480,7 @@ static JSBool VectorGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Vector3D", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Vector3D", OOJS_PROPID_INT);
 			return NO;
 	}
 	
@@ -502,7 +502,7 @@ static JSBool VectorSetProperty(OOJS_PROP_ARGS)
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))  return NO;
 	if (EXPECT_NOT(!JS_ValueToNumber(context, *value, &dval)))
 	{
-		OOReportJSError(context, @"Vector3D property accessor: Invalid value %@ -- expected number.", [NSString stringWithJavaScriptValue:OBJECT_TO_JSVAL(this) inContext:context]);
+		OOJSReportError(context, @"Vector3D property accessor: Invalid value %@ -- expected number.", [NSString stringWithJavaScriptValue:OBJECT_TO_JSVAL(this) inContext:context]);
 		return NO;
 	}
 	
@@ -521,7 +521,7 @@ static JSBool VectorSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Vector3D", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Vector3D", OOJS_PROPID_INT);
 			return NO;
 	}
 	
@@ -575,7 +575,7 @@ static JSBool VectorConstruct(OOJS_NATIVE_ARGS)
 		if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(context, argc, OOJS_ARGV, &vector, NULL, YES)))
 		{
 			free(private);
-			OOReportJSBadArguments(context, NULL, NULL, argc, OOJS_ARGV,
+			OOJSReportBadArguments(context, NULL, NULL, argc, OOJS_ARGV,
 								   @"Could not construct vector from parameters",
 								   @"Vector, Entity or array of three numbers");
 			return NO;
@@ -712,7 +712,7 @@ static JSBool VectorMultiply(OOJS_NATIVE_ARGS)
 	double					scalar;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"multiply"))) return NO;
-	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Vector3D", @"multiply", argc, OOJS_ARGV, &scalar, NULL)))  return NO;
+	if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Vector3D", @"multiply", argc, OOJS_ARGV, &scalar, NULL)))  return NO;
 	
 	result = vector_multiply_scalar(thisv, scalar);
 	
@@ -874,7 +874,7 @@ static JSBool VectorRotationTo(OOJS_NATIVE_ARGS)
 	argv += consumed;
 	if (argc != 0)	// limit parameter is optional.
 	{
-		if (EXPECT_NOT(!NumberFromArgumentList(context, @"Vector3D", @"rotationTo", argc, argv, &limit, NULL)))  return NO;
+		if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Vector3D", @"rotationTo", argc, argv, &limit, NULL)))  return NO;
 		gotLimit = YES;
 	}
 	else gotLimit = NO;
@@ -950,11 +950,11 @@ static JSBool VectorToCoordinateSystem(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toCoordinateSystem"))) return NO;
 
-	coordScheme = JSValToNSString(context, OOJS_ARG(0));
+	coordScheme = OOJSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(coordScheme == nil ||
 				   argc < 1 ))
 	{
-		OOReportJSBadArguments(context, @"Vector3D", @"toCoordinateSystem", argc, OOJS_ARGV, nil, @"coordinate system");
+		OOJSReportBadArguments(context, @"Vector3D", @"toCoordinateSystem", argc, OOJS_ARGV, nil, @"coordinate system");
 		return NO;
 	}
 	
@@ -980,11 +980,11 @@ static JSBool VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"fromCoordinateSystem"))) return NO;
 
-	coordScheme = JSValToNSString(context, OOJS_ARG(0));
+	coordScheme = OOJSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(coordScheme == nil ||
 				   argc < 1 ))
 	{
-		OOReportJSBadArguments(context, @"Vector3D", @"fromCoordinateSystem", argc, OOJS_ARGV, nil, @"coordinate system");
+		OOJSReportBadArguments(context, @"Vector3D", @"fromCoordinateSystem", argc, OOJS_ARGV, nil, @"coordinate system");
 		return NO;
 	}
 		
@@ -1026,14 +1026,14 @@ static JSBool VectorStaticInterpolate(OOJS_NATIVE_ARGS)
 	argc -= consumed;
 	argv += consumed;
 	if (EXPECT_NOT(argc < 1))  goto INSUFFICIENT_ARGUMENTS;
-	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Vector3D", @"interpolate", argc, argv, &interp, NULL)))  return NO;
+	if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Vector3D", @"interpolate", argc, argv, &interp, NULL)))  return NO;
 	
 	result = OOVectorInterpolate(av, bv, interp);
 	
 	OOJS_RETURN_VECTOR(result);
 	
 INSUFFICIENT_ARGUMENTS:
-	OOReportJSBadArguments(context, @"Vector3D", @"interpolate", inArgc, inArgv, 
+	OOJSReportBadArguments(context, @"Vector3D", @"interpolate", inArgc, inArgv, 
 								   @"Insufficient parameters",
 								   @"vector expression, vector expression and number");
 	return NO;
@@ -1049,7 +1049,7 @@ static JSBool VectorStaticRandom(OOJS_NATIVE_ARGS)
 	
 	double					maxLength;
 	
-	if (argc == 0 || !NumberFromArgumentListNoError(context, argc, OOJS_ARGV, &maxLength, NULL))  maxLength = 1.0;
+	if (argc == 0 || !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV, &maxLength, NULL))  maxLength = 1.0;
 	
 	OOJS_RETURN_VECTOR(OOVectorRandomSpatial(maxLength));
 	
@@ -1064,7 +1064,7 @@ static JSBool VectorStaticRandomDirection(OOJS_NATIVE_ARGS)
 	
 	double					scale;
 	
-	if (argc == 0 || !NumberFromArgumentListNoError(context, argc, OOJS_ARGV, &scale, NULL))  scale = 1.0;
+	if (argc == 0 || !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV, &scale, NULL))  scale = 1.0;
 	
 	OOJS_RETURN_VECTOR(vector_multiply_scalar(OORandomUnitVector(), scale));
 	
@@ -1079,7 +1079,7 @@ static JSBool VectorStaticRandomDirectionAndLength(OOJS_NATIVE_ARGS)
 	
 	double					maxLength;
 	
-	if (argc == 0 || !NumberFromArgumentListNoError(context, argc, OOJS_ARGV, &maxLength, NULL))  maxLength = 1.0;
+	if (argc == 0 || !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV, &maxLength, NULL))  maxLength = 1.0;
 	
 	OOJS_RETURN_VECTOR(OOVectorRandomRadial(maxLength));
 	

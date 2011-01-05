@@ -61,10 +61,10 @@ static JSClass sTimerClass;
 		NSAssert(JSVAL_IS_OBJECT(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to init OOJSTimer with a function that isn't.");
 		
 		_jsThis = jsThis;
-		OOJS_AddGCObjectRoot(context, &_jsThis, "OOJSTimer this");
+		OOJSAddGCObjectRoot(context, &_jsThis, "OOJSTimer this");
 		
 		_function = function;
-		OOJS_AddGCValueRoot(context, &_function, "OOJSTimer function");
+		OOJSAddGCValueRoot(context, &_function, "OOJSTimer function");
 		
 		_jsSelf = JS_NewObject(context, &sTimerClass, sTimerPrototype, NULL);
 		if (_jsSelf != NULL)
@@ -119,7 +119,7 @@ static JSClass sTimerClass;
 }
 
 
-- (NSString *)jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Timer";
 }
@@ -135,10 +135,10 @@ static JSClass sTimerClass;
 	JS_BeginRequest(context);
 	
 	// stop and remove the timer if _jsThis (the first parameter in the constructor) dies.
-	id object = JSObjectToObject(context, _jsThis);
+	id object = OOJSNativeObjectFromJSObject(context, _jsThis);
 	if (object != nil)
 	{
-		description = [object javaScriptDescription];
+		description = [object oo_jsDescription];
 		if (description == nil)  description = [object description];
 	}
 	
@@ -162,7 +162,7 @@ static JSClass sTimerClass;
 }
 
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	return OBJECT_TO_JSVAL(_jsSelf);
 }
@@ -219,7 +219,7 @@ static JSPropertySpec sTimerProperties[] =
 static JSFunctionSpec sTimerMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				JSObjectWrapperToString,	0 },
+	{ "toString",				OOJSObjectWrapperToString,	0 },
 	{ "start",					TimerStart,					0 },
 	{ "stop",					TimerStop,					0 },
 	{ 0 }
@@ -232,7 +232,7 @@ DEFINE_JS_OBJECT_GETTER(JSTimerGetTimer, &sTimerClass, sTimerPrototype, OOJSTime
 void InitOOJSTimer(JSContext *context, JSObject *global)
 {
 	sTimerPrototype = JS_InitClass(context, global, NULL, &sTimerClass, TimerConstruct, 0, sTimerProperties, sTimerMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sTimerClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sTimerClass, OOJSBasicPrivateObjectConverter);
 }
 
 
@@ -258,12 +258,12 @@ static JSBool TimerGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kTimer_isRunning:
-			*value = BOOLToJSVal([timer isScheduled]);
+			*value = OOJSValueFromBOOL([timer isScheduled]);
 			OK = YES;
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Timer", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Timer", OOJS_PROPID_INT);
 	}
 	
 	return OK;
@@ -292,7 +292,7 @@ static JSBool TimerSetProperty(OOJS_PROP_ARGS)
 				OK = YES;
 				if (![timer setNextTime:fValue])
 				{
-					OOReportJSWarning(context, @"Ignoring attempt to change next fire time for running timer %@.", timer);
+					OOJSReportWarning(context, @"Ignoring attempt to change next fire time for running timer %@.", timer);
 				}
 			}
 			break;
@@ -306,7 +306,7 @@ static JSBool TimerSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Timer", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Timer", OOJS_PROPID_INT);
 	}
 	
 	return OK;
@@ -325,7 +325,7 @@ static void TimerFinalize(JSContext *context, JSObject *this)
 	{
 		if ([timer isScheduled])
 		{
-			OOReportJSWarning(context, @"Timer %@ is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", timer);
+			OOJSReportWarning(context, @"Timer %@ is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", timer);
 		}
 		[timer release];
 		JS_SetPrivate(context, this, NULL);
@@ -348,13 +348,13 @@ static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING))
 	{
-		OOReportJSError(context, @"Timer() cannot be called as a function, it must be used as a constructor (as in new Timer(...)).");
+		OOJSReportError(context, @"Timer() cannot be called as a function, it must be used as a constructor (as in new Timer(...)).");
 		return NO;
 	}
 	
 	if (argc < 3)
 	{
-		OOReportJSBadArguments(context, nil, @"Timer", argc, OOJS_ARGV, @"Invalid arguments in constructor", @"(object, function, number [, number])");
+		OOJSReportBadArguments(context, nil, @"Timer", argc, OOJS_ARGV, @"Invalid arguments in constructor", @"(object, function, number [, number])");
 		return NO;
 	}
 	
@@ -362,7 +362,7 @@ static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
 	{
 		if (!JS_ValueToObject(context, OOJS_ARG(0), &callbackThis))
 		{
-			OOReportJSBadArguments(context, nil, @"Timer", 1, OOJS_ARGV, @"Invalid argument in constructor", @"object");
+			OOJSReportBadArguments(context, nil, @"Timer", 1, OOJS_ARGV, @"Invalid argument in constructor", @"object");
 			return NO;
 		}
 	}
@@ -370,13 +370,13 @@ static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
 	function = OOJS_ARG(1);
 	if (JS_ValueToFunction(context, function) == NULL)
 	{
-		OOReportJSBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 1, @"Invalid argument in constructor", @"function");
+		OOJSReportBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 1, @"Invalid argument in constructor", @"function");
 		return NO;
 	}
 	
 	if (!JS_ValueToNumber(context, OOJS_ARG(2), &delay) || isnan(delay))
 	{
-		OOReportJSBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 2, @"Invalid argument in constructor", @"number");
+		OOJSReportBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 2, @"Invalid argument in constructor", @"number");
 		return NO;
 	}
 	

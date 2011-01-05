@@ -98,27 +98,27 @@ enum
 	Note that after reporting an error in a JavaScript callback, the caller
 	must return NO to signal an error.
 */
-void OOReportJSError(JSContext *context, NSString *format, ...);
-void OOReportJSErrorWithArguments(JSContext *context, NSString *format, va_list args);
-void OOReportJSErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
+void OOJSReportError(JSContext *context, NSString *format, ...);
+void OOJSReportErrorWithArguments(JSContext *context, NSString *format, va_list args);
+void OOJSReportErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
 
-void OOReportJSWarning(JSContext *context, NSString *format, ...);
-void OOReportJSWarningWithArguments(JSContext *context, NSString *format, va_list args);
-void OOReportJSWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
+void OOJSReportWarning(JSContext *context, NSString *format, ...);
+void OOJSReportWarningWithArguments(JSContext *context, NSString *format, va_list args);
+void OOJSReportWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
 
-void OOReportJSBadPropertySelector(JSContext *context, NSString *className, jsint selector);
-void OOReportJSBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription);
+void OOJSReportBadPropertySelector(JSContext *context, NSString *className, jsint selector);
+void OOJSReportBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription);
 
-/*	OOSetJSWarningOrErrorStackSkip()
+/*	OOJSSetWarningOrErrorStackSkip()
 	
 	Indicate that the direct call site is not relevant for error handler.
 	Currently, if non-zero, no call site information is provided.
 	Ideally, we'd stack crawl instead.
 */
-void OOSetJSWarningOrErrorStackSkip(unsigned skip);
+void OOJSSetWarningOrErrorStackSkip(unsigned skip);
 
 
-/*	NumberFromArgumentList()
+/*	OOJSArgumentListGetNumber()
 	
 	Get a single number from an argument list. The optional outConsumed
 	argument can be used to find out how many parameters were used (currently,
@@ -127,55 +127,57 @@ void OOSetJSWarningOrErrorStackSkip(unsigned skip);
 	On failure, it will return NO and raise an error. If the caller is a JS
 	callback, it must return NO to signal an error.
 */
-BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
+BOOL OOJSArgumentListGetNumber(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
 
-/*	NumberFromArgumentListNoError()
+/*	OOJSArgumentListGetNumberNoError()
 	
-	Like NumberFromArgumentList(), but does not report an error on failure.
+	Like OOJSArgumentListGetNumber(), but does not report an error on failure.
 */
-BOOL NumberFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
+BOOL OOJSArgumentListGetNumberNoError(JSContext *context, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
 
 
 // Typed as int rather than BOOL to work with more general expressions such as bitfield tests.
-OOINLINE jsval BOOLToJSVal(int b) INLINE_CONST_FUNC;
-OOINLINE jsval BOOLToJSVal(int b)
+OOINLINE jsval OOJSValueFromBOOL(int b) INLINE_CONST_FUNC;
+OOINLINE jsval OOJSValueFromBOOL(int b)
 {
 	return BOOLEAN_TO_JSVAL(b != NO);
 }
 
 
-/*	JSFooNSBar()
+/*	OOJSFooProperty()
 	
-	Wrappers to corresponding JS_FooBar()/JS_FooUCBar() functions, but taking
-	an NSString. Additionally, a NULL context parameter may be used.
+	Wrappers to corresponding JS_FooProperty()/JS_FooUCProperty() functions,
+	but taking an NSString.
+	
+	Require a request on context.
 */
-BOOL JSGetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
-BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
-BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs);
+BOOL OOJSGetProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
+BOOL OOJSSetProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
+BOOL OOJSDefineProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs);
 
 
 @interface NSObject (OOJavaScript)
 
-/*	-javaScriptValueInContext:
+/*	-oo_jsValueInContext:
 	
 	Return the JavaScript object representation of an object. The default
 	implementation returns JSVAL_VOID. At this time, NSString, NSNumber,
 	NSArray, NSDictionary, NSNull, Entity, OOScript and OOJSTimer override this.
 */
-- (jsval)javaScriptValueInContext:(JSContext *)context;
+- (jsval) oo_jsValueInContext:(JSContext *)context;
 
-/*	-javaScriptDescription
-	-javaScriptDescriptionWithClassName:
-	-jsClassName
+/*	-oo_jsDescription
+	-oo_jsDescriptionWithClassName:
+	-oo_jsClassName
 	
 	See comments for -descriptionComponents in OOCocoa.h.
 */
-- (NSString *)javaScriptDescription;
-- (NSString *)javaScriptDescriptionWithClassName:(NSString *)className;
-- (NSString *)jsClassName;
+- (NSString *) oo_jsDescription;
+- (NSString *) oo_jsDescriptionWithClassName:(NSString *)className;
+- (NSString *) oo_jsClassName;
 
 /*	oo_clearJSSelf:
-	This is called by JSObjectWrapperFinalize() when a JS object wrapper is
+	This is called by OOJSObjectWrapperFinalize() when a JS object wrapper is
 	collected. The default implementation does nothing.
 */
 - (void) oo_clearJSSelf:(JSObject *)selfVal;
@@ -202,12 +204,12 @@ BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, js
 @end
 
 
-/*	JSObjectWrapperFinalize
+/*	OOJSObjectWrapperFinalize
 	
 	Finalizer for JS classes whose private storage is a retained object
 	reference (generally an OOWeakReference, but doesn't have to be).
 */
-void JSObjectWrapperFinalize(JSContext *context, JSObject *this);
+void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this);
 
 
 @interface NSString (OOJavaScriptExtensions)
@@ -232,18 +234,10 @@ void JSObjectWrapperFinalize(JSContext *context, JSObject *this);
 @end
 
 
-OOINLINE NSString *JSValToNSString(JSContext *context, jsval value) ALWAYS_INLINE_FUNC;
-OOINLINE NSString *JSObjectToNSString(JSContext *context, JSObject *object) ALWAYS_INLINE_FUNC;
-
-OOINLINE NSString *JSValToNSString(JSContext *context, jsval value)
+OOINLINE NSString *OOJSValToNSString(JSContext *context, jsval value) ALWAYS_INLINE_FUNC;
+OOINLINE NSString *OOJSValToNSString(JSContext *context, jsval value)
 {
 	return [NSString stringOrNilWithJavaScriptValue:value inContext:context];
-}
-
-
-OOINLINE NSString *JSObjectToNSString(JSContext *context, JSObject *object)
-{
-	return [NSString stringOrNilWithJavaScriptValue:OBJECT_TO_JSVAL(object) inContext:context];
 }
 
 
@@ -267,14 +261,14 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter);
 
 
 // These require a request on context.
-id JSValueToObject(JSContext *context, jsval value);
-id JSObjectToObject(JSContext *context, JSObject *object);
-id JSValueToObjectOfClass(JSContext *context, jsval value, Class requiredClass);
-id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredClass);
+id OOJSNativeObjectFromJSValue(JSContext *context, jsval value);
+id OOJSNativeObjectFromJSObject(JSContext *context, JSObject *object);
+id OOJSNativeObjectOfClassFromJSValue(JSContext *context, jsval value, Class requiredClass);
+id OOJSNativeObjectOfClassFromJSObject(JSContext *context, JSObject *object, Class requiredClass);
 
 
-OOINLINE JSClass *OOJS_GetClass(JSContext *cx, JSObject *obj)  ALWAYS_INLINE_FUNC;
-OOINLINE JSClass *OOJS_GetClass(JSContext *cx, JSObject *obj)
+OOINLINE JSClass *OOJSGetClass(JSContext *cx, JSObject *obj)  ALWAYS_INLINE_FUNC;
+OOINLINE JSClass *OOJSGetClass(JSContext *cx, JSObject *obj)
 {
 #if JS_THREADSAFE
 	return JS_GetClass(cx, obj);
@@ -284,7 +278,7 @@ OOINLINE JSClass *OOJS_GetClass(JSContext *cx, JSObject *obj)
 }
 
 
-/*	OOJSStringTableToDictionary(context, value);
+/*	OOJSDictionaryFromStringTable(context, value);
 	
 	Treat an arbitrary JavaScript object as a dictionary mapping strings to
 	strings, and convert to a corresponding NSDictionary. The values are
@@ -295,7 +289,7 @@ OOINLINE JSClass *OOJS_GetClass(JSContext *cx, JSObject *obj)
 	
 	Requires a request on context.
 */
-NSDictionary *OOJSStringTableToDictionary(JSContext *context, jsval value);
+NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval value);
 
 
 /*
@@ -362,26 +356,26 @@ void OOJSRegisterSubclass(JSClass *subclass, JSClass *superclass);
 BOOL OOJSIsSubclass(JSClass *putativeSubclass, JSClass *superclass);
 OOINLINE BOOL OOJSIsMemberOfSubclass(JSContext *context, JSObject *object, JSClass *superclass)
 {
-	return OOJSIsSubclass(OOJS_GetClass(context, object), superclass);
+	return OOJSIsSubclass(OOJSGetClass(context, object), superclass);
 }
 
 
-/*	Support for JSValueToObject()
+/*	Support for OOJSNativeObjectFromJSValue() family
 	
-	JSClassConverterCallback specifies the prototype for a callback function
+	OOJSClassConverterCallback specifies the prototype for a callback function
 	which converts a JavaScript object to an Objective-C object.
 	
-	JSBasicPrivateObjectConverter() is a JSClassConverterCallback which
+	OOJSBasicPrivateObjectConverter() is a OOJSClassConverterCallback which
 	returns the JS object's private storage value. It automatically unpacks
 	OOWeakReferences if relevant.
 	
-	JSRegisterObjectConverter() registers a callback for a specific JS class.
+	OOJSRegisterObjectConverter() registers a callback for a specific JS class.
 	It is not automatically propagated to subclasses.
 */
-typedef id (*JSClassConverterCallback)(JSContext *context, JSObject *object);
-id JSBasicPrivateObjectConverter(JSContext *context, JSObject *object);
+typedef id (*OOJSClassConverterCallback)(JSContext *context, JSObject *object);
+id OOJSBasicPrivateObjectConverter(JSContext *context, JSObject *object);
 
-void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback converter);
+void OOJSRegisterObjectConverter(JSClass *theClass, OOJSClassConverterCallback converter);
 
 
 /*	JS root handling
@@ -394,15 +388,15 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 	string literal.
 */
 #ifdef NDEBUG
-#define OOJS_AddGCValueRoot(context, root, name)	JS_AddValueRoot((context), (root))
-#define OOJS_AddGCStringRoot(context, root, name)	JS_AddStringRoot((context), (root))
-#define OOJS_AddGCObjectRoot(context, root, name)	JS_AddObjectRoot((context), (root))
-#define OOJS_AddGCThingRoot(context, root, name)	JS_AddGCThingRoot((context), (root))
+#define OOJSAddGCValueRoot(context, root, name)		JS_AddValueRoot((context), (root))
+#define OOJSAddGCStringRoot(context, root, name)	JS_AddStringRoot((context), (root))
+#define OOJSAddGCObjectRoot(context, root, name)	JS_AddObjectRoot((context), (root))
+#define OOJSAddGCThingRoot(context, root, name)		JS_AddGCThingRoot((context), (root))
 #else
-#define OOJS_AddGCValueRoot(context, root, name)	JS_AddNamedValueRoot((context), (root), "" name)
-#define OOJS_AddGCStringRoot(context, root, name)	JS_AddNamedStringRoot((context), (root), "" name)
-#define OOJS_AddGCObjectRoot(context, root, name)	JS_AddNamedObjectRoot((context), (root), "" name)
-#define OOJS_AddGCThingRoot(context, root, name)	JS_AddNamedGCThingRoot((context), (root), "" name)
+#define OOJSAddGCValueRoot(context, root, name)		JS_AddNamedValueRoot((context), (root), "" name)
+#define OOJSAddGCStringRoot(context, root, name)	JS_AddNamedStringRoot((context), (root), "" name)
+#define OOJSAddGCObjectRoot(context, root, name)	JS_AddNamedObjectRoot((context), (root), "" name)
+#define OOJSAddGCThingRoot(context, root, name)		JS_AddNamedGCThingRoot((context), (root), "" name)
 #endif
 
 
@@ -452,13 +446,15 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 	included in profiling reports.
 	
 	Functions using either of these pairs _must_ return before
-	OOJS_NATIVE_EXIT/OOJS_PROFILE_EXIT, or they will crash in OOJSUnreachable()
-	in debug builds.
+	OOJS_NATIVE_EXIT/OOJS_PROFILE_EXIT, or they will crash.
 	
 	For functions with a non-scalar return type, OOJS_PROFILE_EXIT should be
 	replaced with OOJS_PROFILE_EXIT_VAL(returnValue). The returnValue is never
 	used (and should be a constant expression), but is required to placate the
 	compiler.
+	
+	For values with void return, use OOJS_PROFILE_EXIT_VOID. It is not
+	necessary to insert a return statement before OOJS_PROFILE_EXIT_VOID.
 */
 
 #if OOLITE_NATIVE_EXCEPTIONS
@@ -486,7 +482,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 #else
 
 #define OOJS_PROFILE_ENTER			{
-#define OOJS_PROFILE_EXIT_VAL(rval)	} return (rval);
+#define OOJS_PROFILE_EXIT_VAL(rval)	} OO_UNREACHABLE(); OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); return (rval);
 #define OOJS_PROFILE_EXIT_VOID		} return;
 #define OOJS_PROFILE_ENTER_FOR_NATIVE @try {
 
@@ -506,24 +502,23 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 
 
 void OOJSReportWrappedException(JSContext *context, id exception);
-
-#ifndef NDEBUG
-void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_RETURN_FUNC;
-#else
-#define OOJSUnreachable(function, line) do {} while (0)
-#endif
-
 #else	// OOLITE_NATIVE_EXCEPTIONS
 
 // These introduce a scope to ensure proper nesting.
 #define OOJS_PROFILE_ENTER			{
-#define OOJS_PROFILE_EXIT_VAL(rval)	} return (rval);
+#define OOJS_PROFILE_EXIT_VAL(rval)	} OO_UNREACHABLE(); OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); return (rval);
 #define OOJS_PROFILE_EXIT_VOID		} return;
 
 #define OOJS_NATIVE_ENTER(cx)	OOJS_PROFILE_ENTER
 #define OOJS_NATIVE_EXIT		OOJS_PROFILE_EXIT_VAL(NO)
 
 #endif	// OOLITE_NATIVE_EXCEPTIONS
+
+#ifndef NDEBUG
+void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_RETURN_FUNC;
+#else
+#define OOJSUnreachable(function, file, line) do {} while (0)
+#endif
 
 
 #define OOJS_PROFILE_EXIT		OOJS_PROFILE_EXIT_VAL(0)
@@ -598,21 +593,21 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #define OOJS_RETURN_JSOBJECT(o)			OOJS_RETURN(OBJECT_TO_JSVAL(o))
 #define OOJS_RETURN_VOID				OOJS_RETURN(JSVAL_VOID)
 #define OOJS_RETURN_NULL				OOJS_RETURN(JSVAL_NULL)
-#define OOJS_RETURN_BOOL(v)				OOJS_RETURN(BOOLToJSVal(v))
+#define OOJS_RETURN_BOOL(v)				OOJS_RETURN(OOJSValueFromBOOL(v))
 #define OOJS_RETURN_INT(v)				OOJS_RETURN(INT_TO_JSVAL(v))
-#define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ javaScriptValueInContext:context] : JSVAL_NULL); } while (0)
+#define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ oo_jsValueInContext:context] : JSVAL_NULL); } while (0)
 
 
 
 
-/*	JSObjectWrapperToString
+/*	OOJSObjectWrapperToString
 	
 	Implementation of toString() for JS classes whose private storage is an
 	Objective-C object reference (generally an OOWeakReference).
 	
-	Calls -javaScriptDescription and, if that fails, -description.
+	Calls -oo_jsDescription and, if that fails, -description.
 */
-JSBool JSObjectWrapperToString(OOJS_NATIVE_ARGS);
+JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS);
 
 
 

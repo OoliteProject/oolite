@@ -79,7 +79,7 @@ static JSBool WorldScriptsGetProperty(OOJS_PROP_ARGS)
 				JSVAL_NULL. If no script exists, the value will be
 				JSVAL_VOID.
 			*/
-			*value = [script javaScriptValueInContext:context];
+			*value = [script oo_jsValueInContext:context];
 		}
 	}
 	
@@ -124,7 +124,7 @@ static JSBool GetWorldScriptNames(OOJS_PROP_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	NSArray *names = [OOPlayerForScripting() worldScriptNames];
-	*value = [names javaScriptValueInContext:context];
+	*value = [names oo_jsValueInContext:context];
 	
 	return YES;
 	

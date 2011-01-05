@@ -55,7 +55,7 @@ static JSClass sManifestClass =
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JSObjectWrapperFinalize,
+	OOJSObjectWrapperFinalize,
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -155,13 +155,13 @@ static NSDictionary *sManifestNameMap;
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Manifest";
 }
 
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	JSObject					*jsSelf = NULL;
 	jsval						result = JSVAL_NULL;
@@ -182,7 +182,7 @@ static NSDictionary *sManifestNameMap;
 void InitOOJSManifest(JSContext *context, JSObject *global)
 {
 	sManifestPrototype = JS_InitClass(context, global, NULL, &sManifestClass, NULL, 0, sManifestProperties, NULL, NULL, NULL);
-	JSRegisterObjectConverter(&sManifestClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sManifestClass, OOJSBasicPrivateObjectConverter);
 	
 	// Create manifest object as a property of the player.ship object.
 	sManifestObject = JS_DefineObject(context, JSPlayerShipObject(), "manifest", &sManifestClass, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
@@ -367,11 +367,11 @@ static JSBool ManifestGetProperty(OOJS_PROP_ARGS)
 				break;
 				
 			default:
-				OOReportJSBadPropertySelector(context, @"Manifest", OOJS_PROPID_INT);
+				OOJSReportBadPropertySelector(context, @"Manifest", OOJS_PROPID_INT);
 		}
 	}
 		
-	if (OK && result != nil)  *value = [result javaScriptValueInContext:context];	
+	if (OK && result != nil)  *value = [result oo_jsValueInContext:context];	
 	return OK;
 	
 	OOJS_NATIVE_EXIT
@@ -392,7 +392,7 @@ static JSBool ManifestSetProperty(OOJS_PROP_ARGS)
 	// we can always change gold, platinum & gem-stones quantities, even with special cargo
 	if ([entity specialCargo] && (commodity < kManifest_gold || commodity > kManifest_gemStones))
 	{
-		OOReportJSWarning(context, @"PlayerShip.manifest['foo'] - cannot modify cargo tonnage when Special Cargo is in use.");
+		OOJSReportWarning(context, @"PlayerShip.manifest['foo'] - cannot modify cargo tonnage when Special Cargo is in use.");
 		return YES;
 	}
 	
@@ -558,7 +558,7 @@ static JSBool ManifestSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Manifest", commodity);
+			OOJSReportBadPropertySelector(context, @"Manifest", commodity);
 	}
 	
 	return OK;

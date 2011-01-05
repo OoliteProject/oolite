@@ -494,9 +494,9 @@ void OOJSProfileExit(OOJSProfileStackFrame *frame)
 }
 
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
-	return [[self propertyListRepresentation] javaScriptValueInContext:context];
+	return [[self propertyListRepresentation] oo_jsValueInContext:context];
 }
 
 
@@ -673,9 +673,9 @@ void OOJSProfileExit(OOJSProfileStackFrame *frame)
 }
 
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
-	return [[self propertyListRepresentation] javaScriptValueInContext:context];
+	return [[self propertyListRepresentation] oo_jsValueInContext:context];
 }
 
 

@@ -170,11 +170,11 @@ static JSBool GlobalGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Global", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Global", OOJS_PROPID_INT);
 			return NO;
 	}
 	
-	if (result != nil)  *value = [result javaScriptValueInContext:context];
+	if (result != nil)  *value = [result oo_jsValueInContext:context];
 	return YES;
 	
 	OOJS_NATIVE_EXIT
@@ -201,7 +201,7 @@ static JSBool GlobalSetProperty(OOJS_PROP_ARGS)
 			break;
 	
 		default:
-			OOReportJSBadPropertySelector(context, @"Global", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Global", OOJS_PROPID_INT);
 	}
 	
 	return OK;
@@ -223,11 +223,11 @@ static JSBool GlobalLog(OOJS_NATIVE_ARGS)
 	if (argc < 2)
 	{
 		messageClass = kOOLogDebugMessage;
-		message = JSValToNSString(context, OOJS_ARG(0));
+		message = OOJSValToNSString(context, OOJS_ARG(0));
 	}
 	else
 	{
-		messageClass = JSValToNSString(context, OOJS_ARG(0));
+		messageClass = OOJSValToNSString(context, OOJS_ARG(0));
 		message = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV + 1 count:argc - 1 separator:@", " inContext:context];
 	}
 	
@@ -255,15 +255,15 @@ static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS)
 	NSString			*string = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = JSValToNSString(context, OOJS_ARG(0));
+	string = OOJSValToNSString(context, OOJS_ARG(0));
 	if (string == nil)
 	{
-		OOReportJSBadArguments(context, nil, @"expandDescription", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, nil, @"expandDescription", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	if (argc > 1)
 	{
-		overrides = OOJSStringTableToDictionary(context, OOJS_ARG(1));
+		overrides = OOJSDictionaryFromStringTable(context, OOJS_ARG(1));
 	}
 	
 	string = ExpandDescriptionsWithOptions(string, [PLAYER system_seed], overrides, nil, nil);
@@ -282,15 +282,15 @@ static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS)
 	NSMutableString		*mString = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = JSValToNSString(context, OOJS_ARG(0));
+	string = OOJSValToNSString(context, OOJS_ARG(0));
 	if (string == nil)
 	{
-		OOReportJSBadArguments(context, nil, @"expandMissionText", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, nil, @"expandMissionText", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	if (argc > 1)
 	{
-		overrides = OOJSStringTableToDictionary(context, OOJS_ARG(1));
+		overrides = OOJSDictionaryFromStringTable(context, OOJS_ARG(1));
 	}
 	
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
@@ -315,10 +315,10 @@ static JSBool GlobalDisplayNameForCommodity(OOJS_NATIVE_ARGS)
 	
 	NSString			*string = nil;
 	
-	string = JSValToNSString(context,OOJS_ARG(0));
+	string = OOJSValToNSString(context,OOJS_ARG(0));
 	if (string == nil)
 	{
-		OOReportJSBadArguments(context, nil, @"displayNameForCommodity", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, nil, @"displayNameForCommodity", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	string = CommodityDisplayNameForSymbolicName(string);
@@ -366,7 +366,7 @@ static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	NSString 		*value = JSValToNSString(context, OOJS_ARG(0));
+	NSString 		*value = OOJSValToNSString(context, OOJS_ARG(0));
 	PlayerEntity	*player = OOPlayerForScripting();
 	BOOL			result = NO;
 	
@@ -389,7 +389,7 @@ static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	BOOL			result = NO;
-	NSString 		*value = JSValToNSString(context, OOJS_ARG(0));
+	NSString 		*value = OOJSValToNSString(context, OOJS_ARG(0));
 	
 	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
 	{
@@ -415,10 +415,10 @@ static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 	
 	if (argc > 0)
 	{
-		value = JSValToNSString(context, OOJS_ARG(0));
+		value = OOJSValToNSString(context, OOJS_ARG(0));
 		if (EXPECT_NOT(value == nil || [value rangeOfCharacterFromSet:[allowedChars invertedSet]].location != NSNotFound))
 		{
-			OOReportJSBadArguments(context, nil, @"takeSnapShot", argc, OOJS_ARGV, nil, @"alphanumeric string");
+			OOJSReportBadArguments(context, nil, @"takeSnapShot", argc, OOJS_ARGV, nil, @"alphanumeric string");
 			return NO;
 		}
 	}
@@ -437,7 +437,7 @@ static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 		double freeSpace = [attr oo_doubleForKey:NSFileSystemFreeSize];
 		if (freeSpace < 1073741824) // less than 1 GB free on disk?
 		{
-			OOReportJSWarning(context, @"takeSnapShot: function disabled when free disk space is less than 1GB.");
+			OOJSReportWarning(context, @"takeSnapShot: function disabled when free disk space is less than 1GB.");
 			OOJS_RETURN_BOOL(NO);
 		}
 	}

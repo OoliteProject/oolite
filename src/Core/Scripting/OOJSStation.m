@@ -61,7 +61,7 @@ static JSClass sStationClass =
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert
-	JSObjectWrapperFinalize,// finalize
+	OOJSObjectWrapperFinalize,// finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -126,7 +126,7 @@ static JSFunctionSpec sStationMethods[] =
 void InitOOJSStation(JSContext *context, JSObject *global)
 {
 	sStationPrototype = JS_InitClass(context, global, JSShipPrototype(), &sStationClass, NULL, 0, sStationProperties, sStationMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sStationClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sStationClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sStationClass, JSShipClass());
 }
 
@@ -162,7 +162,7 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 }
 
 
-- (NSString *)jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Station";
 }
@@ -184,11 +184,11 @@ static JSBool StationGetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kStation_isMainStation:
-			*value = BOOLToJSVal(entity == [UNIVERSE station]);
+			*value = OOJSValueFromBOOL(entity == [UNIVERSE station]);
 			break;
 		
 		case kStation_hasNPCTraffic:
-			*value = BOOLToJSVal([entity hasNPCTraffic]);
+			*value = OOJSValueFromBOOL([entity hasNPCTraffic]);
 			break;
 		
 		case kStation_alertCondition:
@@ -197,16 +197,16 @@ static JSBool StationGetProperty(OOJS_PROP_ARGS)
 			
 #if DOCKING_CLEARANCE_ENABLED
 		case kStation_requiresDockingClearance:
-			*value = BOOLToJSVal([entity requiresDockingClearance]);
+			*value = OOJSValueFromBOOL([entity requiresDockingClearance]);
 			break;
 #endif
 			
 		case kStation_allowsFastDocking:
-			*value = BOOLToJSVal([entity allowsFastDocking]);
+			*value = OOJSValueFromBOOL([entity allowsFastDocking]);
 			break;
 			
 		case kStation_allowsAutoDocking:
-			*value = BOOLToJSVal([entity allowsAutoDocking]);
+			*value = OOJSValueFromBOOL([entity allowsAutoDocking]);
 			break;
 
 		case kStation_dockedContractors:
@@ -230,11 +230,11 @@ static JSBool StationGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kStation_suppressArrivalReports:
-			*value = BOOLToJSVal([entity suppressArrivalReports]);
+			*value = OOJSValueFromBOOL([entity suppressArrivalReports]);
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Station", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Station", OOJS_PROPID_INT);
 			return NO;
 	}
 	return YES;
@@ -310,7 +310,7 @@ static JSBool StationSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Station", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Station", OOJS_PROPID_INT);
 	}
 	
 	return OK;
@@ -361,10 +361,10 @@ static JSBool StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
 	
 	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARG(1), &abortAllDockings);
 	
-	NSString *shipRole = JSValToNSString(context, OOJS_ARG(0));
+	NSString *shipRole = OOJSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(shipRole == nil))
 	{
-		OOReportJSBadArguments(context, @"Station", @"launchShipWithRole", argc, OOJS_ARGV, nil, @"shipRole");
+		OOJSReportBadArguments(context, @"Station", @"launchShipWithRole", argc, OOJS_ARGV, nil, @"shipRole");
 		return NO;
 	}
 	

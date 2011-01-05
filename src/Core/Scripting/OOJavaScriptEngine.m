@@ -622,17 +622,17 @@ static NSString *CallerPrefix(NSString *scriptClass, NSString *function)
 }
 
 
-void OOReportJSError(JSContext *context, NSString *format, ...)
+void OOJSReportError(JSContext *context, NSString *format, ...)
 {
 	va_list					args;
 	
 	va_start(args, format);
-	OOReportJSErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-void OOReportJSErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
+void OOJSReportErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
 {
 	va_list					args;
 	NSString				*msg = nil;
@@ -642,7 +642,7 @@ void OOReportJSErrorForCaller(JSContext *context, NSString *scriptClass, NSStrin
 		msg = [[NSString alloc] initWithFormat:format arguments:args];
 		va_end(args);
 		
-		OOReportJSError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+		OOJSReportError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
 	NS_HANDLER
 		// Squash any secondary errors during error handling.
 	NS_ENDHANDLER
@@ -650,7 +650,7 @@ void OOReportJSErrorForCaller(JSContext *context, NSString *scriptClass, NSStrin
 }
 
 
-void OOReportJSErrorWithArguments(JSContext *context, NSString *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, NSString *format, va_list args)
 {
 	NSString				*msg = nil;
 	
@@ -670,11 +670,13 @@ void OOJSReportWrappedException(JSContext *context, id exception)
 {
 	if (!JS_IsExceptionPending(context))
 	{
-		if ([exception isKindOfClass:[NSException class]])  OOReportJSError(context, @"Native exception: %@", [exception reason]);
-		else  OOReportJSError(context, @"Unidentified native exception");
+		if ([exception isKindOfClass:[NSException class]])  OOJSReportError(context, @"Native exception: %@", [exception reason]);
+		else  OOJSReportError(context, @"Unidentified native exception");
 	}
 	// Else, let the pending exception propagate.
 }
+
+#endif
 
 
 #ifndef NDEBUG
@@ -686,20 +688,19 @@ void OOJSUnreachable(const char *function, const char *file, unsigned line)
 }
 
 #endif
-#endif
 
 
-void OOReportJSWarning(JSContext *context, NSString *format, ...)
+void OOJSReportWarning(JSContext *context, NSString *format, ...)
 {
 	va_list					args;
 	
 	va_start(args, format);
-	OOReportJSWarningWithArguments(context, format, args);
+	OOJSReportWarningWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-void OOReportJSWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
+void OOJSReportWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
 {
 	va_list					args;
 	NSString				*msg = nil;
@@ -709,7 +710,7 @@ void OOReportJSWarningForCaller(JSContext *context, NSString *scriptClass, NSStr
 		msg = [[NSString alloc] initWithFormat:format arguments:args];
 		va_end(args);
 		
-		OOReportJSWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+		OOJSReportWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
 	NS_HANDLER
 	// Squash any secondary errors during error handling.
 	NS_ENDHANDLER
@@ -717,7 +718,7 @@ void OOReportJSWarningForCaller(JSContext *context, NSString *scriptClass, NSStr
 }
 
 
-void OOReportJSWarningWithArguments(JSContext *context, NSString *format, va_list args)
+void OOJSReportWarningWithArguments(JSContext *context, NSString *format, va_list args)
 {
 	NSString				*msg = nil;
 	
@@ -731,62 +732,60 @@ void OOReportJSWarningWithArguments(JSContext *context, NSString *format, va_lis
 }
 
 
-void OOReportJSBadPropertySelector(JSContext *context, NSString *className, jsint selector)
+void OOJSReportBadPropertySelector(JSContext *context, NSString *className, jsint selector)
 {
 	// FIXME: after API upgrade, should take a jsid and decode it.
-	OOReportJSError(context, @"Internal error: bad property identifier %i in property accessor for class %@.", selector, className);
+	OOJSReportError(context, @"Internal error: bad property identifier %i in property accessor for class %@.", selector, className);
 }
 
 
-void OOReportJSBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription)
+void OOJSReportBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription)
 {
 	NS_DURING
 		if (message == nil)  message = @"Invalid arguments";
 		message = [NSString stringWithFormat:@"%@ %@", message, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]];
 		if (expectedArgsDescription != nil)  message = [NSString stringWithFormat:@"%@ -- expected %@", message, expectedArgsDescription];
 		
-		OOReportJSErrorForCaller(context, scriptClass, function, @"%@.", message);
+		OOJSReportErrorForCaller(context, scriptClass, function, @"%@.", message);
 	NS_HANDLER
 	// Squash any secondary errors during error handling.
 	NS_ENDHANDLER
 }
 
 
-void OOSetJSWarningOrErrorStackSkip(unsigned skip)
+void OOJSSetWarningOrErrorStackSkip(unsigned skip)
 {
 	sErrorHandlerStackSkip = skip;
 }
 
 
-BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed)
+BOOL OOJSArgumentListGetNumber(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed)
 {
-	if (NumberFromArgumentListNoError(context, argc, argv, outNumber, outConsumed))  return YES;
+	if (OOJSArgumentListGetNumberNoError(context, argc, argv, outNumber, outConsumed))
+	{
+		return YES;
+	}
 	else
 	{
-		OOReportJSBadArguments(context, scriptClass, function, argc, argv,
+		OOJSReportBadArguments(context, scriptClass, function, argc, argv,
 									   @"Expected number, got", NULL);
 		return NO;
 	}
 }
 
 
-BOOL NumberFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed)
+BOOL OOJSArgumentListGetNumberNoError(JSContext *context, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed)
 {
 	OOJS_PROFILE_ENTER
 	
 	double					value;
 	
-	// Sanity checks.
-	if (outConsumed != NULL)  *outConsumed = 0;
-	if (EXPECT_NOT(argc == 0 || argv == NULL || outNumber == NULL))
-	{
-		OOLogGenericParameterError();
-		return NO;
-	}
+	NSCParameterAssert(context != NULL && (argv != NULL || argc == 0) && outNumber != NULL);
 	
 	// Get value, if possible.
 	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &value) || isnan(value)))
 	{
+		if (outConsumed != NULL)  *outConsumed = 0;
 		return NO;
 	}
 	
@@ -819,81 +818,66 @@ static BOOL ExtractString(NSString *string, jschar **outString, size_t *outLengt
 }
 
 
-BOOL JSGetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
+BOOL OOJSGetProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
 {
 	OOJS_PROFILE_ENTER
 	
 	jschar					*buffer = NULL;
 	size_t					length;
 	BOOL					OK = NO;
-	BOOL					tempCtxt = NO;
 	
-	if (context == NULL)
-	{
-		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-		tempCtxt = YES;
-	}
+	NSCParameterAssert(context != NULL && name != nil);
+	
 	if (ExtractString(name, &buffer, &length))
 	{
 		OK = JS_GetUCProperty(context, object, buffer, length, value);
 		free(buffer);
 	}
 	
-	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return OK;
 	
 	OOJS_PROFILE_EXIT
 }
 
 
-BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
+BOOL OOJSSetProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
 {
 	OOJS_PROFILE_ENTER
 	
 	jschar					*buffer = NULL;
 	size_t					length;
 	BOOL					OK = NO;
-	BOOL					tempCtxt = NO;
 	
-	if (context == NULL)
-	{
-		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-		tempCtxt = YES;
-	}
+	NSCParameterAssert(context != NULL && name != nil);
+	
 	if (ExtractString(name, &buffer, &length))
 	{
 		OK = JS_SetUCProperty(context, object, buffer, length, value);
 		free(buffer);
 	}
 	
-	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return OK;
 	
 	OOJS_PROFILE_EXIT
 }
 
 
-BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs)
+BOOL OOJSDefineProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs)
 {
 	OOJS_PROFILE_ENTER
 	
 	jschar					*buffer = NULL;
 	size_t					length;
 	BOOL					OK = NO;
-	BOOL					tempCtxt = NO;
 	
-	if (context == NULL)
-	{
-		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-		tempCtxt = YES;
-	}
+	NSCParameterAssert(context != NULL && name != nil);
+	
 	if (ExtractString(name, &buffer, &length))
 	{
 		OK = JS_DefineUCProperty(context, object, buffer, length, value, getter, setter, attrs);
 		free(buffer);
 	}
 	
-	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return OK;
 	
 	OOJS_PROFILE_EXIT
@@ -918,7 +902,7 @@ static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 			count = [array count];
 			for (i = 0; i != count; ++i)
 			{
-				value = [[array objectAtIndex:i] javaScriptValueInContext:context];
+				value = [[array objectAtIndex:i] oo_jsValueInContext:context];
 				BOOL OK = JS_SetElement(context, result, i, &value);
 				
 				if (EXPECT_NOT(!OK))
@@ -993,10 +977,10 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 			{
 				if ([key isKindOfClass:[NSString class]] && [key length] != 0)
 				{
-					value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
+					value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
 					if (!JSVAL_IS_VOID(value))
 					{
-						OK = JSSetNSProperty(context, result, key, &value);
+						OK = OOJSSetProperty(context, result, key, &value);
 						if (EXPECT_NOT(!OK))  break;
 					}
 				}
@@ -1005,7 +989,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 					index = [key intValue];
 					if (0 < index)
 					{
-						value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
+						value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
 						if (!JSVAL_IS_VOID(value))
 						{
 							OK = JS_SetElement(context, (JSObject *)result, index, &value);
@@ -1064,25 +1048,25 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 
 @implementation NSObject (OOJavaScriptConversion)
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	return JSVAL_VOID;
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return nil;
 }
 
 
-- (NSString *) javaScriptDescription
+- (NSString *) oo_jsDescription
 {
-	return [self javaScriptDescriptionWithClassName:[self jsClassName]];
+	return [self oo_jsDescriptionWithClassName:[self oo_jsClassName]];
 }
 
 
-- (NSString *) javaScriptDescriptionWithClassName:(NSString *)className
+- (NSString *) oo_jsDescriptionWithClassName:(NSString *)className
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1182,7 +1166,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	return _val;
 }
@@ -1217,7 +1201,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	
 	// In some cases we didn't test the original stringWith... function for nil, causing difficult
 	// to track crashes. We now have two similar functions: stringWith... which never returns nil and 
-	// stringOrNilWith... (alias JSValToNSString) which can return nil and is used in most cases.
+	// stringOrNilWith... (alias OOJSValToNSString) which can return nil and is used in most cases.
 
 	if (JSVAL_IS_VOID(value))  return @"undefined";
 	if (JSVAL_IS_NULL(value))  return @"null";
@@ -1289,7 +1273,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1417,7 +1401,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"String";
 }
@@ -1430,13 +1414,13 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 // For use in debugger
 const char *JSValueToStrDbg(jsval val)
 {
-	return [JSValToNSString(NULL, val) UTF8String];
+	return [OOJSValToNSString(NULL, val) UTF8String];
 }
 
 
 const char *JSObjectToStrDbg(JSObject *obj)
 {
-	return [JSValToNSString(NULL, OBJECT_TO_JSVAL(obj)) UTF8String];
+	return [OOJSValToNSString(NULL, OBJECT_TO_JSVAL(obj)) UTF8String];
 }
 
 
@@ -1448,7 +1432,7 @@ const char *JSValueTypeDbg(jsval val)
 	if (JSVAL_IS_BOOLEAN(val))  return "boolean";
 	if (JSVAL_IS_NULL(val))  return "null";
 	if (JSVAL_IS_VOID(val))  return "void";
-	if (JSVAL_IS_OBJECT(val))  return OOJS_GetClass(NULL, JSVAL_TO_OBJECT(val))->name;	// Fun fact: although a context is required if JS_THREADSAFE is defined, it isn't actually used.
+	if (JSVAL_IS_OBJECT(val))  return OOJSGetClass(NULL, JSVAL_TO_OBJECT(val))->name;	// Fun fact: although a context is required if JS_THREADSAFE is defined, it isn't actually used.
 	return "unknown";
 }
 
@@ -1457,7 +1441,7 @@ const char *JSValueTypeDbg(jsval val)
 
 @implementation NSArray (OOJavaScriptConversion)
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval)oo_jsValueInContext:(JSContext *)context
 {
 	jsval value = JSVAL_VOID;
 	JSNewNSArrayValue(context, self, &value);
@@ -1469,7 +1453,7 @@ const char *JSValueTypeDbg(jsval val)
 
 @implementation NSDictionary (OOJavaScriptConversion)
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval)oo_jsValueInContext:(JSContext *)context
 {
 	jsval value = JSVAL_VOID;
 	JSNewNSDictionaryValue(context, self, &value);
@@ -1481,7 +1465,7 @@ const char *JSValueTypeDbg(jsval val)
 
 @implementation NSNumber (OOJavaScriptConversion)
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval)oo_jsValueInContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1529,7 +1513,7 @@ const char *JSValueTypeDbg(jsval val)
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Number";
 }
@@ -1539,7 +1523,7 @@ const char *JSValueTypeDbg(jsval val)
 
 @implementation NSNull (OOJavaScriptConversion)
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval)oo_jsValueInContext:(JSContext *)context
 {
 	return JSVAL_NULL;
 }
@@ -1547,7 +1531,7 @@ const char *JSValueTypeDbg(jsval val)
 @end
 
 
-JSBool JSObjectWrapperToString(OOJS_NATIVE_ARGS)
+JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1555,15 +1539,15 @@ JSBool JSObjectWrapperToString(OOJS_NATIVE_ARGS)
 	NSString				*description = nil;
 	JSClass					*jsClass = NULL;
 	
-	object = JSObjectToObject(context, OOJS_THIS);
+	object = OOJSNativeObjectFromJSObject(context, OOJS_THIS);
 	if (object != nil)
 	{
-		description = [object javaScriptDescription];
+		description = [object oo_jsDescription];
 		if (description == nil)  description = [object description];
 	}
 	if (description == nil)
 	{
-		jsClass = OOJS_GetClass(context, OOJS_THIS);
+		jsClass = OOJSGetClass(context, OOJS_THIS);
 		if (jsClass != NULL)
 		{
 			description = [NSString stringWithFormat:@"[object %@]", [NSString stringWithUTF8String:jsClass->name]];
@@ -1577,7 +1561,7 @@ JSBool JSObjectWrapperToString(OOJS_NATIVE_ARGS)
 }
 
 
-void JSObjectWrapperFinalize(JSContext *context, JSObject *this)
+void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1604,7 +1588,7 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	
 	if (param->errorFlag)  return NO;
 	
-	args[0] = [entity javaScriptValueInContext:param->context];
+	args[0] = [entity oo_jsValueInContext:param->context];
 	
 	OOJSStartTimeLimiter();
 	OOJSResumeTimeLimiter();
@@ -1735,10 +1719,10 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 		Objective-C class test, and I don't think that's any faster.
 		TODO: profile.
 	*/
-	JSClass *actualClass = OOJS_GetClass(context, object);
+	JSClass *actualClass = OOJSGetClass(context, object);
 	if (EXPECT_NOT(!OOJSIsSubclass(actualClass, requiredJSClass)))
 	{
-		OOReportJSError(context, @"Native method expected %s, got %@.", requiredJSClass->name, JSObjectToNSString(context, object));
+		OOJSReportError(context, @"Native method expected %s, got %@.", requiredJSClass->name, OOJSValToNSString(context, OBJECT_TO_JSVAL(object)));
 		return NO;
 	}
 	NSCAssert(actualClass->flags & JSCLASS_HAS_PRIVATE, @"Native object accessor requires JS class with private storage.");
@@ -1750,7 +1734,7 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 	// Double-check that the underlying object is of the expected ObjC class.
 	if (EXPECT_NOT(*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass]))
 	{
-		OOReportJSError(context, @"Native method expected %@ from %s and got correct JS type but incorrect native object %@", requiredObjCClass, requiredJSClass->name, *outObject);
+		OOJSReportError(context, @"Native method expected %@ from %s and got correct JS type but incorrect native object %@", requiredObjCClass, requiredJSClass->name, *outObject);
 		return NO;
 	}
 #endif
@@ -1761,7 +1745,7 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 }
 
 
-NSDictionary *OOJSStringTableToDictionary(JSContext *context, jsval tableValue)
+NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue)
 {
 	JSObject					*tableObject = NULL;
 	JSIdArray					*ids;
@@ -1819,7 +1803,7 @@ NSDictionary *OOJSStringTableToDictionary(JSContext *context, jsval tableValue)
 		
 		if (objKey != nil && !JSVAL_IS_VOID(value))
 		{
-			// Note: we want nulls and undefines included, so not JSValToNSString().
+			// Note: we want nulls and undefines included, so not OOJSValToNSString().
 			objValue = [NSString stringWithJavaScriptValue:value inContext:context];
 			
 			if (objValue != nil)
@@ -1837,7 +1821,7 @@ NSDictionary *OOJSStringTableToDictionary(JSContext *context, jsval tableValue)
 static NSMutableDictionary *sObjectConverters;
 
 
-id JSValueToObject(JSContext *context, jsval value)
+id OOJSNativeObjectFromJSValue(JSContext *context, jsval value)
 {
 	if (JSVAL_IS_NULL(value) || JSVAL_IS_VOID(value))  return nil;
 	
@@ -1855,26 +1839,26 @@ id JSValueToObject(JSContext *context, jsval value)
 	}
 	if (JSVAL_IS_STRING(value))
 	{
-		return JSValToNSString(context, value);
+		return OOJSValToNSString(context, value);
 	}
 	if (JSVAL_IS_OBJECT(value))
 	{
-		return JSObjectToObject(context, JSVAL_TO_OBJECT(value));
+		return OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(value));
 	}
 	return nil;
 }
 
 
-id JSObjectToObject(JSContext *context, JSObject *tableObject)
+id OOJSNativeObjectFromJSObject(JSContext *context, JSObject *tableObject)
 {
 	NSValue					*wrappedClass = nil;
 	NSValue					*wrappedConverter = nil;
-	JSClassConverterCallback converter = NULL;
+	OOJSClassConverterCallback converter = NULL;
 	JSClass					*class = NULL;
 	
 	if (tableObject == NULL)  return nil;
 	
-	class = OOJS_GetClass(context, tableObject);
+	class = OOJSGetClass(context, tableObject);
 	wrappedClass = [NSValue valueWithPointer:class];
 	if (wrappedClass != nil)  wrappedConverter = [sObjectConverters objectForKey:wrappedClass];
 	if (wrappedConverter != nil)
@@ -1886,23 +1870,23 @@ id JSObjectToObject(JSContext *context, JSObject *tableObject)
 }
 
 
-id JSValueToObjectOfClass(JSContext *context, jsval value, Class requiredClass)
+id OOJSNativeObjectOfClassFromJSValue(JSContext *context, jsval value, Class requiredClass)
 {
-	id result = JSValueToObject(context, value);
+	id result = OOJSNativeObjectFromJSValue(context, value);
 	if (![result isKindOfClass:requiredClass])  result = nil;
 	return result;
 }
 
 
-id JSObjectToObjectOfClass(JSContext *context, JSObject *tableObject, Class requiredClass)
+id OOJSNativeObjectOfClassFromJSObject(JSContext *context, JSObject *tableObject, Class requiredClass)
 {
-	id result = JSObjectToObject(context, tableObject);
+	id result = OOJSNativeObjectFromJSObject(context, tableObject);
 	if (![result isKindOfClass:requiredClass])  result = nil;
 	return result;
 }
 
 
-id JSBasicPrivateObjectConverter(JSContext *context, JSObject *tableObject)
+id OOJSBasicPrivateObjectConverter(JSContext *context, JSObject *tableObject)
 {
 	id						result;
 	
@@ -1915,7 +1899,7 @@ id JSBasicPrivateObjectConverter(JSContext *context, JSObject *tableObject)
 }
 
 
-void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback converter)
+void OOJSRegisterObjectConverter(JSClass *theClass, OOJSClassConverterCallback converter)
 {
 	NSValue					*wrappedClass = nil;
 	NSValue					*wrappedConverter = nil;
@@ -1943,27 +1927,27 @@ static void RegisterStandardObjectConverters(JSContext *context)
 	
 	// Create an array in order to get array class.
 	templateObject = JS_NewArrayObject(context, 0, NULL);
-	class = OOJS_GetClass(context, templateObject);
-	JSRegisterObjectConverter(class, JSArrayConverter);
+	class = OOJSGetClass(context, templateObject);
+	OOJSRegisterObjectConverter(class, JSArrayConverter);
 	
 	// Likewise, create a blank object to get its class.
 	// This is not documented (not much is) but JS_NewObject falls back to Object if passed a NULL class.
 	templateObject = JS_NewObject(context, NULL, NULL, NULL);
-	class = OOJS_GetClass(context, templateObject);
-	JSRegisterObjectConverter(class, JSGenericObjectConverter);
+	class = OOJSGetClass(context, templateObject);
+	OOJSRegisterObjectConverter(class, JSGenericObjectConverter);
 	
 	// String object wrappers.
 	if (JS_ValueToObject(context, JS_GetEmptyStringValue(context), &templateObject))
 	{
-		class = OOJS_GetClass(context, templateObject);
-		JSRegisterObjectConverter(class, JSStringConverter);
+		class = OOJSGetClass(context, templateObject);
+		OOJSRegisterObjectConverter(class, JSStringConverter);
 	}
 	
 	// Number object wrappers.
 	if (JS_ValueToObject(context, INT_TO_JSVAL(0), &templateObject))
 	{
-		class = OOJS_GetClass(context, templateObject);
-		JSRegisterObjectConverter(class, JSNumberConverter);
+		class = OOJSGetClass(context, templateObject);
+		OOJSRegisterObjectConverter(class, JSNumberConverter);
 	}
 }
 
@@ -1975,7 +1959,7 @@ static id JSArrayConverter(JSContext *context, JSObject *array)
 	id							tableObject = nil;
 	NSArray						*result = nil;
 	
-	// Convert a JS array to an NSArray by calling JSValueToObject() on all its elements.
+	// Convert a JS array to an NSArray by calling OOJSNativeObjectFromJSValue() on all its elements.
 	if (!JS_IsArrayObject(context, array)) return nil;
 	if (!JS_GetArrayLength(context, array, &count)) return nil;
 	
@@ -1989,7 +1973,7 @@ static id JSArrayConverter(JSContext *context, JSObject *array)
 		value = JSVAL_VOID;
 		if (!JS_GetElement(context, array, i, &value))  value = JSVAL_VOID;
 		
-		tableObject = JSValueToObject(context, value);
+		tableObject = OOJSNativeObjectFromJSValue(context, value);
 		if (tableObject == nil)  tableObject = [NSNull null];
 		values[i] = tableObject;
 	}
@@ -2010,7 +1994,7 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *tableObject)
 	id							objValue = nil;
 	
 	/*	Convert a JS Object to an NSDictionary by calling
-		JSValueToObject() on all its enumerable properties. This is desireable
+		OOJSNativeObjectFromJSValue() on all its enumerable properties. This is desireable
 		because it allows objects declared with JavaScript property list
 		syntax to be converted to native property lists.
 		
@@ -2075,7 +2059,7 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *tableObject)
 		
 		if (objKey != nil && !JSVAL_IS_VOID(value))
 		{
-			objValue = JSValueToObject(context, value);
+			objValue = OOJSNativeObjectFromJSValue(context, value);
 			if (objValue != nil)
 			{
 				[result setObject:objValue forKey:objKey];

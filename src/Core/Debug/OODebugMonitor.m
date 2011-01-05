@@ -120,7 +120,7 @@ static OODebugMonitor *sSingleton = nil;
 			JS_BeginRequest(context);
 			
 			JSObject *global = [jsEng globalObject];
-			JS_DefineProperty(context, global, "debugConsole", [self javaScriptValueInContext:context], NULL, NULL, JSPROP_ENUMERATE);
+			JS_DefineProperty(context, global, "debugConsole", [self oo_jsValueInContext:context], NULL, NULL, JSPROP_ENUMERATE);
 			
 			JS_EndRequest(context);
 		}
@@ -854,14 +854,14 @@ FIXME: this works with CRLF and LF, but not CR.
 }
 
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval)oo_jsValueInContext:(JSContext *)context
 {
 	if (_jsSelf == NULL)
 	{
 		_jsSelf = DebugMonitorToJSConsole(context, self);
 		if (_jsSelf != NULL)
 		{
-			if (!OOJS_AddGCObjectRoot(context, &_jsSelf, "debug console"))
+			if (!OOJSAddGCObjectRoot(context, &_jsSelf, "debug console"))
 			{
 				_jsSelf = NULL;
 			}

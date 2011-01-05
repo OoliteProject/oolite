@@ -218,10 +218,10 @@ static JSClass sConsoleSettingsClass =
 static void InitOOJSConsole(JSContext *context, JSObject *global)
 {
 	sConsolePrototype = JS_InitClass(context, global, NULL, &sConsoleClass, NULL, 0, sConsoleProperties, sConsoleMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sConsoleClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sConsoleClass, OOJSBasicPrivateObjectConverter);
 	
 	sConsoleSettingsPrototype = JS_InitClass(context, global, NULL, &sConsoleSettingsClass, NULL, 0, NULL, NULL, NULL, NULL);
-	JSRegisterObjectConverter(&sConsoleSettingsClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sConsoleSettingsClass, OOJSBasicPrivateObjectConverter);
 }
 
 
@@ -293,42 +293,42 @@ static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
 #endif		
 			
 		case kConsole_shaderMode:
-			*value = [ShaderSettingToString([UNIVERSE shaderEffectsLevel]) javaScriptValueInContext:context];
+			*value = [ShaderSettingToString([UNIVERSE shaderEffectsLevel]) oo_jsValueInContext:context];
 			break;
 			
 		case kConsole_maximumShaderMode:
-			*value = [ShaderSettingToString([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]) javaScriptValueInContext:context];
+			*value = [ShaderSettingToString([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]) oo_jsValueInContext:context];
 			break;
 			
 		case kConsole_reducedDetailMode:
-			*value = BOOLToJSVal([UNIVERSE reducedDetail]);
+			*value = OOJSValueFromBOOL([UNIVERSE reducedDetail]);
 			break;
 			
 		case kConsole_displayFPS:
-			*value = BOOLToJSVal([UNIVERSE displayFPS]);
+			*value = OOJSValueFromBOOL([UNIVERSE displayFPS]);
 			break;
 			
 		case kConsole_platformDescription:
-			*value = [OOPlatformDescription() javaScriptValueInContext:context];
+			*value = [OOPlatformDescription() oo_jsValueInContext:context];
 			break;
 			
 		case kConsole_pedanticMode:
 			{
 				uint32_t options = JS_GetOptions(context);
-				*value = BOOLToJSVal(options & JSOPTION_STRICT);
+				*value = OOJSValueFromBOOL(options & JSOPTION_STRICT);
 			}
 			break;
 			
 		case kConsole_showErrorLocations:
-			*value = BOOLToJSVal([[OOJavaScriptEngine sharedEngine] showErrorLocations]);
+			*value = OOJSValueFromBOOL([[OOJavaScriptEngine sharedEngine] showErrorLocations]);
 			break;
 			
 		case kConsole_glVendorString:
-			*value = [[[OOOpenGLExtensionManager sharedManager] vendorString] javaScriptValueInContext:context];
+			*value = [[[OOOpenGLExtensionManager sharedManager] vendorString] oo_jsValueInContext:context];
 			break;
 			
 		case kConsole_glRendererString:
-			*value = [[[OOOpenGLExtensionManager sharedManager] rendererString] javaScriptValueInContext:context];
+			*value = [[[OOOpenGLExtensionManager sharedManager] rendererString] oo_jsValueInContext:context];
 			break;
 			
 		case kConsole_glFixedFunctionTextureUnitCount:
@@ -355,7 +355,7 @@ static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
 #undef DEBUG_FLAG_CASE
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Console", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Console", OOJS_PROPID_INT);
 			return NO;
 	}
 	
@@ -386,7 +386,7 @@ static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 			break;
 #endif		
 		case kConsole_shaderMode:
-			sValue = JSValToNSString(context, *value);
+			sValue = OOJSValToNSString(context, *value);
 			if (sValue != nil)
 			{
 				OOJSPauseTimeLimiter();
@@ -431,7 +431,7 @@ static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Console", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Console", OOJS_PROPID_INT);
 			return NO;
 	}
 	
@@ -493,10 +493,10 @@ static JSBool ConsoleSettingsDeleteProperty(OOJS_PROP_ARGS)
 	if (!OOJS_PROPID_IS_STRING)  return NO;
 	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 	
-	monitor = JSObjectToObject(context, this);
+	monitor = OOJSNativeObjectFromJSObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
+		OOJSReportError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		return NO;
 	}
 	
@@ -520,15 +520,15 @@ static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS)
 	
 	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 	
-	monitor = JSObjectToObject(context, this);
+	monitor = OOJSNativeObjectFromJSObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
+		OOJSReportError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		return NO;
 	}
 	
 	settingValue = [monitor configurationValueForKey:key];
-	*value = [settingValue javaScriptValueInContext:context];
+	*value = [settingValue oo_jsValueInContext:context];
 	
 	return YES;
 	
@@ -548,10 +548,10 @@ static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS)
 	
 	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 	
-	monitor = JSObjectToObject(context, this);
+	monitor = OOJSNativeObjectFromJSObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
+		OOJSReportError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		return NO;
 	}
 	
@@ -562,14 +562,14 @@ static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS)
 	}
 	else
 	{
-		settingValue = JSValueToObject(context, *value);
+		settingValue = OOJSNativeObjectFromJSValue(context, *value);
 		if (settingValue != nil)
 		{
 			[monitor setConfigurationValue:settingValue forKey:key];
 		}
 		else
 		{
-			OOReportJSWarning(context, @"debugConsole.settings: could not convert %@ to native object.", [NSString stringWithJavaScriptValue:*value inContext:context]);
+			OOJSReportWarning(context, @"debugConsole.settings: could not convert %@ to native object.", [NSString stringWithJavaScriptValue:*value inContext:context]);
 		}
 	}
 	OOJSResumeTimeLimiter();
@@ -595,16 +595,16 @@ static JSBool ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
 	jsdouble			location, length;
 	
 	OOJSPauseTimeLimiter();
-	monitor = JSObjectToObjectOfClass(context, OOJS_THIS, [OODebugMonitor class]);
+	monitor = OOJSNativeObjectOfClassFromJSObject(context, OOJS_THIS, [OODebugMonitor class]);
 	if (monitor == nil)
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
+		OOJSReportError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		OOJSResumeTimeLimiter();
 		return NO;
 	}
 	
-	colorKey = JSValToNSString(context,OOJS_ARG(0));
-	message = JSValToNSString(context,OOJS_ARG(1));
+	colorKey = OOJSValToNSString(context,OOJS_ARG(0));
+	message = OOJSValToNSString(context,OOJS_ARG(1));
 	
 	if (4 <= argc)
 	{
@@ -620,7 +620,7 @@ static JSBool ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
 	{
 		if (colorKey == nil)
 		{
-			OOReportJSWarning(context, @"Console.consoleMessage() called with no parameters.");
+			OOJSReportWarning(context, @"Console.consoleMessage() called with no parameters.");
 		}
 		else
 		{
@@ -650,10 +650,10 @@ static JSBool ConsoleClearConsole(OOJS_NATIVE_ARGS)
 	
 	id					monitor = nil;
 	
-	monitor = JSObjectToObject(context, OOJS_THIS);
+	monitor = OOJSNativeObjectFromJSObject(context, OOJS_THIS);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
+		OOJSReportError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		return NO;
 	}
 	
@@ -705,16 +705,16 @@ static JSBool ConsoleCallObjCMethod(OOJS_NATIVE_ARGS)
 	
 	id						object = nil;
 	
-	object = JSObjectToObject(context, OOJS_THIS);
+	object = OOJSNativeObjectFromJSObject(context, OOJS_THIS);
 	if (object == nil)
 	{
-		OOReportJSError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", [NSString stringWithJavaScriptValue:OOJS_THIS_VAL inContext:context]);
+		OOJSReportError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", [NSString stringWithJavaScriptValue:OOJS_THIS_VAL inContext:context]);
 		return NO;
 	}
 	
 	OOJSPauseTimeLimiter();
 	jsval result = JSVAL_VOID;
-	BOOL OK = OOJSCallObjCObjectMethod(context, object, [object jsClassName], argc, OOJS_ARGV, &result);
+	BOOL OK = OOJSCallObjCObjectMethod(context, object, [object oo_jsClassName], argc, OOJS_ARGV, &result);
 	OOJSResumeTimeLimiter();
 	
 	OOJS_SET_RVAL(result);
@@ -731,7 +731,7 @@ static JSBool ConsoleSetUpCallObjC(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!JSVAL_IS_OBJECT(OOJS_ARG(0))))
 	{
-		OOReportJSBadArguments(context, @"Console", @"__setUpCallObjC", argc, OOJS_ARGV, nil, @"Object.prototype");
+		OOJSReportBadArguments(context, @"Console", @"__setUpCallObjC", argc, OOJS_ARGV, nil, @"Object.prototype");
 		return NO;
 	}
 	
@@ -759,7 +759,7 @@ static JSBool ConsoleIsExecutableJavaScript(OOJS_NATIVE_ARGS)
 	OOJSPauseTimeLimiter();
 #if OO_NEW_JS
 	// FIXME: this must be possible using just JSAPI functions.
-	NSString *string = JSValToNSString(context, OOJS_ARG(1));
+	NSString *string = OOJSValToNSString(context, OOJS_ARG(1));
 	NSData *stringData = [string dataUsingEncoding:NSUTF8StringEncoding];
 	result = JS_BufferIsCompilableUnit(context, target, [stringData bytes], [stringData length]);
 #else
@@ -796,7 +796,7 @@ static JSBool ConsoleSetDisplayMessagesInClass(OOJS_NATIVE_ARGS)
 	NSString				*messageClass = nil;
 	JSBool					flag;
 	
-	messageClass = JSValToNSString(context, OOJS_ARG(0));
+	messageClass = OOJSValToNSString(context, OOJS_ARG(0));
 	if (messageClass != nil && JS_ValueToBoolean(context, OOJS_ARG(1), &flag))
 	{
 		OOLogSetDisplayMessagesInClass(messageClass, flag);
@@ -864,7 +864,7 @@ static JSBool ConsoleProfile(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(OOJSIsProfiling()))
 	{
-		OOReportJSError(context, @"Console.profile() may not be used recursively.");
+		OOJSReportError(context, @"Console.profile() may not be used recursively.");
 		return NO;
 	}
 	
@@ -873,7 +873,7 @@ static JSBool ConsoleProfile(OOJS_NATIVE_ARGS)
 	JSBool result = PerformProfiling(context, @"profile", argc, OOJS_ARGV, &profile);
 	if (result)
 	{
-		OOJS_SET_RVAL([[profile description] javaScriptValueInContext:context]);
+		OOJS_SET_RVAL([[profile description] oo_jsValueInContext:context]);
 	}
 	
 	[pool release];
@@ -892,7 +892,7 @@ static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(OOJSIsProfiling()))
 	{
-		OOReportJSError(context, @"Console.profile() may not be used recursively.");
+		OOJSReportError(context, @"Console.profile() may not be used recursively.");
 		return NO;
 	}
 	
@@ -901,7 +901,7 @@ static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS)
 	JSBool result = PerformProfiling(context, @"getProfile", argc, OOJS_ARGV, &profile);
 	if (result)
 	{
-		OOJS_SET_RVAL([profile javaScriptValueInContext:context]);
+		OOJS_SET_RVAL([profile oo_jsValueInContext:context]);
 	}
 	
 	[pool release];
@@ -919,7 +919,7 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 	jsval function = argv[0];
 	if (!JSVAL_IS_OBJECT(function) || !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)))
 	{
-		OOReportJSBadArguments(context, @"Console", nominalFunction, 1, argv, nil, @"function");
+		OOJSReportBadArguments(context, @"Console", nominalFunction, 1, argv, nil, @"function");
 		return NO;
 	}
 	
@@ -928,7 +928,7 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 	if (argc > 1)  this = argv[1];
 	else
 	{
-		jsval debugConsole = [[OODebugMonitor sharedDebugMonitor] javaScriptValueInContext:context];
+		jsval debugConsole = [[OODebugMonitor sharedDebugMonitor] oo_jsValueInContext:context];
 		assert(JSVAL_IS_OBJECT(debugConsole));
 		JS_GetProperty(context, JSVAL_TO_OBJECT(debugConsole), "script", &this);
 	}

@@ -164,12 +164,12 @@ static JSBool ClockGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kClock_clockString:
-			*value = [[player dial_clock] javaScriptValueInContext:context];
+			*value = [[player dial_clock] oo_jsValueInContext:context];
 			OK = YES;
 			break;
 			
 		case kClock_isAdjusting:
-			*value = BOOLToJSVal([player clockAdjusting]);
+			*value = OOJSValueFromBOOL([player clockAdjusting]);
 			OK = YES;
 			break;
 			
@@ -178,7 +178,7 @@ static JSBool ClockGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Clock", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Clock", OOJS_PROPID_INT);
 	}
 	
 	return OK;
@@ -225,7 +225,7 @@ static JSBool ClockAddSeconds(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARG(0), &time)))  return NO;
 	if (time > 2592000.0f || time < 1.0f)	// 30 * 24 * 3600
 	{
-		OOReportJSWarning(context, @"Clock.addSeconds: use a value between 1 and 2592000 (30 days).");
+		OOJSReportWarning(context, @"Clock.addSeconds: use a value between 1 and 2592000 (30 days).");
 		
 		OOJS_RETURN_BOOL(NO);
 	}

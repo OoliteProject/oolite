@@ -84,14 +84,14 @@ static JSClass sScriptClass =
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JSObjectWrapperFinalize
+	OOJSObjectWrapperFinalize
 };
 
 
 static JSFunctionSpec sScriptMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				JSObjectWrapperToString,	0, },
+	{ "toString",				OOJSObjectWrapperToString,	0, },
 	{ 0 }
 };
 
@@ -137,13 +137,13 @@ static JSFunctionSpec sScriptMethods[] =
 		if (_jsSelf == NULL) problem = @"allocation failure";
 	}
 	
-	if (!problem && !OOJS_AddGCObjectRoot(context, &_jsSelf, "Script object"))
+	if (!problem && !OOJSAddGCObjectRoot(context, &_jsSelf, "Script object"))
 	{
 		problem = @"could not add JavaScript root object";
 	}
 	
 #if OO_NEW_JS
-	if (!problem && !OOJS_AddGCObjectRoot(context, &scriptObject, "Script GC holder"))
+	if (!problem && !OOJSAddGCObjectRoot(context, &scriptObject, "Script GC holder"))
 	{
 		problem = @"could not add JavaScript root object";
 	}
@@ -253,7 +253,7 @@ static JSFunctionSpec sScriptMethods[] =
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 	JS_BeginRequest(context);
 	
-	JSObjectWrapperFinalize(context, _jsSelf);		// Release weakref to self
+	OOJSObjectWrapperFinalize(context, _jsSelf);		// Release weakref to self
 	JS_RemoveObjectRoot(context, &_jsSelf);			// Unroot jsSelf
 	
 	JS_EndRequest(context);
@@ -265,7 +265,7 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-- (NSString *)jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Script";
 }
@@ -369,7 +369,7 @@ static JSFunctionSpec sScriptMethods[] =
 					if (![notedChanges containsObject:key])
 					{
 						[notedChanges addObject:key];
-						OOReportJSWarning(context, @"The event handler %@ has been renamed to %@. The script %@ must be updated. The old form will not be supported in future versions of Oolite.", oldName, eventName, self->name);
+						OOJSReportWarning(context, @"The event handler %@ has been renamed to %@. The script %@ must be updated. The old form will not be supported in future versions of Oolite.", oldName, eventName, self->name);
 					}
 				}
 			}
@@ -419,8 +419,8 @@ static JSFunctionSpec sScriptMethods[] =
 			{
 				for (i = 0; i != argc; ++i)
 				{
-					argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
-					OOJS_AddGCValueRoot(context, &argv[i], "JSScript event parameter");
+					argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
+					OOJSAddGCValueRoot(context, &argv[i], "JSScript event parameter");
 				}
 			}
 			else  argc = 0;
@@ -471,8 +471,8 @@ static JSFunctionSpec sScriptMethods[] =
 	if (propName == nil)  return nil;
 	
 	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	OK = JSGetNSProperty(NULL, _jsSelf, propName, &value);
-	if (OK && !JSVAL_IS_VOID(value))  result = JSValueToObject(context, value);
+	OK = OOJSGetProperty(context, _jsSelf, propName, &value);
+	if (OK && !JSVAL_IS_VOID(value))  result = OOJSNativeObjectFromJSValue(context, value);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	return result;
@@ -488,10 +488,10 @@ static JSFunctionSpec sScriptMethods[] =
 	if (value == nil || propName == nil)  return NO;
 	
 	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	jsValue = [value javaScriptValueInContext:context];
+	jsValue = [value oo_jsValueInContext:context];
 	if (!JSVAL_IS_VOID(jsValue))
 	{
-		result = JSDefineNSProperty(context, _jsSelf, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE);
+		result = OOJSDefineProperty(context, _jsSelf, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE);
 	}
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return result;
@@ -507,17 +507,17 @@ static JSFunctionSpec sScriptMethods[] =
 	if (value == nil || propName == nil)  return NO;
 	
 	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	jsValue = [value javaScriptValueInContext:context];
+	jsValue = [value oo_jsValueInContext:context];
 	if (!JSVAL_IS_VOID(jsValue))
 	{
-		result = JSDefineNSProperty(context, _jsSelf, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+		result = OOJSDefineProperty(context, _jsSelf, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	}
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return result;
 }
 
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval)oo_jsValueInContext:(JSContext *)context
 {
 	return OBJECT_TO_JSVAL(_jsSelf);
 }
@@ -606,7 +606,7 @@ static JSFunctionSpec sScriptMethods[] =
 
 @implementation OOScript (OOJavaScriptConversion)
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval)oo_jsValueInContext:(JSContext *)context
 {
 	return JSVAL_NULL;
 }
@@ -617,7 +617,7 @@ static JSFunctionSpec sScriptMethods[] =
 void InitOOJSScript(JSContext *context, JSObject *global)
 {
 	sScriptPrototype = JS_InitClass(context, global, NULL, &sScriptClass, NULL, 0, NULL, sScriptMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sScriptClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sScriptClass, OOJSBasicPrivateObjectConverter);
 }
 
 

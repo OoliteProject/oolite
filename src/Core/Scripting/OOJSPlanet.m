@@ -50,7 +50,7 @@ static JSClass sPlanetClass =
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert
-	JSObjectWrapperFinalize,// finalize
+	OOJSObjectWrapperFinalize,// finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -86,7 +86,7 @@ DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, &sPlanetClass, sPlanetPrototype
 void InitOOJSPlanet(JSContext *context, JSObject *global)
 {
 	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass, NULL, 0, sPlanetProperties, NULL, NULL, NULL);
-	JSRegisterObjectConverter(&sPlanetClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sPlanetClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sPlanetClass, JSEntityClass());
 }
 
@@ -106,7 +106,7 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 }
 
 
-- (NSString *)jsClassName
+- (NSString *) oo_jsClassName
 {
 	switch ([self planetType])
 	{
@@ -135,7 +135,7 @@ static JSBool PlanetGetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kPlanet_isMainPlanet:
-			*value = BOOLToJSVal(planet == (id)[UNIVERSE planet]);
+			*value = OOJSValueFromBOOL(planet == (id)[UNIVERSE planet]);
 			OK = YES;
 			break;
 			
@@ -144,12 +144,12 @@ static JSBool PlanetGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlanet_hasAtmosphere:
-			*value = BOOLToJSVal([planet hasAtmosphere]);
+			*value = OOJSValueFromBOOL([planet hasAtmosphere]);
 			OK = YES;
 			break;
 			
 		case kPlanet_texture:
-			*value = [[planet textureFileName] javaScriptValueInContext:context];
+			*value = [[planet textureFileName] oo_jsValueInContext:context];
 			OK = YES;
 			break;
 			
@@ -162,7 +162,7 @@ static JSBool PlanetGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Planet", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Planet", OOJS_PROPID_INT);
 	}
 	return OK;
 	
@@ -189,13 +189,13 @@ static JSBool PlanetSetProperty(OOJS_PROP_ARGS)
 		case kPlanet_texture:
 			// all error messages are self contained
 
-			sValue = JSValToNSString(context, *value);
+			sValue = OOJSValToNSString(context, *value);
 			
 			if ([planet isKindOfClass:[OOPlanetEntity class]])
 			{
 				if (sValue == nil)
 				{
-					OOReportJSWarning(context, @"Expected texture string. Value not set.");
+					OOJSReportWarning(context, @"Expected texture string. Value not set.");
 				}
 				else
 				{
@@ -206,7 +206,7 @@ static JSBool PlanetSetProperty(OOJS_PROP_ARGS)
 			if (OK)
 			{
 				OK = [planet setUpPlanetFromTexture:sValue];
-				if (!OK) OOReportJSWarning(context, @"Cannot find texture \"%@\". Value not set.", sValue);
+				if (!OK) OOJSReportWarning(context, @"Cannot find texture \"%@\". Value not set.", sValue);
 			}
 			break;
 			
@@ -228,7 +228,7 @@ static JSBool PlanetSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Planet", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Planet", OOJS_PROPID_INT);
 			break;
 	}
 	

@@ -54,7 +54,7 @@ JSClass gOOEntityJSClass =
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert
-	JSObjectWrapperFinalize,// finalize
+	OOJSObjectWrapperFinalize,// finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -113,7 +113,7 @@ static JSPropertySpec sEntityProperties[] =
 static JSFunctionSpec sEntityMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				JSObjectWrapperToString,	0 },
+	{ "toString",				OOJSObjectWrapperToString,	0 },
 	{ 0 }
 };
 
@@ -121,7 +121,7 @@ static JSFunctionSpec sEntityMethods[] =
 void InitOOJSEntity(JSContext *context, JSObject *global)
 {
 	gOOEntityJSPrototype = JS_InitClass(context, global, NULL, &gOOEntityJSClass, NULL, 0, sEntityProperties, sEntityMethods, NULL, NULL);
-	JSRegisterObjectConverter(&gOOEntityJSClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&gOOEntityJSClass, OOJSBasicPrivateObjectConverter);
 }
 
 
@@ -154,7 +154,7 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 		// Failed; report bad parameters, if given a class and function.
 		if (scriptClass != nil && function != nil)
 		{
-			OOReportJSWarning(context, @"%@.%@(): expected entity or universal ID, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
+			OOJSReportWarning(context, @"%@.%@(): expected entity or universal ID, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
 			return NO;
 		}
 	}
@@ -235,32 +235,32 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		case kEntity_isShip:
-			*value = BOOLToJSVal([entity isShip]);
+			*value = OOJSValueFromBOOL([entity isShip]);
 			OK = YES;
 			break;
 		
 		case kEntity_isStation:
-			*value = BOOLToJSVal([entity isStation]);
+			*value = OOJSValueFromBOOL([entity isStation]);
 			OK = YES;
 			break;
 			
 		case kEntity_isSubEntity:
-			*value = BOOLToJSVal([entity isSubEntity]);
+			*value = OOJSValueFromBOOL([entity isSubEntity]);
 			OK = YES;
 			break;
 		
 		case kEntity_isPlayer:
-			*value = BOOLToJSVal([entity isPlayer]);
+			*value = OOJSValueFromBOOL([entity isPlayer]);
 			OK = YES;
 			break;
 			
 		case kEntity_isPlanet:
-			*value = BOOLToJSVal([entity isPlanet] && ![entity isSun]);
+			*value = OOJSValueFromBOOL([entity isPlanet] && ![entity isSun]);
 			OK = YES;
 			break;
 			
 		case kEntity_isSun:
-			*value = BOOLToJSVal([entity isSun]);
+			*value = OOJSValueFromBOOL([entity isSun]);
 			OK = YES;
 			break;
 		
@@ -273,12 +273,12 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Entity", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Entity", OOJS_PROPID_INT);
 	}
 	
 	if (result != nil)
 	{
-		*value = [result javaScriptValueInContext:context];
+		*value = [result oo_jsValueInContext:context];
 		OK = YES;
 	}
 	return OK;
@@ -331,7 +331,7 @@ static JSBool EntitySetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Entity", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Entity", OOJS_PROPID_INT);
 	}
 	
 	return OK;

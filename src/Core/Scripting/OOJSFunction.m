@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 	{
 		_function = function;
 		JS_BeginRequest(context);
-		OOJS_AddGCObjectRoot(context, (JSObject **)&_function, "OOJSFunction._function");
+		OOJSAddGCObjectRoot(context, (JSObject **)&_function, "OOJSFunction._function");
 		JS_EndRequest(context);
 	}
 	
@@ -169,13 +169,13 @@ MA 02110-1301, USA.
 	
 	for (i = 0; i < argc; i++)
 	{
-		argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
-		OOJS_AddGCValueRoot(context, &argv[i], "OOJSFunction argv");
+		argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
+		OOJSAddGCValueRoot(context, &argv[i], "OOJSFunction argv");
 	}
 	
 	JSObject *scopeObj = NULL;
 	BOOL OK = YES;
-	if (jsThis != nil)  OK = JS_ValueToObject(context, [jsThis javaScriptValueInContext:context], &scopeObj);
+	if (jsThis != nil)  OK = JS_ValueToObject(context, [jsThis oo_jsValueInContext:context], &scopeObj);
 	if (OK)  OK = [self evaluateInRequestWithContext:context
 											   scope:scopeObj
 												argc:argc
@@ -204,7 +204,7 @@ MA 02110-1301, USA.
 								 result:&result];
 	if (!OK)  return nil;
 	
-	return JSValueToObject(context, result);
+	return OOJSNativeObjectFromJSValue(context, result);
 }
 			   
 

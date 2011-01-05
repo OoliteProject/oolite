@@ -112,7 +112,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 static JSFunctionSpec sEquipmentInfoStaticMethods[] =
 {
 	// JS name					Function						min args
-	{ "toString",				JSObjectWrapperToString,		0, },
+	{ "toString",				OOJSObjectWrapperToString,		0, },
 	{ "infoForKey",				EquipmentInfoStaticInfoForKey,	0, },
 	{ 0 }
 };
@@ -130,7 +130,7 @@ static JSClass sEquipmentInfoClass =
 	JS_EnumerateStub,			// enumerate
 	JS_ResolveStub,				// resolve
 	JS_ConvertStub,				// convert
-	JSObjectWrapperFinalize,	// finalize
+	OOJSObjectWrapperFinalize,	// finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -145,7 +145,7 @@ void InitOOJSEquipmentInfo(JSContext *context, JSObject *global)
 	sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass, NULL, 0, sEquipmentInfoProperties, NULL, NULL, sEquipmentInfoStaticMethods);
 	JS_DefineProperty(context, sEquipmentInfoPrototype, "allEquipment", JSVAL_NULL, EquipmentInfoGetAllEqipment, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 	
-	JSRegisterObjectConverter(&sEquipmentInfoClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sEquipmentInfoClass, OOJSBasicPrivateObjectConverter);
 }
 
 
@@ -162,7 +162,7 @@ OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value)
 		}
 	}
 	
-	NSString *string = JSValToNSString(context, value);
+	NSString *string = OOJSValToNSString(context, value);
 	if (string != nil)  return [OOEquipmentType equipmentTypeWithIdentifier:string];
 	return nil;
 	
@@ -182,7 +182,7 @@ NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *ou
 	
 	NSString *result = nil;
 	BOOL exists = NO;
-	id objValue = JSValueToObject(context, value);
+	id objValue = OOJSNativeObjectFromJSValue(context, value);
 	
 	if ([objValue isKindOfClass:[OOEquipmentType class]])
 	{
@@ -233,11 +233,11 @@ static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kEquipmentInfo_canCarryMultiple:
-			*value = BOOLToJSVal([eqType canCarryMultiple]);
+			*value = OOJSValueFromBOOL([eqType canCarryMultiple]);
 			break;
 			
 		case kEquipmentInfo_canBeDamaged:
-			*value = BOOLToJSVal([eqType canBeDamaged]);
+			*value = OOJSValueFromBOOL([eqType canBeDamaged]);
 			break;
 			
 		case kEquipmentInfo_description:
@@ -257,59 +257,59 @@ static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kEquipmentInfo_isAvailableToAll:
-			*value = BOOLToJSVal([eqType isAvailableToAll]);
+			*value = OOJSValueFromBOOL([eqType isAvailableToAll]);
 			break;
 			
 		case kEquipmentInfo_isAvailableToNPCs:
-			*value = BOOLToJSVal([eqType isAvailableToNPCs]);
+			*value = OOJSValueFromBOOL([eqType isAvailableToNPCs]);
 			break;
 			
 		case kEquipmentInfo_isAvailableToPlayer:
-			*value = BOOLToJSVal([eqType isAvailableToPlayer]);
+			*value = OOJSValueFromBOOL([eqType isAvailableToPlayer]);
 			break;
 			
 		case kEquipmentInfo_requiresEmptyPylon:
-			*value = BOOLToJSVal([eqType requiresEmptyPylon]);
+			*value = OOJSValueFromBOOL([eqType requiresEmptyPylon]);
 			break;
 			
 		case kEquipmentInfo_requiresMountedPylon:
-			*value = BOOLToJSVal([eqType requiresMountedPylon]);
+			*value = OOJSValueFromBOOL([eqType requiresMountedPylon]);
 			break;
 			
 		case kEquipmentInfo_requiresCleanLegalRecord:
-			*value = BOOLToJSVal([eqType requiresCleanLegalRecord]);
+			*value = OOJSValueFromBOOL([eqType requiresCleanLegalRecord]);
 			break;
 			
 		case kEquipmentInfo_requiresNonCleanLegalRecord:
-			*value = BOOLToJSVal([eqType requiresNonCleanLegalRecord]);
+			*value = OOJSValueFromBOOL([eqType requiresNonCleanLegalRecord]);
 			break;
 			
 		case kEquipmentInfo_requiresFreePassengerBerth:
-			*value = BOOLToJSVal([eqType requiresFreePassengerBerth]);
+			*value = OOJSValueFromBOOL([eqType requiresFreePassengerBerth]);
 			break;
 			
 		case kEquipmentInfo_requiresFullFuel:
-			*value = BOOLToJSVal([eqType requiresFullFuel]);
+			*value = OOJSValueFromBOOL([eqType requiresFullFuel]);
 			break;
 			
 		case kEquipmentInfo_requiresNonFullFuel:
-			*value = BOOLToJSVal([eqType requiresNonFullFuel]);
+			*value = OOJSValueFromBOOL([eqType requiresNonFullFuel]);
 			break;
 			
 		case kEquipmentInfo_isExternalStore:
-			*value = BOOLToJSVal([eqType isMissileOrMine]);
+			*value = OOJSValueFromBOOL([eqType isMissileOrMine]);
 			break;
 			
 		case kEquipmentInfo_isPortableBetweenShips:
-			*value = BOOLToJSVal([eqType isPortableBetweenShips]);
+			*value = OOJSValueFromBOOL([eqType isPortableBetweenShips]);
 			break;
 			
 		case kEquipmentInfo_isVisible:
-			*value = BOOLToJSVal([eqType isVisible]);
+			*value = OOJSValueFromBOOL([eqType isVisible]);
 			break;
 			
 		case kEquipmentInfo_requiredCargoSpace:
-			*value = BOOLToJSVal([eqType requiredCargoSpace]);
+			*value = OOJSValueFromBOOL([eqType requiredCargoSpace]);
 			break;
 			
 		case kEquipmentInfo_requiresEquipment:
@@ -335,13 +335,13 @@ static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"EquipmentInfo", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"EquipmentInfo", OOJS_PROPID_INT);
 			return NO;
 	}
 	
 	if (result != nil)
 	{
-		*value = [result javaScriptValueInContext:context];
+		*value = [result oo_jsValueInContext:context];
 	}
 	return YES;
 	
@@ -384,7 +384,7 @@ static JSBool EquipmentInfoSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"EquipmentInfo", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"EquipmentInfo", OOJS_PROPID_INT);
 	}
 	
 	return OK;
@@ -397,7 +397,7 @@ static JSBool EquipmentInfoGetAllEqipment(OOJS_PROP_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	*value = [[OOEquipmentType allEquipmentTypes] javaScriptValueInContext:context];
+	*value = [[OOEquipmentType allEquipmentTypes] oo_jsValueInContext:context];
 	return YES;
 	
 	OOJS_NATIVE_EXIT
@@ -406,7 +406,7 @@ static JSBool EquipmentInfoGetAllEqipment(OOJS_PROP_ARGS)
 
 @implementation OOEquipmentType (OOJavaScriptExtensions)
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	if (_jsSelf == NULL)
 	{
@@ -421,7 +421,7 @@ static JSBool EquipmentInfoGetAllEqipment(OOJS_PROP_ARGS)
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"EquipmentInfo";
 }
@@ -444,10 +444,10 @@ static JSBool EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS)
 	
 	NSString					*key = nil;
 	
-	key = JSValToNSString(context, OOJS_ARG(0));
+	key = OOJSValToNSString(context, OOJS_ARG(0));
 	if (key == nil)
 	{
-		OOReportJSBadArguments(context, @"EquipmentInfo", @"infoForKey", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, @"EquipmentInfo", @"infoForKey", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	

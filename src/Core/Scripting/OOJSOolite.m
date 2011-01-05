@@ -127,11 +127,11 @@ static JSBool OoliteGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Oolite", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Oolite", OOJS_PROPID_INT);
 			return NO;
 	}
 	
-	if (result != nil)  *value = [result javaScriptValueInContext:context];
+	if (result != nil)  *value = [result oo_jsValueInContext:context];
 	return YES;
 	
 	OOJS_NATIVE_EXIT
@@ -165,7 +165,7 @@ static JSBool OoliteCompareVersion(OOJS_NATIVE_ARGS)
 	NSEnumerator			*componentEnum = nil;
 	id						component = nil;
 	
-	components = JSValueToObject(context, OOJS_ARG(0));
+	components = OOJSNativeObjectFromJSValue(context, OOJS_ARG(0));
 	if ([components isKindOfClass:[NSArray class]])
 	{
 		// Require each element to be a number

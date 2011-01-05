@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Character";
 }

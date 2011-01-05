@@ -39,13 +39,13 @@ MA 02110-1301, USA.
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Entity";
 }
 
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	JSClass					*class = NULL;
 	JSObject				*prototype = NULL;
@@ -62,7 +62,7 @@ MA 02110-1301, USA.
 			if (!JS_SetPrivate(context, jsSelf, [self weakRetain]))  jsSelf = NULL;
 		}
 		
-		if (jsSelf != NULL)  OOJS_AddGCObjectRoot(context, &jsSelf, "Entity jsSelf");
+		if (jsSelf != NULL)  OOJSAddGCObjectRoot(context, &jsSelf, "Entity jsSelf");
 	}
 	
 	if (jsSelf != NULL)  result = OBJECT_TO_JSVAL(jsSelf);
@@ -106,7 +106,7 @@ MA 02110-1301, USA.
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Ship";
 }

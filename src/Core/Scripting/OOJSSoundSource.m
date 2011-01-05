@@ -54,7 +54,7 @@ static JSClass sSoundSourceClass =
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert
-	JSObjectWrapperFinalize, // finalize
+	OOJSObjectWrapperFinalize, // finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -83,7 +83,7 @@ static JSPropertySpec sSoundSourceProperties[] =
 static JSFunctionSpec sSoundSourceMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				JSObjectWrapperToString,	0, },
+	{ "toString",				OOJSObjectWrapperToString,	0, },
 	{ "play",					SoundSourcePlay,			0, },
 	{ "stop",					SoundSourceStop,			0, },
 	{ "playOrRepeat",			SoundSourcePlayOrRepeat,	0, },
@@ -100,7 +100,7 @@ DEFINE_JS_OBJECT_GETTER(JSSoundSourceGetSoundSource, &sSoundSourceClass, sSoundS
 void InitOOJSSoundSource(JSContext *context, JSObject *global)
 {
 	sSoundSourcePrototype = JS_InitClass(context, global, NULL, &sSoundSourceClass, SoundSourceConstruct, 0, sSoundSourceProperties, sSoundSourceMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sSoundSourceClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sSoundSourceClass, OOJSBasicPrivateObjectConverter);
 }
 
 
@@ -110,7 +110,7 @@ static JSBool SoundSourceConstruct(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING))
 	{
-		OOReportJSError(context, @"SoundSource() cannot be called as a function, it must be used as a constructor (as in new SoundSource()).");
+		OOJSReportError(context, @"SoundSource() cannot be called as a function, it must be used as a constructor (as in new SoundSource()).");
 		return NO;
 	}
 	
@@ -135,15 +135,15 @@ static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kSoundSource_sound:
-			*value = [[soundSource sound] javaScriptValueInContext:context];
+			*value = [[soundSource sound] oo_jsValueInContext:context];
 			break;
 			
 		case kSoundSource_isPlaying:
-			*value = BOOLToJSVal([soundSource isPlaying]);
+			*value = OOJSValueFromBOOL([soundSource isPlaying]);
 			break;
 			
 		case kSoundSource_loop:
-			*value = BOOLToJSVal([soundSource loop]);
+			*value = OOJSValueFromBOOL([soundSource loop]);
 			break;
 			
 		case kSoundSource_repeatCount:
@@ -151,7 +151,7 @@ static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"SoundSource", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"SoundSource", OOJS_PROPID_INT);
 			return NO;
 	}
 	
@@ -202,7 +202,7 @@ static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"SoundSource", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"SoundSource", OOJS_PROPID_INT);
 	}
 	
 	return OK;
@@ -224,7 +224,7 @@ static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, OOJS_THIS, &thisv)))  return NO;
 	if (argc > 0 && !JS_ValueToInt32(context, OOJS_ARG(0), &count))
 	{
-		OOReportJSBadArguments(context, @"SoundSource", @"play", argc, OOJS_ARGV, nil, @"integer count or no argument");
+		OOJSReportBadArguments(context, @"SoundSource", @"play", argc, OOJS_ARGV, nil, @"integer count or no argument");
 		return NO;
 	}
 	
@@ -296,14 +296,14 @@ static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS)
 	sound = SoundFromJSValue(context, OOJS_ARG(0));
 	if (sound == nil)
 	{
-		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, OOJS_ARGV, nil, @"sound or sound name");
+		OOJSReportBadArguments(context, @"SoundSource", @"playSound", argc, OOJS_ARGV, nil, @"sound or sound name");
 		OOJSResumeTimeLimiter();
 		return NO;
 	}
 	
 	if (argc > 1 && !JS_ValueToInt32(context, OOJS_ARG(1), &count))
 	{
-		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, OOJS_ARGV, nil, @"sound or sound name and optional integer count");
+		OOJSReportBadArguments(context, @"SoundSource", @"playSound", argc, OOJS_ARGV, nil, @"sound or sound name and optional integer count");
 		OOJSResumeTimeLimiter();
 		return NO;
 	}
@@ -325,7 +325,7 @@ static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS)
 
 @implementation OOSoundSource (OOJavaScriptExtentions)
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	JSObject					*jsSelf = NULL;
 	jsval						result = JSVAL_NULL;
@@ -341,7 +341,7 @@ static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS)
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"SoundSource";
 }

@@ -77,7 +77,7 @@ static JSClass sPlayerShipClass =
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert
-	JSObjectWrapperFinalize,// finalize
+	OOJSObjectWrapperFinalize,// finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -160,7 +160,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 void InitOOJSPlayerShip(JSContext *context, JSObject *global)
 {
 	sPlayerShipPrototype = JS_InitClass(context, global, JSShipPrototype(), &sPlayerShipClass, NULL, 0, sPlayerShipProperties, sPlayerShipMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sPlayerShipClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sPlayerShipClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sPlayerShipClass, JSShipClass());
 	
 	PlayerEntity *player = [PlayerEntity sharedPlayer];	// NOTE: at time of writing, this creates the player entity. Don't use PLAYER here.
@@ -193,7 +193,7 @@ JSObject *JSPlayerShipObject(void)
 
 @implementation PlayerEntity (OOJavaScriptExtensions)
 
-- (NSString *)jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"PlayerShip";
 }
@@ -202,7 +202,7 @@ JSObject *JSPlayerShipObject(void)
 - (void)setJSSelf:(JSObject *)val context:(JSContext *)context
 {
 	jsSelf = val;
-	OOJS_AddGCObjectRoot(context, &jsSelf, "Player jsSelf");
+	OOJSAddGCObjectRoot(context, &jsSelf, "Player jsSelf");
 }
 
 @end
@@ -227,7 +227,7 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_docked:
-			*value = BOOLToJSVal([player isDocked]);
+			*value = OOJSValueFromBOOL([player isDocked]);
 			OK = YES;
 			break;
 			
@@ -243,7 +243,7 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_reticleTargetSensitive:
-			*value = BOOLToJSVal([[player hud] reticleTargetSensitive]);
+			*value = OOJSValueFromBOOL([[player hud] reticleTargetSensitive]);
 			OK = YES;
 			break;
 			
@@ -292,12 +292,12 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			break;
 
 		case kPlayerShip_scriptedMisjump:
-			*value = BOOLToJSVal([player scriptedMisjump]);
+			*value = OOJSValueFromBOOL([player scriptedMisjump]);
 			OK = YES;
 			break;
 			
 		case kPlayerShip_scoopOverride:
-			*value = BOOLToJSVal([player scoopOverride]);
+			*value = OOJSValueFromBOOL([player scoopOverride]);
 			OK = YES;
 			break;
 			
@@ -317,12 +317,12 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_hudHidden:
-			*value = BOOLToJSVal([[player hud] isHidden]);
+			*value = OOJSValueFromBOOL([[player hud] isHidden]);
 			OK = YES;
 			break;
 			
 		case kPlayerShip_weaponsOnline:
-			*value = BOOLToJSVal([player weaponsOnline]);
+			*value = OOJSValueFromBOOL([player weaponsOnline]);
 			OK = YES;
 			break;
 			
@@ -332,10 +332,10 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"PlayerShip", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"PlayerShip", OOJS_PROPID_INT);
 	}
 	
-	if (OK && result != nil)  *value = [result javaScriptValueInContext:context];
+	if (OK && result != nil)  *value = [result oo_jsValueInContext:context];
 	return OK;
 	
 	OOJS_NATIVE_EXIT
@@ -377,7 +377,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_galacticHyperspaceBehaviour:
-			sValue = JSValToNSString(context,*value);
+			sValue = OOJSValToNSString(context,*value);
 			if (sValue != nil)
 			{
 				ghBehaviour = StringToGalacticHyperspaceBehaviour(sValue);
@@ -429,7 +429,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_hud:
-			sValue = JSValToNSString(context, *value);
+			sValue = OOJSValToNSString(context, *value);
 			if (sValue != nil)
 			{
 				if ([player switchHudTo:sValue])
@@ -438,7 +438,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 				}
 				else
 				{
-					OOReportJSError(context, @"PlayerShip.hud could not be changed to %@", sValue);
+					OOJSReportError(context, @"PlayerShip.hud could not be changed to %@", sValue);
 					OK = NO;
 				}
 			}
@@ -458,7 +458,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"PlayerShip", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"PlayerShip", OOJS_PROPID_INT);
 	}
 	
 	return OK;
@@ -499,7 +499,7 @@ static JSBool PlayerShipRemoveAllCargo(OOJS_NATIVE_ARGS)
 	}
 	else
 	{
-		OOReportJSError(context, @"PlayerShip.removeAllCargo only works when docked.");
+		OOJSReportError(context, @"PlayerShip.removeAllCargo only works when docked.");
 		return NO;
 	}
 	
@@ -517,14 +517,14 @@ static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	NSString				*name = nil;
 	
-	name = JSValToNSString(context, OOJS_ARG(0));
+	name = OOJSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(name == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, OOJS_ARGV, nil, @"special cargo description");
+		OOJSReportBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, OOJS_ARGV, nil, @"special cargo description");
 		return NO;
 	}
 	
-	[player useSpecialCargo:JSValToNSString(context, OOJS_ARG(0))];
+	[player useSpecialCargo:OOJSValToNSString(context, OOJS_ARG(0))];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -541,10 +541,10 @@ static JSBool PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS)
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	StationEntity			*stationForDocking = nil;
 	
-	stationForDocking = JSValueToObjectOfClass(context, OOJS_ARG(0), [StationEntity class]);
+	stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARG(0), [StationEntity class]);
 	if (stationForDocking == nil)
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"engageAutopilot", argc, OOJS_ARGV, nil, @"station for docking");
+		OOJSReportBadArguments(context, @"PlayerShip", @"engageAutopilot", argc, OOJS_ARGV, nil, @"station for docking");
 		return NO;
 	}
 	
@@ -584,14 +584,14 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS)
 	key = JSValueToEquipmentKey(context, OOJS_ARG(0));
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"equipment type");
+		OOJSReportBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"equipment type");
 		return NO;
 	}
 	
 	eqType = [OOEquipmentType equipmentTypeWithIdentifier:key];
 	if (EXPECT_NOT(![eqType isMissileOrMine]))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"external store");
+		OOJSReportBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"external store");
 		return NO;
 	}
 	

@@ -56,7 +56,7 @@ static JSClass sSoundClass =
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert
-	JSObjectWrapperFinalize, // finalize
+	OOJSObjectWrapperFinalize, // finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -79,7 +79,7 @@ static JSPropertySpec sSoundProperties[] =
 static JSFunctionSpec sSoundMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				JSObjectWrapperToString,	0, },
+	{ "toString",				OOJSObjectWrapperToString,	0, },
 	{ 0 }
 };
 
@@ -102,7 +102,7 @@ DEFINE_JS_OBJECT_GETTER(JSSoundGetSound, &sSoundClass, sSoundPrototype, OOSound)
 void InitOOJSSound(JSContext *context, JSObject *global)
 {
 	sSoundPrototype = JS_InitClass(context, global, NULL, &sSoundClass, NULL, 0, sSoundProperties, sSoundMethods, NULL, sSoundStaticMethods);
-	JSRegisterObjectConverter(&sSoundClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sSoundClass, OOJSBasicPrivateObjectConverter);
 }
 
 
@@ -112,11 +112,11 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 	
 	if (JSVAL_IS_STRING(value))
 	{
-		return GetNamedSound(JSValToNSString(context, value));
+		return GetNamedSound(OOJSValToNSString(context, value));
 	}
 	else
 	{
-		return JSValueToObjectOfClass(context, value, [OOSound class]);
+		return OOJSNativeObjectOfClassFromJSValue(context, value, [OOSound class]);
 	}
 	
 	OOJS_PROFILE_EXIT
@@ -138,11 +138,11 @@ static JSBool SoundGetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kSound_name:
-			*value = [[sound name] javaScriptValueInContext:context];
+			*value = [[sound name] oo_jsValueInContext:context];
 			break;
 		
 		default:
-			OOReportJSBadPropertySelector(context, @"Sound", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Sound", OOJS_PROPID_INT);
 			return NO;
 	}
 	
@@ -179,10 +179,10 @@ static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS)
 	NSString					*name = nil;
 	OOSound						*sound = nil;
 	
-	name = JSValToNSString(context, OOJS_ARG(0));
+	name = OOJSValToNSString(context, OOJS_ARG(0));
 	if (name == nil)
 	{
-		OOReportJSBadArguments(context, @"Sound", @"load", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, @"Sound", @"load", argc, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	
@@ -204,17 +204,17 @@ static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
 	NSString					*name = nil;
 	JSBool						loop = NO;
 	
-	name = JSValToNSString(context, OOJS_ARG(0));
+	name = OOJSValToNSString(context, OOJS_ARG(0));
 	if (name == nil)
 	{
-		OOReportJSBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	if (argc >= 2)
 	{
 		if (!JS_ValueToBoolean(context, OOJS_ARG(1), &loop))
 		{
-			OOReportJSBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV + 1, nil, @"boolean");
+			OOJSReportBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV + 1, nil, @"boolean");
 			return NO;
 		}
 	}
@@ -238,10 +238,10 @@ static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 	OOJSPauseTimeLimiter();
 	if (argc > 0)
 	{
-		name = JSValToNSString(context, OOJS_ARG(0));
+		name = OOJSValToNSString(context, OOJS_ARG(0));
 		if (name == nil)
 		{
-			OOReportJSBadArguments(context, @"Sound", @"stopMusic", argc, OOJS_ARGV, nil, @"string or no argument");
+			OOJSReportBadArguments(context, @"Sound", @"stopMusic", argc, OOJS_ARGV, nil, @"string or no argument");
 			return NO;
 		}
 		[[OOMusicController sharedController] stopMusicNamed:name];
@@ -260,7 +260,7 @@ static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 
 @implementation OOSound (OOJavaScriptExtentions)
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	JSObject					*jsSelf = NULL;
 	jsval						result = JSVAL_NULL;
@@ -276,13 +276,13 @@ static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 }
 
 
-- (NSString *) javaScriptDescription
+- (NSString *) oo_jsDescription
 {
 	return [NSString stringWithFormat:@"[Sound \"%@\"]", [self name]];
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Sound";
 }

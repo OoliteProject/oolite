@@ -86,8 +86,8 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 	JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	
 	// Ensure JS objects are rooted.
-	OOJS_AddGCValueRoot(context, &sCallbackFunction, "Pending mission callback function");
-	OOJS_AddGCValueRoot(context, &sCallbackThis, "Pending mission callback this");
+	OOJSAddGCValueRoot(context, &sCallbackFunction, "Pending mission callback function");
+	OOJSAddGCValueRoot(context, &sCallbackThis, "Pending mission callback this");
 }
 
 
@@ -112,8 +112,8 @@ void MissionRunCallback()
 	
 	JS_BeginRequest(context);
 	
-	OOJS_AddGCValueRoot(context, &cbFunction, "Mission callback function");
-	OOJS_AddGCObjectRoot(context, &cbThis, "Mission callback this");
+	OOJSAddGCValueRoot(context, &cbFunction, "Mission callback function");
+	OOJSAddGCObjectRoot(context, &cbThis, "Mission callback this");
 	cbFunction = sCallbackFunction;
 	cbScript = sCallbackScript;
 	JS_ValueToObject(context, sCallbackThis, &cbThis);
@@ -122,7 +122,7 @@ void MissionRunCallback()
 	sCallbackFunction = JSVAL_VOID;
 	sCallbackThis = JSVAL_VOID;
 	
-	argval = [[player missionChoice_string] javaScriptValueInContext:context];
+	argval = [[player missionChoice_string] oo_jsValueInContext:context];
 	// now reset the mission choice silently, before calling the callback script.
 	[player setMissionChoice:nil withEvent:NO];
 	
@@ -196,7 +196,7 @@ static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS)
 	
 	// Found "FIXME: warning if no mission screen running.",,,
 	// However: used routinely by the Constrictor mission in F7, without mission screens.
-	text = JSValToNSString(context, OOJS_ARG(0));
+	text = OOJSValToNSString(context, OOJS_ARG(0));
 	[player addLiteralMissionText:text];
 	
 	OOJS_RETURN_VOID;
@@ -227,7 +227,7 @@ static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey)
 	NSString			*text = nil;
 	NSString			*missionKey = nil;
 	
-	text = JSValToNSString(context, OOJS_ARG(0));
+	text = OOJSValToNSString(context, OOJS_ARG(0));
 	
 	if (argc > 1)
 	{
@@ -265,7 +265,7 @@ OOINLINE NSString *GetParameterString(JSContext *context, JSObject *object, cons
 	jsval value = JSVAL_NULL;
 	if (JS_GetProperty(context, object, key, &value))
 	{
-		return JSValToNSString(context, value);
+		return OOJSValToNSString(context, value);
 	}
 	return nil;
 }
@@ -290,7 +290,7 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	// Validate arguments.
 	if (!JSVAL_IS_OBJECT(OOJS_ARG(0)) || JSVAL_IS_NULL(OOJS_ARG(0)))
 	{
-		OOReportJSBadArguments(context, @"mission", @"runScreen", argc, OOJS_ARGV, nil, @"parameter object");
+		OOJSReportBadArguments(context, @"mission", @"runScreen", argc, OOJS_ARGV, nil, @"parameter object");
 		return NO;
 	}
 	params = JSVAL_TO_OBJECT(OOJS_ARG(0));
@@ -298,7 +298,7 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	if (argc > 1) function = OOJS_ARG(1);
 	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
 	{
-		OOReportJSBadArguments(context, @"mission", @"runScreen", argc - 1, OOJS_ARGV + 1, nil, @"function");
+		OOJSReportBadArguments(context, @"mission", @"runScreen", argc - 1, OOJS_ARGV + 1, nil, @"function");
 		return NO;
 	}
 	
@@ -313,14 +313,14 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 		}
 		else
 		{
-			sCallbackThis = [sCallbackScript javaScriptValueInContext:context];
+			sCallbackThis = [sCallbackScript oo_jsValueInContext:context];
 		}
 	}
 	
 	// Apply settings.
 	if (JS_GetProperty(context, params, "title", &value))
 	{
-		[player setMissionTitle:JSValToNSString(context, value)];
+		[player setMissionTitle:OOJSValToNSString(context, value)];
 	}
 	else
 	{
@@ -342,9 +342,9 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	{
 		if ([player status] == STATUS_IN_FLIGHT && JSVAL_IS_STRING(value))
 		{
-			OOReportJSWarning(context, @"Mission.runScreen: model will not be displayed while in flight.");
+			OOJSReportWarning(context, @"Mission.runScreen: model will not be displayed while in flight.");
 		}
-		[player showShipModel:JSValToNSString(context, value)];
+		[player showShipModel:OOJSValToNSString(context, value)];
 	}
 	
 	// Start the mission screen.

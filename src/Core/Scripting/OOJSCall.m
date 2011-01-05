@@ -79,7 +79,7 @@ static MethodType GetMethodType(id object, SEL selector);
 OOINLINE BOOL MethodExpectsParameter(MethodType type)	{ return type == kMethodTypeVoidObject || type == kMethodTypeObjectObject; }
 
 
-BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassName, uintN argc, jsval *argv, jsval *outResult)
+BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *oo_jsClassName, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -96,7 +96,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 		[PLAYER setScriptTarget:object];
 	}
 	
-	selectorString = JSValToNSString(context,argv[0]);
+	selectorString = OOJSValToNSString(context,argv[0]);
 	
 	// Join all parameters together with spaces.
 	if (1 < argc && [selectorString hasSuffix:@":"])
@@ -114,7 +114,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 		
 		if (MethodExpectsParameter(type) && !haveParameter)
 		{
-			OOReportJSError(context, @"%@.callObjC(): method %@ requires a parameter.", jsClassName, selectorString);
+			OOJSReportError(context, @"%@.callObjC(): method %@ requires a parameter.", oo_jsClassName, selectorString);
 			error = YES;
 		}
 		else
@@ -175,19 +175,19 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 				case kMethodTypeMatrixVoid:
 				case kMethodTypePointVoid:
 				case kMethodTypeInvalid:
-					OOReportJSError(context, @"%@.callObjC(): method %@ cannot be called from JavaScript.", jsClassName, selectorString);
+					OOJSReportError(context, @"%@.callObjC(): method %@ cannot be called from JavaScript.", oo_jsClassName, selectorString);
 					error = YES;
 					break;
 			}
 			if (result != nil)
 			{
-				*outResult = [result javaScriptValueInContext:context];
+				*outResult = [result oo_jsValueInContext:context];
 			}
 		}
 	}
 	else
 	{
-		OOReportJSError(context, @"%@.callObjC(): %@ does not respond to method %@.", jsClassName, [object shortDescription], selectorString);
+		OOJSReportError(context, @"%@.callObjC(): %@ does not respond to method %@.", oo_jsClassName, [object shortDescription], selectorString);
 		error = YES;
 	}
 	

@@ -50,7 +50,7 @@ static JSClass sSunClass =
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert
-	JSObjectWrapperFinalize,// finalize
+	OOJSObjectWrapperFinalize,// finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -89,7 +89,7 @@ DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, &sSunClass, sSunPrototype, OOSunEntit
 void InitOOJSSun(JSContext *context, JSObject *global)
 {
 	sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass, NULL, 0, sSunProperties, sSunMethods, NULL, NULL);
-	JSRegisterObjectConverter(&sSunClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sSunClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sSunClass, JSEntityClass());
 }
 
@@ -109,7 +109,7 @@ void InitOOJSSun(JSContext *context, JSObject *global)
 }
 
 
-- (NSString *)jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"Sun";
 }
@@ -136,17 +136,17 @@ static JSBool SunGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kSun_hasGoneNova:
-			*value = BOOLToJSVal([sun goneNova]);
+			*value = OOJSValueFromBOOL([sun goneNova]);
 			OK = YES;
 			break;
 			
 		case kSun_isGoingNova:
-			*value = BOOLToJSVal([sun willGoNova] && ![sun goneNova]);
+			*value = OOJSValueFromBOOL([sun willGoNova] && ![sun goneNova]);
 			OK = YES;
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Sun", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, @"Sun", OOJS_PROPID_INT);
 	}
 	return OK;
 	

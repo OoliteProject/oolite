@@ -122,7 +122,7 @@ static JSBool MissionVariablesGetProperty(OOJS_PROP_ARGS)
 		
 		if (mvar != nil && JSVAL_IS_VOID(*value))
 		{
-			*value = [mvar javaScriptValueInContext:context];
+			*value = [mvar oo_jsValueInContext:context];
 		}
 		
 		if (JSVAL_IS_VOID(*value))
@@ -152,11 +152,11 @@ static JSBool MissionVariablesSetProperty(OOJS_PROP_ARGS)
 		NSString *key = KeyForPropertyID(context, propID);
 		if (key == nil)
 		{
-			OOReportJSError(context, @"Mission variable names may not begin with an underscore.");
+			OOJSReportError(context, @"Mission variable names may not begin with an underscore.");
 			return NO;
 		}
 		
-		NSString *objValue = JSValToNSString(context, *value);
+		NSString *objValue = OOJSValToNSString(context, *value);
 		
 		if ([objValue isKindOfClass:[NSNull class]])  objValue = nil;
 		[player setMissionVariable:objValue forKey:key];
@@ -203,7 +203,7 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 				NSCAssert1([next hasPrefix:@"mission_"] || next == nil, @"Mission variable key without \"mission_\" prefix: %@.", next);
 				next = [next substringFromIndex:8];
 				
-				jsval val = [next javaScriptValueInContext:context];
+				jsval val = [next oo_jsValueInContext:context];
 				return JS_ValueToId(context, val, idp);
 			}
 			// else:

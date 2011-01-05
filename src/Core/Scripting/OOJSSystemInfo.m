@@ -85,7 +85,7 @@ static JSPropertySpec sSystemInfoProperties[] =
 static JSFunctionSpec sSystemInfoMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				JSObjectWrapperToString,	0 },
+	{ "toString",				OOJSObjectWrapperToString,	0 },
 	{ "distanceToSystem",		SystemInfoDistanceToSystem,	1 },
 	{ "routeToSystem",			SystemInfoRouteToSystem,	1 },
 	{ 0 }
@@ -168,7 +168,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 }
 
 
-- (NSString *) jsClassName
+- (NSString *) oo_jsClassName
 {
 	return @"SystemInfo";
 }
@@ -239,7 +239,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 }
 
 
-- (jsval) javaScriptValueInContext:(JSContext *)context
+- (jsval) oo_jsValueInContext:(JSContext *)context
 {
 	JSObject					*jsSelf = NULL;
 	jsval						result = JSVAL_NULL;
@@ -261,7 +261,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 void InitOOJSSystemInfo(JSContext *context, JSObject *global)
 {
 	sSystemInfoPrototype = JS_InitClass(context, global, NULL, &sSystemInfoClass, NULL, 0, sSystemInfoProperties, sSystemInfoMethods, NULL, sSystemInfoStaticMethods);
-	JSRegisterObjectConverter(&sSystemInfoClass, JSBasicPrivateObjectConverter);
+	OOJSRegisterObjectConverter(&sSystemInfoClass, OOJSBasicPrivateObjectConverter);
 }
 
 
@@ -282,10 +282,10 @@ jsval GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID
 	OOSystemInfo *info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
 	if (EXPECT_NOT(info == nil))
 	{
-		OOReportJSWarning(context, @"Could not create system info object for galaxy %u, system %i.", galaxy, system);
+		OOJSReportWarning(context, @"Could not create system info object for galaxy %u, system %i.", galaxy, system);
 	}
 	
-	jsval result = info ? [info javaScriptValueInContext:context] : JSVAL_NULL;
+	jsval result = info ? [info oo_jsValueInContext:context] : JSVAL_NULL;
 	OOJSResumeTimeLimiter();
 	
 	// Cache is not a root; we clear it in finalize if necessary.
@@ -336,7 +336,7 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 		return YES;
 	}
 	
-	OOSystemInfo	*info = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
+	OOSystemInfo	*info = OOJSNativeObjectOfClassFromJSObject(context, this, [OOSystemInfo class]);
 	// What if we're trying to access a saved witchspace systemInfo object?
 	BOOL savedInterstellarInfo = ![UNIVERSE inInterstellarSpace] && [info system] == -1;
 	BOOL sameGalaxy = [PLAYER currentGalaxyID] == [info galaxy];
@@ -359,7 +359,7 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 				}
 				else
 				{
-					OOReportJSError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ? @"invalid interstellar space reference" : @"other galaxies");
+					OOJSReportError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ? @"invalid interstellar space reference" : @"other galaxies");
 					*value = JSVAL_VOID;
 					// OK remains NO
 				}
@@ -376,7 +376,7 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 				break;
 				
 			default:
-				OOReportJSBadPropertySelector(context, @"SystemInfo", OOJS_PROPID_INT);
+				OOJSReportBadPropertySelector(context, @"SystemInfo", OOJS_PROPID_INT);
 		}
 		
 		return OK;
@@ -387,7 +387,7 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 		
 		if (!sameGalaxy || savedInterstellarInfo)
 		{
-			OOReportJSError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ?  @"invalid interstellar space reference" : @"other galaxies");
+			OOJSReportError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ?  @"invalid interstellar space reference" : @"other galaxies");
 			*value = JSVAL_VOID;
 			return NO;
 		}
@@ -407,7 +407,7 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 			}
 			else
 			{
-				*value = [propValue javaScriptValueInContext:context];
+				*value = [propValue oo_jsValueInContext:context];
 			}
 		}
 	}
@@ -430,9 +430,9 @@ static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS)
 	if (OOJS_PROPID_IS_STRING)
 	{
 		NSString		*key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
-		OOSystemInfo	*info = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
+		OOSystemInfo	*info = OOJSNativeObjectOfClassFromJSObject(context, this, [OOSystemInfo class]);
 		
-		[info setValue:JSValToNSString(context, *value) forKey:key];
+		[info setValue:OOJSValToNSString(context, *value) forKey:key];
 	}
 	return YES;
 	
@@ -447,21 +447,21 @@ static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS)
 	
 	if(!JSVAL_IS_OBJECT(OOJS_ARG(0)))
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
+		OOJSReportBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
-	OOSystemInfo *thisInfo = JSObjectToObjectOfClass(context, OOJS_THIS, [OOSystemInfo class]);
-	OOSystemInfo *otherInfo  = JSObjectToObjectOfClass(context, JSVAL_TO_OBJECT(OOJS_ARG(0)), [OOSystemInfo class]);
+	OOSystemInfo *thisInfo = OOJSNativeObjectOfClassFromJSObject(context, OOJS_THIS, [OOSystemInfo class]);
+	OOSystemInfo *otherInfo  = OOJSNativeObjectOfClassFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARG(0)), [OOSystemInfo class]);
 	if (thisInfo == nil || otherInfo == nil)
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
+		OOJSReportBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
 	
 	BOOL sameGalaxy = ([thisInfo galaxy] == [otherInfo galaxy]);
 	if (!sameGalaxy)
 	{
-		OOReportJSError(context, @"Cannot calculate distance for systems in other galaxies.");
+		OOJSReportError(context, @"Cannot calculate distance for systems in other galaxies.");
 		return NO;
 	}
 	
@@ -486,27 +486,27 @@ static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS)
 	
 	if(!JSVAL_IS_OBJECT(OOJS_ARG(0)))
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
+		OOJSReportBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
-	OOSystemInfo *thisInfo = JSObjectToObjectOfClass(context, OOJS_THIS, [OOSystemInfo class]);
-	OOSystemInfo *otherInfo  = JSObjectToObjectOfClass(context, JSVAL_TO_OBJECT(OOJS_ARG(0)), [OOSystemInfo class]);
+	OOSystemInfo *thisInfo = OOJSNativeObjectOfClassFromJSObject(context, OOJS_THIS, [OOSystemInfo class]);
+	OOSystemInfo *otherInfo  = OOJSNativeObjectOfClassFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARG(0)), [OOSystemInfo class]);
 	if (thisInfo == nil || otherInfo == nil)
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
+		OOJSReportBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
 	
 	BOOL sameGalaxy = ([thisInfo galaxy] == [otherInfo galaxy]);
 	if (!sameGalaxy)
 	{
-		OOReportJSError(context, @"Cannot calculate route for destinations in other galaxies.");
+		OOJSReportError(context, @"Cannot calculate route for destinations in other galaxies.");
 		return NO;
 	}
 	
 	if (argc >= 2)
 	{
-		routeType = StringToRouteType(JSValToNSString(context, OOJS_ARG(1)));
+		routeType = StringToRouteType(OOJSValToNSString(context, OOJS_ARG(1)));
 	}
 	
 	OOJSPauseTimeLimiter();
@@ -529,7 +529,7 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 	JSObject *jsThis = NULL;
 	if (EXPECT_NOT(!JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(predicate)) || !JS_ValueToObject(context, OOJS_ARG(0), &jsThis)))
 	{
-		OOReportJSBadArguments(context, @"SystemInfo", @"filteredSystems", argc, OOJS_ARGV, nil, @"this and predicate function");
+		OOJSReportBadArguments(context, @"SystemInfo", @"filteredSystems", argc, OOJS_ARGV, nil, @"this and predicate function");
 		return NO;
 	}
 	
@@ -546,7 +546,7 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 	{
 		// NOTE: this deliberately bypasses the cache, since it's inherently unfriendly to a single-item cache.
 		OOSystemInfo *info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
-		jsval args[1] = { [info javaScriptValueInContext:context] };
+		jsval args[1] = { [info oo_jsValueInContext:context] };
 		
 		jsval rval = JSVAL_VOID;
 		OOJSResumeTimeLimiter();
@@ -576,7 +576,7 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 	
 	if (OK)
 	{
-		OOJS_SET_RVAL([result javaScriptValueInContext:context]);
+		OOJS_SET_RVAL([result oo_jsValueInContext:context]);
 	}
 	else
 	{
