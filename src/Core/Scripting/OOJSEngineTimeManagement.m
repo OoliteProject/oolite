@@ -189,10 +189,9 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
 	for (;;)
 	{
 #if OOLITE_WINDOWS
-		// Apparently, there's no fine-grained sleep on Windows. Precision isn't all that important.
-		Sleep((OOJS_TIME_LIMIT > 1.0) ? OOJS_TIME_LIMIT : 1);
+		Sleep(OOJS_TIME_LIMIT * 1000);
 #else
-		usleep((useconds_t)(OOJS_TIME_LIMIT * 1000000));
+		usleep(OOJS_TIME_LIMIT * 1000000);
 #endif
 		
 		if (EXPECT(sLimiterStartDepth == 0 || sLimiterPauseDepth > 0))  continue;	// Most of the time, a script isn't running.
