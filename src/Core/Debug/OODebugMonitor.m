@@ -510,6 +510,7 @@ typedef struct
 		[textureRefCounts setObject:[NSNumber numberWithUnsignedInt:[tex retainCount] - 1] forKey:[NSValue valueWithNonretainedObject:tex]];
 	}
 	
+	size_t totalSize = 0;
 	
 	[self writeMemStat:@"Entitites:"];
 	OOLogIndent();
@@ -541,6 +542,7 @@ typedef struct
 	 SizeString(entityDumpState.totalEntityObjSize + entityDumpState.totalDrawableSize),
 	 SizeString(entityDumpState.totalEntityObjSize),
 	 SizeString(entityDumpState.totalDrawableSize)];
+	totalSize += entityDumpState.totalEntityObjSize + entityDumpState.totalDrawableSize;
 	
 	/*	Sort textures so that textures in the "recent cache" come first by age,
 		followed by others.
@@ -596,6 +598,7 @@ typedef struct
 		totalTextureDataSize += dataSize;
 		totalTextureObjSize += objSize;
 	}
+	totalSize += totalTextureObjSize + totalTextureDataSize;
 	
 	OOLogOutdent();
 	
@@ -608,7 +611,22 @@ typedef struct
 	 SizeString(totalTextureDataSize),
 	 SizeString(visibleTextureDataSize)];
 	
-	[self writeMemStat:@"Total entity + texture size: %@", SizeString(totalTextureObjSize + totalTextureDataSize + entityDumpState.totalEntityObjSize + entityDumpState.totalDrawableSize)];
+#if OO_NEW_JS
+	OOJavaScriptEngine *jsEngine = [OOJavaScriptEngine sharedEngine];
+	JSContext *context = [jsEngine acquireContext];
+	JS_BeginRequest(context);
+	JSRuntime *runtime = JS_GetRuntime(context);
+	size_t jsSize = JS_GetGCParameter(runtime, JSGC_BYTES);
+	size_t jsMax = JS_GetGCParameter(runtime, JSGC_MAX_BYTES);
+	uint32_t jsGCCount = JS_GetGCParameter(runtime, JSGC_NUMBER);
+	JS_EndRequest(context);
+	[jsEngine releaseContext:context];
+	
+	[self writeMemStat:@"JavaScript heap: %@ (limit %@, %u collections to date)", SizeString(jsSize), SizeString(jsMax), jsGCCount];
+	totalSize += jsSize;
+#endif
+	
+	[self writeMemStat:@"Total: %@", SizeString(totalSize)];
 	
 	OOLogOutdent();
 }
