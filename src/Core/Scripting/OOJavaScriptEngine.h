@@ -647,7 +647,7 @@ JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS);
 
 
 #if !JS_THREADSAFE
-#define JS_IsInRequest(context)  ((context), YES)
+#define JS_IsInRequest(context)  (((void)(context)), YES)
 #endif
 
 
