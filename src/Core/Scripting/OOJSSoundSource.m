@@ -177,9 +177,9 @@ static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kSoundSource_sound:
-			OOJS_BEGIN_FULL_NATIVE(context)
+			OOJSPauseTimeLimiter();
 			[soundSource setSound:SoundFromJSValue(context, *value)];
-			OOJS_END_FULL_NATIVE
+			OOJSResumeTimeLimiter();
 			OK = YES;
 			break;
 			
@@ -293,9 +293,9 @@ static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, OOJS_THIS, &thisv)))  return NO;
 	
-	OOJS_BEGIN_FULL_NATIVE(context)
+	OOJSPauseTimeLimiter();
 	sound = SoundFromJSValue(context, OOJS_ARG(0));
-	OOJS_END_FULL_NATIVE
+	OOJSResumeTimeLimiter();
 	
 	if (sound == nil)
 	{

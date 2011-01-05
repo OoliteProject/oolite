@@ -110,6 +110,7 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 {
 	OOJS_PROFILE_ENTER
 	
+	OOJSPauseTimeLimiter();
 	if (JSVAL_IS_STRING(value))
 	{
 		return GetNamedSound(OOJSValToNSString(context, value));
@@ -118,6 +119,7 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 	{
 		return OOJSNativeObjectOfClassFromJSValue(context, value, [OOSound class]);
 	}
+	OOJSResumeTimeLimiter();
 	
 	OOJS_PROFILE_EXIT
 }
