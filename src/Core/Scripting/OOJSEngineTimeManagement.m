@@ -39,6 +39,9 @@ SOFTWARE.
 #define OOJS_DEBUG_LIMITER	0
 #endif
 
+#if (OO_NEW_JS && OOLITE_WINDOWS)
+typedef unsigned useconds_t;
+#endif
 
 static unsigned sLimiterStartDepth;
 static int sLimiterPauseDepth;
@@ -196,7 +199,7 @@ enum
 	{
 #if OOLITE_WINDOWS
 		// Apparently, there's no fine-grained sleep on Windows. Precision isn't all that important.
-		sleep((OOJS_TIME_LIMIT > 1.0) ? OOJS_TIME_LIMIT : 1);
+		Sleep((OOJS_TIME_LIMIT > 1.0) ? OOJS_TIME_LIMIT : 1);
 #else
 		usleep(kWatchdogTimerFrequency);
 #endif
