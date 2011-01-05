@@ -177,9 +177,9 @@ static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kSoundSource_sound:
-			OOJSPauseTimeLimiter();
+			OOJS_BEGIN_FULL_NATIVE(context)
 			[soundSource setSound:SoundFromJSValue(context, *value)];
-			OOJSResumeTimeLimiter();
+			OOJS_END_FULL_NATIVE
 			OK = YES;
 			break;
 			
@@ -234,9 +234,9 @@ static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS)
 		[thisv setRepeatCount:count];
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	[thisv play];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -253,9 +253,9 @@ static JSBool SoundSourceStop(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, OOJS_THIS, &thisv)))  return NO;
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	[thisv stop];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -272,9 +272,9 @@ static JSBool SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, OOJS_THIS, &thisv)))  return NO;
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	[thisv playOrRepeat];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -291,23 +291,25 @@ static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS)
 	OOSound					*sound = nil;
 	int32					count = 0;
 	
-	OOJSPauseTimeLimiter();
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, OOJS_THIS, &thisv)))  return NO;
+	
+	OOJS_BEGIN_FULL_NATIVE(context)
 	sound = SoundFromJSValue(context, OOJS_ARG(0));
+	OOJS_END_FULL_NATIVE
+	
 	if (sound == nil)
 	{
 		OOJSReportBadArguments(context, @"SoundSource", @"playSound", argc, OOJS_ARGV, nil, @"sound or sound name");
-		OOJSResumeTimeLimiter();
 		return NO;
 	}
 	
 	if (argc > 1 && !JS_ValueToInt32(context, OOJS_ARG(1), &count))
 	{
 		OOJSReportBadArguments(context, @"SoundSource", @"playSound", argc, OOJS_ARGV, nil, @"sound or sound name and optional integer count");
-		OOJSResumeTimeLimiter();
 		return NO;
 	}
 	
+	OOJS_BEGIN_FULL_NATIVE(context)
 	[thisv setSound:sound];
 	if (count > 0)
 	{
@@ -315,7 +317,7 @@ static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS)
 		[thisv setRepeatCount:count];
 	}
 	[thisv play];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	

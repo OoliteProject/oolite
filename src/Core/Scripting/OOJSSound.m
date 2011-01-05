@@ -186,9 +186,9 @@ static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	sound = GetNamedSound(name);
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(sound);
 	
@@ -219,9 +219,9 @@ static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
 		}
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	[[OOMusicController sharedController] playMusicNamed:name loop:loop];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -235,22 +235,23 @@ static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 	
 	NSString					*name = nil;
 	
-	OOJSPauseTimeLimiter();
 	if (argc > 0)
 	{
 		name = OOJSValToNSString(context, OOJS_ARG(0));
-		if (name == nil)
+		if (EXPECT_NOT(name == nil))
 		{
 			OOJSReportBadArguments(context, @"Sound", @"stopMusic", argc, OOJS_ARGV, nil, @"string or no argument");
 			return NO;
 		}
-		[[OOMusicController sharedController] stopMusicNamed:name];
 	}
-	else
+	
+	OOJS_BEGIN_FULL_NATIVE(context)
+	OOMusicController *controller = [OOMusicController sharedController];
+	if (name == nil || [name isEqualToString:[controller playingMusic]])
 	{
 		[[OOMusicController sharedController] stop];
 	}
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	

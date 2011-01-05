@@ -278,15 +278,18 @@ jsval GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID
 	}
 	
 	// If not, create a new one.
-	OOJSPauseTimeLimiter();
-	OOSystemInfo *info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
+	OOSystemInfo *info = nil;
+	jsval result;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
+	OOJS_END_FULL_NATIVE
+	
 	if (EXPECT_NOT(info == nil))
 	{
 		OOJSReportWarning(context, @"Could not create system info object for galaxy %u, system %i.", galaxy, system);
 	}
 	
-	jsval result = info ? [info oo_jsValueInContext:context] : JSVAL_NULL;
-	OOJSResumeTimeLimiter();
+	result = info ? [info oo_jsValueInContext:context] : JSVAL_NULL;
 	
 	// Cache is not a root; we clear it in finalize if necessary.
 	sCachedSystemInfo = JSVAL_TO_OBJECT(result);
@@ -468,9 +471,7 @@ static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS)
 	NSPoint thisCoord = [thisInfo coordinates];
 	NSPoint otherCoord = [otherInfo coordinates];
 	
-	OOJSPauseTimeLimiter();
 	OOJS_RETURN_DOUBLE(distanceBetweenPlanetPositions(thisCoord.x, thisCoord.y, otherCoord.x, otherCoord.y));
-	OOJSResumeTimeLimiter();
 	
 	OOJS_NATIVE_EXIT
 }
@@ -509,9 +510,9 @@ static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS)
 		routeType = StringToRouteType(OOJSValToNSString(context, OOJS_ARG(1)));
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	result = [UNIVERSE routeFromSystem:[thisInfo system] toSystem:[otherInfo system] optimizedBy:routeType];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(result);
 	
@@ -536,6 +537,7 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:256];
 	
+	// Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
 	OOJSPauseTimeLimiter();
 	
 	// Iterate over systems.

@@ -1360,10 +1360,10 @@ static JSBool ShipSpawn(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	result = [thisEnt spawnShipsWithRole:role count:count];
-	OOJSResumeTimeLimiter();
-	
+	OOJS_END_FULL_NATIVE
+
 	OOJS_RETURN_OBJECT(result);
 	
 	OOJS_NATIVE_EXIT
@@ -2119,8 +2119,6 @@ static JSBool ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity *thisEnt, BO
 		OOJS_RETURN_BOOL(NO);
 	}
 	
-	OOJSPauseTimeLimiter();
-	
 	if (argc > 1)
 	{
 		withShaders = YES;
@@ -2151,15 +2149,16 @@ static JSBool ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity *thisEnt, BO
 		shaders = [[thisEnt mesh] shaders];
 	}
 	
+	OOJS_BEGIN_FULL_NATIVE(context)
 	NSDictionary 			*shipDict = [thisEnt shipInfoDictionary];
-
+	
 	// First we test to see if we can create the mesh.
 	OOMesh *mesh = [OOMesh meshWithName:[shipDict oo_stringForKey:@"model"]
 							   cacheKey:nil
 					 materialDictionary:materials
 					  shadersDictionary:shaders
 								 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
-						   shaderMacros:[[ResourceManager materialDefaults] oo_dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]]
+						   shaderMacros:[[ResourceManager materialDefaults] oo_dictionaryForKey:@"ship-prefix-macros"]
 					shaderBindingTarget:thisEnt];
 	
 	if (mesh != nil)
@@ -2167,8 +2166,7 @@ static JSBool ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity *thisEnt, BO
 		[thisEnt setMesh:mesh];
 		success = YES;
 	}
-	
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_BOOL(success);
 	

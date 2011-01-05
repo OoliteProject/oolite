@@ -300,9 +300,9 @@ static JSBool SystemGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kSystem_allShips:
-			OOJSPauseTimeLimiter();
+			OOJS_BEGIN_FULL_NATIVE(context)
 			result = [UNIVERSE findShipsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil];
-			OOJSResumeTimeLimiter();
+			OOJS_END_FULL_NATIVE
 			break;
 			
 		case kSystem_info:
@@ -471,9 +471,9 @@ static JSBool SystemAddPlanet(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	planet = [player addPlanet:key];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(planet);
 	
@@ -497,9 +497,9 @@ static JSBool SystemAddMoon(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	planet = [player addMoon:key];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(planet);
 	
@@ -529,6 +529,7 @@ static JSBool SystemCountShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 	NSString			*role = nil;
 	Entity				*relativeTo = nil;
 	double				range = -1;
+	unsigned			result;
 	
 	role = OOJSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
@@ -542,9 +543,9 @@ static JSBool SystemCountShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 	jsval *argv = OOJS_ARGV + 1;
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"countShipsWithPrimaryRole", &argc, &argv, &relativeTo, &range)))  return NO;
 	
-	OOJSPauseTimeLimiter();
-	unsigned result = [UNIVERSE countShipsWithPrimaryRole:role inRange:range ofEntity:relativeTo];
-	OOJSResumeTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
+	result = [UNIVERSE countShipsWithPrimaryRole:role inRange:range ofEntity:relativeTo];
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_INT(result);
 	
@@ -560,6 +561,7 @@ static JSBool SystemCountShipsWithRole(OOJS_NATIVE_ARGS)
 	NSString			*role = nil;
 	Entity				*relativeTo = nil;
 	double				range = -1;
+	unsigned			result;
 	
 	role = OOJSValToNSString(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
@@ -573,9 +575,9 @@ static JSBool SystemCountShipsWithRole(OOJS_NATIVE_ARGS)
 	jsval *argv = OOJS_ARGV + 1;
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"countShipsWithRole", &argc, &argv, &relativeTo, &range)))  return NO;
 	
-	OOJSPauseTimeLimiter();
-	unsigned result = [UNIVERSE countShipsWithRole:role inRange:range ofEntity:relativeTo];
-	OOJSResumeTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
+	result = [UNIVERSE countShipsWithRole:role inRange:range ofEntity:relativeTo];
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_INT(result);
 	
@@ -606,9 +608,9 @@ static JSBool SystemShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"shipsWithPrimaryRole", &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	result = FindShips(HasPrimaryRolePredicate, role, relativeTo, range);
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(result);
 	
@@ -639,9 +641,9 @@ static JSBool SystemShipsWithRole(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"shipsWithRole", &argc, &subargv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	result = FindShips(HasRolePredicate, role, relativeTo, range);
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(result);
 	
@@ -658,6 +660,7 @@ static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 	OOScanClass			scanClass = CLASS_NOT_SET;
 	Entity				*relativeTo = nil;
 	double				range = -1;
+	unsigned			result;
 	
 	scString = OOJSValToNSString(context, OOJS_ARG(0));
 	if (scString == nil)
@@ -678,9 +681,9 @@ static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 	jsval *argv = OOJS_ARGV + 1;
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"countEntitiesWithScanClass", &argc, &argv, &relativeTo, &range)))  return NO;
 	
-	OOJSPauseTimeLimiter();
-	unsigned result = [UNIVERSE countShipsWithScanClass:scanClass inRange:range ofEntity:relativeTo];
-	OOJSResumeTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
+	result = [UNIVERSE countShipsWithScanClass:scanClass inRange:range ofEntity:relativeTo];
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_INT(result);
 	
@@ -719,9 +722,9 @@ static JSBool SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"entitiesWithScanClass", &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	result = FindJSVisibleEntities(HasScanClassPredicate, [NSNumber numberWithInt:scanClass], relativeTo, range);
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(result);
 	
@@ -755,9 +758,9 @@ static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS)
 	
 	// Search for entities
 	JSFunctionPredicateParameter param = { context, function, jsThis, NO };
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	result = FindJSVisibleEntities(JSFunctionPredicate, &param, relativeTo, range);
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	if (EXPECT_NOT(param.errorFlag))  return NO;
 	
@@ -813,9 +816,9 @@ static JSBool SystemLegacyAddShips(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	while (count--)  [UNIVERSE witchspaceShipWithPrimaryRole:role];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -843,9 +846,9 @@ static JSBool SystemLegacyAddSystemShips(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	while (count--)  [UNIVERSE addShipWithRole:role nearRouteOneAt:position];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -878,10 +881,10 @@ static JSBool SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f", role, count, coordScheme, where.x, where.y, where.z];
 	[player addShipsAt:arg];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -914,10 +917,10 @@ static JSBool SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f", role, count, coordScheme, where.x, where.y, where.z];
 	[player addShipsAtPrecisely:arg];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -953,10 +956,10 @@ static JSBool SystemLegacyAddShipsWithinRadius(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f %f", role, count, coordScheme, where.x, where.y, where.z, radius];
 	[player addShipsWithinRadius:arg];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -979,9 +982,9 @@ static JSBool SystemLegacySpawnShip(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	[UNIVERSE spawnShip:key];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
@@ -1016,6 +1019,7 @@ static JSBool SystemStaticSystemIDForName(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString			*name = nil;
+	unsigned			result;
 	
 	name = OOJSValToNSString(context, OOJS_ARG(0));
 	if (name == nil)
@@ -1024,9 +1028,9 @@ static JSBool SystemStaticSystemIDForName(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
-	unsigned result = [UNIVERSE systemIDForSystemSeed:[UNIVERSE systemSeedForSystemName:name]];
-	OOJSResumeTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
+	result = [UNIVERSE systemIDForSystemSeed:[UNIVERSE systemSeedForSystemName:name]];
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_INT(result);
 	
@@ -1118,7 +1122,7 @@ static JSBool SystemAddShipsOrGroup(OOJS_NATIVE_ARGS, BOOL isGroup)
 		}
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.
 	result = [UNIVERSE addShipsAt:where withRole:role quantity:count withinRadius:radius asGroup:isGroup];
 	
@@ -1128,7 +1132,7 @@ static JSBool SystemAddShipsOrGroup(OOJS_NATIVE_ARGS, BOOL isGroup)
 		if ([array count] > 0)  result = [(ShipEntity *)[array objectAtIndex:0] group];
 		else  result = nil;
 	}
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(result);
 	
@@ -1182,7 +1186,7 @@ static JSBool SystemAddShipsOrGroupToRoute(OOJS_NATIVE_ARGS, BOOL isGroup)
 		route = [route lowercaseString];
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.	
 	result = [UNIVERSE addShipsToRoute:route withRole:role quantity:count routeFraction:where asGroup:isGroup];
 	
@@ -1192,7 +1196,7 @@ static JSBool SystemAddShipsOrGroupToRoute(OOJS_NATIVE_ARGS, BOOL isGroup)
 		if ([array count] > 0)  result = [(ShipEntity *)[array objectAtIndex:0] group];
 		else  result = nil;
 	}
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(result);
 	

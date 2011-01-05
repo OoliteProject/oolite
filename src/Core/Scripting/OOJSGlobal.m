@@ -231,7 +231,7 @@ static JSBool GlobalLog(OOJS_NATIVE_ARGS)
 		message = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV + 1 count:argc - 1 separator:@", " inContext:context];
 	}
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	OOLog(messageClass, @"%@", message);
 	
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -239,7 +239,7 @@ static JSBool GlobalLog(OOJS_NATIVE_ARGS)
 											withMessageClass:nil
 												   inContext:context];
 #endif
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	

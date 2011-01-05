@@ -168,12 +168,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 {
 	OOJS_PROFILE_ENTER
 	
-	if (dict == nil)
-	{
-		// Is there any reason we should allow nil dictionary here? I think not. --Ahruman 2008-04-27
-		// Yes, the player ship uses -init. Any others? --Ahruman 2008-04-28
-		OOLog(@"ship.sanityCheck.nilDict", @"Ship created with nil dictionary!");
-	}
+	NSParameterAssert(dict != nil);
 	
 	self = [super init];
 	if (self == nil)  return nil;

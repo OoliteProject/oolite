@@ -132,6 +132,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	NSString		*activeScript = nil;
 	BOOL			showLocation = [[OOJavaScriptEngine sharedEngine] showErrorLocations];
 	
+	// Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
 	OOJSPauseTimeLimiter();
 	
 	jschar empty[1] = { 0 };
@@ -653,6 +654,8 @@ void OOJSReportErrorForCaller(JSContext *context, NSString *scriptClass, NSStrin
 void OOJSReportErrorWithArguments(JSContext *context, NSString *format, va_list args)
 {
 	NSString				*msg = nil;
+	
+	NSCParameterAssert(JS_IsInRequest(context));
 	
 	NS_DURING
 		msg = [[NSString alloc] initWithFormat:format arguments:args];
@@ -1588,6 +1591,8 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	
 	if (param->errorFlag)  return NO;
 	
+	JS_BeginRequest(param->context);
+	
 	args[0] = [entity oo_jsValueInContext:param->context];
 	
 	OOJSStartTimeLimiter();
@@ -1609,6 +1614,8 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	{
 		param->errorFlag = YES;
 	}
+	
+	JS_EndRequest(param->context);
 	
 	return result;
 	

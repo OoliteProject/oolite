@@ -389,19 +389,19 @@ static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 			sValue = OOJSValToNSString(context, *value);
 			if (sValue != nil)
 			{
-				OOJSPauseTimeLimiter();
+				OOJS_BEGIN_FULL_NATIVE(context)
 				OOShaderSetting setting = StringToShaderSetting(sValue);
 				[UNIVERSE setShaderEffectsLevel:setting transiently:YES];
-				OOJSResumeTimeLimiter();
+				OOJS_END_FULL_NATIVE
 			}
 			break;
 			
 		case kConsole_reducedDetailMode:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
-				OOJSPauseTimeLimiter();
+				OOJS_BEGIN_FULL_NATIVE(context)
 				[UNIVERSE setReducedDetail:bValue transiently:YES];
-				OOJSResumeTimeLimiter();
+				OOJS_END_FULL_NATIVE
 			}
 			break;
 			
@@ -555,6 +555,7 @@ static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS)
 		return NO;
 	}
 	
+	// Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
 	OOJSPauseTimeLimiter();
 	if (JSVAL_IS_NULL(*value) || JSVAL_IS_VOID(*value))
 	{
@@ -594,6 +595,7 @@ static JSBool ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
 						*message = nil;
 	jsdouble			location, length;
 	
+	// Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
 	OOJSPauseTimeLimiter();
 	monitor = OOJSNativeObjectOfClassFromJSObject(context, OOJS_THIS, [OODebugMonitor class]);
 	if (monitor == nil)
@@ -684,12 +686,12 @@ static JSBool ConsoleInspectEntity(OOJS_NATIVE_ARGS)
 	
 	if (JSValueToEntity(context, OOJS_ARG(0), &entity))
 	{
+		OOJS_BEGIN_FULL_NATIVE(context)
 		if ([entity respondsToSelector:@selector(inspect)])
 		{
-			OOJSPauseTimeLimiter();
 			[entity inspect];
-			OOJSResumeTimeLimiter();
 		}
+		OOJS_END_FULL_NATIVE
 	}
 	
 	OOJS_RETURN_VOID;
@@ -704,6 +706,8 @@ static JSBool ConsoleCallObjCMethod(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	id						object = nil;
+	jsval					result;
+	BOOL					OK;
 	
 	object = OOJSNativeObjectFromJSObject(context, OOJS_THIS);
 	if (object == nil)
@@ -712,10 +716,10 @@ static JSBool ConsoleCallObjCMethod(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
-	jsval result = JSVAL_VOID;
-	BOOL OK = OOJSCallObjCObjectMethod(context, object, [object oo_jsClassName], argc, OOJS_ARGV, &result);
-	OOJSResumeTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
+	result = JSVAL_VOID;
+	OK = OOJSCallObjCObjectMethod(context, object, [object oo_jsClassName], argc, OOJS_ARGV, &result);
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_SET_RVAL(result);
 	return OK;
@@ -756,6 +760,7 @@ static JSBool ConsoleIsExecutableJavaScript(OOJS_NATIVE_ARGS)
 		OOJS_RETURN_BOOL(NO);	// Fail silently
 	}
 	
+	// Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
 	OOJSPauseTimeLimiter();
 #if OO_NEW_JS
 	// FIXME: this must be possible using just JSAPI functions.
@@ -824,19 +829,15 @@ static JSBool ConsoleWriteMemoryStats(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	OOJSPauseTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
 	[[OODebugMonitor sharedDebugMonitor] dumpMemoryStatistics];
-	OOJSResumeTimeLimiter();
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
 
-// MKW - the old JS does not have JS_GetGCParameter()
-#if OO_NEW_JS == 0
-#define JS_GetGCParameter(...) (0)
-#endif
 
 // function garbageCollect() : string
 static JSBool ConsoleGarbageCollect(OOJS_NATIVE_ARGS)

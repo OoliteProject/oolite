@@ -302,6 +302,7 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
+	// Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
 	OOJSPauseTimeLimiter();
 	
 	if (!JSVAL_IS_NULL(function))

@@ -467,7 +467,7 @@ void OOJSRegisterObjectConverter(JSClass *theClass, OOJSClassConverterCallback c
 		@try { \
 			OOJSProfileEnter(&oojsProfilerStackFrame, __PRETTY_FUNCTION__);
 
-	#define OOJS_PROFILE_EXIT_VAL(rval) \
+#define OOJS_PROFILE_EXIT_VAL(rval) \
 		} @finally { \
 			OOJSProfileExit(&oojsProfilerStackFrame); \
 		} \
@@ -524,6 +524,40 @@ void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_
 #define OOJS_PROFILE_EXIT		OOJS_PROFILE_EXIT_VAL(0)
 #define OOJS_PROFILE_EXIT_JSVAL	OOJS_PROFILE_EXIT_VAL(JSVAL_VOID)
 
+
+/*
+	OOJS_BEGIN_FULL_NATIVE() and OOJS_END_FULL_NATIVE
+	These macros are used to bracket sections of native Oolite code within JS
+	callbacks which may take a long time. Thet do two things: pause the
+	time limiter, and (in JS_THREADSAFE builds) suspend the current JS context
+	request.
+	
+	These macros must be used in balanced pairs. They introduce a scope.
+	
+	JSAPI functions may not be used, directly or indirectily, between these
+	macros unless explicitly opening a request first.
+*/
+#if JS_THREADSAFE
+#define OOJS_BEGIN_FULL_NATIVE(context) \
+	{ \
+		OOJSPauseTimeLimiter(); \
+		JSContext *oojsRequestContext = (context); \
+		jsrefcount oojsRequestRefCount = JS_SuspendRequest(oojsRequestContext);
+
+#define OOJS_END_FULL_NATIVE \
+		JS_ResumeRequest(oojsRequestContext, oojsRequestRefCount); \
+		OOJSResumeTimeLimiter(); \
+	}
+#else
+#define OOJS_BEGIN_FULL_NATIVE(context) \
+	{ \
+		(void)(context); \
+		OOJSPauseTimeLimiter(); \
+
+#define OOJS_END_FULL_NATIVE \
+		OOJSResumeTimeLimiter(); \
+	}
+#endif
 
 
 /*	OOJSDumpStack()
@@ -612,12 +646,16 @@ JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS);
 
 
 
+#if !JS_THREADSAFE
+#define JS_IsInRequest(context)  ((context), YES)
+#endif
+
 
 /***** Transitional compatibility stuff - remove when switching to OO_NEW_JS permanently. *****/
 
 
 #if OO_NEW_JS
-// Before removing, switch to JSVAL_TO_DOUBLE() everywhere.
+// Before removing, switch to DOUBLE_TOJSVAL() everywhere.
 static inline JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
 {
 	NSCParameterAssert(rval != NULL);
@@ -629,6 +667,8 @@ static inline JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
 #else
 // In old API, jsvals could be pointers to doubles; in new, they're actual doubles.
 #define OOJSVAL_TO_DOUBLE(val) (*JSVAL_TO_DOUBLE(val))
+
+#define JS_GetGCParameter(...) (0)
 #endif
 
 

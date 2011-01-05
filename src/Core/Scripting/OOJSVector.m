@@ -947,6 +947,7 @@ static JSBool VectorToCoordinateSystem(OOJS_NATIVE_ARGS)
 	
 	Vector				thisv;
 	NSString			*coordScheme = nil;
+	Vector				result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toCoordinateSystem"))) return NO;
 
@@ -958,11 +959,9 @@ static JSBool VectorToCoordinateSystem(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	OOJSPauseTimeLimiter();
-	
-	Vector result = [UNIVERSE legacyPositionFrom:thisv asCoordinateSystem:coordScheme];
-
-	OOJSResumeTimeLimiter();
+	OOJS_BEGIN_FULL_NATIVE(context)
+	result = [UNIVERSE legacyPositionFrom:thisv asCoordinateSystem:coordScheme];
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VECTOR(result);
 	
@@ -977,6 +976,7 @@ static JSBool VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
 	
 	Vector				thisv;
 	NSString			*coordScheme = nil;
+	Vector				result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"fromCoordinateSystem"))) return NO;
 
@@ -987,13 +987,11 @@ static JSBool VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
 		OOJSReportBadArguments(context, @"Vector3D", @"fromCoordinateSystem", argc, OOJS_ARGV, nil, @"coordinate system");
 		return NO;
 	}
-		
-	OOJSPauseTimeLimiter();
 	
+	OOJS_BEGIN_FULL_NATIVE(context)
 	NSString *arg = [NSString stringWithFormat:@"%@ %f %f %f", coordScheme, thisv.x, thisv.y, thisv.z];
-	Vector result = [UNIVERSE coordinatesFromCoordinateSystemString:arg];
-	
-	OOJSResumeTimeLimiter();
+	result = [UNIVERSE coordinatesFromCoordinateSystemString:arg];
+	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VECTOR(result);
 	
