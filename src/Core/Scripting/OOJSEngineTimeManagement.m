@@ -39,9 +39,6 @@ SOFTWARE.
 #define OOJS_DEBUG_LIMITER	0
 #endif
 
-#if (OO_NEW_JS && OOLITE_WINDOWS)
-typedef unsigned useconds_t;
-#endif
 
 static unsigned sLimiterStartDepth;
 static int sLimiterPauseDepth;
@@ -185,12 +182,6 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
 
 #if OO_NEW_JS
 
-enum
-{
-	kWatchdogTimerFrequency = (useconds_t)(OOJS_TIME_LIMIT * 1000000)	// Microseconds
-};
-
-
 @implementation OOJavaScriptEngine (WatchdogTimer)
 
 - (void) watchdogTimerThread
@@ -201,7 +192,7 @@ enum
 		// Apparently, there's no fine-grained sleep on Windows. Precision isn't all that important.
 		Sleep((OOJS_TIME_LIMIT > 1.0) ? OOJS_TIME_LIMIT : 1);
 #else
-		usleep(kWatchdogTimerFrequency);
+		usleep((useconds_t)(OOJS_TIME_LIMIT * 1000000));
 #endif
 		
 		if (EXPECT(sLimiterStartDepth == 0 || sLimiterPauseDepth > 0))  continue;	// Most of the time, a script isn't running.
