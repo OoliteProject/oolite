@@ -30,6 +30,7 @@ SOFTWARE.
 #import "OOJSScript.h"
 #import "OOCollectionExtractors.h"
 #import "OOLoggingExtended.h"
+#import <unistd.h>
 
 
 #if OO_DEBUG
@@ -61,9 +62,9 @@ enum
 #endif
 
 #if OOJS_DEBUG_LIMITER
-#define OOJS_TIME_LIMIT		(0.05)	// seconds
+#define OOJS_TIME_LIMIT		(0.1)	// seconds
 #else
-#define OOJS_TIME_LIMIT		(0.25)	// seconds
+#define OOJS_TIME_LIMIT		(1)	// seconds
 #endif
 
 #ifndef NDEBUG
@@ -71,6 +72,11 @@ static const char *sLastStartedFile;
 static unsigned sLastStartedLine;
 static const char *sLastStoppedFile;
 static unsigned sLastStoppedLine;
+#endif
+
+
+#if OO_NEW_JS
+static BOOL sStop = NO;
 #endif
 
 
@@ -152,7 +158,11 @@ OOHighResTimeValue OOJSCopyTimeLimiterNominalStartTime(void)
 void OOJSResetTimeLimiter(void)
 {
 	OODisposeHighResTime(sLimiterStart);
-	sLimiterStart = OOGetHighResTime();	
+	sLimiterStart = OOGetHighResTime();
+	
+#if OO_NEW_JS
+	sStop = NO;
+#endif
 }
 
 
@@ -170,7 +180,68 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
 
 
 
-#if !OO_NEW_JS
+#if OO_NEW_JS
+
+enum
+{
+	kWatchdogTimerFrequency = (useconds_t)(OOJS_TIME_LIMIT * 1000000)	// Microseconds
+};
+
+
+@implementation OOJavaScriptEngine (WatchdogTimer)
+
+- (void) watchdogTimerThread
+{
+	for (;;)
+	{
+#if OOLITE_WINDOWS
+		// Apparently, there's no fine-grained sleep on Windows. Precision isn't all that important.
+		sleep((OOJS_TIME_LIMIT > 1.0) ? OOJS_TIME_LIMIT : 1);
+#else
+		usleep(kWatchdogTimerFrequency);
+#endif
+		
+		if (EXPECT(sLimiterStartDepth == 0 || sLimiterPauseDepth > 0))  continue;	// Most of the time, a script isn't running.
+		
+		// Note: if you add logging here, you need a manual autorelease pool.
+		
+		OOHighResTimeValue now = OOGetHighResTime();
+		OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
+		OODisposeHighResTime(now);
+		
+		if (EXPECT_NOT(elapsed > sLimiterTimeLimit))
+		{
+			sStop = YES;
+			JS_TriggerAllOperationCallbacks(runtime);
+		}
+	}
+}
+
+@end
+
+
+static JSBool OperationCallback(JSContext *context)
+{
+	if (!sStop)  return YES;
+	
+    JS_ClearPendingException(context);
+	
+	OOHighResTimeValue now = OOGetHighResTime();
+	OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
+	OODisposeHighResTime(now);
+	
+	OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
+#ifndef NDEBUG
+	OOJSDumpStack(@"script.javaScript.stackTrace.timeLimit", context);
+#endif
+	
+	// FIXME: we really should put something in the JS log here, but since that's implemented in JS there are complications.
+	
+	return NO;
+}
+
+#else
+
 static JSBool BranchCallback(JSContext *context, JSScript *script)
 {
 	// This will be called a _lot_. Efficiency is important.
@@ -197,6 +268,8 @@ static JSBool BranchCallback(JSContext *context, JSScript *script)
 	
 	if (elapsed < sLimiterTimeLimit)  return YES;
 	
+    JS_ClearPendingException(context);
+	
 	OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
 #ifndef NDEBUG
 	OOJSDumpStack(@"script.javaScript.stackTrace.timeLimit", context);
@@ -209,16 +282,29 @@ static JSBool BranchCallback(JSContext *context, JSScript *script)
 #endif
 
 
-JSBool OOJSContextCallback(JSContext *context, uintN contextOp)
+static JSBool ContextCallback(JSContext *context, uintN contextOp)
 {
-#if !OO_NEW_JS
-	// FIXME: new API has an equivalent, but it needs some work.
 	if (contextOp == JSCONTEXT_NEW)
 	{
+#if OO_NEW_JS
+		JS_SetOperationCallback(context, OperationCallback);
+#else
 		JS_SetBranchCallback(context, BranchCallback);
-	}
 #endif
+	}
 	return YES;
+}
+
+
+void OOJSTimeManagementInit(OOJavaScriptEngine *engine, JSRuntime *runtime)
+{
+#if OO_NEW_JS
+	[NSThread detachNewThreadSelector:@selector(watchdogTimerThread)
+							 toTarget:engine
+						   withObject:nil];
+#endif
+	
+	JS_SetContextCallback(runtime, ContextCallback);
 }
 
 

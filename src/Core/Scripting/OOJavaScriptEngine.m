@@ -80,7 +80,7 @@ MA 02110-1301, USA.
 #endif
 
 
-#define OOJS_STACK_SIZE			8192
+#define OOJS_STACK_SIZE				8192
 
 
 #if !OOLITE_NATIVE_EXCEPTIONS
@@ -250,6 +250,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	if (!(self = [super init]))  return nil;
 	
+	sSharedEngine = self;
+	
 	_showErrorLocations = YES;
 	
 	assert(sizeof(jschar) == sizeof(unichar));
@@ -266,8 +268,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		exit(1);
 	}
 	
-	JS_SetContextCallback(runtime, OOJSContextCallback);
-
+	// OOJSTimeManagementInit() must be called before any context is created!
+	OOJSTimeManagementInit(self, runtime);
+	
 	// create a context and associate it with the JS run time
 	mainContext = JS_NewContext(runtime, OOJS_STACK_SIZE);
 	
@@ -331,8 +334,6 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSShipGroup(mainContext, globalObject);
 	
 	JS_EndRequest(mainContext);
-	
-	sSharedEngine = self;
 	
 	// Run prefix script.
 	[OOJSScript JSScriptFromFileNamed:@"oolite-global-prefix.js"

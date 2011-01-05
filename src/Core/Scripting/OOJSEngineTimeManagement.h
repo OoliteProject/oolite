@@ -180,5 +180,6 @@ void OOJSProfileExit(OOJSProfileStackFrame *frame);
 #endif
 
 
-// Context callback, set up by -[OOJavaScriptEngine init].
-JSBool OOJSContextCallback(JSContext *context, uintN contextOp);
+@class OOJavaScriptEngine;
+
+void OOJSTimeManagementInit(OOJavaScriptEngine *engine, JSRuntime *runtime);
