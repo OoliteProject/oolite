@@ -223,11 +223,11 @@ static JSBool GlobalLog(OOJS_NATIVE_ARGS)
 	if (argc < 2)
 	{
 		messageClass = kOOLogDebugMessage;
-		message = OOJSValToNSString(context, OOJS_ARG(0));
+		message = OOStringFromJSValue(context, OOJS_ARG(0));
 	}
 	else
 	{
-		messageClass = OOJSValToNSString(context, OOJS_ARG(0));
+		messageClass = OOStringFromJSValue(context, OOJS_ARG(0));
 		message = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV + 1 count:argc - 1 separator:@", " inContext:context];
 	}
 	
@@ -255,7 +255,7 @@ static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS)
 	NSString			*string = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = OOJSValToNSString(context, OOJS_ARG(0));
+	string = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (string == nil)
 	{
 		OOJSReportBadArguments(context, nil, @"expandDescription", argc, OOJS_ARGV, nil, @"string");
@@ -282,7 +282,7 @@ static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS)
 	NSMutableString		*mString = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = OOJSValToNSString(context, OOJS_ARG(0));
+	string = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (string == nil)
 	{
 		OOJSReportBadArguments(context, nil, @"expandMissionText", argc, OOJS_ARGV, nil, @"string");
@@ -315,7 +315,7 @@ static JSBool GlobalDisplayNameForCommodity(OOJS_NATIVE_ARGS)
 	
 	NSString			*string = nil;
 	
-	string = OOJSValToNSString(context,OOJS_ARG(0));
+	string = OOStringFromJSValue(context,OOJS_ARG(0));
 	if (string == nil)
 	{
 		OOJSReportBadArguments(context, nil, @"displayNameForCommodity", argc, OOJS_ARGV, nil, @"string");
@@ -366,7 +366,7 @@ static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	NSString 		*value = OOJSValToNSString(context, OOJS_ARG(0));
+	NSString 		*value = OOStringFromJSValue(context, OOJS_ARG(0));
 	PlayerEntity	*player = OOPlayerForScripting();
 	BOOL			result = NO;
 	
@@ -389,7 +389,7 @@ static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	BOOL			result = NO;
-	NSString 		*value = OOJSValToNSString(context, OOJS_ARG(0));
+	NSString 		*value = OOStringFromJSValue(context, OOJS_ARG(0));
 	
 	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
 	{
@@ -415,7 +415,7 @@ static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 	
 	if (argc > 0)
 	{
-		value = OOJSValToNSString(context, OOJS_ARG(0));
+		value = OOStringFromJSValue(context, OOJS_ARG(0));
 		if (EXPECT_NOT(value == nil || [value rangeOfCharacterFromSet:[allowedChars invertedSet]].location != NSNotFound))
 		{
 			OOJSReportBadArguments(context, nil, @"takeSnapShot", argc, OOJS_ARGV, nil, @"alphanumeric string");

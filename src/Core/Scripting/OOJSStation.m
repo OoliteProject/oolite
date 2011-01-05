@@ -361,7 +361,7 @@ static JSBool StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
 	
 	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARG(1), &abortAllDockings);
 	
-	NSString *shipRole = OOJSValToNSString(context, OOJS_ARG(0));
+	NSString *shipRole = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(shipRole == nil))
 	{
 		OOJSReportBadArguments(context, @"Station", @"launchShipWithRole", argc, OOJS_ARGV, nil, @"shipRole");

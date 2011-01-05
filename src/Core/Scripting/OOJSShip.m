@@ -777,7 +777,7 @@ static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 			}
 			else
 			{
-				sValue = OOJSValToNSString(context,*value);
+				sValue = OOStringFromJSValue(context,*value);
 				if (sValue != nil)
 				{
 					[entity setName:sValue];
@@ -793,7 +793,7 @@ static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 			}
 			else
 			{
-				sValue = OOJSValToNSString(context,*value);
+				sValue = OOStringFromJSValue(context,*value);
 				if (sValue != nil)
 				{
 					[entity setDisplayName:sValue];
@@ -809,7 +809,7 @@ static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 			}
 			else
 			{
-				sValue = OOJSValToNSString(context,*value);
+				sValue = OOStringFromJSValue(context,*value);
 				if (sValue != nil)
 				{
 					[entity setPrimaryRole:sValue];
@@ -825,7 +825,7 @@ static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 			}
 			else
 			{
-				sValue = OOJSValToNSString(context,*value);
+				sValue = OOStringFromJSValue(context,*value);
 				if (sValue != nil)
 				{
 					[[entity getAI] setState:sValue];
@@ -1049,7 +1049,7 @@ static JSBool ShipSetScript(OOJS_NATIVE_ARGS)
 	NSString				*name = nil;
 	
 	GET_THIS_SHIP(thisEnt);
-	name = OOJSValToNSString(context, OOJS_ARG(0));
+	name = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(name == nil))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"setScript", argc, OOJS_ARGV, nil, @"script name");
@@ -1077,7 +1077,7 @@ static JSBool ShipSetAI(OOJS_NATIVE_ARGS)
 	NSString				*name = nil;
 	
 	GET_THIS_SHIP(thisEnt);
-	name = OOJSValToNSString(context, OOJS_ARG(0));
+	name = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(name == nil))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"setAI", argc, OOJS_ARGV, nil, @"AI name");
@@ -1105,7 +1105,7 @@ static JSBool ShipSwitchAI(OOJS_NATIVE_ARGS)
 	NSString				*name = nil;
 	
 	GET_THIS_SHIP(thisEnt);
-	name = OOJSValToNSString(context, OOJS_ARG(0));
+	name = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(name == nil))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"switchAI", argc, OOJS_ARGV, nil, @"AI name");
@@ -1143,7 +1143,7 @@ static JSBool ShipExitAI(OOJS_NATIVE_ARGS)
 	
 	if (argc > 0)
 	{
-		message = OOJSValToNSString(context, OOJS_ARG(0));
+		message = OOStringFromJSValue(context, OOJS_ARG(0));
 	}
 	
 	if (![thisAI hasSuspendedStateMachines])
@@ -1169,7 +1169,7 @@ static JSBool ShipReactToAIMessage(OOJS_NATIVE_ARGS)
 	NSString				*message = nil;
 	
 	GET_THIS_SHIP(thisEnt);
-	message = OOJSValToNSString(context, OOJS_ARG(0));
+	message = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(message == nil))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"reactToAIMessage", argc, OOJS_ARGV, nil, @"string");
@@ -1197,7 +1197,7 @@ static JSBool ShipSendAIMessage(OOJS_NATIVE_ARGS)
 	NSString				*message = nil;
 	
 	GET_THIS_SHIP(thisEnt);
-	message = OOJSValToNSString(context, OOJS_ARG(0));
+	message = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(message == nil))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"sendAIMessage", argc, OOJS_ARGV, nil, @"string");
@@ -1258,7 +1258,7 @@ static JSBool ShipHasRole(OOJS_NATIVE_ARGS)
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"hasRole", argc, OOJS_ARGV, nil, @"role");
@@ -1281,7 +1281,7 @@ static JSBool ShipEjectItem(OOJS_NATIVE_ARGS)
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"ejectItem", argc, OOJS_ARGV, nil, @"role");
@@ -1304,7 +1304,7 @@ static JSBool ShipEjectSpecificItem(OOJS_NATIVE_ARGS)
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	itemKey = OOJSValToNSString(context, OOJS_ARG(0));
+	itemKey = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(itemKey == nil))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"ejectSpecificItem", argc, OOJS_ARGV, nil, @"ship key");
@@ -1352,7 +1352,7 @@ static JSBool ShipSpawn(OOJS_NATIVE_ARGS)
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (argc > 1)  gotCount = JS_ValueToInt32(context, OOJS_ARG(1), &count);
 	if (EXPECT_NOT(role == nil || !gotCount || count < 1 || count > 64))
 	{
@@ -1463,7 +1463,7 @@ static JSBool ShipCommsMessage(OOJS_NATIVE_ARGS)
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	message = OOJSValToNSString(context, OOJS_ARG(0));
+	message = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(message == nil)|| ( argc > 1 && EXPECT_NOT(!JSVAL_IS_OBJECT(OOJS_ARG(1)) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARG(1)), &target))))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"commsMessage", argc, OOJS_ARGV, nil, @"message and optional target");
@@ -1533,7 +1533,7 @@ static JSBool ShipAddPassenger(OOJS_NATIVE_ARGS)
 	
 	if (argc == 5)
 	{
-		name = OOJSValToNSString(context, OOJS_ARG(0));
+		name = OOStringFromJSValue(context, OOJS_ARG(0));
 		if (EXPECT_NOT(name == nil || JSVAL_IS_INT(OOJS_ARG(0))))
 		{
 			OOJSReportBadArguments(context, @"Ship", @"addPassenger", argc, OOJS_ARGV, nil, @"name:string");
@@ -1583,7 +1583,7 @@ static JSBool ShipAwardContract(OOJS_NATIVE_ARGS)
 	
 	if (OK && argc == 6)
 	{
-		key = OOJSValToNSString(context, OOJS_ARG(1));
+		key = OOStringFromJSValue(context, OOJS_ARG(1));
 		if (EXPECT_NOT(key == nil || !JSVAL_IS_STRING(OOJS_ARG(1))))
 		{
 			OOJSReportBadArguments(context, @"Ship", @"awardContract", argc, OOJS_ARGV, nil, @"commodity identifier:string");
@@ -1835,7 +1835,7 @@ static JSBool ShipRemovePassenger(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	key = OOJSValToNSString(context, OOJS_ARG(0));
+	key = OOStringFromJSValue(context, OOJS_ARG(0));
 	OK = [thisEnt passengerCount] > 0 && [key length] > 0;
 	
 	if (OK)
@@ -1902,7 +1902,7 @@ static JSBool ShipSetEquipmentStatus(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	status = OOJSValToNSString(context, OOJS_ARG(1));
+	status = OOStringFromJSValue(context, OOJS_ARG(1));
 	if (EXPECT_NOT(status == nil))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"setEquipmentStatus", argc - 1, OOJS_ARGV + 1, nil, @"equipment status");
@@ -2026,7 +2026,7 @@ static JSBool ShipFireMissile(OOJS_NATIVE_ARGS)
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	if (argc > 0)  result = [thisEnt fireMissileWithIdentifier:OOJSValToNSString(context, OOJS_ARG(0)) andTarget:[thisEnt primaryTarget]];
+	if (argc > 0)  result = [thisEnt fireMissileWithIdentifier:OOStringFromJSValue(context, OOJS_ARG(0)) andTarget:[thisEnt primaryTarget]];
 	else  result = [thisEnt fireMissile];
 	
 	OOJS_RETURN_OBJECT(result);
@@ -2047,7 +2047,7 @@ static JSBool ShipSetCargo(OOJS_NATIVE_ARGS)
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	cargoType = OOJSValToNSString(context, OOJS_ARG(0));
+	cargoType = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (argc > 1)  gotCount = JS_ValueToInt32(context, OOJS_ARG(1), &count);
 	if (EXPECT_NOT(cargoType == nil || !gotCount || count < 1))
 	{

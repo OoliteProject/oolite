@@ -162,7 +162,7 @@ OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value)
 		}
 	}
 	
-	NSString *string = OOJSValToNSString(context, value);
+	NSString *string = OOStringFromJSValue(context, value);
 	if (string != nil)  return [OOEquipmentType equipmentTypeWithIdentifier:string];
 	return nil;
 	
@@ -444,7 +444,7 @@ static JSBool EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS)
 	
 	NSString					*key = nil;
 	
-	key = OOJSValToNSString(context, OOJS_ARG(0));
+	key = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (key == nil)
 	{
 		OOJSReportBadArguments(context, @"EquipmentInfo", @"infoForKey", argc, OOJS_ARGV, nil, @"string");

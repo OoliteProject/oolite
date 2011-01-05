@@ -338,7 +338,7 @@ static JSBool PlayerCommsMessage(OOJS_NATIVE_ARGS)
 	double					time = 4.5;
 	BOOL					gotTime = YES;
 	
-	message = OOJSValToNSString(context, OOJS_ARG(0));
+	message = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARG(1), &time);
 	if (message == nil || !gotTime)
 	{
@@ -362,7 +362,7 @@ static JSBool PlayerConsoleMessage(OOJS_NATIVE_ARGS)
 	double					time = 3.0;
 	BOOL					gotTime = YES;
 	
-	message = OOJSValToNSString(context, OOJS_ARG(0));
+	message = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARG(1), &time);
 	if (message == nil || !gotTime)
 	{
@@ -431,7 +431,7 @@ static JSBool PlayerAddMessageToArrivalReport(OOJS_NATIVE_ARGS)
 	
 	NSString				*report = nil;
 	
-	report = OOJSValToNSString(context, OOJS_ARG(0));
+	report = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (report == nil)
 	{
 		OOJSReportBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, OOJS_ARGV, nil, @"arrival message");

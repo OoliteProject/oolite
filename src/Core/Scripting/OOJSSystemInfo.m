@@ -435,7 +435,7 @@ static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS)
 		NSString		*key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
 		OOSystemInfo	*info = OOJSNativeObjectOfClassFromJSObject(context, this, [OOSystemInfo class]);
 		
-		[info setValue:OOJSValToNSString(context, *value) forKey:key];
+		[info setValue:OOStringFromJSValue(context, *value) forKey:key];
 	}
 	return YES;
 	
@@ -507,7 +507,7 @@ static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS)
 	
 	if (argc >= 2)
 	{
-		routeType = StringToRouteType(OOJSValToNSString(context, OOJS_ARG(1)));
+		routeType = StringToRouteType(OOStringFromJSValue(context, OOJS_ARG(1)));
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)

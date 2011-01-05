@@ -356,7 +356,7 @@ static JSBool SystemSetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kSystem_name:
-			stringValue = OOJSValToNSString(context, *value);
+			stringValue = OOStringFromJSValue(context, *value);
 			if (stringValue != nil)
 			{
 				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_NAME value:stringValue];
@@ -365,7 +365,7 @@ static JSBool SystemSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kSystem_description:
-			stringValue = OOJSValToNSString(context, *value);
+			stringValue = OOStringFromJSValue(context, *value);
 			if (stringValue != nil)
 			{
 				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_DESCRIPTION value:stringValue];
@@ -374,7 +374,7 @@ static JSBool SystemSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kSystem_inhabitantsDescription:
-			stringValue = OOJSValToNSString(context, *value);
+			stringValue = OOStringFromJSValue(context, *value);
 			if (stringValue != nil)
 			{
 				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_INHABITANTS value:stringValue];
@@ -464,7 +464,7 @@ static JSBool SystemAddPlanet(OOJS_NATIVE_ARGS)
 	NSString			*key = nil;
 	OOPlanetEntity		*planet = nil;
 	
-	key = OOJSValToNSString(context, OOJS_ARG(0));
+	key = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(key == nil))
 	{
 		OOJSReportBadArguments(context, @"System", @"addPlanet", argc, OOJS_ARGV, @"Expected planet key, got", nil);
@@ -490,7 +490,7 @@ static JSBool SystemAddMoon(OOJS_NATIVE_ARGS)
 	NSString			*key = nil;
 	OOPlanetEntity		*planet = nil;
 	
-	key = OOJSValToNSString(context, OOJS_ARG(0));
+	key = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(key == nil))
 	{
 		OOJSReportBadArguments(context, @"System", @"addMoon", argc, OOJS_ARGV, @"Expected planet key, got", nil);
@@ -531,7 +531,7 @@ static JSBool SystemCountShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 	double				range = -1;
 	unsigned			result;
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
 	{
 		OOJSReportBadArguments(context, @"System", @"countShipsWithPrimaryRole", argc, OOJS_ARGV, nil, @"role");
@@ -563,7 +563,7 @@ static JSBool SystemCountShipsWithRole(OOJS_NATIVE_ARGS)
 	double				range = -1;
 	unsigned			result;
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
 	{
 		OOJSReportBadArguments(context, @"System", @"countShipsWithRole", argc, OOJS_ARGV, nil, @"role");
@@ -595,7 +595,7 @@ static JSBool SystemShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 	double				range = -1;
 	NSArray				*result = nil;
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
 	{
 		OOJSReportBadArguments(context, @"System", @"shipsWithPrimaryRole", argc, OOJS_ARGV, nil, @"role and optional reference entity and range");
@@ -628,7 +628,7 @@ static JSBool SystemShipsWithRole(OOJS_NATIVE_ARGS)
 	double				range = -1;
 	NSArray				*result = nil;
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil))
 	{
 		OOJSReportBadArguments(context, @"System", @"shipsWithRole", argc, OOJS_ARGV, nil, @"role and optional reference entity and range");
@@ -662,7 +662,7 @@ static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 	double				range = -1;
 	unsigned			result;
 	
-	scString = OOJSValToNSString(context, OOJS_ARG(0));
+	scString = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (scString == nil)
 	{
 		OOJSReportBadArguments(context, @"System", @"countEntitiesWithScanClass", argc, OOJS_ARGV, nil, @"scan class and optional reference entity and range");
@@ -702,7 +702,7 @@ static JSBool SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 	double				range = -1;
 	NSArray				*result = nil;
 	
-	scString = OOJSValToNSString(context, OOJS_ARG(0));
+	scString = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (scString == nil)
 	{
 		OOJSReportBadArguments(context, @"System", @"entitiesWithScanClass", argc, OOJS_ARGV, nil, @"scan class and optional reference entity and range");
@@ -806,7 +806,7 @@ static JSBool SystemLegacyAddShips(OOJS_NATIVE_ARGS)
 	NSString			*role = nil;
 	int32				count;
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil ||
 				   !JS_ValueToInt32(context, OOJS_ARG(1), &count) ||
 				   argc < 2 ||
@@ -835,7 +835,7 @@ static JSBool SystemLegacyAddSystemShips(OOJS_NATIVE_ARGS)
 	NSString			*role = nil;
 	int32				count;
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(role == nil ||
 				   !JS_ValueToInt32(context, OOJS_ARG(1), &count) ||
 				   count < 1 || 64 < count ||
@@ -868,8 +868,8 @@ static JSBool SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS)
 	NSString			*coordScheme = nil;
 	NSString			*arg = nil;
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
-	coordScheme = OOJSValToNSString(context, OOJS_ARG(2));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
+	coordScheme = OOStringFromJSValue(context, OOJS_ARG(2));
 	if (EXPECT_NOT(role == nil ||
 				   !JS_ValueToInt32(context, OOJS_ARG(1), &count) ||
 				   count < 1 || 64 < count ||
@@ -904,8 +904,8 @@ static JSBool SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS)
 	NSString			*coordScheme = nil;
 	NSString			*arg = nil;
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
-	coordScheme = OOJSValToNSString(context, OOJS_ARG(2));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
+	coordScheme = OOStringFromJSValue(context, OOJS_ARG(2));
 	if (EXPECT_NOT(role == nil ||
 				   !JS_ValueToInt32(context, OOJS_ARG(1), &count) ||
 				   count < 1 || 64 < count ||
@@ -942,8 +942,8 @@ static JSBool SystemLegacyAddShipsWithinRadius(OOJS_NATIVE_ARGS)
 	NSString			*arg = nil;
 	uintN				consumed = 0;
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
-	coordScheme = OOJSValToNSString(context, OOJS_ARG(2));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
+	coordScheme = OOStringFromJSValue(context, OOJS_ARG(2));
 	if (EXPECT_NOT(role == nil ||
 				   !JS_ValueToInt32(context, OOJS_ARG(1), &count) ||
 				   count < 1 || 64 < count ||
@@ -975,7 +975,7 @@ static JSBool SystemLegacySpawnShip(OOJS_NATIVE_ARGS)
 	NSString			*key = nil;
 	OOPlayerForScripting();	// For backwards-compatibility
 	
-	key = OOJSValToNSString(context, OOJS_ARG(0));
+	key = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (key == nil)
 	{
 		OOJSReportBadArguments(context, @"System", @"legacy_addShipWithinRadius", argc, OOJS_ARGV, nil, @"ship key");
@@ -1021,7 +1021,7 @@ static JSBool SystemStaticSystemIDForName(OOJS_NATIVE_ARGS)
 	NSString			*name = nil;
 	unsigned			result;
 	
-	name = OOJSValToNSString(context, OOJS_ARG(0));
+	name = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (name == nil)
 	{
 		OOJSReportBadArguments(context, @"System", @"systemIDForName", argc, OOJS_ARGV, nil, @"string");
@@ -1086,7 +1086,7 @@ static JSBool SystemAddShipsOrGroup(OOJS_NATIVE_ARGS, BOOL isGroup)
 	
 	NSString			*func = isGroup ? @"addGroup" : @"addShips";
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (role == nil)
 	{
 		OOJSReportError(context, @"System.%@(): role not defined.", func);
@@ -1153,7 +1153,7 @@ static JSBool SystemAddShipsOrGroupToRoute(OOJS_NATIVE_ARGS, BOOL isGroup)
 	
 	NSString			*func = isGroup ? @"addGroup" : @"addShips";
 	
-	role = OOJSValToNSString(context, OOJS_ARG(0));
+	role = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (role == nil)
 	{
 		OOJSReportError(context, @"System.%@(): role not defined.", func);
@@ -1177,7 +1177,7 @@ static JSBool SystemAddShipsOrGroupToRoute(OOJS_NATIVE_ARGS, BOOL isGroup)
 	
 	if (argc > 3 && !JSVAL_IS_NULL(OOJS_ARG(3)))
 	{
-		route = OOJSValToNSString(context, OOJS_ARG(3));
+		route = OOStringFromJSValue(context, OOJS_ARG(3));
 		if (!JSVAL_IS_STRING(OOJS_ARG(3)) || route == nil || [routes rangeOfString:[NSString stringWithFormat:@" %@",route] options:NSCaseInsensitiveSearch].length !=3)
 		{
 			OOJSReportError(context, @"System.%@(): expected %@, got '%@'.", func, @"route string", [NSString stringWithJavaScriptValue:OOJS_ARG(3) inContext:context]);

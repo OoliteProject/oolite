@@ -189,7 +189,7 @@ static JSBool PlanetSetProperty(OOJS_PROP_ARGS)
 		case kPlanet_texture:
 			// all error messages are self contained
 
-			sValue = OOJSValToNSString(context, *value);
+			sValue = OOStringFromJSValue(context, *value);
 			
 			if ([planet isKindOfClass:[OOPlanetEntity class]])
 			{

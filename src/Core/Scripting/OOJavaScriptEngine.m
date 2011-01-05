@@ -1178,20 +1178,14 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 @end
 
 
-@implementation NSString (OOJavaScriptExtensions)
-
-// Convert a JSString to an NSString.
-+ (id) stringWithJavaScriptString:(JSString *)string
+NSString *OOStringFromJSString(JSString *string)
 {
 	OOJS_PROFILE_ENTER
 	
-	jschar					*chars = NULL;
-	size_t					length;
+	if (EXPECT_NOT(string == NULL))  return nil;
 	
-	if (string == NULL)  return nil;
-	
-	chars = JS_GetStringChars(string);
-	length = JS_GetStringLength(string);
+	jschar *chars = JS_GetStringChars(string);
+	size_t length = JS_GetStringLength(string);
 	
 	return [NSString stringWithCharacters:chars length:length];
 	
@@ -1199,43 +1193,50 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
-+ (id) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
+NSString *OOStringFromJSValueEvenIfNull(JSContext *context, jsval value)
 {
 	OOJS_PROFILE_ENTER
 	
-	// In some cases we didn't test the original stringWith... function for nil, causing difficult
-	// to track crashes. We now have two similar functions: stringWith... which never returns nil and 
-	// stringOrNilWith... (alias OOJSValToNSString) which can return nil and is used in most cases.
-
-	if (JSVAL_IS_VOID(value))  return @"undefined";
-	if (JSVAL_IS_NULL(value))  return @"null";
-
-	return [self stringOrNilWithJavaScriptValue:value inContext:context];
+	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
+	
+	JSString *string = JS_ValueToString(context, value);	// Calls the value's toString method if needed.
+	return [NSString stringWithJavaScriptString:string];
 	
 	OOJS_PROFILE_EXIT
 }
 
 
-+ (id) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
+NSString *OOStringFromJSValue(JSContext *context, jsval value)
 {
 	OOJS_PROFILE_ENTER
 	
-	JSString				*string = NULL;
-	BOOL					tempCtxt = NO;
-
-	if (JSVAL_IS_NULL(value) || JSVAL_IS_VOID(value))  return nil;
-	
-	if (context == NULL)
+	if (EXPECT(!JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value)))
 	{
-		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-		tempCtxt = YES;
+		return OOStringFromJSValueEvenIfNull(context, value);
 	}
-	string = JS_ValueToString(context, value);	// Calls the value's toString method if needed.
-	if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
-	
-	return [NSString stringWithJavaScriptString:string];
+	return nil;
 	
 	OOJS_PROFILE_EXIT
+}
+
+
+@implementation NSString (OOJavaScriptExtensions)
+
++ (id) stringWithJavaScriptString:(JSString *)string
+{
+	return OOStringFromJSString(string);
+}
+
+
++ (id) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
+{
+	return OOStringFromJSValue(context, value);
+}
+
+
++ (id) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
+{
+	return OOStringFromJSValueEvenIfNull(context, value);
 }
 
 
@@ -1418,13 +1419,22 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 // For use in debugger
 const char *JSValueToStrDbg(jsval val)
 {
-	return [OOJSValToNSString(NULL, val) UTF8String];
+	OOJavaScriptEngine *jsEngine = [OOJavaScriptEngine sharedEngine];
+	JSContext *context = [jsEngine acquireContext];
+	JS_BeginRequest(context);
+	
+	const char *result = [[NSString stringWithJavaScriptValue:val inContext:context] UTF8String];
+	
+	JS_EndRequest(context);
+	[jsEngine releaseContext:context];
+	
+	return result;
 }
 
 
 const char *JSObjectToStrDbg(JSObject *obj)
 {
-	return [OOJSValToNSString(NULL, OBJECT_TO_JSVAL(obj)) UTF8String];
+	return JSValueToStrDbg(OBJECT_TO_JSVAL(obj));
 }
 
 
@@ -1730,7 +1740,7 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 	JSClass *actualClass = OOJSGetClass(context, object);
 	if (EXPECT_NOT(!OOJSIsSubclass(actualClass, requiredJSClass)))
 	{
-		OOJSReportError(context, @"Native method expected %s, got %@.", requiredJSClass->name, OOJSValToNSString(context, OBJECT_TO_JSVAL(object)));
+		OOJSReportError(context, @"Native method expected %s, got %@.", requiredJSClass->name, OOStringFromJSValue(context, OBJECT_TO_JSVAL(object)));
 		return NO;
 	}
 	NSCAssert(actualClass->flags & JSCLASS_HAS_PRIVATE, @"Native object accessor requires JS class with private storage.");
@@ -1811,7 +1821,7 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue
 		
 		if (objKey != nil && !JSVAL_IS_VOID(value))
 		{
-			// Note: we want nulls and undefines included, so not OOJSValToNSString().
+			// Note: we want nulls and undefines included, so not OOStringFromJSValue().
 			objValue = [NSString stringWithJavaScriptValue:value inContext:context];
 			
 			if (objValue != nil)
@@ -1847,7 +1857,7 @@ id OOJSNativeObjectFromJSValue(JSContext *context, jsval value)
 	}
 	if (JSVAL_IS_STRING(value))
 	{
-		return OOJSValToNSString(context, value);
+		return OOStringFromJSValue(context, value);
 	}
 	if (JSVAL_IS_OBJECT(value))
 	{

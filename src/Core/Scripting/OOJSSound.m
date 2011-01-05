@@ -113,7 +113,7 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 	OOJSPauseTimeLimiter();
 	if (JSVAL_IS_STRING(value))
 	{
-		return GetNamedSound(OOJSValToNSString(context, value));
+		return GetNamedSound(OOStringFromJSValue(context, value));
 	}
 	else
 	{
@@ -181,7 +181,7 @@ static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS)
 	NSString					*name = nil;
 	OOSound						*sound = nil;
 	
-	name = OOJSValToNSString(context, OOJS_ARG(0));
+	name = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (name == nil)
 	{
 		OOJSReportBadArguments(context, @"Sound", @"load", argc, OOJS_ARGV, nil, @"string");
@@ -206,7 +206,7 @@ static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
 	NSString					*name = nil;
 	JSBool						loop = NO;
 	
-	name = OOJSValToNSString(context, OOJS_ARG(0));
+	name = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (name == nil)
 	{
 		OOJSReportBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV, nil, @"string");
@@ -239,7 +239,7 @@ static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 	
 	if (argc > 0)
 	{
-		name = OOJSValToNSString(context, OOJS_ARG(0));
+		name = OOStringFromJSValue(context, OOJS_ARG(0));
 		if (EXPECT_NOT(name == nil))
 		{
 			OOJSReportBadArguments(context, @"Sound", @"stopMusic", argc, OOJS_ARGV, nil, @"string or no argument");

@@ -377,7 +377,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_galacticHyperspaceBehaviour:
-			sValue = OOJSValToNSString(context,*value);
+			sValue = OOStringFromJSValue(context,*value);
 			if (sValue != nil)
 			{
 				ghBehaviour = StringToGalacticHyperspaceBehaviour(sValue);
@@ -429,7 +429,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_hud:
-			sValue = OOJSValToNSString(context, *value);
+			sValue = OOStringFromJSValue(context, *value);
 			if (sValue != nil)
 			{
 				if ([player switchHudTo:sValue])
@@ -517,14 +517,14 @@ static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	NSString				*name = nil;
 	
-	name = OOJSValToNSString(context, OOJS_ARG(0));
+	name = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(name == nil))
 	{
 		OOJSReportBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, OOJS_ARGV, nil, @"special cargo description");
 		return NO;
 	}
 	
-	[player useSpecialCargo:OOJSValToNSString(context, OOJS_ARG(0))];
+	[player useSpecialCargo:OOStringFromJSValue(context, OOJS_ARG(0))];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT

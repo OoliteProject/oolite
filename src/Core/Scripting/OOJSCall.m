@@ -96,7 +96,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *oo_jsClas
 		[PLAYER setScriptTarget:object];
 	}
 	
-	selectorString = OOJSValToNSString(context,argv[0]);
+	selectorString = OOStringFromJSValue(context,argv[0]);
 	
 	// Join all parameters together with spaces.
 	if (1 < argc && [selectorString hasSuffix:@":"])

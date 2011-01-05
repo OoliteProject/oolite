@@ -204,41 +204,42 @@ BOOL OOJSDefineProperty(JSContext *context, JSObject *object, NSString *name, js
 @end
 
 
-/*	OOJSObjectWrapperFinalize
-	
-	Finalizer for JS classes whose private storage is a retained object
-	reference (generally an OOWeakReference, but doesn't have to be).
+
+/**** String utilities ****/
+
+// Convert a JSString to an NSString.
+NSString *OOStringFromJSString(JSString *string);
+
+/*	Convert an arbitrary JS object to an NSString, calling JS_ValueToString.
+	OOStringFromJSValue() returns nil if value is null or undefined,
+	OOStringFromJSValueEvenIfNull() returns "null" or "undefined".
 */
-void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this);
+NSString *OOStringFromJSValue(JSContext *context, jsval value);
+NSString *OOStringFromJSValueEvenIfNull(JSContext *context, jsval value);
 
 
 @interface NSString (OOJavaScriptExtensions)
 
-// Convert a JSString to an NSString.
-+ (id)stringWithJavaScriptString:(JSString *)string;
-
-// Convert an arbitrary JS object to an NSString, using JS_ValueToString.
-+ (id) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
-+ (id)stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
-
-
 // For diagnostic messages; produces things like @"(42, true, "a string", an object description)".
-+ (id)stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context;
++ (id) stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context;
 
 // Concatenate sequence of arbitrary JS objects into string.
-+ (id)concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context;
++ (id) concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context;
 
 // Add escape codes for string so that it's a valid JavaScript literal (if you put "" or '' around it).
-- (NSString *)escapedForJavaScriptLiteral;
+- (NSString *) escapedForJavaScriptLiteral;
+
+
+// Wrapper for OOStringFromJSString(). DEPRECATED
++ (id) stringWithJavaScriptString:(JSString *)string;
+
+// Wrapper for OOStringFromJSValueEvenIfNull(). DEPRECATED
++ (id) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
+
+// Wrapper for OOStringFromJSValue(). DEPRECATED
++ (id) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
 
 @end
-
-
-OOINLINE NSString *OOJSValToNSString(JSContext *context, jsval value) ALWAYS_INLINE_FUNC;
-OOINLINE NSString *OOJSValToNSString(JSContext *context, jsval value)
-{
-	return [NSString stringOrNilWithJavaScriptValue:value inContext:context];
-}
 
 
 // OOEntityFilterPredicate wrapping a JavaScript function.
@@ -276,6 +277,14 @@ OOINLINE JSClass *OOJSGetClass(JSContext *cx, JSObject *obj)
 	return JS_GetClass(obj);
 #endif
 }
+
+
+/*	OOJSObjectWrapperFinalize
+	
+	Finalizer for JS classes whose private storage is a retained object
+	reference (generally an OOWeakReference, but doesn't have to be).
+*/
+void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this);
 
 
 /*	OOJSDictionaryFromStringTable(context, value);

@@ -156,7 +156,7 @@ static JSBool MissionVariablesSetProperty(OOJS_PROP_ARGS)
 			return NO;
 		}
 		
-		NSString *objValue = OOJSValToNSString(context, *value);
+		NSString *objValue = OOStringFromJSValue(context, *value);
 		
 		if ([objValue isKindOfClass:[NSNull class]])  objValue = nil;
 		[player setMissionVariable:objValue forKey:key];

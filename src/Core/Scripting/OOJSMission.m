@@ -196,7 +196,7 @@ static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS)
 	
 	// Found "FIXME: warning if no mission screen running.",,,
 	// However: used routinely by the Constrictor mission in F7, without mission screens.
-	text = OOJSValToNSString(context, OOJS_ARG(0));
+	text = OOStringFromJSValue(context, OOJS_ARG(0));
 	[player addLiteralMissionText:text];
 	
 	OOJS_RETURN_VOID;
@@ -227,7 +227,7 @@ static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey)
 	NSString			*text = nil;
 	NSString			*missionKey = nil;
 	
-	text = OOJSValToNSString(context, OOJS_ARG(0));
+	text = OOStringFromJSValue(context, OOJS_ARG(0));
 	
 	if (argc > 1)
 	{
@@ -265,7 +265,7 @@ OOINLINE NSString *GetParameterString(JSContext *context, JSObject *object, cons
 	jsval value = JSVAL_NULL;
 	if (JS_GetProperty(context, object, key, &value))
 	{
-		return OOJSValToNSString(context, value);
+		return OOStringFromJSValue(context, value);
 	}
 	return nil;
 }
@@ -321,7 +321,7 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	// Apply settings.
 	if (JS_GetProperty(context, params, "title", &value))
 	{
-		[player setMissionTitle:OOJSValToNSString(context, value)];
+		[player setMissionTitle:OOStringFromJSValue(context, value)];
 	}
 	else
 	{
@@ -345,7 +345,7 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 		{
 			OOJSReportWarning(context, @"Mission.runScreen: model will not be displayed while in flight.");
 		}
-		[player showShipModel:OOJSValToNSString(context, value)];
+		[player showShipModel:OOStringFromJSValue(context, value)];
 	}
 	
 	// Start the mission screen.

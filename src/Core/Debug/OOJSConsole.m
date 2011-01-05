@@ -386,7 +386,7 @@ static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 			break;
 #endif		
 		case kConsole_shaderMode:
-			sValue = OOJSValToNSString(context, *value);
+			sValue = OOStringFromJSValue(context, *value);
 			if (sValue != nil)
 			{
 				OOJS_BEGIN_FULL_NATIVE(context)
@@ -605,8 +605,8 @@ static JSBool ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 	
-	colorKey = OOJSValToNSString(context,OOJS_ARG(0));
-	message = OOJSValToNSString(context,OOJS_ARG(1));
+	colorKey = OOStringFromJSValue(context,OOJS_ARG(0));
+	message = OOStringFromJSValue(context,OOJS_ARG(1));
 	
 	if (4 <= argc)
 	{
@@ -764,7 +764,7 @@ static JSBool ConsoleIsExecutableJavaScript(OOJS_NATIVE_ARGS)
 	OOJSPauseTimeLimiter();
 #if OO_NEW_JS
 	// FIXME: this must be possible using just JSAPI functions.
-	NSString *string = OOJSValToNSString(context, OOJS_ARG(1));
+	NSString *string = OOStringFromJSValue(context, OOJS_ARG(1));
 	NSData *stringData = [string dataUsingEncoding:NSUTF8StringEncoding];
 	result = JS_BufferIsCompilableUnit(context, target, [stringData bytes], [stringData length]);
 #else
@@ -801,7 +801,7 @@ static JSBool ConsoleSetDisplayMessagesInClass(OOJS_NATIVE_ARGS)
 	NSString				*messageClass = nil;
 	JSBool					flag;
 	
-	messageClass = OOJSValToNSString(context, OOJS_ARG(0));
+	messageClass = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (messageClass != nil && JS_ValueToBoolean(context, OOJS_ARG(1), &flag))
 	{
 		OOLogSetDisplayMessagesInClass(messageClass, flag);

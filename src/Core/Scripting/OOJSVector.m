@@ -951,7 +951,7 @@ static JSBool VectorToCoordinateSystem(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toCoordinateSystem"))) return NO;
 
-	coordScheme = OOJSValToNSString(context, OOJS_ARG(0));
+	coordScheme = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(coordScheme == nil ||
 				   argc < 1 ))
 	{
@@ -980,7 +980,7 @@ static JSBool VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"fromCoordinateSystem"))) return NO;
 
-	coordScheme = OOJSValToNSString(context, OOJS_ARG(0));
+	coordScheme = OOStringFromJSValue(context, OOJS_ARG(0));
 	if (EXPECT_NOT(coordScheme == nil ||
 				   argc < 1 ))
 	{
