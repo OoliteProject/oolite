@@ -430,7 +430,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	
 	size = ov_pcm_total(&_vf, -1);
 	size *= sizeof(float) * ([self isStereo] ? 2 : 1);
-	if ((ogg_int64_t)SIZE_T_MAX < size) size = (ogg_int64_t)SIZE_T_MAX;
+	if ((uint64_t)SIZE_T_MAX < (uint64_t)size) size = (ogg_int64_t)SIZE_T_MAX;
 	return size;
 }
 

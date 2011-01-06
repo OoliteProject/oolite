@@ -38,6 +38,8 @@ SOFTWARE.
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
 #import "NSThreadOOExtensions.h"
+#import "OOCollectionExtractors.h"
+
 
 #define KEY_VOLUME_CONTROL			@"volume_control"
 #define KEY_MAX_BUFFERED_SOUND		@"max_buffered_sound"
@@ -150,11 +152,8 @@ static struct
 		else  sNominalVolume = 0.75;	// default setting at 75% system volume
 		[[OOSoundMixer sharedMixer] setMasterVolume:sNominalVolume];
 		
-		if ([prefs objectForKey:KEY_MAX_BUFFERED_SOUND])
-		{
-			int maxSize = [prefs integerForKey:KEY_MAX_BUFFERED_SOUND];
-			if (0 <= maxSize) sMaxBufferedSoundSize = maxSize;
-		}
+		int maxSize = [prefs oo_intForKey:KEY_MAX_BUFFERED_SOUND defaultValue:sMaxBufferedSoundSize];
+		if (0 <= maxSize) sMaxBufferedSoundSize = maxSize;
 	}
 }
 
