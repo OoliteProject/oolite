@@ -53,11 +53,16 @@ this.version		= "1.75";
 /**** Utilities, not intended to be retired ****/
 
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
-Object.getPrototypeOf(Ship).spawnOne = function Ship_spawnOne(role)
+Object.defineProperty(Object.getPrototypeOf(Ship), "spawnOne",
 {
-	var result = this.spawn(role, 1);
-	return result ? result[0] : null;
-};
+	value: function Ship_spawnOne(role)
+	{
+		var result = this.spawn(role, 1);
+		return result ? result[0] : null;
+	},
+	writable: false,
+	enumerable: false
+});
 
 
 // mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.
@@ -70,35 +75,40 @@ mission.addMessageTextKey = function mission_addMessageTextKey(textKey)
 /*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
 	certain distance.
 */
-SystemInfo.systemsInRange = function SystemInfo_systemsInRange(range)
+Object.defineProperty(SystemInfo, "systemsInRange",
 {
-	if (range === undefined)
+	value: function SystemInfo_systemsInRange(range)
 	{
-		range = 7;
-	}
-	
-	// Default to using the current system.
-	var thisSystem = system.info;
-	
-	// If called on an instance instead of the SystemInfo constructor, use that system instead.
-	if (this !== SystemInfo)
-	{
-		if (this.systemID !== undefined && this.distanceToSystem !== undefined)
+		if (range === undefined)
 		{
-			thisSystem = this;
+			range = 7;
 		}
-		else
+		
+		// Default to using the current system.
+		var thisSystem = system.info;
+		
+		// If called on an instance instead of the SystemInfo constructor, use that system instead.
+		if (this !== SystemInfo)
 		{
-			special.jsWarning("systemsInRange() called in the wrong context. Returning empty array.");
-			return [];
+			if (this.systemID !== undefined && this.distanceToSystem !== undefined)
+			{
+				thisSystem = this;
+			}
+			else
+			{
+				special.jsWarning("systemsInRange() called in the wrong context. Returning empty array.");
+				return [];
+			}
 		}
-	}
-	
-	return SystemInfo.filteredSystems(this, function (other)
-	{
-		return (other.systemID !== thisSystem.systemID) && (thisSystem.distanceToSystem(other) <= range);
-	});
-};
+		
+		return SystemInfo.filteredSystems(this, function (other)
+		{
+			return (other.systemID !== thisSystem.systemID) && (thisSystem.distanceToSystem(other) <= range);
+		});
+	},
+	writable: false,
+	enumerable: false
+});
 
 
 /*	system.scrambledPseudoRandom(salt : Number (integer)) : Number
@@ -115,25 +125,40 @@ SystemInfo.systemsInRange = function SystemInfo_systemsInRange(range)
 	system.scrambledPseudoRandomNumber() with different salt values, there will
 	be no obvious correlation between the different stations’ distributions.
 */
-system.scrambledPseudoRandomNumber = function system_scrambledPseudoRandomNumber(salt)
+Object.defineProperty(system, "scrambledPseudoRandomNumber",
 {
-	// Convert from float in [0..1) with 24 bits of precision to integer.
-	var n = Math.floor(system.pseudoRandomNumber * 16777216.0);
-	
-	// Add salt to enable generation of different sequences.
-	n += salt;
-	
-	// Scramble with basic LCG psuedo-random number generator.
-	n = (214013 * n + 2531011) & 0xFFFFFFFF;
-	n = (214013 * n + 2531011) & 0xFFFFFFFF;
-	n = (214013 * n + 2531011) & 0xFFFFFFFF;
-	
-	// Convert from (effectively) 32-bit signed integer to float in [0..1).
-	return n / 4294967296.0 + 0.5;
-};
+	value: function system_scrambledPseudoRandomNumber(salt)
+	{
+		// Convert from float in [0..1) with 24 bits of precision to integer.
+		var n = Math.floor(system.pseudoRandomNumber * 16777216.0);
+		
+		// Add salt to enable generation of different sequences.
+		n += salt;
+		
+		// Scramble with basic LCG psuedo-random number generator.
+		n = (214013 * n + 2531011) & 0xFFFFFFFF;
+		n = (214013 * n + 2531011) & 0xFFFFFFFF;
+		n = (214013 * n + 2531011) & 0xFFFFFFFF;
+		
+		// Convert from (effectively) 32-bit signed integer to float in [0..1).
+		return n / 4294967296.0 + 0.5;
+	},
+	writable: false,
+	enumerable: false
+});
 
 
 /**** Built-in in ECMAScript 5, to be removed when Linux builds transition ****/
+
+// Object.defineProperty: only value key is supported. Getter and setter are possible, but not required.
+if (typeof Object.defineProperty !== "function")
+{
+	Object.defineProperty = function (object, name, definition)
+	{
+		object[name] = definition.value;
+	}
+}
+
 
 //	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__ extension.
 if (typeof Object.getPrototypeOf !== "function")

@@ -306,7 +306,7 @@ this.prettifyArray = function prettifyArray(value, indent)
 this.prettifyObject = function prettifyObject(value, indent)
 {
 	indent = indent || "";
-	var subIndent = indent + "\t";
+	var subIndent = indent + "    ";
 	
 	var appendedAny = false;
 	var result = "{";
