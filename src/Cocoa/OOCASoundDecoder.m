@@ -478,20 +478,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 
 - (NSString *)name
 {
-	NSDictionary			*comments;
-	NSString				*result = nil;
-	
-	comments = [self comments];
-	if (nil != comments)
-	{
-		result = [comments objectForKey:@"TITLE"];
-		if (nil == result) result = [comments objectForKey:@"NAME"];
-	}
-	
-	if (nil == result) result = [[_name retain] autorelease];
-	if (nil == result) result = [super name];
-	
-	return result;
+	return [[_name retain] autorelease];
 }
 
 @end
