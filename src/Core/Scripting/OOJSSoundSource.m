@@ -190,7 +190,7 @@ static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kSoundSource_repeatCount:
-			if (JS_ValueToInt32(context, *value, &iValue) && 0 < iValue)
+			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				if (iValue > 100)  iValue = 100;
 				if (100 < 1)  iValue = 1;
