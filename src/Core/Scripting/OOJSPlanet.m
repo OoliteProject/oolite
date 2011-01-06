@@ -85,7 +85,7 @@ DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, &sPlanetClass, sPlanetPrototype
 
 void InitOOJSPlanet(JSContext *context, JSObject *global)
 {
-	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass, NULL, 0, sPlanetProperties, NULL, NULL, NULL);
+	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass, OOJSUnconstructableConstruct, 0, sPlanetProperties, NULL, NULL, NULL);
 	OOJSRegisterObjectConverter(&sPlanetClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sPlanetClass, JSEntityClass());
 }

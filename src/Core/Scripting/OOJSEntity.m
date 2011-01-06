@@ -120,7 +120,7 @@ static JSFunctionSpec sEntityMethods[] =
 
 void InitOOJSEntity(JSContext *context, JSObject *global)
 {
-	gOOEntityJSPrototype = JS_InitClass(context, global, NULL, &gOOEntityJSClass, NULL, 0, sEntityProperties, sEntityMethods, NULL, NULL);
+	gOOEntityJSPrototype = JS_InitClass(context, global, NULL, &gOOEntityJSClass, OOJSUnconstructableConstruct, 0, sEntityProperties, sEntityMethods, NULL, NULL);
 	OOJSRegisterObjectConverter(&gOOEntityJSClass, OOJSBasicPrivateObjectConverter);
 }
 

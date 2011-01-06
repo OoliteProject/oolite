@@ -160,9 +160,12 @@ BOOL OOJSDefineProperty(JSContext *context, JSObject *object, NSString *name, js
 
 /*	-oo_jsValueInContext:
 	
-	Return the JavaScript object representation of an object. The default
-	implementation returns JSVAL_VOID. At this time, NSString, NSNumber,
-	NSArray, NSDictionary, NSNull, Entity, OOScript and OOJSTimer override this.
+	Return the JavaScript value representation of an object. The default
+	implementation returns JSVAL_VOID.
+	Note that sending this to nil does not return JSVAL_NULL. For that
+	behaviour, use OOJSValueFromNativeObject() below.
+	
+	Requires a request on context.
 */
 - (jsval) oo_jsValueInContext:(JSContext *)context;
 
@@ -183,6 +186,19 @@ BOOL OOJSDefineProperty(JSContext *context, JSObject *object, NSString *name, js
 - (void) oo_clearJSSelf:(JSObject *)selfVal;
 
 @end
+
+
+/*	OOJSValueFromNativeObject()
+	Return a JavaScript value representation of an object, or null if passed
+	nil.
+	
+	Requires a request on context.
+*/
+OOINLINE jsval OOJSValueFromNativeObject(JSContext *context, id object)
+{
+	if (object != nil)  return [object oo_jsValueInContext:context];
+	return  JSVAL_NULL;
+}
 
 
 /*	OOJSValue: an object whose purpose in life is to hold a JavaScript value.
@@ -277,14 +293,6 @@ OOINLINE JSClass *OOJSGetClass(JSContext *cx, JSObject *obj)
 	return JS_GetClass(obj);
 #endif
 }
-
-
-/*	OOJSObjectWrapperFinalize
-	
-	Finalizer for JS classes whose private storage is a retained object
-	reference (generally an OOWeakReference, but doesn't have to be).
-*/
-void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this);
 
 
 /*	OOJSDictionaryFromStringTable(context, value);
@@ -641,6 +649,26 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
 #define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ oo_jsValueInContext:context] : JSVAL_NULL); } while (0)
 
 
+
+
+
+/***** Reusable JS callbacks ****/
+
+/*	OOJSUnconstructableConstruct
+	
+	Constructor callback for pseudo-classes which can't be constructed. This
+	is needed because the instanceof operator only works on objects with a
+	constructor.
+*/
+JSBool OOJSUnconstructableConstruct(OOJS_NATIVE_ARGS);
+
+
+/*	OOJSObjectWrapperFinalize
+	
+	Finalizer for JS classes whose private storage is a retained object
+	reference (generally an OOWeakReference, but doesn't have to be).
+*/
+void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this);
 
 
 /*	OOJSObjectWrapperToString

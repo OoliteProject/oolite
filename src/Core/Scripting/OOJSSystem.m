@@ -195,7 +195,7 @@ static JSFunctionSpec sSystemStaticMethods[] =
 
 void InitOOJSSystem(JSContext *context, JSObject *global)
 {
-	sSystemPrototype = JS_InitClass(context, global, NULL, &sSystemClass, NULL, 0, sSystemProperties, sSystemMethods, NULL, sSystemStaticMethods);
+	sSystemPrototype = JS_InitClass(context, global, NULL, &sSystemClass, OOJSUnconstructableConstruct, 0, sSystemProperties, sSystemMethods, NULL, sSystemStaticMethods);
 	
 	// Create system object as a property of the global object.
 	JS_DefineObject(context, global, "system", &sSystemClass, sSystemPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);

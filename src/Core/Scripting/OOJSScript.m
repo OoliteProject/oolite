@@ -616,7 +616,7 @@ static JSFunctionSpec sScriptMethods[] =
 
 void InitOOJSScript(JSContext *context, JSObject *global)
 {
-	sScriptPrototype = JS_InitClass(context, global, NULL, &sScriptClass, NULL, 0, NULL, sScriptMethods, NULL, NULL);
+	sScriptPrototype = JS_InitClass(context, global, NULL, &sScriptClass, OOJSUnconstructableConstruct, 0, NULL, sScriptMethods, NULL, NULL);
 	OOJSRegisterObjectConverter(&sScriptClass, OOJSBasicPrivateObjectConverter);
 }
 

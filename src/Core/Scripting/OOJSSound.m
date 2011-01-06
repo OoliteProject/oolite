@@ -101,7 +101,7 @@ DEFINE_JS_OBJECT_GETTER(JSSoundGetSound, &sSoundClass, sSoundPrototype, OOSound)
 
 void InitOOJSSound(JSContext *context, JSObject *global)
 {
-	sSoundPrototype = JS_InitClass(context, global, NULL, &sSoundClass, NULL, 0, sSoundProperties, sSoundMethods, NULL, sSoundStaticMethods);
+	sSoundPrototype = JS_InitClass(context, global, NULL, &sSoundClass, OOJSUnconstructableConstruct, 0, sSoundProperties, sSoundMethods, NULL, sSoundStaticMethods);
 	OOJSRegisterObjectConverter(&sSoundClass, OOJSBasicPrivateObjectConverter);
 }
 

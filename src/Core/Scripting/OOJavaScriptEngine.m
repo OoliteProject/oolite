@@ -1545,9 +1545,39 @@ const char *JSValueTypeDbg(jsval val)
 @end
 
 
-JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS)
+JSBool OOJSUnconstructableConstruct(OOJS_NATIVE_ARGS)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	JSFunction *function = JS_ValueToFunction(context, OOJS_CALLEE);
+	NSString *name = OOStringFromJSString(JS_GetFunctionId(function));
+	
+	OOJSReportError(context, @"%@ cannot be used as a constructor.", name);
+	return NO;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this)
 {
 	OOJS_PROFILE_ENTER
+	
+	id object = JS_GetPrivate(context, this);
+	if (object != nil)
+	{
+		[[object weakRefUnderlyingObject] oo_clearJSSelf:this];
+		[object release];
+		JS_SetPrivate(context, this, nil);
+	}
+	
+	OOJS_PROFILE_EXIT_VOID
+}
+
+
+JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS)
+{
+	OOJS_NATIVE_ENTER(context)
 	
 	id						object = nil;
 	NSString				*description = nil;
@@ -1571,23 +1601,7 @@ JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS)
 	
 	OOJS_RETURN_OBJECT(description);
 	
-	OOJS_PROFILE_EXIT
-}
-
-
-void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this)
-{
-	OOJS_PROFILE_ENTER
-	
-	id object = JS_GetPrivate(context, this);
-	if (object != nil)
-	{
-		[[object weakRefUnderlyingObject] oo_clearJSSelf:this];
-		[object release];
-		JS_SetPrivate(context, this, nil);
-	}
-	
-	OOJS_PROFILE_EXIT_VOID
+	OOJS_NATIVE_EXIT
 }
 
 

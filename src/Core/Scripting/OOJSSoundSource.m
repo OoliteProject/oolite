@@ -135,7 +135,7 @@ static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kSoundSource_sound:
-			*value = [[soundSource sound] oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, [soundSource sound]);
 			break;
 			
 		case kSoundSource_isPlaying:

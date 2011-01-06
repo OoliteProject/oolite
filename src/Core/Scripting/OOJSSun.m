@@ -88,7 +88,7 @@ DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, &sSunClass, sSunPrototype, OOSunEntit
 
 void InitOOJSSun(JSContext *context, JSObject *global)
 {
-	sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass, NULL, 0, sSunProperties, sSunMethods, NULL, NULL);
+	sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass, OOJSUnconstructableConstruct, 0, sSunProperties, sSunMethods, NULL, NULL);
 	OOJSRegisterObjectConverter(&sSunClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sSunClass, JSEntityClass());
 }

@@ -88,7 +88,7 @@ static JSFunctionSpec sOoliteMethods[] =
 
 void InitOOJSOolite(JSContext *context, JSObject *global)
 {
-	JSObject *oolitePrototype = JS_InitClass(context, global, NULL, &sOoliteClass, NULL, 0, sOoliteProperties, sOoliteMethods, NULL, NULL);
+	JSObject *oolitePrototype = JS_InitClass(context, global, NULL, &sOoliteClass, OOJSUnconstructableConstruct, 0, sOoliteProperties, sOoliteMethods, NULL, NULL);
 	JS_DefineObject(context, global, "oolite", &sOoliteClass, oolitePrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 

@@ -260,7 +260,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 void InitOOJSSystemInfo(JSContext *context, JSObject *global)
 {
-	sSystemInfoPrototype = JS_InitClass(context, global, NULL, &sSystemInfoClass, NULL, 0, sSystemInfoProperties, sSystemInfoMethods, NULL, sSystemInfoStaticMethods);
+	sSystemInfoPrototype = JS_InitClass(context, global, NULL, &sSystemInfoClass, OOJSUnconstructableConstruct, 0, sSystemInfoProperties, sSystemInfoMethods, NULL, sSystemInfoStaticMethods);
 	OOJSRegisterObjectConverter(&sSystemInfoClass, OOJSBasicPrivateObjectConverter);
 }
 

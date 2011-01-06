@@ -125,7 +125,7 @@ static JSFunctionSpec sStationMethods[] =
 
 void InitOOJSStation(JSContext *context, JSObject *global)
 {
-	sStationPrototype = JS_InitClass(context, global, JSShipPrototype(), &sStationClass, NULL, 0, sStationProperties, sStationMethods, NULL, NULL);
+	sStationPrototype = JS_InitClass(context, global, JSShipPrototype(), &sStationClass, OOJSUnconstructableConstruct, 0, sStationProperties, sStationMethods, NULL, NULL);
 	OOJSRegisterObjectConverter(&sStationClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sStationClass, JSShipClass());
 }

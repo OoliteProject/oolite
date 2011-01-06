@@ -82,7 +82,7 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 	sCallbackFunction = JSVAL_NULL;
 	sCallbackThis = JSVAL_NULL;
 	
-	JSObject *missionPrototype = JS_InitClass(context, global, NULL, &sMissionClass, NULL, 0, NULL, sMissionMethods, NULL, NULL);
+	JSObject *missionPrototype = JS_InitClass(context, global, NULL, &sMissionClass, OOJSUnconstructableConstruct, 0, NULL, sMissionMethods, NULL, NULL);
 	JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	
 	// Ensure JS objects are rooted.

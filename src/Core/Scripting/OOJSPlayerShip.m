@@ -159,7 +159,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 
 void InitOOJSPlayerShip(JSContext *context, JSObject *global)
 {
-	sPlayerShipPrototype = JS_InitClass(context, global, JSShipPrototype(), &sPlayerShipClass, NULL, 0, sPlayerShipProperties, sPlayerShipMethods, NULL, NULL);
+	sPlayerShipPrototype = JS_InitClass(context, global, JSShipPrototype(), &sPlayerShipClass, OOJSUnconstructableConstruct, 0, sPlayerShipProperties, sPlayerShipMethods, NULL, NULL);
 	OOJSRegisterObjectConverter(&sPlayerShipClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sPlayerShipClass, JSShipClass());
 	

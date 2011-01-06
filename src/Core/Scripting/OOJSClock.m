@@ -106,7 +106,7 @@ static JSFunctionSpec sClockMethods[] =
 
 void InitOOJSClock(JSContext *context, JSObject *global)
 {
-	JSObject *clockPrototype = JS_InitClass(context, global, NULL, &sClockClass, NULL, 0, sClockProperties, sClockMethods, NULL, NULL);
+	JSObject *clockPrototype = JS_InitClass(context, global, NULL, &sClockClass, OOJSUnconstructableConstruct, 0, sClockProperties, sClockMethods, NULL, NULL);
 	JS_DefineObject(context, global, "clock", &sClockClass, clockPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 

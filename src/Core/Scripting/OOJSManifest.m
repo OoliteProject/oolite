@@ -181,7 +181,7 @@ static NSDictionary *sManifestNameMap;
 
 void InitOOJSManifest(JSContext *context, JSObject *global)
 {
-	sManifestPrototype = JS_InitClass(context, global, NULL, &sManifestClass, NULL, 0, sManifestProperties, NULL, NULL, NULL);
+	sManifestPrototype = JS_InitClass(context, global, NULL, &sManifestClass, OOJSUnconstructableConstruct, 0, sManifestProperties, NULL, NULL, NULL);
 	OOJSRegisterObjectConverter(&sManifestClass, OOJSBasicPrivateObjectConverter);
 	
 	// Create manifest object as a property of the player.ship object.
