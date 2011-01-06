@@ -808,7 +808,7 @@ FIXME: this works with CRLF and LF, but not CR.
 	
 	if (errorReport->flags & JSREPORT_STRICT)
 	{
-		prefix = [prefix stringByAppendingString:@" (strict mode)"];
+		prefix = [prefix stringByAppendingString:@" (pedantic mode)"];
 	}
 	
 	// Prefix and subsequent colon should be bold:
