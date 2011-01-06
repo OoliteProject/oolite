@@ -98,64 +98,61 @@ if (typeof Array.isArray !== "function")
 }
 
 
+// Utility to define non-enumerable, permanent methods, to match the behaviour of native methods.
+this.defineMethod = function(object, name, implementation)
+{
+	Object.defineProperty(object, name, { value: implementation, writable: false, enumerable: false });
+}
+
+
 /**** Utilities, not intended to be retired ****/
 
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
-Object.defineProperty(Object.getPrototypeOf(Ship), "spawnOne",
+this.defineMethod(Ship.prototype, "spawnOne", function (role)
 {
-	value: function Ship_spawnOne(role)
-	{
-		var result = this.spawn(role, 1);
-		return result ? result[0] : null;
-	},
-	writable: false,
-	enumerable: false
+	var result = this.spawn(role, 1);
+	return result ? result[0] : null;
 });
 
 
 // mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.
-mission.addMessageTextKey = function mission_addMessageTextKey(textKey)
+this.defineMethod(mission, "addMessageTextKey", function (textKey)
 {
 	mission.addMessageText((textKey ? expandMissionText(textKey) : null));
-};
+});
 
 
 /*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
 	certain distance.
 */
-Object.defineProperty(SystemInfo, "systemsInRange",
+this.defineMethod(SystemInfo, "systemsInRange", function (range)
 {
-	value: function SystemInfo_systemsInRange(range)
+	if (range === undefined)
 	{
-		if (range === undefined)
+		range = 7;
+	}
+	
+	// Default to using the current system.
+	var thisSystem = system.info;
+	
+	// If called on an instance instead of the SystemInfo constructor, use that system instead.
+	if (this !== SystemInfo)
+	{
+		if (this.systemID !== undefined && this.distanceToSystem !== undefined)
 		{
-			range = 7;
+			thisSystem = this;
 		}
-		
-		// Default to using the current system.
-		var thisSystem = system.info;
-		
-		// If called on an instance instead of the SystemInfo constructor, use that system instead.
-		if (this !== SystemInfo)
+		else
 		{
-			if (this.systemID !== undefined && this.distanceToSystem !== undefined)
-			{
-				thisSystem = this;
-			}
-			else
-			{
-				special.jsWarning("systemsInRange() called in the wrong context. Returning empty array.");
-				return [];
-			}
+			special.jsWarning("systemsInRange() called in the wrong context. Returning empty array.");
+			return [];
 		}
-		
-		return SystemInfo.filteredSystems(this, function (other)
-		{
-			return (other.systemID !== thisSystem.systemID) && (thisSystem.distanceToSystem(other) <= range);
-		});
-	},
-	writable: false,
-	enumerable: false
+	}
+	
+	return SystemInfo.filteredSystems(this, function (other)
+	{
+		return (other.systemID !== thisSystem.systemID) && (thisSystem.distanceToSystem(other) <= range);
+	});
 });
 
 
@@ -173,28 +170,36 @@ Object.defineProperty(SystemInfo, "systemsInRange",
 	system.scrambledPseudoRandomNumber() with different salt values, there will
 	be no obvious correlation between the different stations’ distributions.
 */
-Object.defineProperty(system, "scrambledPseudoRandomNumber",
+this.defineMethod(system, "scrambledPseudoRandomNumber", function (salt)
 {
-	value: function system_scrambledPseudoRandomNumber(salt)
-	{
-		// Convert from float in [0..1) with 24 bits of precision to integer.
-		var n = Math.floor(system.pseudoRandomNumber * 16777216.0);
-		
-		// Add salt to enable generation of different sequences.
-		n += salt;
-		
-		// Scramble with basic LCG psuedo-random number generator.
-		n = (214013 * n + 2531011) & 0xFFFFFFFF;
-		n = (214013 * n + 2531011) & 0xFFFFFFFF;
-		n = (214013 * n + 2531011) & 0xFFFFFFFF;
-		
-		// Convert from (effectively) 32-bit signed integer to float in [0..1).
-		return n / 4294967296.0 + 0.5;
-	},
-	writable: false,
-	enumerable: false
+	// Convert from float in [0..1) with 24 bits of precision to integer.
+	var n = Math.floor(system.pseudoRandomNumber * 16777216.0);
+	
+	// Add salt to enable generation of different sequences.
+	n += salt;
+	
+	// Scramble with basic LCG psuedo-random number generator.
+	n = (214013 * n + 2531011) & 0xFFFFFFFF;
+	n = (214013 * n + 2531011) & 0xFFFFFFFF;
+	n = (214013 * n + 2531011) & 0xFFFFFFFF;
+	
+	// Convert from (effectively) 32-bit signed integer to float in [0..1).
+	return n / 4294967296.0 + 0.5;
 });
 
+
+/*	soundSource.playSound(sound : SoundExpression [, count : Number])
+	
+	Load a sound and play it.
+*/
+this.defineMethod(SoundSource.prototype, "playSound", function (sound, count)
+{
+	this.sound = sound;
+	this.play(count);
+});
+
+
+delete this.defineMethod;
 
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
 

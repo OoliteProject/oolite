@@ -328,7 +328,7 @@ DEFINE_JS_OBJECT_GETTER(JSShipGetShipEntity, &sShipClass, sShipPrototype, ShipEn
 
 void InitOOJSShip(JSContext *context, JSObject *global)
 {
-	sShipPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sShipClass,OOJSUnconstructableConstruct, 0, sShipProperties, sShipMethods, NULL, NULL);
+	sShipPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sShipClass, OOJSUnconstructableConstruct, 0, sShipProperties, sShipMethods, NULL, NULL);
 	OOJSRegisterObjectConverter(&sShipClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sShipClass, JSEntityClass());
 }

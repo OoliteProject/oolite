@@ -39,7 +39,6 @@ static JSBool SoundSourceConstruct(OOJS_NATIVE_ARGS);
 static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS);
 static JSBool SoundSourceStop(OOJS_NATIVE_ARGS);
 static JSBool SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS);
-static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS);
 
 
 static JSClass sSoundSourceClass =
@@ -87,7 +86,6 @@ static JSFunctionSpec sSoundSourceMethods[] =
 	{ "play",					SoundSourcePlay,			0, },
 	{ "stop",					SoundSourceStop,			0, },
 	{ "playOrRepeat",			SoundSourcePlayOrRepeat,	0, },
-	{ "playSound",				SoundSourcePlaySound,		1, },
 	{ 0 }
 };
 
@@ -220,7 +218,7 @@ static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS)
 	int32					count = 0;
 	
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, OOJS_THIS, &thisv)))  return NO;
-	if (argc > 0 && !JS_ValueToInt32(context, OOJS_ARG(0), &count))
+	if (argc > 0 && !JSVAL_IS_VOID(OOJS_ARG(0)) && !JS_ValueToInt32(context, OOJS_ARG(0), &count))
 	{
 		OOJSReportBadArguments(context, @"SoundSource", @"play", argc, OOJS_ARGV, nil, @"integer count or no argument");
 		return NO;
@@ -272,47 +270,6 @@ static JSBool SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS)
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
 	[thisv playOrRepeat];
-	OOJS_END_FULL_NATIVE
-	
-	OOJS_RETURN_VOID;
-	
-	OOJS_NATIVE_EXIT
-}
-
-
-// playSound(sound : SoundExpression [, count : Number])
-static JSBool SoundSourcePlaySound(OOJS_NATIVE_ARGS)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	OOSoundSource			*thisv;
-	OOSound					*sound = nil;
-	int32					count = 0;
-	
-	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, OOJS_THIS, &thisv)))  return NO;
-	
-	sound = SoundFromJSValue(context, OOJS_ARG(0));
-	
-	if (sound == nil)
-	{
-		OOJSReportBadArguments(context, @"SoundSource", @"playSound", argc, OOJS_ARGV, nil, @"sound or sound name");
-		return NO;
-	}
-	
-	if (argc > 1 && !JS_ValueToInt32(context, OOJS_ARG(1), &count))
-	{
-		OOJSReportBadArguments(context, @"SoundSource", @"playSound", argc, OOJS_ARGV, nil, @"sound or sound name and optional integer count");
-		return NO;
-	}
-	
-	OOJS_BEGIN_FULL_NATIVE(context)
-	[thisv setSound:sound];
-	if (count > 0)
-	{
-		if (count > 100)  count = 100;
-		[thisv setRepeatCount:count];
-	}
-	[thisv play];
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;
