@@ -50,6 +50,54 @@ this.copyright		= "© 2009-2011 the Oolite team.";
 this.version		= "1.75";
 
 
+/**** Built-in in ECMAScript 5, to be removed when Linux builds transition ****/
+
+// Object.defineProperty: only value key is supported. Getter and setter are possible, but not required.
+if (typeof Object.defineProperty !== "function")
+{
+	Object.defineProperty = function (object, name, definition)
+	{
+		object[name] = definition.value;
+	}
+}
+
+
+//	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__ extension.
+if (typeof Object.getPrototypeOf !== "function")
+{
+	Object.getPrototypeOf = function (object)
+	{
+		return object.__proto__;
+	};
+}
+
+/*	string.trim(): remove leading and trailing whitespace.
+	Implementation by Steve Leviathan, see:
+	http://blog.stevenlevithan.com/archives/faster-trim-javascript
+	Note: as of ECMAScript 5th Edition, this will be a core language method.
+*/
+if (typeof String.prototype.trim !== "function")
+{
+	String.prototype.trim = function String_trim()
+	{
+		var	str = this.replace(/^\s\s*/, ''),
+			 ws = /\s/,
+			  i = str.length;
+		while (ws.test(str.charAt(--i))) {}
+		return str.slice(0, i + 1);
+	};
+}
+
+// Array.isArray(object): true if object is an array.
+if (typeof Array.isArray !== "function")
+{
+	Array.isArray = function Array_isArray(object)
+	{
+		return object && object.constructor === [].constructor;
+	}
+}
+
+
 /**** Utilities, not intended to be retired ****/
 
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
@@ -146,54 +194,6 @@ Object.defineProperty(system, "scrambledPseudoRandomNumber",
 	writable: false,
 	enumerable: false
 });
-
-
-/**** Built-in in ECMAScript 5, to be removed when Linux builds transition ****/
-
-// Object.defineProperty: only value key is supported. Getter and setter are possible, but not required.
-if (typeof Object.defineProperty !== "function")
-{
-	Object.defineProperty = function (object, name, definition)
-	{
-		object[name] = definition.value;
-	}
-}
-
-
-//	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__ extension.
-if (typeof Object.getPrototypeOf !== "function")
-{
-	Object.getPrototypeOf = function (object)
-	{
-		return object.__proto__;
-	};
-}
-
-/*	string.trim(): remove leading and trailing whitespace.
-	Implementation by Steve Leviathan, see:
-	http://blog.stevenlevithan.com/archives/faster-trim-javascript
-	Note: as of ECMAScript 5th Edition, this will be a core language method.
-*/
-if (typeof String.prototype.trim !== "function")
-{
-	String.prototype.trim = function String_trim()
-	{
-		var	str = this.replace(/^\s\s*/, ''),
-			 ws = /\s/,
-			  i = str.length;
-		while (ws.test(str.charAt(--i))) {}
-		return str.slice(0, i + 1);
-	};
-}
-
-// Array.isArray(object): true if object is an array.
-if (typeof Array.isArray !== "function")
-{
-	Array.isArray = function Array_isArray(object)
-	{
-		return object && object.constructor === [].constructor;
-	}
-}
 
 
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
