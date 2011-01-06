@@ -163,8 +163,6 @@ SOFTWARE.
 
 */
 
-"use strict";
-
 
 this.name			= "oolite-debug-console";
 this.author			= "Jens Ayton";
@@ -172,6 +170,8 @@ this.copyright		= "© 2007-2011 the Oolite team.";
 this.description	= "Debug console script.";
 this.version		= "1.75";
 
+
+(function() {
 
 this.inputBuffer	= "";
 this.$				= null;
@@ -284,31 +284,6 @@ this.consolePerformJSCommand = function consolePerformJSCommand(command)
 		
 		// Colon prefix, this is a macro.
 		this.performMacro(command);
-	}
-}
-
-
-this.evaluate = function evaluate(command, type, PARAM)
-{
-	var showErrorLocations = debugConsole.showErrorLocations;
-	debugConsole.showErrorLocations = debugConsole.showErrorLocationsDuringConsoleEval;
-	try
-	{
-		var result = eval(command);
-	}
-	catch (e)
-	{
-		// console.showErrorLocations must be reset _after_ the exception is handed.
-		this.resetErrorLocTimer = new Timer(this, function () { console.showErrorLocations = showErrorLocations; delete this.resetErrorLocTimer; }, 0);
-		throw e;
-	}
-	console.showErrorLocations = showErrorLocations;
-	
-	if (result !== undefined)
-	{
-		if (result === null)  result = "null";
-		else  this.$ = result;
-		consoleMessage("command-result", prettify(result));
 	}
 }
 
@@ -713,7 +688,7 @@ this.M = missionVariables;
 
 
 // Make console.consoleMessage() globally visible
-function consoleMessage()
+global.consoleMessage = function consoleMessage()
 {
 	// Call debugConsole.consoleMessage() with console as "this" and all the arguments passed to consoleMessage().
 	debugConsole.consoleMessage.apply(debugConsole, arguments);
@@ -728,3 +703,32 @@ Entity.inspect = function inspect()
 
 
 debugConsole.__setUpCallObjC(Object.prototype);
+
+}).call(this);
+
+
+// evaluate() is outside the closure specifically to avoid strict mode.
+// If evaluate() is compiled in strict mode, all console input will also be strict.
+this.evaluate = function evaluate(command, type, PARAM)
+{
+	var showErrorLocations = debugConsole.showErrorLocations;
+	debugConsole.showErrorLocations = debugConsole.showErrorLocationsDuringConsoleEval;
+	try
+	{
+		var result = eval(command);
+	}
+	catch (e)
+	{
+		// console.showErrorLocations must be reset _after_ the exception is handed.
+		this.resetErrorLocTimer = new Timer(this, function () { console.showErrorLocations = showErrorLocations; delete this.resetErrorLocTimer; }, 0);
+		throw e;
+	}
+	console.showErrorLocations = showErrorLocations;
+	
+	if (result !== undefined)
+	{
+		if (result === null)  result = "null";
+		else  this.$ = result;
+		consoleMessage("command-result", prettify(result));
+	}
+}
