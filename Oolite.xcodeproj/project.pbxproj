@@ -12,12 +12,13 @@
 			buildConfigurationList = 1AD267680C8305A200B4BFD1 /* Build configuration list for PBXAggregateTarget "Build All" */;
 			buildPhases = (
 				1AD267610C83057F00B4BFD1 /* Copy Debug OXP */,
-				1A09EF5B12BD0C5000BF7F48 /* Copy System-specific Bundles */,
+				1A09EF5B12BD0C5000BF7F48 /* Copy Plug-ins */,
 			);
 			dependencies = (
 				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
 				1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */,
 				1A09EFBD12BD118300BF7F48 /* PBXTargetDependency */,
+				1ABF219A12D691A300075821 /* PBXTargetDependency */,
 			);
 			name = "Build All";
 			productName = "Build All";
@@ -60,7 +61,7 @@
 		1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */; };
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
 		1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
-		1A09EF5812BD0C4100BF7F48 /* Oolite Leopard support.bundle in Copy System-specific Bundles */ = {isa = PBXBuildFile; fileRef = 1A09EF5412BD0C1900BF7F48 /* Oolite Leopard support.bundle */; };
+		1A09EF5812BD0C4100BF7F48 /* Oolite Leopard support.bundle in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = 1A09EF5412BD0C1900BF7F48 /* Oolite Leopard support.bundle */; };
 		1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */; };
 		1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */; };
 		1A0BF3D610DAE2B30099984D /* cobra1_redux2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */; };
@@ -615,6 +616,7 @@
 		1ABC47FF0F155F0500B977AD /* OOJSFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABC47FD0F155F0500B977AD /* OOJSFunction.m */; };
 		1ABDBA3B0EB365D90086BC3D /* OOIsNumberLiteral.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABDBA390EB365D90086BC3D /* OOIsNumberLiteral.m */; };
 		1ABDBA3C0EB365D90086BC3D /* OOIsNumberLiteral.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABDBA3A0EB365D90086BC3D /* OOIsNumberLiteral.h */; };
+		1ABF219B12D691B300075821 /* Oolite.docktileplugin in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = 1A01BCE711C569DF0011197F /* Oolite.docktileplugin */; };
 		1AC27A0F0EA7E9940054E5F0 /* OOJSEquipmentInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC27A0D0EA7E9940054E5F0 /* OOJSEquipmentInfo.h */; };
 		1AC27A100EA7E9940054E5F0 /* OOJSEquipmentInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC27A0E0EA7E9940054E5F0 /* OOJSEquipmentInfo.m */; };
 		1AC544FA0D4D217900C90E5B /* oolite-font.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AC544F90D4D217900C90E5B /* oolite-font.png */; };
@@ -810,6 +812,13 @@
 			remoteGlobalIDString = D2AAC045055464E500DB518D;
 			remoteInfo = libjs;
 		};
+		1ABF219912D691A300075821 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA /* Oolite-docktile */;
+			remoteInfo = "Oolite-docktile";
+		};
 		1AD05EB912CD1B4700704F1D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
@@ -855,15 +864,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		1A09EF5B12BD0C5000BF7F48 /* Copy System-specific Bundles */ = {
+		1A09EF5B12BD0C5000BF7F48 /* Copy Plug-ins */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = Oolite.app/Contents/PlugIns;
 			dstSubfolderSpec = 16;
 			files = (
-				1A09EF5812BD0C4100BF7F48 /* Oolite Leopard support.bundle in Copy System-specific Bundles */,
+				1ABF219B12D691B300075821 /* Oolite.docktileplugin in Copy Plug-ins */,
+				1A09EF5812BD0C4100BF7F48 /* Oolite Leopard support.bundle in Copy Plug-ins */,
 			);
-			name = "Copy System-specific Bundles";
+			name = "Copy Plug-ins";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1A23153A0B9C773B00EF0852 /* Copy Images */ = {
@@ -3935,6 +3945,11 @@
 			isa = PBXTargetDependency;
 			name = libjs;
 			targetProxy = 1AB7763412CA33FB001478BB /* PBXContainerItemProxy */;
+		};
+		1ABF219A12D691A300075821 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Oolite-docktile";
+			targetProxy = 1ABF219912D691A300075821 /* PBXContainerItemProxy */;
 		};
 		1AD267560C83052600B4BFD1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
