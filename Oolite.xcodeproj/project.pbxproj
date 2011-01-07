@@ -62,7 +62,6 @@
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
 		1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
 		1A09EF5812BD0C4100BF7F48 /* Oolite Leopard support.bundle in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = 1A09EF5412BD0C1900BF7F48 /* Oolite Leopard support.bundle */; };
-		1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */; };
 		1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */; };
 		1A0BF3D610DAE2B30099984D /* cobra1_redux2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */; };
 		1A0BF3D810DAE2EC0099984D /* mamba_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D710DAE2EC0099984D /* mamba_redux1.dat */; };
@@ -333,8 +332,6 @@
 		1A26D0E90BCF9D3B0073F257 /* OOTextureLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0E30BCF9D3B0073F257 /* OOTextureLoader.h */; };
 		1A26D0EA0BCF9D3B0073F257 /* OOPNGTextureLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0E40BCF9D3B0073F257 /* OOPNGTextureLoader.h */; };
 		1A26D0EB0BCF9D3B0073F257 /* OOTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */; };
-		1A26D0F50BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
-		1A26D0F60BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
 		1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A3042F410C16DA60056219D /* Debug.oxp */; };
 		1A27965012CCC09A00C9E94D /* libnspr4_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */; };
 		1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */; };
@@ -473,23 +470,6 @@
 		1A7038A212BB9F5A0015CCDC /* dummy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A7038A112BB9F5A0015CCDC /* dummy.cpp */; };
 		1A71D8AA0E5F17410088C456 /* OOSoundSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A71D8A80E5F17410088C456 /* OOSoundSource.m */; };
 		1A71D8AB0E5F17410088C456 /* OOSoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71D8A90E5F17410088C456 /* OOSoundSource.h */; };
-		1A71E7170BCE34CF00CD5C13 /* pngconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71E7030BCE34CF00CD5C13 /* pngconf.h */; };
-		1A71E7180BCE34CF00CD5C13 /* pngmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7040BCE34CF00CD5C13 /* pngmem.c */; };
-		1A71E7190BCE34CF00CD5C13 /* pngwutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7050BCE34CF00CD5C13 /* pngwutil.c */; };
-		1A71E71A0BCE34CF00CD5C13 /* pngwio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7060BCE34CF00CD5C13 /* pngwio.c */; };
-		1A71E71B0BCE34CF00CD5C13 /* png.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71E7070BCE34CF00CD5C13 /* png.h */; };
-		1A71E71C0BCE34CF00CD5C13 /* pngtrans.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7080BCE34CF00CD5C13 /* pngtrans.c */; };
-		1A71E71D0BCE34CF00CD5C13 /* pngrtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7090BCE34CF00CD5C13 /* pngrtran.c */; };
-		1A71E71E0BCE34CF00CD5C13 /* png.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70A0BCE34CF00CD5C13 /* png.c */; };
-		1A71E71F0BCE34CF00CD5C13 /* pngwtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70B0BCE34CF00CD5C13 /* pngwtran.c */; };
-		1A71E7200BCE34CF00CD5C13 /* pngread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70C0BCE34CF00CD5C13 /* pngread.c */; };
-		1A71E7210BCE34CF00CD5C13 /* pngrutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70D0BCE34CF00CD5C13 /* pngrutil.c */; };
-		1A71E7230BCE34CF00CD5C13 /* pngerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70F0BCE34CF00CD5C13 /* pngerror.c */; };
-		1A71E7240BCE34CF00CD5C13 /* pngset.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7100BCE34CF00CD5C13 /* pngset.c */; };
-		1A71E7250BCE34CF00CD5C13 /* pngwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7110BCE34CF00CD5C13 /* pngwrite.c */; };
-		1A71E7260BCE34CF00CD5C13 /* pngget.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7120BCE34CF00CD5C13 /* pngget.c */; };
-		1A71E7280BCE34CF00CD5C13 /* pngrio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7140BCE34CF00CD5C13 /* pngrio.c */; };
-		1A71E72A0BCE34CF00CD5C13 /* pngpread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7160BCE34CF00CD5C13 /* pngpread.c */; };
 		1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E8780BCE8EB100CD5C13 /* libz.dylib */; };
 		1A71EA8C0BCF8C6B00CD5C13 /* OOXMLExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161102099544380037C2E1 /* OOXMLExtensions.m */; };
 		1A71EA8D0BCF8C6C00CD5C13 /* OOXMLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161107099544390037C2E1 /* OOXMLExtensions.h */; };
@@ -501,6 +481,7 @@
 		1A73712E0C623DAE0097AC37 /* OOJSStation.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A73712C0C623DAE0097AC37 /* OOJSStation.m */; };
 		1A7376BE0C64AE330097AC37 /* OOJSSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7376BC0C64AE330097AC37 /* OOJSSystem.h */; };
 		1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7376BD0C64AE330097AC37 /* OOJSSystem.m */; };
+		1A78B5DA12D74CFF00D42EE7 /* libpng_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A78B5D912D74CF900D42EE7 /* libpng_for_oolite.a */; };
 		1A7B967F0E620C9E00322821 /* OOSoundInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7B967E0E620C9E00322821 /* OOSoundInternal.h */; };
 		1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */; };
 		1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */; };
@@ -784,12 +765,19 @@
 			remoteGlobalIDString = 8D57630D048677EA00EA77CD;
 			remoteInfo = "Oolite-importer";
 		};
-		1A71E6F60BCE343400CD5C13 /* PBXContainerItemProxy */ = {
+		1A78B5D812D74CF900D42EE7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			containerPortal = 1A78B5D412D74CF900D42EE7 /* libpng.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */;
+			remoteInfo = libpng;
+		};
+		1A78B5DB12D74D0600D42EE7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A78B5D412D74CF900D42EE7 /* libpng.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13;
-			remoteInfo = "libpng-custom";
+			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13 /* libpng */;
+			remoteInfo = libpng;
 		};
 		1AB7760112CA2E53001478BB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1552,7 +1540,6 @@
 		1A26D0E30BCF9D3B0073F257 /* OOTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureLoader.h; sourceTree = "<group>"; };
 		1A26D0E40BCF9D3B0073F257 /* OOPNGTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPNGTextureLoader.h; sourceTree = "<group>"; };
 		1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureLoader.m; sourceTree = "<group>"; };
-		1A26D0F40BCF9D8D0073F257 /* pngusr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pngusr.h; path = src/Core/Materials/pngusr.h; sourceTree = SOURCE_ROOT; };
 		1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifierStageInternal.h; sourceTree = "<group>"; };
 		1A27DB390C4E349F00CB4CE8 /* OOOXPVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifierStage.h; sourceTree = "<group>"; };
 		1A27DB3A0C4E349F00CB4CE8 /* OOOXPVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifierStage.m; sourceTree = "<group>"; };
@@ -1700,24 +1687,6 @@
 		1A71D8A80E5F17410088C456 /* OOSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSoundSource.m; sourceTree = "<group>"; };
 		1A71D8A90E5F17410088C456 /* OOSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundSource.h; sourceTree = "<group>"; };
 		1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng_for_oolite.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		1A71E7030BCE34CF00CD5C13 /* pngconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngconf.h; sourceTree = "<group>"; };
-		1A71E7040BCE34CF00CD5C13 /* pngmem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngmem.c; sourceTree = "<group>"; };
-		1A71E7050BCE34CF00CD5C13 /* pngwutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwutil.c; sourceTree = "<group>"; };
-		1A71E7060BCE34CF00CD5C13 /* pngwio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwio.c; sourceTree = "<group>"; };
-		1A71E7070BCE34CF00CD5C13 /* png.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = png.h; sourceTree = "<group>"; };
-		1A71E7080BCE34CF00CD5C13 /* pngtrans.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngtrans.c; sourceTree = "<group>"; };
-		1A71E7090BCE34CF00CD5C13 /* pngrtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrtran.c; sourceTree = "<group>"; };
-		1A71E70A0BCE34CF00CD5C13 /* png.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = png.c; sourceTree = "<group>"; };
-		1A71E70B0BCE34CF00CD5C13 /* pngwtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwtran.c; sourceTree = "<group>"; };
-		1A71E70C0BCE34CF00CD5C13 /* pngread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngread.c; sourceTree = "<group>"; };
-		1A71E70D0BCE34CF00CD5C13 /* pngrutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrutil.c; sourceTree = "<group>"; };
-		1A71E70E0BCE34CF00CD5C13 /* pngtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngtest.c; sourceTree = "<group>"; };
-		1A71E70F0BCE34CF00CD5C13 /* pngerror.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngerror.c; sourceTree = "<group>"; };
-		1A71E7100BCE34CF00CD5C13 /* pngset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngset.c; sourceTree = "<group>"; };
-		1A71E7110BCE34CF00CD5C13 /* pngwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwrite.c; sourceTree = "<group>"; };
-		1A71E7120BCE34CF00CD5C13 /* pngget.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngget.c; sourceTree = "<group>"; };
-		1A71E7140BCE34CF00CD5C13 /* pngrio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrio.c; sourceTree = "<group>"; };
-		1A71E7160BCE34CF00CD5C13 /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngpread.c; sourceTree = "<group>"; };
 		1A71E8780BCE8EB100CD5C13 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
 		1A736BD10C61E9370097AC37 /* OOJSPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlayer.h; sourceTree = "<group>"; };
 		1A736BD20C61E9370097AC37 /* OOJSPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSPlayer.m; sourceTree = "<group>"; };
@@ -1727,6 +1696,7 @@
 		1A73712C0C623DAE0097AC37 /* OOJSStation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSStation.m; sourceTree = "<group>"; };
 		1A7376BC0C64AE330097AC37 /* OOJSSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSystem.h; sourceTree = "<group>"; };
 		1A7376BD0C64AE330097AC37 /* OOJSSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSystem.m; sourceTree = "<group>"; };
+		1A78B5D412D74CF900D42EE7 /* libpng.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libpng.xcodeproj; path = "deps/Cocoa-deps/libpng/libpng.xcodeproj"; sourceTree = "<group>"; };
 		1A7B967E0E620C9E00322821 /* OOSoundInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundInternal.h; sourceTree = "<group>"; };
 		1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityScriptMethods.h; sourceTree = "<group>"; };
 		1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityScriptMethods.m; sourceTree = "<group>"; };
@@ -2002,12 +1972,12 @@
 				1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */,
 				1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */,
 				1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */,
-				1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */,
 				1AB7761012CA2EE0001478BB /* libjs_for_oolite.a in Frameworks */,
 				1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */,
 				1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */,
 				1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */,
 				1A27965012CCC09A00C9E94D /* libnspr4_for_oolite.a in Frameworks */,
+				1A78B5DA12D74CFF00D42EE7 /* libpng_for_oolite.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2652,33 +2622,6 @@
 			path = Materials;
 			sourceTree = "<group>";
 		};
-		1A71E6FB0BCE345800CD5C13 /* libpng */ = {
-			isa = PBXGroup;
-			children = (
-				1A26D0F40BCF9D8D0073F257 /* pngusr.h */,
-				1A71E7070BCE34CF00CD5C13 /* png.h */,
-				1A71E7030BCE34CF00CD5C13 /* pngconf.h */,
-				1A71E7040BCE34CF00CD5C13 /* pngmem.c */,
-				1A71E7050BCE34CF00CD5C13 /* pngwutil.c */,
-				1A71E7060BCE34CF00CD5C13 /* pngwio.c */,
-				1A71E7080BCE34CF00CD5C13 /* pngtrans.c */,
-				1A71E7090BCE34CF00CD5C13 /* pngrtran.c */,
-				1A71E70A0BCE34CF00CD5C13 /* png.c */,
-				1A71E70B0BCE34CF00CD5C13 /* pngwtran.c */,
-				1A71E70C0BCE34CF00CD5C13 /* pngread.c */,
-				1A71E70D0BCE34CF00CD5C13 /* pngrutil.c */,
-				1A71E70E0BCE34CF00CD5C13 /* pngtest.c */,
-				1A71E70F0BCE34CF00CD5C13 /* pngerror.c */,
-				1A71E7100BCE34CF00CD5C13 /* pngset.c */,
-				1A71E7110BCE34CF00CD5C13 /* pngwrite.c */,
-				1A71E7120BCE34CF00CD5C13 /* pngget.c */,
-				1A71E7140BCE34CF00CD5C13 /* pngrio.c */,
-				1A71E7160BCE34CF00CD5C13 /* pngpread.c */,
-			);
-			name = libpng;
-			path = "deps/Cross-platform-deps/libpng";
-			sourceTree = "<group>";
-		};
 		1A71E85D0BCE8A5500CD5C13 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
@@ -2724,6 +2667,14 @@
 				1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */,
 			);
 			name = Shaders;
+			sourceTree = "<group>";
+		};
+		1A78B5D512D74CF900D42EE7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A78B5D912D74CF900D42EE7 /* libpng_for_oolite.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		1A7B96800E620CA000322821 /* Audio */ = {
@@ -3205,7 +3156,7 @@
 				1AB775FC12CA2E53001478BB /* libjs.xcodeproj */,
 				1AE3454B12CB77A700FD8C62 /* Ogg.xcodeproj */,
 				1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */,
-				1A71E6FB0BCE345800CD5C13 /* libpng */,
+				1A78B5D412D74CF900D42EE7 /* libpng.xcodeproj */,
 				1A71E8780BCE8EB100CD5C13 /* libz.dylib */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
@@ -3307,7 +3258,6 @@
 				1A26D0E70BCF9D3B0073F257 /* OOTexture.h in Headers */,
 				1A26D0E90BCF9D3B0073F257 /* OOTextureLoader.h in Headers */,
 				1A26D0EA0BCF9D3B0073F257 /* OOPNGTextureLoader.h in Headers */,
-				1A26D0F50BCF9D8D0073F257 /* pngusr.h in Headers */,
 				1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */,
 				1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */,
 				1A2A16690BD10B1200152975 /* OOSingleTextureMaterial.h in Headers */,
@@ -3443,9 +3393,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A71E7170BCE34CF00CD5C13 /* pngconf.h in Headers */,
-				1A71E71B0BCE34CF00CD5C13 /* png.h in Headers */,
-				1A26D0F60BCF9D8D0073F257 /* pngusr.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3476,10 +3423,10 @@
 			);
 			dependencies = (
 				1AB7763512CA33FB001478BB /* PBXTargetDependency */,
-				1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */,
 				1AE3455A12CB77CB00FD8C62 /* PBXTargetDependency */,
 				1AE3455C12CB77CD00FD8C62 /* PBXTargetDependency */,
 				1A3E01A911C574E1000FF226 /* PBXTargetDependency */,
+				1A78B5DC12D74D0600D42EE7 /* PBXTargetDependency */,
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
@@ -3540,6 +3487,10 @@
 					ProjectRef = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
 				},
 				{
+					ProductGroup = 1A78B5D512D74CF900D42EE7 /* Products */;
+					ProjectRef = 1A78B5D412D74CF900D42EE7 /* libpng.xcodeproj */;
+				},
+				{
 					ProductGroup = 1AE3454C12CB77A700FD8C62 /* Products */;
 					ProjectRef = 1AE3454B12CB77A700FD8C62 /* Ogg.xcodeproj */;
 				},
@@ -3592,6 +3543,13 @@
 			fileType = wrapper.cfbundle;
 			path = Oolite.mdimporter;
 			remoteRef = 1A3E019511C574AC000FF226 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1A78B5D912D74CF900D42EE7 /* libpng_for_oolite.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libpng_for_oolite.a;
+			remoteRef = 1A78B5D812D74CF900D42EE7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1AB7760212CA2E53001478BB /* libjs_for_oolite.a */ = {
@@ -3900,21 +3858,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A71E7180BCE34CF00CD5C13 /* pngmem.c in Sources */,
-				1A71E7190BCE34CF00CD5C13 /* pngwutil.c in Sources */,
-				1A71E71A0BCE34CF00CD5C13 /* pngwio.c in Sources */,
-				1A71E71C0BCE34CF00CD5C13 /* pngtrans.c in Sources */,
-				1A71E71D0BCE34CF00CD5C13 /* pngrtran.c in Sources */,
-				1A71E71E0BCE34CF00CD5C13 /* png.c in Sources */,
-				1A71E71F0BCE34CF00CD5C13 /* pngwtran.c in Sources */,
-				1A71E7200BCE34CF00CD5C13 /* pngread.c in Sources */,
-				1A71E7210BCE34CF00CD5C13 /* pngrutil.c in Sources */,
-				1A71E7230BCE34CF00CD5C13 /* pngerror.c in Sources */,
-				1A71E7240BCE34CF00CD5C13 /* pngset.c in Sources */,
-				1A71E7250BCE34CF00CD5C13 /* pngwrite.c in Sources */,
-				1A71E7260BCE34CF00CD5C13 /* pngget.c in Sources */,
-				1A71E7280BCE34CF00CD5C13 /* pngrio.c in Sources */,
-				1A71E72A0BCE34CF00CD5C13 /* pngpread.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3936,10 +3879,10 @@
 			name = "Oolite-importer";
 			targetProxy = 1A3E01A811C574E1000FF226 /* PBXContainerItemProxy */;
 		};
-		1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */ = {
+		1A78B5DC12D74D0600D42EE7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 1A71E6F20BCE340C00CD5C13 /* libpng-custom */;
-			targetProxy = 1A71E6F60BCE343400CD5C13 /* PBXContainerItemProxy */;
+			name = libpng;
+			targetProxy = 1A78B5DB12D74D0600D42EE7 /* PBXContainerItemProxy */;
 		};
 		1AB7763512CA33FB001478BB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -4009,7 +3952,7 @@
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wextra",
@@ -4056,7 +3999,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wno-unused-parameter",
@@ -4148,7 +4091,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wno-unused-parameter",
