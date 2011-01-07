@@ -816,7 +816,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA /* Oolite-docktile */;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
 			remoteInfo = "Oolite-docktile";
 		};
 		1AD05EB912CD1B4700704F1D /* PBXContainerItemProxy */ = {
