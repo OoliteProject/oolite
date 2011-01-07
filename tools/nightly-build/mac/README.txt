@@ -1,8 +1,5 @@
 Running Mac nightly builds:
 * Get a Mac, install Xcode, etc.
-* If you haven't built Oolite on this machine, install the RBSplitView
-  Interface Builder plug-in as per the "Running Oolite-Mac" article on
-  EliteWiki.
 * Change config/ftp_url to something suitable, and add whatever credentials
   are necessary to config/ftp_credentials (including the appropriate curl
   command line switches, e.g. "-u user:password").

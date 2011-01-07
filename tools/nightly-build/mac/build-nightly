@@ -21,17 +21,11 @@ DIAGNOSTICS_FILE=$LOG/diagnostics
 STDERR_FILE=$LOG/xcb_stderr.txt
 STDOUT_FILE=$LOG/xcb_stdout.txt
 STATUS_FILE=$LOG/build_log
-DOCKTILE_STDOUT_FILE=$LOG/xcb_stdout_docktile.txt
-DOCKTILE_DIAGNOSTICS_FILE=$LOG/diagnostics_docktile
-DOCKTILE_STATUS_FILE=$LOG/build_log_docktile
 SVNUP_FILE=$LOG/svnup.txt
 LAST_UPDATED_FILE="$VAR/last_updated"
-DOCKTILE_NAME=Oolite.docktileplugin
 
 OOLITE_APP_PKG=$BUILD_DIR/Oolite.app
 DEBUG_OXP_PKG=$BUILD_DIR/Debug.oxp
-DOCKTILE_PKG=$BUILD_DIR/$DOCKTILE_NAME
-DOCKTILE_PKG_DST=$OOLITE_APP_PKG/Contents/PlugIns
 
 FTP_URL_FILE=../config/ftp_url
 FTP_CREDENTIALS_FILE=../config/ftp_credentials
@@ -227,26 +221,6 @@ then
 	rm -rf $LOG_SUCCESS
 fi
 cp -R $LOG $LOG_SUCCESS
-
-
-# Build dock tile plug-in.
-echo "Building dock tile plug-in..."
-xcodebuild clean build -project Mac-specific/Oolite-docktile/Oolite-docktile.xcodeproj -configuration $CONFIGURATION RUN_CLANG_STATIC_ANALYZER=NO >>$DOCKTILE_STDOUT_FILE 2>>$STDERR_FILE
-
-grep "^[^\ ]" $DOCKTILE_STDOUT_FILE > $DOCKTILE_STATUS_FILE
-grep -e "warning:" -e "error:" $STDOUT_FILE > $DOCKTILE_DIAGNOSTICS_FILE
-
-#Check for failure.
-grep -e "^\*\* BUILD FAILED \*\*$" $STDERR_FILE
-if [ $? -eq 1 ]
-then
-	# Success, move into place.
-	if [ ! -d $DOCKTILE_PKG_DST ]
-	then
-		mkdir $DOCKTILE_PKG_DST
-	fi
-	mv $DOCKTILE_PKG $DOCKTILE_PKG_DST
-fi
 
 
 # Pack up a zip file.
