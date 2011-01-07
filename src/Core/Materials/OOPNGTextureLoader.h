@@ -28,13 +28,14 @@ SOFTWARE.
 */
 
 #import "OOTextureLoader.h"
+#import "png.h"
 
 
 @interface OOPNGTextureLoader: OOTextureLoader
 {
-	struct png_struct_def		*png;
-	struct png_info_struct		*pngInfo;
-	struct png_info_struct		*pngEndInfo;
+	png_structp					png;
+	png_infop					pngInfo;
+	png_infop					pngEndInfo;
 	NSData						*fileData;
 	size_t						length;
 	size_t						offset;

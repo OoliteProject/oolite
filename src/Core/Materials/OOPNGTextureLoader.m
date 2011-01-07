@@ -25,7 +25,6 @@ SOFTWARE.
 
 */
 
-#import "png.h"
 #import "OOPNGTextureLoader.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
@@ -149,6 +148,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	}
 	
 	png_read_update_info(png, pngInfo);
+	png_set_interlace_handling(png);
 	
 	// Metadata is acceptable; load data.
 	_width = pngWidth;
@@ -217,13 +217,19 @@ static void PNGError(png_structp png, png_const_charp message)
 {
 	OOPNGTextureLoader *loader = png_get_io_ptr(png);
 	OOLog(@"texture.load.png.error", @"***** A PNG loading error occurred for %@: %s" MSG_TERMINATOR, [loader path], message);
+	
+#if PNG_LIBPNG_VER >= 10500
+	png_longjmp(png, 1);
+#else
+	longjmp(png_jmpbuf(png), 1);
+#endif
 }
 
 
 static void PNGWarning(png_structp png, png_const_charp message)
 {
 	OOPNGTextureLoader *loader = png_get_io_ptr(png);
-	OOLog(@"texture.load.png.warning", @"***** A PNG loading warning occurred for %@: %s" MSG_TERMINATOR, [loader path], message);
+	OOLog(@"texture.load.png.warning", @"----- A PNG loading warning occurred for %@: %s" MSG_TERMINATOR, [loader path], message);
 }
 
 

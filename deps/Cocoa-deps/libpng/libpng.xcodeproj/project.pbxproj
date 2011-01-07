@@ -10,7 +10,6 @@
 		1A78B59E12D74BE900D42EE7 /* png.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A78B58A12D74BE900D42EE7 /* png.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A78B59F12D74BE900D42EE7 /* pngconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A78B58B12D74BE900D42EE7 /* pngconf.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A78B5A012D74BE900D42EE7 /* pngpriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A78B58C12D74BE900D42EE7 /* pngpriv.h */; };
-		1A78B5A112D74BE900D42EE7 /* example.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B58D12D74BE900D42EE7 /* example.c */; };
 		1A78B5A212D74BE900D42EE7 /* png.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B58E12D74BE900D42EE7 /* png.c */; };
 		1A78B5A312D74BE900D42EE7 /* pngerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B58F12D74BE900D42EE7 /* pngerror.c */; };
 		1A78B5A412D74BE900D42EE7 /* pngget.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59012D74BE900D42EE7 /* pngget.c */; };
@@ -27,6 +26,7 @@
 		1A78B5B012D74BE900D42EE7 /* pngwtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59C12D74BE900D42EE7 /* pngwtran.c */; };
 		1A78B5B112D74BE900D42EE7 /* pngwutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59D12D74BE900D42EE7 /* pngwutil.c */; };
 		1A78B5B412D74C5600D42EE7 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A78B5B312D74C5600D42EE7 /* pngusr.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A7ED5A212D7547C00A14F9D /* pnglibconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7ED5A112D7547C00A14F9D /* pnglibconf.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +53,7 @@
 		1A78B59C12D74BE900D42EE7 /* pngwtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwtran.c; sourceTree = "<group>"; };
 		1A78B59D12D74BE900D42EE7 /* pngwutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwutil.c; sourceTree = "<group>"; };
 		1A78B5B312D74C5600D42EE7 /* pngusr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngusr.h; sourceTree = "<group>"; };
+		1A7ED5A112D7547C00A14F9D /* pnglibconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pnglibconf.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +108,7 @@
 			children = (
 				1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */,
 				1A78B5B312D74C5600D42EE7 /* pngusr.h */,
+				1A7ED5A112D7547C00A14F9D /* pnglibconf.h */,
 				1A78B58512D74BAD00D42EE7 /* libpng */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
@@ -124,6 +126,7 @@
 				1A78B59F12D74BE900D42EE7 /* pngconf.h in Headers */,
 				1A78B5A012D74BE900D42EE7 /* pngpriv.h in Headers */,
 				1A78B5B412D74C5600D42EE7 /* pngusr.h in Headers */,
+				1A7ED5A212D7547C00A14F9D /* pnglibconf.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -191,7 +194,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/../scripts\"\n./update-library.sh libpng tbz\n";
+			shellScript = "cd \"$SRCROOT/../scripts\"\n./update-library.sh libpng tgz\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -201,7 +204,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A78B5A112D74BE900D42EE7 /* example.c in Sources */,
 				1A78B5A212D74BE900D42EE7 /* png.c in Sources */,
 				1A78B5A312D74BE900D42EE7 /* pngerror.c in Sources */,
 				1A78B5A412D74BE900D42EE7 /* pngget.c in Sources */,

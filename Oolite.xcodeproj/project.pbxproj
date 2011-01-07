@@ -769,14 +769,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A78B5D412D74CF900D42EE7 /* libpng.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */;
+			remoteGlobalIDString = 1A71E6F30BCE340C00CD5C13;
 			remoteInfo = libpng;
 		};
 		1A78B5DB12D74D0600D42EE7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A78B5D412D74CF900D42EE7 /* libpng.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13 /* libpng */;
+			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13;
 			remoteInfo = libpng;
 		};
 		1AB7760112CA2E53001478BB /* PBXContainerItemProxy */ = {
