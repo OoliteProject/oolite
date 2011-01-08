@@ -1286,10 +1286,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	q1 = quaternion_multiply(port_orientation, q1);
 	Vector launchVector = vector_forward_from_quaternion(q1);
 	
+	// launch orientation
 	if ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y))
 	{
 		quaternion_rotate_about_axis(&q1, launchVector, M_PI*0.5);  // to account for the slot being at 90 degrees to vertical
 	}
+	if ([ship isPlayer]) q1.w = -q1.w; // need this as a fix for the player and before shipWillLaunchFromStation.
 	[ship setOrientation:q1];
 	// launch position
 	launchPos.x += port_position.x * v_right.x + port_position.y * v_up.x + port_position.z * v_forward.x;
@@ -1303,7 +1305,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	launchSpeed = magnitude(launchVel);
 	[ship setSpeed:launchSpeed];
 	[ship setVelocity:launchVel];
-	// orientation
+	// launch roll/pitch
 	[ship setRoll:flightRoll];
 	[ship setPitch:0.0];
 	[UNIVERSE addEntity:ship];
@@ -1316,8 +1318,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[ship resetExhaustPlumes];	// resets stuff for tracking/exhausts
 	
-	[self doScriptEvent:@"stationLaunchedShip" withArgument:ship andReactToAIMessage: @"STATION_LAUNCHED_SHIP"];
 	[ship doScriptEvent:@"shipWillLaunchFromStation" withArgument:self];
+	[self doScriptEvent:@"stationLaunchedShip" withArgument:ship andReactToAIMessage: @"STATION_LAUNCHED_SHIP"];
 }
 
 

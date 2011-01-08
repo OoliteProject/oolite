@@ -8927,22 +8927,11 @@ BOOL class_masslocks(int some_class)
 
 - (void) leaveDock:(StationEntity *)station
 {
-	// FIXME: this code is never used, but when used it would orient the ship to the station and not to the dock.
+	// This code is never used. Currently npc ships are only launched from the stations launch queue.
 	if (station == nil)  return;
 	
-	Vector stat_f = [station forwardVector];
-	[self setPosition:vector_add([station position], vector_multiply_scalar(stat_f, 500.0f))];
-	
-	[self setOrientation:[station orientation]];
-	flightRoll = [station flightRoll];
-	flightPitch = 0.0;
-	flightSpeed = maxFlightSpeed * 0.5;
-	
-	[self setStatus:STATUS_LAUNCHING];
-	
-	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
-	[UNIVERSE addEntity:self];	// STATUS_IN_FLIGHT, AI state GLOBAL
-	[shipAI message:@"LAUNCHED"];
+	[station launchShip:self];
+
 }
 
 

@@ -275,7 +275,6 @@ MA 02110-1301, USA.
 {
 	/*-- Locates all the ships in range targeting the receiver and chooses the nearest --*/
 	found_target = NO_TARGET;
-	found_hostiles = 0;
 	
 	[self checkScanner];
 	unsigned i;
@@ -288,7 +287,6 @@ MA 02110-1301, USA.
 		{
 			found_target = [thing universalID];
 			found_d2 = d2;
-			found_hostiles++;
 		}
 	}
 	
@@ -1697,7 +1695,7 @@ static WormholeEntity *whole = nil;
 
 - (void) checkForMotherStation
 {
-	StationEntity *motherStation = [self owner];
+	ShipEntity *motherStation = [[self group] leader];
 	if ((!motherStation) || (!(motherStation->isStation)))
 	{
 		[shipAI message:@"NOTHING_FOUND"];
@@ -1826,8 +1824,7 @@ static WormholeEntity *whole = nil;
 
 - (void) requestNewTarget
 {
-	ShipEntity *mother = [self owner];
-	if (mother == nil)  mother = [[self group] leader];
+	ShipEntity *mother = [[self group] leader];
 	if (mother == nil)
 	{
 		[shipAI message:@"MOTHER_LOST"];
@@ -1836,7 +1833,6 @@ static WormholeEntity *whole = nil;
 	
 	/*-- Locates all the ships in range targeting the mother ship and chooses the nearest/biggest --*/
 	found_target = NO_TARGET;
-	found_hostiles = 0;
 	[self checkScanner];
 	unsigned i;
 	GLfloat found_d2 = scannerRange * scannerRange;
@@ -1853,7 +1849,6 @@ static WormholeEntity *whole = nil;
 				found_target = thing->universalID;
 				max_e = e1;
 			}
-			found_hostiles++;
 		}
 	}
 		

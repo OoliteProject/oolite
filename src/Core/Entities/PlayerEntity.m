@@ -4676,12 +4676,9 @@ static bool minShieldLevelPercentageInitialised = false;
 
 	ship_clock_adjust = 600.0;			// 10 minutes to leave dock
 	
-	[self setStatus: STATUS_LAUNCHING];	// Required before shipWillLaunchFromStation.
-	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
-	
 	[station launchShip:self];
-	orientation.w = -orientation.w;   // need this as a fix...
-	launchRoll = -flightRoll; // save the station's spin.
+
+	launchRoll = -flightRoll; // save the station's spin. (inverted for player)
 	flightRoll = 0; // don't spin when showing the break pattern.
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:YES];
 
@@ -8195,7 +8192,7 @@ else _dockTarget = NO_TARGET;
 	}
 	else
 	{
-		if (dockedStation != nil)
+		if (dockedStation != nil && [self status] != STATUS_LAUNCHING)
 		{
 			OOLogERR(kOOLogInconsistentState, @"status is %@, but dockedStation is not nil; treating as docked. %@", EntityStatusToString([self status]), @"This is an internal error, please report it.");
 			[self setStatus:STATUS_DOCKED];

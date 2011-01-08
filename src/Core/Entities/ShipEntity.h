@@ -138,7 +138,6 @@ MA 02110-1301, USA.
 	NSDictionary			*dockingInstructions;
 	
 	OOUniversalID			last_escort_target;			// last target an escort was deployed after
-	unsigned				found_hostiles;				// number of hostiles found
 	
 	OOColor					*laser_color;
 	OOColor					*scanner_display_color1;
