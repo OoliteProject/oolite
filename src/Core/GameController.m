@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "NSFileManagerOOExtensions.h"
 #import "OOLogOutputHandler.h"
 #import "OODebugFlags.h"
+#import "OOJSFrameCallbacks.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 
@@ -335,6 +336,8 @@ static BOOL _switchRez = NO, _switchRezDeferred = NO;
 		
 		[UNIVERSE update:delta_t];
 		[OOSound update];
+	
+		OOJSFrameCallbacksInvoke(delta_t);
 		
 #if OOLITE_HAVE_APPKIT
 		if (fullscreen)

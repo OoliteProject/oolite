@@ -59,6 +59,7 @@ MA 02110-1301, USA.
 #import "OOJSSystemInfo.h"
 #import "OOJSEquipmentInfo.h"
 #import "OOJSShipGroup.h"
+#import "OOJSFrameCallbacks.h"
 
 #import "OOProfilingStopwatch.h"
 #import "OOLoggingExtended.h"
@@ -332,6 +333,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSSystemInfo(mainContext, globalObject);
 	InitOOJSEquipmentInfo(mainContext, globalObject);
 	InitOOJSShipGroup(mainContext, globalObject);
+	InitOOJSFrameCallbacks(mainContext, globalObject);
 	
 	JS_EndRequest(mainContext);
 	

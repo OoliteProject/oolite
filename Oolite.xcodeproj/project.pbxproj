@@ -60,6 +60,7 @@
 		1A0729DA0EF56D1200B0F925 /* OOConvertSystemDescriptions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */; };
 		1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */; };
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
+		1A0942CE12D7D5B9003B6273 /* OOJSFrameCallbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */; };
 		1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
 		1A09EF5812BD0C4100BF7F48 /* Oolite Leopard support.bundle in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = 1A09EF5412BD0C1900BF7F48 /* Oolite Leopard support.bundle */; };
 		1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */; };
@@ -1262,6 +1263,8 @@
 		1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConvertSystemDescriptions.m; sourceTree = "<group>"; };
 		1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OldSchoolPropertyListWriting.h; sourceTree = "<group>"; };
 		1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OldSchoolPropertyListWriting.m; sourceTree = "<group>"; };
+		1A0942C712D7C011003B6273 /* OOJSFrameCallbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSFrameCallbacks.h; sourceTree = "<group>"; };
+		1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSFrameCallbacks.m; sourceTree = "<group>"; };
 		1A09EF4F12BD0C1900BF7F48 /* LeopardFeatures.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LeopardFeatures.xcodeproj; path = "Mac-specific/LeopardFeatures/LeopardFeatures.xcodeproj"; sourceTree = "<group>"; };
 		1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux1.dat; sourceTree = "<group>"; };
 		1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux2.dat; sourceTree = "<group>"; };
@@ -2581,6 +2584,8 @@
 				1AC27A0E0EA7E9940054E5F0 /* OOJSEquipmentInfo.m */,
 				1A11F8490F35F60C001C886C /* OOJSShipGroup.h */,
 				1A11F8480F35F60C001C886C /* OOJSShipGroup.m */,
+				1A0942C712D7C011003B6273 /* OOJSFrameCallbacks.h */,
+				1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -3851,6 +3856,7 @@
 				1A7038A212BB9F5A0015CCDC /* dummy.cpp in Sources */,
 				1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */,
 				1AB5E1F012BD628500C334DD /* OOJoystickManager.m in Sources */,
+				1A0942CE12D7D5B9003B6273 /* OOJSFrameCallbacks.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

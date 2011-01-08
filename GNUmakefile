@@ -339,7 +339,8 @@ OOLITE_SCRIPTING_FILES = \
 	OOLegacyScriptWhitelist.m \
 	OOPListScript.m \
 	OOScript.m \
-	OOScriptTimer.m
+	OOScriptTimer.m \
+	OOJSFrameCallbacks.m
 
 OOLITE_SOUND_FILES = \
 	OOBasicSoundReferencePoint.m \

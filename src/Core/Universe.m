@@ -4424,6 +4424,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	Vector			p1;
 	NSMutableArray	*result = nil;
 	
+	OOJSPauseTimeLimiter();
+	
 	if (predicate == NULL)  predicate = YESPredicate;
 	
 	result = [NSMutableArray arrayWithCapacity:n_entities];
@@ -4443,6 +4445,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		}
 	}
 	
+	OOJSResumeTimeLimiter();
+	
 	return result;
 	
 	OOJS_PROFILE_EXIT
@@ -4455,6 +4459,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	unsigned		i;
 	Entity			*candidate = nil;
 	
+	OOJSPauseTimeLimiter();
+	
 	if (predicate == NULL)  predicate = YESPredicate;
 	
 	for (i = 0; i < n_entities; i++)
@@ -4462,6 +4468,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		candidate = sortedEntities[i];
 		if (predicate(candidate, parameter))  return candidate;
 	}
+	
+	OOJSResumeTimeLimiter();
 	
 	return nil;
 }

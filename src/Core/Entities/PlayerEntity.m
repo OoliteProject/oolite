@@ -63,11 +63,12 @@ MA 02110-1301, USA.
 #import "OOShipRegistry.h"
 #import "OOEquipmentType.h"
 #import "OOCamera.h"
+#import "NSFileManagerOOExtensions.h"
 
 #import "OOScript.h"
 #import "OOScriptTimer.h"
 #import "OOJavaScriptEngine.h"
-#import "NSFileManagerOOExtensions.h"
+#import "OOJSFrameCallbacks.h"
 
 #import "OOJoystickManager.h"
 #import "PlayerEntityStickMapper.h"
@@ -1269,6 +1270,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[[OOMusicController sharedController] stop];
 	[OOScriptTimer noteGameReset];
+	OOJSFrameCallbacksRemoveAll();
 }
 
 
