@@ -1024,6 +1024,30 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 
 
 #if OO_DEBUG
+#if OOLITE_HAVE_APPKIT
+- (BOOL) debugMessageTrackingIsOn
+{
+	return splashProgressTextField != nil;
+}
+
+
+- (NSString *) debugMessageCurrentString
+{
+	return [splashProgressTextField stringValue];
+}
+#else
+- (BOOL) debugMessageTrackingIsOn
+{
+	return OOLogWillDisplayMessagesInClass(@"startup.progress");
+}
+
+
+- (NSString *) debugMessageCurrentString
+{
+	return @"";
+}
+#endif
+
 - (void) debugLogProgress:(NSString *)format, ...
 {
 	va_list args;
@@ -1044,10 +1068,10 @@ static NSMutableArray *sMessageStack;
 
 - (void) debugPushProgressMessage:(NSString *)format, ...;
 {
-	if (splashProgressTextField != nil)
+	if ([self debugMessageTrackingIsOn])
 	{
 		if (sMessageStack == nil)  sMessageStack = [[NSMutableArray alloc] init];
-		[sMessageStack addObject:[splashProgressTextField stringValue]];
+		[sMessageStack addObject:[self debugMessageCurrentString]];
 		
 		va_list args;
 		va_start(args, format);
@@ -1066,7 +1090,7 @@ static NSMutableArray *sMessageStack;
 		OOLogOutdentIf(@"startup.progress");
 		
 		NSString *message = [sMessageStack lastObject];
-		[self debugLogProgress:message];
+		if ([message length] > 0)  [self debugLogProgress:message];
 		[sMessageStack removeLastObject];
 	}
 }
