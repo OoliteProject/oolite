@@ -351,15 +351,6 @@ enum {
 #endif
 
 
-#if OOLITE_FAST_ENUMERATION
-#define foreach(VAR,ARR) for(VAR in ARR)
-#define foreachkey(VAR,DICT) for(VAR in DICT)
-#else
-#define foreach(VAR,OBJ) for (NSEnumerator *ooForEachEnum = [(OBJ) objectEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
-#define foreachkey(VAR,DICT) for (NSEnumerator *ooForEachEnum = [(DICT) keyEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
-#endif
-
-
 /*	Speech synthesis
 */
 #if OOLITE_MAC_OS_X || defined(HAVE_LIBESPEAK)

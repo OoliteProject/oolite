@@ -372,8 +372,9 @@ static void RemoveCallbackAtIndex(JSContext *context, OOUInteger index)
 	NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 	
 	// Overwrite entry to be removed with last entry, and decrement count.
-	sCallbacks[index] = sCallbacks[sCount - 1];
 	sCount--;
+	sCallbacks[index] = sCallbacks[sCount];
+	sCallbacks[sCount].callback = JSVAL_NULL;
 }
 
 
@@ -392,9 +393,10 @@ static void QueueDeferredOperation(NSString *opType, uint32 trackingID, OOJSValu
 
 static void RunDeferredOperations(JSContext *context)
 {
-	NSDictionary	*operation = nil;
+	NSDictionary		*operation = nil;
+	NSEnumerator		*operationEnum = nil;
 	
-	foreach(operation, sDeferredOps)
+	for (operationEnum = [sDeferredOps objectEnumerator]; (operation = [operationEnum nextObject]); )
 	{
 		NSString	*opType = [operation objectForKey:@"operation"];
 		uint32		trackingID = [operation oo_intForKey:@"trackingID"];
