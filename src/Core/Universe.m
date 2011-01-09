@@ -4814,51 +4814,82 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
+- (void) speakWithSubstitutions:(NSString *)text
+{
+#if OOLITE_SPEECH_SYNTH
+	
+#if OOLITE_MAC_OS_X
+#define HAVE_STRING_BY_REPLACING	OOLITE_LEOPARD
+#elif OOLITE_GNUSTEP
+#define HAVE_STRING_BY_REPLACING	OS_API_VERSION(100500,GS_API_LATEST)
+#endif
+	
+	//speech synthesis
+	
+	PlayerEntity* player = PLAYER;
+	if ([player isSpeechOn])
+	{
+		BOOL		isStandard = NO;
+		NSString	*systemSaid = nil;
+		NSString	*h_systemSaid = nil;
+		
+		NSString	*systemName = [self getSystemName:system_seed];
+		
+		isStandard = [systemName isEqualToString: [self generateSystemName:system_seed]];
+		//if the name is not the standard generated one, we can't  use the generated phonemes.
+		systemSaid = isStandard ? [self generatePhoneticSystemName:system_seed] : systemName;
+		
+		NSString	*h_systemName = [self getSystemName:[player target_system_seed]];
+		isStandard = [h_systemName isEqualToString: [self generateSystemName:[player target_system_seed]]];
+		h_systemSaid = isStandard ? [self generatePhoneticSystemName:[player target_system_seed]] : h_systemName;
+		
+		NSString	*spokenText = text;
+		if (speechArray != nil)
+		{
+			NSEnumerator	*speechEnumerator = nil;
+			NSArray			*thePair = nil;
+			
+			for (speechEnumerator = [speechArray objectEnumerator]; (thePair = [speechEnumerator nextObject]); )
+			{
+				NSString *original_phrase = [thePair oo_stringAtIndex:0];
+				
+				OOUInteger replacementIndex;
+#if OOLITE_MAC_OS_X
+				replacementIndex = 1;
+#elif OOLITE_ESPEAK
+				replacementIndex = [thePair count] > 2 ? 2 : 1;
+#endif
+				
+				NSString *replacement_phrase = [thePair oo_stringAtIndex:replacementIndex];
+				if (![replacement_phrase isEqualToString:@"_"])
+				{
+#if HAVE_STRING_BY_REPLACING
+					spokenText = [spokenText stringByReplacingOccurrencesOfString:original_phrase withString:replacement_phrase];
+#else
+					spokenText = [[spokenText componentsSeparatedByString:original_phrase] componentsJoinedByString:replacement_phrase];
+#endif
+				}
+			}
+#if HAVE_STRING_BY_REPLACING
+			spokenText = [spokenText stringByReplacingOccurrencesOfString:systemName withString:systemSaid];
+			spokenText = [spokenText stringByReplacingOccurrencesOfString:h_systemName withString:h_systemSaid];
+#else
+			spokenText = [[spokenText componentsSeparatedByString:systemName] componentsJoinedByString:systemSaid];
+			spokenText = [[spokenText componentsSeparatedByString:h_systemName] componentsJoinedByString:h_systemSaid];
+#endif
+		}
+		[self stopSpeaking];
+		[self startSpeakingString:spokenText];
+	}
+#endif	// OOLITE_SPEECH_SYNTH
+}
+
+
 - (void) addMessage:(NSString *) text forCount:(OOTimeDelta) count forceDisplay:(BOOL) forceDisplay
 {
 	if (![currentMessage isEqual:text] || forceDisplay || universal_time >= messageRepeatTime)
 	{
-#if OOLITE_SPEECH_SYNTH
-		PlayerEntity* player = PLAYER;
-		//speech synthesis
-		if ([player isSpeechOn])
-		{
-			BOOL isStandard = NO;
-			NSString* systemSaid=nil;
-			NSString* h_systemSaid=nil;
-			
-			NSString* systemName = [self getSystemName:system_seed];
-			isStandard = [systemName isEqualToString: [self generateSystemName:system_seed]];
-			//if the name is not the standard generated one, we can't  use the generated phonemes.
-			systemSaid = isStandard ? [self generatePhoneticSystemName:system_seed] : systemName;
-			
-			NSString* h_systemName = [self getSystemName:[player target_system_seed]];
-			isStandard= [h_systemName isEqualToString: [self generateSystemName:[player target_system_seed]]];
-			h_systemSaid = isStandard ? [self generatePhoneticSystemName:[player target_system_seed]]: h_systemName;
-			
-			NSString *spoken_text = text;
-			if(nil != speechArray)
-			{
-				NSEnumerator	*speechEnumerator = nil;
-				NSArray			*thePair = nil;
-				for (speechEnumerator = [speechArray objectEnumerator]; (thePair = [speechEnumerator nextObject]); )
-				{
-					NSString *original_phrase = [thePair oo_stringAtIndex:0];
-#if OOLITE_MAC_OS_X
-					NSString *replacement_phrase = [thePair oo_stringAtIndex:1];
-#elif OOLITE_ESPEAK
-					NSString *replacement_phrase = [thePair oo_stringAtIndex:([thePair count] > 2 ? 2 : 1)];
-					if (![replacement_phrase isEqualToString:@"_"])
-#endif
-						spoken_text = [[spoken_text componentsSeparatedByString: original_phrase] componentsJoinedByString: replacement_phrase];
-				}
-				spoken_text = [[spoken_text componentsSeparatedByString: systemName] componentsJoinedByString: systemSaid];
-				spoken_text = [[spoken_text componentsSeparatedByString: h_systemName] componentsJoinedByString: h_systemSaid];
-			}
-			[self stopSpeaking];
-			[self startSpeakingString:spoken_text];
-		}
-#endif	// OOLITE_SPEECH_SYNTH
+		[self speakWithSubstitutions:text];
 		
 		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
 		
@@ -4885,12 +4916,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		if (!logOnly)
 		{
-			if ([player isSpeechOn])
-			{
-				if ([self isSpeaking])
-					[self stopSpeaking];
-				[self startSpeakingString:DESC(@"speech-synthesis-incoming-message")];
-			}
+			[self speakWithSubstitutions:[NSString stringWithFormat:@"%@", DESC(@"speech-synthesis-incoming-message"), text]];
 			
 			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:(float)count key:nil addToArray:nil];
 			
