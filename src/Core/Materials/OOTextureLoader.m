@@ -25,8 +25,8 @@ SOFTWARE.
 
 */
 
-#import "OOTextureLoader.h"
 #import "OOPNGTextureLoader.h"
+#import "OOTextureLoader.h"
 #import "OOFunctionAttributes.h"
 #import "OOCollectionExtractors.h"
 #import "OOMaths.h"

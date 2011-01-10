@@ -27,8 +27,8 @@ SOFTWARE.
 
 */
 
-#import "OOTextureLoader.h"
 #import "png.h"
+#import "OOTextureLoader.h"
 
 
 @interface OOPNGTextureLoader: OOTextureLoader
