@@ -29,9 +29,47 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 
 
+/*
+	By default, tracking IDs are scrambled to discourage people from trying to
+	be clever or making assumptions about them. If DEBUG_FCB_SIMPLE_TRACKING_IDS
+	is non-zero, tracking IDs starting from 1 and rising monotonously are used
+	instead. Additionally, the next ID is reset to 1 when all frame callbacks
+	are removed.
+*/
+#ifndef DEBUG_FCB_SIMPLE_TRACKING_IDS
+#define DEBUG_FCB_SIMPLE_TRACKING_IDS	(!defined (NDEBUG))	// 0
+#endif
+
+#ifndef DEBUG_FCB_VERBOSE_LOGGING
+#define DEBUG_FCB_VERBOSE_LOGGING		(!defined (NDEBUG))	// 0
+#endif
+
+
+
+#if defined (NDEBUG) && DEBUG_FCB_SIMPLE_TRACKING_IDS
+#error Deployment builds may not be built with DEBUG_FCB_SIMPLE_TRACKING_IDS.
+#endif
+
+#if DEBUG_FCB_SIMPLE_TRACKING_IDS
+#define FCBLog					OOLog
+#define FCBLogIndentIf			OOLogIndentIf
+#define FCBLogOutdentIf			OOLogOutdentIf
+#else
+#define FCBLog(...)				do {} while (0)
+#define FCBLogIndentIf(key)		do {} while (0)
+#define FCBLogOutdentIf(key)	do {} while (0)
+#endif
+
+
 enum
 {
-	kMinCount = 16
+	kMinCount					= 16,
+	
+#if DEBUG_FCB_SIMPLE_TRACKING_IDS
+	kIDScrambleMask				= 0
+#else
+	kIDScrambleMask				= 0x2315EB16	// Just a random number.
+#endif
 };
 
 
@@ -62,6 +100,8 @@ static JSBool GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS);
 static BOOL AddCallback(JSContext *context, jsval callback, uint32 trackingID, NSString **errorString);
 static BOOL GrowCallbackList(JSContext *context, NSString **errorString);
 
+OOINLINE void IncrementTrackingID(void);
+
 static BOOL GetIndexForTrackingID(uint32 trackingID, OOUInteger *outIndex);
 
 static BOOL RemoveCallbackWithTrackingID(JSContext *context, uint32 trackingID);
@@ -79,8 +119,12 @@ void InitOOJSFrameCallbacks(JSContext *context, JSObject *global)
 	JS_DefineFunction(context, global, "removeFrameCallback", GlobalRemoveFrameCallback, 1, 0);
 	JS_DefineFunction(context, global, "isValidFrameCallback", GlobalIsValidFrameCallback, 1, 0);
 	
+#if DEBUG_FCB_SIMPLE_TRACKING_IDS
+	sNextID = 1;
+#else
 	// Set randomish initial ID to catch bad habits.
-	sNextID = [[NSDate date] timeIntervalSinceReferenceDate];
+	sNextID =  [[NSDate date] timeIntervalSinceReferenceDate];
+#endif
 }
 
 
@@ -162,12 +206,8 @@ static JSBool GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
 	}
 	
 	// Assign a tracking ID.
-	uint32 trackingID = sNextID;
-	
-	/*	Increment by a large prime number to produce a non-obvious sequence
-		which still uses all 2^32 values.
-	*/
-	sNextID += 992699;
+	uint32 trackingID = sNextID ^ kIDScrambleMask;
+	IncrementTrackingID();
 	
 	if (EXPECT(!sRunning))
 	{
@@ -182,6 +222,7 @@ static JSBool GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
 	else
 	{
 		// Defer mutations during callback invocation.
+		FCBLog(@"script.frameCallback.debug.add.deferred", @"Deferring addition of frame callback with tracking ID %u.", trackingID);
 		QueueDeferredOperation(@"add", trackingID, [OOJSValue valueWithJSValue:callback inContext:context]);
 	}
 	
@@ -215,6 +256,7 @@ static JSBool GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS)
 	else
 	{
 		// Defer mutations during callback invocation.
+		FCBLog(@"script.frameCallback.debug.remove.deferred", @"Deferring removal of frame callback with tracking ID %u.", trackingID);
 		QueueDeferredOperation(@"remove", trackingID, nil);
 	}
 	
@@ -255,6 +297,8 @@ static BOOL AddCallback(JSContext *context, jsval callback, uint32 trackingID, N
 	{
 		if (!GrowCallbackList(context, errorString))  return NO;
 	}
+	
+	FCBLog(@"script.frameCallback.debug.add", @"Adding frame callback with tracking ID %u.", trackingID);
 	
 	sCallbacks[sCount].callback = callback;
 	if (sCount >= sHighWaterMark)
@@ -326,6 +370,19 @@ static BOOL GrowCallbackList(JSContext *context, NSString **errorString)
 }
 
 
+OOINLINE void IncrementTrackingID(void)
+{
+#if DEBUG_FCB_SIMPLE_TRACKING_IDS
+	sNextID++;
+#else
+	/*	Increment by a large prime number to produce a non-obvious sequence
+	 which still uses all 2^32 values.
+	 */
+	sNextID += 992699;
+#endif
+}
+
+
 static BOOL GetIndexForTrackingID(uint32 trackingID, OOUInteger *outIndex)
 {
 	NSCParameterAssert(outIndex != 0);
@@ -371,10 +428,20 @@ static void RemoveCallbackAtIndex(JSContext *context, OOUInteger index)
 	NSCParameterAssert(index < sCount && sCallbacks != NULL);
 	NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 	
+	FCBLog(@"script.frameCallback.debug.remove", @"Removing frame callback with tracking ID %u.", sCallbacks[index].trackingID);
+	
 	// Overwrite entry to be removed with last entry, and decrement count.
 	sCount--;
 	sCallbacks[index] = sCallbacks[sCount];
 	sCallbacks[sCount].callback = JSVAL_NULL;
+	
+#if DEBUG_FCB_SIMPLE_TRACKING_IDS
+	if (sCount == 0)
+	{
+		OOLog(@"script.frameCallback.debug.reset", @"All frame callbacks removed, resetting next ID to 1.");
+		sNextID = 1;
+	}
+#endif
 }
 
 
@@ -396,6 +463,9 @@ static void RunDeferredOperations(JSContext *context)
 	NSDictionary		*operation = nil;
 	NSEnumerator		*operationEnum = nil;
 	
+	FCBLog(@"script.frameCallback.debug.run-deferred", @"Running %lu deferred frame callback operations.", (long)[sDeferredOps count]);
+	FCBLogIndentIf(@"script.frameCallback.debug.run-deferred");
+	
 	for (operationEnum = [sDeferredOps objectEnumerator]; (operation = [operationEnum nextObject]); )
 	{
 		NSString	*opType = [operation objectForKey:@"operation"];
@@ -416,4 +486,6 @@ static void RunDeferredOperations(JSContext *context)
 			RemoveCallbackWithTrackingID(context, trackingID);
 		}
 	}
+	
+	FCBLogOutdentIf(@"script.frameCallback.debug.run-deferred");
 }
