@@ -43,9 +43,13 @@ SOFTWARE.
 
 - (void)dealloc
 {
-	if (_bufferL) free(_bufferL);
-	if (_stereo) _bufferR = NULL;
-	else if (_bufferR) free(_bufferR);
+	OOLog(@"temp", @"Deallocating sound %@", self);
+	
+	free(_bufferL);
+	_bufferL = NULL;
+	
+	if (_stereo)  free(_bufferR);
+	_bufferR = NULL;
 	
 	[super dealloc];
 }
