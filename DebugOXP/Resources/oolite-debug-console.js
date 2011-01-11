@@ -214,7 +214,7 @@ this.dumpObject = function dumpObject(x)
 }
 
 
-this.protoChain = function (object)
+this.protoChain = function protoChain(object)
 {
 	/*
 		Box the value if it’s a primitive, because Object.getPrototypeOf()
@@ -324,14 +324,6 @@ this.prettifyObject = function prettifyObject(value, indent)
 	for (var key in value)
 	{
 		var propVal = value[key];
-		
-		/*
-			Normal JS properties can’t be undefined (setting a property to
-			undefined is the same as deleting it), but accessor-based ones,
-			including most native object properties, can be. We hide this
-			distinction by explicitly excluding properties with undefined
-			value.
-		*/
 		if (propVal === undefined)  continue;
 		
 		if (appendedAny)  result += separator;
