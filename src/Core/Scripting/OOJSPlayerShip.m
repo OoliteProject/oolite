@@ -214,7 +214,7 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT(OOIsPlayerStale())) { *value = JSVAL_VOID; return YES; }
+	if (EXPECT_NOT(OOIsPlayerStale() || this == sPlayerShipPrototype)) { *value = JSVAL_VOID; return YES; }
 	
 	BOOL						OK = NO;
 	id							result = nil;

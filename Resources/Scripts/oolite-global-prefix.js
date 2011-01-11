@@ -105,7 +105,11 @@ this.defineMethod = function(object, name, implementation)
 }
 
 
-/**** Utilities, not intended to be retired ****/
+/**** Miscellaneous utilities for public consumption ****
+	  Note that these are documented as part of the scripting interface.
+	  The fact that they’re currently in JavaScript is an implementation
+	  detail and subject to change.
+*/
 
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
 this.defineMethod(Ship.prototype, "spawnOne", function (role)
@@ -116,9 +120,9 @@ this.defineMethod(Ship.prototype, "spawnOne", function (role)
 
 
 // mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.
-this.defineMethod(mission, "addMessageTextKey", function (textKey)
+this.defineMethod(Mission.prototype, "addMessageTextKey", function (textKey)
 {
-	mission.addMessageText((textKey ? expandMissionText(textKey) : null));
+	this.addMessageText((textKey ? expandMissionText(textKey) : null));
 });
 
 
@@ -156,7 +160,7 @@ this.defineMethod(SystemInfo, "systemsInRange", function (range)
 });
 
 
-/*	system.scrambledPseudoRandom(salt : Number (integer)) : Number
+/*	system.scrambledPseudoRandomNumber(salt : Number (integer)) : Number
 	
 	This function converts system.pseudoRandomNumber to an effectively
 	arbitrary different value that is also stable per system. Every combination
@@ -170,10 +174,10 @@ this.defineMethod(SystemInfo, "systemsInRange", function (range)
 	system.scrambledPseudoRandomNumber() with different salt values, there will
 	be no obvious correlation between the different stations’ distributions.
 */
-this.defineMethod(system, "scrambledPseudoRandomNumber", function (salt)
+this.defineMethod(System.prototype, "scrambledPseudoRandomNumber", function (salt)
 {
 	// Convert from float in [0..1) with 24 bits of precision to integer.
-	var n = Math.floor(system.pseudoRandomNumber * 16777216.0);
+	var n = Math.floor(this.pseudoRandomNumber * 16777216.0);
 	
 	// Add salt to enable generation of different sequences.
 	n += salt;
@@ -200,102 +204,3 @@ this.defineMethod(SoundSource.prototype, "playSound", function (sound, count)
 
 
 delete this.defineMethod;
-
-/**** Backwards-compatibility functions. These will be removed before next stable. ****/
-
-// Define a function that is an alias for another function.
-this._defineCompatibilityAlias = function (oldName, newName)
-{
-	global[oldName] = function ()
-	{
-		special.jsWarning(oldName + "() is deprecated, use " + newName + "() instead.");
-		return global[newName].apply(global, arguments);
-	};
-};
-
-// Define a read-only property that is an alias for another property.
-this._defineCompatibilityGetter = function (constructorName, oldName, newName)
-{
-	var getter = function ()
-	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
-		return this[newName];
-	};
-	Object.getPrototypeOf(global[constructorName]).__defineGetter__(oldName, getter);
-};
-
-// Define a write-only property that is an alias for another property.
-this._defineCompatibilitySetter = function (constructorName, oldName, newName)
-{
-	var setter = function (value)
-	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
-		this[newName] = value;
-	};
-	Object.getPrototypeOf(global[constructorName]).__defineSetter__(oldName, setter);
-};
-
-// Define a read/write property that is an alias for another property.
-this._defineCompatibilityGetterAndSetter = function (constructorName, oldName, newName)
-{
-	this._defineCompatibilityGetter(constructorName, oldName, newName);
-	this._defineCompatibilitySetter(constructorName, oldName, newName);
-};
-
-// Define a write-only property that is an alias for a function.
-this._defineCompatibilityWriteOnly = function (constructorName, oldName, funcName)
-{
-	var getter = function ()
-	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated and write-only.");
-		return undefined;
-	};
-	var setter = function (value)
-	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + funcName + "() instead.");
-		this[funcName](value);
-	};
-	Object.getPrototypeOf(global[constructorName]).__defineGetter__(oldName, getter);
-	Object.getPrototypeOf(global[constructorName]).__defineSetter__(oldName, setter);
-};
-
-// Define a compatibility getter for a property that's moved to another property.
-// Example: to map player.docked to player.ship.docked, this._defineCompatibilitySubGetter("player", "ship", "docked")
-this._defineCompatibilitySubGetter = function (singletonName, subName, propName)
-{
-	var getter = function ()
-	{
-		special.jsWarning(singletonName + "." + propName + " is deprecated, use " + singletonName + "." + subName + "." + propName + " instead.");
-		return this[subName][propName];
-	};
-	global[singletonName].__defineGetter__(propName, getter);
-};
-
-// Define a compatibility setter for a property that's moved to another property.
-this._defineCompatibilitySubSetter = function (singletonName, subName, propName)
-{
-	var setter = function (value)
-	{
-		special.jsWarning(singletonName + "." + propName + " is deprecated, use " + singletonName + "." + subName + "." + propName + " instead.");
-		this[subName][propName] = value;
-	};
-	global[singletonName].__defineSetter__(propName, setter);
-};
-
-// Define a compatibility getter and setter for a property that's moved to another property.
-this._defineCompatibilitySubGetterAndSetter = function (singletonName, subName, propName)
-{
-	this._defineCompatibilitySubGetter(singletonName, subName, propName);
-	this._defineCompatibilitySubSetter(singletonName, subName, propName);
-};
-
-// Like defineCompatibilitySubGetter() et al, for methods.
-this._defineCompatibilitySubMethod = function (singletonName, subName, methodName)
-{
-	global[singletonName][methodName] = function ()
-	{
-		special.jsWarning(singletonName + "." + methodName + "() is deprecated, use " + singletonName + "." + subName + "." + methodName + "() instead.");
-		var sub = this[subName];
-		return sub[methodName].apply(sub, arguments);
-	};
-};

@@ -313,13 +313,25 @@ this.prettifyObject = function prettifyObject(value, indent)
 	var separator = ",\n" + subIndent;
 	for (var key in value)
 	{
+		var propVal = value[key];
+		
+		/*
+			Normal JS properties can’t be undefined (setting a property to
+			undefined is the same as deleting it), but accessor-based ones,
+			including most native object properties, can be. We hide this
+			distinction by explicitly excluding properties with undefined
+			value.
+		*/
+		if (propVal === undefined)  continue;
+		
 		if (appendedAny)  result += separator;
 		else  result += "\n" + subIndent;
-
+		
 		/*
-			Highlighting inherited properties sounds desireable, but in practice
-			it’s likely to be confusing since most host objects’ apparent
-			instance properties are actually inherited accessor-based properties.
+			Highlighting inherited properties sounds desireable, but in
+			practice it’s likely to be confusing since most host objects’
+			apparent instance properties are actually inherited accessor-
+			based properties.
 		*/
 		// if (!value.hasOwnProperty(key))  result += ">> ";
 		
@@ -327,7 +339,7 @@ this.prettifyObject = function prettifyObject(value, indent)
 		if (isClassicIdentifier(key)) result += key;
 		else  result += '"' + key.substituteEscapeCodes() + '"';
 		
-		result += ": " + prettifyElement(value[key], subIndent);
+		result += ": " + prettifyElement(propVal, subIndent);
 		appendedAny = true;
 	}
 	if (appendedAny)  result += "\n" + indent;
