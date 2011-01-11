@@ -59,6 +59,7 @@
 		
 		// Examining (“dumping”) objects
 		"d"			= "dumpObject(eval(PARAM))";
+		"proto"		= "consoleMessage('dumpObject', protoChain(eval(PARAM)))";
 		
 		// Clearing the console
 		"clr"		= "console.clearConsole()";

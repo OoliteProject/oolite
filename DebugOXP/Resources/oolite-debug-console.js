@@ -214,15 +214,25 @@ this.dumpObject = function dumpObject(x)
 }
 
 
-// Print the objects in a list on lines.
-this.printList = function printList(l)
+this.protoChain = function (object)
 {
-	var length = l.length;
+	/*
+		Box the value if it’s a primitive, because Object.getPrototypeOf()
+		rejects primitives (ECMA-262 Rev. 1, 15.2.3.2, in a flagrant and
+		apparently pointless violation of JavaScript’s normal autoboxing
+		behaviour.)
+	*/
+	object = new Object(object);
 	
-	consoleMessage("printList", length.toString() + " items:");
-	for (var i = 0; i != length; i++)
+	var result = "", first = true;
+	for (;;)
 	{
-		consoleMessage("printList", "  " + l[i].toString());
+		var proto = Object.getPrototypeOf(object);
+		if (!proto)  return result;
+		if (!first)  result += ": ";
+		else first = false;
+		result += proto.constructor.name || "<anonymous>";
+		object = proto;
 	}
 }
 
