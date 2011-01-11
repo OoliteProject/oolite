@@ -43,8 +43,6 @@ SOFTWARE.
 
 - (void)dealloc
 {
-	OOLog(@"temp", @"Deallocating sound %@", self);
-	
 	free(_bufferL);
 	_bufferL = NULL;
 	
