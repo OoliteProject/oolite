@@ -37,11 +37,11 @@ SOFTWARE.
 	are removed.
 */
 #ifndef DEBUG_FCB_SIMPLE_TRACKING_IDS
-#define DEBUG_FCB_SIMPLE_TRACKING_IDS	(!defined (NDEBUG))	// 0
+#define DEBUG_FCB_SIMPLE_TRACKING_IDS	0
 #endif
 
 #ifndef DEBUG_FCB_VERBOSE_LOGGING
-#define DEBUG_FCB_VERBOSE_LOGGING		(!defined (NDEBUG))	// 0
+#define DEBUG_FCB_VERBOSE_LOGGING		0
 #endif
 
 
@@ -50,7 +50,7 @@ SOFTWARE.
 #error Deployment builds may not be built with DEBUG_FCB_SIMPLE_TRACKING_IDS.
 #endif
 
-#if DEBUG_FCB_SIMPLE_TRACKING_IDS
+#if DEBUG_FCB_VERBOSE_LOGGING
 #define FCBLog					OOLog
 #define FCBLogIndentIf			OOLogIndentIf
 #define FCBLogOutdentIf			OOLogOutdentIf
