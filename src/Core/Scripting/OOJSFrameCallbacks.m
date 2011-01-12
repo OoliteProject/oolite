@@ -376,8 +376,8 @@ OOINLINE void IncrementTrackingID(void)
 	sNextID++;
 #else
 	/*	Increment by a large prime number to produce a non-obvious sequence
-	 which still uses all 2^32 values.
-	 */
+		which still uses all 2^32 values.
+	*/
 	sNextID += 992699;
 #endif
 }

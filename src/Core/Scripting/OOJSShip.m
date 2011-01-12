@@ -167,7 +167,7 @@ enum
 	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
 	kShip_primaryRole,			// Primary role, string, read/write
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
-	kShip_roleProbabilities,	// roles and probabilities, dictionary, read-only
+	kShip_roleWeights,			// roles and weights, dictionary, read-only
 	kShip_roles,				// roles, array, read-only
 	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
@@ -254,7 +254,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "potentialCollider",		kShip_potentialCollider,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "primaryRole",			kShip_primaryRole,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "reportAIMessages",		kShip_reportAIMessages,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "roleProbabilities",		kShip_roleProbabilities,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "roleWeights",			kShip_roleWeights,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "roles",					kShip_roles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "savedCoordinates",		kShip_savedCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -374,7 +374,7 @@ static JSBool ShipGetProperty(OOJS_PROP_ARGS)
 			result = [[entity roleSet] sortedRoles];
 			break;
 		
-		case kShip_roleProbabilities:
+		case kShip_roleWeights:
 			result = [[entity roleSet] rolesAndProbabilities];
 			break;
 		

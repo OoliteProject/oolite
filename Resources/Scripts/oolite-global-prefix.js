@@ -52,12 +52,29 @@ this.version		= "1.75";
 
 /**** Built-in in ECMAScript 5, to be removed when Linux builds transition ****/
 
-// Object.defineProperty: only value key is supported. Getter and setter are possible, but not required.
+/*
+	Object.defineProperty: subset of ECMAScript 5 standard. In particular, the
+	configurable, enumerable and writable properties are not supported.
+*/
 if (typeof Object.defineProperty !== "function")
 {
-	Object.defineProperty = function (object, name, definition)
+	Object.defineProperty = function (object, property, descriptor)
 	{
-		object[name] = definition.value;
+		if (descriptor.value !== undefined)
+		{
+			object[property] = descriptor.value;
+		}
+		else
+		{
+			if (descriptor.get !== undefined)
+			{
+				object.__defineGetter__(property, descriptor.get);
+			}
+			if (descriptor.set !== undefined)
+			{
+				object.__defineSetter__(property, descriptor.set);
+			}
+		}
 	}
 }
 
@@ -98,10 +115,10 @@ if (typeof Array.isArray !== "function")
 }
 
 
-// Utility to define non-enumerable, permanent methods, to match the behaviour of native methods.
+// Utility to define non-enumerable, non-configurable, permanent methods, to match the behaviour of native methods.
 this.defineMethod = function(object, name, implementation)
 {
-	Object.defineProperty(object, name, { value: implementation, writable: false, enumerable: false });
+	Object.defineProperty(object, name, { value: implementation, writable: false, configurable: false, enumerable: false });
 }
 
 
@@ -204,3 +221,38 @@ this.defineMethod(SoundSource.prototype, "playSound", function (sound, count)
 
 
 delete this.defineMethod;
+
+
+/**** Backwards-compatibility functions. These will be removed before next stable. ****/
+
+// Define a read-only property that is an alias for another property.
+this.defineCompatibilityGetter = function (constructorName, oldName, newName)
+{
+	var getter = function ()
+	{
+		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
+		return this[newName];
+	};
+	
+	Object.defineProperty(global[constructorName].prototype, oldName, { get: getter });
+};
+
+
+this.defineCompatibilityGetterAndSetter = function (constructorName, oldName, newName)
+{
+	var getter = function ()
+	{
+		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
+		return this[newName];
+	};
+	var setter = function (value)
+	{
+		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
+		this[newName] = value;
+	};
+	
+	Object.defineProperty(global[constructorName].prototype, oldName, { get: getter, set: setter });
+};
+
+
+this.defineCompatibilityGetter("Ship", "roleProbabilities", "roleWeights");
