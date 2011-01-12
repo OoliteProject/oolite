@@ -124,7 +124,8 @@
 	(
 		// Directories to silently skip (version control systems make these).
 		".svn",
-		"CVS"
+		"CVS",
+		".git"
 	);
 	
 	readMeNames =
@@ -151,6 +152,7 @@
 			".htm",
 			".rtf",
 			".doc",
+			".docx",
 			".1st"
 		);
 	};

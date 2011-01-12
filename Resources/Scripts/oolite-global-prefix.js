@@ -225,12 +225,16 @@ delete this.defineMethod;
 
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
 
+(function (special) {
+
+var failWarning = " This warning will be removed and the script will fail in Oolite 1.75.1.";
+
 // Define a read-only property that is an alias for another property.
-this.defineCompatibilityGetter = function (constructorName, oldName, newName)
+function defineCompatibilityGetter(constructorName, oldName, newName)
 {
 	var getter = function ()
 	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
+		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead." + failWarning);
 		return this[newName];
 	};
 	
@@ -238,16 +242,16 @@ this.defineCompatibilityGetter = function (constructorName, oldName, newName)
 };
 
 
-this.defineCompatibilityGetterAndSetter = function (constructorName, oldName, newName)
+function defineCompatibilityGetterAndSetter(constructorName, oldName, newName)
 {
 	var getter = function ()
 	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
+		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead." + failWarning);
 		return this[newName];
 	};
 	var setter = function (value)
 	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
+		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead." + failWarning);
 		this[newName] = value;
 	};
 	
@@ -255,4 +259,162 @@ this.defineCompatibilityGetterAndSetter = function (constructorName, oldName, ne
 };
 
 
-this.defineCompatibilityGetter("Ship", "roleProbabilities", "roleWeights");
+defineCompatibilityGetter("Ship", "roleProbabilities", "roleWeights");
+
+
+if (typeof Object.getOwnPropertyDescriptor == "function")
+{
+	var isWriteable = function (object, property)
+	{
+		var descriptor = Object.getOwnPropertyDescriptor(object, property);
+		return descriptor.writable || false;
+	}
+}
+else
+{
+	var isWriteable = function (object, property)
+	{
+		// No good test. In particular, trying to write a read-only property is not an exception without strict mode.
+		return true;
+	}
+}
+
+
+function defineSingletonCompatibiltyAccessor(constructorName, singletonName, propertyName, isMethod)
+{
+	var type = isMethod ? "method" : "property";
+	var typedProp = isMethod ? (propertyName + "()") : propertyName;
+	var message = "Incorrect usage: " + constructorName + " instance " + type + " “" + propertyName + "” accessed on constructor instead of instance. Replace “" + constructorName + "." + typedProp + "” with “" + singletonName + "." + typedProp + "”." + failWarning;
+	
+	var descriptor =
+	{
+		enumerable: false,
+		configurable: false,
+		
+		get: function()
+		{
+			special.jsWarning(message);
+			return global[singletonName][propertyName];
+		}
+	}
+	
+	if (!isMethod && isWriteable(global[constructorName].prototype, propertyName))
+	{
+		descriptor.set = function (value)
+		{
+			special.jsWarning(message);
+			global[singletonName][propertyName] = value;
+		}
+	}
+	
+	Object.defineProperty(global[constructorName], propertyName, descriptor);
+}
+
+
+var systemInstanceProperties =
+[
+	"ID",
+//	"name",	// Since a constructor is a function, it already has a non-configurable “name” property.
+	"description",
+	"inhabitantsDescription",
+	"government",
+	"governmentDescription",
+	"economy",
+	"economyDescription",
+	"techLevel",
+	"population",
+	"productivity",
+	"isInterstellarSpace",
+	"mainStation",
+	"mainPlanet",
+	"sun",
+	"planets",
+	"allShips",
+	"info",
+	"pseudoRandomNumber",
+	"pseudoRandom100",
+	"pseudoRandom256"
+];
+
+var systemInstanceMethods =
+[
+	"toString",
+	"addGroup",
+	"addGroupToRoute",
+	"addMoon",
+	"addPlanet",
+	"addShips",
+	"addShipsToRoute",
+	"countShipsWithPrimaryRole",
+	"countShipsWithRole",
+	"countEntitiesWithScanClass",
+	"entitiesWithScanClass",
+	"filteredEntities",
+	"sendAllShipsAway",
+	"shipsWithPrimaryRole",
+	"shipsWithRole",
+	"legacy_addShips",
+	"legacy_addSystemShips",
+	"legacy_addShipsAt",
+	"legacy_addShipsAtPrecisely",
+	"legacy_addShipsWithinRadius",
+	"legacy_spawnShip"
+];
+
+
+var i;
+for (i = 0; i < systemInstanceProperties.length; i++)
+{
+	defineSingletonCompatibiltyAccessor("System", "system", systemInstanceProperties[i], false);
+}
+
+for (i = 0; i < systemInstanceMethods.length; i++)
+{
+	defineSingletonCompatibiltyAccessor("System", "system", systemInstanceMethods[i], true);
+}
+
+
+var playerInstanceProperties =
+[
+//	"name",	// Since a constructor is a function, it already has a non-configurable “name” property.
+	"score",
+	"credits",
+	"rank",
+	"legalStatus",
+	"alertCondition",
+	"alertTemperature",
+	"alertMassLocked",
+	"alertAltitude",
+	"alertEnergy",
+	"alertHostiles",
+	"trumbleCount",
+	"contractReputation",
+	"passengerReputation",
+	"dockingClearanceStatus",
+	"bounty",
+];
+
+var playerInstanceMethods =
+[
+	"addMessageToArrivalReport",
+	"commsMessage",
+	"consoleMessage",
+	"decreaseContractReputation",
+	"decreasePassengerReputation",
+	"increaseContractReputation",
+	"increasePassengerReputation",
+	"setEscapePodDestination"
+];
+
+
+for (i = 0; i < playerInstanceProperties.length; i++)
+{
+	defineSingletonCompatibiltyAccessor("Player", "player", playerInstanceProperties[i], false);
+}
+
+for (i = 0; i < playerInstanceMethods.length; i++)
+{
+	defineSingletonCompatibiltyAccessor("Player", "player", playerInstanceMethods[i], true);
+}
+
+})(special);
