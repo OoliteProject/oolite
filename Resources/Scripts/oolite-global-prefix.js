@@ -50,6 +50,8 @@ this.copyright		= "© 2009-2011 the Oolite team.";
 this.version		= "1.75";
 
 
+(function (special) {
+
 /**** Built-in in ECMAScript 5, to be removed when Linux builds transition ****/
 
 /*
@@ -116,7 +118,7 @@ if (typeof Array.isArray !== "function")
 
 
 // Utility to define non-enumerable, non-configurable, permanent methods, to match the behaviour of native methods.
-this.defineMethod = function(object, name, implementation)
+function defineMethod(object, name, implementation)
 {
 	Object.defineProperty(object, name, { value: implementation, writable: false, configurable: false, enumerable: false });
 }
@@ -129,7 +131,7 @@ this.defineMethod = function(object, name, implementation)
 */
 
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
-this.defineMethod(Ship.prototype, "spawnOne", function (role)
+defineMethod(Ship.prototype, "spawnOne", function (role)
 {
 	var result = this.spawn(role, 1);
 	return result ? result[0] : null;
@@ -137,7 +139,7 @@ this.defineMethod(Ship.prototype, "spawnOne", function (role)
 
 
 // mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.
-this.defineMethod(Mission.prototype, "addMessageTextKey", function (textKey)
+defineMethod(Mission.prototype, "addMessageTextKey", function (textKey)
 {
 	this.addMessageText((textKey ? expandMissionText(textKey) : null));
 });
@@ -146,7 +148,7 @@ this.defineMethod(Mission.prototype, "addMessageTextKey", function (textKey)
 /*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
 	certain distance.
 */
-this.defineMethod(SystemInfo, "systemsInRange", function (range)
+defineMethod(SystemInfo, "systemsInRange", function (range)
 {
 	if (range === undefined)
 	{
@@ -191,7 +193,7 @@ this.defineMethod(SystemInfo, "systemsInRange", function (range)
 	system.scrambledPseudoRandomNumber() with different salt values, there will
 	be no obvious correlation between the different stations’ distributions.
 */
-this.defineMethod(System.prototype, "scrambledPseudoRandomNumber", function (salt)
+defineMethod(System.prototype, "scrambledPseudoRandomNumber", function (salt)
 {
 	// Convert from float in [0..1) with 24 bits of precision to integer.
 	var n = Math.floor(this.pseudoRandomNumber * 16777216.0);
@@ -213,19 +215,14 @@ this.defineMethod(System.prototype, "scrambledPseudoRandomNumber", function (sal
 	
 	Load a sound and play it.
 */
-this.defineMethod(SoundSource.prototype, "playSound", function (sound, count)
+defineMethod(SoundSource.prototype, "playSound", function (sound, count)
 {
 	this.sound = sound;
 	this.play(count);
 });
 
 
-delete this.defineMethod;
-
-
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
-
-(function (special) {
 
 var failWarning = " This warning will be removed and the script will fail in Oolite 1.75.1.";
 
