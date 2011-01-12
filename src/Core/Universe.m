@@ -4068,9 +4068,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	
 	if ([srcEntity isPlayer])  q1.w = -q1.w;   //  reverse for player viewpoint
 	
-	ShipEntity		*parent = [srcEntity owner];
+	ShipEntity		*parent = [srcEntity parentEntity];
 	
-	if ([parent isShipWithSubEntityShip:srcEntity])
+	if (parent)
 	{
 		// we're a subentity!
 		BoundingBox bbox = [srcEntity boundingBox];
