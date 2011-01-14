@@ -643,6 +643,29 @@ static void DumpVariable(JSContext *context, JSPropertyDesc *prop)
 }
 
 
+#if OO_NEW_JS
+static inline JSBool OOJS_GetFrameThis(JSContext *cx, JSStackFrame *fp, jsval *thisp)
+{
+	return JS_GetFrameThis(cx, fp, thisp);
+}
+#else
+static inline JSBool OOJS_GetFrameThis(JSContext *cx, JSStackFrame *fp, jsval *thisp)
+{
+	JSObject *thiso = JS_GetFrameThis(cx, fp);
+	if (thiso != NULL)
+	{
+		*thisp = OBJECT_TO_JSVAL(thiso);
+		return YES;
+	}
+	else
+	{
+		return false;
+	}
+	
+}
+#endif
+
+
 void OOJSDumpStack(JSContext *context)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -713,18 +736,19 @@ void OOJSDumpStack(JSContext *context)
 			
 			if (gotProperties)
 			{
-				// Dump "this".
 				jsval this;
-				JS_GetFrameThis(context, frame, &this);
-				static BOOL haveThis = NO;
-				jsval thisAtom;
-				if (EXPECT_NOT(!haveThis))
+				if (OOJS_GetFrameThis(context, frame, &this))
 				{
-					thisAtom = STRING_TO_JSVAL(JS_InternString(context, "this"));
-					haveThis = YES;
+					static BOOL haveThis = NO;
+					static jsval thisAtom;
+					if (EXPECT_NOT(!haveThis))
+					{
+						thisAtom = STRING_TO_JSVAL(JS_InternString(context, "this"));
+						haveThis = YES;
+					}
+					JSPropertyDesc thisDesc = { .id = thisAtom, .value = this };
+					DumpVariable(context, &thisDesc);
 				}
-				JSPropertyDesc thisDesc = { .id = thisAtom, .value = this };
-				DumpVariable(context, &thisDesc);
 				
 				// Dump arguments.
 				unsigned i;
