@@ -43,6 +43,7 @@ SOFTWARE.
 #import "OODebugFlags.h"
 #import "OODebugMonitor.h"
 #import "OOProfilingStopwatch.h"
+#import "ResourceManager.h"
 
 
 @interface Entity (OODebugInspector)
@@ -77,6 +78,12 @@ static JSBool ConsoleSetDisplayMessagesInClass(OOJS_NATIVE_ARGS);
 static JSBool ConsoleWriteLogMarker(OOJS_NATIVE_ARGS);
 static JSBool ConsoleWriteMemoryStats(OOJS_NATIVE_ARGS);
 static JSBool ConsoleGarbageCollect(OOJS_NATIVE_ARGS);
+#if DEBUG
+static JSBool ConsoleDumpNamedRoots(OOJS_NATIVE_ARGS);
+#if OO_NEW_JS
+static JSBool ConsoleDumpHeap(OOJS_NATIVE_ARGS);
+#endif
+#endif
 #if OOJS_PROFILE
 static JSBool ConsoleProfile(OOJS_NATIVE_ARGS);
 static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS);
@@ -194,6 +201,12 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "writeLogMarker",					ConsoleWriteLogMarker,				0 },
 	{ "writeMemoryStats",				ConsoleWriteMemoryStats,			0 },
 	{ "garbageCollect",					ConsoleGarbageCollect,				0 },
+#if DEBUG
+	{ "dumpNamedRoots",					ConsoleDumpNamedRoots,				0 },
+#if OO_NEW_JS
+	{ "dumpHeap",						ConsoleDumpHeap,					0 },
+#endif
+#endif
 #if OOJS_PROFILE
 	{ "profile",						ConsoleProfile,						1 },
 	{ "getProfile",						ConsoleGetProfile,					1 },
@@ -879,6 +892,85 @@ static JSBool ConsoleGarbageCollect(OOJS_NATIVE_ARGS)
 	
 	OOJS_NATIVE_EXIT
 }
+
+
+#if DEBUG
+typedef struct
+{
+	JSContext		*context;
+	FILE			*file;
+} DumpCallbackData;
+
+static void DumpCallback(const char *name, void *rp, JSGCRootType type, void *datap)
+{
+	DumpCallbackData *data = datap;
+	
+	const char *typeString = "unknown type";
+	jsval value = JSVAL_VOID;
+	switch (type)
+	{
+		case JS_GC_ROOT_VALUE_PTR:
+			typeString = "value";
+			value = *(jsval *)rp;
+			break;
+			
+		case JS_GC_ROOT_GCTHING_PTR:
+			typeString = "gc-thing";
+			value = OBJECT_TO_JSVAL(*(JSObject **)rp);
+	}
+	
+	fprintf(data->file, "%s @ %p (%s): %s\n", name, rp, typeString, [OOJSDebugDescribe(data->context, value) UTF8String]);
+}
+
+
+static JSBool ConsoleDumpNamedRoots(OOJS_NATIVE_ARGS)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	BOOL OK = NO;
+	NSString *path = [[ResourceManager diagnosticFileLocation] stringByAppendingPathComponent:@"js-roots.txt"];
+	FILE *file = fopen([path UTF8String], "w");
+	if (file != NULL)
+	{
+		DumpCallbackData data =
+		{
+			.context = context,
+			.file = file
+		};
+		JS_DumpNamedRoots(JS_GetRuntime(context), DumpCallback, &data);
+		fclose(file);
+		OK = YES;
+	}
+	
+	[pool release];
+	OOJS_RETURN_BOOL(OK);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+#if OO_NEW_JS
+static JSBool ConsoleDumpHeap(OOJS_NATIVE_ARGS)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	BOOL OK = NO;
+	NSString *path = [[ResourceManager diagnosticFileLocation] stringByAppendingPathComponent:@"js-heaps.txt"];
+	FILE *file = fopen([path UTF8String], "w");
+	if (file != NULL)
+	{
+		OK = JS_DumpHeap(context, file, NULL, 0, NULL, SIZE_T_MAX, NULL);
+		fclose(file);
+	}
+	
+	OOJS_RETURN_BOOL(OK);
+	
+	OOJS_NATIVE_EXIT
+}
+#endif
+#endif
 
 
 #if OOJS_PROFILE

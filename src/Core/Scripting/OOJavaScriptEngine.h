@@ -249,6 +249,13 @@ NSString *OOStringFromJSValue(JSContext *context, jsval value);
 NSString *OOStringFromJSValueEvenIfNull(JSContext *context, jsval value);
 
 
+/*	Describe a value for various debuggy purposes. Strings are quoted, escaped
+	and limited in length. Functions are described as "function foo" (or just
+	"function" if they're anonymous).
+*/
+NSString *OOJSDebugDescribe(JSContext *context, jsval value);
+
+
 @interface NSString (OOJavaScriptExtensions)
 
 // For diagnostic messages; produces things like @"(42, true, "a string", an object description)".

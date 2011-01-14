@@ -86,6 +86,7 @@ typedef enum
 + (NSDictionary *)loadScripts;
 
 + (BOOL) writeDiagnosticData:(NSData *)data toFileNamed:(NSString *)name;
++ (NSString *) diagnosticFileLocation;
 
 + (NSDictionary *) materialDefaults;
 

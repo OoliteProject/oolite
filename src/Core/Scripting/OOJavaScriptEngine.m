@@ -394,7 +394,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JSContext					*context = NULL;
 	BOOL						result;
 	
-	NSAssert(JSVAL_IS_OBJECT(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to call a JavaScript value that isn't a function.");
+	NSAssert(JSVAL_IS_OBJECT(function) && !JSVAL_IS_NULL(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to call a JavaScript value that isn't a function.");
 	
 	context = [self acquireContext];
 	JS_BeginRequest(context);
@@ -599,28 +599,10 @@ static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecod
 
 #ifndef NDEBUG
 
-static NSString *DebugDescribe(JSContext *context, jsval value)
-{
-	if (JSVAL_IS_OBJECT(value) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(value)))
-	{
-		JSString *name = JS_GetFunctionId(JS_ValueToFunction(context, value));
-		if (name != NULL)  return [NSString stringWithFormat:@"function %@", OOStringFromJSString(name)];
-		else  return @"function";
-	}
-	
-	NSString *result = OOStringFromJSValueEvenIfNull(context, value);
-	if (JSVAL_IS_STRING(value))
-	{
-		result = [NSString stringWithFormat:@"\"%@\"", [result escapedForJavaScriptLiteral]];
-	}
-	return result;
-}
-
-
 static void DumpVariable(JSContext *context, JSPropertyDesc *prop)
 {
 	NSString *name = OOStringFromJSValueEvenIfNull(context, prop->id);
-	NSString *value = DebugDescribe(context, prop->value);
+	NSString *value = OOJSDebugDescribe(context, prop->value);
 	
 	enum
 	{
@@ -632,7 +614,7 @@ static void DumpVariable(JSContext *context, JSPropertyDesc *prop)
 	{
 		NSMutableArray *flags = [NSMutableArray array];
 		if (prop->flags & JSPD_READONLY)  [flags addObject:@"read-only"];
-		if (prop->flags & JSPD_ALIAS)  [flags addObject:[NSString stringWithFormat:@"alias (%@)", DebugDescribe(context, prop->alias)]];
+		if (prop->flags & JSPD_ALIAS)  [flags addObject:[NSString stringWithFormat:@"alias (%@)", OOJSDebugDescribe(context, prop->alias)]];
 		if (prop->flags & JSPD_EXCEPTION)  [flags addObject:@"exception"];
 		if (prop->flags & JSPD_ERROR)  [flags addObject:@"error"];
 		
@@ -1370,7 +1352,7 @@ NSString *OOStringFromJSValueEvenIfNull(JSContext *context, jsval value)
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
 	
 	JSString *string = JS_ValueToString(context, value);	// Calls the value's toString method if needed.
-	return [NSString stringWithJavaScriptString:string];
+	return OOStringFromJSString(string);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -1385,6 +1367,42 @@ NSString *OOStringFromJSValue(JSContext *context, jsval value)
 		return OOStringFromJSValueEvenIfNull(context, value);
 	}
 	return nil;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+NSString *OOJSDebugDescribe(JSContext *context, jsval value)
+{
+	OOJS_PROFILE_ENTER
+	
+	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
+	
+	if (JSVAL_IS_OBJECT(value) && !JSVAL_IS_NULL(value) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(value)))
+	{
+		JSString *name = JS_GetFunctionId(JS_ValueToFunction(context, value));
+		if (name != NULL)  return [NSString stringWithFormat:@"function %@", OOStringFromJSString(name)];
+		else  return @"function";
+	}
+	
+	NSString *result;
+	if (JSVAL_IS_STRING(value))
+	{
+		enum { kMaxLength = 200 };
+		
+		JSString *string = JSVAL_TO_STRING(value);
+		jschar *chars = JS_GetStringChars(string);
+		size_t length = JS_GetStringLength(string);
+		
+		result = [NSString stringWithCharacters:chars length:MIN(length, (size_t)kMaxLength)];
+		result = [NSString stringWithFormat:@"\"%@%@\"", [result escapedForJavaScriptLiteral], (length > kMaxLength) ? @"..." : @""];
+	}
+	else
+	{
+		result = OOStringFromJSValueEvenIfNull(context, value);
+	}
+	
+	return result;
 	
 	OOJS_PROFILE_EXIT
 }

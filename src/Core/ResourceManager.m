@@ -60,7 +60,6 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
 + (void) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
-+ (NSString *) diagnosticFileLocation;
 + (void) logPaths;
 
 @end
