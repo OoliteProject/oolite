@@ -1617,10 +1617,9 @@ const char *JSValueTypeDbg(jsval val)
 	if (JSVAL_IS_BOOLEAN(val))	return "boolean";
 	if (JSVAL_IS_NULL(val))		return "null";
 	if (JSVAL_IS_VOID(val))		return "void";
-#if OO_NEW_JS
+#if OO_NEW_JS && defined(JS_USE_JSVAL_JSID_STRUCT_TYPES)
 	if (JSVAL_IS_MAGIC_IMPL(val))
 	{
-#ifdef JS_USE_JSVAL_JSID_STRUCT_TYPES
 		switch(val.s.payload.why)
 		{
 			case JS_ARRAY_HOLE:			return "magic (array hole)";
@@ -1634,7 +1633,6 @@ const char *JSValueTypeDbg(jsval val)
 			case JS_SERIALIZE_NO_NODE:	return "magic (serialize no node)";
 			case JS_GENERIC_MAGIC:		return "magic (generic)";
 		};
-#endif
 		return "magic";
 	}
 #endif
