@@ -525,7 +525,7 @@ FAIL:
 - (void) setSize:(NSSize) siz
 {
 	size = siz;
-	collision_radius = sqrt (size.width * size.width + size.height * size.height);
+	collision_radius = hypotf(size.width, size.height);
 	no_draw_distance = collision_radius * collision_radius * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
 }
 

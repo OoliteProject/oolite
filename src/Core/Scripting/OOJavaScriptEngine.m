@@ -509,6 +509,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 }
 
 
+#ifndef NDEBUG
 static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecode *pc, jsval *rval, void *closure)
 {
 	OOJSPauseTimeLimiter();
@@ -522,7 +523,6 @@ static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecod
 }
 
 
-#ifndef NDEBUG
 - (BOOL) dumpStackForErrors
 {
 	return _dumpStackForErrors;

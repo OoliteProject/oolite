@@ -138,7 +138,7 @@ OOINLINE double distanceBetweenPlanetPositions ( int x1, int y1, int x2, int y2)
 {
 	int dx = x1 - x2;
 	int dy = (y1 - y2)/2;
-	int dist = sqrtf(dx*dx + dy*dy); // here's where the rounding errors come in!
+	int dist = sqrtf(dx*dx + dy*dy);	// N.b. Rounding error due to truncation is desired.
 	return 0.4 * dist;
 }
 
@@ -147,7 +147,7 @@ OOINLINE double accurateDistanceBetweenPlanetPositions ( int x1, int y1, int x2,
 {
 	double dx = x1 - x2;
 	double dy = (y1 - y2) / 2.0;
-	double dist = sqrt(dx*dx + dy*dy); // here's where the rounding errors come in!
+	double dist = hypot(dx, dy);
 	return 0.4 * dist;
 }
 
