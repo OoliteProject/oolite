@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 {
 @private
 	JSFunction					*_function;
+	NSString					*_name;
 }
 
 - (id) initWithFunction:(JSFunction *)function context:(JSContext *)context;

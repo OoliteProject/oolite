@@ -690,7 +690,7 @@ void OOJSDumpStack(JSContext *context)
 					JSString *funcName = JS_GetFunctionId(function);
 					if (funcName != NULL)
 					{
-						funcDesc = [NSString stringWithJavaScriptString:funcName];
+						funcDesc = OOStringFromJSString(context, funcName);
 						if (!JS_IsConstructorFrame(context, frame))
 						{
 							funcDesc = [funcDesc stringByAppendingString:@"()"];
@@ -1338,17 +1338,24 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 @end
 
 
-NSString *OOStringFromJSString(JSString *string)
+NSString *OOStringFromJSString(JSContext *context, JSString *string)
 {
 	OOJS_PROFILE_ENTER
 	
 	if (EXPECT_NOT(string == NULL))  return nil;
 	
-	jschar *chars = JS_GetStringChars(string);
-	size_t length = JS_GetStringLength(string);
+	size_t length;
+	const jschar *chars = OOJSGetStringCharsAndLength(context, string, &length);
 	
-	return [NSString stringWithCharacters:chars length:length];
-	
+	if (EXPECT(chars != NULL))
+	{
+		return [NSString stringWithCharacters:chars length:length];
+	}
+	else
+	{
+		return nil;
+	}
+
 	OOJS_PROFILE_EXIT
 }
 
@@ -1360,7 +1367,7 @@ NSString *OOStringFromJSValueEvenIfNull(JSContext *context, jsval value)
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
 	
 	JSString *string = JS_ValueToString(context, value);	// Calls the value's toString method if needed.
-	return OOStringFromJSString(string);
+	return OOStringFromJSString(context, string);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -1389,7 +1396,7 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 	if (OOJSValueIsFunction(context, value))
 	{
 		JSString *name = JS_GetFunctionId(JS_ValueToFunction(context, value));
-		if (name != NULL)  return [NSString stringWithFormat:@"function %@", OOStringFromJSString(name)];
+		if (name != NULL)  return [NSString stringWithFormat:@"function %@", OOStringFromJSString(context, name)];
 		else  return @"function";
 	}
 	
@@ -1399,8 +1406,8 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 		enum { kMaxLength = 200 };
 		
 		JSString *string = JSVAL_TO_STRING(value);
-		jschar *chars = JS_GetStringChars(string);
-		size_t length = JS_GetStringLength(string);
+		size_t length;
+		const jschar *chars = OOJSGetStringCharsAndLength(context, string, &length);
 		
 		result = [NSString stringWithCharacters:chars length:MIN(length, (size_t)kMaxLength)];
 		result = [NSString stringWithFormat:@"\"%@%@\"", [result escapedForJavaScriptLiteral], (length > kMaxLength) ? @"..." : @""];
@@ -1417,12 +1424,6 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 
 
 @implementation NSString (OOJavaScriptExtensions)
-
-+ (id) stringWithJavaScriptString:(JSString *)string
-{
-	return OOStringFromJSString(string);
-}
-
 
 + (id) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
@@ -1674,8 +1675,22 @@ const char *JSValueToStrSafeDbg(jsval val)
 	
 	if (JSVAL_IS_INT(val))			formatted = [NSString stringWithFormat:@"%i", (long)JSVAL_TO_INT(val)];
 	else if (JSVAL_IS_DOUBLE(val))	formatted = [NSString stringWithFormat:@"%g", JSVAL_TO_DOUBLE(val)];
-	else if (JSVAL_IS_STRING(val))	formatted = [NSString stringWithFormat:@"\"%@\"", [OOStringFromJSString(JSVAL_TO_STRING(val)) escapedForJavaScriptLiteral]];
 	else if (JSVAL_IS_BOOLEAN(val))	formatted = (JSVAL_TO_BOOLEAN(val)) ? @"true" : @"false";
+	else if (JSVAL_IS_STRING(val))
+	{
+		JSString *string = JSVAL_TO_STRING(val);
+		const jschar *chars = NULL;
+		size_t length = JS_GetStringLength(string);
+		
+		if (JS_StringHasBeenInterned(string))
+		{
+			chars = JS_GetInternedStringChars(string);
+		}
+		// Flat strings can be extracted without a context, but cannot be detected.
+		
+		if (chars == NULL)  formatted = [NSString stringWithFormat:@"string [%zu chars]", length];
+		else  formatted = [NSString stringWithCharacters:chars length:length];
+	}
 	else if (JSVAL_IS_VOID(val))	return "undefined";
 	else							return JSValueTypeDbg(val);
 	
@@ -1789,7 +1804,7 @@ JSBool OOJSUnconstructableConstruct(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	JSFunction *function = JS_ValueToFunction(context, OOJS_CALLEE);
-	NSString *name = OOStringFromJSString(JS_GetFunctionId(function));
+	NSString *name = OOStringFromJSString(context, JS_GetFunctionId(function));
 	
 	OOJSReportError(context, @"%@ cannot be used as a constructor.", name);
 	return NO;
@@ -2045,7 +2060,7 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue
 #if OO_NEW_JS
 		if (JSID_IS_STRING(thisID))
 		{
-			objKey = [NSString stringWithJavaScriptString:JSID_TO_STRING(thisID)];
+			objKey = OOStringFromJSString(context, JSID_TO_STRING(thisID));
 		}
 		else
 		{
@@ -2066,7 +2081,7 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue
 				JSString *stringKey = JSVAL_TO_STRING(propKey);
 				if (JS_LookupProperty(context, tableObject, JS_GetStringBytes(stringKey), &value))
 				{
-					objKey = [NSString stringWithJavaScriptString:stringKey];
+					objKey = OOStringFromJSString(context, stringKey);
 				}
 			}
 		}
@@ -2287,7 +2302,7 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *tableObject)
 #if OO_NEW_JS
 		if (JSID_IS_STRING(thisID))
 		{
-			objKey = [NSString stringWithJavaScriptString:JSID_TO_STRING(thisID)];
+			objKey = OOStringFromJSString(context, JSID_TO_STRING(thisID));
 		}
 		else if (JSID_IS_INT(thisID))
 		{
@@ -2312,7 +2327,7 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *tableObject)
 				JSString *stringKey = JSVAL_TO_STRING(propKey);
 				if (JS_LookupProperty(context, tableObject, JS_GetStringBytes(stringKey), &value))
 				{
-					objKey = [NSString stringWithJavaScriptString:stringKey];
+					objKey = OOStringFromJSString(context, stringKey);
 				}
 			}
 			

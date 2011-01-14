@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 		_function = function;
 		JS_BeginRequest(context);
 		OOJSAddGCObjectRoot(context, (JSObject **)&_function, "OOJSFunction._function");
+		_name = [OOStringFromJSString(context, JS_GetFunctionId(function)) retain];
 		JS_EndRequest(context);
 	}
 	
@@ -115,6 +116,7 @@ MA 02110-1301, USA.
 - (void) dealloc
 {
 	[[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:(JSObject **)&_function];
+	DESTROY(_name);
 	
 	[super dealloc];
 }
@@ -130,8 +132,7 @@ MA 02110-1301, USA.
 
 - (NSString *) name
 {
-	JSString *name = JS_GetFunctionId(_function);
-	return [NSString stringWithJavaScriptString:name];
+	return _name;
 }
 
 

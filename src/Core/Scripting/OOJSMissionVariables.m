@@ -46,7 +46,7 @@ static NSString *KeyForPropertyID(JSContext *context, PropertyID propID)
 {
 	NSCParameterAssert(PROP_IS_STRING(propID));
 	
-	NSString *key = [NSString stringWithJavaScriptString:PROP_TO_STRING(propID)];
+	NSString *key = OOStringFromJSString(context, PROP_TO_STRING(propID));
 	if ([key hasPrefix:@"_"])  return nil;
 	return [@"mission_" stringByAppendingString:key];
 }

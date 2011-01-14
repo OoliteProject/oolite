@@ -386,7 +386,7 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 	}
 	else if (OOJS_PROPID_IS_STRING)
 	{
-		NSString		*key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
+		NSString *key = OOStringFromJSString(context, OOJS_PROPID_STRING);
 		
 		if (!sameGalaxy || savedInterstellarInfo)
 		{
@@ -432,7 +432,7 @@ static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS)
 	
 	if (OOJS_PROPID_IS_STRING)
 	{
-		NSString		*key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
+		NSString		*key = OOStringFromJSString(context, OOJS_PROPID_STRING);
 		OOSystemInfo	*info = OOJSNativeObjectOfClassFromJSObject(context, this, [OOSystemInfo class]);
 		
 		[info setValue:OOStringFromJSValue(context, *value) forKey:key];

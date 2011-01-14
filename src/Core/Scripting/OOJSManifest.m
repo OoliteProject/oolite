@@ -226,7 +226,7 @@ typedef jsval PropertyID;
 #define PROP_TO_STRING JSVAL_TO_STRING
 #endif
 
-static BOOL GetCommodityID(PropertyID property, unsigned *outCommodity)
+static BOOL GetCommodityID(JSContext *context, PropertyID property, unsigned *outCommodity)
 {
 	NSCParameterAssert(outCommodity != NULL);
 	
@@ -237,7 +237,7 @@ static BOOL GetCommodityID(PropertyID property, unsigned *outCommodity)
 	}
 	else if (PROP_IS_STRING(property))
 	{
-		NSString *key = [[NSString stringWithJavaScriptString:PROP_TO_STRING(property)] lowercaseString];
+		NSString *key = [OOStringFromJSString(context, PROP_TO_STRING(property)) lowercaseString];
 		NSNumber *value = [sManifestNameMap objectForKey:key];
 		if (value == nil)  return NO;
 		
@@ -258,7 +258,7 @@ static JSBool ManifestGetProperty(OOJS_PROP_ARGS)
 	PlayerEntity				*entity = OOPlayerForScripting();
 	unsigned					commodity;
 	
-	if (GetCommodityID(propID, &commodity))
+	if (GetCommodityID(context, propID, &commodity))
 	{
 		switch (commodity)
 		{
@@ -387,7 +387,7 @@ static JSBool ManifestSetProperty(OOJS_PROP_ARGS)
 	int32						iValue;
 	unsigned					commodity;
 	
-	if (!GetCommodityID(propID, &commodity))  return YES;
+	if (!GetCommodityID(context, propID, &commodity))  return YES;
 	
 	// we can always change gold, platinum & gem-stones quantities, even with special cargo
 	if ([entity specialCargo] && (commodity < kManifest_gold || commodity > kManifest_gemStones))

@@ -241,7 +241,7 @@ OOINLINE jsval OOJSValueFromNativeObject(JSContext *context, id object)
 /**** String utilities ****/
 
 // Convert a JSString to an NSString.
-NSString *OOStringFromJSString(JSString *string);
+NSString *OOStringFromJSString(JSContext *context, JSString *string);
 
 /*	Convert an arbitrary JS object to an NSString, calling JS_ValueToString.
 	OOStringFromJSValue() returns nil if value is null or undefined,
@@ -269,9 +269,6 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value);
 // Add escape codes for string so that it's a valid JavaScript literal (if you put "" or '' around it).
 - (NSString *) escapedForJavaScriptLiteral;
 
-
-// Wrapper for OOStringFromJSString(). DEPRECATED
-+ (id) stringWithJavaScriptString:(JSString *)string;
 
 // Wrapper for OOStringFromJSValueEvenIfNull(). DEPRECATED
 + (id) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
@@ -743,12 +740,39 @@ JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS);
 
 #if OO_NEW_JS
 // Before removing, switch to DOUBLE_TOJSVAL() everywhere.
-static inline JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
+OOINLINE JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
 {
 	NSCParameterAssert(rval != NULL);
 	*rval = DOUBLE_TO_JSVAL(d);
 	return YES;
 }
+
+
+/*	HACK: JSAPI headers have no useful versioning information, and FF4.0b9
+	changed some key string functions. It also added the macro
+	JS_WARN_UNUSED_RESULT, so we use that for feature detection temporarily.
+*/
+#define OOJS_FF4B9	defined(JS_WARN_UNUSED_RESULT)
+
+
+OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString *string, size_t *length)
+{
+	NSCParameterAssert(context != NULL && string != NULL && length != NULL);
+	
+#if OOJS_FF4B9
+	// FireFox 4b9
+	return JS_GetStringCharsAndLength(context, string, length);
+#else
+	// FireFox 4b8
+	return JS_GetStringCharsAndLength(string, length);
+#endif
+}
+
+
+#if !OOJS_FF4B9
+OOINLINE const jschar *JS_GetInternedStringChars(JSString *string) { return NULL; }
+#endif
+
 
 #define OOJSVAL_TO_DOUBLE JSVAL_TO_DOUBLE
 #else
@@ -756,6 +780,18 @@ static inline JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
 #define OOJSVAL_TO_DOUBLE(val) (*JSVAL_TO_DOUBLE(val))
 
 #define JS_GetGCParameter(...) (0)
+
+
+OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString *string, size_t *length)
+{
+	NSCParameterAssert(context != NULL && string != NULL && length != NULL);
+	
+	*length = JS_GetStringLength(string);
+	return JS_GetStringChars(string);
+}
+
+
+OOINLINE const jschar *JS_GetInternedStringChars(JSString *string) { return NULL; }
 #endif
 
 

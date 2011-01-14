@@ -98,21 +98,16 @@ static JSClass sTimerClass;
 
 - (NSString *) descriptionComponents
 {
-	JSString				*funcJSName = NULL;
 	NSString				*funcName = nil;
 	JSContext				*context = NULL;
 	
 	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	funcJSName = JS_GetFunctionId(JS_ValueToFunction(context, _function));
+	funcName = OOStringFromJSString(context, JS_GetFunctionId(JS_ValueToFunction(context, _function)));
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
-	if (funcJSName == NULL)
+	if (funcName == nil)
 	{
 		funcName = @"anonymous";
-	}
-	else
-	{
-		funcName = [NSString stringWithFormat:@"\"%@\"", [NSString stringWithJavaScriptString:funcJSName]];
 	}
 	
 	return [NSString stringWithFormat:@"%@, function: %@", [super descriptionComponents], funcName];

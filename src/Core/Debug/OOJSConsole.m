@@ -530,7 +530,7 @@ static JSBool ConsoleSettingsDeleteProperty(OOJS_PROP_ARGS)
 	id					monitor = nil;
 	
 	if (!OOJS_PROPID_IS_STRING)  return NO;
-	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
+	key = OOStringFromJSString(context, OOJS_PROPID_STRING);
 	
 	monitor = OOJSNativeObjectFromJSObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
@@ -557,7 +557,7 @@ static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS)
 	id					settingValue = nil;
 	id					monitor = nil;
 	
-	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
+	key = OOStringFromJSString(context, OOJS_PROPID_STRING);
 	
 	monitor = OOJSNativeObjectFromJSObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
@@ -586,7 +586,7 @@ static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS)
 	id					settingValue = nil;
 	id					monitor = nil;
 	
-	key = [NSString stringWithJavaScriptString:OOJS_PROPID_STRING];
+	key = OOStringFromJSString(context, OOJS_PROPID_STRING);
 	
 	monitor = OOJSNativeObjectFromJSObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
