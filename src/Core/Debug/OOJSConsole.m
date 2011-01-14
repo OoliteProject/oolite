@@ -45,6 +45,10 @@ SOFTWARE.
 #import "OOProfilingStopwatch.h"
 #import "ResourceManager.h"
 
+// MinGW (possibly also Linux GCC) does not define SIZE_T_MAX
+#ifndef SIZE_T_MAX
+#define SIZE_T_MAX SIZE_MAX
+#endif
 
 @interface Entity (OODebugInspector)
 
