@@ -394,7 +394,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JSContext					*context = NULL;
 	BOOL						result;
 	
-	NSAssert(JSVAL_IS_OBJECT(function) && !JSVAL_IS_NULL(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to call a JavaScript value that isn't a function.");
+	NSParameterAssert(OOJSValueIsFunction(context, function));
 	
 	context = [self acquireContext];
 	JS_BeginRequest(context);
@@ -1378,7 +1378,7 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 	
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
 	
-	if (JSVAL_IS_OBJECT(value) && !JSVAL_IS_NULL(value) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(value)))
+	if (OOJSValueIsFunction(context, value))
 	{
 		JSString *name = JS_GetFunctionId(JS_ValueToFunction(context, value));
 		if (name != NULL)  return [NSString stringWithFormat:@"function %@", OOStringFromJSString(name)];
@@ -1449,9 +1449,9 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 		{
 			[result appendFormat:@"\"%@\"", valString];
 		}
-		else if (JSVAL_IS_OBJECT(val) && JS_IsArrayObject(context, JSVAL_TO_OBJECT(val)))
+		else if (OOJSValueIsArray(context, val))
 		{
-			[result appendFormat:@"[%@]", valString ];
+			[result appendFormat:@"[%@]", valString];
 		}
 		else
 		{

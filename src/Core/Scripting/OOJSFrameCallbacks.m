@@ -199,7 +199,7 @@ static JSBool GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
 	
 	// Get callback argument and verify that it's a function.
 	jsval callback = OOJS_ARG(0);
-	if (EXPECT_NOT(!JSVAL_IS_OBJECT(callback) || !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(callback))))
+	if (EXPECT_NOT(!OOJSValueIsFunction(context, callback)))
 	{
 		OOJSReportBadArguments(context, nil, @"addFrameCallback", 1, OOJS_ARGV, nil, @"function");
 		return NO;

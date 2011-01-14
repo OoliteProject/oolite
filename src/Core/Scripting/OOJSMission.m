@@ -296,7 +296,7 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	params = JSVAL_TO_OBJECT(OOJS_ARG(0));
 	
 	if (argc > 1) function = OOJS_ARG(1);
-	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
+	if (!JSVAL_IS_NULL(function) && !OOJSValueIsFunction(context, function))
 	{
 		OOJSReportBadArguments(context, @"mission", @"runScreen", argc - 1, OOJS_ARGV + 1, nil, @"function");
 		return NO;

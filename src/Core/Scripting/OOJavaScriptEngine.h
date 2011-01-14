@@ -284,7 +284,7 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value);
 typedef struct
 {
 	JSContext				*context;
-	jsval					function;	// Caller is responsible for ensuring this is a function object (using JS_ObjectIsFunction()).
+	jsval					function;	// Caller is responsible for ensuring this is a function object (using OOJSValueIsFunction()).
 	JSObject				*jsThis;
 	BOOL					errorFlag;	// Set if a JS exception occurs. The
 										// exception will have been reported.
@@ -314,6 +314,32 @@ OOINLINE JSClass *OOJSGetClass(JSContext *cx, JSObject *obj)
 #else
 	return JS_GetClass(obj);
 #endif
+}
+
+
+/*	OOJSValueIsFunction(context, value)
+	
+	Test whether a jsval is a function object. The main tripping point here
+	is that JSVAL_IS_OBJECT() is true for JSVAL_NULL, but JS_ObjectIsFunction()
+	crashes if passed null.
+*/
+OOINLINE BOOL OOJSValueIsFunction(JSContext *context, jsval value)
+{
+	return JSVAL_IS_OBJECT(value) && !JSVAL_IS_NULL(value) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(value));
+}
+
+
+/*	OOJSValueIsArray(context, value)
+	
+	Test whether a jsval is an array object. The main tripping point here
+	is that JSVAL_IS_OBJECT() is true for JSVAL_NULL, but JS_IsArrayObject()
+	crashes if passed null.
+	
+	Also, it should be called JS_ObjectIsArray() for consistency.
+*/
+OOINLINE BOOL OOJSValueIsArray(JSContext *context, jsval value)
+{
+	return JSVAL_IS_OBJECT(value) && !JSVAL_IS_NULL(value) && JS_IsArrayObject(context, JSVAL_TO_OBJECT(value));
 }
 
 

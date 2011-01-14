@@ -528,7 +528,7 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
 	// Get this and predicate arguments.
 	jsval predicate = OOJS_ARG(1);
 	JSObject *jsThis = NULL;
-	if (EXPECT_NOT(!JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(predicate)) || !JS_ValueToObject(context, OOJS_ARG(0), &jsThis)))
+	if (EXPECT_NOT(!OOJSValueIsFunction(context, predicate) || !JS_ValueToObject(context, OOJS_ARG(0), &jsThis)))
 	{
 		OOJSReportBadArguments(context, @"SystemInfo", @"filteredSystems", argc, OOJS_ARGV, nil, @"this and predicate function");
 		return NO;

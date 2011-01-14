@@ -738,14 +738,14 @@ static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS)
 	OOJS_NATIVE_ENTER(context)
 	
 	JSObject			*jsThis = NULL;
-	jsval				function = JSVAL_VOID;
+	jsval				predicate = JSVAL_VOID;
 	Entity				*relativeTo = nil;
 	double				range = -1;
 	NSArray				*result = nil;
 	
 	// Get this and predicate arguments
-	function = OOJS_ARG(1);
-	if (!JSVAL_IS_OBJECT(function) || !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)) || !JS_ValueToObject(context, OOJS_ARG(0), &jsThis))
+	predicate = OOJS_ARG(1);
+	if (!OOJSValueIsFunction(context, predicate) || !JS_ValueToObject(context, OOJS_ARG(0), &jsThis))
 	{
 		OOJSReportBadArguments(context, @"System", @"filteredEntities", argc, OOJS_ARGV, nil, @"this, predicate function, and optional reference entity and range");
 		return NO;
@@ -757,7 +757,7 @@ static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS)
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, @"filteredEntities", &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
-	JSFunctionPredicateParameter param = { context, function, jsThis, NO };
+	JSFunctionPredicateParameter param = { context, predicate, jsThis, NO };
 	OOJS_BEGIN_FULL_NATIVE(context)
 	result = FindJSVisibleEntities(JSFunctionPredicate, &param, relativeTo, range);
 	OOJS_END_FULL_NATIVE

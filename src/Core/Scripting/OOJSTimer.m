@@ -58,7 +58,7 @@ static JSClass sTimerClass;
 	self = [super initWithNextTime:[UNIVERSE getTime] + delay interval:interval];
 	if (self != nil)
 	{
-		NSAssert(JSVAL_IS_OBJECT(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to init OOJSTimer with a function that isn't.");
+		NSAssert(OOJSValueIsFunction(context, function), @"Attempt to init OOJSTimer with a function that isn't.");
 		
 		_jsThis = jsThis;
 		OOJSAddGCObjectRoot(context, &_jsThis, "OOJSTimer this");

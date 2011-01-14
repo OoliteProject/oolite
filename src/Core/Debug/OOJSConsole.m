@@ -1037,7 +1037,7 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 	
 	// Get function.
 	jsval function = argv[0];
-	if (!JSVAL_IS_OBJECT(function) || !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)))
+	if (!OOJSValueIsFunction(context, function))
 	{
 		OOJSReportBadArguments(context, @"Console", nominalFunction, 1, argv, nil, @"function");
 		return NO;
