@@ -34,6 +34,8 @@ SOFTWARE.
 #import "OODebugMonitor.h"
 #import "OODebugTCPConsoleClient.h"
 #import "GameController.h"
+#import "OOJavaScriptEngine.h"
+
 
 #if OOLITE_MAC_OS_X
 static id LoadDebugPlugIn(NSString *path);
@@ -111,6 +113,7 @@ void OOInitDebugSupport(void)
 	{
 		// Set up monitor and register debugger, if any.
 		[[OODebugMonitor sharedDebugMonitor] setDebugger:debugger];
+		[[OOJavaScriptEngine sharedEngine] enableDebuggerStatement];
 	}
 }
 

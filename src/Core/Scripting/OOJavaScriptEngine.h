@@ -64,9 +64,9 @@ enum
 #endif
 }
 
-+ (OOJavaScriptEngine *)sharedEngine;
++ (OOJavaScriptEngine *) sharedEngine;
 
-- (JSObject *)globalObject;
+- (JSObject *) globalObject;
 
 - (void) runMissionCallback;
 
@@ -89,6 +89,11 @@ enum
 
 - (BOOL) showErrorLocations;
 - (void) setShowErrorLocations:(BOOL)value;
+
+#ifndef NDEBUG
+// Install handler for JS "debugger" statment.
+- (void) enableDebuggerStatement;
+#endif
 
 @end
 

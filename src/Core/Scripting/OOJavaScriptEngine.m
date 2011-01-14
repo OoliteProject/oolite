@@ -494,6 +494,25 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	_showErrorLocations = !!value;
 }
 
+
+static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecode *pc, jsval *rval, void *closure)
+{
+	OOJSPauseTimeLimiter();
+	
+	OOLog(@"script.javaScript.debugger", @"debugger invoked during %@:", [[OOJSScript currentlyRunningScript] displayName]);
+	OOJSDumpStack(@"script.javaScript.debugger", context);
+	
+	OOJSResumeTimeLimiter();
+	
+	return JSTRAP_CONTINUE;
+}
+
+
+- (void) enableDebuggerStatement
+{
+	JS_SetDebuggerHandler(runtime, DebuggerHook, self);
+}
+
 @end
 
 
@@ -542,7 +561,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
 {
-	if (!OOLogWillDisplayMessagesInClass(logMessageClass))  return;
+	if (logMessageClass == nil)  logMessageClass = @"debugger";
+	else if (!OOLogWillDisplayMessagesInClass(logMessageClass))  return;
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
@@ -1440,16 +1460,49 @@ const char *JSObjectToStrDbg(JSObject *obj)
 }
 
 
+const char *JSStringToStrDbg(JSString *str)
+{
+	return JSValueToStrDbg(STRING_TO_JSVAL(str));
+}
+
+
 const char *JSValueTypeDbg(jsval val)
 {
-	if (JSVAL_IS_INT(val))  return "integer";
-	if (JSVAL_IS_DOUBLE(val))  return "double";
-	if (JSVAL_IS_STRING(val))  return "string";
-	if (JSVAL_IS_BOOLEAN(val))  return "boolean";
-	if (JSVAL_IS_NULL(val))  return "null";
-	if (JSVAL_IS_VOID(val))  return "void";
+	if (JSVAL_IS_INT(val))		return "integer";
+	if (JSVAL_IS_DOUBLE(val))	return "double";
+	if (JSVAL_IS_STRING(val))	return "string";
+	if (JSVAL_IS_BOOLEAN(val))	return "boolean";
+	if (JSVAL_IS_NULL(val))		return "null";
+	if (JSVAL_IS_VOID(val))		return "void";
+#if OO_NEW_JS
+	if (JSVAL_IS_MAGIC_IMPL(val))
+	{
+#ifdef JS_USE_JSVAL_JSID_STRUCT_TYPES
+		switch(val.s.payload.why)
+		{
+			case JS_ARRAY_HOLE:			return "magic (array hole)";
+			case JS_ARGS_HOLE:			return "magic (args hole)";
+			case JS_NATIVE_ENUMERATE:	return "magic (native enumerate)";
+			case JS_NO_ITER_VALUE:		return "magic (no iter value)";
+			case JS_GENERATOR_CLOSING:	return "magic (generator closing)";
+			case JS_NO_CONSTANT:		return "magic (no constant)";
+			case JS_THIS_POISON:		return "magic (this poison)";
+			case JS_ARG_POISON:			return "magic (arg poison)";
+			case JS_SERIALIZE_NO_NODE:	return "magic (serialize no node)";
+			case JS_GENERIC_MAGIC:		return "magic (generic)";
+		};
+#endif
+		return "magic";
+	}
+#endif
 	if (JSVAL_IS_OBJECT(val))  return OOJSGetClass(NULL, JSVAL_TO_OBJECT(val))->name;	// Fun fact: although a context is required if JS_THREADSAFE is defined, it isn't actually used.
 	return "unknown";
+}
+
+
+void JSDumpStack(JSContext *context)
+{
+	OOJSDumpStack(nil, context);
 }
 
 #endif

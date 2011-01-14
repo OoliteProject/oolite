@@ -69,4 +69,6 @@ _OOSoundRegisterDebugMonitor
 # Debug value formatter support
 _JSValueToStrDbg
 _JSObjectToStrDbg
+_JSStringToStrDbg
 _JSValueTypeDbg
+_JSDumpStack
