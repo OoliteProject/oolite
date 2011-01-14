@@ -66,4 +66,3 @@ _JSValueToStrDbg
 _JSObjectToStrDbg
 _JSStringToStrDbg
 _JSValueTypeDbg
-_JSDumpStack

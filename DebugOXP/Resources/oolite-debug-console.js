@@ -43,6 +43,14 @@ debugFlags : Number (integer, read/write)
 	the ^= operator (XOR assign) can be thought of as a “toggle option”
 	command.
 
+dumpStackForErrors
+	If true, when an error or exception is reported a stack trace will be
+	written to the log (if possible). Ignored if not showing error locations.
+ 
+dumpStackForWarnings
+	If true, when an warning is reported a stack trace will be written to the
+	log (if possible). Ignored if not showing error locations.
+
 platformDescription : String (read-only)
 	Information about the system Oolite is running on. The format of this
 	string is not guaranteed, do not attempt to parse it.
@@ -279,7 +287,7 @@ this.consolePerformJSCommand = function consolePerformJSCommand(command)
 			
 			command = this.inputBuffer;
 			this.inputBuffer = "";
-			this.evaluate(command, "command");
+			this.evaluate(command);
 		}
 		else
 		{
@@ -530,7 +538,7 @@ this.performMacro = function performMacro(command)
 		consoleMessage("macro-expansion", "> " + displayExpansion);
 		
 		// Perform macro.
-		this.evaluate(expansion, "macro", parameters);
+		this.evaluate(expansion);
 	}
 	else
 	{
@@ -681,16 +689,50 @@ this.isClassicIdentifier = function isClassicIdentifier(string)
 
 // ****  Load-time set-up
 
-// Make console globally visible as debugConsole
+// Make console globally visible as debugConsole.
 global.debugConsole = this.console;
 debugConsole.script = this;
 
-// Load macros
-if (debugConsole.settings["macros"])  this.macros = debugConsole.settings["macros"];
-if (debugConsole.settings["defaultMacros"])  this.defaultMacros = debugConsole.settings["defaultMacros"];
 
-// By default, suppress error location messages when evaluating console input (because it's usually unhelpful)
-debugConsole.showErrorLocationsDuringConsoleEval = false;
+// Load macros.
+if (debugConsole.settings["macros"])  this.macros = debugConsole.settings["macros"];
+if (debugConsole.settings["default-macros"])  this.defaultMacros = debugConsole.settings["default-macros"];
+
+
+// Implement debugConsole.showErrorLocations with persistence.
+Object.defineProperty(debugConsole, "showErrorLocations",
+{
+	get: function () { return debugConsole.__showErrorLocations },
+	set: function (value)  { debugConsole.settings["show-error-locations"] = debugConsole.__showErrorLocations = !!value; }
+});
+debugConsole.__showErrorLocations = debugConsole.settings["show-error-locations"];
+
+
+// Implement debugConsole.showErrorLocationsDuringConsoleEval with persistence.
+Object.defineProperty(debugConsole, "showErrorLocationsDuringConsoleEval",
+{
+	get: function () { return debugConsole.settings["show-error-locations-during-console-eval"] ? true : false; },
+	set: function (value)  { debugConsole.settings.showErrorLocationsDuringConsoleEval = !!value; }
+});
+
+
+// Implement debugConsole.dumpStackForErrors with persistence.
+Object.defineProperty(debugConsole, "dumpStackForErrors",
+{
+	get: function () { return debugConsole.__dumpStackForErrors },
+	set: function (value)  { debugConsole.settings["dump-stack-for-errors"] = debugConsole.__dumpStackForErrors = !!value; }
+});
+debugConsole.__dumpStackForErrors = debugConsole.settings["dump-stack-for-errors"];
+
+
+// Implement debugConsole.dumpStackForWarnings with persistence.
+Object.defineProperty(debugConsole, "dumpStackForWarnings",
+{
+	get: function () { return debugConsole.__dumpStackForWarnings },
+	set: function (value)  { debugConsole.settings["dump-stack-for-warnings"] = debugConsole.__dumpStackForWarnings = !!value; }
+});
+debugConsole.__dumpStackForWarnings = debugConsole.settings["dump-stack-for-warnings"];
+
 
 /*	As a convenience, make player, player.ship, system and missionVariables
 	available to console commands as short variables:
@@ -723,21 +765,21 @@ debugConsole.__setUpCallObjC(Object.prototype);
 
 // evaluate() is outside the closure specifically to avoid strict mode.
 // If evaluate() is compiled in strict mode, all console input will also be strict.
-this.evaluate = function evaluate(command, type, PARAM)
+this.evaluate = function evaluate(command)
 {
-	var showErrorLocations = debugConsole.showErrorLocations;
-	debugConsole.showErrorLocations = debugConsole.showErrorLocationsDuringConsoleEval;
+	var showErrorLocations = debugConsole.__showErrorLocations;
+	debugConsole.__showErrorLocations = debugConsole.showErrorLocationsDuringConsoleEval;
 	try
 	{
 		var result = eval(command);
 	}
 	catch (e)
 	{
-		// console.showErrorLocations must be reset _after_ the exception is handed.
-		this.resetErrorLocTimer = new Timer(this, function () { console.showErrorLocations = showErrorLocations; delete this.resetErrorLocTimer; }, 0);
+		// console.__showErrorLocations must be reset _after_ the exception is handed.
+		this.resetErrorLocTimer = new Timer(this, function () { console.__showErrorLocations = showErrorLocations; delete this.resetErrorLocTimer; }, 0);
 		throw e;
 	}
-	console.showErrorLocations = showErrorLocations;
+	console.__showErrorLocations = showErrorLocations;
 	
 	if (result !== undefined)
 	{

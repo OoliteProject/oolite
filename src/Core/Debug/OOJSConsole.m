@@ -119,6 +119,8 @@ enum
 	kConsole_platformDescription,				// Information about system we're running on in unspecified format, string, read-only
 	kConsole_pedanticMode,						// JS pedantic mode (JS_STRICT flag, not the same as "use strict"), boolean (default true), read/write
 	kConsole_showErrorLocations,				// Show error/warning source locations, boolean (default true), read/write
+	kConsole_dumpStackForErrors,				// Write stack dump when reporting error/exception, boolean (default false), read/write
+	kConsole_dumpStackForWarnings,				// Write stack dump when reporting warning, boolean (default false), read/write
 	
 	kConsole_glVendorString,					// OpenGL GL_VENDOR string, string, read-only
 	kConsole_glRendererString,					// OpenGL GL_RENDERER string, string, read-only
@@ -151,7 +153,9 @@ static JSPropertySpec sConsoleProperties[] =
 	{ "displayFPS",							kConsole_displayFPS,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "platformDescription",				kConsole_platformDescription,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "pedanticMode",						kConsole_pedanticMode,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "showErrorLocations",					kConsole_showErrorLocations,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "__showErrorLocations",				kConsole_showErrorLocations,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "__dumpStackForErrors",				kConsole_dumpStackForErrors,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "__dumpStackForWarnings",				kConsole_dumpStackForWarnings,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "glVendorString",						kConsole_glVendorString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "glRendererString",					kConsole_glRendererString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "glFixedFunctionTextureUnitCount",	kConsole_glFixedFunctionTextureUnitCount,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -323,6 +327,14 @@ static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
 			*value = OOJSValueFromBOOL([[OOJavaScriptEngine sharedEngine] showErrorLocations]);
 			break;
 			
+		case kConsole_dumpStackForErrors:
+			*value = OOJSValueFromBOOL([[OOJavaScriptEngine sharedEngine] dumpStackForErrors]);
+			break;
+			
+		case kConsole_dumpStackForWarnings:
+			*value = OOJSValueFromBOOL([[OOJavaScriptEngine sharedEngine] dumpStackForWarnings]);
+			break;
+			
 		case kConsole_glVendorString:
 			*value = [[[OOOpenGLExtensionManager sharedManager] vendorString] oo_jsValueInContext:context];
 			break;
@@ -430,6 +442,20 @@ static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 			}
 			break;
 			
+		case kConsole_dumpStackForErrors:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[[OOJavaScriptEngine sharedEngine] setDumpStackForErrors:bValue];
+			}
+			break;
+			
+		case kConsole_dumpStackForWarnings:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[[OOJavaScriptEngine sharedEngine] setDumpStackForWarnings:bValue];
+			}
+			break;
+			
 		default:
 			OOJSReportBadPropertySelector(context, @"Console", OOJS_PROPID_INT);
 			return NO;
@@ -528,7 +554,8 @@ static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS)
 	}
 	
 	settingValue = [monitor configurationValueForKey:key];
-	*value = [settingValue oo_jsValueInContext:context];
+	if (settingValue != NULL)  *value = [settingValue oo_jsValueInContext:context];
+	else  *value = JSVAL_VOID;
 	
 	return YES;
 	

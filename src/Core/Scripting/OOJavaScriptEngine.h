@@ -59,6 +59,10 @@ enum
 	uint8_t							mainContextInUse;
 	JSObject						*globalObject;
 	BOOL							_showErrorLocations;
+#ifndef NDEBUG
+	BOOL							_dumpStackForErrors;
+	BOOL							_dumpStackForWarnings;
+#endif
 #if OOJSENGINE_MONITOR_SUPPORT
 	id<OOJavaScriptEngineMonitor>	monitor;
 #endif
@@ -91,6 +95,12 @@ enum
 - (void) setShowErrorLocations:(BOOL)value;
 
 #ifndef NDEBUG
+- (BOOL) dumpStackForErrors;
+- (void) setDumpStackForErrors:(BOOL)value;
+
+- (BOOL) dumpStackForWarnings;
+- (void) setDumpStackForWarnings:(BOOL)value;
+
 // Install handler for JS "debugger" statment.
 - (void) enableDebuggerStatement;
 #endif
@@ -587,9 +597,9 @@ void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_
 	Write JavaScript stack to log.
 */
 #ifndef NDEBUG
-void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
+void OOJSDumpStack(JSContext *context);
 #else
-#define OOJSDumpStack(lmc, cx)  do {} while (0)
+#define OOJSDumpStack(cx)  do {} while (0)
 #endif
 
 

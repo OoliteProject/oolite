@@ -39,14 +39,21 @@
 	
 	
 	// Automatic showing of console for various types of message
-	show-console-on-warning				= yes;	// JavaScript warning
-	show-console-on-error				= yes;	// JavaScript error or exception
-	show-console-on-log					= no;	// log() called
+	show-console-on-warning						= true;		// JavaScript warning
+	show-console-on-error						= true;		// JavaScript error or exception
+	show-console-on-log							= false;	// log() called
 	
+	// Show where an error or warning occurred.
+	show-error-locations						= true;
+	show-error-locations-during-console-eval	= false;
+	
+	// Log stack trace when reporting errors/warnings.
+	dump-stack-for-errors						= true;
+	dump-stack-for-warnings						= true;
 	
 	// Macro definitions for the console macro system (implemented in oolite-debug-console.js).
 	// Note that these call simple functions in oolite-debug-console.js, not magic functions provided by Oolite.
-	defaultMacros =
+	default-macros =
 	{
 		// Manipulating macros
 		"setM"		= "setMacro(PARAM)";

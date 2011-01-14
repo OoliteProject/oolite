@@ -291,11 +291,6 @@
 	script.javaScript.badParameter			= $scriptError;
 	script.javaScript.context.create		= no;
 	script.javaScript.timeLimit				= yes;					// Script ran for too long and has been killed.
-	script.javaScript.stackTrace			= $scriptDebugOn;		// Log script call hierarchy
-	script.javaScript.stackTrace.error		= inherit;				// ...for errors
-	script.javaScript.stackTrace.exception	= inherit;				// ...for exceptions
-	script.javaScript.stackTrace.timeLimit	= yes;					// ...for time limiter
-	script.javaScript.stackTrace.warning	= inherit;				// ...for warnings
 	
 	script.javaScript.warning.uselessExpr	= no;					// A bug in SpiderMonkey causes this warning to be raised when "use strict" is seen in pedantic mode, even though "use strict" is respected. https://bugzilla.mozilla.org/show_bug.cgi?id=559402
 	

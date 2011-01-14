@@ -125,13 +125,14 @@ static id JSNumberConverter(JSContext *context, JSObject *object);
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report)
 {
-	NSString		*severity = @"error";
-	NSString		*messageText = nil;
-	NSString		*lineBuf = nil;
-	NSString		*messageClass = nil;
-	NSString		*highlight = @"*****";
-	NSString		*activeScript = nil;
-	BOOL			showLocation = [[OOJavaScriptEngine sharedEngine] showErrorLocations];
+	NSString			*severity = @"error";
+	NSString			*messageText = nil;
+	NSString			*lineBuf = nil;
+	NSString			*messageClass = nil;
+	NSString			*highlight = @"*****";
+	NSString			*activeScript = nil;
+	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
+	BOOL				showLocation = [jsEng showErrorLocations];
 	
 	// Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
 	OOJSPauseTimeLimiter();
@@ -198,7 +199,10 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		}
 		
 #ifndef NDEBUG
-		OOJSDumpStack([NSString stringWithFormat:@"script.javaScript.stackTrace.%@", severity], context);
+		BOOL dump;
+		if (report->flags & JSREPORT_WARNING)  dump = [jsEng dumpStackForWarnings];
+		else  dump = [jsEng dumpStackForErrors];
+		if (dump)  OOJSDumpStack(context);
 #endif
 		
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -222,7 +226,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 + (OOJavaScriptEngine *)sharedEngine
 {
-	if (sSharedEngine == nil)  sSharedEngine =[[self alloc] init];
+	if (sSharedEngine == nil)  sSharedEngine = [[self alloc] init];
 	
 	return sSharedEngine;
 }
@@ -253,7 +257,17 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	sSharedEngine = self;
 	
-	_showErrorLocations = YES;
+	
+#ifndef NDEBUG
+	/*	Set stack trace preferences from preferences. These will be overriden
+		by the debug OXP script if installed, but being able to enable traces
+		without setting up the debug console could be useful for debugging
+		users' problems.
+	*/
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	[self setDumpStackForErrors:[defaults boolForKey:@"dump-stack-for-errors"]];
+	[self setDumpStackForWarnings:[defaults boolForKey:@"dump-stack-for-warnings"]];
+#endif
 	
 	assert(sizeof(jschar) == sizeof(unichar));
 	
@@ -500,7 +514,7 @@ static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecod
 	OOJSPauseTimeLimiter();
 	
 	OOLog(@"script.javaScript.debugger", @"debugger invoked during %@:", [[OOJSScript currentlyRunningScript] displayName]);
-	OOJSDumpStack(@"script.javaScript.debugger", context);
+	OOJSDumpStack(context);
 	
 	OOJSResumeTimeLimiter();
 	
@@ -508,10 +522,36 @@ static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecod
 }
 
 
+#ifndef NDEBUG
+- (BOOL) dumpStackForErrors
+{
+	return _dumpStackForErrors;
+}
+
+
+- (void) setDumpStackForErrors:(BOOL)value
+{
+	_dumpStackForErrors = !!value;
+}
+
+
+- (BOOL) dumpStackForWarnings
+{
+	return _dumpStackForWarnings;
+}
+
+
+- (void) setDumpStackForWarnings:(BOOL)value
+{
+	_dumpStackForWarnings = !!value;
+}
+
+
 - (void) enableDebuggerStatement
 {
 	JS_SetDebuggerHandler(runtime, DebuggerHook, self);
 }
+#endif
 
 @end
 
@@ -559,11 +599,52 @@ static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecod
 
 #ifndef NDEBUG
 
-void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
+static NSString *DebugDescribe(JSContext *context, jsval value)
 {
-	if (logMessageClass == nil)  logMessageClass = @"debugger";
-	else if (!OOLogWillDisplayMessagesInClass(logMessageClass))  return;
+	if (JSVAL_IS_OBJECT(value) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(value)))
+	{
+		JSString *name = JS_GetFunctionId(JS_ValueToFunction(context, value));
+		if (name != NULL)  return [NSString stringWithFormat:@"function %@", OOStringFromJSString(name)];
+		else  return @"function";
+	}
 	
+	NSString *result = OOStringFromJSValueEvenIfNull(context, value);
+	if (JSVAL_IS_STRING(value))
+	{
+		result = [NSString stringWithFormat:@"\"%@\"", [result escapedForJavaScriptLiteral]];
+	}
+	return result;
+}
+
+
+static void DumpVariable(JSContext *context, JSPropertyDesc *prop)
+{
+	NSString *name = OOStringFromJSValueEvenIfNull(context, prop->id);
+	NSString *value = DebugDescribe(context, prop->value);
+	
+	enum
+	{
+		kInterestingFlags = ~(JSPD_ENUMERATE | JSPD_PERMANENT | JSPD_VARIABLE | JSPD_ARGUMENT)
+	};
+	
+	NSString *flagStr = @"";
+	if ((prop->flags & kInterestingFlags) != 0)
+	{
+		NSMutableArray *flags = [NSMutableArray array];
+		if (prop->flags & JSPD_READONLY)  [flags addObject:@"read-only"];
+		if (prop->flags & JSPD_ALIAS)  [flags addObject:[NSString stringWithFormat:@"alias (%@)", DebugDescribe(context, prop->alias)]];
+		if (prop->flags & JSPD_EXCEPTION)  [flags addObject:@"exception"];
+		if (prop->flags & JSPD_ERROR)  [flags addObject:@"error"];
+		
+		flagStr = [NSString stringWithFormat:@" [%@]", [flags componentsJoinedByString:@", "]];
+	}
+	
+	OOLog(@"js.stackFrame", @"    %@: %@%@", name, value, flagStr);
+}
+
+
+void OOJSDumpStack(JSContext *context)
+{
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	NS_DURING
@@ -571,18 +652,22 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
 		unsigned idx = 0;
 		while (JS_FrameIterator(context, &frame) != NULL)
 		{
-			JSScript *script = JS_GetFrameScript(context, frame);
-			NSString *desc = nil;
+			JSScript			*script = JS_GetFrameScript(context, frame);
+			NSString			*desc = nil;
+			JSPropertyDescArray	properties = { 0 , NULL };
+			BOOL				gotProperties = NO;
 			
 			if (script != NULL)
 			{
-				const char *fileName = JS_GetScriptFilename(context, script);
-				jsbytecode *PC = JS_GetFramePC(context, frame);
-				unsigned lineNo = JS_PCToLineNumber(context, script, PC);
+				const char	*fileName = JS_GetScriptFilename(context, script);
+				jsbytecode	*PC = JS_GetFramePC(context, frame);
+				unsigned	lineNo = JS_PCToLineNumber(context, script, PC);
+				JSObject	*scope = JS_GetFrameScopeChain(context, frame);
+				gotProperties = JS_GetPropertyDescArray(context, scope, &properties);
 				
-				NSString *fileNameObj = [NSString stringWithUTF8String:fileName];
+				NSString	*fileNameObj = [NSString stringWithUTF8String:fileName];
 				if (fileNameObj == nil)  fileNameObj = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];
-				NSString *shortFileName = [fileNameObj lastPathComponent];
+				NSString	*shortFileName = [fileNameObj lastPathComponent];
 				if (![[shortFileName lowercaseString] isEqualToString:@"script.js"])  fileNameObj = shortFileName;
 				
 				NSString *funcDesc = nil;
@@ -624,8 +709,47 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
 				desc = @"<Oolite native>";
 			}
 			
-			OOLog(@"js.stackFrame", @"%4u %@", idx, desc);
+			OOLog(@"js.stackFrame", @"%2u %@", idx, desc);
 			
+			if (gotProperties)
+			{
+				// Dump "this".
+				jsval this;
+				JS_GetFrameThis(context, frame, &this);
+				static BOOL haveThis = NO;
+				jsval thisAtom;
+				if (EXPECT_NOT(!haveThis))
+				{
+					thisAtom = STRING_TO_JSVAL(JS_InternString(context, "this"));
+					haveThis = YES;
+				}
+				JSPropertyDesc thisDesc = { .id = thisAtom, .value = this };
+				DumpVariable(context, &thisDesc);
+				
+				// Dump arguments.
+				unsigned i;
+				for (i = 0; i < properties.length; i++)
+				{
+					JSPropertyDesc *prop = &properties.array[i];
+					if (prop->flags & JSPD_ARGUMENT)  DumpVariable(context, prop);
+				}
+				
+				// Dump locals.
+				for (i = 0; i < properties.length; i++)
+				{
+					JSPropertyDesc *prop = &properties.array[i];
+					if (prop->flags & JSPD_VARIABLE)  DumpVariable(context, prop);
+				}
+				
+				// Dump anything else.
+				for (i = 0; i < properties.length; i++)
+				{
+					JSPropertyDesc *prop = &properties.array[i];
+					if (!(prop->flags & (JSPD_ARGUMENT | JSPD_VARIABLE)))  DumpVariable(context, prop);
+				}
+				
+				JS_PutPropertyDescArray(context, &properties);
+			}
 			idx++;
 		}
 	NS_HANDLER
@@ -1497,12 +1621,6 @@ const char *JSValueTypeDbg(jsval val)
 #endif
 	if (JSVAL_IS_OBJECT(val))  return OOJSGetClass(NULL, JSVAL_TO_OBJECT(val))->name;	// Fun fact: although a context is required if JS_THREADSAFE is defined, it isn't actually used.
 	return "unknown";
-}
-
-
-void JSDumpStack(JSContext *context)
-{
-	OOJSDumpStack(nil, context);
 }
 
 #endif
