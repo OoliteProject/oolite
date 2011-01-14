@@ -475,9 +475,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 - (void) removeGCObjectRoot:(JSObject **)rootPtr
 {
-	JSContext				*context = NULL;
-	
-	context = [self acquireContext];
+	JSContext *context = [self acquireContext];
 	JS_BeginRequest(context);
 	JS_RemoveObjectRoot(context, rootPtr);
 	JS_EndRequest(context);
@@ -487,12 +485,22 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 - (void) removeGCValueRoot:(jsval *)rootPtr
 {
-	JSContext				*context = NULL;
-	
-	context = [self acquireContext];
+	JSContext *context = [self acquireContext];
 	JS_BeginRequest(context);
 	JS_RemoveValueRoot(context, rootPtr);
 	JS_EndRequest(context);
+	[self releaseContext:context];
+}
+
+
+- (void) garbageCollectionOpportunity
+{
+	JSContext *context = [self acquireContext];
+#ifndef NDEBUG
+	JS_GC(context);
+#else
+	JS_MaybeGC(context);
+#endif
 	[self releaseContext:context];
 }
 

@@ -91,6 +91,8 @@ enum
 - (void) removeGCObjectRoot:(JSObject **)rootPtr;
 - (void) removeGCValueRoot:(jsval *)rootPtr;
 
+- (void) garbageCollectionOpportunity;
+
 - (BOOL) showErrorLocations;
 - (void) setShowErrorLocations:(BOOL)value;
 

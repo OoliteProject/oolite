@@ -4614,6 +4614,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		[self setGuiToStatusScreen];
 	}
 	[[OOCacheManager sharedCache] flush];
+	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity];
 	
 	// When a mission screen is started, any on-screen message is removed immediately.
 	[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];	// also displays docking reports first.
