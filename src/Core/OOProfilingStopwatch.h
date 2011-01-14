@@ -47,6 +47,8 @@ SOFTWARE.
 */
 
 #if OOLITE_MAC_OS_X
+
+// Mac OS X: always use MACH_ABSOLUTE_TIME.
 #define OO_PROFILING_STOPWATCH_MACH_ABSOLUTE_TIME 1
 #import <mach/mach_time.h>
 
@@ -56,8 +58,10 @@ typedef uint64_t OOHighResTimeValue;
 #define OODisposeHighResTime(time)  do { (void)time; } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 
-OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);
 #elif OOLITE_WINDOWS
+
+// Windows: if standalone, use timeGetTime...
+#if OOSTOPWATCH_STANDALONE
 #define OO_PROFILING_STOPWATCH_WINDOWS 1
 typedef DWORD OOHighResTimeValue;	// Rolls over once every 50 days, but we can live with that.
 
@@ -68,8 +72,18 @@ typedef DWORD OOHighResTimeValue;	// Rolls over once every 50 days, but we can l
 #define OODisposeHighResTime(time)  do { (void)time; } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 
-OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);
 #else
+/*	...otherwise, use JS_Now() for higher precision. The Windows implementation
+	does the messy work of calibrating performance counters against low-res
+	timers.
+*/
+#define OO_PROFILING_STOPWATCH_JS_NOW 1
+#endif
+
+#else
+
+// Other platforms (presumed unixy): use gettimeofday().
+
 #define OO_PROFILING_STOPWATCH_GETTIMEOFDAY 1
 #import <sys/time.h>
 
@@ -85,8 +99,18 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
 #define OODisposeHighResTime(time)  do { (void)time; } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 
-OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);
 #endif
+
+#if OO_PROFILING_STOPWATCH_JS_NOW
+#import "jsapi.h"
+typedef int64 OOHighResTimeValue;
+
+#define OOGetHighResTime JS_Now
+#define OODisposeHighResTime(time)  do { (void)time; } while (0)
+#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
+#endif
+
+OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);
 
 
 @interface OOProfilingStopwatch: NSObject
