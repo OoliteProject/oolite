@@ -1682,11 +1682,13 @@ const char *JSValueToStrSafeDbg(jsval val)
 		const jschar *chars = NULL;
 		size_t length = JS_GetStringLength(string);
 		
+#if OO_NEW_JS
 		if (JS_StringHasBeenInterned(string))
 		{
 			chars = JS_GetInternedStringChars(string);
 		}
 		// Flat strings can be extracted without a context, but cannot be detected.
+#endif
 		
 		if (chars == NULL)  formatted = [NSString stringWithFormat:@"string [%zu chars]", length];
 		else  formatted = [NSString stringWithCharacters:chars length:length];
