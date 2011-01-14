@@ -639,7 +639,7 @@ static void DumpVariable(JSContext *context, JSPropertyDesc *prop)
 		flagStr = [NSString stringWithFormat:@" [%@]", [flags componentsJoinedByString:@", "]];
 	}
 	
-	OOLog(@"js.stackFrame", @"    %@: %@%@", name, value, flagStr);
+	OOLog(@"script.javaScript.stackTrace", @"    %@: %@%@", name, value, flagStr);
 }
 
 
@@ -732,7 +732,7 @@ void OOJSDumpStack(JSContext *context)
 				desc = @"<Oolite native>";
 			}
 			
-			OOLog(@"js.stackFrame", @"%2u %@", idx, desc);
+			OOLog(@"script.javaScript.stackTrace", @"%2u %@", idx, desc);
 			
 			if (gotProperties)
 			{

@@ -940,7 +940,7 @@ Changes between Oolite 1.70 and Oolite 1.71:
   including the main station. Once again made blowing up the main station with
   blowUpMainStation (or explode()) work.
 * Added experimental planet.setTexture in JavaScript. Usage restricted to
-  shipWillExitWitchspace()& shipWillLaunchFromStation().
+  shipWillExitWitchspace() & shipWillLaunchFromStation().
  
   Bugfixes:
 * Fixed a serious memory leak on the short-range chart screen. Other smaller
