@@ -1604,13 +1604,8 @@ const char *JSValueToStrDbg(jsval val)
 
 const char *JSObjectToStrDbg(JSObject *obj)
 {
+	if (obj == NULL)  return "null";
 	return JSValueToStrDbg(OBJECT_TO_JSVAL(obj));
-}
-
-
-const char *JSStringToStrDbg(JSString *str)
-{
-	return JSValueToStrDbg(STRING_TO_JSVAL(str));
 }
 
 
@@ -1645,6 +1640,29 @@ const char *JSValueTypeDbg(jsval val)
 #endif
 	if (JSVAL_IS_OBJECT(val))  return OOJSGetClass(NULL, JSVAL_TO_OBJECT(val))->name;	// Fun fact: although a context is required if JS_THREADSAFE is defined, it isn't actually used.
 	return "unknown";
+}
+
+
+// Doesn't follow pointers, mess with requests or otherwise poke the SpiderMonkey.
+const char *JSValueToStrSafeDbg(jsval val)
+{
+	NSString *formatted = nil;
+	
+	if (JSVAL_IS_INT(val))			formatted = [NSString stringWithFormat:@"%i", (long)JSVAL_TO_INT(val)];
+	else if (JSVAL_IS_DOUBLE(val))	formatted = [NSString stringWithFormat:@"%g", JSVAL_TO_DOUBLE(val)];
+	else if (JSVAL_IS_STRING(val))	formatted = [NSString stringWithFormat:@"\"%@\"", [OOStringFromJSString(JSVAL_TO_STRING(val)) escapedForJavaScriptLiteral]];
+	else if (JSVAL_IS_BOOLEAN(val))	formatted = (JSVAL_TO_BOOLEAN(val)) ? @"true" : @"false";
+	else if (JSVAL_IS_VOID(val))	return "undefined";
+	else							return JSValueTypeDbg(val);
+	
+	return [formatted UTF8String];
+}
+
+
+const char *JSStringToStrDbg(JSString *str)
+{
+	if (str == NULL)  return "null";
+	return JSValueToStrSafeDbg(STRING_TO_JSVAL(str));
 }
 
 #endif
