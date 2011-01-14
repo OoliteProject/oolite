@@ -45,10 +45,6 @@ SOFTWARE.
 #import "OOProfilingStopwatch.h"
 #import "ResourceManager.h"
 
-// MinGW (possibly also Linux GCC) does not define SIZE_T_MAX
-#ifndef SIZE_T_MAX
-#define SIZE_T_MAX SIZE_MAX
-#endif
 
 @interface Entity (OODebugInspector)
 
@@ -965,7 +961,7 @@ static JSBool ConsoleDumpHeap(OOJS_NATIVE_ARGS)
 	FILE *file = fopen([path UTF8String], "w");
 	if (file != NULL)
 	{
-		OK = JS_DumpHeap(context, file, NULL, 0, NULL, SIZE_T_MAX, NULL);
+		OK = JS_DumpHeap(context, file, NULL, 0, NULL, SIZE_MAX, NULL);
 		fclose(file);
 	}
 	
