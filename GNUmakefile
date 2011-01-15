@@ -70,7 +70,7 @@ else
 		endif
 		JS_IMPORT_LIBRARY = libjs.a
 	endif
-	ADDITIONAL_INCLUDE_DIRS = -I$(LIBJS_SRC_DIR)  -I$(LIBJS_BIN_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
+	ADDITIONAL_INCLUDE_DIRS = -I$(LIBJS_SRC_DIR)  -I$(LIBJS_BIN_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables
 	ADDITIONAL_OBJC_LIBS = $(LIBJS_BIN_DIR)/$(JS_IMPORT_LIBRARY) -lGLU -lGL -lX11
 	ADDITIONAL_CFLAGS = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags`
 	ADDITIONAL_OBJCFLAGS = -Wall -std=c99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags`

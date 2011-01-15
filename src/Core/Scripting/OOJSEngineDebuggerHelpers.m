@@ -197,6 +197,7 @@ const char *JSStringToStrSafeDbg(JSString *str)
 }
 
 
+#if OO_NEW_JS
 const char *JSIDToStrSafeDbg(jsid anID)
 {
 	NSString *formatted = nil;
@@ -213,7 +214,7 @@ const char *JSIDToStrSafeDbg(jsid anID)
 		const jschar	*chars = NULL;
 		size_t			length = JS_GetStringLength(string);
 		
-#if OO_NEW_JS && OOJS_FF4B9
+#if OOJS_FF4B9
 		if (JS_StringHasBeenInterned(string))
 		{
 			chars = JS_GetInternedStringChars(string);
@@ -235,5 +236,6 @@ const char *JSIDToStrSafeDbg(jsid anID)
 	
 	return [formatted UTF8String];
 }
+#endif
 
 #endif
