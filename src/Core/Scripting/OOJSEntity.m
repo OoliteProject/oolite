@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #import "OOJSVector.h"
 #import "OOJSQuaternion.h"
 #import "OOJavaScriptEngine.h"
-#import "OOConstToString.h"
+#import "OOConstToJSString.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJSCall.h"
 
@@ -204,12 +204,12 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		case kEntity_status:
-			result = EntityStatusToString([entity status]);
-			break;
+			*value = OOJSValueFromEntityStatus(context, [entity status]);
+			return YES;
 		
 		case kEntity_scanClass:
-			result = ScanClassToString([entity scanClass]);
-			break;
+			*value = OOJSValueFromScanClass(context, [entity scanClass]);
+			return YES;
 		
 		case kEntity_mass:
 			OK = JS_NewDoubleValue(context, [entity mass], value);
@@ -231,38 +231,31 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 		
 		case kEntity_isValid:
 			*value = JSVAL_TRUE;
-			OK = YES;
-			break;
+			return YES;
 		
 		case kEntity_isShip:
 			*value = OOJSValueFromBOOL([entity isShip]);
-			OK = YES;
-			break;
+			return YES;
 		
 		case kEntity_isStation:
 			*value = OOJSValueFromBOOL([entity isStation]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kEntity_isSubEntity:
 			*value = OOJSValueFromBOOL([entity isSubEntity]);
-			OK = YES;
-			break;
+			return YES;
 		
 		case kEntity_isPlayer:
 			*value = OOJSValueFromBOOL([entity isPlayer]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kEntity_isPlanet:
 			*value = OOJSValueFromBOOL([entity isPlanet] && ![entity isSun]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kEntity_isSun:
 			*value = OOJSValueFromBOOL([entity isSun]);
-			OK = YES;
-			break;
+			return YES;
 		
 		case kEntity_distanceTravelled:
 			OK = JS_NewDoubleValue(context, [entity distanceTravelled], value);
@@ -279,7 +272,7 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 	if (result != nil)
 	{
 		*value = [result oo_jsValueInContext:context];
-		OK = YES;
+		return YES;
 	}
 	return OK;
 	
@@ -309,7 +302,7 @@ static JSBool EntitySetProperty(OOJS_PROP_ARGS)
 			{
 				[entity setPosition:vValue];
 				if ([entity isShip]) [(ShipEntity *)entity resetExhaustPlumes];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -317,7 +310,7 @@ static JSBool EntitySetProperty(OOJS_PROP_ARGS)
 			if (JSValueToQuaternion(context, *value, &qValue))
 			{
 				[entity setNormalOrientation:qValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -326,7 +319,7 @@ static JSBool EntitySetProperty(OOJS_PROP_ARGS)
 			{
 				fValue = OOClamp_0_max_d(fValue, [entity maxEnergy]);
 				[entity setEnergy:fValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		

@@ -309,6 +309,8 @@ OOLITE_SCRIPTING_FILES = \
 	EntityOOJavaScriptExtensions.m \
 	OOJavaScriptEngine.m \
 	OOJSEngineTimeManagement.m \
+	OOJSEngineDebuggerHelpers.m \
+	OOConstToJSString.m \
 	OOJSCall.m \
 	OOJSClock.m \
 	OOJSEntity.m \

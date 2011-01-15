@@ -382,6 +382,8 @@
 		1A3159590F1B894F00328E4A /* OOAIStateMachineVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3159260F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m */; };
 		1A31595A0F1B895000328E4A /* OOAIStateMachineVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3159250F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h */; };
 		1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3491290BC25EAA00802DA7 /* world-scripts.plist */; };
+		1A35257212E1FFA900244C9D /* OOConstToJSString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A35257012E1FFA900244C9D /* OOConstToJSString.h */; };
+		1A35257312E1FFA900244C9D /* OOConstToJSString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A35257112E1FFA900244C9D /* OOConstToJSString.m */; };
 		1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */ = {isa = PBXBuildFile; fileRef = 1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */; };
 		1A35916D0C1C375400E52220 /* oolite-nebula-1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A3591690C1C375400E52220 /* oolite-nebula-1.png */; };
 		1A35916E0C1C375400E52220 /* oolite-star-1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A35916A0C1C375400E52220 /* oolite-star-1.png */; };
@@ -1600,6 +1602,8 @@
 		1A35251112E1F89100244C9D /* OOEntityStatus.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOEntityStatus.tbl; sourceTree = "<group>"; };
 		1A35256012E1FC0100244C9D /* OOScanClass.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOScanClass.tbl; sourceTree = "<group>"; };
 		1A35256212E1FC0500244C9D /* OOBehaviour.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOBehaviour.tbl; sourceTree = "<group>"; };
+		1A35257012E1FFA900244C9D /* OOConstToJSString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToJSString.h; sourceTree = "<group>"; };
+		1A35257112E1FFA900244C9D /* OOConstToJSString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConstToJSString.m; sourceTree = "<group>"; };
 		1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.rtfd; name = ReadMe.rtfd; path = Doc/ReadMe.rtfd; sourceTree = SOURCE_ROOT; };
 		1A3591690C1C375400E52220 /* oolite-nebula-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-1.png"; sourceTree = "<group>"; };
 		1A35916A0C1C375400E52220 /* oolite-star-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-1.png"; sourceTree = "<group>"; };
@@ -2602,6 +2606,8 @@
 				1A11F8480F35F60C001C886C /* OOJSShipGroup.m */,
 				1A0942C712D7C011003B6273 /* OOJSFrameCallbacks.h */,
 				1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */,
+				1A35257012E1FFA900244C9D /* OOConstToJSString.h */,
+				1A35257112E1FFA900244C9D /* OOConstToJSString.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -3408,6 +3414,7 @@
 				1A11C2B111CFC35000F3EE77 /* OOJSEngineTimeManagement.h in Headers */,
 				1A143A4811EF22C5001BAB8D /* JAPersistentFileReference.h in Headers */,
 				1AB5E1EF12BD628500C334DD /* OOJoystickManager.h in Headers */,
+				1A35257212E1FFA900244C9D /* OOConstToJSString.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3875,6 +3882,7 @@
 				1AB5E1F012BD628500C334DD /* OOJoystickManager.m in Sources */,
 				1A0942CE12D7D5B9003B6273 /* OOJSFrameCallbacks.m in Sources */,
 				1AC0F29E12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m in Sources */,
+				1A35257312E1FFA900244C9D /* OOConstToJSString.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

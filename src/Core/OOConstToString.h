@@ -4,6 +4,7 @@ OOConstToString.h
 
 Convert various sets of integer constants to strings.
 To consider: replacing the integer constants with string constants.
+ See also: OOConstToJSString.h.
 
 This has grown beyond "const-to-string" at this point.
 
@@ -30,6 +31,28 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "OOFunctionAttributes.h"
 #import "OOTypes.h"
+
+
+enum
+{
+	// Values used for unknown strings.
+	kOOEntityStatusDefault		= STATUS_INACTIVE,
+	kOOScanClassDefault			= CLASS_NOT_SET,
+	
+#if OO_BRAIN_AI
+	kOOInstinctIDDefault		= INSTINCT_NULL,
+#endif
+	
+	kOOWeaponTypeDefault		= WEAPON_NONE,
+	kOOCargoTypeDefault			= CARGO_UNDEFINED,
+	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
+	kOOEnergyUnitTypeDefault	= ENERGY_UNIT_NONE,
+	kOOGUIScreenIDDefault		= GUI_SCREEN_MAIN,
+	kOOGalacticHyperspaceBehaviourDefault = GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN,
+	kOOShaderSettingDefault		= SHADERS_NOT_SUPPORTED,
+	kOOCompassModeDefault		= COMPASS_MODE_BASIC,
+	kOORouteTypeDefault			= OPTIMIZED_BY_JUMPS
+};
 
 
 NSString *EntityStatusToString(OOEntityStatus status) CONST_FUNC;
@@ -72,7 +95,7 @@ NSString *EnergyUnitTypeToString(OOEnergyUnitType unit) CONST_FUNC;
 OOEnergyUnitType StringToEnergyUnitType(NSString *string) PURE_FUNC;
 
 NSString *GUIScreenIDToString(OOGUIScreenID screen) CONST_FUNC;
-OOEnergyUnitType StringToGUIScreenID(NSString *string) PURE_FUNC;
+OOGUIScreenID StringToGUIScreenID(NSString *string) PURE_FUNC;
 
 NSString *KillCountToRatingString(unsigned kills) CONST_FUNC;
 NSString *KillCountToRatingAndKillString(unsigned kills) CONST_FUNC;

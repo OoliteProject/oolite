@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "ResourceManager.h"
 #import "NSNumberOOExtensions.h"
+#import "OOConstToJSString.h"
 
 #import "OOJSGlobal.h"
 #import "OOJSMissionVariables.h"
@@ -321,6 +322,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	RegisterStandardObjectConverters(mainContext);
 	
 	SetUpOOJSGlobal(mainContext, globalObject);
+	OOConstToJSStringInit(mainContext);
 	
 	// Initialize Oolite classes.
 	InitOOJSMissionVariables(mainContext, globalObject);

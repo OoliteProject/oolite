@@ -35,7 +35,7 @@
 #import "OOJSSystemInfo.h"
 
 #import "OOCollectionExtractors.h"
-#import "OOConstToString.h"
+#import "OOConstToJSString.h"
 #import "OOEntityFilterPredicate.h"
 
 
@@ -656,23 +656,14 @@ static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	NSString			*scString = nil;
-	OOScanClass			scanClass = CLASS_NOT_SET;
 	Entity				*relativeTo = nil;
 	double				range = -1;
 	unsigned			result;
 	
-	scString = OOStringFromJSValue(context, OOJS_ARG(0));
-	if (scString == nil)
+	OOScanClass scanClass = OOScanClassFromJSValue(context, OOJS_ARG(0));
+	if (scanClass == CLASS_NOT_SET)
 	{
-		OOJSReportBadArguments(context, @"System", @"countEntitiesWithScanClass", argc, OOJS_ARGV, nil, @"scan class and optional reference entity and range");
-		return NO;
-	}
-	
-	scanClass = StringToScanClass(scString);
-	if (EXPECT_NOT(scanClass == CLASS_NOT_SET))
-	{
-		OOJSReportErrorForCaller(context, @"System", @"countEntitiesWithScanClass", @"Invalid scan class specifier \"%@\"", scString);
+		OOJSReportBadArguments(context, @"System", @"countEntitiesWithScanClass", 1, OOJS_ARGV, nil, @"scan class specifier");
 		return NO;
 	}
 	
@@ -696,23 +687,14 @@ static JSBool SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	NSString			*scString = nil;
-	OOScanClass			scanClass = CLASS_NOT_SET;
 	Entity				*relativeTo = nil;
 	double				range = -1;
 	NSArray				*result = nil;
 	
-	scString = OOStringFromJSValue(context, OOJS_ARG(0));
-	if (scString == nil)
+	OOScanClass scanClass = OOScanClassFromJSValue(context, OOJS_ARG(0));
+	if (scanClass == CLASS_NOT_SET)
 	{
-		OOJSReportBadArguments(context, @"System", @"entitiesWithScanClass", argc, OOJS_ARGV, nil, @"scan class and optional reference entity and range");
-		return NO;
-	}
-	
-	scanClass = StringToScanClass(scString);
-	if (EXPECT_NOT(scanClass == CLASS_NOT_SET))
-	{
-		OOJSReportErrorForCaller(context, @"System", @"entitiesWithScanClass", @"Invalid scan class specifier \"%@\"", scString);
+		OOJSReportBadArguments(context, @"System", @"countEntitiesWithScanClass", 1, OOJS_ARGV, nil, @"scan class specifier");
 		return NO;
 	}
 	

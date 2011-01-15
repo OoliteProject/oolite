@@ -4621,15 +4621,6 @@ static bool minShieldLevelPercentageInitialised = false;
 }
 
 
-#if 0
-- (void) setStatus:(OOEntityStatus)val
-{
-	[super setStatus:val];
-	OOLog(@"player.temp.status", @"Player status set to %@", EntityStatusToString(val));
-}
-#endif
-
-
 - (void) leaveDock:(StationEntity *)station
 {
 	if (station == nil)  return;

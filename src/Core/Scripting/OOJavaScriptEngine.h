@@ -784,6 +784,20 @@ OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString 
 	*length = JS_GetStringLength(string);
 	return JS_GetStringChars(string);
 }
+
+#define OOJS_FF4B9 0
+#endif
+
+
+#if OOJS_FF4B9
+#define OOJSCompareStrings JS_CompareStrings
+#else
+static inline JSBool OOJSCompareStrings(JSContext *context, JSString *str1, JSString *str2, int32 *result)
+{
+	NSCParameterAssert(context != NULL && JS_IsInRequest(context) && result != NULL);
+	*result = JS_CompareStrings(str1, str2);
+	return YES;
+}
 #endif
 
 

@@ -83,7 +83,9 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 
 
+#if !OOLITE_WINDOWS
 #pragma GCC visibility push (default)
+#endif
 
 
 const char *JSValueToStrDbg(jsval val)

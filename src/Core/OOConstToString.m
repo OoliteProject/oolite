@@ -74,7 +74,7 @@ OOEntityStatus StringToEntityStatus(NSString *string)
 {
 	#include "OOEntityStatus.tbl"
 	
-	return STATUS_INACTIVE;
+	return kOOEntityStatusDefault;
 }
 
 
@@ -82,7 +82,7 @@ OOScanClass StringToScanClass(NSString *string)
 {
 	#include "OOScanClass.tbl"
 	
-	return CLASS_NOT_SET;
+	return kOOScanClassDefault;
 }
 
 #undef ENTRY
@@ -115,7 +115,7 @@ OOInstinctID StringToInstinct(NSString *string)
 	REVERSE_CASE(INSTINCT_FLOCK_ALIKE);
 	REVERSE_CASE(INSTINCT_FOLLOW_AI);
 	
-	return INSTINCT_NULL;
+	return kOOInstinctIDDefault;
 }
 #endif
 
@@ -227,7 +227,7 @@ OOWeaponType StringToWeaponType(NSString *string)
 	REVERSE_CASE(WEAPON_MILITARY_LASER);
 	REVERSE_CASE(WEAPON_THARGOID_LASER);
 	
-	return WEAPON_NONE;
+	return kOOWeaponTypeDefault;
 }
 
 
@@ -264,7 +264,7 @@ OOWeaponType EquipmentStringToWeaponTypeSloppy(NSString *string)
 	EQ_REVERSE_CASE(MILITARY_LASER);
 	EQ_REVERSE_CASE(THARGOID_LASER);
 	
-	return WEAPON_NONE;
+	return kOOWeaponTypeDefault;
 #undef EQ_REVERSE_CASE
 }
 
@@ -280,7 +280,7 @@ OOWeaponType EquipmentStringToWeaponTypeStrict(NSString *string)
 	EQ_REVERSE_CASE(MILITARY_LASER);
 	EQ_REVERSE_CASE(THARGOID_LASER);
 	
-	return WEAPON_NONE;
+	return kOOWeaponTypeDefault;
 #undef EQ_REVERSE_CASE
 }
 
@@ -319,7 +319,7 @@ OOCargoType StringToCargoType(NSString *string)
 	// Backwards compatibility.
 	if ([string isEqual:@"CARGO_CARRIED"]) return CARGO_RANDOM;
 	
-	return CARGO_UNDEFINED;
+	return kOOCargoTypeDefault;
 }
 
 
@@ -408,7 +408,7 @@ OOCommodityType StringToCommodityType(NSString *string) // needs commodity ident
 	CO_REVERSE_CASE(GOLD);
 	CO_REVERSE_CASE(PLATINUM);
 	
-	return COMMODITY_UNDEFINED;
+	return kOOCommodityTypeDefault;
 #undef CO_REVERSE_CASE
 }
 
@@ -440,7 +440,7 @@ OOEnergyUnitType StringToEnergyUnitType(NSString *string)
 	REVERSE_CASE(ENERGY_UNIT_NORMAL_DAMAGED);
 	REVERSE_CASE(ENERGY_UNIT_NAVAL_DAMAGED);
 	
-	return ENERGY_UNIT_NONE;
+	return kOOEnergyUnitTypeDefault;
 }
 
 
@@ -474,7 +474,7 @@ NSString *GUIScreenIDToString(OOGUIScreenID screen)
 }
 
 
-OOEnergyUnitType StringToGUIScreenID(NSString *string)
+OOGUIScreenID StringToGUIScreenID(NSString *string)
 {
 	REVERSE_CASE(GUI_SCREEN_MAIN);
 	REVERSE_CASE(GUI_SCREEN_INTRO1);
@@ -496,7 +496,7 @@ OOEnergyUnitType StringToGUIScreenID(NSString *string)
 	REVERSE_CASE(GUI_SCREEN_MISSION);
 	REVERSE_CASE(GUI_SCREEN_REPORT);
 	
-	return GUI_SCREEN_MAIN;
+	return kOOGUIScreenIDDefault;
 }
 
 
@@ -515,7 +515,7 @@ OOGalacticHyperspaceBehaviour StringToGalacticHyperspaceBehaviour(NSString *stri
 		return GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES;
 	}
 	
-	return GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN;
+	return kOOGalacticHyperspaceBehaviourDefault;
 }
 
 
@@ -638,7 +638,7 @@ OOShaderSetting StringToShaderSetting(NSString *string)
 	REVERSE_CASE(SHADERS_FULL);
 	REVERSE_CASE(SHADERS_NOT_SUPPORTED);
 	
-	return SHADERS_NOT_SUPPORTED;
+	return kOOShaderSettingDefault;
 }
 
 
@@ -698,7 +698,7 @@ OOCompassMode StringToCompassMode(NSString *string)
 	REVERSE_CASE(COMPASS_MODE_TARGET);
 	REVERSE_CASE(COMPASS_MODE_BEACONS);
 	
-	return COMPASS_MODE_BASIC;
+	return kOOCompassModeDefault;
 }
 
 
@@ -708,7 +708,7 @@ OORouteType StringToRouteType(NSString *string)
 	REVERSE_CASE(OPTIMIZED_BY_JUMPS);
 	REVERSE_CASE(OPTIMIZED_BY_TIME);
 	
-	return OPTIMIZED_BY_JUMPS;
+	return kOORouteTypeDefault;
 }
 
 
