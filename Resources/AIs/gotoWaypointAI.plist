@@ -18,7 +18,7 @@
 	};
 	"NEW_WAYPOINT" =
 	{
-		ENTER = ("setSpeedFactorTo: 0.0", "setDesiredRangeTo: 50.0", checkCourseToDestination);
+		ENTER = ("setSpeedFactorTo: 0.0", setDesiredRangeForWaypoint, checkCourseToDestination);
 		"WAYPOINT_SET" = ("setStateTo: NEW_WAYPOINT");
 		"COURSE_OK" = ("setStateTo: GO_TO_WAYPOINT");
 		"FRUSTRATED" = ("setSpeedFactorTo: 0.1", "setDesiredRangeTo: 1000.0", exitAI);

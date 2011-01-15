@@ -82,6 +82,8 @@ MA 02110-1301, USA.
 
 - (void) setDesiredRangeTo:(NSString *)rangeString;
 
+- (void) setDesiredRangeForWaypoint;
+
 - (void) setSpeedTo:(NSString *)speedString;
 
 - (void) setSpeedFactorTo:(NSString *)speedString;
@@ -398,6 +400,10 @@ MA 02110-1301, USA.
 	desired_range = [rangeString doubleValue];
 }
 
+- (void) setDesiredRangeForWaypoint
+{
+	desired_range = OOMax_d(maxFlightSpeed / max_flight_pitch / 6, 50.0); // some ships need a longer range to reach a waypoint.
+}
 
 - (void) performFlyToRangeFromDestination
 {

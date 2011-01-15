@@ -21,10 +21,10 @@
 	};
 	"GO_TO_WAYPOINT_PLANET" =
 	{
-		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		ENTER = (setDesiredRangeForWaypoint, checkCourseToDestination);
 		RESTARTED = ("setStateTo: INBOUND_LOOT");
 		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"WAYPOINT_SET" = (setDesiredRangeForWaypoint, checkCourseToDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
 		"AEGIS_CLOSE_TO_MAIN_PLANET" = ("setStateTo: HEAD_FOR_SUN");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
@@ -53,10 +53,10 @@
 	};
 	"GO_TO_WAYPOINT_SUN" =
 	{
-		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		ENTER = (setDesiredRangeForWaypoint, checkCourseToDestination);
 		RESTARTED = ("setStateTo: OUTBOUND_LOOT");
 		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		"WAYPOINT_SET" = (setDesiredRangeForWaypoint, checkCourseToDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_SUN");
 		"CLOSE_TO_SUN" = ("setStateTo: HEAD_FOR_PLANET");
 		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);

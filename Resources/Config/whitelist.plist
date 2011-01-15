@@ -89,6 +89,7 @@
 		"randomPauseAI:",
 		"setDestinationToCurrentLocation",
 		"setDesiredRangeTo:",
+		"setDesiredRangeForWaypoint",
 		"performFlyToRangeFromDestination",
 		"setSpeedTo:",
 		"setSpeedFactorTo:",
