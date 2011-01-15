@@ -67,3 +67,6 @@ _JSObjectToStrDbg
 _JSStringToStrDbg
 _JSValueTypeDbg
 _JSValueToStrSafeDbg
+_JSObjectToStrSafeDbg
+_JSStringToStrSafeDbg
+_JSIDToStrSafeDbg

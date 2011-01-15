@@ -1,0 +1,87 @@
+# Oolite gdb conveniences
+# To use, copy into ~/.gdbinit.
+
+define pjsv
+	call (char *)JSValueToStrSafeDbg($arg0)
+end
+document psjv
+pjsv <value>
+Oolite
+Print a description of the specified JavaScript value (jsval).
+See also: pjso, pjss, pjsid, pjsvfull
+end
+
+define pjso
+	call (char *)JSObjectToStrSafeDbg($arg0)
+end
+document pjso
+pjso <value>
+Oolite
+Print a description of the specified JavaScript object (JSObject *).
+See also: pjsv, pjss, pjsid, pjsofull
+end
+
+define pjss
+	call (char *)JSStringToStrSafeDbg($arg0)
+end
+document pjss
+pjss <value>
+Oolite
+Print a description of the specified JavaScript string (JSString *).
+See also: pjsv, pjso, pjsid, pjssfull
+end
+
+define pjsvfull
+	call (char *)JSValueToStrDbg($arg0)
+end
+document pjsvfull
+pjsvfull <value>
+Oolite
+Print a description of the specified JavaScript value (jsval), even if this
+involves calling into SpiderMonkey and possibly invoking JS toString() methods.
+See also: pjsofull, pjssfull, pjsv
+end
+
+define pjso
+	call (char *)JSObjectToStrSafeDbg($arg0)
+end
+document pjsofull
+pjsofull <value>
+Oolite
+Print a description of the specified JavaScript object (JSObject *), even if
+this involves calling into SpiderMonkey and possibly invoking JS toString()
+methods.
+See also: pjsvfull, pjssfull, pjso
+end
+
+define pjss
+	call (char *)JSStringToStrSafeDbg($arg0)
+end
+document pjssfull
+pjssfull <value>
+Oolite
+Print a description of the specified JavaScript string (JSString *), even if
+this involves calling into SpiderMonkey and possibly invoking JS toString()
+methods.
+See also: pjsvfull, pjsofull, pjss
+end
+
+define pjsid
+	call (char *)JSIDToStrSafeDbg($arg0)
+end
+document
+pjsid <value>
+Oolite
+Print a description of the specified JavaScript identifier (jsid).
+See also: pjsv, pjso, pjss
+end
+
+
+define jsstack
+	call OOJSDumpStack(context)
+end
+document jsstack
+jsstack
+Oolite
+Dump the current JavaScript call stack to the log.
+end

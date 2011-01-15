@@ -769,11 +769,6 @@ OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString 
 }
 
 
-#if !OOJS_FF4B9
-OOINLINE const jschar *JS_GetInternedStringChars(JSString *string) { return NULL; }
-#endif
-
-
 #define OOJSVAL_TO_DOUBLE JSVAL_TO_DOUBLE
 #else
 // In old API, jsvals could be pointers to doubles; in new, they're actual doubles.
@@ -789,9 +784,6 @@ OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString 
 	*length = JS_GetStringLength(string);
 	return JS_GetStringChars(string);
 }
-
-
-OOINLINE const jschar *JS_GetInternedStringChars(JSString *string) { return NULL; }
 #endif
 
 

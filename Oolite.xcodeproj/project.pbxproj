@@ -599,6 +599,7 @@
 		1ABDBA3B0EB365D90086BC3D /* OOIsNumberLiteral.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABDBA390EB365D90086BC3D /* OOIsNumberLiteral.m */; };
 		1ABDBA3C0EB365D90086BC3D /* OOIsNumberLiteral.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABDBA3A0EB365D90086BC3D /* OOIsNumberLiteral.h */; };
 		1ABF219B12D691B300075821 /* Oolite.docktileplugin in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = 1A01BCE711C569DF0011197F /* Oolite.docktileplugin */; };
+		1AC0F29E12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0F29D12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m */; };
 		1AC27A0F0EA7E9940054E5F0 /* OOJSEquipmentInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC27A0D0EA7E9940054E5F0 /* OOJSEquipmentInfo.h */; };
 		1AC27A100EA7E9940054E5F0 /* OOJSEquipmentInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC27A0E0EA7E9940054E5F0 /* OOJSEquipmentInfo.m */; };
 		1AC544FA0D4D217900C90E5B /* oolite-font.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AC544F90D4D217900C90E5B /* oolite-font.png */; };
@@ -1830,6 +1831,7 @@
 		1AC0E9490B974DC200C46994 /* LICENSE.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
 		1AC0E94A0B974DC200C46994 /* PORTING.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = PORTING.TXT; sourceTree = "<group>"; };
 		1AC0E94B0B974DC200C46994 /* README_LINUX.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README_LINUX.TXT; sourceTree = "<group>"; };
+		1AC0F29D12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSEngineDebuggerHelpers.m; sourceTree = "<group>"; };
 		1AC27A0D0EA7E9940054E5F0 /* OOJSEquipmentInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSEquipmentInfo.h; sourceTree = "<group>"; };
 		1AC27A0E0EA7E9940054E5F0 /* OOJSEquipmentInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSEquipmentInfo.m; sourceTree = "<group>"; };
 		1AC544F90D4D217900C90E5B /* oolite-font.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-font.png"; sourceTree = "<group>"; };
@@ -2563,6 +2565,7 @@
 				2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */,
 				1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */,
 				1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */,
+				1AC0F29D12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m */,
 				1A11C2AF11CFC35000F3EE77 /* OOJSEngineTimeManagement.h */,
 				1A11C2B011CFC35000F3EE77 /* OOJSEngineTimeManagement.m */,
 				1ABC47FC0F155F0500B977AD /* OOJSFunction.h */,
@@ -3857,6 +3860,7 @@
 				1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */,
 				1AB5E1F012BD628500C334DD /* OOJoystickManager.m in Sources */,
 				1A0942CE12D7D5B9003B6273 /* OOJSFrameCallbacks.m in Sources */,
+				1AC0F29E12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
