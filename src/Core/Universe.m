@@ -2198,7 +2198,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
-	//displayGUI = YES;	// already set
 	if (!justCobra)
 	{
 		demo_stage = DEMO_SHOW_THING;

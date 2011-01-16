@@ -47,7 +47,9 @@ static NSString * const kOOLogSoundMachPortError		= @"sound.channel.machPortErro
 
 
 // Tracks a kind of error that isn’t happening any more.
-#define COUNT_NULLS					0
+#ifndef NDEBUG
+#define COUNT_NULLS					1
+#endif
 
 
 static mach_port_t					sReapPort = MACH_PORT_NULL;
