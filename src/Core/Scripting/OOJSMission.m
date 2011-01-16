@@ -227,6 +227,13 @@ static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey)
 	NSString			*text = nil;
 	NSString			*missionKey = nil;
 	
+	if (argc < 1 || JSVAL_IS_VOID(OOJS_ARG(0)))
+	{
+		jsval val = JSVAL_VOID;
+		OOJSReportBadArguments(context, @"Mission", isKey ? @"setInstructionsKey" : @"setInstructions", 1, &val, NULL, @"string or null");
+		return NO;
+	}
+	
 	text = OOStringFromJSValue(context, OOJS_ARG(0));
 	
 	if (argc > 1)
