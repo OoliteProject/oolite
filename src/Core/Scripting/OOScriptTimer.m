@@ -180,7 +180,7 @@ static NSMutableArray	*sDeferredTimers;
 		if (timer->_isScheduled)
 		{
 			timer->_isScheduled = NO;
-			[timer scheduleTimer];	// Must reschedule before firing so that unscheduling works.
+			[timer scheduleTimer];
 		}
 	}
 	

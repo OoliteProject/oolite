@@ -44,4 +44,9 @@
 #define NSPR_LOCK						1
 
 
+#ifndef NDEBUG
+#define MOZ_TRACE_JSCALLS				1
+#endif
+
+
 #endif	// js_config_h___

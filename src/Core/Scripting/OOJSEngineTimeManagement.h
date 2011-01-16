@@ -107,9 +107,12 @@ typedef struct OOJSProfileStackFrame OOJSProfileStackFrame;
 struct OOJSProfileStackFrame
 {
 	OOJSProfileStackFrame	*back;
+	const void				*key;
 	const char				*function;
 	OOHighResTimeValue		startTime;
 	OOTimeDelta				subTime;
+	OOTimeDelta				*total;
+	void (*cleanup)(OOJSProfileStackFrame *);
 };
 
 
@@ -125,7 +128,11 @@ void OOJSProfileExit(OOJSProfileStackFrame *frame);
 	double						_nativeTime;
 	double						_extensionTime;
 	
+#ifdef MOZ_TRACE_JSCALLS
+	double						_javaScriptTime;
+#else
 	double						_profilerOverhead;
+#endif
 	
 	NSArray						*_profileEntries;
 }
@@ -151,6 +158,9 @@ void OOJSProfileExit(OOJSProfileStackFrame *frame);
 	double						_selfTimeSum;
 	double						_totalTimeMax;
 	double						_selfTimeMax;
+#ifdef MOZ_TRACE_JSCALLS
+	JSFunction					*_jsFunction;
+#endif
 }
 
 - (NSString *) description;
@@ -163,6 +173,7 @@ void OOJSProfileExit(OOJSProfileStackFrame *frame);
 - (double) selfTimeAverage;
 - (double) totalTimeMax;
 - (double) selfTimeMax;
+- (BOOL) isJavaScriptFrame;
 
 - (NSComparisonResult) compareByTotalTime:(OOTimeProfileEntry *)other;
 - (NSComparisonResult) compareByTotalTimeReverse:(OOTimeProfileEntry *)other;
