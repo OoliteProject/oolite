@@ -538,7 +538,7 @@ this.performMacro = function performMacro(command)
 		consoleMessage("macro-expansion", "> " + displayExpansion);
 		
 		// Perform macro.
-		this.evaluate(expansion);
+		this.evaluate(expansion, parameters);
 	}
 	else
 	{
@@ -703,7 +703,8 @@ if (debugConsole.settings["default-macros"])  this.defaultMacros = debugConsole.
 Object.defineProperty(debugConsole, "showErrorLocations",
 {
 	get: function () { return debugConsole.__showErrorLocations },
-	set: function (value)  { debugConsole.settings["show-error-locations"] = debugConsole.__showErrorLocations = !!value; }
+	set: function (value)  { debugConsole.settings["show-error-locations"] = debugConsole.__showErrorLocations = !!value; },
+	enumerable: true
 });
 debugConsole.__showErrorLocations = debugConsole.settings["show-error-locations"];
 
@@ -712,7 +713,8 @@ debugConsole.__showErrorLocations = debugConsole.settings["show-error-locations"
 Object.defineProperty(debugConsole, "showErrorLocationsDuringConsoleEval",
 {
 	get: function () { return debugConsole.settings["show-error-locations-during-console-eval"] ? true : false; },
-	set: function (value)  { debugConsole.settings.showErrorLocationsDuringConsoleEval = !!value; }
+	set: function (value)  { debugConsole.settings.showErrorLocationsDuringConsoleEval = !!value; },
+	enumerable: true
 });
 
 
@@ -720,7 +722,8 @@ Object.defineProperty(debugConsole, "showErrorLocationsDuringConsoleEval",
 Object.defineProperty(debugConsole, "dumpStackForErrors",
 {
 	get: function () { return debugConsole.__dumpStackForErrors },
-	set: function (value)  { debugConsole.settings["dump-stack-for-errors"] = debugConsole.__dumpStackForErrors = !!value; }
+	set: function (value)  { debugConsole.settings["dump-stack-for-errors"] = debugConsole.__dumpStackForErrors = !!value; },
+	enumerable: true
 });
 debugConsole.__dumpStackForErrors = debugConsole.settings["dump-stack-for-errors"];
 
@@ -729,7 +732,8 @@ debugConsole.__dumpStackForErrors = debugConsole.settings["dump-stack-for-errors
 Object.defineProperty(debugConsole, "dumpStackForWarnings",
 {
 	get: function () { return debugConsole.__dumpStackForWarnings },
-	set: function (value)  { debugConsole.settings["dump-stack-for-warnings"] = debugConsole.__dumpStackForWarnings = !!value; }
+	set: function (value)  { debugConsole.settings["dump-stack-for-warnings"] = debugConsole.__dumpStackForWarnings = !!value; },
+	enumerable: true
 });
 debugConsole.__dumpStackForWarnings = debugConsole.settings["dump-stack-for-warnings"];
 
@@ -765,7 +769,7 @@ debugConsole.__setUpCallObjC(Object.prototype);
 
 // evaluate() is outside the closure specifically to avoid strict mode.
 // If evaluate() is compiled in strict mode, all console input will also be strict.
-this.evaluate = function evaluate(command)
+this.evaluate = function evaluate(command, PARAM)
 {
 	var showErrorLocations = debugConsole.__showErrorLocations;
 	debugConsole.__showErrorLocations = debugConsole.showErrorLocationsDuringConsoleEval;
