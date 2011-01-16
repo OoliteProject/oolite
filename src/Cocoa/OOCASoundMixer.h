@@ -55,7 +55,9 @@ enum
 	AudioUnit					_mixerUnit;
 	
 	uint32_t					_activeChannels;
+#ifndef NDEBUG
 	uint32_t					_playMask;
+#endif
 }
 
 // Singleton accessor

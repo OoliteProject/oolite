@@ -70,7 +70,7 @@ static OOSoundChannel				*sPlayThreadDeadList = NULL;
 static OOSoundChannel				*sReapQueue = NULL;
 static pthread_mutex_t				sReapQueueMutex = { 0 };
 
-enum
+typedef enum
 {
 	kState_Stopped,
 	kState_Playing,
@@ -78,7 +78,7 @@ enum
 	kState_Reap,
 	
 	kState_Broken
-};
+} States;
 
 
 #define kAURenderSelector		@selector(renderWithFlags:frames:context:data:)
@@ -514,12 +514,34 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 }
 
 
+#ifndef NDEBUG
+- (OOCASoundDebugMonitorChannelState) soundInspectorState
+{
+	switch ((States)_state)
+	{
+		case kState_Stopped:
+			return kOOCADebugStateIdle;
+			
+		case kState_Playing:
+			return kOOCADebugStatePlaying;
+			
+		case kState_Ended:
+		case kState_Reap:
+		case kState_Broken:
+			return kOOCADebugStateOther;
+	}
+	
+	return kOOCADebugStateOther;
+}
+#endif
+
+
 - (NSString *)description
 {
 	NSString						*result, *stateString;
 	
 	[gOOCASoundSyncLock lock];
-	switch (_state)
+	switch ((States)_state)
 	{
 		case kState_Stopped:
 			stateString = @"stopped";
@@ -528,9 +550,13 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		case kState_Playing:
 			stateString = @"playing";
 			break;
-		
+			
 		case kState_Ended:
 			stateString = @"ended";
+			break;
+			
+		case kState_Reap:
+			stateString = @"waiting to be reaped";
 			break;
 		
 		case kState_Broken:

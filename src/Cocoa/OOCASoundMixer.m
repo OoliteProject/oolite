@@ -205,43 +205,37 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 }
 
 
+#ifndef NDEBUG
+#define GET_PLAYMASK(n)		((_playMask & (1 << ((n) - 1))) != 0)
+#define SET_PLAYMASK(n)		do { _playMask |= (1 << ((n) - 1)); } while (0)
+#define CLEAR_PLAYMASK(n)	do { _playMask &= ~(1 << ((n) - 1));  } while (0)
+#endif
+
+
 - (void)update
 {
 #ifndef NDEBUG
 	if (gOOCASoundDebugMonitor != nil)
 	{
 		[gOOCASoundDebugMonitor soundDebugMonitorNoteActiveChannelCount:_activeChannels];
-		[gOOCASoundDebugMonitor soundDebugMonitorNoteChannelUseMask:_playMask];
+		unsigned i;
+		for (i = 0; i != kMixerGeneralChannels; ++i)
+		{
+			uint32_t	ID = [_channels[i] ID];
+			BOOL		playMaskValue = GET_PLAYMASK(ID);
+			OOCASoundDebugMonitorChannelState state = [_channels[i] soundInspectorState];
+			
+			// Because of asynchrony, channel may be in stopped state but not reenqueued.
+			if (playMaskValue && state == kOOCADebugStateIdle)  state = kOOCADebugStateOther;
+			
+			[gOOCASoundDebugMonitor soundDebugMonitorNoteState:state ofChannel:ID - 1];
+		}
 		
 		Float32 load;
 		if (!AUGraphGetCPULoad(_graph, &load))
 		{
 			[gOOCASoundDebugMonitor soundDebugMonitorNoteAUGraphLoad:load];
 		}
-	}
-#endif
-	
-	
-#if SUPPORT_SOUND_INSPECTOR
-	uint32_t					i;
-	Float32						load;
-	
-	for (i = 0; i != kMixerGeneralChannels && i != 32; ++i)
-	{
-		[[checkBoxes cellWithTag:i] setIntValue:_playMask & (1 << i)];
-	}
-	
-	if (_maxChannels < _activeChannels)
-	{
-		_maxChannels = _activeChannels;
-		[maxField setIntValue:_maxChannels];
-	}
-	[currentField setIntValue:_activeChannels];
-	
-	if (!AUGraphGetCPULoad(_graph, &load))
-	{
-		[loadBar setDoubleValue:load];
-		[loadField setObjectValue:[NSString stringWithFormat:@"%.2g%%", load * 100.0]];
 	}
 #endif
 }
@@ -256,7 +250,6 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 - (OOSoundChannel *)popChannel
 {
 	OOSoundChannel				*result;
-	uint32_t					ID;
 	
 	[_listLock lock];
 	result = _freeList;
@@ -269,8 +262,9 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 			AUGraphStart(_graph);
 		}
 		
-		ID = [result ID] - 1;
-		if (ID < 32) _playMask |= (1 << ID);
+#ifndef NDEBUG
+		SET_PLAYMASK([result ID]);
+#endif
 	}
 	[_listLock unlock];
 	
@@ -280,8 +274,6 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 
 - (void)pushChannel:(OOSoundChannel *)inChannel
 {
-	uint32_t					ID;
-	
 	assert(nil != inChannel);
 	
 	[_listLock lock];
@@ -293,8 +285,10 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 	{
 		AUGraphStop(_graph);
 	}
-	ID = [inChannel ID] - 1;
-	if (ID < 32) _playMask &= ~(1 << ID);
+	
+#ifndef NDEBUG
+	CLEAR_PLAYMASK([inChannel ID]);
+#endif
 	[_listLock unlock];
 }
 

@@ -28,16 +28,24 @@ SOFTWARE.
 
 */
 
-#import "OOCASoundInternal.h"
-
+//#import "OOCASoundInternal.h"
+#import "OOCocoa.h"
 
 #ifndef NDEBUG
+
+typedef enum
+{
+	kOOCADebugStateIdle,
+	kOOCADebugStatePlaying,
+	kOOCADebugStateOther		// Cleanup phase or broken.
+} OOCASoundDebugMonitorChannelState;
+
 
 @protocol OOCASoundDebugMonitor
 
 - (void) soundDebugMonitorNoteChannelMaxCount:(OOUInteger)maxChannels;
 - (void) soundDebugMonitorNoteActiveChannelCount:(OOUInteger)usedChannels;
-- (void) soundDebugMonitorNoteChannelUseMask:(uintmax_t)channelMask;	// Bit mask for used channels; if usedChannels & (1 << 0), channel 0 is in use etc.
+- (void) soundDebugMonitorNoteState:(OOCASoundDebugMonitorChannelState)state ofChannel:(OOUInteger)channel;
 
 - (void) soundDebugMonitorNoteAUGraphLoad:(float)load;
 

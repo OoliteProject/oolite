@@ -33,6 +33,7 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 #import <AudioToolbox/AudioToolbox.h>
+#import "OOCASoundDebugMonitor.h"
 
 @class OOSound;
 
@@ -79,6 +80,11 @@ typedef  OSStatus (*OOSoundChannel_RenderIMP)(id inSelf, SEL inSelector, AudioUn
 - (OOSound *)sound;
 
 - (BOOL)isOK;
+
+
+#ifndef NDEBUG
+- (OOCASoundDebugMonitorChannelState) soundInspectorState;
+#endif
 
 @end
 
