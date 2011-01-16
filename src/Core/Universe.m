@@ -8339,6 +8339,7 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
+// FIXME: needs less redundancy.
 - (void) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged
 {
 	no_update = YES;
@@ -8358,6 +8359,14 @@ Entity *gOOJSPlayerIfStale = nil;
 	//       reinitialize itself - mwerle 20081107.
 	[OOShipRegistry reload];
 	[[gameView gameController] unpause_game];
+	
+	if (strictChanged)
+	{
+		[descriptions release];
+		descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+		[missiontext release];
+		missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
+	}
 	
 	if(showDemo)
 	{
