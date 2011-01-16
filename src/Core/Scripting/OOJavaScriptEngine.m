@@ -1922,6 +1922,13 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 	// Get the underlying object.
 	*outObject = [(id)JS_GetPrivate(context, object) weakRefUnderlyingObject];
 	
+	/*	Check we aren't somehow getting doubly wrapped weakrefs.
+		Can't use NSCAssert here because we're in a JS native, the problem I'm
+		fishing for has only been observed under Windows.
+		-- Ahruman 2011-01-16
+	*/
+	assert(![*outObject isProxy]);
+	
 #ifndef NDEBUG
 	// Double-check that the underlying object is of the expected ObjC class.
 	if (EXPECT_NOT(*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass]))

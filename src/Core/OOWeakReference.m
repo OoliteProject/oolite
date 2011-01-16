@@ -88,6 +88,12 @@ This code is hereby placed in the public domain.
 }
 
 
+- (BOOL) isProxy
+{
+	return YES;
+}
+
+
 - (void)forwardInvocation:(NSInvocation *)invocation
 {
 	// Does the right thing even with nil _object.
