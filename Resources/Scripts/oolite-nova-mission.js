@@ -163,7 +163,7 @@ this.startUp = function ()
 };
 
 
-this.missionScreenOpportunity = function ()
+this.missionScreenOpportunity = function Nova_missionScreenOpportunity ()
 {
 	if (!player.ship.docked)
 	{

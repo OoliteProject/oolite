@@ -237,7 +237,7 @@ static NSMutableArray	*sDeferredTimers;
 	else  otherTime = -INFINITY;
 	
 	if (_nextTime < otherTime) return NSOrderedAscending;
-	else if (_nextTime < otherTime) return NSOrderedDescending;
+	else if (_nextTime > otherTime) return NSOrderedDescending;
 	else  return NSOrderedSame;
 }
 
