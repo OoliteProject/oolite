@@ -229,7 +229,7 @@ var failWarning = " This warning will be removed and the script will fail in Ool
 // Define a read-only property that is an alias for another property.
 function defineCompatibilityGetter(constructorName, oldName, newName)
 {
-	var getter = function ()
+	var getter = function compatibilityGetter()
 	{
 		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead." + failWarning);
 		return this[newName];
@@ -241,12 +241,12 @@ function defineCompatibilityGetter(constructorName, oldName, newName)
 
 function defineCompatibilityGetterAndSetter(constructorName, oldName, newName)
 {
-	var getter = function ()
+	var getter = function compatibilityGetter()
 	{
 		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead." + failWarning);
 		return this[newName];
 	};
-	var setter = function (value)
+	var setter = function compatibilitySetter(value)
 	{
 		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead." + failWarning);
 		this[newName] = value;
@@ -288,7 +288,7 @@ function defineSingletonCompatibiltyAccessor(constructorName, singletonName, pro
 		enumerable: false,
 		configurable: false,
 		
-		get: function()
+		get: function constructorGetterGlue()
 		{
 			special.jsWarning(message);
 			return global[singletonName][propertyName];
@@ -297,7 +297,7 @@ function defineSingletonCompatibiltyAccessor(constructorName, singletonName, pro
 	
 	if (!isMethod && isWriteable(global[constructorName].prototype, propertyName))
 	{
-		descriptor.set = function (value)
+		descriptor.set = function constructorSetterGlue(value)
 		{
 			special.jsWarning(message);
 			global[singletonName][propertyName] = value;

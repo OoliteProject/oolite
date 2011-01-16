@@ -70,7 +70,7 @@ static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS)
 	OOJS_PROFILE_ENTER	// These functions are exception-safe
 	
 	OOJSSetWarningOrErrorStackSkip(1);
-	OOJSReportWarning(context, @"%@", [NSString stringWithJavaScriptValue:OOJS_ARG(0) inContext:context]);
+	OOJSReportWarning(context, @"%@", OOStringFromJSValue(context, OOJS_ARG(0)));
 	OOJSSetWarningOrErrorStackSkip(0);
 	
 	OOJS_RETURN_VOID;

@@ -663,14 +663,23 @@ void OOJSDumpStack(JSContext *context)
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	NS_DURING
-		JSStackFrame *frame = NULL;
-		unsigned idx = 0;
+		JSStackFrame	*frame = NULL;
+		unsigned		idx = 0;
+		unsigned		skip = sErrorHandlerStackSkip;
+		
 		while (JS_FrameIterator(context, &frame) != NULL)
 		{
 			JSScript			*script = JS_GetFrameScript(context, frame);
 			NSString			*desc = nil;
 			JSPropertyDescArray	properties = { 0 , NULL };
 			BOOL				gotProperties = NO;
+			
+			if (skip != 0)
+			{
+				skip--;
+				idx++;
+				continue;
+			}
 			
 			if (script != NULL)
 			{
