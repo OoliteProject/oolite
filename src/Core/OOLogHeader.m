@@ -141,7 +141,11 @@ void OOPrintLogHeader(void)
 	#endif
 	
 	#if OOJS_PROFILE
-		@"JavaScript profiling",
+		#ifdef MOZ_TRACE_JSCALLS
+			@"JavaScript profiling",
+		#else
+			@"JavaScript native callback profiling",
+		#endif
 	#endif
 	
 	#if !OO_NEW_JS
