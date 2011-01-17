@@ -215,7 +215,7 @@ static NSMutableArray	*sDeferredTimers;
 	double				scaled;
 	
 	now = [UNIVERSE getTime];
-	if (_nextTime < now)
+	if (_nextTime < now || (_nextTime == now && _interval >= 0.0))
 	{
 		if (_interval <= 0.0)  return NO;	// One-shot timer which has expired
 		
