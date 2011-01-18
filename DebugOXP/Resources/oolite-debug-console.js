@@ -114,7 +114,7 @@ function displayMessagesInClass(class : String) : Boolean
 function setDisplayMessagesInClass(class : String, flag : Boolean)
 	Enable or disable logging of the specified log message class. For example,
 	the equivalent of the legacy command debugOn is:
-		debugConsole.setDisplayMessagesInClass("$scriptDebugOn", true);
+		console.setDisplayMessagesInClass("$scriptDebugOn", true);
 	Metaclasses and inheritance work as in logcontrol.plist.
 	
 function isExecutableJavaScript(code : String) : Boolean
@@ -255,7 +255,7 @@ this.setColorFromString = function setColorFromString(string, typeName)
 		{ hue: 240, saturation: 0.12 } will work -- this syntax is only valid
 		in assignments.
 	*/
-	debugConsole.settings[fullKey] = eval("var c=" + value + ";c");
+	console.settings[fullKey] = eval("var c=" + value + ";c");
 	
 	consoleMessage("command-result", "Set " + typeName + " colour “" + key + "” to " + value + ".");
 }
@@ -280,7 +280,7 @@ this.consolePerformJSCommand = function consolePerformJSCommand(command)
 		// No colon prefix, just JavaScript code.
 		// Append to buffer, then run if runnable or empty line.
 		this.inputBuffer += "\n" + originalCommand;
-		if (command == "" || debugConsole.isExecutableJavaScript(debugConsole, this.inputBuffer))
+		if (command == "" || console.isExecutableJavaScript(console, this.inputBuffer))
 		{
 			// Echo input to console, emphasising the command itself.
 			consoleMessage("command", "> " + command, 2, command.length);
@@ -449,7 +449,7 @@ this.setMacro = function setMacro(parameters)
 	if (body)
 	{
 		macros[name] = body;
-		debugConsole.settings["macros"] = macros;
+		console.settings["macros"] = macros;
 		
 		consoleMessage("macro-info", "Set macro :" + name + ".");
 	}
@@ -477,7 +477,7 @@ this.deleteMacro = function deleteMacro(parameters)
 	if (macros[name])
 	{
 		delete macros[name];
-		debugConsole.settings["macros"] = macros;
+		console.settings["macros"] = macros;
 		
 		consoleMessage("macro-info", "Deleted macro :" + name + ".");
 	}
@@ -688,54 +688,55 @@ this.isClassicIdentifier = function isClassicIdentifier(string)
 
 
 // ****  Load-time set-up
-
-// Make console globally visible as debugConsole.
-global.debugConsole = this.console;
-debugConsole.script = this;
+ 
+// Make console globally visible as console (and debugConsole, for backwards compatibility).
+global.console = this.console;
+Object.defineProperty(global, "debugConsole", { value: console, enumerable: false, configurable: true, writable: true });
+console.script = this;
 
 
 // Load macros.
-if (debugConsole.settings["macros"])  this.macros = debugConsole.settings["macros"];
-if (debugConsole.settings["default-macros"])  this.defaultMacros = debugConsole.settings["default-macros"];
+if (console.settings["macros"])  this.macros = console.settings["macros"];
+if (console.settings["default-macros"])  this.defaultMacros = console.settings["default-macros"];
 
 
-// Implement debugConsole.showErrorLocations with persistence.
-Object.defineProperty(debugConsole, "showErrorLocations",
+// Implement console.showErrorLocations with persistence.
+Object.defineProperty(console, "showErrorLocations",
 {
-	get: function () { return debugConsole.__showErrorLocations },
-	set: function (value)  { debugConsole.settings["show-error-locations"] = debugConsole.__showErrorLocations = !!value; },
+	get: function () { return console.__showErrorLocations },
+	set: function (value)  { console.settings["show-error-locations"] = console.__showErrorLocations = !!value; },
 	enumerable: true
 });
-debugConsole.__showErrorLocations = debugConsole.settings["show-error-locations"];
+console.__showErrorLocations = console.settings["show-error-locations"];
 
 
-// Implement debugConsole.showErrorLocationsDuringConsoleEval with persistence.
-Object.defineProperty(debugConsole, "showErrorLocationsDuringConsoleEval",
+// Implement console.showErrorLocationsDuringConsoleEval with persistence.
+Object.defineProperty(console, "showErrorLocationsDuringConsoleEval",
 {
-	get: function () { return debugConsole.settings["show-error-locations-during-console-eval"] ? true : false; },
-	set: function (value)  { debugConsole.settings.showErrorLocationsDuringConsoleEval = !!value; },
+	get: function () { return console.settings["show-error-locations-during-console-eval"] ? true : false; },
+	set: function (value)  { console.settings.showErrorLocationsDuringConsoleEval = !!value; },
 	enumerable: true
 });
 
 
-// Implement debugConsole.dumpStackForErrors with persistence.
-Object.defineProperty(debugConsole, "dumpStackForErrors",
+// Implement console.dumpStackForErrors with persistence.
+Object.defineProperty(console, "dumpStackForErrors",
 {
-	get: function () { return debugConsole.__dumpStackForErrors },
-	set: function (value)  { debugConsole.settings["dump-stack-for-errors"] = debugConsole.__dumpStackForErrors = !!value; },
+	get: function () { return console.__dumpStackForErrors },
+	set: function (value)  { console.settings["dump-stack-for-errors"] = console.__dumpStackForErrors = !!value; },
 	enumerable: true
 });
-debugConsole.__dumpStackForErrors = debugConsole.settings["dump-stack-for-errors"];
+console.__dumpStackForErrors = console.settings["dump-stack-for-errors"];
 
 
-// Implement debugConsole.dumpStackForWarnings with persistence.
-Object.defineProperty(debugConsole, "dumpStackForWarnings",
+// Implement console.dumpStackForWarnings with persistence.
+Object.defineProperty(console, "dumpStackForWarnings",
 {
-	get: function () { return debugConsole.__dumpStackForWarnings },
-	set: function (value)  { debugConsole.settings["dump-stack-for-warnings"] = debugConsole.__dumpStackForWarnings = !!value; },
+	get: function () { return console.__dumpStackForWarnings },
+	set: function (value)  { console.settings["dump-stack-for-warnings"] = console.__dumpStackForWarnings = !!value; },
 	enumerable: true
 });
-debugConsole.__dumpStackForWarnings = debugConsole.settings["dump-stack-for-warnings"];
+console.__dumpStackForWarnings = console.settings["dump-stack-for-warnings"];
 
 
 /*	As a convenience, make player, player.ship, system and missionVariables
@@ -750,19 +751,19 @@ this.M = missionVariables;
 // Make console.consoleMessage() globally visible
 global.consoleMessage = function consoleMessage()
 {
-	// Call debugConsole.consoleMessage() with console as "this" and all the arguments passed to consoleMessage().
-	debugConsole.consoleMessage.apply(debugConsole, arguments);
+	// Call console.consoleMessage() with console as "this" and all the arguments passed to consoleMessage().
+	console.consoleMessage.apply(console, arguments);
 }
 
 
 // Add inspect() method to all entities, to show inspector palette (Mac OS X only; no effect on other platforms).
 Entity.inspect = function inspect()
 {
-	debugConsole.inspectEntity(this);
+	console.inspectEntity(this);
 }
 
 
-debugConsole.__setUpCallObjC(Object.prototype);
+console.__setUpCallObjC(Object.prototype);
 
 }).call(this);
 
@@ -771,8 +772,8 @@ debugConsole.__setUpCallObjC(Object.prototype);
 // If evaluate() is compiled in strict mode, all console input will also be strict.
 this.evaluate = function evaluate(command, PARAM)
 {
-	var showErrorLocations = debugConsole.__showErrorLocations;
-	debugConsole.__showErrorLocations = debugConsole.showErrorLocationsDuringConsoleEval;
+	var showErrorLocations = console.__showErrorLocations;
+	console.__showErrorLocations = console.showErrorLocationsDuringConsoleEval;
 	try
 	{
 		var result = eval(command);
