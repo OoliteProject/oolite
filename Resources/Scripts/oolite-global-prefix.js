@@ -90,6 +90,25 @@ if (typeof Object.getPrototypeOf !== "function")
 	};
 }
 
+
+/*	Object.keys(): ECMAScript 5th Edition function to get all property keys of an object.
+	Compatibility implementation copied from Mozilla developer wiki.
+*/
+if (typeof Object.keys != "function")
+{
+	Object.keys = function(o)
+	{
+		var result = [];
+		for(var name in o)
+		{
+			if (o.hasOwnProperty(name))
+			result.push(name);
+		}
+	return result;
+	}
+}
+
+
 /*	string.trim(): remove leading and trailing whitespace.
 	Implementation by Steve Leviathan, see:
 	http://blog.stevenlevithan.com/archives/faster-trim-javascript
@@ -208,6 +227,20 @@ defineMethod(System.prototype, "scrambledPseudoRandomNumber", function (salt)
 	
 	// Convert from (effectively) 32-bit signed integer to float in [0..1).
 	return n / 4294967296.0 + 0.5;
+});
+
+
+/*	worldScriptNames
+	
+	List of names of world scripts.
+*/
+Object.defineProperty(global, "worldScriptNames",
+{
+	enumerable: true,
+	get: function ()
+	{
+		return Object.keys(global.worldScripts);
+	}
 });
 
 

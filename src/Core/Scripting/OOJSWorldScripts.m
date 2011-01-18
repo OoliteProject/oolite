@@ -32,8 +32,6 @@ MA 02110-1301, USA.
 static JSBool WorldScriptsGetProperty(OOJS_PROP_ARGS);
 static JSBool WorldScriptsEnumerate(JSContext *cx, JSObject *obj);
 
-static JSBool GetWorldScriptNames(OOJS_PROP_ARGS);
-
 
 static JSClass sWorldScriptsClass =
 {
@@ -54,7 +52,6 @@ static JSClass sWorldScriptsClass =
 void InitOOJSWorldScripts(JSContext *context, JSObject *global)
 {
 	JS_DefineObject(context, global, "worldScripts", &sWorldScriptsClass, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-	JS_DefineProperty(context, global, "worldScriptNames", JSVAL_NULL, GetWorldScriptNames, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 
@@ -112,19 +109,6 @@ static JSBool WorldScriptsEnumerate(JSContext *context, JSObject *object)
 	{
 		if (!JS_DefineProperty(context, object, [name UTF8String], JSVAL_NULL, WorldScriptsGetProperty, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT))  return NO;
 	}
-	
-	return YES;
-	
-	OOJS_NATIVE_EXIT
-}
-
-
-static JSBool GetWorldScriptNames(OOJS_PROP_ARGS)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	NSArray *names = [OOPlayerForScripting() worldScriptNames];
-	*value = [names oo_jsValueInContext:context];
 	
 	return YES;
 	
