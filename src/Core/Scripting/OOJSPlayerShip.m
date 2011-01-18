@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "StationEntity.h"
 
+#import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OOFunctionAttributes.h"
 #import "OOEquipmentType.h"
@@ -248,9 +249,8 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_galacticHyperspaceBehaviour:
-			result = GalacticHyperspaceBehaviourToString([player galacticHyperspaceBehaviour]);
-			OK = YES;
-			break;
+			*value = OOJSValueFromGalacticHyperspaceBehaviour(context, [player galacticHyperspaceBehaviour]);
+			return YES;
 			
 		case kPlayerShip_galacticHyperspaceFixedCoords:
 			OK = NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], value);
@@ -307,9 +307,8 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_compassMode:
-			result = CompassModeToString([player compassMode]);
-			OK = YES;
-			break;
+			*value = OOJSValueFromCompassMode(context, [player compassMode]);
+			return YES;
 			
 		case kPlayerShip_hud:
 			result = [[player hud] hudName];
@@ -377,14 +376,10 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_galacticHyperspaceBehaviour:
-			sValue = OOStringFromJSValue(context,*value);
-			if (sValue != nil)
+			ghBehaviour = OOGalacticHyperspaceBehaviourFromJSValue(context, *value);
+			if (ghBehaviour != GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
 			{
-				ghBehaviour = StringToGalacticHyperspaceBehaviour(sValue);
-				if (ghBehaviour != GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
-				{
-					[player setGalacticHyperspaceBehaviour:ghBehaviour];
-				}
+				[player setGalacticHyperspaceBehaviour:ghBehaviour];
 				OK = YES;
 			}
 			break;
@@ -436,11 +431,6 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 				{
 					OK = YES;
 				}
-				else
-				{
-					OOJSReportError(context, @"PlayerShip.hud could not be changed to %@", sValue);
-					OK = NO;
-				}
 			}
 			else
 			{
@@ -459,6 +449,11 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 		
 		default:
 			OOJSReportBadPropertySelector(context, @"PlayerShip", OOJS_PROPID_INT);
+	}
+	
+	if (!OK)
+	{
+		OOJSReportError(context, @"Invalid value %@ for player.ship.%@", OOJSDebugDescribe(context, *value), OOStringFromJSPropertyID(context, propID, sPlayerShipProperties));
 	}
 	
 	return OK;

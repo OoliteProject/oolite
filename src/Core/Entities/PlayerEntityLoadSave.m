@@ -867,7 +867,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		NSDictionary *cdr=[cdrDetailArray objectAtIndex: i];
 		if ([cdr oo_boolForKey:@"isSavedGame"])
 		{
-			NSString *ratingDesc = KillCountToRatingString([cdr oo_unsignedIntForKey:@"ship_kills"]);
+			NSString *ratingDesc = OODisplayRatingStringFromKillCount([cdr oo_unsignedIntForKey:@"ship_kills"]);
 			[gui setArray:[NSArray arrayWithObjects:
 				[NSString stringWithFormat:@" %@ ",[cdr oo_stringForKey:@"player_name"]],
 				[NSString stringWithFormat:@" %@ ",ratingDesc],
@@ -983,7 +983,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	NSString			*legalDesc = nil;
 	OOCreditsQuantity	money;
 	
-	legalDesc = LegalStatusToString([cdr oo_intForKey:@"legal_status"]);
+	legalDesc = OODisplayStringFromLegalStatus([cdr oo_intForKey:@"legal_status"]);
 	
 	rating = KillCountToRatingAndKillString([cdr oo_unsignedIntForKey:@"ship_kills"]);
 	money = [cdr oo_unsignedLongLongForKey:@"credits"];

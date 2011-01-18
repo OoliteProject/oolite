@@ -106,3 +106,106 @@ OOINLINE OOScanClass OOScanClassFromJSValue(JSContext *context, jsval value)
 	extern struct ConstTable gOOScanClassConstTable;
 	return OOConstantFromJSValuePRIVATE(context, value, &gOOScanClassConstTable, kOOScanClassDefault);
 }
+
+
+/*	JSString *OOJSStringFromCompassMode(JSContext *, OOCompassMode)
+	jsval OOJSValueFromCompassMode(JSContext *, OOCompassMode)
+	OOCompassMode OOCompassModeFromJSString(JSContext *, JSString *)
+	OOCompassMode OOCompassModeFromJSValue(JSContext *, jsval)
+	
+	Convert between JavaScript strings and OOCompassMode.
+*/
+OOINLINE JSString *OOJSStringFromCompassMode(JSContext *context, OOCompassMode value)
+{
+	extern struct ConstTable gOOCompassModeConstTable;
+	return OOJSStringFromConstantPRIVATE(context, value, &gOOCompassModeConstTable);
+}
+
+
+OOINLINE jsval OOJSValueFromCompassMode(JSContext *context, OOCompassMode value)
+{
+	return STRING_TO_JSVAL(OOJSStringFromCompassMode(context, value));
+}
+
+
+OOINLINE OOCompassMode OOCompassModeFromJSString(JSContext *context, JSString *string)
+{
+	extern struct ConstTable gOOCompassModeConstTable;
+	return OOConstantFromJSStringPRIVATE(context, string, &gOOCompassModeConstTable, kOOCompassModeDefault);
+}
+
+
+OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext *context, jsval value)
+{
+	extern struct ConstTable gOOCompassModeConstTable;
+	return OOConstantFromJSValuePRIVATE(context, value, &gOOCompassModeConstTable, kOOCompassModeDefault);
+}
+
+
+/*	JSString *OOJSStringFromGUIScreenID(JSContext *, OOGUIScreenID)
+	jsval OOJSValueFromGUIScreenID(JSContext *, OOGUIScreenID)
+	OOGUIScreenID OOGUIScreenIDFromJSString(JSContext *, JSString *)
+	OOGUIScreenID OOGUIScreenIDFromJSValue(JSContext *, jsval)
+	
+	Convert between JavaScript strings and OOGUIScreenID.
+*/
+OOINLINE JSString *OOJSStringFromGUIScreenID(JSContext *context, OOGUIScreenID value)
+{
+	extern struct ConstTable gOOGUIScreenIDConstTable;
+	return OOJSStringFromConstantPRIVATE(context, value, &gOOGUIScreenIDConstTable);
+}
+
+
+OOINLINE jsval OOJSValueFromGUIScreenID(JSContext *context, OOGUIScreenID value)
+{
+	return STRING_TO_JSVAL(OOJSStringFromGUIScreenID(context, value));
+}
+
+
+OOINLINE OOGUIScreenID OOGUIScreenIDFromJSString(JSContext *context, JSString *string)
+{
+	extern struct ConstTable gOOGUIScreenIDConstTable;
+	return OOConstantFromJSStringPRIVATE(context, string, &gOOGUIScreenIDConstTable, kOOGUIScreenIDDefault);
+}
+
+
+OOINLINE OOGUIScreenID OOGUIScreenIDFromJSValue(JSContext *context, jsval value)
+{
+	extern struct ConstTable gOOGUIScreenIDConstTable;
+	return OOConstantFromJSValuePRIVATE(context, value, &gOOGUIScreenIDConstTable, kOOGUIScreenIDDefault);
+}
+
+
+
+/*	JSString *OOJSStringFromGalacticHyperspaceBehaviour(JSContext *, OOGalacticHyperspaceBehaviour)
+	jsval OOJSValueFromGalacticHyperspaceBehaviour(JSContext *, OOGalacticHyperspaceBehaviour)
+	OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSString(JSContext *, JSString *)
+	OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(JSContext *, jsval)
+	
+	Convert between JavaScript strings and OOGalacticHyperspaceBehaviour.
+*/
+OOINLINE JSString *OOJSStringFromGalacticHyperspaceBehaviour(JSContext *context, OOGalacticHyperspaceBehaviour value)
+{
+	extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
+	return OOJSStringFromConstantPRIVATE(context, value, &gOOGalacticHyperspaceBehaviourConstTable);
+}
+
+
+OOINLINE jsval OOJSValueFromGalacticHyperspaceBehaviour(JSContext *context, OOGalacticHyperspaceBehaviour value)
+{
+	return STRING_TO_JSVAL(OOJSStringFromGalacticHyperspaceBehaviour(context, value));
+}
+
+
+OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSString(JSContext *context, JSString *string)
+{
+	extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
+	return OOConstantFromJSStringPRIVATE(context, string, &gOOGalacticHyperspaceBehaviourConstTable, kOOGalacticHyperspaceBehaviourDefault);
+}
+
+
+OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(JSContext *context, jsval value)
+{
+	extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
+	return OOConstantFromJSValuePRIVATE(context, value, &gOOGalacticHyperspaceBehaviourConstTable, kOOGalacticHyperspaceBehaviourDefault);
+}

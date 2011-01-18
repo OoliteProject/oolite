@@ -1785,6 +1785,9 @@
 		1A95338A0C02089E004EBB58 /* planetinfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = planetinfo.plist; sourceTree = "<group>"; };
 		1A95C03E118A450E002EE302 /* OOConvertCubeMapToLatLong.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOConvertCubeMapToLatLong.h; path = src/Core/OOConvertCubeMapToLatLong.h; sourceTree = SOURCE_ROOT; };
 		1A95C03F118A450E002EE302 /* OOConvertCubeMapToLatLong.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOConvertCubeMapToLatLong.m; path = src/Core/OOConvertCubeMapToLatLong.m; sourceTree = SOURCE_ROOT; };
+		1A972FFC12E6077D001F2406 /* OOCompassMode.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOCompassMode.tbl; sourceTree = "<group>"; };
+		1A97302012E60F9B001F2406 /* OOGUIScreenID.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOGUIScreenID.tbl; sourceTree = "<group>"; };
+		1A97305C12E61427001F2406 /* OOGalacticHyperspaceBehaviour.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOGalacticHyperspaceBehaviour.tbl; sourceTree = "<group>"; };
 		1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetDrawable.h; sourceTree = "<group>"; };
 		1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetDrawable.m; sourceTree = "<group>"; };
 		1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OOPlanetData.c; sourceTree = "<group>"; };
@@ -2516,7 +2519,10 @@
 			isa = PBXGroup;
 			children = (
 				1A35256212E1FC0500244C9D /* OOBehaviour.tbl */,
+				1A972FFC12E6077D001F2406 /* OOCompassMode.tbl */,
 				1A35251112E1F89100244C9D /* OOEntityStatus.tbl */,
+				1A97302012E60F9B001F2406 /* OOGUIScreenID.tbl */,
+				1A97305C12E61427001F2406 /* OOGalacticHyperspaceBehaviour.tbl */,
 				1A35256012E1FC0100244C9D /* OOScanClass.tbl */,
 			);
 			path = Tables;

@@ -158,22 +158,22 @@ static inline void JS_RemoveGCThingRoot(JSContext *cx, void **rp) { JS_RemoveRoo
 
 #else	// !OO_NEW_JS
 
-#define OOJS_NATIVE_CALLTHROUGH			context, this_, argc, argv_, outResult
-#define OOJS_CALLEE						argv_[-2]
-#define OOJS_THIS_VAL					OBJECT_TO_JSVAL(this_)
-#define OOJS_THIS						this_
-#define OOJS_ARGV						argv_
-#define OOJS_RVAL						(*outResult)
-#define OOJS_SET_RVAL(v)				do { *outResult = (v); } while (0)
+#define OOJS_NATIVE_CALLTHROUGH				context, this_, argc, argv_, outResult
+#define OOJS_CALLEE							argv_[-2]
+#define OOJS_THIS_VAL						OBJECT_TO_JSVAL(this_)
+#define OOJS_THIS							this_
+#define OOJS_ARGV							argv_
+#define OOJS_RVAL							(*outResult)
+#define OOJS_SET_RVAL(v)					do { *outResult = (v); } while (0)
 
-#define OOJS_IS_CONSTRUCTING			JS_IsConstructing(context)
+#define OOJS_IS_CONSTRUCTING				JS_IsConstructing(context)
 #define OOJS_CASTABLE_CONSTRUCTOR_CREATE	(!OOJS_IS_CONSTRUCTING)
 
-#define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsval propID, jsval *value
-#define OOJS_PROPID_IS_INT				JSVAL_IS_INT(propID)
-#define OOJS_PROPID_INT					JSVAL_TO_INT(propID)
-#define OOJS_PROPID_IS_STRING			JSVAL_IS_STRING(propID)
-#define OOJS_PROPID_STRING				JSVAL_TO_STRING(propID)
+#define OOJS_PROP_ARGS						JSContext *context, JSObject *this, jsval propID, jsval *value
+#define OOJS_PROPID_IS_INT					JSVAL_IS_INT(propID)
+#define OOJS_PROPID_INT						JSVAL_TO_INT(propID)
+#define OOJS_PROPID_IS_STRING				JSVAL_IS_STRING(propID)
+#define OOJS_PROPID_STRING					JSVAL_TO_STRING(propID)
 
 #endif
 

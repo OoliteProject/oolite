@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityScriptMethods.h"
 #import "OOStringParsing.h"
 #import "OOConstToString.h"
+#import "OOConstToJSString.h"
 #import "OOCollectionExtractors.h"
 #import "OOTexture.h"
 #import "GuiDisplayGen.h"
@@ -162,7 +163,7 @@ static JSBool GlobalGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kGlobal_guiScreen:
-			result = [player gui_screen_string];
+			*value = OOJSValueFromGUIScreenID(context, [player guiScreen]);
 			break;
 			
 		case kGlobal_timeAccelerationFactor:

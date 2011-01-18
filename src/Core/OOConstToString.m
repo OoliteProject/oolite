@@ -36,10 +36,11 @@ MA );-);, USA.
 
 
 #define ENTRY(label, value) case label: return @#label;
+#define GALACTIC_HYPERSPACE_ENTRY(label, value) case GALACTIC_HYPERSPACE_##label: return @#label;
 
-NSString *OOStringFromEntityStatus(OOEntityStatus status)
+NSString *OOStringFromEntityStatus(OOEntityStatus value)
 {
-	switch (status)
+	switch (value)
 	{
 		#include "OOEntityStatus.tbl"
 	}
@@ -47,20 +48,9 @@ NSString *OOStringFromEntityStatus(OOEntityStatus status)
 }
 
 
-NSString *OOStringFromScanClass(OOScanClass scanClass)
+NSString *OOStringFromBehaviour(OOBehaviour value)
 {
-	switch (scanClass)
-	{
-		#include "OOScanClass.tbl"
-	}
-	
-	return @"UNDEFINED";
-}
-
-
-NSString *OOStringFromBehaviour(OOBehaviour behaviour)
-{
-	switch (behaviour)
+	switch (value)
 	{
 		#include "OOBehaviour.tbl"
 	}
@@ -68,16 +58,94 @@ NSString *OOStringFromBehaviour(OOBehaviour behaviour)
 	return @"** BEHAVIOUR UNKNOWN **";
 }
 
+
+NSString *OOStringFromCompassMode(OOCompassMode value)
+{
+	switch (value)
+	{
+		#include "OOCompassMode.tbl"
+	}
+	
+	return @"UNDEFINED";
+}
+
+
+NSString *OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour value)
+{
+	switch (value)
+	{
+		#include "OOGalacticHyperspaceBehaviour.tbl"
+	}
+	
+	return @"UNDEFINED";
+}
+
+
+NSString *OOStringFromGUIScreenID(OOGUIScreenID value)
+{
+	switch (value)
+	{
+		#include "OOGUIScreenID.tbl"
+	}
+	
+	return @"UNDEFINED";
+}
+
+
+NSString *OOStringFromScanClass(OOScanClass value)
+{
+	switch (value)
+	{
+		#include "OOScanClass.tbl"
+	}
+	
+	return @"UNDEFINED";
+}
+
 #undef ENTRY
+#undef GALACTIC_HYPERSPACE_ENTRY
 
 
-#define ENTRY(label, value) if ([string isEqualToString:@#label]) return label;
+#define ENTRY(label, value) if ([string isEqualToString:@#label])  return label;
+#define GALACTIC_HYPERSPACE_ENTRY(label, value)	if ([string isEqualToString:@#label])  return GALACTIC_HYPERSPACE_##label;
 
 OOEntityStatus OOEntityStatusFromString(NSString *string)
 {
 	#include "OOEntityStatus.tbl"
 	
 	return kOOEntityStatusDefault;
+}
+
+
+OOCompassMode OOCompassModeFromString(NSString *string)
+{
+	#include "OOCompassMode.tbl"
+	
+	return kOOCompassModeDefault;
+}
+
+
+OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromString(NSString *string)
+{
+	#include "OOGalacticHyperspaceBehaviour.tbl"
+	
+	// Transparently (but inefficiently) support american spelling. FIXME: remove in EMMSTRAN.
+	if ([string hasPrefix:@"BEHAVIOR_"])
+	{
+		string = [string substringFromIndex:[@"BEHAVIOR_" length]];
+		string = [@"BEHAVIOUR_" stringByAppendingString:string];
+		return OOGalacticHyperspaceBehaviourFromString(string);
+	}
+	
+	return kOOGalacticHyperspaceBehaviourDefault;
+}
+
+
+OOGUIScreenID OOGUIScreenIDFromString(NSString *string)
+{
+	#include "OOGUIScreenID.tbl"
+	
+	return kOOGUIScreenIDDefault;
 }
 
 
@@ -89,6 +157,7 @@ OOScanClass OOScanClassFromString(NSString *string)
 }
 
 #undef ENTRY
+#undef GALACTIC_HYPERSPACE_ENTRY
 
 
 #ifdef OO_BRAIN_AI
@@ -326,21 +395,6 @@ OOCargoType StringToCargoType(NSString *string)
 }
 
 
-/*
-// post MNSR stuff.
-NSString *CommodityTypeToOldString(OOCommodityType commodity) // returns the old commodity identifier
-{
-	switch (commodity)
-	{
-		case COMMODITY_LIQUOR_WINES: return @"liquor/wines";
-		case COMMODITY_GEM_STONES: return @"gem-stones";
-		case COMMODITY_ALIEN_ITEMS: return @"alien items";
-	}
-	return CommodityTypeToString(commodity);
-}
-*/
-
-
 NSString *CommodityTypeToString(OOCommodityType commodity) // returns the commodity identifier
 {
 #define CO_CASE(foo) case COMMODITY_##foo: return [@""#foo lowercaseString];
@@ -447,103 +501,7 @@ OOEnergyUnitType StringToEnergyUnitType(NSString *string)
 }
 
 
-NSString *GUIScreenIDToString(OOGUIScreenID screen)
-{
-	switch (screen)
-	{
-		CASE(GUI_SCREEN_MAIN);
-		CASE(GUI_SCREEN_INTRO1);
-		CASE(GUI_SCREEN_INTRO2);
-		CASE(GUI_SCREEN_STATUS);
-		CASE(GUI_SCREEN_MANIFEST);
-		CASE(GUI_SCREEN_EQUIP_SHIP);
-		CASE(GUI_SCREEN_SHIPYARD);
-		CASE(GUI_SCREEN_LONG_RANGE_CHART);
-		CASE(GUI_SCREEN_SHORT_RANGE_CHART);
-		CASE(GUI_SCREEN_SYSTEM_DATA);
-		CASE(GUI_SCREEN_MARKET);
-		CASE(GUI_SCREEN_CONTRACTS);
-		CASE(GUI_SCREEN_OPTIONS);
-		CASE(GUI_SCREEN_GAMEOPTIONS);
-		CASE(GUI_SCREEN_LOAD);
-		CASE(GUI_SCREEN_SAVE);
-		CASE(GUI_SCREEN_SAVE_OVERWRITE);
-		CASE(GUI_SCREEN_STICKMAPPER);
-		CASE(GUI_SCREEN_MISSION);
-		CASE(GUI_SCREEN_REPORT);
-	}
-	
-	return @"UNDEFINED";
-}
-
-
-OOGUIScreenID StringToGUIScreenID(NSString *string)
-{
-	REVERSE_CASE(GUI_SCREEN_MAIN);
-	REVERSE_CASE(GUI_SCREEN_INTRO1);
-	REVERSE_CASE(GUI_SCREEN_INTRO2);
-	REVERSE_CASE(GUI_SCREEN_STATUS);
-	REVERSE_CASE(GUI_SCREEN_MANIFEST);
-	REVERSE_CASE(GUI_SCREEN_EQUIP_SHIP);
-	REVERSE_CASE(GUI_SCREEN_SHIPYARD);
-	REVERSE_CASE(GUI_SCREEN_LONG_RANGE_CHART);
-	REVERSE_CASE(GUI_SCREEN_SHORT_RANGE_CHART);
-	REVERSE_CASE(GUI_SCREEN_SYSTEM_DATA);
-	REVERSE_CASE(GUI_SCREEN_MARKET);
-	REVERSE_CASE(GUI_SCREEN_CONTRACTS);
-	REVERSE_CASE(GUI_SCREEN_OPTIONS);
-	REVERSE_CASE(GUI_SCREEN_LOAD);
-	REVERSE_CASE(GUI_SCREEN_SAVE);
-	REVERSE_CASE(GUI_SCREEN_SAVE_OVERWRITE);
-	REVERSE_CASE(GUI_SCREEN_STICKMAPPER);
-	REVERSE_CASE(GUI_SCREEN_MISSION);
-	REVERSE_CASE(GUI_SCREEN_REPORT);
-	
-	return kOOGUIScreenIDDefault;
-}
-
-
-OOGalacticHyperspaceBehaviour StringToGalacticHyperspaceBehaviour(NSString *string)
-{
-	if ([string isEqualToString:@"BEHAVIOUR_STANDARD"] || [string isEqualToString:@"BEHAVIOR_STANDARD"])
-	{
-		return GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD;
-	}
-	if ([string isEqualToString:@"BEHAVIOUR_ALL_SYSTEMS_REACHABLE"] || [string isEqualToString:@"BEHAVIOR_ALL_SYSTEMS_REACHABLE"])
-	{
-		return GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE;
-	}
-	if ([string isEqualToString:@"BEHAVIOUR_FIXED_COORDINATES"] || [string isEqualToString:@"BEHAVIOR_FIXED_COORDINATES"])
-	{
-		return GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES;
-	}
-	
-	return kOOGalacticHyperspaceBehaviourDefault;
-}
-
-
-NSString *GalacticHyperspaceBehaviourToString(OOGalacticHyperspaceBehaviour behaviour)
-{
-	switch (behaviour)
-	{
-		case GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD:
-			return @"BEHAVIOUR_STANDARD";
-			
-		case GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE:
-			return @"BEHAVIOUR_ALL_SYSTEMS_REACHABLE";
-			
-		case GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES:
-			return @"BEHAVIOUR_FIXED_COORDINATES";
-		
-		case GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN:
-			break;
-	}
-	
-	return @"UNDEFINED";
-}
-
-
-NSString *KillCountToRatingString(unsigned kills)
+NSString *OODisplayRatingStringFromKillCount(unsigned kills)
 {
 	enum { kRatingCount = 9 };
 	
@@ -573,11 +531,11 @@ NSString *KillCountToRatingString(unsigned kills)
 
 NSString *KillCountToRatingAndKillString(unsigned kills)
 {
-	return [NSString stringWithFormat:@"%@   (%u)", KillCountToRatingString(kills), kills];
+	return [NSString stringWithFormat:@"%@   (%u)", OODisplayRatingStringFromKillCount(kills), kills];
 }
 
 
-NSString *LegalStatusToString(int legalStatus)
+NSString *OODisplayStringFromLegalStatus(int legalStatus)
 {
 	enum { kStatusCount = 3 };
 	
@@ -674,34 +632,6 @@ NSString *DisplayStringForMassUnit(OOMassUnit unit)
 NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity)
 {
 	return DisplayStringForMassUnit([UNIVERSE unitsForCommodity:commodity]);
-}
-
-
-NSString *CompassModeToString(OOCompassMode mode)
-{
-	switch (mode)
-	{
-		CASE(COMPASS_MODE_BASIC);
-		CASE(COMPASS_MODE_PLANET);
-		CASE(COMPASS_MODE_STATION);
-		CASE(COMPASS_MODE_SUN);
-		CASE(COMPASS_MODE_TARGET);
-		CASE(COMPASS_MODE_BEACONS);
-	}
-	
-	return @"Unsupported";
-}
-
-OOCompassMode StringToCompassMode(NSString *string)
-{
-	REVERSE_CASE(COMPASS_MODE_BASIC);
-	REVERSE_CASE(COMPASS_MODE_PLANET);
-	REVERSE_CASE(COMPASS_MODE_STATION);
-	REVERSE_CASE(COMPASS_MODE_SUN);
-	REVERSE_CASE(COMPASS_MODE_TARGET);
-	REVERSE_CASE(COMPASS_MODE_BEACONS);
-	
-	return kOOCompassModeDefault;
 }
 
 

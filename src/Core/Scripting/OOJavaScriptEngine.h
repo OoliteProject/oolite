@@ -250,6 +250,18 @@ NSString *OOStringFromJSValue(JSContext *context, jsval value);
 NSString *OOStringFromJSValueEvenIfNull(JSContext *context, jsval value);
 
 
+/*	OOStringFromJSPropertyID(context, propID, propertySpec)
+	
+	Returns the name of a property given either a name or a tinyid. (Intended
+	for error reporting inside JSPropertyOps.)
+*/
+#if OO_NEW_JS
+NSString *OOStringFromJSPropertyID(JSContext *context, jsid propID, JSPropertySpec *propertySpec);
+#else
+NSString *OOStringFromJSPropertyID(JSContext *context, jsval propID, JSPropertySpec *propertySpec);
+#endif
+
+
 /*	Describe a value for various debuggy purposes. Strings are quoted, escaped
 	and limited in length. Functions are described as "function foo" (or just
 	"function" if they're anonymous).

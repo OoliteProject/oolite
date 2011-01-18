@@ -42,6 +42,35 @@ MA 02110-1301, USA.
 // reposition menu
 #define GUI_ROW(GROUP,ITEM) (GUI_FIRST_ROW(GROUP) - 5 + GUI_ROW_##GROUP##OPTIONS_##ITEM)
 
+
+#define ENTRY(label, value) label,
+
+typedef enum
+{
+	#include "OOGUIScreenID.tbl"
+} OOGUIScreenID;
+
+#define GALACTIC_HYPERSPACE_ENTRY(label, value) GALACTIC_HYPERSPACE_##label = value,
+
+typedef enum
+{
+	#include "OOGalacticHyperspaceBehaviour.tbl"
+	
+	GALACTIC_HYPERSPACE_MAX					= GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES
+} OOGalacticHyperspaceBehaviour;
+
+#undef ENTRY
+#undef GALACTIC_HYPERSPACE_ENTRY
+
+
+enum
+{
+	// Values used for unknown strings.
+	kOOGUIScreenIDDefault					= GUI_SCREEN_MAIN,
+	kOOGalacticHyperspaceBehaviourDefault	= GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN
+};
+
+
 enum
 {
 	GUI_ROW_OPTIONS_QUICKSAVE,
@@ -807,13 +836,19 @@ OOINLINE PlayerEntity *OOGetPlayer(void)
 {
 	extern PlayerEntity *gOOPlayer;
 #if OO_DEBUG
-	NSCAssert(gOOPlayer != nil, @"PLAYER used when PLAYER has not been called.");
+	NSCAssert(gOOPlayer != nil, @"PLAYER used when [PlayerEntity sharedPlayer] has not been called.");
 #endif
 	return gOOPlayer;
 }
 #define PLAYER OOGetPlayer()
 
 
-NSString *KillCountToRatingString(unsigned kills);
+NSString *OODisplayRatingStringFromKillCount(unsigned kills);
 NSString *KillCountToRatingAndKillString(unsigned kills);
-NSString *LegalStatusToString(int legalStatus);
+NSString *OODisplayStringFromLegalStatus(int legalStatus);
+
+NSString *OOStringFromGUIScreenID(OOGUIScreenID screen) CONST_FUNC;
+OOGUIScreenID OOGUIScreenIDFromString(NSString *string) PURE_FUNC;
+
+OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromString(NSString *string) PURE_FUNC;
+NSString *OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour behaviour) CONST_FUNC;

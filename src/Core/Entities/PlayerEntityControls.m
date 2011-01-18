@@ -2895,7 +2895,7 @@ static NSTimeInterval	time_last_frame;
 			switching_status_screens = YES;
 			if ((gui_screen == GUI_SCREEN_STATUS)&&(![UNIVERSE strict]))
 			{
-				[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_MANIFEST) andArgument:GUIScreenIDToString(gui_screen)];
+				[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_MANIFEST) andArgument:OOStringFromGUIScreenID(gui_screen)];
 				[self setGuiToManifestScreen];
 			}
 			else
@@ -2928,7 +2928,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
 		{
-			[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_SYSTEM_DATA) andArgument:GUIScreenIDToString(gui_screen)];
+			[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_SYSTEM_DATA) andArgument:OOStringFromGUIScreenID(gui_screen)];
 			[self setGuiToSystemDataScreen];
 		}
 	}
@@ -2952,7 +2952,7 @@ static NSTimeInterval	time_last_frame;
 				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[dockedStation hasShipyard])
 				{
 					[gameView clearKeys];
-					[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_SHIPYARD) andArgument:GUIScreenIDToString(oldScreen)];
+					[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_SHIPYARD) andArgument:OOStringFromGUIScreenID(oldScreen)];
 					[self setGuiToShipyardScreen:0];
 					[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
 					[self showShipyardInfoForSelection];
@@ -2960,7 +2960,7 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView clearKeys];
-					[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_EQUIP_SHIP) andArgument:GUIScreenIDToString(oldScreen)];
+					[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_EQUIP_SHIP) andArgument:OOStringFromGUIScreenID(oldScreen)];
 					[self setGuiToEquipShipScreen:0];
 					[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
@@ -2987,7 +2987,7 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView clearKeys];
-					[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_MARKET) andArgument:GUIScreenIDToString(gui_screen)];
+					[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_MARKET) andArgument:OOStringFromGUIScreenID(gui_screen)];
 					[self setGuiToMarketScreen];
 					[gui setSelectedRow:GUI_ROW_MARKET_START];
 				}
@@ -3005,7 +3005,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (!switching_market_screens)
 			{
-				[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_MARKET) andArgument:GUIScreenIDToString(gui_screen)];
+				[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_MARKET) andArgument:OOStringFromGUIScreenID(gui_screen)];
 				[self setGuiToMarketScreen];
 				[gui setSelectedRow:GUI_ROW_MARKET_START];
 			}

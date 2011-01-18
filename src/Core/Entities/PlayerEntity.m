@@ -5100,7 +5100,7 @@ done:
 		
 		NSString	*lightYearsDesc = DESC(@"status-light-years-desc");
 		
-		legal_desc = LegalStatusToString(legalStatus);
+		legal_desc = OODisplayStringFromLegalStatus(legalStatus);
 		rating_desc = KillCountToRatingAndKillString(ship_kills);
 		alert_desc = OODisplayStringFromAlertCondition([self alertCondition]);
 		fuel_desc = [NSString stringWithFormat:@"%.1f %@", fuel/10.0, lightYearsDesc];
@@ -6472,8 +6472,8 @@ static NSString *last_outfitting_key=nil;
 		if (![[UNIVERSE gameController] gameIsPaused])
 		{
 			[self doScriptEvent:@"guiScreenChanged"
-				withArgument:GUIScreenIDToString(toScreen)
-				andArgument:GUIScreenIDToString(fromScreen)];
+				withArgument:OOStringFromGUIScreenID(toScreen)
+				andArgument:OOStringFromGUIScreenID(fromScreen)];
 		}
 	}
 }

@@ -1061,7 +1061,7 @@ static BOOL hostiles;
 		if (reference != [player compassTarget])
 		{
 			[player setCompassTarget:reference];
-			[player doScriptEvent:@"compassTargetChanged" withArguments:[NSArray arrayWithObjects:reference, CompassModeToString([player compassMode]), nil]];
+			[player doScriptEvent:@"compassTargetChanged" withArguments:[NSArray arrayWithObjects:reference, OOStringFromCompassMode([player compassMode]), nil]];
 		}
 		
 		// translate and rotate the view

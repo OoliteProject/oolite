@@ -80,10 +80,26 @@ static JSString *sUndefinedString;
 	Initialize table contents (with C strings, see above) from table files.
 */
 #define ENTRY(label, val) { .value = label, .string = #label },
+#define GALACTIC_HYPERSPACE_ENTRY(label, val) { .value = GALACTIC_HYPERSPACE_##label, .string = #label },
+
+static TableEntry sOOCompassModeTableEntries[] =
+{
+	#include "OOCompassMode.tbl"
+};
 
 static TableEntry sOOEntityStatusTableEntries[] =
 {
 	#include "OOEntityStatus.tbl"
+};
+
+static TableEntry sOOGalacticHyperspaceBehaviourTableEntries[] =
+{
+	#include "OOGalacticHyperspaceBehaviour.tbl"
+};
+
+static TableEntry sOOGUIScreenIDTableEntries[] =
+{
+	#include "OOGUIScreenID.tbl"
 };
 
 static TableEntry sOOScanClassTableEntries[] =
@@ -92,9 +108,13 @@ static TableEntry sOOScanClassTableEntries[] =
 };
 
 #undef ENTRY
+#undef GALACTIC_HYPERSPACE_ENTRY
 
 
+ConstTable gOOCompassModeConstTable = TABLE(sOOCompassModeTableEntries);
 ConstTable gOOEntityStatusConstTable = TABLE(sOOEntityStatusTableEntries);
+ConstTable gOOGalacticHyperspaceBehaviourConstTable = TABLE(sOOGalacticHyperspaceBehaviourTableEntries);
+ConstTable gOOGUIScreenIDConstTable = TABLE(sOOGUIScreenIDTableEntries);
 ConstTable gOOScanClassConstTable = TABLE(sOOScanClassTableEntries);
 
 static void InitTable(JSContext *context, ConstTable *table);
@@ -110,6 +130,9 @@ void OOConstToJSStringInit(JSContext *context)
 	sUndefinedString = JS_InternString(context, "UNDEFINED");
 	
 	InitTable(context, &gOOEntityStatusConstTable);
+	InitTable(context, &gOOCompassModeConstTable);
+	InitTable(context, &gOOGalacticHyperspaceBehaviourConstTable);
+	InitTable(context, &gOOGUIScreenIDConstTable);
 	InitTable(context, &gOOScanClassConstTable);
 	
 #ifndef NDEBUG

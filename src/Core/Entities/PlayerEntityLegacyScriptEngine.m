@@ -891,7 +891,7 @@ static BOOL sRunningScript = NO;
 
 - (NSString *) gui_screen_string
 {
-	return GUIScreenIDToString(gui_screen);
+	return OOStringFromGUIScreenID(gui_screen);
 }
 
 
@@ -946,7 +946,7 @@ static int shipsFound;
 
 - (NSString *) commanderLegalStatus_string
 {
-	return LegalStatusToString(legalStatus);
+	return OODisplayStringFromLegalStatus(legalStatus);
 }
 
 
@@ -1133,7 +1133,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) commanderRank_string
 {
-	return KillCountToRatingString([self score]);
+	return OODisplayRatingStringFromKillCount([self score]);
 }
 
 
@@ -2850,7 +2850,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setGalacticHyperspaceBehaviourTo:(NSString *)galacticHyperspaceBehaviourString
 {
-	OOGalacticHyperspaceBehaviour ghBehaviour = StringToGalacticHyperspaceBehaviour(galacticHyperspaceBehaviourString);
+	OOGalacticHyperspaceBehaviour ghBehaviour = OOGalacticHyperspaceBehaviourFromString(galacticHyperspaceBehaviourString);
 	if (ghBehaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
 	{
 		OOLog(@"player.setGalacticHyperspaceBehaviour.invalidInput",

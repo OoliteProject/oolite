@@ -803,7 +803,7 @@ NSString *OOJSDescribeLocation(JSContext *context, JSStackFrame *stackFrame)
 	if (fileName == sConsoleScriptName && lineNo >= sConsoleEvalLineNo)  return @"<console input>";
 	
 	// Objectify it.
-	NSString	*fileNameObj = [NSString stringWithCString:fileName encoding:NSUTF8StringEncoding];
+	NSString	*fileNameObj = [NSString stringWithUTF8String:fileName];
 	if (fileNameObj == nil)  fileNameObj = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];
 	if (fileNameObj == nil)  return nil;
 	
@@ -1430,6 +1430,31 @@ NSString *OOStringFromJSValue(JSContext *context, jsval value)
 	return nil;
 	
 	OOJS_PROFILE_EXIT
+}
+
+
+#if OO_NEW_JS
+NSString *OOStringFromJSPropertyID(JSContext *context, jsid propID, JSPropertySpec *propertySpec)
+#else
+NSString *OOStringFromJSPropertyID(JSContext *context, jsval propID, JSPropertySpec *propertySpec)
+#endif
+{
+	if (OOJS_PROPID_IS_STRING)
+	{
+		return OOStringFromJSString(context, OOJS_PROPID_STRING);
+	}
+	else if (OOJS_PROPID_IS_INT && propertySpec != NULL)
+	{
+		int tinyid = OOJS_PROPID_INT;
+		
+		while (propertySpec->name != NULL)
+		{
+			if (propertySpec->tinyid == tinyid)  return [NSString stringWithUTF8String:propertySpec->name];
+			propertySpec++;
+		}
+	}
+	
+	return @"<unknown>";
 }
 
 

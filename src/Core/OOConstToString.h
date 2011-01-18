@@ -39,9 +39,6 @@ enum
 	kOOCargoTypeDefault			= CARGO_UNDEFINED,
 	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
 	kOOEnergyUnitTypeDefault	= ENERGY_UNIT_NONE,
-	kOOGUIScreenIDDefault		= GUI_SCREEN_MAIN,
-	kOOGalacticHyperspaceBehaviourDefault = GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN,
-	kOOCompassModeDefault		= COMPASS_MODE_BASIC,
 	kOORouteTypeDefault			= OPTIMIZED_BY_JUMPS
 };
 
@@ -68,9 +65,13 @@ declaration, in particular:
 	OODisplayStringFromAlertCondition()
 	
 	PlayerEntity.h:
-	KillCountToRatingString()
+	OODisplayRatingStringFromKillCount()
 	KillCountToRatingAndKillString()
-	LegalStatusToString()
+	OODisplayStringFromLegalStatus()
+	OOStringFromGUIScreenID()
+	OOGUIScreenIDFromString()
+	OOGalacticHyperspaceBehaviourFromString()
+	OOStringFromGalacticHyperspaceBehaviour()
 	
 	Universe.h:
 	OODisplayStringFromGovernmentID()
@@ -95,15 +96,11 @@ NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;
 NSString *CargoTypeToString(OOCargoType cargo) CONST_FUNC;
 OOCargoType StringToCargoType(NSString *string) PURE_FUNC;
 
-//NSString *CommodityTypeToOldString(OOCommodityType commodity) CONST_FUNC; // returns the old commodity identifier
 NSString *CommodityTypeToString(OOCommodityType commodity) CONST_FUNC;	// returns the commodity identifier
 OOCommodityType StringToCommodityType(NSString *string) PURE_FUNC;		// needs commodity identifier
 
 NSString *EnergyUnitTypeToString(OOEnergyUnitType unit) CONST_FUNC;
 OOEnergyUnitType StringToEnergyUnitType(NSString *string) PURE_FUNC;
-
-NSString *GUIScreenIDToString(OOGUIScreenID screen) CONST_FUNC;
-OOGUIScreenID StringToGUIScreenID(NSString *string) PURE_FUNC;
 
 NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName);
 NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition);
@@ -111,11 +108,8 @@ NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition);
 NSString *DisplayStringForMassUnit(OOMassUnit unit);
 NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity);
 
-OOGalacticHyperspaceBehaviour StringToGalacticHyperspaceBehaviour(NSString *string) PURE_FUNC;
-NSString *GalacticHyperspaceBehaviourToString(OOGalacticHyperspaceBehaviour behaviour) CONST_FUNC;
-
-NSString *CompassModeToString(OOCompassMode mode);
-OOCompassMode StringToCompassMode(NSString *string);
+NSString *OOStringFromCompassMode(OOCompassMode mode);
+OOCompassMode OOCompassModeFromString(NSString *string);
 
 NSString *RouteTypeToString(OORouteType routeType);
 OORouteType StringToRouteType(NSString *string);

@@ -202,12 +202,12 @@ static JSBool PlayerGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayer_rank:
-			*value = [KillCountToRatingString([player score]) oo_jsValueInContext:context];
+			*value = [OODisplayRatingStringFromKillCount([player score]) oo_jsValueInContext:context];
 			OK = YES;
 			break;
 			
 		case kPlayer_legalStatus:
-			*value = [LegalStatusToString([player bounty]) oo_jsValueInContext:context];
+			*value = [OODisplayStringFromLegalStatus([player bounty]) oo_jsValueInContext:context];
 			OK = YES;
 			break;
 			
