@@ -649,6 +649,8 @@
 		1AECE9EF11779910003986A8 /* OOPixMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AECE9EE11779910003986A8 /* OOPixMap.m */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
 		1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */; };
+		1AEF57D312E51DDB00546444 /* OOJSEngineNativeWrappers.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEF57D212E51DDB00546444 /* OOJSEngineNativeWrappers.h */; };
+		1AEF57D912E51EAB00546444 /* OOJSEngineTransitionHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEF57D812E51EAB00546444 /* OOJSEngineTransitionHelpers.h */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -1892,6 +1894,8 @@
 		1AECE9EE11779910003986A8 /* OOPixMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMap.m; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
+		1AEF57D212E51DDB00546444 /* OOJSEngineNativeWrappers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSEngineNativeWrappers.h; sourceTree = "<group>"; };
+		1AEF57D812E51EAB00546444 /* OOJSEngineTransitionHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSEngineTransitionHelpers.h; sourceTree = "<group>"; };
 		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = contributors.txt; path = Doc/contributors.txt; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
@@ -2582,6 +2586,8 @@
 				2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */,
 				1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */,
 				1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */,
+				1AEF57D212E51DDB00546444 /* OOJSEngineNativeWrappers.h */,
+				1AEF57D812E51EAB00546444 /* OOJSEngineTransitionHelpers.h */,
 				1AC0F29D12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m */,
 				1A11C2AF11CFC35000F3EE77 /* OOJSEngineTimeManagement.h */,
 				1A11C2B011CFC35000F3EE77 /* OOJSEngineTimeManagement.m */,
@@ -3415,6 +3421,8 @@
 				1A143A4811EF22C5001BAB8D /* JAPersistentFileReference.h in Headers */,
 				1AB5E1EF12BD628500C334DD /* OOJoystickManager.h in Headers */,
 				1A35257212E1FFA900244C9D /* OOConstToJSString.h in Headers */,
+				1AEF57D312E51DDB00546444 /* OOJSEngineNativeWrappers.h in Headers */,
+				1AEF57D912E51EAB00546444 /* OOJSEngineTransitionHelpers.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

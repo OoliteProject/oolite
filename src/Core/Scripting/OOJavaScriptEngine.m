@@ -22,9 +22,10 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOJavaScriptEngine.h"
-#import "OOJSScript.h"
 #import "jsdbgapi.h"
+#import "OOJavaScriptEngine.h"
+#import "OOJSEngineTimeManagement.h"
+#import "OOJSScript.h"
 
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
@@ -635,29 +636,6 @@ static void DumpVariable(JSContext *context, JSPropertyDesc *prop)
 }
 
 
-#if OO_NEW_JS
-static inline JSBool OOJS_GetFrameThis(JSContext *cx, JSStackFrame *fp, jsval *thisp)
-{
-	return JS_GetFrameThis(cx, fp, thisp);
-}
-#else
-static inline JSBool OOJS_GetFrameThis(JSContext *cx, JSStackFrame *fp, jsval *thisp)
-{
-	JSObject *thiso = JS_GetFrameThis(cx, fp);
-	if (thiso != NULL)
-	{
-		*thisp = OBJECT_TO_JSVAL(thiso);
-		return YES;
-	}
-	else
-	{
-		return false;
-	}
-	
-}
-#endif
-
-
 void OOJSDumpStack(JSContext *context)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -687,7 +665,8 @@ void OOJSDumpStack(JSContext *context)
 				jsbytecode	*PC = JS_GetFramePC(context, frame);
 				unsigned	lineNo = JS_PCToLineNumber(context, script, PC);
 				JSObject	*scope = JS_GetFrameScopeChain(context, frame);
-				gotProperties = JS_GetPropertyDescArray(context, scope, &properties);
+				
+				if (scope != NULL)  gotProperties = JS_GetPropertyDescArray(context, scope, &properties);
 				
 				NSString	*fileNameObj = [NSString stringWithUTF8String:fileName];
 				if (fileNameObj == nil)  fileNameObj = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];

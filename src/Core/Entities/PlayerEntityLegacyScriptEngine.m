@@ -367,11 +367,11 @@ static BOOL sRunningScript = NO;
 			[self setStatus:status];
 			if (RecursiveRemapStatus(status) != restoreStatus)
 			{
-				OOLog(@"script.trace.runWorld.recurse.lying", @"----- Running world script recursively and temporarily changing player status from %@ to %@.", EntityStatusToString(restoreStatus), EntityStatusToString(status));
+				OOLog(@"script.trace.runWorld.recurse.lying", @"----- Running world script recursively and temporarily changing player status from %@ to %@.", OOStringFromEntityStatus(restoreStatus), OOStringFromEntityStatus(status));
 			}
 			else
 			{
-				OOLog(@"script.trace.runWorld.recurse", @"----- Running world script recursively.", EntityStatusToString(restoreStatus), EntityStatusToString(status));
+				OOLog(@"script.trace.runWorld.recurse", @"----- Running world script recursively.", OOStringFromEntityStatus(restoreStatus), OOStringFromEntityStatus(status));
 			}
 		}
 		sRunningScript = YES;
@@ -885,7 +885,7 @@ static BOOL sRunningScript = NO;
 
 - (NSString *) status_string
 {
-	return EntityStatusToString([self status]);
+	return OOStringFromEntityStatus([self status]);
 }
 
 

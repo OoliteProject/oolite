@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOJavaScriptEngine.h"
-#import "OOConstToString.h"
 
 
 void OOConstToJSStringInit(JSContext *context);

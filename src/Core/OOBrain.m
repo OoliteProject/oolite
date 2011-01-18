@@ -70,7 +70,7 @@ MA 02110-1301, USA.
 	
 	for (instinctEnum = [instinctDictionary keyEnumerator]; (key = [instinctEnum nextObject]); )
 	{
-		OOInstinctID itype = StringToInstinct(key);
+		OOInstinctID itype = OOInstinctIDFromString(key);
 		
 		if (itype != INSTINCT_NULL)
 		{

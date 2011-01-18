@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "OOJavaScriptEngine.h"
 #import "OOJSFunction.h"
 #import "OOShipGroup.h"
 
@@ -1907,7 +1908,7 @@ static WormholeEntity *whole = nil;
 
 - (void) scanForNearestShipWithScanClass:(NSString *)scanScanClass
 {
-	NSNumber *parameter = [NSNumber numberWithInt:StringToScanClass(scanScanClass)];
+	NSNumber *parameter = [NSNumber numberWithInt:OOScanClassFromString(scanScanClass)];
 	[self scanForNearestShipWithPredicate:HasScanClassPredicate parameter:parameter];
 }
 
@@ -1940,7 +1941,7 @@ static WormholeEntity *whole = nil;
 
 - (void) scanForNearestShipWithoutScanClass:(NSString *)scanScanClass
 {
-	NSNumber *parameter = [NSNumber numberWithInt:StringToScanClass(scanScanClass)];
+	NSNumber *parameter = [NSNumber numberWithInt:OOScanClassFromString(scanScanClass)];
 	[self scanForNearestShipWithNegatedPredicate:HasScanClassPredicate parameter:parameter];
 }
 

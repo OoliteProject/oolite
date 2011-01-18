@@ -53,6 +53,27 @@ extern size_t gTotalEntityMemory;
 #define CLOSE_COLLISION_CHECK_MAX_RANGE2 1000000000.0
 
 
+#define ENTRY(label, value) label = value,
+
+typedef enum OOEntityStatus
+{
+	#include "OOEntityStatus.tbl"
+} OOEntityStatus;
+
+
+#ifndef OO_SCANCLASS_TYPE
+#define OO_SCANCLASS_TYPE
+typedef enum OOScanClass OOScanClass;
+#endif
+
+enum OOScanClass
+{
+	#include "OOScanClass.tbl"
+};
+
+#undef ENTRY
+
+
 @interface Entity: OOWeakRefObject
 {
 	// the base object for ships/stations/anything actually
@@ -253,3 +274,18 @@ extern size_t gTotalEntityMemory;
 #endif
 
 @end
+
+
+
+enum
+{
+	// Values used for unknown strings.
+	kOOEntityStatusDefault		= STATUS_INACTIVE,
+	kOOScanClassDefault			= CLASS_NOT_SET
+};
+
+NSString *OOStringFromEntityStatus(OOEntityStatus status) CONST_FUNC;
+OOEntityStatus OOEntityStatusFromString(NSString *string) PURE_FUNC;
+
+NSString *OOStringFromScanClass(OOScanClass scanClass) CONST_FUNC;
+OOScanClass OOScanClassFromString(NSString *string) PURE_FUNC;

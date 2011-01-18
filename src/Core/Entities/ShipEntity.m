@@ -238,8 +238,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	// Each new ship should start in seemingly good operating condition, unless specifically told not to - this does not affect the ship's energy levels
 	[self setThrowSparks:[shipDict oo_boolForKey:@"throw_sparks" defaultValue:NO]];
 	
-	forward_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
-	aft_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	forward_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	aft_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	[self setWeaponDataFromType:forward_weapon_type];
 	
 	cloaking_device_active = NO;
@@ -302,7 +302,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 						 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
 						  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
 									 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
-							   shaderMacros:DefaultShipShaderMacros()
+							   shaderMacros:OODefaultShipShaderMacros()
 						shaderBindingTarget:self];
 		if (mesh == nil)  return NO;
 		[self setMesh:mesh];
@@ -480,12 +480,12 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 
 	// scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
 	// let's see if scan_class is set... 
-	scanClass = StringToScanClass([shipDict oo_stringForKey:@"scan_class" defaultValue:@"CLASS_NOT_SET"]);
+	scanClass = OOScanClassFromString([shipDict oo_stringForKey:@"scan_class" defaultValue:@"CLASS_NOT_SET"]);
 	
 	// if not, try 'scanClass'. NOTE: non-standard capitalization is documented and entrenched.
 	if (scanClass == CLASS_NOT_SET)
 	{
-		scanClass = StringToScanClass([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
+		scanClass = OOScanClassFromString([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
 	}
 	
 	// Populate the missiles here. Must come after scanClass.
@@ -1363,28 +1363,26 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 
 - (OOScanClass) scanClass
 {
-	if (cloaking_device_active)
-		return CLASS_NO_DRAW;
-	else
-		return scanClass;
+	if (cloaking_device_active)  return CLASS_NO_DRAW;
+	return scanClass;
 }
 
 //////////////////////////////////////////////
 
-BOOL ship_canCollide (ShipEntity* ship)
-{
-	int		s_status =		[ship status];
-	if ((s_status == STATUS_COCKPIT_DISPLAY)||(s_status == STATUS_DEAD)||(s_status == STATUS_BEING_SCOOPED))
-		return NO;
-	if (([ship scanClass] == CLASS_MISSILE) && ([ship shotTime] < 0.25)) // not yet fused
-		return NO;
-	return YES;
-}
-
-
 - (BOOL) canCollide
 {
-	return ship_canCollide(self);
+	int status = [self status];
+	if (status == STATUS_COCKPIT_DISPLAY || status == STATUS_DEAD || status == STATUS_BEING_SCOOPED)
+	{	
+		return NO;
+	}
+	
+	if ([self scanClass] == CLASS_MISSILE && [self shotTime] < 0.25) // not yet fused
+	{
+		return NO;
+	}
+	
+	return YES;
 }
 
 ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
@@ -1706,7 +1704,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// DEBUGGING
 	if (reportAIMessages && (debugLastBehaviour != behaviour))
 	{
-		OOLog(kOOLogEntityBehaviourChanged, @"%@ behaviour is now %@", self, BehaviourToString(behaviour));
+		OOLog(kOOLogEntityBehaviourChanged, @"%@ behaviour is now %@", self, OOStringFromBehaviour(behaviour));
 		debugLastBehaviour = behaviour;
 	}
 #endif
@@ -2122,7 +2120,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (includeWeapons)
 	{
 		// Check for primary weapon
-		OOWeaponType weaponType = EquipmentStringToWeaponTypeStrict(itemKey);
+		OOWeaponType weaponType = OOWeaponTypeFromEquipmentIdentifierStrict(itemKey);
 		if (weaponType != WEAPON_NONE)
 		{
 			if ([self hasPrimaryWeapon:weaponType])  return YES;
@@ -2273,7 +2271,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			break;
 	}
 
-	return [OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(weapon_type)];
+	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weapon_type)];
 }
 
 
@@ -4685,6 +4683,28 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 - (BOOL)isUnpiloted
 {
 	return isUnpiloted;
+}
+
+
+static BOOL IsBehaviourHostile(OOBehaviour behaviour)
+{
+	switch (behaviour)
+	{
+		case BEHAVIOUR_ATTACK_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET:
+		case BEHAVIOUR_RUNNING_DEFENSE:
+		case BEHAVIOUR_FLEE_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX:
+	//	case BEHAVIOUR_ATTACK_MINING_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE:
+			return YES;
+			
+		default:
+			return NO;
+	}
+	
+	return 100 < behaviour && behaviour < 120;
 }
 
 
@@ -9844,7 +9864,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Primary role: %@", primaryRole);
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);
 	OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [self subEntityCount]);
-	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", BehaviourToString(behaviour));
+	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", OOStringFromBehaviour(behaviour));
 	if (primaryTarget != NO_TARGET)  OOLog(@"dumpState.shipEntity", @"Target: %@", [self primaryTarget]);
 	OOLog(@"dumpState.shipEntity", @"Destination: %@", VectorDescription(destination));
 	OOLog(@"dumpState.shipEntity", @"Other destination: %@", VectorDescription(coordinates));
@@ -10064,7 +10084,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 @end
 
 
-NSDictionary *DefaultShipShaderMacros(void)
+NSDictionary *OODefaultShipShaderMacros(void)
 {
 	static NSDictionary		*macros = nil;
 	

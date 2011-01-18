@@ -68,6 +68,7 @@ MA 02110-1301, USA.
 #import "OOScript.h"
 #import "OOScriptTimer.h"
 #import "OOJavaScriptEngine.h"
+#import "OOJSEngineTimeManagement.h"
 #import "OOJSFrameCallbacks.h"
 
 #import "OOJoystickManager.h"
@@ -5101,7 +5102,7 @@ done:
 		
 		legal_desc = LegalStatusToString(legalStatus);
 		rating_desc = KillCountToRatingAndKillString(ship_kills);
-		alert_desc = AlertConditionToString([self alertCondition]);
+		alert_desc = OODisplayStringFromAlertCondition([self alertCondition]);
 		fuel_desc = [NSString stringWithFormat:@"%.1f %@", fuel/10.0, lightYearsDesc];
 		credits_desc = OOCredits(credits);
 		
@@ -5244,7 +5245,7 @@ done:
 			break;
 	}
 
-	return [OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(weapon_type)];
+	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weapon_type)];
 }
 
 - (NSArray *) missilesList
@@ -6599,7 +6600,7 @@ static NSString *last_outfitting_key=nil;
 			return YES;
 		}
 		
-		int chosen_weapon = EquipmentStringToWeaponTypeStrict(eqKey);
+		int chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
 		int current_weapon = WEAPON_NONE;
 		
 		switch (chosen_weapon_facing)
@@ -6626,7 +6627,7 @@ static NSString *last_outfitting_key=nil;
 		
 		// Refund current_weapon
 		if (current_weapon != WEAPON_NONE)
-				tradeIn = [UNIVERSE getEquipmentPriceForKey:WeaponTypeToEquipmentString(current_weapon)];
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:OOEquipmentIdentifierFromWeaponType(current_weapon)];
 		
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		// If equipped, remove damaged weapon after repairs. -- But there's no way we should get a damaged weapon. Ever.
@@ -8146,7 +8147,7 @@ else _dockTarget = NO_TARGET;
 		if (dockedStation == nil)
 		{
 			//there are a number of possible current statuses, not just STATUS_DOCKED
-			OOLogERR(kOOLogInconsistentState, @"status is %@, but dockedStation is nil; treating as not docked. %@", EntityStatusToString([self status]), @"This is an internal error, please report it.");
+			OOLogERR(kOOLogInconsistentState, @"status is %@, but dockedStation is nil; treating as not docked. %@", OOStringFromEntityStatus([self status]), @"This is an internal error, please report it.");
 			[self setStatus:STATUS_IN_FLIGHT];
 			isDockedStatus = NO;
 		}
@@ -8155,7 +8156,7 @@ else _dockTarget = NO_TARGET;
 	{
 		if (dockedStation != nil && [self status] != STATUS_LAUNCHING)
 		{
-			OOLogERR(kOOLogInconsistentState, @"status is %@, but dockedStation is not nil; treating as docked. %@", EntityStatusToString([self status]), @"This is an internal error, please report it.");
+			OOLogERR(kOOLogInconsistentState, @"status is %@, but dockedStation is not nil; treating as docked. %@", OOStringFromEntityStatus([self status]), @"This is an internal error, please report it.");
 			[self setStatus:STATUS_DOCKED];
 			isDockedStatus = YES;
 		}

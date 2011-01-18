@@ -28,30 +28,6 @@ MA 02110-1301, USA.
 #include "OOFunctionAttributes.h"
 #include "OOCocoa.h"
 
-#define ARRAY_LENGTH(array) (sizeof (array) / sizeof (array)[0])
-
-
-#define ENTRY(label, value) label = value,
-
-typedef enum
-{
-	#include "OOEntityStatus.tbl"
-} OOEntityStatus;
-
-
-typedef enum
-{
-	#include "OOScanClass.tbl"
-} OOScanClass;
-
-
-typedef enum
-{
-	#include "OOBehaviour.tbl"
-} OOBehaviour;
-
-#undef ENTRY
-
 
 typedef enum
 {
@@ -62,16 +38,6 @@ typedef enum
 	GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN	= -1,
 	GALACTIC_HYPERSPACE_MAX = GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES
 } OOGalacticHyperspaceBehaviour;
-
-
-typedef enum
-{
-// NOTE: numerical values are available to scripts and shaders.
-	ALERT_CONDITION_DOCKED,
-	ALERT_CONDITION_GREEN,
-	ALERT_CONDITION_YELLOW,
-	ALERT_CONDITION_RED
-} OOAlertCondition;
 
 
 typedef enum
@@ -107,28 +73,6 @@ typedef enum
 } OOGUIScreenID;
 
 
-#ifdef OO_BRAIN_AI
-typedef enum
-{
-	INSTINCT_NULL					= 0U,
-	
-	// basic behavioural instincts
-	INSTINCT_AVOID_HAZARDS			= 101,
-	INSTINCT_FLOCK_ALIKE			= 102,
-	
-	// threats should be defined
-	INSTINCT_FIGHT_OR_FLIGHT		= 103,
-	
-// 'prey' should be defined
-	INSTINCT_ATTACK_PREY			= 105,
-	INSTINCT_AVOID_PREDATORS		= 106,
-	
-	// advanced AI instincts
-	INSTINCT_FOLLOW_AI				= 201
-} OOInstinctID;
-#endif
-
-
 typedef enum
 {
 	// NOTE: numerical values are available to scripts.
@@ -139,29 +83,6 @@ typedef enum
 } OOShaderSetting;
 
 #define SHADERS_MIN SHADERS_OFF
-
-
-OOINLINE BOOL IsBehaviourHostile(OOBehaviour behaviour) INLINE_CONST_FUNC;
-OOINLINE BOOL IsBehaviourHostile(OOBehaviour behaviour)
-{
-	switch (behaviour)
-	{
-		case BEHAVIOUR_ATTACK_TARGET:
-		case BEHAVIOUR_ATTACK_FLY_TO_TARGET:
-		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET:
-		case BEHAVIOUR_RUNNING_DEFENSE:
-		case BEHAVIOUR_FLEE_TARGET:
-		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX:
-	//	case BEHAVIOUR_ATTACK_MINING_TARGET:
-		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE:
-			return YES;
-			
-		default:
-			return NO;
-	}
-	
-	return 100 < behaviour && behaviour < 120;
-}
 
 
 typedef enum
@@ -175,28 +96,6 @@ typedef enum
 	VIEW_GUI_DISPLAY		= 10,
 	VIEW_BREAK_PATTERN		= 20
 } OOViewID;
-
-
-typedef enum
-{
-	DEMO_NO_DEMO		= 0,
-	DEMO_FLY_IN			= 101,
-	DEMO_SHOW_THING,
-	DEMO_FLY_OUT
-} OODemoMode;
-
-
-typedef enum
-{
-	WEAPON_NONE						= 0U,
-	WEAPON_PLASMA_CANNON			= 1,
-	WEAPON_PULSE_LASER				= 2,
-	WEAPON_BEAM_LASER				= 3,
-	WEAPON_MINING_LASER				= 4,
-	WEAPON_MILITARY_LASER			= 5,
-	WEAPON_THARGOID_LASER			= 10,
-	WEAPON_UNDEFINED
-} OOWeaponType;
 
 
 typedef enum

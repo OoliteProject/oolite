@@ -275,11 +275,11 @@ MA 02110-1301, USA.
 
 - (void)dumpState
 {
-	OOLog(@"dumpState.instinct", @"Instinct type: %@", InstinctToString(type));
+	OOLog(@"dumpState.instinct", @"Instinct type: %@", OOStringFromInstinctID(type));
 	OOLog(@"dumpState.instinct", @"Destination: %@", VectorDescription(destination));
 	if (target_id != NO_TARGET)  OOLog(@"dumpState.instinct", @"Target: %@", [UNIVERSE entityForUniversalID:target_id]);
 	OOLog(@"dumpState.instinct", @"Desired speed: %g", desired_speed);
-	OOLog(@"dumpState.instinct", @"Behaviour: %@", BehaviourToString(behaviour));
+	OOLog(@"dumpState.instinct", @"Behaviour: %@", OOStringFromBehaviour(behaviour));
 }
 
 @end

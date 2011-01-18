@@ -23,13 +23,12 @@ MA 02110-1301, USA.
 */
 
 
-#import <Foundation/Foundation.h>
+#import "OOCocoa.h"
 #import "Universe.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #import <jsapi.h>
 
-#import "OOJSEngineTimeManagement.h"
 
 #define OOJSENGINE_MONITOR_SUPPORT	(!defined(NDEBUG))
 
@@ -499,129 +498,12 @@ void OOJSRegisterObjectConverter(JSClass *theClass, OOJSClassConverterCallback c
 #endif
 
 
-/*
-	Exception safety and profiling macros.
-	
-	Every JavaScript native callback that could concievably cause an
-	Objective-C exception should begin with OOJS_NATIVE_ENTER() and end with
-	OOJS_NATIVE_EXIT. Callbacks which have been carefully audited for potential
-	exceptions, and support functions called from JavaScript native callbacks,
-	may start with OOJS_PROFILE_ENTER and end with OOJS_PROFILE_EXIT to be
-	included in profiling reports.
-	
-	Functions using either of these pairs _must_ return before
-	OOJS_NATIVE_EXIT/OOJS_PROFILE_EXIT, or they will crash.
-	
-	For functions with a non-scalar return type, OOJS_PROFILE_EXIT should be
-	replaced with OOJS_PROFILE_EXIT_VAL(returnValue). The returnValue is never
-	used (and should be a constant expression), but is required to placate the
-	compiler.
-	
-	For values with void return, use OOJS_PROFILE_EXIT_VOID. It is not
-	necessary to insert a return statement before OOJS_PROFILE_EXIT_VOID.
+#import "OOJSEngineNativeWrappers.h"
+
+/*	See comments on time limiter in OOJSEngineTimeManagement.h.
 */
-
-#if OOLITE_NATIVE_EXCEPTIONS
-
-#if OOJS_PROFILE
-
-#define OOJS_PROFILE_ENTER \
-	{ \
-		OOJS_DECLARE_PROFILE_STACK_FRAME(oojsProfilerStackFrame) \
-		@try { \
-			OOJSProfileEnter(&oojsProfilerStackFrame, __PRETTY_FUNCTION__);
-
-#define OOJS_PROFILE_EXIT_VAL(rval) \
-		} @finally { \
-			OOJSProfileExit(&oojsProfilerStackFrame); \
-		} \
-		OO_UNREACHABLE(); \
-		OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); \
-		return rval; \
-	}
-#define OOJS_PROFILE_EXIT_VOID return; OOJS_PROFILE_EXIT_VAL()
-
-#define OOJS_PROFILE_ENTER_FOR_NATIVE OOJS_PROFILE_ENTER
-
-#else
-
-#define OOJS_PROFILE_ENTER			{
-#define OOJS_PROFILE_EXIT_VAL(rval)	} OO_UNREACHABLE(); OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); return (rval);
-#define OOJS_PROFILE_EXIT_VOID		} return;
-#define OOJS_PROFILE_ENTER_FOR_NATIVE @try {
-
-#endif	// OOJS_PROFILE
-
-#define OOJS_NATIVE_ENTER(cx) \
-	{ \
-		JSContext *oojsNativeContext = (cx); \
-		OOJS_PROFILE_ENTER_FOR_NATIVE
-
-#define OOJS_NATIVE_EXIT \
-		} @catch(id exception) { \
-			OOJSReportWrappedException(oojsNativeContext, exception); \
-			return NO; \
-		OOJS_PROFILE_EXIT_VAL(NO) \
-	}
-
-
-void OOJSReportWrappedException(JSContext *context, id exception);
-#else	// OOLITE_NATIVE_EXCEPTIONS
-
-// These introduce a scope to ensure proper nesting.
-#define OOJS_PROFILE_ENTER			{
-#define OOJS_PROFILE_EXIT_VAL(rval)	} OO_UNREACHABLE(); OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); return (rval);
-#define OOJS_PROFILE_EXIT_VOID		} return;
-
-#define OOJS_NATIVE_ENTER(cx)	OOJS_PROFILE_ENTER
-#define OOJS_NATIVE_EXIT		OOJS_PROFILE_EXIT_VAL(NO)
-
-#endif	// OOLITE_NATIVE_EXCEPTIONS
-
-#ifndef NDEBUG
-void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_RETURN_FUNC;
-#else
-#define OOJSUnreachable(function, file, line) do {} while (0)
-#endif
-
-
-#define OOJS_PROFILE_EXIT		OOJS_PROFILE_EXIT_VAL(0)
-#define OOJS_PROFILE_EXIT_JSVAL	OOJS_PROFILE_EXIT_VAL(JSVAL_VOID)
-
-
-/*
-	OOJS_BEGIN_FULL_NATIVE() and OOJS_END_FULL_NATIVE
-	These macros are used to bracket sections of native Oolite code within JS
-	callbacks which may take a long time. Thet do two things: pause the
-	time limiter, and (in JS_THREADSAFE builds) suspend the current JS context
-	request.
-	
-	These macros must be used in balanced pairs. They introduce a scope.
-	
-	JSAPI functions may not be used, directly or indirectily, between these
-	macros unless explicitly opening a request first.
-*/
-#if JS_THREADSAFE
-#define OOJS_BEGIN_FULL_NATIVE(context) \
-	{ \
-		OOJSPauseTimeLimiter(); \
-		JSContext *oojsRequestContext = (context); \
-		jsrefcount oojsRequestRefCount = JS_SuspendRequest(oojsRequestContext);
-
-#define OOJS_END_FULL_NATIVE \
-		JS_ResumeRequest(oojsRequestContext, oojsRequestRefCount); \
-		OOJSResumeTimeLimiter(); \
-	}
-#else
-#define OOJS_BEGIN_FULL_NATIVE(context) \
-	{ \
-		(void)(context); \
-		OOJSPauseTimeLimiter(); \
-
-#define OOJS_END_FULL_NATIVE \
-		OOJSResumeTimeLimiter(); \
-	}
-#endif
+void OOJSPauseTimeLimiter(void);
+void OOJSResumeTimeLimiter(void);
 
 
 /*	OOJSDumpStack()
@@ -636,65 +518,13 @@ void OOJSDumpStack(JSContext *context);
 
 
 
-/***** Helpers to write callbacks and abstract API changes. *****/
-
 #if OO_NEW_JS
 // Native callback conventions have changed.
 #define OOJS_NATIVE_ARGS				JSContext *context, uintN argc, jsval *vp
-#define OOJS_NATIVE_CALLTHROUGH			context, argc, vp
-#define OOJS_CALLEE						JS_CALLEE(context, vp)
-#define OOJS_THIS_VAL					JS_THIS(context, vp)
-#define OOJS_THIS						JS_THIS_OBJECT(context, vp)
-#define OOJS_ARGV						JS_ARGV(context, vp)
-#define OOJS_RVAL						JS_RVAL(context, vp)
-#define OOJS_SET_RVAL(v)				JS_SET_RVAL(context, vp, v)
-
-#define OOJS_IS_CONSTRUCTING			JS_IsConstructing(context, vp)
-#define OOJS_CASTABLE_CONSTRUCTOR_CREATE	1
-
-#define OOJS_RETURN_VECTOR(value)		do { jsval jsresult; BOOL OK = VectorToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
-#define OOJS_RETURN_QUATERNION(value)	do { jsval jsresult; BOOL OK = QuaternionToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
-#define OOJS_RETURN_DOUBLE(value)		do { JS_SET_RVAL(context, vp, DOUBLE_TO_JSVAL(value)); return YES; } while (0)
-
-#define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsid propID, jsval *value
-#define OOJS_PROPID_IS_INT				JSID_IS_INT(propID)
-#define OOJS_PROPID_INT					JSID_TO_INT(propID)
-#define OOJS_PROPID_IS_STRING			JSID_IS_STRING(propID)
-#define OOJS_PROPID_STRING				JSID_TO_STRING(propID)
-
 #else
+
 #define OOJS_NATIVE_ARGS				JSContext *context, JSObject *this_, uintN argc, jsval *argv_, jsval *outResult
-#define OOJS_NATIVE_CALLTHROUGH			context, this_, argc, argv_, outResult
-#define OOJS_CALLEE						argv_[-2]
-#define OOJS_THIS_VAL					OBJECT_TO_JSVAL(this_)
-#define OOJS_THIS						this_
-#define OOJS_ARGV						argv_
-#define OOJS_RVAL						(*outResult)
-#define OOJS_SET_RVAL(v)				do { *outResult = (v); } while (0)
-
-#define OOJS_IS_CONSTRUCTING			JS_IsConstructing(context)
-#define OOJS_CASTABLE_CONSTRUCTOR_CREATE	(!OOJS_IS_CONSTRUCTING)
-
-#define OOJS_RETURN_VECTOR(value)		do { return VectorToJSValue(context, value, outResult); } while (0)
-#define OOJS_RETURN_QUATERNION(value)	do { return QuaternionToJSValue(context, value, outResult); } while (0)
-#define OOJS_RETURN_DOUBLE(value)		do { return JS_NewDoubleValue(context, value, outResult); } while (0)
-
-#define OOJS_PROP_ARGS					JSContext *context, JSObject *this, jsval propID, jsval *value
-#define OOJS_PROPID_IS_INT				JSVAL_IS_INT(propID)
-#define OOJS_PROPID_INT					JSVAL_TO_INT(propID)
-#define OOJS_PROPID_IS_STRING			JSVAL_IS_STRING(propID)
-#define OOJS_PROPID_STRING				JSVAL_TO_STRING(propID)
 #endif
-
-#define OOJS_ARG(n)						(OOJS_ARGV[(n)])
-#define OOJS_RETURN(v)					do { OOJS_SET_RVAL(v); return YES; } while (0)
-#define OOJS_RETURN_JSOBJECT(o)			OOJS_RETURN(OBJECT_TO_JSVAL(o))
-#define OOJS_RETURN_VOID				OOJS_RETURN(JSVAL_VOID)
-#define OOJS_RETURN_NULL				OOJS_RETURN(JSVAL_NULL)
-#define OOJS_RETURN_BOOL(v)				OOJS_RETURN(OOJSValueFromBOOL(v))
-#define OOJS_RETURN_INT(v)				OOJS_RETURN(INT_TO_JSVAL(v))
-#define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ oo_jsValueInContext:context] : JSVAL_NULL); } while (0)
-
 
 
 
@@ -730,104 +560,29 @@ JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS);
 
 
 
-#if !JS_THREADSAFE
-#define JS_IsInRequest(context)  (((void)(context)), YES)
-#endif
-
-
-/***** Transitional compatibility stuff - remove when switching to OO_NEW_JS permanently. *****/
-
+/***** Helpers to return values from native callbacks. *****/
 
 #if OO_NEW_JS
-// Before removing, switch to DOUBLE_TOJSVAL() everywhere.
-OOINLINE JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
-{
-	NSCParameterAssert(rval != NULL);
-	*rval = DOUBLE_TO_JSVAL(d);
-	return YES;
-}
 
+#define OOJS_RETURN_VECTOR(value)		do { jsval jsresult; BOOL OK = VectorToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
+#define OOJS_RETURN_QUATERNION(value)	do { jsval jsresult; BOOL OK = QuaternionToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
+#define OOJS_RETURN_DOUBLE(value)		do { JS_SET_RVAL(context, vp, DOUBLE_TO_JSVAL(value)); return YES; } while (0)
 
-/*	HACK: JSAPI headers have no useful versioning information, and FF4.0b9
-	changed some key string functions. It also added the macro
-	JS_WARN_UNUSED_RESULT, so we use that for feature detection temporarily.
-*/
-#define OOJS_FF4B9	defined(JS_WARN_UNUSED_RESULT)
-
-
-OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString *string, size_t *length)
-{
-	NSCParameterAssert(context != NULL && string != NULL && length != NULL);
-	
-#if OOJS_FF4B9
-	// FireFox 4b9
-	return JS_GetStringCharsAndLength(context, string, length);
 #else
-	// FireFox 4b8
-	return JS_GetStringCharsAndLength(string, length);
-#endif
-}
 
-
-#define OOJSVAL_TO_DOUBLE JSVAL_TO_DOUBLE
-#else
-// In old API, jsvals could be pointers to doubles; in new, they're actual doubles.
-#define OOJSVAL_TO_DOUBLE(val) (*JSVAL_TO_DOUBLE(val))
-
-#define JS_GetGCParameter(...) (0)
-
-
-OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString *string, size_t *length)
-{
-	NSCParameterAssert(context != NULL && string != NULL && length != NULL);
-	
-	*length = JS_GetStringLength(string);
-	return JS_GetStringChars(string);
-}
-
-#define OOJS_FF4B9 0
-#endif
-
-
-#if OOJS_FF4B9
-#define OOJSCompareStrings JS_CompareStrings
-#else
-static inline JSBool OOJSCompareStrings(JSContext *context, JSString *str1, JSString *str2, int32 *result)
-{
-	NSCParameterAssert(context != NULL && JS_IsInRequest(context) && result != NULL);
-	*result = JS_CompareStrings(str1, str2);
-	return YES;
-}
-#endif
-
-
-
-#ifndef OO_NEW_JS
-#warning The following compatibility stuff can be removed when OO_NEW_JS is.
-#endif
-
-#ifndef JS_TYPED_ROOTING_API
-/*
-	Compatibility functions to map new JS GC entry points to old ones.
-	At the time of writing, the new versions in trunk SpiderMonkey all map
-	to the same thing behind the scenes, they're just type-safe wrappers.
-*/
-static inline JSBool JS_AddValueRoot(JSContext *cx, jsval *vp) { return JS_AddRoot(cx, vp); }
-static inline JSBool JS_AddStringRoot(JSContext *cx, JSString **rp) { return JS_AddRoot(cx, rp); }
-static inline JSBool JS_AddObjectRoot(JSContext *cx, JSObject **rp) { return JS_AddRoot(cx, rp); }
-static inline JSBool JS_AddGCThingRoot(JSContext *cx, void **rp) { return JS_AddRoot(cx, rp); }
-
-static inline JSBool JS_AddNamedValueRoot(JSContext *cx, jsval *vp, const char *name) { return JS_AddNamedRoot(cx, vp, name); }
-static inline JSBool JS_AddNamedStringRoot(JSContext *cx, JSString **rp, const char *name) { return JS_AddNamedRoot(cx, rp, name); }
-static inline JSBool JS_AddNamedObjectRoot(JSContext *cx, JSObject **rp, const char *name) { return JS_AddNamedRoot(cx, rp, name); }
-static inline JSBool JS_AddNamedGCThingRoot(JSContext *cx, void **rp, const char *name) { return JS_AddNamedRoot(cx, rp, name); }
-
-static inline void JS_RemoveValueRoot(JSContext *cx, jsval *vp) { JS_RemoveRoot(cx, vp); }
-static inline void JS_RemoveStringRoot(JSContext *cx, JSString **rp) { JS_RemoveRoot(cx, rp); }
-static inline void JS_RemoveObjectRoot(JSContext *cx, JSObject **rp) { JS_RemoveRoot(cx, rp); }
-static inline void JS_RemoveGCThingRoot(JSContext *cx, void **rp) { JS_RemoveRoot(cx, rp); }
-
-#define JS_BeginRequest(cx)  do {} while (0)
-#define JS_EndRequest(cx)  do {} while (0)
+#define OOJS_RETURN_VECTOR(value)		do { return VectorToJSValue(context, value, outResult); } while (0)
+#define OOJS_RETURN_QUATERNION(value)	do { return QuaternionToJSValue(context, value, outResult); } while (0)
+#define OOJS_RETURN_DOUBLE(value)		do { return JS_NewDoubleValue(context, value, outResult); } while (0)
 
 #endif
+
+#define OOJS_RETURN(v)					do { OOJS_SET_RVAL(v); return YES; } while (0)
+#define OOJS_RETURN_JSOBJECT(o)			OOJS_RETURN(OBJECT_TO_JSVAL(o))
+#define OOJS_RETURN_VOID				OOJS_RETURN(JSVAL_VOID)
+#define OOJS_RETURN_NULL				OOJS_RETURN(JSVAL_NULL)
+#define OOJS_RETURN_BOOL(v)				OOJS_RETURN(OOJSValueFromBOOL(v))
+#define OOJS_RETURN_INT(v)				OOJS_RETURN(INT_TO_JSVAL(v))
+#define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ oo_jsValueInContext:context] : JSVAL_NULL); } while (0)
+
+
+#import "OOJSEngineTransitionHelpers.h"

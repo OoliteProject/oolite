@@ -23,9 +23,12 @@ MA );-);, USA.
 */
 
 #import "OOConstToString.h"
-#import "Universe.h"
 #import <jsapi.h>
 #import "OOCollectionExtractors.h"
+
+#import "Universe.h"
+#import "ShipEntity.h"
+#import "OOInstinct.h"
 
 
 #define CASE(foo) case foo: return @#foo;
@@ -34,7 +37,7 @@ MA );-);, USA.
 
 #define ENTRY(label, value) case label: return @#label;
 
-NSString *EntityStatusToString(OOEntityStatus status)
+NSString *OOStringFromEntityStatus(OOEntityStatus status)
 {
 	switch (status)
 	{
@@ -44,7 +47,7 @@ NSString *EntityStatusToString(OOEntityStatus status)
 }
 
 
-NSString *ScanClassToString(OOScanClass scanClass)
+NSString *OOStringFromScanClass(OOScanClass scanClass)
 {
 	switch (scanClass)
 	{
@@ -55,7 +58,7 @@ NSString *ScanClassToString(OOScanClass scanClass)
 }
 
 
-NSString *BehaviourToString(OOBehaviour behaviour)
+NSString *OOStringFromBehaviour(OOBehaviour behaviour)
 {
 	switch (behaviour)
 	{
@@ -70,7 +73,7 @@ NSString *BehaviourToString(OOBehaviour behaviour)
 
 #define ENTRY(label, value) if ([string isEqualToString:@#label]) return label;
 
-OOEntityStatus StringToEntityStatus(NSString *string)
+OOEntityStatus OOEntityStatusFromString(NSString *string)
 {
 	#include "OOEntityStatus.tbl"
 	
@@ -78,7 +81,7 @@ OOEntityStatus StringToEntityStatus(NSString *string)
 }
 
 
-OOScanClass StringToScanClass(NSString *string)
+OOScanClass OOScanClassFromString(NSString *string)
 {
 	#include "OOScanClass.tbl"
 	
@@ -89,7 +92,7 @@ OOScanClass StringToScanClass(NSString *string)
 
 
 #ifdef OO_BRAIN_AI
-NSString *InstinctToString(OOInstinctID instinct)
+NSString *OOStringFromInstinctID(OOInstinctID instinct)
 {
 	switch (instinct)
 	{
@@ -106,7 +109,7 @@ NSString *InstinctToString(OOInstinctID instinct)
 }
 
 
-OOInstinctID StringToInstinct(NSString *string)
+OOInstinctID OOInstinctIDFromString(NSString *string)
 {
 	REVERSE_CASE(INSTINCT_ATTACK_PREY);
 	REVERSE_CASE(INSTINCT_AVOID_PREDATORS);
@@ -201,7 +204,7 @@ NSString *JSTypeToString(int /* JSType */ type)
 }
 
 
-NSString *WeaponTypeToString(OOWeaponType weapon)
+NSString *OOStringFromWeaponType(OOWeaponType weapon)
 {
 	switch (weapon)
 	{
@@ -218,7 +221,7 @@ NSString *WeaponTypeToString(OOWeaponType weapon)
 }
 
 
-OOWeaponType StringToWeaponType(NSString *string)
+OOWeaponType OOWeaponTypeFromString(NSString *string)
 {
 	REVERSE_CASE(WEAPON_PLASMA_CANNON);
 	REVERSE_CASE(WEAPON_PULSE_LASER);
@@ -231,7 +234,7 @@ OOWeaponType StringToWeaponType(NSString *string)
 }
 
 
-NSString *WeaponTypeToEquipmentString(OOWeaponType weapon)
+NSString *OOEquipmentIdentifierFromWeaponType(OOWeaponType weapon)
 {
 #define EQ_CASE(foo) case foo: return @"EQ_"#foo;
 	
@@ -254,7 +257,7 @@ NSString *WeaponTypeToEquipmentString(OOWeaponType weapon)
 }
 
 
-OOWeaponType EquipmentStringToWeaponTypeSloppy(NSString *string)
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(NSString *string)
 {
 #define EQ_REVERSE_CASE(foo) if ([string hasSuffix:@#foo]) return WEAPON_##foo;
 	EQ_REVERSE_CASE(PLASMA_CANNON); // required in playerEntityControls (case GUI_SCREEN_EQUIP_SHIP)
@@ -269,9 +272,9 @@ OOWeaponType EquipmentStringToWeaponTypeSloppy(NSString *string)
 }
 
 
-OOWeaponType EquipmentStringToWeaponTypeStrict(NSString *string)
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(NSString *string)
 {
-#define EQ_REVERSE_CASE(foo) if ([string isEqual:@"EQ_WEAPON_" #foo]) return WEAPON_##foo;
+#define EQ_REVERSE_CASE(foo) if ([string isEqualToString:@"EQ_WEAPON_" #foo]) return WEAPON_##foo;
 //	EQ_REVERSE_CASE(PLASMA_CANNON);
 	if ([string isEqual:@"EQ_WEAPON_TWIN_PLASMA_CANNON"]) return WEAPON_PLASMA_CANNON;
 	EQ_REVERSE_CASE(PULSE_LASER);
@@ -596,7 +599,7 @@ NSString *LegalStatusToString(int legalStatus)
 }
 
 
-NSString *AlertConditionToString(OOAlertCondition alertCondition)
+NSString *OODisplayStringFromAlertCondition(OOAlertCondition alertCondition)
 {
 	NSArray *conditionNames = [[UNIVERSE descriptions] oo_arrayForKey:@"condition"];
 	return [conditionNames oo_stringAtIndex:alertCondition];

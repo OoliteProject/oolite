@@ -107,6 +107,41 @@ MA 02110-1301, USA.
 #define WEAPON_FACING_PORT				4
 #define WEAPON_FACING_STARBOARD			8
 
+
+#define ENTRY(label, value) label = value,
+
+typedef enum OOBehaviour
+{
+	#include "OOBehaviour.tbl"
+} OOBehaviour;
+
+#undef ENTRY
+
+
+typedef enum
+{
+	WEAPON_NONE						= 0U,
+	WEAPON_PLASMA_CANNON			= 1,
+	WEAPON_PULSE_LASER				= 2,
+	WEAPON_BEAM_LASER				= 3,
+	WEAPON_MINING_LASER				= 4,
+	WEAPON_MILITARY_LASER			= 5,
+	WEAPON_THARGOID_LASER			= 10,
+	WEAPON_UNDEFINED
+} OOWeaponType;
+
+
+typedef enum
+{
+	// Alert conditions are used by player and station entities.
+	// NOTE: numerical values are available to scripts and shaders.
+	ALERT_CONDITION_DOCKED	= 0,
+	ALERT_CONDITION_GREEN	= 1,
+	ALERT_CONDITION_YELLOW	= 2,
+	ALERT_CONDITION_RED		= 3
+} OOAlertCondition;
+
+
 @interface ShipEntity: OOEntityWithDrawable
 {
 @public
@@ -925,10 +960,24 @@ BOOL	class_masslocks(int some_class);
 @end
 
 
-BOOL ship_canCollide (ShipEntity* ship);
+NSDictionary *OODefaultShipShaderMacros(void);
 
 
-NSDictionary *DefaultShipShaderMacros(void);
+// Stuff implemented in OOConstToString.m
+enum
+{
+	// Values used for unknown strings.
+	kOOWeaponTypeDefault		= WEAPON_NONE
+};
 
+NSString *OOStringFromBehaviour(OOBehaviour behaviour) CONST_FUNC;
 
-float RandomEjectaTemperature(float parentTemp);
+// Weapon strings prefixed with EQ_, used in shipyard.plist.
+NSString *OOEquipmentIdentifierFromWeaponType(OOWeaponType weapon) CONST_FUNC;
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(NSString *string) PURE_FUNC;	// Uses suffix match for backwards compatibility.
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(NSString *string) PURE_FUNC;
+
+NSString *OOStringFromWeaponType(OOWeaponType weapon) CONST_FUNC;
+OOWeaponType OOWeaponTypeFromString(NSString *string) PURE_FUNC;
+
+NSString *OODisplayStringFromAlertCondition(OOAlertCondition alertCondition) CONST_FUNC;

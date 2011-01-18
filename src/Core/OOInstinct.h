@@ -32,6 +32,28 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 
 
+typedef enum
+{
+	INSTINCT_NULL					= 0U,
+	
+	// basic behavioural instincts
+	INSTINCT_AVOID_HAZARDS			= 101,
+	INSTINCT_FLOCK_ALIKE			= 102,
+	
+	// threats should be defined
+	INSTINCT_FIGHT_OR_FLIGHT		= 103,
+	
+// 'prey' should be defined
+	INSTINCT_ATTACK_PREY			= 105,
+	INSTINCT_AVOID_PREDATORS		= 106,
+	
+	// advanced AI instincts
+	INSTINCT_FOLLOW_AI				= 201,
+	
+	kOOInstinctIDDefault		= INSTINCT_NULL,
+} OOInstinctID;
+
+
 @class Entity, ShipEntity, OOCharacter, AI;
 
 @interface OOInstinct : NSObject	{
@@ -113,5 +135,9 @@ MA 02110-1301, USA.
 - (void)dumpState;
 
 @end
+
+
+NSString *OOStringFromInstinctID(OOInstinctID instinct) CONST_FUNC;
+OOInstinctID OOInstinctIDFromString(NSString *string) PURE_FUNC;
 
 #endif	/* OO_BRAIN_AI */

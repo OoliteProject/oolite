@@ -151,7 +151,7 @@ typedef enum
 
 #define ROLL_DAMPING_FACTOR				1.0f
 #define PITCH_DAMPING_FACTOR			1.0f
-#define YAW_DAMPING_FACTOR			1.0f
+#define YAW_DAMPING_FACTOR				1.0f
 
 #define PLAYER_MAX_WEAPON_TEMP			256.0f
 #define PLAYER_MAX_FUEL					70
@@ -203,6 +203,7 @@ typedef enum
 #define PLAYER_INTERNAL_DAMAGE_FACTOR	31
 
 #define PLAYER_DOCKING_AI_NAME			@"oolite-player-AI.plist"
+
 
 @interface PlayerEntity: ShipEntity
 {

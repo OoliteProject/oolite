@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 #import "OOJSFunction.h"
 #import "OOJSScript.h"
+#import "OOJSEngineTimeManagement.h"
 
 
 @implementation OOJSFunction

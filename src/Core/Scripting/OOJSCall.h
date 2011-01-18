@@ -27,7 +27,8 @@ MA 02110-1301, USA.
 #ifndef NDEBUG
 
 
-#import "OOJavaScriptEngine.h"
+#import <Foundation/Foundation.h>
+#import <jsapi.h>
 
 
 /*	OOJSCallObjCObjectMethod()

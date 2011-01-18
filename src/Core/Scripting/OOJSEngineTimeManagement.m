@@ -1,6 +1,6 @@
 /*
 
-OOJSTimeManagement.m
+OOJSEngineTimeManagement.h
 
 
 Copyright (C) 2010-2011 Jens Ayton
@@ -25,13 +25,13 @@ SOFTWARE.
 
 */
 
-#import "OOJavaScriptEngine.h"
+#import "jsdbgapi.h"
+#import "OOJSEngineTimeManagement.h"
 #import "OOProfilingStopwatch.h"
 #import "OOJSScript.h"
 #import "OOCollectionExtractors.h"
 #import "OOLoggingExtended.h"
 #import <unistd.h>
-#import "jsdbgapi.h"
 
 
 #if OO_DEBUG
@@ -47,8 +47,7 @@ static OOHighResTimeValue sLimiterStart;
 static OOHighResTimeValue sLimiterPauseStart;
 static double sLimiterTimeLimit;
 
-#if !OO_NEW_JS
-static unsigned long sBranchCount;
+
 enum
 {
 	/*	Inverse proportion of BranchCallback calls on which we test the time
@@ -60,7 +59,7 @@ enum
 	kMaxBranchCount = (1 << 18)	// 262144
 #endif
 };
-#endif
+
 
 #if OOJS_DEBUG_LIMITER
 #define OOJS_TIME_LIMIT		(0.1)	// seconds
@@ -68,16 +67,17 @@ enum
 #define OOJS_TIME_LIMIT		(1)	// seconds
 #endif
 
+#if OO_NEW_JS
+static BOOL sStop;
+#else
+static unsigned long sBranchCount;
+#endif
+
 #ifndef NDEBUG
 static const char *sLastStartedFile;
 static unsigned sLastStartedLine;
 static const char *sLastStoppedFile;
 static unsigned sLastStoppedLine;
-#endif
-
-
-#if OO_NEW_JS
-static BOOL sStop = NO;
 #endif
 
 
@@ -332,9 +332,8 @@ static OOHighResTimeValue		sProfilerStartTime;
 - (void) setNativeTime:(double)value;
 #ifdef MOZ_TRACE_JSCALLS
 - (void) setJavaScriptTime:(double)value;
-#else
-- (void) setProfilerOverhead:(double)value;
 #endif
+- (void) setProfilerOverhead:(double)value;
 - (void) setExtensionTime:(double)value;
 - (void) setProfileEntries:(NSArray *)value;
 
@@ -389,9 +388,9 @@ OOTimeProfile *OOJSEndProfiling(void)
 	[result setNativeTime:sProfilerTotalNativeTime];
 #ifdef MOZ_TRACE_JSCALLS
 	[result setJavaScriptTime:sProfilerTotalJavaScriptTime];
-#else
-	[result setProfilerOverhead:sProfilerOverhead];
 #endif
+	[result setProfilerOverhead:sProfilerOverhead];
+	
 	double currentTimeLimit = OOJSGetTimeLimiterLimit(); 
 	[result setExtensionTime:currentTimeLimit - sProfilerEntryTimeLimit];
 	
@@ -412,6 +411,9 @@ BOOL OOJSIsProfiling(void)
 {
 	return sProfiling;
 }
+
+void OOJSBeginTracing(void);
+void OOJSEndTracing(void);
 
 
 static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame *frame);
@@ -673,20 +675,14 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 
 - (double) profilerOverhead
 {
-#ifdef MOZ_TRACE_JSCALLS
-	return _totalTime - _nativeTime - _javaScriptTime;
-#else
 	return _profilerOverhead;
-#endif
 }
 
 
-#ifndef MOZ_TRACE_JSCALLS
 - (void) setProfilerOverhead:(double)value
 {
 	_profilerOverhead = value;
 }
-#endif
 
 
 - (NSArray *) profileEntries

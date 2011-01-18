@@ -497,7 +497,7 @@ enum
 		their own risk. Apple will not guarantee or provide support for
 		this procedure.
 	
-	The approach taken here is to load the function sdynamically. This makes
+	The approach taken here is to load the functions dynamically. This makes
 	us safe in the case of Apple removing the functions. In the unlikely event
 	that they change the functions' paramters without renaming them, we would
 	have a problem.

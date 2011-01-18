@@ -1837,7 +1837,7 @@ static NSTimeInterval	time_last_frame;
 				
 				if (weaponType != WEAPON_UNDEFINED)
 				{
-					BOOL		sameAs = EquipmentStringToWeaponTypeSloppy([gui selectedRowKey]) == weaponType;
+					BOOL		sameAs = OOWeaponTypeFromEquipmentIdentifierSloppy([gui selectedRowKey]) == weaponType;
 					// override showInformation _completely_ with itemText
 					if (weaponType == WEAPON_NONE)  itemText = DESC(@"no-weapon-enter-to-install");
 					else

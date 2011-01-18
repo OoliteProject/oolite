@@ -27,6 +27,7 @@ SOFTWARE.
 
 #import "OORegExpMatcher.h"
 #import "OOJSFunction.h"
+#import "OOJavaScriptEngine.h"
 
 
 // Pseudo-singleton: a single instance exists at a given time, but can be released.

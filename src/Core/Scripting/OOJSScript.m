@@ -31,10 +31,12 @@ MA 02110-1301, USA.
 
 
 #import "OOJSScript.h"
+#import "OOJavaScriptEngine.h"
+#import "OOJSEngineTimeManagement.h"
+
 #import "OOLogging.h"
 #import "OOConstToString.h"
 #import "Entity.h"
-#import "OOJavaScriptEngine.h"
 #import "NSStringOOExtensions.h"
 #import "EntityOOJavaScriptExtensions.h"
 

@@ -1,6 +1,6 @@
 /*
 
-OOJSTimeManagement.h
+OOJSEngineTimeManagement.h
 
 Functionality related to time limiting and profiling of JavaScript code.
 
@@ -28,10 +28,10 @@ SOFTWARE.
 */
 
 
-#import "jsapi.h"
+#import "OOJavaScriptEngine.h"
 
 
-/*	Time limiter
+/*	Time Limiter
 	
 	The time limiter stops scripts from running an arbitrarily long time.
 	
@@ -59,22 +59,19 @@ void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit);
 void OOJSStopTimeLimiter(void);
 #endif
 
-void OOJSPauseTimeLimiter(void);
-void OOJSResumeTimeLimiter(void);
-
 
 #define kOOJSLongTimeLimit (2.0)
 
-
-#ifndef OOJS_PROFILE
-#define OOJS_PROFILE (!defined(NDEBUG) && OOLITE_NATIVE_EXCEPTIONS)
-#endif
 
 #if OOJS_PROFILE
 #import "OOProfilingStopwatch.h"
 
 /*
 	Profiling support.
+	
+	OOJSBeginProfiling(), OOJSEndProfiling(), OOJSIsProfiling()
+	Start, stop, and query profiling mode. It is a hard error to start
+	profiling while already profiling.
 	
 	OOJSCopyTimeLimiterNominalStartTime()
 	Copy the nominal start time for the time limiter. This is the actual time
@@ -103,22 +100,10 @@ OOTimeDelta OOJSGetTimeLimiterLimit(void);
 void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 
 
-typedef struct OOJSProfileStackFrame OOJSProfileStackFrame;
-struct OOJSProfileStackFrame
-{
-	OOJSProfileStackFrame	*back;
-	const void				*key;
-	const char				*function;
-	OOHighResTimeValue		startTime;
-	OOTimeDelta				subTime;
-	OOTimeDelta				*total;
-	void (*cleanup)(OOJSProfileStackFrame *);
-};
-
-
-#define OOJS_DECLARE_PROFILE_STACK_FRAME(name) OOJSProfileStackFrame name;
-void OOJSProfileEnter(OOJSProfileStackFrame *frame, const char *function);
-void OOJSProfileExit(OOJSProfileStackFrame *frame);
+/*
+	NOTE: the profiler declarations that need to be visible to functions that
+	are profiled are found in OOJSEngineNativeWrappers.h.
+*/
 
 
 @interface OOTimeProfile: NSObject
@@ -127,12 +112,11 @@ void OOJSProfileExit(OOJSProfileStackFrame *frame);
 	double						_totalTime;
 	double						_nativeTime;
 	double						_extensionTime;
-	
 #ifdef MOZ_TRACE_JSCALLS
 	double						_javaScriptTime;
-#else
-	double						_profilerOverhead;
 #endif
+	
+	double						_profilerOverhead;
 	
 	NSArray						*_profileEntries;
 }
@@ -181,12 +165,6 @@ void OOJSProfileExit(OOJSProfileStackFrame *frame);
 - (NSComparisonResult) compareBySelfTimeReverse:(OOTimeProfileEntry *)other;
 
 @end
-
-#else
-
-#define OOJS_DECLARE_PROFILE_STACK_FRAME(name)
-#define OOJSProfileEnter(frame, function) do {} while (0)
-#define OOJSProfileExit(frame) do {} while (0)
 
 #endif
 

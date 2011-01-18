@@ -123,7 +123,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (NSString *)descriptionComponents
 {
-	return [NSString stringWithFormat:@"position: %@ scanClass: %@ status: %@", VectorDescription([self position]), ScanClassToString([self scanClass]), EntityStatusToString([self status])];
+	return [NSString stringWithFormat:@"position: %@ scanClass: %@ status: %@", VectorDescription([self position]), OOStringFromScanClass([self scanClass]), OOStringFromEntityStatus([self status])];
 }
 
 
@@ -936,8 +936,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	else if (owner == nil)  owner = @"none";
 	
 	OOLog(@"dumpState.entity", @"Universal ID: %u", universalID);
-	OOLog(@"dumpState.entity", @"Scan class: %@", ScanClassToString(scanClass));
-	OOLog(@"dumpState.entity", @"Status: %@", EntityStatusToString([self status]));
+	OOLog(@"dumpState.entity", @"Scan class: %@", OOStringFromScanClass(scanClass));
+	OOLog(@"dumpState.entity", @"Status: %@", OOStringFromEntityStatus([self status]));
 	OOLog(@"dumpState.entity", @"Position: %@", VectorDescription(position));
 	OOLog(@"dumpState.entity", @"Orientation: %@", QuaternionDescription(orientation));
 	OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);

@@ -36,14 +36,6 @@ MA 02110-1301, USA.
 enum
 {
 	// Values used for unknown strings.
-	kOOEntityStatusDefault		= STATUS_INACTIVE,
-	kOOScanClassDefault			= CLASS_NOT_SET,
-	
-#if OO_BRAIN_AI
-	kOOInstinctIDDefault		= INSTINCT_NULL,
-#endif
-	
-	kOOWeaponTypeDefault		= WEAPON_NONE,
 	kOOCargoTypeDefault			= CARGO_UNDEFINED,
 	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
 	kOOEnergyUnitTypeDefault	= ENERGY_UNIT_NONE,
@@ -55,18 +47,33 @@ enum
 };
 
 
-NSString *EntityStatusToString(OOEntityStatus status) CONST_FUNC;
-OOEntityStatus StringToEntityStatus(NSString *string) PURE_FUNC;
+/*
 
-NSString *ScanClassToString(OOScanClass scanClass) CONST_FUNC;
-OOScanClass StringToScanClass(NSString *string) PURE_FUNC;
+To avoid pulling in unnecessary headers, some functions defined in
+OOConstToString.m are declared in the header with the appropriate type
+declaration, in particular:
 
-#ifdef OO_BRAIN_AI
-NSString *InstinctToString(OOInstinctID instinct) CONST_FUNC;
-OOInstinctID StringToInstinct(NSString *string) PURE_FUNC;
-#endif
+	Entity.h:
+	OOStringFromEntityStatus()
+	OOEntityStatusFromString()
+	OOStringFromScanClass()
+	OOScanClassFromString()
 
-NSString *BehaviourToString(OOBehaviour behaviour) CONST_FUNC;
+	ShipEntity.h:
+	OOStringFromBehaviour()
+	OOEquipmentIdentifierFromWeaponType()
+	OOWeaponTypeFromEquipmentIdentifierSloppy()
+	OOWeaponTypeFromEquipmentIdentifierStrict()
+	OOStringFromWeaponType()
+	OOWeaponTypeFromString()
+	OODisplayStringFromAlertCondition()
+
+	OOInstinct.h:
+	OOStringFromInstinctID()
+	OOInstinctIDFromString()
+
+*/
+
 
 NSString *ViewIDToString(OOViewID viewID) CONST_FUNC;
 
@@ -75,14 +82,6 @@ NSString *GovernmentToString(OOGovernmentID government);
 NSString *EconomyToString(OOEconomyID economy);
 
 NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;
-
-NSString *WeaponTypeToString(OOWeaponType weapon) CONST_FUNC;
-OOWeaponType StringToWeaponType(NSString *string) PURE_FUNC;
-
-// Weapon strings prefixed with EQ_, used in shipyard.plist.
-NSString *WeaponTypeToEquipmentString(OOWeaponType weapon) CONST_FUNC;
-OOWeaponType EquipmentStringToWeaponTypeSloppy(NSString *string) PURE_FUNC;	// Uses suffix match for backwards compatibility.
-OOWeaponType EquipmentStringToWeaponTypeStrict(NSString *string) PURE_FUNC;
 
 NSString *CargoTypeToString(OOCargoType cargo) CONST_FUNC;
 OOCargoType StringToCargoType(NSString *string) PURE_FUNC;
@@ -100,7 +99,6 @@ OOGUIScreenID StringToGUIScreenID(NSString *string) PURE_FUNC;
 NSString *KillCountToRatingString(unsigned kills) CONST_FUNC;
 NSString *KillCountToRatingAndKillString(unsigned kills) CONST_FUNC;
 NSString *LegalStatusToString(int legalStatus) CONST_FUNC;
-NSString *AlertConditionToString(OOAlertCondition alertCondition) CONST_FUNC;
 
 // Localized shader mode strings.
 NSString *ShaderSettingToDisplayString(OOShaderSetting setting) CONST_FUNC;

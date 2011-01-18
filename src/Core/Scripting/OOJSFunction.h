@@ -2,9 +2,7 @@
 
 OOJSFunction.h
 
-Object encapsulating a runnable JavaScript function. This is mostly a holder
-for a JSFunction *; NSValue can't be used for this purpose because a GC root
-is needed.
+Object encapsulating a runnable JavaScript function.
 
 
 JavaScript support for Oolite
@@ -28,7 +26,8 @@ MA 02110-1301, USA.
 */
 
 
-#import "OOJavaScriptEngine.h"
+#import "OOCocoa.h"
+#import <jsapi.h>
 
 
 @interface OOJSFunction: NSObject

@@ -25,6 +25,11 @@ MA 02110-1301, USA.
 
 */
 
+#ifdef NDEBUG
+#define NS_BLOCK_ASSERTIONS 1
+#endif
+
+
 #import <math.h>
 #import <Foundation/Foundation.h>
 

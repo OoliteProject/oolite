@@ -533,7 +533,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	 (crosshairs.plist).OTHER
 	 */
 	
-	weaponName = WeaponTypeToString(weapon);
+	weaponName = OOStringFromWeaponType(weapon);
 	result = [_crosshairOverrides oo_arrayForKey:weaponName];
 	if (result == nil)  result = [_crosshairOverrides oo_arrayForKey:@"OTHER"];
 	if (result == nil)

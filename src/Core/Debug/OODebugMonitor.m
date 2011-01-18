@@ -37,9 +37,8 @@ SOFTWARE.
 #import "NSStringOOExtensions.h"
 
 #import "OOJSConsole.h"
-#import "OOScript.h"
 #import "OOJSScript.h"
-#import "OOJavaScriptEngine.h"
+#import "OOJSEngineTimeManagement.h"
 #import "OOJSSpecialFunctions.h"
 
 #import "NSObjectOOExtensions.h"

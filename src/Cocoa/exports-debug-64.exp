@@ -55,11 +55,11 @@ _JS_ValueToNumber
 _JS_SetProperty
 _OOJSReportWarning
 _OOBooleanFromObject
-_ScanClassToString
-_EntityStatusToString
+_OOStringFromScanClass
+_OOStringFromEntityStatus
 _QuaternionDescription
 _VectorDescription
-_BehaviourToString
+_OOStringFromBehaviour
 _ShaderSettingToString
 _OOSoundRegisterDebugMonitor
 

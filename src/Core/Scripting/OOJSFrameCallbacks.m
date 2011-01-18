@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #import "OOJSFrameCallbacks.h"
+#import "OOJSEngineTimeManagement.h"
 #import "OOCollectionExtractors.h"
 
 
@@ -411,7 +412,7 @@ static BOOL RemoveCallbackWithTrackingID(JSContext *context, uint32 trackingID)
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
 	NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 	
-	OOUInteger index;
+	OOUInteger index = 0;
 	if (GetIndexForTrackingID(trackingID, &index))
 	{
 		RemoveCallbackAtIndex(context, index);

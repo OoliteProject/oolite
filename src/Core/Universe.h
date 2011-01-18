@@ -45,6 +45,11 @@ MA 02110-1301, USA.
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
 
+#ifndef OO_SCANCLASS_TYPE
+#define OO_SCANCLASS_TYPE
+typedef enum OOScanClass OOScanClass;
+#endif
+
 
 #define CROSSHAIR_SIZE						32.0
 

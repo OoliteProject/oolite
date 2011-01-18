@@ -72,7 +72,7 @@ MA 02110-1301, USA.
 #import "OOAsyncWorkManager.h"
 #import "OODebugFlags.h"
 #import "OOLoggingExtended.h"
-#import "OOJavaScriptEngine.h"
+#import "OOJSEngineTimeManagement.h"
 #import "OOJoystickManager.h"
 
 #if OO_LOCALIZATION_TOOLS
@@ -102,6 +102,14 @@ typedef OOUInteger NSSpeechBoundary;
 @end
 
 #endif
+
+
+enum
+{
+	DEMO_FLY_IN			= 101,
+	DEMO_SHOW_THING,
+	DEMO_FLY_OUT
+};
 
 
 #define kOOLogUnconvertedNSLog @"unclassified.Universe"
@@ -7172,8 +7180,8 @@ double estimatedTimeForJourney(double distance, int hops)
 			
 			unsigned available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];	// use defaults  explicitly
 
-			OOWeaponType fwd_weapon = EquipmentStringToWeaponTypeSloppy(fwd_weapon_string);
-			OOWeaponType aft_weapon = EquipmentStringToWeaponTypeSloppy(aft_weapon_string);
+			OOWeaponType fwd_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(fwd_weapon_string);
+			OOWeaponType aft_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(aft_weapon_string);
 			//port and starboard weapons are not modified in the shipyard
 			
 			int passenger_berths = 0;
@@ -7247,7 +7255,7 @@ double estimatedTimeForJourney(double distance, int hops)
 					{
 						if ([equipmentKey hasPrefix:@"EQ_WEAPON"])
 						{
-							OOWeaponType new_weapon = EquipmentStringToWeaponTypeSloppy(equipmentKey);
+							OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(equipmentKey);
 							//fit best weapon forward
 							if (available_facings & WEAPON_FACING_FORWARD && new_weapon > fwd_weapon)
 							{
@@ -7500,12 +7508,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	// work out weapon values
 	if (ship_fwd_weapon)
 	{
-		weapon_key = WeaponTypeToEquipmentString(ship_fwd_weapon);
+		weapon_key = OOEquipmentIdentifierFromWeaponType(ship_fwd_weapon);
 		ship_main_weapons_value = [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
 	}
 	if (ship_aft_weapon)
 	{
-		weapon_key = WeaponTypeToEquipmentString(ship_aft_weapon);
+		weapon_key = OOEquipmentIdentifierFromWeaponType(ship_aft_weapon);
 		if (base_weapon_key != nil) // aft weapon was defined as a base weapon
 		{
 			ship_main_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;	//take weapon downgrades into account
@@ -7517,12 +7525,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	}
 	if (ship_port_weapon)
 	{
-		weapon_key = WeaponTypeToEquipmentString(ship_port_weapon);
+		weapon_key = OOEquipmentIdentifierFromWeaponType(ship_port_weapon);
 		ship_other_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
 	}
 	if (ship_starboard_weapon)
 	{
-		weapon_key = WeaponTypeToEquipmentString(ship_starboard_weapon);
+		weapon_key = OOEquipmentIdentifierFromWeaponType(ship_starboard_weapon);
 		ship_other_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
 	}
 	
