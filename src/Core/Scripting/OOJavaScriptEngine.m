@@ -652,10 +652,16 @@ void OOJSDumpStack(JSContext *context)
 			JSPropertyDescArray	properties = { 0 , NULL };
 			BOOL				gotProperties = NO;
 			
+			idx++;
+			
+			if (!JS_IsScriptFrame(context, frame))
+			{
+				continue;
+			}
+			
 			if (skip != 0)
 			{
 				skip--;
-				idx++;
 				continue;
 			}
 			
@@ -705,7 +711,7 @@ void OOJSDumpStack(JSContext *context)
 				desc = @"<Oolite native>";
 			}
 			
-			OOLog(@"script.javaScript.stackTrace", @"%2u %@", idx, desc);
+			OOLog(@"script.javaScript.stackTrace", @"%2u %@", idx - 1, desc);
 			
 			if (gotProperties)
 			{
@@ -747,7 +753,6 @@ void OOJSDumpStack(JSContext *context)
 				
 				JS_PutPropertyDescArray(context, &properties);
 			}
-			idx++;
 		}
 	NS_HANDLER
 		OOLog(kOOLogException, @"Exception during JavaScript stack trace: %@:%@", [localException name], [localException reason]);
@@ -765,16 +770,22 @@ static void GetLocationNameAndLine(JSContext *context, JSStackFrame *stackFrame,
 {
 	NSCParameterAssert(context != NULL && stackFrame != NULL && name != NULL && line != NULL);
 	
+	*name = NULL;
+	*line = 0;
+	
 	JSScript *script = JS_GetFrameScript(context, stackFrame);
-	*name = JS_GetScriptFilename(context, script);
-	if (name != NULL)
+	if (script != NULL)
 	{
-		jsbytecode *PC = JS_GetFramePC(context, stackFrame);
-		*line = JS_PCToLineNumber(context, script, PC);
+		*name = JS_GetScriptFilename(context, script);
+		if (name != NULL)
+		{
+			jsbytecode *PC = JS_GetFramePC(context, stackFrame);
+			*line = JS_PCToLineNumber(context, script, PC);
+		}
 	}
-	else
+	else if (JS_IsDebuggerFrame(context, stackFrame))
 	{
-		*line = 0;
+		*name = "<debugger frame>";
 	}
 }
 
