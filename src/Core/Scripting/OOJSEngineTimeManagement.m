@@ -25,7 +25,7 @@ SOFTWARE.
 
 */
 
-#import "jsdbgapi.h"
+#import <jsdbgapi.h>
 #import "OOJSEngineTimeManagement.h"
 #import "OOProfilingStopwatch.h"
 #import "OOJSScript.h"
@@ -847,44 +847,32 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 {
 	if ((self = [self initWithCName:NULL]))
 	{
-		_jsFunction = function;
-		
-		// Work in a temporary JS context with profiling disabled.
+		// Temporarily disable profiling so we don't profile the profiler while it's profiling the profilee.
 		sProfiling = NO;
-		JSContext *tempCtxt = [[OOJavaScriptEngine sharedEngine] acquireContext];
-		JS_BeginRequest(tempCtxt);
+		_jsFunction = function;
 		
 		NSString *funcName = nil;
 		JSString *jsName = JS_GetFunctionId(_jsFunction);
-		if (jsName != NULL)  funcName = [OOStringFromJSString(tempCtxt, jsName) retain];
+		if (jsName != NULL)  funcName = [OOStringFromJSString(context, jsName) retain];
 		else  funcName = @"<anonymous>";
 		
-		const char *fileName = NULL;
-		NSString *fileNameObj = nil;
-		JSScript *script = JS_GetFunctionScript(tempCtxt, function);
-		if (script != NULL)  fileName = JS_GetScriptFilename(tempCtxt, script);
-		
-		if (fileName != NULL)
-		{
-			fileNameObj = [[NSString stringWithCString:fileName encoding:NSUTF8StringEncoding] lastPathComponent];
-		}
-		
-		if (fileNameObj != nil)
+		// If it's a non-native function, get its source location.
+		NSString *location = nil;
+		if (JS_GetFunctionNative(context, function) == NULL)
 		{
 			JSStackFrame *frame = NULL;
-			if (JS_FrameIterator(context, &frame) != NULL)	// Note: target context, not tempCtxt.
+			if (JS_FrameIterator(context, &frame) != NULL)
 			{
-				jsbytecode *PC = JS_GetFramePC(context, frame);
-				unsigned lineNo = JS_PCToLineNumber(context, script, PC);
-				fileNameObj = [NSString stringWithFormat:@"%@:%u", fileNameObj, lineNo];
+				location = OOJSDescribeLocation(context, frame);
 			}
-			
-			_function = [[NSString alloc] initWithFormat:@"(%@) %@", fileNameObj, funcName];
+		}
+		
+		if (location != nil)
+		{
+			_function = [[NSString alloc] initWithFormat:@"(%@) %@", location, funcName];
 		}
 		else  _function = [funcName retain];
 		
-		JS_EndRequest(tempCtxt);
-		[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 		sProfiling = YES;
 	}
 	

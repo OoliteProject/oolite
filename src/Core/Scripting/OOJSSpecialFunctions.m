@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 
 */
 
+#import <jsdbgapi.h>
 #import "OOJSSpecialFunctions.h"
 
 
@@ -30,12 +31,16 @@ static JSObject		*sSpecialFunctionsObject;
 
 
 static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS);
+static JSBool SpecialMarkConsoleEntryPoint(OOJS_NATIVE_ARGS);
 
 
 static JSFunctionSpec sSpecialFunctionsMethods[] =
 {
-	// JS name					Function					min args
-	{ "jsWarning",				SpecialJSWarning,			1 },
+	// JS name					Function						min args
+	{ "jsWarning",				SpecialJSWarning,				1 },
+#ifndef NDEBUG
+	{ "markConsoleEntryPoint",	SpecialMarkConsoleEntryPoint,	0 },
+#endif
 	{ 0 }
 };
 
@@ -76,4 +81,18 @@ static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS)
 	OOJS_RETURN_VOID;
 	
 	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool SpecialMarkConsoleEntryPoint(OOJS_NATIVE_ARGS)
+{
+	// First stack frame will be in eval() in console.script.evaluate(), unless someone is playing silly buggers.
+	
+	JSStackFrame *frame = NULL;
+	if (JS_FrameIterator(context, &frame) != NULL)
+	{
+		OOJSMarkConsoleEvalLocation(context, frame);
+	}
+	
+	return YES;
 }

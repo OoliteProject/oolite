@@ -32,7 +32,7 @@ SOFTWARE.
 */
 
 #import "OOCocoa.h"
-#import	"jsapi.h"
+#import	<jsapi.h>
 
 @class OOJSFunction, OOJSValue;
 

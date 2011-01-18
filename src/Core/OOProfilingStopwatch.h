@@ -102,7 +102,7 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
 #endif
 
 #if OO_PROFILING_STOPWATCH_JS_NOW
-#import "jsapi.h"
+#import <jsapi.h>
 typedef int64 OOHighResTimeValue;
 
 #define OOGetHighResTime JS_Now

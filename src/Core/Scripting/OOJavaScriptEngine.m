@@ -22,7 +22,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "jsdbgapi.h"
+#import <jsdbgapi.h>
 #import "OOJavaScriptEngine.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
@@ -661,17 +661,10 @@ void OOJSDumpStack(JSContext *context)
 			
 			if (script != NULL)
 			{
-				const char	*fileName = JS_GetScriptFilename(context, script);
-				jsbytecode	*PC = JS_GetFramePC(context, frame);
-				unsigned	lineNo = JS_PCToLineNumber(context, script, PC);
+				NSString	*location = OOJSDescribeLocation(context, frame);
 				JSObject	*scope = JS_GetFrameScopeChain(context, frame);
 				
 				if (scope != NULL)  gotProperties = JS_GetPropertyDescArray(context, scope, &properties);
-				
-				NSString	*fileNameObj = [NSString stringWithUTF8String:fileName];
-				if (fileNameObj == nil)  fileNameObj = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];
-				NSString	*shortFileName = [fileNameObj lastPathComponent];
-				if (![[shortFileName lowercaseString] isEqualToString:@"script.js"])  fileNameObj = shortFileName;
 				
 				NSString *funcDesc = nil;
 				JSFunction *function = JS_GetFrameFunction(context, frame);
@@ -701,7 +694,7 @@ void OOJSDumpStack(JSContext *context)
 					funcDesc = @"<not a function frame>";
 				}
 				
-				desc = [NSString stringWithFormat:@"%@:%u %@", fileNameObj, lineNo, funcDesc];
+				desc = [NSString stringWithFormat:@"(%@) %@", location, funcDesc];
 			}
 			else if (JS_IsDebuggerFrame(context, frame))
 			{
@@ -761,6 +754,58 @@ void OOJSDumpStack(JSContext *context)
 	NS_ENDHANDLER
 	
 	[pool release];
+}
+
+
+static const char *sConsoleScriptName;	// Lifetime is lifetime of script object, which is forever.
+static OOUInteger sConsoleEvalLineNo;
+
+
+static void GetLocationNameAndLine(JSContext *context, JSStackFrame *stackFrame, const char **name, OOUInteger *line)
+{
+	NSCParameterAssert(context != NULL && stackFrame != NULL && name != NULL && line != NULL);
+	
+	JSScript *script = JS_GetFrameScript(context, stackFrame);
+	*name = JS_GetScriptFilename(context, script);
+	if (name != NULL)
+	{
+		jsbytecode *PC = JS_GetFramePC(context, stackFrame);
+		*line = JS_PCToLineNumber(context, script, PC);
+	}
+	else
+	{
+		*line = 0;
+	}
+}
+
+
+NSString *OOJSDescribeLocation(JSContext *context, JSStackFrame *stackFrame)
+{
+	NSCParameterAssert(context != NULL && stackFrame != NULL);
+	
+	const char	*fileName;
+	OOUInteger	lineNo;
+	GetLocationNameAndLine(context, stackFrame, &fileName, &lineNo);
+	if (fileName == NULL)  return NO;
+	
+	// If this stops working, we probably need to switch to strcmp().
+	if (fileName == sConsoleScriptName && lineNo >= sConsoleEvalLineNo)  return @"<console input>";
+	
+	// Objectify it.
+	NSString	*fileNameObj = [NSString stringWithCString:fileName encoding:NSUTF8StringEncoding];
+	if (fileNameObj == nil)  fileNameObj = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];
+	if (fileNameObj == nil)  return nil;
+	
+	NSString	*shortFileName = [fileNameObj lastPathComponent];
+	if (![[shortFileName lowercaseString] isEqualToString:@"script.js"])  fileNameObj = shortFileName;
+	
+	return [NSString stringWithFormat:@"%@:%u", fileNameObj, lineNo];
+}
+
+
+void OOJSMarkConsoleEvalLocation(JSContext *context, JSStackFrame *stackFrame)
+{
+	GetLocationNameAndLine(context, stackFrame, &sConsoleScriptName, &sConsoleEvalLineNo);
 }
 
 #endif

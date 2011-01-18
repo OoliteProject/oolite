@@ -104,7 +104,7 @@ if (typeof Object.keys != "function")
 			if (o.hasOwnProperty(name))
 			result.push(name);
 		}
-	return result;
+		return result;
 	}
 }
 

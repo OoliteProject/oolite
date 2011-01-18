@@ -768,8 +768,12 @@ console.__setUpCallObjC(Object.prototype);
 }).call(this);
 
 
-// evaluate() is outside the closure specifically to avoid strict mode.
-// If evaluate() is compiled in strict mode, all console input will also be strict.
+/*	evaluate() is outside the closure specifically to avoid strict mode.
+	If evaluate() is compiled in strict mode, all console input will also be
+	strict. Also, evaluate() should be as close to the bottom as possible
+	because everything from the eval() down is tagged "<console input>" in
+	stack dumps, profiles and traces.
+*/
 this.evaluate = function evaluate(command, PARAM)
 {
 	var showErrorLocations = console.__showErrorLocations;
@@ -793,3 +797,9 @@ this.evaluate = function evaluate(command, PARAM)
 		consoleMessage("command-result", prettify(result));
 	}
 }
+
+
+// Identify the location of the eval() command above for the debug location formatter.
+this.markConsoleEntryPoint = special.markConsoleEntryPoint;
+this.evaluate("console.script.markConsoleEntryPoint()");
+delete this.markConsoleEntryPoint;

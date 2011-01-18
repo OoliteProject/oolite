@@ -507,15 +507,26 @@ void OOJSResumeTimeLimiter(void);
 
 
 /*	OOJSDumpStack()
-	
 	Write JavaScript stack to log.
+	
+	OOJSDescribeLocation()
+	Get script and line number for a stack frame.
+	
+	OOJSMarkConsoleEvalLocation()
+	Specify that a given stack frame identifies eval()ed code from the debug
+	console, so that matching locations can be described specially by
+	OOJSDescribeLocation().
 */
 #ifndef NDEBUG
 void OOJSDumpStack(JSContext *context);
-#else
-#define OOJSDumpStack(cx)  do {} while (0)
-#endif
 
+NSString *OOJSDescribeLocation(JSContext *context, JSStackFrame *stackFrame);
+void OOJSMarkConsoleEvalLocation(JSContext *context, JSStackFrame *stackFrame);
+#else
+#define OOJSDumpStack(cx)						do {} while (0)
+#define OOJSDescribeLocation(cx, frame)			do {} while (0)
+#define OOJSMarkConsoleEvalLocation(cx, frame)  do {} while (0)
+#endif
 
 
 #if OO_NEW_JS
@@ -533,9 +544,7 @@ void OOJSDumpStack(JSContext *context);
 
 /*	OOJSUnconstructableConstruct
 	
-	Constructor callback for pseudo-classes which can't be constructed. This
-	is needed because the instanceof operator only works on objects with a
-	constructor.
+	Constructor callback for pseudo-classes which can't be constructed.
 */
 JSBool OOJSUnconstructableConstruct(OOJS_NATIVE_ARGS);
 
