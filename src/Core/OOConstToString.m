@@ -27,7 +27,7 @@ MA );-);, USA.
 #import "OOCollectionExtractors.h"
 
 #import "Universe.h"
-#import "ShipEntity.h"
+#import "PlayerEntity.h"
 #import "OOInstinct.h"
 
 
@@ -154,7 +154,7 @@ NSString *RouteTypeToString(OORouteType routeType)
 }
 
 
-NSString *GovernmentToString(OOGovernmentID government)
+NSString *OODisplayStringFromGovernmentID(OOGovernmentID government)
 {
 	NSArray		*strings = nil;
 	NSString	*value = nil;
@@ -170,7 +170,7 @@ NSString *GovernmentToString(OOGovernmentID government)
 }
 
 
-NSString *EconomyToString(OOEconomyID economy)
+NSString *OODisplayStringFromEconomyID(OOEconomyID economy)
 {
 	NSArray		*strings = nil;
 	NSString	*value = nil;
@@ -606,7 +606,7 @@ NSString *OODisplayStringFromAlertCondition(OOAlertCondition alertCondition)
 }
 
 
-NSString *ShaderSettingToDisplayString(OOShaderSetting setting)
+NSString *OODisplayStringFromShaderSetting(OOShaderSetting setting)
 {
 	switch (setting)
 	{
@@ -620,7 +620,7 @@ NSString *ShaderSettingToDisplayString(OOShaderSetting setting)
 }
 
 
-NSString *ShaderSettingToString(OOShaderSetting setting)
+NSString *OOStringFromShaderSetting(OOShaderSetting setting)
 {
 	switch (setting)
 	{
@@ -634,7 +634,7 @@ NSString *ShaderSettingToString(OOShaderSetting setting)
 }
 
 
-OOShaderSetting StringToShaderSetting(NSString *string)
+OOShaderSetting OOShaderSettingFromString(NSString *string)
 {
 	REVERSE_CASE(SHADERS_OFF);
 	REVERSE_CASE(SHADERS_SIMPLE);

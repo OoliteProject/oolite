@@ -249,7 +249,7 @@ static JSBool SystemGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kSystem_governmentDescription:
-			result = GovernmentToString([systemData oo_intForKey:KEY_GOVERNMENT]);
+			result = OODisplayStringFromGovernmentID([systemData oo_intForKey:KEY_GOVERNMENT]);
 			if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
 			if (result == nil)  result = [NSNull null];
 			break;
@@ -259,7 +259,7 @@ static JSBool SystemGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kSystem_economyDescription:
-			result = EconomyToString([systemData oo_intForKey:KEY_ECONOMY]);
+			result = OODisplayStringFromEconomyID([systemData oo_intForKey:KEY_ECONOMY]);
 			if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
 			if (result == nil)  result = [NSNull null];
 			break;

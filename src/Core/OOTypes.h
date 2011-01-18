@@ -75,18 +75,6 @@ typedef enum
 
 typedef enum
 {
-	// NOTE: numerical values are available to scripts.
-	SHADERS_NOT_SUPPORTED,
-	SHADERS_OFF,
-	SHADERS_SIMPLE,
-	SHADERS_FULL
-} OOShaderSetting;
-
-#define SHADERS_MIN SHADERS_OFF
-
-
-typedef enum
-{
 	VIEW_FORWARD			= 0,
 	VIEW_AFT				= 1,
 	VIEW_PORT				= 2,
@@ -222,10 +210,6 @@ enum
 	MAX_ENTITY_UID			= MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1
 };
 
-
-typedef OOUInteger	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so OOUInteger required.
-typedef uint8_t		OOGovernmentID;		// 0..7
-typedef uint8_t		OOEconomyID;		// 0..7
 
 enum
 {

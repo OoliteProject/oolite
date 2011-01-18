@@ -2911,7 +2911,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	[result oo_setBool:NO forKey:@"procedurallyTexturedPlanets"];
 #endif
 	
-	[result setObject:ShaderSettingToString([self shaderEffectsLevel]) forKey:@"shaderEffectsLevel"];
+	[result setObject:OOStringFromShaderSetting([self shaderEffectsLevel]) forKey:@"shaderEffectsLevel"];
 	
 	NSString *desc = @"UNDEFINED";
 	switch ([[OOMusicController sharedController] mode])
@@ -8006,7 +8006,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	if (old != new)
 	{
-		OOLog(@"rendering.opengl.shader.mode", @"Shader mode set to %@.", ShaderSettingToString(value));
+		OOLog(@"rendering.opengl.shader.mode", @"Shader mode set to %@.", OOStringFromShaderSetting(value));
 		if (!transiently)  [[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-mode"];
 		
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
@@ -8728,7 +8728,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
-	OOLog(kOOLogUniversePopulate, @"Populating system with economy \"%@\" (%u), and government \"%@\" (%u).", EconomyToString(economy), economy, GovernmentToString(government), government);
+	OOLog(kOOLogUniversePopulate, @"Populating system with economy \"%@\" (%u), and government \"%@\" (%u).", OODisplayStringFromEconomyID(economy), economy, OODisplayStringFromGovernmentID(government), government);
 	OOLogIndentIf(kOOLogUniversePopulate);
 	
 	// traders

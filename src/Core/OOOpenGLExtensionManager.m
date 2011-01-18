@@ -235,9 +235,9 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 	
 	if (shadersAvailable)
 	{
-		defaultShaderSetting = StringToShaderSetting([gpuConfig oo_stringForKey:@"default_shader_level"
+		defaultShaderSetting = OOShaderSettingFromString([gpuConfig oo_stringForKey:@"default_shader_level"
 																   defaultValue:@"SHADERS_FULL"]);
-		maximumShaderSetting = StringToShaderSetting([gpuConfig oo_stringForKey:@"maximum_shader_level"
+		maximumShaderSetting = OOShaderSettingFromString([gpuConfig oo_stringForKey:@"maximum_shader_level"
 																   defaultValue:@"SHADERS_FULL"]);
 		if (maximumShaderSetting <= SHADERS_OFF)
 		{

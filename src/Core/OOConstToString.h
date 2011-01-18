@@ -41,7 +41,6 @@ enum
 	kOOEnergyUnitTypeDefault	= ENERGY_UNIT_NONE,
 	kOOGUIScreenIDDefault		= GUI_SCREEN_MAIN,
 	kOOGalacticHyperspaceBehaviourDefault = GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN,
-	kOOShaderSettingDefault		= SHADERS_NOT_SUPPORTED,
 	kOOCompassModeDefault		= COMPASS_MODE_BASIC,
 	kOORouteTypeDefault			= OPTIMIZED_BY_JUMPS
 };
@@ -67,19 +66,29 @@ declaration, in particular:
 	OOStringFromWeaponType()
 	OOWeaponTypeFromString()
 	OODisplayStringFromAlertCondition()
+	
+	PlayerEntity.h:
+	KillCountToRatingString()
+	KillCountToRatingAndKillString()
+	LegalStatusToString()
+	
+	Universe.h:
+	OODisplayStringFromGovernmentID()
+	OODisplayStringFromEconomyID()
+	
+	OOOpenGL.h:
+	OOShaderSettingFromString()
+	OOStringFromShaderSetting()
+	OODisplayStringFromShaderSetting()
 
 	OOInstinct.h:
 	OOStringFromInstinctID()
 	OOInstinctIDFromString()
-
+	
 */
 
 
 NSString *ViewIDToString(OOViewID viewID) CONST_FUNC;
-
-NSString *GovernmentToString(OOGovernmentID government);
-
-NSString *EconomyToString(OOEconomyID economy);
 
 NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;
 
@@ -95,17 +104,6 @@ OOEnergyUnitType StringToEnergyUnitType(NSString *string) PURE_FUNC;
 
 NSString *GUIScreenIDToString(OOGUIScreenID screen) CONST_FUNC;
 OOGUIScreenID StringToGUIScreenID(NSString *string) PURE_FUNC;
-
-NSString *KillCountToRatingString(unsigned kills) CONST_FUNC;
-NSString *KillCountToRatingAndKillString(unsigned kills) CONST_FUNC;
-NSString *LegalStatusToString(int legalStatus) CONST_FUNC;
-
-// Localized shader mode strings.
-NSString *ShaderSettingToDisplayString(OOShaderSetting setting) CONST_FUNC;
-
-// Programmer-readable shader mode strings.
-NSString *ShaderSettingToString(OOShaderSetting setting) CONST_FUNC;
-OOShaderSetting StringToShaderSetting(NSString *string) PURE_FUNC;
 
 NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName);
 NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition);

@@ -31,6 +31,16 @@ MA 02110-1301, USA.
 #import "OOOpenGLOnly.h"
 
 
+typedef enum
+{
+	// NOTE: numerical values are available to scripts.
+	SHADERS_NOT_SUPPORTED					= 0,
+	SHADERS_OFF								= 1,
+	SHADERS_SIMPLE							= 2,
+	SHADERS_FULL							= 3
+} OOShaderSetting;
+
+
 #define NULL_SHADER ((GLhandleARB)0)
 
 
@@ -109,3 +119,15 @@ NSString *OOLogAbbreviatedFileName(const char *inName);
 #define OOGLEND glEnd
 
 #endif
+
+
+enum 
+{
+	kOOShaderSettingDefault		= SHADERS_NOT_SUPPORTED
+};
+
+// Programmer-readable shader mode strings.
+OOShaderSetting OOShaderSettingFromString(NSString *string);
+NSString *OOStringFromShaderSetting(OOShaderSetting setting);
+// Localized shader mode strings.
+NSString *OODisplayStringFromShaderSetting(OOShaderSetting setting);

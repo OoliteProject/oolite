@@ -2504,7 +2504,7 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE setShaderEffectsLevel:shaderEffects];
 			shaderEffects = [UNIVERSE shaderEffectsLevel];
 			
-			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), ShaderSettingToDisplayString(shaderEffects)]
+			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), OODisplayStringFromShaderSetting(shaderEffects)]
 				  forRow:GUI_ROW(GAME,SHADEREFFECTS)
 				   align:GUI_ALIGN_CENTER];
 			timeLastKeyPress = script_time;

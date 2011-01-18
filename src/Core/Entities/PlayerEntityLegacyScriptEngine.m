@@ -1073,7 +1073,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSString *) systemGovernment_string
 {
 	int government = [[self systemGovernment_number] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable)
-	NSString *result = GovernmentToString(government);
+	NSString *result = OODisplayStringFromGovernmentID(government);
 	if (result == nil) result = @"UNKNOWN";
 	
 	return result;
@@ -1090,7 +1090,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSString *) systemEconomy_string
 {
 	int economy = [[self systemEconomy_number] intValue]; // 0 .. 7 (0 rich industrial .. 7 poor agricultural)
-	NSString *result = EconomyToString(economy);
+	NSString *result = OODisplayStringFromEconomyID(economy);
 	if (result == nil) result = @"UNKNOWN";
 	
 	return result;

@@ -312,11 +312,11 @@ static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
 #endif		
 			
 		case kConsole_shaderMode:
-			*value = [ShaderSettingToString([UNIVERSE shaderEffectsLevel]) oo_jsValueInContext:context];
+			*value = [OOStringFromShaderSetting([UNIVERSE shaderEffectsLevel]) oo_jsValueInContext:context];
 			break;
 			
 		case kConsole_maximumShaderMode:
-			*value = [ShaderSettingToString([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]) oo_jsValueInContext:context];
+			*value = [OOStringFromShaderSetting([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]) oo_jsValueInContext:context];
 			break;
 			
 		case kConsole_reducedDetailMode:
@@ -417,7 +417,7 @@ static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 			if (sValue != nil)
 			{
 				OOJS_BEGIN_FULL_NATIVE(context)
-				OOShaderSetting setting = StringToShaderSetting(sValue);
+				OOShaderSetting setting = OOShaderSettingFromString(sValue);
 				[UNIVERSE setShaderEffectsLevel:setting transiently:YES];
 				OOJS_END_FULL_NATIVE
 			}

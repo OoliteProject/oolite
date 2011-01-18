@@ -5396,8 +5396,8 @@ done:
 		int productivity =	[targetSystemData oo_intForKey:KEY_PRODUCTIVITY];
 		int radius =		[targetSystemData oo_intForKey:KEY_RADIUS];
 		
-		NSString	*government_desc =	GovernmentToString([targetSystemData oo_intForKey:KEY_GOVERNMENT]);
-		NSString	*economy_desc =		EconomyToString([targetSystemData oo_intForKey:KEY_ECONOMY]);
+		NSString	*government_desc =	OODisplayStringFromGovernmentID([targetSystemData oo_intForKey:KEY_GOVERNMENT]);
+		NSString	*economy_desc =		OODisplayStringFromEconomyID([targetSystemData oo_intForKey:KEY_ECONOMY]);
 		NSString	*inhabitants =		[targetSystemData oo_stringForKey:KEY_INHABITANTS];
 		NSString	*system_desc =		[targetSystemData oo_stringForKey:KEY_DESCRIPTION];
 		
@@ -5789,7 +5789,7 @@ done:
 		}
 		else
 		{
-			shaderEffectsOptionsString = [NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), ShaderSettingToDisplayString(shaderEffects)];
+			shaderEffectsOptionsString = [NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), OODisplayStringFromShaderSetting(shaderEffects)];
 			[gui setText:shaderEffectsOptionsString forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
 		}

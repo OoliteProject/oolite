@@ -78,6 +78,8 @@ enum
 	EQUIPMENT_EXTRA_INFO_INDEX				= 5
 };
 
+#define SHADERS_MIN SHADERS_OFF
+
 
 #define MAX_MESSAGES						5
 
@@ -145,6 +147,11 @@ enum
 #ifndef MASS_DEPENDENT_FUEL_PRICES
 #define MASS_DEPENDENT_FUEL_PRICES	1
 #endif
+
+
+typedef OOUInteger	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so OOUInteger required.
+typedef uint8_t		OOGovernmentID;		// 0..7
+typedef uint8_t		OOEconomyID;		// 0..7
 
 
 @interface Universe: OOWeakRefObject
@@ -711,3 +718,7 @@ NSString *DESC_PLURAL_(NSString *key, int count);
 - (void) playCustomSoundWithKey:(NSString *)key;
 
 @end
+
+
+NSString *OODisplayStringFromGovernmentID(OOGovernmentID government);
+NSString *OODisplayStringFromEconomyID(OOEconomyID economy);

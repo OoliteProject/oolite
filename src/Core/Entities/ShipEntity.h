@@ -980,4 +980,4 @@ OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(NSString *string) PURE_FU
 NSString *OOStringFromWeaponType(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType OOWeaponTypeFromString(NSString *string) PURE_FUNC;
 
-NSString *OODisplayStringFromAlertCondition(OOAlertCondition alertCondition) CONST_FUNC;
+NSString *OODisplayStringFromAlertCondition(OOAlertCondition alertCondition);

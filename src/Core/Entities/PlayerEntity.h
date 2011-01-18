@@ -812,3 +812,8 @@ OOINLINE PlayerEntity *OOGetPlayer(void)
 	return gOOPlayer;
 }
 #define PLAYER OOGetPlayer()
+
+
+NSString *KillCountToRatingString(unsigned kills);
+NSString *KillCountToRatingAndKillString(unsigned kills);
+NSString *LegalStatusToString(int legalStatus);

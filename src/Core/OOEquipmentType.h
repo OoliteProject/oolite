@@ -31,6 +31,7 @@ SOFTWARE.
 #import "OOCocoa.h"
 #import "OOTypes.h"
 #import "OOScript.h"
+#import "Universe.h"
 
 
 @interface OOEquipmentType: NSObject <NSCopying>

@@ -60,7 +60,7 @@ _OOStringFromEntityStatus
 _QuaternionDescription
 _VectorDescription
 _OOStringFromBehaviour
-_ShaderSettingToString
+_OOStringFromShaderSetting
 _OOSoundRegisterDebugMonitor
 
 # Symbols used by Leopard features bundle
