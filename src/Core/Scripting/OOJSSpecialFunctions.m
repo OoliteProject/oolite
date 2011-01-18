@@ -31,7 +31,9 @@ static JSObject		*sSpecialFunctionsObject;
 
 
 static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS);
+#ifndef NDEBUG
 static JSBool SpecialMarkConsoleEntryPoint(OOJS_NATIVE_ARGS);
+#endif
 
 
 static JSFunctionSpec sSpecialFunctionsMethods[] =
@@ -84,6 +86,7 @@ static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS)
 }
 
 
+#ifndef NDEBUG
 static JSBool SpecialMarkConsoleEntryPoint(OOJS_NATIVE_ARGS)
 {
 	// First stack frame will be in eval() in console.script.evaluate(), unless someone is playing silly buggers.
@@ -96,3 +99,4 @@ static JSBool SpecialMarkConsoleEntryPoint(OOJS_NATIVE_ARGS)
 	
 	return YES;
 }
+#endif
