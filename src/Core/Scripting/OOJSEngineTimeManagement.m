@@ -317,6 +317,7 @@ void OOJSTimeManagementInit(OOJavaScriptEngine *engine, JSRuntime *runtime)
 #endif
 
 static BOOL						sProfiling = NO;
+static BOOL						sTracing = NO;
 static OOJSProfileStackFrame	*sProfileStack = NULL;
 static NSMapTable				*sProfileInfo;
 static double					sProfilerOverhead;
@@ -356,10 +357,11 @@ static OOHighResTimeValue		sProfilerStartTime;
 @end
 
 
-void OOJSBeginProfiling(void)
+void OOJSBeginProfiling(BOOL trace)
 {
 	assert(sProfiling == NO);
 	sProfiling = YES;
+	sTracing = trace;
 	sProfileInfo = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks, NSObjectMapValueCallBacks, 100);
 	sProfilerOverhead = 0.0;
 	sProfilerTotalNativeTime = 0.0;
@@ -368,6 +370,12 @@ void OOJSBeginProfiling(void)
 	
 	// This should be last for precision.
 	sProfilerStartTime = OOGetHighResTime();
+	
+	if (trace)
+	{
+		OOLog(@"script.javaScript.trace", @">>>> Beginning trace.");
+		OOLogIndent();
+	}
 }
 
 
@@ -396,6 +404,13 @@ OOTimeProfile *OOJSEndProfiling(void)
 	
 	[result setProfileEntries:[NSAllMapTableValues(sProfileInfo) sortedArrayUsingSelector:@selector(compareBySelfTimeReverse:)]];
 	
+	if (sTracing)
+	{
+		OOLogOutdent();
+		OOLog(@"script.javaScript.trace", @"<<<< End of trace.");
+		sTracing = NO;
+	}
+	
 	// Clean up.
 	NSFreeMapTable(sProfileInfo);
 	OODisposeHighResTime(sProfilerStartTime);
@@ -414,6 +429,7 @@ BOOL OOJSIsProfiling(void)
 
 void OOJSBeginTracing(void);
 void OOJSEndTracing(void);
+BOOL OOJSIsTracing(void);
 
 
 static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame *frame);
@@ -426,12 +442,74 @@ static void CleanUpJSFrame(OOJSProfileStackFrame *frame)
 }
 
 
+static void TraceEnterJSFunction(JSContext *context, JSFunction *function, OOTimeProfileEntry *profileEntry)
+{
+	NSMutableString		*name = [NSMutableString stringWithFormat:@"%@(", [profileEntry function]];
+	BOOL				isNative = JS_GetFunctionNative(context, function) != NULL;
+	NSString			*frameTag = nil;
+	NSString			*logMsgClass = nil;
+	
+	if (!isNative)
+	{
+		// Get stack frame and find arguments.
+		JSStackFrame		*frame = NULL;
+		BOOL				first = YES;
+		jsval				this;
+		JSObject			*scope;
+		JSPropertyDescArray	properties = { 0 , NULL };
+		unsigned			i;
+		
+		// Temporarily disable profiling as we'll call out to profiled functions to get value descriptions.
+		sProfiling = NO;
+		
+		if (JS_FrameIterator(context, &frame) != NULL)
+		{
+			if (OOJS_GetFrameThis(context, frame, &this))
+			{
+				[name appendFormat:@"this: %@", OOJSDebugDescribe(context, this)];
+				first = NO;
+			}
+			
+			scope = JS_GetFrameScopeChain(context, frame);
+			if (scope != NULL && JS_GetPropertyDescArray(context, scope, &properties))
+			{
+				for (i = 0; i < properties.length; i++)
+				{
+					JSPropertyDesc *prop = &properties.array[i];
+					if (prop->flags & JSPD_ARGUMENT)
+					{
+						if (!first)  [name appendFormat:@", "];
+						else  first = NO;
+						
+						[name appendFormat:@"%@: %@", OOStringFromJSValueEvenIfNull(context, prop->id), OOJSDebugDescribe(context, prop->value)];
+					}
+				}
+			}
+		}
+		
+		sProfiling = YES;
+		
+		frameTag = @"JS";	// JavaScript
+		logMsgClass = @"script.javaScript.trace.JS";
+	}
+	else
+	{
+		frameTag = @"NW";	// Native Wrapper
+		logMsgClass = @"script.javaScript.trace.NW";
+	}
+	
+	[name appendString:@")"];
+	OOLog(logMsgClass, @">> %@ [%@]", name, frameTag);
+	OOLogIndent();
+}
+
+
 static void FunctionCallback(JSFunction *function, JSScript *script, JSContext *context, int entering)
 {
 	if (EXPECT(!sProfiling))  return;
 	
 	// Ignore native functions. Ours get their own entries anyway, SpiderMonkey's are elided.
-	if (JS_GetFunctionNative(context, function) != NULL)  return;
+	if (!sTracing && JS_GetFunctionNative(context, function) != NULL)  return;
 	
 	OOHighResTimeValue start = OOGetHighResTime();
 	
@@ -446,6 +524,12 @@ static void FunctionCallback(JSFunction *function, JSScript *script, JSContext *
 			entry = [[OOTimeProfileEntry alloc] initWithJSFunction:function context:context];
 			NSMapInsertKnownAbsent(sProfileInfo, function, entry);
 			[entry release];
+		}
+		
+		if (EXPECT_NOT(sTracing))
+		{
+			// We use EXPECT_NOT here because profiles are time-critical and traces are not.
+			TraceEnterJSFunction(context, function, entry);
 		}
 		
 		// Make a stack frame on the heap.
@@ -486,6 +570,12 @@ static void FunctionCallback(JSFunction *function, JSScript *script, JSContext *
 void OOJSProfileEnter(OOJSProfileStackFrame *frame, const char *function)
 {
 	if (EXPECT(!sProfiling))  return;
+	if (EXPECT_NOT(sTracing))
+	{
+		// We use EXPECT_NOT here because profiles are time-critical and traces are not.
+		OOLog(@"script.javaScript.trace.ON", @">> %s [ON]", function);
+		OOLogIndent();
+	}
 	
 	*frame = (OOJSProfileStackFrame)
 	{
@@ -561,6 +651,8 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 	if (sProfileStack != NULL)  sProfileStack->subTime += time;
 	
 	if (frame->cleanup != NULL)  frame->cleanup(frame);
+	
+	if (EXPECT_NOT(sTracing))  OOLogOutdent();
 }
 
 

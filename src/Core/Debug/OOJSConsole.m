@@ -87,6 +87,7 @@ static JSBool ConsoleDumpHeap(OOJS_NATIVE_ARGS);
 #if OOJS_PROFILE
 static JSBool ConsoleProfile(OOJS_NATIVE_ARGS);
 static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS);
+static JSBool ConsoleTrace(OOJS_NATIVE_ARGS);
 #endif
 
 static JSBool ConsoleSettingsDeleteProperty(OOJS_PROP_ARGS);
@@ -94,7 +95,7 @@ static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS);
 static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS);
 
 #if OOJS_PROFILE
-static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, OOTimeProfile **profile);
+static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, jsval *rval, BOOL trace, OOTimeProfile **profile);
 #endif
 
 
@@ -210,6 +211,7 @@ static JSFunctionSpec sConsoleMethods[] =
 #if OOJS_PROFILE
 	{ "profile",						ConsoleProfile,						1 },
 	{ "getProfile",						ConsoleGetProfile,					1 },
+	{ "trace",							ConsoleTrace,						1 },
 #endif
 	{ 0 }
 };
@@ -980,17 +982,16 @@ static JSBool ConsoleProfile(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	OOTimeProfile *profile = nil;
-	
 	if (EXPECT_NOT(OOJSIsProfiling()))
 	{
-		OOJSReportError(context, @"Console.profile() may not be used recursively.");
+		OOJSReportError(context, @"Profiling functions may not be called while already profiling.");
 		return NO;
 	}
 	
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	OOTimeProfile		*profile = nil;
 	
-	JSBool result = PerformProfiling(context, @"profile", argc, OOJS_ARGV, &profile);
+	JSBool result = PerformProfiling(context, @"profile", argc, OOJS_ARGV, NULL, NO, &profile);
 	if (result)
 	{
 		OOJS_SET_RVAL([[profile description] oo_jsValueInContext:context]);
@@ -1008,17 +1009,17 @@ static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	OOTimeProfile *profile = nil;
 	
 	if (EXPECT_NOT(OOJSIsProfiling()))
 	{
-		OOJSReportError(context, @"Console.profile() may not be used recursively.");
+		OOJSReportError(context, @"Profiling functions may not be called while already profiling.");
 		return NO;
 	}
 	
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	OOTimeProfile		*profile = nil;
 	
-	JSBool result = PerformProfiling(context, @"getProfile", argc, OOJS_ARGV, &profile);
+	JSBool result = PerformProfiling(context, @"getProfile", argc, OOJS_ARGV, NULL, NO, &profile);
 	if (result)
 	{
 		OOJS_SET_RVAL([profile oo_jsValueInContext:context]);
@@ -1031,10 +1032,35 @@ static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS)
 }
 
 
-static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, OOTimeProfile **profile)
+// function trace(func : function [, Object this = debugConsole.script]) : [return type of func]
+static JSBool ConsoleTrace(OOJS_NATIVE_ARGS)
 {
-	assert(profile != NULL);
+	OOJS_NATIVE_ENTER(context)
 	
+	if (EXPECT_NOT(OOJSIsProfiling()))
+	{
+		OOJSReportError(context, @"Profiling functions may not be called while already profiling.");
+		return NO;
+	}
+	
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	jsval				rval;
+	
+	JSBool result = PerformProfiling(context, @"trace", argc, OOJS_ARGV, &rval, YES, NULL);
+	if (result)
+	{
+		OOJS_SET_RVAL(rval);
+	}
+	
+	[pool release];
+	return result;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, jsval *outRval, BOOL trace, OOTimeProfile **outProfile)
+{
 	// Get function.
 	jsval function = argv[0];
 	if (!OOJSValueIsFunction(context, function))
@@ -1056,6 +1082,9 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 	JSObject *thisObj;
 	if (!JS_ValueToObject(context, this, &thisObj))  thisObj = NULL;
 	
+	jsval ignored;
+	if (outRval == NULL)  outRval = &ignored;
+	
 	// Fiddle with time limiter.
 	// We want to save the current limit, reset the limiter, and set the time limit to a long time.
 #define LONG_TIME (1e7)	// A long time - 115.7 days - but, crucially, finite.
@@ -1064,14 +1093,14 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 	OOJSSetTimeLimiterLimit(LONG_TIME);
 	OOJSResetTimeLimiter();
 	
-	OOJSBeginProfiling();
+	OOJSBeginProfiling(trace);
 	
 	// Call the function.
-	jsval ignored;
-	BOOL result = JS_CallFunctionValue(context, thisObj, function, 0, NULL, &ignored);
+	BOOL result = JS_CallFunctionValue(context, thisObj, function, 0, NULL, outRval);
 	
 	// Get results.
-	*profile = OOJSEndProfiling();
+	OOTimeProfile *profile = OOJSEndProfiling();
+	if (outProfile != NULL)  *outProfile = profile;
 	
 	// Restore original timer state.
 	OOJSSetTimeLimiterLimit(originalLimit);

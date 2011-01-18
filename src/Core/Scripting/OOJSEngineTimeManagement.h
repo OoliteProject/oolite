@@ -69,9 +69,12 @@ void OOJSStopTimeLimiter(void);
 /*
 	Profiling support.
 	
-	OOJSBeginProfiling(), OOJSEndProfiling(), OOJSIsProfiling()
+	OOJSBeginProfiling(trace), OOJSEndProfiling(), OOJSIsProfiling()
 	Start, stop, and query profiling mode. It is a hard error to start
 	profiling while already profiling.
+	
+	If trace is set, all profileable functions will be logged. The actual
+	profile will be of little use in this case because of logging overhead.
 	
 	OOJSCopyTimeLimiterNominalStartTime()
 	Copy the nominal start time for the time limiter. This is the actual time
@@ -89,7 +92,7 @@ void OOJSStopTimeLimiter(void);
 @class OOTimeProfile, OOTimeProfileEntry;
 
 
-void OOJSBeginProfiling(void);
+void OOJSBeginProfiling(BOOL trace);
 OOTimeProfile *OOJSEndProfiling(void);
 BOOL OOJSIsProfiling(void);
 
