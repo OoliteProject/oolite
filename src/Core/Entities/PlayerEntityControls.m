@@ -694,8 +694,7 @@ static NSTimeInterval	time_last_frame;
 				if ((!afterburner_engaged)&&(afterburnerSoundLooping))
 					[self stopAfterburnerSound];
 				
-			exceptionContext = @"thrust";
-	#if OOLITE_HAVE_JOYSTICK
+				exceptionContext = @"thrust";
 				// DJS: Thrust can be an axis or a button. Axis takes precidence.
 				double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
 				// Updated DJS original code to fix BUG #17482 - (Getafix 2010/09/13)
@@ -725,19 +724,7 @@ static NSTimeInterval	time_last_frame;
 						flightSpeed -= speed_delta * delta_t;
 					}
 				} // DJS: end joystick thrust axis (Getafix - End code update for fixing BUG #17482)
-	#else
-				if (([gameView isDown:key_increase_speed])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
-				{
-					flightSpeed += speed_delta * delta_t;
-				}
 				
-				if (([gameView isDown:key_decrease_speed])&&(!afterburner_engaged))
-				{
-					flightSpeed -= speed_delta * delta_t;
-					// ** tgape ** - decrease obviously means no hyperspeed
-					hyperspeed_engaged = NO;
-				}
-	#endif
 				if (!afterburner_engaged && ![self atHyperspeed] && !hyperspeed_engaged)
 				{
 					flightSpeed = OOClamp_0_max_f(flightSpeed, maxFlightSpeed);
@@ -1705,7 +1692,6 @@ static NSTimeInterval	time_last_frame;
 			[self overwriteCommanderInputHandler];
 			break;
 			
-#if OOLITE_HAVE_JOYSTICK
 		case GUI_SCREEN_STICKMAPPER:
 			[self stickMapperInputHandler: gui view: gameView];
 
@@ -1731,7 +1717,6 @@ static NSTimeInterval	time_last_frame;
 					[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1];
 			}
 			break;
-#endif
 			
 		case GUI_SCREEN_GAMEOPTIONS:
 			[self handleGameOptionsScreenKeys];
@@ -2215,18 +2200,14 @@ static NSTimeInterval	time_last_frame;
 	[self handleGUIUpDownArrowKeys];
 	int guiSelectedRow = [gui selectedRow];
 	BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
-	if ([gameView isDown:gvMouseDoubleClick])
-		[gameView clearMouse];
-		
+	if ([gameView isDown:gvMouseDoubleClick])  [gameView clearMouse];
 	
-#if OOLITE_HAVE_JOYSTICK
 	if ((guiSelectedRow == GUI_ROW(GAME,STICKMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
 		[self setGuiToStickMapperScreen: 0];
 	}
-#endif
-
+	
 	if (!switching_resolution &&
 		guiSelectedRow == GUI_ROW(GAME,DISPLAY) &&
 		([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
