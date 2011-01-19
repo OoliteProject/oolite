@@ -1394,7 +1394,8 @@ static NSMutableArray *sMessageStack;
 #define PACK_VERSION(maj, min)  (((maj) << 16) | (min))
 enum
 {
-	kSystemVersion10_5 = PACK_VERSION(10, 5)
+	kSystemVersion10_5 = PACK_VERSION(10, 5),
+	kSystemVersion10_6 = PACK_VERSION(10, 6)
 };
 
 
@@ -1412,6 +1413,13 @@ static void LoadSystemSpecificBundles(void)
 	{
 		OO_DEBUG_PUSH_PROGRESS(@"Loading Leopard support bundle");
 		LoadOneSystemSpecificBundle(@"Oolite Leopard support");
+		OO_DEBUG_POP_PROGRESS();
+	}
+	
+	if (packedVersion >= kSystemVersion10_6)
+	{
+		OO_DEBUG_PUSH_PROGRESS(@"Loading Snow Leopard support bundle");
+		LoadOneSystemSpecificBundle(@"Oolite Snow Leopard support");
 		OO_DEBUG_POP_PROGRESS();
 	}
 }
