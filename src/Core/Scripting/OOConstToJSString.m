@@ -37,12 +37,6 @@ MA 02110-1301, USA.
 	should be comparable with pointer equality. Because I'm paranoid, we fall
 	back to full string comparison if this fails.
 	
-	Lookups are currently linear. Requiring the .tbl files to be in sort order
-	and binary searching for const-to-string comparison would be more efficient
-	for the much more common case, but with tables this small I'm not sure
-	bsearch() would be a win and I can't be bothered to write and test it
-	properly right now.
-	
 	ConstTables are globals, which are accessed as local externs in the inlines
 	in the header. All the advantages of globals with most of the advantages
 	of encapsulation, sorta.
@@ -141,6 +135,14 @@ void OOConstToJSStringInit(JSContext *context)
 }
 
 
+static int CompareEntries(const void *a, const void *b)
+{
+	const TableEntry *entA = a;
+	const TableEntry *entB = b;
+	return entA->value - entB->value;
+}
+
+
 static void InitTable(JSContext *context, ConstTable *table)
 {
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context) && table != NULL);
@@ -153,6 +155,8 @@ static void InitTable(JSContext *context, ConstTable *table)
 		
 		table->entries[i].string = jsString;
 	}
+	
+	qsort(table->entries, table->count, sizeof *table->entries, CompareEntries);
 }
 
 
@@ -161,16 +165,30 @@ static void InitTable(JSContext *context, ConstTable *table)
 JSString *OOJSStringFromConstantPRIVATE(JSContext *context, OOInteger value, struct ConstTable *table)
 {
 	NSCAssert1(sInited, @"%s called before OOConstToJSStringInit().", __PRETTY_FUNCTION__);
-	NSCParameterAssert(context != NULL && JS_IsInRequest(context) && table != NULL);
+	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
+	NSCParameterAssert(table != NULL && table->count > 0);
 	
-	OOUInteger i, count = table->count;
-	for(i = 0; i < count; i++)
+	// Binary search.
+	OOUInteger min = 0, max = table->count - 1;
+	OOInteger current;
+	do
 	{
-		if (table->entries[i].value == value)
+		OOUInteger mid = (min + max) / 2;
+		current = table->entries[mid].value;
+		if (current < value)
 		{
-			return table->entries[i].string;
+			min = mid + 1;
+		}
+		else if (current > value)
+		{
+			max = mid - 1;
+		}
+		else
+		{
+			return table->entries[mid].string;
 		}
 	}
+	while (min <= max);
 	
 	return sUndefinedString;
 }
