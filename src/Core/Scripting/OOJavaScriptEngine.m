@@ -656,10 +656,12 @@ void OOJSDumpStack(JSContext *context)
 			
 			idx++;
 			
+#if OO_NEW_JS
 			if (!JS_IsScriptFrame(context, frame))
 			{
 				continue;
 			}
+#endif
 			
 			if (skip != 0)
 			{
