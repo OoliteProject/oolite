@@ -749,18 +749,18 @@ this.M = missionVariables;
 
 
 // Make console.consoleMessage() globally visible
-global.consoleMessage = function consoleMessage()
+Object.defineProperty (global, "consoleMessage", { value: function consoleMessage()
 {
 	// Call console.consoleMessage() with console as "this" and all the arguments passed to consoleMessage().
 	console.consoleMessage.apply(console, arguments);
-}
+}});
 
 
 // Add inspect() method to all entities, to show inspector palette (Mac OS X only; no effect on other platforms).
-Entity.inspect = function inspect()
+Object.defineProperty(Entity.prototype, "inspect", { value: function inspect()
 {
 	console.inspectEntity(this);
-}
+}});
 
 
 console.__setUpCallObjC(Object.prototype);
