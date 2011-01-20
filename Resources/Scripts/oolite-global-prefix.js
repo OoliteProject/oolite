@@ -273,35 +273,28 @@ defineMethod(Ship.prototype, "updateEscortFormation", function updateEscortForma
 const escortPositions =
 [
 	// V-shape escort pattern
-	-2, 0, -1,
-	 2, 0, -1,
-	-3, 0, -3,
-	 3, 0, -3
+	new Vector3D(-2, 0, -1),
+	new Vector3D( 2, 0, -1),
+	new Vector3D(-3, 0, -3),
+	new Vector3D( 3, 0, -3)
 
 /*
 	// X-shape escort pattern
-	-2, 0,  2,
-	 2, 0,  2,
-	-3, 0, -3,
-	 3, 0, -3
+	new Vector3D(-2, 0,  2),
+	new Vector3D( 2, 0,  2),
+	new Vector3D(-3, 0, -3),
+	new Vector3D( 3, 0, -3)
 */
 ];
 
-defineMethod(Script.prototype, "coordinatesForEscortPosition", function default_coordinatesFromEscortPosition(position)
+defineMethod(Script.prototype, "coordinatesForEscortPosition", function default_coordinatesFromEscortPosition(index)
 {
-	var fHi = 1 + (position >> 2);	// Equivalent to 1 + Math.floor(position / 4)
-	var fLo = position % 4;
+	var highPart = 1 + (index >> 2);	// Equivalent to 1 + Math.floor(position / 4)
+	var lowPart = index % 4;
 	
-	var spacing = this.ship.collisionRadius * 3 * fHi;
+	var spacing = this.ship.collisionRadius * 3 * highPart;
 	
-	var index = fLo * 3;
-	var result =
-	[
-		spacing * escortPositions[index],
-		spacing * escortPositions[index + 1],
-		spacing * escortPositions[index + 2]
-	];
-	return result;
+	return escortPositions[lowPart].multiply(spacing);
 });
 
 

@@ -9210,10 +9210,12 @@ BOOL class_masslocks(int some_class)
 	
 	JS_BeginRequest(context);
 	
+	OOJSStartTimeLimiter();
 	OK = [script callMethodNamed:"coordinatesForEscortPosition"
 				   withArguments:&arg count:1
 					   inContext:context
 				   gettingResult:&relPosV];
+	OOJSStopTimeLimiter();
 	
 	if (OK)  OK = JSValueToVector(context, relPosV, &relPos);
 	
