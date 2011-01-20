@@ -98,8 +98,8 @@ MA 02110-1301, USA.
 	}
 	
 	GLfloat ex_emissive[4]	= {0.6f, 0.8f, 1.0f, 0.9f * kOverallAlpha};   // pale blue
-	const GLfloat s1[8] = { 0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707};
-	const GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
+	const GLfloat s1[8] = { 0.0, M_SQRT1_2, 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2};
+	const GLfloat c1[8] = { 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2, 0.0, M_SQRT1_2};
 	
 	Quaternion shipQrotation = [ship normalOrientation];
 	

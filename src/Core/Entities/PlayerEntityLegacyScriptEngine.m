@@ -2664,7 +2664,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		Quaternion model_q = { 0.912871, 0.365148, 0.182574, 0.0 }; // pole at top right for new planets.
 #else
 		// Only one quaternion needed.
-		//model_q = make_quaternion( 0.707, 0.314, 0.707, 0.0 );
+		//model_q = make_quaternion( M_SQRT1_2, 0.314, M_SQRT1_2, 0.0 );
 		Quaternion model_q = { 0.833492, 0.333396, 0.440611, 0.0 }; // TODO: find a better quaternion value.
 #endif
 		OOLog(kOOLogDebugProcessSceneStringAddMiniPlanet, @"::::: adding %@ to scene:'%@'", i_key, doppelganger);

@@ -1516,7 +1516,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	if (shipData == nil)  shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipData == nil)  return;
 	
-	Quaternion		q2 = { (GLfloat)0.707f, (GLfloat)0.707f, (GLfloat)0.0f, (GLfloat)0.0f };
+	Quaternion		q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0f, (GLfloat)0.0f };
 	// MKW - retrieve last demo ships' orientation and release it
     if( demoShip != nil )
 	{

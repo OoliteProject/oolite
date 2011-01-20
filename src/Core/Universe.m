@@ -3842,7 +3842,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	[self removeDemoShips];	// get rid of any pre-existing models on display
 	
 	[PLAYER setShowDemoShips: YES];
-	Quaternion q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0 };
+	Quaternion q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0, (GLfloat)0.0 };
 	
 	ShipEntity *ship = [self newShipWithRole:role];   // retain count = 1
 	if (ship)
