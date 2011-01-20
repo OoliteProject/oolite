@@ -227,14 +227,16 @@ static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey)
 	NSString			*text = nil;
 	NSString			*missionKey = nil;
 	
-	if (argc < 1 || JSVAL_IS_VOID(OOJS_ARG(0)))
+	if (argc == 0)
 	{
-		jsval val = JSVAL_VOID;
-		OOJSReportBadArguments(context, @"Mission", isKey ? @"setInstructionsKey" : @"setInstructions", 1, &val, NULL, @"string or null");
+		OOJSReportWarning(context, @"Usage error: mission.%@() called with no arguments. Treating as Mission.%@(null). This call may fail in a future version of Oolite.", isKey ? @"setInstructionsKey" : @"setInstructions", isKey ? @"setInstructionsKey" : @"setInstructions");
+	}
+	else if (JSVAL_IS_VOID(OOJS_ARG(0)))
+	{
+		OOJSReportBadArguments(context, @"Mission", isKey ? @"setInstructionsKey" : @"setInstructions", 1, OOJS_ARGV, NULL, @"string or null");
 		return NO;
 	}
-	
-	text = OOStringFromJSValue(context, OOJS_ARG(0));
+	else  text = OOStringFromJSValue(context, OOJS_ARG(0));
 	
 	if (argc > 1)
 	{

@@ -714,7 +714,7 @@ console.__showErrorLocations = console.settings["show-error-locations"];
 Object.defineProperty(console, "showErrorLocationsDuringConsoleEval",
 {
 	get: function () { return console.settings["show-error-locations-during-console-eval"] ? true : false; },
-	set: function (value)  { console.settings.showErrorLocationsDuringConsoleEval = !!value; },
+	set: function (value)  { console.settings["show-error-locations-during-console-eval"] = !!value; },
 	enumerable: true
 });
 
