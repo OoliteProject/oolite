@@ -29,7 +29,8 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 
 @class	OOColor, StationEntity, ParticleEntity, WormholeEntity,
-		AI, Octree, OOMesh, OOScript, OORoleSet, OOShipGroup, OOEquipmentType;
+		AI, Octree, OOMesh, OOScript, OOJSScript, OORoleSet, OOShipGroup,
+		OOEquipmentType;
 
 #ifdef OO_BRAIN_AI
 @class OOBrain;
@@ -167,7 +168,7 @@ typedef enum
 	Quaternion				subentityRotationalVelocity;
 	
 	//scripting
-	OOScript				*script;
+	OOJSScript				*script;
 	
 	//docking instructions
 	NSDictionary			*dockingInstructions;
@@ -874,7 +875,6 @@ BOOL	class_masslocks(int some_class);
 
 - (BOOL) canAcceptEscort:(ShipEntity *)potentialEscort;
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship;
-- (Vector) coordinatesForEscortPosition:(int) f_pos;
 - (void) deployEscorts;
 - (void) dockEscorts;
 

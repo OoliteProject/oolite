@@ -60,7 +60,7 @@ this.version		= "1.75";
 */
 if (typeof Object.defineProperty !== "function")
 {
-	Object.defineProperty = function (object, property, descriptor)
+	Object.defineProperty = function Object_defineProperty(object, property, descriptor)
 	{
 		if (descriptor.value !== undefined)
 		{
@@ -96,7 +96,7 @@ if (typeof Object.getPrototypeOf !== "function")
 */
 if (typeof Object.keys != "function")
 {
-	Object.keys = function(o)
+	Object.keys = function Object_keys(o)
 	{
 		var result = [];
 		for(var name in o)
@@ -150,7 +150,7 @@ function defineMethod(object, name, implementation)
 */
 
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
-defineMethod(Ship.prototype, "spawnOne", function (role)
+defineMethod(Ship.prototype, "spawnOne", function spawnOne(role)
 {
 	var result = this.spawn(role, 1);
 	return result ? result[0] : null;
@@ -158,7 +158,7 @@ defineMethod(Ship.prototype, "spawnOne", function (role)
 
 
 // mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.
-defineMethod(Mission.prototype, "addMessageTextKey", function (textKey)
+defineMethod(Mission.prototype, "addMessageTextKey", function addMessageTextKey(textKey)
 {
 	this.addMessageText((textKey ? expandMissionText(textKey) : null));
 });
@@ -167,7 +167,7 @@ defineMethod(Mission.prototype, "addMessageTextKey", function (textKey)
 /*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
 	certain distance.
 */
-defineMethod(SystemInfo, "systemsInRange", function (range)
+defineMethod(SystemInfo, "systemsInRange", function systemsInRange(range)
 {
 	if (range === undefined)
 	{
@@ -212,7 +212,7 @@ defineMethod(SystemInfo, "systemsInRange", function (range)
 	system.scrambledPseudoRandomNumber() with different salt values, there will
 	be no obvious correlation between the different stations’ distributions.
 */
-defineMethod(System.prototype, "scrambledPseudoRandomNumber", function (salt)
+defineMethod(System.prototype, "scrambledPseudoRandomNumber", function scrambledPseudoRandomNumber(salt)
 {
 	// Convert from float in [0..1) with 24 bits of precision to integer.
 	var n = Math.floor(this.pseudoRandomNumber * 16777216.0);
@@ -248,10 +248,60 @@ Object.defineProperty(global, "worldScriptNames",
 	
 	Load a sound and play it.
 */
-defineMethod(SoundSource.prototype, "playSound", function (sound, count)
+defineMethod(SoundSource.prototype, "playSound", function playSound(sound, count)
 {
 	this.sound = sound;
 	this.play(count);
+});
+
+
+/*	Ship.prototype.updateEscortFormation()
+	
+	Cause a ship to update its escort positions. Currently does nothing since
+	escort positions are polled every frame.
+	
+	N.b.: there is an AI method with the same name.
+*/
+defineMethod(Ship.prototype, "updateEscortFormation", function updateEscortFormation()
+{});
+
+
+/**** Default implementations of script methods ****/
+/*    (Note: oolite-default-ship-script.js methods aren’t inherited. */
+
+
+const escortPositions =
+[
+	// V-shape escort pattern
+	-2, 0, -1,
+	 2, 0, -1,
+	-3, 0, -3,
+	 3, 0, -3
+
+/*
+	// X-shape escort pattern
+	-2, 0,  2,
+	 2, 0,  2,
+	-3, 0, -3,
+	 3, 0, -3
+*/
+];
+
+defineMethod(Script.prototype, "coordinatesForEscortPosition", function default_coordinatesFromEscortPosition(position)
+{
+	var fHi = 1 + (position >> 2);	// Equivalent to 1 + Math.floor(position / 4)
+	var fLo = position % 4;
+	
+	var spacing = this.ship.collisionRadius * 3 * fHi;
+	
+	var index = fLo * 3;
+	var result =
+	[
+		spacing * escortPositions[index],
+		spacing * escortPositions[index + 1],
+		spacing * escortPositions[index + 2]
+	];
+	return result;
 });
 
 

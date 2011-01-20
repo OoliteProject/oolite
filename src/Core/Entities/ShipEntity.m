@@ -84,8 +84,8 @@ MA 02110-1301, USA.
 #import "OODebugGLDrawing.h"
 #import "OODebugFlags.h"
 
-#import "OOScript.h"
-#import "OOJavaScriptEngine.h"
+#import "OOJSScript.h"
+#import "OOJSVector.h"
 
 
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
@@ -138,6 +138,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 - (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock;
 
 - (void) addSubEntity:(Entity *) subent;
+
+- (Vector) coordinatesForEscortPosition:(unsigned)fPos;
 
 - (void) addSubentityToCollisionRadius:(Entity*) subent;
 - (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
@@ -9196,23 +9198,35 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (Vector) coordinatesForEscortPosition:(int) f_pos
+- (Vector) coordinatesForEscortPosition:(unsigned)fPos
 {
-	int f_hi = 1 + (f_pos >> 2);
-	int f_lo = f_pos & 3;
-
-	int fp = f_lo * 3;
-	int escort_positions[12] = {	-2,0,-1,   2,0,-1,  -3,0,-3,	3,0,-3  }; // V-shape escort pattern
-	// int escort_positions[12] = {	-2,0,+2,   2,0,+2,  -3,0,-3,	3,0,-3  }; // X-shape escort pattern
-	Vector pos = position;
-	double spacing = collision_radius * ESCORT_SPACING_FACTOR;
-	double xx = f_hi * spacing * escort_positions[fp++];
-	double yy = f_hi * spacing * escort_positions[fp++];
-	double zz = f_hi * spacing * escort_positions[fp];
-	pos.x += v_right.x * xx;	pos.y += v_right.y * xx;	pos.z += v_right.z * xx;
-	pos.x += v_up.x * yy;		pos.y += v_up.y * yy;		pos.z += v_up.z * yy;
-	pos.x += v_forward.x * zz;	pos.y += v_forward.y * zz;	pos.z += v_forward.z * zz;
-
+	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
+	JSContext			*context = [jsEng acquireContext];
+	jsval				relPosV;
+	Vector				relPos;
+	Vector				pos;
+	jsval				arg = INT_TO_JSVAL(fPos);
+	BOOL				OK;
+	
+	JS_BeginRequest(context);
+	
+	OK = [script callMethodNamed:"coordinatesForEscortPosition"
+				   withArguments:&arg count:1
+					   inContext:context
+				   gettingResult:&relPosV];
+	
+	if (OK)  OK = JSValueToVector(context, relPosV, &relPos);
+	
+	JS_EndRequest(context);
+	[jsEng releaseContext:context];
+	
+	if (!OK)  relPos = kZeroVector;
+	pos = self->position;
+	
+	pos.x += v_right.x * relPos.x;		pos.y += v_right.y * relPos.x;		pos.z += v_right.z * relPos.x;
+	pos.x += v_up.x * relPos.y;			pos.y += v_up.y * relPos.y;			pos.z += v_up.z * relPos.y;
+	pos.x += v_forward.x * relPos.z;	pos.y += v_forward.y * relPos.z;	pos.z += v_forward.z * relPos.z;
+	
 	return pos;
 }
 

@@ -445,10 +445,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 			exit(1);
 		}
 		
+		JS_BeginRequest(context);
 		JS_SetOptions(context, OOJSENGINE_CONTEXT_OPTIONS);
 		JS_SetVersion(context, OOJSENGINE_JSVERSION);
 		JS_SetErrorReporter(context, ReportJSError);
 		JS_SetGlobalObject(context, globalObject);
+		JS_EndRequest(context);
 	}
 	
 	return context;

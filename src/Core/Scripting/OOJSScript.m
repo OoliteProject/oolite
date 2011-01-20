@@ -363,7 +363,7 @@ static JSFunctionSpec sScriptMethods[] =
 		{
 			for (oldNameEnum = [oldNames objectEnumerator]; (oldName = [oldNameEnum nextObject]) && JSVAL_IS_VOID(value) && OK; )
 			{
-				OK = JS_GetMethod(context, _jsSelf, [oldName UTF8String], NULL, value);
+				OK = JS_GetMethod(context, _jsSelf, [oldName UTF8String], &fakeRoot, value);
 				
 				if (OK && !JSVAL_IS_VOID(value))
 				{
@@ -401,8 +401,10 @@ static JSFunctionSpec sScriptMethods[] =
 	function = [self functionValueNamed:eventName contextWithRequest:context];
 	if (!JSVAL_IS_VOID(function))
 	{
+#ifndef NDEBUG
 		OOLog(@"script.trace.javaScript.event", @"Calling [%@].%@()", [self name], eventName);
 		OOLogIndentIf(@"script.trace.javaScript.event");
+#endif
 		
 		// Push self on stack of running scripts.
 		RunningStack stackElement =
@@ -446,9 +448,13 @@ static JSFunctionSpec sScriptMethods[] =
 		// Pop running scripts stack
 		sRunningStack = stackElement.back;
 		
+#if !OO_NEW_JS
 		JS_ClearNewbornRoots(context);
+#endif
 		
+#ifndef NDEBUG
 		OOLogOutdentIf(@"script.trace.javaScript.event");
+#endif
 	}
 	else
 	{
@@ -458,6 +464,48 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	JS_EndRequest(context);
 	[engine releaseContext:context];
+	
+	return OK;
+}
+
+
+- (BOOL) callMethodNamed:(const char *)methodName
+		   withArguments:(jsval *)argv count:(intN)argc
+			   inContext:(JSContext *)context
+		   gettingResult:(jsval *)outResult
+{
+	NSParameterAssert(name != NULL && (argv != NULL || argc == 0) && context != NULL && JS_IsInRequest(context) && outResult != NULL);
+	
+	BOOL		OK = NO;
+	JSObject	*fakeRoot = NULL;
+	jsval		method;
+	if (EXPECT(JS_GetMethod(context, _jsSelf, methodName, &fakeRoot, &method) && !JSVAL_IS_VOID(method)))
+	{
+#ifndef NDEBUG
+		OOLog(@"script.trace.javaScript.callback", @"Calling [%@].%s()", [self name], methodName);
+		OOLogIndentIf(@"script.trace.javaScript.callback");
+#endif
+		
+		// Push self on stack of running scripts.
+		RunningStack stackElement =
+		{
+			.back = sRunningStack,
+			.current = self
+		};
+		sRunningStack = &stackElement;
+		
+		// Call the method.
+		OOJSStartTimeLimiter();
+		OK = JS_CallFunctionValue(context, _jsSelf, method, argc, argv, outResult);
+		OOJSStopTimeLimiter();
+		
+		// Pop running scripts stack
+		sRunningStack = stackElement.back;
+		
+#ifndef NDEBUG
+		OOLogOutdentIf(@"script.trace.javaScript.callback");
+#endif
+	}
 	
 	return OK;
 }

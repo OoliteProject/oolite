@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 
 @interface OOJSScript: OOScript <OOWeakReferenceSupport>
 {
+@private
 	JSObject			*_jsSelf;
 	
 	NSString			*name;
@@ -53,6 +54,16 @@ MA 02110-1301, USA.
 */
 + (void)pushScript:(OOJSScript *)script;
 + (void)popScript:(OOJSScript *)script;
+
+/*	Low-level interface to call a JavaScript method.
+	Requires a request on context.
+	
+	FIXME: should take a jsid instead of string for name, but can't be done cleanly without requiring OO_NEW_JS.
+*/
+- (BOOL) callMethodNamed:(const char *)methodName
+		   withArguments:(jsval *)argv count:(intN)argc
+			   inContext:(JSContext *)context
+		   gettingResult:(jsval *)outResult;
 
 @end
 

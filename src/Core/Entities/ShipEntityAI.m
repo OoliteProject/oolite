@@ -183,6 +183,8 @@ MA 02110-1301, USA.
 
 - (void) performEscort;
 
+- (void) updateEscortFormation;
+
 - (void) checkGroupOddsVersusTarget;
 
 - (void) groupAttackTarget;
@@ -1478,6 +1480,13 @@ static WormholeEntity *whole = nil;
 		behaviour = BEHAVIOUR_FORMATION_FORM_UP;
 		frustration = 0.0; // behavior changed, reset frustration.
 	}
+}
+
+
+- (void) updateEscortFormation
+{
+//	Cause a ship to update its escort positions. Currently does nothing since
+//	escort positions are polled every frame.
 }
 
 
