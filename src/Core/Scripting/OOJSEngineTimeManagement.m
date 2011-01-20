@@ -229,6 +229,8 @@ static JSBool OperationCallback(JSContext *context)
 	OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
 	OODisposeHighResTime(now);
 	
+	if (elapsed <= sLimiterTimeLimit)  return YES;
+	
 	OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
 #ifndef NDEBUG
 	OOJSDumpStack(context);
