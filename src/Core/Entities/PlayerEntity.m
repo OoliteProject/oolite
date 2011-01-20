@@ -69,6 +69,7 @@ MA 02110-1301, USA.
 #import "OOScriptTimer.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJSEngineTimeManagement.h"
+#import "OOJSScript.h"
 #import "OOJSFrameCallbacks.h"
 
 #import "OOJoystickManager.h"
