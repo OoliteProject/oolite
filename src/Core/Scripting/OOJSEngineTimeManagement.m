@@ -62,7 +62,7 @@ enum
 
 
 #if OOJS_DEBUG_LIMITER
-#define OOJS_TIME_LIMIT		(0.1)	// seconds
+#define OOJS_TIME_LIMIT		(0.2)	// seconds
 #else
 #define OOJS_TIME_LIMIT		(1)	// seconds
 #endif
