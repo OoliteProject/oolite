@@ -2034,33 +2034,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) showShipModel:(NSString *)shipKey
+- (void) showShipModel:(NSString *)role
 {
-	ShipEntity		*ship;
-
-	if (!dockedStation)  return;
-	[UNIVERSE removeDemoShips];	// get rid of any pre-existing models on display
-	if ([shipKey isEqualToString:@"none"] || [shipKey length] == 0)  return;
-	
-	[PLAYER setShowDemoShips: YES];
-	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
-	ship = [UNIVERSE newShipWithRole: shipKey];   // retain count = 1
-	if (ship)
+	if ([role isEqualToString:@"none"] || [role length] == 0)
 	{
-		double cr = ship->collision_radius;
-		OOLog(kOOLogNoteShowShipModel, @"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
-		[ship setOrientation: q2];
-		[ship setPositionX:0.0f y:0.0f z:3.6f * cr];
-		[ship setScanClass:CLASS_NO_DRAW];
-		[ship switchAITo:@"nullAI.plist"];
-		[ship setPendingEscortCount:0];
-		[UNIVERSE addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		[ship setRoll:M_PI/5.0];  // roll must be set after addEntity or stations will not roll in demo.
-		[ship setPitch:M_PI/10.0];
-		[ship setStatus:STATUS_COCKPIT_DISPLAY];
-		
-		[ship release];
+		[UNIVERSE removeDemoShips];
+		return;
 	}
+	
+	ShipEntity *ship = [UNIVERSE makeDemoShipWithRole:role spinning:YES];
+	OOLog(kOOLogNoteShowShipModel, @"::::: showShipModel:'%@' (%@) (%@)", role, ship, [ship name]);
 }
 
 

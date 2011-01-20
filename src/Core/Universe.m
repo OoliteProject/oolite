@@ -3835,6 +3835,39 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
+- (ShipEntity *) makeDemoShipWithRole:(NSString *)role spinning:(BOOL)spinning
+{
+	if ([PLAYER dockedStation] == nil)  return nil;
+	
+	[self removeDemoShips];	// get rid of any pre-existing models on display
+	
+	[PLAYER setShowDemoShips: YES];
+	Quaternion q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0 };
+	
+	ShipEntity *ship = [self newShipWithRole:role];   // retain count = 1
+	if (ship)
+	{
+		double cr = [ship collisionRadius];
+		[ship setOrientation:q2];
+		[ship setPositionX:0.0f y:0.0f z:3.6f * cr];
+		[ship setScanClass:CLASS_NO_DRAW];
+		[ship switchAITo:@"nullAI.plist"];
+		[ship setPendingEscortCount:0];
+		
+		[UNIVERSE addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL
+		
+		if (spinning)
+		{
+			[ship setRoll:M_PI/5.0];	// roll must be set after addEntity or stations will not roll in demo.
+			[ship setPitch:M_PI/10.0];
+		}
+		[ship setStatus:STATUS_COCKPIT_DISPLAY];
+	}
+	
+	return [ship autorelease];
+}
+
+
 - (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
 {
 	if (!e1)

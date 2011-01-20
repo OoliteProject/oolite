@@ -763,14 +763,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A3C3F6A12E736B100A679FB /* SnowLeopardFeatures.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 8D576316048677EA00EA77CD /* Oolite Snow Leopard support.bundle */;
+			remoteGlobalIDString = 8D576316048677EA00EA77CD;
 			remoteInfo = SnowLeopardFeatures;
 		};
 		1A3C3F7312E736BC00A679FB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A3C3F6A12E736B100A679FB /* SnowLeopardFeatures.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8D57630D048677EA00EA77CD /* SnowLeopardFeatures */;
+			remoteGlobalIDString = 8D57630D048677EA00EA77CD;
 			remoteInfo = SnowLeopardFeatures;
 		};
 		1A3E019511C574AC000FF226 /* PBXContainerItemProxy */ = {

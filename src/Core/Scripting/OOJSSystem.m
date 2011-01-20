@@ -302,7 +302,7 @@ static JSBool SystemGetProperty(OOJS_PROP_ARGS)
 			
 		case kSystem_allShips:
 			OOJS_BEGIN_FULL_NATIVE(context)
-			result = [UNIVERSE findShipsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil];
+			result = [UNIVERSE findShipsMatchingPredicate:JSEntityIsJavaScriptSearchablePredicate parameter:NULL inRange:-1 ofEntity:nil];
 			OOJS_END_FULL_NATIVE
 			break;
 			

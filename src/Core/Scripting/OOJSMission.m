@@ -48,6 +48,8 @@ static jsval			sCallbackFunction;
 static jsval			sCallbackThis;
 static OOJSScript		*sCallbackScript = nil;
 
+static JSObject			*sMissionObject;
+
 static JSClass sMissionClass =
 {
 	"Mission",
@@ -83,7 +85,7 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 	sCallbackThis = JSVAL_NULL;
 	
 	JSObject *missionPrototype = JS_InitClass(context, global, NULL, &sMissionClass, OOJSUnconstructableConstruct, 0, NULL, sMissionMethods, NULL, NULL);
-	JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	sMissionObject = JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	
 	// Ensure JS objects are rooted.
 	OOJSAddGCValueRoot(context, &sCallbackFunction, "Pending mission callback function");
@@ -94,7 +96,7 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 void MissionRunCallback()
 {
 	// don't do anything if we don't have a function.
-	if (JSVAL_IS_NULL(sCallbackFunction))  return;
+	if (JSVAL_IS_NULL(sCallbackFunction) || JSVAL_IS_VOID(sCallbackFunction))  return;
 	
 	jsval				argval = JSVAL_VOID;
 	jsval				rval = JSVAL_VOID;
@@ -119,8 +121,8 @@ void MissionRunCallback()
 	JS_ValueToObject(context, sCallbackThis, &cbThis);
 	
 	sCallbackScript = nil;
-	sCallbackFunction = JSVAL_VOID;
-	sCallbackThis = JSVAL_VOID;
+	sCallbackFunction = JSVAL_NULL;
+	sCallbackThis = JSVAL_NULL;
 	
 	argval = [[player missionChoice_string] oo_jsValueInContext:context];
 	// now reset the mission choice silently, before calling the callback script.
@@ -348,14 +350,37 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	[player setMissionImage:GetParameterString(context, params, "overlay")];
 	[player setMissionBackground:GetParameterString(context, params, "background")];
 	
+	ShipEntity *demoShip = nil;
 	if (JS_GetProperty(context, params, "model", &value))
 	{
 		if ([player status] == STATUS_IN_FLIGHT && JSVAL_IS_STRING(value))
 		{
-			OOJSReportWarning(context, @"Mission.runScreen: model will not be displayed while in flight.");
+			OOJSReportWarning(context, @"Mission.runScreen: model cannot be displayed while in flight.");
 		}
-		[player showShipModel:OOStringFromJSValue(context, value)];
+		else
+		{
+			NSString *role = OOStringFromJSValue(context, value);
+			
+			JSBool spinning = YES;
+			if (JS_GetProperty(context, params, "spinModel", &value))
+			{
+				JS_ValueToBoolean(context, value, &spinning);
+			}
+			
+		//	[player showShipModel:OOStringFromJSValue(context, value)];
+			demoShip = [UNIVERSE makeDemoShipWithRole:role spinning:spinning];
+		}
 	}
+	if (demoShip != nil)
+	{
+		jsval demoShipVal = [demoShip oo_jsValueInContext:context];
+		JS_SetProperty(context, sMissionObject, "displayModel", &demoShipVal);
+	}
+	else
+	{
+		JS_DeleteProperty(context, sMissionObject, "displayModel");
+	}
+
 	
 	// Start the mission screen.
 	sCallbackFunction = function;

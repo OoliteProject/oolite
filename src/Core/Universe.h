@@ -430,6 +430,8 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (void) removeAllEntitiesExceptPlayer:(BOOL) restore;
 - (void) removeDemoShips;
 
+- (ShipEntity *) makeDemoShipWithRole:(NSString *)role spinning:(BOOL)spinning;
+
 - (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 - (Entity*) hazardOnRouteFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
