@@ -320,7 +320,7 @@ static void TimerFinalize(JSContext *context, JSObject *this)
 	{
 		if ([timer isScheduled])
 		{
-			OOJSReportWarning(context, @"Timer %@ is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", timer);
+			OOLogWARN(@"script.javaScript.unrootedTimer", @"Timer %@ is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", timer);
 		}
 		[timer release];
 		JS_SetPrivate(context, this, NULL);
