@@ -287,15 +287,19 @@ const escortPositions =
 */
 ];
 
-defineMethod(Script.prototype, "coordinatesForEscortPosition", function default_coordinatesFromEscortPosition(index)
+const escortPositionCount = escortPositions.length;
+const escortSpacingFactor = 3;
+
+
+Script.prototype.coordinatesForEscortPosition = function default_coordinatesFromEscortPosition(index)
 {
-	var highPart = 1 + (index >> 2);	// Equivalent to 1 + Math.floor(position / 4)
-	var lowPart = index % 4;
+	var highPart = Math.floor(index / escortPositionCount);
+	var lowPart = index % escortPositionCount;
 	
-	var spacing = this.ship.collisionRadius * 3 * highPart;
+	var spacing = this.ship.collisionRadius * escortSpacingFactor * highPart;
 	
 	return escortPositions[lowPart].multiply(spacing);
-});
+};
 
 
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/

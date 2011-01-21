@@ -4,7 +4,8 @@ oolite-locale-functions.js
 
 This script implements certain functionality that may need to be modified when
 localizing Oolite, such as number formatting. It’s intended to be overridden
-by localization OXPs, and is loaded immediately after oolite-global-prefix.js.
+by localization OXPs, and is loaded after oolite-global-prefix.js but before
+any “normal” world scripts.
 
 
 Oolite
