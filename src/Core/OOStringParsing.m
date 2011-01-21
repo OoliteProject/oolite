@@ -33,6 +33,9 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
 
+#import "OOJavaScriptEngine.h"
+#import "OOJSEngineTimeManagement.h"
+
 
 #define NSMakeRange(loc, len) ((NSRange){loc, len})
 
@@ -710,25 +713,33 @@ NSString *OOPadStringTo(NSString * string, float numSpaces)
 
 NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
 {
-	NSString			*result = nil;
-	unsigned long long	integerCredits = tenthsOfCredits / 10;
-	unsigned long long	tenths = tenthsOfCredits % 10;
+	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
+	JSContext			*context = [jsEng acquireContext];
+	JSObject			*global = [jsEng globalObject];
+	JSObject			*fakeRoot;
+	jsval				method;
+	jsval				rval;
+	NSString			*result = @"<error>";
+	JS_BeginRequest(context);
 	
-	if (includeDecimal)
+	if (JS_GetMethod(context, global, "formatCredits", &fakeRoot, &method))
 	{
-		result = [NSString stringWithFormat:@"%llu.%llu", integerCredits, tenths];
-	}
-	else
-	{
-		if (tenths >= 5)  integerCredits++;
-		result = [NSString stringWithFormat:@"%llu", integerCredits];
+		jsval args[3];
+		if (JS_NewDoubleValue(context, tenthsOfCredits * 0.1, &args[0]))
+		{
+			args[1] = OOJSValueFromBOOL(includeDecimal);
+			args[2] = OOJSValueFromBOOL(includeSymbol);
+			
+			OOJSStartTimeLimiter();
+			JS_CallFunctionValue(context, global, method, 3, args, &rval);
+			OOJSStopTimeLimiter();
+			
+			result = OOStringFromJSValue(context, rval);
+		}
 	}
 	
-	// Append credits sybol if desired.
-	if (includeSymbol)
-	{
-		result = [NSString stringWithFormat:DESC(@"@-credits"), result];
-	}
+	JS_EndRequest(context);
+	[jsEng releaseContext:context];
 	
 	return result;
 }

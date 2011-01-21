@@ -110,7 +110,7 @@ static OODebugMonitor *sSingleton = nil;
 								self, @"console",
 								JSSpecialFunctionsObjectWrapper(context), @"special",
 								nil];
-		_script = [[OOScript JSScriptFromFileNamed:@"oolite-debug-console.js" properties:jsProps] retain];
+		_script = [[OOScript jsScriptFromFileNamed:@"oolite-debug-console.js" properties:jsProps] retain];
 		OOLogSetDisplayMessagesInClass(@"script.load.notFound", savedShow);
 		
 		// If no script, just make console visible globally as debugConsole.

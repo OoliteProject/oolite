@@ -354,8 +354,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	JS_EndRequest(mainContext);
 	
-	// Run prefix script.
-	[OOJSScript JSScriptFromFileNamed:@"oolite-global-prefix.js"
+	// Run prefix scripts.
+	[OOJSScript jsScriptFromFileNamed:@"oolite-global-prefix.js"
 						   properties:[NSDictionary dictionaryWithObject:JSSpecialFunctionsObjectWrapper(mainContext)
 																  forKey:@"special"]];
 	

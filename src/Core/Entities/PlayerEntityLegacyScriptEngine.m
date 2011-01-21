@@ -2742,7 +2742,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	[properties setObject:self forKey:@"ship"];
 	[properties setObject:eq_key forKey:@"equipmentKey"];
-	OOScript *s = [OOScript JSScriptFromFileNamed:scriptName properties:properties];
+	OOScript *s = [OOScript jsScriptFromFileNamed:scriptName properties:properties];
 	
 	OOLog(@"player.equipmentScript", @"Script '%@': installation %@successful.", scriptName,(s == nil ? @"un" : @""));
 

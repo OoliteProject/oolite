@@ -65,9 +65,8 @@ MA 02110-1301, USA.
 #import "OOCamera.h"
 #import "NSFileManagerOOExtensions.h"
 
-#import "OOScript.h"
+#import "OOJSScript.h"
 #import "OOScriptTimer.h"
-#import "OOJavaScriptEngine.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 #import "OOJSFrameCallbacks.h"
@@ -1055,6 +1054,10 @@ static GLfloat		sBaseMass = 0.0;
 	
 	show_info_flag = NO;
 	
+	// Load locale script before any regular scripts.
+	[OOJSScript jsScriptFromFileNamed:@"oolite-locale-functions.js"
+						   properties:nil];
+	
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	[worldScripts release];
 	worldScripts = [[ResourceManager loadScripts] retain];
@@ -1363,12 +1366,12 @@ static GLfloat		sBaseMass = 0.0;
 	// Load js script
 	[script autorelease];
 	NSDictionary *scriptProperties = [NSDictionary dictionaryWithObject:self forKey:@"ship"];
-	script = [OOScript JSScriptFromFileNamed:[shipDict oo_stringForKey:@"script"] 
+	script = [OOScript jsScriptFromFileNamed:[shipDict oo_stringForKey:@"script"] 
 										 properties:scriptProperties];
 	if (script == nil)
 	{
 		// Do not switch to using a default value above; we want to use the default script if loading fails.
-		script = [OOScript JSScriptFromFileNamed:@"oolite-default-player-script.js"
+		script = [OOScript jsScriptFromFileNamed:@"oolite-default-player-script.js"
 											 properties:scriptProperties];
 	}
 	[script retain];

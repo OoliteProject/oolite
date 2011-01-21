@@ -34,7 +34,12 @@
 		"=1"	// index 0: singular
 	//	"!1"	// index 1: plural
 	);
-
+	
+	"number-group-size" = 3;
+	"number-group-threshold" = 5;
+	"number-decimal-separator" = ".";
+	"number-group-separator" = " ";		// Non-breaking space.
+	
 	// *** Basic lists ***
 	condition =
 	(

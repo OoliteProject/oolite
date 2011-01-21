@@ -51,8 +51,8 @@ MA 02110-1301, USA.
 
 + (NSArray *)scriptsFromFileAtPath:(NSString *)filePath;
 
-//	Load a single JavaScript script. Or, y'know, a future-scripting-language script.
-+ (id)JSScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties;
+//	Load a single JavaScript script.
++ (id)jsScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties;
 
 - (void)resetState;	// Clear local variables, for instance.
 

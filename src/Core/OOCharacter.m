@@ -469,7 +469,7 @@ MA 02110-1301, USA.
 	[properties setObject:self forKey:@"character"];
 	
 	[_script autorelease];
-	_script = [OOScript JSScriptFromFileNamed:script_name properties:properties];
+	_script = [OOScript jsScriptFromFileNamed:script_name properties:properties];
 	
 	[_script retain];
 }

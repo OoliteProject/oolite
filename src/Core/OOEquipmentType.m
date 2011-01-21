@@ -253,7 +253,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 			[_scriptInfo retain];
 			
 			_script = [extra oo_stringForKey:@"script"];
-			if (_script != nil && ![OOScript JSScriptFromFileNamed:_script properties:nil])  _script = nil;
+			if (_script != nil && ![OOScript jsScriptFromFileNamed:_script properties:nil])  _script = nil;
 			[_script retain];
 		}
 	}

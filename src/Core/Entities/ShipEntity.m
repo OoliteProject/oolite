@@ -5232,7 +5232,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	[properties setObject:self forKey:@"ship"];
 	
 	[script autorelease];
-	script = [OOScript JSScriptFromFileNamed:script_name properties:properties];
+	script = [OOScript jsScriptFromFileNamed:script_name properties:properties];
 	
 	if (script == nil)
 	{
@@ -5245,7 +5245,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		actions = [shipinfoDictionary oo_arrayForKey:@"setup_actions"];
 		if (actions)  [properties setObject:actions forKey:@"legacy_setupActions"];
 		
-		script = [OOScript JSScriptFromFileNamed:@"oolite-default-ship-script.js"
+		script = [OOScript jsScriptFromFileNamed:@"oolite-default-ship-script.js"
 									  properties:properties];
 	}
 	[script retain];

@@ -183,7 +183,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 }
 
 
-+ (id)JSScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties
++ (id)jsScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties
 {
 	NSString			*extension = nil;
 	NSString			*path = nil;
