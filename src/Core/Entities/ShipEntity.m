@@ -7396,6 +7396,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return NO;
 	if (range > weaponRange * 1.01) // 1% more than max range - open up just slightly early
 		return NO;
+	if ([[self rootShipEntity] isPlayer] && ![PLAYER weaponsOnline])
+		return NO;
 	
 	Vector		origin = position;
 	Entity		*last = nil;
