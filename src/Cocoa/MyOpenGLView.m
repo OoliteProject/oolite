@@ -46,10 +46,21 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 @interface MyOpenGLView(Internal)
 
-- (int) translateKeyCode: (int) input;
-- (void)performLateSetup;
+- (int) translateKeyCode:(int)input;
+- (void) performLateSetup;
+
+- (void) recenterVirtualJoystick;
 
 @end
+
+
+#if !OOLITE_SNOW_LEOPARD
+@interface NSResponder (SnowLeopard)
+
+- (void) setAcceptsTouchEvents:(BOOL)value;
+
+@end
+#endif
 
 
 @implementation MyOpenGLView
@@ -103,6 +114,10 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	self = [super initWithFrame:frameRect pixelFormat:pixelFormat];
 	
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
+	if ([self respondsToSelector:@selector(setAcceptsTouchEvents:)])
+	{
+		[self setAcceptsTouchEvents:YES];
+	}
 	
 	typedString = [[NSMutableString alloc] initWithString:@""];
 	allowingStringInput = gvStringInputNo;
@@ -644,6 +659,43 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	[self setVirtualJoystick:mx :-my];
 }
+
+
+- (void) mouseDragged:(NSEvent *)theEvent
+{
+	[self mouseMoved:theEvent];
+}
+
+
+- (void) otherMouseDragged:(NSEvent *)theEvent
+{
+	[self mouseMoved:theEvent];
+}
+
+
+- (void) rightMouseDown:(NSEvent *)theEvent
+{
+	[self recenterVirtualJoystick];
+}
+
+
+- (void) rightMouseUp:(NSEvent *)theEvent
+{
+	[self recenterVirtualJoystick];
+}
+
+
+- (void) touchesEndedWithEvent:(NSEvent *)theEvent
+{
+	[self recenterVirtualJoystick];
+}
+
+
+- (void) recenterVirtualJoystick
+{
+	[[GameController sharedController] recenterVirtualJoystick];
+}
+
 
 /////////////////////////////////////////////////////////////
 /*  Turn the Cocoa ArrowKeys into our arrow key constants. */

@@ -180,6 +180,8 @@ MA 02110-1301, USA.
 
 - (NSURL *) snapshotsURLCreatingIfNeeded:(BOOL)create;
 
+- (void) recenterVirtualJoystick;
+
 @end
 
 

@@ -69,6 +69,9 @@ MA 02110-1301, USA.
 	#if defined MAC_OS_X_VERSION_10_5 && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
 		#define OOLITE_LEOPARD		1
 	#endif
+	#if defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+		#define OOLITE_SNOW_LEOPARD	1
+	#endif
 #endif
 
 
@@ -78,6 +81,10 @@ MA 02110-1301, USA.
 
 #ifndef OOLITE_LEOPARD
 	#define OOLITE_LEOPARD			0
+#endif
+
+#ifndef OOLITE_SNOW_LEOPARD
+	#define OOLITE_SNOW_LEOPARD		0
 #endif
 
 

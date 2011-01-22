@@ -673,9 +673,8 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 						break;
 
 					case NSRightMouseDown:
-						my_mouse_x = my_mouse_y = 0;	// center mouse
+						[self recenterVirtualJoystick];
 						past_first_mouse_delta = NO;
-						[gameView setVirtualJoystick:0.0 :0.0];
 						break;
 
 					case NSLeftMouseUp:
@@ -781,6 +780,14 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		_switchRez = NO;
 		_switchRezDeferred = YES;
 	}
+}
+
+
+- (void) recenterVirtualJoystick
+{
+	// FIXME: does this really need to be spread across GameController and MyOpenGLView? -- Ahruman 2011-01-22
+	my_mouse_x = my_mouse_y = 0;	// center mouse
+	[gameView setVirtualJoystick:0.0 :0.0];
 }
 
 
@@ -1413,13 +1420,6 @@ static void LoadSystemSpecificBundles(void)
 	{
 		OO_DEBUG_PUSH_PROGRESS(@"Loading Leopard support bundle");
 		LoadOneSystemSpecificBundle(@"Oolite Leopard support");
-		OO_DEBUG_POP_PROGRESS();
-	}
-	
-	if (packedVersion >= kSystemVersion10_6)
-	{
-		OO_DEBUG_PUSH_PROGRESS(@"Loading Snow Leopard support bundle");
-		LoadOneSystemSpecificBundle(@"Oolite Snow Leopard support");
 		OO_DEBUG_POP_PROGRESS();
 	}
 }

@@ -19,7 +19,6 @@
 				1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */,
 				1A09EFBD12BD118300BF7F48 /* PBXTargetDependency */,
 				1ABF219A12D691A300075821 /* PBXTargetDependency */,
-				1A3C3F7412E736BC00A679FB /* PBXTargetDependency */,
 			);
 			name = "Build All";
 			productName = "Build All";
@@ -401,7 +400,6 @@
 		1A3AFF200BC4462200B5E2D9 /* OOJSVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */; };
 		1A3BA259106555D100C5C6F3 /* NSNumberOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3BA257106555D100C5C6F3 /* NSNumberOOExtensions.h */; };
 		1A3BA25A106555D100C5C6F3 /* NSNumberOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3BA258106555D100C5C6F3 /* NSNumberOOExtensions.m */; };
-		1A3C3F7512E736C700A679FB /* Oolite Snow Leopard support.bundle in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = 1A3C3F6F12E736B100A679FB /* Oolite Snow Leopard support.bundle */; };
 		1A3C67FB0F1C910E0000D45B /* OOLegacyScriptWhitelist.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */; };
 		1A3D03151173536C005BF5E6 /* OOMultiTextureMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3D03131173536C005BF5E6 /* OOMultiTextureMaterial.h */; };
 		1A3D03161173536C005BF5E6 /* OOMultiTextureMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3D03141173536C005BF5E6 /* OOMultiTextureMaterial.m */; };
@@ -761,20 +759,6 @@
 			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
 			remoteInfo = DebugOXP;
 		};
-		1A3C3F6E12E736B100A679FB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A3C3F6A12E736B100A679FB /* SnowLeopardFeatures.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 8D576316048677EA00EA77CD;
-			remoteInfo = SnowLeopardFeatures;
-		};
-		1A3C3F7312E736BC00A679FB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A3C3F6A12E736B100A679FB /* SnowLeopardFeatures.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D57630D048677EA00EA77CD;
-			remoteInfo = SnowLeopardFeatures;
-		};
 		1A3E019511C574AC000FF226 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */;
@@ -884,7 +868,6 @@
 			files = (
 				1ABF219B12D691B300075821 /* Oolite.docktileplugin in Copy Plug-ins */,
 				1A09EF5812BD0C4100BF7F48 /* Oolite Leopard support.bundle in Copy Plug-ins */,
-				1A3C3F7512E736C700A679FB /* Oolite Snow Leopard support.bundle in Copy Plug-ins */,
 			);
 			name = "Copy Plug-ins";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1627,7 +1610,7 @@
 		1A35256212E1FC0500244C9D /* OOBehaviour.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOBehaviour.tbl; sourceTree = "<group>"; };
 		1A35257012E1FFA900244C9D /* OOConstToJSString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToJSString.h; sourceTree = "<group>"; };
 		1A35257112E1FFA900244C9D /* OOConstToJSString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConstToJSString.m; sourceTree = "<group>"; };
-		1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.rtfd; name = ReadMe.rtfd; path = Doc/ReadMe.rtfd; sourceTree = SOURCE_ROOT; };
+		1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.rtfd; path = ReadMe.rtfd; sourceTree = "<group>"; };
 		1A3591690C1C375400E52220 /* oolite-nebula-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-1.png"; sourceTree = "<group>"; };
 		1A35916A0C1C375400E52220 /* oolite-star-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-1.png"; sourceTree = "<group>"; };
 		1A35916B0C1C375400E52220 /* oolite-nebula-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-3.png"; sourceTree = "<group>"; };
@@ -1644,7 +1627,6 @@
 		1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSVector.m; sourceTree = "<group>"; };
 		1A3BA257106555D100C5C6F3 /* NSNumberOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSNumberOOExtensions.h; sourceTree = "<group>"; };
 		1A3BA258106555D100C5C6F3 /* NSNumberOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSNumberOOExtensions.m; sourceTree = "<group>"; };
-		1A3C3F6A12E736B100A679FB /* SnowLeopardFeatures.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SnowLeopardFeatures.xcodeproj; path = "Mac-specific/SnowLeopardFeatures/SnowLeopardFeatures.xcodeproj"; sourceTree = "<group>"; };
 		1A3C67F30F1C90BF0000D45B /* OOLegacyScriptWhitelist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLegacyScriptWhitelist.h; sourceTree = "<group>"; };
 		1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLegacyScriptWhitelist.m; sourceTree = "<group>"; };
 		1A3D03131173536C005BF5E6 /* OOMultiTextureMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMultiTextureMaterial.h; sourceTree = "<group>"; };
@@ -2090,7 +2072,6 @@
 				25F3E8A40994FE65002F25FD /* oolite-document.icns */,
 				25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */,
 				25F3E8A60994FE65002F25FD /* oolite-icon.icns */,
-				1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */,
 				1A2317900B9D022400EF0852 /* AIs */,
 				1A2316DD0B9CFAD700EF0852 /* Config */,
 				1A23154D0B9C778400EF0852 /* Images */,
@@ -2554,14 +2535,6 @@
 			path = Tables;
 			sourceTree = "<group>";
 		};
-		1A3C3F6B12E736B100A679FB /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1A3C3F6F12E736B100A679FB /* Oolite Snow Leopard support.bundle */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		1A3E018F11C574AC000FF226 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -2597,7 +2570,6 @@
 			isa = PBXGroup;
 			children = (
 				1A09EF4F12BD0C1900BF7F48 /* LeopardFeatures.xcodeproj */,
-				1A3C3F6A12E736B100A679FB /* SnowLeopardFeatures.xcodeproj */,
 				1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */,
 				1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */,
 			);
@@ -3139,6 +3111,7 @@
 		1AC0E9380B974D8700C46994 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
+				1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */,
 				1AC0E9480B974DC200C46994 /* ReadMe.rtfd */,
 				1AC0E9490B974DC200C46994 /* LICENSE.TXT */,
 				1AC0E9460B974DC200C46994 /* GPL.TXT */,
@@ -3581,10 +3554,6 @@
 					ProjectRef = 1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */;
 				},
 				{
-					ProductGroup = 1A3C3F6B12E736B100A679FB /* Products */;
-					ProjectRef = 1A3C3F6A12E736B100A679FB /* SnowLeopardFeatures.xcodeproj */;
-				},
-				{
 					ProductGroup = 1AE3455212CB77AC00FD8C62 /* Products */;
 					ProjectRef = 1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */;
 				},
@@ -3618,13 +3587,6 @@
 			fileType = wrapper.cfbundle;
 			path = Debug.oxp;
 			remoteRef = 1A3042F310C16DA60056219D /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		1A3C3F6F12E736B100A679FB /* Oolite Snow Leopard support.bundle */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = "Oolite Snow Leopard support.bundle";
-			remoteRef = 1A3C3F6E12E736B100A679FB /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1A3E019611C574AC000FF226 /* Oolite.mdimporter */ = {
@@ -3965,11 +3927,6 @@
 			isa = PBXTargetDependency;
 			name = DebugOXP;
 			targetProxy = 1A274D2410C1EE02004CDDF5 /* PBXContainerItemProxy */;
-		};
-		1A3C3F7412E736BC00A679FB /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = SnowLeopardFeatures;
-			targetProxy = 1A3C3F7312E736BC00A679FB /* PBXContainerItemProxy */;
 		};
 		1A3E01A911C574E1000FF226 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
