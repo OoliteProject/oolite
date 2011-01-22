@@ -1102,11 +1102,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 - (Vector)absoluteTractorPosition
 {
-	Vector result = position;
-	result.x += v_right.x * tractor_position.x + v_up.x * tractor_position.y + v_forward.x * tractor_position.z;
-	result.y += v_right.y * tractor_position.x + v_up.y * tractor_position.y + v_forward.y * tractor_position.z;
-	result.z += v_right.z * tractor_position.x + v_up.z * tractor_position.y + v_forward.z * tractor_position.z;
-	return result;
+	return vector_add(position, quaternion_rotate_vector([self normalOrientation], tractor_position));
 }
 
 
@@ -1282,7 +1278,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		[escorter setScanClass:scanClass];		// you are the same as I
 		if ([self bounty] == 0)  [escorter setBounty:0];	// Avoid dirty escorts for clean mothers
 		
-		// find the right outoAI.
+		// find the right autoAI.
 		escortShipDict = [escorter shipInfoDictionary];
 		autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
 		autoAI = [autoAIMap oo_stringForKey:defaultRole];
@@ -1290,7 +1286,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		{
 			autoAI = [autoAIMap oo_stringForKey:@"escort" defaultValue:@"nullAI.plist"];
 		}
-
+		
 		escortAI = [escorter getAI];
 		
 		// Let the populator decide which AI to use, unless we have a working alternative AI & we specify auto_ai = NO !
@@ -6017,12 +6013,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[wreck rescaleBy: scale_factor];
 							
 							Vector r1 = randomFullNodeFrom([octree octreeDetails], kZeroVector);
-							Vector rpos = make_vector (v_right.x * r1.x + v_up.x * r1.y + v_forward.x * r1.z,
-														v_right.y * r1.x + v_up.y * r1.y + v_forward.y * r1.z,
-														v_right.z * r1.x + v_up.z * r1.y + v_forward.z * r1.z);
-							rpos.x += xposition.x;
-							rpos.y += xposition.y;
-							rpos.z += xposition.z;
+							Vector rpos = vector_add(quaternion_rotate_vector([self normalOrientation], r1), xposition);
 							[wreck setPosition:rpos];
 							
 							[wreck setVelocity:[self velocity]];
@@ -7660,41 +7651,29 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) throwSparks
 {
-	OOSparkEntity *spark = nil;
-	Vector  vel;
-	Vector  origin = position;
-
-	GLfloat lr	= randf() * (boundingBox.max.x - boundingBox.min.x) + boundingBox.min.x;
-	GLfloat ud	= randf() * (boundingBox.max.y - boundingBox.min.y) + boundingBox.min.y;
-	GLfloat fb	= randf() * boundingBox.max.z + boundingBox.min.z;	// rear section only
-
-	origin.x += fb * v_forward.x;
-	origin.y += fb * v_forward.y;
-	origin.z += fb * v_forward.z;
-
-	origin.x += ud * v_up.x;
-	origin.y += ud * v_up.y;
-	origin.z += ud * v_up.z;
-
-	origin.x += lr * v_right.x;
-	origin.y += lr * v_right.y;
-	origin.z += lr * v_right.z;
+	Vector offset =
+	{
+		randf() * (boundingBox.max.x - boundingBox.min.x) + boundingBox.min.x,
+		randf() * (boundingBox.max.y - boundingBox.min.y) + boundingBox.min.y,
+		randf() * boundingBox.max.z + boundingBox.min.z	// rear section only
+	};
+	Vector origin = vector_add(position, quaternion_rotate_vector([self normalOrientation], offset));
 
 	float	w = boundingBox.max.x - boundingBox.min.x;
 	float	h = boundingBox.max.y - boundingBox.min.y;
 	float	m = (w < h) ? 0.25 * w: 0.25 * h;
-
+	
 	float	sz = m * (1 + randf() + randf());	// half minimum dimension on average
-
-	vel = make_vector(2.0 * (origin.x - position.x), 2.0 * (origin.y - position.y), 2.0 * (origin.z - position.z));
+	
+	Vector vel = vector_multiply_scalar(vector_subtract(origin, position), 2.0);
 	
 	OOColor *color = [OOColor colorWithCalibratedHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0];
 	
-	spark = [[OOSparkEntity alloc] initWithPosition:origin
-										   velocity:vel
-										   duration:2.0 + 3.0 * randf()
-											   size:sz
-											  color:color];
+	OOSparkEntity *spark = [[OOSparkEntity alloc] initWithPosition:origin
+														  velocity:vel
+														  duration:2.0 + 3.0 * randf()
+															  size:sz
+															 color:color];
 	
 	[spark setOwner:self];
 	[UNIVERSE addEntity:spark];
@@ -7789,7 +7768,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ShipEntity		*target_ship = nil;
 	
 	Vector			vel;
-	Vector			origin = position;
 	Vector			start, v_eject;
 	
 	if ([UNIVERSE getTime] < missile_launch_time) return nil;
@@ -7802,8 +7780,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
 	
 	double  throw_speed = 250.0f;
-	Quaternion q1 = orientation;
-	if (isPlayer) q1.w = -q1.w;   // player view is reversed!
 	
 	if	((missiles <= 0)||(target == nil)||([target scanClass] == CLASS_NO_DRAW))	// no missile lock!
 		return nil;
@@ -7853,17 +7829,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		start = vector_add(start, vector_multiply_scalar(v_eject, mcr));
 		
+#if 0
 		// Kept different vel calculations for player & NPCs. Is there an acutal reason for that difference? - Kaks 20091204
 		if (!isPlayer) vel = vector_add(vel, vector_multiply_scalar(v_eject, 10.0f * mcr)); // throw it outward a bit harder
+#endif
 	}
 	
-	// Kept different vel calculations for player & NPCs. Is there an acutal reason for that difference? - Kaks 20091204
-	if (isPlayer) vel = vector_multiply_scalar(v_forward, flightSpeed + throw_speed);
-	else vel = vector_add(vel, vector_multiply_scalar(v_forward, flightSpeed + throw_speed));
+	vel = vector_add(vel, vector_multiply_scalar(v_forward, flightSpeed + throw_speed));
 	
-	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
-	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
-	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
+	Quaternion q1 = [self normalOrientation];
+	Vector origin = vector_add(position, quaternion_rotate_vector(q1, start));
 	
 	if (isPlayer) [missile setScanClass: CLASS_MISSILE];
 	
@@ -8125,11 +8100,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		start = vector_add(start, vector_multiply_scalar(v_eject, jcr));
 	}
-
-	v_eject = make_vector(	v_right.x * start.x +	v_up.x * start.y +	v_forward.x * start.z,
-							v_right.y * start.x +	v_up.y * start.y +	v_forward.y * start.z,
-							v_right.z * start.x +	v_up.z * start.y +	v_forward.z * start.z);
 	
+	v_eject = quaternion_rotate_vector([self normalOrientation], start);
 	rpos = vector_add(rpos, v_eject);
 	v_eject = vector_normal(v_eject);
 	v_eject_normal = v_eject;
@@ -9210,14 +9182,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	NSParameterAssert(idx < MAX_ESCORTS);
 	
-	Vector relPos = _escortPositions[idx];
-	Vector pos = self->position;
-	
-	pos.x += v_right.x * relPos.x;		pos.y += v_right.y * relPos.x;		pos.z += v_right.z * relPos.x;
-	pos.x += v_up.x * relPos.y;			pos.y += v_up.y * relPos.y;			pos.z += v_up.z * relPos.y;
-	pos.x += v_forward.x * relPos.z;	pos.y += v_forward.y * relPos.z;	pos.z += v_forward.z * relPos.z;
-	
-	return pos;
+	return vector_add(self->position, quaternion_rotate_vector([self normalOrientation], _escortPositions[idx]));
 }
 
 
