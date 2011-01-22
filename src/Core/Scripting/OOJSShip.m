@@ -84,6 +84,7 @@ static JSBool ShipSetCargo(OOJS_NATIVE_ARGS);
 static JSBool ShipSetMaterials(OOJS_NATIVE_ARGS);
 static JSBool ShipSetShaders(OOJS_NATIVE_ARGS);
 static JSBool ShipExitSystem(OOJS_NATIVE_ARGS);
+static JSBool ShipUpdateEscortFormation(OOJS_NATIVE_ARGS);
 
 static BOOL RemoveOrExplodeShip(OOJS_NATIVE_ARGS, BOOL explode);
 static BOOL ValidateContracts(OOJS_NATIVE_ARGS, BOOL isCargo);
@@ -319,6 +320,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "spawn",					ShipSpawn,					1 },
 	// spawnOne() is defined in the prefix script.
 	{ "switchAI",				ShipSwitchAI,				1 },
+	{ "updateEscortFormation",	ShipUpdateEscortFormation,	0 },
 	{ 0 }
 };
 
@@ -2204,6 +2206,20 @@ static JSBool ShipExitSystem(OOJS_NATIVE_ARGS)
 	OOJS_RETURN_BOOL(OK);
 	
 	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool ShipUpdateEscortFormation(OOJS_NATIVE_ARGS)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt updateEscortFormation];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
 }
 
 

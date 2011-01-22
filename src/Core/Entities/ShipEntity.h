@@ -375,6 +375,9 @@ typedef enum
 	OOShipGroup				*_escortGroup;
 	uint8_t					_maxEscortCount;
 	uint8_t					_pendingEscortCount;
+	// Cache of ship-relative positions, managed by -coordinatesForEscortPosition:.
+	Vector					_escortPositions[MAX_ESCORTS];
+	BOOL					_escortPositionsValid;
 	
 	GLfloat					_profileRadius;
 }
@@ -448,6 +451,7 @@ typedef enum
 - (BOOL) isBoulder;
 
 - (void) setUpEscorts;
+- (void) updateEscortFormation;
 
 - (id)initWithKey:(NSString *)key definition:(NSDictionary *)dict;
 - (BOOL)setUpFromDictionary:(NSDictionary *) shipDict;
@@ -733,7 +737,6 @@ typedef enum
 - (void) becomeExplosion;
 - (void) becomeLargeExplosion:(double) factor;
 - (void) becomeEnergyBlast;
-Vector randomPositionInBoundingBox(BoundingBox bb);
 
 - (Vector) positionOffsetForAlignment:(NSString*) align;
 Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q, NSString* align);
@@ -743,8 +746,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BoundingBox) findSubentityBoundingBox;
 
 - (Triangle) absoluteIJKForSubentity;
-
-ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 - (NSComparisonResult) compareBeaconCodeWith:(ShipEntity *)other;
 
@@ -763,9 +764,6 @@ ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	AI piloting methods
 
 -----------------------------------------*/
-
-BOOL	class_masslocks(int some_class);
-- (BOOL) checkTorusJumpClear;
 
 - (void) checkScanner;
 - (ShipEntity**) scannedShips;

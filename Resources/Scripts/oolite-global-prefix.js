@@ -255,40 +255,27 @@ defineMethod(SoundSource.prototype, "playSound", function playSound(sound, count
 });
 
 
-/*	Ship.prototype.updateEscortFormation()
-	
-	Cause a ship to update its escort positions. Currently does nothing since
-	escort positions are polled every frame.
-	
-	N.b.: there is an AI method with the same name.
-*/
-defineMethod(Ship.prototype, "updateEscortFormation", function updateEscortFormation()
-{});
-
-
 /**** Default implementations of script methods ****/
 /*    (Note: oolite-default-ship-script.js methods aren’t inherited. */
-
 
 const escortPositions =
 [
 	// V-shape escort pattern
-	new Vector3D(-2, 0, -1),
-	new Vector3D( 2, 0, -1),
-	new Vector3D(-3, 0, -3),
-	new Vector3D( 3, 0, -3)
+	new Vector3D(-6, 0, -3),
+	new Vector3D( 6, 0, -3),
+	new Vector3D(-9, 0, -9),
+	new Vector3D( 9, 0, -9)
 
 /*
 	// X-shape escort pattern
-	new Vector3D(-2, 0,  2),
-	new Vector3D( 2, 0,  2),
-	new Vector3D(-3, 0, -3),
-	new Vector3D( 3, 0, -3)
+	new Vector3D(-6, 0,  6),
+	new Vector3D( 6, 0,  6),
+	new Vector3D(-9, 0, -9),
+	new Vector3D( 9, 0, -9)
 */
 ];
 
 const escortPositionCount = escortPositions.length;
-const escortSpacingFactor = 3;
 
 
 Script.prototype.coordinatesForEscortPosition = function default_coordinatesFromEscortPosition(index)
@@ -296,7 +283,7 @@ Script.prototype.coordinatesForEscortPosition = function default_coordinatesFrom
 	var highPart = Math.floor(index / escortPositionCount);
 	var lowPart = index % escortPositionCount;
 	
-	var spacing = this.ship.collisionRadius * escortSpacingFactor * highPart;
+	var spacing = this.ship.collisionRadius * highPart;
 	
 	return escortPositions[lowPart].multiply(spacing);
 };

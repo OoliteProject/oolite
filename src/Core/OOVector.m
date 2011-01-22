@@ -94,4 +94,14 @@ Vector OOVectorRandomRadial(OOScalar maxLength)
 {
 	return vector_multiply_scalar(OORandomUnitVector(), randf() * maxLength);
 }
+
+
+Vector OORandomPositionInBoundingBox(BoundingBox bb)
+{
+	Vector result;
+	result.x = bb.min.x + randf() * (bb.max.x - bb.min.x);
+	result.y = bb.min.y + randf() * (bb.max.y - bb.min.y);
+	result.z = bb.min.z + randf() * (bb.max.z - bb.min.z);
+	return result;
+}
 #endif

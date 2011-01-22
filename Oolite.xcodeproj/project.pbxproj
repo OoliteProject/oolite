@@ -642,6 +642,8 @@
 		1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */; };
 		1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455012CB77A700FD8C62 /* libogg_for_oolite.a */; };
 		1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */; };
+		1AE45E5A12EB177B00B570E1 /* oolite-constrictor-pilot.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */; };
+		1AE45E5C12EB178100B570E1 /* oolite-locale-functions.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
 		1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEA229D12CBD18600EC0F43 /* CoreServices.framework */; };
 		1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
@@ -1191,6 +1193,8 @@
 			dstPath = Scripts;
 			dstSubfolderSpec = 7;
 			files = (
+				1AE45E5A12EB177B00B570E1 /* oolite-constrictor-pilot.js in Copy Scripts */,
+				1AE45E5C12EB178100B570E1 /* oolite-locale-functions.js in Copy Scripts */,
 				1A01BC7011C5515B0011197F /* oolite-default-player-script.js in Copy Scripts */,
 				1A572FC30D84B640003D4A26 /* oolite-nova-mission.js in Copy Scripts */,
 				1A572FC40D84B640003D4A26 /* oolite-thargoid-plans-mission.js in Copy Scripts */,
@@ -1906,6 +1910,8 @@
 		1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLightParticleEntity.m; sourceTree = "<group>"; };
 		1AE3454B12CB77A700FD8C62 /* Ogg.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Ogg.xcodeproj; path = "deps/Cocoa-deps/Ogg Vorbis/Ogg.xcodeproj"; sourceTree = "<group>"; };
 		1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Vorbis.xcodeproj; path = "deps/Cocoa-deps/Ogg Vorbis/Vorbis.xcodeproj"; sourceTree = "<group>"; };
+		1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-constrictor-pilot.js"; sourceTree = "<group>"; };
+		1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-locale-functions.js"; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
 		1AEA229D12CBD18600EC0F43 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		1AEB48D1119D51BD007BD514 /* gpu-settings.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "gpu-settings.plist"; sourceTree = "<group>"; };
@@ -2525,9 +2531,11 @@
 				1A572FBC0D84B640003D4A26 /* oolite-cloaking-device-mission.js */,
 				1A572FBD0D84B640003D4A26 /* oolite-constrictor.js */,
 				1A572FBE0D84B640003D4A26 /* oolite-constrictor-hunt-mission.js */,
+				1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */,
 				1A572FBF0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js */,
 				1A572FC00D84B640003D4A26 /* oolite-cloaking-device-pod.js */,
 				1A572FC10D84B640003D4A26 /* oolite-global-prefix.js */,
+				1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */,
 				1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */,
 			);
 			path = Scripts;

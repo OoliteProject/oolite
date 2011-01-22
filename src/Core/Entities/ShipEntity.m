@@ -140,7 +140,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 
 - (void) addSubEntity:(Entity *) subent;
 
-- (Vector) coordinatesForEscortPosition:(unsigned)fPos;
+- (void) refreshEscortPositions;
+- (Vector) coordinatesForEscortPosition:(unsigned)idx;
 
 - (void) addSubentityToCollisionRadius:(Entity*) subent;
 - (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
@@ -151,6 +152,9 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 - (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role;
 
 @end
+
+
+static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 
 @implementation ShipEntity
@@ -1240,7 +1244,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	{
 		pilotRole = bounty ? @"pirate" : @"hunter"; // hunters have insurancies, pirates not.
 	}
-
+	
+	[self refreshEscortPositions];
 	while (_pendingEscortCount > 0)
 	{
 		Vector ex_pos = [self coordinatesForEscortPosition:[escortGroup count] - 1]; // this adds ship 1 on position 1 etc. 
@@ -2009,6 +2014,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		
 		// update destination position for escorts
+		[self refreshEscortPositions];
 		if ([self hasEscorts])
 		{
 			NSEnumerator			*escortEnum = nil;
@@ -2026,6 +2032,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				OOLog(@"ship.sanityCheck.failed", @"Ship %@ escorting %@ with wrong scanclass!", self, leader);
 				[[self escortGroup] removeShip:self];
 				[[self escortGroup] release];
+				[self updateEscortFormation];
 			}
 		}
 	}
@@ -4362,6 +4369,8 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		[_group release];
 		[group addShip:self];
 		_group = [group retain];
+		
+		[[group leader] updateEscortFormation];
 	}
 }
 
@@ -4385,6 +4394,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		[_escortGroup release];
 		_escortGroup = [group retain];
 		[group setLeader:self];	// A ship is always leader of its own escort group.
+		[self updateEscortFormation];
 	}
 }
 
@@ -5878,7 +5888,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						{
 							ShipEntity* container = [jetsam objectAtIndex:i];
 							Vector  rpos = xposition;
-							Vector	rrand = randomPositionInBoundingBox(boundingBox);
+							Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
 							rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
 							rpos.x += (ranrot_rand() % 7) - 3;
 							rpos.y += (ranrot_rand() % 7) - 3;
@@ -6041,7 +6051,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					if (plate)
 					{
 						Vector  rpos = xposition;
-						Vector	rrand = randomPositionInBoundingBox(boundingBox);
+						Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
 						rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
 						rpos.x += (ranrot_rand() % 7) - 3;
 						rpos.y += (ranrot_rand() % 7) - 3;
@@ -6130,16 +6140,6 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		// Leak subentity list.
 		subEntities = nil;
 	}
-}
-
-
-Vector randomPositionInBoundingBox(BoundingBox bb)
-{
-	Vector result;
-	result.x = bb.min.x + randf() * (bb.max.x - bb.min.x);
-	result.y = bb.min.y + randf() * (bb.max.y - bb.min.y);
-	result.z = bb.min.z + randf() * (bb.max.z - bb.min.z);
-	return result;
 }
 
 
@@ -6304,7 +6304,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			{
 				ShipEntity* container = [[cargo objectAtIndex:0] retain];
 				Vector  rpos = xposition;
-				Vector	rrand = randomPositionInBoundingBox(boundingBox);
+				Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
 				rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
 				rpos.x += (ranrot_rand() % 7) - 3;
 				rpos.y += (ranrot_rand() % 7) - 3;
@@ -6413,50 +6413,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	AI piloting methods
 
 -----------------------------------------*/
-
-BOOL class_masslocks(int some_class)
-{
-	switch (some_class)
-	{
-		case CLASS_BUOY:
-		case CLASS_ROCK:
-		case CLASS_CARGO:
-		case CLASS_MINE:
-		case CLASS_NO_DRAW:
-			return NO;
-		
-		case CLASS_THARGOID:
-		case CLASS_MISSILE:
-		case CLASS_STATION:
-		case CLASS_POLICE:
-		case CLASS_MILITARY:
-		case CLASS_WORMHOLE:
-			return YES;
-	}
-	return NO;
-}
-
-
-- (BOOL) checkTorusJumpClear
-{
-	Entity* scan;
-	//
-	scan = z_previous;	while ((scan)&&(!class_masslocks(scan->scanClass)))	scan = scan->z_previous;	// skip non-mass-locking
-	while ((scan)&&(scan->position.z > position.z - scannerRange))
-	{
-		if (class_masslocks(scan->scanClass) && (distance2(position, scan->position) < SCANNER_MAX_RANGE2))
-			return NO;
-		scan = scan->z_previous;	while ((scan)&&(!class_masslocks(scan->scanClass)))	scan = scan->z_previous;
-	}
-	scan = z_next;	while ((scan)&&(!class_masslocks(scan->scanClass)))	scan = scan->z_next;	// skip non-mass-locking
-	while ((scan)&&(scan->position.z < position.z + scannerRange))
-	{
-		if (class_masslocks(scan->scanClass) && (distance2(position, scan->position) < SCANNER_MAX_RANGE2))
-			return NO;
-		scan = scan->z_previous;	while ((scan)&&(!class_masslocks(scan->scanClass)))	scan = scan->z_previous;
-	}
-	return YES;
-}
 
 
 - (void) checkScanner
@@ -9199,32 +9155,61 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (Vector) coordinatesForEscortPosition:(unsigned)fPos
+// Exposed to AI
+- (void) updateEscortFormation
 {
-	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
-	JSContext			*context = [jsEng acquireContext];
-	jsval				relPosV;
-	Vector				relPos;
-	Vector				pos;
-	jsval				arg = INT_TO_JSVAL(fPos);
-	BOOL				OK;
+	_escortPositionsValid = NO;
+}
+
+
+/*
+	NOTE: it's tempting to call refreshEscortPositions from coordinatesForEscortPosition:
+	as needed, but that would cause unnecessary extra work if the formation
+	callback itself calls updateEscortFormation.
+*/
+- (void) refreshEscortPositions
+{
+	if (!_escortPositionsValid)
+	{
+		OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
+		JSContext			*context = [jsEng acquireContext];
+		jsval				result;
+		jsval				args[] = { INT_TO_JSVAL(0), INT_TO_JSVAL(_maxEscortCount) };
+		BOOL				OK;
+		
+		// Reset validity first so updateEscortFormation can be called from the update callback.
+		_escortPositionsValid = YES;
+		
+		JS_BeginRequest(context);
+		
+		uint8_t i;
+		for (i = 0; i < _maxEscortCount; i++)
+		{
+			args[0] = INT_TO_JSVAL(i);
+			OOJSStartTimeLimiter();
+			OK = [script callMethodNamed:"coordinatesForEscortPosition"
+						   withArguments:args count:sizeof args / sizeof *args
+							   inContext:context
+						   gettingResult:&result];
+			OOJSStopTimeLimiter();
+			
+			if (OK)  OK = JSValueToVector(context, result, &_escortPositions[i]);
+			
+			if (!OK)  _escortPositions[i] = kZeroVector;
+		}
+		
+		JS_EndRequest(context);
+		[jsEng releaseContext:context];
+	}
+}
+
+
+- (Vector) coordinatesForEscortPosition:(unsigned)idx
+{
+	NSParameterAssert(idx < MAX_ESCORTS);
 	
-	JS_BeginRequest(context);
-	
-	OOJSStartTimeLimiter();
-	OK = [script callMethodNamed:"coordinatesForEscortPosition"
-				   withArguments:&arg count:1
-					   inContext:context
-				   gettingResult:&relPosV];
-	OOJSStopTimeLimiter();
-	
-	if (OK)  OK = JSValueToVector(context, relPosV, &relPos);
-	
-	JS_EndRequest(context);
-	[jsEng releaseContext:context];
-	
-	if (!OK)  relPos = kZeroVector;
-	pos = self->position;
+	Vector relPos = _escortPositions[idx];
+	Vector pos = self->position;
 	
 	pos.x += v_right.x * relPos.x;		pos.y += v_right.y * relPos.x;		pos.z += v_right.z * relPos.x;
 	pos.x += v_up.x * relPos.y;			pos.y += v_up.y * relPos.y;			pos.z += v_up.z * relPos.y;
@@ -9284,6 +9269,8 @@ BOOL class_masslocks(int some_class)
 		
 		if (--deployCount == 0)  break;
 	}
+	
+	[self updateEscortFormation];
 }
 
 

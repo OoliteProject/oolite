@@ -52,6 +52,8 @@ OOINLINE void bounding_box_reset_to_vector(BoundingBox *box, Vector vec) ALWAYS_
 
 OOINLINE void bounding_box_get_dimensions(BoundingBox bb, GLfloat *xSize, GLfloat *ySize, GLfloat *zSize) ALWAYS_INLINE_FUNC;
 
+Vector OORandomPositionInBoundingBox(BoundingBox bb);
+
 
 
 /*** Only inline definitions beyond this point ***/
