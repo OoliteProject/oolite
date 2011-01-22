@@ -261,29 +261,30 @@ defineMethod(SoundSource.prototype, "playSound", function playSound(sound, count
 const escortPositions =
 [
 	// V-shape escort pattern
-	new Vector3D(-6, 0, -3),
-	new Vector3D( 6, 0, -3),
-	new Vector3D(-9, 0, -9),
-	new Vector3D( 9, 0, -9)
+	new Vector3D(-2, 0, -1),
+	new Vector3D( 2, 0, -1),
+	new Vector3D(-3, 0, -3),
+	new Vector3D( 3, 0, -3)
 
 /*
 	// X-shape escort pattern
-	new Vector3D(-6, 0,  6),
-	new Vector3D( 6, 0,  6),
-	new Vector3D(-9, 0, -9),
-	new Vector3D( 9, 0, -9)
+	new Vector3D(-2, 0,  2),
+	new Vector3D( 2, 0,  2),
+	new Vector3D(-3, 0, -3),
+	new Vector3D( 3, 0, -3)
 */
 ];
 
 const escortPositionCount = escortPositions.length;
+const escortSpacingFactor = 3;
 
 
 Script.prototype.coordinatesForEscortPosition = function default_coordinatesFromEscortPosition(index)
 {
-	var highPart = Math.floor(index / escortPositionCount);
+	var highPart = Math.floor(index / escortPositionCount) + 1;
 	var lowPart = index % escortPositionCount;
 	
-	var spacing = this.ship.collisionRadius * highPart;
+	var spacing = this.ship.collisionRadius * escortSpacingFactor * highPart;
 	
 	return escortPositions[lowPart].multiply(spacing);
 };
