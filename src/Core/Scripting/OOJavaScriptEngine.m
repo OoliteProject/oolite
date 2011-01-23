@@ -946,25 +946,27 @@ OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
 	
 	return INTERNED_STRING_TO_JSID(jsString);
 }
+
+
+NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID)
+{
+	jsval value;
+	if (!JS_IdToValue(context, propID, &value))  return nil;
+	
+	return OOStringFromJSString(context, JS_ValueToString(context, value));
+}
 #else
 OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
 {
 	return [string UTF8String];
 }
-#endif
 
 
 NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID)
 {
-#if OO_NEW_JS
-	jsval value;
-	if (!JS_IdToValue(context, propID, &value))  return nil;
-#else
-	jsval value = propID;
-#endif
-	
-	return OOStringFromJSString(context, JS_ValueToString(context, value));
+	return [NSString stringWithUTF8String:propID];
 }
+#endif
 
 
 static NSString *CallerPrefix(NSString *scriptClass, NSString *function)
