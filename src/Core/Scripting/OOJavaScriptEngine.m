@@ -62,6 +62,7 @@ MA 02110-1301, USA.
 #import "OOJSEquipmentInfo.h"
 #import "OOJSShipGroup.h"
 #import "OOJSFrameCallbacks.h"
+#import "OOJSFont.h"
 
 #import "OOProfilingStopwatch.h"
 #import "OOLoggingExtended.h"
@@ -362,13 +363,14 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSEquipmentInfo(mainContext, globalObject);
 	InitOOJSShipGroup(mainContext, globalObject);
 	InitOOJSFrameCallbacks(mainContext, globalObject);
-	
-	JS_EndRequest(mainContext);
+	InitOOJSFont(mainContext, globalObject);
 	
 	// Run prefix scripts.
 	[OOJSScript jsScriptFromFileNamed:@"oolite-global-prefix.js"
 						   properties:[NSDictionary dictionaryWithObject:JSSpecialFunctionsObjectWrapper(mainContext)
 																  forKey:@"special"]];
+	
+	JS_EndRequest(mainContext);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	

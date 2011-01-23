@@ -83,6 +83,8 @@
 		1A11F84B0F35F60C001C886C /* OOJSShipGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A11F8490F35F60C001C886C /* OOJSShipGroup.h */; };
 		1A127F4312EC6A4400B65D9F /* OOTextureSprite.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A127F4112EC6A4400B65D9F /* OOTextureSprite.h */; };
 		1A127F4412EC6A4400B65D9F /* OOTextureSprite.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A127F4212EC6A4400B65D9F /* OOTextureSprite.m */; };
+		1A1280F812ECA4ED00B65D9F /* OOJSFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1280F612ECA4ED00B65D9F /* OOJSFont.h */; };
+		1A1280F912ECA4ED00B65D9F /* OOJSFont.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1280F712ECA4ED00B65D9F /* OOJSFont.m */; };
 		1A143A4811EF22C5001BAB8D /* JAPersistentFileReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A143A4611EF22C5001BAB8D /* JAPersistentFileReference.h */; };
 		1A143A4911EF22C5001BAB8D /* JAPersistentFileReference.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A143A4711EF22C5001BAB8D /* JAPersistentFileReference.m */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
@@ -1295,6 +1297,8 @@
 		1A11F8490F35F60C001C886C /* OOJSShipGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSShipGroup.h; sourceTree = "<group>"; };
 		1A127F4112EC6A4400B65D9F /* OOTextureSprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureSprite.h; sourceTree = "<group>"; };
 		1A127F4212EC6A4400B65D9F /* OOTextureSprite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureSprite.m; sourceTree = "<group>"; };
+		1A1280F612ECA4ED00B65D9F /* OOJSFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSFont.h; sourceTree = "<group>"; };
+		1A1280F712ECA4ED00B65D9F /* OOJSFont.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSFont.m; sourceTree = "<group>"; };
 		1A143A4611EF22C5001BAB8D /* JAPersistentFileReference.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JAPersistentFileReference.h; sourceTree = "<group>"; };
 		1A143A4711EF22C5001BAB8D /* JAPersistentFileReference.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JAPersistentFileReference.m; sourceTree = "<group>"; };
 		1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-unknown-ship.dat"; sourceTree = "<group>"; };
@@ -2604,13 +2608,15 @@
 				1AC0F29D12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m */,
 				1A11C2AF11CFC35000F3EE77 /* OOJSEngineTimeManagement.h */,
 				1A11C2B011CFC35000F3EE77 /* OOJSEngineTimeManagement.m */,
+				1A35257012E1FFA900244C9D /* OOConstToJSString.h */,
+				1A35257112E1FFA900244C9D /* OOConstToJSString.m */,
 				1ABC47FC0F155F0500B977AD /* OOJSFunction.h */,
 				1ABC47FD0F155F0500B977AD /* OOJSFunction.m */,
+				1A5DBA9C0BC000DC00D57389 /* OOJSScript.h */,
+				1A5DBA9D0BC000DC00D57389 /* OOJSScript.m */,
 				1A43A0D10CB91D3600D0E239 /* Entities */,
 				1A28AA0F0D55434800BC0CE4 /* Sound */,
 				1A28AA130D55435300BC0CE4 /* Global */,
-				1A5DBA9C0BC000DC00D57389 /* OOJSScript.h */,
-				1A5DBA9D0BC000DC00D57389 /* OOJSScript.m */,
 				1A736C7D0C61FD220097AC37 /* OOJSCall.h */,
 				1A736C7E0C61FD220097AC37 /* OOJSCall.m */,
 				1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */,
@@ -2625,8 +2631,8 @@
 				1A11F8480F35F60C001C886C /* OOJSShipGroup.m */,
 				1A0942C712D7C011003B6273 /* OOJSFrameCallbacks.h */,
 				1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */,
-				1A35257012E1FFA900244C9D /* OOConstToJSString.h */,
-				1A35257112E1FFA900244C9D /* OOConstToJSString.m */,
+				1A1280F612ECA4ED00B65D9F /* OOJSFont.h */,
+				1A1280F712ECA4ED00B65D9F /* OOJSFont.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -3437,6 +3443,7 @@
 				1AEF57D312E51DDB00546444 /* OOJSEngineNativeWrappers.h in Headers */,
 				1AEF57D912E51EAB00546444 /* OOJSEngineTransitionHelpers.h in Headers */,
 				1A127F4312EC6A4400B65D9F /* OOTextureSprite.h in Headers */,
+				1A1280F812ECA4ED00B65D9F /* OOJSFont.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3905,6 +3912,7 @@
 				1AC0F29E12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m in Sources */,
 				1A35257312E1FFA900244C9D /* OOConstToJSString.m in Sources */,
 				1A127F4412EC6A4400B65D9F /* OOTextureSprite.m in Sources */,
+				1A1280F912ECA4ED00B65D9F /* OOJSFont.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

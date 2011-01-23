@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 #define ONE_SIXTEENTH			0.0625
 #define ONE_SIXTYFOURTH			0.015625
 #define DEFAULT_OVERALL_ALPHA	0.75
+#define GLYPH_SCALE_FACTOR		0.13		//  // 0.13 is an inherited magic number
 #define IDENTIFY_SCANNER_LOLLIPOPS	(	0	&& !defined(NDEBUG))
 
 static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v);
@@ -2731,7 +2732,7 @@ static void InitTextEngine(void)
 	if (count > 256)  count = 256;
 	for (i = 0; i != count; ++i)
 	{
-		sGlyphWidths[i] = [widths oo_floatAtIndex:i] * 0.13; // 0.13 is an inherited magic number
+		sGlyphWidths[i] = [widths oo_floatAtIndex:i] * GLYPH_SCALE_FACTOR;
 	}
 }
 
@@ -2774,6 +2775,13 @@ NSRect OORectFromString(NSString *text, double x, double y, NSSize siz)
 	
 	return NSMakeRect(x, y, w, siz.height);
 }
+
+
+OOCGFloat OOStringWidthInEm(NSString *text)
+{
+	return OORectFromString(text, 0, 0, NSMakeSize(1.0 / (GLYPH_SCALE_FACTOR * 8.0), 1.0)).size.width;
+}
+
 
 void drawHighlight(double x, double y, double z, NSSize siz, double alpha)
 {

@@ -962,7 +962,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// Start loading the texture, and return nil if it doesn't exist.
 	if (result != nil && ![self preloadGUITexture:result])
 	{
-		OOJSReportWarning(context, @"%@: texture %@ could not be found.", callerDescription, [result oo_stringForKey:@"name"]);
+		OOJSReportWarning(context, @"%@: texture \"%@\" could not be found.", callerDescription, [result oo_stringForKey:@"name"]);
 		result = nil;
 	}
 	
