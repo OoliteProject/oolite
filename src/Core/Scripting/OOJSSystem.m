@@ -741,9 +741,9 @@ static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS)
 	
 	// Search for entities
 	JSFunctionPredicateParameter param = { context, predicate, jsThis, NO };
-	OOJS_BEGIN_FULL_NATIVE(context)
+	OOJSPauseTimeLimiter();
 	result = FindJSVisibleEntities(JSFunctionPredicate, &param, relativeTo, range);
-	OOJS_END_FULL_NATIVE
+	OOJSResumeTimeLimiter();
 	
 	if (EXPECT_NOT(param.errorFlag))  return NO;
 	

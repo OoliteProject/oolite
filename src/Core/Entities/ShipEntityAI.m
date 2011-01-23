@@ -1970,6 +1970,8 @@ static WormholeEntity *whole = nil;
 	JSContext					*context = NULL;
 	
 	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JS_BeginRequest(context);
+	
 	if (predicateExpression == nil)  predicateExpression = @"false";
 	
 	aiName = [[self getAI] name];
@@ -2034,6 +2036,7 @@ static WormholeEntity *whole = nil;
 	}
 	
 	JS_ReportPendingException(context);
+	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 }
 

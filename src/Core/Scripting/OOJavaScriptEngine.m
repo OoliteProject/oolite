@@ -194,7 +194,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		if (activeScript == nil)  activeScript = @"<unidentified script>";
 		OOLog(messageClass, @"%@ JavaScript %@ (%@): %@", highlight, severity, activeScript, messageText);
 		
-		if (!showLocation && sErrorHandlerStackSkip == 0)
+		if (!showLocation && sErrorHandlerStackSkip == 0 && report->filename != NULL)
 		{
 			// Second line: where error occured, and line if provided. (The line is only provided for compile-time errors, not run-time errors.)
 			if ([lineBuf length] != 0)
@@ -1896,9 +1896,11 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	jsval							rval = JSVAL_VOID;
 	JSBool							result = NO;
 	
-	if (param->errorFlag)  return NO;
+	NSCParameterAssert(entity != NULL && param != NULL);
+	NSCParameterAssert(param->context != NULL && JS_IsInRequest(param->context));
+	NSCParameterAssert(OOJSValueIsFunction(param->context, param->function));
 	
-	JS_BeginRequest(param->context);
+	if (EXPECT_NOT(param->errorFlag))  return NO;
 	
 	args[0] = [entity oo_jsValueInContext:param->context];
 	
@@ -1921,8 +1923,6 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	{
 		param->errorFlag = YES;
 	}
-	
-	JS_EndRequest(param->context);
 	
 	return result;
 	
