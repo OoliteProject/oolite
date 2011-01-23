@@ -271,7 +271,7 @@ static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey)
 }
 
 
-OOINLINE NSString *GetParameterString(JSContext *context, JSObject *object, const char *key)
+static NSString *GetParameterString(JSContext *context, JSObject *object, const char *key)
 {
 	jsval value = JSVAL_NULL;
 	if (JS_GetProperty(context, object, key, &value))
@@ -281,6 +281,31 @@ OOINLINE NSString *GetParameterString(JSContext *context, JSObject *object, cons
 	return nil;
 }
 
+/*
+static NSDictionary *GetParameterImageDescriptor(JSContext *context, JSObject *object, const char *key)
+{
+	jsval value = JSVAL_NULL;
+	if (JS_GetProperty(context, object, key, &value))
+	{
+		if (JSVAL_IS_OBJECT(value))
+		{
+			if (JSVAL_IS_NULL(value))  return nil;
+			
+			if (OOJSGetClass(context, object) != [[OOJavaScriptEngine sharedEngine] stringClass])
+			{
+				return OOJSDictionaryFromJSObject(context, object);
+			}
+		}
+		
+		NSString *stringValue = OOStringFromJSValue(context, value);
+		if (stringValue != nil)
+		{
+			return [NSDictionary dictionaryWithObject:stringValue forKey:@"name"];
+		}
+	}
+	return nil;
+}
+*/
 
 // runScreen(params: dict, callBack:function) - if the callback function is null, emulate the old style runMissionScreen
 static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)

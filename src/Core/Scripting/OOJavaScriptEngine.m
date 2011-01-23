@@ -115,14 +115,20 @@ static unsigned				sErrorHandlerStackSkip = 0;
 #endif
 
 
+@interface OOJavaScriptEngine (Private)
+
+- (BOOL) lookUpStandardClassPointers;
+- (void) registerStandardObjectConverters;
+
+@end
+
+
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report);
 
-static void RegisterStandardObjectConverters(JSContext *context);
-
 static id JSArrayConverter(JSContext *context, JSObject *object);
-static id JSGenericObjectConverter(JSContext *context, JSObject *object);
 static id JSStringConverter(JSContext *context, JSObject *object);
 static id JSNumberConverter(JSContext *context, JSObject *object);
+static id JSBooleanConverter(JSContext *context, JSObject *object);
 
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report)
@@ -320,7 +326,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 	// Initialize the built-in JS objects and the global object.
 	JS_InitStandardClasses(mainContext, globalObject);
-	RegisterStandardObjectConverters(mainContext);
+	if (![self lookUpStandardClassPointers])
+	{
+		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to look up standard JavaScript classes.");
+		exit(1);
+	}
+	[self registerStandardObjectConverters];
 	
 	SetUpOOJSGlobal(mainContext, globalObject);
 	OOConstToJSStringInit(mainContext);
@@ -519,6 +530,71 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 - (void) setShowErrorLocations:(BOOL)value
 {
 	_showErrorLocations = !!value;
+}
+
+
+- (JSClass *) objectClass
+{
+	return _objectClass;
+}
+
+
+- (JSClass *) stringClass
+{
+	return _stringClass;
+}
+
+
+- (JSClass *) arrayClass
+{
+	return _arrayClass;
+}
+
+
+- (JSClass *) numberClass
+{
+	return _numberClass;
+}
+
+
+- (JSClass *) booleanClass
+{
+	return _booleanClass;
+}
+
+
+- (BOOL) lookUpStandardClassPointers
+{
+	JSObject				*templateObject = NULL;
+	
+	templateObject = JS_NewObject(mainContext, NULL, NULL, NULL);
+	if (EXPECT_NOT(templateObject == NULL))  return NO;
+	_objectClass = OOJSGetClass(mainContext, templateObject);
+	
+	if (EXPECT_NOT(!JS_ValueToObject(mainContext, JS_GetEmptyStringValue(mainContext), &templateObject)))  return NO;
+	_stringClass = OOJSGetClass(mainContext, templateObject);
+	
+	templateObject = JS_NewArrayObject(mainContext, 0, NULL);
+	if (EXPECT_NOT(templateObject == NULL))  return NO;
+	_arrayClass = OOJSGetClass(mainContext, templateObject);
+	
+	if (EXPECT_NOT(!JS_ValueToObject(mainContext, INT_TO_JSVAL(0), &templateObject)))  return NO;
+	_numberClass = OOJSGetClass(mainContext, templateObject);
+	
+	if (EXPECT_NOT(!JS_ValueToObject(mainContext, JSVAL_FALSE, &templateObject)))  return NO;
+	_booleanClass = OOJSGetClass(mainContext, templateObject);
+	
+	return YES;
+}
+
+
+- (void) registerStandardObjectConverters
+{
+	OOJSRegisterObjectConverter([self objectClass], OOJSDictionaryFromJSObject);
+	OOJSRegisterObjectConverter([self stringClass], JSStringConverter);
+	OOJSRegisterObjectConverter([self arrayClass], JSArrayConverter);
+	OOJSRegisterObjectConverter([self numberClass], JSNumberConverter);
+	OOJSRegisterObjectConverter([self booleanClass], JSBooleanConverter);
 }
 
 
@@ -2017,8 +2093,109 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 }
 
 
+NSDictionary *OOJSDictionaryFromJSValue(JSContext *context, jsval value)
+{
+	OOJS_PROFILE_ENTER
+	
+	JSObject *object = NULL;
+	if (EXPECT_NOT(!JS_ValueToObject(context, value, &object) || object == NULL))
+	{
+		return nil;
+	}
+	return OOJSDictionaryFromJSObject(context, object);
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+NSDictionary *OOJSDictionaryFromJSObject(JSContext *context, JSObject *object)
+{
+	OOJS_PROFILE_ENTER
+	
+	JSObject					*object = NULL;
+	JSIdArray					*ids = NULL;
+	jsint						i;
+	NSMutableDictionary			*result = nil;
+	jsval						value = JSVAL_VOID;
+	id							objKey = nil;
+	id							objValue = nil;
+	
+	ids = JS_Enumerate(context, object);
+	if (EXPECT_NOT(ids == NULL))
+	{
+		return nil;
+	}
+	
+	result = [NSMutableDictionary dictionaryWithCapacity:ids->length];
+	for (i = 0; i != ids->length; ++i)
+	{
+		jsid thisID = ids->vector[i];
+		
+#if OO_NEW_JS
+		if (JSID_IS_STRING(thisID))
+		{
+			objKey = OOStringFromJSString(context, JSID_TO_STRING(thisID));
+		}
+		else if (JSID_IS_INT(thisID))
+		{
+			objKey = [NSNumber numberWithInt:JSID_TO_INT(thisID)];
+		}
+		else
+		{
+			objKey = nil;
+		}
+		
+		value = JSVAL_VOID;
+		if (objKey != nil && !JS_LookupPropertyById(context, object, thisID, &value))  value = JSVAL_VOID;
+#else
+		jsval propKey = value = JSVAL_VOID;
+		objKey = nil;
+		
+		if (JS_IdToValue(context, thisID, &propKey))
+		{
+			// Properties with string keys.
+			if (JSVAL_IS_STRING(propKey))
+			{
+				JSString *stringKey = JSVAL_TO_STRING(propKey);
+				if (JS_LookupProperty(context, object, JS_GetStringBytes(stringKey), &value))
+				{
+					objKey = OOStringFromJSString(context, stringKey);
+				}
+			}
+			
+			// Properties with int keys.
+			else if (JSVAL_IS_INT(propKey))
+			{
+				jsint intKey = JSVAL_TO_INT(propKey);
+				if (JS_GetElement(context, object, intKey, &value))
+				{
+					objKey = [NSNumber numberWithInt:intKey];
+				}
+			}
+		}
+#endif
+		
+		if (objKey != nil && !JSVAL_IS_VOID(value))
+		{
+			objValue = OOJSNativeObjectFromJSValue(context, value);
+			if (objValue != nil)
+			{
+				[result setObject:objValue forKey:objKey];
+			}
+		}
+	}
+	
+	JS_DestroyIdArray(context, ids);
+	return result;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
 NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue)
 {
+	OOJS_PROFILE_ENTER
+	
 	JSObject					*tableObject = NULL;
 	JSIdArray					*ids;
 	jsint						i;
@@ -2087,6 +2264,8 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue
 	
 	JS_DestroyIdArray(context, ids);
 	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -2095,6 +2274,8 @@ static NSMutableDictionary *sObjectConverters;
 
 id OOJSNativeObjectFromJSValue(JSContext *context, jsval value)
 {
+	OOJS_PROFILE_ENTER
+	
 	if (JSVAL_IS_NULL(value) || JSVAL_IS_VOID(value))  return nil;
 	
 	if (JSVAL_IS_INT(value))
@@ -2118,11 +2299,15 @@ id OOJSNativeObjectFromJSValue(JSContext *context, jsval value)
 		return OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(value));
 	}
 	return nil;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
 id OOJSNativeObjectFromJSObject(JSContext *context, JSObject *tableObject)
 {
+	OOJS_PROFILE_ENTER
+	
 	NSValue					*wrappedClass = nil;
 	NSValue					*wrappedConverter = nil;
 	OOJSClassConverterCallback converter = NULL;
@@ -2139,6 +2324,8 @@ id OOJSNativeObjectFromJSObject(JSContext *context, JSObject *tableObject)
 		return converter(context, tableObject);
 	}
 	return nil;
+	
+	OOJS_PROFILE_EXIT
 }
 
 
@@ -2150,15 +2337,15 @@ id OOJSNativeObjectOfClassFromJSValue(JSContext *context, jsval value, Class req
 }
 
 
-id OOJSNativeObjectOfClassFromJSObject(JSContext *context, JSObject *tableObject, Class requiredClass)
+id OOJSNativeObjectOfClassFromJSObject(JSContext *context, JSObject *object, Class requiredClass)
 {
-	id result = OOJSNativeObjectFromJSObject(context, tableObject);
+	id result = OOJSNativeObjectFromJSObject(context, object);
 	if (![result isKindOfClass:requiredClass])  result = nil;
 	return result;
 }
 
 
-id OOJSBasicPrivateObjectConverter(JSContext *context, JSObject *tableObject)
+id OOJSBasicPrivateObjectConverter(JSContext *context, JSObject *object)
 {
 	id						result;
 	
@@ -2166,7 +2353,7 @@ id OOJSBasicPrivateObjectConverter(JSContext *context, JSObject *tableObject)
 		weakRefUnderlyingObject returns the object itself. For nil, of course,
 		it returns nil.
 	*/
-	result = JS_GetPrivate(context, tableObject);
+	result = JS_GetPrivate(context, object);
 	return [result weakRefUnderlyingObject];
 }
 
@@ -2192,43 +2379,12 @@ void OOJSRegisterObjectConverter(JSClass *theClass, OOJSClassConverterCallback c
 }
 
 
-static void RegisterStandardObjectConverters(JSContext *context)
-{
-	JSObject				*templateObject = NULL;
-	JSClass					*class = NULL;
-	
-	// Create an array in order to get array class.
-	templateObject = JS_NewArrayObject(context, 0, NULL);
-	class = OOJSGetClass(context, templateObject);
-	OOJSRegisterObjectConverter(class, JSArrayConverter);
-	
-	// Likewise, create a blank object to get its class.
-	// This is not documented (not much is) but JS_NewObject falls back to Object if passed a NULL class.
-	templateObject = JS_NewObject(context, NULL, NULL, NULL);
-	class = OOJSGetClass(context, templateObject);
-	OOJSRegisterObjectConverter(class, JSGenericObjectConverter);
-	
-	// String object wrappers.
-	if (JS_ValueToObject(context, JS_GetEmptyStringValue(context), &templateObject))
-	{
-		class = OOJSGetClass(context, templateObject);
-		OOJSRegisterObjectConverter(class, JSStringConverter);
-	}
-	
-	// Number object wrappers.
-	if (JS_ValueToObject(context, INT_TO_JSVAL(0), &templateObject))
-	{
-		class = OOJSGetClass(context, templateObject);
-		OOJSRegisterObjectConverter(class, JSNumberConverter);
-	}
-}
-
 static id JSArrayConverter(JSContext *context, JSObject *array)
 {
 	jsuint						i, count;
 	id							*values = NULL;
 	jsval						value = JSVAL_VOID;
-	id							tableObject = nil;
+	id							object = nil;
 	NSArray						*result = nil;
 	
 	// Convert a JS array to an NSArray by calling OOJSNativeObjectFromJSValue() on all its elements.
@@ -2245,9 +2401,9 @@ static id JSArrayConverter(JSContext *context, JSObject *array)
 		value = JSVAL_VOID;
 		if (!JS_GetElement(context, array, i, &value))  value = JSVAL_VOID;
 		
-		tableObject = OOJSNativeObjectFromJSValue(context, value);
-		if (tableObject == nil)  tableObject = [NSNull null];
-		values[i] = tableObject;
+		object = OOJSNativeObjectFromJSValue(context, value);
+		if (object == nil)  object = [NSNull null];
+		values[i] = object;
 	}
 	
 	result = [NSArray arrayWithObjects:values count:count];
@@ -2256,106 +2412,34 @@ static id JSArrayConverter(JSContext *context, JSObject *array)
 }
 
 
-static id JSGenericObjectConverter(JSContext *context, JSObject *tableObject)
+static id JSStringConverter(JSContext *context, JSObject *object)
 {
-	JSIdArray					*ids;
-	jsint						i;
-	NSMutableDictionary			*result = nil;
-	jsval						value = JSVAL_VOID;
-	id							objKey = nil;
-	id							objValue = nil;
-	
-	/*	Convert a JS Object to an NSDictionary by calling
-		OOJSNativeObjectFromJSValue() on all its enumerable properties. This is desireable
-		because it allows objects declared with JavaScript property list
-		syntax to be converted to native property lists.
-		
-		This won't convert all objects, since JS has no concept of a class
-		heirarchy. Also, note that prototype properties are not included.
-	*/
-	
-	ids = JS_Enumerate(context, tableObject);
-	if (EXPECT_NOT(ids == NULL))
-	{
-		return nil;
-	}
-	
-	result = [NSMutableDictionary dictionaryWithCapacity:ids->length];
-	for (i = 0; i != ids->length; ++i)
-	{
-		jsid thisID = ids->vector[i];
-		
-#if OO_NEW_JS
-		if (JSID_IS_STRING(thisID))
-		{
-			objKey = OOStringFromJSString(context, JSID_TO_STRING(thisID));
-		}
-		else if (JSID_IS_INT(thisID))
-		{
-			objKey = [NSNumber numberWithInt:JSID_TO_INT(thisID)];
-		}
-		else
-		{
-			objKey = nil;
-		}
-		
-		value = JSVAL_VOID;
-		if (objKey != nil && !JS_LookupPropertyById(context, tableObject, thisID, &value))  value = JSVAL_VOID;
-#else
-		jsval propKey = value = JSVAL_VOID;
-		objKey = nil;
-		
-		if (JS_IdToValue(context, thisID, &propKey))
-		{
-			// Properties with string keys.
-			if (JSVAL_IS_STRING(propKey))
-			{
-				JSString *stringKey = JSVAL_TO_STRING(propKey);
-				if (JS_LookupProperty(context, tableObject, JS_GetStringBytes(stringKey), &value))
-				{
-					objKey = OOStringFromJSString(context, stringKey);
-				}
-			}
-			
-			// Properties with int keys.
-			else if (JSVAL_IS_INT(propKey))
-			{
-				jsint intKey = JSVAL_TO_INT(propKey);
-				if (JS_GetElement(context, tableObject, intKey, &value))
-				{
-					objKey = [NSNumber numberWithInt:intKey];
-				}
-			}
-		}
-#endif
-		
-		if (objKey != nil && !JSVAL_IS_VOID(value))
-		{
-			objValue = OOJSNativeObjectFromJSValue(context, value);
-			if (objValue != nil)
-			{
-				[result setObject:objValue forKey:objKey];
-			}
-		}
-	}
-	
-	JS_DestroyIdArray(context, ids);
-	return result;
+	return [NSString stringOrNilWithJavaScriptValue:OBJECT_TO_JSVAL(object) inContext:context];
 }
 
 
-static id JSStringConverter(JSContext *context, JSObject *tableObject)
-{
-	return [NSString stringOrNilWithJavaScriptValue:OBJECT_TO_JSVAL(tableObject) inContext:context];
-}
-
-
-static id JSNumberConverter(JSContext *context, JSObject *tableObject)
+static id JSNumberConverter(JSContext *context, JSObject *object)
 {
 	jsdouble value;
-	if (JS_ValueToNumber(context, OBJECT_TO_JSVAL(tableObject), &value))
+	if (JS_ValueToNumber(context, OBJECT_TO_JSVAL(object), &value))
 	{
 		return [NSNumber numberWithDouble:value];
+	}
+	return nil;
+}
+
+
+static id JSBooleanConverter(JSContext *context, JSObject *object)
+{
+	/*	Fun With JavaScript: Boolean(false) is a truthy value, since it's a
+		non-null object. JS_ValueToBoolean() therefore reports true.
+		However, Boolean objects are transformed to numbers sanely, so this
+		works.
+	*/
+	jsdouble value;
+	if (JS_ValueToNumber(context, OBJECT_TO_JSVAL(object), &value))
+	{
+		return [NSNumber numberWithBool:(value != 0)];
 	}
 	return nil;
 }

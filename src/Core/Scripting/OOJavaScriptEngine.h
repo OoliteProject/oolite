@@ -58,6 +58,13 @@ enum
 	uint8_t							mainContextInUse;
 	JSObject						*globalObject;
 	BOOL							_showErrorLocations;
+	
+	JSClass							*_objectClass;
+	JSClass							*_stringClass;
+	JSClass							*_arrayClass;
+	JSClass							*_numberClass;
+	JSClass							*_booleanClass;
+	
 #ifndef NDEBUG
 	BOOL							_dumpStackForErrors;
 	BOOL							_dumpStackForWarnings;
@@ -94,6 +101,12 @@ enum
 
 - (BOOL) showErrorLocations;
 - (void) setShowErrorLocations:(BOOL)value;
+
+- (JSClass *) objectClass;
+- (JSClass *) stringClass;
+- (JSClass *) arrayClass;
+- (JSClass *) numberClass;
+- (JSClass *) booleanClass;
 
 #ifndef NDEBUG
 - (BOOL) dumpStackForErrors;
@@ -353,7 +366,22 @@ OOINLINE BOOL OOJSValueIsArray(JSContext *context, jsval value)
 }
 
 
-/*	OOJSDictionaryFromStringTable(context, value);
+/*	OOJSDictionaryFromJSValue(context, value)
+	OOJSDictionaryFromJSObject(context, object)
+	
+	Converts a JavaScript value to a dictionary by calling
+	OOJSNativeObjectFromJSValue() on each of its values.
+	
+	Only enumerable own (i.e., not inherited) properties with string keys are
+	included.
+	
+	Requires a request on context.
+*/
+NSDictionary *OOJSDictionaryFromJSValue(JSContext *context, jsval value);
+NSDictionary *OOJSDictionaryFromJSObject(JSContext *context, JSObject *object);
+
+
+/*	OOJSDictionaryFromStringTable(context, value)
 	
 	Treat an arbitrary JavaScript object as a dictionary mapping strings to
 	strings, and convert to a corresponding NSDictionary. The values are
