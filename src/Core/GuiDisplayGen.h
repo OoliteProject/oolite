@@ -53,7 +53,7 @@ typedef enum
 #define GUI_KEY_SKIP			@"SKIP-ROW"
 
 
-@class OOSound, OOColor, OOTexture, OpenGLSprite, HeadUpDisplay;
+@class OOSound, OOColor, OOTexture, OOTextureSprite, HeadUpDisplay;
 
 
 typedef int OOGUIRow;	// -1 for none
@@ -78,8 +78,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	OOColor			*backgroundColor;
 	OOColor			*textColor;
 	
-	OpenGLSprite	*backgroundSprite;
-	OpenGLSprite	*foregroundSprite;
+	OOTextureSprite	*backgroundSprite;
+	OOTextureSprite	*foregroundSprite;
 	
 	NSString		*title;
 	

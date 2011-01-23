@@ -269,7 +269,7 @@ OOLITE_GRAPHICS_MISC_FILES = \
 	OOOpenGLExtensionManager.m \
 	OOProbabilisticTextureManager.m \
 	OOSkyDrawable.m \
-	OpenGLSprite.m \
+	OOTextureSprite.m \
 	OOPolygonSprite.m \
 	OOConvertCubeMapToLatLong.m
 

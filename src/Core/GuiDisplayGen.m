@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "Universe.h"
 #import "PlayerEntity.h"
-#import "OpenGLSprite.h"
+#import "OOTextureSprite.h"
 #import "ResourceManager.h"
 #import "OOSound.h"
 #import "OOStringParsing.h"
@@ -801,7 +801,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	if (backgroundTexture != nil)
 	{
-		backgroundSprite = [[OpenGLSprite alloc] initWithTexture:backgroundTexture];
+		backgroundSprite = [[OOTextureSprite alloc] initWithTexture:backgroundTexture];
 	}
 	return (backgroundSprite != nil);
 }
@@ -816,7 +816,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	if (foregroundTexture != nil)
 	{
-		foregroundSprite = [[OpenGLSprite alloc] initWithTexture:foregroundTexture];
+		foregroundSprite = [[OOTextureSprite alloc] initWithTexture:foregroundTexture];
 	}
 	return (foregroundSprite != nil);
 }

@@ -1,6 +1,6 @@
 /*
 
-OpenGLSprite.m
+OOTextureSprite.m
 
 Oolite
 Copyright (C) 2004-2011 Giles C Williams and contributors
@@ -22,12 +22,12 @@ MA 02110-1301, USA.
 
 */
 
-#import "OpenGLSprite.h"
+#import "OOTextureSprite.h"
 #import "OOTexture.h"
 #import "OOMaths.h"
 
 
-@implementation OpenGLSprite
+@implementation OOTextureSprite
 
 - (id)initWithTexture:(OOTexture *)inTexture
 {

@@ -1,6 +1,6 @@
 /*
 
-OpenGLSprite.h
+OOTextureSprite.h
 
 Oolite
 Copyright (C) 2004-2011 Giles C Williams and contributors
@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #define	OPEN_GL_SPRITE_MIN_HEIGHT	64.0
 
 
-@interface OpenGLSprite: NSObject
+@interface OOTextureSprite: NSObject
 {
 	OOTexture	*texture;
 	NSSize		size;

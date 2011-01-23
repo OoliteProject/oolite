@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "GuiDisplayGen.h"
 #import "OOTexture.h"
-#import "OpenGLSprite.h"
+#import "OOTextureSprite.h"
 #import "OOPolygonSprite.h"
 #import "OOCollectionExtractors.h"
 #import "OOEncodingConverter.h"
@@ -368,7 +368,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	NSString			*imageName = nil;
 	OOTexture			*texture = nil;
 	NSSize				imageSize;
-	OpenGLSprite		*legendSprite = nil;
+	OOTextureSprite		*legendSprite = nil;
 	NSMutableDictionary	*legendDict = nil;
 	
 	imageName = [info oo_stringForKey:IMAGE_KEY];
@@ -389,7 +389,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		imageSize.width = [info oo_floatForKey:WIDTH_KEY defaultValue:imageSize.width];
 		imageSize.height = [info oo_floatForKey:HEIGHT_KEY defaultValue:imageSize.height];
 		
- 		legendSprite = [[OpenGLSprite alloc] initWithTexture:texture size:imageSize];
+ 		legendSprite = [[OOTextureSprite alloc] initWithTexture:texture size:imageSize];
 		
 		legendDict = [info mutableCopy];
 		[legendDict setObject:legendSprite forKey:SPRITE_KEY];
@@ -556,7 +556,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) drawLegend:(NSDictionary *) info
 {
-	OpenGLSprite				*legendSprite = nil;
+	OOTextureSprite				*legendSprite = nil;
 	NSString					*legendText = nil;
 	float						x, y;
 	NSSize						size;

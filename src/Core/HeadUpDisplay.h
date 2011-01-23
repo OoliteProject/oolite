@@ -195,7 +195,7 @@ MA 02110-1301, USA.
 
 
 
-@class Entity, PlayerEntity, OpenGLSprite;
+@class Entity, PlayerEntity, OOTextureSprite;
 
 
 @interface HeadUpDisplay: NSObject
