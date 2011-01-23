@@ -453,7 +453,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 	
 	if (!OK)
 	{
-		OOJSReportError(context, @"Invalid value %@ for player.ship.%@", OOJSDebugDescribe(context, *value), OOStringFromJSPropertyID(context, propID, sPlayerShipProperties));
+		OOJSReportError(context, @"Invalid value %@ for player.ship.%@", OOJSDebugDescribe(context, *value), OOStringFromJSPropertyIDAndSpec(context, propID, sPlayerShipProperties));
 	}
 	
 	return OK;

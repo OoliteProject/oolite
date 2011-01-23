@@ -435,7 +435,7 @@ static JSFunctionSpec sScriptMethods[] =
 	if (EXPECT(OOJSGetMethod(context, _jsSelf, methodID, &fakeRoot, &method) && !JSVAL_IS_VOID(method)))
 	{
 #ifndef NDEBUG
-		OOLog(@"script.trace.javaScript.callback", @"Calling [%@].%@()", [self name], OOStringFromJSPropertyID(context, methodID, NULL));
+		OOLog(@"script.trace.javaScript.callback", @"Calling [%@].%@()", [self name], OOStringFromJSPropID(context, methodID));
 		OOLogIndentIf(@"script.trace.javaScript.callback");
 #endif
 		

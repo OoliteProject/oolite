@@ -954,6 +954,19 @@ OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
 #endif
 
 
+NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID)
+{
+#if OO_NEW_JS
+	jsval value;
+	if (!JS_IdToValue(context, propID, &value))  return nil;
+#else
+	jsval value = propID;
+#endif
+	
+	return OOStringFromJSString(context, JS_ValueToString(context, value));
+}
+
+
 static NSString *CallerPrefix(NSString *scriptClass, NSString *function)
 {
 	if (function == nil)  return @"";
@@ -1480,9 +1493,9 @@ NSString *OOStringFromJSValue(JSContext *context, jsval value)
 
 
 #if OO_NEW_JS
-NSString *OOStringFromJSPropertyID(JSContext *context, jsid propID, JSPropertySpec *propertySpec)
+NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsid propID, JSPropertySpec *propertySpec)
 #else
-NSString *OOStringFromJSPropertyID(JSContext *context, jsval propID, JSPropertySpec *propertySpec)
+NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsval propID, JSPropertySpec *propertySpec)
 #endif
 {
 	if (OOJS_PROPID_IS_STRING)

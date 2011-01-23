@@ -138,6 +138,7 @@ void OOJSInitPropIDCachePRIVATE(JSContext *context, const char *name, jsid *idCa
 typedef const char *OOJSPropID;
 #define OOJS_PROPID(context, str) (str)
 #endif
+NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID);
 OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string);
 
 
@@ -270,15 +271,15 @@ NSString *OOStringFromJSValue(JSContext *context, jsval value);
 NSString *OOStringFromJSValueEvenIfNull(JSContext *context, jsval value);
 
 
-/*	OOStringFromJSPropertyID(context, propID, propertySpec)
+/*	OOStringFromJSPropertyIDAndSpec(context, propID, propertySpec)
 	
 	Returns the name of a property given either a name or a tinyid. (Intended
 	for error reporting inside JSPropertyOps.)
 */
 #if OO_NEW_JS
-NSString *OOStringFromJSPropertyID(JSContext *context, jsid propID, JSPropertySpec *propertySpec);
+NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsid propID, JSPropertySpec *propertySpec);
 #else
-NSString *OOStringFromJSPropertyID(JSContext *context, jsval propID, JSPropertySpec *propertySpec);
+NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsval propID, JSPropertySpec *propertySpec);
 #endif
 
 
