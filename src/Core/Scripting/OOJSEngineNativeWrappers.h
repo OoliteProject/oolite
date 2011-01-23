@@ -101,6 +101,7 @@ void OOJSReportWrappedException(JSContext *context, id exception);
 
 // These introduce a scope to ensure proper nesting.
 #define OOJS_PROFILE_ENTER			{
+#define OOJS_PROFILE_ENTER_NAMED(NAME)		OOJS_PROFILE_ENTER
 #define OOJS_PROFILE_EXIT_VAL(rval)	} OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); return (rval);
 #define OOJS_PROFILE_EXIT_VOID		} return;
 
