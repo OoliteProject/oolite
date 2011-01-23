@@ -41,7 +41,6 @@
 		1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A01574111034A86008EE36A /* ShipEntityLoadRestore.h */; };
 		1A01574411034A86008EE36A /* ShipEntityLoadRestore.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */; };
 		1A01BC7011C5515B0011197F /* oolite-default-player-script.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */; };
-		1A020E0B0D020AFB00C3F51E /* changedScriptHandlers.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */; };
 		1A02FD460EE0490B008F9B09 /* oolite-tangent-space-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */; };
 		1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */; };
 		1A03658A0D7CA05000B5F46F /* OOSkyDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */; };
@@ -903,7 +902,6 @@
 				1A4501E20DBF699A00815C04 /* descriptions.plist in Copy Config */,
 				1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Copy Config */,
 				1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */,
-				1A020E0B0D020AFB00C3F51E /* changedScriptHandlers.plist in Copy Config */,
 				1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */,
 				1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */,
 				1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */,
@@ -1256,7 +1254,6 @@
 		1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityLoadRestore.m; sourceTree = "<group>"; };
 		1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-default-player-script.js"; sourceTree = "<group>"; };
 		1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-docktile.xcodeproj"; path = "Mac-specific/Oolite-docktile/Oolite-docktile.xcodeproj"; sourceTree = "<group>"; };
-		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
 		1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-tangent-space-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-4.png"; sourceTree = "<group>"; };
 		1A0479E70DC9F81000EE1CD0 /* OOShipRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShipRegistry.h; sourceTree = "<group>"; };
@@ -2113,7 +2110,6 @@
 				2B9A1088105D526200EE2AE6 /* javascript-errors.plist */,
 				1ABC04260EF872B7003B740A /* crosshairs.plist */,
 				1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */,
-				1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */,
 				1A2316DE0B9CFAD700EF0852 /* characters.plist */,
 				1A2316DF0B9CFAD700EF0852 /* commodities.plist */,
 				1A2316E00B9CFAD700EF0852 /* customsounds.plist */,

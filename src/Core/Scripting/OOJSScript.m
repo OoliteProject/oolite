@@ -26,9 +26,6 @@ MA 02110-1301, USA.
 #define OO_CACHE_JS_SCRIPTS		1
 #endif
 
-// Enable support for old event handler names through changedScriptHandlers.plist.
-#define SUPPORT_CHANGED_HANDLERS 0
-
 
 #import "OOJSScript.h"
 #import "OOJavaScriptEngine.h"
@@ -39,10 +36,6 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "NSStringOOExtensions.h"
 #import "EntityOOJavaScriptExtensions.h"
-
-#if SUPPORT_CHANGED_HANDLERS
-#import "ResourceManager.h"
-#endif
 
 #if OO_CACHE_JS_SCRIPTS
 #import <jsxdrapi.h>
@@ -337,47 +330,6 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	// FIXME: this should be caching name->jsid mappings.
 	OK = JS_GetMethod(context, _jsSelf, [eventName UTF8String], &fakeRoot, &value);
-	
-#if SUPPORT_CHANGED_HANDLERS
-	if (!OK || JSVAL_IS_VOID(value))
-	{
-		// Look up event name in renaming table.
-		static NSDictionary		*changedHandlers = nil;
-		static NSMutableSet		*notedChanges = nil;
-		id						oldNames = nil;
-		NSEnumerator			*oldNameEnum = nil;
-		NSString				*oldName = nil;
-		NSString				*key = nil;
-		
-		if (notedChanges == nil)
-		{
-			notedChanges = [[NSMutableSet alloc] init];
-			changedHandlers = [ResourceManager dictionaryFromFilesNamed:@"changedScriptHandlers.plist"
-															   inFolder:@"Config"
-															   andMerge:NO];
-			[changedHandlers retain];
-		}
-		oldNames = [changedHandlers objectForKey:eventName];
-		if ([oldNames isKindOfClass:[NSString class]])  oldNames = [NSArray arrayWithObject:oldNames];
-		if ([oldNames isKindOfClass:[NSArray class]])
-		{
-			for (oldNameEnum = [oldNames objectEnumerator]; (oldName = [oldNameEnum nextObject]) && JSVAL_IS_VOID(value) && OK; )
-			{
-				OK = JS_GetMethod(context, _jsSelf, [oldName UTF8String], &fakeRoot, value);
-				
-				if (OK && !JSVAL_IS_VOID(value))
-				{
-					key = [NSString stringWithFormat:@"%@\n%@", self->name, oldName];
-					if (![notedChanges containsObject:key])
-					{
-						[notedChanges addObject:key];
-						OOJSReportWarning(context, @"The event handler %@ has been renamed to %@. The script %@ must be updated. The old form will not be supported in future versions of Oolite.", oldName, eventName, self->name);
-					}
-				}
-			}
-		}
-	}
-#endif
 	
 	if (OK)  return value;
 	else  return JSVAL_VOID;
