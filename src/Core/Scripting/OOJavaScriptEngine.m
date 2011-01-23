@@ -592,7 +592,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 - (void) registerStandardObjectConverters
 {
-	OOJSRegisterObjectConverter([self objectClass], OOJSDictionaryFromJSObject);
+	OOJSRegisterObjectConverter([self objectClass], (OOJSClassConverterCallback)OOJSDictionaryFromJSObject);
 	OOJSRegisterObjectConverter([self stringClass], JSStringConverter);
 	OOJSRegisterObjectConverter([self arrayClass], JSArrayConverter);
 	OOJSRegisterObjectConverter([self numberClass], JSNumberConverter);
