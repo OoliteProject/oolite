@@ -2008,17 +2008,18 @@ BOOL OOJSIsSubclass(JSClass *putativeSubclass, JSClass *superclass)
 }
 
 
-BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *requiredJSClass,
+BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSObject *object, JSClass *requiredJSClass,
 #ifndef NDEBUG
-	Class requiredObjCClass,
+	Class requiredObjCClass, const char *name,
 #endif
 	id *outObject)
 {
-	OOJS_PROFILE_ENTER
-	
-	NSCParameterAssert(context != NULL && object != NULL && requiredJSClass != NULL && outObject != NULL);
 #ifndef NDEBUG
+	OOJS_PROFILE_ENTER_NAMED(name)
 	NSCParameterAssert(requiredObjCClass != Nil);
+	NSCParameterAssert(context != NULL && object != NULL && requiredJSClass != NULL && outObject != NULL);
+#else
+	OOJS_PROFILE_ENTER
 #endif
 	
 	/*
@@ -2043,13 +2044,6 @@ BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *require
 	
 	// Get the underlying object.
 	*outObject = [(id)JS_GetPrivate(context, object) weakRefUnderlyingObject];
-	
-	/*	Check we aren't somehow getting doubly wrapped weakrefs.
-		Can't use NSCAssert here because we're in a JS native, the problem I'm
-		fishing for has only been observed under Windows.
-		-- Ahruman 2011-01-16
-	*/
-	assert(![*outObject isProxy]);
 	
 #ifndef NDEBUG
 	// Double-check that the underlying object is of the expected ObjC class.

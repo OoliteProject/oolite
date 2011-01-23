@@ -54,11 +54,14 @@ MA 02110-1301, USA.
 #if OOJS_PROFILE
 
 
-#define OOJS_PROFILE_ENTER \
+#define OOJS_PROFILE_ENTER_NAMED(NAME) \
 	{ \
 		OOJS_DECLARE_PROFILE_STACK_FRAME(oojsProfilerStackFrame) \
 		@try { \
-			OOJSProfileEnter(&oojsProfilerStackFrame, __PRETTY_FUNCTION__);
+			OOJSProfileEnter(&oojsProfilerStackFrame, NAME);
+
+#define OOJS_PROFILE_ENTER \
+	OOJS_PROFILE_ENTER_NAMED(__PRETTY_FUNCTION__)
 
 #define OOJS_PROFILE_EXIT_VAL(rval) \
 		} @finally { \

@@ -412,7 +412,7 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval value);
 	their relationships with OOJSRegisterSubclass() below.
 	
 	The signature of the generator is:
-	BOOL <name(JSContext *context, JSObject *inObject, <class>** outObject)
+	BOOL <name>(JSContext *context, JSObject *inObject, <class>** outObject)
 	If it returns NO, inObject is of the wrong class and an error has been
 	raised. Otherwise, outOjbect is either a native object of the specified
 	class (or a subclass) or nil.
@@ -425,21 +425,21 @@ static BOOL NAME(JSContext *context, JSObject *inObject, OBJCCLASSNAME **outObje
 	NSCParameterAssert(outObject != NULL); \
 	static Class cls = Nil; \
 	if (EXPECT_NOT(cls == Nil))  cls = [OBJCCLASSNAME class]; \
-	return OOJSObjectGetterImpl(context, inObject, JSCLASS, cls, (id *)outObject); \
+	return OOJSObjectGetterImplPRIVATE(context, inObject, JSCLASS, cls, #NAME, (id *)outObject); \
 }
 #else
 #define DEFINE_JS_OBJECT_GETTER(NAME, JSCLASS, JSPROTO, OBJCCLASSNAME) \
 OOINLINE BOOL NAME(JSContext *context, JSObject *inObject, OBJCCLASSNAME **outObject) \
 { \
-	return OOJSObjectGetterImpl(context, inObject, JSCLASS, (id *)outObject); \
+	return OOJSObjectGetterImplPRIVATE(context, inObject, JSCLASS, (id *)outObject); \
 }
 #endif
 
 // For DEFINE_JS_OBJECT_GETTER()'s use.
 #ifndef NDEBUG
-BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *requiredJSClass, Class requiredObjCClass, id *outObject);
+BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSObject *object, JSClass *requiredJSClass, Class requiredObjCClass, const char *name, id *outObject);
 #else
-BOOL OOJSObjectGetterImpl(JSContext *context, JSObject *object, JSClass *requiredJSClass, id *outObject);
+BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSObject *object, JSClass *requiredJSClass, id *outObject);
 #endif
 
 
