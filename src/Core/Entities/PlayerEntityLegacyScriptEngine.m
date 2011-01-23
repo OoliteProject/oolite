@@ -2082,17 +2082,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) setTempBackground:(NSString *)value
-{
-	DESTROY(tempTexture);
-	
-	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
- 	{
-		tempTexture = [value copy];
- 	}
-}
-
-
 - (void) setMissionBackground:(NSString *)value
 {
 	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])

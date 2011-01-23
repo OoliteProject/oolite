@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "OOCollectionExtractors.h"
 #import "OOTexture.h"
+#import "OOJavaScriptEngine.h"
 
 
 OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
@@ -792,6 +793,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
+#if 0
 - (BOOL) setBackgroundTexture:(OOTexture *)backgroundTexture
 {
 	// autorelease instead of release here seems to prevent a crash on SDL builds when pausing and unpausing
@@ -820,68 +822,153 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	}
 	return (foregroundSprite != nil);
 }
+#endif
 
 
 - (void) clearBackground
 {
-	[self setBackgroundTexture:nil];
-	[self setForegroundTexture:nil];
+	[self setBackgroundTextureDescriptor:nil];
+	[self setForegroundTextureDescriptor:nil];
+}
+
+
+static OOTexture *TextureForGUITexture(NSDictionary *descriptor)
+{
+	return [OOTexture textureWithName:[descriptor oo_stringForKey:@"name"]
+							 inFolder:@"Images"
+							  options:kOOTextureDefaultOptions | kOOTextureNoShrink
+						   anisotropy:kOOTextureDefaultAnisotropy
+							  lodBias:kOOTextureDefaultLODBias];
+}
+
+
+/*
+	Load a texture sprite given a descriptor. The caller owns a reference to
+	the result.
+*/
+static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
+{
+	OOTexture		*texture = nil;
+	NSSize			size;
+	
+	texture = TextureForGUITexture(descriptor);
+	if (texture == nil)  return nil;
+	
+	double specifiedWidth = [descriptor oo_doubleForKey:@"width" defaultValue:-INFINITY];
+	double specifiedHeight = [descriptor oo_doubleForKey:@"height" defaultValue:-INFINITY];
+	BOOL haveWidth = isfinite(specifiedWidth);
+	BOOL haveHeight = isfinite(specifiedHeight);
+	
+	if (haveWidth && haveHeight)
+	{
+		// Both specified, use directly without calling -originalDimensions (which may block).
+		size.width = specifiedWidth;
+		size.height = specifiedHeight;
+	}
+	else
+	{
+		NSSize originalDimensions = [texture originalDimensions];
+		
+		if (haveWidth)
+		{
+			// Width specified, but not height; preserve aspect ratio.
+			CGFloat ratio = originalDimensions.height / originalDimensions.width;
+			size.width = specifiedWidth;
+			size.height = ratio * size.width;
+		}
+		else if (haveHeight)
+		{
+			// Height specified, but not width; preserve aspect ratio.
+			CGFloat ratio = originalDimensions.width / originalDimensions.height;
+			size.height = specifiedHeight;
+			size.width = ratio * size.height;
+		}
+		else
+		{
+			// Neither specified; use backwards-compatible behaviour.
+			size = originalDimensions;
+		}
+	}
+	
+	return [[OOTextureSprite alloc] initWithTexture:texture size:size];
 }
 
 
 - (BOOL) setBackgroundTextureDescriptor:(NSDictionary *)descriptor
 {
-	return [self setBackgroundTextureName:[descriptor oo_stringForKey:@"name"]];
+	[backgroundSprite autorelease];
+	backgroundSprite = NewTextureSpriteWithDescriptor(descriptor);
+	return backgroundSprite != nil;
 }
 
 
 - (BOOL) setForegroundTextureDescriptor:(NSDictionary *)descriptor
 {
-	return [self setForegroundTextureName:[descriptor oo_stringForKey:@"name"]];
-}
-
-
-- (BOOL) setBackgroundTextureName:(NSString *)name
-{
-	OOTexture *texture =  nil;
-	if (name != nil)
-	{
-		texture = [OOTexture textureWithName:name
-									inFolder:@"Images"
-									 options:kOOTextureDefaultOptions | kOOTextureNoShrink
-								  anisotropy:kOOTextureDefaultAnisotropy
-									 lodBias:kOOTextureDefaultLODBias];
-	}
-	return [self setBackgroundTexture:texture];
-}
-
-
-- (BOOL) setForegroundTextureName:(NSString *)name
-{
-	OOTexture *texture =  nil;
-	if (name != nil)
-	{
-		texture = [OOTexture textureWithName:name
-									inFolder:@"Images"
-									 options:kOOTextureDefaultOptions | kOOTextureNoShrink
-								  anisotropy:kOOTextureDefaultAnisotropy
-									 lodBias:kOOTextureDefaultLODBias];
-	}
-	return [self setForegroundTexture:texture];
+	[foregroundSprite autorelease];
+	foregroundSprite = NewTextureSpriteWithDescriptor(descriptor);
+	return foregroundSprite != nil;
 }
 
 
 - (BOOL) setBackgroundTextureKey:(NSString *)key
 {
-	NSString *name = [UNIVERSE screenBackgroundNameForKey:key];
-	return [self setBackgroundTextureName:name];	// if the name is nil, we want the background cleared
+	return [self setBackgroundTextureDescriptor:[UNIVERSE screenTextureDescriptorForKey:key]];
 }
 
 
 - (BOOL) setForegroundTextureKey:(NSString *)key
 {
-	NSString *name = [UNIVERSE screenBackgroundNameForKey:key];
-	return [self setForegroundTextureName:name];	// if the name is nil, we want the foreground cleared
+	return [self setForegroundTextureDescriptor:[UNIVERSE screenTextureDescriptorForKey:key]];
+}
+
+
+- (BOOL) preloadGUITexture:(NSDictionary *)descriptor
+{
+	return TextureForGUITexture(descriptor) != nil;
+}
+
+
+- (NSDictionary *) textureDescriptorFromJSValue:(jsval)value
+									  inContext:(JSContext *)context
+							  callerDescription:(NSString *)callerDescription
+{
+	OOJS_PROFILE_ENTER
+	
+	NSDictionary	*result = nil;
+	
+	if (JSVAL_IS_OBJECT(value))
+	{
+		// Null may be used to indicate no texture.
+		if (JSVAL_IS_NULL(value))  return [NSDictionary dictionary];
+		
+		JSObject *objValue = JSVAL_TO_OBJECT(value);
+		
+		if (OOJSGetClass(context, objValue) != [[OOJavaScriptEngine sharedEngine] stringClass])
+		{
+			result = OOJSDictionaryFromJSObject(context, objValue);
+		}
+	}
+	
+	if (result == nil)
+	{
+		NSString *name = OOStringFromJSValue(context, value);
+		if (name != nil)
+		{
+			result = [NSDictionary dictionaryWithObject:name forKey:@"name"];
+			if ([name length] == 0)  return result;	// Explicit empty string may be used to indicate no texture.
+		}
+	}
+	
+	// Start loading the texture, and return nil if it doesn't exist.
+	if (result != nil && ![self preloadGUITexture:result])
+	{
+		OOJSReportWarning(context, @"%@: texture %@ could not be found.", callerDescription, [result oo_stringForKey:@"name"]);
+		result = nil;
+	}
+	
+	return result;
+	
+	OOJS_PROFILE_EXIT
 }
 
 

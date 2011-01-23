@@ -1127,8 +1127,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self setMissionOverlayDescriptor:nil];
 	[self setMissionBackgroundDescriptor:nil];
-	
-	DESTROY(tempTexture);
+	[self setEquipScreenBackgroundDescriptor:nil];
 	
 	script_time = 0.0;
 	script_time_check = SCRIPT_TIMER_INTERVAL;
@@ -1401,7 +1400,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	DESTROY(_missionOverlayDescriptor);
 	DESTROY(_missionBackgroundDescriptor);
-	DESTROY(tempTexture);
+	DESTROY(_equipScreenBackgroundDescriptor);
 	
 	DESTROY(player_name);
 	DESTROY(shipCommodityData);
@@ -5139,23 +5138,23 @@ done:
 	
 	if (guiChanged)
 	{
-		NSString *fgName = nil, *bgName = nil;
+		NSDictionary *fgDescriptor = nil, *bgDescriptor = nil;
 		if ([self status] == STATUS_DOCKED)
 		{
-			fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];
-			bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
+			fgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"docked_overlay"];
+			bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status_docked"];
 		}
 		else
 		{
-			fgName = [UNIVERSE screenBackgroundNameForKey:@"overlay"];
-			if (alertCondition == ALERT_CONDITION_RED) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_red_alert"];
-			else bgName = [UNIVERSE screenBackgroundNameForKey:@"status_in_flight"];
+			fgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"overlay"];
+			if (alertCondition == ALERT_CONDITION_RED) bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status_red_alert"];
+			else bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status_in_flight"];
 		}
 		
-		[gui setForegroundTextureName:fgName];
+		[gui setForegroundTextureDescriptor:fgDescriptor];
 		
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
-		[gui setBackgroundTextureName:bgName];
+		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status"];
+		[gui setBackgroundTextureDescriptor:bgDescriptor];
 		
 		[gui setStatusPage:0];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
@@ -5468,9 +5467,7 @@ done:
 	
 	if (guiChanged)
 	{
-		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-		[gui setForegroundTextureName:fgName];
-		
+		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		[gui setBackgroundTextureKey:sunGoneNova ? @"system_data_nova" : @"system_data"];
 		
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
@@ -5549,10 +5546,9 @@ done:
 	
 	if (guiChanged)
 	{
-		NSString	*bgName = nil;
-		bgName = [UNIVERSE screenBackgroundNameForKey:[NSString stringWithFormat:@"long_range_chart%d", galaxy_number+1]];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"long_range_chart"];
-		[gui setBackgroundTextureName:bgName];
+		NSDictionary *bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:[NSString stringWithFormat:@"long_range_chart%d", galaxy_number+1]];
+		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"long_range_chart"];
+		[gui setBackgroundTextureDescriptor:bgDescriptor];
 		
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		
@@ -6266,26 +6262,23 @@ static NSString *last_outfitting_key=nil;
 		}
 		
 		[gui setShowTextCursor:NO];
-		NSString *bgName = nil;
 		
 		// TODO: split the mount_weapon sub-screen into a separate screen, and use it for pylon mounted wepons as well?
 		if (guiChanged)
 		{
 			[gui setForegroundTextureKey:@"docked_overlay"];
-			
-			[tempTexture release];
-			tempTexture = [[UNIVERSE screenBackgroundNameForKey:@"equip_ship"] copy];
-			//[tempTexture retain];	// unnecessary
-			[gui setBackgroundTextureName:tempTexture];
+			NSDictionary *background = [UNIVERSE screenTextureDescriptorForKey:@"equip_ship"];
+			[self setEquipScreenBackgroundDescriptor:background];
+			[gui setBackgroundTextureDescriptor:background];
 		}
 		else if (eqKeyForSelectFacing != nil) // weapon purchase
 		{
-			bgName = [UNIVERSE screenBackgroundNameForKey:@"mount_weapon"];
-			if (bgName != nil)[gui setBackgroundTextureName:bgName];
+			NSDictionary *bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"mount_weapon"];
+			if (bgDescriptor != nil)  [gui setBackgroundTextureDescriptor:bgDescriptor];
 		}
 		else // Returning from a weapon purchase. (Also called, redundantly, when paging)
 		{
-			[gui setBackgroundTextureName:tempTexture];
+			[gui setBackgroundTextureDescriptor:[self equipScreenBackgroundDescriptor]];
 		}
 	}
 	/* ends */
@@ -8031,6 +8024,22 @@ static NSString *last_outfitting_key=nil;
 	{
 		[_missionBackgroundDescriptor autorelease];
 		_missionBackgroundDescriptor = [descriptor copy];
+	}
+}
+
+
+- (NSDictionary *) equipScreenBackgroundDescriptor
+{
+	return _equipScreenBackgroundDescriptor;
+}
+
+
+- (void) setEquipScreenBackgroundDescriptor:(NSDictionary *)descriptor
+{
+	if (descriptor != _equipScreenBackgroundDescriptor)
+	{
+		[_equipScreenBackgroundDescriptor autorelease];
+		_equipScreenBackgroundDescriptor = [descriptor copy];
 	}
 }
 

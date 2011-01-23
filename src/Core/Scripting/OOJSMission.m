@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOMusicController.h"
-#import "OOTexture.h"
+#import "GuiDisplayGen.h"
 
 
 static JSBool MissionMarkSystem(OOJS_NATIVE_ARGS);
@@ -230,11 +230,11 @@ static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey)
 	NSString			*text = nil;
 	NSString			*missionKey = nil;
 	
-	if (argc == 0)
+	if (EXPECT_NOT(argc == 0))
 	{
 		OOJSReportWarning(context, @"Usage error: mission.%@() called with no arguments. Treating as Mission.%@(null). This call may fail in a future version of Oolite.", isKey ? @"setInstructionsKey" : @"setInstructions", isKey ? @"setInstructionsKey" : @"setInstructions");
 	}
-	else if (JSVAL_IS_VOID(OOJS_ARG(0)))
+	else if (EXPECT_NOT(JSVAL_IS_VOID(OOJS_ARG(0))))
 	{
 		OOJSReportBadArguments(context, @"Mission", isKey ? @"setInstructionsKey" : @"setInstructions", 1, OOJS_ARGV, NULL, @"string or null");
 		return NO;
@@ -285,38 +285,15 @@ static NSString *GetParameterString(JSContext *context, JSObject *object, const 
 
 static NSDictionary *GetParameterImageDescriptor(JSContext *context, JSObject *object, const char *key)
 {
-	NSDictionary	*result = nil;
-	NSString		*name = nil;
-	
 	jsval value = JSVAL_NULL;
 	if (JS_GetProperty(context, object, key, &value))
 	{
-		if (JSVAL_IS_OBJECT(value))
-		{
-			if (JSVAL_IS_NULL(value))  return nil;
-			JSObject *objValue = JSVAL_TO_OBJECT(value);
-			
-			if (OOJSGetClass(context, objValue) != [[OOJavaScriptEngine sharedEngine] stringClass])
-			{
-				result = OOJSDictionaryFromJSObject(context, objValue);
-				name = [result oo_stringForKey:@"name"];
-			}
-		}
-		
-		if (result == nil)
-		{
-			name = OOStringFromJSValue(context, value);
-			if (name != nil)
-			{
-				result = [NSDictionary dictionaryWithObject:name forKey:@"name"];
-			}
-		}
+		return [[UNIVERSE gui] textureDescriptorFromJSValue:value inContext:context callerDescription:@"mission.runScreen()"];
 	}
-	
-	// Start loading asynchronously.
-	if (name != nil)  [OOTexture textureWithName:name inFolder:@"Images"];
-	
-	return result;
+	else
+	{
+		return nil;
+	}
 }
 
 

@@ -362,20 +362,33 @@ static JSBool GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS)
 }
 
 
-// setScreenBackground(name : String) : Boolean
+// setScreenBackground(descriptor : guiTextureDescriptor) : Boolean
 static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	NSString 		*value = OOStringFromJSValue(context, OOJS_ARG(0));
-	PlayerEntity	*player = OOPlayerForScripting();
 	BOOL			result = NO;
+	jsval			value = (argc > 0) ? OOJS_ARG(0) : JSVAL_NULL;
+	
+	if (EXPECT_NOT(argc == 0))
+	{
+		OOJSReportWarning(context, @"Usage error: %@() called with no arguments. Treating as %@(null). This call may fail in a future version of Oolite.", @"setScreenBackground", @"setScreenBackground");
+	}
+	else if (EXPECT_NOT(JSVAL_IS_VOID(value)))
+	{
+		OOJSReportBadArguments(context, nil, @"setScreenBackground", 1, &value, nil, @"GUI texture descriptor");
+		return NO;
+	}
 	
 	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
 	{
-		result = [[UNIVERSE gui] setBackgroundTextureName:value];
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+		NSDictionary	*descriptor = [gui textureDescriptorFromJSValue:value inContext:context callerDescription:@"setScreenBackground()"];
+		
+		result = [gui setBackgroundTextureDescriptor:descriptor];
+		
 		// add some permanence to the override if we're in the equip ship screen
-		if (result && [player guiScreen] == GUI_SCREEN_EQUIP_SHIP)  [player setTempBackground:value];
+		if (result && [PLAYER guiScreen] == GUI_SCREEN_EQUIP_SHIP)  [PLAYER setEquipScreenBackgroundDescriptor:descriptor];
 	}
 	
 	OOJS_RETURN_BOOL(result);
@@ -384,17 +397,30 @@ static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
 }
 
 
-// setScreenOverlay(name : String) : Boolean
+// setScreenOverlay(descriptor : guiTextureDescriptor) : Boolean
 static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	BOOL			result = NO;
-	NSString 		*value = OOStringFromJSValue(context, OOJS_ARG(0));
+	jsval			value = (argc > 0) ? OOJS_ARG(0) : JSVAL_NULL;
+	
+	if (EXPECT_NOT(argc == 0))
+	{
+		OOJSReportWarning(context, @"Usage error: %@() called with no arguments. Treating as %@(null). This call may fail in a future version of Oolite.", @"setScreenOverlay", @"setScreenOverlay");
+	}
+	else if (EXPECT_NOT(JSVAL_IS_VOID(value)))
+	{
+		OOJSReportBadArguments(context, nil, @"setScreenOverlay", 1, &value, nil, @"GUI texture descriptor");
+		return NO;
+	}
 	
 	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
 	{
-		result = [[UNIVERSE gui] setForegroundTextureName:value];
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+		NSDictionary	*descriptor = [gui textureDescriptorFromJSValue:value inContext:context callerDescription:@"setScreenOverlay()"];
+		
+		result = [gui setForegroundTextureDescriptor:descriptor];
 	}
 	
 	OOJS_RETURN_BOOL(result);

@@ -486,7 +486,6 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (OOViewID) viewDirection;
 
 - (NSString *) soundNameForCustomSoundKey:(NSString *)key;
-- (NSString *) screenBackgroundNameForKey:(NSString *)key;
 - (NSDictionary *) screenTextureDescriptorForKey:(NSString *)key;
 
 - (void) clearPreviousMessage;

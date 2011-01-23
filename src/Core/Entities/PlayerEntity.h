@@ -259,7 +259,7 @@ typedef enum
 	
 	NSDictionary			*_missionOverlayDescriptor;
 	NSDictionary			*_missionBackgroundDescriptor;
-	NSString				*tempTexture;
+	NSDictionary			*_equipScreenBackgroundDescriptor;
 	
 	BOOL					found_equipment;
 	
@@ -793,6 +793,10 @@ typedef enum
 - (NSDictionary *) missionBackgroundDescriptor;
 - (NSDictionary *) missionBackgroundDescriptorOrDefault;
 - (void) setMissionBackgroundDescriptor:(NSDictionary *)descriptor;
+
+// Nasty hack to keep background textures around while on equip screens.
+- (NSDictionary *) equipScreenBackgroundDescriptor;
+- (void) setEquipScreenBackgroundDescriptor:(NSDictionary *)descriptor;
 
 - (NSArray *) worldScriptNames;
 - (NSDictionary *) worldScriptsByName;

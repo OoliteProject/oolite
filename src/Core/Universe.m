@@ -4775,12 +4775,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (NSString *) screenBackgroundNameForKey:(NSString *)key
-{
-	return [[self screenTextureDescriptorForKey:key] oo_stringForKey:@"name"];
-}
-
-
 - (NSDictionary *) screenTextureDescriptorForKey:(NSString *)key
 {
 	id value = [screenBackgrounds objectForKey:key];
@@ -4790,7 +4784,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	else if (![value isKindOfClass:[NSDictionary class]])  value = nil;
 	
 	// Start loading the texture, and return nil if it doesn't exist.
-	if (value != nil && ([OOTexture textureWithName:[value oo_stringForKey:@"name"] inFolder:@"Images"] == nil))  value = nil;
+	if (![[self gui] preloadGUITexture:value])  value = nil;
 	
 	return value;
 }

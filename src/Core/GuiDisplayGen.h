@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
+#import <jsapi.h>
 
 
 #define GUI_DEFAULT_COLUMNS			6
@@ -216,10 +217,23 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 */
 - (BOOL) setBackgroundTextureDescriptor:(NSDictionary *)descriptor;
 - (BOOL) setForegroundTextureDescriptor:(NSDictionary *)descriptor;
-- (BOOL) setBackgroundTextureName:(NSString *)name;
-- (BOOL) setForegroundTextureName:(NSString *)name;
 - (BOOL) setBackgroundTextureKey:(NSString *)key;
 - (BOOL) setForegroundTextureKey:(NSString *)key;
+
+- (BOOL) preloadGUITexture:(NSDictionary *)descriptor;
+
+/*
+	Interpret a JavaScript value as a texture descriptor for
+	-[GUIDisplayGen set{Background|Foreground}TextureDescriptor:]. Also starts
+	preloading the texture.
+	
+	callerDescription is a string describing the context in which this was
+	called, generally a method name (like "mission.runScreen()") for warning
+	generation.
+	
+	Requires a request on context.
+*/
+- (NSDictionary *) textureDescriptorFromJSValue:(jsval)value inContext:(JSContext *)context callerDescription:(NSString *)callerDescription;
 
 - (void) clearBackground;
 

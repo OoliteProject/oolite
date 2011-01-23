@@ -573,7 +573,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 {
 	unsigned		i;
 	NSMutableArray	*row_info = [NSMutableArray arrayWithCapacity:5];
-	NSString		*bgName = nil;
 	OOGUIScreenID	oldScreen = gui_screen;
 	
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -752,9 +751,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		[gui setForegroundTextureKey:@"docked_overlay"];	// has to be docked!
 		
-		bgName = [UNIVERSE screenBackgroundNameForKey:@"contracts"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"market"];
-		[gui setBackgroundTextureName:bgName];
+		NSDictionary *descriptor = [UNIVERSE screenTextureDescriptorForKey:@"contracts"];
+		if (descriptor == nil)  descriptor = [UNIVERSE screenTextureDescriptorForKey:@"market"];
+		[gui setBackgroundTextureDescriptor:descriptor];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	}
 }
@@ -1190,10 +1189,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		[gui setForegroundTextureKey:@"docked_overlay"];	// has to be docked!
 		
-		NSString *bgName = [UNIVERSE screenBackgroundNameForKey:@"report"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
-		[gui setBackgroundTextureName:bgName];
+		NSDictionary *bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"report"];
+		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status_docked"];
+		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status"];
+		[gui setBackgroundTextureDescriptor:bgDescriptor];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	}
 }
@@ -1260,10 +1259,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		[gui setForegroundTextureKey:@"docked_overlay"];	// has to be docked!
 		
-		NSString *bgName = [UNIVERSE screenBackgroundNameForKey:@"report"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
-		[gui setBackgroundTextureName:bgName];
+		NSDictionary *bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"report"];
+		if (bgDescriptor == nil) bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status_docked"];
+		if (bgDescriptor == nil) bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status"];
+		[gui setBackgroundTextureDescriptor:bgDescriptor];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	}
 }
