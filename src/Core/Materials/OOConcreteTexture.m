@@ -281,6 +281,14 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 }
 
 
+- (NSSize) originalDimensions
+{
+	[self ensureFinishedLoading];
+	
+	return NSMakeSize(_originalWidth, _originalHeight);
+}
+
+
 - (BOOL) isMipMapped
 {
 	[self ensureFinishedLoading];
@@ -411,7 +419,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 	OOPixMap		pm;
 	
 	// This will block until loading is completed, if necessary.
-	if ([_loader getResult:&pm format:&_format])
+	if ([_loader getResult:&pm format:&_format originalWidth:&_originalWidth originalHeight:&_originalHeight])
 	{
 		_bytes = pm.pixels;
 		_width = pm.width;

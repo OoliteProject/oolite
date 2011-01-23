@@ -329,6 +329,12 @@ static NSString *sGlobalTraceContext = nil;
 }
 
 
+- (NSSize) originalDimensions
+{
+	return [self dimensions];
+}
+
+
 - (BOOL) isMipMapped
 {
 	OOLogGenericSubclassResponsibility();

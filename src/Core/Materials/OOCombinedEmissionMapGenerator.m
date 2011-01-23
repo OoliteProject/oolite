@@ -149,14 +149,14 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 		OOTextureDataFormat format;
 		if (emissionMapLoader != nil)
 		{
-			[emissionMapLoader getResult:&_emissionPx format:&format];
+			[emissionMapLoader getResult:&_emissionPx format:&format originalWidth:NULL originalHeight:NULL];
 #ifndef NDEBUG
 			_emissionDesc = [[emissionMapLoader shortDescription] copy];
 #endif
 		}
 		if (illuminationMapLoader != nil)
 		{
-			[illuminationMapLoader getResult:&_illuminationPx format:&format];
+			[illuminationMapLoader getResult:&_illuminationPx format:&format originalWidth:NULL originalHeight:NULL];
 #ifndef NDEBUG
 			_illuminationDesc = [[illuminationMapLoader shortDescription] copy];
 #endif

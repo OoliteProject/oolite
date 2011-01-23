@@ -57,7 +57,9 @@ SOFTWARE.
 	void					*_bytes;
 	GLuint					_textureName;
 	uint32_t				_width,
-							_height;
+							_height,
+							_originalWidth,
+							_originalHeight;
 	
 	OOTextureDataFormat		_format;
 	uint32_t				_options;

@@ -160,7 +160,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 	}
 	else
 	{
-		success = [loader getResult:&pixmap format:&format];
+		success = [loader getResult:&pixmap format:&format originalWidth:NULL originalHeight:NULL];
 		
 		if (success)
 		{

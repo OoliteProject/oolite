@@ -55,7 +55,9 @@ SOFTWARE.
 	void						*_data;
 	uint32_t					_width,
 								_height,
-								_rowBytes;
+								_rowBytes,
+								_originalWidth,
+								_originalHeight;
 }
 
 + (id)loaderWithPath:(NSString *)path options:(uint32_t)options;
@@ -74,7 +76,9 @@ SOFTWARE.
 	attempts will return failure), and only on the main thread.
 */
 - (BOOL) getResult:(OOPixMap *)result
-			format:(OOTextureDataFormat *)outFormat;
+			format:(OOTextureDataFormat *)outFormat
+	 originalWidth:(uint32_t *)outWidth
+	originalHeight:(uint32_t *)outHeight;
 
 /*	Hopefully-unique string for texture loader; analagous, but not identical,
 	to corresponding texture cacheKey.
@@ -90,8 +94,10 @@ SOFTWARE.
 
 - (NSString *)path;
 
-/*	Load data, setting up data, format, width, and height, and rowBytes if it's
-	not width * 4.
+/*	Load data, setting up _data, _format, _width, and _height; also _rowBytes
+	if it's not _width * OOTextureComponentsForFormat(_format), and
+	_originalWidth/_originalHeight if _width and _height for some reason aren't
+	the original pixel dimensions.
 	
 	Thread-safety concerns: this will be called in a worker thread, and there
 	may be several worker threads. The caller takes responsibility for

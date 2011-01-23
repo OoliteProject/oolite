@@ -189,6 +189,11 @@ typedef enum
 */
 - (NSSize) dimensions;
 
+/*	Original file dimensions in pixels.
+	This will block until loading is completed.
+*/
+- (NSSize) originalDimensions;
+
 /*	Check whether texture is mip-mapped.
 	This will block until loading is completed.
 */

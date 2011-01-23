@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 
 - (id)initWithTexture:(OOTexture *)inTexture
 {
-	return [self initWithTexture:inTexture size:[inTexture dimensions]];
+	return [self initWithTexture:inTexture size:[inTexture originalDimensions]];
 }
 
 
