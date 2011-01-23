@@ -57,13 +57,21 @@ MA 02110-1301, USA.
 
 /*	Low-level interface to call a JavaScript method.
 	Requires a request on context.
-	
-	FIXME: should take a jsid instead of string for name, but can't be done cleanly without requiring OO_NEW_JS.
 */
-- (BOOL) callMethodNamed:(const char *)methodName
+- (BOOL) callMethodNamed:(OOJSPropID)methodID
 		   withArguments:(jsval *)argv count:(intN)argc
 			   inContext:(JSContext *)context
 		   gettingResult:(jsval *)outResult;
+
+- (id) propertyWithID:(OOJSPropID)propID inContext:(JSContext *)context;
+// Set a property which can be modified or deleted by the script.
+- (BOOL) setProperty:(id)value withID:(OOJSPropID)propID inContext:(JSContext *)context;
+// Set a special property which cannot be modified or deleted by the script.
+- (BOOL) defineProperty:(id)value withID:(OOJSPropID)propID inContext:(JSContext *)context;
+
+- (id) propertyNamed:(NSString *)name;
+- (BOOL) setProperty:(id)value named:(NSString *)name;
+- (BOOL) defineProperty:(id)value named:(NSString *)name;
 
 @end
 

@@ -900,7 +900,57 @@ void OOJSMarkConsoleEvalLocation(JSContext *context, JSStackFrame *stackFrame)
 {
 	GetLocationNameAndLine(context, stackFrame, &sConsoleScriptName, &sConsoleEvalLineNo);
 }
+#endif
 
+
+#if OO_NEW_JS
+void OOJSInitPropIDCachePRIVATE(JSContext *context, const char *name, jsid *idCache, BOOL *inited)
+{
+	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
+	NSCParameterAssert(name != NULL && idCache != NULL && inited != NULL && !*inited);
+	
+	JSString *string = JS_InternString(context, name);
+	if (EXPECT_NOT(string == NULL))
+	{
+		[NSException raise:NSGenericException format:@"Failed to initialize JS ID cache for \"%s\".", name];
+	}
+	
+	*idCache = INTERNED_STRING_TO_JSID(string);
+	*inited = YES;
+}
+
+
+OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
+{
+	NSCParameterAssert(context != NULL && JS_IsInRequest(context) && string != nil);
+	
+	enum { kStackBufSize = 1024 };
+	unichar stackBuf[kStackBufSize];
+	unichar *buffer;
+	size_t length = [string length];
+	if (length < kStackBufSize)
+	{
+		buffer = stackBuf;
+	}
+	else
+	{
+		buffer = malloc(sizeof (unichar) * length);
+		if (EXPECT_NOT(buffer == NULL))  return JSID_VOID;
+	}
+	[string getCharacters:buffer];
+	
+	JSString *jsString = JS_InternUCStringN(context, buffer, length);
+	if (EXPECT_NOT(jsString == NULL))  return JSID_VOID;
+	
+	if (EXPECT_NOT(buffer != stackBuf))  free(buffer);
+	
+	return INTERNED_STRING_TO_JSID(jsString);
+}
+#else
+OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
+{
+	return [string UTF8String];
+}
 #endif
 
 
@@ -1090,92 +1140,6 @@ BOOL OOJSArgumentListGetNumberNoError(JSContext *context, uintN argc, jsval *arg
 }
 
 
-static BOOL ExtractString(NSString *string, jschar **outString, size_t *outLength)
-{
-	OOJS_PROFILE_ENTER
-	
-	assert(outString != NULL && outLength != NULL);
-	assert(sizeof (unichar) == sizeof (jschar));	// Should both be 16 bits
-	
-	*outLength = [string length];
-	if (*outLength == 0)  return NO;	// nil/empty strings not accepted.
-	
-	*outString = malloc(sizeof (unichar) * *outLength);
-	if (*outString == NULL)  return NO;
-	
-	[string getCharacters:(unichar *)*outString];
-	return YES;
-	
-	OOJS_PROFILE_EXIT
-}
-
-
-BOOL OOJSGetProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
-{
-	OOJS_PROFILE_ENTER
-	
-	jschar					*buffer = NULL;
-	size_t					length;
-	BOOL					OK = NO;
-	
-	NSCParameterAssert(context != NULL && name != nil);
-	
-	if (ExtractString(name, &buffer, &length))
-	{
-		OK = JS_GetUCProperty(context, object, buffer, length, value);
-		free(buffer);
-	}
-	
-	return OK;
-	
-	OOJS_PROFILE_EXIT
-}
-
-
-BOOL OOJSSetProperty(JSContext *context, JSObject *object, NSString *name, jsval *value)
-{
-	OOJS_PROFILE_ENTER
-	
-	jschar					*buffer = NULL;
-	size_t					length;
-	BOOL					OK = NO;
-	
-	NSCParameterAssert(context != NULL && name != nil);
-	
-	if (ExtractString(name, &buffer, &length))
-	{
-		OK = JS_SetUCProperty(context, object, buffer, length, value);
-		free(buffer);
-	}
-	
-	return OK;
-	
-	OOJS_PROFILE_EXIT
-}
-
-
-BOOL OOJSDefineProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs)
-{
-	OOJS_PROFILE_ENTER
-	
-	jschar					*buffer = NULL;
-	size_t					length;
-	BOOL					OK = NO;
-	
-	NSCParameterAssert(context != NULL && name != nil);
-	
-	if (ExtractString(name, &buffer, &length))
-	{
-		OK = JS_DefineUCProperty(context, object, buffer, length, value, getter, setter, attrs);
-		free(buffer);
-	}
-	
-	return OK;
-	
-	OOJS_PROFILE_EXIT
-}
-
-
 static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 {
 	OOJS_PROFILE_ENTER
@@ -1272,7 +1236,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 					value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
 					if (!JSVAL_IS_VOID(value))
 					{
-						OK = OOJSSetProperty(context, result, key, &value);
+						OK = OOJSSetProperty(context, result, OOJSPropIDFromString(context, key), &value);
 						if (EXPECT_NOT(!OK))  break;
 					}
 				}
@@ -1536,7 +1500,14 @@ NSString *OOStringFromJSPropertyID(JSContext *context, jsval propID, JSPropertyS
 		}
 	}
 	
-	return @"<unknown>";
+	jsval value;
+#if OO_NEW_JS
+	if (!JS_IdToValue(context, propID, &value))  return @"unknown";
+#else
+	value = propID;
+#endif
+	
+	return OOStringFromJSString(context, JS_ValueToString(context, value));
 }
 
 

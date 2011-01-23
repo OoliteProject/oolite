@@ -68,6 +68,12 @@ OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString 
 
 #define OOJSVAL_TO_DOUBLE JSVAL_TO_DOUBLE
 
+
+#define OOJSGetMethod		JS_GetMethodById
+#define OOJSGetProperty		JS_GetPropertyById
+#define OOJSSetProperty		JS_SetPropertyById
+#define OOJSDefineProperty	JS_DefinePropertyById
+
 #else	// !OO_NEW_JS
 
 // In old API, jsvals could be pointers to doubles; in new, they're actual doubles.
@@ -85,6 +91,19 @@ OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString 
 }
 
 #define OOJS_FF4B9 0
+
+
+#define OOJSGetMethod		JS_GetMethod
+#define OOJSGetProperty		JS_GetProperty
+#define OOJSSetProperty		JS_SetProperty
+#define OOJSDefineProperty	JS_DefineProperty
+
+
+OOINLINE BOOL OOJSGetProperty(JSContext *context, JSObject *object, OOJSPropID propID, jsval *value)
+{
+	return JS_GetPropertyById(context, object, propID, value);
+}
+
 #endif
 
 

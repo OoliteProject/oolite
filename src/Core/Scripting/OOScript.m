@@ -280,22 +280,4 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	return [self doEvent:eventName withArguments:[NSArray arrayWithObject:argument]];
 }
 
-
-- (id)propertyNamed:(NSString *)name
-{
-	return nil;
-}
-
-
-- (BOOL)setProperty:(id)value named:(NSString *)name
-{
-	return NO;
-}
-
-
-- (BOOL)defineProperty:(id)value named:(NSString *)name
-{
-	return NO;
-}
-
 @end

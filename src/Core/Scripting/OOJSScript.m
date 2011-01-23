@@ -183,7 +183,8 @@ static JSFunctionSpec sScriptMethods[] =
 		the script object can't be renamed after the initial run. This could
 		probably also be achieved by fiddling with JS property attributes.
 	*/
-	[self setProperty:[self scriptNameFromPath:path] named:@"name"];
+	OOJSPropID nameID = OOJS_PROPID(context, "name");
+	[self setProperty:[self scriptNameFromPath:path] withID:nameID inContext:context];
 	
 	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
 	if (!problem)
@@ -208,15 +209,15 @@ static JSFunctionSpec sScriptMethods[] =
 	{
 		// Get display attributes from script
 		DESTROY(name);
-		name = [StrippedName([[self propertyNamed:@"name"] description]) copy];
+		name = [StrippedName([[self propertyWithID:nameID inContext:context] description]) copy];
 		if (name == nil)
 		{
 			name = [[self scriptNameFromPath:path] retain];
-			[self setProperty:name named:@"name"];
+			[self setProperty:name withID:nameID inContext:context];
 		}
 		
-		version = [[[self propertyNamed:@"version"] description] copy];
-		description = [[[self propertyNamed:@"description"] description] copy];
+		version = [[[self propertyWithID:OOJS_PROPID(context, "version") inContext:context] description] copy];
+		description = [[[self propertyWithID:OOJS_PROPID(context, "description") inContext:context] description] copy];
 		
 		OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : (NSString *)@"(no description)");
 	}
@@ -421,7 +422,7 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-- (BOOL) callMethodNamed:(const char *)methodName
+- (BOOL) callMethodNamed:(OOJSPropID)methodID
 		   withArguments:(jsval *)argv count:(intN)argc
 			   inContext:(JSContext *)context
 		   gettingResult:(jsval *)outResult
@@ -431,10 +432,10 @@ static JSFunctionSpec sScriptMethods[] =
 	BOOL		OK = NO;
 	JSObject	*fakeRoot = NULL;
 	jsval		method;
-	if (EXPECT(JS_GetMethod(context, _jsSelf, methodName, &fakeRoot, &method) && !JSVAL_IS_VOID(method)))
+	if (EXPECT(OOJSGetMethod(context, _jsSelf, methodID, &fakeRoot, &method) && !JSVAL_IS_VOID(method)))
 	{
 #ifndef NDEBUG
-		OOLog(@"script.trace.javaScript.callback", @"Calling [%@].%s()", [self name], methodName);
+		OOLog(@"script.trace.javaScript.callback", @"Calling [%@].%@()", [self name], OOStringFromJSPropertyID(context, methodID, NULL));
 		OOLogIndentIf(@"script.trace.javaScript.callback");
 #endif
 		
@@ -463,57 +464,78 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-- (id)propertyNamed:(NSString *)propName
+- (id) propertyWithID:(OOJSPropID)propID inContext:(JSContext *)context
 {
-	BOOL						OK;
-	jsval						value = JSVAL_VOID;
-	JSContext					*context = NULL;
-	id							result = nil;
+	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	
+	jsval jsValue = JSVAL_VOID;
+	if (OOJSGetProperty(context, _jsSelf, propID, &jsValue))
+	{
+		return OOJSNativeObjectFromJSValue(context, jsValue);
+	}
+	return nil;
+}
+
+
+- (BOOL) setProperty:(id)value withID:(OOJSPropID)propID inContext:(JSContext *)context
+{
+	NSParameterAssert(context != NULL && JS_IsInRequest(context));
+	
+	jsval jsValue = OOJSValueFromNativeObject(context, value);
+	return OOJSSetProperty(context, _jsSelf, propID, &jsValue);
+}
+
+
+- (BOOL) defineProperty:(id)value withID:(OOJSPropID)propID inContext:(JSContext *)context
+{
+	NSParameterAssert(context != NULL && JS_IsInRequest(context));
+	
+	jsval jsValue = OOJSValueFromNativeObject(context, value);
+	return OOJSDefineProperty(context, _jsSelf, propID, jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+}
+
+
+- (id) propertyNamed:(NSString *)propName
+{
 	if (propName == nil)  return nil;
 	
-	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	OK = OOJSGetProperty(context, _jsSelf, propName, &value);
-	if (OK && !JSVAL_IS_VOID(value))  result = OOJSNativeObjectFromJSValue(context, value);
+	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JS_BeginRequest(context);
+	
+	id result = [self propertyWithID:OOJSPropIDFromString(context, propName) inContext:context];
+	
+	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	return result;
 }
 
 
-- (BOOL)setProperty:(id)value named:(NSString *)propName
+- (BOOL) setProperty:(id)value named:(NSString *)propName
 {
-	jsval						jsValue;
-	JSContext					*context = NULL;
-	BOOL						result = NO;
-	
 	if (value == nil || propName == nil)  return NO;
 	
-	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	jsValue = [value oo_jsValueInContext:context];
-	if (!JSVAL_IS_VOID(jsValue))
-	{
-		result = OOJSDefineProperty(context, _jsSelf, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE);
-	}
+	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JS_BeginRequest(context);
+	
+	BOOL result = [self setProperty:value withID:OOJSPropIDFromString(context, propName) inContext:context];
+	
+	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return result;
 }
 
 
-- (BOOL)defineProperty:(id)value named:(NSString *)propName
+- (BOOL) defineProperty:(id)value named:(NSString *)propName
 {
-	jsval						jsValue;
-	JSContext					*context = NULL;
-	BOOL						result = NO;
-	
 	if (value == nil || propName == nil)  return NO;
 	
-	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	jsValue = [value oo_jsValueInContext:context];
-	if (!JSVAL_IS_VOID(jsValue))
-	{
-		result = OOJSDefineProperty(context, _jsSelf, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-	}
+	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JS_BeginRequest(context);
+	
+	BOOL result = [self defineProperty:value withID:OOJSPropIDFromString(context, propName) inContext:context];
+	
+	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return result;
 }

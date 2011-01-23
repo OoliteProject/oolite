@@ -67,10 +67,4 @@ MA 02110-1301, USA.
 - (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments;
 - (BOOL)doEvent:(NSString *)eventName withArgument:(id)argument;
 
-- (id)propertyNamed:(NSString *)name;
-// Set a property which can be modified or deleted by the script.
-- (BOOL)setProperty:(id)value named:(NSString *)name;
-// Set a special property which cannot be modified or deleted by the script.
-- (BOOL)defineProperty:(id)value named:(NSString *)name;
-
 @end

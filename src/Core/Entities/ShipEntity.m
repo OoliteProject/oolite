@@ -9161,7 +9161,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			args[0] = INT_TO_JSVAL(i);
 			OOJSStartTimeLimiter();
-			OK = [script callMethodNamed:"coordinatesForEscortPosition"
+			OK = [script callMethodNamed:OOJS_PROPID(context, "coordinatesForEscortPosition")
 						   withArguments:args count:sizeof args / sizeof *args
 							   inContext:context
 						   gettingResult:&result];

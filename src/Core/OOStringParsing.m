@@ -722,7 +722,7 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 	NSString			*result = @"<error>";
 	JS_BeginRequest(context);
 	
-	if (JS_GetMethod(context, global, "formatCredits", &fakeRoot, &method))
+	if (OOJSGetMethod(context, global, OOJS_PROPID(context, "formatCredits"), &fakeRoot, &method))
 	{
 		jsval args[3];
 		if (JS_NewDoubleValue(context, tenthsOfCredits * 0.1, &args[0]))

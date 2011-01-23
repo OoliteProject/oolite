@@ -122,6 +122,25 @@ enum
 @end
 
 
+/*	OOJSPropID
+	A temporary type to identify JavaScript object properties/methods. When
+	OO_NEW_JS is folded, it will be replaced with jsid.
+	
+	OOJS_PROPID(context, const char *)
+	Macro to create a string-based ID. The string is interned and converted
+	into a string by a helper the first time the macro is hit, then cached.
+*/
+#if OO_NEW_JS
+typedef jsid OOJSPropID;
+#define OOJS_PROPID(context, str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(context, str, &idCache, &inited); idCache; })
+void OOJSInitPropIDCachePRIVATE(JSContext *context, const char *name, jsid *idCache, BOOL *inited);
+#else
+typedef const char *OOJSPropID;
+#define OOJS_PROPID(context, str) (str)
+#endif
+OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string);
+
+
 /*	Error and warning reporters.
 	
 	Note that after reporting an error in a JavaScript callback, the caller
@@ -171,18 +190,6 @@ OOINLINE jsval OOJSValueFromBOOL(int b)
 {
 	return BOOLEAN_TO_JSVAL(b != NO);
 }
-
-
-/*	OOJSFooProperty()
-	
-	Wrappers to corresponding JS_FooProperty()/JS_FooUCProperty() functions,
-	but taking an NSString.
-	
-	Require a request on context.
-*/
-BOOL OOJSGetProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
-BOOL OOJSSetProperty(JSContext *context, JSObject *object, NSString *name, jsval *value);
-BOOL OOJSDefineProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs);
 
 
 @interface NSObject (OOJavaScript)
