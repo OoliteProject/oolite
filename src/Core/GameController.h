@@ -135,6 +135,7 @@ MA 02110-1301, USA.
 - (IBAction) showSnapshotsAction:(id)sender;
 - (IBAction) showAddOnsAction:(id)sender;
 - (void) changeFullScreenResolution;
+- (void) recenterVirtualJoystick;
 #elif OOLITE_SDL
 - (void) setFullScreenMode:(BOOL)fsm;
 #endif
@@ -179,8 +180,6 @@ MA 02110-1301, USA.
 - (void)setUpBasicOpenGLStateWithSize:(NSSize)viewSize;
 
 - (NSURL *) snapshotsURLCreatingIfNeeded:(BOOL)create;
-
-- (void) recenterVirtualJoystick;
 
 @end
 
