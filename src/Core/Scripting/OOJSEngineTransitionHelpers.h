@@ -98,12 +98,6 @@ OOINLINE const jschar *OOJSGetStringCharsAndLength(JSContext *context, JSString 
 #define OOJSSetProperty		JS_SetProperty
 #define OOJSDefineProperty	JS_DefineProperty
 
-
-OOINLINE BOOL OOJSGetProperty(JSContext *context, JSObject *object, OOJSPropID propID, jsval *value)
-{
-	return JS_GetPropertyById(context, object, propID, value);
-}
-
 #endif
 
 
