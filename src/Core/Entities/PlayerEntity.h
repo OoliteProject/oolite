@@ -237,12 +237,10 @@ typedef enum
 @interface PlayerEntity: ShipEntity
 {
 @public
-	
 	Random_Seed				system_seed;
 	Random_Seed				target_system_seed;
 	
-@protected
-	
+@private
 	Random_Seed				found_system_seed;
 	int						ship_trade_in_factor;
 	
@@ -259,8 +257,8 @@ typedef enum
 
 	NSMutableArray			*eqScripts;
 	
-	NSString				*missionBackgroundTexture;
-	NSString				*missionForegroundTexture;
+	NSDictionary			*_missionOverlayDescriptor;
+	NSDictionary			*_missionBackgroundDescriptor;
 	NSString				*tempTexture;
 	
 	BOOL					found_equipment;
@@ -531,7 +529,6 @@ typedef enum
 	OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
 	
-@private
 	NSArray					*_customViews;
 	OOUInteger				_customViewIndex;
 	
@@ -788,6 +785,14 @@ typedef enum
 #if 0
 - (OOCamera *) currentCamera;
 #endif
+
+- (NSDictionary *) missionOverlayDescriptor;
+- (NSDictionary *) missionOverlayDescriptorOrDefault;
+- (void) setMissionOverlayDescriptor:(NSDictionary *)descriptor;
+
+- (NSDictionary *) missionBackgroundDescriptor;
+- (NSDictionary *) missionBackgroundDescriptorOrDefault;
+- (void) setMissionBackgroundDescriptor:(NSDictionary *)descriptor;
 
 - (NSArray *) worldScriptNames;
 - (NSDictionary *) worldScriptsByName;

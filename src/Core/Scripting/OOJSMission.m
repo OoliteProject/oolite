@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOMusicController.h"
+#import "OOTexture.h"
 
 
 static JSBool MissionMarkSystem(OOJS_NATIVE_ARGS);
@@ -281,31 +282,43 @@ static NSString *GetParameterString(JSContext *context, JSObject *object, const 
 	return nil;
 }
 
-/*
+
 static NSDictionary *GetParameterImageDescriptor(JSContext *context, JSObject *object, const char *key)
 {
+	NSDictionary	*result = nil;
+	NSString		*name = nil;
+	
 	jsval value = JSVAL_NULL;
 	if (JS_GetProperty(context, object, key, &value))
 	{
 		if (JSVAL_IS_OBJECT(value))
 		{
 			if (JSVAL_IS_NULL(value))  return nil;
+			JSObject *objValue = JSVAL_TO_OBJECT(value);
 			
-			if (OOJSGetClass(context, object) != [[OOJavaScriptEngine sharedEngine] stringClass])
+			if (OOJSGetClass(context, objValue) != [[OOJavaScriptEngine sharedEngine] stringClass])
 			{
-				return OOJSDictionaryFromJSObject(context, object);
+				result = OOJSDictionaryFromJSObject(context, objValue);
+				name = [result oo_stringForKey:@"name"];
 			}
 		}
 		
-		NSString *stringValue = OOStringFromJSValue(context, value);
-		if (stringValue != nil)
+		if (result == nil)
 		{
-			return [NSDictionary dictionaryWithObject:stringValue forKey:@"name"];
+			name = OOStringFromJSValue(context, value);
+			if (name != nil)
+			{
+				result = [NSDictionary dictionaryWithObject:name forKey:@"name"];
+			}
 		}
 	}
-	return nil;
+	
+	// Start loading asynchronously.
+	if (name != nil)  [OOTexture textureWithName:name inFolder:@"Images"];
+	
+	return result;
 }
-*/
+
 
 // runScreen(params: dict, callBack:function) - if the callback function is null, emulate the old style runMissionScreen
 static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
@@ -372,11 +385,11 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	}
 	
 	[[OOMusicController	sharedController] setMissionMusic:GetParameterString(context, params, "music")];
-	[player setMissionImage:GetParameterString(context, params, "overlay")];
-	[player setMissionBackground:GetParameterString(context, params, "background")];
+	[player setMissionOverlayDescriptor:GetParameterImageDescriptor(context, params, "overlay")];
+	[player setMissionBackgroundDescriptor:GetParameterImageDescriptor(context, params, "background")];
 	
 	ShipEntity *demoShip = nil;
-	if (JS_GetProperty(context, params, "model", &value))
+	if (JS_GetProperty(context, params, "model", &value) && !JSVAL_IS_VOID(value))
 	{
 		if ([player status] == STATUS_IN_FLIGHT && JSVAL_IS_STRING(value))
 		{
@@ -387,7 +400,7 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 			NSString *role = OOStringFromJSValue(context, value);
 			
 			JSBool spinning = YES;
-			if (JS_GetProperty(context, params, "spinModel", &value))
+			if (JS_GetProperty(context, params, "spinModel", &value) && !JSVAL_IS_VOID(value))
 			{
 				JS_ValueToBoolean(context, value, &spinning);
 			}
@@ -426,8 +439,8 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	[player setMissionChoices:GetParameterString(context, params, "choicesKey")];
 	
 	// now clean up!
-	[player setMissionImage:nil];
-	[player setMissionBackground:nil];
+	[player setMissionOverlayDescriptor:nil];
+	[player setMissionBackgroundDescriptor:nil];
 	[player setMissionTitle:nil];
 	[player setMissionMusic:nil];
 	

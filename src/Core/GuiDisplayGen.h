@@ -209,8 +209,13 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (void) scrollUp:(int) how_much;
 
-/*- (BOOL) setBackgroundTexture:(OOTexture *)backgroundTexture;
-- (BOOL) setForegroundTexture:(OOTexture *)foregroundTexture;*/
+/*
+	A background/foreground texture descriptor is a dictionary with a string
+	property keyed "name" and optional number properties keyed "width" and
+	"height".
+*/
+- (BOOL) setBackgroundTextureDescriptor:(NSDictionary *)descriptor;
+- (BOOL) setForegroundTextureDescriptor:(NSDictionary *)descriptor;
 - (BOOL) setBackgroundTextureName:(NSString *)name;
 - (BOOL) setForegroundTextureName:(NSString *)name;
 - (BOOL) setBackgroundTextureKey:(NSString *)key;

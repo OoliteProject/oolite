@@ -1966,7 +1966,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) clearMissionScreen
 {
-	[self setMissionImage:nil];
+	[self setMissionOverlayDescriptor:nil];
+	[self setMissionBackgroundDescriptor:nil];
 	[self setMissionTitle:nil];
 	[self setMissionMusic:nil];
 	[self showShipModel:nil];
@@ -2069,12 +2070,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionImage:(NSString *)value
 {
-	DESTROY(missionForegroundTexture);
-	
 	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
-		missionForegroundTexture = [value copy];
+		[self setMissionOverlayDescriptor:[NSDictionary dictionaryWithObject:value forKey:@"name"]];
 	}
+	else
+	{
+		[self setMissionOverlayDescriptor:nil];
+	}
+
 }
 
 
@@ -2091,12 +2095,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionBackground:(NSString *)value
 {
-	DESTROY(missionBackgroundTexture);
-	
 	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
-		missionBackgroundTexture = [value copy];
- 	}
+		[self setMissionBackgroundDescriptor:[NSDictionary dictionaryWithObject:value forKey:@"name"]];
+	}
+	else
+	{
+		[self setMissionBackgroundDescriptor:nil];
+	}
 }
 
 
@@ -2344,21 +2350,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (NSString *) missionForegroundTextureName
-{
-	if (missionForegroundTexture != nil)  return missionForegroundTexture;
-	if ([missionTitle isEqualToString:@""])  return [UNIVERSE screenBackgroundNameForKey:@"mission_overlay_no_title"];
-	return [UNIVERSE screenBackgroundNameForKey:@"mission_overlay_with_title"];
-}
-
-
-- (NSString *) missionBackgroundTextureName
-{
-	if (missionBackgroundTexture != nil)  return missionBackgroundTexture;
-	return [UNIVERSE screenBackgroundNameForKey:@"mission"];
-}
-
-
 - (void) setGuiToMissionScreenWithCallback:(BOOL) callback
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -2374,8 +2365,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		[gui setSelectableRange:NSMakeRange(0,0)];
 		
-		[gui setForegroundTextureName:[self missionForegroundTextureName]];
-		[gui setBackgroundTextureName:[self missionBackgroundTextureName]];
+		[gui setForegroundTextureDescriptor:[self missionOverlayDescriptorOrDefault]];
+		[gui setBackgroundTextureDescriptor:[self missionBackgroundDescriptorOrDefault]];
 		
 		[gui setShowTextCursor:NO];
 	}

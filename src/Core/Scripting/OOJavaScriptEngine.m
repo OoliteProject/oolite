@@ -2112,7 +2112,6 @@ NSDictionary *OOJSDictionaryFromJSObject(JSContext *context, JSObject *object)
 {
 	OOJS_PROFILE_ENTER
 	
-	JSObject					*object = NULL;
 	JSIdArray					*ids = NULL;
 	jsint						i;
 	NSMutableDictionary			*result = nil;

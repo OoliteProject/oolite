@@ -829,6 +829,18 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
+- (BOOL) setBackgroundTextureDescriptor:(NSDictionary *)descriptor
+{
+	return [self setBackgroundTextureName:[descriptor oo_stringForKey:@"name"]];
+}
+
+
+- (BOOL) setForegroundTextureDescriptor:(NSDictionary *)descriptor
+{
+	return [self setForegroundTextureName:[descriptor oo_stringForKey:@"name"]];
+}
+
+
 - (BOOL) setBackgroundTextureName:(NSString *)name
 {
 	OOTexture *texture =  nil;

@@ -1125,12 +1125,10 @@ static GLfloat		sBaseMass = 0.0;
 	[shipyard_record release];
 	shipyard_record = [[NSMutableDictionary alloc] init];
 	
-	[missionBackgroundTexture release];
-	missionBackgroundTexture = nil;
-	[missionForegroundTexture release];
-	missionForegroundTexture = nil;
-	[tempTexture release];
-	tempTexture = nil;
+	[self setMissionOverlayDescriptor:nil];
+	[self setMissionBackgroundDescriptor:nil];
+	
+	DESTROY(tempTexture);
 	
 	script_time = 0.0;
 	script_time_check = SCRIPT_TIMER_INTERVAL;
@@ -1383,52 +1381,49 @@ static GLfloat		sBaseMass = 0.0;
 - (void) dealloc
 {
 	compassTarget = nil;
-	[hud release];
-	[commLog release];
-
-	[worldScripts release];
-	[mission_variables release];
-
-	[localVariables release];
-
-	[lastTextKey release];
-
-	[reputation release];
-	[passengers release];
-	[passenger_record release];
-	[contracts release];
-	[contract_record release];
-	[missionDestinations release];
-	[shipyard_record release];
-
-	[missionBackgroundTexture release];
-	[missionForegroundTexture release];
-	[tempTexture release];
-
-	[player_name release];
-	[shipCommodityData release];
-
-	[specialCargo release];
-
-	[save_path release];
-
-	[_customViews release];
+	DESTROY(hud);
+	DESTROY(commLog);
 	
-	[dockingReport release];
-
+	DESTROY(worldScripts);
+	DESTROY(mission_variables);
+	
+	DESTROY(localVariables);
+	
+	DESTROY(lastTextKey);
+	
+	DESTROY(reputation);
+	DESTROY(passengers);
+	DESTROY(passenger_record);
+	DESTROY(contracts);
+	DESTROY(contract_record);
+	DESTROY(missionDestinations);
+	DESTROY(shipyard_record);
+	
+	DESTROY(_missionOverlayDescriptor);
+	DESTROY(_missionBackgroundDescriptor);
+	DESTROY(tempTexture);
+	
+	DESTROY(player_name);
+	DESTROY(shipCommodityData);
+	
+	DESTROY(specialCargo);
+	
+	DESTROY(save_path);
+	
+	DESTROY(_customViews);
+	
+	DESTROY(dockingReport);
+	
 	[self destroySound];
-
+	
 #if WORMHOLE_SCANNER
-	[scannedWormholes release];
-	scannedWormholes = nil;
+	DESTROY(scannedWormholes);
 #endif
-	[wormhole release];
-	wormhole = nil;
-
+	DESTROY(wormhole);
+	
 	int i;
-	for (i = 0; i < PLAYER_MAX_MISSILES; i++)  [missile_entity[i] release];
-
-	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)  [trumble[i] release];
+	for (i = 0; i < PLAYER_MAX_MISSILES; i++)  DESTROY(missile_entity[i]);
+	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)  DESTROY(trumble[i]);
 	
 	[super dealloc];
 }
@@ -7980,6 +7975,63 @@ static NSString *last_outfitting_key=nil;
 - (BOOL)showInfoFlag
 {
 	return show_info_flag;
+}
+
+
+- (NSDictionary *) missionOverlayDescriptor
+{
+	return _missionOverlayDescriptor;
+}
+
+
+- (NSDictionary *) missionOverlayDescriptorOrDefault
+{
+	NSDictionary *result = [self missionOverlayDescriptor];
+	if (result == nil)
+	{
+		if ([missionTitle length] == 0)  result = [UNIVERSE screenTextureDescriptorForKey:@"mission_overlay_no_title"];
+		else  result = [UNIVERSE screenTextureDescriptorForKey:@"mission_overlay_with_title"];
+	}
+	
+	return result;
+}
+
+
+- (void) setMissionOverlayDescriptor:(NSDictionary *)descriptor
+{
+	if (descriptor != _missionOverlayDescriptor)
+	{
+		[_missionOverlayDescriptor autorelease];
+		_missionOverlayDescriptor = [descriptor copy];
+	}
+}
+
+
+- (NSDictionary *) missionBackgroundDescriptor
+{
+	return _missionBackgroundDescriptor;
+}
+
+
+- (NSDictionary *) missionBackgroundDescriptorOrDefault
+{
+	NSDictionary *result = [self missionBackgroundDescriptor];
+	if (result == nil)
+	{
+		result = [UNIVERSE screenTextureDescriptorForKey:@"mission"];
+	}
+	
+	return result;
+}
+
+
+- (void) setMissionBackgroundDescriptor:(NSDictionary *)descriptor
+{
+	if (descriptor != _missionBackgroundDescriptor)
+	{
+		[_missionBackgroundDescriptor autorelease];
+		_missionBackgroundDescriptor = [descriptor copy];
+	}
 }
 
 
