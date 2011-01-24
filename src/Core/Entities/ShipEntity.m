@@ -23,8 +23,6 @@ MA 02110-1301, USA.
 
 */
 
-#define BALL_WORLD 0
-
 
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
@@ -52,9 +50,7 @@ MA 02110-1301, USA.
 #endif
 
 #import "OOMesh.h"
-#if BALL_WORLD
 #import "OOPlanetDrawable.h"
-#endif
 
 #import "Geometry.h"
 #import "Octree.h"
@@ -3877,27 +3873,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-#if BALL_WORLD
-- (void)drawEntity2:(BOOL)immediate :(BOOL)translucent
-{
-	if (no_draw_distance < zero_distance)
-	{
-		// Don't draw.
-		return;
-	}
-	
-	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
-	
-	OOPlanetDrawable *ball = [OOPlanetDrawable planetWithTextureName:@"oolite-planet-temp.png" radius:[[self mesh] collisionRadius]];
-	
-	if (translucent)  [ball renderTranslucentParts];
-	else  [ball renderOpaqueParts];
-	
-	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOff();
-}
-#endif
-
-
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	NSEnumerator				*subEntityEnum = nil;
@@ -3911,12 +3886,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// Draw self.
-#if BALL_WORLD
-	[self drawEntity2:immediate :translucent];
-#else
 	[super drawEntity:immediate :translucent];
-#endif
-
+	
 #ifndef NDEBUG
 	// Draw bounding boxes if we have to before going for the subentities.
 	// TODO: the translucent flag here makes very little sense. Something's wrong with the matrices.
@@ -5703,8 +5674,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	if (script != nil)
 	{
 		[PLAYER setScriptTarget:self];
-		[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, context, nil]];
-		if (![whom isKindOfClass:[NSNull class]] && [whom isShip])  [(ShipEntity *)whom doScriptEvent:@"shipKilledOther" withArguments:[NSArray arrayWithObjects:self, context, nil]];
+		[self doScriptEvent:OOJSID("shipDied") withArguments:[NSArray arrayWithObjects:whom, context, nil]];
+		if (![whom isKindOfClass:[NSNull class]] && [whom isShip])  [(ShipEntity *)whom doScriptEvent:OOJSID("shipKilledOther") withArguments:[NSArray arrayWithObjects:self, context, nil]];
 	}
 	
 	[self becomeExplosion];
@@ -7874,9 +7845,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// missile lives on after UNIVERSE addEntity
 	if ([missile scanClass] == CLASS_MISSILE && [target isShip])
 	{
-		[self doScriptEvent:@"shipFiredMissile" withArgument:missile andArgument:target_ship];
+		[self doScriptEvent:OOJSID("shipFiredMissile") withArgument:missile andArgument:target_ship];
 		[target_ship setPrimaryAggressor:self];
-		[target_ship doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
+		[target_ship doScriptEvent:OOJSID("shipAttackedWithMissile") withArgument:missile andArgument:self];
 		[target_ship reactToAIMessage:@"INCOMING_MISSILE" context:@"hay guise, someone's shooting at me!"];
 	}
 	
@@ -9154,14 +9125,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		// Reset validity first so updateEscortFormation can be called from the update callback.
 		_escortPositionsValid = YES;
 		
-		JS_BeginRequest(context);
-		
 		uint8_t i;
 		for (i = 0; i < _maxEscortCount; i++)
 		{
 			args[0] = INT_TO_JSVAL(i);
 			OOJSStartTimeLimiter();
-			OK = [script callMethodNamed:OOJS_PROPID(context, "coordinatesForEscortPosition")
+			OK = [script callMethodNamed:OOJSIDCX(context, "coordinatesForEscortPosition")
 						   withArguments:args count:sizeof args / sizeof *args
 							   inContext:context
 						   gettingResult:&result];
@@ -9172,7 +9141,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			if (!OK)  _escortPositions[i] = kZeroVector;
 		}
 		
-		JS_EndRequest(context);
 		[jsEng releaseContext:context];
 	}
 }
@@ -9454,7 +9422,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		while ((auth = [authEnum nextObject]))
 		{
 			[auth setFound_target:aggressor_ship];
-			[auth doScriptEvent:@"offenceCommittedNearby" withArgument:aggressor_ship andArgument:self];
+			[auth doScriptEvent:OOJSID("offenceCommittedNearby") withArgument:aggressor_ship andArgument:self];
 			[auth reactToAIMessage:@"OFFENCE_COMMITTED" context:@"combat update"];
 		}
 	}
@@ -9572,7 +9540,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (void) receiveCommsMessage:(NSString *) message_text from:(ShipEntity *) other
 {
 	// Too complex for AI scripts to handle, JS event only.
-	[self doScriptEvent:@"commsMessageReceived" withArgument:message_text andArgument:other];
+	[self doScriptEvent:OOJSID("commsMessageReceived") withArgument:message_text andArgument:other];
 }
 
 
@@ -9928,7 +9896,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 // For ease of overriding, these all go through doScriptEvent:withArguments:.
 - (void) doScriptEvent:(NSString *)message
 {
-	[self doScriptEvent:message withArguments:nil];
+	[self doScriptEvent:OOJSPropIDFromString(NULL, message) withArguments:nil];
 }
 
 
@@ -9941,12 +9909,12 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	else
 	{
 		arguments = [NSArray arrayWithObject:argument];
-		[self doScriptEvent:message withArguments:arguments];
+		[self doScriptEvent:OOJSPropIDFromString(NULL, message) withArguments:arguments];
 	}
 }
 
 
-- (void) doScriptEvent:(NSString *)message
+- (void) doScriptEvent:(OOJSPropID)message
 		  withArgument:(id)argument1
 		   andArgument:(id)argument2
 {
@@ -9964,9 +9932,15 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments
+- (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments
 {
 	[script doEvent:message withArguments:arguments];
+}
+
+
+- (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
+{
+	[script doEvent:message inContext:context withArguments:argv count:argc];
 }
 
 

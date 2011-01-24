@@ -30,6 +30,8 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "ShipEntity.h"
 #import "OOTypes.h"
+#import "OOJSPropID.h"
+
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
@@ -724,7 +726,8 @@ typedef enum
 
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra;
 
-- (void) noteGuiChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen;
+- (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen;
+- (void) noteGUIDidChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen;
 
 - (OOGUIScreenID) guiScreen;
 
@@ -804,8 +807,9 @@ typedef enum
 // *** World script events.
 // In general, script events should be sent through doScriptEvent:..., which
 // will forward to the world scripts.
-- (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments timeLimit:(OOTimeDelta)limit;
+//- (void) doWorldScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments timeLimit:(OOTimeDelta)limit;
 - (BOOL) doWorldEventUntilMissionScreen:(NSString *)message;
+- (void) doWorldScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc timeLimit:(OOTimeDelta)limit;
 
 - (BOOL)showInfoFlag;
 

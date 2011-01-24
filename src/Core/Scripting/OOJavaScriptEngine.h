@@ -90,8 +90,9 @@ enum
 				   argv:(jsval *)argv
 				 result:(jsval *)outResult;
 
-// Get a context for doing something other than calling a function.
+// Get a JS context, and put it in a request.
 - (JSContext *)acquireContext;
+// Return a context provided by -acquireContext, and end a request.
 - (void)releaseContext:(JSContext *)context;
 
 - (void) removeGCObjectRoot:(JSObject **)rootPtr;
@@ -126,18 +127,26 @@ enum
 	A temporary type to identify JavaScript object properties/methods. When
 	OO_NEW_JS is folded, it will be replaced with jsid.
 	
-	OOJS_PROPID(context, const char *)
+	OOJSID(const char *)
+	OOJSIDCX(context, const char *)
 	Macro to create a string-based ID. The string is interned and converted
 	into a string by a helper the first time the macro is hit, then cached.
+	The CX variant provides a context (with a request) to do the lookup in,
+	the non-CX variant acquires a context if necessary.
+	
+	OOStringFromJSPropID(context, propID)
+	OOJSPropIDFromString(context, string)
+	Converters. The context parameter may be nil, in which case a temporary
+	context is acquired. If a context is specified, it must be in a request.
 */
+#import "OOJSPropID.h"
 #if OO_NEW_JS
-typedef jsid OOJSPropID;
-#define OOJS_PROPID(context, str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(context, str, &idCache, &inited); idCache; })
+#define OOJSIDCX(context, str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(context, str, &idCache, &inited); idCache; })
 void OOJSInitPropIDCachePRIVATE(JSContext *context, const char *name, jsid *idCache, BOOL *inited);
 #else
-typedef const char *OOJSPropID;
-#define OOJS_PROPID(context, str) (str)
+#define OOJSIDCX(context, str) (str)
 #endif
+#define OOJSID(str) OOJSIDCX(NULL, str)
 NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID);
 OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string);
 
@@ -242,6 +251,9 @@ OOINLINE jsval OOJSValueFromNativeObject(JSContext *context, id object)
 	This is somewhat useful for putting JavaScript objects in ObjC collections,
 	for instance to pass as properties to script loaders. The value is
 	GC rooted for the lifetime of the OOJSValue.
+	
+	All methods take a context parameter, which must either be nil or a context
+	in a request.
 */
 @interface OOJSValue: NSObject
 {

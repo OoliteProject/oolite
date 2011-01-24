@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOEntityWithDrawable.h"
 #import "OOPlanetEntity.h"
+#import "OOJSPropID.h"
 
 @class	OOColor, StationEntity, ParticleEntity, WormholeEntity,
 		AI, Octree, OOMesh, OOScript, OOJSScript, OORoleSet, OOShipGroup,
@@ -920,7 +921,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) pilotArrived;
 #endif
 
-- (OOScript *)script;
+- (OOJSScript *)script;
 - (NSDictionary *)scriptInfo;
 
 - (Entity *)entityForShaderProperties;
@@ -930,8 +931,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 // For the player, they do that and also call doWorldScriptEvent:.
 - (void) doScriptEvent:(NSString *)message;
 - (void) doScriptEvent:(NSString *)message withArgument:(id)argument;
-- (void) doScriptEvent:(NSString *)message withArgument:(id)argument1 andArgument:(id)argument2;
-- (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;
+- (void) doScriptEvent:(OOJSPropID)message withArgument:(id)argument1 andArgument:(id)argument2;
+- (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments;
+- (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc;
+
+#define ShipScriptEvent(context, ship, event, ...) ({ \
+	jsval argv[] = { __VA_ARGS__ }; \
+	uintN argc = sizeof argv / sizeof *argv; \
+	[ship doScriptEvent:OOJSID(event) inContext:context withArguments:argv count:argc]; \
+})
 
 - (void) reactToAIMessage:(NSString *)message context:(NSString *)debugContext;	// Immediate message
 - (void) sendAIMessage:(NSString *)message;		// Queued message

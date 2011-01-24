@@ -127,7 +127,6 @@ static JSClass sTimerClass;
 	
 	OOJavaScriptEngine *engine = [OOJavaScriptEngine sharedEngine];
 	JSContext *context = [engine acquireContext];
-	JS_BeginRequest(context);
 	
 	// stop and remove the timer if _jsThis (the first parameter in the constructor) dies.
 	id object = OOJSNativeObjectFromJSObject(context, _jsThis);
@@ -152,7 +151,6 @@ static JSClass sTimerClass;
 					result:&rval];
 	[OOJSScript popScript:_owningScript];
 	
-	JS_EndRequest(context);
 	[engine releaseContext:context];
 }
 

@@ -45,17 +45,17 @@ MA 02110-1301, USA.
 	  argumentNames:(const char **)argNames
 		   fileName:(NSString *)fileName
 		 lineNumber:(OOUInteger)lineNumber
-			context:(JSContext *)context;	// may be NULL.
+			context:(JSContext *)context;	// may be NULL. If not null, must be in a request.
 
 - (NSString *) name;
 - (JSFunction *) function;
 
-// Raw evaluation. Context may not be NULL. JS_BeginRequest()/JS_EndReqest() are caller's responsibility.
-- (BOOL) evaluateInRequestWithContext:(JSContext *)context
-								scope:(JSObject *)jsThis
-								 argc:(uintN)argc
-								 argv:(jsval *)argv
-							   result:(jsval *)result;
+// Raw evaluation. Context may not be NULL and must be in a request.
+- (BOOL) evaluateWithContext:(JSContext *)context
+					   scope:(JSObject *)jsThis
+						argc:(uintN)argc
+						argv:(jsval *)argv
+					  result:(jsval *)result;
 
 // Object-wrapper evaluation.
 - (id) evaluateWithContext:(JSContext *)context

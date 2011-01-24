@@ -51,8 +51,7 @@ MA 02110-1301, USA.
 
 #import "OOJoystickManager.h"
 
-#import "OOScript.h"
-#import "OOJavaScriptEngine.h"
+#import "OOJSScript.h"
 #import "OOEquipmentType.h"
 
 #if OOLITE_MAC_OS_X
@@ -430,7 +429,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	[(MyOpenGLView *)[UNIVERSE gameView] allowStringInput:NO];
 	[UNIVERSE setDisplayCursor:NO];
-	[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
 
 @end
@@ -924,7 +923,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						// primedEquipment == [eqScripts count] means we don't want to activate any equipment.
 						if(primedEquipment < [eqScripts count])
-							[(OOScript *)[[eqScripts oo_arrayAtIndex:primedEquipment] objectAtIndex:1] doEvent:@"activated" withArguments:nil];
+							[(OOScript *)[[eqScripts oo_arrayAtIndex:primedEquipment] objectAtIndex:1] doEvent:OOJSID("activated") withArguments:nil];
 					}
 					activate_equipment_pressed = YES;
 				}
@@ -1164,7 +1163,7 @@ static NSTimeInterval	time_last_frame;
 							// say it!
 							[UNIVERSE clearPreviousMessage];
 							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
-							[self doScriptEvent:@"playerStartedJumpCountdown"
+							[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
 								  withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
 							[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 						}
@@ -1206,7 +1205,7 @@ static NSTimeInterval	time_last_frame;
 							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
 							// FIXME: how to preload target system for hyperspace jump?
 							
-							[self doScriptEvent:@"playerStartedJumpCountdown"
+							[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
 								  withArguments:[NSArray arrayWithObjects:@"galactic", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
 						}
 					}
@@ -2876,7 +2875,7 @@ static NSTimeInterval	time_last_frame;
 			switching_status_screens = YES;
 			if ((gui_screen == GUI_SCREEN_STATUS)&&(![UNIVERSE strict]))
 			{
-				[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_MANIFEST) andArgument:OOStringFromGUIScreenID(gui_screen)];
+				[self noteGUIWillChangeTo:GUI_SCREEN_MANIFEST];
 				[self setGuiToManifestScreen];
 			}
 			else
@@ -2909,7 +2908,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
 		{
-			[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_SYSTEM_DATA) andArgument:OOStringFromGUIScreenID(gui_screen)];
+			[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
 			[self setGuiToSystemDataScreen];
 		}
 	}
@@ -2933,7 +2932,7 @@ static NSTimeInterval	time_last_frame;
 				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[dockedStation hasShipyard])
 				{
 					[gameView clearKeys];
-					[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_SHIPYARD) andArgument:OOStringFromGUIScreenID(oldScreen)];
+					[self noteGUIWillChangeTo:GUI_SCREEN_SHIPYARD];
 					[self setGuiToShipyardScreen:0];
 					[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
 					[self showShipyardInfoForSelection];
@@ -2941,12 +2940,12 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView clearKeys];
-					[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_EQUIP_SHIP) andArgument:OOStringFromGUIScreenID(oldScreen)];
+					[self noteGUIWillChangeTo:GUI_SCREEN_EQUIP_SHIP];
 					[self setGuiToEquipShipScreen:0];
 					[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
 				
-				[self noteGuiChangeFrom:oldScreen to:gui_screen]; 
+				[self noteGUIDidChangeFrom:oldScreen to:gui_screen]; 
 			}
 			switching_equipship_screens = YES;
 		}
@@ -2968,7 +2967,7 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView clearKeys];
-					[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_MARKET) andArgument:OOStringFromGUIScreenID(gui_screen)];
+					[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
 					[self setGuiToMarketScreen];
 					[gui setSelectedRow:GUI_ROW_MARKET_START];
 				}
@@ -2986,7 +2985,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (!switching_market_screens)
 			{
-				[self doScriptEvent:@"guiScreenWillChange" withArgument:OOStringFromGUIScreenID(GUI_SCREEN_MARKET) andArgument:OOStringFromGUIScreenID(gui_screen)];
+				[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
 				[self setGuiToMarketScreen];
 				[gui setSelectedRow:GUI_ROW_MARKET_START];
 			}
@@ -3306,7 +3305,7 @@ static BOOL toggling_music;
 	}
 	if ((oldViewDirection != viewDirection || viewDirection == VIEW_CUSTOM) && ![[UNIVERSE gameController] gameIsPaused])
 	{
-		[self doScriptEvent:@"viewDirectionChanged"
+		[self doScriptEvent:OOJSID("viewDirectionChanged")
 				withArgument:ViewIDToString(viewDirection)
 				andArgument:ViewIDToString(oldViewDirection)];
 	}

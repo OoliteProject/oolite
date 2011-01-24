@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #import "OOShipRegistry.h"
 #import "OOEquipmentType.h"
 #import "OOTexture.h"
+#import "OOJavaScriptEngine.h"
 
 
 static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showShipyardModel";
@@ -91,7 +92,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		OOCharacter* rescuee = (OOCharacter*)[rescuees objectAtIndex: i];
 		if ([rescuee script])
 		{
-			[rescuee doScriptEvent:@"unloadCharacter"];
+			[rescuee doScriptEvent:OOJSID("unloadCharacter")];
 		}
 		else if ([rescuee legacyScript])
 		{
@@ -754,7 +755,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSDictionary *descriptor = [UNIVERSE screenTextureDescriptorForKey:@"contracts"];
 		if (descriptor == nil)  descriptor = [UNIVERSE screenTextureDescriptorForKey:@"market"];
 		[gui setBackgroundTextureDescriptor:descriptor];
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 
@@ -1134,7 +1135,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		[gui setBackgroundTextureKey:@"manifest"];
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 
@@ -1193,7 +1194,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status_docked"];
 		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status"];
 		[gui setBackgroundTextureDescriptor:bgDescriptor];
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 
@@ -1263,7 +1264,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if (bgDescriptor == nil) bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status_docked"];
 		if (bgDescriptor == nil) bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status"];
 		[gui setBackgroundTextureDescriptor:bgDescriptor];
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 
@@ -1416,7 +1417,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		[gui setForegroundTextureKey:@"docked_overlay"];
 		
 		[gui setBackgroundTextureKey:@"shipyard"];
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 

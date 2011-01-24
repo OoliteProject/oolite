@@ -118,7 +118,6 @@ static OORegExpMatcher *sActiveInstance;
 		if (EXPECT_NOT(buffer == NULL))  return NO;
 		[regExp getCharacters:buffer];
 		
-		JS_BeginRequest(context);
 		_cachedRegExpString = [regExp retain];
 #if OO_NEW_JS
 		JSObject *regExpObj = JS_NewUCRegExpObjectNoStatics(context, buffer, expLength, flags);
@@ -127,7 +126,6 @@ static OORegExpMatcher *sActiveInstance;
 #endif
 		_cachedRegExpObject = [[OOJSValue alloc] initWithJSObject:regExpObj inContext:context];
 		_cachedFlags = flags;
-		JS_EndRequest(context);
 		
 		free(buffer);
 	}

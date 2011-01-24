@@ -92,11 +92,9 @@ const char *JSValueToStrDbg(jsval val)
 {
 	OOJavaScriptEngine *jsEngine = [OOJavaScriptEngine sharedEngine];
 	JSContext *context = [jsEngine acquireContext];
-	JS_BeginRequest(context);
 	
 	const char *result = [[NSString stringWithJavaScriptValue:val inContext:context] UTF8String];
 	
-	JS_EndRequest(context);
 	[jsEngine releaseContext:context];
 	
 	return result;

@@ -116,12 +116,8 @@ static OODebugMonitor *sSingleton = nil;
 		// If no script, just make console visible globally as debugConsole.
 		if (_script == nil)
 		{
-			JS_BeginRequest(context);
-			
 			JSObject *global = [jsEng globalObject];
 			JS_DefineProperty(context, global, "debugConsole", [self oo_jsValueInContext:context], NULL, NULL, JSPROP_ENUMERATE);
-			
-			JS_EndRequest(context);
 		}
 		
 		[jsEng releaseContext:context];
@@ -206,7 +202,7 @@ static OODebugMonitor *sSingleton = nil;
 - (oneway void)performJSConsoleCommand:(in NSString *)command
 {
 	OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-	[_script doEvent:@"consolePerformJSCommand" withArgument:command];
+	[_script doEvent:OOJSID("consolePerformJSCommand") withArguments:[NSArray arrayWithObject:command]];
 	OOJSStopTimeLimiter();
 }
 
@@ -613,12 +609,12 @@ typedef struct
 #if OO_NEW_JS
 	OOJavaScriptEngine *jsEngine = [OOJavaScriptEngine sharedEngine];
 	JSContext *context = [jsEngine acquireContext];
-	JS_BeginRequest(context);
+	
 	JSRuntime *runtime = JS_GetRuntime(context);
 	size_t jsSize = JS_GetGCParameter(runtime, JSGC_BYTES);
 	size_t jsMax = JS_GetGCParameter(runtime, JSGC_MAX_BYTES);
 	uint32_t jsGCCount = JS_GetGCParameter(runtime, JSGC_NUMBER);
-	JS_EndRequest(context);
+	
 	[jsEngine releaseContext:context];
 	
 	[self writeMemStat:@"JavaScript heap: %@ (limit %@, %u collections to date)", SizeString(jsSize), SizeString(jsMax), jsGCCount];

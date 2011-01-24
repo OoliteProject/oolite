@@ -413,14 +413,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	NSParameterAssert(OOJSValueIsFunction(context, function));
 	
 	context = [self acquireContext];
-	JS_BeginRequest(context);
 	
 	OOJSStartTimeLimiter();
 	result = JS_CallFunctionValue(context, jsThis, function, argc, argv, outResult);
 	OOJSStopTimeLimiter();
 	
 	JS_ReportPendingException(context);
-	JS_EndRequest(context);
 	[self releaseContext:context];
 	
 	return result;
@@ -441,10 +439,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		*/
 		mainContextInUse = YES;
 		context = mainContext;
+		JS_BeginRequest(context);
 	}
 	else if (contextPoolCount != 0)
 	{
 		context = contextPool[--contextPoolCount];
+		JS_BeginRequest(context);
 	}
 	else
 	{
@@ -458,12 +458,11 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 			exit(1);
 		}
 		
-		JS_BeginRequest(context);
+		JS_BeginRequest(context);	// Explicitly not balanced.
 		JS_SetOptions(context, OOJSENGINE_CONTEXT_OPTIONS);
 		JS_SetVersion(context, OOJSENGINE_JSVERSION);
 		JS_SetErrorReporter(context, ReportJSError);
 		JS_SetGlobalObject(context, globalObject);
-		JS_EndRequest(context);
 	}
 	
 	return context;
@@ -473,6 +472,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 - (void)releaseContext:(JSContext *)context
 {
 	if (context == NULL)  return;
+	
+	NSParameterAssert(JS_IsInRequest(context));
+	JS_EndRequest(context);
 	
 	if (context == mainContext)
 	{
@@ -494,9 +496,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 - (void) removeGCObjectRoot:(JSObject **)rootPtr
 {
 	JSContext *context = [self acquireContext];
-	JS_BeginRequest(context);
 	JS_RemoveObjectRoot(context, rootPtr);
-	JS_EndRequest(context);
 	[self releaseContext:context];
 }
 
@@ -504,9 +504,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 - (void) removeGCValueRoot:(jsval *)rootPtr
 {
 	JSContext *context = [self acquireContext];
-	JS_BeginRequest(context);
 	JS_RemoveValueRoot(context, rootPtr);
-	JS_EndRequest(context);
 	[self releaseContext:context];
 }
 
@@ -906,8 +904,15 @@ void OOJSMarkConsoleEvalLocation(JSContext *context, JSStackFrame *stackFrame)
 #if OO_NEW_JS
 void OOJSInitPropIDCachePRIVATE(JSContext *context, const char *name, jsid *idCache, BOOL *inited)
 {
-	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
+	NSCParameterAssert(context == NULL || JS_IsInRequest(context));
 	NSCParameterAssert(name != NULL && idCache != NULL && inited != NULL && !*inited);
+	
+	OOJavaScriptEngine *jsEngIfTempContext = nil;
+	if (context == NULL)
+	{
+		jsEngIfTempContext = [OOJavaScriptEngine sharedEngine];
+		context = [jsEngIfTempContext acquireContext];
+	}
 	
 	JSString *string = JS_InternString(context, name);
 	if (EXPECT_NOT(string == NULL))
@@ -917,12 +922,24 @@ void OOJSInitPropIDCachePRIVATE(JSContext *context, const char *name, jsid *idCa
 	
 	*idCache = INTERNED_STRING_TO_JSID(string);
 	*inited = YES;
+	
+	if (jsEngIfTempContext != nil)
+	{
+		[jsEngIfTempContext releaseContext:context];
+	}
 }
 
 
 OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
 {
-	NSCParameterAssert(context != NULL && JS_IsInRequest(context) && string != nil);
+	NSCParameterAssert((context == NULL || JS_IsInRequest(context)) && string != nil);
+	
+	OOJavaScriptEngine *jsEngIfTempContext = nil;
+	if (context == NULL)
+	{
+		jsEngIfTempContext = [OOJavaScriptEngine sharedEngine];
+		context = [jsEngIfTempContext acquireContext];
+	}
 	
 	enum { kStackBufSize = 1024 };
 	unichar stackBuf[kStackBufSize];
@@ -944,16 +961,39 @@ OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
 	
 	if (EXPECT_NOT(buffer != stackBuf))  free(buffer);
 	
+	if (jsEngIfTempContext != nil)
+	{
+		[jsEngIfTempContext releaseContext:context];
+	}
+	
 	return INTERNED_STRING_TO_JSID(jsString);
 }
 
 
 NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID)
 {
-	jsval value;
-	if (!JS_IdToValue(context, propID, &value))  return nil;
+	NSCParameterAssert(context == NULL || JS_IsInRequest(context));
 	
-	return OOStringFromJSString(context, JS_ValueToString(context, value));
+	OOJavaScriptEngine *jsEngIfTempContext = nil;
+	if (context == NULL)
+	{
+		jsEngIfTempContext = [OOJavaScriptEngine sharedEngine];
+		context = [jsEngIfTempContext acquireContext];
+	}
+	
+	jsval		value;
+	NSString	*result = nil;
+	if (JS_IdToValue(context, propID, &value))
+	{
+		result = OOStringFromJSString(context, JS_ValueToString(context, value));
+	}
+	
+	if (jsEngIfTempContext != nil)
+	{
+		[jsEngIfTempContext releaseContext:context];
+	}
+	
+	return result;
 }
 #else
 OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
@@ -1407,9 +1447,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		}
 		
 		_val = value;
-		JS_BeginRequest(context);
 		JS_AddNamedValueRoot(context, &_val, "OOJSValue");
-		JS_EndRequest(context);
 		
 		if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	}
@@ -1428,9 +1466,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 - (void) dealloc
 {
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	JS_BeginRequest(context);
 	JS_RemoveValueRoot(context, &_val);
-	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	[super dealloc];
@@ -1624,9 +1660,7 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 	
 	if (length == 0)
 	{
-		JS_BeginRequest(context);
 		jsval result = JS_GetEmptyStringValue(context);
-		JS_EndRequest(context);
 		return result;
 	}
 	else
@@ -1636,9 +1670,7 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 		
 		[self getCharacters:buffer];
 		
-		JS_BeginRequest(context);
 		string = JS_NewUCStringCopyN(context, buffer, length);
-		JS_EndRequest(context);
 		
 		free(buffer);
 		return STRING_TO_JSVAL(string);

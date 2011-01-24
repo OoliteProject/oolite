@@ -39,7 +39,7 @@ SOFTWARE.
 #import "OOWeakReference.h"
 #import "OODebuggerInterface.h"
 
-@class OOScript;
+@class OOJSScript;
 
 
 @protocol OODebugMonitorInterface
@@ -67,7 +67,7 @@ SOFTWARE.
 	id<OODebuggerInterface>				_debugger;
 	
 	// JavaScript console support.
-	OOScript							*_script;
+	OOJSScript							*_script;
 	struct JSObject						*_jsSelf;
 	
 	NSDictionary						*_configFromOXPs;	// Settings from debugConfig.plist

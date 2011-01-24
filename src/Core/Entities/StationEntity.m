@@ -1492,7 +1492,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		alertLevel = level;
 		if (signallingScript)
 		{
-			[self doScriptEvent:@"alertConditionChanged"
+			[self doScriptEvent:OOJSID("alertConditionChanged")
 				   withArgument:[NSNumber numberWithUnsignedInt:level]
 					andArgument:[NSNumber numberWithUnsignedInt:oldLevel]];
 		}

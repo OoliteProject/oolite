@@ -261,23 +261,4 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");
 }
 
-
-- (BOOL)doEvent:(NSString *)eventName
-{
-	return [self doEvent:eventName withArguments:nil];
-}
-
-
-- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments
-{
-	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");
-	return NO;
-}
-
-
-- (BOOL)doEvent:(NSString *)eventName withArgument:(id)argument
-{
-	return [self doEvent:eventName withArguments:[NSArray arrayWithObject:argument]];
-}
-
 @end

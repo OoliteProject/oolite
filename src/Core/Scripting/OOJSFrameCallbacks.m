@@ -140,8 +140,6 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta delta)
 		jsval				deltaVal, result;
 		OOUInteger			i;
 		
-		JS_BeginRequest(context);
-		
 		if (EXPECT_NOT(!JS_NewDoubleValue(context, delta, &deltaVal)))  return;
 		
 		// Block mutations.
@@ -167,7 +165,6 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta delta)
 			DESTROY(sDeferredOps);
 		}
 		
-		JS_EndRequest(context);
 		[jsEng releaseContext:context];
 	}
 }
@@ -181,11 +178,9 @@ void OOJSFrameCallbacksRemoveAll(void)
 	{
 		OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
 		JSContext			*context = [jsEng acquireContext];
-		JS_BeginRequest(context);
 		
 		while (sCount != 0)  RemoveCallbackAtIndex(context, sCount - 1);
 		
-		JS_EndRequest(context);
 		[jsEng releaseContext:context];
 	}
 }

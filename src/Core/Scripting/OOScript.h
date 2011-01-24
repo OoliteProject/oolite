@@ -63,8 +63,4 @@ MA 02110-1301, USA.
 
 - (void)runWithTarget:(Entity *)target;
 
-- (BOOL)doEvent:(NSString *)eventName;
-- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments;
-- (BOOL)doEvent:(NSString *)eventName withArgument:(id)argument;
-
 @end

@@ -111,13 +111,6 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 	OOLogOutdentIf(@"script.trace.plist.run");
 }
 
-
-- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)argument
-{
-	// PList scripts don't have event handlers.
-	return NO;
-}
-
 @end
 
 

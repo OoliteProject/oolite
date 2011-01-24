@@ -70,6 +70,7 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 #import "OOJSFrameCallbacks.h"
+#import "OOConstToJSString.h"
 
 #import "OOJoystickManager.h"
 #import "PlayerEntityStickMapper.h"
@@ -1280,7 +1281,13 @@ static GLfloat		sBaseMass = 0.0;
 {
 	dockedStation = [UNIVERSE station];
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	[self doWorldScriptEvent:@"startUp" withArguments:nil timeLimit:kOOJSLongTimeLimit];
+	
+	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
+	JSContext			*context = [jsEng acquireContext];
+	
+	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+	
+	[jsEng releaseContext:context];
 }
 
 
@@ -2076,7 +2083,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	OOAlertCondition cond = [self alertCondition];
 	if (cond != lastScriptAlertCondition)
 	{
-		[self doScriptEvent:@"alertConditionChanged"
+		[self doScriptEvent:OOJSID("alertConditionChanged")
 			   withArgument:[NSNumber numberWithInt:cond]
 				andArgument:[NSNumber numberWithInt:lastScriptAlertCondition]];
 		lastScriptAlertCondition = cond;
@@ -4466,7 +4473,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	// Let event scripts know the player died.
 	if (whom == nil)  whom = (id)[NSNull null];
-	[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
+	[self doScriptEvent:OOJSID("shipDied") withArguments:[NSArray arrayWithObjects:whom, why, nil]];
 	[self setStatus:STATUS_DEAD]; // set dead again in case a script managed to revive the player.
 	[self removeAllEquipment];			// No scooping / equipment damage when dead.
 	[self loseTargetStatus];
@@ -5157,7 +5164,7 @@ done:
 		[gui setBackgroundTextureDescriptor:bgDescriptor];
 		
 		[gui setStatusPage:0];
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 
@@ -5470,7 +5477,7 @@ done:
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		[gui setBackgroundTextureKey:sunGoneNova ? @"system_data_nova" : @"system_data"];
 		
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 		[self checkScript];	// Still needed by some OXPs?
 	}
 }
@@ -5553,7 +5560,7 @@ done:
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		
 		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] exactMatch:YES];
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 
@@ -5606,7 +5613,7 @@ done:
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		
 		[gui setBackgroundTextureKey:@"short_range_chart"];
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 
@@ -5906,7 +5913,7 @@ done:
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
-	[self noteGuiChangeFrom:oldScreen to:gui_screen]; 
+	[self noteGUIDidChangeFrom:oldScreen to:gui_screen]; 
 }
 
 
@@ -6442,13 +6449,24 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) noteGuiChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen
+- (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen
+{
+	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
+	JSContext			*context = [jsEng acquireContext];
+	
+	ShipScriptEvent(context, self, "guiScreenWillChange", OOJSValueFromGUIScreenID(context, toScreen), OOJSValueFromGUIScreenID(context, gui_screen));
+	
+	[jsEng releaseContext:context];
+}
+
+
+- (void) noteGUIDidChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen
 {
 	// No events triggered if we're changing screens while paused, or if screen never actually changed.
-	if( fromScreen != toScreen )
+	if (fromScreen != toScreen)
 	{
 		// MKW - release GUI Screen ship, if we have one
-		switch(fromScreen)
+		switch (fromScreen)
 		{
 			case GUI_SCREEN_SHIPYARD:
 			case GUI_SCREEN_LOAD:
@@ -6463,9 +6481,12 @@ static NSString *last_outfitting_key=nil;
 		}
 		if (![[UNIVERSE gameController] gameIsPaused])
 		{
-			[self doScriptEvent:@"guiScreenChanged"
-				withArgument:OOStringFromGUIScreenID(toScreen)
-				andArgument:OOStringFromGUIScreenID(fromScreen)];
+			OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
+			JSContext			*context = [jsEng acquireContext];
+			
+			ShipScriptEvent(context, self, "guiScreenChanged", OOJSValueFromGUIScreenID(context, toScreen), OOJSValueFromGUIScreenID(context, fromScreen));
+			
+			[jsEng releaseContext:context];
 		}
 	}
 }
@@ -7038,7 +7059,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		[gui setBackgroundTextureKey:@"market"];
-		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 
@@ -8056,10 +8077,50 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments
+- (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments
 {
-	[super doScriptEvent:message withArguments:arguments];
-	[self doWorldScriptEvent:message withArguments:arguments timeLimit:0.0];
+	OOJavaScriptEngine		*engine = [OOJavaScriptEngine sharedEngine];
+	JSContext				*context = [engine acquireContext];
+	uintN					i, argc;
+	jsval					*argv = NULL;
+	
+	// Convert arguments to JS values and make them temporarily un-garbage-collectable.
+	argc = [arguments count];
+	if (argc != 0)
+	{
+		argv = malloc(sizeof *argv * argc);
+		if (argv != NULL)
+		{
+			for (i = 0; i != argc; ++i)
+			{
+				argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
+				OOJSAddGCValueRoot(context, &argv[i], "JSScript event parameter");
+			}
+		}
+		else  argc = 0;
+	}
+	
+	[super doScriptEvent:message inContext:context withArguments:argv count:argc];
+	[self doWorldScriptEvent:message inContext:context withArguments:argv count:argc timeLimit:0.0];
+	
+	// Re-garbage-collectibalize the arguments and free the array.
+	if (argv != NULL)
+	{
+		for (i = 0; i != argc; ++i)
+		{
+			JS_RemoveValueRoot(context, &argv[i]);
+		}
+		free(argv);
+	}
+	
+	[engine releaseContext:context];
+}
+
+
+- (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
+{
+	[super doScriptEvent:message inContext:context withArguments:argv count:argc];
+	[self doWorldScriptEvent:message inContext:context withArguments:argv count:argc timeLimit:0.0];
 }
 
 
@@ -8067,6 +8128,7 @@ static NSString *last_outfitting_key=nil;
 {
 	NSEnumerator	*scriptEnum = [worldScripts objectEnumerator];
 	OOScript		*theScript;
+	OOJSPropID		messageID = OOJSPropIDFromString(NULL, message);
 
 	// Check for the pressence of report messages first.
 	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] > 0 && [self isDocked] && ![dockedStation suppressArrivalReports])
@@ -8079,7 +8141,7 @@ static NSString *last_outfitting_key=nil;
 	// FIXME: does this work ok in all situations? Needs fixing if not.
 	while ((theScript = [scriptEnum nextObject]) && gui_screen != GUI_SCREEN_MISSION && [self isDocked])
 	{
-		[theScript doEvent:message withArguments:nil];
+		[theScript doEvent:messageID withArguments:nil];
 	}
 	
 	if (gui_screen == GUI_SCREEN_MISSION)
@@ -8093,15 +8155,17 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments timeLimit:(OOTimeDelta)limit
+- (void) doWorldScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc timeLimit:(OOTimeDelta)limit
 {
-	NSEnumerator	*scriptEnum;
-	OOScript		*theScript;
+	NSParameterAssert(context != NULL && JS_IsInRequest(context));
+	
+	NSEnumerator			*scriptEnum = nil;
+	OOScript				*theScript = nil;
 	
 	for (scriptEnum = [worldScripts objectEnumerator]; (theScript = [scriptEnum nextObject]); )
 	{
 		OOJSStartTimeLimiterWithTimeLimit(limit);
-		[theScript doEvent:message withArguments:arguments];
+		[theScript doEvent:message inContext:context withArguments:argv count:argc];
 		OOJSStopTimeLimiter();
 	}
 }

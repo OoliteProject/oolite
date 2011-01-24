@@ -1242,7 +1242,7 @@ static WormholeEntity *whole = nil;
 		}
 		else if ([self bounty] == 0 && [ship crew]) // Only clean ships can have their distress calls accepted
 		{
-			[ship doScriptEvent:@"distressMessageReceived" withArgument:aggressor_ship andArgument:self];
+			[ship doScriptEvent:OOJSID("distressMessageReceived") withArgument:aggressor_ship andArgument:self];
 			
 			// we only can send distressMessages to ships that are known to have a "ACCEPT_DISTRESS_CALL" reaction
 			// in their AI, or they might react wrong on the added found_target.
@@ -1970,7 +1970,6 @@ static WormholeEntity *whole = nil;
 	JSContext					*context = NULL;
 	
 	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	JS_BeginRequest(context);
 	
 	if (predicateExpression == nil)  predicateExpression = @"false";
 	
@@ -2036,7 +2035,6 @@ static WormholeEntity *whole = nil;
 	}
 	
 	JS_ReportPendingException(context);
-	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 }
 

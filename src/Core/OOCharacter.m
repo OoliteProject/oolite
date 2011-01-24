@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOJSScript.h"
 
 #ifdef OO_BRAIN_AI
 #import "OOBrain.h"
@@ -456,7 +457,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOScript *)script;
+- (OOJSScript *)script
 {
 	return _script;
 }
@@ -475,10 +476,11 @@ MA 02110-1301, USA.
 }
 
 
-- (void) doScriptEvent:(NSString *)message
+- (void) doScriptEvent:(OOJSPropID)message
 {
 	[_script doEvent:message withArguments:nil];
 }
+
 
 - (void) setCharacterFromDictionary:(NSDictionary *) dict
 {

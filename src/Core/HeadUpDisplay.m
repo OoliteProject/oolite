@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOStringParsing.h"
 #import "OOJoystickManager.h"
+#import "OOJavaScriptEngine.h"
 
 
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
@@ -1062,7 +1063,7 @@ static BOOL hostiles;
 		if (reference != [player compassTarget])
 		{
 			[player setCompassTarget:reference];
-			[player doScriptEvent:@"compassTargetChanged" withArguments:[NSArray arrayWithObjects:reference, OOStringFromCompassMode([player compassMode]), nil]];
+			[player doScriptEvent:OOJSID("compassTargetChanged") withArguments:[NSArray arrayWithObjects:reference, OOStringFromCompassMode([player compassMode]), nil]];
 		}
 		
 		// translate and rotate the view

@@ -27,11 +27,13 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "OOTypes.h"
 #import "legacy_random.h"
-#import "OOScript.h"
+#import "OOJSPropID.h"
 
 #ifdef OO_BRAIN_AI
 @class OOBrain;
 #endif
+@class OOJSScript;
+
 
 @interface OOCharacter : NSObject
 {
@@ -48,7 +50,7 @@ MA 02110-1301, USA.
 #endif
 	
 	NSArray				*script_actions;
-	OOScript			*_script;
+	OOJSScript			*_script;
 }
 
 - (id) initWithGenSeed:(Random_Seed)g_seed andOriginalSystemSeed:(Random_Seed)s_seed;
@@ -87,9 +89,9 @@ MA 02110-1301, USA.
 
 - (NSArray *) legacyScript;
 - (void) setLegacyScript:(NSArray *)some_actions;
-- (OOScript *)script;
+- (OOJSScript *)script;
 - (void) setCharacterScript:(NSString *)script_name;
-- (void) doScriptEvent:(NSString *)message;
+- (void) doScriptEvent:(OOJSPropID)message;
 
 #ifdef OO_BRAIN_AI
 - (OOBrain *) brain;

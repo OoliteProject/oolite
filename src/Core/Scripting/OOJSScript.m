@@ -94,6 +94,7 @@ static JSFunctionSpec sScriptMethods[] =
 @interface OOJSScript (OOPrivate)
 
 - (NSString *)scriptNameFromPath:(NSString *)path;
+- (BOOL) doEvent:(OOJSPropID)eventID withMethod:(jsval)method andArguments:(jsval *)argv count:(uintN)argc inContext:(JSContext *)context;
 
 @end
 
@@ -123,7 +124,6 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	engine = [OOJavaScriptEngine sharedEngine];
 	context = [engine acquireContext];
-	JS_BeginRequest(context);
 	
 	// Set up JS object
 	if (!problem)
@@ -183,7 +183,7 @@ static JSFunctionSpec sScriptMethods[] =
 		the script object can't be renamed after the initial run. This could
 		probably also be achieved by fiddling with JS property attributes.
 	*/
-	OOJSPropID nameID = OOJS_PROPID(context, "name");
+	OOJSPropID nameID = OOJSIDCX(context, "name");
 	[self setProperty:[self scriptNameFromPath:path] withID:nameID inContext:context];
 	
 	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
@@ -216,8 +216,8 @@ static JSFunctionSpec sScriptMethods[] =
 			[self setProperty:name withID:nameID inContext:context];
 		}
 		
-		version = [[[self propertyWithID:OOJS_PROPID(context, "version") inContext:context] description] copy];
-		description = [[[self propertyWithID:OOJS_PROPID(context, "description") inContext:context] description] copy];
+		version = [[[self propertyWithID:OOJSIDCX(context, "version") inContext:context] description] copy];
+		description = [[[self propertyWithID:OOJSIDCX(context, "description") inContext:context] description] copy];
 		
 		OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : (NSString *)@"(no description)");
 	}
@@ -231,7 +231,6 @@ static JSFunctionSpec sScriptMethods[] =
 		self = nil;
 	}
 	
-	JS_EndRequest(context);
 	[engine releaseContext:context];
 	
 	return self;
@@ -247,12 +246,10 @@ static JSFunctionSpec sScriptMethods[] =
 	DESTROY(filePath);
 	
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	JS_BeginRequest(context);
 	
 	OOJSObjectWrapperFinalize(context, _jsSelf);		// Release weakref to self
 	JS_RemoveObjectRoot(context, &_jsSelf);			// Unroot jsSelf
 	
-	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	[weakSelf weakRefDrop];
@@ -319,54 +316,22 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (void)runWithTarget:(Entity *)target
 {
-	[self doEvent:@"tickle" withArguments:[NSArray arrayWithObject:[PLAYER status_string]]];
+	[self doEvent:OOJSID("tickle") withArguments:[NSArray arrayWithObject:[PLAYER status_string]]];
 }
 
 
-- (jsval) functionValueNamed:(NSString *)eventName contextWithRequest:(JSContext *)context
+- (BOOL) doEvent:(OOJSPropID)eventID withArguments:(NSArray *)arguments
 {
-	BOOL						OK;
-	jsval						value;
-	JSObject					*fakeRoot;	// Unneeded, but oldjs JS_GetMethod needs it to exist.
-	
-	// FIXME: this should be caching name->jsid mappings.
-	OK = JS_GetMethod(context, _jsSelf, [eventName UTF8String], &fakeRoot, &value);
-	
-	if (OK)  return value;
-	else  return JSVAL_VOID;
-}
-
-
-- (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments
-{
-	BOOL					OK = YES;
-	jsval					value = JSVAL_VOID;
-	jsval					function;
+	OOJavaScriptEngine		*engine = [OOJavaScriptEngine sharedEngine];
+	JSContext				*context = [engine acquireContext];
 	uintN					i, argc;
 	jsval					*argv = NULL;
-	OOJavaScriptEngine		*engine = nil;
-	JSContext				*context = NULL;
+	jsval					function;
+	JSObject				*fakeRoot;
+	BOOL					OK = YES;
 	
-	engine = [OOJavaScriptEngine sharedEngine];
-	context = [engine acquireContext];
-	JS_BeginRequest(context);
-	
-	function = [self functionValueNamed:eventName contextWithRequest:context];
-	if (!JSVAL_IS_VOID(function))
+	if (OOJSGetMethod(context, _jsSelf, eventID, &fakeRoot, &function) && !JSVAL_IS_VOID(function))
 	{
-#ifndef NDEBUG
-		OOLog(@"script.trace.javaScript.event", @"Calling [%@].%@()", [self name], eventName);
-		OOLogIndentIf(@"script.trace.javaScript.event");
-#endif
-		
-		// Push self on stack of running scripts.
-		RunningStack stackElement =
-		{
-			.back = sRunningStack,
-			.current = self
-		};
-		sRunningStack = &stackElement;
-		
 		// Convert arguments to JS values and make them temporarily un-garbage-collectable.
 		argc = [arguments count];
 		if (argc != 0)
@@ -383,10 +348,7 @@ static JSFunctionSpec sScriptMethods[] =
 			else  argc = 0;
 		}
 		
-		// Actually call the function.
-		OOJSStartTimeLimiter();
-		OK = JS_CallFunctionValue(context, _jsSelf, function, argc, argv, &value);
-		OOJSStopTimeLimiter();
+		OK = [self doEvent:eventID withMethod:function andArguments:argv count:argc inContext:context];
 		
 		// Re-garbage-collectibalize the arguments and free the array.
 		if (argv != NULL)
@@ -397,26 +359,26 @@ static JSFunctionSpec sScriptMethods[] =
 			}
 			free(argv);
 		}
-		
-		// Pop running scripts stack
-		sRunningStack = stackElement.back;
-		
-#if !OO_NEW_JS
-		JS_ClearNewbornRoots(context);
-#endif
-		
-#ifndef NDEBUG
-		OOLogOutdentIf(@"script.trace.javaScript.event");
-#endif
-	}
-	else
-	{
-		// No function
-		OK = YES;
 	}
 	
-	JS_EndRequest(context);
 	[engine releaseContext:context];
+	
+	return OK;
+}
+
+
+- (BOOL) doEvent:(OOJSPropID)eventID inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
+{
+	NSParameterAssert(context != NULL && JS_IsInRequest(context));
+	
+	jsval					function;
+	JSObject				*fakeRoot;
+	BOOL					OK = YES;
+	
+	if (OOJSGetMethod(context, _jsSelf, eventID, &fakeRoot, &function) && !JSVAL_IS_VOID(function))
+	{
+		OK = [self doEvent:eventID withMethod:function andArguments:argv count:argc inContext:context];
+	}
 	
 	return OK;
 }
@@ -500,11 +462,9 @@ static JSFunctionSpec sScriptMethods[] =
 	if (propName == nil)  return nil;
 	
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	JS_BeginRequest(context);
 	
 	id result = [self propertyWithID:OOJSPropIDFromString(context, propName) inContext:context];
 	
-	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
 	return result;
@@ -516,11 +476,9 @@ static JSFunctionSpec sScriptMethods[] =
 	if (value == nil || propName == nil)  return NO;
 	
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	JS_BeginRequest(context);
 	
 	BOOL result = [self setProperty:value withID:OOJSPropIDFromString(context, propName) inContext:context];
 	
-	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return result;
 }
@@ -531,11 +489,9 @@ static JSFunctionSpec sScriptMethods[] =
 	if (value == nil || propName == nil)  return NO;
 	
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	JS_BeginRequest(context);
 	
 	BOOL result = [self defineProperty:value withID:OOJSPropIDFromString(context, propName) inContext:context];
 	
-	JS_EndRequest(context);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return result;
 }
@@ -625,10 +581,60 @@ static JSFunctionSpec sScriptMethods[] =
 	return StrippedName([theName stringByAppendingString:@".anon-script"]);
 }
 
+
+- (BOOL) doEvent:(OOJSPropID)eventID withMethod:(jsval)method andArguments:(jsval *)argv count:(uintN)argc inContext:(JSContext *)context
+{
+	BOOL					OK = YES;
+	jsval					value = JSVAL_VOID;
+	
+#ifndef NDEBUG
+	NSAssert1(OOJSValueIsFunction(context, method), @"Expected function, got %@.", OOStringFromJSValueEvenIfNull(context, method));
+	OOLog(@"script.trace.javaScript.event", @"Calling [%@].%@()", [self name], OOStringFromJSPropID(context, eventID));
+	OOLogIndentIf(@"script.trace.javaScript.event");
+#endif
+	
+	// Push self on stack of running scripts.
+	RunningStack stackElement =
+	{
+		.back = sRunningStack,
+		.current = self
+	};
+	sRunningStack = &stackElement;
+	
+	// Call the method.
+	OOJSStartTimeLimiter();
+	OK = JS_CallFunctionValue(context, _jsSelf, method, argc, argv, &value);
+	OOJSStopTimeLimiter();
+	
+	// Pop running scripts stack.
+	sRunningStack = stackElement.back;
+	
+#if !OO_NEW_JS
+	JS_ClearNewbornRoots(context);
+#endif
+	
+#ifndef NDEBUG
+	OOLogOutdentIf(@"script.trace.javaScript.event");
+#endif
+	
+	return OK;
+}
+
 @end
 
 
-@implementation OOScript (OOJavaScriptConversion)
+@implementation OOScript (JavaScriptEvents)
+
+- (BOOL) doEvent:(OOJSPropID)eventID withArguments:(NSArray *)arguments
+{
+	return YES;
+}
+
+
+- (BOOL) doEvent:(OOJSPropID)eventID inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
+{
+	return YES;
+}
 
 - (jsval)oo_jsValueInContext:(JSContext *)context
 {
