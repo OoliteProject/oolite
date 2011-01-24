@@ -101,7 +101,7 @@ static OODebugMonitor *sSingleton = nil;
 		[jsEng setMonitor:self];
 #endif
 		
-		context = [jsEng acquireContext];
+		context = OOJSAcquireContext();
 		
 		// Set up JavaScript side of console.
 		BOOL savedShow = OOLogWillDisplayMessagesInClass(@"script.load.notFound");
@@ -120,7 +120,7 @@ static OODebugMonitor *sSingleton = nil;
 			JS_DefineProperty(context, global, "debugConsole", [self oo_jsValueInContext:context], NULL, NULL, JSPROP_ENUMERATE);
 		}
 		
-		[jsEng releaseContext:context];
+		OOJSRelinquishContext(context);
 	}
 	
 	return self;
@@ -607,15 +607,14 @@ typedef struct
 	 SizeString(visibleTextureDataSize)];
 	
 #if OO_NEW_JS
-	OOJavaScriptEngine *jsEngine = [OOJavaScriptEngine sharedEngine];
-	JSContext *context = [jsEngine acquireContext];
+	JSContext *context = OOJSAcquireContext();
 	
 	JSRuntime *runtime = JS_GetRuntime(context);
 	size_t jsSize = JS_GetGCParameter(runtime, JSGC_BYTES);
 	size_t jsMax = JS_GetGCParameter(runtime, JSGC_MAX_BYTES);
 	uint32_t jsGCCount = JS_GetGCParameter(runtime, JSGC_NUMBER);
 	
-	[jsEngine releaseContext:context];
+	OOJSRelinquishContext(context);
 	
 	[self writeMemStat:@"JavaScript heap: %@ (limit %@, %u collections to date)", SizeString(jsSize), SizeString(jsMax), jsGCCount];
 	totalSize += jsSize;

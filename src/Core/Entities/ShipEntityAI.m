@@ -1969,7 +1969,7 @@ static WormholeEntity *whole = nil;
 	OOJSFunction				*function = nil;
 	JSContext					*context = NULL;
 	
-	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	context = OOJSAcquireContext();
 	
 	if (predicateExpression == nil)  predicateExpression = @"false";
 	
@@ -2035,7 +2035,7 @@ static WormholeEntity *whole = nil;
 	}
 	
 	JS_ReportPendingException(context);
-	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	OOJSRelinquishContext(context);
 }
 
 

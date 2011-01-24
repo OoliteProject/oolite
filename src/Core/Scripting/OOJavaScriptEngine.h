@@ -42,20 +42,10 @@ MA 02110-1301, USA.
 @protocol OOJavaScriptEngineMonitor;
 
 
-enum
-{
-	kOOJavaScriptEngineContextPoolCount = 5
-};
-
-
 @interface OOJavaScriptEngine: NSObject
 {
 @private
 	JSRuntime						*runtime;
-	JSContext						*mainContext;
-	JSContext						*contextPool[kOOJavaScriptEngineContextPoolCount];
-	uint8_t							contextPoolCount;
-	uint8_t							mainContextInUse;
 	JSObject						*globalObject;
 	BOOL							_showErrorLocations;
 	
@@ -90,11 +80,6 @@ enum
 				   argv:(jsval *)argv
 				 result:(jsval *)outResult;
 
-// Get a JS context, and put it in a request.
-- (JSContext *)acquireContext;
-// Return a context provided by -acquireContext, and end a request.
-- (void)releaseContext:(JSContext *)context;
-
 - (void) removeGCObjectRoot:(JSObject **)rootPtr;
 - (void) removeGCValueRoot:(jsval *)rootPtr;
 
@@ -123,32 +108,55 @@ enum
 @end
 
 
+#if !JS_THREADSAFE
+#define JS_IsInRequest(context)		(((void)(context)), YES)
+#define JS_BeginRequest(context)	do {} while (0)
+#define JS_EndRequest(context)		do {} while (0)
+#endif
+
+
+// Get the main thread's JS context, and begin a request on it.
+OOINLINE JSContext *OOJSAcquireContext(void)
+{
+	extern JSContext *gOOJSMainThreadContext;
+	NSCAssert(gOOJSMainThreadContext != NULL, @"Attempt to use JavaScript context before JavaScript engine is initialized.");
+	JS_BeginRequest(gOOJSMainThreadContext);
+	return gOOJSMainThreadContext;
+}
+
+
+// End a request on the main thread's context.
+OOINLINE void OOJSRelinquishContext(JSContext *context)
+{
+#ifndef NDEBUG
+	extern JSContext *gOOJSMainThreadContext;
+	NSCParameterAssert(context == gOOJSMainThreadContext && JS_IsInRequest(context));
+#endif
+	JS_EndRequest(context);
+}
+
+
 /*	OOJSPropID
 	A temporary type to identify JavaScript object properties/methods. When
 	OO_NEW_JS is folded, it will be replaced with jsid.
 	
 	OOJSID(const char *)
-	OOJSIDCX(context, const char *)
 	Macro to create a string-based ID. The string is interned and converted
 	into a string by a helper the first time the macro is hit, then cached.
-	The CX variant provides a context (with a request) to do the lookup in,
-	the non-CX variant acquires a context if necessary.
 	
-	OOStringFromJSPropID(context, propID)
-	OOJSPropIDFromString(context, string)
-	Converters. The context parameter may be nil, in which case a temporary
-	context is acquired. If a context is specified, it must be in a request.
+	OOStringFromJSPropID(propID)
+	OOJSPropIDFromString(string)
+	Converters.
 */
 #import "OOJSPropID.h"
 #if OO_NEW_JS
-#define OOJSIDCX(context, str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(context, str, &idCache, &inited); idCache; })
-void OOJSInitPropIDCachePRIVATE(JSContext *context, const char *name, jsid *idCache, BOOL *inited);
+#define OOJSID(str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(str, &idCache, &inited); idCache; })
+void OOJSInitPropIDCachePRIVATE(const char *name, jsid *idCache, BOOL *inited);
 #else
-#define OOJSIDCX(context, str) (str)
+#define OOJSID(str) (str)
 #endif
-#define OOJSID(str) OOJSIDCX(NULL, str)
-NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID);
-OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string);
+NSString *OOStringFromJSPropID(OOJSPropID propID);
+OOJSPropID OOJSPropIDFromString(NSString *string);
 
 
 /*	Error and warning reporters.

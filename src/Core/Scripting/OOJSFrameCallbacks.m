@@ -135,8 +135,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta delta)
 	
 	if (sCount != 0)
 	{
-		OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
-		JSContext			*context = [jsEng acquireContext];
+		JSContext			*context = OOJSAcquireContext();
 		jsval				deltaVal, result;
 		OOUInteger			i;
 		
@@ -165,7 +164,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta delta)
 			DESTROY(sDeferredOps);
 		}
 		
-		[jsEng releaseContext:context];
+		OOJSRelinquishContext(context);
 	}
 }
 
@@ -176,12 +175,9 @@ void OOJSFrameCallbacksRemoveAll(void)
 	
 	if (sCount != 0)
 	{
-		OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
-		JSContext			*context = [jsEng acquireContext];
-		
+		JSContext *context = OOJSAcquireContext();
 		while (sCount != 0)  RemoveCallbackAtIndex(context, sCount - 1);
-		
-		[jsEng releaseContext:context];
+		OOJSRelinquishContext(context);
 	}
 }
 

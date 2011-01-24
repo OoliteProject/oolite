@@ -103,7 +103,7 @@ void MissionRunCallback()
 	jsval				rval = JSVAL_VOID;
 	PlayerEntity		*player = OOPlayerForScripting();
 	OOJavaScriptEngine	*engine  = [OOJavaScriptEngine sharedEngine];
-	JSContext			*context = [engine acquireContext];
+	JSContext			*context = OOJSAcquireContext();
 	
 	/*	Create temporarily-rooted local copies of sCallbackFunction and
 		sCallbackThis, then clear the statics. This must be done in advance
@@ -146,7 +146,7 @@ void MissionRunCallback()
 	JS_RemoveValueRoot(context, &cbFunction);
 	JS_RemoveObjectRoot(context, &cbThis);
 	
-	[engine releaseContext:context];
+	OOJSRelinquishContext(context);
 }
 
 

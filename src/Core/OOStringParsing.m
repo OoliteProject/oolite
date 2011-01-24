@@ -713,15 +713,14 @@ NSString *OOPadStringTo(NSString * string, float numSpaces)
 
 NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
 {
-	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
-	JSContext			*context = [jsEng acquireContext];
-	JSObject			*global = [jsEng globalObject];
+	JSContext			*context = OOJSAcquireContext();
+	JSObject			*global = [[OOJavaScriptEngine sharedEngine] globalObject];
 	JSObject			*fakeRoot;
 	jsval				method;
 	jsval				rval;
 	NSString			*result = @"<error>";
 	
-	if (OOJSGetMethod(context, global, OOJSIDCX(context, "formatCredits"), &fakeRoot, &method))
+	if (OOJSGetMethod(context, global, OOJSID("formatCredits"), &fakeRoot, &method))
 	{
 		jsval args[3];
 		if (JS_NewDoubleValue(context, tenthsOfCredits * 0.1, &args[0]))
@@ -737,7 +736,7 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 		}
 	}
 	
-	[jsEng releaseContext:context];
+	OOJSRelinquishContext(context);
 	
 	return result;
 }

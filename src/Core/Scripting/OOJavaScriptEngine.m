@@ -98,6 +98,8 @@ MA 02110-1301, USA.
 static OOJavaScriptEngine	*sSharedEngine = nil;
 static unsigned				sErrorHandlerStackSkip = 0;
 
+JSContext					*gOOJSMainThreadContext = NULL;
+
 
 #if OOJSENGINE_MONITOR_SUPPORT
 
@@ -296,19 +298,19 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	OOJSTimeManagementInit(self, runtime);
 	
 	// create a context and associate it with the JS run time
-	mainContext = JS_NewContext(runtime, OOJS_STACK_SIZE);
+	gOOJSMainThreadContext = JS_NewContext(runtime, OOJS_STACK_SIZE);
 	
 	// if context creation failed, end the program here
-	if (mainContext == NULL)
+	if (gOOJSMainThreadContext == NULL)
 	{
 		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript context.");
 		exit(1);
 	}
 	
-	JS_BeginRequest(mainContext);
+	JS_BeginRequest(gOOJSMainThreadContext);
 	
-	JS_SetOptions(mainContext, OOJSENGINE_CONTEXT_OPTIONS);
-	JS_SetVersion(mainContext, OOJSENGINE_JSVERSION);
+	JS_SetOptions(gOOJSMainThreadContext, OOJSENGINE_CONTEXT_OPTIONS);
+	JS_SetVersion(gOOJSMainThreadContext, OOJSENGINE_JSVERSION);
 	
 #if JS_GC_ZEAL
 	uint8_t gcZeal = [[NSUserDefaults standardUserDefaults]  oo_unsignedCharForKey:@"js-gc-zeal"];
@@ -316,17 +318,17 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	{
 		// Useful js-gc-zeal values are 0 (off), 1 and 2.
 		OOLog(@"script.javaScript.debug.gcZeal", @"Setting JavaScript garbage collector zeal to %u.", gcZeal);
-		JS_SetGCZeal(mainContext, gcZeal);
+		JS_SetGCZeal(gOOJSMainThreadContext, gcZeal);
 	}
 #endif
 	
-	JS_SetErrorReporter(mainContext, ReportJSError);
+	JS_SetErrorReporter(gOOJSMainThreadContext, ReportJSError);
 	
 	// Create the global object.
-	CreateOOJSGlobal(mainContext, &globalObject);
+	CreateOOJSGlobal(gOOJSMainThreadContext, &globalObject);
 
 	// Initialize the built-in JS objects and the global object.
-	JS_InitStandardClasses(mainContext, globalObject);
+	JS_InitStandardClasses(gOOJSMainThreadContext, globalObject);
 	if (![self lookUpStandardClassPointers])
 	{
 		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to look up standard JavaScript classes.");
@@ -334,43 +336,43 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	}
 	[self registerStandardObjectConverters];
 	
-	SetUpOOJSGlobal(mainContext, globalObject);
-	OOConstToJSStringInit(mainContext);
+	SetUpOOJSGlobal(gOOJSMainThreadContext, globalObject);
+	OOConstToJSStringInit(gOOJSMainThreadContext);
 	
 	// Initialize Oolite classes.
-	InitOOJSMissionVariables(mainContext, globalObject);
-	InitOOJSMission(mainContext, globalObject);
-	InitOOJSOolite(mainContext, globalObject);
-	InitOOJSVector(mainContext, globalObject);
-	InitOOJSQuaternion(mainContext, globalObject);
-	InitOOJSSystem(mainContext, globalObject);
-	InitOOJSEntity(mainContext, globalObject);
-	InitOOJSShip(mainContext, globalObject);
-	InitOOJSStation(mainContext, globalObject);
-	InitOOJSPlayer(mainContext, globalObject);
-	InitOOJSPlayerShip(mainContext, globalObject);
-	InitOOJSManifest(mainContext, globalObject);
-	InitOOJSSun(mainContext, globalObject);
-	InitOOJSPlanet(mainContext, globalObject);
-	InitOOJSScript(mainContext, globalObject);
-	InitOOJSTimer(mainContext, globalObject);
-	InitOOJSClock(mainContext, globalObject);
-	InitOOJSWorldScripts(mainContext, globalObject);
-	InitOOJSSound(mainContext, globalObject);
-	InitOOJSSoundSource(mainContext, globalObject);
-	InitOOJSSpecialFunctions(mainContext, globalObject);
-	InitOOJSSystemInfo(mainContext, globalObject);
-	InitOOJSEquipmentInfo(mainContext, globalObject);
-	InitOOJSShipGroup(mainContext, globalObject);
-	InitOOJSFrameCallbacks(mainContext, globalObject);
-	InitOOJSFont(mainContext, globalObject);
+	InitOOJSMissionVariables(gOOJSMainThreadContext, globalObject);
+	InitOOJSMission(gOOJSMainThreadContext, globalObject);
+	InitOOJSOolite(gOOJSMainThreadContext, globalObject);
+	InitOOJSVector(gOOJSMainThreadContext, globalObject);
+	InitOOJSQuaternion(gOOJSMainThreadContext, globalObject);
+	InitOOJSSystem(gOOJSMainThreadContext, globalObject);
+	InitOOJSEntity(gOOJSMainThreadContext, globalObject);
+	InitOOJSShip(gOOJSMainThreadContext, globalObject);
+	InitOOJSStation(gOOJSMainThreadContext, globalObject);
+	InitOOJSPlayer(gOOJSMainThreadContext, globalObject);
+	InitOOJSPlayerShip(gOOJSMainThreadContext, globalObject);
+	InitOOJSManifest(gOOJSMainThreadContext, globalObject);
+	InitOOJSSun(gOOJSMainThreadContext, globalObject);
+	InitOOJSPlanet(gOOJSMainThreadContext, globalObject);
+	InitOOJSScript(gOOJSMainThreadContext, globalObject);
+	InitOOJSTimer(gOOJSMainThreadContext, globalObject);
+	InitOOJSClock(gOOJSMainThreadContext, globalObject);
+	InitOOJSWorldScripts(gOOJSMainThreadContext, globalObject);
+	InitOOJSSound(gOOJSMainThreadContext, globalObject);
+	InitOOJSSoundSource(gOOJSMainThreadContext, globalObject);
+	InitOOJSSpecialFunctions(gOOJSMainThreadContext, globalObject);
+	InitOOJSSystemInfo(gOOJSMainThreadContext, globalObject);
+	InitOOJSEquipmentInfo(gOOJSMainThreadContext, globalObject);
+	InitOOJSShipGroup(gOOJSMainThreadContext, globalObject);
+	InitOOJSFrameCallbacks(gOOJSMainThreadContext, globalObject);
+	InitOOJSFont(gOOJSMainThreadContext, globalObject);
 	
 	// Run prefix scripts.
 	[OOJSScript jsScriptFromFileNamed:@"oolite-global-prefix.js"
-						   properties:[NSDictionary dictionaryWithObject:JSSpecialFunctionsObjectWrapper(mainContext)
+						   properties:[NSDictionary dictionaryWithObject:JSSpecialFunctionsObjectWrapper(gOOJSMainThreadContext)
 																  forKey:@"special"]];
 	
-	JS_EndRequest(mainContext);
+	JS_EndRequest(gOOJSMainThreadContext);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	
@@ -380,15 +382,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 - (void) dealloc
 {
-	unsigned					i;
-	
 	sSharedEngine = nil;
 	
-	for (i = 0; i != contextPoolCount; ++i)
-	{
-		JS_DestroyContext(contextPool[i]);
-	}
-	JS_DestroyContext(mainContext);
+	JS_DestroyContext(gOOJSMainThreadContext);
 	JS_DestroyRuntime(runtime);
 	
 	[super dealloc];
@@ -412,112 +408,44 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	NSParameterAssert(OOJSValueIsFunction(context, function));
 	
-	context = [self acquireContext];
+	context = OOJSAcquireContext();
 	
 	OOJSStartTimeLimiter();
 	result = JS_CallFunctionValue(context, jsThis, function, argc, argv, outResult);
 	OOJSStopTimeLimiter();
 	
 	JS_ReportPendingException(context);
-	[self releaseContext:context];
+	OOJSRelinquishContext(context);
 	
 	return result;
 }
 
 
-- (JSContext *)acquireContext
-{
-	JSContext				*context = NULL;
-	
-	if (!mainContextInUse)
-	{
-		/*	Favour the main context.
-			There's overhead to using objects from a different context. By
-			having one preferred context, most objects will belong to that
-			context and that context will be the one used in the common case
-			of only one script running.
-		*/
-		mainContextInUse = YES;
-		context = mainContext;
-		JS_BeginRequest(context);
-	}
-	else if (contextPoolCount != 0)
-	{
-		context = contextPool[--contextPoolCount];
-		JS_BeginRequest(context);
-	}
-	else
-	{
-		OOLog(@"script.javaScript.context.create", @"Creating JS context.");
-		
-		context = JS_NewContext(runtime, OOJS_STACK_SIZE);
-		// if context creation failed, end the program here
-		if (context == NULL)
-		{
-			OOLog(@"script.javaScript.error", @"***** FATAL ERROR: failed to create JavaScript context.");
-			exit(1);
-		}
-		
-		JS_BeginRequest(context);	// Explicitly not balanced.
-		JS_SetOptions(context, OOJSENGINE_CONTEXT_OPTIONS);
-		JS_SetVersion(context, OOJSENGINE_JSVERSION);
-		JS_SetErrorReporter(context, ReportJSError);
-		JS_SetGlobalObject(context, globalObject);
-	}
-	
-	return context;
-}
-
-
-- (void)releaseContext:(JSContext *)context
-{
-	if (context == NULL)  return;
-	
-	NSParameterAssert(JS_IsInRequest(context));
-	JS_EndRequest(context);
-	
-	if (context == mainContext)
-	{
-		mainContextInUse = NO;
-	}
-	else if (contextPoolCount < kOOJavaScriptEngineContextPoolCount)
-	{
-		contextPool[contextPoolCount++] = context;
-	}
-	else
-	{
-		OOLog(@"script.javaScript.context.destroy", @"Destroying JS context.");
-		
-		JS_DestroyContextMaybeGC(context);
-	}
-}
-
-
 - (void) removeGCObjectRoot:(JSObject **)rootPtr
 {
-	JSContext *context = [self acquireContext];
+	JSContext *context = OOJSAcquireContext();
 	JS_RemoveObjectRoot(context, rootPtr);
-	[self releaseContext:context];
+	OOJSRelinquishContext(context);
 }
 
 
 - (void) removeGCValueRoot:(jsval *)rootPtr
 {
-	JSContext *context = [self acquireContext];
+	JSContext *context = OOJSAcquireContext();
 	JS_RemoveValueRoot(context, rootPtr);
-	[self releaseContext:context];
+	OOJSRelinquishContext(context);
 }
 
 
 - (void) garbageCollectionOpportunity
 {
-	JSContext *context = [self acquireContext];
+	JSContext *context = OOJSAcquireContext();
 #ifndef NDEBUG
 	JS_GC(context);
 #else
 	JS_MaybeGC(context);
 #endif
-	[self releaseContext:context];
+	OOJSRelinquishContext(context);
 }
 
 
@@ -567,22 +495,22 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 {
 	JSObject				*templateObject = NULL;
 	
-	templateObject = JS_NewObject(mainContext, NULL, NULL, NULL);
+	templateObject = JS_NewObject(gOOJSMainThreadContext, NULL, NULL, NULL);
 	if (EXPECT_NOT(templateObject == NULL))  return NO;
-	_objectClass = OOJSGetClass(mainContext, templateObject);
+	_objectClass = OOJSGetClass(gOOJSMainThreadContext, templateObject);
 	
-	if (EXPECT_NOT(!JS_ValueToObject(mainContext, JS_GetEmptyStringValue(mainContext), &templateObject)))  return NO;
-	_stringClass = OOJSGetClass(mainContext, templateObject);
+	if (EXPECT_NOT(!JS_ValueToObject(gOOJSMainThreadContext, JS_GetEmptyStringValue(gOOJSMainThreadContext), &templateObject)))  return NO;
+	_stringClass = OOJSGetClass(gOOJSMainThreadContext, templateObject);
 	
-	templateObject = JS_NewArrayObject(mainContext, 0, NULL);
+	templateObject = JS_NewArrayObject(gOOJSMainThreadContext, 0, NULL);
 	if (EXPECT_NOT(templateObject == NULL))  return NO;
-	_arrayClass = OOJSGetClass(mainContext, templateObject);
+	_arrayClass = OOJSGetClass(gOOJSMainThreadContext, templateObject);
 	
-	if (EXPECT_NOT(!JS_ValueToObject(mainContext, INT_TO_JSVAL(0), &templateObject)))  return NO;
-	_numberClass = OOJSGetClass(mainContext, templateObject);
+	if (EXPECT_NOT(!JS_ValueToObject(gOOJSMainThreadContext, INT_TO_JSVAL(0), &templateObject)))  return NO;
+	_numberClass = OOJSGetClass(gOOJSMainThreadContext, templateObject);
 	
-	if (EXPECT_NOT(!JS_ValueToObject(mainContext, JSVAL_FALSE, &templateObject)))  return NO;
-	_booleanClass = OOJSGetClass(mainContext, templateObject);
+	if (EXPECT_NOT(!JS_ValueToObject(gOOJSMainThreadContext, JSVAL_FALSE, &templateObject)))  return NO;
+	_booleanClass = OOJSGetClass(gOOJSMainThreadContext, templateObject);
 	
 	return YES;
 }
@@ -902,17 +830,11 @@ void OOJSMarkConsoleEvalLocation(JSContext *context, JSStackFrame *stackFrame)
 
 
 #if OO_NEW_JS
-void OOJSInitPropIDCachePRIVATE(JSContext *context, const char *name, jsid *idCache, BOOL *inited)
+void OOJSInitPropIDCachePRIVATE(const char *name, jsid *idCache, BOOL *inited)
 {
-	NSCParameterAssert(context == NULL || JS_IsInRequest(context));
 	NSCParameterAssert(name != NULL && idCache != NULL && inited != NULL && !*inited);
 	
-	OOJavaScriptEngine *jsEngIfTempContext = nil;
-	if (context == NULL)
-	{
-		jsEngIfTempContext = [OOJavaScriptEngine sharedEngine];
-		context = [jsEngIfTempContext acquireContext];
-	}
+	JSContext *context = OOJSAcquireContext();
 	
 	JSString *string = JS_InternString(context, name);
 	if (EXPECT_NOT(string == NULL))
@@ -923,23 +845,15 @@ void OOJSInitPropIDCachePRIVATE(JSContext *context, const char *name, jsid *idCa
 	*idCache = INTERNED_STRING_TO_JSID(string);
 	*inited = YES;
 	
-	if (jsEngIfTempContext != nil)
-	{
-		[jsEngIfTempContext releaseContext:context];
-	}
+	OOJSRelinquishContext(context);
 }
 
 
-OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
+OOJSPropID OOJSPropIDFromString(NSString *string)
 {
-	NSCParameterAssert((context == NULL || JS_IsInRequest(context)) && string != nil);
+	if (EXPECT_NOT(string == nil))  return JSID_VOID;
 	
-	OOJavaScriptEngine *jsEngIfTempContext = nil;
-	if (context == NULL)
-	{
-		jsEngIfTempContext = [OOJavaScriptEngine sharedEngine];
-		context = [jsEngIfTempContext acquireContext];
-	}
+	JSContext *context = OOJSAcquireContext();
 	
 	enum { kStackBufSize = 1024 };
 	unichar stackBuf[kStackBufSize];
@@ -961,25 +875,15 @@ OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
 	
 	if (EXPECT_NOT(buffer != stackBuf))  free(buffer);
 	
-	if (jsEngIfTempContext != nil)
-	{
-		[jsEngIfTempContext releaseContext:context];
-	}
+	OOJSRelinquishContext(context);
 	
 	return INTERNED_STRING_TO_JSID(jsString);
 }
 
 
-NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID)
+NSString *OOStringFromJSPropID(OOJSPropID propID)
 {
-	NSCParameterAssert(context == NULL || JS_IsInRequest(context));
-	
-	OOJavaScriptEngine *jsEngIfTempContext = nil;
-	if (context == NULL)
-	{
-		jsEngIfTempContext = [OOJavaScriptEngine sharedEngine];
-		context = [jsEngIfTempContext acquireContext];
-	}
+	JSContext *context = OOJSAcquireContext();
 	
 	jsval		value;
 	NSString	*result = nil;
@@ -988,21 +892,20 @@ NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID)
 		result = OOStringFromJSString(context, JS_ValueToString(context, value));
 	}
 	
-	if (jsEngIfTempContext != nil)
-	{
-		[jsEngIfTempContext releaseContext:context];
-	}
+	OOJSRelinquishContext(context);
 	
 	return result;
 }
 #else
-OOJSPropID OOJSPropIDFromString(JSContext *context, NSString *string)
+OOJSPropID OOJSPropIDFromString(NSString *string)
 {
+	if (EXPECT_NOT(string == nil))  return NULL;
+	
 	return [string UTF8String];
 }
 
 
-NSString *OOStringFromJSPropID(JSContext *context, OOJSPropID propID)
+NSString *OOStringFromJSPropID(OOJSPropID propID)
 {
 	return [NSString stringWithUTF8String:propID];
 }
@@ -1291,7 +1194,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 					value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
 					if (!JSVAL_IS_VOID(value))
 					{
-						OK = OOJSSetProperty(context, result, OOJSPropIDFromString(context, key), &value);
+						OK = OOJSSetProperty(context, result, OOJSPropIDFromString(key), &value);
 						if (EXPECT_NOT(!OK))  break;
 					}
 				}
@@ -1442,14 +1345,14 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		BOOL tempCtxt = NO;
 		if (context == NULL)
 		{
-			context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+			context = OOJSAcquireContext();
 			tempCtxt = YES;
 		}
 		
 		_val = value;
 		JS_AddNamedValueRoot(context, &_val, "OOJSValue");
 		
-		if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
+		if (tempCtxt)  OOJSRelinquishContext(context);
 	}
 	return self;
 	
@@ -1465,9 +1368,9 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 
 - (void) dealloc
 {
-	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JSContext *context = OOJSAcquireContext();
 	JS_RemoveValueRoot(context, &_val);
-	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	OOJSRelinquishContext(context);
 	
 	[super dealloc];
 }

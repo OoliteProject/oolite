@@ -28,11 +28,6 @@ MA 02110-1301, USA.
 */
 
 
-#if !JS_THREADSAFE
-#define JS_IsInRequest(context)  (((void)(context)), YES)
-#endif
-
-
 /***** Transitional compatibility stuff - remove when switching to OO_NEW_JS permanently. *****/
 
 
@@ -138,9 +133,6 @@ static inline void JS_RemoveValueRoot(JSContext *cx, jsval *vp) { JS_RemoveRoot(
 static inline void JS_RemoveStringRoot(JSContext *cx, JSString **rp) { JS_RemoveRoot(cx, rp); }
 static inline void JS_RemoveObjectRoot(JSContext *cx, JSObject **rp) { JS_RemoveRoot(cx, rp); }
 static inline void JS_RemoveGCThingRoot(JSContext *cx, void **rp) { JS_RemoveRoot(cx, rp); }
-
-#define JS_BeginRequest(cx)  do {} while (0)
-#define JS_EndRequest(cx)  do {} while (0)
 
 #endif
 

@@ -9116,8 +9116,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	if (!_escortPositionsValid)
 	{
-		OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
-		JSContext			*context = [jsEng acquireContext];
+		JSContext			*context = OOJSAcquireContext();
 		jsval				result;
 		jsval				args[] = { INT_TO_JSVAL(0), INT_TO_JSVAL(_maxEscortCount) };
 		BOOL				OK;
@@ -9130,7 +9129,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			args[0] = INT_TO_JSVAL(i);
 			OOJSStartTimeLimiter();
-			OK = [script callMethodNamed:OOJSIDCX(context, "coordinatesForEscortPosition")
+			OK = [script callMethodNamed:OOJSID("coordinatesForEscortPosition")
 						   withArguments:args count:sizeof args / sizeof *args
 							   inContext:context
 						   gettingResult:&result];
@@ -9141,7 +9140,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			if (!OK)  _escortPositions[i] = kZeroVector;
 		}
 		
-		[jsEng releaseContext:context];
+		OOJSRelinquishContext(context);
 	}
 }
 
@@ -9896,7 +9895,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 // For ease of overriding, these all go through doScriptEvent:withArguments:.
 - (void) doScriptEvent:(NSString *)message
 {
-	[self doScriptEvent:OOJSPropIDFromString(NULL, message) withArguments:nil];
+	[self doScriptEvent:OOJSPropIDFromString(message) withArguments:nil];
 }
 
 
@@ -9909,7 +9908,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	else
 	{
 		arguments = [NSArray arrayWithObject:argument];
-		[self doScriptEvent:OOJSPropIDFromString(NULL, message) withArguments:arguments];
+		[self doScriptEvent:OOJSPropIDFromString(message) withArguments:arguments];
 	}
 }
 

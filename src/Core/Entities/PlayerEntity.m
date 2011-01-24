@@ -1282,12 +1282,9 @@ static GLfloat		sBaseMass = 0.0;
 	dockedStation = [UNIVERSE station];
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	
-	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
-	JSContext			*context = [jsEng acquireContext];
-	
+	JSContext *context = OOJSAcquireContext();
 	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
-	
-	[jsEng releaseContext:context];
+	OOJSRelinquishContext(context);
 }
 
 
@@ -6451,12 +6448,9 @@ static NSString *last_outfitting_key=nil;
 
 - (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen
 {
-	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
-	JSContext			*context = [jsEng acquireContext];
-	
+	JSContext *context = OOJSAcquireContext();
 	ShipScriptEvent(context, self, "guiScreenWillChange", OOJSValueFromGUIScreenID(context, toScreen), OOJSValueFromGUIScreenID(context, gui_screen));
-	
-	[jsEng releaseContext:context];
+	OOJSRelinquishContext(context);
 }
 
 
@@ -6481,12 +6475,9 @@ static NSString *last_outfitting_key=nil;
 		}
 		if (![[UNIVERSE gameController] gameIsPaused])
 		{
-			OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
-			JSContext			*context = [jsEng acquireContext];
-			
+			JSContext *context = OOJSAcquireContext();
 			ShipScriptEvent(context, self, "guiScreenChanged", OOJSValueFromGUIScreenID(context, toScreen), OOJSValueFromGUIScreenID(context, fromScreen));
-			
-			[jsEng releaseContext:context];
+			OOJSRelinquishContext(context);
 		}
 	}
 }
@@ -8079,8 +8070,7 @@ static NSString *last_outfitting_key=nil;
 
 - (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments
 {
-	OOJavaScriptEngine		*engine = [OOJavaScriptEngine sharedEngine];
-	JSContext				*context = [engine acquireContext];
+	JSContext				*context = OOJSAcquireContext();
 	uintN					i, argc;
 	jsval					*argv = NULL;
 	
@@ -8113,7 +8103,7 @@ static NSString *last_outfitting_key=nil;
 		free(argv);
 	}
 	
-	[engine releaseContext:context];
+	OOJSRelinquishContext(context);
 }
 
 
@@ -8128,7 +8118,7 @@ static NSString *last_outfitting_key=nil;
 {
 	NSEnumerator	*scriptEnum = [worldScripts objectEnumerator];
 	OOScript		*theScript;
-	OOJSPropID		messageID = OOJSPropIDFromString(NULL, message);
+	OOJSPropID		messageID = OOJSPropIDFromString(message);
 
 	// Check for the pressence of report messages first.
 	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] > 0 && [self isDocked] && ![dockedStation suppressArrivalReports])

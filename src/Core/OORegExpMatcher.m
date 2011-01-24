@@ -59,7 +59,9 @@ static OORegExpMatcher *sActiveInstance;
 		unsigned codeLine = __LINE__ + 1;	// NB: should remain line before code.
 		NSString *code = @"return regexp.test(string);";
 		
-		JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+		[OOJavaScriptEngine sharedEngine];	// Summon the beast from the Pit.
+		
+		JSContext *context = OOJSAcquireContext();
 		_tester = [[OOJSFunction alloc] initWithName:@"matchesRegExp"
 											   scope:NULL
 												code:code
@@ -69,7 +71,7 @@ static OORegExpMatcher *sActiveInstance;
 										  lineNumber:codeLine
 											 context:context];
 		
-		[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+		OOJSRelinquishContext(context);
 		
 		if (_tester == nil)  DESTROY(self);
 	}
@@ -105,7 +107,7 @@ static OORegExpMatcher *sActiveInstance;
 	size_t expLength = [regExp length];
 	if (EXPECT_NOT(expLength == 0))  return NO;
 	
-	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JSContext *context = OOJSAcquireContext();
 	
 	// Create new RegExp object if necessary.
 	if (flags != _cachedFlags || ![regExp isEqualToString:_cachedRegExpString])
@@ -134,7 +136,7 @@ static OORegExpMatcher *sActiveInstance;
 												  scope:nil
 											  arguments:[NSArray arrayWithObjects:string, _cachedRegExpObject, nil]];
 	
-	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	OOJSRelinquishContext(context);
 	
 	return result;
 }

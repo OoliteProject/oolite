@@ -101,9 +101,9 @@ static JSClass sTimerClass;
 	NSString				*funcName = nil;
 	JSContext				*context = NULL;
 	
-	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	context = OOJSAcquireContext();
 	funcName = OOStringFromJSString(context, JS_GetFunctionId(JS_ValueToFunction(context, _function)));
-	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	OOJSRelinquishContext(context);
 	
 	if (funcName == nil)
 	{
@@ -126,7 +126,7 @@ static JSClass sTimerClass;
 	NSString				*description = nil;
 	
 	OOJavaScriptEngine *engine = [OOJavaScriptEngine sharedEngine];
-	JSContext *context = [engine acquireContext];
+	JSContext *context = OOJSAcquireContext();
 	
 	// stop and remove the timer if _jsThis (the first parameter in the constructor) dies.
 	id object = OOJSNativeObjectFromJSObject(context, _jsThis);
@@ -151,7 +151,7 @@ static JSClass sTimerClass;
 					result:&rval];
 	[OOJSScript popScript:_owningScript];
 	
-	[engine releaseContext:context];
+	OOJSRelinquishContext(context);
 }
 
 

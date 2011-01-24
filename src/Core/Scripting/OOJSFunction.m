@@ -68,7 +68,7 @@ MA 02110-1301, USA.
 	
 	if (context == NULL)
 	{
-		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+		context = OOJSAcquireContext();
 		releaseContext = YES;
 	}
 	if (scope == NULL)  scope = [[OOJavaScriptEngine sharedEngine] globalObject];
@@ -104,7 +104,7 @@ MA 02110-1301, USA.
 		DESTROY(self);
 	}
 	
-	if (releaseContext)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	if (releaseContext)  OOJSRelinquishContext(context);
 	
 	return self;
 }

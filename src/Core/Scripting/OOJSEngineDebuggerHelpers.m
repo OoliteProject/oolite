@@ -90,12 +90,9 @@ MA 02110-1301, USA.
 
 const char *JSValueToStrDbg(jsval val)
 {
-	OOJavaScriptEngine *jsEngine = [OOJavaScriptEngine sharedEngine];
-	JSContext *context = [jsEngine acquireContext];
-	
+	JSContext *context = OOJSAcquireContext();
 	const char *result = [[NSString stringWithJavaScriptValue:val inContext:context] UTF8String];
-	
-	[jsEngine releaseContext:context];
+	OOJSRelinquishContext(context);
 	
 	return result;
 }
