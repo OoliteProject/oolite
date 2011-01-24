@@ -653,7 +653,7 @@ static NSTimeInterval	time_last_frame;
 					[self doMissionCallback];
 				}
 				// notify older scripts, but do not trigger missionScreenOpportunity.
-				[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
+				[self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")];
 			}
 		}
 		else if (!paused)
@@ -924,7 +924,12 @@ static NSTimeInterval	time_last_frame;
 					{
 						// primedEquipment == [eqScripts count] means we don't want to activate any equipment.
 						if(primedEquipment < [eqScripts count])
-							[(OOScript *)[[eqScripts oo_arrayAtIndex:primedEquipment] objectAtIndex:1] doEvent:OOJSID("activated") withArguments:nil];
+						{
+							OOJSScript *eqScript = [[eqScripts oo_arrayAtIndex:primedEquipment] objectAtIndex:1];
+							JSContext *context = OOJSAcquireContext();
+							[eqScript callMethod:OOJSID("activated") inContext:context withArguments:NULL count:0 result:NULL];
+							OOJSRelinquishContext(context);
+						}
 					}
 					activate_equipment_pressed = YES;
 				}
@@ -2022,7 +2027,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						[self setGuiToStatusScreen];
 						[self doScriptEvent:OOJSID("reportScreenEnded")];  // last report given. Screen is now free for missionscreens.
-						[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
+						[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];
 					}
 					else
 					{
@@ -3196,7 +3201,7 @@ static BOOL toggling_music;
 				[[OOMusicController sharedController] stopThemeMusic];
 				[[UNIVERSE gameView] supressKeysUntilKeyUp]; // to prevent a missionscreen on the first page from reacting on this keypress.
 				[self setGuiToStatusScreen];
-				[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];	// trigger missionScreenOpportunity immediately after (re)start
+				[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// trigger missionScreenOpportunity immediately after (re)start
 			}
 			if ([gameView isDown:gvArrowKeyLeft])	//  '<--'
 			{
@@ -3276,7 +3281,7 @@ static BOOL toggling_music;
 	
 	if ([self status] != STATUS_DOCKED)	// did we launch inside callback? / are we in flight?
 	{
-		[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];	// no opportunity events.
+		[self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")];	// no opportunity events.
 	}
 	else
 	{

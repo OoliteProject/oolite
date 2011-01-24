@@ -2325,10 +2325,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) endMissionScreenAndNoteOpportunity
 {
 	// Older scripts might intercept missionScreenEnded first, and call secondary mission screens.
-	if(![self doWorldEventUntilMissionScreen:@"missionScreenEnded"])
+	if(![self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")])
 	{
 		// if we're here, no mission screen is running. Opportunity! :)
-		[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
+		[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];
 	}
 }
 

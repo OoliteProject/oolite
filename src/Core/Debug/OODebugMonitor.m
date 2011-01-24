@@ -201,9 +201,12 @@ static OODebugMonitor *sSingleton = nil;
 
 - (oneway void)performJSConsoleCommand:(in NSString *)command
 {
+	JSContext *context = OOJSAcquireContext();
+	jsval commandVal = OOJSValueFromNativeObject(context, command);
 	OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-	[_script doEvent:OOJSID("consolePerformJSCommand") withArguments:[NSArray arrayWithObject:command]];
+	[_script callMethod:OOJSID("consolePerformJSCommand") inContext:context withArguments:&commandVal count:1 result:NULL];
 	OOJSStopTimeLimiter();
+	OOJSRelinquishContext(context);
 }
 
 

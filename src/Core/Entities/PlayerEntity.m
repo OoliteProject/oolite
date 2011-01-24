@@ -4623,7 +4623,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity];
 	
 	// When a mission screen is started, any on-screen message is removed immediately.
-	[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];	// also displays docking reports first.
+	[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// also displays docking reports first.
 }
 
 
@@ -4642,7 +4642,7 @@ static bool minShieldLevelPercentageInitialised = false;
 			[self doMissionCallback];
 		}
 		// notify older scripts, but do not trigger missionScreenOpportunity.
-		[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
+		[self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")];
 	}
 	
 	if (station == [UNIVERSE station])
@@ -8071,47 +8071,6 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-#if 0
-- (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments
-{
-	JSContext				*context = OOJSAcquireContext();
-	uintN					i, argc;
-	jsval					*argv = NULL;
-	
-	// Convert arguments to JS values and make them temporarily un-garbage-collectable.
-	argc = [arguments count];
-	if (argc != 0)
-	{
-		argv = malloc(sizeof *argv * argc);
-		if (argv != NULL)
-		{
-			for (i = 0; i != argc; ++i)
-			{
-				argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
-				OOJSAddGCValueRoot(context, &argv[i], "JSScript event parameter");
-			}
-		}
-		else  argc = 0;
-	}
-	
-	[super doScriptEvent:message inContext:context withArguments:argv count:argc];
-	[self doWorldScriptEvent:message inContext:context withArguments:argv count:argc timeLimit:0.0];
-	
-	// Re-garbage-collectibalize the arguments and free the array.
-	if (argv != NULL)
-	{
-		for (i = 0; i != argc; ++i)
-		{
-			JS_RemoveValueRoot(context, &argv[i]);
-		}
-		free(argv);
-	}
-	
-	OOJSRelinquishContext(context);
-}
-#endif
-
-
 - (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
 {
 	[super doScriptEvent:message inContext:context withArguments:argv count:argc];
@@ -8119,11 +8078,10 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (BOOL) doWorldEventUntilMissionScreen:(NSString *)message
+- (BOOL) doWorldEventUntilMissionScreen:(OOJSPropID)message
 {
 	NSEnumerator	*scriptEnum = [worldScripts objectEnumerator];
 	OOScript		*theScript;
-	OOJSPropID		messageID = OOJSPropIDFromString(message);
 
 	// Check for the pressence of report messages first.
 	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] > 0 && [self isDocked] && ![dockedStation suppressArrivalReports])
@@ -8132,12 +8090,13 @@ static NSString *last_outfitting_key=nil;
 		[[UNIVERSE message_gui] clear];
 		return YES;
 	}
-
-	// FIXME: does this work ok in all situations? Needs fixing if not.
+	
+	JSContext *context = OOJSAcquireContext();
 	while ((theScript = [scriptEnum nextObject]) && gui_screen != GUI_SCREEN_MISSION && [self isDocked])
 	{
-		[theScript doEvent:messageID withArguments:nil];
+		[theScript callMethod:message inContext:context withArguments:NULL count:0 result:NULL];
 	}
+	OOJSRelinquishContext(context);
 	
 	if (gui_screen == GUI_SCREEN_MISSION)
 	{
@@ -8160,7 +8119,7 @@ static NSString *last_outfitting_key=nil;
 	for (scriptEnum = [worldScripts objectEnumerator]; (theScript = [scriptEnum nextObject]); )
 	{
 		OOJSStartTimeLimiterWithTimeLimit(limit);
-		[theScript doEvent:message inContext:context withArguments:argv count:argc];
+		[theScript callMethod:message inContext:context withArguments:argv count:argc result:NULL];
 		OOJSStopTimeLimiter();
 	}
 }

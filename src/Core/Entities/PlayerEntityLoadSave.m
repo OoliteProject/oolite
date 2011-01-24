@@ -530,7 +530,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[UNIVERSE setGalaxy_seed: galaxy_seed andReinit:YES]; // set overridden planet names on long range map
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
-	if (loadedOK) [self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];  // trigger missionScreenOpportunity immediately after loading
+	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading
 	return loadedOK;
 }
 

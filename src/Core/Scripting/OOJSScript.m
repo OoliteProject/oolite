@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "NSStringOOExtensions.h"
 #import "EntityOOJavaScriptExtensions.h"
+#import "OOConstToJSString.h"
 
 #if OO_CACHE_JS_SCRIPTS
 #import <jsxdrapi.h>
@@ -94,7 +95,6 @@ static JSFunctionSpec sScriptMethods[] =
 @interface OOJSScript (OOPrivate)
 
 - (NSString *)scriptNameFromPath:(NSString *)path;
-- (BOOL) doEvent:(OOJSPropID)eventID withMethod:(jsval)method andArguments:(jsval *)argv count:(uintN)argc inContext:(JSContext *)context;
 
 @end
 
@@ -314,88 +314,33 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (void)runWithTarget:(Entity *)target
 {
-	[self doEvent:OOJSID("tickle") withArguments:[NSArray arrayWithObject:[PLAYER status_string]]];
-}
-
-
-- (BOOL) doEvent:(OOJSPropID)eventID withArguments:(NSArray *)arguments
-{
-	JSContext				*context = OOJSAcquireContext();
-	uintN					i, argc;
-	jsval					*argv = NULL;
-	jsval					function;
-	JSObject				*fakeRoot;
-	BOOL					OK = YES;
-	
-	if (OOJSGetMethod(context, _jsSelf, eventID, &fakeRoot, &function) && !JSVAL_IS_VOID(function))
-	{
-		// Convert arguments to JS values and make them temporarily un-garbage-collectable.
-		argc = [arguments count];
-		if (argc != 0)
-		{
-			argv = malloc(sizeof *argv * argc);
-			if (argv != NULL)
-			{
-				for (i = 0; i != argc; ++i)
-				{
-					argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
-					OOJSAddGCValueRoot(context, &argv[i], "JSScript event parameter");
-				}
-			}
-			else  argc = 0;
-		}
-		
-		OK = [self doEvent:eventID withMethod:function andArguments:argv count:argc inContext:context];
-		
-		// Re-garbage-collectibalize the arguments and free the array.
-		if (argv != NULL)
-		{
-			for (i = 0; i != argc; ++i)
-			{
-				JS_RemoveValueRoot(context, &argv[i]);
-			}
-			free(argv);
-		}
-	}
-	
+	JSContext *context = OOJSAcquireContext();
+	jsval arg = OOJSValueFromEntityStatus(context, [PLAYER status]);
+	[self callMethod:OOJSID("tickle") inContext:context withArguments:&arg count:1 result:NULL];
 	OOJSRelinquishContext(context);
-	
-	return OK;
 }
 
 
-- (BOOL) doEvent:(OOJSPropID)eventID inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
+- (BOOL) callMethod:(OOJSPropID)methodID
+		  inContext:(JSContext *)context
+	  withArguments:(jsval *)argv count:(intN)argc
+			 result:(jsval *)outResult
 {
-	NSParameterAssert(context != NULL && JS_IsInRequest(context));
+	NSParameterAssert(name != NULL && (argv != NULL || argc == 0) && context != NULL && JS_IsInRequest(context));
 	
-	jsval					function;
-	JSObject				*fakeRoot;
-	BOOL					OK = YES;
+	JSObject				*root = NULL;
+	BOOL					OK = NO;
+	jsval					method;
+	jsval					ignoredResult = JSVAL_VOID;
 	
-	if (OOJSGetMethod(context, _jsSelf, eventID, &fakeRoot, &function) && !JSVAL_IS_VOID(function))
-	{
-		OK = [self doEvent:eventID withMethod:function andArguments:argv count:argc inContext:context];
-	}
+	if (outResult == NULL)  outResult = &ignoredResult;
+	OOJSAddGCObjectRoot(context, &root, "OOJSScript method root");
 	
-	return OK;
-}
-
-
-- (BOOL) callMethodNamed:(OOJSPropID)methodID
-		   withArguments:(jsval *)argv count:(intN)argc
-			   inContext:(JSContext *)context
-		   gettingResult:(jsval *)outResult
-{
-	NSParameterAssert(name != NULL && (argv != NULL || argc == 0) && context != NULL && JS_IsInRequest(context) && outResult != NULL);
-	
-	BOOL		OK = NO;
-	JSObject	*fakeRoot = NULL;
-	jsval		method;
-	if (EXPECT(OOJSGetMethod(context, _jsSelf, methodID, &fakeRoot, &method) && !JSVAL_IS_VOID(method)))
+	if (EXPECT(OOJSGetMethod(context, _jsSelf, methodID, &root, &method) && !JSVAL_IS_VOID(method)))
 	{
 #ifndef NDEBUG
-		OOLog(@"script.trace.javaScript.callback", @"Calling [%@].%@()", [self name], OOStringFromJSPropID(methodID));
-		OOLogIndentIf(@"script.trace.javaScript.callback");
+		OOLog(@"script.trace.javaScript", @"Calling [%@].%@()", [self name], OOStringFromJSPropID(methodID));
+		OOLogIndentIf(@"script.trace.javaScript");
 #endif
 		
 		// Push self on stack of running scripts.
@@ -414,10 +359,16 @@ static JSFunctionSpec sScriptMethods[] =
 		// Pop running scripts stack
 		sRunningStack = stackElement.back;
 		
+#if !OO_NEW_JS
+		JS_ClearNewbornRoots(context);
+#endif
+		
 #ifndef NDEBUG
-		OOLogOutdentIf(@"script.trace.javaScript.callback");
+		OOLogOutdentIf(@"script.trace.javaScript");
 #endif
 	}
+	
+	JS_RemoveObjectRoot(context, &root);
 	
 	return OK;
 }
@@ -574,64 +525,17 @@ static JSFunctionSpec sScriptMethods[] =
 	return StrippedName([theName stringByAppendingString:@".anon-script"]);
 }
 
-
-- (BOOL) doEvent:(OOJSPropID)eventID withMethod:(jsval)method andArguments:(jsval *)argv count:(uintN)argc inContext:(JSContext *)context
-{
-	BOOL					OK = YES;
-	jsval					value = JSVAL_VOID;
-	
-#ifndef NDEBUG
-	NSAssert1(OOJSValueIsFunction(context, method), @"Expected function, got %@.", OOStringFromJSValueEvenIfNull(context, method));
-	OOLog(@"script.trace.javaScript.event", @"Calling [%@].%@()", [self name], OOStringFromJSPropID(eventID));
-	OOLogIndentIf(@"script.trace.javaScript.event");
-#endif
-	
-	// Push self on stack of running scripts.
-	RunningStack stackElement =
-	{
-		.back = sRunningStack,
-		.current = self
-	};
-	sRunningStack = &stackElement;
-	
-	// Call the method.
-	OOJSStartTimeLimiter();
-	OK = JS_CallFunctionValue(context, _jsSelf, method, argc, argv, &value);
-	OOJSStopTimeLimiter();
-	
-	// Pop running scripts stack.
-	sRunningStack = stackElement.back;
-	
-#if !OO_NEW_JS
-	JS_ClearNewbornRoots(context);
-#endif
-	
-#ifndef NDEBUG
-	OOLogOutdentIf(@"script.trace.javaScript.event");
-#endif
-	
-	return OK;
-}
-
 @end
 
 
 @implementation OOScript (JavaScriptEvents)
 
-- (BOOL) doEvent:(OOJSPropID)eventID withArguments:(NSArray *)arguments
+- (BOOL) callMethod:(OOJSPropID)methodID
+		  inContext:(JSContext *)context
+	  withArguments:(jsval *)argv count:(intN)argc
+			 result:(jsval *)outResult
 {
-	return YES;
-}
-
-
-- (BOOL) doEvent:(OOJSPropID)eventID inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
-{
-	return YES;
-}
-
-- (jsval)oo_jsValueInContext:(JSContext *)context
-{
-	return JSVAL_NULL;
+	return NO;
 }
 
 @end

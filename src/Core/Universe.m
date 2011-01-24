@@ -8452,7 +8452,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	if(!showDemo)
 	{
 		[player setGuiToStatusScreen];
-		[player doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
+		[player doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];
 	}
 		
 	no_update = NO;

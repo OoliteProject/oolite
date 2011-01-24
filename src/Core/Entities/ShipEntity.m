@@ -9137,10 +9137,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			args[0] = INT_TO_JSVAL(i);
 			OOJSStartTimeLimiter();
-			OK = [script callMethodNamed:OOJSID("coordinatesForEscortPosition")
-						   withArguments:args count:sizeof args / sizeof *args
-							   inContext:context
-						   gettingResult:&result];
+			OK = [script callMethod:OOJSID("coordinatesForEscortPosition")
+						  inContext:context
+					  withArguments:args count:sizeof args / sizeof *args
+							 result:&result];
 			OOJSStopTimeLimiter();
 			
 			if (OK)  OK = JSValueToVector(context, result, &_escortPositions[i]);
@@ -9900,7 +9900,6 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 
 // *** Script event dispatch.
-// For ease of overriding, these all go through -doScriptEvent:inContext:withArguments:count:.
 - (void) doScriptEvent:(OOJSPropID)message
 {
 	JSContext *context = OOJSAcquireContext();
@@ -9949,7 +9948,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 			for (i = 0; i != argc; ++i)
 			{
 				argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
-				OOJSAddGCValueRoot(context, &argv[i], "JSScript event parameter");
+				OOJSAddGCValueRoot(context, &argv[i], "event parameter");
 			}
 		}
 		else  argc = 0;
@@ -9973,7 +9972,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
 {
-	[script doEvent:message inContext:context withArguments:argv count:argc];
+	// This method is a bottleneck so that PlayerEntity can override at one point.
+	[script callMethod:message inContext:context withArguments:argv count:argc result:NULL];
 }
 
 

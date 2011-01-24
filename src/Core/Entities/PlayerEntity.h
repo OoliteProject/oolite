@@ -808,7 +808,7 @@ typedef enum
 // In general, script events should be sent through doScriptEvent:..., which
 // will forward to the world scripts.
 //- (void) doWorldScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments timeLimit:(OOTimeDelta)limit;
-- (BOOL) doWorldEventUntilMissionScreen:(NSString *)message;
+- (BOOL) doWorldEventUntilMissionScreen:(OOJSPropID)message;
 - (void) doWorldScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc timeLimit:(OOTimeDelta)limit;
 
 - (BOOL)showInfoFlag;

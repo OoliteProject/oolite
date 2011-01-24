@@ -55,13 +55,14 @@ MA 02110-1301, USA.
 + (void) pushScript:(OOJSScript *)script;
 + (void) popScript:(OOJSScript *)script;
 
-/*	Low-level interface to call a JavaScript method.
+/*	Call a method.
 	Requires a request on context.
+	outResult may be NULL.
 */
-- (BOOL) callMethodNamed:(OOJSPropID)methodID
-		   withArguments:(jsval *)argv count:(intN)argc
-			   inContext:(JSContext *)context
-		   gettingResult:(jsval *)outResult;
+- (BOOL) callMethod:(OOJSPropID)methodID
+		  inContext:(JSContext *)context
+	  withArguments:(jsval *)argv count:(intN)argc
+			 result:(jsval *)outResult;
 
 - (id) propertyWithID:(OOJSPropID)propID inContext:(JSContext *)context;
 // Set a property which can be modified or deleted by the script.
@@ -78,9 +79,11 @@ MA 02110-1301, USA.
 
 @interface OOScript (JavaScriptEvents)
 
-// These only do anything for JS scripts, but can be safely called on plist scripts too.
-- (BOOL) doEvent:(OOJSPropID)eventID withArguments:(NSArray *)arguments;
-- (BOOL) doEvent:(OOJSPropID)eventID inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc;
+// For simplicity, calling methods on non-JS scripts works but does nothing.
+- (BOOL) callMethod:(OOJSPropID)methodID
+		  inContext:(JSContext *)context
+	  withArguments:(jsval *)argv count:(intN)argc
+			 result:(jsval *)outResult;
 
 @end
 
