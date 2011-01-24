@@ -202,15 +202,7 @@ static OODebugMonitor *sSingleton = nil;
 - (oneway void)performJSConsoleCommand:(in NSString *)command
 {
 	OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-	
-	int x = __builtin_choose_expr(__builtin_types_compatible_p(OOJSPropID, const char *), 0, "");
-	
-	static jsid idCache;
-	static BOOL inited;
-	if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE("consolePerformJSCommand", &idCache, &inited);
-	OOJSPropID propID = idCache;
-	[_script doEvent:propID withArguments:[NSArray arrayWithObject:command]];
-	
+	[_script doEvent:OOJSID("consolePerformJSCommand") withArguments:[NSArray arrayWithObject:command]];
 	OOJSStopTimeLimiter();
 }
 

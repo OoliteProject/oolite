@@ -33,10 +33,7 @@ MA 02110-1301, USA.
 #define OOJSENGINE_MONITOR_SUPPORT	(!defined(NDEBUG))
 
 
-// TEMP: macro for update to trunk SpiderMonkey.
-#ifndef OO_NEW_JS
-#define OO_NEW_JS				0
-#endif
+#import "OOJSPropID.h"
 
 
 @protocol OOJavaScriptEngineMonitor;
@@ -148,7 +145,6 @@ OOINLINE void OOJSRelinquishContext(JSContext *context)
 	OOJSPropIDFromString(string)
 	Converters.
 */
-#import "OOJSPropID.h"
 #if OO_NEW_JS
 #define OOJSID(str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(str, &idCache, &inited); idCache; })
 void OOJSInitPropIDCachePRIVATE(const char *name, jsid *idCache, BOOL *inited);
