@@ -8,6 +8,11 @@
 #import <jsapi.h>
 
 
+#ifndef OO_NEW_JS
+#define OO_NEW_JS				0
+#endif
+
+
 #if OO_NEW_JS
 typedef jsid OOJSPropID;
 #else
