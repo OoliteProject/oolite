@@ -4321,7 +4321,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	OOCreditsQuantity	score = 10 * [other bounty];
 	OOScanClass			killClass = [other scanClass]; // **tgape** change (+line)
-	BOOL				killAward = [[other shipInfoDictionary] oo_boolForKey:@"counts_as_kill" defaultValue:YES];
+	BOOL				killAward = [other countsAsKill];
 	
 	if ([other isPolice])   // oops, we shot a copper!
 	{

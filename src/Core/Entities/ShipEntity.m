@@ -1168,6 +1168,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (BOOL) countsAsKill
+{
+	return [[self shipInfoDictionary] oo_boolForKey:@"counts_as_kill" defaultValue:YES];
+}
+
+
 - (void) setUpEscorts
 {
 	NSString		*defaultRole = @"escort";
@@ -8577,7 +8583,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			case CLASS_NEUTRAL :
 			case CLASS_TARGET :
 				// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
-				if (energy < amount && energy > 10)
+				if (energy < amount && energy > 10 && [self countsAsKill])
 				{
 					ParticleEntity *chainReaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
 					[UNIVERSE addEntity:chainReaction];

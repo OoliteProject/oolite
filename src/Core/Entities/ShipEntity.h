@@ -451,6 +451,8 @@ typedef enum
 - (void) setIsBoulder:(BOOL)flag;
 - (BOOL) isBoulder;
 
+- (BOOL) countsAsKill;
+
 - (void) setUpEscorts;
 - (void) updateEscortFormation;
 
