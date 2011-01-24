@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOWeakReference.h"
 #import "OOTypes.h"
 #import "OOSound.h"
+#import "OOJSPropID.h"
 
 
 #if OOLITE_ESPEAK
@@ -605,7 +606,7 @@ double estimatedTimeForJourney(double distance, int hops);
 
 - (NSArray*) listBeaconsWithCode:(NSString*) code;
 
-- (void) allShipsDoScriptEvent:(NSString*) event andReactToAIMessage:(NSString*) message;
+- (void) allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(NSString *)message;
 
 ///////////////////////////////////////
 

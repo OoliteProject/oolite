@@ -798,8 +798,8 @@ MA 02110-1301, USA.
 
 	// Notify own ship script that we are being attacked.	
 	ShipEntity *hunter = [missile owner];
-	[self doScriptEvent:@"shipBeingAttacked" withArgument:hunter];
-	[hunter doScriptEvent:@"shipAttackedOther" withArgument:self];
+	[self doScriptEvent:OOJSID("shipBeingAttacked") withArgument:hunter];
+	[hunter doScriptEvent:OOJSID("shipAttackedOther") withArgument:self];
 	
 	if ([self isPolice])
 	{
@@ -2274,15 +2274,16 @@ static WormholeEntity *whole = nil;
 - (void) sendScriptMessage:(NSString *)message
 {
 	NSArray *components = ScanTokensFromString(message);
+	
 	if ([components count] == 1)
 	{
-		[self doScriptEvent:message];
+		[self doScriptEvent:OOJSPropIDFromString(message)];
 	}
 	else
 	{
 		NSString *function = [components objectAtIndex:0];
 		components = [components subarrayWithRange:NSMakeRange(1, [components count] - 1)];
-		[self doScriptEvent:function withArgument:components];
+		[self doScriptEvent:OOJSPropIDFromString(function) withArgument:components];
 	}
 }
 

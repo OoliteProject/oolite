@@ -1128,14 +1128,16 @@ static NSTimeInterval	time_last_frame;
 							NSString *stationDockingClearanceStatus = [(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
 							if (stationDockingClearanceStatus != nil)
 							{
-								[self doScriptEvent:@"playerRequestedDockingClearance" withArgument:stationDockingClearanceStatus];
+								[self doScriptEvent:OOJSID("playerRequestedDockingClearance") withArgument:stationDockingClearanceStatus];
 							}
 						}
 					}
 					docking_clearance_request_key_pressed = YES;
 				}
 				else
+				{
 					docking_clearance_request_key_pressed = NO;
+				}
 	#endif
 				
 				exceptionContext = @"hyperspace";
@@ -1154,7 +1156,7 @@ static NSTimeInterval	time_last_frame;
 							// say it!
 							[UNIVERSE clearPreviousMessage];
 							[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
-							[self doScriptEvent:@"playerCancelledJumpCountdown"];
+							[self doScriptEvent:OOJSID("playerCancelledJumpCountdown")];
 						}
 						else if ([self witchJumpChecklist:false])
 						{
@@ -1190,7 +1192,7 @@ static NSTimeInterval	time_last_frame;
 							// say it!
 							[UNIVERSE clearPreviousMessage];
 							[UNIVERSE addMessage:DESC(@"witch-user-galactic-abort") forCount:3.0];
-							[self doScriptEvent:@"playerCancelledJumpCountdown"];
+							[self doScriptEvent:OOJSID("playerCancelledJumpCountdown")];
 						}
 						else
 						{
@@ -2019,7 +2021,7 @@ static NSTimeInterval	time_last_frame;
 					if(reportEnded)
 					{
 						[self setGuiToStatusScreen];
-						[self doScriptEvent:@"reportScreenEnded"];  // last report given. Screen is now free for missionscreens.
+						[self doScriptEvent:OOJSID("reportScreenEnded")];  // last report given. Screen is now free for missionscreens.
 						[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
 					}
 					else
@@ -2135,7 +2137,7 @@ static NSTimeInterval	time_last_frame;
 							[UNIVERSE removeDemoShips];
 							[self setGuiToStatusScreen];
 							[self playBuyShip];
-							[self doScriptEvent:@"playerBoughtNewShip" withArgument:self]; // some equipment.oxp might want to know everything has changed.
+							[self doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:self]; // some equipment.oxp might want to know everything has changed.
 						}
 					}
 					else

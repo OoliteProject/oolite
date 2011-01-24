@@ -133,28 +133,6 @@ OOINLINE void OOJSRelinquishContext(JSContext *context)
 }
 
 
-/*	OOJSPropID
-	A temporary type to identify JavaScript object properties/methods. When
-	OO_NEW_JS is folded, it will be replaced with jsid.
-	
-	OOJSID(const char *)
-	Macro to create a string-based ID. The string is interned and converted
-	into a string by a helper the first time the macro is hit, then cached.
-	
-	OOStringFromJSPropID(propID)
-	OOJSPropIDFromString(string)
-	Converters.
-*/
-#if OO_NEW_JS
-#define OOJSID(str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(str, &idCache, &inited); idCache; })
-void OOJSInitPropIDCachePRIVATE(const char *name, jsid *idCache, BOOL *inited);
-#else
-#define OOJSID(str) (str)
-#endif
-NSString *OOStringFromJSPropID(OOJSPropID propID);
-OOJSPropID OOJSPropIDFromString(NSString *string);
-
-
 /*	Error and warning reporters.
 	
 	Note that after reporting an error in a JavaScript callback, the caller

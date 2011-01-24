@@ -1309,7 +1309,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 				cruiseSpeed = [escorter maxFlightSpeed] * 0.99;  // adapt patrolSpeed to the slowest escort but ignore the very slow ones.
 
 		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
-		[escorter doScriptEvent:@"spawnedAsEscort" withArgument:self];
+		[escorter doScriptEvent:OOJSID("spawnedAsEscort") withArgument:self];
 		
 		if (bounty)
 		{
@@ -1500,7 +1500,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			// send AI a message about the touch
 			OOUniversalID	temp_id = primaryTarget;
 			primaryTarget = otherID;
-			[self doScriptEvent:@"shipCloseContact" withArgument:otherShip andReactToAIMessage:@"CLOSE CONTACT"];
+			[self doScriptEvent:OOJSID("shipCloseContact") withArgument:otherShip andReactToAIMessage:@"CLOSE CONTACT"];
 			primaryTarget = temp_id;
 		}
 	}
@@ -1665,27 +1665,27 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					primaryTarget = other->universalID;
 					if ((pos0.x < 0.0)&&(pos1.x > 0.0))
 					{
-						[self doScriptEvent:@"shipTraversePositiveX" withArgument:other andReactToAIMessage:@"POSITIVE X TRAVERSE"];
+						[self doScriptEvent:OOJSID("shipTraversePositiveX") withArgument:other andReactToAIMessage:@"POSITIVE X TRAVERSE"];
 					}
 					if ((pos0.x > 0.0)&&(pos1.x < 0.0))
 					{
-						[self doScriptEvent:@"shipTraverseNegativeX" withArgument:other andReactToAIMessage:@"NEGATIVE X TRAVERSE"];
+						[self doScriptEvent:OOJSID("shipTraverseNegativeX") withArgument:other andReactToAIMessage:@"NEGATIVE X TRAVERSE"];
 					}
 					if ((pos0.y < 0.0)&&(pos1.y > 0.0))
 					{
-						[self doScriptEvent:@"shipTraversePositiveY" withArgument:other andReactToAIMessage:@"POSITIVE Y TRAVERSE"];
+						[self doScriptEvent:OOJSID("shipTraversePositiveY") withArgument:other andReactToAIMessage:@"POSITIVE Y TRAVERSE"];
 					}
 					if ((pos0.y > 0.0)&&(pos1.y < 0.0))
 					{
-						[self doScriptEvent:@"shipTraverseNegativeY" withArgument:other andReactToAIMessage:@"NEGATIVE Y TRAVERSE"];
+						[self doScriptEvent:OOJSID("shipTraverseNegativeY") withArgument:other andReactToAIMessage:@"NEGATIVE Y TRAVERSE"];
 					}
 					if ((pos0.z < 0.0)&&(pos1.z > 0.0))
 					{
-						[self doScriptEvent:@"shipTraversePositiveZ" withArgument:other andReactToAIMessage:@"POSITIVE Z TRAVERSE"];
+						[self doScriptEvent:OOJSID("shipTraversePositiveZ") withArgument:other andReactToAIMessage:@"POSITIVE Z TRAVERSE"];
 					}
 					if ((pos0.z > 0.0)&&(pos1.z < 0.0))
 					{
-						[self doScriptEvent:@"shipTraverseNegativeZ" withArgument:other andReactToAIMessage:@"NEGATIVE Z TRAVERSE"];
+						[self doScriptEvent:OOJSID("shipTraverseNegativeZ") withArgument:other andReactToAIMessage:@"NEGATIVE Z TRAVERSE"];
 					}
 					primaryTarget = temp_id;
 					[closeContactsInfo removeObjectForKey: other_key];
@@ -1822,8 +1822,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			PlayerEntity *player = PLAYER;
 			[player setScriptTarget:self];
-			[self doScriptEvent:@"shipSpawned"];
-			if ([self status] != STATUS_DEAD)  [player doScriptEvent:@"shipSpawned" withArgument:self];
+			[self doScriptEvent:OOJSID("shipSpawned")];
+			if ([self status] != STATUS_DEAD)  [player doScriptEvent:OOJSID("shipSpawned") withArgument:self];
 		}
 		haveExecutedSpawnAction = YES;
 	}
@@ -1836,7 +1836,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"shipLaunchedFromStation" withArgument:stationLaunchedFrom];
+			[self doScriptEvent:OOJSID("shipLaunchedFromStation") withArgument:stationLaunchedFrom];
 			[shipAI reactToMessage:@"LAUNCHED OKAY" context:@"launched"];
 		}
 		else
@@ -1850,7 +1850,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				if (energy > maxEnergy)
 				{
 					energy = maxEnergy;
-					[self doScriptEvent:@"shipEnergyBecameFull"];
+					[self doScriptEvent:OOJSID("shipEnergyBecameFull")];
 					[shipAI message:@"ENERGY_FULL"];
 				}
 			}
@@ -1899,7 +1899,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				if ([target isShip] && [target isCloaked])
 				{
-					[self doScriptEvent:@"shipTargetCloaked" andReactToAIMessage:@"TARGET_CLOAKED"];
+					[self doScriptEvent:OOJSID("shipTargetCloaked") andReactToAIMessage:@"TARGET_CLOAKED"];
 				}
 				[self noteLostTarget];
 			}
@@ -2115,8 +2115,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		source = from;
 	}	
-	[self doScriptEvent:@"shipBeingAttacked" withArgument:source andReactToAIMessage:@"ATTACKED"];
-	if ([source isShip]) [(ShipEntity *)source doScriptEvent:@"shipAttackedOther" withArgument:self];
+	[self doScriptEvent:OOJSID("shipBeingAttacked") withArgument:source andReactToAIMessage:@"ATTACKED"];
+	if ([source isShip]) [(ShipEntity *)source doScriptEvent:OOJSID("shipAttackedOther") withArgument:self];
 }
 
 
@@ -3826,10 +3826,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (dist2 < desired_range * desired_range)
 	{
 		// desired range achieved
-		[self doScriptEvent:@"shipReachedNavPoint" andReactToAIMessage:@"NAVPOINT_REACHED"];
+		[self doScriptEvent:OOJSID("shipReachedNavPoint") andReactToAIMessage:@"NAVPOINT_REACHED"];
 		if (navpoint_plus_index == 0)
 		{
-			[self doScriptEvent:@"shipReachedEndPoint" andReactToAIMessage:@"ENDPOINT_REACHED"];
+			[self doScriptEvent:OOJSID("shipReachedEndPoint") andReactToAIMessage:@"ENDPOINT_REACHED"];
 			behaviour = BEHAVIOUR_IDLE;
 		}
 		next_navpoint_index = navpoint_plus_index;	// loop as required
@@ -4831,7 +4831,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		Entity<OOStellarBody> *lastAegisLock = [self lastAegisLock];
 		if (lastAegisLock != nil)
 		{
-			[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:lastAegisLock];
+			[self doScriptEvent:OOJSID("shipExitedPlanetaryVicinity") withArgument:lastAegisLock];
 			
 			if (lastAegisLock == [UNIVERSE sun])
 			{
@@ -5003,12 +5003,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		if (!wasNearPlanetSurface && isNearPlanetSurface)
 		{
-			[self doScriptEvent:@"shipApproachingPlanetSurface" withArgument:nearest];
+			[self doScriptEvent:OOJSID("shipApproachingPlanetSurface") withArgument:nearest];
 			[shipAI reactToMessage:@"APPROACHING_SURFACE" context:@"flight update"];
 		}
 		if (wasNearPlanetSurface && !isNearPlanetSurface)
 		{
-			[self doScriptEvent:@"shipLeavingPlanetSurface" withArgument:nearest];
+			[self doScriptEvent:OOJSID("shipLeavingPlanetSurface") withArgument:nearest];
 			[shipAI reactToMessage:@"LEAVING_SURFACE" context:@"flight update"];
 		}
 	}
@@ -5054,10 +5054,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		{
 			if(aegis_status == AEGIS_CLOSE_TO_ANY_PLANET)
 			{
-				[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:[self lastAegisLock]];
+				[self doScriptEvent:OOJSID("shipExitedPlanetaryVicinity") withArgument:[self lastAegisLock]];
 				[shipAI message:@"AWAY_FROM_PLANET"];        // fires for all planets and moons.
 			}
-			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+			[self doScriptEvent:OOJSID("shipEnteredPlanetaryVicinity") withArgument:[UNIVERSE planet]];
 			[self setLastAegisLock:[UNIVERSE planet]];
 			[shipAI message:@"CLOSE_TO_PLANET"];             // fires for all planets and moons.
 			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, keep for compatibility with pre-1.72 AI plists.
@@ -5067,10 +5067,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		{
 			if(aegis_status == AEGIS_CLOSE_TO_MAIN_PLANET)
 			{
-				[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+				[self doScriptEvent:OOJSID("shipExitedPlanetaryVicinity") withArgument:[UNIVERSE planet]];
 				[shipAI message:@"AWAY_FROM_PLANET"];
 			}
-			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:nearest];
+			[self doScriptEvent:OOJSID("shipEnteredPlanetaryVicinity") withArgument:nearest];
 			[self setLastAegisLock:nearest];
 			if([nearest isSun])
 			{
@@ -5091,19 +5091,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		}
 		if ((aegis_status != AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_IN_DOCKING_RANGE))
 		{
-			[self doScriptEvent:@"shipEnteredStationAegis" withArgument:the_station];
+			[self doScriptEvent:OOJSID("shipEnteredStationAegis") withArgument:the_station];
 			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
 			
 			if([self lastAegisLock] == nil && !sunGoneNova) // With small main planets the station aegis can come before planet aegis
 			{
-				[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+				[self doScriptEvent:OOJSID("shipEnteredPlanetaryVicinity") withArgument:[UNIVERSE planet]];
 				[self setLastAegisLock:[UNIVERSE planet]];
 			}
 		}
 		// leaving..
 		if ((aegis_status == AEGIS_IN_DOCKING_RANGE)&&(result != AEGIS_IN_DOCKING_RANGE))
 		{
-			[self doScriptEvent:@"shipExitedStationAegis" withArgument:the_station];
+			[self doScriptEvent:OOJSID("shipExitedStationAegis") withArgument:the_station];
 			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
 		}
 		if ((aegis_status != AEGIS_NONE)&&(result == AEGIS_NONE))
@@ -6224,7 +6224,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (script != nil)
 		{
 			[PLAYER setScriptTarget:self];
-			[self doScriptEvent:@"shipDied"];	// FIXME: params missing
+			[self doScriptEvent:OOJSID("shipDied")];	// FIXME: params missing
 		}
 		
 		// two parts to the explosion:
@@ -6456,7 +6456,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (targetEntity != nil)  primaryTarget = [targetEntity universalID];
 	
 	[[self shipSubEntityEnumerator] makeObjectsPerformSelector:@selector(addTarget:) withObject:targetEntity];
-	if (![self isSubEntity])  [self doScriptEvent:@"shipTargetAcquired" withArgument:targetEntity];
+	if (![self isSubEntity])  [self doScriptEvent:OOJSID("shipTargetAcquired") withArgument:targetEntity];
 }
 
 
@@ -6503,7 +6503,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		primaryTarget = NO_TARGET;
 	}
 	// always do target lost
-	[self doScriptEvent:@"shipTargetLost" withArgument:target];
+	[self doScriptEvent:OOJSID("shipTargetLost") withArgument:target];
 	if (target == nil) [shipAI message:@"TARGET_LOST"];	// stale target? no major urgency.
 	else [shipAI reactToMessage:@"TARGET_LOST" context:@"flight updates"];	// execute immediately otherwise.
 }
@@ -6522,7 +6522,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([self primaryTarget] == target)
 	{
 		[self removeTarget:target];
-		[self doScriptEvent:@"shipTargetDestroyed" withArgument:target];
+		[self doScriptEvent:OOJSID("shipTargetDestroyed") withArgument:target];
 		[shipAI message:@"TARGET_DESTROYED"];
 	}
 }
@@ -7907,7 +7907,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (![self hasCloakingDevice] || cloaking_device_active)  return cloaking_device_active; // no changes.
 	
 	if (!cloaking_device_active)  cloaking_device_active = (energy > CLOAKING_DEVICE_START_ENERGY * maxEnergy);
-	if (cloaking_device_active)  [self doScriptEvent:@"shipCloakActivated"];
+	if (cloaking_device_active)  [self doScriptEvent:OOJSID("shipCloakActivated")];
 	return cloaking_device_active;
 }
 
@@ -7917,7 +7917,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([self hasCloakingDevice] && cloaking_device_active)
 	{
 		cloaking_device_active = NO;
-		[self doScriptEvent:@"shipCloakDeactivated"];
+		[self doScriptEvent:OOJSID("shipCloakDeactivated")];
 	}
 }
 
@@ -8008,7 +8008,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystem:orig]]];
 	}
 	
-	if (mainPod) [self doScriptEvent:@"shipLaunchedEscapePod" withArgument:mainPod];
+	if (mainPod) [self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:mainPod];
 	
 	return result;
 }
@@ -8314,8 +8314,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// remove self from other's collision list
 	[[other collisionArray] removeObject:self];
 	
-	[self doScriptEvent:@"shipCollided" withArgument:other andReactToAIMessage:@"COLLISION"];
-	[other doScriptEvent:@"shipCollided" withArgument:self andReactToAIMessage:@"COLLISION"];
+	[self doScriptEvent:OOJSID("shipCollided") withArgument:other andReactToAIMessage:@"COLLISION"];
+	[other doScriptEvent:OOJSID("shipCollided") withArgument:self andReactToAIMessage:@"COLLISION"];
 	
 	return YES;
 }
@@ -8454,8 +8454,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				//scripting
 				PlayerEntity *player = PLAYER;
 				[player setScriptTarget:self];
-				[other doScriptEvent:@"shipWasScooped" withArgument:self];
-				[self doScriptEvent:@"shipScoopedOther" withArgument:other];
+				[other doScriptEvent:OOJSID("shipWasScooped") withArgument:self];
+				[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other];
 				
 				if ([other commodityType] != CARGO_UNDEFINED)
 				{
@@ -8606,7 +8606,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		if ([hunter isCloaked])
 		{
-			[self doScriptEvent:@"shipBeingAttackedByCloaked" andReactToAIMessage:@"ATTACKED_BY_CLOAKED"];
+			[self doScriptEvent:OOJSID("shipBeingAttackedByCloaked") andReactToAIMessage:@"ATTACKED_BY_CLOAKED"];
 			
 			// lose it!
 			other = nil;
@@ -8715,7 +8715,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		// warn if I'm low on energy
 		if (energy < maxEnergy * 0.25)
 		{
-			[self doScriptEvent:@"shipEnergyIsLow" andReactToAIMessage:@"ENERGY_LOW"];
+			[self doScriptEvent:OOJSID("shipEnergyIsLow") andReactToAIMessage:@"ENERGY_LOW"];
 		}
 		if (energy < maxEnergy *0.125 && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
@@ -8808,7 +8808,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		// warn if I'm low on energy
 		if (energy < maxEnergy * 0.25)
 		{
-			[self doScriptEvent:@"shipEnergyIsLow" andReactToAIMessage:@"ENERGY_LOW"];
+			[self doScriptEvent:OOJSID("shipEnergyIsLow") andReactToAIMessage:@"ENERGY_LOW"];
 		}
 	}
 }
@@ -8834,7 +8834,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		// warn if I'm low on energy
 		if (energy < maxEnergy * 0.25)
 		{
-			[self doScriptEvent:@"shipEnergyIsLow" andReactToAIMessage:@"ENERGY_LOW"];
+			[self doScriptEvent:OOJSID("shipEnergyIsLow") andReactToAIMessage:@"ENERGY_LOW"];
 		}
 	}
 }
@@ -8849,8 +8849,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		dockingInstructions = nil;
 	}
 	
-	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
-	[self doScriptEvent:@"shipDockedWithStation" withArgument:station];
+	[self doScriptEvent:OOJSID("shipWillDockWithStation") withArgument:station];
+	[self doScriptEvent:OOJSID("shipDockedWithStation") withArgument:station];
 	[shipAI message:@"DOCKED"];
 	[station noteDockedShip:self];
 	[UNIVERSE removeEntity:self];
@@ -9095,8 +9095,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 			OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
 			
-			[self doScriptEvent:@"shipAcceptedEscort" withArgument:other_ship];
-			[other_ship doScriptEvent:@"escortAccepted" withArgument:self];
+			[self doScriptEvent:OOJSID("shipAcceptedEscort") withArgument:other_ship];
+			[other_ship doScriptEvent:OOJSID("escortAccepted") withArgument:self];
 			return YES;
 		}
 		else if (maxEscorts > 0)
@@ -9207,7 +9207,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		[escort addTarget:target];
 		[escort setStateMachine:@"interceptAI.plist"];
-		[escort doScriptEvent:@"escortAttack" withArgument:target];
+		[escort doScriptEvent:OOJSID("escortAttack") withArgument:target];
 		
 		if (--deployCount == 0)  break;
 	}
@@ -9239,7 +9239,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		
 		[ai setStateMachine:@"dockingAI.plist" afterDelay:delay];
 		[ai setState:@"ABORT" afterDelay:delay + 0.25];
-		[escort doScriptEvent:@"escortDock" withArgument:[NSNumber numberWithFloat:delay]];
+		[escort doScriptEvent:OOJSID("escortDock") withArgument:[NSNumber numberWithFloat:delay]];
 	}
 	
 	// We now have no escorts.
@@ -9900,24 +9900,23 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 
 // *** Script event dispatch.
-// For ease of overriding, these all go through doScriptEvent:withArguments:.
-- (void) doScriptEvent:(NSString *)message
+// For ease of overriding, these all go through -doScriptEvent:inContext:withArguments:count:.
+- (void) doScriptEvent:(OOJSPropID)message
 {
-	[self doScriptEvent:OOJSPropIDFromString(message) withArguments:nil];
+	JSContext *context = OOJSAcquireContext();
+	[self doScriptEvent:message inContext:context withArguments:NULL count:0];
+	OOJSRelinquishContext(context);
 }
 
 
-- (void) doScriptEvent:(NSString *)message withArgument:(id)argument
+- (void) doScriptEvent:(OOJSPropID)message withArgument:(id)argument
 {
-	NSArray				*arguments = nil;
+	JSContext *context = OOJSAcquireContext();
 	
-	if (argument == nil)
-		[self doScriptEvent:message];
-	else
-	{
-		arguments = [NSArray arrayWithObject:argument];
-		[self doScriptEvent:OOJSPropIDFromString(message) withArguments:arguments];
-	}
+	jsval value = OOJSValueFromNativeObject(context, argument);
+	[self doScriptEvent:message inContext:context withArguments:&value count:1];
+	
+	OOJSRelinquishContext(context);
 }
 
 
@@ -9925,23 +9924,50 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		  withArgument:(id)argument1
 		   andArgument:(id)argument2
 {
-	NSArray				*arguments = nil;
+	JSContext *context = OOJSAcquireContext();
 	
-	if (argument1 == nil)  argument1 = [NSNull null];
-	if (argument2 == nil)  argument2 = [NSNull null];
-	arguments = [NSArray arrayWithObjects:argument1, argument2, nil];
+	jsval argv[2] = { OOJSValueFromNativeObject(context, argument1), OOJSValueFromNativeObject(context, argument2) };
+	[self doScriptEvent:message inContext:context withArguments:argv count:2];
 	
-	NS_DURING
-		[self doScriptEvent:message withArguments:arguments];
-	NS_HANDLER
-		OOLog(kOOLogException, @"***** Exception while performing script event %@ for %@: %@ : %@", message, [self shortDescription], [localException name], [localException reason]);
-	NS_ENDHANDLER
+	OOJSRelinquishContext(context);
 }
 
 
 - (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments
 {
-	[script doEvent:message withArguments:arguments];
+	JSContext				*context = OOJSAcquireContext();
+	uintN					i, argc;
+	jsval					*argv = NULL;
+	
+	// Convert arguments to JS values and make them temporarily un-garbage-collectable.
+	argc = [arguments count];
+	if (argc != 0)
+	{
+		argv = malloc(sizeof *argv * argc);
+		if (argv != NULL)
+		{
+			for (i = 0; i != argc; ++i)
+			{
+				argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
+				OOJSAddGCValueRoot(context, &argv[i], "JSScript event parameter");
+			}
+		}
+		else  argc = 0;
+	}
+	
+	[self doScriptEvent:message inContext:context withArguments:argv count:argc];
+	
+	// Re-garbage-collectibalize the arguments and free the array.
+	if (argv != NULL)
+	{
+		for (i = 0; i != argc; ++i)
+		{
+			JS_RemoveValueRoot(context, &argv[i]);
+		}
+		free(argv);
+	}
+	
+	OOJSRelinquishContext(context);
 }
 
 
@@ -9963,14 +9989,14 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) doScriptEvent:(NSString *)scriptEvent andReactToAIMessage:(NSString *)aiMessage
+- (void) doScriptEvent:(OOJSPropID)scriptEvent andReactToAIMessage:(NSString *)aiMessage
 {
 	[self doScriptEvent:scriptEvent];
 	[self reactToAIMessage:aiMessage context:nil];
 }
 
 
-- (void) doScriptEvent:(NSString *)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage
+- (void) doScriptEvent:(OOJSPropID)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage
 {
 	[self doScriptEvent:scriptEvent withArgument:argument];
 	[self reactToAIMessage:aiMessage context:nil];

@@ -563,8 +563,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 					
 					[dockedStation setPosition: pos];
 				}
-				[player doScriptEvent:@"shipWillExitWitchspace"];
-				[player doScriptEvent:@"shipExitedWitchspace"];
+				[player doScriptEvent:OOJSID("shipWillExitWitchspace")];
+				[player doScriptEvent:OOJSID("shipExitedWitchspace")];
 			}
 		}
 	}
@@ -7869,25 +7869,26 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
-- (void) allShipsDoScriptEvent:(NSString *)event andReactToAIMessage:(NSString *)message
+- (void) allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(NSString *)message
 {
 	int i;
 	int ent_count = n_entities;
 	int ship_count = 0;
 	ShipEntity* my_ships[ent_count];
 	for (i = 0; i < ent_count; i++)
-		if (sortedEntities[i]->isShip)
-			my_ships[ship_count++] = [sortedEntities[i] retain];	// retained
-	
-	if (message != nil)
 	{
-		for (i = 0; i < ship_count; i++)
+		if (sortedEntities[i]->isShip)
 		{
-			ShipEntity* se = my_ships[i];
-			[se doScriptEvent:event];
-			[[se getAI] reactToMessage:message context:@"global message"];
-			[se release]; //	released
+			my_ships[ship_count++] = [sortedEntities[i] retain];	// retained
 		}
+	}
+	
+	for (i = 0; i < ship_count; i++)
+	{
+		ShipEntity* se = my_ships[i];
+		[se doScriptEvent:event];
+		if (message != nil)  [[se getAI] reactToMessage:message context:@"global message"];
+		[se release]; //	released
 	}
 }
 

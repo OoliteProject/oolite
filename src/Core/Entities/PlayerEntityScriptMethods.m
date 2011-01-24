@@ -234,7 +234,7 @@ MA 02110-1301, USA.
 			NSString *oldChoice = missionChoice;
 			[missionChoice autorelease];
 			missionChoice = nil;
-			if (withEvent) [self doScriptEvent:@"missionChoiceWasReset" withArgument:oldChoice];
+			if (withEvent) [self doScriptEvent:OOJSID("missionChoiceWasReset") withArgument:oldChoice];
 		}
 		else
 		{

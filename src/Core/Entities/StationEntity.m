@@ -961,8 +961,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		
 			// damage the ship according to velocity - don't send collision messages to AIs to avoid problems.
 			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:self];
-			[self doScriptEvent:@"shipCollided" withArgument:ship]; // no COLLISION message to station AI, carriers would move away!
-			[ship doScriptEvent:@"shipCollided" withArgument:self]; // no COLLISION message to ship AI, dockingAI.plist would abort.
+			[self doScriptEvent:OOJSID("shipCollided") withArgument:ship]; // no COLLISION message to station AI, carriers would move away!
+			[ship doScriptEvent:OOJSID("shipCollided") withArgument:self]; // no COLLISION message to ship AI, dockingAI.plist would abort.
 			
 			Vector delta;
 			delta.x = 0.5 * (arbb.max.x + arbb.min.x) * correction_factor;
@@ -1318,8 +1318,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[ship resetExhaustPlumes];	// resets stuff for tracking/exhausts
 	
-	[ship doScriptEvent:@"shipWillLaunchFromStation" withArgument:self];
-	[self doScriptEvent:@"stationLaunchedShip" withArgument:ship andReactToAIMessage: @"STATION_LAUNCHED_SHIP"];
+	[ship doScriptEvent:OOJSID("shipWillLaunchFromStation") withArgument:self];
+	[self doScriptEvent:OOJSID("stationLaunchedShip") withArgument:ship andReactToAIMessage: @"STATION_LAUNCHED_SHIP"];
 }
 
 
@@ -1341,7 +1341,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// clear any previously owned docking stages
 	[self clearIdLocks:ship];
 	
-	[self doScriptEvent:@"otherShipDocked" withArgument:ship];
+	[self doScriptEvent:OOJSID("otherShipDocked") withArgument:ship];
 	
 #if DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = PLAYER;

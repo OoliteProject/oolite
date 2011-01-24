@@ -1405,7 +1405,7 @@ static JSBool ShipRemove(OOJS_NATIVE_ARGS)
 		return NO;
 	}
 
-	[thisEnt doScriptEvent:@"shipRemoved" withArgument:[NSNumber numberWithBool:suppressDeathEvent]];
+	[thisEnt doScriptEvent:OOJSID("shipRemoved") withArgument:[NSNumber numberWithBool:suppressDeathEvent]];
 
 	if (suppressDeathEvent)
 	{
@@ -1932,14 +1932,14 @@ static JSBool ShipSetEquipmentStatus(OOJS_NATIVE_ARGS)
 			{
 				// these player methods are different to the ship ones.
 				[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
-				if (hasOK) [(PlayerEntity*)thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
+				if (hasOK) [(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
 				// if player's Docking Computers are set to EQUIPMENT_DAMAGED while on, stop them
 				if (hasOK && [key isEqualToString:@"EQ_DOCK_COMP"])  [(PlayerEntity*)thisEnt disengageAutopilot];
 			}
 			else
 			{
 				[thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
-				if (hasOK) [thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
+				if (hasOK) [thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
 			}
 		}
 	}

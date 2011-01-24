@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "ShipEntity.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOJavaScriptEngine.h"
 
 
 // NOTE: these values are documented for scripting, be careful about changing them.
@@ -83,14 +84,17 @@ MA 02110-1301, USA.
 		OOUInteger i, count = [targets count];
 		if (count > 0)
 		{
-			NSNumber *ecmPulsesRemaining = [NSNumber numberWithInt:_blastsRemaining];
+			JSContext *context = OOJSAcquireContext();
+			jsval ecmPulsesRemaining = INT_TO_JSVAL(_blastsRemaining);
 			
 			for (i = 0; i < count; i++)
 			{
-				[[targets objectAtIndex:i] doScriptEvent:@"shipHitByECM"
-											withArgument:ecmPulsesRemaining
-											 andReactToAIMessage:@"ECM"];
+				ShipEntity *target = [targets objectAtIndex:i];
+				ShipScriptEvent(context, target, "shipHitByECM", ecmPulsesRemaining);
+				[target reactToAIMessage:@"ECM" context:nil];
 			}
+			
+			OOJSRelinquishContext(context);
 		}
 		_nextBlast += ECM_PULSE_INTERVAL;
 		

@@ -1902,7 +1902,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		bounty = 0;
 		// no access to all player.ship properties while inside the escape pod,
 		// we're not supposed to be inside our ship anymore! 
-		[self doScriptEvent:@"escapePodSequenceOver"];	// allow oxps to override the escape pod target
+		[self doScriptEvent:OOJSID("escapePodSequenceOver")];	// allow oxps to override the escape pod target
 		if (!equal_seeds(target_system_seed, system_seed)) // overridden: we're going to a nearby system!
 		{
 			system_seed = target_system_seed;
@@ -1914,8 +1914,8 @@ static bool minShieldLevelPercentageInitialised = false;
 			[self setDockTarget:[UNIVERSE station]];
 			// send world script events to let oxps know we're in a new system.
 			// all player.ship properties are still disabled at this stage.
-			[self doScriptEvent:@"shipWillExitWitchspace"];
-			[self doScriptEvent:@"shipExitedWitchspace"];
+			[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
+			[self doScriptEvent:OOJSID("shipExitedWitchspace")];
 			
 			[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 			[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
@@ -2236,7 +2236,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[self resetAutopilotAI];
 	[shipAI setState:@"BEGIN_DOCKING"];	// reboot the AI
 	[self playAutopilotOn];
-	[self doScriptEvent:@"playerStartedAutoPilot" withArgument:stationForDocking];
+	[self doScriptEvent:OOJSID("playerStartedAutoPilot") withArgument:stationForDocking];
 #if DOCKING_CLEARANCE_ENABLED
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif	
@@ -2268,7 +2268,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif	
 		[[OOMusicController sharedController] stopDockingMusic];
-		[self doScriptEvent:@"playerCancelledAutoPilot"];
+		[self doScriptEvent:OOJSID("playerCancelledAutoPilot")];
 		
 		[self resetAutopilotAI];
 	}
@@ -2420,7 +2420,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		// simple - Nikos 20090728
 		if ([self scriptedMisjump])  [self setScriptedMisjump:NO];
 		
-		[self doScriptEvent:@"shipExitedWitchspace"];
+		[self doScriptEvent:OOJSID("shipExitedWitchspace")];
 		suppressAegisMessages=NO;
 	}
 }
@@ -2446,7 +2446,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif
 		StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
-		[self doScriptEvent:@"shipLaunchedFromStation" withArgument:stationLaunchedFrom];
+		[self doScriptEvent:OOJSID("shipLaunchedFromStation") withArgument:stationLaunchedFrom];
 	}
 }
 
@@ -3522,7 +3522,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		primaryTarget = NO_TARGET;
 		[self setStatus:STATUS_IN_FLIGHT];
 		[[OOMusicController sharedController] stopDockingMusic];
-		[self doScriptEvent:@"playerDockingRefused"];
+		[self doScriptEvent:OOJSID("playerDockingRefused")];
 	}
 
 	// aegis messages to advanced compass so in planet mode it behaves like the old compass
@@ -3929,8 +3929,8 @@ static bool minShieldLevelPercentageInitialised = false;
 	rel_pos = (ent != nil) ? [ent position] : kZeroVector;
 	rel_pos = vector_subtract(rel_pos, position);
 	
-	[self doScriptEvent:@"shipBeingAttacked" withArgument:ent];
-	if ([ent isShip]) [(ShipEntity *)ent doScriptEvent:@"shipAttackedOther" withArgument:self];
+	[self doScriptEvent:OOJSID("shipBeingAttacked") withArgument:ent];
+	if ([ent isShip]) [(ShipEntity *)ent doScriptEvent:OOJSID("shipAttackedOther") withArgument:self];
 
 	d_forward = dot_product(rel_pos, v_forward);
 	
@@ -4198,7 +4198,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	target_system_seed = system_seed;			// we're staying in this system
 	[self setDockTarget:[UNIVERSE station]];	// we're docking at the main station, if there is one
 	
-	[self doScriptEvent:@"shipLaunchedEscapePod" withArgument:escapePod];	// no player.ship properties should be available to script
+	[self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:escapePod];	// no player.ship properties should be available to script
 	
 	// reset legal status
 	legalStatus = 0;
@@ -4405,7 +4405,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		{
 			NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
 			[self addEquipmentItem:damagedKey];	// for possible future repair.
-			[self doScriptEvent:@"equipmentDamaged" withArgument:system_key];
+			[self doScriptEvent:OOJSID("equipmentDamaged") withArgument:system_key];
 			
 			if (![self hasEquipmentItem:system_name] && [self hasEquipmentItem:damagedKey])
 			{
@@ -4420,7 +4420,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		}
 		else
 		{
-			[self doScriptEvent:@"equipmentDestroyed" withArgument:system_key];
+			[self doScriptEvent:OOJSID("equipmentDestroyed") withArgument:system_key];
 			if (![self hasEquipmentItem:system_name])	// Because script may have undestroyed it
 			{
 				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), system_name] forCount:4.5];
@@ -4517,7 +4517,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	[self setStatus:STATUS_DOCKING];
 	dockedStation = station;
-	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
+	[self doScriptEvent:OOJSID("shipWillDockWithStation") withArgument:station];
 	
 	ident_engaged = NO;
 	afterburner_engaged = NO;
@@ -4612,7 +4612,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	// it's time to check the script - can trigger legacy missions
 	if (gui_screen != GUI_SCREEN_MISSION)  [self checkScript]; // a scripted pilot could have created a mission screen.
 	
-	[self doScriptEvent:@"shipDockedWithStation" withArgument:dockedStation];
+	[self doScriptEvent:OOJSID("shipDockedWithStation") withArgument:dockedStation];
 
 	// if we've not switched to the mission screen yet then proceed normally..
 	if (gui_screen != GUI_SCREEN_MISSION)
@@ -4735,7 +4735,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	else
 		compassMode = COMPASS_MODE_BASIC;
 	
-	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
+	[UNIVERSE allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
 	
 	// set the new market seed now!
 	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
@@ -4770,7 +4770,7 @@ static bool minShieldLevelPercentageInitialised = false;
 			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-blocked-by-@"), [blocker name]] forCount: 4.5];
 			[self playWitchjumpBlocked];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"playerJumpFailed" withArgument:@"blocked"];
+			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"blocked"];
 			goto done;
 		}
 	}
@@ -4793,7 +4793,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		{
 			[self playWitchjumpInsufficientFuel];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"playerJumpFailed" withArgument:@"no target"];
+			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"no target"];
 		}
 		else
 			[self playHyperspaceNoTarget];
@@ -4811,7 +4811,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		{
 			[self playWitchjumpDistanceTooGreat];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
+			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"too far"];
 		}
 		else
 			[self playHyperspaceDistanceTooGreat];
@@ -4828,7 +4828,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		{
 			[self playWitchjumpInsufficientFuel];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"playerJumpFailed" withArgument:@"insufficient fuel"];
+			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"insufficient fuel"];
 		}
 		else
 			[self playHyperspaceNoFuel];
@@ -4850,7 +4850,7 @@ done:
 		return;
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"galactic jump"];
+	[self doScriptEvent:OOJSID("shipWillEnterWitchspace") withArgument:@"galactic jump"];
 	
 	[self witchStart];
 	
@@ -4919,7 +4919,7 @@ done:
 	
 	[self witchEnd];
 	
-	[self doScriptEvent:@"playerEnteredNewGalaxy" withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
+	[self doScriptEvent:OOJSID("playerEnteredNewGalaxy") withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
 }
 
 
@@ -4932,7 +4932,7 @@ done:
 	wormhole = [w_hole retain];
 	[self addScannedWormhole:wormhole];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"wormhole"];
+	[self doScriptEvent:OOJSID("shipWillEnterWitchspace") withArgument:@"wormhole"];
 	[self witchJumpTo:[w_hole destination] misjump:misjump];
 }
 
@@ -4958,7 +4958,7 @@ done:
 		{
 			[self playWitchjumpFailure];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"playerJumpFailed" withArgument:@"malfunction"];
+			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"malfunction"];
 			goto done;
 		}
 		else
@@ -4978,7 +4978,7 @@ done:
 	[self addScannedWormhole:wormhole];
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
+	[self doScriptEvent:OOJSID("shipWillEnterWitchspace") withArgument:@"standard jump"];
 	if ([self scriptedMisjump]) misjump = YES; // a script could just have changed this to true;
 	[self witchJumpTo:target_system_seed misjump:misjump];
 
@@ -5062,7 +5062,7 @@ done:
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:NO];
 	[self playExitWitchspace];
-	[self doScriptEvent:@"shipWillExitWitchspace"];
+	[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
 }
 
 
@@ -6545,7 +6545,7 @@ static NSString *last_outfitting_key=nil;
 			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
 			ship_clock_adjust += time_adjust + 600.0;
 			
-			[self doScriptEvent:@"playerBoughtEquipment" withArgument:key];
+			[self doScriptEvent:OOJSID("playerBoughtEquipment") withArgument:key];
 			if (gui_screen == GUI_SCREEN_EQUIP_SHIP) //if we haven't changed gui screen inside playerBoughtEquipment
 			{ 
 				// show any change due to playerBoughtEquipment
@@ -8071,6 +8071,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+#if 0
 - (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments
 {
 	JSContext				*context = OOJSAcquireContext();
@@ -8108,6 +8109,7 @@ static NSString *last_outfitting_key=nil;
 	
 	OOJSRelinquishContext(context);
 }
+#endif
 
 
 - (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc

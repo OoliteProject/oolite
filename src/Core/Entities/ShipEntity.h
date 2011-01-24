@@ -928,25 +928,29 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (Entity *)entityForShaderProperties;
 
-// *** Script events.
-// For NPC ships, these call doEvent: on the ship script.
-// For the player, they do that and also call doWorldScriptEvent:.
-- (void) doScriptEvent:(NSString *)message;
-- (void) doScriptEvent:(NSString *)message withArgument:(id)argument;
+/*	*** Script events.
+	For NPC ships, these call doEvent: on the ship script.
+	For the player, they do that and also call doWorldScriptEvent:.
+*/
+- (void) doScriptEvent:(OOJSPropID)message;
+- (void) doScriptEvent:(OOJSPropID)message withArgument:(id)argument;
 - (void) doScriptEvent:(OOJSPropID)message withArgument:(id)argument1 andArgument:(id)argument2;
 - (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments;
 - (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc;
 
-#define ShipScriptEvent(context, ship, event, ...) ({ \
+/*	Convenience to send an event with raw JS values, for example:
+	ShipScriptEvent(context, ship, "doSomething", INT_TO_JSVAL(42));
+*/
+#define ShipScriptEvent(context, ship, event, ...) do { \
 	jsval argv[] = { __VA_ARGS__ }; \
 	uintN argc = sizeof argv / sizeof *argv; \
 	[ship doScriptEvent:OOJSID(event) inContext:context withArguments:argv count:argc]; \
-})
+} while (0)
 
 - (void) reactToAIMessage:(NSString *)message context:(NSString *)debugContext;	// Immediate message
 - (void) sendAIMessage:(NSString *)message;		// Queued message
-- (void) doScriptEvent:(NSString *)scriptEvent andReactToAIMessage:(NSString *)aiMessage;
-- (void) doScriptEvent:(NSString *)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage;
+- (void) doScriptEvent:(OOJSPropID)scriptEvent andReactToAIMessage:(NSString *)aiMessage;
+- (void) doScriptEvent:(OOJSPropID)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage;
 
 @end
 
