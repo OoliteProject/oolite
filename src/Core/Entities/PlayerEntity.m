@@ -4321,10 +4321,12 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	OOCreditsQuantity	score = 10 * [other bounty];
 	OOScanClass			killClass = [other scanClass]; // **tgape** change (+line)
-	BOOL				killAward = YES;
+	BOOL				killAward = [[other shipInfoDictionary] oo_boolForKey:@"counts_as_kill" defaultValue:YES];
 	
 	if ([other isPolice])   // oops, we shot a copper!
+	{
 		legalStatus |= 64;
+	}
 	
 	if (![UNIVERSE strict])	// only mess with the scores if we're not in 'strict' mode
 	{

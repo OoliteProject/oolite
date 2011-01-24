@@ -131,6 +131,7 @@
 		interstellar_undocking = "boolean";
 		allows_auto_docking = "boolean";
 		allows_fast_docking = "boolean";
+		counts_as_kill = "boolean";
 		
 		extra_equipment = "$extraEquipmentDictionary";
 		hud = "$hudFileName";

@@ -2979,6 +2979,7 @@
 		roles = "wreckage";
 		scan_class = "CLASS_CARGO";
 		thrust = 0;
+		counts_as_kill = false;
 	};
 	"more-wreckage2" =
 	{

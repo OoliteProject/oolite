@@ -282,7 +282,8 @@
 			"max_missiles",
 			"cloak_passive",
 			"debris_role",
-			"has_scoop_message"
+			"has_scoop_message",
+			"counts_as_kill"
 		);
 		knownStationKeys =
 		(

@@ -8608,7 +8608,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 	}
 	else
+	{
 		hunter = nil;
+	}
 	
 	// if the other entity is a ship note it as an aggressor
 	if (hunter != nil)
