@@ -1415,9 +1415,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	if (guiChanged)
 	{
 		[gui setForegroundTextureKey:@"docked_overlay"];
-		
 		[gui setBackgroundTextureKey:@"shipyard"];
-		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
 
