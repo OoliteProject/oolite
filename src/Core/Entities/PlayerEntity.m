@@ -2080,9 +2080,10 @@ static bool minShieldLevelPercentageInitialised = false;
 	OOAlertCondition cond = [self alertCondition];
 	if (cond != lastScriptAlertCondition)
 	{
-		[self doScriptEvent:OOJSID("alertConditionChanged")
-			   withArgument:[NSNumber numberWithInt:cond]
-				andArgument:[NSNumber numberWithInt:lastScriptAlertCondition]];
+		JSContext *context = OOJSAcquireContext();
+		ShipScriptEvent(context, self, "alertConditionChanged", INT_TO_JSVAL(cond), INT_TO_JSVAL(lastScriptAlertCondition));
+		OOJSRelinquishContext(context);
+		
 		lastScriptAlertCondition = cond;
 	}
 }

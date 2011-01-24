@@ -88,9 +88,6 @@ declaration, in particular:
 	
 */
 
-
-NSString *ViewIDToString(OOViewID viewID) CONST_FUNC;
-
 NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;
 
 NSString *CargoTypeToString(OOCargoType cargo) CONST_FUNC;

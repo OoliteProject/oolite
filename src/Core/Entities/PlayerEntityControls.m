@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "HeadUpDisplay.h"
 #import "OOConstToString.h"
+#import "OOConstToJSString.h"
 #import "OOLoggingExtended.h"
 #import "OOMusicController.h"
 #import "OOTexture.h"
@@ -3305,9 +3306,9 @@ static BOOL toggling_music;
 	}
 	if ((oldViewDirection != viewDirection || viewDirection == VIEW_CUSTOM) && ![[UNIVERSE gameController] gameIsPaused])
 	{
-		[self doScriptEvent:OOJSID("viewDirectionChanged")
-				withArgument:ViewIDToString(viewDirection)
-				andArgument:ViewIDToString(oldViewDirection)];
+		JSContext *context = OOJSAcquireContext();
+		ShipScriptEvent(context, self, "viewDirectionChanged", OOJSValueFromViewID(context, viewDirection), OOJSValueFromViewID(context, oldViewDirection));
+		OOJSRelinquishContext(context);
 	}
 }
 

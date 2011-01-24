@@ -192,24 +192,6 @@ OOInstinctID OOInstinctIDFromString(NSString *string)
 #endif
 
 
-NSString *ViewIDToString(OOViewID viewID)
-{
-	switch (viewID)
-	{
-		CASE(VIEW_FORWARD);
-		CASE(VIEW_AFT);
-		CASE(VIEW_PORT);
-		CASE(VIEW_STARBOARD);
-		CASE(VIEW_CUSTOM);
-		CASE(VIEW_NONE);
-		CASE(VIEW_GUI_DISPLAY);
-		CASE(VIEW_BREAK_PATTERN);
-	}
-	
-	return @"UNDEFINED";
-}
-
-
 NSString *RouteTypeToString(OORouteType routeType)
 {
 	switch (routeType)

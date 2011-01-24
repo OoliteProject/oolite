@@ -209,3 +209,39 @@ OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(
 	extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
 	return OOConstantFromJSValuePRIVATE(context, value, &gOOGalacticHyperspaceBehaviourConstTable, kOOGalacticHyperspaceBehaviourDefault);
 }
+
+
+
+/*	JSString *OOJSStringFromViewID(JSContext *, OOViewID)
+	jsval OOJSValueFromViewID(JSContext *, OOViewID)
+	OOViewID OOViewIDFromJSString(JSContext *, JSString *)
+	OOViewID OOViewIDFromJSValue(JSContext *, jsval)
+	
+	Convert between JavaScript strings and OOViewID.
+*/
+OOINLINE JSString *OOJSStringFromViewID(JSContext *context, OOViewID value)
+{
+	extern struct ConstTable gOOViewIDConstTable;
+	return OOJSStringFromConstantPRIVATE(context, value, &gOOViewIDConstTable);
+}
+
+
+OOINLINE jsval OOJSValueFromViewID(JSContext *context, OOViewID value)
+{
+	return STRING_TO_JSVAL(OOJSStringFromViewID(context, value));
+}
+
+
+OOINLINE OOViewID OOViewIDFromJSString(JSContext *context, JSString *string)
+{
+	extern struct ConstTable gOOViewIDConstTable;
+	return OOConstantFromJSStringPRIVATE(context, string, &gOOViewIDConstTable, kOOViewIDDefault);
+}
+
+
+OOINLINE OOViewID OOViewIDFromJSValue(JSContext *context, jsval value)
+{
+	extern struct ConstTable gOOViewIDConstTable;
+	return OOConstantFromJSValuePRIVATE(context, value, &gOOViewIDConstTable, kOOViewIDDefault);
+}
+

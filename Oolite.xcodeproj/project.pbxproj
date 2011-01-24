@@ -1753,6 +1753,7 @@
 		1A846BA90D79F9570081280D /* oolite-version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-version.xcconfig"; path = "src/Cocoa/oolite-version.xcconfig"; sourceTree = "<group>"; };
 		1A85AC4312EDC330000E1FCD /* ShipEntityScriptEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityScriptEvents.h; sourceTree = "<group>"; };
 		1A85AD0612EDCAC7000E1FCD /* OOJSPropID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPropID.h; sourceTree = "<group>"; };
+		1A85AE4D12EE0ED9000E1FCD /* OOViewID.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOViewID.tbl; sourceTree = "<group>"; };
 		1A87063D1172029F003FDD2A /* OODebugFlags.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugFlags.h; sourceTree = "<group>"; };
 		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
 		1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSMutableDictionaryOOExtensions.h; sourceTree = "<group>"; };
@@ -2533,6 +2534,7 @@
 				1A97302012E60F9B001F2406 /* OOGUIScreenID.tbl */,
 				1A97305C12E61427001F2406 /* OOGalacticHyperspaceBehaviour.tbl */,
 				1A35256012E1FC0100244C9D /* OOScanClass.tbl */,
+				1A85AE4D12EE0ED9000E1FCD /* OOViewID.tbl */,
 			);
 			path = Tables;
 			sourceTree = "<group>";
@@ -3060,6 +3062,7 @@
 		1AA2E7061191E39600DFBA23 /* Build stuff */ = {
 			isa = PBXGroup;
 			children = (
+				1AF8E33A0CC169F500CA6001 /* contributors.txt */,
 				1A9407BF0BAF7032005F6CF3 /* GNUmakefile */,
 				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
 				1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */,
@@ -3190,7 +3193,6 @@
 			isa = PBXGroup;
 			children = (
 				1AA2E7061191E39600DFBA23 /* Build stuff */,
-				1AF8E33A0CC169F500CA6001 /* contributors.txt */,
 				1A37D1ED1049B2E400BC8976 /* CHANGELOG.TXT */,
 				1A3D68FB11C7F4D400651B08 /* CHECKLIST.TXT */,
 				1A8A3BE90B963F02007D20B8 /* Source */,

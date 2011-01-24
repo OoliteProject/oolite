@@ -37,17 +37,16 @@ typedef enum
 } OORouteType;
 
 
+#define ENTRY(label, value) label,
+
 typedef enum
 {
-	VIEW_FORWARD			= 0,
-	VIEW_AFT				= 1,
-	VIEW_PORT				= 2,
-	VIEW_STARBOARD			= 3,
-	VIEW_CUSTOM				= 7,
-	VIEW_NONE				= -1,
-	VIEW_GUI_DISPLAY		= 10,
-	VIEW_BREAK_PATTERN		= 20
+	#include "OOViewID.tbl"
+		
+	kOOViewIDDefault = VIEW_NONE
 } OOViewID;
+
+#undef ENTRY
 
 
 typedef enum

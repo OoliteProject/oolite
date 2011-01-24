@@ -1492,9 +1492,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		alertLevel = level;
 		if (signallingScript)
 		{
-			[self doScriptEvent:OOJSID("alertConditionChanged")
-				   withArgument:[NSNumber numberWithUnsignedInt:level]
-					andArgument:[NSNumber numberWithUnsignedInt:oldLevel]];
+			JSContext *context = OOJSAcquireContext();
+			ShipScriptEvent(context, self, "alertConditionChanged", INT_TO_JSVAL(level), INT_TO_JSVAL(oldLevel));
+			OOJSRelinquishContext(context);
 		}
 		switch (level)
 		{

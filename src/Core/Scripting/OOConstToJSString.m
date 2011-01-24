@@ -101,15 +101,21 @@ static TableEntry sOOScanClassTableEntries[] =
 	#include "OOScanClass.tbl"
 };
 
+static TableEntry sOOViewIDTableEntries[] =
+{
+	#include "OOViewID.tbl"
+};
+
 #undef ENTRY
 #undef GALACTIC_HYPERSPACE_ENTRY
 
 
-ConstTable gOOCompassModeConstTable = TABLE(sOOCompassModeTableEntries);
-ConstTable gOOEntityStatusConstTable = TABLE(sOOEntityStatusTableEntries);
-ConstTable gOOGalacticHyperspaceBehaviourConstTable = TABLE(sOOGalacticHyperspaceBehaviourTableEntries);
-ConstTable gOOGUIScreenIDConstTable = TABLE(sOOGUIScreenIDTableEntries);
-ConstTable gOOScanClassConstTable = TABLE(sOOScanClassTableEntries);
+ConstTable gOOCompassModeConstTable					= TABLE(sOOCompassModeTableEntries);
+ConstTable gOOEntityStatusConstTable				= TABLE(sOOEntityStatusTableEntries);
+ConstTable gOOGalacticHyperspaceBehaviourConstTable	= TABLE(sOOGalacticHyperspaceBehaviourTableEntries);
+ConstTable gOOGUIScreenIDConstTable					= TABLE(sOOGUIScreenIDTableEntries);
+ConstTable gOOScanClassConstTable					= TABLE(sOOScanClassTableEntries);
+ConstTable gOOViewIDConstTable						= TABLE(sOOViewIDTableEntries);
 
 static void InitTable(JSContext *context, ConstTable *table);
 
@@ -128,6 +134,7 @@ void OOConstToJSStringInit(JSContext *context)
 	InitTable(context, &gOOGalacticHyperspaceBehaviourConstTable);
 	InitTable(context, &gOOGUIScreenIDConstTable);
 	InitTable(context, &gOOScanClassConstTable);
+	InitTable(context, &gOOViewIDConstTable);
 	
 #ifndef NDEBUG
 	sInited = YES;

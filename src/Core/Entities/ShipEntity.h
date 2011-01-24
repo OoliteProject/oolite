@@ -814,14 +814,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (OOTimeDelta) shotTime;
 - (void) resetShotTime;
 
-- (BOOL) fireMainWeapon:(double) range;
-- (BOOL) fireAftWeapon:(double) range;
-- (BOOL) fireTurretCannon:(double) range;
-- (void) setLaserColor:(OOColor *) color;
+- (BOOL) fireMainWeapon:(double)range;
+- (BOOL) fireAftWeapon:(double)range;
+- (BOOL) fireTurretCannon:(double)range;
+- (void) setLaserColor:(OOColor *)color;
 - (OOColor *)laserColor;
-- (BOOL) fireSubentityLaserShot: (double) range;
+- (BOOL) fireSubentityLaserShot:(double)range;
 - (BOOL) fireDirectLaserShot;
-- (BOOL) fireLaserShotInDirection: (OOViewID) direction;
+- (BOOL) fireLaserShotInDirection:(OOViewID)direction;
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color;
 - (ShipEntity *) fireMissile;
 - (ShipEntity *) fireMissileWithIdentifier:(NSString *) identifier andTarget:(Entity *) target;

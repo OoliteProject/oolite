@@ -326,7 +326,7 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_viewDirection:
-			result = ViewIDToString([UNIVERSE viewDirection]);
+			*value = OOJSValueFromViewID(context, [UNIVERSE viewDirection]);
 			OK = YES;
 			break;
 		
