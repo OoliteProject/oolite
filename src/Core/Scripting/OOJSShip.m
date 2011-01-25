@@ -1968,7 +1968,7 @@ static JSBool ShipEquipmentStatus(OOJS_NATIVE_ARGS)
 		Interned strings are guaranteed to survive for the lifetime of the JS
 		runtime, which lasts as long as Oolite is running.
 	*/
-	static jsval strOK, strDamaged, strUnavailable;
+	static jsval strOK, strDamaged, strUnavailable, strUnknown;
 	static BOOL inited = NO;
 	if (EXPECT_NOT(!inited))
 	{
@@ -1976,6 +1976,7 @@ static JSBool ShipEquipmentStatus(OOJS_NATIVE_ARGS)
 		strOK = STRING_TO_JSVAL(JS_InternString(context, "EQUIPMENT_OK"));
 		strDamaged = STRING_TO_JSVAL(JS_InternString(context, "EQUIPMENT_DAMAGED"));
 		strUnavailable = STRING_TO_JSVAL(JS_InternString(context, "EQUIPMENT_UNAVAILABLE"));
+		strUnknown = STRING_TO_JSVAL(JS_InternString(context, "EQUIPMENT_UNKNOWN"));
 	}
 	
 	ShipEntity				*thisEnt = nil;
@@ -1986,6 +1987,11 @@ static JSBool ShipEquipmentStatus(OOJS_NATIVE_ARGS)
 	key = JSValueToEquipmentKey(context, OOJS_ARG(0));
 	if (EXPECT_NOT(key == nil))
 	{
+		if (JSVAL_IS_STRING(OOJS_ARG(0)))
+		{
+			OOJS_RETURN(strUnknown);
+		}
+		
 		OOJSReportBadArguments(context, @"Ship", @"equipmentStatus", argc, OOJS_ARGV, nil, @"equipment type");
 		return NO;
 	}
