@@ -5989,7 +5989,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f);	// cube root of volume ratio
 							[wreck rescaleBy: scale_factor];
 							
-							Vector r1 = randomFullNodeFrom([octree octreeDetails], kZeroVector);
+							Vector r1 = [octree randomPoint];
 							Vector rpos = vector_add(quaternion_rotate_vector([self normalOrientation], r1), xposition);
 							[wreck setPosition:rpos];
 							
@@ -6582,15 +6582,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector		my_position = position;  // position relative to parent
 	Vector		my_aim = vector_forward_from_quaternion(orientation);
 	Vector		my_ref = reference;
-	double		aim_cos, ref_cos;
+	double		aim_cos;
 	
 	Entity		*target = [self primaryTarget];
 	
 	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
+	BOOL		doTrack;
 	
-	while ((father)&&(father != last) && father != NO_TARGET)
+	while (father && father != last && father != NO_TARGET)
 	{
 		r_mat = [father drawRotationMatrix];
 		my_position = vector_add(OOVectorMultiplyMatrix(my_position, r_mat), [father position]);
@@ -6605,18 +6606,17 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		vector_to_target = vector_subtract([target position], my_position);
 		vector_to_target = vector_normal_or_fallback(vector_to_target, kBasisZVector);
 		
-		// do the tracking!
-		aim_cos = dot_product(vector_to_target, my_aim);
-		ref_cos = dot_product(vector_to_target, my_ref);
+		doTrack = (dot_product(vector_to_target, my_ref) > TURRET_MINIMUM_COS);
 	}
 	else
 	{
-		aim_cos = 0.0;
-		ref_cos = -1.0;
+		doTrack = NO;
 	}
 
-	if (ref_cos > TURRET_MINIMUM_COS)  // target is forward of self
+	if (doTrack)  // target is forward of self
 	{
+		// do the tracking!
+		aim_cos = dot_product(vector_to_target, my_aim);
 		axis_to_track_by = cross_product(vector_to_target, my_aim);
 	}
 	else

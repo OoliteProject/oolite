@@ -388,7 +388,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 	NSString				*type = nil;
 	GLfloat					floatValue;
 	BOOL					gotValue;
-	OOShaderUniform			*uniform = nil;
 	OOUniformConvertOptions	convertOptions;
 	BOOL					quatAsMatrix = YES;
 	GLfloat					scale = 1.0;
@@ -411,7 +410,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 	for (uniformEnum = [keys objectEnumerator]; (name = [uniformEnum nextObject]); )
 	{
 		gotValue = NO;
-		uniform = nil;
 		definition = [uniformDefs objectForKey:name];
 		
 		type = nil;

@@ -324,8 +324,6 @@ typedef enum
 	
 	double					ecm_start_time;
 	
-	OOSoundReferencePoint	*refPoint;
-	
 	OOGUIScreenID			gui_screen;
 	OOAlertFlags			alertFlags;
 	OOAlertCondition		alertCondition;

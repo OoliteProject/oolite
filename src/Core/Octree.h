@@ -39,19 +39,19 @@ MA 02110-1301, USA.
 typedef struct
 {
 	GLfloat				radius;
-	int*				octree;	
-	unsigned char*		octree_collision;
+	int					*octree;	
+	unsigned char		*octree_collision;
 } Octree_details;
 
 
-@interface Octree : NSObject
+@interface Octree: NSObject
 {
-	GLfloat		radius;
-	int			leafs;
-	int*		octree;
-	BOOL		hasCollision;
+	GLfloat			radius;
+	int				leafs;
+	int				*octree;
+	BOOL			hasCollision;
 	
-	unsigned char*		octree_collision;
+	unsigned char	*octree_collision;
 }
 
 - (GLfloat)	radius;
@@ -79,17 +79,14 @@ Vector offsetForOctant(int oct, GLfloat r);
 
 - (GLfloat) isHitByLine: (Vector) v0: (Vector) v1;
 
-BOOL	isHitByOctree(	Octree_details axialDetails,
-						Octree_details otherDetails, Vector delta, Triangle other_ijk);
 - (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk;
 - (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk andScales: (GLfloat) s1: (GLfloat) s2;
 
-- (NSDictionary*) dict;
+- (NSDictionary *) dictionaryRepresentation;
 
 - (GLfloat) volume;
-GLfloat volumeOfOctree(Octree_details octree_details);
 
-Vector randomFullNodeFrom( Octree_details details, Vector offset);
+- (Vector) randomPoint;
 
 
 #ifndef NDEBUG

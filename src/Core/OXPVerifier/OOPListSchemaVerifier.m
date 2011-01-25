@@ -962,7 +962,6 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 	NSMutableSet			*requiredKeys = nil;
 	NSArray					*requiredKeyList = nil;
 	unsigned				count, constraint;
-	NSError					*error = nil;
 	
 	REQUIRE_TYPE(NSDictionary, @"dictionary");
 	
@@ -1026,13 +1025,12 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 			// Report error now rather than returning it, since there may be several unknown keys.
 			if (!tentative)
 			{
-				error = ErrorWithProperty(kPListErrorDictionaryUnknownKey, &keyPath, kUnknownKeyErrorKey, key, @"Unpermitted key \"%@\" in dictionary.", StringForErrorReport(key));
+				NSError *error = ErrorWithProperty(kPListErrorDictionaryUnknownKey, &keyPath, kUnknownKeyErrorKey, key, @"Unpermitted key \"%@\" in dictionary.", StringForErrorReport(key));
 				stop = ![verifier delegateVerifierWithPropertyList:rootPList
 															 named:name
 												 failedForProperty:value
 														 withError:error
 													  expectedType:params];
-				error = nil;
 			}
 			OK = NO;
 		}

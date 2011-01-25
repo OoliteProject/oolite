@@ -103,8 +103,12 @@ MA 02110-1301, USA.
 	
 	Quaternion shipQrotation = [ship normalOrientation];
 	
-	Frame zero;
-	zero.orientation = shipQrotation;
+	Frame zero =
+	{
+		.timeframe = [UNIVERSE getTime],
+		.orientation = shipQrotation,
+		.k = vector_forward_from_quaternion(shipQrotation)
+	};
 	int dam = [ship damage];
 	GLfloat speed = [ship speedFactor];
 	
@@ -344,7 +348,7 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 	Frame frame_one;
 	
 	int t1 = PREV(_nextFrame);
-	double moment_in_time = [UNIVERSE getTime] + t_frame;
+	double moment_in_time = frame_zero.timeframe + t_frame;
 	double period, f0;
 	
 	if (moment_in_time > _trackTime)					// between the last saved frame and now

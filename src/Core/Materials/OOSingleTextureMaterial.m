@@ -54,7 +54,7 @@ SOFTWARE.
 
 - (id) initWithName:(NSString *)name texture:(OOTexture *)texture configuration:(NSDictionary *)configuration
 {
-	if (name != nil)
+	if (name != nil && texture != nil)
 	{
 		self = [super initWithName:name configuration:configuration];
 		if (self != nil)
@@ -62,12 +62,11 @@ SOFTWARE.
 			_texture = [texture retain];
 		}
 	}
-	
-	if (_texture == nil)
+	else
 	{
-		[self release];
-		return nil;
+		DESTROY(self);
 	}
+
 	
 	return self;
 }

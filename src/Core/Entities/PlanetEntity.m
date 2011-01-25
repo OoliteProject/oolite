@@ -1441,6 +1441,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 	OOTextureGenerator *loader = [[OOPixMapTextureLoader alloc] initWithPixMap:pm
 																textureOptions:kOOTextureDefaultOptions | kOOTextureRepeatS
 																  freeWhenDone:YES];
+	[loader autorelease];
 	
 	return [OOTexture textureWithGenerator:loader];
 }
@@ -1465,6 +1466,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 	OOTextureGenerator *loader = [[OOPixMapTextureLoader alloc] initWithPixMap:pm
 																textureOptions:kOOTextureDefaultOptions | kOOTextureRepeatS
 																  freeWhenDone:YES];
+	[loader autorelease];
 	
 	return [OOTexture textureWithGenerator:loader];
 }

@@ -53,6 +53,10 @@ MA 02110-1301, USA.
 
 
 static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit);
+static GLfloat volumeOfOctree(Octree_details octree_details);
+static Vector randomFullNodeFrom(Octree_details details, Vector offset);
+
+static BOOL	isHitByOctree(Octree_details axialDetails, Octree_details otherDetails, Vector delta, Triangle other_ijk);
 
 
 @implementation Octree
@@ -163,7 +167,7 @@ static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GL
 {
 	GLfloat temp = radius;
 	radius *= factor;
-	Octree* result = [[Octree alloc] initWithDictionary:[self dict]];
+	Octree* result = [[Octree alloc] initWithDictionary:[self dictionaryRepresentation]];
 	radius = temp;
 	return [result autorelease];
 }
@@ -690,7 +694,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 
 
 
-- (NSDictionary *) dict
+- (NSDictionary *) dictionaryRepresentation
 {
 	return [NSDictionary dictionaryWithObjectsAndKeys:
 		[NSNumber numberWithFloat:radius],	@"radius",
@@ -704,9 +708,9 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 	return volumeOfOctree([self octreeDetails]);
 }
 
-GLfloat volumeOfOctree(Octree_details octree_details)
+static GLfloat volumeOfOctree(Octree_details octree_details)
 {
-	int*	octBuffer = octree_details.octree;
+	int		*octBuffer = octree_details.octree;
 	GLfloat octRadius = octree_details.radius;
 	
 	if (octBuffer[0] == 0)
@@ -717,12 +721,15 @@ GLfloat volumeOfOctree(Octree_details octree_details)
 	
 	// we are not empty or solid
 	// we sum the volume of each of our octants
-	GLfloat sumVolume = 0.0f;
+	GLfloat			sumVolume = 0.0f;
 	Octree_details	nextDetails;	// for subdivision (may not be required)
-	int		nextLevel = octBuffer[0];
-	int*	nextBuffer = &octBuffer[nextLevel];
+	int				nextLevel = octBuffer[0];
+	int				*nextBuffer = &octBuffer[nextLevel];
+	int				i;
+	
 	nextDetails.radius = 0.5 * octRadius;
-	int		i;
+	nextDetails.octree_collision = NULL;	// Placate static analyzer
+	
 	for (i = 0; i < 8; i++)
 	{
 		if (nextBuffer[i])	// don't test empty octants
@@ -734,39 +741,45 @@ GLfloat volumeOfOctree(Octree_details octree_details)
 	return sumVolume;
 }
 
-Vector randomFullNodeFrom( Octree_details details, Vector offset)
+static Vector randomFullNodeFrom(Octree_details details, Vector offset)
 {
-	int*	octBuffer = details.octree;
+	int		*octBuffer = details.octree;
 	GLfloat octRadius = details.radius;
 	
-	if (octBuffer[0] == 0)
-		return offset;
-	
-	if (octBuffer[0] == -1)
-		return offset;
+	if (octBuffer[0] == 0)  return offset;
+	if (octBuffer[0] == -1)  return offset;
 	
 	// we are not empty or solid
 	// we sum the volume of each of our octants
 	Octree_details	nextDetails;	// for subdivision (may not be required)
-	int		nextLevel = octBuffer[0];
-	int*	nextBuffer = &octBuffer[nextLevel];
+	int				nextLevel = octBuffer[0];
+	int				*nextBuffer = &octBuffer[nextLevel];
+	int				i, oct;
+	
 	nextDetails.radius = 0.5 * octRadius;
-	int		i, oct;
+	nextDetails.octree_collision = NULL;
 	oct = Ranrot() & 7;
+	
 	for (i = 0; i < 8; i++)
 	{
 		int octant = oct ^ i;
 		if (nextBuffer[octant])	// don't test empty octants
 		{
 			nextDetails.octree = &nextBuffer[octant];
-			Vector voff = offsetForOctant( octant, octRadius);
+			Vector voff = offsetForOctant(octant, octRadius);
 			voff.x += offset.x;
 			voff.y += offset.y;
 			voff.z += offset.z;
-			return randomFullNodeFrom( nextDetails, voff);
+			return randomFullNodeFrom(nextDetails, voff);
 		}
 	}
 	return offset;
+}
+
+
+- (Vector) randomPoint
+{
+	return randomFullNodeFrom([self octreeDetails], kZeroVector);
 }
 
 

@@ -2206,7 +2206,7 @@ static NSString * const kOOCacheOctrees = @"octrees";
 {
 	if (inOctree != nil && inKey != nil)
 	{
-		[[self sharedCache] setObject:[inOctree dict] forKey:inKey inCache:kOOCacheOctrees];
+		[[self sharedCache] setObject:[inOctree dictionaryRepresentation] forKey:inKey inCache:kOOCacheOctrees];
 	}
 }
 

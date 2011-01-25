@@ -8422,4 +8422,78 @@ else _dockTarget = NO_TARGET;
 }
 #endif
 
+
+/*	This method exists purely to suppress Clang static analyzer warnings that
+	these ivars are unused (but may be used by categories, which they are).
+	FIXME: there must be a feature macro we can use to avoid actually building
+	this into the app, but I can't find it in docs.
+	
+	Mind you, we could suppress some of this by using civilized accessors.
+*/
+- (BOOL) suppressClangStuff
+{
+	return missionChoice &&
+	commanderNameString &&
+	cdrDetailArray &&
+	currentPage &&
+	key_roll_left &&
+	key_roll_right &&
+	key_pitch_forward &&
+	key_pitch_back &&
+	key_yaw_left &&
+	key_yaw_right &&
+	key_increase_speed &&
+	key_decrease_speed &&
+	key_inject_fuel &&
+	key_fire_lasers &&
+	key_launch_missile &&
+	key_next_missile &&
+	key_ecm &&
+	key_prime_equipment &&
+	key_activate_equipment &&
+	key_target_missile &&
+	key_untarget_missile &&
+#if TARGET_INCOMING_MISSILES
+	key_target_incoming_missile &&
+#endif
+	key_ident_system &&
+	key_scanner_zoom &&
+	key_scanner_unzoom &&
+	key_launch_escapepod &&
+	key_energy_bomb &&
+	key_galactic_hyperspace &&
+	key_hyperspace &&
+	key_jumpdrive &&
+	key_dump_cargo &&
+	key_rotate_cargo &&
+	key_autopilot &&
+	key_autopilot_target &&
+	key_autodock &&
+	key_snapshot &&
+	key_docking_music &&
+	key_advanced_nav_array &&
+	key_map_home &&
+	key_map_info &&
+	key_pausebutton &&
+	key_show_fps &&
+	key_mouse_control &&
+	key_comms_log &&
+	key_next_compass_mode &&
+	key_cloaking_device &&
+	key_contract_info &&
+	key_next_target &&
+	key_previous_target &&
+	key_custom_view &&
+#if DOCKING_CLEARANCE_ENABLED
+	key_docking_clearance_request &&
+#endif
+#ifndef NDEBUG
+	key_dump_target_state &&
+#endif
+	key_weapons_online_toggle &&
+	_sysInfoLight.x &&
+	selFunctionIdx &&
+	stickFunctions;
+}
+
 @end

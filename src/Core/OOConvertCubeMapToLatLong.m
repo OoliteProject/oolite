@@ -41,6 +41,8 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension heig
 		return kOONullPixMap;
 	}
 	
+	NSCParameterAssert(height > 0);
+	
 	height *= 2;
 	OOPixMapDimension width = height * 2;
 	OOPixMap outPixMap = OOAllocatePixMap(width, height, 4, 0, 0);
@@ -64,14 +66,22 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension heig
 		cosTable[x] = cosf(lon);
 	}
 	
-	for (y = 0; y != height; y++)
+	for (y = 0; y < height; y++)
 	{
 		// Calcuate sin/cos of latitude.
+		/*
+			Clang static analyzer (Xcode 3.2.5 version) says:
+			"Assigned value is garbage or undefined."
+			Memsetting sinTable to all-zeros moves this to the cosTable line.
+			Since every value in each of those tables is in fact defined, this
+			is an error in the analyzer.
+			-- Ahruman 2011-01-25
+		*/
 		float cy = -sinTable[width * 3 / 4 - y];
 		float lac = -cosTable[width * 3 / 4 - y];
 		float ay = fabsf(cy);
 		
-		for (x = 0; x != width; x++)
+		for (x = 0; x < width; x++)
 		{
 			float cx = sinTable[x] * lac;
 			float cz = cosTable[x] * lac;

@@ -156,8 +156,7 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 - (id) initWithObjects:(id *)objects weights:(float *)weights count:(OOUInteger)count
 {
 	NSZone *zone = [self zone];
-	[self release];
-	self = nil;
+	DESTROY(self);
 	
 	// Zero objects: return empty-set singleton.
 	if (count == 0)  return [OOEmptyProbabilitySet singleton];

@@ -58,8 +58,6 @@ static OOSoundSource		*sAfterburnerSources[2];
 {
 	[self destroySound];
 	
-	refPoint = [[OOSoundReferencePoint alloc] init];
-	
 	sInterfaceBeepSource = [[OOSoundSource alloc] init];
 	sBreakPatternSource = [[OOSoundSource alloc] init];
 	sEcmSource = [[OOSoundSource alloc] init];
@@ -80,8 +78,6 @@ static OOSoundSource		*sAfterburnerSources[2];
 
 - (void) destroySound
 {
-	DESTROY(refPoint);
-	
 	DESTROY(sInterfaceBeepSource);
 	DESTROY(sBreakPatternSource);
 	DESTROY(sEcmSource);

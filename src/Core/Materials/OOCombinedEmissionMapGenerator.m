@@ -324,6 +324,9 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 		haveIllumination = NO;	// Either way, illumination is now baked into emission.
 	}
 	
+	(void)haveEmission;
+	(void)haveIllumination;
+	
 	// Done: emissionPx now contains combined emission map.
 	OOCompactPixMap(&_emissionPx);
 	if (OOIsValidPixMap(_emissionPx))

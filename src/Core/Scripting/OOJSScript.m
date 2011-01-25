@@ -120,113 +120,114 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	self = [super init];
 	if (self == nil) problem = @"allocation failure";
-	
-	context = OOJSAcquireContext();
-	
-	// Set up JS object
-	if (!problem)
+	else
 	{
-		_jsSelf = JS_NewObject(context, &sScriptClass, sScriptPrototype, NULL);
-		if (_jsSelf == NULL) problem = @"allocation failure";
-	}
-	
-	if (!problem && !OOJSAddGCObjectRoot(context, &_jsSelf, "Script object"))
-	{
-		problem = @"could not add JavaScript root object";
-	}
-	
-#if OO_NEW_JS
-	if (!problem && !OOJSAddGCObjectRoot(context, &scriptObject, "Script GC holder"))
-	{
-		problem = @"could not add JavaScript root object";
-	}
-#endif
-	
-	if (!problem)
-	{
-		if (!JS_SetPrivate(context, _jsSelf, [self weakRetain]))  problem = @"could not set private backreference";
-	}
-	
-	// Push self on stack of running scripts.
-	RunningStack stackElement =
-	{
-		.back = sRunningStack,
-		.current = self
-	};
-	sRunningStack = &stackElement;
-	
-	filePath = [path retain];
-	
-	if (!problem)
-	{
-		script = LoadScriptWithName(context, path, _jsSelf, &scriptObject, &problem);
-	}
-	
-	// Set properties.
-	if (!problem && properties != nil)
-	{
-		for (keyEnum = [properties keyEnumerator]; (key = [keyEnum nextObject]); )
+		context = OOJSAcquireContext();
+		
+		// Set up JS object
+		if (!problem)
 		{
-			if ([key isKindOfClass:[NSString class]])
+			_jsSelf = JS_NewObject(context, &sScriptClass, sScriptPrototype, NULL);
+			if (_jsSelf == NULL) problem = @"allocation failure";
+		}
+		
+		if (!problem && !OOJSAddGCObjectRoot(context, &_jsSelf, "Script object"))
+		{
+			problem = @"could not add JavaScript root object";
+		}
+		
+	#if OO_NEW_JS
+		if (!problem && !OOJSAddGCObjectRoot(context, &scriptObject, "Script GC holder"))
+		{
+			problem = @"could not add JavaScript root object";
+		}
+	#endif
+		
+		if (!problem)
+		{
+			if (!JS_SetPrivate(context, _jsSelf, [self weakRetain]))  problem = @"could not set private backreference";
+		}
+		
+		// Push self on stack of running scripts.
+		RunningStack stackElement =
+		{
+			.back = sRunningStack,
+			.current = self
+		};
+		sRunningStack = &stackElement;
+		
+		filePath = [path retain];
+		
+		if (!problem)
+		{
+			script = LoadScriptWithName(context, path, _jsSelf, &scriptObject, &problem);
+		}
+		
+		// Set properties.
+		if (!problem && properties != nil)
+		{
+			for (keyEnum = [properties keyEnumerator]; (key = [keyEnum nextObject]); )
 			{
-				property = [properties objectForKey:key];
-				[self defineProperty:property named:key];
+				if ([key isKindOfClass:[NSString class]])
+				{
+					property = [properties objectForKey:key];
+					[self defineProperty:property named:key];
+				}
 			}
 		}
-	}
-	
-	/*	Set initial name (in case of script error during initial run).
-		The "name" ivar is not set here, so the property can be fetched from JS
-		if we fail during setup. However, the "name" ivar is set later so that
-		the script object can't be renamed after the initial run. This could
-		probably also be achieved by fiddling with JS property attributes.
-	*/
-	OOJSPropID nameID = OOJSID("name");
-	[self setProperty:[self scriptNameFromPath:path] withID:nameID inContext:context];
-	
-	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
-	if (!problem)
-	{
-		OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-		if (!JS_ExecuteScript(context, _jsSelf, script, &returnValue))
+		
+		/*	Set initial name (in case of script error during initial run).
+			The "name" ivar is not set here, so the property can be fetched from JS
+			if we fail during setup. However, the "name" ivar is set later so that
+			the script object can't be renamed after the initial run. This could
+			probably also be achieved by fiddling with JS property attributes.
+		*/
+		OOJSPropID nameID = OOJSID("name");
+		[self setProperty:[self scriptNameFromPath:path] withID:nameID inContext:context];
+		
+		// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
+		if (!problem)
 		{
-			problem = @"could not run script";
+			OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
+			if (!JS_ExecuteScript(context, _jsSelf, script, &returnValue))
+			{
+				problem = @"could not run script";
+			}
+			OOJSStopTimeLimiter();
+			
+			// We don't need the script any more - the event handlers hang around as long as the JS object exists.
+			JS_DestroyScript(context, script);
 		}
-		OOJSStopTimeLimiter();
+	#if OO_NEW_JS
+		JS_RemoveObjectRoot(context, &scriptObject);
+	#endif
 		
-		// We don't need the script any more - the event handlers hang around as long as the JS object exists.
-		JS_DestroyScript(context, script);
-	}
-#if OO_NEW_JS
-	JS_RemoveObjectRoot(context, &scriptObject);
-#endif
-	
-	sRunningStack = stackElement.back;
-	
-	if (!problem)
-	{
-		// Get display attributes from script
-		DESTROY(name);
-		name = [StrippedName([[self propertyWithID:nameID inContext:context] description]) copy];
-		if (name == nil)
+		sRunningStack = stackElement.back;
+		
+		if (!problem)
 		{
-			name = [[self scriptNameFromPath:path] retain];
-			[self setProperty:name withID:nameID inContext:context];
+			// Get display attributes from script
+			DESTROY(name);
+			name = [StrippedName([[self propertyWithID:nameID inContext:context] description]) copy];
+			if (name == nil)
+			{
+				name = [[self scriptNameFromPath:path] retain];
+				[self setProperty:name withID:nameID inContext:context];
+			}
+			
+			version = [[[self propertyWithID:OOJSID("version") inContext:context] description] copy];
+			description = [[[self propertyWithID:OOJSID("description") inContext:context] description] copy];
+			
+			OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : (NSString *)@"(no description)");
 		}
 		
-		version = [[[self propertyWithID:OOJSID("version") inContext:context] description] copy];
-		description = [[[self propertyWithID:OOJSID("description") inContext:context] description] copy];
-		
-		OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : (NSString *)@"(no description)");
+		DESTROY(filePath);	// Only used for error reporting during startup.
 	}
-	
-	DESTROY(filePath);	// Only used for error reporting during startup.
 	
 	if (problem)
 	{
 		OOLog(@"script.javaScript.load.failed", @"***** Error loading JavaScript script %@ -- %@", path, problem);
-		[self release];
-		self = nil;
+		DESTROY(self);
 	}
 	
 	OOJSRelinquishContext(context);

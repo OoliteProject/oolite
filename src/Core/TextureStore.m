@@ -358,10 +358,11 @@ static float q_factor(float* accbuffer, int x, int y, int width, BOOL polar_y_sm
 
 static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, OOColor* cloudcolor, float impress, float bias)
 {
+	NSCParameterAssert(width > 0);
+	
 	float accbuffer[width * width];
+	memset(accbuffer, 0, sizeof accbuffer);
 	int x, y;
-	y = width * width;
-	for (x = 0; x < y; x++) accbuffer[x] = 0.0f;
 
 	GLfloat rgba[4];
 	rgba[0] = [cloudcolor redComponent];
@@ -373,7 +374,7 @@ static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int
 	float scale = 0.5;
 	while (octave < width)
 	{
-		addNoise( accbuffer, width, octave, scale);
+		addNoise(accbuffer, width, octave, scale);
 		octave *= 2;
 		scale *= 0.5;
 	}
