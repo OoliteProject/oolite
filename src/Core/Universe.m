@@ -901,7 +901,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		OOLogWARN(@"universe.setup.badSun",@"Sun positioning: max iterations exceeded for '%@'. Adjust radius, sun_radius or sun_distance_modifier.",[systeminfo objectForKey: @"name"]);
 	}
 	
-	NSMutableDictionary* sun_dict = [NSMutableDictionary dictionaryWithCapacity:4];
+	NSMutableDictionary *sun_dict = [NSMutableDictionary dictionaryWithCapacity:4];
 	[sun_dict setObject:[NSNumber numberWithDouble:sun_radius] forKey:@"sun_radius"];
 	dict_object=[systeminfo objectForKey: @"corona_shimmer"];
 	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_shimmer"];
@@ -916,7 +916,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[a_sun setStatus:STATUS_ACTIVE];
 	[a_sun setPosition:sunPos]; // sets also light origin
-	[a_sun setEnergy:  1000000.0];
+	[a_sun setEnergy:1000000.0];
 	[self addEntity:a_sun];
 	
 	if (sunGoneNova)
@@ -933,15 +933,15 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - main station");
 	/*- space station -*/
 	stationPos = [a_planet position];
-	double  station_orbit = 2.0 * planet_radius;
 	Quaternion  q_station;
-	vf.z = -1;
-	while (vf.z <= 0.0)						// keep station on the correct side of the planet
+	do
 	{
 		quaternion_set_random(&q_station);
 		vf = vector_forward_from_quaternion(q_station);
 	}
-	stationPos = vector_subtract(stationPos, vector_multiply_scalar(vf, station_orbit));
+	while (vf.z <= 0.0);						// keep station on the correct side of the planet
+	
+	stationPos = vector_subtract(stationPos, vector_multiply_scalar(vf, 2.0 * planet_radius));
 	
 	defaultStationDesc = @"coriolis";
 	if (techlevel > 10)
@@ -1080,12 +1080,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		while (magnitude2(a_sun->position) < min_safe_dist2)	// back off the planetary bodies
 		{
 			v0.z *= 2.0;
-			planetPos = a_planet->position;
-			[a_planet setPosition:vector_add(planetPos, v0)];
-			[a_sun setPosition:vector_add(sunPos, v0)];  // sets also light origin
-			sunPos = a_sun->position;
-			[a_station setPosition:vector_add(stationPos, v0)];
-			stationPos = a_station->position;
+			planetPos = vector_add([a_planet position], v0);
+			[a_planet setPosition:planetPos];
+			
+			sunPos = vector_add(sunPos, v0);
+			[a_sun setPosition:sunPos];  // also sets light origin
+			
+			stationPos = vector_add(stationPos, v0);
+			[a_station setPosition:stationPos];
 		}
 		
 		[self removeEntity:a_planet];	// and Poof! it's gone
@@ -2611,10 +2613,12 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		reverse the probabilities for scarce goods.
 	*/
 	NSMutableArray  *accumulator = [NSMutableArray arrayWithCapacity:how_many];
-	OOCargoQuantity quantities[[commodityData count]];
+	OOUInteger		commodityCount = [commodityData count];
+	OOCargoQuantity quantities[commodityCount];
 	OOCargoQuantity total_quantity = 0;
+	
 	unsigned i;
-	for (i = 0; i < [commodityData count]; i++)
+	for (i = 0; i < commodityCount; i++)
 	{
 		OOCargoQuantity q = [[commodityData oo_arrayAtIndex:i] oo_unsignedIntAtIndex:MARKET_QUANTITY];
 		if (scarce)
@@ -2647,6 +2651,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 			co_type = 0;
 			while (qr > 0)
 			{
+				NSAssert(co_type < commodityCount, @"Commodity type index out of range.");
 				qr -= quantities[co_type++];
 			}
 			co_type--;
@@ -3466,118 +3471,115 @@ static const OOMatrix	starboard_matrix =
 }
 
 
-static BOOL MaintainLinkedLists(Universe* uni)
+static BOOL MaintainLinkedLists(Universe *uni)
 {
-	BOOL result;
-	
-	if (!uni)
-		return NO;
-	
-	result = YES;
+	NSCParameterAssert(uni != NULL);
+	BOOL result = YES;
 	
 	// DEBUG check for loops and short lists
 	if (uni->n_entities > 0)
 	{
 		int n;
-		Entity	*check, *last;
+		Entity	*checkEnt, *last;
 		
 		last = nil;
 		
 		n = uni->n_entities;
-		check = uni->x_list_start;
-		while ((n--)&&(check))
+		checkEnt = uni->x_list_start;
+		while ((n--)&&(checkEnt))
 		{
-			last = check;
-			check = check->x_next;
+			last = checkEnt;
+			checkEnt = checkEnt->x_next;
 		}
-		if ((check)||(n > 0))
+		if ((checkEnt)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", uni->x_list_start, n);
+			OOExtraLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", uni->x_list_start, n);
 			result = NO;
 		}
 		
 		n = uni->n_entities;
-		check = last;
-		while ((n--)&&(check))	check = check->x_previous;
-		if ((check)||(n > 0))
+		checkEnt = last;
+		while ((n--)&&(checkEnt))	checkEnt = checkEnt->x_previous;
+		if ((checkEnt)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", uni->x_list_start, n);
+			OOExtraLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", uni->x_list_start, n);
 			if (result)
 			{
-				OOLog(kOOLogEntityVerificationRebuild, @"REBUILDING x_previous list from x_next list");
-				check = uni->x_list_start;
-				check->x_previous = nil;
-				while (check->x_next)
+				OOExtraLog(kOOLogEntityVerificationRebuild, @"REBUILDING x_previous list from x_next list");
+				checkEnt = uni->x_list_start;
+				checkEnt->x_previous = nil;
+				while (checkEnt->x_next)
 				{
-					last = check;
-					check = check->x_next;
-					check->x_previous = last;
+					last = checkEnt;
+					checkEnt = checkEnt->x_next;
+					checkEnt->x_previous = last;
 				}
 			}
 		}
 		
 		n = uni->n_entities;
-		check = uni->y_list_start;
-		while ((n--)&&(check))
+		checkEnt = uni->y_list_start;
+		while ((n--)&&(checkEnt))
 		{
-			last = check;
-			check = check->y_next;
+			last = checkEnt;
+			checkEnt = checkEnt->y_next;
 		}
-		if ((check)||(n > 0))
+		if ((checkEnt)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken *** broken y_next %@ list (%d) ***", uni->y_list_start, n);
+			OOExtraLog(kOOLogEntityVerificationError, @"Broken *** broken y_next %@ list (%d) ***", uni->y_list_start, n);
 			result = NO;
 		}
 		
 		n = uni->n_entities;
-		check = last;
-		while ((n--)&&(check))	check = check->y_previous;
-		if ((check)||(n > 0))
+		checkEnt = last;
+		while ((n--)&&(checkEnt))	checkEnt = checkEnt->y_previous;
+		if ((checkEnt)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", uni->y_list_start, n);
+			OOExtraLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", uni->y_list_start, n);
 			if (result)
 			{
-				OOLog(kOOLogEntityVerificationRebuild, @"REBUILDING y_previous list from y_next list");
-				check = uni->y_list_start;
-				check->y_previous = nil;
-				while (check->y_next)
+				OOExtraLog(kOOLogEntityVerificationRebuild, @"REBUILDING y_previous list from y_next list");
+				checkEnt = uni->y_list_start;
+				checkEnt->y_previous = nil;
+				while (checkEnt->y_next)
 				{
-					last = check;
-					check = check->y_next;
-					check->y_previous = last;
+					last = checkEnt;
+					checkEnt = checkEnt->y_next;
+					checkEnt->y_previous = last;
 				}
 			}
 		}
 		
 		n = uni->n_entities;
-		check = uni->z_list_start;
-		while ((n--)&&(check))
+		checkEnt = uni->z_list_start;
+		while ((n--)&&(checkEnt))
 		{
-			last = check;
-			check = check->z_next;
+			last = checkEnt;
+			checkEnt = checkEnt->z_next;
 		}
-		if ((check)||(n > 0))
+		if ((checkEnt)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", uni->z_list_start, n);
+			OOExtraLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", uni->z_list_start, n);
 			result = NO;
 		}
 		
 		n = uni->n_entities;
-		check = last;
-		while ((n--)&&(check))	check = check->z_previous;
-		if ((check)||(n > 0))
+		checkEnt = last;
+		while ((n--)&&(checkEnt))	checkEnt = checkEnt->z_previous;
+		if ((checkEnt)||(n > 0))
 		{
-			OOLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", uni->z_list_start, n);
+			OOExtraLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", uni->z_list_start, n);
 			if (result)
 			{
-				OOLog(kOOLogEntityVerificationRebuild, @"REBUILDING z_previous list from z_next list");
-				check = uni->z_list_start;
-				check->z_previous = nil;
-				while (check->z_next)
+				OOExtraLog(kOOLogEntityVerificationRebuild, @"REBUILDING z_previous list from z_next list");
+				checkEnt = uni->z_list_start;
+				NSCAssert(checkEnt != nil, @"Expected z-list to be non-empty.");	// Previously an implicit assumption. -- Ahruman 2011-01-25
+				checkEnt->z_previous = nil;
+				while (checkEnt->z_next)
 				{
-					last = check;
-					check = check->z_next;
-					check->z_previous = last;
+					last = checkEnt;
+					checkEnt = checkEnt->z_next;
+					checkEnt->z_previous = last;
 				}
 			}
 		}
@@ -3585,8 +3587,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	
 	if (!result)
 	{
-		OOLog(kOOLogEntityVerificationRebuild, @"Rebuilding all linked lists from scratch");
-		NSArray* allEntities = uni->entities;
+		OOExtraLog(kOOLogEntityVerificationRebuild, @"Rebuilding all linked lists from scratch");
+		NSArray *allEntities = uni->entities;
 		uni->x_list_start = nil;
 		uni->y_list_start = nil;
 		uni->z_list_start = nil;
@@ -6951,10 +6953,12 @@ double estimatedTimeForJourney(double distance, int hops)
 			// now we need a commodity that's both plentiful here and scarce there...
 			// build list of goods allocating 0..100 for each based on how
 			// much of each quantity there is. Use a ratio of n x 100/64
-			int quantities[[localMarket count]];
-			int total_quantity = 0;
-			unsigned i;
-			for (i = 0; i < [localMarket count]; i++)
+			OOUInteger	marketCount = [localMarket count];
+			int			quantities[marketCount];
+			int			total_quantity = 0;
+			unsigned	i;
+			
+			for (i = 0; i < marketCount; i++)
 			{
 				// -- plentiful here
 				int q = [[localMarket oo_arrayAtIndex:i] oo_intAtIndex:MARKET_QUANTITY];
@@ -6981,11 +6985,11 @@ double estimatedTimeForJourney(double distance, int hops)
 			co_type = 0;
 			while (qr > 0)
 			{
+				NSAssert(co_type < marketCount, @"Commodity type index out of range.");
 				qr -= quantities[co_type++];
 			}
-			if (--co_type < 0) {
-				continue;
-			}
+			if (--co_type < 0)  continue;
+			
 			// units
 			unit = [self unitsForCommodity:co_type];
 			
