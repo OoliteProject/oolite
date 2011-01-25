@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 /*	OOJSPropID
 	Th type that identifies JavaScript properties/methods.
 	
-	OOJSID(const char *)
+	OOJSID(const char * [literal])
 	Macro to create a string-based ID. The string is interned and converted
 	into a string by a helper the first time the macro is hit, then cached.
 	
@@ -50,10 +50,10 @@ typedef const char *OOJSPropID;
 
 
 #if OO_NEW_JS
-#define OOJSID(str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(str, &idCache, &inited); idCache; })
+#define OOJSID(str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(""str, &idCache, &inited); idCache; })
 void OOJSInitPropIDCachePRIVATE(const char *name, jsid *idCache, BOOL *inited);
 #else
-#define OOJSID(str) (str)
+#define OOJSID(str) (""str)
 #endif
 NSString *OOStringFromJSPropID(OOJSPropID propID);
 OOJSPropID OOJSPropIDFromString(NSString *string);

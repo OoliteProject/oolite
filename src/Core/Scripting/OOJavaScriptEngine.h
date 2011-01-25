@@ -254,6 +254,14 @@ OOINLINE jsval OOJSValueFromNativeObject(JSContext *context, id object)
 
 /**** String utilities ****/
 
+/*	OOJSSTR(const char * [literal])
+	
+	Create and cache a jsval referring to an interned string literal.
+*/
+#define OOJSSTR(str) ({ static jsval strCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSStrLiteralCachePRIVATE(""str, &strCache, &inited); strCache; })
+void OOJSStrLiteralCachePRIVATE(const char *string, jsval *strCache, BOOL *inited);
+
+
 // Convert a JSString to an NSString.
 NSString *OOStringFromJSString(JSContext *context, JSString *string);
 

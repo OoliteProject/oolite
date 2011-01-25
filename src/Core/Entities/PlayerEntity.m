@@ -2080,10 +2080,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	OOAlertCondition cond = [self alertCondition];
 	if (cond != lastScriptAlertCondition)
 	{
-		JSContext *context = OOJSAcquireContext();
-		ShipScriptEvent(context, self, "alertConditionChanged", INT_TO_JSVAL(cond), INT_TO_JSVAL(lastScriptAlertCondition));
-		OOJSRelinquishContext(context);
-		
+		ShipScriptEventNoCx(self, "alertConditionChanged", INT_TO_JSVAL(cond), INT_TO_JSVAL(lastScriptAlertCondition));
 		lastScriptAlertCondition = cond;
 	}
 }
@@ -4770,7 +4767,7 @@ static bool minShieldLevelPercentageInitialised = false;
 			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-blocked-by-@"), [blocker name]] forCount: 4.5];
 			[self playWitchjumpBlocked];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"blocked"];
+			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("blocked"));
 			goto done;
 		}
 	}
@@ -4793,7 +4790,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		{
 			[self playWitchjumpInsufficientFuel];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"no target"];
+			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("no target"));
 		}
 		else
 			[self playHyperspaceNoTarget];
@@ -4811,7 +4808,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		{
 			[self playWitchjumpDistanceTooGreat];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"too far"];
+			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("too far"));
 		}
 		else
 			[self playHyperspaceDistanceTooGreat];
@@ -4828,7 +4825,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		{
 			[self playWitchjumpInsufficientFuel];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"insufficient fuel"];
+			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("insufficient fuel"));
 		}
 		else
 			[self playHyperspaceNoFuel];
@@ -4850,7 +4847,7 @@ done:
 		return;
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:OOJSID("shipWillEnterWitchspace") withArgument:@"galactic jump"];
+	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("galactic jump"));
 	
 	[self witchStart];
 	
@@ -4932,7 +4929,7 @@ done:
 	wormhole = [w_hole retain];
 	[self addScannedWormhole:wormhole];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:OOJSID("shipWillEnterWitchspace") withArgument:@"wormhole"];
+	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("wormhole"));
 	[self witchJumpTo:[w_hole destination] misjump:misjump];
 }
 
@@ -4958,7 +4955,7 @@ done:
 		{
 			[self playWitchjumpFailure];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"malfunction"];
+			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("malfunction"));
 			goto done;
 		}
 		else
@@ -4978,7 +4975,7 @@ done:
 	[self addScannedWormhole:wormhole];
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	[self doScriptEvent:OOJSID("shipWillEnterWitchspace") withArgument:@"standard jump"];
+	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"));
 	if ([self scriptedMisjump]) misjump = YES; // a script could just have changed this to true;
 	[self witchJumpTo:target_system_seed misjump:misjump];
 

@@ -936,15 +936,22 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) doScriptEvent:(OOJSPropID)message withArgument:(id)argument;
 - (void) doScriptEvent:(OOJSPropID)message withArgument:(id)argument1 andArgument:(id)argument2;
 - (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments;
+- (void) doScriptEvent:(OOJSPropID)message withArguments:(jsval *)argv count:(uintN)argc;
 - (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc;
 
 /*	Convenience to send an event with raw JS values, for example:
-	ShipScriptEvent(context, ship, "doSomething", INT_TO_JSVAL(42));
+	ShipScriptEventNoCx(ship, "doSomething", INT_TO_JSVAL(42));
 */
 #define ShipScriptEvent(context, ship, event, ...) do { \
 	jsval argv[] = { __VA_ARGS__ }; \
 	uintN argc = sizeof argv / sizeof *argv; \
 	[ship doScriptEvent:OOJSID(event) inContext:context withArguments:argv count:argc]; \
+} while (0)
+
+#define ShipScriptEventNoCx(ship, event, ...) do { \
+	jsval argv[] = { __VA_ARGS__ }; \
+	uintN argc = sizeof argv / sizeof *argv; \
+	[ship doScriptEvent:OOJSID(event) withArguments:argv count:argc]; \
 } while (0)
 
 - (void) reactToAIMessage:(NSString *)message context:(NSString *)debugContext;	// Immediate message

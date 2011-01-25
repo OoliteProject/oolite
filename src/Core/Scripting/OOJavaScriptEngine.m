@@ -1384,6 +1384,25 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 @end
 
 
+void OOJSStrLiteralCachePRIVATE(const char *string, jsval *strCache, BOOL *inited)
+{
+	NSCParameterAssert(string != NULL && strCache != NULL && inited != NULL && !*inited);
+	
+	JSContext *context = OOJSAcquireContext();
+	
+	JSString *jsString = JS_InternString(context, string);
+	if (EXPECT_NOT(string == NULL))
+	{
+		[NSException raise:NSGenericException format:@"Failed to initialize JavaScript string literal cache for \"%@\".", [[NSString stringWithUTF8String:string] escapedForJavaScriptLiteral]];
+	}
+	
+	*strCache = STRING_TO_JSVAL(jsString);
+	*inited = YES;
+	
+	OOJSRelinquishContext(context);
+}
+
+
 NSString *OOStringFromJSString(JSContext *context, JSString *string)
 {
 	OOJS_PROFILE_ENTER

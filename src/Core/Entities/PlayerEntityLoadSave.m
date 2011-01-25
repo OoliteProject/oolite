@@ -41,6 +41,7 @@
 #import "OOShipRegistry.h"
 #import "OOTexture.h"
 #import "NSStringOOExtensions.h"
+#import "OOJavaScriptEngine.h"
 
 
 // Set to 1 to use custom load/save dialogs in windowed mode on Macs in debug builds. No effect on other platforms.
@@ -142,7 +143,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	tmp_name = player_name;
 	tmp_path = save_path;
 	
-	[self doScriptEvent:OOJSID("playerWillSaveGame") withArgument:@"AUTO_SAVE"];
+	ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("AUTO_SAVE"));
 	
 	NSString *saveName = player_name;
 	if (![player_name hasSuffix:DESC(@"autosave-commander-suffix")])
@@ -182,7 +183,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 					format:@"ERROR no file name returned by [[gameView gameController] playerFileToLoad]"];
 	}
 	
-	[self doScriptEvent:OOJSID("playerWillSaveGame") withArgument:@"QUICK_SAVE"];
+	ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("QUICK_SAVE"));
 	
 	[self writePlayerToPath:path];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
@@ -581,7 +582,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		NSArray*	path_components = [[sp filename] pathComponents];
 		NSString*   new_name = [[path_components objectAtIndex:[path_components count]-1] stringByDeletingPathExtension];
 		
-		[self doScriptEvent:OOJSID("playerWillSaveGame") withArgument:@"STANDARD_SAVE"];
+		ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("STANDARD_SAVE"));
 		
 		[player_name release];
 		player_name = [new_name copy];
@@ -636,7 +637,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
 	NSString *savePath = [dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
 	
-	[self doScriptEvent:OOJSID("playerWillSaveGame") withArgument:@"STANDARD_SAVE"];
+	ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("STANDARD_SAVE"));
 	
 	[player_name release];
 	player_name = [cdrName copy];

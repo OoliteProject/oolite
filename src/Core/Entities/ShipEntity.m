@@ -9970,6 +9970,13 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
+- (void) doScriptEvent:(OOJSPropID)message withArguments:(jsval *)argv count:(uintN)argc
+{
+	JSContext *context = OOJSAcquireContext();
+	[self doScriptEvent:message inContext:context withArguments:argv count:argc];
+}
+
+
 - (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
 {
 	// This method is a bottleneck so that PlayerEntity can override at one point.
