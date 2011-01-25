@@ -64,10 +64,11 @@ static GameController *sSharedController = nil;
 
 @implementation GameController
 
-+ (id)sharedController
++ (id) sharedController
 {
 	if (sSharedController == nil)  [[self alloc] init];
 	return sSharedController;
+	// Analyzer: object leaked. [Expected.]
 }
 
 
@@ -582,7 +583,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		
 		originalDisplayMode = (NSDictionary *)CGDisplayCurrentMode(kCGDirectMainDisplay);
 		
-		NSMutableData *attrData = [[gameView pixelFormatAttributes] mutableCopy];
+		NSMutableData *attrData = [[[gameView pixelFormatAttributes] mutableCopy] autorelease];
 		NSOpenGLPixelFormatAttribute *attrs = [attrData mutableBytes];
 		NSAssert(attrs[0] == NSOpenGLPFAWindow, @"Pixel format does not meet my strenuous expectations!");
 		attrs[0] = NSOpenGLPFAFullScreen;
