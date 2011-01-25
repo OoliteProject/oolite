@@ -1770,9 +1770,11 @@
 			files = (
 			);
 			inputPaths = (
+				"$(SRCROOT)/../../URLs/mozilla.url",
 			);
 			name = "Update Code";
 			outputPaths = (
+				"$(SRCROOT)/../../Cross-platform-deps/mozilla/current.url",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

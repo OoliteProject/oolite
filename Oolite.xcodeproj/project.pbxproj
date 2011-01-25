@@ -646,6 +646,9 @@
 		1AE45E5A12EB177B00B570E1 /* oolite-constrictor-pilot.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */; };
 		1AE45E5C12EB178100B570E1 /* oolite-locale-functions.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
+		1AE8837412EF91560075814F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; };
+		1AE8837612EF91810075814F /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; };
+		1AE8838012EF91E80075814F /* SparkleVerificationKey.pem in Resources */ = {isa = PBXBuildFile; fileRef = 1AE8837F12EF91E80075814F /* SparkleVerificationKey.pem */; };
 		1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEA229D12CBD18600EC0F43 /* CoreServices.framework */; };
 		1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
 		1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */; };
@@ -1229,6 +1232,17 @@
 				1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE8837812EF91880075814F /* Copy Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				1AE8837612EF91810075814F /* Sparkle.framework in Copy Frameworks */,
+			);
+			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -1901,6 +1915,8 @@
 		1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-constrictor-pilot.js"; sourceTree = "<group>"; };
 		1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-locale-functions.js"; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
+		1AE8837312EF91560075814F /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = "deps/Cocoa-deps/Sparkle/Sparkle.framework"; sourceTree = "<group>"; };
+		1AE8837F12EF91E80075814F /* SparkleVerificationKey.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = SparkleVerificationKey.pem; path = "Mac-specific/SparkleVerificationKey.pem"; sourceTree = SOURCE_ROOT; };
 		1AEA229D12CBD18600EC0F43 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		1AEB48D1119D51BD007BD514 /* gpu-settings.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "gpu-settings.plist"; sourceTree = "<group>"; };
 		1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OORegExpMatcher.h; sourceTree = "<group>"; };
@@ -2007,6 +2023,7 @@
 				1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */,
 				1A27965012CCC09A00C9E94D /* libnspr4_for_oolite.a in Frameworks */,
 				1A78B5DA12D74CFF00D42EE7 /* libpng_for_oolite.a in Frameworks */,
+				1AE8837412EF91560075814F /* Sparkle.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2023,6 +2040,7 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1AE8837312EF91560075814F /* Sparkle.framework */,
 				0878FD2F086EF845004CB752 /* Carbon.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				06AFA01500A58FB77F000001 /* OpenGL.framework */,
@@ -2088,6 +2106,7 @@
 				1A23181D0B9D026D00EF0852 /* Textures */,
 				29B97319FDCFA39411CA2CEA /* MainMenu.nib */,
 				25F3E8B30994FE9B002F25FD /* InfoPlist.strings */,
+				1AE8837F12EF91E80075814F /* SparkleVerificationKey.pem */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -3463,6 +3482,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 08B31CAC08FE63D70038D42F /* Build configuration list for PBXNativeTarget "Oolite" */;
 			buildPhases = (
+				1AE8836A12EF90540075814F /* Update Sparkle */,
 				0865423606B8447D000CA0AB /* Headers */,
 				0865430306B8447D000CA0AB /* Sources */,
 				0865431B06B8447D000CA0AB /* Frameworks */,
@@ -3478,6 +3498,7 @@
 				1A3491320BC25ED400802DA7 /* Copy Scripts */,
 				1A6514FE0CCC9D7A0054D01B /* Copy Shaders */,
 				1AA2E7471191E4B400DFBA23 /* Copy Schemata */,
+				1AE8837812EF91880075814F /* Copy Frameworks */,
 			);
 			buildRules = (
 			);
@@ -3662,6 +3683,7 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
+				1AE8838012EF91E80075814F /* SparkleVerificationKey.pem in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3701,6 +3723,22 @@
 			shellPath = /bin/sh;
 			shellScript = "TARGET_DIR=\"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/Schemata\"\n\nif [ $COPY_SCHEMATA ]\nthen\n\techo \"Copying schemata\"\n\t\n\tSRC_DIR=\"$SRCROOT/Schemata/\";\n\t\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n#\tfor item in `ls \"$SRC_DIR\"`\n#\tdo\n#\t\tcp \"$SRC_DIR/$item\" \"$TARGET_DIR/\"\n#\tdone\n#\trm \"$TARGET_DIR/README.txt\"\n\tcp \"$SRC_DIR/shipdataEntrySchema.plist\" \"$TARGET_DIR/\"\nelse\n\tif [ -e \"$TARGET_DIR\" ]\n\tthen\n\t\trmdir \"$TARGET_DIR\"\n\tfi\nfi\n";
 			showEnvVarsInLog = 0;
+		};
+		1AE8836A12EF90540075814F /* Update Sparkle */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/deps/URLs/Sparkle.url",
+			);
+			name = "Update Sparkle";
+			outputPaths = (
+				"$(SRCROOT)/deps/Cocoa-deps/Sparkle/current.url",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/deps/Cocoa-deps/scripts\"\n./update-sparkle.sh\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -3985,7 +4023,10 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
-				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
+					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
+				);
 				GCC_DEBUGGING_SYMBOLS = full;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -4037,7 +4078,10 @@
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				EXPORTED_SYMBOLS_FILE = "src/Cocoa/exports-release.exp";
 				"EXPORTED_SYMBOLS_FILE[arch=x86_64]" = "src/Cocoa/exports-release.exp";
-				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
+					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
+				);
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -4131,7 +4175,10 @@
 				COPY_SCR_SHIM = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
-				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/deps/Cocoa-deps/\"";
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
+					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
+				);
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_OPTIMIZATION_LEVEL = s;

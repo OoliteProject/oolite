@@ -186,11 +186,11 @@
 			files = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/deps/URLs/libpng.url",
-				"$(SRCROOT)/deps/Cocoa-deps/libpng/current.url",
+				"$(SRCROOT)/../../URLs/libpng.url",
 			);
 			name = "Update Code";
 			outputPaths = (
+				"$(SRCROOT)/../../Cross-platform-deps/libpng/current.url",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

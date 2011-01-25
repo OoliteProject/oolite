@@ -42,8 +42,10 @@ MA 02110-1301, USA.
 
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
+#import <Sparkle/Sparkle.h>
 
 static void LoadSystemSpecificBundles(void);
+static void SetUpSparkle(void);
 #endif
 
 
@@ -223,6 +225,7 @@ static GameController *sSharedController = nil;
 		
 #if OOLITE_MAC_OS_X
 	LoadSystemSpecificBundles();
+	SetUpSparkle();
 #endif
 		
 		[self getDisplayModes];
@@ -1443,5 +1446,28 @@ static void LoadOneSystemSpecificBundle(NSString *name)
 	}
 }
 
-#endif
 
+static void SetUpSparkle(void)
+{
+#define FEED_URL_BASE			"http://www.oolite.org/updates/"
+#define TEST_RELEASE_FEED_NAME	"oolite-mac-test-release-appcast.xml"
+#define DEPLOYMENT_FEED_NAME	"oolite-mac-appcast.xml"
+
+#define TEST_RELEASE_FEED_URL	(@ FEED_URL_BASE TEST_RELEASE_FEED_NAME)
+#define DEPLOYMENT_FEED_URL		(@ FEED_URL_BASE DEPLOYMENT_FEED_NAME)
+
+// Default to test releases in test release or debug builds, and stable releases for deployment builds.
+#ifdef NDEBUG
+#define DEFAULT_TEST_RELEASE	0
+#else
+#define DEFAULT_TEST_RELEASE	1
+#endif
+	
+	BOOL useTestReleases = [[NSUserDefaults standardUserDefaults] oo_boolForKey:@"use-test-release-updates"
+																   defaultValue:DEFAULT_TEST_RELEASE];
+	
+	SUUpdater *updater = [SUUpdater sharedUpdater];
+	[updater setFeedURL:[NSURL URLWithString:useTestReleases ? TEST_RELEASE_FEED_URL : DEPLOYMENT_FEED_URL]];
+}
+
+#endif
