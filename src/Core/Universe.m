@@ -2651,7 +2651,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 			co_type = 0;
 			while (qr > 0)
 			{
-				NSAssert(co_type < commodityCount, @"Commodity type index out of range.");
+				NSAssert((OOUInteger)co_type < commodityCount, @"Commodity type index out of range.");
 				qr -= quantities[co_type++];
 			}
 			co_type--;
@@ -6985,7 +6985,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			co_type = 0;
 			while (qr > 0)
 			{
-				NSAssert(co_type < marketCount, @"Commodity type index out of range.");
+				NSAssert((OOUInteger)co_type < marketCount, @"Commodity type index out of range.");
 				qr -= quantities[co_type++];
 			}
 			if (--co_type < 0)  continue;
