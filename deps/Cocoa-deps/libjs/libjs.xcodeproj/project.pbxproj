@@ -181,6 +181,8 @@
 		1AB7788512CA5306001478BB /* resource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB7777512CA493A001478BB /* resource.h */; };
 		1AB7788A12CA5320001478BB /* js-config.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AB612CA1C1D00C67F42 /* js-config.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AB7788B12CA5320001478BB /* jsautocfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC16B6112F0907000907218 /* jsoplengen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AC16B6012F0907000907218 /* jsoplengen.cpp */; };
+		1AC16CC312F0945000907218 /* jskwgen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AC16CC212F0945000907218 /* jskwgen.cpp */; };
 		1AD05E2E12CD18B100704F1D /* selfTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E0F12CD18B100704F1D /* selfTest.cpp */; };
 		1AD05E3012CD18B100704F1D /* testClassGetter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1112CD18B100704F1D /* testClassGetter.cpp */; };
 		1AD05E3112CD18B100704F1D /* testCloneScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1212CD18B100704F1D /* testCloneScript.cpp */; };
@@ -317,6 +319,41 @@
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A;
+			remoteInfo = "Update Code";
+		};
+		1AC16B6212F0907A00907218 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1AC16B5812F0905200907218 /* jsoplengen */;
+			remoteInfo = jsoplengen;
+		};
+		1AC16CDF12F0952400907218 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1AC16CB712F0943F00907218 /* jskwgen */;
+			remoteInfo = jskwgen;
+		};
+		1AC16CE112F0952C00907218 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A /* Update Code */;
+			remoteInfo = "Update Code";
+		};
+		1AC16CE312F0953100907218 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A /* Update Code */;
+			remoteInfo = "Update Code";
+		};
+		1AC16CE512F0953600907218 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A /* Update Code */;
 			remoteInfo = "Update Code";
 		};
 		1AD05E4C12CD18C000704F1D /* PBXContainerItemProxy */ = {
@@ -648,6 +685,10 @@
 		1AB7781B12CA51CE001478BB /* jsarena.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsarena.cpp; sourceTree = "<group>"; };
 		1AB7781D12CA51E6001478BB /* jshash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jshash.cpp; sourceTree = "<group>"; };
 		1AB7782112CA5220001478BB /* jsscan.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsscan.cpp; sourceTree = "<group>"; };
+		1AC16B5912F0905200907218 /* jsoplengen */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = jsoplengen; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AC16B6012F0907000907218 /* jsoplengen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsoplengen.cpp; path = "../../Cross-platform-deps/mozilla/js/src/jsoplengen.cpp"; sourceTree = SOURCE_ROOT; };
+		1AC16CBF12F0943F00907218 /* jskwgen */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = jskwgen; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AC16CC212F0945000907218 /* jskwgen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jskwgen.cpp; path = "../../Cross-platform-deps/mozilla/js/src/jskwgen.cpp"; sourceTree = SOURCE_ROOT; };
 		1AD05E0812CD189100704F1D /* jsapi-tests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "jsapi-tests"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1AD05E0F12CD18B100704F1D /* selfTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = selfTest.cpp; sourceTree = "<group>"; };
 		1AD05E1012CD18B100704F1D /* testBug604087.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testBug604087.cpp; sourceTree = "<group>"; };
@@ -799,6 +840,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AC16B5712F0905200907218 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AC16CBA12F0943F00907218 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1AD05E0612CD189100704F1D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -825,6 +880,7 @@
 			isa = PBXGroup;
 			children = (
 				1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */,
+				1AC16B5E12F0905D00907218 /* autogen */,
 				1AEA214D12CBBBD600EC0F43 /* Oolite-specific hacks */,
 				1AB25A7712CA178000C67F42 /* js */,
 				1AB25ACE12CA1D7100C67F42 /* nspr */,
@@ -1277,6 +1333,8 @@
 				D2AAC046055464E500DB518D /* libjs_for_oolite.a */,
 				1AB25ACA12CA1CB100C67F42 /* libnspr4_for_oolite.a */,
 				1AD05E0812CD189100704F1D /* jsapi-tests */,
+				1AC16B5912F0905200907218 /* jsoplengen */,
+				1AC16CBF12F0943F00907218 /* jskwgen */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1370,6 +1428,15 @@
 				1AB7777512CA493A001478BB /* resource.h */,
 			);
 			name = headers;
+			sourceTree = "<group>";
+		};
+		1AC16B5E12F0905D00907218 /* autogen */ = {
+			isa = PBXGroup;
+			children = (
+				1AC16B6012F0907000907218 /* jsoplengen.cpp */,
+				1AC16CC212F0945000907218 /* jskwgen.cpp */,
+			);
+			name = autogen;
 			sourceTree = "<group>";
 		};
 		1AD05E0D12CD189700704F1D /* jsapi-tests */ = {
@@ -1700,6 +1767,40 @@
 			productReference = 1AB25ACA12CA1CB100C67F42 /* libnspr4_for_oolite.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		1AC16B5812F0905200907218 /* jsoplengen */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AC16B5F12F0905D00907218 /* Build configuration list for PBXNativeTarget "jsoplengen" */;
+			buildPhases = (
+				1AC16B5612F0905200907218 /* Sources */,
+				1AC16B5712F0905200907218 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1AC16CE412F0953100907218 /* PBXTargetDependency */,
+			);
+			name = jsoplengen;
+			productName = jsoplengen;
+			productReference = 1AC16B5912F0905200907218 /* jsoplengen */;
+			productType = "com.apple.product-type.tool";
+		};
+		1AC16CB712F0943F00907218 /* jskwgen */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AC16CBB12F0943F00907218 /* Build configuration list for PBXNativeTarget "jskwgen" */;
+			buildPhases = (
+				1AC16CB812F0943F00907218 /* Sources */,
+				1AC16CBA12F0943F00907218 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1AC16CE612F0953600907218 /* PBXTargetDependency */,
+			);
+			name = jskwgen;
+			productName = jsoplengen;
+			productReference = 1AC16CBF12F0943F00907218 /* jskwgen */;
+			productType = "com.apple.product-type.tool";
+		};
 		1AD05E0712CD189100704F1D /* jsapi-tests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1AD05E0E12CD189700704F1D /* Build configuration list for PBXNativeTarget "jsapi-tests" */;
@@ -1721,6 +1822,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1DEB91EB08733DB70010E9CD /* Build configuration list for PBXNativeTarget "libjs" */;
 			buildPhases = (
+				1AC16B7012F090FE00907218 /* Generate jsautooplen.h */,
+				1AC16CC512F0947400907218 /* Genrate jsautokw.h */,
 				1AEA217E12CBC08D00EC0F43 /* Assemble imacros */,
 				D2AAC043055464E500DB518D /* Headers */,
 				D2AAC044055464E500DB518D /* Sources */,
@@ -1730,6 +1833,9 @@
 			);
 			dependencies = (
 				1AEA203212CB9AF900EC0F43 /* PBXTargetDependency */,
+				1AC16B6312F0907A00907218 /* PBXTargetDependency */,
+				1AC16CE012F0952400907218 /* PBXTargetDependency */,
+				1AC16CE212F0952C00907218 /* PBXTargetDependency */,
 			);
 			name = libjs;
 			productName = libjs;
@@ -1759,6 +1865,8 @@
 				1AB25AC112CA1CB100C67F42 /* libnspr */,
 				1A8D6F3512CB946A0007FC6A /* Update Code */,
 				1AD05E0712CD189100704F1D /* jsapi-tests */,
+				1AC16B5812F0905200907218 /* jsoplengen */,
+				1AC16CB712F0943F00907218 /* jskwgen */,
 			);
 		};
 /* End PBXProject section */
@@ -1781,13 +1889,46 @@
 			shellScript = "cd \"$SRCROOT/../scripts\"\n./update-mozilla.sh\n\ntouch \"$SRCROOT/_pr_bld.h\"\n";
 			showEnvVarsInLog = 0;
 		};
+		1AC16B7012F090FE00907218 /* Generate jsautooplen.h */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(JS_SRC_PATH)/jsopcode.tbl",
+			);
+			name = "Generate jsautooplen.h";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/jsautooplen.h",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Build jsautooplen.h.\n# The input data is hard-coded into the jsoplengen tool, which is a target dependency.\n\n\"$BUILT_PRODUCTS_DIR/jsoplengen\" \"$DERIVED_FILE_DIR/jsautooplen.h\"\n";
+			showEnvVarsInLog = 0;
+		};
+		1AC16CC512F0947400907218 /* Genrate jsautokw.h */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(JS_SRC_PATH)/jskeyword.tbl",
+			);
+			name = "Genrate jsautokw.h";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/jsautokw.h",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Build jsautokw.h.\n# The input data is hard-coded into the jskwgen tool, which is a target dependency.\n\n\"$BUILT_PRODUCTS_DIR/jskwgen\" \"$DERIVED_FILE_DIR/jsautokw.h\"\n";
+		};
 		1AEA217E12CBC08D00EC0F43 /* Assemble imacros */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/imacros.jsasm",
+				"$(JS_SRC_PATH)/imacros.jsasm",
 			);
 			name = "Assemble imacros";
 			outputPaths = (
@@ -1843,6 +1984,22 @@
 				1AD05F5B12CD24FC00704F1D /* ptmisc.c in Sources */,
 				1AD05F6012CD251F00704F1D /* prerrortable.c in Sources */,
 				1AD05F6A12CD256200704F1D /* praton.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AC16B5612F0905200907218 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AC16B6112F0907000907218 /* jsoplengen.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AC16CB812F0943F00907218 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AC16CC312F0945000907218 /* jskwgen.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1990,6 +2147,31 @@
 			isa = PBXTargetDependency;
 			target = 1A8D6F3512CB946A0007FC6A /* Update Code */;
 			targetProxy = 1A8D6F3B12CB948E0007FC6A /* PBXContainerItemProxy */;
+		};
+		1AC16B6312F0907A00907218 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1AC16B5812F0905200907218 /* jsoplengen */;
+			targetProxy = 1AC16B6212F0907A00907218 /* PBXContainerItemProxy */;
+		};
+		1AC16CE012F0952400907218 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1AC16CB712F0943F00907218 /* jskwgen */;
+			targetProxy = 1AC16CDF12F0952400907218 /* PBXContainerItemProxy */;
+		};
+		1AC16CE212F0952C00907218 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A8D6F3512CB946A0007FC6A /* Update Code */;
+			targetProxy = 1AC16CE112F0952C00907218 /* PBXContainerItemProxy */;
+		};
+		1AC16CE412F0953100907218 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A8D6F3512CB946A0007FC6A /* Update Code */;
+			targetProxy = 1AC16CE312F0953100907218 /* PBXContainerItemProxy */;
+		};
+		1AC16CE612F0953600907218 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A8D6F3512CB946A0007FC6A /* Update Code */;
+			targetProxy = 1AC16CE512F0953600907218 /* PBXContainerItemProxy */;
 		};
 		1AD05E4D12CD18C000704F1D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2142,6 +2324,102 @@
 				PRODUCT_NAME = nspr4_for_oolite;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/src $(SRCROOT)/../../Cross-platform-deps/mozilla/nsprpub/pr/include/private/";
+			};
+			name = TestRelease;
+		};
+		1AC16B5B12F0905200907218 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = jsoplengen;
+				SDKROOT = macosx10.5;
+				SYMROOT = ../../../build;
+			};
+			name = Debug;
+		};
+		1AC16B5C12F0905200907218 /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = jsoplengen;
+				SDKROOT = macosx10.5;
+				SYMROOT = ../../../build;
+				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
+		1AC16B5D12F0905200907218 /* TestRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = jsoplengen;
+				SDKROOT = macosx10.5;
+				SYMROOT = ../../../build;
+			};
+			name = TestRelease;
+		};
+		1AC16CBC12F0943F00907218 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = jskwgen;
+				SDKROOT = macosx10.5;
+				SYMROOT = ../../../build;
+			};
+			name = Debug;
+		};
+		1AC16CBD12F0943F00907218 /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = jskwgen;
+				SDKROOT = macosx10.5;
+				SYMROOT = ../../../build;
+				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
+		1AC16CBE12F0943F00907218 /* TestRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = jskwgen;
+				SDKROOT = macosx10.5;
+				SYMROOT = ../../../build;
 			};
 			name = TestRelease;
 		};
@@ -2323,6 +2601,26 @@
 				1AB25AC712CA1CB100C67F42 /* Debug */,
 				1AB25AC812CA1CB100C67F42 /* Deployment */,
 				1AB25AC912CA1CB100C67F42 /* TestRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deployment;
+		};
+		1AC16B5F12F0905D00907218 /* Build configuration list for PBXNativeTarget "jsoplengen" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AC16B5B12F0905200907218 /* Debug */,
+				1AC16B5C12F0905200907218 /* Deployment */,
+				1AC16B5D12F0905200907218 /* TestRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Deployment;
+		};
+		1AC16CBB12F0943F00907218 /* Build configuration list for PBXNativeTarget "jskwgen" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AC16CBC12F0943F00907218 /* Debug */,
+				1AC16CBD12F0943F00907218 /* Deployment */,
+				1AC16CBE12F0943F00907218 /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;

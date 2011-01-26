@@ -18,3 +18,4 @@
 #define	JS_STACK_GROWTH_DIRECTION	(-1)
 
 #endif	// js_cpucfg___
+
