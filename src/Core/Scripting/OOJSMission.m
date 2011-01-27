@@ -362,6 +362,8 @@ static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
 	[player setMissionOverlayDescriptor:GetParameterImageDescriptor(context, params, "overlay")];
 	[player setMissionBackgroundDescriptor:GetParameterImageDescriptor(context, params, "background")];
 	
+	[UNIVERSE removeDemoShips];	// remove any demoship or miniature planet that may be remaining from previous screens
+	
 	ShipEntity *demoShip = nil;
 	if (JS_GetProperty(context, params, "model", &value) && !JSVAL_IS_VOID(value))
 	{
