@@ -73,6 +73,12 @@ static const char *SizeTypeForMaximum(unsigned maxValue);
 
 int main (int argc, const char * argv[])
 {
+	/*
+		Apparently, someone wants to run this under Linux, so we make an
+		autorelease pool to suppress warnings when running without gc.
+	*/
+	(void)[NSAutoreleasePool new];
+	
 	FILE *header = fopen(kFileName ".h", "w");
 	FILE *source = fopen(kFileName ".c", "w");
 	if (header == NULL || source == NULL)
