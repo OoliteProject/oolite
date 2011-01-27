@@ -55,7 +55,11 @@ static NSString *KeyForPropertyID(JSContext *context, PropertyID propID)
 static JSBool MissionVariablesDeleteProperty(OOJS_PROP_ARGS);
 static JSBool MissionVariablesGetProperty(OOJS_PROP_ARGS);
 static JSBool MissionVariablesSetProperty(OOJS_PROP_ARGS);
-static JSBool MissionVariablesEnumerate(JSContext *cx, JSObject *obj, JSIterateOp enum_op, jsval *statep, jsid *idp);
+static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JSIterateOp enumOp, jsval *state, jsid *idp);
+
+#ifndef NDEBUG
+static id MissionVariablesConverter(JSContext *context, JSObject *object);
+#endif
 
 
 static JSClass sMissionVariablesClass =
@@ -77,7 +81,20 @@ static JSClass sMissionVariablesClass =
 void InitOOJSMissionVariables(JSContext *context, JSObject *global)
 {
 	JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	
+#ifndef NDEBUG
+	// Allow callObjC() on missionVariables to call methods on the mission variables dictionary.
+	OOJSRegisterObjectConverter(&sMissionVariablesClass, MissionVariablesConverter);
+#endif
 }
+
+
+#ifndef NDEBUG
+static id MissionVariablesConverter(JSContext *context, JSObject *object)
+{
+	return [PLAYER missionVariables];
+}
+#endif
 
 
 static JSBool MissionVariablesDeleteProperty(OOJS_PROP_ARGS)
@@ -171,7 +188,7 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	NSEnumerator *mvarEnumerator = JSVAL_TO_PRIVATE(*state);
+	NSEnumerator *enumerator = nil;
 	
 	switch (enumOp)
 	{
@@ -182,8 +199,8 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 		{
 			// -allKeys implicitly makes a copy, which is good since the enumerating code might mutate.
 			NSArray *mvars = [[PLAYER missionVariables] allKeys];
-			mvarEnumerator = [[mvars objectEnumerator] retain];
-			*state = PRIVATE_TO_JSVAL(mvarEnumerator);
+			enumerator = [[mvars objectEnumerator] retain];
+			*state = PRIVATE_TO_JSVAL(enumerator);
 			if (idp != NULL)
 			{
 #if OO_NEW_JS
@@ -197,23 +214,31 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 		
 		case JSENUMERATE_NEXT:
 		{
-			id next = [mvarEnumerator nextObject];
-			if (next != nil)
+			enumerator = JSVAL_TO_PRIVATE(*state);
+			for (;;)
 			{
-				NSCAssert1([next hasPrefix:@"mission_"] || next == nil, @"Mission variable key without \"mission_\" prefix: %@.", next);
-				next = [next substringFromIndex:8];
+				NSString *next = [enumerator nextObject];
+				if (next == nil)  break;
+				if (![next hasPrefix:@"mission_"])  continue;	// Skip mission instructions, which aren't visible through missionVariables.
+				
+				next = [next substringFromIndex:8];		// Cut off "mission_".
 				
 				jsval val = [next oo_jsValueInContext:context];
 				return JS_ValueToId(context, val, idp);
 			}
-			// else:
+			
+			// If we got here, we've hit the end of the enumerator.
 			*state = JSVAL_NULL;
 			// Fall through.
 		}
 		
 		case JSENUMERATE_DESTROY:
 		{
-			[mvarEnumerator release];
+			if (enumerator == nil && JSVAL_IS_DOUBLE(*state))
+			{
+				enumerator = JSVAL_TO_PRIVATE(*state);
+			}
+			[enumerator release];
 			if (idp != NULL)
 			{
 #if OO_NEW_JS

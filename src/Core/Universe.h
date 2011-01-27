@@ -540,7 +540,8 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 - (void) setSystemDataKey:(NSString*) key value:(NSObject*) object;
 - (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
-- (id) getSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key;
+- (id) systemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key;
+- (NSArray *) systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum;
 - (NSString *) getSystemName:(Random_Seed) s_seed;
 - (OOGovernmentID) getSystemGovernment:(Random_Seed)s_seed;
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed;

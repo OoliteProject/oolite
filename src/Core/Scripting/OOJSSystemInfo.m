@@ -41,6 +41,8 @@ static JSBool SystemInfoDeleteProperty(OOJS_PROP_ARGS);
 static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS);
 static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS);
 static void SystemInfoFinalize(JSContext *context, JSObject *this);
+static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateOp enumOp, jsval *state, jsid *idp);
+
 static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS);
 static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS);
 static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS);
@@ -49,13 +51,13 @@ static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS);
 static JSClass sSystemInfoClass =
 {
 	"SystemInfo",
-	JSCLASS_HAS_PRIVATE,
+	JSCLASS_HAS_PRIVATE | JSCLASS_NEW_ENUMERATE,
 	
 	JS_PropertyStub,
 	SystemInfoDeleteProperty,
 	SystemInfoGetProperty,
 	SystemInfoSetProperty,
-	JS_EnumerateStub,
+	(JSEnumerateOp)SystemInfoEnumerate,
 	JS_ResolveStub,
 	JS_ConvertStub,
 	SystemInfoFinalize,
@@ -113,6 +115,8 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 - (id) valueForKey:(NSString *)key;
 - (void) setValue:(id)value forKey:(NSString *)key;
+
+- (NSArray *) allKeys;
 
 - (OOGalaxyID) galaxy;
 - (OOSystemID) system;
@@ -195,18 +199,27 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 - (id) valueForKey:(NSString *)key
 {
-	
 	if ([UNIVERSE inInterstellarSpace] && _system == -1) 
 	{
 		return [[UNIVERSE currentSystemData] objectForKey:key];
 	}
-	return [UNIVERSE getSystemDataForGalaxy:_galaxy	planet:_system key:key];
+	return [UNIVERSE systemDataForGalaxy:_galaxy	planet:_system key:key];
 }
 
 
 - (void) setValue:(id)value forKey:(NSString *)key
-{	
+{
 	[UNIVERSE setSystemDataForGalaxy:_galaxy planet:_system key:key value:value];
+}
+
+
+- (NSArray *) allKeys
+{
+	if ([UNIVERSE inInterstellarSpace] && _system == -1) 
+	{
+		return [[UNIVERSE currentSystemData] allKeys];
+	}
+	return [UNIVERSE systemDataKeysForGalaxy:_galaxy planet:_system];
 }
 
 
@@ -313,6 +326,74 @@ static void SystemInfoFinalize(JSContext *context, JSObject *this)
 	if (sCachedSystemInfo == this)  sCachedSystemInfo = NULL;
 	
 	OOJS_PROFILE_EXIT_VOID
+}
+
+
+static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateOp enumOp, jsval *state, jsid *idp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSEnumerator *enumerator = nil;
+	
+	switch (enumOp)
+	{
+		case JSENUMERATE_INIT:
+#if OO_NEW_JS
+		case JSENUMERATE_INIT_ALL:	// For ES5 Object.getOwnPropertyNames(). Since we have no non-enumerable properties, this is the same as _INIT.
+#endif
+		{
+			OOSystemInfo *info = JS_GetPrivate(context, this);
+			NSArray *keys = [info allKeys];
+			enumerator = [[keys objectEnumerator] retain];
+			*state = PRIVATE_TO_JSVAL(enumerator);
+			
+			if (idp != NULL)
+			{
+#if OO_NEW_JS
+				*idp = INT_TO_JSID([keys count]);
+#else
+				*idp = INT_TO_JSVAL([keys count]);
+#endif
+			}
+			return YES;
+		}
+		
+		case JSENUMERATE_NEXT:
+		{
+			enumerator = JSVAL_TO_PRIVATE(*state);
+			NSString *next = [enumerator nextObject];
+			if (next != nil)
+			{
+				jsval val = [next oo_jsValueInContext:context];
+				return JS_ValueToId(context, val, idp);
+			}
+			// else:
+			*state = JSVAL_NULL;
+			// Fall through.
+		}
+		
+		case JSENUMERATE_DESTROY:
+		{
+			if (enumerator == nil && JSVAL_IS_DOUBLE(*state))
+			{
+				enumerator = JSVAL_TO_PRIVATE(*state);
+			}
+			[enumerator release];
+			if (idp != NULL)
+			{
+#if OO_NEW_JS
+				*idp = JSID_VOID;
+#else
+				return JS_ValueToId(context, JSVAL_VOID, idp);
+#endif
+			}
+			return YES;
+		}
+	}
+	
+	
+	
+	OOJS_NATIVE_EXIT
 }
 
 

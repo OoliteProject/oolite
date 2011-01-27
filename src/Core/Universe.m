@@ -5955,15 +5955,37 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-- (id) getSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key
+- (NSDictionary *) generateSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum
 {
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
 	Random_Seed s_seed = [self systemSeedForSystemNumber:pnum];
-	BOOL sameGalaxy=([overrideKey isEqualToString:[self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed: galaxy_seed]]);
+	BOOL sameGalaxy = [overrideKey isEqualToString:[self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed: galaxy_seed]];
 	
 	if (sameGalaxy)
 	{
-		return [[self generateSystemData:s_seed] objectForKey:key];
+		return [self generateSystemData:s_seed useCache:YES];
+	}
+	else
+	{
+		return nil;
+	}
+}
+
+
+- (NSArray *) systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum
+{
+	return [[self generateSystemDataForGalaxy:gnum planet:pnum] allKeys];
+}
+
+
+- (id) systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key
+{
+	NSDictionary *data = [self generateSystemDataForGalaxy:gnum planet:pnum];
+	
+	if (data != nil)
+	{
+		// Same galaxy.
+		return [data objectForKey:key];
 	}
 	else
 	{
