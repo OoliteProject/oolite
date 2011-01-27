@@ -120,6 +120,7 @@ enum
 	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
 	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
 	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
+	kShip_cloakAutomatic,		// should cloack start by itself or by script, read/write
 	kShip_cruiseSpeed,			// desired cruising speed, number, read only
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_displayName,			// name displayed on screen, string, read-only
@@ -207,6 +208,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	// contracts instead of cargo to distinguish them from the manifest
 	{ "contracts",				kShip_contracts,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "cloakAutomatic",			kShip_cloakAutomatic,		JSPROP_PERMANENT | JSPROP_ENUMERATE},
 	{ "cruiseSpeed",			kShip_cruiseSpeed,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "desiredSpeed",			kShip_desiredSpeed,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "displayName",			kShip_displayName,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -475,6 +477,11 @@ static JSBool ShipGetProperty(OOJS_PROP_ARGS)
 		
 		case kShip_isCloaked:
 			*value = OOJSValueFromBOOL([entity isCloaked]);
+			OK = YES;
+			break;
+			
+		case kShip_cloakAutomatic:
+			*value = OOJSValueFromBOOL([entity hasAutoCloak]);
 			OK = YES;
 			break;
 			
@@ -898,6 +905,14 @@ static JSBool ShipSetProperty(OOJS_PROP_ARGS)
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setCloaked:bValue];
+				OK = YES;
+			}
+			break;
+			
+		case kShip_cloakAutomatic:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setAutoCloak:bValue];
 				OK = YES;
 			}
 			break;

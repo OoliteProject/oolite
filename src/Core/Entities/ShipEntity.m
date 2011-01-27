@@ -248,6 +248,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
 	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:NO];
+	cloakAutomatic = [shipDict oo_boolForKey:@"cloak_automatic" defaultValue:YES];
 	
 	missiles = [shipDict oo_intForKey:@"missiles" defaultValue:0];
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
@@ -1184,7 +1185,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	NSDictionary	*autoAIMap = nil;
 	NSDictionary	*escortShipDict = nil;
 	AI				*escortAI = nil;
-	BOOL			isSelfGroupmember = NO;
 	
 	// Ensure that we do not try to create escorts if we are an escort ship ourselves.
 	// This could lead to circular reference memory overflows (e.g. "boa-mk2" trying to create 4 "boa-mk2"
@@ -1227,10 +1227,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if ([self group] == nil)
 	{
 		[self setGroup:escortGroup];
-	}
-	else
-	{
-		isSelfGroupmember = YES;
 	}
 	[escortGroup setLeader:self];
 	
@@ -1302,7 +1298,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 		[escorter setGroup:escortGroup];
 		[escorter setOwner:self];	// make self group leader
-		if(isSelfGroupmember) [[self group] addShip:escorter]; // put escorts also in leaders group when present.
 		
 		if([escorter heatInsulation] < [self heatInsulation]) [escorter setHeatInsulation:[self heatInsulation]]; // give escorts same protection as mother.
 		if(([escorter maxFlightSpeed] < cruiseSpeed) && ([escorter maxFlightSpeed] > cruiseSpeed * 0.3)) 
@@ -3118,7 +3113,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
-	[self activateCloakingDevice];
+	if (cloakAutomatic) [self activateCloakingDevice];
 	
 	desired_speed = max_available_speed;
 	if (range < COMBAT_IN_RANGE_FACTOR * weaponRange)
@@ -3272,7 +3267,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self fireMissile];
 	}
-	[self activateCloakingDevice];
+	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
@@ -3407,7 +3402,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self fireMissile];
 	}
-	[self activateCloakingDevice];
+	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
@@ -3460,7 +3455,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self fireMissile];
 	}
-	[self activateCloakingDevice];
+	if (cloakAutomatic) [self activateCloakingDevice];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
@@ -3479,7 +3474,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	[self trackPrimaryTarget:delta_t:YES];
 	[self fireAftWeapon:range];
-	[self activateCloakingDevice];
+	if (cloakAutomatic) [self activateCloakingDevice];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
@@ -3536,7 +3531,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
 	if (([(ShipEntity *)[self primaryTarget] primaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
 		[self fireMissile];
-	[self activateCloakingDevice];
+	if (cloakAutomatic) [self activateCloakingDevice];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -4144,6 +4139,18 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	if (cloak)  [self activateCloakingDevice];
 	else  [self deactivateCloakingDevice];
 }
+
+- (BOOL)hasAutoCloak
+{
+	return cloakAutomatic;
+}
+
+
+- (void)setAutoCloak:(BOOL)automatic
+{
+	cloakAutomatic = !!automatic;
+}
+
 
 
 - (BOOL) isJammingScanning

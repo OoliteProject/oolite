@@ -1523,6 +1523,17 @@ static WormholeEntity *whole = nil;
 	{
 		[ship setFound_target:target];
 		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
+		if ([ship escortGroup] != [ship group] && [[ship escortGroup] count] > 1) // Ship has a seperate escort group.
+		{
+			ShipEntity		*escort = nil;
+			NSEnumerator	*shipEnum = nil;
+			NSArray			*escortMembers = [[ship escortGroup] memberArrayExcludingLeader];
+			for (shipEnum = [escortMembers objectEnumerator]; (escort = [shipEnum nextObject]); )
+			{
+				[escort setFound_target:target];
+				[escort reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
+			}
+		}
 	}
 }
 

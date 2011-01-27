@@ -212,6 +212,7 @@ typedef enum
 							isFrangible: 1,				// frangible => subEntities can be damaged individually
 							cloaking_device_active: 1,	// cloaking_device
 							cloakPassive: 1,			// cloak deactivates when main weapons or missiles are fired
+							cloakAutomatic: 1,			// cloak activates itself automatic during attack
 							canFragment: 1,				// Can it break into wreckage?
 							suppressExplosion: 1,		// Avoid exploding on death (script hook)
 							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
@@ -563,6 +564,8 @@ typedef enum
 
 - (BOOL)isCloaked;
 - (void)setCloaked:(BOOL)cloak;
+- (BOOL)hasAutoCloak;
+- (void)setAutoCloak:(BOOL)automatic;
 
 - (BOOL) isJammingScanning;
 

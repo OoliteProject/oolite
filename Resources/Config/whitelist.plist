@@ -412,6 +412,7 @@
 	{
 		"setGuiToStatusScreen" = "doNothing";
 		"initialiseTurret" = "doNothing";
+		"setUpEscorts" = "doNothing";
 	};
 	
 	query_method_aliases =
