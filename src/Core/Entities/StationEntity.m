@@ -39,8 +39,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOCharacter.h"
 
-#import "OOScript.h"
-#import "OOJavaScriptEngine.h"
+#import "OOJSScript.h"
 #import "OODebugGLDrawing.h"
 #import "OODebugFlags.h"
 
@@ -50,7 +49,10 @@ MA 02110-1301, USA.
 static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
 
 @interface StationEntity (private)
+
 - (void)clearIdLocks:(ShipEntity*)ship;
+- (void) pullInShipIfPermitted:(ShipEntity *)ship;
+
 @end
 
 #ifndef NDEBUG
@@ -307,7 +309,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		ShipEntity *ship = [UNIVERSE entityForUniversalID:[ships oo_unsignedIntAtIndex:i]];
 		if ([ship isShip])
 		{
-			[ship enterDock:self];
+			[self pullInShipIfPermitted:ship];
 		}
 	}
 	
@@ -891,7 +893,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) shipIsInDockingCorridor:(ShipEntity *)ship
 {
-	if (!ship || ![ship isShip])  return NO;
+	if (![ship isShip])  return NO;
 	if ([ship isPlayer] && [ship status] == STATUS_DEAD)  return NO;
 	
 	Quaternion q0 = quaternion_multiply(port_orientation, orientation);
@@ -944,14 +946,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		// in lane
 		if (0.90 * arbb.max.z + 0.10 * arbb.min.z < 0.0)	// we're 90% in docking position!
-			[ship enterDock:self];
-		//
+		{
+			[self pullInShipIfPermitted:ship];
+		}
 		return YES;
-		//
 	}
 	
 	if ([ship status] == STATUS_LAUNCHING)
+	{
 		return YES;
+	}
 	
 	// if close enough (within 50%) correct and add damage
 	//
@@ -970,9 +974,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			delta.x = 0.5 * (arbb.max.x + arbb.min.x) * correction_factor;
 			delta.y = 0.5 * (arbb.max.y + arbb.min.y) * correction_factor;
 			
-			if ((arbb.max.x < ww)&&(arbb.min.x > -ww))	// x is okay - no need to correct
+			if (arbb.max.x < ww && arbb.min.x > -ww)	// x is okay - no need to correct
 				delta.x = 0;
-			if ((arbb.max.y > hh)&&(arbb.min.x > -hh))	// y is okay - no need to correct
+			if (arbb.max.y > hh && arbb.min.x > -hh)	// y is okay - no need to correct
 				delta.y = 0;
 				
 			// adjust the ship back to the center of the port
@@ -985,13 +989,34 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		
 		// if far enough in - dock
 		if (0.90 * arbb.max.z + 0.10 * arbb.min.z < 0.0)
-			[ship enterDock:self];
+		{
+			[self pullInShipIfPermitted:ship];
+		}
 		
 		return YES;	// okay NOW we're in the docking corridor!
-	}	
-	//
-	//
+	}
+	
 	return NO;
+}
+
+
+- (void) pullInShipIfPermitted:(ShipEntity *)ship
+{
+#if 0
+	if (EXPECT_NOT(ship == nil))  return;
+	
+	JSContext	*context = OOJSAcquireContext();
+	jsval		rval = JSVAL_VOID;
+	jsval		args[] = { [ship oo_jsValueInContext:context] };
+	JSBool		permit = YES;
+	
+	BOOL OK = [[self script] callMethod:OOJSID("permitDocking") inContext:context withArguments:args count:1 result:&rval];
+	if (OK)  OK = JS_ValueToBoolean(context, rval, &permit);
+	if (!OK)  permit = YES; // In case of error, default to common behaviour.
+#else
+	BOOL permit = YES;
+#endif
+	if (permit)  [ship enterDock:self];
 }
 
 

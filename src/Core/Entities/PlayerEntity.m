@@ -4520,8 +4520,7 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (void) enterDock:(StationEntity *)station
 {
-	if ([self status] == STATUS_DEAD)
-		return;
+	if ([self status] == STATUS_DEAD)  return;
 	
 	[self setStatus:STATUS_DOCKING];
 	dockedStation = station;
