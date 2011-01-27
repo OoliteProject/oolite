@@ -369,14 +369,31 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		ClockToString(arrival_time, false)];
 }
 
+
 #if WORMHOLE_SCANNER
 - (NSString *) identFromShip:(ShipEntity*)ship
 {
-	assert([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
-	if ([self scanInfo] >= WH_SCANINFO_DESTINATION)
-		return [NSString stringWithFormat:DESC(@"wormhole-to-@"), [UNIVERSE getSystemName:destination]];
+	if ([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"])
+	{
+		if ([self scanInfo] >= WH_SCANINFO_DESTINATION)
+		{
+			return [NSString stringWithFormat:DESC(@"wormhole-to-@"), [UNIVERSE getSystemName:destination]];
+		}
+		else
+		{
+			return DESC(@"wormhole-desc");
+		}
+	}
 	else
-		return DESC(@"wormhole-desc");
+	{
+		/*
+			This was previously an assertion, but a player reported hitting it.
+			http://aegidian.org/bb/viewtopic.php?p=128110#p128110
+			-- Ahruman 2011-01-27
+		*/
+		return nil;
+	}
+
 }
 #endif
 

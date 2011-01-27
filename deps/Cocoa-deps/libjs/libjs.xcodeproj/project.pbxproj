@@ -325,35 +325,35 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 1AC16B5812F0905200907218 /* jsoplengen */;
+			remoteGlobalIDString = 1AC16B5812F0905200907218;
 			remoteInfo = jsoplengen;
 		};
 		1AC16CDF12F0952400907218 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 1AC16CB712F0943F00907218 /* jskwgen */;
+			remoteGlobalIDString = 1AC16CB712F0943F00907218;
 			remoteInfo = jskwgen;
 		};
 		1AC16CE112F0952C00907218 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A /* Update Code */;
+			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A;
 			remoteInfo = "Update Code";
 		};
 		1AC16CE312F0953100907218 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A /* Update Code */;
+			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A;
 			remoteInfo = "Update Code";
 		};
 		1AC16CE512F0953600907218 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A /* Update Code */;
+			remoteGlobalIDString = 1A8D6F3512CB946A0007FC6A;
 			remoteInfo = "Update Code";
 		};
 		1AD05E4C12CD18C000704F1D /* PBXContainerItemProxy */ = {
@@ -1832,10 +1832,10 @@
 			buildRules = (
 			);
 			dependencies = (
+				1AC16CE212F0952C00907218 /* PBXTargetDependency */,
 				1AEA203212CB9AF900EC0F43 /* PBXTargetDependency */,
 				1AC16B6312F0907A00907218 /* PBXTargetDependency */,
 				1AC16CE012F0952400907218 /* PBXTargetDependency */,
-				1AC16CE212F0952C00907218 /* PBXTargetDependency */,
 			);
 			name = libjs;
 			productName = libjs;

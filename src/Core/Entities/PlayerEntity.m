@@ -3323,17 +3323,28 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (NSString *) dialTargetName
 {
-	Entity* target_entity = [UNIVERSE entityForUniversalID:primaryTarget];
-	if (!target_entity)
-		return DESC(@"no-target-string");
+	Entity		*target_entity = [UNIVERSE entityForUniversalID:primaryTarget];
+	NSString	*result = nil;
+	
+	if (target_entity == nil)
+	{
+		result = DESC(@"no-target-string");
+	}
+	
 	if ([target_entity isShip])
-		return [(ShipEntity*)target_entity identFromShip:self];
+	{
+		result = [(ShipEntity*)target_entity identFromShip:self];
+	}
 #if WORMHOLE_SCANNER
 	if ([target_entity isWormhole])
-		return [(WormholeEntity*)target_entity identFromShip:self];
+	{
+		result = [(WormholeEntity*)target_entity identFromShip:self];
+	}
 #endif
 
-	return DESC(@"unknown-target");
+	if (result == nil)  result = DESC(@"unknown-target");
+	
+	return result;
 }
 
 

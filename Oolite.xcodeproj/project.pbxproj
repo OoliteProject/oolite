@@ -16,7 +16,6 @@
 			);
 			dependencies = (
 				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
-				1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */,
 				1A09EFBD12BD118300BF7F48 /* PBXTargetDependency */,
 				1ABF219A12D691A300075821 /* PBXTargetDependency */,
 			);
@@ -336,7 +335,6 @@
 		1A26D0E90BCF9D3B0073F257 /* OOTextureLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0E30BCF9D3B0073F257 /* OOTextureLoader.h */; };
 		1A26D0EA0BCF9D3B0073F257 /* OOPNGTextureLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0E40BCF9D3B0073F257 /* OOPNGTextureLoader.h */; };
 		1A26D0EB0BCF9D3B0073F257 /* OOTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */; };
-		1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A3042F410C16DA60056219D /* Debug.oxp */; };
 		1A27965012CCC09A00C9E94D /* libnspr4_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */; };
 		1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */; };
 		1A27DB3C0C4E349F00CB4CE8 /* OOOXPVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB390C4E349F00CB4CE8 /* OOOXPVerifierStage.h */; };
@@ -749,20 +747,6 @@
 			remoteGlobalIDString = 8D57630D048677EA00EA77CD;
 			remoteInfo = LeopardFeatures;
 		};
-		1A274D2410C1EE02004CDDF5 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
-			remoteInfo = DebugOXP;
-		};
-		1A3042F310C16DA60056219D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
-			remoteInfo = DebugOXP;
-		};
 		1A3E019511C574AC000FF226 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */;
@@ -790,6 +774,27 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13;
 			remoteInfo = libpng;
+		};
+		1A8FA92612F0C694008FF5A2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1AC16B5912F0905200907218 /* jsoplengen */;
+			remoteInfo = jsoplengen;
+		};
+		1A8FA92812F0C694008FF5A2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1AC16CBF12F0943F00907218 /* jskwgen */;
+			remoteInfo = jskwgen;
+		};
+		1A8FAA9D12F0E44D008FF5A2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8D5B49B6048680CD000E48DA /* Debug.oxp */;
+			remoteInfo = DebugOXP;
 		};
 		1AB7760112CA2E53001478BB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1229,7 +1234,6 @@
 			dstPath = AddOns;
 			dstSubfolderSpec = 16;
 			files = (
-				1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1276,7 +1280,7 @@
 		1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSDictionaryOOExtensions.m; sourceTree = "<group>"; };
 		1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilitySet.h; sourceTree = "<group>"; };
 		1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilitySet.m; sourceTree = "<group>"; };
-		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = DebugOXP/DebugOXP.xcodeproj; sourceTree = SOURCE_ROOT; };
+		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = DebugOXP/DebugOXP.xcodeproj; sourceTree = "<group>"; };
 		1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSObjectOOExtensions.h; sourceTree = "<group>"; };
 		1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSObjectOOExtensions.m; sourceTree = "<group>"; };
 		1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundDebugMonitor.h; sourceTree = "<group>"; };
@@ -1720,7 +1724,6 @@
 		1A7038A112BB9F5A0015CCDC /* dummy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dummy.cpp; sourceTree = "<group>"; };
 		1A71D8A80E5F17410088C456 /* OOSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSoundSource.m; sourceTree = "<group>"; };
 		1A71D8A90E5F17410088C456 /* OOSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundSource.h; sourceTree = "<group>"; };
-		1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng_for_oolite.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A71E8780BCE8EB100CD5C13 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
 		1A736BD10C61E9370097AC37 /* OOJSPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlayer.h; sourceTree = "<group>"; };
 		1A736BD20C61E9370097AC37 /* OOJSPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSPlayer.m; sourceTree = "<group>"; };
@@ -2027,13 +2030,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A71E6F10BCE340C00CD5C13 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -2065,7 +2061,6 @@
 			isa = PBXGroup;
 			children = (
 				0865432206B8447D000CA0AB /* Oolite.app */,
-				1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2515,14 +2510,6 @@
 			path = Schemata;
 			sourceTree = SOURCE_ROOT;
 		};
-		1A3042F010C16DA60056219D /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1A3042F410C16DA60056219D /* Debug.oxp */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		1A34912C0BC25EBC00802DA7 /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
@@ -2592,6 +2579,7 @@
 		1A5BF2710916D45B00BF238F /* External bundles */ = {
 			isa = PBXGroup;
 			children = (
+				1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */,
 				1A09EF4F12BD0C1900BF7F48 /* LeopardFeatures.xcodeproj */,
 				1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */,
 				1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */,
@@ -2762,15 +2750,6 @@
 				1A8A3D8F0B9B058500AB7625 /* Mac-specific */,
 			);
 			name = Audio;
-			sourceTree = "<group>";
-		};
-		1A8071D70C0480AC00BA1935 /* Debug OXP */ = {
-			isa = PBXGroup;
-			children = (
-				1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */,
-			);
-			name = "Debug OXP";
-			path = src/Cocoa;
 			sourceTree = "<group>";
 		};
 		1A817DCA106D44D900AA2F97 /* Particles */ = {
@@ -3078,6 +3057,14 @@
 			name = Groolite;
 			sourceTree = "<group>";
 		};
+		1A8FAA9A12F0E44D008FF5A2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A8FAA9E12F0E44D008FF5A2 /* Debug.oxp */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		1AA2E7061191E39600DFBA23 /* Build stuff */ = {
 			isa = PBXGroup;
 			children = (
@@ -3132,6 +3119,8 @@
 				1AB7760212CA2E53001478BB /* libjs_for_oolite.a */,
 				1AB7760412CA2E53001478BB /* libnspr4_for_oolite.a */,
 				1AD05EBA12CD1B4700704F1D /* jsapi-tests */,
+				1A8FA92712F0C694008FF5A2 /* jsoplengen */,
+				1A8FA92912F0C694008FF5A2 /* jskwgen */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3215,9 +3204,8 @@
 				1A37D1ED1049B2E400BC8976 /* CHANGELOG.TXT */,
 				1A3D68FB11C7F4D400651B08 /* CHECKLIST.TXT */,
 				1A8A3BE90B963F02007D20B8 /* Source */,
-				1A5BF2710916D45B00BF238F /* External bundles */,
-				1A8071D70C0480AC00BA1935 /* Debug OXP */,
 				1A2314300B9C667F00EF0852 /* Resources */,
+				1A5BF2710916D45B00BF238F /* External bundles */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				1AEA229D12CBD18600EC0F43 /* CoreServices.framework */,
@@ -3468,13 +3456,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A71E6EF0BCE340C00CD5C13 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -3515,24 +3496,6 @@
 			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
-		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 1A71E6FC0BCE345800CD5C13 /* Build configuration list for PBXNativeTarget "libpng-custom" */;
-			buildPhases = (
-				1AA0D03212CAB13100BB883D /* Update Code */,
-				1A71E6EF0BCE340C00CD5C13 /* Headers */,
-				1A71E6F00BCE340C00CD5C13 /* Sources */,
-				1A71E6F10BCE340C00CD5C13 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "libpng-custom";
-			productName = "libpng-custom";
-			productReference = 1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */;
-			productType = "com.apple.product-type.library.static";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -3556,7 +3519,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 1A3042F010C16DA60056219D /* Products */;
+					ProductGroup = 1A8FAA9A12F0E44D008FF5A2 /* Products */;
 					ProjectRef = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
 				},
 				{
@@ -3592,7 +3555,6 @@
 			targets = (
 				1AD267500C83050800B4BFD1 /* Build All */,
 				0865423506B8447D000CA0AB /* Oolite */,
-				1A71E6F20BCE340C00CD5C13 /* libpng-custom */,
 			);
 		};
 /* End PBXProject section */
@@ -3612,13 +3574,6 @@
 			remoteRef = 1A09EF5312BD0C1900BF7F48 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		1A3042F410C16DA60056219D /* Debug.oxp */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = Debug.oxp;
-			remoteRef = 1A3042F310C16DA60056219D /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		1A3E019611C574AC000FF226 /* Oolite.mdimporter */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
@@ -3631,6 +3586,27 @@
 			fileType = archive.ar;
 			path = libpng_for_oolite.a;
 			remoteRef = 1A78B5D812D74CF900D42EE7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1A8FA92712F0C694008FF5A2 /* jsoplengen */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = jsoplengen;
+			remoteRef = 1A8FA92612F0C694008FF5A2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1A8FA92912F0C694008FF5A2 /* jskwgen */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = jskwgen;
+			remoteRef = 1A8FA92812F0C694008FF5A2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1A8FAA9E12F0E44D008FF5A2 /* Debug.oxp */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = Debug.oxp;
+			remoteRef = 1A8FAA9D12F0E44D008FF5A2 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1AB7760212CA2E53001478BB /* libjs_for_oolite.a */ = {
@@ -3690,23 +3666,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		1AA0D03212CAB13100BB883D /* Update Code */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/deps/URLs/libpng.url",
-				"$(SRCROOT)/deps/Cocoa-deps/libpng/current.url",
-			);
-			name = "Update Code";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/deps/Cocoa-deps/scripts\"\n./update-library.sh libpng tbz\n";
-			showEnvVarsInLog = 0;
-		};
 		1AA2E7471191E4B400DFBA23 /* Copy Schemata */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -3956,13 +3915,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A71E6F00BCE340C00CD5C13 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -3970,11 +3922,6 @@
 			isa = PBXTargetDependency;
 			name = LeopardFeatures;
 			targetProxy = 1A09EFBC12BD118300BF7F48 /* PBXContainerItemProxy */;
-		};
-		1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = DebugOXP;
-			targetProxy = 1A274D2410C1EE02004CDDF5 /* PBXContainerItemProxy */;
 		};
 		1A3E01A911C574E1000FF226 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -4147,25 +4094,6 @@
 			};
 			name = Deployment;
 		};
-		1A0832D60C2F105000E3AE25 /* TestRelease */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
-				INSTALL_PATH = /usr/local/lib;
-				LLVM_LTO = YES;
-				PREBINDING = NO;
-				PRODUCT_NAME = png_for_oolite;
-				ZERO_LINK = NO;
-			};
-			name = TestRelease;
-		};
 		1A0832D70C2F105000E3AE25 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1ABFEE2110507987005AA752 /* oolite-nonshared.xcconfig */;
@@ -4223,50 +4151,6 @@
 				SDKROOT = macosx10.4;
 			};
 			name = TestRelease;
-		};
-		1A71E6FD0BCE345800CD5C13 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
-				GCC_VERSION = "";
-				"GCC_VERSION[sdk=macosx*][arch=*]" = 4.0;
-				GENERATE_MASTER_OBJECT_FILE = YES;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
-				INSTALL_PATH = /usr/local/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				ONLY_ACTIVE_ARCH = YES;
-				PREBINDING = NO;
-				PRODUCT_NAME = png_for_oolite;
-				SDKROOT = macosx10.5;
-			};
-			name = Debug;
-		};
-		1A71E6FE0BCE345800CD5C13 /* Deployment */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
-				INSTALL_PATH = /usr/local/lib;
-				PREBINDING = NO;
-				PRODUCT_NAME = png_for_oolite;
-				SDKROOT_i386 = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
 		};
 		1AD267690C8305A200B4BFD1 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -4332,16 +4216,6 @@
 				08B31CB108FE63D70038D42F /* Debug */,
 				08B31CB208FE63D70038D42F /* Deployment */,
 				1A0832D80C2F105000E3AE25 /* TestRelease */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Deployment;
-		};
-		1A71E6FC0BCE345800CD5C13 /* Build configuration list for PBXNativeTarget "libpng-custom" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				1A71E6FD0BCE345800CD5C13 /* Debug */,
-				1A71E6FE0BCE345800CD5C13 /* Deployment */,
-				1A0832D60C2F105000E3AE25 /* TestRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Deployment;
