@@ -125,13 +125,13 @@ static GameController *sSharedController = nil;
 }
 
 
-- (void) pause_game
+- (void) pauseGame
 {
 	gameIsPaused = YES;
 }
 
 
-- (void) unpause_game
+- (void) unpauseGame
 {
 	gameIsPaused = NO;
 }

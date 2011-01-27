@@ -9543,11 +9543,11 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (void) setCommsMessageColor
 {
 	float hue = 0.0625 * (universalID & 15);
-	[[UNIVERSE comm_log_gui] setTextColor:[OOColor colorWithCalibratedHue:hue saturation:0.375 brightness:1.0 alpha:1.0]];
+	[[UNIVERSE commLogGUI] setTextColor:[OOColor colorWithCalibratedHue:hue saturation:0.375 brightness:1.0 alpha:1.0]];
 	if (scanClass == CLASS_THARGOID)
-		[[UNIVERSE comm_log_gui] setTextColor:[OOColor greenColor]];
+		[[UNIVERSE commLogGUI] setTextColor:[OOColor greenColor]];
 	if (scanClass == CLASS_POLICE)
-		[[UNIVERSE comm_log_gui] setTextColor:[OOColor cyanColor]];
+		[[UNIVERSE commLogGUI] setTextColor:[OOColor cyanColor]];
 }
 
 

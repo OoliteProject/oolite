@@ -314,18 +314,18 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 - (void) reinitAndShowDemo:(BOOL)showDemo;
 
-- (int) obj_count;
+- (int) entityCount;
 #ifndef NDEBUG
-- (void) obj_dump;
+- (void) debugDumpEntities;
 - (NSArray *) entityList;
 #endif
 
-- (void) sleepytime:(id) thing;
+- (void) pauseGame;
 
 - (void) setUpUniverseFromStation;
-- (void) set_up_universe_from_witchspace;
-- (void) set_up_universe_from_misjump;
-- (void) set_up_witchspace;
+- (void) setUpUniverseFromWitchspace;
+- (void) setUpUniverseFromMisjump;
+- (void) setUpWitchspace;
 - (void) setUpSpace;
 - (void) setLighting;
 - (void) forceLightSwitch;
@@ -353,8 +353,8 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 - (BOOL) roleIsPirateVictim:(NSString *)role;
 
-- (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q forDocking:(BOOL) forDocking;
-- (void) game_over;
+- (void) setUpBreakPattern:(Vector) pos orientation:(Quaternion) q forDocking:(BOOL) forDocking;
+- (void) handleGameOver;
 
 - (void) setupIntroFirstGo: (BOOL) justCobra;
 - (void) selectIntro2Previous;
@@ -395,7 +395,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 - (OOCreditsQuantity) getEquipmentPriceForKey:(NSString *) eq_key;
 
-- (int) legal_status_of_manifest:(NSArray *)manifest;
+- (int) legalStatusOfManifest:(NSArray *)manifest;
 
 - (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce;
 - (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many;
@@ -510,8 +510,8 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 ///////////////////////////////////////
 
-- (void) setGalaxy_seed:(Random_Seed) gal_seed;
-- (void) setGalaxy_seed:(Random_Seed) gal_seed andReinit:(BOOL) forced;
+- (void) setGalaxySeed:(Random_Seed) gal_seed;
+- (void) setGalaxySeed:(Random_Seed) gal_seed andReinit:(BOOL) forced;
 
 - (void) setSystemTo:(Random_Seed) s_seed;
 
@@ -563,7 +563,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (int) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch;
-- (BOOL*) systems_found;
+- (BOOL*) systemsFound;
 - (NSString*) systemNameIndex:(OOSystemID) index;
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedBy:(OORouteType) optimizeBy;
 - (NSArray *) neighboursToSystem:(OOSystemID) system_number;
@@ -583,7 +583,6 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (BOOL) generateEconomicDataWithEconomy:(OOEconomyID) economy andRandomFactor:(int) random_factor;
 - (NSArray *) commodityDataForEconomy:(OOEconomyID) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor;
 
-double estimatedTimeForJourney(double distance, int hops);
 - (NSString *) timeDescription:(OOTimeDelta) interval;
 - (NSString *) shortTimeDescription:(OOTimeDelta) interval;
 
@@ -614,8 +613,8 @@ double estimatedTimeForJourney(double distance, int hops);
 - (void) clearGUIs;
 
 - (GuiDisplayGen *) gui;
-- (GuiDisplayGen *) comm_log_gui;
-- (GuiDisplayGen *) message_gui;
+- (GuiDisplayGen *) commLogGUI;
+- (GuiDisplayGen *) messageGUI;
 
 - (void) resetCommsLogColor;
 

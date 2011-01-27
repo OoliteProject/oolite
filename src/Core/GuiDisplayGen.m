@@ -1540,7 +1540,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	Random_Seed sys = [PLAYER target_system_seed];
 	if ([PLAYER guiScreen] != GUI_SCREEN_LONG_RANGE_CHART) return sys;
 	
-	BOOL		*systems_found = [UNIVERSE systems_found];
+	BOOL		*systemsFound = [UNIVERSE systemsFound];
 	unsigned 	i, first = 0, last = 0, count = 0;
 	int 		systemIndex = foundSystem + direction;
 
@@ -1548,7 +1548,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	for (i = 0; i <= kOOMaximumSystemID; i++)
 	{
-		if (systems_found[i])
+		if (systemsFound[i])
 		{
 			if (count == 0)
 			{
@@ -1594,7 +1594,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// get a list of systems marked as contract destinations
 	NSArray		*markedDestinations = [player markedDestinations];
 	
-	BOOL		*systems_found = [UNIVERSE systems_found];
+	BOOL		*systemsFound = [UNIVERSE systemsFound];
 	
 	NSPoint		star, cu;
 	
@@ -1715,7 +1715,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	int n_matches = 0, foundIndex = -1;
 	
-	for (i = 0; i < 256; i++) if (systems_found[i])
+	for (i = 0; i < 256; i++) if (systemsFound[i])
 	{
 		if(foundSystem == n_matches) foundIndex = i;
 		n_matches++;
@@ -1730,7 +1730,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		BOOL drawNames = n_matches < 4;
 		for (i = 0; i < 256; i++)
 		{
-			BOOL mark = systems_found[i];
+			BOOL mark = systemsFound[i];
 			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 			if (mark)
 			{

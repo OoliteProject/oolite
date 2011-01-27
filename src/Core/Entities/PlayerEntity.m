@@ -724,7 +724,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	galaxy_seed = RandomSeedFromString([dict oo_stringForKey:@"galaxy_seed"]);
 	if (is_nil_seed(galaxy_seed))  return NO;
-	[UNIVERSE setGalaxy_seed: galaxy_seed andReinit:YES];
+	[UNIVERSE setGalaxySeed: galaxy_seed andReinit:YES];
 	
 	NSArray *coord_vals = ScanTokensFromString([dict oo_stringForKey:@"galaxy_coordinates"]);
 	galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
@@ -2462,7 +2462,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	if ([self shotTime] > 30.0)
 	{
 		BOOL was_mouse_control_on = mouse_control_on;
-		[UNIVERSE game_over];				//  we restart the UNIVERSE
+		[UNIVERSE handleGameOver];				//  we restart the UNIVERSE
 		mouse_control_on = was_mouse_control_on;
 	}
 }
@@ -3131,7 +3131,7 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (NSString*) dial_objinfo
 {
-	NSString *result = [NSString stringWithFormat:@"Entities: %3d", [UNIVERSE obj_count]];
+	NSString *result = [NSString stringWithFormat:@"Entities: %3d", [UNIVERSE entityCount]];
 #ifndef NDEBUG
 	result = [NSString stringWithFormat:@"%@ (%d, %u KiB, avg %u bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
 #endif
@@ -4474,7 +4474,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[self moveForward:100.0];
 	
 	flightSpeed = 160.0f;
-	[[UNIVERSE message_gui] clear]; 	// No messages for the dead.
+	[[UNIVERSE messageGUI] clear]; 	// No messages for the dead.
 	[self suppressTargetLost];			// No target lost messages when dead.
 	[self setStatus:STATUS_DEAD];
 	[self playGameOver];
@@ -4545,7 +4545,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[UNIVERSE setDisplayCursor:NO];
 	
 	[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
-	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:YES];
+	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:YES];
 	[self playDockWithStation];
 	[station noteDockedShip:self];
 	
@@ -4655,7 +4655,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	if (station == [UNIVERSE station])
 	{
-		legalStatus |= [UNIVERSE legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
+		legalStatus |= [UNIVERSE legalStatusOfManifest:shipCommodityData];  // 'leaving with those guns were you sir?'
 	}
 	[self loadCargoPods];
 	
@@ -4686,7 +4686,7 @@ static bool minShieldLevelPercentageInitialised = false;
 
 	launchRoll = -flightRoll; // save the station's spin. (inverted for player)
 	flightRoll = 0; // don't spin when showing the break pattern.
-	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:YES];
+	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:YES];
 
 	dockedStation = nil;
 	
@@ -4756,7 +4756,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[UNIVERSE setSystemTo:system_seed];
 	galaxy_coordinates.x = system_seed.d;
 	galaxy_coordinates.y = system_seed.b;
-	[UNIVERSE set_up_universe_from_witchspace];
+	[UNIVERSE setUpUniverseFromWitchspace];
 	[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 	[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 }
@@ -4897,7 +4897,7 @@ done:
 	galaxy_seed.e = rotate_byte_left(galaxy_seed.e);
 	galaxy_seed.f = rotate_byte_left(galaxy_seed.f);
 
-	[UNIVERSE setGalaxy_seed:galaxy_seed];
+	[UNIVERSE setGalaxySeed:galaxy_seed];
 
 	// Choose the galactic hyperspace behaviour. Refers to where we may actually end up after an intergalactic jump.
 	// The default behaviour is that the player cannot arrive on unreachable or isolated systems. The options
@@ -5031,7 +5031,7 @@ done:
 		galaxy_coordinates.y /= 2;
 		[wormhole setMisjump];
 		[self playWitchjumpMisjump];
-		[UNIVERSE set_up_universe_from_misjump];
+		[UNIVERSE setUpUniverseFromMisjump];
 	}
 }
 
@@ -5068,7 +5068,7 @@ done:
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayCursor:NO];
 	[UNIVERSE setDisplayText:NO];
-	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:NO];
+	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:NO];
 	[self playExitWitchspace];
 	[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
 }
@@ -5907,7 +5907,7 @@ done:
 		[gui setShowTextCursor:NO];
 		
 		if ([gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"] && [UNIVERSE pauseMessageVisible])
-					[[UNIVERSE message_gui] clear];
+					[[UNIVERSE messageGUI] clear];
 		// Graphically, this screen is analogous to the various settings screens
 		[gui setBackgroundTextureKey:@"settings"];
 	}
@@ -8095,7 +8095,7 @@ static NSString *last_outfitting_key=nil;
 	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] > 0 && [self isDocked] && ![dockedStation suppressArrivalReports])
 	{
 		[self setGuiToDockingReportScreen];	// go here instead!
-		[[UNIVERSE message_gui] clear];
+		[[UNIVERSE messageGUI] clear];
 		return YES;
 	}
 	
@@ -8109,7 +8109,7 @@ static NSString *last_outfitting_key=nil;
 	if (gui_screen == GUI_SCREEN_MISSION)
 	{
 		// remove any comms/console messages from the screen!
-		[[UNIVERSE message_gui] clear];
+		[[UNIVERSE messageGUI] clear];
 		return YES;
 	}
 	

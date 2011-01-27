@@ -273,7 +273,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// check for entries in hud.plist for message_gui and comm_log_gui
 	// then resize and reposition them accordingly.
 	
-	GuiDisplayGen*	gui = [UNIVERSE message_gui];
+	GuiDisplayGen*	gui = [UNIVERSE messageGUI];
 	NSDictionary*	gui_info = [info objectForKey:@"message_gui"];
 	if (gui && gui_info)
 	{
@@ -283,7 +283,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	// And now set up the comms log
 	
-	gui = [UNIVERSE comm_log_gui];
+	gui = [UNIVERSE commLogGUI];
 	gui_info = [info objectForKey:@"comm_log_gui"];
 
 	if (gui && gui_info)

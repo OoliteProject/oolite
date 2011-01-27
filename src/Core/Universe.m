@@ -427,14 +427,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
-- (int) obj_count
+- (int) entityCount
 {
 	return [entities count];
 }
 
 
 #ifndef NDEBUG
-- (void) obj_dump
+- (void) debugDumpEntities
 {
 	int				i;
 	int				show_count = n_entities;
@@ -464,7 +464,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 #endif
 
 
-- (void) sleepytime:(id)sender
+- (void) pauseGame
 {
 	// deal with the machine going to sleep, or player pressing 'p'.
 	PlayerEntity 	*player = PLAYER;
@@ -496,7 +496,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		}
 	}
 	
-	[[gameView gameController] pause_game];
+	[[gameView gameController] pauseGame];
 }
 
 
@@ -580,7 +580,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
-- (void) set_up_universe_from_witchspace
+- (void) setUpUniverseFromWitchspace
 {
 	PlayerEntity		*player;
 	
@@ -615,7 +615,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
-- (void) set_up_universe_from_misjump
+- (void) setUpUniverseFromMisjump
 {
 	PlayerEntity		*player;
 	
@@ -636,7 +636,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		player = [PLAYER retain];	// retained here
 	}
 	
-	[self set_up_witchspace];
+	[self setUpWitchspace];
 	
 	[player leaveWitchspace];
 	[player release];											// released here
@@ -647,7 +647,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
-- (void) set_up_witchspace
+- (void) setUpWitchspace
 {
 	// new system is hyper-centric : witchspace exit point is origin
 	
@@ -2073,7 +2073,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q forDocking:(BOOL) forDocking
+- (void) setUpBreakPattern:(Vector) pos orientation:(Quaternion) q forDocking:(BOOL) forDocking
 {
 	int				i;
 	RingEntity*		ring;
@@ -2145,9 +2145,10 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (void) game_over
+- (void) handleGameOver
 {
 	// In unrestricted mode, reload last save game, if any. In strict mode, always restart as a fresh Jameson.
+	// NOTE: this is also called when loading a game fails.
 	if (![self strict] && [[gameView gameController] playerFileToLoad]) [[gameView gameController] loadPlayerIfRequired];
 	else [self reinitAndShowDemo:NO];
 }
@@ -2583,7 +2584,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (int) legal_status_of_manifest:(NSArray *)manifest
+- (int) legalStatusOfManifest:(NSArray *)manifest
 {
 	unsigned				i, count;
 	unsigned				penalty = 0;
@@ -3628,7 +3629,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			// throw an exception here...
 			OOLog(@"universe.addEntity.failed", @"***** Universe cannot addEntity:%@ -- Universe is full (%d entities out of %d)", entity, n_entities, UNIVERSE_MAX_ENTITIES);
 #ifndef NDEBUG
-			[self obj_dump];
+			[self debugDumpEntities];
 #endif
 			return NO;
 		}
@@ -5494,13 +5495,13 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (void) setGalaxy_seed:(Random_Seed) gal_seed
+- (void) setGalaxySeed:(Random_Seed) gal_seed
 {
-	[self setGalaxy_seed:gal_seed andReinit:NO];
+	[self setGalaxySeed:gal_seed andReinit:NO];
 }
 
 
-- (void) setGalaxy_seed:(Random_Seed) gal_seed andReinit:(BOOL) forced
+- (void) setGalaxySeed:(Random_Seed) gal_seed andReinit:(BOOL) forced
 {
 	int						i;
 	Random_Seed				g_seed = gal_seed;
@@ -5534,7 +5535,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	PlayerEntity	*player = PLAYER;
 	OOEconomyID		economy;
 	
-	[self setGalaxy_seed: [player galaxy_seed]];
+	[self setGalaxySeed: [player galaxy_seed]];
 	
 	system_seed = s_seed;
 	target_system_seed = s_seed;
@@ -6218,7 +6219,7 @@ static NSDictionary	*sCachedSystemData = nil;
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
 	if (!equal_seeds(gal_seed, galaxy_seed))
-		[self setGalaxy_seed:gal_seed];
+		[self setGalaxySeed:gal_seed];
 	
 	Random_Seed system = gal_seed;
 	double distance;
@@ -6263,7 +6264,7 @@ static NSDictionary	*sCachedSystemData = nil;
 - (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
 	if (!equal_seeds(gal_seed, galaxy_seed))
-		[self setGalaxy_seed:gal_seed];
+		[self setGalaxySeed:gal_seed];
 	
 	Random_Seed system = gal_seed;
 	double distance;
@@ -6308,7 +6309,7 @@ static NSDictionary	*sCachedSystemData = nil;
 - (int) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
 	if (!equal_seeds(gal_seed, galaxy_seed))
-		[self setGalaxy_seed:gal_seed];
+		[self setGalaxySeed:gal_seed];
 	
 	OOUInteger	system = NSNotFound;
 	unsigned	distance, dx, dy;
@@ -6369,7 +6370,7 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-- (BOOL*) systems_found
+- (BOOL*) systemsFound
 {
 	return (BOOL*)system_found;
 }
@@ -6701,7 +6702,7 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-double estimatedTimeForJourney(double distance, int hops)
+static double estimatedTimeForJourney(double distance, int hops)
 {
 	int min_hops = (hops > 1)? (hops - 1) : 1;
 	return 2000 * hops + 4000 * distance * distance / min_hops;
@@ -7926,13 +7927,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
-- (GuiDisplayGen *) comm_log_gui
+- (GuiDisplayGen *) commLogGUI
 {
 	return comm_log_gui;
 }
 
 
-- (GuiDisplayGen *) message_gui
+- (GuiDisplayGen *) messageGUI
 {
 	return message_gui;
 }
@@ -8102,7 +8103,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 			OOLog(kOOLogException, @"***** Handling Fatal : %@ : %@ *****",[exception name], [exception reason]);
 			NSString* exception_msg = [NSString stringWithFormat:@"Exception : %@ : %@ Please take a screenshot and/or press esc or Q to quit.", [exception name], [exception reason]];
 			[self addMessage:exception_msg forCount:30.0];
-			[[self gameController] pause_game];
+			[[self gameController] pauseGame];
 		}
 		else
 		{
@@ -8426,7 +8427,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	//       be aware of cache flushes so it can automatically
 	//       reinitialize itself - mwerle 20081107.
 	[OOShipRegistry reload];
-	[[gameView gameController] unpause_game];
+	[[gameView gameController] unpauseGame];
 	
 	if (strictChanged)
 	{
@@ -8503,7 +8504,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	OO_DEBUG_POP_PROGRESS();
 	
 	OO_DEBUG_PUSH_PROGRESS(@"Galaxy reset");
-	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
+	[self setGalaxySeed: [player galaxy_seed] andReinit:YES];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
 	OO_DEBUG_POP_PROGRESS();
 	[self setUpSpace];

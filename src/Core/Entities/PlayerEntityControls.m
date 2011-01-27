@@ -1288,8 +1288,8 @@ static NSTimeInterval	time_last_frame;
 			
 			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
 			{
-				if ([UNIVERSE pauseMessageVisible]) [[UNIVERSE message_gui] leaveLastLine];
-				else [[UNIVERSE message_gui] clear];
+				if ([UNIVERSE pauseMessageVisible]) [[UNIVERSE messageGUI] leaveLastLine];
+				else [[UNIVERSE messageGUI] clear];
 				NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
 				OOTimeDelta		time_delta;
 				if (![[GameController sharedController] gameIsPaused])
@@ -1314,7 +1314,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (!cloak_pressed)
 				{
-					[UNIVERSE obj_dump];	// dump objects
+					[UNIVERSE debugDumpEntities];
 					gDebugFlags = 0;
 					[UNIVERSE addMessage:@"Entity List dumped. Debugging OFF" forCount:3];
 				}
@@ -1419,14 +1419,14 @@ static NSTimeInterval	time_last_frame;
 					// make sure the light comes from the right direction after resuming from pause!
 					if (saved_gui_screen == GUI_SCREEN_SYSTEM_DATA) [UNIVERSE setMainLightPosition:_sysInfoLight];
 					[[UNIVERSE gui] setForegroundTextureKey:@"overlay"];
-					[[gameView gameController] unpause_game];
+					[[gameView gameController] unpauseGame];
 				}
 				else
 				{
 					saved_view_direction = [UNIVERSE viewDirection];
 					saved_script_time = script_time;
 					saved_gui_screen = gui_screen;
-					[UNIVERSE sleepytime:nil];	// pause handler
+					[UNIVERSE pauseGame];	// pause handler
 				}
 			}
 			pause_pressed = YES;
@@ -3093,14 +3093,14 @@ static BOOL toggling_music;
 						[UNIVERSE clearPreviousMessage];	// remove the 'paused' message.
 					}
 					[[UNIVERSE gui] setForegroundTextureKey:@"docked_overlay"];
-					[gameController unpause_game];
+					[gameController unpauseGame];
 				}
 				else
 				{
 					saved_script_time = script_time;
-					[[UNIVERSE message_gui] clear];
+					[[UNIVERSE messageGUI] clear];
 					
-					[UNIVERSE sleepytime:nil];	// 'paused' handler
+					[UNIVERSE pauseGame];	// 'paused' handler
 				}
 			}
 			pause_pressed = YES;

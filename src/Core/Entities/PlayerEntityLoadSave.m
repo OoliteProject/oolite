@@ -488,7 +488,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	{
 		OOLog(@"load.failed", @"***** Failed to load saved game \"%@\": %@", [fileToOpen lastPathComponent], fail_reason ? fail_reason : (NSString *)@"unknown error");
 		[[UNIVERSE gameController] setPlayerFileToLoad:nil];
-		[UNIVERSE game_over];
+		[UNIVERSE handleGameOver];
 		[UNIVERSE clearPreviousMessage];
 		[UNIVERSE addMessage:DESC(@"loadfailed-saved-game-failed-to-load") forCount: 9.0];
 		if (fail_reason != nil)  [UNIVERSE addMessage: fail_reason forCount: 9.0];
@@ -528,7 +528,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		else  [dockedStation initialiseLocalMarketWithRandomFactor:market_rnd];
 	}
 	[self calculateCurrentCargo];
-	[UNIVERSE setGalaxy_seed: galaxy_seed andReinit:YES]; // set overridden planet names on long range map
+	[UNIVERSE setGalaxySeed: galaxy_seed andReinit:YES]; // set overridden planet names on long range map
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading
@@ -1035,7 +1035,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui addLongText:cdrDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];
 	
 	// Restore the seed of the galaxy the player is currently in.
-	[UNIVERSE setGalaxy_seed: player_galaxy_seed];
+	[UNIVERSE setGalaxySeed: player_galaxy_seed];
 }
 
 

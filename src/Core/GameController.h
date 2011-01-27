@@ -125,8 +125,8 @@ MA 02110-1301, USA.
 
 - (void) applicationDidFinishLaunching: (NSNotification *)notification;
 - (BOOL) gameIsPaused;
-- (void) pause_game;
-- (void) unpause_game;
+- (void) pauseGame;
+- (void) unpauseGame;
 
 #if OOLITE_HAVE_APPKIT
 - (IBAction) goFullscreen:(id)sender;

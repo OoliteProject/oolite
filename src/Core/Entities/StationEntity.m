@@ -297,26 +297,28 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+- (void) autoDockShipsInQueue:(NSMutableDictionary *)queue
+{
+	NSArray		*ships = [queue allKeys];
+	unsigned	i, count = [ships count];
+	
+	for (i = 0; i < count; i++)
+	{
+		ShipEntity *ship = [UNIVERSE entityForUniversalID:[ships oo_unsignedIntAtIndex:i]];
+		if ([ship isShip])
+		{
+			[ship enterDock:self];
+		}
+	}
+	
+	[queue removeAllObjects];
+}
+
+
 - (void) autoDockShipsOnApproach
 {
-	unsigned i;
-	NSArray*	ships = [shipsOnApproach allKeys];
-	for (i = 0; i < [ships count]; i++)
-	{
-		int sid = [ships oo_intAtIndex:i];
-		if ([UNIVERSE entityForUniversalID:sid])
-			[[UNIVERSE entityForUniversalID:sid] enterDock:self];
-	}
-	[shipsOnApproach removeAllObjects];
-	
-	ships = [shipsOnHold allKeys];
-	for (i = 0; i < [ships count]; i++)
-	{
-		int sid = [ships oo_intAtIndex:i];
-		if ([UNIVERSE entityForUniversalID:sid])
-			[[UNIVERSE entityForUniversalID:sid] enterDock:self];
-	}
-	[shipsOnHold removeAllObjects];
+	[self autoDockShipsInQueue:shipsOnApproach];
+	[self autoDockShipsInQueue:shipsOnHold];
 	
 	[shipAI message:@"DOCKING_COMPLETE"];
 }
