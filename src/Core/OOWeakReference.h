@@ -112,7 +112,7 @@ This code is hereby placed in the public domain.
 - (BOOL)weakRefObjectStillExists;
 - (id)weakRefUnderlyingObject;
 
-- (id)weakRetain;	// Returns self for weakrefs.
+- (id)weakRetain OO_RETURNS_RETAINED;	// Returns [self retain] for weakrefs.
 
 // For referred object only:
 + (id)weakRefWithObject:(id<OOWeakReferenceSupport>)object;

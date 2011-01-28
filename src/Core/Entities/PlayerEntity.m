@@ -141,13 +141,19 @@ static GLfloat		sBaseMass = 0.0;
 @end
 
 
+@interface ShipEntity (Hax)
+
+- (id) initBypassForPlayer;
+
+@end
+
+
 @implementation PlayerEntity
 
 + (PlayerEntity *)sharedPlayer
 {
-	if (EXPECT_NOT(gOOPlayer == nil))  [[PlayerEntity alloc] init];
+	if (EXPECT_NOT(gOOPlayer == nil))  OOConsumeReference([[PlayerEntity alloc] init]);
 	return gOOPlayer;
-	// Analyzer: object leaked. [Expected.]
 }
 
 
@@ -1011,7 +1017,7 @@ static GLfloat		sBaseMass = 0.0;
 - (id) init
 {
 	NSAssert(gOOPlayer == nil, @"Expected only one PlayerEntity to exist at a time.");
-	gOOPlayer = self;
+	gOOPlayer = [super initBypassForPlayer];
 	return gOOPlayer;
 }
 
@@ -1029,7 +1035,9 @@ static GLfloat		sBaseMass = 0.0;
 	
 	int i;
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
+	{
 		missile_entity[i] = nil;
+	}
 	[self setUp];
 	
 	save_path = nil;

@@ -74,7 +74,6 @@ static OOAsyncWorkManager *sSingleton = nil;
 {
 @private
 	OOAsyncQueue			*_taskQueue;
-	BOOL					_haveInited;
 }
 
 - (void) queueTask:(NSNumber *)threadNumber;
@@ -326,8 +325,6 @@ enum
 
 - (id) init
 {
-	if (_haveInited)  return self;	// Might reinit if alloc returns existing instance.
-	
 	if ((self = [super init]))
 	{
 		// Set up work queue.
@@ -349,8 +346,6 @@ enum
 		{
 			[NSThread detachNewThreadSelector:@selector(queueTask:) toTarget:self withObject:[NSNumber numberWithInt:threadNumber++]];
 		}  while (--threadCount > 0);
-		
-		_haveInited = YES;
 	}
 	
 	return self;

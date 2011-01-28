@@ -145,7 +145,10 @@ static JSFunctionSpec sScriptMethods[] =
 		
 		if (!problem)
 		{
-			if (!JS_SetPrivate(context, _jsSelf, [self weakRetain]))  problem = @"could not set private backreference";
+			if (!JS_SetPrivate(context, _jsSelf, OOConsumeReference([self weakRetain])))
+			{
+				problem = @"could not set private backreference";
+			}
 		}
 		
 		// Push self on stack of running scripts.
@@ -233,7 +236,6 @@ static JSFunctionSpec sScriptMethods[] =
 	OOJSRelinquishContext(context);
 	
 	return self;
-	// Analyzer: object leaked. [Expected, object is retained by JS object.]
 }
 
 

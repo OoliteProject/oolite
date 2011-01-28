@@ -76,20 +76,23 @@ static id sSharedStickHandler = nil;
 
 - (id) init
 {
-	// set initial values for stick buttons/axes (NO for buttons,
-	// STICK_AXISUNASSIGNED for axes). Caution: calling this again
-	// after axes have been assigned will set all the axes to
-	// STICK_AXISUNASSIGNED so if there is a need to do something
-	// like this, then do it some other way, or change this method
-	// so it doesn't do that.
-	[self clearStickStates];
-	
-	// Make some sensible mappings. This also ensures unassigned
-	// axes and buttons are set to unassigned (STICK_NOFUNCTION).
-	[self loadStickSettings];
-	
-	precisionMode=NO;
-	invertPitch=NO;
+	if ((self = [super init]))
+	{
+		// set initial values for stick buttons/axes (NO for buttons,
+		// STICK_AXISUNASSIGNED for axes). Caution: calling this again
+		// after axes have been assigned will set all the axes to
+		// STICK_AXISUNASSIGNED so if there is a need to do something
+		// like this, then do it some other way, or change this method
+		// so it doesn't do that.
+		[self clearStickStates];
+		
+		// Make some sensible mappings. This also ensures unassigned
+		// axes and buttons are set to unassigned (STICK_NOFUNCTION).
+		[self loadStickSettings];
+		
+		precisionMode = NO;
+		invertPitch = NO;
+	}
 	return self;
 }
 

@@ -33,9 +33,8 @@ static void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength);
 
 - (id)initWithLength:(OOUInteger)length
 {
-    if (![super init])
-        return nil;
-
+    if (!(self = [super init]))  return nil;
+	
     // We need to allocate entire VM pages, so round the specified length up to the next page if necessary.
     bufferLength = round_page(length);
 

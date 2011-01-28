@@ -57,16 +57,6 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 
 @implementation OOCASoundDecoder
 
-#ifndef NDEBUG
-- (id)init
-{
-	OOLog(kOOLogDeprecatedMethod, @"Invalid call of %s; designated initializer is -initWithPath:", __PRETTY_FUNCTION__);
-	[self release];
-	return nil;
-}
-#endif
-
-
 - (id)initWithPath:(NSString *)inPath
 {
 	[self release];
@@ -168,25 +158,28 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	int					err;
 	FILE				*file;
 	
-	_name = [[inPath lastPathComponent] retain];
-	
-	if (nil != inPath)
+	if ((self = [super init]))
 	{
-		file = fopen([inPath UTF8String], "rb");
-		if (NULL != file) 
+		_name = [[inPath lastPathComponent] retain];
+		
+		if (nil != inPath)
 		{
-			err = ov_open(file, &_vf, NULL, 0);
-			if (0 == err)
+			file = fopen([inPath UTF8String], "rb");
+			if (NULL != file) 
 			{
-				OK = YES;
+				err = ov_open(file, &_vf, NULL, 0);
+				if (0 == err)
+				{
+					OK = YES;
+				}
 			}
 		}
-	}
-	
-	if (!OK)
-	{
-		[self release];
-		self = nil;
+		
+		if (!OK)
+		{
+			[self release];
+			self = nil;
+		}
 	}
 	
 	return self;

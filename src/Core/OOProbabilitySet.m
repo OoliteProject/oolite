@@ -801,7 +801,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	}
 	
 	// Set up & go.
-	if ((self == [self initPriv]))
+	if ((self = [self initPriv]))
 	{
 		for (i = 0; i != count; ++i)
 		{

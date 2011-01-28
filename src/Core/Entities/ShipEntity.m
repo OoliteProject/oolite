@@ -166,6 +166,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (id) initBypassForPlayer
+{
+	return [super init];
+}
+
+
 // Designated initializer
 - (id)initWithKey:(NSString *)key definition:(NSDictionary *)dict
 {
@@ -2024,8 +2030,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			if (leader != nil && ([leader scanClass] != [self scanClass])) {
 				OOLog(@"ship.sanityCheck.failed", @"Ship %@ escorting %@ with wrong scanclass!", self, leader);
 				[[self escortGroup] removeShip:self];
-				[[self escortGroup] release];
-				[self updateEscortFormation];
+				[self setEscortGroup:nil];
 			}
 		}
 	}

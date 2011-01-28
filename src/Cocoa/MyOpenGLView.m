@@ -74,6 +74,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	}
 #endif
 	
+	if (!(self = [super initWithFrame:frameRect]))  return nil;
+	
 	// Pixel Format Attributes for the View-based (non-FullScreen) NSOpenGLContext
 	NSOpenGLPixelFormatAttribute attrs[] =
 	{

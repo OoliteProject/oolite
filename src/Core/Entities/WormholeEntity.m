@@ -81,7 +81,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 {
 	assert(dict != nil);
 
-	if ([self init])
+	if ((self = [self init]))
 	{
 		NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
@@ -110,13 +110,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			NSDictionary *shipInfo = [currShipDict oo_dictionaryForKey:@"ship_info"];
 			if (shipInfo != nil)
 			{
-#if 1
 				ShipEntity *ship = [ShipEntity shipRestoredFromDictionary:shipInfo
 															  useFallback:YES
 																  context:restoreContext];
-#else
-				ShipEntity *ship = [restoreContext objectForKey:@"no-such-object"];
-#endif
 				if (ship != nil)
 				{
 					[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:

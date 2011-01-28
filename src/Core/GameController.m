@@ -68,9 +68,8 @@ static GameController *sSharedController = nil;
 
 + (id) sharedController
 {
-	if (sSharedController == nil)  [[self alloc] init];
+	if (sSharedController == nil)  OOConsumeReference([[self alloc] init]);
 	return sSharedController;
-	// Analyzer: object leaked. [Expected.]
 }
 
 

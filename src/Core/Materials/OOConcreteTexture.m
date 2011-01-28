@@ -127,11 +127,14 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 		return nil;
 	}
 	
+	if ((self = [self initWithLoader:loader key:key options:options anisotropy:anisotropy lodBias:lodBias]))
+	{
 #if OOTEXTURE_RELOADABLE
-	_path = [path retain];
+		_path = [path retain];
 #endif
+	}
 	
-	return [self initWithLoader:loader key:key options:options anisotropy:anisotropy lodBias:lodBias];
+	return self;
 }
 
 
