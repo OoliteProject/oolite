@@ -5816,7 +5816,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				{
 					cargo_to_go = max_cargo * cargo_chance / 100;
 					while (cargo_to_go > 15)
+					{
 						cargo_to_go = ranrot_rand() % cargo_to_go;
+					}
 					[self setCargo:[UNIVERSE getContainersOfDrugs:cargo_to_go]];
 					cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
 					cargo_flag = CARGO_FLAG_CANISTERS;
@@ -5824,7 +5826,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				
 				cargo_to_go = max_cargo * cargo_chance / 100;
 				while (cargo_to_go > 15)
+				{
 					cargo_to_go = ranrot_rand() % cargo_to_go;
+				}
 				cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
 				switch (cargo_flag)
 				{
@@ -6265,7 +6269,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			cargo_to_go = max_cargo * cargo_chance / 100;
 			while (cargo_to_go > 15)
+			{
 				cargo_to_go = ranrot_rand() % cargo_to_go;
+			}
 			[self setCargo:[UNIVERSE getContainersOfDrugs:cargo_to_go]];
 			cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
 			cargo_flag = CARGO_FLAG_CANISTERS;
@@ -6274,7 +6280,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			cargo_to_go = max_cargo / 10;
 			while (cargo_to_go > 15)
+			{
 				cargo_to_go = ranrot_rand() % cargo_to_go;
+			}
 			[self setCargo:[UNIVERSE getContainersOfGoods:cargo_to_go scarce:(cargo_flag == CARGO_FLAG_FULL_SCARCE)]];
 			cargo_chance = 100;
 		}
@@ -6282,7 +6290,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			if (Ranrot() % 100 < cargo_chance)  //  10% chance of any given piece of cargo surviving decompression
 			{
-				ShipEntity* container = [[cargo objectAtIndex:0] retain];
+				ShipEntity *container = [[cargo objectAtIndex:0] retain];
 				Vector  rpos = xposition;
 				Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
 				rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
@@ -6291,6 +6299,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				rpos.z += (ranrot_rand() % 7) - 3;
 				[container setPosition:rpos];
 				[container setScanClass: CLASS_CARGO];
+				[container setTemperature:[self randomEjectaTemperature]];
 				[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
 				[container release];
 				if (n_cargo > 0)
@@ -8828,19 +8837,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) takeHeatDamage:(double) amount
 {
-	if ([self status] == STATUS_DEAD)					// it's too late for this one!
-		return;
-
-	if (amount < 0.0)
-		return;
-
+	if ([self status] == STATUS_DEAD || amount < 0.0)  return;
+	
 	energy -= amount;
-
 	throw_sparks = YES;
-
+	
 	// oops we're burning up!
 	if (energy <= 0.0)
+	{
 		[self getDestroyedBy:nil context:@"heat damage"];
+	}
 	else
 	{
 		// warn if I'm low on energy

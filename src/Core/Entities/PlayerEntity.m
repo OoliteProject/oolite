@@ -4149,6 +4149,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		[result setRoll:flightRoll];
 		[result setBehaviour:BEHAVIOUR_IDLE];
 		[result switchAITo:@"nullAI.plist"];  // fly straight on
+		[result setTemperature:[self temperature]];
 		[result copyValuesFromPlayer:self];
 	}
 	
@@ -4482,7 +4483,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[self moveForward:100.0];
 	
 	flightSpeed = 160.0f;
-	[[UNIVERSE messageGUI] clear]; 	// No messages for the dead.
+	[[UNIVERSE messageGUI] clear];		// No messages for the dead.
 	[self suppressTargetLost];			// No target lost messages when dead.
 	[self setStatus:STATUS_DEAD];
 	[self playGameOver];
