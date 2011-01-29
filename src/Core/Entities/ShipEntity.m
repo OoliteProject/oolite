@@ -1150,7 +1150,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		if (iconData == nil)
 		{
 			NSString *beaconCode = [self beaconCode];
-			if ([beaconCode length] > 0)  _beaconDrawable = [beaconCode substringToIndex:1];
+			if ([beaconCode length] > 0)  _beaconDrawable = [[beaconCode substringToIndex:1] retain];
 			else  _beaconDrawable = @"";
 		}
 		else
