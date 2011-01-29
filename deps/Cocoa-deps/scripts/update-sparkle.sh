@@ -34,13 +34,13 @@ function fail
 
 
 # Determine whether an update is desireable, and whether there's code in place.
-if [ -d $TARGETDIR ]
+if [ -d "$TARGETDIR" ]
 then
 	LIBRARY_PRESENT=1
 	if [ -e $VERSIONFILE ]
 	then
 		CURRENTURL=`head -n 1 $VERSIONFILE`
-		if [ $DESIREDURL = $CURRENTURL ]
+		if [ "$DESIREDURL" = "$CURRENTURL" ]
 		then
 			echo "$LIBNAME is up to date."
 			exit 0
@@ -58,14 +58,14 @@ fi
 
 
 # Clean up temp directory if it's hanging about.
-if [ -d $TEMPDIR ]
+if [ -d "$TEMPDIR" ]
 then
-	rm -rf $TEMPDIR
+	rm -rf "$TEMPDIR"
 fi
 
 
 # Create temp directory.
-mkdir $TEMPDIR
+mkdir "$TEMPDIR"
 if [ ! $? ]
 then
 	echo "error: Could not create temporary directory $TEMPDIR."
@@ -75,7 +75,7 @@ fi
 
 # Download $LIBNAME source.
 echo "Downloading $LIBNAME source from $DESIREDURL..."
-curl -qgsS -o $TEMPFILE $DESIREDURL
+curl -qgsS -o "$TEMPFILE" "$DESIREDURL"
 if [ ! $? ]
 then
 	fail "could not download $DESIREDURL"
@@ -84,7 +84,7 @@ fi
 
 # Expand zip file.
 echo "Download complete, expanding archive..."
-unzip -q $TEMPFILE -d $TEMPDIR/$LIBNAME
+unzip -q "$TEMPFILE" -d "$TEMPDIR/$LIBNAME"
 if [ ! $? ]
 then
 	fail "could not expand $TEMPFILE into $TEMPDIR"
@@ -92,14 +92,14 @@ fi
 
 
 # Remove tarball.
-rm $TEMPFILE
+rm "$TEMPFILE"
 
 # Delete existing code.
-rm -rf $TARGETDIR
+rm -rf "$TARGETDIR"
 
 
 # Move new code into place.
-mv $TEMPDIR/$LIBNAME* $TARGETDIR
+mv "$TEMPDIR/$LIBNAME*" "$TARGETDIR"
 if [ ! $? ]
 then
 	echo "error: could not move expanded $LIBNAME source into place."
@@ -107,9 +107,10 @@ then
 fi
 
 # Note version for future reference.
-echo $DESIREDURL > $VERSIONFILE
+echo "$DESIREDURL" > "$VERSIONFILE"
 
 # Remove temp directory.
-rm -rf $TEMPDIR
+echo "Cleaning up."
+rm -rf "$TEMPDIR"
 
 echo "Successfully updated $LIBNAME."

@@ -31,13 +31,13 @@ function fail
 
 
 # Determine whether an update is desireable, and whether there's mozilla code in place.
-if [ -d $TARGETDIR ]
+if [ -d "$TARGETDIR" ]
 then
 	LIBRARY_PRESENT=1
 	if [ -e $VERSIONFILE ]
 	then
 		CURRENTURL=`head -n 1 $VERSIONFILE`
-		if [ $DESIREDURL = $CURRENTURL ]
+		if [ "$DESIREDURL" = "$CURRENTURL" ]
 		then
 			echo "libjs is up to date."
 			exit 0
@@ -55,14 +55,14 @@ fi
 
 
 # Clean up temp directory if it's hanging about.
-if [ -d $TEMPDIR ]
+if [ -d "$TEMPDIR" ]
 then
-	rm -rf $TEMPDIR
+	rm -rf "$TEMPDIR"
 fi
 
 
 # Create temp directory.
-mkdir $TEMPDIR
+mkdir "$TEMPDIR"
 if [ ! $? ]
 then
 	echo "error: Could not create temporary directory $TEMPDIR."
@@ -72,7 +72,7 @@ fi
 
 # Download mozilla source.
 echo "Downloading libjs source from $DESIREDURL..."
-curl -qgsS -o $TEMPFILE $DESIREDURL
+curl -qgsS -o "$TEMPFILE" "$DESIREDURL"
 if [ ! $? ]
 then
 	fail "could not download $DESIREDURL"
@@ -81,7 +81,7 @@ fi
 
 # Expand tarball.
 echo "Download complete, expanding archive..."
-tar -xkf $TEMPFILE -C $TEMPDIR
+tar -xkf "$TEMPFILE" -C "$TEMPDIR"
 if [ ! $? ]
 then
 	fail "could not expand $TEMPFILE into $TEMPDIR"
@@ -89,24 +89,24 @@ fi
 
 
 # Remove tarball.
-rm $TEMPFILE
+rm "$TEMPFILE"
 
 # Delete existing code.
-rm -rf $TARGETDIR
+rm -rf "$TARGETDIR"
 
 # Create new root mozilla directory.
-mkdir $TARGETDIR
+mkdir "$TARGETDIR"
 
 
 # Move new code into place.
-mv $TEMPDIR/mozilla-central/js $TARGETDIR/js
+mv "$TEMPDIR/mozilla-central/js" "$TARGETDIR/js"
 if [ ! $? ]
 then
 	echo "error: could not move expanded libjs source into place."
 	exit 1
 fi
 
-mv $TEMPDIR/mozilla-central/nsprpub $TARGETDIR/nsprpub
+mv "$TEMPDIR/mozilla-central/nsprpub" "$TARGETDIR/nsprpub"
 if [ ! $? ]
 then
 	echo "error: could not move expanded libnspr4 source into place."
@@ -114,10 +114,10 @@ then
 fi
 
 # Note version for future reference.
-echo $DESIREDURL > $VERSIONFILE
+echo "$DESIREDURL" > "$VERSIONFILE"
 
 # Remove temp directory.
 echo "Cleaning up."
-rm -rf $TEMPDIR
+rm -rf "$TEMPDIR"
 
 echo "Successfully updated libjs."

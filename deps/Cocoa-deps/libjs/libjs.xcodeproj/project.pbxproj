@@ -183,6 +183,7 @@
 		1AB7788B12CA5320001478BB /* jsautocfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AC16B6112F0907000907218 /* jsoplengen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AC16B6012F0907000907218 /* jsoplengen.cpp */; };
 		1AC16CC312F0945000907218 /* jskwgen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AC16CC212F0945000907218 /* jskwgen.cpp */; };
+		1AC918C512F434EF00E98678 /* jsprobes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA1FBC12CB97B500EC0F43 /* jsprobes.cpp */; };
 		1AD05E2E12CD18B100704F1D /* selfTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E0F12CD18B100704F1D /* selfTest.cpp */; };
 		1AD05E3012CD18B100704F1D /* testClassGetter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1112CD18B100704F1D /* testClassGetter.cpp */; };
 		1AD05E3112CD18B100704F1D /* testCloneScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1212CD18B100704F1D /* testCloneScript.cpp */; };
@@ -204,7 +205,6 @@
 		1AD05E4212CD18B100704F1D /* tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2312CD18B100704F1D /* tests.cpp */; };
 		1AD05E4312CD18B100704F1D /* testSameValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2512CD18B100704F1D /* testSameValue.cpp */; };
 		1AD05E4412CD18B100704F1D /* testScriptObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2612CD18B100704F1D /* testScriptObject.cpp */; };
-		1AD05E4512CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2712CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp */; };
 		1AD05E4612CD18B100704F1D /* testThreadGC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2812CD18B100704F1D /* testThreadGC.cpp */; };
 		1AD05E4712CD18B100704F1D /* testThreads.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2912CD18B100704F1D /* testThreads.cpp */; };
 		1AD05E4812CD18B100704F1D /* testTrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E2A12CD18B100704F1D /* testTrap.cpp */; };
@@ -714,7 +714,6 @@
 		1AD05E2412CD18B100704F1D /* tests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
 		1AD05E2512CD18B100704F1D /* testSameValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testSameValue.cpp; sourceTree = "<group>"; };
 		1AD05E2612CD18B100704F1D /* testScriptObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testScriptObject.cpp; sourceTree = "<group>"; };
-		1AD05E2712CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testSetPropertyWithNativeGetterStubSetter.cpp; sourceTree = "<group>"; };
 		1AD05E2812CD18B100704F1D /* testThreadGC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testThreadGC.cpp; sourceTree = "<group>"; };
 		1AD05E2912CD18B100704F1D /* testThreads.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testThreads.cpp; sourceTree = "<group>"; };
 		1AD05E2A12CD18B100704F1D /* testTrap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testTrap.cpp; sourceTree = "<group>"; };
@@ -1466,7 +1465,6 @@
 				1AD05E2412CD18B100704F1D /* tests.h */,
 				1AD05E2512CD18B100704F1D /* testSameValue.cpp */,
 				1AD05E2612CD18B100704F1D /* testScriptObject.cpp */,
-				1AD05E2712CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp */,
 				1AD05E2812CD18B100704F1D /* testThreadGC.cpp */,
 				1AD05E2912CD18B100704F1D /* testThreads.cpp */,
 				1AD05E2A12CD18B100704F1D /* testTrap.cpp */,
@@ -2028,7 +2026,6 @@
 				1AD05E4212CD18B100704F1D /* tests.cpp in Sources */,
 				1AD05E4312CD18B100704F1D /* testSameValue.cpp in Sources */,
 				1AD05E4412CD18B100704F1D /* testScriptObject.cpp in Sources */,
-				1AD05E4512CD18B100704F1D /* testSetPropertyWithNativeGetterStubSetter.cpp in Sources */,
 				1AD05E4612CD18B100704F1D /* testThreadGC.cpp in Sources */,
 				1AD05E4712CD18B100704F1D /* testThreads.cpp in Sources */,
 				1AD05E4812CD18B100704F1D /* testTrap.cpp in Sources */,
@@ -2036,6 +2033,7 @@
 				1AD05E4A12CD18B100704F1D /* testVersion.cpp in Sources */,
 				1AD05E4B12CD18B100704F1D /* testXDR.cpp in Sources */,
 				1AD05F1412CD224100704F1D /* jsapitests-oolite-shim.m in Sources */,
+				1AC918C512F434EF00E98678 /* jsprobes.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
