@@ -99,11 +99,13 @@ endif
 
 .PHONY: clean
 clean:
-ifneq ($(GNUSTEP_HOST_OS),mingw32)
-	make -C $(LIBJS_SRC_DIR)/editline -f Makefile.ref clobber
-	make -C $(LIBJS_SRC_DIR) -f Makefile.ref clobber
-	find $(LIBJS_SRC_DIR) -name "Linux_All_*.OBJ" | xargs rm -Rf
-endif
+# When Linux is ready to compile the Javascript engine from source
+# then re-activate the following block of code and update it appropriately
+# ifneq ($(GNUSTEP_HOST_OS),mingw32)
+#	make -C $(LIBJS_SRC_DIR)/editline -f Makefile.ref clobber
+#	make -C $(LIBJS_SRC_DIR) -f Makefile.ref clobber
+#	find $(LIBJS_SRC_DIR) -name "Linux_All_*.OBJ" | xargs rm -Rf
+# endif
 	make -f GNUmakefile clean
 	rm -Rf obj obj.dbg oolite.app
 
