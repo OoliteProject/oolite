@@ -316,11 +316,6 @@ typedef enum
 	
 	Vector					collision_vector;			// direction of colliding thing.
 	
-	// beacons
-	NSString				*beaconCode;
-	OOUniversalID			nextBeaconID;				// next beacon in sequence
-	id <OOHUDBeaconIcon>	_beaconDrawable;
-	
 	//position of gun ports
 	Vector					forwardWeaponOffset,
 							aftWeaponOffset,
@@ -384,17 +379,22 @@ typedef enum
 	BOOL					_escortPositionsValid;
 	
 	GLfloat					_profileRadius;
+	
+	// beacons
+	NSString				*_beaconCode;
+	OOWeakReference			*_nextBeacon;
+	id <OOHUDBeaconIcon>	_beaconDrawable;
 }
 
 // ship brains
-- (void) setStateMachine:(NSString *) ai_desc;
-- (void) setAI:(AI *) ai;
+- (void) setStateMachine:(NSString *)ai_desc;
+- (void) setAI:(AI *)ai;
 - (AI *) getAI;
-- (void) setShipScript:(NSString *) script_name;
+- (void) setShipScript:(NSString *)script_name;
 - (void) removeScript;
 - (OOScript *) shipScript;
 - (double) frustration;
-- (void) setLaunchDelay:(double) delay;
+- (void) setLaunchDelay:(double)delay;
 
 - (void) interpretAIMessage:(NSString *)message;
 
@@ -444,12 +444,12 @@ typedef enum
 - (Vector)absoluteTractorPosition;
 
 // beacons
-- (NSString *)beaconCode;
-- (void)setBeaconCode:(NSString *)bcode;
-- (BOOL)isBeacon;
+- (NSString *) beaconCode;
+- (void) setBeaconCode:(NSString *)bcode;
+- (BOOL) isBeacon;
 - (id <OOHUDBeaconIcon>) beaconDrawable;
-- (int)nextBeaconID;
-- (void)setNextBeacon:(ShipEntity*) beaconShip;
+- (ShipEntity *) nextBeacon;
+- (void) setNextBeacon:(ShipEntity*) beaconShip;
 
 - (void) setIsBoulder:(BOOL)flag;
 - (BOOL) isBoulder;

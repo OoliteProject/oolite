@@ -187,7 +187,8 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 	NSMutableArray			*entities;
 	
-	OOUniversalID			firstBeacon, lastBeacon;
+	OOWeakReference			*_firstBeacon,
+							*_lastBeacon;
 	
 	GLfloat					skyClearColor[4];
 	
@@ -428,7 +429,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (BOOL) addEntity:(Entity *) entity;
 - (BOOL) removeEntity:(Entity *) entity;
 - (void) ensureEntityReallyRemoved:(Entity *)entity;
-- (void) removeAllEntitiesExceptPlayer:(BOOL) restore;
+- (void) removeAllEntitiesExceptPlayer;
 - (void) removeDemoShips;
 
 - (ShipEntity *) makeDemoShipWithRole:(NSString *)role spinning:(BOOL)spinning;

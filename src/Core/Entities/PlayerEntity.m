@@ -3243,6 +3243,7 @@ static bool minShieldLevelPercentageInitialised = false;
 - (void) setNextCompassMode
 {
 	OOAegisStatus	aegis = AEGIS_NONE;
+	ShipEntity		*beacon = nil;
 	
 	switch (compassMode)
 	{
@@ -3250,50 +3251,51 @@ static bool minShieldLevelPercentageInitialised = false;
 		case COMPASS_MODE_PLANET:
 			aegis = [self checkForAegis];
 			if (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE)
+			{
 				[self setCompassMode:COMPASS_MODE_STATION];
+			}
 			else
+			{
 				[self setCompassMode:COMPASS_MODE_SUN];
+			}
 			break;
+			
 		case COMPASS_MODE_STATION:
 			[self setCompassMode:COMPASS_MODE_SUN];
 			break;
+			
 		case COMPASS_MODE_SUN:
 			if ([self primaryTarget])
+			{
 				[self setCompassMode:COMPASS_MODE_TARGET];
-			else
-			{
-				nextBeaconID = [[UNIVERSE firstBeacon] universalID];
-				while ((nextBeaconID != NO_TARGET)&&[[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning])
-				{
-					nextBeaconID = [[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
-				}
-				
-				if (nextBeaconID != NO_TARGET)
-					[self setCompassMode:COMPASS_MODE_BEACONS];
-				else
-					[self setCompassMode:COMPASS_MODE_PLANET];
+				break;
 			}
-			break;
-		case COMPASS_MODE_TARGET:
-			nextBeaconID = [[UNIVERSE firstBeacon] universalID];
-			while ((nextBeaconID != NO_TARGET)&&[[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning])
-			{
-				nextBeaconID = [[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
-			}
+			// else fall through to switch to beacon mode.
 			
-			if (nextBeaconID != NO_TARGET)
-				[self setCompassMode:COMPASS_MODE_BEACONS];
-			else
-				[self setCompassMode:COMPASS_MODE_PLANET];
+		case COMPASS_MODE_TARGET:
+			beacon = [UNIVERSE firstBeacon];
+			while (beacon != nil && [beacon isJammingScanning])
+			{
+				beacon = [beacon nextBeacon];
+			}
+			[self setNextBeacon:beacon];
+			
+			if (beacon != nil)  [self setCompassMode:COMPASS_MODE_BEACONS];
+			else  [self setCompassMode:COMPASS_MODE_PLANET];
 			break;
+			
 		case COMPASS_MODE_BEACONS:
+			beacon = [self nextBeacon];
 			do
 			{
-				nextBeaconID = [[UNIVERSE entityForUniversalID:nextBeaconID] nextBeaconID];
-			} while ((nextBeaconID != NO_TARGET)&&[[UNIVERSE entityForUniversalID:nextBeaconID] isJammingScanning]);
+				beacon = [beacon nextBeacon];
+			} while (beacon != nil && [beacon isJammingScanning]);
+			[self setNextBeacon:beacon];
 			
-			if (nextBeaconID == NO_TARGET)
+			if (beacon == nil)
+			{
 				[self setCompassMode:COMPASS_MODE_PLANET];
+			}
 			break;
 	}
 }
@@ -4870,7 +4872,7 @@ done:
 	
 	[self witchStart];
 	
-	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
+	[UNIVERSE removeAllEntitiesExceptPlayer];
 	
 	// remove any contracts for the old galaxy
 	if (contracts)
@@ -5018,7 +5020,7 @@ done:
 	double distance = distanceBetweenPlanetPositions(sTo.d,sTo.b,galaxy_coordinates.x,galaxy_coordinates.y);
 	ship_clock_adjust = distance * distance * (misjump ? 2700.0 : 3600.0);	// LY * LY hrs - misjumps take 3/4 time of the full jump, they're not the same as a jump of half the length!
 	
-	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
+	[UNIVERSE removeAllEntitiesExceptPlayer];
 	
 	if (!misjump)
 	{

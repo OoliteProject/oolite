@@ -497,7 +497,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	[UNIVERSE setTimeAccelerationFactor:TIME_ACCELERATION_FACTOR_DEFAULT];
 	[UNIVERSE setSystemTo:system_seed];
-	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
+	[UNIVERSE removeAllEntitiesExceptPlayer];
 	[UNIVERSE setUpSpace];
 	[UNIVERSE setAutoSaveNow:NO];
 	

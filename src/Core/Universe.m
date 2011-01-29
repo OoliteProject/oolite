@@ -178,7 +178,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 @interface Universe (OOPrivate)
 
-- (BOOL)doRemoveEntity:(Entity *)entity;
+- (BOOL) doRemoveEntity:(Entity *)entity;
 - (void) preloadSounds;
 - (void) initSettings;
 - (void) initPlayerSettings;
@@ -211,6 +211,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 // Set shader effects level without logging or triggering a reset -- should only be used directly during startup.
 - (void) setShaderEffectsLevelDirectly:(OOShaderSetting)value;
+
+- (void) setFirstBeacon:(ShipEntity *)beacon;
+- (void) setLastBeacon:(ShipEntity *)beacon;
 
 @end
 
@@ -363,6 +366,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[activeWormholes release];				
 	[characterPool release];
 	[universeRegion release];
+	
+	DESTROY(_firstBeacon);
+	DESTROY(_lastBeacon);
 	
 	unsigned i;
 	for (i = 0; i < 256; i++)  [system_names[i] release];
@@ -537,7 +543,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		}
 		else
 		{
-			if (!dockedStation) [self removeAllEntitiesExceptPlayer:NO];	// get rid of witchspace sky etc. if still extant
+			if (dockedStation == nil)  [self removeAllEntitiesExceptPlayer];	// get rid of witchspace sky etc. if still extant
 		}
 		
 		if (!dockedStation || !interstel) 
@@ -2299,27 +2305,48 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (void) resetBeacons
 {
-	ShipEntity *beaconShip = [self firstBeacon];
+	ShipEntity *beaconShip = [self firstBeacon], *next = nil;
 	while (beaconShip)
 	{
-		firstBeacon = [beaconShip nextBeaconID];
+		next = [beaconShip nextBeacon];
 		[beaconShip setNextBeacon:nil];
-		beaconShip = (ShipEntity *)[self entityForUniversalID:firstBeacon];
+		beaconShip = next;
 	}
-	firstBeacon = NO_TARGET;
-	lastBeacon = NO_TARGET;
+	
+	[self setFirstBeacon:nil];
+	[self setLastBeacon:nil];
 }
 
 
 - (ShipEntity *) firstBeacon
 {
-	return (ShipEntity *)[self entityForUniversalID:firstBeacon];
+	return [_firstBeacon weakRefUnderlyingObject];
+}
+
+
+- (void) setFirstBeacon:(ShipEntity *)beacon
+{
+	if (beacon != [self firstBeacon])
+	{
+		[_firstBeacon release];
+		_firstBeacon = [beacon weakRetain];
+	}
 }
 
 
 - (ShipEntity *) lastBeacon
 {
-	return (ShipEntity *)[self entityForUniversalID:lastBeacon];
+	return [_lastBeacon weakRefUnderlyingObject];
+}
+
+
+- (void) setLastBeacon:(ShipEntity *)beacon
+{
+	if (beacon != [self lastBeacon])
+	{
+		[_lastBeacon release];
+		_lastBeacon = [beacon weakRetain];
+	}
 }
 
 
@@ -2328,9 +2355,9 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	if ([beaconShip isBeacon])
 	{
 		[beaconShip setNextBeacon:nil];
-		if ([self lastBeacon])  [[self lastBeacon] setNextBeacon:beaconShip];
-		lastBeacon = [beaconShip universalID];
-		if ([self firstBeacon] == nil)  firstBeacon = lastBeacon;
+		[[self lastBeacon] setNextBeacon:beaconShip];
+		[self setLastBeacon:beaconShip];
+		if ([self firstBeacon] == nil)  [self setFirstBeacon:beaconShip];
 	}
 	else
 	{
@@ -3775,7 +3802,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (void) removeAllEntitiesExceptPlayer:(BOOL) restore
+- (void) removeAllEntitiesExceptPlayer
 {
 	BOOL updating = no_update;
 	no_update = YES;			// no drawing while we do this!
@@ -3809,8 +3836,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	cachedPlanet = nil;
 	cachedStation = nil;
 	closeSystems = nil;
-	firstBeacon = NO_TARGET;
-	lastBeacon = NO_TARGET;
+	[self resetBeacons];
 	
 	no_update = updating;	// restore drawing
 }
@@ -7880,16 +7906,19 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (NSArray *) listBeaconsWithCode:(NSString *)code
 {
-	NSMutableArray* result = [NSMutableArray array];
-	ShipEntity* beacon = [self firstBeacon];
-	while (beacon)
+	NSMutableArray	*result = [NSMutableArray array];
+	ShipEntity		*beacon = [self firstBeacon];
+	
+	while (beacon != nil)
 	{
-		NSString* beacon_code = [beacon beaconCode];
-		OOLog(kOOLogFoundBeacon, @"Beacon: %@ has code %@", beacon, beacon_code);
-		if ([beacon_code rangeOfString:code options: NSCaseInsensitiveSearch].location != NSNotFound)
+		NSString *beaconCode = [beacon beaconCode];
+		if ([beaconCode rangeOfString:code options: NSCaseInsensitiveSearch].location != NSNotFound)
+		{
 			[result addObject:beacon];
-		beacon = (ShipEntity*)[self entityForUniversalID:[beacon nextBeaconID]];
+		}
+		beacon = [beacon nextBeacon];
 	}
+	
 	return [result sortedArrayUsingSelector:@selector(compareBeaconCodeWith:)];
 }
 
@@ -8287,21 +8316,18 @@ Entity *gOOJSPlayerIfStale = nil;
 	return _preloadingPlanetMaterials;
 }
 
-@end
-
-
-@implementation Universe (OOPrivate)
 
 - (void) initSettings
 {
 	int i;
 	
-	firstBeacon = NO_TARGET;
-	lastBeacon = NO_TARGET;
+	[self resetBeacons];
 	
 	next_universal_id = 100;	// start arbitrarily above zero
 	for (i = 0; i < MAX_ENTITY_UID; i++)
+	{
 		entity_for_uid[i] = nil;
+	}
 	
 	[self setMainLightPosition:kZeroVector];
 	
@@ -8413,7 +8439,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	PlayerEntity* player = PLAYER;
 	assert(player != nil);
 	
-	[self removeAllEntitiesExceptPlayer:NO];
+	[self removeAllEntitiesExceptPlayer];
 	[OOTexture clearCache];
 	[self resetSystemDataCache];
 	
@@ -8654,23 +8680,27 @@ Entity *gOOJSPlayerIfStale = nil;
 		
 		if (entity->isShip)
 		{
-			int bid = firstBeacon;
-			ShipEntity* se = (ShipEntity*)entity;
+			ShipEntity *se = (ShipEntity*)entity;
 			if ([se isBeacon])
 			{
-				if (bid == old_id)
-					firstBeacon = [se nextBeaconID];
+				ShipEntity	*beacon = [self firstBeacon];
+				if (beacon == se)
+				{
+					[self setFirstBeacon:[se nextBeacon]];
+				}
 				else
 				{
-					ShipEntity* beacon = [self entityForUniversalID:bid];
-					while ((beacon != nil)&&([beacon nextBeaconID] != old_id))
-						beacon = [self entityForUniversalID:[beacon nextBeaconID]];
-					
-					[beacon setNextBeacon:[self entityForUniversalID:[se nextBeaconID]]];
-					
-					while ([beacon nextBeaconID] != NO_TARGET)
-						beacon = [self entityForUniversalID:[beacon nextBeaconID]];
-					lastBeacon = [beacon universalID];
+					while (beacon != nil && [beacon nextBeacon] != se)  beacon = [beacon nextBeacon];
+					if (beacon != nil)
+					{
+						[beacon setNextBeacon:[se nextBeacon]];
+						
+						while ([beacon nextBeacon] != nil)
+						{
+							beacon = [beacon nextBeacon];
+						}
+						[self setLastBeacon:beacon];
+					}
 				}
 				[se setBeaconCode:nil];
 			}

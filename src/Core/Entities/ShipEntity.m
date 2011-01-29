@@ -797,7 +797,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	DESTROY(_lastAegisLock);
 	
-	DESTROY(beaconCode);
+	DESTROY(_beaconCode);
 	DESTROY(_beaconDrawable);
 	
 	[super dealloc];
@@ -1113,29 +1113,29 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (NSString *)beaconCode
+- (NSString *) beaconCode
 {
-	return beaconCode;
+	return _beaconCode;
 }
 
 
-- (void)setBeaconCode:(NSString *)bcode
+- (void) setBeaconCode:(NSString *)bcode
 {
-	if ([beaconCode length] == 0)  beaconCode = nil;
+	if ([bcode length] == 0)  bcode = nil;
 	
-	if (beaconCode != bcode)
+	if (_beaconCode != bcode)
 	{
-		[beaconCode release];
-		beaconCode = [bcode copy];
+		[_beaconCode release];
+		_beaconCode = [bcode copy];
 		
 		DESTROY(_beaconDrawable);
 	}
 }
 
 
-- (BOOL)isBeacon
+- (BOOL) isBeacon
 {
-	return beaconCode != nil;
+	return [self beaconCode] != nil;
 }
 
 
@@ -1147,8 +1147,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		NSArray *iconData = [[UNIVERSE descriptions] oo_arrayForKey:role];
 		if (iconData == nil)
 		{
+			NSString *beaconCode = [self beaconCode];
 			if ([beaconCode length] > 0)  _beaconDrawable = [beaconCode substringToIndex:1];
-			_beaconDrawable = @"";
+			else  _beaconDrawable = @"";
 		}
 		else
 		{
@@ -1160,16 +1161,19 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (int)nextBeaconID
+- (ShipEntity *) nextBeacon
 {
-	return nextBeaconID;
+	return [_nextBeacon weakRefUnderlyingObject];
 }
 
 
-- (void)setNextBeacon:(ShipEntity *)beaconShip
+- (void) setNextBeacon:(ShipEntity *)beaconShip
 {
-	if (beaconShip == nil)  nextBeaconID = NO_TARGET;
-	else  nextBeaconID = [beaconShip universalID];
+	if (beaconShip != [self nextBeacon])
+	{
+		[_nextBeacon release];
+		_nextBeacon = [beaconShip weakRetain];
+	}
 }
 
 
@@ -9893,7 +9897,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Spawn time: %g (%g seconds ago)", [self spawnTime], [self timeElapsedSinceSpawn]);
 	if ([self isBeacon])
 	{
-		OOLog(@"dumpState.shipEntity", @"Beacon code: %@", beaconCode);
+		OOLog(@"dumpState.shipEntity", @"Beacon code: %@", [self beaconCode]);
 	}
 	OOLog(@"dumpState.shipEntity", @"Hull temperature: %g", ship_temperature);
 	OOLog(@"dumpState.shipEntity", @"Heat insulation: %g", [self heatInsulation]);
