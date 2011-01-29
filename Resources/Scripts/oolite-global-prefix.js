@@ -292,6 +292,18 @@ Script.prototype.coordinatesForEscortPosition = function default_coordinatesFrom
 };
 
 
+if (global.timeAccelerationFactor === undefined)
+{
+	Object.defineProperty(global, "timeAccelerationFactor",
+	{
+		value: 1,
+		writable: false,
+		configurable: false,
+		enumerable: false
+	});
+}
+
+
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
 
 var failWarning = " This warning will be removed and the script will fail in Oolite 1.75.1.";

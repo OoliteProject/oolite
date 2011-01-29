@@ -5001,9 +5001,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) update:(OOTimeDelta)inDeltaT
 {
-	volatile float delta_t = inDeltaT;
-	
-	delta_t *= [self timeAccelerationFactor];
+	volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
 	
 	if (!no_update)
 	{
@@ -5025,7 +5023,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			
 			// use a retained copy so this can't be changed under us.
 			for (i = 0; i < ent_count; i++)
+			{
 				my_entities[i] = [sortedEntities[i] retain];	// explicitly retain each one
+			}
 			
 			time_delta = delta_t;
 			universal_time += delta_t;
@@ -5236,20 +5236,32 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (float) timeAccelerationFactor
+#ifndef NDEBUG
+- (double) timeAccelerationFactor
 {
-	return time_acceleration_factor;
+	return timeAccelerationFactor;
 }
 
 
-- (void) setTimeAccelerationFactor:(float)newTimeAccelerationFactor
+- (void) setTimeAccelerationFactor:(double)newTimeAccelerationFactor
 {
 	if (newTimeAccelerationFactor < TIME_ACCELERATION_FACTOR_MIN || newTimeAccelerationFactor > TIME_ACCELERATION_FACTOR_MAX)
 	{
 		newTimeAccelerationFactor = TIME_ACCELERATION_FACTOR_DEFAULT;
 	}
-	time_acceleration_factor = newTimeAccelerationFactor;
+	timeAccelerationFactor = newTimeAccelerationFactor;
 }
+#else
+- (double) timeAccelerationFactor
+{
+	return 1.0;
+}
+
+
+- (void) setTimeAccelerationFactor:(double)newTimeAccelerationFactor
+{
+}
+#endif
 
 
 - (void) filterSortedLists
@@ -8355,7 +8367,9 @@ Entity *gOOJSPlayerIfStale = nil;
 	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
 	
 	time_delta = 0.0;
-	time_acceleration_factor = TIME_ACCELERATION_FACTOR_DEFAULT;
+#ifndef NDEBUG
+	[self setTimeAccelerationFactor:TIME_ACCELERATION_FACTOR_DEFAULT];
+#endif
 	universal_time = 0.0;
 	messageRepeatTime = 0.0;
 	

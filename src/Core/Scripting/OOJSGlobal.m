@@ -56,7 +56,9 @@ extern NSString * const kOOLogDebugMessage;
 
 
 static JSBool GlobalGetProperty(OOJS_PROP_ARGS);
+#ifndef NDEBUG
 static JSBool GlobalSetProperty(OOJS_PROP_ARGS);
+#endif
 
 static JSBool GlobalLog(OOJS_NATIVE_ARGS);
 static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS);
@@ -80,7 +82,12 @@ static JSClass sGlobalClass =
 	JS_PropertyStub,
 	JS_PropertyStub,
 	GlobalGetProperty,
+#ifndef NDEBUG
 	GlobalSetProperty,
+#else
+	// No writeable properties in non-debug builds
+	JS_PropertyStub,
+#endif
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
@@ -94,7 +101,9 @@ enum
 	kGlobal_galaxyNumber,		// galaxy number, integer, read-only
 	kGlobal_global,				// global.global.global.global, integer, read-only
 	kGlobal_guiScreen,			// current GUI screen, string, read-only
+#ifndef NDEBUG
 	kGlobal_timeAccelerationFactor	// time acceleration, float, read/write
+#endif
 };
 
 
@@ -103,7 +112,9 @@ static JSPropertySpec sGlobalProperties[] =
 	// JS name					ID							flags
 	{ "galaxyNumber",			kGlobal_galaxyNumber,		OOJS_PROP_READONLY_CB },
 	{ "guiScreen",				kGlobal_guiScreen,			OOJS_PROP_READONLY_CB },
+#ifndef NDEBUG
 	{ "timeAccelerationFactor",	kGlobal_timeAccelerationFactor,	OOJS_PROP_READWRITE_CB },
+#endif
 	{ 0 }
 };
 
@@ -166,9 +177,11 @@ static JSBool GlobalGetProperty(OOJS_PROP_ARGS)
 			*value = OOJSValueFromGUIScreenID(context, [player guiScreen]);
 			break;
 			
+#ifndef NDEBUG
 		case kGlobal_timeAccelerationFactor:
 			JS_NewDoubleValue(context, [UNIVERSE timeAccelerationFactor], value);
 			break;
+#endif
 			
 		default:
 			OOJSReportBadPropertySelector(context, @"Global", OOJS_PROPID_INT);
@@ -182,6 +195,7 @@ static JSBool GlobalGetProperty(OOJS_PROP_ARGS)
 }
 
 
+#ifndef NDEBUG
 static JSBool GlobalSetProperty(OOJS_PROP_ARGS)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
@@ -209,6 +223,7 @@ static JSBool GlobalSetProperty(OOJS_PROP_ARGS)
 	
 	OOJS_NATIVE_EXIT
 }
+#endif
 
 
 // *** Methods ***

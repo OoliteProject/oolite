@@ -1342,8 +1342,6 @@ static NSTimeInterval	time_last_frame;
 				[UNIVERSE addMessage:@"Bounding box debug ON" forCount:3];
 			}
 			
-	#endif
-			
 			if ([gameView isDown:'s'])// look for the 's' key
 			{
 				OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", YES);
@@ -1367,14 +1365,11 @@ static NSTimeInterval	time_last_frame;
 			
 			if ([gameView isDown:'n'])// look for the 'n' key
 			{
-	#ifndef NDEBUG
 				gDebugFlags = 0;
 				[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
-	#else
-				[UNIVERSE addMessage:@"Shader debug OFF" forCount:3];
-	#endif	// NDEBUG
 				OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
 			}
+	#endif
 		}
 		
 		exceptionContext = @"pause";

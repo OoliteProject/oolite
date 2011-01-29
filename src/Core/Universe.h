@@ -263,7 +263,9 @@ typedef uint8_t		OOEconomyID;		// 0..7
 	
 	BOOL					no_update;
 	
-	float					time_acceleration_factor;
+#ifndef NDEBUG
+	double					timeAccelerationFactor;
+#endif
 	
 	NSMutableDictionary		*localPlanetInfoOverrides;
 	
@@ -504,8 +506,9 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 - (void) update:(OOTimeDelta)delta_t;
 
-- (float) timeAccelerationFactor;
-- (void) setTimeAccelerationFactor:(float)newTimeAccelerationFactor;
+// Time Acelleration Factor. In deployment builds, this is always 1.0 and -setTimeAccelerationFactor: does nothing.
+- (double) timeAccelerationFactor;
+- (void) setTimeAccelerationFactor:(double)newTimeAccelerationFactor;
 
 - (void) filterSortedLists;
 

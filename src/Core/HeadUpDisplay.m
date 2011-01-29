@@ -2113,21 +2113,24 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FPSINFO_DISPLAY_HEIGHT];
 	
 	Vector playerPos = [player position];
-	NSString* positionInfo = [UNIVERSE expressPosition:playerPos inCoordinateSystem:@"pwm"];
+	NSString *positionInfo = [UNIVERSE expressPosition:playerPos inCoordinateSystem:@"pwm"];
 	positionInfo = [NSString stringWithFormat:@"abs %.2f %.2f %.2f / %@", playerPos.x, playerPos.y, playerPos.z, positionInfo];
-	NSString* collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
-	NSString* timeAccelerationFactorInfo = [NSString stringWithFormat:@"TAF: %@%.2f", DESC(@"multiplication-sign"), [UNIVERSE timeAccelerationFactor]];
-	
-	NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
 	
 	// We would normally set a variable alpha value here, but in this case we don't.
 	// We prefer the FPS counter to be always visible - Nikos 20100405
 	OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
 	OODrawString([player dial_fpsinfo], x, y, z1, siz);
+	
+#ifndef NDEBUG
+	NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
+	NSString *collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
 	OODrawString(collDebugInfo, x, y - siz.height, z1, siz);
 	
 	OODrawString(positionInfo, x, y - 1.8 * siz.height, z1, siz08);
+	
+	NSString *timeAccelerationFactorInfo = [NSString stringWithFormat:@"TAF: %@%.2f", DESC(@"multiplication-sign"), [UNIVERSE timeAccelerationFactor]];
 	OODrawString(timeAccelerationFactorInfo, x, y - 3.2 * siz08.height, z1, siz08);
+#endif
 }
 
 
