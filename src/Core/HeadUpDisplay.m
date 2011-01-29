@@ -1101,10 +1101,13 @@ static BOOL hostiles;
 				[self drawCompassBeaconBlipAt:relativePosition Size:sz Alpha:alpha];
 				NSArray	 *icon = [[UNIVERSE descriptions] oo_arrayForKey:[(ShipEntity*)the_next_beacon primaryRole]];
 				if (icon == nil)
+				{
 					OODrawString([NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
 							x - 2.5 * sz.width, y - 3.0 * sz.height, z1, NSMakeSize(sz.width * 2, sz.height * 2));
+				}
 				else
 				{
+#if OLD_SPRITE
 					OOGLBEGIN(GL_POLYGON);
 						hudDrawSpecialIconAt(icon,
 										x - sz.width, y - 1.5 * sz.height, z1, NSMakeSize(sz.width, sz.height));
@@ -1114,6 +1117,10 @@ static BOOL hostiles;
 						hudDrawSpecialIconAt(icon,
 										x - sz.width, y - 1.5 * sz.height, z1, NSMakeSize(sz.width, sz.height));
 					OOGLEND();
+#else
+						hudDrawSpecialIconAt(icon,
+										x - sz.width, y - 1.5 * sz.height, z1, NSMakeSize(sz.width, sz.height));
+#endif
 				}
 				break;
 		}
@@ -2447,8 +2454,8 @@ static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 
 static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz)
 {
-	if (!ptsArray)
-		return;
+	if (ptsArray == nil)  return;
+#if OLD_SPRITE
 	int ox = x - siz.width / 2.0;
 	int oy = y - siz.height / 2.0;
 	int w = siz.width / 4.0;
@@ -2461,6 +2468,9 @@ static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize 
 		int y = [ptsArray oo_intAtIndex:i++];
 		glVertex3i(ox + x * w, oy + y * h, z);
 	}
+#else
+	OOLog(@"temp", @"Icon: %@");
+#endif
 }
 
 

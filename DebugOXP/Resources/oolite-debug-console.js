@@ -147,6 +147,16 @@ result
 	Set by some macros, such as :find.
 
 
+The console script also adds two methods to all entities:
+function dumpState()
+	Writes information about the entity to the log. (This is the same stuff
+	you get if you press 0 while paused, but for a single entity.)
+
+function inspect()
+	Calls console.inspectEntity() on the entity (see above; only useful in
+	Mac OS X).
+
+
 Oolite Debug OXP
 
 Copyright © 2007-2011 the Oolite team
@@ -760,6 +770,13 @@ Object.defineProperty (global, "consoleMessage", { value: function consoleMessag
 Object.defineProperty(Entity.prototype, "inspect", { value: function inspect()
 {
 	console.inspectEntity(this);
+}});
+
+
+// Add dumpState() method to all entities, to log a bunch of stuff.
+Object.defineProperty(Entity.prototype, "dumpState", { value: function dumpState()
+{
+	this.callObjC("dumpState");
 }});
 
 
