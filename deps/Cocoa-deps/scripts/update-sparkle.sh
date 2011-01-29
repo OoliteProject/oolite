@@ -99,7 +99,7 @@ rm -rf "$TARGETDIR"
 
 
 # Move new code into place.
-mv "$TEMPDIR/$LIBNAME*" "$TARGETDIR"
+mv $TEMPDIR/$LIBNAME* "$TARGETDIR"
 if [ ! $? ]
 then
 	echo "error: could not move expanded $LIBNAME source into place."
