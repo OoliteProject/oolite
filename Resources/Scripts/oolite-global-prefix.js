@@ -292,6 +292,7 @@ Script.prototype.coordinatesForEscortPosition = function default_coordinatesFrom
 };
 
 
+// timeAccelerationFactor is 1 and read-only in end-user builds.
 if (global.timeAccelerationFactor === undefined)
 {
 	Object.defineProperty(global, "timeAccelerationFactor",

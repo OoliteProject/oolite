@@ -35,6 +35,7 @@ SOFTWARE.
 
 
 static NSString * const kOOLogSoundNULLError			= @"sound.render.undexpectedNull";
+static NSString * const kOOLogSoundBadStateError		= @"sound.render.badState";
 static NSString * const kOOLogSoundPlaySuccess			= @"sound.play.success";
 static NSString * const kOOLogSoundBadReuse				= @"sound.play.failed.badReuse";
 static NSString * const kOOLogSoundSetupFailed			= @"sound.play.failed.setupFailed";
@@ -46,9 +47,12 @@ static NSString * const kOOLogSoundCleanUpBadState		= @"sound.channel.cleanup.fa
 static NSString * const kOOLogSoundMachPortError		= @"sound.channel.machPortError";
 
 
-// Tracks a kind of error that isn’t happening any more.
 #ifndef NDEBUG
+// Tracks a kind of error that isn’t happening any more.
 #define COUNT_NULLS					1
+
+// Tracks a kind of error I'd like to think isn't happening any more, and which incidentally happened a lot more often than I thought.
+#define COUNT_BAD_STATES			0
 #endif
 
 
@@ -59,6 +63,10 @@ static OOSoundChannel_RenderIMP		SoundChannelRender = NULL;
 
 #if COUNT_NULLS
 static int32_t						sDebugUnexpectedNullCount = 0;
+#endif
+
+#if COUNT_BAD_STATES
+static int32_t						sDebugBadStateCount = 0;
 #endif
 
 /*
@@ -361,23 +369,25 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	AudioStreamBasicDescription	format;
 	OOSound						*temp;
 	
-	#if COUNT_NULLS
+#if COUNT_NULLS
 	SInt32						unexpectedNulls;
 	
 	unexpectedNulls = sDebugUnexpectedNullCount;
 	if (0 != unexpectedNulls)
 	{
 		OOSoundAtomicAdd(-unexpectedNulls, &sDebugUnexpectedNullCount);
-		if (1 == unexpectedNulls)
-		{
-			OOLog(kOOLogSoundNULLError, @"A NULL Render() or nil _sound error has occured.");
-		}
-		else
-		{
-			OOLog(kOOLogSoundNULLError, @"%i NULL Render() or nil _sound errors have occured.", (int)unexpectedNulls);
-		}
+		OOLog(kOOLogSoundNULLError, @"%u NULL Render() or nil _sound errors have occured.", (unsigned int)unexpectedNulls);
 	}
-	#endif
+#endif
+	
+#if COUNT_BAD_STATES
+	SInt32 badStates = sDebugBadStateCount;
+	if (badStates != 0)
+	{
+		OOSoundAtomicAdd(-badStates, &sDebugBadStateCount);
+		OOLog(kOOLogSoundBadStateError, @"%u bad state errors have occured - hopefully, you didn't get a horribly loud buzzing noise.", (unsigned int)badStates);
+	}
+#endif
 	
 	if (nil != inSound)
 	{
@@ -580,9 +590,10 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 {
 	OSStatus					err = noErr;
 	PortMessage					message;
+	BOOL						renderSilence = NO;
 	
-	if (__builtin_expect(_stopReq, 0)) err = endOfDataReached;
-	else if (__builtin_expect(kState_Playing == _state, 1))
+	if (EXPECT_NOT(_stopReq)) err = endOfDataReached;
+	else if (EXPECT(kState_Playing == _state))
 	{
 		if (NULL != Render && nil != _sound)
 		{
@@ -590,31 +601,42 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		}
 		else
 		{
-			unsigned			i, count;
-			
 			err = endOfDataReached;
-			count = ioData->mNumberBuffers;
+			renderSilence = YES;
 			
-			for (i = 0; i != count; ++count)
+#if COUNT_NULLS
+			// Logging in real-time thread _baaaaaad_.
+			if (NULL == Render || nil == _sound)
 			{
-				bzero(ioData->mBuffers[i].mData, ioData->mBuffers[i].mDataByteSize);
+				OOSoundAtomicAdd(1, &sDebugUnexpectedNullCount);
 			}
-			*ioFlags |= kAudioUnitRenderAction_OutputIsSilence;
-			
-			#if COUNT_NULLS
-				// Logging in real-time thread _baaaaaad_.
-				if (NULL == Render || nil == _sound)
-				{
-					OOSoundAtomicAdd(1, &sDebugUnexpectedNullCount);
-				}
-			#endif
+#endif
 		}
 	}
+	else
+	{
+		renderSilence = YES;
+		
+#if COUNT_BAD_STATES
+		OOSoundAtomicAdd(1, &sDebugBadStateCount);
+#endif
+	}
 	
-	if (__builtin_expect(endOfDataReached == err, 0))
+	if (EXPECT_NOT(renderSilence))
+	{
+		unsigned			i, count = ioData->mNumberBuffers;
+		
+		for (i = 0; i != count; i++)
+		{
+			bzero(ioData->mBuffers[i].mData, ioData->mBuffers[i].mDataByteSize);
+		}
+		*ioFlags |= kAudioUnitRenderAction_OutputIsSilence;
+	}
+	
+	if (EXPECT_NOT(endOfDataReached == err))
 	{
 		err = noErr;
-		if (__builtin_expect(kState_Playing == _state, 1))
+		if (EXPECT(kState_Playing == _state))
 		{
 			_state = kState_Reap;
 			
@@ -623,7 +645,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		}
 	}
 	
-	if (__builtin_expect(nil != sPlayThreadDeadList && !pthread_mutex_trylock(&sReapQueueMutex), 0))
+	if (EXPECT_NOT(nil != sPlayThreadDeadList && !pthread_mutex_trylock(&sReapQueueMutex)))
 	{
 		// Put sPlayThreadDeadList at front of sReapQueue
 		OOSoundChannel		*curr;
