@@ -1217,6 +1217,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	if (_pendingEscortCount == 0)  return;
 	
+	if (_maxEscortCount < _pendingEscortCount && ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"]))
+	{
+		_maxEscortCount = MAX_ESCORTS; // police and hunters can get up to MAX_ESCORTS.
+		[self updateEscortFormation];
+	}
+	
 	if ([self isPolice])  defaultRole = @"wingman";
 	
 	escortRole = [shipinfoDictionary oo_stringForKey:@"escort_role" defaultValue:nil];
@@ -9103,6 +9109,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (maxEscorts == 0 && ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"]))
 		{
 			maxEscorts = MAX_ESCORTS;
+			_maxEscortCount = MAX_ESCORTS;
 		}
 		else if (maxEscorts > MAX_ESCORTS)
 		{

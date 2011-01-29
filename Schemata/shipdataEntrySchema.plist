@@ -107,6 +107,7 @@
 		throw_sparks = "boolean";
 		max_missiles = "positiveInteger";
 		cloak_passive = "boolean";
+		cloak_automatic = "boolean";
 		debris_role = "$shipRole";
 		has_scoop_message = "boolean";
 		
