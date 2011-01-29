@@ -53,7 +53,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 		ADDITIONAL_OBJCFLAGS+=-DOO_NEW_JS=1
 	endif
 else
-	ifeq ($(use_newjs),yes)
+	ifeq ($(JS_ECMAv5),yes)
 		LIBJS_SRC_DIR = deps/Linux-deps/JS32ECMAv5/$(HOST_ARCH)/include
 		LIBJS_BIN_DIR = deps/Linux-deps/JS32ECMAv5/$(HOST_ARCH)/lib/
 		ifeq ($(debug),no)
@@ -94,7 +94,7 @@ else
 		endif
 	endif
 
-	ifeq ($(use_newjs),yes)
+	ifeq ($(JS_ECMAv5),yes)
 		ADDITIONAL_OBJCFLAGS+=-DOO_NEW_JS=1
 	endif
 endif

@@ -85,7 +85,7 @@ deps-release-deployment: $(DEPS)
 	
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
-	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes use_newjs=yes
+	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
 
 $(LIBJS):
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
@@ -93,8 +93,9 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	@echo "        Please build it yourself and copy it to $(LIBJS)."
 	false
 endif
-	#make -C $(LIBJS_SRC_DIR) -f Makefile.ref BUILD_OPT=1
-	make -C $(LIBJS_SRC_DIR) -f Makefile.ref $(LIBJS_BUILD_FLAGS)
+	# When Linux is ready to compile the Javascript engine from source
+	# then re-activate the following line of code and update it appropriately
+	# make -C $(LIBJS_SRC_DIR) -f Makefile.ref $(LIBJS_BUILD_FLAGS)
 
 .PHONY: clean
 clean:
