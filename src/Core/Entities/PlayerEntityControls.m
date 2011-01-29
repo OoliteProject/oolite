@@ -764,7 +764,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([self fireMainWeapon])
 					{
-						[self playLaserHit:target_laser_hit != NO_TARGET];
+						[self playLaserHit:[self shipHitByLaser] != nil];
 					}
 				}
 				

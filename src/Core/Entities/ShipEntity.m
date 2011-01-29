@@ -148,6 +148,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 // equipment
 - (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role;
 
+- (void) setShipHitByLaser:(ShipEntity *)ship;
+
 @end
 
 
@@ -6531,9 +6533,25 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (int) primaryTargetID
+- (OOUniversalID) primaryTargetID
 {
 	return primaryTarget;
+}
+
+
+- (ShipEntity *) shipHitByLaser
+{
+	return [_shipHitByLaser weakRefUnderlyingObject];
+}
+
+
+- (void) setShipHitByLaser:(ShipEntity *)ship
+{
+	if (ship != [self shipHitByLaser])
+	{
+		[_shipHitByLaser release];
+		_shipHitByLaser = [ship weakRetain];
+	}
 }
 
 
@@ -7461,15 +7479,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) fireSubentityLaserShot: (double) range
+- (BOOL) fireSubentityLaserShot:(double)range
 {
 	ParticleEntity  *shot;
 	int				direction = VIEW_FORWARD;
 	GLfloat			hit_at_range;
-	target_laser_hit = NO_TARGET;
+	
+	[self setShipHitByLaser:nil];
 
-	if (forward_weapon_type == WEAPON_NONE)
-		return NO;
+	if (forward_weapon_type == WEAPON_NONE)  return NO;
 	[self setWeaponDataFromType:forward_weapon_type];
 
 	ShipEntity* parent = (ShipEntity*)[self owner];
@@ -7477,17 +7495,17 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
 
-	if (range > weaponRange)
-		return NO;
-
+	if (range > weaponRange)  return NO;
+	
 	hit_at_range = weaponRange;
-	target_laser_hit = [UNIVERSE getFirstEntityHitByLaserFromEntity:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
-
+	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
+	[self setShipHitByLaser:victim];
+	
 	shot = [[ParticleEntity alloc] initLaserFromShip:self view:direction offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
-	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
-	if ([victim isShip])
+	
+	if (victim != nil)
 	{
 		ShipEntity *subent = [victim subEntityTakingDamage];
 		if (subent && [victim isFrangible])
@@ -7510,6 +7528,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[laserFlash release];
 		}
 	}
+	
 	[UNIVERSE addEntity:shot];
 	[shot release];
 	
@@ -7539,7 +7558,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	Quaternion q_save = orientation;	// save rotation
 	orientation = q_laser;			// face in direction of laser
-	target_laser_hit = [UNIVERSE getFirstEntityHitByLaserFromEntity:self inView:VIEW_FORWARD offset: make_vector(0,0,0) rangeFound: &hit_at_range];
+	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:VIEW_FORWARD offset: make_vector(0,0,0) rangeFound: &hit_at_range];
+	[self setShipHitByLaser:victim];
 	orientation = q_save;			// restore rotation
 
 	Vector  vel = vector_multiply_scalar(v_forward, flightSpeed);
@@ -7551,8 +7571,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[shot setPosition: position];
 	[shot setOrientation: q_laser];
 	[shot setVelocity: vel];
-	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
-	if ([victim isShip])
+	
+	if (victim != nil)
 	{
 		ShipEntity *subent = [victim subEntityTakingDamage];
 		if (subent != nil && [victim isFrangible])
@@ -7575,6 +7595,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[laserFlash release];
 		}
 	}
+	
 	[UNIVERSE addEntity:shot];
 	[shot release];
 	
@@ -7590,13 +7611,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) fireLaserShotInDirection: (OOViewID) direction
+- (BOOL) fireLaserShotInDirection:(OOViewID)direction
 {
 	ParticleEntity  *shot;
 	double			range_limit2 = weaponRange*weaponRange;
 	GLfloat			hit_at_range;
 	Vector			vel;
-	target_laser_hit = NO_TARGET;
 
 	vel = vector_multiply_scalar(v_forward, flightSpeed);
 
@@ -7616,16 +7636,17 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		default:
 			laserPortOffset = forwardWeaponOffset;
 	}
-
-	target_laser_hit = [UNIVERSE getFirstEntityHitByLaserFromEntity:self inView:direction offset:laserPortOffset rangeFound: &hit_at_range];
+	
+	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset:laserPortOffset rangeFound: &hit_at_range];
+	[self setShipHitByLaser:victim];
 	
 	shot = [[ParticleEntity alloc] initLaserFromShip:self view:direction offset:laserPortOffset];	// alloc retains!
-
+	
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setVelocity: vel];
-	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
-	if ([victim isShip])
+	
+	if (victim != nil)
 	{
 		/*	CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
 			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
@@ -7656,13 +7677,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[laserFlash release];
 		}
 	}
+	
 	[UNIVERSE addEntity:shot];
 	[shot release]; //release
 	
 	[self resetShotTime];
 
 	// random laser over-heating for AI ships
-	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_damage)&&(![self isMining]))
+	if (!isPlayer && (ranrot_rand() & 255) < weapon_damage && ![self isMining])
 	{
 		shot_time -= (randf() * weapon_damage);
 	}

@@ -4124,17 +4124,14 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (OOUniversalID) getFirstEntityHitByLaserFromEntity:(ShipEntity *)srcEntity inView:(OOViewID)viewdir offset:(Vector)offset rangeFound:(GLfloat*)range_ptr
+- (ShipEntity *) getFirstShipHitByLaserFromShip:(ShipEntity *)srcEntity inView:(OOViewID)viewdir offset:(Vector)offset rangeFound:(GLfloat*)range_ptr
 {
 	if (srcEntity == nil) return NO_TARGET;
 	
 	ShipEntity		*hit_entity = nil;
 	ShipEntity		*hit_subentity = nil;
 	Vector			p0 = [srcEntity position];
-	Quaternion		q1 = [srcEntity orientation];
-	
-	if ([srcEntity isPlayer])  q1.w = -q1.w;   //  reverse for player viewpoint
-	
+	Quaternion		q1 = [srcEntity normalOrientation];
 	ShipEntity		*parent = [srcEntity parentEntity];
 	
 	if (parent)
@@ -4147,11 +4144,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		if ([parent isPlayer])  q1.w = -q1.w;
 	}
 	
-	int				result = NO_TARGET;
-	double			nearest;
-	
-	nearest = [srcEntity weaponRange];
-	
+	double			nearest = [srcEntity weaponRange];
 	int				i;
 	int				ent_count = n_entities;
 	int				ship_count = 0;
@@ -4239,7 +4232,6 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	if (hit_entity)
 	{
-		result = [hit_entity universalID];
 		// I think the above code does not guarantee that the closest hit_subentity belongs to the closest hit_entity.
 		if (hit_subentity && [hit_subentity owner] == hit_entity)  [hit_entity setSubEntityTakingDamage:hit_subentity];
 		
@@ -4251,7 +4243,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	for (i = 0; i < ship_count; i++)  [my_entities[i] release]; //	released
 	
-	return result;
+	return hit_entity;
 }
 
 

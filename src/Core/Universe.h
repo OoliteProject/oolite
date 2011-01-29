@@ -438,7 +438,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (Entity*) hazardOnRouteFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 
-- (OOUniversalID) getFirstEntityHitByLaserFromEntity:(ShipEntity *)srcEntity inView:(OOViewID)viewdir offset:(Vector)offset rangeFound:(GLfloat*)range_ptr;
+- (ShipEntity *) getFirstShipHitByLaserFromShip:(ShipEntity *)srcEntity inView:(OOViewID)viewdir offset:(Vector)offset rangeFound:(GLfloat*)range_ptr;
 - (Entity *) getFirstEntityTargetedByPlayer;
 
 - (NSArray *) getEntitiesWithinRange:(double)range ofEntity:(Entity *)entity;

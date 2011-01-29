@@ -271,7 +271,6 @@ typedef enum
 	OOUniversalID			primaryAggressor;			// recorded after an attack
 	OOUniversalID			targetStation;				// for docking
 	OOUniversalID			found_target;				// from scans
-	OOUniversalID			target_laser_hit;			// u-id for the entity hit by the last laser shot
 	OOUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
 	OOUInteger				_maxShipSubIdx;				// serialisation index - the number of ship subentities inside the shipdata
 	double					launch_time;				// time at which launched
@@ -379,6 +378,8 @@ typedef enum
 	BOOL					_escortPositionsValid;
 	
 	GLfloat					_profileRadius;
+	
+	OOWeakReference			*_shipHitByLaser;			// entity hit by the last laser shot
 	
 	// beacons
 	NSString				*_beaconCode;
@@ -783,7 +784,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) addTarget:(Entity *) targetEntity;
 - (void) removeTarget:(Entity *) targetEntity;
 - (id) primaryTarget;
-- (int) primaryTargetID;
+- (OOUniversalID) primaryTargetID;
+
+- (ShipEntity *) shipHitByLaser;
 
 - (void) noteLostTarget;
 - (void) noteLostTargetAndGoIdle;
