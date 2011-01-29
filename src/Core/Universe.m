@@ -4126,7 +4126,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 
 - (ShipEntity *) getFirstShipHitByLaserFromShip:(ShipEntity *)srcEntity inView:(OOViewID)viewdir offset:(Vector)offset rangeFound:(GLfloat*)range_ptr
 {
-	if (srcEntity == nil) return NO_TARGET;
+	if (srcEntity == nil) return nil;
 	
 	ShipEntity		*hit_entity = nil;
 	ShipEntity		*hit_subentity = nil;
