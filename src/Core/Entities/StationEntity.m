@@ -1003,6 +1003,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void) pullInShipIfPermitted:(ShipEntity *)ship
 {
 #if 0
+	/*
+		Experiment: allow station script to deny physical docking capability.
+		Doesn't work properly because the collision detection for docking ports
+		isn't designed to support this, and you can fly past the back and
+		sometimes straight through.
+		-- Ahruman 2011-01-29
+	*/
 	if (EXPECT_NOT(ship == nil))  return;
 	
 	JSContext	*context = OOJSAcquireContext();

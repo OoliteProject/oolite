@@ -793,38 +793,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-#if 0
-- (BOOL) setBackgroundTexture:(OOTexture *)backgroundTexture
-{
-	// autorelease instead of release here seems to prevent a crash on SDL builds when pausing and unpausing
-	// with GUI backgrounds installed. TODO: Apply a proper fix, this smells like hack - Nikos 20100519
-	[backgroundSprite autorelease];
-	backgroundSprite = nil;
-	
-	if (backgroundTexture != nil)
-	{
-		backgroundSprite = [[OOTextureSprite alloc] initWithTexture:backgroundTexture];
-	}
-	return (backgroundSprite != nil);
-}
-
-
-- (BOOL) setForegroundTexture:(OOTexture *)foregroundTexture
-{
-	// autorelease instead of release here seems to prevent a crash on SDL builds when pausing and unpausing
-	// with GUI backgrounds installed. TODO: Apply a proper fix, this smells like hack - Nikos 20100519
-	[foregroundSprite autorelease];
-	foregroundSprite = nil;
-	
-	if (foregroundTexture != nil)
-	{
-		foregroundSprite = [[OOTextureSprite alloc] initWithTexture:foregroundTexture];
-	}
-	return (foregroundSprite != nil);
-}
-#endif
-
-
 - (void) clearBackground
 {
 	[self setBackgroundTextureDescriptor:nil];

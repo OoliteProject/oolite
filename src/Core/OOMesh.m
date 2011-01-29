@@ -470,20 +470,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 			}
 			
 			[materials[ti] apply];
-#if 0
-			if (listsReady)
-			{
-				OOGL(glCallList(displayList0 + ti));
-			}
-			else
-			{
-				OOGL(glNewList(displayList0 + ti, GL_COMPILE_AND_EXECUTE));
-				OOGL(glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length));
-				OOGL(glEndList());
-			}
-#else
 			OOGL(glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length));
-#endif
 		}
 		
 		listsReady = YES;

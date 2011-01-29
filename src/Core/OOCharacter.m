@@ -190,26 +190,6 @@ MA 02110-1301, USA.
 		[self setLegalStatus: criminal_tendency + criminal_tendency * (gen_rnd_number() & 0x03) + (gen_rnd_number() & gen_rnd_number() & 0x7f)];
 	legal_index = 0;
 	if (legalStatus)	legal_index = (legalStatus <= 50) ? 1 : 2;
-	
-#if 0
-	NSString *legalDesc = nil;
-	// Never used! What was intended? -- Ahruman 2008-11-10
-	switch (legal_index)
-	{
-		case 0:
-			legalDesc = @"clean";
-			break;
-		case 1:
-			legalDesc = @"an offender";
-			break;
-		case 2:
-			legalDesc = @"a fugitive";
-			break;
-		default:
-			// never should get here
-			legalDesc = @"an unperson";
-	}
-#endif
 
 	// if clean - determine insurance level (if any)
 	[self setInsuranceCredits:0];
