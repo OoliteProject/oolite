@@ -767,7 +767,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA /* DebugOXP */;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
 			remoteInfo = DebugOXP;
 		};
 		1A78B5D812D74CF900D42EE7 /* PBXContainerItemProxy */ = {
