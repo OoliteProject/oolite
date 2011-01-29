@@ -98,36 +98,36 @@ enum
 static JSPropertySpec sManifestProperties[] =
 {
 	// JS name					ID							flags
-	{ "food",				kManifest_food,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "textiles",			kManifest_textiles,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "radioactives",		kManifest_radioactives,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "slaves",				kManifest_slaves,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "liquor/wines",		kManifest_liquorwines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "luxuries",			kManifest_luxuries,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "narcotics",			kManifest_narcotics,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "computers",			kManifest_computers,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "machinery",			kManifest_machinery,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "alloys",				kManifest_alloys,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "firearms",			kManifest_firearms,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "furs",				kManifest_furs,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "minerals",			kManifest_minerals,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "alien items",		kManifest_alienitems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "gold",				kManifest_gold,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "platinum",			kManifest_platinum,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "gem-stones",			kManifest_gemstones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "food",				kManifest_food,				OOJS_PROP_READWRITE_CB },
+	{ "textiles",			kManifest_textiles,			OOJS_PROP_READWRITE_CB },
+	{ "radioactives",		kManifest_radioactives,		OOJS_PROP_READWRITE_CB },
+	{ "slaves",				kManifest_slaves,			OOJS_PROP_READWRITE_CB },
+	{ "liquor/wines",		kManifest_liquorwines,		OOJS_PROP_READWRITE_CB },
+	{ "luxuries",			kManifest_luxuries,			OOJS_PROP_READWRITE_CB },
+	{ "narcotics",			kManifest_narcotics,		OOJS_PROP_READWRITE_CB },
+	{ "computers",			kManifest_computers,		OOJS_PROP_READWRITE_CB },
+	{ "machinery",			kManifest_machinery,		OOJS_PROP_READWRITE_CB },
+	{ "alloys",				kManifest_alloys,			OOJS_PROP_READWRITE_CB },
+	{ "firearms",			kManifest_firearms,			OOJS_PROP_READWRITE_CB },
+	{ "furs",				kManifest_furs,				OOJS_PROP_READWRITE_CB },
+	{ "minerals",			kManifest_minerals,			OOJS_PROP_READWRITE_CB },
+	{ "alien items",		kManifest_alienitems,		OOJS_PROP_READWRITE_CB },
+	{ "gold",				kManifest_gold,				OOJS_PROP_READWRITE_CB },
+	{ "platinum",			kManifest_platinum,			OOJS_PROP_READWRITE_CB },
+	{ "gem-stones",			kManifest_gemstones,		OOJS_PROP_READWRITE_CB },
 
 // There are 3 possible ways of accessing two-words commodities at the moment.
 // We can either use the case insensitive original names - as above,
 // or use one of the case sensitive variants below.
 
-	{ "gem_stones",			kManifest_gem_stones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
-	{ "gemStones",			kManifest_gemStones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
-	{ "liquor_wines",		kManifest_liquor_wines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
-	{ "liquorWines",		kManifest_liquorWines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
-	{ "alien_items",		kManifest_alien_items,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
-	{ "alienItems",			kManifest_alienItems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
+	{ "gem_stones",			kManifest_gem_stones,		OOJS_PROP_READWRITE_CB },	// normalised
+	{ "gemStones",			kManifest_gemStones,		OOJS_PROP_READWRITE_CB },	// camelCase
+	{ "liquor_wines",		kManifest_liquor_wines,		OOJS_PROP_READWRITE_CB },	// normalised
+	{ "liquorWines",		kManifest_liquorWines,		OOJS_PROP_READWRITE_CB },	// camelCase
+	{ "alien_items",		kManifest_alien_items,		OOJS_PROP_READWRITE_CB },	// normalised
+	{ "alienItems",			kManifest_alienItems,		OOJS_PROP_READWRITE_CB },	// camelCase
 	
-	{ "list",				kManifest_list,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "list",				kManifest_list,				OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -185,11 +185,11 @@ void InitOOJSManifest(JSContext *context, JSObject *global)
 	OOJSRegisterObjectConverter(&sManifestClass, OOJSBasicPrivateObjectConverter);
 	
 	// Create manifest object as a property of the player.ship object.
-	sManifestObject = JS_DefineObject(context, JSPlayerShipObject(), "manifest", &sManifestClass, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	sManifestObject = JS_DefineObject(context, JSPlayerShipObject(), "manifest", &sManifestClass, sManifestPrototype, OOJS_PROP_READONLY);
 	JS_SetPrivate(context, sManifestObject, NULL);
 	
 	// Also define manifest object as a property of the global object.
-	JS_DefineObject(context, global, "manifest", &sManifestClass, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineObject(context, global, "manifest", &sManifestClass, sManifestPrototype, OOJS_PROP_READONLY);
 	
 	// Create dictionary mapping commodity names to tinyids.
 	NSMutableDictionary *manifestNameMap = [NSMutableDictionary dictionaryWithCapacity:kManifestCaseInsensitiveLimit];

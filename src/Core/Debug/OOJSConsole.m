@@ -154,22 +154,22 @@ enum
 static JSPropertySpec sConsoleProperties[] =
 {
 	// JS name								ID											flags
-	{ "debugFlags",							kConsole_debugFlags,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "shaderMode",							kConsole_shaderMode,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "maximumShaderMode",					kConsole_maximumShaderMode,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "reducedDetailMode",					kConsole_reducedDetailMode,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "displayFPS",							kConsole_displayFPS,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "platformDescription",				kConsole_platformDescription,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "pedanticMode",						kConsole_pedanticMode,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "__showErrorLocations",				kConsole_showErrorLocations,				JSPROP_PERMANENT },
-	{ "__dumpStackForErrors",				kConsole_dumpStackForErrors,				JSPROP_PERMANENT },
-	{ "__dumpStackForWarnings",				kConsole_dumpStackForWarnings,				JSPROP_PERMANENT },
-	{ "glVendorString",						kConsole_glVendorString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "glRendererString",					kConsole_glRendererString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "glFixedFunctionTextureUnitCount",	kConsole_glFixedFunctionTextureUnitCount,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "glFragmentShaderTextureUnitCount",	kConsole_glFragmentShaderTextureUnitCount,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "debugFlags",							kConsole_debugFlags,						OOJS_PROP_READWRITE_CB },
+	{ "shaderMode",							kConsole_shaderMode,						OOJS_PROP_READWRITE_CB },
+	{ "maximumShaderMode",					kConsole_maximumShaderMode,					OOJS_PROP_READONLY_CB },
+	{ "reducedDetailMode",					kConsole_reducedDetailMode,					OOJS_PROP_READWRITE_CB },
+	{ "displayFPS",							kConsole_displayFPS,						OOJS_PROP_READWRITE_CB },
+	{ "platformDescription",				kConsole_platformDescription,				OOJS_PROP_READONLY_CB },
+	{ "pedanticMode",						kConsole_pedanticMode,						OOJS_PROP_READWRITE_CB },
+	{ "__showErrorLocations",				kConsole_showErrorLocations,				OOJS_PROP_HIDDEN_READWRITE_CB },
+	{ "__dumpStackForErrors",				kConsole_dumpStackForErrors,				OOJS_PROP_HIDDEN_READWRITE_CB },
+	{ "__dumpStackForWarnings",				kConsole_dumpStackForWarnings,				OOJS_PROP_HIDDEN_READWRITE_CB },
+	{ "glVendorString",						kConsole_glVendorString,					OOJS_PROP_READONLY_CB },
+	{ "glRendererString",					kConsole_glRendererString,					OOJS_PROP_READONLY_CB },
+	{ "glFixedFunctionTextureUnitCount",	kConsole_glFixedFunctionTextureUnitCount,	OOJS_PROP_READONLY_CB },
+	{ "glFragmentShaderTextureUnitCount",	kConsole_glFragmentShaderTextureUnitCount,	OOJS_PROP_READONLY_CB },
 	
-#define DEBUG_FLAG_DECL(x) { #x, kConsole_##x, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY }
+#define DEBUG_FLAG_DECL(x) { #x, kConsole_##x, OOJS_PROP_READONLY_CB }
 	DEBUG_FLAG_DECL(DEBUG_LINKED_LISTS),
 	DEBUG_FLAG_DECL(DEBUG_COLLISIONS),
 	DEBUG_FLAG_DECL(DEBUG_DOCKING),
@@ -195,7 +195,7 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "clearConsole",					ConsoleClearConsole,				0 },
 	{ "scriptStack",					ConsoleScriptStack,					0 },
 	{ "inspectEntity",					ConsoleInspectEntity,				1 },
-	{ "__setUpCallObjC",				ConsoleSetUpCallObjC,				1, JSPROP_READONLY },
+	{ "__setUpCallObjC",				ConsoleSetUpCallObjC,				1 },
 	{ "isExecutableJavaScript",			ConsoleIsExecutableJavaScript,		2 },
 	{ "displayMessagesInClass",			ConsoleDisplayMessagesInClass,		1 },
 	{ "setDisplayMessagesInClass",		ConsoleSetDisplayMessagesInClass,	2 },
@@ -782,7 +782,7 @@ static JSBool ConsoleSetUpCallObjC(OOJS_NATIVE_ARGS)
 	}
 	
 	JSObject *obj = JSVAL_TO_OBJECT(OOJS_ARG(0));
-	JS_DefineFunction(context, obj, "callObjC", ConsoleCallObjCMethod, 1, JSPROP_PERMANENT | JSPROP_READONLY);
+	JS_DefineFunction(context, obj, "callObjC", ConsoleCallObjCMethod, 1, OOJS_METHOD_READONLY);
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT

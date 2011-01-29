@@ -72,10 +72,10 @@ enum
 static JSPropertySpec sShipGroupProperties[] =
 {
 	// JS name					ID							flags
-	{ "ships",					kShipGroup_ships,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "leader",					kShipGroup_leader,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "name",					kShipGroup_name,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "count",					kShipGroup_count,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "ships",					kShipGroup_ships,			OOJS_PROP_READONLY_CB },
+	{ "leader",					kShipGroup_leader,			OOJS_PROP_READWRITE_CB },
+	{ "name",					kShipGroup_name,			OOJS_PROP_READWRITE_CB },
+	{ "count",					kShipGroup_count,			OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 

@@ -198,14 +198,14 @@ enum
 static JSPropertySpec sShipProperties[] =
 {
 	// JS name					ID							flags
-	{ "aftWeapon",				kShip_aftWeapon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "AI",						kShip_AI,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "AIState",				kShip_AIState,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "beaconCode",				kShip_beaconCode,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "bounty",					kShip_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "aftWeapon",				kShip_aftWeapon,			OOJS_PROP_READONLY_CB },
+	{ "AI",						kShip_AI,					OOJS_PROP_READONLY_CB },
+	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
+	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READONLY_CB },
+	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
+	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },
+	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
+	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },
 	// contracts instead of cargo to distinguish them from the manifest
 	{ "contracts",				kShip_contracts,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cloakAutomatic",			kShip_cloakAutomatic,		JSPROP_PERMANENT | JSPROP_ENUMERATE},

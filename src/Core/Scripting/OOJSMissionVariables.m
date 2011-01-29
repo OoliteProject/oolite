@@ -80,7 +80,7 @@ static JSClass sMissionVariablesClass =
 
 void InitOOJSMissionVariables(JSContext *context, JSObject *global)
 {
-	JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass, NULL, OOJS_PROP_READONLY);
 	
 #ifndef NDEBUG
 	// Allow callObjC() on missionVariables to call methods on the mission variables dictionary.

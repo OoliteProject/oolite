@@ -89,20 +89,20 @@ enum
 static JSPropertySpec sStationProperties[] =
 {
 	// JS name					ID							flags
-	{ "isMainStation",			kStation_isMainStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "hasNPCTraffic",			kStation_hasNPCTraffic,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "alertCondition",			kStation_alertCondition,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "isMainStation",			kStation_isMainStation,		OOJS_PROP_READONLY_CB },
+	{ "hasNPCTraffic",			kStation_hasNPCTraffic,		OOJS_PROP_READWRITE_CB },
+	{ "alertCondition",			kStation_alertCondition,	OOJS_PROP_READWRITE_CB },
 #if DOCKING_CLEARANCE_ENABLED
-	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	OOJS_PROP_READWRITE_CB },
 #endif
-	{ "allowsFastDocking",		kStation_allowsFastDocking,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "allowsAutoDocking",		kStation_allowsAutoDocking,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "dockedContractors",		kStation_dockedContractors,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "dockedPolice",			kStation_dockedPolice,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "dockedDefenders",		kStation_dockedDefenders,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "equivalentTechLevel",	kStation_equivalentTechLevel,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "equipmentPriceFactor",	kStation_equipmentPriceFactor,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "suppressArrivalReports",	kStation_suppressArrivalReports,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "allowsFastDocking",		kStation_allowsFastDocking,	OOJS_PROP_READWRITE_CB },
+	{ "allowsAutoDocking",		kStation_allowsAutoDocking,	OOJS_PROP_READWRITE_CB },
+	{ "dockedContractors",		kStation_dockedContractors,	OOJS_PROP_READONLY_CB },
+	{ "dockedPolice",			kStation_dockedPolice,			OOJS_PROP_READONLY_CB },
+	{ "dockedDefenders",		kStation_dockedDefenders,		OOJS_PROP_READONLY_CB },
+	{ "equivalentTechLevel",	kStation_equivalentTechLevel,		OOJS_PROP_READONLY_CB },
+	{ "equipmentPriceFactor",	kStation_equipmentPriceFactor,	OOJS_PROP_READONLY_CB },
+	{ "suppressArrivalReports",	kStation_suppressArrivalReports,	OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 

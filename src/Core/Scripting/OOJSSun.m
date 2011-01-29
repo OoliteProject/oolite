@@ -67,9 +67,9 @@ enum
 static JSPropertySpec sSunProperties[] =
 {
 	// JS name					ID							flags
-	{ "radius",					kSun_radius,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "hasGoneNova",			kSun_hasGoneNova,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isGoingNova",			kSun_isGoingNova,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "radius",					kSun_radius,				OOJS_PROP_READONLY_CB },
+	{ "hasGoneNova",			kSun_hasGoneNova,			OOJS_PROP_READONLY_CB },
+	{ "isGoingNova",			kSun_isGoingNova,			OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 

@@ -78,33 +78,33 @@ enum
 static JSPropertySpec sEquipmentInfoProperties[] =
 {
 	// JS name							ID											flags
-	{ "canBeDamaged",					kEquipmentInfo_canBeDamaged,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "canCarryMultiple",				kEquipmentInfo_canCarryMultiple,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "description",					kEquipmentInfo_description,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "incompatibleEquipment",			kEquipmentInfo_incompatibleEquipment,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isAvailableToAll",				kEquipmentInfo_isAvailableToAll,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isAvailableToNPCs",				kEquipmentInfo_isAvailableToNPCs,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isAvailableToPlayer",			kEquipmentInfo_isAvailableToPlayer,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isExternalStore",				kEquipmentInfo_isExternalStore,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isPortableBetweenShips",			kEquipmentInfo_isPortableBetweenShips,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isVisible",						kEquipmentInfo_isVisible,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "name",							kEquipmentInfo_name,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "price",							kEquipmentInfo_price,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiredCargoSpace",				kEquipmentInfo_requiredCargoSpace,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresAnyEquipment",			kEquipmentInfo_requiresAnyEquipment,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresCleanLegalRecord",		kEquipmentInfo_requiresCleanLegalRecord,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresEmptyPylon",				kEquipmentInfo_requiresEmptyPylon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresEquipment",				kEquipmentInfo_requiresEquipment,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresFreePassengerBerth",		kEquipmentInfo_requiresFreePassengerBerth,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresFullFuel",				kEquipmentInfo_requiresFullFuel,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresMountedPylon",			kEquipmentInfo_requiresMountedPylon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresNonCleanLegalRecord",	kEquipmentInfo_requiresNonCleanLegalRecord,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresNonFullFuel",			kEquipmentInfo_requiresNonFullFuel,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "scriptInfo",						kEquipmentInfo_scriptInfo,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "scriptName",						kEquipmentInfo_scriptName,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "techLevel",						kEquipmentInfo_techLevel,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "canBeDamaged",					kEquipmentInfo_canBeDamaged,				OOJS_PROP_READONLY_CB },
+	{ "canCarryMultiple",				kEquipmentInfo_canCarryMultiple,			OOJS_PROP_READONLY_CB },
+	{ "description",					kEquipmentInfo_description,					OOJS_PROP_READONLY_CB },
+	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			OOJS_PROP_READWRITE_CB },
+	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				OOJS_PROP_READONLY_CB },
+	{ "incompatibleEquipment",			kEquipmentInfo_incompatibleEquipment,		OOJS_PROP_READONLY_CB },
+	{ "isAvailableToAll",				kEquipmentInfo_isAvailableToAll,			OOJS_PROP_READONLY_CB },
+	{ "isAvailableToNPCs",				kEquipmentInfo_isAvailableToNPCs,			OOJS_PROP_READONLY_CB },
+	{ "isAvailableToPlayer",			kEquipmentInfo_isAvailableToPlayer,			OOJS_PROP_READONLY_CB },
+	{ "isExternalStore",				kEquipmentInfo_isExternalStore,				OOJS_PROP_READONLY_CB },
+	{ "isPortableBetweenShips",			kEquipmentInfo_isPortableBetweenShips,		OOJS_PROP_READONLY_CB },
+	{ "isVisible",						kEquipmentInfo_isVisible,					OOJS_PROP_READONLY_CB },
+	{ "name",							kEquipmentInfo_name,						OOJS_PROP_READONLY_CB },
+	{ "price",							kEquipmentInfo_price,						OOJS_PROP_READONLY_CB },
+	{ "requiredCargoSpace",				kEquipmentInfo_requiredCargoSpace,			OOJS_PROP_READONLY_CB },
+	{ "requiresAnyEquipment",			kEquipmentInfo_requiresAnyEquipment,		OOJS_PROP_READONLY_CB },
+	{ "requiresCleanLegalRecord",		kEquipmentInfo_requiresCleanLegalRecord,	OOJS_PROP_READONLY_CB },
+	{ "requiresEmptyPylon",				kEquipmentInfo_requiresEmptyPylon,			OOJS_PROP_READONLY_CB },
+	{ "requiresEquipment",				kEquipmentInfo_requiresEquipment,			OOJS_PROP_READONLY_CB },
+	{ "requiresFreePassengerBerth",		kEquipmentInfo_requiresFreePassengerBerth,	OOJS_PROP_READONLY_CB },
+	{ "requiresFullFuel",				kEquipmentInfo_requiresFullFuel,			OOJS_PROP_READONLY_CB },
+	{ "requiresMountedPylon",			kEquipmentInfo_requiresMountedPylon,		OOJS_PROP_READONLY_CB },
+	{ "requiresNonCleanLegalRecord",	kEquipmentInfo_requiresNonCleanLegalRecord,	OOJS_PROP_READONLY_CB },
+	{ "requiresNonFullFuel",			kEquipmentInfo_requiresNonFullFuel,			OOJS_PROP_READONLY_CB },
+	{ "scriptInfo",						kEquipmentInfo_scriptInfo,					OOJS_PROP_READONLY_CB },
+	{ "scriptName",						kEquipmentInfo_scriptName,					OOJS_PROP_READONLY_CB },
+	{ "techLevel",						kEquipmentInfo_techLevel,					OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -143,7 +143,7 @@ DEFINE_JS_OBJECT_GETTER(JSEquipmentInfoGetEquipmentType, &sEquipmentInfoClass, s
 void InitOOJSEquipmentInfo(JSContext *context, JSObject *global)
 {
 	sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass, OOJSUnconstructableConstruct, 0, sEquipmentInfoProperties, NULL, NULL, sEquipmentInfoStaticMethods);
-	JS_DefineProperty(context, sEquipmentInfoPrototype, "allEquipment", JSVAL_NULL, EquipmentInfoGetAllEqipment, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+	JS_DefineProperty(context, sEquipmentInfoPrototype, "allEquipment", JSVAL_NULL, EquipmentInfoGetAllEqipment, NULL, OOJS_PROP_READONLY);
 	
 	OOJSRegisterObjectConverter(&sEquipmentInfoClass, OOJSBasicPrivateObjectConverter);
 }

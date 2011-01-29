@@ -116,31 +116,31 @@ enum
 static JSPropertySpec sPlayerShipProperties[] =
 {
 	// JS name						ID									flags
-	{ "aftShield",						kPlayerShip_aftShield,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "compassMode",					kPlayerShip_compassMode,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "compassTarget",					kPlayerShip_compassTarget,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "docked",							kPlayerShip_docked,							JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "dockedStation",					kPlayerShip_dockedStation,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "forwardShield",					kPlayerShip_forwardShield,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "forwardShieldRechargeRate",		kPlayerShip_forwardShieldRechargeRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "fuelLeakRate",					kPlayerShip_fuelLeakRate,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "galacticHyperspaceBehaviour",	kPlayerShip_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "galacticHyperspaceFixedCoords",	kPlayerShip_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "galaxyCoordinates",				kPlayerShip_galaxyCoordinates,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "hud",							kPlayerShip_hud,							JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "hudHidden",						kPlayerShip_hudHidden,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "aftShield",						kPlayerShip_aftShield,						OOJS_PROP_READWRITE_CB },
+	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READONLY_CB },
+	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READONLY_CB },
+	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
+	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				OOJS_PROP_READONLY_CB },
+	{ "docked",							kPlayerShip_docked,							OOJS_PROP_READONLY_CB },
+	{ "dockedStation",					kPlayerShip_dockedStation,					OOJS_PROP_READONLY_CB },
+	{ "forwardShield",					kPlayerShip_forwardShield,					OOJS_PROP_READWRITE_CB },
+	{ "forwardShieldRechargeRate",		kPlayerShip_forwardShieldRechargeRate,		OOJS_PROP_READONLY_CB },
+	{ "fuelLeakRate",					kPlayerShip_fuelLeakRate,					OOJS_PROP_READWRITE_CB },
+	{ "galacticHyperspaceBehaviour",	kPlayerShip_galacticHyperspaceBehaviour,	OOJS_PROP_READWRITE_CB },
+	{ "galacticHyperspaceFixedCoords",	kPlayerShip_galacticHyperspaceFixedCoords,	OOJS_PROP_READWRITE_CB },
+	{ "galaxyCoordinates",				kPlayerShip_galaxyCoordinates,				OOJS_PROP_READONLY_CB },
+	{ "hud",							kPlayerShip_hud,							OOJS_PROP_READWRITE_CB },
+	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
 	// manifest defined in OOJSManifest.m
-	{ "maxAftShield",					kPlayerShip_maxAftShield,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "scoopOverride",					kPlayerShip_scoopOverride,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "scriptedMisjump",				kPlayerShip_scriptedMisjump,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "specialCargo",					kPlayerShip_specialCargo,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "targetSystem",					kPlayerShip_targetSystem,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "viewDirection",					kPlayerShip_viewDirection,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READONLY_CB },
+	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
+	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
+	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
+	{ "scriptedMisjump",				kPlayerShip_scriptedMisjump,				OOJS_PROP_READWRITE_CB },
+	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
+	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READONLY_CB },
+	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
+	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					OOJS_PROP_READONLY_CB },
 	{ 0 }			
 };
 
@@ -167,7 +167,7 @@ void InitOOJSPlayerShip(JSContext *context, JSObject *global)
 	PlayerEntity *player = [PlayerEntity sharedPlayer];	// NOTE: at time of writing, this creates the player entity. Don't use PLAYER here.
 	
 	// Create ship object as a property of the player object.
-	sPlayerShipObject = JS_DefineObject(context, JSPlayerObject(), "ship", &sPlayerShipClass, sPlayerShipPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	sPlayerShipObject = JS_DefineObject(context, JSPlayerObject(), "ship", &sPlayerShipClass, sPlayerShipPrototype, OOJS_PROP_READONLY);
 	JS_SetPrivate(context, sPlayerShipObject, OOConsumeReference([player weakRetain]));
 	[player setJSSelf:sPlayerShipObject context:context];
 	// Analyzer: object leaked. [Expected, object is retained by JS object.]

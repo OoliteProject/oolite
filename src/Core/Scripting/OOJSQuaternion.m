@@ -96,10 +96,10 @@ enum
 static JSPropertySpec sQuaternionProperties[] =
 {
 	// JS name					ID							flags
-	{ "w",						kQuaternion_w,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "x",						kQuaternion_x,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "y",						kQuaternion_y,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "z",						kQuaternion_z,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "w",						kQuaternion_w,				OOJS_PROP_READWRITE_CB },
+	{ "x",						kQuaternion_x,				OOJS_PROP_READWRITE_CB },
+	{ "y",						kQuaternion_y,				OOJS_PROP_READWRITE_CB },
+	{ "z",						kQuaternion_z,				OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 

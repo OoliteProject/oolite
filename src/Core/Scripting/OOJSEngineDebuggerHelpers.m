@@ -61,6 +61,8 @@ MA 02110-1301, USA.
 		call OOJSDumpStack(context)
 	
 	A set of macros can be found in tools/gdb-macros.txt.
+	In almost all Oolite functions that deal with JavaScript, there is a single
+	JSContext called "context". In SpiderMonkey functions, it's called "cx".
 	
 	
 	In addition to calling them from the debug console, Xcode users might want

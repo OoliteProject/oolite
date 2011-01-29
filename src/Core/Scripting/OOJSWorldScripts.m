@@ -51,7 +51,7 @@ static JSClass sWorldScriptsClass =
 
 void InitOOJSWorldScripts(JSContext *context, JSObject *global)
 {
-	JS_DefineObject(context, global, "worldScripts", &sWorldScriptsClass, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineObject(context, global, "worldScripts", &sWorldScriptsClass, NULL, OOJS_PROP_READONLY);
 }
 
 
@@ -107,7 +107,7 @@ static JSBool WorldScriptsEnumerate(JSContext *context, JSObject *object)
 	
 	for (nameEnum = [names objectEnumerator]; (name = [nameEnum nextObject]); )
 	{
-		if (!JS_DefineProperty(context, object, [name UTF8String], JSVAL_NULL, WorldScriptsGetProperty, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT))  return NO;
+		if (!JS_DefineProperty(context, object, [name UTF8String], JSVAL_NULL, WorldScriptsGetProperty, NULL, OOJS_PROP_READONLY))  return NO;
 	}
 	
 	return YES;

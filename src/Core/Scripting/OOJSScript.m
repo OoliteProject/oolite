@@ -404,7 +404,7 @@ static JSFunctionSpec sScriptMethods[] =
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	
 	jsval jsValue = OOJSValueFromNativeObject(context, value);
-	return OOJSDefineProperty(context, _jsSelf, propID, jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	return OOJSDefineProperty(context, _jsSelf, propID, jsValue, NULL, NULL, OOJS_PROP_READONLY);
 }
 
 

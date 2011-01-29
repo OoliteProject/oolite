@@ -618,6 +618,28 @@ JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS);
 
 
 
+/***** Appropriate flags for host-defined read/write and read-only properties *****/
+
+// Slot-based (defined with JS_Define{Property/Object/Function}() and no callbacks)
+#define OOJS_PROP_READWRITE				(JSPROP_PERMANENT | JSPROP_ENUMERATE)
+#define OOJS_PROP_READONLY				(JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
+
+// Non-enumerable properties
+#define OOJS_PROP_HIDDEN_READWRITE		(JSPROP_PERMANENT)
+#define OOJS_PROP_HIDDEN_READONLY		(JSPROP_PERMANENT | JSPROP_READONLY)
+
+// Methods should be non-enumerable
+#define OOJS_METHOD_READONLY			OOJS_PROP_HIDDEN_READONLY
+
+// Callback-based (includes all properties specified in JSPropertySpecs)
+#define OOJS_PROP_READWRITE_CB			(OOJS_PROP_READWRITE | JSPROP_SHARED)
+#define OOJS_PROP_READONLY_CB			(OOJS_PROP_READONLY | JSPROP_SHARED)
+
+#define OOJS_PROP_HIDDEN_READWRITE_CB	(OOJS_PROP_HIDDEN_READWRITE | JSPROP_SHARED)
+#define OOJS_PROP_HIDDEN_READONLY_CB	(OOJS_PROP_HIDDEN_READONLY | JSPROP_SHARED)
+
+
+
 
 /***** Helpers to return values from native callbacks. *****/
 

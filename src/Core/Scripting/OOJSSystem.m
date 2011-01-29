@@ -131,27 +131,27 @@ enum
 static JSPropertySpec sSystemProperties[] =
 {
 	// JS name					ID							flags
-	{ "ID",						kSystem_ID,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "name",					kSystem_name,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "description",			kSystem_description,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "inhabitantsDescription",	kSystem_inhabitantsDescription, JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "government",				kSystem_government,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "governmentDescription",	kSystem_governmentDescription, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "economy",				kSystem_economy,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "economyDescription",		kSystem_economyDescription,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "techLevel",				kSystem_techLevel,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "population",				kSystem_population,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "productivity",			kSystem_productivity,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "isInterstellarSpace",	kSystem_isInterstellarSpace, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY},
-	{ "mainStation",			kSystem_mainStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "mainPlanet",				kSystem_mainPlanet,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "sun",					kSystem_sun,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "planets",				kSystem_planets,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "allShips",				kSystem_allShips,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "info",					kSystem_info,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "pseudoRandomNumber",		kSystem_pseudoRandomNumber,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "pseudoRandom100",		kSystem_pseudoRandom100,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "pseudoRandom256",		kSystem_pseudoRandom256,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "ID",						kSystem_ID,					OOJS_PROP_READONLY_CB },
+	{ "name",					kSystem_name,				OOJS_PROP_READWRITE_CB },
+	{ "description",			kSystem_description,		OOJS_PROP_READWRITE_CB },
+	{ "inhabitantsDescription",	kSystem_inhabitantsDescription, OOJS_PROP_READWRITE_CB },
+	{ "government",				kSystem_government,			OOJS_PROP_READWRITE_CB },
+	{ "governmentDescription",	kSystem_governmentDescription, OOJS_PROP_READONLY_CB },
+	{ "economy",				kSystem_economy,			OOJS_PROP_READWRITE_CB },
+	{ "economyDescription",		kSystem_economyDescription,	OOJS_PROP_READONLY_CB },
+	{ "techLevel",				kSystem_techLevel,			OOJS_PROP_READWRITE_CB },
+	{ "population",				kSystem_population,			OOJS_PROP_READWRITE_CB },
+	{ "productivity",			kSystem_productivity,		OOJS_PROP_READWRITE_CB },
+	{ "isInterstellarSpace",	kSystem_isInterstellarSpace, OOJS_PROP_READONLY_CB},
+	{ "mainStation",			kSystem_mainStation,		OOJS_PROP_READONLY_CB },
+	{ "mainPlanet",				kSystem_mainPlanet,			OOJS_PROP_READONLY_CB },
+	{ "sun",					kSystem_sun,				OOJS_PROP_READONLY_CB },
+	{ "planets",				kSystem_planets,			OOJS_PROP_READONLY_CB },
+	{ "allShips",				kSystem_allShips,			OOJS_PROP_READONLY_CB },
+	{ "info",					kSystem_info,				OOJS_PROP_READONLY_CB },
+	{ "pseudoRandomNumber",		kSystem_pseudoRandomNumber,	OOJS_PROP_READONLY_CB },
+	{ "pseudoRandom100",		kSystem_pseudoRandom100,	OOJS_PROP_READONLY_CB },
+	{ "pseudoRandom256",		kSystem_pseudoRandom256,	OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -199,7 +199,7 @@ void InitOOJSSystem(JSContext *context, JSObject *global)
 	sSystemPrototype = JS_InitClass(context, global, NULL, &sSystemClass, OOJSUnconstructableConstruct, 0, sSystemProperties, sSystemMethods, NULL, sSystemStaticMethods);
 	
 	// Create system object as a property of the global object.
-	JS_DefineObject(context, global, "system", &sSystemClass, sSystemPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineObject(context, global, "system", &sSystemClass, sSystemPrototype, OOJS_PROP_READONLY);
 }
 
 

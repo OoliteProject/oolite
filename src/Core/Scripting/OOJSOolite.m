@@ -69,11 +69,11 @@ enum
 static JSPropertySpec sOoliteProperties[] =
 {
 	// JS name						ID							flags
-	{ "version",				kOolite_version,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "versionString",			kOolite_versionString,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "jsVersion",				kOolite_jsVersion,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "jsVersionString",		kOolite_jsVersionString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "gameSettings",			kOolite_gameSettings,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "version",				kOolite_version,			OOJS_PROP_READONLY_CB },
+	{ "versionString",			kOolite_versionString,		OOJS_PROP_READONLY_CB },
+	{ "jsVersion",				kOolite_jsVersion,			OOJS_PROP_READONLY_CB },
+	{ "jsVersionString",		kOolite_jsVersionString,	OOJS_PROP_READONLY_CB },
+	{ "gameSettings",			kOolite_gameSettings,		OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -89,7 +89,7 @@ static JSFunctionSpec sOoliteMethods[] =
 void InitOOJSOolite(JSContext *context, JSObject *global)
 {
 	JSObject *oolitePrototype = JS_InitClass(context, global, NULL, &sOoliteClass, OOJSUnconstructableConstruct, 0, sOoliteProperties, sOoliteMethods, NULL, NULL);
-	JS_DefineObject(context, global, "oolite", &sOoliteClass, oolitePrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineObject(context, global, "oolite", &sOoliteClass, oolitePrototype, OOJS_PROP_READONLY);
 }
 
 

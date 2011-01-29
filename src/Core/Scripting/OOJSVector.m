@@ -104,9 +104,9 @@ enum
 static JSPropertySpec sVectorProperties[] =
 {
 	// JS name					ID							flags
-	{ "x",						kVector_x,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "y",						kVector_y,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "z",						kVector_z,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "x",						kVector_x,					OOJS_PROP_READWRITE_CB },
+	{ "y",						kVector_y,					OOJS_PROP_READWRITE_CB },
+	{ "z",						kVector_z,					OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 

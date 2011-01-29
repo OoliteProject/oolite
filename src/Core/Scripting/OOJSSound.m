@@ -71,7 +71,7 @@ enum
 static JSPropertySpec sSoundProperties[] =
 {
 	// JS name					ID							flags
-	{ "name",					kSound_name,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "name",					kSound_name,				OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 

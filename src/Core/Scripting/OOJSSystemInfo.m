@@ -77,9 +77,9 @@ enum
 static JSPropertySpec sSystemInfoProperties[] =
 {
 	// JS name					ID							flags
-	{ "coordinates",			kSystemInfo_coordinates,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "galaxyID",				kSystemInfo_galaxyID,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "systemID",				kSystemInfo_systemID,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "coordinates",			kSystemInfo_coordinates,	OOJS_PROP_READONLY_CB },
+	{ "galaxyID",				kSystemInfo_galaxyID,		OOJS_PROP_READONLY_CB },
+	{ "systemID",				kSystemInfo_systemID,		OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 

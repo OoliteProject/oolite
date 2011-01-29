@@ -78,18 +78,18 @@ enum
 static JSPropertySpec sClockProperties[] =
 {
 	// JS name					ID							flags
-	{ "absoluteSeconds",		kClock_absoluteSeconds,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "seconds",				kClock_seconds,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "minutes",				kClock_minutes,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "hours",					kClock_hours,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "days",					kClock_days,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "secondsComponent",		kClock_secondsComponent,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "minutesComponent",		kClock_minutesComponent,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "hoursComponent",			kClock_hoursComponent,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "daysComponent",			kClock_daysComponent,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "clockString",			kClock_clockString,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isAdjusting",			kClock_isAdjusting,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "legacy_scriptTimer",		kClock_legacy_scriptTimer,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "absoluteSeconds",		kClock_absoluteSeconds,		OOJS_PROP_READONLY_CB },
+	{ "seconds",				kClock_seconds,				OOJS_PROP_READONLY_CB },
+	{ "minutes",				kClock_minutes,				OOJS_PROP_READONLY_CB },
+	{ "hours",					kClock_hours,				OOJS_PROP_READONLY_CB },
+	{ "days",					kClock_days,				OOJS_PROP_READONLY_CB },
+	{ "secondsComponent",		kClock_secondsComponent,	OOJS_PROP_READONLY_CB },
+	{ "minutesComponent",		kClock_minutesComponent,	OOJS_PROP_READONLY_CB },
+	{ "hoursComponent",			kClock_hoursComponent,		OOJS_PROP_READONLY_CB },
+	{ "daysComponent",			kClock_daysComponent,		OOJS_PROP_READONLY_CB },
+	{ "clockString",			kClock_clockString,			OOJS_PROP_READONLY_CB },
+	{ "isAdjusting",			kClock_isAdjusting,			OOJS_PROP_READONLY_CB },
+	{ "legacy_scriptTimer",		kClock_legacy_scriptTimer,	OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -107,7 +107,7 @@ static JSFunctionSpec sClockMethods[] =
 void InitOOJSClock(JSContext *context, JSObject *global)
 {
 	JSObject *clockPrototype = JS_InitClass(context, global, NULL, &sClockClass, OOJSUnconstructableConstruct, 0, sClockProperties, sClockMethods, NULL, NULL);
-	JS_DefineObject(context, global, "clock", &sClockClass, clockPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS_DefineObject(context, global, "clock", &sClockClass, clockPrototype, OOJS_PROP_READONLY);
 }
 
 

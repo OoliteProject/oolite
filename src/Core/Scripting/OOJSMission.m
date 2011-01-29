@@ -86,7 +86,7 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 	sCallbackThis = JSVAL_NULL;
 	
 	JSObject *missionPrototype = JS_InitClass(context, global, NULL, &sMissionClass, OOJSUnconstructableConstruct, 0, NULL, sMissionMethods, NULL, NULL);
-	sMissionObject = JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	sMissionObject = JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, OOJS_PROP_READONLY);
 	
 	// Ensure JS objects are rooted.
 	OOJSAddGCValueRoot(context, &sCallbackFunction, "Pending mission callback function");

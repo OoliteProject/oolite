@@ -101,24 +101,24 @@ enum
 static JSPropertySpec sPlayerProperties[] =
 {
 	// JS name					ID							flags
-	{ "name",					kPlayer_name,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "score",					kPlayer_score,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "credits",				kPlayer_credits,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "rank",					kPlayer_rank,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "legalStatus",			kPlayer_legalStatus,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertCondition",			kPlayer_alertCondition,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertTemperature",		kPlayer_alertTemperature,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertMassLocked",		kPlayer_alertMassLocked,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertAltitude",			kPlayer_alertAltitude,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertEnergy",			kPlayer_alertEnergy,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "alertHostiles",			kPlayer_alertHostiles,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "trumbleCount",			kPlayer_trumbleCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "contractReputation",		kPlayer_contractReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "passengerReputation",	kPlayer_passengerReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "name",					kPlayer_name,				OOJS_PROP_READONLY_CB },
+	{ "score",					kPlayer_score,				OOJS_PROP_READWRITE_CB },
+	{ "credits",				kPlayer_credits,			OOJS_PROP_READWRITE_CB },
+	{ "rank",					kPlayer_rank,				OOJS_PROP_READONLY_CB },
+	{ "legalStatus",			kPlayer_legalStatus,		OOJS_PROP_READONLY_CB },
+	{ "alertCondition",			kPlayer_alertCondition,		OOJS_PROP_READONLY_CB },
+	{ "alertTemperature",		kPlayer_alertTemperature,	OOJS_PROP_READONLY_CB },
+	{ "alertMassLocked",		kPlayer_alertMassLocked,	OOJS_PROP_READONLY_CB },
+	{ "alertAltitude",			kPlayer_alertAltitude,		OOJS_PROP_READONLY_CB },
+	{ "alertEnergy",			kPlayer_alertEnergy,		OOJS_PROP_READONLY_CB },
+	{ "alertHostiles",			kPlayer_alertHostiles,		OOJS_PROP_READONLY_CB },
+	{ "trumbleCount",			kPlayer_trumbleCount,		OOJS_PROP_READONLY_CB },
+	{ "contractReputation",		kPlayer_contractReputation,	OOJS_PROP_READONLY_CB },
+	{ "passengerReputation",	kPlayer_passengerReputation,	OOJS_PROP_READONLY_CB },
 #if DOCKING_CLEARANCE_ENABLED
-	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	OOJS_PROP_READONLY_CB },
 #endif
-	{ "bounty",					kPlayer_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "bounty",					kPlayer_bounty,				OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 
@@ -144,7 +144,7 @@ void InitOOJSPlayer(JSContext *context, JSObject *global)
 	OOJSRegisterObjectConverter(&sPlayerClass, OOJSBasicPrivateObjectConverter);
 	
 	// Create player object as a property of the global object.
-	sPlayerObject = JS_DefineObject(context, global, "player", &sPlayerClass, sPlayerPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	sPlayerObject = JS_DefineObject(context, global, "player", &sPlayerClass, sPlayerPrototype, OOJS_PROP_READONLY);
 }
 
 

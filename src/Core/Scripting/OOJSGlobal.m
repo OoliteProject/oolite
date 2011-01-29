@@ -101,9 +101,9 @@ enum
 static JSPropertySpec sGlobalProperties[] =
 {
 	// JS name					ID							flags
-	{ "galaxyNumber",			kGlobal_galaxyNumber,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "guiScreen",				kGlobal_guiScreen,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "timeAccelerationFactor",	kGlobal_timeAccelerationFactor,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "galaxyNumber",			kGlobal_galaxyNumber,		OOJS_PROP_READONLY_CB },
+	{ "guiScreen",				kGlobal_guiScreen,			OOJS_PROP_READONLY_CB },
+	{ "timeAccelerationFactor",	kGlobal_timeAccelerationFactor,	OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 
@@ -136,7 +136,7 @@ void CreateOOJSGlobal(JSContext *context, JSObject **outGlobal)
 	*outGlobal = JS_NewObject(context, &sGlobalClass, NULL, NULL);
 #endif
 	JS_SetGlobalObject(context, *outGlobal);
-	JS_DefineProperty(context, *outGlobal, "global", OBJECT_TO_JSVAL(*outGlobal), NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+	JS_DefineProperty(context, *outGlobal, "global", OBJECT_TO_JSVAL(*outGlobal), NULL, NULL, OOJS_PROP_READONLY);
 }
 
 

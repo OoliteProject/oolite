@@ -116,9 +116,9 @@ static void RunDeferredOperations(JSContext *context);
 
 void InitOOJSFrameCallbacks(JSContext *context, JSObject *global)
 {
-	JS_DefineFunction(context, global, "addFrameCallback", GlobalAddFrameCallback, 1, JSPROP_PERMANENT | JSPROP_READONLY);
-	JS_DefineFunction(context, global, "removeFrameCallback", GlobalRemoveFrameCallback, 1, JSPROP_PERMANENT | JSPROP_READONLY);
-	JS_DefineFunction(context, global, "isValidFrameCallback", GlobalIsValidFrameCallback, 1, JSPROP_PERMANENT | JSPROP_READONLY);
+	JS_DefineFunction(context, global, "addFrameCallback", GlobalAddFrameCallback, 1, OOJS_METHOD_READONLY);
+	JS_DefineFunction(context, global, "removeFrameCallback", GlobalRemoveFrameCallback, 1, OOJS_METHOD_READONLY);
+	JS_DefineFunction(context, global, "isValidFrameCallback", GlobalIsValidFrameCallback, 1, OOJS_METHOD_READONLY);
 	
 #if DEBUG_FCB_SIMPLE_TRACKING_IDS
 	sNextID = 1;

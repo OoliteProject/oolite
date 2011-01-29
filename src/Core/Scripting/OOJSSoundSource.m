@@ -71,10 +71,10 @@ enum
 static JSPropertySpec sSoundSourceProperties[] =
 {
 	// JS name					ID							flags
-	{ "sound",					kSoundSource_sound,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "isPlaying",				kSoundSource_isPlaying,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "loop",					kSoundSource_loop,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "repeatCount",			kSoundSource_repeatCount,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "sound",					kSoundSource_sound,			OOJS_PROP_READWRITE_CB },
+	{ "isPlaying",				kSoundSource_isPlaying,		OOJS_PROP_READONLY_CB },
+	{ "loop",					kSoundSource_loop,			OOJS_PROP_READWRITE_CB },
+	{ "repeatCount",			kSoundSource_repeatCount,	OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 

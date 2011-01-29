@@ -37,8 +37,8 @@ static JSBool FontMeasureString(OOJS_NATIVE_ARGS);
 
 void InitOOJSFont(JSContext *context, JSObject *global)
 {
-	JSObject *fontObject = JS_DefineObject(context, global, "defaultFont", NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-	JS_DefineFunction(context, fontObject, "measureString", FontMeasureString, 1, JSPROP_PERMANENT | JSPROP_READONLY);
+	JSObject *fontObject = JS_DefineObject(context, global, "defaultFont", NULL, NULL, OOJS_PROP_READONLY);
+	JS_DefineFunction(context, fontObject, "measureString", FontMeasureString, 1, OOJS_METHOD_READONLY);
 }
 
 
