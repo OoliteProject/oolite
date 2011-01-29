@@ -64,3 +64,9 @@ SOFTWARE.
 - (void) drawOutline;
 
 @end
+
+
+#import "HeadUpDisplay.h"
+
+@interface OOPolygonSprite (OOHUDBeaconIcon) <OOHUDBeaconIcon>
+@end

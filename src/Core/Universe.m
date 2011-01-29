@@ -2328,15 +2328,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	if ([beaconShip isBeacon])
 	{
 		[beaconShip setNextBeacon:nil];
-		if ([self lastBeacon])
-			[[self lastBeacon] setNextBeacon:beaconShip];
+		if ([self lastBeacon])  [[self lastBeacon] setNextBeacon:beaconShip];
 		lastBeacon = [beaconShip universalID];
-		if (![self firstBeacon])
-			firstBeacon = lastBeacon;
+		if ([self firstBeacon] == nil)  firstBeacon = lastBeacon;
 	}
 	else
 	{
-		OOLog(@"universe.beacon.error", @"***** ERROR: Universe setNextBeacon '%@'. The ship has no beaconChar set.", beaconShip);
+		OOLog(@"universe.beacon.error", @"***** ERROR: Universe setNextBeacon '%@'. The ship has no beacon code set.", beaconShip);
 	}
 }
 

@@ -32,10 +32,10 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOJSPropID.h"
 
-
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
 @class OOJoystickManager, OOTexture, OOCamera;
+
 
 #define SCRIPT_TIMER_INTERVAL			10.0
 

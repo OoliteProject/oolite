@@ -55,6 +55,7 @@ MA 02110-1301, USA.
 #import "Geometry.h"
 #import "Octree.h"
 #import "OOColor.h"
+#import "OOPolygonSprite.h"
 
 #import "ParticleEntity.h"
 #import "StationEntity.h"
@@ -796,6 +797,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	DESTROY(_lastAegisLock);
 	
+	DESTROY(beaconCode);
+	DESTROY(_beaconDrawable);
+	
 	[super dealloc];
 }
 
@@ -1123,27 +1127,36 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	{
 		[beaconCode release];
 		beaconCode = [bcode copy];
-		if (beaconCode != nil)
-		{
-			beaconChar = [bcode cStringUsingOoliteEncodingAndRemapping][0];
-		}
-		else
-		{
-			beaconChar = '\0';
-		}
+		
+		DESTROY(_beaconDrawable);
 	}
 }
 
 
 - (BOOL)isBeacon
 {
-	return (beaconChar != 0);
+	return beaconCode != nil;
 }
 
 
-- (char)beaconChar
+- (id <OOHUDBeaconIcon>) beaconDrawable
 {
-	return beaconChar;
+	if (_beaconDrawable == nil)
+	{
+		NSString *role = [self primaryRole];
+		NSArray *iconData = [[UNIVERSE descriptions] oo_arrayForKey:role];
+		if (iconData == nil)
+		{
+			if ([beaconCode length] > 0)  _beaconDrawable = [beaconCode substringToIndex:1];
+			_beaconDrawable = @"";
+		}
+		else
+		{
+			_beaconDrawable = [[OOPolygonSprite alloc] initWithDataArray:iconData outlineWidth:0.5 name:role];
+		}
+	}
+	
+	return _beaconDrawable;
 }
 
 
@@ -9871,9 +9884,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Shots fired: %u", shot_counter);
 	OOLog(@"dumpState.shipEntity", @"Time since shot: %g", [self shotTime]);
 	OOLog(@"dumpState.shipEntity", @"Spawn time: %g (%g seconds ago)", [self spawnTime], [self timeElapsedSinceSpawn]);
-	if (beaconChar != '\0')
+	if ([self isBeacon])
 	{
-		OOLog(@"dumpState.shipEntity", @"Beacon character: '%c'", beaconChar);
+		OOLog(@"dumpState.shipEntity", @"Beacon code: %@", beaconCode);
 	}
 	OOLog(@"dumpState.shipEntity", @"Hull temperature: %g", ship_temperature);
 	OOLog(@"dumpState.shipEntity", @"Heat insulation: %g", [self heatInsulation]);

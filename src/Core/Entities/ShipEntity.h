@@ -37,6 +37,8 @@ MA 02110-1301, USA.
 @class OOBrain;
 #endif
 
+@protocol OOHUDBeaconIcon;
+
 
 #define MAX_TARGETS						24
 #define RAIDER_MAX_CARGO				5
@@ -316,8 +318,8 @@ typedef enum
 	
 	// beacons
 	NSString				*beaconCode;
-	char					beaconChar;					// character displayed for this beacon
 	OOUniversalID			nextBeaconID;				// next beacon in sequence
+	id <OOHUDBeaconIcon>	_beaconDrawable;
 	
 	//position of gun ports
 	Vector					forwardWeaponOffset,
@@ -445,7 +447,7 @@ typedef enum
 - (NSString *)beaconCode;
 - (void)setBeaconCode:(NSString *)bcode;
 - (BOOL)isBeacon;
-- (char)beaconChar;
+- (id <OOHUDBeaconIcon>) beaconDrawable;
 - (int)nextBeaconID;
 - (void)setNextBeacon:(ShipEntity*) beaconShip;
 

@@ -53,6 +53,7 @@ MA 02110-1301, USA.
 #define GLYPH_SCALE_FACTOR		0.13		//  // 0.13 is an inherited magic number
 #define IDENTIFY_SCANNER_LOLLIPOPS	(	0	&& !defined(NDEBUG))
 
+
 static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v);
 
 static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4]);
@@ -61,7 +62,6 @@ static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, doub
 static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
 static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
-static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
 static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary* propertiesReticleTargetSensitive);
 static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
@@ -1005,7 +1005,7 @@ static BOOL hostiles;
 	OOPlanetEntity	*the_planet = [UNIVERSE planet];
 	StationEntity	*the_station = [UNIVERSE station];
 	Entity			*the_target = [player primaryTarget];
-	Entity			*the_next_beacon = [UNIVERSE entityForUniversalID:[player nextBeaconID]];
+	ShipEntity		*beacon = [UNIVERSE entityForUniversalID:[player nextBeaconID]];
 	OOEntityStatus	p_status = [player status];
 	if	(((p_status == STATUS_IN_FLIGHT)
 		||(p_status == STATUS_AUTOPILOT_ENGAGED)
@@ -1050,7 +1050,7 @@ static BOOL hostiles;
 				break;
 				
 			case COMPASS_MODE_BEACONS:
-				reference = the_next_beacon;
+				reference = beacon;
 				break;
 		}
 		
@@ -1076,52 +1076,34 @@ static BOOL hostiles;
 		relativePosition.x += x;
 		relativePosition.y += y;
 		
-		NSSize sz = siz;
-		sz.width *= 0.2;
-		sz.height *= 0.2;
+		siz.width *= 0.2;
+		siz.height *= 0.2;
 		OOGL(glLineWidth(2.0));
 		switch ([player compassMode])
 		{
 			case COMPASS_MODE_BASIC:
 				[self drawCompassPlanetBlipAt:relativePosition Size:NSMakeSize(6, 6) Alpha:alpha];
 				break;
+				
 			case COMPASS_MODE_PLANET:
-				[self drawCompassPlanetBlipAt:relativePosition Size:sz Alpha:alpha];
+				[self drawCompassPlanetBlipAt:relativePosition Size:siz Alpha:alpha];
 				break;
+				
 			case COMPASS_MODE_STATION:
-				[self drawCompassStationBlipAt:relativePosition Size:sz Alpha:alpha];
+				[self drawCompassStationBlipAt:relativePosition Size:siz Alpha:alpha];
 				break;
+				
 			case COMPASS_MODE_SUN:
-				[self drawCompassSunBlipAt:relativePosition Size:sz Alpha:alpha];
+				[self drawCompassSunBlipAt:relativePosition Size:siz Alpha:alpha];
 				break;
+				
 			case COMPASS_MODE_TARGET:
-				[self drawCompassTargetBlipAt:relativePosition Size:sz Alpha:alpha];
+				[self drawCompassTargetBlipAt:relativePosition Size:siz Alpha:alpha];
 				break;
+				
 			case COMPASS_MODE_BEACONS:
-				[self drawCompassBeaconBlipAt:relativePosition Size:sz Alpha:alpha];
-				NSArray	 *icon = [[UNIVERSE descriptions] oo_arrayForKey:[(ShipEntity*)the_next_beacon primaryRole]];
-				if (icon == nil)
-				{
-					OODrawString([NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
-							x - 2.5 * sz.width, y - 3.0 * sz.height, z1, NSMakeSize(sz.width * 2, sz.height * 2));
-				}
-				else
-				{
-#if OLD_SPRITE
-					OOGLBEGIN(GL_POLYGON);
-						hudDrawSpecialIconAt(icon,
-										x - sz.width, y - 1.5 * sz.height, z1, NSMakeSize(sz.width, sz.height));
-					OOGLEND();
-					OOGL(glColor4f(0.0, 0.0, 0.0, 0.5 * alpha));
-					OOGLBEGIN(GL_LINE_LOOP);
-						hudDrawSpecialIconAt(icon,
-										x - sz.width, y - 1.5 * sz.height, z1, NSMakeSize(sz.width, sz.height));
-					OOGLEND();
-#else
-						hudDrawSpecialIconAt(icon,
-										x - sz.width, y - 1.5 * sz.height, z1, NSMakeSize(sz.width, sz.height));
-#endif
-				}
+				[self drawCompassBeaconBlipAt:relativePosition Size:siz Alpha:alpha];
+				[[beacon beaconDrawable] oo_drawHUDBeaconIconAt:NSMakePoint(x, y) size:siz alpha:alpha z:z1];
 				break;
 		}
 	}
@@ -1727,7 +1709,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 static NSString * const kDefaultMissileIconKey = @"oolite-default-missile-icon";
 static NSString * const kDefaultMineIconKey = @"oolite-default-mine-icon";
-static const GLfloat kOutlineWidth = 0.5f; 
+static const GLfloat kOutlineWidth = 0.5f;
 
 
 static OOPolygonSprite *IconForMissileRole(NSString *role)
@@ -2452,28 +2434,6 @@ static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 }
 
 
-static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz)
-{
-	if (ptsArray == nil)  return;
-#if OLD_SPRITE
-	int ox = x - siz.width / 2.0;
-	int oy = y - siz.height / 2.0;
-	int w = siz.width / 4.0;
-	int h = siz.height / 4.0;
-	int i = 0;
-	int npts = [ptsArray count] & ~1;	// make sure it's an even number
-	while (i < npts)
-	{
-		int x = [ptsArray oo_intAtIndex:i++];
-		int y = [ptsArray oo_intAtIndex:i++];
-		glVertex3i(ox + x * w, oy + y * h, z);
-	}
-#else
-	OOLog(@"temp", @"Icon: %@");
-#endif
-}
-
-
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 {
 	int ox = x - siz.width / 2.0;
@@ -3064,6 +3024,40 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 	
 	// Note: the data will be autoreleased, so the bytes behave as though they're autoreleased too.
 	return [[sEncodingCoverter convertString:self] bytes];
+}
+
+@end
+
+
+@implementation OOPolygonSprite (OOHUDBeaconIcon)
+
+- (void) oo_drawHUDBeaconIconAt:(NSPoint)where size:(NSSize)size alpha:(GLfloat)alpha z:(GLfloat)z
+{
+	GLfloat x = where.x - size.width;
+	GLfloat y = where.y - 1.5 * size.height;
+	
+	GLfloat ox = x - size.width * 0.5;
+	GLfloat oy = y - size.height * 0.5;
+	GLfloat width = size.width * (1.0f / 6.0f);
+	GLfloat height = size.height * (1.0f / 6.0f);
+	
+	OOGL(glPushMatrix());
+	OOGL(glTranslatef(ox, oy, z));
+	OOGL(glScalef(width, height, 1.0f));
+	[self drawFilled];
+	glColor4f(0.0, 0.0, 0.0, 0.5 * alpha);
+	[self drawOutline];
+	OOGL(glPopMatrix());
+}
+
+@end
+
+
+@implementation NSString (OOHUDBeaconIcon)
+
+- (void) oo_drawHUDBeaconIconAt:(NSPoint)where size:(NSSize)size alpha:(GLfloat)alpha z:(GLfloat)z
+{
+	OODrawString(self, where.x - 2.5 * size.width, where.y - 3.0 * size.height, z, NSMakeSize(size.width * 2, size.height * 2));
 }
 
 @end

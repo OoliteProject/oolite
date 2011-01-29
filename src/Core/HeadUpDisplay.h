@@ -35,6 +35,8 @@ MA 02110-1301, USA.
 
 @class OOCrosshairs, OOColor;
 
+@protocol OOHUDBeaconIcon;
+
 
 #define SCANNER_CENTRE_X	0
 #define SCANNER_CENTRE_Y	-180
@@ -279,6 +281,21 @@ MA 02110-1301, USA.
 // Return a C string in the 8-bit encoding used for display, with substitutions performed.
 - (const char *) cStringUsingOoliteEncodingAndRemapping;
 
+@end
+
+
+/*
+	Protocol for things that can be used as HUD compass items. Really ought
+	to grow into a general protocol for HUD elements.
+*/
+@protocol OOHUDBeaconIcon <NSObject>
+
+- (void) oo_drawHUDBeaconIconAt:(NSPoint)where size:(NSSize)size alpha:(GLfloat)alpha z:(GLfloat)z;
+
+@end
+
+
+@interface NSString (OOHUDBeaconIcon) <OOHUDBeaconIcon>
 @end
 
 
