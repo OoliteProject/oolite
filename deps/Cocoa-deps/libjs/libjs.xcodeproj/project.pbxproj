@@ -72,6 +72,7 @@
 		1A27965A12CCC15C00C9E94D /* ImmutableSyncShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27965912CCC15C00C9E94D /* ImmutableSyncShim.cpp */; };
 		1A27967F12CCC55B00C9E94D /* PolyICShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27967E12CCC55B00C9E94D /* PolyICShim.cpp */; };
 		1A63DE9112CA9C5C00508CDB /* jsclone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A63DE9012CA9C5C00508CDB /* jsclone.cpp */; };
+		1A69736012F44D2A000CC708 /* jsprobes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA1FBC12CB97B500EC0F43 /* jsprobes.cpp */; };
 		1AB25AA712CA1B6E00C67F42 /* jsapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AA612CA1B6E00C67F42 /* jsapi.cpp */; };
 		1AB7761512CA2F85001478BB /* jsarray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7761412CA2F85001478BB /* jsarray.cpp */; };
 		1AB7762512CA3182001478BB /* jsutil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7762412CA3182001478BB /* jsutil.cpp */; };
@@ -183,7 +184,6 @@
 		1AB7788B12CA5320001478BB /* jsautocfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AC16B6112F0907000907218 /* jsoplengen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AC16B6012F0907000907218 /* jsoplengen.cpp */; };
 		1AC16CC312F0945000907218 /* jskwgen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AC16CC212F0945000907218 /* jskwgen.cpp */; };
-		1AC918C512F434EF00E98678 /* jsprobes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA1FBC12CB97B500EC0F43 /* jsprobes.cpp */; };
 		1AD05E2E12CD18B100704F1D /* selfTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E0F12CD18B100704F1D /* selfTest.cpp */; };
 		1AD05E3012CD18B100704F1D /* testClassGetter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1112CD18B100704F1D /* testClassGetter.cpp */; };
 		1AD05E3112CD18B100704F1D /* testCloneScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1212CD18B100704F1D /* testCloneScript.cpp */; };
@@ -2033,7 +2033,6 @@
 				1AD05E4A12CD18B100704F1D /* testVersion.cpp in Sources */,
 				1AD05E4B12CD18B100704F1D /* testXDR.cpp in Sources */,
 				1AD05F1412CD224100704F1D /* jsapitests-oolite-shim.m in Sources */,
-				1AC918C512F434EF00E98678 /* jsprobes.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2135,6 +2134,7 @@
 				1A27967F12CCC55B00C9E94D /* PolyICShim.cpp in Sources */,
 				1AD5A78C12D38C4A00B62503 /* RegexJIT.cpp in Sources */,
 				1AD5A7A612D38E8400B62503 /* RegexCompiler.cpp in Sources */,
+				1A69736012F44D2A000CC708 /* jsprobes.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
