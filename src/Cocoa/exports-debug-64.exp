@@ -62,6 +62,8 @@ _VectorDescription
 _OOStringFromBehaviour
 _OOStringFromShaderSetting
 _OOSoundRegisterDebugMonitor
+_OOJSProfileEnter
+_OOJSProfileExit
 
 # Symbols used by Leopard features bundle
 .objc_class_name_OOJoystickManager

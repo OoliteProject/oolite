@@ -473,7 +473,7 @@ static void TraceEnterJSFunction(JSContext *context, JSFunction *function, OOTim
 			
 			if (JS_GetFrameThis(context, frame, &this))
 			{
-				[name appendFormat:@"this: %@", OOJSDebugDescribe(context, this)];
+				[name appendFormat:@"this: %@", OOJSDescribeValue(context, this, YES)];
 				first = NO;
 			}
 			
@@ -488,7 +488,7 @@ static void TraceEnterJSFunction(JSContext *context, JSFunction *function, OOTim
 						if (!first)  [name appendFormat:@", "];
 						else  first = NO;
 						
-						[name appendFormat:@"%@: %@", OOStringFromJSValueEvenIfNull(context, prop->id), OOJSDebugDescribe(context, prop->value)];
+						[name appendFormat:@"%@: %@", OOStringFromJSValueEvenIfNull(context, prop->id), OOJSDescribeValue(context, prop->value, YES)];
 					}
 				}
 			}

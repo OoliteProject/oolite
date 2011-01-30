@@ -921,7 +921,7 @@ static void DumpCallback(const char *name, void *rp, JSGCRootType type, void *da
 			value = OBJECT_TO_JSVAL(*(JSObject **)rp);
 	}
 	
-	fprintf(data->file, "%s @ %p (%s): %s\n", name, rp, typeString, [OOJSDebugDescribe(data->context, value) UTF8String]);
+	fprintf(data->file, "%s @ %p (%s): %s\n", name, rp, typeString, [OOJSDescribeValue(data->context, value, NO) UTF8String]);
 }
 
 

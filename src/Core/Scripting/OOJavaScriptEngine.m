@@ -619,7 +619,7 @@ static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecod
 static void DumpVariable(JSContext *context, JSPropertyDesc *prop)
 {
 	NSString *name = OOStringFromJSValueEvenIfNull(context, prop->id);
-	NSString *value = OOJSDebugDescribe(context, prop->value);
+	NSString *value = OOJSDescribeValue(context, prop->value, YES);
 	
 	enum
 	{
@@ -631,7 +631,7 @@ static void DumpVariable(JSContext *context, JSPropertyDesc *prop)
 	{
 		NSMutableArray *flags = [NSMutableArray array];
 		if (prop->flags & JSPD_READONLY)  [flags addObject:@"read-only"];
-		if (prop->flags & JSPD_ALIAS)  [flags addObject:[NSString stringWithFormat:@"alias (%@)", OOJSDebugDescribe(context, prop->alias)]];
+		if (prop->flags & JSPD_ALIAS)  [flags addObject:[NSString stringWithFormat:@"alias (%@)", OOJSDescribeValue(context, prop->alias, YES)]];
 		if (prop->flags & JSPD_EXCEPTION)  [flags addObject:@"exception"];
 		if (prop->flags & JSPD_ERROR)  [flags addObject:@"error"];
 		
@@ -1045,7 +1045,7 @@ void OOJSReportBadPropertyValue(JSContext *context, JSObject *thisObj, jsid prop
 {
 	NSString	*propName = OOStringFromJSPropertyIDAndSpec(context, propID, propertySpec);
 	const char	*className = OOJSGetClass(context, thisObj)->name;
-	NSString	*valueDesc = OOJSDebugDescribe(context, value);
+	NSString	*valueDesc = OOJSDescribeValue(context, value, YES);
 	
 	OOJSReportError(context, @"Cannot set property %@ of instance of %s to invalid value %@.", propName, className, valueDesc);
 }
@@ -1496,7 +1496,7 @@ NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsval propID, JSPr
 }
 
 
-NSString *OOJSDebugDescribe(JSContext *context, jsval value)
+static NSString *DescribeValue(JSContext *context, jsval value, BOOL abbreviateObjects, BOOL recursing)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1509,7 +1509,21 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 		else  return @"function";
 	}
 	
-	NSString *result;
+	NSString			*result = nil;
+	JSClass				*class = NULL;
+	OOJavaScriptEngine	*jsEng = [OOJavaScriptEngine sharedEngine];
+	
+	if (JSVAL_IS_OBJECT(value) && !JSVAL_IS_NULL(value))
+	{
+		class = OOJSGetClass(context, JSVAL_TO_OBJECT(value));
+	}
+	
+	// Convert String objects to strings.
+	if (class == [jsEng stringClass])
+	{
+		value = STRING_TO_JSVAL(JS_ValueToString(context, value));
+	}
+	
 	if (JSVAL_IS_STRING(value))
 	{
 		enum { kMaxLength = 200 };
@@ -1521,14 +1535,72 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 		result = [NSString stringWithCharacters:chars length:MIN(length, (size_t)kMaxLength)];
 		result = [NSString stringWithFormat:@"\"%@%@\"", [result escapedForJavaScriptLiteral], (length > kMaxLength) ? @"..." : @""];
 	}
-	else
+	else if (class == [jsEng arrayClass])
+	{
+		// Descibe up to four elements of an array.
+		jsuint count;
+		JSObject *obj = JSVAL_TO_OBJECT(value);
+		if (JS_GetArrayLength(context, obj, &count))
+		{
+			if (!recursing)
+			{
+				NSMutableString *arrayDesc = [NSMutableString stringWithString:@"["];
+				jsuint i, effectiveCount = MIN(count, (jsuint)4);
+				for (i = 0; i < effectiveCount; i++)
+				{
+					jsval item;
+					NSString *itemDesc = @"?";
+					if (JS_GetElement(context, obj, i, &item))
+					{
+						itemDesc = DescribeValue(context, item, YES /* always abbreviate objects in arrays */, YES);
+					}
+					if (i != 0)  [arrayDesc appendString:@", "];
+					[arrayDesc appendString:itemDesc];
+				}
+				if (effectiveCount != count)
+				{
+					[arrayDesc appendFormat:@", ... <%u items total>]", count];
+				}
+				else
+				{
+					[arrayDesc appendString:@"]"];
+				}
+				
+				result = arrayDesc;
+			}
+			else
+			{
+				result = [NSString stringWithFormat:@"[<%u items>]", count];
+			}
+		}
+		else
+		{
+			result = @"[...]";
+		}
+
+	}
+	
+	if (result == nil)
 	{
 		result = OOStringFromJSValueEvenIfNull(context, value);
+		
+		if (abbreviateObjects && class == [jsEng objectClass] && [result isEqualToString:@"[object Object]"])
+		{
+			result = @"{...}";
+		}
+		
+		if (result == nil)  result = @"?";
 	}
 	
 	return result;
 	
 	OOJS_PROFILE_EXIT
+}
+
+
+NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObjects)
+{
+	return DescribeValue(context, value, abbreviateObjects, NO);
 }
 
 
@@ -1553,28 +1625,12 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 	if (params == NULL && count != 0) return nil;
 	
 	uintN					i;
-	jsval					val;
 	NSMutableString			*result = [NSMutableString stringWithString:@"("];
-	NSString				*valString = nil;
 	
 	for (i = 0; i < count; ++i)
 	{
 		if (i != 0)  [result appendString:@", "];
-		
-		val = params[i];
-		valString = [self stringWithJavaScriptValue:val inContext:context];
-		if (JSVAL_IS_STRING(val))
-		{
-			[result appendFormat:@"\"%@\"", valString];
-		}
-		else if (OOJSValueIsArray(context, val))
-		{
-			[result appendFormat:@"[%@]", valString];
-		}
-		else
-		{
-			[result appendString:valString]; //crash if valString is nil
-		}
+		[result appendString:OOJSDescribeValue(context, params[i], NO)];
 	}
 	
 	[result appendString:@")"];

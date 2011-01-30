@@ -282,11 +282,14 @@ NSString *OOStringFromJSValueEvenIfNull(JSContext *context, jsval value);
 NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsid propID, JSPropertySpec *propertySpec);
 
 
-/*	Describe a value for various debuggy purposes. Strings are quoted, escaped
-	and limited in length. Functions are described as "function foo" (or just
-	"function" if they're anonymous).
+/*	Describe a value for debugging or error reporting. Strings are quoted,
+	escaped and limited in length. Functions are described as "function foo"
+	(or just "function" if they're anonymous). Up to four elements of arrays
+	are included, followed by total count of there are more than four.
+	If abbreviateObjects, the description "[object Object]" is replaced with
+	"{...}", which may or may not be clearer depending on context.
 */
-NSString *OOJSDebugDescribe(JSContext *context, jsval value);
+NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObjects);
 
 
 @interface NSString (OOJavaScriptExtensions)
