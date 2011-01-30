@@ -470,7 +470,7 @@ static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsid pro
 			return NO;
 	}
 	
-	return JS_NewDoubleValue(context, fValue, value);
+	return JS_NewNumberValue(context, fValue, value);
 	
 	OOJS_PROFILE_EXIT
 }

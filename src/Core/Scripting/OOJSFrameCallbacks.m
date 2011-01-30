@@ -139,7 +139,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta delta)
 		jsval				deltaVal, result;
 		OOUInteger			i;
 		
-		if (EXPECT_NOT(!JS_NewDoubleValue(context, delta, &deltaVal)))  return;
+		if (EXPECT_NOT(!JS_NewNumberValue(context, delta, &deltaVal)))  return;
 		
 		// Block mutations.
 		sRunning = YES;

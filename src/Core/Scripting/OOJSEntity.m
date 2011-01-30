@@ -173,7 +173,6 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	Entity						*entity = nil;
 	id							result = nil;
 	
@@ -188,20 +187,16 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 	switch (JSID_TO_INT(propID))
 	{
 		case kEntity_collisionRadius:
-			OK = JS_NewDoubleValue(context, [entity collisionRadius], value);
-			break;
+			return JS_NewNumberValue(context, [entity collisionRadius], value);
 	
 		case kEntity_position:
-			OK = VectorToJSValue(context, [entity position], value);
-			break;
+			return VectorToJSValue(context, [entity position], value);
 		
 		case kEntity_orientation:
-			OK = QuaternionToJSValue(context, [entity normalOrientation], value);
-			break;
+			return QuaternionToJSValue(context, [entity normalOrientation], value);
 		
 		case kEntity_heading:
-			OK = VectorToJSValue(context, vector_forward_from_quaternion([entity normalOrientation]), value);
-			break;
+			return VectorToJSValue(context, vector_forward_from_quaternion([entity normalOrientation]), value);
 		
 		case kEntity_status:
 			*value = OOJSValueFromEntityStatus(context, [entity status]);
@@ -212,8 +207,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return YES;
 		
 		case kEntity_mass:
-			*value = DOUBLE_TO_JSVAL([entity mass]);
-			return YES;
+			return JS_NewNumberValue(context, [entity mass], value);
 		
 		case kEntity_owner:
 			result = [entity owner];
@@ -222,12 +216,10 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 			break;
 		
 		case kEntity_energy:
-			*value = DOUBLE_TO_JSVAL([entity energy]);
-			return YES;
+			return JS_NewNumberValue(context, [entity energy], value);
 		
 		case kEntity_maxEnergy:
-			*value = DOUBLE_TO_JSVAL([entity maxEnergy]);
-			return YES;
+			return JS_NewNumberValue(context, [entity maxEnergy], value);
 		
 		case kEntity_isValid:
 			*value = JSVAL_TRUE;
@@ -258,23 +250,17 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return YES;
 		
 		case kEntity_distanceTravelled:
-			*value = DOUBLE_TO_JSVAL([entity distanceTravelled]);
-			return YES;
+			return JS_NewNumberValue(context, [entity distanceTravelled], value);
 		
 		case kEntity_spawnTime:
-			*value = DOUBLE_TO_JSVAL([entity spawnTime]);
-			return YES;
+			return JS_NewNumberValue(context, [entity spawnTime], value);
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sEntityProperties);
 	}
 	
-	if (result != nil)
-	{
-		*value = [result oo_jsValueInContext:context];
-		return YES;
-	}
-	return OK;
+	*value = OOJSValueFromNativeObject(context, result);
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

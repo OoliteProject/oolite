@@ -475,7 +475,7 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 		{
 			if ([propValue isKindOfClass:[NSNumber class]] || OOIsNumberLiteral(propValue, YES))
 			{
-				BOOL OK = JS_NewDoubleValue(context, [propValue doubleValue], value);
+				BOOL OK = JS_NewNumberValue(context, [propValue doubleValue], value);
 				if (!OK)
 				{
 					*value = JSVAL_VOID;

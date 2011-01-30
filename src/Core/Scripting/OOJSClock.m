@@ -117,28 +117,24 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsid propID, 
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	PlayerEntity				*player = nil;
+	PlayerEntity				*player = OOPlayerForScripting();
 	double						clockTime;
 	
-	player = OOPlayerForScripting();
 	clockTime = [player clockTime];
 	
 	switch (JSID_TO_INT(propID))
 	{
 		case kClock_absoluteSeconds:
-			*value = DOUBLE_TO_JSVAL([UNIVERSE getTime]);
-			return YES;
+			return JS_NewNumberValue(context, [UNIVERSE getTime], value);
 			
 		case kClock_seconds:
-			*value = DOUBLE_TO_JSVAL(clockTime);
-			return YES;
+			return JS_NewNumberValue(context, clockTime, value);
 			
 		case kClock_minutes:
-			*value = DOUBLE_TO_JSVAL(floor(clockTime / 60.0));
-			return YES;
+			return JS_NewNumberValue(context, floor(clockTime / 60.0), value);
 			
 		case kClock_hours:
-			*value = DOUBLE_TO_JSVAL(floor(clockTime / 3600.0));
+			return JS_NewNumberValue(context, floor(clockTime /3600.0), value);
 			return YES;
 			
 		case kClock_secondsComponent:
@@ -167,8 +163,7 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsid propID, 
 			return YES;
 			
 		case kClock_legacy_scriptTimer:
-			*value = DOUBLE_TO_JSVAL([OOPlayerForScripting() scriptTimer]);
-			return YES;
+			return JS_NewNumberValue(context, [player scriptTimer], value);
 			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sClockProperties);

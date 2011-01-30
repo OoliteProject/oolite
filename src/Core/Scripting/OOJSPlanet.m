@@ -128,7 +128,6 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	OOPlanetEntity				*planet = nil;
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
@@ -136,35 +135,29 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 	{
 		case kPlanet_isMainPlanet:
 			*value = OOJSValueFromBOOL(planet == (id)[UNIVERSE planet]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlanet_radius:
-			OK = JS_NewDoubleValue(context, [planet radius], value);
-			break;
+			return JS_NewNumberValue(context, [planet radius], value);
 			
 		case kPlanet_hasAtmosphere:
 			*value = OOJSValueFromBOOL([planet hasAtmosphere]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlanet_texture:
 			*value = [[planet textureFileName] oo_jsValueInContext:context];
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlanet_orientation:
-			OK = QuaternionToJSValue(context, [planet normalOrientation], value);
-			break;
+			return QuaternionToJSValue(context, [planet normalOrientation], value);
 		
 		case kPlanet_rotationalVelocity:
-			OK = JS_NewDoubleValue(context, [planet rotationalVelocity], value);
-			break;
+			return JS_NewNumberValue(context, [planet rotationalVelocity], value);
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlanetProperties);
+			return NO;
 	}
-	return OK;
 	
 	OOJS_NATIVE_EXIT
 }

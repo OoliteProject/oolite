@@ -636,6 +636,7 @@ JSBool OOJSObjectWrapperToString(JSContext *context, uintN argc, jsval *vp);
 
 #define OOJS_RETURN_VECTOR(value)		do { jsval jsresult; BOOL OK = VectorToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
 #define OOJS_RETURN_QUATERNION(value)	do { jsval jsresult; BOOL OK = QuaternionToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
+#define OOJS_RETURN_DOUBLE(value)		do { jsval jsresult; BOOL OK = JS_NewNumberValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
 
 #define OOJS_RETURN(v)					do { OOJS_SET_RVAL(v); return YES; } while (0)
 #define OOJS_RETURN_JSOBJECT(o)			OOJS_RETURN(OBJECT_TO_JSVAL(o))
@@ -643,7 +644,6 @@ JSBool OOJSObjectWrapperToString(JSContext *context, uintN argc, jsval *vp);
 #define OOJS_RETURN_NULL				OOJS_RETURN(JSVAL_NULL)
 #define OOJS_RETURN_BOOL(v)				OOJS_RETURN(OOJSValueFromBOOL(v))
 #define OOJS_RETURN_INT(v)				OOJS_RETURN(INT_TO_JSVAL(v))
-#define OOJS_RETURN_DOUBLE(v)			OOJS_RETURN(DOUBLE_TO_JSVAL(v))
 #define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ oo_jsValueInContext:context] : JSVAL_NULL); } while (0)
 
 

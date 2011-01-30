@@ -356,7 +356,6 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	ShipEntity					*entity = nil;
 	id							result = nil;
 	
@@ -394,12 +393,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			break;
 			
 		case kShip_fuel:
-			*value = DOUBLE_TO_JSVAL([entity fuel] * 0.1);
-			return YES;
+			return JS_NewNumberValue(context, [entity fuel] * 0.1, value);
 			
 		case kShip_fuelChargeRate:
-			*value = DOUBLE_TO_JSVAL([entity fuelChargeRate]);
-			return YES;
+			return JS_NewNumberValue(context, [entity fuelChargeRate], value);
 			
 		case kShip_bounty:
 			*value = INT_TO_JSVAL([entity bounty]);
@@ -407,7 +404,6 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_subEntities:
 			result = [entity subEntitiesForScript];
-			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kShip_subEntityCapacity:
@@ -420,7 +416,6 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_target:
 			result = [entity primaryTarget];
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_escorts:
@@ -431,25 +426,20 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_group:
 			result = [entity group];
-			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kShip_escortGroup:
 			result = [entity escortGroup];
-			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kShip_temperature:
-			*value = DOUBLE_TO_JSVAL([entity temperature] / SHIP_MAX_CABIN_TEMP);
-			return YES;
+			return JS_NewNumberValue(context, [entity temperature] / SHIP_MAX_CABIN_TEMP, value);
 			
 		case kShip_heatInsulation:
-			*value = DOUBLE_TO_JSVAL([entity heatInsulation]);
-			return YES;
+			return JS_NewNumberValue(context, [entity heatInsulation], value);
 			
 		case kShip_heading:
-			OK = VectorToJSValue(context, [entity forwardVector], value);
-			break;
+			return VectorToJSValue(context, [entity forwardVector], value);
 			
 		case kShip_entityPersonality:
 			*value = INT_TO_JSVAL([entity entityPersonalityInt]);
@@ -461,7 +451,6 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_beaconCode:
 			result = [entity beaconCode];
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_isFrangible:
@@ -482,7 +471,6 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_potentialCollider:
 			result = [entity proximity_alert];
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_hasHostileTarget:
@@ -494,12 +482,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 		
 		case kShip_weaponRange:
-			*value = DOUBLE_TO_JSVAL([entity weaponRange]);
-			return YES;
+			return JS_NewNumberValue(context, [entity weaponRange], value);
 		
 		case kShip_scannerRange:
-			*value = DOUBLE_TO_JSVAL([entity scannerRange]);
-			return YES;
+			return JS_NewNumberValue(context, [entity scannerRange], value);
 		
 		case kShip_reportAIMessages:
 			*value = OOJSValueFromBOOL([entity reportAIMessages]);
@@ -522,24 +508,19 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 			
 		case kShip_speed:
-			*value = DOUBLE_TO_JSVAL([entity flightSpeed]);
-			return YES;
+			return JS_NewNumberValue(context, [entity flightSpeed], value);
 			
 		case kShip_cruiseSpeed:
-			*value = DOUBLE_TO_JSVAL([entity cruiseSpeed]);
-			return YES;
+			return JS_NewNumberValue(context, [entity cruiseSpeed], value);
 			
 		case kShip_desiredSpeed:
-			*value = DOUBLE_TO_JSVAL([entity desiredSpeed]);
-			return YES;
+			return JS_NewNumberValue(context, [entity desiredSpeed], value);
 			
 		case kShip_maxSpeed:
-			*value = DOUBLE_TO_JSVAL([entity maxFlightSpeed]);
-			return YES;
+			return JS_NewNumberValue(context, [entity maxFlightSpeed], value);
 			
 		case kShip_script:
 			result = [entity shipScript];
-			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kShip_isPirate:
@@ -620,12 +601,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 			
 		case kShip_missileLoadTime:
-			*value = DOUBLE_TO_JSVAL([entity missileLoadTime]);
-			return YES;
+			return JS_NewNumberValue(context, [entity missileLoadTime], value);
 		
 		case kShip_savedCoordinates:
-			OK = VectorToJSValue(context, [entity coordinates], value);
-			break;
+			return VectorToJSValue(context, [entity coordinates], value);
 		
 		case kShip_equipment:
 			result = [entity equipmentListForScripting];
@@ -633,22 +612,18 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_forwardWeapon:
 			result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD];
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_aftWeapon:
 			result = [entity weaponTypeForFacing:WEAPON_FACING_AFT];
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_portWeapon:		// for future expansion
 			result = [entity weaponTypeForFacing:WEAPON_FACING_PORT];
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_starboardWeapon: // for future expansion
 			result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD];
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_missiles:
@@ -665,58 +640,44 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_scannerDisplayColor1:
 			result = [[entity scannerDisplayColor1] normalizedArray];
-			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kShip_scannerDisplayColor2:
 			result = [[entity scannerDisplayColor2] normalizedArray];
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_maxThrust:
-			*value = DOUBLE_TO_JSVAL([entity maxThrust]);
-			return YES;
+			return JS_NewNumberValue(context, [entity maxThrust], value);
 			
 		case kShip_thrust:
-			*value = DOUBLE_TO_JSVAL([entity thrust]);
-			return YES;
+			return JS_NewNumberValue(context, [entity thrust], value);
 			
 		case kShip_lightsActive:
 			*value = OOJSValueFromBOOL([entity lightsActive]);
 			return YES;
 			
 		case kShip_vectorRight:
-			OK = VectorToJSValue(context, [entity rightVector], value);
-			break;
+			return VectorToJSValue(context, [entity rightVector], value);
 			
 		case kShip_vectorForward:
-			OK = VectorToJSValue(context, [entity forwardVector], value);
-			break;
+			return VectorToJSValue(context, [entity forwardVector], value);
 			
 		case kShip_vectorUp:
-			OK = VectorToJSValue(context, [entity upVector], value);
-			break;
+			return VectorToJSValue(context, [entity upVector], value);
 			
 		case kShip_velocity:
-			OK = VectorToJSValue(context, [entity velocity], value);
-			break;
+			return VectorToJSValue(context, [entity velocity], value);
 			
 		case kShip_thrustVector:
-			OK = VectorToJSValue(context, [entity thrustVector], value);
-			break;
+			return VectorToJSValue(context, [entity thrustVector], value);
 			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sShipProperties);
 			return NO;
 	}
 	
-	if (result != nil)
-	{
-		*value = [result oo_jsValueInContext:context];
-		OK = YES;
-	}
-	
-	return OK;
+	*value = OOJSValueFromNativeObject(context, result);
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

@@ -181,7 +181,6 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*player = OOPlayerForScripting();
 	
@@ -189,91 +188,75 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 	{
 		case kPlayer_name:
 			result = [player playerName];
-			OK = YES;
 			break;
 			
 		case kPlayer_score:
 			*value = INT_TO_JSVAL([player score]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_credits:
-			OK = JS_NewDoubleValue(context, [player creditBalance], value);
-			break;
+			return JS_NewNumberValue(context, [player creditBalance], value);
 			
 		case kPlayer_rank:
 			*value = [OODisplayRatingStringFromKillCount([player score]) oo_jsValueInContext:context];
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_legalStatus:
 			*value = [OODisplayStringFromLegalStatus([player bounty]) oo_jsValueInContext:context];
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_alertCondition:
 			*value = INT_TO_JSVAL([player alertCondition]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_alertTemperature:
 			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_TEMP);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_alertMassLocked:
 			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_MASS_LOCK);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_alertAltitude:
 			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_ALT);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_alertEnergy:
 			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_ENERGY);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_alertHostiles:
 			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_HOSTILES);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_trumbleCount:
-			OK = JS_NewNumberValue(context, [player trumbleCount], value);
-			break;
+			return JS_NewNumberValue(context, [player trumbleCount], value);
 			
 		case kPlayer_contractReputation:
 			*value = INT_TO_JSVAL([player contractReputation]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayer_passengerReputation:
 			*value = INT_TO_JSVAL([player passengerReputation]);
-			OK = YES;
-			break;
+			return YES;
 		
 #if DOCKING_CLEARANCE_ENABLED	
 		case kPlayer_dockingClearanceStatus:
 			*value = [DockingClearanceStatusToString([player getDockingClearanceStatus]) oo_jsValueInContext:context];
-			OK = YES;
-			break;
+			return YES;
 #endif
 			
 		case kPlayer_bounty:
 			*value = INT_TO_JSVAL([player legalStatus]);
-			OK = YES;
-			break;
+			return YES;
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerProperties);
 			return NO;
 	}
 	
-	if (OK && result != nil)  *value = [result oo_jsValueInContext:context];
-	return OK;
+	*value = OOJSValueFromNativeObject(context, result);
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

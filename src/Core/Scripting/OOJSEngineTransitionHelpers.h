@@ -31,14 +31,6 @@ MA 02110-1301, USA.
 /***** Transitional compatibility stuff - remove when switching to OO_NEW_JS permanently. *****/
 
 
-// Before removing, switch to DOUBLE_TOJSVAL() everywhere.
-OOINLINE JSBool JS_NewDoubleValue(JSContext *cx, jsdouble d, jsval *rval)
-{
-	NSCParameterAssert(rval != NULL);
-	*rval = DOUBLE_TO_JSVAL(d);
-	return YES;
-}
-
 
 
 

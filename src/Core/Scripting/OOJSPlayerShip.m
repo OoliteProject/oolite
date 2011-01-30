@@ -217,15 +217,13 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 	
 	if (EXPECT_NOT(OOIsPlayerStale() || this == sPlayerShipPrototype)) { *value = JSVAL_VOID; return YES; }
 	
-	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*player = OOPlayerShipForScripting();
 	
 	switch (JSID_TO_INT(propID))
 	{
 		case kPlayerShip_fuelLeakRate:
-			*value = DOUBLE_TO_JSVAL([player fuelLeakRate]);
-			return YES;
+			return JS_NewNumberValue(context, [player fuelLeakRate], value);
 			
 		case kPlayerShip_docked:
 			*value = OOJSValueFromBOOL([player isDocked]);
@@ -233,7 +231,6 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			
 		case kPlayerShip_dockedStation:
 			result = [player dockedStation];
-			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kPlayerShip_specialCargo:
@@ -249,38 +246,30 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			return YES;
 			
 		case kPlayerShip_galacticHyperspaceFixedCoords:
-			OK = NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], value);
-			break;
+			return NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], value);
 			
 		case kPlayerShip_forwardShield:
-			*value = DOUBLE_TO_JSVAL([player forwardShieldLevel]);
-			return YES;
+			return JS_NewNumberValue(context, [player forwardShieldLevel], value);
 			
 		case kPlayerShip_aftShield:
-			*value = DOUBLE_TO_JSVAL([player aftShieldLevel]);
-			return YES;
+			return JS_NewNumberValue(context, [player aftShieldLevel], value);
 			
 		case kPlayerShip_maxForwardShield:
-			*value = DOUBLE_TO_JSVAL([player maxForwardShieldLevel]);
-			return YES;
+			return JS_NewNumberValue(context, [player maxForwardShieldLevel], value);
 			
 		case kPlayerShip_maxAftShield:
-			*value = DOUBLE_TO_JSVAL([player maxAftShieldLevel]);
-			return YES;
+			return JS_NewNumberValue(context, [player maxAftShieldLevel], value);
 			
 		case kPlayerShip_forwardShieldRechargeRate:
 		case kPlayerShip_aftShieldRechargeRate:
 			// No distinction made internally
-			*value = DOUBLE_TO_JSVAL([player shieldRechargeRate]);
-			return YES;
+			return JS_NewNumberValue(context, [player shieldRechargeRate], value);
 			
 		case kPlayerShip_galaxyCoordinates:
-			OK = NSPointToVectorJSValue(context, [player galaxy_coordinates], value);
-			break;
+			return NSPointToVectorJSValue(context, [player galaxy_coordinates], value);
 			
 		case kPlayerShip_cursorCoordinates:
-			OK = NSPointToVectorJSValue(context, [player cursor_coordinates], value);
-			break;
+			return NSPointToVectorJSValue(context, [player cursor_coordinates], value);
 			
 		case kPlayerShip_targetSystem:
 			*value = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
@@ -322,12 +311,8 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 	}
 	
-	if (result != nil)
-	{
-		*value = [result oo_jsValueInContext:context];
-		OK = YES;
-	}
-	return OK;
+	*value = OOJSValueFromNativeObject(context, result);
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

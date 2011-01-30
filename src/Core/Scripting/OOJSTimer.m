@@ -242,12 +242,10 @@ static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsid propID, 
 	switch (JSID_TO_INT(propID))
 	{
 		case kTimer_nextTime:
-			*value = DOUBLE_TO_JSVAL([timer nextTime]);
-			return YES;
+			return JS_NewNumberValue(context, [timer nextTime], value);
 			
 		case kTimer_interval:
-			*value = DOUBLE_TO_JSVAL([timer interval]);
-			return YES;
+			return JS_NewNumberValue(context, [timer interval], value);
 			
 		case kTimer_isRunning:
 			*value = OOJSValueFromBOOL([timer isScheduled]);

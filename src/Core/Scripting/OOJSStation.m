@@ -185,59 +185,57 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 	{
 		case kStation_isMainStation:
 			*value = OOJSValueFromBOOL(entity == [UNIVERSE station]);
-			break;
+			return YES;
 		
 		case kStation_hasNPCTraffic:
 			*value = OOJSValueFromBOOL([entity hasNPCTraffic]);
-			break;
+			return YES;
 		
 		case kStation_alertCondition:
 			*value = INT_TO_JSVAL([entity alertLevel]);
-			break;
+			return YES;
 			
 #if DOCKING_CLEARANCE_ENABLED
 		case kStation_requiresDockingClearance:
 			*value = OOJSValueFromBOOL([entity requiresDockingClearance]);
-			break;
+			return YES;
 #endif
 			
 		case kStation_allowsFastDocking:
 			*value = OOJSValueFromBOOL([entity allowsFastDocking]);
-			break;
+			return YES;
 			
 		case kStation_allowsAutoDocking:
 			*value = OOJSValueFromBOOL([entity allowsAutoDocking]);
-			break;
+			return YES;
 
 		case kStation_dockedContractors:
 			*value = INT_TO_JSVAL([entity dockedContractors]);
-			break;
+			return YES;
 			
 		case kStation_dockedPolice:
 			*value = INT_TO_JSVAL([entity dockedPolice]);
-			break;
+			return YES;
 			
 		case kStation_dockedDefenders:
 			*value = INT_TO_JSVAL([entity dockedDefenders]);
-			break;
+			return YES;
 			
 		case kStation_equivalentTechLevel:
 			*value = INT_TO_JSVAL([entity equivalentTechLevel]);
-			break;
+			return YES;
 			
 		case kStation_equipmentPriceFactor:
-			*value = DOUBLE_TO_JSVAL([entity equipmentPriceFactor]);
-			break;
+			return JS_NewNumberValue(context, [entity equipmentPriceFactor], value);
 			
 		case kStation_suppressArrivalReports:
 			*value = OOJSValueFromBOOL([entity suppressArrivalReports]);
-			break;
+			return YES;
 			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sStationProperties);
 			return NO;
 	}
-	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

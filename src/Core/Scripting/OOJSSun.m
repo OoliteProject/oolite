@@ -130,8 +130,7 @@ static JSBool SunGetProperty(JSContext *context, JSObject *this, jsid propID, js
 	switch (JSID_TO_INT(propID))
 	{
 		case kSun_radius:
-			*value = DOUBLE_TO_JSVAL([sun radius]);
-			return YES;
+			return JS_NewNumberValue(context, [sun radius], value);
 			
 		case kSun_hasGoneNova:
 			*value = OOJSValueFromBOOL([sun goneNova]);

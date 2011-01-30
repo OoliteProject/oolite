@@ -1832,7 +1832,7 @@ NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObje
 		
 		if (isFloat)
 		{
-			if (!JS_NewDoubleValue(context, [self doubleValue], &result)) result = JSVAL_VOID;
+			if (!JS_NewNumberValue(context, [self doubleValue], &result)) result = JSVAL_VOID;
 		}
 		else
 		{

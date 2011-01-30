@@ -259,8 +259,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return YES;
 		
 		case kSystem_pseudoRandomNumber:
-			*value = DOUBLE_TO_JSVAL([player systemPseudoRandomFloat]);
-			return YES;
+			return JS_NewNumberValue(context, [player systemPseudoRandomFloat], value);
 			
 		case kSystem_pseudoRandom100:
 			*value = INT_TO_JSVAL([player systemPseudoRandom100]);

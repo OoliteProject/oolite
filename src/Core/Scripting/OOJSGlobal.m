@@ -165,31 +165,26 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity				*player = OOPlayerForScripting();
-	id							result = nil;
 	
 	switch (JSID_TO_INT(propID))
 	{
 		case kGlobal_galaxyNumber:
 			*value = INT_TO_JSVAL([player currentGalaxyID]);
-			break;
+			return YES;
 			
 		case kGlobal_guiScreen:
 			*value = OOJSValueFromGUIScreenID(context, [player guiScreen]);
-			break;
+			return YES;
 			
 #ifndef NDEBUG
 		case kGlobal_timeAccelerationFactor:
-			JS_NewDoubleValue(context, [UNIVERSE timeAccelerationFactor], value);
-			break;
+			return JS_NewNumberValue(context, [UNIVERSE timeAccelerationFactor], value);
 #endif
 			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sGlobalProperties);
 			return NO;
 	}
-	
-	if (result != nil)  *value = [result oo_jsValueInContext:context];
-	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

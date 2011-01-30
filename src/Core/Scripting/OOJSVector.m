@@ -484,7 +484,7 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return NO;
 	}
 	
-	return JS_NewDoubleValue(context, fValue, value);
+	return JS_NewNumberValue(context, fValue, value);
 	
 	OOJS_PROFILE_EXIT
 }

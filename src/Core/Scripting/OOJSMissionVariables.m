@@ -127,30 +127,15 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 		
 		id mvar = [player missionVariableForKey:key];
 		
-		*value = JSVAL_VOID;
 		if ([mvar isKindOfClass:[NSString class]])	// Currently there should only be strings, but we may want to change this.
 		{
 			if (OOIsNumberLiteral(mvar, YES))
 			{
-				BOOL OK = JS_NewDoubleValue(context, [mvar doubleValue], value);
-				if (!OK) *value = JSVAL_VOID;
+				return JS_NewNumberValue(context, [mvar doubleValue], value);
 			}
 		}
 		
-		if (mvar != nil && JSVAL_IS_VOID(*value))
-		{
-			*value = [mvar oo_jsValueInContext:context];
-		}
-		
-		if (JSVAL_IS_VOID(*value))
-		{
-			/*	"undefined" is the normal JS expectation, but "null" is easier
-				to deal with. For instance, foo = missionVaraibles.undefinedThing
-				is an error if JSVAL_VOID is used, but fine if JSVAL_NULL is
-				used.
-			*/
-			*value = JSVAL_NULL;
-		}
+		*value = OOJSValueFromNativeObject(context, mvar);
 	}
 	return YES;
 	
