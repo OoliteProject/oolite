@@ -372,7 +372,7 @@ noteChangedConfigrationValue:(in id)newValue
 	
 	if (data == nil)
 	{
-		OOLog(@"debugTCP.conversionFailure", @"Could not convert dictionary to data for transmission to debug console: %@", errorDesc != NULL ? errorDesc : @"unknown error.");
+		OOLog(@"debugTCP.conversionFailure", @"Could not convert dictionary to data for transmission to debug console: %@", errorDesc != NULL ? errorDesc : (NSString *)@"unknown error.");
 #if OOLITE_RELEASE_PLIST_ERROR_STRINGS
 		[errorDesc autorelease];
 #endif
