@@ -467,7 +467,7 @@ NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDict
 	
 	if ([text rangeOfString:@"%"].location != NSNotFound)
 	{
-		NSMutableString *partial = (textIsMutable) ? (NSMutableString *)text : [NSMutableString stringWithString:text];
+		NSMutableString *partial = (textIsMutable) ? (NSMutableString *)text : (NSMutableString *)[NSMutableString stringWithString:text];
 		if (pName == nil)  pName = [UNIVERSE getSystemName:seed];
 		
 		[partial replaceOccurrencesOfString:@"%H"
