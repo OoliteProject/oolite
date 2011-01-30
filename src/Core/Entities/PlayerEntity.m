@@ -5613,7 +5613,7 @@ done:
 		[gui setTitle:DESC(@"short-range-chart-title")];
 		[gui setText:targetSystemName forRow:19];
 		[gui setText:[NSString stringWithFormat:DESC(@"short-range-chart-distance-f"), distance]   forRow:20];
-		if ([self hasHyperspaceMotor]) [gui setText:((distance > 0.0 && distance <= (double)fuel/10.0) ? [NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:21];
+		if ([self hasHyperspaceMotor]) [gui setText:((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (NSString *)@"") forRow:21];
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
@@ -6238,7 +6238,7 @@ static NSString *last_outfitting_key=nil;
 						if (displayRow)	// Always true for the first pass. The first pass is used to display the name of the weapon being purchased.
 						{
 							[gui setKey:eqKey forRow:row];
-							[gui setArray:[NSArray arrayWithObjects:desc, (facing_count > 0 ? priceString : @""), nil] forRow:row];
+							[gui setArray:[NSArray arrayWithObjects:desc, (facing_count > 0 ? priceString : (NSString *)@""), nil] forRow:row];
 							row++;
 						}
 						facing_count++;
@@ -7008,7 +7008,7 @@ static NSString *last_outfitting_key=nil;
 
 		[gui clearAndKeepBackground:!guiChanged];
 		
-		[gui setTitle:[UNIVERSE sun] != NULL ? [NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
+		[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
