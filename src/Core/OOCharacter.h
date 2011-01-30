@@ -91,7 +91,7 @@ MA 02110-1301, USA.
 - (void) setLegacyScript:(NSArray *)some_actions;
 - (OOJSScript *)script;
 - (void) setCharacterScript:(NSString *)script_name;
-- (void) doScriptEvent:(OOJSPropID)message;
+- (void) doScriptEvent:(jsid)message;
 
 #ifdef OO_BRAIN_AI
 - (OOBrain *) brain;

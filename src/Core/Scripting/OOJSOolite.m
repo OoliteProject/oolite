@@ -165,7 +165,7 @@ static JSBool OoliteCompareVersion(JSContext *context, uintN argc, jsval *vp)
 	NSEnumerator			*componentEnum = nil;
 	id						component = nil;
 	
-	components = OOJSNativeObjectFromJSValue(context, OOJS_ARG(0));
+	components = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[0]);
 	if ([components isKindOfClass:[NSArray class]])
 	{
 		// Require each element to be a number

@@ -194,7 +194,7 @@ static JSBool ClockClockStringForTime(JSContext *context, uintN argc, jsval *vp)
 	
 	double						time;
 	
-	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARG(0), &time)))  return NO;
+	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARGV[0], &time)))  return NO;
 	
 	OOJS_RETURN_OBJECT(ClockToString(time, NO));
 	
@@ -209,7 +209,7 @@ static JSBool ClockAddSeconds(JSContext *context, uintN argc, jsval *vp)
 	
 	double						time;
 	
-	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARG(0), &time)))  return NO;
+	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARGV[0], &time)))  return NO;
 	if (time > 2592000.0f || time < 1.0f)	// 30 * 24 * 3600
 	{
 		OOJSReportWarning(context, @"Clock.addSeconds: use a value between 1 and 2592000 (30 days).");

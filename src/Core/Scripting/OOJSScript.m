@@ -136,12 +136,10 @@ static JSFunctionSpec sScriptMethods[] =
 			problem = @"could not add JavaScript root object";
 		}
 		
-	#if OO_NEW_JS
 		if (!problem && !OOJSAddGCObjectRoot(context, &scriptObject, "Script GC holder"))
 		{
 			problem = @"could not add JavaScript root object";
 		}
-	#endif
 		
 		if (!problem)
 		{
@@ -185,7 +183,7 @@ static JSFunctionSpec sScriptMethods[] =
 			the script object can't be renamed after the initial run. This could
 			probably also be achieved by fiddling with JS property attributes.
 		*/
-		OOJSPropID nameID = OOJSID("name");
+		jsid nameID = OOJSID("name");
 		[self setProperty:[self scriptNameFromPath:path] withID:nameID inContext:context];
 		
 		// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
@@ -201,9 +199,7 @@ static JSFunctionSpec sScriptMethods[] =
 			// We don't need the script any more - the event handlers hang around as long as the JS object exists.
 			JS_DestroyScript(context, script);
 		}
-	#if OO_NEW_JS
 		JS_RemoveObjectRoot(context, &scriptObject);
-	#endif
 		
 		sRunningStack = stackElement.back;
 		
@@ -324,7 +320,7 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-- (BOOL) callMethod:(OOJSPropID)methodID
+- (BOOL) callMethod:(jsid)methodID
 		  inContext:(JSContext *)context
 	  withArguments:(jsval *)argv count:(intN)argc
 			 result:(jsval *)outResult
@@ -342,7 +338,7 @@ static JSFunctionSpec sScriptMethods[] =
 	if (EXPECT(JS_GetMethodById(context, _jsSelf, methodID, &root, &method) && !JSVAL_IS_VOID(method)))
 	{
 #ifndef NDEBUG
-		OOLog(@"script.trace.javaScript", @"Calling [%@].%@()", [self name], OOStringFromJSPropID(methodID));
+		OOLog(@"script.trace.javaScript", @"Calling [%@].%@()", [self name], OOStringFromJSID(methodID));
 		OOLogIndentIf(@"script.trace.javaScript");
 #endif
 		
@@ -362,10 +358,6 @@ static JSFunctionSpec sScriptMethods[] =
 		// Pop running scripts stack
 		sRunningStack = stackElement.back;
 		
-#if !OO_NEW_JS
-		JS_ClearNewbornRoots(context);
-#endif
-		
 #ifndef NDEBUG
 		OOLogOutdentIf(@"script.trace.javaScript");
 #endif
@@ -377,7 +369,7 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-- (id) propertyWithID:(OOJSPropID)propID inContext:(JSContext *)context
+- (id) propertyWithID:(jsid)propID inContext:(JSContext *)context
 {
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	
@@ -390,7 +382,7 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-- (BOOL) setProperty:(id)value withID:(OOJSPropID)propID inContext:(JSContext *)context
+- (BOOL) setProperty:(id)value withID:(jsid)propID inContext:(JSContext *)context
 {
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	
@@ -399,7 +391,7 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-- (BOOL) defineProperty:(id)value withID:(OOJSPropID)propID inContext:(JSContext *)context
+- (BOOL) defineProperty:(id)value withID:(jsid)propID inContext:(JSContext *)context
 {
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	
@@ -413,7 +405,7 @@ static JSFunctionSpec sScriptMethods[] =
 	if (propName == nil)  return nil;
 	
 	JSContext *context = OOJSAcquireContext();
-	id result = [self propertyWithID:OOJSPropIDFromString(propName) inContext:context];
+	id result = [self propertyWithID:OOJSIDFromString(propName) inContext:context];
 	OOJSRelinquishContext(context);
 	
 	return result;
@@ -425,7 +417,7 @@ static JSFunctionSpec sScriptMethods[] =
 	if (value == nil || propName == nil)  return NO;
 	
 	JSContext *context = OOJSAcquireContext();
-	BOOL result = [self setProperty:value withID:OOJSPropIDFromString(propName) inContext:context];
+	BOOL result = [self setProperty:value withID:OOJSIDFromString(propName) inContext:context];
 	OOJSRelinquishContext(context);
 	
 	return result;
@@ -437,7 +429,7 @@ static JSFunctionSpec sScriptMethods[] =
 	if (value == nil || propName == nil)  return NO;
 	
 	JSContext *context = OOJSAcquireContext();
-	BOOL result = [self defineProperty:value withID:OOJSPropIDFromString(propName) inContext:context];
+	BOOL result = [self defineProperty:value withID:OOJSIDFromString(propName) inContext:context];
 	OOJSRelinquishContext(context);
 	
 	return result;
@@ -533,7 +525,7 @@ static JSFunctionSpec sScriptMethods[] =
 
 @implementation OOScript (JavaScriptEvents)
 
-- (BOOL) callMethod:(OOJSPropID)methodID
+- (BOOL) callMethod:(jsid)methodID
 		  inContext:(JSContext *)context
 	  withArguments:(jsval *)argv count:(intN)argc
 			 result:(jsval *)outResult
@@ -591,10 +583,8 @@ static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject
 		else
 		{
 			script = JS_CompileUCScript(context, object, [data bytes], [data length] / sizeof(unichar), [path UTF8String], 1);
-#if OO_NEW_JS
 			if (script != NULL)  *outScriptObject = JS_NewScriptObject(context, script);
-#endif
-			if (script == NULL)  *outErrorMessage = @"compilation failed";
+			else  *outErrorMessage = @"compilation failed";
 		}
 		
 #if OO_CACHE_JS_SCRIPTS

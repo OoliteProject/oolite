@@ -490,14 +490,14 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, uintN argc, jsval *v
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	NSString				*name = nil;
 	
-	name = OOStringFromJSValue(context, OOJS_ARG(0));
+	name = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (EXPECT_NOT(name == nil))
 	{
 		OOJSReportBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, OOJS_ARGV, nil, @"special cargo description");
 		return NO;
 	}
 	
-	[player useSpecialCargo:OOStringFromJSValue(context, OOJS_ARG(0))];
+	[player useSpecialCargo:OOStringFromJSValue(context, OOJS_ARGV[0])];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -514,7 +514,7 @@ static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, uintN argc,
 	PlayerEntity			*player = OOPlayerShipForScripting();
 	StationEntity			*stationForDocking = nil;
 	
-	stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARG(0), [StationEntity class]);
+	stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [StationEntity class]);
 	if (stationForDocking == nil)
 	{
 		OOJSReportBadArguments(context, @"PlayerShip", @"engageAutopilot", argc, OOJS_ARGV, nil, @"station for docking");
@@ -554,7 +554,7 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN a
 	NSString				*key = nil;
 	OOEquipmentType			*eqType = nil;
 	
-	key = JSValueToEquipmentKey(context, OOJS_ARG(0));
+	key = JSValueToEquipmentKey(context, OOJS_ARGV[0]);
 	if (EXPECT_NOT(key == nil))
 	{
 		OOJSReportBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"equipment type");

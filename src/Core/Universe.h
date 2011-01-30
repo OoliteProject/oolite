@@ -610,7 +610,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 - (NSArray*) listBeaconsWithCode:(NSString*) code;
 
-- (void) allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(NSString *)message;
+- (void) allShipsDoScriptEvent:(jsid)event andReactToAIMessage:(NSString *)message;
 
 ///////////////////////////////////////
 

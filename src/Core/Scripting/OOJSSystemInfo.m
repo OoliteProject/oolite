@@ -338,23 +338,14 @@ static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateO
 	switch (enumOp)
 	{
 		case JSENUMERATE_INIT:
-#if OO_NEW_JS
 		case JSENUMERATE_INIT_ALL:	// For ES5 Object.getOwnPropertyNames(). Since we have no non-enumerable properties, this is the same as _INIT.
-#endif
 		{
 			OOSystemInfo *info = JS_GetPrivate(context, this);
 			NSArray *keys = [info allKeys];
 			enumerator = [[keys objectEnumerator] retain];
 			*state = PRIVATE_TO_JSVAL(enumerator);
 			
-			if (idp != NULL)
-			{
-#if OO_NEW_JS
-				*idp = INT_TO_JSID([keys count]);
-#else
-				*idp = INT_TO_JSVAL([keys count]);
-#endif
-			}
+			if (idp != NULL)  *idp = INT_TO_JSID([keys count]);
 			return YES;
 		}
 		
@@ -379,14 +370,8 @@ static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateO
 				enumerator = JSVAL_TO_PRIVATE(*state);
 			}
 			[enumerator release];
-			if (idp != NULL)
-			{
-#if OO_NEW_JS
-				*idp = JSID_VOID;
-#else
-				return JS_ValueToId(context, JSVAL_VOID, idp);
-#endif
-			}
+			
+			if (idp != NULL)  *idp = JSID_VOID;
 			return YES;
 		}
 	}
@@ -522,13 +507,13 @@ static JSBool SystemInfoDistanceToSystem(JSContext *context, uintN argc, jsval *
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if(!JSVAL_IS_OBJECT(OOJS_ARG(0)))
+	if(!JSVAL_IS_OBJECT(OOJS_ARGV[0]))
 	{
 		OOJSReportBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
 	OOSystemInfo *thisInfo = OOJSNativeObjectOfClassFromJSObject(context, OOJS_THIS, [OOSystemInfo class]);
-	OOSystemInfo *otherInfo  = OOJSNativeObjectOfClassFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARG(0)), [OOSystemInfo class]);
+	OOSystemInfo *otherInfo  = OOJSNativeObjectOfClassFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), [OOSystemInfo class]);
 	if (thisInfo == nil || otherInfo == nil)
 	{
 		OOJSReportBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
@@ -559,13 +544,13 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp)
 	NSDictionary *result = nil;
 	OORouteType routeType = OPTIMIZED_BY_JUMPS;
 	
-	if(!JSVAL_IS_OBJECT(OOJS_ARG(0)))
+	if(!JSVAL_IS_OBJECT(OOJS_ARGV[0]))
 	{
 		OOJSReportBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
 		return NO;
 	}
 	OOSystemInfo *thisInfo = OOJSNativeObjectOfClassFromJSObject(context, OOJS_THIS, [OOSystemInfo class]);
-	OOSystemInfo *otherInfo  = OOJSNativeObjectOfClassFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARG(0)), [OOSystemInfo class]);
+	OOSystemInfo *otherInfo  = OOJSNativeObjectOfClassFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), [OOSystemInfo class]);
 	if (thisInfo == nil || otherInfo == nil)
 	{
 		OOJSReportBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
@@ -581,7 +566,7 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp)
 	
 	if (argc >= 2)
 	{
-		routeType = StringToRouteType(OOStringFromJSValue(context, OOJS_ARG(1)));
+		routeType = StringToRouteType(OOStringFromJSValue(context, OOJS_ARGV[1]));
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
@@ -600,9 +585,9 @@ static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, js
 	OOJS_NATIVE_ENTER(context)
 	
 	// Get this and predicate arguments.
-	jsval predicate = OOJS_ARG(1);
+	jsval predicate = OOJS_ARGV[1];
 	JSObject *jsThis = NULL;
-	if (EXPECT_NOT(!OOJSValueIsFunction(context, predicate) || !JS_ValueToObject(context, OOJS_ARG(0), &jsThis)))
+	if (EXPECT_NOT(!OOJSValueIsFunction(context, predicate) || !JS_ValueToObject(context, OOJS_ARGV[0], &jsThis)))
 	{
 		OOJSReportBadArguments(context, @"SystemInfo", @"filteredSystems", argc, OOJS_ARGV, nil, @"this and predicate function");
 		return NO;

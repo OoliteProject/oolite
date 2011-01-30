@@ -148,10 +148,6 @@ void OOPrintLogHeader(void)
 		#endif
 	#endif
 	
-	#if !OO_NEW_JS
-		@"OUTDATED JAVASCRIPT ENGINE",
-	#endif
-	
 		nil];
 	
 	// systemString: NSString with system type and possibly version.

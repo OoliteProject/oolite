@@ -32,21 +32,11 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 
 
-#if OO_NEW_JS
-typedef jsid PropertyID;
-#define PROP_IS_STRING JSID_IS_STRING
-#define PROP_TO_STRING JSID_TO_STRING
-#else
-typedef jsval PropertyID;
-#define PROP_IS_STRING JSVAL_IS_STRING
-#define PROP_TO_STRING JSVAL_TO_STRING
-#endif
-
-static NSString *KeyForPropertyID(JSContext *context, PropertyID propID)
+static NSString *KeyForPropertyID(JSContext *context, jsid propID)
 {
-	NSCParameterAssert(PROP_IS_STRING(propID));
+	NSCParameterAssert(JSID_IS_STRING(propID));
 	
-	NSString *key = OOStringFromJSString(context, PROP_TO_STRING(propID));
+	NSString *key = OOStringFromJSString(context, JSID_TO_STRING(propID));
 	if ([key hasPrefix:@"_"])  return nil;
 	return [@"mission_" stringByAppendingString:key];
 }
@@ -178,22 +168,14 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 	switch (enumOp)
 	{
 		case JSENUMERATE_INIT:
-#if OO_NEW_JS
 		case JSENUMERATE_INIT_ALL:	// For ES5 Object.getOwnPropertyNames(). Since we have no non-enumerable properties, this is the same as _INIT.
-#endif
 		{
 			// -allKeys implicitly makes a copy, which is good since the enumerating code might mutate.
 			NSArray *mvars = [[PLAYER missionVariables] allKeys];
 			enumerator = [[mvars objectEnumerator] retain];
 			*state = PRIVATE_TO_JSVAL(enumerator);
-			if (idp != NULL)
-			{
-#if OO_NEW_JS
-				*idp = INT_TO_JSID([mvars count]);
-#else
-				*idp = INT_TO_JSVAL([mvars count]);
-#endif
-			}
+			
+			if (idp != NULL)  *idp = INT_TO_JSID([mvars count]);
 			return YES;
 		}
 		
@@ -224,14 +206,8 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 				enumerator = JSVAL_TO_PRIVATE(*state);
 			}
 			[enumerator release];
-			if (idp != NULL)
-			{
-#if OO_NEW_JS
-				*idp = JSID_VOID;
-#else
-				return JS_ValueToId(context, JSVAL_VOID, idp);
-#endif
-			}
+			
+			if (idp != NULL)  *idp = JSID_VOID;
 			return YES;
 		}
 	}

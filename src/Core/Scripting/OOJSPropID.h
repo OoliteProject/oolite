@@ -24,36 +24,17 @@ MA 02110-1301, USA.
 */
 
 #import <jsapi.h>
+#import "OOFunctionAttributes.h"
 
-
-#ifndef OO_NEW_JS
-#define OO_NEW_JS				0
-#endif
-
-
-/*	OOJSPropID
-	Th type that identifies JavaScript properties/methods.
-	
+/*
 	OOJSID(const char * [literal])
-	Macro to create a string-based ID. The string is interned and converted
+	Macro to create a string-based jsid. The string is interned and converted
 	into a string by a helper the first time the macro is hit, then cached.
-	
-	OOStringFromJSPropID(propID)
-	OOJSPropIDFromString(string)
-	Converters.
 */
-#if OO_NEW_JS
-typedef jsid OOJSPropID;
-#else
-typedef const char *OOJSPropID;
-#endif
 
-
-#if OO_NEW_JS
-#define OOJSID(str) ({ static jsid idCache; static BOOL inited; if (EXPECT_NOT(!inited)) OOJSInitPropIDCachePRIVATE(""str, &idCache, &inited); idCache; })
-void OOJSInitPropIDCachePRIVATE(const char *name, jsid *idCache, BOOL *inited);
+#ifdef JS_USE_JSVAL_JSID_STRUCT_TYPES
+#define OOJSID(str) ({ static jsid idCache; static JSBool inited; if (EXPECT_NOT(!inited)) { OOJSInitJSIDCachePRIVATE(""str, &idCache); inited = JS_TRUE; } idCache; })
 #else
-#define OOJSID(str) (""str)
+#define OOJSID(str) ({ static jsid idCache = JSID_VOID; if (EXPECT_NOT(idCache == JSID_VOID)) OOJSInitJSIDCachePRIVATE(""str, &idCache); idCache; })
 #endif
-NSString *OOStringFromJSPropID(OOJSPropID propID);
-OOJSPropID OOJSPropIDFromString(NSString *string);
+void OOJSInitJSIDCachePRIVATE(const char *name, jsid *idCache);

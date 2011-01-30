@@ -122,7 +122,7 @@ const char *JSValueTypeDbg(jsval val)
 	if (JSVAL_IS_BOOLEAN(val))	return "boolean";
 	if (JSVAL_IS_NULL(val))		return "null";
 	if (JSVAL_IS_VOID(val))		return "void";
-#if OO_NEW_JS && defined(JS_USE_JSVAL_JSID_STRUCT_TYPES)
+#ifdef JS_USE_JSVAL_JSID_STRUCT_TYPES
 	if (JSVAL_IS_MAGIC_IMPL(val))
 	{
 		switch(val.s.payload.why)

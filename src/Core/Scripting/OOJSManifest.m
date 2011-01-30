@@ -212,32 +212,18 @@ static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsid pr
 }
 
 
-#if OO_NEW_JS
-typedef jsid PropertyID;
-#define PROP_IS_INT JSID_IS_INT
-#define PROP_TO_INT JSID_TO_INT
-#define PROP_IS_STRING JSID_IS_STRING
-#define PROP_TO_STRING JSID_TO_STRING
-#else
-typedef jsval PropertyID;
-#define PROP_IS_INT JSVAL_IS_INT
-#define PROP_TO_INT JSVAL_TO_INT
-#define PROP_IS_STRING JSVAL_IS_STRING
-#define PROP_TO_STRING JSVAL_TO_STRING
-#endif
-
-static BOOL GetCommodityID(JSContext *context, PropertyID property, unsigned *outCommodity)
+static BOOL GetCommodityID(JSContext *context, jsid property, unsigned *outCommodity)
 {
 	NSCParameterAssert(outCommodity != NULL);
 	
-	if (PROP_IS_INT(property))
+	if (JSID_IS_INT(property))
 	{
-		*outCommodity = PROP_TO_INT(property);
+		*outCommodity = JSID_TO_INT(property);
 		return *outCommodity < kManifestCaseInsensitiveLimit;
 	}
-	else if (PROP_IS_STRING(property))
+	else if (JSID_IS_STRING(property))
 	{
-		NSString *key = [OOStringFromJSString(context, PROP_TO_STRING(property)) lowercaseString];
+		NSString *key = [OOStringFromJSString(context, JSID_TO_STRING(property)) lowercaseString];
 		NSNumber *value = [sManifestNameMap objectForKey:key];
 		if (value == nil)  return NO;
 		

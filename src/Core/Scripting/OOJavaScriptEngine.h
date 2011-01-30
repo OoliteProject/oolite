@@ -292,6 +292,13 @@ NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsid propID, JSPro
 NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObjects);
 
 
+// Convert a jsid to an NSString.
+NSString *OOStringFromJSID(jsid propID);
+
+// Convert an NSString to a jsid.
+jsid OOJSIDFromString(NSString *string);
+
+
 @interface NSString (OOJavaScriptExtensions)
 
 // For diagnostic messages; produces things like @"(42, true, "a string", an object description)".
@@ -632,11 +639,11 @@ JSBool OOJSObjectWrapperToString(JSContext *context, uintN argc, jsval *vp);
 
 
 
-/***** Helpers to return values from native callbacks. *****/
-
-#define OOJS_RETURN_VECTOR(value)		do { jsval jsresult; BOOL OK = VectorToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
-#define OOJS_RETURN_QUATERNION(value)	do { jsval jsresult; BOOL OK = QuaternionToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
-#define OOJS_RETURN_DOUBLE(value)		do { jsval jsresult; BOOL OK = JS_NewNumberValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
+/***** Helpers for native callbacks. *****/
+#define OOJS_THIS						JS_THIS_OBJECT(context, vp)
+#define OOJS_ARGV						JS_ARGV(context, vp)
+#define OOJS_RVAL						JS_RVAL(context, vp)
+#define OOJS_SET_RVAL(v)				JS_SET_RVAL(context, vp, v)
 
 #define OOJS_RETURN(v)					do { OOJS_SET_RVAL(v); return YES; } while (0)
 #define OOJS_RETURN_JSOBJECT(o)			OOJS_RETURN(OBJECT_TO_JSVAL(o))
@@ -646,5 +653,13 @@ JSBool OOJSObjectWrapperToString(JSContext *context, uintN argc, jsval *vp);
 #define OOJS_RETURN_INT(v)				OOJS_RETURN(INT_TO_JSVAL(v))
 #define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ oo_jsValueInContext:context] : JSVAL_NULL); } while (0)
 
+#define OOJS_RETURN_WITH_HELPER(helper, value) \
+do { \
+	jsval jsresult; \
+	BOOL OK = helper(context, value, &jsresult); \
+	JS_SET_RVAL(context, vp, jsresult); return OK; \
+} while (0)
 
-#import "OOJSEngineTransitionHelpers.h"
+#define OOJS_RETURN_VECTOR(value)		OOJS_RETURN_WITH_HELPER(VectorToJSValue, value)
+#define OOJS_RETURN_QUATERNION(value)	OOJS_RETURN_WITH_HELPER(QuaternionToJSValue, value)
+#define OOJS_RETURN_DOUBLE(value)		OOJS_RETURN_WITH_HELPER(JS_NewNumberValue, value)

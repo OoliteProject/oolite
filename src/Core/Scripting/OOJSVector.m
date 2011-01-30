@@ -942,7 +942,7 @@ static JSBool VectorToCoordinateSystem(JSContext *context, uintN argc, jsval *vp
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toCoordinateSystem"))) return NO;
 
-	coordScheme = OOStringFromJSValue(context, OOJS_ARG(0));
+	coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (EXPECT_NOT(coordScheme == nil ||
 				   argc < 1 ))
 	{
@@ -971,7 +971,7 @@ static JSBool VectorFromCoordinateSystem(JSContext *context, uintN argc, jsval *
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"fromCoordinateSystem"))) return NO;
 
-	coordScheme = OOStringFromJSValue(context, OOJS_ARG(0));
+	coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (EXPECT_NOT(coordScheme == nil ||
 				   argc < 1 ))
 	{

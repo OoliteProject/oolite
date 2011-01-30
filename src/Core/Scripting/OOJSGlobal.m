@@ -141,11 +141,8 @@ void CreateOOJSGlobal(JSContext *context, JSObject **outGlobal)
 {
 	assert(outGlobal != NULL);
 	
-#if OO_NEW_JS
 	*outGlobal = JS_NewCompartmentAndGlobalObject(context, &sGlobalClass, NULL);
-#else
-	*outGlobal = JS_NewObject(context, &sGlobalClass, NULL, NULL);
-#endif
+	
 	JS_SetGlobalObject(context, *outGlobal);
 	JS_DefineProperty(context, *outGlobal, "global", OBJECT_TO_JSVAL(*outGlobal), NULL, NULL, OOJS_PROP_READONLY);
 }
@@ -239,11 +236,11 @@ static JSBool GlobalLog(JSContext *context, uintN argc, jsval *vp)
 	if (argc < 2)
 	{
 		messageClass = kOOLogDebugMessage;
-		message = OOStringFromJSValue(context, OOJS_ARG(0));
+		message = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	}
 	else
 	{
-		messageClass = OOStringFromJSValue(context, OOJS_ARG(0));
+		messageClass = OOStringFromJSValue(context, OOJS_ARGV[0]);
 		message = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV + 1 count:argc - 1 separator:@", " inContext:context];
 	}
 	
@@ -271,7 +268,7 @@ static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp)
 	NSString			*string = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = OOStringFromJSValue(context, OOJS_ARG(0));
+	string = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (string == nil)
 	{
 		OOJSReportBadArguments(context, nil, @"expandDescription", argc, OOJS_ARGV, nil, @"string");
@@ -279,7 +276,7 @@ static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp)
 	}
 	if (argc > 1)
 	{
-		overrides = OOJSDictionaryFromStringTable(context, OOJS_ARG(1));
+		overrides = OOJSDictionaryFromStringTable(context, OOJS_ARGV[1]);
 	}
 	
 	string = ExpandDescriptionsWithOptions(string, [PLAYER system_seed], overrides, nil, nil);
@@ -298,7 +295,7 @@ static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp)
 	NSMutableString		*mString = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = OOStringFromJSValue(context, OOJS_ARG(0));
+	string = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (string == nil)
 	{
 		OOJSReportBadArguments(context, nil, @"expandMissionText", argc, OOJS_ARGV, nil, @"string");
@@ -306,7 +303,7 @@ static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp)
 	}
 	if (argc > 1)
 	{
-		overrides = OOJSDictionaryFromStringTable(context, OOJS_ARG(1));
+		overrides = OOJSDictionaryFromStringTable(context, OOJS_ARGV[1]);
 	}
 	
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
@@ -331,7 +328,7 @@ static JSBool GlobalDisplayNameForCommodity(JSContext *context, uintN argc, jsva
 	
 	NSString			*string = nil;
 	
-	string = OOStringFromJSValue(context,OOJS_ARG(0));
+	string = OOStringFromJSValue(context,OOJS_ARGV[0]);
 	if (string == nil)
 	{
 		OOJSReportBadArguments(context, nil, @"displayNameForCommodity", argc, OOJS_ARGV, nil, @"string");
@@ -367,7 +364,7 @@ static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc,
 	Random_Seed			aSeed;
 	JSBool				isPlural = YES;
 	
-	if (!JS_ValueToBoolean(context, OOJS_ARG(0), &isPlural))  isPlural = NO;
+	if (!JS_ValueToBoolean(context, OOJS_ARGV[0], &isPlural))  isPlural = NO;
 	
 	make_pseudo_random_seed(&aSeed);
 	string = [UNIVERSE generateSystemInhabitants:aSeed plural:isPlural];
@@ -383,7 +380,7 @@ static JSBool GlobalSetScreenBackground(JSContext *context, uintN argc, jsval *v
 	OOJS_NATIVE_ENTER(context)
 	
 	BOOL			result = NO;
-	jsval			value = (argc > 0) ? OOJS_ARG(0) : JSVAL_NULL;
+	jsval			value = (argc > 0) ? OOJS_ARGV[0] : JSVAL_NULL;
 	
 	if (EXPECT_NOT(argc == 0))
 	{
@@ -418,7 +415,7 @@ static JSBool GlobalSetScreenOverlay(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	BOOL			result = NO;
-	jsval			value = (argc > 0) ? OOJS_ARG(0) : JSVAL_NULL;
+	jsval			value = (argc > 0) ? OOJS_ARGV[0] : JSVAL_NULL;
 	
 	if (EXPECT_NOT(argc == 0))
 	{
@@ -457,7 +454,7 @@ static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp)
 	
 	if (argc > 0)
 	{
-		value = OOStringFromJSValue(context, OOJS_ARG(0));
+		value = OOStringFromJSValue(context, OOJS_ARGV[0]);
 		if (EXPECT_NOT(value == nil || [value rangeOfCharacterFromSet:[allowedChars invertedSet]].location != NSNotFound))
 		{
 			OOJSReportBadArguments(context, nil, @"takeSnapShot", argc, OOJS_ARGV, nil, @"alphanumeric string");

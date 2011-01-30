@@ -52,11 +52,8 @@ void InitOOJSSpecialFunctions(JSContext *context, JSObject *global)
 	sSpecialFunctionsObject = JS_NewObject(context, NULL, NULL, NULL);
 	OOJSAddGCObjectRoot(context, &sSpecialFunctionsObject, "OOJSSpecialFunctions");
 	JS_DefineFunctions(context, sSpecialFunctionsObject, sSpecialFunctionsMethods);
-#if OO_NEW_JS
+	
 	JS_FreezeObject(context, sSpecialFunctionsObject);
-#else
-	JS_SealObject(context, sSpecialFunctionsObject, NO);
-#endif
 }
 
 
@@ -77,7 +74,7 @@ static JSBool SpecialJSWarning(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER	// These functions are exception-safe
 	
 	OOJSSetWarningOrErrorStackSkip(1);
-	OOJSReportWarning(context, @"%@", OOStringFromJSValue(context, OOJS_ARG(0)));
+	OOJSReportWarning(context, @"%@", OOStringFromJSValue(context, OOJS_ARGV[0]));
 	OOJSSetWarningOrErrorStackSkip(0);
 	
 	OOJS_RETURN_VOID;

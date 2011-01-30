@@ -70,7 +70,15 @@ MA 02110-1301, USA.
 #import <stdlib.h>
 
 
-#if OO_NEW_JS
+#ifdef OO_NEW_JS
+#if OO_NEW_JS == 0
+#error OO_NEW_JS should no longer be defined, as newjs builds are no longer optional, but it is currently defined as 0.
+#else
+#warning OO_NEW_JS should no longer be defined.
+#endif
+#endif
+
+
 #define OOJSENGINE_JSVERSION		JSVERSION_ECMA_5
 #ifdef DEBUG
 #define JIT_OPTIONS					0
@@ -78,10 +86,6 @@ MA 02110-1301, USA.
 #define JIT_OPTIONS					JSOPTION_JIT | JSOPTION_METHODJIT | JSOPTION_PROFILING
 #endif
 #define OOJSENGINE_CONTEXT_OPTIONS	JSOPTION_VAROBJFIX | JSOPTION_RELIMIT | JSOPTION_ANONFUNFIX | JIT_OPTIONS
-#else
-#define OOJSENGINE_JSVERSION		JSVERSION_1_7
-#define OOJSENGINE_CONTEXT_OPTIONS	JSOPTION_VAROBJFIX | JSOPTION_NATIVE_BRANCH_CALLBACK
-#endif
 
 
 #define OOJS_STACK_SIZE				8192
@@ -89,9 +93,6 @@ MA 02110-1301, USA.
 
 #if !OOLITE_NATIVE_EXCEPTIONS
 #warning Native exceptions apparently not available. JavaScript functions are not exception-safe.
-#endif
-#if defined(JS_THREADSAFE) && !OO_NEW_JS
-#error Oolite and libjs must be built with JS_THREADSAFE undefined.
 #endif
 
 
@@ -253,21 +254,10 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 {
 	NSAssert(sSharedEngine == nil, @"Attempt to create multiple OOJavaScriptEngines.");
 	
-#if OO_NEW_JS
-	JS_SetCStringsAreUTF8();
-#else
-	// This one is causing trouble for the Linux crowd. :-/
-	if (!JS_CStringsAreUTF8())
-	{
-		OOLog(@"script.javaScript.init.badSpiderMonkey", @"SpiderMonkey (libjs/libmozjs) must be built with the JS_C_STRINGS_ARE_UTF8 macro defined. Additionally, JS_THREADSAFE must be undefined and MOZILLA_1_8_BRANCH must be undefined.");
-		exit(EXIT_FAILURE);
-	}
-#endif
-	
 	if (!(self = [super init]))  return nil;
-	
 	sSharedEngine = self;
 	
+	JS_SetCStringsAreUTF8();
 	
 #ifndef NDEBUG
 	/*	Set stack trace preferences from preferences. These will be overriden
@@ -660,12 +650,10 @@ void OOJSDumpStack(JSContext *context)
 			
 			idx++;
 			
-#if OO_NEW_JS
 			if (!JS_IsScriptFrame(context, frame))
 			{
 				continue;
 			}
-#endif
 			
 			if (skip != 0)
 			{
@@ -829,10 +817,9 @@ void OOJSMarkConsoleEvalLocation(JSContext *context, JSStackFrame *stackFrame)
 #endif
 
 
-#if OO_NEW_JS
-void OOJSInitPropIDCachePRIVATE(const char *name, jsid *idCache, BOOL *inited)
+void OOJSInitJSIDCachePRIVATE(const char *name, jsid *idCache)
 {
-	NSCParameterAssert(name != NULL && idCache != NULL && inited != NULL && !*inited);
+	NSCParameterAssert(name != NULL && name[0] != '\0' && idCache != NULL);
 	
 	JSContext *context = OOJSAcquireContext();
 	
@@ -843,13 +830,12 @@ void OOJSInitPropIDCachePRIVATE(const char *name, jsid *idCache, BOOL *inited)
 	}
 	
 	*idCache = INTERNED_STRING_TO_JSID(string);
-	*inited = YES;
 	
 	OOJSRelinquishContext(context);
 }
 
 
-OOJSPropID OOJSPropIDFromString(NSString *string)
+jsid OOJSIDFromString(NSString *string)
 {
 	if (EXPECT_NOT(string == nil))  return JSID_VOID;
 	
@@ -881,7 +867,7 @@ OOJSPropID OOJSPropIDFromString(NSString *string)
 }
 
 
-NSString *OOStringFromJSPropID(OOJSPropID propID)
+NSString *OOStringFromJSID(jsid propID)
 {
 	JSContext *context = OOJSAcquireContext();
 	
@@ -896,20 +882,6 @@ NSString *OOStringFromJSPropID(OOJSPropID propID)
 	
 	return result;
 }
-#else
-OOJSPropID OOJSPropIDFromString(NSString *string)
-{
-	if (EXPECT_NOT(string == nil))  return NULL;
-	
-	return [string UTF8String];
-}
-
-
-NSString *OOStringFromJSPropID(OOJSPropID propID)
-{
-	return [NSString stringWithUTF8String:propID];
-}
-#endif
 
 
 static NSString *CallerPrefix(NSString *scriptClass, NSString *function)
@@ -1206,7 +1178,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 					value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
 					if (!JSVAL_IS_VOID(value))
 					{
-						OK = JS_SetPropertyById(context, result, OOJSPropIDFromString(key), &value);
+						OK = JS_SetPropertyById(context, result, OOJSIDFromString(key), &value);
 						if (EXPECT_NOT(!OK))  break;
 					}
 				}
@@ -1464,11 +1436,7 @@ NSString *OOStringFromJSValue(JSContext *context, jsval value)
 }
 
 
-#if OO_NEW_JS
 NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsid propID, JSPropertySpec *propertySpec)
-#else
-NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsval propID, JSPropertySpec *propertySpec)
-#endif
 {
 	if (JSID_IS_STRING(propID))
 	{
@@ -1486,12 +1454,7 @@ NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsval propID, JSPr
 	}
 	
 	jsval value;
-#if OO_NEW_JS
 	if (!JS_IdToValue(context, propID, &value))  return @"unknown";
-#else
-	value = propID;
-#endif
-	
 	return OOStringFromJSString(context, JS_ValueToString(context, value));
 }
 
@@ -2134,7 +2097,6 @@ NSDictionary *OOJSDictionaryFromJSObject(JSContext *context, JSObject *object)
 	{
 		jsid thisID = ids->vector[i];
 		
-#if OO_NEW_JS
 		if (JSID_IS_STRING(thisID))
 		{
 			objKey = OOStringFromJSString(context, JSID_TO_STRING(thisID));
@@ -2150,33 +2112,6 @@ NSDictionary *OOJSDictionaryFromJSObject(JSContext *context, JSObject *object)
 		
 		value = JSVAL_VOID;
 		if (objKey != nil && !JS_LookupPropertyById(context, object, thisID, &value))  value = JSVAL_VOID;
-#else
-		jsval propKey = value = JSVAL_VOID;
-		objKey = nil;
-		
-		if (JS_IdToValue(context, thisID, &propKey))
-		{
-			// Properties with string keys.
-			if (JSVAL_IS_STRING(propKey))
-			{
-				JSString *stringKey = JSVAL_TO_STRING(propKey);
-				if (JS_LookupProperty(context, object, JS_GetStringBytes(stringKey), &value))
-				{
-					objKey = OOStringFromJSString(context, stringKey);
-				}
-			}
-			
-			// Properties with int keys.
-			else if (JSVAL_IS_INT(propKey))
-			{
-				jsint intKey = JSVAL_TO_INT(propKey);
-				if (JS_GetElement(context, object, intKey, &value))
-				{
-					objKey = [NSNumber numberWithInt:intKey];
-				}
-			}
-		}
-#endif
 		
 		if (objKey != nil && !JSVAL_IS_VOID(value))
 		{
@@ -2223,7 +2158,6 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue
 	{
 		jsid thisID = ids->vector[i];
 		
-#if OO_NEW_JS
 		if (JSID_IS_STRING(thisID))
 		{
 			objKey = OOStringFromJSString(context, JSID_TO_STRING(thisID));
@@ -2235,23 +2169,6 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue
 		
 		value = JSVAL_VOID;
 		if (objKey != nil && !JS_LookupPropertyById(context, tableObject, thisID, &value))  value = JSVAL_VOID;
-#else
-		jsval propKey = value = JSVAL_VOID;
-		objKey = nil;
-		
-		if (JS_IdToValue(context, thisID, &propKey))
-		{
-			// Properties with string keys.
-			if (JSVAL_IS_STRING(propKey))
-			{
-				JSString *stringKey = JSVAL_TO_STRING(propKey);
-				if (JS_LookupProperty(context, tableObject, JS_GetStringBytes(stringKey), &value))
-				{
-					objKey = OOStringFromJSString(context, stringKey);
-				}
-			}
-		}
-#endif
 		
 		if (objKey != nil && !JSVAL_IS_VOID(value))
 		{

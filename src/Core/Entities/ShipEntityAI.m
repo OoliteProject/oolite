@@ -2288,13 +2288,13 @@ static WormholeEntity *whole = nil;
 	
 	if ([components count] == 1)
 	{
-		[self doScriptEvent:OOJSPropIDFromString(message)];
+		[self doScriptEvent:OOJSIDFromString(message)];
 	}
 	else
 	{
 		NSString *function = [components objectAtIndex:0];
 		components = [components subarrayWithRange:NSMakeRange(1, [components count] - 1)];
-		[self doScriptEvent:OOJSPropIDFromString(function) withArgument:components];
+		[self doScriptEvent:OOJSIDFromString(function) withArgument:components];
 	}
 }
 

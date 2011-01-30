@@ -454,7 +454,7 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, uintN argc, jsva
 	
 	NSString					*key = nil;
 	
-	key = OOStringFromJSValue(context, OOJS_ARG(0));
+	key = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (key == nil)
 	{
 		OOJSReportBadArguments(context, @"EquipmentInfo", @"infoForKey", argc, OOJS_ARGV, nil, @"string");

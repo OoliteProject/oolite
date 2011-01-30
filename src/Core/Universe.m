@@ -7927,7 +7927,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
-- (void) allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(NSString *)message
+- (void) allShipsDoScriptEvent:(jsid)event andReactToAIMessage:(NSString *)message
 {
 	int i;
 	int ent_count = n_entities;

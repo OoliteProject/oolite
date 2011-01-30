@@ -73,7 +73,7 @@ static NSString * const kCacheKeyCaches						= @"caches";
 enum
 {
 	kEndianTagValue			= 0x0123456789ABCDEFULL,
-	kFormatVersionValue		= 42 + (OO_NEW_JS ? 100 : 0)
+	kFormatVersionValue		= 200
 };
 
 

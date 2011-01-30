@@ -9964,7 +9964,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 
 // *** Script event dispatch.
-- (void) doScriptEvent:(OOJSPropID)message
+- (void) doScriptEvent:(jsid)message
 {
 	JSContext *context = OOJSAcquireContext();
 	[self doScriptEvent:message inContext:context withArguments:NULL count:0];
@@ -9972,7 +9972,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) doScriptEvent:(OOJSPropID)message withArgument:(id)argument
+- (void) doScriptEvent:(jsid)message withArgument:(id)argument
 {
 	JSContext *context = OOJSAcquireContext();
 	
@@ -9983,7 +9983,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) doScriptEvent:(OOJSPropID)message
+- (void) doScriptEvent:(jsid)message
 		  withArgument:(id)argument1
 		   andArgument:(id)argument2
 {
@@ -9996,7 +9996,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) doScriptEvent:(OOJSPropID)message withArguments:(NSArray *)arguments
+- (void) doScriptEvent:(jsid)message withArguments:(NSArray *)arguments
 {
 	JSContext				*context = OOJSAcquireContext();
 	uintN					i, argc;
@@ -10034,14 +10034,14 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) doScriptEvent:(OOJSPropID)message withArguments:(jsval *)argv count:(uintN)argc
+- (void) doScriptEvent:(jsid)message withArguments:(jsval *)argv count:(uintN)argc
 {
 	JSContext *context = OOJSAcquireContext();
 	[self doScriptEvent:message inContext:context withArguments:argv count:argc];
 }
 
 
-- (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
+- (void) doScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
 {
 	// This method is a bottleneck so that PlayerEntity can override at one point.
 	[script callMethod:message inContext:context withArguments:argv count:argc result:NULL];
@@ -10060,14 +10060,14 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) doScriptEvent:(OOJSPropID)scriptEvent andReactToAIMessage:(NSString *)aiMessage
+- (void) doScriptEvent:(jsid)scriptEvent andReactToAIMessage:(NSString *)aiMessage
 {
 	[self doScriptEvent:scriptEvent];
 	[self reactToAIMessage:aiMessage context:nil];
 }
 
 
-- (void) doScriptEvent:(OOJSPropID)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage
+- (void) doScriptEvent:(jsid)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage
 {
 	[self doScriptEvent:scriptEvent withArgument:argument];
 	[self reactToAIMessage:aiMessage context:nil];

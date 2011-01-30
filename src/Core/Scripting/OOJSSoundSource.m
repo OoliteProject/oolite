@@ -224,7 +224,7 @@ static JSBool SoundSourcePlay(JSContext *context, uintN argc, jsval *vp)
 	int32					count = 0;
 	
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, OOJS_THIS, &thisv)))  return NO;
-	if (argc > 0 && !JSVAL_IS_VOID(OOJS_ARG(0)) && !JS_ValueToInt32(context, OOJS_ARG(0), &count))
+	if (argc > 0 && !JSVAL_IS_VOID(OOJS_ARGV[0]) && !JS_ValueToInt32(context, OOJS_ARGV[0], &count))
 	{
 		OOJSReportBadArguments(context, @"SoundSource", @"play", argc, OOJS_ARGV, nil, @"integer count or no argument");
 		return NO;

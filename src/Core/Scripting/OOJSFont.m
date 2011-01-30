@@ -48,14 +48,14 @@ static JSBool FontMeasureString(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT(argc < 1) || JSVAL_IS_VOID(OOJS_ARG(0)))
+	if (EXPECT_NOT(argc < 1) || JSVAL_IS_VOID(OOJS_ARGV[0]))
 	{
 		jsval undefined = JSVAL_VOID;
 		OOJSReportBadArguments(context, nil, @"defaultFont.measureString", 1, &undefined, nil, @"string");
 		return NO;
 	}
 	
-	OOJS_RETURN_DOUBLE(OOStringWidthInEm(OOStringFromJSValue(context, OOJS_ARG(0))));
+	OOJS_RETURN_DOUBLE(OOStringWidthInEm(OOStringFromJSValue(context, OOJS_ARGV[0])));
 	
 	OOJS_NATIVE_EXIT
 }

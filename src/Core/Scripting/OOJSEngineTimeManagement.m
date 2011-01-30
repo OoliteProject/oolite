@@ -67,11 +67,7 @@ enum
 #define OOJS_TIME_LIMIT		(1)	// seconds
 #endif
 
-#if OO_NEW_JS
 static BOOL sStop;
-#else
-static unsigned long sBranchCount;
-#endif
 
 #ifndef NDEBUG
 static const char *sLastStartedFile;
@@ -166,9 +162,7 @@ void OOJSResetTimeLimiter(void)
 	OODisposeHighResTime(sLimiterStart);
 	sLimiterStart = OOGetHighResTime();
 	
-#if OO_NEW_JS
 	sStop = NO;
-#endif
 }
 
 
@@ -184,9 +178,6 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
 }
 #endif
 
-
-
-#if OO_NEW_JS
 
 @implementation OOJavaScriptEngine (WatchdogTimer)
 
@@ -241,56 +232,12 @@ static JSBool OperationCallback(JSContext *context)
 	return NO;
 }
 
-#else
-
-static JSBool BranchCallback(JSContext *context, JSScript *script)
-{
-	// This will be called a _lot_. Efficiency is important.
-	if (EXPECT(sBranchCount++ & (kMaxBranchCount - 1)))
-	{
-		return YES;
-	}
-	
-	// One in kMaxBranchCount calls, check if the timer has overflowed.
-	sBranchCount = 0;
-	
-#ifndef NDEBUG
-	if (sLimiterStartDepth == 0)
-	{
-		OOLog(@"bug.javaScript.limiterInactive", @"JavaScript branch callback hit while time limiter inactive. This is an internal error, please report it. bugs@oolite.org");
-	}
-#endif
-	
-	if (sLimiterPauseDepth > 0)  return YES;
-	
-	OOHighResTimeValue now = OOGetHighResTime();
-	OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
-	OODisposeHighResTime(now);
-	
-	if (elapsed < sLimiterTimeLimit)  return YES;
-	
-    JS_ClearPendingException(context);
-	
-	OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
-#ifndef NDEBUG
-	OOJSDumpStack(context);
-#endif
-	
-	// FIXME: we really should put something in the JS log here, but since that's implemented in JS there are complications.
-	
-	return NO;
-}
-#endif
 
 static JSBool ContextCallback(JSContext *context, uintN contextOp)
 {
 	if (contextOp == JSCONTEXT_NEW)
 	{
-#if OO_NEW_JS
 		JS_SetOperationCallback(context, OperationCallback);
-#else
-		JS_SetBranchCallback(context, BranchCallback);
-#endif
 		
 #if OOJS_PROFILE && defined(MOZ_TRACE_JSCALLS)
 		JS_SetFunctionCallback(context, (JSFunctionCallback)FunctionCallback);	// Naughtily casts away consts, because const JSContexts and JSFunctions are useless.
@@ -302,11 +249,9 @@ static JSBool ContextCallback(JSContext *context, uintN contextOp)
 
 void OOJSTimeManagementInit(OOJavaScriptEngine *engine, JSRuntime *runtime)
 {
-#if OO_NEW_JS
 	[NSThread detachNewThreadSelector:@selector(watchdogTimerThread)
 							 toTarget:engine
 						   withObject:nil];
-#endif
 	
 	JS_SetContextCallback(runtime, ContextCallback);
 }

@@ -328,8 +328,8 @@ static JSBool PlayerCommsMessage(JSContext *context, uintN argc, jsval *vp)
 	double					time = 4.5;
 	BOOL					gotTime = YES;
 	
-	message = OOStringFromJSValue(context, OOJS_ARG(0));
-	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARG(1), &time);
+	message = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARGV[1], &time);
 	if (message == nil || !gotTime)
 	{
 		OOJSReportBadArguments(context, @"Player", @"commsMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
@@ -352,8 +352,8 @@ static JSBool PlayerConsoleMessage(JSContext *context, uintN argc, jsval *vp)
 	double					time = 3.0;
 	BOOL					gotTime = YES;
 	
-	message = OOStringFromJSValue(context, OOJS_ARG(0));
-	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARG(1), &time);
+	message = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 1)  gotTime = JS_ValueToNumber(context, OOJS_ARGV[1], &time);
 	if (message == nil || !gotTime)
 	{
 		OOJSReportBadArguments(context, @"Player", @"consoleMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
@@ -421,7 +421,7 @@ static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, js
 	
 	NSString				*report = nil;
 	
-	report = OOStringFromJSValue(context, OOJS_ARG(0));
+	report = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (report == nil)
 	{
 		OOJSReportBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, OOJS_ARGV, nil, @"arrival message");
@@ -452,7 +452,7 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsva
 	
 	if (argc == 1)
 	{
-		destValue = OOJSNativeObjectFromJSValue(context, OOJS_ARG(0));
+		destValue = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[0]);
 		
 		if (!destValue || [destValue isKindOfClass:[ShipEntity class]])
 		{
@@ -514,7 +514,7 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsva
 			else
 			{
 				JSBool		bValue;
-				if (JS_ValueToBoolean(context, OOJS_ARG(0), &bValue) && bValue == NO)
+				if (JS_ValueToBoolean(context, OOJS_ARGV[0], &bValue) && bValue == NO)
 				{
 					[player setDockTarget:NULL];
 					OK = YES;

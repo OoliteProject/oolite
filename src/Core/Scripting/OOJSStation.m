@@ -363,9 +363,9 @@ static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *v
 	
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARG(1), &abortAllDockings);
+	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARGV[1], &abortAllDockings);
 	
-	NSString *shipRole = OOStringFromJSValue(context, OOJS_ARG(0));
+	NSString *shipRole = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (EXPECT_NOT(shipRole == nil))
 	{
 		OOJSReportBadArguments(context, @"Station", @"launchShipWithRole", argc, OOJS_ARGV, nil, @"shipRole");

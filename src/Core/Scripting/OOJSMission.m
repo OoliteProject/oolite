@@ -196,7 +196,7 @@ static JSBool MissionAddMessageText(JSContext *context, uintN argc, jsval *vp)
 	
 	// Found "FIXME: warning if no mission screen running.",,,
 	// However: used routinely by the Constrictor mission in F7, without mission screens.
-	text = OOStringFromJSValue(context, OOJS_ARG(0));
+	text = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	[player addLiteralMissionText:text];
 	
 	OOJS_RETURN_VOID;
@@ -231,16 +231,16 @@ static JSBool MissionSetInstructionsInternal(JSContext *context, uintN argc, jsv
 	{
 		OOJSReportWarning(context, @"Usage error: mission.%@() called with no arguments. Treating as Mission.%@(null). This call may fail in a future version of Oolite.", isKey ? @"setInstructionsKey" : @"setInstructions", isKey ? @"setInstructionsKey" : @"setInstructions");
 	}
-	else if (EXPECT_NOT(JSVAL_IS_VOID(OOJS_ARG(0))))
+	else if (EXPECT_NOT(JSVAL_IS_VOID(OOJS_ARGV[0])))
 	{
 		OOJSReportBadArguments(context, @"Mission", isKey ? @"setInstructionsKey" : @"setInstructions", 1, OOJS_ARGV, NULL, @"string or null");
 		return NO;
 	}
-	else  text = OOStringFromJSValue(context, OOJS_ARG(0));
+	else  text = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	
 	if (argc > 1)
 	{
-		missionKey = [NSString stringWithJavaScriptValue:OOJS_ARG(1) inContext:context];
+		missionKey = [NSString stringWithJavaScriptValue:OOJS_ARGV[1] inContext:context];
 	}
 	else
 	{
@@ -311,14 +311,14 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	// Validate arguments.
-	if (!JSVAL_IS_OBJECT(OOJS_ARG(0)) || JSVAL_IS_NULL(OOJS_ARG(0)))
+	if (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || JSVAL_IS_NULL(OOJS_ARGV[0]))
 	{
 		OOJSReportBadArguments(context, @"mission", @"runScreen", argc, OOJS_ARGV, nil, @"parameter object");
 		return NO;
 	}
-	params = JSVAL_TO_OBJECT(OOJS_ARG(0));
+	params = JSVAL_TO_OBJECT(OOJS_ARGV[0]);
 	
-	if (argc > 1) function = OOJS_ARG(1);
+	if (argc > 1) function = OOJS_ARGV[1];
 	if (!JSVAL_IS_NULL(function) && !OOJSValueIsFunction(context, function))
 	{
 		OOJSReportBadArguments(context, @"mission", @"runScreen", argc - 1, OOJS_ARGV + 1, nil, @"function");
@@ -333,7 +333,7 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 		sCallbackScript = [[[OOJSScript currentlyRunningScript] weakRefUnderlyingObject] retain];
 		if (argc > 2)
 		{
-			sCallbackThis = OOJS_ARG(2);
+			sCallbackThis = OOJS_ARGV[2];
 		}
 		else
 		{

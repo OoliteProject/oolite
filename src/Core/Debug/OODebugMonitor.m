@@ -609,7 +609,6 @@ typedef struct
 	 SizeString(totalTextureDataSize),
 	 SizeString(visibleTextureDataSize)];
 	
-#if OO_NEW_JS
 	JSContext *context = OOJSAcquireContext();
 	
 	JSRuntime *runtime = JS_GetRuntime(context);
@@ -621,7 +620,6 @@ typedef struct
 	
 	[self writeMemStat:@"JavaScript heap: %@ (limit %@, %u collections to date)", SizeString(jsSize), SizeString(jsMax), jsGCCount];
 	totalSize += jsSize;
-#endif
 	
 	[self writeMemStat:@"Total: %@", SizeString(totalSize)];
 	

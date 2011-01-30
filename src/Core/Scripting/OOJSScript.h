@@ -59,16 +59,16 @@ MA 02110-1301, USA.
 	Requires a request on context.
 	outResult may be NULL.
 */
-- (BOOL) callMethod:(OOJSPropID)methodID
+- (BOOL) callMethod:(jsid)methodID
 		  inContext:(JSContext *)context
 	  withArguments:(jsval *)argv count:(intN)argc
 			 result:(jsval *)outResult;
 
-- (id) propertyWithID:(OOJSPropID)propID inContext:(JSContext *)context;
+- (id) propertyWithID:(jsid)propID inContext:(JSContext *)context;
 // Set a property which can be modified or deleted by the script.
-- (BOOL) setProperty:(id)value withID:(OOJSPropID)propID inContext:(JSContext *)context;
+- (BOOL) setProperty:(id)value withID:(jsid)propID inContext:(JSContext *)context;
 // Set a special property which cannot be modified or deleted by the script.
-- (BOOL) defineProperty:(id)value withID:(OOJSPropID)propID inContext:(JSContext *)context;
+- (BOOL) defineProperty:(id)value withID:(jsid)propID inContext:(JSContext *)context;
 
 - (id) propertyNamed:(NSString *)name;
 - (BOOL) setProperty:(id)value named:(NSString *)name;
@@ -80,7 +80,7 @@ MA 02110-1301, USA.
 @interface OOScript (JavaScriptEvents)
 
 // For simplicity, calling methods on non-JS scripts works but does nothing.
-- (BOOL) callMethod:(OOJSPropID)methodID
+- (BOOL) callMethod:(jsid)methodID
 		  inContext:(JSContext *)context
 	  withArguments:(jsval *)argv count:(intN)argc
 			 result:(jsval *)outResult;

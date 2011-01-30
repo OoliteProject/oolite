@@ -190,7 +190,7 @@ static JSBool GlobalAddFrameCallback(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	// Get callback argument and verify that it's a function.
-	jsval callback = OOJS_ARG(0);
+	jsval callback = OOJS_ARGV[0];
 	if (EXPECT_NOT(!OOJSValueIsFunction(context, callback)))
 	{
 		OOJSReportBadArguments(context, nil, @"addFrameCallback", 1, OOJS_ARGV, nil, @"function");
@@ -231,7 +231,7 @@ static JSBool GlobalRemoveFrameCallback(JSContext *context, uintN argc, jsval *v
 	
 	// Get tracking ID argument.
 	uint32 trackingID;
-	if (EXPECT_NOT(!JS_ValueToECMAUint32(context, OOJS_ARG(0), &trackingID)))
+	if (EXPECT_NOT(!JS_ValueToECMAUint32(context, OOJS_ARGV[0], &trackingID)))
 	{
 		OOJSReportBadArguments(context, nil, @"removeFrameCallback", 1, OOJS_ARGV, nil, @"frame callback tracking ID");
 		return NO;
@@ -265,7 +265,7 @@ static JSBool GlobalIsValidFrameCallback(JSContext *context, uintN argc, jsval *
 	
 	// Get tracking ID argument.
 	uint32 trackingID;
-	if (EXPECT_NOT(!JS_ValueToECMAUint32(context, OOJS_ARG(0), &trackingID)))
+	if (EXPECT_NOT(!JS_ValueToECMAUint32(context, OOJS_ARGV[0], &trackingID)))
 	{
 		OOJS_RETURN_BOOL(NO);
 	}

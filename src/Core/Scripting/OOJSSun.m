@@ -160,7 +160,7 @@ static JSBool SunGoNova(JSContext *context, uintN argc, jsval *vp)
 	jsdouble					delay = 0;
 	
 	if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))  return NO;
-	if (argc > 0 && EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARG(0), &delay)))  return NO;
+	if (argc > 0 && EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARGV[0], &delay)))  return NO;
 	
 	[sun setGoingNova:YES inTime:delay];
 	OOJS_RETURN_VOID;

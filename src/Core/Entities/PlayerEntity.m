@@ -8089,14 +8089,14 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) doScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
+- (void) doScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
 {
 	[super doScriptEvent:message inContext:context withArguments:argv count:argc];
 	[self doWorldScriptEvent:message inContext:context withArguments:argv count:argc timeLimit:0.0];
 }
 
 
-- (BOOL) doWorldEventUntilMissionScreen:(OOJSPropID)message
+- (BOOL) doWorldEventUntilMissionScreen:(jsid)message
 {
 	NSEnumerator	*scriptEnum = [worldScripts objectEnumerator];
 	OOScript		*theScript;
@@ -8127,7 +8127,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) doWorldScriptEvent:(OOJSPropID)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc timeLimit:(OOTimeDelta)limit
+- (void) doWorldScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc timeLimit:(OOTimeDelta)limit
 {
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	

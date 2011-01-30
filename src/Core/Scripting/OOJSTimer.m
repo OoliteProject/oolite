@@ -352,30 +352,30 @@ static JSBool TimerConstruct(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	if (!JSVAL_IS_NULL(OOJS_ARG(0)) && !JSVAL_IS_VOID(OOJS_ARG(0)))
+	if (!JSVAL_IS_NULL(OOJS_ARGV[0]) && !JSVAL_IS_VOID(OOJS_ARGV[0]))
 	{
-		if (!JS_ValueToObject(context, OOJS_ARG(0), &callbackThis))
+		if (!JS_ValueToObject(context, OOJS_ARGV[0], &callbackThis))
 		{
 			OOJSReportBadArguments(context, nil, @"Timer", 1, OOJS_ARGV, @"Invalid argument in constructor", @"object");
 			return NO;
 		}
 	}
 	
-	function = OOJS_ARG(1);
+	function = OOJS_ARGV[1];
 	if (JS_ValueToFunction(context, function) == NULL)
 	{
 		OOJSReportBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 1, @"Invalid argument in constructor", @"function");
 		return NO;
 	}
 	
-	if (!JS_ValueToNumber(context, OOJS_ARG(2), &delay) || isnan(delay))
+	if (!JS_ValueToNumber(context, OOJS_ARGV[2], &delay) || isnan(delay))
 	{
 		OOJSReportBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 2, @"Invalid argument in constructor", @"number");
 		return NO;
 	}
 	
 	// Fourth argument is optional.
-	if (3 < argc && !JS_ValueToNumber(context, OOJS_ARG(3), &interval))  interval = -1;
+	if (3 < argc && !JS_ValueToNumber(context, OOJS_ARGV[3], &interval))  interval = -1;
 	
 	// Ensure interval is not too small.
 	if (0.0 < interval && interval < kMinInterval)  interval = kMinInterval;
