@@ -49,9 +49,6 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 		ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
 		GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
 	endif
-	ifeq ($(JS_ECMAv5),yes)
-		ADDITIONAL_OBJCFLAGS+=-DOO_NEW_JS=1
-	endif
 else
 	ifeq ($(JS_ECMAv5),yes)
 		LIBJS_SRC_DIR_COMMON = deps/Linux-deps/JS32ECMAv5/include

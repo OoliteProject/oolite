@@ -26,7 +26,7 @@ pkg-debsnapshot: DEB_REV := $(shell echo "0~trunk${DEB_REV}")
 LIBJS_SRC_DIR=deps/Cross-platform-deps/SpiderMonkey/js/src
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	LIBJS=deps/Windows-x86-deps/DLLs/js32.dll
+	LIBJS=deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
 endif
 
 ifeq ($(GNUSTEP_HOST_OS),linux-gnu)
