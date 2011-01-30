@@ -169,7 +169,7 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -180,12 +180,12 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 	if (EXPECT_NOT(!OOJSEntityGetEntity(context, this, &entity))) return NO;
 	if (OOIsStaleEntity(entity))
 	{ 
-		if (OOJS_PROPID_INT == kEntity_isValid)  *value = JSVAL_FALSE;
+		if (JSID_TO_INT(propID) == kEntity_isValid)  *value = JSVAL_FALSE;
 		else  { *value = JSVAL_VOID; }
 		return YES;
 	}
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kEntity_collisionRadius:
 			OK = JS_NewDoubleValue(context, [entity collisionRadius], value);
@@ -282,7 +282,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 
 static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -295,7 +295,7 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 	if (EXPECT_NOT(!OOJSEntityGetEntity(context, this, &entity)))  return NO;
 	if (OOIsStaleEntity(entity))  return YES;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kEntity_position:
 			if (JSValueToVector(context, *value, &vValue))

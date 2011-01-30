@@ -172,7 +172,7 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 
 static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -181,7 +181,7 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 	if (!JSStationGetStationEntity(context, this, &entity))  return NO;
 	if (entity == nil)  { *value = JSVAL_VOID; return YES; }
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kStation_isMainStation:
 			*value = OOJSValueFromBOOL(entity == [UNIVERSE station]);
@@ -245,7 +245,7 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 
 static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -257,7 +257,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
 	if (entity == nil)  return YES;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kStation_hasNPCTraffic:
 			if (JS_ValueToBoolean(context, *value, &bValue))

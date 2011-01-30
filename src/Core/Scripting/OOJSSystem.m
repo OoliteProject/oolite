@@ -205,7 +205,7 @@ void InitOOJSSystem(JSContext *context, JSObject *global)
 
 static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -217,7 +217,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 	player = OOPlayerForScripting();
 	
 	// Handle cases which don't require systemData.
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kSystem_ID:
 			*value = INT_TO_JSVAL([player currentSystemID]);
@@ -276,7 +276,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 		// Handle cases which do require systemData.
 		systemData = [UNIVERSE generateSystemData:player->system_seed];
 		
-		switch (OOJS_PROPID_INT)
+		switch (JSID_TO_INT(propID))
 		{
 			case kSystem_name:
 				result = [systemData objectForKey:KEY_NAME];
@@ -335,7 +335,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 
 static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -353,7 +353,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	if (system == -1)  return YES;	// Can't change anything in interstellar space.
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kSystem_name:
 			stringValue = OOStringFromJSValue(context, *value);

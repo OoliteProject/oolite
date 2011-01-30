@@ -113,7 +113,7 @@ void InitOOJSClock(JSContext *context, JSObject *global)
 
 static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -123,7 +123,7 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsid propID, 
 	player = OOPlayerForScripting();
 	clockTime = [player clockTime];
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kClock_absoluteSeconds:
 			*value = DOUBLE_TO_JSVAL([UNIVERSE getTime]);

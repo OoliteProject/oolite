@@ -339,9 +339,9 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsid propI
 	}
 	else
 	{
-		if (!OOJS_PROPID_IS_INT)  return YES;
+		if (!JSID_IS_INT(propID))  return YES;
 		
-		switch (OOJS_PROPID_INT)
+		switch (JSID_TO_INT(propID))
 		{
 			case kManifest_list:
 				result = [entity cargoListForScripting];

@@ -63,8 +63,8 @@ static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsid p
 	NSString					*scriptName = nil;
 	id							script = nil;
 	
-	if (!OOJS_PROPID_IS_STRING)  return YES;
-	scriptName = OOStringFromJSString(context, OOJS_PROPID_STRING);
+	if (!JSID_IS_STRING(propID))  return YES;
+	scriptName = OOStringFromJSString(context, JSID_TO_STRING(propID));
 	
 	if (scriptName != nil)
 	{

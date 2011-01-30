@@ -471,7 +471,7 @@ static void TraceEnterJSFunction(JSContext *context, JSFunction *function, OOTim
 				[name insertString:@"new " atIndex:0];
 			}
 			
-			if (OOJS_GetFrameThis(context, frame, &this))
+			if (JS_GetFrameThis(context, frame, &this))
 			{
 				[name appendFormat:@"this: %@", OOJSDebugDescribe(context, this)];
 				first = NO;

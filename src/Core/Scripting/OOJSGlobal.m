@@ -160,14 +160,14 @@ void SetUpOOJSGlobal(JSContext *context, JSObject *global)
 
 static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity				*player = OOPlayerForScripting();
 	id							result = nil;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kGlobal_galaxyNumber:
 			*value = INT_TO_JSVAL([player currentGalaxyID]);
@@ -198,14 +198,14 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID,
 #ifndef NDEBUG
 static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
 	BOOL						OK = NO;
 	jsdouble					fValue;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kGlobal_timeAccelerationFactor:
 			if (JS_ValueToNumber(context, *value, &fValue))

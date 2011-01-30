@@ -299,11 +299,11 @@ JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 
 static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 #ifndef NDEBUG
 		case kConsole_debugFlags:
@@ -394,7 +394,7 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 
 static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -402,7 +402,7 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID
 	NSString					*sValue = nil;
 	JSBool						bValue = NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 #ifndef NDEBUG
 		case kConsole_debugFlags:
@@ -531,8 +531,8 @@ static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, 
 	NSString			*key = nil;
 	id					monitor = nil;
 	
-	if (!OOJS_PROPID_IS_STRING)  return NO;
-	key = OOStringFromJSString(context, OOJS_PROPID_STRING);
+	if (!JSID_IS_STRING(propID))  return NO;
+	key = OOStringFromJSString(context, JSID_TO_STRING(propID));
 	
 	monitor = OOJSNativeObjectFromJSObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
@@ -551,7 +551,7 @@ static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, 
 
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_STRING)  return YES;
+	if (!JSID_IS_STRING(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -559,7 +559,7 @@ static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsi
 	id					settingValue = nil;
 	id					monitor = nil;
 	
-	key = OOStringFromJSString(context, OOJS_PROPID_STRING);
+	key = OOStringFromJSString(context, JSID_TO_STRING(propID));
 	
 	monitor = OOJSNativeObjectFromJSObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
@@ -580,7 +580,7 @@ static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsi
 
 static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_STRING)  return YES;
+	if (!JSID_IS_STRING(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -588,7 +588,7 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsi
 	id					settingValue = nil;
 	id					monitor = nil;
 	
-	key = OOStringFromJSString(context, OOJS_PROPID_STRING);
+	key = OOStringFromJSString(context, JSID_TO_STRING(propID));
 	
 	monitor = OOJSNativeObjectFromJSObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
@@ -754,7 +754,7 @@ static JSBool ConsoleCallObjCMethod(JSContext *context, uintN argc, jsval *vp)
 	object = OOJSNativeObjectFromJSObject(context, OOJS_THIS);
 	if (object == nil)
 	{
-		OOJSReportError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", [NSString stringWithJavaScriptValue:OOJS_THIS_VAL inContext:context]);
+		OOJSReportError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", [NSString stringWithJavaScriptValue:JS_THIS(context, vp) inContext:context]);
 		return NO;
 	}
 	

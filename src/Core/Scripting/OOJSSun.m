@@ -119,7 +119,7 @@ void InitOOJSSun(JSContext *context, JSObject *global)
 
 static JSBool SunGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -127,7 +127,7 @@ static JSBool SunGetProperty(JSContext *context, JSObject *this, jsid propID, js
 	
 	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kSun_radius:
 			*value = DOUBLE_TO_JSVAL([sun radius]);

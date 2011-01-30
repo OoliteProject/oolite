@@ -211,7 +211,7 @@ JSObject *JSPlayerShipObject(void)
 
 static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -221,7 +221,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 	id							result = nil;
 	PlayerEntity				*player = OOPlayerShipForScripting();
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kPlayerShip_fuelLeakRate:
 			*value = DOUBLE_TO_JSVAL([player fuelLeakRate]);
@@ -335,7 +335,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 
 static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -349,7 +349,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 	OOGalacticHyperspaceBehaviour ghBehaviour;
 	Vector						vValue;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kPlayerShip_fuelLeakRate:
 			if (JS_ValueToNumber(context, *value, &fValue))

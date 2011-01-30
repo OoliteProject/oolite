@@ -124,7 +124,7 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -132,7 +132,7 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOPlanetEntity				*planet = nil;
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kPlanet_isMainPlanet:
 			*value = OOJSValueFromBOOL(planet == (id)[UNIVERSE planet]);
@@ -172,7 +172,7 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 
 static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -184,7 +184,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kPlanet_texture:
 			// all error messages are self contained

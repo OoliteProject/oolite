@@ -724,7 +724,7 @@ void OOJSDumpStack(JSContext *context)
 			if (gotProperties)
 			{
 				jsval this;
-				if (OOJS_GetFrameThis(context, frame, &this))
+				if (JS_GetFrameThis(context, frame, &this))
 				{
 					static BOOL haveThis = NO;
 					static jsval thisAtom;
@@ -1206,7 +1206,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 					value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
 					if (!JSVAL_IS_VOID(value))
 					{
-						OK = OOJSSetProperty(context, result, OOJSPropIDFromString(key), &value);
+						OK = JS_SetPropertyById(context, result, OOJSPropIDFromString(key), &value);
 						if (EXPECT_NOT(!OK))  break;
 					}
 				}
@@ -1422,7 +1422,7 @@ NSString *OOStringFromJSString(JSContext *context, JSString *string)
 	if (EXPECT_NOT(string == NULL))  return nil;
 	
 	size_t length;
-	const jschar *chars = OOJSGetStringCharsAndLength(context, string, &length);
+	const jschar *chars = JS_GetStringCharsAndLength(context, string, &length);
 	
 	if (EXPECT(chars != NULL))
 	{
@@ -1470,13 +1470,13 @@ NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsid propID, JSPro
 NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsval propID, JSPropertySpec *propertySpec)
 #endif
 {
-	if (OOJS_PROPID_IS_STRING)
+	if (JSID_IS_STRING(propID))
 	{
-		return OOStringFromJSString(context, OOJS_PROPID_STRING);
+		return OOStringFromJSString(context, JSID_TO_STRING(propID));
 	}
-	else if (OOJS_PROPID_IS_INT && propertySpec != NULL)
+	else if (JSID_IS_INT(propID) && propertySpec != NULL)
 	{
-		int tinyid = OOJS_PROPID_INT;
+		int tinyid = JSID_TO_INT(propID);
 		
 		while (propertySpec->name != NULL)
 		{
@@ -1516,7 +1516,7 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 		
 		JSString *string = JSVAL_TO_STRING(value);
 		size_t length;
-		const jschar *chars = OOJSGetStringCharsAndLength(context, string, &length);
+		const jschar *chars = JS_GetStringCharsAndLength(context, string, &length);
 		
 		result = [NSString stringWithCharacters:chars length:MIN(length, (size_t)kMaxLength)];
 		result = [NSString stringWithFormat:@"\"%@%@\"", [result escapedForJavaScriptLiteral], (length > kMaxLength) ? @"..." : @""];
@@ -1812,7 +1812,7 @@ JSBool OOJSUnconstructableConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	JSFunction *function = JS_ValueToFunction(context, OOJS_CALLEE);
+	JSFunction *function = JS_ValueToFunction(context, JS_CALLEE(context, vp));
 	NSString *name = OOStringFromJSString(context, JS_GetFunctionId(function));
 	
 	OOJSReportError(context, @"%@ cannot be used as a constructor.", name);
@@ -2231,7 +2231,7 @@ id OOJSNativeObjectFromJSValue(JSContext *context, jsval value)
 	}
 	if (JSVAL_IS_DOUBLE(value))
 	{
-		return [NSNumber numberWithDouble:OOJSVAL_TO_DOUBLE(value)];
+		return [NSNumber numberWithDouble:JSVAL_TO_DOUBLE(value)];
 	}
 	if (JSVAL_IS_BOOLEAN(value))
 	{

@@ -160,15 +160,11 @@ const char *JSValueToStrSafeDbg(jsval val)
 		const jschar	*chars = NULL;
 		size_t			length = JS_GetStringLength(string);
 		
-#if OO_NEW_JS && OOJS_FF4B9
 		if (JS_StringHasBeenInterned(string))
 		{
 			chars = JS_GetInternedStringChars(string);
 		}
 		// Flat strings can be extracted without a context, but cannot be detected.
-#else
-		chars = JS_GetStringChars(string);
-#endif
 		
 		if (chars == NULL)  formatted = [NSString stringWithFormat:@"string [%zu chars]", length];
 		else  formatted = [NSString stringWithCharacters:chars length:length];
@@ -194,7 +190,6 @@ const char *JSStringToStrSafeDbg(JSString *str)
 }
 
 
-#if OO_NEW_JS
 const char *JSIDToStrSafeDbg(jsid anID)
 {
 	NSString *formatted = nil;
@@ -211,7 +206,6 @@ const char *JSIDToStrSafeDbg(jsid anID)
 		const jschar	*chars = NULL;
 		size_t			length = JS_GetStringLength(string);
 		
-#if OOJS_FF4B9
 		if (JS_StringHasBeenInterned(string))
 		{
 			chars = JS_GetInternedStringChars(string);
@@ -221,9 +215,6 @@ const char *JSIDToStrSafeDbg(jsid anID)
 			// Bug; jsid strings must be interned.
 			return "*** uninterned string in jsid! ***";
 		}
-#else
-		chars = JS_GetStringChars(string);
-#endif
 		formatted = [NSString stringWithFormat:@"\"%@\"", [NSString stringWithCharacters:chars length:length]];
 	}
 	else
@@ -233,6 +224,4 @@ const char *JSIDToStrSafeDbg(jsid anID)
 	
 	return [formatted UTF8String];
 }
-#endif
-
 #endif

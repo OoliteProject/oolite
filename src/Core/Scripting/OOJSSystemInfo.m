@@ -426,9 +426,9 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 	BOOL sameGalaxy = [PLAYER currentGalaxyID] == [info galaxy];
 	
 	
-	if (OOJS_PROPID_IS_INT)
+	if (JSID_IS_INT(propID))
 	{
-		switch (OOJS_PROPID_INT)
+		switch (JSID_TO_INT(propID))
 		{
 			case kSystemInfo_coordinates:
 				if (sameGalaxy && !savedInterstellarInfo)
@@ -458,9 +458,9 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 				return NO;
 		}
 	}
-	else if (OOJS_PROPID_IS_STRING)
+	else if (JSID_IS_STRING(propID))
 	{
-		NSString *key = OOStringFromJSString(context, OOJS_PROPID_STRING);
+		NSString *key = OOStringFromJSString(context, JSID_TO_STRING(propID));
 		
 		if (!sameGalaxy || savedInterstellarInfo)
 		{
@@ -504,9 +504,9 @@ static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsid pro
 	
 	OOJS_NATIVE_ENTER(context);
 	
-	if (OOJS_PROPID_IS_STRING)
+	if (JSID_IS_STRING(propID))
 	{
-		NSString		*key = OOStringFromJSString(context, OOJS_PROPID_STRING);
+		NSString		*key = OOStringFromJSString(context, JSID_TO_STRING(propID));
 		OOSystemInfo	*info = OOJSNativeObjectOfClassFromJSObject(context, this, [OOSystemInfo class]);
 		
 		[info setValue:OOStringFromJSValue(context, *value) forKey:key];

@@ -177,7 +177,7 @@ PlayerEntity *OOPlayerForScripting(void)
 
 static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -185,7 +185,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 	id							result = nil;
 	PlayerEntity				*player = OOPlayerForScripting();
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kPlayer_name:
 			result = [player playerName];
@@ -281,7 +281,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 
 static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -290,7 +290,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 	jsdouble					fValue;
 	int32						iValue;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kPlayer_score:
 			if (JS_ValueToInt32(context, *value, &iValue))

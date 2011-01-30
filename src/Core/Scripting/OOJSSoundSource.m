@@ -106,7 +106,7 @@ static JSBool SoundSourceConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING))
+	if (EXPECT_NOT(!JS_IsConstructing(context, vp)))
 	{
 		OOJSReportError(context, @"SoundSource() cannot be called as a function, it must be used as a constructor (as in new SoundSource()).");
 		return NO;
@@ -122,7 +122,7 @@ static JSBool SoundSourceConstruct(JSContext *context, uintN argc, jsval *vp)
 
 static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -130,7 +130,7 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsid pr
 	
 	if (!JSSoundSourceGetSoundSource(context, this, &soundSource)) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kSoundSource_sound:
 			*value = OOJSValueFromNativeObject(context, [soundSource sound]);
@@ -161,7 +161,7 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsid pr
 
 static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -172,7 +172,7 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid pr
 	
 	if (!JSSoundSourceGetSoundSource(context, this, &soundSource)) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kSoundSource_sound:
 			[soundSource setSound:SoundFromJSValue(context, *value)];

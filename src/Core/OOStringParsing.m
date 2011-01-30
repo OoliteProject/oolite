@@ -720,7 +720,7 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 	jsval				rval;
 	NSString			*result = @"<error>";
 	
-	if (OOJSGetMethod(context, global, OOJSID("formatCredits"), &fakeRoot, &method))
+	if (JS_GetMethodById(context, global, OOJSID("formatCredits"), &fakeRoot, &method))
 	{
 		jsval args[3] =
 		{

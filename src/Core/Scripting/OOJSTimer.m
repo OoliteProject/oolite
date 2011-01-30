@@ -231,7 +231,7 @@ void InitOOJSTimer(JSContext *context, JSObject *global)
 
 static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -239,7 +239,7 @@ static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsid propID, 
 	
 	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &timer))) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kTimer_nextTime:
 			*value = DOUBLE_TO_JSVAL([timer nextTime]);
@@ -264,7 +264,7 @@ static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsid propID, 
 
 static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -274,7 +274,7 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, 
 	
 	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &timer))) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kTimer_nextTime:
 			if (JS_ValueToNumber(context, *value, &fValue))
@@ -342,7 +342,7 @@ static JSBool TimerConstruct(JSContext *context, uintN argc, jsval *vp)
 	OOJSTimer				*timer = nil;
 	JSObject				*callbackThis = NULL;
 	
-	if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING))
+	if (EXPECT_NOT(!JS_IsConstructing(context, vp)))
 	{
 		OOJSReportError(context, @"Timer() cannot be called as a function, it must be used as a constructor (as in new Timer(...)).");
 		return NO;

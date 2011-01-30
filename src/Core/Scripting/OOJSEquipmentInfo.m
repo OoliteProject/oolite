@@ -213,7 +213,7 @@ NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *ou
 
 static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -222,7 +222,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 	
 	if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, this, &eqType)))  return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kEquipmentInfo_equipmentKey:
 			result = [eqType identifier];
@@ -348,7 +348,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 
 static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -358,7 +358,7 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid 
 	
 	if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, this, &eqType)))  return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kEquipmentInfo_effectiveTechLevel:
 			if ([eqType techLevel] == kOOVariableTechLevel)

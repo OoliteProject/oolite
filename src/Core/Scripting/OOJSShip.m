@@ -352,7 +352,7 @@ JSObject *JSShipPrototype(void)
 
 static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -363,7 +363,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity)))  return NO;
 	if (OOIsStaleEntity(entity)) { *value = JSVAL_VOID; return YES; }
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kShip_name:
 			result = [entity name];
@@ -724,7 +724,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 
 static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -742,7 +742,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
 	if (OOIsStaleEntity(entity))  return YES;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kShip_name:
 			if ([entity isPlayer])

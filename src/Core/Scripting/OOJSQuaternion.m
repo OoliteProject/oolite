@@ -438,7 +438,7 @@ BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *ar
 
 static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_PROFILE_ENTER
 	
@@ -447,7 +447,7 @@ static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsid pro
 	
 	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quaternion))) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kQuaternion_w:
 			fValue = quaternion.w;
@@ -478,7 +478,7 @@ static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsid pro
 
 static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_PROFILE_ENTER
 	
@@ -492,7 +492,7 @@ static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsid pro
 		return NO;
 	}
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kQuaternion_w:
 			quaternion.w = dval;
@@ -544,17 +544,8 @@ static JSBool QuaternionConstruct(JSContext *context, uintN argc, jsval *vp)
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NO;
 	
-    if (OOJS_CASTABLE_CONSTRUCTOR_CREATE)
-	{
-        this = JS_NewObject(context, &sQuaternionClass, NULL, NULL);
-        if (this == NULL)  return NO;
-    }
-	else
-	{
-#if !OO_NEW_JS
-		this = this_;
-#endif
-	}
+	this = JS_NewObject(context, &sQuaternionClass, NULL, NULL);
+	if (EXPECT_NOT(this == NULL))  return NO;
 	
 	if (argc != 0)
 	{

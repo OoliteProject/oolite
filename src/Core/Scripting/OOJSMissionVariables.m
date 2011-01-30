@@ -103,7 +103,7 @@ static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this,
 	
 	PlayerEntity				*player = OOPlayerForScripting();
 	
-	if (OOJS_PROPID_IS_STRING)
+	if (JSID_IS_STRING(propID))
 	{
 		NSString *key = KeyForPropertyID(context, propID);
 		[player setMissionVariable:nil forKey:key];
@@ -120,7 +120,7 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 	
 	PlayerEntity				*player = OOPlayerForScripting();
 	
-	if (OOJS_PROPID_IS_STRING)
+	if (JSID_IS_STRING(propID))
 	{
 		NSString *key = KeyForPropertyID(context, propID);
 		if (key == nil)  return YES;
@@ -164,7 +164,7 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 	
 	PlayerEntity				*player = OOPlayerForScripting();
 	
-	if (OOJS_PROPID_IS_STRING)
+	if (JSID_IS_STRING(propID))
 	{
 		NSString *key = KeyForPropertyID(context, propID);
 		if (key == nil)

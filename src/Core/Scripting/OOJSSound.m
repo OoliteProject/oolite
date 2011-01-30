@@ -129,7 +129,7 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 
 static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -137,7 +137,7 @@ static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsid propID, 
 	
 	if (EXPECT_NOT(!JSSoundGetSound(context, this, &sound))) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kSound_name:
 			*value = OOJSValueFromNativeObject(context, [sound name]);

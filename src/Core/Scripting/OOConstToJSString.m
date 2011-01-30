@@ -223,7 +223,7 @@ OOUInteger OOConstantFromJSStringPRIVATE(JSContext *context, JSString *string, s
 		for(i = 0; i < count; i++)
 		{
 			int32 result;
-			if (OOJSCompareStrings(context, string, table->entries[i].string, &result) && result == 0)
+			if (JS_CompareStrings(context, string, table->entries[i].string, &result) && result == 0)
 			{
 				return table->entries[i].value;
 			}

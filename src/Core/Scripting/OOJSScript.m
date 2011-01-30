@@ -339,7 +339,7 @@ static JSFunctionSpec sScriptMethods[] =
 	if (outResult == NULL)  outResult = &ignoredResult;
 	OOJSAddGCObjectRoot(context, &root, "OOJSScript method root");
 	
-	if (EXPECT(OOJSGetMethod(context, _jsSelf, methodID, &root, &method) && !JSVAL_IS_VOID(method)))
+	if (EXPECT(JS_GetMethodById(context, _jsSelf, methodID, &root, &method) && !JSVAL_IS_VOID(method)))
 	{
 #ifndef NDEBUG
 		OOLog(@"script.trace.javaScript", @"Calling [%@].%@()", [self name], OOStringFromJSPropID(methodID));
@@ -382,7 +382,7 @@ static JSFunctionSpec sScriptMethods[] =
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	
 	jsval jsValue = JSVAL_VOID;
-	if (OOJSGetProperty(context, _jsSelf, propID, &jsValue))
+	if (JS_GetPropertyById(context, _jsSelf, propID, &jsValue))
 	{
 		return OOJSNativeObjectFromJSValue(context, jsValue);
 	}
@@ -395,7 +395,7 @@ static JSFunctionSpec sScriptMethods[] =
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	
 	jsval jsValue = OOJSValueFromNativeObject(context, value);
-	return OOJSSetProperty(context, _jsSelf, propID, &jsValue);
+	return JS_SetPropertyById(context, _jsSelf, propID, &jsValue);
 }
 
 
@@ -404,7 +404,7 @@ static JSFunctionSpec sScriptMethods[] =
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	
 	jsval jsValue = OOJSValueFromNativeObject(context, value);
-	return OOJSDefineProperty(context, _jsSelf, propID, jsValue, NULL, NULL, OOJS_PROP_READONLY);
+	return JS_DefinePropertyById(context, _jsSelf, propID, jsValue, NULL, NULL, OOJS_PROP_READONLY);
 }
 
 

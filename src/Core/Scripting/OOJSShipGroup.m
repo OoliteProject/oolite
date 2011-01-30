@@ -103,7 +103,7 @@ void InitOOJSShipGroup(JSContext *context, JSObject *global)
 
 static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -112,7 +112,7 @@ static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsid prop
 	
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group))) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kShipGroup_ships:
 			result = [group memberArray];
@@ -146,7 +146,7 @@ static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsid prop
 
 static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
@@ -156,7 +156,7 @@ static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid prop
 	
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group))) return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kShipGroup_leader:
 			shipValue = OOJSNativeObjectOfClassFromJSValue(context, *value, [ShipEntity class]);
@@ -193,7 +193,7 @@ static JSBool ShipGroupConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING))
+	if (EXPECT_NOT(!JS_IsConstructing(context, vp)))
 	{
 		OOJSReportError(context, @"ShipGroup() cannot be called as a function, it must be used as a constructor (as in new ShipGroup(...)).");
 		return NO;

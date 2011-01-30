@@ -456,7 +456,7 @@ BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, 
 
 static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_PROFILE_ENTER
 	
@@ -465,7 +465,7 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))  return NO;
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kVector_x:
 			fValue = vector.x;
@@ -492,7 +492,7 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID,
 
 static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (!OOJS_PROPID_IS_INT)  return YES;
+	if (!JSID_IS_INT(propID))  return YES;
 	
 	OOJS_PROFILE_ENTER
 	
@@ -506,7 +506,7 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID,
 		return NO;
 	}
 	
-	switch (OOJS_PROPID_INT)
+	switch (JSID_TO_INT(propID))
 	{
 		case kVector_x:
 			vector.x = dval;
@@ -558,17 +558,8 @@ static JSBool VectorConstruct(JSContext *context, uintN argc, jsval *vp)
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NO;
 	
-    if (OOJS_CASTABLE_CONSTRUCTOR_CREATE)
-	{
-        this = JS_NewObject(context, &sVectorClass, NULL, NULL);
-        if (this == NULL)  return NO;
-    }
-	else
-	{
-#if !OO_NEW_JS
-		this = this_;
-#endif
-	}
+	this = JS_NewObject(context, &sVectorClass, NULL, NULL);
+	if (EXPECT_NOT(this == NULL))  return NO;
 	
 	if (argc != 0)
 	{
