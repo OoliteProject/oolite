@@ -42,37 +42,37 @@ static JSObject *sVectorPrototype;
 static BOOL GetThisVector(JSContext *context, JSObject *vectorObj, Vector *outVector, NSString *method)  NONNULL_FUNC;
 
 
-static JSBool VectorGetProperty(OOJS_PROP_ARGS);
-static JSBool VectorSetProperty(OOJS_PROP_ARGS);
+static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static void VectorFinalize(JSContext *context, JSObject *this);
-static JSBool VectorConstruct(OOJS_NATIVE_ARGS);
+static JSBool VectorConstruct(JSContext *context, uintN argc, jsval *vp);
 
 // Methods
-static JSBool VectorToString(OOJS_NATIVE_ARGS);
-static JSBool VectorToSource(OOJS_NATIVE_ARGS);
-static JSBool VectorAdd(OOJS_NATIVE_ARGS);
-static JSBool VectorSubtract(OOJS_NATIVE_ARGS);
-static JSBool VectorDistanceTo(OOJS_NATIVE_ARGS);
-static JSBool VectorSquaredDistanceTo(OOJS_NATIVE_ARGS);
-static JSBool VectorMultiply(OOJS_NATIVE_ARGS);
-static JSBool VectorDot(OOJS_NATIVE_ARGS);
-static JSBool VectorAngleTo(OOJS_NATIVE_ARGS);
-static JSBool VectorFromCoordinateSystem(OOJS_NATIVE_ARGS);
-static JSBool VectorToCoordinateSystem(OOJS_NATIVE_ARGS);
-static JSBool VectorCross(OOJS_NATIVE_ARGS);
-static JSBool VectorTripleProduct(OOJS_NATIVE_ARGS);
-static JSBool VectorDirection(OOJS_NATIVE_ARGS);
-static JSBool VectorMagnitude(OOJS_NATIVE_ARGS);
-static JSBool VectorSquaredMagnitude(OOJS_NATIVE_ARGS);
-static JSBool VectorRotationTo(OOJS_NATIVE_ARGS);
-static JSBool VectorRotateBy(OOJS_NATIVE_ARGS);
-static JSBool VectorToArray(OOJS_NATIVE_ARGS);
+static JSBool VectorToString(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorToSource(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorAdd(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorSubtract(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorDistanceTo(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorSquaredDistanceTo(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorMultiply(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorDot(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorAngleTo(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorFromCoordinateSystem(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorToCoordinateSystem(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorCross(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorTripleProduct(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorDirection(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorMagnitude(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorSquaredMagnitude(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorRotationTo(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorRotateBy(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorToArray(JSContext *context, uintN argc, jsval *vp);
 
 // Static methods
-static JSBool VectorStaticInterpolate(OOJS_NATIVE_ARGS);
-static JSBool VectorStaticRandom(OOJS_NATIVE_ARGS);
-static JSBool VectorStaticRandomDirection(OOJS_NATIVE_ARGS);
-static JSBool VectorStaticRandomDirectionAndLength(OOJS_NATIVE_ARGS);
+static JSBool VectorStaticInterpolate(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorStaticRandom(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorStaticRandomDirection(JSContext *context, uintN argc, jsval *vp);
+static JSBool VectorStaticRandomDirectionAndLength(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sVectorClass =
@@ -454,7 +454,7 @@ BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, 
 
 // *** Implementation stuff ***
 
-static JSBool VectorGetProperty(OOJS_PROP_ARGS)
+static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -480,7 +480,7 @@ static JSBool VectorGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Vector3D", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sVectorProperties);
 			return NO;
 	}
 	
@@ -490,7 +490,7 @@ static JSBool VectorGetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool VectorSetProperty(OOJS_PROP_ARGS)
+static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -502,7 +502,7 @@ static JSBool VectorSetProperty(OOJS_PROP_ARGS)
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))  return NO;
 	if (EXPECT_NOT(!JS_ValueToNumber(context, *value, &dval)))
 	{
-		OOJSReportError(context, @"Vector3D property accessor: Invalid value %@ -- expected number.", [NSString stringWithJavaScriptValue:OBJECT_TO_JSVAL(this) inContext:context]);
+		OOJSReportBadPropertyValue(context, this, propID, sVectorProperties, *value);
 		return NO;
 	}
 	
@@ -521,7 +521,7 @@ static JSBool VectorSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Vector3D", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sVectorProperties);
 			return NO;
 	}
 	
@@ -547,7 +547,7 @@ static void VectorFinalize(JSContext *context, JSObject *this)
 }
 
 
-static JSBool VectorConstruct(OOJS_NATIVE_ARGS)
+static JSBool VectorConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -599,7 +599,7 @@ static JSBool VectorConstruct(OOJS_NATIVE_ARGS)
 // *** Methods ***
 
 // toString() : String
-static JSBool VectorToString(OOJS_NATIVE_ARGS)
+static JSBool VectorToString(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -614,7 +614,7 @@ static JSBool VectorToString(OOJS_NATIVE_ARGS)
 
 
 // toSource() : String
-static JSBool VectorToSource(OOJS_NATIVE_ARGS)
+static JSBool VectorToSource(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -630,7 +630,7 @@ static JSBool VectorToSource(OOJS_NATIVE_ARGS)
 
 
 // add(v : vectorExpression) : Vector3D
-static JSBool VectorAdd(OOJS_NATIVE_ARGS)
+static JSBool VectorAdd(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -648,7 +648,7 @@ static JSBool VectorAdd(OOJS_NATIVE_ARGS)
 
 
 // subtract(v : vectorExpression) : Vector3D
-static JSBool VectorSubtract(OOJS_NATIVE_ARGS)
+static JSBool VectorSubtract(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -666,7 +666,7 @@ static JSBool VectorSubtract(OOJS_NATIVE_ARGS)
 
 
 // distanceTo(v : vectorExpression) : Number
-static JSBool VectorDistanceTo(OOJS_NATIVE_ARGS)
+static JSBool VectorDistanceTo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -685,7 +685,7 @@ static JSBool VectorDistanceTo(OOJS_NATIVE_ARGS)
 
 
 // squaredDistanceTo(v : vectorExpression) : Number
-static JSBool VectorSquaredDistanceTo(OOJS_NATIVE_ARGS)
+static JSBool VectorSquaredDistanceTo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -704,7 +704,7 @@ static JSBool VectorSquaredDistanceTo(OOJS_NATIVE_ARGS)
 
 
 // multiply(n : Number) : Vector3D
-static JSBool VectorMultiply(OOJS_NATIVE_ARGS)
+static JSBool VectorMultiply(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -723,7 +723,7 @@ static JSBool VectorMultiply(OOJS_NATIVE_ARGS)
 
 
 // dot(v : vectorExpression) : Number
-static JSBool VectorDot(OOJS_NATIVE_ARGS)
+static JSBool VectorDot(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -742,7 +742,7 @@ static JSBool VectorDot(OOJS_NATIVE_ARGS)
 
 
 // angleTo(v : vectorExpression) : Number
-static JSBool VectorAngleTo(OOJS_NATIVE_ARGS)
+static JSBool VectorAngleTo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -761,7 +761,7 @@ static JSBool VectorAngleTo(OOJS_NATIVE_ARGS)
 
 
 // cross(v : vectorExpression) : Vector3D
-static JSBool VectorCross(OOJS_NATIVE_ARGS)
+static JSBool VectorCross(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -779,7 +779,7 @@ static JSBool VectorCross(OOJS_NATIVE_ARGS)
 
 
 // tripleProduct(v : vectorExpression, u : vectorExpression) : Number
-static JSBool VectorTripleProduct(OOJS_NATIVE_ARGS)
+static JSBool VectorTripleProduct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -803,7 +803,7 @@ static JSBool VectorTripleProduct(OOJS_NATIVE_ARGS)
 
 
 // direction() : Vector3D
-static JSBool VectorDirection(OOJS_NATIVE_ARGS)
+static JSBool VectorDirection(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -820,7 +820,7 @@ static JSBool VectorDirection(OOJS_NATIVE_ARGS)
 
 
 // magnitude() : Number
-static JSBool VectorMagnitude(OOJS_NATIVE_ARGS)
+static JSBool VectorMagnitude(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -838,7 +838,7 @@ static JSBool VectorMagnitude(OOJS_NATIVE_ARGS)
 
 
 // squaredMagnitude() : Number
-static JSBool VectorSquaredMagnitude(OOJS_NATIVE_ARGS)
+static JSBool VectorSquaredMagnitude(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -856,7 +856,7 @@ static JSBool VectorSquaredMagnitude(OOJS_NATIVE_ARGS)
 
 
 // rotationTo(v : vectorExpression [, limit : Number]) : Quaternion
-static JSBool VectorRotationTo(OOJS_NATIVE_ARGS)
+static JSBool VectorRotationTo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -889,7 +889,7 @@ static JSBool VectorRotationTo(OOJS_NATIVE_ARGS)
 
 
 // rotateBy(q : quaternionExpression) : Vector3D
-static JSBool VectorRotateBy(OOJS_NATIVE_ARGS)
+static JSBool VectorRotateBy(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -908,7 +908,7 @@ static JSBool VectorRotateBy(OOJS_NATIVE_ARGS)
 
 
 // toArray() : Array
-static JSBool VectorToArray(OOJS_NATIVE_ARGS)
+static JSBool VectorToArray(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -941,7 +941,7 @@ static JSBool VectorToArray(OOJS_NATIVE_ARGS)
 
 
 // toCoordinateSystem(coordScheme : String)
-static JSBool VectorToCoordinateSystem(OOJS_NATIVE_ARGS)
+static JSBool VectorToCoordinateSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -970,7 +970,7 @@ static JSBool VectorToCoordinateSystem(OOJS_NATIVE_ARGS)
 
 
 // fromCoordinateSystem(coordScheme : String)
-static JSBool VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
+static JSBool VectorFromCoordinateSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1003,7 +1003,7 @@ static JSBool VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
 
 
 // interpolate(v : Vector3D, u : Vector3D, alpha : Number) : Vector3D
-static JSBool VectorStaticInterpolate(OOJS_NATIVE_ARGS)
+static JSBool VectorStaticInterpolate(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1041,7 +1041,7 @@ INSUFFICIENT_ARGUMENTS:
 
 
 // random([maxLength : Number]) : Vector3D
-static JSBool VectorStaticRandom(OOJS_NATIVE_ARGS)
+static JSBool VectorStaticRandom(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1056,7 +1056,7 @@ static JSBool VectorStaticRandom(OOJS_NATIVE_ARGS)
 
 
 // randomDirection([scale : Number]) : Vector3D
-static JSBool VectorStaticRandomDirection(OOJS_NATIVE_ARGS)
+static JSBool VectorStaticRandomDirection(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1071,7 +1071,7 @@ static JSBool VectorStaticRandomDirection(OOJS_NATIVE_ARGS)
 
 
 // randomDirectionAndLength([maxLength : Number]) : Vector3D
-static JSBool VectorStaticRandomDirectionAndLength(OOJS_NATIVE_ARGS)
+static JSBool VectorStaticRandomDirectionAndLength(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	

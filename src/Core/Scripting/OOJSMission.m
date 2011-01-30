@@ -35,14 +35,14 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 
 
-static JSBool MissionMarkSystem(OOJS_NATIVE_ARGS);
-static JSBool MissionUnmarkSystem(OOJS_NATIVE_ARGS);
-static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS);
-static JSBool MissionSetInstructions(OOJS_NATIVE_ARGS);
-static JSBool MissionSetInstructionsKey(OOJS_NATIVE_ARGS);
-static JSBool MissionRunScreen(OOJS_NATIVE_ARGS);
+static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp);
+static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp);
+static JSBool MissionAddMessageText(JSContext *context, uintN argc, jsval *vp);
+static JSBool MissionSetInstructions(JSContext *context, uintN argc, jsval *vp);
+static JSBool MissionSetInstructionsKey(JSContext *context, uintN argc, jsval *vp);
+static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp);
 
-static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey);
+static JSBool MissionSetInstructionsInternal(JSContext *context, uintN argc, jsval *vp, BOOL isKey);
 
 //  Mission screen  callback varibables
 static jsval			sCallbackFunction;
@@ -153,7 +153,7 @@ void MissionRunCallback()
 // *** Methods ***
 
 // markSystem(systemCoords : String)
-static JSBool MissionMarkSystem(OOJS_NATIVE_ARGS)
+static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -170,7 +170,7 @@ static JSBool MissionMarkSystem(OOJS_NATIVE_ARGS)
 
 
 // unmarkSystem(systemCoords : String)
-static JSBool MissionUnmarkSystem(OOJS_NATIVE_ARGS)
+static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -187,7 +187,7 @@ static JSBool MissionUnmarkSystem(OOJS_NATIVE_ARGS)
 
 
 // addMessageText(text : String)
-static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS)
+static JSBool MissionAddMessageText(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -206,20 +206,20 @@ static JSBool MissionAddMessageText(OOJS_NATIVE_ARGS)
 
 
 // setInstructionsKey(instructionsKey: String [, missionKey : String])
-static JSBool MissionSetInstructionsKey(OOJS_NATIVE_ARGS)
+static JSBool MissionSetInstructionsKey(JSContext *context, uintN argc, jsval *vp)
 {
-	return MissionSetInstructionsInternal(OOJS_NATIVE_CALLTHROUGH, YES);
+	return MissionSetInstructionsInternal(context, argc, vp, YES);
 }
 
 
 // setInstructions(instructions: String [, missionKey : String])
-static JSBool MissionSetInstructions(OOJS_NATIVE_ARGS)
+static JSBool MissionSetInstructions(JSContext *context, uintN argc, jsval *vp)
 {
-	return MissionSetInstructionsInternal(OOJS_NATIVE_CALLTHROUGH, NO);
+	return MissionSetInstructionsInternal(context, argc, vp, NO);
 }
 
 
-static JSBool MissionSetInstructionsInternal(OOJS_NATIVE_ARGS, BOOL isKey)
+static JSBool MissionSetInstructionsInternal(JSContext *context, uintN argc, jsval *vp, BOOL isKey)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -295,7 +295,7 @@ static NSDictionary *GetParameterImageDescriptor(JSContext *context, JSObject *o
 
 
 // runScreen(params: dict, callBack:function) - if the callback function is null, emulate the old style runMissionScreen
-static JSBool MissionRunScreen(OOJS_NATIVE_ARGS)
+static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

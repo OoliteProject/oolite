@@ -30,9 +30,9 @@ MA 02110-1301, USA.
 static JSObject		*sSpecialFunctionsObject;
 
 
-static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS);
+static JSBool SpecialJSWarning(JSContext *context, uintN argc, jsval *vp);
 #ifndef NDEBUG
-static JSBool SpecialMarkConsoleEntryPoint(OOJS_NATIVE_ARGS);
+static JSBool SpecialMarkConsoleEntryPoint(JSContext *context, uintN argc, jsval *vp);
 #endif
 
 
@@ -72,7 +72,7 @@ OOJSValue *JSSpecialFunctionsObjectWrapper(JSContext *context)
 }
 
 
-static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS)
+static JSBool SpecialJSWarning(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER	// These functions are exception-safe
 	
@@ -87,7 +87,7 @@ static JSBool SpecialJSWarning(OOJS_NATIVE_ARGS)
 
 
 #ifndef NDEBUG
-static JSBool SpecialMarkConsoleEntryPoint(OOJS_NATIVE_ARGS)
+static JSBool SpecialMarkConsoleEntryPoint(JSContext *context, uintN argc, jsval *vp)
 {
 	// First stack frame will be in eval() in console.script.evaluate(), unless someone is playing silly buggers.
 	

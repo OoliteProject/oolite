@@ -163,14 +163,14 @@ static JSClass sTimerClass;
 @end
 
 
-static JSBool TimerGetProperty(OOJS_PROP_ARGS);
-static JSBool TimerSetProperty(OOJS_PROP_ARGS);
+static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static void TimerFinalize(JSContext *context, JSObject *this);
-static JSBool TimerConstruct(OOJS_NATIVE_ARGS);
+static JSBool TimerConstruct(JSContext *context, uintN argc, jsval *vp);
 
 // Methods
-static JSBool TimerStart(OOJS_NATIVE_ARGS);
-static JSBool TimerStop(OOJS_NATIVE_ARGS);
+static JSBool TimerStart(JSContext *context, uintN argc, jsval *vp);
+static JSBool TimerStop(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sTimerClass =
@@ -229,43 +229,40 @@ void InitOOJSTimer(JSContext *context, JSObject *global)
 }
 
 
-static JSBool TimerGetProperty(OOJS_PROP_ARGS)
+static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
 	OOJSTimer				*timer = nil;
-	BOOL					OK = NO;
 	
 	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &timer))) return NO;
 	
 	switch (OOJS_PROPID_INT)
 	{
 		case kTimer_nextTime:
-			OK = JS_NewDoubleValue(context, [timer nextTime], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([timer nextTime]);
+			return YES;
 			
 		case kTimer_interval:
-			OK = JS_NewDoubleValue(context, [timer interval], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([timer interval]);
+			return YES;
 			
 		case kTimer_isRunning:
 			*value = OOJSValueFromBOOL([timer isScheduled]);
-			OK = YES;
-			break;
+			return YES;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"Timer", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sTimerProperties);
+			return NO;
 	}
-	
-	return OK;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool TimerSetProperty(OOJS_PROP_ARGS)
+static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -299,7 +296,13 @@ static JSBool TimerSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"Timer", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sTimerProperties);
+			return NO;
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sTimerProperties, *value);
 	}
 	
 	return OK;
@@ -329,7 +332,7 @@ static void TimerFinalize(JSContext *context, JSObject *this)
 
 
 // new Timer(this : Object, function : Function, delay : Number [, interval : Number]) : Timer
-static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
+static JSBool TimerConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -400,7 +403,7 @@ static JSBool TimerConstruct(OOJS_NATIVE_ARGS)
 // *** Methods ***
 
 // start() : Boolean
-static JSBool TimerStart(OOJS_NATIVE_ARGS)
+static JSBool TimerStart(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -415,7 +418,7 @@ static JSBool TimerStart(OOJS_NATIVE_ARGS)
 
 
 // stop()
-static JSBool TimerStop(OOJS_NATIVE_ARGS)
+static JSBool TimerStop(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

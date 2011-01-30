@@ -36,12 +36,12 @@ static JSObject *sSoundPrototype;
 static OOSound *GetNamedSound(NSString *name);
 
 
-static JSBool SoundGetProperty(OOJS_PROP_ARGS);
+static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
 // Static methods
-static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS);
-static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS);
-static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS);
+static JSBool SoundStaticLoad(JSContext *context, uintN argc, jsval *vp);
+static JSBool SoundStaticPlayMusic(JSContext *context, uintN argc, jsval *vp);
+static JSBool SoundStaticStopMusic(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sSoundClass =
@@ -127,7 +127,7 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 
 // *** Implementation stuff ***
 
-static JSBool SoundGetProperty(OOJS_PROP_ARGS)
+static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -140,11 +140,11 @@ static JSBool SoundGetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kSound_name:
-			*value = [[sound name] oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, [sound name]);
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Sound", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sSoundProperties);
 			return NO;
 	}
 	
@@ -174,7 +174,7 @@ static OOSound *GetNamedSound(NSString *name)
 // *** Static methods ***
 
 // load(name : String) : Sound
-static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS)
+static JSBool SoundStaticLoad(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -199,7 +199,7 @@ static JSBool SoundStaticLoad(OOJS_NATIVE_ARGS)
 
 
 // playMusic(name : String [, loop : Boolean])
-static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
+static JSBool SoundStaticPlayMusic(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -231,7 +231,7 @@ static JSBool SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
 }
 
 
-static JSBool SoundStaticStopMusic(OOJS_NATIVE_ARGS)
+static JSBool SoundStaticStopMusic(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

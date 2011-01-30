@@ -92,9 +92,9 @@ static BOOL				sRunning;
 
 
 // Methods
-static JSBool GlobalAddFrameCallback(OOJS_NATIVE_ARGS);
-static JSBool GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS);
-static JSBool GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS);
+static JSBool GlobalAddFrameCallback(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalRemoveFrameCallback(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalIsValidFrameCallback(JSContext *context, uintN argc, jsval *vp);
 
 
 // Internals
@@ -185,7 +185,7 @@ void OOJSFrameCallbacksRemoveAll(void)
 // MARK: Methods
 
 // addFrameCallback(callback : Function) : Number
-static JSBool GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
+static JSBool GlobalAddFrameCallback(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -225,7 +225,7 @@ static JSBool GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
 
 
 // removeFrameCallback(trackingID : Number)
-static JSBool GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS)
+static JSBool GlobalRemoveFrameCallback(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -259,7 +259,7 @@ static JSBool GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS)
 
 
 // isValidFrameCallback(trackingID : Number)
-static JSBool GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS)
+static JSBool GlobalIsValidFrameCallback(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

@@ -35,18 +35,18 @@ static JSObject		*sStationPrototype;
 static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, StationEntity **outEntity);
 
 
-static JSBool StationGetProperty(OOJS_PROP_ARGS);
-static JSBool StationSetProperty(OOJS_PROP_ARGS);
+static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
-static JSBool StationDockPlayer(OOJS_NATIVE_ARGS);
-static JSBool StationLaunchShipWithRole(OOJS_NATIVE_ARGS);
-static JSBool StationLaunchDefenseShip(OOJS_NATIVE_ARGS);
-static JSBool StationLaunchScavenger(OOJS_NATIVE_ARGS);
-static JSBool StationLaunchMiner(OOJS_NATIVE_ARGS);
-static JSBool StationLaunchPirateShip(OOJS_NATIVE_ARGS);
-static JSBool StationLaunchShuttle(OOJS_NATIVE_ARGS);
-static JSBool StationLaunchPatrol(OOJS_NATIVE_ARGS);
-static JSBool StationLaunchPolice(OOJS_NATIVE_ARGS);
+static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationLaunchDefenseShip(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationLaunchScavenger(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationLaunchMiner(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationLaunchPirateShip(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationLaunchShuttle(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationLaunchPatrol(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationLaunchPolice(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sStationClass =
@@ -170,7 +170,7 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 @end
 
 
-static JSBool StationGetProperty(OOJS_PROP_ARGS)
+static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -226,7 +226,7 @@ static JSBool StationGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kStation_equipmentPriceFactor:
-			JS_NewDoubleValue(context, [entity equipmentPriceFactor], value);
+			*value = DOUBLE_TO_JSVAL([entity equipmentPriceFactor]);
 			break;
 			
 		case kStation_suppressArrivalReports:
@@ -234,7 +234,7 @@ static JSBool StationGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"Station", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sStationProperties);
 			return NO;
 	}
 	return YES;
@@ -243,7 +243,7 @@ static JSBool StationGetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool StationSetProperty(OOJS_PROP_ARGS)
+static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -310,7 +310,13 @@ static JSBool StationSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Station", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sStationProperties);
+			return NO;
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sStationProperties, *value);
 	}
 	
 	return OK;
@@ -323,7 +329,7 @@ static JSBool StationSetProperty(OOJS_PROP_ARGS)
 
 // dockPlayer()
 // Proposed and written by Frame 20090729
-static JSBool StationDockPlayer(OOJS_NATIVE_ARGS)
+static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -349,7 +355,7 @@ static JSBool StationDockPlayer(OOJS_NATIVE_ARGS)
 
 
 // launchShipWithRole(role : String [, abortAllDockings : boolean]) : shipEntity
-static JSBool StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
+static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -376,7 +382,7 @@ static JSBool StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
 }
 
 
-static JSBool StationLaunchDefenseShip(OOJS_NATIVE_ARGS)
+static JSBool StationLaunchDefenseShip(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -388,7 +394,7 @@ static JSBool StationLaunchDefenseShip(OOJS_NATIVE_ARGS)
 }
 
 
-static JSBool StationLaunchScavenger(OOJS_NATIVE_ARGS)
+static JSBool StationLaunchScavenger(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -400,7 +406,7 @@ static JSBool StationLaunchScavenger(OOJS_NATIVE_ARGS)
 }
 
 
-static JSBool StationLaunchMiner(OOJS_NATIVE_ARGS)
+static JSBool StationLaunchMiner(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -412,7 +418,7 @@ static JSBool StationLaunchMiner(OOJS_NATIVE_ARGS)
 }
 
 
-static JSBool StationLaunchPirateShip(OOJS_NATIVE_ARGS)
+static JSBool StationLaunchPirateShip(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -424,7 +430,7 @@ static JSBool StationLaunchPirateShip(OOJS_NATIVE_ARGS)
 }
 
 
-static JSBool StationLaunchShuttle(OOJS_NATIVE_ARGS)
+static JSBool StationLaunchShuttle(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -436,7 +442,7 @@ static JSBool StationLaunchShuttle(OOJS_NATIVE_ARGS)
 }
 
 
-static JSBool StationLaunchPatrol(OOJS_NATIVE_ARGS)
+static JSBool StationLaunchPatrol(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -448,7 +454,7 @@ static JSBool StationLaunchPatrol(OOJS_NATIVE_ARGS)
 }
 
 
-static JSBool StationLaunchPolice(OOJS_NATIVE_ARGS)
+static JSBool StationLaunchPolice(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

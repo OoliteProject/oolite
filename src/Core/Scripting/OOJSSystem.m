@@ -49,40 +49,40 @@ static NSArray *FindJSVisibleEntities(EntityFilterPredicate predicate, void *par
 static NSArray *FindShips(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
 static NSComparisonResult CompareEntitiesByDistance(id a, id b, void *relativeTo);
 
-static JSBool SystemAddShipsOrGroup(OOJS_NATIVE_ARGS, BOOL isGroup);
-static JSBool SystemAddShipsOrGroupToRoute(OOJS_NATIVE_ARGS, BOOL isGroup);
+static JSBool SystemAddShipsOrGroup(JSContext *context, uintN argc, jsval *vp, BOOL isGroup);
+static JSBool SystemAddShipsOrGroupToRoute(JSContext *context, uintN argc, jsval *vp, BOOL isGroup);
 
 
-static JSBool SystemGetProperty(OOJS_PROP_ARGS);
-static JSBool SystemSetProperty(OOJS_PROP_ARGS);
+static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
-static JSBool SystemToString(OOJS_NATIVE_ARGS);
-static JSBool SystemAddPlanet(OOJS_NATIVE_ARGS);
-static JSBool SystemAddMoon(OOJS_NATIVE_ARGS);
-static JSBool SystemSendAllShipsAway(OOJS_NATIVE_ARGS);
-static JSBool SystemCountShipsWithPrimaryRole(OOJS_NATIVE_ARGS);
-static JSBool SystemCountShipsWithRole(OOJS_NATIVE_ARGS);
-static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS);
-static JSBool SystemShipsWithPrimaryRole(OOJS_NATIVE_ARGS);
-static JSBool SystemShipsWithRole(OOJS_NATIVE_ARGS);
-static JSBool SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS);
-static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS);
+static JSBool SystemToString(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemAddPlanet(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemAddMoon(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemSendAllShipsAway(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemCountShipsWithRole(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemCountEntitiesWithScanClass(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemShipsWithPrimaryRole(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemShipsWithRole(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemEntitiesWithScanClass(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemFilteredEntities(JSContext *context, uintN argc, jsval *vp);
 
-static JSBool SystemAddShips(OOJS_NATIVE_ARGS);
-static JSBool SystemAddGroup(OOJS_NATIVE_ARGS);
-static JSBool SystemAddShipsToRoute(OOJS_NATIVE_ARGS);
-static JSBool SystemAddGroupToRoute(OOJS_NATIVE_ARGS);
+static JSBool SystemAddShips(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemAddGroup(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemAddShipsToRoute(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemAddGroupToRoute(JSContext *context, uintN argc, jsval *vp);
 
-static JSBool SystemLegacyAddShips(OOJS_NATIVE_ARGS);
-static JSBool SystemLegacyAddSystemShips(OOJS_NATIVE_ARGS);
-static JSBool SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS);
-static JSBool SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS);
-static JSBool SystemLegacyAddShipsWithinRadius(OOJS_NATIVE_ARGS);
-static JSBool SystemLegacySpawnShip(OOJS_NATIVE_ARGS);
+static JSBool SystemLegacyAddShips(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemLegacyAddSystemShips(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemLegacyAddShipsAt(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemLegacySpawnShip(JSContext *context, uintN argc, jsval *vp);
 
-static JSBool SystemStaticSystemNameForID(OOJS_NATIVE_ARGS);
-static JSBool SystemStaticSystemIDForName(OOJS_NATIVE_ARGS);
-static JSBool SystemStaticInfoForSystem(OOJS_NATIVE_ARGS);
+static JSBool SystemStaticSystemNameForID(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemStaticSystemIDForName(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemStaticInfoForSystem(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sSystemClass =
@@ -203,7 +203,7 @@ void InitOOJSSystem(JSContext *context, JSObject *global)
 }
 
 
-static JSBool SystemGetProperty(OOJS_PROP_ARGS)
+static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -212,129 +212,128 @@ static JSBool SystemGetProperty(OOJS_PROP_ARGS)
 	id							result = nil;
 	PlayerEntity				*player = nil;
 	NSDictionary				*systemData = nil;
-	static Random_Seed 			sCurrentSystem = {0};
+	BOOL						handled = NO;
 	
 	player = OOPlayerForScripting();
 	
-	if (!equal_seeds(sCurrentSystem, player->system_seed))
-	{
-		sCurrentSystem = player->system_seed;
-	}
-	
-	systemData = [UNIVERSE generateSystemData:sCurrentSystem];
-	
+	// Handle cases which don't require systemData.
 	switch (OOJS_PROPID_INT)
 	{
 		case kSystem_ID:
 			*value = INT_TO_JSVAL([player currentSystemID]);
-			break;
-		
-		case kSystem_name:
-			result = [systemData objectForKey:KEY_NAME];
-			if (result == nil)  result = [NSNull null];
-			break;
-			
-		case kSystem_description:
-			result = [systemData objectForKey:KEY_DESCRIPTION];
-			if (result == nil)  result = [NSNull null];
-			break;
-			
-		case kSystem_inhabitantsDescription:
-			result = [systemData objectForKey:KEY_INHABITANTS];
-			if (result == nil)  result = [NSNull null];
-			break;
-			
-		case kSystem_government:
-			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_GOVERNMENT]);
-			break;
-			
-		case kSystem_governmentDescription:
-			result = OODisplayStringFromGovernmentID([systemData oo_intForKey:KEY_GOVERNMENT]);
-			if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
-			if (result == nil)  result = [NSNull null];
-			break;
-			
-		case kSystem_economy:
-			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_ECONOMY]);
-			break;
-			
-		case kSystem_economyDescription:
-			result = OODisplayStringFromEconomyID([systemData oo_intForKey:KEY_ECONOMY]);
-			if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
-			if (result == nil)  result = [NSNull null];
-			break;
-		
-		case kSystem_techLevel:
-			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_TECHLEVEL]);
-			break;
-			
-		case kSystem_population:
-			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_POPULATION]);
-			break;
-			
-		case kSystem_productivity:
-			*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_PRODUCTIVITY]);
-			break;
+			return YES;
 			
 		case kSystem_isInterstellarSpace:
 			*value = OOJSValueFromBOOL([UNIVERSE inInterstellarSpace]);
-			break;
+			return YES;
 			
 		case kSystem_mainStation:
 			result = [UNIVERSE station];
-			if (result == nil)  result = [NSNull null];
+			handled = YES;
 			break;
 			
 		case kSystem_mainPlanet:
 			result = [UNIVERSE planet];
-			if (result == nil)  result = [NSNull null];
+			handled = YES;
 			break;
 			
 		case kSystem_sun:
 			result = [UNIVERSE sun];
-			if (result == nil)  result = [NSNull null];
+			handled = YES;
 			break;
 			
 		case kSystem_planets:
 			result = [UNIVERSE planets];
-			if (result == nil)  result = [NSArray array];
+			handled = YES;
 			break;
 			
 		case kSystem_allShips:
 			OOJS_BEGIN_FULL_NATIVE(context)
 			result = [UNIVERSE findShipsMatchingPredicate:JSEntityIsJavaScriptSearchablePredicate parameter:NULL inRange:-1 ofEntity:nil];
 			OOJS_END_FULL_NATIVE
+			handled = YES;
 			break;
 			
 		case kSystem_info:
 			*value = GetJSSystemInfoForSystem(context, [player currentGalaxyID], [player currentSystemID]);
-			break;
+			return YES;
 		
 		case kSystem_pseudoRandomNumber:
-			JS_NewDoubleValue(context, [player systemPseudoRandomFloat], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([player systemPseudoRandomFloat]);
+			return YES;
 			
 		case kSystem_pseudoRandom100:
 			*value = INT_TO_JSVAL([player systemPseudoRandom100]);
-			break;
+			return YES;
 			
 		case kSystem_pseudoRandom256:
 			*value = INT_TO_JSVAL([player systemPseudoRandom256]);
-			break;
-			
-		default:
-			OOJSReportBadPropertySelector(context, @"System", OOJS_PROPID_INT);
-			return NO;
+			return YES;
 	}
 	
-	if (result != nil)  *value = [result oo_jsValueInContext:context];
+	if (!handled)
+	{
+		// Handle cases which do require systemData.
+		systemData = [UNIVERSE generateSystemData:player->system_seed];
+		
+		switch (OOJS_PROPID_INT)
+		{
+			case kSystem_name:
+				result = [systemData objectForKey:KEY_NAME];
+				break;
+				
+			case kSystem_description:
+				result = [systemData objectForKey:KEY_DESCRIPTION];
+				break;
+				
+			case kSystem_inhabitantsDescription:
+				result = [systemData objectForKey:KEY_INHABITANTS];
+				break;
+				
+			case kSystem_government:
+				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_GOVERNMENT]);
+				return YES;
+				
+			case kSystem_governmentDescription:
+				result = OODisplayStringFromGovernmentID([systemData oo_intForKey:KEY_GOVERNMENT]);
+				if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
+				break;
+				
+			case kSystem_economy:
+				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_ECONOMY]);
+				return YES;
+				
+			case kSystem_economyDescription:
+				result = OODisplayStringFromEconomyID([systemData oo_intForKey:KEY_ECONOMY]);
+				if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
+				break;
+			
+			case kSystem_techLevel:
+				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_TECHLEVEL]);
+				return YES;
+				
+			case kSystem_population:
+				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_POPULATION]);
+				return YES;
+				
+			case kSystem_productivity:
+				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_PRODUCTIVITY]);
+				return YES;
+				
+			default:
+				OOJSReportBadPropertySelector(context, this, propID, sSystemProperties);
+				return NO;
+		}
+	}
+	
+	*value = OOJSValueFromNativeObject(context, result);
 	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool SystemSetProperty(OOJS_PROP_ARGS)
+static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -430,7 +429,13 @@ static JSBool SystemSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"System", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sSystemProperties);
+			return NO;
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sSystemProperties, *value);
 	}
 	
 	return OK;
@@ -442,7 +447,7 @@ static JSBool SystemSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // toString() : String
-static JSBool SystemToString(OOJS_NATIVE_ARGS)
+static JSBool SystemToString(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -457,7 +462,7 @@ static JSBool SystemToString(OOJS_NATIVE_ARGS)
 
 
 // addPlanet(key : String) : Planet
-static JSBool SystemAddPlanet(OOJS_NATIVE_ARGS)
+static JSBool SystemAddPlanet(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -483,7 +488,7 @@ static JSBool SystemAddPlanet(OOJS_NATIVE_ARGS)
 
 
 // addMoon(key : String) : Planet
-static JSBool SystemAddMoon(OOJS_NATIVE_ARGS)
+static JSBool SystemAddMoon(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -509,7 +514,7 @@ static JSBool SystemAddMoon(OOJS_NATIVE_ARGS)
 
 
 // sendAllShipsAway()
-static JSBool SystemSendAllShipsAway(OOJS_NATIVE_ARGS)
+static JSBool SystemSendAllShipsAway(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -523,7 +528,7 @@ static JSBool SystemSendAllShipsAway(OOJS_NATIVE_ARGS)
 
 
 // countShipsWithPrimaryRole(role : String [, relativeTo : Entity [, range : Number]]) : Number
-static JSBool SystemCountShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
+static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -555,7 +560,7 @@ static JSBool SystemCountShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 
 
 // countShipsWithRole(role : String [, relativeTo : Entity [, range : Number]]) : Number
-static JSBool SystemCountShipsWithRole(OOJS_NATIVE_ARGS)
+static JSBool SystemCountShipsWithRole(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -587,7 +592,7 @@ static JSBool SystemCountShipsWithRole(OOJS_NATIVE_ARGS)
 
 
 // shipsWithPrimaryRole(role : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
-static JSBool SystemShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
+static JSBool SystemShipsWithPrimaryRole(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -620,7 +625,7 @@ static JSBool SystemShipsWithPrimaryRole(OOJS_NATIVE_ARGS)
 
 
 // shipsWithRole(role : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
-static JSBool SystemShipsWithRole(OOJS_NATIVE_ARGS)
+static JSBool SystemShipsWithRole(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -653,7 +658,7 @@ static JSBool SystemShipsWithRole(OOJS_NATIVE_ARGS)
 
 
 // countEntitiesWithScanClass(scanClass : String [, relativeTo : Entity [, range : Number]]) : Number
-static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS)
+static JSBool SystemCountEntitiesWithScanClass(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -684,7 +689,7 @@ static JSBool SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 
 
 // entitiesWithScanClass(scanClass : String [, relativeTo : Entity [, range : Number]]) : Array (Entity)
-static JSBool SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS)
+static JSBool SystemEntitiesWithScanClass(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -716,7 +721,7 @@ static JSBool SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS)
 
 
 // filteredEntities(this : Object, predicate : Function [, relativeTo : Entity [, range : Number]]) : Array (Entity)
-static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS)
+static JSBool SystemFilteredEntities(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -754,35 +759,35 @@ static JSBool SystemFilteredEntities(OOJS_NATIVE_ARGS)
 
 
 // addShips(role : String, count : Number [, position: Vector [, radius: Number]]) : Array
-static JSBool SystemAddShips(OOJS_NATIVE_ARGS)
+static JSBool SystemAddShips(JSContext *context, uintN argc, jsval *vp)
 {
-	return SystemAddShipsOrGroup(OOJS_NATIVE_CALLTHROUGH, NO);
+	return SystemAddShipsOrGroup(context, argc, vp, NO);
 }
 
 
 // addGroup(role : String, count : Number [, position: Vector [, radius: Number]]) : Array
-static JSBool SystemAddGroup(OOJS_NATIVE_ARGS)
+static JSBool SystemAddGroup(JSContext *context, uintN argc, jsval *vp)
 {
-	return SystemAddShipsOrGroup(OOJS_NATIVE_CALLTHROUGH, YES);
+	return SystemAddShipsOrGroup(context, argc, vp, YES);
 }
 
 
 // addShipsToRoute(role : String, count : Number [, position: Number [, route: String]])
-static JSBool SystemAddShipsToRoute(OOJS_NATIVE_ARGS)
+static JSBool SystemAddShipsToRoute(JSContext *context, uintN argc, jsval *vp)
 {
-	return SystemAddShipsOrGroupToRoute(OOJS_NATIVE_CALLTHROUGH, NO);
+	return SystemAddShipsOrGroupToRoute(context, argc, vp, NO);
 }
 
 
 // addGroupToRoute(role : String, count : Number,  position: Number[, route: String])
-static JSBool SystemAddGroupToRoute(OOJS_NATIVE_ARGS)
+static JSBool SystemAddGroupToRoute(JSContext *context, uintN argc, jsval *vp)
 {
-	return SystemAddShipsOrGroupToRoute(OOJS_NATIVE_CALLTHROUGH, YES);
+	return SystemAddShipsOrGroupToRoute(context, argc, vp, YES);
 }
 
 
 // legacy_addShips(role : String, count : Number)
-static JSBool SystemLegacyAddShips(OOJS_NATIVE_ARGS)
+static JSBool SystemLegacyAddShips(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -810,7 +815,7 @@ static JSBool SystemLegacyAddShips(OOJS_NATIVE_ARGS)
 
 
 // legacy_addSystemShips(role : String, count : Number, location : Number)
-static JSBool SystemLegacyAddSystemShips(OOJS_NATIVE_ARGS)
+static JSBool SystemLegacyAddSystemShips(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -840,7 +845,7 @@ static JSBool SystemLegacyAddSystemShips(OOJS_NATIVE_ARGS)
 
 
 // legacy_addShipsAt(role : String, count : Number, coordScheme : String, coords : vectorExpression)
-static JSBool SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS)
+static JSBool SystemLegacyAddShipsAt(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -876,7 +881,7 @@ static JSBool SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS)
 
 
 // legacy_addShipsAtPrecisely(role : String, count : Number, coordScheme : String, coords : vectorExpression)
-static JSBool SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS)
+static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -912,7 +917,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS)
 
 
 // legacy_addShipsWithinRadius(role : String, count : Number, coordScheme : String, coords : vectorExpression, radius : Number)
-static JSBool SystemLegacyAddShipsWithinRadius(OOJS_NATIVE_ARGS)
+static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -951,7 +956,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(OOJS_NATIVE_ARGS)
 
 
 // legacy_spawnShip(key : string)
-static JSBool SystemLegacySpawnShip(OOJS_NATIVE_ARGS)
+static JSBool SystemLegacySpawnShip(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -978,7 +983,7 @@ static JSBool SystemLegacySpawnShip(OOJS_NATIVE_ARGS)
 // *** Static methods ***
 
 // systemNameForID(ID : Number) : String
-static JSBool SystemStaticSystemNameForID(OOJS_NATIVE_ARGS)
+static JSBool SystemStaticSystemNameForID(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -997,7 +1002,7 @@ static JSBool SystemStaticSystemNameForID(OOJS_NATIVE_ARGS)
 
 
 // systemIDForName(name : String) : Number
-static JSBool SystemStaticSystemIDForName(OOJS_NATIVE_ARGS)
+static JSBool SystemStaticSystemIDForName(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1022,7 +1027,7 @@ static JSBool SystemStaticSystemIDForName(OOJS_NATIVE_ARGS)
 
 
 // infoForSystem(galaxyID : Number, systemID : Number) : SystemInfo
-static JSBool SystemStaticInfoForSystem(OOJS_NATIVE_ARGS)
+static JSBool SystemStaticInfoForSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1056,7 +1061,7 @@ static JSBool SystemStaticInfoForSystem(OOJS_NATIVE_ARGS)
 // *** Helper functions ***
 
 // Shared implementation of addShips() and addGroup().
-static JSBool SystemAddShipsOrGroup(OOJS_NATIVE_ARGS, BOOL isGroup)
+static JSBool SystemAddShipsOrGroup(JSContext *context, uintN argc, jsval *vp, BOOL isGroup)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1123,7 +1128,7 @@ static JSBool SystemAddShipsOrGroup(OOJS_NATIVE_ARGS, BOOL isGroup)
 }
 
 
-static JSBool SystemAddShipsOrGroupToRoute(OOJS_NATIVE_ARGS, BOOL isGroup)
+static JSBool SystemAddShipsOrGroupToRoute(JSContext *context, uintN argc, jsval *vp, BOOL isGroup)
 {
 	OOJS_NATIVE_ENTER(context)
 	

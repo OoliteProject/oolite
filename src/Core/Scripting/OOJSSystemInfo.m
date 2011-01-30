@@ -37,15 +37,15 @@ static OOGalaxyID sCachedGalaxy;
 static OOSystemID sCachedSystem;
 
 
-static JSBool SystemInfoDeleteProperty(OOJS_PROP_ARGS);
-static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS);
-static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS);
+static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static void SystemInfoFinalize(JSContext *context, JSObject *this);
 static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateOp enumOp, jsval *state, jsid *idp);
 
-static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS);
-static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS);
-static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS);
+static JSBool SystemInfoDistanceToSystem(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sSystemInfoClass =
@@ -397,7 +397,7 @@ static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateO
 }
 
 
-static JSBool SystemInfoDeleteProperty(OOJS_PROP_ARGS)
+static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	OOJS_PROFILE_ENTER	// Any exception will be converted in SystemInfoSetProperty()
 	
@@ -408,7 +408,7 @@ static JSBool SystemInfoDeleteProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
+static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	volatile NSPoint coords;
 	
@@ -428,8 +428,6 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 	
 	if (OOJS_PROPID_IS_INT)
 	{
-		BOOL OK = NO;
-		
 		switch (OOJS_PROPID_INT)
 		{
 			case kSystemInfo_coordinates:
@@ -439,31 +437,26 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 					// Convert from internal scale to light years.
 					coords.x *= 0.4;
 					coords.y *= 0.2; // y-axis had a different scale than x-axis
-					OK = NSPointToVectorJSValue(context, coords, value);
+					return NSPointToVectorJSValue(context, coords, value);
 				}
 				else
 				{
 					OOJSReportError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ? @"invalid interstellar space reference" : @"other galaxies");
-					*value = JSVAL_VOID;
-					// OK remains NO
 				}
-				break;
+				return NO;
 				
 			case kSystemInfo_galaxyID:
 				*value = INT_TO_JSVAL([info galaxy]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kSystemInfo_systemID:
 				*value = INT_TO_JSVAL([info system]);
-				OK = YES;
-				break;
+				return YES;
 				
 			default:
-				OOJSReportBadPropertySelector(context, @"SystemInfo", OOJS_PROPID_INT);
+				OOJSReportBadPropertySelector(context, this, propID, sSystemInfoProperties);
+				return NO;
 		}
-		
-		return OK;
 	}
 	else if (OOJS_PROPID_IS_STRING)
 	{
@@ -501,7 +494,7 @@ static JSBool SystemInfoGetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS)
+static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (this == sSystemInfoPrototype)
 	{
@@ -525,7 +518,7 @@ static JSBool SystemInfoSetProperty(OOJS_PROP_ARGS)
 
 
 // distanceToSystem(sys : SystemInfo) : Number
-static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS)
+static JSBool SystemInfoDistanceToSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -559,7 +552,7 @@ static JSBool SystemInfoDistanceToSystem(OOJS_NATIVE_ARGS)
 
 
 // routeToSystem(sys : SystemInfo [, optimizedBy : String]) : Object
-static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS)
+static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -602,7 +595,7 @@ static JSBool SystemInfoRouteToSystem(OOJS_NATIVE_ARGS)
 
 
 // filteredSystems(this : Object, predicate : Function) : Array
-static JSBool SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
+static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

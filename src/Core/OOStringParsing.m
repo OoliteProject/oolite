@@ -722,18 +722,18 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 	
 	if (OOJSGetMethod(context, global, OOJSID("formatCredits"), &fakeRoot, &method))
 	{
-		jsval args[3];
-		if (JS_NewDoubleValue(context, tenthsOfCredits * 0.1, &args[0]))
+		jsval args[3] =
 		{
-			args[1] = OOJSValueFromBOOL(includeDecimal);
-			args[2] = OOJSValueFromBOOL(includeSymbol);
-			
-			OOJSStartTimeLimiter();
-			JS_CallFunctionValue(context, global, method, 3, args, &rval);
-			OOJSStopTimeLimiter();
-			
-			result = OOStringFromJSValue(context, rval);
-		}
+			DOUBLE_TO_JSVAL(tenthsOfCredits * 0.1),
+			OOJSValueFromBOOL(includeDecimal),
+			OOJSValueFromBOOL(includeSymbol)
+		};
+		
+		OOJSStartTimeLimiter();
+		JS_CallFunctionValue(context, global, method, 3, args, &rval);
+		OOJSStopTimeLimiter();
+		
+		result = OOStringFromJSValue(context, rval);
 	}
 	
 	OOJSRelinquishContext(context);

@@ -1032,10 +1032,22 @@ void OOJSReportWarningWithArguments(JSContext *context, NSString *format, va_lis
 }
 
 
-void OOJSReportBadPropertySelector(JSContext *context, NSString *className, jsint selector)
+void OOJSReportBadPropertySelector(JSContext *context, JSObject *thisObj, jsid propID, JSPropertySpec *propertySpec)
 {
-	// FIXME: after API upgrade, should take a jsid and decode it.
-	OOJSReportError(context, @"Internal error: bad property identifier %i in property accessor for class %@.", selector, className);
+	NSString	*propName = OOStringFromJSPropertyIDAndSpec(context, propID, propertySpec);
+	const char	*className = OOJSGetClass(context, thisObj)->name;
+	
+	OOJSReportError(context, @"Invalid property identifier %@ for instance of %s.", propName, className);
+}
+
+
+void OOJSReportBadPropertyValue(JSContext *context, JSObject *thisObj, jsid propID, JSPropertySpec *propertySpec, jsval value)
+{
+	NSString	*propName = OOStringFromJSPropertyIDAndSpec(context, propID, propertySpec);
+	const char	*className = OOJSGetClass(context, thisObj)->name;
+	NSString	*valueDesc = OOJSDebugDescribe(context, value);
+	
+	OOJSReportError(context, @"Cannot set property %@ of instance of %s to invalid value %@.", propName, className, valueDesc);
 }
 
 
@@ -1796,7 +1808,7 @@ NSString *OOJSDebugDescribe(JSContext *context, jsval value)
 @end
 
 
-JSBool OOJSUnconstructableConstruct(OOJS_NATIVE_ARGS)
+JSBool OOJSUnconstructableConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1826,7 +1838,7 @@ void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this)
 }
 
 
-JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS)
+JSBool OOJSObjectWrapperToString(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

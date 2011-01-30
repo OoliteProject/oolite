@@ -30,7 +30,7 @@ SOFTWARE.
 #import "HeadUpDisplay.h"
 
 
-static JSBool FontMeasureString(OOJS_NATIVE_ARGS);
+static JSBool FontMeasureString(JSContext *context, uintN argc, jsval *vp);
 
 
 // MARK: Public
@@ -44,7 +44,7 @@ void InitOOJSFont(JSContext *context, JSObject *global)
 
 // MARK: Methods
 
-static JSBool FontMeasureString(OOJS_NATIVE_ARGS)
+static JSBool FontMeasureString(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

@@ -32,14 +32,14 @@ MA 02110-1301, USA.
 static JSObject *sShipGroupPrototype;
 
 
-static JSBool ShipGroupGetProperty(OOJS_PROP_ARGS);
-static JSBool ShipGroupSetProperty(OOJS_PROP_ARGS);
-static JSBool ShipGroupConstruct(OOJS_NATIVE_ARGS);
+static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ShipGroupConstruct(JSContext *context, uintN argc, jsval *vp);
 
 // Methods
-static JSBool ShipGroupAddShip(OOJS_NATIVE_ARGS);
-static JSBool ShipGroupRemoveShip(OOJS_NATIVE_ARGS);
-static JSBool ShipGroupContainsShip(OOJS_NATIVE_ARGS);
+static JSBool ShipGroupAddShip(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipGroupRemoveShip(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipGroupContainsShip(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sShipGroupClass =
@@ -101,14 +101,13 @@ void InitOOJSShipGroup(JSContext *context, JSObject *global)
 }
 
 
-static JSBool ShipGroupGetProperty(OOJS_PROP_ARGS)
+static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
 	OOShipGroup				*group = nil;
-	BOOL					OK = NO;
 	id						result = nil;
 	
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group))) return NO;
@@ -131,26 +130,21 @@ static JSBool ShipGroupGetProperty(OOJS_PROP_ARGS)
 			
 		case kShipGroup_count:
 			*value = INT_TO_JSVAL([group count]);
-			OK = YES;
-			break;
+			return YES;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"ShipGroup", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sShipGroupProperties);
+			return NO;
 	}
 	
-	if (!OK && result != nil)
-	{
-		*value = [result oo_jsValueInContext:context];
-		OK = YES;
-	}
-	
-	return OK;
+	*value = OOJSValueFromNativeObject(context, result);
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool ShipGroupSetProperty(OOJS_PROP_ARGS)
+static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -179,7 +173,13 @@ static JSBool ShipGroupSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"ShipGroup", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sShipGroupProperties);
+			return NO;
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sShipGroupProperties, *value);
 	}
 	
 	return OK;
@@ -189,7 +189,7 @@ static JSBool ShipGroupSetProperty(OOJS_PROP_ARGS)
 
 
 // new ShipGroup([name : String [, leader : Ship]]) : ShipGroup
-static JSBool ShipGroupConstruct(OOJS_NATIVE_ARGS)
+static JSBool ShipGroupConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -261,7 +261,7 @@ static JSBool ShipGroupConstruct(OOJS_NATIVE_ARGS)
 // *** Methods ***
 
 // addShip(ship : Ship)
-static JSBool ShipGroupAddShip(OOJS_NATIVE_ARGS)
+static JSBool ShipGroupAddShip(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -287,7 +287,7 @@ static JSBool ShipGroupAddShip(OOJS_NATIVE_ARGS)
 
 
 // removeShip(ship : Ship)
-static JSBool ShipGroupRemoveShip(OOJS_NATIVE_ARGS)
+static JSBool ShipGroupRemoveShip(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -313,7 +313,7 @@ static JSBool ShipGroupRemoveShip(OOJS_NATIVE_ARGS)
 
 
 // containsShip(ship : Ship) : Boolean
-static JSBool ShipGroupContainsShip(OOJS_NATIVE_ARGS)
+static JSBool ShipGroupContainsShip(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

@@ -55,15 +55,15 @@ static JSObject		*sPlayerShipPrototype;
 static JSObject		*sPlayerShipObject;
 
 
-static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS);
-static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS);
+static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
-static JSBool PlayerShipLaunch(OOJS_NATIVE_ARGS);
-static JSBool PlayerShipRemoveAllCargo(OOJS_NATIVE_ARGS);
-static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS);
-static JSBool PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS);
-static JSBool PlayerShipDisengageAutopilot(OOJS_NATIVE_ARGS);
-static JSBool PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS);
+static JSBool PlayerShipLaunch(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipRemoveAllCargo(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipUseSpecialCargo(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sPlayerShipClass =
@@ -209,7 +209,7 @@ JSObject *JSPlayerShipObject(void)
 @end
 
 
-static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
+static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -224,29 +224,25 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kPlayerShip_fuelLeakRate:
-			OK = JS_NewDoubleValue(context, [player fuelLeakRate], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([player fuelLeakRate]);
+			return YES;
 			
 		case kPlayerShip_docked:
 			*value = OOJSValueFromBOOL([player isDocked]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayerShip_dockedStation:
 			result = [player dockedStation];
 			if (result == nil)  result = [NSNull null];
-			OK = YES;
 			break;
 			
 		case kPlayerShip_specialCargo:
 			result = [player specialCargo];
-			OK = YES;
 			break;
 			
 		case kPlayerShip_reticleTargetSensitive:
 			*value = OOJSValueFromBOOL([[player hud] reticleTargetSensitive]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayerShip_galacticHyperspaceBehaviour:
 			*value = OOJSValueFromGalacticHyperspaceBehaviour(context, [player galacticHyperspaceBehaviour]);
@@ -257,26 +253,26 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		case kPlayerShip_forwardShield:
-			OK = JS_NewDoubleValue(context, [player forwardShieldLevel], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([player forwardShieldLevel]);
+			return YES;
 			
 		case kPlayerShip_aftShield:
-			OK = JS_NewDoubleValue(context, [player aftShieldLevel], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([player aftShieldLevel]);
+			return YES;
 			
 		case kPlayerShip_maxForwardShield:
-			OK = JS_NewDoubleValue(context, [player maxForwardShieldLevel], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([player maxForwardShieldLevel]);
+			return YES;
 			
 		case kPlayerShip_maxAftShield:
-			OK = JS_NewDoubleValue(context, [player maxAftShieldLevel], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([player maxAftShieldLevel]);
+			return YES;
 			
 		case kPlayerShip_forwardShieldRechargeRate:
 		case kPlayerShip_aftShieldRechargeRate:
 			// No distinction made internally
-			OK = JS_NewDoubleValue(context, [player shieldRechargeRate], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([player shieldRechargeRate]);
+			return YES;
 			
 		case kPlayerShip_galaxyCoordinates:
 			OK = NSPointToVectorJSValue(context, [player galaxy_coordinates], value);
@@ -288,22 +284,18 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			
 		case kPlayerShip_targetSystem:
 			*value = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
-			OK = YES;
-			break;
+			return YES;
 
 		case kPlayerShip_scriptedMisjump:
 			*value = OOJSValueFromBOOL([player scriptedMisjump]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayerShip_scoopOverride:
 			*value = OOJSValueFromBOOL([player scoopOverride]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayerShip_compassTarget:
 			result = [player compassTarget];
-			OK = YES;
 			break;
 			
 		case kPlayerShip_compassMode:
@@ -312,36 +304,36 @@ static JSBool PlayerShipGetProperty(OOJS_PROP_ARGS)
 			
 		case kPlayerShip_hud:
 			result = [[player hud] hudName];
-			OK = YES;
 			break;
 			
 		case kPlayerShip_hudHidden:
 			*value = OOJSValueFromBOOL([[player hud] isHidden]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayerShip_weaponsOnline:
 			*value = OOJSValueFromBOOL([player weaponsOnline]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kPlayerShip_viewDirection:
 			*value = OOJSValueFromViewID(context, [UNIVERSE viewDirection]);
-			OK = YES;
-			break;
+			return YES;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"PlayerShip", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 	}
 	
-	if (OK && result != nil)  *value = [result oo_jsValueInContext:context];
+	if (result != nil)
+	{
+		*value = [result oo_jsValueInContext:context];
+		OK = YES;
+	}
 	return OK;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
+static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -448,12 +440,13 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"PlayerShip", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
+			return NO;
 	}
 	
-	if (!OK)
+	if (EXPECT_NOT(!OK))
 	{
-		OOJSReportError(context, @"Invalid value %@ for player.ship.%@", OOJSDebugDescribe(context, *value), OOStringFromJSPropertyIDAndSpec(context, propID, sPlayerShipProperties));
+		OOJSReportBadPropertyValue(context, this, propID, sPlayerShipProperties, *value);
 	}
 	
 	return OK;
@@ -465,7 +458,7 @@ static JSBool PlayerShipSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // launch()
-static JSBool PlayerShipLaunch(OOJS_NATIVE_ARGS)
+static JSBool PlayerShipLaunch(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -479,7 +472,7 @@ static JSBool PlayerShipLaunch(OOJS_NATIVE_ARGS)
 
 
 // removeAllCargo()
-static JSBool PlayerShipRemoveAllCargo(OOJS_NATIVE_ARGS)
+static JSBool PlayerShipRemoveAllCargo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -503,7 +496,7 @@ static JSBool PlayerShipRemoveAllCargo(OOJS_NATIVE_ARGS)
 
 
 // useSpecialCargo(name : String)
-static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
+static JSBool PlayerShipUseSpecialCargo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -527,7 +520,7 @@ static JSBool PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
 
 
 // engageAutopilotToStation(stationForDocking : Station) : Boolean
-static JSBool PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS)
+static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -550,7 +543,7 @@ static JSBool PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS)
 
 
 // disengageAutopilot()
-static JSBool PlayerShipDisengageAutopilot(OOJS_NATIVE_ARGS)
+static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -566,7 +559,7 @@ static JSBool PlayerShipDisengageAutopilot(OOJS_NATIVE_ARGS)
 
 
 // awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression) : Boolean
-static JSBool PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS)
+static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

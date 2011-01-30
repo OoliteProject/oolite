@@ -55,22 +55,22 @@ MA 02110-1301, USA.
 extern NSString * const kOOLogDebugMessage;
 
 
-static JSBool GlobalGetProperty(OOJS_PROP_ARGS);
+static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 #ifndef NDEBUG
-static JSBool GlobalSetProperty(OOJS_PROP_ARGS);
+static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 #endif
 
-static JSBool GlobalLog(OOJS_NATIVE_ARGS);
-static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS);
-static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS);
-static JSBool GlobalDisplayNameForCommodity(OOJS_NATIVE_ARGS);
-static JSBool GlobalRandomName(OOJS_NATIVE_ARGS);
-static JSBool GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS);
-static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS);
-static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS);
+static JSBool GlobalLog(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalDisplayNameForCommodity(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalRandomName(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalSetScreenBackground(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalSetScreenOverlay(JSContext *context, uintN argc, jsval *vp);
 
 #ifndef NDEBUG
-static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS);
+static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp);
 #endif
 
 
@@ -158,7 +158,7 @@ void SetUpOOJSGlobal(JSContext *context, JSObject *global)
 }
 
 
-static JSBool GlobalGetProperty(OOJS_PROP_ARGS)
+static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -184,7 +184,7 @@ static JSBool GlobalGetProperty(OOJS_PROP_ARGS)
 #endif
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"Global", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sGlobalProperties);
 			return NO;
 	}
 	
@@ -196,7 +196,7 @@ static JSBool GlobalGetProperty(OOJS_PROP_ARGS)
 
 
 #ifndef NDEBUG
-static JSBool GlobalSetProperty(OOJS_PROP_ARGS)
+static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -216,7 +216,12 @@ static JSBool GlobalSetProperty(OOJS_PROP_ARGS)
 			break;
 	
 		default:
-			OOJSReportBadPropertySelector(context, @"Global", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sGlobalProperties);
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sGlobalProperties, *value);
 	}
 	
 	return OK;
@@ -229,7 +234,7 @@ static JSBool GlobalSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // log([messageClass : String,] message : string, ...)
-static JSBool GlobalLog(OOJS_NATIVE_ARGS)
+static JSBool GlobalLog(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -264,7 +269,7 @@ static JSBool GlobalLog(OOJS_NATIVE_ARGS)
 
 
 // expandDescription(description : String [, overrides : object (dictionary)]) : String
-static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS)
+static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -290,7 +295,7 @@ static JSBool GlobalExpandDescription(OOJS_NATIVE_ARGS)
 
 
 // expandMissionText(textKey : String [, overrides : object (dictionary)]) : String
-static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS)
+static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -325,7 +330,7 @@ static JSBool GlobalExpandMissionText(OOJS_NATIVE_ARGS)
 
 
 // displayNameForCommodity(commodityName : String) : String
-static JSBool GlobalDisplayNameForCommodity(OOJS_NATIVE_ARGS)
+static JSBool GlobalDisplayNameForCommodity(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -345,7 +350,7 @@ static JSBool GlobalDisplayNameForCommodity(OOJS_NATIVE_ARGS)
 
 
 // randomName() : String
-static JSBool GlobalRandomName(OOJS_NATIVE_ARGS)
+static JSBool GlobalRandomName(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -359,7 +364,7 @@ static JSBool GlobalRandomName(OOJS_NATIVE_ARGS)
 
 
 // randomInhabitantsDescription() : String
-static JSBool GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS)
+static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -378,7 +383,7 @@ static JSBool GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS)
 
 
 // setScreenBackground(descriptor : guiTextureDescriptor) : Boolean
-static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
+static JSBool GlobalSetScreenBackground(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -413,7 +418,7 @@ static JSBool GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
 
 
 // setScreenOverlay(descriptor : guiTextureDescriptor) : Boolean
-static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
+static JSBool GlobalSetScreenOverlay(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -446,7 +451,7 @@ static JSBool GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
 
 #ifndef NDEBUG
 // takeSnapShot([name : alphanumeric String]) : Boolean
-static JSBool GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
+static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

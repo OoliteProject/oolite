@@ -31,12 +31,12 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 
 
-static JSBool OoliteGetProperty(OOJS_PROP_ARGS);
+static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
 static NSString *VersionString(void);
 static NSArray *VersionComponents(void);
 
-static JSBool OoliteCompareVersion(OOJS_NATIVE_ARGS);
+static JSBool OoliteCompareVersion(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sOoliteClass =
@@ -93,7 +93,7 @@ void InitOOJSOolite(JSContext *context, JSObject *global)
 }
 
 
-static JSBool OoliteGetProperty(OOJS_PROP_ARGS)
+static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -127,7 +127,7 @@ static JSBool OoliteGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Oolite", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sOoliteProperties);
 			return NO;
 	}
 	
@@ -157,7 +157,7 @@ static NSArray *VersionComponents(void)
 	if (0 < oolite.compareVersion("1.70"))  log("Old version of Oolite!")
 	else  this.doStuffThatRequires170()
 */
-static JSBool OoliteCompareVersion(OOJS_NATIVE_ARGS)
+static JSBool OoliteCompareVersion(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

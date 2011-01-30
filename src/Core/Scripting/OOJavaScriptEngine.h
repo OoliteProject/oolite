@@ -146,7 +146,8 @@ void OOJSReportWarning(JSContext *context, NSString *format, ...);
 void OOJSReportWarningWithArguments(JSContext *context, NSString *format, va_list args);
 void OOJSReportWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
 
-void OOJSReportBadPropertySelector(JSContext *context, NSString *className, jsint selector);
+void OOJSReportBadPropertySelector(JSContext *context, JSObject *thisObj, jsid propID, JSPropertySpec *propertySpec);
+void OOJSReportBadPropertyValue(JSContext *context, JSObject *thisObj, jsid propID, JSPropertySpec *propertySpec, jsval value);
 void OOJSReportBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription);
 
 /*	OOJSSetWarningOrErrorStackSkip()
@@ -278,11 +279,7 @@ NSString *OOStringFromJSValueEvenIfNull(JSContext *context, jsval value);
 	Returns the name of a property given either a name or a tinyid. (Intended
 	for error reporting inside JSPropertyOps.)
 */
-#if OO_NEW_JS
 NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsid propID, JSPropertySpec *propertySpec);
-#else
-NSString *OOStringFromJSPropertyIDAndSpec(JSContext *context, jsval propID, JSPropertySpec *propertySpec);
-#endif
 
 
 /*	Describe a value for various debuggy purposes. Strings are quoted, escaped
@@ -579,15 +576,6 @@ void OOJSMarkConsoleEvalLocation(JSContext *context, JSStackFrame *stackFrame);
 #endif
 
 
-#if OO_NEW_JS
-// Native callback conventions have changed.
-#define OOJS_NATIVE_ARGS				JSContext *context, uintN argc, jsval *vp
-#else
-
-#define OOJS_NATIVE_ARGS				JSContext *context, JSObject *this_, uintN argc, jsval *argv_, jsval *outResult
-#endif
-
-
 
 
 /***** Reusable JS callbacks ****/
@@ -596,7 +584,7 @@ void OOJSMarkConsoleEvalLocation(JSContext *context, JSStackFrame *stackFrame);
 	
 	Constructor callback for pseudo-classes which can't be constructed.
 */
-JSBool OOJSUnconstructableConstruct(OOJS_NATIVE_ARGS);
+JSBool OOJSUnconstructableConstruct(JSContext *context, uintN argc, jsval *vp);
 
 
 /*	OOJSObjectWrapperFinalize
@@ -614,7 +602,7 @@ void OOJSObjectWrapperFinalize(JSContext *context, JSObject *this);
 	
 	Calls -oo_jsDescription and, if that fails, -description.
 */
-JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS);
+JSBool OOJSObjectWrapperToString(JSContext *context, uintN argc, jsval *vp);
 
 
 
@@ -643,19 +631,8 @@ JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS);
 
 /***** Helpers to return values from native callbacks. *****/
 
-#if OO_NEW_JS
-
 #define OOJS_RETURN_VECTOR(value)		do { jsval jsresult; BOOL OK = VectorToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
 #define OOJS_RETURN_QUATERNION(value)	do { jsval jsresult; BOOL OK = QuaternionToJSValue(context, value, &jsresult); JS_SET_RVAL(context, vp, jsresult); return OK; } while (0)
-#define OOJS_RETURN_DOUBLE(value)		do { JS_SET_RVAL(context, vp, DOUBLE_TO_JSVAL(value)); return YES; } while (0)
-
-#else
-
-#define OOJS_RETURN_VECTOR(value)		do { return VectorToJSValue(context, value, outResult); } while (0)
-#define OOJS_RETURN_QUATERNION(value)	do { return QuaternionToJSValue(context, value, outResult); } while (0)
-#define OOJS_RETURN_DOUBLE(value)		do { return JS_NewDoubleValue(context, value, outResult); } while (0)
-
-#endif
 
 #define OOJS_RETURN(v)					do { OOJS_SET_RVAL(v); return YES; } while (0)
 #define OOJS_RETURN_JSOBJECT(o)			OOJS_RETURN(OBJECT_TO_JSVAL(o))
@@ -663,6 +640,7 @@ JSBool OOJSObjectWrapperToString(OOJS_NATIVE_ARGS);
 #define OOJS_RETURN_NULL				OOJS_RETURN(JSVAL_NULL)
 #define OOJS_RETURN_BOOL(v)				OOJS_RETURN(OOJSValueFromBOOL(v))
 #define OOJS_RETURN_INT(v)				OOJS_RETURN(INT_TO_JSVAL(v))
+#define OOJS_RETURN_DOUBLE(v)			OOJS_RETURN(DOUBLE_TO_JSVAL(v))
 #define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ oo_jsValueInContext:context] : JSVAL_NULL); } while (0)
 
 

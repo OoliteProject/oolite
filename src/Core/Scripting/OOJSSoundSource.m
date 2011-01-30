@@ -31,14 +31,14 @@ MA 02110-1301, USA.
 static JSObject *sSoundSourcePrototype;
 
 
-static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS);
-static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS);
-static JSBool SoundSourceConstruct(OOJS_NATIVE_ARGS);
+static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool SoundSourceConstruct(JSContext *context, uintN argc, jsval *vp);
 
 // Methods
-static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS);
-static JSBool SoundSourceStop(OOJS_NATIVE_ARGS);
-static JSBool SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS);
+static JSBool SoundSourcePlay(JSContext *context, uintN argc, jsval *vp);
+static JSBool SoundSourceStop(JSContext *context, uintN argc, jsval *vp);
+static JSBool SoundSourcePlayOrRepeat(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sSoundSourceClass =
@@ -102,7 +102,7 @@ void InitOOJSSoundSource(JSContext *context, JSObject *global)
 }
 
 
-static JSBool SoundSourceConstruct(OOJS_NATIVE_ARGS)
+static JSBool SoundSourceConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -120,7 +120,7 @@ static JSBool SoundSourceConstruct(OOJS_NATIVE_ARGS)
 
 // *** Implementation stuff ***
 
-static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS)
+static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -149,7 +149,7 @@ static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"SoundSource", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sSoundSourceProperties);
 			return NO;
 	}
 	
@@ -159,7 +159,7 @@ static JSBool SoundSourceGetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS)
+static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -198,7 +198,13 @@ static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"SoundSource", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sSoundSourceProperties);
+			return NO;
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sSoundSourceProperties, *value);
 	}
 	
 	return OK;
@@ -210,7 +216,7 @@ static JSBool SoundSourceSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // play([count : Number])
-static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS)
+static JSBool SoundSourcePlay(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -241,7 +247,7 @@ static JSBool SoundSourcePlay(OOJS_NATIVE_ARGS)
 
 
 // stop()
-static JSBool SoundSourceStop(OOJS_NATIVE_ARGS)
+static JSBool SoundSourceStop(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -260,7 +266,7 @@ static JSBool SoundSourceStop(OOJS_NATIVE_ARGS)
 
 
 // playOrRepeat()
-static JSBool SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS)
+static JSBool SoundSourcePlayOrRepeat(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

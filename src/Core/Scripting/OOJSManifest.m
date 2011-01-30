@@ -38,9 +38,9 @@ static JSObject	*sManifestObject;
 
 
 
-static JSBool ManifestDeleteProperty(OOJS_PROP_ARGS);
-static JSBool ManifestGetProperty(OOJS_PROP_ARGS);
-static JSBool ManifestSetProperty(OOJS_PROP_ARGS);
+static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
 
 static JSClass sManifestClass =
@@ -205,7 +205,7 @@ void InitOOJSManifest(JSContext *context, JSObject *global)
 }
 
 
-static JSBool ManifestDeleteProperty(OOJS_PROP_ARGS)
+static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	jsval v = JSVAL_VOID;
 	return ManifestSetProperty(context, this, propID, &v);
@@ -249,11 +249,10 @@ static BOOL GetCommodityID(JSContext *context, PropertyID property, unsigned *ou
 }
 
 
-static JSBool ManifestGetProperty(OOJS_PROP_ARGS)
+static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*entity = OOPlayerForScripting();
 	unsigned					commodity;
@@ -265,94 +264,77 @@ static JSBool ManifestGetProperty(OOJS_PROP_ARGS)
 				
 			case kManifest_food:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FOOD]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_textiles:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_TEXTILES]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_radioactives:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_RADIOACTIVES]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_slaves:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_SLAVES]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_liquor_wines:
 			case kManifest_liquorwines:
 			case kManifest_liquorWines:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LIQUOR_WINES]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_luxuries:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LUXURIES]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_narcotics:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_NARCOTICS]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_computers:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_COMPUTERS]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_machinery:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MACHINERY]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_alloys:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALLOYS]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_firearms:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FIREARMS]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_furs:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FURS]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_minerals:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MINERALS]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_gold:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GOLD]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_platinum:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_PLATINUM]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_gem_stones:
 			case kManifest_gemstones:
 			case kManifest_gemStones:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GEM_STONES]);
-				OK = YES;
-				break;
+				return YES;
 				
 			case kManifest_alien_items:
 			case kManifest_alienitems:
 			case kManifest_alienItems:
 				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALIEN_ITEMS]);
-				OK = YES;
-				break;
+				return YES;
 		}
 	}
 	else
@@ -363,22 +345,22 @@ static JSBool ManifestGetProperty(OOJS_PROP_ARGS)
 		{
 			case kManifest_list:
 				result = [entity cargoListForScripting];
-				OK = YES;
 				break;
 				
 			default:
-				OOJSReportBadPropertySelector(context, @"Manifest", OOJS_PROPID_INT);
+				OOJSReportBadPropertySelector(context, this, propID, sManifestProperties);
+				return NO;
 		}
 	}
-		
-	if (OK && result != nil)  *value = [result oo_jsValueInContext:context];	
-	return OK;
+	
+	*value = OOJSValueFromNativeObject(context, result);
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool ManifestSetProperty(OOJS_PROP_ARGS)
+static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -558,7 +540,13 @@ static JSBool ManifestSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Manifest", commodity);
+			OOJSReportBadPropertySelector(context, this, propID, sManifestProperties);
+			return NO;
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sManifestProperties, *value);
 	}
 	
 	return OK;

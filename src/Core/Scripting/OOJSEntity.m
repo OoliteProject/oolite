@@ -38,8 +38,8 @@ MA 02110-1301, USA.
 JSObject		*gOOEntityJSPrototype;
 
 
-static JSBool EntityGetProperty(OOJS_PROP_ARGS);
-static JSBool EntitySetProperty(OOJS_PROP_ARGS);
+static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
 
 JSClass gOOEntityJSClass =
@@ -167,7 +167,7 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 }
 
 
-static JSBool EntityGetProperty(OOJS_PROP_ARGS)
+static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -212,8 +212,8 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 			return YES;
 		
 		case kEntity_mass:
-			OK = JS_NewDoubleValue(context, [entity mass], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([entity mass]);
+			return YES;
 		
 		case kEntity_owner:
 			result = [entity owner];
@@ -222,12 +222,12 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		case kEntity_energy:
-			OK = JS_NewDoubleValue(context, [entity energy], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([entity energy]);
+			return YES;
 		
 		case kEntity_maxEnergy:
-			OK = JS_NewDoubleValue(context, [entity maxEnergy], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([entity maxEnergy]);
+			return YES;
 		
 		case kEntity_isValid:
 			*value = JSVAL_TRUE;
@@ -258,15 +258,15 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 			return YES;
 		
 		case kEntity_distanceTravelled:
-			OK = JS_NewDoubleValue(context, [entity distanceTravelled], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([entity distanceTravelled]);
+			return YES;
 		
 		case kEntity_spawnTime:
-			OK = JS_NewDoubleValue(context, [entity spawnTime], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([entity spawnTime]);
+			return YES;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Entity", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sEntityProperties);
 	}
 	
 	if (result != nil)
@@ -280,7 +280,7 @@ static JSBool EntityGetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool EntitySetProperty(OOJS_PROP_ARGS)
+static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -324,7 +324,13 @@ static JSBool EntitySetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Entity", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sEntityProperties);
+			return NO;
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sEntityProperties, *value);
 	}
 	
 	return OK;

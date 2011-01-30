@@ -32,14 +32,14 @@ MA 02110-1301, USA.
 static JSObject *sEquipmentInfoPrototype;
 
 
-static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS);
-static JSBool EquipmentInfoSetProperty(OOJS_PROP_ARGS);
+static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
-static JSBool EquipmentInfoGetAllEqipment(OOJS_PROP_ARGS);
+static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
 
 // Methods
-static JSBool EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS);
+static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, uintN argc, jsval *vp);
 
 
 enum
@@ -211,7 +211,7 @@ NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *ou
 
 // *** Implementation stuff ***
 
-static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
+static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -234,11 +234,11 @@ static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
 			
 		case kEquipmentInfo_canCarryMultiple:
 			*value = OOJSValueFromBOOL([eqType canCarryMultiple]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_canBeDamaged:
 			*value = OOJSValueFromBOOL([eqType canBeDamaged]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_description:
 			result = [eqType descriptiveText];
@@ -246,71 +246,71 @@ static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
 			
 		case kEquipmentInfo_techLevel:
 			*value = INT_TO_JSVAL([eqType techLevel]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_effectiveTechLevel:
 			*value = INT_TO_JSVAL([eqType effectiveTechLevel]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_price:
 			*value = INT_TO_JSVAL([eqType price]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_isAvailableToAll:
 			*value = OOJSValueFromBOOL([eqType isAvailableToAll]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_isAvailableToNPCs:
 			*value = OOJSValueFromBOOL([eqType isAvailableToNPCs]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_isAvailableToPlayer:
 			*value = OOJSValueFromBOOL([eqType isAvailableToPlayer]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_requiresEmptyPylon:
 			*value = OOJSValueFromBOOL([eqType requiresEmptyPylon]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_requiresMountedPylon:
 			*value = OOJSValueFromBOOL([eqType requiresMountedPylon]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_requiresCleanLegalRecord:
 			*value = OOJSValueFromBOOL([eqType requiresCleanLegalRecord]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_requiresNonCleanLegalRecord:
 			*value = OOJSValueFromBOOL([eqType requiresNonCleanLegalRecord]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_requiresFreePassengerBerth:
 			*value = OOJSValueFromBOOL([eqType requiresFreePassengerBerth]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_requiresFullFuel:
 			*value = OOJSValueFromBOOL([eqType requiresFullFuel]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_requiresNonFullFuel:
 			*value = OOJSValueFromBOOL([eqType requiresNonFullFuel]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_isExternalStore:
 			*value = OOJSValueFromBOOL([eqType isMissileOrMine]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_isPortableBetweenShips:
 			*value = OOJSValueFromBOOL([eqType isPortableBetweenShips]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_isVisible:
 			*value = OOJSValueFromBOOL([eqType isVisible]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_requiredCargoSpace:
 			*value = OOJSValueFromBOOL([eqType requiredCargoSpace]);
-			break;
+			return YES;
 			
 		case kEquipmentInfo_requiresEquipment:
 			result = [[eqType requiresEquipment] allObjects];
@@ -326,7 +326,7 @@ static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
 			
 		case kEquipmentInfo_scriptInfo:
 			result = [eqType scriptInfo];
-			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than undefined
+			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than null
 			break;
 			
 		case kEquipmentInfo_scriptName:
@@ -335,21 +335,18 @@ static JSBool EquipmentInfoGetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"EquipmentInfo", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sEquipmentInfoProperties);
 			return NO;
 	}
 	
-	if (result != nil)
-	{
-		*value = [result oo_jsValueInContext:context];
-	}
+	*value = OOJSValueFromNativeObject(context, result);
 	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
 
 
-static JSBool EquipmentInfoSetProperty(OOJS_PROP_ARGS)
+static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -364,27 +361,40 @@ static JSBool EquipmentInfoSetProperty(OOJS_PROP_ARGS)
 	switch (OOJS_PROPID_INT)
 	{
 		case kEquipmentInfo_effectiveTechLevel:
-			if ([eqType techLevel] != kOOVariableTechLevel)  return YES;	// Only TL-99 items can be modified in this way
-			if (JSVAL_IS_NULL(*value)) 
+			if ([eqType techLevel] == kOOVariableTechLevel)
 			{
-				// reset mission variable
-				[OOPlayerForScripting() setMissionVariable:nil
-													forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
-				OK = YES;
-				break;
+				if (JSVAL_IS_NULL(*value)) 
+				{
+					// reset mission variable
+					[OOPlayerForScripting() setMissionVariable:nil
+														forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
+					OK = YES;
+					break;
+				}
+				if (JS_ValueToInt32(context, *value, &iValue))
+				{
+					if (iValue < 0)  iValue = 0;
+					if (14 < iValue && iValue != kOOVariableTechLevel)  iValue = 14;
+					[OOPlayerForScripting() setMissionVariable:[NSString stringWithFormat:@"%u", iValue]
+														forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
+					OK = YES;
+				}
 			}
-			if (JS_ValueToInt32(context, *value, &iValue))
+			else
 			{
-				if (iValue < 0)  iValue = 0;
-				if (14 < iValue && iValue != kOOVariableTechLevel)  iValue = 14;
-				[OOPlayerForScripting() setMissionVariable:[NSString stringWithFormat:@"%u", iValue]
-													forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
-				OK = YES;
+				OOJSReportWarning(context, @"Cannot modify effective tech level for %@, because its base tech level is not 99.", [eqType identifier]);
+				return YES;
 			}
 			break;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"EquipmentInfo", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sEquipmentInfoProperties);
+			return NO;
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sEquipmentInfoProperties, *value);
 	}
 	
 	return OK;
@@ -393,7 +403,7 @@ static JSBool EquipmentInfoSetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool EquipmentInfoGetAllEqipment(OOJS_PROP_ARGS)
+static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -438,7 +448,7 @@ static JSBool EquipmentInfoGetAllEqipment(OOJS_PROP_ARGS)
 // *** Static methods ***
 
 // infoForKey(key : String): EquipmentInfo
-static JSBool EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS)
+static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

@@ -42,28 +42,28 @@ static JSObject *sQuaternionPrototype;
 static BOOL GetThisQuaternion(JSContext *context, JSObject *quaternionObj, Quaternion *outQuaternion, NSString *method)  NONNULL_FUNC;
 
 
-static JSBool QuaternionGetProperty(OOJS_PROP_ARGS);
-static JSBool QuaternionSetProperty(OOJS_PROP_ARGS);
+static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static void QuaternionFinalize(JSContext *context, JSObject *this);
-static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS);
+static JSBool QuaternionConstruct(JSContext *context, uintN argc, jsval *vp);
 
 // Methods
-static JSBool QuaternionToString(OOJS_NATIVE_ARGS);
-static JSBool QuaternionToSource(OOJS_NATIVE_ARGS);
-static JSBool QuaternionMultiply(OOJS_NATIVE_ARGS);
-static JSBool QuaternionDot(OOJS_NATIVE_ARGS);
-static JSBool QuaternionRotate(OOJS_NATIVE_ARGS);
-static JSBool QuaternionRotateX(OOJS_NATIVE_ARGS);
-static JSBool QuaternionRotateY(OOJS_NATIVE_ARGS);
-static JSBool QuaternionRotateZ(OOJS_NATIVE_ARGS);
-static JSBool QuaternionNormalize(OOJS_NATIVE_ARGS);
-static JSBool QuaternionVectorForward(OOJS_NATIVE_ARGS);
-static JSBool QuaternionVectorUp(OOJS_NATIVE_ARGS);
-static JSBool QuaternionVectorRight(OOJS_NATIVE_ARGS);
-static JSBool QuaternionToArray(OOJS_NATIVE_ARGS);
+static JSBool QuaternionToString(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionToSource(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionMultiply(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionDot(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionRotate(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionRotateX(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionRotateY(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionRotateZ(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionNormalize(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionVectorForward(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionVectorUp(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionVectorRight(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionToArray(JSContext *context, uintN argc, jsval *vp);
 
 // Static methods
-static JSBool QuaternionStaticRandom(OOJS_NATIVE_ARGS);
+static JSBool QuaternionStaticRandom(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sQuaternionClass =
@@ -436,7 +436,7 @@ BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *ar
 
 // *** Implementation stuff ***
 
-static JSBool QuaternionGetProperty(OOJS_PROP_ARGS)
+static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -466,7 +466,7 @@ static JSBool QuaternionGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Quaternion", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sQuaternionProperties);
 			return NO;
 	}
 	
@@ -476,7 +476,7 @@ static JSBool QuaternionGetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool QuaternionSetProperty(OOJS_PROP_ARGS)
+static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -488,7 +488,7 @@ static JSBool QuaternionSetProperty(OOJS_PROP_ARGS)
 	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quaternion))) return NO;
 	if (EXPECT_NOT(!JS_ValueToNumber(context, *value, &dval)))
 	{
-		OOJSReportError(context, @"Quaternion property accessor: Invalid value %@ -- expected number.", [NSString stringWithJavaScriptValue:OBJECT_TO_JSVAL(this) inContext:context]);
+		OOJSReportBadPropertyValue(context, this, propID, sQuaternionProperties, *value);
 		return NO;
 	}
 	
@@ -511,7 +511,7 @@ static JSBool QuaternionSetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Quaternion", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sQuaternionProperties);
 			return NO;
 	}
 	
@@ -533,7 +533,7 @@ static void QuaternionFinalize(JSContext *context, JSObject *this)
 }
 
 
-static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS)
+static JSBool QuaternionConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -585,7 +585,7 @@ static JSBool QuaternionConstruct(OOJS_NATIVE_ARGS)
 // *** Methods ***
 
 // toString() : String
-static JSBool QuaternionToString(OOJS_NATIVE_ARGS)
+static JSBool QuaternionToString(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -600,7 +600,7 @@ static JSBool QuaternionToString(OOJS_NATIVE_ARGS)
 
 
 // toSource() : String
-static JSBool QuaternionToSource(OOJS_NATIVE_ARGS)
+static JSBool QuaternionToSource(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -616,7 +616,7 @@ static JSBool QuaternionToSource(OOJS_NATIVE_ARGS)
 
 
 // multiply(q : quaternionExpression) : Quaternion
-static JSBool QuaternionMultiply(OOJS_NATIVE_ARGS)
+static JSBool QuaternionMultiply(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -634,7 +634,7 @@ static JSBool QuaternionMultiply(OOJS_NATIVE_ARGS)
 
 
 // dot(q : quaternionExpression) : Number
-static JSBool QuaternionDot(OOJS_NATIVE_ARGS)
+static JSBool QuaternionDot(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -653,7 +653,7 @@ static JSBool QuaternionDot(OOJS_NATIVE_ARGS)
 
 
 // rotate(axis : vectorExpression, angle : Number) : Quaternion
-static JSBool QuaternionRotate(OOJS_NATIVE_ARGS)
+static JSBool QuaternionRotate(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -681,7 +681,7 @@ static JSBool QuaternionRotate(OOJS_NATIVE_ARGS)
 
 
 // rotateX(angle : Number) : Quaternion
-static JSBool QuaternionRotateX(OOJS_NATIVE_ARGS)
+static JSBool QuaternionRotateX(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -700,7 +700,7 @@ static JSBool QuaternionRotateX(OOJS_NATIVE_ARGS)
 
 
 // rotateY(angle : Number) : Quaternion
-static JSBool QuaternionRotateY(OOJS_NATIVE_ARGS)
+static JSBool QuaternionRotateY(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -719,7 +719,7 @@ static JSBool QuaternionRotateY(OOJS_NATIVE_ARGS)
 
 
 // rotateZ(angle : Number) : Quaternion
-static JSBool QuaternionRotateZ(OOJS_NATIVE_ARGS)
+static JSBool QuaternionRotateZ(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -738,7 +738,7 @@ static JSBool QuaternionRotateZ(OOJS_NATIVE_ARGS)
 
 
 // normalize() : Quaternion
-static JSBool QuaternionNormalize(OOJS_NATIVE_ARGS)
+static JSBool QuaternionNormalize(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -755,7 +755,7 @@ static JSBool QuaternionNormalize(OOJS_NATIVE_ARGS)
 
 
 // vectorForward() : Vector
-static JSBool QuaternionVectorForward(OOJS_NATIVE_ARGS)
+static JSBool QuaternionVectorForward(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -773,7 +773,7 @@ static JSBool QuaternionVectorForward(OOJS_NATIVE_ARGS)
 
 
 // vectorUp() : Vector
-static JSBool QuaternionVectorUp(OOJS_NATIVE_ARGS)
+static JSBool QuaternionVectorUp(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -791,7 +791,7 @@ static JSBool QuaternionVectorUp(OOJS_NATIVE_ARGS)
 
 
 // vectorRight() : Vector
-static JSBool QuaternionVectorRight(OOJS_NATIVE_ARGS)
+static JSBool QuaternionVectorRight(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -809,7 +809,7 @@ static JSBool QuaternionVectorRight(OOJS_NATIVE_ARGS)
 
 
 // toArray() : Array
-static JSBool QuaternionToArray(OOJS_NATIVE_ARGS)
+static JSBool QuaternionToArray(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -846,7 +846,7 @@ static JSBool QuaternionToArray(OOJS_NATIVE_ARGS)
 // *** Static methods ***
 
 // random() : Quaternion
-static JSBool QuaternionStaticRandom(OOJS_NATIVE_ARGS)
+static JSBool QuaternionStaticRandom(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	

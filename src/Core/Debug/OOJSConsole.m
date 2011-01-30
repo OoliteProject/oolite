@@ -61,38 +61,38 @@ static JSObject *sConsolePrototype = NULL;
 static JSObject *sConsoleSettingsPrototype = NULL;
 
 
-static JSBool ConsoleGetProperty(OOJS_PROP_ARGS);
-static JSBool ConsoleSetProperty(OOJS_PROP_ARGS);
+static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static void ConsoleFinalize(JSContext *context, JSObject *this);
 
 // Methods
-static JSBool ConsoleConsoleMessage(OOJS_NATIVE_ARGS);
-static JSBool ConsoleClearConsole(OOJS_NATIVE_ARGS);
-static JSBool ConsoleScriptStack(OOJS_NATIVE_ARGS);
-static JSBool ConsoleInspectEntity(OOJS_NATIVE_ARGS);
-static JSBool ConsoleCallObjCMethod(OOJS_NATIVE_ARGS);
-static JSBool ConsoleSetUpCallObjC(OOJS_NATIVE_ARGS);
-static JSBool ConsoleIsExecutableJavaScript(OOJS_NATIVE_ARGS);
-static JSBool ConsoleDisplayMessagesInClass(OOJS_NATIVE_ARGS);
-static JSBool ConsoleSetDisplayMessagesInClass(OOJS_NATIVE_ARGS);
-static JSBool ConsoleWriteLogMarker(OOJS_NATIVE_ARGS);
-static JSBool ConsoleWriteMemoryStats(OOJS_NATIVE_ARGS);
-static JSBool ConsoleGarbageCollect(OOJS_NATIVE_ARGS);
+static JSBool ConsoleConsoleMessage(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleClearConsole(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleScriptStack(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleInspectEntity(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleCallObjCMethod(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleSetUpCallObjC(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleIsExecutableJavaScript(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleDisplayMessagesInClass(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleWriteLogMarker(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleWriteMemoryStats(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleGarbageCollect(JSContext *context, uintN argc, jsval *vp);
 #if DEBUG
-static JSBool ConsoleDumpNamedRoots(OOJS_NATIVE_ARGS);
+static JSBool ConsoleDumpNamedRoots(JSContext *context, uintN argc, jsval *vp);
 #if OO_NEW_JS
-static JSBool ConsoleDumpHeap(OOJS_NATIVE_ARGS);
+static JSBool ConsoleDumpHeap(JSContext *context, uintN argc, jsval *vp);
 #endif
 #endif
 #if OOJS_PROFILE
-static JSBool ConsoleProfile(OOJS_NATIVE_ARGS);
-static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS);
-static JSBool ConsoleTrace(OOJS_NATIVE_ARGS);
+static JSBool ConsoleProfile(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleGetProfile(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleTrace(JSContext *context, uintN argc, jsval *vp);
 #endif
 
-static JSBool ConsoleSettingsDeleteProperty(OOJS_PROP_ARGS);
-static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS);
-static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS);
+static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
 #if OOJS_PROFILE
 static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, jsval *rval, BOOL trace, OOTimeProfile **profile);
@@ -297,7 +297,7 @@ JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 }
 
 
-static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
+static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -382,7 +382,7 @@ static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
 #undef DEBUG_FLAG_CASE
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"Console", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sConsoleProperties);
 			return NO;
 	}
 	
@@ -392,7 +392,7 @@ static JSBool ConsoleGetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
+static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -472,7 +472,7 @@ static JSBool ConsoleSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"Console", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sConsoleProperties);
 			return NO;
 	}
 	
@@ -524,7 +524,7 @@ static void ConsoleFinalize(JSContext *context, JSObject *this)
 }
 
 
-static JSBool ConsoleSettingsDeleteProperty(OOJS_PROP_ARGS)
+static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -549,7 +549,7 @@ static JSBool ConsoleSettingsDeleteProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS)
+static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_STRING)  return YES;
 	
@@ -578,7 +578,7 @@ static JSBool ConsoleSettingsGetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS)
+static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_STRING)  return YES;
 	
@@ -626,7 +626,7 @@ static JSBool ConsoleSettingsSetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // function consoleMessage(colorCode : String, message : String [, emphasisStart : Number, emphasisLength : Number]) : void
-static JSBool ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
+static JSBool ConsoleConsoleMessage(JSContext *context, uintN argc, jsval *vp)
 {
 	NSRange				emphasisRange = {0, 0};
 	
@@ -688,7 +688,7 @@ static JSBool ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
 
 
 // function clearConsole() : void
-static JSBool ConsoleClearConsole(OOJS_NATIVE_ARGS)
+static JSBool ConsoleClearConsole(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -709,7 +709,7 @@ static JSBool ConsoleClearConsole(OOJS_NATIVE_ARGS)
 
 
 // function scriptStack() : Array
-static JSBool ConsoleScriptStack(OOJS_NATIVE_ARGS)
+static JSBool ConsoleScriptStack(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -720,7 +720,7 @@ static JSBool ConsoleScriptStack(OOJS_NATIVE_ARGS)
 
 
 // function inspectEntity(entity : Entity) : void
-static JSBool ConsoleInspectEntity(OOJS_NATIVE_ARGS)
+static JSBool ConsoleInspectEntity(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -743,7 +743,7 @@ static JSBool ConsoleInspectEntity(OOJS_NATIVE_ARGS)
 
 
 // function callObjC(selector : String [, ...]) : Object
-static JSBool ConsoleCallObjCMethod(OOJS_NATIVE_ARGS)
+static JSBool ConsoleCallObjCMethod(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -771,7 +771,7 @@ static JSBool ConsoleCallObjCMethod(OOJS_NATIVE_ARGS)
 
 
 // function __setUpCallObjC(object) -- object is expected to be Object.prototye.
-static JSBool ConsoleSetUpCallObjC(OOJS_NATIVE_ARGS)
+static JSBool ConsoleSetUpCallObjC(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -790,7 +790,7 @@ static JSBool ConsoleSetUpCallObjC(OOJS_NATIVE_ARGS)
 
 
 // function isExecutableJavaScript(this : Object, string : String) : Boolean
-static JSBool ConsoleIsExecutableJavaScript(OOJS_NATIVE_ARGS)
+static JSBool ConsoleIsExecutableJavaScript(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -822,7 +822,7 @@ static JSBool ConsoleIsExecutableJavaScript(OOJS_NATIVE_ARGS)
 
 
 // function displayMessagesInClass(class : String) : Boolean
-static JSBool ConsoleDisplayMessagesInClass(OOJS_NATIVE_ARGS)
+static JSBool ConsoleDisplayMessagesInClass(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -836,7 +836,7 @@ static JSBool ConsoleDisplayMessagesInClass(OOJS_NATIVE_ARGS)
 
 
 // function setDisplayMessagesInClass(class : String, flag : Boolean) : void
-static JSBool ConsoleSetDisplayMessagesInClass(OOJS_NATIVE_ARGS)
+static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -855,7 +855,7 @@ static JSBool ConsoleSetDisplayMessagesInClass(OOJS_NATIVE_ARGS)
 
 
 // function writeLogMarker() : void
-static JSBool ConsoleWriteLogMarker(OOJS_NATIVE_ARGS)
+static JSBool ConsoleWriteLogMarker(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -867,7 +867,7 @@ static JSBool ConsoleWriteLogMarker(OOJS_NATIVE_ARGS)
 
 
 // function writeMemoryStats() : void
-static JSBool ConsoleWriteMemoryStats(OOJS_NATIVE_ARGS)
+static JSBool ConsoleWriteMemoryStats(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -882,7 +882,7 @@ static JSBool ConsoleWriteMemoryStats(OOJS_NATIVE_ARGS)
 
 
 // function garbageCollect() : string
-static JSBool ConsoleGarbageCollect(OOJS_NATIVE_ARGS)
+static JSBool ConsoleGarbageCollect(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -925,7 +925,7 @@ static void DumpCallback(const char *name, void *rp, JSGCRootType type, void *da
 }
 
 
-static JSBool ConsoleDumpNamedRoots(OOJS_NATIVE_ARGS)
+static JSBool ConsoleDumpNamedRoots(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -954,7 +954,7 @@ static JSBool ConsoleDumpNamedRoots(OOJS_NATIVE_ARGS)
 
 
 #if OO_NEW_JS
-static JSBool ConsoleDumpHeap(OOJS_NATIVE_ARGS)
+static JSBool ConsoleDumpHeap(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -978,7 +978,7 @@ static JSBool ConsoleDumpHeap(OOJS_NATIVE_ARGS)
 #if OOJS_PROFILE
 
 // function profile(func : function [, Object this = debugConsole.script]) : String
-static JSBool ConsoleProfile(OOJS_NATIVE_ARGS)
+static JSBool ConsoleProfile(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1005,7 +1005,7 @@ static JSBool ConsoleProfile(OOJS_NATIVE_ARGS)
 
 
 // function getProfile(func : function [, Object this = debugConsole.script]) : Object { totalTime : Number, jsTime : Number, extensionTime : Number }
-static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS)
+static JSBool ConsoleGetProfile(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -1033,7 +1033,7 @@ static JSBool ConsoleGetProfile(OOJS_NATIVE_ARGS)
 
 
 // function trace(func : function [, Object this = debugConsole.script]) : [return type of func]
-static JSBool ConsoleTrace(OOJS_NATIVE_ARGS)
+static JSBool ConsoleTrace(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

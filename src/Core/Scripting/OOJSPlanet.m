@@ -34,8 +34,8 @@ MA 02110-1301, USA.
 static JSObject		*sPlanetPrototype;
 
 
-static JSBool PlanetGetProperty(OOJS_PROP_ARGS);
-static JSBool PlanetSetProperty(OOJS_PROP_ARGS);
+static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
 
 static JSClass sPlanetClass =
@@ -122,7 +122,7 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 @end
 
 
-static JSBool PlanetGetProperty(OOJS_PROP_ARGS)
+static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -162,7 +162,7 @@ static JSBool PlanetGetProperty(OOJS_PROP_ARGS)
 			break;
 		
 		default:
-			OOJSReportBadPropertySelector(context, @"Planet", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sPlanetProperties);
 	}
 	return OK;
 	
@@ -170,7 +170,7 @@ static JSBool PlanetGetProperty(OOJS_PROP_ARGS)
 }
 
 
-static JSBool PlanetSetProperty(OOJS_PROP_ARGS)
+static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
@@ -208,7 +208,7 @@ static JSBool PlanetSetProperty(OOJS_PROP_ARGS)
 				OK = [planet setUpPlanetFromTexture:sValue];
 				if (!OK) OOJSReportWarning(context, @"Cannot find texture \"%@\". Value not set.", sValue);
 			}
-			break;
+			return YES;	// Even if !OK, no exception was raised.
 			
 		case kPlanet_orientation:
 			if (JSValueToQuaternion(context, *value, &qValue))
@@ -228,8 +228,13 @@ static JSBool PlanetSetProperty(OOJS_PROP_ARGS)
 			break;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"Planet", OOJS_PROPID_INT);
-			break;
+			OOJSReportBadPropertySelector(context, this, propID, sPlanetProperties);
+			return NO;
+	}
+	
+	if (EXPECT_NOT(!OK))
+	{
+		OOJSReportBadPropertyValue(context, this, propID, sPlanetProperties, *value);
 	}
 	
 	return OK;

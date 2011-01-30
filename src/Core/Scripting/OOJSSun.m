@@ -33,9 +33,9 @@ MA 02110-1301, USA.
 static JSObject		*sSunPrototype;
 
 
-static JSBool SunGetProperty(OOJS_PROP_ARGS);
-static JSBool SunGoNova(OOJS_NATIVE_ARGS);
-static JSBool SunCancelNova(OOJS_NATIVE_ARGS);
+static JSBool SunGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool SunGoNova(JSContext *context, uintN argc, jsval *vp);
+static JSBool SunCancelNova(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sSunClass =
@@ -117,38 +117,34 @@ void InitOOJSSun(JSContext *context, JSObject *global)
 @end
 
 
-static JSBool SunGetProperty(OOJS_PROP_ARGS)
+static JSBool SunGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	if (!OOJS_PROPID_IS_INT)  return YES;
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	OOSunEntity					*sun = nil;
 	
 	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
 	
 	switch (OOJS_PROPID_INT)
 	{
-			
 		case kSun_radius:
-			OK = JS_NewDoubleValue(context, [sun radius], value);
-			break;
+			*value = DOUBLE_TO_JSVAL([sun radius]);
+			return YES;
 			
 		case kSun_hasGoneNova:
 			*value = OOJSValueFromBOOL([sun goneNova]);
-			OK = YES;
-			break;
+			return YES;
 			
 		case kSun_isGoingNova:
 			*value = OOJSValueFromBOOL([sun willGoNova] && ![sun goneNova]);
-			OK = YES;
-			break;
+			return YES;
 			
 		default:
-			OOJSReportBadPropertySelector(context, @"Sun", OOJS_PROPID_INT);
+			OOJSReportBadPropertySelector(context, this, propID, sSunProperties);
+			return NO;
 	}
-	return OK;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -157,7 +153,7 @@ static JSBool SunGetProperty(OOJS_PROP_ARGS)
 // *** Methods ***
 
 // goNova([delay : Number])
-static JSBool SunGoNova(OOJS_NATIVE_ARGS)
+static JSBool SunGoNova(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -175,7 +171,7 @@ static JSBool SunGoNova(OOJS_NATIVE_ARGS)
 
 
 // cancelNova()
-static JSBool SunCancelNova(OOJS_NATIVE_ARGS)
+static JSBool SunCancelNova(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	

@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 
 
-static JSBool WorldScriptsGetProperty(OOJS_PROP_ARGS);
+static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static JSBool WorldScriptsEnumerate(JSContext *cx, JSObject *obj);
 
 
@@ -55,7 +55,7 @@ void InitOOJSWorldScripts(JSContext *context, JSObject *global)
 }
 
 
-static JSBool WorldScriptsGetProperty(OOJS_PROP_ARGS)
+static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	OOJS_NATIVE_ENTER(context)
 	
