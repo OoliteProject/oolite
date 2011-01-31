@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOPlanetEntity.h"
 
-#import "OOSelfDrawingEntity.h"
+#import "Entity.h"
 #import "legacy_random.h"
 #import "OOColor.h"
 
