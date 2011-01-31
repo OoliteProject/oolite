@@ -643,6 +643,8 @@
 		1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */; };
 		1AE45E5A12EB177B00B570E1 /* oolite-constrictor-pilot.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */; };
 		1AE45E5C12EB178100B570E1 /* oolite-locale-functions.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */; };
+		1AE7325012F75D470045513D /* OOLaserShotEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE7324E12F75D470045513D /* OOLaserShotEntity.h */; };
+		1AE7325112F75D470045513D /* OOLaserShotEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE7324F12F75D470045513D /* OOLaserShotEntity.m */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
 		1AE8837412EF91560075814F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; };
 		1AE8837612EF91810075814F /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; };
@@ -1919,6 +1921,8 @@
 		1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Vorbis.xcodeproj; path = "deps/Cocoa-deps/Ogg Vorbis/Vorbis.xcodeproj"; sourceTree = "<group>"; };
 		1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-constrictor-pilot.js"; sourceTree = "<group>"; };
 		1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-locale-functions.js"; sourceTree = "<group>"; };
+		1AE7324E12F75D470045513D /* OOLaserShotEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLaserShotEntity.h; sourceTree = "<group>"; };
+		1AE7324F12F75D470045513D /* OOLaserShotEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLaserShotEntity.m; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
 		1AE8837312EF91560075814F /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = "deps/Cocoa-deps/Sparkle/Sparkle.framework"; sourceTree = "<group>"; };
 		1AE8837F12EF91E80075814F /* SparkleVerificationKey.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = SparkleVerificationKey.pem; path = "Mac-specific/SparkleVerificationKey.pem"; sourceTree = SOURCE_ROOT; };
@@ -2767,6 +2771,8 @@
 				1A817D9F106D3FF000AA2F97 /* OOPlasmaBurstEntity.m */,
 				1A817DC1106D443B00AA2F97 /* OOFlashEffectEntity.h */,
 				1A817DC2106D443B00AA2F97 /* OOFlashEffectEntity.m */,
+				1AE7324E12F75D470045513D /* OOLaserShotEntity.h */,
+				1AE7324F12F75D470045513D /* OOLaserShotEntity.m */,
 			);
 			name = Particles;
 			sourceTree = "<group>";
@@ -3449,6 +3455,7 @@
 				1AEF57D312E51DDB00546444 /* OOJSEngineNativeWrappers.h in Headers */,
 				1A127F4312EC6A4400B65D9F /* OOTextureSprite.h in Headers */,
 				1A1280F812ECA4ED00B65D9F /* OOJSFont.h in Headers */,
+				1AE7325012F75D470045513D /* OOLaserShotEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3908,6 +3915,7 @@
 				1A35257312E1FFA900244C9D /* OOConstToJSString.m in Sources */,
 				1A127F4412EC6A4400B65D9F /* OOTextureSprite.m in Sources */,
 				1A1280F912ECA4ED00B65D9F /* OOJSFont.m in Sources */,
+				1AE7325112F75D470045513D /* OOLaserShotEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

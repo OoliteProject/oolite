@@ -70,6 +70,7 @@ MA 02110-1301, USA.
 #import "OOPlasmaShotEntity.h"
 #import "OOFlashEffectEntity.h"
 #import "ProxyPlayerEntity.h"
+#import "OOLaserShotEntity.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
@@ -4228,7 +4229,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	float	max_available_speed = maxFlightSpeed;
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
-	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
+	[self applyVelocityWithTimeDelta:delta_t];
 	
 	if (thrust)
 	{
@@ -7328,20 +7329,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) fireWeapon:(OOWeaponType)weapon_type direction:(OOViewID)direction range:(double)range
 {
-
-
-	if ([self shotTime] < weapon_recharge_rate)
-		return NO;
+	if ([self shotTime] < weapon_recharge_rate)  return NO;
 	
-	if (range > randf() * weaponRange * accuracy)
-		return NO;
-	if (range > weaponRange)
-		return NO;
-	if (![self onTarget:direction == VIEW_FORWARD])
-		return NO;
-		
-	//
-
+	if (range > randf() * weaponRange * accuracy)  return NO;
+	if (range > weaponRange)  return NO;
+	if (![self onTarget:direction == VIEW_FORWARD])  return NO;
+	
 	BOOL fired = NO;
 	switch (weapon_type)
 	{
@@ -7501,7 +7494,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
 	[self setShipHitByLaser:victim];
 	
-	shot = [[ParticleEntity alloc] initLaserFromShip:self view:direction offset:kZeroVector];
+	shot = [[OOLaserShotEntity alloc] initLaserFromShip:self view:direction offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	
@@ -7565,7 +7558,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector  vel = vector_multiply_scalar(v_forward, flightSpeed);
 	
 	// do special effects laser line
-	shot = [[ParticleEntity alloc] initLaserFromShip:self view:VIEW_FORWARD offset:kZeroVector];
+	shot = [[OOLaserShotEntity alloc] initLaserFromShip:self view:VIEW_FORWARD offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setPosition: position];
@@ -7640,7 +7633,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset:laserPortOffset rangeFound: &hit_at_range];
 	[self setShipHitByLaser:victim];
 	
-	shot = [[ParticleEntity alloc] initLaserFromShip:self view:direction offset:laserPortOffset];	// alloc retains!
+	shot = [[OOLaserShotEntity alloc] initLaserFromShip:self view:direction offset:laserPortOffset];	// alloc retains!
 	
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];

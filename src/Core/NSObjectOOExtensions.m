@@ -1,6 +1,6 @@
 /*
 
-OOEntityFilterPredicate.m
+NSObjectOOExtensions.m
 
 
 Copyright (C) 2010-2011 Jens Ayton

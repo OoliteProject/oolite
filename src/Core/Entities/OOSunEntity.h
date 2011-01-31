@@ -54,8 +54,6 @@ MA 02110-1301, USA.
 	double					cor8k, lim8k;
 	double					cor16k, lim16k;
 	
-//	Vector					rotationAxis;
-	
 	double					corona_speed_factor;		// multiply delta_t by this before adding it to corona_stage
 	double					corona_stage;				// 0.0 -> 1.0
 	GLfloat					rvalue[SUN_CORONA_SAMPLES];	// stores random values for adjusting colors in the corona

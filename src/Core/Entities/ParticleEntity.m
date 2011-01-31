@@ -35,6 +35,8 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOPlanetEntity.h"
 
+#define HYPERRING_DURATION		0.20
+
 
 /*	Entities that can easily be migrated to OOLightParticleEntity:
 	PARTICLE_FRAGBURST?
@@ -44,7 +46,6 @@ MA 02110-1301, USA.
 
 typedef enum
 {
-	PARTICLE_LASER_BEAM			= 160,
 	PARTICLE_FRAGBURST			= 250,
 	PARTICLE_BURST2				= 270,
 	PARTICLE_ENERGY_MINE		= 500,
@@ -64,12 +65,10 @@ typedef enum
 
 - (void) updateEnergyMine:(double) delta_t;
 - (void) updateSpark:(double) delta_t;
-- (void) updateLaser:(double) delta_t;
 - (void) updateHyperring:(double) delta_t;
 - (void) updateFragburst:(double) delta_t;
 - (void) updateBurst2:(double) delta_t;
 
-- (void) drawLaser;
 - (void) drawHyperring;
 - (void) drawEnergyMine;
 - (void) drawFragburst;
@@ -134,84 +133,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 		collision_radius = 32.0;
 	}
 	return self;
-}
-
-
-- (id) initLaserFromShip:(ShipEntity *) srcEntity view:(OOViewID) view offset:(Vector)offset
-{
-	ShipEntity			*ship = [srcEntity rootShipEntity];
-	BoundingBox 		bbox = [srcEntity boundingBox];
-	float				midx = 0.5 * (bbox.max.x + bbox.min.x);
-	float				midz = 0.5 * (bbox.max.z + bbox.min.z);
-	
-	self = [super init];
-	if (self == nil)  goto FAIL;
-	
-#ifndef NDEBUG
-	if (![srcEntity isShip])  goto FAIL;
-	if (ship == nil)  goto FAIL;
-#endif
-	
-	[self setStatus:STATUS_EFFECT];
-	
-	Vector middle = make_vector(midx, 0.5 * (bbox.max.y + bbox.min.y), midz);
-	if (ship == srcEntity) 
-	{
-		// main laser offset
-		position = vector_add([ship position],OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix]));
-	}
-	else
-	{
-		// subentity laser
-		position = [srcEntity absolutePositionForSubentityOffset:middle];
-	}
-	
-	orientation = [ship normalOrientation];
-	Vector v_up = vector_up_from_quaternion(orientation);
-	Vector v_forward = vector_forward_from_quaternion(orientation);
-	Vector v_right = vector_right_from_quaternion(orientation);
-	velocity = vector_multiply_scalar(v_forward, [ship flightSpeed]);
-	
-	Vector	viewOffset;
-	switch (view)
-	{
-		default:
-		case VIEW_AFT:
-			quaternion_rotate_about_axis(&orientation, v_up, M_PI);	
-		case VIEW_FORWARD:
-			viewOffset = vector_multiply_scalar(v_forward, midz);
-			break;
-
-		case VIEW_PORT:
-			quaternion_rotate_about_axis(&orientation, v_up, M_PI/2.0);
-			viewOffset = vector_multiply_scalar(v_right, midx);
-			break;
-			
-		case VIEW_STARBOARD:
-			quaternion_rotate_about_axis(&orientation, v_up, -M_PI/2.0);
-			viewOffset = vector_multiply_scalar(v_right, midx);
-			break;
-	}
-	position = vector_add(position, viewOffset);
-	rotMatrix = OOMatrixForQuaternionRotation(orientation);
-	
-	time_counter = 0.0;
-	
-	particle_type = PARTICLE_LASER_BEAM;
-	
-	[self setColor:[OOColor redColor]];
-	
-	duration = PARTICLE_LASER_DURATION;
-	
-	[self setOwner:ship];
-	
-	collision_radius = [srcEntity weaponRange];
-	
-	return self;
-	
-FAIL:
-	[self release];
-	return nil;
 }
 
 
@@ -439,7 +360,6 @@ FAIL:
 	switch ([self particleType])
 	{
 #define CASE(x) case x: type_string = @#x; break;
-		CASE(PARTICLE_LASER_BEAM);
 		CASE(PARTICLE_FRAGBURST);
 		CASE(PARTICLE_BURST2);
 		CASE(PARTICLE_ENERGY_MINE);
@@ -563,10 +483,6 @@ FAIL:
 			case PARTICLE_HYPERRING:
 				[self updateHyperring:delta_t];
 				break;
-
-			case PARTICLE_LASER_BEAM:
-				[self updateLaser:delta_t];
-				break;
 				
 			case PARTICLE_ENERGY_MINE:
 				[self updateEnergyMine:delta_t];
@@ -643,9 +559,7 @@ FAIL:
 
 - (void) updateSpark:(double) delta_t
 {
-	position.x += velocity.x * delta_t;
-	position.y += velocity.y * delta_t;
-	position.z += velocity.z * delta_t;
+	[self applyVelocityWithTimeDelta:delta_t];
 
 	alpha = (duration - time_counter) / duration;
 	if (alpha < 0.0)	alpha = 0.0;
@@ -662,27 +576,16 @@ FAIL:
 }
 
 
-- (void) updateLaser:(double) delta_t
-{
-	position.x += velocity.x * delta_t;
-	position.y += velocity.y * delta_t;
-	position.z += velocity.z * delta_t;
-	alpha = (duration - time_counter) / PARTICLE_LASER_DURATION;
-	if (time_counter > duration)
-		[UNIVERSE removeEntity:self];
-}
-
-
 - (void) updateHyperring:(double) delta_t
 {
-	position.x += velocity.x * delta_t;
-	position.y += velocity.y * delta_t;
-	position.z += velocity.z * delta_t;
-	alpha = (duration - time_counter) / PARTICLE_LASER_DURATION;
+	[self applyVelocityWithTimeDelta:delta_t];
+	alpha = (duration - time_counter) / HYPERRING_DURATION;
 	ring_inner_radius += delta_t * size.width * 1.1;
 	ring_outer_radius += delta_t * size.height;
 	if (time_counter > duration)
+	{
 		[UNIVERSE removeEntity:self];
+	}
 }
 
 
@@ -741,10 +644,6 @@ FAIL:
 	{
 		switch ([self particleType])
 		{
-			case PARTICLE_LASER_BEAM:
-				[self drawLaser];
-				break;
-				
 			case PARTICLE_HYPERRING:
 				[self drawHyperring];
 				break;
@@ -776,33 +675,7 @@ FAIL:
 	
 	OOGL(glPopAttrib());
 	
-	CheckOpenGLErrors(@"ParticleEntity after drawing %@ %@", self);
-}
-
-
-- (void) drawLaser
-{
-	color_fv[3]		= 0.75;  // set alpha
-	
-	OOGL(glDisable(GL_CULL_FACE));	// face culling
-	OOGL(glDisable(GL_TEXTURE_2D));
-	OOGL(glColor4fv(color_fv));
-	
-	BeginAdditiveBlending(GL_ONE_NO);
-
-	OOGLBEGIN(GL_QUADS);
-		glVertex3f(0.25, 0.0, 0.0);
-		glVertex3f(0.25, 0.0, collision_radius);
-		glVertex3f(-0.25, 0.0, collision_radius);
-		glVertex3f(-0.25, 0.0, 0.0);
-		
-		glVertex3f(0.0, 0.25, 0.0);
-		glVertex3f(0.0, 0.25, collision_radius);
-		glVertex3f(0.0, -0.25, collision_radius);
-		glVertex3f(0.0, -0.25, 0.0);
-	OOGLEND();
-	
-	EndAdditiveBlending();
+	CheckOpenGLErrors(@"ParticleEntity after drawing %@", self);
 }
 
 

@@ -38,24 +38,13 @@ MA 02110-1301, USA.
 
 #import "NSScannerOOExtensions.h"
 #import "OODebugFlags.h"
+#import "NSObjectOOExtensions.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.Entity"
 
 #ifndef NDEBUG
 uint32_t gLiveEntityCount = 0;
 size_t gTotalEntityMemory = 0;
-#if __OBJC2__
-#import <objc/runtime.h>
-#elif !OOLITE_GNUSTEP_1_20
-#if OOLITE_MAC_OS_X
-#import <objc/objc-class.h>
-#endif
-
-OOINLINE size_t class_getInstanceSize(Class cls)
-{
-	return cls->instance_size;
-}
-#endif
 #endif
 
 
@@ -97,7 +86,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	
 #ifndef NDEBUG
 	gLiveEntityCount++;
-	gTotalEntityMemory += class_getInstanceSize([self class]);
+	gTotalEntityMemory += [self oo_objectSize];
 #endif
 	
 	return self;
@@ -114,7 +103,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	
 #ifndef NDEBUG
 	gLiveEntityCount--;
-	gTotalEntityMemory -= class_getInstanceSize([self class]);
+	gTotalEntityMemory += [self oo_objectSize];
 #endif
 	
 	[super dealloc];
@@ -856,7 +845,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (void) update:(OOTimeDelta) delta_t
+- (void) update:(OOTimeDelta)delta_t
 {
 	PlayerEntity *player = PLAYER;
 	if (player)
@@ -875,6 +864,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
 	lastOrientation = orientation;
+}
+
+
+- (void) applyVelocityWithTimeDelta:(OOTimeDelta)delta_t
+{
+	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
 }
 
 

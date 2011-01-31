@@ -52,6 +52,8 @@ OOINLINE void bounding_box_reset_to_vector(BoundingBox *box, Vector vec) ALWAYS_
 
 OOINLINE void bounding_box_get_dimensions(BoundingBox bb, GLfloat *xSize, GLfloat *ySize, GLfloat *zSize) ALWAYS_INLINE_FUNC;
 
+OOINLINE Vector OOBoundingBoxCenter(BoundingBox bb) INLINE_CONST_FUNC;
+
 Vector OORandomPositionInBoundingBox(BoundingBox bb);
 
 
@@ -102,6 +104,12 @@ OOINLINE void bounding_box_get_dimensions(BoundingBox bb, GLfloat *xSize, GLfloa
 	if (xSize != NULL)  *xSize = bb.max.x - bb.min.y;
 	if (ySize != NULL)  *ySize = bb.max.y - bb.min.y;
 	if (zSize != NULL)  *zSize = bb.max.z - bb.min.z;
+}
+
+
+OOINLINE Vector OOBoundingBoxCenter(BoundingBox bb)
+{
+	return vector_multiply_scalar(vector_add(bb.min, bb.max), 0.5f);
 }
 
 #endif

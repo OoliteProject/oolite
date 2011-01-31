@@ -246,11 +246,12 @@ enum OOScanClass
 - (void) setCollisionRadius:(GLfloat)amount;
 - (NSMutableArray *)collisionArray;
 
-- (void) update:(OOTimeDelta) delta_t;
+- (void) update:(OOTimeDelta)delta_t;
+- (void) applyVelocityWithTimeDelta:(OOTimeDelta)delta_t;	// Newtonion mechanics is opt-in. (FIXME: is there actually anything with a non-zero velocity that doesn't want this? -- Ahruman 2011-01-31)
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other;
 
-- (void) takeEnergyDamage:(double) amount from:(Entity *) ent becauseOf:(Entity *) other;
+- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other;
 
 - (void) dumpState;		// General "describe situtation verbosely in log" command.
 - (void) dumpSelfState;	// Subclasses should override this, not -dumpState, and call throught to super first.
