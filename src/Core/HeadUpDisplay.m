@@ -226,9 +226,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) dealloc
 {
-	[legendArray release];
-	[dialArray release];
-	[hudName release];
+	DESTROY(legendArray);
+	DESTROY(dialArray);
+	DESTROY(hudName);
+	DESTROY(propertiesReticleTargetSensitive);
+	DESTROY(_crosshairOverrides);
+	
 	[super dealloc];
 }
 

@@ -28,22 +28,23 @@ MA 02110-1301, USA.
 
 #if !NEW_PLANETS
 
-#import "OOSelfDrawingEntity.h"
+#import "Entity.h"
 #import "legacy_random.h"
 #import "OOColor.h"
 
-@class OOTexture;
+@class OOTexture, OOSelfDrawingEntity;
 
 
 #define MAX_TRI_INDICES			3*(20+80+320+1280+5120+20480)
+#define MAX_PLANET_VERTICES		10400
 
 
 typedef struct
 {
-	Vector					vertex_array[10400 + 2];
-	GLfloat					color_array[4*10400];
-	GLfloat					uv_array[2*10400];
-	Vector					normal_array[10400];
+	Vector					vertex_array[MAX_PLANET_VERTICES + 2];
+	GLfloat					color_array[4*MAX_PLANET_VERTICES];
+	GLfloat					uv_array[2*MAX_PLANET_VERTICES];
+	Vector					normal_array[MAX_PLANET_VERTICES];
 	GLuint					index_array[MAX_TRI_INDICES];
 } VertexData;
 
@@ -51,15 +52,13 @@ typedef struct
 #define PlanetEntity OOPlanetEntity
 
 
-@interface PlanetEntity: OOSelfDrawingEntity <OOStellarBody>
+@interface PlanetEntity: Entity <OOStellarBody>
 {
 @private
-	int						lastSubdivideLevel;
-	
 	OOStellarBodyType		planet_type;
-	int						r_seed[MAX_VERTICES_PER_ENTITY];
-	GLuint					displayListNames[MAX_SUBDIVIDE];
 	
+	uint8_t					lastSubdivideLevel;
+	BOOL					useTexturedModel;
 	BOOL					isTextureImage;			// is the texture explicitly specified (as opposed to synthesized)?
 	NSString				*_textureFileName;
 	OOTexture				*_texture;
@@ -83,8 +82,8 @@ typedef struct
 	
 	double					sqrt_zero_distance;
 	
-	// the normal array can be the base_vertex_array
-	// the index array can come from the vertex_index_array
+	GLuint					displayListNames[MAX_SUBDIVIDE];
+	GLuint					vertexCount;
 	VertexData				vertexdata;
 	
 	Vector					rotationAxis;
@@ -95,7 +94,6 @@ typedef struct
 
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
 
-- (int*) r_seed;
 - (int) planet_seed;
 - (BOOL) isTextured;
 - (BOOL) isExplicitlyTextured;		// Specified texture, not synthesized.
@@ -116,7 +114,6 @@ typedef struct
 - (void) setRadius:(double) rad;
 - (double) rotationalVelocity;
 - (void) setRotationalVelocity:(double) v;
-- (void) rescaleTo:(double) rad;
 
 - (BOOL) hasAtmosphere;
 

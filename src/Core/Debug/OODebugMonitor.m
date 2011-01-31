@@ -44,6 +44,7 @@ SOFTWARE.
 #import "NSObjectOOExtensions.h"
 #import "OOTexture.h"
 #import "OOConcreteTexture.h"
+#import "OODrawable.h"
 
 
 static OODebugMonitor *sSingleton = nil;

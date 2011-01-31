@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOLogOutputHandler.h"
 #import "OODebugFlags.h"
 #import "OOJSFrameCallbacks.h"
+#import "OOOpenGLExtensionManager.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 

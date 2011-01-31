@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
+#import "OOMesh.h"
 
 
 static JSObject *sShipPrototype;

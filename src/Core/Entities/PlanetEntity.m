@@ -46,9 +46,6 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlanetEntity"
 
-#define kTexturedPlanetModel	@"icostextured.dat"
-#define kUntexturedPlanetModel	@"icosahedron.dat"
-
 
 #if !OOLITE_MAC_OS_X || !OOLITE_LEOPARD
 #define NSIntegerMapKeyCallBacks	NSIntMapKeyCallBacks
@@ -56,9 +53,9 @@ MA 02110-1301, USA.
 #endif
 
 
-// straight c
-static Vector base_vertex_array[10400];
-static int base_terrain_array[10400];
+// straight C
+static Vector base_vertex_array[MAX_PLANET_VERTICES];
+static int base_terrain_array[MAX_PLANET_VERTICES];
 static OOUInteger next_free_vertex;
 static NSMapTable *sEdgeToVertex;
 
@@ -66,7 +63,7 @@ static int n_triangles[MAX_SUBDIVIDE];
 static int triangle_start[MAX_SUBDIVIDE];
 static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 
-static GLfloat	texture_uv_array[10400 * 2];
+static GLfloat	texture_uv_array[MAX_PLANET_VERTICES * 2];
 
 
 @interface PlanetEntity (OOPrivate) <OOGraphicsResetClient>
@@ -93,9 +90,103 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (void) deleteDisplayLists;
 
+- (void) setUseTexturedModel:(BOOL)flag;
+
 @end
 
 static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
+
+
+typedef struct
+{
+	unsigned			v;
+	float				s;
+	float				t;
+} BaseFace;
+
+
+static const Vector kUntexturedVertices[] =
+{
+	{ +0.000000, -0.850664, -0.525710 },
+	{ +0.000000, -0.850664, +0.525710 },
+	{ +0.000000, +0.850664, +0.525710 },
+	{ +0.000000, +0.850664, -0.525710 },
+	{ -0.525710, +0.000000, -0.850664 },
+	{ +0.525710, +0.000000, -0.850664 },
+	{ +0.525710, +0.000000, +0.850664 },
+	{ -0.525710, +0.000000, +0.850664 },
+	{ -0.850664, -0.525710, +0.000000 },
+	{ -0.850664, +0.525710, +0.000000 },
+	{ +0.850664, +0.525710, +0.000000 },
+	{ +0.850664, -0.525710, +0.000000 }
+};
+
+static const BaseFace kUntexturedFaces[][3] =
+{
+	{ {  9, +0.600000, +0.666667 }, {  7, +0.800000, +0.666667 }, {  8, +0.800000, +0.333333 } },
+	{ {  8, +0.800000, +0.333333 }, {  4, +0.600000, +0.333333 }, {  9, +0.600000, +0.666667 } },
+	{ {  3, +0.400000, +0.666667 }, {  9, +0.600000, +0.666667 }, {  4, +0.600000, +0.333333 } },
+	{ {  8, +0.800000, +0.333333 }, {  0, +0.500000, +0.000000 }, {  4, +0.600000, +0.333333 } },
+	{ {  7, +0.800000, +0.666667 }, {  1, +1.000000, +0.333333 }, {  8, +0.800000, +0.333333 } },
+	{ {  2, +0.500000, +1.000000 }, {  7, +0.800000, +0.666667 }, {  9, +0.600000, +0.666667 } },
+	{ {  2, +0.500000, +1.000000 }, {  9, +0.600000, +0.666667 }, {  3, +0.400000, +0.666667 } },
+	{ {  1, +1.000000, +0.333333 }, {  0, +0.500000, +0.000000 }, {  8, +0.800000, +0.333333 } },
+	{ {  4, +0.600000, +0.333333 }, {  0, +0.500000, +0.000000 }, {  5, +0.400000, +0.333333 } },
+	{ {  5, +0.400000, +0.333333 }, {  3, +0.400000, +0.666667 }, {  4, +0.600000, +0.333333 } },
+	{ {  6, +1.000000, +0.666667 }, {  1, +1.000000, +0.333333 }, {  7, +0.800000, +0.666667 } },
+	{ {  7, +0.800000, +0.666667 }, {  2, +0.500000, +1.000000 }, {  6, +1.000000, +0.666667 } },
+	{ {  1, +0.000000, +0.333333 }, { 11, +0.200000, +0.333333 }, {  0, +0.500000, +0.000000 } },
+	{ {  3, +0.400000, +0.666667 }, { 10, +0.200000, +0.666667 }, {  2, +0.500000, +1.000000 } },
+	{ {  0, +0.500000, +0.000000 }, { 11, +0.200000, +0.333333 }, {  5, +0.400000, +0.333333 } },
+	{ {  5, +0.400000, +0.333333 }, { 10, +0.200000, +0.666667 }, {  3, +0.400000, +0.666667 } },
+	{ {  1, +0.000000, +0.333333 }, {  6, +0.000000, +0.666667 }, { 11, +0.200000, +0.333333 } },
+	{ {  6, +0.000000, +0.666667 }, {  2, +0.500000, +1.000000 }, { 10, +0.200000, +0.666667 } },
+	{ {  5, +0.400000, +0.333333 }, { 11, +0.200000, +0.333333 }, { 10, +0.200000, +0.666667 } },
+	{ { 11, +0.200000, +0.333333 }, {  6, +0.000000, +0.666667 }, { 10, +0.200000, +0.666667 } }
+};
+
+
+static const Vector kTexturedVertices[] =
+{
+	{ +0.525731, +0.000000, +0.850651 },
+	{ -0.525731, +0.000000, +0.850651 },
+	{ +0.525731, +0.000000, -0.850651 },
+	{ -0.525731, +0.000000, -0.850651 },
+	{ +0.000000, +0.850651, +0.525731 },
+	{ +0.000000, +0.850651, -0.525731 },
+	{ +0.000000, -0.850651, +0.525731 },
+	{ +0.000000, -0.850651, -0.525731 },
+	{ -0.850651, +0.525731, +0.000000 },
+	{ +0.850651, +0.525731, +0.000000 },
+	{ -0.850651, -0.525731, +0.000000 },
+	{ +0.850651, -0.525731, +0.000000 },
+	{ +0.000000, +0.850651, -0.525731 },
+	{ +0.525731, +0.000000, -0.850651 }
+};
+
+static const BaseFace kTexturedFaces[][3] =
+{
+	{ {  1, +0.400000, +0.666667 }, {  0, +0.600000, +0.666667 }, {  6, +0.500000, +0.333333 } },
+	{ {  3, +0.100000, +0.333333 }, {  2, -0.100000, +0.333333 }, {  5, +0.000000, +0.666667 } },
+	{ {  4, +0.500000, +1.000000 }, {  0, +0.600000, +0.666667 }, {  1, +0.400000, +0.666667 } },
+	{ {  4, +0.500000, +1.000000 }, {  1, +0.400000, +0.666667 }, {  8, +0.200000, +0.666667 } },
+	{ { 12, +1.000000, +0.666667 }, { 13, +0.900000, +0.333333 }, {  9, +0.800000, +0.666667 } },
+	{ {  5, +0.000000, +0.666667 }, {  4, +0.500000, +1.000000 }, {  8, +0.200000, +0.666667 } },
+	{ {  6, +0.500000, +0.333333 }, {  0, +0.600000, +0.666667 }, { 11, +0.700000, +0.333333 } },
+	{ {  7, +0.500000, +0.000000 }, {  2, -0.100000, +0.333333 }, {  3, +0.100000, +0.333333 } },
+	{ {  7, +0.500000, +0.000000 }, {  3, +0.100000, +0.333333 }, { 10, +0.300000, +0.333333 } },
+	{ {  7, +0.500000, +0.000000 }, {  6, +0.500000, +0.333333 }, { 11, +0.700000, +0.333333 } },
+	{ {  8, +0.200000, +0.666667 }, {  1, +0.400000, +0.666667 }, { 10, +0.300000, +0.333333 } },
+	{ {  8, +0.200000, +0.666667 }, {  3, +0.100000, +0.333333 }, {  5, +0.000000, +0.666667 } },
+	{ {  9, +0.800000, +0.666667 }, {  0, +0.600000, +0.666667 }, {  4, +0.500000, +1.000000 } },
+	{ {  9, +0.800000, +0.666667 }, { 13, +0.900000, +0.333333 }, { 11, +0.700000, +0.333333 } },
+	{ {  9, +0.800000, +0.666667 }, {  4, +0.500000, +1.000000 }, { 12, +1.000000, +0.666667 } },
+	{ { 10, +0.300000, +0.333333 }, {  1, +0.400000, +0.666667 }, {  6, +0.500000, +0.333333 } },
+	{ { 10, +0.300000, +0.333333 }, {  3, +0.100000, +0.333333 }, {  8, +0.200000, +0.666667 } },
+	{ { 10, +0.300000, +0.333333 }, {  6, +0.500000, +0.333333 }, {  7, +0.500000, +0.000000 } },
+	{ { 11, +0.700000, +0.333333 }, {  0, +0.600000, +0.666667 }, {  9, +0.800000, +0.666667 } },
+	{ { 11, +0.700000, +0.333333 }, { 13, +0.900000, +0.333333 }, {  7, +0.500000, +0.000000 } }
+};
 
 
 @implementation PlanetEntity
@@ -247,13 +338,14 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 	
 	planet_seed =	ranrot_rand();	// random set-up for vertex colours
 	
-	[self setModelName:kTexturedPlanetModel];
-	[self rescaleTo:1.0];
+	[self setUseTexturedModel:YES];
 	[self initialiseBaseVertexArray];
 	[self initialiseBaseTerrainArray:percent_land];
 	unsigned i;
 	for (i =  0; i < next_free_vertex; i++)
+	{
 		[self paintVertex:i :planet_seed];
+	}
 	
 	[self scaleVertices];
 
@@ -278,12 +370,10 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 	shuttle_launch_interval = 3600.0;
 	[self setStatus:STATUS_COCKPIT_DISPLAY];
 	collision_radius = [self collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
-	[self rescaleTo:1.0];
 	[self scaleVertices];
 	if (atmosphere != nil)
 	{
 		atmosphere->collision_radius = collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR*2.0; //not to scale: invisible otherwise
-		[atmosphere rescaleTo:1.0];
 		[atmosphere scaleVertices];
 	}
 	rotational_velocity = 0.04;
@@ -368,8 +458,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 	orientation.y =  0.0;
 	orientation.z =  0.0;
 	
-	[self setModelName:(procGen || _texture != nil) ? kTexturedPlanetModel : kUntexturedPlanetModel];
-	[self rescaleTo:1.0];
+	[self setUseTexturedModel:(procGen || _texture != nil)];
 	
 	int percent_land = [planetInfo oo_intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
 	//if (isTextured)  percent_land =  atmo ? 0 :100; // moon/planet override
@@ -377,14 +466,9 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 	// save the current random number generator seed
 	RNG_Seed saved_seed = currentRandomSeed();
 	
+	// For historical reasons, stir the PRNG vertexCount times.
 	unsigned i;
-	for (i = 0; i < vertexCount; i++)
-	{
-		if (gen_rnd_number() < 256 * percent_land / 100)
-			r_seed[i] = 0;  // land
-		else
-			r_seed[i] = 100;  // sea
-	}
+	for (i = 0; i < vertexCount; i++)  gen_rnd_number();
 	
 	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
 	
@@ -456,11 +540,12 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 #endif
 	
 	[self initialiseBaseVertexArray];
-	
 	[self initialiseBaseTerrainArray:percent_land];
 	
 	for (i = 0; i < next_free_vertex; i++)
+	{
 		[self paintVertex:i :planet_seed];
+	}
 	
 	[self scaleVertices];
 	// set speed of rotation	
@@ -659,13 +744,19 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 }
 
 
-- (void) setModelName:(NSString *)modelName
+- (void) setUseTexturedModel:(BOOL)flag
 {
-	double  old_collision_radius = collision_radius;
-	[super setModelName:modelName];
-	collision_radius = old_collision_radius;	// preserve the radius
+	if (flag)
+	{
+		useTexturedModel = YES;
+		vertexCount = sizeof kTexturedVertices / sizeof *kTexturedVertices;
+	}
+	else
+	{
+		useTexturedModel = NO;
+		vertexCount = sizeof kUntexturedVertices / sizeof *kTexturedVertices;
+	}
 }
-
 
 
 // TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
@@ -678,7 +769,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 
 - (void) drawUnconditionally
 {
-	int		subdivideLevel =	2;		// 4 is probably the maximum!
+	uint8_t	subdivideLevel =	2;		// 4 is probably the maximum!
 	
 	double  drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
 	double  drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
@@ -686,12 +777,13 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 	if (zero_distance > 0.0)
 	{
 		subdivideLevel = 2 + floor(drawRatio2);
-		if (subdivideLevel > 4)
-			subdivideLevel = 4;
+		if (subdivideLevel > 4)  subdivideLevel = 4;
 	}
 	
 	if (planet_type == STELLAR_TYPE_MINIATURE)
-		subdivideLevel = [UNIVERSE reducedDetail]? 3 : 4 ;		// max detail or less
+	{
+		subdivideLevel = [UNIVERSE reducedDetail]? 3 : 4;		// max detail or less
+	}
 		
 	lastSubdivideLevel = subdivideLevel;	// record
 	
@@ -716,7 +808,9 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 	BOOL ignoreDepthBuffer = (planet_type == STELLAR_TYPE_ATMOSPHERE);
 	
 	if (zero_distance > collision_radius * collision_radius * 25) // is 'far away'
+	{
 		ignoreDepthBuffer |= YES;
+	}
 	
 	[_texture ensureFinishedLoading];
 	
@@ -728,6 +822,8 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 				subdivideLevel = root_planet->lastSubdivideLevel;	// copy it from the planet (stops jerky LOD and such)
 			}
 			GLMultOOMatrix(rotMatrix);	// rotate the clouds!
+			// Fall through.
+			
 		case STELLAR_TYPE_MOON:
 		case STELLAR_TYPE_NORMAL_PLANET:
 		case STELLAR_TYPE_MINIATURE:
@@ -872,12 +968,6 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 #endif
 
 
-- (int*) r_seed
-{
-	return r_seed;
-}
-
-
 - (int) planet_seed
 {
 	return planet_seed;
@@ -904,10 +994,8 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 	// the colour override should only apply to main planets
 	if (isMain)
 	{
-		if (isLocal)
-			ScanVectorFromString([[UNIVERSE currentSystemData] objectForKey:@"texture_hsb_color"], &land_hsb);
-		else
-			ScanVectorFromString([[UNIVERSE generateSystemData:[PLAYER target_system_seed]] objectForKey:@"texture_hsb_color"], &land_hsb);
+		if (isLocal)  ScanVectorFromString([[UNIVERSE currentSystemData] objectForKey:@"texture_hsb_color"], &land_hsb);
+		else  ScanVectorFromString([[UNIVERSE generateSystemData:[PLAYER target_system_seed]] objectForKey:@"texture_hsb_color"], &land_hsb);
 	}
 	
 	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
@@ -931,9 +1019,8 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 	[self deleteDisplayLists];
 	
 	OOUInteger i;
-	[self setModelName:kTexturedPlanetModel];
-	[self rescaleTo:1.0];
-	memset(r_seed, 0, sizeof *r_seed * vertexCount);
+	[self setUseTexturedModel:YES];
+	
 	// recolour main planet according to "texture_hsb_color"
 	// this function is only called for local systems!
 	[self setTextureColorForPlanet:([UNIVERSE planet] == self) inSystem:YES];
@@ -1031,16 +1118,6 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 }
 
 
-- (void) rescaleTo:(double) rad
-{
-	OOMeshVertexCount i;
-	for (i = 0; i < vertexCount; i++)
-	{
-		vertices[i] = vector_multiply_scalar(vector_normal(vertices[i]), rad);
-	}
-}
-
-
 - (BOOL) hasAtmosphere
 {
 	return atmosphere != nil;
@@ -1097,8 +1174,6 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 
 - (void) initialiseBaseVertexArray
 {
-	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];	// use our own pool since this routine is quite hard on memory
-	
 	BOOL isTextured = [self isTextured];
 	static BOOL lastOneWasTextured;
 	
@@ -1117,31 +1192,41 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 		sEdgeToVertex = NSCreateMapTable(NSIntegerMapKeyCallBacks, NSIntegerMapValueCallBacks, 7680);	// make a new one
 		next_free_vertex = 0;
 		
+		const Vector *vertices = NULL;
+		const BaseFace (*faces)[3] = NULL;
+		GLuint faceCount = 0;
+		if (useTexturedModel)
+		{
+			vertices = kTexturedVertices;
+			faces = kTexturedFaces;
+			faceCount = sizeof kTexturedFaces / sizeof *kTexturedFaces;
+		}
+		else
+		{
+			vertices = kUntexturedVertices;
+			faces = kUntexturedFaces;
+			faceCount = sizeof kUntexturedFaces / sizeof *kUntexturedFaces;
+		}
+		
 		// set first 12 or 14 vertices
-		OOMeshVertexCount vi;
+		GLuint vi;
 		for (vi = 0; vi < vertexCount; vi++)
 		{
 			base_vertex_array[next_free_vertex++] =  vertices[vi];
 		}
 		
 		// set first 20 triangles
-		
 		triangle_start[0] = 0;
 		n_triangles[0] = faceCount;
-		OOMeshFaceCount fi;
+		GLuint fi;
 		for (fi = 0; fi < faceCount; fi++)
 		{
-			vertex_index_array[fi * 3 + 0] = faces[fi].vertex[0];
-			vertex_index_array[fi * 3 + 1] = faces[fi].vertex[1];
-			vertex_index_array[fi * 3 + 2] = faces[fi].vertex[2];
-			if (isTextured)
+			unsigned j;
+			for (j = 0; j < 3; j++)
 			{
-				texture_uv_array[faces[fi].vertex[0] * 2]		= faces[fi].s[0];
-				texture_uv_array[faces[fi].vertex[0] * 2 + 1]	= faces[fi].t[0];
-				texture_uv_array[faces[fi].vertex[1] * 2]		= faces[fi].s[1];
-				texture_uv_array[faces[fi].vertex[1] * 2 + 1]	= faces[fi].t[1];
-				texture_uv_array[faces[fi].vertex[2] * 2]		= faces[fi].s[2];
-				texture_uv_array[faces[fi].vertex[2] * 2 + 1]	= faces[fi].t[2];
+				vertex_index_array[fi * 3 + j] = faces[fi][j].v;
+				texture_uv_array[faces[fi][j].v * 2 + 0] = faces[fi][j].s;
+				texture_uv_array[faces[fi][j].v * 2 + 1] = faces[fi][j].t;
 			}
 		}
 		
@@ -1187,9 +1272,9 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured);
 	// all done - copy the indices to the instance
 	unsigned i;
 	for (i = 0; i < MAX_TRI_INDICES; i++)
+	{
 		vertexdata.index_array[i] = vertex_index_array[i];
-
-	[mypool release];
+	}
 }
 
 	
@@ -1245,7 +1330,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 	// set first 12 or 14 vertices
 	if (percent_land >= 0)
 	{
-		OOMeshVertexCount vi;
+		GLuint vi;
 		for (vi = 0; vi < vertexCount; vi++)
 		{
 			if (gen_rnd_number() < 256 * percent_land / 100)
