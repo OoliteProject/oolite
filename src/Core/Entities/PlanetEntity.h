@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #import "legacy_random.h"
 #import "OOColor.h"
 
-@class OOTexture, OOSelfDrawingEntity;
+@class OOTexture;
 
 
 #define MAX_TRI_INDICES			3*(20+80+320+1280+5120+20480)
