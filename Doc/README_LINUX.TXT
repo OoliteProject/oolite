@@ -25,9 +25,8 @@ PATH=$PATH:.
 before running make when you build GNUstep Startup, because it depends
 on running a shell script in the current directory.
 
-I'm not sure what the minimum hardware is, however decent OpenGL
-support is a must. I've only been able to personally test it on
-two machines - a 2GHz P4 with a GeForce 4ti and an old Compaq
+Hardware OpenGL support is a must. Oolite linux was tested on the
+following machines - a 2GHz P4 with a GeForce 4ti and an old Compaq
 733MHz P3 with ATi Radeon Mobility. It ran fine on both machines.
 I have heard reports of bad things happening with ATi graphics
 cards, but only off one person (textures didn't display), and another
@@ -74,8 +73,8 @@ have one, screenshots, and describe weirdness with sound. Also provide
 log messages from the console. Better still, if you have a fix, send
 us the patch!
 
-Modifications from Stock OSX Oolite
-===================================
+Modifications from OSX Oolite
+=============================
 
 Makefiles:
 GNUmakefile and GNUmakefile.postamble.
@@ -89,7 +88,7 @@ PlayerEntity_Additions.m, PlayerEntity_contracts.m, ShipEntity_AI.m -
    If you grep for these, you can see where work has to be done.
    I've usually put a TODO: comment line in these (many of them are not
    filled in). I've not #ifdef'd out any methods - I've left at least
-   a stub if there's nothing to put in there (for example, speech).
+   a stub if there's nothing to put in there .
 
 Addition of Comparison.m/h from ObjectiveLib 
 (see http://objectivelib.sourceforge.net). ObjectiveLib is an LGPL'd 
@@ -103,14 +102,6 @@ to just add these two files.
 Sound uses SDL instead of the AppKit's sound (the sound daemon crashes).
 Graphics use SDL instead of NSOpenGLView.
 
-Major tasks left
-================
-- Get rid of AppKit dependencies (in progress; moving to SDL). This
-  will make the game portable to more platforms - in particular,
-  GNUstep AppKit's OpenGL source is non-existent on Redmondware.
-  Much of this work has been done.
-- Speech. This is a more 'who cares?' requirement. I don't know of
-  a *nix open source speech synth.
 
 Notes for the terminally insane
 ===============================

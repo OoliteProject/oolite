@@ -4,9 +4,7 @@ Porting Oolite
 Oolite is portable to any platform that supports SDL and GNUstep. It is
 known to run on Linux, FreeBSD 5 and 6 and SGI IRIX. (The OS X version
 is the 'canonical' version - Oolite appeared on Mac OS X first and was
-later ported). It is also known to run under Windows, however the
-Windows port is currently at alpha test level (GNUstep on Windows isn't
-as complete as it is on Unix).
+later ported). It also runs under Windows.
 
 Oolite doesn't care about the endian-ness of the architecture - so far,
 it is known to have run on PowerPC, Intel/amd x86, amd x86_64 (and
@@ -30,22 +28,22 @@ contain the following:
 
 In the root:
 
-install     A shell script that installs Oolite on the user's computer
-oolite.src  A shell script fragment that is used to make the shell
-            script 'oolite' that runs the game.
-oolite-update.src    A shell script fragment that can rsync updates.
-PLAYING.TXT Brief players guid
-README.TXT  Readme for your platform
+install     		A shell script that installs Oolite on the user's computer.
+oolite.src			A shell script fragment that is used to make the shell
+					script 'oolite' that runs the game.
+oolite-update.src	A shell script fragment that can rsync updates.
+OoliteReadMe.pdf	Brief players guide.
+OoliteRS.pdf		Players Reference Sheet.
+README.TXT  		Readme for your platform.
 
 Subdirectories:
 oolite-deps
-      GNUstep  A minimalist set of GNUstep run time files
+      GNUstep  	A minimalist set of GNUstep run time files
       lib      Shared libraries that support the game
 
 If your platform does not yet have this dependencies directory, you can
 model yours on the Linux-deps directory. Most things will be the
-same. (The reason PLAYING.TXT is here is that it may vary slightly from
-platform to platform).
+same.
 
 Issues you may encounter when building Oolite on a new platform
 ===============================================================

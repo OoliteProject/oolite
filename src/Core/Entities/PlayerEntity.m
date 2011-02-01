@@ -5612,8 +5612,8 @@ done:
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"short-range-chart-title")];
 		[gui setText:targetSystemName forRow:19];
-		[gui setText:[NSString stringWithFormat:DESC(@"short-range-chart-distance-f"), distance]   forRow:20];
-		if ([self hasHyperspaceMotor]) [gui setText:((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (NSString *)@"") forRow:21];
+		[gui setText:[NSString stringWithFormat:DESC(@"charts-distance-f"), distance] forRow:20];
+		if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? [NSString stringWithFormat:DESC(@"charts-est-travel-time-f"), estimatedTravelTime] : @"") forRow:21];
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
