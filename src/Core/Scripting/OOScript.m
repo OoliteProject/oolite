@@ -218,12 +218,6 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 }
 
 
-- (void)resetState
-{
-	
-}
-
-
 - (NSString *)name
 {
 	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");

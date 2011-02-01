@@ -10031,6 +10031,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 {
 	JSContext *context = OOJSAcquireContext();
 	[self doScriptEvent:message inContext:context withArguments:argv count:argc];
+	OOJSRelinquishContext(context);
 }
 
 

@@ -74,6 +74,8 @@ MA 02110-1301, USA.
 #import "OOLoggingExtended.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJoystickManager.h"
+#import "OOScriptTimer.h"
+#import "OOJSFrameCallbacks.h"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -8481,6 +8483,11 @@ Entity *gOOJSPlayerIfStale = nil;
 	cachedStation = nil;
 	
 	[self initSettings];
+	
+	// Reset JavaScript. Must be before [player setUp], since that loads the locale and world scripts.
+	[OOScriptTimer noteGameReset];
+	OOJSFrameCallbacksRemoveAll();
+	[[OOJavaScriptEngine sharedEngine] reset];
 	
 	[player setUp];
 	

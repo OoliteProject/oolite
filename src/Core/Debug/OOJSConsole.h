@@ -36,3 +36,5 @@ SOFTWARE.
 
 
 JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor);
+
+void OOJSConsoleDestroy(void);

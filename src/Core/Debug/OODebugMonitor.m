@@ -52,6 +52,9 @@ static OODebugMonitor *sSingleton = nil;
 
 @interface OODebugMonitor (Private) <OOJavaScriptEngineMonitor>
 
+- (void) setUpDebugConsoleScript;
+- (void) javaScriptEngineWillReset:(NSNotification *)notification;
+
 - (void)disconnectDebuggerWithMessage:(NSString *)message;
 
 - (NSDictionary *)mergedConfiguration;
@@ -73,13 +76,10 @@ static OODebugMonitor *sSingleton = nil;
 - (id)init
 {
 	NSUserDefaults				*defaults = nil;
-	NSDictionary				*jsProps = nil;
 	NSDictionary				*config = nil;
 #if OOLITE_GNUSTEP
 	NSString					*NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
 #endif
-	JSContext					*context = NULL;
-	OOJavaScriptEngine			*jsEng = nil;
 	
 	self = [super init];
 	if (self != nil)
@@ -95,33 +95,27 @@ static OODebugMonitor *sSingleton = nil;
 		if (config == nil)  config = [NSMutableDictionary dictionary];
 		_configOverrides = [config retain];
 		
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
-		
-		jsEng = [OOJavaScriptEngine sharedEngine];
+		OOJavaScriptEngine *jsEng = [OOJavaScriptEngine sharedEngine];
 #if OOJSENGINE_MONITOR_SUPPORT
 		[jsEng setMonitor:self];
 #endif
 		
-		context = OOJSAcquireContext();
+		[self setUpDebugConsoleScript];
 		
-		// Set up JavaScript side of console.
-		BOOL savedShow = OOLogWillDisplayMessagesInClass(@"script.load.notFound");
-		OOLogSetDisplayMessagesInClass(@"script.load.notFound", NO);
-		jsProps = [NSDictionary dictionaryWithObjectsAndKeys:
-								self, @"console",
-								JSSpecialFunctionsObjectWrapper(context), @"special",
-								nil];
-		_script = [[OOScript jsScriptFromFileNamed:@"oolite-debug-console.js" properties:jsProps] retain];
-		OOLogSetDisplayMessagesInClass(@"script.load.notFound", savedShow);
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(applicationWillTerminate:)
+													 name:NSApplicationWillTerminateNotification
+												   object:nil];
 		
-		// If no script, just make console visible globally as debugConsole.
-		if (_script == nil)
-		{
-			JSObject *global = [jsEng globalObject];
-			JS_DefineProperty(context, global, "debugConsole", [self oo_jsValueInContext:context], NULL, NULL, JSPROP_ENUMERATE);
-		}
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(javaScriptEngineWillReset:)
+													 name:kOOJavaScriptEngineWillResetNotification
+												   object:jsEng];
 		
-		OOJSRelinquishContext(context);
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(setUpDebugConsoleScript)
+													 name:kOOJavaScriptEngineDidResetNotification
+												   object:jsEng];
 	}
 	
 	return self;
@@ -680,6 +674,40 @@ typedef struct
 
 
 @implementation OODebugMonitor (Private)
+
+- (void) setUpDebugConsoleScript
+{
+	JSContext *context = OOJSAcquireContext();
+	
+	// Set up JavaScript side of console.
+	BOOL savedShow = OOLogWillDisplayMessagesInClass(@"script.load.notFound");
+	OOLogSetDisplayMessagesInClass(@"script.load.notFound", NO);
+	NSDictionary *jsProps = [NSDictionary dictionaryWithObjectsAndKeys:
+							 self, @"console",
+							 JSSpecialFunctionsObjectWrapper(context), @"special",
+							 nil];
+	_script = [[OOScript jsScriptFromFileNamed:@"oolite-debug-console.js" properties:jsProps] retain];
+	OOLogSetDisplayMessagesInClass(@"script.load.notFound", savedShow);
+	
+	// If no script, just make console visible globally as debugConsole.
+	if (_script == nil)
+	{
+		JSObject *global = [[OOJavaScriptEngine sharedEngine] globalObject];
+		JS_DefineProperty(context, global, "debugConsole", [self oo_jsValueInContext:context], NULL, NULL, JSPROP_ENUMERATE);
+	}
+	
+	OOJSRelinquishContext(context);
+}
+
+
+- (void) javaScriptEngineWillReset:(NSNotification *)notification
+{
+	DESTROY(_script);
+	_jsSelf = NULL;
+	
+	OOJSConsoleDestroy();
+}
+
 
 - (void)disconnectDebuggerWithMessage:(NSString *)message
 {

@@ -148,7 +148,7 @@ enum OOScanClass
 	
 	OOTimeAbsolute			spawnTime;
 	
-	struct JSObject			*jsSelf;
+	struct JSObject			*_jsSelf;
 	
 @private
 	OOWeakReference			*_owner;

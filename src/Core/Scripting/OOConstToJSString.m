@@ -47,7 +47,8 @@ MA 02110-1301, USA.
 typedef struct
 {
 	OOInteger			value;
-	void				*string;
+	const char			*cString;
+	JSString			*jsString;
 } TableEntry;
 
 typedef struct ConstTable
@@ -73,8 +74,8 @@ static JSString *sUndefinedString;
 /*	
 	Initialize table contents (with C strings, see above) from table files.
 */
-#define ENTRY(label, val) { .value = label, .string = #label },
-#define GALACTIC_HYPERSPACE_ENTRY(label, val) { .value = GALACTIC_HYPERSPACE_##label, .string = #label },
+#define ENTRY(label, val) { .value = label, .cString = #label },
+#define GALACTIC_HYPERSPACE_ENTRY(label, val) { .value = GALACTIC_HYPERSPACE_##label, .cString = #label },
 
 static TableEntry sOOCompassModeTableEntries[] =
 {
@@ -124,7 +125,7 @@ static void InitTable(JSContext *context, ConstTable *table);
 
 void OOConstToJSStringInit(JSContext *context)
 {
-	NSCAssert(!sInited, @"OOConstToJSStringInit() called more than once.");
+	NSCAssert(!sInited, @"OOConstToJSStringInit() called while already inited.");
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
 	
 	sUndefinedString = JS_InternString(context, "UNDEFINED");
@@ -139,6 +140,13 @@ void OOConstToJSStringInit(JSContext *context)
 #ifndef NDEBUG
 	sInited = YES;
 #endif
+}
+
+
+void OOConstToJSStringDestroy(void)
+{
+	NSCAssert(sInited, @"OOConstToJSStringDestroy() called while not inited.");
+	sInited = NO;	// jsString pointers are now officially junk.
 }
 
 
@@ -157,10 +165,7 @@ static void InitTable(JSContext *context, ConstTable *table)
 	OOUInteger i;
 	for(i = 0; i < table->count; i++)
 	{
-		const char *cString = table->entries[i].string;
-		JSString *jsString = JS_InternString(context, cString);
-		
-		table->entries[i].string = jsString;
+		table->entries[i].jsString = JS_InternString(context, table->entries[i].cString);
 	}
 	
 	qsort(table->entries, table->count, sizeof *table->entries, CompareEntries);
@@ -192,7 +197,7 @@ JSString *OOJSStringFromConstantPRIVATE(JSContext *context, OOInteger value, str
 		}
 		else
 		{
-			return table->entries[mid].string;
+			return table->entries[mid].jsString;
 		}
 	}
 	while (min <= max);
@@ -210,7 +215,7 @@ OOUInteger OOConstantFromJSStringPRIVATE(JSContext *context, JSString *string, s
 	OOUInteger i, count = table->count;
 	for(i = 0; i < count; i++)
 	{
-		if (table->entries[i].string == string)
+		if (table->entries[i].jsString == string)
 		{
 			return table->entries[i].value;
 		}
@@ -223,7 +228,7 @@ OOUInteger OOConstantFromJSStringPRIVATE(JSContext *context, JSString *string, s
 		for(i = 0; i < count; i++)
 		{
 			int32 result;
-			if (JS_CompareStrings(context, string, table->entries[i].string, &result) && result == 0)
+			if (JS_CompareStrings(context, string, table->entries[i].jsString, &result) && result == 0)
 			{
 				return table->entries[i].value;
 			}

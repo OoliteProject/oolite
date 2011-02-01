@@ -102,6 +102,10 @@ static unsigned				sErrorHandlerStackSkip = 0;
 JSContext					*gOOJSMainThreadContext = NULL;
 
 
+NSString * const kOOJavaScriptEngineWillResetNotification = @"org.aegidian.oolite OOJavaScriptEngine will reset";
+NSString * const kOOJavaScriptEngineDidResetNotification = @"org.aegidian.oolite OOJavaScriptEngine did reset";
+
+
 #if OOJSENGINE_MONITOR_SUPPORT
 
 @interface OOJavaScriptEngine (OOMonitorSupportInternal)
@@ -124,6 +128,9 @@ JSContext					*gOOJSMainThreadContext = NULL;
 - (BOOL) lookUpStandardClassPointers;
 - (void) registerStandardObjectConverters;
 
+- (void) createMainThreadContext;
+- (void) destroyMainThreadContext;
+
 @end
 
 
@@ -133,6 +140,10 @@ static id JSArrayConverter(JSContext *context, JSObject *object);
 static id JSStringConverter(JSContext *context, JSObject *object);
 static id JSNumberConverter(JSContext *context, JSObject *object);
 static id JSBooleanConverter(JSContext *context, JSObject *object);
+
+
+static void UnregisterObjectConverters(void);
+static void UnregisterSubclasses(void);
 
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report)
@@ -272,25 +283,33 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	assert(sizeof(jschar) == sizeof(unichar));
 	
-	// set up global JS variables, including global and custom objects
+	// initialize the JS run time, and return result in runtime.
+	_runtime = JS_NewRuntime(8L * 1024L * 1024L);
 	
-	// initialize the JS run time, and return result in runtime
-	runtime = JS_NewRuntime(8L * 1024L * 1024L);
-	
-	// if runtime creation failed, end the program here
-	if (runtime == NULL)
+	// if runtime creation failed, end the program here.
+	if (_runtime == NULL)
 	{
 		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript runtime.");
 		exit(1);
 	}
 	
 	// OOJSTimeManagementInit() must be called before any context is created!
-	OOJSTimeManagementInit(self, runtime);
+	OOJSTimeManagementInit(self, _runtime);
 	
-	// create a context and associate it with the JS run time
-	gOOJSMainThreadContext = JS_NewContext(runtime, OOJS_STACK_SIZE);
+	[self createMainThreadContext];
 	
-	// if context creation failed, end the program here
+	return self;
+}
+
+
+- (void) createMainThreadContext
+{
+	NSAssert(gOOJSMainThreadContext == NULL, @"-[OOJavaScriptEngine createMainThreadContext] called while the main thread context exists.");
+	
+	// create a context and associate it with the JS runtime.
+	gOOJSMainThreadContext = JS_NewContext(_runtime, OOJS_STACK_SIZE);
+	
+	// if context creation failed, end the program here.
 	if (gOOJSMainThreadContext == NULL)
 	{
 		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript context.");
@@ -315,10 +334,10 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JS_SetErrorReporter(gOOJSMainThreadContext, ReportJSError);
 	
 	// Create the global object.
-	CreateOOJSGlobal(gOOJSMainThreadContext, &globalObject);
-
+	CreateOOJSGlobal(gOOJSMainThreadContext, &_globalObject);
+	
 	// Initialize the built-in JS objects and the global object.
-	JS_InitStandardClasses(gOOJSMainThreadContext, globalObject);
+	JS_InitStandardClasses(gOOJSMainThreadContext, _globalObject);
 	if (![self lookUpStandardClassPointers])
 	{
 		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to look up standard JavaScript classes.");
@@ -326,36 +345,36 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	}
 	[self registerStandardObjectConverters];
 	
-	SetUpOOJSGlobal(gOOJSMainThreadContext, globalObject);
+	SetUpOOJSGlobal(gOOJSMainThreadContext, _globalObject);
 	OOConstToJSStringInit(gOOJSMainThreadContext);
 	
 	// Initialize Oolite classes.
-	InitOOJSMissionVariables(gOOJSMainThreadContext, globalObject);
-	InitOOJSMission(gOOJSMainThreadContext, globalObject);
-	InitOOJSOolite(gOOJSMainThreadContext, globalObject);
-	InitOOJSVector(gOOJSMainThreadContext, globalObject);
-	InitOOJSQuaternion(gOOJSMainThreadContext, globalObject);
-	InitOOJSSystem(gOOJSMainThreadContext, globalObject);
-	InitOOJSEntity(gOOJSMainThreadContext, globalObject);
-	InitOOJSShip(gOOJSMainThreadContext, globalObject);
-	InitOOJSStation(gOOJSMainThreadContext, globalObject);
-	InitOOJSPlayer(gOOJSMainThreadContext, globalObject);
-	InitOOJSPlayerShip(gOOJSMainThreadContext, globalObject);
-	InitOOJSManifest(gOOJSMainThreadContext, globalObject);
-	InitOOJSSun(gOOJSMainThreadContext, globalObject);
-	InitOOJSPlanet(gOOJSMainThreadContext, globalObject);
-	InitOOJSScript(gOOJSMainThreadContext, globalObject);
-	InitOOJSTimer(gOOJSMainThreadContext, globalObject);
-	InitOOJSClock(gOOJSMainThreadContext, globalObject);
-	InitOOJSWorldScripts(gOOJSMainThreadContext, globalObject);
-	InitOOJSSound(gOOJSMainThreadContext, globalObject);
-	InitOOJSSoundSource(gOOJSMainThreadContext, globalObject);
-	InitOOJSSpecialFunctions(gOOJSMainThreadContext, globalObject);
-	InitOOJSSystemInfo(gOOJSMainThreadContext, globalObject);
-	InitOOJSEquipmentInfo(gOOJSMainThreadContext, globalObject);
-	InitOOJSShipGroup(gOOJSMainThreadContext, globalObject);
-	InitOOJSFrameCallbacks(gOOJSMainThreadContext, globalObject);
-	InitOOJSFont(gOOJSMainThreadContext, globalObject);
+	InitOOJSMissionVariables(gOOJSMainThreadContext, _globalObject);
+	InitOOJSMission(gOOJSMainThreadContext, _globalObject);
+	InitOOJSOolite(gOOJSMainThreadContext, _globalObject);
+	InitOOJSVector(gOOJSMainThreadContext, _globalObject);
+	InitOOJSQuaternion(gOOJSMainThreadContext, _globalObject);
+	InitOOJSSystem(gOOJSMainThreadContext, _globalObject);
+	InitOOJSEntity(gOOJSMainThreadContext, _globalObject);
+	InitOOJSShip(gOOJSMainThreadContext, _globalObject);
+	InitOOJSStation(gOOJSMainThreadContext, _globalObject);
+	InitOOJSPlayer(gOOJSMainThreadContext, _globalObject);
+	InitOOJSPlayerShip(gOOJSMainThreadContext, _globalObject);
+	InitOOJSManifest(gOOJSMainThreadContext, _globalObject);
+	InitOOJSSun(gOOJSMainThreadContext, _globalObject);
+	InitOOJSPlanet(gOOJSMainThreadContext, _globalObject);
+	InitOOJSScript(gOOJSMainThreadContext, _globalObject);
+	InitOOJSTimer(gOOJSMainThreadContext, _globalObject);
+	InitOOJSClock(gOOJSMainThreadContext, _globalObject);
+	InitOOJSWorldScripts(gOOJSMainThreadContext, _globalObject);
+	InitOOJSSound(gOOJSMainThreadContext, _globalObject);
+	InitOOJSSoundSource(gOOJSMainThreadContext, _globalObject);
+	InitOOJSSpecialFunctions(gOOJSMainThreadContext, _globalObject);
+	InitOOJSSystemInfo(gOOJSMainThreadContext, _globalObject);
+	InitOOJSEquipmentInfo(gOOJSMainThreadContext, _globalObject);
+	InitOOJSShipGroup(gOOJSMainThreadContext, _globalObject);
+	InitOOJSFrameCallbacks(gOOJSMainThreadContext, _globalObject);
+	InitOOJSFont(gOOJSMainThreadContext, _globalObject);
 	
 	// Run prefix scripts.
 	[OOJSScript jsScriptFromFileNamed:@"oolite-global-prefix.js"
@@ -365,8 +384,51 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JS_EndRequest(gOOJSMainThreadContext);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
+}
+
+
+- (void) destroyMainThreadContext
+{
+	if (gOOJSMainThreadContext != NULL)
+	{
+		JSContext *context = OOJSAcquireContext();
+		JS_ClearScope(gOOJSMainThreadContext, _globalObject);
+		
+		_globalObject = NULL;
+		_objectClass = NULL;
+		_stringClass = NULL;
+		_arrayClass = NULL;
+		_numberClass = NULL;
+		_booleanClass = NULL;
+		
+		UnregisterObjectConverters();
+		UnregisterSubclasses();
+		OOConstToJSStringDestroy();
+		
+		OOJSRelinquishContext(context);
+		
+		_globalObject = NULL;
+		JS_DestroyContext(gOOJSMainThreadContext);	// Forces unconditional GC.
+		gOOJSMainThreadContext = NULL;
+	}
+}
+
+
+- (void) reset
+{
+	NSAssert(gOOJSMainThreadContext != NULL, @"Can't reset JavaScript engine at this point.");
+#if JS_THREADSAFE
+	NSAssert(!JS_IsInRequest(gOOJSMainThreadContext), @"Can't reset JavaScript engine while running JavaScript.");
+#endif
 	
-	return self;
+	[[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineWillResetNotification object:self];
+	
+	[self destroyMainThreadContext];
+	[self createMainThreadContext];
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineDidResetNotification object:self];
+	
+	[self garbageCollectionOpportunity];
 }
 
 
@@ -374,8 +436,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 {
 	sSharedEngine = nil;
 	
-	JS_DestroyContext(gOOJSMainThreadContext);
-	JS_DestroyRuntime(runtime);
+	[self destroyMainThreadContext];
+	JS_DestroyRuntime(_runtime);
 	
 	[super dealloc];
 }
@@ -383,7 +445,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 - (JSObject *) globalObject
 {
-	return globalObject;
+	return _globalObject;
 }
 
 
@@ -556,7 +618,7 @@ static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecod
 
 - (void) enableDebuggerStatement
 {
-	JS_SetDebuggerHandler(runtime, DebuggerHook, self);
+	JS_SetDebuggerHandler(_runtime, DebuggerHook, self);
 }
 #endif
 
@@ -567,10 +629,10 @@ static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecod
 
 @implementation OOJavaScriptEngine (OOMonitorSupport)
 
-- (void)setMonitor:(id<OOJavaScriptEngineMonitor>)inMonitor
+- (void) setMonitor:(id<OOJavaScriptEngineMonitor>)inMonitor
 {
-	[monitor autorelease];
-	monitor = [inMonitor retain];
+	[_monitor autorelease];
+	_monitor = [inMonitor retain];
 }
 
 @end
@@ -578,24 +640,24 @@ static JSTrapStatus DebuggerHook(JSContext *context, JSScript *script, jsbytecod
 
 @implementation OOJavaScriptEngine (OOMonitorSupportInternal)
 
-- (void)sendMonitorError:(JSErrorReport *)errorReport
-			 withMessage:(NSString *)message
-			   inContext:(JSContext *)theContext
+- (void) sendMonitorError:(JSErrorReport *)errorReport
+			  withMessage:(NSString *)message
+				inContext:(JSContext *)theContext
 {
-	if ([monitor respondsToSelector:@selector(jsEngine:context:error:stackSkip:showingLocation:withMessage:)])
+	if ([_monitor respondsToSelector:@selector(jsEngine:context:error:stackSkip:showingLocation:withMessage:)])
 	{
-		[monitor jsEngine:self context:theContext error:errorReport stackSkip:sErrorHandlerStackSkip showingLocation:[self showErrorLocations] withMessage:message];
+		[_monitor jsEngine:self context:theContext error:errorReport stackSkip:sErrorHandlerStackSkip showingLocation:[self showErrorLocations] withMessage:message];
 	}
 }
 
 
-- (void)sendMonitorLogMessage:(NSString *)message
-			 withMessageClass:(NSString *)messageClass
-					inContext:(JSContext *)theContext
+- (void) sendMonitorLogMessage:(NSString *)message
+			  withMessageClass:(NSString *)messageClass
+					 inContext:(JSContext *)theContext
 {
-	if ([monitor respondsToSelector:@selector(jsEngine:context:logMessage:ofClass:)])
+	if ([_monitor respondsToSelector:@selector(jsEngine:context:logMessage:ofClass:)])
 	{
-		[monitor jsEngine:self context:theContext logMessage:message ofClass:messageClass];
+		[_monitor jsEngine:self context:theContext logMessage:message ofClass:messageClass];
 	}
 }
 
@@ -1991,6 +2053,13 @@ void OOJSRegisterSubclass(JSClass *subclass, JSClass *superclass)
 }
 
 
+static void UnregisterSubclasses(void)
+{
+	NSFreeMapTable(sRegisteredSubClasses);
+	sRegisteredSubClasses = NULL;
+}
+
+
 BOOL OOJSIsSubclass(JSClass *putativeSubclass, JSClass *superclass)
 {
 	NSCParameterAssert(putativeSubclass != NULL && superclass != NULL);
@@ -2296,6 +2365,12 @@ void OOJSRegisterObjectConverter(JSClass *theClass, OOJSClassConverterCallback c
 	{
 		[sObjectConverters removeObjectForKey:wrappedClass];
 	}
+}
+
+
+static void UnregisterObjectConverters(void)
+{
+	DESTROY(sObjectConverters);
 }
 
 

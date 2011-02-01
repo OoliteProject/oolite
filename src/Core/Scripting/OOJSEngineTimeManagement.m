@@ -202,7 +202,7 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
 		if (EXPECT_NOT(elapsed > sLimiterTimeLimit))
 		{
 			sStop = YES;
-			JS_TriggerAllOperationCallbacks(runtime);
+			JS_TriggerAllOperationCallbacks(_runtime);
 		}
 	}
 }

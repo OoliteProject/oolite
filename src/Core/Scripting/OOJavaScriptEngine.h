@@ -42,8 +42,8 @@ MA 02110-1301, USA.
 @interface OOJavaScriptEngine: NSObject
 {
 @private
-	JSRuntime						*runtime;
-	JSObject						*globalObject;
+	JSRuntime						*_runtime;
+	JSObject						*_globalObject;
 	BOOL							_showErrorLocations;
 	
 	JSClass							*_objectClass;
@@ -57,7 +57,7 @@ MA 02110-1301, USA.
 	BOOL							_dumpStackForWarnings;
 #endif
 #if OOJSENGINE_MONITOR_SUPPORT
-	id<OOJavaScriptEngineMonitor>	monitor;
+	id<OOJavaScriptEngineMonitor>	_monitor;
 #endif
 }
 
@@ -67,8 +67,10 @@ MA 02110-1301, USA.
 
 - (void) runMissionCallback;
 
-// The current context. NULL if nothing executing.
-// - (JSContext *)context;
+/*	Tear down context and global object and rebuild them from scratch. This
+	invalidates -globalObject and the main thread context.
+*/
+- (void) reset;
 
 // Call a JS function, setting up new contexts as necessary. Caller is responsible for ensuring the jsval passed really is a function.
 - (BOOL) callJSFunction:(jsval)function
@@ -131,6 +133,11 @@ OOINLINE void OOJSRelinquishContext(JSContext *context)
 #endif
 	JS_EndRequest(context);
 }
+
+
+// Notifications sent when JavaScript engine is reset.
+extern NSString * const kOOJavaScriptEngineWillResetNotification;
+extern NSString * const kOOJavaScriptEngineDidResetNotification;
 
 
 /*	Error and warning reporters.

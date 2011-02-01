@@ -240,6 +240,12 @@ static void InitOOJSConsole(JSContext *context, JSObject *global)
 }
 
 
+void OOJSConsoleDestroy(void)
+{
+	sConsolePrototype = NULL;
+}
+
+
 JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 {
 	OOJS_PROFILE_ENTER

@@ -51,21 +51,28 @@ MA 02110-1301, USA.
 	JSObject				*prototype = NULL;
 	jsval					result = JSVAL_NULL;
 	
-	if (jsSelf == NULL && [self isVisibleToScripts])
+	if (_jsSelf == NULL && [self isVisibleToScripts])
 	{
 		// Create JS object
 		[self getJSClass:&class andPrototype:&prototype];
 		
-		jsSelf = JS_NewObject(context, class, prototype, NULL);
-		if (jsSelf != NULL)
+		_jsSelf = JS_NewObject(context, class, prototype, NULL);
+		if (_jsSelf != NULL)
 		{
-			if (!JS_SetPrivate(context, jsSelf, [self weakRetain]))  jsSelf = NULL;
+			if (!JS_SetPrivate(context, _jsSelf, [self weakRetain]))  _jsSelf = NULL;
 		}
 		
-		if (jsSelf != NULL)  OOJSAddGCObjectRoot(context, &jsSelf, "Entity jsSelf");
+		if (_jsSelf != NULL)
+		{
+			OOJSAddGCObjectRoot(context, &_jsSelf, "Entity jsSelf");
+			[[NSNotificationCenter defaultCenter] addObserver:self
+													 selector:@selector(deleteJSSelf)
+														 name:kOOJavaScriptEngineWillResetNotification
+													   object:[OOJavaScriptEngine sharedEngine]];
+		}
 	}
 	
-	if (jsSelf != NULL)  result = OBJECT_TO_JSVAL(jsSelf);
+	if (_jsSelf != NULL)  result = OBJECT_TO_JSVAL(_jsSelf);
 	
 	return result;
 	// Analyzer: object leaked. [Expected, object is retained by JS object.]
@@ -81,10 +88,16 @@ MA 02110-1301, USA.
 
 - (void) deleteJSSelf
 {
-	if (jsSelf != NULL)
+	if (_jsSelf != NULL)
 	{
-		[[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:&jsSelf];
-		jsSelf = NULL;
+		_jsSelf = NULL;
+		JSContext *context = OOJSAcquireContext();
+		JS_RemoveObjectRoot(context, &_jsSelf);
+		OOJSRelinquishContext(context);
+		
+		[[NSNotificationCenter defaultCenter] removeObserver:self
+														name:kOOJavaScriptEngineWillResetNotification
+													  object:[OOJavaScriptEngine sharedEngine]];
 	}
 }
 

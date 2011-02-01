@@ -94,6 +94,6 @@ static JSBool SpecialMarkConsoleEntryPoint(JSContext *context, uintN argc, jsval
 		OOJSMarkConsoleEvalLocation(context, frame);
 	}
 	
-	return YES;
+	OOJS_RETURN_VOID;
 }
 #endif

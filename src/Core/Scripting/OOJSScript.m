@@ -231,23 +231,38 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	OOJSRelinquishContext(context);
 	
+	if (self != nil)
+	{
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(javaScriptEngineWillReset:)
+													 name:kOOJavaScriptEngineWillResetNotification
+												   object:[OOJavaScriptEngine sharedEngine]];
+	}
+	
 	return self;
 }
 
 
 - (void) dealloc
 {
-	[name release];
-	[description release];
-	[version release];
+	[[NSNotificationCenter defaultCenter] removeObserver:self
+													name:kOOJavaScriptEngineWillResetNotification
+												  object:[OOJavaScriptEngine sharedEngine]];
+	
+	DESTROY(name);
+	DESTROY(description);
+	DESTROY(version);
 	DESTROY(filePath);
 	
-	JSContext *context = OOJSAcquireContext();
-	
-	OOJSObjectWrapperFinalize(context, _jsSelf);	// Release weakref to self
-	JS_RemoveObjectRoot(context, &_jsSelf);			// Unroot jsSelf
-	
-	OOJSRelinquishContext(context);
+	if (_jsSelf != NULL)
+	{
+		JSContext *context = OOJSAcquireContext();
+		
+		OOJSObjectWrapperFinalize(context, _jsSelf);	// Release weakref to self
+		JS_RemoveObjectRoot(context, &_jsSelf);			// Unroot jsSelf
+		
+		OOJSRelinquishContext(context);
+	}
 	
 	[weakSelf weakRefDrop];
 	
@@ -261,14 +276,34 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
-+ (OOJSScript *)currentlyRunningScript
+- (NSString *)descriptionComponents
+{
+	if (_jsSelf != NULL)  return [super descriptionComponents];
+	else  return @"invalid script";
+}
+
+
+- (void) javaScriptEngineWillReset:(NSNotification *)notification
+{
+	// All scripts become invalid when the JS engine resets.
+	if (_jsSelf != NULL)
+	{
+		_jsSelf = NULL;
+		JSContext *context = OOJSAcquireContext();
+		JS_RemoveObjectRoot(context, &_jsSelf);
+		OOJSRelinquishContext(context);
+	}
+}
+
+
++ (OOJSScript *) currentlyRunningScript
 {
 	if (sRunningStack == NULL)  return NULL;
 	return sRunningStack->current;
 }
 
 
-+ (NSArray *)scriptStack
++ (NSArray *) scriptStack
 {
 	NSMutableArray			*result = nil;
 	
@@ -326,6 +361,7 @@ static JSFunctionSpec sScriptMethods[] =
 			 result:(jsval *)outResult
 {
 	NSParameterAssert(name != NULL && (argv != NULL || argc == 0) && context != NULL && JS_IsInRequest(context));
+	if (_jsSelf == NULL)  return NO;
 	
 	JSObject				*root = NULL;
 	BOOL					OK = NO;
@@ -372,6 +408,7 @@ static JSFunctionSpec sScriptMethods[] =
 - (id) propertyWithID:(jsid)propID inContext:(JSContext *)context
 {
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
+	if (_jsSelf == NULL)  return nil;
 	
 	jsval jsValue = JSVAL_VOID;
 	if (JS_GetPropertyById(context, _jsSelf, propID, &jsValue))
@@ -385,6 +422,7 @@ static JSFunctionSpec sScriptMethods[] =
 - (BOOL) setProperty:(id)value withID:(jsid)propID inContext:(JSContext *)context
 {
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
+	if (_jsSelf == NULL)  return NO;
 	
 	jsval jsValue = OOJSValueFromNativeObject(context, value);
 	return JS_SetPropertyById(context, _jsSelf, propID, &jsValue);
@@ -394,6 +432,7 @@ static JSFunctionSpec sScriptMethods[] =
 - (BOOL) defineProperty:(id)value withID:(jsid)propID inContext:(JSContext *)context
 {
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
+	if (_jsSelf == NULL)  return NO;
 	
 	jsval jsValue = OOJSValueFromNativeObject(context, value);
 	return JS_DefinePropertyById(context, _jsSelf, propID, jsValue, NULL, NULL, OOJS_PROP_READONLY);
@@ -403,6 +442,7 @@ static JSFunctionSpec sScriptMethods[] =
 - (id) propertyNamed:(NSString *)propName
 {
 	if (propName == nil)  return nil;
+	if (_jsSelf == NULL)  return nil;
 	
 	JSContext *context = OOJSAcquireContext();
 	id result = [self propertyWithID:OOJSIDFromString(propName) inContext:context];
@@ -415,6 +455,7 @@ static JSFunctionSpec sScriptMethods[] =
 - (BOOL) setProperty:(id)value named:(NSString *)propName
 {
 	if (value == nil || propName == nil)  return NO;
+	if (_jsSelf == NULL)  return NO;
 	
 	JSContext *context = OOJSAcquireContext();
 	BOOL result = [self setProperty:value withID:OOJSIDFromString(propName) inContext:context];
@@ -427,6 +468,7 @@ static JSFunctionSpec sScriptMethods[] =
 - (BOOL) defineProperty:(id)value named:(NSString *)propName
 {
 	if (value == nil || propName == nil)  return NO;
+	if (_jsSelf == NULL)  return NO;
 	
 	JSContext *context = OOJSAcquireContext();
 	BOOL result = [self defineProperty:value withID:OOJSIDFromString(propName) inContext:context];
@@ -438,6 +480,7 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (jsval)oo_jsValueInContext:(JSContext *)context
 {
+	if (_jsSelf == NULL)  return JSVAL_VOID;
 	return OBJECT_TO_JSVAL(_jsSelf);
 }
 

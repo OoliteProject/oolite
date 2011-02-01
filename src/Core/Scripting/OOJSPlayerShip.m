@@ -200,10 +200,32 @@ JSObject *JSPlayerShipObject(void)
 }
 
 
-- (void)setJSSelf:(JSObject *)val context:(JSContext *)context
+- (void) setJSSelf:(JSObject *)val context:(JSContext *)context
 {
-	jsSelf = val;
-	OOJSAddGCObjectRoot(context, &jsSelf, "Player jsSelf");
+	_jsSelf = val;
+	OOJSAddGCObjectRoot(context, &_jsSelf, "Player jsSelf");
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(javaScriptEngineWillReset:)
+												 name:kOOJavaScriptEngineWillResetNotification
+											   object:[OOJavaScriptEngine sharedEngine]];
+}
+
+
+- (void) javaScriptEngineWillReset:(NSNotification *)notification
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self
+													name:kOOJavaScriptEngineWillResetNotification
+												  object:[OOJavaScriptEngine sharedEngine]];
+	
+	if (_jsSelf != NULL)
+	{
+		
+		JSContext *context = OOJSAcquireContext();
+		JS_RemoveObjectRoot(context, &_jsSelf);
+		_jsSelf = NULL;
+		OOJSRelinquishContext(context);
+	}
 }
 
 @end

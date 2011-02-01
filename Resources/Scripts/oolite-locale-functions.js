@@ -118,6 +118,7 @@ global.formatInteger = function formatInteger(value)
 	var string = formatPositiveIntegerInternal(value)[0];
 	
 	if (negative)  string = "-" + string;
+	return string;
 }
 
 

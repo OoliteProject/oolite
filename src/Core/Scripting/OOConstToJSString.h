@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 
 
 void OOConstToJSStringInit(JSContext *context);
+void OOConstToJSStringDestroy(void);
 
 struct ConstTable;
 

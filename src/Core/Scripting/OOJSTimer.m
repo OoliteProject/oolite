@@ -78,9 +78,33 @@ static JSClass sTimerClass;
 		}
 		
 		_owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
+		
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(deleteJSPointers)
+													 name:kOOJavaScriptEngineWillResetNotification
+												   object:[OOJavaScriptEngine sharedEngine]];
 	}
 	
 	return self;
+}
+
+
+- (void) deleteJSPointers
+{
+	if (_jsThis != NULL)
+	{
+		_jsThis = NULL;
+		_function = JSVAL_VOID;
+		
+		JSContext *context = OOJSAcquireContext();
+		JS_RemoveObjectRoot(context, &_jsThis);
+		JS_RemoveValueRoot(context, &_function);
+		OOJSRelinquishContext(context);
+		
+		[[NSNotificationCenter defaultCenter] removeObserver:self
+														name:kOOJavaScriptEngineWillResetNotification
+													  object:[OOJavaScriptEngine sharedEngine]];
+	}
 }
 
 
@@ -88,9 +112,7 @@ static JSClass sTimerClass;
 {
 	[_owningScript release];
 	
-	// Allow garbage collection.
-	[[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:&_jsThis];
-	[[OOJavaScriptEngine sharedEngine] removeGCValueRoot:&_function];
+	[self deleteJSPointers];
 	
 	[super dealloc];
 }

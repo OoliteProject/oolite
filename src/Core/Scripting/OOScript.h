@@ -54,8 +54,6 @@ MA 02110-1301, USA.
 //	Load a single JavaScript script.
 + (id)jsScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties;
 
-- (void)resetState;	// Clear local variables, for instance.
-
 - (NSString *)name;
 - (NSString *)scriptDescription;
 - (NSString *)version;

@@ -69,7 +69,6 @@ MA 02110-1301, USA.
 #import "OOScriptTimer.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
-#import "OOJSFrameCallbacks.h"
 #import "OOConstToJSString.h"
 
 #import "OOJoystickManager.h"
@@ -1280,8 +1279,6 @@ static GLfloat		sBaseMass = 0.0;
 	demoShip = nil;
 	
 	[[OOMusicController sharedController] stop];
-	[OOScriptTimer noteGameReset];
-	OOJSFrameCallbacksRemoveAll();
 }
 
 
