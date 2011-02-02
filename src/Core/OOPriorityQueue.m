@@ -350,7 +350,8 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 - (id) peekAtNextObject
 {
 	if (_count == 0)  return nil;
-	return [[_heap[0] retain] autorelease];
+//	return [[_heap[0] retain] autorelease];
+	return _heap[0];
 }
 
 
@@ -531,7 +532,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 		// Special case: removing last (or only) object. No bubbling needed.
 	}
 	
-	[object release];
+	[object autorelease];
 	if (_count * 2 <= _capacity)  [self shrinkBuffer];
 }
 
