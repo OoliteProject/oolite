@@ -109,10 +109,17 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 };
 
 
-static JSFunctionSpec sEquipmentInfoStaticMethods[] =
+static JSFunctionSpec sEquipmentInfoMethods[] =
 {
 	// JS name					Function						min args
 	{ "toString",				OOJSObjectWrapperToString,		0, },
+	{ 0 }
+};
+
+
+static JSFunctionSpec sEquipmentInfoStaticMethods[] =
+{
+	// JS name					Function						min args
 	{ "infoForKey",				EquipmentInfoStaticInfoForKey,	0, },
 	{ 0 }
 };
@@ -142,7 +149,7 @@ DEFINE_JS_OBJECT_GETTER(JSEquipmentInfoGetEquipmentType, &sEquipmentInfoClass, s
 
 void InitOOJSEquipmentInfo(JSContext *context, JSObject *global)
 {
-	sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass, OOJSUnconstructableConstruct, 0, sEquipmentInfoProperties, NULL, NULL, sEquipmentInfoStaticMethods);
+	sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass, OOJSUnconstructableConstruct, 0, sEquipmentInfoProperties, sEquipmentInfoMethods, NULL, sEquipmentInfoStaticMethods);
 	JS_DefineProperty(context, sEquipmentInfoPrototype, "allEquipment", JSVAL_NULL, EquipmentInfoGetAllEqipment, NULL, OOJS_PROP_READONLY);
 	
 	OOJSRegisterObjectConverter(&sEquipmentInfoClass, OOJSBasicPrivateObjectConverter);
