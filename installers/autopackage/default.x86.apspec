@@ -53,7 +53,6 @@ tar zcf $build_root/dtds.tar DTDs --exclude .svn
 cd ../Linux-deps/
 cp oolite.src $build_root
 cp oolite-update.src $build_root
-cp PLAYING.TXT $build_root
 cp README.TXT $build_root
 cd x86
 tar zcf $build_root/oolite.deps.tar lib --exclude .svn
@@ -70,7 +69,6 @@ OoliteRS.pdf
 CHANGELOG.TXT
 oolite.src
 oolite-update.src
-PLAYING.TXT
 README.TXT
 dtds.tar
 oolite.app.tar
@@ -106,7 +104,7 @@ echo "This is the first time you've run the game. Here is the README file -" > R
 echo "more docs can be found at $PREFIX/lib/Oolite/doc" >> README-PREAMBLE.TXT
 echo "Press q to exit this document and launch the game" >> README-PREAMBLE.TXT
 echo >> README-PREAMBLE.TXT
-copyFiles README.TXT PLAYING.TXT README-PREAMBLE.TXT $PREFIX/lib/Oolite/doc
+copyFiles README.TXT README-PREAMBLE.TXT $PREFIX/lib/Oolite/doc
 copyFiles AdviceForNewCommanders.pdf OoliteReadMe.pdf OoliteRS.pdf CHANGELOG.TXT $PREFIX/lib/Oolite/doc
 copyFile release.txt $PREFIX/lib/Oolite/release.txt
 chmod a+rw $PREFIX/lib/Oolite/release.txt
