@@ -968,15 +968,19 @@
 	"equipment-@-not-available"		= "%@ (N/A)";
 	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
 	
-	// Short and Long Range Chart Screens
+	// Short and Long Range Chart Overrides
 	"charts-distance-f"	= "Distance: %.1f Light Years";
 	"charts-est-travel-time-f" = "Estimated Travel Time: %.1f Hours";
 	
 	// Short Range Chart Screen
 	"short-range-chart-title"		= "Short Range Chart";
+	"short-range-chart-distance-f"	= "[charts-distance-f]";
+	"short-range-chart-est-travel-time-f" = "[charts-est-travel-time-f]";
 	
 	// Long Range Chart Screen
 	"long-range-chart-title-d"		= "Galactic Chart %d";
+	"long-range-chart-distance-f"	= "[charts-distance-f]";
+	"long-range-chart-est-travel-time-f" = "[charts-est-travel-time-f]";
 	"long-range-chart-find-planet-@" = "Find planet: %@";
 	"long-range-chart-system-unreachable" = "System Unreachable";
 	
