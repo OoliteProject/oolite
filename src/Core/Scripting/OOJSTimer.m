@@ -161,7 +161,6 @@ static JSClass sTimerClass;
 	if (description == nil)
 	{
 		[self unscheduleTimer];
-		[self autorelease];
 		return;
 	}
 	
