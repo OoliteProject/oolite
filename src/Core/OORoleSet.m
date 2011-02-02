@@ -281,7 +281,17 @@ SOFTWARE.
 	// Why would we be re-initing? That's never valid. -- Ahruman 2010-02-06
 	assert(_roles == nil && _roleString == nil);
 	
-	_rolesAndProbabilities = [dict copy];
+	NSMutableDictionary		*tDict = [[dict mutableCopy] autorelease];
+	float					thargProb = [dict oo_floatForKey:@"thargon" defaultValue:0.0f];
+	
+	if ( thargProb > 0.0f && [dict objectForKey:@"EQ_THARGON"] == nil)
+	{
+		OOLogWARN(@"roleSet.deprecated", @"The \"thargon\" role is deprecated, use \"EQ_THARGON\" instead.", role);
+		[tDict setObject:[NSNumber numberWithFloat:thargProb] forKey:@"EQ_THARGON"];
+		[tDict removeObjectForKey:@"thargon"];
+	}
+	
+	_rolesAndProbabilities = [tDict copy];
 	
 	for (roleEnum = [dict keyEnumerator]; (role = [roleEnum nextObject]); )
 	{
