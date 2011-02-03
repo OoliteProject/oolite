@@ -1007,12 +1007,24 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSEnumerator			*roleEnum = nil;
 	NSString				*role = nil;
 	OOMutableProbabilitySet	*probSet = nil;
+	NSMutableString			*tRoles = [[NSMutableString alloc] initWithString:roles];
+
 	
 	/*	probabilitySets is a dictionary whose keys are roles and whose values
 		are mutable probability sets, whose values are ship keys.
+		
+		When creating new ships Oolite looks up this probability map.
+		To upgrade all soliton 'thargon' roles to 'EQ_THARGON' we need
+		to swap these roles here.
 	*/
 	
-	rolesAndWeights = OOParseRolesFromString(roles);
+	if([roles rangeOfString:@"thargon"].location != NSNotFound && [roles rangeOfString:@"EQ_THARGON"].location == NSNotFound)
+	{
+		[tRoles replaceOccurrencesOfString:@"thargon" withString:@"EQ_THARGON" options:0 range:NSMakeRange(0, [tRoles length])];
+	}
+	
+	rolesAndWeights = OOParseRolesFromString(tRoles);
+	[tRoles autorelease];
 	for (roleEnum = [rolesAndWeights keyEnumerator]; (role = [roleEnum nextObject]); )
 	{
 		probSet = [probabilitySets objectForKey:role];
