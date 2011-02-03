@@ -264,7 +264,7 @@ SOFTWARE.
 - (id)initWithRolesAndProbabilities:(NSDictionary *)dict
 {
 	NSEnumerator			*roleEnum = nil;
-	NSString				*role;
+	NSString				*role = nil;
 	float					prob;
 	
 	if (dict == nil)
@@ -286,7 +286,7 @@ SOFTWARE.
 	
 	if ( thargProb > 0.0f && [dict objectForKey:@"EQ_THARGON"] == nil)
 	{
-		OOLogWARN(@"roleSet.deprecated", @"The \"thargon\" role is deprecated, use \"EQ_THARGON\" instead.", role);
+		OOLogWARN(@"roleSet.deprecated", @"The \"thargon\" role is deprecated, use \"EQ_THARGON\" instead.");
 		[tDict setObject:[NSNumber numberWithFloat:thargProb] forKey:@"EQ_THARGON"];
 		[tDict removeObjectForKey:@"thargon"];
 	}
