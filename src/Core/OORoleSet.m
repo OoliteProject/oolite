@@ -193,7 +193,7 @@ SOFTWARE.
 - (NSString *)anyRole
 {
 	NSEnumerator			*roleEnum = nil;
-	NSString				*role;
+	NSString				*role = nil;
 	float					prob, selected;
 	
 	selected = randf() * _totalProb;
