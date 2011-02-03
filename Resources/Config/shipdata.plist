@@ -2609,9 +2609,9 @@
 		max_flight_pitch = 1;
 		max_flight_roll = 2;
 		max_flight_speed = 500;
-		missile_launch_position = "0.0 0.0 -20.5";
+		missile_launch_position = "0.0 -24.0 91.0";
 		missile_role = "EQ_THARGON";
-		missile_load_time = 15;
+		missile_load_time = 1.5;
 		missiles = 5;
 		model = "thargoid_redux.dat";
 		name = "Thargoid Warship";

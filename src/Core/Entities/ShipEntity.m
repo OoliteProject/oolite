@@ -1410,7 +1410,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		return NO;
 	}
 	
-	if ([self scanClass] == CLASS_MISSILE && [self shotTime] < 0.25) // not yet fused
+	if (isMissile && [self shotTime] < 0.25) // not yet fused
 	{
 		return NO;
 	}
@@ -7815,6 +7815,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// custom launching position
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
 	
+	if (start.x == 0.0f && start.y == 0.0f && start.z <0.0f)
+	{
+		OOLog(@"ship.missileLaunch.invalidPosition", @"***** ERROR: The missile_launch_position defines a position %@ behind the %@. In future versions such missiles may explode on launch because they have to travel through the ship.", VectorDescription(start), self);
+		start.x = 0.0f;
+		start.y = boundingBox.min.y - 4.0f;
+		start.z = boundingBox.max.z + 1.0f;
+	}
+	
 	double  throw_speed = 250.0f;
 	
 	if	((missiles <= 0)||(target == nil)||([target scanClass] == CLASS_NO_DRAW))	// no missile lock!
@@ -7867,6 +7875,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		
 #if 0
 		// Kept different vel calculations for player & NPCs. Is there an acutal reason for that difference? - Kaks 20091204
+		// Eric 20110203: It looks more like a fix for bad positioned launch_positions inside the BB. Remove it for EMMSTRAN (if not now).
 		if (!isPlayer) vel = vector_add(vel, vector_multiply_scalar(v_eject, 10.0f * mcr)); // throw it outward a bit harder
 #endif
 	}
@@ -7927,13 +7936,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) isMissileFlagSet
 {
-	return isMissile; // were we created using fireMissile? (for tracking submunitions)
+	return isMissile; // were we created using fireMissile? (for tracking submunitions and preventing collisions at launch)
 }
 
 
 - (void) setIsMissileFlag:(BOOL)newValue
 {
-	isMissile = !!newValue; // set the isMissile flag, used for tracking submunitions
+	isMissile = !!newValue; // set the isMissile flag, used for tracking submunitions and preventing collisions at launch.
 }
 
 

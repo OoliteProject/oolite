@@ -4622,7 +4622,7 @@ static bool minShieldLevelPercentageInitialised = false;
 #endif
 		
 	// apply any pending fines. (No need to check gui_screen as fines is no longer an on-screen message).
-	if (being_fined && ![[UNIVERSE sun] willGoNova]) [self getFined];
+	if (being_fined && ![[UNIVERSE sun] willGoNova] && ![dockedStation suppressArrivalReports]) [self getFined];
 
 	// it's time to check the script - can trigger legacy missions
 	if (gui_screen != GUI_SCREEN_MISSION)  [self checkScript]; // a scripted pilot could have created a mission screen.
