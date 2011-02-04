@@ -145,8 +145,11 @@ void OOConstToJSStringInit(JSContext *context)
 
 void OOConstToJSStringDestroy(void)
 {
+#ifndef NDEBUG
 	NSCAssert(sInited, @"OOConstToJSStringDestroy() called while not inited.");
-	sInited = NO;	// jsString pointers are now officially junk.
+	sInited = NO;
+#endif
+	// jsString pointers are now officially junk.
 }
 
 
