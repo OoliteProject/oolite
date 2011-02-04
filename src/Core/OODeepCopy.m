@@ -181,7 +181,6 @@ id OODeepCopy(id object)
 	id						*members = NULL;
 	NSSet					*result = nil;
 	BOOL					tempObjects = NO;
-	NSEnumerator			*setEnum = nil;
 	
 	count = [self count];
 	if (count == 0)  return [[NSSet set] retain];
@@ -199,12 +198,14 @@ id OODeepCopy(id object)
 		tempObjects = YES;
 	}
 	
-	setEnum = [self objectEnumerator];
 	NS_DURING
+		i = 0;
+		id member = nil;
 		// Deep copy members.
-		for (i = 0; i < count; i++)
+		foreach (member, self)
 		{
-			members[i] = [[setEnum nextObject] ooDeepCopyWithSharedObjects:objects];
+			members[i] = [member ooDeepCopyWithSharedObjects:objects];
+			i++;
 		}
 	NS_HANDLER
 		// Clean up and rethrow.
@@ -249,7 +250,6 @@ id OODeepCopy(id object)
 	id						*values = NULL;
 	NSDictionary			*result = nil;
 	BOOL					tempObjects = NO;
-	NSEnumerator			*keyEnum = nil;
 	
 	count = [self count];
 	if (count == 0)  return [[NSDictionary dictionary] retain];
@@ -270,13 +270,15 @@ id OODeepCopy(id object)
 		tempObjects = YES;
 	}
 	
-	keyEnum = [self keyEnumerator];
 	NS_DURING
+		i = 0;
+		id key = nil;
 		// Deep copy members.
-		for (i = 0; i < count; i++)
+		foreachkey (key, self)
 		{
-			keys[i] = [[keyEnum nextObject] ooDeepCopyWithSharedObjects:objects];
-			values[i] = [[self objectForKey:keys[i]] ooDeepCopyWithSharedObjects:objects];
+			keys[i] = [key ooDeepCopyWithSharedObjects:objects];
+			values[i] = [[self objectForKey:key] ooDeepCopyWithSharedObjects:objects];
+			i++;
 		}
 	NS_HANDLER
 		// Clean up and rethrow.

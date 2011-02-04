@@ -1672,10 +1672,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// in checkCloseCollisionWith: we check if some thing has come within touch range (origin within our collision_radius)
 		// here we check if it has gone outside that range
-		NSEnumerator			*contactEnum = nil;
-		NSString				*other_key = nil;
-		
-		for (contactEnum = [closeContactsInfo keyEnumerator]; (other_key = [contactEnum nextObject]); )
+		NSString *other_key = nil;
+		foreachkey (other_key, closeContactsInfo)
 		{
 			ShipEntity* other = [UNIVERSE entityForUniversalID:[other_key intValue]];
 			if ((other != nil) && (other->isShip))
@@ -1882,9 +1880,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				}
 			}
 			
-			NSEnumerator	*subEnum = nil;
-			ShipEntity		*se = nil;
-			for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
+			ShipEntity *se = nil;
+			foreach (se, [self subEntities])
 			{
 				[se update:delta_t];
 			}
@@ -2042,12 +2039,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self refreshEscortPositions];
 		if ([self hasEscorts])
 		{
-			NSEnumerator			*escortEnum = nil;
-			ShipEntity				*escort = nil;
-			unsigned				i = 0;
-			
+			ShipEntity	*escort = nil;
+			unsigned	i = 0;
 			// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
-			for (escortEnum = [[self escortArray] objectEnumerator]; (escort = [escortEnum nextObject]); )
+			foreach(escort, [self escortArray])
 			{
 				[escort setEscortDestination:[self coordinatesForEscortPosition:i++]];
 			}
@@ -2077,9 +2072,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	totalBoundingBox = boundingBox;
 	
 	// update subentities
-	NSEnumerator	*subEnum = nil;
-	ShipEntity		*se = nil;
-	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
+	ShipEntity *se = nil;
+	foreach (se, [self subEntities])
 	{
 		[se update:delta_t];
 		if ([se isShip])
@@ -3910,9 +3904,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
-	NSEnumerator				*subEntityEnum = nil;
-	ShipEntity					*subEntity = nil;
-	
 	if ((no_draw_distance < zero_distance) ||	// Done redundantly to skip subentities
 		(cloaking_device_active && randf() > 0.10))
 	{
@@ -3937,7 +3928,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?
 	{
-		for (subEntityEnum = [self subEntityEnumerator]; (subEntity = [subEntityEnum nextObject]); )
+		ShipEntity *subEntity = nil;
+		foreach (subEntity, [self subEntities])
 		{
 			[subEntity setOwner:self]; // refresh ownership
 			[subEntity drawSubEntity:immediate :translucent];
@@ -4436,7 +4428,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 - (BOOL) hasEscorts
 {
 	if (_escortGroup == nil)  return NO;
-	return [_escortGroup count] > 1;	// If only one memeber, it's self.
+	return [_escortGroup count] > 1;	// If only one member, it's self.
 }
 
 
