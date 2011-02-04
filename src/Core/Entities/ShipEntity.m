@@ -2199,19 +2199,33 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+#if OOLITE_LEOPARD
+#define foreach(VAR,ARR) for(VAR in ARR)
+#define foreachkey(VAR,DICT) for(VAR in DICT)
+#else
+#define foreach(VAR,OBJ) for (NSEnumerator *ooForEachEnum = [(OBJ) objectEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
+#define foreachkey(VAR,DICT) for (NSEnumerator *ooForEachEnum = [(DICT) keyEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
+#endif
+
+
 - (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons
 {
 	// this function is also used internally to find out if an equipped item is undamaged.
-	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
 	
 	// Make sure it's an array or set, using a single-object set if it's a string.
-	if ([equipmentKeys isKindOfClass:[NSString class]])  equipmentKeys = [NSArray arrayWithObject:equipmentKeys];
-	else if (![equipmentKeys isKindOfClass:[NSArray class]] && ![equipmentKeys isKindOfClass:[NSSet class]])  return NO;
-	
-	for (keyEnum = [equipmentKeys objectEnumerator]; (key = [keyEnum nextObject]); )
+	if ([equipmentKeys isKindOfClass:[NSString class]])
 	{
-		if ([self hasOneEquipmentItem:key includeWeapons:includeWeapons])  return YES;
+		return [self hasOneEquipmentItem:key includeWeapons:includeWeapons];
+	}
+	else
+	{
+		NSParameterAssert([equipmentKeys isKindOfClass:[NSArray class]] || [equipmentKeys isKindOfClass:[NSSet class]]);
+		
+		foreach (key, equipmentKeys)
+		{
+			if ([self hasOneEquipmentItem:key includeWeapons:includeWeapons])  return YES;
+		}
 	}
 	
 	return NO;
