@@ -2203,8 +2203,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 #define foreach(VAR,ARR) for(VAR in ARR)
 #define foreachkey(VAR,DICT) for(VAR in DICT)
 #else
-#define foreach(VAR,OBJ) for (NSEnumerator *ooForEachEnum = [(OBJ) objectEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
-#define foreachkey(VAR,DICT) for (NSEnumerator *ooForEachEnum = [(DICT) keyEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
+#define foreach(VAR,OBJ) NSEnumerator *ooForEachEnum; for (ooForEachEnum = [(OBJ) objectEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
+#define foreachkey(VAR,DICT) NSEnumerator *ooForEachEnum; for (ooForEachEnum = [(DICT) keyEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
 #endif
 
 
