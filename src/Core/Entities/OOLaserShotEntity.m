@@ -98,7 +98,7 @@ MA 02110-1301, USA.
 	position = vector_add(pos, viewOffset);
 	[self setOrientation:q];
 	
-	[self setCollisionRadius:[srcEntity weaponRange]];
+	_range = [srcEntity weaponRange];
 	[self setOwner:ship];
 	
 	_color[0] = kLaserRed;
@@ -109,6 +109,12 @@ MA 02110-1301, USA.
 	_lifetime = kLaserDuration;
 	
 	return self;
+}
+
+
++ (id) laserFromShip:(ShipEntity *)ship view:(OOViewID)view offset:(Vector)offset
+{
+	return [[[self alloc] initLaserFromShip:ship view:view offset:offset] autorelease];
 }
 
 
@@ -173,15 +179,15 @@ static const GLfloat kLaserVertices[] =
 	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
 	
 	
-	/*	FIXME: ideally, collision_radius would be updated by tracing along the
-		initial firing vector. Even ideallier, we should spread damage across
-		the lifetime of the shot, hurting whatever is hit in a given frame.
-		Something for EMMSTRAN.
+	/*	FIXME: ideally, _range would be updated by tracing along the initial
+		firing vector (or the initial vector relative to the owner). Even
+		ideallier, we should spread damage across the lifetime of the shot,
+		hurting whatever is hit in a given frame. Something for EMMSTRAN.
 		-- Ahruman 2011-01-31
 	*/
 	
 	OOGL(glColor4fv(_color));
-	glScaled(kLaserHalfWidth, kLaserHalfWidth, collision_radius);
+	glScaled(kLaserHalfWidth, kLaserHalfWidth, _range);
 	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
 	glDrawArrays(GL_QUADS, 0, 8);
 	

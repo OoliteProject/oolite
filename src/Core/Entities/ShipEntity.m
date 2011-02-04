@@ -4183,6 +4183,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	else  [self deactivateCloakingDevice];
 }
 
+
 - (BOOL)hasAutoCloak
 {
 	return cloakAutomatic;
@@ -4225,10 +4226,9 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		setUpShipFromDictionary:, when the mesh is initially set up.
 		-- Ahruman 2008-04-19
 	*/
-	OODrawable *drawable_ = [self drawable];
 	if (isSubEntity)
 	{
-		[drawable_ setBindingTarget:self];
+		[[self drawable] setBindingTarget:self];
 	}
 }
 
@@ -7506,7 +7506,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
 	[self setShipHitByLaser:victim];
 	
-	shot = [[OOLaserShotEntity alloc] initLaserFromShip:self view:direction offset:kZeroVector];
+	shot = [OOLaserShotEntity laserFromShip:self view:direction offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	
@@ -7535,7 +7535,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	
 	[UNIVERSE addEntity:shot];
-	[shot release];
 	
 	[self resetShotTime];
 
@@ -7570,7 +7569,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector  vel = vector_multiply_scalar(v_forward, flightSpeed);
 	
 	// do special effects laser line
-	shot = [[OOLaserShotEntity alloc] initLaserFromShip:self view:VIEW_FORWARD offset:kZeroVector];
+	shot = [OOLaserShotEntity laserFromShip:self view:VIEW_FORWARD offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setPosition: position];
@@ -7602,7 +7601,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	
 	[UNIVERSE addEntity:shot];
-	[shot release];
 	
 	[self resetShotTime];
 	
@@ -7645,7 +7643,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset:laserPortOffset rangeFound: &hit_at_range];
 	[self setShipHitByLaser:victim];
 	
-	shot = [[OOLaserShotEntity alloc] initLaserFromShip:self view:direction offset:laserPortOffset];	// alloc retains!
+	shot = [OOLaserShotEntity laserFromShip:self view:direction offset:laserPortOffset];
 	
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
@@ -7684,7 +7682,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	
 	[UNIVERSE addEntity:shot];
-	[shot release]; //release
 	
 	[self resetShotTime];
 

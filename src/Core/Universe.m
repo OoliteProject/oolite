@@ -5007,27 +5007,27 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	
 	if (!no_update)
 	{
+		unsigned	i, ent_count = n_entities;
+		Entity		*my_entities[ent_count];
+		
+		// use a retained copy so this can't be changed under us.
+		for (i = 0; i < ent_count; i++)
+		{
+			my_entities[i] = [sortedEntities[i] retain];	// explicitly retain each one
+		}
+		
 		NSString * volatile update_stage = @"initialisation";
 #ifndef NDEBUG
 		id volatile update_stage_param = nil;
 #endif
 		
 		NS_DURING
-			int i;
-			PlayerEntity*	player = PLAYER;
-			int				ent_count = n_entities;
-			Entity*			my_entities[ent_count];
+			PlayerEntity *player = PLAYER;
 			
 			skyClearColor[0] = 0.0;
 			skyClearColor[1] = 0.0;
 			skyClearColor[2] = 0.0;
 			skyClearColor[3] = 0.0;
-			
-			// use a retained copy so this can't be changed under us.
-			for (i = 0; i < ent_count; i++)
-			{
-				my_entities[i] = [sortedEntities[i] retain];	// explicitly retain each one
-			}
 			
 			time_delta = delta_t;
 			universal_time += delta_t;
@@ -5207,12 +5207,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				MaintainLinkedLists(self);
 				doLinkedListMaintenanceThisUpdate = NO;
 			}
-			
-			// dispose of the non-mutable copy and everything it references neatly
-			
-			update_stage = @"clean up";
-			for (i = 0; i < ent_count; i++)
-				[my_entities[i] release];	// explicitly release each one
 
 		NS_HANDLER
 			if ([[localException name] hasPrefix:@"Oolite"])
@@ -5226,6 +5220,13 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				[localException raise];
 			}
 		NS_ENDHANDLER
+		
+		// dispose of the non-mutable copy and everything it references neatly
+		update_stage = @"clean up";
+		for (i = 0; i < ent_count; i++)
+		{
+			[my_entities[i] release];	// explicitly release each one
+		}
 	}
 	
 	[entitiesDeadThisUpdate autorelease];

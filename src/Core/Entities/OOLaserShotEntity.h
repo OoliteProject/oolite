@@ -37,9 +37,10 @@ MA 02110-1301, USA.
 @private
 	GLfloat					_color[4];
 	OOTimeDelta				_lifetime;
+	GLfloat					_range;
 }
 
-- (id) initLaserFromShip:(ShipEntity *)ship view:(OOViewID)view offset:(Vector)offset;
++ (id) laserFromShip:(ShipEntity *)ship view:(OOViewID)view offset:(Vector)offset;
 
 - (void) setColor:(OOColor *)color;
 
