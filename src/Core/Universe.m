@@ -182,8 +182,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (BOOL) doRemoveEntity:(Entity *)entity;
 - (void) preloadSounds;
-- (void) initSettings;
-- (void) initPlayerSettings;
+- (void) setUpSettings;
+- (void) setUpPlayerSettings;
 - (ShipEntity *) spawnPatrolShipAt:(Vector)launchPos alongRoute:(Vector)v_route withOffset:(double)ship_location;
 - (Vector) fractionalPositionFrom:(Vector)point0 to:(Vector)point1 withFraction:(double)routeFraction;
 
@@ -305,7 +305,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
 	
-	[self initSettings];
+	[self setUpSettings];
 	
 	player = [PlayerEntity sharedPlayer];
 	[player deferredInit];
@@ -314,7 +314,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[player setStatus:STATUS_START_GAME];
 	[player setShowDemoShips: YES];
 	
-	[self initPlayerSettings];
+	[self setUpPlayerSettings];
 	
 	universeRegion = [[CollisionRegion alloc] initAsUniverse];
 	entitiesDeadThisUpdate = [[NSMutableSet alloc] init];
@@ -8324,17 +8324,12 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
-- (void) initSettings
+- (void) setUpSettings
 {
-	int i;
-	
 	[self resetBeacons];
 	
 	next_universal_id = 100;	// start arbitrarily above zero
-	for (i = 0; i < MAX_ENTITY_UID; i++)
-	{
-		entity_for_uid[i] = nil;
-	}
+	memset(entity_for_uid, 0, sizeof entity_for_uid);
 	
 	[self setMainLightPosition:kZeroVector];
 	
@@ -8483,7 +8478,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	cachedPlanet = nil;
 	cachedStation = nil;
 	
-	[self initSettings];
+	[self setUpSettings];
 	
 	// Reset JavaScript. Must be before [player setUp], since that loads the locale and world scripts.
 	[OOScriptTimer noteGameReset];
@@ -8496,7 +8491,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	demo_ship = nil;
 	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
 	
-	[self initPlayerSettings];
+	[self setUpPlayerSettings];
 	autoSaveNow = NO;	// don't autosave immediately after loading / restarting game!
 	
 	[[self station] initialiseLocalMarketWithRandomFactor:[player random_factor]];
@@ -8525,7 +8520,7 @@ Entity *gOOJSPlayerIfStale = nil;
 
 
 // FIXME: how is this stuff "player settings"?
-- (void) initPlayerSettings
+- (void) setUpPlayerSettings
 {
 	PlayerEntity* player = PLAYER;
 	
