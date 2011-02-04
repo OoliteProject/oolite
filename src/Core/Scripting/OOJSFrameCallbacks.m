@@ -332,7 +332,7 @@ static BOOL GrowCallbackList(JSContext *context, NSString **errorString)
 		{
 			// If we can't root them all, we fail; unroot all entries to date, free the buffer and return NO.
 			OOUInteger j;
-			for (j = 0; i < i; j++)
+			for (j = 0; j < i; j++)
 			{
 				JS_RemoveValueRoot(context, &newCallbacks[j].callback);
 			}
