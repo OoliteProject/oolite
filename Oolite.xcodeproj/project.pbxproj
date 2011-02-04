@@ -3983,6 +3983,7 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
 				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DEBUGGING_SYMBOLS = full;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -4038,6 +4039,7 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
 				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -4116,6 +4118,7 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
 				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_OPTIMIZATION_LEVEL = s;

@@ -34,7 +34,7 @@ function fail
 if [ -d "$TARGETDIR" ]
 then
 	LIBRARY_PRESENT=1
-	if [ -e $VERSIONFILE ]
+	if [ -e "$VERSIONFILE" ]
 	then
 		CURRENTURL=`head -n 1 $VERSIONFILE`
 		if [ "$DESIREDURL" = "$CURRENTURL" ]

@@ -472,7 +472,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) setTargetSystemSeed:(Random_Seed) s_seed;
+- (void) setTargetSystemSeed:(Random_Seed) s_seed
 {
 	target_system_seed = s_seed;
 	cursor_coordinates = NSMakePoint(s_seed.d, s_seed.b);
@@ -3807,11 +3807,7 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (void) setWeaponsOnline:(BOOL)newValue
 {
-	newValue = !!newValue;	// YES or NO, not 42
-	if (weapons_online != newValue)
-	{
-		weapons_online = newValue;
-	}
+	weapons_online = !!newValue;
 }
 
 
