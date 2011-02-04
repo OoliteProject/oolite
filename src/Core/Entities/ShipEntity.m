@@ -2210,18 +2210,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons
 {
-	// this function is also used internally to find out if an equipped item is undamaged.
-	id							key = nil;
-	
-	// Make sure it's an array or set, using a single-object set if it's a string.
+	// this method is also used internally to find out if an equipped item is undamaged.
 	if ([equipmentKeys isKindOfClass:[NSString class]])
 	{
-		return [self hasOneEquipmentItem:key includeWeapons:includeWeapons];
+		return [self hasOneEquipmentItem:equipmentKeys includeWeapons:includeWeapons];
 	}
 	else
 	{
 		NSParameterAssert([equipmentKeys isKindOfClass:[NSArray class]] || [equipmentKeys isKindOfClass:[NSSet class]]);
 		
+		id key = nil;
 		foreach (key, equipmentKeys)
 		{
 			if ([self hasOneEquipmentItem:key includeWeapons:includeWeapons])  return YES;
