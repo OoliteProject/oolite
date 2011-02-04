@@ -88,6 +88,12 @@ MA 02110-1301, USA.
 #endif
 
 
+#if defined(__GNUC__) && !defined(__clang__)
+// GCC version; for instance, 40300 for 4.3.0. Deliberately undefined in Clang (which defines fake __GNUC__ macros for compatibility).
+#define OO_GCC_VERSION			(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
+
+
 #if OOLITE_GNUSTEP && !defined(OOLITE_SDL_MAC)
 #include <stdint.h>
 #include <limits.h> // to get UINT_MAX
@@ -261,18 +267,8 @@ enum {
 @end
 
 
-/*	Under Mac OS X 10.4 and earlier, but not GNUstep, the error string
-	parameters for the property list parsing primitive methods in
-	NSPropertyListSerialization would contain unreleased strings. To avoid
-	leaking, it is necessary to release them. This does not affect programs
-	linked against the Mac OS X 10.5 SDK.
-*/
 #if OOLITE_MAC_OS_X
-	#if defined OOLITE_LEOPARD
-		#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 0
-	#else
-		#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
-	#endif
+	#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
 #else
 	#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 0
 #endif
@@ -354,10 +350,52 @@ enum {
 #endif
 
 
-#if OOLITE_MAC_OS_X && OOLITE_LEOPARD
-	#define OOLITE_FAST_ENUMERATION		1
+/*	Fast enumeration (for (x in y) syntax) is supported in all Mac compilers
+	when targeting 10.5 or later, and in gcc 4.6 with the GNU libobjc runtime.
+	At the time of writing, GNUstep stable does not support gcc 4.6, but it
+	already has support for the fast enumeration protocol in its collection
+	classes.
+	
+	Clang 2.6 also supports fast enumeration syntax, but it's not immediately
+	clear how to reliably detect runtime support.
+	References:
+		http://lists.gnu.org/archive/html/discuss-gnustep/2011-02/msg00019.html
+		http://wiki.gnustep.org/index.php/ObjC2_FAQ
+	-- Ahruman 2011-02-04
+*/
+#if OOLITE_MAC_OS_X
+	#define OOLITE_FAST_ENUMERATION		OOLITE_LEOPARD
 #else
-	#define OOLITE_FAST_ENUMERATION		0
+	#ifdef __GNU_LIBOBJC__
+		#if OO_GCC_VERSION >= 40600
+			#define OOLITE_FAST_ENUMERATION 1
+		#endif
+	#endif
+#endif
+
+#ifndef OOLITE_FAST_ENUMERATION
+#define OOLITE_FAST_ENUMERATION			0
+#endif
+
+
+/*	Enumeration macros:
+	foreach(VAR, COLLECTION) enumerates the members of an array or set, setting
+	the variable VAR to a member on each pass.
+	foreachkey(VAR, DICT) enumerates the keys of a dictionary the same way.
+	
+	Example:
+		id element = nil;
+		foreach (element, array)
+		{
+			OOLog(@"element", @"%@", element);
+		}
+*/
+#if OOLITE_FAST_ENUMERATION
+#define foreach(VAR, COLLECTION) for(VAR in COLLECTION)
+#define foreachkey(VAR, DICT) for(VAR in DICT)
+#else
+#define foreach(VAR, COLLECTION) for (NSEnumerator *ooForEachEnum = [(COLLECTION) objectEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
+#define foreachkey(VAR, DICT) for (NSEnumerator *ooForEachEnum = [(DICT) keyEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
 #endif
 
 
