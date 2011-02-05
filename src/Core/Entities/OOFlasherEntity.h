@@ -26,9 +26,10 @@ MA 02110-1301, USA.
 */
 
 #import "OOLightParticleEntity.h"
+#import "ShipEntity.h"
 
 
-@interface OOFlasherEntity: OOLightParticleEntity
+@interface OOFlasherEntity: OOLightParticleEntity <OOSubEntity>
 {
 @private
 	float					_frequency;

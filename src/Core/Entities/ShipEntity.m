@@ -139,12 +139,12 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 - (Entity<OOStellarBody> *) lastAegisLock;
 - (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock;
 
-- (void) addSubEntity:(Entity *) subent;
+- (void) addSubEntity:(Entity<OOSubEntity> *) subent;
 
 - (void) refreshEscortPositions;
 - (Vector) coordinatesForEscortPosition:(unsigned)idx;
 
-- (void) addSubentityToCollisionRadius:(Entity*) subent;
+- (void) addSubentityToCollisionRadius:(Entity<OOSubEntity> *) subent;
 - (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
 
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOViewID)direction;
@@ -902,7 +902,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (BOOL) hasSubEntity:(ShipEntity *)sub
+- (BOOL) hasSubEntity:(ShipEntity<OOSubEntity> *)sub
 {
 	return [subEntities containsObject:sub];
 }
@@ -4195,7 +4195,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
-- (void) addSubEntity:(Entity *)sub
+- (void) addSubEntity:(Entity<OOSubEntity> *)sub
 {
 	if (sub == nil)  return;
 	
@@ -5767,26 +5767,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	// rescale mesh (and collision detection stuff)
 	[self setMesh:[[self mesh] meshRescaledBy:factor]];
 	
-	// rescale positions of subentities
-	NSEnumerator	*subEnum = nil;
-	Entity			*se = nil;
-	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
+	// rescale subentities
+	Entity<OOSubEntity>	*se = nil;
+	foreach (se, [self subEntities])
 	{
-		se->position = vector_multiply_scalar([se position], factor);
-		
-		// rescale ship subentities
-		if ([se isShip])  [(ShipEntity*)se rescaleBy:factor];
-		
-		// rescale particle subentities
-		if ([se isParticle])
-		{
-			// FIXME: this will thrown an exception if we ever reach it, because particle subentities aren't ParticleEntities.
-			ParticleEntity* pe = (ParticleEntity*)se;
-			NSSize sz = [pe size];
-			sz.width *= factor;
-			sz.height *= factor;
-			[pe setSize: sz];
-		}
+		[se setPosition:vector_multiply_scalar([se position], factor)];
+		[se rescaleBy:factor];
 	}
 	
 	// rescale mass

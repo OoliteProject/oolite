@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#import "ShipEntity.h"
 
 
 typedef struct
@@ -41,7 +41,7 @@ enum
 };
 
 
-@interface OOExhaustPlumeEntity: Entity
+@interface OOExhaustPlumeEntity: Entity <OOSubEntity>
 {
 @private
 	Vector			_exhaustScale;

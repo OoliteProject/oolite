@@ -156,7 +156,16 @@ typedef enum
 } OOShipDamageType;
 
 
-@interface ShipEntity: OOEntityWithDrawable
+// Methods that must be supported by subentities, regardless of type.
+@protocol OOSubEntity
+
+- (void) rescaleBy:(GLfloat)factor;
+
+@end
+
+
+
+@interface ShipEntity: OOEntityWithDrawable <OOSubEntity>
 {
 @public
 	// derived variables
@@ -423,7 +432,7 @@ typedef enum
 
 - (NSArray *)subEntities;
 - (unsigned) subEntityCount;
-- (BOOL) hasSubEntity:(ShipEntity *)sub;
+- (BOOL) hasSubEntity:(Entity<OOSubEntity> *)sub;
 
 - (NSEnumerator *)subEntityEnumerator;
 - (NSEnumerator *)shipSubEntityEnumerator;

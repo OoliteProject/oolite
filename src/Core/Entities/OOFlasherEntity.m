@@ -158,6 +158,12 @@ MA 02110-1301, USA.
 	return [self diameter] / 2.0;
 }
 
+
+- (void) rescaleBy:(GLfloat)factor
+{
+	[self setDiameter:[self diameter] * factor];
+}
+
 @end
 
 

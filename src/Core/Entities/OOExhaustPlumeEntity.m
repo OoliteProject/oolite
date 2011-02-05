@@ -419,6 +419,12 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 	}
 }
 
+
+- (void) rescaleBy:(GLfloat)factor
+{
+	_exhaustScale = vector_multiply_scalar(_exhaustScale, factor);
+}
+
 @end
 
 
