@@ -1585,7 +1585,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) addSubentityToCollisionRadius:(Entity*)subent
+- (void) addSubentityToCollisionRadius:(Entity<OOSubEntity> *)subent
 {
 	if (!subent)  return;
 	
