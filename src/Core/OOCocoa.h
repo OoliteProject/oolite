@@ -90,7 +90,7 @@ MA 02110-1301, USA.
 
 #if defined(__GNUC__) && !defined(__clang__)
 // GCC version; for instance, 40300 for 4.3.0. Deliberately undefined in Clang (which defines fake __GNUC__ macros for compatibility).
-#define OO_GCC_VERSION			(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#define OOLITE_GCC_VERSION			(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
 
@@ -356,8 +356,9 @@ enum {
 	already has support for the fast enumeration protocol in its collection
 	classes.
 	
-	Clang 2.6 also supports fast enumeration syntax, but it's not immediately
-	clear how to reliably detect runtime support.
+	All release versions of clang support fast enumeration, assuming libobjc2
+	or ObjectiveC2.framework is being used. We shall make that assumption.
+	
 	References:
 		http://lists.gnu.org/archive/html/discuss-gnustep/2011-02/msg00019.html
 		http://wiki.gnustep.org/index.php/ObjC2_FAQ
@@ -366,10 +367,10 @@ enum {
 #if OOLITE_MAC_OS_X
 	#define OOLITE_FAST_ENUMERATION		OOLITE_LEOPARD
 #else
-	#ifdef __GNU_LIBOBJC__
-		#if OO_GCC_VERSION >= 40600
-			#define OOLITE_FAST_ENUMERATION 1
-		#endif
+	#if __clang__
+		#define OOLITE_FAST_ENUMERATION 1
+	#elif defined (__GNU_LIBOBJC__)
+		#define OOLITE_FAST_ENUMERATION (OOLITE_GCC_VERSION >= 40600)
 	#endif
 #endif
 
@@ -389,13 +390,15 @@ enum {
 		{
 			OOLog(@"element", @"%@", element);
 		}
+	
+    These are based on macros by Jens Alfke.
 */
 #if OOLITE_FAST_ENUMERATION
-#define foreach(VAR, COLLECTION) for(VAR in COLLECTION)
-#define foreachkey(VAR, DICT) for(VAR in DICT)
+#define foreach(VAR, COLLECTION)	for(VAR in COLLECTION)
+#define foreachkey(VAR, DICT)		for(VAR in DICT)
 #else
-#define foreach(VAR, COLLECTION) for (NSEnumerator *ooForEachEnum = [(COLLECTION) objectEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
-#define foreachkey(VAR, DICT) for (NSEnumerator *ooForEachEnum = [(DICT) keyEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
+#define foreach(VAR, COLLECTION)	for (NSEnumerator *ooForEachEnum = [(COLLECTION) objectEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
+#define foreachkey(VAR, DICT)		for (NSEnumerator *ooForEachEnum = [(DICT) keyEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
 #endif
 
 
