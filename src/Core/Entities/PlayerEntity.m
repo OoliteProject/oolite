@@ -3930,6 +3930,12 @@ static bool minShieldLevelPercentageInitialised = false;
 	if ([self status] == STATUS_DEAD)  return;
 	if (amount == 0.0)  return;
 	
+	BOOL energyMine = [ent isCascadeWeapon];
+	if (energyMine)
+	{
+		[self cascadeIfAppropriateWithDamageAmount:amount cascadeOwner:[ent owner]];
+	}
+	
 	// make sure ent (& its position) is the attacking _ship_/missile !
 	if (ent && [ent isSubEntity]) ent = [ent owner];
 	
@@ -3947,14 +3953,14 @@ static bool minShieldLevelPercentageInitialised = false;
 	[self playShieldHit];
 
 	// firing on an innocent ship is an offence
-	if ((other)&&(other->isShip))
+	if ([other isShip])
 	{
 		[self broadcastHitByLaserFrom:(ShipEntity*) other];
 	}
 
 	if (d_forward >= 0)
 	{
-		forward_shield -= (float)amount;
+		forward_shield -= amount;
 		if (forward_shield < 0.0)
 		{
 			amount = -forward_shield;
@@ -3967,7 +3973,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	}
 	else
 	{
-		aft_shield -= (float)amount;
+		aft_shield -= amount;
 		if (aft_shield < 0.0)
 		{
 			amount = -aft_shield;
@@ -3982,10 +3988,14 @@ static bool minShieldLevelPercentageInitialised = false;
 	if (amount > 0.0)
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
-		energy -= (float)amount;
+		energy -= amount;
 		[self playDirectHit];
-		ship_temperature += ((float)amount / [self heatInsulation]);
+		ship_temperature += (amount / [self heatInsulation]);
 	}
+	
+	OOShipDamageType damageType = kOODamageTypeEnergy;
+	if (energyMine)  damageType = kOODamageTypeCascadeWeapon;
+	[self noteTakingDamage:amount from:other type:damageType];
 	
 	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
 	{
@@ -3994,7 +4004,7 @@ static bool minShieldLevelPercentageInitialised = false;
 			[(ShipEntity *)other noteTargetDestroyed:self];
 		}
 		
-		[self getDestroyedBy:other context:@"energy damage"];
+		[self getDestroyedBy:other damageType:damageType];
 	}
 	else
 	{
@@ -4009,8 +4019,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	double  d_forward;
 	BOOL	internal_damage = NO;	// base chance
 	
-	if ([self status] == STATUS_DEAD)
-		return;
+	if ([self status] == STATUS_DEAD)  return;
 	
 	if (amount < 0) 
 	{
@@ -4057,16 +4066,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 	}
 	
-	energy -= amount;
-	if (energy <= 0.0)
-	{
-		if ([ent isShip])
-		{
-			[(ShipEntity *)ent noteTargetDestroyed:self];
-		}
-		
-		[self getDestroyedBy:ent context:@"scrape damage"];
-	}
+	[super takeScrapeDamage:amount from:ent];
 
 	if (internal_damage)
 	{
@@ -4077,14 +4077,9 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (void) takeHeatDamage:(double) amount
 {
-	if ([self status] == STATUS_DEAD)					// it's too late for this one!
-		return;
-
-	if (amount < 0.0)
-		return;
-
+	if ([self status] == STATUS_DEAD || amount < 0)  return;
+	
 	// hit the shields first!
-
 	float fwd_amount = (float)(0.5 * amount);
 	float aft_amount = (float)(0.5 * amount);
 
@@ -4095,7 +4090,9 @@ static bool minShieldLevelPercentageInitialised = false;
 		forward_shield = 0.0f;
 	}
 	else
+	{
 		fwd_amount = 0.0f;
+	}
 
 	aft_shield -= aft_amount;
 	if (aft_shield < 0.0)
@@ -4104,27 +4101,13 @@ static bool minShieldLevelPercentageInitialised = false;
 		aft_shield = 0.0f;
 	}
 	else
+	{
 		aft_amount = 0.0f;
+	}
 
 	double residual_amount = fwd_amount + aft_amount;
-	if (residual_amount <= 0.0)
-		return;
-
-	energy -= (float)residual_amount;
-
-	throw_sparks = YES;
-
-	// oops we're burning up!
-	if (energy <= 0.0)
-	{
-		[self getDestroyedBy:nil context:@"heat damage"];
-	}
-	else
-	{
-		// warn if I'm low on energy
-		if (energy < maxEnergy *0.25)
-			[shipAI message:@"ENERGY_LOW"];
-	}
+	
+	[super takeHeatDamage:residual_amount];
 }
 
 
@@ -4455,11 +4438,11 @@ static bool minShieldLevelPercentageInitialised = false;
 }
 
 
-- (void) getDestroyedBy:(Entity *)whom context:(NSString *)why
+- (void) getDestroyedBy:(Entity *)whom damageType:(OOShipDamageType)type
 {
 	if ([self isDocked])  return;	// Can't die while docked. (Doing so would cause breakage elsewhere.)
 	
-	OOLog(@"player.ship.damage",  @"Player destroyed by %@ due to %@", whom, why);	
+	OOLog(@"player.ship.damage",  @"Player destroyed by %@ due to %@", whom, OOStringFromShipDamageType(type));	
 	
 	if (![[UNIVERSE gameController] playerFileToLoad])
 	{
@@ -4480,9 +4463,8 @@ static bool minShieldLevelPercentageInitialised = false;
 	[self setStatus:STATUS_DEAD];
 	[self playGameOver];
 	
-	// Let event scripts know the player died.
-	if (whom == nil)  whom = (id)[NSNull null];
-	[self doScriptEvent:OOJSID("shipDied") withArguments:[NSArray arrayWithObjects:whom, why, nil]];
+	// Let scripts know the player died.
+	[self noteKilledBy:whom damageType:type];
 	
 	[UNIVERSE setBlockJSPlayerShipProps:YES];	// Treat JS player as stale entity.
 	[self setStatus:STATUS_DEAD];		// set dead again in case a script managed to revive the player.
@@ -5898,7 +5880,7 @@ done:
 
 		[gui setSelectableRange:NSMakeRange(first_sel_row, GUI_ROW_OPTIONS_END_OF_LIST)];
 
-		if ([[UNIVERSE gameController] gameIsPaused] || (!canLoadOrSave && [self status] == STATUS_DOCKED))
+		if ([[UNIVERSE gameController] isGamePaused] || (!canLoadOrSave && [self status] == STATUS_DOCKED))
 		{
 			[gui setSelectedRow: GUI_ROW(,GAMEOPTIONS)];
 		}
@@ -6487,7 +6469,7 @@ static NSString *last_outfitting_key=nil;
 				break;
 
 		}
-		if (![[UNIVERSE gameController] gameIsPaused])
+		if (![[UNIVERSE gameController] isGamePaused])
 		{
 			JSContext *context = OOJSAcquireContext();
 			ShipScriptEvent(context, self, "guiScreenChanged", OOJSValueFromGUIScreenID(context, toScreen), OOJSValueFromGUIScreenID(context, fromScreen));

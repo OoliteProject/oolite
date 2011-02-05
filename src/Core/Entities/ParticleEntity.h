@@ -77,6 +77,7 @@ MA 02110-1301, USA.
 
 @interface Entity (OOParticleExtensions)
 
-- (BOOL)isParticle;
+- (BOOL) isParticle;
+- (BOOL) isCascadeWeapon;
 
 @end

@@ -146,6 +146,16 @@ typedef enum
 } OOAlertCondition;
 
 
+typedef enum
+{
+#define DIFF_STRING_ENTRY(label, string) label,
+	#include "OOShipDamageType.tbl"
+#undef DIFF_STRING_ENTRY
+	
+	kOOShipDamageTypeDefault = kOODamageTypeEnergy
+} OOShipDamageType;
+
+
 @interface ShipEntity: OOEntityWithDrawable
 {
 @public
@@ -742,7 +752,12 @@ typedef enum
 - (void) dealEnergyDamageWithinDesiredRange;
 - (void) dealMomentumWithinDesiredRange:(double)amount;
 
-- (void) getDestroyedBy:(Entity *)whom context:(NSString *)why;
+// Dispatch shipTakingDamage() event.
+- (void) noteTakingDamage:(double)amount from:(Entity *)entity type:(OOShipDamageType)type;
+// Dispatch shipDied() and possibly shipKilledOther() events. This is only for use by getDestroyedBy:damageType:, but needs to be visible to PlayerEntity's version.
+- (void) noteKilledBy:(Entity *)whom damageType:(OOShipDamageType)type;
+
+- (void) getDestroyedBy:(Entity *)whom damageType:(OOShipDamageType)type;
 - (void) becomeExplosion;
 - (void) becomeLargeExplosion:(double) factor;
 - (void) becomeEnergyBlast;
@@ -838,6 +853,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (OOTimeDelta) missileLoadTime;
 - (void) setMissileLoadTime:(OOTimeDelta)newMissileLoadTime;
 - (BOOL) fireECM;
+- (void) cascadeIfAppropriateWithDamageAmount:(double)amount cascadeOwner:(Entity *)owner;
 - (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;
 - (BOOL) launchEnergyBomb;
@@ -1008,3 +1024,5 @@ NSString *OOStringFromWeaponType(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType OOWeaponTypeFromString(NSString *string) PURE_FUNC;
 
 NSString *OODisplayStringFromAlertCondition(OOAlertCondition alertCondition);
+
+NSString *OOStringFromShipDamageType(OOShipDamageType type) CONST_FUNC;

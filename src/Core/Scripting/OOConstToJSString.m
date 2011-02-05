@@ -76,6 +76,7 @@ static JSString *sUndefinedString;
 */
 #define ENTRY(label, val) { .value = label, .cString = #label },
 #define GALACTIC_HYPERSPACE_ENTRY(label, val) { .value = GALACTIC_HYPERSPACE_##label, .cString = #label },
+#define DIFF_STRING_ENTRY(label, string) { .value = label, .cString = string },
 
 static TableEntry sOOCompassModeTableEntries[] =
 {
@@ -107,8 +108,14 @@ static TableEntry sOOViewIDTableEntries[] =
 	#include "OOViewID.tbl"
 };
 
+static TableEntry sOOShipDamageTypeTableEntries[] =
+{
+	#include "OOShipDamageType.tbl"
+};
+
 #undef ENTRY
 #undef GALACTIC_HYPERSPACE_ENTRY
+#undef DIFF_STRING_ENTRY
 
 
 ConstTable gOOCompassModeConstTable					= TABLE(sOOCompassModeTableEntries);
@@ -117,6 +124,7 @@ ConstTable gOOGalacticHyperspaceBehaviourConstTable	= TABLE(sOOGalacticHyperspac
 ConstTable gOOGUIScreenIDConstTable					= TABLE(sOOGUIScreenIDTableEntries);
 ConstTable gOOScanClassConstTable					= TABLE(sOOScanClassTableEntries);
 ConstTable gOOViewIDConstTable						= TABLE(sOOViewIDTableEntries);
+ConstTable gOOShipDamageTypeConstTable				= TABLE(sOOShipDamageTypeTableEntries);
 
 static void InitTable(JSContext *context, ConstTable *table);
 
@@ -136,6 +144,7 @@ void OOConstToJSStringInit(JSContext *context)
 	InitTable(context, &gOOGUIScreenIDConstTable);
 	InitTable(context, &gOOScanClassConstTable);
 	InitTable(context, &gOOViewIDConstTable);
+	InitTable(context, &gOOShipDamageTypeConstTable);
 	
 #ifndef NDEBUG
 	sInited = YES;

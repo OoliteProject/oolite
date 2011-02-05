@@ -119,7 +119,7 @@ static GameController *sSharedController = nil;
 }
 
 
-- (BOOL) gameIsPaused
+- (BOOL) isGamePaused
 {
 	return gameIsPaused;
 }

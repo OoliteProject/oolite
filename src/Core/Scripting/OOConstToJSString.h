@@ -246,3 +246,22 @@ OOINLINE OOViewID OOViewIDFromJSValue(JSContext *context, jsval value)
 	return OOConstantFromJSValuePRIVATE(context, value, &gOOViewIDConstTable, kOOViewIDDefault);
 }
 
+
+
+/*	JSString *OOJSStringFromShipDamageType(JSContext *, OOShipDamageType)
+	jsval OOJSValueFromShipDamageType(JSContext *, OOShipDamageType)
+	
+	Convert OOShipDamageType to JavaScript strings.
+*/
+OOINLINE JSString *OOJSStringFromShipDamageType(JSContext *context, OOShipDamageType value)
+{
+	extern struct ConstTable gOOShipDamageTypeConstTable;
+	return OOJSStringFromConstantPRIVATE(context, value, &gOOShipDamageTypeConstTable);
+}
+
+
+OOINLINE jsval OOJSValueFromShipDamageType(JSContext *context, OOShipDamageType value)
+{
+	return STRING_TO_JSVAL(OOJSStringFromShipDamageType(context, value));
+}
+

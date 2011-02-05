@@ -854,6 +854,12 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 }
 
 
+- (BOOL) isCascadeWeapon
+{
+	return particle_type == PARTICLE_ENERGY_MINE;
+}
+
+
 #ifndef NDEBUG
 - (NSSet *) allTextures
 {
@@ -873,7 +879,13 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 
 @implementation Entity (OOParticleExtensions)
 
-- (BOOL)isParticle
+- (BOOL) isParticle
+{
+	return NO;
+}
+
+
+- (BOOL) isCascadeWeapon
 {
 	return NO;
 }

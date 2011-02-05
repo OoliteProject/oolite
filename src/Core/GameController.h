@@ -124,7 +124,7 @@ MA 02110-1301, USA.
 + (id)sharedController;
 
 - (void) applicationDidFinishLaunching: (NSNotification *)notification;
-- (BOOL) gameIsPaused;
+- (BOOL) isGamePaused;
 - (void) pauseGame;
 - (void) unpauseGame;
 

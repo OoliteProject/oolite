@@ -567,7 +567,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		
 		// HUD toggle
-		if ([gameView isDown:'o'] && [[gameView gameController] gameIsPaused])// 'o' key while paused
+		if ([gameView isDown:'o'] && [[gameView gameController] isGamePaused])// 'o' key while paused
 		{
 			exceptionContext = @"toggle HUD";
 			if (!hide_hud_pressed)
@@ -599,7 +599,7 @@ static NSTimeInterval	time_last_frame;
 		exceptionContext = @"joystick handling";
 		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 		
-		BOOL paused = [[gameView gameController] gameIsPaused];
+		BOOL paused = [[gameView gameController] isGamePaused];
 		double speed_delta = 5.0 * thrust;
 		
 		if (!paused && gui_screen == GUI_SCREEN_MISSION)
@@ -1292,7 +1292,7 @@ static NSTimeInterval	time_last_frame;
 				else [[UNIVERSE messageGUI] clear];
 				NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
 				OOTimeDelta		time_delta;
-				if (![[GameController sharedController] gameIsPaused])
+				if (![[GameController sharedController] isGamePaused])
 				{
 					time_delta = time_this_frame - time_last_frame;
 					time_last_frame = time_this_frame;
@@ -3078,7 +3078,7 @@ static BOOL toggling_music;
 		{
 			if (!pause_pressed)
 			{
-				if ([gameController gameIsPaused])
+				if ([gameController isGamePaused])
 				{
 					script_time = saved_script_time;
 					[gameView allowStringInput:NO];
@@ -3105,7 +3105,7 @@ static BOOL toggling_music;
 			pause_pressed = NO;
 		}
 		
-		if ([gameController gameIsPaused]) NS_VOIDRETURN; //return;	// TEMP
+		if ([gameController isGamePaused]) NS_VOIDRETURN; //return;	// TEMP
 		
 		if(pollControls)
 		{
@@ -3306,7 +3306,7 @@ static BOOL toggling_music;
 		currentWeaponFacing = viewDirection;
 		[self currentWeaponStats];
 	}
-	if ((oldViewDirection != viewDirection || viewDirection == VIEW_CUSTOM) && ![[UNIVERSE gameController] gameIsPaused])
+	if ((oldViewDirection != viewDirection || viewDirection == VIEW_CUSTOM) && ![[UNIVERSE gameController] isGamePaused])
 	{
 		JSContext *context = OOJSAcquireContext();
 		ShipScriptEvent(context, self, "viewDirectionChanged", OOJSValueFromViewID(context, viewDirection), OOJSValueFromViewID(context, oldViewDirection));

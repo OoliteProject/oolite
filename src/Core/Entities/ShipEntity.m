@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOConstToJSString.h"
 #import "NSScannerOOExtensions.h"
 #import "OOFilteringEnumerator.h"
 #import "OORoleSet.h"
@@ -5696,6 +5697,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	return isHulk;
 }
 
+
 - (void) setHulk:(BOOL)isNowHulk
 {
 	if (![self isSubEntity]) 
@@ -5704,19 +5706,50 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 }
 
-- (void) getDestroyedBy:(Entity *)whom context:(NSString *)context
+
+- (void) noteTakingDamage:(double)amount from:(Entity *)entity type:(OOShipDamageType)type
 {
-	if (whom == nil)  whom = (id)[NSNull null];
+	if (amount < 0 || (amount == 0 && [UNIVERSE isGamePaused]))  return;
 	
-	// Is this safe to do here? The script actions will be executed before the status has been set to
-	// STATUS_DEAD, which is the opposite of what was happening inside becomeExplosion - Nikos.
-	if (script != nil)
+	JSContext *context = OOJSAcquireContext();
+	
+	jsval amountVal = JSVAL_VOID;
+	JS_NewNumberValue(context, amount, &amountVal);
+	jsval entityVal = OOJSValueFromNativeObject(context, entity);
+	jsval typeVal = OOJSValueFromShipDamageType(context, type);
+	
+	ShipScriptEvent(context, self, "shipTakingDamage", amountVal, entityVal, typeVal);
+	
+	OOJSRelinquishContext(context);
+}
+
+
+- (void) noteKilledBy:(Entity *)whom damageType:(OOShipDamageType)type
+{
+	[PLAYER setScriptTarget:self];
+	
+	JSContext *context = OOJSAcquireContext();
+	
+	jsval whomVal = OOJSValueFromNativeObject(context, whom);
+	jsval typeVal = OOJSValueFromShipDamageType(context, type);
+	OOEntityStatus originalStatus = [self status];
+	[self setStatus:STATUS_DEAD];
+	
+	ShipScriptEvent(context, self, "shipDied", whomVal, typeVal);
+	if ([whom isShip])
 	{
-		[PLAYER setScriptTarget:self];
-		[self doScriptEvent:OOJSID("shipDied") withArguments:[NSArray arrayWithObjects:whom, context, nil]];
-		if (![whom isKindOfClass:[NSNull class]] && [whom isShip])  [(ShipEntity *)whom doScriptEvent:OOJSID("shipKilledOther") withArguments:[NSArray arrayWithObjects:self, context, nil]];
+		jsval selfVal = OOJSValueFromNativeObject(context, self);
+		ShipScriptEvent(context, (ShipEntity *)whom, "shipKilledOther", selfVal, typeVal);
 	}
 	
+	[self setStatus:originalStatus];
+	OOJSRelinquishContext(context);
+}
+
+
+- (void) getDestroyedBy:(Entity *)whom damageType:(OOShipDamageType)type
+{
+	[self noteKilledBy:whom damageType:type];
 	[self becomeExplosion];
 }
 
@@ -5795,7 +5828,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		
 		if (!suppressExplosion)
 		{
-			if ((mass > 500000.0f)&&(randf() < 0.25f)) // big!
+			if (mass > 500000.0f && randf() < 0.25f) // big!
 			{
 				// draw an expanding ring
 				ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
@@ -8200,7 +8233,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			}
 			else if ([ent isStellarObject])
 			{
-				[self getDestroyedBy:ent context:[ent isSun] ? @"hit a sun" : @"hit a planet"];
+				[self getDestroyedBy:ent damageType:[ent isSun] ? kOODamageTypeHitASun : kOODamageTypeHitAPlanet];
 				if (self == PLAYER) [self retain];
 			}
 			else if ([ent isWormhole])
@@ -8603,49 +8636,55 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (void) cascadeIfAppropriateWithDamageAmount:(double)amount cascadeOwner:(Entity *)owner
+{
+	switch ([self scanClass])
+	{
+		case CLASS_WORMHOLE:
+		case CLASS_ROCK:
+		case CLASS_CARGO:
+		case CLASS_BUOY:
+			// does not normally cascade
+			if ((fuel > MIN_FUEL) || isStation) 
+			{
+				//we have fuel onboard so we can still go pop, or we are a station which can
+			}
+			else break;
+			
+		case CLASS_STATION:
+		case CLASS_MINE:
+		case CLASS_PLAYER:
+		case CLASS_POLICE:
+		case CLASS_MILITARY:
+		case CLASS_THARGOID:
+		case CLASS_MISSILE:
+		case CLASS_NOT_SET:
+		case CLASS_NO_DRAW:
+		case CLASS_NEUTRAL:
+		case CLASS_TARGET:
+			// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
+			if (energy < amount && energy > 10 && [self countsAsKill])
+			{
+				ParticleEntity *chainReaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
+				[UNIVERSE addEntity:chainReaction];
+				[chainReaction setOwner:owner];
+				[chainReaction release];
+			}
+			break;
+			//no default thanks, we want the compiler to tell us if we missed a case.
+	}
+}
+
+
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
 	if ([self status] == STATUS_DEAD)  return;
 	if (amount <= 0.0)  return;
 	
-	// If it's an energy mine...
-	BOOL energyMine = ([ent isParticle] && [ent scanClass] == CLASS_MINE);
+	BOOL energyMine = [ent isCascadeWeapon];
 	if (energyMine)
 	{
-		switch (scanClass)
-		{
-			case CLASS_WORMHOLE :
-			case CLASS_ROCK :
-			case CLASS_CARGO :
-			case CLASS_BUOY :
-				// does not normally cascade
-				if ((fuel > MIN_FUEL) || isStation) 
-				{
-					//we have fuel onboard so we can still go pop, or we are a station which can
-				}
-				else break;
-			case CLASS_STATION :
-			case CLASS_MINE :
-			case CLASS_PLAYER :
-			case CLASS_POLICE :
-			case CLASS_MILITARY :
-			case CLASS_THARGOID :
-			case CLASS_MISSILE :
-			case CLASS_NOT_SET :
-			case CLASS_NO_DRAW :
-			case CLASS_NEUTRAL :
-			case CLASS_TARGET :
-				// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
-				if (energy < amount && energy > 10 && [self countsAsKill])
-				{
-					ParticleEntity *chainReaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
-					[UNIVERSE addEntity:chainReaction];
-					[chainReaction setOwner:[ent owner]];
-					[chainReaction release];
-				}				
-				break;
-			//no default thanks, we want the compiler to tell us if we missed a case.
-		}
+		[self cascadeIfAppropriateWithDamageAmount:amount cascadeOwner:[ent owner]];
 	}
 	
 	energy -= amount;
@@ -8757,11 +8796,21 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if ((other)&&([other isShip]))
 			being_mined = [(ShipEntity *)other isMining];
 	}
+	
+	OOShipDamageType damageType = kOODamageTypeEnergy;
+	if (suppressExplosion)  damageType = kOODamageTypeRemoved;
+	else if (energyMine)  damageType = kOODamageTypeCascadeWeapon;
+	
+	if (!suppressExplosion)
+	{
+		[self noteTakingDamage:amount from:other type:damageType];
+	}
+	
 	// die if I'm out of energy
 	if (energy <= 0.0)
 	{
 		if (hunter != nil)  [hunter noteTargetDestroyed:self];
-		[self getDestroyedBy:other context:suppressExplosion ? @"removed" : (energyMine ? @"cascade weapon" : @"energy damage")];
+		[self getDestroyedBy:other damageType:damageType];
 	}
 	else
 	{
@@ -8836,16 +8885,19 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) takeScrapeDamage:(double) amount from:(Entity *) ent
+- (void) takeScrapeDamage:(double) amount from:(Entity *)ent
 {
 	if ([self status] == STATUS_DEAD)  return;
 
-	if ([self status] == STATUS_LAUNCHING)			// no collisions during launches please
+	if ([self status] == STATUS_LAUNCHING|| [ent status] == STATUS_LAUNCHING)
+	{
+		// no collisions during launches please
 		return;
-	if ([ent status] == STATUS_LAUNCHING)			// no collisions during launches please
-		return;
+	}
 	
 	energy -= amount;
+	[self noteTakingDamage:amount from:ent type:kOODamageTypeScrape];
+	
 	// oops we hit too hard!!!
 	if (energy <= 0.0)
 	{
@@ -8854,7 +8906,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			[(ShipEntity *)ent noteTargetDestroyed:self];
 		}
-		[self getDestroyedBy:ent context:@"scrape damage"];
+		[self getDestroyedBy:ent damageType:kOODamageTypeScrape];
 	}
 	else
 	{
@@ -8867,17 +8919,19 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) takeHeatDamage:(double) amount
+- (void) takeHeatDamage:(double)amount
 {
-	if ([self status] == STATUS_DEAD || amount < 0.0)  return;
+	if ([self status] == STATUS_DEAD)  return;
 	
 	energy -= amount;
 	throw_sparks = YES;
 	
+	[self noteTakingDamage:amount from:nil type:kOODamageTypeHeat];
+	
 	// oops we're burning up!
 	if (energy <= 0.0)
 	{
-		[self getDestroyedBy:nil context:@"heat damage"];
+		[self getDestroyedBy:nil damageType:kOODamageTypeHeat];
 	}
 	else
 	{

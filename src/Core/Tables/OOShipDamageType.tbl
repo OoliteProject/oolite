@@ -1,0 +1,7 @@
+DIFF_STRING_ENTRY(kOODamageTypeScrape,			"scrape damage")
+DIFF_STRING_ENTRY(kOODamageTypeHeat,			"heat damage")
+DIFF_STRING_ENTRY(kOODamageTypeEnergy,			"energy damage")
+DIFF_STRING_ENTRY(kOODamageTypeCascadeWeapon,	"cascade weapon")
+DIFF_STRING_ENTRY(kOODamageTypeHitAPlanet,		"hit a planet")
+DIFF_STRING_ENTRY(kOODamageTypeHitASun,			"hit a sun")
+DIFF_STRING_ENTRY(kOODamageTypeRemoved,			"removed")

@@ -508,6 +508,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
+- (BOOL) isGamePaused
+{
+	return [[gameView gameController] isGamePaused];
+}
+
+
 - (void) setUpUniverseFromStation
 {
 	if (![self sun])
@@ -3412,7 +3418,7 @@ static const OOMatrix	starboard_matrix =
 			
 			// frame complete, when it is time to update the fps_counter, updateClocks:delta_t
 			// in PlayerEntity.m will take care of resetting the processed frames number to 0.
-			if (![[self gameController] gameIsPaused])
+			if (![[self gameController] isGamePaused])
 			{
 				framesDoneThisUpdate++;
 			}

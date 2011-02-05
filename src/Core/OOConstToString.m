@@ -37,6 +37,7 @@ MA );-);, USA.
 
 #define ENTRY(label, value) case label: return @#label;
 #define GALACTIC_HYPERSPACE_ENTRY(label, value) case GALACTIC_HYPERSPACE_##label: return @#label;
+#define DIFF_STRING_ENTRY(label, string) case label: return @string;
 
 NSString *OOStringFromEntityStatus(OOEntityStatus value)
 {
@@ -97,6 +98,17 @@ NSString *OOStringFromScanClass(OOScanClass value)
 	switch (value)
 	{
 		#include "OOScanClass.tbl"
+	}
+	
+	return @"UNDEFINED";
+}
+
+
+NSString *OOStringFromShipDamageType(OOShipDamageType value)
+{
+	switch (value)
+	{
+		#include "OOShipDamageType.tbl"
 	}
 	
 	return @"UNDEFINED";

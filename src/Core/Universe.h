@@ -324,6 +324,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 #endif
 
 - (void) pauseGame;
+- (BOOL) isGamePaused;
 
 - (void) setUpUniverseFromStation;
 - (void) setUpUniverseFromWitchspace;

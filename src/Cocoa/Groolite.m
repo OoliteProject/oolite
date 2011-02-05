@@ -221,7 +221,7 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 	#endif
 	
 	// Ignore if we're paused
-	if ([gameController gameIsPaused])
+	if ([gameController isGamePaused])
 		return;
 	
 	// Check that priority is not below our threshold
