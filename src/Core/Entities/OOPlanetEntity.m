@@ -450,6 +450,13 @@ static OOColor *ColorWithHSBColor(Vector c)
 	return YES;
 }
 
+
+- (BOOL) isVisible
+{
+	return YES;
+}
+
+
 - (BOOL) hasAtmosphere
 {
 	return _atmosphereDrawable != nil;

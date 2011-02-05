@@ -1571,6 +1571,12 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 	return YES;
 }
 
+
+- (BOOL) isVisible
+{
+	return YES;
+}
+
 @end
 
 #endif	// !NEW_PLANETS

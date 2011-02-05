@@ -160,7 +160,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (BOOL)isSky
 {
-	return isSky;
+	return NO;
 }
 
 - (BOOL)isWormhole
@@ -946,7 +946,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	ADD_FLAG_IF_SET(isShip);
 	ADD_FLAG_IF_SET(isStation);
 	ADD_FLAG_IF_SET(isPlayer);
-	ADD_FLAG_IF_SET(isSky);
 	ADD_FLAG_IF_SET(isWormhole);
 	ADD_FLAG_IF_SET(isSubEntity);
 	ADD_FLAG_IF_SET(hasMoved);
@@ -1014,9 +1013,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (BOOL) isVisible
 {
-	if ([self isSky] || [self isStellarObject])  return YES;
-	if (zero_distance > ABSOLUTE_NO_DRAW_DISTANCE2 || (isShip && zero_distance > no_draw_distance))  return NO;
-	return YES;
+	return zero_distance <= ABSOLUTE_NO_DRAW_DISTANCE2;
 }
 
 @end

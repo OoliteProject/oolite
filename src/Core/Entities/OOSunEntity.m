@@ -571,7 +571,13 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL)isSun
+- (BOOL) isSun
+{
+	return YES;
+}
+
+
+- (BOOL) isVisible
 {
 	return YES;
 }

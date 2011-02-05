@@ -91,7 +91,6 @@ enum OOScanClass
 							isShip: 1,
 							isStation: 1,
 							isPlayer: 1,
-							isSky: 1,
 							isWormhole: 1,
 							isSubEntity: 1,
 							hasMoved: 1,

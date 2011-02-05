@@ -116,7 +116,6 @@ MA 02110-1301, USA.
 	[skyDrawable release];
 	
 	[self setStatus:STATUS_EFFECT];
-	isSky = YES;
 	
 	return self;
 }
@@ -166,6 +165,12 @@ MA 02110-1301, USA.
 	PlayerEntity *player = PLAYER;
 	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
 	if (player != nil)  position = player->position;
+}
+
+
+- (BOOL) isSky
+{
+	return YES;
 }
 
 

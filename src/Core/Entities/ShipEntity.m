@@ -1138,6 +1138,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (BOOL) isVisible
+{
+	return zero_distance <= no_draw_distance;
+}
+
+
 - (BOOL) isBeacon
 {
 	return [self beaconCode] != nil;
