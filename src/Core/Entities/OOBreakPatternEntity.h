@@ -1,6 +1,6 @@
 /*
 
-RingEntity.h
+OOBreakPatternEntity.h
 
 Entity implementing tunnel effect for hyperspace and stations.
 
@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #define RING_SPEED		200.0
 
 
-@interface RingEntity : OOSelfDrawingEntity
+@interface OOBreakPatternEntity: OOSelfDrawingEntity
 {
 	double lifetime;
 }

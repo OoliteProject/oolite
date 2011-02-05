@@ -63,7 +63,7 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #import "OOSunEntity.h"
 #import "WormholeEntity.h"
-#import "RingEntity.h"
+#import "OOBreakPatternEntity.h"
 #import "ParticleEntity.h"
 #import "ShipEntityAI.h"
 #import "ProxyPlayerEntity.h"
@@ -2089,11 +2089,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) setUpBreakPattern:(Vector) pos orientation:(Quaternion) q forDocking:(BOOL) forDocking
 {
-	int				i;
-	RingEntity*		ring;
-	id				colorDesc = nil;
-	OOColor*		color = nil;
-	NSString*		breakPatternModelFileName = nil;
+	int						i;
+	OOBreakPatternEntity*	ring;
+	id						colorDesc = nil;
+	OOColor*				color = nil;
+	NSString*				breakPatternModelFileName = nil;
 	
 	[self setViewDirection:VIEW_FORWARD];
 	
@@ -2145,7 +2145,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	for (i = 1; i < 11; i++)
 	{		
-		ring = [[RingEntity alloc] initWithModelFile:breakPatternModelFileName];
+		ring = [[OOBreakPatternEntity alloc] initWithModelFile:breakPatternModelFileName];
 		if (!forDocking) [ring setColors:col1 and:col2];
 		[ring setPositionX:pos.x+v.x*i*50.0 y:pos.y+v.y*i*50.0 z:pos.z+v.z*i*50.0]; // ahead of the player
 		[ring setOrientation:q];

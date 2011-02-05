@@ -298,8 +298,8 @@
 		1A26D0B50BCF9CF80073F257 /* PlayerEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0910BCF9CF70073F257 /* PlayerEntityScriptMethods.h */; };
 		1A26D0B60BCF9CF80073F257 /* SkyEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0920BCF9CF70073F257 /* SkyEntity.m */; };
 		1A26D0B70BCF9CF80073F257 /* SkyEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0930BCF9CF70073F257 /* SkyEntity.h */; };
-		1A26D0B80BCF9CF80073F257 /* RingEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0940BCF9CF70073F257 /* RingEntity.m */; };
-		1A26D0B90BCF9CF80073F257 /* RingEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0950BCF9CF70073F257 /* RingEntity.h */; };
+		1A26D0B80BCF9CF80073F257 /* OOBreakPatternEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0940BCF9CF70073F257 /* OOBreakPatternEntity.m */; };
+		1A26D0B90BCF9CF80073F257 /* OOBreakPatternEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0950BCF9CF70073F257 /* OOBreakPatternEntity.h */; };
 		1A26D0BA0BCF9CF80073F257 /* ParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0960BCF9CF70073F257 /* ParticleEntity.m */; };
 		1A26D0BB0BCF9CF80073F257 /* ParticleEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0970BCF9CF70073F257 /* ParticleEntity.h */; };
 		1A26D0BC0BCF9CF80073F257 /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0980BCF9CF70073F257 /* PlayerEntityContracts.h */; };
@@ -1540,8 +1540,8 @@
 		1A26D0910BCF9CF70073F257 /* PlayerEntityScriptMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityScriptMethods.h; sourceTree = "<group>"; };
 		1A26D0920BCF9CF70073F257 /* SkyEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SkyEntity.m; sourceTree = "<group>"; };
 		1A26D0930BCF9CF70073F257 /* SkyEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SkyEntity.h; sourceTree = "<group>"; };
-		1A26D0940BCF9CF70073F257 /* RingEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RingEntity.m; sourceTree = "<group>"; };
-		1A26D0950BCF9CF70073F257 /* RingEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RingEntity.h; sourceTree = "<group>"; };
+		1A26D0940BCF9CF70073F257 /* OOBreakPatternEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBreakPatternEntity.m; sourceTree = "<group>"; };
+		1A26D0950BCF9CF70073F257 /* OOBreakPatternEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBreakPatternEntity.h; sourceTree = "<group>"; };
 		1A26D0960BCF9CF70073F257 /* ParticleEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ParticleEntity.m; sourceTree = "<group>"; };
 		1A26D0970BCF9CF70073F257 /* ParticleEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleEntity.h; sourceTree = "<group>"; };
 		1A26D0980BCF9CF70073F257 /* PlayerEntityContracts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityContracts.h; sourceTree = "<group>"; };
@@ -2920,8 +2920,8 @@
 				1A26D1090BCFA8D40073F257 /* PlayerEntity */,
 				1A26D0930BCF9CF70073F257 /* SkyEntity.h */,
 				1A26D0920BCF9CF70073F257 /* SkyEntity.m */,
-				1A26D0950BCF9CF70073F257 /* RingEntity.h */,
-				1A26D0940BCF9CF70073F257 /* RingEntity.m */,
+				1A26D0950BCF9CF70073F257 /* OOBreakPatternEntity.h */,
+				1A26D0940BCF9CF70073F257 /* OOBreakPatternEntity.m */,
 				1A26D09A0BCF9CF70073F257 /* PlanetEntity.h */,
 				1A26D0990BCF9CF70073F257 /* PlanetEntity.m */,
 				1A26D0A10BCF9CF70073F257 /* WormholeEntity.h */,
@@ -3306,7 +3306,7 @@
 				1A26D0B40BCF9CF80073F257 /* ShipEntity.h in Headers */,
 				1A26D0B50BCF9CF80073F257 /* PlayerEntityScriptMethods.h in Headers */,
 				1A26D0B70BCF9CF80073F257 /* SkyEntity.h in Headers */,
-				1A26D0B90BCF9CF80073F257 /* RingEntity.h in Headers */,
+				1A26D0B90BCF9CF80073F257 /* OOBreakPatternEntity.h in Headers */,
 				1A26D0BB0BCF9CF80073F257 /* ParticleEntity.h in Headers */,
 				1A26D0BC0BCF9CF80073F257 /* PlayerEntityContracts.h in Headers */,
 				1A26D0BE0BCF9CF80073F257 /* PlanetEntity.h in Headers */,
@@ -3772,7 +3772,7 @@
 				1A26D0B10BCF9CF80073F257 /* PlayerEntity.m in Sources */,
 				1A26D0B30BCF9CF80073F257 /* ShipEntity.m in Sources */,
 				1A26D0B60BCF9CF80073F257 /* SkyEntity.m in Sources */,
-				1A26D0B80BCF9CF80073F257 /* RingEntity.m in Sources */,
+				1A26D0B80BCF9CF80073F257 /* OOBreakPatternEntity.m in Sources */,
 				1A26D0BA0BCF9CF80073F257 /* ParticleEntity.m in Sources */,
 				1A26D0BD0BCF9CF80073F257 /* PlanetEntity.m in Sources */,
 				1A26D0BF0BCF9CF80073F257 /* PlayerEntityContracts.m in Sources */,

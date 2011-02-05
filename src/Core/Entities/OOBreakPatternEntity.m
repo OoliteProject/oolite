@@ -1,6 +1,6 @@
 /*
 
-RingEntity.m
+OOBreakPatternEntity.m
 
 Oolite
 Copyright (C) 2004-2011 Giles C Williams and contributors
@@ -22,13 +22,13 @@ MA 02110-1301, USA.
 
 */
 
-#import "RingEntity.h"
+#import "OOBreakPatternEntity.h"
 
 #import "Universe.h"
 #import "OOMacroOpenGL.h"
 
 
-@implementation RingEntity
+@implementation OOBreakPatternEntity
 
 // the vertex array data...
 typedef struct
