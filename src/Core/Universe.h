@@ -357,10 +357,12 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 - (BOOL) roleIsPirateVictim:(NSString *)role;
 
-- (void) setUpBreakPattern:(Vector) pos orientation:(Quaternion) q forDocking:(BOOL) forDocking;
+- (void) addWitchspaceJumpEffectForShip:(ShipEntity *)ship;
+
+- (void) setUpBreakPattern:(Vector)pos orientation:(Quaternion)q forDocking:(BOOL)forDocking;
 - (void) handleGameOver;
 
-- (void) setupIntroFirstGo: (BOOL) justCobra;
+- (void) setupIntroFirstGo:(BOOL)justCobra;
 - (void) selectIntro2Previous;
 - (void) selectIntro2Next;
 

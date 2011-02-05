@@ -67,6 +67,7 @@ MA 02110-1301, USA.
 #import "ParticleEntity.h"
 #import "ShipEntityAI.h"
 #import "ProxyPlayerEntity.h"
+#import "OORingEffectEntity.h"
 
 #import "OOMusicController.h"
 #import "OOAsyncWorkManager.h"
@@ -2084,6 +2085,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 - (BOOL) roleIsPirateVictim:(NSString *)role
 {
 	return [pirateVictimRoles containsObject:role];
+}
+
+
+- (void) addWitchspaceJumpEffectForShip:(ShipEntity *)ship
+{
+	[self addEntity:[OORingEffectEntity ringFromEntity:ship]];
+	[self addEntity:[OORingEffectEntity shrinkingRingFromEntity:ship]];
 }
 
 

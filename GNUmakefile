@@ -230,7 +230,8 @@ OOLITE_ENTITY_FILES = \
 	OOFlashEffectEntity.m \
 	ShipEntityLoadRestore.m \
 	OOLaserShotEntity.m \
-	OOQuiriumCascadeEntity.m
+	OOQuiriumCascadeEntity.m \
+	OORingEffectEntity.m
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
 	OODrawable.m \

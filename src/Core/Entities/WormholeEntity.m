@@ -200,15 +200,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE / shrink_factor);
 	collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
 
-	// witchspace entry effects here
-	ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
-	[UNIVERSE addEntity:ring];
-	[ring release];
-	ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
-	[ring setSize:NSMakeSize([ring size].width * -2.5 ,[ring size].height * -2.0 )]; // shrinking!
-	[UNIVERSE addEntity:ring];
-	[ring release];
-		
+	[UNIVERSE addWitchspaceJumpEffectForShip:ship];
+	
 	// Should probably pass the wormhole, but they have no JS representation
 	[ship setStatus:STATUS_ENTERING_WITCHSPACE];
 	[ship doScriptEvent:OOJSID("shipWillEnterWormhole")];

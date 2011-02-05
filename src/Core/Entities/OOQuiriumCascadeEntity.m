@@ -122,7 +122,7 @@ MA 02110-1301, USA.
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
-	OOGL(glDisable(GL_CULL_FACE));	// face culling
+	OOGL(glDisable(GL_CULL_FACE));
 	OOGL(glDisable(GL_TEXTURE_2D));
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));

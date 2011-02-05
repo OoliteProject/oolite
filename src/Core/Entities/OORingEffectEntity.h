@@ -1,8 +1,10 @@
 /*
 
-ParticleEntity.h
+OORingEffectEntity.h
 
-Entity subclass implementing a variety of special effects.
+Entity subclass for expanding-ring effect, used for hyperspace entry and for
+some large explosions.
+
 
 Oolite
 Copyright (C) 2004-2011 Giles C Williams and contributors
@@ -24,46 +26,20 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOSelfDrawingEntity.h"
-
-#import "OOTypes.h"
-#import "OOMaths.h"
-
-@class OOTexture, OOColor;
+#import "Entity.h"
 
 
-@interface ParticleEntity: OOSelfDrawingEntity
+@interface OORingEffectEntity: Entity
 {
-	OOTexture		*texture;
-	
-	OOColor			*color;
-	GLfloat			color_fv[4];
-	
-	GLfloat			alpha;
-	
-	OOTimeDelta		time_counter;
-	OOTimeDelta		duration;
-	
-	int				particle_type;
-		
-	NSSize			size;
+@private
+	GLfloat				_timePassed;
+	GLfloat				_innerRadius,
+						_outerRadius,
+						_innerGrowthRate,
+						_outerGrowthRate;
 }
 
-- (id) initFragburstSize:(GLfloat) fragSize fromPosition:(Vector) fragPos;
-- (id) initBurst2Size:(GLfloat) burstSize fromPosition:(Vector) fragPos;
-
-- (void) setColor:(OOColor *) a_color;
-
-- (void) setDuration:(double) dur;
-- (void) setSize:(NSSize) siz;
-- (NSSize) size;
-
-
-@end
-
-
-@interface Entity (OOParticleExtensions)
-
-- (BOOL) isParticle;
++ (id) ringFromEntity:(Entity *)sourceEntity;
++ (id) shrinkingRingFromEntity:(Entity *)sourceEntity;
 
 @end

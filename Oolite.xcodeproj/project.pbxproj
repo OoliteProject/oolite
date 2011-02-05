@@ -419,6 +419,7 @@
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
 		1A49FAE7114C026B0015D5F8 /* cobra3_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */; };
+		1A4DF25D12FDC4880027F43D /* OORingEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */; };
 		1A4FB3350C8DC86800DC8E1F /* OOJSOolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */; };
 		1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */; };
 		1A5218DA0D72EC21000865E9 /* OOSpatialReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5218D80D72EC21000865E9 /* OOSpatialReference.h */; };
@@ -1675,6 +1676,8 @@
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
 		1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra3_redux1.dat; sourceTree = "<group>"; };
+		1A4DF25912FDC4420027F43D /* OORingEffectEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OORingEffectEntity.h; sourceTree = "<group>"; };
+		1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OORingEffectEntity.m; sourceTree = "<group>"; };
 		1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSOolite.h; sourceTree = "<group>"; };
 		1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSOolite.m; sourceTree = "<group>"; };
 		1A5218D80D72EC21000865E9 /* OOSpatialReference.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSpatialReference.h; sourceTree = "<group>"; };
@@ -2780,6 +2783,8 @@
 				1AE7324F12F75D470045513D /* OOLaserShotEntity.m */,
 				1A97D77212FDB6610009D74A /* OOQuiriumCascadeEntity.h */,
 				1A97D77312FDB6610009D74A /* OOQuiriumCascadeEntity.m */,
+				1A4DF25912FDC4420027F43D /* OORingEffectEntity.h */,
+				1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */,
 			);
 			name = Particles;
 			sourceTree = "<group>";
@@ -3924,6 +3929,7 @@
 				1A1280F912ECA4ED00B65D9F /* OOJSFont.m in Sources */,
 				1AE7325112F75D470045513D /* OOLaserShotEntity.m in Sources */,
 				1A97D77F12FDBB9B0009D74A /* OOQuiriumCascadeEntity.m in Sources */,
+				1A4DF25D12FDC4880027F43D /* OORingEffectEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

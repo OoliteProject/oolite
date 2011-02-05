@@ -35,8 +35,6 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOPlanetEntity.h"
 
-#define HYPERRING_DURATION		0.20
-
 
 /*	Entities that can easily be migrated to OOLightParticleEntity:
 	PARTICLE_FRAGBURST?
@@ -47,8 +45,7 @@ MA 02110-1301, USA.
 typedef enum
 {
 	PARTICLE_FRAGBURST			= 250,
-	PARTICLE_BURST2				= 270,
-	PARTICLE_HYPERRING			= 800
+	PARTICLE_BURST2				= 270
 } OOParticleType;
 
 
@@ -59,12 +56,9 @@ typedef enum
 
 @interface ParticleEntity (OOPrivate)
 
-- (void) updateSpark:(double) delta_t;
-- (void) updateHyperring:(double) delta_t;
 - (void) updateFragburst:(double) delta_t;
 - (void) updateBurst2:(double) delta_t;
 
-- (void) drawHyperring;
 - (void) drawFragburst;
 - (void) drawBurst2;
 
@@ -90,22 +84,7 @@ OOINLINE void EndAdditiveBlending(void)
 static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
 
 
-
-static Vector circleVertex[65];		// holds vector coordinates for a unit circle
-
 @implementation ParticleEntity
-
-+ (void)initialize
-{
-	unsigned			i;
-	for (i = 0; i < 65; i++)
-	{
-		circleVertex[i].x = sin(i * M_PI / 32.0);
-		circleVertex[i].y = cos(i * M_PI / 32.0);
-		circleVertex[i].z = 0.0;
-	}
-}
-
 
 - (id) init
 {
@@ -120,38 +99,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 		size = NSMakeSize(32.0,32.0);
 		collision_radius = 32.0;
 	}
-	return self;
-}
-
-
-- (id) initHyperringFromShip:(ShipEntity *) ship
-{
-	if (ship == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-	if ((self = [super init]))
-	{
-		time_counter = 0.0;
-		duration = 2.0;
-		size.width = ship->collision_radius * 0.5;
-		size.height = size.width * 1.25;
-		ring_inner_radius = size.width;
-		ring_outer_radius = size.height;
-		position = ship->position;
-		[self setOrientation:ship->orientation];
-		[self setVelocity:[ship velocity]];
-		
-		[self setStatus:STATUS_EFFECT];
-		scanClass = CLASS_NO_DRAW;
-		
-		particle_type = PARTICLE_HYPERRING;
-		
-		[self setOwner:ship];
-	}
-	
 	return self;
 }
 
@@ -279,7 +226,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 #define CASE(x) case x: type_string = @#x; break;
 		CASE(PARTICLE_FRAGBURST);
 		CASE(PARTICLE_BURST2);
-		CASE(PARTICLE_HYPERRING);
 	}
 	if (type_string == nil)  type_string = [NSString stringWithFormat:@"UNKNOWN (%i)", particle_type];
 	
@@ -370,26 +316,12 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 
 	if (UNIVERSE)
 	{
+		PlayerEntity *player = PLAYER;
+		assert(player != nil);
+		rotMatrix = [player drawRotationMatrix];
+		
 		switch ([self particleType])
 		{
-			case PARTICLE_FRAGBURST:
-			case PARTICLE_BURST2:
-				{
-					PlayerEntity *player = PLAYER;
-					assert(player != nil);
-					rotMatrix = [player drawRotationMatrix];
-				}
-				break;
-			default:
-				break;
-				
-		}
-		switch ([self particleType])
-		{
-			case PARTICLE_HYPERRING:
-				[self updateHyperring:delta_t];
-				break;
-
 			case PARTICLE_FRAGBURST:
 				[self updateFragburst:delta_t];
 				break;
@@ -402,38 +334,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 				OOLog(@"particle.unknown", @"Invalid particle %@, removing.", self);
 				[UNIVERSE removeEntity:self];
 		}
-	}
-}
-
-
-- (void) updateSpark:(double) delta_t
-{
-	[self applyVelocityWithTimeDelta:delta_t];
-
-	alpha = (duration - time_counter) / duration;
-	if (alpha < 0.0)	alpha = 0.0;
-	if (alpha > 1.0)	alpha = 1.0;
-
-	// fade towards transparent red
-	color_fv[0] = alpha * [color redComponent]		+ (1.0 - alpha) * 1.0;
-	color_fv[1] = alpha * [color greenComponent];//	+ (1.0 - alpha) * 0.0;
-	color_fv[2] = alpha * [color blueComponent];//	+ (1.0 - alpha) * 0.0;
-
-	// disappear eventually
-	if (time_counter > duration)
-		[UNIVERSE removeEntity:self];
-}
-
-
-- (void) updateHyperring:(double) delta_t
-{
-	[self applyVelocityWithTimeDelta:delta_t];
-	alpha = (duration - time_counter) / HYPERRING_DURATION;
-	ring_inner_radius += delta_t * size.width * 1.1;
-	ring_outer_radius += delta_t * size.height;
-	if (time_counter > duration)
-	{
-		[UNIVERSE removeEntity:self];
 	}
 }
 
@@ -493,10 +393,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	{
 		switch ([self particleType])
 		{
-			case PARTICLE_HYPERRING:
-				[self drawHyperring];
-				break;
-				
 			case PARTICLE_FRAGBURST:
 				[self drawFragburst];
 				break;
@@ -515,40 +411,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	OOGL(glPopAttrib());
 	
 	CheckOpenGLErrors(@"ParticleEntity after drawing %@", self);
-}
-
-
-- (void) drawHyperring
-{
-	int i;
-	GLfloat aleph = (alpha < 2.0) ? alpha*0.5: 1.0;
-
-	GLfloat ex_em_hi[4]		= {0.6, 0.8, 1.0, aleph};   // pale blue
-	GLfloat ex_em_lo[4]		= {0.2, 0.0, 1.0, 0.0};		// purplish-blue-black
-	
-	OOGL(glPushMatrix());
-	OOGL(glDisable(GL_CULL_FACE));			// face culling
-	OOGL(glDisable(GL_TEXTURE_2D));
-	OOGL(glShadeModel(GL_SMOOTH));
-	
-	BeginAdditiveBlending();
-	
-	// movies:
-	// draw data required ring_inner_radius, ring_outer_radius
-
-	OOGLBEGIN(GL_TRIANGLE_STRIP);
-	for (i = 0; i < 65; i++)
-	{
-		glColor4fv(ex_em_lo);
-		glVertex3f(ring_inner_radius*circleVertex[i].x, ring_inner_radius*circleVertex[i].y, ring_inner_radius*circleVertex[i].z);
-		glColor4fv(ex_em_hi);
-		glVertex3f(ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z);
-	}
-	OOGLEND();
-	
-	OOGL(glPopMatrix());
-	
-	EndAdditiveBlending();
 }
 
 

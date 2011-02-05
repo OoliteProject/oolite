@@ -73,6 +73,7 @@ MA 02110-1301, USA.
 #import "ProxyPlayerEntity.h"
 #import "OOLaserShotEntity.h"
 #import "OOQuiriumCascadeEntity.h"
+#import "OORingEffectEntity.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
@@ -5779,6 +5780,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		// rescale particle subentities
 		if ([se isParticle])
 		{
+			// FIXME: this will thrown an exception if we ever reach it, because particle subentities aren't ParticleEntities.
 			ParticleEntity* pe = (ParticleEntity*)se;
 			NSSize sz = [pe size];
 			sz.width *= factor;
@@ -5838,12 +5840,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if (mass > 500000.0f && randf() < 0.25f) // big!
 			{
 				// draw an expanding ring
-				ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
-				Vector ring_vel = [self velocity];
-				ring_vel.x *= 0.25;	ring_vel.y *= 0.25;	ring_vel.z *= 0.25;	// quarter velocity
-				[ring setVelocity:ring_vel];
+				OORingEffectEntity *ring = [OORingEffectEntity ringFromEntity:self];
+				[ring setVelocity:vector_multiply_scalar([self velocity], 0.25f)];
 				[UNIVERSE addEntity:ring];
-				[ring release];
 			}
 			
 			// several parts to the explosion:
@@ -6156,9 +6155,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 // Exposed to AI
 - (void) becomeEnergyBlast
 {
-	ParticleEntity* blast = [OOQuiriumCascadeEntity quiriumCascadeFromShip:self];
-	[UNIVERSE addEntity:blast];
-	[blast setOwner:[self owner]];
+	[UNIVERSE addEntity:[OOQuiriumCascadeEntity quiriumCascadeFromShip:self]];
 	[UNIVERSE removeEntity:self];
 }
 
@@ -6288,7 +6285,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) becomeLargeExplosion:(double) factor
 {
 	Vector xposition = position;
-	ParticleEntity  *fragment;
+	ParticleEntity  *fragment = nil;
 	OOCargoQuantity n_cargo = (ranrot_rand() % (likely_cargo + 1));
 	OOCargoQuantity cargo_to_go;
 	
@@ -7501,7 +7498,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) fireSubentityLaserShot:(double)range
 {
-	ParticleEntity  *shot;
 	int				direction = VIEW_FORWARD;
 	GLfloat			hit_at_range;
 	
@@ -7521,7 +7517,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
 	[self setShipHitByLaser:victim];
 	
-	shot = [OOLaserShotEntity laserFromShip:self view:direction offset:kZeroVector];
+	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self view:direction offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	
@@ -7563,7 +7559,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (my_target == nil)  return NO;
 	
 	GLfloat			hit_at_range;
-	ParticleEntity	*shot = nil;
 	double			range_limit2 = weaponRange*weaponRange;
 	Vector			r_pos;
 	
@@ -7584,7 +7579,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector  vel = vector_multiply_scalar(v_forward, flightSpeed);
 	
 	// do special effects laser line
-	shot = [OOLaserShotEntity laserFromShip:self view:VIEW_FORWARD offset:kZeroVector];
+	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self view:VIEW_FORWARD offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setPosition: position];
@@ -7631,7 +7626,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) fireLaserShotInDirection:(OOViewID)direction
 {
-	ParticleEntity  *shot;
 	double			range_limit2 = weaponRange*weaponRange;
 	GLfloat			hit_at_range;
 	Vector			vel;
@@ -7658,7 +7652,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset:laserPortOffset rangeFound: &hit_at_range];
 	[self setShipHitByLaser:victim];
 	
-	shot = [OOLaserShotEntity laserFromShip:self view:direction offset:laserPortOffset];
+	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self view:direction offset:laserPortOffset];
 	
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
@@ -8671,9 +8665,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
 			if (energy < amount && energy > 10 && [self countsAsKill])
 			{
-				ParticleEntity *chainReaction = [OOQuiriumCascadeEntity quiriumCascadeFromShip:self];
-				[UNIVERSE addEntity:chainReaction];
-				[chainReaction setOwner:owner];
+				[UNIVERSE addEntity:[OOQuiriumCascadeEntity quiriumCascadeFromShip:self]];
 			}
 			break;
 			//no default thanks, we want the compiler to tell us if we missed a case.
@@ -8999,19 +8991,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) enterWitchspace
 {
-	// witchspace entry effects here
-	ParticleEntity *ring1 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
-	[UNIVERSE addEntity:ring1];
-	[ring1 release];
-	ParticleEntity *ring2 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
-	[ring2 setSize:NSMakeSize([ring2 size].width * -2.5 ,[ring2 size].height * -2.0 )]; // shrinking!
-	[UNIVERSE addEntity:ring2];
-	[ring2 release];
-
+	[UNIVERSE addWitchspaceJumpEffectForShip:self];
 	[shipAI message:@"ENTERED_WITCHSPACE"];
-
-	if (![[UNIVERSE sun] willGoNova])				// if the sun's not going nova
-		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];	// then add a new ship like this one leaving!
+	
+	if (![[UNIVERSE sun] willGoNova])
+	{
+		// if the sun's not going nova, add a new ship like this one leaving.
+		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];
+	}
 	
 	[UNIVERSE removeEntity:self];
 }
@@ -9048,15 +9035,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[UNIVERSE addEntity:self];	// AI and status get initialised here
 	[self setStatus:STATUS_EXITING_WITCHSPACE];
 	[shipAI message:@"EXITED_WITCHSPACE"];
-
-	// witchspace exit effects here
-	ParticleEntity *ring1 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
-	[UNIVERSE addEntity:ring1];
-	[ring1 release];
-	ParticleEntity *ring2 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
-	[ring2 setSize:NSMakeSize([ring2 size].width * -2.5 ,[ring2 size].height * -2.0 )]; // shrinking!
-	[UNIVERSE addEntity:ring2];
-	[ring2 release];
+	
+	[UNIVERSE addWitchspaceJumpEffectForShip:self];
 	[self setStatus:STATUS_IN_FLIGHT];
 }
 
