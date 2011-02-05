@@ -29,9 +29,8 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #import "OOJSPropID.h"
 
-@class	OOColor, StationEntity, ParticleEntity, WormholeEntity,
-		AI, Octree, OOMesh, OOScript, OOJSScript, OORoleSet, OOShipGroup,
-		OOEquipmentType;
+@class	OOColor, StationEntity, WormholeEntity, AI, Octree, OOMesh, OOScript,
+		OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 
 #ifdef OO_BRAIN_AI
 @class OOBrain;

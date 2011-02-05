@@ -200,7 +200,7 @@ OOLITE_ENTITY_FILES = \
 	Entity.m \
 	OOEntityWithDrawable.m \
 	OOSelfDrawingEntity.m \
-	ParticleEntity.m \
+	OOParticleSystem.m \
 	PlanetEntity.m \
 	PlayerEntity.m \
 	PlayerEntityContracts.m \

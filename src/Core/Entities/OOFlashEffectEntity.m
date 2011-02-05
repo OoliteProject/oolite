@@ -66,14 +66,27 @@ static OOTexture *sFlashTexture = nil;
 }
 
 
-- (id) initLaserFlashWithPosition:(Vector)pos color:(OOColor *)color
+- (id) initLaserFlashWithPosition:(Vector)pos velocity:(Vector)vel color:(OOColor *)color
 {
 	if ((self = [self initWithPosition:pos size:kLaserFlashInitialSize color:color duration:kLaserFlashDuration]))
 	{
-		
+		[self setVelocity:vel];
 	}
 	return self;
 }
+
+
++ (id) explosionFlashWithPosition:(Vector)position size:(float)size
+{
+	return [[[self alloc] initExplosionFlashWithPosition:position size:size] autorelease];
+}
+
+
++ (id) laserFlashWithPosition:(Vector)position velocity:(Vector)vel color:(OOColor *)color
+{
+	return [[[self alloc] initLaserFlashWithPosition:position velocity:vel color:color] autorelease];
+}
+
 
 - (id) initWithPosition:(Vector)pos size:(float)size color:(OOColor *)color duration:(float)duration
 {

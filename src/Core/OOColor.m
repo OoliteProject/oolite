@@ -365,6 +365,8 @@ MA 02110-1301, USA.
 
 - (void)getRed:(OOCGFloat *)red green:(OOCGFloat *)green blue:(OOCGFloat *)blue alpha:(OOCGFloat *)alpha
 {
+	NSParameterAssert(red != NULL && green != NULL && blue != NULL && alpha != NULL);
+	
 	*red = rgba[0];
 	*green = rgba[1];
 	*blue = rgba[2];
@@ -374,6 +376,8 @@ MA 02110-1301, USA.
 
 - (void)getGLRed:(GLfloat *)red green:(GLfloat *)green blue:(GLfloat *)blue alpha:(GLfloat *)alpha
 {
+	NSParameterAssert(red != NULL && green != NULL && blue != NULL && alpha != NULL);
+	
 	*red = rgba[0];
 	*green = rgba[1];
 	*blue = rgba[2];
@@ -440,6 +444,8 @@ MA 02110-1301, USA.
 
 - (void)getHue:(OOCGFloat *)hue saturation:(OOCGFloat *)saturation brightness:(OOCGFloat *)brightness alpha:(OOCGFloat *)alpha
 {
+	NSParameterAssert(hue != NULL && saturation != NULL && brightness != NULL && alpha != NULL);
+	
 	*alpha = rgba[3];
 	
 	int maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? 0:2):((rgba[1] > rgba[2])? 1:2);

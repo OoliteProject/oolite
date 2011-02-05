@@ -163,6 +163,7 @@ enum OOScanClass
 - (BOOL) isStellarObject;
 - (BOOL) isSky;
 - (BOOL) isWormhole;
+- (BOOL) isEffect;
 
 - (BOOL) validForAddToUniverse;
 - (void) addToLinkedLists;

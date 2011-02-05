@@ -292,7 +292,7 @@ static OOTexture *sBlobTexture = nil;
 }
 
 
-- (BOOL) isParticle
+- (BOOL) isEffect
 {
 	return YES;
 }
@@ -310,7 +310,7 @@ static OOTexture *sBlobTexture = nil;
 
 @implementation Entity (OOLightParticleEntityExtensions)
 
-- (BOOL) isParticle
+- (BOOL) isEffect
 {
 	return NO;
 }

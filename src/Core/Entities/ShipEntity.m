@@ -58,7 +58,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOPolygonSprite.h"
 
-#import "ParticleEntity.h"
+#import "OOParticleSystem.h"
 #import "StationEntity.h"
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
@@ -5804,7 +5804,6 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 	
 	Vector xposition = position;
-	Entity *fragment = nil;
 	int i;
 	Vector v;
 	Quaternion q;
@@ -5833,26 +5832,16 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			
 			// several parts to the explosion:
 			// 1. fast sparks
-			fragment = [[ParticleEntity alloc] initFragburstSize:collision_radius fromPosition:xposition];
-			[UNIVERSE addEntity:fragment];
-			[fragment release];
-			// 2. slow clouds
-			fragment = [[ParticleEntity alloc] initBurst2Size:collision_radius fromPosition:xposition];
-			[UNIVERSE addEntity:fragment];
-			[fragment release];
+			[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFrom:xposition size:collision_radius]];
+			 // 2. slow clouds
+			 [UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFrom:xposition size:collision_radius]];
 			// 3. flash
-			fragment = [[OOFlashEffectEntity alloc] initExplosionFlashWithPosition:position size:collision_radius];
-			[UNIVERSE addEntity:fragment];
-			[fragment release];
+			[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashWithPosition:position size:collision_radius]];
 
-			BOOL add_more_explosion = YES;
-			if (UNIVERSE)
-			{
-				add_more_explosion &= (UNIVERSE->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES);	// 
-				add_more_explosion &= ([UNIVERSE getTimeDelta] < 0.125);						// FPS > 8
-			}
+			BOOL add_more_explosion = (UNIVERSE->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES) &&
+									  ([UNIVERSE getTimeDelta] < 0.125);	  // FPS > 8
+			 
 			// quick - check if UNIVERSE is nearing limit for entities - if it is don't add to it!
-			//
 			if (add_more_explosion)
 			{
 				// we need to throw out cargo at this point.
@@ -6268,10 +6257,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) becomeLargeExplosion:(double) factor
+- (void) becomeLargeExplosion:(double)factor
 {
 	Vector xposition = position;
-	ParticleEntity  *fragment = nil;
 	OOCargoQuantity n_cargo = (ranrot_rand() % (likely_cargo + 1));
 	OOCargoQuantity cargo_to_go;
 	
@@ -6284,18 +6272,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		float how_many = factor;
 		while (how_many > 0.5f)
 		{
-			fragment = [[ParticleEntity alloc] initFragburstSize: collision_radius fromPosition:xposition];
-			[UNIVERSE addEntity:fragment];
-			[fragment release];
+			[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFrom:xposition size:collision_radius]];
 			how_many -= 1.0f;
 		}
 		// 2. slow clouds
 		how_many = factor;
 		while (how_many > 0.5f)
 		{
-			fragment = [[ParticleEntity alloc] initBurst2Size: collision_radius fromPosition:xposition];
-			[UNIVERSE addEntity:fragment];
-			[fragment release];
+			[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFrom:xposition size:collision_radius]];
 			how_many -= 1.0f;
 		}
 		
@@ -7524,10 +7508,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[shot setCollisionRadius: hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
-			OOFlashEffectEntity *laserFlash = [[OOFlashEffectEntity alloc] initLaserFlashWithPosition:flash_pos color:laser_color];
-			[laserFlash setVelocity:[victim velocity]];
-			[UNIVERSE addEntity:laserFlash];
-			[laserFlash release];
+			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
 		}
 	}
 	
@@ -7589,10 +7570,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[shot setCollisionRadius: hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
-			OOFlashEffectEntity *laserFlash = [[OOFlashEffectEntity alloc] initLaserFlashWithPosition:flash_pos color:laser_color];
-			[laserFlash setVelocity:[victim velocity]];
-			[UNIVERSE addEntity:laserFlash];
-			[laserFlash release];
+			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
 		}
 	}
 	
@@ -7669,10 +7647,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[shot setCollisionRadius:hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
-			OOFlashEffectEntity *laserFlash = [[OOFlashEffectEntity alloc] initLaserFlashWithPosition:flash_pos color:laser_color];
-			[laserFlash setVelocity:[victim velocity]];
-			[UNIVERSE addEntity:laserFlash];
-			[laserFlash release];
+			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
 		}
 	}
 	

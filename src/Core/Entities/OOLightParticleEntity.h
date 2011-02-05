@@ -57,6 +57,6 @@ MA 02110-1301, USA.
 
 @interface Entity (OOLightParticleEntityExtensions)
 
-- (BOOL) isParticle;
+- (BOOL) isEffect;
 
 @end

@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 #import "WormholeEntity.h"
 
-#import "ParticleEntity.h"
 #import "ShipEntity.h"
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
@@ -399,7 +398,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	return ![other isParticle];
+	return ![other isEffect];
 }
 
 

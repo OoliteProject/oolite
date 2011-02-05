@@ -164,7 +164,7 @@ static NSPoint sCircleVerts[kCircleSegments];	// holds vector coordinates for a 
 }
 
 
-- (BOOL) isParticle
+- (BOOL) isEffect
 {
 	return YES;
 }

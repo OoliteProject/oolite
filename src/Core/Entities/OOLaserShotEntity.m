@@ -198,7 +198,7 @@ static const GLfloat kLaserVertices[] =
 }
 
 
-- (BOOL) isParticle
+- (BOOL) isEffect
 {
 	return YES;
 }

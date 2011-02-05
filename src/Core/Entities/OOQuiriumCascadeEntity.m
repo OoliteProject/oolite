@@ -138,7 +138,7 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) isParticle
+- (BOOL) isEffect
 {
 	return YES;
 }

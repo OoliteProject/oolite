@@ -64,7 +64,6 @@ MA 02110-1301, USA.
 #import "OOSunEntity.h"
 #import "WormholeEntity.h"
 #import "OOBreakPatternEntity.h"
-#import "ParticleEntity.h"
 #import "ShipEntityAI.h"
 #import "ProxyPlayerEntity.h"
 #import "OORingEffectEntity.h"
@@ -3499,7 +3498,7 @@ static const OOMatrix	starboard_matrix =
 		return nil;
 	
 	Entity *ent = entity_for_uid[u_id];
-	if ([ent isParticle])	// particles SHOULD NOT HAVE U_IDs!
+	if ([ent isEffect])	// effects SHOULD NOT HAVE U_IDs!
 	{
 		return nil;
 	}
@@ -3675,7 +3674,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			return NO;
 		}
 		
-		if (![entity isParticle])
+		if (![entity isEffect])
 		{
 			unsigned limiter = UNIVERSE_MAX_ENTITIES;
 			while (entity_for_uid[next_universal_id] != nil)	// skip allocated numbers

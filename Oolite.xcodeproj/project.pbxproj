@@ -300,8 +300,6 @@
 		1A26D0B70BCF9CF80073F257 /* SkyEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0930BCF9CF70073F257 /* SkyEntity.h */; };
 		1A26D0B80BCF9CF80073F257 /* OOBreakPatternEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0940BCF9CF70073F257 /* OOBreakPatternEntity.m */; };
 		1A26D0B90BCF9CF80073F257 /* OOBreakPatternEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0950BCF9CF70073F257 /* OOBreakPatternEntity.h */; };
-		1A26D0BA0BCF9CF80073F257 /* ParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0960BCF9CF70073F257 /* ParticleEntity.m */; };
-		1A26D0BB0BCF9CF80073F257 /* ParticleEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0970BCF9CF70073F257 /* ParticleEntity.h */; };
 		1A26D0BC0BCF9CF80073F257 /* PlayerEntityContracts.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0980BCF9CF70073F257 /* PlayerEntityContracts.h */; };
 		1A26D0BD0BCF9CF80073F257 /* PlanetEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0990BCF9CF70073F257 /* PlanetEntity.m */; };
 		1A26D0BE0BCF9CF80073F257 /* PlanetEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D09A0BCF9CF70073F257 /* PlanetEntity.h */; };
@@ -420,6 +418,8 @@
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
 		1A49FAE7114C026B0015D5F8 /* cobra3_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */; };
 		1A4DF25D12FDC4880027F43D /* OORingEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */; };
+		1A4DF35312FDF0410027F43D /* OOParticleSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4DF35112FDF0410027F43D /* OOParticleSystem.h */; };
+		1A4DF35412FDF0410027F43D /* OOParticleSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4DF35212FDF0410027F43D /* OOParticleSystem.m */; };
 		1A4FB3350C8DC86800DC8E1F /* OOJSOolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */; };
 		1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */; };
 		1A5218DA0D72EC21000865E9 /* OOSpatialReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5218D80D72EC21000865E9 /* OOSpatialReference.h */; };
@@ -1544,8 +1544,6 @@
 		1A26D0930BCF9CF70073F257 /* SkyEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SkyEntity.h; sourceTree = "<group>"; };
 		1A26D0940BCF9CF70073F257 /* OOBreakPatternEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBreakPatternEntity.m; sourceTree = "<group>"; };
 		1A26D0950BCF9CF70073F257 /* OOBreakPatternEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBreakPatternEntity.h; sourceTree = "<group>"; };
-		1A26D0960BCF9CF70073F257 /* ParticleEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ParticleEntity.m; sourceTree = "<group>"; };
-		1A26D0970BCF9CF70073F257 /* ParticleEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleEntity.h; sourceTree = "<group>"; };
 		1A26D0980BCF9CF70073F257 /* PlayerEntityContracts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityContracts.h; sourceTree = "<group>"; };
 		1A26D0990BCF9CF70073F257 /* PlanetEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlanetEntity.m; sourceTree = "<group>"; };
 		1A26D09A0BCF9CF70073F257 /* PlanetEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlanetEntity.h; sourceTree = "<group>"; };
@@ -1678,6 +1676,8 @@
 		1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra3_redux1.dat; sourceTree = "<group>"; };
 		1A4DF25912FDC4420027F43D /* OORingEffectEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OORingEffectEntity.h; sourceTree = "<group>"; };
 		1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OORingEffectEntity.m; sourceTree = "<group>"; };
+		1A4DF35112FDF0410027F43D /* OOParticleSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOParticleSystem.h; sourceTree = "<group>"; };
+		1A4DF35212FDF0410027F43D /* OOParticleSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOParticleSystem.m; sourceTree = "<group>"; };
 		1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSOolite.h; sourceTree = "<group>"; };
 		1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSOolite.m; sourceTree = "<group>"; };
 		1A5218D80D72EC21000865E9 /* OOSpatialReference.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSpatialReference.h; sourceTree = "<group>"; };
@@ -2765,8 +2765,8 @@
 		1A817DCA106D44D900AA2F97 /* Particles */ = {
 			isa = PBXGroup;
 			children = (
-				1A26D0970BCF9CF70073F257 /* ParticleEntity.h */,
-				1A26D0960BCF9CF70073F257 /* ParticleEntity.m */,
+				1A4DF35112FDF0410027F43D /* OOParticleSystem.h */,
+				1A4DF35212FDF0410027F43D /* OOParticleSystem.m */,
 				1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */,
 				1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */,
 				1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */,
@@ -3317,7 +3317,6 @@
 				1A26D0B50BCF9CF80073F257 /* PlayerEntityScriptMethods.h in Headers */,
 				1A26D0B70BCF9CF80073F257 /* SkyEntity.h in Headers */,
 				1A26D0B90BCF9CF80073F257 /* OOBreakPatternEntity.h in Headers */,
-				1A26D0BB0BCF9CF80073F257 /* ParticleEntity.h in Headers */,
 				1A26D0BC0BCF9CF80073F257 /* PlayerEntityContracts.h in Headers */,
 				1A26D0BE0BCF9CF80073F257 /* PlanetEntity.h in Headers */,
 				1A26D0C10BCF9CF80073F257 /* Entity.h in Headers */,
@@ -3468,6 +3467,7 @@
 				1A127F4312EC6A4400B65D9F /* OOTextureSprite.h in Headers */,
 				1A1280F812ECA4ED00B65D9F /* OOJSFont.h in Headers */,
 				1AE7325012F75D470045513D /* OOLaserShotEntity.h in Headers */,
+				1A4DF35312FDF0410027F43D /* OOParticleSystem.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3783,7 +3783,6 @@
 				1A26D0B30BCF9CF80073F257 /* ShipEntity.m in Sources */,
 				1A26D0B60BCF9CF80073F257 /* SkyEntity.m in Sources */,
 				1A26D0B80BCF9CF80073F257 /* OOBreakPatternEntity.m in Sources */,
-				1A26D0BA0BCF9CF80073F257 /* ParticleEntity.m in Sources */,
 				1A26D0BD0BCF9CF80073F257 /* PlanetEntity.m in Sources */,
 				1A26D0BF0BCF9CF80073F257 /* PlayerEntityContracts.m in Sources */,
 				1A26D0C00BCF9CF80073F257 /* PlayerEntityControls.m in Sources */,
@@ -3930,6 +3929,7 @@
 				1AE7325112F75D470045513D /* OOLaserShotEntity.m in Sources */,
 				1A97D77F12FDBB9B0009D74A /* OOQuiriumCascadeEntity.m in Sources */,
 				1A4DF25D12FDC4880027F43D /* OORingEffectEntity.m in Sources */,
+				1A4DF35412FDF0410027F43D /* OOParticleSystem.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -74,7 +74,7 @@ MA 02110-1301, USA.
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	return ([other rootShipEntity] != [self owner]) && ![other isParticle];
+	return ([other rootShipEntity] != [self owner]) && ![other isEffect];
 }
 
 

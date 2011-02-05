@@ -169,6 +169,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (BOOL) isEffect
+{
+	return NO;
+}
+
+
 - (BOOL) validForAddToUniverse
 {
 	return YES;
