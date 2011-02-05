@@ -459,7 +459,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	if (translucent)
 	{
 		// for now, a simple copy of the energy bomb draw routine
-		double srzd = sqrt(zero_distance);
+		float srzd = sqrtf(zero_distance);
 		
 		GLfloat	color_fv[4] = { 0.0, 0.0, 1.0, 0.25};
 		

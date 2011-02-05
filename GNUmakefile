@@ -229,7 +229,8 @@ OOLITE_ENTITY_FILES = \
 	OOPlasmaBurstEntity.m \
 	OOFlashEffectEntity.m \
 	ShipEntityLoadRestore.m \
-	OOLaserShotEntity.m
+	OOLaserShotEntity.m \
+	OOQuiriumCascadeEntity.m
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
 	OODrawable.m \

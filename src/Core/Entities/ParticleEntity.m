@@ -48,10 +48,6 @@ typedef enum
 {
 	PARTICLE_FRAGBURST			= 250,
 	PARTICLE_BURST2				= 270,
-	PARTICLE_ENERGY_MINE		= 500,
-#if SUPPORT_BILLBOARD
-	PARTICLE_BILLBOARD			= 700,
-#endif
 	PARTICLE_HYPERRING			= 800
 } OOParticleType;
 
@@ -63,19 +59,14 @@ typedef enum
 
 @interface ParticleEntity (OOPrivate)
 
-- (void) updateEnergyMine:(double) delta_t;
 - (void) updateSpark:(double) delta_t;
 - (void) updateHyperring:(double) delta_t;
 - (void) updateFragburst:(double) delta_t;
 - (void) updateBurst2:(double) delta_t;
 
 - (void) drawHyperring;
-- (void) drawEnergyMine;
 - (void) drawFragburst;
 - (void) drawBurst2;
-#if SUPPORT_BILLBOARD
-- (void) drawBillboard;
-#endif
 
 - (void) setTexture:(NSString *) filename;
 - (void) setParticleType:(OOParticleType) p_type;
@@ -84,19 +75,16 @@ typedef enum
 @end
 
 
-OOINLINE void BeginAdditiveBlending(BOOL withGL_ONE)
+OOINLINE void BeginAdditiveBlending(void)
 {
 	OOGL(glEnable(GL_BLEND));
-	OOGL(glBlendFunc(GL_SRC_ALPHA, withGL_ONE ? GL_ONE : GL_ONE_MINUS_SRC_ALPHA));
+	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 }
 
 
 OOINLINE void EndAdditiveBlending(void)
 {
 }
-
-#define GL_ONE_YES	YES
-#define GL_ONE_NO	NO
 
 
 static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
@@ -132,39 +120,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 		size = NSMakeSize(32.0,32.0);
 		collision_radius = 32.0;
 	}
-	return self;
-}
-
-
-- (id) initEnergyMineFromShip:(ShipEntity *) ship
-{
-	if (ship == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-	if ((self = [super init]))
-	{
-		time_counter = 0.0;
-		duration = 20.0;
-		position = ship->position;
-		
-		[self setVelocity: kZeroVector];
-		
-		[self setColor:[OOColor blueColor]];
-		
-		alpha = 0.5;
-		collision_radius = 0;
-		
-		[self setStatus:STATUS_EFFECT];
-		scanClass = CLASS_MINE;
-		
-		particle_type = PARTICLE_ENERGY_MINE;
-		
-		[self setOwner:[ship owner]];
-	}
-	
 	return self;
 }
 
@@ -306,44 +261,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 }
 
 
-#if SUPPORT_BILLBOARD
-// used for background billboards
-- (id) initBillboard:(NSSize) billSize withTexture:(NSString*) textureFile
-{
-	if ((self = [super init]))
-	{
-		basefile = @"Particle";
-		[self setTexture:textureFile];
-		if (texture == nil)
-		{
-			[self release];
-			return nil;
-		}
-		
-		size = billSize;
-		
-		time_counter = 0.0;
-		duration = 0.0;	//infinite
-		
-		[self setColor:[OOColor whiteColor]];
-		color_fv[3] = 1.0;
-		
-		[self setStatus:STATUS_EFFECT];
-		scanClass = CLASS_NO_DRAW;
-		
-		particle_type = PARTICLE_BILLBOARD;
-		
-		collision_radius = 0;
-		energy = 0;
-		
-		[self setVelocity: kZeroVector];
-		[self setPosition: make_vector(0.0f, 0.0f, 640.0f)];
-	}
-	return self;
-}
-#endif
-
-
 - (void) dealloc
 {
 	[texture release];
@@ -362,10 +279,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 #define CASE(x) case x: type_string = @#x; break;
 		CASE(PARTICLE_FRAGBURST);
 		CASE(PARTICLE_BURST2);
-		CASE(PARTICLE_ENERGY_MINE);
-#if SUPPORT_BILLBOARD
-		CASE(PARTICLE_BILLBOARD);
-#endif
 		CASE(PARTICLE_HYPERRING);
 	}
 	if (type_string == nil)  type_string = [NSString stringWithFormat:@"UNKNOWN (%i)", particle_type];
@@ -379,20 +292,13 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (BOOL) canCollide
 {
-	if (particle_type == PARTICLE_ENERGY_MINE)
-	{
-		return time_counter > 0.05;
-	}
 	return NO;
 }
 
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	if (particle_type == PARTICLE_ENERGY_MINE)
-		return YES;
-	if (other == [self owner])
-		return NO;
+	if (other == [self owner])  return NO;
 	return ![other isParticle];
 }
 
@@ -483,10 +389,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_HYPERRING:
 				[self updateHyperring:delta_t];
 				break;
-				
-			case PARTICLE_ENERGY_MINE:
-				[self updateEnergyMine:delta_t];
-				break;
 
 			case PARTICLE_FRAGBURST:
 				[self updateFragburst:delta_t];
@@ -495,65 +397,12 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_BURST2:
 				[self updateBurst2:delta_t];
 				break;
-				
-#if SUPPORT_BILLBOARD
-			case PARTICLE_BILLBOARD:
-				break;
-#endif
 			
 			default:
 				OOLog(@"particle.unknown", @"Invalid particle %@, removing.", self);
 				[UNIVERSE removeEntity:self];
 		}
 	}
-
-}
-
-
-- (void) updateEnergyMine:(double) delta_t
-{
-	// new billboard routine (working at last!)
-	PlayerEntity	*player = PLAYER;
-	assert(player != nil);
-	rotMatrix = OOMatrixForBillboard(position, [player position]);
-	
-	GLfloat tf = time_counter / duration;
-	GLfloat stf = tf * tf;
-	GLfloat expansion_speed = 0.0;
-	if (time_counter > 0)
-		expansion_speed = 240 + 10 / (tf * tf);
-	if (expansion_speed > 1000.0)
-		expansion_speed = 1000.0;
-	
-	velocity.z = expansion_speed;
-	
-	collision_radius += delta_t * expansion_speed;		// expand
-//	energy = 10000 - 9000 * tf;	// 10000 -> 1000
-	energy = delta_t * (100000 - 90000 * tf);	// adjusted to take into account delta_t
-
-	alpha = 0.5 * ((0.025 / tf) + 1.0 - stf);
-	if (alpha > 1.0)	alpha = 1.0;
-	color_fv[0] = 1.0 - 5.0 * tf;
-	if (color_fv[0] > 1.0)	color_fv[0] = 1.0;
-	if (color_fv[0] < 0.0)	color_fv[0] = 0.25 * tf * randf();
-	color_fv[1] = 1.0 - 5.0 * tf;
-	if (color_fv[1] > 1.0)	color_fv[1] = 1.0;
-	if (color_fv[1] < 0.0)	color_fv[1] = 0.0;
-	
-	// manageCollisions
-	if ([collidingEntities count] > 0)
-	{
-		unsigned i;
-		for (i = 0; i < [collidingEntities count]; i++)
-		{
-			Entity *	e = (Entity *)[collidingEntities objectAtIndex:i];
-			[e takeEnergyDamage:energy from:self becauseOf:[self owner]];
-		}
-	}
-	
-	// expire after ttl
-	if (time_counter > duration)	// until the timer runs out!
-		[UNIVERSE removeEntity:self];
 }
 
 
@@ -648,10 +497,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 				[self drawHyperring];
 				break;
 				
-			case PARTICLE_ENERGY_MINE:
-				[self drawEnergyMine];
-				break;
-				
 			case PARTICLE_FRAGBURST:
 				[self drawFragburst];
 				break;
@@ -659,12 +504,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 			case PARTICLE_BURST2:
 				[self drawBurst2];
 				break;
-				
-#if SUPPORT_BILLBOARD
-			case PARTICLE_BILLBOARD:
-				[self drawBillboard];
-				break;
-#endif
 				
 			default:
 				OOLog(@"particle.unknown", @"Invalid particle %@, removing.", self);
@@ -692,7 +531,7 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	OOGL(glDisable(GL_TEXTURE_2D));
 	OOGL(glShadeModel(GL_SMOOTH));
 	
-	BeginAdditiveBlending(GL_ONE_YES);
+	BeginAdditiveBlending();
 	
 	// movies:
 	// draw data required ring_inner_radius, ring_outer_radius
@@ -713,35 +552,13 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 }
 
 
-- (void) drawEnergyMine
-{
-	double szd = sqrt(zero_distance);
-
-	color_fv[3]		= alpha;  // set alpha
-
-	OOGL(glDisable(GL_CULL_FACE));	// face culling
-	OOGL(glDisable(GL_TEXTURE_2D));
-	
-	BeginAdditiveBlending(GL_ONE_YES);
-
-	int step = 4;
-
-	OOGL(glColor4fv(color_fv));
-	OOGLBEGIN(GL_TRIANGLE_FAN);
-		GLDrawBallBillboard(collision_radius, step, szd);
-	OOGLEND();
-	
-	EndAdditiveBlending();
-}
-
-
 - (void) drawFragburst
 {
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[texture apply];
 	OOGL(glPushMatrix());
 	
-	BeginAdditiveBlending(GL_ONE_YES);
+	BeginAdditiveBlending();
 
 	OOGLBEGIN(GL_QUADS);
 	OOMeshVertexCount i;
@@ -764,7 +581,7 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	[texture apply];
 	OOGL(glPushMatrix());
 	
-	BeginAdditiveBlending(GL_ONE_YES);
+	BeginAdditiveBlending();
 
 	OOGLBEGIN(GL_QUADS);
 	OOMeshVertexCount i;
@@ -779,23 +596,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	OOGL(glPopMatrix());
 }
-
-
-#if SUPPORT_BILLBOARD
-- (void) drawBillboard
-{	
-	OOGL(glColor4fv(color_fv));
-	OOGL(glEnable(GL_TEXTURE_2D));
-	[texture apply];
-	OOGL(glPushMatrix());
-
-	OOGLBEGIN(GL_QUADS);
-		DrawQuadForView(position.x, position.y, position.z, size.width, size.height);
-	OOGLEND();
-
-	OOGL(glPopMatrix());
-}
-#endif
 
 
 static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)
@@ -854,12 +654,6 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 }
 
 
-- (BOOL) isCascadeWeapon
-{
-	return particle_type == PARTICLE_ENERGY_MINE;
-}
-
-
 #ifndef NDEBUG
 - (NSSet *) allTextures
 {
@@ -880,12 +674,6 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 @implementation Entity (OOParticleExtensions)
 
 - (BOOL) isParticle
-{
-	return NO;
-}
-
-
-- (BOOL) isCascadeWeapon
 {
 	return NO;
 }

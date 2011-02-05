@@ -72,6 +72,7 @@ MA 02110-1301, USA.
 #import "OOFlashEffectEntity.h"
 #import "ProxyPlayerEntity.h"
 #import "OOLaserShotEntity.h"
+#import "OOQuiriumCascadeEntity.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
@@ -6149,10 +6150,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 // Exposed to AI
 - (void) becomeEnergyBlast
 {
-	ParticleEntity* blast = [[ParticleEntity alloc] initEnergyMineFromShip:self];
+	ParticleEntity* blast = [OOQuiriumCascadeEntity quiriumCascadeFromShip:self];
 	[UNIVERSE addEntity:blast];
-	[blast setOwner: [self owner]];
-	[blast release];
+	[blast setOwner:[self owner]];
 	[UNIVERSE removeEntity:self];
 }
 
@@ -8665,10 +8665,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
 			if (energy < amount && energy > 10 && [self countsAsKill])
 			{
-				ParticleEntity *chainReaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
+				ParticleEntity *chainReaction = [OOQuiriumCascadeEntity quiriumCascadeFromShip:self];
 				[UNIVERSE addEntity:chainReaction];
 				[chainReaction setOwner:owner];
-				[chainReaction release];
 			}
 			break;
 			//no default thanks, we want the compiler to tell us if we missed a case.

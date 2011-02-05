@@ -31,11 +31,12 @@ MA 02110-1301, USA.
 #import "PlayerEntitySound.h"
 
 #import "StationEntity.h"
-#import "ParticleEntity.h"
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
 #import "WormholeEntity.h"
 #import "ProxyPlayerEntity.h"
+#import "OOQuiriumCascadeEntity.h"
+#import "OOMesh.h"
 
 #import "OOMaths.h"
 #import "GameController.h"

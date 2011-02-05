@@ -43,7 +43,6 @@ MA 02110-1301, USA.
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
 #import "OOPlanetEntity.h"
-#import "ParticleEntity.h"
 #import "StationEntity.h"
 #import "Comparison.h"
 #import "OOLegacyScriptWhitelist.h"
@@ -2658,43 +2657,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		return YES;
 	}
-
-	//
-	// Add billboard model:
-	//
-	if ([i_key isEqualToString:@"billboard"])
-	{
-#if SUPPORT_BILLBOARD
-		if ([i_info count] != 6)	// must be billboard_imagefile_x_y_w_h
-			return NO;				//		   0........ 1........ 2 3 4 5
-
-		NSString* texturefile = (NSString*)[i_info objectAtIndex:1];
-		NSSize billSize = NSMakeSize([[i_info objectAtIndex:4] floatValue], [[i_info objectAtIndex:5] floatValue]);
-		Vector	model_p0;
-		model_p0.x = [[i_info objectAtIndex:2] floatValue] + off.x;
-		model_p0.y = [[i_info objectAtIndex:3] floatValue] + off.y;
-		model_p0.z = off.z;
-
-		ParticleEntity* billboard = [[ParticleEntity alloc] initBillboard:billSize withTexture:texturefile];
-		if (!billboard)
-			return NO;
-		
-		[billboard setPosition:vector_add([billboard position], model_p0)];
-			
-		OOLog(kOOLogDebugProcessSceneStringAddBillboard, @"::::: adding billboard:'%@' to scene.", billboard);
-		
-		[UNIVERSE addEntity: billboard];
-		[UNIVERSE setMainLightPosition:(Vector){ DEMO_LIGHT_POSITION }]; // set light origine
-		[billboard setStatus: STATUS_COCKPIT_DISPLAY];
-
-		[billboard release];
-		return YES;
-#else
-		OOLogERR(@"scene.billboard", @"Scene billboards are disabled because Ahruman thought no-one was using them.");
-#endif
-	}
-	//
-	// fall through..
+	
 	return NO;
 }
 

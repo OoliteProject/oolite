@@ -33,8 +33,8 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOPlanetEntity.h"
-#import "ParticleEntity.h"
 #import "OOShipGroup.h"
+#import "OOQuiriumCascadeEntity.h"
 
 #import "AI.h"
 #import "OOCharacter.h"
@@ -1463,7 +1463,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		//...get angry
 
-		BOOL isEnergyMine = (ent && [ent isParticle] && [ent scanClass] == CLASS_MINE);
+		BOOL isEnergyMine = [ent isCascadeWeapon];
 		unsigned b=isEnergyMine ? 96 : 64;
 		if ([(ShipEntity*)other bounty] >= b)	//already a hardened criminal?
 		{

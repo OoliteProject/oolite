@@ -553,6 +553,7 @@
 		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
 		1A95C040118A450E002EE302 /* OOConvertCubeMapToLatLong.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A95C03E118A450E002EE302 /* OOConvertCubeMapToLatLong.h */; };
 		1A95C041118A450E002EE302 /* OOConvertCubeMapToLatLong.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A95C03F118A450E002EE302 /* OOConvertCubeMapToLatLong.m */; settings = {COMPILER_FLAGS = "-O3 -ftree-vectorize"; }; };
+		1A97D77F12FDBB9B0009D74A /* OOQuiriumCascadeEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A97D77312FDB6610009D74A /* OOQuiriumCascadeEntity.m */; };
 		1AA7FCAB10C2B9BA0058FBED /* OOPlanetDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */; };
 		1AA7FCAC10C2B9BA0058FBED /* OOPlanetDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */; };
 		1AA7FCAF10C2BA3B0058FBED /* OOPlanetData.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */; };
@@ -1820,6 +1821,8 @@
 		1A97302012E60F9B001F2406 /* OOGUIScreenID.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOGUIScreenID.tbl; sourceTree = "<group>"; };
 		1A97305C12E61427001F2406 /* OOGalacticHyperspaceBehaviour.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOGalacticHyperspaceBehaviour.tbl; sourceTree = "<group>"; };
 		1A97D68512FD83BD0009D74A /* OOShipDamageType.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOShipDamageType.tbl; sourceTree = "<group>"; };
+		1A97D77212FDB6610009D74A /* OOQuiriumCascadeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOQuiriumCascadeEntity.h; sourceTree = "<group>"; };
+		1A97D77312FDB6610009D74A /* OOQuiriumCascadeEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOQuiriumCascadeEntity.m; sourceTree = "<group>"; };
 		1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetDrawable.h; sourceTree = "<group>"; };
 		1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetDrawable.m; sourceTree = "<group>"; };
 		1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OOPlanetData.c; sourceTree = "<group>"; };
@@ -2775,6 +2778,8 @@
 				1A817DC2106D443B00AA2F97 /* OOFlashEffectEntity.m */,
 				1AE7324E12F75D470045513D /* OOLaserShotEntity.h */,
 				1AE7324F12F75D470045513D /* OOLaserShotEntity.m */,
+				1A97D77212FDB6610009D74A /* OOQuiriumCascadeEntity.h */,
+				1A97D77312FDB6610009D74A /* OOQuiriumCascadeEntity.m */,
 			);
 			name = Particles;
 			sourceTree = "<group>";
@@ -3918,6 +3923,7 @@
 				1A127F4412EC6A4400B65D9F /* OOTextureSprite.m in Sources */,
 				1A1280F912ECA4ED00B65D9F /* OOJSFont.m in Sources */,
 				1AE7325112F75D470045513D /* OOLaserShotEntity.m in Sources */,
+				1A97D77F12FDBB9B0009D74A /* OOQuiriumCascadeEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

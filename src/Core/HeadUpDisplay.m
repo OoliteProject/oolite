@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
 #import "StationEntity.h"
+#import "OOQuiriumCascadeEntity.h"
 #import "Universe.h"
 #import "OOTrumble.h"
 #import "OOColor.h"
@@ -855,7 +856,7 @@ static BOOL hostiles;
 				{
 					DrawSpecialOval(x1 - 0.5, y2 + 1.5, z1, NSMakeSize(16.0 * (1.0 - ms_blip), 8.0 * (1.0 - ms_blip)), 30, col);
 				}
-				if ([drawthing isParticle] && (drawClass == CLASS_MINE))
+				if ([drawthing isCascadeWeapon])
 				{
 					double r1 = 2.5 + drawthing->collision_radius * upscale;
 					double l2 = r1*r1 - relativePosition.y*relativePosition.y;
