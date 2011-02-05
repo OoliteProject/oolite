@@ -7800,7 +7800,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// custom launching position
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
 	
-	if (start.x == 0.0f && start.y == 0.0f && start.z <0.0f)
+	if (start.x == 0.0f && start.y == 0.0f && start.z <= 0.0f) // The kZeroVector as start is illegal also.
 	{
 		OOLog(@"ship.missileLaunch.invalidPosition", @"***** ERROR: The missile_launch_position defines a position %@ behind the %@. In future versions such missiles may explode on launch because they have to travel through the ship.", VectorDescription(start), self);
 		start.x = 0.0f;
