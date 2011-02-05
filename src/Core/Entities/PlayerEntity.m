@@ -2056,9 +2056,8 @@ static bool minShieldLevelPercentageInitialised = false;
 
 	// update subentities
 	UPDATE_STAGE(@"updating subentities");
-	NSEnumerator	*subEnum = nil;
-	ShipEntity		*se = nil;
-	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
+	ShipEntity *se = nil;
+	foreach (se, [self subEntities])
 	{
 		[se update:delta_t];
 	}
@@ -4467,8 +4466,6 @@ static bool minShieldLevelPercentageInitialised = false;
 		[[UNIVERSE gameController] setPlayerFileToLoad: save_path];	// make sure we load the correct game
 	}
 	
-	[UNIVERSE setBlockJSPlayerShipProps:YES];	// Treat JS player as stale entity.
-	
 	energy = 0.0f;
 	afterburner_engaged = NO;
 	[UNIVERSE setDisplayText:NO];
@@ -4486,7 +4483,9 @@ static bool minShieldLevelPercentageInitialised = false;
 	// Let event scripts know the player died.
 	if (whom == nil)  whom = (id)[NSNull null];
 	[self doScriptEvent:OOJSID("shipDied") withArguments:[NSArray arrayWithObjects:whom, why, nil]];
-	[self setStatus:STATUS_DEAD]; // set dead again in case a script managed to revive the player.
+	
+	[UNIVERSE setBlockJSPlayerShipProps:YES];	// Treat JS player as stale entity.
+	[self setStatus:STATUS_DEAD];		// set dead again in case a script managed to revive the player.
 	[self removeAllEquipment];			// No scooping / equipment damage when dead.
 	[self loseTargetStatus];
 	[self showGameOver];

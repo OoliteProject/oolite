@@ -6257,13 +6257,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[self setStatus:STATUS_DEAD];
 	
 	NS_DURING
-		//scripting
-		if (script != nil)
-		{
-			[PLAYER setScriptTarget:self];
-			[self doScriptEvent:OOJSID("shipDied")];	// FIXME: params missing
-		}
-		
 		// two parts to the explosion:
 		// 1. fast sparks
 		float how_many = factor;
