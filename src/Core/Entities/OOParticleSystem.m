@@ -29,7 +29,8 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 
 
-static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
+//	Testing toy: cause particle systems to stop after half a second.
+#define FREEZE_PARTICLES	0
 
 
 @implementation OOParticleSystem
@@ -117,14 +118,26 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 	[super update:delta_t];
 	_timePassed += delta_t;
 	
-	/*	Rotate entire system towards camera. This looks odd if the player can
-		move perpendicularly and observer the particles, but in short
-		explosions it's hard to notice.
-	*/
-	rotMatrix = [PLAYER drawRotationMatrix];
+	unsigned	i, count = _count;
+	Vector		*particlePosition = _particlePosition;
+	Vector		*particleVelocity = _particleVelocity;
+	
+	for (i = 0; i < count; i++)
+	{
+		particlePosition[i] = vector_add(particlePosition[i], vector_multiply_scalar(particleVelocity[i], delta_t));
+	}
 	
 	// disappear eventually.
 	if (_timePassed > _duration)  [UNIVERSE removeEntity:self];
+}
+
+
+OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
+{
+	glTexCoord2f(0.0, 1.0);	glVertex3f(x-sz, y-sz, z);
+	glTexCoord2f(1.0, 1.0);	glVertex3f(x+sz, y-sz, z);
+	glTexCoord2f(1.0, 0.0);	glVertex3f(x+sz, y+sz, z);
+	glTexCoord2f(0.0, 0.0);	glVertex3f(x-sz, y+sz, z);
 }
 
 
@@ -134,76 +147,54 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
-	if (translucent)
+	OOGL(glEnable(GL_TEXTURE_2D));
+	[_texture apply];
+	OOGL(glEnable(GL_BLEND));
+	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+	
+	OOMatrix bbMatrix = OOMatrixForBillboard(position, [PLAYER position]);
+	// FIXME: use GL point sprites.
+	
+	unsigned	i, count = _count;
+	Vector		*particlePosition = _particlePosition;
+	GLfloat		(*particleColor)[4] = _particleColor;
+	GLfloat		*particleSize = _particleSize;
+	
+	if ([UNIVERSE reducedDetail])
 	{
-		OOGL(glEnable(GL_TEXTURE_2D));
-		[_texture apply];
-		OOGL(glEnable(GL_BLEND));
-		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+		OOGL(glPushMatrix());
+		GLMultOOMatrix(bbMatrix);
 		
-		// FIXME: use GL point sprites.
 		OOGLBEGIN(GL_QUADS);
-		for (unsigned i = 0; i < _count; i++)
+		for (i = 0; i < count; i++)
 		{
-			glColor4fv(_particleColor[i]);
-			DrawQuadForView(_particlePosition[i].x, _particlePosition[i].y, _particlePosition[i].z, _particleSize[i], _particleSize[i]);
+			glColor4fv(particleColor[i]);
+			DrawQuadForView(particlePosition[i].x, particlePosition[i].y, particlePosition[i].z, particleSize[i]);
 		}
 		OOGLEND();
+		
+		OOGL(glPopMatrix());
+	}
+	else
+	{
+		for (i = 0; i < count; i++)
+		{
+			OOGL(glPushMatrix());
+			GLTranslateOOVector(particlePosition[i]);
+			GLMultOOMatrix(bbMatrix);
+			
+			glColor4fv(particleColor[i]);
+			OOGLBEGIN(GL_QUADS);
+				DrawQuadForView(0, 0, 0, particleSize[i]);
+			OOGLEND();
+			
+			OOGL(glPopMatrix());
+		}
 	}
 	
 	OOGL(glPopAttrib());
 	
 	CheckOpenGLErrors(@"OOParticleSystem after drawing %@", self);
-}
-
-
-static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)
-{
-	int viewdir = [UNIVERSE viewDirection];
-
-	switch (viewdir)
-	{
-		case VIEW_FORWARD:
-			glTexCoord2f(0.0, 1.0);	glVertex3f(x-xx, y-yy, z);
-			glTexCoord2f(1.0, 1.0);	glVertex3f(x+xx, y-yy, z);
-			glTexCoord2f(1.0, 0.0);	glVertex3f(x+xx, y+yy, z);
-			glTexCoord2f(0.0, 0.0);	glVertex3f(x-xx, y+yy, z);
-		case	VIEW_AFT:
-			glTexCoord2f(0.0, 1.0);	glVertex3f(x+xx, y-yy, z);
-			glTexCoord2f(1.0, 1.0);	glVertex3f(x-xx, y-yy, z);
-			glTexCoord2f(1.0, 0.0);	glVertex3f(x-xx, y+yy, z);
-			glTexCoord2f(0.0, 0.0);	glVertex3f(x+xx, y+yy, z);
-			break;
-		case	VIEW_STARBOARD:
-			glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z+xx);
-			glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z-xx);
-			glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z-xx);
-			glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z+xx);
-			break;
-		case	VIEW_PORT:
-			glTexCoord2f(0.0, 1.0);	glVertex3f(x, y-yy, z-xx);
-			glTexCoord2f(1.0, 1.0);	glVertex3f(x, y-yy, z+xx);
-			glTexCoord2f(1.0, 0.0);	glVertex3f(x, y+yy, z+xx);
-			glTexCoord2f(0.0, 0.0);	glVertex3f(x, y+yy, z-xx);
-			break;
-		case	VIEW_CUSTOM:
-		{
-			PlayerEntity *player = PLAYER;
-			Vector vi = [player customViewRightVector];		vi.x *= xx;	vi.y *= xx;	vi.z *= xx;
-			Vector vj = [player customViewUpVector];		vj.x *= yy;	vj.y *= yy;	vj.z *= yy;
-			glTexCoord2f(0.0, 1.0);	glVertex3f(x - vi.x - vj.x, y - vi.y - vj.y, z - vi.z - vj.z);
-			glTexCoord2f(1.0, 1.0);	glVertex3f(x + vi.x - vj.x, y + vi.y - vj.y, z + vi.z - vj.z);
-			glTexCoord2f(1.0, 0.0);	glVertex3f(x + vi.x + vj.x, y + vi.y + vj.y, z + vi.z + vj.z);
-			glTexCoord2f(0.0, 0.0);	glVertex3f(x - vi.x + vj.x, y - vi.y + vj.y, z - vi.z + vj.z);
-			break;
-		}
-		default:
-			glTexCoord2f(0.0, 1.0);	glVertex3f(x-xx, y-yy, z);
-			glTexCoord2f(1.0, 1.0);	glVertex3f(x+xx, y-yy, z);
-			glTexCoord2f(1.0, 0.0);	glVertex3f(x+xx, y+yy, z);
-			glTexCoord2f(0.0, 0.0);	glVertex3f(x-xx, y+yy, z);
-			break;
-	}
 }
 
 
@@ -269,14 +260,20 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 
 - (void) update:(OOTimeDelta) delta_t
 {
+#if FREEZE_PARTICLES
+	if (_timePassed + delta_t > 0.5) delta_t = 0.5 - _timePassed;
+#endif
+	
 	[super update:delta_t];
 	
-	for (unsigned i = 0; i < _count; i++)
+	unsigned	i, count = _count;
+	GLfloat		(*particleColor)[4] = _particleColor;
+	GLfloat		timePassed = _timePassed;
+	
+	for (i = 0; i < count; i++)
 	{
 		GLfloat du = 0.5f + (1.0f/32.0f) * (32 - i);
-		_particleColor[i][3] = OOClamp_0_1_f(1.0f - _timePassed / du);
-		
-		_particlePosition[i] = vector_add(_particlePosition[i], vector_multiply_scalar(_particleVelocity[i], delta_t));
+		particleColor[i][3] = OOClamp_0_1_f(1.0f - timePassed / du);
 	}
 }
 
@@ -317,18 +314,27 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 
 - (void) update:(double)delta_t
 {
+#if FREEZE_PARTICLES
+	if (_timePassed + delta_t > 0.5) delta_t = 0.5 - _timePassed;
+#endif
+	
 	[super update:delta_t];
 	
-	GLfloat size = (1.0f + _timePassed) * _baseSize;
-	GLfloat di = 1.0f / (_count - 1);
+	unsigned	i, count = _count;
+	GLfloat		(*particleColor)[4] = _particleColor;
+	GLfloat		*particleSize = _particleSize;
+	GLfloat		timePassed = _timePassed;
+	GLfloat		duration = _duration;
 	
-	for (unsigned i = 0; i < _count; i++)
+	GLfloat size = (1.0f + timePassed) * _baseSize;
+	GLfloat di = 1.0f / (count - 1);
+	
+	for (i = 0; i < count; i++)
 	{
-		GLfloat du = _duration * (0.5 + di * i);
-		_particleColor[i][3] = OOClamp_0_1_f(1.0f - _timePassed / du);
+		GLfloat du = duration * (0.5 + di * i);
+		particleColor[i][3] = OOClamp_0_1_f(1.0f - timePassed / du);
 		
-		_particlePosition[i] = vector_add(_particlePosition[i], vector_multiply_scalar(_particleVelocity[i], delta_t));
-		_particleSize[i] = size;
+		particleSize[i] = size;
 	}
 }
 
