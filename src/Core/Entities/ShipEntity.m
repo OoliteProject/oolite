@@ -902,7 +902,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (BOOL) hasSubEntity:(ShipEntity<OOSubEntity> *)sub
+- (BOOL) hasSubEntity:(Entity<OOSubEntity> *)sub
 {
 	return [subEntities containsObject:sub];
 }
