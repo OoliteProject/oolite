@@ -197,4 +197,16 @@ static const GLfloat kLaserVertices[] =
 	CheckOpenGLErrors(@"OOLaserShotEntity after drawing %@", self);
 }
 
+
+- (BOOL) isParticle
+{
+	return YES;
+}
+
+
+- (BOOL) canCollide
+{
+	return NO;
+}
+
 @end
