@@ -92,22 +92,13 @@ void OOInitDebugSupport(void)
 		}
 		
 		activateDebugConsole = (debugger != nil);
-		
-		// Ensure that on SDL builds, which run the debug console as a separate application, the console functionality
-		// can be activated on demand even when Debug.oxp is present but the debug console app has not been started.
-		// Nikos - 20100527
-#if OOLITE_SDL
-		if (debugger == nil && [debugSettings oo_boolForKey:@"always-load-debug-console"] == YES)
-		{
-			activateDebugConsole = YES;
-		}
-#endif
 	}
-	else
+	
+	if (!activateDebugConsole)
 	{
 		activateDebugConsole = [debugSettings oo_boolForKey:@"always-load-debug-console"];
 	}
-
+	
 	
 	if (activateDebugConsole)
 	{

@@ -678,16 +678,24 @@ typedef struct
 - (void) setUpDebugConsoleScript
 {
 	JSContext *context = OOJSAcquireContext();
+	/*	The path to the console script is saved in this here static variable
+		so that we can reload it when resetting into strict mode.
+		-- Ahruman 2011-02-06
+	*/
+	static NSString *path = nil;
 	
-	// Set up JavaScript side of console.
-	BOOL savedShow = OOLogWillDisplayMessagesInClass(@"script.load.notFound");
-	OOLogSetDisplayMessagesInClass(@"script.load.notFound", NO);
-	NSDictionary *jsProps = [NSDictionary dictionaryWithObjectsAndKeys:
-							 self, @"console",
-							 JSSpecialFunctionsObjectWrapper(context), @"special",
-							 nil];
-	_script = [[OOScript jsScriptFromFileNamed:@"oolite-debug-console.js" properties:jsProps] retain];
-	OOLogSetDisplayMessagesInClass(@"script.load.notFound", savedShow);
+	if (path == nil)
+	{
+		path = [[ResourceManager pathForFileNamed:@"oolite-debug-console.js" inFolder:@"Scripts"] retain];
+	}
+	if (path != nil)
+	{
+		NSDictionary *jsProps = [NSDictionary dictionaryWithObjectsAndKeys:
+								 self, @"console",
+								 JSSpecialFunctionsObjectWrapper(context), @"special",
+								 nil];
+		_script = [[OOJSScript scriptWithPath:path properties:jsProps] retain];
+	}
 	
 	// If no script, just make console visible globally as debugConsole.
 	if (_script == nil)
