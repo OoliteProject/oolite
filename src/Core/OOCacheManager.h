@@ -3,7 +3,7 @@
 OOCacheManager.h
 By Jens Ayton
 
-Singleton class responsible for handling Olite's data cache.
+Singleton class responsible for handling Oolite's data cache.
 The cache manager stores arbitrary property lists in separate namespaces
 (referred to simply as caches). The cache is emptied if it was created with a
 different verison of Oolite, or if it was created on a system with a different
@@ -30,14 +30,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
-
-
-enum
-{
-	kOOCacheMinimumPruneThreshold			= 25U,
-	kOOCacheDefaultPruneThreshold			= 200U,
-	kOOCacheNoPrune							= 0xFFFFFFFFU
-};
 
 
 @interface OOCacheManager: NSObject

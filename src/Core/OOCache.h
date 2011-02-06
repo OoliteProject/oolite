@@ -22,8 +22,6 @@ with a prune limit. (Project: with the addition of a -keyEnumerator method and
 sutiable NSEnumerator subclass, and a -count method, it could be turned into a
 subclass of NSMutableDictionary.)
 
-Default and minimum prune threshold values are specified in OOCacheManager.h.
-
 
 Oolite
 Copyright (C) 2004-2011 Giles C Williams and contributors
@@ -46,6 +44,14 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
+
+
+enum
+{
+	kOOCacheMinimumPruneThreshold			= 25U,
+	kOOCacheDefaultPruneThreshold			= 200U,
+	kOOCacheNoPrune							= 0xFFFFFFFFU
+};
 
 
 @interface OOCache: NSObject
