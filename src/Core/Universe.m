@@ -67,6 +67,8 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "ProxyPlayerEntity.h"
 #import "OORingEffectEntity.h"
+#import "OOLightParticleEntity.h"
+#import "OOFlashEffectEntity.h"
 
 #import "OOMusicController.h"
 #import "OOAsyncWorkManager.h"
@@ -306,6 +308,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
 	
 	[self setUpSettings];
+	
+	[self preloadSounds];	// Must be after setUpSettings.
+	
+	// Preload particle effect textures:
+	[OOLightParticleEntity setUpTexture];
+	[OOFlashEffectEntity setUpTexture];
 	
 	player = [PlayerEntity sharedPlayer];
 	[player deferredInit];
@@ -6612,7 +6620,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	rendering them asynchronously as soon as there's a hint they may be needed
 	soon: when a system is selected on one of the charts, and when beginning a
 	jump. However, it would be a Bad Idea™ to allow an arbitrary number of
-	planets to be queued, since you can click on lots of  systems quite
+	planets to be queued, since you can click on lots of systems quite
 	quickly on the long-range chart.
 	
 	To rate-limit this, we track the materials that are being preloaded and
@@ -8746,33 +8754,41 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
+static void PreloadOneSound(NSString *soundName)
+{
+	if (![soundName hasPrefix:@"["] && ![soundName hasSuffix:@"]"])
+	{
+		[ResourceManager ooSoundNamed:soundName inFolder:@"Sounds"];
+	}
+}
+
+
 - (void) preloadSounds
 {
-	NSEnumerator			*soundEnum = nil;
-	NSEnumerator			*arraySoundEnum = nil;
-	id						object=nil;
-	NSString				*soundName = nil;
-	
 	// Preload sounds to avoid loading stutter.
-	for (soundEnum = [customSounds objectEnumerator]; (object = [soundEnum nextObject]); )
+	NSString *key = nil;
+	foreachkey (key, customSounds)
 	{
+		id object = [customSounds objectForKey:key];
 		if([object isKindOfClass:[NSString class]])
 		{
-			soundName=object;
-			if (![soundName hasPrefix:@"["] && ![soundName hasSuffix:@"]"])
-			{
-				[ResourceManager ooSoundNamed:soundName	inFolder:@"Sounds"];
-			}
+			PreloadOneSound(object);
 		}
 		else if([object isKindOfClass:[NSArray class]] && [object count] > 0)
 		{
-			for (arraySoundEnum = [object objectEnumerator]; (soundName = [arraySoundEnum nextObject]); )
-				if (![soundName hasPrefix:@"["] && ![soundName hasSuffix:@"]"])
+			NSString *soundName = nil;
+			foreach (soundName, object)
+			{
+				if ([soundName isKindOfClass:[NSString class]])
 				{
-					[ResourceManager ooSoundNamed:soundName	inFolder:@"Sounds"];
+					PreloadOneSound(soundName);
 				}
+			}
 		}
 	}
+	
+	// Afterburner sound doesn't go through customsounds.plist.
+	PreloadOneSound(@"afterburner1.ogg");
 }
 
 

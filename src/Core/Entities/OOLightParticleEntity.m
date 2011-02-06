@@ -43,7 +43,6 @@ static OOTexture *sBlobTexture = nil;
 
 @interface OOLightParticleEntity (Private)
 
-+ (void) setUpTexture;
 + (void) resetGraphicsState;
 
 @end
@@ -266,8 +265,7 @@ static OOTexture *sBlobTexture = nil;
 
 - (OOTexture *) texture
 {
-	if (sBlobTexture == nil)  [OOLightParticleEntity setUpTexture];
-	return sBlobTexture;
+	return [OOLightParticleEntity defaultParticleTexture];
 }
 
 
@@ -282,6 +280,13 @@ static OOTexture *sBlobTexture = nil;
 										   lodBias:0.0] retain];
 		[[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOLightParticleEntity class]];
 	}
+}
+
+
++ (OOTexture *) defaultParticleTexture
+{
+	if (sBlobTexture == nil)  [self setUpTexture];
+	return sBlobTexture;
 }
 
 
@@ -304,15 +309,5 @@ static OOTexture *sBlobTexture = nil;
 	return [NSSet setWithObject:[self texture]];
 }
 #endif
-
-@end
-
-
-@implementation Entity (OOLightParticleEntityExtensions)
-
-- (BOOL) isEffect
-{
-	return NO;
-}
 
 @end

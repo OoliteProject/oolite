@@ -163,7 +163,6 @@
 		1A2318640B9D026D00EF0852 /* asteroid.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318230B9D026D00EF0852 /* asteroid.png */; };
 		1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318240B9D026D00EF0852 /* back_metal.png */; };
 		1A2318660B9D026D00EF0852 /* barrel_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318250B9D026D00EF0852 /* barrel_metal.png */; };
-		1A2318670B9D026D00EF0852 /* blur256.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318260B9D026D00EF0852 /* blur256.png */; };
 		1A2318680B9D026D00EF0852 /* boa2_left.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318270B9D026D00EF0852 /* boa2_left.png */; };
 		1A2318690B9D026D00EF0852 /* boa2_rear.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318280B9D026D00EF0852 /* boa2_rear.png */; };
 		1A23186A0B9D026D00EF0852 /* boa2_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318290B9D026D00EF0852 /* boa2_redux.png */; };
@@ -1017,7 +1016,6 @@
 				1A2318640B9D026D00EF0852 /* asteroid.png in Copy Textures */,
 				1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */,
 				1A2318660B9D026D00EF0852 /* barrel_metal.png in Copy Textures */,
-				1A2318670B9D026D00EF0852 /* blur256.png in Copy Textures */,
 				1A2318680B9D026D00EF0852 /* boa2_left.png in Copy Textures */,
 				1A2318690B9D026D00EF0852 /* boa2_rear.png in Copy Textures */,
 				1A23186A0B9D026D00EF0852 /* boa2_redux.png in Copy Textures */,
@@ -1404,7 +1402,6 @@
 		1A2318230B9D026D00EF0852 /* asteroid.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = asteroid.png; sourceTree = "<group>"; };
 		1A2318240B9D026D00EF0852 /* back_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = back_metal.png; sourceTree = "<group>"; };
 		1A2318250B9D026D00EF0852 /* barrel_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = barrel_metal.png; sourceTree = "<group>"; };
-		1A2318260B9D026D00EF0852 /* blur256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = blur256.png; sourceTree = "<group>"; };
 		1A2318270B9D026D00EF0852 /* boa2_left.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_left.png; sourceTree = "<group>"; };
 		1A2318280B9D026D00EF0852 /* boa2_rear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_rear.png; sourceTree = "<group>"; };
 		1A2318290B9D026D00EF0852 /* boa2_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_redux.png; sourceTree = "<group>"; };
@@ -2224,7 +2221,6 @@
 				1A2318230B9D026D00EF0852 /* asteroid.png */,
 				1A2318240B9D026D00EF0852 /* back_metal.png */,
 				1A2318250B9D026D00EF0852 /* barrel_metal.png */,
-				1A2318260B9D026D00EF0852 /* blur256.png */,
 				1A2318270B9D026D00EF0852 /* boa2_left.png */,
 				1A2318280B9D026D00EF0852 /* boa2_rear.png */,
 				1A2318290B9D026D00EF0852 /* boa2_redux.png */,

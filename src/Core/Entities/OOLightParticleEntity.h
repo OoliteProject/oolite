@@ -52,11 +52,7 @@ MA 02110-1301, USA.
 */
 - (OOTexture *) texture;
 
-@end
-
-
-@interface Entity (OOLightParticleEntityExtensions)
-
-- (BOOL) isEffect;
++ (void) setUpTexture;
++ (OOTexture *) defaultParticleTexture;
 
 @end

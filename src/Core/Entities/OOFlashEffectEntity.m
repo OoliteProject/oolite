@@ -46,7 +46,6 @@ static OOTexture *sFlashTexture = nil;
 // Designated initializer.
 - (id) initWithPosition:(Vector)pos size:(float)size color:(OOColor *)color duration:(float)duration;
 
-+ (void) setUpTexture;
 + (void) resetGraphicsState;
 
 - (void) performUpdate:(OOTimeDelta)delta_t;

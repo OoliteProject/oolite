@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOTexture.h"
 #import "PlayerEntity.h"
+#import "OOLightParticleEntity.h"
 
 
 //	Testing toy: cause particle systems to stop after half a second.
@@ -61,7 +62,6 @@ MA 02110-1301, USA.
 		position = pos;
 		velocity = vel;
 		_duration = duration;
-		_texture = [[OOTexture textureWithName:@"blur256.png" inFolder:@"Textures"] retain];
 		
 		for (unsigned i = 0; i < count; i++)
 		{
@@ -83,14 +83,6 @@ MA 02110-1301, USA.
 	}
 	
 	return self;
-}
-
-
-- (void) dealloc
-{
-	[_texture release];
-	
-	[super dealloc];
 }
 
 
@@ -148,7 +140,7 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
-	[_texture apply];
+	[[OOLightParticleEntity defaultParticleTexture] apply];
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
@@ -207,14 +199,7 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 #ifndef NDEBUG
 - (NSSet *) allTextures
 {
-	if (_texture)
-	{
-		return [NSSet setWithObject:_texture];
-	}
-	else
-	{
-		return nil;
-	}
+	return [NSSet setWithObject:[OOLightParticleEntity defaultParticleTexture]];
 }
 #endif
 
@@ -244,7 +229,7 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 		for (unsigned i = 0; i < count; i++)
 		{
 			// Note: initWithPosition:... stashes speeds in _particleSize[].
-			_particleSize[i] = 16.0f * kMinSpeed / _particleSize[i];
+			_particleSize[i] = 32.0f * kMinSpeed / _particleSize[i];
 		}
 	}
 	
@@ -292,6 +277,7 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 	
 	GLfloat baseColor[4] = { 1.0, 1.0, 0.5, 1.0 };
 	
+	size *= 2.0f;	 // Account for margins in particle texture.
 	if ((self = [super initWithPosition:fragPosition velocity:kZeroVector count:count minSpeed:minSpeed maxSpeed:maxSpeed duration:1.0 baseColor:baseColor]))
 	{
 		_baseSize = size;

@@ -47,8 +47,6 @@ enum
 	GLfloat			_particleSize[kFragmentBurstMaxParticles];
 	unsigned		_count;
 	
-	OOTexture		*_texture;
-	
 	unsigned		_particleType;
 	
 	OOTimeDelta		_timePassed, _duration;
