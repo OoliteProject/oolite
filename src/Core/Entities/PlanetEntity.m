@@ -201,9 +201,7 @@ static const BaseFace kTexturedFaces[][3] =
 
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict
 {
-#if ALLOW_PROCEDURAL_PLANETS
 	BOOL	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-#endif
 	
 	if (dict == nil)  dict = [NSDictionary dictionary];
 	
@@ -289,7 +287,6 @@ static const BaseFace kTexturedFaces[][3] =
 	
 	atmosphere = nil;
 	
-#if ALLOW_PROCEDURAL_PLANETS
 	if (procGen)
 	{
 		RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
@@ -305,7 +302,6 @@ static const BaseFace kTexturedFaces[][3] =
 		setRandomSeed(saved_seed);
 		RANROTSetFullSeed(ranrotSavedSeed);
 	}
-#endif
 	
 	if (!planet)
 	{
@@ -383,10 +379,7 @@ static const BaseFace kTexturedFaces[][3] =
 
 - (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed
 {
-	BOOL	procGen = NO;
-#if ALLOW_PROCEDURAL_PLANETS
-	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-#endif
+	BOOL procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 	
 	if (dict == nil)  dict = [NSDictionary dictionary];
 	RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
@@ -530,14 +523,12 @@ static const BaseFace kTexturedFaces[][3] =
 		[planetInfo setObject:amb_polar_sea_color forKey:@"polar_sea_color"];
 	}
 
-#if ALLOW_PROCEDURAL_PLANETS
 	if (procGen && _texture == nil)
 	{
 		_texture = [self planetTextureWithInfo:planetInfo];
 		isTextureImage = NO;
 		[_texture retain];
 	}
-#endif
 	
 	[self initialiseBaseVertexArray];
 	[self initialiseBaseTerrainArray:percent_land];

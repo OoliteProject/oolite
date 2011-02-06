@@ -77,9 +77,7 @@ enum
 	kStation_equivalentTechLevel,
 	kStation_hasNPCTraffic,
 	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
-#if DOCKING_CLEARANCE_ENABLED
 	kStation_requiresDockingClearance,
-#endif
 	kStation_allowsFastDocking,
 	kStation_allowsAutoDocking,
 	kStation_suppressArrivalReports,
@@ -92,9 +90,7 @@ static JSPropertySpec sStationProperties[] =
 	{ "isMainStation",			kStation_isMainStation,		OOJS_PROP_READONLY_CB },
 	{ "hasNPCTraffic",			kStation_hasNPCTraffic,		OOJS_PROP_READWRITE_CB },
 	{ "alertCondition",			kStation_alertCondition,	OOJS_PROP_READWRITE_CB },
-#if DOCKING_CLEARANCE_ENABLED
 	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	OOJS_PROP_READWRITE_CB },
-#endif
 	{ "allowsFastDocking",		kStation_allowsFastDocking,	OOJS_PROP_READWRITE_CB },
 	{ "allowsAutoDocking",		kStation_allowsAutoDocking,	OOJS_PROP_READWRITE_CB },
 	{ "dockedContractors",		kStation_dockedContractors,	OOJS_PROP_READONLY_CB },
@@ -195,11 +191,9 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 			*value = INT_TO_JSVAL([entity alertLevel]);
 			return YES;
 			
-#if DOCKING_CLEARANCE_ENABLED
 		case kStation_requiresDockingClearance:
 			*value = OOJSValueFromBOOL([entity requiresDockingClearance]);
 			return YES;
-#endif
 			
 		case kStation_allowsFastDocking:
 			*value = OOJSValueFromBOOL([entity allowsFastDocking]);
@@ -273,7 +267,6 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			}
 			break;
 			
-#if DOCKING_CLEARANCE_ENABLED
 		case kStation_requiresDockingClearance:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
@@ -281,7 +274,6 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 				OK = YES;
 			}
 			break;
-#endif
 
 		case kStation_allowsFastDocking:
 			if (JS_ValueToBoolean(context, *value, &bValue))
@@ -337,11 +329,7 @@ static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp)
 	{
 		StationEntity *stationForDockingPlayer = nil;
 		JSStationGetStationEntity(context, OOJS_THIS, &stationForDockingPlayer); 
-		
-#if DOCKING_CLEARANCE_ENABLED
 		[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-#endif
-		
 		[player safeAllMissiles];
 		[UNIVERSE setViewDirection:VIEW_FORWARD];
 		[player enterDock:stationForDockingPlayer];

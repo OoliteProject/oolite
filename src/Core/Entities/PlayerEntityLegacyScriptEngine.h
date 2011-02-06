@@ -237,9 +237,7 @@ typedef enum
 - (unsigned) getEqScriptIndexForKey:(NSString *)eq_key;
 
 - (void) targetNearestHostile;
-#if TARGET_INCOMING_MISSILES
 - (void) targetNearestIncomingMissile;
-#endif
 
 - (void) setGalacticHyperspaceBehaviourTo:(NSString *) galacticHyperspaceBehaviourString;
 - (void) setGalacticHyperspaceFixedCoordsTo:(NSString *) galacticHyperspaceFixedCoordsString;

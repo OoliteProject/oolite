@@ -123,10 +123,8 @@ static GLfloat		sBaseMass = 0.0;
 - (void) updateTargeting;
 - (BOOL) isValidTarget:(Entity*)target;
 - (void) showGameOver;
-#if WORMHOLE_SCANNER
 - (void) addScannedWormhole:(WormholeEntity*)wormhole;
 - (void) updateWormholes;
-#endif
 
 // Shopping
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
@@ -669,7 +667,6 @@ static GLfloat		sBaseMass = 0.0;
 	// trumble information
 	[result setObject:[self trumbleValue] forKey:@"trumbles"];
 
-#if WORMHOLE_SCANNER
 	// wormhole information
 	NSMutableArray * wormholeDicts = [NSMutableArray arrayWithCapacity:[scannedWormholes count]];
 	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
@@ -679,7 +676,6 @@ static GLfloat		sBaseMass = 0.0;
 		[wormholeDicts addObject:[wh getDict]];
 	}
 	[result setObject:wormholeDicts forKey:@"wormholes"];
-#endif
 
 	// create checksum
 	clear_checksum();
@@ -965,7 +961,6 @@ static GLfloat		sBaseMass = 0.0;
 	// restore subentities status
 	[self deserializeShipSubEntitiesFrom:[dict oo_stringForKey:@"subentities_status"]];
 
-#if WORMHOLE_SCANNER
 	// wormholes
 	NSArray * whArray;
 	whArray = [dict objectForKey:@"wormholes"];
@@ -986,7 +981,6 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		*/
 	}
-#endif
 	
 	// custom view no.
 	if (_customViews != nil)
@@ -1222,10 +1216,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[UNIVERSE clearGUIs];
 	
-#if DOCKING_CLEARANCE_ENABLED
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_GRANTED;
 	targetDockStation = nil;
-#endif
 	
 	dockedStation = [UNIVERSE station];
 	
@@ -1248,11 +1240,9 @@ static GLfloat		sBaseMass = 0.0;
 	[save_path autorelease];
 	save_path = nil;
 	
-#if WORMHOLE_SCANNER	
 	[scannedWormholes release];
 	scannedWormholes = [[NSMutableArray alloc] init];
-#endif
-
+	
 	[self setUpTrumbles];
 	
 	suppressTargetLost = NO;
@@ -1425,9 +1415,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self destroySound];
 	
-#if WORMHOLE_SCANNER
 	DESTROY(scannedWormholes);
-#endif
 	DESTROY(wormhole);
 	
 	int i;
@@ -1576,10 +1564,8 @@ static GLfloat		sBaseMass = 0.0;
 		[self performDeadUpdates:delta_t];
 	}
 	
-#if WORMHOLE_SCANNER
 	UPDATE_STAGE(@"updateWormholes");
 	[self updateWormholes];
-#endif
 	
 	STAGE_TRACKING_END
 }
@@ -2239,9 +2225,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[shipAI setState:@"BEGIN_DOCKING"];	// reboot the AI
 	[self playAutopilotOn];
 	[self doScriptEvent:OOJSID("playerStartedAutoPilot") withArgument:stationForDocking];
-#if DOCKING_CLEARANCE_ENABLED
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-#endif	
 	[[OOMusicController sharedController] playDockingMusic];
 		
 	if (afterburner_engaged)
@@ -2266,9 +2250,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		targetStation = NO_TARGET;
 		[self setStatus:STATUS_IN_FLIGHT];
 		[self playAutopilotOff];
-#if DOCKING_CLEARANCE_ENABLED
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
-#endif	
 		[[OOMusicController sharedController] stopDockingMusic];
 		[self doScriptEvent:OOJSID("playerCancelledAutoPilot")];
 		
@@ -2444,9 +2426,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		
 		[self setStatus:STATUS_IN_FLIGHT];
 
-#if DOCKING_CLEARANCE_ENABLED
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
-#endif
 		StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
 		[self doScriptEvent:OOJSID("shipLaunchedFromStation") withArgument:stationLaunchedFrom];
 	}
@@ -2498,12 +2478,12 @@ static bool minShieldLevelPercentageInitialised = false;
 		return YES;
 	}
 
-#if WORMHOLE_SCANNER
 	// If target is an unexpired wormhole and the player has bought the Wormhole Scanner and we're in ID mode
 	if ([target isWormhole] && [target scanClass] != CLASS_NO_DRAW && 
 		[self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"] && ident_engaged)
+	{
 		return YES;
-#endif
+	}
 	
 	// Target is neither a wormhole nor a ship
 	return NO;
@@ -2592,7 +2572,6 @@ static bool minShieldLevelPercentageInitialised = false;
 		}
 	}
 	
-#if WORMHOLE_SCANNER
 	// If our primary target is a wormhole, check to see if we have additional
 	// information
 	UPDATE_STAGE(@"checking for additional wormhole information");
@@ -2642,7 +2621,6 @@ static bool minShieldLevelPercentageInitialised = false;
 				break;
 		}
 	}
-#endif
 	
 	STAGE_TRACKING_END
 }
@@ -2862,7 +2840,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	return dockedStation;
 }
 
-#if DOCKING_CLEARANCE_ENABLED
+
 - (void) setTargetDockStationTo:(StationEntity *) value
 {
 	targetDockStation = value;
@@ -2873,7 +2851,7 @@ static bool minShieldLevelPercentageInitialised = false;
 {
 	return targetDockStation;
 }
-#endif
+
 
 - (HeadUpDisplay *) hud
 {
@@ -3338,17 +3316,11 @@ static bool minShieldLevelPercentageInitialised = false;
 		result = DESC(@"no-target-string");
 	}
 	
-	if ([target_entity isShip])
+	if ([target_entity respondsToSelector:@selector(identFromShip:)])
 	{
 		result = [(ShipEntity*)target_entity identFromShip:self];
 	}
-#if WORMHOLE_SCANNER
-	if ([target_entity isWormhole])
-	{
-		result = [(WormholeEntity*)target_entity identFromShip:self];
-	}
-#endif
-
+	
 	if (result == nil)  result = DESC(@"unknown-target");
 	
 	return result;
@@ -4155,9 +4127,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	[UNIVERSE setBlockJSPlayerShipProps:YES]; 	// no player.ship properties while inside the pod!
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
-#if DOCKING_CLEARANCE_ENABLED
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
-#endif
 	flightSpeed = OOMax_f(flightSpeed, 50.0f);
 	
 	doppelganger = [self createDoppelganger];
@@ -4589,7 +4559,6 @@ static bool minShieldLevelPercentageInitialised = false;
 	[[OOMusicController sharedController] stopDockingMusic];
 	[[OOMusicController sharedController] playDockedMusic];
 	
-#if DOCKING_CLEARANCE_ENABLED
 	// Did we fail to observe traffic control regulations? However, due to the state of emergency,
 	// apply no unauthorized docking penalties if a nova is ongoing.
 	if (![UNIVERSE strict] && [dockedStation requiresDockingClearance] &&
@@ -4597,7 +4566,6 @@ static bool minShieldLevelPercentageInitialised = false;
 	{
 		[self penaltyForUnauthorizedDocking];
 	}
-#endif
 		
 	// apply any pending fines. (No need to check gui_screen as fines is no longer an on-screen message).
 	if (being_fined && ![[UNIVERSE sun] willGoNova] && ![dockedStation suppressArrivalReports]) [self getFined];
@@ -4649,9 +4617,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[station clearDockingCorridor];
 
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
-#if DOCKING_CLEARANCE_ENABLED
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
-#endif
 	
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
@@ -5761,7 +5727,7 @@ done:
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-no") forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)];
 		
-#if ALLOW_PROCEDURAL_PLANETS && !NEW_PLANETS
+#if !NEW_PLANETS
 		if ([UNIVERSE doProcedurallyTexturedPlanets])
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-yes") forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
 		else
@@ -7751,14 +7717,12 @@ static NSString *last_outfitting_key=nil;
 	
 	[super addTarget:targetEntity];
 	
-#if WORMHOLE_SCANNER
 	if ([targetEntity isWormhole])
 	{
 		assert ([self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
 		[self addScannedWormhole:(WormholeEntity*)targetEntity];
 	}
-#endif
-
+	
 	if ([self hasEquipmentItem:@"EQ_TARGET_MEMORY"])
 	{
 		int i = 0;
@@ -8244,7 +8208,6 @@ else _dockTarget = NO_TARGET;
 }
 
 
-#if DOCKING_CLEARANCE_ENABLED
 - (BOOL)clearedToDock
 {
 	return dockingClearanceStatus > DOCKING_CLEARANCE_STATUS_REQUESTED || dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
@@ -8293,9 +8256,7 @@ else _dockTarget = NO_TARGET;
 	[self addMessageToReport:[NSString stringWithFormat:DESC(@"station-docking-clearance-fined-@-cr"), OOCredits(amountToPay)]];
 }
 
-#endif
 
-#if WORMHOLE_SCANNER
 //
 // Wormhole Scanner support functions
 //
@@ -8360,7 +8321,7 @@ else _dockTarget = NO_TARGET;
 {
 	return [NSArray arrayWithArray:scannedWormholes];
 }
-#endif
+
 
 #ifndef NDEBUG
 - (void)dumpSelfState
@@ -8447,9 +8408,7 @@ else _dockTarget = NO_TARGET;
 	key_activate_equipment &&
 	key_target_missile &&
 	key_untarget_missile &&
-#if TARGET_INCOMING_MISSILES
 	key_target_incoming_missile &&
-#endif
 	key_ident_system &&
 	key_scanner_zoom &&
 	key_scanner_unzoom &&
@@ -8478,9 +8437,7 @@ else _dockTarget = NO_TARGET;
 	key_next_target &&
 	key_previous_target &&
 	key_custom_view &&
-#if DOCKING_CLEARANCE_ENABLED
 	key_docking_clearance_request &&
-#endif
 #ifndef NDEBUG
 	key_dump_target_state &&
 #endif

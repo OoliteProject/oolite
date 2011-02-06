@@ -142,7 +142,6 @@ enum
 #undef ENTRY
 
 
-#if DOCKING_CLEARANCE_ENABLED
 typedef enum
 {
 	DOCKING_CLEARANCE_STATUS_NONE,
@@ -151,7 +150,6 @@ typedef enum
 	DOCKING_CLEARANCE_STATUS_GRANTED,
 	DOCKING_CLEARANCE_STATUS_TIMING_OUT,
 } OODockingClearanceStatus;
-#endif
 
 
 typedef uint32_t	OOCargoQuantity;

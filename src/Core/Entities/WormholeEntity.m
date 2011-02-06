@@ -358,7 +358,6 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 }
 
 
-#if WORMHOLE_SCANNER
 - (NSString *) identFromShip:(ShipEntity*)ship
 {
 	if ([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"])
@@ -383,7 +382,6 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	}
 
 }
-#endif
 
 
 - (BOOL) canCollide

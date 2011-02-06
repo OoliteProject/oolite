@@ -126,9 +126,7 @@ enum
 	GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE,
 	GUI_ROW_GAMEOPTIONS_DETAIL,
 	GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS,
-#if ALLOW_PROCEDURAL_PLANETS
 	GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS,
-#endif
 	GUI_ROW_GAMEOPTIONS_SHADEREFFECTS,
 	
 	GUI_ROW_GAMEOPTIONS_SPACER_STICKMAPPER,
@@ -302,12 +300,11 @@ typedef enum
 // ...end save screen   
 
 	StationEntity			*dockedStation;
-#if DOCKING_CLEARANCE_ENABLED
+	
 /* Used by the DOCKING_CLEARANCE code to implement docking at non-main
  * stations. Could possibly overload use of 'dockedStation' instead
  * but that needs futher investigation to ensure it doesn't break anything. */
 	StationEntity			*targetDockStation; 
-#endif
 	
 	HeadUpDisplay			*hud;
 	
@@ -388,9 +385,7 @@ typedef enum
 	
 	OOKeyCode				key_target_missile;
 	OOKeyCode				key_untarget_missile;
-#if TARGET_INCOMING_MISSILES
 	OOKeyCode				key_target_incoming_missile;
-#endif
 	OOKeyCode				key_ident_system;
 	
 	OOKeyCode				key_scanner_zoom;
@@ -433,9 +428,7 @@ typedef enum
 	
 	OOKeyCode				key_custom_view;
 	
-#if DOCKING_CLEARANCE_ENABLED
 	OOKeyCode				key_docking_clearance_request;
-#endif
 	
 #ifndef NDEBUG
 	OOKeyCode				key_dump_target_state;
@@ -532,12 +525,9 @@ typedef enum
 	NSArray					*_customViews;
 	OOUInteger				_customViewIndex;
 	
-#if DOCKING_CLEARANCE_ENABLED
 	OODockingClearanceStatus dockingClearanceStatus;
-#endif
-#if WORMHOLE_SCANNER
+	
 	NSMutableArray			*scannedWormholes;
-#endif
 	WormholeEntity			*wormhole;
 
 	ShipEntity				*demoShip; // Used while docked to maintain demo ship rotation.
@@ -591,10 +581,8 @@ typedef enum
 
 - (void) resetAutopilotAI;
 
-#if DOCKING_CLEARANCE_ENABLED
 - (void) setTargetDockStationTo:(StationEntity *) value;
 - (StationEntity *) getTargetDockStation;
-#endif
 
 - (HeadUpDisplay *) hud;
 - (BOOL) switchHudTo:(NSString *)hudFileName;
@@ -823,16 +811,12 @@ typedef enum
 - (void) setScoopOverride:(BOOL)newValue;
 - (void) setDockTarget:(ShipEntity *)entity;
 
-#if DOCKING_CLEARANCE_ENABLED
 - (BOOL) clearedToDock;
 - (void) setDockingClearanceStatus:(OODockingClearanceStatus) newValue;
 - (OODockingClearanceStatus) getDockingClearanceStatus;
 - (void) penaltyForUnauthorizedDocking;
-#endif
 
-#if WORMHOLE_SCANNER
 - (NSArray *) scannedWormholes;
-#endif
 
 - (WormholeEntity *) wormhole;
 

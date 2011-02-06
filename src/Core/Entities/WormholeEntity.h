@@ -84,9 +84,7 @@ typedef enum
 
 - (NSArray*) shipsInTransit;
 
-#if WORMHOLE_SCANNER
 - (NSString *) identFromShip:(ShipEntity*) ship;
-#endif
 
 - (NSDictionary *)getDict;
 

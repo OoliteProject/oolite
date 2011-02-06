@@ -86,9 +86,7 @@ enum
 	kPlayer_bounty,					// bounty, unsigned int, read/write
 	kPlayer_contractReputation,		// reputation for cargo contracts, integer, read only
 	kPlayer_credits,				// credit balance, float, read/write
-#if DOCKING_CLEARANCE_ENABLED
 	kPlayer_dockingClearanceStatus,	// docking clearance status, string, read only
-#endif
 	kPlayer_legalStatus,			// legalStatus, string, read-only
 	kPlayer_name,					// Player name, string, read-only
 	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read-only
@@ -115,9 +113,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "trumbleCount",			kPlayer_trumbleCount,		OOJS_PROP_READONLY_CB },
 	{ "contractReputation",		kPlayer_contractReputation,	OOJS_PROP_READONLY_CB },
 	{ "passengerReputation",	kPlayer_passengerReputation,	OOJS_PROP_READONLY_CB },
-#if DOCKING_CLEARANCE_ENABLED
 	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	OOJS_PROP_READONLY_CB },
-#endif
 	{ "bounty",					kPlayer_bounty,				OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
@@ -239,12 +235,10 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kPlayer_passengerReputation:
 			*value = INT_TO_JSVAL([player passengerReputation]);
 			return YES;
-		
-#if DOCKING_CLEARANCE_ENABLED	
+			
 		case kPlayer_dockingClearanceStatus:
 			*value = [DockingClearanceStatusToString([player getDockingClearanceStatus]) oo_jsValueInContext:context];
 			return YES;
-#endif
 			
 		case kPlayer_bounty:
 			*value = INT_TO_JSVAL([player legalStatus]);

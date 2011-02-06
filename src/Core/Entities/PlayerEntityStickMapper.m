@@ -454,13 +454,11 @@ MA 02110-1301, USA.
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_UNARM]];
-#if TARGET_INCOMING_MISSILES
 	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-target-nearest-incoming-missile")
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_TARGETINCOMINGMISSILE]];
-#endif
 	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-cycle-secondary")
 				  allowable:HW_BUTTON

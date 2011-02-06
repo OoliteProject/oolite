@@ -273,16 +273,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	[shipsOnApproach removeAllObjects];
 
-#if DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = PLAYER;
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
-	if (isDockingStation && player && [player status] == STATUS_IN_FLIGHT &&
+	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
 			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
 	{
 		[self sendExpandedMessage:DESC(@"station-docking-clearance-abort-cancelled") toShip:player];
 		[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 	}
-#endif
 	
 	ships = [shipsOnHold allKeys];
 	for (i = 0; i < [ships count]; i++)
@@ -378,7 +376,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return instructions(universalID, ship->position, 0, 100, @"TOO_BIG_TO_DOCK", nil, NO);
 	}
 	
-#if DOCKING_CLEARANCE_ENABLED
 	// If the ship is not on its docking approach and the player has
 	// requested or even been granted docking clearance, then tell the
 	// ship to wait.
@@ -390,7 +387,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		return instructions(universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
-#endif
 	
 	[shipAI reactToMessage:@"DOCKING_REQUESTED" context:@"requestDockingCoordinates"];	// react to the request	
 	
@@ -812,12 +808,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
 	NSDictionary *universalInfo = [[UNIVERSE planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
 	
-#if DOCKING_CLEARANCE_ENABLED
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
 	// but this variable should be irrelevant for them, as they do not make use of it anyway.
 	requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:
 		universalInfo != nil ?	[universalInfo oo_boolForKey:@"stations_require_docking_clearance" defaultValue:NO] : NO];
-#endif
+	
 	allowsFastDocking = [dict oo_boolForKey:@"allows_fast_docking" defaultValue:NO];
 	
 	allowsAutoDocking = [dict oo_boolForKey:@"allows_auto_docking" defaultValue:YES];
@@ -1165,7 +1160,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[super update:delta_t];
 	
-#if DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = PLAYER;
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT)
@@ -1205,7 +1199,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 		}
 	}
-#endif
 	
 	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&[self dockingCorridorIsEmpty])
 	{
@@ -1377,7 +1370,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[self doScriptEvent:OOJSID("otherShipDocked") withArgument:ship];
 	
-#if DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = PLAYER;
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
@@ -1396,7 +1388,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[launchQueue count]+1] toShip:player];
 		}
 	}
-#endif
 }
 
 - (void) addShipToStationCount:(ShipEntity *) ship
@@ -2097,7 +2088,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-#if DOCKING_CLEARANCE_ENABLED
 - (NSString *) acceptDockingClearanceRequestFrom:(ShipEntity *)other
 {
 	NSString	*result = nil;
@@ -2226,7 +2216,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	requiresDockingClearance = !!newValue;	// Ensure yes or no
 }
-#endif
 
 
 - (BOOL) allowsFastDocking

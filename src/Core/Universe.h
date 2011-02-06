@@ -293,11 +293,10 @@ typedef uint8_t		OOEconomyID;		// 0..7
 	NSArray					*speechArray;
 #endif
 	
+#if NEW_PLANETS
 	NSMutableArray			*_preloadingPlanetMaterials;
-	
-#if ALLOW_PROCEDURAL_PLANETS
-	BOOL					doProcedurallyTexturedPlanets;
 #endif
+	BOOL					doProcedurallyTexturedPlanets;
 	
 	BOOL					_pauseMessage;
 	BOOL					_autoCommLog;
@@ -306,10 +305,8 @@ typedef uint8_t		OOEconomyID;		// 0..7
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
 
-#if ALLOW_PROCEDURAL_PLANETS
 - (BOOL) doProcedurallyTexturedPlanets;
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
-#endif
 
 - (BOOL) strict;
 - (void) setStrict:(BOOL) value;

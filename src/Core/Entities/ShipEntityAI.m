@@ -321,7 +321,6 @@ MA 02110-1301, USA.
 }
 
 
-#if TARGET_INCOMING_MISSILES
 - (void) scanForNearestIncomingMissile
 {
 	BinaryOperationPredicateParameter param =
@@ -331,7 +330,6 @@ MA 02110-1301, USA.
 	};
 	[self scanForNearestShipWithPredicate:ANDPredicate parameter:&param];
 }
-#endif
 
 @end
 

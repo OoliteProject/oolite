@@ -41,9 +41,6 @@ MA 02110-1301, USA.
 
 @interface TextureStore: NSObject
 
-+ (GLuint) getTextureNameFor:(NSString *)filename cubeMapped:(BOOL *)cubeMapped;
-
-#if ALLOW_PROCEDURAL_PLANETS
 // routines to create textures...
 + (BOOL) getPlanetTextureNameFor:(NSDictionary *)planetInfo
 						intoData:(unsigned char **)textureData
@@ -53,7 +50,6 @@ MA 02110-1301, USA.
 					   intoData:(unsigned char **)textureData
 						  width:(GLuint *)textureWidth
 						 height:(GLuint *)textureHeight;
-#endif
 
 @end
 

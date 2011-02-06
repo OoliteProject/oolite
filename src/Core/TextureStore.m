@@ -25,18 +25,7 @@ MA 02110-1301, USA.
 #import "TextureStore.h"
 #if !NEW_PLANETS
 
-#import "OOCocoa.h"
-#import "OOOpenGL.h"
-
-#import "ResourceManager.h"
-#import "legacy_random.h"
-
-#import "OOColor.h"
 #import "OOMaths.h"
-#import "OOTextureScaling.h"
-#import "OOStringParsing.h"
-#import "OOTexture.h"
-#import "OOGraphicsResetManager.h"
 
 #ifndef NDEBUG
 #import "Universe.h"
@@ -47,20 +36,9 @@ MA 02110-1301, USA.
 
 #define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
 
-#define kOOLogUnconvertedNSLog @"unclassified.TextureStore"
-
 
 static NSString * const kOOLogPlanetTextureGen			= @"texture.planet.generate";
 
-
-@interface TextureStore (OOPrivate)
-
-+ (GLuint) getTextureNameFor:(NSString *)fileName inFolder:(NSString *)folderName cubeMapped:(BOOL *)cubeMapped;
-
-@end
-
-
-#if ALLOW_PROCEDURAL_PLANETS
 
 #import "OOTextureGenerator.h"	// For FloatRGB
 
@@ -125,96 +103,8 @@ static FloatRGB PlanetTextureColor(float q, float impress, float bias, FloatRGB 
 static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, OOColor* cloudcolor, float impress, float bias);
 static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, float impress, float bias, FloatRGB seaColor, FloatRGB paleSeaColor, FloatRGB landColor, FloatRGB paleLandColor);
 
-#endif
-
-
-static NSMutableDictionary	*textureUniversalDictionary = nil;
-
 
 @implementation TextureStore
-
-
-+ (void)resetGraphicsState
-{
-	// The underlying OOTextures will take care of releasing themselves.
-	[textureUniversalDictionary removeAllObjects];
-}
-
-
-+ (GLuint) getTextureNameFor:(NSString *)filename cubeMapped:(BOOL *)cubeMapped
-{
-	NSParameterAssert(cubeMapped != NULL);
-	
-	NSDictionary *cached = [textureUniversalDictionary oo_dictionaryForKey:filename];
-	if (cached != nil)
-	{
-		*cubeMapped = [cached oo_boolForKey:@"cubeMap"];
-		return [cached oo_intForKey:@"texName"];
-	}
-	return [TextureStore getTextureNameFor:filename inFolder:@"Textures" cubeMapped:cubeMapped];
-}
-
-
-+ (GLuint) getTextureNameFor:(NSString *)fileName inFolder:(NSString *)folderName cubeMapped:(BOOL *)cubeMapped
-{
-	OOTexture				*texture = nil;
-	NSDictionary			*texProps = nil;
-	GLint					texName;
-	NSSize					dimensions;
-	NSNumber				*texNameObj = nil;
-	
-	texture = [OOTexture textureWithName:fileName
-								inFolder:folderName
-								 options:kOOTextureDefaultOptions | kOOTextureAllowCubeMap
-							  anisotropy:kOOTextureDefaultAnisotropy
-								 lodBias:kOOTextureDefaultLODBias];
-	texName = [texture glTextureName];
-	if (texName != 0)
-	{
-		dimensions = [texture dimensions];
-		texNameObj = [NSNumber numberWithInt:texName];
-		*cubeMapped = [texture isCubeMap];
-		
-		texProps = [NSDictionary dictionaryWithObjectsAndKeys:
-						texNameObj, @"texName",
-						[NSNumber numberWithInt:dimensions.width], @"width",
-						[NSNumber numberWithInt:dimensions.height], @"height",
-						texture, @"OOTexture",
-						[NSNumber numberWithBool:*cubeMapped], @"cubeMap",
-						nil];
-		
-		if (textureUniversalDictionary == nil)
-		{
-			textureUniversalDictionary = [[NSMutableDictionary alloc] init];
-			[[OOGraphicsResetManager sharedManager] registerClient:(id <OOGraphicsResetClient>)self];
-		}
-		
-		[textureUniversalDictionary setObject:texProps forKey:fileName];
-		[textureUniversalDictionary setObject:fileName forKey:texNameObj];
-	}
-	return texName;
-}
-
-
-+ (NSString*) getNameOfTextureWithGLuint:(GLuint) value
-{
-	return (NSString*)[textureUniversalDictionary objectForKey:[NSNumber numberWithInt:value]];
-}
-
-
-+ (NSSize) getSizeOfTexture:(NSString *)filename
-{
-	NSSize size = NSMakeSize(0.0, 0.0);	// zero size
-	if ([textureUniversalDictionary objectForKey:filename])
-	{
-		size.width = [[(NSDictionary *)[textureUniversalDictionary objectForKey:filename] objectForKey:@"width"] intValue];
-		size.height = [[(NSDictionary *)[textureUniversalDictionary objectForKey:filename] objectForKey:@"height"] intValue];
-	}
-	return size;
-}
-
-
-#if ALLOW_PROCEDURAL_PLANETS
 
 
 #define PROC_TEXTURE_SIZE	512
@@ -280,12 +170,8 @@ static NSMutableDictionary	*textureUniversalDictionary = nil;
 	return YES;
 }
 
-#endif
-
 @end
 
-
-#if ALLOW_PROCEDURAL_PLANETS
 
 static RANROTSeed sNoiseSeed;
 float ranNoiseBuffer[ 128 * 128];
@@ -460,7 +346,5 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 									rowBytes:width * 4];
 #endif
 }
-
-#endif
 
 #endif	// !NEW_PLANETS

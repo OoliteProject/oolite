@@ -39,6 +39,23 @@ static NSString *AdditionalLogHeaderInfo(void);
 NSString *OOPlatformDescription(void);
 
 
+#ifdef ALLOW_PROCEDURAL_PLANETS
+#warning ALLOW_PROCEDURAL_PLANETS is no longer optional and the macro should no longer be defined.
+#endif
+
+#ifdef DOCKING_CLEARANCE_ENABLED
+#warning DOCKING_CLEARANCE_ENABLED is no longer optional and the macro should no longer be defined.
+#endif
+
+#ifdef WORMHOLE_SCANNER
+#warning WORMHOLE_SCANNER is no longer optional and the macro should no longer be defined.
+#endif
+
+#ifdef TARGET_INCOMING_MISSILES
+#warning TARGET_INCOMING_MISSILES is no longer optional and the macro should no longer be defined.
+#endif
+
+
 void OOPrintLogHeader(void)
 {
 	// Bunch of string literal macros which are assembled into a CPU info string.
@@ -85,26 +102,11 @@ void OOPrintLogHeader(void)
 	NSArray *featureStrings = [NSArray arrayWithObjects:
 	// User features
 	#if OO_SHADERS
-
 		@"GLSL shaders",
 	#endif
 	
 	#if NEW_PLANETS
 		@"new planets",
-	#elif ALLOW_PROCEDURAL_PLANETS
-		@"procedural planet textures",
-	#endif
-	
-	#if DOCKING_CLEARANCE_ENABLED
-		@"docking clearance",
-	#endif
-	
-	#if WORMHOLE_SCANNER
-		@"wormhole scanner",
-	#endif
-	
-	#if TARGET_INCOMING_MISSILES
-		@"target incoming missiles",
 	#endif
 	
 	#if OOLITE_MAC_OS_X || defined(HAVE_LIBESPEAK)
@@ -171,7 +173,7 @@ void OOPrintLogHeader(void)
 	
 	NSString *featureDesc = [featureStrings componentsJoinedByString:@", "];
 	if ([featureDesc length] == 0)  featureDesc = @"none";
-	[miscString appendFormat:@"\nOolite options: %@.\n", featureDesc];
+	[miscString appendFormat:@"\nBuild options: %@.\n", featureDesc];
 	
 	[miscString appendString:@"\nNote that the contents of the log file can be adjusted by editing logcontrol.plist."];
 	

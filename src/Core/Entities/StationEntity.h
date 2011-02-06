@@ -95,14 +95,11 @@ typedef enum
 	double					last_patrol_report_time;
 	double					patrol_launch_interval;
 	
-	BOOL					suppress_arrival_reports;			
-	
-#if DOCKING_CLEARANCE_ENABLED
-	BOOL					requiresDockingClearance;	
-#endif
-	BOOL					interstellarUndockingAllowed;
-	BOOL					allowsFastDocking;
-	BOOL					allowsAutoDocking;
+	unsigned				suppress_arrival_reports: 1,
+							requiresDockingClearance: 1,
+							interstellarUndockingAllowed: 1,
+							allowsFastDocking: 1,
+							allowsAutoDocking: 1;
 }
 
 - (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q;
@@ -197,11 +194,9 @@ typedef enum
 
 - (void) acceptPatrolReportFrom:(ShipEntity*) patrol_ship;
 
-#if DOCKING_CLEARANCE_ENABLED
 - (NSString *) acceptDockingClearanceRequestFrom:(ShipEntity *)other;
 - (BOOL) requiresDockingClearance;
 - (void) setRequiresDockingClearance:(BOOL)newValue;
-#endif
 
 - (BOOL) allowsFastDocking;
 - (void) setAllowsFastDocking:(BOOL)newValue;

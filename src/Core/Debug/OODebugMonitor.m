@@ -522,12 +522,10 @@ typedef struct
 	{
 		[self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
 	}
-#if WORMHOLE_SCANNER
 	for (entityEnum = [[PLAYER scannedWormholes] objectEnumerator]; (entity = [entityEnum nextObject]); )
 	{
 		[self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
 	}
-#endif
 	
 	OOLogOutdent();
 	[self writeMemStat:@"Total entity size (excluding %u entities not accounted for): %@ (%@ entity objects, %@ drawables)",

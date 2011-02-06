@@ -272,9 +272,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	reducedDetail = [prefs oo_boolForKey:@"reduced-detail-graphics" defaultValue:NO];
 	autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
-#if ALLOW_PROCEDURAL_PLANETS
 	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
-#endif
 	
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
@@ -400,7 +398,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
-#if ALLOW_PROCEDURAL_PLANETS
 - (BOOL) doProcedurallyTexturedPlanets
 {
 	return doProcedurallyTexturedPlanets;
@@ -412,7 +409,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	doProcedurallyTexturedPlanets = !!value;	// ensure yes or no
 	[[NSUserDefaults standardUserDefaults] setBool:doProcedurallyTexturedPlanets forKey:@"procedurally-textured-planets"];
 }
-#endif
 
 
 - (BOOL) strict
@@ -2959,11 +2955,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	[result oo_setBool:[PLAYER isSpeechOn] forKey:@"speechOn"];
 	[result oo_setBool:autoSave forKey:@"autosave"];
 	[result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
-#if ALLOW_PROCEDURAL_PLANETS
 	[result oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurallyTexturedPlanets"];
-#else
-	[result oo_setBool:NO forKey:@"procedurallyTexturedPlanets"];
-#endif
 	
 	[result setObject:OOStringFromShaderSetting([self shaderEffectsLevel]) forKey:@"shaderEffectsLevel"];
 	
@@ -4281,12 +4273,12 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	Entity			*my_entities[ent_count];
 	
 	for (i = 0; i < ent_count; i++)
-#if WORMHOLE_SCANNER
+	{
 		if ( ([sortedEntities[i] isShip] && ![sortedEntities[i] isPlayer]) || [sortedEntities[i] isWormhole])
-#else
-		if ((sortedEntities[i]->isShip)&&(sortedEntities[i] != player))
-#endif
+		{
 			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
+		}
+	}
 	
 	Vector p1 = player->position;
 	Quaternion q1 = player->orientation;
@@ -8339,12 +8331,6 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
-- (void *) suppressClangStuff
-{
-	return _preloadingPlanetMaterials;
-}
-
-
 - (void) setUpSettings
 {
 	[self resetBeacons];
@@ -8808,15 +8794,11 @@ static void PreloadOneSound(NSString *soundName)
 		pool = [[NSAutoreleasePool alloc] init];
 		NS_DURING
 			WormholeEntity* whole = [activeWormholes objectAtIndex:0];		
-#if WORMHOLE_SCANNER
 			// If the wormhole has been scanned by the player then the
 			// PlayerEntity will take care of it
 			if (![whole isScanned] &&
 				equal_seeds([whole destination], system_seed))
-#else
-			if (equal_seeds([whole destination], system_seed))
-#endif
-			{			
+			{
 				// this is a wormhole to this system
 				[whole disgorgeShips];
 			}

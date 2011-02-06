@@ -639,7 +639,6 @@ OORouteType StringToRouteType(NSString *string)
 }
 
 
-#if DOCKING_CLEARANCE_ENABLED
 NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus)
 {
 	switch (dockingClearanceStatus)
@@ -653,4 +652,3 @@ NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearan
 	
 	return @"DOCKING_CLEARANCE_STATUS_UNKNOWN";
 }
-#endif

@@ -111,6 +111,4 @@ OOCompassMode OOCompassModeFromString(NSString *string);
 NSString *RouteTypeToString(OORouteType routeType);
 OORouteType StringToRouteType(NSString *string);
 
-#if DOCKING_CLEARANCE_ENABLED
 NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus) PURE_FUNC;
-#endif

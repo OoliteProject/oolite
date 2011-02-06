@@ -72,18 +72,14 @@ static BOOL				activate_equipment_pressed;
 static BOOL				next_missile_pressed;
 static BOOL				fire_missile_pressed;
 static BOOL				target_missile_pressed;
-#if TARGET_INCOMING_MISSILES
 static BOOL				target_incoming_missile_pressed;
-#endif
 static BOOL				ident_pressed;
 static BOOL				safety_pressed;
 static BOOL				cloak_pressed;
 static BOOL				rotateCargo_pressed;
 static BOOL				autopilot_key_pressed;
 static BOOL				fast_autopilot_key_pressed;
-#if DOCKING_CLEARANCE_ENABLED
 static BOOL				docking_clearance_request_key_pressed;
-#endif
 #ifndef NDEBUG
 static BOOL				dump_target_state_pressed;
 static BOOL				taking_snapshot;
@@ -217,16 +213,14 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_target_missile,		't'			);
 	LOAD_KEY_SETTING(key_untarget_missile,		'u'			);
-#if TARGET_INCOMING_MISSILES
-	LOAD_KEY_SETTING(key_target_incoming_missile,	'T'			);
-#endif
+	LOAD_KEY_SETTING(key_target_incoming_missile,	'T'		);
 	LOAD_KEY_SETTING(key_ident_system,			'r'			);
 	
 	LOAD_KEY_SETTING(key_scanner_zoom,			'z'			);
 	LOAD_KEY_SETTING(key_scanner_unzoom,		'Z'			);
 	
-	LOAD_KEY_SETTING(key_launch_escapepod,		27	/* esc */	);
-	LOAD_KEY_SETTING(key_energy_bomb,			'\t'			);
+	LOAD_KEY_SETTING(key_launch_escapepod,		27	/* esc */ );
+	LOAD_KEY_SETTING(key_energy_bomb,			'\t'		);
 	
 	LOAD_KEY_SETTING(key_galactic_hyperspace,	'g'			);
 	LOAD_KEY_SETTING(key_hyperspace,			'h'			);
@@ -237,15 +231,13 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_autopilot,				'c'			);
 	LOAD_KEY_SETTING(key_autodock,				'C'			);
-#if DOCKING_CLEARANCE_ENABLED
-	LOAD_KEY_SETTING(key_docking_clearance_request, 	'L'			);
-#endif
+	LOAD_KEY_SETTING(key_docking_clearance_request, 'L'		);
 	
 	LOAD_KEY_SETTING(key_snapshot,				'*'			);
 	LOAD_KEY_SETTING(key_docking_music,			's'			);
 	
 	LOAD_KEY_SETTING(key_advanced_nav_array,	'^'			);
-	LOAD_KEY_SETTING(key_map_home,				gvHomeKey		);
+	LOAD_KEY_SETTING(key_map_home,				gvHomeKey	);
 	LOAD_KEY_SETTING(key_map_info,				'i'			);
 	
 	LOAD_KEY_SETTING(key_pausebutton,			'p'			);
@@ -935,7 +927,6 @@ static NSTimeInterval	time_last_frame;
 				}
 				else  activate_equipment_pressed = NO;
 				
-#if TARGET_INCOMING_MISSILES
 				exceptionContext = @"incoming missile T";
 				// target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
 				if ([gameView isDown:key_target_incoming_missile] || joyButtonState[BUTTON_TARGETINCOMINGMISSILE])
@@ -947,7 +938,6 @@ static NSTimeInterval	time_last_frame;
 					target_incoming_missile_pressed = YES;
 				}
 				else  target_incoming_missile_pressed = NO;
-#endif
 				
 				exceptionContext = @"missile T";
 				//  shoot 't'   // switch on missile targeting
@@ -1118,9 +1108,10 @@ static NSTimeInterval	time_last_frame;
 					fast_autopilot_key_pressed = YES;
 				}
 				else
+				{
 					fast_autopilot_key_pressed = NO;
+				}
 				
-	#if DOCKING_CLEARANCE_ENABLED
 				exceptionContext = @"docking clearance request";
 				// docking clearance request 'L', not available in strict mode
 				if ([gameView isDown:key_docking_clearance_request] && ![UNIVERSE strict])
@@ -1143,7 +1134,6 @@ static NSTimeInterval	time_last_frame;
 				{
 					docking_clearance_request_key_pressed = NO;
 				}
-	#endif
 				
 				exceptionContext = @"hyperspace";
 				// hyperspace 'h'
@@ -2447,7 +2437,6 @@ static NSTimeInterval	time_last_frame;
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-no")  forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)  align:GUI_ALIGN_CENTER];
 	}
 	
-#if ALLOW_PROCEDURAL_PLANETS
 	if ((guiSelectedRow == GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE doProcedurallyTexturedPlanets])
@@ -2464,7 +2453,6 @@ static NSTimeInterval	time_last_frame;
 		else
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-no")  forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS)  align:GUI_ALIGN_CENTER];
 	}
-#endif
 	
 	if ((guiSelectedRow == GUI_ROW(GAME,DETAIL))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
@@ -3424,9 +3412,8 @@ static BOOL toggling_music;
 				[self markForFines];
 			}
 		}
-#if DOCKING_CLEARANCE_ENABLED
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-#endif
+		
 		ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
 		ident_engaged = NO;
 		[self safeAllMissiles];
