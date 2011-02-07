@@ -5832,11 +5832,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			
 			// several parts to the explosion:
 			// 1. fast sparks
-			[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFrom:xposition size:collision_radius]];
+			[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
 			 // 2. slow clouds
-			 [UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFrom:xposition size:collision_radius]];
+			 [UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
 			// 3. flash
-			[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashWithPosition:position size:collision_radius]];
+			[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashFromEntity:self]];
 
 			BOOL add_more_explosion = (UNIVERSE->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES) &&
 									  ([UNIVERSE getTimeDelta] < 0.125);	  // FPS > 8
@@ -6272,14 +6272,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		float how_many = factor;
 		while (how_many > 0.5f)
 		{
-			[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFrom:xposition size:collision_radius]];
+			[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
 			how_many -= 1.0f;
 		}
 		// 2. slow clouds
 		how_many = factor;
 		while (how_many > 0.5f)
 		{
-			[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFrom:xposition size:collision_radius]];
+			[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
 			how_many -= 1.0f;
 		}
 		

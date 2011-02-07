@@ -55,11 +55,12 @@ static OOTexture *sFlashTexture = nil;
 
 @implementation OOFlashEffectEntity
 
-- (id) initExplosionFlashWithPosition:(Vector)pos size:(float)size
+- (id) initExplosionFlashWithPosition:(Vector)pos velocity:(Vector)vel size:(float)size
 {
 	if ((self = [self initWithPosition:pos size:size color:[OOColor whiteColor] duration:kExplosionFlashDuration]))
 	{
 		_growthRate = fmaxf(_growthRate, kMinExplosionGrowth);
+		[self setVelocity:vel];
 	}
 	return self;
 }
@@ -75,9 +76,9 @@ static OOTexture *sFlashTexture = nil;
 }
 
 
-+ (id) explosionFlashWithPosition:(Vector)position size:(float)size
++ (id) explosionFlashFromEntity:(Entity *)entity
 {
-	return [[[self alloc] initExplosionFlashWithPosition:position size:size] autorelease];
+	return [[[self alloc] initExplosionFlashWithPosition:[entity position] velocity:[entity velocity] size:[entity collisionRadius]] autorelease];
 }
 
 

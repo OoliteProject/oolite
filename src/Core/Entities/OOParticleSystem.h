@@ -50,6 +50,7 @@ enum
 	unsigned		_particleType;
 	
 	OOTimeDelta		_timePassed, _duration;
+	double			_maxSpeed;
 }
 
 /*	Initialize particle effect with particles flying out randomly.
@@ -58,8 +59,8 @@ enum
 - (id) initWithPosition:(Vector)position
 			   velocity:(Vector)velocity
 				  count:(unsigned)count
-			   minSpeed:(unsigned)minSpeed
-			   maxSpeed:(unsigned)maxSpeed
+			   minSpeed:(float)minSpeed
+			   maxSpeed:(float)maxSpeed
 			   duration:(OOTimeDelta)duration
 			  baseColor:(GLfloat[4])baseColor;
 
@@ -68,7 +69,7 @@ enum
 
 @interface OOSmallFragmentBurstEntity: OOParticleSystem
 
-+ (id) fragmentBurstFrom:(Vector)fragPosition size:(GLfloat)size;
++ (id) fragmentBurstFromEntity:(Entity *)entity;
 
 @end
 
@@ -79,6 +80,6 @@ enum
 	GLfloat			_baseSize;
 }
 
-+ (id) fragmentBurstFrom:(Vector)fragPosition size:(GLfloat)size;
++ (id) fragmentBurstFromEntity:(Entity *)entity;
 
 @end

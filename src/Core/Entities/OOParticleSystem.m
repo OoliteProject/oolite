@@ -49,8 +49,8 @@ MA 02110-1301, USA.
 - (id) initWithPosition:(Vector)pos
 			   velocity:(Vector)vel
 				  count:(unsigned)count
-			   minSpeed:(unsigned)minSpeed
-			   maxSpeed:(unsigned)maxSpeed
+			   minSpeed:(float)minSpeed
+			   maxSpeed:(float)maxSpeed
 			   duration:(OOTimeDelta)duration
 			  baseColor:(GLfloat[4])baseColor
 {
@@ -62,6 +62,7 @@ MA 02110-1301, USA.
 		position = pos;
 		velocity = vel;
 		_duration = duration;
+		_maxSpeed = maxSpeed;
 		
 		for (unsigned i = 0; i < count; i++)
 		{
@@ -109,6 +110,7 @@ MA 02110-1301, USA.
 {
 	[super update:delta_t];
 	_timePassed += delta_t;
+	collision_radius += delta_t * _maxSpeed;
 	
 	unsigned	i, count = _count;
 	Vector		*particlePosition = _particlePosition;
@@ -144,8 +146,8 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
-	OOMatrix bbMatrix = OOMatrixForBillboard(position, [PLAYER position]);
-	// FIXME: use GL point sprites.
+	Vector		viewPosition = [PLAYER viewpointPosition];
+	Vector		selfPosition = [self position];
 	
 	unsigned	i, count = _count;
 	Vector		*particlePosition = _particlePosition;
@@ -154,8 +156,9 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 	
 	if ([UNIVERSE reducedDetail])
 	{
+		// Quick rendering - particle cloud is effectively a 2D billboard.
 		OOGL(glPushMatrix());
-		GLMultOOMatrix(bbMatrix);
+		GLMultOOMatrix(OOMatrixForBillboard(selfPosition, viewPosition));
 		
 		OOGLBEGIN(GL_QUADS);
 		for (i = 0; i < count; i++)
@@ -169,19 +172,56 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 	}
 	else
 	{
-		for (i = 0; i < count; i++)
+		float distanceThreshold = collision_radius * 2.0f;	// Distance between player and middle of effect where we start to transition to "non-fast rendering."
+		float thresholdSq = distanceThreshold * distanceThreshold;
+		float distanceSq = magnitude2(relativePosition);
+		
+		if (distanceSq > thresholdSq)
 		{
-			OOGL(glPushMatrix());
-			GLTranslateOOVector(particlePosition[i]);
-			GLMultOOMatrix(bbMatrix);
+			/*	Semi-quick rendering - particle positions are volumetric, but
+				orientation is shared. This can cause noticeable distortion
+				if the player is close to the centre of the cloud.
+			*/
+			OOMatrix bbMatrix = OOMatrixForBillboard(selfPosition, viewPosition);
 			
-			glColor4fv(particleColor[i]);
-			OOGLBEGIN(GL_QUADS);
-				DrawQuadForView(0, 0, 0, particleSize[i]);
-			OOGLEND();
-			
-			OOGL(glPopMatrix());
+			for (i = 0; i < count; i++)
+			{
+				OOGL(glPushMatrix());
+				GLTranslateOOVector(particlePosition[i]);
+				GLMultOOMatrix(bbMatrix);
+				
+				glColor4fv(particleColor[i]);
+				OOGLBEGIN(GL_QUADS);
+					DrawQuadForView(0, 0, 0, particleSize[i]);
+				OOGLEND();
+				
+				OOGL(glPopMatrix());
+			}
 		}
+		else
+		{
+			/*	Non-fast rendering - each particle is billboarded individually.
+				The "individuality" factor interpolates between this behavior
+				and "semi-quick" to avoid jumping at the boundary.
+			*/
+			float individuality = 3.0f * (1.0f - distanceSq / thresholdSq);
+			individuality = OOClamp_0_1_f(individuality);
+			
+			for (i = 0; i < count; i++)
+			{
+				OOGL(glPushMatrix());
+				GLTranslateOOVector(particlePosition[i]);
+				GLMultOOMatrix(OOMatrixForBillboard(vector_add(selfPosition, vector_multiply_scalar(particlePosition[i], individuality)), viewPosition));
+				
+				glColor4fv(particleColor[i]);
+				OOGLBEGIN(GL_QUADS);
+				DrawQuadForView(0, 0, 0, particleSize[i]);
+				OOGLEND();
+				
+				OOGL(glPopMatrix());
+			}
+		}
+
 	}
 	
 	OOGL(glPopAttrib());
@@ -208,7 +248,7 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 
 @implementation OOSmallFragmentBurstEntity: OOParticleSystem
 
-- (id) initFragmentBurstFrom:(Vector)fragPosition size:(GLfloat)size
+- (id) initFragmentBurstFrom:(Vector)fragPosition velocity:(Vector)fragVelocity size:(GLfloat)size
 {
 	enum
 	{
@@ -224,7 +264,7 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 	GLfloat baseColor[4];
 	[hsvColor getGLRed:&baseColor[0] green:&baseColor[1] blue:&baseColor[2] alpha:&baseColor[3]];
 	
-	if ((self = [super initWithPosition:fragPosition velocity:kZeroVector count:count minSpeed:kMinSpeed maxSpeed:kMaxSpeed duration:1.5 baseColor:baseColor]))
+	if ((self = [super initWithPosition:fragPosition velocity:fragVelocity count:count minSpeed:kMinSpeed maxSpeed:kMaxSpeed duration:1.5 baseColor:baseColor]))
 	{
 		for (unsigned i = 0; i < count; i++)
 		{
@@ -237,9 +277,9 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 }
 
 
-+ (id) fragmentBurstFrom:(Vector)fragPosition size:(GLfloat)size
++ (id) fragmentBurstFromEntity:(Entity *)entity
 {
-	return [[[self alloc] initFragmentBurstFrom:fragPosition size:size] autorelease];
+	return [[[self alloc] initFragmentBurstFrom:[entity position] velocity:[entity velocity] size:[entity collisionRadius]] autorelease];
 }
 
 
@@ -267,18 +307,18 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 
 @implementation OOBigFragmentBurstEntity: OOParticleSystem
 
-- (id) initFragmentBurstFrom:(Vector)fragPosition size:(GLfloat)size
+- (id) initFragmentBurstFrom:(Vector)fragPosition velocity:(Vector)fragVelocity size:(GLfloat)size
 {
-	unsigned minSpeed = 1 + size * 0.5f;
-	unsigned maxSpeed = minSpeed * 4;
+	float minSpeed = 1.0f + size * 0.5f;
+	float maxSpeed = minSpeed * 4.0f;
 	
 	unsigned count = 0.2f * size;
 	count = MIN(count | 3, (unsigned)kBigFragmentBurstMaxParticles);
 	
-	GLfloat baseColor[4] = { 1.0, 1.0, 0.5, 1.0 };
+	GLfloat baseColor[4] = { 1.0f, 1.0f, 0.5f, 1.0f };	
 	
 	size *= 2.0f;	 // Account for margins in particle texture.
-	if ((self = [super initWithPosition:fragPosition velocity:kZeroVector count:count minSpeed:minSpeed maxSpeed:maxSpeed duration:1.0 baseColor:baseColor]))
+	if ((self = [super initWithPosition:fragPosition velocity:fragVelocity count:count minSpeed:minSpeed maxSpeed:maxSpeed duration:1.0 baseColor:baseColor]))
 	{
 		_baseSize = size;
 		
@@ -292,9 +332,9 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 }
 
 
-+ (id) fragmentBurstFrom:(Vector)fragPosition size:(GLfloat)size
++ (id) fragmentBurstFromEntity:(Entity *)entity
 {
-	return [[[self alloc] initFragmentBurstFrom:fragPosition size:size] autorelease];
+	return [[[self alloc] initFragmentBurstFrom:[entity position] velocity:vector_multiply_scalar([entity velocity], 0.85) size:[entity collisionRadius]] autorelease];
 }
 
 
