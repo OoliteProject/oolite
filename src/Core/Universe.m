@@ -6221,41 +6221,29 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSArray*) nearbyDestinationsWithinRange:(double) range
+- (NSArray *) nearbyDestinationsWithinRange:(double)range
 {
-	double dist;
 	NSMutableArray* result = [NSMutableArray arrayWithCapacity:16];
-	if (range < 0.0) 
+	
+	range = OOClamp_0_max_d(range, 7.0f); // limit to systems within 7LY
+	NSPoint here = [PLAYER galaxy_coordinates];
+	
+	Random_Seed hereSeed = [self systemSeed];
+	for (unsigned short i = 0; i < 256; i++)
 	{
-		OOLogWARN(@"universe.findsystems", @"DEBUG: Universe nearbyDestinationsWithinRange: looking for systems a negative distance (%d) away", range);
-		return result;
-	}
-	if (range > 7.0) range = 7.0; // limit to systems within 7LY
-	Random_Seed here = [self systemSeed];
-	
-	// make list of connected systems
-	NSArray *systemsToCheck = nil;
-	
-	systemsToCheck = [[self neighboursToRandomSeed: here]copy];
-	
-	Random_Seed system;
-	unsigned short int i,sysId;
-	for (i = 0; i < [systemsToCheck count]; i++)
-	{
-		sysId = [systemsToCheck oo_intAtIndex:i];
-		system = systems[sysId];
-		dist = distanceBetweenPlanetPositions(here.d, here.b, system.d, system.b);
-		if (dist <= range)	
+		Random_Seed system = systems[i];
+		double dist = distanceBetweenPlanetPositions(here.x, here.y, system.d, system.b);
+		if (dist <= range && !equal_seeds(system, hereSeed))	
 		{
 			[result addObject: [NSDictionary dictionaryWithObjectsAndKeys:
 								StringFromRandomSeed(system), @"system_seed",
 								[NSNumber numberWithDouble:dist], @"distance",
-								[NSNumber numberWithInt:sysId], @"sysID",
+								[NSNumber numberWithInt:i], @"sysID",
 								[[self generateSystemData:system] oo_stringForKey:@"sun_gone_nova" defaultValue:@"0"], @"nova",
 								nil]];
 		}
 	}
-	[systemsToCheck release];
+	
 	return result;
 }
 
@@ -6263,7 +6251,9 @@ static NSDictionary	*sCachedSystemData = nil;
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
 	if (!equal_seeds(gal_seed, galaxy_seed))
+	{
 		[self setGalaxySeed:gal_seed];
+	}
 	
 	Random_Seed system = gal_seed;
 	double distance;

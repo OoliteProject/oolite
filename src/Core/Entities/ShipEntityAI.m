@@ -2402,17 +2402,14 @@ static WormholeEntity *whole = nil;
 		return NO;
 	}
 	
-	// The [UNIVERSE nearbyDestinationsWithinRange:] method is very expensive, so cache
-	// its results.
-	static NSArray	*sDests = nil;
+	NSArray			*sDests = nil;
 	Random_Seed		targetSystem;
 	int 			i = 0;
 	
 	whole = nil;
 	
 	// get a list of destinations within range
-	sDests = [[UNIVERSE nearbyDestinationsWithinRange: 0.1 * fuel] copy];
-	
+	sDests = [UNIVERSE nearbyDestinationsWithinRange: 0.1 * fuel];
 	int n_dests = [sDests count];
 	
 	// if none available report to the AI and exit
@@ -2422,8 +2419,6 @@ static WormholeEntity *whole = nil;
 		
 		// If no systems exist near us, the AI is switched to a different state, so we do not need
 		// the nearby destinations array anymore.
-		[sDests release];
-		sDests = nil;
 		return NO;
 	}
 	
@@ -2433,8 +2428,6 @@ static WormholeEntity *whole = nil;
 	{
 		found_target = [blocker universalID];
 		[shipAI reactToMessage:@"WITCHSPACE BLOCKED" context:@"performHyperSpaceExit"];
-		[sDests release];
-		sDests = nil;
 		return NO;
 	}
 	
@@ -2456,8 +2449,6 @@ static WormholeEntity *whole = nil;
 		
 		if (i == n_dests)	// no match found
 		{
-			[sDests release];
-			sDests = nil;
 			return NO;
 		}
 	}
@@ -2481,8 +2472,6 @@ static WormholeEntity *whole = nil;
 	
 	// If we have reached this code, it means that the ship has already entered hyperspace,
 	// the destinations array is therefore no longer required and can be released.
-	[sDests release];
-	sDests = nil;
 	return YES;
 }
 
