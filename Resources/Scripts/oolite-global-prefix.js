@@ -307,7 +307,7 @@ if (global.timeAccelerationFactor === undefined)
 
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
 
-var failWarning = " This warning will be removed and the script will fail in Oolite 1.75.1.";
+const failWarning = " This warning will be removed and the script will fail in Oolite 1.75.1.";
 
 // Define a read-only property that is an alias for another property.
 function defineCompatibilityGetter(constructorName, oldName, newName)

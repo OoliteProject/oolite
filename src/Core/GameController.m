@@ -807,13 +807,37 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 }
 
 
+// Helpers to allow -snapshotsURLCreatingIfNeeded: code to be identical here and in dock tile plug-in.
+static id GetPreference(NSString *key, Class expectedClass)
+{
+	id result = [[NSUserDefaults standardUserDefaults] objectForKey:key];
+	if (expectedClass != Nil && ![result isKindOfClass:expectedClass])  result = nil;
+	
+	return result;
+}
+
+
+static void SetPreference(NSString *key, id value)
+{
+	[[NSUserDefaults standardUserDefaults] setObject:value forKey:key];
+}
+
+
+static void RemovePreference(NSString *key)
+{
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:key];
+}
+
+
+#define kSnapshotsDirRefKey		@"snapshots-directory-reference"
+#define kSnapshotsDirNameKey	@"snapshots-directory-name"
+
 - (NSURL *) snapshotsURLCreatingIfNeeded:(BOOL)create
 {
-	BOOL stale = NO;
-	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-	NSDictionary *snapshotDirDict = [prefs dictionaryForKey:@"snapshots-directory-reference"];
-	NSURL *url = nil;
-	NSString *name = DESC(@"snapshots-directory-name-mac");
+	BOOL			stale = NO;
+	NSDictionary	*snapshotDirDict = GetPreference(kSnapshotsDirRefKey, [NSDictionary class]);
+	NSURL			*url = nil;
+	NSString		*name = DESC(@"snapshots-directory-name-mac");
 	
 	if (snapshotDirDict != nil)
 	{
@@ -824,7 +848,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 			if ([existingName compare:name options:NSCaseInsensitiveSearch] != 0)
 			{
 				// Check name from previous access, because we might have changed localizations.
-				NSString *originalOldName = [prefs stringForKey:@"snapshots-directory-name"];
+				NSString *originalOldName = GetPreference(kSnapshotsDirNameKey, [NSString class]);
 				if ([existingName compare:originalOldName options:NSCaseInsensitiveSearch] != 0)
 				{
 					url = nil;
@@ -874,12 +898,12 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		snapshotDirDict = JAPersistentFileReferenceFromURL(url);
 		if (snapshotDirDict != nil)
 		{
-			[prefs setObject:snapshotDirDict forKey:@"snapshots-directory-reference"];
-			[prefs setObject:[[url path] lastPathComponent] forKey:@"snapshots-directory-name"];
+			SetPreference(kSnapshotsDirRefKey, snapshotDirDict);
+			SetPreference(kSnapshotsDirNameKey, [[url path] lastPathComponent]);
 		}
 		else
 		{
-			[prefs removeObjectForKey:@"snapshots-directory-reference"];
+			RemovePreference(kSnapshotsDirRefKey);
 		}
 	}
 	

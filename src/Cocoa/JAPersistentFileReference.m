@@ -164,6 +164,9 @@ NSURL *JAURLFromPersistentFileReference(NSDictionary *fileRef, JAPersistentFileR
 				{
 					stale = carbonStale;
 					result = (NSURL *)CFURLCreateFromFSRef(kCFAllocatorDefault, &fsRef);
+#if 1050 <= MAC_OS_X_VERSION_MAX_ALLOWED
+					CFMakeCollectable((CFURLRef)result);
+#endif
 					[result autorelease];
 				}
 				DisposeHandle((Handle)alias);
