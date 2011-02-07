@@ -3,31 +3,29 @@ Modifications to external libraries' source code for running Oolite
 
 The various ports of Oolite are using a number of external libraries for graphics, sound, input and event handling. Throughout development, certain changes to the source code of these libraries have been deemed necessary, either to enable Oolite to run in a more efficient and independent manner, or simply to fix issues that occurred as a result of these external libraries themselves. Of these libraries, the ones that have to be rebuilt specifically for Oolite, together with the main reasons/areas changed for this reason are:
 
-1. gnustep-base v1.15.3 (Windows) - bug in NSInteger definition, DTD checking not wanted, a couple of build warnings with MinGW GCC 3.4.2.
+1. gnustep-base v1.20.1 (Windows) - bug in NSInteger definition.
 2. SDL v1.2.13 - (Windows) window resizing issues.
-3. SpiderMonkey v1.7 (all platforms) - certain JS macro definitions required by Oolite not guaranteed or non-existent in standard library.
+3. SpiderMonkey v1.85 (all platforms) - certain JS macro definitions required by Oolite not guaranteed or non-existent in standard library.
 4. eSpeak v1.43.03 (Windows) - Special build of the Windows speech synthesis libespeak.dll to enable asynchronous playback. Also, defaults the eSpeak data directory to Resources/espeak-data.
 
 The changes made in the source code of each of these libraries are as follows:
 
-1. gnustep-base v1.15.3 (Windows)
+1. gnustep-base v1.20.1 (Windows)
 
-- GSSocketStream.m:57: Inserted the lines
-const char *inet_ntop(int af, const void *src, char *dst, size_t size);
-int inet_pton(int af, const char *src, void *dst);
-to remove implicit function declaration warnings with GCC 3.4.2.
+- GSConfig.h (build generated file): In the section reading
+/*
+ * Integer type with same size as a pointer
+ */
+typedef	unsigned int gsuaddr;
+typedef	int gssaddr;
+typedef	gsuaddr gsaddr;
 
-- NSPropertyList.m:2612: Changed line
-[parser doValidityChecking: YES];
-to
-[parser doValidityChecking: NO];
-to disable plist DTD checking (clogs the logfile, not required for Oolite).
-
-- GSConfig.h:134 (build generated file): Changed line
+Change
 typedef	gsuaddr gsaddr;
 to
 typedef	gssaddr gsaddr;
-to fix incorrect definition of NSInteger.
+to fix incorrect definition of NSInteger. The full source code of GNUstep 1.20.1 is available from
+ftp://ftp.gnustep.org/pub/gnustep/core/gnustep-base-1.20.1.tar.gz
 
 
 
@@ -42,14 +40,12 @@ to enable window resizing without side effects like texture corruption in the Wi
 
 
 
-3. SpiderMonkey v1.7 (all platforms)
+3. SpiderMonkey v1.85 (all platforms)
 
 - Specific build settings for Oolite are required. Library rebuilt with the following macros defined as shown below:
-	JS_STRINGS_ARE_UTF8 defined
-	JS_THREADSAFE not defined
-	MOZILLA_1_8_BRANCH not defined.
-	
-The entire source code of the library with the modifications included can be found in Oolite's source code distribution, under <source code installation folder>/deps/Cross-platform-deps/SpiderMonkey.
+	JS_THREADSAFE defined on Mac and Linux debug builds.
+	MOZ_TRACE_JSCALLS defined in order to enable full JavaScript profiling.
+The entire source code of the library can be downloaded from ftp://anonymous@ftp.mozilla.org/pub/firefox/releases/4.0b10/source/firefox-4.0b10.source.tar.bz2
 
 
 
