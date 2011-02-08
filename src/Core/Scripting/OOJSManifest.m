@@ -102,7 +102,7 @@ static JSPropertySpec sManifestProperties[] =
 	{ "textiles",			kManifest_textiles,			OOJS_PROP_READWRITE_CB },
 	{ "radioactives",		kManifest_radioactives,		OOJS_PROP_READWRITE_CB },
 	{ "slaves",				kManifest_slaves,			OOJS_PROP_READWRITE_CB },
-	{ "liquor/wines",		kManifest_liquorwines,		OOJS_PROP_READWRITE_CB },
+	{ "liquor/wines",		kManifest_liquorwines,		OOJS_PROP_HIDDEN_READWRITE_CB },
 	{ "luxuries",			kManifest_luxuries,			OOJS_PROP_READWRITE_CB },
 	{ "narcotics",			kManifest_narcotics,		OOJS_PROP_READWRITE_CB },
 	{ "computers",			kManifest_computers,		OOJS_PROP_READWRITE_CB },
@@ -111,21 +111,21 @@ static JSPropertySpec sManifestProperties[] =
 	{ "firearms",			kManifest_firearms,			OOJS_PROP_READWRITE_CB },
 	{ "furs",				kManifest_furs,				OOJS_PROP_READWRITE_CB },
 	{ "minerals",			kManifest_minerals,			OOJS_PROP_READWRITE_CB },
-	{ "alien items",		kManifest_alienitems,		OOJS_PROP_READWRITE_CB },
+	{ "alien items",		kManifest_alienitems,		OOJS_PROP_HIDDEN_READWRITE_CB },
 	{ "gold",				kManifest_gold,				OOJS_PROP_READWRITE_CB },
 	{ "platinum",			kManifest_platinum,			OOJS_PROP_READWRITE_CB },
-	{ "gem-stones",			kManifest_gemstones,		OOJS_PROP_READWRITE_CB },
-
+	{ "gem-stones",			kManifest_gemstones,		OOJS_PROP_HIDDEN_READWRITE_CB },
+	
 // There are 3 possible ways of accessing two-words commodities at the moment.
 // We can either use the case insensitive original names - as above,
 // or use one of the case sensitive variants below.
-
-	{ "gem_stones",			kManifest_gem_stones,		OOJS_PROP_READWRITE_CB },	// normalised
-	{ "gemStones",			kManifest_gemStones,		OOJS_PROP_READWRITE_CB },	// camelCase
-	{ "liquor_wines",		kManifest_liquor_wines,		OOJS_PROP_READWRITE_CB },	// normalised
-	{ "liquorWines",		kManifest_liquorWines,		OOJS_PROP_READWRITE_CB },	// camelCase
-	{ "alien_items",		kManifest_alien_items,		OOJS_PROP_READWRITE_CB },	// normalised
-	{ "alienItems",			kManifest_alienItems,		OOJS_PROP_READWRITE_CB },	// camelCase
+	
+	{ "gem_stones",			kManifest_gem_stones,		OOJS_PROP_HIDDEN_READWRITE_CB },	// normalised
+	{ "gemStones",			kManifest_gemStones,		OOJS_PROP_READWRITE_CB },			// camelCase
+	{ "liquor_wines",		kManifest_liquor_wines,		OOJS_PROP_HIDDEN_READWRITE_CB },	// normalised
+	{ "liquorWines",		kManifest_liquorWines,		OOJS_PROP_READWRITE_CB },			// camelCase
+	{ "alien_items",		kManifest_alien_items,		OOJS_PROP_HIDDEN_READWRITE_CB },	// normalised
+	{ "alienItems",			kManifest_alienItems,		OOJS_PROP_READWRITE_CB },			// camelCase
 	
 	{ "list",				kManifest_list,				OOJS_PROP_READONLY_CB },
 	{ 0 }
@@ -133,6 +133,7 @@ static JSPropertySpec sManifestProperties[] =
 
 
 static const unsigned kManifestCaseInsensitiveLimit = kManifest_gemstones + 1;
+static const unsigned kManifestTinyIDLimit = kManifest_alienItems + 1;
 
 
 static NSDictionary *sManifestNameMap;
@@ -219,7 +220,7 @@ static BOOL GetCommodityID(JSContext *context, jsid property, unsigned *outCommo
 	if (JSID_IS_INT(property))
 	{
 		*outCommodity = JSID_TO_INT(property);
-		return *outCommodity < kManifestCaseInsensitiveLimit;
+		return *outCommodity < kManifestTinyIDLimit;
 	}
 	else if (JSID_IS_STRING(property))
 	{
