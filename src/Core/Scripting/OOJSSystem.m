@@ -38,6 +38,7 @@
 #import "OOConstToString.h"
 #import "OOConstToJSString.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOFilteringEnumerator.h"
 
 
 static JSObject *sSystemPrototype;
@@ -243,7 +244,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			break;
 			
 		case kSystem_planets:
-			result = [UNIVERSE planets];
+			result = [[[UNIVERSE planets] objectEnumeratorFilteredWithSelector:@selector(isVisibleToScripts)] allObjects];
 			handled = YES;
 			break;
 			

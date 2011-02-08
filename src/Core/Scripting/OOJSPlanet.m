@@ -95,7 +95,8 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 
 - (BOOL) isVisibleToScripts
 {
-	return YES;
+	OOStellarBodyType type = [self planetType];
+	return type == STELLAR_TYPE_NORMAL_PLANET || type == STELLAR_TYPE_MOON;
 }
 
 
