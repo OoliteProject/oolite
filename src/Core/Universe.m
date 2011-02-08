@@ -2101,10 +2101,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 - (void) setUpBreakPattern:(Vector) pos orientation:(Quaternion) q forDocking:(BOOL) forDocking
 {
 	int						i;
-	OOBreakPatternEntity*	ring;
+	OOBreakPatternEntity	*ring = nil;
 	id						colorDesc = nil;
-	OOColor*				color = nil;
-	NSString*				breakPatternModelFileName = nil;
+	OOColor					*color = nil;
 	
 	[self setViewDirection:VIEW_FORWARD];
 	
@@ -2132,32 +2131,22 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		else  OOLogWARN(@"hyperspaceTunnel.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
 	}
 	
-	// Decide what model to use for the break pattern. If we are setting up the pattern for docking/launching, then
-	// use whatever model is selected in the station's shipdata under the 'docking_pattern_model' key(or the universal
-	// default, if no such shipdata key exists). If this is no docking break pattern, then check the 'universal' section
-	// in planetinfo.plist for a key named 'default_breakpattern_model'. If not found, use ring.dat as the default -
-	// Nikos 20091020
-	// In strict mode, we'll use ring.dat at all times -- Kaks 2010-05-15
+	unsigned	sides = kOOBreakPatternMaxSides;
+	GLfloat		startAngle = 0;
+	GLfloat		aspectRatio = 1;
 	
-	if (!strict)
+	if (!strict && forDocking)
 	{
-		if (forDocking)
-		{
-			StationEntity *station = [PLAYER dockedStation];
-			breakPatternModelFileName = [station dockingPatternModelFileName];
-		}
-		else
-		{
-			breakPatternModelFileName = [[[self planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY] oo_stringForKey:@"default_breakpattern_model"];
-		}
+		NSDictionary *info = [[PLAYER dockedStation] shipInfoDictionary];
+		sides = [info oo_unsignedIntForKey:@"tunnel_corners" defaultValue:4];
+		startAngle = [info oo_floatForKey:@"tunnel_start_angle" defaultValue:45.0f];
+		aspectRatio = [info oo_floatForKey:@"tunnel_aspect_ratio" defaultValue:2.67f];
 	}
 	
-	if (!breakPatternModelFileName)  breakPatternModelFileName = @"ring.dat";	// be sure there is a model to use
-	
 	for (i = 1; i < 11; i++)
-	{		
-		ring = [[OOBreakPatternEntity alloc] initWithModelFile:breakPatternModelFileName];
-		if (!forDocking) [ring setColors:col1 and:col2];
+	{
+		ring = [OOBreakPatternEntity breakPatternWithPolygonSides:sides startAngle:startAngle aspectRatio:aspectRatio];
+		if (!forDocking) [ring setInnerColor:col1 outerColor:col2];
 		[ring setPositionX:pos.x+v.x*i*50.0 y:pos.y+v.y*i*50.0 z:pos.z+v.z*i*50.0]; // ahead of the player
 		[ring setOrientation:q];
 		[ring setVelocity:v];
@@ -2165,7 +2154,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		[ring setScanClass: CLASS_NO_DRAW];
 		[self addEntity:ring];
 		breakPatternCounter++;
-		[ring release];
 	}
 }
 
@@ -8682,9 +8670,9 @@ Entity *gOOJSPlayerIfStale = nil;
 	// remove from the definitive list
 	if ([entities containsObject:entity])
 	{
-		if (entity->isRing)  breakPatternCounter--;
+		if ([entity isBreakPattern])  breakPatternCounter--;
 		
-		if (entity->isShip)
+		if ([entity isShip])
 		{
 			ShipEntity *se = (ShipEntity*)entity;
 			if ([se isBeacon])

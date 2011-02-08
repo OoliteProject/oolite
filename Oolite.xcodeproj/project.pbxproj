@@ -349,8 +349,6 @@
 		1A2A1B0A0BD276A900152975 /* OOEntityWithDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A1B060BD276A900152975 /* OOEntityWithDrawable.m */; };
 		1A2A1B160BD2774300152975 /* OODrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A1B120BD2774300152975 /* OODrawable.h */; };
 		1A2A1B170BD2774300152975 /* OODrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A1B130BD2774300152975 /* OODrawable.m */; };
-		1A2A1B2C0BD277D800152975 /* OOSelfDrawingEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A1B280BD277D800152975 /* OOSelfDrawingEntity.h */; };
-		1A2A1B2D0BD277D800152975 /* OOSelfDrawingEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A1B290BD277D800152975 /* OOSelfDrawingEntity.m */; };
 		1A2A1CAC0BD2914F00152975 /* OOMesh.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A1CA80BD2914F00152975 /* OOMesh.h */; };
 		1A2A1CAD0BD2914F00152975 /* OOMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2A1CA90BD2914F00152975 /* OOMesh.m */; };
 		1A2A1DEC0BD2A28E00152975 /* OOMacroOpenGL.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2A1DEA0BD2A28E00152975 /* OOMacroOpenGL.h */; };
@@ -723,8 +721,6 @@
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
-		2B9C82F411784AAB000A79F7 /* oolite-tunnel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 2B9C82F311784AAB000A79F7 /* oolite-tunnel.dat */; };
-		2BC3CA14119F6279000DD54F /* oolite-rocktunnel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 2BC3CA13119F6279000DD54F /* oolite-rocktunnel.dat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1075,8 +1071,6 @@
 			dstPath = Models;
 			dstSubfolderSpec = 7;
 			files = (
-				2BC3CA14119F6279000DD54F /* oolite-rocktunnel.dat in Copy Models */,
-				2B9C82F411784AAB000A79F7 /* oolite-tunnel.dat in Copy Models */,
 				1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Copy Models */,
 				1A0BF3D610DAE2B30099984D /* cobra1_redux2.dat in Copy Models */,
 				1A0BF3D810DAE2EC0099984D /* mamba_redux1.dat in Copy Models */,
@@ -1592,8 +1586,6 @@
 		1A2A1B060BD276A900152975 /* OOEntityWithDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEntityWithDrawable.m; sourceTree = "<group>"; };
 		1A2A1B120BD2774300152975 /* OODrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODrawable.h; sourceTree = "<group>"; };
 		1A2A1B130BD2774300152975 /* OODrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODrawable.m; sourceTree = "<group>"; };
-		1A2A1B280BD277D800152975 /* OOSelfDrawingEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSelfDrawingEntity.h; sourceTree = "<group>"; };
-		1A2A1B290BD277D800152975 /* OOSelfDrawingEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSelfDrawingEntity.m; sourceTree = "<group>"; };
 		1A2A1CA80BD2914F00152975 /* OOMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMesh.h; sourceTree = "<group>"; };
 		1A2A1CA90BD2914F00152975 /* OOMesh.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMesh.m; sourceTree = "<group>"; };
 		1A2A1DEA0BD2A28E00152975 /* OOMacroOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMacroOpenGL.h; sourceTree = "<group>"; };
@@ -2013,8 +2005,6 @@
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "javascript-errors.plist"; sourceTree = "<group>"; };
-		2B9C82F311784AAB000A79F7 /* oolite-tunnel.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-tunnel.dat"; sourceTree = "<group>"; };
-		2BC3CA13119F6279000DD54F /* oolite-rocktunnel.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-rocktunnel.dat"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2289,8 +2279,6 @@
 		1A2318A50B9D02A900EF0852 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				2B9C82F311784AAB000A79F7 /* oolite-tunnel.dat */,
-				2BC3CA13119F6279000DD54F /* oolite-rocktunnel.dat */,
 				1A2318A60B9D02A900EF0852 /* adder_redux.dat */,
 				1A2318A70B9D02A900EF0852 /* alloy.dat */,
 				1A2318A80B9D02A900EF0852 /* anaconda_redux.dat */,
@@ -2909,8 +2897,6 @@
 				1A7E317B113ED37C009AAB6D /* EntityShaderBindings.m */,
 				1A2A1B050BD276A900152975 /* OOEntityWithDrawable.h */,
 				1A2A1B060BD276A900152975 /* OOEntityWithDrawable.m */,
-				1A2A1B280BD277D800152975 /* OOSelfDrawingEntity.h */,
-				1A2A1B290BD277D800152975 /* OOSelfDrawingEntity.m */,
 				1A7E3187113ED496009AAB6D /* ProxyPlayerEntity.h */,
 				1A7E3188113ED496009AAB6D /* ProxyPlayerEntity.m */,
 				1A26D0900BCF9CF70073F257 /* ShipEntity.h */,
@@ -3336,7 +3322,6 @@
 				1A2A17D60BD1587D00152975 /* OOCPUInfo.h in Headers */,
 				1A2A1B090BD276A900152975 /* OOEntityWithDrawable.h in Headers */,
 				1A2A1B160BD2774300152975 /* OODrawable.h in Headers */,
-				1A2A1B2C0BD277D800152975 /* OOSelfDrawingEntity.h in Headers */,
 				1A2A1CAC0BD2914F00152975 /* OOMesh.h in Headers */,
 				1A2A1DEC0BD2A28E00152975 /* OOMacroOpenGL.h in Headers */,
 				1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */,
@@ -3800,7 +3785,6 @@
 				1A2A17D70BD1587D00152975 /* OOCPUInfo.m in Sources */,
 				1A2A1B0A0BD276A900152975 /* OOEntityWithDrawable.m in Sources */,
 				1A2A1B170BD2774300152975 /* OODrawable.m in Sources */,
-				1A2A1B2D0BD277D800152975 /* OOSelfDrawingEntity.m in Sources */,
 				1A2A1CAD0BD2914F00152975 /* OOMesh.m in Sources */,
 				1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */,
 				1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */,

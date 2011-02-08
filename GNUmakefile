@@ -179,7 +179,6 @@ OOLITE_ENTITY_FILES = \
 	DustEntity.m \
 	Entity.m \
 	OOEntityWithDrawable.m \
-	OOSelfDrawingEntity.m \
 	OOParticleSystem.m \
 	PlanetEntity.m \
 	PlayerEntity.m \

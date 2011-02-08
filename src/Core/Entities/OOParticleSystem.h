@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOSelfDrawingEntity.h"
+#import "Entity.h"
 
 #import "OOTypes.h"
 #import "OOMaths.h"

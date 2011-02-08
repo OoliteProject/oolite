@@ -4,6 +4,7 @@ OOBreakPatternEntity.h
 
 Entity implementing tunnel effect for hyperspace and stations.
 
+
 Oolite
 Copyright (C) 2004-2011 Giles C Williams and contributors
 
@@ -24,20 +25,39 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOSelfDrawingEntity.h"
+#import "Entity.h"
 
 @class OOColor;
 
-#define RING_SPEED		200.0
 
-
-@interface OOBreakPatternEntity: OOSelfDrawingEntity
+enum
 {
-	double lifetime;
+	kOOBreakPatternMaxSides			= 128,
+	kOOBreakPatternMaxVertices		= (kOOBreakPatternMaxSides + 1) * 2
+};
+
+
+@interface OOBreakPatternEntity: Entity
+{
+@private
+	Vector					_vertexPosition[kOOBreakPatternMaxVertices];
+	GLfloat					_vertexColor[kOOBreakPatternMaxVertices][4];
+	OOUInteger				_vertexCount;
+	GLuint					_displayListName;
+	double					_lifetime;
 }
 
-- (id) initWithModelFile:(NSString *) ringModelFileName;
-- (void) setLifetime:(double) amount;
-- (void) setColors:(OOColor *) color1 and:(OOColor *) color2;
++ (id) breakPatternWithPolygonSides:(OOUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
+
+- (void) setInnerColor:(OOColor *)color1 outerColor:(OOColor *)color2;
+
+- (void) setLifetime:(double)lifetime;
+
+@end
+
+
+@interface Entity (OOBreakPatternEntity)
+
+- (BOOL) isBreakPattern;
 
 @end

@@ -71,8 +71,6 @@ typedef enum
 	ShipEntity				*port_model;
 	double					port_corridor;				// corridor length inside station.
 	
-	NSString				*dockingPatternModelFileName;
-	
 	unsigned				no_docking_while_launching: 1,
 							hasNPCTraffic: 1;
 	BOOL					hasPatrolShips;
@@ -204,7 +202,6 @@ typedef enum
 - (BOOL) allowsAutoDocking;
 - (void) setAllowsAutoDocking:(BOOL)newValue;
 
-- (NSString *) dockingPatternModelFileName;
 - (NSString *) marketOverrideName;
 - (BOOL) isRotatingStation;
 - (BOOL) hasShipyard;

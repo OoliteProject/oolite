@@ -817,9 +817,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	allowsAutoDocking = [dict oo_boolForKey:@"allows_auto_docking" defaultValue:YES];
 	
-	NSString *defaultBreakPattern = [universalInfo oo_stringForKey:@"default_dockpattern_model" defaultValue:[universalInfo oo_stringForKey:@"default_breakpattern_model"]];
-	if (defaultBreakPattern == nil)  defaultBreakPattern = @"oolite-tunnel.dat";
-	dockingPatternModelFileName = [dict oo_stringForKey:@"docking_pattern_model" defaultValue:defaultBreakPattern];
 	interstellarUndockingAllowed = [dict oo_boolForKey:@"interstellar_undocking" defaultValue:NO];
 	
 	double unitime = [UNIVERSE getTime];
@@ -2248,11 +2245,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	return [[shipinfoDictionary objectForKey:@"roles"] rangeOfString:@"rotating-station"].location != NSNotFound;	// legacy
 }
 
-
-- (NSString *) dockingPatternModelFileName
-{
-	return dockingPatternModelFileName;
-}
 
 - (NSString *) marketOverrideName
 {

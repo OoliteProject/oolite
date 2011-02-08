@@ -2,6 +2,9 @@
 
 OOBreakPatternEntity.m
 
+Entity implementing tunnel effect for hyperspace and stations.
+
+
 Oolite
 Copyright (C) 2004-2011 Giles C Williams and contributors
 
@@ -23,82 +26,100 @@ MA 02110-1301, USA.
 */
 
 #import "OOBreakPatternEntity.h"
-
+#import "OOColor.h"
 #import "Universe.h"
 #import "OOMacroOpenGL.h"
 
 
+#define RING_SPEED		200.0
+
+
+@interface OOBreakPatternEntity (Private)
+
+- (void) setInnerColorComponents:(GLfloat[4])color1 outerColorComponents:(GLfloat[4])color2;
+
+@end
+
+
 @implementation OOBreakPatternEntity
 
-// the vertex array data...
-typedef struct
+- (id) initWithPolygonSides:(OOUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
 {
-	Vector	vertex_array[64];
-	GLfloat	color_array[4*64];
-	GLuint	triangle_index_array[3*64];
-}	Ringdata;
-
-Ringdata	ringentity;
-
-
-- (void) setLifetime:(double) amount
-{
-	lifetime = amount;
-}
-
-- (id) initWithModelFile:(NSString *) ringModelFileName
-{
-	self = [super init];
-
-	[self setModelName:ringModelFileName];
+	sides = MIN(MAX((OOUInteger)4, sides), (OOUInteger)kOOBreakPatternMaxSides);
 	
-	// initialise the vertex arrays
-	//
-	OOColor *col1 = [OOColor colorWithCalibratedRed:1.0 green:0.0 blue:0.0 alpha:0.5];
-	OOColor *col2 = [OOColor colorWithCalibratedRed:0.0 green:0.0 blue:1.0 alpha:0.25];
-	[self setColors:col1 and:col2];
-	
-	lifetime = 50.0;
-	[self setStatus:STATUS_EFFECT];
-	
-	velocity.x = 0.0;
-	velocity.y = 0.0;
-	velocity.z = 1.0;
-	
-	isRing = YES;
-	isImmuneToBreakPatternHide = YES;
+	if ((self = [super init]))
+	{
+		_vertexCount = (sides + 1) * 2;
+		float angle = startAngleDegrees * M_PI / 180.0f;
+		float deltaAngle = M_PI * 2.0f / sides;
+		float xAspect = fminf(1.0, aspectRatio);
+		float yAspect = fminf(1.0, 1.0 / aspectRatio);
+		
+		OOUInteger vi = 0;
+		for (OOUInteger i = 0; i < sides; i++)
+		{
+			float s = sinf(angle) * xAspect;
+			float c = cosf(angle) * yAspect;
+			
+			_vertexPosition[vi++] = (Vector) { s * 50, c * 50, -40 };
+			_vertexPosition[vi++] = (Vector) { s * 40, c * 40, 0 };
+			
+			angle += deltaAngle;
+		}
+		
+		_vertexPosition[vi++] = _vertexPosition[0];
+		_vertexPosition[vi++] = _vertexPosition[1];
+		
+		[self setInnerColorComponents:(GLfloat[]){ 1.0f, 0.0f, 0.0f, 0.5f }
+				 outerColorComponents:(GLfloat[]){ 0.0f, 0.0f, 1.0f, 0.25f }];
+		
+		_lifetime = 50.0;
+		velocity.z = 1.0;
+		[self setStatus:STATUS_EFFECT];
+		
+		isImmuneToBreakPatternHide = YES;
+	}
 	
 	return self;
 }
 
 
-- (void) setColors:(OOColor *) color1 and:(OOColor *) color2
++ (id) breakPatternWithCircle
 {
-	GLfloat amb_diff1[] = {[color1 redComponent], [color1 greenComponent], [color1 blueComponent], [color1 alphaComponent]};
-	GLfloat amb_diff2[] = {[color2 redComponent], [color2 greenComponent], [color2 blueComponent], [color2 alphaComponent]};
-	int i;
-	int ti = 0;
-	for (i = 0; i < 64; i++)
+	return [self breakPatternWithPolygonSides:kOOBreakPatternMaxSides startAngle:0.0f aspectRatio:1.0f];
+}
+
+
++ (id) breakPatternWithPolygonSides:(OOUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
+{
+	return [[[self alloc] initWithPolygonSides:sides startAngle:startAngleDegrees aspectRatio:aspectRatio] autorelease];
+}
+
+
+- (void) setInnerColor:(OOColor *)color1 outerColor:(OOColor *)color2
+{
+	GLfloat inner[4], outer[4];
+	[color1 getGLRed:&inner[0] green:&inner[1] blue:&inner[2] alpha:&inner[3]];
+	[color2 getGLRed:&outer[0] green:&outer[1] blue:&outer[2] alpha:&outer[3]];
+	[self setInnerColorComponents:inner outerColorComponents:outer];
+}
+
+
+- (void) setInnerColorComponents:(GLfloat[4])color1 outerColorComponents:(GLfloat[4])color2
+{
+	GLfloat *colors[2] = { color1, color2 };
+	
+	for (OOUInteger i = 0; i < _vertexCount; i++)
 	{
-		ringentity.vertex_array[i] = vertices[i];
-		ringentity.triangle_index_array[ti++] = faces[i].vertex[0];
-		ringentity.triangle_index_array[ti++] = faces[i].vertex[1];
-		ringentity.triangle_index_array[ti++] = faces[i].vertex[2];
-		if (vertices[i].z < -20.0)
-		{
-			ringentity.color_array[i*4+0] = amb_diff1[0];
-			ringentity.color_array[i*4+1] = amb_diff1[1];
-			ringentity.color_array[i*4+2] = amb_diff1[2];
-			ringentity.color_array[i*4+3] = amb_diff1[3];
-		}
-		else
-		{
-			ringentity.color_array[i*4+0] = amb_diff2[0];
-			ringentity.color_array[i*4+1] = amb_diff2[1];
-			ringentity.color_array[i*4+2] = amb_diff2[2];
-			ringentity.color_array[i*4+3] = amb_diff2[3];
-		}
+		GLfloat *color = colors[i & 1];
+		memcpy(&_vertexColor[i], color, sizeof (GLfloat) * 4);
 	}
+}
+
+
+- (void) setLifetime:(double)lifetime
+{
+	_lifetime = lifetime;
 }
 
 
@@ -107,11 +128,26 @@ Ringdata	ringentity;
 	[super update:delta_t];
 	
 	double movement = RING_SPEED * delta_t;
-	position = vector_subtract(position, vector_multiply_scalar(velocity, movement)); // swap out for setting a velocity vector
-	lifetime -= movement;
-	if (lifetime < 0.0)
+	position = vector_subtract(position, vector_multiply_scalar(velocity, movement));
+	_lifetime -= movement;
+	
+	if (_lifetime < 0.0)
 	{
 		[UNIVERSE removeEntity:self];
+	}
+}
+
+
+- (void) generateDisplayList
+{
+	OO_ENTER_OPENGL();
+	
+	OOGL(_displayListName = glGenLists(1));
+	if (_displayListName != 0)
+	{
+		OOGL(glNewList(_displayListName, GL_COMPILE));
+		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
+		OOGL(glEndList());
 	}
 }
 
@@ -120,51 +156,34 @@ Ringdata	ringentity;
 {
 	OO_ENTER_OPENGL();
 	
-	OOGL(glPushAttrib(GL_ENABLE_BIT));
-	
-	OOGL(glShadeModel(GL_SMOOTH));
-	OOGL(glDisable(GL_LIGHTING));	
-	
 	if (translucent || immediate)
 	{
-		if (basefile)
+		if (immediate)
 		{
-			if (immediate)
+			OOGL(glPushAttrib(GL_ENABLE_BIT));
+			
+			OOGL(glShadeModel(GL_SMOOTH));
+			OOGL(glDisable(GL_LIGHTING));
+			OOGL(glDisable(GL_TEXTURE_2D));
+			
+			OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+			OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertexPosition));
+			OOGL(glEnableClientState(GL_COLOR_ARRAY));
+			OOGL(glColorPointer(4, GL_FLOAT, 0, _vertexColor));
+			
+			OOGL(glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertexCount));
+			
+			OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+			OOGL(glDisableClientState(GL_COLOR_ARRAY));
+		}
+		else
+		{
+			if (_displayListName == 0)
 			{
-				OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-				OOGL(glVertexPointer( 3, GL_FLOAT, 0, ringentity.vertex_array));
-				// 3 coords per vertex
-				// of type GL_FLOAT
-				// 0 stride (tightly packed)
-				// pointer to first vertex
-
-				OOGL(glEnableClientState(GL_COLOR_ARRAY));
-				OOGL(glColorPointer( 4, GL_FLOAT, 0, ringentity.color_array));
-				// 4 values per vertex color
-				// of type GL_FLOAT
-				// 0 stride (tightly packed)
-				// pointer to quadruplet
-
-				OOGL(glDisableClientState(GL_NORMAL_ARRAY));
-				OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-				OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
-
-				OOGL(glDrawElements(GL_TRIANGLES, 3 * 64, GL_UNSIGNED_INT, ringentity.triangle_index_array));
-				
-				OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-				OOGL(glDisableClientState(GL_COLOR_ARRAY));
+				[self generateDisplayList];
 			}
-			else
-			{
-				if (displayListName != 0)
-				{
-					OOGL(glCallList(displayListName));
-				}
-				else
-				{
-					[self generateDisplayList];
-				}
-			}
+			
+			OOGL(glCallList(_displayListName));
 		}
 	}
 	
@@ -174,6 +193,22 @@ Ringdata	ringentity;
 
 
 - (BOOL) canCollide
+{
+	return NO;
+}
+
+
+- (BOOL) isBreakPattern
+{
+	return YES;
+}
+
+@end
+
+
+@implementation Entity (OOBreakPatternEntity)
+
+- (BOOL) isBreakPattern
 {
 	return NO;
 }

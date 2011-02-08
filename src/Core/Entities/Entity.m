@@ -948,7 +948,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
-	ADD_FLAG_IF_SET(isRing);
 	ADD_FLAG_IF_SET(isShip);
 	ADD_FLAG_IF_SET(isStation);
 	ADD_FLAG_IF_SET(isPlayer);
