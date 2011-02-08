@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 
 - (id) initWithPolygonSides:(OOUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
 {
-	sides = MIN(MAX((OOUInteger)4, sides), (OOUInteger)kOOBreakPatternMaxSides);
+	sides = MIN(MAX((OOUInteger)3, sides), (OOUInteger)kOOBreakPatternMaxSides);
 	
 	if ((self = [super init]))
 	{
