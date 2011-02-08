@@ -101,7 +101,7 @@ function formatPositiveIntegerInternal (value)
 
 function formatScientificInternal(value)
 {
-	return "<scientific notation unimplemented>";
+	return value.toString();
 }
 
 
