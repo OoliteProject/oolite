@@ -44,6 +44,7 @@ this.version		= "1.75";
 const minSepDigits		= +expandDescription("[number-group-threshold]");
 const groupSize			= +expandDescription("[number-group-size]");
 const maxTotalDigits	= 16;	// This is near the limit of numerical precision.
+const maxIntegerValue	= Math.pow(10, maxTotalDigits);
 const radix				= expandDescription("[number-decimal-separator]");
 const groupSep			= expandDescription("[number-group-separator]");
 const currencyFormat	= expandDescription("[@-credits]");
@@ -60,6 +61,7 @@ function defineMethod(object, name, implementation)
 // Internal method returns a pair [result, isScientificNotation] for the benefit of format[Deci]Credits.
 function formatPositiveIntegerInternal (value)
 {
+	if (value > maxIntegerValue)  return [formatScientificInternal(value), true];
 	var digits = value.toString();
 	var digitCount = digits.length;
 	if (digitCount >= minSepDigits)

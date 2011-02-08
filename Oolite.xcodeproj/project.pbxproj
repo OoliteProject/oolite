@@ -94,8 +94,6 @@
 		1A19783E117F81B10060DB56 /* OOPixMapChannelOperations.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A19783C117F81B10060DB56 /* OOPixMapChannelOperations.h */; };
 		1A19783F117F81B10060DB56 /* OOPixMapChannelOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19783D117F81B10060DB56 /* OOPixMapChannelOperations.m */; };
 		1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */; };
-		1A1E99B60EF04837008B48E2 /* OOProgressBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1E99B40EF04837008B48E2 /* OOProgressBar.h */; };
-		1A1E99B70EF04837008B48E2 /* OOProgressBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1E99B50EF04837008B48E2 /* OOProgressBar.m */; };
 		1A1F2842105AAB7900ADB8C5 /* OOSparkEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */; };
 		1A1F2843105AAB7900ADB8C5 /* OOSparkEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */; };
 		1A1F7DB6117B5D8100332757 /* OOMaterialSpecifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1F7DA7117B5BDB00332757 /* OOMaterialSpecifier.m */; };
@@ -3392,7 +3390,6 @@
 				1AB8130A0E90D8E500A84923 /* OOLogOutputHandler.h in Headers */,
 				1AC27A0F0EA7E9940054E5F0 /* OOJSEquipmentInfo.h in Headers */,
 				1ABDBA3C0EB365D90086BC3D /* OOIsNumberLiteral.h in Headers */,
-				1A1E99B60EF04837008B48E2 /* OOProgressBar.h in Headers */,
 				1A0729D90EF56D1200B0F925 /* OOConvertSystemDescriptions.h in Headers */,
 				1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */,
 				1ABC03ED0EF86110003B740A /* OOCrosshairs.h in Headers */,
@@ -3851,7 +3848,6 @@
 				1AB813090E90D8E500A84923 /* OOLogOutputHandler.m in Sources */,
 				1AC27A100EA7E9940054E5F0 /* OOJSEquipmentInfo.m in Sources */,
 				1ABDBA3B0EB365D90086BC3D /* OOIsNumberLiteral.m in Sources */,
-				1A1E99B70EF04837008B48E2 /* OOProgressBar.m in Sources */,
 				1A0729DA0EF56D1200B0F925 /* OOConvertSystemDescriptions.m in Sources */,
 				1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */,
 				1ABC03EE0EF86110003B740A /* OOCrosshairs.m in Sources */,
