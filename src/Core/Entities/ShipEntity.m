@@ -7851,18 +7851,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			(start.z > boundingBox.min.z - mcr)&&(start.z < boundingBox.max.z + mcr) )
 	{
 		start = vector_add(start, vector_multiply_scalar(v_eject, mcr));
-		
-#if 0
-		// Kept different vel calculations for player & NPCs. Is there an acutal reason for that difference? - Kaks 20091204
-		// Eric 20110203: It looks more like a fix for bad positioned launch_positions inside the BB. Remove it for EMMSTRAN (if not now).
-		if (!isPlayer) vel = vector_add(vel, vector_multiply_scalar(v_eject, 10.0f * mcr)); // throw it outward a bit harder
-#endif
 	}
 	
 	vel = vector_add(vel, vector_multiply_scalar(v_forward, flightSpeed + throw_speed));
 	
 	Quaternion q1 = [self normalOrientation];
 	Vector origin = vector_add(position, quaternion_rotate_vector(q1, start));
+	
+#if 0
+	// Eric 20110208: When missiles still crash at some launches we could throw them outward from the ship. But now
+	// at a fixed speed, equal for all ships and realy away from the ship.
+	vel = vector_add(vel, quaternion_rotate_vector(q1, vector_multiply_scalar(v_eject, 50.0f)));
+#endif
 	
 	if (isPlayer) [missile setScanClass: CLASS_MISSILE];
 	
