@@ -334,6 +334,7 @@ static void TimerFinalize(JSContext *context, JSObject *this)
 {
 	OOJS_PROFILE_ENTER
 	
+	// Can't use JSTimerGetTimer() here - potential chicken-and-egg problem manifesting as a crash.
 	OOJSTimer *timer = (OOJSTimer *)JS_GetPrivate(context, this);
 	
 	if (timer != nil)
