@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 
 #import "StationEntity.h"
+#import "GameController.h"
 
 
 static JSObject		*sStationPrototype;
@@ -324,6 +325,18 @@ static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity	*player = OOPlayerForScripting();
+	
+	if (EXPECT_NOT([UNIVERSE isGamePaused]))
+	{
+		/*
+		 Station.dockPlayer() was executed while the game was in pause.
+		 Do we want to return an error or just unpause and continue?
+		 I think unpausing is the sensible thing to do here - Nikos 20110208
+		*/
+		[[[UNIVERSE gameView] gameController] unpauseGame];
+		//OOJSReportError(context, @"Station.dockPlayer does not work when game is paused.");
+		//return NO;
+	}
 	
 	if (EXPECT(![player isDocked]))
 	{
