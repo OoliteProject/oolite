@@ -174,6 +174,12 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL) isVisible
+{
+	return YES;
+}
+
+
 - (BOOL) canCollide
 {
 	return NO;
