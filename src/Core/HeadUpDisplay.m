@@ -1587,9 +1587,9 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	hudDrawBarAt(x, y, z1, siz, fu);
 	
 	// draw range indicator
-	if ((hr > 0)&&(hr <= 1.0))
+	if (hr > 0 && hr <= 1.0)
 	{
-		GLColorWithOverallAlpha((fu < hr) ? red_color : green_color, alpha);
+		GLColorWithOverallAlpha([PLAYER hasSufficientFuelForJump] ? green_color : red_color, alpha);
 		hudDrawMarkerAt(x, y, z1, siz, hr);
 	}
 }

@@ -680,6 +680,8 @@ typedef enum
 
 - (void) rotateCargo;
 
+- (BOOL) hasSufficientFuelForJump;
+
 - (BOOL) witchJumpChecklist:(BOOL)isGalacticJump;
 - (void) enterGalacticWitchspace;
 

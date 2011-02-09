@@ -136,6 +136,10 @@ static GLfloat		sBaseMass = 0.0;
 - (void) witchJumpTo:(Random_Seed)sTo misjump:(BOOL)misjump;
 - (void) witchEnd;
 
+// Jump distance/cost calculations for selected target.
+- (double) hyperspaceJumpDistance;
+- (OOFuelQuantity) fuelRequiredForJump;
+
 @end
 
 
@@ -3032,8 +3036,8 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (GLfloat) dialHyperRange
 {
-	GLfloat distance = (float)distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	return 10.0f * distance / (GLfloat)PLAYER_MAX_FUEL;
+	if (equal_seeds(target_system_seed, system_seed))  return 0.0f;
+	return [self fuelRequiredForJump] / (GLfloat)PLAYER_MAX_FUEL;
 }
 
 
@@ -4715,8 +4719,6 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (BOOL) witchJumpChecklist:(BOOL)isGalacticJump
 {
-	BOOL jumpOK = NO;
-
 	// Perform this check only when doing the actual jump
 	if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 	{
@@ -4730,15 +4732,14 @@ static bool minShieldLevelPercentageInitialised = false;
 			[self playWitchjumpBlocked];
 			[self setStatus:STATUS_IN_FLIGHT];
 			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("blocked"));
-			goto done;
+			return NO;
 		}
 	}
 
 	// For galactic hyperspace jumps we skip the remaining checks
 	if (isGalacticJump)
 	{
-		jumpOK = YES;
-		goto done;
+		return YES;
 	}
 
 	// Check we're not jumping into the current system
@@ -4754,15 +4755,13 @@ static bool minShieldLevelPercentageInitialised = false;
 			[self setStatus:STATUS_IN_FLIGHT];
 			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("no target"));
 		}
-		else
-			[self playHyperspaceNoTarget];
+		else  [self playHyperspaceNoTarget];
 
-		goto done;
+		return NO;
 	}
 
 	// check max distance permitted
-	double jump_distance = MAX(0.1, distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y));
-	if (jump_distance > [self maxHyperspaceDistance])
+	if ([self hyperspaceJumpDistance] > [self maxHyperspaceDistance])
 	{
 		[UNIVERSE clearPreviousMessage];
 		[UNIVERSE addMessage:DESC(@"witch-too-far") forCount: 4.5];
@@ -4772,14 +4771,13 @@ static bool minShieldLevelPercentageInitialised = false;
 			[self setStatus:STATUS_IN_FLIGHT];
 			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("too far"));
 		}
-		else
-			[self playHyperspaceDistanceTooGreat];
-
-		goto done;
+		else  [self playHyperspaceDistanceTooGreat];
+		
+		return NO;
 	}
 
 	// check fuel level
-	if (fuel < 10.0 * jump_distance)
+	if (![self hasSufficientFuelForJump])
 	{
 		[UNIVERSE clearPreviousMessage];
 		[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount: 4.5];
@@ -4789,17 +4787,31 @@ static bool minShieldLevelPercentageInitialised = false;
 			[self setStatus:STATUS_IN_FLIGHT];
 			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("insufficient fuel"));
 		}
-		else
-			[self playHyperspaceNoFuel];
-
-		goto done;
+		else  [self playHyperspaceNoFuel];
+		
+		return NO;
 	}
 
 	// All checks passed
-	jumpOK = YES;
+	return YES;
+}
 
-done:
-	return jumpOK;
+
+- (double) hyperspaceJumpDistance
+{
+	return distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+}
+
+
+- (OOFuelQuantity) fuelRequiredForJump
+{
+	return 10.0 * MAX(0.1, [self hyperspaceJumpDistance]);
+}
+
+
+- (BOOL) hasSufficientFuelForJump
+{
+	return fuel >= [self fuelRequiredForJump];
 }
 
 
@@ -4895,12 +4907,11 @@ done:
 	[self witchJumpTo:[w_hole destination] misjump:misjump];
 }
 
+
 - (void) enterWitchspace
 {
-	if (![self witchJumpChecklist:false])
-	{
-		goto done;
-	}
+	if (![self witchJumpChecklist:false])  return;
+	
 	//  perform any check here for forced witchspace encounters
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
@@ -4918,7 +4929,7 @@ done:
 			[self playWitchjumpFailure];
 			[self setStatus:STATUS_IN_FLIGHT];
 			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("malfunction"));
-			goto done;
+			return;
 		}
 		else
 		{
@@ -4929,8 +4940,7 @@ done:
 	// From this point forward we are -definitely- witchjumping
 
 	// burn the full fuel amount to create the wormhole
-	double jump_distance = MAX(0.1, distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y));
-	fuel -= 10.0 * jump_distance; // fuel cost to target system
+	fuel -= [self fuelRequiredForJump];
 
 	// NEW: Create the players' wormhole
 	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_seed fromShip:self];
@@ -4940,9 +4950,6 @@ done:
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"));
 	if ([self scriptedMisjump]) misjump = YES; // a script could just have changed this to true;
 	[self witchJumpTo:target_system_seed misjump:misjump];
-
-done:
-	return;
 }
 
 
@@ -5542,12 +5549,12 @@ done:
 	}
 	
 	// now calculate the distance.
-	double			distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	double			distance = [self hyperspaceJumpDistance];
 	double			estimatedTravelTime = distance * distance;
 	
 	NSString		*targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
 	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
-
+	
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
