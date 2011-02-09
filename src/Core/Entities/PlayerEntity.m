@@ -5555,7 +5555,7 @@ done:
 		[gui setText:targetSystemName forRow:19];
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
 		[gui setText:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[short-range-chart-distance-f]"), distance] forRow:20];
-		if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[short-range-chart-est-travel-time-f]"), estimatedTravelTime] : @"") forRow:21];
+		if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[short-range-chart-est-travel-time-f]"), estimatedTravelTime] : (NSString *)@"") forRow:21];
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
