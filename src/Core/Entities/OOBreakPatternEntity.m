@@ -182,8 +182,11 @@ MA 02110-1301, USA.
 			{
 				[self generateDisplayList];
 			}
-			
-			OOGL(glCallList(_displayListName));
+			else
+			{
+				// Don't call on first frame, because view orientation may be wrong.
+				OOGL(glCallList(_displayListName));
+			}
 		}
 	}
 	
