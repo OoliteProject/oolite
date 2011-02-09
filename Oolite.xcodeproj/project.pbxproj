@@ -105,7 +105,6 @@
 		1A2123271051892500530CDE /* shipdata-overrides.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2123261051892500530CDE /* shipdata-overrides.plist */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
 		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
-		1A2315540B9C778400EF0852 /* splashback.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A2315500B9C778400EF0852 /* splashback.png */; };
 		1A2315550B9C778400EF0852 /* trumblebox.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A2315510B9C778400EF0852 /* trumblebox.png */; };
 		1A2316EE0B9CFAD700EF0852 /* characters.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316DE0B9CFAD700EF0852 /* characters.plist */; };
 		1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316DF0B9CFAD700EF0852 /* commodities.plist */; };
@@ -1338,7 +1337,6 @@
 		1A2123261051892500530CDE /* shipdata-overrides.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "shipdata-overrides.plist"; sourceTree = "<group>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
-		1A2315500B9C778400EF0852 /* splashback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splashback.png; sourceTree = "<group>"; };
 		1A2315510B9C778400EF0852 /* trumblebox.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = trumblebox.png; sourceTree = "<group>"; };
 		1A2316DE0B9CFAD700EF0852 /* characters.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = characters.plist; sourceTree = "<group>"; };
 		1A2316DF0B9CFAD700EF0852 /* commodities.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.plist.xml; path = commodities.plist; sourceTree = "<group>"; };
@@ -2111,7 +2109,6 @@
 				2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */,
 				1A23154E0B9C778400EF0852 /* solar.png */,
 				1A23154F0B9C778400EF0852 /* splash.png */,
-				1A2315500B9C778400EF0852 /* splashback.png */,
 				1A2315510B9C778400EF0852 /* trumblebox.png */,
 			);
 			path = Images;
@@ -3645,7 +3642,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A2315530B9C778400EF0852 /* splash.png in Resources */,
-				1A2315540B9C778400EF0852 /* splashback.png in Resources */,
 				0865427906B8447D000CA0AB /* MainMenu.nib in Resources */,
 				25F3E8A70994FE65002F25FD /* oolite-document.icns in Resources */,
 				25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */,
