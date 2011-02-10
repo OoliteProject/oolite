@@ -141,17 +141,13 @@ static NSDictionary *sManifestNameMap;
 
 // Helper class wrapped by JS Manifest objects
 @interface OOManifest: NSObject
-
-
 @end
 
 
 @implementation OOManifest
 
-
 - (void) dealloc
 {
-	
 	[super dealloc];
 }
 
@@ -190,6 +186,7 @@ void InitOOJSManifest(JSContext *context, JSObject *global)
 	JS_SetPrivate(context, sManifestObject, NULL);
 	
 	// Also define manifest object as a property of the global object.
+	// Wait, what? Why? Oh well, too late now. Deprecate for EMMSTRAN? -- Ahruman 2011-02-10
 	JS_DefineObject(context, global, "manifest", &sManifestClass, sManifestPrototype, OOJS_PROP_READONLY);
 	
 	// Create dictionary mapping commodity names to tinyids.
@@ -202,6 +199,7 @@ void InitOOJSManifest(JSContext *context, JSObject *global)
 		[manifestNameMap setObject:value forKey:key];
 	}
 	
+	// EMMSTRAN: use NSMapTable. -- Ahruman 2011-02-10
 	sManifestNameMap = [[NSMutableDictionary alloc] initWithDictionary:manifestNameMap];
 }
 
@@ -236,6 +234,93 @@ static BOOL GetCommodityID(JSContext *context, jsid property, unsigned *outCommo
 }
 
 
+static BOOL GetCommodityType(JSContext *context, unsigned tinyID, jsid propID, OOCommodityType *outType)
+{
+	NSCParameterAssert(outType != NULL);
+	
+	switch (tinyID)
+	{
+		case kManifest_food:
+			*outType = COMMODITY_FOOD;
+			return YES;
+			
+		case kManifest_textiles:
+			*outType = COMMODITY_TEXTILES;
+			return YES;
+			
+		case kManifest_radioactives:
+			*outType = COMMODITY_RADIOACTIVES;
+			return YES;
+			
+		case kManifest_slaves:
+			*outType = COMMODITY_SLAVES;
+			return YES;
+			
+		case kManifest_liquor_wines:
+		case kManifest_liquorwines:
+		case kManifest_liquorWines:
+			*outType = COMMODITY_LIQUOR_WINES;
+			return YES;
+			
+		case kManifest_luxuries:
+			*outType = COMMODITY_LUXURIES;
+			return YES;
+			
+		case kManifest_narcotics:
+			*outType = COMMODITY_NARCOTICS;
+			return YES;
+			
+		case kManifest_computers:
+			*outType = COMMODITY_COMPUTERS;
+			return YES;
+			
+		case kManifest_machinery:
+			*outType = COMMODITY_MACHINERY;
+			return YES;
+			
+		case kManifest_alloys:
+			*outType = COMMODITY_ALLOYS;
+			return YES;
+			
+		case kManifest_firearms:
+			*outType = COMMODITY_FIREARMS;
+			return YES;
+			
+		case kManifest_furs:
+			*outType = COMMODITY_FURS;
+			return YES;
+			
+		case kManifest_minerals:
+			*outType = COMMODITY_MINERALS;
+			return YES;
+			
+		case kManifest_gold:
+			*outType = COMMODITY_GOLD;
+			return YES;
+			
+		case kManifest_platinum:
+			*outType = COMMODITY_PLATINUM;
+			return YES;
+			
+		case kManifest_gem_stones:
+		case kManifest_gemstones:
+		case kManifest_gemStones:
+			*outType = COMMODITY_GEM_STONES;
+			return YES;
+			
+		case kManifest_alien_items:
+		case kManifest_alienitems:
+		case kManifest_alienItems:
+			*outType = COMMODITY_ALIEN_ITEMS;
+			return YES;
+			
+		default:
+			OOJSReportWarning(context, @"BUG: unknown commodity tinyID %u for property ID %@. This is an internal error in Oolite, please report it.", tinyID, OOStringFromJSPropertyIDAndSpec(context, propID, sManifestProperties));
+			return NO;
+	}
+}
+
+
 static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	OOJS_NATIVE_ENTER(context)
@@ -246,82 +331,16 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsid propI
 	
 	if (GetCommodityID(context, propID, &commodity))
 	{
-		switch (commodity)
+		OOCommodityType type;
+		if (GetCommodityType(context, commodity, propID, &type))
 		{
-				
-			case kManifest_food:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FOOD]);
-				return YES;
-				
-			case kManifest_textiles:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_TEXTILES]);
-				return YES;
-				
-			case kManifest_radioactives:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_RADIOACTIVES]);
-				return YES;
-				
-			case kManifest_slaves:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_SLAVES]);
-				return YES;
-				
-			case kManifest_liquor_wines:
-			case kManifest_liquorwines:
-			case kManifest_liquorWines:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LIQUOR_WINES]);
-				return YES;
-				
-			case kManifest_luxuries:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LUXURIES]);
-				return YES;
-				
-			case kManifest_narcotics:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_NARCOTICS]);
-				return YES;
-				
-			case kManifest_computers:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_COMPUTERS]);
-				return YES;
-				
-			case kManifest_machinery:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MACHINERY]);
-				return YES;
-				
-			case kManifest_alloys:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALLOYS]);
-				return YES;
-				
-			case kManifest_firearms:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FIREARMS]);
-				return YES;
-				
-			case kManifest_furs:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_FURS]);
-				return YES;
-				
-			case kManifest_minerals:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_MINERALS]);
-				return YES;
-				
-			case kManifest_gold:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GOLD]);
-				return YES;
-				
-			case kManifest_platinum:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_PLATINUM]);
-				return YES;
-				
-			case kManifest_gem_stones:
-			case kManifest_gemstones:
-			case kManifest_gemStones:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GEM_STONES]);
-				return YES;
-				
-			case kManifest_alien_items:
-			case kManifest_alienitems:
-			case kManifest_alienItems:
-				*value = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALIEN_ITEMS]);
-				return YES;
+			*value = INT_TO_JSVAL([entity cargoQuantityForType:type]);
+			return YES;
+		}
+		else
+		{
+			*value = INT_TO_JSVAL(0);
+			return YES;
 		}
 	}
 	else
@@ -351,7 +370,6 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsid propI
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	PlayerEntity				*entity = OOPlayerForScripting();
 	int32						iValue;
 	unsigned					commodity;
@@ -359,184 +377,26 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsid propI
 	if (!GetCommodityID(context, propID, &commodity))  return YES;
 	
 	// we can always change gold, platinum & gem-stones quantities, even with special cargo
-	if ([entity specialCargo] && (commodity < kManifest_gold || commodity > kManifest_gemStones))
+	if ((commodity < kManifest_gold || commodity > kManifest_gemStones) && [entity specialCargo])
 	{
 		OOJSReportWarning(context, @"PlayerShip.manifest['foo'] - cannot modify cargo tonnage when Special Cargo is in use.");
 		return YES;
 	}
 	
-	switch (commodity)
+	OOCommodityType type;
+	if (GetCommodityType(context, commodity, propID, &type))
 	{
-		case kManifest_food:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_FOOD amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_textiles:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_TEXTILES amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_radioactives:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_RADIOACTIVES amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_slaves:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_SLAVES amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_liquor_wines:
-		case kManifest_liquorwines:
-		case kManifest_liquorWines:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_LIQUOR_WINES amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_luxuries:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_LUXURIES amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_narcotics:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_NARCOTICS amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_computers:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_COMPUTERS amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_machinery:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_MACHINERY amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_alloys:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_ALLOYS amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_firearms:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_FIREARMS amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_furs:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_FURS amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_minerals:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_MINERALS amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_gold:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_GOLD amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_platinum:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_PLATINUM amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_gem_stones:
-		case kManifest_gemstones:
-		case kManifest_gemStones:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_GEM_STONES amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		case kManifest_alien_items:
-		case kManifest_alienitems:
-		case kManifest_alienItems:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				if (iValue < 0)  iValue = 0;
-				[entity setCargoQuantityForType:COMMODITY_ALIEN_ITEMS amount:iValue];
-				OK = YES;
-			}
-			break;
-		
-		default:
-			OOJSReportBadPropertySelector(context, this, propID, sManifestProperties);
-			return NO;
+		if (JS_ValueToInt32(context, *value, &iValue))
+		{
+			if (iValue < 0)  iValue = 0;
+			[entity setCargoQuantityForType:type amount:iValue];
+		}
+		else
+		{
+			OOJSReportBadPropertyValue(context, this, propID, sManifestProperties, *value);
+		}
 	}
-	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sManifestProperties, *value);
-	}
-	
-	return OK;
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
