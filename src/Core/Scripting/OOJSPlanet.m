@@ -130,7 +130,7 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOJS_NATIVE_ENTER(context)
 	
 	OOPlanetEntity				*planet = nil;
-	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
+	if (!JSPlanetGetPlanetEntity(context, this, &planet))  return NO;
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -146,7 +146,7 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return YES;
 			
 		case kPlanet_texture:
-			*value = [[planet textureFileName] oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, [planet textureFileName]);
 			return YES;
 			
 		case kPlanet_orientation:
@@ -170,19 +170,18 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL					OK = NO;
 	OOPlanetEntity			*planet = nil;
 	NSString				*sValue = nil;
 	Quaternion				qValue;
 	jsdouble				dValue;
 	
-	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
+	if (!JSPlanetGetPlanetEntity(context, this, &planet))  return NO;
 	
 	switch (JSID_TO_INT(propID))
 	{
 		case kPlanet_texture:
-			// all error messages are self contained
-
+		{
+			BOOL OK = NO;
 			sValue = OOStringFromJSValue(context, *value);
 			
 			if ([planet isKindOfClass:[OOPlanetEntity class]])
@@ -200,16 +199,17 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 			if (OK)
 			{
 				OK = [planet setUpPlanetFromTexture:sValue];
-				if (!OK) OOJSReportWarning(context, @"Cannot find texture \"%@\". Value not set.", sValue);
+				if (!OK)  OOJSReportWarning(context, @"Cannot find texture \"%@\". Value not set.", sValue);
 			}
 			return YES;	// Even if !OK, no exception was raised.
+		}
 			
 		case kPlanet_orientation:
 			if (JSValueToQuaternion(context, *value, &qValue))
 			{
 				quaternion_normalize(&qValue);
 				[planet setOrientation:qValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 
@@ -217,7 +217,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 			if (JS_ValueToNumber(context, *value, &dValue))
 			{
 				[planet setRotationalVelocity:dValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -226,12 +226,8 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sPlanetProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sPlanetProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }

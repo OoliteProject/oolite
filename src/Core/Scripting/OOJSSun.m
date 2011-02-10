@@ -125,7 +125,7 @@ static JSBool SunGetProperty(JSContext *context, JSObject *this, jsid propID, js
 	
 	OOSunEntity					*sun = nil;
 	
-	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
+	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun)))  return NO;
 	
 	switch (JSID_TO_INT(propID))
 	{
