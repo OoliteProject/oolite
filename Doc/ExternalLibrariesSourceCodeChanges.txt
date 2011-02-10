@@ -56,8 +56,7 @@ The entire source code of the library can be downloaded from ftp://anonymous@ftp
 4. eSpeak v1.43.03 (Windows)
 
 - The libespeak.dll has been custom-built for the Windows port of Oolite to enable asynchronous playback and to also default the eSpeak data files folder to Resources/espeak-data. The source files that need to be changed for this to happen can be found inside deps/Windows-x86-deps/OOeSpeakWin32DLLBuild. The instructions for building this library, for those interested, are as follows:
-  - You will need to have OoliteDevelopmentEnvironment - Light Edition installed, downloadable from http://terrastorage.ath.cx/Marmagka/5cced8c2546092e4072f2beb229d5271/OoliteDevelopmentEnvironment_20090330.zip or from
-    http://www.4shared.com/file/116738805/8d8c4647/OoliteDevelopmentEnvironment_20090330.html. Instructions for setting it up can be found at http://www.aegidian.org/bb/viewtopic.php?t=5943.
+  - You will need to have OoliteDevelopmentEnvironment - Light Edition installed, downloadable from http://terrastorage.ath.cx/Marmagka/96c0541f096ed76835fc1b8ee3e01b31/OoliteDevelopmentEnvironment_LE_20110207.zip. Instructions for setting it up can be found at http://www.aegidian.org/bb/viewtopic.php?t=5943.
   - Download espeak-1.43.03-source.zip from http://espeak.sourceforge.net/download.html
   - Unzip the file to a folder of choice, maintaining the directory structure. We'll refer to this folder as <espeakSourceFolder>.
   - Copy the files
