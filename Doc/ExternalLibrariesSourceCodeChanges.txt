@@ -24,7 +24,11 @@ Change
 typedef	gsuaddr gsaddr;
 to
 typedef	gssaddr gsaddr;
-to fix incorrect definition of NSInteger. The full source code of GNUstep 1.20.1 is available from
+to fix incorrect definition of NSInteger. 
+
+- The GNUstep objc-1.dll runtime has been rebuilt with native Obj-C exception support. To do this on Windows, the patch which provides the void objc_set_unexpected(void (*handler)(id)) function to the runtime is required for versions of gcc older than 4.4.0. The patch can be downloaded from http://gcc.gnu.org/bugzilla/attachment.cgi?id=17364. Also, the gcc source header unwind-pe.h must be visible to exception.c in order for the build of libobjc to succeed.
+
+The full source code of GNUstep 1.20.1 is available from
 ftp://ftp.gnustep.org/pub/gnustep/core/gnustep-base-1.20.1.tar.gz
 
 
