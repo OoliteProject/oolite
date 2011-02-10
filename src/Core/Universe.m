@@ -4880,13 +4880,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) speakWithSubstitutions:(NSString *)text
 {
 #if OOLITE_SPEECH_SYNTH
-	
-#if OOLITE_MAC_OS_X
-#define HAVE_STRING_BY_REPLACING	OOLITE_LEOPARD
-#elif OOLITE_GNUSTEP
-#define HAVE_STRING_BY_REPLACING	OOLITE_GNUSTEP_1_20
-#endif
-	
 	//speech synthesis
 	
 	PlayerEntity* player = PLAYER;
@@ -4926,14 +4919,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				NSString *replacement_phrase = [thePair oo_stringAtIndex:replacementIndex];
 				if (![replacement_phrase isEqualToString:@"_"])
 				{
-#if HAVE_STRING_BY_REPLACING
+#if OOLITE_HAVE_STRING_BY_REPLACING
 					spokenText = [spokenText stringByReplacingOccurrencesOfString:original_phrase withString:replacement_phrase];
 #else
 					spokenText = [[spokenText componentsSeparatedByString:original_phrase] componentsJoinedByString:replacement_phrase];
 #endif
 				}
 			}
-#if HAVE_STRING_BY_REPLACING
+#if OOLITE_HAVE_STRING_BY_REPLACING
 			spokenText = [spokenText stringByReplacingOccurrencesOfString:systemName withString:systemSaid];
 			spokenText = [spokenText stringByReplacingOccurrencesOfString:h_systemName withString:h_systemSaid];
 #else

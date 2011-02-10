@@ -312,7 +312,8 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 		{ @"commander_rank", @selector(commanderRank_string) },
 		{ @"commander_legal_status", @selector(commanderLegalStatus_string) },
 		{ @"commander_bounty", @selector(commanderLegalStatus_number) },
-		{ @"credits_number", @selector(creditsFormattedForSubstitution) }
+		{ @"credits_number", @selector(creditsFormattedForSubstitution) },
+		{ @"_oo_legacy_credits_number", @selector(creditsFormattedForLegacySubstitution) }
 	};
 	unsigned i, count = sizeof selectors / sizeof *selectors;
 	
@@ -331,6 +332,17 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 - (NSString *) creditsFormattedForSubstitution
 {
 	return OOStringFromDeciCredits([self deciCredits], YES, NO);
+}
+
+
+- (NSString *) creditsFormattedForLegacySubstitution
+{
+	//	Unlocalized because legacy scripts may use it for arithmetic.
+	OOCreditsQuantity	tenthsOfCredits = [self deciCredits];
+	unsigned long long	integerCredits = tenthsOfCredits / 10;
+	unsigned long long	tenths = tenthsOfCredits % 10;
+	
+	return [NSString stringWithFormat:@"%llu.%llu", integerCredits, tenths];
 }
 
 @end

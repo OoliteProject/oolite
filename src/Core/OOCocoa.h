@@ -379,6 +379,14 @@ enum {
 #endif
 
 
+// Availability of -[NSString stringByReplacingOccurrencesOfString:...] family.
+#if OOLITE_MAC_OS_X
+#define OOLITE_HAVE_STRING_BY_REPLACING	OOLITE_LEOPARD
+#elif OOLITE_GNUSTEP
+#define OOLITE_HAVE_STRING_BY_REPLACING	OOLITE_GNUSTEP_1_20
+#endif
+
+
 /*	Enumeration macros:
 	foreach(VAR, COLLECTION) enumerates the members of an array or set, setting
 	the variable VAR to a member on each pass.

@@ -222,17 +222,17 @@ static void PerformConditionalStatment(NSArray *statement, Entity *target)
 static void PerformActionStatment(NSArray *statement, Entity *target)
 {
 	/*	A sanitized action statement takes the form of an array:
-	 (false, selector [, argument])
-	 The first element is always false. The second is the method selector
-	 (as a string). If the method takes an argument, the third argument is
-	 the argument string.
-	 
-	 The sanitizer is responsible for ensuring that there is an argument,
-	 even if it's the empty string, for any selector with a colon at the
-	 end, and no arguments for selectors without colons. The runner can
-	 therefore use the list's element count as a flag without examining the
-	 selector.
-	 */
+		(false, selector [, argument])
+		The first element is always false. The second is the method selector
+		(as a string). If the method takes an argument, the third argument is
+		the argument string.
+
+		The sanitizer is responsible for ensuring that there is an argument,
+		even if it's the empty string, for any selector with a colon at the
+		end, and no arguments for selectors without colons. The runner can
+		therefore use the list's element count as a flag without examining the
+		selector.
+	*/
 	
 	NSString				*selectorString = nil;
 	NSString				*argumentString = nil;

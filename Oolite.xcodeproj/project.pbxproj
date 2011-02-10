@@ -1927,7 +1927,7 @@
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
 		1AEF57D212E51DDB00546444 /* OOJSEngineNativeWrappers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSEngineNativeWrappers.h; sourceTree = "<group>"; };
-		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = contributors.txt; path = Doc/contributors.txt; sourceTree = "<group>"; };
+		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = contributors.txt; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
 		2512834009BA27EC00F43D55 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Geometry.h; sourceTree = "<group>"; };
@@ -3060,7 +3060,6 @@
 		1AA2E7061191E39600DFBA23 /* Build stuff */ = {
 			isa = PBXGroup;
 			children = (
-				1AF8E33A0CC169F500CA6001 /* contributors.txt */,
 				1A9407BF0BAF7032005F6CF3 /* GNUmakefile */,
 				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
 				1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */,
@@ -3120,6 +3119,7 @@
 		1AC0E9380B974D8700C46994 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
+				1AF8E33A0CC169F500CA6001 /* contributors.txt */,
 				1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */,
 				1AC0E9480B974DC200C46994 /* ReadMe.rtfd */,
 				1AC0E9490B974DC200C46994 /* LICENSE.TXT */,
