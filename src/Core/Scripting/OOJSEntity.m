@@ -212,7 +212,6 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kEntity_owner:
 			result = [entity owner];
 			if (result == entity)  result = nil;
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kEntity_energy:
@@ -242,7 +241,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return YES;
 			
 		case kEntity_isPlanet:
-			*value = OOJSValueFromBOOL([entity isPlanet] && ![entity isSun]);
+			*value = OOJSValueFromBOOL([entity isPlanet]);
 			return YES;
 			
 		case kEntity_isSun:
@@ -272,7 +271,6 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL				OK = NO;
 	Entity				*entity = nil;
 	double				fValue;
 	Vector				vValue;
@@ -314,12 +312,8 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sEntityProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sEntityProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }

@@ -135,13 +135,15 @@ MA 02110-1301, USA.
 {
 	ShipEntity *me = self;
 	
-	// Ensure coherence by not fiddling with subentities
-	while ([me isSubEntity])  {
-		if (me == [me owner] || [me owner] == nil) break;
+	// Ensure coherence by not fiddling with subentities.
+	while ([me isSubEntity])
+	{
+		if (me == [me owner] || [me owner] == nil)  break;
 		me = (ShipEntity *)[me owner];
 	}
-	while ([target isSubEntity]) {
-		if (target == [target owner] || [target owner] == nil) break;
+	while ([target isSubEntity])
+	{
+		if (target == [target owner] || [target owner] == nil)  break;
 		target = (ShipEntity *)[target owner];
 	}
 	if (![me isKindOfClass:[ShipEntity class]])  return;

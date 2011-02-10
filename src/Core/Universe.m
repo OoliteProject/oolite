@@ -3763,7 +3763,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		{
 			[activeWormholes addObject:entity];
 		}
-		else if ([entity isPlanet] && ![entity isSun])
+		else if ([entity isPlanet])
 		{
 			[allPlanets addObject:entity];
 		}
@@ -8698,7 +8698,7 @@ Entity *gOOJSPlayerIfStale = nil;
 		{
 			[activeWormholes removeObject:entity];
 		}
-		else if ([entity isPlanet] && ![entity isSun])
+		else if ([entity isPlanet])
 		{
 			[allPlanets removeObject:entity];
 		}
