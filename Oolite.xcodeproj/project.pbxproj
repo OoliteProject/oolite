@@ -1815,7 +1815,6 @@
 		1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetDrawable.m; sourceTree = "<group>"; };
 		1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OOPlanetData.c; sourceTree = "<group>"; };
 		1AA7FCAE10C2BA3B0058FBED /* OOPlanetData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetData.h; sourceTree = "<group>"; };
-		1AA7FCD110C2BDDD0058FBED /* oolite-planet-temp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-planet-temp.png"; sourceTree = "<group>"; };
 		1AA7FD1C10C2C3750058FBED /* OOPlanetEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetEntity.h; sourceTree = "<group>"; };
 		1AA7FD1D10C2C3750058FBED /* OOPlanetEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetEntity.m; sourceTree = "<group>"; };
 		1AA7FDDA10C2DC800058FBED /* OOSunEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSunEntity.h; sourceTree = "<group>"; };
@@ -2242,7 +2241,6 @@
 				1A35916B0C1C375400E52220 /* oolite-nebula-3.png */,
 				1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */,
 				1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */,
-				1AA7FCD110C2BDDD0058FBED /* oolite-planet-temp.png */,
 				1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */,
 				1A35916A0C1C375400E52220 /* oolite-star-1.png */,
 				1A2318490B9D026D00EF0852 /* pod2_redux.png */,

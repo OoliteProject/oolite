@@ -70,8 +70,6 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, uintN argc, jsval *
 static JSBool ShipCommsMessage(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipFireECM(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAbandonShip(JSContext *context, uintN argc, jsval *vp);
-static JSBool ShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
-static JSBool ShipAwardContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp);
@@ -88,7 +86,6 @@ static JSBool ShipExitSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipUpdateEscortFormation(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
-static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
 
 
@@ -289,8 +286,6 @@ static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
 	{ "abandonShip",			ShipAbandonShip,			0 },
-	{ "addPassenger",			ShipAddPassenger,			0 },	// Documented as PlayerShip
-	{ "awardContract",			ShipAwardContract,			0 },	// Documented as PlayerShip
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
@@ -311,7 +306,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
 	{ "removePassenger",		ShipRemovePassenger,		1 },	// Documented as PlayerShip
 	{ "restoreSubEntities",		ShipRestoreSubEntities,		0 },
-	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },	// Deliberately not documented
+	{ "__runLegacyScriptActions", ShipRunLegacyScriptActions,	2 },	// Deliberately not documented
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
 	{ "sendAIMessage",			ShipSendAIMessage,			1 },
 	{ "setAI",					ShipSetAI,					1 },
@@ -420,9 +415,8 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			break;
 		
 		case kShip_escorts:
-			// FIXME: use implemention in oolite-global-prefix.js once ShipGroup works.
 			result = [[entity escortGroup] memberArrayExcludingLeader];
-			if ([result count] == 0)  result = [NSNull null];
+			if ([result count] == 0)  result = nil;
 			break;
 			
 		case kShip_group:
@@ -582,7 +576,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_scriptInfo:
 			result = [entity scriptInfo];
-			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than undefined
+			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than null
 			break;
 			
 		case kShip_trackCloseContacts:
@@ -690,7 +684,6 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	ShipEntity					*entity = nil;
 	ShipEntity					*target = nil;
 	NSString					*sValue = nil;
@@ -701,72 +694,52 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 	OOShipGroup					*group = nil;
 	OOColor						*colorForScript = nil;
 	
-	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
+	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity)))  return NO;
 	if (OOIsStaleEntity(entity))  return YES;
 	
 	switch (JSID_TO_INT(propID))
 	{
 		case kShip_name:
-			if ([entity isPlayer])
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
 			{
-				OOJSReportError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"name", @"name");
-			}
-			else
-			{
-				sValue = OOStringFromJSValue(context,*value);
-				if (sValue != nil)
-				{
-					[entity setName:sValue];
-					OK = YES;
-				}
+				[entity setName:sValue];
+				return YES;
 			}
 			break;
 			
 		case kShip_displayName:
-			if ([entity isPlayer])
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
 			{
-				OOJSReportError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"displayName", @"displayName");
-			}
-			else
-			{
-				sValue = OOStringFromJSValue(context,*value);
-				if (sValue != nil)
-				{
-					[entity setDisplayName:sValue];
-					OK = YES;
-				}
+				[entity setDisplayName:sValue];
+				return YES;
 			}
 			break;
 		
 		case kShip_primaryRole:
-			if ([entity isPlayer])
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
 			{
-				OOJSReportError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"primaryRole", @"primary role");
-			}
-			else
-			{
-				sValue = OOStringFromJSValue(context,*value);
-				if (sValue != nil)
-				{
-					[entity setPrimaryRole:sValue];
-					OK = YES;
-				}
+				[entity setPrimaryRole:sValue];
+				return YES;
 			}
 			break;
 		
 		case kShip_AIState:
-			if ([entity isPlayer])
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
 			{
-				OOJSReportError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"AIState", @"AI state");
-			}
-			else
-			{
-				sValue = OOStringFromJSValue(context,*value);
-				if (sValue != nil)
-				{
-					[[entity getAI] setState:sValue];
-					OK = YES;
-				}
+				[[entity getAI] setState:sValue];
+				return YES;
 			}
 			break;
 		
@@ -775,7 +748,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			{
 				fValue = OOClamp_0_max_d(fValue, 7.0);
 				[entity setFuel:lround(fValue * 10.0)];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -784,7 +757,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			{
 				if (iValue < 0)  iValue = 0;
 				[entity setBounty:iValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -792,12 +765,12 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (JSVAL_IS_NULL(*value))
 			{
 				[entity setTargetForScript:nil];
-				OK = YES;
+				return YES;
 			}
 			else if (JSValueToEntity(context, *value, &target) && [target isKindOfClass:[ShipEntity class]])
 			{
 				[entity setTargetForScript:target];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -806,7 +779,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (group != nil || JSVAL_IS_NULL(*value))
 			{
 				[entity setGroup:group];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -815,7 +788,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			{
 				fValue = OOMax_d(fValue, 0.0);
 				[entity setTemperature:fValue * SHIP_MAX_CABIN_TEMP];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -824,7 +797,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			{
 				fValue = OOMax_d(fValue, 0.125);
 				[entity setHeatInsulation:fValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -832,7 +805,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setCloaked:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -840,22 +813,15 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setAutoCloak:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
 		case kShip_missileLoadTime:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				if (fValue < 0.0)
-				{
-					OOJSReportError(context, @"Ship.%@ [setter]: cannot set negative missile load time (%fs).", @"missileLoadTime", fValue);
-				}
-				else
-				{
-					[entity setMissileLoadTime:fValue];
-					OK = YES;
-				}
+				[entity setMissileLoadTime:fmax(0.0, fValue)];
+				return YES;
 			}
 			break;
 		
@@ -863,7 +829,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setReportAIMessages:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -871,7 +837,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setTrackCloseContacts:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -879,22 +845,17 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setIsBoulder:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
 		case kShip_desiredSpeed:
-			if ([entity isPlayer])
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
+			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				OOJSReportError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"desiredSpeed", @"desired speed");
-			}
-			else
-			{
-				if (JS_ValueToNumber(context, *value, &fValue))
-				{
-					[entity setDesiredSpeed:fmax(fValue, 0.0)];
-					OK = YES;
-				}
+				[entity setDesiredSpeed:fmax(fValue, 0.0)];
+				return YES;
 			}
 			break;
 		
@@ -902,7 +863,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (JSValueToVector(context, *value, &vValue))
 			{
 				[entity setCoordinate:vValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -911,7 +872,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (colorForScript != nil || JSVAL_IS_NULL(*value))
 			{
 				[entity setScannerDisplayColor1:colorForScript];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -920,22 +881,17 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (colorForScript != nil || JSVAL_IS_NULL(*value))
 			{
 				[entity setScannerDisplayColor2:colorForScript];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
 		case kShip_thrust:
-			if ([entity isPlayer])
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
+			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				OOJSReportError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"thrust", @"thrust");
-			}
-			else
-			{
-				if (JS_ValueToNumber(context, *value, &fValue))
-				{
-					[entity setThrust:OOClamp_0_max_f(fValue, [entity maxThrust])];
-					OK = YES;
-				}
+				[entity setThrust:OOClamp_0_max_f(fValue, [entity maxThrust])];
+				return YES;
 			}
 			break;
 			
@@ -944,22 +900,15 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			{
 				if (bValue)  [entity switchLightsOn];
 				else  [entity switchLightsOff];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
 		case kShip_velocity:
 			if (JSValueToVector(context, *value, &vValue))
 			{
-				/*	Silliness: the ship's velocity vector is the sum of the
-					thrust vector and a base velocity. Here we find the
-					thrust vector (and any other weird vectors that may be
-					added into the mix) and alter the base velocity to get
-					the requested total velocity.
-					-- Ahruman 2010-03-03
-				*/
 				[entity setTotalVelocity:vValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -968,12 +917,12 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sShipProperties, *value);
-	}
+	OOJSReportBadPropertyValue(context, this, propID, sShipProperties, *value);
+	return NO;
 	
-	return OK;
+playerReadOnly:
+	OOJSReportError(context, @"player.ship.%@ is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -1088,18 +1037,19 @@ static JSBool ShipExitAI(JSContext *context, uintN argc, jsval *vp)
 	}
 	thisAI = [thisEnt getAI];
 	
-	if (argc > 0)
+	if ([thisAI hasSuspendedStateMachines])
 	{
-		message = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	}
-	
-	if (![thisAI hasSuspendedStateMachines])
-	{
-		OOJSReportWarningForCaller(context, @"Ship", @"exitAI()", @"Cannot exit current AI state machine because there are no suspended state machines.");
+		if (argc > 0)
+		{
+			message = OOStringFromJSValue(context, OOJS_ARGV[0]);
+		}
+		// Else AI will default to RESTARTED.
+		
+		[thisAI exitStateMachineWithMessage:message];
 	}
 	else
 	{
-		[thisAI exitStateMachineWithMessage:message];
+		OOJSReportWarningForCaller(context, @"Ship", @"exitAI()", @"Cannot exit current AI state machine because there are no suspended state machines.");
 	}
 	OOJS_RETURN_VOID;
 	
@@ -1362,7 +1312,7 @@ static JSBool ShipRemove(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-// runLegacyShipActions(target : Ship, actions : Array)
+// __runLegacyScriptActions(target : Ship, actions : Array)
 static JSBool ShipRunLegacyScriptActions(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
@@ -1380,7 +1330,7 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, uintN argc, jsval *
 				   !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target) ||
 				   ![actions isKindOfClass:[NSArray class]]))
 	{
-		OOJSReportBadArguments(context, @"Ship", @"runLegacyScriptActions", argc, OOJS_ARGV, nil, @"target and array of actions");
+		OOJSReportBadArguments(context, @"Ship", @"__runLegacyScriptActions", argc, OOJS_ARGV, nil, @"target and array of actions");
 		return NO;
 	}
 	
@@ -1411,7 +1361,7 @@ static JSBool ShipCommsMessage(JSContext *context, uintN argc, jsval *vp)
 	GET_THIS_SHIP(thisEnt);
 	
 	message = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	if (EXPECT_NOT(message == nil)|| ( argc > 1 && EXPECT_NOT(!JSVAL_IS_OBJECT(OOJS_ARGV[1]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]), &target))))
+	if (EXPECT_NOT(message == nil || (argc > 1 && (!JSVAL_IS_OBJECT(OOJS_ARGV[1]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]), &target)))))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"commsMessage", argc, OOJS_ARGV, nil, @"message and optional target");
 		return NO;
@@ -1444,7 +1394,7 @@ static JSBool ShipFireECM(JSContext *context, uintN argc, jsval *vp)
 	OK = [thisEnt fireECM];
 	if (!OK)
 	{
-		OOJSReportWarning(context, @"Ship %@ was requested to fire ECM burst but does not carry ECM equipment.", thisEnt);
+		OOJSReportWarning(context, @"Ship %@ was requested to fire ECM burst but does not carry ECM equipment.", [thisEnt oo_jsDescription]);
 	}
 	
 	OOJS_RETURN_BOOL(OK);
@@ -1462,115 +1412,6 @@ static JSBool ShipAbandonShip(JSContext *context, uintN argc, jsval *vp)
 	
 	GET_THIS_SHIP(thisEnt);
 	OOJS_RETURN_BOOL([thisEnt hasEscapePod] && [thisEnt abandonShip]);
-	
-	OOJS_NATIVE_EXIT
-}
-
-
-// addPassenger(name: string, start: int, destination: int, eta: double, fee: double)
-static JSBool ShipAddPassenger(JSContext *context, uintN argc, jsval *vp)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	ShipEntity			*thisEnt = nil;
-	BOOL				OK = YES;
-	NSString			*name = nil;
-	
-	GET_THIS_SHIP(thisEnt);
-	
-	if (argc == 5)
-	{
-		name = OOStringFromJSValue(context, OOJS_ARGV[0]);
-		if (EXPECT_NOT(name == nil || JSVAL_IS_INT(OOJS_ARGV[0])))
-		{
-			OOJSReportBadArguments(context, @"Ship", @"addPassenger", argc, OOJS_ARGV, nil, @"name:string");
-			return NO;
-		}
-		OK = ValidateContracts(context, argc, vp, NO);
-		if (!OK) return NO;
-		
-		if (![thisEnt isPlayer] || [thisEnt passengerCount] >= [thisEnt passengerCapacity])
-		{
-			OOJSReportWarning(context, @"Ship.%@(): cannot %@.", @"addPassenger", @"add passenger");
-			OK = NO;
-		}
-	}
-	else
-	{
-		OOJSReportBadArguments(context, @"Ship", @"addPassenger", argc, OOJS_ARGV, nil, @"name, start, destination, eta, fee");
-		return NO;
-	}
-	
-	if (OK)
-	{
-		jsdouble		eta,fee;
-		JS_ValueToNumber(context, OOJS_ARGV[3], &eta);
-		JS_ValueToNumber(context, OOJS_ARGV[4], &fee);
-		OK = [(PlayerEntity*)thisEnt addPassenger:name start:JSVAL_TO_INT(OOJS_ARGV[1]) destination:JSVAL_TO_INT(OOJS_ARGV[2]) eta:eta fee:fee];
-		if (!OK) OOJSReportWarning(context, @"Ship.%@(): cannot %@.", @"addPassenger", @"add passenger. Duplicate name perhaps?");
-	}
-	
-	OOJS_RETURN_BOOL(OK);
-	
-	OOJS_NATIVE_EXIT
-}
-
-
-// awardContract(quantity: int, commodity: string, start: int, destination: int, eta: double, fee: double)
-static JSBool ShipAwardContract(JSContext *context, uintN argc, jsval *vp)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	ShipEntity			*thisEnt = nil;
-	BOOL				OK = JSVAL_IS_INT(OOJS_ARGV[0]);
-	NSString 			*key = nil;
-	int 				qty = 0;
-	
-	GET_THIS_SHIP(thisEnt);
-	
-	if (OK && argc == 6)
-	{
-		key = OOStringFromJSValue(context, OOJS_ARGV[1]);
-		if (EXPECT_NOT(key == nil || !JSVAL_IS_STRING(OOJS_ARGV[1])))
-		{
-			OOJSReportBadArguments(context, @"Ship", @"awardContract", argc, OOJS_ARGV, nil, @"commodity identifier:string");
-			return NO;
-		}
-		OK = ValidateContracts(context, argc, vp, YES); // always go through validate contracts (cargo)
-		if (!OK) return NO;
-		
-		qty = JSVAL_TO_INT(OOJS_ARGV[0]);
-		
-		if (![thisEnt isPlayer] || qty < 1)
-		{
-			OOJSReportWarning(context, @"Ship.%@(): cannot %@.", @"awardContract", @"award contract");
-			OK = NO;
-		}
-	}
-	else
-	{
-		if (argc == 6) 
-		{
-			OOJSReportBadArguments(context, @"Ship", @"awardContract", argc, OOJS_ARGV, nil, @"quantity:int");
-		}
-		else
-		{
-			OOJSReportBadArguments(context, @"Ship", @"awardContract", argc, OOJS_ARGV, nil, @"quantity, commodity, start, destination, eta, fee");
-		}
-		return NO;
-	}
-	
-	if (OK)
-	{
-		jsdouble		eta,fee;
-		JS_ValueToNumber(context, OOJS_ARGV[4], &eta);
-		JS_ValueToNumber(context, OOJS_ARGV[5], &fee);
-		// commodity key is case insensitive.
-		OK = [(PlayerEntity*)thisEnt awardContract:qty commodity:key 
-									start:JSVAL_TO_INT(OOJS_ARGV[2]) destination:JSVAL_TO_INT(OOJS_ARGV[3]) eta:eta fee:fee];
-	}
-	
-	OOJS_RETURN_BOOL(OK);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -2205,41 +2046,6 @@ static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL 
 	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
 	
 	OOJS_RETURN_VOID;
-	
-	OOJS_PROFILE_EXIT
-}
-
-
-static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo)
-{
-	OOJS_PROFILE_ENTER
-	
-	unsigned		offset = isCargo ? 2 : 1;
-	NSString		*functionName = isCargo ? @"awardContract" : @"addPassenger";
-	jsdouble		fValue;
-	
-	if (!JSVAL_IS_INT(OOJS_ARGV[offset]) || JSVAL_TO_INT(OOJS_ARGV[offset]) > 255 || JSVAL_TO_INT(OOJS_ARGV[offset]) < 0)
-	{
-		OOJSReportBadArguments(context, @"Ship", functionName, argc, OOJS_ARGV, nil, @"start:system ID");
-		return NO;
-	}
-	if (!JSVAL_IS_INT(OOJS_ARGV[offset + 1]) || JSVAL_TO_INT(OOJS_ARGV[offset + 1]) > 255 || JSVAL_TO_INT(OOJS_ARGV[offset + 1]) < 0)
-	{
-		OOJSReportBadArguments(context, @"Ship", functionName, argc - 1, &OOJS_ARGV[1], nil, @"destination:system ID");
-		return NO;
-	}
-	if(!JS_ValueToNumber(context, OOJS_ARGV[offset + 2], &fValue) || fValue <= [PLAYER clockTime])
-	{
-		OOJSReportBadArguments(context, @"Ship", functionName, argc - 2, &OOJS_ARGV[2], nil, @"eta:future time");
-		return NO;
-	}
-	if (!JS_ValueToNumber(context, OOJS_ARGV[offset + 3], &fValue) || fValue <= 0.0)
-	{
-		OOJSReportBadArguments(context, @"Ship", functionName, argc - 3, &OOJS_ARGV[3], nil, @"fee:credits");
-		return NO;
-	}
-	
-	return YES;
 	
 	OOJS_PROFILE_EXIT
 }

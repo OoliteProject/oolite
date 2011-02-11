@@ -64,6 +64,10 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, uintN argc, jsval *v
 static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp);
+
+static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo);
 
 
 static JSClass sPlayerShipClass =
@@ -148,6 +152,8 @@ static JSPropertySpec sPlayerShipProperties[] =
 static JSFunctionSpec sPlayerShipMethods[] =
 {
 	// JS name						Function							min args
+	{ "addPassenger",					PlayerShipAddPassenger,						0 },
+	{ "awardContract",					PlayerShipAwardContract,					0 },
 	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,		1 },
 	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,				0 },
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
@@ -593,4 +599,140 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN a
 	OOJS_RETURN_BOOL([player assignToActivePylon:key]);
 	
 	OOJS_NATIVE_EXIT
+}
+
+
+// addPassenger(name: string, start: int, destination: int, eta: double, fee: double) : Boolean
+static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerShipForScripting();
+	BOOL				OK = YES;
+	NSString			*name = nil;
+	
+	if (argc == 5)
+	{
+		name = OOStringFromJSValue(context, OOJS_ARGV[0]);
+		if (EXPECT_NOT(name == nil || JSVAL_IS_INT(OOJS_ARGV[0])))
+		{
+			OOJSReportBadArguments(context, @"PlayerShip", @"addPassenger", argc, OOJS_ARGV, nil, @"string (name)");
+			return NO;
+		}
+		OK = ValidateContracts(context, argc, vp, NO);
+		if (!OK) return NO;
+		
+		if ([player passengerCount] >= [player passengerCapacity])
+		{
+			OK = NO;
+		}
+	}
+	else
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"addPassenger", argc, OOJS_ARGV, nil, @"name, start, destination, eta, fee");
+		return NO;
+	}
+	
+	if (OK)
+	{
+		jsdouble		eta,fee;
+		JS_ValueToNumber(context, OOJS_ARGV[3], &eta);
+		JS_ValueToNumber(context, OOJS_ARGV[4], &fee);
+		OK = [player addPassenger:name start:JSVAL_TO_INT(OOJS_ARGV[1]) destination:JSVAL_TO_INT(OOJS_ARGV[2]) eta:eta fee:fee];
+	}
+	
+	OOJS_RETURN_BOOL(OK);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// awardContract(quantity: int, commodity: string, start: int, destination: int, eta: double, fee: double) : Boolean
+static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerShipForScripting();
+	BOOL				OK = JSVAL_IS_INT(OOJS_ARGV[0]);
+	NSString 			*key = nil;
+	int 				qty = 0;
+	
+	if (OK && argc == 6)
+	{
+		key = OOStringFromJSValue(context, OOJS_ARGV[1]);
+		if (EXPECT_NOT(key == nil || !JSVAL_IS_STRING(OOJS_ARGV[1])))
+		{
+			OOJSReportBadArguments(context, @"PlayerShip", @"awardContract", argc, OOJS_ARGV, nil, @"string (commodity identifier)");
+			return NO;
+		}
+		OK = ValidateContracts(context, argc, vp, YES); // always go through validate contracts (cargo)
+		if (!OK) return NO;
+		
+		qty = JSVAL_TO_INT(OOJS_ARGV[0]);
+		
+		if (qty < 1)
+		{
+			OK = NO;
+		}
+	}
+	else
+	{
+		if (argc == 6) 
+		{
+			OOJSReportBadArguments(context, @"PlayerShip", @"awardContract", argc, OOJS_ARGV, nil, @"integer (cargo quantity)");
+		}
+		else
+		{
+			OOJSReportBadArguments(context, @"PlayerShip", @"awardContract", argc, OOJS_ARGV, nil, @"quantity, commodity, start, destination, eta, fee");
+		}
+		return NO;
+	}
+	
+	if (OK)
+	{
+		jsdouble		eta,fee;
+		JS_ValueToNumber(context, OOJS_ARGV[4], &eta);
+		JS_ValueToNumber(context, OOJS_ARGV[5], &fee);
+		// commodity key is case insensitive.
+		OK = [player awardContract:qty commodity:key start:JSVAL_TO_INT(OOJS_ARGV[2]) destination:JSVAL_TO_INT(OOJS_ARGV[3]) eta:eta fee:fee];
+	}
+	
+	OOJS_RETURN_BOOL(OK);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo)
+{
+	OOJS_PROFILE_ENTER
+	
+	unsigned		offset = isCargo ? 2 : 1;
+	NSString		*functionName = isCargo ? @"awardContract" : @"addPassenger";
+	jsdouble		fValue;
+	
+	if (!JSVAL_IS_INT(OOJS_ARGV[offset]) || JSVAL_TO_INT(OOJS_ARGV[offset]) > 255 || JSVAL_TO_INT(OOJS_ARGV[offset]) < 0)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", functionName, argc, OOJS_ARGV, nil, @"integer (system ID)");
+		return NO;
+	}
+	if (!JSVAL_IS_INT(OOJS_ARGV[offset + 1]) || JSVAL_TO_INT(OOJS_ARGV[offset + 1]) > 255 || JSVAL_TO_INT(OOJS_ARGV[offset + 1]) < 0)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", functionName, argc - 1, &OOJS_ARGV[1], nil, @"integer (system ID)");
+		return NO;
+	}
+	if(!JS_ValueToNumber(context, OOJS_ARGV[offset + 2], &fValue) || fValue <= [PLAYER clockTime])
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", functionName, argc - 2, &OOJS_ARGV[2], nil, @"number (future time)");
+		return NO;
+	}
+	if (!JS_ValueToNumber(context, OOJS_ARGV[offset + 3], &fValue) || fValue <= 0.0)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", functionName, argc - 3, &OOJS_ARGV[3], nil, @"number (credits quantity)");
+		return NO;
+	}
+	
+	return YES;
+	
+	OOJS_PROFILE_EXIT
 }

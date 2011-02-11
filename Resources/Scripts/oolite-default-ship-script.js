@@ -44,11 +44,11 @@ if (this.legacy_launchActions !== undefined)
 {
 	this.shipSpawned = function ()
 	{
-		/*	IMPORTANT: runLegacyScriptActions() is a private function. It may
+		/*	IMPORTANT: __runLegacyScriptActions() is a private function. It may
 			be removed, renamed or have its semantics changed at any time in
 			the future. Do not use it in your own scripts.
 		*/
-		this.ship.runLegacyScriptActions(this.ship, this.legacy_launchActions);
+		this.ship.__runLegacyScriptActions(this.ship, this.legacy_launchActions);
 		
 		delete this.shipSpawned;
 	};
@@ -60,11 +60,11 @@ if (this.legacy_deathActions !== undefined)
 {
 	this.shipDied = function ()
 	{
-		/*	IMPORTANT: runLegacyScriptActions() is a private function. It may
+		/*	IMPORTANT: __runLegacyScriptActions() is a private function. It may
 			be removed, renamed or have its semantics changed at any time in
 			the future. Do not use it in your own scripts.
 		*/
-		this.ship.runLegacyScriptActions(this.ship, this.legacy_deathActions);
+		this.ship.__runLegacyScriptActions(this.ship, this.legacy_deathActions);
 	};
 }
 
@@ -80,22 +80,22 @@ if (this.legacy_scriptActions !== undefined)
 	{
 		if (docker.isPlayer)
 		{
-			/*	IMPORTANT: runLegacyScriptActions() is a private function. It
+			/*	IMPORTANT: __runLegacyScriptActions() is a private function. It
 				may be removed, renamed or have its semantics changed at any
 				time in the future. Do not use it in your own scripts.
 			*/
-			this.ship.runLegacyScriptActions(docker, this.legacy_scriptActions);
+			this.ship.__runLegacyScriptActions(docker, this.legacy_scriptActions);
 		}
 	};
 	this.shipWasScooped = function (scooper)
 	{
-		/*	IMPORTANT: runLegacyScriptActions() is a private function. It may
+		/*	IMPORTANT: __runLegacyScriptActions() is a private function. It may
 			be removed, renamed or have its semantics changed at any time in
 			the future. Do not use it in your own scripts.
 		*/
 		
 		// Note "backwards" call, allowing awardEquipment: and similar to affect the scooper rather than the scoopee.
-		scooper.runLegacyScriptActions(scooper, this.legacy_scriptActions);
+		scooper.__runLegacyScriptActions(scooper, this.legacy_scriptActions);
 	};
 }
 
@@ -103,9 +103,9 @@ if (this.legacy_scriptActions !== undefined)
 // setup_actions handled on script initialization.
 if (this.legacy_setupActions !== undefined)
 {
-	/*	IMPORTANT: runLegacyScriptActions() is a private function. It may be
+	/*	IMPORTANT: __runLegacyScriptActions() is a private function. It may be
 		removed, renamed or have its semantics changed at any time in the
 		future. Do not use it in your own scripts.
 	*/
-	this.ship.runLegacyScriptActions(this.ship, this.legacy_setupActions);
+	this.ship.__runLegacyScriptActions(this.ship, this.legacy_setupActions);
 }
