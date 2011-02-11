@@ -6202,9 +6202,9 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSArray *) nearbyDestinationsWithinRange:(double)range
+- (NSMutableArray *) nearbyDestinationsWithinRange:(double)range
 {
-	NSMutableArray* result = [NSMutableArray arrayWithCapacity:16];
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:16];
 	
 	range = OOClamp_0_max_d(range, 7.0f); // limit to systems within 7LY
 	NSPoint here = [PLAYER galaxy_coordinates];

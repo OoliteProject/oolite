@@ -560,7 +560,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 /**
  * Finds systems within range.  If range is greater than 7.0LY then only look within 7.0LY.
  */
-- (NSArray*) nearbyDestinationsWithinRange:(double) range;
+- (NSMutableArray *) nearbyDestinationsWithinRange:(double) range;
 
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;

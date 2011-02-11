@@ -262,7 +262,6 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
 	int32						iValue;
@@ -274,7 +273,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 			{
 				iValue = MAX(iValue, 0);
 				[player setScore:iValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -282,7 +281,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setCreditBalance:fValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -291,7 +290,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 			{
 				if (iValue < 0)  iValue = 0;
 				[player setBounty:iValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -300,12 +299,8 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sPlayerProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sPlayerProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -414,15 +409,16 @@ static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, js
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString				*report = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
 	
 	report = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (report == nil)
 	{
-		OOJSReportBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, OOJS_ARGV, nil, @"arrival message");
+		OOJSReportBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, OOJS_ARGV, nil, @"string (arrival message)");
 		return NO;
 	}
 	
-	[OOPlayerForScripting() addMessageToReport:report];
+	[player addMessageToReport:report];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -441,78 +437,73 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsva
 	}
 	
 	BOOL			OK = NO;
-	id				destValue = NO;
+	id				destValue = nil;
 	PlayerEntity	*player = OOPlayerForScripting();
 	
 	if (argc == 1)
 	{
 		destValue = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[0]);
 		
-		if (!destValue || [destValue isKindOfClass:[ShipEntity class]])
+		if (destValue == nil)
 		{
-			// if destValue is anything rather than NO or a station, don't do anything, keep OK == NO
-			if (!destValue)
+			[player setDockTarget:NULL];
+			OK = YES;
+		}
+		else if ([destValue isKindOfClass:[ShipEntity class]] && [destValue isStation])
+		{
+			[player setDockTarget:destValue];
+			OK = YES;
+		}
+		else if ([destValue isKindOfClass:[NSString class]])
+		{
+			if ([destValue isEqualToString:@"NEARBY_SYSTEM"])
 			{
+				// find the nearest system with a main station, or die in the attempt!
 				[player setDockTarget:NULL];
-				OK = YES;
-			}
-			else if ([destValue isStation])
-			{
-				[player setDockTarget:destValue];
+				
+				double rescueRange = 7.0;	// reach at least 1 other system!
+				if ([UNIVERSE inInterstellarSpace])
+				{
+					// Set 3.5 ly as the limit, enough to reach at least 2 systems!
+					// In strict mode the max rescue distance in witchspace would be 2.35ly:
+					// 4.70 fuel to get there, 2.35 to fly back = 7ly fuel, plus rounding error.
+					rescueRange = [UNIVERSE strict] ? 2.35 : 3.5;
+				}
+				NSMutableArray	*sDests = [UNIVERSE nearbyDestinationsWithinRange:rescueRange];
+				int 			i = 0, nDests = [sDests count];
+				
+				if (nDests > 0)	for (i = --nDests; i > 0; i--)
+				{
+					if ([[sDests oo_dictionaryAtIndex:i] oo_boolForKey:@"nova"])
+					{
+						[sDests removeObjectAtIndex:i];
+					}
+				}
+				
+				// i is back to 0, nDests could have changed...
+				nDests = [sDests count];
+				if (nDests > 0)	// we have a system with a main station!
+				{
+					if (nDests > 1)  i = ranrot_rand() % nDests;	// any nearby system will do.
+					NSDictionary *dest = [sDests objectAtIndex:i];
+					
+					// add more time until rescue, with overheads for entering witchspace in case of overlapping systems.
+					double dist = [dest oo_doubleForKey:@"distance"];
+					[player addToAdjustTime:(.2 + dist * dist) * 3600.0 + 5400.0 * (ranrot_rand() & 127)];
+					
+					// at the end of the docking sequence we'll check if the target system is the same as the system we're in...
+					[player setTargetSystemSeed:RandomSeedFromString([dest oo_stringForKey:@"system_seed"])];
+				}
 				OK = YES;
 			}
 		}
 		else
 		{
-			if ([destValue isKindOfClass:[NSString class]])
+			JSBool bValue;
+			if (JS_ValueToBoolean(context, OOJS_ARGV[0], &bValue) && bValue == NO)
 			{
-				if ([destValue isEqualToString:@"NEARBY_SYSTEM"])
-				{
-					// find the nearest system with a main station, or die in the attempt!
-					[player setDockTarget:NULL];
-					
-					double rescueRange = 7.0;	// reach at least 1 other system!
-					if ([UNIVERSE inInterstellarSpace])
-					{
-						// Set 3.5 ly as the limit, enough to reach at least 2 systems!
-						// In strict mode the max rescue distance in witchspace would be 2.35ly:
-						// 4.70 fuel to get there, 2.35 to fly back = 7ly fuel, plus rounding error.
-						rescueRange = [UNIVERSE strict] ? 2.35 : 3.5;
-					}
-					NSMutableArray	*sDests = (NSMutableArray *)[UNIVERSE nearbyDestinationsWithinRange:rescueRange];
-					int 			i = 0, nDests = [sDests count];
-					if (nDests > 0)	for (i = --nDests; i > 0; i--)
-					{
-						if ([(NSDictionary*)[sDests objectAtIndex:i] oo_boolForKey:@"nova"])
-						{
-							[sDests removeObjectAtIndex:i];
-						}
-					}
-					
-					// i is back to 0, nDests could have changed...
-					nDests = [sDests count];
-					if (nDests > 0)	// we have a system with a main station!
-					{
-						if (nDests > 1) i = ranrot_rand() % nDests;	// any nearby system will do.
-						NSDictionary * dest = [sDests objectAtIndex:i];
-						// add more time until rescue, with overheads for entering witchspace in case of overlapping systems.
-						double dist = [dest oo_doubleForKey:@"distance"];
-						[player addToAdjustTime:(.2 + dist * dist) * 3600.0 + 5400.0 * (ranrot_rand() & 127)];
-						
-						// at the end of the docking sequence we'll check if the target system is the same as the system we're in...
-						[player setTargetSystemSeed:RandomSeedFromString([dest oo_stringForKey:@"system_seed"])];
-					}
-					OK = YES;					
-				}
-			}
-			else
-			{
-				JSBool		bValue;
-				if (JS_ValueToBoolean(context, OOJS_ARGV[0], &bValue) && bValue == NO)
-				{
-					[player setDockTarget:NULL];
-					OK = YES;
-				}
+				[player setDockTarget:NULL];
+				OK = YES;
 			}
 		}
 	}
