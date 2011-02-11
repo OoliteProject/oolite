@@ -808,11 +808,14 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 - (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start
 						destination:(unsigned)Destination eta:(double)eta fee:(double)fee
 {
-	OOCargoType Type = [UNIVERSE commodityForName: commodity];
+	OOCargoType type = [UNIVERSE commodityForName: commodity];
 	Random_Seed r_seed = [UNIVERSE marketSeed];
 	int 		sr1 = r_seed.a * 0x10000 + r_seed.c * 0x100 + r_seed.e;
 	int 		sr2 = r_seed.b * 0x10000 + r_seed.d * 0x100 + r_seed.f;
 	NSString	*cargo_ID =[NSString stringWithFormat:@"%06x-%06x", sr1, sr2];
+	
+	if (type == CARGO_UNDEFINED)  return NO;
+	if (qty < 1)  return NO;
 	
 	// avoid duplicate cargo_IDs
 	while ([contract_record objectForKey:cargo_ID] != nil)
@@ -823,9 +826,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 	NSDictionary* cargo_info = [NSDictionary dictionaryWithObjectsAndKeys:
 		cargo_ID,																CARGO_KEY_ID,
-		[NSNumber numberWithInt:Type],											CARGO_KEY_TYPE,
+		[NSNumber numberWithInt:type],											CARGO_KEY_TYPE,
 		[NSNumber numberWithInt:qty],											CARGO_KEY_AMOUNT,
-		[UNIVERSE describeCommodity:Type amount:qty],							CARGO_KEY_DESCRIPTION,
+		[UNIVERSE describeCommodity:type amount:qty],							CARGO_KEY_DESCRIPTION,
 		[NSNumber numberWithInt:start],											CONTRACT_KEY_START,
 		[NSNumber numberWithInt:Destination],									CONTRACT_KEY_DESTINATION,
 		[NSNumber numberWithDouble:[PLAYER clockTime]],	CONTRACT_KEY_DEPARTURE_TIME,
@@ -837,7 +840,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// check available space
 	
 	OOCargoQuantity		cargoSpaceRequired = qty;
-	OOMassUnit			contractCargoUnits	= [UNIVERSE unitsForCommodity:Type];
+	OOMassUnit			contractCargoUnits	= [UNIVERSE unitsForCommodity:type];
 	
 	if (contractCargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired /= 1000;
 	if (contractCargoUnits == UNITS_GRAMS)  cargoSpaceRequired /= 1000000;
@@ -845,10 +848,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	if (cargoSpaceRequired > max_cargo - current_cargo) return NO;
 	
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:Type]];
+	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
 	qty += [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
 	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:qty]];
-	[manifest replaceObjectAtIndex:Type withObject:[NSArray arrayWithArray:manifest_commodity]];
+	[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
 
 	[shipCommodityData release];
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
