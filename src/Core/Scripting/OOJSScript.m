@@ -374,6 +374,12 @@ static JSFunctionSpec sScriptMethods[] =
 	if (EXPECT(JS_GetMethodById(context, _jsSelf, methodID, &root, &method) && !JSVAL_IS_VOID(method)))
 	{
 #ifndef NDEBUG
+		if (JS_IsExceptionPending(context))
+		{
+			OOLog(@"script.internalBug", @"Exception pending on context before calling method in %s, clearing. This is an internal error, please report it.", __PRETTY_FUNCTION__);
+			JS_ClearPendingException(context);
+		}
+		
 		OOLog(@"script.trace.javaScript", @"Calling [%@].%@()", [self name], OOStringFromJSID(methodID));
 		OOLogIndentIf(@"script.trace.javaScript");
 #endif
@@ -390,6 +396,12 @@ static JSFunctionSpec sScriptMethods[] =
 		OOJSStartTimeLimiter();
 		OK = JS_CallFunctionValue(context, _jsSelf, method, argc, argv, outResult);
 		OOJSStopTimeLimiter();
+		
+		if (JS_IsExceptionPending(context))
+		{
+			JS_ReportPendingException(context);
+			OK = NO;
+		}
 		
 		// Pop running scripts stack
 		sRunningStack = stackElement.back;
