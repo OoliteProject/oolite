@@ -232,12 +232,14 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// set these flags explicitly.
 	haveExecutedSpawnAction = NO;
+	scripted_misjump		= NO;
 	being_fined = NO;
 	isNearPlanetSurface = NO;
 	suppressAegisMessages = NO;
 	isMissile = NO;
 	suppressExplosion = NO;
 	_lightsActive = YES;
+	
 	
 	// set things from dictionary from here out - default values might require adjustment -- Kaks 20091130
 	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed" defaultValue:160.0f];
@@ -887,6 +889,18 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (Vector) rightVector
 {
 	return v_right;
+}
+
+
+- (BOOL) scriptedMisjump
+{
+	return scripted_misjump;
+}
+
+
+- (void) setScriptedMisjump:(BOOL)newValue
+{
+	scripted_misjump = !!newValue;
 }
 
 
@@ -8098,27 +8112,28 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	int		result = [jetto cargoType];
 	AI		*jettoAI = nil;
 	Vector	start;
-
-	double  eject_speed = [jetto crew] ? 60.0 : 20.0;
+	
+	// players get to see their old ship sailing forth, while NPCs run away more efficiently!
+	double  eject_speed = EXPECT([jetto crew] && ![jetto isPlayer]) ? 60.0 : 20.0;
 	double  eject_reaction = -eject_speed * [jetto mass] / [self mass];
 	double	jcr = jetto->collision_radius;
-
+	
 	Quaternion  jetto_orientation = kIdentityQuaternion;
 	Vector  vel, v_eject, v_eject_normal;
 	Vector  rpos = position;
 	double jetto_roll =	0;
 	double jetto_pitch = 0;
-
+	
 	// default launching position
 	start.x = 0.0;						// in the middle
 	start.y = 0.0;						//
 	start.z = boundingBox.min.z - jcr;	// 1m behind of bounding box
-
+	
 	// custom launching position
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"aft_eject_position"], &start);
-
+	
 	v_eject = vector_normal(start);
-
+	
 	// check if start is within bounding box...
 	while (	(start.x > boundingBox.min.x - jcr)&&(start.x < boundingBox.max.x + jcr)&&
 			(start.y > boundingBox.min.y - jcr)&&(start.y < boundingBox.max.y + jcr)&&
@@ -8154,7 +8169,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		jetto_pitch =   ((ranrot_rand() % 1024) - 512.0)/1024.0;  //  -0.5 to +0.5
 		quaternion_set_random(&jetto_orientation);
 	}
-
+	
 	[jetto setOrientation:jetto_orientation];
 	[jetto setRoll:jetto_roll];
 	[jetto setPitch:jetto_pitch];
@@ -8162,7 +8177,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[jetto setScanClass: CLASS_CARGO];
 	[jetto setTemperature:[self randomEjectaTemperature]];
 	[UNIVERSE addEntity:jetto];	// STATUS_IN_FLIGHT, AI state GLOBAL
-
+	
 	jettoAI = [jetto getAI];
 	if ([jettoAI hasSuspendedStateMachines]) // check if this was previous scooped cargo.
 	{
@@ -8170,7 +8185,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[jetto setOwner:jetto];
 		[jettoAI exitStateMachineWithMessage:nil]; // exit nullAI.
 	}
-
+	
 	cargo_dump_time = [UNIVERSE getTime];
 	return result;
 }
@@ -8182,7 +8197,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	//
 	Entity*		ent;
 	ShipEntity* other_ship;
-
+	
 	while ([collidingEntities count] > 0)
 	{
 		ent = [(Entity *)[collidingEntities objectAtIndex:0] retain];
@@ -8210,6 +8225,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				else
 				{
 					[whole suckInShip: self];
+					if ([self scriptedMisjump])
+					{
+						[self setScriptedMisjump:NO];
+						[whole setMisjump];
+					}
 				}
 			}
 			[ent release];

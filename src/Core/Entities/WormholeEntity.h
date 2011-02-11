@@ -60,6 +60,7 @@ typedef enum
 	
 	WORMHOLE_SCANINFO	scan_info;
 	BOOL			hasExitPosition;
+	BOOL			_misjump;
 }
 
 - (WormholeEntity*) initWithDict:(NSDictionary*)dict;
@@ -70,7 +71,9 @@ typedef enum
 
 - (Random_Seed) origin;
 - (Random_Seed) destination;
-- (void) setMisjump;	// Adjusts arrival time and target system for misjumping
+- (void) setMisjump;	// Flags up a wormhole as 'misjumpy'
+- (BOOL) withMisjump;
+- (void) playerMisjumped;	// Disgorge NPCs at the misjump time space coordinates.
 
 - (double) expiryTime;	// Time at which the wormholes entrance closes
 - (double) arrivalTime;	// Time at which the wormholes exit opens

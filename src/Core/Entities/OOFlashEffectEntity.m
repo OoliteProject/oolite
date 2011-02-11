@@ -82,9 +82,9 @@ static OOTexture *sFlashTexture = nil;
 }
 
 
-+ (id) laserFlashWithPosition:(Vector)position velocity:(Vector)vel color:(OOColor *)color
++ (id) laserFlashWithPosition:(Vector)pos velocity:(Vector)vel color:(OOColor *)color
 {
-	return [[[self alloc] initLaserFlashWithPosition:position velocity:vel color:color] autorelease];
+	return [[[self alloc] initLaserFlashWithPosition:pos velocity:vel color:color] autorelease];
 }
 
 

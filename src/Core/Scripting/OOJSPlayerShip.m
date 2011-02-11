@@ -102,7 +102,6 @@ enum
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
 	kPlayerShip_scoopOverride,					// Scooping
-	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
@@ -133,7 +132,6 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
 	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
-	{ "scriptedMisjump",				kPlayerShip_scriptedMisjump,				OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
@@ -295,10 +293,6 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_targetSystem:
 			*value = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
 			return YES;
-
-		case kPlayerShip_scriptedMisjump:
-			*value = OOJSValueFromBOOL([player scriptedMisjump]);
-			return YES;
 			
 		case kPlayerShip_scoopOverride:
 			*value = OOJSValueFromBOOL([player scoopOverride]);
@@ -405,13 +399,6 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			}
 			break;
 			
-		case kPlayerShip_scriptedMisjump:
-			if (JS_ValueToBoolean(context, *value, &bValue))
-			{
-				[player setScriptedMisjump:bValue];
-				return YES;
-			}
-			break;
 		case kPlayerShip_scoopOverride:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{

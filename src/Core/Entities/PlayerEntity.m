@@ -4895,11 +4895,10 @@ static bool minShieldLevelPercentageInitialised = false;
 
 
 // now with added misjump goodness!
-// MKW 2010.11.18 - misjump no longer relies on reliability of own ship, rather on that of the wormhole generator
-//                - TODO: allow scriptedMisjump & forced misjump in this scenario?
+// If the wormhole generator misjumped, the player's ship misjumps too. Kaks 20110211
 - (void) enterWormhole:(WormholeEntity *) w_hole
 {
-	BOOL misjump = [self scriptedMisjump] || flightPitch == max_flight_pitch || randf() > 0.995;
+	BOOL misjump = [self scriptedMisjump] || [w_hole withMisjump] || flightPitch == max_flight_pitch || randf() > 0.995;
 	wormhole = [w_hole retain];
 	[self addScannedWormhole:wormhole];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
@@ -4987,7 +4986,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		galaxy_coordinates.y += sTo.b;
 		galaxy_coordinates.x /= 2;
 		galaxy_coordinates.y /= 2;
-		[wormhole setMisjump];
+		[wormhole playerMisjumped];
 		[self playWitchjumpMisjump];
 		[UNIVERSE setUpUniverseFromMisjump];
 	}
@@ -8115,18 +8114,6 @@ static NSString *last_outfitting_key=nil;
 - (NSPoint) galacticHyperspaceFixedCoords
 {
 	return galacticHyperspaceFixedCoords;
-}
-
-
-- (BOOL) scriptedMisjump
-{
-	return scripted_misjump;
-}
-
-
-- (void) setScriptedMisjump:(BOOL)newValue
-{
-	scripted_misjump = !!newValue;
 }
 
 

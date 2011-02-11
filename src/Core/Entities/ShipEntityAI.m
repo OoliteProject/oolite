@@ -2469,9 +2469,13 @@ static WormholeEntity *whole = nil;
 	[shipAI reactToMessage:@"WITCHSPACE OKAY" context:@"performHyperSpaceExit"];	// must be a reaction, the ship is about to disappear
 	
 	[self enterWormhole:whole replacing:replace];
+	if ([self scriptedMisjump])
+	{
+		[self setScriptedMisjump:NO];
+		[whole setMisjump];
+	}
 	
-	// If we have reached this code, it means that the ship has already entered hyperspace,
-	// the destinations array is therefore no longer required and can be released.
+	// we've no need for the destinations array anymore.
 	return YES;
 }
 

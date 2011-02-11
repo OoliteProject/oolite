@@ -241,6 +241,7 @@ typedef enum
 							hasScoopMessage: 1,			// suppress scoop messages when false.
 	
 	// scripting
+							scripted_misjump: 1,
 							haveExecutedSpawnAction: 1,
 							noRocks: 1,
 							_lightsActive: 1;
@@ -957,6 +958,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (OOJSScript *)script;
 - (NSDictionary *)scriptInfo;
+
+- (BOOL) scriptedMisjump;
+- (void) setScriptedMisjump:(BOOL)newValue;
 
 - (Entity *)entityForShaderProperties;
 

@@ -174,6 +174,7 @@ enum
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
 	kShip_scannerRange,			// scanner range, double, read-only
 	kShip_script,				// script, Script, read-only
+	kShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
 	kShip_speed,				// current flight speed, double, read-only
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read only
@@ -262,6 +263,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	OOJS_PROP_READWRITE_CB },
 	{ "scannerRange",			kShip_scannerRange,			OOJS_PROP_READONLY_CB },
 	{ "script",					kShip_script,				OOJS_PROP_READONLY_CB },
+	{ "scriptedMisjump",		kShip_scriptedMisjump,		OOJS_PROP_READWRITE_CB },
 	{ "scriptInfo",				kShip_scriptInfo,			OOJS_PROP_READONLY_CB },
 	{ "speed",					kShip_speed,				OOJS_PROP_READONLY_CB },
 	{ "starboardWeapon",		kShip_starboardWeapon,		OOJS_PROP_READONLY_CB },
@@ -574,6 +576,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			*value = OOJSValueFromBOOL([entity isPlayer] || [[entity crew] count] > 0);
 			return YES;
 			
+		case kShip_scriptedMisjump:
+			*value = OOJSValueFromBOOL([entity scriptedMisjump]);
+			return YES;
+			
 		case kShip_scriptInfo:
 			result = [entity scriptInfo];
 			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than null
@@ -640,7 +646,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_scannerDisplayColor2:
 			result = [[entity scannerDisplayColor2] normalizedArray];
 			break;
-		
+			
 		case kShip_maxThrust:
 			return JS_NewNumberValue(context, [entity maxThrust], value);
 			
@@ -882,6 +888,14 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			{
 				[entity setScannerDisplayColor2:colorForScript];
 				return YES;
+			}
+			break;
+			
+		case kShip_scriptedMisjump:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setScriptedMisjump:bValue];
+				OK = YES;
 			}
 			break;
 			

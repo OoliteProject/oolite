@@ -96,6 +96,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		expiry_time = [dict oo_doubleForKey:@"expiry_time"];
 		arrival_time = [dict oo_doubleForKey:@"arrival_time"];
 		position = [dict oo_vectorForKey:@"position"];
+		_misjump = [dict oo_boolForKey:@"misjump" defaultValue:NO];
+
 
 		// Setup shipsInTransit
 		NSArray * shipDictsArray = [dict oo_arrayForKey:@"ships"];
@@ -139,7 +141,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		double		now = [PLAYER clockTimeAdjusted];
 		double		distance;
 		OOSunEntity	*sun = [UNIVERSE sun];
-
+		
+		_misjump = NO;
 		origin = [UNIVERSE systemSeed];
 		destination = s_seed;
 		distance = distanceBetweenPlanetPositions(destination.d, destination.b, origin.d, origin.b);
@@ -164,10 +167,22 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (void) setMisjump
 {
-	double distance = distanceBetweenPlanetPositions(origin.d, origin.b, destination.d, destination.b);
+	_misjump = YES;
+}
 
-	arrival_time -= (distance * distance * 3600.0) - (distance * distance * 2700.0);
+
+- (BOOL) withMisjump
+{
+	return _misjump;
+}
+
+
+- (void) setMisjumpFromPlayer
+{
+	double distance = distanceBetweenPlanetPositions(origin.d, origin.b, destination.d, destination.b);
+	arrival_time -= (distance * distance * 3600.0) - (distance * distance * 2700.0);	// keep in sync with player's misjump time!
 	destination = origin;
+	[self setMisjump];
 }
 
 
@@ -544,6 +559,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	[myDict oo_setFloat:(expiry_time) forKey:@"expiry_time"];
 	[myDict oo_setFloat:(arrival_time) forKey:@"arrival_time"];
 	[myDict oo_setVector:position forKey:@"position"];
+	[myDict oo_setBool:_misjump forKey:@"misjump"];
 	
 	NSMutableArray * shipArray = [NSMutableArray arrayWithCapacity:[shipsInTransit count]];
 	NSEnumerator * ships = [shipsInTransit objectEnumerator];

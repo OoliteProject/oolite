@@ -481,8 +481,6 @@ typedef enum
 							hyperspeed_engaged: 1,
 							travelling_at_hyperspeed: 1,
 							hyperspeed_locked: 1,
-							
-							scripted_misjump: 1,
 	
 							ident_engaged: 1,
 	
@@ -805,9 +803,6 @@ typedef enum
 - (OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour;
 - (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y;
 - (NSPoint) galacticHyperspaceFixedCoords;
-
-- (BOOL) scriptedMisjump;
-- (void) setScriptedMisjump:(BOOL)newValue;
 
 - (BOOL) scoopOverride;
 - (void) setScoopOverride:(BOOL)newValue;
