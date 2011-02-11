@@ -110,7 +110,7 @@ static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsid prop
 	OOShipGroup				*group = nil;
 	id						result = nil;
 	
-	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group))) return NO;
+	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group)))  return NO;
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -150,11 +150,10 @@ static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid prop
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL					OK = NO;
-	OOShipGroup			*group = nil;
+	OOShipGroup				*group = nil;
 	ShipEntity				*shipValue = nil;
 	
-	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group))) return NO;
+	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group)))  return NO;
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -163,13 +162,13 @@ static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid prop
 			if (shipValue != nil || JSVAL_IS_NULL(*value))
 			{
 				[group setLeader:shipValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
 		case kShipGroup_name:
 			[group setName:[NSString stringWithJavaScriptValue:*value inContext:context]];
-			OK = YES;
+			return YES;
 			break;
 			
 		default:
@@ -177,12 +176,8 @@ static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid prop
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sShipGroupProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sShipGroupProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -270,12 +265,12 @@ static JSBool ShipGroupAddShip(JSContext *context, uintN argc, jsval *vp)
 	
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, OOJS_THIS, &thisGroup)))  return NO;
 	
-	ship = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [ShipEntity class]);
+	if (argc > 0)  ship = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [ShipEntity class]);
 	if (ship == nil)
 	{
-		if (JSVAL_IS_NULL(OOJS_ARGV[0]))  OOJS_RETURN_VOID;	// OK, do nothing for null ship.
+		if (argc > 0 && JSVAL_IS_NULL(OOJS_ARGV[0]))  OOJS_RETURN_VOID;	// OK, do nothing for null ship.
 		
-		OOJSReportBadArguments(context, @"ShipGroup", @"addShip", 1, OOJS_ARGV, nil, @"ship");
+		OOJSReportBadArguments(context, @"ShipGroup", @"addShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship");
 		return NO;
 	}
 	
@@ -296,12 +291,12 @@ static JSBool ShipGroupRemoveShip(JSContext *context, uintN argc, jsval *vp)
 	
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, OOJS_THIS, &thisGroup)))  return NO;
 	
-	ship = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [ShipEntity class]);
+	if (argc > 0)  ship = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [ShipEntity class]);
 	if (ship == nil)
 	{
-		if (JSVAL_IS_NULL(OOJS_ARGV[0]))  OOJS_RETURN_VOID;	// OK, do nothing for null ship.
+		if (argc > 0 && JSVAL_IS_NULL(OOJS_ARGV[0]))  OOJS_RETURN_VOID;	// OK, do nothing for null ship.
 		
-		OOJSReportBadArguments(context, @"ShipGroup", @"removeShip", 1, OOJS_ARGV, nil, @"ship");
+		OOJSReportBadArguments(context, @"ShipGroup", @"removeShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship");
 		return NO;
 	}
 	
@@ -322,16 +317,12 @@ static JSBool ShipGroupContainsShip(JSContext *context, uintN argc, jsval *vp)
 	
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, OOJS_THIS, &thisGroup)))  return NO;
 	
-	ship = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [ShipEntity class]);
+	if (argc > 0)  ship = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [ShipEntity class]);
 	if (ship == nil)
 	{
-		if (JSVAL_IS_NULL(OOJS_ARGV[0]))
-		{
-			// OK, return false for null ship.
-			OOJS_RETURN_BOOL(NO);
-		}
+		if (argc > 0 && JSVAL_IS_NULL(OOJS_ARGV[0]))  OOJS_RETURN_BOOL(NO); // OK, return false for null ship.
 		
-		OOJSReportBadArguments(context, @"ShipGroup", @"containsShip", 1, OOJS_ARGV, nil, @"ship");
+		OOJSReportBadArguments(context, @"ShipGroup", @"containsShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship");
 		return NO;
 	}
 	
