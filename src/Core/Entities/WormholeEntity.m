@@ -177,7 +177,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 }
 
 
-- (void) setMisjumpFromPlayer
+- (void) playerMisjumped
 {
 	double distance = distanceBetweenPlanetPositions(origin.d, origin.b, destination.d, destination.b);
 	arrival_time -= (distance * distance * 3600.0) - (distance * distance * 2700.0);	// keep in sync with player's misjump time!
