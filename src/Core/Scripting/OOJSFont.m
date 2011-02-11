@@ -51,7 +51,7 @@ static JSBool FontMeasureString(JSContext *context, uintN argc, jsval *vp)
 	if (EXPECT_NOT(argc < 1) || JSVAL_IS_VOID(OOJS_ARGV[0]))
 	{
 		jsval undefined = JSVAL_VOID;
-		OOJSReportBadArguments(context, nil, @"defaultFont.measureString", 1, &undefined, nil, @"string");
+		OOJSReportBadArguments(context, nil, @"defaultFont.measureString", MIN(argc, 1U), &undefined, nil, @"string");
 		return NO;
 	}
 	

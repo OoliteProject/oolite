@@ -194,7 +194,6 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	jsdouble					fValue;
 	
 	switch (JSID_TO_INT(propID))
@@ -203,7 +202,7 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID,
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[UNIVERSE setTimeAccelerationFactor:fValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 	
@@ -211,12 +210,8 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID,
 			OOJSReportBadPropertySelector(context, this, propID, sGlobalProperties);
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sGlobalProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sGlobalProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -233,6 +228,10 @@ static JSBool GlobalLog(JSContext *context, uintN argc, jsval *vp)
 	NSString			*message = nil;
 	NSString			*messageClass = nil;
 	
+	if (EXPECT_NOT(argc < 1))
+	{
+		OOJS_RETURN_VOID;
+	}
 	if (argc < 2)
 	{
 		messageClass = kOOLogDebugMessage;
@@ -268,10 +267,10 @@ static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp)
 	NSString			*string = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 0)  string = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (string == nil)
 	{
-		OOJSReportBadArguments(context, nil, @"expandDescription", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, nil, @"expandDescription", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	if (argc > 1)
@@ -295,10 +294,10 @@ static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp)
 	NSMutableString		*mString = nil;
 	NSDictionary		*overrides = nil;
 	
-	string = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 0)  string = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (string == nil)
 	{
-		OOJSReportBadArguments(context, nil, @"expandMissionText", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, nil, @"expandMissionText", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	if (argc > 1)
@@ -328,14 +327,13 @@ static JSBool GlobalDisplayNameForCommodity(JSContext *context, uintN argc, jsva
 	
 	NSString			*string = nil;
 	
-	string = OOStringFromJSValue(context,OOJS_ARGV[0]);
+	if (argc > 0)  string = OOStringFromJSValue(context,OOJS_ARGV[0]);
 	if (string == nil)
 	{
-		OOJSReportBadArguments(context, nil, @"displayNameForCommodity", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, nil, @"displayNameForCommodity", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
 		return NO;
 	}
-	string = CommodityDisplayNameForSymbolicName(string);
-	OOJS_RETURN_OBJECT(string);
+	OOJS_RETURN_OBJECT(CommodityDisplayNameForSymbolicName(string));
 	
 	OOJS_NATIVE_EXIT
 }
@@ -346,10 +344,7 @@ static JSBool GlobalRandomName(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	NSString			*string = nil;
-	
-	string = RandomDigrams();
-	OOJS_RETURN_OBJECT(string);
+	OOJS_RETURN_OBJECT(RandomDigrams());
 	
 	OOJS_NATIVE_EXIT
 }
@@ -364,7 +359,11 @@ static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc,
 	Random_Seed			aSeed;
 	JSBool				isPlural = YES;
 	
-	if (!JS_ValueToBoolean(context, OOJS_ARGV[0], &isPlural))  isPlural = NO;
+	if (argc > 0 && !JS_ValueToBoolean(context, OOJS_ARGV[0], &isPlural))
+	{
+		OOJSReportBadArguments(context, nil, @"displayNameForCommodity", 1, OOJS_ARGV, nil, @"boolean");
+		return NO;
+	}
 	
 	make_pseudo_random_seed(&aSeed);
 	string = [UNIVERSE generateSystemInhabitants:aSeed plural:isPlural];
