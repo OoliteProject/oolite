@@ -895,7 +895,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, j
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setScriptedMisjump:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
