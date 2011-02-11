@@ -320,23 +320,17 @@ enum {
 #endif
 
 
-#if OOLITE_MAC_OS_X
-	#define OOLITE_NATIVE_EXCEPTIONS	1
-	
-	#undef NS_DURING
-	#undef NS_HANDLER
-	#undef NS_ENDHANDLER
-	#undef NS_VALUERETURN
-	#undef NS_VOIDRETURN
-	
-	#define NS_DURING					@try {
-	#define NS_HANDLER					} @catch (NSException *localException) {
-	#define NS_ENDHANDLER				}
-	#define NS_VALUERETURN(v,t)			return (v)
-	#define NS_VOIDRETURN				return
-#elif OOLITE_GNUSTEP
-	#define OOLITE_NATIVE_EXCEPTIONS	defined(_NATIVE_OBJC_EXCEPTIONS)
-#endif
+#undef NS_DURING
+#undef NS_HANDLER
+#undef NS_ENDHANDLER
+#undef NS_VALUERETURN
+#undef NS_VOIDRETURN
+
+#define NS_DURING					@try {
+#define NS_HANDLER					} @catch (NSException *localException) {
+#define NS_ENDHANDLER				}
+#define NS_VALUERETURN(v,t)			return (v)
+#define NS_VOIDRETURN				return
 
 
 /*	For some reason, return types for some comparison callbacks are typed

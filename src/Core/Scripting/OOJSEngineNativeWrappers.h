@@ -45,8 +45,6 @@ MA 02110-1301, USA.
 */
 
 
-#if OOLITE_NATIVE_EXCEPTIONS
-
 #ifndef OOJS_PROFILE
 #define OOJS_PROFILE (!defined(NDEBUG))
 #endif
@@ -97,18 +95,7 @@ MA 02110-1301, USA.
 
 
 void OOJSReportWrappedException(JSContext *context, id exception);
-#else	// OOLITE_NATIVE_EXCEPTIONS
 
-// These introduce a scope to ensure proper nesting.
-#define OOJS_PROFILE_ENTER			{
-#define OOJS_PROFILE_ENTER_NAMED(NAME)		OOJS_PROFILE_ENTER
-#define OOJS_PROFILE_EXIT_VAL(rval)	} OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); return (rval);
-#define OOJS_PROFILE_EXIT_VOID		} return;
-
-#define OOJS_NATIVE_ENTER(cx)	OOJS_PROFILE_ENTER
-#define OOJS_NATIVE_EXIT		OOJS_PROFILE_EXIT_VAL(NO)
-
-#endif	// OOLITE_NATIVE_EXCEPTIONS
 
 #ifndef NDEBUG
 void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_RETURN_FUNC;

@@ -70,11 +70,6 @@ MA 02110-1301, USA.
 #import <stdlib.h>
 
 
-#if !OOLITE_NATIVE_EXCEPTIONS
-#error Native exceptions are required to build Oolite. If you are seeing this, it should be the 11th of February 2011 and you need to tell Ahruman pretty darn quick.
-#endif
-
-
 #define OOJSENGINE_JSVERSION		JSVERSION_ECMA_5
 #ifdef DEBUG
 #define JIT_OPTIONS					0
@@ -85,11 +80,6 @@ MA 02110-1301, USA.
 
 
 #define OOJS_STACK_SIZE				8192
-
-
-#if !OOLITE_NATIVE_EXCEPTIONS
-#warning Native exceptions apparently not available. JavaScript functions are not exception-safe.
-#endif
 
 
 static OOJavaScriptEngine	*sSharedEngine = nil;
@@ -994,8 +984,6 @@ void OOJSReportErrorWithArguments(JSContext *context, NSString *format, va_list 
 }
 
 
-#if OOLITE_NATIVE_EXCEPTIONS
-
 void OOJSReportWrappedException(JSContext *context, id exception)
 {
 	if (!JS_IsExceptionPending(context))
@@ -1005,8 +993,6 @@ void OOJSReportWrappedException(JSContext *context, id exception)
 	}
 	// Else, let the pending exception propagate.
 }
-
-#endif
 
 
 #ifndef NDEBUG
