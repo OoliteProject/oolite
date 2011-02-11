@@ -67,9 +67,11 @@ enum
 	kMinCount					= 16,
 	
 #if DEBUG_FCB_SIMPLE_TRACKING_IDS
-	kIDScrambleMask				= 0
+	kIDScrambleMask				= 0,
+	kIDIncrement				= 1
 #else
-	kIDScrambleMask				= 0x2315EB16	// Just a random number.
+	kIDScrambleMask				= 0x2315EB16,	// Just a random number.
+	kIDIncrement				= 992699		// A large prime number, to produce a non-obvious sequence which still uses all 2^32 values.
 #endif
 };
 
@@ -100,8 +102,6 @@ static JSBool GlobalIsValidFrameCallback(JSContext *context, uintN argc, jsval *
 // Internals
 static BOOL AddCallback(JSContext *context, jsval callback, uint32 trackingID, NSString **errorString);
 static BOOL GrowCallbackList(JSContext *context, NSString **errorString);
-
-OOINLINE void IncrementTrackingID(void);
 
 static BOOL GetIndexForTrackingID(uint32 trackingID, OOUInteger *outIndex);
 
@@ -139,31 +139,31 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta delta)
 		jsval				deltaVal, result;
 		OOUInteger			i;
 		
-		if (EXPECT_NOT(!JS_NewNumberValue(context, delta, &deltaVal)))  return;
-		
-		// Block mutations.
-		sRunning = YES;
-		
-		/*
-			The watchdog timer only fires once per second in deployment builds,
-			but in testrelease builds at least we can keep them on a short leash.
-		*/
-		OOJSStartTimeLimiterWithTimeLimit(0.1);
-		
-		for (i = 0; i < sCount; i++)
+		if (EXPECT(JS_NewNumberValue(context, delta, &deltaVal)))
 		{
-			JS_CallFunctionValue(context, NULL, sCallbacks[i].callback, 1, &deltaVal, &result);
+			// Block mutations.
+			sRunning = YES;
+			
+			/*
+				The watchdog timer only fires once per second in deployment builds,
+				but in testrelease builds at least we can keep them on a short leash.
+			*/
+			OOJSStartTimeLimiterWithTimeLimit(0.1);
+			
+			for (i = 0; i < sCount; i++)
+			{
+				JS_CallFunctionValue(context, NULL, sCallbacks[i].callback, 1, &deltaVal, &result);
+			}
+			
+			OOJSStopTimeLimiter();
+			sRunning = NO;
+			
+			if (EXPECT_NOT(sDeferredOps != NULL))
+			{
+				RunDeferredOperations(context);
+				DESTROY(sDeferredOps);
+			}
 		}
-		
-		OOJSStopTimeLimiter();
-		sRunning = NO;
-		
-		if (EXPECT_NOT(sDeferredOps != NULL))
-		{
-			RunDeferredOperations(context);
-			DESTROY(sDeferredOps);
-		}
-		
 		OOJSRelinquishContext(context);
 	}
 }
@@ -191,15 +191,15 @@ static JSBool GlobalAddFrameCallback(JSContext *context, uintN argc, jsval *vp)
 	
 	// Get callback argument and verify that it's a function.
 	jsval callback = OOJS_ARGV[0];
-	if (EXPECT_NOT(!OOJSValueIsFunction(context, callback)))
+	if (EXPECT_NOT(argc < 1 || !OOJSValueIsFunction(context, callback)))
 	{
-		OOJSReportBadArguments(context, nil, @"addFrameCallback", 1, OOJS_ARGV, nil, @"function");
+		OOJSReportBadArguments(context, nil, @"addFrameCallback", MIN(argc, 1U), OOJS_ARGV, nil, @"function");
 		return NO;
 	}
 	
 	// Assign a tracking ID.
 	uint32 trackingID = sNextID ^ kIDScrambleMask;
-	IncrementTrackingID();
+	sNextID += kIDIncrement;
 	
 	if (EXPECT(!sRunning))
 	{
@@ -231,9 +231,9 @@ static JSBool GlobalRemoveFrameCallback(JSContext *context, uintN argc, jsval *v
 	
 	// Get tracking ID argument.
 	uint32 trackingID;
-	if (EXPECT_NOT(!JS_ValueToECMAUint32(context, OOJS_ARGV[0], &trackingID)))
+	if (EXPECT_NOT(argc < 1 || !JS_ValueToECMAUint32(context, OOJS_ARGV[0], &trackingID)))
 	{
-		OOJSReportBadArguments(context, nil, @"removeFrameCallback", 1, OOJS_ARGV, nil, @"frame callback tracking ID");
+		OOJSReportBadArguments(context, nil, @"removeFrameCallback", MIN(argc, 1U), OOJS_ARGV, nil, @"frame callback tracking ID");
 		return NO;
 	}
 	
@@ -262,6 +262,12 @@ static JSBool GlobalRemoveFrameCallback(JSContext *context, uintN argc, jsval *v
 static JSBool GlobalIsValidFrameCallback(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
+	
+	if (EXPECT_NOT(argc < 1))
+	{
+		OOJSReportBadArguments(context, nil, @"isValidFrameCallback", 0, OOJS_ARGV, nil, @"frame callback tracking ID");
+		return NO;
+	}
 	
 	// Get tracking ID argument.
 	uint32 trackingID;
@@ -359,19 +365,6 @@ static BOOL GrowCallbackList(JSContext *context, NSString **errorString)
 	sSpace = newSpace;
 	
 	return YES;
-}
-
-
-OOINLINE void IncrementTrackingID(void)
-{
-#if DEBUG_FCB_SIMPLE_TRACKING_IDS
-	sNextID++;
-#else
-	/*	Increment by a large prime number to produce a non-obvious sequence
-		which still uses all 2^32 values.
-	*/
-	sNextID += 992699;
-#endif
 }
 
 
