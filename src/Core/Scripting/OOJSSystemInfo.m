@@ -102,7 +102,6 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 };
 
 
-
 // Helper class wrapped by JS SystemInfo objects
 @interface OOSystemInfo: NSObject
 {
@@ -123,6 +122,9 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 - (Random_Seed) systemSeed;
 
 @end
+
+
+DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, &sSystemInfoClass, sSystemInfoPrototype, OOSystemInfo);
 
 
 @implementation OOSystemInfo
@@ -203,7 +205,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 	{
 		return [[UNIVERSE currentSystemData] objectForKey:key];
 	}
-	return [UNIVERSE systemDataForGalaxy:_galaxy	planet:_system key:key];
+	return [UNIVERSE systemDataForGalaxy:_galaxy planet:_system key:key];
 }
 
 
@@ -427,8 +429,9 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 				else
 				{
 					OOJSReportError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ? @"invalid interstellar space reference" : @"other galaxies");
+					return NO;
 				}
-				return NO;
+				break;
 				
 			case kSystemInfo_galaxyID:
 				*value = INT_TO_JSVAL([info galaxy]);
@@ -481,7 +484,7 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 
 static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	if (this == sSystemInfoPrototype)
+	if (EXPECT_NOT(this == sSystemInfoPrototype))
 	{
 		// Let SpiderMonkey handle access to the prototype object (where info will be nil).
 		return YES;
@@ -507,23 +510,21 @@ static JSBool SystemInfoDistanceToSystem(JSContext *context, uintN argc, jsval *
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	if(!JSVAL_IS_OBJECT(OOJS_ARGV[0]))
+	OOSystemInfo			*thisInfo = nil;
+	JSObject				*otherObj = NULL;
+	OOSystemInfo			*otherInfo = nil;
+	
+	if (!JSSystemInfoGetSystemInfo(context, OOJS_THIS, &thisInfo))  return NO;
+	if (argc < 1 || !JS_ValueToObject(context, OOJS_ARGV[0], &otherObj) || !JSSystemInfoGetSystemInfo(context, otherObj, &otherInfo))
 	{
-		OOJSReportBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
-		return NO;
-	}
-	OOSystemInfo *thisInfo = OOJSNativeObjectOfClassFromJSObject(context, OOJS_THIS, [OOSystemInfo class]);
-	OOSystemInfo *otherInfo  = OOJSNativeObjectOfClassFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), [OOSystemInfo class]);
-	if (thisInfo == nil || otherInfo == nil)
-	{
-		OOJSReportBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
+		OOJSReportBadArguments(context, @"SystemInfo", @"distanceToSystem", MIN(argc, 1U), OOJS_ARGV, nil, @"system info");
 		return NO;
 	}
 	
 	BOOL sameGalaxy = ([thisInfo galaxy] == [otherInfo galaxy]);
 	if (!sameGalaxy)
 	{
-		OOJSReportError(context, @"Cannot calculate distance for systems in other galaxies.");
+		OOJSReportErrorForCaller(context, @"SystemInfo", @"distanceToSystem", @"Cannot calculate distance for systems in other galaxies.");
 		return NO;
 	}
 	
@@ -541,26 +542,23 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	NSDictionary *result = nil;
-	OORouteType routeType = OPTIMIZED_BY_JUMPS;
+	OOSystemInfo			*thisInfo = nil;
+	JSObject				*otherObj = NULL;
+	OOSystemInfo			*otherInfo = nil;
+	NSDictionary			*result = nil;
+	OORouteType				routeType = OPTIMIZED_BY_JUMPS;
 	
-	if(!JSVAL_IS_OBJECT(OOJS_ARGV[0]))
+	if (!JSSystemInfoGetSystemInfo(context, OOJS_THIS, &thisInfo))  return NO;
+	if (argc < 1 || !JS_ValueToObject(context, OOJS_ARGV[0], &otherObj) || !JSSystemInfoGetSystemInfo(context, otherObj, &otherInfo))
 	{
-		OOJSReportBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
-		return NO;
-	}
-	OOSystemInfo *thisInfo = OOJSNativeObjectOfClassFromJSObject(context, OOJS_THIS, [OOSystemInfo class]);
-	OOSystemInfo *otherInfo  = OOJSNativeObjectOfClassFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), [OOSystemInfo class]);
-	if (thisInfo == nil || otherInfo == nil)
-	{
-		OOJSReportBadArguments(context, @"SystemInfo", @"routeToSystem", argc, OOJS_ARGV, nil, @"SystemInfo");
+		OOJSReportBadArguments(context, @"SystemInfo", @"routeToSystem", MIN(argc, 1U), OOJS_ARGV, nil, @"system info");
 		return NO;
 	}
 	
 	BOOL sameGalaxy = ([thisInfo galaxy] == [otherInfo galaxy]);
 	if (!sameGalaxy)
 	{
-		OOJSReportError(context, @"Cannot calculate route for destinations in other galaxies.");
+		OOJSReportErrorForCaller(context, @"SystemInfo", @"routeToSystem", @"Cannot calculate route for destinations in other galaxies.");
 		return NO;
 	}
 	
@@ -584,14 +582,15 @@ static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, js
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	// Get this and predicate arguments.
-	jsval predicate = OOJS_ARGV[1];
-	JSObject *jsThis = NULL;
-	if (EXPECT_NOT(!OOJSValueIsFunction(context, predicate) || !JS_ValueToObject(context, OOJS_ARGV[0], &jsThis)))
+	JSObject			*jsThis = NULL;
+	
+	// Get this and predicate arguments
+	if (argc < 2 || !OOJSValueIsFunction(context, OOJS_ARGV[1]) || !JS_ValueToObject(context, OOJS_ARGV[0], &jsThis))
 	{
 		OOJSReportBadArguments(context, @"SystemInfo", @"filteredSystems", argc, OOJS_ARGV, nil, @"this and predicate function");
 		return NO;
 	}
+	jsval predicate = OOJS_ARGV[1];
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:256];

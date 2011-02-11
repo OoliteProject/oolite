@@ -723,7 +723,7 @@ static JSBool SystemFilteredEntities(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	JSObject			*jsThis = NULL;
-	jsval				predicate = JSVAL_VOID;
+	jsval				predicate;
 	Entity				*relativeTo = nil;
 	double				range = -1;
 	NSArray				*result = nil;
