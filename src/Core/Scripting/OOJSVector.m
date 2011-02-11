@@ -433,6 +433,7 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 }
 
 
+// EMMSTRAN: remove outConsumed, since it can only be 1 except in failure (constructor is an exception, but it uses VectorFromArgumentListNoErrorInternal() directly).
 BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)
 {
 	if (VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO))  return YES;
@@ -941,12 +942,11 @@ static JSBool VectorToCoordinateSystem(JSContext *context, uintN argc, jsval *vp
 	Vector				result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toCoordinateSystem"))) return NO;
-
-	coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	if (EXPECT_NOT(coordScheme == nil ||
-				   argc < 1 ))
+	
+	if (EXPECT_NOT(argc < 1 ||
+				   (coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0])) == nil))
 	{
-		OOJSReportBadArguments(context, @"Vector3D", @"toCoordinateSystem", argc, OOJS_ARGV, nil, @"coordinate system");
+		OOJSReportBadArguments(context, @"Vector3D", @"toCoordinateSystem", MIN(argc, 1U), OOJS_ARGV, nil, @"coordinate system");
 		return NO;
 	}
 	
@@ -970,12 +970,11 @@ static JSBool VectorFromCoordinateSystem(JSContext *context, uintN argc, jsval *
 	Vector				result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"fromCoordinateSystem"))) return NO;
-
-	coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	if (EXPECT_NOT(coordScheme == nil ||
-				   argc < 1 ))
+	
+	if (EXPECT_NOT(argc < 1 ||
+				   (coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0])) == nil))
 	{
-		OOJSReportBadArguments(context, @"Vector3D", @"fromCoordinateSystem", argc, OOJS_ARGV, nil, @"coordinate system");
+		OOJSReportBadArguments(context, @"Vector3D", @"fromCoordinateSystem", MIN(argc, 1U), OOJS_ARGV, nil, @"coordinate system");
 		return NO;
 	}
 	

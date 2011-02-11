@@ -415,6 +415,7 @@ static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN 
 }
 
 
+// EMMSTRAN: remove outConsumed, since it can only be 1 except in failure (constructor is an exception, but it uses QuaternionFromArgumentListNoErrorInternal() directly).
 BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed)
 {
 	if (QuaternionFromArgumentListNoErrorInternal(context, argc, argv, outQuaternion, outConsumed, NO))  return YES;
@@ -753,7 +754,7 @@ static JSBool QuaternionVectorForward(JSContext *context, uintN argc, jsval *vp)
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"vectorForward()"))) return NO;
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"vectorForward"))) return NO;
 	
 	result = vector_forward_from_quaternion(thisq);
 	

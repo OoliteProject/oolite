@@ -105,25 +105,22 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID,
 	{
 		case kOolite_version:
 			result = VersionComponents();
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kOolite_versionString:
 			result = VersionString();
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kOolite_jsVersion:
 			*value = INT_TO_JSVAL(JS_GetVersion(context));
-			break;
+			return YES;
 		
 		case kOolite_jsVersionString:
 			*value = STRING_TO_JSVAL(JS_NewStringCopyZ(context, JS_VersionToString(JS_GetVersion(context))));
-			break;
+			return YES;
 		
 		case kOolite_gameSettings:
 			result = [UNIVERSE gameSettings];
-			if (result == nil)  result = [NSNull null];
 			break;
 		
 		default:
@@ -131,7 +128,7 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return NO;
 	}
 	
-	if (result != nil)  *value = [result oo_jsValueInContext:context];
+	*value = OOJSValueFromNativeObject(context, result);
 	return YES;
 	
 	OOJS_NATIVE_EXIT
@@ -164,6 +161,8 @@ static JSBool OoliteCompareVersion(JSContext *context, uintN argc, jsval *vp)
 	id						components = nil;
 	NSEnumerator			*componentEnum = nil;
 	id						component = nil;
+	
+	if (argc == 0)  OOJS_RETURN_VOID;	// Backwards-compatibility: be overly lenient.
 	
 	components = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[0]);
 	if ([components isKindOfClass:[NSArray class]])
