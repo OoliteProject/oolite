@@ -87,19 +87,19 @@ enum
 
 static JSPropertySpec sStationProperties[] =
 {
-	// JS name					ID							flags
-	{ "isMainStation",			kStation_isMainStation,		OOJS_PROP_READONLY_CB },
-	{ "hasNPCTraffic",			kStation_hasNPCTraffic,		OOJS_PROP_READWRITE_CB },
-	{ "alertCondition",			kStation_alertCondition,	OOJS_PROP_READWRITE_CB },
+	// JS name						ID									flags
+	{ "isMainStation",				kStation_isMainStation,				OOJS_PROP_READONLY_CB },
+	{ "hasNPCTraffic",				kStation_hasNPCTraffic,				OOJS_PROP_READWRITE_CB },
+	{ "alertCondition",				kStation_alertCondition,			OOJS_PROP_READWRITE_CB },
 	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	OOJS_PROP_READWRITE_CB },
-	{ "allowsFastDocking",		kStation_allowsFastDocking,	OOJS_PROP_READWRITE_CB },
-	{ "allowsAutoDocking",		kStation_allowsAutoDocking,	OOJS_PROP_READWRITE_CB },
-	{ "dockedContractors",		kStation_dockedContractors,	OOJS_PROP_READONLY_CB },
-	{ "dockedPolice",			kStation_dockedPolice,			OOJS_PROP_READONLY_CB },
-	{ "dockedDefenders",		kStation_dockedDefenders,		OOJS_PROP_READONLY_CB },
-	{ "equivalentTechLevel",	kStation_equivalentTechLevel,		OOJS_PROP_READONLY_CB },
-	{ "equipmentPriceFactor",	kStation_equipmentPriceFactor,	OOJS_PROP_READONLY_CB },
-	{ "suppressArrivalReports",	kStation_suppressArrivalReports,	OOJS_PROP_READWRITE_CB },
+	{ "allowsFastDocking",			kStation_allowsFastDocking,			OOJS_PROP_READWRITE_CB },
+	{ "allowsAutoDocking",			kStation_allowsAutoDocking,			OOJS_PROP_READWRITE_CB },
+	{ "dockedContractors",			kStation_dockedContractors,			OOJS_PROP_READONLY_CB },
+	{ "dockedPolice",				kStation_dockedPolice,				OOJS_PROP_READONLY_CB },
+	{ "dockedDefenders",			kStation_dockedDefenders,			OOJS_PROP_READONLY_CB },
+	{ "equivalentTechLevel",		kStation_equivalentTechLevel,		OOJS_PROP_READONLY_CB },
+	{ "equipmentPriceFactor",		kStation_equipmentPriceFactor,		OOJS_PROP_READONLY_CB },
+	{ "suppressArrivalReports",		kStation_suppressArrivalReports,	OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 
@@ -242,7 +242,6 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	StationEntity				*entity = nil;
 	JSBool						bValue;
 	int32						iValue;
@@ -256,7 +255,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setHasNPCTraffic:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -264,7 +263,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				[entity setAlertLevel:iValue signallingScript:NO];	// Performs range checking
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -272,7 +271,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setRequiresDockingClearance:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 
@@ -280,7 +279,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setAllowsFastDocking:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -288,7 +287,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setAllowsAutoDocking:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 
@@ -296,7 +295,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setSuppressArrivalReports:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -305,12 +304,8 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sStationProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sStationProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -328,14 +323,11 @@ static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp)
 	
 	if (EXPECT_NOT([UNIVERSE isGamePaused]))
 	{
-		/*
-		 Station.dockPlayer() was executed while the game was in pause.
-		 Do we want to return an error or just unpause and continue?
-		 I think unpausing is the sensible thing to do here - Nikos 20110208
+		/*	Station.dockPlayer() was executed while the game was in pause.
+			Do we want to return an error or just unpause and continue?
+			I think unpausing is the sensible thing to do here - Nikos 20110208
 		*/
 		[[[UNIVERSE gameView] gameController] unpauseGame];
-		//OOJSReportError(context, @"Station.dockPlayer does not work when game is paused.");
-		//return NO;
 	}
 	
 	if (EXPECT(![player isDocked]))
@@ -358,9 +350,9 @@ static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *v
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	StationEntity *station = nil;
-	ShipEntity	*result = nil;
-	JSBool		abortAllDockings = NO;
+	StationEntity	*station = nil;
+	ShipEntity		*result = nil;
+	JSBool			abortAllDockings = NO;
 	
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
