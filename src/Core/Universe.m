@@ -3733,10 +3733,9 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		
 		// maintain sorted list (and for the scanner relative position)
 		Vector entity_pos = entity->position;
-		Vector delta = vector_between(entity_pos, ((PlayerEntity *)PLAYER)->position);
+		Vector delta = vector_between(entity_pos, PLAYER->position);
 		double z_distance = magnitude2(delta);
 		entity->zero_distance = z_distance;
-		entity->relativePosition = delta;
 		unsigned index = n_entities;
 		sortedEntities[index] = entity;
 		entity->zero_index = index;

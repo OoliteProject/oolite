@@ -764,7 +764,7 @@ static BOOL hostiles;
 				}
 				ms_blip -= floor(ms_blip);
 				
-				relativePosition = drawthing->relativePosition;
+				relativePosition = vector_subtract([drawthing position], [PLAYER position]);
 				Vector rp = relativePosition;
 				
 				if (act_dist > max_zoomed_range)

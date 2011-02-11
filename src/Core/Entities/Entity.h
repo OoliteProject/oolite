@@ -120,8 +120,6 @@ enum OOScanClass
 	
 	OOUniversalID			shadingEntityID;
 	
-	Vector					relativePosition;
-	
 	Entity					*collider;
 	
 	CollisionRegion			*collisionRegion;		// initially nil - then maintained
@@ -198,7 +196,6 @@ enum OOScanClass
 - (Vector) absolutePositionForSubentityOffset:(Vector) offset;
 
 - (double) zeroDistance;
-- (Vector) relativePosition;
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
 
 - (BoundingBox) boundingBox;

@@ -618,12 +618,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (Vector) relativePosition
-{
-	return relativePosition;
-}
-
-
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity
 {
 	if ((otherEntity)&&(zero_distance > otherEntity->zero_distance))
@@ -853,19 +847,16 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void) update:(OOTimeDelta)delta_t
 {
-	PlayerEntity *player = PLAYER;
-	if (player)
+	if (_status != STATUS_COCKPIT_DISPLAY)
 	{
-		if ([self status] != STATUS_COCKPIT_DISPLAY)
-			relativePosition = vector_between(player->position, position);
-		else
-			relativePosition = position;
-		//
-		zero_distance = magnitude2(relativePosition);
+		zero_distance = distance2(PLAYER->position, position);
 	}
 	else
-		zero_distance = -1;
+	{
+		zero_distance = magnitude2(position);
+	}
 
+	
 	hasMoved = !vector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;

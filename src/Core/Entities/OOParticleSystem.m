@@ -174,7 +174,7 @@ OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
 	{
 		float distanceThreshold = collision_radius * 2.0f;	// Distance between player and middle of effect where we start to transition to "non-fast rendering."
 		float thresholdSq = distanceThreshold * distanceThreshold;
-		float distanceSq = magnitude2(relativePosition);
+		float distanceSq = zero_distance;
 		
 		if (distanceSq > thresholdSq)
 		{
