@@ -414,7 +414,7 @@ static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, js
 	if (argc > 0)  report = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (report == nil)
 	{
-		OOJSReportBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, OOJS_ARGV, nil, @"string (arrival message)");
+		OOJSReportBadArguments(context, @"Player", @"addMessageToArrivalReport", MIN(argc, 1U), OOJS_ARGV, nil, @"string (arrival message)");
 		return NO;
 	}
 	
