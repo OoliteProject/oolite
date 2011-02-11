@@ -78,6 +78,11 @@ static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsid p
 			*/
 			*value = [script oo_jsValueInContext:context];
 		}
+		else
+		{
+			*value = JSVAL_VOID;
+		}
+
 	}
 	
 	return YES;
@@ -107,7 +112,7 @@ static JSBool WorldScriptsEnumerate(JSContext *context, JSObject *object)
 	
 	for (nameEnum = [names objectEnumerator]; (name = [nameEnum nextObject]); )
 	{
-		if (!JS_DefineProperty(context, object, [name UTF8String], JSVAL_NULL, WorldScriptsGetProperty, NULL, OOJS_PROP_READONLY))  return NO;
+		if (!JS_DefineProperty(context, object, [name UTF8String], JSVAL_NULL, WorldScriptsGetProperty, NULL, OOJS_PROP_READONLY_CB))  return NO;
 	}
 	
 	return YES;

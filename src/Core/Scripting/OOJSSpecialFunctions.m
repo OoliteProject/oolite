@@ -73,6 +73,12 @@ static JSBool SpecialJSWarning(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER	// These functions are exception-safe
 	
+	if (EXPECT_NOT(argc < 1))
+	{
+		OOJSReportBadArguments(context, @"special", @"jsWarning", argc, OOJS_ARGV, nil, @"string");
+		return NO;
+	}
+	
 	OOJSSetWarningOrErrorStackSkip(1);
 	OOJSReportWarning(context, @"%@", OOStringFromJSValue(context, OOJS_ARGV[0]));
 	OOJSSetWarningOrErrorStackSkip(0);

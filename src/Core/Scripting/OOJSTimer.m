@@ -294,7 +294,6 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, 
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL					OK = YES;
 	OOJSTimer				*timer = nil;
 	double					fValue;
 	
@@ -305,19 +304,19 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, 
 		case kTimer_nextTime:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				OK = YES;
 				if (![timer setNextTime:fValue])
 				{
 					OOJSReportWarning(context, @"Ignoring attempt to change next fire time for running timer %@.", timer);
 				}
+				return YES;
 			}
 			break;
 			
 		case kTimer_interval:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				OK = YES;
 				[timer setInterval:fValue];
+				return YES;
 			}
 			break;
 			
@@ -326,12 +325,8 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, 
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sTimerProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sTimerProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
