@@ -45,6 +45,11 @@ MA 02110-1301, USA.
 		_function = function;
 		OOJSAddGCObjectRoot(context, (JSObject **)&_function, "OOJSFunction._function");
 		_name = [OOStringFromJSString(context, JS_GetFunctionId(function)) retain];
+		
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(deleteJSValue)
+													 name:kOOJavaScriptEngineWillResetNotification
+												   object:[OOJavaScriptEngine sharedEngine]];
 	}
 	
 	return self;
@@ -110,9 +115,25 @@ MA 02110-1301, USA.
 }
 
 
+- (void) deleteJSValue
+{
+	if (_function != NULL)
+	{
+		JSContext *context = OOJSAcquireContext();
+		JS_RemoveObjectRoot(context, (JSObject **)&_function);
+		OOJSRelinquishContext(context);
+		
+		_function = NULL;
+		[[NSNotificationCenter defaultCenter] removeObserver:self
+														name:kOOJavaScriptEngineWillResetNotification
+													  object:[OOJavaScriptEngine sharedEngine]];
+	}
+}
+
+
 - (void) dealloc
 {
-	[[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:(JSObject **)&_function];
+	[self deleteJSValue];
 	DESTROY(_name);
 	
 	[super dealloc];
