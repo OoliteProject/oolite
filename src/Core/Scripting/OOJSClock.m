@@ -155,7 +155,7 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsid propID, 
 			return YES;
 			
 		case kClock_clockString:
-			*value = [[player dial_clock] oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, [player dial_clock]);
 			return YES;
 			
 		case kClock_isAdjusting:
@@ -194,7 +194,13 @@ static JSBool ClockClockStringForTime(JSContext *context, uintN argc, jsval *vp)
 	
 	double						time;
 	
-	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARGV[0], &time)))  return NO;
+	if (EXPECT_NOT(argc < 1 || !JS_ValueToNumber(context, OOJS_ARGV[0], &time)))
+	{
+		jsval arg = JSVAL_VOID;
+		if (argc > 0)  arg = OOJS_ARGV[0];
+		OOJSReportBadArguments(context, @"Clock", @"clockStringForTime", 1, &arg, nil, @"number");
+		return NO;
+	}
 	
 	OOJS_RETURN_OBJECT(ClockToString(time, NO));
 	
@@ -202,18 +208,24 @@ static JSBool ClockClockStringForTime(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-// clockAddSeconds(seconds : Number) : String
+// addSeconds(seconds : Number) : String
 static JSBool ClockAddSeconds(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	double						time;
+	const double				kMaxTime = 30.0 * 24.0 * 3600.0;	// 30 days
 	
-	if (EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARGV[0], &time)))  return NO;
-	if (time > 2592000.0f || time < 1.0f)	// 30 * 24 * 3600
+	if (EXPECT_NOT(argc < 1 || !JS_ValueToNumber(context, OOJS_ARGV[0], &time)))
 	{
-		OOJSReportWarning(context, @"Clock.addSeconds: use a value between 1 and 2592000 (30 days).");
-		
+		jsval arg = JSVAL_VOID;
+		if (argc > 0)  arg = OOJS_ARGV[0];
+		OOJSReportBadArguments(context, @"Clock", @"addSeconds", 1, &arg, nil, @"number");
+		return NO;
+	}
+	
+	if (time > kMaxTime || time < 1.0 || !isfinite(time))
+	{
 		OOJS_RETURN_BOOL(NO);
 	}
 	
