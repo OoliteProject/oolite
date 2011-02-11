@@ -1155,17 +1155,19 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 {
 	if (_beaconDrawable == nil)
 	{
-		NSString *role = [self primaryRole];
-		NSArray *iconData = [[UNIVERSE descriptions] oo_arrayForKey:role];
-		if (iconData == nil)
+		NSString	*beaconCode = [self beaconCode];
+		OOUInteger	length = [beaconCode length];
+		
+		if (length > 1)
 		{
-			NSString *beaconCode = [self beaconCode];
-			if ([beaconCode length] > 0)  _beaconDrawable = [[beaconCode substringToIndex:1] retain];
-			else  _beaconDrawable = @"";
+			NSArray *iconData = [[UNIVERSE descriptions] oo_arrayForKey:beaconCode];
+			if (iconData != nil)  _beaconDrawable = [[OOPolygonSprite alloc] initWithDataArray:iconData outlineWidth:0.5 name:beaconCode];
 		}
-		else
+		
+		if (_beaconDrawable == nil)
 		{
-			_beaconDrawable = [[OOPolygonSprite alloc] initWithDataArray:iconData outlineWidth:0.5 name:role];
+			if (length > 0)  _beaconDrawable = [[beaconCode substringToIndex:1] retain];
+			else  _beaconDrawable = @"";
 		}
 	}
 	
