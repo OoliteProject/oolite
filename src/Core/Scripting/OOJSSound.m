@@ -179,10 +179,10 @@ static JSBool SoundStaticLoad(JSContext *context, uintN argc, jsval *vp)
 	NSString					*name = nil;
 	OOSound						*sound = nil;
 	
-	name = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 0)  name = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (name == nil)
 	{
-		OOJSReportBadArguments(context, @"Sound", @"load", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, @"Sound", @"load", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	
@@ -204,13 +204,13 @@ static JSBool SoundStaticPlayMusic(JSContext *context, uintN argc, jsval *vp)
 	NSString					*name = nil;
 	JSBool						loop = NO;
 	
-	name = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 0)  name = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (name == nil)
 	{
-		OOJSReportBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, @"Sound", @"playMusic", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
 		return NO;
 	}
-	if (argc >= 2)
+	if (argc > 1)
 	{
 		if (!JS_ValueToBoolean(context, OOJS_ARGV[1], &loop))
 		{
@@ -229,6 +229,7 @@ static JSBool SoundStaticPlayMusic(JSContext *context, uintN argc, jsval *vp)
 }
 
 
+// Sound.stopMusic([name : String])
 static JSBool SoundStaticStopMusic(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
