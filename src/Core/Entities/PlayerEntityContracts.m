@@ -825,16 +825,16 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	}
 
 	NSDictionary* cargo_info = [NSDictionary dictionaryWithObjectsAndKeys:
-		cargo_ID,																CARGO_KEY_ID,
-		[NSNumber numberWithInt:type],											CARGO_KEY_TYPE,
-		[NSNumber numberWithInt:qty],											CARGO_KEY_AMOUNT,
-		[UNIVERSE describeCommodity:type amount:qty],							CARGO_KEY_DESCRIPTION,
-		[NSNumber numberWithInt:start],											CONTRACT_KEY_START,
-		[NSNumber numberWithInt:Destination],									CONTRACT_KEY_DESTINATION,
+		cargo_ID,										CARGO_KEY_ID,
+		[NSNumber numberWithInt:type],					CARGO_KEY_TYPE,
+		[NSNumber numberWithInt:qty],					CARGO_KEY_AMOUNT,
+		[UNIVERSE describeCommodity:type amount:qty],	CARGO_KEY_DESCRIPTION,
+		[NSNumber numberWithInt:start],					CONTRACT_KEY_START,
+		[NSNumber numberWithInt:Destination],			CONTRACT_KEY_DESTINATION,
 		[NSNumber numberWithDouble:[PLAYER clockTime]],	CONTRACT_KEY_DEPARTURE_TIME,
-		[NSNumber numberWithDouble:eta],										CONTRACT_KEY_ARRIVAL_TIME,
-		[NSNumber numberWithDouble:fee],										CONTRACT_KEY_FEE,
-		[NSNumber numberWithInt:0],												CONTRACT_KEY_PREMIUM,
+		[NSNumber numberWithDouble:eta],				CONTRACT_KEY_ARRIVAL_TIME,
+		[NSNumber numberWithDouble:fee],				CONTRACT_KEY_FEE,
+		[NSNumber numberWithInt:0],						CONTRACT_KEY_PREMIUM,
 		NULL];
 	
 	// check available space

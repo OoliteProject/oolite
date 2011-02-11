@@ -806,7 +806,7 @@ MA 02110-1301, USA.
 		NSEnumerator	*policeEnum = nil;
 		ShipEntity		*police = nil;
 		
-		for (policeEnum = [[self group] objectEnumerator]; (police = [policeEnum nextObject]); )
+		for (policeEnum = [[self group] mutationSafeEnumerator]; (police = [policeEnum nextObject]); )
 		{
 			[police setFound_target:hunter];
 			[police setPrimaryAggressor:hunter];
@@ -1168,7 +1168,7 @@ static WormholeEntity *whole = nil;
 	NSEnumerator		*shipEnum = nil;
 	ShipEntity			*ship = nil;
 	
-	for (shipEnum = [[self group] objectEnumerator]; (ship = [shipEnum nextObject]); )
+	for (shipEnum = [[self group] mutationSafeEnumerator]; (ship = [shipEnum nextObject]); )
 	{
 		[ship addTarget:whole];
 		[ship reactToAIMessage:@"ENTER WORMHOLE" context:@"wormholeGroup"];

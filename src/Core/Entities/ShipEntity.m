@@ -4460,7 +4460,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 - (NSEnumerator *) escortEnumerator
 {
 	if (_escortGroup == nil)  return [[NSArray array] objectEnumerator];
-	return [[_escortGroup objectEnumerator] ooExcludingObject:self];
+	return [[_escortGroup mutationSafeEnumerator] ooExcludingObject:self];
 }
 
 
@@ -6488,22 +6488,28 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) setFound_target:(Entity *) targetEntity
 {
-	if (targetEntity)
+	if (targetEntity != nil)
+	{
 		found_target = [targetEntity universalID];
+	}
 }
 
 
 - (void) setPrimaryAggressor:(Entity *) targetEntity
 {
-	if (targetEntity)
+	if (targetEntity != nil)
+	{
 		primaryAggressor = [targetEntity universalID];
+	}
 }
 
 
 - (void) setTargetStation:(Entity *) targetEntity
 {
-	if (targetEntity)
+	if (targetEntity != nil)
+	{
 		targetStation = [targetEntity universalID];
+	}
 }
 
 
@@ -8730,7 +8736,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				NSEnumerator		*groupEnum = nil;
 				ShipEntity			*otherPirate = nil;
 				
-				for (groupEnum = [group objectEnumerator]; (otherPirate = [groupEnum nextObject]); )
+				for (groupEnum = [group mutationSafeEnumerator]; (otherPirate = [groupEnum nextObject]); )
 				{
 					if (otherPirate != self && randf() < 0.5)	// 50% chance they'll help
 					{
@@ -8745,7 +8751,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				NSEnumerator		*groupEnum = nil;
 				ShipEntity			*otherPolice = nil;
 				
-				for (groupEnum = [group objectEnumerator]; (otherPolice = [groupEnum nextObject]); )
+				for (groupEnum = [group mutationSafeEnumerator]; (otherPolice = [groupEnum nextObject]); )
 				{
 					if (otherPolice != self)
 					{

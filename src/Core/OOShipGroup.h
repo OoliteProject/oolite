@@ -57,6 +57,8 @@ MA 02110-1301, USA.
 - (void) setLeader:(ShipEntity *)leader;
 
 - (NSEnumerator *) objectEnumerator;
+- (NSEnumerator *) mutationSafeEnumerator;	// Enumerate over contents at time this is called, even if actual group is mutated.
+
 - (NSSet *) members;
 - (NSArray *) memberArray;	// arbitrary order
 - (NSSet *) membersExcludingLeader;

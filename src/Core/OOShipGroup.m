@@ -197,6 +197,12 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 }
 
 
+- (NSEnumerator *) mutationSafeEnumerator
+{
+	return [[self memberArray] objectEnumerator];
+}
+
+
 - (NSSet *) members
 {
 	return [NSSet setWithArray:[self memberArray]];
