@@ -380,6 +380,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		JSContext *context = OOJSAcquireContext();
 		JS_ClearScope(gOOJSMainThreadContext, _globalObject);
 		
+		OOJSFrameCallbacksRemoveAll();
+		
 		_globalObject = NULL;
 		_objectClass = NULL;
 		_stringClass = NULL;

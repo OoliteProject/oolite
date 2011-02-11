@@ -1061,6 +1061,10 @@ static GLfloat		sBaseMass = 0.0;
 	
 	show_info_flag = NO;
 	
+	// Reset JavaScript.
+	[OOScriptTimer noteGameReset];
+	[[OOJavaScriptEngine sharedEngine] reset];
+	
 	// Load locale script before any regular scripts.
 	[OOJSScript jsScriptFromFileNamed:@"oolite-locale-functions.js"
 						   properties:nil];

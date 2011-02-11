@@ -91,6 +91,8 @@ static JSClass sTimerClass;
 
 - (void) deleteJSPointers
 {
+	[self unscheduleTimer];
+	
 	if (_jsThis != NULL)
 	{
 		_jsThis = NULL;
@@ -122,6 +124,11 @@ static JSClass sTimerClass;
 {
 	NSString				*funcName = nil;
 	JSContext				*context = NULL;
+	
+	if (JSVAL_IS_VOID(_function) || JSVAL_IS_NULL(_function))
+	{
+		return @"invalid";
+	}
 	
 	context = OOJSAcquireContext();
 	funcName = OOStringFromJSString(context, JS_GetFunctionId(JS_ValueToFunction(context, _function)));

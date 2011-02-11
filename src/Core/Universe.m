@@ -8458,11 +8458,6 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	[self setUpSettings];
 	
-	// Reset JavaScript. Must be before [player setUp], since that loads the locale and world scripts.
-	[OOScriptTimer noteGameReset];
-	OOJSFrameCallbacksRemoveAll();
-	[[OOJavaScriptEngine sharedEngine] reset];
-	
 	[player setUp];
 	
 	[self addEntity:player];
