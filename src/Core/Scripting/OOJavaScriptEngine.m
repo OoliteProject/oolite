@@ -409,12 +409,16 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	NSAssert(!JS_IsInRequest(gOOJSMainThreadContext), @"Can't reset JavaScript engine while running JavaScript.");
 #endif
 	
+	JSContext *context = OOJSAcquireContext();
 	[[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineWillResetNotification object:self];
+	OOJSRelinquishContext(context);
 	
 	[self destroyMainThreadContext];
 	[self createMainThreadContext];
 	
+	context = OOJSAcquireContext();
 	[[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineDidResetNotification object:self];
+	OOJSRelinquishContext(context);
 	
 	[self garbageCollectionOpportunity];
 }
@@ -1380,7 +1384,15 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		}
 		
 		_val = value;
-		JS_AddNamedValueRoot(context, &_val, "OOJSValue");
+		if (!JSVAL_IS_VOID(_val))
+		{
+			JS_AddNamedValueRoot(context, &_val, "OOJSValue");
+			
+			[[NSNotificationCenter defaultCenter] addObserver:self
+													 selector:@selector(deleteJSValue)
+														 name:kOOJavaScriptEngineWillResetNotification
+													   object:[OOJavaScriptEngine sharedEngine]];
+		}
 		
 		if (tempCtxt)  OOJSRelinquishContext(context);
 	}
@@ -1396,12 +1408,25 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
+- (void) deleteJSValue
+{
+	if (!JSVAL_IS_VOID(_val))
+	{
+		JSContext *context = OOJSAcquireContext();
+		JS_RemoveValueRoot(context, &_val);
+		OOJSRelinquishContext(context);
+		
+		_val = JSVAL_VOID;
+		[[NSNotificationCenter defaultCenter] removeObserver:self
+														name:kOOJavaScriptEngineWillResetNotification
+													  object:[OOJavaScriptEngine sharedEngine]];
+	}
+}
+
+
 - (void) dealloc
 {
-	JSContext *context = OOJSAcquireContext();
-	JS_RemoveValueRoot(context, &_val);
-	OOJSRelinquishContext(context);
-	
+	[self deleteJSValue];
 	[super dealloc];
 }
 
