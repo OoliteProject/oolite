@@ -144,7 +144,7 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 		NSString *key = KeyForPropertyID(context, propID);
 		if (key == nil)
 		{
-			OOJSReportError(context, @"Mission variable names may not begin with an underscore.");
+			OOJSReportError(context, @"Invalid mission variable name \"%@\".", [OOStringFromJSID(propID) escapedForJavaScriptLiteral]);
 			return NO;
 		}
 		

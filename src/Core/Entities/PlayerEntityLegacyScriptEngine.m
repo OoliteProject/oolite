@@ -1977,15 +1977,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	unsigned i, j;
 	int pnum, dest;
-	NSMutableArray*	tokens = ScanTokensFromString(destinations);
+	NSMutableArray *tokens = ScanTokensFromString(destinations);
 	BOOL addDestination;
-
+	
 	for (j = 0; j < [tokens count]; j++)
 	{
 		dest = [tokens oo_intAtIndex:j];
 		if (dest < 0 || dest > 255)
 			continue;
-
+		
 		addDestination = YES;
 		for (i = 0; i < [missionDestinations count]; i++)
 		{
@@ -1996,7 +1996,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				break;
 			}
 		}
-
+		
 		if (addDestination == YES)
 			[missionDestinations addObject:[NSNumber numberWithUnsignedInt:dest]];
 	}

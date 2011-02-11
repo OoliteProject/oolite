@@ -152,7 +152,7 @@ void MissionRunCallback()
 
 // *** Methods ***
 
-// markSystem(systemCoords : String)
+// markSystem(integer+)
 static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
@@ -169,7 +169,7 @@ static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-// unmarkSystem(systemCoords : String)
+// unmarkSystem(integer+)
 static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
@@ -193,6 +193,17 @@ static JSBool MissionAddMessageText(JSContext *context, uintN argc, jsval *vp)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*text = nil;
+	
+	if (EXPECT_NOT(argc == 0))
+	{
+#if 0
+		// EMMSTRAN: fail.
+		OOJSReportBadArguments(context, @"Mission", @"addMessageText", argc, OOJS_ARGV, nil, @"string");
+		return NO;
+#else
+		OOJS_RETURN_VOID;
+#endif
+	}
 	
 	// Found "FIXME: warning if no mission screen running.",,,
 	// However: used routinely by the Constrictor mission in F7, without mission screens.
@@ -311,17 +322,16 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	// Validate arguments.
-	if (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || JSVAL_IS_NULL(OOJS_ARGV[0]))
+	if (argc < 1 || !JS_ValueToObject(context, OOJS_ARGV[0], &params))
 	{
-		OOJSReportBadArguments(context, @"mission", @"runScreen", argc, OOJS_ARGV, nil, @"parameter object");
+		OOJSReportBadArguments(context, @"mission", @"runScreen", MIN(argc, 1U), &OOJS_ARGV[0], nil, @"parameter object");
 		return NO;
 	}
-	params = JSVAL_TO_OBJECT(OOJS_ARGV[0]);
 	
-	if (argc > 1) function = OOJS_ARGV[1];
+	if (argc > 1)  function = OOJS_ARGV[1];
 	if (!JSVAL_IS_NULL(function) && !OOJSValueIsFunction(context, function))
 	{
-		OOJSReportBadArguments(context, @"mission", @"runScreen", argc - 1, OOJS_ARGV + 1, nil, @"function");
+		OOJSReportBadArguments(context, @"mission", @"runScreen", 1, &OOJS_ARGV[1], nil, @"function");
 		return NO;
 	}
 	
