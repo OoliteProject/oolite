@@ -71,7 +71,7 @@ MA 02110-1301, USA.
 
 
 #if !OOLITE_NATIVE_EXCEPTIONS
-#error Native exceptions are required to build Oolite. If you're seeing this, it should be the 11th of February 2011 and you need to tell Ahruman pretty darn quick.
+#error Native exceptions are required to build Oolite. If you are seeing this, it should be the 11th of February 2011 and you need to tell Ahruman pretty darn quick.
 #endif
 
 
