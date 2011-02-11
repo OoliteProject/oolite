@@ -135,20 +135,18 @@ static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsid propID, 
 	
 	OOSound						*sound = nil;
 	
-	if (EXPECT_NOT(!JSSoundGetSound(context, this, &sound))) return NO;
+	if (EXPECT_NOT(!JSSoundGetSound(context, this, &sound)))  return NO;
 	
 	switch (JSID_TO_INT(propID))
 	{
 		case kSound_name:
 			*value = OOJSValueFromNativeObject(context, [sound name]);
-			break;
+			return YES;
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sSoundProperties);
 			return NO;
 	}
-	
-	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

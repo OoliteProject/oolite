@@ -128,32 +128,30 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsid pr
 	
 	OOSoundSource				*soundSource = nil;
 	
-	if (!JSSoundSourceGetSoundSource(context, this, &soundSource)) return NO;
+	if (!JSSoundSourceGetSoundSource(context, this, &soundSource))  return NO;
 	
 	switch (JSID_TO_INT(propID))
 	{
 		case kSoundSource_sound:
 			*value = OOJSValueFromNativeObject(context, [soundSource sound]);
-			break;
+			return YES;
 			
 		case kSoundSource_isPlaying:
 			*value = OOJSValueFromBOOL([soundSource isPlaying]);
-			break;
+			return YES;
 			
 		case kSoundSource_loop:
 			*value = OOJSValueFromBOOL([soundSource loop]);
-			break;
+			return YES;
 			
 		case kSoundSource_repeatCount:
 			*value = INT_TO_JSVAL([soundSource repeatCount]);
-			break;
+			return YES;
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sSoundSourceProperties);
 			return NO;
 	}
-	
-	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -165,7 +163,6 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid pr
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	OOSoundSource				*soundSource = nil;
 	int32						iValue;
 	JSBool						bValue;
@@ -176,14 +173,14 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid pr
 	{
 		case kSoundSource_sound:
 			[soundSource setSound:SoundFromJSValue(context, *value)];
-			OK = YES;
+			return YES;
 			break;
 			
 		case kSoundSource_loop:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[soundSource setLoop:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -193,7 +190,7 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid pr
 				if (iValue > 100)  iValue = 100;
 				if (100 < 1)  iValue = 1;
 				[soundSource setRepeatCount:iValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -202,12 +199,8 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid pr
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sSoundSourceProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sSoundSourceProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
