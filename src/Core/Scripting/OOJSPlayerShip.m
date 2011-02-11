@@ -44,13 +44,6 @@ MA 02110-1301, USA.
 #import "OOJSEquipmentInfo.h"
 
 
-// the following line results in NaN when requesting blocked numeric values, instead of undefined, as expected...
-// checking for blocked props within each function for now.
-// #define OOPlayerShipForScripting() (EXPECT_NOT(OOIsPlayerStale()) ? NULL : OOPlayerForScripting())
-
-#define OOPlayerShipForScripting() ( OOPlayerForScripting())
-
-
 static JSObject		*sPlayerShipPrototype;
 static JSObject		*sPlayerShipObject;
 
@@ -243,10 +236,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	if (EXPECT_NOT(OOIsPlayerStale() || this == sPlayerShipPrototype)) { *value = JSVAL_VOID; return YES; }
+	if (EXPECT_NOT(OOIsPlayerStale() || this == sPlayerShipPrototype))  { *value = JSVAL_VOID; return YES; }
 	
 	id							result = nil;
-	PlayerEntity				*player = OOPlayerShipForScripting();
+	PlayerEntity				*player = OOPlayerForScripting();
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -354,8 +347,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 	
 	if (EXPECT_NOT(OOIsPlayerStale())) return YES;
 	
-	BOOL						OK = NO;
-	PlayerEntity				*player = OOPlayerShipForScripting();
+	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
 	JSBool						bValue;
 	NSString					*sValue = nil;
@@ -368,7 +360,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setFuelLeakRate:fValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -376,7 +368,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[[player hud] setReticleTargetSensitive:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -385,7 +377,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (ghBehaviour != GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
 			{
 				[player setGalacticHyperspaceBehaviour:ghBehaviour];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -393,7 +385,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JSValueToVector(context, *value, &vValue))
 			{
 				[player setGalacticHyperspaceFixedCoordsX:OOClamp_0_max_f(vValue.x, 255.0f) y:OOClamp_0_max_f(vValue.y, 255.0f)];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -401,7 +393,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setForwardShieldLevel:fValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -409,7 +401,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setAftShieldLevel:fValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -417,14 +409,14 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[player setScriptedMisjump:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		case kPlayerShip_scoopOverride:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[player setScoopOverride:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -432,15 +424,13 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			sValue = OOStringFromJSValue(context, *value);
 			if (sValue != nil)
 			{
-				if ([player switchHudTo:sValue])
-				{
-					OK = YES;
-				}
+				[player switchHudTo:sValue];	// EMMSTRAN: logged error should be a JS warning.
+				return YES;
 			}
 			else
 			{
 				[player resetHud];
-				OK = YES;
+				return YES;
 			}
 			break;
 			
@@ -448,7 +438,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[[player hud] setHidden:bValue];
-				OK = YES;
+				return YES;
 			}
 			break;
 		
@@ -457,12 +447,8 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sPlayerShipProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sPlayerShipProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -477,7 +463,7 @@ static JSBool PlayerShipLaunch(JSContext *context, uintN argc, jsval *vp)
 	
 	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
-	[OOPlayerShipForScripting() launchFromStation];
+	[OOPlayerForScripting() launchFromStation];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -491,7 +477,7 @@ static JSBool PlayerShipRemoveAllCargo(JSContext *context, uintN argc, jsval *vp
 	
 	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
-	PlayerEntity *player = OOPlayerShipForScripting();
+	PlayerEntity *player = OOPlayerForScripting();
 	
 	if ([player isDocked])
 	{
@@ -515,13 +501,13 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, uintN argc, jsval *v
 	
 	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
-	PlayerEntity			*player = OOPlayerShipForScripting();
+	PlayerEntity			*player = OOPlayerForScripting();
 	NSString				*name = nil;
 	
 	name = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (EXPECT_NOT(name == nil))
 	{
-		OOJSReportBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, OOJS_ARGV, nil, @"special cargo description");
+		OOJSReportBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, OOJS_ARGV, nil, @"string (special cargo description)");
 		return NO;
 	}
 	
@@ -539,13 +525,13 @@ static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, uintN argc,
 	
 	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
-	PlayerEntity			*player = OOPlayerShipForScripting();
+	PlayerEntity			*player = OOPlayerForScripting();
 	StationEntity			*stationForDocking = nil;
 	
 	stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [StationEntity class]);
 	if (stationForDocking == nil)
 	{
-		OOJSReportBadArguments(context, @"PlayerShip", @"engageAutopilot", argc, OOJS_ARGV, nil, @"station for docking");
+		OOJSReportBadArguments(context, @"PlayerShip", @"engageAutopilot", argc, OOJS_ARGV, nil, @"station");
 		return NO;
 	}
 	
@@ -562,9 +548,7 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval
 	
 	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
-	PlayerEntity			*player = OOPlayerShipForScripting();
-	
-	[player disengageAutopilot];
+	[OOPlayerForScripting() disengageAutopilot];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -578,21 +562,15 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN a
 	
 	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
 	
-	PlayerEntity			*player = OOPlayerShipForScripting();
+	PlayerEntity			*player = OOPlayerForScripting();
 	NSString				*key = nil;
 	OOEquipmentType			*eqType = nil;
 	
 	key = JSValueToEquipmentKey(context, OOJS_ARGV[0]);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOJSReportBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"equipment type");
-		return NO;
-	}
-	
-	eqType = [OOEquipmentType equipmentTypeWithIdentifier:key];
+	if (key != nil)  eqType = [OOEquipmentType equipmentTypeWithIdentifier:key];
 	if (EXPECT_NOT(![eqType isMissileOrMine]))
 	{
-		OOJSReportBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"external store");
+		OOJSReportBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, OOJS_ARGV, nil, @"equipment type (external store)");
 		return NO;
 	}
 	
@@ -607,7 +585,7 @@ static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	PlayerEntity		*player = OOPlayerShipForScripting();
+	PlayerEntity		*player = OOPlayerForScripting();
 	BOOL				OK = YES;
 	NSString			*name = nil;
 	
@@ -652,7 +630,7 @@ static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	PlayerEntity		*player = OOPlayerShipForScripting();
+	PlayerEntity		*player = OOPlayerForScripting();
 	BOOL				OK = JSVAL_IS_INT(OOJS_ARGV[0]);
 	NSString 			*key = nil;
 	int 				qty = 0;
