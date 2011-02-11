@@ -2007,13 +2007,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (NSArray *) addShipsToRoute:(NSString *)route withRole:(NSString *)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup
 {
-	NSMutableArray			*ships = [NSMutableArray arrayWithCapacity:count];	//return [[(NSArray *)theShips copy] autorelease];
+	NSMutableArray			*ships = [NSMutableArray arrayWithCapacity:count];
 	ShipEntity				*ship = nil;
 	Entity<OOStellarBody>	*entity = nil;
 	Vector					pos = kZeroVector, direction = kZeroVector, point0 = kZeroVector, point1 = kZeroVector;
 	double					radius = 0;
 	
-	if (routeFraction != NSNotFound && ([route isEqualToString:@"pw"] || [route isEqualToString:@"sw"] || [route isEqualToString:@"ps"]))
+	if ([route isEqualToString:@"pw"] || [route isEqualToString:@"sw"] || [route isEqualToString:@"ps"])
 	{
 		routeFraction = 1.0f - routeFraction; 
 	}
@@ -8586,11 +8586,12 @@ Entity *gOOJSPlayerIfStale = nil;
 {
 	if (routeFraction == NSNotFound) routeFraction = randf();
 	
+	// EMMSTRAN: use OOVectorInterpolate().
 	point1.x -= point0.x;		point1.y -= point0.y;		point1.z -= point0.z;
 	point1.x *= routeFraction;	point1.y *= routeFraction;	point1.z *= routeFraction;
 	point1.x += point0.x;		point1.y += point0.y;		point1.z += point0.z;
 	
-	point1.x += SCANNER_MAX_RANGE*(randf() - randf());	// TODO: coilt be done with just one randf()!
+	point1.x += SCANNER_MAX_RANGE*(randf() - randf());	// TODO: could be done with just one randf()!
 	point1.y += SCANNER_MAX_RANGE*(randf() - randf());
 	point1.z += SCANNER_MAX_RANGE*(randf() - randf());
 	
