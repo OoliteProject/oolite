@@ -109,10 +109,17 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 };
 
 
+static JSPropertySpec sEquipmentInfoStaticProperties[] =
+{
+	{ "allEquipment",					0, OOJS_PROP_READONLY_CB, EquipmentInfoGetAllEqipment },
+	{ 0 }
+};
+
+
 static JSFunctionSpec sEquipmentInfoMethods[] =
 {
 	// JS name					Function						min args
-	{ "toString",				OOJSObjectWrapperToString,		0, },
+	{ "toString",				OOJSObjectWrapperToString,		0 },
 	{ 0 }
 };
 
@@ -120,7 +127,7 @@ static JSFunctionSpec sEquipmentInfoMethods[] =
 static JSFunctionSpec sEquipmentInfoStaticMethods[] =
 {
 	// JS name					Function						min args
-	{ "infoForKey",				EquipmentInfoStaticInfoForKey,	0, },
+	{ "infoForKey",				EquipmentInfoStaticInfoForKey,	0 },
 	{ 0 }
 };
 
@@ -149,8 +156,7 @@ DEFINE_JS_OBJECT_GETTER(JSEquipmentInfoGetEquipmentType, &sEquipmentInfoClass, s
 
 void InitOOJSEquipmentInfo(JSContext *context, JSObject *global)
 {
-	sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass, OOJSUnconstructableConstruct, 0, sEquipmentInfoProperties, sEquipmentInfoMethods, NULL, sEquipmentInfoStaticMethods);
-	JS_DefineProperty(context, sEquipmentInfoPrototype, "allEquipment", JSVAL_NULL, EquipmentInfoGetAllEqipment, NULL, OOJS_PROP_READONLY);
+	sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass, OOJSUnconstructableConstruct, 0, sEquipmentInfoProperties, sEquipmentInfoMethods, sEquipmentInfoStaticProperties, sEquipmentInfoStaticMethods);
 	
 	OOJSRegisterObjectConverter(&sEquipmentInfoClass, OOJSBasicPrivateObjectConverter);
 }
@@ -359,7 +365,6 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid 
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL						OK = NO;
 	OOEquipmentType				*eqType = nil;
 	int32						iValue;
 	
@@ -375,8 +380,7 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid 
 					// reset mission variable
 					[OOPlayerForScripting() setMissionVariable:nil
 														forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
-					OK = YES;
-					break;
+					return YES;
 				}
 				if (JS_ValueToInt32(context, *value, &iValue))
 				{
@@ -384,7 +388,7 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid 
 					if (14 < iValue && iValue != kOOVariableTechLevel)  iValue = 14;
 					[OOPlayerForScripting() setMissionVariable:[NSString stringWithFormat:@"%u", iValue]
 														forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
-					OK = YES;
+					return YES;
 				}
 			}
 			else
@@ -399,12 +403,8 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid 
 			return NO;
 	}
 	
-	if (EXPECT_NOT(!OK))
-	{
-		OOJSReportBadPropertyValue(context, this, propID, sEquipmentInfoProperties, *value);
-	}
-	
-	return OK;
+	OOJSReportBadPropertyValue(context, this, propID, sEquipmentInfoProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -461,10 +461,10 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, uintN argc, jsva
 	
 	NSString					*key = nil;
 	
-	key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 0)  key = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (key == nil)
 	{
-		OOJSReportBadArguments(context, @"EquipmentInfo", @"infoForKey", argc, OOJS_ARGV, nil, @"string");
+		OOJSReportBadArguments(context, @"EquipmentInfo", @"infoForKey", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
 		return NO;
 	}
 	
