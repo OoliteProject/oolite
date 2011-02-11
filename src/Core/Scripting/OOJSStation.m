@@ -350,20 +350,21 @@ static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *v
 {
 	OOJS_NATIVE_ENTER(context)
 	
+	NSString		*shipRole = nil;
 	StationEntity	*station = nil;
 	ShipEntity		*result = nil;
 	JSBool			abortAllDockings = NO;
 	
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARGV[1], &abortAllDockings);
-	
-	NSString *shipRole = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 0)  shipRole = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (EXPECT_NOT(shipRole == nil))
 	{
-		OOJSReportBadArguments(context, @"Station", @"launchShipWithRole", argc, OOJS_ARGV, nil, @"shipRole");
+		OOJSReportBadArguments(context, @"Station", @"launchShipWithRole", MIN(argc, 1U), OOJS_ARGV, nil, @"string (role)");
 		return NO;
 	}
+	
+	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARGV[1], &abortAllDockings);
 	
 	result = [station launchIndependentShip:shipRole];
 	if (abortAllDockings) [station abortAllDockings];
