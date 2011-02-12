@@ -31,9 +31,6 @@ least once to have it generated.
 Switching between full screen and windowed mode, or changing resolution
 -----------------------------------------------------------------------
 
-The long standing issues with textures being corrupted when resizing the
-game window have been resolved as of version 1.73.
-
 If in doubt, delete .GNUstepDefaults and restart the game. That will start
 you in windowed mode.
 
@@ -93,15 +90,13 @@ Tips
 
 * Use Shift+Escape to quit the game
 
-* Read the tutorial before you begin! ( http://oolite.aegidian.org/tutorial )
-
 * You can read the Advice for New Commanders at the bottom of this file for
   a quick introduction to the game, with hints and tips
 
 
 Links
 -----
-Oolite website at: http://oolite.org
+Oolite website at: http://www.oolite.org
 
 Oolite Message Board at: http://www.aegidian.org/bb
 
