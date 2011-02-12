@@ -116,7 +116,7 @@
 		"time"		= "eval(\"this._profileFunc = function() { \" + PARAM + \" };\"); console.profile(this._profileFunc, this); delete this._profileFunc;";
 		
 		// ":trace <expression>" -- trace a JavaScript expression.
-		"trace"		= "eval(\"this._traceFunc = function() { \" + PARAM + \" };\"); console.trace(this._traceFunc, this); delete this._profileFunc;";
+		"trace"		= "eval(\"this._traceFunc = function() { \" + PARAM + \" };\"); console.trace(this._traceFunc, this); delete this._traceFunc;";
 		
 		// For calling old-school scripting methods (on player), as in ":: gui_screen_string", or ":: playSound: boop.ogg"
 		":"			= "performLegacyCommand(PARAM)";
