@@ -272,7 +272,7 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 }
 
 
-- (void)pushChannel:(OOSoundChannel *)inChannel
+- (void)pushChannel:(OOSoundChannel *) OO_NS_CONSUMED inChannel
 {
 	assert(nil != inChannel);
 	

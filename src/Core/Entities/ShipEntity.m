@@ -8206,7 +8206,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	while ([collidingEntities count] > 0)
 	{
-		ent = [(Entity *)[collidingEntities objectAtIndex:0] retain];
+		// EMMSTRAN: investigate if doing this backwards would be more efficient. (Not entirely obvious, NSArray is kinda funky.) -- Ahruman 2011-02-12
+		ent = [[[collidingEntities objectAtIndex:0] retain] autorelease];
 		[collidingEntities removeObjectAtIndex:0];
 		if (ent)
 		{
@@ -8218,14 +8219,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			else if ([ent isStellarObject])
 			{
 				[self getDestroyedBy:ent damageType:[ent isSun] ? kOODamageTypeHitASun : kOODamageTypeHitAPlanet];
-				if (self == PLAYER) [self retain];
+				if (self == PLAYER)  [self retain];
 			}
 			else if ([ent isWormhole])
 			{
 				WormholeEntity* whole = (WormholeEntity*)ent;
 				if (isPlayer)
 				{
-					[(PlayerEntity*)self enterWormhole: whole];
+					[(PlayerEntity*)self enterWormhole:whole];
 					return;
 				}
 				else
@@ -8238,7 +8239,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					}
 				}
 			}
-			[ent release];
 		}
 	}
 }

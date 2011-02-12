@@ -68,6 +68,6 @@ enum
 - (void) setMasterVolume:(float)inVolume;
 
 - (OOSoundChannel *) popChannel;
-- (void) pushChannel:(OOSoundChannel *)inChannel;
+- (void) pushChannel:(OOSoundChannel *) OO_NS_CONSUMED inChannel;
 
 @end
