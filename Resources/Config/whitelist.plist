@@ -412,7 +412,6 @@
 	{
 		"setGuiToStatusScreen" = "doNothing";
 		"initialiseTurret" = "doNothing";
-		"setUpEscorts" = "doNothing";
 	};
 	
 	query_method_aliases =
@@ -427,7 +426,6 @@
 		"scanForNearestShipWithRole:" = "scanForNearestShipWithPrimaryRole:";
 		"launchDefenceShip"= "launchDefenseShip";
 		"setTargetToStation" = "setTargetToNearestStation";
-		"setTargetToFriendlyStation" = "setTargetToNearestFriendlyStation";
 		"performDocking" = "doNothing";
 		"exitAI" = ("exitAIWithMessage:", "RESTARTED");
 		"throwSparks" = "ai_throwSparks";
@@ -436,5 +434,6 @@
 		"launchIndependentShipWithRole:" = "launchIndependentShip:";
 		"scanForNearestMerchantmen" = "scanForNearestMerchantman";
 		"scanForRandomMerchantmen" = "scanForRandomMerchantman";
+		"setUpEscorts" = "doNothing";
 	};
 }
