@@ -4890,7 +4890,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		NSString	*systemName = [self getSystemName:system_seed];
 		
-		isStandard = [systemName isEqualToString: [self generateSystemName:system_seed]];
+		isStandard = [systemName isEqualToString:[self generateSystemName:system_seed]];
 		//if the name is not the standard generated one, we can't  use the generated phonemes.
 		systemSaid = isStandard ? [self generatePhoneticSystemName:system_seed] : systemName;
 		
@@ -4971,9 +4971,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		if (!logOnly)
 		{
-			[self speakWithSubstitutions:[NSString stringWithFormat:DESC(@"speech-synthesis-incoming-message-@"), text]];
+			if ([player isSpeechOn])
+			{
+				// EMMSTRAN: should say "Incoming message from ..." when prefixed with sender name.
+				NSString *format = ExpandDescriptionForCurrentSystem(DESC(@"speech-synthesis-incoming-message-@"));
+				[self speakWithSubstitutions:[NSString stringWithFormat:format, text]];
+			}
 			
-			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:(float)count key:nil addToArray:nil];
+			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:count key:nil addToArray:nil];
 			
 			[currentMessage release];
 			currentMessage = [text retain];
