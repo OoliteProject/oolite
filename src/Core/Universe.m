@@ -4971,7 +4971,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		if (!logOnly)
 		{
-			[self speakWithSubstitutions:[NSString stringWithFormat:@"%@%@", DESC(@"speech-synthesis-incoming-message"), text]];
+			[self speakWithSubstitutions:[NSString stringWithFormat:DESC(@"speech-synthesis-incoming-message-@"), text]];
 			
 			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:(float)count key:nil addToArray:nil];
 			

@@ -1328,7 +1328,8 @@
 	// Locale-specific defaults
 	"espeak-default-voice"	= "default";
 	
-	"speech-synthesis-incoming-message"	= "Incoming message: ";	// Prefix; message text is appended.
+	"speech-synthesis-incoming-message"	= "Incoming message";
+	"speech-synthesis-incoming-message-@"	= "[speech-synthesis-incoming-message]: %@";
 	
 	// Mac multi-screen handling
 	"oolite-mac-bad-display" = "The display configuration has changed in a way that may impact Oolite’s performance.";
