@@ -8418,7 +8418,6 @@ else _dockTarget = NO_TARGET;
 	key_dump_cargo &&
 	key_rotate_cargo &&
 	key_autopilot &&
-	key_autopilot_target &&
 	key_autodock &&
 	key_snapshot &&
 	key_docking_music &&

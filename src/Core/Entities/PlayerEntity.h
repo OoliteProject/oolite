@@ -402,7 +402,6 @@ typedef enum
 	OOKeyCode				key_rotate_cargo;
 	
 	OOKeyCode				key_autopilot;
-	OOKeyCode				key_autopilot_target;
 	OOKeyCode				key_autodock;
 	
 	OOKeyCode				key_snapshot;
