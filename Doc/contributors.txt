@@ -6,11 +6,11 @@ The Man: Giles Williams (aegidian)
 
 Jens Ayton (Ahruman)
 Nikos Barkas (another_commander)
+Eugene Chernyakov (seventh)
+colinh
 Commander McLane
 Dermot Costello
-Eugene Chernyakov (seventh)
 Chris Crowther (hikari)
-colinh
 Jelmer Graafstra
 James Hobson (Cmdr James)
 Influence D
@@ -51,4 +51,5 @@ LibOgg/LibVorbis: Xiph.Org Foundation.
 Mac OS X-specific libraries:
 ----------------------------
 RBSplitView: Rainer Brockerhoff
+Sparkle: Andy Matuschak and contributors
 VirtualRingBuffer: Kurt Revis

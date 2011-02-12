@@ -504,13 +504,11 @@ MA 02110-1301, USA.
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_PRECISION]];
-#ifndef NDEBUG
 	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-snapshot")
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_SNAPSHOT]];
-#endif
 	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-escape-pod")
 				  allowable:HW_BUTTON
