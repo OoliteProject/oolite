@@ -286,7 +286,6 @@ SOFTWARE.
 	
 	if ( thargProb > 0.0f && [dict objectForKey:@"EQ_THARGON"] == nil)
 	{
-		OOLogWARN(@"roleSet.deprecated", @"The \"thargon\" role is deprecated, use \"EQ_THARGON\" instead.");
 		[tDict setObject:[NSNumber numberWithFloat:thargProb] forKey:@"EQ_THARGON"];
 		[tDict removeObjectForKey:@"thargon"];
 	}
