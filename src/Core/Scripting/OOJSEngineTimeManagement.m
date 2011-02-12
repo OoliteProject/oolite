@@ -48,19 +48,6 @@ static OOHighResTimeValue sLimiterPauseStart;
 static double sLimiterTimeLimit;
 
 
-enum
-{
-	/*	Inverse proportion of BranchCallback calls on which we test the time
-	 limit. Must be a power of two!
-	 */
-#if OOJS_DEBUG_LIMITER
-	kMaxBranchCount = (1 << 8)	// 256
-#else
-	kMaxBranchCount = (1 << 18)	// 262144
-#endif
-};
-
-
 #if OOJS_DEBUG_LIMITER
 #define OOJS_TIME_LIMIT		(0.2)	// seconds
 #else
@@ -462,6 +449,7 @@ static void FunctionCallback(JSFunction *function, JSScript *script, JSContext *
 	
 	// Ignore native functions. Ours get their own entries anyway, SpiderMonkey's are elided.
 	if (!sTracing && JS_GetFunctionNative(context, function) != NULL)  return;
+	if (EXPECT_NOT(function == NULL))  return;
 	
 	OOHighResTimeValue start = OOGetHighResTime();
 	
