@@ -68,19 +68,19 @@ enum
 
 static JSPropertySpec sOoliteProperties[] =
 {
-	// JS name						ID							flags
-	{ "version",				kOolite_version,			OOJS_PROP_READONLY_CB },
-	{ "versionString",			kOolite_versionString,		OOJS_PROP_READONLY_CB },
+	// JS name					ID							flags
+	{ "gameSettings",			kOolite_gameSettings,		OOJS_PROP_READONLY_CB },
 	{ "jsVersion",				kOolite_jsVersion,			OOJS_PROP_READONLY_CB },
 	{ "jsVersionString",		kOolite_jsVersionString,	OOJS_PROP_READONLY_CB },
-	{ "gameSettings",			kOolite_gameSettings,		OOJS_PROP_READONLY_CB },
+	{ "version",				kOolite_version,			OOJS_PROP_READONLY_CB },
+	{ "versionString",			kOolite_versionString,		OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
 
 static JSFunctionSpec sOoliteMethods[] =
 {
-	// JS name						Function					min args
+	// JS name					Function					min args
 	{ "compareVersion",			OoliteCompareVersion,		1 },
 	{ 0 }
 };

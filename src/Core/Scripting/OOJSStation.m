@@ -88,17 +88,17 @@ enum
 static JSPropertySpec sStationProperties[] =
 {
 	// JS name						ID									flags
-	{ "isMainStation",				kStation_isMainStation,				OOJS_PROP_READONLY_CB },
-	{ "hasNPCTraffic",				kStation_hasNPCTraffic,				OOJS_PROP_READWRITE_CB },
 	{ "alertCondition",				kStation_alertCondition,			OOJS_PROP_READWRITE_CB },
-	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	OOJS_PROP_READWRITE_CB },
-	{ "allowsFastDocking",			kStation_allowsFastDocking,			OOJS_PROP_READWRITE_CB },
 	{ "allowsAutoDocking",			kStation_allowsAutoDocking,			OOJS_PROP_READWRITE_CB },
+	{ "allowsFastDocking",			kStation_allowsFastDocking,			OOJS_PROP_READWRITE_CB },
 	{ "dockedContractors",			kStation_dockedContractors,			OOJS_PROP_READONLY_CB },
-	{ "dockedPolice",				kStation_dockedPolice,				OOJS_PROP_READONLY_CB },
 	{ "dockedDefenders",			kStation_dockedDefenders,			OOJS_PROP_READONLY_CB },
-	{ "equivalentTechLevel",		kStation_equivalentTechLevel,		OOJS_PROP_READONLY_CB },
+	{ "dockedPolice",				kStation_dockedPolice,				OOJS_PROP_READONLY_CB },
 	{ "equipmentPriceFactor",		kStation_equipmentPriceFactor,		OOJS_PROP_READONLY_CB },
+	{ "equivalentTechLevel",		kStation_equivalentTechLevel,		OOJS_PROP_READONLY_CB },
+	{ "hasNPCTraffic",				kStation_hasNPCTraffic,				OOJS_PROP_READWRITE_CB },
+	{ "isMainStation",				kStation_isMainStation,				OOJS_PROP_READONLY_CB },
+	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	OOJS_PROP_READWRITE_CB },
 	{ "suppressArrivalReports",		kStation_suppressArrivalReports,	OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };

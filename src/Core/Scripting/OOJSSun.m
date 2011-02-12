@@ -67,9 +67,9 @@ enum
 static JSPropertySpec sSunProperties[] =
 {
 	// JS name					ID							flags
-	{ "radius",					kSun_radius,				OOJS_PROP_READONLY_CB },
 	{ "hasGoneNova",			kSun_hasGoneNova,			OOJS_PROP_READONLY_CB },
 	{ "isGoingNova",			kSun_isGoingNova,			OOJS_PROP_READONLY_CB },
+	{ "radius",					kSun_radius,				OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -77,8 +77,8 @@ static JSPropertySpec sSunProperties[] =
 static JSFunctionSpec sSunMethods[] =
 {
 	// JS name					Function					min args
-	{ "goNova",					SunGoNova,					1 },
 	{ "cancelNova",				SunCancelNova,				0 },
+	{ "goNova",					SunGoNova,					1 },
 	{ 0 }
 };
 

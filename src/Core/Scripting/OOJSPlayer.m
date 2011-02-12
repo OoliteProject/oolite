@@ -99,22 +99,22 @@ enum
 static JSPropertySpec sPlayerProperties[] =
 {
 	// JS name					ID							flags
-	{ "name",					kPlayer_name,				OOJS_PROP_READONLY_CB },
-	{ "score",					kPlayer_score,				OOJS_PROP_READWRITE_CB },
-	{ "credits",				kPlayer_credits,			OOJS_PROP_READWRITE_CB },
-	{ "rank",					kPlayer_rank,				OOJS_PROP_READONLY_CB },
-	{ "legalStatus",			kPlayer_legalStatus,		OOJS_PROP_READONLY_CB },
-	{ "alertCondition",			kPlayer_alertCondition,		OOJS_PROP_READONLY_CB },
-	{ "alertTemperature",		kPlayer_alertTemperature,	OOJS_PROP_READONLY_CB },
-	{ "alertMassLocked",		kPlayer_alertMassLocked,	OOJS_PROP_READONLY_CB },
 	{ "alertAltitude",			kPlayer_alertAltitude,		OOJS_PROP_READONLY_CB },
+	{ "alertCondition",			kPlayer_alertCondition,		OOJS_PROP_READONLY_CB },
 	{ "alertEnergy",			kPlayer_alertEnergy,		OOJS_PROP_READONLY_CB },
 	{ "alertHostiles",			kPlayer_alertHostiles,		OOJS_PROP_READONLY_CB },
-	{ "trumbleCount",			kPlayer_trumbleCount,		OOJS_PROP_READONLY_CB },
-	{ "contractReputation",		kPlayer_contractReputation,	OOJS_PROP_READONLY_CB },
-	{ "passengerReputation",	kPlayer_passengerReputation,	OOJS_PROP_READONLY_CB },
-	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	OOJS_PROP_READONLY_CB },
+	{ "alertMassLocked",		kPlayer_alertMassLocked,	OOJS_PROP_READONLY_CB },
+	{ "alertTemperature",		kPlayer_alertTemperature,	OOJS_PROP_READONLY_CB },
 	{ "bounty",					kPlayer_bounty,				OOJS_PROP_READWRITE_CB },
+	{ "contractReputation",		kPlayer_contractReputation,	OOJS_PROP_READONLY_CB },
+	{ "credits",				kPlayer_credits,			OOJS_PROP_READWRITE_CB },
+	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	OOJS_PROP_READONLY_CB },
+	{ "legalStatus",			kPlayer_legalStatus,		OOJS_PROP_READONLY_CB },
+	{ "name",					kPlayer_name,				OOJS_PROP_READONLY_CB },
+	{ "passengerReputation",	kPlayer_passengerReputation,	OOJS_PROP_READONLY_CB },
+	{ "rank",					kPlayer_rank,				OOJS_PROP_READONLY_CB },
+	{ "score",					kPlayer_score,				OOJS_PROP_READWRITE_CB },
+	{ "trumbleCount",			kPlayer_trumbleCount,		OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 

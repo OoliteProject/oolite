@@ -2428,6 +2428,8 @@
 				1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */,
 				1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */,
 				1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */,
+				1A1280F612ECA4ED00B65D9F /* OOJSFont.h */,
+				1A1280F712ECA4ED00B65D9F /* OOJSFont.m */,
 			);
 			name = Global;
 			sourceTree = "<group>";
@@ -2626,8 +2628,6 @@
 				1A11F8480F35F60C001C886C /* OOJSShipGroup.m */,
 				1A0942C712D7C011003B6273 /* OOJSFrameCallbacks.h */,
 				1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */,
-				1A1280F612ECA4ED00B65D9F /* OOJSFont.h */,
-				1A1280F712ECA4ED00B65D9F /* OOJSFont.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";

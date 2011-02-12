@@ -114,6 +114,8 @@ static JSPropertySpec sVectorProperties[] =
 static JSFunctionSpec sVectorMethods[] =
 {
 	// JS name					Function					min args
+	{ "toSource",				VectorToSource,				0, },
+	{ "toString",				VectorToString,				0, },
 	{ "add",					VectorAdd,					1, },
 	{ "angleTo",				VectorAngleTo,				1, },
 	{ "cross",					VectorCross,				1, },
@@ -130,8 +132,6 @@ static JSFunctionSpec sVectorMethods[] =
 	{ "subtract",				VectorSubtract,				1, },
 	{ "toArray",				VectorToArray,				0, },
 	{ "toCoordinateSystem",		VectorToCoordinateSystem,	1, },
-	{ "toSource",				VectorToSource,				0, },
-	{ "toString",				VectorToString,				0, },
 	{ "tripleProduct",			VectorTripleProduct,		2, },
 	{ 0 }
 };

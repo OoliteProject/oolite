@@ -71,10 +71,10 @@ enum
 static JSPropertySpec sSoundSourceProperties[] =
 {
 	// JS name					ID							flags
-	{ "sound",					kSoundSource_sound,			OOJS_PROP_READWRITE_CB },
 	{ "isPlaying",				kSoundSource_isPlaying,		OOJS_PROP_READONLY_CB },
 	{ "loop",					kSoundSource_loop,			OOJS_PROP_READWRITE_CB },
 	{ "repeatCount",			kSoundSource_repeatCount,	OOJS_PROP_READWRITE_CB },
+	{ "sound",					kSoundSource_sound,			OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 
@@ -84,8 +84,9 @@ static JSFunctionSpec sSoundSourceMethods[] =
 	// JS name					Function					min args
 	{ "toString",				OOJSObjectWrapperToString,	0, },
 	{ "play",					SoundSourcePlay,			0, },
-	{ "stop",					SoundSourceStop,			0, },
 	{ "playOrRepeat",			SoundSourcePlayOrRepeat,	0, },
+	// playSound is defined in oolite-global-prefix.js.
+	{ "stop",					SoundSourceStop,			0, },
 	{ 0 }
 };
 

@@ -230,9 +230,9 @@ enum
 static JSPropertySpec sTimerProperties[] =
 {
 	// JS name					ID							flags
-	{ "nextTime",				kTimer_nextTime,			OOJS_PROP_READWRITE_CB },
 	{ "interval",				kTimer_interval,			OOJS_PROP_READWRITE_CB },
 	{ "isRunning",				kTimer_isRunning,			OOJS_PROP_READONLY_CB },
+	{ "nextTime",				kTimer_nextTime,			OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 

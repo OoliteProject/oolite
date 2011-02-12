@@ -72,10 +72,10 @@ enum
 static JSPropertySpec sShipGroupProperties[] =
 {
 	// JS name					ID							flags
-	{ "ships",					kShipGroup_ships,			OOJS_PROP_READONLY_CB },
+	{ "count",					kShipGroup_count,			OOJS_PROP_READONLY_CB },
 	{ "leader",					kShipGroup_leader,			OOJS_PROP_READWRITE_CB },
 	{ "name",					kShipGroup_name,			OOJS_PROP_READWRITE_CB },
-	{ "count",					kShipGroup_count,			OOJS_PROP_READONLY_CB },
+	{ "ships",					kShipGroup_ships,			OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -85,8 +85,8 @@ static JSFunctionSpec sShipGroupMethods[] =
 	// JS name					Function					min args
 	{ "toString",				OOJSObjectWrapperToString,	0 },
 	{ "addShip",				ShipGroupAddShip,			1 },
-	{ "removeShip",				ShipGroupRemoveShip,		1 },
 	{ "containsShip",			ShipGroupContainsShip,		1 },
+	{ "removeShip",				ShipGroupRemoveShip,		1 },
 	{ 0 }
 };
 

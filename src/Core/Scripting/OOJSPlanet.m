@@ -70,12 +70,12 @@ enum
 static JSPropertySpec sPlanetProperties[] =
 {
 	// JS name					ID							flags
-	{ "isMainPlanet",			kPlanet_isMainPlanet,		OOJS_PROP_READONLY_CB },
 	{ "hasAtmosphere",			kPlanet_hasAtmosphere,		OOJS_PROP_READONLY_CB },
+	{ "isMainPlanet",			kPlanet_isMainPlanet,		OOJS_PROP_READONLY_CB },
 	{ "radius",					kPlanet_radius,				OOJS_PROP_READONLY_CB },
+	{ "rotationalVelocity",		kPlanet_rotationalVelocity,	OOJS_PROP_READWRITE_CB },
 	{ "texture",				kPlanet_texture,			OOJS_PROP_READWRITE_CB },
 	{ "orientation",			kPlanet_orientation,		OOJS_PROP_READWRITE_CB },	// Not documented since it's inherited from Entity
-	{ "rotationalVelocity",		kPlanet_rotationalVelocity,	OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 

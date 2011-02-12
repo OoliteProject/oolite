@@ -109,17 +109,17 @@ static JSFunctionSpec sQuaternionMethods[] =
 	// JS name					Function					min args
 	{ "toString",				QuaternionToString,			0, },
 	{ "toSource",				QuaternionToSource,			0, },
-	{ "multiply",				QuaternionMultiply,			1, },
 	{ "dot",					QuaternionDot,				1, },
+	{ "multiply",				QuaternionMultiply,			1, },
+	{ "normalize",				QuaternionNormalize,		0, },
 	{ "rotate",					QuaternionRotate,			2, },
 	{ "rotateX",				QuaternionRotateX,			1, },
 	{ "rotateY",				QuaternionRotateY,			1, },
 	{ "rotateZ",				QuaternionRotateZ,			1, },
-	{ "normalize",				QuaternionNormalize,		0, },
-	{ "vectorForward",			QuaternionVectorForward,	0, },
-	{ "vectorUp",				QuaternionVectorUp,			0, },
-	{ "vectorRight",			QuaternionVectorRight,		0, },
 	{ "toArray",				QuaternionToArray,			0, },
+	{ "vectorForward",			QuaternionVectorForward,	0, },
+	{ "vectorRight",			QuaternionVectorRight,		0, },
+	{ "vectorUp",				QuaternionVectorUp,			0, },
 	{ 0 }
 };
 
