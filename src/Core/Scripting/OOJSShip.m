@@ -31,14 +31,12 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "ShipEntityAI.h"
 #import "ShipEntityScriptMethods.h"
-#import "PlayerEntityScriptMethods.h"
 #import "AI.h"
 #import "OOStringParsing.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OORoleSet.h"
 #import "OOJSPlayer.h"
 #import "OOShipGroup.h"
-#import "PlayerEntityContracts.h"
 #import "OOEquipmentType.h"
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
@@ -73,7 +71,6 @@ static JSBool ShipAbandonShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp);
-static JSBool ShipRemovePassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
@@ -306,7 +303,6 @@ static JSFunctionSpec sShipMethods[] =
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
-	{ "removePassenger",		ShipRemovePassenger,		1 },	// Documented as PlayerShip
 	{ "restoreSubEntities",		ShipRestoreSubEntities,		0 },
 	{ "__runLegacyScriptActions", ShipRunLegacyScriptActions,	2 },	// Deliberately not documented
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
@@ -1612,39 +1608,6 @@ static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp)
 		}
 		else
 			[thisEnt removeEquipmentItem:key];
-	}
-	
-	OOJS_RETURN_BOOL(OK);
-	
-	OOJS_NATIVE_EXIT
-}
-
-
-// removePassenger(name :string)
-static JSBool ShipRemovePassenger(JSContext *context, uintN argc, jsval *vp)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	ShipEntity					*thisEnt = nil;
-	NSString					*key = nil;
-	BOOL						OK = YES;
-	
-	GET_THIS_SHIP(thisEnt);
-	
-	if (argc > 0)  key = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOJSReportBadArguments(context, @"Ship", @"removePassenger", MIN(argc, 1U), OOJS_ARGV, nil, @"name");
-		return NO;
-	}
-	
-	OK = [thisEnt passengerCount] > 0 && [key length] > 0;
-	
-	if (OK)
-	{
-		// must be the player's ship!
-		if ([thisEnt isPlayer]) OK = [(PlayerEntity*)thisEnt removePassenger:key];
-		else OK = NO;
 	}
 	
 	OOJS_RETURN_BOOL(OK);

@@ -58,6 +58,7 @@ static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, uintN argc,
 static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee);
@@ -150,6 +151,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
 	{ "launch",							PlayerShipLaunch,							0 },
 	{ "removeAllCargo",					PlayerShipRemoveAllCargo,					0 },
+	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
 	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,					1 },
 	{ 0 }
 };
@@ -596,6 +598,31 @@ static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp)
 	if ([player passengerCount] >= [player passengerCapacity])  OOJS_RETURN_BOOL(NO);
 	
 	BOOL OK = [player addPassenger:name start:start destination:destination eta:eta fee:fee];
+	OOJS_RETURN_BOOL(OK);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// removePassenger(name :string)
+static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	NSString			*name = nil;
+	BOOL				OK = YES;
+	
+	if (argc > 0)  name = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(name == nil))
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"removePassenger", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
+		return NO;
+	}
+	
+	OK = [player passengerCount] > 0 && [name length] > 0;
+	if (OK)  OK = [player removePassenger:name];
+	
 	OOJS_RETURN_BOOL(OK);
 	
 	OOJS_NATIVE_EXIT
