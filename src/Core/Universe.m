@@ -8352,6 +8352,7 @@ Entity *gOOJSPlayerIfStale = nil;
 #endif
 	universal_time = 0.0;
 	messageRepeatTime = 0.0;
+	countdown_messageRepeatTime = 0.0;
 	
 #if OOLITE_SPEECH_SYNTH
 	[speechArray autorelease];
