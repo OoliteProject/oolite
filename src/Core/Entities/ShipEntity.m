@@ -7527,7 +7527,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			[victim takeEnergyDamage:weapon_damage from:self becauseOf: parent];	// a very palpable hit
 
-			[shot setCollisionRadius: hit_at_range];
+			[shot setRange:hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
 			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
@@ -7589,7 +7589,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			[victim takeEnergyDamage:weapon_damage from:self becauseOf:self];	// a very palpable hit
 
-			[shot setCollisionRadius: hit_at_range];
+			[shot setRange:hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
 			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
@@ -7666,7 +7666,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			[victim takeEnergyDamage:weapon_damage from:self becauseOf:self];	// a very palpable hit
 
-			[shot setCollisionRadius:hit_at_range];
+			[shot setRange:hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
 			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];

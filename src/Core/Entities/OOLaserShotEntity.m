@@ -141,6 +141,12 @@ MA 02110-1301, USA.
 }
 
 
+- (void) setRange:(GLfloat)range
+{
+	_range = range;
+}
+
+
 - (void) update:(OOTimeDelta)delta_t
 {
 	[super update:delta_t];

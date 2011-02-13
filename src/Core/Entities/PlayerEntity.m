@@ -2065,6 +2065,16 @@ static bool minShieldLevelPercentageInitialised = false;
 {
 	hasMoved = !vector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
+	
+	if (hasRotated)
+	{
+		float dot = quaternion_dot_product(orientation, lastOrientation);
+		if (dot < 0.998 && [self status] == STATUS_IN_FLIGHT)
+		{
+			OOLog(@"player.spin", @"Player orientation changed from %@ to %@ (dot product: %f).", QuaternionDescription(lastOrientation), QuaternionDescription(orientation), dot);
+		}
+	}
+	
 	lastPosition = position;
 	lastOrientation = orientation;
 }
@@ -2709,6 +2719,18 @@ static bool minShieldLevelPercentageInitialised = false;
 - (void) setNormalOrientation:(Quaternion) quat
 {
 	[self setOrientation:make_quaternion(-quat.w, quat.x, quat.y, quat.z)];
+}
+
+
+- (void) setOrientation:(Quaternion)quat
+{
+	float dot = quaternion_dot_product(quat, orientation);
+	if (dot < 0.998 && [self status] == STATUS_IN_FLIGHT)
+	{
+		OOLog(@"player.spin", @"Player orientation changed from %@ to %@ (dot product: %f).", QuaternionDescription(orientation), QuaternionDescription(quat), dot);
+	}
+	
+	[super setOrientation:quat];
 }
 
 

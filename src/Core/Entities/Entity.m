@@ -855,7 +855,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	{
 		zero_distance = magnitude2(position);
 	}
-
 	
 	hasMoved = !vector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);

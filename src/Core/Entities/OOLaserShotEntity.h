@@ -44,4 +44,6 @@ MA 02110-1301, USA.
 
 - (void) setColor:(OOColor *)color;
 
+- (void) setRange:(GLfloat)range;
+
 @end
