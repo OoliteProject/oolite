@@ -3,7 +3,7 @@
 	Copyright 2006-2011 Jens Ayton
 	
 	A protocol for writing property lists in the OpenStep/simple text format. Why? Because as of
-	Tiger, the system functions to do write plists reject the format. I, however, like it, because
+	Tiger, the system functions to write plists reject the format. I, however, like it, because
 	it’s clear and legible. Fight the power!
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy of this software
