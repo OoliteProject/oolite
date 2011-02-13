@@ -39,6 +39,21 @@ this.copyright		= "© 2008-2011 the Oolite team.";
 this.description	= "Random offers of trumbles.";
 this.version		= "1.75";
 
+this._cleanUp = function ()
+{
+	// Remove event handlers.
+	delete this.missionScreenOpportunity;
+	delete this.shipWillExitWitchspace;
+};
+
+this.startUp = function ()
+{
+	if (missionVariables.trumbles === "TRUMBLE_BOUGHT")
+	{
+		// mission has ended, no need for further checking.
+		this._cleanUp();
+	}
+};
 
 this.missionScreenOpportunity = function ()
 {
@@ -62,7 +77,8 @@ this.missionScreenOpportunity = function ()
 		missionVariables.trumbles = "BUY_ME";
 	}
 	
-	if (missionVariables.trumbles === "BUY_ME" &&
+	if (player.ship.dockedStation.isMainStation &&
+		missionVariables.trumbles === "BUY_ME" &&
 		player.trumbleCount === 0 &&
 		Math.random() < 0.2) // 20% chance of trumble being offered.
 	{
@@ -80,6 +96,7 @@ this.missionScreenOpportunity = function ()
 				missionVariables.trumbles = "TRUMBLE_BOUGHT";
 				player.credits -= 30;
 				player.ship.awardEquipment("EQ_TRUMBLE");
+				this._cleanUp();
 			}
 			else
 			{
@@ -93,7 +110,7 @@ this.missionScreenOpportunity = function ()
 this.shipWillExitWitchspace = function ()
 {
 	// If player has rejected a trumble offer, reset trumble mission with 2% probability per jump.
-	if (missionVariables.trumbles === "NOT_NOW" && Math.random() < 0.02)
+	if (missionVariables.trumbles === "NOT_NOW" && Math.random() < 0.02 && !missionVariables.novacount)
 	{
 		missionVariables.trumbles = "BUY_ME";
 	}
