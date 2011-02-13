@@ -3,7 +3,7 @@ Modifications to external libraries' source code for running Oolite
 
 The various ports of Oolite are using a number of external libraries for graphics, sound, input and event handling. Throughout development, certain changes to the source code of these libraries have been deemed necessary, either to enable Oolite to run in a more efficient and independent manner, or simply to fix issues that occurred as a result of these external libraries themselves. Of these libraries, the ones that have to be rebuilt specifically for Oolite, together with the main reasons/areas changed for this reason are:
 
-1. gnustep-base v1.20.1 (Windows) - bug in NSInteger definition.
+1. gnustep-base v1.20.1 (Windows) - bug in NSInteger definition, change to dictionary format of NSUserDefaults and changes to facilitate native Obj-C exceptions support.
 2. SDL v1.2.13 - (Windows) window resizing issues.
 3. SpiderMonkey v1.85 (all platforms) - certain JS macro definitions required by Oolite not guaranteed or non-existent in standard library.
 4. eSpeak v1.43.03 (Windows) - Special build of the Windows speech synthesis libespeak.dll to enable asynchronous playback. Also, defaults the eSpeak data directory to Resources/espeak-data.
@@ -26,7 +26,13 @@ to
 typedef	gssaddr gsaddr;
 to fix incorrect definition of NSInteger. 
 
-- The GNUstep objc-1.dll runtime has been rebuilt with native Obj-C exception support. To do this on Windows, the patch which provides the void objc_set_unexpected(void (*handler)(id)) function to the runtime is required for versions of gcc older than 4.4.0. The patch can be downloaded from http://gcc.gnu.org/bugzilla/attachment.cgi?id=17364. Also, the gcc source header unwind-pe.h must be visible to exception.c in order for the build of libobjc to succeed.
+- The NSUserDefaults system dictionary (.GNUstepDefaults) is written in XML format in GNUstep 1.20.1. This is inconvenient for Oolite, where the more human-friendly OpenStep format for plists is used. The static BOOL writeDictionary(NSDictionary *dict, NSString *file) function, at around line 157 of the NSUserDefaults.m file is therefore changed to read as below:
+data = [NSPropertyListSerialization dataFromPropertyList: dict
+	       //format: NSPropertyListXMLFormat_v1_0  // no XML format, use OpenStep istead
+	       format: NSPropertyListOpenStepFormat
+	       errorDescription: &err];
+
+- The GNUstep objc-1.dll runtime has been rebuilt with native Obj-C exception support. To do this on Windows, the patch which provides the void (*_objc_unexpected_exception) (id exception) callback hook to the runtime is required for versions of gcc older than 4.4.0. The patch can be downloaded from http://gcc.gnu.org/bugzilla/attachment.cgi?id=17365. Also, the gcc source header unwind-pe.h must be visible to exception.c in order for the build of libobjc to succeed.
 
 The full source code of GNUstep 1.20.1 is available from
 ftp://ftp.gnustep.org/pub/gnustep/core/gnustep-base-1.20.1.tar.gz
