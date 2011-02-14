@@ -123,7 +123,7 @@ void MissionRunCallback()
 	sCallbackFunction = JSVAL_NULL;
 	sCallbackThis = JSVAL_NULL;
 	
-	argval = [[player missionChoice_string] oo_jsValueInContext:context];
+	argval = OOJSValueFromNativeObject(context, [player missionChoice_string]);
 	// now reset the mission choice silently, before calling the callback script.
 	[player setMissionChoice:nil withEvent:NO];
 	
