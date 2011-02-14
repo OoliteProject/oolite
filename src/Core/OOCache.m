@@ -108,7 +108,6 @@ MA 02110-1301, USA.
 
 
 #import "OOCache.h"
-#import "OOCacheManager.h"
 #import "OOStringParsing.h"
 
 

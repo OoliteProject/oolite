@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOLaserShotEntity.h"
 #import "Universe.h"
 #import "ShipEntity.h"
+#import "OOMacroOpenGL.h"
 
 
 #define kLaserDuration		(0.175)	// seconds
@@ -175,6 +176,8 @@ static const GLfloat kLaserVertices[] =
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
+	
+	OO_ENTER_OPENGL();
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	

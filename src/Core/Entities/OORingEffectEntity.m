@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 #import "OORingEffectEntity.h"
 #import "Universe.h"
+#import "OOMacroOpenGL.h"
 
 
 #define kRingDuration					(2.0f)	// seconds
@@ -134,6 +135,8 @@ static NSPoint sCircleVerts[kCircleSegments];	// holds vector coordinates for a 
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
+	
+	OO_ENTER_OPENGL();
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	

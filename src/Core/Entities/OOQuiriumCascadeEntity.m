@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOQuiriumCascadeEntity.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
+#import "OOMacroOpenGL.h"
 
 
 #define kQuiriumCascadeDuration			(20.0)	// seconds
@@ -120,6 +121,8 @@ MA 02110-1301, USA.
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
+	
+	OO_ENTER_OPENGL();
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	

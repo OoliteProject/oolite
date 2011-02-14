@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "PlayerEntity.h"
 #import "OOLightParticleEntity.h"
+#import "OOMacroOpenGL.h"
 
 
 //	Testing toy: cause particle systems to stop after half a second.
@@ -126,18 +127,20 @@ MA 02110-1301, USA.
 }
 
 
-OOINLINE void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat sz)
-{
-	glTexCoord2f(0.0, 1.0);	glVertex3f(x-sz, y-sz, z);
-	glTexCoord2f(1.0, 1.0);	glVertex3f(x+sz, y-sz, z);
-	glTexCoord2f(1.0, 0.0);	glVertex3f(x+sz, y+sz, z);
-	glTexCoord2f(0.0, 0.0);	glVertex3f(x-sz, y+sz, z);
-}
+#define DrawQuadForView(x, y, z, sz) \
+do { \
+	glTexCoord2f(0.0, 1.0);	glVertex3f(x-sz, y-sz, z); \
+	glTexCoord2f(1.0, 1.0);	glVertex3f(x+sz, y-sz, z); \
+	glTexCoord2f(1.0, 0.0);	glVertex3f(x+sz, y+sz, z); \
+	glTexCoord2f(0.0, 0.0);	glVertex3f(x-sz, y+sz, z); \
+} while (0)
 
 
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
+	
+	OO_ENTER_OPENGL();
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	

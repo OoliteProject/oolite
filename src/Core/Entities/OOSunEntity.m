@@ -24,10 +24,10 @@ MA 02110-1301, USA.
 
 #import "OOSunEntity.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOMacroOpenGL.h"
 
 #import "Universe.h"
 #import "AI.h"
-#import "TextureStore.h"
 #import "MyOpenGLView.h"
 #import "ShipEntityAI.h"
 #import "OOColor.h"
@@ -66,6 +66,8 @@ MA 02110-1301, USA.
 - (BOOL) setSunColor:(OOColor*)sun_color
 {
 	if (sun_color == nil) return NO;
+	
+	OO_ENTER_OPENGL();
 	
 	OOCGFloat	hue, sat, bri, alf;
 	OOColor		*color;
@@ -313,6 +315,7 @@ MA 02110-1301, USA.
 		if (subdivideLevel > 4)
 			subdivideLevel = 4;
 	}
+	OO_ENTER_OPENGL();
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT));
 	OOGL(glDisable(GL_CULL_FACE));
@@ -418,6 +421,8 @@ MA 02110-1301, USA.
 	delta = step * M_PI / 180.0f;	// Convert step from degrees to radians
 	pt0=(1.0 - corona_stage) * corona_blending;
 	pt1=corona_stage * corona_blending;
+	
+	OO_ENTER_OPENGL();
 	
 	OOGL(glShadeModel(GL_SMOOTH));
 	OOGLBEGIN(GL_TRIANGLE_STRIP);
