@@ -304,7 +304,7 @@ jsval GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID
 		OOJSReportWarning(context, @"Could not create system info object for galaxy %u, system %i.", galaxy, system);
 	}
 	
-	result = info ? [info oo_jsValueInContext:context] : JSVAL_NULL;
+	result = OOJSValueFromNativeObject(context, info);
 	
 	// Cache is not a root; we clear it in finalize if necessary.
 	sCachedSystemInfo = JSVAL_TO_OBJECT(result);
@@ -599,14 +599,14 @@ static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, js
 	OOJSPauseTimeLimiter();
 	
 	// Iterate over systems.
-	BOOL OK = YES;
+	BOOL OK = result != nil;
 	OOGalaxyID galaxy = [PLAYER currentGalaxyID];
 	OOSystemID system;
 	for (system = 0; system <= kOOMaximumSystemID; system++)
 	{
-		// NOTE: this deliberately bypasses the cache, since it's inherently unfriendly to a single-item cache.
+		// NOTE: this deliberately bypasses the cache, since iteration is inherently unfriendly to a single-item cache.
 		OOSystemInfo *info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
-		jsval args[1] = { [info oo_jsValueInContext:context] };
+		jsval args[1] = { OOJSValueFromNativeObject(context, info) };
 		
 		jsval rval = JSVAL_VOID;
 		OOJSResumeTimeLimiter();

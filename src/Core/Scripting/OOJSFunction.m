@@ -160,6 +160,20 @@ MA 02110-1301, USA.
 }
 
 
+- (jsval) functionValue
+{
+	if (EXPECT(_function != NULL))
+	{
+		return OBJECT_TO_JSVAL(JS_GetFunctionObject(_function));
+	}
+	else
+	{
+		return JSVAL_NULL;
+	}
+
+}
+
+
 - (BOOL) evaluateWithContext:(JSContext *)context
 					   scope:(JSObject *)jsThis
 						argc:(uintN)argc

@@ -2023,7 +2023,12 @@ static WormholeEntity *whole = nil;
 	
 	if (function != nil)
 	{
-		JSFunctionPredicateParameter param = { context, OBJECT_TO_JSVAL(JS_GetFunctionObject([function function])), JSVAL_TO_OBJECT([self oo_jsValueInContext:context]), NO };
+		JSFunctionPredicateParameter param =
+		{
+			.context = context,
+			.function = [function functionValue],
+			.jsThis = OOJSObjectFromNativeObject(context, self)
+		};
 		[self scanForNearestShipWithPredicate:JSFunctionPredicate parameter:&param];
 	}
 	else

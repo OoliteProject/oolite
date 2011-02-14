@@ -461,7 +461,7 @@ static void RunDeferredOperations(JSContext *context)
 			OOJSValue	*callbackObj = [operation objectForKey:@"value"];
 			NSString	*errorString = nil;
 			
-			if (!AddCallback(context, [callbackObj oo_jsValueInContext:context], trackingID, &errorString))
+			if (!AddCallback(context, OOJSValueFromNativeObject(context, callbackObj), trackingID, &errorString))
 			{
 				OOLogWARN(@"script.frameCallback.deferredAdd.failed", @"Deferred frame callback insertion failed: %@", errorString);
 			}

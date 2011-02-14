@@ -1347,6 +1347,15 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 @end
 
 
+JSObject *OOJSObjectFromNativeObject(JSContext *context, id object)
+{
+	jsval value = OOJSValueFromNativeObject(context, object);
+	JSObject *result = NULL;
+	if (JS_ValueToObject(context, value, &result))  return result;
+	return NULL;
+}
+
+
 @implementation OOJSValue
 
 + (id) valueWithJSValue:(jsval)value inContext:(JSContext *)context
@@ -1967,13 +1976,13 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	jsval							rval = JSVAL_VOID;
 	JSBool							result = NO;
 	
-	NSCParameterAssert(entity != NULL && param != NULL);
+	NSCParameterAssert(entity != nil && param != NULL);
 	NSCParameterAssert(param->context != NULL && JS_IsInRequest(param->context));
 	NSCParameterAssert(OOJSValueIsFunction(param->context, param->function));
 	
 	if (EXPECT_NOT(param->errorFlag))  return NO;
 	
-	args[0] = [entity oo_jsValueInContext:param->context];
+	args[0] = [entity oo_jsValueInContext:param->context];	// entity is required to be non-nil (asserted above), so oo_jsValueInContext: is safe.
 	
 	OOJSStartTimeLimiter();
 	OOJSResumeTimeLimiter();

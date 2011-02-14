@@ -198,8 +198,13 @@ OOINLINE jsval OOJSValueFromBOOL(int b)
 	
 	Return the JavaScript value representation of an object. The default
 	implementation returns JSVAL_VOID.
-	Note that sending this to nil does not return JSVAL_NULL. For that
-	behaviour, use OOJSValueFromNativeObject() below.
+	
+	SAFETY NOTE: if this message is sent to nil, the return value depends on
+	the platform and whether JS_USE_JSVAL_JSID_STRUCT_TYPES is set. If the
+	receiver may be nil, use OOJSValueFromNativeObject() instead.
+	
+	One case where it is safe to use oo_jsValueInContext: is with objects
+	retrieved from Foundation collections, as they can never be nil.
 	
 	Requires a request on context.
 */
@@ -235,6 +240,15 @@ OOINLINE jsval OOJSValueFromNativeObject(JSContext *context, id object)
 	if (object != nil)  return [object oo_jsValueInContext:context];
 	return  JSVAL_NULL;
 }
+
+
+/*	OOJSObjectFromNativeObject()
+	Return a JavaScript object representation of an object, or null if passed
+	nil. The value is boxed if necessary.
+	
+	Requires a request on context.
+*/
+JSObject *OOJSObjectFromNativeObject(JSContext *context, id object);
 
 
 /*	OOJSValue: an object whose purpose in life is to hold a JavaScript value.
@@ -658,7 +672,7 @@ JSBool OOJSObjectWrapperToString(JSContext *context, uintN argc, jsval *vp);
 #define OOJS_RETURN_NULL				OOJS_RETURN(JSVAL_NULL)
 #define OOJS_RETURN_BOOL(v)				OOJS_RETURN(OOJSValueFromBOOL(v))
 #define OOJS_RETURN_INT(v)				OOJS_RETURN(INT_TO_JSVAL(v))
-#define OOJS_RETURN_OBJECT(o)			do { id o_ = (o); OOJS_RETURN(o_ ? [o_ oo_jsValueInContext:context] : JSVAL_NULL); } while (0)
+#define OOJS_RETURN_OBJECT(o)			OOJS_RETURN(OOJSValueFromNativeObject(context, o))
 
 #define OOJS_RETURN_WITH_HELPER(helper, value) \
 do { \

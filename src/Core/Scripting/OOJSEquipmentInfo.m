@@ -414,7 +414,7 @@ static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, js
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	*value = [[OOEquipmentType allEquipmentTypes] oo_jsValueInContext:context];
+	*value = OOJSValueFromNativeObject(context, [OOEquipmentType allEquipmentTypes]);
 	return YES;
 	
 	OOJS_NATIVE_EXIT

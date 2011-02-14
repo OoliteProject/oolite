@@ -194,11 +194,11 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return JS_NewNumberValue(context, [player creditBalance], value);
 			
 		case kPlayer_rank:
-			*value = [OODisplayRatingStringFromKillCount([player score]) oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, OODisplayRatingStringFromKillCount([player score]));
 			return YES;
 			
 		case kPlayer_legalStatus:
-			*value = [OODisplayStringFromLegalStatus([player bounty]) oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, OODisplayStringFromLegalStatus([player bounty]));
 			return YES;
 			
 		case kPlayer_alertCondition:
@@ -237,7 +237,8 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return YES;
 			
 		case kPlayer_dockingClearanceStatus:
-			*value = [DockingClearanceStatusToString([player getDockingClearanceStatus]) oo_jsValueInContext:context];
+			// EMMSTRAN: OOConstToJSString-ify this.
+			*value = OOJSValueFromNativeObject(context, DockingClearanceStatusToString([player getDockingClearanceStatus]));
 			return YES;
 			
 		case kPlayer_bounty:

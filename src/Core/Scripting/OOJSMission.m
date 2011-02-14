@@ -347,7 +347,7 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 		}
 		else
 		{
-			sCallbackThis = [sCallbackScript oo_jsValueInContext:context];
+			sCallbackThis = OOJSValueFromNativeObject(context, sCallbackScript);
 		}
 	}
 	

@@ -1006,7 +1006,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	JSContext	*context = OOJSAcquireContext();
 	jsval		rval = JSVAL_VOID;
-	jsval		args[] = { [ship oo_jsValueInContext:context] };
+	jsval		args[] = { OOJSValueFromNativeObject(context, ship) };
 	JSBool		permit = YES;
 	
 	BOOL OK = [[self script] callMethod:OOJSID("permitDocking") inContext:context withArguments:args count:1 result:&rval];

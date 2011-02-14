@@ -735,7 +735,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 
 - (jsval) oo_jsValueInContext:(JSContext *)context
 {
-	return [[self propertyListRepresentation] oo_jsValueInContext:context];
+	return OOJSValueFromNativeObject(context, [self propertyListRepresentation]);
 }
 
 
@@ -968,7 +968,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 
 - (jsval) oo_jsValueInContext:(JSContext *)context
 {
-	return [[self propertyListRepresentation] oo_jsValueInContext:context];
+	return OOJSValueFromNativeObject(context, [self propertyListRepresentation]);
 }
 
 

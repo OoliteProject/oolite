@@ -314,11 +314,12 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 #endif		
 			
 		case kConsole_shaderMode:
-			*value = [OOStringFromShaderSetting([UNIVERSE shaderEffectsLevel]) oo_jsValueInContext:context];
+			// EMMSTRAN: if still relevant, OOConstToJSString-ify.
+			*value = OOJSValueFromNativeObject(context, OOStringFromShaderSetting([UNIVERSE shaderEffectsLevel]));
 			break;
 			
 		case kConsole_maximumShaderMode:
-			*value = [OOStringFromShaderSetting([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]) oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, OOStringFromShaderSetting([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]));
 			break;
 			
 		case kConsole_reducedDetailMode:
@@ -330,7 +331,7 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 			break;
 			
 		case kConsole_platformDescription:
-			*value = [OOPlatformDescription() oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, OOPlatformDescription());
 			break;
 			
 		case kConsole_pedanticMode:
@@ -353,11 +354,11 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 			break;
 			
 		case kConsole_glVendorString:
-			*value = [[[OOOpenGLExtensionManager sharedManager] vendorString] oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, [[OOOpenGLExtensionManager sharedManager] vendorString]);
 			break;
 			
 		case kConsole_glRendererString:
-			*value = [[[OOOpenGLExtensionManager sharedManager] rendererString] oo_jsValueInContext:context];
+			*value = OOJSValueFromNativeObject(context, [[OOOpenGLExtensionManager sharedManager] rendererString]);
 			break;
 			
 		case kConsole_glFixedFunctionTextureUnitCount:
@@ -991,7 +992,7 @@ static JSBool ConsoleProfile(JSContext *context, uintN argc, jsval *vp)
 	JSBool result = PerformProfiling(context, @"profile", argc, OOJS_ARGV, NULL, NO, &profile);
 	if (result)
 	{
-		OOJS_SET_RVAL([[profile description] oo_jsValueInContext:context]);
+		OOJS_SET_RVAL(OOJSValueFromNativeObject(context, [profile description]));
 	}
 	
 	[pool release];
@@ -1019,7 +1020,7 @@ static JSBool ConsoleGetProfile(JSContext *context, uintN argc, jsval *vp)
 	JSBool result = PerformProfiling(context, @"getProfile", argc, OOJS_ARGV, NULL, NO, &profile);
 	if (result)
 	{
-		OOJS_SET_RVAL([profile oo_jsValueInContext:context]);
+		OOJS_SET_RVAL(OOJSValueFromNativeObject(context, profile));
 	}
 	
 	[pool release];
@@ -1071,8 +1072,8 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 	if (argc > 1)  this = argv[1];
 	else
 	{
-		jsval debugConsole = [[OODebugMonitor sharedDebugMonitor] oo_jsValueInContext:context];
-		assert(JSVAL_IS_OBJECT(debugConsole));
+		jsval debugConsole = OOJSValueFromNativeObject(context, [OODebugMonitor sharedDebugMonitor]);
+		assert(JSVAL_IS_OBJECT(debugConsole) && !JSVAL_IS_NULL(debugConsole));
 		JS_GetProperty(context, JSVAL_TO_OBJECT(debugConsole), "script", &this);
 	}
 	

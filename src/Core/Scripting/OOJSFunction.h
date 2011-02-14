@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 
 - (NSString *) name;
 - (JSFunction *) function;
+- (jsval) functionValue;
 
 // Raw evaluation. Context may not be NULL and must be in a request.
 - (BOOL) evaluateWithContext:(JSContext *)context
