@@ -30,6 +30,8 @@ MA 02110-1301, USA.
 #ifndef NDEBUG
 #import "Universe.h"
 #import "MyOpenGLView.h"
+#else
+#import "OOColor.h"
 #endif
 
 #import "OOCollectionExtractors.h"
