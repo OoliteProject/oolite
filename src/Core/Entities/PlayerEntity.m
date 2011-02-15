@@ -514,7 +514,15 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[result setObject:player_name		forKey:@"player_name"];
 	
-	[result oo_setUnsignedLongLong:credits	forKey:@"credits"];
+	/*
+		BUG: GNUstep truncates integer values to 32 bits when loading XML plists.
+		Workaround: store credits as a double. 53 bits of precision ought to
+		be good enough for anybody. Besides, we display credits with double
+		precision anyway.
+		-- Ahruman 2011-02-15
+	*/
+//	[result oo_setUnsignedLongLong:credits	forKey:@"credits"];
+	[result oo_setFloat:credits				forKey:@"credits"];
 	[result oo_setUnsignedInteger:fuel		forKey:@"fuel"];
 	[result oo_setFloat:fuel_charge_rate	forKey:@"fuel_charge_rate"]; // ## fuel charge testing
 	
