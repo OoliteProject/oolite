@@ -1898,8 +1898,6 @@
 		1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-64.exp"; path = "src/Cocoa/exports-debug-64.exp"; sourceTree = "<group>"; };
 		1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-options.xcconfig"; path = "src/Cocoa/oolite-options.xcconfig"; sourceTree = "<group>"; };
 		1ADA564710CD68D800E891B8 /* OOStellarBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOStellarBody.h; sourceTree = "<group>"; };
-		1ADA576710CDB1C300E891B8 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
-		1ADA576910CDB1C600E891B8 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODeepCopy.h; sourceTree = "<group>"; };
 		1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODeepCopy.m; sourceTree = "<group>"; };
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
@@ -2638,8 +2636,6 @@
 				1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */,
 				1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */,
 				1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */,
-				1ADA576710CDB1C300E891B8 /* oolite-default-planet.vertex */,
-				1ADA576910CDB1C600E891B8 /* oolite-default-planet.fragment */,
 				1A0C3EDD1193306B007935E5 /* oolite-dust.vertex */,
 				1A0C3EEA11933272007935E5 /* oolite-dust.fragment */,
 			);
