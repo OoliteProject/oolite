@@ -10,6 +10,12 @@ then
    exit 255
 fi
 
+if [ -e $DESTINATION/oolite-$VERSION-src.tar.gz ]; then
+  echo "Source Tarball for Version $VERSION already exists"
+  # TODO - query / param to continue anyway
+  exit 0
+fi
+
 # clear out the cruft
 rm -rf $DESTINATION/oolite-$VERSION-src
 rm -f $DESTINATION/oolite-$VERSION-src.tar.gz
@@ -28,7 +34,7 @@ then
    exit 255
 fi
 
-for i in autopackage Doc FreeDesktop installers Oolite-importer Oolite.xcodeproj OSX-SDL src tools GNUmakefile GNUmakefile.postamble README.txt
+for i in autopackage debian deps Doc FreeDesktop installers Schemata Oolite-importer Oolite.xcodeproj src tools GNUmakefile GNUmakefile.postamble Makefile README.txt contributors.txt
 do
    if ! cp -r $i $DESTINATION/oolite-$VERSION-src;
    then
@@ -43,22 +49,29 @@ then
    exit 255
 fi
 
+# Save the SVN Revision number in the source tarball for the tools/mkversion script
+echo `tools/mkversion --subversion` > $DESTINATION/oolite-$VERSION-src/svnrevision
+
+#echo "Press a key to continue"
+#read -s -n 1
+
 cd $DESTINATION
-if ! tar zcf oolite-$VERSION-src.tar.gz oolite-$VERSION-src --exclude .svn
+mv oolite-$VERSION-src oolite-$VERSION
+if ! tar zcf oolite-$VERSION-src.tar.gz oolite-$VERSION --exclude .svn
 then
    echo "Failed to create src tarball"
    exit 255
 fi
 
 # so the data tarball has the same path as src
-rm -rf oolite-$VERSION-src
-mv oolite-$VERSION-data oolite-$VERSION-src
-if ! tar zcf oolite-$VERSION-data.tar.gz oolite-$VERSION-src --exclude .svn
+rm -rf oolite-$VERSION
+mv oolite-$VERSION-data oolite-$VERSION
+if ! tar zcf oolite-$VERSION-data.tar.gz oolite-$VERSION --exclude .svn
 then
    echo "Failed to create data tarball"
    exit 255
 fi
 
-rm -rf oolite-$VERSION-src
+rm -rf oolite-$VERSION
 echo "Tarballs placed in $DESTINATION."
 

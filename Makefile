@@ -1,3 +1,5 @@
+include config.make
+
 # Build version string, taking into account that 'VER_REV' may not be set
 VERSION     := $(strip $(shell cat src/Cocoa/oolite-version.xcconfig | cut -d '=' -f 2))
 VER_MAJ     := $(shell echo "${VERSION}" | cut -d '.' -f 1)
@@ -13,7 +15,7 @@ DEB_VER     := $(shell echo "${VER_MAJ}.${VER_MIN}")
 else
 DEB_VER     := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}")
 endif
-DEB_REV  := $(shell cat debian/revision)
+DEB_REV     := $(shell cat debian/revision)
 # Ubuntu versions are: <upstream version>-<deb ver>ubuntu<build ver>
 # eg: oolite1.74.4.2755-0ubuntu1
 # Oolite versions are: MAJ.min.rev.svn
@@ -23,26 +25,16 @@ DEB_REV  := $(shell cat debian/revision)
 pkg-debtest: DEB_REV := $(shell echo "0~test${DEB_REV}")
 pkg-debsnapshot: DEB_REV := $(shell echo "0~trunk${DEB_REV}")
 
-LIBJS_SRC_DIR=deps/Cross-platform-deps/SpiderMonkey/js/src
-
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	LIBJS=deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
+    LIBJS = deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
+    LIBJS_DBG = deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
+    DEPS=$(LIBJS)
+    DEPS_DBG=$(LIBJS_DBG)
+else
+    DEPS=LIBJS
+    DEPS_DBG=LIBJS_DBG
 endif
 
-ifeq ($(GNUSTEP_HOST_OS),linux-gnu)
-   # These are the paths for our custom-built Javascript library
-   LIBJS_INC_DIR=$(LIBJS_SRC_DIR)
-   ifeq ($(JS_OPT),no)
-		LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_DBG.OBJ
-		LIBJS_BUILD_FLAGS=
-   else
-		LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_OPT.OBJ
-		LIBJS_BUILD_FLAGS=BUILD_OPT=1
-   endif
-	LIBJS=$(LIBJS_BIN_DIR)/libjs.a
-endif
-
-DEPS=$(LIBJS)
 
 # define autopackage .apspec file according to the CPU architecture
 HOST_ARCH := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/i386/ -e s/amd64/x86_64/ )
@@ -55,7 +47,7 @@ endif
 # Here are our default targets
 #
 .PHONY: debug
-debug: $(DEPS)
+debug: $(DEPS_DBG)
 	make -f GNUmakefile debug=yes
 
 .PHONY: release
@@ -72,7 +64,7 @@ release-snapshot: $(DEPS)
 
 # Here are targets using the provided dependencies
 .PHONY: deps-debug
-deps-debug: $(DEPS)
+deps-debug: $(DEPS_DBG)
 	make -f GNUmakefile debug=yes use_deps=yes
 
 .PHONY: deps-release
@@ -87,25 +79,30 @@ deps-release-deployment: $(DEPS)
 deps-release-snapshot: $(DEPS)
 	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
 
-$(LIBJS):
+.PHONY: LIBJS_DBG
+LIBJS_DBG:
+ifeq ($(GNUSTEP_HOST_OS),mingw32)
+	@echo "ERROR - this Makefile can't (yet) build the Javascript DLL"
+	@echo "        Please build it yourself and copy it to $(LIBJS_DBG)."
+	false
+endif
+	make -f libjs.make debug=yes
+
+.PHONY: LIBJS
+LIBJS:
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	@echo "ERROR - this Makefile can't (yet) build the Javascript DLL"
 	@echo "        Please build it yourself and copy it to $(LIBJS)."
 	false
 endif
-	# When Linux is ready to compile the Javascript engine from source
-	# then re-activate the following line of code and update it appropriately
-	# make -C $(LIBJS_SRC_DIR) -f Makefile.ref $(LIBJS_BUILD_FLAGS)
+	make -f libjs.make debug=no
 
 .PHONY: clean
 clean:
-# When Linux is ready to compile the Javascript engine from source
-# then re-activate the following block of code and update it appropriately
-# ifneq ($(GNUSTEP_HOST_OS),mingw32)
-#	make -C $(LIBJS_SRC_DIR)/editline -f Makefile.ref clobber
-#	make -C $(LIBJS_SRC_DIR) -f Makefile.ref clobber
-#	find $(LIBJS_SRC_DIR) -name "Linux_All_*.OBJ" | xargs rm -Rf
-# endif
+ifneq ($(GNUSTEP_HOST_OS),mingw32)
+	make -f libjs.make clean debug=yes
+	make -f libjs.make clean debug=no
+endif
 	make -f GNUmakefile clean
 	rm -Rf obj obj.dbg oolite.app
 

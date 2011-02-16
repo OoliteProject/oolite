@@ -8,42 +8,47 @@
 # Re-written by Darren Salt
 # Tweaked by Michael Werle
 
-GSMAKE = gs_make
-JS_SRC = deps/Cross-platform-deps/SpiderMonkey/js/src
+GSMAKE                           = gs_make
+GSMAKE_FLAGS                     = use_deps=no libespeak=yes
+UPDATE_SCRIPTS_DIR               = deps/Cocoa-deps/scripts
+LIBJS_BUILD_DIR                  = deps/Cross-platform-deps/mozilla/js/src/build-release
 
-CFLAGS += -g
+CFLAGS                           += -g
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O2
-	GSMAKE += debug=no
-	override EXT =
+        CFLAGS                   += -O2
+        GSMAKE_FLAGS             += debug=no OO_JAVASCRIPT_TRACE=no
+        override EXT             =
 else
-	CFLAGS += -O0
-	GSMAKE += debug=yes
-	override EXT = .dbg
+        CFLAGS                   += -O0
+        GSMAKE_FLAGS             += debug=yes OO_JAVASCRIPT_TRACE=yes
+        override EXT             = .dbg
 endif
 export CFLAGS
 
 export GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 build: build-stamp
-build-stamp:
+build-stamp: build-libjs-stamp
 	dh_testdir
-	$(MAKE) -C $(JS_SRC)/fdlibm -f Makefile.ref BUILD_OPT=1
-	$(MAKE) -C $(JS_SRC) -f Makefile.ref BUILD_OPT=1
-	$(GSMAKE) libespeak=yes
+	$(GSMAKE) $(GSMAKE_FLAGS)
+	touch $@
+
+build-libjs-stamp:
+	make -f libjs.make $(GSMAKE_FLAGS)
 	touch $@
 
 clean: clean-stamp
-clean-stamp:
+clean-stamp: clean-libjs-stamp
 	dh_testdir
 	rm -f build-stamp
-	$(GSMAKE) clean
-	$(MAKE) -C $(JS_SRC)/fdlibm -f Makefile.ref clean
-	$(MAKE) -C $(JS_SRC) -f Makefile.ref clean
+	$(GSMAKE) clean $(GSMAKE_FLAGS)
 	rm -rf oolite.app oolite.debug
 	rm -f http+_www.apple.com_DTDs_PropertyList-1.0.dtd
-	find $(JS_SRC) -name Linux_All_OPT.OBJ | xargs -r rm -rf
 	dh_clean
+
+clean-libjs-stamp:
+	-make  -f libjs.make clean $(GSMAKE_FLAGS)
+	rm -f build-libjs-stamp
 
 install: build
 	dh_testdir

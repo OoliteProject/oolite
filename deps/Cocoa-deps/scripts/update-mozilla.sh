@@ -63,7 +63,7 @@ fi
 
 # Create temp directory.
 mkdir "$TEMPDIR"
-if [ ! $? ]
+if [ "$?" -ne "0" ]
 then
 	echo "error: Could not create temporary directory $TEMPDIR."
 	exit 1
@@ -72,8 +72,8 @@ fi
 
 # Download mozilla source.
 echo "Downloading libjs source from $DESIREDURL..."
-curl -qgsS -o "$TEMPFILE" "$DESIREDURL"
-if [ ! $? ]
+curl -qgsSf -o "$TEMPFILE" "$DESIREDURL"
+if [ "$?" -ne "0" ]
 then
 	fail "could not download $DESIREDURL"
 fi
@@ -82,7 +82,7 @@ fi
 # Expand tarball.
 echo "Download complete, expanding archive..."
 tar -xkf "$TEMPFILE" -C "$TEMPDIR"
-if [ ! $? ]
+if [ "$?" -ne "0" ]
 then
 	fail "could not expand $TEMPFILE into $TEMPDIR"
 fi
@@ -100,14 +100,14 @@ mkdir "$TARGETDIR"
 
 # Move new code into place.
 mv "$TEMPDIR/mozilla-central/js" "$TARGETDIR/js"
-if [ ! $? ]
+if [ "$?" -ne "0" ]
 then
 	echo "error: could not move expanded libjs source into place."
 	exit 1
 fi
 
 mv "$TEMPDIR/mozilla-central/nsprpub" "$TARGETDIR/nsprpub"
-if [ ! $? ]
+if [ "$?" -ne "0" ]
 then
 	echo "error: could not move expanded libnspr4 source into place."
 	exit 1
