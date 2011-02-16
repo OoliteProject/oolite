@@ -86,30 +86,31 @@
 	),
 	(
 		"©",
-		"copyright"
+		"copyright "
 	),
 	(
 		"™",
-		"trademark"
+		" trademark"
 	),
 	(
 		"®",
-		"registered trademark"
+		" registered trademark"
 	),
 	(
 		"₢",
-		"credits"
+		" credits "
 	),
 	(
 		"€",
-		"credits"
+		" credits "
 	),
 	(
 		"×",
-		"times"
+		" times "
 	),
 	(
 		"S.O.S.",
+		"[[inpt PHON]]EHs ~OW +EHs. %[[inpt TEXT]]",
 		"S O S"
 	)
 )
