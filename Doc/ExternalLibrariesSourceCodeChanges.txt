@@ -32,10 +32,15 @@ data = [NSPropertyListSerialization dataFromPropertyList: dict
 	       format: NSPropertyListOpenStepFormat
 	       errorDescription: &err];
 	       
-- When parsing XML plists, integers are truncated to 32-bit, effectively prohibiting the correct parsing of long long or unsigned long long values. The fix applied in the gnustep-base-1_20.dll distributed with Oolite in order to address this is changing line 309 of NSPropertyList.m of the GNUstep base source code distribution from
+- When parsing XML plists, integers are truncated to 32-bit, effectively prohibiting the correct parsing of long long or unsigned long long values. The fix applied in the gnustep-base-1_20.dll distributed with Oolite in order to address this is:
+a) Changing line 309 of NSPropertyList.m of the GNUstep base source code distribution from
 ASSIGN(plist, [NSNumber numberWithInt: [value intValue]]);
 to
 ASSIGN(plist, [NSNumber numberWithLongLong: [value longLongValue]]);
+and b) Changing line 1103 of the same file from
+result = [[NSNumber alloc] initWithLong: atol(buf)];
+to
+result = [[NSNumber alloc] initWithLongLong: atoll(buf)];
 
 - The GNUstep objc-1.dll runtime has been rebuilt with native Obj-C exception support. To do this on Windows, the patch which provides the void (*_objc_unexpected_exception) (id exception) callback hook to the runtime is required for versions of gcc older than 4.4.0. The patch can be downloaded from http://gcc.gnu.org/bugzilla/attachment.cgi?id=17365. Also, the gcc source header unwind-pe.h must be visible to exception.c in order for the build of libobjc to succeed.
 
