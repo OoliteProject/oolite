@@ -65,7 +65,7 @@ to enable window resizing without side effects like texture corruption in the Wi
 - Specific build settings for Oolite are required. Library rebuilt with the following macros defined as shown below:
 	JS_THREADSAFE defined on Mac and Linux debug builds.
 	MOZ_TRACE_JSCALLS defined in order to enable full JavaScript profiling.
-The entire source code of the library can be downloaded from ftp://anonymous@ftp.mozilla.org/pub/firefox/releases/4.0b10/source/firefox-4.0b10.source.tar.bz2
+The entire source code of the library can be downloaded from ftp://anonymous@ftp.mozilla.org/pub/firefox/releases/4.0b11/source/firefox-4.0b11.source.tar.bz2
 
 
 
