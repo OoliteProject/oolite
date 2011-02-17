@@ -38,7 +38,9 @@ MA 02110-1301, USA.
 {
 	IBOutlet NSWindow			*_gameWindow;
 	IBOutlet GameController		*_gameController;
+	NSString					*_exitContext;
 }
 
+- (void) setExitContext:(NSString *)exitContext;
 
 @end

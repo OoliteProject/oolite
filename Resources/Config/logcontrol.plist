@@ -150,6 +150,8 @@
 	equip.buy.mounted						= no;
 	equip.buy.mounted.failed				= $scriptError;
 	
+	exit.context							= no;		// Log why game quit, for debugging cases of game quitting in an orderly yet unexpcted way.
+	
 	
 	gui.reset								= no;
 	

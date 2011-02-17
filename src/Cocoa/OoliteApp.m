@@ -55,4 +55,18 @@ MA 02110-1301, USA.
 }
 
 
+- (void) setExitContext:(NSString *)exitContext
+{
+	[_exitContext release];
+	_exitContext = [exitContext copy];
+}
+
+
+- (void) terminate:(id)sender
+{
+	if (_exitContext == nil)  [self setExitContext:@"Cocoa terminate event"];
+	OOLog(@"exit.context", @"Exiting: %@.", _exitContext);
+	[super terminate:sender];
+}
+
 @end

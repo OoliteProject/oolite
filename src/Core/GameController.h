@@ -143,7 +143,8 @@ MA 02110-1301, USA.
 - (BOOL) inFullScreenMode;
 
 - (void) pauseFullScreenModeToPerform:(SEL) selector onTarget:(id) target;
-- (void) exitApp;
+- (void) exitAppWithContext:(NSString *)context;
+- (void) exitAppCommandQ;
 
 - (BOOL) setDisplayWidth:(unsigned int) d_width Height:(unsigned int)d_height Refresh:(unsigned int) d_refresh;
 - (NSDictionary *) findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh;

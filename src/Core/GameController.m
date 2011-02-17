@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
 #import <Sparkle/Sparkle.h>
+#import "OoliteApp.h"
 
 static void LoadSystemSpecificBundles(void);
 static void SetUpSparkle(void);
@@ -212,7 +213,7 @@ static GameController *sSharedController = nil;
 
 		if ([OOOXPVerifier runVerificationIfRequested])
 		{
-			[self exitApp];
+			[self exitAppWithContext:@"OXP verifier run"];
 		}
 		else 
 		{
@@ -1206,11 +1207,9 @@ static NSMutableArray *sMessageStack;
 }
 
 
-- (void) exitApp
+- (void) exitAppWithContext:(NSString *)context
 {
-#if OOLITE_GNUSTEP
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationWillTerminate" object:self];
-#endif
+	[(OoliteApp *)NSApp setExitContext:context];
 	[NSApp terminate:self];
 }
 
@@ -1228,8 +1227,9 @@ static NSMutableArray *sMessageStack;
 {}
 
 
-- (void) exitApp
+- (void) exitAppWithContext:(NSString *)context
 {
+	OOLog(@"exit.context", @"Exiting: %@.", context);
 	[[NSUserDefaults standardUserDefaults] synchronize];
 	OOLog(@"gameController.exitApp",@".GNUstepDefaults synchronized.");
 	OOLoggingTerminate();
@@ -1240,6 +1240,13 @@ static NSMutableArray *sMessageStack;
 #else
 	#error Unknown environment!
 #endif
+
+
+- (void) exitAppCommandQ
+{
+	[self exitAppWithContext:@"Command-Q"];
+}
+
 
 - (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
 {

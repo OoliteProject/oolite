@@ -456,7 +456,7 @@ static NSTimeInterval	time_last_frame;
 			
 			if ([gameView isCommandQDown])
 			{
-				[[gameView gameController] pauseFullScreenModeToPerform:@selector(exitApp) onTarget:[gameView gameController]];
+				[[gameView gameController] pauseFullScreenModeToPerform:@selector(exitAppCommandQ) onTarget:[gameView gameController]];
 			}
 		}
 		
@@ -464,7 +464,7 @@ static NSTimeInterval	time_last_frame;
 		if ( ([gameView isDown:'Q']) )
 		{
 			exceptionContext = @"windows - Q";
-			[[gameView gameController] exitApp];
+			[[gameView gameController] exitAppWithContext:@"Q pressed [Windows]"];
 			exit(0); // Force it
 		}
 	#endif
@@ -475,7 +475,7 @@ static NSTimeInterval	time_last_frame;
 			exceptionContext = @"error handling mode";
 			if ([gameView isDown:113]||[gameView isDown:81]||[gameView isDown:27])   // 'q' | 'Q' | esc
 			{
-				[[gameView gameController] exitApp];
+				[[gameView gameController] exitAppWithContext:@"Q or escape pressed in error handling mode"];
 			}
 		}
 		
@@ -1778,7 +1778,7 @@ static NSTimeInterval	time_last_frame;
 			// vs fullscreen.
 			if ((guiSelectedRow == GUI_ROW(,QUIT)) && selectKeyPress)
 			{
-				[[gameView gameController] exitApp];
+				[[gameView gameController] exitAppWithContext:@"Exit Game selected on options screen"];
 			}
 #endif
 			

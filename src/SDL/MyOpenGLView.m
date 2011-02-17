@@ -1438,7 +1438,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 						if (shift)
 						{
 							SDL_FreeSurface(surface);
-							[gameController exitApp];
+							[gameController exitAppWithContext:@"Shift-escape pressed"];
 						}
 						else
 							keys[27] = YES;
@@ -1625,7 +1625,7 @@ keys[a] = NO; keys[b] = NO; \
 			case SDL_QUIT:
 			{
 				SDL_FreeSurface(surface);
-				[gameController exitApp];
+				[gameController exitAppWithContext:@"SDL_QUIT event received"];
 			}
 		}
 	}
