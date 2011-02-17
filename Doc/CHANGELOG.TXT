@@ -50,6 +50,12 @@ Mac-specific:
 * The Oolite Screen Shots folder can now be moved from the desktop and Oolite
   will continue to use it (as long as it isn't renamed or moved to the trash).
 
+Windows and Linux:
+* Due to a bug in GNUstep, older versions cannot read credit balances of more
+  than 429496729.5 credits correctly. 1.75 writes saved games in a way that
+  avoids this problem (even when loaded with old test releases). The Windows
+  version can also read larger credit quantities in old saved games.
+
 
 Expansion pack development changes:
 Ships:
