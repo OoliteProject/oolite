@@ -66,22 +66,22 @@ Ships:
     Default: false, except for main station.
   - counts_as_kill: if false, the ship does not count as a kill and does not
     participate in q-mine cascade happy fun time, even if its scan class and
-	other properties would otherwise let it do so. Default: true.
+    other properties would otherwise let it do so. Default: true.
   - cloak_automatic (NPCs): if true, cloaking device is activated when
     attacking; otherwise, it must be activated by a script. Default: true.
   - has_patrol_ships (station only, fuzzy boolean): if true, the station will
     periodically launch patrols if it has any police ships docked. Default:
-	false, but ignored (treated as always true) for main station.
+    false, but ignored (treated as always true) for main station.
   - hyperspace_motor (all ships, including player): required to be able to
     jump. Default: true.
   - interstellar_undocking (station only): if true, docking with the station in
     interstellar space doesn't cause the station to jump to an adjacent system.
-	Default: false.
+    Default: false.
   - weapon_range (turret subentities): plasma shot range. Default: 6000.
   - tunnel_corners, tunnel_start_angle and tunnel_aspect_ratio (station only):
     these replace docking_pattern_model. See
-	http://www.aegidian.org/bb/viewtopic.php?p=128823#p128823 for more
-	information.
+    http://www.aegidian.org/bb/viewtopic.php?p=128823#p128823 for more
+    information.
 * A new ship role, "cinder", is used to generate debris in post-nova systems.
   The default cinders look like the default asteroids and boulders, but have
   very high heat shielding. If you make custom asteroids, you probably want to
@@ -273,7 +273,7 @@ Descriptions.plist changes (for translators):
   - initializing-debug-support
   - charts-distance-f (short-range-chart-distance-f and
     long-range-chart-distance-f now reference this; it is not used directly by
-	the game)
+    the game)
   - charts-est-travel-time-f (short-range-chart-est-travel-time-f and
     long-range-chart-est-travel-time-f now reference this; it is not used
     directly by the game)
@@ -295,7 +295,7 @@ Descriptions.plist changes (for translators):
   - initialising-universe
   - speech-synthesis-incoming-message - no longer used directly by the game,
     used by speech-synthesis-incoming-message-@ so existing localizations will
-	(possibly) work.
+    (possibly) work.
   - autopilot-cannot-dock-with-target - still included, but currently unused.
 
 Debug console:
