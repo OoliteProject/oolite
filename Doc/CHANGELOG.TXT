@@ -1,29 +1,348 @@
+Changes between Oolite 1.74.2 and Oolite 1.75:
+
+Gameplay:
+* Smarter, more aggressive NPCs - for example, they are now able to shoot you
+  when you cunningly stand still.
+* New master weapon lock key (default: _) disables primary and secondary
+  weapons, and turrets.
+* Simplified autopilot controls: C (or key_autopilot) attempts to autopilot-
+  dock with the current target station - your target if any, otherwise a
+  station within scanner range, favouring the main station. Shift-C (now
+  key_autodock instead of key_autopilot_target) is the same, except it will
+  fast-dock if permitted. Shift-D is no longer used.
+* New "primable equipment" concept: equipment can produce scripted effects
+  without having to be a missile. New keys: Shift-N and Control-Shift-N cycle
+  through the list of primable equipment, and N activates the currently selected
+  equipment. (Key config keys: key_prime_equipment, key_activate_equipment.)
+* Target-sensitive reticle mode is now more accurate.
+* Fuel price now depends on the mass of your ship.
+* Jumping between overlapping systems now uses 0.1 LY worth of fuel.
+* A hyperspace misjump now takes 3/4 of the time of a successful jump, rather
+  than the full time. (It has to be at least 3/4 to avoid exploits. See
+  http://aegidian.org/bb/viewtopic.php?t=7917 for more information.)
+* The trumble offer "mission" now repeats as intended, in case you accidentally
+  missed it.
+* Escape pods now aim for the nearest friendly station/carrier.
+* The escape pod key/joystick button must now be pressed twice in rapid
+  succession to eject (except in strict mode, or if the
+  escape-pod-activation-immediate hidden setting is set).
+* Comm log messages are now spoken. (Feature request #4970)
+
+Bug fixes:
+* "Lollipop flashes" eliminated. (Bug #17215)
+* Hyperspace countdown messages don't repeat themselves.
+* You can no longer sneak into the contract screen through the back door in
+  secondary stations.
+* Secondary weapons are now accounted for properly when evaluating your ship.
+  (Bug #17450)
+* Fixes to joystick configuration (Bug #17482, Bug #17490)
+* The usual indescribable yet important "minor tweaks and fixes".
+
+Miscellaneous:
+* New icon by seventh.
+* Reduced memory usage of various special effects and JavaScript objects. On
+  the other hand, the new JavaScript engine uses more memory.
+
+Mac-specific:
+* The Dread Sound Bug of Doom is fixed. (Bug #17214)
+* Joystick support.
+* Automatic update support (Sparkle).
+* The Oolite Screen Shots folder can now be moved from the desktop and Oolite
+  will continue to use it (as long as it isn't renamed or moved to the trash).
+
+
+Expansion pack development changes:
+Ships:
+* New shipdata.plist keys:
+  - allows_auto_docking (station only): if true, player autopilot docking is
+    permitted. Default: true.
+  - allows_fast_docking (station only): if true, fast docking is permitted.
+    Default: false, except for main station.
+  - counts_as_kill: if false, the ship does not count as a kill and does not
+    participate in q-mine cascade happy fun time, even if its scan class and
+	other properties would otherwise let it do so. Default: true.
+  - cloak_automatic (NPCs): if true, cloaking device is activated when
+    attacking; otherwise, it must be activated by a script. Default: true.
+  - has_patrol_ships (station only, fuzzy boolean): if true, the station will
+    periodically launch patrols if it has any police ships docked. Default:
+	false, but ignored (treated as always true) for main station.
+  - hyperspace_motor (all ships, including player): required to be able to
+    jump. Default: true.
+  - interstellar_undocking (station only): if true, docking with the station in
+    interstellar space doesn't cause the station to jump to an adjacent system.
+	Default: false.
+  - weapon_range (turret subentities): plasma shot range. Default: 6000.
+  - tunnel_corners, tunnel_start_angle and tunnel_aspect_ratio (station only):
+    these replace docking_pattern_model. See
+	http://www.aegidian.org/bb/viewtopic.php?p=128823#p128823 for more
+	information.
+* A new ship role, "cinder", is used to generate debris in post-nova systems.
+  The default cinders look like the default asteroids and boulders, but have
+  very high heat shielding. If you make custom asteroids, you probably want to
+  make cinder versions of them. If you're abusing the "asteroid" role to put
+  random stuff in asteroid fields, you don't want to make a cinder version.
+* Turret weapon_energy now defaults to 25.
+* Beacon icon data is now handled in a more flexible way
+  (http://aegidian.org/bb/viewtopic.php?p=128487#p128487; Bug #17828).
+  Additionally, it is looked up using the ship's beacon code as a key, instead
+  of its primary role.
+
+Equipment:
+* New equipment.plist extra-dictionary keys:
+  - script: used to implement primable equipment. Equipment scripts have one
+    predefined property, equipmentKey, and one event handler, activated().
+  - visible: controls visibility on status screen and shipyard blurbs.
+    Default: true.
+* NPC missiles are now represented as equipment entries instead of ships. For
+  efficiency, it is recommended that all NPC missile types have an
+  equipment.plist entry, even if they're not available to the player. (For
+  example, there is now an EQ_THARGON.) For assistance in setting this up,
+  enable ship.setUp.missiles in logcontrol.plist (or use
+  console.setDisplayMessagesInClass("ship.setUp.missiles", true) in the debug
+  console).
+
+Other configuration files:
+* Sounds that are listed in customsounds.plist are now preloaded to avoid
+  loading delays. Sounds that are played through JavaScript by specifying a
+  file name cannot be preloaded; if you're doing this, and your sound isn't
+  particularly rare, I suggest going through a customsounds.plist entry.
+* Fortuitously, using customsounds.plist entries from scripts now works
+  properly.
+* Screen backdrops and overlays can now be scaled, allowing for higher
+  resolutions. (Bug #17201) See http://aegidian.org/bb/viewtopic.php?p=127716
+  for more information. Additionally, screenbackgrounds.plist entries may be
+  arrays, in which case one element is picked at random.
+* Planets using cube map textures now rotate around the expected polar axis.
+  Planets using traditional textures don't, but they never did. (Bug #17243)
+* New HUD dial selector: drawWeaponsOfflineText:.
+
+JavaScript:
+* Upgraded SpiderMonkey to bleeding edge (1.75 uses the same version as
+  FireFox 4.0 beta 11). This adds most ECMAScript 5th Edition features, notably
+  including strict mode, which I recommend all OXPers adopt.
+* On the other hand, the old SpiderMonkey-specific "strict mode" is disabled by
+  default because it has some false positives. It can be enabled through the
+  debug console by setting console.pedanticMode to true.
+* Native JSON support may be useful for storing structured data in mission
+  variables.
+* The JavaScript global and console objects are now replaced when resetting the
+  game, and can no longer be used to smuggle information across sessions.
+* Vector3D and Quaternion objects can no longer be compared using == and !=,
+  because the wart in the JavaScript engine we were previously exploiting no
+  longer exists. See http://www.aegidian.org/bb/viewtopic.php?f=4&t=8847 for
+  more information.
+* Scripts are now stopped if they run for more than one second. (Slow Oolite
+  functions are not counted towards the limit. The idea isn't to force a time
+  limit on you but to kill scripts stuck in an infinite loop. If your script
+  is deliberately running for more than a second you probably have problems,
+  though.) During loading and the startUp event, the limit is two seconds.
+* All Oolite-provided JavaScript methods and properties have been audited for
+  consistent error reporting and sane handling of bad values. In some cases,
+  their error checking has become stricter. In others, they perform normal
+  implicit conversions (like converting a string with a numerical value to a
+  number) instead of failing or crashing. All normal parameter errors should
+  now become JavaScript exceptions; calling an Oolite-defined method with the
+  wrong type of this value will just halt the script, but it's hard to do that
+  by accident.
+* Oolite now has the ability to write a stack trace when a JavaScript exception
+  goes unhandled or a warning is logged. This helps you find out how you
+  reached the point where the error occurs. This is on by default if the debug
+  OXP is installed, off by default otherwise. You can toggle it by setting
+  console.dumpStackForErrors and console.dumpStackForWarnings if the console is
+  active, or the dump-stack-for-errors and dump-stack-for-warnings hidden
+  settings otherwise. When the console is active, you can also log a stack
+  trace at any point using the special statement debugger;, which will
+  otherwise have no effect.
+* The JavaScript global object is now exposed as a property of itself, called
+  global. global === global.global.
+* The player's ship is now treated as invalid after ejecting or dying.
+* Some exceptions thrown in event handlers, which were mistakenly suppressed
+  before, are now reported.
+* Frame callbacks: callback functions that are called once per frame, useful
+  for driving animations. See http://aegidian.org/bb/viewtopic.php?f=4&t=8941
+  for more information.
+
+Scripting bug fixes:
+* The prototype chains for Oolite-defined objects were previously set up
+  incorrectly. This has been fixed. An effect of this is that using methods and
+  properties on singleton constructors instead of their instances stopped
+  working. For the most common cases, System and Player there are compatibility
+  accessors which log warning, much like we've done for deprecated methods in
+  the past. If you want to actually understand what's going on, my best stab at
+  explaining it is at http://www.aegidian.org/bb/viewtopic.php?f=4&t=8968 .
+* As far as scripts are concerned, the player can now only die once.
+  (Previously, shipDied() would be called twice, once without parameters and
+  once with.)
+* When the player is killed by a q-bomb, the damageType parameter to shipDied()
+  is now "cascade weapon" (not "energy damage").
+* You can now award multiple trumbles, to the delight of customers everywhere.
+* "Display models" of ships and planets no longer show up in the system's
+  entity lists. You can get at the display model for mission screens with the
+  new mission.displayModel property. The others are intended to be inaccessible.
+* Sound.load() now handles customsounds.plist keys properly.
+* Ship exitSystem()/AI performHyperSpaceExit now work in interstellar space.
+
+New world events:
+* playerWillSaveGame(saveType) (Feature request #5095)
+* escapePodSequenceOver() (called immediately before deciding how to rescue or
+  kill the player after using an escape pod. See
+  player.setEscapePodDestination()).
+
+New ship events:
+* coordinatesForEscortPosition(index) (not exactly an event, but whatever.)
+* distressMessageReceived(aggressor, sender)
+* shipTakingDamage(amount, fromEntity, damageType) (Feature request #5077)
+* shipKilledOther(target, damageType) (fires after target's shipDied(), but
+  before actually blowing up).
+* shipWillLaunchFromStation(station) (previously restricted to player).
+
+Modified ship events:
+* commsMessageReceived() now takes a second parameter, the sending ship.
+
+New JavaScript properties and methods:
+* Entity collisionRadius
+* Entity dumpState() (only available if console is active): writes a bunch of
+  junk to the log.
+* EquipmentInfo canBeDamaged
+* EquipmentInfo canCarryMultiple
+* EquipmentInfo isAvailableToNPCs
+* EquipmentInfo isAvailableToPlayer
+* EquipmentInfo isVisible
+* EquipmentInfo scriptName
+* Global defaultFont (object with one method, measureString())
+* Global addFrameCallback()
+* Global formatCredits()
+* Global formatInteger()
+* Global isValidFrameCallback()
+* Global removeFrameCallback()
+* Global takeSnapShot()
+* mission.displayModel: the spinning-ship backdrop, if one is in use. (If you
+  set spinModel to false in the runScreen() parameter object, it will refrain
+  from spinning around for easier manual animation.)
+* player.setEscapePodDestination()
+* player.ship.viewDirection
+* player.ship.weaponsOnline
+* player.ship.removePassenger()
+* Ship subEntityCapacity
+* Ship restoreSubentities()
+* Ship scriptedMisjump() (previously player-only)
+* Station allowsAutoDocking
+* Station allowsFastDocking
+* System countEntitiesWithScanClass()
+* System scrambledPseudoRandomNumber()
+
+Modified JavaScript properties and methods:
+* Ship commsMessage() now takes an optional second parameter, the target ship.
+* Ship equipmentStatus() now returns "EQUIPMENT_UKNOWN" when passed an
+  undefined equipment identifier, instead of throwing an exception.
+* The Ship property roleProbabilities has been renamed roleWeights.
+
+New AI commands:
+* enterPlayerWormhole
+* setDesiredRangeForWaypoint
+* setTargetToNearestFriendlyStation
+* thargonCheckMother
+* updateEscortFormation
+
+New AI messages:
+* STATION_LAUNCHED_SHIP
+
+Descriptions.plist changes (for translators):
+* Additions:
+  - number-group-size
+  - number-group-threshold
+  - number-decimal-separator
+  - number-group-separator
+  - autopilot-station-@-does-not-allow-autodocking
+  - autopilot-multiple-targets
+  - autopilot-red-alert
+  - witch-no-motor
+  - witch-user-galactic-abort
+  - weapons-systems-online
+  - weapons-systems-offline
+  - equipment-primed-@
+  - equipment-primed-none
+  - equipment-primed-none-available
+  - station-docking-clearance-denied
+  - initializing-debug-support
+  - charts-distance-f (short-range-chart-distance-f and
+    long-range-chart-distance-f now reference this; it is not used directly by
+	the game)
+  - charts-est-travel-time-f (short-range-chart-est-travel-time-f and
+    long-range-chart-est-travel-time-f now reference this; it is not used
+    directly by the game)
+  - commodity-market
+  - stickmapper-weapons-online-toggle
+  - stickmapper-snapshot
+  - stickmapper-prime-equipment
+  - stickmapper-activate-equipment
+  - stickmapper-escape-pod
+  - stickmapper-cloak
+  - stickmapper-scanner-zoom
+  - gameoverscreen-escape-pod
+  - snapshots-directory-name
+  - snapshots-directory-name-mac
+  - rescue-reward-for-@@-@-credits-@-alt
+  - capture-reward-for-@@-@-credits-@-alt
+  - speech-synthesis-incoming-message-@
+* Deleted/unused:
+  - initialising-universe
+  - speech-synthesis-incoming-message - no longer used directly by the game,
+    used by speech-synthesis-incoming-message-@ so existing localizations will
+	(possibly) work.
+  - autopilot-cannot-dock-with-target - still included, but currently unused.
+
+Debug console:
+* Previously, the console object was available from within the console as
+  console, and anywhere else as debugConsole. Both are now global, and console
+  is preferred.
+* Profiling support: call :profile <expression> to see where <expression>
+  spends its time. For more detailed information, as a bunch of JavaScript
+  objects rather than a text dump, use
+  this.profileData = console.getProfile(function() { <expression> }).
+* Tracing support: call :trace <expression> to see the hierarchy of function
+  calls made by <expression>. (The trace is written to the log.) Tracing and
+  profiling can't be used at the same time.
+* When the result of an expression is an array or plain object, its structure
+  is now pretty-printed. You can also pretty-print the structure of any object
+  using the :d <expression> macro. I suggest getting into the habit of doing
+  this to any object you're curious about. :d player.ship is a good starting
+  point.
+* The call() method has been renamed callObjC() to avoid confusion with the
+  standard Function.prototype.call(). It now works on more objects - just about
+  everything except vectors and quaternions - and can deal with Objective-C
+  methods that return numbers, vectors or quaternions.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.74.1 and Oolite 1.74.2:
 
-* Stopped player from selecting invalid jump destination during jump countdown. 
+* Stopped player from selecting invalid jump destination during jump countdown.
 * Fixed docking permissions inconsistencies: all hostile stations now refuse
-  docking permissions. 
-* Switching to custom views now allowed in a consistent way. 
-* Weapon repeat rate is now per-weapon. 
-* Current zoom level is now preserved when switching HUDs. 
-* Exhaust plume now resets after hyperspace jumps/scripted teleporting/auto-docking. 
-* Fixed overlapping system confusion when loading games and searching for systems. 
-* All automatically generated sun skimmers should now be adequately shielded. 
-* Fixed occasional “bleached”-looking planets on system info screen. 
+  docking permissions.
+* Switching to custom views now allowed in a consistent way.
+* Weapon repeat rate is now per-weapon.
+* Current zoom level is now preserved when switching HUDs.
+* Exhaust plume now resets after hyperspace jumps/scripted teleporting/auto-
+  docking.
+* Fixed overlapping system confusion when loading games and searching for
+  systems.
+* All automatically generated sun skimmers should now be adequately shielded.
+* Fixed occasional “bleached”-looking planets on system info screen.
 * Fixed wrong distance showing on the short range chart when switching back
-  from the long range chart. 
-* Improved default speech synthesis voice (not Mac OS X). 
+  from the long range chart.
+* Improved default speech synthesis voice (not Mac OS X).
 * SystemInfo.systemsInRange() can now be called on a specific SystemInfo object,
-  instead of always applying to the current system. 
+  instead of always applying to the current system.
 * New JavaScript event: shipAttackedOther() (inverse of shipBeingAttacked(),
-  called immediately after shipBeingAttacked()). 
+  called immediately after shipBeingAttacked()).
 * If a script removes a piece of equipment in the equipmentDamaged() event
-  handler, no “equipment damaged” message is generated. 
-* Ship.removeEquipment() now works on damaged equipment. 
+  handler, no “equipment damaged” message is generated.
+* Ship.removeEquipment() now works on damaged equipment.
 * Fixed substitution priority for expandDescription() and expandMissionText(),
-  the local override dictionary now takes precedence over everything else. 
-* New shipinfo key: station_roll. 
-* Fixed some cases where AIs could break group handling. 
+  the local override dictionary now takes precedence over everything else.
+* New shipinfo key: station_roll.
+* Fixed some cases where AIs could break group handling.
 * Shader errors detected in the link phase (generally, problems involving state
   shared between the vertex and fragment shader) are now reported properly.
 
@@ -546,7 +865,7 @@ Scripting
   missile to be selected.
 * Reworked Aegis messages. sun aegis is recognised, approaching planet event
   is restored, all handlers have a planet or station as argument.
-* Added the JavaScript read/write player ship property scriptedMisjump. 
+* Added the JavaScript read/write player ship property scriptedMisjump.
   Boolean value, scripted misjumps have a lifespan of one jump only. After
   that, auto reset occurs and subsequent jumps become normal ones again.
 * Bounty for script added pirates and traders now follow populator rules when
@@ -562,7 +881,7 @@ New event handlers:
 * playerTargetedMissile(missile)
 * playerBoughtNewShip(ship)
 * arrivalReportScreenEnded()
- 
+
 New JavaScript methods:
 * ship.setAIState()
 * ship.fireECM()
@@ -570,7 +889,7 @@ New JavaScript methods:
 * player.ship.cursorCoordinates()
 * station.dockPlayer()
 * player.addMessageToArrivalReport(message)
- 
+
 New AI commands:
 * dropMessages
 * debugDumpPendingMessages
@@ -582,7 +901,7 @@ New AI commands:
 * launchIndependentShipWithRole:
 * checkOwnLegalStatus
 * setSpeedToCruiseSpeed
-  
+ 
 Changed commands:
 * Added delay parameter to playerStartedJumpCountdown event.
 * Made Entity.position and Entity.orienation read/write, and deprecated
@@ -634,7 +953,7 @@ Bug fixes
   closest planet.
 * Fixed joystick precision mode switch causing continuous yaw to left (Linux
   and Windows builds only).
-  
+ 
 
 -------------------------------------------------------------------------------
 
@@ -738,7 +1057,7 @@ Changes between Oolite 1.71.2 and Oolite 1.72:
   properties of ships without redefining them completely. Overrides are
   silently ignored for ships that don't have a "primary"
   shipdata.plist/shipyard.plist entry.
-* New equipment type handling. This is less far-reaching than the ship 
+* New equipment type handling. This is less far-reaching than the ship
   registry, and isn't used everywhere, but it's exposed to JavaScript as
   EquipmentInfo objects (see EliteWiki for documentation).
 * Missiles no longer collide with parent on launch.
@@ -883,14 +1202,14 @@ shipData.load.shipyard.unknown to yes in logcontrol.plist.
 Changes between Oolite 1.71.1 and Oolite 1.71.2:
 * Fixed delayed crash after looking at system info screen in interstellar
   space.
-* Fixed crash when an array in descriptions.plist is empty. 
+* Fixed crash when an array in descriptions.plist is empty.
 * Suns, Q-mine explosions and wormholes are now the same size no matter which
-  direction youíre looking at them from. 
-* Fix for ships launching with the wrong AI. 
+  direction youíre looking at them from.
+* Fix for ships launching with the wrong AI.
 * ECM, space compass and ident are now reset properly when restarting the game.
 * Fixed HUD alpha/hiddenness for empty missile slots.
 * Fixed glitch where it would become impossible to stop playing music after
-  attempting to play music that does not exist. 
+  attempting to play music that does not exist.
 * Creating a JavaScript timer with a negative delay value now creates a paused
   timer as documented.
 * Player.alertEnergy and Player.alertHostiles now work on Windows and Linux.
@@ -908,7 +1227,7 @@ Changes between Oolite 1.71 and Oolite 1.71.1:
 
 -------------------------------------------------------------------------------
 
-Changes between Oolite 1.70 and Oolite 1.71: 
+Changes between Oolite 1.70 and Oolite 1.71:
   Stability:
 * Fixed the nasty bug that would occasionally cause Oolite to crash after
   having consumed all memory during system population.
@@ -917,7 +1236,7 @@ Changes between Oolite 1.70 and Oolite 1.71:
 * Fixed unmarkSystem crash.
 * Removed crash when loading save game with 'stale' oxp missiles (see
   http://aegidian.org/bb/viewtopic.php?p=47921&highlight=#47921)
- 
+
   JavaScript:
 * All internal game scripts are now JavaScript -- adopted somewhat twiddled
   versions of Eric Walch's scripts.
@@ -941,7 +1260,7 @@ Changes between Oolite 1.70 and Oolite 1.71:
   blowUpMainStation (or explode()) work.
 * Added experimental planet.setTexture in JavaScript. Usage restricted to
   shipWillExitWitchspace() & shipWillLaunchFromStation().
- 
+
   Bugfixes:
 * Fixed a serious memory leak on the short-range chart screen. Other smaller
   leaks plugged as well.
@@ -950,7 +1269,7 @@ Changes between Oolite 1.70 and Oolite 1.71:
 * Fix for scripting bug, whereby when adding a second ship to the system with
   the same script that was active before, all references to player, system,
   mission, worldScript etc. were gone and using them was giving an error in
-  the log. 
+  the log.
 * Fixed the "too many saved games in oolite-saves causes weird behavior" bug.
 * Fix for OXP verifier turning off log message classes.
 * Fix for bug where awardEquipment:EQ_TRUMBLE while a trumble infection is in
@@ -1003,7 +1322,7 @@ Changes between Oolite 1.70 and Oolite 1.71:
   etc...) now take effect immediately.
 * Oolite now gives the right message when trying to jump more than 7 ly.
 * Added code to hopefully work around sky rendering glitch on S3 hardware.
-  
+ 
   Improvements:
 * Improve speed of traversing saved games list by writing the current system
   name in the save file. When Oolite displays summary information about the
@@ -1025,7 +1344,7 @@ Changes between Oolite 1.70 and Oolite 1.71:
 * awardEquipment: if undamaged equipment present, trying to assign its damaged
   equivalent will fail with a warning. Trying to award an undamaged weapon
   using awardEquipment() will also fail with a warning.
- 
+
   New Features:
 * Added ability to explicitly bind shaders to subentity rather than root
   entity.
@@ -1062,7 +1381,7 @@ Changes between Oolite 1.70 and Oolite 1.71:
   transparency).
 * HUD can now be switched off with the 'o' key and turned on again with the 'n'
   key while game is paused.
- 
+
   Miscellaneous:
 * Subentities no longer count as kills.
 * Made ship AI send a beingAttacked message to scripts when a missile is fired
@@ -1146,12 +1465,12 @@ Changes between Oolite 1.69.1.1 and Oolite 1.70:
   (Mac OS X only; bug #11691).
 
 -------------------------------------------------------------------------------
-         
+        
 Changes between Oolite 1.69.1 and 1.69.1.1:
 * Fixed a consistent crash at startup on x86-based Macs.
-         
+        
 -------------------------------------------------------------------------------
-         
+        
 Changes between Oolite 1.69b and 1.69.1:
 * Several crashes and other severe bugs fixed.
 * Fix for a wide class of potential crashes and strange behaviours which were
@@ -1172,14 +1491,14 @@ Changes between Oolite 1.69b and 1.69.1:
   system.legacyAddShipsWithinRadius() ignoring radius parameter.
 * Fix for scripts running while paused, if on a menu screen.
 * Fix for wrong galaxy being shown when switching from Open screen to Map
-  screen. 
+  screen.
 * Fix for out-of-range laser heat value in shaders on demo screen.
 * Damaged equipment is now shown in orange as intended.
 * Big yellow question mark is now shown as intended on the Open screen when
   selecting a saved game using an unavailable ship.
 
 -------------------------------------------------------------------------------
-         
+        
 Changes between Oolite 1.69 and 1.69b:
 * Fixed an error that caused certain scripts tied to ships not to run.
 
