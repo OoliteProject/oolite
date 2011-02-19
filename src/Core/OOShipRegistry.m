@@ -1007,7 +1007,6 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSEnumerator			*roleEnum = nil;
 	NSString				*role = nil;
 	OOMutableProbabilitySet	*probSet = nil;
-	NSMutableString			*tRoles = [[NSMutableString alloc] initWithString:roles];
 
 	
 	/*	probabilitySets is a dictionary whose keys are roles and whose values
@@ -1018,13 +1017,16 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		to swap these roles here.
 	*/
 	
-	if([roles rangeOfString:@"thargon"].location != NSNotFound && [roles rangeOfString:@"EQ_THARGON"].location == NSNotFound)
+	rolesAndWeights = OOParseRolesFromString(roles);
+	
+	id thargonValue = [rolesAndWeights objectForKey:@"thargon"];
+	if (thargonValue != nil && [rolesAndWeights objectForKey:@"EQ_THARGON"] == nil)
 	{
-		[tRoles replaceOccurrencesOfString:@"thargon" withString:@"EQ_THARGON" options:0 range:NSMakeRange(0, [tRoles length])];
+		NSMutableDictionary *mutable = [NSMutableDictionary dictionaryWithDictionary:rolesAndWeights];
+		[mutable setObject:thargonValue forKey:@"EQ_THARGON"];
+		rolesAndWeights = mutable;
 	}
 	
-	rolesAndWeights = OOParseRolesFromString(tRoles);
-	[tRoles autorelease];
 	for (roleEnum = [rolesAndWeights keyEnumerator]; (role = [roleEnum nextObject]); )
 	{
 		probSet = [probabilitySets objectForKey:role];
