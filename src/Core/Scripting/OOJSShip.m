@@ -1766,7 +1766,7 @@ static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	if ([thisEnt hasEquipmentItem:key])  OOJS_RETURN(strOK);
+	if ([thisEnt hasEquipmentItem:key includeWeapons:YES])  OOJS_RETURN(strOK);
 	else if ([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]])  OOJS_RETURN(strDamaged);
 	
 	OOJS_RETURN(strUnavailable);
