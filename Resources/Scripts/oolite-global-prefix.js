@@ -96,6 +96,10 @@ defineMethod(SystemInfo.prototype, "systemsInRange", function systemsInRange(ran
 });
 
 
+/*	Because of messy history, SystemInfo.systemsInRange() is an alias to
+	system.info.systemsInRange(). This usage is discouraged and now undocumented.
+	(It should have been deprecated for 1.75, but wasn't.)
+*/
 defineMethod(SystemInfo, "systemsInRange", function systemsInRange(range)
 {
     return system.info.systemsInRange(range);
