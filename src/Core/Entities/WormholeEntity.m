@@ -202,7 +202,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	float d = distance(position, [ship position]);
 	float afterburnerFactor = [ship hasFuelInjection] && [ship fuel] > MIN_FUEL ? [ship afterburnerFactor] : 1.0;
 	float shipSpeed = [ship maxFlightSpeed] * afterburnerFactor;
-	now += d / shipSpeed;
+	if (shipSpeed > 0.0f)  now += d / shipSpeed;
 	if( now > expiry_time )
 		return NO;
 
