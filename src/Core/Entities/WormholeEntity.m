@@ -150,8 +150,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		if ([ship isPlayer])
 			witch_mass = [ship mass]; // The player ship never gets sucked in, so add its mass here.
 
-		if (sun && ([sun willGoNova] || [sun goneNova]) && witch_mass > 240000) 
-			shrink_factor = witch_mass / 240000; // don't allow longstanding wormholes in nova systems. (60 sec * WORMHOLE_SHRINK_RATE = 240 000)
+		if (sun && ([sun willGoNova] || [sun goneNova]) && [ship mass] > 240000) 
+			shrink_factor = [ship mass] / 240000; // don't allow longstanding wormholes in nova systems. (60 sec * WORMHOLE_SHRINK_RATE = 240 000)
 		else
 			shrink_factor = 1;
 			
