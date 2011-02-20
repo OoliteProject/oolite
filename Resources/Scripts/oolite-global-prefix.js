@@ -36,7 +36,6 @@ MA 02110-1301, USA.
 */
 
 
-// NOTE: for jslint to work, you must comment out the use of __proto__.
 /*jslint white: true, undef: true, eqeqeq: true, bitwise: false, regexp: true, newcap: true, immed: true */
 /*global Entity, global, mission, player, Quaternion, Ship, special, system, Vector3D, SystemInfo, expandMissionText*/
 
@@ -51,8 +50,6 @@ this.version		= "1.75";
 
 
 (function (special) {
-
-/**** Built-in in ECMAScript 5, to be removed when Linux builds transition ****/
 
 // Utility to define non-enumerable, non-configurable, permanent methods, to match the behaviour of native methods.
 function defineMethod(object, name, implementation)
@@ -175,7 +172,6 @@ defineMethod(SoundSource.prototype, "playSound", function playSound(sound, count
 
 /**** Default implementations of script methods ****/
 /*    (Note: oolite-default-ship-script.js methods aren’t inherited.
-	  TODO: make script subtypes for different types of scriptable thing.
 */
 
 const escortPositions =
@@ -220,199 +216,6 @@ if (global.timeAccelerationFactor === undefined)
 		configurable: false,
 		enumerable: false
 	});
-}
-
-
-/**** Backwards-compatibility functions. These will be removed before next stable. ****/
-
-const failWarning = " This warning will be removed and the script will fail in Oolite 1.75.1.";
-
-// Define a read-only property that is an alias for another property.
-function defineCompatibilityGetter(constructorName, oldName, newName)
-{
-	var getter = function compatibilityGetter()
-	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead." + failWarning);
-		return this[newName];
-	};
-	
-	Object.defineProperty(global[constructorName].prototype, oldName, { get: getter });
-};
-
-
-function defineCompatibilityGetterAndSetter(constructorName, oldName, newName)
-{
-	var getter = function compatibilityGetter()
-	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead." + failWarning);
-		return this[newName];
-	};
-	var setter = function compatibilitySetter(value)
-	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead." + failWarning);
-		this[newName] = value;
-	};
-	
-	Object.defineProperty(global[constructorName].prototype, oldName, { get: getter, set: setter });
-};
-
-
-defineCompatibilityGetter("Ship", "roleProbabilities", "roleWeights");
-
-
-if (typeof Object.getOwnPropertyDescriptor == "function")
-{
-	var isWriteable = function (object, property)
-	{
-		var descriptor = Object.getOwnPropertyDescriptor(object, property);
-		return descriptor.writable || false;
-	}
-}
-else
-{
-	var isWriteable = function (object, property)
-	{
-		// No good test. In particular, trying to write a read-only property is not an exception without strict mode.
-		return true;
-	}
-}
-
-
-function defineSingletonCompatibiltyAccessor(constructorName, singletonName, propertyName, isMethod)
-{
-	var type = isMethod ? "method" : "property";
-	var typedProp = isMethod ? (propertyName + "()") : propertyName;
-	var message = "Incorrect usage: " + constructorName + " instance " + type + " “" + propertyName + "” accessed on constructor instead of instance. Replace “" + constructorName + "." + typedProp + "” with “" + singletonName + "." + typedProp + "”." + failWarning;
-	
-	var descriptor =
-	{
-		enumerable: false,
-		configurable: false,
-		
-		get: function constructorGetterGlue()
-		{
-			special.jsWarning(message);
-			return global[singletonName][propertyName];
-		}
-	}
-	
-	if (!isMethod && isWriteable(global[constructorName].prototype, propertyName))
-	{
-		descriptor.set = function constructorSetterGlue(value)
-		{
-			special.jsWarning(message);
-			global[singletonName][propertyName] = value;
-		}
-	}
-	
-	Object.defineProperty(global[constructorName], propertyName, descriptor);
-}
-
-
-var systemInstanceProperties =
-[
-	"ID",
-//	"name",	// Since a constructor is a function, it already has a non-configurable “name” property.
-	"description",
-	"inhabitantsDescription",
-	"government",
-	"governmentDescription",
-	"economy",
-	"economyDescription",
-	"techLevel",
-	"population",
-	"productivity",
-	"isInterstellarSpace",
-	"mainStation",
-	"mainPlanet",
-	"sun",
-	"planets",
-	"allShips",
-	"info",
-	"pseudoRandomNumber",
-	"pseudoRandom100",
-	"pseudoRandom256"
-];
-
-var systemInstanceMethods =
-[
-	"toString",
-	"addGroup",
-	"addGroupToRoute",
-	"addMoon",
-	"addPlanet",
-	"addShips",
-	"addShipsToRoute",
-	"countShipsWithPrimaryRole",
-	"countShipsWithRole",
-	"countEntitiesWithScanClass",
-	"entitiesWithScanClass",
-	"filteredEntities",
-	"sendAllShipsAway",
-	"shipsWithPrimaryRole",
-	"shipsWithRole",
-	"legacy_addShips",
-	"legacy_addSystemShips",
-	"legacy_addShipsAt",
-	"legacy_addShipsAtPrecisely",
-	"legacy_addShipsWithinRadius",
-	"legacy_spawnShip"
-];
-
-
-var i;
-for (i = 0; i < systemInstanceProperties.length; i++)
-{
-	defineSingletonCompatibiltyAccessor("System", "system", systemInstanceProperties[i], false);
-}
-
-for (i = 0; i < systemInstanceMethods.length; i++)
-{
-	defineSingletonCompatibiltyAccessor("System", "system", systemInstanceMethods[i], true);
-}
-
-
-var playerInstanceProperties =
-[
-//	"name",	// Since a constructor is a function, it already has a non-configurable “name” property.
-	"score",
-	"credits",
-	"rank",
-	"legalStatus",
-	"alertCondition",
-	"alertTemperature",
-	"alertMassLocked",
-	"alertAltitude",
-	"alertEnergy",
-	"alertHostiles",
-	"trumbleCount",
-	"contractReputation",
-	"passengerReputation",
-	"dockingClearanceStatus",
-	"bounty",
-];
-
-var playerInstanceMethods =
-[
-	"addMessageToArrivalReport",
-	"commsMessage",
-	"consoleMessage",
-	"decreaseContractReputation",
-	"decreasePassengerReputation",
-	"increaseContractReputation",
-	"increasePassengerReputation",
-	"setEscapePodDestination"
-];
-
-
-for (i = 0; i < playerInstanceProperties.length; i++)
-{
-	defineSingletonCompatibiltyAccessor("Player", "player", playerInstanceProperties[i], false);
-}
-
-for (i = 0; i < playerInstanceMethods.length; i++)
-{
-	defineSingletonCompatibiltyAccessor("Player", "player", playerInstanceMethods[i], true);
 }
 
 })(special);
