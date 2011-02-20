@@ -82,34 +82,23 @@ defineMethod(Mission.prototype, "addMessageTextKey", function addMessageTextKey(
 /*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
 	certain distance.
 */
-defineMethod(SystemInfo, "systemsInRange", function systemsInRange(range)
+defineMethod(SystemInfo.prototype, "systemsInRange", function systemsInRange(range)
 {
 	if (range === undefined)
 	{
 		range = 7;
 	}
 	
-	// Default to using the current system.
-	var thisSystem = system.info;
-	
-	// If called on an instance instead of the SystemInfo constructor, use that system instead.
-	if (this !== SystemInfo)
-	{
-		if (this.systemID !== undefined && this.distanceToSystem !== undefined)
-		{
-			thisSystem = this;
-		}
-		else
-		{
-			special.jsWarning("systemsInRange() called in the wrong context. Returning empty array.");
-			return [];
-		}
-	}
-	
 	return SystemInfo.filteredSystems(this, function (other)
 	{
-		return (other.systemID !== thisSystem.systemID) && (thisSystem.distanceToSystem(other) <= range);
+		return (other.systemID !== this.systemID) && (this.distanceToSystem(other) <= range);
 	});
+});
+
+
+defineMethod(SystemInfo, "systemsInRange", function systemsInRange(range)
+{
+    return system.info.systemsInRange(range);
 });
 
 
