@@ -219,7 +219,20 @@ RMDir /r "$INSTDIR\oolite.app\GNUstep"
 RMDir /r "$INSTDIR\oolite.app\oolite.app"
 RMDir /r "$INSTDIR\oolite.app\Resources"
 RMDir /r "$INSTDIR\oolite.app\Logs"
-Delete "$INSTDIR\*.*"
+Delete "$INSTDIR\Oolite.ico"
+Delete "$INSTDIR\Oolite_Readme.txt"
+Delete "$INSTDIR\OoliteRS.pdf"
+Delete "$INSTDIR\AdviceForNewCommanders.pdf"
+Delete "$INSTDIR\OoliteReadMe.pdf"
+IfFileExists "$INSTDIR\CHANGELOG.TXT" ChangelogExists ChangelogDoesNotExist
+
+ChangelogExists:
+Delete "$INSTDIR\CHANGELOG.TXT"
+
+ChangelogDoesNotExist:
+; Nothing to do in this case, just continue
+
+Delete "$INSTDIR\UninstOolite.exe"
 Delete "$INSTDIR\oolite.app\*.*"
 
 SectionEnd
