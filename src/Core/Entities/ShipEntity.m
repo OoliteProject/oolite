@@ -8769,7 +8769,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[hunter markAsOffender:64];
 		}
 
-		if ([hunter group] == group || (iAmTheLaw && uAreTheLaw))
+		if ((group != nil && [hunter group] == group) || (iAmTheLaw && uAreTheLaw))
 		{
 			// avoid shooting each other
 			if ([hunter behaviour] == BEHAVIOUR_ATTACK_FLY_TO_TARGET)	// avoid me please!
