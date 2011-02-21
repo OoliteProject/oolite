@@ -5850,6 +5850,8 @@ static NSDictionary	*sCachedSystemData = nil;
 			immutable dictionaries. Changes to -setLocalPlanetInfoOverrides
 			should have fixed it, but we validate just to be certain.
 			-- Ahruman 20070729
+			
+			EMMSTRAN: remove.
 		*/
 		if (![overrideDict isKindOfClass:[NSMutableDictionary class]])
 		{

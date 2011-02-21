@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import <Carbon/Carbon.h>
 #import "NSFileManagerOOExtensions.h"
 #import "OOGraphicsResetManager.h"
+#import "PlayerEntity.h"
 
 #ifndef NDEBUG
 #import <Foundation/NSDebug.h>
@@ -694,7 +695,10 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) recenterVirtualJoystick
 {
-	[[GameController sharedController] recenterVirtualJoystick];
+	if ([PLAYER guiScreen] == GUI_SCREEN_MAIN)
+	{
+		[[GameController sharedController] recenterVirtualJoystick];
+	}
 }
 
 
