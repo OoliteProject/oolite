@@ -161,8 +161,10 @@ static JSFunctionSpec sScriptMethods[] =
 		
 		if (!problem)
 		{
+			OOLog(@"script.javaScript.willLoad", @"About to load JavaScript %@", path);
 			script = LoadScriptWithName(context, path, _jsSelf, &scriptObject, &problem);
 		}
+		OOLogIndentIf(@"script.javaScript.willLoad");
 		
 		// Set properties.
 		if (!problem && properties != nil)
@@ -217,8 +219,9 @@ static JSFunctionSpec sScriptMethods[] =
 			version = [[[self propertyWithID:OOJSID("version") inContext:context] description] copy];
 			description = [[[self propertyWithID:OOJSID("description") inContext:context] description] copy];
 			
-			OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : (NSString *)@"(no description)");
+			OOLog(@"script.javaScript.load.success", @"Loaded JavaScript: %@ -- %@", [self displayName], description ? description : (NSString *)@"(no description)");
 		}
+		OOLogOutdentIf(@"script.javaScript.willLoad");
 		
 		DESTROY(filePath);	// Only used for error reporting during startup.
 	}
