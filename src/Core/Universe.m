@@ -1585,7 +1585,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	GLfloat	walk_factor = 2.0;
 	while (i < howMany)
 	{
-	 	ShipEntity  *ship = [self addShipWithRole:desc launchPos:pos rfactor:0.0];
+	 	ShipEntity  *ship = [self addShipWithRole:desc launchPos:launchPos rfactor:0.0];
 		if (ship == nil) return NO;
 		OOScanClass scanClass = [ship scanClass];
 		[ship setScanClass:CLASS_NO_DRAW];	// avoid lollipop flash
@@ -1636,7 +1636,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		quaternion_set_random(&qr);
 		[ship setOrientation:qr];
 		
-		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		// [self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 		
 		ship_positions[i] = ship_pos;
 		i++;

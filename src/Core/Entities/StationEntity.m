@@ -1294,7 +1294,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)) && ![ship isPlayer])
 	{
 		[self addShipToStationCount: ship]; // restore ship count for station.
-		OOLog(@"station.launchShip.failed", @"Canceled a launch for a %@ with role %@, that is to big for the docking port of the %@.",
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as it is too large for the docking port of the %@.",
 			  [ship displayName], [ship primaryRole], [self displayName]);
 		return;
 	}

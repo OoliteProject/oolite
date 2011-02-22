@@ -551,18 +551,60 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	fileTypes = [NSArray arrayWithObject:@"oolite-save"];
 	oPanel = [NSOpenPanel openPanel];
 	
+	/*
+	// runModalForDirectory is deprecated per OSX 10.6
 	[oPanel setAllowsMultipleSelection:NO];
 	result = [oPanel runModalForDirectory:nil file:nil types:fileTypes];
 	if (result == NSOKButton)
 	{
 		return [self loadPlayerFromFile:[oPanel filename]];
 	}
+	*/
+	
+	// if (save_path) [oPanel setDirectoryURL:(NSURL *)save_path]; //Needs SNOW_LEOPARD
+	[oPanel setAllowedFileTypes:fileTypes]; 
+	result = [oPanel runModal]; 
+	if (result == NSFileHandlingPanelOKButton) 
+	{ 
+		return [self loadPlayerFromFile:[oPanel filename]]; 
+	} 
 	else
 	{
 		return NO;
 	}
 }
 
+
+/*
+- (void) savePlayerWithPanel
+{
+	NSSavePanel		*sp;
+	int				runResult;
+	
+	sp = [NSSavePanel savePanel];
+	[sp setRequiredFileType:@"oolite-save"];
+	[sp setCanSelectHiddenExtension:YES];
+	//  if (player_name) [sp setNameFieldStringValue:player_name]; //Needs SNOW_LEOPARD
+	
+	// display the NSSavePanel
+	runResult = [sp runModal];
+	
+	// if successful, save file under designated name
+	if (runResult == NSFileHandlingPanelOKButton)
+	{
+		NSArray*	path_components = [[sp filename] pathComponents];
+		NSString*   new_name = [[path_components objectAtIndex:[path_components count]-1] stringByDeletingPathExtension];
+		
+		[self doScriptEvent:@"playerWillSaveGame" withArgument:@"standardSave"];
+		
+		[player_name release];
+		player_name = [new_name copy];
+		
+		[self writePlayerToPath:[sp filename]];
+	}
+	[self setGuiToStatusScreen];
+}
+*/
 
 - (void) savePlayerWithPanel
 {
@@ -574,7 +616,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[sp setCanSelectHiddenExtension:YES];
 	
 	// display the NSSavePanel
-	runResult = [sp runModalForDirectory:nil file:player_name];
+	 runResult = [sp runModalForDirectory:nil file:player_name];
 	
 	// if successful, save file under designated name
 	if (runResult == NSOKButton)
