@@ -2508,14 +2508,14 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (void) showGameOver
 {
-	NSString *scoreMS = [NSString stringWithFormat:DESC(@"gameoverscreen-score-@-f"),
-							KillCountToRatingAndKillString(ship_kills),credits/10.0];
-
-	[UNIVERSE displayMessage:DESC(@"gameoverscreen-game-over") forCount:30.0];
+	NSString *scoreMS = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-score-@]"),
+							KillCountToRatingAndKillString(ship_kills)];
+	
+	[UNIVERSE displayMessage:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-game-over]") forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
 	[UNIVERSE displayMessage:scoreMS forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
-	[UNIVERSE displayMessage:DESC(@"gameoverscreen-press-space") forCount:30.0];
+	[UNIVERSE displayMessage:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-press-space]") forCount:30.0];
 	[self resetShotTime];
 }
 

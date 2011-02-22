@@ -1221,7 +1221,7 @@
 	
 	// Game Over screen
 	"gameoverscreen-escape-pod"		= "Life Support Failure!";
-	"gameoverscreen-score-@-f"		= "Score: %@, %.1f ₢";
+	"gameoverscreen-score-@"		= "Score: %@, [credits_number] ₢";
 	"gameoverscreen-game-over"		= "Game Over";
 	"gameoverscreen-press-space"	= "Press Space";
 	
