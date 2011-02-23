@@ -94,7 +94,7 @@ static THREAD_LOCAL OOLogIndentStackElement
 #endif
 static BOOL						sShowFunction = NO;
 static BOOL						sShowFileAndLine = NO;
-static BOOL						sShowTime = NO;
+static BOOL						sShowTime = YES;
 static BOOL						sShowClass = YES;
 static BOOL						sDefaultDisplay = YES;
 static BOOL						sOverrideInEffect = NO;
