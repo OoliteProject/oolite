@@ -144,7 +144,6 @@ enum
 	kShip_isPiloted,			// is piloted, boolean, read-only (includes stations)
 	kShip_isPirate,				// is pirate, boolean, read-only
 	kShip_isPirateVictim,		// is pirate victim, boolean, read-only
-	kShip_isPlayer,				// is player, boolean, read-only
 	kShip_isPolice,				// is police, boolean, read-only
 	kShip_isRock,				// is a rock (hermits included), boolean, read-only
 	kShip_isThargoid,			// is thargoid, boolean, read-only
@@ -232,7 +231,6 @@ static JSPropertySpec sShipProperties[] =
 	{ "isPiloted",				kShip_isPiloted,			OOJS_PROP_READONLY_CB },
 	{ "isPirate",				kShip_isPirate,				OOJS_PROP_READONLY_CB },
 	{ "isPirateVictim",			kShip_isPirateVictim,		OOJS_PROP_READONLY_CB },
-	{ "isPlayer",				kShip_isPlayer,				OOJS_PROP_READONLY_CB },
 	{ "isPolice",				kShip_isPolice,				OOJS_PROP_READONLY_CB },
 	{ "isRock",					kShip_isRock,				OOJS_PROP_READONLY_CB },
 	{ "isBoulder",				kShip_isBoulder,			OOJS_PROP_READWRITE_CB },
@@ -518,10 +516,6 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_isPirate:
 			*value = OOJSValueFromBOOL([entity isPirate]);
-			return YES;
-			
-		case kShip_isPlayer:
-			*value = OOJSValueFromBOOL([entity isPlayer]);
 			return YES;
 			
 		case kShip_isPolice:
