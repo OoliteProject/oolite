@@ -167,9 +167,10 @@
 	
 	
 	joystick.init							= yes;	// SDL only
-	joystick.connect						= yes;	// Mac only
+	joystick.connect						= yes;	// Rest are Mac only
 	joystick.connect.element				= no;
 	joystick.remove							= no;
+	joystick.reject							= no;	// Lists HID devices that are not considered joysticks.
 	
 	
 	loading.complete						= yes;
