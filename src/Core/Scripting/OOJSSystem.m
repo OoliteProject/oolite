@@ -172,6 +172,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "countShipsWithRole",				SystemCountShipsWithRole,			1 },
 	{ "entitiesWithScanClass",			SystemEntitiesWithScanClass,		1 },
 	{ "filteredEntities",				SystemFilteredEntities,				2 },
+	// scrambledPseudoRandomNumber is implemented in oolite-global-prefix.js
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,				1 },
 	{ "shipsWithPrimaryRole",			SystemShipsWithPrimaryRole,			1 },
 	{ "shipsWithRole",					SystemShipsWithRole,				1 },
