@@ -8276,7 +8276,8 @@ else _dockTarget = NO_TARGET;
 	WormholeEntity * wh;
 	while ((wh = [wormholes nextObject]))
 	{
-		if ([wh universalID] == [whole universalID])
+		OOUniversalID whId = [wh universalID];
+		if( whId != 0 && whId == [whole universalID] )
 			return;
 	}
 	[whole setScannedAt:[self clockTimeAdjusted]];
