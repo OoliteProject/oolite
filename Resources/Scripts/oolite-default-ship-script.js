@@ -95,7 +95,7 @@ if (this.legacy_scriptActions !== undefined)
 		*/
 		
 		// Note "backwards" call, allowing awardEquipment: and similar to affect the scooper rather than the scoopee.
-		scooper.__runLegacyScriptActions(scooper, this.legacy_scriptActions);
+		scooper.__runLegacyScriptActions(this.ship, this.legacy_scriptActions);
 	};
 }
 
