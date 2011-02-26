@@ -191,7 +191,7 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 {
 	Quaternion q;
 	OOScalar s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
-	if (EXPECT(s))
+	if (EXPECT(s > 0.0f))
 	{
 		OOScalar is = 1.0f / s;
 		q.x = (v0.y * v1.z - v0.z * v1.y) * is;

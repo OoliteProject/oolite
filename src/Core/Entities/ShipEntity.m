@@ -7553,7 +7553,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	r_pos = vector_normal_or_zbasis(vector_subtract(my_target->position, position));
 
-	Quaternion		q_laser = quaternion_rotation_between(r_pos, make_vector(0.0f,0.0f,1.0f));
+	Quaternion		q_laser = quaternion_rotation_between(r_pos, kBasisZVector);
 	q_laser.x += 0.01 * (randf() - 0.5);	// randomise aim a little (+/- 0.005)
 	q_laser.y += 0.01 * (randf() - 0.5);
 	q_laser.z += 0.01 * (randf() - 0.5);
@@ -8164,9 +8164,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([jetto crew]) // jetto has a crew, so assume it is an escape pod.
 	{
 		// orient the pod away from the ship to avoid colliding with it.
-		Vector pod_cross = fast_cross_product(kBasisZVector, v_eject_normal); // kBasisZVector is vectorForward of kIdentityQuaternion
-		double pod_angle = acosf(dot_product(kBasisZVector, v_eject_normal));
-		quaternion_rotate_about_axis(&jetto_orientation, pod_cross, -pod_angle); // rotate vectorForward to v_eject_normal.
+		jetto_orientation = quaternion_rotation_between(v_eject_normal, kBasisZVector);
 	}
 	else
 	{
