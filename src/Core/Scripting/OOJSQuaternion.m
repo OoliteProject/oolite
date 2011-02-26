@@ -43,7 +43,7 @@ static BOOL GetThisQuaternion(JSContext *context, JSObject *quaternionObj, Quate
 
 
 static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 static void QuaternionFinalize(JSContext *context, JSObject *this);
 static JSBool QuaternionConstruct(JSContext *context, uintN argc, jsval *vp);
 
@@ -477,7 +477,7 @@ static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsid pro
 }
 
 
-static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

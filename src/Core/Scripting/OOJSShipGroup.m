@@ -33,7 +33,7 @@ static JSObject *sShipGroupPrototype;
 
 
 static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 static JSBool ShipGroupConstruct(JSContext *context, uintN argc, jsval *vp);
 
 // Methods
@@ -144,7 +144,7 @@ static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsid prop
 }
 
 
-static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

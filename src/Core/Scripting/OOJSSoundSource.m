@@ -32,7 +32,7 @@ static JSObject *sSoundSourcePrototype;
 
 
 static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 static JSBool SoundSourceConstruct(JSContext *context, uintN argc, jsval *vp);
 
 // Methods
@@ -158,7 +158,7 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsid pr
 }
 
 
-static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

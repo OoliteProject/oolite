@@ -44,7 +44,7 @@ static NSString *KeyForPropertyID(JSContext *context, jsid propID)
 
 static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JSIterateOp enumOp, jsval *state, jsid *idp);
 
 #ifndef NDEBUG
@@ -133,7 +133,7 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 }
 
 
-static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	OOJS_NATIVE_ENTER(context)
 	

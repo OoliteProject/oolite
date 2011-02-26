@@ -41,7 +41,7 @@ static JSClass sWorldScriptsClass =
 	JS_PropertyStub,
 	JS_PropertyStub,
 	WorldScriptsGetProperty,
-	JS_PropertyStub,
+	JS_StrictPropertyStub,
 	WorldScriptsEnumerate,
 	JS_ResolveStub,
 	JS_ConvertStub,

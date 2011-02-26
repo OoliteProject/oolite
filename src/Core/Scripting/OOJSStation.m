@@ -37,7 +37,7 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 
 
 static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *vp);
@@ -236,7 +236,7 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 }
 
 
-static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

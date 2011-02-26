@@ -33,7 +33,7 @@ static JSObject *sEquipmentInfoPrototype;
 
 
 static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
@@ -359,7 +359,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 }
 
 
-static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

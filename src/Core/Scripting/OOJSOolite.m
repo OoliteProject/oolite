@@ -47,7 +47,7 @@ static JSClass sOoliteClass =
 	JS_PropertyStub,
 	JS_PropertyStub,
 	OoliteGetProperty,
-	JS_PropertyStub,
+	JS_StrictPropertyStub,
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,

@@ -62,7 +62,7 @@ static JSObject *sConsoleSettingsPrototype = NULL;
 
 
 static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 static void ConsoleFinalize(JSContext *context, JSObject *this);
 
 // Methods
@@ -90,7 +90,7 @@ static JSBool ConsoleTrace(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 #if OOJS_PROFILE
 static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, jsval *rval, BOOL trace, OOTimeProfile **profile);
@@ -395,7 +395,7 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 }
 
 
-static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	
@@ -581,7 +581,7 @@ static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsi
 }
 
 
-static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_STRING(propID))  return YES;
 	

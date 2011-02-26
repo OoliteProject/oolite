@@ -40,7 +40,7 @@ static JSObject	*sManifestObject;
 
 static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 
 static JSClass sManifestClass =
@@ -207,7 +207,7 @@ void InitOOJSManifest(JSContext *context, JSObject *global)
 static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
 	jsval v = JSVAL_VOID;
-	return ManifestSetProperty(context, this, propID, &v);
+	return ManifestSetProperty(context, this, propID, NO, &v);
 }
 
 
@@ -366,7 +366,7 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsid propI
 }
 
 
-static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	OOJS_NATIVE_ENTER(context)
 	

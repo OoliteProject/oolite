@@ -52,7 +52,7 @@ static JSClass sSoundClass =
 	JS_PropertyStub,		// addProperty
 	JS_PropertyStub,		// delProperty
 	SoundGetProperty,		// getProperty
-	JS_PropertyStub,		// setProperty
+	JS_StrictPropertyStub,	// setProperty
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert

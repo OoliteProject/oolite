@@ -192,7 +192,7 @@ static JSClass sTimerClass;
 
 
 static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 static void TimerFinalize(JSContext *context, JSObject *this);
 static JSBool TimerConstruct(JSContext *context, uintN argc, jsval *vp);
 
@@ -288,7 +288,7 @@ static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsid propID, 
 }
 
 
-static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

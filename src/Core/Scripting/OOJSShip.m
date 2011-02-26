@@ -47,7 +47,7 @@ static JSObject *sShipPrototype;
 
 
 static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 static JSBool ShipSetScript(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetAI(JSContext *context, uintN argc, jsval *vp);
@@ -674,7 +674,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 }
 
 
-static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

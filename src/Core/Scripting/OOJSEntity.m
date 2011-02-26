@@ -39,7 +39,7 @@ JSObject		*gOOEntityJSPrototype;
 
 
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 
 JSClass gOOEntityJSClass =
@@ -265,7 +265,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 }
 
 
-static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

@@ -57,7 +57,7 @@ extern NSString * const kOOLogDebugMessage;
 
 static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 #ifndef NDEBUG
-static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 #endif
 
 static JSBool GlobalLog(JSContext *context, uintN argc, jsval *vp);
@@ -86,7 +86,7 @@ static JSClass sGlobalClass =
 	GlobalSetProperty,
 #else
 	// No writeable properties in non-debug builds
-	JS_PropertyStub,
+	JS_StrictPropertyStub,
 #endif
 	JS_EnumerateStub,
 	JS_ResolveStub,
@@ -188,7 +188,7 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID,
 
 
 #ifndef NDEBUG
-static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

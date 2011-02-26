@@ -39,7 +39,7 @@ static OOSystemID sCachedSystem;
 
 static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 static void SystemInfoFinalize(JSContext *context, JSObject *this);
 static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateOp enumOp, jsval *state, jsid *idp);
 
@@ -389,7 +389,7 @@ static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsid 
 	OOJS_PROFILE_ENTER	// Any exception will be converted in SystemInfoSetProperty()
 	
 	jsval v = JSVAL_VOID;
-	return SystemInfoSetProperty(context, this, propID, &v);
+	return SystemInfoSetProperty(context, this, propID, NO, &v);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -482,7 +482,7 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 }
 
 
-static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (EXPECT_NOT(this == sSystemInfoPrototype))
 	{

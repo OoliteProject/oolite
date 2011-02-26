@@ -35,7 +35,7 @@ static JSObject		*sPlanetPrototype;
 
 
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 
 static JSClass sPlanetClass =
@@ -164,7 +164,7 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 }
 
 
-static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

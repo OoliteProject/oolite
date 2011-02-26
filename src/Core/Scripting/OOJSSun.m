@@ -46,7 +46,7 @@ static JSClass sSunClass =
 	JS_PropertyStub,		// addProperty
 	JS_PropertyStub,		// delProperty
 	SunGetProperty,			// getProperty
-	JS_PropertyStub,		// setProperty
+	JS_StrictPropertyStub,	// setProperty
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert

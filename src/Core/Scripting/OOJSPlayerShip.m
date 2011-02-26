@@ -49,7 +49,7 @@ static JSObject		*sPlayerShipObject;
 
 
 static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 static JSBool PlayerShipLaunch(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, uintN argc, jsval *vp);
@@ -335,7 +335,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 }
 
 
-static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

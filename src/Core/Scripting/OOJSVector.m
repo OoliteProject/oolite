@@ -43,7 +43,7 @@ static BOOL GetThisVector(JSContext *context, JSObject *vectorObj, Vector *outVe
 
 
 static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 static void VectorFinalize(JSContext *context, JSObject *this);
 static JSBool VectorConstruct(JSContext *context, uintN argc, jsval *vp);
 
@@ -491,7 +491,7 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID,
 }
 
 
-static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
 {
 	if (!JSID_IS_INT(propID))  return YES;
 	

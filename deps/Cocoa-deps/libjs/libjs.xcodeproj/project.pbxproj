@@ -194,7 +194,6 @@
 		1AD05E3612CD18B100704F1D /* testDefineGetterSetterNonEnumerable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1712CD18B100704F1D /* testDefineGetterSetterNonEnumerable.cpp */; };
 		1AD05E3712CD18B100704F1D /* testDefineProperty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1812CD18B100704F1D /* testDefineProperty.cpp */; };
 		1AD05E3812CD18B100704F1D /* testExtendedEq.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1912CD18B100704F1D /* testExtendedEq.cpp */; };
-		1AD05E3912CD18B100704F1D /* testFuncCallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1A12CD18B100704F1D /* testFuncCallback.cpp */; };
 		1AD05E3A12CD18B100704F1D /* testGCChunkAlloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1B12CD18B100704F1D /* testGCChunkAlloc.cpp */; };
 		1AD05E3B12CD18B100704F1D /* testGetPropertyDefault.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1C12CD18B100704F1D /* testGetPropertyDefault.cpp */; };
 		1AD05E3C12CD18B100704F1D /* testIntString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AD05E1D12CD18B100704F1D /* testIntString.cpp */; };
@@ -2015,7 +2014,6 @@
 				1AD05E3612CD18B100704F1D /* testDefineGetterSetterNonEnumerable.cpp in Sources */,
 				1AD05E3712CD18B100704F1D /* testDefineProperty.cpp in Sources */,
 				1AD05E3812CD18B100704F1D /* testExtendedEq.cpp in Sources */,
-				1AD05E3912CD18B100704F1D /* testFuncCallback.cpp in Sources */,
 				1AD05E3A12CD18B100704F1D /* testGCChunkAlloc.cpp in Sources */,
 				1AD05E3B12CD18B100704F1D /* testGetPropertyDefault.cpp in Sources */,
 				1AD05E3C12CD18B100704F1D /* testIntString.cpp in Sources */,
