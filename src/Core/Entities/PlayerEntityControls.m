@@ -3206,7 +3206,6 @@ static BOOL toggling_music;
 				{
 					if (!spacePressed)
 					{
-						[self setStatus:STATUS_DOCKED];
 						[[OOMusicController sharedController] stopMissionMusic];
 						
 						[self handleMissionCallback];
@@ -3264,6 +3263,7 @@ static BOOL toggling_music;
 	
 	if ([self status] != STATUS_DOCKED)	// did we launch inside callback? / are we in flight?
 	{
+		// TODO: This is no longer doing anything because of an 'isDocked' check inside the function. ***** Probably remove it for 1.76
 		[self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")];	// no opportunity events.
 	}
 	else
