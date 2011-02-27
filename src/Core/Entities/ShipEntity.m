@@ -773,6 +773,20 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 - (void) dealloc
 {
+	/*	NOTE: we guarantee that entityDestroyed is sent immediately after the
+		JS ship becomes invalid (as a result of dropping the weakref), i.e.
+		with no intervening script activity.
+		It has to be after the invalidation so that scripts can't directly or
+		indirectly cause the ship to become strong-referenced. (Actually, we
+		could handle that situation by breaking out of dealloc, but that's a
+		nasty abuse of framework semantics and would require special-casing in
+		subclasses.)
+		-- Ahruman 2011-02-27
+	*/
+	[weakSelf weakRefDrop];
+	weakSelf = nil;
+	ShipScriptEventNoCx(self, "entityDestroyed");
+	
 	[self setTrackCloseContacts:NO];	// deallocs tracking dictionary
 	[[self parentEntity] subEntityReallyDied:self];	// Will do nothing if we're not really a subentity
 	[self clearSubEntities];
