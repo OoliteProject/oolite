@@ -224,7 +224,7 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 	{
 		OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
 		[NSException raise:@"OoliteOpenGLTooOldException"
-					format:@"Oolite requires at least OpenGL %u.1%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
+					format:@"Oolite requires at least OpenGL %u.%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
 	}
 	
 	NSString *versionStr = [[[NSString alloc] initWithUTF8String:(const char *)versionString] autorelease];
