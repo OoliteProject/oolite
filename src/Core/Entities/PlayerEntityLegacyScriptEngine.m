@@ -1196,8 +1196,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	if (scriptTarget != self)  return;
 	
-	int award = 10 * [valueString intValue];
-	if (award < 0 && credits < (unsigned)-award)  credits = 0;
+	int64_t award = 10 * [valueString longLongValue];
+	if (award < 0 && credits < (OOCreditsQuantity)-award)  credits = 0;
 	else  credits += award;
 }
 

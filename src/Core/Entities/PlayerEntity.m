@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityControls.h"
 #import "PlayerEntitySound.h"
+#import "PlayerEntityScriptMethods.h"
 
 #import "StationEntity.h"
 #import "OOSunEntity.h"
@@ -71,6 +72,7 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 #import "OOConstToJSString.h"
+#import "NSNumberOOExtensions.h"
 
 #import "OOJoystickManager.h"
 #import "PlayerEntityStickMapper.h"
@@ -521,7 +523,6 @@ static GLfloat		sBaseMass = 0.0;
 		precision anyway.
 		-- Ahruman 2011-02-15
 	*/
-//	[result oo_setUnsignedLongLong:credits	forKey:@"credits"];
 	[result oo_setFloat:credits				forKey:@"credits"];
 	[result oo_setUnsignedInteger:fuel		forKey:@"fuel"];
 	[result oo_setFloat:fuel_charge_rate	forKey:@"fuel_charge_rate"]; // ## fuel charge testing
@@ -852,7 +853,18 @@ static GLfloat		sBaseMass = 0.0;
 	if (max_cargo > original_hold_size)  [self addEquipmentItem:@"EQ_CARGO_BAY"];
 	max_cargo = original_hold_size + ([self hasExpandedCargoBay] ? extra_cargo : 0) - max_passengers * 5;
 	
-	credits = [dict oo_unsignedLongLongForKey:@"credits" defaultValue:credits];
+	// Load credits, avoiding truncation when converting large values represented as doubles.
+	id creditsObj = [dict objectForKey:@"credits"];
+	if ([creditsObj isKindOfClass:[NSNumber class]] && [creditsObj oo_isFloatingPointNumber])
+	{
+		double value = [creditsObj doubleValue];
+		[self setCreditBalance:value];
+	}
+	else
+	{
+		credits = OOUnsignedLongLongFromObject(creditsObj, 0);
+	}
+	
 	fuel = [dict oo_unsignedIntForKey:@"fuel" defaultValue:fuel];
 	fuel_charge_rate = [UNIVERSE strict]
 					 ? 1.0

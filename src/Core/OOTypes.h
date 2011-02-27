@@ -159,6 +159,7 @@ typedef uint16_t	OOFuelQuantity;
 
 
 typedef uint64_t	OOCreditsQuantity;
+#define kOOMaxCredits	ULLONG_MAX
 
 
 typedef uint16_t	OOKeyCode;

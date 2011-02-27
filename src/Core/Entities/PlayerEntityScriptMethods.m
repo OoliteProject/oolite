@@ -57,8 +57,35 @@ MA 02110-1301, USA.
 
 - (void)setCreditBalance:(double)value
 {
+	/*	Clamp value * 10 to 0..kOOMaxCredits.
+		The important bit here is that kOOMaxCredits can't be represented
+		exactly as a double, and casting it rounds it up; casting this value
+		back to an OOCreditsQuantity truncates it. Comparing value directly to
+		kOOMaxCredits promotes kOOMaxCredits to a double, giving us this
+		problem.
+		nextafter(kOOMaxCredits, -1) gives us the highest non-truncated
+		credits value that's representable as a double (namely,
+		18 446 744 073 709 549 568 decicredits, or 2047 less than kOOMaxCredits).
+		-- Ahruman 2011-02-27
+	*/
 	value = round(value * 10.0);
-	credits = OOClamp_0_max_d(value, (double)ULONG_MAX);
+	if (value > 0)
+	{
+		double threshold = nextafter(kOOMaxCredits, -1);
+		
+		if (value <= threshold)
+		{
+			credits = value;
+		}
+		else
+		{
+			credits = kOOMaxCredits;
+		}
+	}
+	else
+	{
+		credits = 0;
+	}
 }
 
 
