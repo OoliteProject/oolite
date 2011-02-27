@@ -8236,21 +8236,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			}
 			else if ([ent isWormhole])
 			{
-				WormholeEntity* whole = (WormholeEntity*)ent;
-				if (isPlayer)
-				{
-					[(PlayerEntity*)self enterWormhole:whole];
-					return;
-				}
-				else
-				{
-					[whole suckInShip: self];
-					if ([self scriptedMisjump])
-					{
-						[self setScriptedMisjump:NO];
-						[whole setMisjump];
-					}
-				}
+				if( [self isPlayer] ) [self enterWormhole:(WormholeEntity*)ent];
+				else [self enterWormhole:(WormholeEntity*)ent replacing:NO];
 			}
 		}
 	}
@@ -8978,6 +8965,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
 {
+	if (!w_hole) return;
+
 	if (replacing && ![[UNIVERSE sun] willGoNova] && [UNIVERSE sun] != nil)
 	{
 		/*	Add a new ship to maintain quantities of standard ships, unless
@@ -8987,6 +8976,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];
 	}
 
+	// MKW 2011.02.27 - Moved here from ShipEntityAI so escorts reliably follow
+	//                  mother in all wormhole cases, not just when the ship
+	//                  creates the wormhole.
+	primaryTarget = [w_hole universalID];
+	found_target = primaryTarget;
+	[shipAI reactToMessage:@"WITCHSPACE OKAY" context:@"performHyperSpaceExit"];	// must be a reaction, the ship is about to disappear
+	
+	if ([self scriptedMisjump])
+	{
+		[self setScriptedMisjump:NO];
+		[w_hole setMisjump];
+	}
 	[w_hole suckInShip: self];	// removes ship from universe
 }
 

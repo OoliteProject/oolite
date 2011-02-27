@@ -99,12 +99,15 @@ endif
 
 .PHONY: clean
 clean:
+	make -f GNUmakefile clean
+	rm -Rf obj obj.dbg oolite.app
+
+.PHONY: distclean
+distclean: clean
 ifneq ($(GNUSTEP_HOST_OS),mingw32)
 	make -f libjs.make clean debug=yes
 	make -f libjs.make clean debug=no
 endif
-	make -f GNUmakefile clean
-	rm -Rf obj obj.dbg oolite.app
 
 .PHONY: all
 all: release release-deployment release-snapshot debug

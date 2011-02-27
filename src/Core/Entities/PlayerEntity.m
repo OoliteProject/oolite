@@ -2627,7 +2627,7 @@ static bool minShieldLevelPercentageInitialised = false;
 				{
 					[wh setScanInfo:WH_SCANINFO_ARRIVAL_TIME];
 					[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-arrival-time-computed-@"),
-											   ClockToString([wh arrivalTime], NO)] forCount:5.0];
+											   ClockToString([wh estimatedArrivalTime], NO)] forCount:5.0];
 				}
 				break;
 			case WH_SCANINFO_ARRIVAL_TIME:
@@ -4722,6 +4722,9 @@ static bool minShieldLevelPercentageInitialised = false;
 	else
 		compassMode = COMPASS_MODE_BASIC;
 	
+	if ( ![self wormhole] ) {
+		OOLog(kOOLogInconsistentState, @"Internal Error : Player entering witchspace with no wormhole.");
+	}
 	[UNIVERSE allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
 	
 	// set the new market seed now!
@@ -4967,6 +4970,7 @@ static bool minShieldLevelPercentageInitialised = false;
 
 	// NEW: Create the players' wormhole
 	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_seed fromShip:self];
+	[UNIVERSE addEntity:wormhole]; // New new: Add new wormhole to Universe to let other ships target it. Required for ships following the player.
 	[self addScannedWormhole:wormhole];
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
@@ -5010,7 +5014,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		galaxy_coordinates.y += sTo.b;
 		galaxy_coordinates.x /= 2;
 		galaxy_coordinates.y /= 2;
-		[wormhole playerMisjumped];
+		[wormhole setMisjump];
 		[self playWitchjumpMisjump];
 		[UNIVERSE setUpUniverseFromMisjump];
 	}
@@ -5033,6 +5037,11 @@ static bool minShieldLevelPercentageInitialised = false;
 	pos.y += v1.y * d1;
 	pos.z += v1.z * d1;
 
+	// While this looks very nice for ships following the player, the more 
+	// common case of the player following other ships, the player tends to
+	// ram the back of the ships, which is messy.
+	// TODO: work out a neater way of doing this.
+	//[wormhole setExitPosition: pos]; // Set wormhole position in case there are ships following
 	[wormhole release];
 	wormhole = nil;
 
@@ -8318,7 +8327,7 @@ else _dockTarget = NO_TARGET;
 		{
 			[savedWormholes addObject:wh];
 		}
-		else if (equal_seeds([wh destination], [self system_seed]))
+		else if (NSEqualPoints(galaxy_coordinates, [wh destinationCoordinates]))
 		{
 			[wh disgorgeShips];
 			if ([[wh shipsInTransit] count] > 0)

@@ -8771,7 +8771,7 @@ static void PreloadOneSound(NSString *soundName)
 			// If the wormhole has been scanned by the player then the
 			// PlayerEntity will take care of it
 			if (![whole isScanned] &&
-				equal_seeds([whole destination], system_seed))
+				NSEqualPoints([PLAYER galaxy_coordinates], [whole destinationCoordinates]) )
 			{
 				// this is a wormhole to this system
 				[whole disgorgeShips];

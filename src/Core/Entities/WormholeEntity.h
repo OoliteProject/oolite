@@ -48,11 +48,15 @@ typedef enum
 	double			expiry_time;	// Time when wormhole entrance closes
 	double			travel_time;	// Time taken for a ship to traverse the wormhole
 	double			arrival_time;	// Time when wormhole exit opens
+	double			estimated_arrival_time;	// Time when wormhole should open (be different to arrival_time for misjump wormholes)
 	double			scan_time;		// Time when wormhole was scanned
 	
 	Random_Seed		origin;
 	Random_Seed		destination;
-	
+
+	NSPoint			originCoords;      // May not equal our origin system if the wormhole opens from Interstellar Space
+	NSPoint			destinationCoords; // May not equal the destination system if the wormhole misjumps
+
 	NSMutableArray	*shipsInTransit;
 	
 	double			witch_mass;
@@ -68,15 +72,19 @@ typedef enum
 
 - (BOOL) suckInShip:(ShipEntity *) ship;
 - (void) disgorgeShips;
+- (void) setExitPosition:(Vector)pos;
 
 - (Random_Seed) origin;
 - (Random_Seed) destination;
+- (NSPoint) originCoordinates;
+- (NSPoint) destinationCoordinates;
+
 - (void) setMisjump;	// Flags up a wormhole as 'misjumpy'
 - (BOOL) withMisjump;
-- (void) playerMisjumped;	// Disgorge NPCs at the misjump time space coordinates.
 
 - (double) expiryTime;	// Time at which the wormholes entrance closes
 - (double) arrivalTime;	// Time at which the wormholes exit opens
+- (double) estimatedArrivalTime;	// Time when wormhole should open (different from arrival_time for misjump wormholes)
 - (double) travelTime;	// Time needed for a ship to traverse the wormhole
 - (double) scanTime;	// Time when wormhole was scanned
 - (void) setScannedAt:(double)time;

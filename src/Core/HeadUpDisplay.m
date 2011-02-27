@@ -2662,7 +2662,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 				// unless we want a separate line Destination: XXX ?
 			case WH_SCANINFO_ARRIVAL_TIME:
 			{
-				NSString *wormholeETA = [NSString stringWithFormat:DESC(@"wormhole-ETA-@"), ClockToString([(WormholeEntity *)target arrivalTime], NO)];
+				NSString *wormholeETA = [NSString stringWithFormat:DESC(@"wormhole-ETA-@"), ClockToString([(WormholeEntity *)target estimatedArrivalTime], NO)];
 				OODrawString(wormholeETA, rs0, 0.5 * rs2 - 3 * line_height, 0, textsize);
 			}
 			case WH_SCANINFO_COLLAPSE_TIME:

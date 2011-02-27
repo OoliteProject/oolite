@@ -34,8 +34,10 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OORoleSet.h"
 #import "OOShipRegistry.h"
+#import "OOShipGroup.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOLoggingExtended.h"
 
 // Hidden interface
 @interface WormholeEntity (Private)
@@ -86,6 +88,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 		origin = RandomSeedFromString([dict oo_stringForKey:@"origin_seed"]);
 		destination = RandomSeedFromString([dict oo_stringForKey:@"dest_seed"]);
+		// Since these are new for 1.75.1, we must give them default values as we could be loading an old savegame
+		originCoords = PointFromString( [dict oo_stringForKey:@"origin_coords" defaultValue:StringFromPoint(NSMakePoint(origin.d, origin.b))]);
+		destinationCoords = PointFromString( [dict oo_stringForKey:@"dest_coords" defaultValue:StringFromPoint(NSMakePoint(destination.d, destination.b))]);
 
 		// We only ever init from dictionary if we're loaded by the player, so
 		// by definition we have been scanned
@@ -95,6 +100,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		// saving/restoring wormholes from dictionaries should know this!
 		expiry_time = [dict oo_doubleForKey:@"expiry_time"];
 		arrival_time = [dict oo_doubleForKey:@"arrival_time"];
+		// Since this is new for 1.75.1, we must give it a default values as we could be loading an old savegame
+		estimated_arrival_time = [dict oo_doubleForKey:@"estimated_arrival_time" defaultValue:arrival_time];
 		position = [dict oo_vectorForKey:@"position"];
 		_misjump = [dict oo_boolForKey:@"misjump" defaultValue:NO];
 
@@ -145,19 +152,23 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		_misjump = NO;
 		origin = [UNIVERSE systemSeed];
 		destination = s_seed;
-		distance = distanceBetweenPlanetPositions(destination.d, destination.b, origin.d, origin.b);
+		originCoords = [PLAYER galaxy_coordinates];
+		destinationCoords = NSMakePoint(destination.d, destination.b);
+		distance = distanceBetweenPlanetPositions(originCoords.x, originCoords.y, destinationCoords.x, destinationCoords.y);
 		witch_mass = 200000.0; // MKW 2010.11.21 - originally the ship's mass was added twice - once here and once in suckInShip.  Instead, we give each wormhole a minimum mass.
 		if ([ship isPlayer])
-			witch_mass = [ship mass]; // The player ship never gets sucked in, so add its mass here.
+			witch_mass += [ship mass]; // The player ship never gets sucked in, so add its mass here.
 
 		if (sun && ([sun willGoNova] || [sun goneNova]) && [ship mass] > 240000) 
 			shrink_factor = [ship mass] / 240000; // don't allow longstanding wormholes in nova systems. (60 sec * WORMHOLE_SHRINK_RATE = 240 000)
 		else
 			shrink_factor = 1;
 			
+		collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
 		expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE / shrink_factor);
 		travel_time = (distance * distance * 3600); // Taken from PlayerEntity.h
 		arrival_time = now + travel_time;
+		estimated_arrival_time = arrival_time;
 		position = [ship position];
 		zero_distance = distance2([PLAYER position], position);
 	}	
@@ -167,22 +178,24 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (void) setMisjump
 {
-	_misjump = YES;
+	// Test for misjump first - it's entirely possibly that the wormhole
+	// has already been marked for misjumping when another ship enters it.
+	if (!_misjump)
+	{
+		double distance = distanceBetweenPlanetPositions(originCoords.x, originCoords.y, destinationCoords.x, destinationCoords.y);
+		double time_adjust = distance * distance * (3600 - 2700); // NB: Time adjustment is calculated using original distance. Formula matches the one in [PlayerEntity witchJumpTo]
+		arrival_time -= time_adjust;
+		travel_time -= time_adjust;
+		destinationCoords.x = (originCoords.x + destinationCoords.x) / 2;
+		destinationCoords.y = (originCoords.y + destinationCoords.y) / 2;
+		_misjump = YES;
+	}
 }
 
 
 - (BOOL) withMisjump
 {
 	return _misjump;
-}
-
-
-- (void) playerMisjumped
-{
-	double distance = distanceBetweenPlanetPositions(origin.d, origin.b, destination.d, destination.b);
-	arrival_time -= (distance * distance * 3600.0) - (distance * distance * 2700.0);	// keep in sync with player's misjump time!
-	destination = origin;
-	[self setMisjump];
 }
 
 
@@ -200,11 +213,25 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	// This is for AI ships which get told to enter the wormhole even though they
 	// may still be some distance from it when the player exits the system
 	float d = distance(position, [ship position]);
-	float afterburnerFactor = [ship hasFuelInjection] && [ship fuel] > MIN_FUEL ? [ship afterburnerFactor] : 1.0;
-	float shipSpeed = [ship maxFlightSpeed] * afterburnerFactor;
-	if (shipSpeed > 0.0f)  now += d / shipSpeed;
-	if( now > expiry_time )
-		return NO;
+	d -= [ship collisionRadius] + [self collisionRadius];
+	if (d > 0.0f)
+	{
+		float afterburnerFactor = [ship hasFuelInjection] && [ship fuel] > MIN_FUEL ? [ship afterburnerFactor] : 1.0;
+		float shipSpeed = [ship maxFlightSpeed] * afterburnerFactor;
+		// MKW 2011.02.27 - calculate speed based on group leader, if any, to
+		// try and prevent escorts from entering the wormhole before their mother.
+		ShipEntity *leader = [[ship group] leader];
+		if (leader && (leader != ship))
+		{
+			afterburnerFactor = [leader hasFuelInjection] && [leader fuel] > MIN_FUEL ? [leader afterburnerFactor] : 1.0;
+			float leaderShipSpeed = [leader maxFlightSpeed] * afterburnerFactor;
+			if (leaderShipSpeed < shipSpeed ) shipSpeed = leaderShipSpeed;
+		}
+		if (shipSpeed <= 0.0f ) shipSpeed = 0.1f;
+		now += d / shipSpeed;
+		if( now > expiry_time )
+			return NO;
+	}
 
 	[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 						ship, @"ship",
@@ -283,7 +310,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				[ship update: time_passed]; // do this only for one ship or the next ships might appear at very different locations.
 				position = [ship position]; // e.g. when the player fist docks before following, time_passed is already > 10 minutes.
 			}
-			else
+			else if (now - ship_arrival_time > 1) // Only update the ship position if it was some time ago, otherwise we're in 'real time'.
 			{
 				// only update the time delay to the lead ship. Sign is not correct but updating gives a small spacial distribution.
 				[ship update: (ship_arrival_time - arrival_time)];
@@ -294,6 +321,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	shipsInTransit = shipsStillInTransit;
 }
 
+- (void) setExitPosition:(Vector)pos
+{
+	[self setPosition: pos];
+	hasExitPosition = YES;
+}
 
 - (Random_Seed) origin
 {
@@ -305,6 +337,16 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	return destination;
 }
 
+- (NSPoint) originCoordinates
+{
+	return originCoords;
+}
+
+- (NSPoint) destinationCoordinates
+{
+	return destinationCoords;
+}
+
 - (double) expiryTime
 {
 	return expiry_time;
@@ -313,6 +355,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 - (double) arrivalTime
 {
 	return arrival_time;
+}
+
+- (double) estimatedArrivalTime
+{
+	return estimated_arrival_time;
 }
 
 - (double) travelTime
@@ -367,7 +414,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 {
 	double now = [PLAYER clockTime];
 	return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs arrival: %@",
-		[UNIVERSE getSystemName:destination],
+		_misjump ? @"Interstellar Space" : [UNIVERSE getSystemName:destination],
 		expiry_time - now,
 		ClockToString(arrival_time, false)];
 }
@@ -388,6 +435,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	}
 	else
 	{
+		OOLogERR(kOOLogInconsistentState, @"Wormhole identified when ship has no EQ_WORMHOLE_SCANNER.");
 		/*
 			This was previously an assertion, but a player reported hitting it.
 			http://aegidian.org/bb/viewtopic.php?p=128110#p128110
@@ -426,6 +474,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	
 	if (witch_mass > 0.0)
 	{
+
 		witch_mass -= WORMHOLE_SHRINK_RATE * delta_t * shrink_factor;
 		if (witch_mass < 0.0)
 			witch_mass = 0.0;
@@ -548,16 +597,16 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 - (NSDictionary *) getDict
 {
 	NSMutableDictionary *myDict = [NSMutableDictionary dictionary];
-	NSString *str = nil;
 
-	str = [NSString stringWithFormat:@"%d %d %d %d %d %d",origin.a, origin.b, origin.c, origin.d, origin.e, origin.f];
-	[myDict setObject:str forKey:@"origin_seed"];
-	str = [NSString stringWithFormat:@"%d %d %d %d %d %d",destination.a, destination.b, destination.c, destination.d, destination.e, destination.f];
-	[myDict setObject:str forKey:@"dest_seed"];
+	[myDict setObject:StringFromRandomSeed(origin) forKey:@"origin_seed"];
+	[myDict setObject:StringFromRandomSeed(destination) forKey:@"dest_seed"];
+	[myDict setObject:StringFromPoint(originCoords) forKey:@"origin_coords"];
+	[myDict setObject:StringFromPoint(destinationCoords) forKey:@"dest_coords"];
 	// Anything converting a wormhole to a dictionary should already have 
 	// modified its time to shipClock time
 	[myDict oo_setFloat:(expiry_time) forKey:@"expiry_time"];
 	[myDict oo_setFloat:(arrival_time) forKey:@"arrival_time"];
+	[myDict oo_setFloat:(estimated_arrival_time) forKey:@"estimated_arrival_time"];
 	[myDict oo_setVector:position forKey:@"position"];
 	[myDict oo_setBool:_misjump forKey:@"misjump"];
 	
@@ -595,15 +644,16 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 - (void)dumpSelfState
 {
 	[super dumpSelfState];
-	OOLog(@"dumpState.wormholeEntity", @"Origin: %@", [UNIVERSE getSystemName:origin]);
-	OOLog(@"dumpState.wormholeEntity", @"Destination: %@", [UNIVERSE getSystemName:destination]);
-	OOLog(@"dumpState.wormholeEntity", @"Expiry Time: %@", ClockToString(expiry_time, false));
-	OOLog(@"dumpState.wormholeEntity", @"Arrival Time: %@", ClockToString(arrival_time, false));
-	OOLog(@"dumpState.wormholeEntity", @"Scanned Time: %@", ClockToString(scan_time, false));
-	OOLog(@"dumpState.wormholeEntity", @"Scanned State: %@", [self scanInfoString]);
+	OOLog(@"dumpState.wormholeEntity", @"Origin                 : %@", [UNIVERSE getSystemName:origin]);
+	OOLog(@"dumpState.wormholeEntity", @"Destination            : %@", [UNIVERSE getSystemName:destination]);
+	OOLog(@"dumpState.wormholeEntity", @"Expiry Time            : %@", ClockToString(expiry_time, false));
+	OOLog(@"dumpState.wormholeEntity", @"Arrival Time           : %@", ClockToString(arrival_time, false));
+	OOLog(@"dumpState.wormholeEntity", @"Projected Arrival Time : %@", ClockToString(estimated_arrival_time, false));
+	OOLog(@"dumpState.wormholeEntity", @"Scanned Time           : %@", ClockToString(scan_time, false));
+	OOLog(@"dumpState.wormholeEntity", @"Scanned State          : %@", [self scanInfoString]);
 
-	OOLog(@"dumpState.wormholeEntity", @"Mass: %.2lf", witch_mass);
-	OOLog(@"dumpState.wormholeEntity", @"Ships: %d", [shipsInTransit count]);
+	OOLog(@"dumpState.wormholeEntity", @"Mass                   : %.2lf", witch_mass);
+	OOLog(@"dumpState.wormholeEntity", @"Ships                  : %d", [shipsInTransit count]);
 	unsigned i;
 	for (i = 0; i < [shipsInTransit count]; ++i)
 	{
