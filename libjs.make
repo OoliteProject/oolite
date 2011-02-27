@@ -15,6 +15,7 @@ LIBJS_SRC_DIR                    = deps/Cross-platform-deps/mozilla/js/src
 LIBJS_CONFIG_FLAGS               = --disable-shared-js
 LIBJS_CONFIG_FLAGS               += --enable-threadsafe
 LIBJS_CONFIG_FLAGS               += --with-system-nspr
+LIBJS_CONFIG_FLAGS               += --disable-tests
 ifeq ($(OO_JAVASCRIPT_TRACE),yes)
     LIBJS_CONFIG_FLAGS           += --enable-trace-jscalls
 endif
