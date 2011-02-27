@@ -1949,6 +1949,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				if ([target isShip] && [target isCloaked])
 				{
 					[self doScriptEvent:OOJSID("shipTargetCloaked") andReactToAIMessage:@"TARGET_CLOAKED"];
+					last_escort_target = NO_TARGET; // needed to deploy escorts again after decloaking.
 				}
 				[self noteLostTarget];
 			}

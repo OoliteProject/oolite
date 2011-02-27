@@ -1858,7 +1858,7 @@ static WormholeEntity *whole = nil;
 		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
 		GLfloat e1 = [thing energy];
-		if ((d2 < found_d2) && ([thing isThargoid] || (([thing primaryTarget] == mother) && [thing hasHostileTarget])))
+		if ((d2 < found_d2) && (([thing isThargoid] && ![mother isThargoid]) || (([thing primaryTarget] == mother) && [thing hasHostileTarget])))
 		{
 			if (e1 > max_e)
 			{
