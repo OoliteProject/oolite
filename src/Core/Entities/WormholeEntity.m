@@ -414,7 +414,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 {
 	double now = [PLAYER clockTime];
 	return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs arrival: %@",
-		_misjump ? DESC(@"interstellar-space") : [UNIVERSE getSystemName:destination],
+		_misjump ? (NSString *)@"Interstellar Space" : [UNIVERSE getSystemName:destination],
 		expiry_time - now,
 		ClockToString(arrival_time, false)];
 }
