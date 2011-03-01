@@ -184,6 +184,8 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 			BOOL OK = NO;
 			sValue = OOStringFromJSValue(context, *value);
 			
+			OOJSPauseTimeLimiter();
+	
 			if ([planet isKindOfClass:[OOPlanetEntity class]])
 			{
 				if (sValue == nil)
@@ -201,6 +203,9 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 				OK = [planet setUpPlanetFromTexture:sValue];
 				if (!OK)  OOJSReportWarning(context, @"Cannot find texture \"%@\". Value not set.", sValue);
 			}
+
+			OOJSResumeTimeLimiter();
+
 			return YES;	// Even if !OK, no exception was raised.
 		}
 			
