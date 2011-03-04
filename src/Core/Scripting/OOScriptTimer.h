@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 	OOTimeAbsolute				_nextTime;
 	OOTimeDelta					_interval;
 	BOOL						_isScheduled;
+	BOOL						_hasBeenRun;	// Needed for one-shot timers.
 }
 
 - (id) initWithNextTime:(OOTimeAbsolute)nextTime

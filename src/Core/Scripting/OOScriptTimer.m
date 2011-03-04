@@ -59,6 +59,7 @@ static NSMutableArray	*sDeferredTimers;
 		{
 			_nextTime = nextTime;
 			_interval = interval;
+			_hasBeenRun = NO;
 		}
 	}
 	
@@ -150,6 +151,7 @@ static NSMutableArray	*sDeferredTimers;
 {
 	[sTimers removeExactObject:self];
 	_isScheduled = NO;
+	_hasBeenRun = NO;
 }
 
 
@@ -176,6 +178,8 @@ static NSMutableArray	*sDeferredTimers;
 		
 		// Must fire before rescheduling so that the timer callback can stop itself. -- Ahruman 2011-01-01
 		[timer timerFired];
+		
+		timer->_hasBeenRun = YES;
 		
 		if (timer->_isScheduled)
 		{
@@ -215,15 +219,19 @@ static NSMutableArray	*sDeferredTimers;
 	double				scaled;
 	
 	now = [UNIVERSE getTime];
-	if (_nextTime < now || (_nextTime == now && _interval >= 0.0))
+	if (_nextTime <= now)
 	{
-		if (_interval <= 0.0)  return NO;	// One-shot timer which has expired
+		if (_interval <= 0.0 && _hasBeenRun)  return NO;	// One-shot timer which has expired
 		
 		// Move _nextTime to the closest future time that's a multiple of _interval
 		scaled = (now - _nextTime) / _interval;
 		scaled = ceil(scaled);
 		_nextTime += scaled * _interval;
-		if (_nextTime <= now)  _nextTime += _interval;	// Should only happen if _nextTime is exactly equal to now after previous stuff
+		if (_nextTime <= now && _hasBeenRun) 
+		{
+			// Should only happen if _nextTime is exactly equal to now after previous stuff
+			_nextTime += _interval;
+		}
 	}
 	
 	return YES;
