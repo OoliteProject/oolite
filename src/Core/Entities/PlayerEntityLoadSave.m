@@ -1087,6 +1087,17 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict)
 
 OOCreditsQuantity OODeciCreditsFromDouble(double doubleDeciCredits)
 {
+	/*	Clamp value to 0..kOOMaxCredits.
+		The important bit here is that kOOMaxCredits can't be represented
+		exactly as a double, and casting it rounds it up; casting this value
+		back to an OOCreditsQuantity truncates it. Comparing value directly to
+		kOOMaxCredits promotes kOOMaxCredits to a double, giving us this
+		problem.
+		nextafter(kOOMaxCredits, -1) gives us the highest non-truncated
+		credits value that's representable as a double (namely,
+		18 446 744 073 709 549 568 decicredits, or 2047 less than kOOMaxCredits).
+		-- Ahruman 2011-02-27
+	*/
 	if (doubleDeciCredits > 0)
 	{
 		doubleDeciCredits = round(doubleDeciCredits);

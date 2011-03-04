@@ -66,6 +66,6 @@ MA 02110-1301, USA.
 OOCreditsQuantity OODeciCreditsFromDouble(double doubleDeciCredits);
 
 /*	Object is either a floating-point NSNumber or something that can be duck-
-	typed to an integer using OOLongLongFromObject().
+	typed to an integer using OOUnsignedLongLongFromObject().
 */
 OOCreditsQuantity OODeciCreditsFromObject(id object);
