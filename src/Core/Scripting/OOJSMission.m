@@ -352,7 +352,7 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	// Apply settings.
-	if (JS_GetProperty(context, params, "title", &value))
+	if (JS_GetProperty(context, params, "title", &value) && !JSVAL_IS_VOID(value))
 	{
 		[player setMissionTitle:OOStringFromJSValue(context, value)];
 	}
