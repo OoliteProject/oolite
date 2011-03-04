@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 #define SAVE_OVERWRITE_YES_ROW	8
 #define SAVE_OVERWRITE_NO_ROW	9
 
+
 @interface PlayerEntity (LoadSave)
 
 - (BOOL) loadPlayer;	// Returns NO on immediate failure, i.e. when using an OS X modal open panel which is cancelled.
@@ -59,6 +60,12 @@ MA 02110-1301, USA.
 
 - (BOOL) loadPlayerFromFile:(NSString *)fileToOpen;
 
-
 @end
 
+
+OOCreditsQuantity OODeciCreditsFromDouble(double doubleDeciCredits);
+
+/*	Object is either a floating-point NSNumber or something that can be duck-
+	typed to an integer using OOLongLongFromObject().
+*/
+OOCreditsQuantity OODeciCreditsFromObject(id object);

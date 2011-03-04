@@ -72,7 +72,6 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 #import "OOConstToJSString.h"
-#import "NSNumberOOExtensions.h"
 
 #import "OOJoystickManager.h"
 #import "PlayerEntityStickMapper.h"
@@ -852,18 +851,7 @@ static GLfloat		sBaseMass = 0.0;
 	max_cargo = [dict oo_intForKey:@"max_cargo" defaultValue:max_cargo];
 	if (max_cargo > original_hold_size)  [self addEquipmentItem:@"EQ_CARGO_BAY"];
 	max_cargo = original_hold_size + ([self hasExpandedCargoBay] ? extra_cargo : 0) - max_passengers * 5;
-	
-	// Load credits, avoiding truncation when converting large values represented as doubles.
-	id creditsObj = [dict objectForKey:@"credits"];
-	if ([creditsObj isKindOfClass:[NSNumber class]] && [creditsObj oo_isFloatingPointNumber])
-	{
-		double value = [creditsObj doubleValue];
-		[self setCreditBalance:value];
-	}
-	else
-	{
-		credits = OOUnsignedLongLongFromObject(creditsObj, 0);
-	}
+	credits = OODeciCreditsFromObject([dict objectForKey:@"credits"]);
 	
 	fuel = [dict oo_unsignedIntForKey:@"fuel" defaultValue:fuel];
 	fuel_charge_rate = [UNIVERSE strict]

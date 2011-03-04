@@ -41,6 +41,7 @@
 #import "OOShipRegistry.h"
 #import "OOTexture.h"
 #import "NSStringOOExtensions.h"
+#import "NSNumberOOExtensions.h"
 #import "OOJavaScriptEngine.h"
 
 
@@ -981,13 +982,10 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 	
 	// Make a short description of the commander
-	NSString			*legalDesc = nil;
-	OOCreditsQuantity	money;
-	
-	legalDesc = OODisplayStringFromLegalStatus([cdr oo_intForKey:@"legal_status"]);
+	NSString *legalDesc = OODisplayStringFromLegalStatus([cdr oo_intForKey:@"legal_status"]);
 	
 	rating = KillCountToRatingAndKillString([cdr oo_unsignedIntForKey:@"ship_kills"]);
-	money = [cdr oo_unsignedLongLongForKey:@"credits"];
+	OOCreditsQuantity money = OODeciCreditsFromObject([cdr objectForKey:@"credits"]);
 	
 	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 	//-------------------------------------------------------------------------------------------------------------------------
@@ -1084,4 +1082,40 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict)
 	}
 	
 	return personality & ENTITY_PERSONALITY_MAX;
+}
+
+
+OOCreditsQuantity OODeciCreditsFromDouble(double doubleDeciCredits)
+{
+	if (doubleDeciCredits > 0)
+	{
+		doubleDeciCredits = round(doubleDeciCredits);
+		double threshold = nextafter(kOOMaxCredits, -1);
+		
+		if (doubleDeciCredits <= threshold)
+		{
+			return doubleDeciCredits;
+		}
+		else
+		{
+			return kOOMaxCredits;
+		}
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+OOCreditsQuantity OODeciCreditsFromObject(id object)
+{
+	if ([object isKindOfClass:[NSNumber class]] && [object oo_isFloatingPointNumber])
+	{
+		return OODeciCreditsFromDouble([object doubleValue]);
+	}
+	else
+	{
+		return OOUnsignedLongLongFromObject(object, 0);
+	}
 }
