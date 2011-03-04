@@ -3,39 +3,47 @@
 # These copy all the base data files into where oolite expects them
 # to live (Contents/Resources)
 #
+CP_FLAGS                         = -rf
+
 ifeq ($(debug),yes)
-	EXT=.dbg
+    EXT                          =.dbg
+endif
+                                 
+ifeq ($(findstring -gnu,$(GNUSTEP_HOST_OS)),-gnu)
+    CP_FLAGS                     += -u
 endif
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	OS_EXT=.exe
+    OS_EXT                       = .exe
+    CP_FLAGS                     += -u
 endif
-SRC_BIN=$(OBJC_PROGRAM_NAME)$(OS_EXT)
-DEST_BIN=$(OBJC_PROGRAM_NAME)$(EXT)$(OS_EXT)
+
+SRC_BIN                          = $(OBJC_PROGRAM_NAME)$(OS_EXT)
+DEST_BIN                         = $(OBJC_PROGRAM_NAME)$(EXT)$(OS_EXT)
 
 PROGDIR=$(OBJC_PROGRAM_NAME).app
 
 after-all:: 
 	$(MKDIRS) $(PROGDIR)
 	$(MKDIRS) $(PROGDIR)/Resources
-	$(CP) -r -u -f Resources $(PROGDIR)
-	$(CP) -r -u -f Schemata $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources $(PROGDIR)
+	$(CP) $(CP_FLAGS) Schemata $(PROGDIR)/Resources
 ifeq ($(ESPEAK),yes)
-	$(CP) -r -u -f deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
 endif
-	$(CP) -u -f src/Cocoa/Info-Oolite.plist $(PROGDIR)/Resources/Info-gnustep.plist
-	$(CP) -u -f $(GNUSTEP_OBJ_DIR_NAME)/$(SRC_BIN) $(PROGDIR)/$(DEST_BIN)
+	$(CP) $(CP_FLAGS) src/Cocoa/Info-Oolite.plist $(PROGDIR)/Resources/Info-gnustep.plist
+	$(CP) $(CP_FLAGS) $(GNUSTEP_OBJ_DIR_NAME)/$(SRC_BIN) $(PROGDIR)/$(DEST_BIN)
 ifeq ($(debug),no)
-	strip $(PROGDIR)/$(DEST_BIN)
+	$(STRIP) $(PROGDIR)/$(DEST_BIN)
 endif
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	$(CP) -r -u -f deps/Windows-x86-deps/DLLs/*.dll $(PROGDIR)
-        ifeq ($(debug),yes)
-		rm $(PROGDIR)/js32ECMAv5.dll
-        else
-		rm $(PROGDIR)/js32ECMAv5dbg.dll
-        endif
+	$(CP) $(CP_FLAGS) deps/Windows-x86-deps/DLLs/*.dll $(PROGDIR)
+ifeq ($(debug),yes)
+	$(RM) $(PROGDIR)/js32ECMAv5.dll
+else
+	$(RM) $(PROGDIR)/js32ECMAv5dbg.dll
+endif
 endif
 
 after-clean::
-	rm -rf $(GNUSTEP_OBJ_DIR_BASENAME) $(addprefix $(GNUSTEP_OBJ_DIR_BASENAME), .spk .dbg .spk.dbg)
+	$(RM) -rf $(GNUSTEP_OBJ_DIR_BASENAME) $(addprefix $(GNUSTEP_OBJ_DIR_BASENAME), .spk .dbg .spk.dbg)

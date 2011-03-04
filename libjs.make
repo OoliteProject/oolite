@@ -43,7 +43,7 @@ $(LIBJS_BUILD_STAMP): $(LIBJS_CONFIG_STAMP)
 	@echo
 	@echo "Building Javascript library..."
 	@echo
-	make -C $(LIBJS_BUILD_DIR) $(LIBJS_BUILD_FLAGS)
+	$(MAKE) -C $(LIBJS_BUILD_DIR) $(LIBJS_BUILD_FLAGS)
 	touch $@
 
 $(LIBJS_CONFIG_STAMP):
@@ -63,12 +63,12 @@ LIBJS_SRC:
 
 .PHONY: clean
 clean:
-	-make -C $(LIBJS_BUILD_DIR) clean
-	-rm -f $(LIBJS_BUILD_STAMP)
+	-$(MAKE) -C $(LIBJS_BUILD_DIR) clean
+	-$(RM) -f $(LIBJS_BUILD_STAMP)
 
 # This target also removes the configuration status, forcing
 # a reconfiguration. Use this after changing LIBJS_CONFIG_FLAGS
 .PHONY: distclean
 distclean:
-	-make -C $(LIBJS_BUILD_DIR) distclean
-	-rm -f $(LIBJS_CONFIG_STAMP)
+	-$(MAKE) -C $(LIBJS_BUILD_DIR) distclean
+	-$(RM) -f $(LIBJS_CONFIG_STAMP)

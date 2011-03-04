@@ -22,62 +22,62 @@ DEB_REV     := $(shell cat debian/revision)
 # eg. 1.74.0.3275
 # Our .deb versions are: MAJ.min.rev.svn-<pkg rev>[~<type>]
 # eg. 1.74.0.3275-0, 1.74.0.3275-0~test
-pkg-debtest: DEB_REV := $(shell echo "0~test${DEB_REV}")
-pkg-debsnapshot: DEB_REV := $(shell echo "0~trunk${DEB_REV}")
+pkg-debtest: DEB_REV             := $(shell echo "0~test${DEB_REV}")
+pkg-debsnapshot: DEB_REV         := $(shell echo "0~trunk${DEB_REV}")
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-    LIBJS = deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
-    LIBJS_DBG = deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
-    DEPS=$(LIBJS)
-    DEPS_DBG=$(LIBJS_DBG)
+    LIBJS                        = deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
+    LIBJS_DBG                    = deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
+    DEPS                         = $(LIBJS)
+    DEPS_DBG                     = $(LIBJS_DBG)
+
+    # define autopackage .apspec file according to the CPU architecture
+    HOST_ARCH                    := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/i386/ -e s/amd64/x86_64/ )
+    ifeq ($(HOST_ARCH),x86_64)
+       APSPEC_FILE               = installers/autopackage/default.x86_64.apspec
+    else
+        APSPEC_FILE              = installers/autopackage/default.x86.apspec
+    endif
 else
-    DEPS=LIBJS
-    DEPS_DBG=LIBJS_DBG
+    DEPS                         = LIBJS
+    DEPS_DBG                     = LIBJS_DBG
 endif
 
-
-# define autopackage .apspec file according to the CPU architecture
-HOST_ARCH := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/i386/ -e s/amd64/x86_64/ )
-ifeq ($(HOST_ARCH),x86_64)
-   APSPEC_FILE=installers/autopackage/default.x86_64.apspec
-else
-   APSPEC_FILE=installers/autopackage/default.x86.apspec
-endif
 
 # Here are our default targets
 #
 .PHONY: debug
 debug: $(DEPS_DBG)
-	make -f GNUmakefile debug=yes
+	$(MAKE) -f GNUmakefile debug=yes
 
 .PHONY: release
 release: $(DEPS)
-	make -f GNUmakefile debug=no
+	$(MAKE) -f GNUmakefile debug=no
 
 .PHONY: release-deployment
 release-deployment: $(DEPS)
-	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no
+	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no
 	
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
-	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
+	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
 
 # Here are targets using the provided dependencies
 .PHONY: deps-debug
 deps-debug: $(DEPS_DBG)
-	make -f GNUmakefile debug=yes use_deps=yes
+	$(MAKE) -f GNUmakefile debug=yes use_deps=yes
 
 .PHONY: deps-release
 deps-release: $(DEPS)
-	make -f GNUmakefile debug=no use_deps=yes
+	$(MAKE) -f GNUmakefile debug=no use_deps=yes
 	
 .PHONY: deps-release-deployment
 deps-release-deployment: $(DEPS)
-	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes
+	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes
 	
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
-	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
+	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
 
 .PHONY: LIBJS_DBG
 LIBJS_DBG:
@@ -86,7 +86,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	@echo "        Please build it yourself and copy it to $(LIBJS_DBG)."
 	false
 endif
-	make -f libjs.make debug=yes
+	$(MAKE) -f libjs.make debug=yes
 
 .PHONY: LIBJS
 LIBJS:
@@ -95,18 +95,18 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	@echo "        Please build it yourself and copy it to $(LIBJS)."
 	false
 endif
-	make -f libjs.make debug=no
+	$(MAKE) -f libjs.make debug=no
 
 .PHONY: clean
 clean:
-	make -f GNUmakefile clean
-	rm -Rf obj obj.dbg oolite.app
+	$(MAKE) -f GNUmakefile clean
+	$(RM) -rf obj obj.dbg oolite.app
 
 .PHONY: distclean
 distclean: clean
 ifneq ($(GNUSTEP_HOST_OS),mingw32)
-	make -f libjs.make clean debug=yes
-	make -f libjs.make clean debug=no
+	$(MAKE) -f libjs.make clean debug=yes
+	$(MAKE) -f libjs.make clean debug=no
 endif
 
 .PHONY: all
