@@ -175,6 +175,8 @@ MA 02110-1301, USA.
 			
 			OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 			OOGL(glDisableClientState(GL_COLOR_ARRAY));
+			
+			OOGL(glPopAttrib());
 		}
 		else
 		{
@@ -190,8 +192,7 @@ MA 02110-1301, USA.
 		}
 	}
 	
-	OOGL(glPopAttrib());
-	CheckOpenGLErrors(@"RingEntity after drawing %@", self);
+	CheckOpenGLErrors(@"OOBreakPatternEntity after drawing %@", self);
 }
 
 
