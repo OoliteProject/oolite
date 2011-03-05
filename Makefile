@@ -105,8 +105,8 @@ clean:
 .PHONY: distclean
 distclean: clean
 ifneq ($(GNUSTEP_HOST_OS),mingw32)
-	$(MAKE) -f libjs.make clean debug=yes
-	$(MAKE) -f libjs.make clean debug=no
+	$(MAKE) -f libjs.make distclean debug=yes
+	$(MAKE) -f libjs.make distclean debug=no
 endif
 
 .PHONY: all
