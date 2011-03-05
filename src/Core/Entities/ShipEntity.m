@@ -9681,13 +9681,14 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		// if I'm under attack send a thank-you message to the rescuer
 		//
 		NSArray* tokens = ScanTokensFromString(ms);
-		int switcher_id = [(NSString*)[tokens objectAtIndex:1] intValue];
+		int switcher_id = [(NSString*)[tokens objectAtIndex:1] intValue]; // Attacker that switched targets.
 		Entity* switcher = [UNIVERSE entityForUniversalID:switcher_id];
-		int rescuer_id = [(NSString*)[tokens objectAtIndex:2] intValue];
+		int rescuer_id = [(NSString*)[tokens objectAtIndex:2] intValue]; // New primary target of attacker. 
 		Entity* rescuer = [UNIVERSE entityForUniversalID:rescuer_id];
 		if ((switcher_id == primaryAggressor)&&(switcher_id == primaryTarget)&&(switcher)&&(rescuer)&&(rescuer->isShip)&&(thanked_ship_id != rescuer_id)&&(scanClass != CLASS_THARGOID))
 		{
 			ShipEntity* rescueShip = (ShipEntity*)rescuer;
+			ShipEntity* switchingShip = (ShipEntity*)switcher;
 			if (scanClass == CLASS_POLICE)
 			{
 				[self sendExpandedMessage:@"[police-thanks-for-assist]" toShip:rescueShip];
@@ -9698,7 +9699,11 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 				[self sendExpandedMessage:@"[thanks-for-assist]" toShip:rescueShip];
 			}
 			thanked_ship_id = rescuer_id;
-			[(ShipEntity*)switcher setBounty:[(ShipEntity*)switcher bounty] + 5 + (ranrot_rand() & 15)];	// reward
+			// we don't want clean ships that change target from one pirate to the other pirate getting a bounty.
+			if ([switchingShip bounty] > 0 || [rescueShip bounty] == 0)
+			{	
+				[switchingShip setBounty:[switchingShip bounty] + 5 + (ranrot_rand() & 15)];	// reward
+			}
 		}
 	}
 }
