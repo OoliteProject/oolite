@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-#import <jsapi.h>
+#include <jsapi.h>
 
 
 void CreateOOJSGlobal(JSContext *context, JSObject **outGlobal);

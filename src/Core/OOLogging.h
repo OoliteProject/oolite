@@ -29,7 +29,7 @@ SOFTWARE.
 */
 
 #import "OOCocoa.h"
-#import <stdarg.h>
+#include <stdarg.h>
 
 
 #ifndef OOLOG_POISON_NSLOG

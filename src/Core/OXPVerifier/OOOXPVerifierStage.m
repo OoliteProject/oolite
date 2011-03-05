@@ -25,6 +25,8 @@ SOFTWARE.
 
 */
 
+#include <assert.h>
+
 #import "OOOXPVerifierStageInternal.h"
 
 #if OO_OXP_VERIFIER_ENABLED

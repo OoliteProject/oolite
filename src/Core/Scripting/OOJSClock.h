@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 
 */
 
-#import <jsapi.h>
+#include <jsapi.h>
 
 
 void InitOOJSClock(JSContext *context, JSObject *global);

@@ -30,7 +30,7 @@ SOFTWARE.
 
 #import "OOJSConsole.h"
 #import "OODebugMonitor.h"
-#import <stdint.h>
+#include <stdint.h>
 
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"

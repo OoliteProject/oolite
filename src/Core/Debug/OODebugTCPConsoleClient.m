@@ -35,12 +35,12 @@ SOFTWARE.
 #import "OODebugMonitor.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
-#import <stdint.h>
+#include <stdint.h>
 
 #if OOLITE_WINDOWS
-#import <winsock2.h>
+#include <winsock2.h>
 #else
-#import <arpa/inet.h>	// For htonl
+#include <arpa/inet.h>	// For htonl
 #endif
 
 #import "OOCollectionExtractors.h"

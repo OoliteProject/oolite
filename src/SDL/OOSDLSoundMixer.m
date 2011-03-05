@@ -25,6 +25,8 @@ SOFTWARE.
 
 */
 
+#include <assert.h>
+
 #import "OOCocoa.h"
 #import "OOSDLSoundInternal.h"
 

@@ -30,7 +30,7 @@ SOFTWARE.
 #endif
 
 #import "OOCollectionExtractors.h"
-#import <limits.h>
+#include <limits.h>
 #import "OOMaths.h"
 
 

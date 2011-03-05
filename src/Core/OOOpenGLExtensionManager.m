@@ -28,7 +28,7 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOLogging.h"
 #import "OOFunctionAttributes.h"
-#import <stdlib.h>
+#include <stdlib.h>
 #import "NSThreadOOExtensions.h"
 
 #import "ResourceManager.h"

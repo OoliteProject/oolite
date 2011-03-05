@@ -26,11 +26,13 @@ SOFTWARE.
 
 */
 
+#include <assert.h>
+
 #import "OOAsyncQueue.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
 #import "NSThreadOOExtensions.h"
-#import <stdlib.h>
+#include <stdlib.h>
 
 
 enum

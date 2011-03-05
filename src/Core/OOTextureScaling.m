@@ -27,7 +27,7 @@ SOFTWARE.
 
 #import "OOTextureScaling.h"
 #import "OOFunctionAttributes.h"
-#import <stdlib.h>
+#include <stdlib.h>
 #import "OOLogging.h"
 #import "OOMaths.h"
 #import "OOCPUInfo.h"

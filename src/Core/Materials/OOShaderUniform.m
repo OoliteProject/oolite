@@ -32,7 +32,7 @@ SOFTWARE.
 
 #import "OOShaderProgram.h"
 #import "OOFunctionAttributes.h"
-#import <string.h>
+#include <string.h>
 #import "OOMaths.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOShaderUniformMethodType.h"

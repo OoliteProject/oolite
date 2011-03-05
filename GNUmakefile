@@ -37,7 +37,7 @@ else
     LIBJS = js_static
 
     ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables
-    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lSDL_mixer -lgnustep-base -l$(LIBJS) `nspr-config --libs`
+    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lSDL_mixer -lgnustep-base -l$(LIBJS) `nspr-config --libs` -lstdc++
     ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
     ADDITIONAL_OBJCFLAGS         = -Wall -std=c99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
     oolite_LIB_DIRS              += -L/usr/X11R6/lib/ -L$(LIBJS_LIB_DIR)

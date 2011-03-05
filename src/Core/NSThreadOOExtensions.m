@@ -134,7 +134,7 @@ static int (*PThreadSetNameNPFunc)(const char *name) = InitialSetNameFunc;
 
 #if PTHREAD_SETNAME_DYNAMIC
 
-#import <dlfcn.h>
+#include <dlfcn.h>
 
 // Attempt to load pthread_setname_np() (available in Mac OS X 10.6 or later)
 static int InitialSetNameFunc(const char *name)

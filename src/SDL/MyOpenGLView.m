@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
-#import <ctype.h>
+#include <ctype.h>
 
 @interface MyOpenGLView (OOPrivate)
 

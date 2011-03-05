@@ -23,7 +23,7 @@ MA );-);, USA.
 */
 
 #import "OOConstToString.h"
-#import <jsapi.h>
+#include <jsapi.h>
 #import "OOCollectionExtractors.h"
 
 #import "Universe.h"

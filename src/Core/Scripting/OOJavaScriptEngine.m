@@ -22,7 +22,7 @@ MA 02110-1301, USA.
 
 */
 
-#import <jsdbgapi.h>
+#include <jsdbgapi.h>
 #import "OOJavaScriptEngine.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
@@ -67,7 +67,7 @@ MA 02110-1301, USA.
 #import "OOProfilingStopwatch.h"
 #import "OOLoggingExtended.h"
 
-#import <stdlib.h>
+#include <stdlib.h>
 
 
 #define OOJSENGINE_JSVERSION		JSVERSION_ECMA_5

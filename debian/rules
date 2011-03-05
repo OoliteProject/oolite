@@ -9,7 +9,7 @@
 # Tweaked by Michael Werle
 
 GSMAKE                           = gs_make
-GSMAKE_FLAGS                     = use_deps=no libespeak=yes
+GSMAKE_FLAGS                     = use_deps=no ESPEAK=yes
 UPDATE_SCRIPTS_DIR               = deps/Cocoa-deps/scripts
 LIBJS_BUILD_DIR                  = deps/Cross-platform-deps/mozilla/js/src/build-release
 
@@ -47,7 +47,7 @@ clean-stamp: clean-libjs-stamp
 	dh_clean
 
 clean-libjs-stamp:
-	-make  -f libjs.make clean $(GSMAKE_FLAGS)
+	rm -rf $(LIBJS_BUILD_DIR)
 	rm -f build-libjs-stamp
 
 install: build

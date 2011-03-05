@@ -26,7 +26,7 @@ SOFTWARE.
 */
 
 #import "OOLight.h"
-#import <limits.h>
+#include <limits.h>
 #import "OOFunctionAttributes.h"
 #import "Universe.h"
 

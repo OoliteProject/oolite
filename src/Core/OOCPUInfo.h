@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
-#import <stdint.h>
+#include <stdint.h>
 
 
 void OOCPUInfoInit(void);

@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOLoggingExtended.h"
 
 #if OOLITE_WINDOWS
-#import <locale.h>
+#include <locale.h>
 #include <SDL.h>
 #endif
 GameController* controller;

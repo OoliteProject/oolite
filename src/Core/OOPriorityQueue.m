@@ -25,6 +25,7 @@ SOFTWARE.
 
 */
 
+#include <assert.h>
 
 #import "OOPriorityQueue.h"
 #import "OOFunctionAttributes.h"

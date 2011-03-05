@@ -25,13 +25,13 @@ SOFTWARE.
 
 */
 
-#import <jsdbgapi.h>
+#include <jsdbgapi.h>
 #import "OOJSEngineTimeManagement.h"
 #import "OOProfilingStopwatch.h"
 #import "OOJSScript.h"
 #import "OOCollectionExtractors.h"
 #import "OOLoggingExtended.h"
-#import <unistd.h>
+#include <unistd.h>
 
 
 #if OO_DEBUG

@@ -195,7 +195,7 @@ NSString *OOPlatformDescription(void)
 
 // System-specific stuff to append to log header.
 #if OOLITE_MAC_OS_X
-#import <sys/sysctl.h>
+#include <sys/sysctl.h>
 
 
 #ifndef CPUFAMILY_INTEL_6_13

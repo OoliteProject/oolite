@@ -126,7 +126,7 @@ not_a_number:
 
 #else
 
-#import <math.h>
+#include <math.h>
 
 // LLVM-GCC doesn't support asm at the moment.
 float OOInvSqrtf(float x)

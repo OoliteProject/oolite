@@ -22,7 +22,7 @@ MA 02110-1301, USA.
 
 */
 
-#import <assert.h>
+#include <assert.h>
 
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"

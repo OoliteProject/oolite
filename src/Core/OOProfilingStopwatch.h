@@ -85,7 +85,7 @@ typedef DWORD OOHighResTimeValue;	// Rolls over once every 50 days, but we can l
 // Other platforms (presumed unixy): use gettimeofday().
 
 #define OO_PROFILING_STOPWATCH_GETTIMEOFDAY 1
-#import <sys/time.h>
+#include <sys/time.h>
 
 typedef struct timeval OOHighResTimeValue;
 
@@ -102,7 +102,7 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
 #endif
 
 #if OO_PROFILING_STOPWATCH_JS_NOW
-#import <jsapi.h>
+#include <jsapi.h>
 typedef int64 OOHighResTimeValue;
 
 #define OOGetHighResTime JS_Now

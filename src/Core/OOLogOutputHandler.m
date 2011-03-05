@@ -33,8 +33,8 @@ SOFTWARE.
 #import "OOLogOutputHandler.h"
 #import "OOLogging.h"
 #import "OOAsyncQueue.h"
-#import <stdlib.h>
-#import <stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 #import "NSThreadOOExtensions.h"
 
 
@@ -43,7 +43,7 @@ SOFTWARE.
 
 #if OOLITE_MAC_OS_X
 
-#import <dlfcn.h>
+#include <dlfcn.h>
 
 #ifndef NDEBUG
 

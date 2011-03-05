@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOOpenGL.h"
 #import "PlayerEntityLoadSave.h"
-#import <stdlib.h>
+#include <stdlib.h>
 #import "OOCollectionExtractors.h"
 #import "OOOXPVerifier.h"
 #import "OOLoggingExtended.h"

@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
-#import <jsapi.h>
+#include <jsapi.h>
 
 
 #define GUI_DEFAULT_COLUMNS			6

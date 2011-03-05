@@ -34,7 +34,7 @@ SOFTWARE.
 #import "OOTextureScaling.h"
 #import "OOPixMapChannelOperations.h"
 #import "OOConvertCubeMapToLatLong.h"
-#import <stdlib.h>
+#include <stdlib.h>
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
 

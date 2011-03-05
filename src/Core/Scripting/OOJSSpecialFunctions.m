@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 
 */
 
-#import <jsdbgapi.h>
+#include <jsdbgapi.h>
 #import "OOJSSpecialFunctions.h"
 
 

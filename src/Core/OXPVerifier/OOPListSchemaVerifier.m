@@ -32,7 +32,7 @@ SOFTWARE.
 #import "OOLoggingExtended.h"
 #import "OOCollectionExtractors.h"
 #import "OOMaths.h"
-#import <limits.h>
+#include <limits.h>
 
 
 #define PLIST_VERIFIER_DEBUG_DUMP_ENABLED		1
