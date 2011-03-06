@@ -400,7 +400,7 @@ static id sSharedStickHandler = nil;
 	}
 	else
 	{
-		NSLog(@"Stick axis out of range - axis was %d", evt->axis);
+		OOLog(@"decodeAxisEvent", @"Stick axis out of range - axis was %d", evt->axis);
 		return;
 	}
 	switch (function)
@@ -463,7 +463,7 @@ static id sSharedStickHandler = nil;
 	}
 	else
 	{
-		NSLog(@"Joystick button out of range: %d", evt->button);
+		OOLog(@"decodeButtonEvent", @"Joystick button out of range: %d", evt->button);
 		return;
 	}
 	if (evt->type == JOYBUTTONDOWN)
