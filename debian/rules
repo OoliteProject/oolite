@@ -47,7 +47,7 @@ clean-stamp: clean-libjs-stamp
 	dh_clean
 
 clean-libjs-stamp:
-	rm -rf $(LIBJS_BUILD_DIR)
+	make -f libjs.make $(GSMAKE_FLAGS) distclean
 	rm -f build-libjs-stamp
 
 install: build
@@ -65,7 +65,6 @@ binary-indep: build install
 	dh_installchangelogs -i Doc/CHANGELOG.TXT
 	dh_installdocs -i
 	dh_install -i
-	cd debian/oolite-data/usr/lib/GNUstep/Applications/oolite.app && rm -f oolite Resources/Info-gnustep.plist
 	find debian/oolite-data -name .svn | xargs -r rm -rf
 	dh_link -i
 	dh_strip -i
@@ -83,7 +82,6 @@ binary-arch: build install
 	dh_installman -a debian/oolite.6
 	dh_installmenu -a
 	dh_install -a
-	dh_desktop -a installers/FreeDesktop/oolite.desktop
 	rm -rf debian/oolite/usr/share/doc/oolite
 	find debian/oolite -name .svn | xargs -r rm -rf
 	dh_link -a

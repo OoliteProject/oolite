@@ -30,7 +30,6 @@ else
 endif
 LIBJS                            = $(LIBJS_BUILD_DIR)/libjs_static.a
 LIBJS_BUILD_STAMP                = $(LIBJS_BUILD_DIR)/build_stamp
-LIBJS_CONFIG                     = $(LIBJS_BUILD_DIR)/config.status
 LIBJS_CONFIG_STAMP               = $(LIBJS_BUILD_DIR)/config_stamp
 
 
@@ -64,11 +63,11 @@ LIBJS_SRC:
 .PHONY: clean
 clean:
 	-$(MAKE) -C $(LIBJS_BUILD_DIR) clean
-	-$(RM) -f $(LIBJS_BUILD_STAMP)
+	-$(RM) $(LIBJS_BUILD_STAMP)
 
 # This target also removes the configuration status, forcing
 # a reconfiguration. Use this after changing LIBJS_CONFIG_FLAGS
 .PHONY: distclean
 distclean:
-	-$(MAKE) -C $(LIBJS_BUILD_DIR) distclean
-	-$(RM) -f $(LIBJS_CONFIG_STAMP)
+	-$(RM) -r $(LIBJS_BUILD_DIR)
+
