@@ -51,7 +51,7 @@ this.shipWasScooped = function (scooper)
 		}
 		else
 		{
-			player.ship.manifest["gold"] += 100;
+			player.ship.manifest.gold += 100;
 		}
 	}
 	// Should probably award 100 gold to non-player ships too, but they don’t have awardCargo at the moment.
