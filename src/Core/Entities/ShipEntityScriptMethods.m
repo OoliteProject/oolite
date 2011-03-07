@@ -63,6 +63,7 @@ extern NSString * const kOOLogNoteAddShips;
 
 - (NSArray *) spawnShipsWithRole:(NSString *)role count:(OOUInteger)count
 {
+	ShipEntity				*ship = [self rootShipEntity];	// FIXME: (EMMSTRAN) implement an -absolutePosition method,use that in spawnShipWithRole:near:, and use self instead of root.
 	ShipEntity				*spawned = nil;
 	NSMutableArray			*result = nil;
 	
@@ -74,7 +75,7 @@ extern NSString * const kOOLogNoteAddShips;
 	
 	do
 	{
-		spawned = [UNIVERSE spawnShipWithRole:role near:self];
+		spawned = [UNIVERSE spawnShipWithRole:role near:ship];
 		if (spawned != nil)
 		{
 			[spawned setTemperature:[self randomEjectaTemperature]];
