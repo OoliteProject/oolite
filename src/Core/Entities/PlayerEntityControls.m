@@ -3339,20 +3339,20 @@ static BOOL toggling_music;
 				target = entities[i];
 			}
 		}
-		// If we found one target, dock with it.
 		// If inside the Aegis, dock with the main station.
+		// If we found one target, dock with it.
 		// If outside the Aegis and we found multiple targets, abort.
 		
-		if (nStations == 1)
+		if ( [self withinStationAegis] && legalStatus <= 50 )
 		{
 			isOkayToUseAutopilot = YES;
+			target = [UNIVERSE station];
 		}
 		else
 		{
-			if ( [self withinStationAegis] && ( nStations == 0 || legalStatus <= 50 ) )
+			if (nStations == 1)
 			{
 				isOkayToUseAutopilot = YES;
-				target = [UNIVERSE station];
 			}
 			else
 			{
