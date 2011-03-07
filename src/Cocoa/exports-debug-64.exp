@@ -20,6 +20,7 @@ _OBJC_CLASS_$_AI
 _OBJC_CLASS_$_OOShipGroup
 
 _OOLogWithFunctionFileAndLine
+_OOLogWithPrefix
 _OOLogInsertMarker
 _OOLogSetDisplayMessagesInClass
 _OOLogSetShowFileAndLine
