@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 
 cd ..
 
@@ -17,7 +17,7 @@ DESIREDURL=`head -n 1 $URLFILE`
 
 
 # Report failure, as an error if there's no existing code but as a warning if there is.
-function fail
+fail()
 {
 	if [ $LIBRARY_PRESENT -eq 1 ]
 	then

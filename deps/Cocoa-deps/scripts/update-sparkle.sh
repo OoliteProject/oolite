@@ -1,6 +1,6 @@
-#! /bin/bash
+#! /bin/sh
 
-LIBNAME="Sparkle"
+LIBNAME="sparkle"
 EXTENSION="zip"
 
 
@@ -66,7 +66,7 @@ fi
 
 # Create temp directory.
 mkdir "$TEMPDIR"
-if [ ! $? ]
+if [ "$?" -ne "0" ]
 then
 	echo "error: Could not create temporary directory $TEMPDIR."
 	exit 1
@@ -75,8 +75,8 @@ fi
 
 # Download $LIBNAME source.
 echo "Downloading $LIBNAME source from $DESIREDURL..."
-curl -qgsS -o "$TEMPFILE" "$DESIREDURL"
-if [ ! $? ]
+curl -qgsSf -o "$TEMPFILE" "$DESIREDURL"
+if [ "$?" -ne "0" ]
 then
 	fail "could not download $DESIREDURL"
 fi
@@ -85,7 +85,7 @@ fi
 # Expand zip file.
 echo "Download complete, expanding archive..."
 unzip -q "$TEMPFILE" -d "$TEMPDIR/$LIBNAME"
-if [ ! $? ]
+if [ "$?" -ne "0" ]
 then
 	fail "could not expand $TEMPFILE into $TEMPDIR"
 fi
@@ -100,7 +100,7 @@ rm -rf "$TARGETDIR"
 
 # Move new code into place.
 mv $TEMPDIR/$LIBNAME* "$TARGETDIR"
-if [ ! $? ]
+if [ "$?" -ne "0" ]
 then
 	echo "error: could not move expanded $LIBNAME source into place."
 	exit 1
