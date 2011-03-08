@@ -1173,11 +1173,14 @@ static NSMutableArray *sMessageStack;
 	NSString				*path = nil;
 	
 	// Set contents of Help window
-	path = [[NSBundle mainBundle] pathForResource:@"ReadMe" ofType:@"rtfd"];
+	path = [[NSBundle mainBundle] pathForResource:@"OoliteReadMe" ofType:@"pdf"];
 	if (path != nil)
 	{
-		[helpView readRTFDFromFile:path];
+		PDFDocument *document = [[PDFDocument alloc] initWithURL:[NSURL fileURLWithPath:path]];
+		[helpView setDocument:document];
+		[document release];
 	}
+	[helpView setBackgroundColor:[NSColor whiteColor]];
 }
 
 

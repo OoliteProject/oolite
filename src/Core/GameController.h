@@ -27,6 +27,11 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 
+#if OOLITE_HAVE_APPKIT
+#import <Quartz/Quartz.h>	// For PDFKit.
+#endif
+
+
 #define MODE_WINDOWED			100
 #define MODE_FULL_SCREEN		200
 
@@ -73,7 +78,7 @@ MA 02110-1301, USA.
 	IBOutlet NSTextField	*splashProgressTextField;
 	IBOutlet NSView			*splashView;
 	IBOutlet NSWindow		*gameWindow;
-	IBOutlet NSTextView		*helpView;
+	IBOutlet PDFView		*helpView;
 	IBOutlet OOProgressBar	*progressBar;
 	IBOutlet NSMenu			*dockMenu;
 #endif
