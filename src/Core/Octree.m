@@ -53,7 +53,7 @@ MA 02110-1301, USA.
 
 
 static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit);
-static GLfloat volumeOfOctree(Octree_details octree_details);
+static GLfloat volumeOfOctree(Octree_details octree_details, unsigned depthLimit);
 static Vector randomFullNodeFrom(Octree_details details, Vector offset);
 
 static BOOL	isHitByOctree(Octree_details axialDetails, Octree_details otherDetails, Vector delta, Triangle other_ijk);
@@ -705,19 +705,33 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 
 - (GLfloat) volume
 {
-	return volumeOfOctree([self octreeDetails]);
+	/*	For backwards compatibility, limit octree iteration for volume
+		calculation to five levels. Raising the limit means lower calculated
+		volumes for large ships.
+		
+		EMMSTRAN: consider raising the limit but fudging mass lock calculations
+		to compensate. See http://aegidian.org/bb/viewtopic.php?f=3&t=9176 .
+		Then again, five levels of iteration might be fine.
+		-- Ahruman 2011-03-10
+	*/
+	return volumeOfOctree([self octreeDetails], 5);
 }
 
-static GLfloat volumeOfOctree(Octree_details octree_details)
+static GLfloat volumeOfOctree(Octree_details octree_details, unsigned depthLimit)
 {
 	int		*octBuffer = octree_details.octree;
 	GLfloat octRadius = octree_details.radius;
 	
 	if (octBuffer[0] == 0)
+	{
 		return 0.0f;
+	}
 	
-	if (octBuffer[0] == -1)
+	if (octBuffer[0] == -1 || depthLimit == 0)
+	{
 		return octRadius * octRadius * octRadius;
+	}
+	depthLimit--;
 	
 	// we are not empty or solid
 	// we sum the volume of each of our octants
@@ -735,7 +749,7 @@ static GLfloat volumeOfOctree(Octree_details octree_details)
 		if (nextBuffer[i])	// don't test empty octants
 		{
 			nextDetails.octree = &nextBuffer[i];
-			sumVolume += volumeOfOctree(nextDetails);
+			sumVolume += volumeOfOctree(nextDetails, depthLimit);
 		}
 	}
 	return sumVolume;
