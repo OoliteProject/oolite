@@ -98,15 +98,17 @@ rm -rf "$TARGETDIR"
 mkdir "$TARGETDIR"
 
 
+MOZILLADIR="$TEMPDIR/mozilla-2.0"
+
 # Move new code into place.
-mv "$TEMPDIR/mozilla-central/js" "$TARGETDIR/js"
+mv "$MOZILLADIR/js" "$TARGETDIR/js"
 if [ "$?" -ne "0" ]
 then
 	echo "error: could not move expanded libjs source into place."
 	exit 1
 fi
 
-mv "$TEMPDIR/mozilla-central/nsprpub" "$TARGETDIR/nsprpub"
+mv "$MOZILLADIR/nsprpub" "$TARGETDIR/nsprpub"
 if [ "$?" -ne "0" ]
 then
 	echo "error: could not move expanded libnspr4 source into place."
