@@ -292,8 +292,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			[ship setOrientation: [UNIVERSE getWitchspaceExitRotation]];
 			[ship setPitch: 0.0];
 			[ship setRoll: 0.0];
-		
-			[ship setBounty:[ship bounty]/2];	// adjust legal status for new system
+	
+			// Don't reduce bounty on misjump. Fixes #17992
+			// - MKW 2011.03.10	
+			if (!_misjump) [ship setBounty:[ship bounty]/2];	// adjust legal status for new system
 		
 			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
