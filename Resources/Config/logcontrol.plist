@@ -350,7 +350,6 @@
 	ship.escort								= no;
 	ship.escort.accept						= inherit;
 	ship.escort.reject						= inherit;
-	ship.escort.limit						= inherit;
 	
 	ship.setUp.missiles						= no;					// Warnings when doing extra work to set up missiles without equipment.plist or shipdata.plist entries. Disabled because lots of OXPs trigger them, and there are fallbacks.
 	
