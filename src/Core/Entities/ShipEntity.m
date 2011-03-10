@@ -554,7 +554,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 		
 	//  escorts
-	_pendingEscortCount = _maxEscortCount = [shipDict oo_unsignedIntForKey:@"escorts"];
+	_maxEscortCount = MIN([shipDict oo_unsignedCharForKey:@"escorts"], (uint8_t)MAX_ESCORTS);
+	_pendingEscortCount = _maxEscortCount;
 	
 	// beacons
 	[self setBeaconCode:[shipDict oo_stringForKey:@"beacon"]];
@@ -4501,7 +4502,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 - (void) setPendingEscortCount:(uint8_t)count
 {
-	_pendingEscortCount = count;
+	_pendingEscortCount = MIN(count, _maxEscortCount);;
 }
 
 

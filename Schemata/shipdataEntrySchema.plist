@@ -72,7 +72,11 @@
 		script_actions = "$scriptActions";
 		death_actions = "$scriptActions";
 		setup_actions = "$scriptActions";
-		escorts = "positiveInteger";
+		escorts =
+		{
+			valueType = "positiveInteger";
+			maximum = 16;
+		};
 		beacon = "string";
 		rotational_velocity = "quaternion";
 		track_contacts = "boolean";
