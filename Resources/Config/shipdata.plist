@@ -933,6 +933,7 @@
 		max_flight_pitch = 1;
 		max_flight_roll = 2;
 		max_flight_speed = 300;
+		max_missiles = 4;
 		missile_launch_position = "0.0 -4.5 16.5";
 		missiles = 3;
 		model = "cobra3_redux.dat";
