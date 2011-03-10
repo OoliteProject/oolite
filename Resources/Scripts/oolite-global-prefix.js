@@ -79,7 +79,7 @@ defineMethod(Mission.prototype, "addMessageTextKey", function addMessageTextKey(
 });
 
 
-/*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
+/*	SystemInfo systemsInRange(): return SystemInfos for all systems within a
 	certain distance.
 */
 defineMethod(SystemInfo.prototype, "systemsInRange", function systemsInRange(range)

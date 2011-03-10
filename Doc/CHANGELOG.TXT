@@ -1,3 +1,37 @@
+Changes between Oolite 1.75 and Oolite 1.75.1:
+
+* Joystick deadzone restored to previous value (Mac OS X not affected).
+  (Bug #17945)
+* (Mac OS X) Support for game pads that don't pretend to be joysticks.
+* (Windows) Uninstaller is now more discriminating about which files it deletes.
+* The fast docking button now defaults to the main station if within the aegis,
+  even if it's outside scanner range, as intended. (Bug #17923)
+* Ship mass calculations, and thus mass lock behaviour, have been restored
+  (except for very small ships). (Bug #17940)
+* Thargoids no longer randomly shoot in entirely the wrong direction.
+* Fixed "jousting" behaviour where attacking ships would veer off after one hit.
+* Various fixes for wormhole behaviour in interstellar space, post-nova systems
+  and with ships with escorts.
+* Various bug fixes and cosmetic tweaks, including but not limited to bugs
+  #17944, #17968, #17975 and #17992.
+
+JavaScript:
+* JavaScript Ship equipmentStatus() now works for primary and secondary weapons.
+* Calling spawn() on a subentity previously put the spawnees near the
+  witchpoint. It now works like calling spawn() on the parent ship, which is
+  suboptimal but less confusing. Relying on the current begaviour is not
+  recommended as it may be improved in future.
+* JavaScript system.addShipsToRoute() now adds ships within scanner range of
+  the route, and ships added together are clustered.
+* JavaScript SystemInfo systemsInRange() once again works as an instance method
+  (which is now the recommended usage).
+* New ship event entityDestroyed(). This fires immediately after the ship
+  becomes invalid, regardless of the reason, except when the game restarts.
+* Mission screens can now be run in flight without generating warnings about
+  the player being both docked and not docked. (Bug #17953)
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.74.2 and Oolite 1.75:
 
 Gameplay:
