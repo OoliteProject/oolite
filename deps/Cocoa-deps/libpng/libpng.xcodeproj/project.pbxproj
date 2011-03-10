@@ -25,8 +25,6 @@
 		1A78B5AF12D74BE900D42EE7 /* pngwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59B12D74BE900D42EE7 /* pngwrite.c */; };
 		1A78B5B012D74BE900D42EE7 /* pngwtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59C12D74BE900D42EE7 /* pngwtran.c */; };
 		1A78B5B112D74BE900D42EE7 /* pngwutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59D12D74BE900D42EE7 /* pngwutil.c */; };
-		1A78B5B412D74C5600D42EE7 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A78B5B312D74C5600D42EE7 /* pngusr.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1A7ED5A212D7547C00A14F9D /* pnglibconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7ED5A112D7547C00A14F9D /* pnglibconf.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,8 +50,6 @@
 		1A78B59B12D74BE900D42EE7 /* pngwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwrite.c; sourceTree = "<group>"; };
 		1A78B59C12D74BE900D42EE7 /* pngwtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwtran.c; sourceTree = "<group>"; };
 		1A78B59D12D74BE900D42EE7 /* pngwutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwutil.c; sourceTree = "<group>"; };
-		1A78B5B312D74C5600D42EE7 /* pngusr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngusr.h; sourceTree = "<group>"; };
-		1A7ED5A112D7547C00A14F9D /* pnglibconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pnglibconf.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,8 +103,6 @@
 			isa = PBXGroup;
 			children = (
 				1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */,
-				1A78B5B312D74C5600D42EE7 /* pngusr.h */,
-				1A7ED5A112D7547C00A14F9D /* pnglibconf.h */,
 				1A78B58512D74BAD00D42EE7 /* libpng */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
@@ -125,8 +119,6 @@
 				1A78B59E12D74BE900D42EE7 /* png.h in Headers */,
 				1A78B59F12D74BE900D42EE7 /* pngconf.h in Headers */,
 				1A78B5A012D74BE900D42EE7 /* pngpriv.h in Headers */,
-				1A78B5B412D74C5600D42EE7 /* pngusr.h in Headers */,
-				1A7ED5A212D7547C00A14F9D /* pnglibconf.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,7 +255,6 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = YES;
@@ -297,7 +288,6 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
 				GCC_VERSION = "";
 				"GCC_VERSION[sdk=macosx*][arch=*]" = 4.0;
 				GENERATE_MASTER_OBJECT_FILE = YES;
@@ -322,7 +312,6 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
 				PREBINDING = NO;

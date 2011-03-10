@@ -1330,6 +1330,7 @@
 		1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFilteringEnumerator.m; sourceTree = "<group>"; };
 		1A19783C117F81B10060DB56 /* OOPixMapChannelOperations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPixMapChannelOperations.h; sourceTree = "<group>"; };
 		1A19783D117F81B10060DB56 /* OOPixMapChannelOperations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMapChannelOperations.m; sourceTree = "<group>"; };
+		1A1B24C313293ED2007A0940 /* exports-release.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-release.exp"; path = "src/Cocoa/exports-release.exp"; sourceTree = "<group>"; };
 		1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bsd_string.h; path = src/BSDCompat/bsd_string.h; sourceTree = SOURCE_ROOT; };
 		1A1E99B40EF04837008B48E2 /* OOProgressBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProgressBar.h; sourceTree = "<group>"; };
 		1A1E99B50EF04837008B48E2 /* OOProgressBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProgressBar.m; sourceTree = "<group>"; };
@@ -3070,6 +3071,7 @@
 				1A6A3A7E1135E0F200697AF8 /* oolite-snapshot.xcconfig */,
 				1AD5A81A12D3A9FD00B62503 /* exports-debug-32.exp */,
 				1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */,
+				1A1B24C313293ED2007A0940 /* exports-release.exp */,
 			);
 			name = "Build stuff";
 			sourceTree = "<group>";
