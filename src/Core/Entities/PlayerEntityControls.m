@@ -3311,8 +3311,8 @@ static BOOL toggling_music;
 	NSString	*message				= nil;
 
 	// Check alert condition - on red alert, abort
-	isOkayToUseAutopilot = [self alertCondition] != ALERT_CONDITION_RED;
-	if( !isOkayToUseAutopilot )
+	// -- but only for fast docking
+	if (fastDocking && ([self alertCondition] == ALERT_CONDITION_RED))
 	{
 		[self playAutopilotCannotDockWithTarget];
 		message = DESC(@"autopilot-red-alert");
