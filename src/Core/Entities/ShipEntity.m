@@ -338,6 +338,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 	else
 	{
+#if 0
+// Temporary fix for mass-dependent fuel prices.
+// See [ShipEntity fuelChargeRate] for more information.
+// - MKW 2011.03.11
 		GLfloat rate = 1.0;
 		if (PLAYER != nil)
 		{
@@ -353,6 +357,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 			else if (rate > 3 * fuel_charge_rate) fuel_charge_rate *= 3;
 			else fuel_charge_rate = rate;
 		}
+#else
+		fuel_charge_rate = [shipDict oo_floatForKey:@"fuel_charge_rate" defaultValue:1.0f];
+#endif
 	}
 #else
 	fuel_charge_rate = 1.0;
@@ -5338,7 +5345,33 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (GLfloat) fuelChargeRate
 {
+#if MASS_DEPENDENT_FUEL_PRICES
+	// Interim mass-dependent fuel price fix.  The current implentation
+	// in setUpFromDictionary: is no longer working because at player
+	// ship setup time, it is only partially configured and has no mass.
+	// - MKW 2011.03.11
+	GLfloat rate = 1.0f;
+
+	if (![UNIVERSE strict] && [self mass] > 0.0)
+	{
+
+#define kCobra3Mass (185580)     // the base mass of a Cobra Mk III
+		rate = calcFuelChargeRate([self mass], kCobra3Mass);
+		if (rate <= 0.0f) rate = 1.0f;
+#undef kCobra3Mass
+
+		// clamp the charge rate at no more than three times, and no less than about a third of the calculated value.
+		if ((fuel_charge_rate != 1.0f) && (fuel_charge_rate != rate))
+		{
+			if (fuel_charge_rate < 0.33f * rate) rate *= 0.33f;
+			else if (fuel_charge_rate > 3.0f * rate) rate *= 3.0f;
+			else rate = fuel_charge_rate;
+		}
+	}
+	return rate;
+#else
 	return fuel_charge_rate;
+#endif
 }
 
 

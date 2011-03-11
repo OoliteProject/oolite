@@ -1865,7 +1865,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		// do Revised sun-skimming check here...
 		if ([self hasScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
 		{
-			fuel_accumulator += (float)(delta_t * flightSpeed * 0.010 / fuel_charge_rate);
+			fuel_accumulator += (float)(delta_t * flightSpeed * 0.010 / [self fuelChargeRate]);
 			// are we fast enough to collect any fuel?
 			scoopsActive = YES && flightSpeed > 0.1f;
 			while (fuel_accumulator > 1.0f)
@@ -6136,7 +6136,7 @@ static NSString *last_outfitting_key=nil;
 				
 				if ([eqKey isEqual:@"EQ_FUEL"])
 				{
-					price = (PLAYER_MAX_FUEL - fuel) * pricePerUnit * fuel_charge_rate;
+					price = (PLAYER_MAX_FUEL - fuel) * pricePerUnit * [self fuelChargeRate];
 				}
 				else if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 				{
