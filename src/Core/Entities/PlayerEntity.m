@@ -2600,7 +2600,12 @@ static bool minShieldLevelPercentageInitialised = false;
 				OOLog(kOOLogInconsistentState, @"Internal Error - WH_SCANINFO_NONE reached in [PlayerEntity updateTargeting:]");
 				[self dumpState];
 				[wh dumpState];
-				assert([wh scanInfo] != WH_SCANINFO_NONE);
+				// Workaround a reported hit of the assert here.  We really
+				// should work out how/why this could happen though and fix
+				// the underlying cause.
+				// - MKW 2011.03.11
+				//assert([wh scanInfo] != WH_SCANINFO_NONE);
+				[wh setScannedAt:[self clockTimeAdjusted]];
 				break;
 			case WH_SCANINFO_SCANNED:
 				if ([self clockTimeAdjusted] > [wh scanTime] + 2)

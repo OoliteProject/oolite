@@ -14,7 +14,7 @@ Changes between Oolite 1.75 and Oolite 1.75.1:
   and with ships with escorts.
 * Interim fix for mass-dependent fuel prices not working. (Bug #17947)
 * Various bug fixes and cosmetic tweaks, including but not limited to bugs
-  #17944, #17968, #17975, #17992, and #17993.
+  #17944, #17968, #17975, #17992, #17993, and #17995.
 
 JavaScript:
 * JavaScript Ship equipmentStatus() now works for primary and secondary weapons.
