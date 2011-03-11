@@ -19,10 +19,10 @@ JavaScript:
 * JavaScript Ship equipmentStatus() now works for primary and secondary weapons.
 * Calling spawn() on a subentity previously put the spawnees near the
   witchpoint. It now works like calling spawn() on the parent ship, which is
-  suboptimal but less confusing. Relying on the current begaviour is not
+  suboptimal but less confusing. Relying on the current behaviour is not
   recommended as it may be improved in future.
 * JavaScript system.addShipsToRoute() now adds ships within scanner range of
-  the route, and ships added together are clustered.
+  the route, and ships added with system.addGroupToRoute() are clustered.
 * JavaScript SystemInfo systemsInRange() once again works as an instance method
   (which is now the recommended usage).
 * New ship event entityDestroyed(). This fires immediately after the ship
