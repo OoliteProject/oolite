@@ -278,7 +278,10 @@ static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp)
 		overrides = OOJSDictionaryFromStringTable(context, OOJS_ARGV[1]);
 	}
 	
+	OOJS_BEGIN_FULL_NATIVE(context)
 	string = ExpandDescriptionsWithOptions(string, [PLAYER system_seed], overrides, nil, nil);
+	OOJS_END_FULL_NATIVE
+	
 	OOJS_RETURN_OBJECT(string);
 	
 	OOJS_NATIVE_EXIT
