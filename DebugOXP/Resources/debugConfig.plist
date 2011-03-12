@@ -113,7 +113,7 @@
 		"test"		= "mission.runScreen({model:PARAM})";
 		
 		// ":time <expression>" -- time a JavaScript expression.
-		"time"		= "(function () { return console.profile(eval(\"(function() { (\" + PARAM + \") })\"), this); })()";
+		"time"		= "console.profile(eval(\"(function() { (\" + PARAM + \") })\"), this)";
 		
 		// ":trace <expression>" -- trace a JavaScript expression.
 		"trace"		= "eval(\"this._traceFunc = function() { \" + PARAM + \" };\"); console.trace(this._traceFunc, this); delete this._traceFunc;";
