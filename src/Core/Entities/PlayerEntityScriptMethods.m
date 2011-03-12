@@ -280,3 +280,15 @@ MA 02110-1301, USA.
 }
 
 @end
+
+
+Vector OOGalacticCoordinatesFromInternal(NSPoint internalCoordinates)
+{
+	return (Vector){ (float)internalCoordinates.x * 0.4f, (float)internalCoordinates.y * 0.2f, 0.0f };
+}
+
+
+NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates)
+{
+	return (NSPoint){ (float)galacticCoordinates.x * 2.5f, (float)galacticCoordinates.y * 5.0f };
+}

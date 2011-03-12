@@ -28,6 +28,10 @@ JavaScript:
   (which is now the recommended usage).
 * New ship event entityDestroyed(). This fires immediately after the ship
   becomes invalid, regardless of the reason, except when the game restarts.
+* New SystemInfo property internalCoordinates and new PlayerShip properties
+  cursorCoordinatesInLY, galacticHyperspaceFixedCoordsInLY and
+  galaxyCoordinatesInLY. This resolves the problem that different coordinate
+  systems were being used for galactic coordinates in different contexts.
 * Mission screens can now be run in flight without generating warnings about
   the player being both docked and not docked. (Bug #17953)
 

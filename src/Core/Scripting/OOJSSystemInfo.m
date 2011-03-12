@@ -68,7 +68,8 @@ static JSClass sSystemInfoClass =
 enum
 {
 	// Property IDs
-	kSystemInfo_coordinates,	// system coordinates, Vector3D (with z=0), read-only
+	kSystemInfo_coordinates,	// system coordinates (in LY), Vector3D (with z = 0), read-only
+	kSystemInfo_internalCoordinates,	// system coordinates (unscaled), Vector3D (with z = 0), read-only
 	kSystemInfo_galaxyID,		// galaxy number, integer, read-only
 	kSystemInfo_systemID		// system number, integer, read-only
 };
@@ -76,10 +77,11 @@ enum
 
 static JSPropertySpec sSystemInfoProperties[] =
 {
-	// JS name					ID							flags
-	{ "coordinates",			kSystemInfo_coordinates,	OOJS_PROP_READONLY_CB },
-	{ "galaxyID",				kSystemInfo_galaxyID,		OOJS_PROP_READONLY_CB },
-	{ "systemID",				kSystemInfo_systemID,		OOJS_PROP_READONLY_CB },
+	// JS name					ID									flags
+	{ "coordinates",			kSystemInfo_coordinates,			OOJS_PROP_READONLY_CB },
+	{ "internalCoordinates",	kSystemInfo_internalCoordinates,	OOJS_PROP_READONLY_CB },
+	{ "galaxyID",				kSystemInfo_galaxyID,				OOJS_PROP_READONLY_CB },
+	{ "systemID",				kSystemInfo_systemID,				OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -397,8 +399,6 @@ static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsid 
 
 static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
 {
-	volatile NSPoint coords;
-	
 	OOJS_NATIVE_ENTER(context)
 	
 	if (this == sSystemInfoPrototype)
@@ -420,11 +420,19 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 			case kSystemInfo_coordinates:
 				if (sameGalaxy && !savedInterstellarInfo)
 				{
-					coords = [info coordinates];
-					// Convert from internal scale to light years.
-					coords.x *= 0.4;
-					coords.y *= 0.2; // y-axis had a different scale than x-axis
-					return NSPointToVectorJSValue(context, coords, value);
+					return VectorToJSValue(context, OOGalacticCoordinatesFromInternal([info coordinates]), value);
+				}
+				else
+				{
+					OOJSReportError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ? @"invalid interstellar space reference" : @"other galaxies");
+					return NO;
+				}
+				break;
+				
+			case kSystemInfo_internalCoordinates:
+				if (sameGalaxy && !savedInterstellarInfo)
+				{
+					return NSPointToVectorJSValue(context, [info coordinates], value);
 				}
 				else
 				{

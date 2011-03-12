@@ -61,3 +61,18 @@ MA 02110-1301, USA.
 - (double) systemPseudoRandomFloat;
 
 @end
+
+
+/*	OOGalacticCoordinatesFromInternal()
+	Given internal coordinates ranging from 0 to 255 on each axis, return
+	corresponding coordinates in user-meaningful coordinates by scaling by
+	0.4 on the X axis and 0.2 on the Y axis.
+	
+	OOInternalCoordinatesFromGalactic()
+	Inverse operation.
+	
+	For valid floating-point comparisons, it is imperative that the same
+	calculation be used consistently.
+ */
+Vector OOGalacticCoordinatesFromInternal(NSPoint internalCoordinates);
+NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates);

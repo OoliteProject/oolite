@@ -88,15 +88,18 @@ enum
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
-	kPlayerShip_cursorCoordinates,				// cursor coordinates, vector, read only
+	kPlayerShip_cursorCoordinates,				// cursor coordinates (unscaled), Vector3D, read only
+	kPlayerShip_cursorCoordinatesInLY,			// cursor coordinates (in LY), Vector3D, read only
 	kPlayerShip_docked,							// docked, boolean, read-only
 	kPlayerShip_dockedStation,					// docked station, entity, read-only
 	kPlayerShip_forwardShield,					// forward shield charge level, nonnegative float, read/write
 	kPlayerShip_forwardShieldRechargeRate,		// forward shield recharge rate, positive float, read-only
 	kPlayerShip_fuelLeakRate,					// fuel leak rate, float, read/write
 	kPlayerShip_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
-	kPlayerShip_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, vector, read-only
-	kPlayerShip_galaxyCoordinates,				// galaxy coordinates, vector, read only
+	kPlayerShip_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, Vector3D, read/write
+	kPlayerShip_galacticHyperspaceFixedCoordsInLY,	// used when fixed coords behaviour is selected, Vector3D, read/write
+	kPlayerShip_galaxyCoordinates,				// galaxy coordinates (unscaled), Vector3D, read only
+	kPlayerShip_galaxyCoordinatesInLY,			// galaxy coordinates (in LY), Vector3D, read only
 	kPlayerShip_hud,							// hud name identifier, string, read/write
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
@@ -118,6 +121,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READONLY_CB },
 	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
 	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				OOJS_PROP_READONLY_CB },
+	{ "cursorCoordinatesInLY",			kPlayerShip_cursorCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "docked",							kPlayerShip_docked,							OOJS_PROP_READONLY_CB },
 	{ "dockedStation",					kPlayerShip_dockedStation,					OOJS_PROP_READONLY_CB },
 	{ "forwardShield",					kPlayerShip_forwardShield,					OOJS_PROP_READWRITE_CB },
@@ -125,7 +129,9 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "fuelLeakRate",					kPlayerShip_fuelLeakRate,					OOJS_PROP_READWRITE_CB },
 	{ "galacticHyperspaceBehaviour",	kPlayerShip_galacticHyperspaceBehaviour,	OOJS_PROP_READWRITE_CB },
 	{ "galacticHyperspaceFixedCoords",	kPlayerShip_galacticHyperspaceFixedCoords,	OOJS_PROP_READWRITE_CB },
+	{ "galacticHyperspaceFixedCoordsInLY",	kPlayerShip_galacticHyperspaceFixedCoordsInLY,	OOJS_PROP_READWRITE_CB },
 	{ "galaxyCoordinates",				kPlayerShip_galaxyCoordinates,				OOJS_PROP_READONLY_CB },
+	{ "galaxyCoordinatesInLY",			kPlayerShip_galaxyCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "hud",							kPlayerShip_hud,							OOJS_PROP_READWRITE_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
 	// manifest defined in OOJSManifest.m
@@ -269,6 +275,9 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_galacticHyperspaceFixedCoords:
 			return NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], value);
 			
+		case kPlayerShip_galacticHyperspaceFixedCoordsInLY:
+			return VectorToJSValue(context, OOGalacticCoordinatesFromInternal([player galacticHyperspaceFixedCoords]), value);
+			
 		case kPlayerShip_forwardShield:
 			return JS_NewNumberValue(context, [player forwardShieldLevel], value);
 			
@@ -289,8 +298,14 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_galaxyCoordinates:
 			return NSPointToVectorJSValue(context, [player galaxy_coordinates], value);
 			
+		case kPlayerShip_galaxyCoordinatesInLY:
+			return VectorToJSValue(context, OOGalacticCoordinatesFromInternal([player galaxy_coordinates]), value);
+			
 		case kPlayerShip_cursorCoordinates:
 			return NSPointToVectorJSValue(context, [player cursor_coordinates], value);
+			
+		case kPlayerShip_cursorCoordinatesInLY:
+			return VectorToJSValue(context, OOGalacticCoordinatesFromInternal([player cursor_coordinates]), value);
 			
 		case kPlayerShip_targetSystem:
 			*value = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
@@ -380,7 +395,17 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_galacticHyperspaceFixedCoords:
 			if (JSValueToVector(context, *value, &vValue))
 			{
-				[player setGalacticHyperspaceFixedCoordsX:OOClamp_0_max_f(vValue.x, 255.0f) y:OOClamp_0_max_f(vValue.y, 255.0f)];
+				NSPoint coords = { vValue.x, vValue.y };
+				[player setGalacticHyperspaceFixedCoords:coords];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_galacticHyperspaceFixedCoordsInLY:
+			if (JSValueToVector(context, *value, &vValue))
+			{
+				NSPoint coords = OOInternalCoordinatesFromGalactic(vValue);
+				[player setGalacticHyperspaceFixedCoords:coords];
 				return YES;
 			}
 			break;

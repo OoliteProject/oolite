@@ -8130,6 +8130,12 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) setGalacticHyperspaceFixedCoords:(NSPoint)point
+{
+	return [self setGalacticHyperspaceFixedCoordsX:OOClamp_0_max_f(roundf(point.x), 255.0f) y:OOClamp_0_max_f(roundf(point.y), 255.0f)];
+}
+
+
 - (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y
 {
 	galacticHyperspaceFixedCoords.x = x;
