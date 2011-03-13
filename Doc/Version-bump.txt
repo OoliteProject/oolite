@@ -7,7 +7,7 @@ debian/changelog.in
 src/Cocoa/Info-Oolite.plist
 src/Cocoa/oolite-version.xcconfig
 Resources/Scripts/*
-Resources/InfoPlist.strings (note: UTF-16)
+Resources/InfoPlist.strings (twice. note: UTF-16)
 
 - Major versions:
 Doc/OoliteReadMe.doc

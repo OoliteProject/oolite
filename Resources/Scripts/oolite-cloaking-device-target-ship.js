@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 this.name			= "oolite-cloaking-device-target-ship";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2008-2011 the Oolite team.";
-this.version		= "1.75.1";
+this.version		= "1.75.2";
 
 
 this.shipDied = function ()

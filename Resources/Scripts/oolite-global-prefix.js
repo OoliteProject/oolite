@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 this.name			= "oolite-global-prefix";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2009-2011 the Oolite team.";
-this.version		= "1.75.1";
+this.version		= "1.75.2";
 
 
 (function (special) {
