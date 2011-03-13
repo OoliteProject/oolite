@@ -113,10 +113,10 @@
 		"test"		= "mission.runScreen({model:PARAM})";
 		
 		// ":time <expression>" -- time a JavaScript expression.
-		"time"		= "console.profile(eval(\"(function() { (\" + PARAM + \") })\"), this)";
+		"time"		= "console.profile(eval(\"(function codeToBeProfiled() { (\" + PARAM + \") })\"), this)";
 		
 		// ":trace <expression>" -- trace a JavaScript expression.
-		"trace"		= "eval(\"this._traceFunc = function() { \" + PARAM + \" };\"); console.trace(this._traceFunc, this); delete this._traceFunc;";
+		"trace"		= "console.trace(eval(\"(function codeToBeTraced() { (\" + PARAM + \") })\"), this)";
 		
 		// For calling old-school scripting methods (on player), as in ":: gui_screen_string", or ":: playSound: boop.ogg"
 		":"			= "performLegacyCommand(PARAM)";
