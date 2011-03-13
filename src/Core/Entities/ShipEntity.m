@@ -4509,7 +4509,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 - (void) setPendingEscortCount:(uint8_t)count
 {
-	_pendingEscortCount = MIN(count, _maxEscortCount);;
+	_pendingEscortCount = MIN(count, _maxEscortCount);
 }
 
 
@@ -9000,7 +9000,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
 {
-	if (!w_hole) return;
+	if (w_hole == nil)  return;
 
 	if (replacing && ![[UNIVERSE sun] willGoNova] && [UNIVERSE sun] != nil)
 	{

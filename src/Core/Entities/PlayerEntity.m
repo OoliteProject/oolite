@@ -8292,11 +8292,11 @@ else _dockTarget = NO_TARGET;
 	assert(whole != nil);
 	
 	// Only add if we don't have it already!
-	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
-	WormholeEntity * wh;
+	NSEnumerator *wormholes = [scannedWormholes objectEnumerator];
+	WormholeEntity *wh = nil;
 	while ((wh = [wormholes nextObject]))
 	{
-		if ( wh == whole ) return;
+		if (wh == whole)  return;
 	}
 	[whole setScannedAt:[self clockTimeAdjusted]];
 	[scannedWormholes addObject:whole];

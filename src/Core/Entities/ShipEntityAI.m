@@ -1144,7 +1144,7 @@ MA 02110-1301, USA.
 	WormholeEntity		*whole = nil;
 	
 	whole = [self primaryTarget];
-	if( ![whole isWormhole] ) return;
+	if (![whole isWormhole])  return;
 	
 #ifndef NDEBUG
 	context = [NSString stringWithFormat:@"%@ wormholeEscorts", [self shortDescription]];
@@ -1170,7 +1170,7 @@ MA 02110-1301, USA.
 	WormholeEntity		*whole = nil;
 	
 	whole = [self primaryTarget];
-	if( ![whole isWormhole] ) return;
+	if (![whole isWormhole])  return;
 	
 	for (shipEnum = [[self group] mutationSafeEnumerator]; (ship = [shipEnum nextObject]); )
 	{
