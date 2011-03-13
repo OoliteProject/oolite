@@ -293,12 +293,10 @@
 				GENERATE_MASTER_OBJECT_FILE = YES;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 				PRODUCT_NAME = png_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/png/;
-				SDKROOT = macosx10.5;
 				SYMROOT = ../../../build;
 			};
 			name = Debug;
