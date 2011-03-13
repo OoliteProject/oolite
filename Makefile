@@ -30,7 +30,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     LIBJS_DBG                    = deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
     DEPS                         = $(LIBJS)
     DEPS_DBG                     = $(LIBJS_DBG)
-
+else
     # define autopackage .apspec file according to the CPU architecture
     HOST_ARCH                    := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/i386/ -e s/amd64/x86_64/ )
     ifeq ($(HOST_ARCH),x86_64)
@@ -38,7 +38,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     else
         APSPEC_FILE              = installers/autopackage/default.x86.apspec
     endif
-else
+
     DEPS                         = LIBJS
     DEPS_DBG                     = LIBJS_DBG
 endif
