@@ -3225,7 +3225,7 @@ static const OOMatrix	starboard_matrix =
 				OOGL([self useGUILightSource:demoShipMode]);
 				
 				// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets).
-				OOGL(viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW));
+				OOGL(viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX));
 				
 				int			furthest = draw_count - 1;
 				int			nearest = 0;
