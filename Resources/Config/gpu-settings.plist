@@ -132,7 +132,7 @@
 		
 		match =
 		{
-			vendor = "X\\.Org R300 Project";
+			vendor = "X\\.Org";
 			renderer = "Gallium .*(?:AMD|AT[Ii]) R[A-Za-z]?[67]\\d{2}(?!\\d)";
 		};
 		maximum_shader_level = "SHADERS_OFF";
