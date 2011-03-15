@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 5),
 	libsdl1.2-dev, libsdl-mixer1.2-dev, libespeak-dev,
 	libgnustep-base-dev, gnustep-core-devel,
 	libpng-dev, mesa-common-dev, libnspr4-dev,
-	curl, zip
+	curl, zip, python
 Homepage: http://oolite.org/
 Vcs-Svn: svn://svn.berlios.de/oolite-linux
 Vcs-Browser: http://svn.berlios.de/wsvn/oolite-linux
