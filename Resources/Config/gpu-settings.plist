@@ -112,7 +112,7 @@
 		match =
 		{
 			vendor = "X\\.Org R300 Project";
-			renderer = "Gallium .* on R(V?3|[CSV]4)";
+			renderer = "Gallium .* R(V?3|[CSV]4)";
 		};
 		maximum_shader_level = "SHADERS_SIMPLE";
 		default_shader_level = "SHADERS_SIMPLE";
@@ -120,6 +120,23 @@
 		// (Correct as of commit df3590f.)
 		smooth_points = false; 
 		smooth_lines = false;
+	};
+	
+	"ATI R600/R700 family (X/Gallium3D)" =
+	{
+		/*
+			We have reports of Oolite hanging when using Gallium3D on AMD R600/R700 family GPUs with
+			shaders enabled. As a stopgap, we forcibly disable shaders on affected systems.
+			See http://aegidian.org/bb/viewtopic.php?f=9&t=9416
+		*/
+		
+		match =
+		{
+			vendor = "X\\.Org R300 Project";
+			renderer = "Gallium .*(?:AMD|AT[Ii]) R[A-Za-z]?[67]\\d{2}(?!\\d)";
+		};
+		maximum_shader_level = "SHADERS_OFF";
+		default_shader_level = "SHADERS_OFF";
 	};
 	
 	"VirtualBox" =
