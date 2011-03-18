@@ -48,6 +48,12 @@ static NSString * const kOOLogPlanetTextureGen			= @"texture.planet.generate";
 static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key)
 {
 	OOColor *color = [dictionary objectForKey:key];
+	if (color == nil)
+	{
+		// could not get a color from the dicitionary, return white color instead of hitting the assert below
+		color = [OOColor colorWithDescription:@"whiteColor"];
+		OOLog(@"textureStore.FloatRGBFromDictColor.nilColor", @"Expected color for key \"%@\" in dictionary %@, got nil. Setting color to %@", key, dictionary, [color rgbaDescription]);
+	}
 	NSCAssert1([color isKindOfClass:[OOColor class]], @"Expected OOColor, got %@", [color class]);
 	
 	return (FloatRGB){ [color redComponent], [color greenComponent], [color blueComponent] };
@@ -126,7 +132,7 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 	*textureData = imageBuffer;
 	*textureWidth = texture_w;
 	*textureHeight = texture_h;
-
+	
 	float land_fraction = [[planetInfo objectForKey:@"land_fraction"] floatValue];
 	float sea_bias = land_fraction - 1.0;
 	
