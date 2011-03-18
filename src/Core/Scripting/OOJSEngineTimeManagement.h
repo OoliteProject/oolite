@@ -60,7 +60,7 @@ void OOJSStopTimeLimiter(void);
 #endif
 
 
-#define kOOJSLongTimeLimit (2.0)
+#define kOOJSLongTimeLimit (5.0)
 
 
 #if OOJS_PROFILE

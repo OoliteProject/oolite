@@ -4594,7 +4594,9 @@ static bool minShieldLevelPercentageInitialised = false;
 	// it's time to check the script - can trigger legacy missions
 	if (gui_screen != GUI_SCREEN_MISSION)  [self checkScript]; // a scripted pilot could have created a mission screen.
 	
+	OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
 	[self doScriptEvent:OOJSID("shipDockedWithStation") withArgument:dockedStation];
+	OOJSStopTimeLimiter();
 
 	// if we've not switched to the mission screen yet then proceed normally..
 	if (gui_screen != GUI_SCREEN_MISSION)
