@@ -29,11 +29,13 @@ after-all::
 	$(CP) $(CP_FLAGS) Resources $(PROGDIR)
 	$(CP) $(CP_FLAGS) Schemata $(PROGDIR)/Resources
 ifeq ($(ESPEAK),yes)
-ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
-else ifeq ($(use_deps),yes)
-	$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
-endif
+    ifeq ($(GNUSTEP_HOST_OS),mingw32)
+		$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+    else
+	    ifeq ($(use_deps),yes)
+			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+		endif
+    endif
 endif
 	$(CP) $(CP_FLAGS) src/Cocoa/Info-Oolite.plist $(PROGDIR)/Resources/Info-gnustep.plist
 	$(CP) $(CP_FLAGS) $(GNUSTEP_OBJ_DIR_NAME)/$(SRC_BIN) $(PROGDIR)/$(DEST_BIN)
