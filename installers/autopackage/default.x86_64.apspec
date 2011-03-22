@@ -5,6 +5,8 @@
 # 2009-09-30: Updated to include DTDs and new documentation, and to perform a clean uninstall
 # 2009-10-13: a. Support for x86_64 architecture packages
 #             b. Perform a clean build before producing the package
+# 2011-03-22: Removed the need of the TOPLEVEL environment variable
+#             for oolite-update and oolite-wrapper scripts
 #
 
 [Meta]
@@ -110,15 +112,13 @@ copyFile release.txt $PREFIX/lib/Oolite/release.txt
 chmod a+rw $PREFIX/lib/Oolite/release.txt
 
 echo "#!/bin/sh" > oolite-wrapper
-echo "OOLITE_ROOT=$PREFIX/lib" >> oolite-wrapper
-echo "TOPLEVEL=$OOLITE_ROOT/Oolite" >> oolite-wrapper
+echo "OOLITE_ROOT=$PREFIX/lib/Oolite" >> oolite-wrapper
 cat oolite.src >> oolite-wrapper
 copyFile oolite-wrapper $PREFIX/lib/Oolite/oolite.app/oolite-wrapper
 chmod +x $PREFIX/lib/Oolite/oolite.app/oolite-wrapper
 
 echo "#!/bin/sh" > oolite-update
-echo "OOLITE_ROOT=$PREFIX/lib/" >> oolite-update
-echo "TOPLEVEL=$OOLITE_ROOT/Oolite" >> oolite-update
+echo "OOLITE_ROOT=$PREFIX/lib/Oolite" >> oolite-update
 cat oolite-update.src >> oolite-update
 copyFile oolite-update $PREFIX/lib/Oolite/oolite.app/oolite-update
 chmod +x $PREFIX/lib/Oolite/oolite.app/oolite-update
