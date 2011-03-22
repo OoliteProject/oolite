@@ -147,7 +147,11 @@ MA 02110-1301, USA.
 		target = (ShipEntity *)[target owner];
 	}
 	if (![me isKindOfClass:[ShipEntity class]])  return;
-	if (target != nil)  [me addTarget:target];
+	if (target != nil)
+	{
+		if ([me isPlayer])  [(PlayerEntity *)me setDialIdentEngaged:YES];
+		[me addTarget:target];
+	}
 	else  [me removeTarget:[me primaryTarget]];
 }
 

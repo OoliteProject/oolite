@@ -646,6 +646,7 @@ typedef enum
 - (void) setActiveMissile:(unsigned)value;
 - (unsigned) dialMaxMissiles;
 - (BOOL) dialIdentEngaged;
+- (void) setDialIdentEngaged:(BOOL)newValue;
 - (NSString *) specialCargo;
 - (NSString *) dialTargetName;
 - (ShipEntity *) missileForPylon:(unsigned)value;
