@@ -7817,10 +7817,8 @@ static NSString *last_outfitting_key=nil;
 		else // It's a mine or something
 		{
 			missile_status = MISSILE_STATUS_ARMED;
-			{
-				[self playIdentLockedOn];
-				[self printIdentLockedOnForMissile:NO];
-			}
+			[self playIdentLockedOn];
+			[self printIdentLockedOnForMissile:NO];
 		}
 	}
 }
