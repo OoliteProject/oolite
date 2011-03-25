@@ -49,10 +49,12 @@ endif
 .PHONY: debug
 debug: $(DEPS_DBG)
 	$(MAKE) -f GNUmakefile debug=yes
+	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
 
 .PHONY: release
 release: $(DEPS)
 	$(MAKE) -f GNUmakefile debug=no
+	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
 
 .PHONY: release-deployment
 release-deployment: $(DEPS)
@@ -61,15 +63,18 @@ release-deployment: $(DEPS)
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
 	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
+	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
 
 # Here are targets using the provided dependencies
 .PHONY: deps-debug
 deps-debug: $(DEPS_DBG)
 	$(MAKE) -f GNUmakefile debug=yes use_deps=yes
+	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
 
 .PHONY: deps-release
 deps-release: $(DEPS)
 	$(MAKE) -f GNUmakefile debug=no use_deps=yes
+	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
 	
 .PHONY: deps-release-deployment
 deps-release-deployment: $(DEPS)
@@ -78,6 +83,7 @@ deps-release-deployment: $(DEPS)
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
 	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
+	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
 
 .PHONY: LIBJS_DBG
 LIBJS_DBG:
@@ -101,6 +107,7 @@ endif
 clean:
 	$(MAKE) -f GNUmakefile clean
 	$(RM) -rf obj obj.dbg oolite.app
+	$(RM) -rf AddOns && cd DebugOXP && $(MAKE) clean && cd ..
 
 .PHONY: distclean
 distclean: clean
@@ -170,6 +177,7 @@ pkg-win: release ${NSISVERSIONS}
 	
 .PHONY: pkg-win-deployment
 pkg-win-deployment: release-deployment ${NSISVERSIONS}
+	@echo "!define DEPLOYMENT 1" >> ${NSISVERSIONS}
 	$(NSIS) installers/win32/OOlite.nsi
 
 .PHONY: pkg-win-snapshot

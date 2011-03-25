@@ -2,6 +2,10 @@
 ; adding of the changelog file in the non-snapshot distributions
 !include "LogicLib.nsh"
 
+; Include the Sections library, required for being able to provide the 
+; Basic-debug.OXP as an optional installation component
+!include "Sections.nsh"
+
 ; Need to include the versions as we can't pass them in as parameters
 ; and it's too much work to try to dynamically edit this file
 !include /NONFATAL "OoliteVersions.nsh"
@@ -31,6 +35,13 @@
 !define EXTVER "-dev"
 !define ADDCHANGELOG 0	; Snapshot distributions do not need changelog
 !endif
+
+!ifndef DEPLOYMENT
+!define DEBUGOXPINCLUDED 1
+!else
+!define DEBUGOXPINCLUDED 0
+!endif
+
 
 !include "MUI.nsh"
 
@@ -77,6 +88,9 @@ VIProductVersion "${VER}"
 !define MUI_UNICON oolite.ico
 
 !insertmacro MUI_PAGE_DIRECTORY
+!ifndef DEPLOYMENT
+	!insertmacro MUI_PAGE_COMPONENTS
+!endif
 !insertmacro MUI_PAGE_INSTFILES
 
 ; NSIS first runs the finishpage_run macro, then finishpage_showreadme.
@@ -96,6 +110,26 @@ VIProductVersion "${VER}"
 !insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
+
+!ifndef DEPLOYMENT
+; Create the main game and Debug OXP sections
+Section "Oolite Game" ooGame
+SectionIn RO	; The game itself cannot be unselected
+SectionEnd
+
+Section "Basic-debug.OXP" ooDebugOXP
+; Do not use any of the Debug OXP files when we are building Deployment
+SetOutPath $INSTDIR
+File /r "..\..\AddOns"
+SectionEnd
+
+; Below are the descriptions of the two component sections
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+	!insertmacro MUI_DESCRIPTION_TEXT ${ooGame} "The core game files (required)."
+	!insertmacro MUI_DESCRIPTION_TEXT ${ooDebugOXP} "Allows Oolite to communicate with the Debug Console. If you already have a Basic-debug.OXP in your \
+													 destination AddOns folder, it will be overwritten."
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+!endif
 
 Function .onInit
  ; 1. Get the system drive
@@ -139,6 +173,20 @@ uninst:
 done:
 FunctionEnd
 
+!ifndef DEPLOYMENT
+Function .onSelChange
+	${If} ${SectionIsSelected} ${ooDebugOXP}
+		!insertmacro SelectSection ${ooDebugOXP}
+		!undef DEBUGOXPINCLUDED
+		!define DEBUGOXPINCLUDED 1
+	${Else}
+		!insertmacro UnselectSection ${ooDebugOXP}
+		!undef DEBUGOXPINCLUDED
+		!define DEBUGOXPINCLUDED 0
+	${EndIf}
+FunctionEnd
+!endif
+
 Function readMe
   ; don't do a thing until the user finishes reading the readme!
   ExecWait "notepad.exe $INSTDIR\Oolite_Readme.txt"
@@ -160,7 +208,10 @@ Section ""
 SetOutPath $INSTDIR
 
 ; Package files
-CreateDirectory "$INSTDIR\AddOns"
+; Inclusion of the DebugOXP files is handled in the ooDebugOXP section
+${If} ${DEBUGOXPINCLUDED} == "0"
+	CreateDirectory "$INSTDIR\AddOns"
+${EndIf}
 CreateDirectory "$INSTDIR\oolite.app\Logs"
 CreateDirectory "$INSTDIR\oolite.app\oolite-saves"
 CreateDirectory "$INSTDIR\oolite.app\oolite-saves\snapshots"
@@ -224,11 +275,16 @@ Delete "$INSTDIR\Oolite_Readme.txt"
 Delete "$INSTDIR\OoliteRS.pdf"
 Delete "$INSTDIR\AdviceForNewCommanders.pdf"
 Delete "$INSTDIR\OoliteReadMe.pdf"
-IfFileExists "$INSTDIR\CHANGELOG.TXT" ChangelogExists ChangelogDoesNotExist
 
+IfFileExists "$INSTDIR\AddOns\Basic-debug.oxp\*.*"  DebugOXPRemove DebugOXPIgnore
+DebugOXPRemove:
+RMDIR /r "$INSTDIR\AddOns\Basic-debug.oxp"
+DebugOXPIgnore:
+; Nothing to do in this case, just continue
+
+IfFileExists "$INSTDIR\CHANGELOG.TXT" ChangelogExists ChangelogDoesNotExist
 ChangelogExists:
 Delete "$INSTDIR\CHANGELOG.TXT"
-
 ChangelogDoesNotExist:
 ; Nothing to do in this case, just continue
 
