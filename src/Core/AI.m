@@ -412,8 +412,8 @@ static AIStackElement *sStack = NULL;
 	{
 		.back = sStack,
 		.owner = owner,
-		.aiName = stateMachineName,
-		.state = currentState,
+		.aiName = [[stateMachineName retain] autorelease],
+		.state = [[currentState retain] autorelease],
 		.message = message,
 		.context = debugContext
 	};
