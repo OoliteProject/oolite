@@ -556,11 +556,11 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// Deprecated equipment flags. New equipment shouldn't be added here (it'll be handled by the extra_equipment dictionary).
 	[result oo_setBool:[self hasDockingComputer]		forKey:@"has_docking_computer"];
-	[result oo_setBool:[self hasGalacticHyperdrive]	forKey:@"has_galactic_hyperdrive"];
+	[result oo_setBool:[self hasGalacticHyperdrive]		forKey:@"has_galactic_hyperdrive"];
 	[result oo_setBool:[self hasEscapePod]				forKey:@"has_escape_pod"];
 	[result oo_setBool:[self hasECM]					forKey:@"has_ecm"];
 	[result oo_setBool:[self hasScoop]					forKey:@"has_scoop"];
-	[result oo_setBool:[self hasEnergyBomb]			forKey:@"has_energy_bomb"];
+	[result oo_setBool:[self hasEnergyBomb]				forKey:@"has_energy_bomb"];
 	[result oo_setBool:[self hasFuelInjection]			forKey:@"has_fuel_injection"];
 	
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])
@@ -3916,6 +3916,12 @@ static bool minShieldLevelPercentageInitialised = false;
 		default :
 			return WEAPON_NONE;
 	}
+}
+
+
+- (BOOL) hasEnergyBomb
+{
+	return [self hasEquipmentItem:@"EQ_ENERGY_BOMB"];
 }
 
 

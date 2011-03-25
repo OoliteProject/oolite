@@ -676,6 +676,8 @@ typedef enum
 - (BOOL) fireMainWeapon;
 - (OOWeaponType) weaponForView:(OOViewID)view;
 
+- (BOOL) hasEnergyBomb;
+
 - (void) rotateCargo;
 
 - (BOOL) hasSufficientFuelForJump;

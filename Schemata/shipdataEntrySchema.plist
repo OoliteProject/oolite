@@ -131,7 +131,7 @@
 		max_police = "positiveInteger";
 		equipment_price_factor = "positiveFloat";
 		requires_docking_clearance = "boolean";
-		tunnel_corners= "positiveInteger";
+		tunnel_corners = "positiveInteger";
 		tunnel_start_angle = "float";
 		tunnel_aspect_ratio = "positiveFloat";
 		market = "string";
