@@ -32,7 +32,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     DEPS_DBG                     = $(LIBJS_DBG)
 else
     # define autopackage .apspec file according to the CPU architecture
-    HOST_ARCH                    := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/i386/ -e s/amd64/x86_64/ )
+    HOST_ARCH                    := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
     ifeq ($(HOST_ARCH),x86_64)
        APSPEC_FILE               = installers/autopackage/default.x86_64.apspec
     else
@@ -114,6 +114,7 @@ distclean: clean
 ifneq ($(GNUSTEP_HOST_OS),mingw32)
 	$(MAKE) -f libjs.make distclean debug=yes
 	$(MAKE) -f libjs.make distclean debug=no
+	$(RM) -rf AddOns && cd DebugOXP && $(MAKE) clean && cd ..
 endif
 
 .PHONY: all
@@ -132,6 +133,25 @@ deps-remake: clean deps-all
 #
 pkg-autopackage:
 	makepackage -c -m $(APSPEC_FILE)
+
+# Here are our POSIX (e.g. FreeBSD, Linux etc.) self-extracted packager targets
+#
+# TODO: For debug package the "oolite" startup script should point to "oolite.app/oolite.dbg" binary, 
+#       the "uninstall" script should remove the "oolite.dbg" binary and 
+#       either not distribute the "oolite-update" scripts or create an Oolite debug repository and 
+#       update the "oolite.app/oolite-update" script to synchronize accordingly
+#       
+#       pkg-posix-debug:
+#	        installers/posix/make_installer.sh $(HOST_ARCH) $(VERSION) $(SVNREVISION) "debug"
+#
+pkg-posix:
+	installers/posix/make_installer.sh $(HOST_ARCH) $(VERSION) $(SVNREVISION) "release-deployment"
+
+pkg-posix-test:
+	installers/posix/make_installer.sh $(HOST_ARCH) $(VERSION) $(SVNREVISION) "release"
+
+pkg-posix-snapshot:
+	installers/posix/make_installer.sh $(HOST_ARCH) $(VERSION) $(SVNREVISION) "release-snapshot"
 
 # Here are our Debian packager targets
 #
@@ -202,13 +222,20 @@ help:
 	@echo "  clean               - removes all generated files"
 	@echo
 	@echo "Packaging Targets:"
-	@echo " Linux:"
+	@echo " Linux (debian):"
 	@echo "  pkg-autopackage     - builds a Linux autopackage"
 	@echo
 	@echo "  pkg-deb             - builds a release Debian package"
 	@echo "  pkg-debtest         - builds a test release Debian package"
 	@echo "  pkg-debsnapshot     - builds a snapshot release Debian package"
 	@echo "  pkg-debclean        - cleans up after a Debian package build"
+	@echo
+	@echo " POSIX (e.g. FreeBSD, Linux etc.):"
+	@echo "  pkg-autopackage     - builds a Linux autopackage"
+	@echo
+	@echo "  pkg-posix           - builds a release self-extracting package"
+	@echo "  pkg-posix-test      - builds a test release self-extracting package"
+	@echo "  pkg-posix-snapshot  - builds a snapshot release self-extracting package"
 	@echo
 	@echo " Windows Installer:"
 	@echo "  pkg-win             - builds a test-release version"

@@ -1,0 +1,120 @@
+
+
+# 
+# Original by Konstantinos Sykas <ksykas@gmail.com> (26-Mar-2011)
+#
+#        Type: shell script
+# Description: The Oolite uninstall script. During installation the "setup" script 
+#              adds a header defining the environment variables used below.
+# 
+
+
+SELF_FILENAME=$(basename $0)
+
+
+# Check if user is root
+if [ `id -u` -eq 0 ]
+then
+  USER_IS_ROOT=1
+fi
+
+echo -n "Removing Oolite from \"${OOLITE_ROOT}\"... "
+
+# Check if we are OK to proceed with removal
+if [ ${SYSTEM_WIDE} ]
+then
+  if [ ! ${USER_IS_ROOT} ]
+  then
+    echo
+    echo "Error: Oolite was installed by root, so you must be root to uninstall it."
+    exit ${ERROR_CODE_UNINSTALL_FAILED}
+  fi
+else
+  if [ ${USER_IS_ROOT} ]
+  then
+    OOLITE_OWNER=`echo ${OOLITE_ROOT} | awk -F"/" '{print $3}'`
+    echo
+    echo "Error: You are running as root, but Oolite was installed to"
+    echo "       user \"${OOLITE_OWNER}\" home directory."
+    echo "       If you're using sudo, you don't need it this time."
+    exit ${ERROR_CODE_UNINSTALL_FAILED}
+  fi
+fi
+
+
+# Remove Oolite
+rm_rc=0   # Initialize (r)e(m)ove (r)eturn (c)ode counter
+cd ${OOLITE_ROOT}
+
+# Remove Oolite menu
+xdg-desktop-menu uninstall --novendor --mode ${DESKTOP_MODE} oolite.org.desktop 1> /dev/null 2> /dev/null
+xdg-icon-resource uninstall --novendor --mode ${DESKTOP_MODE} --size ${ICON_SIZE} oolite.org-icon.png 1> /dev/null 2> /dev/null
+
+# Only remove known files from oolite root and oolite startup scripts path
+rm -f release.txt 1> /dev/null 2> /dev/null	
+rm -f ${STARTUP_SCRIPTS_PATH}/oolite 1> /dev/null 2> /dev/null
+rm -f ${STARTUP_SCRIPTS_PATH}/oolite-update 1> /dev/null 2> /dev/null
+rm -f ${SELF_FILENAME}
+
+# Unconditionally remove FreeDesktop/ in case setup left it there
+rm -rf FreeDesktop/ 1> /dev/null 2> /dev/null
+
+# Unconditionally remove oolite-deps/ 
+rm -rf oolite-deps/ 1> /dev/null 2> /dev/null
+
+# Only remove known files from doc/ and 
+# delete doc/ if it is empty
+rm -f doc/AdviceForNewCommanders.pdf 1> /dev/null 2> /dev/null
+rm -f doc/CHANGELOG.TXT 1> /dev/null 2> /dev/null
+rm -f doc/OoliteReadMe.pdf 1> /dev/null 2> /dev/null
+rm -f doc/OoliteRS.pdf 1> /dev/null 2> /dev/null
+rm -f doc/README-PREAMBLE.TXT 1> /dev/null 2> /dev/null
+rm -f doc/README.TXT 1> /dev/null 2> /dev/null
+rmdir doc/ 1> /dev/null 2> /dev/null
+if [ $? -ne 0 ]
+then
+  rm_rc=$(($rm_rc+1)) 
+fi
+
+# Only remove add-on placed by setup and 
+# delete AddOns/ if it is empty
+rm -rf AddOns/Basic-debug.oxp/ 1> /dev/null 2> /dev/null
+rmdir AddOns/ 1> /dev/null 2> /dev/null
+if [ $? -ne 0 ]
+then
+  rm_rc=$(($rm_rc+1)) 
+fi
+
+# Only remove known files from oolite.app/ and 
+# unconditionally remove oolite.app/Resources/ and
+# delete oolite.app/ if it is empty
+rm -f oolite.app/oolite 1> /dev/null 2> /dev/null
+rm -f oolite.app/oolite-update 1> /dev/null 2> /dev/null
+rm -f oolite.app/oolite-wrapper 1> /dev/null 2> /dev/null
+rm -rf oolite.app/Resources/ 1> /dev/null 2> /dev/null
+rmdir oolite.app/ 1> /dev/null 2> /dev/null
+if [ $? -ne 0 ]
+then
+  rm_rc=$(($rm_rc+1))
+fi
+
+
+# Remove Oolite/ root folder if it is empty
+rmdir ${OOLITE_ROOT}/../Oolite/ 1> /dev/null 2> /dev/null
+if [ $? -ne 0 ]
+then
+  rm_rc=$(($rm_rc+1))
+fi
+
+echo "Done."
+
+
+# Finished uninstall!
+if [ $rm_rc -ne 0 ] 
+then
+  echo "Warning $rm_rc: Some folders could not be removed."
+fi
+
+# Exit with grace
+exit $rm_rc
+
