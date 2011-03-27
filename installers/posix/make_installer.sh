@@ -38,6 +38,7 @@ then
   trunk="-trunk"
   oolite_version=$oolite_version_extended
   dev_linux="-dev.linux"
+  noxterm="--nox11"   # If nightly, do NOT spawn an x11 terminal when installer is started from desktop
 else
   oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2}'`
   ver_rev=`echo $oolite_version_extended | cut -d '.' -f 3`
@@ -99,7 +100,7 @@ cp -p uninstall.source ../../${oolite_app}/.
 
 
 echo
-./makeself.sh --nox11 ../../${oolite_app} oolite${trunk}-${oolite_version}${dev_linux}.${cpu_architecture}.run "Oolite${trunk} ${oolite_version} " ./setup $oolite_version
+./makeself.sh ${noxterm} ../../${oolite_app} oolite${trunk}-${oolite_version}${dev_linux}.${cpu_architecture}.run "Oolite${trunk} ${oolite_version} " ./setup $oolite_version
 ms_rc=$?
 if [ $ms_rc -eq 0 ] 
 then 
