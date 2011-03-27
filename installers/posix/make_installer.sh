@@ -37,6 +37,7 @@ if [ "$4" = "nightly" ]
 then
   trunk="-trunk"
   oolite_version=$oolite_version_extended
+  dev_linux="-dev.linux"
 else
   oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2}'`
   ver_rev=`echo $oolite_version_extended | cut -d '.' -f 3`
@@ -86,19 +87,19 @@ tar zcf ../../${setup_root}/oolite.dtd.tar.gz DTDs --exclude .svn
 
 echo "Copying setup script..."
 cd ../../installers/posix/
-cat setup.header > setup
+cat setup.header > ../../${oolite_app}/setup
 if [ $trunk ] 
 then
-  echo "TRUNK=\"$trunk\"" >> setup
+  echo "TRUNK=\"$trunk\"" >> ../../${oolite_app}/setup
+  echo "UNATTENDED_INSTALLATION=1" >> ../../${oolite_app}/setup
 fi
-cat setup.body >> setup
-chmod +x setup
-cp -p setup ../../${oolite_app}/.
+cat setup.body >> ../../${oolite_app}/setup
+chmod +x ../../${oolite_app}/setup
 cp -p uninstall.source ../../${oolite_app}/.
 
 
 echo
-./makeself.sh ../../${oolite_app} oolite${trunk}-${oolite_version}.${cpu_architecture}.run "Oolite${trunk} ${oolite_version} " ./setup $oolite_version
+./makeself.sh --nox11 ../../${oolite_app} oolite${trunk}-${oolite_version}${dev_linux}.${cpu_architecture}.run "Oolite${trunk} ${oolite_version} " ./setup $oolite_version
 ms_rc=$?
 if [ $ms_rc -eq 0 ] 
 then 

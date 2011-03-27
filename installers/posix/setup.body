@@ -17,19 +17,22 @@ then
 else
   USER_CHOICES="[s/H]"
 fi
-read -p "Install Oolite${TRUNK} system-wide or in your home directory? ${USER_CHOICES} " CHOICE
-if [ ${USER_IS_ROOT} ]
+if [ ! ${UNATTENDED_INSTALLATION} ] 
 then
-  if [ "x$CHOICE" = "xh" ] || [ "x$CHOICE" = "xH" ]
+  read -p "Install Oolite${TRUNK} system-wide or in your home directory? ${USER_CHOICES} " CHOICE
+  if [ ${USER_IS_ROOT} ]
   then
-    echo "You cannot be root and install Oolite${TRUNK} in your home directory."
-    exit 1
-  fi
-else
-  if [ "x$CHOICE" = "xs" ] || [ "x$CHOICE" = "xS" ]
-  then
-    echo "You must be root to install Oolite${TRUNK} system-wide."
-    exit 1
+    if [ "x$CHOICE" = "xh" ] || [ "x$CHOICE" = "xH" ]
+    then
+      echo "You cannot be root and install Oolite${TRUNK} in your home directory."
+      exit 1
+    fi
+  else
+    if [ "x$CHOICE" = "xs" ] || [ "x$CHOICE" = "xS" ]
+    then
+      echo "You must be root to install Oolite${TRUNK} system-wide."
+      exit 1
+    fi
   fi
 fi
 
