@@ -142,16 +142,19 @@ pkg-autopackage:
 #       update the "oolite.app/oolite-update" script to synchronize accordingly
 #       
 #       pkg-posix-debug:
-#	        installers/posix/make_installer.sh $(HOST_ARCH) $(VERSION) $(SVNREVISION) "debug"
+#	        installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "debug"
 #
 pkg-posix:
-	installers/posix/make_installer.sh $(HOST_ARCH) $(VERSION) $(SVNREVISION) "release-deployment"
+	installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "release-deployment" ""
 
 pkg-posix-test:
-	installers/posix/make_installer.sh $(HOST_ARCH) $(VERSION) $(SVNREVISION) "release"
+	installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "release" ""
 
 pkg-posix-snapshot:
-	installers/posix/make_installer.sh $(HOST_ARCH) $(VERSION) $(SVNREVISION) "release-snapshot"
+	installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "release-snapshot" ""
+
+pkg-posix-nightly:
+	installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "release-snapshot" "nightly"
 
 # Here are our Debian packager targets
 #
@@ -223,19 +226,18 @@ help:
 	@echo
 	@echo "Packaging Targets:"
 	@echo " Linux (debian):"
-	@echo "  pkg-autopackage     - builds a Linux autopackage"
-	@echo
 	@echo "  pkg-deb             - builds a release Debian package"
 	@echo "  pkg-debtest         - builds a test release Debian package"
 	@echo "  pkg-debsnapshot     - builds a snapshot release Debian package"
 	@echo "  pkg-debclean        - cleans up after a Debian package build"
 	@echo
 	@echo " POSIX (e.g. FreeBSD, Linux etc.):"
-	@echo "  pkg-autopackage     - builds a Linux autopackage"
+	@echo "  pkg-autopackage     - builds an autopackage (http://autopackage.org) package"
 	@echo
 	@echo "  pkg-posix           - builds a release self-extracting package"
 	@echo "  pkg-posix-test      - builds a test release self-extracting package"
 	@echo "  pkg-posix-snapshot  - builds a snapshot release self-extracting package"
+	@echo "  pkg-posix-nightly   - builds a snapshot release self-extracting package for the nightly build"
 	@echo
 	@echo " Windows Installer:"
 	@echo "  pkg-win             - builds a test-release version"

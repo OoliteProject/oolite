@@ -18,7 +18,7 @@ then
   USER_IS_ROOT=1
 fi
 
-echo -n "Removing Oolite from \"${OOLITE_ROOT}\"... "
+echo -n "Removing Oolite${TRUNK} from \"${OOLITE_ROOT}\"... "
 
 # Check if we are OK to proceed with removal
 if [ ${SYSTEM_WIDE} ]
@@ -26,7 +26,7 @@ then
   if [ ! ${USER_IS_ROOT} ]
   then
     echo
-    echo "Error: Oolite was installed by root, so you must be root to uninstall it."
+    echo "Error: Oolite${TRUNK} was installed by root, so you must be root to uninstall it."
     exit ${ERROR_CODE_UNINSTALL_FAILED}
   fi
 else
@@ -34,7 +34,7 @@ else
   then
     OOLITE_OWNER=`echo ${OOLITE_ROOT} | awk -F"/" '{print $3}'`
     echo
-    echo "Error: You are running as root, but Oolite was installed to"
+    echo "Error: You are running as root, but Oolite${TRUNK} was installed to"
     echo "       user \"${OOLITE_OWNER}\" home directory."
     echo "       If you're using sudo, you don't need it this time."
     exit ${ERROR_CODE_UNINSTALL_FAILED}
@@ -47,14 +47,13 @@ rm_rc=0   # Initialize (r)e(m)ove (r)eturn (c)ode counter
 cd ${OOLITE_ROOT}
 
 # Remove Oolite menu
-xdg-desktop-menu uninstall --novendor --mode ${DESKTOP_MODE} oolite.org.desktop 1> /dev/null 2> /dev/null
-xdg-icon-resource uninstall --novendor --mode ${DESKTOP_MODE} --size ${ICON_SIZE} oolite.org-icon.png 1> /dev/null 2> /dev/null
+xdg-desktop-menu uninstall --novendor --mode ${DESKTOP_MODE} oolite${TRUNK}.org.desktop 1> /dev/null 2> /dev/null
+xdg-icon-resource uninstall --novendor --mode ${DESKTOP_MODE} --size ${ICON_SIZE} oolite${TRUNK}.org-icon.png 1> /dev/null 2> /dev/null
 
 # Only remove known files from oolite root and oolite startup scripts path
 rm -f release.txt 1> /dev/null 2> /dev/null	
-rm -f ${STARTUP_SCRIPTS_PATH}/oolite 1> /dev/null 2> /dev/null
-rm -f ${STARTUP_SCRIPTS_PATH}/oolite-update 1> /dev/null 2> /dev/null
-rm -f ${SELF_FILENAME}
+rm -f ${STARTUP_SCRIPTS_PATH}/oolite${TRUNK} 1> /dev/null 2> /dev/null
+rm -f ${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}-update 1> /dev/null 2> /dev/null
 
 # Unconditionally remove FreeDesktop/ in case setup left it there
 rm -rf FreeDesktop/ 1> /dev/null 2> /dev/null
@@ -98,9 +97,11 @@ then
   rm_rc=$(($rm_rc+1))
 fi
 
+# Remove uninstall script
+rm -f ${SELF_FILENAME}
 
 # Remove Oolite/ root folder if it is empty
-rmdir ${OOLITE_ROOT}/../Oolite/ 1> /dev/null 2> /dev/null
+rmdir ${OOLITE_ROOT}/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
   rm_rc=$(($rm_rc+1))

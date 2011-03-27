@@ -5,6 +5,11 @@
 # Original by Konstantinos Sykas <ksykas@gmail.com> (26-Mar-2011)
 #
 #        Type: shell script
+#  Parameters: $1 - architecture (i.e. x86 or x86_64)
+#              $2 - version with format maj.min.rev.svnrevision (e.g. 1.75.2.4492)
+#              $3 - build mode (e.g. release, release-snapshot etc.)
+#              $4 - (optional) defines a nightly build. All optional parameters 
+#                   must follow after the mandatory parameters
 # Description: Wrapper script for "makeself.sh". Prepares a clean build and 
 #              generates the tarballs (e.g. docs, icons, libraries) to be 
 #              packaged by "makeself.sh".
@@ -12,7 +17,7 @@
 
 
 make_rc=0
-build_mode=$4
+build_mode=$3
 if [ "$build_mode" = "release-deployment" ] 
 then
   make -f Makefile distclean   # force libraries clean build
@@ -26,12 +31,20 @@ then
    exit $make_rc
 fi
 
-cpu_architecture=x86
-if [ "$1" = "x86_64" ]; then
-   cpu_architecture=x86_64
+cpu_architecture=$1
+oolite_version_extended=$2
+if [ "$4" = "nightly" ]
+then
+  trunk="-trunk"
+  oolite_version=$oolite_version_extended
+else
+  oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2}'`
+  ver_rev=`echo $oolite_version_extended | cut -d '.' -f 3`
+  if [ $ver_rev -ne 0 ]
+  then
+    oolite_version=${oolite_version}"."${ver_rev}
+  fi
 fi
-oolite_version=$2
-oolite_version_extended=${oolite_version}"."$3
 oolite_app=oolite.app
 setup_root=${oolite_app}/oolite.installer.tmp
 
@@ -73,12 +86,19 @@ tar zcf ../../${setup_root}/oolite.dtd.tar.gz DTDs --exclude .svn
 
 echo "Copying setup script..."
 cd ../../installers/posix/
+cat setup.header > setup
+if [ $trunk ] 
+then
+  echo "TRUNK=\"$trunk\"" >> setup
+fi
+cat setup.body >> setup
+chmod +x setup
 cp -p setup ../../${oolite_app}/.
 cp -p uninstall.source ../../${oolite_app}/.
 
 
 echo
-./makeself.sh ../../${oolite_app} oolite-${oolite_version}.${cpu_architecture}.run "Oolite ${oolite_version} " ./setup $oolite_version
+./makeself.sh ../../${oolite_app} oolite${trunk}-${oolite_version}.${cpu_architecture}.run "Oolite${trunk} ${oolite_version} " ./setup $oolite_version
 ms_rc=$?
 if [ $ms_rc -eq 0 ] 
 then 

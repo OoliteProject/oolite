@@ -1,18 +1,6 @@
-#!/bin/sh
-
-
-# 
-# Original by Konstantinos Sykas <ksykas@gmail.com> (26-Mar-2011)
-#
-#        Type: shell script
-# Description: The Oolite installation script, executed following the package self-extraction. 
-# 
-
-
-# Environment vars init part 1 of 2
 OOLITE_VERSION=$1
 INSTALL_ROOT=""
-OOLITE_ROOT_NAME="Oolite"   # Redefined with full path later in this script
+OOLITE_ROOT_NAME="Oolite${TRUNK}"   # Redefined with full path later in this script
 STARTUP_SCRIPTS_PATH_SYSTEMWIDE="/usr/local/bin"
 INSTALL_ROOT_SYSTEMWIDE="/opt"
 ERROR_CODE_UNINSTALL_FAILED=111   # arbitrary error code to detect if uninstall did nothing
@@ -29,18 +17,18 @@ then
 else
   USER_CHOICES="[s/H]"
 fi
-read -p "Install Oolite system-wide or in your home directory? ${USER_CHOICES} " CHOICE
+read -p "Install Oolite${TRUNK} system-wide or in your home directory? ${USER_CHOICES} " CHOICE
 if [ ${USER_IS_ROOT} ]
 then
   if [ "x$CHOICE" = "xh" ] || [ "x$CHOICE" = "xH" ]
   then
-    echo "You cannot be root and install Oolite in your home directory."
+    echo "You cannot be root and install Oolite${TRUNK} in your home directory."
     exit 1
   fi
 else
   if [ "x$CHOICE" = "xs" ] || [ "x$CHOICE" = "xS" ]
   then
-    echo "You must be root to install Oolite system-wide."
+    echo "You must be root to install Oolite${TRUNK} system-wide."
     exit 1
   fi
 fi
@@ -79,7 +67,7 @@ SELF_FILENAME=$(basename $0)
 
 # Uninstall if possible the system-wide installation
 ${INSTALL_ROOT_SYSTEMWIDE}/${OOLITE_ROOT_NAME}/uninstall 2> /dev/null
-if [ $? -eq 111 ]
+if [ $? -eq ${ERROR_CODE_UNINSTALL_FAILED} ]
 then
   exit 1
 fi
@@ -89,7 +77,7 @@ ${OOLITE_ROOT}/uninstall 2> /dev/null
 
 
 # Start installation
-echo "Installing Oolite in \"${OOLITE_ROOT}\"..."
+echo "Installing Oolite${TRUNK} in \"${OOLITE_ROOT}\"..."
 
 
 # Generate Oolite root directory and
@@ -103,6 +91,10 @@ cd ${OOLITE_ROOT}
 echo "#!/bin/sh" > uninstall
 echo >> uninstall
 echo >> uninstall
+if [ ${TRUNK} ] 
+then 
+  echo "TRUNK=\"${TRUNK}\"" >> uninstall
+fi
 echo "OOLITE_ROOT=${OOLITE_ROOT}" >> uninstall
 echo "STARTUP_SCRIPTS_PATH=${STARTUP_SCRIPTS_PATH}" >> uninstall
 echo "DESKTOP_MODE=\"${DESKTOP_MODE}\"" >> uninstall
@@ -162,14 +154,14 @@ mv ${INSTALLER_REPOS}/release.txt .
 
 # Generate startup scripts
 cd ${STARTUP_SCRIPTS_PATH}
-echo "#!/bin/sh" > oolite
-echo "${OOLITEAPP_PATH}/oolite-wrapper \$@" >> oolite
-echo "exit \$?" >> oolite
-chmod +x oolite
-echo "#!/bin/sh" > oolite-update
-echo "${OOLITEAPP_PATH}/oolite-update \$@" >> oolite-update
-echo "exit \$?" >> oolite-update
-chmod +x oolite-update
+echo "#!/bin/sh" > oolite${TRUNK}
+echo "${OOLITEAPP_PATH}/oolite-wrapper \$@" >> oolite${TRUNK}
+echo "exit \$?" >> oolite${TRUNK}
+chmod +x oolite${TRUNK}
+echo "#!/bin/sh" > oolite${TRUNK}-update
+echo "${OOLITEAPP_PATH}/oolite-update \$@" >> oolite${TRUNK}-update
+echo "exit \$?" >> oolite${TRUNK}-update
+chmod +x oolite${TRUNK}-update
 
 # Generate oolite wrapper script
 cd ${OOLITEAPP_PATH}
@@ -178,6 +170,7 @@ rm ${INSTALLER_REPOS}/oolite.wrap.tar.gz
 # Generate a thick oolite wrapper script as well as
 # the oolite-update script
 echo "#!/bin/sh" > oolite-wrapper
+echo "TRUNK=\"${TRUNK}\"" >> oolite-wrapper
 echo "OOLITE_ROOT=${OOLITE_ROOT}" >> oolite-wrapper
 cat oolite.src >> oolite-wrapper
 rm oolite.src
@@ -185,6 +178,12 @@ chmod +x oolite-wrapper
 
 # Generate oolite update script
 echo "#!/bin/sh" > oolite-update
+echo "TRUNK=\"${TRUNK}\"" >> oolite-update
+echo "SELF_PACKAGER=1" >> oolite-update   # Just to keep compatibility with autopackage script
+if [ $USER_IS_ROOT ]
+then
+  echo "SYSTEM_WIDE=1" >> oolite-update
+fi
 echo "OOLITE_ROOT=${OOLITE_ROOT}" >> oolite-update
 cat oolite-update.src >> oolite-update
 rm oolite-update.src
@@ -199,49 +198,45 @@ rm ${INSTALLER_REPOS}/freedesktop.tar.gz
 
 cd FreeDesktop
 
-if [ ! ${USER_IS_ROOT} ]
-then
-  awk -v var="Exec=${OOLITE_ROOT}/oolite" '{ gsub(/Exec=oolite/,var,$0); print  }' oolite.desktop >oolite.desktop.tmp
-  mv oolite.desktop.tmp oolite.desktop
-fi
-
 # Ensure no desktop menu conflict with Linux repos oolite installation
-awk -v var="Icon=oolite.org-icon" '{  gsub(/Icon=oolite-icon/,var,$0); print  }' oolite.desktop > oolite.desktop.tmp
+awk -v var="Exec=${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}" '{ gsub(/Exec=oolite/,var,$0); print  }' oolite.desktop > oolite.desktop.tmp
 mv oolite.desktop.tmp oolite.desktop
-awk -v var="Name=Oolite (oolite.org)" '{  gsub(/Name=Oolite/,var,$0); print  }' oolite.desktop > oolite.desktop.tmp
+awk -v var="Icon=oolite${TRUNK}.org-icon" '{  gsub(/Icon=oolite-icon/,var,$0); print  }' oolite.desktop > oolite.desktop.tmp
 mv oolite.desktop.tmp oolite.desktop
-mv oolite.desktop oolite.org.desktop
-mv oolite-icon.png oolite.org-icon.png
-xdg-desktop-menu install --novendor --mode ${DESKTOP_MODE} oolite.org.desktop 1> /dev/null 2> /dev/null
+awk -v var="Name=Oolite${TRUNK} (oolite.org)" '{  gsub(/Name=Oolite/,var,$0); print  }' oolite.desktop > oolite.desktop.tmp
+mv oolite.desktop.tmp oolite${TRUNK}.org.desktop
+rm oolite.desktop
+mv oolite-icon.png oolite${TRUNK}.org-icon.png
+xdg-desktop-menu install --novendor --mode ${DESKTOP_MODE} oolite${TRUNK}.org.desktop 1> /dev/null 2> /dev/null
 desktop_rc=$?
 if [ $desktop_rc -eq 0 ]
 then
-  rm oolite.org.desktop
-  xdg-icon-resource install --novendor --mode ${DESKTOP_MODE} --size ${ICON_SIZE} oolite.org-icon.png 1> /dev/null 2> /dev/null
+  rm oolite${TRUNK}.org.desktop
+  xdg-icon-resource install --novendor --mode ${DESKTOP_MODE} --size ${ICON_SIZE} oolite${TRUNK}.org-icon.png 1> /dev/null 2> /dev/null
   icon_rc=$?
   if [ $icon_rc -eq 3 ] || [ $icon_rc -eq 4 ] || [ $icon_rc -eq 127 ]
   then
     echo
-    echo "Warning $icon_rc: xdg-utils not properly installed. Oolite icon cannot be installed."
+    echo "Warning $icon_rc: xdg-utils not properly installed. Oolite${TRUNK} icon cannot be installed."
   else
     if [ $icon_rc -eq 1 ] || [ $icon_rc -eq 2 ] || [ $icon_rc -eq 5 ]
     then
       echo
-      echo "Warning $icon_rc: oolite.org-icon.png not found. Please report this as a broken package."
+      echo "Warning $icon_rc: oolite${TRUNK}.org-icon.png not found. Please report this as a broken package."
     else
-      rm oolite.org-icon.png
+      rm oolite${TRUNK}.org-icon.png
     fi
   fi
 else
   if [ $desktop_rc -eq 3 ] || [ $desktop_rc -eq 4 ] || [ $desktop_rc -eq 127 ]
   then
     echo
-    echo "Warning ${desktop_rc}: xdg-utils not properly installed. Oolite desktop menu cannot be installed."
+    echo "Warning ${desktop_rc}: xdg-utils not properly installed. Oolite${TRUNK} desktop menu cannot be installed."
   else
     if [ $desktop_rc -eq 1 ] || [ $desktop_rc -eq 2 ] || [ $desktop_rc -eq 5 ]
     then
       echo
-      echo "Warning ${desktop_rc}: oolite.org.desktop not found. Please report this as a broken package."
+      echo "Warning ${desktop_rc}: oolite${TRUNK}.org.desktop not found. Please report this as a broken package."
     fi
   fi
 fi
@@ -288,10 +283,10 @@ echo "Finished!"
 echo
 if [ $desktop_rc -eq 0 ]
 then
-  echo "A desktop menu entry \"Oolite (oolite.org)\" has been added under Games."
+  echo "A desktop menu entry \"Oolite${TRUNK} (oolite.org)\" has been added under Games."
 fi
-echo "To start Oolite from a shell, run \"${STARTUP_SCRIPTS_PATH}/oolite\"."
-echo "To uninstall Oolite, run \"${OOLITE_ROOT}/uninstall\"."
+echo "To start Oolite${TRUNK} from a shell, run \"${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}\"."
+echo "To uninstall Oolite${TRUNK}, run \"${OOLITE_ROOT}/uninstall\"."
 echo
 
 # Exit with grace!
