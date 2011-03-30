@@ -4729,7 +4729,8 @@ static bool minShieldLevelPercentageInitialised = false;
 	else
 		compassMode = COMPASS_MODE_BASIC;
 	
-	if ( ![self wormhole] ) {
+	if ( ![self wormhole] && !galactic_witchjump)	// galactic hyperspace does not generate a wormhole
+	{
 		OOLog(kOOLogInconsistentState, @"Internal Error : Player entering witchspace with no wormhole.");
 	}
 	[UNIVERSE allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];

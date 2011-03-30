@@ -57,6 +57,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 #import "PlayerEntityContracts.h"
+#import "PlayerEntityScriptMethods.h"
 #import "StationEntity.h"
 #import "SkyEntity.h"
 #import "DustEntity.h"
@@ -5895,7 +5896,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
 	Random_Seed s_seed = [self systemSeedForSystemNumber:pnum];
-	BOOL sameGalaxy = ([overrideKey isEqualToString:[self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed: galaxy_seed]]);
+	BOOL sameGalaxy = (gnum == [PLAYER currentGalaxyID]);
 	BOOL sameSystem = (sameGalaxy && equal_seeds([self systemSeed], s_seed));
 	NSDictionary *sysInfo = nil;
 	
@@ -5989,9 +5990,8 @@ static NSDictionary	*sCachedSystemData = nil;
 
 - (NSDictionary *) generateSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum
 {
-	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
 	Random_Seed s_seed = [self systemSeedForSystemNumber:pnum];
-	BOOL sameGalaxy = [overrideKey isEqualToString:[self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed: galaxy_seed]];
+	BOOL sameGalaxy = (gnum == [PLAYER currentGalaxyID]);
 	
 	if (sameGalaxy)
 	{
