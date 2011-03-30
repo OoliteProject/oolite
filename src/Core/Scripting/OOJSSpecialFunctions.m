@@ -27,9 +27,6 @@ MA 02110-1301, USA.
 #import "OOJSSpecialFunctions.h"
 
 
-static JSObject		*sSpecialFunctionsObject;
-
-
 static JSBool SpecialJSWarning(JSContext *context, uintN argc, jsval *vp);
 #ifndef NDEBUG
 static JSBool SpecialMarkConsoleEntryPoint(JSContext *context, uintN argc, jsval *vp);
@@ -49,23 +46,30 @@ static JSFunctionSpec sSpecialFunctionsMethods[] =
 
 void InitOOJSSpecialFunctions(JSContext *context, JSObject *global)
 {
-	sSpecialFunctionsObject = JS_NewObject(context, NULL, NULL, NULL);
-	OOJSAddGCObjectRoot(context, &sSpecialFunctionsObject, "OOJSSpecialFunctions");
-	JS_DefineFunctions(context, sSpecialFunctionsObject, sSpecialFunctionsMethods);
-	
-	JS_FreezeObject(context, sSpecialFunctionsObject);
-}
-
-
-JSObject *JSSpecialFunctionsObject(void)
-{
-	return sSpecialFunctionsObject;
 }
 
 
 OOJSValue *JSSpecialFunctionsObjectWrapper(JSContext *context)
 {
-	return [OOJSValue valueWithJSObject:JSSpecialFunctionsObject() inContext:context];
+	/*
+		Special object is created on the fly so it can be GCed (the debug
+		console script keeps a reference to its copy, but the prefix script
+		doesn't) and so we don't need to clean up a root on JS engine reset.
+		-- Ahruman 2011-03-30
+	*/
+	
+	JSObject *special = NULL;
+	OOJSAddGCObjectRoot(context, &special, "OOJSSpecialFunctions");
+	
+	special = JS_NewObject(context, NULL, NULL, NULL);
+	JS_DefineFunctions(context, special, sSpecialFunctionsMethods);
+	JS_FreezeObject(context, special);
+	
+	OOJSValue *result = [OOJSValue valueWithJSObject:special inContext:context];
+	
+	JS_RemoveObjectRoot(context, &special);
+	
+	return result;
 }
 
 

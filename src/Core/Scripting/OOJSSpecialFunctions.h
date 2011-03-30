@@ -34,5 +34,4 @@ MA 02110-1301, USA.
 
 
 void InitOOJSSpecialFunctions(JSContext *context, JSObject *global);
-JSObject *JSSpecialFunctionsObject(void);
 OOJSValue *JSSpecialFunctionsObjectWrapper(JSContext *context);
