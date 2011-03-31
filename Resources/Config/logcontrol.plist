@@ -311,11 +311,17 @@
 	
 	script.plist.run.badTarget				= $error;
 	
-	script.trace							= no;
-	script.trace.runWorld					= inherit;
-	script.trace.plist.run					= inherit;
-	script.trace.javaScript.call			= inherit;				// Prints selector and parameter string on foo.callObjC()
-	script.trace.javaScript.event			= inherit;				// Log event handler calls.
+	/*
+		"Trace" events for legacy and JavaScript scripts. These indicate when
+		a JavaScript method or legacy script is called by the game, and should
+		not be confused with the confusingly-names script.debug.trace (which
+		shows the precise sequence of commands issued by legacy scripts) or
+		the JavaScript trace facility (part of the Debug OXP).
+	*/
+	script.trace.legacy						= no;
+	script.trace.legacy.runWorld			= inherit;
+	script.trace.legacy.plist.run			= inherit;
+	script.trace.javaScript					= no;
 	
 	script.deprecated.scriptActionOnTarget	= $scriptError;			// Warning not to use scriptActionOnTarget:
 	

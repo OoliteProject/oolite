@@ -334,8 +334,8 @@ static BOOL sRunningScript = NO;
 	[self setScriptTarget:self];
 	
 	OOLogPushIndent();
-	OOLog(@"script.trace.runWorld", @"----- Running world script with state %@", [self status_string]);
-	OOLogIndentIf(@"script.trace.runWorld");
+	OOLog(@"script.trace.legacy.runWorld", @"----- Running world script with state %@", [self status_string]);
+	OOLogIndentIf(@"script.trace.legacy.runWorld");
 	
 	/*	World scripts can potentially be invoked recursively, through
 		scriptActionOnTarget: and possibly other mechanisms. This is bad, but
@@ -366,11 +366,11 @@ static BOOL sRunningScript = NO;
 			[self setStatus:status];
 			if (RecursiveRemapStatus(status) != restoreStatus)
 			{
-				OOLog(@"script.trace.runWorld.recurse.lying", @"----- Running world script recursively and temporarily changing player status from %@ to %@.", OOStringFromEntityStatus(restoreStatus), OOStringFromEntityStatus(status));
+				OOLog(@"script.trace.legacy.runWorld.recurse.lying", @"----- Running world script recursively and temporarily changing player status from %@ to %@.", OOStringFromEntityStatus(restoreStatus), OOStringFromEntityStatus(status));
 			}
 			else
 			{
-				OOLog(@"script.trace.runWorld.recurse", @"----- Running world script recursively.", OOStringFromEntityStatus(restoreStatus), OOStringFromEntityStatus(status));
+				OOLog(@"script.trace.legacy.runWorld.recurse", @"----- Running world script recursively.", OOStringFromEntityStatus(restoreStatus), OOStringFromEntityStatus(status));
 			}
 		}
 		sRunningScript = YES;
