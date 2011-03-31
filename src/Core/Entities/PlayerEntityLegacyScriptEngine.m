@@ -400,7 +400,6 @@ static BOOL sRunningScript = NO;
 	// FIXME: does this actually make sense in the context of non-missions?
 	oldMissionKey = sCurrentMissionKey;
 	sCurrentMissionKey = theMissionKey;
-	[self setScriptTarget:target];
 	
 	NS_DURING
 		PerformScriptActions(actions, target);
