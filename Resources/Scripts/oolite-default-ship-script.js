@@ -39,8 +39,8 @@ this.description	= "Standard script for ships.";
 this.version		= "1.75.2";
 
 
-// launch_actions handled on shipSpawned().
-if (this.legacy_launchActions !== undefined)
+// launch_actions handled on shipSpawned(). For parity with 1.65, launch_actions don’t fire for the main station.
+if (this.legacy_launchActions !== undefined && this !== system.mainStation)
 {
 	this.shipSpawned = function ()
 	{
