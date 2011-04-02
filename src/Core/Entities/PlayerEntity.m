@@ -4666,7 +4666,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	[[OOMusicController sharedController] stop];
 
-	ship_clock_adjust = 600.0;			// 10 minutes to leave dock
+	ship_clock_adjust += 600.0;			// 10 minutes to leave dock
 	
 	[station launchShip:self];
 
@@ -5001,7 +5001,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
 	double distance = distanceBetweenPlanetPositions(sTo.d,sTo.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	ship_clock_adjust = distance * distance * (misjump ? 2700.0 : 3600.0);	// LY * LY hrs - misjumps take 3/4 time of the full jump, they're not the same as a jump of half the length!
+	ship_clock_adjust += distance * distance * (misjump ? 2700.0 : 3600.0);	// LY * LY hrs - misjumps take 3/4 time of the full jump, they're not the same as a jump of half the length!
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
 	
@@ -7452,7 +7452,7 @@ static NSString *last_outfitting_key=nil;
 	// one of the fined-@-credits strings includes expansion tokens
 	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(DESC(@"fined-@-credits")), OOCredits(fine)];
 	[self addMessageToReport:fined_message];
-	ship_clock_adjust = 24 * 3600;	// take up a day
+	ship_clock_adjust += 24 * 3600;	// take up a day
 }
 
 
