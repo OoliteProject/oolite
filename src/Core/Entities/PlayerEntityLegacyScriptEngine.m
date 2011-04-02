@@ -2181,9 +2181,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			}
 		}
 	}
-	// ships need to be released after their AIs makes them jump away.
-	//for (i = 0; i < ent_count; i++)
-	//	[my_entities[i] release];		//	released
+	
+	for (i = 0; i < ent_count; i++)
+	{
+		[my_entities[i] release];		//	released
+	}
 }
 
 
