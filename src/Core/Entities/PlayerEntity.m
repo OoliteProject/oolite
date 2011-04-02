@@ -4186,6 +4186,15 @@ static bool minShieldLevelPercentageInitialised = false;
 	flightPitch = 0.2f * (randf() - 0.5f);
 	flightRoll = 0.2f * (randf() - 0.5f);
 	
+	/*	Add an impulse upwards and backwards to the escape pod. This avoids
+		flying straight through the doppelganger in interstellar space or when
+		facing the main station/escape target, and generally looks cool.
+		-- Ahruman 2011-04-02
+	*/
+	Vector launchVector = vector_add(vector_multiply_scalar(v_up, 60.0f),
+									 vector_multiply_scalar(v_forward, -10.0f));
+	[self adjustVelocity:launchVector];
+	
 	float sheight = (float)(boundingBox.max.y - boundingBox.min.y);
 	position = vector_subtract(position, vector_multiply_scalar(v_up, sheight));
 	
