@@ -4947,6 +4947,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[self addScannedWormhole:wormhole];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("wormhole"));
+	if ([self scriptedMisjump]) misjump = YES; // a script could just have changed this to true;
 	[self witchJumpTo:[w_hole destination] misjump:misjump];
 }
 
