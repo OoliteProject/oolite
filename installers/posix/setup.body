@@ -1,8 +1,23 @@
+
+# 
+# Original by Konstantinos Sykas <ksykas@gmail.com> (26-Mar-2011)
+#
+#        Type: shell script
+# Description: The Oolite installation script, executed following the package self-extraction. 
+# 
+# 2011-04-03: Updated to facilitate rsync repository setup for oolite-update script
+# 
+
+
+# Environment vars init part 1 of 2
 OOLITE_VERSION=$1
 INSTALL_ROOT=""
-OOLITE_ROOT_NAME="Oolite${TRUNK}"   # Redefined with full path later in this script
-STARTUP_SCRIPTS_PATH_SYSTEMWIDE="/usr/local/bin"
+OOLITE_ROOT_NAME="Oolite${TRUNK}"
+OOLITEAPP_NAME="oolite.app"
 INSTALL_ROOT_SYSTEMWIDE="/opt"
+INSTALL_ROOT_USERHOME="GNUstep/Applications"   # CAUTION! Depending on the usage, this should be sometimes manually pre-pended with $HOME/
+STARTUP_SCRIPTS_PATH_SYSTEMWIDE="/usr/local/bin"
+STARTUP_SCRIPTS_PATH_USERHOME="${INSTALL_ROOT_USERHOME}/${OOLITE_ROOT_NAME}"   # CAUTION! Depending on the usage, this should be sometimes manually pre-pended with $HOME/
 ERROR_CODE_UNINSTALL_FAILED=111   # arbitrary error code to detect if uninstall did nothing
                                   # NOTE: also used in uninstall[.source] script
 
@@ -45,12 +60,12 @@ then
   STARTUP_SCRIPTS_PATH=${STARTUP_SCRIPTS_PATH_SYSTEMWIDE}
   DESKTOP_MODE="system"
 else
-  INSTALL_ROOT="$HOME/GNUstep/Applications"
-  STARTUP_SCRIPTS_PATH=${INSTALL_ROOT}/${OOLITE_ROOT_NAME}
+  INSTALL_ROOT=$HOME/${INSTALL_ROOT_USERHOME}
+  STARTUP_SCRIPTS_PATH=$HOME/${STARTUP_SCRIPTS_PATH_USERHOME}
   DESKTOP_MODE="user"
 fi
 OOLITE_ROOT=${INSTALL_ROOT}/${OOLITE_ROOT_NAME}
-OOLITEAPP_PATH=${OOLITE_ROOT}/oolite.app
+OOLITEAPP_PATH=${OOLITE_ROOT}/${OOLITEAPP_NAME}
 INSTALLER_REPOS=${OOLITEAPP_PATH}/oolite.installer.tmp
 SELF_PATH=$(cd $(dirname $0); pwd -P)
 SELF_FILENAME=$(basename $0)
@@ -72,7 +87,7 @@ SELF_FILENAME=$(basename $0)
 ${INSTALL_ROOT_SYSTEMWIDE}/${OOLITE_ROOT_NAME}/uninstall 2> /dev/null
 if [ $? -eq ${ERROR_CODE_UNINSTALL_FAILED} ]
 then
-  exit 1
+  exit ${ERROR_CODE_UNINSTALL_FAILED}
 fi
 
 # Uninstall user's instalation
@@ -98,15 +113,13 @@ if [ ${TRUNK} ]
 then 
   echo "TRUNK=\"${TRUNK}\"" >> uninstall
 fi
-echo "OOLITE_ROOT=${OOLITE_ROOT}" >> uninstall
-echo "STARTUP_SCRIPTS_PATH=${STARTUP_SCRIPTS_PATH}" >> uninstall
-echo "DESKTOP_MODE=\"${DESKTOP_MODE}\"" >> uninstall
+echo "OOLITE_ROOT_NAME=\"${OOLITE_ROOT_NAME}\"" >> uninstall
+echo "INSTALL_ROOT_SYSTEMWIDE=\"${INSTALL_ROOT_SYSTEMWIDE}\"" >> uninstall
+echo "INSTALL_ROOT_USERHOME=\"${INSTALL_ROOT_USERHOME}\"" >> uninstall
+echo "STARTUP_SCRIPTS_PATH_SYSTEMWIDE=\"${STARTUP_SCRIPTS_PATH_SYSTEMWIDE}\"" >> uninstall
+echo "STARTUP_SCRIPTS_PATH_USERHOME=\"${STARTUP_SCRIPTS_PATH_USERHOME}\"" >> uninstall
 echo "ICON_SIZE=\"${ICON_SIZE}\"" >> uninstall
 echo "ERROR_CODE_UNINSTALL_FAILED=${ERROR_CODE_UNINSTALL_FAILED}" >> uninstall
-if [ $USER_IS_ROOT ]
-then
-  echo "SYSTEM_WIDE=1" >> uninstall
-fi
 cat ${OOLITEAPP_PATH}/uninstall.source >> uninstall
 rm -f ${OOLITEAPP_PATH}/uninstall.source
 chmod +x uninstall
@@ -129,7 +142,7 @@ cd ${OOLITE_ROOT}/doc
 tar zxf ${INSTALLER_REPOS}/oolite.doc.tar.gz
 rm ${INSTALLER_REPOS}/oolite.doc.tar.gz
 echo "This is the first time you've run the game. Here is the README file -" > README-PREAMBLE.TXT
-echo "more docs can be found at ${OOLITE_ROOT}/doc/" >> README-PREAMBLE.TXT
+echo "more docs can be found at ${OOLITE_ROOT_NAME}/doc/" >> README-PREAMBLE.TXT
 echo "Press q to exit this document and launch the game" >> README-PREAMBLE.TXT
 echo >> README-PREAMBLE.TXT
 echo "Done."
@@ -173,21 +186,22 @@ rm ${INSTALLER_REPOS}/oolite.wrap.tar.gz
 # Generate a thick oolite wrapper script as well as
 # the oolite-update script
 echo "#!/bin/sh" > oolite-wrapper
+echo >> oolite-wrapper
+echo >> oolite-wrapper
 echo "TRUNK=\"${TRUNK}\"" >> oolite-wrapper
-echo "OOLITE_ROOT=${OOLITE_ROOT}" >> oolite-wrapper
 cat oolite.src >> oolite-wrapper
 rm oolite.src
 chmod +x oolite-wrapper
 
 # Generate oolite update script
 echo "#!/bin/sh" > oolite-update
+echo >> oolite-update
+echo >> oolite-update
 echo "TRUNK=\"${TRUNK}\"" >> oolite-update
 echo "SELF_PACKAGER=1" >> oolite-update   # Just to keep compatibility with autopackage script
-if [ $USER_IS_ROOT ]
-then
-  echo "SYSTEM_WIDE=1" >> oolite-update
-fi
-echo "OOLITE_ROOT=${OOLITE_ROOT}" >> oolite-update
+echo "OOLITE_ROOT_NAME=\"${OOLITE_ROOT_NAME}\"" >> oolite-update
+echo "INSTALL_ROOT_SYSTEMWIDE=\"${INSTALL_ROOT_SYSTEMWIDE}\"" >> oolite-update
+echo "INSTALL_ROOT_USERHOME=\"${INSTALL_ROOT_USERHOME}\"" >> oolite-update
 cat oolite-update.src >> oolite-update
 rm oolite-update.src
 chmod +x oolite-update
@@ -288,7 +302,14 @@ if [ $desktop_rc -eq 0 ]
 then
   echo "A desktop menu entry \"Oolite${TRUNK} (oolite.org)\" has been added under Games."
 fi
-echo "To start Oolite${TRUNK} from a shell, run \"${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}\"."
+echo -n "To start Oolite${TRUNK} from a shell, "
+# check PATH
+if [ "`which oolite${TRUNK}`" = "${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}" ]
+then
+  echo "run \"oolite${TRUNK}\"."
+else
+  echo "run \"${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}\"."
+fi
 echo "To uninstall Oolite${TRUNK}, run \"${OOLITE_ROOT}/uninstall\"."
 echo
 

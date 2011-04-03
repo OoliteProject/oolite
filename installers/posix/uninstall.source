@@ -7,43 +7,59 @@
 # Description: The Oolite uninstall script. During installation the "setup" script 
 #              adds a header defining the environment variables used below.
 # 
+# 2011-04-03: Updated to facilitate rsync repository setup for oolite-update script
+# 
 
 
+rm_rc=0   # Initialize (r)e(m)ove (r)eturn (c)ode counter
+SELF_PATH=$(cd $(dirname $0); pwd -P)
 SELF_FILENAME=$(basename $0)
+echo -n "Removing Oolite${TRUNK} from \"${SELF_PATH}\"... "
 
-
-# Check if user is root
-if [ `id -u` -eq 0 ]
+# Refuse automated uninstall of a relocated installation
+if [ "${SELF_PATH}" != "$HOME/${INSTALL_ROOT_USERHOME}/${OOLITE_ROOT_NAME}" ] &&  [ "${SELF_PATH}" != "${INSTALL_ROOT_SYSTEMWIDE}/${OOLITE_ROOT_NAME}" ]
 then
-  USER_IS_ROOT=1
+  echo 
+  echo "Error: Oolite${TRUNK} installation has been relocated from its original path."
+  exit ${ERROR_CODE_UNINSTALL_FAILED}
 fi
 
-echo -n "Removing Oolite${TRUNK} from \"${OOLITE_ROOT}\"... "
-
-# Check if we are OK to proceed with removal
-if [ ${SYSTEM_WIDE} ]
+# Get user root-status and setup env accordingly
+if [ `id -u` -eq 0 ] 
 then
-  if [ ! ${USER_IS_ROOT} ]
+  USER_IS_ROOT=1
+
+  # Setup env for root uninstall
+  OOLITE_ROOT="${INSTALL_ROOT_SYSTEMWIDE}/${OOLITE_ROOT_NAME}"
+  STARTUP_SCRIPTS_PATH="${STARTUP_SCRIPTS_PATH_SYSTEMWIDE}"
+  DESKTOP_MODE="system"
+
+  # Check if we have the right privileges to proceed with removal
+  if [ "${SELF_PATH}" != "${OOLITE_ROOT}" ] 
   then
     echo
-    echo "Error: Oolite${TRUNK} was installed by root, so you must be root to uninstall it."
+    echo "Error: You are root and try to uninstall a home-directory Oolite${TRUNK} installation."
+    echo "       If you're using sudo, you don't need it this time."
     exit ${ERROR_CODE_UNINSTALL_FAILED}
   fi
 else
-  if [ ${USER_IS_ROOT} ]
+  # Setup env for user home directory uninstall
+  OOLITE_ROOT="$HOME/${INSTALL_ROOT_USERHOME}/${OOLITE_ROOT_NAME}"
+  STARTUP_SCRIPTS_PATH="$HOME/${STARTUP_SCRIPTS_PATH_USERHOME}"
+  DESKTOP_MODE="user"
+
+  # Check if we have the right privileges to proceed with removal
+  if [ "${SELF_PATH}" != "${OOLITE_ROOT}" ] 
   then
-    OOLITE_OWNER=`echo ${OOLITE_ROOT} | awk -F"/" '{print $3}'`
     echo
-    echo "Error: You are running as root, but Oolite${TRUNK} was installed to"
-    echo "       user \"${OOLITE_OWNER}\" home directory."
-    echo "       If you're using sudo, you don't need it this time."
+    echo "Error: Oolite${TRUNK} was installed by root, so you must be root to uninstall it."
     exit ${ERROR_CODE_UNINSTALL_FAILED}
   fi
 fi
 
 
 # Remove Oolite
-rm_rc=0   # Initialize (r)e(m)ove (r)eturn (c)ode counter
+
 cd ${OOLITE_ROOT}
 
 # Remove Oolite menu

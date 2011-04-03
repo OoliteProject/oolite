@@ -1,13 +1,2 @@
 #!/bin/sh
 
-
-# 
-# Original by Konstantinos Sykas <ksykas@gmail.com> (26-Mar-2011)
-#
-#        Type: shell script
-# Description: The Oolite installation script, executed following the package self-extraction. 
-# 
-
-
-# Environment vars init part 1 of 2
-
