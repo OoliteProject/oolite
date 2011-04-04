@@ -6,6 +6,8 @@
 # Description: The Oolite installation script, executed following the package self-extraction. 
 # 
 # 2011-04-03: Updated to facilitate rsync repository setup for oolite-update script
+# 2011-04-04: Redirected "which" stderr to /dev/null. In some distros (e.g. Fedora 11, Mint 10 Julia etc.)
+#             the "which <filename>" command uses stderr to report a file not found or other warnings
 # 
 
 
@@ -304,7 +306,7 @@ then
 fi
 echo -n "To start Oolite${TRUNK} from a shell, "
 # check PATH
-if [ "`which oolite${TRUNK}`" = "${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}" ]
+if [ "`which oolite${TRUNK} 2> /dev/null`" = "${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}" ]
 then
   echo "run \"oolite${TRUNK}\"."
 else
