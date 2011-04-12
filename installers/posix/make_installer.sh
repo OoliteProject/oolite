@@ -16,8 +16,11 @@
 # 
 
 
+release_mode=""   # Leave this empty. In the code you should define conditions for values like "-dev", "-test", "-beta", "-rc1", etc.
 make_rc=0
-build_mode=$3
+build_mode=$3   # Should take [release-deployment, release, release-snapshot]
+build_submode=`echo $build_mode | cut -d '-' -f 2 | sed -e s/release/test/`   # Should take [deployment, test, snapshot]
+echo $build_mode
 if [ "$build_mode" = "release-deployment" ] 
 then
   make -f Makefile distclean   # force libraries clean build
@@ -33,18 +36,26 @@ fi
 
 cpu_architecture=$1
 oolite_version_extended=$2
-if [ "$4" = "nightly" ]
+if [ "$build_submode" = "snapshot" ]
 then
-  trunk="-trunk"
   oolite_version=$oolite_version_extended
-  dev_linux="-dev.linux"
-  noxterm="--nox11"   # If nightly, do NOT spawn an x11 terminal when installer is started from desktop
+  if [ "$4" = "nightly" ]
+  then
+    trunk="-trunk"
+    release_mode="-dev"   # This is the only case to define release_mode as "-dev"
+    noxterm="--nox11"   # If nightly, do NOT spawn an x11 terminal when installer is started from desktop
+  fi    
 else
   oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2}'`
   ver_rev=`echo $oolite_version_extended | cut -d '.' -f 3`
   if [ $ver_rev -ne 0 ]
   then
     oolite_version=${oolite_version}"."${ver_rev}
+  fi
+  
+  if [ "$build_submode" = "test" ]
+  then
+    release_mode="-beta"   # Here is the right place to define if this is "-test", "-beta", "-rc1", etc.
   fi
 fi
 oolite_app=oolite.app
@@ -100,7 +111,7 @@ cp -p uninstall.source ../../${oolite_app}/.
 
 
 echo
-./makeself.sh ${noxterm} ../../${oolite_app} oolite${trunk}-${oolite_version}${dev_linux}.${cpu_architecture}.run "Oolite${trunk} ${oolite_version} " ./setup $oolite_version
+./makeself.sh ${noxterm} ../../${oolite_app} oolite${trunk}-${oolite_version}${release_mode}.linux-${cpu_architecture}.run "Oolite${trunk} ${oolite_version} " ./setup $oolite_version
 ms_rc=$?
 if [ $ms_rc -eq 0 ] 
 then 
