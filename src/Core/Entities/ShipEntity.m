@@ -7587,7 +7587,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (subent && [victim isFrangible])
 		{
 			// do 1% bleed-through damage...
-			[victim takeEnergyDamage: 0.01 * weapon_damage from:subent becauseOf: parent];
+			[victim takeEnergyDamage: 0.01 * weapon_damage from:self becauseOf: parent];
 			victim = subent;
 		}
 
@@ -7649,7 +7649,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (subent != nil && [victim isFrangible])
 		{
 			// do 1% bleed-through damage...
-			[victim takeEnergyDamage: 0.01 * weapon_damage from:subent becauseOf:self];
+			[victim takeEnergyDamage: 0.01 * weapon_damage from:self becauseOf:self];
 			victim = subent;
 		}
 
@@ -7726,7 +7726,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (subent != nil && [victim isFrangible])
 		{
 			// do 1% bleed-through damage...
-			[victim takeEnergyDamage: 0.01 * weapon_damage from:subent becauseOf:self];
+			[victim takeEnergyDamage: 0.01 * weapon_damage from:self becauseOf:self];
 			victim = subent;
 		}
 
