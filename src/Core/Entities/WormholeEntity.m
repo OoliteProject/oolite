@@ -236,6 +236,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 						ship, @"ship",
 						[NSNumber numberWithDouble: now + travel_time - arrival_time], @"time",
+						[ship beaconCode], @"shipBeacon",	// in case a beacon code has been set, nil otherwise
 						nil]];
 	witch_mass += [ship mass];
 	expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE / shrink_factor);
@@ -265,6 +266,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	for (i = 0; i < n_ships; i++)
 	{
 		ShipEntity* ship = (ShipEntity*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"ship"];
+		NSString *shipBeacon = [(NSDictionary *)[shipsInTransit objectAtIndex:i] objectForKey:@"shipBeacon"];
 		double	ship_arrival_time = arrival_time + [(NSNumber*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"time"] doubleValue];
 		double	time_passed = now - ship_arrival_time;
 
@@ -292,6 +294,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			[ship setOrientation: [UNIVERSE getWitchspaceExitRotation]];
 			[ship setPitch: 0.0];
 			[ship setRoll: 0.0];
+			if (shipBeacon != nil)
+			{
+				[ship setBeaconCode:shipBeacon];
+			}
 	
 			// Don't reduce bounty on misjump. Fixes #17992
 			// - MKW 2011.03.10	
