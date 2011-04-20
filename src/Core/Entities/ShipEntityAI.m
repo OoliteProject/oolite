@@ -450,7 +450,8 @@ MA 02110-1301, USA.
 
 - (void) setTargetToPrimaryAggressor
 {
-	if (![UNIVERSE entityForUniversalID:primaryAggressor])
+	Entity *primeAggressor = [UNIVERSE entityForUniversalID:primaryAggressor];
+	if (!primeAggressor)
 		return;
 	if (primaryTarget == primaryAggressor)
 		return;
@@ -470,17 +471,21 @@ MA 02110-1301, USA.
 			break;
 	}
 	
-	// inform our old target of our new target
-	//
-	Entity *primeTarget = [UNIVERSE entityForUniversalID:primaryTarget];
-	if ((primeTarget)&&(primeTarget->isShip))
+	// react only if the primary aggressor is not a friendly ship, else ignore it
+	if ([primeAggressor isShip] && ![(ShipEntity *)primeAggressor isFriendlyTo:self])
 	{
-		ShipEntity *currentShip = [UNIVERSE entityForUniversalID:primaryTarget];
-		[[currentShip getAI] message:[NSString stringWithFormat:@"%@ %d %d", AIMS_AGGRESSOR_SWITCHED_TARGET, universalID, primaryAggressor]];
+		// inform our old target of our new target
+		//
+		Entity *primeTarget = [UNIVERSE entityForUniversalID:primaryTarget];
+		if ((primeTarget)&&(primeTarget->isShip))
+		{
+			ShipEntity *currentShip = [UNIVERSE entityForUniversalID:primaryTarget];
+			[[currentShip getAI] message:[NSString stringWithFormat:@"%@ %d %d", AIMS_AGGRESSOR_SWITCHED_TARGET, universalID, primaryAggressor]];
+		}
+		
+		// okay, so let's now target the aggressor
+		[self addTarget:[UNIVERSE entityForUniversalID:primaryAggressor]];
 	}
-	
-	// okay, so let's now target the aggressor
-	[self addTarget:[UNIVERSE entityForUniversalID:primaryAggressor]];
 }
 
 

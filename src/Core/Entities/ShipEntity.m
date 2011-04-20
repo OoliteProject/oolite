@@ -6624,6 +6624,23 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (BOOL) isFriendlyTo:(ShipEntity *)otherShip
+{
+	BOOL isFriendly = NO;
+	OOShipGroup	*myGroup = [self group];
+	OOShipGroup	*otherGroup = [otherShip group];
+	
+	if ((otherShip == self) || ([self isPolice] && [otherShip isPolice]) || ([self isThargoid] && [otherShip isThargoid]) ||
+							(myGroup != nil && otherGroup != nil && (myGroup == otherGroup || [otherGroup leader] == self)) ||
+							([self scanClass] == CLASS_MILITARY && [otherShip scanClass] == CLASS_MILITARY))
+	{
+		isFriendly = YES;
+	}
+	
+	return isFriendly;
+}
+
+
 - (ShipEntity *) shipHitByLaser
 {
 	return [_shipHitByLaser weakRefUnderlyingObject];

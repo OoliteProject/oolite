@@ -810,6 +810,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (id) primaryTarget;
 - (OOUniversalID) primaryTargetID;
 
+- (BOOL) isFriendlyTo:(ShipEntity *)otherShip;
+
 - (ShipEntity *) shipHitByLaser;
 
 - (void) noteLostTarget;
