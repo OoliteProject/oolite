@@ -3839,6 +3839,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	cachedPlanet = nil;
 	cachedStation = nil;
 	closeSystems = nil;
+	
 	[self resetBeacons];
 	
 	no_update = updating;	// restore drawing
@@ -6220,7 +6221,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	{
 		Random_Seed system = systems[i];
 		double dist = distanceBetweenPlanetPositions(here.x, here.y, system.d, system.b);
-		if (dist <= range && !equal_seeds(system, hereSeed))	
+		if (dist <= range && (!equal_seeds(system, hereSeed) || [self inInterstellarSpace])) // if we are in interstellar space, it's OK to include the system we (mis)jumped from
 		{
 			[result addObject: [NSDictionary dictionaryWithObjectsAndKeys:
 								StringFromRandomSeed(system), @"system_seed",
