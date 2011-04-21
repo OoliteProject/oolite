@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 
 void InitOOJSEntity(JSContext *context, JSObject *global);
 
-BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);	// Value may be Entity or integer (OOUniversalID).
+BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);
 
 JSClass gOOEntityJSClass;
 JSObject *gOOEntityJSPrototype;
