@@ -441,7 +441,7 @@
 	"autopilot-multiple-targets"	= "Multiple autopilot targets in vicinity.";
 	"autopilot-red-alert"			= "Red Alert! Cannot engage autopilot.";
 	"witch-to-@-in-f-seconds"		= "Witchspace to %@ in %.0f s.";
-	"witch-blocked-by-@"			= "Witchspace jump aborted (too close to %@.)";
+	"witch-blocked-by-@"			= "Witchspace jump aborted (too close to %@).";
 	"witch-user-abort"				= "Witchspace jump aborted.";
 	"witch-no-motor"				= "Ship incapable of witchspace jump.";
 	"witch-no-target"				= "No target system set.";
