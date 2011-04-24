@@ -117,6 +117,15 @@
 		}
 	),
 	(
+		4, 15000, "External Heat Shielding",
+		"EQ_HEAT_SHIELD",
+		"Additional ceramid-fibre blanketing and tiles, no armour value but provides extra solar insulation.",
+		{
+			available_to_all = true;
+			strict_mode_compatible = true;
+		}
+	),
+	(
 		10, 8000, "Mining Laser",
 		"EQ_WEAPON_MINING_LASER",
 		"High power, slow recharge. Ideal for mineral extraction from large asteroids.",
@@ -287,14 +296,6 @@
 		"Basic cannon delivering charged plasma bursts at sublight speed."
 	),
 	/* new items */
-	(
-		4, 15000, "External Heat Shielding",
-		"EQ_HEAT_SHIELD",
-		"Additional ceramid-fibre blanketing and tiles, no armour value but provides extra solar insulation.",
-		{
-			available_to_all = true;
-		}
-	),
 	(
 		9, 23950, "Wormhole Scanner",
 		"EQ_WORMHOLE_SCANNER",
