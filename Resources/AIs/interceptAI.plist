@@ -12,6 +12,8 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"TARGET_DESTROYED" = (performIdle, switchLightsOff, exitAI);
 		"TARGET_LOST" = (performIdle, switchLightsOff, exitAI);
+		"PLAYER WITCHSPACE" = ("setStateTo: PLAYER_WITCHSPACE");
+		"ENTER WORMHOLE" = (performIdle, switchLightsOff, "exitAIWithMessage: ENTER WORMHOLE");
 	};
 	FLEE =
 	{
@@ -21,5 +23,11 @@
 		"TARGET_DESTROYED" = (performIdle, switchLightsOff, exitAI);
 		"REACHED_SAFETY" = (performIdle, switchLightsOff, exitAI); 
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"PLAYER WITCHSPACE" = ("setStateTo: PLAYER_WITCHSPACE");
+		"ENTER WORMHOLE" = (performIdle, switchLightsOff, "exitAIWithMessage: ENTER WORMHOLE");
+	};
+	"PLAYER_WITCHSPACE" =
+	{
+		"ENTER WORMHOLE" = (performIdle, switchLightsOff, exitAI, enterTargetWormhole);
 	};
 }

@@ -30,7 +30,8 @@
         "HOLD_NOT_FULL" = ("rollD: 4"); 
         "ROLL_1" = ("setStateTo: COLLECT_LOOT"); 
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
-		"PLAYER WITCHSPACE" = (enterTargetWormhole);
+		"PLAYER WITCHSPACE" = (enterTargetWormhole, wormholeEscorts);
+        "ACCEPTED_ESCORT" = (groupAttackTarget); 
     }; 
     FLEE = {
         ENTER = ("setDesiredRangeTo: 25600", performFlee); 
@@ -142,7 +143,7 @@
 		);
         "TARGET_LOST" = ("setStateTo: LURK"); 
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
-		"PLAYER WITCHSPACE" = (enterTargetWormhole);
+		"PLAYER WITCHSPACE" = (enterTargetWormhole, wormholeEscorts);
     }; 
     "TRAVEL_TO_LURK_AREA" = {
         ENTER = (

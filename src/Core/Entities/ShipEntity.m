@@ -9261,6 +9261,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			
 			[self doScriptEvent:OOJSID("shipAcceptedEscort") withArgument:other_ship];
 			[other_ship doScriptEvent:OOJSID("escortAccepted") withArgument:self];
+			[shipAI message:@"ACCEPTED_ESCORT"];
 			return YES;
 		}
 		else if (maxEscorts > 0)

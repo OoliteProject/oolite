@@ -23,6 +23,7 @@
 		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
 		"NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
+		"EXITED WITCHSPACE" = ("setStateTo: EXIT_WORMHOLE");
 		UPDATE = (escortCheckMother, "pauseAI: 7.5");
 	};
 	"ENTER_WORMHOLE" =
@@ -32,11 +33,26 @@
 			setDestinationToTarget,
 			"setDesiredRangeTo: 1.0",
 			"setSpeedFactorTo: 1.0",
-			performFlyToRangeFromDestination
+			performFlyToRangeFromDestination,
+            "dropMessages: TARGET_LOST"
 		);
 		"PLAYER WITCHSPACE" = (enterTargetWormhole);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS");
 	};
+	"EXIT_WORMHOLE" =
+	 {
+        ENTER = (
+            setDestinationToCurrentLocation, 
+            "setDesiredRangeTo: 7500.0", 
+			"setSpeedTo: 50", 
+            performFlyToRangeFromDestination
+        ); 
+		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLYING_ESCORT", "setAITo: interceptAI.plist");
+		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: FLYING_ESCORT", "setAITo: interceptAI.plist");
+        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS"); 
+		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: NEXT_TARGET");
+		UPDATE = (escortCheckMother, "pauseAI: 2.5");
+    }; 
 	"CLEAR_STATION" = {
 		ENTER = (
 			getWitchspaceEntryCoordinates, 
@@ -65,6 +81,7 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort);
 		"NOTHING_FOUND" = ("setStateTo: CHOOSE_NEW_CAREER");
 		"FRUSTRATED" = ("setStateTo: CHOOSE_NEW_CAREER");
+		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: FLYING_ESCORT", "setAITo: interceptAI.plist");
 		UPDATE = ("pauseAI: 7.5", scanForFormationLeader);
 	};
     "NEXT_TARGET" = {

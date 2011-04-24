@@ -283,17 +283,15 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				Quaternion	q1;
 				quaternion_set_random(&q1);
 				double		d1 = SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
-				if (abs(d1) < 500.0)	// no closer than 500m
-					d1 += ((d1 > 0.0)? 500.0: -500.0);
+				if (abs(d1) < 750.0)	// no closer than 750m
+					d1 += ((d1 > 0.0)? 750.0: -750.0);
 				Vector		v1 = vector_forward_from_quaternion(q1);
 				position.x += v1.x * d1; // randomise exit position
 				position.y += v1.y * d1;
 				position.z += v1.z * d1;
 			}
 			[ship setPosition: position];
-			[ship setOrientation: [UNIVERSE getWitchspaceExitRotation]];
-			[ship setPitch: 0.0];
-			[ship setRoll: 0.0];
+
 			if (shipBeacon != nil)
 			{
 				[ship setBeaconCode:shipBeacon];
@@ -306,7 +304,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 		
-			[UNIVERSE addEntity:ship];
+			[ship witchspaceLeavingEffects]; // adds the ship to the universe with effects.
 		
 			// Should probably pass the wormhole, but they have no JS representation
 			[ship doScriptEvent:OOJSID("shipExitedWormhole") andReactToAIMessage:@"EXITED WITCHSPACE"];
