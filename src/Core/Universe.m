@@ -186,7 +186,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (BOOL) doRemoveEntity:(Entity *)entity;
 - (void) preloadSounds;
 - (void) setUpSettings;
-- (void) setUpPlayerSettings;
+- (void) setUpInitialUniverse;
 - (ShipEntity *) spawnPatrolShipAt:(Vector)launchPos alongRoute:(Vector)v_route withOffset:(double)ship_location;
 - (Vector) fractionalPositionFrom:(Vector)point0 to:(Vector)point1 withFraction:(double)routeFraction;
 
@@ -292,6 +292,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[[GameController sharedController] logProgress:DESC(@"loading-ships")];
 	// Load ship data
+	
 	[OOShipRegistry sharedRegistry];
 	
 	entities = [[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
@@ -321,7 +322,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[player setStatus:STATUS_START_GAME];
 	[player setShowDemoShips: YES];
 	
-	[self setUpPlayerSettings];
+	[self setUpInitialUniverse];
 	
 	universeRegion = [[CollisionRegion alloc] initAsUniverse];
 	entitiesDeadThisUpdate = [[NSMutableSet alloc] init];
@@ -8472,7 +8473,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	demo_ship = nil;
 	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
 	
-	[self setUpPlayerSettings];
+	[self setUpInitialUniverse];
 	autoSaveNow = NO;	// don't autosave immediately after loading / restarting game!
 	
 	[[self station] initialiseLocalMarketWithRandomFactor:[player random_factor]];
@@ -8500,8 +8501,7 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
-// FIXME: how is this stuff "player settings"?
-- (void) setUpPlayerSettings
+- (void) setUpInitialUniverse
 {
 	PlayerEntity* player = PLAYER;
 	
@@ -8521,12 +8521,14 @@ Entity *gOOJSPlayerIfStale = nil;
 	[self setGalaxySeed: [player galaxy_seed] andReinit:YES];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
 	OO_DEBUG_POP_PROGRESS();
-	[self setUpSpace];
 	
 	OO_DEBUG_PUSH_PROGRESS(@"Player init: setUpShipFromDictionary", __PRETTY_FUNCTION__);
 	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player shipDataKey]]];	// the standard cobra at this point
 	OO_DEBUG_POP_PROGRESS();
 	
+	// Player init above finishes initialising all standard player ship properties. Now that the base mass is set, we can run setUpSpace! 
+	[self setUpSpace];
+
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	[player setPosition:[[self station] position]];
 	[player setOrientation:kIdentityQuaternion];

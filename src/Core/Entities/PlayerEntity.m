@@ -168,6 +168,22 @@ static GLfloat		sBaseMass = 0.0;
 
 - (GLfloat) baseMass
 {
+	if (sBaseMass <= 0.0)
+	{
+		// First call with initialised mass (in [UNIVERSE setUpInitialUniverse]) is always to the cobra 3, even when starting with a savegame.
+		if ([self mass] > 0.0)	// bootstrap the base mass.
+		{
+			// OOLog(@"fuelPrices.debug", @"Setting Cobra3 base mass to: %.2f ", [self mass]);
+			sBaseMass = [self mass];
+		}
+		else 
+		{
+			// This happened on startup when [UNIVERSE setUpSpace] was called before player init, inside [UNIVERSE setUpInitialUniverse].
+			// OOLog(@"fuelPrices.debug", @"Player ship not initialised properly yet, using precalculated base mass.");
+			return 185580.0;
+		}
+	}
+
 	return sBaseMass;
 }
 
@@ -524,7 +540,6 @@ static GLfloat		sBaseMass = 0.0;
 	*/
 	[result oo_setFloat:credits				forKey:@"credits"];
 	[result oo_setUnsignedInteger:fuel		forKey:@"fuel"];
-	[result oo_setFloat:fuel_charge_rate	forKey:@"fuel_charge_rate"]; // ## fuel charge testing
 	
 	[result oo_setInteger:galaxy_number	forKey:@"galaxy_number"];
 	
@@ -732,6 +747,7 @@ static GLfloat		sBaseMass = 0.0;
 	NSDictionary *shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]];
 	if (shipDict == nil)  return NO;
 	if (![self setUpShipFromDictionary:shipDict])  return NO;
+	//OOLog(@"fuelPrices.debug", @"Bought \"%@\" fuel charge rate: %.2f", [self shipDataKey],fuel_charge_rate);
 	
 	// ship depreciation
 	ship_trade_in_factor = [dict oo_intForKey:@"ship_trade_in_factor" defaultValue:95];
@@ -854,10 +870,6 @@ static GLfloat		sBaseMass = 0.0;
 	credits = OODeciCreditsFromObject([dict objectForKey:@"credits"]);
 	
 	fuel = [dict oo_unsignedIntForKey:@"fuel" defaultValue:fuel];
-	fuel_charge_rate = [UNIVERSE strict]
-					 ? 1.0
-					 : [dict oo_floatForKey:@"fuel_charge_rate" defaultValue:fuel_charge_rate]; // ## fuel charge testing
-	
 	galaxy_number = [dict oo_intForKey:@"galaxy_number"];
 	forward_weapon_type = [dict oo_intForKey:@"forward_weapon"];
 	aft_weapon_type = [dict oo_intForKey:@"aft_weapon"];
@@ -1306,12 +1318,6 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	
 	if (![super setUpFromDictionary:shipDict]) return NO;
-	
-	// boostrap base mass at program startup!
-	if (sBaseMass == 0.0 && [[self shipDataKey] isEqualTo:PLAYER_SHIP_DESC])
-	{
-		sBaseMass = [self mass];
-	}
 	
 	// Player-only settings.
 	//
