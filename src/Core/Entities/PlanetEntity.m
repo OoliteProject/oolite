@@ -402,15 +402,14 @@ static const BaseFace kTexturedFaces[][3] =
 	else
 	{
 		NSDictionary *textureSpec = [dict oo_textureSpecifierForKey:@"texture" defaultName:nil];
+		if (textureSpec != nil)
+		{
+			[self loadTexture:textureSpec];
+		}
 		if (textureSpec == nil && !procGen && !atmo)
 		{
 			// Moons use metal.png by default.
 			textureSpec = OOTextureSpecFromObject(@"metal.png", nil);
-		}
-		if (textureSpec != nil)
-		{
-			[self loadTexture:textureSpec];
-			isTextureImage = YES;
 		}
 		
 		NSString *seedStr = [dict oo_stringForKey:@"seed"];
@@ -1487,9 +1486,17 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 	[_texture retain];
 	
 	[_textureFileName release];
-	_textureFileName = [[configuration oo_stringForKey:@"name"] copy];
-	
-	isTextureImage = YES;
+	if (_texture != nil)
+	{
+		_textureFileName = [[configuration oo_stringForKey:@"name"] copy];
+		isTextureImage = YES;
+	}
+	else
+	{
+		_textureFileName = nil;
+		isTextureImage = NO;
+	}
+
 }
 
 
