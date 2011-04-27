@@ -1647,7 +1647,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			collision_radius = distance;
 		}
 		
-		mass += 20.0 * [(ShipEntity *)subent volume];
+		mass += [subent mass];
 	}
 	if (distance > _profileRadius)
 	{
