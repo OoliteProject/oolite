@@ -2,7 +2,7 @@
 
 OOPixMapTextureLoader.h
 
-Load a texture from a pixmap.
+Load a texture from a pixmap. The loader takes ownership of the pixmap.
 
 
 Copyright (C) 2010-2011 Jens Ayton

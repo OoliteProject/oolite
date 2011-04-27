@@ -123,53 +123,6 @@ static NSString *sGlobalTraceContext = nil;
 	if (EXPECT_NOT(name == nil))  return nil;
 	if (EXPECT_NOT(!sCheckedExtensions))  [self checkExtensions];
 	
-	// Set default flags if needed
-	if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterDefault)
-	{
-		if ([UNIVERSE reducedDetail])
-		{
-			options |= kOOTextureMinFilterLinear;
-		}
-		else
-		{
-			options |= kOOTextureMinFilterMipMap;
-		}
-	}
-	
-	if (!gOOTextureInfo.textureMaxLevelAvailable)
-	{
-		/*	In the unlikely case of an OpenGL system without GL_SGIS_texture_lod,
-			disable mip-mapping completely. Strictly this is only needed for
-			non-square textures, but extra logic for such a rare case isn't
-			worth it.
-		*/
-		if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap)
-		{
-			options ^= kOOTextureMinFilterMipMap ^ kOOTextureMinFilterLinear;
-		}
-	}
-	
-	if (options & kOOTextureAllowRectTexture)
-	{
-		// Apply rectangle texture restrictions (regardless of whether rectangle textures are available, for consistency)
-		options &= kOOTextureFlagsAllowedForRectangleTexture;
-		if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap)
-		{
-			options = (kOOTextureMinFilterMask & ~kOOTextureMinFilterMask) | kOOTextureMinFilterLinear;
-		}
-		
-#if GL_EXT_texture_rectangle
-		if (!gOOTextureInfo.rectangleTextureAvailable)
-		{
-			options &= ~kOOTextureAllowRectTexture;
-		}
-#else
-		options &= ~kOOTextureAllowRectTexture;
-#endif
-	}
-	
-	options &= kOOTextureDefinedFlags;
-	
 	if (!gOOTextureInfo.anisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
 	{
 		anisotropy = 0.0f;
@@ -180,7 +133,7 @@ static NSString *sGlobalTraceContext = nil;
 	}
 	
 	noFNF = (options & kOOTextureNoFNFMessage) != 0;
-	options &= ~kOOTextureNoFNFMessage;
+	options = OOApplyTetureOptionDefaults(options & ~kOOTextureNoFNFMessage);
 	
 	// Look for existing texture
 	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString *)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
@@ -257,7 +210,7 @@ static NSString *sGlobalTraceContext = nil;
 	
 	OOTexture *result = [[[OOConcreteTexture alloc] initWithLoader:generator
 															   key:[generator cacheKey]
-														   options:[generator textureOptions]
+														   options:OOApplyTetureOptionDefaults([generator textureOptions])
 														anisotropy:[generator anisotropy]
 														   lodBias:[generator lodBias]] autorelease];
 	
@@ -760,4 +713,57 @@ BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, uint32_t *out
 	if (outLODBias != NULL)  *outLODBias = lodBias;
 	
 	return YES;
+}
+
+
+uint32_t OOApplyTetureOptionDefaults(uint32_t options)
+{
+	// Set default flags if needed
+	if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterDefault)
+	{
+		if ([UNIVERSE reducedDetail])
+		{
+			options |= kOOTextureMinFilterLinear;
+		}
+		else
+		{
+			options |= kOOTextureMinFilterMipMap;
+		}
+	}
+	
+	if (!gOOTextureInfo.textureMaxLevelAvailable)
+	{
+		/*	In the unlikely case of an OpenGL system without GL_SGIS_texture_lod,
+		 disable mip-mapping completely. Strictly this is only needed for
+		 non-square textures, but extra logic for such a rare case isn't
+		 worth it.
+		 */
+		if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap)
+		{
+			options ^= kOOTextureMinFilterMipMap ^ kOOTextureMinFilterLinear;
+		}
+	}
+	
+	if (options & kOOTextureAllowRectTexture)
+	{
+		// Apply rectangle texture restrictions (regardless of whether rectangle textures are available, for consistency)
+		options &= kOOTextureFlagsAllowedForRectangleTexture;
+		if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap)
+		{
+			options = (kOOTextureMinFilterMask & ~kOOTextureMinFilterMask) | kOOTextureMinFilterLinear;
+		}
+		
+#if GL_EXT_texture_rectangle
+		if (!gOOTextureInfo.rectangleTextureAvailable)
+		{
+			options &= ~kOOTextureAllowRectTexture;
+		}
+#else
+		options &= ~kOOTextureAllowRectTexture;
+#endif
+	}
+	
+	options &= kOOTextureDefinedFlags;
+	
+	return options;
 }

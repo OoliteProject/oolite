@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #import "OOPixMapTextureLoader.h"
+#import "OOTextureScaling.h"
 
 
 @implementation OOPixMapTextureLoader
@@ -37,7 +38,7 @@ SOFTWARE.
 		if (freeWhenDone)  _pixMap = pixMap;
 		else  _pixMap = OODuplicatePixMap(_pixMap, 0);
 		
-		_texOptions = options;
+		_texOptions = OOApplyTetureOptionDefaults(options);
 		
 		if (!OOIsValidPixMap(_pixMap))  DESTROY(self);
 	}
@@ -56,6 +57,22 @@ SOFTWARE.
 
 - (void) loadTexture
 {
+	// Generate mip maps if needed.
+	if ((_texOptions & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap)
+	{
+		size_t size = OOMinimumPixMapBufferSize(_pixMap) * 4 / 3;
+		BOOL generateMipMaps = OOExpandPixMap(&_pixMap, size);
+		if (generateMipMaps)
+		{
+			OOGenerateMipMaps(_pixMap.pixels,_pixMap.width, _pixMap.height, _pixMap.format);
+		}
+		else
+		{
+			_texOptions = (_texOptions & ~kOOTextureMinFilterMask) | kOOTextureMinFilterMipMap;
+		}
+	}
+	
+	// Set up output ivars as per OOTextureLoader contract.
 	_data = _pixMap.pixels;
 	_width = _pixMap.width;
 	_height = _pixMap.height;

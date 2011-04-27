@@ -47,6 +47,10 @@ SOFTWARE.
 	OOColor						*_illuminationColor;
 	BOOL						_isCombinedMap;
 	
+	uint32_t					_textureOptions;
+	GLfloat						_anisotropy;
+	GLfloat						_lodBias;
+	
 #ifndef NDEBUG
 	NSString					*_emissionDesc;
 	NSString					*_illuminationDesc;
@@ -60,12 +64,14 @@ SOFTWARE.
 				diffuseMap:(OOTexture *)diffuseMap
 			  diffuseColor:(OOColor *)diffuseColor
 		   illuminationMap:(OOTextureLoader *)illuminationMapLoader
-		 illuminationColor:(OOColor *)illuminationColor;
+		 illuminationColor:(OOColor *)illuminationColor
+		  optionsSpecifier:(NSDictionary *)spec;
 
 - (id) initWithEmissionAndIlluminationMap:(OOTextureLoader *)emissionAndIlluminationMapLoader
 							   diffuseMap:(OOTexture *)diffuseMap
 							 diffuseColor:(OOColor *)diffuseColor
 							emissionColor:(OOColor *)emissionColor
-						illuminationColor:(OOColor *)illuminationColor;
+						illuminationColor:(OOColor *)illuminationColor
+						 optionsSpecifier:(NSDictionary *)spec;
 
 @end

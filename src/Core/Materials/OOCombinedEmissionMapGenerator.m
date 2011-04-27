@@ -48,7 +48,8 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 			  diffuseColor:(OOColor *)diffuseColor
 		   illuminationMap:(OOTextureLoader *)illuminationMapLoader
 		 illuminationColor:(OOColor *)illuminationColor
-			 isCombinedMap:(BOOL)isCombinedMap;
+			 isCombinedMap:(BOOL)isCombinedMap
+		  optionsSpecifier:(NSDictionary *)spec;
 
 @end
 
@@ -61,6 +62,7 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 			  diffuseColor:(OOColor *)diffuseColor
 		   illuminationMap:(OOTextureLoader *)illuminationMapLoader
 		 illuminationColor:(OOColor *)illuminationColor
+		  optionsSpecifier:(NSDictionary *)spec
 {
 	return [self initWithEmissionMap:emissionMapLoader
 					   emissionColor:emissionColor
@@ -68,7 +70,8 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 						diffuseColor:diffuseColor
 					 illuminationMap:illuminationMapLoader
 				   illuminationColor:illuminationColor
-					   isCombinedMap:NO];
+					   isCombinedMap:NO
+					optionsSpecifier:spec];
 }
 
 
@@ -77,6 +80,7 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 							 diffuseColor:(OOColor *)diffuseColor
 							emissionColor:(OOColor *)emissionColor
 						illuminationColor:(OOColor *)illuminationColor
+						 optionsSpecifier:(NSDictionary *)spec
 {
 	return [self initWithEmissionMap:emissionAndIlluminationMapLoader
 					   emissionColor:emissionColor
@@ -84,7 +88,8 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 						diffuseColor:diffuseColor
 					 illuminationMap:nil
 				   illuminationColor:illuminationColor
-					   isCombinedMap:YES];
+					   isCombinedMap:YES
+					optionsSpecifier:spec];
 }
 
 
@@ -95,6 +100,7 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 		   illuminationMap:(OOTextureLoader *)illuminationMapLoader
 		 illuminationColor:(OOColor *)illuminationColor
 			 isCombinedMap:(BOOL)isCombinedMap
+		  optionsSpecifier:(NSDictionary *)spec
 {
 	if (emissionMapLoader == nil && illuminationMapLoader == nil)
 	{
@@ -104,7 +110,13 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 	
 	NSParameterAssert(illuminationMapLoader == nil || !isCombinedMap);
 	
-	if ((self = [super init]))
+	uint32_t options;
+	GLfloat anisotropy;
+	GLfloat lodBias;
+	OOInterpretTextureSpecifier(spec, NULL, &options, &anisotropy, &lodBias);
+	options = OOApplyTetureOptionDefaults(options & ~kOOTextureExtractChannelMask);
+	
+	if ((self = [super initWithPath:@"<generated emission map>" options:options]))
 	{
 		/*	Illumination contribution is:
 			illuminationMap * illuminationColor * diffuseMap * diffuseColor
@@ -119,7 +131,7 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 		
 		
 		_cacheKey = [[NSString stringWithFormat:@"Combined emission map\nSingle source: %@\nemission:%@ * %@, illumination: %@ * %@ * %@",
-					  _isCombinedMap ? @"yes" : @"no",
+					  isCombinedMap ? @"yes" : @"no",
 					  [emissionMapLoader cacheKey],
 					  [emissionColor rgbaDescription],
 					  [illuminationMapLoader cacheKey],
@@ -129,6 +141,10 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 		_emissionColor = [emissionColor retain];
 		_illuminationColor = [illuminationColor retain];
 		_isCombinedMap = isCombinedMap;
+		
+		_textureOptions = options;
+		_anisotropy = anisotropy;
+		_lodBias = lodBias;
 		
 		/*	Extract pixmap from diffuse map. This must be done in the main
 			thread even if scheduling is fixed, because it might involve
@@ -232,6 +248,24 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 	return result;
 }
 #endif
+
+
+- (uint32_t) textureOptions
+{
+	return _textureOptions;
+}
+
+
+- (GLfloat) anisotropy
+{
+	return _anisotropy;
+}
+
+
+- (GLfloat) lodBias
+{
+	return _lodBias;
+}
 
 
 - (NSString *) cacheKey

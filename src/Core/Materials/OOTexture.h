@@ -284,3 +284,5 @@ BOOL OOCubeMapsAvailable(void);
 	may be NULL.
 */
 BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, uint32_t *outOptions, float *outAnisotropy, float *outLODBias);
+
+uint32_t OOApplyTetureOptionDefaults(uint32_t options);
