@@ -1467,7 +1467,7 @@ static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-// awardEquipment(type : equipmentInfoExpression)
+// awardEquipment(type : equipmentInfoExpression) : Boolean
 static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)

@@ -4,7 +4,7 @@
 	Vertex shader for interplanetary dust.
 	
 	
-	© 2010 Jens Ayton
+	© 2010-2011 Jens Ayton
  
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -38,7 +38,7 @@
 attribute float	aWarpiness;
 uniform vec4	uWarp;
 
-//	Dust, offset by -OODUST_SIZE/2 on each coordinate.
+//	Player position, offset by -OODUST_SIZE/2 on each coordinate.
 uniform vec4	uOffsetPlayerPosition;
 
 varying vec4	vColor;
