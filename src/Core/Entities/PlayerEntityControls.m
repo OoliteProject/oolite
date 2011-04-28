@@ -535,7 +535,7 @@ static NSTimeInterval	time_last_frame;
 						mouse_x_axis_map_to_yaw = [gameView isCtrlDown];
 						keyboardRollOverride = mouse_x_axis_map_to_yaw;   // Getafix: set keyboardRollOverride to TRUE only if yaw is mapped to mouse x-axis
 						keyboardPitchOverride = NO;
-						keyboardYawOverride = NO;
+						keyboardYawOverride = !keyboardRollOverride;
 					}
 					else
 					{
