@@ -155,6 +155,7 @@
 	
 	exit.context							= no;		// Log why game quit, for debugging cases of game quitting in an orderly yet unexpcted way.
 	
+	fuelPrices								= no;
 	
 	gui.reset								= no;
 	

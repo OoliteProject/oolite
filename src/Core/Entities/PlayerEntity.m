@@ -173,13 +173,13 @@ static GLfloat		sBaseMass = 0.0;
 		// First call with initialised mass (in [UNIVERSE setUpInitialUniverse]) is always to the cobra 3, even when starting with a savegame.
 		if ([self mass] > 0.0)	// bootstrap the base mass.
 		{
-			// OOLog(@"fuelPrices.debug", @"Setting Cobra3 base mass to: %.2f ", [self mass]);
+			OOLog(@"fuelPrices", @"Setting Cobra3 base mass to: %.2f ", [self mass]);
 			sBaseMass = [self mass];
 		}
 		else 
 		{
 			// This happened on startup when [UNIVERSE setUpSpace] was called before player init, inside [UNIVERSE setUpInitialUniverse].
-			// OOLog(@"fuelPrices.debug", @"Player ship not initialised properly yet, using precalculated base mass.");
+			OOLog(@"fuelPrices", @"Player ship not initialised properly yet, using precalculated base mass.");
 			return 185580.0;
 		}
 	}
@@ -747,7 +747,7 @@ static GLfloat		sBaseMass = 0.0;
 	NSDictionary *shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]];
 	if (shipDict == nil)  return NO;
 	if (![self setUpShipFromDictionary:shipDict])  return NO;
-	//OOLog(@"fuelPrices.debug", @"Bought \"%@\" fuel charge rate: %.2f", [self shipDataKey],fuel_charge_rate);
+	OOLog(@"fuelPrices", @"Got \"%@\", fuel charge rate: %.2f", [self shipDataKey],[self fuelChargeRate]);
 	
 	// ship depreciation
 	ship_trade_in_factor = [dict oo_intForKey:@"ship_trade_in_factor" defaultValue:95];
@@ -1339,8 +1339,6 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self resetHud];
 	[hud setHidden:NO];
-	
-	// fuel_charge_rate is calculated inside the shipEntity method.
 	
 	// set up missiles
 	// sanity check the number of missiles...
@@ -6161,6 +6159,7 @@ static NSString *last_outfitting_key=nil;
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
 				row++;
 			}
+			
 			for (i = skip; i < count && (row - start_row < (OOGUIRow)n_rows); i++)
 			{
 				NSString			*eqKey = [equipmentAllowed oo_stringAtIndex:i];
@@ -6178,23 +6177,20 @@ static NSString *last_outfitting_key=nil;
 				{
 					price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
 					price += price * (0.1 * [self missingSubEntitiesAdjustment]);
+					[gui setColor:[OOColor orangeColor] forRow:row]; // color renovation in orange
 				}
 				else price = pricePerUnit;
 				
 				price *= priceFactor;  // increased prices at some stations
 				
-				// color repairs and renovation items orange
+				// is this item damaged?
 				if ([self hasEquipmentItem:eq_key_damaged])
 				{
 					desc = [NSString stringWithFormat:DESC(@"equip-repair-@"), desc];
 					price /= 2.0;
-					[gui setColor:[OOColor orangeColor] forRow:row];
+					[gui setColor:[OOColor orangeColor] forRow:row];	// color repair items in orange
 				}
-				if ([eqKey isEqualToString:@"EQ_RENOVATION"])
-				{
-					[gui setColor:[OOColor orangeColor] forRow:row];
-				}
-
+				
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
 				
 				if ([eqKeyForSelectFacing isEqualToString:eqKey])
@@ -8191,6 +8187,29 @@ static NSString *last_outfitting_key=nil;
 	scoopOverride = !!newValue;
 	[self setScoopsActive];
 }
+
+
+#if MASS_DEPENDENT_FUEL_PRICES
+- (GLfloat) fuelChargeRate
+{
+	GLfloat		rate = 1.0; // Standard (& strict play) charge rate.
+	
+	if (![UNIVERSE strict])
+	{
+		rate = [super fuelChargeRate];
+#if 0
+		// post-NMSR fuelPrices	- the state of repair to affect the rate? 
+		// state of repair never lower than 75, but added the check just in case. -- Kaks 20110429
+		if (ship_trade_in_factor <= 90 && ship_trade_in_factor >= 75)
+		{
+			rate *= 2.0 - (ship_trade_in_factor / 100); // between 1.1x and 1.25x
+			OOLog(@"fuelPrices", @"\"%@\" - repair status: %d%%, adjusted rate to:%.2f)", [self shipDataKey], ship_trade_in_factor, rate);
+		}
+#endif
+	}
+	return rate;
+}
+#endif
 
 
 - (void) setDockTarget:(ShipEntity *)entity

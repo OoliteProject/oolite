@@ -112,7 +112,13 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 	GLfloat result = (kMassCharge * myMass / baseMass) + kBaseCharge;
 	
 	// round the result to the second decimal digit.
-	return (roundf ((float) (result * 100.0)) / 100.0);
+	result = roundf ((float) (result * 100.0)) / 100.0;
+	
+	// Make sure that the rate is clamped to between three times and a third of the standard charge rate.
+	if (result > 3.0) result = 3.0;
+	else if (result < 0.33) result = 0.33;
+	
+	return result;
 	
 #undef kMassCharge
 #undef kBaseCharge
@@ -348,34 +354,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0f];
 	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
-	
-	fuel_charge_rate = 1.0;	// Standard (& strict play) charge rate.
-	
-#if MASS_DEPENDENT_FUEL_PRICES
-	// Fuel scooping and prices are relative to the mass of the cobra3.
-	// NB: finally removed the "fuel_charge_rate" test-only key (was never meant for actual use). Kaks 20110425
-	
-	if (![UNIVERSE strict])
-	{
-		GLfloat		rate = 1.0;
-		NSString	*shipKey = [self shipDataKey];
-		
-		if (PLAYER != nil &&
-			![shipKey isEqualTo:PLAYER_SHIP_DESC]) // cobra3 rate is always 1! 
-		{
-			rate = calcFuelChargeRate (mass);
-		}
-		
-		// Make sure that the rate is clamped to between three times and a third of the standard charge rate.
-		
-		if (rate < 0.33) rate = 0.33;
-		else if (rate > 3) rate = 3;
-		
-		//OOLog(@"fuelPrices.debug", @"\"%@\" fuel charge rate: %.2f (mass ratio: %.2f/%.2f)", shipKey, rate, mass, [PLAYER baseMass]);
-		
-		fuel_charge_rate = rate;
-	}
-#endif
 	
 	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
 	if (color == nil)  color = [OOColor redColor];
@@ -5357,8 +5335,24 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (GLfloat) fuelChargeRate
 {
-	//OOLog(@"fuelPrices.debug", @"querying charge rate: %.2f ", fuel_charge_rate);
-	return fuel_charge_rate;
+	GLfloat		rate = 1.0; // Standard (& strict play) charge rate.
+	
+#if MASS_DEPENDENT_FUEL_PRICES
+	// Fuel scooping and prices are relative to the mass of the cobra3.
+	// Post MNSR it's also going to be affected by missing subents, and possibly repair status. 
+	// N.B. "fuel_charge_rate" now fully removed, in favour of a dynamic system. -- Kaks 20110429
+	
+	if (EXPECT(![UNIVERSE strict]))
+	{
+		if (EXPECT(PLAYER != nil && mass> 0 && mass != [PLAYER baseMass]))
+		{
+			rate = calcFuelChargeRate (mass);	// post-MNSR fuelPrices will be affected by missing subents. see  [self subEntityDied]
+		}
+	}
+	OOLog(@"fuelPrices", @"\"%@\" fuel charge rate: %.2f (mass ratio: %.2f/%.2f)", [self shipDataKey], rate, mass, [PLAYER baseMass]);
+#endif
+	
+	return rate;
 }
 
 
@@ -6192,8 +6186,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	if ([self subEntityTakingDamage] == sub)  [self setSubEntityTakingDamage:nil];
 	
 	[sub setOwner:nil];
+#if 0
+	// TODO? Recalculating collision radius should increase collision testing efficiency,
+	// but for most ship models the difference would be marginal. -- Kaks 20110429
+	mass -= [sub mass]; // post-NMSR fuelPrices - missing subents will affect fuel charge rate
+#endif
 	[subEntities removeObject:sub];
-	// TODO: recalculate parent ship mass & collision radius!
 }
 
 

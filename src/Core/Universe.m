@@ -8524,6 +8524,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	OO_DEBUG_PUSH_PROGRESS(@"Player init: setUpShipFromDictionary", __PRETTY_FUNCTION__);
 	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player shipDataKey]]];	// the standard cobra at this point
+	[player baseMass]; // bootstrap the base mass used in all fuel charge calculations.
 	OO_DEBUG_POP_PROGRESS();
 	
 	// Player init above finishes initialising all standard player ship properties. Now that the base mass is set, we can run setUpSpace! 
