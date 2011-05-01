@@ -52,7 +52,7 @@ void main(void)
 	vec3 eyeVector = -vec3(gl_ModelViewMatrix * gl_Vertex);
 	vEyeVector = eyeVector * TBN;
 	
-	vec3 lightVector = gl_LightSource[1].position.xyz + eyeVector;
+	vec3 lightVector = gl_LightSource[1].position.xyz;
 	vLight1Vector = lightVector * TBN;
 	
 	vTexCoord = gl_MultiTexCoord0.st;
