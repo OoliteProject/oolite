@@ -1193,6 +1193,7 @@ static GLfloat		sBaseMass = 0.0;
 	credits					= 1000;
 	fuel					= PLAYER_MAX_FUEL;
 	fuel_accumulator		= 0.0f;
+	fuel_leak_rate			= 0.0f;
 	
 	galaxy_number			= 0;
 	forward_weapon_type		= WEAPON_PULSE_LASER;
@@ -5068,7 +5069,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	wormhole = nil;
 
 	position = pos;
-	orientation = [UNIVERSE getWitchspaceExitRotation];
+	[self setOrientation:[UNIVERSE getWitchspaceExitRotation]];
 	flightRoll = 0.0f;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;

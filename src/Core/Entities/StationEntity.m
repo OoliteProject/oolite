@@ -1066,7 +1066,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				if (vdp > 0.86)
 				{
 					isEmpty = NO;
-					last_launch_time = unitime;
+					last_launch_time = unitime - STATION_DELAY_BETWEEN_LAUNCHES + STATION_LAUNCH_RETRY_INTERVAL;
 				}
 			}
 		}

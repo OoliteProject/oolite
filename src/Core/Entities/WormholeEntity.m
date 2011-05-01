@@ -304,7 +304,20 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 		
-			[ship witchspaceLeavingEffects]; // adds the ship to the universe with effects.
+			if (now - ship_arrival_time < 2.0)
+			{
+				[ship witchspaceLeavingEffects]; // adds the ship to the universe with effects.
+			}
+			else
+			{
+				// arrived 2 seconds or more before the player. Rings have faded out.
+				[ship setOrientation: [UNIVERSE getWitchspaceExitRotation]];
+				[ship setPitch: 0.0];
+				[ship setRoll: 0.0];
+				[ship setSpeed: [ship maxFlightSpeed] * 0.25];
+				[UNIVERSE addEntity:ship];	// AI and status get initialised here
+			}
+
 		
 			// Should probably pass the wormhole, but they have no JS representation
 			[ship doScriptEvent:OOJSID("shipExitedWormhole") andReactToAIMessage:@"EXITED WITCHSPACE"];
