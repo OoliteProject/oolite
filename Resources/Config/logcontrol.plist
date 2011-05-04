@@ -24,9 +24,6 @@
 	// _override							= yes;					// Use to force display of all messages (or suppress all messages). Must be yes or no.
 	
 	
-	$betaCrashIssue							= yes;					// For message classes temporarily activated in beta 1.75.1.
-	
-	
 	/*** Metaclasses ***/
 	$aiError								= $scriptError;
 	$entityState							= no;
@@ -287,7 +284,7 @@
 	script.error.exception					= inherit;
 	
 	script.javaScript.context				= no;
-	script.javaScript.load.success			= $betaCrashIssue;
+	script.javaScript.load.success			= $scriptDebugOn;
 	script.javaScript.load.failed			= $scriptError;
 	script.javaScript.init.success			= no;
 	script.javaScript.init.error			= $error;				// Fatal start-up error
@@ -298,9 +295,7 @@
 	script.javaScript.badParameter			= $scriptError;
 	script.javaScript.context.create		= no;
 	script.javaScript.timeLimit				= yes;					// Script ran for too long and has been killed.
-	script.javaScript.willLoad				= $betaCrashIssue;
-	
-	script.javaScript.warning.uselessExpr	= no;					// A bug in SpiderMonkey causes this warning to be raised when "use strict" is seen in pedantic mode, even though "use strict" is respected. https://bugzilla.mozilla.org/show_bug.cgi?id=559402
+	script.javaScript.willLoad				= no;
 	
 	script.load								= no;
 	script.load.badName						= $scriptError;
