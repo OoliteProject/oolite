@@ -9506,7 +9506,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	[[UNIVERSE findShipsMatchingPredicate:HasRolePredicate
 							   parameter:@"tharglet"
-								 inRange:SCANNER_MAX_RANGE2
+								 inRange:SCANNER_MAX_RANGE
 								ofEntity:self]
 			makeObjectsPerformSelector:@selector(sendAIMessage:) withObject:@"THARGOID_DESTROYED"];
 }
