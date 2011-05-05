@@ -68,6 +68,9 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (id) init
 {
 	self = [super init];
+	if (EXPECT_NOT(self == nil))  return nil;
+	
+	_sessionID = [UNIVERSE sessionID];
 	
 	orientation = kIdentityQuaternion;
 	rotMatrix = kIdentityMatrix;
@@ -113,6 +116,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (NSString *)descriptionComponents
 {
 	return [NSString stringWithFormat:@"position: %@ scanClass: %@ status: %@", VectorDescription([self position]), OOStringFromScanClass([self scanClass]), OOStringFromEntityStatus([self status])];
+}
+
+
+- (OOUInteger) sessionID
+{
+	return _sessionID;
 }
 
 
@@ -177,6 +186,14 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (BOOL) validForAddToUniverse
 {
+	OOUInteger mySessionID = [self sessionID];
+	OOUInteger currentSessionID = [UNIVERSE sessionID];
+	if (EXPECT_NOT(mySessionID != currentSessionID))
+	{
+		OOLogERR(@"entity.invalidSession", @"Entity %@ from session %lu cannot be added to universe in session %lu. This is an internal error, please report it.", [self shortDescription], mySessionID, currentSessionID);
+		return NO;
+	}
+	
 	return YES;
 }
 

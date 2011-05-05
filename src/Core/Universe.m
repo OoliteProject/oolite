@@ -400,6 +400,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
+- (OOUInteger) sessionID
+{
+	return _sessionID;
+}
+
+
 - (BOOL) doProcedurallyTexturedPlanets
 {
 	return doProcedurallyTexturedPlanets;
@@ -3842,6 +3848,8 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	closeSystems = nil;
 	
 	[self resetBeacons];
+	
+	_sessionID++;
 	
 	no_update = updating;	// restore drawing
 }

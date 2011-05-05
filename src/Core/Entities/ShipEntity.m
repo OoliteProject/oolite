@@ -1667,7 +1667,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		OOLog(@"shipEntity.notDict", @"Ship %@ was not set up from dictionary.", self);
 		return NO;
 	}
-	return YES;
+	return [super validForAddToUniverse];
 }
 
 

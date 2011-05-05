@@ -1447,6 +1447,13 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (OOUInteger) sessionID
+{
+	// The player ship always belongs to the current session.
+	return [UNIVERSE sessionID];
+}
+
+
 - (void) warnAboutHostiles
 {
 	[self playHostileWarning];
@@ -6800,7 +6807,7 @@ static NSString *last_outfitting_key=nil;
 	unsigned i;
 	for (i = 0; i < missiles; i++)
 	{
-		NSString* weapon_key = [missile_list[i] identifier];
+		NSString *weapon_key = [missile_list[i] identifier];
 		
 		if (weapon_key != nil)
 			tradeIn += (int)[UNIVERSE getEquipmentPriceForKey:weapon_key];

@@ -170,6 +170,8 @@ typedef uint8_t		OOEconomyID;		// 0..7
 	GLfloat					stars_ambient[4];
 	
 @private
+	OOUInteger				_sessionID;
+	
 	// colors
 	GLfloat					sun_diffuse[4];
 	GLfloat					sun_specular[4];
@@ -304,6 +306,9 @@ typedef uint8_t		OOEconomyID;		// 0..7
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
+
+// SessionID: a value that's incremented when the game is reset.
+- (OOUInteger) sessionID;
 
 - (BOOL) doProcedurallyTexturedPlanets;
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
