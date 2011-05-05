@@ -220,6 +220,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) setFirstBeacon:(ShipEntity *)beacon;
 - (void) setLastBeacon:(ShipEntity *)beacon;
 
+- (void) verifyDescriptions;
+- (void) loadDescriptions;
+
 @end
 
 
@@ -267,7 +270,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[ResourceManager paths];
 	
 	// Set up the internal game strings
-	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+	[self loadDescriptions];
 	// DESC expansion is now possible!
 	
 	reducedDetail = [prefs oo_boolForKey:@"reduced-detail-graphics" defaultValue:NO];
@@ -361,7 +364,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[commodityData release];
 	
 	[illegalGoods release];
-	[descriptions release];
+	[_descriptions release];
 	[characters release];
 	[customSounds release];
 	[planetInfo release];
@@ -5633,15 +5636,87 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSDictionary *) descriptions
 {
-	if (descriptions == nil)
+	if (_descriptions == nil)
 	{
 		// Load internal descriptions.plist for use in early init, OXP verifier etc.
 		// It will be replaced by merged version later if running the game normally.
-		descriptions = [NSDictionary dictionaryWithContentsOfFile:[[[ResourceManager builtInPath]
-																	stringByAppendingPathComponent:@"Config"]
-																   stringByAppendingPathComponent:@"descriptions.plist"]];
+		_descriptions = [NSDictionary dictionaryWithContentsOfFile:[[[ResourceManager builtInPath]
+																	 stringByAppendingPathComponent:@"Config"]
+																	stringByAppendingPathComponent:@"descriptions.plist"]];
+		
+		[self verifyDescriptions];
 	}
-	return descriptions;
+	return _descriptions;
+}
+
+
+static void VerifyDesc(NSString *key, id desc);
+
+
+static void VerifyDescString(NSString *key, NSString *desc)
+{
+	if ([desc rangeOfString:@"%n"].location != NSNotFound)
+	{
+		OOLog(@"descriptions.verify.percentN", @"***** FATAL: descriptions.plist entry \"%@\" contains the dangerous control sequence %%n.", key);
+		exit(EXIT_FAILURE);
+	}
+}
+
+
+static void VerifyDescArray(NSString *key, NSArray *desc)
+{
+	id subDesc = nil;
+	foreach (subDesc, desc)
+	{
+		VerifyDesc(key, subDesc);
+	}
+}
+
+
+static void VerifyDesc(NSString *key, id desc)
+{
+	if ([desc isKindOfClass:[NSString class]])
+	{
+		VerifyDescString(key, desc);
+	}
+	else if ([desc isKindOfClass:[NSArray class]])
+	{
+		VerifyDescArray(key, desc);
+	}
+	else
+	{
+		OOLogERR(@"descriptions.verify.badType", @"***** FATAL: descriptions.plist entry for \"%@\" is neither a string nor an array.", key);
+		exit(EXIT_FAILURE);
+	}
+}
+
+
+- (void) verifyDescriptions
+{
+	/*
+		Ensure that no descriptions.plist entries contain the %n format code,
+		which can be used to smash the stack and potentially call arbitrary
+		functions.
+		
+		%n is deliberately not supported in Foundation/CoreFoundation under
+		Mac OS X, but unfortunately GNUstep implements it.
+		-- Ahruman 2011-05-05
+	*/
+	
+	NSDictionary *descriptions = [self descriptions];
+	NSString *key = nil;
+	foreachkey (key, descriptions)
+	{
+		VerifyDesc(key, [descriptions objectForKey:key]);
+	}
+}
+
+
+- (void) loadDescriptions
+{
+	[_descriptions autorelease];
+	_descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+	[self verifyDescriptions];
 }
 
 
@@ -8380,8 +8455,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	[illegalGoods autorelease];
 	illegalGoods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[descriptions autorelease];
-	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+	[self loadDescriptions];
 	
 	[characters autorelease];
 	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -8454,9 +8528,9 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	if (strictChanged)
 	{
-		[descriptions release];
-		descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
-		[missiontext release];
+		[self loadDescriptions];
+		
+		[missiontext autorelease];
 		missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
 	}
 	

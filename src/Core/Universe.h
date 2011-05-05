@@ -232,7 +232,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 	NSArray					*commodityData;			// holds data on commodities extracted from commodityLists
 	
 	NSDictionary			*illegalGoods;			// holds the legal penalty for illicit commodities, loaded at initialisation
-	NSDictionary			*descriptions;			// holds descriptive text for lots of stuff, loaded at initialisation
+	NSDictionary			*_descriptions;			// holds descriptive text for lots of stuff, loaded at initialisation
 	NSDictionary			*customSounds;			// holds descriptive audio for lots of stuff, loaded at initialisation
 	NSDictionary			*characters;			// holds descriptons of characters
 	NSDictionary			*planetInfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
