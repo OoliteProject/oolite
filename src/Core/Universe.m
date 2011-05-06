@@ -5683,6 +5683,10 @@ static void VerifyDesc(NSString *key, id desc)
 	{
 		VerifyDescArray(key, desc);
 	}
+	else if ([desc isKindOfClass:[NSNumber class]])
+	{
+		// No verification needed.
+	}
 	else
 	{
 		OOLogERR(@"descriptions.verify.badType", @"***** FATAL: descriptions.plist entry for \"%@\" is neither a string nor an array.", key);
