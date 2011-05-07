@@ -1,3 +1,38 @@
+Changes between Oolite 1.75.1 and Oolite 1.75.2:
+
+* New Linux/POSIX installer.
+* Disabled shaders on certain ATi GPUs using Gallium drivers because of crashes.
+* Clock adjustments now accumulate in the obvious way (Bug #17969).
+* Improved texture filtering for planets and generated emission maps (in non-
+  shader mode).
+* Fixed bug where a ship was apparently attacking itself whenever one of its
+  subentities was taking energy damage.
+* Friendly fire between ships in the same group, and between police, military
+  or thargoid vessels, no longer leads to hostilities.
+* Ships following the player through a wormhole now have jump rings.
+* Ships with beacon codes now retain them after jumping to a new system.
+  (Bug #18068)
+* Fixes to mass-dependent fuel pricing.
+* Fixed mouse control starting in yaw mode. (Bug #18052)
+* Descriptions.plist strings are now scanned for "%n", which could be used
+  maliciously on GNUstep systems.
+* New AI message: ACCEPTED_ESCORT.
+* Various bug fixes, inluding bugs #17916, #17919 and #18083.
+
+JavaScript:
+* Raised certain JavaScript time limits.
+* The shipSpawned() event now fires for the main station.
+* Fixed scripted misjumps not working when set from within the
+  shipWillEnterWitchspace handler for wormholes created by NPCs.
+* NPCs in interstellar space can now jump back to their origin system.
+  (Bug #18082, partial)
+* Scripts can no longer give the player an out-of-range target. (Bug #18011)
+* Q-mines awarded to NPCs in flight now work. (More accurately, q-mines for
+  NPCs used to be represented internally as EQ_ENERGY_BOMB instead of
+  EQ_QC_MINE.)
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.75 and Oolite 1.75.1:
 
 * Joystick deadzone restored to previous value (Mac OS X not affected).
