@@ -3852,8 +3852,6 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	[self resetBeacons];
 	
-	_sessionID++;
-	
 	no_update = updating;	// restore drawing
 }
 
@@ -8519,6 +8517,8 @@ Entity *gOOJSPlayerIfStale = nil;
 	[self removeAllEntitiesExceptPlayer];
 	[OOTexture clearCache];
 	[self resetSystemDataCache];
+	
+	_sessionID++;	// Must be after removing old entities and before adding new ones.
 	
 	[ResourceManager setUseAddOns:!strict];
 	//[ResourceManager loadScripts]; // initialised inside [player setUp]!
