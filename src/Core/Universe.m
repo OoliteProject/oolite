@@ -223,6 +223,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) verifyDescriptions;
 - (void) loadDescriptions;
 
+- (void) verifyEntitySessionIDs;
+
 @end
 
 
@@ -5014,11 +5016,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) update:(OOTimeDelta)inDeltaT
 {
 	volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
+	NSUInteger sessionID = _sessionID;
 	
 	if (!no_update)
 	{
 		unsigned	i, ent_count = n_entities;
 		Entity		*my_entities[ent_count];
+		
+		[self verifyEntitySessionIDs];
 		
 		// use a retained copy so this can't be changed under us.
 		for (i = 0; i < ent_count; i++)
@@ -5145,6 +5150,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				}
 				
 				[thing update:delta_t];
+				if (sessionID != _sessionID)
+				{
+					// Game was reset (in player update); end this update: cycle.
+					break;
+				}
 				
 #ifndef NDEBUG
 				update_stage = @"update:list maintenance [%@]";
@@ -8507,6 +8517,32 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
+- (void) verifyEntitySessionIDs
+{
+#ifndef NDEBUG
+	NSMutableArray *badEntities = nil;
+	Entity *entity = nil;
+	
+	unsigned i;
+	for (i = 0; i < n_entities; i++)
+	{
+		entity = sortedEntities[i];
+		if ([entity sessionID] != _sessionID)
+		{
+			OOLogERR(@"universe.sessionIDs.verify.failed", @"Invalid entity %@ (came from session %lu, current session is %lu).", [entity shortDescription], [entity sessionID], _sessionID);
+			if (badEntities == nil)  badEntities = [NSMutableArray array];
+			[badEntities addObject:entity];
+		}
+	}
+	
+	foreach (entity, badEntities)
+	{
+		[self removeEntity:entity];
+	}
+#endif
+}
+
+
 // FIXME: needs less redundancy.
 - (void) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged
 {
@@ -8582,6 +8618,8 @@ Entity *gOOJSPlayerIfStale = nil;
 		[player setGuiToStatusScreen];
 		[player doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];
 	}
+	
+	[self verifyEntitySessionIDs];
 		
 	no_update = NO;
 }
