@@ -5016,7 +5016,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) update:(OOTimeDelta)inDeltaT
 {
 	volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
-	NSUInteger sessionID = _sessionID;
+	OOUInteger sessionID = _sessionID;
 	
 	if (!no_update)
 	{
