@@ -31,6 +31,20 @@ JavaScript:
   NPCs used to be represented internally as EQ_ENERGY_BOMB instead of
   EQ_QC_MINE.)
 
+Known bugs:
+* Intermittent crashes when removing pylon-mounted equipment
+  (http://www.aegidian.org/bb/viewtopic.php?f=3&t=9761)
+* Freeze when script resurrects a ship being killed by a Q-bomb (Bug #18054)
+* AI crash triggered by large groups of thargoids (Bug #18055)
+* Bugs related to repeated misjumps (Bug #18082)
+* Unhelpful docking clearance behaviour changing priorities when a ship is on
+  final approach (Bug #17997)
+* Fuel indicator is not drawn correctly in interstellar space (Bug #18097)
+* Q-bomb explosions are not drawn properly on some systems (Bug #17276)
+* In some conditions, the "break pattern" effect is drawn off-centre.
+* Problem with roles of tharglets used as subentities (Bug #17979)
+* Problem with frame callbacks and jumps (Bug #17956)
+
 -------------------------------------------------------------------------------
 
 Changes between Oolite 1.75 and Oolite 1.75.1:
