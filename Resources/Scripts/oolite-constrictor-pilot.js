@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 this.name			= "oolite-constrictor-pilot";
 this.author			= "Eric Walch";
 this.copyright		= "© 2008-2010 the Oolite team.";
-this.version		= "1.75.2";
+this.version		= "1.75.3";
 
 
 this.unloadCharacter = function ()
