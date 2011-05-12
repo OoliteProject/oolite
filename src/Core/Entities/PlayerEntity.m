@@ -3065,7 +3065,7 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (GLfloat) dialHyperRange
 {
-	if (equal_seeds(target_system_seed, system_seed))  return 0.0f;
+	if (equal_seeds(target_system_seed, system_seed) && ![UNIVERSE inInterstellarSpace])  return 0.0f;
 	return [self fuelRequiredForJump] / (GLfloat)PLAYER_MAX_FUEL;
 }
 
