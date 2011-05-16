@@ -61,6 +61,8 @@ OUT OF OR
 - (void) playOrRepeat;
 - (void) stop;
 
++ (void) stopAll;
+
 // Conveniences:
 - (void) playSound:(OOSound *)inSound;
 - (void) playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount;

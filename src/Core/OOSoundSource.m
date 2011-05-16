@@ -29,6 +29,9 @@ SOFTWARE.
 #import "OOLogging.h"
 
 
+static NSMutableSet *sPlayingSoundSources;
+
+
 @implementation OOSoundSource
 
 + (id) sourceWithSound:(OOSound *)inSound
@@ -134,6 +137,12 @@ SOFTWARE.
 		[self retain];
 	}
 	
+	if (EXPECT_NOT(sPlayingSoundSources == nil))
+	{
+		sPlayingSoundSources = [[NSMutableSet alloc] init];
+	}
+	[sPlayingSoundSources addObject:self];
+	
 	OOSoundReleaseLock();
 }
 
@@ -155,9 +164,26 @@ SOFTWARE.
 		[_channel stop];
 		_channel = nil;
 		[self release];
+		
+		[sPlayingSoundSources removeObject:self];
 	}
 	
 	OOSoundReleaseLock();
+}
+
+
++ (void) stopAll
+{
+	/*	We're not allowed to mutate sPlayingSoundSources during iteration. The
+		normal solution would be to copy the set, but since we know it will
+		end up empty we may as well use the original set and let a new one be
+		set up lazily.
+	*/
+	NSMutableSet *playing = sPlayingSoundSources;
+	sPlayingSoundSources = nil;
+	
+	[playing makeObjectsPerformSelector:@selector(stop)];
+	[playing release];
 }
 
 
