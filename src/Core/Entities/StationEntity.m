@@ -369,7 +369,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return instructions(universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 
-	BoundingBox bb = [ship boundingBox];
+	BoundingBox bb = [ship totalBoundingBox];
 	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
 		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)))
 	{
@@ -1289,7 +1289,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	if (![ship isShip])  return;
 	
-	BoundingBox bb = [ship boundingBox];
+	BoundingBox bb = [ship totalBoundingBox];
 	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
 		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)) && ![ship isPlayer])
 	{

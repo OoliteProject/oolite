@@ -425,6 +425,8 @@ typedef enum
 - (OOMesh *)mesh;
 - (void)setMesh:(OOMesh *)mesh;
 
+- (BoundingBox) totalBoundingBox;
+
 - (Vector) forwardVector;
 - (Vector) upVector;
 - (Vector) rightVector;

@@ -1,7 +1,9 @@
 {
 	GLOBAL =
 	{
-		ENTER = (performIdle, "setStateTo: DECIDE_ROUTE");
+		ENTER = (performIdle, checkForNormalSpace);
+		"NORMAL_SPACE" = ("setStateTo: DECIDE_ROUTE"); 
+		"INTERSTELLAR_SPACE" = ("switchAITo: exitingTraderAI.plist"); 
 	};
 	"DECIDE_ROUTE" =
 	{
