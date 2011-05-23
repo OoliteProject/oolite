@@ -1713,6 +1713,9 @@ static NSMutableDictionary* currentShipyard = nil;
 		}
 	}
 	
+	// set up subentities from scratch; new ship could carry more or fewer than the old one
+	[self setUpSubEntities];
+	
 	// add bought ship to shipyard_record
 	[shipyard_record setObject:[self shipDataKey] forKey:[ship_info objectForKey:SHIPYARD_KEY_ID]];
 	
