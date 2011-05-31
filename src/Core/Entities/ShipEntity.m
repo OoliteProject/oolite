@@ -1876,16 +1876,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	// check outside factors
-	//
 	aegis_status = [self checkForAegis];   // is a station or something nearby??
 
-	//scripting
+	// scripting
 	if (!haveExecutedSpawnAction)
 	{
 		// When crashing into a boulder, STATUS_LAUNCHING is sometimes skipped on scooping the resulting splinters.
 		OOEntityStatus status = [self status];
 		if (script != nil && (status == STATUS_IN_FLIGHT ||
-							  status == STATUS_LAUNCHING||
+							  status == STATUS_LAUNCHING ||
 							  status == STATUS_BEING_SCOOPED ||
 							  (status == STATUS_ACTIVE && self == [UNIVERSE station])
 							  ))
@@ -5348,11 +5347,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	// Post MNSR it's also going to be affected by missing subents, and possibly repair status. 
 	// N.B. "fuel_charge_rate" now fully removed, in favour of a dynamic system. -- Kaks 20110429
 	
-	if (EXPECT(![UNIVERSE strict]))
+	if (![UNIVERSE strict])
 	{
 		if (EXPECT(PLAYER != nil && mass> 0 && mass != [PLAYER baseMass]))
 		{
-			rate = calcFuelChargeRate (mass);	// post-MNSR fuelPrices will be affected by missing subents. see  [self subEntityDied]
+			rate = calcFuelChargeRate(mass);	// post-MNSR fuelPrices will be affected by missing subents. see  [self subEntityDied]
 		}
 	}
 	OOLog(@"fuelPrices", @"\"%@\" fuel charge rate: %.2f (mass ratio: %.2f/%.2f)", [self shipDataKey], rate, mass, [PLAYER baseMass]);
@@ -6602,9 +6601,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	OOShipGroup	*myGroup = [self group];
 	OOShipGroup	*otherGroup = [otherShip group];
 	
-	if ((otherShip == self) || ([self isPolice] && [otherShip isPolice]) || ([self isThargoid] && [otherShip isThargoid]) ||
-							(myGroup != nil && otherGroup != nil && (myGroup == otherGroup || [otherGroup leader] == self)) ||
-							([self scanClass] == CLASS_MILITARY && [otherShip scanClass] == CLASS_MILITARY))
+	if ((otherShip == self) ||
+		([self isPolice] && [otherShip isPolice]) ||
+		([self isThargoid] && [otherShip isThargoid]) ||
+		(myGroup != nil && otherGroup != nil && (myGroup == otherGroup || [otherGroup leader] == self)) ||
+		([self scanClass] == CLASS_MILITARY && [otherShip scanClass] == CLASS_MILITARY))
 	{
 		isFriendly = YES;
 	}
@@ -7573,7 +7574,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (victim != nil)
 	{
 		ShipEntity *subent = [victim subEntityTakingDamage];
-		if (subent && [victim isFrangible])
+		if (subent != nil && [victim isFrangible])
 		{
 			// do 1% bleed-through damage...
 			[victim takeEnergyDamage: 0.01 * weapon_damage from:self becauseOf: parent];

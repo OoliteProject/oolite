@@ -124,6 +124,12 @@ static JSFunctionSpec sScriptMethods[] =
 	{
 		context = OOJSAcquireContext();
 		
+		if (JS_IsExceptionPending(context))
+		{
+			JS_ClearPendingException(context);
+			OOLogERR(@"script.javaScript.load.waitingException", @"Prior to loading script %@, there was a pending JavaScript exception, which has been cleared. This is an internal error, please report it.", path);
+		}
+		
 		// Set up JS object
 		if (!problem)
 		{
@@ -201,6 +207,7 @@ static JSFunctionSpec sScriptMethods[] =
 			// We don't need the script any more - the event handlers hang around as long as the JS object exists.
 			JS_DestroyScript(context, script);
 		}
+		
 		JS_RemoveObjectRoot(context, &scriptObject);
 		
 		sRunningStack = stackElement.back;
@@ -221,6 +228,7 @@ static JSFunctionSpec sScriptMethods[] =
 			
 			OOLog(@"script.javaScript.load.success", @"Loaded JavaScript: %@ -- %@", [self displayName], description ? description : (NSString *)@"(no description)");
 		}
+		
 		OOLogOutdentIf(@"script.javaScript.willLoad");
 		
 		DESTROY(filePath);	// Only used for error reporting during startup.
@@ -229,6 +237,7 @@ static JSFunctionSpec sScriptMethods[] =
 	if (problem)
 	{
 		OOLog(@"script.javaScript.load.failed", @"***** Error loading JavaScript script %@ -- %@", path, problem);
+		JS_ReportPendingException(context);
 		DESTROY(self);
 	}
 	

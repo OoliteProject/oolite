@@ -1496,7 +1496,6 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 		_textureFileName = nil;
 		isTextureImage = NO;
 	}
-
 }
 
 

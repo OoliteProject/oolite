@@ -153,6 +153,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta delta)
 			for (i = 0; i < sCount; i++)
 			{
 				JS_CallFunctionValue(context, NULL, sCallbacks[i].callback, 1, &deltaVal, &result);
+				JS_ReportPendingException(context);
 			}
 			
 			OOJSStopTimeLimiter();

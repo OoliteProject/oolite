@@ -290,7 +290,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				position.y += v1.y * d1;
 				position.z += v1.z * d1;
 			}
-			[ship setPosition: position];
+			[ship setPosition:position];
 
 			if (shipBeacon != nil)
 			{
@@ -299,11 +299,13 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	
 			// Don't reduce bounty on misjump. Fixes #17992
 			// - MKW 2011.03.10	
-			if (!_misjump) [ship setBounty:[ship bounty]/2];	// adjust legal status for new system
+			if (!_misjump)  [ship setBounty:[ship bounty]/2];	// adjust legal status for new system
 		
 			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
+			{
 				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
-		
+			}
+			
 			if (now - ship_arrival_time < 2.0)
 			{
 				[ship witchspaceLeavingEffects]; // adds the ship to the universe with effects.
@@ -317,8 +319,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				[ship setSpeed: [ship maxFlightSpeed] * 0.25];
 				[UNIVERSE addEntity:ship];	// AI and status get initialised here
 			}
-
-		
+			
 			// Should probably pass the wormhole, but they have no JS representation
 			[ship doScriptEvent:OOJSID("shipExitedWormhole") andReactToAIMessage:@"EXITED WITCHSPACE"];
 		

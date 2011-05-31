@@ -731,6 +731,11 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 	jsval				method;
 	jsval				rval;
 	NSString			*result = nil;
+	jsval				exception;
+	BOOL				hadException;
+	
+	hadException = JS_GetPendingException(context, &exception);
+	JS_ClearPendingException(context);
 	
 	if (JS_GetMethodById(context, global, OOJSID("formatCredits"), &fakeRoot, &method))
 	{
@@ -747,6 +752,8 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 			result = OOStringFromJSValue(context, rval);
 		}
 	}
+	
+	if (hadException)  JS_SetPendingException(context, exception);
 	
 	OOJSRelinquishContext(context);
 	
