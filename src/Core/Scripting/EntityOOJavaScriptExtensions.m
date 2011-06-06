@@ -150,12 +150,6 @@ MA 02110-1301, USA.
 	if (target != nil)
 	{
 		[me addTarget:target];
-		// Out of player's scanner range? Lose target - Nikos 20110415
-		if ([me isPlayer] && distance2([me position], [target position]) > SCANNER_MAX_RANGE2)
-		{
-			[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
-			[me removeTarget:target];
-		}
 	}
 	else  [me removeTarget:[me primaryTarget]];
 }

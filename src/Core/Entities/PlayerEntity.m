@@ -2068,6 +2068,14 @@ static bool minShieldLevelPercentageInitialised = false;
 		}
 		[hud setScannerZoom:z1];
 	}
+	
+	// scanner sanity check - lose any targets further than maximum scanner range
+	ShipEntity *primeTarget = [UNIVERSE entityForUniversalID:primaryTarget];
+	if (primeTarget && distance2([primeTarget position], [self position]) > SCANNER_MAX_RANGE2 && !autopilot_engaged)
+	{
+		[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
+		[self removeTarget:primeTarget];
+	}
 
 	// update subentities
 	UPDATE_STAGE(@"updating subentities");
