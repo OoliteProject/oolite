@@ -69,7 +69,7 @@ enum
 
 
 /* *** Packet types *** */
-/*	kOOTCPacket_RequestConnection
+/*	kOOTCPPacket_RequestConnection
 	client --> server
 	Message sent from client (Oolite) to server (console) to request a cosole
 	connection.
@@ -78,15 +78,15 @@ enum
 		kOOTCPProtocolVersion
 		kOOTCPOoliteVersion
 	Expected responses:
-		kOOTCPacket_ApproveConnection
+		kOOTCPPacket_ApproveConnection
 			OR
-		kOOTCPacket_RejectConnection
+		kOOTCPPacket_RejectConnection
 */
 #define kOOTCPPacket_RequestConnection		OOALSTR("Request Connection")
 
 /*	kOOTCPPacket_ApproveConnection
 	client <-- server
-	Message sent in response to kOOTCPacket_RequestConnection if connection is
+	Message sent in response to kOOTCPPacket_RequestConnection if connection is
 	established successfully.
 	
 	Optional values:
@@ -96,7 +96,7 @@ enum
 
 /*	kOOTCPPacket_RejectConnection
 	client <-- server
-	Message sent in response to kOOTCPacket_RequestConnection if connection is
+	Message sent in response to kOOTCPPacket_RequestConnection if connection is
 	not established successfully. After this message is sent, the connection
 	is closed with no further traffic.
 	
