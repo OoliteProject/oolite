@@ -167,6 +167,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	unsigned		i;
 	BOOL			areTrumblesToBeDrawn = NO;
+	BOOL			isScannerToBeDrawn = NO;
 	
 	self = [super init];
 	
@@ -186,6 +187,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		NSDictionary	*dial_info = [dials oo_dictionaryAtIndex:i];
 		if (!areTrumblesToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawTrumbles:"])  areTrumblesToBeDrawn = YES;
+		if (!isScannerToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawScanner:"])  isScannerToBeDrawn = YES;
 		[self addDial:dial_info];
 	}
 	
@@ -193,6 +195,25 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		NSDictionary	*trumble_dial_info = [NSDictionary dictionaryWithObjectsAndKeys: @"drawTrumbles:", SELECTOR_KEY, nil];
 		[self addDial:trumble_dial_info];
+	}
+	
+	/* 
+	   Nikos 20110611: The scanner is very important and has to be drawn because mass locking depends on it. If we are using
+	   an OXP HUD which doesn't include the scanner definition, make sure we draw the scanner with full transparency.
+	   This will simulate scanner absence from the HUD, without messing up mass lock behaviour. The dictionary passed to
+	   drawScanner: is the same as the one in the default hud.plist. TODO post-1.76: Separate mass lock from scanner drawing.
+	*/
+	if (EXPECT_NOT(!isScannerToBeDrawn))
+	{
+		NSDictionary	*scanner_dial_info = [NSDictionary dictionaryWithObjectsAndKeys:@"drawScanner:", SELECTOR_KEY,
+																						@"0.0", ALPHA_KEY,
+																						@"0.0", X_KEY,
+																						@"60.0", Y_KEY,
+																						@"-1.0", Y_ORIGIN_KEY,
+																						@"72.0", HEIGHT_KEY,
+																						@"288.0", WIDTH_KEY,
+																						nil];
+		[self addDial:scanner_dial_info];
 	}
 	
 	NSArray *legends = [hudinfo oo_arrayForKey:LEGENDS_KEY];
@@ -567,6 +588,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	float						x, y;
 	NSSize						size;
 	GLfloat					alpha = overallAlpha;
+	
+// Feature request 5359 - equipment_required for HUD legends
+// TODO: Enable after release of version 1.76.	
+#if FEATURE_REQUEST_5359	
+	NSString *equipmentRequired = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
+	if (equipmentRequired != nil && ![PLAYER hasEquipmentItem:equipmentRequired])
+		return;
+#endif
 	
 	x = [info oo_floatForKey:X_KEY] + [[UNIVERSE gameView] x_offset] *
 		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
