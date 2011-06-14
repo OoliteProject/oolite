@@ -104,8 +104,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		estimated_arrival_time = [dict oo_doubleForKey:@"estimated_arrival_time" defaultValue:arrival_time];
 		position = [dict oo_vectorForKey:@"position"];
 		_misjump = [dict oo_boolForKey:@"misjump" defaultValue:NO];
-
-
+		
+		
 		// Setup shipsInTransit
 		NSArray * shipDictsArray = [dict oo_arrayForKey:@"ships"];
 		NSEnumerator *shipDicts = [shipDictsArray objectEnumerator];
@@ -155,6 +155,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		originCoords = [PLAYER galaxy_coordinates];
 		destinationCoords = NSMakePoint(destination.d, destination.b);
 		distance = distanceBetweenPlanetPositions(originCoords.x, originCoords.y, destinationCoords.x, destinationCoords.y);
+		distance = fmax(distance, 0.1);
 		witch_mass = 200000.0; // MKW 2010.11.21 - originally the ship's mass was added twice - once here and once in suckInShip.  Instead, we give each wormhole a minimum mass.
 		if ([ship isPlayer])
 			witch_mass += [ship mass]; // The player ship never gets sucked in, so add its mass here.
@@ -241,7 +242,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	witch_mass += [ship mass];
 	expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE / shrink_factor);
 	collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
-
+	
 	[UNIVERSE addWitchspaceJumpEffectForShip:ship];
 	
 	// Should probably pass the wormhole, but they have no JS representation
@@ -496,8 +497,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	{
 
 		witch_mass -= WORMHOLE_SHRINK_RATE * delta_t * shrink_factor;
-		if (witch_mass < 0.0)
-			witch_mass = 0.0;
+		witch_mass = fmax(witch_mass, 0.0);
 		collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
 		no_draw_distance = collision_radius * collision_radius * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
 	}
@@ -515,19 +515,19 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {	
-	if (!UNIVERSE)
-		return;
-	
 	if ([UNIVERSE breakPatternHide])
 		return;		// DON'T DRAW DURING BREAK PATTERN
 	
 	if (zero_distance > no_draw_distance)
 		return;	// TOO FAR AWAY TO SEE
 		
-	if (witch_mass < 0.0)
+	if (witch_mass <= 0.0)
 		return;
 	
 	if (collision_radius <= 0.0)
+		return;
+	
+	if ([self scanClass] == CLASS_NO_DRAW)
 		return;
 	
 	if (translucent)
