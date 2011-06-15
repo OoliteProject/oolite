@@ -773,14 +773,17 @@ Object.defineProperty(Entity.prototype, "inspect", { value: function inspect()
 }});
 
 
-// Add dumpState() method to all entities, to log a bunch of stuff.
-Object.defineProperty(Entity.prototype, "dumpState", { value: function dumpState()
+if (typeof console.__setUpCallObjC == "function")
 {
-	this.callObjC("dumpState");
-}});
-
-
-console.__setUpCallObjC(Object.prototype);
+	console.__setUpCallObjC(Object.prototype);
+}
+else
+{
+	Object.prototype.callObjC = function()
+	{
+		throw Error("callObjC() is disabled.");
+	}
+}
 
 }).call(this);
 

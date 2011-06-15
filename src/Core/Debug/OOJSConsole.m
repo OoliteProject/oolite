@@ -70,8 +70,10 @@ static JSBool ConsoleConsoleMessage(JSContext *context, uintN argc, jsval *vp);
 static JSBool ConsoleClearConsole(JSContext *context, uintN argc, jsval *vp);
 static JSBool ConsoleScriptStack(JSContext *context, uintN argc, jsval *vp);
 static JSBool ConsoleInspectEntity(JSContext *context, uintN argc, jsval *vp);
+#if OO_DEBUG
 static JSBool ConsoleCallObjCMethod(JSContext *context, uintN argc, jsval *vp);
 static JSBool ConsoleSetUpCallObjC(JSContext *context, uintN argc, jsval *vp);
+#endif
 static JSBool ConsoleIsExecutableJavaScript(JSContext *context, uintN argc, jsval *vp);
 static JSBool ConsoleDisplayMessagesInClass(JSContext *context, uintN argc, jsval *vp);
 static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, uintN argc, jsval *vp);
@@ -193,7 +195,9 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "clearConsole",					ConsoleClearConsole,				0 },
 	{ "scriptStack",					ConsoleScriptStack,					0 },
 	{ "inspectEntity",					ConsoleInspectEntity,				1 },
+#if OO_DEBUG
 	{ "__setUpCallObjC",				ConsoleSetUpCallObjC,				1 },
+#endif
 	{ "isExecutableJavaScript",			ConsoleIsExecutableJavaScript,		2 },
 	{ "displayMessagesInClass",			ConsoleDisplayMessagesInClass,		1 },
 	{ "setDisplayMessagesInClass",		ConsoleSetDisplayMessagesInClass,	2 },
@@ -745,6 +749,7 @@ static JSBool ConsoleInspectEntity(JSContext *context, uintN argc, jsval *vp)
 }
 
 
+#if OO_DEBUG
 // function callObjC(selector : String [, ...]) : Object
 static JSBool ConsoleCallObjCMethod(JSContext *context, uintN argc, jsval *vp)
 {
@@ -790,6 +795,7 @@ static JSBool ConsoleSetUpCallObjC(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_NATIVE_EXIT
 }
+#endif
 
 
 // function isExecutableJavaScript(this : Object, string : String) : Boolean
