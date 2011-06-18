@@ -1,3 +1,17 @@
+Changes between Oolite 1.75.2 and Oolite 1.75.3:
+
+* Subentities are now set up correctly when buying a new ship.
+* Ships now take subentities into account when deciding whether they can dock.
+* Fixed ghost wormholes. Wormholes can no longer have a jump range of zero.
+* The fuel indicator is now drawn correctly in interstellar space.
+* Additional guards against out-of-range targets for the player.
+* Sounds now stop playing when starting a new game. (Bug #18108)
+* Ships with sun skimmer AI in interstellar space no longer cause errors in the
+  log, and AIs can handle the situation by responding to NO_SUN_FOUND.
+* The debugging function callObjC() has been disabled.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.75.1 and Oolite 1.75.2:
 
 * New Linux/POSIX installer.
