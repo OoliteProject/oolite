@@ -309,6 +309,8 @@ static BOOL AddCallback(JSContext *context, jsval callback, uint32 trackingID, N
 			*errorString = @"Failed to add GC root for frame callback.";
 			return NO;
 		}
+		
+		sHighWaterMark = sCount + 1;
 	}
 	
 	sCallbacks[sCount].trackingID = trackingID;
