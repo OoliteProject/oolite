@@ -542,7 +542,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		NSPoint			coords = [player galaxy_coordinates];
 		// check the nearest system
 		Random_Seed s_seed = [self findSystemAtCoords:coords withGalaxySeed:[player galaxy_seed]];
-		BOOL interstel =[dockedStation interstellarUndockingAllowed] && (s_seed.d != coords.x || s_seed.b != coords.y);
+		BOOL interstel = [dockedStation interstellarUndockingAllowed]; // && (s_seed.d != coords.x || s_seed.b != coords.y); - Nikos 20110623: Do we really need the commented out check?
 		
 		// remove everything except the player and the docked station
 		if (dockedStation && !interstel)
