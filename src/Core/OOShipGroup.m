@@ -563,6 +563,14 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator)
 }
 
 
+- (void) dealloc
+{
+	DESTROY(_group);
+	
+	[super dealloc];
+}
+
+
 - (id) nextObject
 {
 	return ShipGroupIterate(self);
