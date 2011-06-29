@@ -2917,6 +2917,13 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	if (!hudFileName)  return NO;
 	
+	// is the HUD in the process of being rendered? If yes, set it to defer state and abort the switching now
+	if (hud != nil && [hud isUpdating])
+	{
+		[hud setDeferredHudName:hudFileName];
+		return NO;
+	}
+	
 	hudDict = [ResourceManager dictionaryFromFilesNamed:hudFileName inFolder:@"Config" andMerge:YES];
 	// hud defined, but buggy?
 	if (hudDict == nil)

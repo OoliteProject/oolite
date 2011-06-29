@@ -213,6 +213,9 @@ MA 02110-1301, USA.
 	GLfloat				line_width;
 	
 	NSString			*hudName;
+	NSString			*deferredHudName;	// Usually it will be nil. If not nil, then it means that we have a deferred HUD waiting to be drawn This may happen
+											// for example when a script handler attempts to switch HUD while it is being rendered. - Nikos 20110628
+	BOOL				hudUpdating;
 	
 	GLfloat				overallAlpha;
 	
@@ -256,6 +259,10 @@ MA 02110-1301, USA.
 
 - (BOOL) isHidden;
 - (void) setHidden:(BOOL)newValue;
+
+- (BOOL) isUpdating;
+- (void) setDeferredHudName:(NSString *)newDeferredHudName;
+- (NSString *) deferredHudName;
 
 - (void) addLegend:(NSDictionary *) info;
 - (void) addDial:(NSDictionary *) info;

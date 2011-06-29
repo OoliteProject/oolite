@@ -175,6 +175,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	if (sFontTexture == nil)  InitTextEngine();
 	
+	deferredHudName = nil;	// if not nil, it means that we have a deferred HUD which is to be drawn at first available opportunity
 	hudName = [hudFileName copy];
 	
 	// init arrays
@@ -224,6 +225,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	hudHidden = NO;
 	
+	hudUpdating = NO;
+	
 	overallAlpha = [hudinfo oo_floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
 	
 	reticleTargetSensitive = [hudinfo oo_boolForKey:@"reticle_target_sensitive" defaultValue:NO];
@@ -251,6 +254,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	DESTROY(legendArray);
 	DESTROY(dialArray);
 	DESTROY(hudName);
+	DESTROY(deferredHudName);
 	DESTROY(propertiesReticleTargetSensitive);
 	DESTROY(_crosshairOverrides);
 	
@@ -390,6 +394,25 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
+- (BOOL) isUpdating
+{
+	return hudUpdating;
+}
+
+
+- (void) setDeferredHudName:(NSString *)newDeferredHudName
+{
+	[deferredHudName release];
+	deferredHudName = [[NSString stringWithString:newDeferredHudName] retain];
+}
+
+
+- (NSString *) deferredHudName
+{
+	return deferredHudName;
+}
+
+
 - (void) addLegend:(NSDictionary *) info
 {
 	NSString			*imageName = nil;
@@ -461,6 +484,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) renderHUD
 {
+	hudUpdating = YES;
+	
 	if (_crosshairWidth * line_width > 0)
 	{
 		OOGL(glLineWidth(_crosshairWidth * line_width));
@@ -475,6 +500,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	[self drawDials];
 	CheckOpenGLErrors(@"After drawing HUD");
+	
+	hudUpdating = NO;
 }
 
 
@@ -1207,6 +1234,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		glVertex3f(relativePosition.x, relativePosition.y - siz.height, z1);
 		glVertex3f(relativePosition.x, relativePosition.y + siz.height, z1);
 	OOGLEND();
+	
 	GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 }
 

@@ -542,7 +542,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		NSPoint			coords = [player galaxy_coordinates];
 		// check the nearest system
 		Random_Seed s_seed = [self findSystemAtCoords:coords withGalaxySeed:[player galaxy_seed]];
-		BOOL interstel = [dockedStation interstellarUndockingAllowed]; // && (s_seed.d != coords.x || s_seed.b != coords.y); - Nikos 20110623: Do we really need the commented out check?
+		BOOL interstel =[dockedStation interstellarUndockingAllowed];// && (s_seed.d != coords.x || s_seed.b != coords.y); - Nikos 20110623: Do we really need the commented out check?
 		
 		// remove everything except the player and the docked station
 		if (dockedStation && !interstel)
@@ -3391,6 +3391,17 @@ static const OOMatrix	starboard_matrix =
 			[self drawMessage];
 			
 			HeadUpDisplay *theHUD = [player hud];
+			
+			// If the HUD has a non-nil deferred name string, it means that a HUD switch was requested while it was being rendered.
+			// If so, execute the deferred HUD switch now - Nikos 20110628
+			if ([theHUD deferredHudName] != nil)
+			{
+				NSString *deferredName = [[theHUD deferredHudName] retain];
+				[player switchHudTo:deferredName];
+				[deferredName release];
+				theHUD = [player hud];	// HUD has been changed, so point to its new address
+			}
+			
 #ifndef NDEBUG
 			static float sPrevHudAlpha = -1.0f;
 			if ([theHUD isHidden])
