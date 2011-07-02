@@ -3843,7 +3843,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 #endif
 	
 	// preserve wormholes
-	NSArray* savedWormholes = [NSArray arrayWithArray:activeWormholes];
+	NSMutableArray *savedWormholes = [activeWormholes mutableCopy];
 	
 	while ([entities count] > 1)
 	{
@@ -3853,7 +3853,8 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		[self removeEntity:ent];
 	}
 	
-	[activeWormholes addObjectsFromArray:savedWormholes];	// will be cleared out by populateFromActiveWormholes
+	[activeWormholes release];
+	activeWormholes = savedWormholes;	// will be cleared out by populateFromActiveWormholes
 	
 	// maintain sorted list
 	n_entities = 1;
