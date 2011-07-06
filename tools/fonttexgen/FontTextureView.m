@@ -134,7 +134,8 @@ static inline NSRect ScaleRect(NSRect rect, NSPoint scale)
 	// Originally hard-coded at 512x512 pixels, scale is used to transform magic numbers as appropriate.
 	NSPoint scale = { self.bounds.size.width / 512, self.bounds.size.height / 512 };
 	
-	NSFont *font = [NSFont fontWithName:@"Helvetica Bold" size:25.0 * scale.y];
+//	NSFont *font = [NSFont fontWithName:@"Helvetica Bold" size:25.0 * scale.y];
+	NSFont *font = [NSFont fontWithName:@"Play-Bold" size:25.0 * scale.y];
 	if (font == nil)  NSLog(@"Failed to find font!");
 	NSDictionary *attrs = [NSDictionary dictionaryWithObjectsAndKeys:font, NSFontAttributeName, [NSColor whiteColor], NSForegroundColorAttributeName, nil];
 	

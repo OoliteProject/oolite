@@ -2389,7 +2389,7 @@ static NSTimeInterval	time_last_frame;
 	else
 		volumeControlPressed = NO;
 	
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X && GROOLITE_VISIBLE
 	if ((guiSelectedRow == GUI_ROW(GAME,GROWL))&&([gameView isDown:gvArrowKeyRight]||[gameView isDown:gvArrowKeyLeft]))
 	{
 		if ([Groolite isEnabled] && (!leftRightKeyPressed || script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))

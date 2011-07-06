@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "Universe.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "OOCollectionExtractors.h"
 
 static NSString * const kOOLogGrooliteError	= @"growl.error";
 static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
@@ -258,7 +259,7 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 
 + (BOOL) isEnabled
 {
-	return ![[NSUserDefaults standardUserDefaults] oo_boolForKey:@"groolite-disable" defaultValue:NO];
+	return ![[NSUserDefaults standardUserDefaults] oo_boolForKey:@"groolite-disable" defaultValue:!GROOLITE_VISIBLE];
 }
 
 @end

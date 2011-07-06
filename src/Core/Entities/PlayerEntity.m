@@ -5730,7 +5730,7 @@ static bool minShieldLevelPercentageInitialised = false;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,VOLUME)];
 		}
 		
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X && GROOLITE_VISIBLE
 		// Growl priority control
 		{
 			if ([Groolite isEnabled])

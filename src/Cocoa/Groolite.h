@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 */
 
 #import <Cocoa/Cocoa.h>
-#import <Growl/Growl.h>
 
 @class GameController;
 
@@ -60,3 +59,12 @@ enum
 + (BOOL) isEnabled;
 
 @end
+
+
+/*
+	If 1, Groolite is enabled by default and visible in the settings UI.
+	
+	Turned off in beta 1.75.3 because Growl’s communications protocol will be
+	changing in the near future.
+*/
+#define GROOLITE_VISIBLE		0
