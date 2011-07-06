@@ -117,7 +117,9 @@ static JSFunctionSpec sEntityMethods[] =
 {
 	// JS name					Function					min args
 	{ "toString",				OOJSObjectWrapperToString,	0 },
+#ifndef NDEBUG
 	{ "dumpState",				EntityDumpState,			0 },
+#endif
 	{ 0 }
 };
 
