@@ -258,7 +258,7 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 
 + (BOOL) isEnabled
 {
-	return ![[NSUserDefaults standardUserDefaults] boolForKey:@"groolite-disable"];
+	return ![[NSUserDefaults standardUserDefaults] oo_boolForKey:@"groolite-disable" defaultValue:NO];
 }
 
 @end
