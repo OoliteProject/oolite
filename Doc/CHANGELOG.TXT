@@ -6,8 +6,13 @@ Changes between Oolite 1.75.2 and Oolite 1.75.3:
 * The fuel indicator is now drawn correctly in interstellar space.
 * Additional guards against out-of-range targets for the player.
 * Sounds now stop playing when starting a new game. (Bug #18108)
+* [Mac] Growl display support is disabled due to upcoming changes to Growl.
 * Ships with sun skimmer AI in interstellar space no longer cause errors in the
   log, and AIs can handle the situation by responding to NO_SUN_FOUND.
+* "sunskim-trader" added to default pirate victim roles.
+* interstellar_undocking now works when in interstellar space 0 LY from a
+  system.
+* HUD changes are now deferred, so changing HUDs during HUD drawing is safe.
 * The debugging function callObjC() has been disabled.
 
 -------------------------------------------------------------------------------
