@@ -5071,27 +5071,52 @@ static bool minShieldLevelPercentageInitialised = false;
 	float		d1 = (float)(SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5));
 	Vector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 	Quaternion	q1;
+	Vector		whpos, exitpos;
 
 	quaternion_set_random(&q1);
 	if (abs((int)d1) < 750)	
-	{// no closer than 750m. Eric, was original 500m but that collides with some buoy variants.
-		d1 += ((d1 > 0.0)? 750.0f: -750.0f);
+	{
+		d1 += ((d1 > 0.0)? 750.0f: -750.0f); // not to close to the buoy.
 	}
 	Vector		v1 = vector_forward_from_quaternion(q1);
-	pos.x += v1.x * d1; // randomise exit position
-	pos.y += v1.y * d1;
-	pos.z += v1.z * d1;
+	exitpos = vector_add(pos, vector_multiply_scalar(v1, d1)); // randomise exit position
+	position = exitpos;
+	[self setOrientation:[UNIVERSE getWitchspaceExitRotation]];
 
-	// While this looks very nice for ships following the player, the more 
-	// common case of the player following other ships, the player tends to
-	// ram the back of the ships, which is messy.
-	// TODO: work out a neater way of doing this.
-	//[wormhole setExitPosition: pos]; // Set wormhole position in case there are ships following
+	// While setting the wormhole position to the player position looks very nice for ships following the player, 
+	// the more common case of the player following other ships, the player tends to
+	// ram the back of the ships, or even jump on top of is when the ship jumped without initial speed, which is messy. 
+	// To avoid this problem, a small wormhole displacement is added.
+	if (0 && [[wormhole shipsInTransit] count] > 0) // **** Currently disabled. Activate for 1.76?
+	{
+		// player is not allone in his wormhole, synchronise player and wormhole position.
+		double	wh_arrival_time = ([PLAYER clockTimeAdjusted] - [wormhole arrivalTime]);
+		Vector distance;
+		if (wh_arrival_time > 0)
+		{
+			// Player is following other ship 
+			whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], 1000.0f));
+		}
+		else
+		{
+			// Player is the leadship 
+			whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], -500.0f));
+			
+		}
+		distance = vector_subtract(whpos, pos);
+		if (magnitude2(distance) < 562500.0f ) // within 750 meters from the buoy?
+		{
+			// the wormhole is to close to the buoy. Move both player and wormhole away from it in the x-y plane.
+			distance.z = 0;
+			distance = vector_multiply_scalar(vector_normal(distance), 750.0f);
+			whpos = vector_add(whpos, distance);
+			position = vector_add(position, distance);
+		}
+		[wormhole setExitPosition: whpos];
+	}
 	[wormhole release];
 	wormhole = nil;
 
-	position = pos;
-	[self setOrientation:[UNIVERSE getWitchspaceExitRotation]];
 	flightRoll = 0.0f;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;

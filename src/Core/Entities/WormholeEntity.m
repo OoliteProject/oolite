@@ -262,6 +262,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	double now = [PLAYER clockTimeAdjusted];
 	int n_ships = [shipsInTransit count];
 	NSMutableArray * shipsStillInTransit = [[NSMutableArray alloc] initWithCapacity:n_ships];
+	BOOL hasShiftedExitPosition = NO;
 	
 	int i;
 	for (i = 0; i < n_ships; i++)
@@ -328,13 +329,24 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			if (!hasExitPosition)
 			{
 				hasExitPosition = YES;
+				hasShiftedExitPosition = YES; // exitPosition is shifted towards the lead ship update position.
 				[ship update: time_passed]; // do this only for one ship or the next ships might appear at very different locations.
 				position = [ship position]; // e.g. when the player fist docks before following, time_passed is already > 10 minutes.
 			}
 			else if (now - ship_arrival_time > 1) // Only update the ship position if it was some time ago, otherwise we're in 'real time'.
 			{
-				// only update the time delay to the lead ship. Sign is not correct but updating gives a small spacial distribution.
-				[ship update: (ship_arrival_time - arrival_time)];
+				if (hasShiftedExitPosition)
+				{
+					// only update the time delay to the lead ship. Sign is not correct but updating gives a small spacial distribution.
+					[ship update: (ship_arrival_time - arrival_time)];
+				}
+				else
+				{
+					// exit position was external set, e.g. by playership following through this wormhole.
+					// Use here the real time difference for correct updating.
+					[ship update: (now - ship_arrival_time)];
+				}
+
 			}
 		}
 	}
