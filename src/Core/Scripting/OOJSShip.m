@@ -198,9 +198,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READONLY_CB },
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
-	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },
+	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
 	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
-	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },
+	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
 	// contracts instead of cargo to distinguish them from the manifest
 	{ "contracts",				kShip_contracts,			OOJS_PROP_READONLY_CB },
 	{ "cloakAutomatic",			kShip_cloakAutomatic,		OOJS_PROP_READWRITE_CB},
