@@ -37,6 +37,7 @@ SOFTWARE.
 #import "GameController.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OODeepCopy.h"
+#import "OOColor.h"
 
 
 #define PRELOAD 0
@@ -1254,16 +1255,18 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	float					size, frequency, phase;
 	BOOL					initiallyOn;
 	
+#define kDefaultFlasherColor @"redColor"
+	
 	// "Validate" is really "clean up", since all values have defaults.
 	colors = [declaration oo_arrayForKey:@"colors"];
 	if ([colors count] == 0)
 	{
 		colorDesc = [declaration objectForKey:@"color"];
-		if (colorDesc == nil) colorDesc = @"redColor";
+		if (colorDesc == nil) colorDesc = kDefaultFlasherColor;
 		if ([colorDesc isKindOfClass:[NSArray class]])
 		{
 			// an easy made error is adding an array to "color" instead of "colors"
-			OOLogWARN(@"shipData.load.warning.flasher.badColor", @"Changing flasher for ship %@ from a color to a colors definition.", shipKey);
+			OOLogWARN(@"shipData.load.warning.flasher.badColor", @"changing flasher for ship %@ from a color to a colors definition.", shipKey);
 			colors = colorDesc;
 		}
 		else
@@ -1271,6 +1274,27 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			colors = [NSArray arrayWithObject:colorDesc];
 		}
 	}
+	
+	// Validate colours.
+	NSMutableArray *validColors = [NSMutableArray arrayWithCapacity:[colors count]];
+	foreach (colorDesc, colors)
+	{
+		OOColor *color = [OOColor colorWithDescription:colorDesc];
+		if (color != nil)
+		{
+			[validColors addObject:[color normalizedArray]];
+		}
+		else
+		{
+			OOLogWARN(@"shipdta.load.warning.flasher.badColor", @"skipping invalid colour specifier for flasher for ship %@.", shipKey);
+		}
+	}
+	// Ensure there's at least one.
+	if ([validColors count] == 0)
+	{
+		[validColors addObject:kDefaultFlasherColor];
+	}
+	colors = validColors;
 	
 	position = [declaration oo_vectorForKey:@"position"];
 	
