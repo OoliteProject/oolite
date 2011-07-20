@@ -788,7 +788,7 @@ static BOOL sRunningScript = NO;
 	{
 		valueString = [tokens objectAtIndex:i];
 		
-		if ([valueString hasSuffix:@"mission_"] && [mission_variables objectForKey:valueString])
+		if ([valueString hasPrefix:@"mission_"] && [mission_variables objectForKey:valueString])
 		{
 			[resultString replaceOccurrencesOfString:valueString withString:[mission_variables objectForKey:valueString] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
 		}
