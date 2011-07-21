@@ -30,7 +30,6 @@ SOFTWARE.
 #import "OOCASoundInternal.h"
 #import <mach/mach.h>
 #import <pthread.h>
-#import </usr/include/libkern/OSAtomic.h>
 #import "NSThreadOOExtensions.h"
 
 

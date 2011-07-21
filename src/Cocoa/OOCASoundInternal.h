@@ -74,7 +74,7 @@ extern NSString * const kOOLogSoundInitError;
 
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4
-#import </usr/include/libkern/OSAtomic.h>
+#import <OSAtomic.h>
 
 static inline void OOSoundAtomicAdd(int32_t delta, int32_t *value)
 {
