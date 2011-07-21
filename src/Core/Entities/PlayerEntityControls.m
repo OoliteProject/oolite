@@ -532,6 +532,9 @@ static NSTimeInterval	time_last_frame;
 						/*	Ensure the keyboard pitch override (intended to lock
 						 out the joystick if the player runs to the keyboard)
 						 is reset */
+					#if OOLITE_GNUSTEP
+						[gameView resetMouse];
+					#endif
 						mouse_x_axis_map_to_yaw = [gameView isCtrlDown];
 						keyboardRollOverride = mouse_x_axis_map_to_yaw;   // Getafix: set keyboardRollOverride to TRUE only if yaw is mapped to mouse x-axis
 						keyboardPitchOverride = NO;

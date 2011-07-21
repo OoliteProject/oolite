@@ -109,6 +109,8 @@ extern int debug;
 
 	BOOL				m_glContextInitialized;
     NSPoint				mouseDragStartPoint;
+	
+	BOOL				mouseWarped;
 
 	NSTimeInterval		timeIntervalAtLastClick;
 	BOOL				doubleClick;
@@ -211,6 +213,7 @@ extern int debug;
 - (void) clearKeys;
 - (void) clearMouse;
 - (void) clearKey: (int)theKey;
+- (void) resetMouse;
 - (BOOL) isAlphabetKeyDown;
 - (void) supressKeysUntilKeyUp; // DJS
 - (BOOL) isDown: (int) key;
