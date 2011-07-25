@@ -138,6 +138,7 @@ static NSTimeInterval	time_last_frame;
 - (void) handleMissionCallback;
 - (void) switchToThisView:(OOViewID)viewDirection;
 - (void) switchToThisView:(OOViewID)viewDirection andProcessWeaponFacing:(BOOL)processWeaponFacing;
+- (void) switchToThisView:(OOViewID)viewDirection fromView:(OOViewID)oldViewDirection andProcessWeaponFacing:(BOOL)processWeaponFacing justNotify:(BOOL)justNotify;
 
 - (void) handleAutopilotOn:(BOOL)fastDocking;
 
@@ -424,6 +425,13 @@ static NSTimeInterval	time_last_frame;
 	[UNIVERSE setDisplayCursor:NO];
 	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
+
+
+- (void) noteSwitchToView:(OOViewID)toView fromView:(OOViewID)fromView
+{
+	[self switchToThisView:toView fromView:fromView andProcessWeaponFacing:NO justNotify:YES]; // no extra processing needed!
+}
+
 
 @end
 
@@ -3289,9 +3297,17 @@ static BOOL toggling_music;
 
 - (void) switchToThisView:(OOViewID)viewDirection andProcessWeaponFacing:(BOOL)processWeaponFacing
 {
-	OOViewID oldViewDirection = [UNIVERSE viewDirection];
-	if ([UNIVERSE displayGUI]) [self switchToMainView];
-	[UNIVERSE setViewDirection:viewDirection];
+	[self switchToThisView:viewDirection fromView:[UNIVERSE viewDirection] andProcessWeaponFacing:processWeaponFacing justNotify:NO];
+}
+
+
+- (void) switchToThisView:(OOViewID)viewDirection fromView:(OOViewID)oldViewDirection andProcessWeaponFacing:(BOOL)processWeaponFacing justNotify:(BOOL)justNotify
+{
+	if (!justNotify)
+	{	
+		if ([UNIVERSE displayGUI]) [self switchToMainView];
+		[UNIVERSE setViewDirection:viewDirection];
+	}
 	if (processWeaponFacing)
 	{
 		currentWeaponFacing = viewDirection;

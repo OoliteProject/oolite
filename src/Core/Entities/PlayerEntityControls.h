@@ -35,5 +35,6 @@ MA 02110-1301, USA.
 - (BOOL) handleGUIUpDownArrowKeys;
 - (void) targetNewSystem:(int) direction;
 - (void) switchToMainView;
+- (void) noteSwitchToView:(OOViewID)toView fromView:(OOViewID)fromView;
 
 @end

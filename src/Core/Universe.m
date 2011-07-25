@@ -1156,7 +1156,7 @@ BOOL	demo_light_on = NO;
 static GLfloat sun_off[4] = {0.0, 0.0, 0.0, 1.0};
 GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 
-#define DOCKED_AMBIENT_LEVEL	0.2f	// Should be 0.05, temporarily 0.2 until lights are fixed. (Shader ambient lighting is still wrong.)
+#define DOCKED_AMBIENT_LEVEL	0.2f	// Was 0.05, 'temporarily' set to 0.2.
 #define DOCKED_ILLUM_LEVEL		0.7f
 GLfloat docked_light_ambient[4]	= { DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, 1.0f };
 GLfloat docked_light_diffuse[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, 1.0f };	// white
@@ -4745,6 +4745,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	
 	if (viewDirection != vd || viewDirection == VIEW_CUSTOM)
 	{
+		// view notifications for when the player switches to/from gui!
+		//if (EXPECT(viewDirection == VIEW_GUI_DISPLAY || vd == VIEW_GUI_DISPLAY )) [PLAYER noteViewDidChangeFrom:viewDirection toView:vd];
 		viewDirection = vd;
 		if (ms)
 		{

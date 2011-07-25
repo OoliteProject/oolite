@@ -275,55 +275,108 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 	if (!handled)
 	{
 		// Handle cases which do require systemData.
-		systemData = [UNIVERSE generateSystemData:player->system_seed];
-		
-		switch (JSID_TO_INT(propID))
+		if (EXPECT (![UNIVERSE inInterstellarSpace]))
 		{
-			case kSystem_name:
-				result = [systemData objectForKey:KEY_NAME];
-				break;
-				
-			case kSystem_description:
-				result = [systemData objectForKey:KEY_DESCRIPTION];
-				break;
-				
-			case kSystem_inhabitantsDescription:
-				result = [systemData objectForKey:KEY_INHABITANTS];
-				break;
-				
-			case kSystem_government:
-				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_GOVERNMENT]);
-				return YES;
-				
-			case kSystem_governmentDescription:
-				result = OODisplayStringFromGovernmentID([systemData oo_intForKey:KEY_GOVERNMENT]);
-				if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
-				break;
-				
-			case kSystem_economy:
-				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_ECONOMY]);
-				return YES;
-				
-			case kSystem_economyDescription:
-				result = OODisplayStringFromEconomyID([systemData oo_intForKey:KEY_ECONOMY]);
-				if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
-				break;
+			systemData = [UNIVERSE generateSystemData:player->system_seed];
 			
-			case kSystem_techLevel:
-				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_TECHLEVEL]);
-				return YES;
+			switch (JSID_TO_INT(propID))
+			{
+				case kSystem_name:
+					result = [systemData objectForKey:KEY_NAME];
+					break;
+					
+				case kSystem_description:
+					result = [systemData objectForKey:KEY_DESCRIPTION];
+					break;
+					
+				case kSystem_inhabitantsDescription:
+					result = [systemData objectForKey:KEY_INHABITANTS];
+					break;
+					
+				case kSystem_government:
+					*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_GOVERNMENT]);
+					return YES;
+					
+				case kSystem_governmentDescription:
+					result = OODisplayStringFromGovernmentID([systemData oo_intForKey:KEY_GOVERNMENT]);
+					if (result == nil)  result = DESC(@"not-applicable");
+					break;
+					
+				case kSystem_economy:
+					*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_ECONOMY]);
+					return YES;
+					
+				case kSystem_economyDescription:
+					result = OODisplayStringFromEconomyID([systemData oo_intForKey:KEY_ECONOMY]);
+					if (result == nil)  result = DESC(@"not-applicable");
+					break;
 				
-			case kSystem_population:
-				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_POPULATION]);
-				return YES;
+				case kSystem_techLevel:
+					*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_TECHLEVEL]);
+					return YES;
+					
+				case kSystem_population:
+					*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_POPULATION]);
+					return YES;
+					
+				case kSystem_productivity:
+					*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_PRODUCTIVITY]);
+					return YES;
+					
+				default:
+					OOJSReportBadPropertySelector(context, this, propID, sSystemProperties);
+					return NO;
+			}
+		}
+		else
+		{
+			// if in interstellar space, systemData values are meaningless!
+			switch (JSID_TO_INT(propID))
+			{
+				case kSystem_name:
+					result = DESC(@"interstellar-space");
+					break;
+					
+				case kSystem_description:
+					result = @"";
+					break;
+					
+				case kSystem_inhabitantsDescription:
+					result = DESC(@"not-applicable");
+					break;
+					
+				case kSystem_government:
+					*value = INT_TO_JSVAL(-1);
+					return YES;
+					
+				case kSystem_governmentDescription:
+					result = DESC(@"not-applicable");
+					break;
+					
+				case kSystem_economy:
+					*value = INT_TO_JSVAL(-1);
+					return YES;
+					
+				case kSystem_economyDescription:
+					result = DESC(@"not-applicable");
+					break;
 				
-			case kSystem_productivity:
-				*value = INT_TO_JSVAL([systemData oo_intForKey:KEY_PRODUCTIVITY]);
-				return YES;
-				
-			default:
-				OOJSReportBadPropertySelector(context, this, propID, sSystemProperties);
-				return NO;
+				case kSystem_techLevel:
+					*value = INT_TO_JSVAL(-1);
+					return YES;
+					
+				case kSystem_population:
+					*value = INT_TO_JSVAL(0);
+					return YES;
+					
+				case kSystem_productivity:
+					*value = INT_TO_JSVAL(0);
+					return YES;
+					
+				default:
+					OOJSReportBadPropertySelector(context, this, propID, sSystemProperties);
+					return NO;
+			}
 		}
 	}
 	
@@ -987,13 +1040,16 @@ static JSBool SystemStaticSystemNameForID(JSContext *context, uintN argc, jsval 
 	
 	int32				systemID;
 	
-	if (argc < 1 || !JS_ValueToInt32(context, OOJS_ARGV[0], &systemID) || systemID < 0 || kOOMaximumSystemID < systemID)
+	if (argc < 1 || !JS_ValueToInt32(context, OOJS_ARGV[0], &systemID) || systemID < -1 || kOOMaximumSystemID < systemID)	// -1 interstellar space!
 	{
 		OOJSReportBadArguments(context, @"System", @"systemNameForID", MIN(argc, 1U), OOJS_ARGV, nil, @"system ID");
 		return NO;
 	}
 	
-	OOJS_RETURN_OBJECT([UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:systemID]]);
+	if (systemID == -1)
+		OOJS_RETURN_OBJECT(DESC(@"interstellar-space"));
+	else
+		OOJS_RETURN_OBJECT([UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:systemID]]);
 	
 	OOJS_NATIVE_EXIT
 }

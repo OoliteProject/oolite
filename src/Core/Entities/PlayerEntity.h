@@ -721,6 +721,7 @@ typedef enum
 
 - (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen;
 - (void) noteGUIDidChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen;
+- (void) noteViewDidChangeFrom:(OOViewID)fromView toView:(OOViewID)toView;
 
 - (OOGUIScreenID) guiScreen;
 

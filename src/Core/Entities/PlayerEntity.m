@@ -6553,6 +6553,12 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) noteViewDidChangeFrom:(OOViewID)fromView toView:(OOViewID)toView
+{
+	[self noteSwitchToView:toView fromView:fromView];
+}
+
+
 - (void) buySelectedItem
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
