@@ -1399,9 +1399,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		{
 			ShipEntity* canister = [cargo objectAtIndex:i];
 			if (!canister) break;
-			unit = [UNIVERSE unitsForCommodity:[canister commodityType]];
-			if (unit == UNITS_TONS)
-				[cargo removeObjectAtIndex:i];
+			// Since we are forcing cargo removal, we don't really care about the unit of measurement. Any
+			// commodity at more than 1000kg or 1000000gr will be inside cargopods, so remove those too.
+			[cargo removeObjectAtIndex:i];
 		}
 	}
 	
