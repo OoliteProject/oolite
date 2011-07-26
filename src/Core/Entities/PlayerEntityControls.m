@@ -3119,9 +3119,13 @@ static BOOL toggling_music;
 		// mission screens
 		exceptionContext = @"GUI keys";
 		if (gui_screen == GUI_SCREEN_MISSION)
-			[self pollDemoControls: delta_t];
+		{
+			[self pollDemoControls: delta_t];	// don't switch away from mission screens
+		}
 		else
-			[self pollGuiScreenControls];	// don't switch away from mission screens
+		{
+			if (gui_screen != GUI_SCREEN_REPORT)[self pollGuiScreenControls];	// don't switch away from report screens
+		}
 		
 		[self pollGuiArrowKeyControls:delta_t];
 	NS_HANDLER
