@@ -1289,7 +1289,18 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	if (![ship isShip])  return;
 	
-	BoundingBox bb = [ship totalBoundingBox];
+	// [ship totalBoundingBox] is not yet defined for 'ship', so calculate this size.
+	BoundingBox bb = [ship boundingBox];
+	ShipEntity *se = nil;
+	foreach (se, [ship subEntities])
+	{
+		if ([se isShip])
+		{
+			BoundingBox sebb = [se findSubentityBoundingBox];
+			bounding_box_add_vector(&bb, sebb.max);
+			bounding_box_add_vector(&bb, sebb.min);
+		}
+	}
 	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
 		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)) && ![ship isPlayer])
 	{
