@@ -864,7 +864,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	// Normalize cargo capacity
 	unsigned original_hold_size = [UNIVERSE maxCargoForShip:[self shipDataKey]];
-	max_cargo = [dict oo_intForKey:@"max_cargo" defaultValue:max_cargo];
+	max_cargo = [dict oo_unsignedIntForKey:@"max_cargo" defaultValue:max_cargo];
 	if (max_cargo > original_hold_size)  [self addEquipmentItem:@"EQ_CARGO_BAY"];
 	max_cargo = original_hold_size + ([self hasExpandedCargoBay] ? extra_cargo : 0);
 	if (max_cargo >= max_passengers * 5)
