@@ -1753,7 +1753,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	shipdict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipdesc];
 	if (shipdict == nil)  return NO;
 	
-	// spawning characteristics
+	ship = [self newShipWithName:shipdesc];	// retain count is 1
+	
+	if (ship == nil)  return NO;
+	
+	// set any spawning characteristics
 	NSDictionary	*spawndict = [shipdict oo_dictionaryForKey:@"spawn"];
 	Vector			pos, rpos, spos;
 	NSString		*positionString = nil;
@@ -1762,20 +1766,20 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	positionString = [spawndict oo_stringForKey:@"position"];
 	if (positionString != nil)
 	{
+		if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
+		{
+			OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"position",@"entity",shipdesc);
+		}
+		
 		pos = [self coordinatesFromCoordinateSystemString:positionString];
-		ship = [self addShipWithRole:shipdesc launchPos:pos rfactor:0.0];
 	}
 	else
 	{
-		// if position is not specified, we'll assume witchpoint, the standard entry point for ships.
-		ship = [self addShipWithRole:shipdesc launchPos:[self getWitchspaceExitPosition] rfactor:SCANNER_MAX_RANGE];
+		// without position defined, the ship will be added on top of the witchpoint buoy.
+		pos = OOVectorRandomRadial(SCANNER_MAX_RANGE);
+		OOLogERR(@"universe.spawnShip.error", @"***** ERROR: failed to find a spawn position for ship %@.", shipdesc);
 	}
-	
-	if (ship == nil)  return NO;
-	if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
-	{
-		OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"position",@"entity",shipdesc);
-	}
+	[ship setPosition:pos];
 	
 	// facing_position
 	positionString = [spawndict oo_stringForKey:@"facing_position"];
@@ -1789,17 +1793,29 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		spos = [ship position];
 		Quaternion q1;
 		rpos = [self coordinatesFromCoordinateSystemString:positionString];
-		rpos.x = spos.x - rpos.x;	rpos.y = spos.y - rpos.y;	rpos.z = spos.z - rpos.z; // position relative to ship
-		if (rpos.x || rpos.y || rpos.z)
+		rpos = vector_subtract(rpos, spos); // position relative to ship
+		
+		if (!vector_equal(rpos, kZeroVector))
 		{
 			rpos = vector_normal(rpos);
-			q1 = quaternion_rotation_between(make_vector(0,0,1), rpos);
 			
+			if (!vector_equal(rpos, vector_flip(kBasisZVector)))
+			{
+				q1 = quaternion_rotation_between(rpos, kBasisZVector);
+			}
+			else
+			{
+				// for the inverse of the kBasisZVector the rotation is undefined, so we select one.
+				q1 = make_quaternion(0,1,0,0);
+			}
+			
+						
 			[ship setOrientation:q1];
 		}
 	}
 	
 	[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+	[ship release];
 	
 	return YES;
 }

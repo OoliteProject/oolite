@@ -202,7 +202,17 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 	else
 	{
 		// Is this actually a problem?
-		q = kIdentityQuaternion;
+		if (vector_equal(v1, kBasisZVector) || vector_equal(v0, kBasisZVector))
+		{
+			q = make_quaternion(0, 1, 0, 0);
+		}
+		else
+		{
+			q = kIdentityQuaternion;
+		}
+		// yes, we arrive here for perpendicular vectors. Rotation axis is than undefined, but not rotating is
+		// also wrong. Probably should the calling function exclude this situation. For current
+		// in-game use of this function would returning (0,1,0,0) be a solution, but generally that is also wrong.
 	}
 	return q;
 }

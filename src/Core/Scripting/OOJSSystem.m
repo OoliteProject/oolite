@@ -1017,7 +1017,7 @@ static JSBool SystemLegacySpawnShip(JSContext *context, uintN argc, jsval *vp)
 	if (argc > 0)  key = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (key == nil)
 	{
-		OOJSReportBadArguments(context, @"System", @"legacy_addShipWithinRadius", MIN(argc, 1U), OOJS_ARGV, nil, @"string (ship key)");
+		OOJSReportBadArguments(context, @"System", @"legacy_spawnShip", MIN(argc, 1U), OOJS_ARGV, nil, @"string (ship key)");
 		return NO;
 	}
 	
