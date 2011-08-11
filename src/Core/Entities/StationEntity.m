@@ -263,6 +263,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	unsigned i;
 	NSArray*	ships = [shipsOnApproach allKeys];
+	double		playerExtraTime = 0;
 	no_docking_while_launching = YES;
 
 	for (i = 0; i < [ships count]; i++)
@@ -278,8 +279,18 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
 			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
 	{
-		[self sendExpandedMessage:DESC(@"station-docking-clearance-abort-cancelled") toShip:player];
-		[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+		if (magnitude2(vector_subtract([player position], [self getPortPosition])) > 2250000) // within 1500m of the dock
+		{
+			[self sendExpandedMessage:DESC(@"station-docking-clearance-abort-cancelled") toShip:player];
+			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+		}
+		else
+		{
+			playerExtraTime = 10; // when very close to the port, give the player a few seconds to react on the abort message.
+			[self sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime ] toShip:player];
+			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
+		}
+
 	}
 	
 	ships = [shipsOnHold allKeys];
@@ -292,7 +303,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[shipsOnHold removeAllObjects];
 	
 	[shipAI message:@"DOCKING_COMPLETE"];
-	last_launch_time = [UNIVERSE getTime];
+	last_launch_time = [UNIVERSE getTime] + playerExtraTime;
 	approach_spacing = 0.0;
 }
 
@@ -2131,14 +2142,18 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		switch( [player getDockingClearanceStatus] )
 		{
 			case DOCKING_CLEARANCE_STATUS_TIMING_OUT:
-				last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
-				[self sendExpandedMessage:[NSString stringWithFormat:
-					DESC(@"station-docking-clearance-extended-until-@"),
-						ClockToString([player clockTime] + DOCKING_CLEARANCE_WINDOW, NO)]
-					toShip:other];
-				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-				result = @"DOCKING_CLEARANCE_EXTENDED";
-				break;
+				if (!no_docking_while_launching)
+				{
+					last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
+					[self sendExpandedMessage:[NSString stringWithFormat:
+						DESC(@"station-docking-clearance-extended-until-@"),
+							ClockToString([player clockTime] + DOCKING_CLEARANCE_WINDOW, NO)]
+						toShip:other];
+					[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+					result = @"DOCKING_CLEARANCE_EXTENDED";
+					break;
+				}
+				// else, continue with canceling.
 			case DOCKING_CLEARANCE_STATUS_REQUESTED:
 			case DOCKING_CLEARANCE_STATUS_GRANTED:
 				last_launch_time = timeNow;
@@ -2188,7 +2203,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		// No need to set status to REQUESTED as we've already done that earlier.
 		result = @"DOCKING_CLEARANCE_DENIED_TRAFFIC_INBOUND";
 	}
-	if (result == nil && [launchQueue count] && last_launch_time < timeNow)
+	if (result == nil && [launchQueue count] && no_docking_while_launching)
 	{
 		[self sendExpandedMessage:[NSString stringWithFormat:
 			DESC(@"station-docking-clearance-acknowledged-d-ships-departing"),

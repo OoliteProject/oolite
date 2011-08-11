@@ -731,6 +731,10 @@
 	(
 		"Due to an emergency your docking clearance has been revoked.  Please clear the station approach immediately."
 	);
+	"station-docking-clearance-abort-cancelled-in-f" =
+	(
+		"Due to an emergency your docking clearance will be revoked in %.0f seconds.  Please clear the station approach immediately."
+	);
 	"station-docking-clearance-fined-@-cr" =
 	(
 		"You have been fined %@ for unauthorized docking. Docking without asking for clearance is not allowed here.",
