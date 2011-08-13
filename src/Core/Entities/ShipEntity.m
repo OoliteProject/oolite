@@ -5850,7 +5850,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		if ([parent isPlayer])
 		{
 			// make the parent ship less reliable.
-			[(PlayerEntity *)parent reduceTradeInFactorBy:3];
+			[(PlayerEntity *)parent adjustTradeInFactorBy:-PLAYER_SHIP_SUBENTITY_TRADE_IN_VALUE];
 		}
 	}
 	

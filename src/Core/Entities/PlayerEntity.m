@@ -5044,7 +5044,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	if (2 * market_rnd < ship_trade_in_factor)
 	{
 		// every eight jumps or so drop the price down towards 75%
-		[self reduceTradeInFactorBy:1 + (market_rnd & 3)];
+		[self adjustTradeInFactorBy:-(1 + (market_rnd & 3))];
 	}
 	
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
@@ -6790,6 +6790,7 @@ static NSString *last_outfitting_key=nil;
 		credits -= price;
 		ship_trade_in_factor += 5 + techLevel;	// you get better value at high-tech repair bases
 		if (ship_trade_in_factor > 100) ship_trade_in_factor = 100;
+		
 		[self clearSubEntities];
 		[self setUpSubEntities];
 		
@@ -7533,10 +7534,11 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) reduceTradeInFactorBy:(int)value
+- (void) adjustTradeInFactorBy:(int)value
 {
-	ship_trade_in_factor -= value;
-	if (ship_trade_in_factor < 75) ship_trade_in_factor = 75;
+	ship_trade_in_factor += value;
+	if (ship_trade_in_factor < 75)  ship_trade_in_factor = 75;
+	if (ship_trade_in_factor > 100)  ship_trade_in_factor = 100;
 }
 
 

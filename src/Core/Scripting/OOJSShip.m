@@ -1618,6 +1618,7 @@ static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	ShipEntity				*thisEnt = nil;
+	OOUInteger				numSubEntitiesRestored = 0U;
 	
 	GET_THIS_SHIP(thisEnt);
 	
@@ -1626,7 +1627,12 @@ static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp)
 	[thisEnt clearSubEntities];
 	[thisEnt setUpSubEntities];
 	
-	OOJS_RETURN_BOOL([[thisEnt subEntitiesForScript] count] - subCount > 0);
+	if ([[thisEnt subEntitiesForScript] count] - subCount > 0)  numSubEntitiesRestored = [[thisEnt subEntitiesForScript] count] - subCount;
+	
+	// for each subentitiy restored, slightly increase the trade-in factor
+	if ([thisEnt isPlayer])  [(PlayerEntity *)thisEnt adjustTradeInFactorBy:(PLAYER_SHIP_SUBENTITY_TRADE_IN_VALUE * numSubEntitiesRestored)];
+	
+	OOJS_RETURN_BOOL(numSubEntitiesRestored > 0);
 	
 	OOJS_NATIVE_EXIT
 }

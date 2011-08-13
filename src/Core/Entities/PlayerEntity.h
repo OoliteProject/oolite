@@ -222,6 +222,8 @@ typedef enum
 #define KEY_REPEAT_INTERVAL				0.20
 
 #define PLAYER_SHIP_CLOCK_START			(2084004 * 86400.0)
+// adding or removing a player ship subentity increases or decreases the ship's trade-in factor respectively by this amount
+#define PLAYER_SHIP_SUBENTITY_TRADE_IN_VALUE	3
 
 #define CONTRACTS_GOOD_KEY				@"contracts_fulfilled"
 #define CONTRACTS_BAD_KEY				@"contracts_expired"
@@ -735,7 +737,7 @@ typedef enum
 - (void) addEquipmentFromCollection:(id)equipment;	// equipment may be an array, a set, a dictionary whose values are all YES, or a string.
  
 - (void) getFined;
-- (void) reduceTradeInFactorBy:(int)value;
+- (void) adjustTradeInFactorBy:(int)value;
 
 - (void) setDefaultViewOffsets;
 - (void) setDefaultCustomViews;
