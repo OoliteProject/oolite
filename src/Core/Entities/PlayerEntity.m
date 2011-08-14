@@ -4752,6 +4752,10 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (void) witchStart
 {
+	// chances of entering witchspace with autopilot on are very low, but as Berlios bug #18307 has shown us, entirely possible
+	// so in such cases we need to ensure that at least the docking music stops playing
+	if (autopilot_engaged)  [self disengageAutopilot];
+	
 	[self safeAllMissiles];
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	currentWeaponFacing = VIEW_FORWARD;
