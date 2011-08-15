@@ -117,9 +117,6 @@
 		
 		// ":trace <expression>" -- trace a JavaScript expression.
 		"trace"		= "console.trace(eval(\"(function codeToBeTraced() { (\" + PARAM + \") })\"), this)";
-		
-		// For calling old-school scripting methods (on player), as in ":: gui_screen_string", or ":: playSound: boop.ogg"
-		":"			= "performLegacyCommand(PARAM)";
 	};
 	
 	

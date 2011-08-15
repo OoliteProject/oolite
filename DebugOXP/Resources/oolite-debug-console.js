@@ -55,8 +55,13 @@ platformDescription : String (read-only)
 	Information about the system Oolite is running on. The format of this
 	string is not guaranteed, do not attempt to parse it.
 
+settings : Object
+	A key-value store that is saved persistently. Values from debugConfig.plist
+	are used as defaults, and any changed values are stored with the game’s
+	preferences.
+
 showErrorLocations
-	true if file an line should be shown when reporting JavaScript errors and
+	true if file and line should be shown when reporting JavaScript errors and
 	warnings. Default: true.
 
 showErrorLocationsDuringConsoleEval
@@ -86,7 +91,7 @@ maximumShaderMode: String (read-only)
 
 reducedDetailMode: Boolean (read/write)
 	Whether reduced detail mode is in effect (simplifies graphics in various
-	different ways).
+	ways).
 
 displayFPS : Boolean (read/write)
 	Boolean specifying whether FPS (and associated information) should be
@@ -130,7 +135,7 @@ function profile(func : function [, this : Object]) : String
 function getProfile(func : function [, this : Object]) : Object
 	Like profile(), but returns an object, which is more amenable to processing
 	in scripts. To see the structure of the object, run:
-	  console.getProfile(function(){PS.position.add([0, 0, 0])}).callObjC("description")
+	  console.getProfile(function(){PS.position.add([0, 0, 0])})
 
 function writeLogMarker()
 	Writes a separator to the log.
@@ -208,14 +213,6 @@ this.macros = {};
 
 
 // ****  Convenience functions -- copy this script and add your own here.
-
-// Call an Objective-C method, such as a legacy script command, on the player.
-this.performLegacyCommand = function performLegacyCommand(x)
-{
-	var [command, params] = x.getOneToken();
-	return player.ship.callObjC(command, params);
-}
-
 
 // List the properties and values of an object.
 this.dumpObject = function dumpObject(x)
@@ -610,7 +607,7 @@ String.prototype.substituteEscapeCodes = function substituteEscapeCodes()
 	string = string.replace(/\n/g, "\\n");		// Newline to \n
 	string = string.replace(/\r/g, "\\r");		// Carriage return to \r
 	string = string.replace(/\t/g, "\\t");		// Horizontal tab to \t
-	string = string.replace(/\v/g, "\\v");		// Vertical ab to \v
+	string = string.replace(/\v/g, "\\v");		// Vertical tab to \v
 	string = string.replace(/\'/g, '\\\'');		// ' to \'
 	string = string.replace(/\"/g, "\\\"");		// " to \"
 
@@ -773,6 +770,27 @@ Object.defineProperty(Entity.prototype, "inspect", { value: function inspect()
 }});
 
 
+/*
+	Add callObjC() method to all objects. In debug builds only, this can be
+	used to call an Objective-C method on the Objective-C representation of
+	an object. (For entities and some other Oolite-defined objects, this is
+	the underlying native object. Most other objects will be converted into
+	property list types.)
+	
+	Supported method types are:
+	  * Methods taking no parameters and returning nothing
+	  * Methods taking no parameter and returning one of:
+		- nothing
+		- an object
+		- a number
+		- a vector or quaternion struct
+	  * Methods taking one object parameter and returning nothing
+	  * Methods taking one object parameter and returning an object
+	
+	As a special case, if a method’s name ends with _bool and it returns an
+	object, it is parsed as a property list representing a boolean. This
+	handles predicate methods from the legacy script system.
+*/
 if (typeof console.__setUpCallObjC == "function")
 {
 	console.__setUpCallObjC(Object.prototype);
@@ -788,7 +806,8 @@ else
 }).call(this);
 
 
-/*	evaluate() is outside the closure specifically to avoid strict mode.
+/*
+	evaluate() is outside the closure specifically to avoid strict mode.
 	If evaluate() is compiled in strict mode, all console input will also be
 	strict. Also, evaluate() should be as close to the bottom as possible
 	because everything from the eval() down is tagged "<console input>" in
