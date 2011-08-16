@@ -361,10 +361,17 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 		NSString *titleKey = GetParameterString(context, params, "titleKey");
 		if (titleKey != nil)
 		{
-			titleKey = [[UNIVERSE missiontext] oo_stringForKey:titleKey];
-			titleKey = ExpandDescriptionForCurrentSystem(titleKey);
-			titleKey = [player replaceVariablesInString:titleKey];
-			[player setMissionTitle:titleKey];
+			NSString *message = [[UNIVERSE missiontext] oo_stringForKey:titleKey];
+			if (message != nil)
+			{
+				message = ExpandDescriptionForCurrentSystem(message);
+				message = [player replaceVariablesInString:message];
+				[player setMissionTitle:message];
+			}
+			else
+			{
+				OOJSReportWarning(context, @"Mission.runScreen: titleKey '%@' has no entry in missiontext.plist.", titleKey);
+			}
 		}
 	}
 	
