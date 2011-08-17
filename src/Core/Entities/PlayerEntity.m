@@ -4449,7 +4449,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		if (![UNIVERSE strict])
 		{
 			NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
-			[self addEquipmentItem:damagedKey];	// for possible future repair.
+			[self addEquipmentItem:damagedKey withValidation: NO];	// for possible future repair.
 			[self doScriptEvent:OOJSID("equipmentDamaged") withArgument:system_key];
 			
 			if (![self hasEquipmentItem:system_name] && [self hasEquipmentItem:damagedKey])
