@@ -5287,22 +5287,22 @@ static bool minShieldLevelPercentageInitialised = false;
 	
 	if (forward_weapon_type > WEAPON_NONE)
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon_type]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(forward_weapon_type)] name]];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	if (aft_weapon_type > WEAPON_NONE)
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon_type]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(aft_weapon_type)] name]];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	if (port_weapon_type > WEAPON_NONE)
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon_type]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(port_weapon_type)] name]];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	if (starboard_weapon_type > WEAPON_NONE)
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon_type]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(starboard_weapon_type)] name]];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	

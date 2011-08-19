@@ -88,6 +88,8 @@
 		"☆ Deadly ☆",
 		"★★★ E L I T E ★★★"
 	);
+	
+	// Not used - the weapon name is read from equipment.plist
 	weapon_name =
 	(
 		"none",

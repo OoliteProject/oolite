@@ -1830,7 +1830,7 @@ static NSTimeInterval	time_last_frame;
 					if (weaponType == WEAPON_NONE)  itemText = DESC(@"no-weapon-enter-to-install");
 					else
 					{
-						NSString *weaponName = [UNIVERSE descriptionForArrayKey:@"weapon_name" index:weaponType];
+						NSString *weaponName = [[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)] name];
 						if (sameAs)  itemText = [NSString stringWithFormat:DESC(@"weapon-installed-@"), weaponName];
 						else  itemText = [NSString stringWithFormat:DESC(@"weapon-@-enter-to-replace"), weaponName];
 					}
