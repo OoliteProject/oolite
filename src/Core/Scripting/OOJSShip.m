@@ -1527,7 +1527,7 @@ static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 			}
 			else
 			{
-				OK = [player addEquipmentItem:identifier];
+				OK = [player addEquipmentItem:identifier withValidation:YES];
 			}
 		}
 		else
@@ -1539,7 +1539,7 @@ static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 			// no passenger handling for NPCs. EQ_CARGO_BAY is dealt with inside addEquipmentItem
 			else if (!berth && ![identifier isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
 			{
-				OK = [thisEnt addEquipmentItem:identifier];	
+				OK = [thisEnt addEquipmentItem:identifier withValidation:YES];	
 			}
 			else
 			{
@@ -1703,14 +1703,14 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 			if ([thisEnt isPlayer])
 			{
 				// these player methods are different to the ship ones.
-				[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
+				[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO];
 				if (hasOK) [(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
 				// if player's Docking Computers are set to EQUIPMENT_DAMAGED while on, stop them
 				if (hasOK && [key isEqualToString:@"EQ_DOCK_COMP"])  [(PlayerEntity*)thisEnt disengageAutopilot];
 			}
 			else
 			{
-				[thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
+				[thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO];
 				if (hasOK) [thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
 			}
 		}

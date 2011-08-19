@@ -6843,7 +6843,7 @@ static NSString *last_outfitting_key=nil;
 	if ([self canAddEquipment:eqKey])
 	{
 		credits -= price;
-		[self addEquipmentItem:eqKey];
+		[self addEquipmentItem:eqKey withValidation:NO]; // no need to validate twice.
 		return YES;
 	}
 
@@ -7393,7 +7393,7 @@ static NSString *last_outfitting_key=nil;
 	// Now remove items that should not be in the equipment list.
 	while ((eqDesc = [eqEnum nextObject]))
 	{
-		if (![self equipmentValidToAdd:eqDesc])
+		if (![self equipmentValidToAdd:eqDesc whileLoading:YES])
 		{
 			[self removeEquipmentItem:eqDesc];
 		}

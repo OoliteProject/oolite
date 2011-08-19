@@ -1694,7 +1694,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	// restore  portable equipment
 	for (eqEnum = [portable_equipment objectEnumerator]; (eq_desc = [eqEnum nextObject]); )
 	{
-		[self addEquipmentItem:eq_desc];
+		[self addEquipmentItem:eq_desc withValidation:NO];
 	}
 	
 	// refill from ship_info
@@ -1709,7 +1709,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		}
 		else
 		{
-			[self addEquipmentItem:eq_key];
+			[self addEquipmentItem:eq_key withValidation:YES]; // FIXME: ships could be listed in the shipyard with incompatible equipment. 
 		}
 	}
 	

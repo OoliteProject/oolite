@@ -504,6 +504,7 @@ typedef enum
 - (BOOL) hasAllEquipment:(id)equipmentKeys;				// Short for hasAllEquipment:foo includeWeapons:NO
 - (BOOL) canAddEquipment:(NSString *)equipmentKey;		// Test ability to add equipment, taking equipment-specific constriants into account. 
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey;	// Actual test if equipment satisfies validation criteria.
+- (BOOL) equipmentValidToAdd:(NSString *)equipmentKey whileLoading:(BOOL)loading;
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey;
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition;
 - (BOOL) hasHyperspaceMotor;

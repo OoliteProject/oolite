@@ -2423,6 +2423,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey
 {
+	return [self equipmentValidToAdd:equipmentKey whileLoading:NO];
+}
+
+
+- (BOOL) equipmentValidToAdd:(NSString *)equipmentKey whileLoading:(BOOL)loading
+{
 	OOEquipmentType			*eqType = nil;
 	
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
@@ -2433,17 +2439,19 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	if (eqType == nil)  return NO;
 	
-	if ([eqType requiresEmptyPylon] && [self missileCount] >= [self missileCapacity])  return NO;
-	if ([eqType  requiresMountedPylon] && [self missileCount] == 0)  return NO;
+	// not all conditions make sence checking while loading a game with already purchaged equipment.
+	// while loading, we mainly need to catch changes when the installed oxps set has changed since saving. 
+	if ([eqType requiresEmptyPylon] && [self missileCount] >= [self missileCapacity] && !loading)  return NO;
+	if ([eqType  requiresMountedPylon] && [self missileCount] == 0 && !loading)  return NO;
 	if ([self availableCargoSpace] < [eqType requiredCargoSpace])  return NO;
 	if ([eqType requiresEquipment] != nil && ![self hasAllEquipment:[eqType requiresEquipment] includeWeapons:YES])  return NO;
 	if ([eqType requiresAnyEquipment] != nil && ![self hasEquipmentItem:[eqType requiresAnyEquipment] includeWeapons:YES])  return NO;
 	if ([eqType incompatibleEquipment] != nil && [self hasEquipmentItem:[eqType incompatibleEquipment] includeWeapons:YES])  return NO;
-	if ([eqType requiresCleanLegalRecord] && [self legalStatus] != 0)  return NO;
-	if ([eqType requiresNonCleanLegalRecord] && [self legalStatus] == 0)  return NO;
+	if ([eqType requiresCleanLegalRecord] && [self legalStatus] != 0 && !loading)  return NO;
+	if ([eqType requiresNonCleanLegalRecord] && [self legalStatus] == 0 && !loading)  return NO;
 	if ([eqType requiresFreePassengerBerth] && [self passengerCount] >= [self passengerCapacity])  return NO;
-	if ([eqType requiresFullFuel] && [self fuel] < [self fuelCapacity])  return NO;
-	if ([eqType requiresNonFullFuel] && [self fuel] >= [self fuelCapacity])  return NO;
+	if ([eqType requiresFullFuel] && [self fuel] < [self fuelCapacity] && !loading)  return NO;
+	if ([eqType requiresNonFullFuel] && [self fuel] >= [self fuelCapacity] && !loading)  return NO;
 	if ([self isPlayer])
 	{
 		if (![eqType isAvailableToPlayer])  return NO;

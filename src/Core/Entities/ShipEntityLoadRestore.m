@@ -214,13 +214,13 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	NSString *eqKey = nil;
 	for (eqEnum = [[dict oo_arrayForKey:KEY_EQUIPMENT] objectEnumerator]; (eqKey = [eqEnum nextObject]); )
 	{
-		[ship addEquipmentItem:eqKey];
+		[ship addEquipmentItem:eqKey withValidation:NO];
 	}
 	
 	[ship removeMissiles];
 	for (eqEnum = [[dict oo_arrayForKey:KEY_MISSILES] objectEnumerator]; (eqKey = [eqEnum nextObject]); )
 	{
-		[ship addEquipmentItem:eqKey];
+		[ship addEquipmentItem:eqKey withValidation:NO];
 	}
 	
 	// Groups.
