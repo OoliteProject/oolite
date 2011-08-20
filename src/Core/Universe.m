@@ -7438,15 +7438,59 @@ static double estimatedTimeForJourney(double distance, int hops)
 					{
 						NSEnumerator				*keyEnum = nil;
 						id							key = nil;
+						BOOL						incompatible = NO;
 						
 						for (keyEnum = [[item incompatibleEquipment] objectEnumerator]; (key = [keyEnum nextObject]); )
 						{
 							if ([extras containsObject:key])
 							{
 								[options removeObject:equipmentKey];
+								incompatible = YES;
 								break;
 							}
 						}
+						if (incompatible) break;
+						
+						// make sure the incompatible equipment is not choosen later on.
+						for (keyEnum = [[item incompatibleEquipment] objectEnumerator]; (key = [keyEnum nextObject]); )
+						{
+							if ([options containsObject:key])
+							{
+								[options removeObject:key]; 
+							}
+						}
+					}
+					
+					if ([item requiresEquipment] != nil && extras != nil)
+					{
+						NSEnumerator				*keyEnum = nil;
+						id							key = nil;
+						BOOL						missing = NO;
+						
+						for (keyEnum = [[item requiresEquipment] objectEnumerator]; (key = [keyEnum nextObject]); )
+						{
+							if (![extras containsObject:key])
+							{
+								missing = YES;
+							}
+						}
+						if (missing) break;
+					}
+					
+					if ([item requiresAnyEquipment] != nil && extras != nil)
+					{
+						NSEnumerator				*keyEnum = nil;
+						id							key = nil;
+						BOOL						missing = YES;
+						
+						for (keyEnum = [[item requiresAnyEquipment] objectEnumerator]; (key = [keyEnum nextObject]); )
+						{
+							if ([extras containsObject:key])
+							{
+								missing = NO;
+							}
+						}
+						if (missing) break;
 					}
 					
 					// Special case, NEU has to be compatible with EEU inside equipment.plist
