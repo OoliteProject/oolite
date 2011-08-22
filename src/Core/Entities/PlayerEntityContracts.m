@@ -1709,7 +1709,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		}
 		else
 		{
-			[self addEquipmentItem:eq_key withValidation:YES]; // FIXME: ships could be listed in the shipyard with incompatible equipment. 
+			[self addEquipmentItem:eq_key withValidation:YES]; 
 		}
 	}
 	

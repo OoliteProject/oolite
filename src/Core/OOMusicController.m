@@ -98,7 +98,7 @@ enum
 {
 	if ([self isPlaying] && [name isEqual:[self playingMusic]])  return;
 	
-	if (_mode == kOOMusicOn)
+	if (_mode == kOOMusicOn || (_mode == kOOMusicITunes && name == @"OoliteTheme.ogg"))
 	{
 		OOMusic *music = [ResourceManager ooMusicNamed:name inFolder:@"Music"];
 		if (music != nil)
@@ -131,7 +131,7 @@ enum
 	}
 	else
 	{
-		[self playMusicNamed:@"BlueDanube.ogg" loop:NO];
+		[self playMusicNamed:@"BlueDanube.ogg" loop:YES];
 	}
 }
 
@@ -248,6 +248,7 @@ enum
 {
 	if (mode <= kOOMusicModeMax && _mode != mode)
 	{
+		if (_mode == kOOMusicITunes) [self pauseiTunes];
 		_mode = mode;
 		
 		if (_mode == kOOMusicOff)  [self stop];
@@ -369,7 +370,7 @@ enum
 
 - (void) pauseiTunes
 {
-	NSString *ootunesScriptString = [NSString stringWithFormat:@"try\nignoring application responses\ntell application \"iTunes\" to pause\nend ignoring"];
+	NSString *ootunesScriptString = [NSString stringWithFormat:@"try\nignoring application responses\ntell application \"iTunes\" to pause\nend ignoring\nend try"];
 	NSAppleScript *ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
 	NSDictionary *errDict = nil;
 	[ootunesScript executeAndReturnError:&errDict];

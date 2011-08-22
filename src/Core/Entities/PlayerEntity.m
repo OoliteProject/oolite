@@ -1309,7 +1309,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	demoShip = nil;
 	
-	[[OOMusicController sharedController] stop];
+	[[OOMusicController sharedController] justStop];
 }
 
 
