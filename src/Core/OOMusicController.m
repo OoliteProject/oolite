@@ -168,12 +168,19 @@ enum
 }
 
 
-- (void) stop
+// Stop without switching iTunes to in-flight music.
+- (void) justStop
 {
 	[_current stop];
 	[_current release];
 	_current = nil;
 	_special = kSpecialNone;
+}
+
+
+- (void) stop
+{
+	[self justStop];
 	
 	if (_mode == kOOMusicITunes)
 	{
@@ -190,7 +197,11 @@ enum
 
 - (void) stopThemeMusic
 {
-	if (_special == kSpecialTheme)  [self stop];
+	if (_special == kSpecialTheme)
+	{
+		[self justStop];
+		[self playDockedMusic];
+	}
 }
 
 
