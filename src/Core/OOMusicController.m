@@ -98,7 +98,7 @@ enum
 {
 	if ([self isPlaying] && [name isEqual:[self playingMusic]])  return;
 	
-	if (_mode == kOOMusicOn || (_mode == kOOMusicITunes && name == @"OoliteTheme.ogg"))
+	if (_mode == kOOMusicOn || (_mode == kOOMusicITunes && [name isEqualToString:@"OoliteTheme.ogg"]))
 	{
 		OOMusic *music = [ResourceManager ooMusicNamed:name inFolder:@"Music"];
 		if (music != nil)

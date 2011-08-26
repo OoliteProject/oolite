@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOConstToString.h"
+#import "OOConstToJSString.h"
 #import "OOCollectionExtractors.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntityAI"
@@ -246,6 +247,8 @@ MA 02110-1301, USA.
 - (void) scriptActionOnTarget:(NSString *) action;
 
 - (void) sendScriptMessage:(NSString *)message;
+
+- (void) explodeSelf;
 
 - (void) ai_throwSparks;
 
@@ -2321,6 +2324,13 @@ MA 02110-1301, USA.
 {
 	[self setThrowSparks:YES];
 }
+
+- (void) explodeSelf
+{
+	[self getDestroyedBy:nil damageType:kOODamageTypeEnergy];
+}
+
+
 
 
 // racing code TODO

@@ -192,6 +192,7 @@
 		"dropMessages:",
 		"exitAIWithMessage:",
 		"ai_throwSparks",			// Don't use, use throwSparks instead
+		"explodeSelf",			// Don't use, use becomeExplosion instead
 		"checkAegis",
 		"checkEnergy",
 		"setThrustFactorTo:",
@@ -435,5 +436,6 @@
 		"scanForNearestMerchantmen" = "scanForNearestMerchantman";
 		"scanForRandomMerchantmen" = "scanForRandomMerchantman";
 		"setUpEscorts" = "doNothing";
+		"becomeExplosion" = "explodeSelf";
 	};
 }

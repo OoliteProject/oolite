@@ -6190,6 +6190,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (void) becomeEnergyBlast
 {
 	[UNIVERSE addEntity:[OOQuiriumCascadeEntity quiriumCascadeFromShip:self]];
+	[self noteKilledBy:nil damageType:kOODamageTypeCascadeWeapon];
 	[UNIVERSE removeEntity:self];
 }
 
