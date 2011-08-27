@@ -7068,9 +7068,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	Vector  relPos;
 	GLfloat  d_forward, d_up, d_right;
-	Entity  *target = [self primaryTarget];
+	ShipEntity  *target = [self primaryTarget];
+	BOOL	inPursuit = YES;
 
-	if (!target)   // leave now!
+	if (!target || ![target isShip])   // leave now!
 		return 0.0;
 
 	double  damping = 0.5 * delta_t;
@@ -7081,7 +7082,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double stick_pitch = 0.0;
 
 	relPos = vector_subtract(target->position, position);
-	
 	
 	// Adjust missile course by taking into account target's velocity and missile
 	// accuracy. Modification on original code contributed by Cmdr James.
@@ -7094,14 +7094,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// but doing these calculations every frame when accuracy equals 0.0 just wastes cycles.
 	if (missileSpeed > 0.01f && accuracy > 0.0f)
 	{
-		Vector leading = [target velocity]; 
-		float lead = magnitude(relPos) / missileSpeed; 
-		
-		// Adjust where we are going to take into account target's velocity.
-		// Use accuracy value to determine how well missile will track target.
-		relPos.x += (lead * leading.x * (accuracy / 10.0f)); 
-		relPos.y += (lead * leading.y * (accuracy / 10.0f)); 
-		relPos.z += (lead * leading.z * (accuracy / 10.0f)); 
+		inPursuit = (dot_product([target forwardVector], v_forward) > 0.0f);
+		if (inPursuit)
+		{
+			Vector leading = [target velocity]; 
+			float lead = magnitude(relPos) / missileSpeed; 
+			
+			// Adjust where we are going to take into account target's velocity.
+			// Use accuracy value to determine how well missile will track target.
+			relPos.x += (lead * leading.x * (accuracy / 10.0f)); 
+			relPos.y += (lead * leading.y * (accuracy / 10.0f)); 
+			relPos.z += (lead * leading.z * (accuracy / 10.0f));
+		}
 	}
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
