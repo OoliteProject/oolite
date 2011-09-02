@@ -3234,8 +3234,8 @@ static BOOL toggling_music;
 			else
 			{
 				[self handleGUIUpDownArrowKeys];
-					
-				if ([gameView isDown:13])	//  '<enter/return>'
+				
+				if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick])	//  '<enter/return>' or double click
 				{
 					if (!selectPressed)
 					{

@@ -1937,6 +1937,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[gui setText:@"" forRow:21];			// clears out the 'Press spacebar' message
 	[gui setKey:@"" forRow:21];				// clears the key to enable pollDemoControls to check for a selection
 	[gui setSelectableRange:NSMakeRange(0,0)];	// clears the selectable range
+	[UNIVERSE setDisplayCursor: YES];		// enables mouse selection of the choices list items
 	
 	int					choices_row = 22 - [choice_keys count];
 	NSEnumerator		*choiceEnum = nil;
