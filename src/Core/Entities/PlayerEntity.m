@@ -2090,10 +2090,17 @@ static bool minShieldLevelPercentageInitialised = false;
 
 	// update subentities
 	UPDATE_STAGE(@"updating subentities");
+	totalBoundingBox = boundingBox; //	reset totalBoundingBox
 	ShipEntity *se = nil;
 	foreach (se, [self subEntities])
 	{
 		[se update:delta_t];
+		if ([se isShip])
+		{
+			BoundingBox sebb = [se findSubentityBoundingBox];
+			bounding_box_add_vector(&totalBoundingBox, sebb.max);
+			bounding_box_add_vector(&totalBoundingBox, sebb.min);
+		}
 	}
 	
 	STAGE_TRACKING_END

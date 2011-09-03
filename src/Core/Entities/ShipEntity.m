@@ -7951,12 +7951,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Quaternion q1 = [self normalOrientation];
 	Vector origin = vector_add(position, quaternion_rotate_vector(q1, start));
 	
-#if 0
-	// Eric 20110208: When missiles still crash at some launches we could throw them outward from the ship. But now
-	// at a fixed speed, equal for all ships and realy away from the ship.
-	vel = vector_add(vel, quaternion_rotate_vector(q1, vector_multiply_scalar(v_eject, 50.0f)));
-#endif
-	
 	if (isPlayer) [missile setScanClass: CLASS_MISSILE];
 	
 // special cases
