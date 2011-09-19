@@ -330,7 +330,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 		}
 		else
 		{
-			// if in interstellar space, systemData values are meaningless!
+			// if in interstellar space, systemData values are null & void!
 			switch (JSID_TO_INT(propID))
 			{
 				case kSystem_name:

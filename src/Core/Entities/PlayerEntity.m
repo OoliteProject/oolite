@@ -1315,6 +1315,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void)completeSetUp
 {
+	[OOSoundSource stopAll];
 	dockedStation = [UNIVERSE station];
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	

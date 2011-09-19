@@ -8624,7 +8624,6 @@ Entity *gOOJSPlayerIfStale = nil;
 	PlayerEntity* player = PLAYER;
 	assert(player != nil);
 	
-	[OOSoundSource stopAll];
 	[self removeAllEntitiesExceptPlayer];
 	[OOTexture clearCache];
 	[self resetSystemDataCache];
