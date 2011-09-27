@@ -282,6 +282,12 @@ NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed, NSString *n
 		OOLogERR(kOOLogExpandDescriptionsRecursionLimitExceeded, @"exceeded recusion limit trying to expand description \"%@\"", text);
 	}
 	
+	// Stop randomly generated system description strings from containing double spaces!
+	if (EXPECT_NOT([text isEqualToString:@"[system-description-string]"]))
+	{
+		result = [result stringByReplacingOccurrencesOfString:@"  " withString:@" "];
+	}
+	
 	return result;
 }
 
