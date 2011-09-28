@@ -744,7 +744,12 @@ static JSBool VectorAngleTo(JSContext *context, uintN argc, jsval *vp)
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"angleTo"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"angleTo", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
 	
-	result = acosf(dot_product(vector_normal(thisv), vector_normal(thatv)));
+	result = dot_product(vector_normal(thisv), vector_normal(thatv));
+	if (result > 1.0f) result = 1.0f;
+	if (result < -1.0f) result = -1.0f;
+	// for identical vectors the dot_product sometimes returnes a value > 1.0 because of rounding errors, resulting
+	// in an undefined result for the acosf.
+	result = acosf(result);
 	
 	OOJS_RETURN_DOUBLE(result);
 	
