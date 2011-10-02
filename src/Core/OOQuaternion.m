@@ -210,7 +210,7 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 		{
 			q = kIdentityQuaternion;
 		}
-		// yes, we arrive here for perpendicular vectors. Rotation axis is than undefined, but not rotating is
+		// We arrive here for antiparalel vectors. Rotation axis is than undefined, but not rotating is
 		// also wrong. Probably should the calling function exclude this situation. For current
 		// in-game use of this function would returning (0,1,0,0) be a solution, but generally that is also wrong.
 	}
@@ -223,7 +223,8 @@ Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxAr
 	Quaternion q;
 	OOScalar min_s = 2.0f * cosf(0.5f * maxArc);
 	OOScalar s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
-	if (EXPECT(s != 0))
+	// for some anti paralel vectors, s returns a NaN instead of 0. Testing s > 0 catches both.
+	if (EXPECT(s > 0.0f))
 	{
 		if (s < min_s)	// larger angle => smaller cos
 		{
