@@ -8347,23 +8347,25 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 {
 	NSData *utf8 = [text dataUsingEncoding:NSUTF8StringEncoding];
 	
-	if (utf8 != nil)
+	if (utf8 != nil)	// we have a valid UTF-8 string
 	{
-		const char *bytes = [utf8 bytes];
-		size_t length = strlen(bytes);
-		espeak_Synth([text UTF8String], length + 1 /* inc. NULL */, 0, POS_CHARACTER, length, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
+		const char *stringToSay = [text UTF8String];
+		espeak_Synth(stringToSay, strlen(stringToSay) + 1 /* inc. NULL */, 0, POS_CHARACTER, 0, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
 	}
 }
+
 
 - (void) stopSpeaking
 {
 	espeak_Cancel();
 }
 
+
 - (BOOL) isSpeaking
 {
 	return espeak_IsPlaying();
 }
+
 
 - (NSString *) voiceName:(unsigned int) index
 {
@@ -8371,6 +8373,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		return @"-";
 	return [NSString stringWithCString: espeak_voices[index]->name];
 }
+
 
 - (unsigned int) voiceNumber:(NSString *) name
 {
@@ -8387,6 +8390,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	return (index < espeak_voice_count) ? index : UINT_MAX;
 }
 
+
 - (unsigned int) nextVoice:(unsigned int) index
 {
 	if (++index >= espeak_voice_count)
@@ -8394,12 +8398,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	return index;
 }
 
+
 - (unsigned int) prevVoice:(unsigned int) index
 {
 	if (--index >= espeak_voice_count)
 		index = espeak_voice_count - 1;
 	return index;
 }
+
 
 - (unsigned int) setVoice:(unsigned int) index withGenderM:(BOOL) isMale
 {
