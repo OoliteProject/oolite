@@ -7420,7 +7420,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	if (range > randf() * weaponRange * accuracy)  return NO;
 	if (range > weaponRange)  return NO;
-	if (![self onTarget:direction == VIEW_FORWARD])  return NO;
+	BOOL fireForward = (direction == VIEW_FORWARD);
+	if (![self onTarget:fireForward])  return NO;
 	
 	BOOL fired = NO;
 	switch (weapon_type)
@@ -7449,12 +7450,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			break;
 	}
 	
-	//can we fire lasers from our subentities?
-	NSEnumerator	*subEnum = nil;
-	ShipEntity		*se = nil;
-	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
+	if (fireForward)
 	{
-		if ([se fireSubentityLaserShot:range])  fired = YES;
+		//can we fire lasers from our subentities?
+		NSEnumerator	*subEnum = nil;
+		ShipEntity		*se = nil;
+		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
+		{
+			if ([se fireSubentityLaserShot:range])  fired = YES;
+		}
 	}
 	
 	if (fired && cloaking_device_active && cloakPassive)
