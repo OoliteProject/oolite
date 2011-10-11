@@ -1315,7 +1315,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 				{
 					//non-US scancode. If in autodetect, we'll assume UK  :)
 					if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)
-					{	KEYCODE_DOWN_EITHER (166, 92);	}		//	windows	UK 	| or \.
+					{	KEYCODE_DOWN_EITHER (124, 92);	}		//	windows	UK 	| or \.
 				}
 
 				switch (kbd_event->keysym.sym) {
@@ -1327,13 +1327,13 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 						}
 						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
 						{
-							KEYCODE_DOWN_EITHER (166, 92); 		// 	windows	US	| or \.
+							KEYCODE_DOWN_EITHER (124, 92); 		// 	windows	US	| or \.
 						}
 						break;
 #else
 				switch (kbd_event->keysym.sym) {
 				
-					case SDLK_BACKSLASH: KEYCODE_DOWN_EITHER (166, 92); break;	// | or \.
+					case SDLK_BACKSLASH: KEYCODE_DOWN_EITHER (124, 92); break;	// | or \.
 #endif
 					case SDLK_1: KEYCODE_DOWN_EITHER (33, gvNumberKey1); break;	// ! or 1
 					case SDLK_2: KEYCODE_DOWN_EITHER (64, gvNumberKey2); break;	// @ or 2
@@ -1475,7 +1475,7 @@ keys[a] = NO; keys[b] = NO; \
 				{
 					//non-US scancode. If in autodetect, we'll assume UK  :)
 					if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)
-					{	KEYCODE_UP_BOTH (166, 92);	}			//	windows	UK 	| or \.
+					{	KEYCODE_UP_BOTH (124, 92);	}			//	windows	UK 	| or \.
 				}
 
 				switch (kbd_event->keysym.sym) {
@@ -1487,13 +1487,13 @@ keys[a] = NO; keys[b] = NO; \
 						}
 						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
 						{
-							KEYCODE_UP_BOTH (166, 92); 			// 	windows	US	| or \.
+							KEYCODE_UP_BOTH (124, 92); 			// 	windows	US	| or \.
 						}
 						break;
 #else
 				switch (kbd_event->keysym.sym) {
 				
-					case SDLK_BACKSLASH: KEYCODE_UP_BOTH (166, 92); break;	// | or \.
+					case SDLK_BACKSLASH: KEYCODE_UP_BOTH (124, 92); break;	// | or \.
 #endif
 
 					case SDLK_1: KEYCODE_UP_BOTH (33, gvNumberKey1); break;		// ! and 1
