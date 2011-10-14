@@ -8583,6 +8583,7 @@ else _dockTarget = NO_TARGET;
 	key_pausebutton &&
 	key_show_fps &&
 	key_mouse_control &&
+	key_hud_toggle &&
 	key_comms_log &&
 	key_next_compass_mode &&
 	key_cloaking_device &&
