@@ -2198,16 +2198,18 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) setupIntroFirstGo: (BOOL) justCobra
 {
-	PlayerEntity* player = PLAYER;
-	ShipEntity		*ship;
-	Quaternion		q2;
-	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
-	quaternion_rotate_about_y(&q2,M_PI);
+	PlayerEntity	*player = PLAYER;
+	ShipEntity		*ship = nil;
+	Quaternion		q2 = { (GLfloat)0.0f, (GLfloat)0.0f, (GLfloat)1.0f, (GLfloat)0.0f }; // w,x,y,z
 	
 	// in status demo draw ships and display text
 	if (!justCobra)
 	{
-		[self removeDemoShips];
+		// Kaks - smooth transition from intro1 to intro2
+		if (![[demo_ship shipDataKey] isEqualTo:PLAYER_SHIP_DESC])
+		{
+			[self removeDemoShips];
+		}
 	}
 	[player setStatus: STATUS_START_GAME];
 	[player setShowDemoShips: YES];
@@ -2215,14 +2217,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	if (justCobra)
 	{
-		/*- cobra -*/
+		/*- cobra - intro1 -*/
 		ship = [self newShipWithName:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
 	}
 	else
 	{
-		/*- demo ships -*/
+		/*- demo ships - intro2 -*/
 		demo_ship_index = 0;
-		ship = [self newShipWithName:[demo_ships oo_stringAtIndex:0] usePlayerProxy:YES];   // retain count = 1
+		if (!demo_ship) ship = [self newShipWithName:[demo_ships oo_stringAtIndex:0] usePlayerProxy:YES];   // retain count = 1
 	}
 	
 	if (ship)
@@ -2242,12 +2244,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		// now override status
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		demo_ship = ship;
-		if (!justCobra)
-		{
-			[gui setText:[ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
-			[gui setColor:[OOColor whiteColor] forRow:19];
-		}
+		
 		[ship release];
+	}
+	
+	if (!justCobra)
+	{
+		[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor whiteColor] forRow:19];
 	}
 	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
