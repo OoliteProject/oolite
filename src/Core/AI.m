@@ -597,14 +597,15 @@ static AIStackElement *sStack = NULL;
 {
 	if ([[self owner] universalID] == NO_TARGET)  return;  // don't think until launched
 
-	if ([pendingMessages count] > 32)
+	if (EXPECT_NOT([pendingMessages count] > 32))
 	{
-		OOLogERR(@"ai.message.failed.overflow", @"AI pending messages overflow for '%@'; pending messages:\n%@", ownerDesc, pendingMessages);
-		[NSException raise:@"OoliteException"
-					format:@"AI pendingMessages overflow for %@", ownerDesc];
+		// Generate the error, but don't crash Oolite! Fixes bug #18055 - Pending message overflow for thargoids, -> crash !
+		OOLogERR(@"ai.message.failed.overflow", @"AI message \"%@\" received by '%@' AI while pending messages stack full; message discarded. Pending messages:\n%@", ms, ownerDesc, pendingMessages);
 	}
-	
-	[pendingMessages addObject:ms];
+	else
+	{
+		[pendingMessages addObject:ms];
+	}
 }
 
 
