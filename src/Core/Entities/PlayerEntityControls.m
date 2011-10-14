@@ -244,6 +244,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_pausebutton,			'p'			);
 	LOAD_KEY_SETTING(key_show_fps,				'F'			);
 	LOAD_KEY_SETTING(key_mouse_control,			'M'			);
+	LOAD_KEY_SETTING(key_hud_toggle,			'o'			);
 	
 	LOAD_KEY_SETTING(key_comms_log,				'`'			);
 	LOAD_KEY_SETTING(key_next_compass_mode,		'\\'		);
@@ -487,8 +488,7 @@ static NSTimeInterval	time_last_frame;
 			}
 		}
 		
-#ifndef NDEBUG
-		//  snapshot
+		// snapshot
 		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 		if ([gameView isDown:key_snapshot] || joyButtonState[BUTTON_SNAPSHOT])   //  '*' key
 		{
@@ -503,7 +503,6 @@ static NSTimeInterval	time_last_frame;
 		{
 			taking_snapshot = NO;
 		}
-#endif
 		
 		// FPS display
 		if ([gameView isDown:key_show_fps])   //  'F' key
@@ -570,7 +569,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		
 		// HUD toggle
-		if ([gameView isDown:'o'] && [[gameView gameController] isGamePaused])// 'o' key while paused
+		if ([gameView isDown:key_hud_toggle] && [[gameView gameController] isGamePaused])	// 'o' key while paused
 		{
 			exceptionContext = @"toggle HUD";
 			if (!hide_hud_pressed)
@@ -3185,7 +3184,8 @@ static BOOL toggling_music;
 			if (([gameView isDown:charNo]) || ([gameView isDown:charNo - 32]))
 			{
 				[self setGuiToIntroFirstGo:NO];
-				[UNIVERSE selectIntro2Next];
+				// removed intro inconsistency between normal startup and restart.
+				//[UNIVERSE selectIntro2Next];
 			}
 			
 			break;

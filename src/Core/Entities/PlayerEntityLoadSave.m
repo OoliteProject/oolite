@@ -614,13 +614,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	else  didSave = [dict writeOOXMLToFile:path atomically:YES errorDescription:&errDesc];
 	if (didSave)
 	{
-		
 		[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
 		[UNIVERSE addMessage:DESC(@"game-saved") forCount:2];
 		[save_path autorelease];
 		save_path = [path copy];
 		[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
 		[[UNIVERSE gameController] setPlayerFileDirectory:save_path];
+		// no duplicated autosave immediately after a save.
+		[UNIVERSE setAutoSaveNow:NO];
 	}
 	else
 	{

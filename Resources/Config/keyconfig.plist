@@ -51,6 +51,7 @@
 	key_pausebutton				= "p";
 	key_show_fps				= "F";
 	key_mouse_control			= "M";
+	key_hud_toggle				= "o";
 
 	key_comms_log				= "`";
 	key_next_compass_mode		= "\\";

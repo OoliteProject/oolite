@@ -1309,25 +1309,23 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 				
 #if OOLITE_WINDOWS
 				/*
-					Enable backslash in win/UK
+					Windows locale patch - Enable backslash in win/UK
 				*/
-				if (kbd_event->keysym.scancode==86)
+				if (EXPECT_NOT(kbd_event->keysym.scancode==86 && (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)))
 				{
-					//non-US scancode. If in autodetect, we'll assume UK  :)
-					if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)
-					{	KEYCODE_DOWN_EITHER (124, 92);	}		//	windows	UK 	| or \.
+					//non-US scancode. If in autodetect, we'll assume UK keyboard.
+					KEYCODE_DOWN_EITHER (124, 92);								//	| or \.
 				}
-
-				switch (kbd_event->keysym.sym) {
+				else switch (kbd_event->keysym.sym) {
 
 					case SDLK_BACKSLASH: 
 						if (keyboardMap==gvKeyboardUK )
 						{			
-							keys[35] = YES;						//	windows	UK	#  
+							KEYCODE_DOWN_EITHER (126, 35);						// ~ or #
 						}
 						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
 						{
-							KEYCODE_DOWN_EITHER (124, 92); 		// 	windows	US	| or \.
+							KEYCODE_DOWN_EITHER (124, 92); 						// | or \.
 						}
 						break;
 #else
@@ -1336,8 +1334,34 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_BACKSLASH: KEYCODE_DOWN_EITHER (124, 92); break;	// | or \.
 #endif
 					case SDLK_1: KEYCODE_DOWN_EITHER (33, gvNumberKey1); break;	// ! or 1
+#if OOLITE_WINDOWS
+					/*
+						Windows locale patch - fix shift-2 & shift-3
+					*/
+					case SDLK_2:
+						if (keyboardMap==gvKeyboardUK)
+						{
+							KEYCODE_DOWN_EITHER (34, gvNumberKey2);				// " or 2
+						}
+						else
+						{
+							KEYCODE_DOWN_EITHER (64, gvNumberKey2);				// @ or 2
+						}
+						break;
+					case SDLK_3: 
+						if (keyboardMap==gvKeyboardUK)
+						{
+							KEYCODE_DOWN_EITHER (156, gvNumberKey3);			// £ or 3
+						}
+						else
+						{
+							KEYCODE_DOWN_EITHER (35, gvNumberKey3);				// # or 3
+						}
+						break;
+#else
 					case SDLK_2: KEYCODE_DOWN_EITHER (64, gvNumberKey2); break;	// @ or 2
 					case SDLK_3: KEYCODE_DOWN_EITHER (35, gvNumberKey3); break;	// # or 3
+#endif
 					case SDLK_4: KEYCODE_DOWN_EITHER (36, gvNumberKey4); break;	// $ or 4
 					case SDLK_5: KEYCODE_DOWN_EITHER (37, gvNumberKey5); break;	// % or 5
 					case SDLK_6: KEYCODE_DOWN_EITHER (94, gvNumberKey6); break;	// ^ or 6
@@ -1404,6 +1428,8 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_KP_PLUS: keys[43] = YES; break; // numeric keypad + key
 					case SDLK_KP_ENTER: keys[13] = YES; break;
 					
+					case SDLK_KP_MULTIPLY: keys[42] = YES; break;	// *
+					
 					case SDLK_KP1: keys[44] = YES; break; // equivalent to <
 					case SDLK_KP3: keys[46] = YES; break; // equivalent to >
 					
@@ -1461,7 +1487,6 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 			case SDL_KEYUP:
 				supressKeys = NO;    // DJS
 				kbd_event = (SDL_KeyboardEvent*)&event;
-				//printf("Keydown scancode: %d\n", kbd_event->keysym.scancode);
 				
 #define KEYCODE_UP_BOTH(a,b)	do { \
 keys[a] = NO; keys[b] = NO; \
@@ -1469,42 +1494,66 @@ keys[a] = NO; keys[b] = NO; \
 
 #if OOLITE_WINDOWS
 				/*
-					Windows locale patch. 
+					Windows locale patch - Enable backslash in win/UK
 				*/
-				if (kbd_event->keysym.scancode==86)
+				if (EXPECT_NOT(kbd_event->keysym.scancode==86 && (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)))
 				{
-					//non-US scancode. If in autodetect, we'll assume UK  :)
-					if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)
-					{	KEYCODE_UP_BOTH (124, 92);	}			//	windows	UK 	| or \.
+					//non-US scancode. If in autodetect, we'll assume UK keyboard.
+					KEYCODE_UP_BOTH (124, 92); 									// 	| or \.
 				}
-
-				switch (kbd_event->keysym.sym) {
+				else switch (kbd_event->keysym.sym) {
 
 					case SDLK_BACKSLASH: 
 						if (keyboardMap==gvKeyboardUK )
 						{			
-							keys[35] = NO;						//	windows	UK	#  
+							KEYCODE_UP_BOTH (126, 35);							// ~ or #
 						}
 						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
 						{
-							KEYCODE_UP_BOTH (124, 92); 			// 	windows	US	| or \.
+							KEYCODE_UP_BOTH (124, 92); 							// | or \.
 						}
 						break;
 #else
 				switch (kbd_event->keysym.sym) {
 				
-					case SDLK_BACKSLASH: KEYCODE_UP_BOTH (124, 92); break;	// | or \.
+					case SDLK_BACKSLASH: KEYCODE_UP_BOTH (124, 92); break;		// | or \.
 #endif
 
 					case SDLK_1: KEYCODE_UP_BOTH (33, gvNumberKey1); break;		// ! and 1
-					case SDLK_2: KEYCODE_UP_BOTH (64, gvNumberKey2); break;		// @ and 2
-					case SDLK_3: KEYCODE_UP_BOTH (35, gvNumberKey3); break;		// # and 3
+#if OOLITE_WINDOWS
+					/*
+						Windows locale patch - fix shift-2 & shift-3
+					*/
+					case SDLK_2:
+						if (keyboardMap==gvKeyboardUK)
+						{
+							KEYCODE_UP_BOTH (34, gvNumberKey2);					// " or 2
+						}
+						else
+						{
+							KEYCODE_UP_BOTH (64, gvNumberKey2);					// @ or 2
+						}
+						break;
+					case SDLK_3: 
+						if (keyboardMap==gvKeyboardUK)
+						{
+							KEYCODE_UP_BOTH (156, gvNumberKey3);				// £ or 3
+						}
+						else
+						{
+							KEYCODE_UP_BOTH (35, gvNumberKey3);					// # or 3
+						}
+						break;
+#else
+					case SDLK_2: KEYCODE_UP_BOTH (64, gvNumberKey2); break;		// @ or 2
+					case SDLK_3: KEYCODE_UP_BOTH (35, gvNumberKey3); break;		// # or 3
+#endif
 					case SDLK_4: KEYCODE_UP_BOTH (36, gvNumberKey4); break;		// $ and 4
 					case SDLK_5: KEYCODE_UP_BOTH (37, gvNumberKey5); break;		// % and 5
 					case SDLK_6: KEYCODE_UP_BOTH (94, gvNumberKey6); break;		// ^ and 6
 					case SDLK_7: KEYCODE_UP_BOTH (38, gvNumberKey7); break;		// & and 7
 					case SDLK_8: KEYCODE_UP_BOTH (42, gvNumberKey8); break;		// * and 8
-					case SDLK_9: KEYCODE_UP_BOTH (40, gvNumberKey9);break;		// ( and 9
+					case SDLK_9: KEYCODE_UP_BOTH (40, gvNumberKey9) ;break;		// ( and 9
 					case SDLK_0: KEYCODE_UP_BOTH (41, gvNumberKey0); break;		// ) and 0
 					case SDLK_MINUS: KEYCODE_UP_BOTH (95, 45); break;		// _ and -
 					case SDLK_COMMA: KEYCODE_UP_BOTH (60, 44); break;		// < and ,
@@ -1560,14 +1609,16 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_LEFT: keys[gvArrowKeyLeft] = NO; break;
 					case SDLK_KP6:
 					case SDLK_RIGHT: keys[gvArrowKeyRight] = NO; break;
-						
+					
 					case SDLK_KP_MINUS: keys[45] = NO; break; // numeric keypad - key
 					case SDLK_KP_PLUS: keys[43] = NO; break; // numeric keypad + key
 					case SDLK_KP_ENTER: keys[13] = NO; break;
-						
+					
+					case SDLK_KP_MULTIPLY: keys[42] = NO; break;	// *
+					
 					case SDLK_KP1: keys[44] = NO; break; // equivalent to <
 					case SDLK_KP3: keys[46] = NO; break; // equivalent to >
-						
+					
 					case SDLK_F1: keys[gvFunctionKey1] = NO; break;
 					case SDLK_F2: keys[gvFunctionKey2] = NO; break;
 					case SDLK_F3: keys[gvFunctionKey3] = NO; break;
@@ -1600,6 +1651,7 @@ keys[a] = NO; keys[b] = NO; \
 						
 					default:
 						// Numerous cases not handled.
+						//OOLog(@"keys.test", @"Keyup scancode: %d", kbd_event->keysym.scancode);
 						;
 				}
 				break;

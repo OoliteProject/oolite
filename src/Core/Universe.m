@@ -3418,7 +3418,7 @@ static const OOMatrix	starboard_matrix =
 				theHUD = [player hud];	// HUD has been changed, so point to its new address
 			}
 			
-#ifndef NDEBUG
+			// Hiding HUD: has been a regular - non-debug - feature as of r2749, about 2 yrs ago! --Kaks 2011.10.14
 			static float sPrevHudAlpha = -1.0f;
 			if ([theHUD isHidden])
 			{
@@ -3433,7 +3433,6 @@ static const OOMatrix	starboard_matrix =
 				[theHUD setOverallAlpha:sPrevHudAlpha];
 				sPrevHudAlpha = -1.0f;
 			}
-#endif
 			
 			if (v_status != STATUS_DEAD && v_status != STATUS_ESCAPE_SEQUENCE)
 			{

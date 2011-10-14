@@ -421,6 +421,7 @@ typedef enum
 	OOKeyCode				key_pausebutton;
 	OOKeyCode				key_show_fps;
 	OOKeyCode				key_mouse_control;
+	OOKeyCode				key_hud_toggle;
 	
 	OOKeyCode				key_comms_log;
 	OOKeyCode				key_next_compass_mode;
