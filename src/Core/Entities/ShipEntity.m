@@ -6158,8 +6158,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 		{
 			[se setSuppressExplosion:suppressExplosion];
-			[se setPosition:[se absolutePositionForSubentity]];
-			[UNIVERSE addEntity:se];
+			// [se setPosition:[se absolutePositionForSubentity]]; // happens already in becomeExplosion.
+			// [UNIVERSE addEntity:se];
 			[se becomeExplosion];
 		}
 		[self clearSubEntities];
@@ -6397,8 +6397,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 		{
 			[se setSuppressExplosion:suppressExplosion];
-			[se setPosition:[se absolutePositionForSubentity]];
-			[UNIVERSE addEntity:se];
+			// [se setPosition:[se absolutePositionForSubentity]]; // is handled in becomeExplosion
+			// [UNIVERSE addEntity:se];
 			[se becomeExplosion];
 		}
 		[self clearSubEntities];

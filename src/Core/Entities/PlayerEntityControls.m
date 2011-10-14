@@ -82,8 +82,8 @@ static BOOL				fast_autopilot_key_pressed;
 static BOOL				docking_clearance_request_key_pressed;
 #ifndef NDEBUG
 static BOOL				dump_target_state_pressed;
-static BOOL				taking_snapshot;
 #endif
+static BOOL				taking_snapshot;
 static BOOL				hide_hud_pressed;
 static BOOL				f_key_pressed;
 static BOOL				m_key_pressed;
