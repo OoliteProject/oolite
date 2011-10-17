@@ -896,7 +896,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing;
 - (void) enterWitchspace;
 - (void) leaveWitchspace;
-- (void) witchspaceLeavingEffects;
+- (BOOL) witchspaceLeavingEffects;
 
 /* 
    Mark this ship as an offender, this is different to setBounty as some ships such as police 

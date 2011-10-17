@@ -1922,6 +1922,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	
 	ShipEntity  		*ship = [self newShipWithRole:role]; // is retained
+	BOOL				success = NO;
 	
 	if (ship != nil)
 	{
@@ -1967,7 +1968,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)
 		{
 			// nothing extra to do
-			[self addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally
+			success = [self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally			
 		}
 		else	// witchpace incoming traders & pirates need extra settings.
 		{
@@ -1991,12 +1992,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			// Status changes inside the following call: AI state GLOBAL, then STATUS_EXITING_WITCHSPACE, 
 			// with the EXITED_WITCHSPACE message sent to the AI. At last we set STATUS_IN_FLIGHT.
 			// Includes addEntity, so ship is retained globally.
-			[ship witchspaceLeavingEffects];
+			success = [ship witchspaceLeavingEffects];
 		}
 		
 		[ship release];
 	}
-	return ship;
+	return success ? ship : (ShipEntity *)nil;
 	
 	OOJS_PROFILE_EXIT
 }
@@ -5081,7 +5082,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			universal_time += delta_t;
 			
 			update_stage = @"demo management";
-			if ([player showDemoShips] && [player guiScreen] == GUI_SCREEN_INTRO2)
+			if (EXPECT_NOT([player showDemoShips] && [player guiScreen] == GUI_SCREEN_INTRO2))
 			{
 				if (universal_time >= demo_stage_time)
 				{

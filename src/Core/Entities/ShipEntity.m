@@ -5888,20 +5888,26 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				[ring setVelocity:vector_multiply_scalar([self velocity], 0.25f)];
 				[UNIVERSE addEntity:ring];
 			}
+
+			BOOL add_debris = (UNIVERSE->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES) &&
+									  ([UNIVERSE getTimeDelta] < 0.125);	  // FPS > 8
 			
-			// several parts to the explosion:
-			// 1. fast sparks
-			[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
-			 // 2. slow clouds
-			 [UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
+			
+			// There are several parts to explosions, show only the main
+			// explosion effect if UNIVERSE is almost full.
+			
+			if (add_debris)
+			{
+				// 1. fast sparks
+				[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
+				 // 2. slow clouds
+				[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
+			}
 			// 3. flash
 			[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashFromEntity:self]];
-
-			BOOL add_more_explosion = (UNIVERSE->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES) &&
-									  ([UNIVERSE getTimeDelta] < 0.125);	  // FPS > 8
 			 
-			// quick - check if UNIVERSE is nearing limit for entities - if it is don't add to it!
-			if (add_more_explosion)
+			// If UNIVERSE is nearing limit for entities don't add to it!
+			if (add_debris)
 			{
 				// we need to throw out cargo at this point.
 				NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
@@ -6079,15 +6085,14 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				//
 				if (n_alloys && canFragment)
 				{
-					int n_wreckage = (n_alloys < 3)? n_alloys : 3;
+					int n_wreckage = 0;
 					
-					// quick - check if UNIVERSE is nearing limit for entities - if it is don't make wreckage
-					//
-					add_more_explosion &= (UNIVERSE->n_entities < 0.50 * UNIVERSE_MAX_ENTITIES);
-					if (!add_more_explosion)
-						n_wreckage = 0;
-					//
-					////
+					if (add_debris && (UNIVERSE->n_entities < 0.50 * UNIVERSE_MAX_ENTITIES))
+					{
+						// Create wreckage only when UNIVERSE is less than half full.
+						// (condition set in r906 - was < 0.75 before) --Kaks 2011.10.17
+						n_wreckage = (n_alloys < 3)? n_alloys : 3;
+					}
 					
 					for (i = 0; i < n_wreckage; i++)
 					{
@@ -6120,7 +6125,13 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					}
 					n_alloys = ranrot_rand() % n_alloys;
 				}
-
+				
+				// If UNIVERSE is almost full, don't create more than 1 piece of scrap metal.
+				if (!add_debris && n_alloys > 1)
+				{
+					n_alloys = 1;
+				}
+				
 				// Throw out scrap metal
 				//
 				for (i = 0; i < n_alloys; i++)
@@ -9083,19 +9094,23 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) witchspaceLeavingEffects
+- (BOOL) witchspaceLeavingEffects
 {
 	// all ships exiting witchspace will share the same orientation.
 	orientation = [UNIVERSE getWitchspaceExitRotation];
 	flightRoll = 0.0;
 	flightPitch = 0.0;
 	flightSpeed = maxFlightSpeed * 0.25;
-	[UNIVERSE addEntity:self];	// AI and status get initialised here
+	if (![UNIVERSE addEntity:self])	// AI and status get initialised here
+	{
+		return NO;
+	}
 	[self setStatus:STATUS_EXITING_WITCHSPACE];
 	[shipAI message:@"EXITED_WITCHSPACE"];
 	
 	[UNIVERSE addWitchspaceJumpEffectForShip:self];
 	[self setStatus:STATUS_IN_FLIGHT];
+	return YES;
 }
 
 
