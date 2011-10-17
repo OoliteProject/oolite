@@ -3700,7 +3700,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			// throw an exception here...
 			OOLog(@"universe.addEntity.failed", @"***** Universe cannot addEntity:%@ -- Universe is full (%d entities out of %d)", entity, n_entities, UNIVERSE_MAX_ENTITIES);
 #ifndef NDEBUG
-			[self debugDumpEntities];
+			if (OOLogWillDisplayMessagesInClass(@"universe.maxEntitiesDump")) [self debugDumpEntities];
 #endif
 			return NO;
 		}
