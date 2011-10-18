@@ -8691,8 +8691,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) cascadeIfAppropriateWithDamageAmount:(double)amount cascadeOwner:(Entity *)owner
+- (BOOL) cascadeIfAppropriateWithDamageAmount:(double)amount cascadeOwner:(Entity *)owner
 {
+	BOOL cascade = NO;
 	switch ([self scanClass])
 	{
 		case CLASS_WORMHOLE:
@@ -8720,11 +8721,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
 			if (energy < amount && energy > 10 && [self countsAsKill])
 			{
-				[UNIVERSE addEntity:[OOQuiriumCascadeEntity quiriumCascadeFromShip:self]];
+				cascade = [UNIVERSE addEntity:[OOQuiriumCascadeEntity quiriumCascadeFromShip:self]];
 			}
 			break;
 			//no default thanks, we want the compiler to tell us if we missed a case.
 	}
+	return cascade;
 }
 
 
@@ -8734,9 +8736,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (amount <= 0.0)  return;
 	
 	BOOL energyMine = [ent isCascadeWeapon];
+	BOOL cascade = NO;
 	if (energyMine)
 	{
-		[self cascadeIfAppropriateWithDamageAmount:amount cascadeOwner:[ent owner]];
+		cascade = [self cascadeIfAppropriateWithDamageAmount:amount cascadeOwner:[ent owner]];
 	}
 	
 	energy -= amount;
@@ -8856,6 +8859,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (!suppressExplosion)
 	{
 		[self noteTakingDamage:amount from:other type:damageType];
+		if (cascade) energy = 0.0; // explicit set energy to zero in case an oxp raised the energy in previous line.
 	}
 	
 	// die if I'm out of energy

@@ -866,7 +866,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (OOTimeDelta) missileLoadTime;
 - (void) setMissileLoadTime:(OOTimeDelta)newMissileLoadTime;
 - (BOOL) fireECM;
-- (void) cascadeIfAppropriateWithDamageAmount:(double)amount cascadeOwner:(Entity *)owner;
+- (BOOL) cascadeIfAppropriateWithDamageAmount:(double)amount cascadeOwner:(Entity *)owner;
 - (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;
 - (BOOL) launchCascadeMine;
