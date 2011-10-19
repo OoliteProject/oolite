@@ -45,7 +45,7 @@
 	key_docking_music			= "s";
 
 	key_advanced_nav_array		= "^";
-	key_map_home				= 302;		// Home
+	key_map_home				= 303;		// Home
 	key_map_info				= "i";
 
 	key_pausebutton				= "p";
