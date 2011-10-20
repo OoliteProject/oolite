@@ -8721,7 +8721,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
 			if (energy < amount && energy > 10 && [self countsAsKill])
 			{
-				cascade = [UNIVERSE addEntity:[OOQuiriumCascadeEntity quiriumCascadeFromShip:self]];
+				cascade = YES;	// confirm we're cascading, then try to add our cascade to UNIVERSE.
+				[UNIVERSE addEntity:[OOQuiriumCascadeEntity quiriumCascadeFromShip:self]];
 			}
 			break;
 			//no default thanks, we want the compiler to tell us if we missed a case.

@@ -233,7 +233,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		if( now > expiry_time )
 			return NO;
 	}
-
+	
 	[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 						ship, @"ship",
 						[NSNumber numberWithDouble: now + travel_time - arrival_time], @"time",
@@ -252,7 +252,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	
 	[UNIVERSE removeEntity:ship];
 	[[ship getAI] clearStack];	// get rid of any preserved states
-		
+	
 	return YES;
 }
 
@@ -271,7 +271,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		NSString *shipBeacon = [(NSDictionary *)[shipsInTransit objectAtIndex:i] objectForKey:@"shipBeacon"];
 		double	ship_arrival_time = arrival_time + [(NSNumber*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"time"] doubleValue];
 		double	time_passed = now - ship_arrival_time;
-
+		
 		if (ship_arrival_time > now)
 		{
 			[shipsStillInTransit addObject:[shipsInTransit objectAtIndex:i]];
@@ -293,16 +293,16 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				position.z += v1.z * d1;
 			}
 			[ship setPosition:position];
-
+			
 			if (shipBeacon != nil)
 			{
 				[ship setBeaconCode:shipBeacon];
 			}
-	
+			
 			// Don't reduce bounty on misjump. Fixes #17992
 			// - MKW 2011.03.10	
 			if (!_misjump)  [ship setBounty:[ship bounty]/2];	// adjust legal status for new system
-		
+			
 			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 			{
 				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
@@ -346,7 +346,6 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 					// Use here the real time difference for correct updating.
 					[ship update: (now - ship_arrival_time)];
 				}
-
 			}
 		}
 	}
