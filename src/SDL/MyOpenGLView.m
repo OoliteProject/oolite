@@ -725,7 +725,7 @@ MA 02110-1301, USA.
 	}
 	// change width in 4 pixels steps! (see snapShot method)
 	int w=viewSize.width;
-	if (w & 3) w = w + 4 - (w & 3);
+	if (!fullScreen && (w & 3)) w = w + 4 - (w & 3);
 	viewSize.width=w;
 	surface = SDL_SetVideoMode((int)viewSize.width, (int)viewSize.height, 32, videoModeFlags);
 
