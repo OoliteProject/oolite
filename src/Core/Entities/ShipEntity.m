@@ -5724,8 +5724,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			Entity *e2 = [targets objectAtIndex:i];
 			Vector p2 = vector_subtract([e2 position], position);
 			double ecr = [e2 collisionRadius];
-			double d2 = magnitude2(p2) - ecr * ecr;
-			double damage = (d2 > 0) ? weapon_damage * desired_range / d2 : weapon_damage;
+			double d = (magnitude(p2) - ecr) * 2.6; // 2.6 is a correction constant to stay in limits of the old code.
+			double damage = (d > 0) ? weapon_damage * desired_range / (d * d) : weapon_damage;
 			[e2 takeEnergyDamage:damage from:self becauseOf:[self owner]];
 		}
 	}
