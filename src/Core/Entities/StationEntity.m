@@ -670,6 +670,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	approach_spacing += 500;  // space out incoming ships by 500m
 	
+	// FIXME: Eric 23-10-2011: Below is a quick fix to prevent the approach_spacing from blowing up
+	// to high values because of bad AI's for docking ships that keep requesting and aborting docking.
+	// Post 1.76 this probably should replace it with a proper list of holding slots so  that close by slots
+	// can be used again once the ship has left the Approach queue. In the current fix, resetting can
+	// result in two ships getting the same holding position.
+	if (approach_spacing > 2 * SCANNER_MAX_RANGE && approach_spacing / 500 > 5 * [shipsOnApproach count]) approach_spacing = 0;
+	
 	// COMM-CHATTER
 	if (self == [UNIVERSE station])
 		[self sendExpandedMessage: @"[station-welcome]" toShip: ship];

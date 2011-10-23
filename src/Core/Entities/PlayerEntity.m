@@ -3983,9 +3983,10 @@ static bool minShieldLevelPercentageInitialised = false;
 	if (amount == 0.0)  return;
 	
 	BOOL energyMine = [ent isCascadeWeapon];
+	BOOL cascade = NO;
 	if (energyMine)
 	{
-		[self cascadeIfAppropriateWithDamageAmount:amount cascadeOwner:[ent owner]];
+		cascade = [self cascadeIfAppropriateWithDamageAmount:amount cascadeOwner:[ent owner]];
 	}
 	
 	// make sure ent (& its position) is the attacking _ship_/missile !
@@ -4048,6 +4049,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	OOShipDamageType damageType = kOODamageTypeEnergy;
 	if (energyMine)  damageType = kOODamageTypeCascadeWeapon;
 	[self noteTakingDamage:amount from:other type:damageType];
+	if (cascade) energy = 0.0; // explicit set energy to zero when cascading, in case an oxp raised the energy in previous line.
 	
 	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
 	{
