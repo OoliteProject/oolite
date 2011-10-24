@@ -673,7 +673,6 @@ MA 02110-1301, USA.
 
 	GetClientRect(SDL_Window, &wDC);
 
-	// change width in 4 pixels steps! (see snapShot method)
 	if (!fullScreen && (bounds.size.width != wDC.right - wDC.left
 					|| bounds.size.height != wDC.bottom - wDC.top))
 	{
@@ -688,8 +687,6 @@ MA 02110-1301, USA.
 		NSSize nonClientAreaCorrection = NSMakeSize(0,0);
 		
 		bounds.size.width = wDC.right - wDC.left;
-		int w=bounds.size.width;
-		if (w & 3) w = w + 4 - (w & 3);
 		GetWindowRect(SDL_Window, &wDC);
 		if (wasFullScreen) // this is true when switching from full screen or when starting in windowed mode after the splash screen has ended
 		{
@@ -698,7 +695,7 @@ MA 02110-1301, USA.
 			nonClientAreaCorrection.width = fabs((wDCtemp.right - wDCtemp.left) - (wDC.right - wDC.left));
 			nonClientAreaCorrection.height = fabs((wDCtemp.bottom - wDCtemp.top) - (wDC.bottom - wDC.top));
 		}
-		viewSize.width = wDC.right - wDC.left + w - bounds.size.width;
+		viewSize.width = wDC.right - wDC.left;
 		viewSize.height = wDC.bottom - wDC.top;
 		MoveWindow(SDL_Window,wDC.left,wDC.top,viewSize.width + nonClientAreaCorrection.width,viewSize.height + nonClientAreaCorrection.height,TRUE);
 		GetClientRect(SDL_Window, &wDC);
@@ -723,10 +720,6 @@ MA 02110-1301, USA.
 	{
 		videoModeFlags |= SDL_RESIZABLE;
 	}
-	// change width in 4 pixels steps! (see snapShot method)
-	int w=viewSize.width;
-	if (!fullScreen && (w & 3)) w = w + 4 - (w & 3);
-	viewSize.width=w;
 	surface = SDL_SetVideoMode((int)viewSize.width, (int)viewSize.height, 32, videoModeFlags);
 
 	if (!surface && fullScreen == YES)
@@ -770,11 +763,6 @@ MA 02110-1301, USA.
 {
 	BOOL snapShotOK = YES;
 	SDL_Surface* tmpSurface;
-	int w = viewSize.width;
-	int h = viewSize.height;
-	
-	if (w & 3)
-		w = w + 4 - (w & 3);
 	
 	// backup the previous directory
 	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
@@ -823,26 +811,20 @@ MA 02110-1301, USA.
 		imageNo = tmpImageNo;
 	}
 			
-	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, w, h);
-	
-	unsigned char *pixls = malloc(surface->w * surface->h * 3);
-	glReadPixels(0,0,surface->w,surface->h,GL_RGB,GL_UNSIGNED_BYTE,pixls);
+	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
 	
 	int pitch = surface->w * 3;
-	unsigned char *aux = malloc( pitch );
-	short h2=surface->h/2;
-	unsigned char *p1=pixls;
-	unsigned char *p2=pixls+((surface->h-1)*pitch); //go to last line
-	int i;
-	for(i=0; i<h2; i++){
-		memcpy(aux,p1,pitch);
-		memcpy(p1,p2,pitch);
-		memcpy(p2,aux,pitch);
-		p1+=pitch;
-		p2-=pitch;
+	unsigned char *pixls = malloc(pitch * surface->h);
+	int y;
+	int off;
+        
+	if (surface->w % 4) glPixelStorei(GL_PACK_ALIGNMENT,1);
+	else                glPixelStorei(GL_PACK_ALIGNMENT,4);
+	for (y=surface->h-1, off=0; y>=0; y--, off+=pitch)
+	{
+		glReadPixels(0, y, surface->w, 1, GL_RGB, GL_UNSIGNED_BYTE, pixls + off);
 	}
-	free(aux);
-	
+
 	tmpSurface=SDL_CreateRGBSurfaceFrom(pixls,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);
 #if SNAPSHOTS_PNG_FORMAT
 	if(![self pngSaveSurface:pathToPic withSurface:tmpSurface])
