@@ -8679,9 +8679,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				}
 			}
 		}
-		[cargo insertObject: other atIndex: 0];	// places most recently scooped object at eject position
+		[cargo insertObject:other atIndex:0];	// places most recently scooped object at eject position
 		[other setStatus:STATUS_IN_HOLD];
 		[other setBehaviour:BEHAVIOUR_TUMBLE];
+		// [self doScriptEvent:OOJSID("cargoScooped") withArgument:other];	//post-MNSR - add cargoScooped() event
 		[shipAI message:@"CARGO_SCOOPED"];
 		if (max_cargo && [cargo count] >= max_cargo)  [shipAI message:@"HOLD_FULL"];
 	}

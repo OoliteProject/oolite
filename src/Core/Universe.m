@@ -5081,9 +5081,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			time_delta = delta_t;
 			universal_time += delta_t;
 			
-			update_stage = @"demo management";
 			if (EXPECT_NOT([player showDemoShips] && [player guiScreen] == GUI_SCREEN_INTRO2))
 			{
+				update_stage = @"demo management";
+				
 				if (universal_time >= demo_stage_time)
 				{
 					if (ent_count > 1)
