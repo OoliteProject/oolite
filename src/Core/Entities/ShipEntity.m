@@ -7438,7 +7438,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	switch (weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON :
-			[self firePlasmaShotAtOffset:0.0 speed:NPC_PLASMA_SPEED color:[OOColor yellowColor]];
+			[self firePlasmaShotAtOffset:0.0 speed:NPC_PLASMA_SPEED color:[OOColor yellowColor] direction:direction];
 			fired = YES;
 			break;
 		
