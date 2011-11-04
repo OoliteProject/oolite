@@ -71,5 +71,5 @@ OOINLINE BOOL OOIsPlayerStale(void)
 OOINLINE BOOL OOIsStaleEntity(Entity *entity)
 {
 	extern Entity *gOOJSPlayerIfStale;
-	return entity == nil || ([entity status] == STATUS_DEAD) || (entity == gOOJSPlayerIfStale);
+	return entity == nil || (entity == gOOJSPlayerIfStale);
 }

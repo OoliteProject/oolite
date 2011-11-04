@@ -227,7 +227,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return JS_NewNumberValue(context, [entity maxEnergy], value);
 		
 		case kEntity_isValid:
-			*value = JSVAL_TRUE;
+			*value = [entity status] == STATUS_DEAD ? JSVAL_FALSE : JSVAL_TRUE;
 			return YES;
 		
 		case kEntity_isShip:

@@ -5888,7 +5888,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				[ring setVelocity:vector_multiply_scalar([self velocity], 0.25f)];
 				[UNIVERSE addEntity:ring];
 			}
-
+			
 			BOOL add_debris = (UNIVERSE->n_entities < 0.95 * UNIVERSE_MAX_ENTITIES) &&
 									  ([UNIVERSE getTimeDelta] < 0.125);	  // FPS > 8
 			
@@ -5964,7 +5964,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						[cargo removeAllObjects];   // dispense with it!
 						break;
 				}
-
+				
 				//  Throw out cargo
 				if (jetsam)
 				{
@@ -6003,7 +6003,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						}
 					}
 				}
-
+				
 				//  Throw out rocks and alloys to be scooped up
 				if ([self hasRole:@"asteroid"])
 				{
@@ -6087,7 +6087,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				{
 					int n_wreckage = 0;
 					
-					if (add_debris && (UNIVERSE->n_entities < 0.50 * UNIVERSE_MAX_ENTITIES))
+					if (UNIVERSE->n_entities < 0.50 * UNIVERSE_MAX_ENTITIES)
 					{
 						// Create wreckage only when UNIVERSE is less than half full.
 						// (condition set in r906 - was < 0.75 before) --Kaks 2011.10.17
@@ -6125,40 +6125,40 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					}
 					n_alloys = ranrot_rand() % n_alloys;
 				}
-				
-				// If UNIVERSE is almost full, don't create more than 1 piece of scrap metal.
-				if (!add_debris && n_alloys > 1)
+			}
+			
+			// If UNIVERSE is almost full, don't create more than 1 piece of scrap metal.
+			if (!add_debris)
+			{
+				n_alloys = (n_alloys > 1) ? 1 : 0;
+			}
+			
+			// Throw out scrap metal
+			//
+			for (i = 0; i < n_alloys; i++)
+			{
+				ShipEntity* plate = [UNIVERSE newShipWithRole:@"alloy"];   // retain count = 1
+				if (plate)
 				{
-					n_alloys = 1;
-				}
-				
-				// Throw out scrap metal
-				//
-				for (i = 0; i < n_alloys; i++)
-				{
-					ShipEntity* plate = [UNIVERSE newShipWithRole:@"alloy"];   // retain count = 1
-					if (plate)
-					{
-						Vector  rpos = xposition;
-						Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
-						rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
-						rpos.x += (ranrot_rand() % 7) - 3;
-						rpos.y += (ranrot_rand() % 7) - 3;
-						rpos.z += (ranrot_rand() % 7) - 3;
-						[plate setPosition:rpos];
-						v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-						v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-						v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-						[plate setVelocity:v];
-						quaternion_set_random(&q);
-						[plate setOrientation:q];
-						
-						[plate setTemperature:[self randomEjectaTemperature]];
-						[plate setScanClass: CLASS_CARGO];
-						[plate setCommodity:[UNIVERSE commodityForName:@"Alloys"] andAmount:1];
-						[UNIVERSE addEntity:plate];	// STATUS_IN_FLIGHT, AI state GLOBAL
-						[plate release];
-					}
+					Vector  rpos = xposition;
+					Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
+					rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
+					rpos.x += (ranrot_rand() % 7) - 3;
+					rpos.y += (ranrot_rand() % 7) - 3;
+					rpos.z += (ranrot_rand() % 7) - 3;
+					[plate setPosition:rpos];
+					v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+					v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+					v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+					[plate setVelocity:v];
+					quaternion_set_random(&q);
+					[plate setOrientation:q];
+					
+					[plate setTemperature:[self randomEjectaTemperature]];
+					[plate setScanClass: CLASS_CARGO];
+					[plate setCommodity:[UNIVERSE commodityForName:@"Alloys"] andAmount:1];
+					[UNIVERSE addEntity:plate];	// STATUS_IN_FLIGHT, AI state GLOBAL
+					[plate release];
 				}
 			}
 		}
@@ -6190,6 +6190,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			}
 			[UNIVERSE removeEntity:self];
 		}
+		
 	NS_HANDLER
 		if (self != PLAYER)  [UNIVERSE removeEntity:self];
 		[localException raise];
@@ -8563,6 +8564,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return;
 	}
 	
+	[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other];	// fixed: shipScoopedOther() event now fires for all scoop events.
+	
 	switch ([other cargoType])
 	{
 		case CARGO_RANDOM:
@@ -8596,7 +8599,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				PlayerEntity *player = PLAYER;
 				[player setScriptTarget:self];
 				[other doScriptEvent:OOJSID("shipWasScooped") withArgument:self];
-				[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other];
+				// [self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other]; // fixed: already fired for all scoop events!
 				
 				if ([other commodityType] != CARGO_UNDEFINED)
 				{
@@ -8682,7 +8685,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[cargo insertObject:other atIndex:0];	// places most recently scooped object at eject position
 		[other setStatus:STATUS_IN_HOLD];
 		[other setBehaviour:BEHAVIOUR_TUMBLE];
-		// [self doScriptEvent:OOJSID("cargoScooped") withArgument:other];	//post-MNSR - add cargoScooped() event
+		// [self doScriptEvent:OOJSID("cargoScooped") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(co_type), [NSNumber numberWithInt:co_amount], nil]];	//post-MNSR - add cargoScooped() event
 		[shipAI message:@"CARGO_SCOOPED"];
 		if (max_cargo && [cargo count] >= max_cargo)  [shipAI message:@"HOLD_FULL"];
 	}
