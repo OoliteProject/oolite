@@ -7826,20 +7826,24 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	vel = v_forward;
 	rt = v_right;
+	Vector	plasmaPortOffset = forwardWeaponOffset;
 
 	if (isPlayer)					// player can fire into multiple views!
 	{
 		switch ([UNIVERSE viewDirection])
 		{
 			case VIEW_AFT :
+				plasmaPortOffset = aftWeaponOffset;
 				vel = vector_flip(v_forward);
 				rt = vector_flip(v_right);
 				break;
 			case VIEW_STARBOARD :
+				plasmaPortOffset = starboardWeaponOffset;
 				vel = v_right;
 				rt = vector_flip(v_forward);
 				break;
 			case VIEW_PORT :
+				plasmaPortOffset = portWeaponOffset;
 				vel = vector_flip(v_right);
 				rt = v_forward;
 				break;
@@ -7852,13 +7856,21 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		if (direction == VIEW_AFT)
 		{
+			plasmaPortOffset = aftWeaponOffset;
 			vel = vector_flip(v_forward);
 			rt = vector_flip(v_right);
 		}
 	}
 	
-	origin = vector_add(origin, vector_multiply_scalar(vel, start));
-	origin = vector_add(origin, vector_multiply_scalar(rt, offset));
+	if (vector_equal(plasmaPortOffset, kZeroVector))
+	{
+		origin = vector_add(origin, vector_multiply_scalar(vel, start)); // no WeaponOffset defined
+	}
+	else
+	{
+		origin = vector_add(origin, quaternion_rotate_vector([self normalOrientation], plasmaPortOffset));
+	}
+	origin = vector_add(origin, vector_multiply_scalar(rt, offset)); // With 'offset > 0' we get a twin-cannon.
 	
 	vel = vector_multiply_scalar(vel, speed);
 	
