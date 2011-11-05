@@ -366,11 +366,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 					  fadeTime:0.0 key:nil addToArray:nil];
 		}
 	}
+	// For consistency's sake, if there's no comm_log_gui section, don't override anything!
+	/*
 	else
 	{
 		[UNIVERSE setAutoCommLog:YES];
 		[UNIVERSE setPermanentCommLog:NO];
 	}
+	*/
 	
 	if ([UNIVERSE permanentCommLog])
 	{
