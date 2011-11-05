@@ -264,7 +264,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 //------------------------------------------------------------------------------------//
 
 
-- (void) resizeGui:(GuiDisplayGen*)gui withInfo:(NSDictionary *) gui_info
+- (void) resetGui:(GuiDisplayGen*)gui withInfo:(NSDictionary *)gui_info
 {
 	Vector pos = [gui drawPosition];
 	if ([gui_info objectForKey:X_KEY])
@@ -297,7 +297,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) resetGuis:(NSDictionary *) info
+- (void) resetGuis:(NSDictionary *)info
 {
 	// check for entries in hud.plist for message_gui and comm_log_gui
 	// then resize and reposition them accordingly.
@@ -306,7 +306,29 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	NSDictionary*	gui_info = [info objectForKey:@"message_gui"];
 	if (gui && gui_info)
 	{
-		[self resizeGui:gui withInfo:gui_info];
+		/*
+			If switching message guis, remember the last 2 message lines.
+			Present GUI limitations make it impractical to transfer anything
+			more...
+			
+			TODO: a more usable GUI code Post-MNSR... - Kaks 2011.11.05
+		*/
+		
+		NSArray*	lastLines = [gui getLastLines];	// text, colour, fade time - text, colour, fade time
+		[self resetGui:gui withInfo:gui_info];
+		
+		if (![[lastLines oo_stringAtIndex:0] isEqualToString:@""])
+		{
+			[gui printLongText:[lastLines oo_stringAtIndex:0] align:GUI_ALIGN_CENTER
+						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:1]] 
+					  fadeTime:[lastLines oo_floatAtIndex:2] key:nil addToArray:nil];
+		}
+		if ([lastLines count] > 3 && ![[lastLines oo_stringAtIndex:3] isEqualToString:@""])
+		{
+			[gui printLongText:[lastLines oo_stringAtIndex:3] align:GUI_ALIGN_CENTER
+						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:4]] 
+					  fadeTime:[lastLines oo_floatAtIndex:5] key:nil addToArray:nil];
+		}
 	}
 	[gui setAlpha: 1.0];	// message_gui is always visible.
 	
@@ -319,9 +341,46 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		[UNIVERSE setAutoCommLog:[gui_info oo_boolForKey:@"automatic" defaultValue:YES]];
 		[UNIVERSE setPermanentCommLog:[gui_info oo_boolForKey:@"permanent" defaultValue:NO]];
-		[self resizeGui:gui withInfo:gui_info];
+		
+		/*
+			We need to repopulate the comms log after resetting it.
+			
+			At the moment the colour information is set on a per-line basis, rather than a per-text basis.
+			A comms message can span multiple lines, and two consecutive messages can share the same colour,
+			so trying to match the colour information from the GUI with each message won't work.
+			
+			Bottom line: colour information is lost on comms log gui reset.
+			And yes, this is yet another reason for the following
+			
+			TODO: a more usable GUI code Post-MNSR... - Kaks 2011.11.05
+		*/
+		
+		NSArray *cLog = [PLAYER commLog];
+		unsigned i, commCount = [cLog count];
+		
+		[self resetGui:gui withInfo:gui_info];
+		
+		for (i = 0; i < commCount; i++)
+		{
+			[gui printLongText:[cLog oo_stringAtIndex:i] align:GUI_ALIGN_LEFT color:nil
+					  fadeTime:0.0 key:nil addToArray:nil];
+		}
 	}
-	[gui setAlpha: [UNIVERSE permanentCommLog]? 1.0 : 0.0];	// comm_log_gui is normally invisible most of the time, unless permanent.
+	else
+	{
+		[UNIVERSE setAutoCommLog:YES];
+		[UNIVERSE setPermanentCommLog:NO];
+	}
+	
+	if ([UNIVERSE permanentCommLog])
+	{
+		[gui stopFadeOuts];
+		[gui setAlpha:1.0];
+	}
+	else
+	{
+		[gui setAlpha:0.0];
+	}
 }
 
 

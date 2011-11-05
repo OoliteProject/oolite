@@ -8502,6 +8502,8 @@ Entity *gOOJSPlayerIfStale = nil;
 	[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init];
 	
+	// TODO: always take the message gui stuff from the standard hud settings! - Kaks 2011.11.05
+	
 	[message_gui autorelease];
 	message_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(480, 160)
@@ -8529,6 +8531,8 @@ Entity *gOOJSPlayerIfStale = nil;
 	[comm_log_gui setAlpha:0.0];
 	[comm_log_gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
 	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
+	
+	//
 	
 	time_delta = 0.0;
 #ifndef NDEBUG

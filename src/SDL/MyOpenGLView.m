@@ -686,7 +686,6 @@ MA 02110-1301, USA.
 		// full screen to window) - Nikos 20091024
 		NSSize nonClientAreaCorrection = NSMakeSize(0,0);
 		
-		bounds.size.width = wDC.right - wDC.left;
 		GetWindowRect(SDL_Window, &wDC);
 		if (wasFullScreen) // this is true when switching from full screen or when starting in windowed mode after the splash screen has ended
 		{

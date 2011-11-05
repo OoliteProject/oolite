@@ -121,7 +121,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	pixel_row_center = size_in_pixels.width / 2;
 	pixel_row_height = gui_row_height;
 	pixel_row_start	= gui_row_start;		// first position down the page...
-	max_alpha = 1;
+	max_alpha = 1.0;
 
 	pixel_text_size = NSMakeSize(pixel_row_height, pixel_row_height);
 	
@@ -309,6 +309,12 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		fade_sign = -1000.0f;
 	else
 		fade_sign = (float)(-fade_alpha / duration);
+}
+
+
+- (void) stopFadeOuts
+{
+	fade_sign = 0.0f;
 }
 
 
@@ -631,6 +637,35 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
+- (NSArray *) getLastLines;	// text, colour, fade time - text, colour, fade time
+{
+	if (n_rows <1) return nil;
+	
+	// we have at least 1 row!
+	
+	unsigned				i = n_rows-1;
+	OORGBAComponents		col = [(OOColor *)[rowColor objectAtIndex:i] rgbaComponents];
+	
+	if (i>0)
+	{
+		// we have at least 2 rows!
+		OORGBAComponents	col0 = [(OOColor *)[rowColor objectAtIndex:i-1] rgbaComponents];
+		return [NSArray arrayWithObjects:[rowText oo_stringAtIndex:i-1],
+										[NSString stringWithFormat:@"%.3g %.3g %.3g %.3g", col0.r, col0.g, col0.b, col0.a],
+										[NSNumber numberWithFloat:rowFadeTime[i-1]],
+										[rowText oo_stringAtIndex:i],
+										[NSString stringWithFormat:@"%.3g %.3g %.3g %.3g", col.r, col.g, col.b, col.a],
+										[NSNumber numberWithFloat:rowFadeTime[i]], nil];
+	}
+	else
+	{
+		return [NSArray arrayWithObjects:[rowText oo_stringAtIndex:i],
+										[NSString stringWithFormat:@"%.3g %.3g %.3g %.3g", col.r, col.g, col.b, col.a],
+										[NSNumber numberWithFloat:rowFadeTime[i]], nil];
+	}
+}
+
+
 - (void) printLongText:(NSString *)str
 				 align:(OOGUIAlignment) alignment
 				 color:(OOColor *)text_color
@@ -721,7 +756,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	if (RowInRange(row, rowRange))
 		[rowText replaceObjectAtIndex:row withObject:arr];
 }
-
 
 
 - (void) insertItemsFromArray:(NSArray *)items
@@ -1095,9 +1129,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				fade_alpha = 0.0f;
 				fade_sign = 0.0f;
 			}
-			if (fade_alpha > 1.0f)	// done fading in
+			if (fade_alpha >= max_alpha)	// done fading in
 			{
-				fade_alpha = 1.0f;
+				fade_alpha = max_alpha;
 				fade_sign = 0.0f;
 			}
 		}
