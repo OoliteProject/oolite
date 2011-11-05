@@ -1112,6 +1112,10 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self setShipDataKey:PLAYER_SHIP_DESC];
 	ship_trade_in_factor = 95;
+	
+	// reset HUD & default commlog behaviour
+	[UNIVERSE setAutoCommLog:YES];
+	[UNIVERSE setPermanentCommLog:NO];
 
 	[self switchHudTo:@"hud.plist"];	
 	scanner_zoom_rate = 0.0f;
@@ -2964,7 +2968,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		DESTROY(hud);
 		hud = [[HeadUpDisplay alloc] initWithDictionary:hudDict inFile:hudFileName];
 		[hud setScannerZoom:scannerZoom];
-		[hud resetGuis: hudDict];
+		[hud resetGuis:hudDict];
 		[hud setHidden:theHudIsHidden]; // now show it, or reset it to what it was before.
 	}
 	
@@ -2972,7 +2976,7 @@ static bool minShieldLevelPercentageInitialised = false;
 }
 
 
-- (void) setShowDemoShips:(BOOL) value
+- (void) setShowDemoShips:(BOOL)value
 {
 	showDemoShips = value;
 }
