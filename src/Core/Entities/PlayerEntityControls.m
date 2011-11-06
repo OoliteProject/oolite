@@ -2770,13 +2770,13 @@ static NSTimeInterval	time_last_frame;
 		double stick_pitch = max_flight_pitch * virtualStick.y;
 		if (flightPitch < stick_pitch)
 		{
-			[self increase_flight_pitch:delta_t*roll_delta];
+			[self increase_flight_pitch:delta_t*pitch_delta];
 			if (flightPitch > stick_pitch)
 				flightPitch = stick_pitch;
 		}
 		if (flightPitch > stick_pitch)
 		{
-			[self decrease_flight_pitch:delta_t*roll_delta];
+			[self decrease_flight_pitch:delta_t*pitch_delta];
 			if (flightPitch < stick_pitch)
 				flightPitch = stick_pitch;
 		}

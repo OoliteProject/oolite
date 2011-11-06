@@ -1155,6 +1155,9 @@ MA 02110-1301, USA.
 	SDL_MouseButtonEvent	*mbtn_event;
 	SDL_MouseMotionEvent	*mmove_event;
 	int						mxdelta, mydelta;
+	float					mouseVirtualStickSensitivityX = viewSize.width * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
+	float					mouseVirtualStickSensitivityY = viewSize.height * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
+	
 	
 	while (SDL_PollEvent(&event))
 	{
@@ -1214,8 +1217,8 @@ MA 02110-1301, USA.
 				{
 					// possible TODO - make virtual stick sensitivity configurable
 					SDL_GetRelativeMouseState(&mxdelta, &mydelta);
-					double mxd=(double)mxdelta / MOUSE_VIRTSTICKSENSITIVITY;
-					double myd=(double)mydelta / MOUSE_VIRTSTICKSENSITIVITY;
+					double mxd=(double)mxdelta / mouseVirtualStickSensitivityX;//MOUSE_VIRTSTICKSENSITIVITY_X;
+					double myd=(double)mydelta / mouseVirtualStickSensitivityY;//MOUSE_VIRTSTICKSENSITIVITY_Y;
 					
 					if (!mouseWarped) // Standard event, update coordinates
 					{
