@@ -1217,8 +1217,8 @@ MA 02110-1301, USA.
 				{
 					// possible TODO - make virtual stick sensitivity configurable
 					SDL_GetRelativeMouseState(&mxdelta, &mydelta);
-					double mxd=(double)mxdelta / mouseVirtualStickSensitivityX;//MOUSE_VIRTSTICKSENSITIVITY_X;
-					double myd=(double)mydelta / mouseVirtualStickSensitivityY;//MOUSE_VIRTSTICKSENSITIVITY_Y;
+					double mxd=(double)mxdelta / mouseVirtualStickSensitivityX;
+					double myd=(double)mydelta / mouseVirtualStickSensitivityY;
 					
 					if (!mouseWarped) // Standard event, update coordinates
 					{
