@@ -1016,9 +1016,15 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	
 	// GUI stuff
 	{
-		unsigned i = 0;
+		NSArray*	cargoManifest = [self cargoList];
+		NSArray*	missionsManifest = [self missionsList];
+		NSArray*	passengerManifest = [self passengerList];
+		NSArray*	contractManifest = [self contractList];
 		
-		unsigned	n_manifest_rows = 8;
+		unsigned	i = 0;
+		unsigned 	max_rows = 20;
+		unsigned	manifest_count = [cargoManifest count];
+		unsigned	n_cargo_rows = (manifest_count + 1)/2;
 		OOGUIRow	cargo_row = 2;
 		OOGUIRow	passenger_row = 2;
 		OOGUIRow	contracts_row = 2;
@@ -1029,11 +1035,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		tab_stops[1] = 256;
 		[gui setTabStops:tab_stops];
 		
-		NSArray*	cargoManifest = [self cargoList];
-		NSArray*	passengerManifest = [self passengerList];
-		NSArray*	contractManifest = [self contractList];
-		NSArray*	missionsManifest = [self missionsList];
-		
 		unsigned rating = 0;
 		unsigned kills[8] = { 0x0008,  0x0010,  0x0020,  0x0040,  0x0080,  0x0200,  0x0A00,  0x1900 };
 		while ((rating < 8)&&(kills[rating] <= ship_kills))
@@ -1041,85 +1042,110 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			rating ++;
 		}
 		
+		// Cargo Manifest
 		current_cargo = [self cargoQuantityOnBoard];
 
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"manifest-title")];
 		
 		[gui setText:[NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), current_cargo, max_cargo]	forRow:cargo_row - 1];
-		[gui setText:DESC(@"manifest-none")	forRow:cargo_row];
 		[gui setColor:[OOColor yellowColor]	forRow:cargo_row - 1];
-		[gui setColor:[OOColor greenColor]	forRow:cargo_row];
 		
-		if ([cargoManifest count] > 0)
+		if (manifest_count > 0)
 		{
-			for (i = 0; i < n_manifest_rows; i++)
+			for (i = 0; i < n_cargo_rows; i++)
 			{
 				NSMutableArray*		row_info = [NSMutableArray arrayWithCapacity:2];
-				if (i < [cargoManifest count])
+				if (i < manifest_count)
 					[row_info addObject:[cargoManifest objectAtIndex:i]];
 				else
 					[row_info addObject:@""];
-				if (i + n_manifest_rows < [cargoManifest count])
-					[row_info addObject:[cargoManifest objectAtIndex:i + n_manifest_rows]];
+				if (i + n_cargo_rows < manifest_count)
+					[row_info addObject:[cargoManifest objectAtIndex:i + n_cargo_rows]];
 				else
 					[row_info addObject:@""];
 				[gui setArray:(NSArray *)row_info forRow:cargo_row + i];
 				[gui setColor:[OOColor greenColor] forRow:cargo_row + i];
 			}
 		}
-		
-		if ([cargoManifest count] < n_manifest_rows)
-			passenger_row = cargo_row + [cargoManifest count] + 2;
 		else
-			passenger_row = cargo_row + n_manifest_rows + 2;
-		
-		[gui setText:[NSString stringWithFormat:DESC(@"manifest-passengers-d-d"), [passengerManifest count], max_passengers]	forRow:passenger_row - 1];
-		[gui setText:DESC(@"manifest-none")	forRow:passenger_row];
-		[gui setColor:[OOColor yellowColor]	forRow:passenger_row - 1];
-		[gui setColor:[OOColor greenColor]	forRow:passenger_row];
-		
-		if ([passengerManifest count] > 0)
 		{
-			for (i = 0; i < [passengerManifest count]; i++)
-			{
-				[gui setText:(NSString*)[passengerManifest objectAtIndex:i] forRow:passenger_row + i];
-				[gui setColor:[OOColor greenColor] forRow:passenger_row + i];
-			}
-		}
-				
-		contracts_row = passenger_row + [passengerManifest count] + 2;
-		
-		[gui setText:DESC(@"manifest-contracts")	forRow:contracts_row - 1];
-		[gui setText:DESC(@"manifest-none")		forRow:contracts_row];
-		[gui setColor:[OOColor yellowColor]	forRow:contracts_row - 1];
-		[gui setColor:[OOColor greenColor]	forRow:contracts_row];
-		
-		if ([contractManifest count] > 0)
-		{
-			for (i = 0; i < [contractManifest count]; i++)
-			{
-				[gui setText:(NSString*)[contractManifest objectAtIndex:i] forRow:contracts_row + i];
-				[gui setColor:[OOColor greenColor] forRow:contracts_row + i];
-			}
+			[gui setText:DESC(@"manifest-none")	forRow:cargo_row];
+			[gui setColor:[OOColor greenColor]	forRow:cargo_row];
+			n_cargo_rows=1;
 		}
 		
-		if ([missionsManifest count] > 0)
+		passenger_row = cargo_row + n_cargo_rows + 1;
+		
+		// Passengers Manifest
+		manifest_count = [passengerManifest count];
+		
+		if (passenger_row <= max_rows)
+		{	
+			[gui setText:[NSString stringWithFormat:DESC(@"manifest-passengers-d-d"), manifest_count, max_passengers]	forRow:passenger_row - 1];
+			[gui setColor:[OOColor yellowColor]	forRow:passenger_row - 1];
+			if (manifest_count > 0)
+			{
+				for (i = 0; i < manifest_count && (passenger_row + i < max_rows); i++)
+				{
+					[gui setText:(NSString*)[passengerManifest objectAtIndex:i] forRow:passenger_row + i];
+					[gui setColor:[OOColor greenColor] forRow:passenger_row + i];
+				}
+			}
+			else
+			{
+				[gui setText:DESC(@"manifest-none")	forRow:passenger_row];
+				[gui setColor:[OOColor greenColor]	forRow:passenger_row];
+				manifest_count = 1;
+			}
+		}
+		contracts_row = passenger_row + manifest_count + 1;
+		
+		// Contracts Manifest
+		manifest_count = [contractManifest count];
+		if (contracts_row <= max_rows)
 		{
-			missions_row = contracts_row + [contractManifest count] + 2;
+			[gui setText:DESC(@"manifest-contracts") forRow:contracts_row - 1];
+			[gui setColor:[OOColor yellowColor]	forRow:contracts_row - 1];
 			
+			if (manifest_count > 0)
+			{
+				for (i = 0; i < manifest_count && (contracts_row + i < max_rows); i++)
+				{
+					[gui setText:(NSString*)[contractManifest objectAtIndex:i] forRow:contracts_row + i];
+					[gui setColor:[OOColor greenColor] forRow:contracts_row + i];
+				}
+			}
+			else
+			{
+				[gui setText:DESC(@"manifest-none")	forRow:contracts_row];
+				[gui setColor:[OOColor greenColor]	forRow:contracts_row];
+				manifest_count = 1;
+			}
+		}
+		missions_row = contracts_row + manifest_count + 1;
+		
+		// Missions Manifest
+		manifest_count = [missionsManifest count];
+		
+		if (missions_row <= max_rows && manifest_count > 0)
+		{
 			[gui setText:DESC(@"manifest-missions")	forRow:missions_row - 1];
 			[gui setColor:[OOColor yellowColor]	forRow:missions_row - 1];
 			
-			if ([missionsManifest count] > 0)
+			for (i = 0; i < manifest_count && (missions_row + i < max_rows); i++)
 			{
-				for (i = 0; i < [missionsManifest count]; i++)
-				{
-					[gui setText:(NSString*)[missionsManifest objectAtIndex:i] forRow:missions_row + i];
-					[gui setColor:[OOColor greenColor] forRow:missions_row + i];
-				}
+				[gui setText:(NSString*)[missionsManifest objectAtIndex:i] forRow:missions_row + i];
+				[gui setColor:[OOColor greenColor] forRow:missions_row + i];
 			}
 		}
+		
+		if (missions_row + manifest_count >= max_rows )
+		{
+			[gui setText:@" . . ."				forRow:max_rows];
+			[gui setColor:[OOColor greenColor]	forRow:max_rows];
+		}
+		
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */

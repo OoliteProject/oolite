@@ -817,7 +817,7 @@ static GLfloat		sBaseMass = 0.0;
 	eqScripts = [[NSMutableArray alloc] init];
 	[self addEquipmentFromCollection:equipment];
 	primedEquipment = [self getEqScriptIndexForKey:[dict oo_stringForKey:@"primed_equipment"]];	// if key not found primedEquipment is set to primed-none
-
+	
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
 	else  compassMode = COMPASS_MODE_BASIC;
 	compassTarget = nil;
@@ -833,35 +833,48 @@ static GLfloat		sBaseMass = 0.0;
 	[reputation release];
 	reputation = [[dict oo_dictionaryForKey:@"reputation"] mutableCopy];
 	if (reputation == nil)  reputation = [[NSMutableDictionary alloc] init];
-
-	// passengers
-	max_passengers = [dict oo_intForKey:@"max_passengers"];
+	
+	// passengers and contracts
 	[passengers release];
-	passengers = [[dict oo_arrayForKey:@"passengers"] mutableCopy];
-	if (passengers == nil)  passengers = [[NSMutableArray alloc] init];
 	[passenger_record release];
-	passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
+	[contracts release];
+	[contract_record release];
+	
+	 // Don't load passengers & contracts in strict mode savegames!
+	if ([UNIVERSE strict])
+	{
+		max_passengers = 0;
+		passengers = nil;
+		passenger_record = nil;
+		contracts = nil;
+		contract_record = nil;
+	}
+	else
+	{
+		max_passengers = [dict oo_intForKey:@"max_passengers" defaultValue:0];
+		passengers = [[dict oo_arrayForKey:@"passengers"] mutableCopy];
+		passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
+		contracts = [[dict oo_arrayForKey:@"contracts"] mutableCopy];
+		contract_record = [[dict oo_dictionaryForKey:@"contract_record"] mutableCopy];
+	}
+	
+	if (passengers == nil)  passengers = [[NSMutableArray alloc] init];
 	if (passenger_record == nil)  passenger_record = [[NSMutableDictionary alloc] init];
+	if (contracts == nil)  contracts = [[NSMutableArray alloc] init];
+	if (contract_record == nil)  contract_record = [[NSMutableDictionary alloc] init];
 	
 	//specialCargo
 	[specialCargo release];
 	specialCargo = [[dict oo_stringForKey:@"special_cargo"] copy];
-
-	// contracts
-	[contracts release];
-	contracts = [[dict oo_arrayForKey:@"contracts"] mutableCopy];
-	if (contracts == nil)  contracts = [[NSMutableArray alloc] init];
-	contract_record = [[dict oo_dictionaryForKey:@"contract_record"] mutableCopy];
-	if (contract_record == nil)  contract_record = [[NSMutableDictionary alloc] init];
 	
 	// mission destinations
 	missionDestinations = [[dict oo_arrayForKey:@"missionDestinations"] mutableCopy];
 	if (missionDestinations == nil)  missionDestinations = [[NSMutableArray alloc] init];
-
+	
 	// shipyard
 	shipyard_record = [[dict oo_dictionaryForKey:@"shipyard_record"] mutableCopy];
 	if (shipyard_record == nil)  shipyard_record = [[NSMutableDictionary alloc] init];
-
+	
 	// Normalize cargo capacity
 	unsigned original_hold_size = [UNIVERSE maxCargoForShip:[self shipDataKey]];
 	max_cargo = [dict oo_unsignedIntForKey:@"max_cargo" defaultValue:max_cargo];
@@ -895,7 +908,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	ship_clock = [dict oo_doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START];
 	fps_check_time = ship_clock;
-
+	
 	// mission_variables
 	[mission_variables release];
 	mission_variables = [[dict oo_dictionaryForKey:@"mission_variables"] mutableCopy];
@@ -995,7 +1008,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// restore subentities status
 	[self deserializeShipSubEntitiesFrom:[dict oo_stringForKey:@"subentities_status"]];
-
+	
 	// wormholes
 	NSArray * whArray;
 	whArray = [dict objectForKey:@"wormholes"];
@@ -1020,7 +1033,7 @@ static GLfloat		sBaseMass = 0.0;
 	// custom view no.
 	if (_customViews != nil)
 		_customViewIndex = [dict oo_unsignedIntForKey:@"custom_view_index"] % [_customViews count];
-
+	
 	// trumble information
 	[self setUpTrumbles];
 	[self setTrumbleValueFrom:[dict objectForKey:@"trumbles"]];	// if it doesn't exist we'll check user-defaults
@@ -1078,7 +1091,7 @@ static GLfloat		sBaseMass = 0.0;
 	target_memory_index = 0;
 	
 	dockingReport = [[NSMutableString alloc] init];
-
+	
 	[self initControls];
 }
 
@@ -1116,7 +1129,7 @@ static GLfloat		sBaseMass = 0.0;
 	// reset HUD & default commlog behaviour
 	[UNIVERSE setAutoCommLog:YES];
 	[UNIVERSE setPermanentCommLog:NO];
-
+	
 	[self switchHudTo:@"hud.plist"];	
 	scanner_zoom_rate = 0.0f;
 	
@@ -1545,7 +1558,7 @@ static GLfloat		sBaseMass = 0.0;
 	[OOScriptTimer updateTimers];
 	UPDATE_STAGE(@"checkScriptsIfAppropriate");
 	[self checkScriptsIfAppropriate];
-
+	
 	// deal with collisions
 	UPDATE_STAGE(@"manageCollisions");
 	[self manageCollisions];
@@ -1668,7 +1681,7 @@ static bool minShieldLevelPercentageInitialised = false;
 			shot_time = starboard_shot_time;
 			break;
 	}
-
+	
 	// cloaking device
 	if ([self hasCloakingDevice] && cloaking_device_active)
 	{
@@ -1678,7 +1691,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		if (energy < CLOAKING_DEVICE_MIN_ENERGY)
 			[self deactivateCloakingDevice];
 	}
-
+	
 	// military_jammer
 	if ([self hasMilitaryJammer])
 	{
@@ -1701,7 +1714,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	if (ecm_in_operation)
 	{
 		UPDATE_STAGE(@"updating ECM");
-
+		
 		if (energy > 0.0)
 			energy -= (float)(ECM_ENERGY_DRAIN_FACTOR * delta_t);		// drain energy because of the ECM
 		else
@@ -1714,7 +1727,7 @@ static bool minShieldLevelPercentageInitialised = false;
 			ecm_in_operation = NO;
 		}
 	}
-
+	
 	// Energy Banks and Shields
 	// TODO: Remove case statement once we pick the best solution.
 	switch(EnergyDistribution)
@@ -1730,13 +1743,13 @@ static bool minShieldLevelPercentageInitialised = false;
 				if (energy > maxEnergy)
 					energy = maxEnergy;
 			}
-
+			
 			// Recharge shields from energy banks
 			float rechargeFwd = (float)([self shieldRechargeRate] * delta_t);
 			float rechargeAft = rechargeFwd;
 			float fwdMax = [self maxForwardShieldLevel];
 			float aftMax = [self maxAftShieldLevel];
-
+			
 			if (forward_shield < fwdMax)
 			{
 				if (forward_shield + rechargeFwd > fwdMax)  rechargeFwd = fwdMax - forward_shield;
@@ -1761,18 +1774,18 @@ static bool minShieldLevelPercentageInitialised = false;
 		*/
 		{
 			UPDATE_STAGE(@"updating energy and shield charges");
-
+			
 			// 1. (Over)charge energy banks (will get normalised later)
 			double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
 			energy += energy_recharge_rate * energy_multiplier * delta_t;
-
+			
 			// 2. Calculate shield recharge rates
 			float fwdMax = [self maxForwardShieldLevel];
 			float aftMax = [self maxAftShieldLevel];
 			float shieldRecharge = [self shieldRechargeRate] * delta_t;
 			float rechargeFwd = MIN(shieldRecharge, fwdMax - forward_shield);
 			float rechargeAft = MIN(shieldRecharge, aftMax - aft_shield);
-
+			
 			// Note: we've simplified this a little, so if either shield is below
 			//       the critical threshold, we allocate all energy.  Ideally we
 			//       would only allocate the full recharge to the critical shield,
@@ -1784,7 +1797,7 @@ static bool minShieldLevelPercentageInitialised = false;
 				float minEnergyBankLevel = [[UNIVERSE planetInfo] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.25];
 				energyForShields = MAX(0.0, energy -0.1 - (maxEnergy * minEnergyBankLevel)); // NB: The - 0.1 ensures the energy value does not 'bounce' across the critical energy message and causes spurious energy-low warnings
 			}
-
+			
 			if( forward_shield < aft_shield )
 			{
 				rechargeFwd = MIN(rechargeFwd, energyForShields);
@@ -1795,12 +1808,12 @@ static bool minShieldLevelPercentageInitialised = false;
 				rechargeAft = MIN(rechargeAft, energyForShields);
 				rechargeFwd = MIN(rechargeFwd, energyForShields - rechargeAft);
 			}
-
+			
 			// 3. Recharge shields, drain banks, and clamp values
 			forward_shield += rechargeFwd;
 			aft_shield += rechargeAft;
 			energy -= rechargeFwd + rechargeAft;
-
+			
 			forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
 			aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
 			energy = OOClamp_0_max_f(energy, maxEnergy);
@@ -1818,10 +1831,10 @@ static bool minShieldLevelPercentageInitialised = false;
 			UPDATE_STAGE(@"updating energy and shield charges");
 			double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
 			float energyGenerated = energy_recharge_rate * energy_multiplier * delta_t;
-
+			
 			// 1. (Over)charge energy banks (will get normalised later)
 			energy += energyGenerated;
-
+			
 			// 2. Calculate how much energy can be used for the shields
 #if defined(NDEBUG)
 			// TODO - cache this value somewhere, or is it cheap enough to perform this lookup?
@@ -1845,7 +1858,7 @@ static bool minShieldLevelPercentageInitialised = false;
 				float recharge = [self shieldRechargeRate] * delta_t;
 				float rechargeFwd = MIN(recharge, fwdMax - forward_shield);
 				float rechargeAft = MIN(recharge, aftMax - aft_shield);
-
+				
 				if( (rechargeFwd == rechargeAft) ||
 						((rechargeFwd > energyForShields) && (rechargeAft > energyForShields)) )
 				{
@@ -1860,13 +1873,13 @@ static bool minShieldLevelPercentageInitialised = false;
 				{
 					rechargeFwd = MIN(rechargeFwd, energyForShields - rechargeAft);
 				}
-
+				
 				forward_shield += rechargeFwd;
 				aft_shield += rechargeAft;
-
+				
 				energy -= rechargeFwd;
 				energy -= rechargeAft;
-
+				
 				forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
 				aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
 			}
@@ -1874,7 +1887,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		}
 		break;
 	}
-
+	
 	if (sun)
 	{
 		UPDATE_STAGE(@"updating sun effects");
@@ -1924,7 +1937,7 @@ static bool minShieldLevelPercentageInitialised = false;
 			if (ship_temperature > SHIP_MIN_CABIN_TEMP)
 				ship_temperature += (float)((external_temp - heatThreshold - ship_temperature) * SHIP_COOLING_FACTOR  * deltaInsulation);
 		}
-
+		
 		if (ship_temperature > SHIP_MAX_CABIN_TEMP)
 			[self takeHeatDamage: delta_t * ship_temperature];
 	}
@@ -1996,12 +2009,12 @@ static bool minShieldLevelPercentageInitialised = false;
 			flightSpeed += (float)(speed_delta * delta_t * HYPERSPEED_FACTOR);
 		if (flightSpeed > maxFlightSpeed * HYPERSPEED_FACTOR)
 			flightSpeed = (float)(maxFlightSpeed * HYPERSPEED_FACTOR);
-
+		
 		// check for mass lock
 		hyperspeed_locked = [self massLocked];
 		// check for mass lock & external temperature?
 		//hyperspeed_locked = flightSpeed * air_friction > 40.0f+(ship_temperature - external_temp ) * SHIP_COOLING_FACTOR || [self massLocked];
-
+		
 		if (hyperspeed_locked)
 		{
 			[self playJumpMassLocked];
@@ -2092,7 +2105,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
 		[self removeTarget:primeTarget];
 	}
-
+	
 	// update subentities
 	UPDATE_STAGE(@"updating subentities");
 	totalBoundingBox = boundingBox; //	reset totalBoundingBox
