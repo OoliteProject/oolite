@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityControls.h"
 #import "ProxyPlayerEntity.h"
+#import "HeadUpDisplay.h"
 
 #import "Universe.h"
 #import "AI.h"
@@ -1021,14 +1022,17 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSArray*	passengerManifest = [self passengerList];
 		NSArray*	contractManifest = [self contractList];
 		
-		unsigned	i = 0;
-		unsigned 	max_rows = 20;
-		unsigned	manifest_count = [cargoManifest count];
-		unsigned	n_cargo_rows = (manifest_count + 1)/2;
+		int			i = 0;
+		int 		max_rows = 20;
+		int			manifest_count = [cargoManifest count];
+		int			n_cargo_rows = (manifest_count + 1)/2;
 		OOGUIRow	cargo_row = 2;
 		OOGUIRow	passenger_row = 2;
 		OOGUIRow	contracts_row = 2;
 		OOGUIRow	missions_row = 2;
+		
+		// show extra lines if no HUD is displayed?
+		//if ([[self hud] isHidden]) max_rows += 7;
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 20;
