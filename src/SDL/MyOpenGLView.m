@@ -265,6 +265,23 @@ MA 02110-1301, USA.
 	}
 	
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
+
+	/* MKW 2011.11.11
+	 * Eat all SDL events to gobble up any resize events while the
+	 * splash-screen was visible.  They affected the main window after 1.74.
+	 * TODO Post-MNSR: should really process SDL events while the splash-screen
+	 *                 is being displayed.
+	int numEvents = 0;
+	*/
+	SDL_Event dummyEvent;
+	while (SDL_PollEvent(&dummyEvent))
+	{
+		/* Do nothing; the below is for development info
+		numEvents++;
+		OOLog(@"display.splash", @"Ate splash-screen event %d: %d ", numEvents, dummyEvent.type);
+		*/
+	}
+
 	
 #endif
 	
@@ -533,7 +550,12 @@ MA 02110-1301, USA.
 
   #else
 
-	surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
+	/* MKW 2011.11.11
+	 * According to Marc using the NOFRAME flag causes trouble under Ubuntu 8.04.
+	 * TODO: Investigate & fix!
+	 * surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
+	 */
+	 surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
 
   #endif
   
