@@ -278,7 +278,7 @@ MA 02110-1301, USA.
 	{
 		/* Do nothing; the below is for development info
 		numEvents++;
-		OOLog(@"display.splash", @"Ate splash-screen event %d: %d ", numEvents, dummyEvent.type);
+		OOLog(@"display.splash", @"Suppressed splash-screen event %d: %d ", numEvents, dummyEvent.type);
 		*/
 	}
 
@@ -518,7 +518,7 @@ MA 02110-1301, USA.
 - (void) initSplashScreen
 {
 	if (!showSplashScreen) return;
-
+	
 	//too early for OOTexture!
 	SDL_Surface     	*image=NULL;
 	SDL_Rect			dest;
@@ -526,7 +526,7 @@ MA 02110-1301, USA.
 	NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
 	
 	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] UTF8String]);
-
+	
 	if (image == NULL)
 	{
 		SDL_FreeSurface(image);
@@ -535,50 +535,50 @@ MA 02110-1301, USA.
 		return;
 	}
 	
-		dest.x = 0;
-		dest.y = 0;
-		dest.w = image->w;
-		dest.h = image->h;
-
+	dest.x = 0;
+	dest.y = 0;
+	dest.w = image->w;
+	dest.h = image->h;
+	
   #if OOLITE_WINDOWS
-
+	
 	dest.x = (GetSystemMetrics(SM_CXSCREEN)- dest.w)/2;
 	dest.y = (GetSystemMetrics(SM_CYSCREEN)-dest.h)/2;
 	SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
 	ShowWindow(SDL_Window,SW_RESTORE);
 	MoveWindow(SDL_Window,dest.x,dest.y,dest.w,dest.h,TRUE);
-
+	
   #else
-
+	
 	/* MKW 2011.11.11
 	 * According to Marc using the NOFRAME flag causes trouble under Ubuntu 8.04.
 	 * TODO: Investigate & fix!
 	 * surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
 	 */
 	 surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
-
+	
   #endif
-  
+	
 	glViewport( 0, 0, dest.w, dest.h);
-
+	
 	glEnable( GL_TEXTURE_2D );
 	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 	glClear( GL_COLOR_BUFFER_BIT );
-
+	
 	glMatrixMode( GL_PROJECTION );
 	glPushMatrix();
 	glLoadIdentity();
-
+	
 	glOrtho(0.0f, dest.w , dest.h, 0.0f, -1.0f, 1.0f);
-
+	
 	glMatrixMode( GL_MODELVIEW );
 	glPushMatrix();
 	glLoadIdentity();
-
+	
 	GLuint texture;
 	GLenum texture_format;
 	GLint  nOfColors;
- 
+	
 	// get the number of channels in the SDL image
 	nOfColors = image->format->BytesPerPixel;
 	if (nOfColors == 4)     // contains an alpha channel
@@ -600,21 +600,21 @@ MA 02110-1301, USA.
 		[self endSplashScreen];
 		return;
 	}
-        
+	
 	glGenTextures( 1, &texture );
 	glBindTexture( GL_TEXTURE_2D, texture );
- 
+	
 	// Set the texture's stretching properties
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
- 
+	
 	// Set the texture image data with the information  from SDL_Surface 
 	glTexImage2D( GL_TEXTURE_2D, 0, nOfColors, image->w, image->h, 0,
                       texture_format, GL_UNSIGNED_BYTE, image->pixels );
-
+	
 	glBindTexture( GL_TEXTURE_2D, texture );
 	glBegin( GL_QUADS );
-
+	
 	glTexCoord2i( 0, 0 );
 	glVertex2i( 0, 0 );
 	glTexCoord2i( 1, 0 );
@@ -628,7 +628,7 @@ MA 02110-1301, USA.
 	
 	SDL_GL_SwapBuffers();
 	glLoadIdentity();       // reset matrix
- 
+	
 	if ( image ) { 
 		SDL_FreeSurface( image );
 	}

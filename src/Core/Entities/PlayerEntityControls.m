@@ -1152,7 +1152,6 @@ static NSTimeInterval	time_last_frame;
 				{
 					if (!hyperspace_pressed)
 					{
-						galactic_witchjump = NO;
 						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 						{
 							// abort!
@@ -1160,7 +1159,15 @@ static NSTimeInterval	time_last_frame;
 							[self playHyperspaceAborted];
 							// say it!
 							[UNIVERSE clearPreviousMessage];
-							[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
+							if (galactic_witchjump)
+							{
+								galactic_witchjump = NO;
+								[UNIVERSE addMessage:DESC(@"witch-user-galactic-abort") forCount:3.0];
+							}
+							else
+							{
+								[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
+							}
 							[self doScriptEvent:OOJSID("playerCancelledJumpCountdown")];
 						}
 						else if ([self witchJumpChecklist:false])
@@ -1191,12 +1198,20 @@ static NSTimeInterval	time_last_frame;
 						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 						{
 							// abort!
-							galactic_witchjump = NO;
 							[self setStatus:STATUS_IN_FLIGHT];
 							[self playHyperspaceAborted];
 							// say it!
 							[UNIVERSE clearPreviousMessage];
-							[UNIVERSE addMessage:DESC(@"witch-user-galactic-abort") forCount:3.0];
+							
+							if (galactic_witchjump)
+							{
+								galactic_witchjump = NO;
+								[UNIVERSE addMessage:DESC(@"witch-user-galactic-abort") forCount:3.0];
+							}
+							else
+							{
+								[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
+							}
 							[self doScriptEvent:OOJSID("playerCancelledJumpCountdown")];
 						}
 						else

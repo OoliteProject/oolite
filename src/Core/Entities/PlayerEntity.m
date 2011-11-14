@@ -2415,6 +2415,16 @@ static bool minShieldLevelPercentageInitialised = false;
 	UPDATE_STAGE(@"updating countdown timer");
 	witchspaceCountdown -= delta_t;
 	if (witchspaceCountdown < 0.0f)  witchspaceCountdown = 0.0f;
+	
+	// damaged gal drive? abort!
+	if (EXPECT_NOT(galactic_witchjump && ![self hasEquipmentItem:@"EQ_GAL_DRIVE"]))
+	{
+		galactic_witchjump = NO;
+		[self setStatus:STATUS_IN_FLIGHT];
+		[self playHyperspaceAborted];
+		return;
+	}
+	
 	if (galactic_witchjump)
 	{
 		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
@@ -8198,7 +8208,7 @@ static NSString *last_outfitting_key=nil;
 	NSEnumerator	*scriptEnum = [worldScripts objectEnumerator];
 	OOScript		*theScript;
 
-	// Check for the pressence of report messages first.
+	// Check for the presence of report messages first.
 	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] > 0 && [self isDocked] && ![dockedStation suppressArrivalReports])
 	{
 		[self setGuiToDockingReportScreen];	// go here instead!

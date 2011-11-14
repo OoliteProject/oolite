@@ -1039,13 +1039,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		tab_stops[1] = 256;
 		[gui setTabStops:tab_stops];
 		
-		unsigned rating = 0;
-		unsigned kills[8] = { 0x0008,  0x0010,  0x0020,  0x0040,  0x0080,  0x0200,  0x0A00,  0x1900 };
-		while ((rating < 8)&&(kills[rating] <= ship_kills))
-		{
-			rating ++;
-		}
-		
 		// Cargo Manifest
 		current_cargo = [self cargoQuantityOnBoard];
 
