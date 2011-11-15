@@ -5867,6 +5867,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	sCachedSystemData = nil;
 	cachedSeed = s_seed;
 	
+	RNG_Seed saved_seed = currentRandomSeed();
 	NSMutableDictionary* systemdata = [[NSMutableDictionary alloc] init];
 	
 	OOGovernmentID government = (s_seed.c / 8) & 7;
@@ -5917,7 +5918,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	{
 		[systemdata setObject:DescriptionForSystem(s_seed,[systemdata oo_stringForKey:KEY_NAME]) forKey:KEY_DESCRIPTION];
 	}
-	
+	if (useCache) setRandomSeed(saved_seed);
 	sCachedSystemData = [systemdata copy];
 	[systemdata release];
 	

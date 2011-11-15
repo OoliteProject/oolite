@@ -1219,7 +1219,7 @@ MA 02110-1301, USA.
 	BOOL	is_buoy = (scanClass == CLASS_BUOY);
 	ShipEntity*	aggressor_ship = [UNIVERSE entityForUniversalID:primaryAggressor];
 	
-	if (!primaryAggressor) return;
+	if (!aggressor_ship) return;
 	
 	if (messageTime > 2.0 * randf())
 		return;					// don't send too many distress messages at once, space them out semi-randomly

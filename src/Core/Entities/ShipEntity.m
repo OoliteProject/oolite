@@ -6658,6 +6658,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		ShipEntity* ship = [UNIVERSE entityForUniversalID:primaryTarget];
 		target = (ship && ship->isShip) ? (id)ship : nil;
+		if (primaryAggressor == primaryTarget) primaryAggressor = NO_TARGET;
 		primaryTarget = NO_TARGET;
 	}
 	// always do target lost

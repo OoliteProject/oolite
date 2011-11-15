@@ -1274,7 +1274,7 @@ MA 02110-1301, USA.
 					int w=bounds.size.width;
 					int h=bounds.size.height;
 
-					if (!mouseWarped) // standard evemt, handle it
+					if (!mouseWarped) // standard event, handle it
 					{
 						double mx = mmove_event->x - w/2.0; 
 						double my = mmove_event->y - h/2.0;
