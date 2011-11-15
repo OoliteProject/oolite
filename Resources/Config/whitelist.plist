@@ -195,6 +195,7 @@
 		"explodeSelf",			// Don't use, use becomeExplosion instead
 		"checkAegis",
 		"checkEnergy",
+		"checkHeatInsulation",
 		"setThrustFactorTo:",
 		"setStateTo:",
 		"debugMessage:",

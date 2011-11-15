@@ -1610,6 +1610,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			{
 				[ship switchAITo:@"exitingTraderAI.plist"];
 				if([ship fuel] == 0) [ship setFuel:70];
+				if ([ship hasRole:@"sunskim-trader"]) [UNIVERSE makeSunSkimmer:ship andSetAI:NO];
 			}
 		}
 		
@@ -1670,7 +1671,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					[escort_ship setScanClass: CLASS_NEUTRAL];
 					[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 					[escort_ship setPrimaryRole:@"escort"];					
-					if (sunskimmer && [escort_ship heatInsulation] < [ship heatInsulation]) 
+					if ((sunskimmer || trader) && [escort_ship heatInsulation] < [ship heatInsulation]) 
 							[escort_ship setHeatInsulation:[ship heatInsulation]];
 
 					[escort_ship setGroup:escortGroup];

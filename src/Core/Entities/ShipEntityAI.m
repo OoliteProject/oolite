@@ -149,6 +149,7 @@ MA 02110-1301, USA.
 - (void) checkAegis;
 
 - (void) checkEnergy;
+- (void) checkHeatInsulation;
 
 - (void) scanForOffenders;
 
@@ -1055,6 +1056,18 @@ MA 02110-1301, USA.
 		return;
 	}
 	[shipAI message:@"ENERGY_MEDIUM"];
+}
+
+- (void) checkHeatInsulation
+{
+	float minInsulation = 1000 / [self maxFlightSpeed] + 1;
+
+	if ([self heatInsulation] < minInsulation)
+	{
+		[shipAI message:@"INSULATION_POOR"];
+		return;
+	}
+	[shipAI message:@"INSULATION_OK"];
 }
 
 

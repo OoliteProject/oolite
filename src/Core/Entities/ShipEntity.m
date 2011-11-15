@@ -1815,7 +1815,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 	{
 		if (ship_temperature > SHIP_MIN_CABIN_TEMP)
+		{
 			ship_temperature += (external_temp - heatThreshold - ship_temperature) * delta_t * SHIP_COOLING_FACTOR / [self heatInsulation];
+			if (ship_temperature < SHIP_MIN_CABIN_TEMP) ship_temperature = SHIP_MIN_CABIN_TEMP;
+		}
 	}
 
 	if (ship_temperature > SHIP_MAX_CABIN_TEMP)
