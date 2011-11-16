@@ -1267,10 +1267,17 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	if (_pendingEscortCount == 0)  return;
 	
-	if (_maxEscortCount < _pendingEscortCount && ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"]))
+	if (_maxEscortCount < _pendingEscortCount)
 	{
-		_maxEscortCount = MAX_ESCORTS; // police and hunters can get up to MAX_ESCORTS.
-		[self updateEscortFormation];
+		if ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"])
+		{
+			_maxEscortCount = MAX_ESCORTS; // police and hunters can get up to MAX_ESCORTS, overriding the 'escorts' key.
+			[self updateEscortFormation];
+		}
+		else
+		{
+			_pendingEscortCount = _maxEscortCount;	// other ships can only get what's defined inside their 'escorts' key.
+		}
 	}
 	
 	if ([self isPolice])  defaultRole = @"wingman";
@@ -1315,7 +1322,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 	
 	[self refreshEscortPositions];
-	while (_pendingEscortCount > 0)
+	while (_pendingEscortCount > 0 && [escortGroup count] <= _maxEscortCount)
 	{
 		Vector ex_pos = [self coordinatesForEscortPosition:[escortGroup count] - 1]; // this adds ship 1 on position 1 etc. 
 		
@@ -1377,7 +1384,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		if([escorter heatInsulation] < [self heatInsulation]) [escorter setHeatInsulation:[self heatInsulation]]; // give escorts same protection as mother.
 		if(([escorter maxFlightSpeed] < cruiseSpeed) && ([escorter maxFlightSpeed] > cruiseSpeed * 0.3)) 
 				cruiseSpeed = [escorter maxFlightSpeed] * 0.99;  // adapt patrolSpeed to the slowest escort but ignore the very slow ones.
-
+		
 		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
 		[escorter doScriptEvent:OOJSID("spawnedAsEscort") withArgument:self];
 		
@@ -1394,6 +1401,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		[escorter release];
 		_pendingEscortCount--;
 	}
+	// done assigning escorts
+	_pendingEscortCount = 0;
 }
 
 
