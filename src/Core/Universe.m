@@ -3886,6 +3886,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	cachedSun = nil;
 	cachedPlanet = nil;
 	cachedStation = nil;
+	[closeSystems release];
 	closeSystems = nil;
 	
 	[self resetBeacons];

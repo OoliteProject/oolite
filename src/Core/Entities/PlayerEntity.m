@@ -2453,7 +2453,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		}
 		else
 		{
-			// FIXME: how to preload target system for hyperspace jump?
+			// FIXME: how to preload target system for galactic jump?
 		}
 
 		UPDATE_STAGE(@"JUMP!");
