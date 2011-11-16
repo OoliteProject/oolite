@@ -1107,6 +1107,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// Reset JavaScript.
 	[OOScriptTimer noteGameReset];
+	[OOScriptTimer updateTimers];
 	[[OOJavaScriptEngine sharedEngine] reset];
 	
 	// Load locale script before any regular scripts.
@@ -2422,6 +2423,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		galactic_witchjump = NO;
 		[self setStatus:STATUS_IN_FLIGHT];
 		[self playHyperspaceAborted];
+		ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("malfunction"));
 		return;
 	}
 	

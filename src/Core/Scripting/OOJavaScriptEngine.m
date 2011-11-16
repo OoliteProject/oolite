@@ -380,8 +380,6 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		JSContext *context = OOJSAcquireContext();
 		JS_ClearScope(gOOJSMainThreadContext, _globalObject);
 		
-		OOJSFrameCallbacksRemoveAll();
-		
 		_globalObject = NULL;
 		_objectClass = NULL;
 		_stringClass = NULL;
@@ -404,9 +402,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 - (void) reset
 {
-	NSAssert(gOOJSMainThreadContext != NULL, @"Can't reset JavaScript engine at this point.");
+	NSAssert(gOOJSMainThreadContext != NULL, @"JavaScript engine not active. Can't reset.");
+	
+	OOJSFrameCallbacksRemoveAll();
+	
 #if JS_THREADSAFE
-	NSAssert(!JS_IsInRequest(gOOJSMainThreadContext), @"Can't reset JavaScript engine while running JavaScript.");
+	NSAssert(!JS_IsInRequest(gOOJSMainThreadContext), @"JavaScript processes still pending. Can't reset JavaScript engine.");
 #endif
 	
 	JSContext *context = OOJSAcquireContext();
@@ -427,6 +428,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 - (void) dealloc
 {
 	sSharedEngine = nil;
+	
+	OOJSFrameCallbacksRemoveAll();
 	
 	[self destroyMainThreadContext];
 	JS_DestroyRuntime(_runtime);

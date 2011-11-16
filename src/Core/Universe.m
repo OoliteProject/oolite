@@ -267,6 +267,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	strict = [prefs oo_boolForKey:@"strict-gameplay" defaultValue:NO];
 	
+#if OOLITE_SPEECH_SYNTH
+	OOLog(@"speech.synthesis", @"Spoken messages are %@.", ([prefs oo_boolForKey:@"speech_on" defaultValue:NO] ? @"on" :@"off"));
+#endif
+	
 	// init the Resource Manager
 	[ResourceManager setUseAddOns:!strict];
 	[ResourceManager paths];
