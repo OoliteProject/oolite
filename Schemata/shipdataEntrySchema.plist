@@ -93,6 +93,7 @@
 		escort-role = "$shipRole";
 		escort_ship = "$shipKey";
 		escort-ship = "$shipKey";
+		escorts = "positiveInteger";
 		missile_launch_position = "vector";
 		missile_load_time = "positiveFloat";
 		missile_role = "$shipRole";

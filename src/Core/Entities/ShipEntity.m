@@ -1871,18 +1871,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			energy -= delta_t * CLOAKING_DEVICE_ENERGY_RATE;
 			if (energy < CLOAKING_DEVICE_MIN_ENERGY)
+			{  
 				[self deactivateCloakingDevice];
-		}
-		else
-		{
-			if (energy < maxEnergy)
-			{
-				energy += delta_t * CLOAKING_DEVICE_ENERGY_RATE;
-				if (energy > maxEnergy)
-				{
-					energy = maxEnergy;
-					[shipAI message:@"ENERGY_FULL"];
-				}
+				if (energy < 0) energy = 0;
 			}
 		}
 	}
@@ -1894,7 +1885,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			energy -= delta_t * MILITARY_JAMMER_ENERGY_RATE;
 			if (energy < MILITARY_JAMMER_MIN_ENERGY)
+			{
 				military_jammer_active = NO;
+				if (energy < 0) energy = 0;
+			}
 		}
 		else
 		{
