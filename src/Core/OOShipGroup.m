@@ -338,11 +338,11 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 #endif
 
 
-- (void) addShip:(ShipEntity *)ship
+- (BOOL) addShip:(ShipEntity *)ship
 {
 	_updateCount++;
 	
-	if ([self containsShip:ship])  return;
+	if ([self containsShip:ship])  return YES;	// it's in the group already, result!
 	
 	// Ensure there's space.
 	if (_count == _capacity)
@@ -351,21 +351,23 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 		{
 			if (![self resizeTo:_capacity + 1])
 			{
-				// Out of memory? Fail silently, groups are non-critical.
-				return;
+				// Out of memory?
+				return NO;
 			}
 		}
 	}
 	
 	_members[_count++] = [ship weakRetain];
+	return YES;
 }
 
 
-- (void) removeShip:(ShipEntity *)ship
+- (BOOL) removeShip:(ShipEntity *)ship
 {
 	OOShipGroupEnumerator	*shipEnum = nil;
 	ShipEntity				*containedShip = nil;
 	OOUInteger				index;
+	BOOL					foundIt = NO;
 	
 	_updateCount++;
 	
@@ -379,12 +381,16 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 		{
 			index = [shipEnum index] - 1;
 			_members[index] = _members[--_count];
+			foundIt = YES;
 			
 			// Clean up
+			[ship setGroup:nil];
+			[ship setOwner:ship];
 			[self cleanUp];
 			break;
 		}
 	}
+	return foundIt;
 }
 
 

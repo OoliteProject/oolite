@@ -262,6 +262,7 @@ static JSBool ShipGroupAddShip(JSContext *context, uintN argc, jsval *vp)
 	
 	OOShipGroup				*thisGroup = nil;
 	ShipEntity				*ship = nil;
+	BOOL					OK = YES;
 	
 	if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, OOJS_THIS, &thisGroup)))  return NO;
 	
@@ -274,8 +275,51 @@ static JSBool ShipGroupAddShip(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	[thisGroup addShip:ship];
-	OOJS_RETURN_VOID;
+	if ([thisGroup containsShip:ship])
+	{
+		// nothing to do...
+		OOJS_RETURN_VOID;
+	}
+	else
+	{
+		ShipEntity				*thisGroupLeader = [thisGroup leader];
+		
+		if ([thisGroupLeader escortGroup] == thisGroup) // escort group!
+		{
+			if ([thisGroup count] > 1) // already with some escorts
+			{
+				OOShipGroup			*thatGroup = [ship group];
+				if ([thatGroup count] > 1 && [[thatGroup leader] escortGroup] == thatGroup)	// new escort already escorting!
+				{
+					OOJSReportWarningForCaller(context, @"ShipGroup", @"addShip", @"Ship %@ cannot be assigned to two escort groups, ignoring.", ship);
+					OK = NO;
+				}
+				else
+				{
+					OK = [thisGroupLeader acceptAsEscort:ship];
+				}
+			}
+			else // [thisGroup count] == 1, default unescorted ship?
+			{
+				if ([thisGroupLeader escortGroup] == [thisGroupLeader group])
+				{
+					// Default unescorted, unescortable, ship. Create new group and use that instead.
+					[thisGroupLeader setGroup:[[OOShipGroup alloc] initWithName:@"ship group"]];
+					thisGroup = [thisGroupLeader group];
+				}
+				else
+				{
+					// Unescorted ship with custom group. See if it accepts escorts.
+					OK = [thisGroupLeader acceptAsEscort:ship];
+				}
+			}
+		}
+		if (OK)
+		{
+			OOJS_RETURN_BOOL([thisGroup addShip:ship]);	// if ship is there already, noop & YES
+		}
+		else  OOJS_RETURN_BOOL(NO);
+	}
 	
 	OOJS_NATIVE_EXIT
 }
@@ -300,8 +344,7 @@ static JSBool ShipGroupRemoveShip(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	[thisGroup removeShip:ship];
-	OOJS_RETURN_VOID;
+	OOJS_RETURN_BOOL([thisGroup removeShip:ship]);
 	
 	OOJS_NATIVE_EXIT
 }

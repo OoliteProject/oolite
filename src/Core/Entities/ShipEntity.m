@@ -551,7 +551,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 		
 	//  escorts
-	_maxEscortCount = MIN([shipDict oo_unsignedCharForKey:@"escorts"], (uint8_t)MAX_ESCORTS);
+	_maxEscortCount = MIN([shipDict oo_unsignedCharForKey:@"escorts" defaultValue:0], (uint8_t)MAX_ESCORTS);
 	_pendingEscortCount = _maxEscortCount;
 	
 	// beacons
@@ -1271,7 +1271,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	{
 		if ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"])
 		{
-			_maxEscortCount = MAX_ESCORTS; // police and hunters can get up to MAX_ESCORTS, overriding the 'escorts' key.
+			_maxEscortCount = MAX_ESCORTS; // police and hunters get up to MAX_ESCORTS, overriding the 'escorts' key.
 			[self updateEscortFormation];
 		}
 		else
@@ -1322,9 +1322,13 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 	
 	[self refreshEscortPositions];
-	while (_pendingEscortCount > 0 && [escortGroup count] <= _maxEscortCount)
+	
+	uint8_t currentEscortCount = [escortGroup count] - 1;	// always at least 0.
+	
+	while (_pendingEscortCount > 0 && ([self isThargoid] || currentEscortCount < _maxEscortCount))
 	{
-		Vector ex_pos = [self coordinatesForEscortPosition:[escortGroup count] - 1]; // this adds ship 1 on position 1 etc. 
+		 // The following line adds escort 1 in position 1, etc... up to MAX_ESCORTS.
+		Vector ex_pos = [self coordinatesForEscortPosition:MIN(currentEscortCount, (uint8_t)MAX_ESCORTS)]; 
 		
 		ShipEntity *escorter = nil;
 		
@@ -1339,11 +1343,22 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 		if (escorter == nil)  break;
 		
-		// spread them around a little randomly
 		double dd = escorter->collision_radius;
-		ex_pos.x += dd * 6.0 * (randf() - 0.5);
-		ex_pos.y += dd * 6.0 * (randf() - 0.5);
-		ex_pos.z += dd * 6.0 * (randf() - 0.5);
+		
+		if (EXPECT(currentEscortCount < (uint8_t)MAX_ESCORTS))
+		{
+			// spread them around a little randomly
+			ex_pos.x += dd * 6.0 * (randf() - 0.5);
+			ex_pos.y += dd * 6.0 * (randf() - 0.5);
+			ex_pos.z += dd * 6.0 * (randf() - 0.5);
+		}
+		else
+		{
+			// Thargoid armada, add more distance between the 'escorts'
+			ex_pos.x += dd * 12.0 * (randf() - 0.5);
+			ex_pos.y += dd * 12.0 * (randf() - 0.5);
+			ex_pos.z += dd * 12.0 * (randf() - 0.5);
+		}
 		
 		[escorter setPosition:ex_pos];	// minimise lollipop flash
 		
@@ -1379,7 +1394,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		[UNIVERSE addEntity:escorter]; 	// STATUS_IN_FLIGHT, AI state GLOBAL
 		
 		[escorter setGroup:escortGroup];
-		[escorter setOwner:self];	// make self group leader
+		[escorter setOwner:self];	// mark self as group leader
 		
 		if([escorter heatInsulation] < [self heatInsulation]) [escorter setHeatInsulation:[self heatInsulation]]; // give escorts same protection as mother.
 		if(([escorter maxFlightSpeed] < cruiseSpeed) && ([escorter maxFlightSpeed] > cruiseSpeed * 0.3)) 
@@ -1400,6 +1415,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		}
 		[escorter release];
 		_pendingEscortCount--;
+		currentEscortCount = [escortGroup count] - 1;
 	}
 	// done assigning escorts
 	_pendingEscortCount = 0;
@@ -2174,12 +2190,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			if (hunter == groupLeader)
 			{
 				//oops we were attacked by our leader, desert him
-				[self setGroup:nil];
+				[group removeShip:self];
 			}
 			else 
 			{
 				//evict them from our group
-				[hunter setGroup:nil];
+				[group removeShip:hunter];
 				
 				[groupLeader setFound_target:other];
 				[groupLeader setPrimaryAggressor:hunter];
@@ -8953,7 +8969,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				{
 					// act individually now!
 					if ([escort group] == escortGroup)  [escort setGroup:nil];
-					if ([escort owner] == self)  [escort setOwner:nil];
+					if ([escort owner] == self)  [escort setOwner:escort];
 				}
 				
 				// We now have no escorts.
@@ -9233,7 +9249,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (![self isEscort]) // self is NOT wingman or escort
 	{
 		return [potentialEscort isEscort]; // is wingman or escort
-	}	
+	}
 	return NO;
 }
 	
@@ -9242,7 +9258,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	// can't pair with self
 	if (self == other_ship)  return NO;
-
+	
 	// no longer in flight, probably entered wormhole without telling escorts.
 	if ([self status] != STATUS_IN_FLIGHT)  return NO;
 	
@@ -9261,23 +9277,17 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if ([escortGroup containsShip:other_ship])  return YES;
 		
 		// check total number acceptable
-		unsigned maxEscorts = _maxEscortCount;
-		unsigned escortCount = [escortGroup count] - 1;
-		
-		//however the system's patrols don't have escorts inside their dictionary 
-		if (maxEscorts == 0 && ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"]))
+		// the system's patrols don't have escorts set inside their dictionary, but accept max escorts.
+		if (_maxEscortCount == 0 && ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"])) 
 		{
-			maxEscorts = MAX_ESCORTS;
 			_maxEscortCount = MAX_ESCORTS;
 		}
-		else if (maxEscorts > MAX_ESCORTS)
-		{
-			maxEscorts = MAX_ESCORTS;
-		}
+		
+		unsigned maxEscorts = _maxEscortCount; 	// never bigger than MAX_ESCORTS.
+		unsigned escortCount = [escortGroup count] - 1;	// always 0 or higher.
 		
 		if (escortCount < maxEscorts)
 		{
-			[escortGroup addShip:other_ship];
 			[other_ship setGroup:escortGroup];
 			if ([self group] == nil)
 			{
@@ -9289,7 +9299,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			{
 				cruiseSpeed = [other_ship maxFlightSpeed] * 0.99;
 			}
-
+			
 			OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
 			
 			[self doScriptEvent:OOJSID("shipAcceptedEscort") withArgument:other_ship];
@@ -9297,11 +9307,17 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[shipAI message:@"ACCEPTED_ESCORT"];
 			return YES;
 		}
-		else if (maxEscorts > 0)
+		else
 		{
 			OOLog(@"ship.escort.reject", @" %@ already got max escorts(%d). Escort rejected: %@.",self, escortCount, other_ship);
 		}
 	}
+	else
+	{
+		OOLog(@"ship.escort.reject", @" %@ failed canAcceptEscort for escort %@.",self, other_ship);
+	}
+
+	
 	return NO;
 }
 
@@ -9432,7 +9448,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		
 		// act individually now!
 		if ([escort group] == escortGroup)  [escort setGroup:nil];
-		if ([escort owner] == self)  [escort setOwner:nil];
+		if ([escort owner] == self)  [escort setOwner:escort];
 		if(target && [target isStation]) [escort setTargetStation:target];
 		
 		[ai setStateMachine:@"dockingAI.plist" afterDelay:delay];
