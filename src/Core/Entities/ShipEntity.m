@@ -1328,7 +1328,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	while (_pendingEscortCount > 0 && ([self isThargoid] || currentEscortCount < _maxEscortCount))
 	{
 		 // The following line adds escort 1 in position 1, etc... up to MAX_ESCORTS.
-		Vector ex_pos = [self coordinatesForEscortPosition:MIN(currentEscortCount, (uint8_t)MAX_ESCORTS)]; 
+		Vector ex_pos = [self coordinatesForEscortPosition:currentEscortCount];
 		
 		ShipEntity *escorter = nil;
 		
@@ -1354,7 +1354,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		}
 		else
 		{
-			// Thargoid armada, add more distance between the 'escorts'
+			// Thargoid armada(!) Add more distance between the 'escorts'.
 			ex_pos.x += dd * 12.0 * (randf() - 0.5);
 			ex_pos.y += dd * 12.0 * (randf() - 0.5);
 			ex_pos.z += dd * 12.0 * (randf() - 0.5);
@@ -2112,7 +2112,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				[escort setEscortDestination:[self coordinatesForEscortPosition:i++]];
 			}
-
+			
 			ShipEntity *leader = [[self escortGroup] leader];
 			if (leader != nil && ([leader scanClass] != [self scanClass])) {
 				OOLog(@"ship.sanityCheck.failed", @"Ship %@ escorting %@ with wrong scanclass!", self, leader);
@@ -9303,12 +9303,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		else
 		{
-			OOLog(@"ship.escort.reject", @" %@ already got max escorts(%d). Escort rejected: %@.",self, escortCount, other_ship);
+			OOLog(@"ship.escort.reject", @" %@ already got max escorts(%d). Escort rejected: %@.", self, escortCount, other_ship);
 		}
 	}
 	else
 	{
-		OOLog(@"ship.escort.reject", @" %@ failed canAcceptEscort for escort %@.",self, other_ship);
+		OOLog(@"ship.escort.reject", @" %@ failed canAcceptEscort for escort %@.", self, other_ship);
 	}
 
 	
@@ -9363,7 +9363,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (Vector) coordinatesForEscortPosition:(unsigned)idx
 {
-	NSParameterAssert(idx < MAX_ESCORTS);
+	/*
+		This function causes problems with Thargoids: their missiles (aka Thargons) are automatically
+		added to the escorts group, and when a mother ship dies all thargons will attach themselves
+		as escorts to the surviving battleships. This can lead to huge escort groups.
+		Post-MNSR TODO: better handling of Thargoid groups.
+			- put thargons (& all other thargon missiles) in their own non-escort group perhaps?
+	*/
+	
+	// The _escortPositions array size is always MAX_ESCORTS, so clamp max idx.
+	// this now returns the same last escort position for all escorts above MAX_ESCORTS
+	idx = MIN(idx, (unsigned)(MAX_ESCORTS - 1));
+	//NSParameterAssert(idx < MAX_ESCORTS);
 	
 	return vector_add(self->position, quaternion_rotate_vector([self normalOrientation], _escortPositions[idx]));
 }
