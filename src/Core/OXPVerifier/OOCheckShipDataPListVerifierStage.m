@@ -257,6 +257,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 				 [_info oo_boolForKey:@"isCarrier" defaultValue:NO] ||
 				 [rolesString rangeOfString:@"station"].location != NSNotFound ||
 				 [rolesString rangeOfString:@"carrier"].location != NSNotFound;
+	// the is_carrier or isCarrier key will be missed when it was insise a like_ship definition.
 	
 	if (_isPlayer && _isStation)
 	{

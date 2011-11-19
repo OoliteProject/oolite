@@ -1308,7 +1308,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	OOShipGroup *escortGroup = [self escortGroup];
 	if ([self group] == nil)
 	{
-		[self setGroup:escortGroup];
+		[self setGroup:escortGroup]; // should probably become a copy of the escortGroup post NMSR.
 	}
 	[escortGroup setLeader:self];
 	
@@ -8010,7 +8010,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([missile scanClass] == CLASS_THARGOID) 
 	{
 		if([self group] == nil) [self setGroup:[OOShipGroup groupWithName:@"thargoid group"]];
-		[missile setGroup:[self group]];
+		
+		ShipEntity	*thisGroupLeader = [_group leader];
+		
+		if ([thisGroupLeader escortGroup] != _group) // avoid adding tharons to escort groups
+		{
+			[missile setGroup:[self group]];
+		}
 	}
 	
 	// is this a submunition?

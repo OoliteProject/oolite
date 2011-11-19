@@ -1353,8 +1353,12 @@ MA 02110-1301, USA.
 		[self scanForNearestShipHavingRole:@"thargoid-mothership"]; // the scan will send further AI messages.
 		if (found_target != NO_TARGET && [UNIVERSE entityForUniversalID:found_target])
 		{
-			[self setOwner:[UNIVERSE entityForUniversalID:found_target]];
-			[self setGroup:[[self owner] group]];
+			mother = [UNIVERSE entityForUniversalID:found_target];
+			[self setOwner:mother];
+			if ([mother group] != [mother escortGroup]) // avoid adding thargon to an escort group.
+			{
+				[self setGroup:[mother group]];
+			}
 		};
 	}
 }
