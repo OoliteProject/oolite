@@ -9300,7 +9300,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				cruiseSpeed = [other_ship maxFlightSpeed] * 0.99;
 			}
 			
-			OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
+			OOLog(@"ship.escort.accept", @"%@ accepting escort %@.", self, other_ship);
 			
 			[self doScriptEvent:OOJSID("shipAcceptedEscort") withArgument:other_ship];
 			[other_ship doScriptEvent:OOJSID("escortAccepted") withArgument:self];
@@ -9309,12 +9309,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		else
 		{
-			OOLog(@"ship.escort.reject", @" %@ already got max escorts(%d). Escort rejected: %@.", self, escortCount, other_ship);
+			OOLog(@"ship.escort.reject", @"%@ already got max escorts(%d). Escort rejected: %@.", self, escortCount, other_ship);
 		}
 	}
 	else
 	{
-		OOLog(@"ship.escort.reject", @" %@ failed canAcceptEscort for escort %@.", self, other_ship);
+		OOLog(@"ship.escort.reject", @"%@ failed canAcceptEscort for escort %@.", self, other_ship);
 	}
 
 	

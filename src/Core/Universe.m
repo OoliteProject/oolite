@@ -8660,6 +8660,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	//       reinitialize itself - mwerle 20081107.
 	[OOShipRegistry reload];
 	[[gameView gameController] unpauseGame];
+	[PLAYER setSpeed:0.0];
 	
 	if (strictChanged)
 	{
