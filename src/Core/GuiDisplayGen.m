@@ -1478,9 +1478,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
 				nearby_systems[ num_nearby_systems ].seed_d = g_seed.d;
 				nearby_systems[ num_nearby_systems ].seed_b = g_seed.b;
-				nearby_systems[ num_nearby_systems ].tec = [sys_info oo_intForKey:KEY_TECHLEVEL];
-				nearby_systems[ num_nearby_systems ].eco = [sys_info oo_intForKey:KEY_ECONOMY];
-				nearby_systems[ num_nearby_systems ].gov = [sys_info oo_intForKey:KEY_GOVERNMENT];
+				if ([sys_info oo_boolForKey:@"sun_gone_nova"])
+				{
+					nearby_systems[ num_nearby_systems ].gov = -1;	// Flag up nova systems!
+				}
+				else
+				{
+					nearby_systems[ num_nearby_systems ].tec = [sys_info oo_intForKey:KEY_TECHLEVEL];
+					nearby_systems[ num_nearby_systems ].eco = [sys_info oo_intForKey:KEY_ECONOMY];
+					nearby_systems[ num_nearby_systems ].gov = [sys_info oo_intForKey:KEY_GOVERNMENT];
+				}
 				nearby_systems[ num_nearby_systems ].p_name = [[sys_info oo_stringForKey:KEY_NAME] retain];
 				num_nearby_systems++;
 			}
@@ -1512,7 +1519,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		}
 		else
 		{
-			OODrawPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			if ( sys->gov >= 0 )	// Not a nova? Show the info.
+				OODrawPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
 		}
 	}
 	
@@ -1530,7 +1538,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		}
 		else
 		{
-			OODrawHilightedPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			if ( sys->gov >= 0 )	// Not a nova? Show the info.
+				OODrawHilightedPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z,
+										  NSMakeSize(pixel_row_height,pixel_row_height));
 		}
 	}
 	

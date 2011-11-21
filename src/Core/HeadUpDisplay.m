@@ -2982,7 +2982,7 @@ void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, N
 		glColor4f(0.5, 1.0, 1.0, 1.0);
 		if (tl > 9)
 		{
-			// not inteded for TL > 20!
+			// display TL clamped between 1..16, this must be a '1'!
 			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - 2.0;
 		}
 		cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2, z, siz);
