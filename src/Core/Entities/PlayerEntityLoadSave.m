@@ -463,14 +463,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	if (loadedOK)
 	{
 		[self setUp];
-		if ([self setCommanderDataFromDictionary:fileDic])
-		{
-			// Remember the savegame target.
-			Random_Seed target = target_system_seed;
-			[self completeSetUp];
-			target_system_seed = target;
-		}
-		else
+		if (![self setCommanderDataFromDictionary:fileDic])
 		{
 			fail_reason = DESC(@"loadfailed-could-not-set-up-player-ship");
 			loadedOK = NO;
@@ -499,6 +492,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[UNIVERSE setTimeAccelerationFactor:TIME_ACCELERATION_FACTOR_DEFAULT];
 	[UNIVERSE setSystemTo:system_seed];
 	[UNIVERSE removeAllEntitiesExceptPlayer];
+	[UNIVERSE setGalaxySeed: galaxy_seed andReinit:YES]; // set overridden planet names on long range map
 	[UNIVERSE setUpSpace];
 	[UNIVERSE setAutoSaveNow:NO];
 	
@@ -529,7 +523,10 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		else  [dockedStation initialiseLocalMarketWithRandomFactor:market_rnd];
 	}
 	[self calculateCurrentCargo];
-	[UNIVERSE setGalaxySeed: galaxy_seed andReinit:YES]; // set overridden planet names on long range map
+	
+	// Remember the savegame target, run js startUp.
+	[self completeSetUpAndSetTarget:NO];
+	
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading

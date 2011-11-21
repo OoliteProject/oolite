@@ -1331,11 +1331,19 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void)completeSetUp
+- (void) completeSetUp
+{
+	[self completeSetUpAndSetTarget:YES];
+}
+
+
+- (void) completeSetUpAndSetTarget:(BOOL)setTarget
 {
 	[OOSoundSource stopAll];
 	dockedStation = [UNIVERSE station];
-	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	
+	// If loading from a savegame don't reset the targetted system.
+	if (setTarget) target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	
 	JSContext *context = OOJSAcquireContext();
 	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
@@ -5715,6 +5723,8 @@ static bool minShieldLevelPercentageInitialised = false;
 	{
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"short-range-chart-title")];
+		// refresh the short range chart cache, in case we've just loaded a save game with different local overrides, etc.
+		[gui refreshStarChart];
 		[gui setText:targetSystemName forRow:19];
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
 		[gui setText:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[short-range-chart-distance-f]"), distance] forRow:20];

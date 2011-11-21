@@ -542,7 +542,8 @@ typedef enum
 - (void) deferredInit;
 
 - (void) setUp;
-- (void)completeSetUp;
+- (void) completeSetUp;
+- (void) completeSetUpAndSetTarget:(BOOL)setTarget;
 
 - (NSString *) captainName;
 

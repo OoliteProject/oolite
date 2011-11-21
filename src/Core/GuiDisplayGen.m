@@ -56,6 +56,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 @implementation GuiDisplayGen
 
+static BOOL _refreshStarChart = NO;
+
 - (id) init
 {
 	self = [super init];
@@ -1095,6 +1097,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
+- (void) refreshStarChart
+{
+	_refreshStarChart = YES;
+}
+
+
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor
 {
 	GLfloat x = drawPosition.x;
@@ -1435,6 +1443,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	//
 	// Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
 	// Caching code submitted by Y A J, 20091022
+	
 	static Random_Seed saved_galaxy_seed;
 	static NSPoint saved_galaxy_coordinates;
 	static struct saved_system
@@ -1445,11 +1454,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	} nearby_systems[ 256 ];
 	static int num_nearby_systems;
 
-	if( !equal_seeds( [player galaxy_seed], saved_galaxy_seed ) ||
+	if ( _refreshStarChart || !equal_seeds( [player galaxy_seed], saved_galaxy_seed ) ||
 		galaxy_coordinates.x != saved_galaxy_coordinates.x ||
 		galaxy_coordinates.y != saved_galaxy_coordinates.y )
 	{
 		// saved systems are stale; recompute
+		_refreshStarChart = NO;
 		for (i = 0; i < num_nearby_systems; i++)
 			[nearby_systems[ i ].p_name release];
 

@@ -6038,6 +6038,9 @@ static NSDictionary	*sCachedSystemData = nil;
 	BOOL sameSystem = (sameGalaxy && equal_seeds([self systemSeed], s_seed));
 	NSDictionary *sysInfo = nil;
 	
+	// short range map fix
+	[gui refreshStarChart];
+	
 	// long range map fixes
 	if ([key isEqualToString:KEY_NAME])
 	{	
