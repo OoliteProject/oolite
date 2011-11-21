@@ -1476,9 +1476,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			if ((dx < 20)&&(dy < 38))
 			{
 				NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
-				nearby_systems[ num_nearby_systems ].seed_d = g_seed.d;
-				nearby_systems[ num_nearby_systems ].seed_b = g_seed.b;
-				if ([sys_info oo_boolForKey:@"sun_gone_nova"])
+				if (EXPECT_NOT([sys_info oo_boolForKey:@"sun_gone_nova"]))
 				{
 					nearby_systems[ num_nearby_systems ].gov = -1;	// Flag up nova systems!
 				}
@@ -1488,6 +1486,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					nearby_systems[ num_nearby_systems ].eco = [sys_info oo_intForKey:KEY_ECONOMY];
 					nearby_systems[ num_nearby_systems ].gov = [sys_info oo_intForKey:KEY_GOVERNMENT];
 				}
+				nearby_systems[ num_nearby_systems ].seed_d = g_seed.d;
+				nearby_systems[ num_nearby_systems ].seed_b = g_seed.b;
 				nearby_systems[ num_nearby_systems ].p_name = [[sys_info oo_stringForKey:KEY_NAME] retain];
 				num_nearby_systems++;
 			}
@@ -1531,7 +1531,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		sys = nearby_systems + targetIdx;
 		star.x = (float)(sys->seed_d * hscale + hoffset);
 		star.y = (float)(sys->seed_b * vscale + voffset);
-
+		
 		if (![player showInfoFlag])
 		{
 			OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
@@ -1565,7 +1565,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
 	unsigned 	i, first = 0, last = 0, count = 0;
 	int 		systemIndex = foundSystem + direction;
-
+	
 	if (direction == 0) systemIndex = 0;
 	
 	for (i = 0; i <= kOOMaximumSystemID; i++)
@@ -1584,7 +1584,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			count++;
 		}
 	}
-
+	
 	if (count == 0) return sys; // empty systemFound list.
 	
 	// loop back if needed.
@@ -1610,9 +1610,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint			cursor_coordinates = [player cursor_coordinates];
 	Random_Seed		galaxy_seed = [player galaxy_seed];
-
+	
 	double fuel = 35.0 * [player dialFuel];
-
+	
 	// get a list of systems marked as contract destinations
 	NSArray		*markedDestinations = [player markedDestinations];
 	
@@ -1632,7 +1632,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double		distance, time;
 	
 	if (showAdvancedNavArray) advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
-
+	
 	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && ![UNIVERSE strict] && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
 		int planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
@@ -1640,7 +1640,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
 		
 		if (!routeInfo)  routeExists = NO;
-
+		
 		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode];
 		if (routeExists)
 		{
@@ -1654,7 +1654,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		distance = distanceBetweenPlanetPositions(dest.d,dest.b,galaxy_coordinates.x,galaxy_coordinates.y);
 		time = distance * distance;
 	}
-
+	
 	if (routeExists)
 	{
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
@@ -1722,7 +1722,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		star.x = (float)(g_seed.d * hscale + hoffset);
 		star.y = (float)(g_seed.b * vscale + voffset);
-
+		
 		float sz = (4.0f + 0.5f * (0x03 | (g_seed.f & 0x0f))) / 7.0f;
 		
 		glVertex3f(x + star.x, y + star.y + sz, z);
@@ -1787,7 +1787,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		glVertex3f(x + size_in_pixels.width, (float)(y + voffset + 260.0f*vscale - 2), z);
 		glVertex3f(x + 0, (float)(y + voffset + 260.0f*vscale - 2), z);
 	OOGLEND();
-
 }
 
 
