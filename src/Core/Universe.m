@@ -7441,8 +7441,8 @@ static double estimatedTimeForJourney(double distance, int hops)
 							// All included equip has a 10% discount.
 							eqPrice *= (tech_price_boost + eqTechLevel - techlevel) * 90 / 100;
 						}
-						else 
-							eqPrice = 0;	// Bar this upgrade.
+						else
+							break;	// Bar this upgrade.
 					}
 					
 					if ([item incompatibleEquipment] != nil && extras != nil)
@@ -7508,88 +7508,85 @@ static double estimatedTimeForJourney(double distance, int hops)
 					// but we can only have either one or the other on board.
 					if ([equipmentKey isEqualTo:@"EQ_NAVAL_ENERGY_UNIT"])
 					{
-							if ([extras containsObject:@"EQ_ENERGY_UNIT"])
-							{
-								[options removeObject:equipmentKey];
-								break;
-							}
+						if ([extras containsObject:@"EQ_ENERGY_UNIT"])
+						{
+							[options removeObject:equipmentKey];
+							break;
+						}
 					}
 					
-					if (eqPrice > 0)
+					if ([equipmentKey hasPrefix:@"EQ_WEAPON"])
 					{
-						if ([equipmentKey hasPrefix:@"EQ_WEAPON"])
+						OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(equipmentKey);
+						//fit best weapon forward
+						if (available_facings & WEAPON_FACING_FORWARD && new_weapon > fwd_weapon)
 						{
-							OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(equipmentKey);
-							//fit best weapon forward
-							if (available_facings & WEAPON_FACING_FORWARD && new_weapon > fwd_weapon)
+							//again remember to divide price by 10 to get credits from tenths of credit
+							price -= [self getEquipmentPriceForKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
+							price += eqPrice;
+							fwd_weapon_string = equipmentKey;
+							fwd_weapon = new_weapon;
+							[ship_dict setObject:fwd_weapon_string forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+							weapon_customised = YES;
+							fwd_weapon_desc = eqShortDesc;
+						}
+						else 
+						{
+							//if less good than current forward, try fitting is to rear
+							if (available_facings & WEAPON_FACING_AFT && (!aft_weapon || new_weapon > aft_weapon))
 							{
-								//again remember to divide price by 10 to get credits from tenths of credit
-								price -= [self getEquipmentPriceForKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
+								price -= [self getEquipmentPriceForKey:aft_weapon_string] * 90 / 1000;	// 90% credits
 								price += eqPrice;
-								fwd_weapon_string = equipmentKey;
-								fwd_weapon = new_weapon;
-								[ship_dict setObject:fwd_weapon_string forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
-								weapon_customised = YES;
-								fwd_weapon_desc = eqShortDesc;
+								aft_weapon_string = equipmentKey;
+								aft_weapon = new_weapon;
+								[ship_dict setObject:aft_weapon_string forKey:KEY_EQUIPMENT_AFT_WEAPON];
+								other_weapon_added = YES;
+								aft_weapon_desc = eqShortDesc;
 							}
 							else 
 							{
-								//if less good than current forward, try fitting is to rear
-								if (available_facings & WEAPON_FACING_AFT && (!aft_weapon || new_weapon > aft_weapon))
-								{
-									price -= [self getEquipmentPriceForKey:aft_weapon_string] * 90 / 1000;	// 90% credits
-									price += eqPrice;
-									aft_weapon_string = equipmentKey;
-									aft_weapon = new_weapon;
-									[ship_dict setObject:aft_weapon_string forKey:KEY_EQUIPMENT_AFT_WEAPON];
-									other_weapon_added = YES;
-									aft_weapon_desc = eqShortDesc;
-								}
-								else 
-								{
-									[options removeObject:equipmentKey]; //dont try again
-								}				
-							}
-							
+								[options removeObject:equipmentKey]; //dont try again
+							}				
 						}
-						else
+					
+					}
+					else
+					{
+						if ([equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 						{
-							if ([equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
+							if ((max_cargo >= 5) && (randf() < chance))
 							{
-								if ((max_cargo >= 5) && (randf() < chance))
+								max_cargo -= 5;
+								price += eqPrice;
+								[extras addObject:equipmentKey];
+								if (passenger_berths == 0)
 								{
-									max_cargo -= 5;
-									price += eqPrice;
-									[extras addObject:equipmentKey];
-									if (passenger_berths == 0)
-									{
-										// This will be needed to construct the description for passenger berths.
-										// Note: use of lowercaseString is bad from an i18n perspective,
-										// but the string is never actually shown anyway...
-										passengerBerthLongDesc = [NSString stringWithFormat:@"%@", [eqLongDesc lowercaseString]];
-									}
-									passenger_berths++;
-									customised = YES;
+									// This will be needed to construct the description for passenger berths.
+									// Note: use of lowercaseString is bad from an i18n perspective,
+									// but the string is never actually shown anyway...
+									passengerBerthLongDesc = [NSString stringWithFormat:@"%@", [eqLongDesc lowercaseString]];
 								}
-								else
-								{
-									// remove the option if there's no space left
-									[options removeObject:equipmentKey];
-								}
+								passenger_berths++;
+								customised = YES;
 							}
 							else
 							{
-								price += eqPrice;
-								[extras addObject:equipmentKey];
-								if ([item isVisible])
-								{
-									[description appendFormat:DESC(@"extra-@-@-(long-description)"), eqShortDesc, [eqLongDesc lowercaseString]];
-									[short_description appendFormat:short_extras_string, eqShortDesc];
-									short_extras_string = @" %@.";
-								}
-								customised = YES;
-								[options removeObject:equipmentKey]; //dont add twice
+								// remove the option if there's no space left
+								[options removeObject:equipmentKey];
 							}
+						}
+						else
+						{
+							price += eqPrice;
+							[extras addObject:equipmentKey];
+							if ([item isVisible])
+							{
+								[description appendFormat:DESC(@"extra-@-@-(long-description)"), eqShortDesc, [eqLongDesc lowercaseString]];
+								[short_description appendFormat:short_extras_string, eqShortDesc];
+								short_extras_string = @" %@.";
+							}
+							customised = YES;
+							[options removeObject:equipmentKey]; //dont add twice
 						}
 					}
 				}
