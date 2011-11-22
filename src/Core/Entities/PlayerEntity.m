@@ -6792,7 +6792,11 @@ static NSString *last_outfitting_key=nil;
 	
 	if ([eqKey isEqualToString:@"EQ_FUEL"])
 	{
+#if MASS_DEPENDENT_FUEL_PRICES
+		OOCreditsQuantity creditsForRefuel = ([self fuelCapacity] - [self fuel]) * pricePerUnit * [self fuelChargeRate];
+#else
 		OOCreditsQuantity creditsForRefuel = ([self fuelCapacity] - [self fuel]) * pricePerUnit;
+#endif
 		if (credits >= creditsForRefuel)	// Ensure we don't overflow
 		{
 			credits -= creditsForRefuel;
