@@ -312,6 +312,7 @@ static NSTimeInterval	time_last_frame;
 					break;
 					
 				default:
+					// don't poll extra controls at any other times.
 					break;
 			}
 		}
@@ -486,6 +487,35 @@ static NSTimeInterval	time_last_frame;
 			{
 				[[gameView gameController] exitAppWithContext:@"Q or escape pressed in error handling mode"];
 			}
+		}
+		
+		if ([[gameView gameController] isGamePaused])
+		{
+			// What's the status?
+			switch ([self status])
+			{
+				case STATUS_WITCHSPACE_COUNTDOWN:
+				case STATUS_IN_FLIGHT:
+				case STATUS_AUTOPILOT_ENGAGED:
+				case STATUS_DOCKED:
+					// Pause is handled inside their pollControls, no need to unpause.
+					break;
+					
+				default:
+					{
+						// In all other cases we can't handle pause. Unpause immediately.
+						script_time = saved_script_time;
+						[gameView allowStringInput:NO];
+						[UNIVERSE setDisplayCursor:NO];
+						if ([UNIVERSE pauseMessageVisible])
+						{
+							[UNIVERSE clearPreviousMessage];	// remove the 'paused' message.
+						}
+						[[gameView gameController] unpauseGame];
+					}
+					break;
+			}
+			
 		}
 		
 		// snapshot
@@ -3033,6 +3063,8 @@ static NSTimeInterval	time_last_frame;
 
 
 static BOOL toggling_music;
+static BOOL playing_music;
+static BOOL autopilot_pause;
 
 - (void) pollAutopilotControls:(double)delta_t
 {
@@ -3040,38 +3072,84 @@ static BOOL toggling_music;
 	
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	
-	//  view keys
-	[self pollViewControls];
-	
-	//  text displays
-	[self pollGuiScreenControls];
-	
-	if ([UNIVERSE displayGUI])
-		[self pollGuiArrowKeyControls:delta_t];
-	
-	if ([gameView isDown:key_autopilot])   // look for the 'c' key
+	if (![[gameView gameController] isGamePaused])
 	{
-		if ([self hasDockingComputer] && !autopilot_key_pressed)   // look for the 'c' key
+		//  view keys
+		[self pollViewControls];
+		
+		//  text displays
+		[self pollGuiScreenControls];
+		
+		if ([UNIVERSE displayGUI])
+			[self pollGuiArrowKeyControls:delta_t];
+		
+		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
+		if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU]
+			|| [gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'c' and 'C' key
 		{
-			[self disengageAutopilot];
-			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
+			if ([self hasDockingComputer] && !autopilot_key_pressed)
+			{
+				[self disengageAutopilot];
+				[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
+			}
+			autopilot_key_pressed = YES;
+			if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])
+			{
+				fast_autopilot_key_pressed = YES;
+			}
 		}
-		autopilot_key_pressed = YES;
+		else
+		{
+			autopilot_key_pressed = NO;
+		}
+		
+		if (([gameView isDown:key_docking_music]))   // look for the 's' key
+		{
+			if (!toggling_music)
+			{
+				[[OOMusicController sharedController] toggleDockingMusic];
+			}
+			toggling_music = YES;
+		}
+		else
+		{
+			toggling_music = NO;
+		}
+		// look for the pause game, 'p' key
+		if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)
+		{
+			if (!autopilot_pause)
+			{
+				playing_music = [[OOMusicController sharedController] isPlaying];
+				if (playing_music)  [[OOMusicController sharedController] toggleDockingMusic];
+				// normal flight controls can handle the rest.
+				pause_pressed = NO;	// pause button flag must be NO for pollflightControls to react!
+				[self pollFlightControls:delta_t];
+			}
+			autopilot_pause = YES;
+		}
+		else
+		{
+			autopilot_pause = NO;
+		}
 	}
 	else
-		autopilot_key_pressed = NO;
-
-	if (([gameView isDown:key_docking_music]))   // look for the 's' key
 	{
-		if (!toggling_music)
+		// paused
+		if ([gameView isDown:key_pausebutton])
 		{
-			[[OOMusicController sharedController] toggleDockingMusic];
+			if (!autopilot_pause)
+			{
+				if (playing_music)  [[OOMusicController sharedController] toggleDockingMusic];
+			}
+			autopilot_pause = YES;
 		}
-		toggling_music = YES;
-	}
-	else
-	{
-		toggling_music = NO;
+		else
+		{
+			autopilot_pause = NO;
+		}
+		// let the normal flight controls handle paused commands.
+		[self pollFlightControls:delta_t];
 	}
 }
 

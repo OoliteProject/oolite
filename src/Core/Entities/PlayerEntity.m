@@ -8325,7 +8325,7 @@ static NSString *last_outfitting_key=nil;
 #if 0
 		// post-NMSR fuelPrices	- the state of repair to affect the rate? 
 		// state of repair never lower than 75, but added the check just in case. -- Kaks 20110429
-		if (ship_trade_in_factor <= 90 && ship_trade_in_factor >= 75)
+		if (EXPECT(ship_trade_in_factor <= 90 && ship_trade_in_factor >= 75))
 		{
 			rate *= 2.0 - (ship_trade_in_factor / 100); // between 1.1x and 1.25x
 			OOLog(@"fuelPrices", @"\"%@\" - repair status: %d%%, adjusted rate to:%.2f)", [self shipDataKey], ship_trade_in_factor, rate);
