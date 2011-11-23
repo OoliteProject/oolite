@@ -9151,6 +9151,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	flightRoll = 0.0;
 	flightPitch = 0.0;
 	flightSpeed = maxFlightSpeed * 0.25;
+	velocity = kZeroVector;
 	if (![UNIVERSE addEntity:self])	// AI and status get initialised here
 	{
 		return NO;

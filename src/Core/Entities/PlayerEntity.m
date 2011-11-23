@@ -5183,6 +5183,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;
 	flightSpeed = maxFlightSpeed * 0.25f;
+	velocity = kZeroVector;
 	[self setStatus:STATUS_EXITING_WITCHSPACE];
 	gui_screen = GUI_SCREEN_MAIN;
 	being_fined = NO;				// until you're scanned by a copper!
