@@ -70,7 +70,7 @@ MA 02110-1301, USA.
 /*	Tear down context and global object and rebuild them from scratch. This
 	invalidates -globalObject and the main thread context.
 */
-- (void) reset;
+- (BOOL) reset;
 
 // Call a JS function, setting up new contexts as necessary. Caller is responsible for ensuring the jsval passed really is a function.
 - (BOOL) callJSFunction:(jsval)function

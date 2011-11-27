@@ -212,7 +212,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 #endif
 
 - (void) filterOutNonStrictEquipment;
-- (void) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged;
+- (BOOL) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged;
 
 // Set shader effects level without logging or triggering a reset -- should only be used directly during startup.
 - (void) setShaderEffectsLevelDirectly:(OOShaderSetting)value;
@@ -229,6 +229,27 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 
 @implementation Universe
+
+// Flags needed when JS reset fails.
+static int JSResetFlags = 0;
+
+
+// track the position and status of the lights
+BOOL	object_light_on = NO;
+BOOL	demo_light_on = NO;
+static GLfloat sun_off[4] = {0.0, 0.0, 0.0, 1.0};
+GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
+
+#define DOCKED_AMBIENT_LEVEL	0.2f	// Was 0.05, 'temporarily' set to 0.2.
+#define DOCKED_ILLUM_LEVEL		0.7f
+GLfloat docked_light_ambient[4]	= { DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, 1.0f };
+GLfloat docked_light_diffuse[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, 1.0f };	// white
+GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL * 0.75f, (GLfloat) 1.0f };	// yellow-white
+
+// Weight of sun in ambient light calculation. 1.0 means only sun's diffuse is used for ambient, 0.0 means only sky colour is used.
+// TODO: considering the size of the sun and the number of background stars might be worthwhile. -- Ahruman 20080322
+#define SUN_AMBIENT_INFLUENCE		0.75
+
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
 {	
@@ -434,19 +455,19 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
-- (void) setStrict:(BOOL)value
+- (BOOL) setStrict:(BOOL)value
 {
-	[self setStrict:value fromSaveGame:NO];
+	return [self setStrict:value fromSaveGame:NO];
 }
 
 
-- (void) setStrict:(BOOL) value fromSaveGame:(BOOL) saveGame
+- (BOOL) setStrict:(BOOL) value fromSaveGame:(BOOL) saveGame
 {
-	if (strict == value)  return;
+	if (strict == value)  return YES;
 	
 	strict = !!value;
 	[[NSUserDefaults standardUserDefaults] setBool:strict forKey:@"strict-gameplay"];
-	[self reinitAndShowDemo:!saveGame strictChanged:YES];
+	return [self reinitAndShowDemo:!saveGame strictChanged:YES];
 }
 
 
@@ -1153,22 +1174,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	}
 }
 
-
-// track the position and status of the lights
-BOOL	object_light_on = NO;
-BOOL	demo_light_on = NO;
-static GLfloat sun_off[4] = {0.0, 0.0, 0.0, 1.0};
-GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
-
-#define DOCKED_AMBIENT_LEVEL	0.2f	// Was 0.05, 'temporarily' set to 0.2.
-#define DOCKED_ILLUM_LEVEL		0.7f
-GLfloat docked_light_ambient[4]	= { DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, 1.0f };
-GLfloat docked_light_diffuse[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, 1.0f };	// white
-GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL * 0.75f, (GLfloat) 1.0f };	// yellow-white
-
-// Weight of sun in ambient light calculation. 1.0 means only sun's diffuse is used for ambient, 0.0 means only sky colour is used.
-// TODO: considering the size of the sun and the number of background stars might be worthwhile. -- Ahruman 20080322
-#define SUN_AMBIENT_INFLUENCE		0.75
 
 - (void) setLighting
 {
@@ -2195,9 +2200,16 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 - (void) handleGameOver
 {
 	// In unrestricted mode, reload last save game, if any. In strict mode, always restart as a fresh Jameson.
-	// NOTE: this is also called when loading a game fails.
-	if (![self strict] && [[gameView gameController] playerFileToLoad]) [[gameView gameController] loadPlayerIfRequired];
-	else [self reinitAndShowDemo:NO];
+	// NOTE: this is also called when loading a game fails, and when the js engine fails to reset properly.
+	
+	if (![self strict] && [[gameView gameController] playerFileToLoad])
+	{
+		[[gameView gameController] loadPlayerIfRequired];
+	}
+	else
+	{
+		[self reinitAndShowDemo:NO];
+	}
 }
 
 
@@ -5057,7 +5069,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
 	OOUInteger sessionID = _sessionID;
 	
-	if (!no_update)
+	if (EXPECT(!no_update))
 	{
 		unsigned	i, ent_count = n_entities;
 		Entity		*my_entities[ent_count];
@@ -5154,11 +5166,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 									[demo_ship setRoll:M_PI/5.0];
 									[demo_ship setPitch:M_PI/10.0];
 									[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
-
+									
 									demo_stage = DEMO_FLY_IN;
 									demo_start_time=universal_time;
 									demo_stage_time = demo_start_time + DEMO2_FLY_IN_STAGE_TIME;
-
 								}
 								break;
 						}
@@ -5190,7 +5201,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				}
 				
 				[thing update:delta_t];
-				if (sessionID != _sessionID)
+				if (EXPECT_NOT(sessionID != _sessionID))
 				{
 					// Game was reset (in player update); end this update: cycle.
 					break;
@@ -5287,6 +5298,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		{
 			[my_entities[i] release];	// explicitly release each one
 		}
+	}
+	else
+	{
+		// always perform player's dead updates: allows deferred JS resets.
+		if ([PLAYER status] == STATUS_DEAD)  [PLAYER update:delta_t];
 	}
 	
 	[entitiesDeadThisUpdate autorelease];
@@ -8638,12 +8654,22 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
-// FIXME: needs less redundancy.
-- (void) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged
+// FIXME: needs less redundancy?
+- (BOOL) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged
 {
 	no_update = YES;
 	PlayerEntity* player = PLAYER;
 	assert(player != nil);
+	
+	if (JSResetFlags != 0)	// JS reset failed, remember previous settings 
+	{
+		showDemo = (JSResetFlags & 2) > 0;	// binary 10, a.k.a. 1 << 1
+		strictChanged = (JSResetFlags & 1) > 0;	// binary 01
+	}
+	else
+	{
+		JSResetFlags = (showDemo << 1) | strictChanged;
+	}
 	
 	[self removeAllEntitiesExceptPlayer];
 	[OOTexture clearCache];
@@ -8685,14 +8711,25 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	[self setUpSettings];
 	
-	[player setUp];
+	GameController		*gc = [gameView gameController];
+	if (![gc inFullScreenMode])	[gc stopAnimationTimer];	// start of critical section
+	if (![player setUpAndConfirmOK:YES]) 
+	{
+		// reinitAndShowDemo rescheduled inside setUpAndConfirmOK...
+		if (![gc inFullScreenMode])	[gc startAnimationTimer];	// keep the game ticking over.
+		return NO;	// Abort!
+	}
+	
+	// end of critical section
+	if (![gc inFullScreenMode])	[gc startAnimationTimer];
+	JSResetFlags = 0;
 	
 	[self addEntity:player];
 	demo_ship = nil;
 	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
 	
 	[self setUpInitialUniverse];
-	autoSaveNow = NO;	// don't autosave immediately after loading / restarting game!
+	autoSaveNow = NO;	// don't autosave immediately after restarting a game
 	
 	[[self station] initialiseLocalMarketWithRandomFactor:[player random_factor]];
 	
@@ -8718,6 +8755,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	[self verifyEntitySessionIDs];
 		
 	no_update = NO;
+	return YES;
 }
 
 

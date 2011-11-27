@@ -541,7 +541,8 @@ typedef enum
 + (PlayerEntity *)sharedPlayer;
 - (void) deferredInit;
 
-- (void) setUp;
+- (BOOL) setUpAndConfirmOK:(BOOL)stopOnError;
+- (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)loadingGame;
 - (void) completeSetUp;
 - (void) completeSetUpAndSetTarget:(BOOL)setTarget;
 

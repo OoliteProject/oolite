@@ -250,8 +250,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		{
 			OOLog(kOOLogEntityAddToListError, @"DEBUG LINKED LISTS - problem encountered while adding %@ to linked lists", self);
 			[UNIVERSE debugDumpEntities];
-		
-			exit(-1);
 		}
 	}
 #endif
@@ -299,8 +297,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		{
 			OOLog(kOOLogEntityRemoveFromListError, @"DEBUG LINKED LISTS - problem encountered while removing %@ from linked lists", self);
 			[UNIVERSE debugDumpEntities];
-		
-			exit(-1);
 		}
 	}
 #endif
@@ -401,8 +397,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		{
 			OOLog(kOOLogEntityVerificationError, @"DEBUG LINKED LISTS problem encountered before updating linked lists for %@", self);
 			[UNIVERSE debugDumpEntities];
-		
-			exit(-1);
 		}
 	}
 #endif
@@ -484,8 +478,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		{
 			OOLog(kOOLogEntityUpdateError, @"DEBUG LINKED LISTS problem encountered after updating linked lists for %@", self);
 			[UNIVERSE debugDumpEntities];
-		
-			exit(-1);
 		}
 	}
 #endif

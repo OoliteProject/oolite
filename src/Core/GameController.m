@@ -340,9 +340,11 @@ static BOOL _switchRez = NO, _switchRezDeferred = NO;
 		}
 		
 		[UNIVERSE update:delta_t];
-		[OOSound update];
-	
-		OOJSFrameCallbacksInvoke(delta_t);
+		if (!gameIsPaused)
+		{
+			[OOSound update];
+			OOJSFrameCallbacksInvoke(delta_t);
+		}
 		
 #if OOLITE_HAVE_APPKIT
 		if (fullscreen)
@@ -589,7 +591,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		
 		NSMutableData *attrData = [[[gameView pixelFormatAttributes] mutableCopy] autorelease];
 		NSOpenGLPixelFormatAttribute *attrs = [attrData mutableBytes];
-		NSAssert(attrs[0] == NSOpenGLPFAWindow, @"Pixel format does not meet my strenuous expectations!");
+		NSAssert(attrs[0] == NSOpenGLPFAWindow, @"Pixel format does not meet expectations. Exiting.");
 		attrs[0] = NSOpenGLPFAFullScreen;
 		
 		GLint rendererID;

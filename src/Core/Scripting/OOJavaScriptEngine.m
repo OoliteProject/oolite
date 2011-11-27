@@ -400,14 +400,39 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 }
 
 
-- (void) reset
+- (BOOL) reset
 {
 	NSAssert(gOOJSMainThreadContext != NULL, @"JavaScript engine not active. Can't reset.");
 	
 	OOJSFrameCallbacksRemoveAll();
 	
+# if 0
+	// deferred JS reset - test harness.
+	static int counter = 3;		// loading a savegame with different strict mode calls js reset twice
+	if (counter-- == 0) {
+	counter = 3;
+	OOLog(@"script.javascript.init.error", @"JavaScript processes still pending. Can't reset JavaScript engine.");
+		return NO;
+	}
+	else
+	{
+		OOLog(@"script.javascript.init", @"JavaScript reset successful.");
+	}
+#endif
+		
 #if JS_THREADSAFE
-	NSAssert(!JS_IsInRequest(gOOJSMainThreadContext), @"JavaScript processes still pending. Can't reset JavaScript engine.");
+	//NSAssert(!JS_IsInRequest(gOOJSMainThreadContext), @"JavaScript processes still pending. Can't reset JavaScript engine.");
+	
+	if (JS_IsInRequest(gOOJSMainThreadContext))
+	{
+		// some threads are still pending, this should mean timers are still being removed.
+		OOLog(@"script.javascript.init.error", @"JavaScript processes still pending. Can't reset JavaScript engine.");
+		return NO;
+	}
+	else
+	{
+		OOLog(@"script.javascript.init", @"JavaScript reset successful.");
+	}
 #endif
 	
 	JSContext *context = OOJSAcquireContext();
@@ -422,6 +447,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	OOJSRelinquishContext(context);
 	
 	[self garbageCollectionOpportunity];
+	return YES;
 }
 
 

@@ -314,8 +314,8 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
 
 - (BOOL) strict;
-- (void) setStrict:(BOOL) value;
-- (void) setStrict:(BOOL)value fromSaveGame: (BOOL)saveGame;
+- (BOOL) setStrict:(BOOL) value;
+- (BOOL) setStrict:(BOOL)value fromSaveGame: (BOOL)saveGame;
 
 - (void) reinitAndShowDemo:(BOOL)showDemo;
 

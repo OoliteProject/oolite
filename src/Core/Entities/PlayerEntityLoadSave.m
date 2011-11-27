@@ -426,7 +426,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			loadedOK = NO;
 		}
 	}
-
+	
 	if (loadedOK)
 	{
 		NSString		*shipKey = nil;
@@ -442,7 +442,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		}
 	}	
 		
-
+	
 	if (loadedOK)
 	{
 		// Check that player ship exists
@@ -462,8 +462,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	if (loadedOK)
 	{
-		[self setUp];
-		if (![self setCommanderDataFromDictionary:fileDic])
+		if (![self setUpAndConfirmOK:YES saveGame:YES] || ![self setCommanderDataFromDictionary:fileDic])
 		{
 			fail_reason = DESC(@"loadfailed-could-not-set-up-player-ship");
 			loadedOK = NO;

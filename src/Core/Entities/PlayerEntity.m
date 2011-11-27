@@ -97,6 +97,7 @@ enum
 
 static NSString * const kOOLogBuyMountedOK			= @"equip.buy.mounted";
 static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
+static float const 		kDeadResetTime				= 30.0f;
 
 PlayerEntity		*gOOPlayer = nil;
 static GLfloat		sBaseMass = 0.0;
@@ -739,7 +740,7 @@ static GLfloat		sBaseMass = 0.0;
 	if ([dict oo_stringForKey:@"galaxy_coordinates"] == nil)  return NO;
 	
 	BOOL strict = [dict oo_boolForKey:@"strict" defaultValue:NO];
-	[UNIVERSE setStrict:strict fromSaveGame:YES];
+	if (![UNIVERSE setStrict:strict fromSaveGame:YES]) return NO;
 	
 	//base ship description
 	[self setShipDataKey:[dict oo_stringForKey:@"ship_desc"]];
@@ -1080,7 +1081,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		missile_entity[i] = nil;
 	}
-	[self setUp];
+	[self setUpAndConfirmOK:NO];
 	
 	save_path = nil;
 	
@@ -1096,19 +1097,59 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) setUp
+- (BOOL) setUpAndConfirmOK:(BOOL)stopOnError
+{
+	return [self setUpAndConfirmOK:stopOnError saveGame:NO];
+}
+
+
+- (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)saveGame
 {
 	unsigned i;
 	Random_Seed gal_seed = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
 	
 	showDemoShips = NO;
-	
 	show_info_flag = NO;
 	
 	// Reset JavaScript.
 	[OOScriptTimer noteGameReset];
 	[OOScriptTimer updateTimers];
-	[[OOJavaScriptEngine sharedEngine] reset];
+	if (EXPECT_NOT(![[OOJavaScriptEngine sharedEngine] reset] && stopOnError)) // always (try to) reset the engine, then find out if we need to stop.
+	{
+		/*
+			Occasionally there's a racing condition between timers being deleted
+			and the js engine needing to be reset: the engine reset stops the timers
+			from being deleted, and undeleted timers don't allow the engine to reset
+			itself properly.
+			
+			If the engine can't reset, let's give ourselves an extra 20ms to allow the
+			timers to delete themselves.
+			
+			We'll piggyback performDeadUpdates: when STATUS_DEAD, the engine waits until 
+			kDeadResetTime then restarts Oolite via [UNIVERSE updateGameOver]
+			The variable shot_time is used to keep track of how long ago we were
+			shot.
+		*/
+		
+		if (!saveGame)
+		{
+			// set up STATUS_DEAD
+			dockedStation = nil;	// needed for STATUS_DEAD
+			[self setStatus:STATUS_DEAD];
+		}
+		else
+		{
+			OOLog(@"script.javascript.init.error", @"Retrying JavaScript reset.");
+		}
+		
+		if ([self status] == STATUS_DEAD)
+		{
+			OOLog(@"script.javascript.init.error", @"Scheduling new JavaScript reset in 20ms.");
+			shot_time = kDeadResetTime - 0.02f;	// schedule reinit 20 milliseconds from now.
+		}
+		return NO;
+	}
+	
 	
 	// Load locale script before any regular scripts.
 	[OOJSScript jsScriptFromFileNamed:@"oolite-locale-functions.js"
@@ -1328,6 +1369,7 @@ static GLfloat		sBaseMass = 0.0;
 	demoShip = nil;
 	
 	[[OOMusicController sharedController] justStop];
+	return YES;
 }
 
 
@@ -2000,8 +2042,8 @@ static bool minShieldLevelPercentageInitialised = false;
 			[self setStatus:STATUS_DEAD];
 			//[self playGameOver];	// no death explosion sounds for player pods
 			// no shipDied events for player pods, either
-			[UNIVERSE displayMessage:DESC(@"gameoverscreen-escape-pod") forCount:30.0];
-			[UNIVERSE displayMessage:@"" forCount:30.0];
+			[UNIVERSE displayMessage:DESC(@"gameoverscreen-escape-pod") forCount:kDeadResetTime];
+			[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
 			[self showGameOver];
 		}
 	}
@@ -2536,7 +2578,7 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (void) performDeadUpdates:(OOTimeDelta)delta_t
 {
-	if ([self shotTime] > 30.0)
+	if ([self shotTime] > kDeadResetTime)
 	{
 		BOOL was_mouse_control_on = mouse_control_on;
 		[UNIVERSE handleGameOver];				//  we restart the UNIVERSE
@@ -2587,11 +2629,11 @@ static bool minShieldLevelPercentageInitialised = false;
 	NSString *scoreMS = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-score-@]"),
 							KillCountToRatingAndKillString(ship_kills)];
 	
-	[UNIVERSE displayMessage:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-game-over]") forCount:30.0];
-	[UNIVERSE displayMessage:@"" forCount:30.0];
-	[UNIVERSE displayMessage:scoreMS forCount:30.0];
-	[UNIVERSE displayMessage:@"" forCount:30.0];
-	[UNIVERSE displayMessage:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-press-space]") forCount:30.0];
+	[UNIVERSE displayMessage:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-game-over]") forCount:kDeadResetTime];
+	[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
+	[UNIVERSE displayMessage:scoreMS forCount:kDeadResetTime];
+	[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
+	[UNIVERSE displayMessage:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-press-space]") forCount:kDeadResetTime];
 	[self resetShotTime];
 }
 
