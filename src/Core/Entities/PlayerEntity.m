@@ -1117,7 +1117,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	GameController		*gc = [[UNIVERSE gameView] gameController];
 	
-	if (![gc inFullScreenMode])	[gc stopAnimationTimer];	// start of critical section
+	if (![gc inFullScreenMode] && stopOnError)	[gc stopAnimationTimer];	// start of critical section
 	
 	if (EXPECT_NOT(![[OOJavaScriptEngine sharedEngine] reset] && stopOnError)) // always (try to) reset the engine, then find out if we need to stop.
 	{
@@ -1150,7 +1150,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	// end of critical section
-	if (![gc inFullScreenMode])	[gc startAnimationTimer];
+	if (![gc inFullScreenMode] && stopOnError)	[gc startAnimationTimer];
 	
 	// Load locale script before any regular scripts.
 	[OOJSScript jsScriptFromFileNamed:@"oolite-locale-functions.js"
