@@ -793,14 +793,16 @@ Object.defineProperty(Entity.prototype, "inspect", { value: function inspect()
 */
 if (typeof console.__setUpCallObjC == "function")
 {
-	console.__setUpCallObjC(Object.prototype);
+	console.__setUpCallObjC(Object.prototype);	//not enumerable.
 }
 else
 {
-	Object.prototype.callObjC = function()
-	{
-		throw Error("callObjC() is disabled.");
-	}
+	// not enumerable when disabled too.
+	Object.defineProperty(Object.prototype, 'callObjC', {value: function()
+		{
+			throw Error("callObjC() is disabled.");
+		}
+	});
 }
 
 }).call(this);
