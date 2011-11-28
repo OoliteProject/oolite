@@ -1212,6 +1212,7 @@
 	"loadfailed-invalid-saved-game-no-ship-specified"
 						= "Invalid saved game - no ship specified.";
 	"loadfailed-could-not-set-up-player-ship"	= "Could not set up player ship.";
+	"loadfailed-could-not-reset-javascript"		= "Game engine still resetting while loading game.";
 	
 	// Save/Overwrite commander screens
 	"savescreen-title"				= "Save Commander";

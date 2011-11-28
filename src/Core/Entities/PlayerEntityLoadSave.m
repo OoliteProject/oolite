@@ -462,8 +462,19 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	if (loadedOK)
 	{
-		if (![self setUpAndConfirmOK:YES saveGame:YES] || ![self setCommanderDataFromDictionary:fileDic])
+		if (![self setUpAndConfirmOK:YES saveGame:YES])
 		{
+			fail_reason = DESC(@"loadfailed-could-not-reset-javascript");
+			loadedOK = NO;
+		}
+	}
+	
+	if (loadedOK)
+	{
+		if (![self setCommanderDataFromDictionary:fileDic])
+		{
+			// this could still be a reset js issue, if switching from strict / unrestricted
+			// TODO: use "could not reset js message" if that's the case.
 			fail_reason = DESC(@"loadfailed-could-not-set-up-player-ship");
 			loadedOK = NO;
 		}

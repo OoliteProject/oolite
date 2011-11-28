@@ -8711,17 +8711,13 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	[self setUpSettings];
 	
-	GameController		*gc = [gameView gameController];
-	if (![gc inFullScreenMode])	[gc stopAnimationTimer];	// start of critical section
 	if (![player setUpAndConfirmOK:YES]) 
 	{
 		// reinitAndShowDemo rescheduled inside setUpAndConfirmOK...
-		if (![gc inFullScreenMode])	[gc startAnimationTimer];	// keep the game ticking over.
 		return NO;	// Abort!
 	}
 	
-	// end of critical section
-	if (![gc inFullScreenMode])	[gc startAnimationTimer];
+	// we can forget the previous settings now.
 	JSResetFlags = 0;
 	
 	[self addEntity:player];

@@ -1114,6 +1114,11 @@ static GLfloat		sBaseMass = 0.0;
 	// Reset JavaScript.
 	[OOScriptTimer noteGameReset];
 	[OOScriptTimer updateTimers];
+	
+	GameController		*gc = [[UNIVERSE gameView] gameController];
+	
+	if (![gc inFullScreenMode])	[gc stopAnimationTimer];	// start of critical section
+	
 	if (EXPECT_NOT(![[OOJavaScriptEngine sharedEngine] reset] && stopOnError)) // always (try to) reset the engine, then find out if we need to stop.
 	{
 		/*
@@ -1129,27 +1134,23 @@ static GLfloat		sBaseMass = 0.0;
 			kDeadResetTime then restarts Oolite via [UNIVERSE updateGameOver]
 			The variable shot_time is used to keep track of how long ago we were
 			shot.
+			
+			If we're loading a savegame the code will try a new JS reset immediately
+			after failing this reset...
 		*/
 		
-		if (!saveGame)
-		{
-			// set up STATUS_DEAD
-			dockedStation = nil;	// needed for STATUS_DEAD
-			[self setStatus:STATUS_DEAD];
-		}
-		else
-		{
-			OOLog(@"script.javascript.init.error", @"Retrying JavaScript reset.");
-		}
+		// set up STATUS_DEAD
+		dockedStation = nil;	// needed for STATUS_DEAD
+		[self setStatus:STATUS_DEAD];
+		OOLog(@"script.javascript.init.error", @"Scheduling new JavaScript reset.");
+		shot_time = kDeadResetTime - 0.02f;	// schedule reinit 20 milliseconds from now.
 		
-		if ([self status] == STATUS_DEAD)
-		{
-			OOLog(@"script.javascript.init.error", @"Scheduling new JavaScript reset in 20ms.");
-			shot_time = kDeadResetTime - 0.02f;	// schedule reinit 20 milliseconds from now.
-		}
+		if (![gc inFullScreenMode])	[gc startAnimationTimer];	// keep the game ticking over.
 		return NO;
 	}
 	
+	// end of critical section
+	if (![gc inFullScreenMode])	[gc startAnimationTimer];
 	
 	// Load locale script before any regular scripts.
 	[OOJSScript jsScriptFromFileNamed:@"oolite-locale-functions.js"
