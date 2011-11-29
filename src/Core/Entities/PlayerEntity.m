@@ -2510,6 +2510,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		UPDATE_STAGE(@"JUMP!");
 		if (galactic_witchjump)  [self enterGalacticWitchspace];
 		else  [self enterWitchspace];
+		galactic_witchjump = NO;
 	}
 	
 	STAGE_TRACKING_END
