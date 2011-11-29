@@ -106,7 +106,12 @@ endif
 .PHONY: clean
 clean:
 	$(MAKE) -f GNUmakefile clean
-	$(RM) -rf obj obj.dbg oolite.app
+	ifeq ($(GNUSTEP_HOST_OS),mingw32)
+		@echo "The oolite.app directory contains settings, logs, savegames and snapshots."
+		@echo "Please clean oolite.app manually if required."
+	else
+		$(RM) -rf oolite.app
+	endif
 	$(RM) -rf AddOns && cd DebugOXP && $(MAKE) clean && cd ..
 
 .PHONY: distclean
@@ -114,7 +119,6 @@ distclean: clean
 ifneq ($(GNUSTEP_HOST_OS),mingw32)
 	$(MAKE) -f libjs.make distclean debug=yes
 	$(MAKE) -f libjs.make distclean debug=no
-	$(RM) -rf AddOns && cd DebugOXP && $(MAKE) clean && cd ..
 endif
 
 .PHONY: all
