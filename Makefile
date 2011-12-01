@@ -106,17 +106,8 @@ endif
 .PHONY: clean
 clean:
 	$(MAKE) -f GNUmakefile clean
-ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	@echo ""
-	@echo "The oolite.app directory contains settings, logs, savegames and snapshots."
-	rm -idr oolite.app
-	@echo ""
-	@echo "The AddOns directory might contain more than just basic-debug,oxp."
-	rm -idr AddOns && cd DebugOXP && $(MAKE) clean && cd ..
-else
 	$(RM) -rf oolite.app
 	$(RM) -rf AddOns && cd DebugOXP && $(MAKE) clean && cd ..
-endif	
 
 .PHONY: distclean
 distclean: clean
