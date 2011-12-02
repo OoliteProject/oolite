@@ -92,7 +92,6 @@ int main(int argc, char *argv[])
 		
 		// Release anything allocated during the controller initialisation that
 		// is no longer required.
-		DESTROY(pool);
 
 		for (i = 1; i < argc; i++)
 		{
@@ -114,6 +113,8 @@ int main(int argc, char *argv[])
 			}
 		}
 
+		DESTROY(pool);
+		
 		// Call applicationDidFinishLaunching because NSApp is not running in
 		// GNUstep port.
 		[controller applicationDidFinishLaunching: nil];
