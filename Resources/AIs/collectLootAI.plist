@@ -8,6 +8,7 @@
 		ENTER = (performCollect);
 		ATTACKED = ("exitAIWithMessage: ATTACKED");
 		"COLLISION" = (exitAI);
+		"FRUSTRATED" = ("setSpeedTo: 0.0", performIdle, exitAI);
 		"CARGO_SCOOPED" = ("exitAIWithMessage: CARGO_SCOOPED");
 		"HOLD_FULL" = ("exitAIWithMessage: HOLD_FULL");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "exitAIWithMessage: INCOMING_MISSILE");

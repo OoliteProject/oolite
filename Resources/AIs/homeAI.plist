@@ -7,6 +7,7 @@
 	{
 		ENTER = (setCourseToPlanet, checkCourseToDestination);
 		"NOTHING_FOUND" = ("setStateTo: MOVE_AWAY");
+		"WAYPOINT_SET" = ("setStateTo: NEW_WAYPOINT");
 		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
 		"DESIRED_RANGE_ACHIEVED" = (landOnPlanet);
 		"APPROACHING_SURFACE" = (landOnPlanet);
@@ -18,5 +19,12 @@
 		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dumbAI.plist");
 		UPDATE = (checkCourseToDestination, "pauseAI: 10.0");
+	};
+	"NEW_WAYPOINT" =
+	{
+		ENTER = ("setSpeedFactorTo: 1.0", setDesiredRangeForWaypoint, checkCourseToDestination, "pauseAI: 2.0");
+		"WAYPOINT_SET" = ("setStateTo: NEW_WAYPOINT");
+		"COURSE_OK" = ("setStateTo: HEAD_FOR_PLANET");
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
 	};
 }
