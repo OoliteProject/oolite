@@ -3890,7 +3890,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	}
 	
 	[activeWormholes release];
-	activeWormholes = savedWormholes;	// will be cleared out by populateFromActiveWormholes
+	activeWormholes = savedWormholes;	// will be cleared out by populateSpaceFromActiveWormholes
 	
 	// maintain sorted list
 	n_entities = 1;

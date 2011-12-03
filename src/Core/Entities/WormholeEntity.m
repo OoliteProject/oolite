@@ -308,7 +308,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 			}
 			
-			if (now - ship_arrival_time < 2.0)
+			if (time_passed < 2.0)
 			{
 				[ship witchspaceLeavingEffects]; // adds the ship to the universe with effects.
 			}
@@ -319,6 +319,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				[ship setPitch: 0.0];
 				[ship setRoll: 0.0];
 				[ship setSpeed: [ship maxFlightSpeed] * 0.25];
+				[ship setVelocity: kZeroVector];
 				[UNIVERSE addEntity:ship];	// AI and status get initialised here
 			}
 			
@@ -331,9 +332,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				hasExitPosition = YES;
 				hasShiftedExitPosition = YES; // exitPosition is shifted towards the lead ship update position.
 				[ship update: time_passed]; // do this only for one ship or the next ships might appear at very different locations.
-				position = [ship position]; // e.g. when the player fist docks before following, time_passed is already > 10 minutes.
+				position = [ship position]; // e.g. when the player docks first before following, time_passed is already > 10 minutes.
 			}
-			else if (now - ship_arrival_time > 1) // Only update the ship position if it was some time ago, otherwise we're in 'real time'.
+			else if (time_passed > 1) // Only update the ship position if it was some time ago, otherwise we're in 'real time'.
 			{
 				if (hasShiftedExitPosition)
 				{
@@ -342,9 +343,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				}
 				else
 				{
-					// exit position was external set, e.g. by playership following through this wormhole.
-					// Use here the real time difference for correct updating.
-					[ship update: (now - ship_arrival_time)];
+					// Exit position was externally set, e.g. by player ship following through this wormhole.
+					// Use the real time difference.
+					[ship update:time_passed];
 				}
 			}
 		}
@@ -517,8 +518,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	
 	if (now > expiry_time)
 	{
-		//position.x = position.y = position.z = 0;
-		position = kZeroVector;
+		// If we're a saved wormhole waiting to disgorge more ships, it's safe
+		// to remove self from UNIVERSE, but we need the current position!
 		[UNIVERSE removeEntity: self];
 	}
 }
