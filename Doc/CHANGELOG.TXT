@@ -1,3 +1,151 @@
+Changes between Oolite 1.75.3 and Oolite 1.76:
+
+Gameplay:
+=========
+
+General:
+--------
+* When using docking clearance, player now gets an extra few seconds when very
+  close to the dock. (Bug #17997)
+* Enhanced missile logic for missiles approaching head-on to a target.
+* Enhanced damage calculations for collision and missile damage; damage is no
+  longer dependent on target size.
+* Changed the manifest screen to better handle situations when too much cargo,
+  passengers, or contracts were being displayed.
+* All mission screen choices should now also be selectable by mouse.
+* The game now ignores all keys except 'Space' on the Arrival Reports screen.
+* Enhanced mouse controls to allow maximum pitch.
+* It's now possible to pause the game when the autopilot is running.
+* Imrpoved AI for ships scooping cargo.
+* Improved sun-skimming NPCs.
+
+Bug fixes:
+----------
+* Non-tonnage commodities are now cleared correctly after a game reset.
+* Avoid negative cargo capacity under certain conditions, especially in
+  conjunction with passenger cabins.
+* Various additional checks to ensure ship equipment is not lost when it was
+  already installed (eg, damaged during a fight, loading a Commander)
+* Fuel price is now displayed correctly for ships which have a fuel charge
+  rate other than 1.0
+* Large ships no longer block the launch queue in stations.
+* Fix NPCs getting far-away holding positions while waiting to dock.
+* Docking Clearance: Player is no longer given clearance while ships are
+  in the launch queue.
+* Aft-firing weapons on an NPC no longer trigger forward-facing weapons.
+* No unnecessary auto-save immediately after a manual save.
+* Various bug-fixes to better handle entities when the Universe is full which
+  could lead to crashing.
+* No more double spaces in the randomly generated planet descriptions.
+* The short range chart no longer shows pre-nova system data for nova systems.
+* Regression fix: The autopilot disengages when pressing 'fast-dock'.
+* Escape pods should no longer disappear immediately after they launched.
+* A damaged Galactic Hyperdrive now correctly aborts the jump.
+* Fixed the first witchjump after a galactic jump.
+* Improved handling of ships exiting wormholes; various values are properly
+  reset now and NPCs following the player should no longer crash into the
+  NavBuoy.
+* It's no longer possible to pause the game in invalid situations (such as
+  the witchspace tunnel).
+* Fix docking music either ending before docking was complete, or continuing
+  to play after a hyperspace jump.
+* Sounds no longer continue to play after player death or resetting the game.
+  (Bug #18108)
+* Various fixes for large escort groups; especially Thargoid/Thargons.
+* Fix Thargoid message overflow. (Bug #18055)
+* NPCs now have the same inactive cloaking behaviour as players.
+* Ignore passengers and contracts in hacked strict mode gamesaves.
+* Fixed various memory leaks.
+
+Mac-specific:
+-------------
+* Fix for incorrect playlist selected in iTunes after startup.
+* Switching iTunes integration off now pauses iTunes.
+* iTunes is muted while the Oolite theme music is played.
+
+Windows and Linux:
+------------------
+* Spoken messages should no longer crash the game.
+* Fixed regression: it should again be possible to select full-screen for
+  computers with non-standard resolutions.
+* Fixed the game screen getting resized to the size of the splash screen.
+* Fixed the player ship going crazy when switching to mouse controls.
+* Various keyboard fixes to ensure keys are correctly mapped.
+
+
+Expansion pack development changes:
+===================================
+
+Ships:
+------
+
+Equipment:
+----------
+* The plasma cannon now uses the 'weapon_position_' keys from shipdata.plist.
+* Weapon names are now always displayed as "<position> <type> laser", 
+  irrespective of what is defined in equipment.plist and descriptions.plist.
+
+Other Configuration Files:
+--------------------------
+* Script names are no longer expanded unless enclosed by [] in mission text
+  or mission info.
+* Resizing message_gui & comms_log_gui via hud.plists now retains the
+  comms log and the last 2 message lines.
+* Added the key to turn the HUD on and off to keyconfig.plist (default: 'o').
+* A wrongly defined 'titleKey' for missionScreens now logs a warning instead
+  of an internal error.
+
+Javascript:
+-----------
+* Fixed rounding errors for the "angleTo" method which sometimes returned
+  a NaN for identical vectors instead of zero.
+* Fixed the "rotationTo" method which sometimes returned an illegal
+  quaternion for some anti-parallel vectors.
+* Fixed "isValid" for entities which were destroyed during the current
+  game tick; always returns 'false' now.
+* system.addShip() & system.addGroup() now only returns the ships
+  actually added to the Universe, instead of the whole group.
+* viewDirectionChanged() now fires correctly when switching between
+  gui screens.
+* shipScoopedOther() should now fire properly for every scooped event, not
+  just for scripted targets.
+* The "startUp" event should now fire properly after the Universe is
+  fully initialised.
+* Fixed reliability of the Javascript engine when resetting itself.
+* Improved logging when loading a commander fails due to JS issues.
+* The frameCallback is now only called when the game is actually running.
+* When the player aborts a jump countdown, the type of the jump is now
+  reported.
+
+Scripting bug fixes:
+--------------------
+* Regression fix: the legacy_spawnShip function should work again.
+* system.name, system.population, etc. should now report the correct values
+  when in interstellar space.
+* Changes to system.name, system.techLevel, etc. are now shown correctly on
+  the short range map.
+* ships should now always have the correct orientation after being spawned.
+* restoring sub-entities on the player ship now adjusts the trade-in factor
+  correctly.
+* The AI commands 'becomeExplosion' and 'becomeEnergyBlast' now also trigger
+  the shipDied event handler.
+* The game no longer freezes when a script tries to resurrect a ship after
+  it dies; the ship just dies now. (Bug #18054)
+* Specifying 0Cr mandatory equipments no longer freezes the game.
+* Specifying illegal flasher declaration no longer causes an exception.
+
+New Javascript properties and methods:
+--------------------------------------
+* Entity.checkHeatInsulation() - returns either INSULATION_OK or
+  INSULATION_POOR.
+
+OXP Verifier:
+-------------
+* Fixed bug in the oxp-Verifyer not recognizing 'escorts' in shipdata.
+* Added CLASS_MINE to the oxpVerifier.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.75.2 and Oolite 1.75.3:
 
 * Subentities are now set up correctly when buying a new ship.
