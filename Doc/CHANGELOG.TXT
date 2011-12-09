@@ -16,7 +16,7 @@ General:
 * The game now ignores all keys except 'Space' on the Arrival Reports screen.
 * Enhanced mouse controls to allow maximum pitch.
 * It's now possible to pause the game when the autopilot is running.
-* Imrpoved AI for ships scooping cargo.
+* Improved AI for ships scooping cargo.
 * Improved sun-skimming NPCs.
 
 Bug fixes:
@@ -107,8 +107,6 @@ Javascript:
   actually added to the Universe, instead of the whole group.
 * viewDirectionChanged() now fires correctly when switching between
   gui screens.
-* shipScoopedOther() should now fire properly for every scooped event, not
-  just for scripted targets.
 * The "startUp" event should now fire properly after the Universe is
   fully initialised.
 * Fixed reliability of the Javascript engine when resetting itself.
@@ -134,10 +132,9 @@ Scripting bug fixes:
 * Specifying 0Cr mandatory equipments no longer freezes the game.
 * Specifying illegal flasher declaration no longer causes an exception.
 
-New Javascript properties and methods:
---------------------------------------
-* Entity.checkHeatInsulation() - returns either INSULATION_OK or
-  INSULATION_POOR.
+New AI properties and methods:
+------------------------------
+* checkHeatInsulation - returns either INSULATION_OK or INSULATION_POOR.
 
 OXP Verifier:
 -------------
