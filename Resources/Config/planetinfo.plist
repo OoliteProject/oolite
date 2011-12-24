@@ -82,7 +82,7 @@
 	// 1 200 Atgeaner: naturally vastish
 	"1 203" =
 	{
-		// Cemabe - vast oceans, prowled by vicious vicous wolfs.
+		// Cemabe - vast oceans, prowled by vicious vicious wolfs.
 		percent_land = 25;	// Actually results in less than 5% land. Hmm.
 	};
 	
