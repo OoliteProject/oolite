@@ -53,7 +53,7 @@
 	"48" = "maxTooBig";
 	"49" = "outOfOrder";
 	"50" = "badDestructDecl";
-	"51" = "badDestructAss";
+	"51" = "badDestructAssignment";
 	"52" = "parenAfterLet";
 	"53" = "curlyAfterLet";
 	"54" = "missingParen";
@@ -131,7 +131,7 @@
 	"126" = "duplicateLabel";
 	"127" = "varHidesArg";
 	"128" = "badVarInit";
-	"129" = "badLeftsideOfAss";
+	"129" = "badLeftsideOfAssignment";
 	"130" = "badOperand";
 	"131" = "badPropID";
 	"132" = "reservedID";
@@ -268,4 +268,8 @@
 	"263" = "cantWrapXMLObject";
 	"264" = "badCloneVersion";
 	"265" = "cantCloneObject";
+	"266" = "nonNativeScope";
+	"267" = "strictFunctionStatement";
+	"268" = "invalidForInInit";
+	"269" = "clearedScope";
 }

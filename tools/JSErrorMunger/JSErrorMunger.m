@@ -89,6 +89,7 @@ NSString *ConvertName(NSString *name)
 								  @"UTF8", @"UTF8",
 								  @"NS", @"NS",
 								  @"oolite", @"USER",
+								  @"Assignment", @"ASS",
 								  nil];
 	
 	for (NSString *comp in components)
