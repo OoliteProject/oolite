@@ -2170,7 +2170,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			ShipEntity* se1 = (ShipEntity*)e1;
 			int e_class = [e1 scanClass];
 			if (((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID)) &&
-											! ([se1 isStation] && [se1 maxFlightSpeed] == 0)) // exclude only stations, not carriers.
+											! ([se1 isStation] && [se1 maxFlightSpeed] == 0) &&  // exclude only stations, not carriers.
+											[se1 hasHyperspaceMotor]) // exclude non jumping ships. Escorts will still be able to follow a mother.
 			{
 				AI*	se1AI = [se1 getAI];
 				[se1 setFuel:MAX(PLAYER_MAX_FUEL, [se1 fuelCapacity])];
@@ -2178,7 +2179,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				[se1AI setState:@"EXIT_SYSTEM"];
 				// The following should prevent all ships leaving at once (freezes oolite on slower machines)
 				[se1AI setNextThinkTime:[UNIVERSE getTime] + 3 + (ranrot_rand() & 15)];
-				[se1 setPrimaryRole:@"none"];	// prevents new ship from appearing at witchpoint when this one leaves!
+				[se1 setPrimaryRole:@"oolite-none"];	// prevents new ship from appearing at witchpoint when this one leaves!
 			}
 		}
 	}

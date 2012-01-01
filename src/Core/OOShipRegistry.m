@@ -1286,7 +1286,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		}
 		else
 		{
-			OOLogWARN(@"shipdta.load.warning.flasher.badColor", @"skipping invalid colour specifier for flasher for ship %@.", shipKey);
+			OOLogWARN(@"shipdata.load.warning.flasher.badColor", @"skipping invalid colour specifier for flasher for ship %@.", shipKey);
 		}
 	}
 	// Ensure there's at least one.
