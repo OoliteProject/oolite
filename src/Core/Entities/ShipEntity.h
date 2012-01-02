@@ -401,6 +401,7 @@ typedef enum
 	
 	// beacons
 	NSString				*_beaconCode;
+	OOWeakReference			*_prevBeacon;
 	OOWeakReference			*_nextBeacon;
 	id <OOHUDBeaconIcon>	_beaconDrawable;
 }
@@ -469,7 +470,9 @@ typedef enum
 - (void) setBeaconCode:(NSString *)bcode;
 - (BOOL) isBeacon;
 - (id <OOHUDBeaconIcon>) beaconDrawable;
+- (ShipEntity *) prevBeacon;
 - (ShipEntity *) nextBeacon;
+- (void) setPrevBeacon:(ShipEntity*) beaconShip;
 - (void) setNextBeacon:(ShipEntity*) beaconShip;
 
 - (void) setIsBoulder:(BOOL)flag;

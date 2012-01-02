@@ -54,6 +54,7 @@
 	key_hud_toggle				= "o";
 
 	key_comms_log				= "`";
+	key_prev_compass_mode		= "|";
 	key_next_compass_mode		= "\\";
 
 	key_cloaking_device			= "0";

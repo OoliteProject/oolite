@@ -424,6 +424,7 @@ typedef enum
 	OOKeyCode				key_hud_toggle;
 	
 	OOKeyCode				key_comms_log;
+	OOKeyCode				key_prev_compass_mode;
 	OOKeyCode				key_next_compass_mode;
 	
 	OOKeyCode				key_cloaking_device;
@@ -650,6 +651,7 @@ typedef enum
 
 - (OOCompassMode) compassMode;
 - (void) setCompassMode:(OOCompassMode)value;
+- (void) setPrevCompassMode;
 - (void) setNextCompassMode;
 
 - (unsigned) activeMissile;

@@ -64,7 +64,8 @@ static BOOL				jump_pressed;
 static BOOL				hyperspace_pressed;
 static BOOL				galhyperspace_pressed;
 static BOOL				pause_pressed;
-static BOOL				compass_mode_pressed;
+static BOOL				prev_compass_mode_pressed;
+static BOOL				next_compass_mode_pressed;
 static BOOL				next_target_pressed;
 static BOOL				previous_target_pressed;
 static BOOL				prime_equipment_pressed;
@@ -247,6 +248,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_hud_toggle,			'o'			);
 	
 	LOAD_KEY_SETTING(key_comms_log,				'`'			);
+	LOAD_KEY_SETTING(key_prev_compass_mode,		'|'		);
 	LOAD_KEY_SETTING(key_next_compass_mode,		'\\'		);
 	
 	LOAD_KEY_SETTING(key_cloaking_device,		'0'			);
@@ -2647,16 +2649,27 @@ static NSTimeInterval	time_last_frame;
 			scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
 	}
 	
-	// Compass mode '\'
-	if ([gameView isDown:key_next_compass_mode]) // look for the '\' key
+	// Compass mode '|'
+	if ([gameView isDown:key_prev_compass_mode]) // look for the '|' key
 	{
-		if ((!compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
-			[self setNextCompassMode];
-		compass_mode_pressed = YES;
+		if ((!prev_compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
+			[self setPrevCompassMode];
+		prev_compass_mode_pressed = YES;
 	}
 	else
 	{
-		compass_mode_pressed = NO;
+		prev_compass_mode_pressed = NO;
+	}
+	// Compass mode '\'
+	if ([gameView isDown:key_next_compass_mode]) // look for the '\' key
+	{
+		if ((!next_compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
+			[self setNextCompassMode];
+		next_compass_mode_pressed = YES;
+	}
+	else
+	{
+		next_compass_mode_pressed = NO;
 	}
 	
 	//  show comms log '`'

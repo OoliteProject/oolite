@@ -3363,6 +3363,74 @@ static bool minShieldLevelPercentageInitialised = false;
 }
 
 
+- (void) setPrevCompassMode
+{
+	OOAegisStatus	aegis = AEGIS_NONE;
+	ShipEntity		*beacon = nil;
+	
+	switch (compassMode)
+	{
+		case COMPASS_MODE_BASIC:
+		case COMPASS_MODE_PLANET:
+			beacon = [UNIVERSE lastBeacon];
+			while (beacon != nil && [beacon isJammingScanning])
+			{
+				beacon = [beacon prevBeacon];
+			}
+			[self setNextBeacon:beacon];
+			
+			if (beacon != nil)
+			{
+				[self setCompassMode:COMPASS_MODE_BEACONS];
+				break;
+			}
+			// else fall through to switch to target mode.
+
+		case COMPASS_MODE_BEACONS:
+			beacon = [self nextBeacon];
+			do
+			{
+				beacon = [beacon prevBeacon];
+			} while (beacon != nil && [beacon isJammingScanning]);
+			[self setNextBeacon:beacon];
+			
+			if (beacon == nil)
+			{
+				if ([self primaryTarget])
+				{
+					[self setCompassMode:COMPASS_MODE_TARGET];
+				}
+				else
+				{
+					[self setCompassMode:COMPASS_MODE_SUN];
+				}
+				break;
+			}
+			break;
+
+		case COMPASS_MODE_TARGET:
+			[self setCompassMode:COMPASS_MODE_SUN];
+			break;
+
+		case COMPASS_MODE_SUN:
+			aegis = [self checkForAegis];
+			if (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE)
+			{
+				[self setCompassMode:COMPASS_MODE_STATION];
+			}
+			else
+			{
+				[self setCompassMode:COMPASS_MODE_PLANET];
+			}
+			break;
+
+		case COMPASS_MODE_STATION:
+			[self setCompassMode:COMPASS_MODE_PLANET];
+			break;
+	}
+}
+
+
 - (void) setNextCompassMode
 {
 	OOAegisStatus	aegis = AEGIS_NONE;
@@ -3406,7 +3474,7 @@ static bool minShieldLevelPercentageInitialised = false;
 			if (beacon != nil)  [self setCompassMode:COMPASS_MODE_BEACONS];
 			else  [self setCompassMode:COMPASS_MODE_PLANET];
 			break;
-			
+
 		case COMPASS_MODE_BEACONS:
 			beacon = [self nextBeacon];
 			do

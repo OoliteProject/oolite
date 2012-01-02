@@ -2366,6 +2366,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	while (beaconShip)
 	{
 		next = [beaconShip nextBeacon];
+		[beaconShip setPrevBeacon:nil];
 		[beaconShip setNextBeacon:nil];
 		beaconShip = next;
 	}
@@ -2385,6 +2386,9 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 {
 	if (beacon != [self firstBeacon])
 	{
+		[beacon setPrevBeacon:nil];
+		[beacon setNextBeacon:[self firstBeacon]];
+		[[self firstBeacon] setPrevBeacon:beacon];
 		[_firstBeacon release];
 		_firstBeacon = [beacon weakRetain];
 	}
@@ -2401,6 +2405,9 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 {
 	if (beacon != [self lastBeacon])
 	{
+		[beacon setNextBeacon:nil];
+		[beacon setPrevBeacon:[self lastBeacon]];
+		[[self lastBeacon] setNextBeacon:beacon];
 		[_lastBeacon release];
 		_lastBeacon = [beacon weakRetain];
 	}
@@ -2411,8 +2418,6 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 {
 	if ([beaconShip isBeacon])
 	{
-		[beaconShip setNextBeacon:nil];
-		[[self lastBeacon] setNextBeacon:beaconShip];
 		[self setLastBeacon:beaconShip];
 		if ([self firstBeacon] == nil)  [self setFirstBeacon:beaconShip];
 	}
@@ -8931,25 +8936,16 @@ Entity *gOOJSPlayerIfStale = nil;
 			ShipEntity *se = (ShipEntity*)entity;
 			if ([se isBeacon])
 			{
-				ShipEntity	*beacon = [self firstBeacon];
-				if (beacon == se)
+				if ([self firstBeacon] == se)
 				{
 					[self setFirstBeacon:[se nextBeacon]];
 				}
-				else
+				if ([self lastBeacon] == se)
 				{
-					while (beacon != nil && [beacon nextBeacon] != se)  beacon = [beacon nextBeacon];
-					if (beacon != nil)
-					{
-						[beacon setNextBeacon:[se nextBeacon]];
-						
-						while ([beacon nextBeacon] != nil)
-						{
-							beacon = [beacon nextBeacon];
-						}
-						[self setLastBeacon:beacon];
-					}
+					[self setLastBeacon:[se prevBeacon]];
 				}
+				[[se prevBeacon] setNextBeacon:[se nextBeacon]];
+				[[se nextBeacon] setPrevBeacon:[se prevBeacon]];
 				[se setBeaconCode:nil];
 			}
 		}

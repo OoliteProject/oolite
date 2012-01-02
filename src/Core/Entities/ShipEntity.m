@@ -1207,11 +1207,26 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (ShipEntity *) prevBeacon
+{
+	return [_prevBeacon weakRefUnderlyingObject];
+}
+
+
 - (ShipEntity *) nextBeacon
 {
 	return [_nextBeacon weakRefUnderlyingObject];
 }
 
+
+- (void) setPrevBeacon:(ShipEntity *)beaconShip
+{
+	if (beaconShip != [self prevBeacon])
+	{
+		[_prevBeacon release];
+		_prevBeacon = [beaconShip weakRetain];
+	}
+}
 
 - (void) setNextBeacon:(ShipEntity *)beaconShip
 {
