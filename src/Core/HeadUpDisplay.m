@@ -678,13 +678,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	NSSize						size;
 	GLfloat					alpha = overallAlpha;
 	
-// Feature request 5359 - equipment_required for HUD legends
-// TODO: Enable after release of version 1.76.	
-#if FEATURE_REQUEST_5359	
+// Feature request 5359 - equipment_required for HUD legends	
 	NSString *equipmentRequired = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	if (equipmentRequired != nil && ![PLAYER hasEquipmentItem:equipmentRequired])
 		return;
-#endif
 	
 	x = [info oo_floatForKey:X_KEY] + [[UNIVERSE gameView] x_offset] *
 		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
