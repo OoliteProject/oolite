@@ -3,7 +3,7 @@
 //  DisplayTest
 //
 //  Created by Jens Ayton on 2007-12-08.
-//  Copyright 2007-2011 Jens Ayton. All rights reserved.
+//  Copyright 2007-2012 Jens Ayton. All rights reserved.
 //
 
 #import "OODisplayModeMacOSX.h"

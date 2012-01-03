@@ -7,7 +7,7 @@ data (when available) and aliases to track files even if they're moved or
 renamed.
 
 
-Copyright (C) 2010-2011 Jens Ayton
+Copyright (C) 2010-2012 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

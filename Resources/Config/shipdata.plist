@@ -1213,7 +1213,7 @@
 		model = "constrictor_redux.dat";
 		materials =
 		{
-			constrictor_redux.png = { shininess = 20; };
+			"constrictor_redux.png" = { shininess = 20; };
 		};
 		name = "Constrictor";
 		pilot = "constrictor-mission-thief";	// key to entry in characters.plist
