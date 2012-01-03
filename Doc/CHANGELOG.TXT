@@ -1,3 +1,20 @@
+Changes between Oolite 1.75.3 and Oolite 1.77:
+Gameplay:
+=========
+
+General:
+--------
+* Enabled reverse-stepping through list of beacons shown by the Advanced
+  Space Compass.  The default key is '|' (Shift-'\').
+
+Bug fixes:
+----------
+* 'sendAllShipsAway' no longer tries to send ships without a hyperspace
+  motor away.
+* Added missing new keyboard controls to the BBC keyconfig.plist
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.75.3 and Oolite 1.76:
 
 Gameplay:
