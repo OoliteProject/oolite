@@ -1,4 +1,4 @@
-Changes between Oolite 1.75.3 and Oolite 1.77:
+Changes between Oolite 1.76 and Oolite 1.77:
 Gameplay:
 =========
 
