@@ -8743,6 +8743,7 @@ else _dockTarget = NO_TARGET;
 	key_mouse_control &&
 	key_hud_toggle &&
 	key_comms_log &&
+	key_prev_compass_mode &&
 	key_next_compass_mode &&
 	key_cloaking_device &&
 	key_contract_info &&
