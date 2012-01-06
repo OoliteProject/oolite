@@ -935,9 +935,9 @@ static NSTimeInterval	time_last_frame;
 							if (c > 0)
 							{
 								[self playNextEquipmentSelected];
-								[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"equipment-primed-none")] forCount:2.0];
+								[UNIVERSE addMessage:DESC(@"equipment-primed-none") forCount:2.0];
 							}
-							else [UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"equipment-primed-none-available")] forCount:2.0];
+							else [UNIVERSE addMessage:DESC(@"equipment-primed-none-available") forCount:2.0];
 						}
 						else
 						{

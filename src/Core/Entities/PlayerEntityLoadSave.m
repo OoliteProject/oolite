@@ -690,7 +690,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	gui_screen = GUI_SCREEN_SAVE;
 	
 	[gui clear];
-	[gui setTitle:[NSString stringWithFormat:DESC(@"savescreen-title")]];
+	[gui setTitle:DESC(@"savescreen-title")];
 	
 	currentPage = 0;
 	[self lsCommanders:gui directory:dir pageNumber: currentPage highlightName:nil];
