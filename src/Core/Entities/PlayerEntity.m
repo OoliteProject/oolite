@@ -913,7 +913,7 @@ static GLfloat		sBaseMass = 0.0;
 	// mission_variables
 	[mission_variables release];
 	mission_variables = [[dict oo_dictionaryForKey:@"mission_variables"] mutableCopy];
-	if (mission_variables == nil)  mission_variables = [[NSMutableArray alloc] init];
+	if (mission_variables == nil)  mission_variables = [[NSMutableDictionary alloc] init];
 	
 	// persistant UNIVERSE info
 	NSDictionary *planetInfoOverrides = [dict oo_dictionaryForKey:@"local_planetinfo_overrides"];
