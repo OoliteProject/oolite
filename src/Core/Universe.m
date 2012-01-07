@@ -5144,17 +5144,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 								demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
 								shipDesc = [demo_ships oo_stringAtIndex:demo_ship_index];
 								shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDesc];
-								if (shipDict != nil)
-								{
-									// Failure means we don't change demo_stage, so we'll automatically try again.
-									demo_ship = [[ShipEntity alloc] initWithKey:shipDesc definition:shipDict];
-								}
-								else
-								{
-									OOLog(@"demo.loadShip.failed", @"Could not load ship \"%@\" for demo screen.", shipDesc);
-									demo_ship = [[ShipEntity alloc] initWithDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:@"oolite-unknown-ship"]];
-									shipName=[NSString stringWithFormat:DESC(@"unknown-ship-@"),shipDesc];
-								}
+								
+								// Failure means we don't change demo_stage, so we'll automatically try again.
+								demo_ship = [[ShipEntity alloc] initWithKey:shipDesc definition:shipDict];
 								
 								if (demo_ship != nil)
 								{
