@@ -575,7 +575,7 @@ static OOCacheManager *sSingleton = nil;
 
 - (NSDictionary *)dictionaryOfCaches
 {
-	return OODeepCopy(_caches);
+	return [OODeepCopy(_caches) autorelease];
 }
 
 

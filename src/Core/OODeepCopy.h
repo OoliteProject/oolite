@@ -46,13 +46,14 @@ SOFTWARE.
 */
 
 #import "OOCocoa.h"
+#import "OOFunctionAttributes.h"
 
 
-id OODeepCopy(id object);
+id OODeepCopy(id object) OO_RETURNS_RETAINED;
 
 
 @interface NSObject (OODeepCopy)
 
-- (id) ooDeepCopyWithSharedObjects:(NSMutableSet *)objects;
+- (id) ooDeepCopyWithSharedObjects:(NSMutableSet *)objects OO_RETURNS_RETAINED;
 
 @end
