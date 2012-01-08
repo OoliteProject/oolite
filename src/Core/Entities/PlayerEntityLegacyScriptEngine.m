@@ -2694,11 +2694,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[properties setObject:self forKey:@"ship"];
 	[properties setObject:eq_key forKey:@"equipmentKey"];
 	OOScript *s = [OOScript jsScriptFromFileNamed:scriptName properties:properties];
+	if (s == nil) return NO;
 	
 	OOLog(@"player.equipmentScript", @"Script '%@': installation %@successful.", scriptName,(s == nil ? @"un" : @""));
-
-	if (s == nil) return NO;
-	[s retain];
+	
 	[eqScripts addObject:[NSArray arrayWithObjects:eq_key,s,nil]];
 	if (primedEquipment == [eqScripts count] - 1) primedEquipment++;	// if primed-none, keep it as primed-none.
 	OOLog(@"player.equipmentScript", @"Scriptable equipment available: %u.",[eqScripts count]);
@@ -2718,9 +2717,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		key = [[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0];
 		if ([key isEqualToString: eq_key]) 
 		{
-			OOScript *s =[[eqScripts oo_arrayAtIndex:i] objectAtIndex:1];
 			[eqScripts removeObjectAtIndex:i];
-			DESTROY(s);
+			
 			if (i == primedEquipment) primedEquipment = c;	// primed-none
 			else if (i < primedEquipment) primedEquipment--; // track the primed equipment
 			if (c == primedEquipment) primedEquipment--; // the array has shrunk by one!
