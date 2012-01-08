@@ -4032,6 +4032,7 @@
 		};
 		08B31CB108FE63D70038D42F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
@@ -4043,6 +4044,7 @@
 		};
 		08B31CB208FE63D70038D42F /* Deployment */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
@@ -4110,15 +4112,6 @@
 		1AD267690C8305A200B4BFD1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = "Build All";
 			};
 			name = Debug;
@@ -4126,22 +4119,12 @@
 		1AD2676A0C8305A200B4BFD1 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
-				COPY_PHASE_STRIP = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				PRODUCT_NAME = "Build All";
-				RUN_CLANG_STATIC_ANALYZER = YES;
-				ZERO_LINK = NO;
 			};
 			name = Deployment;
 		};
 		1AD2676B0C8305A200B4BFD1 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				PRODUCT_NAME = "Build All";
 			};
