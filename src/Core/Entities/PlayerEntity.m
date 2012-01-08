@@ -3310,9 +3310,15 @@ static bool minShieldLevelPercentageInitialised = false;
 }
 
 
-- (float)fuelLeakRate
+- (float) fuelLeakRate
 {
 	return fuel_leak_rate;
+}
+
+
+- (void) setFuelLeakRate:(float)value
+{
+	fuel_leak_rate = OOMax_f(value, 0.0f);
 }
 
 

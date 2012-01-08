@@ -50,27 +50,15 @@ MA 02110-1301, USA.
 }
 
 
-- (double)creditBalance
+- (double) creditBalance
 {
 	return 0.1 * credits;
 }
 
 
-- (void)setCreditBalance:(double)value
+- (void) setCreditBalance:(double)value
 {
 	credits = OODeciCreditsFromDouble(value * 10.0);
-}
-
-
-- (float)fuelLeakRate
-{
-	return fuel_leak_rate;
-}
-
-
-- (void)setFuelLeakRate:(float)value
-{
-	fuel_leak_rate = OOMax_f(value, 0.0f);
 }
 
 

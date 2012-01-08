@@ -632,7 +632,8 @@ typedef enum
 
 - (OOFuelScoopStatus) dialFuelScoopStatus;
 
-- (float)fuelLeakRate;
+- (float) fuelLeakRate;
+- (void) setFuelLeakRate:(float)value;
 
 - (double) clockTime;		// Note that this is not an OOTimeAbsolute
 - (double) clockTimeAdjusted;	// Note that this is not an OOTimeAbsolute

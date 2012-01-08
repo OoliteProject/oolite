@@ -24,16 +24,3 @@ MA 02110-1301, USA.
 */
 
 #import "OOSpatialReference.h"
-
-
-@implementation Entity (OOSpatialReference)
-
-- (OOMatrix) transformationMatrix
-{
-	OOMatrix		rotate = [self rotationMatrix];
-	OOMatrix		translate = OOMatrixForTranslation([self position]);
-	
-	return OOMatrixMultiply(translate, rotate);
-}
-
-@end

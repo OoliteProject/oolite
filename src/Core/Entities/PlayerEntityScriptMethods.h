@@ -38,9 +38,6 @@ MA 02110-1301, USA.
 - (double) creditBalance;
 - (void) setCreditBalance:(double)value;
 
-- (float)fuelLeakRate;
-- (void)setFuelLeakRate:(float)value;
-
 - (NSString *) dockedStationName;
 - (NSString *) dockedStationDisplayName;
 - (BOOL) dockedAtMainStation;
