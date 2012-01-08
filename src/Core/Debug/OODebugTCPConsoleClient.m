@@ -36,6 +36,7 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
 #include <stdint.h>
+#import "NSDictionaryOOExtensions.h"
 
 #if OOLITE_WINDOWS
 #include <winsock2.h>
@@ -396,22 +397,20 @@ noteChangedConfigrationValue:(in id)newValue
 - (void) sendPacket:(NSString *)packetType
 	 withParameters:(NSDictionary *)parameters
 {
-	NSMutableDictionary		*dict = nil;
+	NSDictionary		*dict = nil;
 	
 	if (packetType == nil)  return;
 	
 	if (parameters != nil)
 	{
-		dict = [parameters mutableCopy];
-		[dict setObject:packetType forKey:kOOTCPPacketType];
+		dict = [parameters dictionaryByAddingObject:packetType forKey:kOOTCPPacketType];
 	}
 	else
 	{
-		dict = [[NSDictionary alloc] initWithObjectsAndKeys:packetType, kOOTCPPacketType, nil];
+		dict = [NSDictionary dictionaryWithObjectsAndKeys:packetType, kOOTCPPacketType, nil];
 	}
 	
 	[self sendDictionary:dict];
-	[dict release];
 }
 
 

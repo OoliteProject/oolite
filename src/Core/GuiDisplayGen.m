@@ -639,7 +639,7 @@ static BOOL _refreshStarChart = NO;
 }
 
 
-- (NSArray *) getLastLines;	// text, colour, fade time - text, colour, fade time
+- (NSArray *) getLastLines	// text, colour, fade time - text, colour, fade time
 {
 	if (n_rows <1) return nil;
 	

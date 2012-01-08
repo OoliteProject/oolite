@@ -4316,7 +4316,7 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (ProxyPlayerEntity *) createDoppelganger
 {
-	ProxyPlayerEntity *result = [[UNIVERSE newShipWithName:[self shipDataKey] usePlayerProxy:YES] autorelease];
+	ProxyPlayerEntity *result = (ProxyPlayerEntity *)[[UNIVERSE newShipWithName:[self shipDataKey] usePlayerProxy:YES] autorelease];
 	
 	if (result != nil)
 	{

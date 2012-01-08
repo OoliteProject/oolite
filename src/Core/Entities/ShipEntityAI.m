@@ -2246,7 +2246,7 @@ MA 02110-1301, USA.
 		int wh_count = 0;
 		for (i = 0; i < ent_count; i++)
 			if (uni_entities[i]->isWormhole)
-				wormholes[wh_count++] = [uni_entities[i] retain];		//	retained
+				wormholes[wh_count++] = [(WormholeEntity *)uni_entities[i] retain];
 		//
 		//double found_d2 = scannerRange * scannerRange;
 		for (i = 0; i < wh_count ; i++)
@@ -2258,7 +2258,7 @@ MA 02110-1301, USA.
 				whole = wh;
 				found_d2 = d2;
 			}
-			[wh release];	//		released
+			[wh release];
 		}
 	}
 	

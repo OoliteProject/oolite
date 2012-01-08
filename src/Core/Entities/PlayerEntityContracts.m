@@ -1575,7 +1575,7 @@ static NSMutableDictionary* currentShipyard = nil;
 }
 
 
-- (OOInteger) missingSubEntitiesAdjustment;
+- (OOInteger) missingSubEntitiesAdjustment
 {
 	// each missing subentity depreciates the ship by 5%, up to a maximum of 35% depreciation.
 	int percent = 5 * ([self maxShipSubEntities] - [[[self shipSubEntityEnumerator] allObjects] count]);

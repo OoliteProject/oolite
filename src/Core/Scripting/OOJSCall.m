@@ -147,16 +147,16 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *oo_jsClas
 				case kMethodTypeIntVoid:
 				case kMethodTypeUnsignedIntVoid:
 				case kMethodTypeLongVoid:
-					result = [NSNumber numberWithLongLong:OOCallIntegerMethod(object, selector, method, type)];
+					result = [NSNumber numberWithLongLong:OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type)];
 					break;
 					
 				case kMethodTypeUnsignedLongVoid:
-					result = [NSNumber numberWithUnsignedLongLong:OOCallIntegerMethod(object, selector, method, type)];
+					result = [NSNumber numberWithUnsignedLongLong:OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type)];
 					break;
 					
 				case kMethodTypeFloatVoid:
 				case kMethodTypeDoubleVoid:
-					result = [NSNumber numberWithDouble:OOCallFloatMethod(object, selector, method, type)];
+					result = [NSNumber numberWithDouble:OOCallFloatMethod(object, selector, method, (OOShaderUniformType)type)];
 					break;
 					
 				case kMethodTypeVectorVoid:
@@ -220,7 +220,7 @@ static BOOL SignatureMatch(NSMethodSignature *sig, SEL selector)
 static MethodType GetMethodType(id object, SEL selector)
 {
 	NSMethodSignature *sig = [object methodSignatureForSelector:selector];
-	MethodType type = OOShaderUniformTypeFromMethodSignature(sig);
+	MethodType type = (MethodType)OOShaderUniformTypeFromMethodSignature(sig);
 	if (type != kMethodTypeInvalid)  return type;
 	
 	if (SignatureMatch(sig, @selector(voidVoidMethod)))  return kMethodTypeVoidVoid;

@@ -1094,7 +1094,7 @@ static void RemovePreference(NSString *key)
 }
 
 
-- (void) debugLogProgress:(NSString *)format arguments:(va_list)arguments;
+- (void) debugLogProgress:(NSString *)format arguments:(va_list)arguments
 {
 	NSString *message = [[[NSString alloc] initWithFormat:format arguments:arguments] autorelease];
 	[self logProgress:message];
@@ -1103,7 +1103,7 @@ static void RemovePreference(NSString *key)
 
 static NSMutableArray *sMessageStack;
 
-- (void) debugPushProgressMessage:(NSString *)format, ...;
+- (void) debugPushProgressMessage:(NSString *)format, ...
 {
 	if ([self debugMessageTrackingIsOn])
 	{

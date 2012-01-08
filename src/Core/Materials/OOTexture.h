@@ -94,14 +94,15 @@ enum
 #define kOOTextureDefaultLODBias		-0.25
 
 
-typedef enum
+enum
 {
 	kOOTextureDataInvalid			= kOOPixMapInvalidFormat,
 	
 	kOOTextureDataRGBA				= kOOPixMapRGBA,			// GL_RGBA
 	kOOTextureDataGrayscale			= kOOPixMapGrayscale,		// GL_LUMINANCE (or GL_ALPHA with kOOTextureAlphaMask)
 	kOOTextureDataGrayscaleAlpha	= kOOPixMapGrayscaleAlpha	// GL_LUMINANCE_ALPHA
-} OOTextureDataFormat;
+};
+typedef OOPixMapFormat OOTextureDataFormat;
 
 
 @interface OOTexture: OOWeakRefObject

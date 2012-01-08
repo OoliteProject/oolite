@@ -4205,7 +4205,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		Entity* ent = sortedEntities[i];
 		if (ent != srcEntity && ent != parent && [ent isShip] && [ent canCollide])
 		{
-			my_entities[ship_count++] = [ent retain];
+			my_entities[ship_count++] = [(ShipEntity *)ent retain];
 		}
 	}
 	
@@ -8105,7 +8105,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	{
 		if (sortedEntities[i]->isShip)
 		{
-			my_ships[ship_count++] = [sortedEntities[i] retain];	// retained
+			my_ships[ship_count++] = [(ShipEntity *)sortedEntities[i] retain];	// retained
 		}
 	}
 	

@@ -74,12 +74,6 @@ This code is hereby placed in the public domain.
 }
 
 
-- (void) release
-{
-	[super release];
-}
-
-
 // *** Proxy evilness beyond this point.
 
 - (Class) class
