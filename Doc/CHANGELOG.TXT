@@ -13,6 +13,13 @@ Bug fixes:
   motor away.
 * Added missing new keyboard controls to the BBC keyconfig.plist
 
+System requirements:
+====================
+
+Mac-specific
+------------
+* Oolite now requires an Intel processor and Mac OS X 10.5 or later.
+
 -------------------------------------------------------------------------------
 
 Changes between Oolite 1.75.3 and Oolite 1.76:
