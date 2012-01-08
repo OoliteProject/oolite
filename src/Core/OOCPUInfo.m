@@ -79,20 +79,7 @@ void OOCPUInfoInit(void)
 	
 	// Count processors
 #if OOLITE_MAC_OS_X
-#if OOLITE_LEOPARD
 	sNumberOfCPUs = [[NSProcessInfo processInfo] processorCount];
-#else
-	int		flag = 0;
-	size_t	size = sizeof flag;
-	if (sysctlbyname("hw.logicalcpu", &flag, &size, NULL, 0) == 0)
-	{
-		if (1 <= flag)  sNumberOfCPUs = flag;
-	}
-	if (sNumberOfCPUs == 0 && sysctlbyname("hw.ncpu", &flag, &size, NULL, 0) == 0)
-	{
-		if (1 <= flag)  sNumberOfCPUs = flag;
-	}
-#endif	// OOLITE_LEOPARD
 #elif OOLITE_WINDOWS
 	SYSTEM_INFO	sysInfo;
 	

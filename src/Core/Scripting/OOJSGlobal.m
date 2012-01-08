@@ -465,15 +465,9 @@ static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	NSString				*playerFileDirectory = [[NSFileManager defaultManager] defaultCommanderPath];
-	// OOLITE_LEOPARD is true for mac osx >= 10.5, this method should work in both gnustep & osx < 10.5
-#if !OOLITE_LEOPARD
-	NSDictionary			*attr = [[NSFileManager defaultManager] fileSystemAttributesAtPath:playerFileDirectory];
-#else
-	// this method should work for osx >= 10.5 (the method above is deprecated in 10.5)
-	NSError					*error = nil;
-	NSDictionary			*attr = [[NSFileManager defaultManager] attributesOfFileSystemForPath:playerFileDirectory error:&error];
-	if (!error)
-#endif
+	NSDictionary			*attr = [[NSFileManager defaultManager] oo_fileSystemAttributesAtPath:playerFileDirectory];
+	
+	if (attr != nil)
 	{
 		double freeSpace = [attr oo_doubleForKey:NSFileSystemFreeSize];
 		if (freeSpace < 1073741824) // less than 1 GB free on disk?

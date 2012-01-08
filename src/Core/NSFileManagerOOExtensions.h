@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 - (NSArray *) oo_directoryContentsAtPath:(NSString *)path;
 - (BOOL) oo_createDirectoryAtPath:(NSString *)path attributes:(NSDictionary *)attributes;
 - (NSDictionary *) oo_fileAttributesAtPath:(NSString *)path traverseLink:(BOOL)yorn;
+- (NSDictionary *) oo_fileSystemAttributesAtPath:(NSString *)path;
 - (BOOL) oo_removeItemAtPath:(NSString *)path;
 - (BOOL) oo_moveItemAtPath:(NSString *)src toPath:(NSString *)dest;
 

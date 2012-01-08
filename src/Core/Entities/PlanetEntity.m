@@ -47,7 +47,7 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.PlanetEntity"
 
 
-#if !OOLITE_MAC_OS_X || !OOLITE_LEOPARD
+#if !OOLITE_MAC_OS_X
 #define NSIntegerMapKeyCallBacks	NSIntMapKeyCallBacks
 #define NSIntegerMapValueCallBacks	NSIntMapValueCallBacks
 #endif

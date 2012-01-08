@@ -29,11 +29,7 @@ SOFTWARE.
 
 
 #if OOLITE_MAC_OS_X
-#if OOLITE_LEOPARD
 #import <objc/runtime.h>
-#else
-#import <objc/objc-class.h>
-#endif
 #endif
 
 
@@ -43,7 +39,7 @@ SOFTWARE.
 
 + (size_t) oo_instanceSize
 {
-#if OOLITE_LEOPARD || OOLITE_GNUSTEP_1_20
+#if OOLITE_MAC_OS_X || OOLITE_GNUSTEP_1_20
 	return class_getInstanceSize(self);
 #else
 	return ((Class)self)->instance_size;

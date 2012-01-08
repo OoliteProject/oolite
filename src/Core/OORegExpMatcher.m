@@ -38,9 +38,7 @@ static OORegExpMatcher *sActiveInstance;
 
 + (id) regExpMatcher
 {
-#if OO_DEBUG && (OOLITE_LEOPARD || OOLITE_GNUSTEP)
 	NSAssert(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread currentThread] isMainThread], @"OORegExpMatcher may only be used on the main thread.");
-#endif
 	
 	if (sActiveInstance == nil)
 	{
@@ -100,9 +98,7 @@ static OORegExpMatcher *sActiveInstance;
 
 - (BOOL) string:(NSString *)string matchesExpression:(NSString *)regExp flags:(OOUInteger)flags
 {
-#if OO_DEBUG && (OOLITE_LEOPARD || OOLITE_GNUSTEP)
 	NSAssert(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread currentThread] isMainThread], @"OORegExpMatcher may only be used on the main thread.");
-#endif
 	
 	size_t expLength = [regExp length];
 	if (EXPECT_NOT(expLength == 0))  return NO;

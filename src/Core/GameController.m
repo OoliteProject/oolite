@@ -886,11 +886,7 @@ static void RemovePreference(NSString *key)
 				NSFileManager *fmgr = [NSFileManager defaultManager];
 				if (![fmgr fileExistsAtPath:path])
 				{
-#if OOLITE_LEOPARD
-					[fmgr createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:NULL];
-#else
-					[fmgr createDirectoryAtPath:path attributes:nil];
-#endif
+					[fmgr oo_createDirectoryAtPath:path attributes:nil];
 				}
 			}
 		}

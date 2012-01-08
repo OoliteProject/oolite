@@ -63,9 +63,6 @@ MA 02110-1301, USA.
 		#define DESTROY(x) do { id x_ = x; x = nil; [x_ release]; } while (0)
 	#endif
 	
-	#if defined MAC_OS_X_VERSION_10_5 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
-		#define OOLITE_LEOPARD		1
-	#endif
 	#if defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
 		#define OOLITE_SNOW_LEOPARD	1
 	#endif
@@ -74,10 +71,6 @@ MA 02110-1301, USA.
 
 #ifndef OOLITE_GNUSTEP_1_20
 	#define OOLITE_GNUSTEP_1_20		0
-#endif
-
-#ifndef OOLITE_LEOPARD
-	#define OOLITE_LEOPARD			0
 #endif
 
 #ifndef OOLITE_SNOW_LEOPARD
@@ -284,32 +277,24 @@ enum {
 */
 
 #if OOLITE_MAC_OS_X
-	#if OOLITE_LEOPARD && NSINTEGER_DEFINED
-		// If OS X 10.5 SDK, use system definitions.
 		typedef NSInteger		OOInteger;
 		typedef NSUInteger		OOUInteger;
 		typedef CGFloat			OOCGFloat;
 		#if __LP64__
 			#define OOLITE_64_BIT			1
 		#endif
-	#else
-		// Older SDK, 32-bit only.
-		typedef int				OOInteger;
-		typedef unsigned int	OOUInteger;
-		typedef float			OOCGFloat;
-	#endif
 #elif OOLITE_GNUSTEP
 	/* MKW 20090414 - GNUStep 1.19 still has the NSInteger bug, so let's revert
 	 * to the older definitions for OOInteger */
-	#if GNUSTEP_BASE_MAJOR_VERSION > 1 || GNUSTEP_BASE_MINOR_VERSION >= 20
-		typedef NSInteger OOInteger;
-		typedef NSUInteger OOUInteger;
+	#if OOLITE_GNUSTEP_1_20
+		typedef NSInteger		OOInteger;
+		typedef NSUInteger		OOUInteger;
 	#else
 		// Older versions of GNUstep used int on all systems.
 		typedef int				OOInteger;
 		typedef unsigned int	OOUInteger;
 	#endif
-	typedef float			OOCGFloat;
+	typedef float				OOCGFloat;
 #endif
 
 #ifndef OOLITE_64_BIT
@@ -356,7 +341,7 @@ enum {
 	-- Ahruman 2011-02-04
 */
 #if OOLITE_MAC_OS_X
-	#define OOLITE_FAST_ENUMERATION		OOLITE_LEOPARD
+	#define OOLITE_FAST_ENUMERATION		1
 #else
 	#if __clang__
 		#define OOLITE_FAST_ENUMERATION 1
@@ -372,7 +357,7 @@ enum {
 
 // Availability of -[NSString stringByReplacingOccurrencesOfString:...] family.
 #if OOLITE_MAC_OS_X
-#define OOLITE_HAVE_STRING_BY_REPLACING	OOLITE_LEOPARD
+#define OOLITE_HAVE_STRING_BY_REPLACING	1
 #elif OOLITE_GNUSTEP
 #define OOLITE_HAVE_STRING_BY_REPLACING	OOLITE_GNUSTEP_1_20
 #endif
@@ -424,7 +409,7 @@ enum {
 	can only be one and there's no way to switch back to @required.
 */
 #ifndef OOLITE_HAVE_PROTOCOL_OPTIONAL
-#define OOLITE_HAVE_PROTOCOL_OPTIONAL OOLITE_LEOPARD
+#define OOLITE_HAVE_PROTOCOL_OPTIONAL	1
 #endif
 
 #if OOLITE_HAVE_PROTOCOL_OPTIONAL
@@ -435,5 +420,5 @@ enum {
 
 
 #ifndef OO_DEBUG
-#define OO_DEBUG 0
+#define OO_DEBUG						0
 #endif

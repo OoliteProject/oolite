@@ -147,6 +147,12 @@ MA 02110-1301, USA.
 }
 
 
+- (NSDictionary *) oo_fileSystemAttributesAtPath:(NSString *)path
+{
+	return [self attributesOfFileSystemForPath:path error:NULL];
+}
+
+
 - (BOOL) oo_removeItemAtPath:(NSString *)path
 {
 	return [self removeItemAtPath:path error:NULL];
@@ -175,6 +181,12 @@ MA 02110-1301, USA.
 - (NSDictionary *) oo_fileAttributesAtPath:(NSString *)path traverseLink:(BOOL)yorn
 {
 	return [self fileAttributesAtPath:path traverseLink:yorn];
+}
+
+
+- (NSDictionary *) oo_fileSystemAttributesAtPath:(NSString *)path
+{
+	return [self fileSystemAttributesAtPath:path];
 }
 
 
