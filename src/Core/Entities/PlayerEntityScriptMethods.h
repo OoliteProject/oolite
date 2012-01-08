@@ -45,8 +45,8 @@ MA 02110-1301, USA.
 - (NSString *) dockedStationDisplayName;
 - (BOOL) dockedAtMainStation;
 
-- (BOOL) canAwardCargoType:(OOCargoType)type amount:(OOCargoQuantity)amount;
-- (void) awardCargoType:(OOCargoType)type amount:(OOCargoQuantity)amount;
+- (BOOL) canAwardCommodityType:(OOCommodityType)type amount:(OOCargoQuantity)amount;
+- (void) awardCommodityType:(OOCommodityType)type amount:(OOCargoQuantity)amount;
 
 - (OOGalaxyID) currentGalaxyID;
 - (OOSystemID) currentSystemID;

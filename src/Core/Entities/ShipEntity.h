@@ -309,8 +309,8 @@ typedef enum
 	
 	NSMutableArray			*cargo;						// cargo containers go in here
 
-	int						commodity_type;				// type of commodity in a container
-	int						commodity_amount;			// 1 if unit is TONNES (0), possibly more if precious metals KILOGRAMS (1)
+	OOCommodityType			commodity_type;				// type of commodity in a container
+	OOCargoQuantity			commodity_amount;			// 1 if unit is TONNES (0), possibly more if precious metals KILOGRAMS (1)
 														// or gem stones GRAMS (2)
 	
 	// navigation
@@ -705,9 +705,9 @@ typedef enum
 
 - (int) legalStatus;
 
-- (void) setCommodity:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount;
-- (void) setCommodityForPod:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount;
-- (OOCargoType) commodityType;
+- (void) setCommodity:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;
+- (void) setCommodityForPod:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;
+- (OOCommodityType) commodityType;
 - (OOCargoQuantity) commodityAmount;
 
 - (OOCargoQuantity) maxCargo;
@@ -874,7 +874,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) deactivateCloakingDevice;
 - (BOOL) launchCascadeMine;
 - (OOUniversalID) launchEscapeCapsule;
-- (OOCargoType) dumpCargo;
+- (OOCommodityType) dumpCargo;
 - (ShipEntity *) dumpCargoItem;
 - (OOCargoType) dumpItem: (ShipEntity*) jetto;
 

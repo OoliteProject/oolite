@@ -558,7 +558,7 @@ typedef enum
 - (void) unloadAllCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
 - (void) unloadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
 - (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
-- (void) loadCargoPodsForType:(OOCargoType)type amount:(OOCargoQuantity) quantity;
+- (void) loadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
 - (NSMutableArray *) shipCommodityData;
 
 - (OOCreditsQuantity) deciCredits;

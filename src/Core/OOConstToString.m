@@ -363,9 +363,6 @@ NSString *CargoTypeToString(OOCargoType cargo)
 		CASE(CARGO_RANDOM);
 		CASE(CARGO_SCRIPTED_ITEM);
 		CASE(CARGO_CHARACTER);
-			
-		case CARGO_UNDEFINED:
-			break;
 	}
 	return @"Unknown cargo";
 }
@@ -623,7 +620,7 @@ NSString *DisplayStringForMassUnit(OOMassUnit unit)
 }
 
 
-NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity)
+NSString *DisplayStringForMassUnitForCommodity(OOCommodityType commodity)
 {
 	return DisplayStringForMassUnit([UNIVERSE unitsForCommodity:commodity]);
 }

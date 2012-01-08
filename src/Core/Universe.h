@@ -410,15 +410,15 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many;
 - (void) fillCargopodWithRandomCargo:(ShipEntity *)cargopod;
 
-- (OOCargoType) getRandomCommodity;
-- (OOCargoQuantity) getRandomAmountOfCommodity:(OOCargoType) co_type;
+- (OOCommodityType) getRandomCommodity;
+- (OOCargoQuantity) getRandomAmountOfCommodity:(OOCommodityType) co_type;
 
-- (NSArray *) commodityDataForType:(OOCargoType)type;
-- (OOCargoType) commodityForName:(NSString *) co_name;
-- (NSString *) symbolicNameForCommodity:(OOCargoType) co_type;
-- (NSString *) displayNameForCommodity:(OOCargoType) co_type;
-- (OOMassUnit) unitsForCommodity:(OOCargoType) co_type;
-- (NSString *) describeCommodity:(OOCargoType) co_type amount:(OOCargoQuantity) co_amount;
+- (NSArray *) commodityDataForType:(OOCommodityType)type;
+- (OOCommodityType) commodityForName:(NSString *)co_name;
+- (NSString *) symbolicNameForCommodity:(OOCommodityType)co_type;
+- (NSString *) displayNameForCommodity:(OOCommodityType)co_type;
+- (OOMassUnit) unitsForCommodity:(OOCommodityType)co_type;
+- (NSString *) describeCommodity:(OOCommodityType)co_type amount:(OOCargoQuantity) co_amount;
 
 - (void) setGameView:(MyOpenGLView *)view;
 - (MyOpenGLView *) gameView;

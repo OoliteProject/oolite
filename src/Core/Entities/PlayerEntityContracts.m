@@ -809,13 +809,13 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 - (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start
 						destination:(unsigned)Destination eta:(double)eta fee:(double)fee
 {
-	OOCargoType type = [UNIVERSE commodityForName: commodity];
-	Random_Seed r_seed = [UNIVERSE marketSeed];
-	int 		sr1 = r_seed.a * 0x10000 + r_seed.c * 0x100 + r_seed.e;
-	int 		sr2 = r_seed.b * 0x10000 + r_seed.d * 0x100 + r_seed.f;
-	NSString	*cargo_ID =[NSString stringWithFormat:@"%06x-%06x", sr1, sr2];
+	OOCommodityType	type = [UNIVERSE commodityForName: commodity];
+	Random_Seed		r_seed = [UNIVERSE marketSeed];
+	int				sr1 = r_seed.a * 0x10000 + r_seed.c * 0x100 + r_seed.e;
+	int				sr2 = r_seed.b * 0x10000 + r_seed.d * 0x100 + r_seed.f;
+	NSString		*cargo_ID =[NSString stringWithFormat:@"%06x-%06x", sr1, sr2];
 	
-	if (type == CARGO_UNDEFINED)  return NO;
+	if (type == COMMODITY_UNDEFINED)  return NO;
 	if (qty < 1)  return NO;
 	
 	// avoid duplicate cargo_IDs
@@ -898,17 +898,17 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSNumber			*contractArrivalTime = nil;
 		OOCreditsQuantity	contractPremium;
 		OOCargoQuantity		contractAmount;
-		OOCargoType			contractCargoType;
+		OOCommodityType		contractCommodityType;
 		OOMassUnit			contractCargoUnits;
 		OOCargoQuantity		cargoSpaceRequired;
 		
-		contractInfo		= [contract_market objectAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START];
-		contractID			= [contractInfo oo_stringForKey:CARGO_KEY_ID];
-		contractArrivalTime	= [contractInfo oo_objectOfClass:[NSNumber class] forKey:CONTRACT_KEY_ARRIVAL_TIME];
-		contractPremium		= [contractInfo oo_intForKey:CONTRACT_KEY_PREMIUM];
-		contractAmount		= [contractInfo oo_intForKey:CARGO_KEY_AMOUNT];
-		contractCargoType	= [contractInfo oo_intForKey:CARGO_KEY_TYPE];
-		contractCargoUnits	= [UNIVERSE unitsForCommodity:contractCargoType];
+		contractInfo			= [contract_market objectAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START];
+		contractID				= [contractInfo oo_stringForKey:CARGO_KEY_ID];
+		contractArrivalTime		= [contractInfo oo_objectOfClass:[NSNumber class] forKey:CONTRACT_KEY_ARRIVAL_TIME];
+		contractPremium			= [contractInfo oo_intForKey:CONTRACT_KEY_PREMIUM];
+		contractAmount			= [contractInfo oo_intForKey:CARGO_KEY_AMOUNT];
+		contractCommodityType	= [contractInfo oo_intForKey:CARGO_KEY_TYPE];
+		contractCargoUnits		= [UNIVERSE unitsForCommodity:contractCommodityType];
 		
 		cargoSpaceRequired = contractAmount;
 		if (contractCargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired /= 1000;
@@ -927,11 +927,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		credits -= 10 * contractPremium;
 		// add commodity to what's being carried
 		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-		NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:[manifest objectAtIndex:contractCargoType]];
+		NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:[manifest objectAtIndex:contractCommodityType]];
 		int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
 		manifest_quantity += contractAmount;
 		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-		[manifest replaceObjectAtIndex:contractCargoType withObject:[NSArray arrayWithArray:manifest_commodity]];
+		[manifest replaceObjectAtIndex:contractCommodityType withObject:[NSArray arrayWithArray:manifest_commodity]];
 		[shipCommodityData release];
 		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 		current_cargo = [self cargoQuantityOnBoard];

@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 enum
 {
 	// Values used for unknown strings.
-	kOOCargoTypeDefault			= CARGO_UNDEFINED,
+	kOOCargoTypeDefault			= CARGO_NOT_CARGO,
 	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
 	kOOEnergyUnitTypeDefault	= ENERGY_UNIT_NONE,
 	kOORouteTypeDefault			= OPTIMIZED_BY_JUMPS
@@ -103,7 +103,7 @@ NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName);
 NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition);
 
 NSString *DisplayStringForMassUnit(OOMassUnit unit);
-NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity);
+NSString *DisplayStringForMassUnitForCommodity(OOCommodityType commodity);
 
 NSString *OOStringFromCompassMode(OOCompassMode mode);
 OOCompassMode OOCompassModeFromString(NSString *string);

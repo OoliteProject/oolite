@@ -2705,10 +2705,10 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		ShipEntity* container = [self newShipWithRole:@"cargopod"];	// retained
 		
 		// look for a pre-set filling
-		OOCargoType co_type = [container commodityType];
+		OOCommodityType co_type = [container commodityType];
 		OOCargoQuantity co_amount = [container commodityAmount];
 		
-		if (((co_type == CARGO_UNDEFINED)||(co_amount == 0)) && [container cargoType] != CARGO_SCRIPTED_ITEM)
+		if ((co_type == COMMODITY_UNDEFINED || co_amount == 0) && [container cargoType] != CARGO_SCRIPTED_ITEM)
 		{
 			// choose a random filling
 			// select a random point in the histogram
@@ -2759,8 +2759,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 - (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many
 {
 	NSMutableArray	*accumulator = [NSMutableArray arrayWithCapacity:how_many];
-	OOCargoType		commodity_type = [self commodityForName: commodity_name];
-	if (commodity_type == CARGO_UNDEFINED)  return [NSArray array]; // empty array
+	OOCommodityType	commodity_type = [self commodityForName:commodity_name];
+	if (commodity_type == COMMODITY_UNDEFINED)  return [NSArray array]; // empty array
 	OOCargoQuantity	commodity_units = [self unitsForCommodity:commodity_type];
 	OOCargoQuantity	how_much = how_many;
 	
@@ -2795,22 +2795,22 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 {
 	if (cargopod == nil || ![cargopod hasRole:@"cargopod"] || [cargopod cargoType] == CARGO_SCRIPTED_ITEM)  return;
 	
-	if ([cargopod commodityType] == CARGO_UNDEFINED || ![cargopod commodityAmount])
+	if ([cargopod commodityType] == COMMODITY_UNDEFINED || ![cargopod commodityAmount])
 	{
-		OOCargoType aCommodity = [self getRandomCommodity];
+		OOCommodityType aCommodity = [self getRandomCommodity];
 		OOCargoQuantity aQuantity = [self getRandomAmountOfCommodity:aCommodity];
 		[cargopod setCommodity:aCommodity andAmount:aQuantity];		
 	}
 }
 
 
-- (OOCargoType) getRandomCommodity
+- (OOCommodityType) getRandomCommodity
 {
 	return Ranrot() % [commodityData count];
 }
 
 
-- (OOCargoQuantity) getRandomAmountOfCommodity:(OOCargoType) co_type
+- (OOCargoQuantity) getRandomAmountOfCommodity:(OOCommodityType)co_type
 {
 	OOMassUnit		units;
 	unsigned		commodityIndex = (unsigned)co_type;
@@ -2836,7 +2836,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (NSArray *)commodityDataForType:(OOCargoType)type
+- (NSArray *)commodityDataForType:(OOCommodityType)type
 {
 	if (type < 0 || [commodityData count] <= (unsigned)type)  return nil;
 	
@@ -2844,7 +2844,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (OOCargoType) commodityForName:(NSString *) co_name
+- (OOCommodityType) commodityForName:(NSString *)co_name
 {
 	unsigned		i, count;
 	NSString		*name;
@@ -2863,11 +2863,11 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 			return i;
 		}
 	}
-	return CARGO_UNDEFINED;
+	return COMMODITY_UNDEFINED;
 }
 
 
-- (NSString *) symbolicNameForCommodity:(OOCargoType) co_type
+- (NSString *) symbolicNameForCommodity:(OOCommodityType)co_type
 {
 	NSArray			*commodity = [self commodityDataForType:co_type];
 	
@@ -2877,13 +2877,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (NSString *) displayNameForCommodity:(OOCargoType) co_type
+- (NSString *) displayNameForCommodity:(OOCommodityType)co_type
 {
 	return CommodityDisplayNameForSymbolicName([self symbolicNameForCommodity:co_type]);
 }
 
 
-- (OOMassUnit) unitsForCommodity:(OOCargoType)co_type
+- (OOMassUnit) unitsForCommodity:(OOCommodityType)co_type
 {	
 	switch (co_type)
 	{
@@ -2901,7 +2901,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 
 
-- (NSString *) describeCommodity:(OOCargoType) co_type amount:(OOCargoQuantity) co_amount
+- (NSString *) describeCommodity:(OOCommodityType)co_type amount:(OOCargoQuantity)co_amount
 {
 	int				units;
 	NSString		*unitDesc = nil, *typeDesc = nil;

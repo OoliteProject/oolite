@@ -1318,7 +1318,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSArray					*tokens = ScanTokensFromString(amount_typeString);
 	NSString				*typeString = nil;
 	OOCargoQuantityDelta	amount;
-	OOCargoType				type;
+	OOCommodityType			type;
 	OOMassUnit				unit;
 	NSArray					*commodityArray = nil;
 
@@ -1330,7 +1330,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	typeString = [tokens objectAtIndex:1];
 	type = [UNIVERSE commodityForName:typeString];
-	if (type == CARGO_UNDEFINED)  type = [typeString intValue];
+	if (type == COMMODITY_UNDEFINED)  type = [typeString intValue];
 	
 	commodityArray = [UNIVERSE commodityDataForType:type];
 	
@@ -1354,7 +1354,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 	
-	[self awardCargoType:type amount:amount];
+	[self awardCommodityType:type amount:amount];
 }
 
 
@@ -1366,7 +1366,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) removeAllCargo:(BOOL)forceRemoval
 {
 	// misnamed function. it only removes  cargo measured in TONS, g & Kg items are not removed. --Kaks 20091004 
-	OOCargoType				type;
+	OOCommodityType			type;
 	OOMassUnit				unit;
 	
 	if (scriptTarget != self)  return;
@@ -1380,7 +1380,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	OOLog(kOOLogNoteRemoveAllCargo, @"%@ removeAllCargo", forceRemoval ? @"Forcing" : @"Going to");
 	
 	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-	for (type = 0; type < (OOCargoType)[manifest count]; type++)
+	for (type = 0; type < (OOCommodityType)[manifest count]; type++)
 	{
 		NSMutableArray *manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
 		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
