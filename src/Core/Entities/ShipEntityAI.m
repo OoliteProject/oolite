@@ -1225,40 +1225,39 @@ MA 02110-1301, USA.
 	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
 
 	[self checkScanner];
-	
-	NSString* distress_message;
 	found_target = NO_TARGET;
-	BOOL	is_buoy = (scanClass == CLASS_BUOY);
-	ShipEntity*	aggressor_ship = [UNIVERSE entityForUniversalID:primaryAggressor];
 	
-	if (!aggressor_ship) return;
+	ShipEntity	*aggressor_ship = [UNIVERSE entityForUniversalID:primaryAggressor];
+	if (aggressor_ship == nil)  return;
 	
-	if (messageTime > 2.0 * randf())
-		return;					// don't send too many distress messages at once, space them out semi-randomly
+	// don't send too many distress messages at once, space them out semi-randomly
+	if (messageTime > 2.0 * randf())  return;
 	
-	if (is_buoy)
-		distress_message = @"[buoy-distress-call]";
-	else
-		distress_message = @"[distress-call]";
+	NSString	*distress_message = nil;
+	BOOL		is_buoy = (scanClass == CLASS_BUOY);
+	if (is_buoy)  distress_message = @"[buoy-distress-call]";
+	else  distress_message = @"[distress-call]";
 	
 	unsigned i;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity*	ship = scanned_ships[i];
 	
-		// tell it! //
+		// tell it!
 		if (ship->isPlayer)
 		{
-			if ((primaryAggressor == [ship universalID])&&(energy < 0.375 * maxEnergy)&&(!is_buoy))
+			if (!is_buoy && primaryAggressor == [ship universalID] && energy < 0.375 * maxEnergy)
 			{
 				[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(@"[beg-for-mercy]") toShip:ship];
 				[self ejectCargo];
 				[self performFlee];
 			}
 			else
+			{
 				[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(distress_message) toShip:ship];
+			}
+			
 			// reset the thanked_ship_id
-			//
 			thanked_ship_id = NO_TARGET;
 		}
 		else if ([self bounty] == 0 && [ship crew]) // Only clean ships can have their distress calls accepted
@@ -1267,12 +1266,10 @@ MA 02110-1301, USA.
 			
 			// we only can send distressMessages to ships that are known to have a "ACCEPT_DISTRESS_CALL" reaction
 			// in their AI, or they might react wrong on the added found_target.
-			if (ship->isStation)
+			if (ship->isStation || [ship hasPrimaryRole:@"police"] || [ship hasPrimaryRole:@"hunter"])
+			{
 				[ship acceptDistressMessageFrom:self];
-			if ([ship hasPrimaryRole:@"police"])
-				[ship acceptDistressMessageFrom:self];
-			if ([ship hasPrimaryRole:@"hunter"])
-				[ship acceptDistressMessageFrom:self];
+			}
 		}
 	}
 }
@@ -1281,17 +1278,22 @@ MA 02110-1301, USA.
 - (void) ejectCargo
 {
 	unsigned i;
-	if ((cargo_flag == CARGO_FLAG_FULL_PLENTIFUL)||(cargo_flag == CARGO_FLAG_FULL_SCARCE))
+	if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL || cargo_flag == CARGO_FLAG_FULL_SCARCE)
 	{
-		NSArray* jetsam;
+		NSArray *jetsam;
 		int cargo_to_go = 0.1 * max_cargo;
 		while (cargo_to_go > 15)
+		{
 			cargo_to_go = ranrot_rand() % cargo_to_go;
+		}
 		
 		jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:cargo_flag == CARGO_FLAG_FULL_SCARCE];
 		
-		if (!cargo)
+		if (cargo == nil)
+		{
 			cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo];
+		}
+		
 		[cargo addObjectsFromArray:jetsam];
 		cargo_flag = CARGO_FLAG_CANISTERS;
 	}
