@@ -292,7 +292,7 @@ enum
 		}
 	}
 	
-	OOSoundAtomicAdd(-1, &inContext->pendingCount);
+	OSAtomicAdd32(-1, &inContext->pendingCount);
 	if (inContext->pendingCount == 0 && inContext->stopped)
 	{
 		OOLog(@"sound.streaming.releaseContext.deferred", @"Stopped streaming sound %@ reached 0 pendingCount, releasing context.", self);
@@ -372,7 +372,7 @@ enum
 	remaining -= available;
 	if (!context->atEnd && remaining < kStreamBufferRefillThreshold * sizeof (float) && sFeederQueue != kInvalidID)
 	{
-		OOSoundAtomicAdd(1, &context->pendingCount);
+		OSAtomicAdd32(1, &context->pendingCount);
 		MPNotifyQueue(sFeederQueue, (void *)kMsgFillBuffers, self, context);
 	}
 	

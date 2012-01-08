@@ -63,13 +63,10 @@ MA 02110-1301, USA.
 		#define DESTROY(x) do { id x_ = x; x = nil; [x_ release]; } while (0)
 	#endif
 	
-	/*	Lots of stuff changed between 10.3.9 SDK used for 32-bit builds and 10.5
-		SDK used for 64-bit builds.
-	*/
-	#if defined MAC_OS_X_VERSION_10_5 && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+	#if defined MAC_OS_X_VERSION_10_5 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 		#define OOLITE_LEOPARD		1
 	#endif
-	#if defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+	#if defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
 		#define OOLITE_SNOW_LEOPARD	1
 	#endif
 #endif

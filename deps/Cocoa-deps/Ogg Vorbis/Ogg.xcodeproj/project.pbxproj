@@ -171,7 +171,6 @@
 /* Begin XCBuildConfiguration section */
 		1ADE32B9097580C800961AE2 /* Deployment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AE344D312CB6F4F00FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -191,16 +190,15 @@
 		};
 		1AE344EE12CB70B800FD8C62 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AE344D312CB6F4F00FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				SDKROOT = macosx10.4;
 			};
 			name = Debug;
 		};
 		1AE344EF12CB70B800FD8C62 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AE344D312CB6F4F00FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -220,16 +218,15 @@
 		};
 		1AE344F012CB70BF00FD8C62 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AE344D312CB6F4F00FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				SDKROOT = macosx10.4;
 			};
 			name = TestRelease;
 		};
 		1AE344F112CB70BF00FD8C62 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AE344D312CB6F4F00FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -249,10 +246,10 @@
 		};
 		730F235A09181A3A00AB638C /* Deployment */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AE344D312CB6F4F00FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				SDKROOT = macosx10.4;
 			};
 			name = Deployment;
 		};

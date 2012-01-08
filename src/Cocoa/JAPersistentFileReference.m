@@ -44,6 +44,9 @@ SOFTWARE.
 #define BookmarkDataSupported() ([NSURL instancesRespondToSelector:@selector(bookmarkDataWithOptions:includingResourceValuesForKeys:relativeToURL:error:)])
 #endif
 
+
+#if MAC_OS_X_VERSION_10_6 > MAC_OS_X_VERSION_MAX_ALLOWED
+
 @interface NSURL (SnowLeopardMethods)
 
 - (NSData *)bookmarkDataWithOptions:(unsigned long)options includingResourceValuesForKeys:(NSArray *)keys relativeToURL:(NSURL *)relativeURL error:(NSError **)error;
@@ -61,6 +64,7 @@ enum
     NSURLBookmarkResolutionWithoutMounting = ( 1UL << 9 ),
 };
 
+#endif
 #endif
 
 

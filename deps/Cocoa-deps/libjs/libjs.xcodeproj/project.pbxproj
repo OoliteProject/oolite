@@ -2208,19 +2208,17 @@
 		};
 		1AB25A6D12CA13A000C67F42 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				SDKROOT = macosx10.6;
 			};
 			name = TestRelease;
 		};
 		1AB25A6E12CA13A000C67F42 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -2248,7 +2246,6 @@
 		};
 		1AB25AC712CA1CB100C67F42 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
@@ -2276,7 +2273,6 @@
 		};
 		1AB25AC812CA1CB100C67F42 /* Deployment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -2301,7 +2297,6 @@
 		};
 		1AB25AC912CA1CB100C67F42 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -2335,7 +2330,6 @@
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
 				PRODUCT_NAME = jsoplengen;
-				SDKROOT = macosx10.5;
 				SYMROOT = ../../../build;
 			};
 			name = Debug;
@@ -2351,7 +2345,6 @@
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
 				PRODUCT_NAME = jsoplengen;
-				SDKROOT = macosx10.5;
 				SYMROOT = ../../../build;
 				ZERO_LINK = NO;
 			};
@@ -2366,7 +2359,6 @@
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
 				PRODUCT_NAME = jsoplengen;
-				SDKROOT = macosx10.5;
 				SYMROOT = ../../../build;
 			};
 			name = TestRelease;
@@ -2383,7 +2375,6 @@
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
 				PRODUCT_NAME = jskwgen;
-				SDKROOT = macosx10.5;
 				SYMROOT = ../../../build;
 			};
 			name = Debug;
@@ -2399,7 +2390,6 @@
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
 				PRODUCT_NAME = jskwgen;
-				SDKROOT = macosx10.5;
 				SYMROOT = ../../../build;
 				ZERO_LINK = NO;
 			};
@@ -2414,14 +2404,12 @@
 				INSTALL_PATH = /usr/local/bin;
 				PREBINDING = NO;
 				PRODUCT_NAME = jskwgen;
-				SDKROOT = macosx10.5;
 				SYMROOT = ../../../build;
 			};
 			name = TestRelease;
 		};
 		1AD05E0A12CD189100704F1D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
@@ -2491,7 +2479,6 @@
 		};
 		1DEB91EC08733DB70010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
@@ -2525,7 +2512,6 @@
 		};
 		1DEB91ED08733DB70010E9CD /* Deployment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -2554,27 +2540,25 @@
 		};
 		1DEB91F008733DB70010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
-				SDKROOT = macosx10.6;
 			};
 			name = Debug;
 		};
 		1DEB91F108733DB70010E9CD /* Deployment */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				SDKROOT = macosx10.6;
 			};
 			name = Deployment;
 		};

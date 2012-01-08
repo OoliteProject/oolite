@@ -558,7 +558,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	CGDisplayErr	err;
 	GLint			oldSwapInterval;
 	GLint			newSwapInterval;
-	CGMouseDelta	mouse_dx, mouse_dy;
+	int32_t			mouse_dx, mouse_dy;
 	
 	// empty the event queue and strip all keys - stop problems with hangover keys
 	{

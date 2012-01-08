@@ -427,7 +427,6 @@
 /* Begin XCBuildConfiguration section */
 		1ADE328209757FEC00961AE2 /* Deployment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -452,24 +451,17 @@
 		};
 		1AE3458412CB7A9B00FD8C62 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					x86_64,
-					ppc,
-					i386,
-				);
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
 				GCC_VERSION = 4.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
-				SDKROOT = macosx10.4;
-				"SDKROOT[arch=x86_64]" = macosx10.6;
 			};
 			name = Debug;
 		};
 		1AE3458512CB7A9B00FD8C62 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -494,24 +486,17 @@
 		};
 		1AE3458612CB7A9E00FD8C62 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					x86_64,
-					ppc,
-					i386,
-				);
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
 				GCC_VERSION = 4.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
-				SDKROOT = macosx10.4;
-				"SDKROOT[arch=x86_64]" = macosx10.6;
 			};
 			name = TestRelease;
 		};
 		1AE3458712CB7A9E00FD8C62 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_AUTO_VECTORIZATION = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -536,18 +521,12 @@
 		};
 		730F23F5091827B200AB638C /* Deployment */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					x86_64,
-					ppc,
-					i386,
-				);
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
 				GCC_VERSION = 4.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
-				SDKROOT = macosx10.4;
-				"SDKROOT[arch=x86_64]" = macosx10.6;
 			};
 			name = Deployment;
 		};

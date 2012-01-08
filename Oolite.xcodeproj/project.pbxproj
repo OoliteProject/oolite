@@ -4075,24 +4075,16 @@
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = macosx10.4;
 			};
 			name = Debug;
 		};
 		08B31CB208FE63D70038D42F /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					x86_64,
-					ppc,
-					i386,
-				);
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = macosx10.4;
-				"SDKROOT[arch=x86_64]" = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
 			};
 			name = Deployment;
 		};
@@ -4146,12 +4138,11 @@
 		};
 		1A0832D80C2F105000E3AE25 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = macosx10.4;
 			};
 			name = TestRelease;
 		};
@@ -4190,12 +4181,8 @@
 		};
 		1AD2676B0C8305A200B4BFD1 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
 				PRODUCT_NAME = "Build All";
 			};
 			name = TestRelease;

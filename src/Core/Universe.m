@@ -89,7 +89,7 @@ MA 02110-1301, USA.
 #endif
 
 
-#if OOLITE_MAC_OS_X && !OOLITE_LEOPARD
+#if OBSOLETE
 
 enum
 {

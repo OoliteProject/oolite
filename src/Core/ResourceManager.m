@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "OOCollectionExtractors.h"
 #import "OOLogOutputHandler.h"
+#import "NSFileManagerOOExtensions.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -468,7 +469,7 @@ static NSMutableDictionary *sStringCache;
 	modDates = [NSMutableArray arrayWithCapacity:[searchPaths count]];
 	for (pathEnum = [searchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
 	{
-		modDate = [[fmgr fileAttributesAtPath:path traverseLink:YES] objectForKey:NSFileModificationDate];
+		modDate = [[fmgr oo_fileAttributesAtPath:path traverseLink:YES] objectForKey:NSFileModificationDate];
 		if (modDate != nil)
 		{
 			// Converts to double because I'm not sure the cache can deal with dates under GNUstep.
@@ -1003,7 +1004,7 @@ static NSMutableDictionary *sStringCache;
 	if (!exists)
 	{
 		if (!inCreate) return NO;
-		if (![fmgr createDirectoryAtPath:inPath attributes:nil])
+		if (![fmgr oo_createDirectoryAtPath:inPath attributes:nil])
 		{
 			OOLog(@"resourceManager.write.buildPath.failed", @"Could not create folder %@.", inPath);
 			return NO;

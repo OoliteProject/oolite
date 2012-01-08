@@ -35,6 +35,7 @@ SOFTWARE.
 #import "OOCAStreamingSound.h"
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
+#import <OSAtomic.h>
 #import "OOErrorDescription.h"
 #import "OOLogging.h"
 
@@ -71,51 +72,6 @@ extern NSString * const kOOLogDeprecatedMethodOOCASound;
 extern NSString * const kOOLogSoundInitError;
 
 #define kOOLogUnconvertedNSLog @"unclassified.OOCASound"
-
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4
-#import <OSAtomic.h>
-
-static inline void OOSoundAtomicAdd(int32_t delta, int32_t *value)
-{
-	OSAtomicAdd32(delta, value);
-}
-#else
-static inline void OOSoundAtomicAdd(int32_t delta, int32_t *value)
-{
-	OTAtomicAdd32(delta, (SInt32 *)value);
-}
-#endif
-
-
-// Wrappers for AU APIs changed in Leopard SDK
-#if OOLITE_LEOPARD
-
-static inline OSStatus OOAUGraphAddNode(AUGraph inGraph, const ComponentDescription *inDescription, AUNode *outNode)
-{
-	return AUGraphAddNode(inGraph, inDescription, outNode);
-}
-
-
-static inline OSStatus OOAUGraphNodeInfo(AUGraph inGraph, AUNode inNode, ComponentDescription *outDescription, AudioUnit *outAudioUnit)	
-{
-	return AUGraphNodeInfo(inGraph, inNode, outDescription, outAudioUnit);
-}
-
-#else
-
-static inline OSStatus OOAUGraphAddNode(AUGraph inGraph, const ComponentDescription *inDescription, AUNode *outNode)
-{
-	return AUGraphNewNode(inGraph, inDescription, 0, NULL, outNode);
-}
-
-
-static inline OSStatus OOAUGraphNodeInfo(AUGraph inGraph, AUNode inNode, ComponentDescription *outDescription, AudioUnit *outAudioUnit)	
-{
-	return AUGraphGetNodeInfo(inGraph, inNode, outDescription, NULL, NULL, outAudioUnit);
-}
-
-#endif
 
 
 #ifndef NDEBUG

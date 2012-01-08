@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OODeepCopy.h"
 #import "OOCollectionExtractors.h"
 #import "OOJavaScriptEngine.h"
+#import "NSFileManagerOOExtensions.h"
 
 
 #define WRITE_ASYNC				1
@@ -593,7 +594,7 @@ static OOCacheManager *sSingleton = nil;
 	if (!exists)
 	{
 		if (!inCreate) return NO;
-		if (![fmgr createDirectoryAtPath:inPath attributes:nil])
+		if (![fmgr oo_createDirectoryAtPath:inPath attributes:nil])
 		{
 			OOLog(kOOLogDataCacheBuildPathError, @"Could not create folder %@.", inPath);
 			return NO;

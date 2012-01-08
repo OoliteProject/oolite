@@ -37,12 +37,12 @@ MA 02110-1301, USA.
 
 @implementation NSFileManager (OOExtensions)
 
-- (NSArray *) commanderContentsOfPath:(NSString*) savePath
+- (NSArray *) commanderContentsOfPath:(NSString *)savePath
 {
 	BOOL pathIsDirectory = NO;
 	if ([[NSFileManager defaultManager] fileExistsAtPath:savePath isDirectory:&pathIsDirectory] && pathIsDirectory)
 	{
-		NSMutableArray *contents = [NSMutableArray arrayWithArray:[self directoryContentsAtPath: savePath]];
+		NSMutableArray *contents = [NSMutableArray arrayWithArray:[self oo_directoryContentsAtPath:savePath]];
 		
 		// at this point we should strip out any files not loadable as Oolite saved games
 		unsigned i;
@@ -95,7 +95,7 @@ MA 02110-1301, USA.
 	if (![[NSFileManager defaultManager] fileExistsAtPath:savedir isDirectory:&pathIsDirectory])
 	{
 		// it doesn't exist.
-		if([self createDirectoryAtPath: savedir attributes: nil])
+		if([self oo_createDirectoryAtPath:savedir attributes:nil])
 		{
 			return savedir;
 		}
@@ -115,6 +115,81 @@ MA 02110-1301, USA.
 	
 	return savedir;
 }
+
+
+#if OOLITE_MAC_OS_X
+
+- (NSArray *) oo_directoryContentsAtPath:(NSString *)path
+{
+	return [self contentsOfDirectoryAtPath:path error:NULL];
+}
+
+
+- (BOOL) oo_createDirectoryAtPath:(NSString *)path attributes:(NSDictionary *)attributes
+{
+	return [self createDirectoryAtPath:path withIntermediateDirectories:NO attributes:attributes error:NULL];
+}
+
+
+- (NSDictionary *) oo_fileAttributesAtPath:(NSString *)path traverseLink:(BOOL)traverseLink
+{
+	if (traverseLink)
+	{
+		NSString *linkDest = nil;
+		do
+		{
+			linkDest = [self destinationOfSymbolicLinkAtPath:path error:NULL];
+			if (linkDest != nil)  path = linkDest;
+		} while (linkDest != nil);
+	}
+	
+	return [self attributesOfItemAtPath:path error:NULL];
+}
+
+
+- (BOOL) oo_removeItemAtPath:(NSString *)path
+{
+	return [self removeItemAtPath:path error:NULL];
+}
+
+
+- (BOOL) oo_moveItemAtPath:(NSString *)src toPath:(NSString *)dest
+{
+	return [self moveItemAtPath:src toPath:dest error:NULL];
+}
+
+#else
+
+- (NSArray *) oo_directoryContentsAtPath:(NSString *)path
+{
+	return [self directoryContentsAtPath:path];
+}
+
+
+- (BOOL) oo_createDirectoryAtPath:(NSString *)path attributes:(NSDictionary *)attributes
+{
+	return [self createDirectoryAtPath:path attributes:attributes];
+}
+
+
+- (NSDictionary *) oo_fileAttributesAtPath:(NSString *)path traverseLink:(BOOL)yorn
+{
+	return [self fileAttributesAtPath:path traverseLink:yorn];
+}
+
+
+- (BOOL) oo_removeItemAtPath:(NSString *)path
+{
+	return [self removeFileAtPath:path handler:nil];
+}
+
+
+- (BOOL) oo_moveItemAtPath:(NSString *)src toPath:(NSString *)dest
+{
+	return [self movePath:src toPath:dst handler:nil];
+}
+
+#endif
 
 
 #if OOLITE_SDL

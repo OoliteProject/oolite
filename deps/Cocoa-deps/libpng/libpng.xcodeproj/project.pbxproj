@@ -219,36 +219,29 @@
 /* Begin XCBuildConfiguration section */
 		08B31CB108FE63D70038D42F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = macosx10.4;
 			};
 			name = Debug;
 		};
 		08B31CB208FE63D70038D42F /* Deployment */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					x86_64,
-					ppc,
-					i386,
-				);
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = macosx10.4;
-				"SDKROOT[arch=x86_64]" = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
 			};
 			name = Deployment;
 		};
 		1A0832D60C2F105000E3AE25 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -268,18 +261,17 @@
 		};
 		1A0832D80C2F105000E3AE25 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = macosx10.4;
 			};
 			name = TestRelease;
 		};
 		1A71E6FD0BCE345800CD5C13 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -303,7 +295,6 @@
 		};
 		1A71E6FE0BCE345800CD5C13 /* Deployment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;

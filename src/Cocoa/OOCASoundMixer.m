@@ -81,7 +81,7 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 	BOOL						OK;
 	uint32_t					idx = 0, count = kMixerGeneralChannels;
 	OOSoundChannel				*temp;
-	ComponentDescription		desc;
+	AudioComponentDescription	desc;
 	
 	if (!gOOSoundSetUp)  [OOSound setUp];
 	
@@ -103,7 +103,7 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 			desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 			desc.componentFlags = 0;
 			desc.componentFlagsMask = 0;
-			if (!err)  err = OOAUGraphAddNode(_graph, &desc, &_outputNode);
+			if (!err)  err = AUGraphAddNode(_graph, &desc, &_outputNode);
 			
 			// Add mixer node
 			desc.componentType = kAudioUnitType_Mixer;
@@ -111,14 +111,14 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 			desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 			desc.componentFlags = 0;
 			desc.componentFlagsMask = 0;
-			if (!err)  err = OOAUGraphAddNode(_graph, &desc, &_mixerNode);
+			if (!err)  err = AUGraphAddNode(_graph, &desc, &_mixerNode);
 			
 			// Connect mixer to output
 			if (!err)  err = AUGraphConnectNodeInput(_graph, _mixerNode, 0, _outputNode, 0);
 			
 			// Open the graph (turn it into concrete AUs) and extract mixer AU
 			if (!err)  err = AUGraphOpen(_graph);
-			if (!err)  err = OOAUGraphNodeInfo(_graph, _mixerNode, NULL, &_mixerUnit);
+			if (!err)  err = AUGraphNodeInfo(_graph, _mixerNode, NULL, &_mixerUnit);
 			
 			if (!err)  [self setMasterVolume:1.0];
 			

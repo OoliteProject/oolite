@@ -36,6 +36,7 @@ SOFTWARE.
 #include <stdlib.h>
 #include <stdio.h>
 #import "NSThreadOOExtensions.h"
+#import "NSFileManagerOOExtensions.h"
 
 
 #undef NSLog		// We need to be able to call the real NSLog.
@@ -260,10 +261,10 @@ enum
 		if ([fmgr fileExistsAtPath:logPath])
 		{
 			oldPath = [OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:@"Previous.log"];
-			[fmgr removeFileAtPath:oldPath handler:nil];
-			if (![fmgr movePath:logPath toPath:oldPath handler:nil])
+			[fmgr oo_removeItemAtPath:oldPath];
+			if (![fmgr oo_moveItemAtPath:logPath toPath:oldPath])
 			{
-				if (![fmgr removeFileAtPath:logPath handler:nil])
+				if (![fmgr oo_removeItemAtPath:logPath])
 				{
 					NSLog(@"Log setup: could not move or delete existing log at %@, will log to stdout instead.", logPath);
 					OK = NO;
@@ -558,7 +559,7 @@ static BOOL DirectoryExistCreatingIfNecessary(NSString *path)
 	}
 	if (!exists)
 	{
-		if (![fmgr createDirectoryAtPath:path attributes:nil])
+		if (![fmgr oo_createDirectoryAtPath:path attributes:nil])
 		{
 			NSLog(@"Log setup: could not create folder %@.", path);
 			return NO;

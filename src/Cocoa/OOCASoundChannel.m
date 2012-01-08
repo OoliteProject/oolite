@@ -271,7 +271,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 - (id)initWithID:(uint32_t)inID auGraph:(AUGraph)inGraph
 {
 	OSStatus					err = noErr;
-	ComponentDescription		desc;
+	AudioComponentDescription	desc;
 	AURenderCallbackStruct		input;
 	
 	assert(sReaperRunning);
@@ -291,8 +291,8 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 		desc.componentFlags = 0;
 		desc.componentFlagsMask = 0;
-		if (!err) err = OOAUGraphAddNode(_subGraph, &desc, &_node);
-		if (!err) err = OOAUGraphNodeInfo(_subGraph, _node, NULL, &_au);
+		if (!err) err = AUGraphAddNode(_subGraph, &desc, &_node);
+		if (!err) err = AUGraphNodeInfo(_subGraph, _node, NULL, &_au);
 		
 		// Set render callback
 		input.inputProc = ChannelRenderProc;
@@ -374,7 +374,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	unexpectedNulls = sDebugUnexpectedNullCount;
 	if (0 != unexpectedNulls)
 	{
-		OOSoundAtomicAdd(-unexpectedNulls, &sDebugUnexpectedNullCount);
+		OSAtomicAdd32(-unexpectedNulls, &sDebugUnexpectedNullCount);
 		OOLog(kOOLogSoundNULLError, @"%u NULL Render() or nil _sound errors have occured.", (unsigned int)unexpectedNulls);
 	}
 #endif
@@ -383,7 +383,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	SInt32 badStates = sDebugBadStateCount;
 	if (badStates != 0)
 	{
-		OOSoundAtomicAdd(-badStates, &sDebugBadStateCount);
+		OSAtomicAdd32(-badStates, &sDebugBadStateCount);
 		OOLog(kOOLogSoundBadStateError, @"%u bad state errors have occured - hopefully, you didn't get a horribly loud buzzing noise.", (unsigned int)badStates);
 	}
 #endif
@@ -607,7 +607,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 			// Logging in real-time thread _baaaaaad_.
 			if (NULL == Render || nil == _sound)
 			{
-				OOSoundAtomicAdd(1, &sDebugUnexpectedNullCount);
+				OSAtomicAdd32(1, &sDebugUnexpectedNullCount);
 			}
 #endif
 		}
@@ -617,7 +617,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		renderSilence = YES;
 		
 #if COUNT_BAD_STATES
-		OOSoundAtomicAdd(1, &sDebugBadStateCount);
+		OSAtomicAdd32(1, &sDebugBadStateCount);
 #endif
 	}
 	
