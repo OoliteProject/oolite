@@ -2175,9 +2175,6 @@
 			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
 			};
 			name = TestRelease;
 		};
@@ -2192,6 +2189,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(JS_SRC_PATH)/assembler",
 					"$(JS_SRC_PATH)/yarr",
@@ -2204,7 +2202,6 @@
 				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(JS_SRC_PATH) $(MOZILLA_PATH)/nsprpub/pr/include/";
-				WARNING_CFLAGS = "-Wno-unused-variable";
 			};
 			name = TestRelease;
 		};
@@ -2458,6 +2455,7 @@
 					"DEBUG=1",
 					"MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"",
 				);
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(JS_SRC_PATH)/assembler",
 					"$(JS_SRC_PATH)/yarr",
@@ -2470,7 +2468,6 @@
 				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(JS_SRC_PATH) $(MOZILLA_PATH)/nsprpub/pr/include/";
-				WARNING_CFLAGS = "-Wno-unused-variable";
 			};
 			name = Debug;
 		};
@@ -2486,6 +2483,7 @@
 				GCC_PREFIX_HEADER = "js-oolite-prefix.h";
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "NDEBUG=1";
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(JS_SRC_PATH)/assembler",
 					"$(JS_SRC_PATH)/yarr",
@@ -2498,7 +2496,6 @@
 				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(JS_SRC_PATH) $(MOZILLA_PATH)/nsprpub/pr/include/";
-				WARNING_CFLAGS = "-Wno-unused-variable";
 			};
 			name = Deployment;
 		};
@@ -2508,8 +2505,6 @@
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 			};
@@ -2520,9 +2515,6 @@
 			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
 			};
 			name = Deployment;
 		};
