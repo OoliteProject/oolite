@@ -1863,11 +1863,10 @@
 			);
 			name = "Generate jsautooplen.h";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/jsautooplen.h",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Build jsautooplen.h.\n# The input data is hard-coded into the jsoplengen tool, which is a target dependency.\n\n\"$BUILT_PRODUCTS_DIR/jsoplengen\" \"$DERIVED_FILE_DIR/jsautooplen.h\"\n";
+			shellScript = "# Build jsautooplen.h.\n# The input data is hard-coded into the jsoplengen tool, which is a target dependency.\n\nmkdir -p \"$DERIVED_FILE_DIR\"\n\nif [ ! -e \"$DERIVED_FILE_DIR/jsautooplen.h\" ]\nthen\n    \"$BUILT_PRODUCTS_DIR/jsoplengen\" \"$DERIVED_FILE_DIR/jsautooplen.h\"\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		1AC16CC512F0947400907218 /* Genrate jsautokw.h */ = {
@@ -1880,11 +1879,10 @@
 			);
 			name = "Genrate jsautokw.h";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/jsautokw.h",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Build jsautokw.h.\n# The input data is hard-coded into the jskwgen tool, which is a target dependency.\n\n\"$BUILT_PRODUCTS_DIR/jskwgen\" \"$DERIVED_FILE_DIR/jsautokw.h\"\n";
+			shellScript = "# Build jsautokw.h.\n# The input data is hard-coded into the jskwgen tool, which is a target dependency.\n\nmkdir -p \"$DERIVED_FILE_DIR\"\n\nif [ ! -e \"$DERIVED_FILE_DIR/jsautokw.h\" ]\nthen\n    \"$BUILT_PRODUCTS_DIR/jskwgen\" \"$DERIVED_FILE_DIR/jsautokw.h\"\nfi\n";
 		};
 		1AEA217E12CBC08D00EC0F43 /* Assemble imacros */ = {
 			isa = PBXShellScriptBuildPhase;
