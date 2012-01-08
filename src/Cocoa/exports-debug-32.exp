@@ -62,10 +62,6 @@ _OOJSProfileEnter
 _OOJSProfileExit
 _OOJSUnreachable
 
-# Symbols used by Leopard features bundle
-.objc_class_name_OOJoystickManager
-.objc_class_name_GameController
-
 # Debug value formatter support
 _JSValueToStrDbg
 _JSObjectToStrDbg

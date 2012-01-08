@@ -89,26 +89,6 @@ MA 02110-1301, USA.
 #endif
 
 
-#if OBSOLETE
-
-enum
-{
-	NSSpeechImmediateBoundary =  0,
-	NSSpeechWordBoundary,
-	NSSpeechSentenceBoundary
-};
-typedef OOUInteger NSSpeechBoundary;
-
-
-@interface NSSpeechSynthesizer (Leopard)
-
-- (void) stopSpeakingAtBoundary:(NSSpeechBoundary)boundary;
-
-@end
-
-#endif
-
-
 enum
 {
 	DEMO_FLY_IN			= 101,

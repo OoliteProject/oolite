@@ -45,8 +45,8 @@ MA 02110-1301, USA.
 #import "JAPersistentFileReference.h"
 #import <Sparkle/Sparkle.h>
 #import "OoliteApp.h"
+#import "OOMacJoystickManager.h"
 
-static void LoadSystemSpecificBundles(void);
 static void SetUpSparkle(void);
 #endif
 
@@ -225,7 +225,7 @@ static GameController *sSharedController = nil;
 #endif
 		
 #if OOLITE_MAC_OS_X
-	LoadSystemSpecificBundles();
+	[OOJoystickManager setStickHandlerClass:[OOMacJoystickManager class]];
 	SetUpSparkle();
 #endif
 		
@@ -1434,50 +1434,6 @@ static NSMutableArray *sMessageStack;
 
 
 #if OOLITE_MAC_OS_X
-#define PACK_VERSION(maj, min)  (((maj) << 16) | (min))
-enum
-{
-	kSystemVersion10_5 = PACK_VERSION(10, 5),
-	kSystemVersion10_6 = PACK_VERSION(10, 6)
-};
-
-
-static void LoadOneSystemSpecificBundle(NSString *name);
-
-
-static void LoadSystemSpecificBundles(void)
-{
-	SInt32 majorVersion, minorVersion;
-	if (Gestalt(gestaltSystemVersionMajor, &majorVersion) != noErr)  majorVersion = 0;
-	if (Gestalt(gestaltSystemVersionMinor, &minorVersion) != noErr)  minorVersion = 0;
-	
-	long packedVersion = PACK_VERSION(majorVersion, minorVersion);
-	if (packedVersion >= kSystemVersion10_5)
-	{
-		OO_DEBUG_PUSH_PROGRESS(@"Loading Leopard support bundle");
-		LoadOneSystemSpecificBundle(@"Oolite Leopard support");
-		OO_DEBUG_POP_PROGRESS();
-	}
-}
-
-
-static void LoadOneSystemSpecificBundle(NSString *name)
-{
-	NSString *path = [[[NSBundle mainBundle] builtInPlugInsPath] stringByAppendingPathComponent:[name stringByAppendingPathExtension:@"bundle"]];
-	NSBundle *bundle = [NSBundle bundleWithPath:path];
-	
-	if (bundle != nil)
-	{
-		[bundle load];
-		Class cl = [bundle principalClass];
-		[[[cl alloc] init] release];
-	}
-	else
-	{
-		OOLog(@"mac.systemSpecific.load.failed", @"Failed to load %@", path);
-	}
-}
-
 
 static void SetUpSparkle(void)
 {
