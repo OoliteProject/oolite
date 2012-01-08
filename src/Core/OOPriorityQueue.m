@@ -501,7 +501,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 		amountToRemove = _capacity - _count * 2 / 3;
 		if (2 < amountToRemove)
 		{
-			newCapacity = _capacity = amountToRemove;
+			newCapacity = _capacity - amountToRemove;
 			newBuffer = realloc(_heap, newCapacity * sizeof(id));
 			if (newBuffer != NULL)
 			{
