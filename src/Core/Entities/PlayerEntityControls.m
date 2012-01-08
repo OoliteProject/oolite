@@ -3435,10 +3435,8 @@ static BOOL autopilot_pause;
 // Called on c or Shift-C
 - (void) handleAutopilotOn:(BOOL)fastDocking
 {
-	BOOL		isOkayToUseAutopilot	= NO;
-	Entity		*target					= nil;
-	NSString	*message				= nil;
-
+	NSString	*message = nil;
+	
 	// Check alert condition - on red alert, abort
 	// -- but only for fast docking
 	if (fastDocking && ([self alertCondition] == ALERT_CONDITION_RED))
@@ -3447,22 +3445,20 @@ static BOOL autopilot_pause;
 		message = DESC(@"autopilot-red-alert");
 		goto abort;
 	}
-
-	// Check if current target is dockable
-	target = [self primaryTarget];
-	isOkayToUseAutopilot = target && [target isStation] && [target isKindOfClass:[StationEntity class]];
-	// Otherwise check for nearby dockables
-	if( !isOkayToUseAutopilot )
+	
+	Entity *target = [self primaryTarget];
+	// If target isn't dockable, check for nearby stations
+	if (![target isStation])
 	{
 		Universe  *uni        = UNIVERSE;
 		Entity    **entities  = uni->sortedEntities;	// grab the public sorted list
 		int       nStations   = 0;
 		unsigned  i;
 		
-		for( i = 0; i < uni->n_entities && nStations < 2; i++ )
+		for (i = 0; i < uni->n_entities && nStations < 2; i++)
 		{
-			if( entities[i]->isStation && [entities[i] isKindOfClass:[StationEntity class]] &&
-					entities[i]->zero_distance <= SCANNER_MAX_RANGE2 )
+			if (entities[i]->isStation && [entities[i] isKindOfClass:[StationEntity class]] &&
+				entities[i]->zero_distance <= SCANNER_MAX_RANGE2)
 			{
 				nStations++;
 				target = entities[i];
@@ -3472,48 +3468,30 @@ static BOOL autopilot_pause;
 		// If we found one target, dock with it.
 		// If outside the Aegis and we found multiple targets, abort.
 		
-		if ( [self withinStationAegis] && legalStatus <= 50 )
+		if ([self withinStationAegis] && legalStatus <= 50)
 		{
-			isOkayToUseAutopilot = YES;
 			target = [UNIVERSE station];
 		}
-		else
+		else if (nStations != 1)
 		{
-			if (nStations == 1)
+			if (nStations == 0)
 			{
-				isOkayToUseAutopilot = YES;
+				[self playAutopilotOutOfRange];
+				message = DESC(@"autopilot-out-of-range");
 			}
 			else
 			{
-				if (nStations == 0)
-				{
-/* Do we want to provide this feedback? If not, we need to remove the descriptions.plist key. -kaks 20101031
-					// did we have a non-dockable entity targeted?
-					if (target != nil)
-					{
-						[self playAutopilotCannotDockWithTarget];
-						message = DESC(@"autopilot-cannot-dock-with-target");
-					}
-					else
-*/
-					{
-						[self playAutopilotOutOfRange];
-						message = DESC(@"autopilot-out-of-range");
-					}
-				}
-				else
-				{
-					[self playAutopilotCannotDockWithTarget];
-					message = DESC(@"autopilot-multiple-targets");
-				}
-				goto abort;
+				[self playAutopilotCannotDockWithTarget];
+				message = DESC(@"autopilot-multiple-targets");
 			}
+			goto abort;
 		}
 	}
-
+	
 	// We found a dockable, check whether we can dock with it
+	NSAssert([target isKindOfClass:[StationEntity class]], @"Expected entity with isStation flag set to be a station.");
 	StationEntity *ts = (StationEntity*)target;
-
+	
 	// If station is not transmitting docking instructions, we cannot use autopilot.
 	if (![ts allowsAutoDocking])
 	{
@@ -3521,13 +3499,13 @@ static BOOL autopilot_pause;
 		message = [NSString stringWithFormat:DESC(@"autopilot-station-@-does-not-allow-autodocking"), [ts displayName]];
 	}
 	// Deny if station is hostile or player is a fugitive trying to dock at the main station.
-	else if ( (legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self] )
+	else if ((legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self])
 	{
 		[self playAutopilotCannotDockWithTarget];
 		message = (ts == [UNIVERSE station] ? DESC(@"autopilot-denied") : DESC(@"autopilot-target-docking-instructions-denied"));
 	}
 	// If we're fast-docking, perform the docking logic
-	else if ( fastDocking && [ts allowsFastDocking] )
+	else if (fastDocking && [ts allowsFastDocking])
 	{
 		if (legalStatus > 0)
 		{
@@ -3549,9 +3527,9 @@ static BOOL autopilot_pause;
 		[UNIVERSE setViewDirection:VIEW_FORWARD];
 		[self enterDock:ts];
 	}
-	// Standard docking - engage autopilot
 	else
 	{
+		// Standard docking - engage autopilot
 		[self engageAutopilotToStation:ts];
 		message = DESC(@"autopilot-on");
 	}
