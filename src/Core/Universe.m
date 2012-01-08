@@ -2562,7 +2562,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	}
 	
 	NS_DURING
-		ship =[[shipClass alloc] initWithKey:shipKey definition:shipDict];
+		ship = [[shipClass alloc] initWithKey:shipKey definition:shipDict];
 	NS_HANDLER
 		[ship release];
 		ship = nil;

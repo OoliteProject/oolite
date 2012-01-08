@@ -51,14 +51,6 @@ MA 02110-1301, USA.
    // Callback method
    - (void) updateFunction: (NSDictionary *)hwDict;
 
-   // internal methods
-   - (void) removeFunction: (int)selFunctionIdx;
-   - (NSArray *)getStickFunctionList;
-   - (void)displayFunctionList: (GuiDisplayGen *)gui
-						  skip: (unsigned) skip;
-   - (NSString *)describeStickDict: (NSDictionary *)stickDict;
-   - (NSString *)hwToString: (int)hwFlags;
-
    // Future: populate via plist
    - (NSDictionary *)makeStickGuiDict: (NSString *)what 
 							allowable: (int)allowable

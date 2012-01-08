@@ -59,7 +59,7 @@ MA 02110-1301, USA.
 		_jsSelf = JS_NewObject(context, class, prototype, NULL);
 		if (_jsSelf != NULL)
 		{
-			if (!JS_SetPrivate(context, _jsSelf, [self weakRetain]))  _jsSelf = NULL;
+			if (!JS_SetPrivate(context, _jsSelf, OOConsumeReference([self weakRetain])))  _jsSelf = NULL;
 		}
 		
 		if (_jsSelf != NULL)

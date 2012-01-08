@@ -29,6 +29,18 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 
+@interface PlayerEntity (StickMapperInternal)
+
+- (void) removeFunction: (int)selFunctionIdx;
+- (NSArray *)stickFunctionList;
+- (void)displayFunctionList: (GuiDisplayGen *)gui
+					   skip: (unsigned) skip;
+- (NSString *)describeStickDict: (NSDictionary *)stickDict;
+- (NSString *)hwToString: (int)hwFlags;
+
+@end
+
+
 @implementation PlayerEntity (StickMapper)
 
 - (void) setGuiToStickMapperScreen:(unsigned)skip
@@ -256,7 +268,7 @@ MA 02110-1301, USA.
 	
 	if(!stickFunctions)
 	{
-		stickFunctions = [self getStickFunctionList];
+		stickFunctions = [[self stickFunctionList] retain];
 	}
 	NSDictionary *assignedAxes = [stickHandler axisFunctions];
 	NSDictionary *assignedButs = [stickHandler buttonFunctions];
@@ -405,9 +417,9 @@ MA 02110-1301, USA.
 
 // TODO: This data could be put into a plist (i18n or just modifiable by
 // the user). It is otherwise an ugly method, but it'll do for testing.
-- (NSArray *)getStickFunctionList
+- (NSArray *)stickFunctionList
 {
-	NSMutableArray *funcList=[[NSMutableArray alloc] init];
+	NSMutableArray *funcList = [NSMutableArray array];
 	
 	[funcList addObject: 
 	 [self makeStickGuiDict:DESC(@"stickmapper-roll")
@@ -548,7 +560,8 @@ MA 02110-1301, USA.
 							axisfn:(int)axisfn
 							 butfn:(int)butfn
 {
-	NSMutableDictionary *guiDict=[[NSMutableDictionary alloc] init];
+	NSMutableDictionary *guiDict = [NSMutableDictionary dictionary];
+	
 	if ([what length] > 30)  what = [[what substringToIndex:28] stringByAppendingString:@"..."];
 	[guiDict setObject: what  forKey: KEY_GUIDESC];
 	[guiDict setObject: [NSNumber numberWithInt: allowable]  

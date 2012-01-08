@@ -4998,21 +4998,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	OOPlanetEntity* e1 = i1;
 	OOPlanetEntity* e2 = i2;
 	
-#if OBSOLETE
-	//fx: empirical value used to help determine proximity when non-nested planets are close to each other
-	float fx=1.35;
-	float r;
-	
-	float p1 = magnitude2(vector_subtract([e1 position], p));
-	float p2 = magnitude2(vector_subtract([e2 position], p));
-	r = [e1 radius];
-	p1 -= fx*r*r;
-	r = [e2 radius];
-	p2 -= fx*r*r;
-#else
 	float p1 = SurfaceDistanceSqaredV(p, e1);
 	float p2 = SurfaceDistanceSqaredV(p, e2);
-#endif
 	
 	if (p1 < p2) return NSOrderedAscending;
 	if (p1 > p2) return NSOrderedDescending;

@@ -58,16 +58,6 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 
 @implementation OOCheckShipDataPListVerifierStage
 
-- (void) dealloc
-{
-	/*	This class never retains any instance variables (we can get away with
-		that because they're never used after returning to the caller of -run),
-		but this is here to placate the Clang Static Analyzer.
-	 */
-	[super dealloc];
-}
-
-
 - (NSString *)name
 {
 	return kStageName;

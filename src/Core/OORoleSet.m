@@ -273,7 +273,8 @@ SOFTWARE.
 		return nil;
 	}
 	
-	if ([super init] == nil)  return nil;
+	self = [super init];
+	if (self == nil)  return nil;
 	
 	// Note: _roles and _roleString are derived on the fly as needed.
 	// MKW 20090815 - if we are re-initialising this OORoleSet object, we need
