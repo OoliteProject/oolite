@@ -1225,8 +1225,7 @@ MA 02110-1301, USA.
 	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
 
 	[self checkScanner];
-	//
-	GLfloat d2;
+	
 	NSString* distress_message;
 	found_target = NO_TARGET;
 	BOOL	is_buoy = (scanClass == CLASS_BUOY);
@@ -1246,7 +1245,6 @@ MA 02110-1301, USA.
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity*	ship = scanned_ships[i];
-		d2 = distance2_scanned_ships[i];
 	
 		// tell it! //
 		if (ship->isPlayer)
