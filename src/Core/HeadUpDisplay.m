@@ -2626,7 +2626,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	
 	p1 = vector_subtract([target position], [player1 viewpointPosition]);
 	
-	double			rdist = fast_magnitude(p1);
+	double			rdist = magnitude(p1);
 	double			rsize = [target collisionRadius];
 	
 	if (rsize < rdist * ONE_SIXTYFOURTH)

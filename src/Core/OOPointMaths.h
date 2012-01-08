@@ -41,5 +41,5 @@ OOINLINE NSPoint PtRotACW(NSPoint p)
 
 OOINLINE NSPoint PtFastNormal(NSPoint p)
 {
-	return PtScale(p, OOFastInvSqrtf(PtDot(p, p)));
+	return PtScale(p, 1.0f / sqrtf(PtDot(p, p)));
 }

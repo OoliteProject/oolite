@@ -9107,7 +9107,7 @@ static void PreloadOneSound(NSString *soundName)
 	
 	Vector  v_route1 = vector_subtract(p1_pos, h1_pos);
 	v_route1.x -= h1_pos.x;	v_route1.y -= h1_pos.y;	v_route1.z -= h1_pos.z;
-	double d_route1 = fast_magnitude(v_route1) - 60000.0; // -60km to avoid planet
+	double d_route1 = magnitude(v_route1) - 60000.0; // -60km to avoid planet
 	
 	v_route1 = vector_normal_or_fallback(v_route1, kBasisZVector);
 	

@@ -244,22 +244,11 @@ OOINLINE OOScalar magnitude(Vector vec)
 }
 
 
-OOINLINE OOScalar fast_magnitude(Vector vec)
-{
-	#if FASTINVSQRT_ENABLED || OO_PPC
-		OOScalar mag2 = magnitude2(vec);
-		return mag2 * OOFastInvSqrtf(mag2);	/* x = sqrt(x) * sqrt(x); x * 1/sqrt(x) = (sqrt(x) * sqrt(x))/sqrt(x) = sqrt(x). */
-	#else
-		return magnitude(vec);
-	#endif
-}
-
-
 OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback)
 {
 	OOScalar mag2 = magnitude2(vec);
 	if (EXPECT_NOT(mag2 == 0.0f))  return fallback;
-	return vector_multiply_scalar(vec, OOInvSqrtf(mag2));
+	return vector_multiply_scalar(vec, 1.0f / sqrtf(mag2));
 }
 
 
@@ -287,20 +276,6 @@ OOINLINE Vector vector_normal(Vector vec)
 }
 
 
-OOINLINE Vector fast_vector_normal_or_fallback(Vector vec, Vector fallback)
-{
-	OOScalar mag2 = magnitude2(vec);
-	if (EXPECT_NOT(mag2 == 0.0f))  return fallback;
-	return vector_multiply_scalar(vec, OOFastInvSqrtf(mag2));
-}
-
-
-OOINLINE Vector fast_vector_normal(Vector vec)
-{
-	return fast_vector_normal_or_fallback(vec, kZeroVector);
-}
-
-
 OOINLINE OOScalar distance2(Vector v1, Vector v2)
 {
 	return magnitude2(vector_subtract(v1, v2));
@@ -310,12 +285,6 @@ OOINLINE OOScalar distance2(Vector v1, Vector v2)
 OOINLINE OOScalar distance(Vector v1, Vector v2)
 {
 	return magnitude(vector_subtract(v1, v2));
-}
-
-
-OOINLINE OOScalar fast_distance(Vector v1, Vector v2)
-{
-	return fast_magnitude(vector_subtract(v1, v2));
 }
 
 
@@ -332,12 +301,6 @@ OOINLINE Vector true_cross_product(Vector first, Vector second)
 OOINLINE Vector cross_product(Vector first, Vector second)
 {
 	return vector_normal(true_cross_product(first, second));
-}
-
-
-OOINLINE Vector fast_cross_product(Vector first, Vector second)
-{
-	return fast_vector_normal(true_cross_product(first, second));
 }
 
 
@@ -359,15 +322,6 @@ OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3)
 	d0 = vector_subtract(v2, v1);
 	d1 = vector_subtract(v3, v2);
 	return cross_product(d0, d1);
-}
-
-
-OOINLINE Vector fast_normal_to_surface(Vector v1, Vector v2, Vector v3)
-{
-	Vector d0, d1;
-	d0 = vector_subtract(v2, v1);
-	d1 = vector_subtract(v3, v2);
-	return fast_cross_product(d0, d1);
 }
 
 

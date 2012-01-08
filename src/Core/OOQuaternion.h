@@ -158,23 +158,7 @@ OOINLINE void quaternion_normalize(Quaternion *quat)
 	OOScalar	y = quat->y;
 	OOScalar	z = quat->z;
 	
-	OOScalar	lv = OOInvSqrtf(w*w + x*x + y*y + z*z);
-	
-	quat->w = lv * w;
-	quat->x = lv * x;
-	quat->y = lv * y;
-	quat->z = lv * z;
-}
-
-
-OOINLINE void fast_quaternion_normalize(Quaternion *quat)
-{
-	OOScalar	w = quat->w;
-	OOScalar	x = quat->x;
-	OOScalar	y = quat->y;
-	OOScalar	z = quat->z;
-	
-	OOScalar	lv = OOFastInvSqrtf(w*w + x*x + y*y + z*z);
+	OOScalar	lv = 1.0f / sqrtf(w*w + x*x + y*y + z*z);
 	
 	quat->w = lv * w;
 	quat->x = lv * x;

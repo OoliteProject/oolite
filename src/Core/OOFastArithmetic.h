@@ -37,10 +37,6 @@ MA 02110-1301, USA.
 #endif
 
 
-/* Inverse square root and approximation of same. */
-OOINLINE float OOInvSqrtf(float x) INLINE_CONST_FUNC;
-OOINLINE float OOFastInvSqrtf(float x) INLINE_CONST_FUNC;
-
 /* Round integer up to nearest power of 2. */
 OOINLINE uint32_t OORoundUpToPowerOf2(uint32_t x) INLINE_CONST_FUNC;
 
@@ -52,30 +48,6 @@ OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
 
 /* Linear interpolation. */
 OOINLINE float OOLerp(float v0, float v1, float fraction) INLINE_CONST_FUNC;
-
-
-OOINLINE float OOInvSqrtf(float x)
-{
-	return 1.0f/sqrtf(x);
-}
-
-
-OOINLINE float OOFastInvSqrtf(float x)
-{
-/*	This appears to have been responsible for a lack of laser accuracy, as
-	well as not working at all under Windows. Disabled for now.
-*/
-#if FASTINVSQRT_ENABLED
-	float xhalf = 0.5f * x;
-	int i = *(int*)&x;
-	i = 0x5f375a86 - (i>>1);
-	x = *(float*)&i;
-	x = x * (1.5f - xhalf * x * x);
-	return x;
-#else
-	return OOInvSqrtf(x);
-#endif
-}
 
 
 #ifdef __GNUC__
