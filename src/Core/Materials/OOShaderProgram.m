@@ -319,7 +319,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	
 	if (!OK)
 	{
-		if (program != NULL_SHADER)
+		if (self != nil && program != NULL_SHADER)
 		{
 			OOGL(glDeleteObjectARB(program));
 			program = NULL_SHADER;
