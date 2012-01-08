@@ -37,24 +37,12 @@ MA 02110-1301, USA.
 #endif
 
 
-/* (test > 0) ? a : b. Extra fast on PowerPC. */
-OOINLINE double OOSelect_d(double test, double a, double b) INLINE_CONST_FUNC;
-OOINLINE float OOSelect_f(float test, float a, float b) INLINE_CONST_FUNC;
-
-/* Floating point reciprocal estimate, approximation of 1.0f / x. Precise within 1/256th of exact value. */
-OOINLINE float OOReciprocalEstimate(float value) INLINE_CONST_FUNC;
-
 /* Inverse square root and approximation of same. */
 OOINLINE float OOInvSqrtf(float x) INLINE_CONST_FUNC;
 OOINLINE float OOFastInvSqrtf(float x) INLINE_CONST_FUNC;
 
 /* Round integer up to nearest power of 2. */
 OOINLINE uint32_t OORoundUpToPowerOf2(uint32_t x) INLINE_CONST_FUNC;
-
-OOINLINE float OOMin_f(float a, float b) INLINE_CONST_FUNC;
-OOINLINE double OOMin_d(double a, double b) INLINE_CONST_FUNC;
-OOINLINE float OOMax_f(float a, float b) INLINE_CONST_FUNC;
-OOINLINE double OOMax_d(double a, double b) INLINE_CONST_FUNC;
 
 /* Clamp to range. */
 OOINLINE float OOClamp_0_1_f(float value) INLINE_CONST_FUNC;
@@ -64,24 +52,6 @@ OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
 
 /* Linear interpolation. */
 OOINLINE float OOLerp(float v0, float v1, float fraction) INLINE_CONST_FUNC;
-
-
-OOINLINE double OOSelect_d(double test, double a, double b)
-{
-	return (test > 0) ? a : b;
-}
-
-
-OOINLINE float OOSelect_f(float test, float a, float b)
-{
-	return (test > 0) ? a : b;
-}
-
-
-OOINLINE float OOReciprocalEstimate(float value)
-{
-	return 1.0f / value;
-}
 
 
 OOINLINE float OOInvSqrtf(float x)
@@ -103,7 +73,7 @@ OOINLINE float OOFastInvSqrtf(float x)
 	x = x * (1.5f - xhalf * x * x);
 	return x;
 #else
-	return OOReciprocalEstimate(sqrt(x));
+	return OOInvSqrtf(x);
 #endif
 }
 
@@ -126,26 +96,6 @@ OOINLINE float OOFastInvSqrtf(float x)
 	}
 #endif
 
-
-OOINLINE float OOMin_f(float a, float b)
-{
-	return fminf(a, b);
-}
-
-OOINLINE double OOMin_d(double a, double b)
-{
-	return fmin(a, b);
-}
-
-OOINLINE float OOMax_f(float a, float b)
-{
-	return fmaxf(a, b);
-}
-
-OOINLINE double OOMax_d(double a, double b)
-{
-	return fmax(a, b);
-}
 
 OOINLINE float OOClamp_0_1_f(float value)
 {

@@ -150,6 +150,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 0420;
 				ORGANIZATIONNAME = "";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "libpng" */;
@@ -243,7 +244,6 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
@@ -270,7 +270,6 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GENERATE_MASTER_OBJECT_FILE = YES;
@@ -288,7 +287,6 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;

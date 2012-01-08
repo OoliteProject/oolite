@@ -143,7 +143,7 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension heig
 			}
 			
 			// Scale coordinates.
-			r = OOReciprocalEstimate(r);
+			r = 1.0f / r;
 			OOPixMapDimension ix = (x * r + 1.0f) * halfSize;
 			OOPixMapDimension iy = (y * r + 1.0f) * halfSize;
 			

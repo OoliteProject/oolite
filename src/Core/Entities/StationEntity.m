@@ -820,7 +820,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	max_defense_ships = [dict oo_unsignedIntForKey:@"max_defense_ships" defaultValue:3];
 	max_police = [dict oo_unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
 	equipmentPriceFactor = [dict oo_nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
-	equipmentPriceFactor = OOMax_f(equipmentPriceFactor, 0.5f);
+	equipmentPriceFactor = fmaxf(equipmentPriceFactor, 0.5f);
 	hasNPCTraffic = [dict oo_fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:YES];
 	hasPatrolShips = [dict oo_fuzzyBooleanForKey:@"has_patrol_ships" defaultValue:NO];
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];

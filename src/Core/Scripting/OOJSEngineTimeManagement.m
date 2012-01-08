@@ -834,8 +834,8 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 	_hitCount++;
 	_totalTimeSum += totalTime;
 	_selfTimeSum += selfTime;
-	_totalTimeMax = OOMax_f(_totalTimeMax, totalTime);
-	_selfTimeMax = OOMax_f(_selfTimeMax, selfTime);
+	_totalTimeMax = fmaxf(_totalTimeMax, totalTime);
+	_selfTimeMax = fmaxf(_selfTimeMax, selfTime);
 }
 
 

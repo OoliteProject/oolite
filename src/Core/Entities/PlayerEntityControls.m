@@ -1400,8 +1400,8 @@ static NSTimeInterval	time_last_frame;
 				if (!leftRightKeyPressed)
 				{
 					float newTimeAccelerationFactor = [gameView isDown:gvArrowKeyLeft] ? 
-							OOMax_f([UNIVERSE timeAccelerationFactor] / 2.0f, TIME_ACCELERATION_FACTOR_MIN) :
-							OOMin_f([UNIVERSE timeAccelerationFactor] * 2.0f, TIME_ACCELERATION_FACTOR_MAX);
+							fmaxf([UNIVERSE timeAccelerationFactor] / 2.0f, TIME_ACCELERATION_FACTOR_MIN) :
+							fminf([UNIVERSE timeAccelerationFactor] * 2.0f, TIME_ACCELERATION_FACTOR_MAX);
 					[UNIVERSE setTimeAccelerationFactor:newTimeAccelerationFactor];
 				}
 				leftRightKeyPressed = YES;

@@ -276,7 +276,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
 	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = SHIPENTITY_MAX_MISSILES;
 	if (missiles > max_missiles) missiles = max_missiles;
-	missile_load_time = OOMax_d(0.0, [shipDict oo_doubleForKey:@"missile_load_time" defaultValue:0.0]); // no negative load times
+	missile_load_time = fmax(0.0, [shipDict oo_doubleForKey:@"missile_load_time" defaultValue:0.0]); // no negative load times
 	missile_launch_time = [UNIVERSE getTime] + missile_load_time;
 	
 	// upgrades:
@@ -3320,7 +3320,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		
 	if (range < slow_down_range)
 	{
-		desired_speed = OOMax_d(target_speed, 0.4 * maxFlightSpeed);
+		desired_speed = fmax(target_speed, 0.4 * maxFlightSpeed);
 		
 		// avoid head-on collision
 		if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
@@ -3336,7 +3336,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
  	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		frustration = 0.0;
-		desired_speed = OOMax_d(target_speed, 0.4 * maxFlightSpeed);   // within the weapon's range don't use afterburner
+		desired_speed = fmax(target_speed, 0.4 * maxFlightSpeed);   // within the weapon's range don't use afterburner
 	}
 
 	// target-six
@@ -3483,7 +3483,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	double target_speed = [target speed];
 	if (range <= slow_down_range)
-		desired_speed = OOMax_d(target_speed, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
+		desired_speed = fmax(target_speed, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
 	else
 		desired_speed = max_available_speed; // use afterburner to approach
 
@@ -8092,7 +8092,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) setMissileLoadTime:(OOTimeDelta)newMissileLoadTime
 {
-	missile_load_time = OOMax_d(0.0, newMissileLoadTime);
+	missile_load_time = fmax(0.0, newMissileLoadTime);
 }
 
 

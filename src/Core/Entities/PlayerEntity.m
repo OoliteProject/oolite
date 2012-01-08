@@ -3318,7 +3318,7 @@ static bool minShieldLevelPercentageInitialised = false;
 
 - (void) setFuelLeakRate:(float)value
 {
-	fuel_leak_rate = OOMax_f(value, 0.0f);
+	fuel_leak_rate = fmaxf(value, 0.0f);
 }
 
 
@@ -4364,7 +4364,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	[UNIVERSE setBlockJSPlayerShipProps:YES]; 	// no player.ship properties while inside the pod!
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
-	flightSpeed = OOMax_f(flightSpeed, 50.0f);
+	flightSpeed = fmaxf(flightSpeed, 50.0f);
 	
 	doppelganger = [self createDoppelganger];
 	if (doppelganger)

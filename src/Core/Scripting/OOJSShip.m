@@ -782,7 +782,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 		case kShip_temperature:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				fValue = OOMax_d(fValue, 0.0);
+				fValue = fmax(fValue, 0.0);
 				[entity setTemperature:fValue * SHIP_MAX_CABIN_TEMP];
 				return YES;
 			}
@@ -793,7 +793,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				fValue = OOMax_d(fValue, 0.125);
+				fValue = fmax(fValue, 0.125);
 				[entity setHeatInsulation:fValue];
 				return YES;
 			}

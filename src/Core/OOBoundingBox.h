@@ -63,24 +63,24 @@ Vector OORandomPositionInBoundingBox(BoundingBox bb);
 OOINLINE void bounding_box_add_vector(BoundingBox *box, Vector vec)
 {
 	assert(box != NULL);
-	box->min.x = OOMin_f(box->min.x, vec.x);
-	box->max.x = OOMax_f(box->max.x, vec.x);
-	box->min.y = OOMin_f(box->min.y, vec.y);
-	box->max.y = OOMax_f(box->max.y, vec.y);
-	box->min.z = OOMin_f(box->min.z, vec.z);
-	box->max.z = OOMax_f(box->max.z, vec.z);
+	box->min.x = fminf(box->min.x, vec.x);
+	box->max.x = fmaxf(box->max.x, vec.x);
+	box->min.y = fminf(box->min.y, vec.y);
+	box->max.y = fmaxf(box->max.y, vec.y);
+	box->min.z = fminf(box->min.z, vec.z);
+	box->max.z = fmaxf(box->max.z, vec.z);
 }
 
 
 OOINLINE void bounding_box_add_xyz(BoundingBox *box, GLfloat x, GLfloat y, GLfloat z)
 {
 	assert(box != NULL);
-	box->min.x = OOMin_f(box->min.x, x);
-	box->max.x = OOMax_f(box->max.x, x);
-	box->min.y = OOMin_f(box->min.y, y);
-	box->max.y = OOMax_f(box->max.y, y);
-	box->min.z = OOMin_f(box->min.z, z);
-	box->max.z = OOMax_f(box->max.z, z);
+	box->min.x = fminf(box->min.x, x);
+	box->max.x = fmaxf(box->max.x, x);
+	box->min.y = fminf(box->min.y, y);
+	box->max.y = fmaxf(box->max.y, y);
+	box->min.z = fminf(box->min.z, z);
+	box->max.z = fmaxf(box->max.z, z);
 }
 
 
