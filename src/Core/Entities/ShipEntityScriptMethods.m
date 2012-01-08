@@ -39,7 +39,7 @@ extern NSString * const kOOLogNoteAddShips;
 	
 	if (shipKey != nil)
 	{
-		item = [UNIVERSE newShipWithName:shipKey];
+		item = [[UNIVERSE newShipWithName:shipKey] autorelease];
 		if (item != nil)  [self dumpItem:item];
 	}
 	
@@ -53,7 +53,7 @@ extern NSString * const kOOLogNoteAddShips;
 	
 	if (role != nil)
 	{
-		item = [UNIVERSE newShipWithRole:role];
+		item = [[UNIVERSE newShipWithRole:role] autorelease];
 		if (item != nil)  [self dumpItem:item];
 	}
 	
@@ -63,7 +63,7 @@ extern NSString * const kOOLogNoteAddShips;
 
 - (NSArray *) spawnShipsWithRole:(NSString *)role count:(OOUInteger)count
 {
-	ShipEntity				*ship = [self rootShipEntity];	// FIXME: (EMMSTRAN) implement an -absolutePosition method,use that in spawnShipWithRole:near:, and use self instead of root.
+	ShipEntity				*ship = [self rootShipEntity];	// FIXME: (EMMSTRAN) implement an -absolutePosition method, use that in spawnShipWithRole:near:, and use self instead of root.
 	ShipEntity				*spawned = nil;
 	NSMutableArray			*result = nil;
 	
