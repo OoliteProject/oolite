@@ -1859,7 +1859,7 @@
 			files = (
 			);
 			inputPaths = (
-				"$(JS_SRC_PATH)/jsopcode.tbl",
+				"$(BUILT_PRODUCTS_DIR)/jsoplengen",
 			);
 			name = "Generate jsautooplen.h";
 			outputPaths = (
@@ -1876,7 +1876,7 @@
 			files = (
 			);
 			inputPaths = (
-				"$(JS_SRC_PATH)/jskeyword.tbl",
+				"$(BUILT_PRODUCTS_DIR)/jskwgen",
 			);
 			name = "Genrate jsautokw.h";
 			outputPaths = (
