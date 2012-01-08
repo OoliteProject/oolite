@@ -574,7 +574,6 @@
 		1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */; };
 		1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */; };
 		1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */; };
-		1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32 -fasm-blocks"; }; };
 		1AB2AAFA0C4CE0CC0008CF4E /* OOOXPVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */; };
 		1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */; };
 		1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */; };
@@ -1828,7 +1827,6 @@
 		1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTextureScaling.h; path = ../OOTextureScaling.h; sourceTree = "<group>"; };
 		1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */ = {isa = PBXFileReference; comments = "-O3"; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOTextureScaling.m; path = ../OOTextureScaling.m; sourceTree = "<group>"; };
 		1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFastArithmetic.h; sourceTree = "<group>"; };
-		1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFastArithmetic.m; sourceTree = "<group>"; };
 		1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifier.h; sourceTree = "<group>"; };
 		1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifier.m; sourceTree = "<group>"; };
 		1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = verifyOXP.plist; path = ../../../Resources/Config/verifyOXP.plist; sourceTree = "<group>"; };
@@ -2988,7 +2986,6 @@
 				1A9406830BAF66D6005F6CF3 /* OOVoxel.m */,
 				1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */,
 				1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */,
-				1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */,
 				25F3E6300994F033002F25FD /* legacy_random.h */,
 				25F3E6320994F04C002F25FD /* legacy_random.c */,
 				1A7CBF6D10937DD6005B7797 /* OOPointMaths.h */,
@@ -3715,7 +3712,6 @@
 				1A9405800BAF52AD005F6CF3 /* OOQuaternion.m in Sources */,
 				1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */,
 				1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */,
-				1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */,
 				1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */,
 				1A5DBAA70BC000DC00D57389 /* OOJavaScriptEngine.m in Sources */,
 				1A5DBAA90BC000DC00D57389 /* OOJSScript.m in Sources */,
