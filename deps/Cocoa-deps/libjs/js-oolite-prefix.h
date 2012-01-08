@@ -19,10 +19,8 @@
 
 // TraceMonkey, JaegerMonkey, and YARR (regexp) JIT, aka the Go Faster Switches.
 #define	JS_TRACER						1
-#if (__i386__ || __x86_64__)
 #define	JS_METHODJIT					1
 #define	ENABLE_YARR_JIT					1
-#endif
 
 
 #if JS_TRACER || JS_METHODJIT
@@ -35,16 +33,7 @@
 #endif
 
 
-#if __ppc__
-#define JS_BYTES_PER_WORD				4
-#define JS_BITS_PER_WORD_LOG2			5
-#define AVMPLUS_PPC						1
-#elif __ppc64__
-#define JS_BYTES_PER_WORD				8
-#define JS_BITS_PER_WORD_LOG2			6
-#define AVMPLUS_64BIT					1
-#define AVMPLUS_PPC						1
-#elif __i386__
+#if __i386__
 #define JS_BYTES_PER_WORD				4
 #define JS_BITS_PER_WORD_LOG2			5
 #define AVMPLUS_IA32					1

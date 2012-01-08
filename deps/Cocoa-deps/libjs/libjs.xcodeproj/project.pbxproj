@@ -59,18 +59,19 @@
 		1A06F1CA12CA6BD100FB681A /* diy-fp.cc in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F1C912CA6BD100FB681A /* diy-fp.cc */; };
 		1A06F1CC12CA6BDB00FB681A /* platform.cc in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F1CB12CA6BDB00FB681A /* platform.cc */; };
 		1A06F1D212CA6C1800FB681A /* checks.cc in Sources */ = {isa = PBXBuildFile; fileRef = 1A06F1D112CA6C1800FB681A /* checks.cc */; };
-		1A27960312CCB67000C9E94D /* InvokeHelpersShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27960212CCB67000C9E94D /* InvokeHelpersShim.cpp */; };
-		1A27960B12CCB76800C9E94D /* CompilerShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27960A12CCB76800C9E94D /* CompilerShim.cpp */; };
-		1A27960D12CCB78E00C9E94D /* MethodJITShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27960C12CCB78E00C9E94D /* MethodJITShim.cpp */; };
-		1A27961012CCB7AD00C9E94D /* StubCallsShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27960F12CCB7AD00C9E94D /* StubCallsShim.cpp */; };
-		1A27961212CCB7C400C9E94D /* StubCompilerShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27961112CCB7C400C9E94D /* StubCompilerShim.cpp */; };
-		1A27961512CCB7E500C9E94D /* FrameStateShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27961412CCB7E500C9E94D /* FrameStateShim.cpp */; };
-		1A27961712CCB7F400C9E94D /* FastOpsShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27961612CCB7F400C9E94D /* FastOpsShim.cpp */; };
-		1A27961912CCB80800C9E94D /* MonoICShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27961812CCB80800C9E94D /* MonoICShim.cpp */; };
-		1A27961C12CCB82600C9E94D /* TrampolineCompilerShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27961B12CCB82600C9E94D /* TrampolineCompilerShim.cpp */; };
-		1A27961F12CCB84900C9E94D /* FastArithmeticShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27961E12CCB84900C9E94D /* FastArithmeticShim.cpp */; };
-		1A27965A12CCC15C00C9E94D /* ImmutableSyncShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27965912CCC15C00C9E94D /* ImmutableSyncShim.cpp */; };
-		1A27967F12CCC55B00C9E94D /* PolyICShim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A27967E12CCC55B00C9E94D /* PolyICShim.cpp */; };
+		1A54105F14B882C900B8A4BE /* jslock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB7765F12CA359A001478BB /* jslock.cpp */; };
+		1A54106914B883F700B8A4BE /* Compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA231D12CBF6A300EC0F43 /* Compiler.cpp */; };
+		1A54106A14B883F900B8A4BE /* FastArithmetic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA231F12CBF6A300EC0F43 /* FastArithmetic.cpp */; };
+		1A54106B14B883FE00B8A4BE /* FastOps.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA232012CBF6A300EC0F43 /* FastOps.cpp */; };
+		1A54106C14B8840200B8A4BE /* FrameState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA232312CBF6A300EC0F43 /* FrameState.cpp */; };
+		1A54106D14B8840500B8A4BE /* ImmutableSync.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA232512CBF6A300EC0F43 /* ImmutableSync.cpp */; };
+		1A54106E14B8840B00B8A4BE /* InvokeHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA232812CBF6A300EC0F43 /* InvokeHelpers.cpp */; };
+		1A54106F14B8840F00B8A4BE /* MethodJIT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA232C12CBF6A300EC0F43 /* MethodJIT.cpp */; };
+		1A54107014B8841200B8A4BE /* MonoIC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA232E12CBF6A300EC0F43 /* MonoIC.cpp */; };
+		1A54107114B8841600B8A4BE /* PolyIC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA233112CBF6A300EC0F43 /* PolyIC.cpp */; };
+		1A54107214B8841B00B8A4BE /* StubCalls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA233812CBF6A300EC0F43 /* StubCalls.cpp */; };
+		1A54107314B8842200B8A4BE /* StubCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA233A12CBF6A300EC0F43 /* StubCompiler.cpp */; };
+		1A54107414B8842400B8A4BE /* TrampolineCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA233C12CBF6A300EC0F43 /* TrampolineCompiler.cpp */; };
 		1A63DE9112CA9C5C00508CDB /* jsclone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A63DE9012CA9C5C00508CDB /* jsclone.cpp */; };
 		1A69736012F44D2A000CC708 /* jsprobes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA1FBC12CB97B500EC0F43 /* jsprobes.cpp */; };
 		1AB25AA712CA1B6E00C67F42 /* jsapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AB25AA612CA1B6E00C67F42 /* jsapi.cpp */; };
@@ -289,7 +290,6 @@
 		1AEA220A12CBC7A800EC0F43 /* Allocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA220912CBC7A800EC0F43 /* Allocator.h */; };
 		1AEA220E12CBC7BF00EC0F43 /* Containers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA220D12CBC7BF00EC0F43 /* Containers.cpp */; };
 		1AEA221012CBC7C200EC0F43 /* Containers.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA220F12CBC7C200EC0F43 /* Containers.h */; };
-		1AEA225A12CBCD1100EC0F43 /* jslock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AEA225912CBCD1100EC0F43 /* jslock.cpp */; };
 		1AEA230312CBED4F00EC0F43 /* AbstractMacroAssembler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA22DE12CBECDF00EC0F43 /* AbstractMacroAssembler.h */; };
 		1AEA230412CBED5B00EC0F43 /* AssemblerBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA22E212CBECDF00EC0F43 /* AssemblerBuffer.h */; };
 		1AEA230512CBED5B00EC0F43 /* AssemblerBufferWithConstantPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEA22E312CBECDF00EC0F43 /* AssemblerBufferWithConstantPool.h */; };
@@ -414,19 +414,6 @@
 		1A06F1C912CA6BD100FB681A /* diy-fp.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "diy-fp.cc"; sourceTree = "<group>"; };
 		1A06F1CB12CA6BDB00FB681A /* platform.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = platform.cc; sourceTree = "<group>"; };
 		1A06F1D112CA6C1800FB681A /* checks.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = checks.cc; sourceTree = "<group>"; };
-		1A27960212CCB67000C9E94D /* InvokeHelpersShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InvokeHelpersShim.cpp; sourceTree = "<group>"; };
-		1A27960A12CCB76800C9E94D /* CompilerShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CompilerShim.cpp; sourceTree = "<group>"; };
-		1A27960C12CCB78E00C9E94D /* MethodJITShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MethodJITShim.cpp; sourceTree = "<group>"; };
-		1A27960F12CCB7AD00C9E94D /* StubCallsShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StubCallsShim.cpp; sourceTree = "<group>"; };
-		1A27961112CCB7C400C9E94D /* StubCompilerShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StubCompilerShim.cpp; sourceTree = "<group>"; };
-		1A27961312CCB7E100C9E94D /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
-		1A27961412CCB7E500C9E94D /* FrameStateShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FrameStateShim.cpp; sourceTree = "<group>"; };
-		1A27961612CCB7F400C9E94D /* FastOpsShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FastOpsShim.cpp; sourceTree = "<group>"; };
-		1A27961812CCB80800C9E94D /* MonoICShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MonoICShim.cpp; sourceTree = "<group>"; };
-		1A27961B12CCB82600C9E94D /* TrampolineCompilerShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TrampolineCompilerShim.cpp; sourceTree = "<group>"; };
-		1A27961E12CCB84900C9E94D /* FastArithmeticShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FastArithmeticShim.cpp; sourceTree = "<group>"; };
-		1A27965912CCC15C00C9E94D /* ImmutableSyncShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImmutableSyncShim.cpp; sourceTree = "<group>"; };
-		1A27967E12CCC55B00C9E94D /* PolyICShim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PolyICShim.cpp; sourceTree = "<group>"; };
 		1A63DE9012CA9C5C00508CDB /* jsclone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsclone.cpp; sourceTree = "<group>"; };
 		1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-targets.xcconfig"; path = "../../../src/Cocoa/oolite-targets.xcconfig"; sourceTree = SOURCE_ROOT; };
 		1AB25AA612CA1B6E00C67F42 /* jsapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsapi.cpp; sourceTree = "<group>"; };
@@ -765,7 +752,6 @@
 		1AEA220912CBC7A800EC0F43 /* Allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Allocator.h; sourceTree = "<group>"; };
 		1AEA220D12CBC7BF00EC0F43 /* Containers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Containers.cpp; sourceTree = "<group>"; };
 		1AEA220F12CBC7C200EC0F43 /* Containers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Containers.h; sourceTree = "<group>"; };
-		1AEA225912CBCD1100EC0F43 /* jslock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jslock.cpp; sourceTree = "<group>"; };
 		1AEA22DE12CBECDF00EC0F43 /* AbstractMacroAssembler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbstractMacroAssembler.h; sourceTree = "<group>"; };
 		1AEA22E212CBECDF00EC0F43 /* AssemblerBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AssemblerBuffer.h; sourceTree = "<group>"; };
 		1AEA22E312CBECDF00EC0F43 /* AssemblerBufferWithConstantPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AssemblerBufferWithConstantPool.h; sourceTree = "<group>"; };
@@ -989,26 +975,6 @@
 				1A06F1BF12CA6BAB00FB681A /* v8-dtoa.cc */,
 			);
 			path = "v8-dtoa";
-			sourceTree = "<group>";
-		};
-		1A27960112CCB66600C9E94D /* ConditionalShims */ = {
-			isa = PBXGroup;
-			children = (
-				1A27961312CCB7E100C9E94D /* README */,
-				1A27960A12CCB76800C9E94D /* CompilerShim.cpp */,
-				1A27961E12CCB84900C9E94D /* FastArithmeticShim.cpp */,
-				1A27961612CCB7F400C9E94D /* FastOpsShim.cpp */,
-				1A27961412CCB7E500C9E94D /* FrameStateShim.cpp */,
-				1A27965912CCC15C00C9E94D /* ImmutableSyncShim.cpp */,
-				1A27960212CCB67000C9E94D /* InvokeHelpersShim.cpp */,
-				1A27960C12CCB78E00C9E94D /* MethodJITShim.cpp */,
-				1A27961812CCB80800C9E94D /* MonoICShim.cpp */,
-				1A27967E12CCC55B00C9E94D /* PolyICShim.cpp */,
-				1A27960F12CCB7AD00C9E94D /* StubCallsShim.cpp */,
-				1A27961112CCB7C400C9E94D /* StubCompilerShim.cpp */,
-				1A27961B12CCB82600C9E94D /* TrampolineCompilerShim.cpp */,
-			);
-			path = ConditionalShims;
 			sourceTree = "<group>";
 		};
 		1AB25A7712CA178000C67F42 /* js */ = {
@@ -1484,13 +1450,11 @@
 				1AB25AB712CA1C1D00C67F42 /* jsautocfg.h */,
 				1AB7750D12CA243C001478BB /* _pr_bld.h */,
 				1AB7762412CA3182001478BB /* jsutil.cpp */,
-				1AEA225912CBCD1100EC0F43 /* jslock.cpp */,
 				1AEA209112CB9E8600EC0F43 /* pr-oolite-shim.m */,
 				1AEA23D412CC003800EC0F43 /* js-oolite-shim.cpp */,
 				1AD05F1312CD224100704F1D /* jsapitests-oolite-shim.m */,
 				1AEA207F12CB9CE800EC0F43 /* os_Darwin_universal.s */,
 				1AEA21DD12CBC63100EC0F43 /* NativeUniversal.cpp */,
-				1A27960112CCB66600C9E94D /* ConditionalShims */,
 			);
 			name = "Oolite-specific hacks";
 			sourceTree = "<group>";
@@ -2110,7 +2074,6 @@
 				1AEA220212CBC78D00EC0F43 /* RegAlloc.cpp in Sources */,
 				1AEA220812CBC7A500EC0F43 /* Allocator.cpp in Sources */,
 				1AEA220E12CBC7BF00EC0F43 /* Containers.cpp in Sources */,
-				1AEA225A12CBCD1100EC0F43 /* jslock.cpp in Sources */,
 				1AEA234112CBF6A700EC0F43 /* Logging.cpp in Sources */,
 				1AEA236B12CBF95500EC0F43 /* MacroAssemblerX86Common.cpp in Sources */,
 				1AEA23D012CBFFF700EC0F43 /* jsanalyze.cpp in Sources */,
@@ -2118,21 +2081,22 @@
 				1AEA23E012CC012700EC0F43 /* ExecutableAllocator.cpp in Sources */,
 				1AEA23E112CC012900EC0F43 /* ExecutableAllocatorPosix.cpp in Sources */,
 				1AEA23E912CC029500EC0F43 /* Retcon.cpp in Sources */,
-				1A27960312CCB67000C9E94D /* InvokeHelpersShim.cpp in Sources */,
-				1A27960B12CCB76800C9E94D /* CompilerShim.cpp in Sources */,
-				1A27960D12CCB78E00C9E94D /* MethodJITShim.cpp in Sources */,
-				1A27961012CCB7AD00C9E94D /* StubCallsShim.cpp in Sources */,
-				1A27961212CCB7C400C9E94D /* StubCompilerShim.cpp in Sources */,
-				1A27961512CCB7E500C9E94D /* FrameStateShim.cpp in Sources */,
-				1A27961712CCB7F400C9E94D /* FastOpsShim.cpp in Sources */,
-				1A27961912CCB80800C9E94D /* MonoICShim.cpp in Sources */,
-				1A27961C12CCB82600C9E94D /* TrampolineCompilerShim.cpp in Sources */,
-				1A27961F12CCB84900C9E94D /* FastArithmeticShim.cpp in Sources */,
-				1A27965A12CCC15C00C9E94D /* ImmutableSyncShim.cpp in Sources */,
-				1A27967F12CCC55B00C9E94D /* PolyICShim.cpp in Sources */,
 				1AD5A78C12D38C4A00B62503 /* RegexJIT.cpp in Sources */,
 				1AD5A7A612D38E8400B62503 /* RegexCompiler.cpp in Sources */,
 				1A69736012F44D2A000CC708 /* jsprobes.cpp in Sources */,
+				1A54105F14B882C900B8A4BE /* jslock.cpp in Sources */,
+				1A54106914B883F700B8A4BE /* Compiler.cpp in Sources */,
+				1A54106A14B883F900B8A4BE /* FastArithmetic.cpp in Sources */,
+				1A54106B14B883FE00B8A4BE /* FastOps.cpp in Sources */,
+				1A54106C14B8840200B8A4BE /* FrameState.cpp in Sources */,
+				1A54106D14B8840500B8A4BE /* ImmutableSync.cpp in Sources */,
+				1A54106E14B8840B00B8A4BE /* InvokeHelpers.cpp in Sources */,
+				1A54106F14B8840F00B8A4BE /* MethodJIT.cpp in Sources */,
+				1A54107014B8841200B8A4BE /* MonoIC.cpp in Sources */,
+				1A54107114B8841600B8A4BE /* PolyIC.cpp in Sources */,
+				1A54107214B8841B00B8A4BE /* StubCalls.cpp in Sources */,
+				1A54107314B8842200B8A4BE /* StubCompiler.cpp in Sources */,
+				1A54107414B8842400B8A4BE /* TrampolineCompiler.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
