@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 45;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -3482,10 +3482,11 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 0420;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
-			compatibilityVersion = "Xcode 3.1";
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -3947,7 +3948,6 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DEBUGGING_SYMBOLS = full;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
@@ -4001,7 +4001,6 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DEBUGGING_SYMBOLS = used;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
@@ -4022,7 +4021,6 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
-				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
@@ -4072,7 +4070,6 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DEBUGGING_SYMBOLS = used;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"DEBUG_GRAPHVIZ=1",
@@ -4091,7 +4088,6 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
-				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
@@ -4140,7 +4136,6 @@
 					x86_64,
 				);
 				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				PRODUCT_NAME = "Build All";
 				RUN_CLANG_STATIC_ANALYZER = YES;

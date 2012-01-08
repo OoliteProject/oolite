@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 45;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -330,8 +330,11 @@
 /* Begin PBXProject section */
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
 			buildConfigurationList = 730F23F3091827B200AB638C /* Build configuration list for PBXProject "Vorbis" */;
-			compatibilityVersion = "Xcode 2.4";
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -429,7 +432,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_AUTO_VECTORIZATION = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -440,7 +442,6 @@
 				);
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = YES;
-				PREBINDING = NO;
 				PRODUCT_NAME = vorbis_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/vorbis;
 				SYMROOT = ../../../build;
@@ -454,9 +455,6 @@
 			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
-				GCC_VERSION = 4.0;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
 			};
 			name = Debug;
 		};
@@ -464,7 +462,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_AUTO_VECTORIZATION = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -475,7 +472,6 @@
 				);
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = YES;
-				PREBINDING = NO;
 				PRODUCT_NAME = vorbis_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/vorbis;
 				SYMROOT = ../../../build;
@@ -489,9 +485,6 @@
 			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
-				GCC_VERSION = 4.0;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
 			};
 			name = TestRelease;
 		};
@@ -499,7 +492,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_AUTO_VECTORIZATION = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -510,7 +502,6 @@
 				);
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = YES;
-				PREBINDING = NO;
 				PRODUCT_NAME = vorbis_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/vorbis;
 				SYMROOT = ../../../build;
@@ -524,9 +515,6 @@
 			baseConfigurationReference = 1AE3450D12CB71E100FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
-				GCC_VERSION = 4.0;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx10.6][arch=*]" = 10.6;
 			};
 			name = Deployment;
 		};

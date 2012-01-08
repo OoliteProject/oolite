@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 45;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -150,10 +150,10 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				ORGANIZATIONNAME = "the Oolite team";
+				ORGANIZATIONNAME = "";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "libpng" */;
-			compatibilityVersion = "Xcode 3.1";
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -245,15 +245,12 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = YES;
-				PREBINDING = NO;
 				PRODUCT_NAME = png_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/png/;
 				SYMROOT = ../../../build;
-				ZERO_LINK = NO;
 			};
 			name = TestRelease;
 		};
@@ -275,15 +272,11 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_VERSION = "";
-				"GCC_VERSION[sdk=macosx*][arch=*]" = 4.0;
 				GENERATE_MASTER_OBJECT_FILE = YES;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
 				ONLY_ACTIVE_ARCH = YES;
-				PREBINDING = NO;
 				PRODUCT_NAME = png_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/png/;
 				SYMROOT = ../../../build;
@@ -297,14 +290,11 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
-				PREBINDING = NO;
 				PRODUCT_NAME = png_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/png/;
 				SYMROOT = ../../../build;
-				ZERO_LINK = NO;
 			};
 			name = Deployment;
 		};
