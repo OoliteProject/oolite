@@ -223,7 +223,6 @@ OOLITE_MATHS_FILES = \
     CollisionRegion.m \
     Geometry.m \
     Octree.m \
-    OOFastArithmetic.m \
     OOMatrix.m \
     OOQuaternion.m \
     OOVector.m \
