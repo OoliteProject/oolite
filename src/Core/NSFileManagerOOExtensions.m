@@ -198,7 +198,7 @@ MA 02110-1301, USA.
 
 - (BOOL) oo_moveItemAtPath:(NSString *)src toPath:(NSString *)dest
 {
-	return [self movePath:src toPath:dst handler:nil];
+	return [self movePath:src toPath:dest handler:nil];
 }
 
 #endif
