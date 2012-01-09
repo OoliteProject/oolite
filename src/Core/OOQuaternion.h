@@ -91,7 +91,6 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, OOScalar angle)
 
 /* Normalize quaternion */
 OOINLINE void quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
-OOINLINE void fast_quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
 
 #if __OBJC__
 NSString *QuaternionDescription(Quaternion quaternion);	// @"(w + xi + yj + zk)"

@@ -95,32 +95,27 @@ OOINLINE OOScalar magnitude2(Vector vec) INLINE_CONST_FUNC;
 
 /* Magnitude of vector */
 OOINLINE OOScalar magnitude(Vector vec) INLINE_CONST_FUNC;
-OOINLINE OOScalar fast_magnitude(Vector vec) INLINE_CONST_FUNC;
 
 /* Normalize vector */
 OOINLINE Vector vector_normal(Vector vec) INLINE_CONST_FUNC;
-OOINLINE Vector fast_vector_normal(Vector vec) INLINE_CONST_FUNC;
 
 /* Normalize vector, returning fallback if zero vector. */
 OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback) INLINE_CONST_FUNC;
 OOINLINE Vector vector_normal_or_xbasis(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector vector_normal_or_ybasis(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector vector_normal_or_zbasis(Vector vec) INLINE_CONST_FUNC;
-OOINLINE Vector fast_vector_normal_or_fallback(Vector vec, Vector fallback) INLINE_CONST_FUNC;
 
 /* Square of distance between vectors */
 OOINLINE OOScalar distance2(Vector v1, Vector v2) INLINE_CONST_FUNC;
 
 /* Distance between vectors */
 OOINLINE OOScalar distance(Vector v1, Vector v2) INLINE_CONST_FUNC;
-OOINLINE OOScalar fast_distance(Vector v1, Vector v2) INLINE_CONST_FUNC;
 
 /* Dot product */
 OOINLINE OOScalar dot_product (Vector first, Vector second) INLINE_CONST_FUNC;
 
 /* NORMALIZED cross product */
 OOINLINE Vector cross_product(Vector first, Vector second) INLINE_CONST_FUNC;
-OOINLINE Vector fast_cross_product(Vector first, Vector second) INLINE_CONST_FUNC;
 
 /* General cross product */
 OOINLINE Vector true_cross_product(Vector first, Vector second) CONST_FUNC;
@@ -130,7 +125,6 @@ OOINLINE OOScalar triple_product(Vector first, Vector second, Vector third) INLI
 
 /* Given three points on a surface, returns the normal to the surface. */
 OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
-OOINLINE Vector fast_normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 
 #if __OBJC__
 NSString *VectorDescription(Vector vector);	// @"(x, y, z)"
