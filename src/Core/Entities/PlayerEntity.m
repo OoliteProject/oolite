@@ -4743,6 +4743,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setDisplayCursor:NO];
+	if ([self status] == STATUS_LAUNCHING)  return; // a JS script has aborted the docking.
 	
 	[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
 	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:YES];
@@ -4821,6 +4822,7 @@ static bool minShieldLevelPercentageInitialised = false;
 	OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
 	[self doScriptEvent:OOJSID("shipDockedWithStation") withArgument:dockedStation];
 	OOJSStopTimeLimiter();
+	if ([self status] == STATUS_LAUNCHING) return;
 
 	// if we've not switched to the mission screen yet then proceed normally..
 	if (gui_screen != GUI_SCREEN_MISSION)

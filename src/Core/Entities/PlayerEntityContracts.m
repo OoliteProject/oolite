@@ -1166,6 +1166,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
+// Eric 2012-01-02: As far as I see, is the next code unused since at least 1.65 and can be deleted.
+// Presenting any arrival messages is integrated in the general 'setGuiToDockingReportScreen'
+// and in not likely to be used in future. 
+/*
 - (void) setGuiToDeliveryReportScreenWithText:(NSString*) report
 {
 	OOGUIScreenID	oldScreen = gui_screen;
@@ -1200,7 +1204,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[gui setColor:[OOColor yellowColor] forRow:21];
 		[gui setShowTextCursor:NO];
 	}
-	/* ends */
+	// ends
 	
 	if (lastTextKey)
 	{
@@ -1223,7 +1227,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
-
+*/
 
 - (void) setGuiToDockingReportScreen
 {

@@ -15,7 +15,7 @@
 	{
 		"WITCHSPACE OKAY" = (wormholeEscorts);
 		"WITCHSPACE BLOCKED" = (setTargetToFoundTarget, setDestinationWithinTarget, "setDesiredRangeTo: 30000.0", performFlyToRangeFromDestination);
-		"WITCHSPACE UNAVAILABLE" = ("setAITo: route1traderAI.plist");
+		"WITCHSPACE UNAVAILABLE" = ("switchAITo: route1traderAI.plist");
 		UPDATE = (performHyperSpaceExit, "pauseAI: 5.0");
 	};
 	FLEE =
