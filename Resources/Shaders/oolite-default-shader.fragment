@@ -6,15 +6,8 @@
 	macros (like OOSTD_DIFFUSE_MAP, OOSTD_SPECULAR etc.) which are specific
 	to the default shader.
 	
-	A note on the structure of this file: the GLSL implementation on Mac OS X
-	10.4.x can't handle shaders with nested #if/#ifdefs on some systems. I
-	haven't explored this in detail, but it seems to be PowerPC-specific.
-	Avoiding such nesting while dealing with several controlling macros leads
-	to this rather messy code structure.
-	This bug is fixed in Mac OS X 10.5.
 	
-	
-	Copyright © 2007–2010 Jens Ayton
+	Copyright © 2007–2011 Jens Ayton
 	
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -93,17 +86,9 @@
 #endif
 
 
-#if OOSTD_SPECULAR || OOSTD_NORMAL_AND_PARALLAX_MAP
-#define NEED_EYE_VECTOR 1
-#else
-#define NEED_EYE_VECTOR 0
-#endif
+#define NEED_EYE_VECTOR (OOSTD_SPECULAR || OOSTD_NORMAL_AND_PARALLAX_MAP)
 
-#if OOSTD_EMISSION_AND_ILLUMINATION_MAP || OOSTD_ILLUMINATION_MAP
-#define HAVE_ILLUMINATION 1
-#else
-#define HAVE_ILLUMINATION 0
-#endif
+#define HAVE_ILLUMINATION (OOSTD_EMISSION_AND_ILLUMINATION_MAP || OOSTD_ILLUMINATION_MAP)
 
 
 #if NEED_EYE_VECTOR
@@ -114,20 +99,20 @@ varying vec2			vTexCoord;
 
 varying vec3			vLight1Vector;
 
-#if OOSTD_DIFFUSE_MAP && !OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
+#if OOSTD_DIFFUSE_MAP
+#if !OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
+// Standard 2D diffuse map
 uniform sampler2D		uDiffuseMap;
-#elif OOSTD_DIFFUSE_MAP && OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
+#else
+// Cube diffuse map
 uniform samplerCube		uDiffuseMap;
 varying vec3			vCubeTexCoords;
+#endif
 #endif
 
 
 #if OOSTD_SPECULAR_MAP
 uniform sampler2D		uSpecularMap;
-#endif
-
-#if OOSTD_NORMAL_MAP
-uniform sampler2D		uNormalMap;
 #endif
 
 #if OOSTD_EMISSION_MAP
@@ -136,6 +121,10 @@ uniform sampler2D		uEmissionMap;
 
 #if OOSTD_ILLUMINATION_MAP
 uniform sampler2D		uIlluminationMap;
+#endif
+
+#if OOSTD_NORMAL_MAP
+uniform sampler2D		uNormalMap;
 #endif
 
 #if OOSTD_NORMAL_AND_PARALLAX_MAP
@@ -253,7 +242,6 @@ void main(void)
 	// Get emission colour
 #if OOSTD_EMISSION || OOSTD_EMISSION_MAP
 	vec4 emissionColor = vec4(1.0);
-#endif
 #if OOSTD_EMISSION
 	emissionColor *= gl_FrontMaterial.emission;
 #endif
@@ -261,7 +249,6 @@ void main(void)
 	vec4 emissionMapColor = texture2D(uEmissionMap, texCoord);
 	emissionColor *= emissionMapColor;
 #endif
-#if OOSTD_EMISSION || OOSTD_EMISSION_MAP
 	emissionColor.a = 1.0;
 	totalColor += emissionColor;
 #endif
@@ -313,12 +300,12 @@ void main(void)
 	specularColor *= specularMapColor;
 #endif
 
-#if OOSTD_DIFFUSE_MAP && !OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
+#if OOSTD_DIFFUSE_MAP
+#if !OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
 	vec4 diffuseMapColor = texture2D(uDiffuseMap, texCoord);
-#elif OOSTD_DIFFUSE_MAP && OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
+#else
 	vec4 diffuseMapColor = textureCube(uDiffuseMap, vCubeTexCoords);
 #endif
-#if OOSTD_DIFFUSE_MAP
 	diffuseMapColor.a = 1.0;
 	diffuseColor *= diffuseMapColor;
 	ambientColor *= diffuseMapColor;
