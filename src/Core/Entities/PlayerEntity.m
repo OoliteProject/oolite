@@ -3189,7 +3189,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		if (scoopsActive)
 			return SCOOP_STATUS_ACTIVE;
-		if ([cargo count] >= max_cargo)
+		if ([cargo count] >= max_cargo || specialCargo)
 			return SCOOP_STATUS_FULL_HOLD;
 		return SCOOP_STATUS_OKAY;
 	}
@@ -4429,7 +4429,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (![UNIVERSE strict])	// only mess with the scores if we're not in 'strict' mode
 	{
-		BOOL killIsCargo = ((killClass == CLASS_CARGO) && ([other commodityAmount] > 0));
+		BOOL killIsCargo = ((killClass == CLASS_CARGO) && ([other commodityAmount] > 0) && ![other isHulk]);
 		if ((killIsCargo) || (killClass == CLASS_BUOY) || (killClass == CLASS_ROCK))
 		{
 			// EMMSTRAN: no killaward (but full bounty) for tharglets?

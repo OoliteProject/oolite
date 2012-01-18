@@ -26,7 +26,7 @@
 	};
 	STATIONKEEPING =
 	{
-		ENTER = (performIdle, "setSpeedTo: 0.0", "pauseAI: 10.0");
+		ENTER = (setDestinationToTarget, performFaceDestination, "setSpeedTo: 0.0", "pauseAI: 10.0");
 		ATTACKED = ("setStateTo: ATTACK_SHIP");
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
@@ -59,7 +59,7 @@
 	{
 		ENTER = (performFaceDestination, dockEscorts);
 		"FRUSTRATED" = (performFaceDestination);
-		"FACING_DESTINATION" = (recallDockingInstructions, performFlyToRangeFromDestination);
+		"FACING_DESTINATION" = ("setSpeedFactorTo: 1.0", recallDockingInstructions, performFlyToRangeFromDestination);
 		ATTACKED = ("setStateTo: ATTACK_SHIP");
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
