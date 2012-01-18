@@ -51,7 +51,7 @@ void main(void)
 		each particle to be somewhere in a cube of the same size around the
 		player, creating an infinite repeating pattern.
 	*/
-	vec4 position = mod(gl_Vertex -  + uOffsetPlayerPosition, OODUST_SIZE) + uOffsetPlayerPosition;
+	vec4 position = mod(gl_Vertex - uOffsetPlayerPosition, OODUST_SIZE) + uOffsetPlayerPosition;
 	position = position - uWarp * aWarpiness;
 	
 	//	Project the dust, and find its distance from the camera.

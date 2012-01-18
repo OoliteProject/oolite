@@ -374,7 +374,7 @@ static BOOL GrowCallbackList(JSContext *context, NSString **errorString)
 
 static BOOL GetIndexForTrackingID(uint32 trackingID, OOUInteger *outIndex)
 {
-	NSCParameterAssert(outIndex != 0);
+	NSCParameterAssert(outIndex != NULL);
 	
 	/*	It is assumed that few frame callbacks will be active at once, so a
 		linear search is reasonable. If they become unexpectedly popular, we
