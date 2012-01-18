@@ -5375,15 +5375,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	GLfloat		rate = 1.0; // Standard (& strict play) charge rate.
 	
 #if MASS_DEPENDENT_FUEL_PRICES
-	// Fuel scooping and prices are relative to the mass of the cobra3.
-	// Post MNSR it's also going to be affected by missing subents, and possibly repair status. 
-	// N.B. "fuel_charge_rate" now fully removed, in favour of a dynamic system. -- Kaks 20110429
 	
 	if (![UNIVERSE strict])
 	{
 		if (EXPECT(PLAYER != nil && mass> 0 && mass != [PLAYER baseMass]))
 		{
-			rate = calcFuelChargeRate(mass);	// post-MNSR fuelPrices will be affected by missing subents. see  [self subEntityDied]
+			rate = calcFuelChargeRate(mass);
 		}
 	}
 	OOLog(@"fuelPrices", @"\"%@\" fuel charge rate: %.2f (mass ratio: %.2f/%.2f)", [self shipDataKey], rate, mass, [PLAYER baseMass]);
@@ -6236,11 +6233,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	if ([self subEntityTakingDamage] == sub)  [self setSubEntityTakingDamage:nil];
 	
 	[sub setOwner:nil];
-#if 0
 	// TODO? Recalculating collision radius should increase collision testing efficiency,
 	// but for most ship models the difference would be marginal. -- Kaks 20110429
-	mass -= [sub mass]; // post-NMSR fuelPrices - missing subents will affect fuel charge rate
-#endif
+	mass -= [sub mass]; // missing subents affect fuel charge rate, etc..
 	[subEntities removeObject:sub];
 }
 
@@ -8042,12 +8037,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[missile release]; //release
 	
 	// missile lives on after UNIVERSE addEntity
-	if ([missile scanClass] == CLASS_MISSILE && [target isShip])
+	if ([missile isMissile] && [target isShip])
 	{
 		[self doScriptEvent:OOJSID("shipFiredMissile") withArgument:missile andArgument:target_ship];
 		[target_ship setPrimaryAggressor:self];
 		[target_ship doScriptEvent:OOJSID("shipAttackedWithMissile") withArgument:missile andArgument:self];
 		[target_ship reactToAIMessage:@"INCOMING_MISSILE" context:@"hay guise, someone's shooting at me!"];
+	}
+	else
+	{
+		[self doScriptEvent:OOJSID("shipReleasedEquipment") withArgument:missile andArgument:self];
 	}
 	
 	if (cloaking_device_active && cloakPassive)
@@ -8728,7 +8727,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[cargo insertObject:other atIndex:0];	// places most recently scooped object at eject position
 		[other setStatus:STATUS_IN_HOLD];
 		[other setBehaviour:BEHAVIOUR_TUMBLE];
-		// [self doScriptEvent:OOJSID("cargoScooped") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(co_type), [NSNumber numberWithInt:co_amount], nil]];	//post-MNSR - add cargoScooped() event
+		[self doScriptEvent:OOJSID("cargoScooped") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(co_type), [NSNumber numberWithInt:co_amount], nil]];
 		[shipAI message:@"CARGO_SCOOPED"];
 		if (max_cargo && [cargo count] >= max_cargo)  [shipAI message:@"HOLD_FULL"];
 	}
@@ -9376,14 +9375,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		This function causes problems with Thargoids: their missiles (aka Thargons) are automatically
 		added to the escorts group, and when a mother ship dies all thargons will attach themselves
 		as escorts to the surviving battleships. This can lead to huge escort groups.
-		Post-MNSR TODO: better handling of Thargoid groups.
+		TODO: better handling of Thargoid groups:
 			- put thargons (& all other thargon missiles) in their own non-escort group perhaps?
 	*/
 	
-	// The _escortPositions array size is always MAX_ESCORTS, so clamp max idx.
-	// this now returns the same last escort position for all escorts above MAX_ESCORTS
+	// The _escortPositions array is always MAX_ESCORTS long.
+	// Kludge: return the same last escort position if we have escorts above MAX_ESCORTS...
 	idx = MIN(idx, (unsigned)(MAX_ESCORTS - 1));
-	//NSParameterAssert(idx < MAX_ESCORTS);
 	
 	return vector_add(self->position, quaternion_rotate_vector([self normalOrientation], _escortPositions[idx]));
 }

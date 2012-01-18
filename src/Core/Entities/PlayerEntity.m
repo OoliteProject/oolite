@@ -1679,12 +1679,6 @@ static GLfloat		sBaseMass = 0.0;
 	STAGE_TRACKING_END
 }
 
-// TODO - remove (testing only)
-static int EnergyDistribution = 1; // NB: Only initialised once; set via debugger
-#if !defined(NDEBUG)
-static float minShieldLevelPercentage = 1.00; // 0 .. 1
-static bool minShieldLevelPercentageInitialised = false;
-#endif
 
 - (void) doBookkeeping:(double) delta_t
 {
@@ -1781,164 +1775,56 @@ static bool minShieldLevelPercentageInitialised = false;
 	}
 	
 	// Energy Banks and Shields
-	// TODO: Remove case statement once we pick the best solution.
-	switch(EnergyDistribution)
+	
+	/* Shield-charging behaviour, as per Eric's proposal:
+	   1. If shields are less than a threshold, recharge with all available energy
+	   2. If energy banks are below threshold, recharge with generated energy
+	   3. Charge shields with any surplus energy
+	*/
+	UPDATE_STAGE(@"updating energy and shield charges");
+	
+	// 1. (Over)charge energy banks (will get normalised later)
+	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
+	energy += energy_recharge_rate * energy_multiplier * delta_t;
+	
+	// 2. Calculate shield recharge rates
+	float fwdMax = [self maxForwardShieldLevel];
+	float aftMax = [self maxAftShieldLevel];
+	float shieldRecharge = [self shieldRechargeRate] * delta_t;
+	float rechargeFwd = MIN(shieldRecharge, fwdMax - forward_shield);
+	float rechargeAft = MIN(shieldRecharge, aftMax - aft_shield);
+	
+	// Note: we've simplified this a little, so if either shield is below
+	//       the critical threshold, we allocate all energy.  Ideally we
+	//       would only allocate the full recharge to the critical shield,
+	//       but doing so would add another few levels of if-then below.
+	float energyForShields = energy;
+	if( (forward_shield > fwdMax * 0.25) && (aft_shield > aftMax * 0.25) )
 	{
-		case 0:
-		// Current Oolite behaviour
-		{
-			UPDATE_STAGE(@"updating energy and shield charges");
-			if (energy < maxEnergy)
-			{
-				double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
-				energy += (float)(energy_recharge_rate * energy_multiplier * delta_t);
-				if (energy > maxEnergy)
-					energy = maxEnergy;
-			}
-			
-			// Recharge shields from energy banks
-			float rechargeFwd = (float)([self shieldRechargeRate] * delta_t);
-			float rechargeAft = rechargeFwd;
-			float fwdMax = [self maxForwardShieldLevel];
-			float aftMax = [self maxAftShieldLevel];
-			
-			if (forward_shield < fwdMax)
-			{
-				if (forward_shield + rechargeFwd > fwdMax)  rechargeFwd = fwdMax - forward_shield;
-				forward_shield += rechargeFwd;
-				energy -= rechargeFwd;
-			}
-			if (aft_shield < aftMax)
-			{
-				if (aft_shield + rechargeAft > aftMax)  rechargeAft = aftMax - aft_shield;
-				aft_shield += rechargeAft;
-				energy -= rechargeAft;
-			}
-			forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
-			aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
-		}
-		break;
-		case 1:
-		/* Eric's shield-charging proposal:
-		   1. If shields are less than a threshold, recharge with all available energy
-		   2. If energy banks are below threshold, recharge with generated energy
-		   3. Charge shields with any surplus energy
-		*/
-		{
-			UPDATE_STAGE(@"updating energy and shield charges");
-			
-			// 1. (Over)charge energy banks (will get normalised later)
-			double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
-			energy += energy_recharge_rate * energy_multiplier * delta_t;
-			
-			// 2. Calculate shield recharge rates
-			float fwdMax = [self maxForwardShieldLevel];
-			float aftMax = [self maxAftShieldLevel];
-			float shieldRecharge = [self shieldRechargeRate] * delta_t;
-			float rechargeFwd = MIN(shieldRecharge, fwdMax - forward_shield);
-			float rechargeAft = MIN(shieldRecharge, aftMax - aft_shield);
-			
-			// Note: we've simplified this a little, so if either shield is below
-			//       the critical threshold, we allocate all energy.  Ideally we
-			//       would only allocate the full recharge to the critical shield,
-			//       but doing so would add another few levels of if-then below.
-			float energyForShields = energy;
-			if( (forward_shield > fwdMax * 0.25) && (aft_shield > aftMax * 0.25) )
-			{
-				// TODO: Can this be cached anywhere sensibly (without adding another member variable)?
-				float minEnergyBankLevel = [[UNIVERSE planetInfo] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.25];
-				energyForShields = MAX(0.0, energy -0.1 - (maxEnergy * minEnergyBankLevel)); // NB: The - 0.1 ensures the energy value does not 'bounce' across the critical energy message and causes spurious energy-low warnings
-			}
-			
-			if( forward_shield < aft_shield )
-			{
-				rechargeFwd = MIN(rechargeFwd, energyForShields);
-				rechargeAft = MIN(rechargeAft, energyForShields - rechargeFwd);
-			}
-			else
-			{
-				rechargeAft = MIN(rechargeAft, energyForShields);
-				rechargeFwd = MIN(rechargeFwd, energyForShields - rechargeAft);
-			}
-			
-			// 3. Recharge shields, drain banks, and clamp values
-			forward_shield += rechargeFwd;
-			aft_shield += rechargeAft;
-			energy -= rechargeFwd + rechargeAft;
-			
-			forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
-			aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
-			energy = OOClamp_0_max_f(energy, maxEnergy);
-		}
-		break;
-		case 2:
-		/*	Micha's new shield recharging based on a key:
-			1. Recharge energy banks
-				(currEnergy += generatedEnergy)
-			2. Calculate energy available for shields
-				(shieldEnergy = currEnergy - energyThreshold)
-			3. Distribute available energy amongst shields
-		*/
-		{
-			UPDATE_STAGE(@"updating energy and shield charges");
-			double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
-			float energyGenerated = energy_recharge_rate * energy_multiplier * delta_t;
-			
-			// 1. (Over)charge energy banks (will get normalised later)
-			energy += energyGenerated;
-			
-			// 2. Calculate how much energy can be used for the shields
-#if defined(NDEBUG)
-			// TODO - cache this value somewhere, or is it cheap enough to perform this lookup?
-			float minEnergyBankLevel = [[UNIVERSE planetInfo] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.0];
-			float energyForShields = MAX(0.0, energy - (maxEnergy * minEnergyBankLevel));
-#else
-			// MKW - use static vars for debugging, since we can change them using the debugger
-			if( !minShieldLevelPercentageInitialised )
-			{
-				minShieldLevelPercentage = [[UNIVERSE planetInfo] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.0];
-				minShieldLevelPercentageInitialised = true;
-			}
-			float energyForShields = MAX(0.0, energy - (maxEnergy * minShieldLevelPercentage));
-#endif
-
-			// 3. Recharge shields with leftover energy; try to distribute fairly
-			if( energyForShields > 0.0 )
-			{
-				float fwdMax = [self maxForwardShieldLevel];
-				float aftMax = [self maxAftShieldLevel];
-				float recharge = [self shieldRechargeRate] * delta_t;
-				float rechargeFwd = MIN(recharge, fwdMax - forward_shield);
-				float rechargeAft = MIN(recharge, aftMax - aft_shield);
-				
-				if( (rechargeFwd == rechargeAft) ||
-						((rechargeFwd > energyForShields) && (rechargeAft > energyForShields)) )
-				{
-					rechargeFwd = MIN(rechargeFwd, energyForShields / 2.0);
-					rechargeAft = MIN(rechargeAft, energyForShields / 2.0);
-				}
-				else if( rechargeFwd < energyForShields )
-				{
-					rechargeAft = MIN(rechargeAft, energyForShields - rechargeFwd);
-				}
-				else
-				{
-					rechargeFwd = MIN(rechargeFwd, energyForShields - rechargeAft);
-				}
-				
-				forward_shield += rechargeFwd;
-				aft_shield += rechargeAft;
-				
-				energy -= rechargeFwd;
-				energy -= rechargeAft;
-				
-				forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
-				aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
-			}
-			energy = OOClamp_0_max_f(energy, maxEnergy);
-		}
-		break;
+		// TODO: Can this be cached anywhere sensibly (without adding another member variable)?
+		float minEnergyBankLevel = [[UNIVERSE planetInfo] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.25];
+		energyForShields = MAX(0.0, energy -0.1 - (maxEnergy * minEnergyBankLevel)); // NB: The - 0.1 ensures the energy value does not 'bounce' across the critical energy message and causes spurious energy-low warnings
 	}
+	
+	if( forward_shield < aft_shield )
+	{
+		rechargeFwd = MIN(rechargeFwd, energyForShields);
+		rechargeAft = MIN(rechargeAft, energyForShields - rechargeFwd);
+	}
+	else
+	{
+		rechargeAft = MIN(rechargeAft, energyForShields);
+		rechargeFwd = MIN(rechargeFwd, energyForShields - rechargeAft);
+	}
+	
+	// 3. Recharge shields, drain banks, and clamp values
+	forward_shield += rechargeFwd;
+	aft_shield += rechargeAft;
+	energy -= rechargeFwd + rechargeAft;
+	
+	forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
+	aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
+	energy = OOClamp_0_max_f(energy, maxEnergy);
 	
 	if (sun)
 	{
@@ -2504,7 +2390,7 @@ static bool minShieldLevelPercentageInitialised = false;
 		}
 		else
 		{
-			// FIXME: how to preload target system for galactic jump?
+			// FIXME: preload target system for galactic jump?
 		}
 
 		UPDATE_STAGE(@"JUMP!");
@@ -2636,6 +2522,8 @@ static bool minShieldLevelPercentageInitialised = false;
 	[UNIVERSE displayMessage:scoreMS forCount:kDeadResetTime];
 	[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
 	[UNIVERSE displayMessage:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-press-space]") forCount:kDeadResetTime];
+	[UNIVERSE displayMessage:@" " forCount:kDeadResetTime];
+	[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
 	[self resetShotTime];
 }
 
@@ -6608,16 +6496,44 @@ static NSString *last_outfitting_key=nil;
 	if (justCobra)
 	{
 		text = DESC(@"game-copyright");
-		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor whiteColor] forRow:17];
+		[gui setText:text forRow:15 align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor whiteColor] forRow:15];
 		
 		text = DESC(@"theme-music-credit");
-		[gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor grayColor] forRow:19];
+		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor grayColor] forRow:17];
 		
-		text = DESC(@"load-previous-commander");
-		[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor yellowColor] forRow:21];
+		// Ask to load previous commander only if we have at least one previous commander to load.
+		
+		NSFileManager *saveFileManager = [NSFileManager defaultManager];
+		NSArray *cdrArray = [saveFileManager commanderContentsOfPath: [[UNIVERSE gameController] playerFileDirectory]];
+		unsigned j;
+		BOOL fileExists, isDir, oneCdr = NO;
+		
+		for(j = 0; j < [cdrArray count] && !oneCdr; j++)
+		{
+			NSString*	path = [cdrArray objectAtIndex:j];
+			fileExists = [saveFileManager fileExistsAtPath:path isDirectory:&isDir];
+			
+			if (fileExists && !isDir && [[[path pathExtension] lowercaseString] isEqualToString:@"oolite-save"])
+			{
+				oneCdr = YES;
+			}
+		}
+		
+		if (oneCdr)
+		{
+			text = DESC(@"load-previous-commander");
+			[gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
+			[gui setColor:[OOColor yellowColor] forRow:19];
+		}
+		else
+		{
+			text = DESC(@"press-space-commander");
+			[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
+			[gui setColor:[OOColor yellowColor] forRow:21];
+			justCobra = NO;
+		}
 		
 		// check for error messages from Resource Manager
 		[ResourceManager paths];
@@ -8442,15 +8358,13 @@ static NSString *last_outfitting_key=nil;
 	if (![UNIVERSE strict])
 	{
 		rate = [super fuelChargeRate];
-#if 0
-		// post-NMSR fuelPrices	- the state of repair to affect the rate? 
-		// state of repair never lower than 75, but added the check just in case. -- Kaks 20110429
+
+		// Experimental: the state of repair affects the fuel charge rate - more fuel needed for jumps, etc... 
 		if (EXPECT(ship_trade_in_factor <= 90 && ship_trade_in_factor >= 75))
 		{
 			rate *= 2.0 - (ship_trade_in_factor / 100); // between 1.1x and 1.25x
-			OOLog(@"fuelPrices", @"\"%@\" - repair status: %d%%, adjusted rate to:%.2f)", [self shipDataKey], ship_trade_in_factor, rate);
+			//OOLog(@"fuelPrices", @"\"%@\" - repair status: %d%%, adjusted rate to:%.2f)", [self shipDataKey], ship_trade_in_factor, rate);
 		}
-#endif
 	}
 	return rate;
 }

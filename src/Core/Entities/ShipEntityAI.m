@@ -850,7 +850,7 @@ MA 02110-1301, USA.
 	if (the_planet)
 	{
 		Vector p_pos = the_planet->position;
-		double p_cr = the_planet->collision_radius;   // 200m above the surface
+		double p_cr = the_planet->collision_radius;		// the surface
 		Vector p1 = vector_between(p_pos, position);
 		p1 = vector_normal(p1);			// vector towards ship
 		p1.x += 0.5 * (randf() - 0.5);
@@ -858,7 +858,7 @@ MA 02110-1301, USA.
 		p1.z += 0.5 * (randf() - 0.5);
 		p1 = vector_normal(p1); 
 		destination = make_vector(p_pos.x + p1.x * p_cr, p_pos.y + p1.y * p_cr, p_pos.z + p1.z * p_cr);	// on surface
-		desired_range = collision_radius + 50.0;   // +50m from the destination
+		desired_range = collision_radius + 100.0;	// +100m from the destination
 	}
 	else
 	{

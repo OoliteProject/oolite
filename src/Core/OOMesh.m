@@ -1671,6 +1671,17 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
+static float FaceArea(GLuint *vertIndices, Vector *vertices)
+{
+	/*	Calculate areas using Heron's formula.	*/
+	float	a2 = distance2(vertices[vertIndices[0]], vertices[vertIndices[1]]);
+	float	b2 = distance2(vertices[vertIndices[1]], vertices[vertIndices[2]]);
+	float	c2 = distance2(vertices[vertIndices[2]], vertices[vertIndices[0]]);
+	return sqrtf((2.0 * (a2 * b2 + b2 * c2 + c2 * a2) - (a2 * a2 + b2 * b2 +c2 * c2)) * 0.0625);
+}
+
+
+#if 0
 static float FaceAreaBroken(GLuint *vertIndices, Vector *vertices)
 {
 	/*	This is supposed to calculate areas using Heron's formula, but doesn't.
@@ -1687,6 +1698,7 @@ static float FaceAreaBroken(GLuint *vertIndices, Vector *vertices)
 	float	c2 = distance2(vertices[vertIndices[2]], vertices[vertIndices[0]]);
 	return sqrtf(2.0 * (a2 * b2 + b2 * c2 + c2 * a2) - 0.25 * (a2 * a2 + b2 * b2 +c2 * c2));
 }
+#endif
 
 
 - (void) calculateVertexNormalsAndTangentsWithFaceRefs:(VertexFaceRef *)faceRefs
@@ -1702,7 +1714,7 @@ static float FaceAreaBroken(GLuint *vertIndices, Vector *vertices)
 	
 	for (i = 0 ; i < faceCount; i++)
 	{
-		triangle_area[i] = FaceAreaBroken(_faces[i].vertex, _vertices);
+		triangle_area[i] = FaceArea(_faces[i].vertex, _vertices);
 	}
 	for (i = 0; i < vertexCount; i++)
 	{
@@ -1810,7 +1822,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 		{
 			if ((_faces[j].vertex[0] == v_index)||(_faces[j].vertex[1] == v_index)||(_faces[j].vertex[2] == v_index))
 			{
-				float area = FaceAreaBroken(_faces[j].vertex, _vertices);
+				float area = FaceArea(_faces[j].vertex, _vertices);
 				normal_sum = vector_add(normal_sum, vector_multiply_scalar(_faces[j].normal, area));
 				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, area));
 			}
