@@ -84,6 +84,9 @@ MA 02110-1301, USA.
 
 - (void) createSurface
 {
+	// Changing these flags can trigger texture bugs.
+	const int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
+	
 	if (showSplashScreen)
 	{
 #if OOLITE_WINDOWS
@@ -210,8 +213,6 @@ MA 02110-1301, USA.
 	[self loadFullscreenSettings];
 	[self loadWindowSize];
 	
-	// Changing these flags can trigger texture bugs.
-	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
 	// Set up the drawing surface's dimensions.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
