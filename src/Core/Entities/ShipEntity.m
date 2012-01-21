@@ -8260,7 +8260,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	start.z = boundingBox.min.z - jcr;	// 1m behind of bounding box
 	
 	// custom launching position
-	ScanVectorFromString([shipinfoDictionary objectForKey:@"aft_eject_position"], &start);
+	start = [shipinfoDictionary oo_vectorForKey:@"aft_eject_position" defaultValue:start];
 	
 	v_eject = vector_normal(start);
 	
