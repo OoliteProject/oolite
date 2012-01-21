@@ -369,14 +369,13 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
 	
-	ScanVectorFromString([shipDict objectForKey:@"weapon_position_forward"], &forwardWeaponOffset);
-	ScanVectorFromString([shipDict objectForKey:@"weapon_position_aft"], &aftWeaponOffset);
-	ScanVectorFromString([shipDict objectForKey:@"weapon_position_port"], &portWeaponOffset);
-	ScanVectorFromString([shipDict objectForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
+	forwardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_forward" defaultValue:forwardWeaponOffset];
+	aftWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset];
+	portWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset];
+	starboardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset];
 
 	// fuel scoop destination position (where cargo gets sucked into)
-	tractor_position = kZeroVector;
-	ScanVectorFromString([shipDict objectForKey:@"scoop_position"], &tractor_position);
+	tractor_position = [shipDict oo_vectorForKey:@"scoop_position"];
 	
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
@@ -7932,8 +7931,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	start.x = 0.0f;						// in the middle
 	start.y = boundingBox.min.y - 4.0f;	// 4m below bounding box
 	start.z = boundingBox.max.z + 1.0f;	// 1m ahead of bounding box
+	
 	// custom launching position
-	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
+	start = [shipinfoDictionary oo_vectorForKey:@"missile_launch_position" defaultValue:start];
 	
 	if (start.x == 0.0f && start.y == 0.0f && start.z <= 0.0f) // The kZeroVector as start is illegal also.
 	{

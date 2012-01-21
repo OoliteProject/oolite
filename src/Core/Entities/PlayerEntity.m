@@ -1447,10 +1447,10 @@ static GLfloat		sBaseMass = 0.0;
 	// set view offsets
 	[self setDefaultViewOffsets];
 	
-	ScanVectorFromString([shipDict oo_stringForKey:@"view_position_forward"], &forwardViewOffset);
-	ScanVectorFromString([shipDict oo_stringForKey:@"view_position_aft"], &aftViewOffset);
-	ScanVectorFromString([shipDict oo_stringForKey:@"view_position_port"], &portViewOffset);
-	ScanVectorFromString([shipDict oo_stringForKey:@"view_position_starboard"], &starboardViewOffset);
+	forwardViewOffset = [shipDict oo_vectorForKey:@"view_position_forward" defaultValue:forwardViewOffset];
+	aftViewOffset = [shipDict oo_vectorForKey:@"view_position_aft" defaultValue:aftViewOffset];
+	portViewOffset = [shipDict oo_vectorForKey:@"view_position_port" defaultValue:portViewOffset];
+	starboardViewOffset = [shipDict oo_vectorForKey:@"view_position_starboard" defaultValue:starboardViewOffset];
 	
 	[self setDefaultCustomViews];
 	
