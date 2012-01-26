@@ -272,6 +272,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		double	ship_arrival_time = arrival_time + [(NSNumber*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"time"] doubleValue];
 		double	time_passed = now - ship_arrival_time;
 		
+		if ([ship status] == STATUS_DEAD) continue; // skip dead ships.
+		
 		if (ship_arrival_time > now)
 		{
 			[shipsStillInTransit addObject:[shipsInTransit objectAtIndex:i]];
