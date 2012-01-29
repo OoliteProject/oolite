@@ -1365,7 +1365,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) removeAllCargo:(BOOL)forceRemoval
 {
-	// misnamed function. it only removes  cargo measured in TONS, g & Kg items are not removed. --Kaks 20091004 
+	// Misnamed metod. It only removes cargo measured in TONS, g & Kg items are not removed. --Kaks 20091004
 	OOCommodityType			type;
 	OOMassUnit				unit;
 	

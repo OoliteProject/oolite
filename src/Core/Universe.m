@@ -4209,13 +4209,10 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		}
 	}
 	
-	Vector			u1 = vector_up_from_quaternion(q1);
-	Vector			f1 = vector_forward_from_quaternion(q1);
-	Vector			r1 = vector_right_from_quaternion(q1);
 	
-	p0.x += offset.x * r1.x + offset.y * u1.x + offset.z * f1.x;
-	p0.y += offset.x * r1.y + offset.y * u1.y + offset.z * f1.y;
-	p0.z += offset.x * r1.z + offset.y * u1.z + offset.z * f1.z;
+	Vector u1, f1, r1;
+	basis_vectors_from_quaternion(q1, &r1, &u1, &f1);
+	p0 = vector_add(p0, OOVectorMultiplyMatrix(offset, OOMatrixFromBasisVectors(r1, u1, f1)));
 	
 	switch (viewdir)
 	{
@@ -4232,10 +4229,8 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			break;
 	}
 	
-	f1 = vector_forward_from_quaternion(q1);
-	r1 = vector_right_from_quaternion(q1);
-	
-	Vector p1 = make_vector(p0.x + nearest *f1.x, p0.y + nearest *f1.y, p0.z + nearest *f1.z);	//endpoint
+	basis_vectors_from_quaternion(q1, &r1, NULL, &f1);
+	Vector p1 = vector_add(p0, vector_multiply_scalar(f1, nearest));	//endpoint
 	
 	for (i = 0; i < ship_count; i++)
 	{
@@ -4243,40 +4238,25 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		
 		// check outermost bounding sphere
 		GLfloat cr = e2->collision_radius;
-		Vector rpos = vector_between(p0, e2->position);
+		Vector rpos = vector_subtract(e2->position, p0);
 		Vector v_off = make_vector(dot_product(rpos, r1), dot_product(rpos, u1), dot_product(rpos, f1));
-		if ((v_off.z > 0.0)&&(v_off.z < nearest + cr)								// ahead AND within range
-			&&(v_off.x < cr)&&(v_off.x > -cr)&&(v_off.y < cr)&&(v_off.y > -cr)		// AND not off to one side or another
-			&&(v_off.x*v_off.x + v_off.y*v_off.y < cr*cr))							// AND not off to both sides
+		if (v_off.z > 0.0 && v_off.z < nearest + cr &&								// ahead AND within range
+			v_off.x < cr && v_off.x > -cr && v_off.y < cr && v_off.y > -cr &&		// AND not off to one side or another
+			v_off.x * v_off.x + v_off.y * v_off.y < cr * cr)						// AND not off to both sides
 		{
+			ShipEntity *entHit = nil;
+			GLfloat hit = [(ShipEntity *)e2 doesHitLine:p0 :p1 :&entHit];	// octree detection
 			
-			/*
-			//  EW 23-4-2010: Below used to be a test for: e2->actual_radius with Oolite 1.65. 
-			//  With e2->collision_radius it is now just duplicating the test above.
-			//  Remove the code or use something smaller to check (if possible).
-			
-			//  within the bounding sphere - do further tests
-			GLfloat ar = e2->collision_radius;
-			if ((v_off.z > 0.0)&&(v_off.z < nearest + ar)								// ahead AND within range
-				&&(v_off.x < ar)&&(v_off.x > -ar)&&(v_off.y < ar)&&(v_off.y > -ar)		// AND not off to one side or another
-				&&(v_off.x*v_off.x + v_off.y*v_off.y < ar*ar))							// AND not off to both sides
-			*/
+			if (hit > 0.0 && hit < nearest)
 			{
-				ShipEntity* entHit = (ShipEntity*)nil;
-				GLfloat hit = [(ShipEntity*)e2 doesHitLine:p0:p1:&entHit];	// octree detection
-				
-				if ((hit > 0.0)&&(hit < nearest))
+				if ([entHit isSubEntity])
 				{
-					if ([entHit isSubEntity])
-					{
-						hit_subentity = entHit;
-					}
-					hit_entity = e2;
-					nearest = hit;
-					p1 = make_vector(p0.x + nearest *f1.x, p0.y + nearest *f1.y, p0.z + nearest *f1.z);
+					hit_subentity = entHit;
 				}
+				hit_entity = e2;
+				nearest = hit;
+				p1 = vector_add(p0, vector_multiply_scalar(f1, nearest));
 			}
-			
 		}
 	}
 	
@@ -4297,11 +4277,12 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (Entity *)getFirstEntityTargetedByPlayer
+- (Entity *) getFirstEntityTargetedByPlayer
 {
 	PlayerEntity	*player = PLAYER;
 	Entity			*hit_entity = nil;
-	double			nearest = SCANNER_MAX_RANGE - 100;	// 100m shorter than range at which target is lost
+	OOScalar		nearest2 = SCANNER_MAX_RANGE - 100;	// 100m shorter than range at which target is lost
+	nearest2 *= nearest2;
 	int				i;
 	int				ent_count = n_entities;
 	int				ship_count = 0;
@@ -4309,22 +4290,19 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	for (i = 0; i < ent_count; i++)
 	{
-		if ( ([sortedEntities[i] isShip] && ![sortedEntities[i] isPlayer]) || [sortedEntities[i] isWormhole])
+		if (([sortedEntities[i] isShip] && ![sortedEntities[i] isPlayer]) || [sortedEntities[i] isWormhole])
 		{
-			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
+			my_entities[ship_count++] = [sortedEntities[i] retain];
 		}
 	}
 	
-	Vector p1 = player->position;
-	Quaternion q1 = player->orientation;
-	q1.w = -q1.w;   //  reverse for player viewpoint
-	Vector u1 = vector_up_from_quaternion(q1);
-	Vector f1 = vector_forward_from_quaternion(q1);
-	Vector r1 = vector_right_from_quaternion(q1);
+	Quaternion q1 = [player normalOrientation];
+	Vector u1, f1, r1;
+	basis_vectors_from_quaternion(q1, &r1, &u1, &f1);
 	Vector offset = [player weaponViewOffset];
-	p1.x += offset.x * r1.x + offset.y * u1.x + offset.z * f1.x;
-	p1.y += offset.x * r1.y + offset.y * u1.y + offset.z * f1.y;
-	p1.z += offset.x * r1.z + offset.y * u1.z + offset.z * f1.z;
+	
+	Vector p1 = vector_add([player position], OOVectorMultiplyMatrix(offset, OOMatrixFromBasisVectors(r1, u1, f1)));
+	
 	switch (viewDirection)
 	{
 		case VIEW_AFT :
@@ -4339,37 +4317,36 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		default:
 			break;
 	}
-	f1 = vector_forward_from_quaternion(q1);
-	r1 = vector_right_from_quaternion(q1);
+	basis_vectors_from_quaternion(q1, &r1, NULL, &f1);
+	
 	for (i = 0; i < ship_count; i++)
 	{
 		Entity *e2 = my_entities[i];
-		if ([e2 canCollide]&&([e2 scanClass] != CLASS_NO_DRAW))
+		if ([e2 canCollide] && [e2 scanClass] != CLASS_NO_DRAW)
 		{
-			Vector rp = [e2 position];
-			rp.x -= p1.x;	rp.y -= p1.y;	rp.z -= p1.z;
-			double dist2 = magnitude2(rp);
-			if (dist2 < nearest * nearest)
+			Vector rp = vector_subtract([e2 position], p1);
+			OOScalar dist2 = magnitude2(rp);
+			if (dist2 < nearest2)
 			{
-				double df = dot_product(f1,rp);
-				if ((df > 0.0)&&(df < nearest))
+				OOScalar df = dot_product(f1, rp);
+				if (df > 0.0 && df * df < nearest2)
 				{
-					double du = dot_product(u1,rp);
-					double dr = dot_product(r1,rp);
-					double cr = [e2 collisionRadius];
-					if (du*du + dr*dr < cr*cr)
+					OOScalar du = dot_product(u1, rp);
+					OOScalar dr = dot_product(r1, rp);
+					OOScalar cr = [e2 collisionRadius];
+					if (du * du + dr * dr < cr * cr)
 					{
 						hit_entity = e2;
-						nearest = sqrt(dist2);
+						nearest2 = dist2;
 					}
 				}
 			}
 		}
 	}
 	// check for MASC'M
-	if ((hit_entity) && [hit_entity isShip])
+	if (hit_entity != nil && [hit_entity isShip])
 	{
-		ShipEntity * ship = (ShipEntity*)hit_entity;
+		ShipEntity* ship = (ShipEntity*)hit_entity;
 		if ([ship isJammingScanning] && ![player hasMilitaryScannerFilter])
 		{
 			hit_entity = nil;
@@ -4377,7 +4354,9 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	}
 	
 	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release]; //	released
+	{
+		[my_entities[i] release];
+	}
 	
 	return hit_entity;
 }
