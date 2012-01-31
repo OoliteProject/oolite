@@ -12,6 +12,8 @@ int main(int argc, char *argv[])
 {
 	@try
 	{
+		[[NSUserDefaults standardUserDefaults] registerDefaults:[NSDictionary dictionaryWithObject:[NSNumber numberWithInteger:1] forKey:@"AppleFontSmoothing"]];
+		
 		return NSApplicationMain(argc,  (const char **) argv);
 	}
 	@catch (id e)

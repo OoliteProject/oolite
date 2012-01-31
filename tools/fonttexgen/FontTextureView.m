@@ -128,14 +128,18 @@ static inline NSRect ScaleRect(NSRect rect, NSPoint scale)
 
 - (void)drawRect:(NSRect)rect
 {
+	// Disable subpixel anti-aliasing.
+	CGContextRef cgCtxt = [[NSGraphicsContext currentContext] graphicsPort];
+	CGContextSaveGState(cgCtxt);
+	CGContextSetShouldSmoothFonts(cgCtxt, NO);
+	
 	[[NSColor blackColor] set];
 	[NSBezierPath fillRect:rect];
 	
 	// Originally hard-coded at 512x512 pixels, scale is used to transform magic numbers as appropriate.
 	NSPoint scale = { self.bounds.size.width / 512, self.bounds.size.height / 512 };
 	
-//	NSFont *font = [NSFont fontWithName:@"Helvetica Bold" size:25.0 * scale.y];
-	NSFont *font = [NSFont fontWithName:@"Play-Bold" size:25.0 * scale.y];
+	NSFont *font = [NSFont fontWithName:@"Helvetica Bold" size:25.0 * scale.y];
 	if (font == nil)  NSLog(@"Failed to find font!");
 	NSDictionary *attrs = [NSDictionary dictionaryWithObjectsAndKeys:font, NSFontAttributeName, [NSColor whiteColor], NSForegroundColorAttributeName, nil];
 	
@@ -190,20 +194,24 @@ static inline NSRect ScaleRect(NSRect rect, NSPoint scale)
 	[_topRows drawInRect:dstRect fromRect:srcRect operation:NSCompositePlusLighter fraction:1.0];
 	
 	_widths = [widths copy];
+	
+	CGContextRestoreGState(cgCtxt);
 }
 
 
 - (IBAction) saveImage:(id)sender
 {
 	NSSavePanel *savePanel = [NSSavePanel savePanel];
-	[savePanel setRequiredFileType:(NSString *)kUTTypeTIFF];
+	[savePanel setAllowedFileTypes:[NSArray arrayWithObject:(NSString *)kUTTypeTIFF]];
 	[savePanel setCanSelectHiddenExtension:YES];
 	[savePanel setExtensionHidden:NO];
-	if ([savePanel runModalForDirectory:nil file:@"oolite-font.tiff"] == NSOKButton)
+	[savePanel setNameFieldStringValue:@"oolite-font.tiff"];
+	
+	if ([savePanel runModal] == NSOKButton)
 	{
 		NSBitmapImageRep *rep = [self bitmapImageRepForCachingDisplayInRect:self.bounds];
 		[self cacheDisplayInRect:self.bounds toBitmapImageRep:rep];
-		NSString *path = [savePanel filename];
+		NSString *path = [[savePanel URL] path];
 		[[rep TIFFRepresentation] writeToFile:path atomically:YES];
 		
 		NSMutableDictionary *plist = [_template mutableCopy];
