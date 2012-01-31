@@ -815,6 +815,17 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 	
+	/*	Energy bombs are no longer supported in non-strict mode. As compensation,
+		we'll award either a Q-mine or some cash. We can't determine what to
+		award until we've handled missiles later on, though.
+	*/
+	BOOL energyBombCompensation = NO;
+	if ([equipment oo_boolForKey:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_ENERGY_BOMB"] == nil)
+	{
+		energyBombCompensation = YES;
+		[equipment removeObjectForKey:@"EQ_ENERGY_BOMB"];
+	}
+	
 	eqScripts = [[NSMutableArray alloc] init];
 	[self addEquipmentFromCollection:equipment];
 	primedEquipment = [self getEqScriptIndexForKey:[dict oo_stringForKey:@"primed_equipment"]];	// if key not found primedEquipment is set to primed-none
@@ -973,6 +984,24 @@ static GLfloat		sBaseMass = 0.0;
 			missile_list[i] = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
 			missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retain count = 1 - should be okay as long as we keep a missile with this role
 																			// in the base package.
+		}
+	}
+	
+	if (energyBombCompensation)
+	{
+		/*
+			Compensate energy bomb with either a QC mine or the cost of an
+			energy bomb (900 credits). This must be done after missiles are
+			set up.
+		*/
+		if ([self mountMissileWithRole:@"EQ_QC_MINE"])
+		{
+			OOLog(@"load.upgrade.replacedEnergyBomb", @"Replaced legacy energy bomb with Quirium cascade mine.");
+		}
+		else
+		{
+			credits += 9000;
+			OOLog(@"load.upgrade.replacedEnergyBomb", @"Compensated legacy energy bomb with 900 credits.");
 		}
 	}
 	
