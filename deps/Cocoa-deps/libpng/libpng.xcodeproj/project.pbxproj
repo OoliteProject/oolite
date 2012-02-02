@@ -25,6 +25,7 @@
 		1A78B5AF12D74BE900D42EE7 /* pngwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59B12D74BE900D42EE7 /* pngwrite.c */; };
 		1A78B5B012D74BE900D42EE7 /* pngwtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59C12D74BE900D42EE7 /* pngwtran.c */; };
 		1A78B5B112D74BE900D42EE7 /* pngwutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59D12D74BE900D42EE7 /* pngwutil.c */; };
+		1A96C25214DB3E62007BFBBA /* pnglibconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A96C25114DB3E62007BFBBA /* pnglibconf.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,7 @@
 		1A78B59B12D74BE900D42EE7 /* pngwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwrite.c; sourceTree = "<group>"; };
 		1A78B59C12D74BE900D42EE7 /* pngwtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwtran.c; sourceTree = "<group>"; };
 		1A78B59D12D74BE900D42EE7 /* pngwutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwutil.c; sourceTree = "<group>"; };
+		1A96C25114DB3E62007BFBBA /* pnglibconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pnglibconf.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +78,7 @@
 			children = (
 				1A78B58A12D74BE900D42EE7 /* png.h */,
 				1A78B58B12D74BE900D42EE7 /* pngconf.h */,
+				1A96C25114DB3E62007BFBBA /* pnglibconf.h */,
 				1A78B58C12D74BE900D42EE7 /* pngpriv.h */,
 				1A78B58D12D74BE900D42EE7 /* example.c */,
 				1A78B58E12D74BE900D42EE7 /* png.c */,
@@ -118,6 +121,7 @@
 			files = (
 				1A78B59E12D74BE900D42EE7 /* png.h in Headers */,
 				1A78B59F12D74BE900D42EE7 /* pngconf.h in Headers */,
+				1A96C25214DB3E62007BFBBA /* pnglibconf.h in Headers */,
 				1A78B5A012D74BE900D42EE7 /* pngpriv.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
