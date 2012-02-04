@@ -46,6 +46,7 @@ SOFTWARE.
 - (NSDictionary *) oo_diffuseMapSpecifierWithDefaultName:(NSString *)name;
 - (NSDictionary *) oo_specularMapSpecifier;
 - (NSDictionary *) oo_normalMapSpecifier;
+- (NSDictionary *) oo_parallaxMapSpecifier;
 - (NSDictionary *) oo_normalAndParallaxMapSpecifier;
 - (NSDictionary *) oo_emissionMapSpecifier;
 - (NSDictionary *) oo_illuminationMapSpecifier;
@@ -74,6 +75,7 @@ extern NSString * const kOOMaterialIlluminationModulateColorName;
 extern NSString * const kOOMaterialDiffuseMapName;
 extern NSString * const kOOMaterialSpecularMapName;
 extern NSString * const kOOMaterialNormalMapName;
+extern NSString * const kOOMaterialParallaxMapName;
 extern NSString * const kOOMaterialNormalAndParallaxMapName;
 extern NSString * const kOOMaterialEmissionMapName;
 extern NSString * const kOOMaterialIlluminationMapName;

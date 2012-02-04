@@ -30,6 +30,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOTexture.h"
 #import "Universe.h"
+#import "NSDictionaryOOExtensions.h"
 
 
 NSString * const kOOMaterialDiffuseColorName				= @"diffuse_color";
@@ -47,6 +48,7 @@ NSString * const kOOMaterialIlluminationModulateColorName	= @"illumination_modul
 NSString * const kOOMaterialDiffuseMapName					= @"diffuse_map";
 NSString * const kOOMaterialSpecularMapName					= @"specular_map";
 NSString * const kOOMaterialNormalMapName					= @"normal_map";
+NSString * const kOOMaterialParallaxMapName					= @"parallax_map";
 NSString * const kOOMaterialNormalAndParallaxMapName		= @"normal_and_parallax_map";
 NSString * const kOOMaterialEmissionMapName					= @"emission_map";
 NSString * const kOOMaterialIlluminationMapName				= @"illumination_map";
@@ -149,6 +151,20 @@ NSString * const kOOMaterialShininess						= @"shininess";
 {
 	if ([self oo_normalAndParallaxMapSpecifier] != nil)  return nil;
 	return [self oo_textureSpecifierForKey:kOOMaterialNormalMapName defaultName:nil];
+}
+
+
+- (NSDictionary *) oo_parallaxMapSpecifier
+{
+	id spec = [self oo_textureSpecifierForKey:kOOMaterialParallaxMapName defaultName:nil];
+	if (spec == nil)
+	{
+		// Default is alpha channel of normal_and_parallax_map.
+		spec = [[self oo_normalAndParallaxMapSpecifier] dictionaryByAddingObject:@"a"
+																		  forKey:@"extract_channel"];
+	}
+	
+	return spec;
 }
 
 

@@ -26,28 +26,23 @@ SOFTWARE.
 */
 
 #import "OODefaultShaderSynthesizer.h"
-#import "OORenderMesh.h"
-#import	"OOMaterialSpecification.h"
-#import "OOTextureSpecification.h"
-#import "OOAbstractVertex.h"
+#import "OOMesh.h"
+#import "OOTexture.h"
+#import "OOColor.h"
 
-
-typedef enum
-{
-	kLightingUndetermined,
-	kLightingUniform,			// No normals can be determined
-	kLightingNormalOnly,		// No tangents, so no normal mapping possible
-	kLightingNormalTangent,		// Normal and tangent defined, bitangent determined by cross product
-	kLightingTangentBitangent	// Tangent and bitangent defined, normal determined by cross product
-} LightingMode;
+#import "NSStringOOExtensions.h"
+#import "OOCollectionExtractors.h"
+#import "NSDictionaryOOExtensions.h"
+#import "OOMaterialSpecifier.h"
 
 
 @interface OODefaultShaderSynthesizer: NSObject
 {
 @private
-	OOMaterialSpecification		*_spec;
-	OORenderMesh				*_mesh;
-	id <OOProblemReporting>		_problemReporter;
+	NSDictionary				*_configuration;
+	OOMesh						*_mesh;
+	NSString					*_materialKey;
+	NSString					*_meshName;
 	
 	NSString					*_vertexShader;
 	NSString					*_fragmentShader;
@@ -72,7 +67,6 @@ typedef enum
 	// _sampledTextures: hash of integer texture IDs for which we’ve set up a sample.
 	NSHashTable					*_sampledTextures;
 	
-	LightingMode				_lightingMode;
 	uint8_t						_normalAttrSize;
 	uint8_t						_tangentAttrSize;
 	uint8_t						_bitangentAttrSize;
@@ -102,9 +96,10 @@ typedef enum
 #endif
 }
 
-- (id) initWithMaterialSpecifiction:(OOMaterialSpecification *)spec
-							   mesh:(OORenderMesh *)mesh
-					problemReporter:(id <OOProblemReporting>) problemReporter;
+- (id) initWithMaterialConfiguration:(NSDictionary *)configuration
+						 materialKey:(NSString *)materialKey
+								mesh:(OOMesh *)mesh
+							meshName:(NSString *)name;
 
 - (BOOL) run;
 
@@ -119,8 +114,10 @@ typedef enum
 - (void) composeVertexShader;
 - (void) composeFragmentShader;
 
-- (LightingMode) lightingMode;
-- (BOOL) tangentSpaceLighting;
+- (NSString *) materialKey;
+- (NSString *) meshName;
+
+- (NSUInteger) textureIDForSpec:(NSDictionary *)textureSpec;
 
 
 /*	Stages. These should only be called through the REQUIRE_STAGE macro to
@@ -191,16 +188,20 @@ typedef enum
 @end
 
 
-BOOL OOSynthesizeMaterialShader(OOMaterialSpecification *materialSpec, OORenderMesh *mesh, NSString **outVertexShader, NSString **outFragmentShader, NSArray **outTextureSpecs, NSDictionary **outUniformSpecs, id <OOProblemReporting> problemReporter)
+static NSString *GetExtractMode(NSDictionary *textureSpecifier);
+
+
+BOOL OOSynthesizeMaterialShader(NSDictionary *configuration, NSString *materialKey, OOMesh *mesh, NSString *meshName, NSString **outVertexShader, NSString **outFragmentShader, NSArray **outTextureSpecs, NSDictionary **outUniformSpecs)
 {
-	NSCParameterAssert(materialSpec != nil && outVertexShader != NULL && outFragmentShader != NULL && outTextureSpecs != NULL && outUniformSpecs != NULL);
+	NSCParameterAssert(configuration != nil && outVertexShader != NULL && outFragmentShader != NULL && outTextureSpecs != NULL && outUniformSpecs != NULL);
 	
 	NSAutoreleasePool *pool = [NSAutoreleasePool new];
 	
 	OODefaultShaderSynthesizer *synthesizer = [[OODefaultShaderSynthesizer alloc]
-											   initWithMaterialSpecifiction:materialSpec
-											   mesh:mesh
-											   problemReporter:problemReporter];
+											   initWithMaterialConfiguration:configuration
+																 materialKey:materialKey
+																		mesh:mesh
+																	meshName:meshName];
 	[synthesizer autorelease];
 	
 	BOOL OK = [synthesizer run];
@@ -231,15 +232,17 @@ BOOL OOSynthesizeMaterialShader(OOMaterialSpecification *materialSpec, OORenderM
 
 @implementation OODefaultShaderSynthesizer
 
-- (id) initWithMaterialSpecifiction:(OOMaterialSpecification *)spec
-							   mesh:(OORenderMesh *)mesh
-					problemReporter:(id <OOProblemReporting>) problemReporter
+- (id) initWithMaterialConfiguration:(NSDictionary *)configuration
+						 materialKey:(NSString *)materialKey
+								mesh:(OOMesh *)mesh
+							meshName:(NSString *)name
 {
 	if ((self = [super init]))
 	{
-		_spec = [spec retain];
+		_configuration = [configuration retain];
 		_mesh = [mesh retain];
-		_problemReporter = [problemReporter retain];
+		_materialKey = [materialKey copy];
+		_meshName = [_meshName copy];
 	}
 	
 	return self;
@@ -249,9 +252,10 @@ BOOL OOSynthesizeMaterialShader(OOMaterialSpecification *materialSpec, OORenderM
 - (void) dealloc
 {
 	[self destroyTemporaries];
-	DESTROY(_spec);
+	DESTROY(_configuration);
 	DESTROY(_mesh);
-	DESTROY(_problemReporter);
+	DESTROY(_materialKey);
+	DESTROY(_meshName);
 	DESTROY(_vertexShader);
 	DESTROY(_fragmentShader);
 	DESTROY(_textures);
@@ -319,6 +323,17 @@ BOOL OOSynthesizeMaterialShader(OOMaterialSpecification *materialSpec, OORenderM
 	return YES;
 }
 
+- (NSString *) materialKey
+{
+	return _materialKey;
+}
+
+
+- (NSString *) meshName
+{
+	return _meshName;
+}
+
 
 // MARK: - Utilities
 
@@ -362,50 +377,6 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 - (void) addFragmentUniform:(NSString *)name ofType:(NSString *)type
 {
 	[self appendVariable:name ofType:type withPrefix:@"uniform" to:_fragmentUniforms];
-}
-
-
-- (LightingMode) lightingMode
-{
-	if (_lightingMode == kLightingUndetermined)
-	{
-		_normalAttrSize = [_mesh attributeSizeForKey:kOONormalAttributeKey];
-		_tangentAttrSize = [_mesh attributeSizeForKey:kOOTangentAttributeKey];
-		_bitangentAttrSize = [_mesh attributeSizeForKey:kOOBitangentAttributeKey];
-		
-		if (_tangentAttrSize >= 3)
-		{
-			if (_bitangentAttrSize >= 3)
-			{
-				_lightingMode = kLightingTangentBitangent;
-			}
-			else if (_normalAttrSize >= 3)
-			{
-				_lightingMode = kLightingNormalTangent;
-			}
-		}
-		else
-		{
-			if (_normalAttrSize >= 3)
-			{
-				_lightingMode = kLightingNormalOnly;
-			}
-		}
-		
-		if (_lightingMode == kLightingUndetermined)
-		{
-			_lightingMode = kLightingUniform;
-			OOReportWarning(_problemReporter, @"Mesh \"%@\" does not provide normals or tangents and bitangents, so no lighting is possible.", [_mesh name]);
-		}
-	}
-	return _lightingMode;
-}
-
-
-- (BOOL) tangentSpaceLighting
-{
-	LightingMode mode = [self lightingMode];
-	return mode == kLightingTangentBitangent || mode == kLightingNormalTangent;
 }
 
 
@@ -461,29 +432,38 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 }
 
 
-- (NSUInteger) assignIDForTexture:(OOTextureSpecification *)spec
+- (NSUInteger) assignIDForTexture:(NSDictionary *)spec
 {
 	NSParameterAssert(spec != nil);
 	
-	if ([spec isCubeMap])
+	NSString *texName = nil;
+	uint32_t texOptions;
+	if (!OOInterpretTextureSpecifier(spec, &texName, &texOptions, NULL, NULL))
 	{
-		OOReportError(_problemReporter, @"The material \"%@\" of \"%@\" specifies a cube map texture, but doesn't have custom shaders. Cube map textures are not supported with the default shaders.", [_spec materialKey], [_mesh name]);
+		// OOInterpretTextureSpecifier() will have logged something.
+		[NSException raise:NSGenericException format:@"Invalid texture specifier"];
+	}
+	
+	if (texOptions & kOOTextureAllowCubeMap)
+	{
+		// cube_map = true; fail regardless of whether actual texture qualifies.
+		OOLogERR(@"The material \"%@\" of \"%@\" specifies a cube map texture, but doesn't have custom shaders. Cube map textures are not supported with the default shaders.", [self materialKey], [self meshName]);
 		[NSException raise:NSGenericException format:@"Invalid material"];
 	}
 	
 	NSUInteger texID;
-	NSString *name = [spec textureMapName];
-	OOTextureSpecification *existing = [_texturesByName objectForKey:name];
+	NSObject *existing = [_texturesByName objectForKey:texName];
 	if (existing == nil)
 	{
 		texID = [_texturesByName count];
-		NSNumber	*texIDObj = $int(texID);
-		NSString	*texUniform = $sprintf(@"uTexture%u", texID);
+		NSNumber	*texIDObj = [NSNumber numberWithUnsignedInteger:texID];
+		NSString	*texUniform = [NSString stringWithFormat:@"uTexture%u", texID];
 		
 		[_textures addObject:spec];
-		[_texturesByName setObject:spec forKey:name];
-		[_textureIDs setObject:texIDObj forKey:name];
-		[_uniforms setObject:$dict(@"type", @"texture", @"value", texIDObj) forKey:texUniform];
+		[_texturesByName setObject:spec forKey:texName];
+		[_textureIDs setObject:texIDObj forKey:texName];
+		[_uniforms setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"texture", @"type", texIDObj, @"value", nil]
+					  forKey:texUniform];
 		
 		[self addFragmentUniform:texUniform ofType:@"sampler2D"];
 	}
@@ -491,45 +471,49 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	{
 		if (![spec isEqual:existing])
 		{
-			OOReportWarning(_problemReporter, @"The texture map \"%@\" is used more than once in material \"%@\" of \"%@\", and the options specified are not consistent. Only one set of options will be used.", name, [_spec materialKey], [_mesh name]);
+			OOLogWARN(@"The texture map \"%@\" is used more than once in material \"%@\" of \"%@\", and the options specified are not consistent. Only one set of options will be used.", texName, [self materialKey], [self meshName]);
 		}
-		texID = [_textureIDs oo_unsignedIntegerForKey:name];
+		texID = [_textureIDs oo_unsignedIntegerForKey:texName];
 	}
 	return texID;
 }
 
 
-- (void) setUpOneTexture:(OOTextureSpecification *)spec
+- (NSUInteger) textureIDForSpec:(NSDictionary *)textureSpec
 {
-	if (spec == nil)  return;
+	return [_textureIDs oo_unsignedIntegerForKey:[textureSpec oo_stringForKey:@"name"]];
+}
+
+
+- (void) setUpOneTexture:(NSDictionary *)textureSpec
+{
+	if (textureSpec == nil)  return;
 	
 	REQUIRE_STAGE(writeTextureCoordRead);
 	
-	NSUInteger texID = [self assignIDForTexture:spec];
+	NSUInteger texID = [self assignIDForTexture:textureSpec];
 	if ((NSUInteger)NSHashGet(_sampledTextures, (const void *)(texID + 1)) == 0)
 	{
 		NSHashInsertKnownAbsent(_sampledTextures, (const void *)(texID + 1));
-		[_fragmentTextureLookups appendFormat:@"\tvec4 tex%uSample = texture2D(uTexture%u, texCoords);  // %@\n", texID, texID, [spec textureMapName]];
+		[_fragmentTextureLookups appendFormat:@"\tvec4 tex%uSample = texture2D(uTexture%u, texCoords);  // %@\n", texID, texID, [textureSpec oo_stringForKey:@"name"]];
 	}
 }
 
 
-- (void) getSampleName:(NSString **)outSampleName andSwizzleOp:(NSString **)outSwizzleOp forTextureSpec:(OOTextureSpecification *)spec
+- (void) getSampleName:(NSString **)outSampleName andSwizzleOp:(NSString **)outSwizzleOp forTextureSpec:(NSDictionary *)textureSpec
 {
-	NSParameterAssert(outSampleName != NULL && outSwizzleOp != NULL && spec != nil);
+	NSParameterAssert(outSampleName != NULL && outSwizzleOp != NULL && textureSpec != nil);
 	
-	[self setUpOneTexture:spec];
+	[self setUpOneTexture:textureSpec];
+	NSUInteger	texID = [self textureIDForSpec:textureSpec];
 	
-	NSString	*key = [spec textureMapName];
-	NSUInteger	texID = [_textureIDs oo_unsignedIntegerForKey:key];
-	
-	*outSampleName = $sprintf(@"tex%uSample", texID);
-	*outSwizzleOp = [spec extractMode];
+	*outSampleName = [NSString stringWithFormat:@"tex%uSample", texID];
+	*outSwizzleOp = GetExtractMode(textureSpec);
 }
 
 
 // Generate a read for an RGB value, or a single channel splatted across RGB.
-- (NSString *) readRGBForTextureSpec:(OOTextureSpecification *)textureSpec mapName:(NSString *)mapName
+- (NSString *) readRGBForTextureSpec:(NSDictionary *)textureSpec mapName:(NSString *)mapName
 {
 	NSString *sample, *swizzle;
 	[self getSampleName:&sample andSwizzleOp:&swizzle forTextureSpec:textureSpec];
@@ -543,20 +527,20 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	
 	if (channelCount == 1)
 	{
-		return $sprintf(@"%@.%@%@%@", sample, swizzle, swizzle, swizzle);
+		return [NSString stringWithFormat:@"%@.%@%@%@", sample, swizzle, swizzle, swizzle];
 	}
 	else if (channelCount == 3)
 	{
-		return $sprintf(@"%@.%@", sample, swizzle);
+		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOReportWarning(_problemReporter, @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [_spec materialKey], [_mesh name], channelCount, @"1 or 3");
+	OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self meshName], channelCount, @"1 or 3");
 	return nil;
 }
 
 
 // Generate a read for a single channel.
-- (NSString *) readOneChannelForTextureSpec:(OOTextureSpecification *)textureSpec mapName:(NSString *)mapName
+- (NSString *) readOneChannelForTextureSpec:(NSDictionary *)textureSpec mapName:(NSString *)mapName
 {
 	NSString *sample, *swizzle;
 	[self getSampleName:&sample andSwizzleOp:&swizzle forTextureSpec:textureSpec];
@@ -570,10 +554,10 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	
 	if (channelCount == 1)
 	{
-		return $sprintf(@"%@.%@", sample, swizzle);
+		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOReportWarning(_problemReporter, @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [_spec materialKey], [_mesh name], channelCount, @"1");
+	OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self meshName], channelCount, @"1");
 	return nil;
 }
 
@@ -584,7 +568,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	// Ensure that we aren’t recursing.
 	if (NSHashGet(_stagesInProgress, stage) != NULL)
 	{
-		OOReportError(_problemReporter, @"Shader synthesis recursion for stage %@.", NSStringFromSelector(stage));
+		OOLogERR(@"Shader synthesis recursion for stage %@.", NSStringFromSelector(stage));
 		[NSException raise:NSInternalInconsistencyException format:@"stage recursion"];
 	}
 	
@@ -646,34 +630,16 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 
 - (void) writeTextureCoordRead
 {
-	// Ensure we have valid texture coordinates.
-	NSUInteger texCoordsSize = [_mesh attributeSizeForKey:kOOTexCoordsAttributeKey];
-	switch (texCoordsSize)
-	{
-		case 0:
-			OOReportError(_problemReporter, @"The material \"%@\" of \"%@\" uses textures, but the mesh has no %@ attribute.", [_spec materialKey], [_mesh name], kOOTexCoordsAttributeKey);
-			[NSException raise:NSGenericException format:@"Invalid material"];
-			
-		case 1:
-			OOReportError(_problemReporter, @"The material \"%@\" of \"%@\" uses textures, but the %@ attribute in the mesh is only one-dimensional.", [_spec materialKey], [_mesh name], kOOTexCoordsAttributeKey);
-			[NSException raise:NSGenericException format:@"Invalid material"];
-			
-		case 2:
-			break;	// Perfect!
-			
-		default:
-			OOReportWarning(_problemReporter, @"The mesh \"%@\" has a %@ attribute with %u values per vertex. Only the first two will be used by standard materials.", [_mesh name], kOOTexCoordsAttributeKey, texCoordsSize);
-	}
-	
 	[self addAttribute:@"aTexCoords" ofType:@"vec2"];
 	[self addVarying:@"vTexCoords" ofType:@"vec2"];
 	[_vertexBody appendString:@"\tvTexCoords = aTexCoords;\n\t\n"];
 	
 	BOOL haveTexCoords = NO;
-	OOTextureSpecification *parallaxMap = [_spec parallaxMap];
+	NSDictionary *parallaxMap = [_configuration oo_parallaxMapSpecifier];
+	
 	if (parallaxMap != nil)
 	{
-		float parallaxScale = [_spec parallaxScale];
+		float parallaxScale = [_configuration oo_parallaxScale];
 		if (parallaxScale != 0.0f)
 		{
 			/*
@@ -681,7 +647,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 				texture loading mechanism has to occur after determining
 				texture coordinates (duh).
 			*/
-			NSString *swizzle = [parallaxMap extractMode] ?: @"a";
+			NSString *swizzle = GetExtractMode(parallaxMap) ?: @"a";
 			NSUInteger channelCount = [swizzle length];
 			if (channelCount == 1)
 			{
@@ -699,7 +665,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 					[_fragmentPreTextures appendFormat:@"\tparallax *= %g;\n  // Parallax scale", parallaxScale];
 				}
 				
-				float parallaxBias = [_spec parallaxBias];
+				float parallaxBias = [_configuration oo_parallaxBias];
 				if (parallaxBias != 0.0)
 				{
 					[_fragmentPreTextures appendFormat:@"\tparallax += %g;\n  // Parallax bias", parallaxBias];
@@ -709,7 +675,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 			}
 			else
 			{
-				OOReportWarning(_problemReporter, @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"parallax", [_spec materialKey], [_mesh name], channelCount, @"1");
+				OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self meshName], channelCount, @"1");
 			}
 		}
 	}
@@ -723,8 +689,8 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 
 - (void) writeDiffuseColorTermIfNeeded
 {
-	OOTextureSpecification	*diffuseMap = [_spec diffuseMap];
-	OOColor					*diffuseColor = [_spec diffuseColor];
+	NSDictionary		*diffuseMap = [_configuration oo_diffuseMapSpecifierWithDefaultName:[self materialKey]];
+	OOColor				*diffuseColor = [_configuration oo_diffuseColor];
 	
 	if ([diffuseColor isBlack])  return;
 	_usesDiffuseTerm = YES;
@@ -746,7 +712,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	
 	if (!haveDiffuseColor || ![diffuseColor isWhite])
 	{
-		float rgba[4];
+		OOCGFloat rgba[4];
 		[diffuseColor getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
 		NSString *format = nil;
 		if (haveDiffuseColor)
@@ -781,14 +747,6 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	REQUIRE_STAGE(writeDiffuseColorTermIfNeeded);
 	if (!_usesDiffuseTerm)  return;
 	
-	if ([self lightingMode] == kLightingUniform)
-	{
-		[_fragmentBody appendString:
-		@"\t// No lighting because the mesh has no normals.\n"
-		 "\ttotalColor += diffuseColor;\n\t\n"];
-		return;
-	}
-	
 	REQUIRE_STAGE(writeTotalColor);
 	REQUIRE_STAGE(writeVertexPosition);
 	REQUIRE_STAGE(writeNormalIfNeeded);
@@ -813,26 +771,9 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	
 	[self addVarying:@"vLightVector" ofType:@"vec3"];
 	
-	switch ([self lightingMode])
-	{
-		case kLightingNormalOnly:
-			[_vertexBody appendString:@"\tvLightVector = gl_LightSource[0].position.xyz;\n\t\n"];
-			break;
-			
-		case kLightingNormalTangent:
-		case kLightingTangentBitangent:
-			[_vertexBody appendString:
-			@"\tvec3 lightVector = gl_LightSource[0].position.xyz;\n"
-			 "\tvLightVector = lightVector * TBN;\n\t\n"];
-			break;
-			
-		case kLightingUndetermined:
-		case kLightingUniform:
-			OOReportError(_problemReporter, @"Internal error in shader synthesizer: writeNormalIfNeeded was called in uniform lighting mode.");
-			[NSException raise:NSInternalInconsistencyException format:@"lighting logic error"];
-			break;
-	}
-	
+	[_vertexBody appendString:
+	 @"\tvec3 lightVector = gl_LightSource[0].position.xyz;\n"
+	  "\tvLightVector = lightVector * TBN;\n\t\n"];
 	[_fragmentBody appendFormat:@"\tvec3 lightVector = normalize(vLightVector);\n\t\n"];
 }
 
@@ -844,111 +785,47 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	
 	[self addVarying:@"vEyeVector" ofType:@"vec3"];
 	
-	switch ([self lightingMode])
-	{
-		case kLightingUndetermined:
-		case kLightingUniform:
-		case kLightingNormalOnly:
-			[_vertexBody appendString:@"\tvEyeVector = position.xyz;\n"];
-			break;
-			
-		case kLightingNormalTangent:
-		case kLightingTangentBitangent:
-			REQUIRE_STAGE(writeVertexTangentBasis);
-			[_vertexBody appendString:@"\tvEyeVector = position.xyz * TBN;\n\t\n"];
-			break;
-	}
-	
+	[_vertexBody appendString:@"\tvEyeVector = position.xyz * TBN;\n\t\n"];
 	[_fragmentPreTextures appendString:@"\tvec3 eyeVector = normalize(vEyeVector);\n\t\n"];
 }
 
 
 - (void) writeVertexTangentBasis
 {
-	switch ([self lightingMode])
-	{
-		case kLightingNormalTangent:
-			[self addAttribute:@"aNormal" ofType:@"vec3"];
-			[self addAttribute:@"aTangent" ofType:@"vec3"];
-			[_vertexBody appendString:
-			 @"\t// Build tangent space basis\n"
-			 "\tvec3 n = gl_NormalMatrix * aNormal;\n"
-			 "\tvec3 t = gl_NormalMatrix * aTangent;\n"
-			 "\tvec3 b = cross(n, t);\n"];
-			break;
-			
-		case kLightingTangentBitangent:
-			[self addAttribute:@"aTangent" ofType:@"vec3"];
-			[self addAttribute:@"aBitangent" ofType:@"vec3"];
-			[_vertexBody appendString:
-			 @"\t// Build tangent space basis\n"
-			 "\tvec3 t = gl_NormalMatrix * aTangent;\n"
-			 "\tvec3 b = gl_NormalMatrix * aBitangent;\n"
-			 "\tvec3 n = cross(t, b);\n"];
-			break;
-			
-		case kLightingUndetermined:
-		case kLightingUniform:
-		case kLightingNormalOnly:
-			OOReportError(_problemReporter, @"Internal error in shader synthesizer: writeVertexTangentBasis was called in non-tangent-space lighting mode.");
-			[NSException raise:NSInternalInconsistencyException format:@"lighting logic error"];
-	}
+	[self addAttribute:@"tangent" ofType:@"vec3"];
 	
-	[_vertexBody appendString:@"\tmat3 TBN = mat3(t, b, n);\n\t\n"];
+	[_vertexBody appendString:
+	 @"\t// Build tangent space basis\n"
+	  "\tvec3 n = gl_NormalMatrix * gl_Normal;\n"
+	  "\tvec3 t = gl_NormalMatrix * tangent;\n"
+	  "\tvec3 b = cross(n, t);\n"
+	  "\tmat3 TBN = mat3(t, b, n);\n\t\n"];
 }
 
 
 - (void) writeNormalIfNeeded
 {
 	REQUIRE_STAGE(writeVertexPosition);
+	REQUIRE_STAGE(writeVertexTangentBasis);
 	
-	BOOL canNormalMap = NO, tangentSpace = NO;
-	switch ([self lightingMode])
+	NSDictionary *normalMap = [_configuration oo_normalMapSpecifier];
+	if (normalMap != nil)
 	{
-		case kLightingNormalOnly:
-			[self addAttribute:@"aNormal" ofType:@"vec3"];
-			[self addVarying:@"vNormal" ofType:@"vec3"];
-			[_vertexBody appendString:@"\tvNormal = gl_NormalMatrix * aNormal;\n\t\n"];
-			[_fragmentBody appendString:@"\tvec3 normal = normalize(vNormal);\n"];
-			break;
-			
-		case kLightingNormalTangent:
-		case kLightingTangentBitangent:
-			REQUIRE_STAGE(writeVertexTangentBasis);
-			tangentSpace = YES;
-			break;
-			
-		case kLightingUndetermined:
-		case kLightingUniform:
-			break;
-	}
-	
-	OOTextureSpecification *normalMap = [_spec normalMap];
-	if (tangentSpace)
-	{
-		if (normalMap != nil)
+		NSString *sample, *swizzle;
+		[self getSampleName:&sample andSwizzleOp:&swizzle forTextureSpec:normalMap];
+		if (swizzle == nil)  swizzle = @"rgb";
+		if ([swizzle length] == 3)
 		{
-			NSString *sample, *swizzle;
-			[self getSampleName:&sample andSwizzleOp:&swizzle forTextureSpec:normalMap];
-			if (swizzle == nil)  swizzle = @"rgb";
-			if ([swizzle length] == 3)
-			{
-				[_fragmentBody appendFormat:@"\tvec3 normal = normalize(%@.%@);\n\t\n", sample, swizzle];
-				_usesNormalMap = YES;
-				return;
-			}
-			else
-			{
-				OOReportWarning(_problemReporter, @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"normal", [_spec materialKey], [_mesh name], [swizzle length], @"3");
-			}
+			[_fragmentBody appendFormat:@"\tvec3 normal = normalize(%@.%@);\n\t\n", sample, swizzle];
+			_usesNormalMap = YES;
+			return;
 		}
-		_constZNormal = YES;
+		else
+		{
+			OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self meshName], [swizzle length], @"3");
+		}
 	}
-	
-	if (!canNormalMap && normalMap != nil)
-	{
-		OOReportWarning(_problemReporter, @"Material \"%@\" of mesh \"%@\" specifies a normal map, but it cannot be used because the mesh does not provide vertex tangents.", [_spec materialKey], [_mesh name]);
-	}
+	_constZNormal = YES;
 }
 
 
@@ -965,7 +842,8 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 
 - (void) writeSpecularLighting
 {
-	if ([self lightingMode] == kLightingUniform)  return;
+#if 0
+	// FIXME: divide specular map into colour and exponet maps.
 	float specularExponent = [_spec specularExponent];
 	if (specularExponent <= 0)  return;
 	OOColor *specularColor = [_spec specularColor];
@@ -1045,11 +923,14 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	@"\tfloat specIntensity = dot(reflection, eyeVector);\n"
 	 "\tspecIntensity = pow(max(0.0, specIntensity), specularExponent);\n"
 	 "\ttotalColor += specIntensity * specularColor;\n\t\n"];
+#endif
 }
 
 
 - (void) writeLightMaps
 {
+#if 0
+	// FIXME: downgrade to 1.x light maps.
 	NSArray *lightMaps = [_spec lightMaps];
 	NSUInteger idx = 0, count = [lightMaps count];
 	
@@ -1114,6 +995,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 				break;
 		}
 	}
+#endif
 }
 
 
@@ -1144,3 +1026,30 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 }
 
 @end
+
+
+static NSString *GetExtractMode(NSDictionary *textureSpecifier)
+{
+	NSString *result = nil;
+	
+	NSString *rawMode = [textureSpecifier oo_stringForKey:@"extract_channel"];
+	if (rawMode != nil)
+	{
+		NSUInteger length = [rawMode length];
+		if (1 <= length && length <= 4)
+		{
+			static NSCharacterSet *nonRGBACharset = nil;
+			if (nonRGBACharset == nil)
+			{
+				nonRGBACharset = [[[NSCharacterSet characterSetWithCharactersInString:@"rgba"] invertedSet] retain];
+			}
+			
+			if ([rawMode rangeOfCharacterFromSet:nonRGBACharset].location == NSNotFound)
+			{
+				result = rawMode;
+			}
+		}
+	}
+	
+	return result;
+}

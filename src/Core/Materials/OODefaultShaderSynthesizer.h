@@ -6,7 +6,7 @@ Function to automatically write a shader that implements a given material
 specification.
 
 
-Copyright © 2011 Jens Ayton
+Copyright © 2011–2012 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the “Software”), to deal
@@ -28,9 +28,9 @@ SOFTWARE.
 
 */
 
-#import <OoliteBase/OoliteBase.h>
+#import <Foundation/Foundation.h>
 
-@class OOMaterialSpecification, OORenderMesh;
+@class OOMesh;
 
 
-BOOL OOSynthesizeMaterialShader(OOMaterialSpecification *materialSpec, OORenderMesh *mesh, NSString **outVertexShader, NSString **outFragmentShader, NSArray **outTextureSpecs, NSDictionary **outUniformSpecs, id <OOProblemReporting> problemReporter);
+BOOL OOSynthesizeMaterialShader(NSDictionary *materialConfiguration, NSString *materialKey, OOMesh *mesh, NSString *meshName, NSString **outVertexShader, NSString **outFragmentShader, NSArray **outTextureSpecs, NSDictionary **outUniformSpecs);
