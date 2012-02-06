@@ -182,3 +182,32 @@ MA 02110-1301, USA.
 }
 
 @end
+
+
+NSString *OOTabString(NSUInteger count)
+{
+	NSString * const staticTabs[] =
+	{
+		@"",
+		@"\t",
+		@"\t\t",
+		@"\t\t\t",
+		@"\t\t\t\t",
+		@"\t\t\t\t\t",			// 5
+		@"\t\t\t\t\t\t",
+		@"\t\t\t\t\t\t\t",
+		@"\t\t\t\t\t\t\t\t",
+		@"\t\t\t\t\t\t\t\t\t",
+		@"\t\t\t\t\t\t\t\t\t\t"	// 10
+	};
+	enum { kStaticTabCount = sizeof staticTabs / sizeof *staticTabs };
+	
+	if (count < kStaticTabCount)
+	{
+		return staticTabs[count];
+	}
+	else
+	{
+		return [staticTabs[kStaticTabCount - 1] stringByAppendingString:OOTabString(count - (kStaticTabCount - 1))];
+	}
+}

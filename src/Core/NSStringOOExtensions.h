@@ -71,3 +71,10 @@ MA 02110-1301, USA.
 - (void) deleteCharacterAtIndex:(unsigned long)index;
 
 @end
+
+
+/*	OOTabString(count)
+	
+	Return a string of <count> tabs.
+*/
+NSString *OOTabString(NSUInteger count);

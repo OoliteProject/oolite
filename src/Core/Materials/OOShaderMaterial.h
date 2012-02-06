@@ -191,4 +191,15 @@ BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget);
 @end
 
 
+// Material specifier dictionary keys.
+extern NSString * const kOOVertexShaderSourceKey;
+extern NSString * const kOOVertexShaderNameKey;
+extern NSString * const kOOFragmentShaderSourceKey;
+extern NSString * const kOOFragmentShaderNameKey;
+extern NSString * const kOOTexturesKey;
+extern NSString * const kOOTextureObjectsKey;
+extern NSString * const kOOUniformsKey;
+extern NSString * const kOOIsSynthesizedMaterialConfigurationKey;
+extern NSString * const kOOIsSynthesizedMaterialMacrosKey;
+
 #endif // OO_SHADERS

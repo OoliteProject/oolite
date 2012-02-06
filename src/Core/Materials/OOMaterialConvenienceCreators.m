@@ -25,8 +25,19 @@ SOFTWARE.
 
 */
 
+#ifndef USE_NEW_SHADER_SYNTHESIZER
+#define USE_NEW_SHADER_SYNTHESIZER	0
+#endif
+
+
 #import "OOMaterialConvenienceCreators.h"
 #import "OOMaterialSpecifier.h"
+
+#if USE_NEW_SHADER_SYNTHESIZER
+#import "OODefaultShaderSynthesizer.h"
+#import "ResourceManager.h"
+#import "OldSchoolPropertyListWriting.h"
+#endif
 
 #import "OOOpenGLExtensionManager.h"
 #import "OOShaderMaterial.h"
@@ -39,6 +50,7 @@ SOFTWARE.
 #import "OODebugFlags.h"
 
 
+#if !USE_NEW_SHADER_SYNTHESIZER
 typedef struct
 {
 	NSDictionary			*inConfig;
@@ -71,8 +83,12 @@ static void SynthEmissionAndIllumination(OOMaterialSynthContext *context);
 static void SynthNormalMap(OOMaterialSynthContext *context);
 static void SynthSpecular(OOMaterialSynthContext *context);
 
+#endif
+
 
 @implementation OOMaterial (OOConvenienceCreators)
+
+#if !USE_NEW_SHADER_SYNTHESIZER
 
 + (NSDictionary *)synthesizeMaterialDictionaryWithName:(NSString *)name
 										 configuration:(NSDictionary *)configuration
@@ -177,13 +193,69 @@ static void SynthSpecular(OOMaterialSynthContext *context);
 	return result;
 }
 
+#else
+
+#ifndef NDEBUG
+static BOOL sDumpShaderSource = NO;
+
++ (void) initialize
+{
+	sDumpShaderSource = [[NSUserDefaults standardUserDefaults] boolForKey:@"dump-synthesized-shaders"];
+}
+#endif
+
+
++ (OOMaterial *)defaultShaderMaterialWithName:(NSString *)name
+									 cacheKey:(NSString *)cacheKey
+								configuration:(NSDictionary *)configuration
+									   macros:(NSDictionary *)macros
+								bindingTarget:(id<OOWeakReferenceSupport>)target
+{
+	NSString		*vertexShader = nil;
+	NSString		*fragmentShader = nil;
+	NSArray			*textureSpecs = nil;
+	NSDictionary	*uniformSpecs = nil;
+	
+	if (!OOSynthesizeMaterialShader(configuration, name, cacheKey /* FIXME: entity name for error reporting */, &vertexShader, &fragmentShader, &textureSpecs, &uniformSpecs))
+	{
+		return nil;
+	}
+	
+	NSDictionary	*synthesizedConfig = [NSDictionary dictionaryWithObjectsAndKeys:
+										  [NSNumber numberWithBool:YES], kOOIsSynthesizedMaterialConfigurationKey,
+										  textureSpecs, kOOTexturesKey,
+										  uniformSpecs, kOOUniformsKey,
+										  vertexShader, kOOVertexShaderSourceKey,
+										  fragmentShader, kOOFragmentShaderSourceKey,
+										  nil];
+	
+#ifndef NDEBUG
+	if (sDumpShaderSource)
+	{
+		[ResourceManager writeDiagnosticData:[vertexShader dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:[NSString stringWithFormat:@"synthesized-%@.vertex", cacheKey]];
+		[ResourceManager writeDiagnosticData:[fragmentShader dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:[NSString stringWithFormat:@"synthesized-%@.fragment", cacheKey]];
+		
+		[ResourceManager writeDiagnosticData:[synthesizedConfig oldSchoolPListFormatWithErrorDescription:NULL] toFileNamed:[NSString stringWithFormat:@"synthesized-%@.plist", cacheKey]];
+	}
+#endif
+	
+	return [self materialWithName:name
+						 cacheKey:cacheKey
+					configuration:synthesizedConfig
+						   macros:nil
+					bindingTarget:target
+				  forSmoothedMesh:YES];
+}
+
+#endif
+
 
 + (id)materialWithName:(NSString *)name
 			  cacheKey:(NSString *)cacheKey
 		 configuration:(NSDictionary *)configuration
 				macros:(NSDictionary *)macros
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
-	   forSmoothedMesh:(BOOL)smooth
+	   forSmoothedMesh:(BOOL)smooth	// Internally, this flg really means "force use of shaders".
 {
 	id result = nil;
 	
@@ -206,6 +278,7 @@ static void SynthSpecular(OOMaterialSynthContext *context);
 				 [UNIVERSE shaderEffectsLevel] == SHADERS_FULL ||
 				 [configuration oo_specularMapSpecifier] != nil ||
 				 [configuration oo_normalMapSpecifier] != nil ||
+				 [configuration oo_parallaxMapSpecifier] != nil ||
 				 [configuration oo_normalAndParallaxMapSpecifier] != nil ||
 				 [configuration oo_emissionMapSpecifier] != nil ||
 				 [configuration oo_illuminationMapSpecifier] != nil ||
@@ -297,6 +370,8 @@ static void SynthSpecular(OOMaterialSynthContext *context);
 
 @end
 
+
+#if !USE_NEW_SHADER_SYNTHESIZER
 
 static void SetUniform(NSMutableDictionary *uniforms, NSString *key, NSString *type, id value)
 {
@@ -493,3 +568,5 @@ static void SynthSpecular(OOMaterialSynthContext *context)
 	}
 	[context->macros setObject:@"1" forKey:@"OOSTD_SPECULAR"];
 }
+
+#endif

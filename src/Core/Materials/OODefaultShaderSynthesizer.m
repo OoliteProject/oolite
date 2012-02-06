@@ -40,9 +40,8 @@ SOFTWARE.
 {
 @private
 	NSDictionary				*_configuration;
-	OOMesh						*_mesh;
 	NSString					*_materialKey;
-	NSString					*_meshName;
+	NSString					*_entityName;
 	
 	NSString					*_vertexShader;
 	NSString					*_fragmentShader;
@@ -98,8 +97,7 @@ SOFTWARE.
 
 - (id) initWithMaterialConfiguration:(NSDictionary *)configuration
 						 materialKey:(NSString *)materialKey
-								mesh:(OOMesh *)mesh
-							meshName:(NSString *)name;
+							entityName:(NSString *)name;
 
 - (BOOL) run;
 
@@ -115,7 +113,7 @@ SOFTWARE.
 - (void) composeFragmentShader;
 
 - (NSString *) materialKey;
-- (NSString *) meshName;
+- (NSString *) entityName;
 
 - (NSUInteger) textureIDForSpec:(NSDictionary *)textureSpec;
 
@@ -124,11 +122,11 @@ SOFTWARE.
 	avoid duplicated code and ensure data depedencies are met.
 */
 
-/*	writeFinalColorComposite
-	This stage writes the final fragment shader. It also pulls in other stages
-	through dependencies.
+
+/*	writeTextureCoordRead
+	Generate vec2 texCoords.
 */
-- (void) writeFinalColorComposite;
+- (void) writeTextureCoordRead;
 
 /*	writeDiffuseColorTermIfNeeded
 	Generates and populates the fragment shader value vec3 diffuseColor, unless
@@ -144,6 +142,26 @@ SOFTWARE.
 	See also: writeDiffuseColorTermIfNeeded.
 */
 - (void) writeDiffuseColorTerm;
+
+/*
+	writeDiffuseLighting
+	Combine diffuse lighting and diffuse colour terms, and add them into
+	colour accumulator.
+*/
+- (void) writeDiffuseLighting;
+
+/*	writeLightVector
+	Generate the fragment variable vec3 lightVector (unit vector) for temporary
+	lighting. Calling this if lighting mode is kLightingUniform will cause an
+	exception.
+*/
+- (void) writeLightVector;
+
+/*	writeEyeVector
+	Generate vec3 lightVector, the normalized direction from the fragment to
+	the light source.
+*/
+- (void) writeEyeVector;
 
 /*	writeVertexTangentBasis
 	Generates tangent space basis matrix (TBN) in vertex shader, if in tangent-
@@ -165,17 +183,31 @@ SOFTWARE.
 */
 - (void) writeNormal;
 
-/*	writeLightVector
-	Generate the fragment variable vec3 lightVector (unit vector) for temporary
-	lighting. Calling this if lighting mode is kLightingUniform will cause an
-	exception.
+/*	writeSpecularLighting
+	Calculate specular writing and add it to totalColor.
 */
-- (void) writeLightVector;
+- (void) writeSpecularLighting;
+
+/*	writeLightMaps
+	Add emission and illumination maps to totalColor.
+*/
+- (void) writeLightMaps;
+
+/*	writeVertexPosition
+	Calculate vertex position and write it to gl_Position.
+*/
+- (void) writeVertexPosition;
 
 /*	writeTotalColor
 	Generate vec3 totalColor, the accumulator for output colour values.
 */
 - (void) writeTotalColor;
+
+/*	writeFinalColorComposite
+	This stage writes the final fragment shader. It also pulls in other stages
+	through dependencies.
+*/
+- (void) writeFinalColorComposite;
 
 
 #ifndef NDEBUG
@@ -191,7 +223,7 @@ SOFTWARE.
 static NSString *GetExtractMode(NSDictionary *textureSpecifier);
 
 
-BOOL OOSynthesizeMaterialShader(NSDictionary *configuration, NSString *materialKey, OOMesh *mesh, NSString *meshName, NSString **outVertexShader, NSString **outFragmentShader, NSArray **outTextureSpecs, NSDictionary **outUniformSpecs)
+BOOL OOSynthesizeMaterialShader(NSDictionary *configuration, NSString *materialKey, NSString *entityName, NSString **outVertexShader, NSString **outFragmentShader, NSArray **outTextureSpecs, NSDictionary **outUniformSpecs)
 {
 	NSCParameterAssert(configuration != nil && outVertexShader != NULL && outFragmentShader != NULL && outTextureSpecs != NULL && outUniformSpecs != NULL);
 	
@@ -200,8 +232,7 @@ BOOL OOSynthesizeMaterialShader(NSDictionary *configuration, NSString *materialK
 	OODefaultShaderSynthesizer *synthesizer = [[OODefaultShaderSynthesizer alloc]
 											   initWithMaterialConfiguration:configuration
 																 materialKey:materialKey
-																		mesh:mesh
-																	meshName:meshName];
+																	entityName:entityName];
 	[synthesizer autorelease];
 	
 	BOOL OK = [synthesizer run];
@@ -234,15 +265,13 @@ BOOL OOSynthesizeMaterialShader(NSDictionary *configuration, NSString *materialK
 
 - (id) initWithMaterialConfiguration:(NSDictionary *)configuration
 						 materialKey:(NSString *)materialKey
-								mesh:(OOMesh *)mesh
-							meshName:(NSString *)name
+							entityName:(NSString *)name
 {
 	if ((self = [super init]))
 	{
 		_configuration = [configuration retain];
-		_mesh = [mesh retain];
 		_materialKey = [materialKey copy];
-		_meshName = [_meshName copy];
+		_entityName = [_entityName copy];
 	}
 	
 	return self;
@@ -253,9 +282,8 @@ BOOL OOSynthesizeMaterialShader(NSDictionary *configuration, NSString *materialK
 {
 	[self destroyTemporaries];
 	DESTROY(_configuration);
-	DESTROY(_mesh);
 	DESTROY(_materialKey);
-	DESTROY(_meshName);
+	DESTROY(_entityName);
 	DESTROY(_vertexShader);
 	DESTROY(_fragmentShader);
 	DESTROY(_textures);
@@ -329,9 +357,9 @@ BOOL OOSynthesizeMaterialShader(NSDictionary *configuration, NSString *materialK
 }
 
 
-- (NSString *) meshName
+- (NSString *) entityName
 {
-	return _meshName;
+	return _entityName;
 }
 
 
@@ -447,7 +475,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	if (texOptions & kOOTextureAllowCubeMap)
 	{
 		// cube_map = true; fail regardless of whether actual texture qualifies.
-		OOLogERR(@"The material \"%@\" of \"%@\" specifies a cube map texture, but doesn't have custom shaders. Cube map textures are not supported with the default shaders.", [self materialKey], [self meshName]);
+		OOLogERR(@"The material \"%@\" of \"%@\" specifies a cube map texture, but doesn't have custom shaders. Cube map textures are not supported with the default shaders.", [self materialKey], [self entityName]);
 		[NSException raise:NSGenericException format:@"Invalid material"];
 	}
 	
@@ -471,7 +499,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	{
 		if (![spec isEqual:existing])
 		{
-			OOLogWARN(@"The texture map \"%@\" is used more than once in material \"%@\" of \"%@\", and the options specified are not consistent. Only one set of options will be used.", texName, [self materialKey], [self meshName]);
+			OOLogWARN(@"The texture map \"%@\" is used more than once in material \"%@\" of \"%@\", and the options specified are not consistent. Only one set of options will be used.", texName, [self materialKey], [self entityName]);
 		}
 		texID = [_textureIDs oo_unsignedIntegerForKey:texName];
 	}
@@ -534,7 +562,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self meshName], channelCount, @"1 or 3");
+	OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1 or 3");
 	return nil;
 }
 
@@ -557,7 +585,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self meshName], channelCount, @"1");
+	OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1");
 	return nil;
 }
 
@@ -583,14 +611,16 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 
 - (void) createTemporaries
 {
-	_attributes = [NSMutableString string];
-	_varyings = [NSMutableString string];
-	_vertexUniforms = [NSMutableString string];
-	_fragmentUniforms = [NSMutableString string];
-	_vertexBody = [NSMutableString string];
-	_fragmentPreTextures = [NSMutableString string];
-	_fragmentTextureLookups = [NSMutableString string];
-	_fragmentBody = [NSMutableString string];
+	_attributes = [[NSMutableString alloc] init];
+	_varyings = [[NSMutableString alloc] init];
+	_vertexUniforms = [[NSMutableString alloc] init];
+	_fragmentUniforms = [[NSMutableString alloc] init];
+	_vertexHelpers = [[NSMutableString alloc] init];
+	_fragmentHelpers = [[NSMutableString alloc] init];
+	_vertexBody = [[NSMutableString alloc] init];
+	_fragmentPreTextures = [[NSMutableString alloc] init];
+	_fragmentTextureLookups = [[NSMutableString alloc] init];
+	_fragmentBody = [[NSMutableString alloc] init];
 	
 	_textures = [[NSMutableArray alloc] init];
 	_texturesByName = [[NSMutableDictionary alloc] init];
@@ -618,10 +648,18 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	
 	DESTROY(_texturesByName);
 	DESTROY(_textureIDs);
-	NSFreeHashTable(_sampledTextures);
+	if (_sampledTextures != NULL)
+	{
+		NSFreeHashTable(_sampledTextures);
+		_sampledTextures = NULL;
+	}
 	
 #ifndef NDEBUG
-	DESTROY(_stagesInProgress);
+	if (_stagesInProgress != NULL)
+	{
+		NSFreeHashTable(_stagesInProgress);
+		_stagesInProgress = NULL;
+	}
 #endif
 }
 
@@ -675,7 +713,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 			}
 			else
 			{
-				OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self meshName], channelCount, @"1");
+				OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self entityName], channelCount, @"1");
 			}
 		}
 	}
@@ -690,7 +728,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 - (void) writeDiffuseColorTermIfNeeded
 {
 	NSDictionary		*diffuseMap = [_configuration oo_diffuseMapSpecifierWithDefaultName:[self materialKey]];
-	OOColor				*diffuseColor = [_configuration oo_diffuseColor];
+	OOColor				*diffuseColor = [_configuration oo_diffuseColor] ?: [OOColor whiteColor];
 	
 	if ([diffuseColor isBlack])  return;
 	_usesDiffuseTerm = YES;
@@ -752,10 +790,9 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	REQUIRE_STAGE(writeNormalIfNeeded);
 	REQUIRE_STAGE(writeLightVector);
 	
-	// Simple placeholder lighting based on legacy OpenGL lighting.
+	// FIXME: currently uncoloured diffuse and ambient lighting.
 	NSString *normalDotLight = _constZNormal ? @"lightVector.z" : @"dot(normal, lightVector)";
 	
-	// Shared code for all lighting modes.
 	[_fragmentBody appendFormat:
 	@"\t// Placeholder diffuse lighting\n"
 	 "\tvec3 diffuseLight = vec3(0.8 * max(0.0, %@) + 0.2);\n"
@@ -822,7 +859,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		}
 		else
 		{
-			OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self meshName], [swizzle length], @"3");
+			OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self entityName], [swizzle length], @"3");
 		}
 	}
 	_constZNormal = YES;
@@ -843,7 +880,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 - (void) writeSpecularLighting
 {
 #if 0
-	// FIXME: divide specular map into colour and exponet maps.
+	// FIXME: divide specular map into colour and exponent maps.
 	float specularExponent = [_spec specularExponent];
 	if (specularExponent <= 0)  return;
 	OOColor *specularColor = [_spec specularColor];
@@ -854,7 +891,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	REQUIRE_STAGE(writeEyeVector);
 	REQUIRE_STAGE(writeLightVector);
 	
-	[_fragmentBody appendString:@"\t// Placeholder specular lighting\n"];
+	[_fragmentBody appendString:@"\t// Specular lighting\n"];
 	
 	BOOL haveSpecularColor = NO;
 	OOTextureSpecification *specularColorMap = [_spec specularColorMap];
@@ -1001,10 +1038,8 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 
 - (void) writeVertexPosition
 {
-	[self addAttribute:@"aPosition" ofType:@"vec3"];
-	
 	[_vertexBody appendString:
-	@"\tvec4 position = gl_ModelViewMatrix * vec4(aPosition, 1.0);\n"
+	@"\tvec4 position = gl_ModelViewMatrix * gl_Vertex;\n"
 	 "\tgl_Position = gl_ProjectionMatrix * position;\n\t\n"];
 }
 

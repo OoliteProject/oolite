@@ -42,8 +42,21 @@ SOFTWARE.
 #import "OOIsNumberLiteral.h"
 #import "OOLogging.h"
 #import "OODebugFlags.h"
+#import "OOStringParsing.h"
 
 
+NSString * const kOOVertexShaderSourceKey		= @"_oo_vertex_shader_source";
+NSString * const kOOVertexShaderNameKey			= @"vertex_shader";
+NSString * const kOOFragmentShaderSourceKey		= @"_oo_fragment_shader_source";
+NSString * const kOOFragmentShaderNameKey		= @"fragment_shader";
+NSString * const kOOTexturesKey					= @"textures";
+NSString * const kOOTextureObjectsKey			= @"_oo_texture_objects";
+NSString * const kOOUniformsKey					= @"uniforms";
+NSString * const kOOIsSynthesizedMaterialConfigurationKey = @"_oo_is_synthesized_config";
+NSString * const kOOIsSynthesizedMaterialMacrosKey = @"_oo_synthesized_material_macros";
+
+
+static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *prefix, NSString **outResult);
 static NSString *MacrosToString(NSDictionary *macros);
 
 
@@ -64,8 +77,10 @@ static NSString *MacrosToString(NSDictionary *macros);
 {
 	if (configuration == nil)  return NO;
 	
-	if ([configuration oo_stringForKey:@"vertex_shader"] != nil)  return YES;
-	if ([configuration oo_stringForKey:@"fragment_shader"] != nil)  return YES;
+	if ([configuration oo_stringForKey:kOOVertexShaderSourceKey] != nil)  return YES;
+	if ([configuration oo_stringForKey:kOOFragmentShaderSourceKey] != nil)  return YES;
+	if ([configuration oo_stringForKey:kOOVertexShaderNameKey] != nil)  return YES;
+	if ([configuration oo_stringForKey:kOOVertexShaderNameKey] != nil)  return YES;
 	
 	return NO;
 }
@@ -91,6 +106,10 @@ static NSString *MacrosToString(NSDictionary *macros);
 	NSString				*fragmentShader = nil;
 	GLint					textureUnits = [[OOOpenGLExtensionManager sharedManager] textureImageUnitCount];
 	NSMutableDictionary		*modifiedMacros = nil;
+	NSString				*vsName = @"<synthesized>";
+	NSString				*fsName = @"<synthesized>";
+	NSString				*vsCacheKey = nil;
+	NSString				*fsCacheKey = nil;
 	
 	if (configuration == nil)  OK = NO;
 	
@@ -115,9 +134,42 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if (OK)
 	{
-		vertexShader = [configuration oo_stringForKey:@"vertex_shader"];
-		fragmentShader = [configuration oo_stringForKey:@"fragment_shader"];
-		
+		vertexShader = [configuration oo_stringForKey:kOOVertexShaderSourceKey];
+		if (vertexShader == nil)
+		{
+			vsName = [configuration oo_stringForKey:kOOVertexShaderNameKey];
+			vsCacheKey = vsName;
+			if (vsName != nil)
+			{
+				if (!GetShaderSource(vsName, @"vertex", macroString, &vertexShader))  OK = NO;
+			}
+		}
+		else
+		{
+			vsCacheKey = vertexShader;
+		}
+	}
+	
+	if (OK)
+	{
+		fragmentShader = [configuration oo_stringForKey:kOOFragmentShaderSourceKey];
+		if (fragmentShader == nil)
+		{
+			fsName = [configuration oo_stringForKey:kOOFragmentShaderNameKey];
+			fsCacheKey = fsName;
+			if (fsName != nil)
+			{
+				if (!GetShaderSource(fsName, @"fragment", macroString, &fragmentShader))  OK = NO;
+			}
+		}
+		else
+		{
+			fsCacheKey = fragmentShader;
+		}
+	}
+	
+	if (OK)
+	{
 		if (vertexShader != nil || fragmentShader != nil)
 		{
 			static NSDictionary *attributeBindings = nil;
@@ -128,11 +180,16 @@ static NSString *MacrosToString(NSDictionary *macros);
 				[attributeBindings retain];
 			}
 			
+			NSString *cacheKey = [NSString stringWithFormat:@"$VERTEX:\n%@\n\n$FRAGMENT:\n%@\n\n$MACROS:\n%@\n", vsCacheKey, fsCacheKey, macroString];
+			
 			OOLogIndent();
-			shaderProgram = [OOShaderProgram shaderProgramWithVertexShaderName:vertexShader
-															fragmentShaderName:fragmentShader
-																		prefix:macroString
-															 attributeBindings:attributeBindings];
+			shaderProgram = [OOShaderProgram shaderProgramWithVertexShader:vertexShader
+															fragmentShader:fragmentShader
+														  vertexShaderName:vsName
+														fragmentShaderName:fsName
+																	prefix:macroString
+														 attributeBindings:attributeBindings
+																  cacheKey:cacheKey];
 			OOLogOutdent();
 			
 			if (shaderProgram == nil)
@@ -143,16 +200,20 @@ static NSString *MacrosToString(NSDictionary *macros);
 #endif
 				if (canFallBack)
 				{
-					OOLogWARN(@"shader.load.fullModeFailed", @"Could not build shader %@/%@ in full complexity mode, trying simple mode.", vertexShader, fragmentShader);
+					OOLogWARN(@"shader.load.fullModeFailed", @"Could not build shader %@/%@ in full complexity mode, trying simple mode.", vsName, fsName);
 					
 					[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OO_REDUCED_COMPLEXITY"];
 					macroString = MacrosToString(modifiedMacros);
+					cacheKey = [cacheKey stringByAppendingString:@"\n$SIMPLIFIED FALLBACK\n"];
 					
 					OOLogIndent();
-					shaderProgram = [OOShaderProgram shaderProgramWithVertexShaderName:vertexShader
-																	fragmentShaderName:fragmentShader
-																				prefix:macroString
-																	 attributeBindings:attributeBindings];
+					shaderProgram = [OOShaderProgram shaderProgramWithVertexShader:vertexShader
+																	fragmentShader:fragmentShader
+																  vertexShaderName:vsName
+																fragmentShaderName:fsName
+																			prefix:macroString
+																 attributeBindings:attributeBindings
+																		  cacheKey:cacheKey];
 					OOLogOutdent();
 					
 					if (shaderProgram != nil)
@@ -164,7 +225,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 			
 			if (shaderProgram == nil)
 			{
-				OOLogERR(@"shader.load.failed", @"Could not build shader %@/%@.", vertexShader, fragmentShader);
+				OOLogERR(@"shader.load.failed", @"Could not build shader %@/%@.", vsName, fsName);
 			}
 		}
 		else
@@ -179,13 +240,12 @@ static NSString *MacrosToString(NSDictionary *macros);
 	if (OK)
 	{
 		// Load uniforms and textures, which are a flavour of uniform for our purpose.
-		NSDictionary *uniformDefs = [configuration oo_dictionaryForKey:@"uniforms"];
+		NSDictionary *uniformDefs = [configuration oo_dictionaryForKey:kOOUniformsKey];
 		
-		// ..
-		NSArray *textureArray = [configuration oo_arrayForKey:@"_oo_texture_objects"];
+		NSArray *textureArray = [configuration oo_arrayForKey:kOOTextureObjectsKey];
 		if (textureArray == nil)
 		{
-			NSArray *textureSpecs = [configuration oo_arrayForKey:@"textures"];
+			NSArray *textureSpecs = [configuration oo_arrayForKey:kOOTexturesKey];
 			if (textureSpecs != nil)
 			{
 				textureArray = [self loadTexturesFromArray:textureSpecs unitCount:textureUnits];
@@ -738,3 +798,45 @@ static NSString *MacrosToString(NSDictionary *macros)
 }
 
 #endif
+
+
+/*	Attempt to load fragment or vertex shader source from a file.
+	Returns YES if source was loaded or no shader was specified, and NO if an
+	external shader was specified but could not be found.
+*/
+static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *prefix, NSString **outResult)
+{
+	NSString				*result = nil;
+	NSArray					*extensions = nil;
+	NSEnumerator			*extEnum = nil;
+	NSString				*extension = nil;
+	NSString				*nameWithExtension = nil;
+	
+	if (fileName == nil)  return YES;	// It's OK for one or the other of the shaders to be undefined.
+	
+	result = [ResourceManager stringFromFilesNamed:fileName inFolder:@"Shaders"];
+	if (result == nil)
+	{
+		extensions = [NSArray arrayWithObjects:shaderType, [shaderType substringToIndex:4], nil];	// vertex and vert, or fragment and frag
+		
+		// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
+		if (![fileName pathHasExtensionInArray:extensions])
+		{
+			for (extEnum = [extensions objectEnumerator]; (extension = [extEnum nextObject]); )
+			{
+				nameWithExtension = [fileName stringByAppendingPathExtension:extension];
+				result = [ResourceManager stringFromFilesNamed:nameWithExtension
+													  inFolder:@"Shaders"];
+				if (result != nil) break;
+			}
+		}
+		if (result == nil)
+		{
+			OOLog(kOOLogFileNotFound, @"GLSL ERROR: failed to find %@ program %@.", shaderType, fileName);
+			return NO;
+		}
+	}
+	
+	if (outResult != NULL) *outResult = result;
+	return YES;
+}

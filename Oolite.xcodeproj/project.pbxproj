@@ -470,6 +470,8 @@
 		1A6B25EF0C9C2746000717CF /* OOJSClock.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B25ED0C9C2746000717CF /* OOJSClock.m */; };
 		1A6DD1230C57B5BC00A892F4 /* OOPListSchemaVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */; };
 		1A6DD1240C57B5BC00A892F4 /* OOPListSchemaVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */; };
+		1A6F665314DF323900695C11 /* OODefaultShaderSynthesizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6F665114DF323900695C11 /* OODefaultShaderSynthesizer.h */; };
+		1A6F665414DF323900695C11 /* OODefaultShaderSynthesizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F665214DF323900695C11 /* OODefaultShaderSynthesizer.m */; };
 		1A7038A212BB9F5A0015CCDC /* dummy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A7038A112BB9F5A0015CCDC /* dummy.cpp */; };
 		1A71D8AA0E5F17410088C456 /* OOSoundSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A71D8A80E5F17410088C456 /* OOSoundSource.m */; };
 		1A71D8AB0E5F17410088C456 /* OOSoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A71D8A90E5F17410088C456 /* OOSoundSource.h */; };
@@ -1710,6 +1712,8 @@
 		1A6B25ED0C9C2746000717CF /* OOJSClock.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSClock.m; sourceTree = "<group>"; };
 		1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPListSchemaVerifier.h; sourceTree = "<group>"; };
 		1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListSchemaVerifier.m; sourceTree = "<group>"; };
+		1A6F665114DF323900695C11 /* OODefaultShaderSynthesizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODefaultShaderSynthesizer.h; sourceTree = "<group>"; };
+		1A6F665214DF323900695C11 /* OODefaultShaderSynthesizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODefaultShaderSynthesizer.m; sourceTree = "<group>"; };
 		1A7038A112BB9F5A0015CCDC /* dummy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dummy.cpp; sourceTree = "<group>"; };
 		1A71D8A80E5F17410088C456 /* OOSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSoundSource.m; sourceTree = "<group>"; };
 		1A71D8A90E5F17410088C456 /* OOSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundSource.h; sourceTree = "<group>"; };
@@ -2637,6 +2641,8 @@
 				1A1F7DA7117B5BDB00332757 /* OOMaterialSpecifier.m */,
 				1A3D034811736EDA005BF5E6 /* OOMaterialConvenienceCreators.h */,
 				1A3D034911736EDA005BF5E6 /* OOMaterialConvenienceCreators.m */,
+				1A6F665114DF323900695C11 /* OODefaultShaderSynthesizer.h */,
+				1A6F665214DF323900695C11 /* OODefaultShaderSynthesizer.m */,
 				1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */,
 				1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */,
 				1A26D0D00BCF9D0D0073F257 /* OOShaderMaterial.h */,
@@ -3429,6 +3435,7 @@
 				1A4DF35312FDF0410027F43D /* OOParticleSystem.h in Headers */,
 				1A033FB813268ABB006F9DB7 /* OOPDFView.h in Headers */,
 				1A54115B14B8913E00B8A4BE /* OOMacJoystickManager.h in Headers */,
+				1A6F665314DF323900695C11 /* OODefaultShaderSynthesizer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3879,6 +3886,7 @@
 				1A4DF35412FDF0410027F43D /* OOParticleSystem.m in Sources */,
 				1A033FB913268ABB006F9DB7 /* OOPDFView.m in Sources */,
 				1A54115C14B8913E00B8A4BE /* OOMacJoystickManager.m in Sources */,
+				1A6F665414DF323900695C11 /* OODefaultShaderSynthesizer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

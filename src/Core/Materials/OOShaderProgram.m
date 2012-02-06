@@ -64,6 +64,46 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 
 @implementation OOShaderProgram
 
++ (id) shaderProgramWithVertexShader:(NSString *)vertexShaderSource
+					  fragmentShader:(NSString *)fragmentShaderSource
+					vertexShaderName:(NSString *)vertexShaderName
+				  fragmentShaderName:(NSString *)fragmentShaderName
+							  prefix:(NSString *)prefixString			// String prepended to program source (both vs and fs)
+				   attributeBindings:(NSDictionary *)attributeBindings	// Maps vertex attribute names to "locations".
+							cacheKey:(NSString *)cacheKey
+{
+	OOShaderProgram			*result = nil;
+	
+	if ([prefixString length] == 0)  prefixString = nil;
+	
+	// Use cache to avoid creating duplicate shader programs -- saves on GPU resources and potentially state changes.
+	// FIXME: probably needs to respond to graphics resets.
+	result = [[sShaderCache objectForKey:cacheKey] pointerValue];
+	
+	if (result == nil)
+	{
+		// No cached program; create one...
+		result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexShaderSource
+												fragmentShaderSource:fragmentShaderSource
+														prefixString:prefixString
+														  vertexName:vertexShaderName
+														fragmentName:fragmentShaderName
+												   attributeBindings:attributeBindings
+																 key:cacheKey];
+		
+		if (result != nil && cacheKey != nil)
+		{
+			// ...and add it to the cache.
+			[result autorelease];
+			if (sShaderCache == nil)  sShaderCache = [[NSMutableDictionary alloc] init];
+			[sShaderCache setObject:[NSValue valueWithPointer:result] forKey:cacheKey];	// Use NSValue so dictionary doesn't retain program
+		}
+	}
+	
+	return result;
+}
+
+
 + (id)shaderProgramWithVertexShaderName:(NSString *)vertexShaderName
 					 fragmentShaderName:(NSString *)fragmentShaderName
 								 prefix:(NSString *)prefixString
@@ -96,7 +136,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		
 		if (result != nil)
 		{
-			// ...and add it to the cache
+			// ...and add it to the cache.
 			[result autorelease];
 			if (sShaderCache == nil)  sShaderCache = [[NSMutableDictionary alloc] init];
 			[sShaderCache setObject:[NSValue valueWithPointer:result] forKey:cacheKey];	// Use NSValue so dictionary doesn't retain program
@@ -341,7 +381,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	
 	for (keyEnum = [attributeBindings keyEnumerator]; (attrKey = [keyEnum nextObject]); )
 	{
-		OOGL(glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]));	
+		OOGL(glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]));
 	}
 }
 

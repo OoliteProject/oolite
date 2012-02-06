@@ -603,10 +603,6 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 #if DEBUG_GRAPHVIZ
 @implementation OOPriorityQueue (DebugGraphViz)
 
-// Workaround for Xcode auto-indent bug
-static NSString * const kQuotationMark = @"\"";
-static NSString * const kEscapedQuotationMark = @"\\\"";
-
 
 static NSString *EscapedString(NSString *string)
 {
