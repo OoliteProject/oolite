@@ -73,6 +73,7 @@ SOFTWARE.
 	NSUInteger					_usesNormalMap: 1,
 								_usesDiffuseTerm: 1,
 								_constZNormal: 1,
+								_haveDiffuseLight: 1,
 	
 	// Completion flags for various generation stages.
 								_completed_writeFinalColorComposite: 1,
@@ -143,8 +144,7 @@ SOFTWARE.
 */
 - (void) writeDiffuseColorTerm;
 
-/*
-	writeDiffuseLighting
+/*	writeDiffuseLighting
 	Combine diffuse lighting and diffuse colour terms, and add them into
 	colour accumulator.
 */
@@ -668,9 +668,8 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 
 - (void) writeTextureCoordRead
 {
-	[self addAttribute:@"aTexCoords" ofType:@"vec2"];
 	[self addVarying:@"vTexCoords" ofType:@"vec2"];
-	[_vertexBody appendString:@"\tvTexCoords = aTexCoords;\n\t\n"];
+	[_vertexBody appendString:@"\tvTexCoords = gl_MultiTexCoord0.st;\n\t\n"];
 	
 	BOOL haveTexCoords = NO;
 	NSDictionary *parallaxMap = [_configuration oo_parallaxMapSpecifier];
@@ -794,10 +793,11 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	NSString *normalDotLight = _constZNormal ? @"lightVector.z" : @"dot(normal, lightVector)";
 	
 	[_fragmentBody appendFormat:
-	@"\t// Placeholder diffuse lighting\n"
-	 "\tvec3 diffuseLight = vec3(0.8 * max(0.0, %@) + 0.2);\n"
-	 "\ttotalColor += diffuseColor * diffuseLight;\n\t\n",
+	@"\t// Diffuse (Lambertian) and ambient lighting\n"
+	 "\tvec3 diffuseLight = (gl_LightSource[1].diffuse * max(0.0, %@) + gl_LightModel.ambient).rgb;\n\t\n",
 	 normalDotLight];
+	
+	_haveDiffuseLight = YES;
 }
 
 
@@ -809,7 +809,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	[self addVarying:@"vLightVector" ofType:@"vec3"];
 	
 	[_vertexBody appendString:
-	 @"\tvec3 lightVector = gl_LightSource[0].position.xyz;\n"
+	 @"\tvec3 lightVector = gl_LightSource[1].position.xyz;\n"
 	  "\tvLightVector = lightVector * TBN;\n\t\n"];
 	[_fragmentBody appendFormat:@"\tvec3 lightVector = normalize(vLightVector);\n\t\n"];
 }
@@ -1056,6 +1056,11 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	REQUIRE_STAGE(writeDiffuseLighting);
 	REQUIRE_STAGE(writeSpecularLighting);
 	REQUIRE_STAGE(writeLightMaps);
+	
+	if (_haveDiffuseLight)
+	{
+		[_fragmentBody appendString:@"\ttotalColor += diffuseColor * diffuseLight;\n"];
+	}
 	
 	[_fragmentBody appendString:@"\tgl_FragColor = vec4(totalColor, 1.0);\n\t\n"];
 }
