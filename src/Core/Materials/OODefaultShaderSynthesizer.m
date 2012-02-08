@@ -35,6 +35,16 @@ SOFTWARE.
 #import "NSDictionaryOOExtensions.h"
 #import "OOMaterialSpecifier.h"
 
+/* 
+ * GNUstep 1.20.1 does not support NSIntegerHashCallBacks but uses 
+ * NSIntHashCallBacks instead. NSIntHashCallBacks was deprecated in favor of
+ * NSIntegerHashCallBacks in GNUstep versions later than 1.20.1. If we move to
+ * a newer GNUstep version for Oolite the #define below may not be necessary
+ * anymore but for now we need it to be able to build. - Nikos 20120208.
+*/
+#ifdef OOLITE_GNUSTEP
+#define NSIntegerHashCallBacks	NSIntHashCallBacks
+#endif
 
 @interface OODefaultShaderSynthesizer: NSObject
 {
