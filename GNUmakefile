@@ -186,6 +186,7 @@ OOLITE_GRAPHICS_DRAWABLE_FILES = \
 OOLITE_GRAPHICS_MATERIAL_FILES = \
     OOMaterialSpecifier.m \
     OOBasicMaterial.m \
+	OODefaultShaderSynthesizer.m \
     OOMaterial.m \
     OONullTexture.m \
     OOPlanetTextureGenerator.m \

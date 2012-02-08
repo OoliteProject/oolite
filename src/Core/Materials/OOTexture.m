@@ -694,7 +694,8 @@ BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, uint32_t *out
 			else if ([extractChannel isEqualToString:@"a"])  options |= kOOTextureExtractChannelA;
 			else
 			{
-				OOLogWARN(@"texture.load.extractChannel.invalid", @"Unknown value \"%@\" for extract_channel (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel);
+				// FIXME: obsolescent with shader synthesizer, although we need to handle the new regime for non-shader materials too.
+			//	OOLogWARN(@"texture.load.extractChannel.invalid", @"Unknown value \"%@\" for extract_channel (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel);
 			}
 		}
 	}

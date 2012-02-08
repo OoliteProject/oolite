@@ -464,6 +464,9 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 {
 	NSParameterAssert(spec != nil);
 	
+	// extract_channel doesn't affect uniqueness, and we don't want OOTexture to do actual extraction.
+	spec = [spec dictionaryByRemovingObjectForKey:@"extract_channel"];
+	
 	NSString *texName = nil;
 	uint32_t texOptions;
 	if (!OOInterpretTextureSpecifier(spec, &texName, &texOptions, NULL, NULL))
@@ -699,16 +702,16 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 				
 				if (parallaxScale != 1.0f)
 				{
-					[_fragmentPreTextures appendFormat:@"\tparallax *= %g;\n  // Parallax scale", parallaxScale];
+					[_fragmentPreTextures appendFormat:@"\tparallax *= %g;  // Parallax scale\n", parallaxScale];
 				}
 				
 				float parallaxBias = [_configuration oo_parallaxBias];
 				if (parallaxBias != 0.0)
 				{
-					[_fragmentPreTextures appendFormat:@"\tparallax += %g;\n  // Parallax bias", parallaxBias];
+					[_fragmentPreTextures appendFormat:@"\tparallax += %g;  // Parallax bias\n", parallaxBias];
 				}
 				
-				[_fragmentPreTextures appendString:@"\tvec2 texCoords = vTexCoords - parallax * eyeVector.xy * vec2(-1.0, 1.0);\n"];
+				[_fragmentPreTextures appendString:@"\tvec2 texCoords = vTexCoords - parallax * eyeVector.xy * vec2(1.0, -1.0);\n"];
 			}
 			else
 			{
@@ -846,6 +849,11 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	REQUIRE_STAGE(writeVertexTangentBasis);
 	
 	NSDictionary *normalMap = [_configuration oo_normalMapSpecifier];
+	if (normalMap == nil)
+	{
+		// FIXME: this stuff should be handled in OOMaterialSpecifier.m when synthesizer takes over the world. -- Ahruman 2012-02-08
+		normalMap = [_configuration oo_normalAndParallaxMapSpecifier];
+	}
 	if (normalMap != nil)
 	{
 		NSString *sample, *swizzle;
@@ -853,7 +861,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		if (swizzle == nil)  swizzle = @"rgb";
 		if ([swizzle length] == 3)
 		{
-			[_fragmentBody appendFormat:@"\tvec3 normal = normalize(%@.%@);\n\t\n", sample, swizzle];
+			[_fragmentBody appendFormat:@"\tvec3 normal = normalize(%@.%@ - 0.5);\n\t\n", sample, swizzle];
 			_usesNormalMap = YES;
 			return;
 		}
