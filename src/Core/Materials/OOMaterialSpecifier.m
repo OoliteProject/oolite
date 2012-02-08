@@ -86,11 +86,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 	if (result == nil)  result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularColorLegacyName]];
 	if (result == nil)
 	{
-		if ([self oo_floatForKey:kOOMaterialShininess] != 0)
-		{
-			result = [OOColor colorWithCalibratedWhite:0.2 alpha:1.0];
-		}
-		// else, zero shininess -> no specular anything.
+		result = [OOColor colorWithCalibratedWhite:0.2 alpha:1.0];
 	}
 	return result;
 }

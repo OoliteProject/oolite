@@ -42,7 +42,7 @@ SOFTWARE.
  * a newer GNUstep version for Oolite the #define below may not be necessary
  * anymore but for now we need it to be able to build. - Nikos 20120208.
 */
-#ifdef OOLITE_GNUSTEP
+#if OOLITE_GNUSTEP
 #define NSIntegerHashCallBacks	NSIntHashCallBacks
 #endif
 
@@ -383,6 +383,33 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		if ([name length] > 0)  [buffer appendFormat:@"// %@\n", name];
 		[buffer appendString:segment];
 	}
+}
+
+
+static NSString *GetExtractMode(NSDictionary *textureSpecifier)
+{
+	NSString *result = nil;
+	
+	NSString *rawMode = [textureSpecifier oo_stringForKey:@"extract_channel"];
+	if (rawMode != nil)
+	{
+		NSUInteger length = [rawMode length];
+		if (1 <= length && length <= 4)
+		{
+			static NSCharacterSet *nonRGBACharset = nil;
+			if (nonRGBACharset == nil)
+			{
+				nonRGBACharset = [[[NSCharacterSet characterSetWithCharactersInString:@"rgba"] invertedSet] retain];
+			}
+			
+			if ([rawMode rangeOfCharacterFromSet:nonRGBACharset].location == NSNotFound)
+			{
+				result = rawMode;
+			}
+		}
+	}
+	
+	return result;
 }
 
 
@@ -898,11 +925,21 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 
 - (void) writeSpecularLighting
 {
-#if 0
 	// FIXME: divide specular map into colour and exponent maps.
-	float specularExponent = [_spec specularExponent];
+	float specularExponent = [_configuration oo_shininess];
 	if (specularExponent <= 0)  return;
-	OOColor *specularColor = [_spec specularColor];
+	
+	NSDictionary *combinedSpecularMap = [_configuration oo_specularMapSpecifier];
+	OOColor *specularColor = nil;
+	if (combinedSpecularMap == nil)
+	{
+		specularColor = [_configuration oo_specularColor];
+	}
+	else
+	{
+		specularColor = [_configuration oo_specularModulateColor];
+	}
+	
 	if ([specularColor isBlack])  return;
 	
 	REQUIRE_STAGE(writeTotalColor);
@@ -910,10 +947,22 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	REQUIRE_STAGE(writeEyeVector);
 	REQUIRE_STAGE(writeLightVector);
 	
-	[_fragmentBody appendString:@"\t// Specular lighting\n"];
+	[_fragmentBody appendString:@"\t// Specular (Blinn-Phong) lighting\n"];
+	
+	/*
+		Split combined specular map specifier into specular colour map and
+		specular exponent map.
+		FIXME: support separate specifiers.
+	 */
+	NSDictionary *specularColorMap = nil;
+	NSDictionary *specularExponentMap = nil;
+	if (combinedSpecularMap != nil)
+	{
+		specularColorMap = combinedSpecularMap;
+		specularExponentMap = [combinedSpecularMap dictionaryByAddingObject:@"a" forKey:@"extract_channel"];
+	}
 	
 	BOOL haveSpecularColor = NO;
-	OOTextureSpecification *specularColorMap = [_spec specularColorMap];
 	if (specularColorMap != nil)
 	{
 		NSString *readInstr = [self readRGBForTextureSpec:specularColorMap mapName:@"specular colour"];
@@ -929,7 +978,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	
 	if (!haveSpecularColor || ![specularColor isWhite])
 	{
-		float rgba[4];
+		OOCGFloat rgba[4];
 		[specularColor getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
 		NSString *format = nil;
 		if (haveSpecularColor)
@@ -944,7 +993,6 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		[_fragmentBody appendFormat:format, rgba[0] * rgba[3], rgba[1] * rgba[3], rgba[2] * rgba[3]];
 	}
 	
-	OOTextureSpecification *specularExponentMap = [_spec specularExponentMap];
 	BOOL haveSpecularExponent = NO;
 	if (specularExponentMap != nil)
 	{
@@ -963,7 +1011,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		[_fragmentBody appendFormat:@"\tconst float specularExponent = %.1f;\n", specularExponent];
 	}
 	
-	if (_usesNormalMap || ![self tangentSpaceLighting])
+	if (_usesNormalMap)
 	{
 		[_fragmentBody appendFormat:@"\tvec3 reflection = reflect(lightVector, normal);\n"];
 	}
@@ -972,14 +1020,13 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		/*	reflect(I, N) is defined as I - 2 * dot(N, I) * N
 			If N is (0,0,1), this becomes (I.x,I.y,-I.z).
 		*/
-		[_fragmentBody appendFormat:@"\tvec3 reflection = vec3(lightVector.x, lightVector.y, -lightVector.z);\n"];
+		[_fragmentBody appendFormat:@"\tvec3 reflection = vec3(lightVector.x, lightVector.y, -lightVector.z);  // Equivalent to reflect(lightVector, normal) since normal is known to be (0, 0, 1) in tangent space.\n"];
 	}
 	
 	[_fragmentBody appendFormat:
 	@"\tfloat specIntensity = dot(reflection, eyeVector);\n"
 	 "\tspecIntensity = pow(max(0.0, specIntensity), specularExponent);\n"
-	 "\ttotalColor += specIntensity * specularColor;\n\t\n"];
-#endif
+	 "\ttotalColor += specIntensity * specularColor * gl_LightSource[1].specular.rgb;\n\t\n"];
 }
 
 
@@ -1085,30 +1132,3 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 }
 
 @end
-
-
-static NSString *GetExtractMode(NSDictionary *textureSpecifier)
-{
-	NSString *result = nil;
-	
-	NSString *rawMode = [textureSpecifier oo_stringForKey:@"extract_channel"];
-	if (rawMode != nil)
-	{
-		NSUInteger length = [rawMode length];
-		if (1 <= length && length <= 4)
-		{
-			static NSCharacterSet *nonRGBACharset = nil;
-			if (nonRGBACharset == nil)
-			{
-				nonRGBACharset = [[[NSCharacterSet characterSetWithCharactersInString:@"rgba"] invertedSet] retain];
-			}
-			
-			if ([rawMode rangeOfCharacterFromSet:nonRGBACharset].location == NSNotFound)
-			{
-				result = rawMode;
-			}
-		}
-	}
-	
-	return result;
-}
