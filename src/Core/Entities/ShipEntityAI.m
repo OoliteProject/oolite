@@ -237,6 +237,8 @@ MA 02110-1301, USA.
 
 - (void) checkForNormalSpace;
 
+- (void) setTargetToRandomStation;
+- (void) setTargetToLastStation;
 - (void) recallDockingInstructions;
 
 - (void) addFuel:(NSString *) fuel_number;
@@ -2136,6 +2138,66 @@ MA 02110-1301, USA.
 		[shipAI message:@"INTERSTELLAR_SPACE"];
 }
 
+
+- (void) setTargetToRandomStation
+{
+	/*- selects the nearest station it can find -*/
+	int			ent_count = UNIVERSE->n_entities;
+	Entity		**uni_entities = UNIVERSE->sortedEntities;	// grab the public sorted list
+	Entity		*my_entities[ent_count];
+	StationEntity *station, *my_station = nil;
+	double		maxRange2 = desired_range * desired_range;
+	int i;
+	int station_count = 0;
+	for (i = 0; i < ent_count; i++)
+	{
+		// find stations within range but exclude carriers.
+		if (uni_entities[i]->isStation)
+		{
+			my_station = (StationEntity*)uni_entities[i];
+			if ([my_station maxFlightSpeed] == 0 && [my_station hasNPCTraffic] && distance2(position, [my_station position]) < maxRange2)
+			{
+				my_entities[station_count++] = [uni_entities[i] retain];		//	retained
+			}
+		}
+	}
+	
+	if (station_count != 0)
+	{
+		// select a random station
+		station = (StationEntity *)my_entities[ranrot_rand() % station_count];
+	}
+	
+	for (i = 0; i < station_count; i++)
+		[my_entities[i] release];		//	released
+	//
+	if (station)
+	{
+		primaryTarget = [station universalID];
+		targetStation = primaryTarget;
+		[shipAI message:@"STATION_FOUND"];
+	}
+	else
+	{
+		[shipAI message:@"NO_STATION_IN_RANGE"];
+	}
+}
+
+- (void) setTargetToLastStation
+{
+	Entity	*station = [UNIVERSE entityForUniversalID:targetStation];
+	
+	if ([station isStation])
+	{
+		primaryTarget = targetStation;
+	}
+	else
+	{
+		[shipAI message:@"NO_STATION_FOUND"];
+		targetStation = NO_TARGET;
+	}
+
+}
 
 - (void) requestDockingCoordinates
 {

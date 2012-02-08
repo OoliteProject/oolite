@@ -86,7 +86,6 @@ MA 02110-1301, USA.
 - (NSArray *) contractList;
 - (void) setGuiToManifestScreen;
 
-//- (void) setGuiToDeliveryReportScreenWithText:(NSString*) report;
 - (void) setGuiToDockingReportScreen;
 
 // ---------------------------------------------------------------------- //

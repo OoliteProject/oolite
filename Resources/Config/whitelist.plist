@@ -177,6 +177,8 @@
 		"scanForNearestShipMatchingPredicate:",
 		"setCoordinates:",
 		"checkForNormalSpace",
+		"setTargetToRandomStation",
+		"setTargetToLastStation",
 		"requestDockingCoordinates",
 		"recallDockingInstructions",
 		"enterPlayerWormhole",

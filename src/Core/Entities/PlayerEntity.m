@@ -1996,10 +1996,19 @@ static GLfloat		sBaseMass = 0.0;
 			UPDATE_STAGE(@"updating afterburner");
 			
 			float abFactor = [self afterburnerFactor];
-			if (flightSpeed < maxFlightSpeed * abFactor)
-				flightSpeed += (float)(speed_delta * delta_t * abFactor);
-			if (flightSpeed > maxFlightSpeed * abFactor)
-				flightSpeed = maxFlightSpeed * abFactor;
+			float maxInjectionSpeed = maxFlightSpeed * abFactor;
+			if (flightSpeed > maxInjectionSpeed)
+			{
+				// decellerate to maxInjectionSpeed but slower than without afterburner.
+				flightSpeed -= (float)(speed_delta * delta_t * abFactor);
+			}
+			else
+			{
+				if (flightSpeed < maxInjectionSpeed)
+					flightSpeed += (float)(speed_delta * delta_t * abFactor);
+				if (flightSpeed > maxInjectionSpeed)
+					flightSpeed = maxInjectionSpeed;
+			}
 			fuel_accumulator -= (float)(delta_t * AFTERBURNER_BURNRATE);
 			while ((fuel_accumulator < 0)&&(fuel > 0))
 			{
