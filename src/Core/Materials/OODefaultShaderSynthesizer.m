@@ -478,7 +478,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	if (texOptions & kOOTextureAllowCubeMap)
 	{
 		// cube_map = true; fail regardless of whether actual texture qualifies.
-		OOLogERR(@"The material \"%@\" of \"%@\" specifies a cube map texture, but doesn't have custom shaders. Cube map textures are not supported with the default shaders.", [self materialKey], [self entityName]);
+		OOLogERR(@"material.synthesis.error.cubeMap", @"The material \"%@\" of \"%@\" specifies a cube map texture, but doesn't have custom shaders. Cube map textures are not supported with the default shaders.", [self materialKey], [self entityName]);
 		[NSException raise:NSGenericException format:@"Invalid material"];
 	}
 	
@@ -502,7 +502,8 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	{
 		if (![spec isEqual:existing])
 		{
-			OOLogWARN(@"The texture map \"%@\" is used more than once in material \"%@\" of \"%@\", and the options specified are not consistent. Only one set of options will be used.", texName, [self materialKey], [self entityName]);
+			// FIXME: could we just use different texture units instead?
+			OOLogWARN(@"material.synthesis.warning.reusedTexture", @"The texture map \"%@\" is used more than once in material \"%@\" of \"%@\", and the options specified are not consistent. Only one set of options will be used.", texName, [self materialKey], [self entityName]);
 		}
 		texID = [_textureIDs oo_unsignedIntegerForKey:texName];
 	}
@@ -565,7 +566,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1 or 3");
+	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1 or 3");
 	return nil;
 }
 
@@ -588,7 +589,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1");
+	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1");
 	return nil;
 }
 
@@ -599,7 +600,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 	// Ensure that we aren’t recursing.
 	if (NSHashGet(_stagesInProgress, stage) != NULL)
 	{
-		OOLogERR(@"Shader synthesis recursion for stage %@.", NSStringFromSelector(stage));
+		OOLogERR(@"material.synthesis.error.recursion", @"Shader synthesis recursion for stage %@.", NSStringFromSelector(stage));
 		[NSException raise:NSInternalInconsistencyException format:@"stage recursion"];
 	}
 	
@@ -715,7 +716,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 			}
 			else
 			{
-				OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self entityName], channelCount, @"1");
+				OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self entityName], channelCount, @"1");
 			}
 		}
 	}
@@ -867,7 +868,7 @@ static void AppendIfNotEmpty(NSMutableString *buffer, NSString *segment, NSStrin
 		}
 		else
 		{
-			OOLogWARN(@"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self entityName], [swizzle length], @"3");
+			OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self entityName], [swizzle length], @"3");
 		}
 	}
 	_constZNormal = YES;
