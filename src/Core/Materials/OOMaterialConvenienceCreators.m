@@ -276,7 +276,7 @@ static BOOL sDumpShaderSource = NO;
 				(smooth ||
 				 gDebugFlags & DEBUG_NO_SHADER_FALLBACK ||
 				 [UNIVERSE shaderEffectsLevel] == SHADERS_FULL ||
-				 [configuration oo_specularMapSpecifier] != nil ||
+				 [configuration oo_combinedSpecularMapSpecifier] != nil ||
 				 [configuration oo_normalMapSpecifier] != nil ||
 				 [configuration oo_parallaxMapSpecifier] != nil ||
 				 [configuration oo_normalAndParallaxMapSpecifier] != nil ||
@@ -536,7 +536,7 @@ static void SynthNormalMap(OOMaterialSynthContext *context)
 
 static void SynthSpecular(OOMaterialSynthContext *context)
 {
-	GLint shininess = [context->inConfig oo_shininess];
+	GLint shininess = [context->inConfig oo_specularExponent];
 	if (shininess <= 0)  return;
 	
 	NSDictionary *specularMapSpec = nil;
@@ -544,14 +544,14 @@ static void SynthSpecular(OOMaterialSynthContext *context)
 	
 	if (context->texturesUsed < context->maxTextures)
 	{
-		specularMapSpec = [context->inConfig oo_specularMapSpecifier];
+		specularMapSpec = [context->inConfig oo_combinedSpecularMapSpecifier];
 	}
 	
 	if (specularMapSpec != nil)  specularColor = [context->inConfig oo_specularModulateColor];
 	else  specularColor = [context->inConfig oo_specularColor];
 	if ([specularColor isBlack])  return;
 	
-	[context->outConfig setObject:[NSNumber numberWithUnsignedInt:shininess] forKey:kOOMaterialShininess];
+	[context->outConfig setObject:[NSNumber numberWithUnsignedInt:shininess] forKey:kOOMaterialSpecularExponentLegacyName];
 	
 	if (specularMapSpec != nil)
 	{

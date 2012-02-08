@@ -60,7 +60,7 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 - (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
 {
 	id					colorDesc = nil;
-	int					shininessVal;
+	int					specularExponent;
 	
 	self = [self initWithName:name];
 	if (EXPECT_NOT(self == nil))  return nil;
@@ -77,11 +77,11 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	colorDesc = [configuration oo_emissionColor];
 	if (colorDesc != nil)  [self setEmissionColor:[OOColor colorWithDescription:colorDesc]];
 	
-	shininessVal = [configuration oo_shininess];
-	if (shininessVal != 0 && [self permitSpecular])
+	specularExponent = [configuration oo_specularExponent];
+	if (specularExponent != 0 && [self permitSpecular])
 	{
 		colorDesc = [configuration oo_specularColor];
-		[self setShininess:shininessVal];
+		[self setShininess:specularExponent];
 		if (colorDesc != nil)  [self setSpecularColor:[OOColor colorWithDescription:colorDesc]];
 	}
 	

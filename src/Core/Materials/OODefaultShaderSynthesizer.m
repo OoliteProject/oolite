@@ -925,13 +925,14 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 
 - (void) writeSpecularLighting
 {
-	// FIXME: divide specular map into colour and exponent maps.
-	float specularExponent = [_configuration oo_shininess];
+	float specularExponent = [_configuration oo_specularExponent];
 	if (specularExponent <= 0)  return;
 	
-	NSDictionary *combinedSpecularMap = [_configuration oo_specularMapSpecifier];
+	NSDictionary *specularColorMap = [_configuration oo_specularColorMapSpecifier];
+	NSDictionary *specularExponentMap = [_configuration oo_specularExponentMapSpecifier];
+	
 	OOColor *specularColor = nil;
-	if (combinedSpecularMap == nil)
+	if (specularColorMap == nil)
 	{
 		specularColor = [_configuration oo_specularColor];
 	}
@@ -948,19 +949,6 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	REQUIRE_STAGE(writeLightVector);
 	
 	[_fragmentBody appendString:@"\t// Specular (Blinn-Phong) lighting\n"];
-	
-	/*
-		Split combined specular map specifier into specular colour map and
-		specular exponent map.
-		FIXME: support separate specifiers.
-	 */
-	NSDictionary *specularColorMap = nil;
-	NSDictionary *specularExponentMap = nil;
-	if (combinedSpecularMap != nil)
-	{
-		specularColorMap = combinedSpecularMap;
-		specularExponentMap = [combinedSpecularMap dictionaryByAddingObject:@"a" forKey:@"extract_channel"];
-	}
 	
 	BOOL haveSpecularColor = NO;
 	if (specularColorMap != nil)

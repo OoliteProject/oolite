@@ -46,7 +46,9 @@ NSString * const kOOMaterialEmissionModulateColorName		= @"emission_modulate_col
 NSString * const kOOMaterialIlluminationModulateColorName	= @"illumination_modulate_color";
 
 NSString * const kOOMaterialDiffuseMapName					= @"diffuse_map";
-NSString * const kOOMaterialSpecularMapName					= @"specular_map";
+NSString * const kOOMaterialSpecularColorMapName			= @"specular_color_map";
+NSString * const kOOMaterialSpecularExponentMapName			= @"specular_exponent_map";
+NSString * const kOOMaterialCombinedSpecularMapName			= @"specular_map";	// Combined specular_color_map and specular_exponent_map (unfortunate name required for backwards-compatibility).
 NSString * const kOOMaterialNormalMapName					= @"normal_map";
 NSString * const kOOMaterialParallaxMapName					= @"parallax_map";
 NSString * const kOOMaterialNormalAndParallaxMapName		= @"normal_and_parallax_map";
@@ -54,17 +56,27 @@ NSString * const kOOMaterialEmissionMapName					= @"emission_map";
 NSString * const kOOMaterialIlluminationMapName				= @"illumination_map";
 NSString * const kOOMaterialEmissionAndIlluminationMapName	= @"emission_and_illumination_map";
 
-NSString * const kOOMaterialParallaxScale					= @"parallax_scale";
-NSString * const kOOMaterialParallaxBias					= @"parallax_bias";
+NSString * const kOOMaterialParallaxScaleName				= @"parallax_scale";
+NSString * const kOOMaterialParallaxBiasName				= @"parallax_bias";
 
-NSString * const kOOMaterialShininess						= @"shininess";
+NSString * const kOOMaterialSpecularExponentName			= @"specular_exponent";
+NSString * const kOOMaterialSpecularExponentLegacyName		= @"shininess";
 
 
 @implementation NSDictionary (OOMateralProperties)
 
+// Internal. Used to avoid mutual recusion between -oo_specularExponentMapSpecifier and -oo_specularExponent.
+- (int) oo_rawSpecularExponentValue
+{
+	NSObject *value = [self objectForKey:kOOMaterialSpecularExponentName];
+	if (value == nil)  value = [self objectForKey:kOOMaterialSpecularExponentLegacyName];
+	return OOIntFromObject(value, -1);
+}
+
+
 - (OOColor *) oo_diffuseColor
 {
-	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialDiffuseColorName]];
+	OOColor *result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialDiffuseColorName]];
 	if (result == nil)  result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialDiffuseColorLegacyName]];
 	
 	if ([result isWhite])  result = nil;
@@ -74,7 +86,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 
 - (OOColor *) oo_ambientColor
 {
-	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialAmbientColorName]];
+	OOColor *result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialAmbientColorName]];
 	if (result == nil)  result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialAmbientColorLegacyName]];
 	return result;
 }
@@ -82,7 +94,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 
 - (OOColor *) oo_specularColor
 {
-	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularColorName]];
+	OOColor *result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularColorName]];
 	if (result == nil)  result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularColorLegacyName]];
 	if (result == nil)
 	{
@@ -94,7 +106,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 
 - (OOColor *) oo_specularModulateColor
 {
-	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularModulateColorName]];
+	OOColor *result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularModulateColorName]];
 	if (result == nil)  result = [OOColor whiteColor];
 	
 	return result;
@@ -103,7 +115,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 
 - (OOColor *) oo_emissionColor
 {
-	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionColorName]];
+	OOColor *result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionColorName]];
 	if (result == nil)  result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionColorLegacyName]];
 	
 	if ([result isBlack])  result = nil;
@@ -113,7 +125,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 
 - (OOColor *) oo_emissionModulateColor
 {
-	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionModulateColorName]];
+	OOColor *result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionModulateColorName]];
 	
 	if ([result isWhite])  result = nil;
 	return result;
@@ -122,7 +134,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 
 - (OOColor *) oo_illuminationModulateColor
 {
-	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialIlluminationModulateColorName]];
+	OOColor *result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialIlluminationModulateColorName]];
 	
 	if ([result isWhite])  result = nil;
 	return result;
@@ -135,11 +147,28 @@ NSString * const kOOMaterialShininess						= @"shininess";
 }
 
 
-- (NSDictionary *) oo_specularMapSpecifier
+- (NSDictionary *) oo_combinedSpecularMapSpecifier
 {
-	// Can't use -oo_shininess for reasons of recursion.
-	if ([self oo_intForKey:kOOMaterialShininess defaultValue:-1] == 0)  return nil;
-	return [self oo_textureSpecifierForKey:kOOMaterialSpecularMapName defaultName:nil];
+	if ([self oo_rawSpecularExponentValue] == 0)  return nil;
+	return [self oo_textureSpecifierForKey:kOOMaterialCombinedSpecularMapName defaultName:nil];
+}
+
+
+- (NSDictionary *) oo_specularColorMapSpecifier
+{
+	if ([self oo_rawSpecularExponentValue] == 0)  return nil;
+	NSDictionary *result = [self oo_textureSpecifierForKey:kOOMaterialSpecularColorMapName defaultName:nil];
+	if (result == nil)  result = [self oo_combinedSpecularMapSpecifier];
+	return result;
+}
+
+
+- (NSDictionary *) oo_specularExponentMapSpecifier
+{
+	if ([self oo_rawSpecularExponentValue] == 0)  return nil;
+	NSDictionary *result = [self oo_textureSpecifierForKey:kOOMaterialSpecularExponentMapName defaultName:nil];
+	if (result == nil)  result = [[self oo_combinedSpecularMapSpecifier] dictionaryByAddingObject:@"a" forKey:@"extract_channel"];
+	return result;
 }
 
 
@@ -191,22 +220,22 @@ NSString * const kOOMaterialShininess						= @"shininess";
 
 - (float) oo_parallaxScale
 {
-	return [self oo_floatForKey:kOOMaterialParallaxScale defaultValue:0.01f];
+	return [self oo_floatForKey:kOOMaterialParallaxScaleName defaultValue:0.01f];
 }
 
 
 - (float) oo_parallaxBias
 {
-	return [self oo_floatForKey:kOOMaterialParallaxBias];
+	return [self oo_floatForKey:kOOMaterialParallaxBiasName];
 }
 
 
-- (int) oo_shininess
+- (int) oo_specularExponent
 {
-	int result = [self oo_intForKey:kOOMaterialShininess defaultValue:-1];
+	int result = [self oo_rawSpecularExponentValue];
 	if (result < 0)
 	{
-		if ([UNIVERSE useShaders] && [self oo_specularMapSpecifier] != nil)
+		if ([UNIVERSE useShaders] && [self oo_specularExponentMapSpecifier] != nil)
 		{
 			result = 128;
 		}
