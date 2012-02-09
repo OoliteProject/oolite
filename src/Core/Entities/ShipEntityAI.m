@@ -2142,13 +2142,14 @@ MA 02110-1301, USA.
 - (void) setTargetToRandomStation
 {
 	/*- selects the nearest station it can find -*/
-	int			ent_count = UNIVERSE->n_entities;
-	Entity		**uni_entities = UNIVERSE->sortedEntities;	// grab the public sorted list
-	Entity		*my_entities[ent_count];
-	StationEntity *station, *my_station = nil;
-	double		maxRange2 = desired_range * desired_range;
-	int i;
-	int station_count = 0;
+	int				ent_count = UNIVERSE->n_entities;
+	Entity			**uni_entities = UNIVERSE->sortedEntities;	// grab the public sorted list
+	Entity			*my_entities[ent_count];
+	StationEntity	*station = nil, *my_station = nil;
+	double			maxRange2 = desired_range * desired_range;
+	int				i;
+	int				station_count = 0;
+	
 	for (i = 0; i < ent_count; i++)
 	{
 		// find stations within range but exclude carriers.
