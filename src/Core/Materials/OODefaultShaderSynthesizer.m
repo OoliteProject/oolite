@@ -725,7 +725,7 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 				texture loading mechanism has to occur after determining
 				texture coordinates (duh).
 			*/
-			NSString *swizzle = GetExtractMode(parallaxMap) ?: @"a";
+			NSString *swizzle = GetExtractMode(parallaxMap) ?: (NSString *)@"a";
 			NSUInteger channelCount = [swizzle length];
 			if (channelCount == 1)
 			{
