@@ -1165,14 +1165,6 @@ static NSDictionary *CanonicalizeMaterialSpecifier(NSDictionary *spec, NSString 
 	if (col == nil)  col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialEmissionColorLegacyName]];
 	if (col != nil)  [result setObject:[col normalizedArray] forKey:kOOMaterialEmissionColorName];
 	
-#if 0
-	col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialEmissionModulateColorName]];
-	if (col != nil)  [result setObject:[col normalizedArray] forKey:kOOMaterialEmissionModulateColorName];
-	
-	col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialIlluminationModulateColorName]];
-	if (col != nil)  [result setObject:[col normalizedArray] forKey:kOOMaterialIlluminationModulateColorName];
-#endif
-	
 	// Diffuse map.
 	texSpec = [spec objectForKey:kOOMaterialDiffuseMapName];
 	if ([texSpec isKindOfClass:[NSString class]])
