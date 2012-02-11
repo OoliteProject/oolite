@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOLogOutputHandler.h"
 #import "NSFileManagerOOExtensions.h"
+#import "OldSchoolPropertyListWriting.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -972,14 +973,40 @@ static NSMutableDictionary *sStringCache;
 
 + (BOOL) writeDiagnosticData:(NSData *)data toFileNamed:(NSString *)name
 {
-	NSString			*basePath = nil;
-	
 	if (data == nil || name == nil)  return NO;
 	
-	basePath = [self diagnosticFileLocation];
-	if (basePath == nil)  return NO;
+	NSString *directory = [self diagnosticFileLocation];
+	if (directory == nil)  return NO;
 	
-	return [data writeToFile:[basePath stringByAppendingPathComponent:name] atomically:YES];
+	NSArray *nameComponents = [name componentsSeparatedByString:@"/"];
+	OOUInteger count = [nameComponents count];
+	if (count > 1)
+	{
+		name = [nameComponents lastObject];
+		for (OOUInteger i = 0; i < count - 1; i++)
+		{
+			directory = [directory stringByAppendingPathComponent:[nameComponents objectAtIndex:i]];
+			[[NSFileManager defaultManager] oo_createDirectoryAtPath:directory attributes:nil];
+		}
+	}
+	
+	return [data writeToFile:[directory stringByAppendingPathComponent:name] atomically:YES];
+}
+
+
++ (BOOL) writeDiagnosticString:(NSString *)string toFileNamed:(NSString *)name
+{
+	return [self writeDiagnosticData:[string dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:name];
+}
+
+
++ (BOOL) writeDiagnosticPList:(id)plist toFileNamed:(NSString *)name
+{
+	NSData *data = [plist oldSchoolPListFormatWithErrorDescription:NULL];
+	if (data == nil)  [NSPropertyListSerialization dataFromPropertyList:plist format:NSPropertyListXMLFormat_v1_0 errorDescription:NULL];
+	if (data == nil)  return NO;
+	
+	return [self writeDiagnosticData:data toFileNamed:name];
 }
 
 

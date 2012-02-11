@@ -36,7 +36,6 @@ SOFTWARE.
 #if USE_NEW_SHADER_SYNTHESIZER
 #import "OODefaultShaderSynthesizer.h"
 #import "ResourceManager.h"
-#import "OldSchoolPropertyListWriting.h"
 #endif
 
 #import "OOOpenGLExtensionManager.h"
@@ -232,10 +231,22 @@ static BOOL sDumpShaderSource = NO;
 #ifndef NDEBUG
 	if (sDumpShaderSource)
 	{
-		[ResourceManager writeDiagnosticData:[vertexShader dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:[NSString stringWithFormat:@"synthesized-%@.vertex", cacheKey]];
-		[ResourceManager writeDiagnosticData:[fragmentShader dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:[NSString stringWithFormat:@"synthesized-%@.fragment", cacheKey]];
+		NSString *dumpPath = [NSString stringWithFormat:@"Synthesized Materials/%@/%@", cacheKey, name];
 		
-		[ResourceManager writeDiagnosticData:[synthesizedConfig oldSchoolPListFormatWithErrorDescription:NULL] toFileNamed:[NSString stringWithFormat:@"synthesized-%@.plist", cacheKey]];
+		[ResourceManager writeDiagnosticString:vertexShader toFileNamed:[dumpPath stringByAppendingPathExtension:@"vertex"]];
+		[ResourceManager writeDiagnosticString:fragmentShader toFileNamed:[dumpPath stringByAppendingPathExtension:@"fragment"]];
+		
+		// Hide internal keys in the synthesized config before writing it.
+		NSMutableDictionary *humanFriendlyConfig = [[synthesizedConfig mutableCopy] autorelease];
+		[humanFriendlyConfig removeObjectForKey:kOOVertexShaderSourceKey];
+		[humanFriendlyConfig removeObjectForKey:kOOFragmentShaderSourceKey];
+		[humanFriendlyConfig removeObjectForKey:kOOIsSynthesizedMaterialConfigurationKey];
+		[humanFriendlyConfig setObject:[NSString stringWithFormat:@"%@.vertex", name] forKey:kOOVertexShaderNameKey];
+		[humanFriendlyConfig setObject:[NSString stringWithFormat:@"%@.fragment", name] forKey:kOOFragmentShaderNameKey];
+		
+		[ResourceManager writeDiagnosticPList:humanFriendlyConfig toFileNamed:[dumpPath stringByAppendingPathExtension:@"plist"]];
+		
+		[ResourceManager writeDiagnosticPList:configuration toFileNamed:[[dumpPath stringByAppendingString:@"-original"] stringByAppendingPathExtension:@"plist"]];
 	}
 #endif
 	

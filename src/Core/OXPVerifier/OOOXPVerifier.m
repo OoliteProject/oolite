@@ -680,7 +680,7 @@ static void OpenLogFile(NSString *name);
 	[graphViz appendString:[graphVizTemplate oo_stringForKey:@"postamble"]];
 	
 	// Write file
-	[ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:@"OXPVerifierStageDependencies.dot"];
+	[ResourceManager writeDiagnosticString:graphViz toFileNamed:@"OXPVerifierStageDependencies.dot"];
 }
 
 @end

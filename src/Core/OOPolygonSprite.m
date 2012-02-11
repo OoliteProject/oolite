@@ -809,7 +809,7 @@ static void SVGDumpEnd(TessPolygonData *data)
 	if (data->debugSVG == nil)  return;
 	
 	[data->debugSVG appendString:@"</svg>\n"];
-	[ResourceManager writeDiagnosticData:[data->debugSVG dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:[data->name stringByAppendingPathExtension:@"svg"]];
+	[ResourceManager writeDiagnosticString:data->debugSVG toFileNamed:[NSString stringWithFormat:@"Polygon Sprites/%@.svg", data->name]];
 	DESTROY(data->debugSVG);
 }
 

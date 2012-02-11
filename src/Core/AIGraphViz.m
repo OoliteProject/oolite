@@ -107,7 +107,7 @@ void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSString *smN
 	}
 	
 	[graphViz appendString:@"}\n"];
-	[ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:[smName stringByAppendingPathExtension:@"dot"]];
+	[ResourceManager writeDiagnosticString:graphViz toFileNamed:[NSString stringWithFormat:@"AI Dumps/%@.dot", smName]];
 }
 
 

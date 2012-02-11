@@ -85,7 +85,17 @@ typedef enum
 
 + (NSDictionary *)loadScripts;
 
+/*	+writeDiagnosticData:toFileNamed:
+	+writeDiagnosticString:toFileNamed:
+	+writeDiagnosticPList:toFileNamed:
+	
+	Write data to the specified path within the log directory. Slashes may be
+	used as path separators in name.
+ */
 + (BOOL) writeDiagnosticData:(NSData *)data toFileNamed:(NSString *)name;
++ (BOOL) writeDiagnosticString:(NSString *)string toFileNamed:(NSString *)name;
++ (BOOL) writeDiagnosticPList:(id)plist toFileNamed:(NSString *)name;
+
 + (NSString *) diagnosticFileLocation;
 
 + (NSDictionary *) materialDefaults;
