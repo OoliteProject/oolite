@@ -1106,55 +1106,6 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 			[_fragmentBody appendString:@"\tdiffuseLight += lightMapColor;\n\t\n"];
 		}
 	}
-	
-#if 0
-	[_fragmentBody appendString:@"\tvec3 lightMapColor;\n"];
-	
-	foreach (lightMap, lightMaps)
-	{
-		[_fragmentBody appendFormat:@"\t// Light map #%lu\n", idx++];
-		
-		OOTextureSpecification	*map = [lightMap textureMap];
-		OOColor					*color = [lightMap color];
-		float					rgba[4];
-		
-		[color getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
-		rgba[0] *= rgba[3]; rgba[1] *= rgba[3]; rgba[2] *= rgba[3];
-		
-		if (EXPECT_NOT((rgba[0] == 0.0f && rgba[1] == 0.0f && rgba[2] == 0.0f) ||
-					   (!_usesDiffuseTerm && [lightMap type] == kOOLightMapTypeIllumination)))
-		{
-			[_fragmentBody appendString:@"\t// Light map tinted black has no effect.\n\t\n"];
-			continue;
-		}
-		
-		NSString *readInstr = [self readRGBForTextureSpec:map mapName:@"light"];
-		if (EXPECT_NOT(readInstr == nil))
-		{
-			[_fragmentBody appendString:@"\t// INVALID EXTRACTION KEY\n"];
-			continue;
-		}
-		
-		[_fragmentBody appendFormat:@"\tlightMapColor = %@;\n", readInstr];
-		
-		if (rgba[0] != 1.0f || rgba[1] != 1.0f || rgba[2] != 1.0f)
-		{
-			[_fragmentBody appendFormat:@"\tlightMapColor *= vec3(%g, %g, %g);\n", rgba[0], rgba[1], rgba[2]];
-		}
-		
-		switch ([lightMap type])
-		{
-			case kOOLightMapTypeEmission:
-				[_fragmentBody appendString:@"\ttotalColor += lightMapColor;\n\t\n"];
-				break;
-				
-			case kOOLightMapTypeIllumination:
-				[_fragmentBody appendString:@"\ttotalColor += lightMapColor * diffuseColor;\n\t\n"]
-					;
-				break;
-		}
-	}
-#endif
 }
 
 
