@@ -239,7 +239,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	NSString				*valueDesc;
 	
 	result = [NSMutableString string];
-	allKeys = [self allKeys];
+	allKeys = [[self allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
 	count = [allKeys count];
 	
 	[result appendString:@"{"];

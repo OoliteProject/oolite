@@ -166,8 +166,8 @@ static NSDictionary *CanonicalizeMaterialSpecifier(NSDictionary *spec, NSString 
 - (void) writeDiffuseColorTerm;
 
 /*	writeDiffuseLighting
-	Combine diffuse lighting and diffuse colour terms, and add them into
-	colour accumulator.
+	Generate the fragment variable vec3 diffuseLight and add Lambertian and
+	ambient terms to it.
 */
 - (void) writeDiffuseLighting;
 
@@ -1031,26 +1031,83 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 
 - (void) writeLightMaps
 {
-#if 0
-	// FIXME: downgrade to 1.x light maps.
-	NSArray *lightMaps = [_spec lightMaps];
-	NSUInteger idx = 0, count = [lightMaps count];
-	
+	NSArray *lightMaps = [_configuration oo_arrayForKey:kOOMaterialLightMapsName];
+	OOUInteger idx, count = [lightMaps count];
 	if (count == 0)  return;
 	
 	REQUIRE_STAGE(writeTotalColor);
 	
-	// Illumination maps require diffuse term.
-	OOLightMapSpecification *lightMap = nil;
-	foreach (lightMap, lightMaps)
+	// Check if we need the diffuse colour term.
+	for (idx = 0; idx < count; idx++)
 	{
-		if ([lightMap type] == kOOLightMapTypeIllumination)
+		NSDictionary *lightMapSpec = [lightMaps oo_dictionaryAtIndex:idx];
+		if ([lightMapSpec oo_boolForKey:kOOTextureSpecifierModulateWithDiffuseKey])
 		{
-			REQUIRE_STAGE(writeDiffuseColorTermIfNeeded);
+			REQUIRE_STAGE(writeDiffuseColorTerm);
+			REQUIRE_STAGE(writeDiffuseLighting);
 			break;
 		}
 	}
 	
+	[_fragmentBody appendString:@"\tvec3 lightMapColor;\n"];
+	
+	for (idx = 0; idx < count; idx++)
+	{
+		NSDictionary	*lightMapSpec = [lightMaps oo_dictionaryAtIndex:idx];
+		NSDictionary	*textureSpec = OOTextureSpecFromObject(lightMapSpec, nil);
+		OOColor			*color = [OOColor colorWithDescription:[lightMapSpec objectForKey:kOOTextureSpecifierModulateColorKey]];
+		OOCGFloat		rgba[4];
+		BOOL			isIllumination = [lightMapSpec oo_boolForKey:kOOTextureSpecifierModulateWithDiffuseKey];
+		
+		if (EXPECT_NOT(color == nil && textureSpec == nil))
+		{
+			[_fragmentBody appendString:@"\t// Light map with neither colour nor texture has no effect.\n\t\n"];
+			continue;
+		}
+		
+		if (color == nil)  color = [OOColor whiteColor];
+		[color getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
+		rgba[0] *= rgba[3]; rgba[1] *= rgba[3]; rgba[2] *= rgba[3];
+		
+		if (EXPECT_NOT((rgba[0] == 0.0f && rgba[1] == 0.0f && rgba[2] == 0.0f) ||
+					   (!_usesDiffuseTerm && isIllumination)))
+		{
+			[_fragmentBody appendString:@"\t// Light map tinted black has no effect.\n\t\n"];
+			continue;
+		}
+		
+		if (textureSpec != nil)
+		{
+			NSString *readInstr = [self readRGBForTextureSpec:textureSpec mapName:@"light"];
+			if (EXPECT_NOT(readInstr == nil))
+			{
+				[_fragmentBody appendString:@"\t// INVALID EXTRACTION KEY\n\n"];
+				continue;
+			}
+			
+			[_fragmentBody appendFormat:@"\tlightMapColor = %@;\n", readInstr];
+			
+			if (rgba[0] != 1.0f || rgba[1] != 1.0f || rgba[2] != 1.0f)
+			{
+				[_fragmentBody appendFormat:@"\tlightMapColor *= vec3(%g, %g, %g);\n", rgba[0], rgba[1], rgba[2]];
+			}
+		}
+		else
+		{
+			[_fragmentBody appendFormat:@"\tlightMapColor = vec3(%g, %g, %g);\n", rgba[0], rgba[1], rgba[2]];
+		}
+		
+		if (!isIllumination)
+		{
+			[_fragmentBody appendString:@"\ttotalColor += lightMapColor;\n\t\n"];
+		}
+		else
+		{
+			[_fragmentBody appendString:@"\tdiffuseLight += lightMapColor;\n\t\n"];
+		}
+	}
+	
+#if 0
 	[_fragmentBody appendString:@"\tvec3 lightMapColor;\n"];
 	
 	foreach (lightMap, lightMaps)
