@@ -38,8 +38,8 @@ NSString * const kOOMaterialDiffuseColorLegacyName			= @"diffuse";
 NSString * const kOOMaterialAmbientColorName				= @"ambient_color";
 NSString * const kOOMaterialAmbientColorLegacyName			= @"ambient";
 NSString * const kOOMaterialSpecularColorName				= @"specular_color";
-NSString * const kOOMaterialSpecularModulateColorName		= @"specular_modulate_color";
 NSString * const kOOMaterialSpecularColorLegacyName			= @"specular";
+NSString * const kOOMaterialSpecularModulateColorName		= @"specular_modulate_color";
 NSString * const kOOMaterialEmissionColorName				= @"emission_color";
 NSString * const kOOMaterialEmissionColorLegacyName			= @"emission";
 NSString * const kOOMaterialEmissionModulateColorName		= @"emission_modulate_color";
@@ -61,6 +61,8 @@ NSString * const kOOMaterialParallaxBiasName				= @"parallax_bias";
 
 NSString * const kOOMaterialSpecularExponentName			= @"specular_exponent";
 NSString * const kOOMaterialSpecularExponentLegacyName		= @"shininess";
+
+NSString * const kOOMaterialLightMapsName					= @"light_map";
 
 
 @implementation NSDictionary (OOMateralProperties)
@@ -220,7 +222,7 @@ NSString * const kOOMaterialSpecularExponentLegacyName		= @"shininess";
 
 - (float) oo_parallaxScale
 {
-	return [self oo_floatForKey:kOOMaterialParallaxScaleName defaultValue:0.01f];
+	return [self oo_floatForKey:kOOMaterialParallaxScaleName defaultValue:kOOMaterialDefaultParallaxScale];
 }
 
 

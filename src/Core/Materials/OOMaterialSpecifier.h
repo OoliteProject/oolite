@@ -75,6 +75,8 @@ extern NSString * const kOOMaterialEmissionModulateColorName;
 extern NSString * const kOOMaterialIlluminationModulateColorName;
 
 extern NSString * const kOOMaterialDiffuseMapName;
+extern NSString * const kOOMaterialSpecularColorMapName;
+extern NSString * const kOOMaterialSpecularExponentMapName;
 extern NSString * const kOOMaterialCombinedSpecularMapName;
 extern NSString * const kOOMaterialNormalMapName;
 extern NSString * const kOOMaterialParallaxMapName;
@@ -86,5 +88,9 @@ extern NSString * const kOOMaterialEmissionAndIlluminationMapName;
 extern NSString * const kOOMaterialParallaxScaleName;
 extern NSString * const kOOMaterialParallaxBiasName;
 
-NSString * const kOOMaterialSpecularExponentName;
-NSString * const kOOMaterialSpecularExponentLegacyName;
+extern NSString * const kOOMaterialSpecularExponentName;
+extern NSString * const kOOMaterialSpecularExponentLegacyName;
+
+extern NSString * const kOOMaterialLightMapsName;
+
+#define kOOMaterialDefaultParallaxScale		(0.01f)
