@@ -51,10 +51,14 @@ SOFTWARE.
 NSString * const kOOTextureSpecifierNameKey					= @"name";
 NSString * const kOOTextureSpecifierSwizzleKey				= @"extract_channel";
 NSString * const kOOTextureSpecifierModulateColorKey		= @"color";
-NSString * const kOOTextureSpecifierModulateWithDiffuseKey	= @"modulate_with_diffuse";
+NSString * const kOOTextureSpecifierIlluminationModeKey		= @"illumination_mode";
+NSString * const kOOTextureSpecifierSelfColorKey			= @"self_color";
+NSString * const kOOTextureSpecifierScaleFactorKey			= @"scale_factor";
 
 
 static NSDictionary *CanonicalizeMaterialSpecifier(NSDictionary *spec, NSString *materialKey);
+
+static NSString *FormatFloat(double value);
 
 
 @interface OODefaultShaderSynthesizer: NSObject
@@ -954,10 +958,16 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	
 	if ([specularColor isBlack])  return;
 	
+	BOOL modulateWithDiffuse = [specularColorMap oo_boolForKey:kOOTextureSpecifierSelfColorKey];
+	
 	REQUIRE_STAGE(writeTotalColor);
 	REQUIRE_STAGE(writeNormalIfNeeded);
 	REQUIRE_STAGE(writeEyeVector);
 	REQUIRE_STAGE(writeLightVector);
+	if (modulateWithDiffuse)
+	{
+		REQUIRE_STAGE(writeDiffuseColorTerm);
+	}
 	
 	[_fragmentBody appendString:@"\t// Specular (Blinn-Phong) lighting\n"];
 	
@@ -986,12 +996,29 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 		}
 		else
 		{
-			format = @"\tconst vec3 specularColor = vec3(%g, %g, %g);\n";
+			format = @"\tvec3 specularColor = vec3(%g, %g, %g);\n";
 			haveSpecularColor = YES;
 		}
 		[_fragmentBody appendFormat:format, rgba[0] * rgba[3], rgba[1] * rgba[3], rgba[2] * rgba[3]];
 	}
 	
+	// Handle self_color.
+	if (modulateWithDiffuse)
+	{
+		[_fragmentBody appendString:@"\tspecularColor *= diffuseColor;\n"];
+	}
+	
+	// Handle scale_factor.
+	if (specularColorMap != nil)
+	{
+		float scaleFactor = [specularColorMap oo_floatForKey:kOOTextureSpecifierScaleFactorKey defaultValue:1.0f];
+		if (scaleFactor != 1.0f)
+		{
+			[_fragmentBody appendFormat:@"\tspecularColor *= %@;\n", FormatFloat(scaleFactor)];
+		}
+	}
+	
+	// Specular exponent.
 	BOOL haveSpecularExponent = NO;
 	if (specularExponentMap != nil)
 	{
@@ -1041,7 +1068,7 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	for (idx = 0; idx < count; idx++)
 	{
 		NSDictionary *lightMapSpec = [lightMaps oo_dictionaryAtIndex:idx];
-		if ([lightMapSpec oo_boolForKey:kOOTextureSpecifierModulateWithDiffuseKey])
+		if ([lightMapSpec oo_boolForKey:kOOTextureSpecifierIlluminationModeKey])
 		{
 			REQUIRE_STAGE(writeDiffuseColorTerm);
 			REQUIRE_STAGE(writeDiffuseLighting);
@@ -1055,9 +1082,9 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	{
 		NSDictionary	*lightMapSpec = [lightMaps oo_dictionaryAtIndex:idx];
 		NSDictionary	*textureSpec = OOTextureSpecFromObject(lightMapSpec, nil);
-		OOColor			*color = [OOColor colorWithDescription:[lightMapSpec objectForKey:kOOTextureSpecifierModulateColorKey]];
-		OOCGFloat		rgba[4];
-		BOOL			isIllumination = [lightMapSpec oo_boolForKey:kOOTextureSpecifierModulateWithDiffuseKey];
+		NSArray			*color = [lightMapSpec oo_arrayForKey:kOOTextureSpecifierModulateColorKey];
+		OOCGFloat		rgba[4] = { 1, 1, 1, 1 };
+		BOOL			isIllumination = [lightMapSpec oo_boolForKey:kOOTextureSpecifierIlluminationModeKey];
 		
 		if (EXPECT_NOT(color == nil && textureSpec == nil))
 		{
@@ -1065,9 +1092,16 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 			continue;
 		}
 		
-		if (color == nil)  color = [OOColor whiteColor];
-		[color getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
-		rgba[0] *= rgba[3]; rgba[1] *= rgba[3]; rgba[2] *= rgba[3];
+		if (color != nil)
+		{
+			OOUInteger idx, count = [color count];
+			if (count > 4)  count = 4;
+			for (idx = 0; idx < count; idx++)
+			{
+				rgba[idx] = [color oo_doubleAtIndex:idx];
+			}
+			rgba[0] *= rgba[3]; rgba[1] *= rgba[3]; rgba[2] *= rgba[3];
+		}
 		
 		if (EXPECT_NOT((rgba[0] == 0.0f && rgba[1] == 0.0f && rgba[2] == 0.0f) ||
 					   (!_usesDiffuseTerm && isIllumination)))
@@ -1331,11 +1365,32 @@ static NSDictionary *CanonicalizeMaterialSpecifier(NSDictionary *spec, NSString 
 			lightMapSpecs = [NSArray arrayWithObject:lightMapSpecs];
 		}
 		
-		// TODO: process existing light maps.
+		id lmSpec = nil;
+		foreach (lmSpec, lightMapSpecs)
+		{
+			if ([lmSpec isKindOfClass:[NSString class]])
+			{
+				lmSpec = [NSDictionary dictionaryWithObject:lmSpec forKey:kOOTextureSpecifierNameKey];
+			}
+			else if (![lmSpec isKindOfClass:[NSDictionary class]])
+			{
+				continue;
+			}
+			
+			id modulateColor = [lmSpec objectForKey:kOOTextureSpecifierModulateColorKey];
+			if (modulateColor != nil && ![modulateColor isKindOfClass:[NSArray class]])
+			{
+				// Don't convert arrays here, because we specifically don't want the behaviour of treating numbers greater than 1 as 0..255 components.
+				col = [OOColor colorWithDescription:modulateColor];
+				lmSpec = [lmSpec dictionaryByAddingObject:[col normalizedArray] forKey:kOOTextureSpecifierModulateColorKey];
+			}
+			
+			[lightMaps addObject:lmSpec];
+		}
 		
 		if ([lightMaps count] == 0)
 		{
-			// Handle legacy emission_map, illumination_map and emission_and_illumination_map.
+			// If light_map isn't use, handle legacy emission_map, illumination_map and emission_and_illumination_map.
 			id emissionSpec = [spec objectForKey:kOOMaterialEmissionMapName];
 			id illuminationSpec = [spec objectForKey:kOOMaterialIlluminationMapName];
 			
@@ -1384,7 +1439,7 @@ static NSDictionary *CanonicalizeMaterialSpecifier(NSDictionary *spec, NSString 
 					col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialIlluminationModulateColorName]];
 					if (col != nil)  illuminationSpec = [illuminationSpec dictionaryByAddingObject:[col normalizedArray] forKey:kOOTextureSpecifierModulateColorKey];
 					
-					illuminationSpec = [illuminationSpec dictionaryByAddingObject:[NSNumber numberWithBool:YES] forKey:kOOTextureSpecifierModulateWithDiffuseKey];
+					illuminationSpec = [illuminationSpec dictionaryByAddingObject:[NSNumber numberWithBool:YES] forKey:kOOTextureSpecifierIlluminationModeKey];
 					
 					[lightMaps addObject:illuminationSpec];
 				}
@@ -1397,4 +1452,18 @@ static NSDictionary *CanonicalizeMaterialSpecifier(NSDictionary *spec, NSString 
 	OOLog(@"material.canonicalForm", @"Canonicalized material %@:\nORIGINAL:\n%@\n\n@CANONICAL:\n%@", materialKey, spec, result);
 	
 	return result;
+}
+
+
+static NSString *FormatFloat(double value)
+{
+	long long intValue = value;
+	if (value == intValue)
+	{
+		return [NSString stringWithFormat:@"%lli.0", intValue];
+	}
+	else
+	{
+		return [NSString stringWithFormat:@"%g", value];
+	}
 }
