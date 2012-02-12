@@ -755,13 +755,13 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 				
 				if (parallaxScale != 1.0f)
 				{
-					[_fragmentPreTextures appendFormat:@"\tparallax *= %g;  // Parallax scale\n", parallaxScale];
+					[_fragmentPreTextures appendFormat:@"\tparallax *= %@;  // Parallax scale\n", FormatFloat(parallaxScale)];
 				}
 				
 				float parallaxBias = [_configuration oo_parallaxBias];
 				if (parallaxBias != 0.0)
 				{
-					[_fragmentPreTextures appendFormat:@"\tparallax += %g;  // Parallax bias\n", parallaxBias];
+					[_fragmentPreTextures appendFormat:@"\tparallax += %@;  // Parallax bias\n", FormatFloat(parallaxBias)];
 				}
 				
 				[_fragmentPreTextures appendString:@"\tvec2 texCoords = vTexCoords - parallax * eyeVector.xy * vec2(1.0, -1.0);\n"];
@@ -810,14 +810,14 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 		NSString *format = nil;
 		if (haveDiffuseColor)
 		{
-			format = @"\tdiffuseColor *= vec3(%g, %g, %g);\n";
+			format = @"\tdiffuseColor *= vec3(%@, %@, %@);\n";
 		}
 		else
 		{
-			format = @"\tconst vec3 diffuseColor = vec3(%g, %g, %g);\n";
+			format = @"\tconst vec3 diffuseColor = vec3(%@, %@, %@);\n";
 			haveDiffuseColor = YES;
 		}
-		[_fragmentBody appendFormat:format, rgba[0], rgba[1], rgba[2]];
+		[_fragmentBody appendFormat:format, FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2])];
 	}
 	
 	[_fragmentBody appendString:@"\t\n"];
@@ -992,14 +992,14 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 		NSString *format = nil;
 		if (haveSpecularColor)
 		{
-			format = @"\tspecularColor *= vec3(%g, %g, %g);\n";
+			format = @"\tspecularColor *= vec3(%@, %@, %@);\n";
 		}
 		else
 		{
-			format = @"\tvec3 specularColor = vec3(%g, %g, %g);\n";
+			format = @"\tvec3 specularColor = vec3(%@, %@, %@);\n";
 			haveSpecularColor = YES;
 		}
-		[_fragmentBody appendFormat:format, rgba[0] * rgba[3], rgba[1] * rgba[3], rgba[2] * rgba[3]];
+		[_fragmentBody appendFormat:format, FormatFloat(rgba[0] * rgba[3]), FormatFloat(rgba[1] * rgba[3]), FormatFloat(rgba[2] * rgba[3])];
 	}
 	
 	// Handle self_color.
@@ -1123,12 +1123,12 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 			
 			if (rgba[0] != 1.0f || rgba[1] != 1.0f || rgba[2] != 1.0f)
 			{
-				[_fragmentBody appendFormat:@"\tlightMapColor *= vec3(%g, %g, %g);\n", rgba[0], rgba[1], rgba[2]];
+				[_fragmentBody appendFormat:@"\tlightMapColor *= vec3(%@, %@, %@);\n", FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2])];
 			}
 		}
 		else
 		{
-			[_fragmentBody appendFormat:@"\tlightMapColor = vec3(%g, %g, %g);\n", rgba[0], rgba[1], rgba[2]];
+			[_fragmentBody appendFormat:@"\tlightMapColor = vec3(%@, %@, %@);\n", FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2])];
 		}
 		
 		if (!isIllumination)
