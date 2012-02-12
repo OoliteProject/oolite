@@ -983,9 +983,15 @@ static NSMutableDictionary *sStringCache;
 	if (count > 1)
 	{
 		name = [nameComponents lastObject];
+		
 		for (OOUInteger i = 0; i < count - 1; i++)
 		{
-			directory = [directory stringByAppendingPathComponent:[nameComponents objectAtIndex:i]];
+			NSString *component = [nameComponents objectAtIndex:i];
+			if ([component hasPrefix:@"."])
+			{
+				component = [@"!" stringByAppendingString:[component substringFromIndex:1]];
+			}
+			directory = [directory stringByAppendingPathComponent:component];
 			[[NSFileManager defaultManager] oo_createDirectoryAtPath:directory attributes:nil];
 		}
 	}
