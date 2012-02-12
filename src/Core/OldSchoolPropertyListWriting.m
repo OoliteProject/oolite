@@ -99,7 +99,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	NSString			*result;
 	double				dVal;
 	
-	if ([self oo_isFloatingPointNumber])
+	if ([self oo_isBoolean])
 	{
 		if ([self boolValue])  result = @"true";
 		else  result = @"false";
@@ -192,18 +192,14 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	[result appendString:@"("];
 	
 	count = [self count];
-	if (3 < count)  AppendNewLineAndIndent(result, inIndentation + 1);
+	AppendNewLineAndIndent(result, inIndentation + 1);
 	
 	for (i = 0; i != count; ++i)
 	{
 		if (0 != i)
 		{
-			if (count <= 3) [result appendString:@", "];
-			else
-			{
-				[result appendString:@","];
-				AppendNewLineAndIndent(result, inIndentation + 1);
-			}
+			[result appendString:@","];
+			AppendNewLineAndIndent(result, inIndentation + 1);
 		}
 		
 		object = [self objectAtIndex:i];
@@ -220,7 +216,8 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 		if (nil == object) return nil;
 		[result appendString:object];
 	}
-	if (3 < count)  AppendNewLineAndIndent(result, inIndentation);
+	
+	AppendNewLineAndIndent(result, inIndentation);
 	[result appendString:@")"];
 	return result;
 }
@@ -244,14 +241,13 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	
 	[result appendString:@"{"];
 	
-	if (2 < count || inIndentation == 0)  AppendNewLineAndIndent(result, inIndentation + 1);
+	AppendNewLineAndIndent(result, inIndentation + 1);
 	
 	for (i = 0; i != count; ++i)
 	{
 		if (0 != i)
 		{
-			if (count <= 2 && 0 != inIndentation) [result appendString:@" "];
-			else  AppendNewLineAndIndent(result, inIndentation + 1);
+			AppendNewLineAndIndent(result, inIndentation + 1);
 		}
 		
 		key = [allKeys objectAtIndex:i];
@@ -276,7 +272,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 		if (nil == valueDesc) return nil;
 		
 		[result appendFormat:@"%@ =", key];
-		if (([value isKindOfClass:[NSArray class]] && [value count] >= 3) || ([value isKindOfClass:[NSDictionary class]] && [value count] >= 2))
+		if ([value isKindOfClass:[NSArray class]] || [value isKindOfClass:[NSDictionary class]])
 		{
 			AppendNewLineAndIndent(result, inIndentation + 1);
 		}
@@ -287,7 +283,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 		[result appendFormat:@"%@;", valueDesc];
 	}
 	
-	if (2 < count || inIndentation == 0)  AppendNewLineAndIndent(result, inIndentation);
+	AppendNewLineAndIndent(result, inIndentation);
 	[result appendString:@"}"];
 	
 	return result;
