@@ -945,6 +945,7 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	
 	NSDictionary *specularColorMap = [_configuration oo_specularColorMapSpecifier];
 	NSDictionary *specularExponentMap = [_configuration oo_specularExponentMapSpecifier];
+	float scaleFactor = [specularColorMap oo_floatForKey:kOOTextureSpecifierScaleFactorKey defaultValue:1.0f];
 	
 	OOColor *specularColor = nil;
 	if (specularColorMap == nil)
@@ -989,33 +990,41 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	{
 		OOCGFloat rgba[4];
 		[specularColor getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
+		
+		NSString *comment = (scaleFactor == 1.0f) ? @"Constant colour" : @"Constant colour and scale factor";
+		
+		// Handle scale factor, colour, and colour alpha scaling as one multiply.
+		scaleFactor *= rgba[3];
+		rgba[0] *= scaleFactor;
+		rgba[1] *= scaleFactor;
+		rgba[2] *= scaleFactor;
+		
+		// Avoid reapplying scaleFactor below.
+		scaleFactor = 1.0;
+		
 		NSString *format = nil;
 		if (haveSpecularColor)
 		{
-			format = @"\tspecularColor *= vec3(%@, %@, %@);\n";
+			format = @"\tspecularColor *= vec3(%@, %@, %@);  // %@\n";
 		}
 		else
 		{
-			format = @"\tvec3 specularColor = vec3(%@, %@, %@);\n";
+			format = @"\tvec3 specularColor = vec3(%@, %@, %@);  // %@\n";
 			haveSpecularColor = YES;
 		}
-		[_fragmentBody appendFormat:format, FormatFloat(rgba[0] * rgba[3]), FormatFloat(rgba[1] * rgba[3]), FormatFloat(rgba[2] * rgba[3])];
+		[_fragmentBody appendFormat:format, FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2]), comment];
+	}
+	
+	// Handle scale_factor if no constant colour.
+	if (haveSpecularColor && scaleFactor != 1.0f)
+	{
+		[_fragmentBody appendFormat:@"\tspecularColor *= %@;  // Scale factor\n", FormatFloat(scaleFactor)];
 	}
 	
 	// Handle self_color.
 	if (modulateWithDiffuse)
 	{
-		[_fragmentBody appendString:@"\tspecularColor *= diffuseColor;\n"];
-	}
-	
-	// Handle scale_factor.
-	if (specularColorMap != nil)
-	{
-		float scaleFactor = [specularColorMap oo_floatForKey:kOOTextureSpecifierScaleFactorKey defaultValue:1.0f];
-		if (scaleFactor != 1.0f)
-		{
-			[_fragmentBody appendFormat:@"\tspecularColor *= %@;\n", FormatFloat(scaleFactor)];
-		}
+		[_fragmentBody appendString:@"\tspecularColor *= diffuseColor;  // Self-colouring\n"];
 	}
 	
 	// Specular exponent.
