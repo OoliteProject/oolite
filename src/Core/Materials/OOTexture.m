@@ -42,6 +42,26 @@
 #import "OOPixMap.h"
 
 
+NSString * const kOOTextureSpecifierNameKey					= @"name";
+NSString * const kOOTextureSpecifierSwizzleKey				= @"extract_channel";
+NSString * const kOOTextureSpecifierMinFilterKey			= @"min_filter";
+NSString * const kOOTextureSpecifierMagFilterKey			= @"mag_filter";
+NSString * const kOOTextureSpecifierNoShrinkKey				= @"no_shrink";
+NSString * const kOOTextureSpecifierRepeatSKey				= @"repeat_s";
+NSString * const kOOTextureSpecifierRepeatTKey				= @"repeat_t";
+NSString * const kOOTextureSpecifierCubeMapKey				= @"cube_map";
+NSString * const kOOTextureSpecifierAnisotropyKey			= @"anisotropy";
+NSString * const kOOTextureSpecifierLODBiasKey				= @"texture_LOD_bias";
+
+NSString * const kOOTextureSpecifierModulateColorKey		= @"color";
+NSString * const kOOTextureSpecifierIlluminationModeKey		= @"illumination_mode";
+NSString * const kOOTextureSpecifierSelfColorKey			= @"self_color";
+NSString * const kOOTextureSpecifierScaleFactorKey			= @"scale_factor";
+
+// Used only by "internal" specifiers from OOMakeTextureSpecifier.
+static NSString * const kOOTextureSpecifierFlagValueInternalKey = @"_oo_internal_flags";
+
+
 /*	Texture caching:
 	two and a half parallel caching mechanisms are used. sLiveTextureCache
 	tracks all live texture objects with cache keys, without retaining them
@@ -111,7 +131,7 @@ static NSString *sGlobalTraceContext = nil;
 
 + (id)textureWithName:(NSString *)name
 			 inFolder:(NSString*)directory
-			  options:(uint32_t)options
+			  options:(OOTextureFlags)options
 		   anisotropy:(GLfloat)anisotropy
 			  lodBias:(GLfloat)lodBias
 {
@@ -133,7 +153,7 @@ static NSString *sGlobalTraceContext = nil;
 	}
 	
 	noFNF = (options & kOOTextureNoFNFMessage) != 0;
-	options = OOApplyTetureOptionDefaults(options & ~kOOTextureNoFNFMessage);
+	options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
 	
 	// Look for existing texture
 	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString *)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
@@ -173,14 +193,14 @@ static NSString *sGlobalTraceContext = nil;
 }
 
 
-+ (id) textureWithConfiguration:(id)configuration extraOptions:(uint32_t)extraOptions
++ (id) textureWithConfiguration:(id)configuration extraOptions:(OOTextureFlags)extraOptions
 {
 	NSString				*name = nil;
-	uint32_t				options = 0;
+	OOTextureFlags			options = 0;
 	GLfloat					anisotropy = 0.0f;
 	GLfloat					lodBias = 0.0f;
 	
-	if (!OOInterpretTextureSpecifier(configuration, &name, &options, &anisotropy, &lodBias))  return nil;
+	if (!OOInterpretTextureSpecifier(configuration, &name, &options, &anisotropy, &lodBias, NO))  return nil;
 	
 	return [self textureWithName:name inFolder:@"Textures" options:options | extraOptions anisotropy:anisotropy lodBias:lodBias];
 }
@@ -210,7 +230,7 @@ static NSString *sGlobalTraceContext = nil;
 	
 	OOTexture *result = [[[OOConcreteTexture alloc] initWithLoader:generator
 															   key:[generator cacheKey]
-														   options:OOApplyTetureOptionDefaults([generator textureOptions])
+														   options:OOApplyTextureOptionDefaults([generator textureOptions])
 														anisotropy:[generator anisotropy]
 														   lodBias:[generator lodBias]] autorelease];
 	
@@ -648,10 +668,10 @@ BOOL OOCubeMapsAvailable(void)
 }
 
 
-BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, uint32_t *outOptions, float *outAnisotropy, float *outLODBias)
+BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, OOTextureFlags *outOptions, float *outAnisotropy, float *outLODBias, BOOL ignoreExtract)
 {
 	NSString			*name = nil;
-	uint32_t			options = kOOTextureDefaultOptions;
+	OOTextureFlags		options = kOOTextureDefaultOptions;
 	float				anisotropy = kOOTextureDefaultAnisotropy;
 	float				lodBias = kOOTextureDefaultLODBias;
 	
@@ -661,43 +681,53 @@ BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, uint32_t *out
 	}
 	else if ([specifier isKindOfClass:[NSDictionary class]])
 	{
-		name = [specifier oo_stringForKey:@"name"];
+		name = [specifier oo_stringForKey:kOOTextureSpecifierNameKey];
 		if (name == nil)
 		{
 			OOLog(@"texture.load.noName", @"Invalid texture configuration dictionary (must specify name):\n%@", specifier);
 			return NO;
 		}
 		
-		NSString *filterString = [specifier oo_stringForKey:@"min_filter" defaultValue:@"default"];
-		if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMinFilterNearest;
-		else if ([filterString isEqualToString:@"linear"])  options |= kOOTextureMinFilterLinear;
-		else if ([filterString isEqualToString:@"mipmap"])  options |= kOOTextureMinFilterMipMap;
-		else  options |= kOOTextureMinFilterDefault;	// Covers "default"
-		
-		filterString = [specifier oo_stringForKey:@"mag_filter" defaultValue:@"default"];
-		if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMagFilterNearest;
-		else  options |= kOOTextureMagFilterLinear;	// Covers "default" and "linear"
-		
-		if ([specifier oo_boolForKey:@"no_shrink" defaultValue:NO])  options |= kOOTextureNoShrink;
-		if ([specifier oo_boolForKey:@"repeat_s" defaultValue:NO])  options |= kOOTextureRepeatS;
-		if ([specifier oo_boolForKey:@"repeat_t" defaultValue:NO])  options |= kOOTextureRepeatT;
-		if ([specifier oo_boolForKey:@"cube_map" defaultValue:NO])  options |= kOOTextureAllowCubeMap;
-		anisotropy = [specifier oo_floatForKey:@"anisotropy" defaultValue:kOOTextureDefaultAnisotropy];
-		lodBias = [specifier oo_floatForKey:@"texture_LOD_bias" defaultValue:kOOTextureDefaultLODBias];
-		
-		NSString *extractChannel = [specifier oo_stringForKey:@"extract_channel"];
-		if (extractChannel != nil)
+		int quickFlags = [specifier oo_intForKey:kOOTextureSpecifierFlagValueInternalKey defaultValue:-1];
+		if (quickFlags != -1)
 		{
-			if ([extractChannel isEqualToString:@"r"])  options |= kOOTextureExtractChannelR;
-			else if ([extractChannel isEqualToString:@"g"])  options |= kOOTextureExtractChannelG;
-			else if ([extractChannel isEqualToString:@"b"])  options |= kOOTextureExtractChannelB;
-			else if ([extractChannel isEqualToString:@"a"])  options |= kOOTextureExtractChannelA;
-			else
+			options = quickFlags;
+		}
+		else
+		{
+			NSString *filterString = [specifier oo_stringForKey:kOOTextureSpecifierMinFilterKey defaultValue:@"default"];
+			if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMinFilterNearest;
+			else if ([filterString isEqualToString:@"linear"])  options |= kOOTextureMinFilterLinear;
+			else if ([filterString isEqualToString:@"mipmap"])  options |= kOOTextureMinFilterMipMap;
+			else  options |= kOOTextureMinFilterDefault;	// Covers "default"
+			
+			filterString = [specifier oo_stringForKey:kOOTextureSpecifierMagFilterKey defaultValue:@"default"];
+			if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMagFilterNearest;
+			else  options |= kOOTextureMagFilterLinear;	// Covers "default" and "linear"
+			
+			if ([specifier oo_boolForKey:kOOTextureSpecifierNoShrinkKey defaultValue:NO])  options |= kOOTextureNoShrink;
+			if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatSKey defaultValue:NO])  options |= kOOTextureRepeatS;
+			if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatTKey defaultValue:NO])  options |= kOOTextureRepeatT;
+			if ([specifier oo_boolForKey:kOOTextureSpecifierCubeMapKey defaultValue:NO])  options |= kOOTextureAllowCubeMap;
+			
+			if (!ignoreExtract)
 			{
-				// FIXME: obsolescent with shader synthesizer, although we need to handle the new regime for non-shader materials too.
-			//	OOLogWARN(@"texture.load.extractChannel.invalid", @"Unknown value \"%@\" for extract_channel (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel);
+				NSString *extractChannel = [specifier oo_stringForKey:@"extract_channel"];
+				if (extractChannel != nil)
+				{
+					if ([extractChannel isEqualToString:@"r"])  options |= kOOTextureExtractChannelR;
+					else if ([extractChannel isEqualToString:@"g"])  options |= kOOTextureExtractChannelG;
+					else if ([extractChannel isEqualToString:@"b"])  options |= kOOTextureExtractChannelB;
+					else if ([extractChannel isEqualToString:@"a"])  options |= kOOTextureExtractChannelA;
+					else
+					{
+						OOLogWARN(@"texture.load.extractChannel.invalid", @"Unknown value \"%@\" for extract_channel (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel);
+					}
+				}
 			}
 		}
+		anisotropy = [specifier oo_floatForKey:@"anisotropy" defaultValue:kOOTextureDefaultAnisotropy];
+		lodBias = [specifier oo_floatForKey:@"texture_LOD_bias" defaultValue:kOOTextureDefaultLODBias];
 	}
 	else
 	{
@@ -717,7 +747,87 @@ BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, uint32_t *out
 }
 
 
-uint32_t OOApplyTetureOptionDefaults(uint32_t options)
+NSDictionary *OOMakeTextureSpecifier(NSString *name, OOTextureFlags options, float anisotropy, float lodBias, BOOL internal)
+{
+	NSMutableDictionary *result = [NSMutableDictionary dictionary];
+	
+	[result setObject:name forKey:kOOTextureSpecifierNameKey];
+	
+	if (anisotropy != kOOTextureDefaultAnisotropy)  [result oo_setFloat:anisotropy forKey:kOOTextureSpecifierAnisotropyKey];
+	if (lodBias != kOOTextureDefaultLODBias)  [result oo_setFloat:lodBias forKey:kOOTextureSpecifierLODBiasKey];
+	
+	if (internal)
+	{
+		[result oo_setUnsignedInteger:options forKey:kOOTextureSpecifierFlagValueInternalKey];
+	}
+	else
+	{
+		NSString *value = nil;
+		switch (options & kOOTextureMinFilterMask)
+		{
+			case kOOTextureMinFilterDefault:
+				break;
+				
+			case kOOTextureMinFilterNearest:
+				value = @"nearest";
+				break;
+				
+			case kOOTextureMinFilterLinear:
+				value = @"linear";
+				break;
+				
+			case kOOTextureMinFilterMipMap:
+				value = @"mipmap";
+				break;
+		}
+		if (value != nil)  [result setObject:value forKey:kOOTextureSpecifierNoShrinkKey];
+		
+		value = nil;
+		switch (options & kOOTextureMagFilterMask)
+		{
+			case kOOTextureMagFilterNearest:
+				value = @"nearest";
+				break;
+				
+			case kOOTextureMagFilterLinear:
+				break;
+		}
+		if (value != nil)  [result setObject:value forKey:kOOTextureSpecifierMagFilterKey];
+		
+		value = nil;
+		switch (options & kOOTextureExtractChannelMask)
+		{
+			case kOOTextureExtractChannelNone:
+				break;
+				
+			case kOOTextureExtractChannelR:
+				value = @"r";
+				break;
+				
+			case kOOTextureExtractChannelG:
+				value = @"g";
+				break;
+				
+			case kOOTextureExtractChannelB:
+				value = @"b";
+				break;
+				
+			case kOOTextureExtractChannelA:
+				value = @"a";
+				break;
+		}
+		
+		if (options & kOOTextureNoShrink)  [result oo_setBool:YES forKey:kOOTextureSpecifierNoShrinkKey];
+		if (options & kOOTextureRepeatS)  [result oo_setBool:YES forKey:kOOTextureSpecifierRepeatSKey];
+		if (options & kOOTextureRepeatT)  [result oo_setBool:YES forKey:kOOTextureSpecifierRepeatTKey];
+		if (options & kOOTextureAllowCubeMap)  [result oo_setBool:YES forKey:kOOTextureSpecifierCubeMapKey];
+	}
+	
+	return result;
+}
+
+
+OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options)
 {
 	// Set default flags if needed
 	if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterDefault)

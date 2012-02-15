@@ -47,15 +47,6 @@ SOFTWARE.
 #endif
 
 
-// Should be somewhere sensible and used globally.
-NSString * const kOOTextureSpecifierNameKey					= @"name";
-NSString * const kOOTextureSpecifierSwizzleKey				= @"extract_channel";
-NSString * const kOOTextureSpecifierModulateColorKey		= @"color";
-NSString * const kOOTextureSpecifierIlluminationModeKey		= @"illumination_mode";
-NSString * const kOOTextureSpecifierSelfColorKey			= @"self_color";
-NSString * const kOOTextureSpecifierScaleFactorKey			= @"scale_factor";
-
-
 static NSDictionary *CanonicalizeMaterialSpecifier(NSDictionary *spec, NSString *materialKey);
 
 static NSString *FormatFloat(double value);
@@ -512,6 +503,39 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 }
 
 
+/*
+	Build a key for a texture specifier, taking all texture configuration
+	options into account and ignoring the other stuff that might be there.
+	
+	FIXME: efficiency and stuff.
+*/
+static NSString *KeyFromTextureParameters(NSString *name, OOTextureFlags options, float anisotropy, float lodBias)
+{
+#ifndef NDEBUG
+	options = OOApplyTextureOptionDefaults(options);
+#endif
+	
+	// Extraction modes are ignored in synthesized shaders, since we use swizzling instead.
+	options &= ~kOOTextureExtractChannelMask;
+	
+	return [NSString stringWithFormat:@"%@:%X:%g:%g", name, options, anisotropy, lodBias];
+}
+
+static NSString *KeyFromTextureSpec(NSDictionary *spec)
+{
+	NSString *texName = nil;
+	OOTextureFlags texOptions;
+	float anisotropy, lodBias;
+	if (!OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy, &lodBias, YES))
+	{
+		// OOInterpretTextureSpecifier() will have logged something.
+		[NSException raise:NSGenericException format:@"Invalid texture specifier"];
+	}
+	
+	return KeyFromTextureParameters(texName, texOptions, anisotropy, lodBias);
+}
+
+
 - (NSUInteger) assignIDForTexture:(NSDictionary *)spec
 {
 	NSParameterAssert(spec != nil);
@@ -520,8 +544,9 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	spec = [spec dictionaryByRemovingObjectForKey:kOOTextureSpecifierSwizzleKey];
 	
 	NSString *texName = nil;
-	uint32_t texOptions;
-	if (!OOInterpretTextureSpecifier(spec, &texName, &texOptions, NULL, NULL))
+	OOTextureFlags texOptions;
+	float anisotropy, lodBias;
+	if (!OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy, &lodBias, YES))
 	{
 		// OOInterpretTextureSpecifier() will have logged something.
 		[NSException raise:NSGenericException format:@"Invalid texture specifier"];
@@ -534,17 +559,24 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 		[NSException raise:NSGenericException format:@"Invalid material"];
 	}
 	
+	NSString *key = KeyFromTextureParameters(texName, texOptions, anisotropy, lodBias);
 	NSUInteger texID;
-	NSObject *existing = [_texturesByName objectForKey:texName];
+	NSObject *existing = [_texturesByName objectForKey:key];
 	if (existing == nil)
 	{
 		texID = [_texturesByName count];
 		NSNumber	*texIDObj = [NSNumber numberWithUnsignedInteger:texID];
 		NSString	*texUniform = [NSString stringWithFormat:@"uTexture%u", texID];
 		
-		[_textures addObject:spec];
-		[_texturesByName setObject:spec forKey:texName];
-		[_textureIDs setObject:texIDObj forKey:texName];
+#ifndef NDEBUG
+		BOOL useInternalFormat = NO;
+#else
+		BOOL useInternalFormat = YES;
+#endif
+		
+		[_textures addObject:OOMakeTextureSpecifier(texName, texOptions, anisotropy, lodBias, useInternalFormat)];
+		[_texturesByName setObject:spec forKey:key];
+		[_textureIDs setObject:texIDObj forKey:key];
 		[_uniforms setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"texture", @"type", texIDObj, @"value", nil]
 					  forKey:texUniform];
 		
@@ -552,20 +584,16 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	}
 	else
 	{
-		if (![spec isEqual:existing])
-		{
-			// FIXME: could we just use different texture units instead?
-			OOLogWARN(@"material.synthesis.warning.reusedTexture", @"The texture map \"%@\" is used more than once in material \"%@\" of \"%@\", and the options specified are not consistent. Only one set of options will be used.", texName, [self materialKey], [self entityName]);
-		}
 		texID = [_textureIDs oo_unsignedIntegerForKey:texName];
 	}
+	
 	return texID;
 }
 
 
 - (NSUInteger) textureIDForSpec:(NSDictionary *)textureSpec
 {
-	return [_textureIDs oo_unsignedIntegerForKey:[textureSpec oo_stringForKey:kOOTextureSpecifierNameKey]];
+	return [_textureIDs oo_unsignedIntegerForKey:KeyFromTextureSpec(textureSpec)];
 }
 
 

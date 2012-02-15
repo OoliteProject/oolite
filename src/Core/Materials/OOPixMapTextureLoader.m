@@ -38,7 +38,7 @@ SOFTWARE.
 		if (freeWhenDone)  _pixMap = pixMap;
 		else  _pixMap = OODuplicatePixMap(_pixMap, 0);
 		
-		_texOptions = OOApplyTetureOptionDefaults(options);
+		_texOptions = OOApplyTextureOptionDefaults(options);
 		
 		if (!OOIsValidPixMap(_pixMap))  DESTROY(self);
 	}

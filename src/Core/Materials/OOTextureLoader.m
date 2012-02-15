@@ -99,7 +99,7 @@ static BOOL					sHaveSetUp = NO;
 	NSString		*path = nil;
 	uint32_t		options = 0;
 	
-	if (!OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL))  return nil;
+	if (!OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL, NO))  return nil;
 	options |= extraOptions;
 	path = [ResourceManager pathForFileNamed:name inFolder:folder];
 	if (path == nil)

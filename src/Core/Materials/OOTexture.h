@@ -90,6 +90,9 @@ enum
 };
 
 
+typedef uint32_t OOTextureFlags;
+
+
 #define kOOTextureDefaultAnisotropy		0.5
 #define kOOTextureDefaultLODBias		-0.25
 
@@ -123,7 +126,7 @@ typedef OOPixMapFormat OOTextureDataFormat;
 */
 + (id) textureWithName:(NSString *)name
 			  inFolder:(NSString *)directory
-			   options:(uint32_t)options
+			   options:(OOTextureFlags)options
 			anisotropy:(GLfloat)anisotropy
 			   lodBias:(GLfloat)lodBias;
 
@@ -153,7 +156,7 @@ typedef OOPixMapFormat OOTextureDataFormat;
 		extract_channel		(string, one of "r", "g", "b", "a")
  */
 + (id) textureWithConfiguration:(id)configuration;
-+ (id) textureWithConfiguration:(id)configuration extraOptions:(uint32_t)extraOptions;
++ (id) textureWithConfiguration:(id)configuration extraOptions:(OOTextureFlags)extraOptions;
 
 /*	Return the "null texture", a texture object representing an empty texture.
 	Applying the null texture is equivalent to calling [OOTexture applyNone].
@@ -284,6 +287,32 @@ BOOL OOCubeMapsAvailable(void);
 	Interpret a texture specifier (string or dictionary). All out parameters
 	may be NULL.
 */
-BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, uint32_t *outOptions, float *outAnisotropy, float *outLODBias);
+BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, OOTextureFlags *outOptions, float *outAnisotropy, float *outLODBias, BOOL ignoreExtract);
 
-uint32_t OOApplyTetureOptionDefaults(uint32_t options);
+/*	OOMakeTextureSpecifier()
+	
+	Create a texture specifier.
+	
+	If internal is used, an optimized form unsuitable for serialization may be
+	used.
+*/
+NSDictionary *OOMakeTextureSpecifier(NSString *name, OOTextureFlags options, float anisotropy, float lodBias, BOOL internal);
+
+/*	OOApplyTextureOptionDefaults()
+	
+	Replace all default/autmatic options with their current default values.
+*/
+OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options);
+
+
+
+// Texture specifier keys.
+extern NSString * const kOOTextureSpecifierNameKey;
+extern NSString * const kOOTextureSpecifierSwizzleKey;
+extern NSString * const kOOTextureSpecifierMinFilterKey;
+
+// Keys not used in texture setup, but put in specific texture specifiers to simplify plists.
+extern NSString * const kOOTextureSpecifierModulateColorKey;
+extern NSString * const kOOTextureSpecifierIlluminationModeKey;
+extern NSString * const kOOTextureSpecifierSelfColorKey;
+extern NSString * const kOOTextureSpecifierScaleFactorKey;

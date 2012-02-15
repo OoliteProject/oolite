@@ -113,8 +113,8 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 	uint32_t options;
 	GLfloat anisotropy;
 	GLfloat lodBias;
-	OOInterpretTextureSpecifier(spec, NULL, &options, &anisotropy, &lodBias);
-	options = OOApplyTetureOptionDefaults(options & ~kOOTextureExtractChannelMask);
+	OOInterpretTextureSpecifier(spec, NULL, &options, &anisotropy, &lodBias, YES);
+	options = OOApplyTextureOptionDefaults(options);
 	
 	if ((self = [super initWithPath:@"<generated emission map>" options:options]))
 	{
