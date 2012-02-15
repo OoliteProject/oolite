@@ -945,7 +945,12 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	
 	NSDictionary *specularColorMap = [_configuration oo_specularColorMapSpecifier];
 	NSDictionary *specularExponentMap = [_configuration oo_specularExponentMapSpecifier];
-	float scaleFactor = [specularColorMap oo_floatForKey:kOOTextureSpecifierScaleFactorKey defaultValue:1.0f];
+	float scaleFactor = 1.0f;
+	
+	if (specularColorMap)
+	{
+		scaleFactor = [specularColorMap oo_doubleForKey:kOOTextureSpecifierScaleFactorKey defaultValue:1.0f];
+	}
 	
 	OOColor *specularColor = nil;
 	if (specularColorMap == nil)
