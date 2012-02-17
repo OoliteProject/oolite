@@ -249,7 +249,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	
 	// set things from dictionary from here out - default values might require adjustment -- Kaks 20091130
-	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed" defaultValue:160.0f];
+	float defaultSpeed = isStation ? 0.0f : 160.0f;
+	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed" defaultValue:defaultSpeed];
 	max_flight_roll = [shipDict oo_floatForKey:@"max_flight_roll" defaultValue:2.0f];
 	max_flight_pitch = [shipDict oo_floatForKey:@"max_flight_pitch" defaultValue:1.0f];
 	max_flight_yaw = [shipDict oo_floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
@@ -3686,9 +3687,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 		max_cos = 0.995;	// 0.995 - cos(5 degrees) is close enough
 	double confidenceFactor = [self trackDestination:delta_t:NO];
-	if (confidenceFactor >= max_cos)
+	if (confidenceFactor >= max_cos && flightPitch == 0.0)
 	{
-		// desired facing achieved
+		// desired facing achieved and movement stabilised.
 		[shipAI message:@"FACING_DESTINATION"];
 		frustration = 0.0;
 		if(docking_match_rotation)  // IDLE stops rotating while docking
@@ -3780,7 +3781,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_fly_to_destination:(double) delta_t
 {
 	double distance = [self rangeToDestination];
-	if (distance < desired_range)// + collision_radius)
+	// double desiredRange = (dockingInstructions != nil) ? 1.2 * desired_range : desired_range; // stop a bit earlyer when docking.
+	if (distance < desired_range) // + collision_radius)
 	{
 		// desired range achieved
 		[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
@@ -5897,7 +5899,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	[self setStatus:STATUS_DEAD];
 	
 	NS_DURING
-	if ([self isThargoid] && [roleSet hasRole:@"thargoid-mothership"])  [self broadcastThargoidDestroyed];
+		if ([self isThargoid] && [roleSet hasRole:@"thargoid-mothership"])  [self broadcastThargoidDestroyed];
 		
 		if (!suppressExplosion)
 		{
@@ -7225,6 +7227,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	double min_d = 0.004;
 	double max_cos = 0.995;  // was 0.85; should match default value of max_cos in behaviour_fly_to_destination!
+	double precision = we_are_docking ? 0.25 : 0.9025; // lower values force a direction closer to the target. (resp. 50% and 95% within range)
 
 	if (retreat)
 		reverse = -reverse;
@@ -7245,7 +7248,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		have large trouble with reaching their destination. When those ships enter the slowdown range, they have almost no speed vector
 		in the direction of the target. I now used 95% of desired_range to aim at, but a smaller value might even be better. 
 	*/
-	if (range2 > desired_range2) max_cos = sqrt(1 - 0.90 * desired_range2/range2);  // Head for a point within 95% of desired_range.
+	if (range2 > desired_range2) max_cos = sqrt(1 - precision * desired_range2/range2);  // Head for a point within 95% of desired_range.
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
@@ -7330,7 +7333,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		rate1 *= 4.0;	// much faster correction
 	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
 		rate2 *= 4.0;	// much faster correction
-
+	
 	// apply stick movement limits
 	if (flightRoll < stick_roll - rate1)
 		stick_roll = flightRoll + rate1;
