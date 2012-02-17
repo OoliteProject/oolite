@@ -568,7 +568,7 @@
 		1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FE3210C2F26A0058FBED /* OOPlanetTextureGenerator.h */; };
 		1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */; settings = {COMPILER_FLAGS = "$OO_MATHS_OPTS -ffast-math"; }; };
 		1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */; };
-		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; };
+		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; settings = {COMPILER_FLAGS = "-Wno-objc-protocol-method-implementation"; }; };
 		1AABA83E11B941D1003487D5 /* OOPixMapTextureLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AABA83C11B941D1003487D5 /* OOPixMapTextureLoader.h */; };
 		1AABA83F11B941D1003487D5 /* OOPixMapTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AABA83D11B941D1003487D5 /* OOPixMapTextureLoader.m */; };
 		1AAF56170F1A198400A2F2E6 /* Comparison.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAF56160F1A198400A2F2E6 /* Comparison.h */; };
@@ -689,7 +689,7 @@
 		25161158099544390037C2E1 /* AI.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161106099544390037C2E1 /* AI.h */; };
 		2516115A099544390037C2E1 /* OOTrumble.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161108099544390037C2E1 /* OOTrumble.m */; };
 		2516115D099544390037C2E1 /* GameController.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516110B099544390037C2E1 /* GameController.h */; };
-		2516115E099544390037C2E1 /* GameController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516110C099544390037C2E1 /* GameController.m */; };
+		2516115E099544390037C2E1 /* GameController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516110C099544390037C2E1 /* GameController.m */; settings = {COMPILER_FLAGS = "-Wno-missing-method-return-type"; }; };
 		25161162099544390037C2E1 /* OOTrumble.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161110099544390037C2E1 /* OOTrumble.h */; };
 		25161168099544390037C2E1 /* OOSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161116099544390037C2E1 /* OOSound.h */; };
 		2516116D099544390037C2E1 /* OOCharacter.m in Sources */ = {isa = PBXBuildFile; fileRef = 2516111B099544390037C2E1 /* OOCharacter.m */; };
@@ -3486,7 +3486,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 0420;
+				LastUpgradeCheck = 0430;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;

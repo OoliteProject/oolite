@@ -128,7 +128,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	double _cost, _distance, _time;
 }
 
-+ newElementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time;
++ (id) newElementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time;
 - (OOSystemID) getParent;
 - (OOSystemID) getLocation;
 - (double) getCost;
@@ -139,7 +139,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 @implementation RouteElement
 
-+ newElementWithLocation:(OOSystemID) location parent:(OOSystemID) parent cost:(double) cost distance:(double) distance time:(double) time
++ (id) newElementWithLocation:(OOSystemID) location parent:(OOSystemID) parent cost:(double) cost distance:(double) distance time:(double) time
 {
 	RouteElement *r = [[RouteElement alloc] init];
 	
