@@ -239,7 +239,7 @@ static JSBool GlobalLog(JSContext *context, uintN argc, jsval *vp)
 	}
 	else
 	{
-		messageClass = OOStringFromJSValue(context, OOJS_ARGV[0]);
+		messageClass = OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]);
 		message = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV + 1 count:argc - 1 separator:@", " inContext:context];
 	}
 	
