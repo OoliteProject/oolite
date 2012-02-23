@@ -82,10 +82,6 @@ static NSString *FormatFloat(double value);
 	// _sampledTextures: hash of integer texture IDs for which we’ve set up a sample.
 	NSHashTable					*_sampledTextures;
 	
-	uint8_t						_normalAttrSize;
-	uint8_t						_tangentAttrSize;
-	uint8_t						_bitangentAttrSize;
-	
 	NSUInteger					_usesNormalMap: 1,
 								_usesDiffuseTerm: 1,
 								_constZNormal: 1,
@@ -848,6 +844,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		[_fragmentBody appendFormat:format, FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2])];
 	}
 	
+	(void) haveDiffuseColor;
 	[_fragmentBody appendString:@"\t\n"];
 }
 

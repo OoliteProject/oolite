@@ -90,11 +90,11 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 														fragmentName:fragmentShaderName
 												   attributeBindings:attributeBindings
 																 key:cacheKey];
+		[result autorelease];
 		
 		if (result != nil && cacheKey != nil)
 		{
 			// ...and add it to the cache.
-			[result autorelease];
 			if (sShaderCache == nil)  sShaderCache = [[NSMutableDictionary alloc] init];
 			[sShaderCache setObject:[NSValue valueWithPointer:result] forKey:cacheKey];	// Use NSValue so dictionary doesn't retain program
 		}

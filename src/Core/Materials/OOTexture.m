@@ -816,6 +816,7 @@ NSDictionary *OOMakeTextureSpecifier(NSString *name, OOTextureFlags options, flo
 				value = @"a";
 				break;
 		}
+		if (value != nil)  [result setObject:value forKey:kOOTextureSpecifierSwizzleKey];
 		
 		if (options & kOOTextureNoShrink)  [result oo_setBool:YES forKey:kOOTextureSpecifierNoShrinkKey];
 		if (options & kOOTextureRepeatS)  [result oo_setBool:YES forKey:kOOTextureSpecifierRepeatSKey];
