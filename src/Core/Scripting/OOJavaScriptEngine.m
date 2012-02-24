@@ -940,13 +940,13 @@ jsid OOJSIDFromString(NSString *string)
 	[string getCharacters:buffer];
 	
 	JSString *jsString = JS_InternUCStringN(context, buffer, length);
-	if (EXPECT_NOT(jsString == NULL))  return JSID_VOID;
 	
 	if (EXPECT_NOT(buffer != stackBuf))  free(buffer);
 	
 	OOJSRelinquishContext(context);
 	
-	return INTERNED_STRING_TO_JSID(jsString);
+	if (EXPECT(jsString != NULL))  return INTERNED_STRING_TO_JSID(jsString);
+	else  return JSID_VOID;
 }
 
 

@@ -330,8 +330,9 @@ static BOOL					sHaveSetUp = NO;
 	void *newData = malloc(newSize);
 	if (EXPECT_NOT(newData == NULL))
 	{
-		free(_data);
-		_data = NULL;
+		_generateMipMaps = NO;
+		_options = (_options & ~kOOTextureMinFilterMask) | kOOTextureMinFilterLinear;
+		return;
 	}
 	
 	unsigned i;

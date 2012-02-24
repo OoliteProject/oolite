@@ -325,9 +325,9 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	long nPixels = w * h + 1;	
 	
-	unsigned char   *red = (unsigned char *) malloc( nPixels);
-	unsigned char   *green = (unsigned char *) malloc( nPixels);
-	unsigned char   *blue = (unsigned char *) malloc( nPixels);
+	unsigned char   *red = (unsigned char *)malloc(nPixels);
+	unsigned char   *green = (unsigned char *)malloc(nPixels);
+	unsigned char   *blue = (unsigned char *)malloc(nPixels);
 	
 	// backup the previous directory
 	NSString *originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
@@ -337,7 +337,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	{
 		NSBeep();
 		OOLog(@"savedSnapshot.defaultPath.chdir.failed", @"Could not navigate to %@", snapshotsDirectory);
-		return NO;
+		snapShotOK = NO;
+		goto FAIL;
 	}
 	
 	BOOL				withFilename = (filename != nil);
@@ -415,6 +416,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	// free allocated objects and memory
 	[bitmapRep release];
+	
+FAIL:
 	free(red);
 	free(green);
 	free(blue);

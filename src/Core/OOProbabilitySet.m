@@ -1001,7 +1001,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	}
 	
 	if (objects != NULL)  free(objects);
-	if (objects != NULL)  free(weights);
+	if (weights != NULL)  free(weights);
 	
 	return result;
 }

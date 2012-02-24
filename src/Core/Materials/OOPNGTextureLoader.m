@@ -160,7 +160,11 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	_data = malloc(_rowBytes * _height);
 	if (EXPECT_NOT(rows == NULL || _data == NULL))
 	{
-		if (rows != NULL)  free(rows);
+		if (rows != NULL)
+		{
+			free(rows);
+			rows = NULL;
+		}
 		if (_data != NULL)
 		{
 			free(_data);

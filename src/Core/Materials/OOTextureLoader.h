@@ -40,7 +40,7 @@ SOFTWARE.
 {
 	NSString					*_path;
 	
-	uint32_t					_options;
+	OOTextureFlags				_options;
 	uint8_t						_generateMipMaps: 1,
 								_scaleAsNormalMap: 1,
 								_avoidShrinking: 1,
