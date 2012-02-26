@@ -146,7 +146,6 @@ id OODeepCopy(id object)
 		[localException raise];
 	NS_ENDHANDLER
 	
-#if !OOLITE_MAC_OS_X
 	// Make NSArray of results.
 	result = [[NSArray alloc] initWithObjects:members count:count];
 	
@@ -155,13 +154,6 @@ id OODeepCopy(id object)
 	{
 		[members[i] release];
 	}
-#else
-	// Use CF to avoid redundant retain and release.
-	CFArrayCallBacks arrayCB = kCFTypeArrayCallBacks;
-	arrayCB.version = 0;
-	arrayCB.retain = NULL;
-	result = (NSArray *)CFArrayCreate(kCFAllocatorDefault, (const void **)members, count, &arrayCB);
-#endif
 	
 	free(members);
 	if (tempObjects)  [objects release];
@@ -214,7 +206,6 @@ id OODeepCopy(id object)
 		[localException raise];
 	NS_ENDHANDLER
 	
-#if !OOLITE_MAC_OS_X
 	// Make NSArray of results.
 	result = [[NSSet alloc] initWithObjects:members count:count];
 	
@@ -223,13 +214,6 @@ id OODeepCopy(id object)
 	{
 		[members[i] release];
 	}
-#else
-	// Use CF to avoid redundant retain and release.
-	CFSetCallBacks setCB = kCFTypeSetCallBacks;
-	setCB.version = 0;
-	setCB.retain = NULL;
-	result = (NSSet *)CFSetCreate(kCFAllocatorDefault, (const void **)members, count, &setCB);
-#endif
 	
 	free(members);
 	if (tempObjects)  [objects release];
@@ -288,7 +272,6 @@ id OODeepCopy(id object)
 		[localException raise];
 	NS_ENDHANDLER
 	
-#if !OOLITE_MAC_OS_X
 	// Make NSArray of results.
 	result = [[NSDictionary alloc] initWithObjects:values forKeys:keys count:count];
 	
@@ -298,16 +281,6 @@ id OODeepCopy(id object)
 		[keys[i] release];
 		[values[i] release];
 	}
-#else
-	// Use CF to avoid redundant retain and release.
-	CFDictionaryKeyCallBacks keyCB = kCFTypeDictionaryKeyCallBacks;
-	CFDictionaryValueCallBacks valueCB = kCFTypeDictionaryValueCallBacks;
-	keyCB.version = 0;
-	keyCB.retain = NULL;
-	valueCB.version = 0;
-	valueCB.retain = NULL;
-	result = (NSDictionary *)CFDictionaryCreate(kCFAllocatorDefault, (const void **)keys, (const void **)values, count, &keyCB, &valueCB);
-#endif
 	
 	free(keys);
 	free(values);
