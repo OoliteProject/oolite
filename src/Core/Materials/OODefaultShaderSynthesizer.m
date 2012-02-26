@@ -34,6 +34,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "NSDictionaryOOExtensions.h"
 #import "OOMaterialSpecifier.h"
+#import "ResourceManager.h"
 
 /* 
  * GNUstep 1.20.1 does not support NSIntegerHashCallBacks but uses 
@@ -82,6 +83,8 @@ static NSString *FormatFloat(double value);
 	// _sampledTextures: hash of integer texture IDs for which we’ve set up a sample.
 	NSHashTable					*_sampledTextures;
 	
+	NSMutableDictionary			*_uniformBindingNames;
+	
 	NSUInteger					_usesNormalMap: 1,
 								_usesDiffuseTerm: 1,
 								_constZNormal: 1,
@@ -96,7 +99,7 @@ static NSString *FormatFloat(double value);
 								_completed_writeDiffuseColorTermIfNeeded: 1,
 								_completed_writeVertexPosition: 1,
 								_completed_writeNormalIfNeeded: 1,
-								_completed_writeNormal: 1,
+								_completedwriteNormal: 1,
 								_completed_writeLightVector: 1,
 								_completed_writeEyeVector: 1, 
 								_completed_writeTotalColor: 1,
@@ -119,16 +122,32 @@ static NSString *FormatFloat(double value);
 - (NSArray *) textureSpecifications;
 - (NSDictionary *) uniformSpecifications;
 
+- (NSString *) materialKey;
+- (NSString *) entityName;
+
 - (void) createTemporaries;
 - (void) destroyTemporaries;
 
 - (void) composeVertexShader;
 - (void) composeFragmentShader;
 
-- (NSString *) materialKey;
-- (NSString *) entityName;
+// Write various types of declarations.
+- (void) appendVariable:(NSString *)name ofType:(NSString *)type withPrefix:(NSString *)prefix to:(NSMutableString *)buffer;
+- (void) addAttribute:(NSString *)name ofType:(NSString *)type;
+- (void) addVarying:(NSString *)name ofType:(NSString *)type;
+- (void) addVertexUniform:(NSString *)name ofType:(NSString *)type;
+- (void) addFragmentUniform:(NSString *)name ofType:(NSString *)type;
 
+// Create or retrieve a uniform variable name for a given binding.
+- (NSString *) defineBindingUniform:(NSDictionary *)binding ofType:(NSString *)type;
+
+- (NSString *) readRGBForTextureSpec:(NSDictionary *)textureSpec mapName:(NSString *)mapName;	// Generate a read for an RGB value, or a single channel splatted across RGB.
+- (NSString *) readOneChannelForTextureSpec:(NSDictionary *)textureSpec mapName:(NSString *)mapName;	// Generate a read for a single channel.
+
+// Details of texture setup; generally use -read*ForTextureSpec:mapName: instead.
 - (NSUInteger) textureIDForSpec:(NSDictionary *)textureSpec;
+- (void) setUpOneTexture:(NSDictionary *)textureSpec;
+- (void) getSampleName:(NSString **)outSampleName andSwizzleOp:(NSString **)outSwizzleOp forTextureSpec:(NSDictionary *)textureSpec;
 
 
 /*	Stages. These should only be called through the REQUIRE_STAGE macro to
@@ -222,6 +241,13 @@ static NSString *FormatFloat(double value);
 - (void) writeFinalColorComposite;
 
 
+/*
+	REQUIRE_STAGE(): pull in the required stage. A stage must have a
+	zero-parameter method and a matching _completed_stage instance variable.
+	
+	In debug/testrelease builds, this dispatches through performStage: which
+	checks for recursive calls.
+*/
 #ifndef NDEBUG
 #define REQUIRE_STAGE(NAME) if (!_completed_##NAME) { [self performStage:@selector(NAME)]; _completed_##NAME = YES; }
 - (void) performStage:(SEL)stage;
@@ -262,6 +288,7 @@ BOOL OOSynthesizeMaterialShader(NSDictionary *configuration, NSString *materialK
 		*outTextureSpecs = nil;
 		*outUniformSpecs = nil;
 	}
+	
 	[pool release];
 	
 	[*outVertexShader autorelease];
@@ -447,6 +474,39 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 }
 
 
+- (NSString *) defineBindingUniform:(NSDictionary *)binding ofType:(NSString *)type
+{
+	NSString *name = [binding oo_stringForKey:@"binding"];
+	NSParameterAssert([name length] > 0);
+	
+	NSMutableDictionary *bindingSpec = [[binding mutableCopy] autorelease];
+	if ([bindingSpec oo_stringForKey:@"type"] == nil)  [bindingSpec setObject:@"binding" forKey:@"type"];
+	
+	// Use existing uniform if one is defined.
+	NSString *uniformName = [_uniformBindingNames objectForKey:bindingSpec];
+	if (uniformName != nil)  return uniformName;
+	
+	// Capitalize first char of name, and prepend u.
+	unichar firstChar = toupper([name characterAtIndex:0]);
+	NSString *baseName = [NSString stringWithFormat:@"u%C%@", firstChar, [name substringFromIndex:1]];
+	
+	// Ensure name is unique.
+	name = baseName;
+	unsigned idx = 1;
+	while ([_uniforms objectForKey:name] != nil)
+	{
+		name = [NSString stringWithFormat:@"%@%u", ++idx];
+	}
+	
+	[self addFragmentUniform:name ofType:type];
+	
+	[_uniforms setObject:bindingSpec forKey:name];
+	[_uniformBindingNames setObject:name forKey:bindingSpec];
+	
+	return name;
+}
+
+
 - (void) composeVertexShader
 {
 	while ([_vertexBody hasSuffix:@"\t\n"])
@@ -537,7 +597,10 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	NSParameterAssert(spec != nil);
 	
 	// extract_channel doesn't affect uniqueness, and we don't want OOTexture to do actual extraction.
-	spec = [spec dictionaryByRemovingObjectForKey:kOOTextureSpecifierSwizzleKey];
+	if ([spec objectForKey:kOOTextureSpecifierSwizzleKey] != nil)
+	{
+		spec = [spec dictionaryByRemovingObjectForKey:kOOTextureSpecifierSwizzleKey];
+	}
 	
 	NSString *texName = nil;
 	OOTextureFlags texOptions;
@@ -620,7 +683,6 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 }
 
 
-// Generate a read for an RGB value, or a single channel splatted across RGB.
 - (NSString *) readRGBForTextureSpec:(NSDictionary *)textureSpec mapName:(NSString *)mapName
 {
 	NSString *sample, *swizzle;
@@ -647,7 +709,6 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 }
 
 
-// Generate a read for a single channel.
 - (NSString *) readOneChannelForTextureSpec:(NSDictionary *)textureSpec mapName:(NSString *)mapName
 {
 	NSString *sample, *swizzle;
@@ -707,6 +768,8 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	_textureIDs = [[NSMutableDictionary alloc] init];
 	_sampledTextures = NSCreateHashTable(NSIntegerHashCallBacks, 0);
 	
+	_uniformBindingNames = [[NSMutableDictionary alloc] init];
+	
 #ifndef NDEBUG
 	_stagesInProgress = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);
 #endif
@@ -733,6 +796,8 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		NSFreeHashTable(_sampledTextures);
 		_sampledTextures = NULL;
 	}
+	
+	DESTROY(_uniformBindingNames);
 	
 #ifndef NDEBUG
 	if (_stagesInProgress != NULL)
@@ -1170,6 +1235,48 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 			[_fragmentBody appendFormat:@"\tlightMapColor = vec3(%@, %@, %@);\n", FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2])];
 		}
 		
+		NSDictionary *binding = [textureSpec oo_dictionaryForKey:kOOTextureSpecifierBindingKey];
+		if (binding != nil)
+		{
+			NSString *bindingName = [binding oo_stringForKey:@"binding"];
+			NSDictionary *typeDict = [[ResourceManager shaderBindingTypesDictionary] oo_dictionaryForKey:@"player"];	// FIXME: select appropriate binding subset.
+			NSString *bindingType = [typeDict oo_stringForKey:bindingName];
+			NSString *glslType = nil;
+			NSString *swizzle = @"";
+			
+			if ([bindingType isEqualToString:@"float"])
+			{
+				glslType = @"float";
+			}
+			else if ([bindingType isEqualToString:@"vector"])
+			{
+				glslType = @"vec3";
+			}
+			else if ([bindingType isEqualToString:@"color"])
+			{
+				glslType = @"vec4";
+				swizzle = @".rgb";
+			}
+			
+			if (glslType != nil)
+			{
+				NSString *uniformName = [self defineBindingUniform:binding ofType:bindingType];
+				[_fragmentBody appendFormat:@"\tlightMapColor *= %@%@;\n", uniformName, swizzle];
+			}
+			else
+			{
+				if (bindingType == nil)
+				{
+					OOLogERR(@"material.binding.error.unknown", @"Cannot bind light map to unknown attribute \"%@\".", bindingName);
+				}
+				else
+				{
+					OOLogERR(@"material.binding.error.badType", @"Cannot bind light map to attribute \"%@\" of type %@.", bindingName, bindingType);
+				}
+				[_fragmentBody appendString:@"\tlightMapColor = vec3(0.0);  // Bad binding, see log.\n"];
+			}
+		}
+		
 		if (!isIllumination)
 		{
 			[_fragmentBody appendString:@"\ttotalColor += lightMapColor;\n\t\n"];
@@ -1409,9 +1516,13 @@ static NSDictionary *CanonicalizeMaterialSpecifier(NSDictionary *spec, NSString 
 		{
 			if ([lmSpec isKindOfClass:[NSString class]])
 			{
-				lmSpec = [NSDictionary dictionaryWithObject:lmSpec forKey:kOOTextureSpecifierNameKey];
+				lmSpec = [NSMutableDictionary dictionaryWithObject:lmSpec forKey:kOOTextureSpecifierNameKey];
 			}
-			else if (![lmSpec isKindOfClass:[NSDictionary class]])
+			else if ([lmSpec isKindOfClass:[NSDictionary class]])
+			{
+				lmSpec = [[lmSpec mutableCopy] autorelease];
+			}
+			else
 			{
 				continue;
 			}
@@ -1421,10 +1532,24 @@ static NSDictionary *CanonicalizeMaterialSpecifier(NSDictionary *spec, NSString 
 			{
 				// Don't convert arrays here, because we specifically don't want the behaviour of treating numbers greater than 1 as 0..255 components.
 				col = [OOColor colorWithDescription:modulateColor];
-				lmSpec = [lmSpec dictionaryByAddingObject:[col normalizedArray] forKey:kOOTextureSpecifierModulateColorKey];
+				[lmSpec setObject:[col normalizedArray] forKey:kOOTextureSpecifierModulateColorKey];
 			}
 			
-			[lightMaps addObject:lmSpec];
+			id binding = [lmSpec objectForKey:kOOTextureSpecifierBindingKey];
+			if (binding != nil)
+			{
+				if ([binding isKindOfClass:[NSString class]])
+				{
+					NSDictionary *expandedBinding = [NSDictionary dictionaryWithObjectsAndKeys:@"binding", @"type", binding, @"binding", nil];
+					[lmSpec setObject:expandedBinding forKey:kOOTextureSpecifierBindingKey];
+				}
+				else if (![binding isKindOfClass:[NSDictionary class]] || [[binding oo_stringForKey:@"binding"] length] == 0)
+				{
+					[lmSpec removeObjectForKey:kOOTextureSpecifierBindingKey];
+				}
+			}
+			
+			[lightMaps addObject:[[lmSpec copy] autorelease]];
 		}
 		
 		if ([lightMaps count] == 0)

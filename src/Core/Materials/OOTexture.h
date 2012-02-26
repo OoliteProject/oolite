@@ -316,3 +316,4 @@ extern NSString * const kOOTextureSpecifierModulateColorKey;
 extern NSString * const kOOTextureSpecifierIlluminationModeKey;
 extern NSString * const kOOTextureSpecifierSelfColorKey;
 extern NSString * const kOOTextureSpecifierScaleFactorKey;
+extern NSString * const kOOTextureSpecifierBindingKey;

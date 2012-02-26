@@ -57,6 +57,7 @@ NSString * const kOOTextureSpecifierModulateColorKey		= @"color";
 NSString * const kOOTextureSpecifierIlluminationModeKey		= @"illumination_mode";
 NSString * const kOOTextureSpecifierSelfColorKey			= @"self_color";
 NSString * const kOOTextureSpecifierScaleFactorKey			= @"scale_factor";
+NSString * const kOOTextureSpecifierBindingKey				= @"binding";
 
 // Used only by "internal" specifiers from OOMakeTextureSpecifier.
 static NSString * const kOOTextureSpecifierFlagValueInternalKey = @"_oo_internal_flags";

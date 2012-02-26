@@ -737,12 +737,11 @@ static NSMutableDictionary *sStringCache;
 
 + (NSDictionary *) whitelistDictionary
 {
-	static id				whitelistDictionary = nil;
-	NSString				*path = nil;
+	static id whitelistDictionary = nil;
 	
 	if (whitelistDictionary == nil)
 	{
-		path = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"whitelist.plist"];
+		NSString *path = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"whitelist.plist"];
 		whitelistDictionary = [NSDictionary dictionaryWithContentsOfFile:path];
 		if (whitelistDictionary == nil)  whitelistDictionary = [NSNull null];
 		
@@ -751,6 +750,52 @@ static NSMutableDictionary *sStringCache;
 	
 	if (whitelistDictionary == [NSNull null])  return nil;
 	return whitelistDictionary;
+}
+
+
++ (NSDictionary *) shaderBindingTypesDictionary
+{
+	static id shaderBindingTypesDictionary = nil;
+	
+	if (shaderBindingTypesDictionary == nil)
+	{
+		NSAutoreleasePool *pool = [NSAutoreleasePool new];
+		
+		NSString *path = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"shader-uniform-bindings.plist"];
+		NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithContentsOfFile:path];
+		NSArray *keys = [dict allKeys];
+		
+		// Resolve all $inherit keys.
+		unsigned changeCount = 0;
+		do {
+			changeCount = 0;
+			NSString *key = nil;
+			foreach (key, keys)
+			{
+				NSDictionary *value = [dict oo_dictionaryForKey:key];
+				NSString *inheritKey = [value oo_stringForKey:@"$inherit"];
+				if (inheritKey != nil)
+				{
+					changeCount++;
+					NSMutableDictionary *mutableValue = [[value mutableCopy] autorelease];
+					[mutableValue removeObjectForKey:@"$inherit"];
+					NSDictionary *inherited = [dict oo_dictionaryForKey:inheritKey];
+					if (inherited != nil)
+					{
+						[mutableValue addEntriesFromDictionary:inherited];
+					}
+					
+					[dict setObject:[[mutableValue copy] autorelease] forKey:key];
+				}
+			}
+		} while (changeCount != 0);
+		
+		shaderBindingTypesDictionary = [dict copy];
+		
+		[pool release];
+	}
+	
+	return shaderBindingTypesDictionary;
 }
 
 

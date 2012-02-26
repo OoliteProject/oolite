@@ -75,7 +75,9 @@ typedef enum
 						andMerge:(BOOL) mergeFiles
 						   cache:(BOOL)useCache;
 
-+ (NSDictionary *) whitelistDictionary;	// method-whitelist.plist, explicitly not merged like normal plists.
+// These are deliberately not merged like normal plists for security reasons.
++ (NSDictionary *) whitelistDictionary;
++ (NSDictionary *) shaderBindingTypesDictionary;
 
 + (OOSound *)ooSoundNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 + (OOMusic *)ooMusicNamed:(NSString *)fileName inFolder:(NSString *)folderName;

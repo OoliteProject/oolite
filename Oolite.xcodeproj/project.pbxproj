@@ -490,6 +490,7 @@
 		1A7B967F0E620C9E00322821 /* OOSoundInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7B967E0E620C9E00322821 /* OOSoundInternal.h */; };
 		1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */; };
 		1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */; };
+		1A7C27CA14FA70A500F2D2A8 /* shader-uniform-bindings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */; };
 		1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7C75980CC39D11005D0AA2 /* OOJSSun.m */; };
 		1A7C75C50CC39EC9005D0AA2 /* OOJSSun.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7C75990CC39D11005D0AA2 /* OOJSSun.h */; };
 		1A7D3A180C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */; };
@@ -923,6 +924,7 @@
 				1A2316FB0B9CFAD700EF0852 /* shipdata.plist in Copy Config */,
 				1A2316FC0B9CFAD800EF0852 /* shipyard.plist in Copy Config */,
 				1A2316FD0B9CFAD800EF0852 /* speech_pronunciation_guide.plist in Copy Config */,
+				1A7C27CA14FA70A500F2D2A8 /* shader-uniform-bindings.plist in Copy Config */,
 				1AAF565A0F1A27EA00A2F2E6 /* whitelist.plist in Copy Config */,
 			);
 			name = "Copy Config";
@@ -1730,6 +1732,7 @@
 		1A7B967E0E620C9E00322821 /* OOSoundInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundInternal.h; sourceTree = "<group>"; };
 		1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityScriptMethods.h; sourceTree = "<group>"; };
 		1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityScriptMethods.m; sourceTree = "<group>"; };
+		1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "shader-uniform-bindings.plist"; sourceTree = "<group>"; };
 		1A7C75980CC39D11005D0AA2 /* OOJSSun.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSun.m; sourceTree = "<group>"; };
 		1A7C75990CC39D11005D0AA2 /* OOJSSun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSun.h; sourceTree = "<group>"; };
 		1A7CBF6D10937DD6005B7797 /* OOPointMaths.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPointMaths.h; sourceTree = "<group>"; };
@@ -2127,6 +2130,7 @@
 				1AC5452C0D4D298E00C90E5B /* oolite-font.plist */,
 				1AC973F90C9847850010C42B /* pirate-victim-roles.plist */,
 				1A95338A0C02089E004EBB58 /* planetinfo.plist */,
+				1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
 				1A2123261051892500530CDE /* shipdata-overrides.plist */,
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
@@ -3943,7 +3947,6 @@
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
@@ -3970,7 +3973,6 @@
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
@@ -3996,7 +3998,6 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
-				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				EXPORTED_SYMBOLS_FILE = "src/Cocoa/exports-release.exp";
 				"EXPORTED_SYMBOLS_FILE[arch=x86_64]" = "src/Cocoa/exports-release.exp";
@@ -4021,7 +4022,6 @@
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
@@ -4067,7 +4067,6 @@
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
 				COPY_SCR_SHIM = 1;
-				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
@@ -4088,7 +4087,6 @@
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
-				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",

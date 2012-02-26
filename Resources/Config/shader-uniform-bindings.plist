@@ -1,0 +1,82 @@
+{
+	entity =
+	{
+		"position"					= "vector";
+		"orientation"				= "quaternion";
+		"relativePosition"			= "vector";
+		"viewpointOffset"			= "vector";
+		"collisionRadius"			= "float";
+		"mass"						= "float";
+		"energy"					= "float";
+		"maxEnergy"					= "float";
+		"universalTime"				= "float";
+		"spawnTime"					= "float";
+		"timeElapsedSinceSpawn"		= "float";
+		"throwingSparks"			= "boolean";
+		"clock"						= "float";
+		"pseudoFixedD100"			= "float";
+		"pseudoFixedD256"			= "integer";
+		"systemGovernment"			= "integer";
+		"systemEconomy"				= "integer";
+		"systemTechLevel"			= "integer";
+		"systemPopulation"			= "integer";
+		"systemProductivity"		= "integer";
+	};
+	ship =
+	{
+		"$inherit"					= "entity";
+		
+		"isBeacon"					= "boolean";
+		
+		"isFrangible"				= "boolean";
+		"isCloaked"					= "boolean";
+		"isJammingScanning"			= "boolean";
+		"hasMilitaryScannerFilter"	= "boolean";
+		"messageTime"				= "float";
+		"escortCount"				= "integer";
+		"hasHostileTarget"			= "boolean";
+		"weaponRange"				= "float";
+		"scannerRange"				= "float";
+		"withinStationAegis"		= "boolean";
+		"fuel"						= "float";
+		"flightPitch"				= "float";
+		"flightRoll"				= "float";
+		"flightYaw"					= "float";
+		"flightSpeed"				= "float";
+		"maxFlightSpeed"			= "float";
+		"speedFactor"				= "float";
+		"damage"					= "float";
+		"laserHeatLevel"			= "float";
+		"hullHeatLevel"				= "float";
+		"entityPersonality"			= "float";
+		"entityPersonalityInt"		= "integer";
+		"numberOfScannedShips"		= "integer";
+		"destination"				= "vector";
+		"rangeToDestination"		= "float";
+		"rangeToPrimaryTarget"		= "float";
+		"laserColor"				= "color";
+		"isHulk"					= "boolean";
+		"lightsActive"				= "boolean";
+		"legalStatus"				= "integer";
+		"fuel"						= "integer";	// Tenths of a light year
+		"velocity"					= "vector";
+		"missileCapacity"			= "integer";
+		"missileCount"				= "integer";
+	};
+	player =
+	{
+		"$inherit"					= "ship";
+		
+		"fuelLeakRate"				= "float";
+		"massLocked"				= "boolean";
+		"atHyperspeed"				= "boolean";
+		"dialForwardShield"			= "float";
+		"dialAftShield"				= "float";
+		"dialMissileStatus"			= "integer";	// 0 = safe, 1 = armed, 2 = target locked
+		"dialFuelScoopStatus"		= "integer";	// 0 = not intalled, 1 = full hold, 2 = OK/idle, 3 = active
+		"compassMode"				= "integer";	// 0 = basic, 1 = planet, 3 = station, 4 = sun, 5 = target, 6 = beacon (2 unused)
+		"dialIdentEngaged"			= "boolean";
+		"alertCondition"			= "integer";	// 0 = docked, 1 = green, 2 = yellow, 3 = red
+		"trumbleCount"				= "integer";
+	};
+}
