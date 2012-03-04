@@ -4596,20 +4596,18 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setDisplayCursor:NO];
 	[UNIVERSE setViewDirection:VIEW_AFT];
-	[self becomeLargeExplosion:4.0];
+	
+	// Let scripts know the player died.
+	[self noteKilledBy:whom damageType:type]; // called before exploding, consistant with npc ships.
+	
+	[self becomeLargeExplosion:4.0]; // also sets STATUS_DEAD
 	[self moveForward:100.0];
 	
 	flightSpeed = 160.0f;
 	[[UNIVERSE messageGUI] clear];		// No messages for the dead.
 	[self suppressTargetLost];			// No target lost messages when dead.
-	[self setStatus:STATUS_DEAD];
 	[self playGameOver];
-	
-	// Let scripts know the player died.
-	[self noteKilledBy:whom damageType:type];
-	
 	[UNIVERSE setBlockJSPlayerShipProps:YES];	// Treat JS player as stale entity.
-	[self setStatus:STATUS_DEAD];		// set dead again in case a script managed to revive the player.
 	[self removeAllEquipment];			// No scooping / equipment damage when dead.
 	[self loseTargetStatus];
 	[self showGameOver];

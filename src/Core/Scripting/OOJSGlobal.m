@@ -451,6 +451,7 @@ static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp)
 	
 	NSString				*value = nil;
 	NSMutableCharacterSet	*allowedChars = (NSMutableCharacterSet *)[NSMutableCharacterSet alphanumericCharacterSet];
+	BOOL					result = NO;	
 	
 	[allowedChars addCharactersInString:@"_-"];
 	
@@ -478,7 +479,11 @@ static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	
-	OOJS_RETURN_BOOL([[UNIVERSE gameView] snapShot:value]);
+	OOJS_BEGIN_FULL_NATIVE(context)
+	result = [[UNIVERSE gameView] snapShot:value];
+	OOJS_END_FULL_NATIVE
+	
+	OOJS_RETURN_BOOL(result);
 	
 	OOJS_NATIVE_EXIT
 }

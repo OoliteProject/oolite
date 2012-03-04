@@ -5815,6 +5815,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) noteKilledBy:(Entity *)whom damageType:(OOShipDamageType)type
 {
+	if ([self status] == STATUS_DEAD)  return;
+	
 	[PLAYER setScriptTarget:self];
 	
 	JSContext *context = OOJSAcquireContext();
