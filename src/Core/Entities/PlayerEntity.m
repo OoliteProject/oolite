@@ -4794,6 +4794,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
+	currentWeaponFacing = VIEW_FORWARD;
 	gui_screen = GUI_SCREEN_MAIN;
 	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
