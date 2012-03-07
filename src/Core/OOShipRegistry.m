@@ -1334,7 +1334,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	Quaternion				orientation = kIdentityQuaternion;
 	BOOL					isTurret;
 	BOOL					isDock = NO;
-	float					fireRate = 0.5f;
+	float					fireRate = -1.0f; // out of range constants
+	float					weaponRange = -1.0f;
+	float					weaponEnergy = -1.0f;
 	
 	subentityKey = [declaration objectForKey:@"subentity_key"];
 	if (subentityKey == nil)
@@ -1347,11 +1349,25 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	isTurret = [[declaration oo_stringForKey:@"type"] isEqualToString:@"ball_turret"];
 	if (isTurret)
 	{
-		fireRate = [declaration oo_floatForKey:@"fire_rate" defaultValue:0.5f];
-		if (fireRate < 0.25f)
+		fireRate = [declaration oo_floatForKey:@"fire_rate" defaultValue:-1.0f];
+		if (fireRate < 0.25f && fireRate >= 0.0f)
 		{
 			OOLogWARN(@"shipData.load.warning.turret.badFireRate", @"ball turret fire rate of %g for subenitity of ship %@ is invalid, using 0.25.", fireRate, shipKey);
 			fireRate = 0.25f;
+		}
+		weaponRange = [declaration oo_floatForKey:@"weapon_range" defaultValue:-1.0f];
+		if (weaponRange > 7500.0f)
+		{
+			OOLogWARN(@"shipData.load.warning.turret.badWeaponRange", @"ball turret weapon range of %g for subenitity of ship %@ is to high, using 7500.", weaponRange, shipKey);
+			weaponRange = 7500.0f; // range of primary plasma canon.
+		}
+
+		weaponEnergy = [declaration oo_floatForKey:@"weapon_energy" defaultValue:-1.0f];
+		if (weaponEnergy > 100.0f)
+			
+		{
+			OOLogWARN(@"shipData.load.warning.turret.badWeaponEnergy", @"ball turret weapon energy of %g for subenitity of ship %@ is to high, using 100.", weaponEnergy, shipKey);
+			weaponEnergy = 100.0f;
 		}
 	}
 	else
@@ -1369,7 +1385,13 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	[result oo_setVector:position forKey:@"position"];
 	[result oo_setQuaternion:orientation forKey:@"orientation"];
 	if (isDock)  [result oo_setBool:YES forKey:@"is_dock"];
-	if (isTurret)  [result oo_setFloat:fireRate forKey:@"fire_rate"];
+	if (isTurret)
+	{
+		// default constants are defined and set in shipEntity
+		if (fireRate > 0) [result oo_setFloat:fireRate forKey:@"fire_rate"];
+		if (weaponRange >= 0) [result oo_setFloat:weaponRange forKey:@"weapon_range"];
+		if (weaponEnergy >= 0) [result oo_setFloat:weaponEnergy forKey:@"weapon_energy"];
+	}
 	
 	return [[result copy] autorelease];
 }
