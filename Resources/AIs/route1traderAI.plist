@@ -37,7 +37,7 @@
 	}; 
 	"GO_TO_STATION" = 
 	{
-		ENTER = (setTargetToSystemStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
+		ENTER = ("dropMessages: WAYPOINT_SET", setTargetToSystemStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
 		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
@@ -59,7 +59,7 @@
 	}; 
 	"GO_TO_SUB_STATION" = 
 	{
-		ENTER = (setTargetToNearestFriendlyStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
+		ENTER = ("dropMessages: WAYPOINT_SET", setTargetToNearestFriendlyStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
 		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, setTargetToNearestFriendlyStation, "setAITo: dockingAI.plist");
@@ -81,7 +81,7 @@
 	}; 
 	"GO_TO_RANDOM_STATION" = 
 	{
-		ENTER = ("setDesiredRangeTo: 15000.0", setDestinationToTarget, checkCourseToDestination);
+		ENTER = ("dropMessages: WAYPOINT_SET", "setDesiredRangeTo: 15000.0", setDestinationToTarget, checkCourseToDestination);
 		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, setTargetToNearestStation, "setAITo: dockingAI.plist");

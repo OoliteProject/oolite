@@ -456,6 +456,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (ship_distance < 1000.0 + collision_radius + ship->collision_radius)	// too close - back off
 			return instructions(universalID, position, 0, 5000, @"BACK_OFF", nil, NO);
 		
+		float dot = dot_product(launchVector, delta);
+		if (dot < 0) // approaching from the wrong side of the station - construct a vector to the side of the station.
+		{
+			Vector approachVector = cross_product(vector_normal(delta), launchVector);
+			approachVector = cross_product(launchVector, approachVector); // vector, 90 degr rotated from launchVector towards target.
+			return instructions(universalID, OOVectorTowards(position, approachVector, [self collisionRadius] + 5000) , 0, 1000, @"APPROACH", nil, NO);
+		}
+		
 		if (ship_distance > 12500.0)	// long way off - approach more closely
 			return instructions(universalID, position, 0, 10000, @"APPROACH", nil, NO);
 	}

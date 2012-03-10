@@ -34,7 +34,9 @@
 	};
 	APPROACH =
 	{
-		ENTER = (recallDockingInstructions, "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		ENTER = (recallDockingInstructions, "setSpeedFactorTo: 1.0", checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
 		"DOCKING_ABORTED" = ("setStateTo: ABORT");
 		"COLLISION" = ("setStateTo: ABORT");
@@ -42,6 +44,7 @@
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
 		"RESTART_DOCKING" = ("setStateTo: GLOBAL");
+		RESTARTED = (recallDockingInstructions, "setSpeedFactorTo: 1.0", checkCourseToDestination);
 	};
 	RETREAT =
 	{
