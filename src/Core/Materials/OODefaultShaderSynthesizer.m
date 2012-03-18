@@ -99,7 +99,7 @@ static NSString *FormatFloat(double value);
 								_completed_writeDiffuseColorTermIfNeeded: 1,
 								_completed_writeVertexPosition: 1,
 								_completed_writeNormalIfNeeded: 1,
-								_completedwriteNormal: 1,
+						//		_completedwriteNormal: 1,
 								_completed_writeLightVector: 1,
 								_completed_writeEyeVector: 1, 
 								_completed_writeTotalColor: 1,

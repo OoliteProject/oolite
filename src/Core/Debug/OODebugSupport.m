@@ -82,6 +82,7 @@ void OOInitDebugSupport(void)
 		{
 			debugger = [plugInController setUpDebugger];
 		}
+		OOConsumeReference(plugInController);
 		
 		// Otherwise, use TCP debugger connection.
 		if (debugger == nil)

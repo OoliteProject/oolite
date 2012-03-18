@@ -319,7 +319,10 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 		OO_ENTER_OPENGL();
 		
 		GLenum format, internalFormat, type;
-		DecodeFormat(_format, _options, &format, &internalFormat, &type);
+		if (!DecodeFormat(_format, _options, &format, &internalFormat, &type))
+		{
+			return kOONullPixMap;
+		}
 		
 		if (![self isCubeMap])
 		{

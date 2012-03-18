@@ -784,6 +784,8 @@ static OOCacheNode *TreeInsert(OOCacheImpl *cache, id<OOCacheComparable> key, id
 		{
 			closest = cache->root;
 			node = CacheNodeAllocate(key, value);
+			if (EXPECT_NOT(node == NULL))  return NULL;
+			
 			order = [key compare:closest->key];
 			
 			if (order == NSOrderedAscending)

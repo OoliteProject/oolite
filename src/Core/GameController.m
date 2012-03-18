@@ -852,7 +852,7 @@ static void RemovePreference(NSString *key)
 			{
 				// Check name from previous access, because we might have changed localizations.
 				NSString *originalOldName = GetPreference(kSnapshotsDirNameKey, [NSString class]);
-				if ([existingName compare:originalOldName options:NSCaseInsensitiveSearch] != 0)
+				if (originalOldName == nil || [existingName compare:originalOldName options:NSCaseInsensitiveSearch] != 0)
 				{
 					url = nil;
 				}

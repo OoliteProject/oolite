@@ -1666,6 +1666,9 @@ static BOOL EnsureCorrectDataSize(OOPixMap *pixMap, BOOL leaveSpaceForMipMaps)
 	
 	correctSize = pixMap->rowBytes * pixMap->height;
 	
+	// correctSize > 0 check is redundant, but static analyzer (checker-262) doesn't know that. -- Ahruman 2012-03-17
+	NSCParameterAssert(OOIsValidPixMap(*pixMap) && correctSize > 0);
+	
 	/*	Ensure that the block is not too small. This needs to be done before
 		adding the mip-map space, as the texture may have been shrunk in place
 		without being grown for mip-maps.

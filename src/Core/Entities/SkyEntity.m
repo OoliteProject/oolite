@@ -62,7 +62,7 @@ MA 02110-1301, USA.
 							nebulaCount;
 	unsigned				starCountMultiplier, 
 							nebulaCountMultiplier;
-
+	
 	self = [super init];
 	if (self == nil)  return nil;
 	
@@ -71,8 +71,10 @@ MA 02110-1301, USA.
 	
 	skyColor = [[OOColor colorWithDescription:[systemInfo objectForKey:@"sun_color"]] retain];
 	if (skyColor == nil)
+	{
 		skyColor = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
-
+	}
+	
 	// Load distribution values
 	clusterChance = [systemInfo oo_floatForKey:@"sky_blur_cluster_chance" defaultValue:SKY_clusterChance];
 	alpha = [systemInfo oo_floatForKey:@"sky_blur_alpha" defaultValue:SKY_alpha];
@@ -91,7 +93,7 @@ MA 02110-1301, USA.
 		starCount = starCountMultiplier * SKY_MAX_STARS * 0.5 * randf() * randf();
 	}
 	
-	// ...and sky count. (Note: simplifying this would change the appearance of stars/blobs.)
+	// ...and nebula count. (Note: simplifying this would change the appearance of stars/blobs.)
 	nebulaCount = [systemInfo oo_floatForKey:@"sky_n_blurs" defaultValue:-1];
 	if (0 <= nebulaCount)
 	{
@@ -135,14 +137,14 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) changeProperty:(NSString *)key withDictionary:(NSDictionary*) dict
+- (BOOL) changeProperty:(NSString *)key withDictionary:(NSDictionary*)dict
 {
 	id	object = [dict objectForKey:key];
 	
 	// TODO: properties requiring reInit?
 	if ([key isEqualToString:@"sun_color"])
 	{
-		OOColor 	*col=[[OOColor colorWithDescription:object] retain]; 
+		OOColor 	*col=[[OOColor colorWithDescription:object] retain];
 		if (col != nil)
 		{
 			[skyColor release];
