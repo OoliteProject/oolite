@@ -28,7 +28,10 @@ MA 02110-1301, USA.
 #if OOLITE_MAC_OS_X
 #include <sys/sysctl.h>
 #elif (OOLITE_LINUX || OOLITE_WINDOWS)
+// Workaround for clang/glibc incompatibility.
+#define __block __glibc_block
 #include <unistd.h>
+#undef __block
 #endif
 
 

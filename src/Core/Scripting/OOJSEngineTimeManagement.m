@@ -31,7 +31,16 @@ SOFTWARE.
 #import "OOJSScript.h"
 #import "OOCollectionExtractors.h"
 #import "OOLoggingExtended.h"
+
+#if OOLITE_LINUX
+// Workaround for clang/glibc incompatibility.
+#define __block __glibc_block
+#endif
 #include <unistd.h>
+
+#if OOLITE_LINUX
+#undef __block
+#endif
 
 
 #if OO_DEBUG
