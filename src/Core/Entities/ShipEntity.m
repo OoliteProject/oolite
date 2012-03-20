@@ -8577,12 +8577,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[self setOwner:other];
 	[self checkScanner];
 	unsigned i;
+	ShipEntity *scooper;
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
-		ShipEntity *scooper = (ShipEntity *)scanned_ships[i];
-		// very specific. might break if the AI convention changes.
-		// if (other != scoopers && (id) self == [scoopers primaryTarget] && [[[scoopers getAI] state] isEqualToString: @"COLLECT_STUFF"])
-		// more generic, if other ships are trying to shoot the scooped item, they'll lose it too.
+		scooper = (ShipEntity *)scanned_ships[i];
+		// 'Dibs!' - Stops other ships from trying to scoop/shoot this cargo.
 		if (other != scooper && (id) self == [scooper primaryTarget])
 		{
 			[scooper noteLostTarget];

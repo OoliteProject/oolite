@@ -55,6 +55,7 @@ MA 02110-1301, USA.
 	{
 		_blastsRemaining = ECM_PULSE_COUNT;
 		_nextBlast = ECM_PULSE_INTERVAL;
+		_ship = ship;
 		
 		[self setPosition:[ship position]];
 		
@@ -69,8 +70,9 @@ MA 02110-1301, USA.
 - (void) update:(OOTimeDelta)delta_t
 {
 	_nextBlast -= delta_t;
+	BOOL validShip = _ship && [_ship status] != STATUS_DEAD;
 	
-	if (_nextBlast <= 0.0)
+	if (_nextBlast <= 0.0 && validShip)
 	{
 		// Do ECM stuff.
 		double radius = OOClamp_0_1_d((double)(ECM_PULSE_COUNT - _blastsRemaining + 1) * 1.0 / (double)ECM_PULSE_COUNT);
@@ -86,20 +88,21 @@ MA 02110-1301, USA.
 		{
 			JSContext *context = OOJSAcquireContext();
 			jsval ecmPulsesRemaining = INT_TO_JSVAL(_blastsRemaining);
+			jsval whomVal = OOJSValueFromNativeObject(context, _ship);
 			
 			for (i = 0; i < count; i++)
 			{
 				ShipEntity *target = [targets objectAtIndex:i];
-				ShipScriptEvent(context, target, "shipHitByECM", ecmPulsesRemaining);
+				ShipScriptEvent(context, target, "shipHitByECM", ecmPulsesRemaining, whomVal);
 				[target reactToAIMessage:@"ECM" context:nil];
 			}
 			
 			OOJSRelinquishContext(context);
 		}
 		_nextBlast += ECM_PULSE_INTERVAL;
-		
-		if (_blastsRemaining == 0)  [UNIVERSE removeEntity:self];
 	}
+	
+	if (_blastsRemaining == 0 || !validShip)  [UNIVERSE removeEntity:self];
 }
 
 

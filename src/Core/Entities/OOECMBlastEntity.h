@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 @private
 	OOTimeDelta			_nextBlast;
 	uint_fast8_t		_blastsRemaining;
+	ShipEntity			*_ship;
 }
 
 

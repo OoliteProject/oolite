@@ -32,7 +32,6 @@ SOFTWARE.
 */
 
 #import "OOTexture.h"
-#import "OOPixMap.h"
 #import "OOAsyncWorkManager.h"
 
 
