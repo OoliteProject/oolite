@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "Universe.h"
 #import "ShipEntity.h"
+#import "PlayerEntity.h"
 #import "ShipEntityAI.h"
 #import "OOCharacter.h"
 
@@ -163,6 +164,10 @@ MA 02110-1301, USA.
 	
 	setRandomSeed(savedRndSeed);
 	RANROTSetFullSeed(savedRanrotSeed);
+	
+	// rotate planet based on current time, needs to be done here - backported from PlanetEntity.
+	int		deltaT = floor(fmod([PLAYER clockTimeAdjusted], 86400));
+	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * deltaT);
 	
 	[self setStatus:STATUS_ACTIVE];
 	
@@ -454,6 +459,22 @@ static OOColor *ColorWithHSBColor(Vector c)
 - (BOOL) isVisible
 {
 	return YES;
+}
+
+
+- (double) rotationalVelocity
+{
+	return _rotationalVelocity;
+}
+
+
+- (void) setRotationalVelocity:(double) v
+{
+	if ([self hasAtmosphere])
+	{
+		// FIXME: change atmosphere rotation speed proportionally
+	}
+	_rotationalVelocity = v;
 }
 
 

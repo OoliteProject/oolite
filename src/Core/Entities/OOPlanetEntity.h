@@ -58,6 +58,9 @@ MA 02110-1301, USA.
 
 - (id) miniatureVersion;
 
+- (double) rotationalVelocity;
+- (void) setRotationalVelocity:(double) v;
+
 - (void) launchShuttle;
 - (void) welcomeShuttle:(ShipEntity *)shuttle;
 

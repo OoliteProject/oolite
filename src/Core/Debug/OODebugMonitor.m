@@ -465,11 +465,15 @@ typedef struct
 	}
 	if ([entity isPlanet])
 	{
+#if NEW_PLANETS
+		// FIXME: dump atmosphere texture.
+#else
 		PlanetEntity *atmosphere = [entity atmosphere];
 		if (atmosphere != nil)
 		{
 			[self dumpEntity:atmosphere withState:state parentVisible:visible];
 		}
+#endif
 	}
 	if ([entity isWormhole])
 	{

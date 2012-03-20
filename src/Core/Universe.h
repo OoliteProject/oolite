@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOSound.h"
 #import "OOJSPropID.h"
+#import "OOStellarBody.h"
 
 
 #if OOLITE_ESPEAK
