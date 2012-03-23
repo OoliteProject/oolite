@@ -495,6 +495,20 @@ this.deleteMacro = function deleteMacro(parameters)
 }
 
 
+this.listMacro = function listMacro()
+{
+	for (var prop in defaultMacros)
+	{
+		consoleMessage('macro-list', ':' + prop);
+	}
+	
+	for (var prop in macros)
+	{
+		if (!defaultMacros[prop]) consoleMessage('macro-list', ':' + prop);
+	}
+}
+
+
 this.resolveMacro = function resolveMacro(name)
 {
 	if (defaultMacros[name])  return defaultMacros[name];
