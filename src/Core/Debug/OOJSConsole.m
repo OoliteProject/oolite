@@ -654,10 +654,10 @@ static JSBool ConsoleConsoleMessage(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	colorKey = OOStringFromJSValue(context,OOJS_ARGV[0]);
-	message = OOStringFromJSValue(context,OOJS_ARGV[1]);
+	if (argc > 0) colorKey = OOStringFromJSValue(context,OOJS_ARGV[0]);
+	if (argc > 1) message = OOStringFromJSValue(context,OOJS_ARGV[1]);
 	
-	if (4 <= argc)
+	if (argc > 3)
 	{
 		// Attempt to get two numbers, specifying an emphasis range.
 		if (JS_ValueToNumber(context, OOJS_ARGV[2], &location) &&

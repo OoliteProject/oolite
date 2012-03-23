@@ -101,6 +101,9 @@ SOFTWARE.
 - (BOOL) debuggerConnected;
 
 - (void) dumpMemoryStatistics;
+#if OOLITE_GNUSTEP
+- (void) applicationWillTerminate;
+#endif
 
 @end
 

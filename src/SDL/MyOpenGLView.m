@@ -285,8 +285,8 @@ MA 02110-1301, USA.
 	/* MKW 2011.11.11
 	 * Eat all SDL events to gobble up any resize events while the
 	 * splash-screen was visible.  They affected the main window after 1.74.
-	 * TODO Post-MNSR: should really process SDL events while the splash-screen
-	 *                 is being displayed.
+	 * TODO: should really process SDL events while showing the splash-screen
+
 	int numEvents = 0;
 	*/
 	SDL_Event dummyEvent;
@@ -568,10 +568,12 @@ MA 02110-1301, USA.
 	
 	/* MKW 2011.11.11
 	 * According to Marc using the NOFRAME flag causes trouble under Ubuntu 8.04.
-	 * TODO: Investigate & fix!
-	 * surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
+	 *
+	 * The current Ubuntu LTS is 10.04, which doesn't seem to have that problem.
+	 * 12.04 LTS is going to be released soon, also without apparent problems.
+	 * Changed to SDL_NOFRAME, throwing caution to the wind - Kaks 2012.03.23
 	 */
-	 surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
+	 surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
 	
   #endif
 	

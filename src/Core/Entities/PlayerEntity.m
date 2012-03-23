@@ -6573,7 +6573,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		
 		// check for error messages from Resource Manager
-		[ResourceManager paths];
+		//[ResourceManager paths]; done in Universe already
 		NSString *errors = [ResourceManager errors];
 		if (errors != nil)
 		{

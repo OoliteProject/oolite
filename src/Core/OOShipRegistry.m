@@ -258,9 +258,6 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 {
 	NSMutableDictionary		*result = nil;
 	
-	OOLog(@"shipData.load.begin", @"Loading ship data.");
-	OOLogIndentIf(@"shipData.load.begin");
-	
 	[_shipData release];
 	_shipData = nil;
 	[_playerShips release];
@@ -1430,6 +1427,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 {
 	if (sSingleton == nil)
 	{
+		OOLog(@"shipData.load.begin", @"Loading ship data.");
 		sSingleton = [super allocWithZone:inZone];
 		return sSingleton;
 	}

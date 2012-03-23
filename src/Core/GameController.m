@@ -48,6 +48,8 @@ MA 02110-1301, USA.
 #import "OOMacJoystickManager.h"
 
 static void SetUpSparkle(void);
+#elif OOLITE_GNUSTEP
+#import "OODebugMonitor.h"
 #endif
 
 
@@ -1231,6 +1233,9 @@ static NSMutableArray *sMessageStack;
 - (void) exitAppWithContext:(NSString *)context
 {
 	OOLog(@"exit.context", @"Exiting: %@.", context);
+#if OOLITE_GNUSTEP
+	[[OODebugMonitor sharedDebugMonitor] applicationWillTerminate];
+#endif
 	[[NSUserDefaults standardUserDefaults] synchronize];
 	OOLog(@"gameController.exitApp",@".GNUstepDefaults synchronized.");
 	OOLoggingTerminate();
