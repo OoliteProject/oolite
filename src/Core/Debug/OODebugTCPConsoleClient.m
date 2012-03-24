@@ -364,6 +364,7 @@ noteChangedConfigrationValue:(in id)newValue
 	size_t					count;
 	const uint8_t			*bytes = NULL;
 	uint32_t				header;
+	bool 					sentOK = YES;
 	
 	if (dictionary == nil || !StatusIsSendable(_status))  return;
 	
@@ -387,9 +388,46 @@ noteChangedConfigrationValue:(in id)newValue
 	header = htonl(count);
 	
 	bytes = [data bytes];
-	if (![self sendBytes:&header count:sizeof header] || ![self sendBytes:bytes count:count])
+	
+	/*	In testing, all bad stream errors were caused by the python console
+		rejecting headers. Made the protocol a bit more fault tolerant.
+		-- Kaks 2012.03.24
+	*/
+	if (![self sendBytes:&header count:sizeof header])
 	{
-		[self breakConnectionWithBadStream:_outStream];
+		OOLog(@"debugTCP.send.warning", @"Error sending packet header, retrying.");
+		// wait 8 milliseconds, resend the header
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:.008]];
+		if (![self sendBytes:&header count:sizeof header])
+		{
+			//OOLog(@"debugTCP.send.warning", @"Error sending packet header, retrying one more time.");
+			// wait 16 milliseconds, try to resend the header one last time!
+			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:.016]];
+			if (![self sendBytes:&header count:sizeof header])
+			{
+				sentOK = NO;
+			}
+		}
+	}
+	
+	if(sentOK && ![self sendBytes:bytes count:count])
+	{
+		OOLog(@"debugTCP.send.warning", @"Error sending packet body, retrying.");
+		// wait 8 milliseconds, try again.
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:.008]];
+		if(![self sendBytes:bytes count:count])
+		{
+			sentOK = NO;
+		}
+	}
+	
+	if (!sentOK)
+	{
+		OOLog(@"debugTCP.send.error", @"The following packet could not be sent: %@", dictionary);
+		if(![[OODebugMonitor sharedDebugMonitor] TCPIgnoresDroppedPackets])
+		{
+			[self breakConnectionWithBadStream:_outStream];
+		}
 	}
 }
 
@@ -662,7 +700,7 @@ noteChangedConfigrationValue:(in id)newValue
 	error = [stream streamError];
 	errorDesc = [error localizedDescription];
 	if (errorDesc == nil)  errorDesc = [error description];
-	if (errorDesc == nil)  errorDesc = @"unknown error.";
+	if (errorDesc == nil)  errorDesc = @"bad stream.";
 	[self breakConnectionWithMessage:[NSString stringWithFormat:
 	   @"Connection to debug console failed: '%@' (outStream status: %i, inStream status: %i).",
 		errorDesc, [_outStream streamStatus], [_inStream streamStatus]]];

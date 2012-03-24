@@ -77,6 +77,8 @@ SOFTWARE.
 	NSMutableDictionary					*_fgColors,
 										*_bgColors,
 										*_sourceFiles;
+	// TCP options
+	BOOL								_TCPIgnoresDroppedPackets;
 }
 
 + (id)sharedDebugMonitor;
@@ -101,6 +103,10 @@ SOFTWARE.
 - (BOOL) debuggerConnected;
 
 - (void) dumpMemoryStatistics;
+
+- (void) setTCPIgnoresDroppedPackets:(BOOL)flag;
+- (BOOL) TCPIgnoresDroppedPackets;
+
 #if OOLITE_GNUSTEP
 - (void) applicationWillTerminate;
 #endif

@@ -94,6 +94,8 @@ static OODebugMonitor *sSingleton = nil;
 		if (config == nil)  config = [NSMutableDictionary dictionary];
 		_configOverrides = [config retain];
 		
+		_TCPIgnoresDroppedPackets = NO;
+		
 		OOJavaScriptEngine *jsEng = [OOJavaScriptEngine sharedEngine];
 #if OOJSENGINE_MONITOR_SUPPORT
 		[jsEng setMonitor:self];
@@ -620,6 +622,23 @@ typedef struct
 	[self writeMemStat:@"Total: %@", SizeString(totalSize)];
 	
 	OOLogOutdent();
+}
+
+
+- (void) setTCPIgnoresDroppedPackets:(BOOL)flag
+{
+	if (_TCPIgnoresDroppedPackets != flag)
+	{
+		OOLog(@"debugMonitor.TCPSettings", @"The TCP console will %@ TCP packets.",
+				(flag ? @"try to stay connected, ignoring dropped" : @"disconnect if an error affects"));
+	}
+	_TCPIgnoresDroppedPackets = flag;
+}
+
+
+- (BOOL) TCPIgnoresDroppedPackets
+{
+	return _TCPIgnoresDroppedPackets;
 }
 
 

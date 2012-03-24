@@ -125,6 +125,7 @@ enum
 	kConsole_reducedDetailMode,					// reduced detail mode, boolean, read/write
 	kConsole_displayFPS,						// display FPS (and related info), boolean, read/write
 	kConsole_platformDescription,				// Information about system we're running on in unspecified format, string, read-only
+	kConsole_ignoreDroppedPackets,				// boolean (default false), read/write
 	kConsole_pedanticMode,						// JS pedantic mode (JS_STRICT flag, not the same as "use strict"), boolean (default true), read/write
 	kConsole_showErrorLocations,				// Show error/warning source locations, boolean (default true), read/write
 	kConsole_dumpStackForErrors,				// Write stack dump when reporting error/exception, boolean (default false), read/write
@@ -161,6 +162,7 @@ static JSPropertySpec sConsoleProperties[] =
 	{ "displayFPS",							kConsole_displayFPS,						OOJS_PROP_READWRITE_CB },
 	{ "platformDescription",				kConsole_platformDescription,				OOJS_PROP_READONLY_CB },
 	{ "pedanticMode",						kConsole_pedanticMode,						OOJS_PROP_READWRITE_CB },
+	{ "ignoreDroppedPackets",				kConsole_ignoreDroppedPackets,				OOJS_PROP_READWRITE_CB },
 	{ "__showErrorLocations",				kConsole_showErrorLocations,				OOJS_PROP_HIDDEN_READWRITE_CB },
 	{ "__dumpStackForErrors",				kConsole_dumpStackForErrors,				OOJS_PROP_HIDDEN_READWRITE_CB },
 	{ "__dumpStackForWarnings",				kConsole_dumpStackForWarnings,				OOJS_PROP_HIDDEN_READWRITE_CB },
@@ -345,6 +347,10 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 			}
 			break;
 			
+		case kConsole_ignoreDroppedPackets:
+			*value = OOJSValueFromBOOL([[OODebugMonitor sharedDebugMonitor] TCPIgnoresDroppedPackets]);
+			break;
+			
 		case kConsole_showErrorLocations:
 			*value = OOJSValueFromBOOL([[OOJavaScriptEngine sharedEngine] showErrorLocations]);
 			break;
@@ -454,6 +460,13 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID
 				else  options &= ~JSOPTION_STRICT;
 				
 				JS_SetOptions(context, options);
+			}
+			break;
+			
+		case kConsole_ignoreDroppedPackets:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[[OODebugMonitor sharedDebugMonitor] setTCPIgnoresDroppedPackets:bValue];
 			}
 			break;
 			
