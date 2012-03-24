@@ -55,7 +55,7 @@ MA 02110-1301, USA.
 	{
 		_blastsRemaining = ECM_PULSE_COUNT;
 		_nextBlast = ECM_PULSE_INTERVAL;
-		_ship = ship;
+		_ship = [ship weakRetain];
 		
 		[self setPosition:[ship position]];
 		
@@ -70,7 +70,8 @@ MA 02110-1301, USA.
 - (void) update:(OOTimeDelta)delta_t
 {
 	_nextBlast -= delta_t;
-	BOOL validShip = _ship && [_ship status] != STATUS_DEAD;
+	ShipEntity		*ship = [_ship weakRefUnderlyingObject];
+	BOOL 			validShip = (ship != nil) && ([ship status] != STATUS_DEAD);
 	
 	if (_nextBlast <= 0.0 && validShip)
 	{
@@ -88,7 +89,7 @@ MA 02110-1301, USA.
 		{
 			JSContext *context = OOJSAcquireContext();
 			jsval ecmPulsesRemaining = INT_TO_JSVAL(_blastsRemaining);
-			jsval whomVal = OOJSValueFromNativeObject(context, _ship);
+			jsval whomVal = OOJSValueFromNativeObject(context, ship);
 			
 			for (i = 0; i < count; i++)
 			{
