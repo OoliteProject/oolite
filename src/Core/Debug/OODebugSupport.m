@@ -81,6 +81,7 @@ void OOInitDebugSupport(void)
 		if (consoleHost == nil && [plugInController respondsToSelector:@selector(setUpDebugger)])
 		{
 			debugger = [plugInController setUpDebugger];
+			[[OODebugMonitor sharedDebugMonitor] setUsingPlugInController:YES];
 		}
 		OOConsumeReference(plugInController);
 		
@@ -90,6 +91,7 @@ void OOInitDebugSupport(void)
 			debugger = [[OODebugTCPConsoleClient alloc] initWithAddress:consoleHost
 																   port:consolePort];
 			[debugger autorelease];
+			[[OODebugMonitor sharedDebugMonitor] setUsingPlugInController:NO];
 		}
 		
 		activateDebugConsole = (debugger != nil);

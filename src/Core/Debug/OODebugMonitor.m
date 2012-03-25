@@ -642,6 +642,18 @@ typedef struct
 }
 
 
+- (void) setUsingPlugInController:(BOOL)flag
+{
+	_usingPlugInController = flag;
+}
+
+
+- (BOOL) usingPlugInController
+{
+	return _usingPlugInController;
+}
+
+
 - (NSString *)sourceCodeForFile:(in NSString *)filePath line:(in unsigned)line
 {
 	id							linesForFile = nil;

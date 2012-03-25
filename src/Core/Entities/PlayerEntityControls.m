@@ -59,6 +59,8 @@ MA 02110-1301, USA.
 #import "Groolite.h"
 #endif
 
+#import "OODebugSupport.h"
+#import "OODebugMonitor.h"
 
 static BOOL				jump_pressed;
 static BOOL				hyperspace_pressed;
@@ -1382,6 +1384,28 @@ static NSTimeInterval	time_last_frame;
 				gDebugFlags |= DEBUG_COLLISIONS;
 				[UNIVERSE addMessage:@"Collision debug ON" forCount:3];
 			}
+			
+			if ([gameView isDown:'c'] && ![[OODebugMonitor sharedDebugMonitor] usingPlugInController]) // look for the 'c' key
+			{
+				// This code is executed only if we're not using the integrated plugin controller
+				if (!autopilot_key_pressed)
+				{
+					if (![[OODebugMonitor sharedDebugMonitor] debuggerConnected])
+					{
+						OOInitDebugSupport();
+						if ([[OODebugMonitor sharedDebugMonitor] debuggerConnected])
+							[UNIVERSE addMessage:@"Connected to debug console." forCount:3];
+					}
+					else
+					{
+						[[OODebugMonitor sharedDebugMonitor] setDebugger:nil];
+						[UNIVERSE addMessage:@"Disconnected from debug console." forCount:3];
+					}
+				}
+				autopilot_key_pressed = YES;
+			}
+			else
+				autopilot_key_pressed = NO;
 			
 			if ([gameView isDown:'x'])// look for the 'x' key
 			{

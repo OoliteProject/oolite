@@ -79,6 +79,7 @@ SOFTWARE.
 										*_sourceFiles;
 	// TCP options
 	BOOL								_TCPIgnoresDroppedPackets;
+	BOOL								_usingPlugInController;
 }
 
 + (id)sharedDebugMonitor;
@@ -106,6 +107,9 @@ SOFTWARE.
 
 - (void) setTCPIgnoresDroppedPackets:(BOOL)flag;
 - (BOOL) TCPIgnoresDroppedPackets;
+
+- (void) setUsingPlugInController:(BOOL)flag;
+- (BOOL) usingPlugInController;
 
 #if OOLITE_GNUSTEP
 - (void) applicationWillTerminate;
