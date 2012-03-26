@@ -497,18 +497,20 @@ this.deleteMacro = function deleteMacro(parameters)
 
 this.listMacro = function listMacro()
 {
-	var l=[];
+	var tmp,l=[];
 	for (var prop in defaultMacros)
 	{
 		l.push( ":" + prop);
 	}
-	
+	l.sort();
+	tmp = l.join("\n"));
+	l=[];
 	for (var prop in macros)
 	{
 		if (!defaultMacros[prop]) l.push( ":" + prop);
 	}
 	l.sort();
-	consoleMessage("macro-list", l.join("\n"));
+	consoleMessage("macro-list", tmp + l.join("\n"));
 }
 
 

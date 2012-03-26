@@ -62,7 +62,7 @@
 		"listM"		= "listMacro()";
 		
 		// Reload macros from plist, removing any custom ones.
-		"resetM"	= "delete console.settings.macros; macros = console.settings.macros; undefined";
+		"resetM"	= "macros = console.settings.macros = {}; undefined";
 		
 		// Examining (“dumping”) objects
 		"d"			= "dumpObject(eval(PARAM))";
