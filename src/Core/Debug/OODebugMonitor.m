@@ -923,7 +923,7 @@ FIXME: this works with CRLF and LF, but not CR.
 				emphasisRange:emphasisRange];
 	
 	if (errorReport->flags & JSREPORT_WARNING)  showKey = @"show-console-on-warning";
-	else  showKey = @"show-console-on-warning";
+	else  showKey = @"show-console-on-error";	// if not a warning, it's a proper error.
 	if (OOBooleanFromObject([self configurationValueForKey:showKey], NO))
 	{
 		[self showJSConsole];
