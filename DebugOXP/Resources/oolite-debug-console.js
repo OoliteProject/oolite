@@ -503,7 +503,7 @@ this.listMacro = function listMacro()
 		l.push( ":" + prop);
 	}
 	l.sort();
-	tmp = l.join("\n"));
+	tmp = l.join("\n");
 	l=[];
 	for (var prop in macros)
 	{
