@@ -24,4 +24,44 @@
 		specular_color = (0.1, 1.0, 0.1);
 		shininess = 4;
 	};
+	// NEW_PLANETS definitions	
+	"planet-material" =
+	{
+		// Textures added dynamically.
+		vertex_shader = "oolite-default-planet.vertex";
+		fragment_shader = "oolite-default-planet.fragment";
+		uniforms =
+		{
+			uDiffuseMap = { type = texture; value = 0; };
+			uNormalMap = { type = texture; value = 1; };
+		};
+	};
+	"planet-dynamic-macros" =
+	{
+		IS_OOLITE = 1;
+		OOSTD_DIFFUSE_MAP = 1;
+		OOSTD_NORMAL_AND_SPECULAR_MAP = "!OO_REDUCED_COMPLEXITY";
+		OOSTD_CUBE_MAP = 0;
+	};
+	"moon-dynamic-macros" =
+	{
+		IS_OOLITE = 1;
+		OOSTD_DIFFUSE_MAP = 1;
+		OOSTD_NORMAL_AND_SPECULAR_MAP = "!OO_REDUCED_COMPLEXITY";
+		OOSTD_CUBE_MAP = 0;
+		OOSTD_HARSH_MISTRESS = 1;
+	};
+	"planet-customized-macros" =
+	{
+		IS_OOLITE = 1;
+		OOSTD_DIFFUSE_MAP = 1;
+		OOSTD_CUBE_MAP = 0;
+	};
+	"moon-customized-macros" =
+	{
+		IS_OOLITE = 1;
+		OOSTD_DIFFUSE_MAP = 1;
+		OOSTD_CUBE_MAP = 0;
+		OOSTD_HARSH_MISTRESS = 1;
+	};
 }
