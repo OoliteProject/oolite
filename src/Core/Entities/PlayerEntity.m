@@ -1629,7 +1629,7 @@ static GLfloat		sBaseMass = 0.0;
 	UPDATE_STAGE(@"updateAlertCondition");
 	[self updateAlertCondition];
 	UPDATE_STAGE(@"updateFuelScoops:");
-	[self updateFuelScoops:delta_t];	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
+	[self updateFuelScoops:delta_t];
 	
 	UPDATE_STAGE(@"updateClocks:");
 	[self updateClocks:delta_t];
@@ -1731,6 +1731,8 @@ static GLfloat		sBaseMass = 0.0;
 	aft_shot_time+=delta_t;
 	port_shot_time+=delta_t;
 	starboard_shot_time+=delta_t;
+	
+	if (forward_weapon_temp > 0.0f) OOLog (@"kaks",@"updating player");
 	
 	// copy new temp & shot time to main temp & shot time
 	switch (currentWeaponFacing)
@@ -1866,7 +1868,7 @@ static GLfloat		sBaseMass = 0.0;
 		external_temp = SUN_TEMPERATURE * alt1;
 		if ([sun goneNova])
 			external_temp *= 100;
-		// make fuel scooping during the nova mission very unlikely
+		// fuel scooping during the nova mission very unlikely
 		if ([sun willGoNova])
 			external_temp *= 3;
 			

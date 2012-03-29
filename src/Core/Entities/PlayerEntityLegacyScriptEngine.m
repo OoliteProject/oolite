@@ -2585,6 +2585,18 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if ([i_info count] != 4)	// must be xxxxx-planet_x_y_z
 			return NO;				//		   0........... 1 2 3
 		
+		// sunlight position for F7 screen is chosen pseudo randomly from  4 different positions.
+		if (target_system_seed.b & 8)
+		{
+			_sysInfoLight = (target_system_seed.b & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
+		}
+		else
+		{
+			_sysInfoLight = (target_system_seed.d & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
+		}
+
+		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin
+		
 #if NEW_PLANETS
 		OOPlanetEntity *originalPlanet = nil;
 		if ([i_key isEqualToString:@"local-planet"])
@@ -2601,23 +2613,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 #else
 		OOPlanetEntity* doppelganger = nil;
 		NSMutableDictionary *planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:target_system_seed]];
-
-#if 1
-		// sunlight position for F7 screen is chosen pseudo randomly from  4 different positions.
-		if (target_system_seed.b & 8)
-		{
-			_sysInfoLight = (target_system_seed.b & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
-		}
-		else
-		{
-			_sysInfoLight = (target_system_seed.d & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
-		}
-#else
-		// basic sunlight position for F7 screen.
-		_sysInfoLight = (Vector){ -12000.0, -5000.0, -10000.0 };
-#endif
-
-		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin
 		
 		if ([i_key isEqualToString:@"local-planet"] && [UNIVERSE sun])
 		{

@@ -2758,10 +2758,12 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	
 	// add text for reticle here
 	range *= 0.001f;
+	if (range < 0.001f) range = 0.0f;	// avoids the occasional -0.001 km distance.
 	NSSize textsize = NSMakeSize(rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
 	float line_height = rdist * ONE_SIXTYFOURTH;
-	NSString*	info = (legal_desc == nil)? [NSString stringWithFormat:@"%0.3f km", range] : [NSString stringWithFormat:@"%0.3f km (%@)", range, legal_desc];
-	// no need to set color - tis green already!
+	NSString*	info = [NSString stringWithFormat:@"%0.3f km", range];
+	if (legal_desc != nil) info = [NSString stringWithFormat:@"%@ (%@)", info, legal_desc];
+	// no need to set colour here
 	OODrawString([player1 dialTargetName], rs0, 0.5 * rs2, 0, textsize);
 	OODrawString(info, rs0, 0.5 * rs2 - line_height, 0, textsize);
 	
