@@ -1731,9 +1731,7 @@ static GLfloat		sBaseMass = 0.0;
 	aft_shot_time+=delta_t;
 	port_shot_time+=delta_t;
 	starboard_shot_time+=delta_t;
-	
-	if (forward_weapon_temp > 0.0f) OOLog (@"kaks",@"updating player");
-	
+		
 	// copy new temp & shot time to main temp & shot time
 	switch (currentWeaponFacing)
 	{
