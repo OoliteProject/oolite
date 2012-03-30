@@ -944,8 +944,8 @@
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -32.5";
 		weapon_position_forward = "0.0 0.0 27.5";
-		weapon_position_port = "-40.0 2.17 -4.33";
-		weapon_position_starboard = "40.0 2.17 -4.33";
+		weapon_position_port = "-40.0 0.0 -6.0";
+		weapon_position_starboard = "40.0 0.0 -6.0";
 	};
 	"cobra3-alternate" =
 	{

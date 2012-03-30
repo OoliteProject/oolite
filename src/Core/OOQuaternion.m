@@ -210,9 +210,9 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 		{
 			q = kIdentityQuaternion;
 		}
-		// We arrive here for antiparallel vectors. Rotation axis is than undefined, but not rotating is
-		// also wrong. Probably should the calling function exclude this situation. For current
-		// in-game use of this function would returning (0,1,0,0) be a solution, but generally that is also wrong.
+		// We arrive here for antiparallel vectors. Rotation axis is then undefined, but not rotating is
+		// wrong. Probably the calling function should exclude this situation. For current
+		// in-game use of this function we return (0,1,0,0), but generally that is also wrong.
 	}
 	return q;
 }

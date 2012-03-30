@@ -46,68 +46,60 @@ MA 02110-1301, USA.
 
 - (id) initLaserFromShip:(ShipEntity *)srcEntity view:(OOViewID)view offset:(Vector)offset
 {
-	ShipEntity			*ship = [srcEntity rootShipEntity];
-	BoundingBox 		bbox = [srcEntity boundingBox];
-	
 	if (!(self = [super init]))  return nil;
+	
+	ShipEntity			*ship = [srcEntity rootShipEntity];;
+	Vector				middle = OOBoundingBoxCenter([srcEntity boundingBox]);
 	
 	NSCParameterAssert([srcEntity isShip] && [ship isShip]);
 	
 	[self setStatus:STATUS_EFFECT];
 	
-	Vector middle = OOBoundingBoxCenter(bbox);
-	Vector pos;
 	if (ship == srcEntity) 
 	{
 		// main laser offset
-		pos = vector_add([ship position], OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix]));
+		position = vector_add([ship position], OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix]));
 	}
 	else
 	{
 		// subentity laser
-		pos = [srcEntity absolutePositionForSubentityOffset:middle];
+		position = [srcEntity absolutePositionForSubentityOffset:middle];
 	}
 	
-	// FIXME: use rotation matrix. We should have corresponding extractors.
-	Quaternion q = [ship normalOrientation];
-	Vector v_up = vector_up_from_quaternion(q);
-	Vector v_forward = vector_forward_from_quaternion(q);
-	Vector v_right = vector_right_from_quaternion(q);
-	velocity = vector_multiply_scalar(v_forward, [ship flightSpeed]);
+	Quaternion q = kIdentityQuaternion;
+	Vector q_up = vector_up_from_quaternion(q);
+	Quaternion q0 = [ship normalOrientation];
+	velocity = vector_multiply_scalar(vector_forward_from_quaternion(q0), [ship flightSpeed]);
 	
-	Vector	viewOffset;
 	switch (view)
 	{
 		default:
 		case VIEW_AFT:
-			quaternion_rotate_about_axis(&q, v_up, M_PI);	
+			quaternion_rotate_about_axis(&q, q_up, M_PI);	
 		case VIEW_FORWARD:
-			viewOffset = vector_multiply_scalar(v_forward, middle.z);
 			break;
 			
 		case VIEW_PORT:
-			quaternion_rotate_about_axis(&q, v_up, M_PI/2.0);
-			viewOffset = vector_multiply_scalar(v_right, middle.x);
+			quaternion_rotate_about_axis(&q, q_up, M_PI/2.0);
 			break;
 			
 		case VIEW_STARBOARD:
-			quaternion_rotate_about_axis(&q, v_up, -M_PI/2.0);
-			viewOffset = vector_multiply_scalar(v_right, middle.x);
+			quaternion_rotate_about_axis(&q, q_up, -M_PI/2.0);
 			break;
 	}
 	
-	position = vector_add(pos, viewOffset);
-	[self setOrientation:q];
-	
-	_range = [srcEntity weaponRange];
+	[self setOrientation:quaternion_multiply(q,q0)];
 	[self setOwner:ship];
+	_range = [srcEntity weaponRange];
+	_lifetime = kLaserDuration;
 	
 	_color[0] = kLaserRed;
 	_color[1] = kLaserGreen;
 	_color[2] = kLaserBlue;
 	_color[3] = kLaserAlpha;
 	
-	_lifetime = kLaserDuration;
+	_offset = (ship == srcEntity) ? offset : middle;
+	_relOrientation = q;
 	
 	return self;
 }
@@ -129,7 +121,7 @@ MA 02110-1301, USA.
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"ttl: %.3fs", _lifetime];
+	return [NSString stringWithFormat:@"ttl: %.3fs - %@ orientation %@", _lifetime, [super descriptionComponents], QuaternionDescription([self orientation])];
 }
 
 
@@ -152,10 +144,24 @@ MA 02110-1301, USA.
 {
 	[super update:delta_t];
 	_lifetime -= delta_t;
+	ShipEntity		*ship = [self owner];
 	
-	[self applyVelocityWithTimeDelta:delta_t];
-	
-	if (_lifetime < 0)  [UNIVERSE removeEntity:self];
+	if ([ship isPlayer]) 
+	{
+		// reposition this shot accurately.
+		position = vector_add([ship position], OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix]));
+		[self setOrientation:quaternion_multiply(_relOrientation,[ship normalOrientation])];
+	}
+	else
+	{
+		// NPCs will make do with approximate repositioning.
+		[self applyVelocityWithTimeDelta:delta_t];
+	}
+
+	if (_lifetime < 0)  
+	{
+		[UNIVERSE removeEntity:self];
+	}
 }
 
 
@@ -188,10 +194,8 @@ static const GLfloat kLaserVertices[] =
 	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
 	
 	
-	/*	FIXME: ideally, _range would be updated by tracing along the initial
-		firing vector (or the initial vector relative to the owner). Even
-		ideallier, we should spread damage across the lifetime of the shot,
-		hurting whatever is hit in a given frame. Something for EMMSTRAN.
+	/*	FIXME: spread damage across the lifetime of the shot,
+		hurting whatever is hit in a given frame.
 		-- Ahruman 2011-01-31
 	*/
 	
