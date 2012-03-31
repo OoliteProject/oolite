@@ -5955,36 +5955,43 @@ static NSDictionary	*sCachedSystemData = nil;
 	if (key == nil || planetKey == nil)  return;
 	
 	overrideDict = [localPlanetInfoOverrides objectForKey:planetKey];
-	if (overrideDict != nil)
+	if (EXPECT_NOT(overrideDict != nil && ![overrideDict isKindOfClass:[NSMutableDictionary class]]))
 	{
-		/*	There has been trouble with localPlanetInfoOverrides containing
-			immutable dictionaries. Changes to -setLocalPlanetInfoOverrides
-			should have fixed it, but we validate just to be certain.
-			-- Ahruman 20070729
-			
-			EMMSTRAN: remove.
+		/*	
+			LocalPlanetInfoOverrides sometimes contained immutable
+			dictionaries. Changes to -setLocalPlanetInfoOverrides
+			should have fixed it, but...
+			-- Abridged note. Originally from Ahruman 20070729
 		*/
-		if (![overrideDict isKindOfClass:[NSMutableDictionary class]])
+		if ([overrideDict isKindOfClass:[NSDictionary class]])
 		{
-			if ([overrideDict isKindOfClass:[NSDictionary class]])
-			{
-				OOLog(@"universe.bug.setSystemData", @"BUG: localPlanetInfoOverrides entry \"%@\" is %@. This is an internal programming error; please report it.", @"immutable", planetKey);
-				overrideDict = [[overrideDict mutableCopy] autorelease];
-			}
-			else
-			{
-				OOLog(@"universe.bug.setSystemData", @"BUG: localPlanetInfoOverrides entry \"%@\" is %@. This is an internal programming error; please report it.", @"not a dictionary", planetKey);
-				overrideDict = nil;
-			}
+			overrideDict = [[overrideDict mutableCopy] autorelease];
+		}
+		else
+		{
+			overrideDict = nil;
 		}
 	}
 	
 	if (overrideDict == nil)  overrideDict = [NSMutableDictionary dictionary];
 	
-	if (object != nil)  [overrideDict setObject:object forKey:key];
-	else  [overrideDict removeObjectForKey:key];
+	if (object != nil)
+	{
+		[overrideDict setObject:object forKey:key];
+	}
+	else
+	{
+		[overrideDict removeObjectForKey:key];
+	}
 	
-	[localPlanetInfoOverrides setObject:overrideDict forKey:planetKey];
+	if ([overrideDict count] > 0)
+	{
+		[localPlanetInfoOverrides setObject:overrideDict forKey:planetKey];
+	}
+	else
+	{
+		[localPlanetInfoOverrides removeObjectForKey:planetKey];
+	}
 }
 
 
@@ -7569,7 +7576,6 @@ static double estimatedTimeForJourney(double distance, int hops)
 				{
 					[options removeObject:equipmentKey];
 				}
-
 			}
 			// i18n: Some languages require that no conversion to lower case string takes place.
 			BOOL lowercaseIgnore = [[self descriptions] oo_boolForKey:@"lowercase_ignore"];
