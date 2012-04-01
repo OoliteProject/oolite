@@ -194,9 +194,8 @@
 {
 	assert(_lod < kOOPlanetDataLevels);
 	
-	BOOL shaders = NO;//[UNIVERSE shaderEffectsLevel] > SHADERS_OFF;
-	
 	const OOPlanetDataLevel *data = &kPlanetData[_lod];
+	
 	OO_ENTER_OPENGL();
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
@@ -239,13 +238,10 @@
 	}
 #endif
 	
-	if (!shaders)
-	{
-		// FIXME: instead of GL_RESCALE_NORMAL, consider copying and transforming the vertex array for each planet.
-		OOGL(glEnable(GL_RESCALE_NORMAL));
-		OOGL(glEnableClientState(GL_NORMAL_ARRAY));
-		OOGL(glNormalPointer(GL_FLOAT, 0, kOOPlanetVertices));
-	}
+	// FIXME: instead of GL_RESCALE_NORMAL, consider copying and transforming the vertex array for each planet.
+	OOGL(glEnable(GL_RESCALE_NORMAL));
+	OOGL(glEnableClientState(GL_NORMAL_ARRAY));
+	OOGL(glNormalPointer(GL_FLOAT, 0, kOOPlanetVertices));
 	
 	OOGL(glDrawElements(GL_TRIANGLES, data->faceCount*3, data->type, data->indices));
 	

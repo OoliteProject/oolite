@@ -291,9 +291,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
 		[gui setBackgroundColor:[OOColor colorFromString:[gui_info oo_stringForKey:BACKGROUND_RGBA_KEY]]];
 	if ([gui_info objectForKey:ALPHA_KEY])
-		[gui setMaxAlpha: [gui_info oo_floatForKey:ALPHA_KEY]];
+		[gui setMaxAlpha: OOClamp_0_max_f([gui_info oo_floatForKey:ALPHA_KEY],1.0f)];
 	else
-		[gui setMaxAlpha: 1.0];
+		[gui setMaxAlpha: 1.0f];
 }
 
 
@@ -303,41 +303,52 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// then resize and reposition them accordingly.
 	
 	GuiDisplayGen*	gui = [UNIVERSE messageGUI];
-	NSDictionary*	gui_info = [info objectForKey:@"message_gui"];
-	if (gui && gui_info)
+	NSDictionary*	gui_info = [info oo_dictionaryForKey:@"message_gui"];
+	if (gui && [gui_info count] > 0)
 	{
 		/*
 			If switching message guis, remember the last 2 message lines.
 			Present GUI limitations make it impractical to transfer anything
 			more...
 			
-			TODO: a more usable GUI code Post-MNSR... - Kaks 2011.11.05
+			TODO: a more usable GUI code! - Kaks 2011.11.05
 		*/
 		
 		NSArray*	lastLines = [gui getLastLines];	// text, colour, fade time - text, colour, fade time
+		BOOL		line1 = ![[lastLines oo_stringAtIndex:0] isEqualToString:@""];
 		[self resetGui:gui withInfo:gui_info];
 		
-		if (![[lastLines oo_stringAtIndex:0] isEqualToString:@""])
+		if (line1)
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:0] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:1]] 
 					  fadeTime:[lastLines oo_floatAtIndex:2] key:nil addToArray:nil];
 		}
-		if ([lastLines count] > 3 && ![[lastLines oo_stringAtIndex:3] isEqualToString:@""])
+		if ([lastLines count] > 3 && (line1 || ![[lastLines oo_stringAtIndex:3] isEqualToString:@""]))
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:3] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:4]] 
 					  fadeTime:[lastLines oo_floatAtIndex:5] key:nil addToArray:nil];
 		}
 	}
+	
+	if (gui_info != nil && [gui_info count] == 0)
+	{
+		// exists and it's empty. complete reset.
+		[gui setCurrentRow:8];
+		[gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
+		[gui resizeTo:NSMakeSize(480, 160) characterHeight:19 title:nil];
+		[gui setCharacterSize:NSMakeSize(16,20)];	// narrow characters
+	}
+	
 	[gui setAlpha: 1.0];	// message_gui is always visible.
 	
 	// And now set up the comms log
 	
 	gui = [UNIVERSE commLogGUI];
-	gui_info = [info objectForKey:@"comm_log_gui"];
-
-	if (gui && gui_info)
+	gui_info = [info oo_dictionaryForKey:@"comm_log_gui"];
+	
+	if (gui && [gui_info count] > 0)
 	{
 		[UNIVERSE setAutoCommLog:[gui_info oo_boolForKey:@"automatic" defaultValue:YES]];
 		[UNIVERSE setPermanentCommLog:[gui_info oo_boolForKey:@"permanent" defaultValue:NO]];
@@ -352,7 +363,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 			Bottom line: colour information is lost on comms log gui reset.
 			And yes, this is yet another reason for the following
 			
-			TODO: a more usable GUI code Post-MNSR... - Kaks 2011.11.05
+			TODO: a more usable GUI code! - Kaks 2011.11.05
 		*/
 		
 		NSArray *cLog = [PLAYER commLog];
@@ -366,14 +377,19 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 					  fadeTime:0.0 key:nil addToArray:nil];
 		}
 	}
-	// For consistency's sake, if there's no comm_log_gui section, don't override anything!
-	/*
-	else
+	
+	if (gui_info != nil && [gui_info count] == 0)
 	{
+		// exists and it's empty. complete reset.
 		[UNIVERSE setAutoCommLog:YES];
 		[UNIVERSE setPermanentCommLog:NO];
+		[gui setCurrentRow:9];
+		[gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
+		[gui resizeTo:NSMakeSize(360, 120) characterHeight:12 title:nil];
+		[gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
+		[gui setTextColor:[OOColor whiteColor]];
+		[gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
 	}
-	*/
 	
 	if ([UNIVERSE permanentCommLog])
 	{

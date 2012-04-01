@@ -5,17 +5,20 @@ vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripti
 vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
 vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug
 GNUSTEP_INSTALLATION_DIR         = $(GNUSTEP_USER_ROOT)
+ifeq ($(GNUSTEP_HOST_OS),mingw32)
+    GNUSTEP_OBJ_DIR_NAME         := $(GNUSTEP_OBJ_DIR_NAME).win
+endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 HOST_ARCH                        := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-    JS_INCLUDE_DIR               = deps/Windows-x86-deps/JS32ECMAv5/include
+    JS_INC_DIR                   = deps/Windows-x86-deps/JS32ECMAv5/include
     JS_LIB_DIR                   = deps/Windows-x86-deps/JS32ECMAv5/lib
     ifeq ($(debug),yes)
         JS_IMPORT_LIBRARY        = js32ECMAv5dbg
     else
         JS_IMPORT_LIBRARY        = js32ECMAv5
     endif
-    ADDITIONAL_INCLUDE_DIRS      = -Ideps/Windows-x86-deps/include -I$(JS_INCLUDE_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables
+    ADDITIONAL_INCLUDE_DIRS      = -Ideps/Windows-x86-deps/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables
     ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -lpng14.dll -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lwinmm -mwindows
     ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags`
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly

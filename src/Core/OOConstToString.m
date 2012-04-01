@@ -391,21 +391,18 @@ NSString *CommodityTypeToString(OOCommodityType commodity) // returns the commod
 #define CO_CASE(foo) case COMMODITY_##foo: return [@""#foo lowercaseString];
 	switch (commodity)
 	{
+/*
+		// 'old style' commodity identifiers.
 		case COMMODITY_LIQUOR_WINES: return @"liquor/wines";
 		case COMMODITY_GEM_STONES: return @"gem-stones";
 		case COMMODITY_ALIEN_ITEMS: return @"alien items";
-/*
-		// normalised commodity identifiers, for post MNSR
-		
-		//case COMMODITY_LIQUOR_WINES: return @"liquor_wines";
-		//case COMMODITY_GEM_STONES: return @"gem_stones";
-		//case COMMODITY_ALIEN_ITEMS: return @"alien_items";
-		
+*/
+
+		// normalised commodity identifiers
 		CO_CASE(LIQUOR_WINES);
 		CO_CASE(GEM_STONES);
 		CO_CASE(ALIEN_ITEMS);
- 
-*/	
+		
 		CO_CASE(FOOD);
 		CO_CASE(TEXTILES);
 		CO_CASE(RADIOACTIVES);
@@ -424,7 +421,7 @@ NSString *CommodityTypeToString(OOCommodityType commodity) // returns the commod
 		case COMMODITY_UNDEFINED:
 			break;
 	}
-	return @"unknown commodity";
+	return @"goods";	// was "unknown commodity"
 #undef CO_CASE
 }
 
@@ -433,14 +430,14 @@ OOCommodityType StringToCommodityType(NSString *string) // needs commodity ident
 {
 #define CO_REVERSE_CASE(foo) if ([[string uppercaseString] isEqual:@""#foo]) return COMMODITY_##foo;
 
+	// Backward compatibility - 'old style' commodity identifier strings.
 	if ([[string lowercaseString] isEqual:@"liquor/wines"]) return COMMODITY_LIQUOR_WINES;
 	if ([[string lowercaseString] isEqual:@"gem-stones"]) return COMMODITY_GEM_STONES;
 	if ([[string lowercaseString] isEqual:@"alien items"]) return COMMODITY_ALIEN_ITEMS;
-	// also test for normalised commodity identifiers - in readiness for post MNSR
-	if ([[string lowercaseString] isEqual:@"liquor_wines"]) return COMMODITY_LIQUOR_WINES;
-	if ([[string lowercaseString] isEqual:@"gem_stones"]) return COMMODITY_GEM_STONES;
-	if ([[string lowercaseString] isEqual:@"alien_items"]) return COMMODITY_ALIEN_ITEMS;
-
+	
+	CO_REVERSE_CASE(LIQUOR_WINES);
+	CO_REVERSE_CASE(GEM_STONES);
+	CO_REVERSE_CASE(ALIEN_ITEMS);
 	CO_REVERSE_CASE(FOOD);
 	CO_REVERSE_CASE(TEXTILES);
 	CO_REVERSE_CASE(RADIOACTIVES);
@@ -456,7 +453,7 @@ OOCommodityType StringToCommodityType(NSString *string) // needs commodity ident
 	CO_REVERSE_CASE(GOLD);
 	CO_REVERSE_CASE(PLATINUM);
 	
-	return kOOCommodityTypeDefault;
+	return kOOCommodityTypeDefault;	//COMMODITY_UNDEFINED
 #undef CO_REVERSE_CASE
 }
 

@@ -292,7 +292,8 @@
 			width		= 9;
 		}
 	);
-	
+	message_gui = {};	// resets the default settings
+	comm_log_gui = {};	// resets the default settings
 	overall_alpha	= 0.75;
 	reticle_target_sensitive = no;
 	cloak_indicator_on_status_light = yes;

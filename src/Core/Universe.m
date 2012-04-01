@@ -8491,8 +8491,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init];
 	
-	// TODO: always take the message gui stuff from the standard hud settings! - Kaks 2011.11.05
-	
+	// message_gui and comm_log_gui defaults are set up inside [hud resetGuis:] ( via [player deferredInit], called from the code that calls this method). 
 	[message_gui autorelease];
 	message_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(480, 160)
@@ -8501,10 +8500,6 @@ Entity *gOOJSPlayerIfStale = nil;
 							rowHeight:19
 							 rowStart:20
 								title:nil];
-	[message_gui setCurrentRow:8];
-	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
-	[message_gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
-	[message_gui setAlpha:1.0];
 	
 	[comm_log_gui autorelease];
 	comm_log_gui = [[GuiDisplayGen alloc]
@@ -8514,12 +8509,6 @@ Entity *gOOJSPlayerIfStale = nil;
 							rowHeight:12
 							 rowStart:12
 								title:nil];
-	[comm_log_gui setCurrentRow:9];
-	[comm_log_gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
-	[comm_log_gui setTextColor:[OOColor whiteColor]];
-	[comm_log_gui setAlpha:0.0];
-	[comm_log_gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
-	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
 	
 	//
 	

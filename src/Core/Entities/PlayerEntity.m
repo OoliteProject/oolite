@@ -1121,6 +1121,8 @@ static GLfloat		sBaseMass = 0.0;
 	target_memory_index = 0;
 	
 	dockingReport = [[NSMutableString alloc] init];
+	[hud resetGuis:[NSDictionary dictionaryWithObjectsAndKeys:[NSDictionary dictionaryWithObjectsAndKeys:nil], @"message_gui",
+														[NSDictionary dictionaryWithObjectsAndKeys:nil], @"comm_log_gui", nil]];
 	
 	[self initControls];
 }
