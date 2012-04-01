@@ -1676,7 +1676,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 							[OOCharacter randomCharacterWithRole: @"hunter"
 							andOriginalSystem: [UNIVERSE systemSeed]]]];
 							
-					[escort_ship setScanClass: CLASS_NEUTRAL];
+					[escort_ship setScanClass: [ship scanClass]];
 					[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 					[escort_ship setPrimaryRole:@"escort"];					
 					if ((sunskimmer || trader) && [escort_ship heatInsulation] < [ship heatInsulation]) 

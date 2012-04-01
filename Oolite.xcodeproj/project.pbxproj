@@ -724,6 +724,8 @@
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
+		B3460D4515285BF1002592D0 /* oolite-default-planet.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */; };
+		B3460D4615285BF1002592D0 /* oolite-default-planet.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1208,6 +1210,8 @@
 			dstPath = Shaders;
 			dstSubfolderSpec = 7;
 			files = (
+				B3460D4515285BF1002592D0 /* oolite-default-planet.fragment in Copy Shaders */,
+				B3460D4615285BF1002592D0 /* oolite-default-planet.vertex in Copy Shaders */,
 				1A0C3EEB11933274007935E5 /* oolite-dust.fragment in Copy Shaders */,
 				1A0C3EDE11933076007935E5 /* oolite-dust.vertex in Copy Shaders */,
 				1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */,
@@ -1997,6 +2001,8 @@
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "javascript-errors.plist"; sourceTree = "<group>"; };
+		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
+		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2627,6 +2633,8 @@
 		1A6514F90CCC9D670054D01B /* Shaders */ = {
 			isa = PBXGroup;
 			children = (
+				B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */,
+				B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */,
 				1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */,
 				1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */,
 				1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */,

@@ -62,8 +62,8 @@ this.shipWillExitWitchspace = function ()
 			if (missionVariables.cloakcounter > 6 && system.countShipsWithRole("asp-cloaked") === 0)
 			{
 				// Then trigger the ambush!
-				system.legacy_addShips("asp-cloaked", 1);
-				system.legacy_addShips("asp-pirate", 2);
+				system.addShips("asp-cloaked", 1);
+				system.addShips("asp-pirate", 2);
 			}
 		}
 	}

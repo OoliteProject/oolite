@@ -9141,8 +9141,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector		v1 = vector_forward_from_quaternion(q1);
 	double		d1 = 0.0;
 	
-	// no closer than 750m, same as the player.
-	while (abs(d1) < 750.0)
+	while (abs(d1) < MIN_DISTANCE_TO_BUOY)
 	{
 		d1 = SCANNER_MAX_RANGE * (randf() - randf());
 	}
