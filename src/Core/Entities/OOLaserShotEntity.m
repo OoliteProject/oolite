@@ -48,7 +48,7 @@ MA 02110-1301, USA.
 {
 	if (!(self = [super init]))  return nil;
 	
-	ShipEntity			*ship = [srcEntity rootShipEntity];;
+	ShipEntity			*ship = [srcEntity rootShipEntity];
 	Vector				middle = OOBoundingBoxCenter([srcEntity boundingBox]);
 	
 	NSCParameterAssert([srcEntity isShip] && [ship isShip]);

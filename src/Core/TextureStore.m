@@ -60,20 +60,13 @@ static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key)
 }
 
 
-OOINLINE float Lerp(float v0, float v1, float fraction)
-{
-	// Linear interpolation - equivalent to v0 * (1.0f - fraction) + v1 * fraction.
-	return v0 + fraction * (v1 - v0);
-}
-
-
 static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
 {
 	return (FloatRGB)
 	{
-		Lerp(a.r, b.r, fraction),
-		Lerp(a.g, b.g, fraction),
-		Lerp(a.b, b.b, fraction)
+		OOLerp(a.r, b.r, fraction),
+		OOLerp(a.g, b.g, fraction),
+		OOLerp(a.b, b.b, fraction)
 	};
 }
 
@@ -214,8 +207,8 @@ static void addNoise(float * buffer, int p, int n, float scale)
 		float rix = OOLerp(ranNoiseBuffer[iy * 128 + ix], ranNoiseBuffer[iy * 128 + jx], qx);
 		float rjx = OOLerp(ranNoiseBuffer[jy * 128 + ix], ranNoiseBuffer[jy * 128 + jx], qx);
 		float rfinal = scale * OOLerp(rix, rjx, qy);
-
-		buffer[ y * p + x ] += rfinal;
+		
+		buffer[y * p + x] += rfinal;
 	}
 }
 
@@ -303,21 +296,20 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 	FloatRGB paleLandColor)
 {
 	float accbuffer[width * width];
-	int x, y;
-	y = width * width;
-	for (x = 0; x < y; x++) accbuffer[x] = 0.0f;
-
+	memset(accbuffer, 0, sizeof accbuffer);
+	
 	int octave = 8;
 	float scale = 0.5;
 	while (octave < width)
 	{
-		addNoise( accbuffer, width, octave, scale);
+		addNoise(accbuffer, width, octave, scale);
 		octave *= 2;
 		scale *= 0.5;
 	}
 	
 	float pole_value = (impress + bias > 0.5)? 0.5 * (impress + bias) : 0.0;
 	
+	int x, y;
 	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
 	{
 		float q = q_factor(accbuffer, x, y, width, YES, pole_value, NO, 0.0, impress, bias);
