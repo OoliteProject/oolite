@@ -100,6 +100,7 @@ MA 02110-1301, USA.
 #define INITIAL_SHOT_TIME				100.0
 
 #define	MIN_FUEL						0				// minimum fuel required for afterburner use
+#define MAX_JUMP_RANGE					7.0				// the 7 ly limit
 
 #define ENTITY_PERSONALITY_MAX			0x7FFFU
 #define ENTITY_PERSONALITY_INVALID		0xFFFFU

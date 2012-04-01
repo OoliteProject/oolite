@@ -742,7 +742,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 		case kShip_fuel:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				fValue = OOClamp_0_max_d(fValue, 7.0);
+				fValue = OOClamp_0_max_d(fValue, MAX_JUMP_RANGE);
 				[entity setFuel:lround(fValue * 10.0)];
 				return YES;
 			}

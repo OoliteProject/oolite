@@ -1793,7 +1793,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy
 {
-	PlayerEntity	*player = PLAYER;
 	Random_Seed		g_seed, g_seed2;
 	int				i, j;
 	double			hscale = size_in_pixels.width / 256.0;
@@ -1816,7 +1815,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		star2.y = (float)(g_seed2.b * vscale + voffset);
 		double d = distanceBetweenPlanetPositions(g_seed.d, g_seed.b, g_seed2.d, g_seed2.b);
 		
-		if (d <= ([player fuelCapacity] / 10.0f))	// another_commander - Default to 7.0 LY.
+		if (d <= MAX_JUMP_RANGE)	// another_commander - Default to 7.0 LY.
 		{
 			glVertex3f(x+star.x, y+star.y, z);
 			glVertex3f(x+star2.x, y+star2.y, z);

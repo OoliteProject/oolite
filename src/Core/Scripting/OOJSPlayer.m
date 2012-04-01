@@ -462,13 +462,13 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsva
 				// find the nearest system with a main station, or die in the attempt!
 				[player setDockTarget:NULL];
 				
-				double rescueRange = 7.0;	// reach at least 1 other system!
+				double rescueRange = MAX_JUMP_RANGE;	// reach at least 1 other system!
 				if ([UNIVERSE inInterstellarSpace])
 				{
 					// Set 3.5 ly as the limit, enough to reach at least 2 systems!
-					// In strict mode the max rescue distance in witchspace would be 2.35ly:
-					// 4.70 fuel to get there, 2.35 to fly back = 7ly fuel, plus rounding error.
-					rescueRange = [UNIVERSE strict] ? 2.35 : 3.5;
+					// In strict mode the max rescue distance in witchspace would be 2.33ly:
+					// 4.66 fuel to misjump there, 2.33 to fly back = 7ly fuel.
+					rescueRange = [UNIVERSE strict] ? MAX_JUMP_RANGE / 3 : MAX_JUMP_RANGE / 2.0;
 				}
 				NSMutableArray	*sDests = [UNIVERSE nearbyDestinationsWithinRange:rescueRange];
 				int 			i = 0, nDests = [sDests count];

@@ -6332,7 +6332,7 @@ static NSDictionary	*sCachedSystemData = nil;
 {
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:16];
 	
-	range = OOClamp_0_max_d(range, 7.0f); // limit to systems within 7LY
+	range = OOClamp_0_max_d(range, MAX_JUMP_RANGE); // limit to systems within 7LY
 	NSPoint here = [PLAYER galaxy_coordinates];
 	
 	Random_Seed hereSeed = [self systemSeed];
@@ -6379,7 +6379,7 @@ static NSDictionary	*sCachedSystemData = nil;
 			for (j = 0; j < 256; j++)
 			{
 				double dist = distanceBetweenPlanetPositions(systems[i].d, systems[i].b, systems[j].d, systems[j].b);
-				if (dist <= 7.0)
+				if (dist <= MAX_JUMP_RANGE)
 				{
 					connected[j] |= connected[i];
 					connected[i] |= connected[j];
@@ -6424,7 +6424,7 @@ static NSDictionary	*sCachedSystemData = nil;
 			for (j = 0; j < 256; j++)
 			{
 				double dist = distanceBetweenPlanetPositions(systems[i].d, systems[i].b, systems[j].d, systems[j].b);
-				if (dist <= 7.0)
+				if (dist <= MAX_JUMP_RANGE)
 				{
 					connected[j] |= connected[i];
 					connected[i] |= connected[j];
@@ -6636,7 +6636,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	for (i = 0; i < 256; i++)
 	{
 		distance = distanceBetweenPlanetPositions(seed.d, seed.b, systems[i].d, systems[i].b);
-		if ((distance <= 7.0) && !(equal_seeds(seed, systems[i])))
+		if ((distance <= MAX_JUMP_RANGE) && !(equal_seeds(seed, systems[i])))
 		{		
 			if (distance < 0)
 			{

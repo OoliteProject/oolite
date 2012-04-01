@@ -722,7 +722,7 @@ BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, OOTextureFlag
 					else if ([extractChannel isEqualToString:@"a"])  options |= kOOTextureExtractChannelA;
 					else
 					{
-						OOLogWARN(@"texture.load.extractChannel.invalid", @"Unknown value \"%@\" for extract_channel (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel);
+						OOLogWARN(@"texture.load.extractChannel.invalid", @"Unknown value \"%@\" for extract_channel in specifier \"%@\" (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel,specifier);
 					}
 				}
 			}

@@ -299,6 +299,8 @@ typedef enum
 	
 	OOMatrix				playerRotMatrix;
 	
+	BOOL					showingLongRangeChart;
+	
 	// For OO-GUI based save screen
 	NSString				*commanderNameString;
 	NSMutableArray			*cdrDetailArray;

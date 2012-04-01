@@ -119,7 +119,7 @@ static int				saved_view_direction;
 static double			saved_script_time;
 static int				saved_gui_screen;
 static int 				pressedArrow = 0;
-static BOOL			mouse_x_axis_map_to_yaw = NO;
+static BOOL				mouse_x_axis_map_to_yaw = NO;
 static NSTimeInterval	time_last_frame;
 
 
@@ -1627,6 +1627,8 @@ static NSTimeInterval	time_last_frame;
 				if ([gameView isDown:gvMouseDoubleClick])
 				{
 					[gameView clearMouse];
+					showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
+					[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
 					[self setGuiToSystemDataScreen];
 				}
 				if ([gameView isDown:key_map_home])
@@ -2976,7 +2978,7 @@ static NSTimeInterval	time_last_frame;
 		if  (!switching_chart_screens)
 		{
 			switching_chart_screens = YES;
-			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
+			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART || (gui_screen == GUI_SCREEN_SYSTEM_DATA && showingLongRangeChart))
 				[self setGuiToLongRangeChartScreen];
 			else
 				[self setGuiToShortRangeChartScreen];
@@ -2991,6 +2993,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
 		{
+			showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
 			[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
 			[self setGuiToSystemDataScreen];
 		}
@@ -3513,7 +3516,7 @@ static BOOL autopilot_pause;
 	}
 	
 	// We found a dockable, check whether we can dock with it
-	NSAssert([target isKindOfClass:[StationEntity class]], @"Expected entity with isStation flag set to be a station.");
+	// NSAssert([target isKindOfClass:[StationEntity class]], @"Expected entity with isStation flag set to be a station.");		// no need for asserts. Tested enough already.
 	StationEntity *ts = (StationEntity*)target;
 	
 	// If station is not transmitting docking instructions, we cannot use autopilot.
