@@ -1355,7 +1355,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		weaponRange = [declaration oo_floatForKey:@"weapon_range" defaultValue:-1.0f];
 		if (weaponRange > 7500.0f)
 		{
-			OOLogWARN(@"shipData.load.warning.turret.badWeaponRange", @"ball turret weapon range of %g for subenitity of ship %@ is to high, using 7500.", weaponRange, shipKey);
+			OOLogWARN(@"shipData.load.warning.turret.badWeaponRange", @"ball turret weapon range of %g for subenitity of ship %@ is too high, using 7500.", weaponRange, shipKey);
 			weaponRange = 7500.0f; // range of primary plasma canon.
 		}
 
@@ -1363,7 +1363,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		if (weaponEnergy > 100.0f)
 			
 		{
-			OOLogWARN(@"shipData.load.warning.turret.badWeaponEnergy", @"ball turret weapon energy of %g for subenitity of ship %@ is to high, using 100.", weaponEnergy, shipKey);
+			OOLogWARN(@"shipData.load.warning.turret.badWeaponEnergy", @"ball turret weapon energy of %g for subenitity of ship %@ is too high, using 100.", weaponEnergy, shipKey);
 			weaponEnergy = 100.0f;
 		}
 	}
