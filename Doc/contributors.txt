@@ -19,6 +19,7 @@ Kaks
 Olli Krienke (Svengali)
 Lazygun
 Dave MacLachlan (Jester)
+Chris Morris (cim)
 Nic
 No Sleep Nigel
 Vladimir A. Pavlov (pv4)
