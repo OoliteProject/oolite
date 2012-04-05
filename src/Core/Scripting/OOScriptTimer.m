@@ -239,10 +239,13 @@ static NSMutableArray	*sDeferredTimers;
 
 - (NSComparisonResult) compareByNextFireTime:(OOScriptTimer *)other
 {
-	OOTimeAbsolute		otherTime;
+	OOTimeAbsolute		otherTime = -INFINITY;
 	
-	if (other != nil)  otherTime = [other nextTime];
-	else  otherTime = -INFINITY;
+	NS_DURING
+		if (other != nil)  otherTime = [other nextTime];
+	NS_HANDLER
+		OOLog(kOOLogException, @"\n\n***** Ignoring Timer Exception: %@ : %@ *****\n\n",[localException name], [localException reason]);
+	NS_ENDHANDLER
 	
 	if (_nextTime < otherTime) return NSOrderedAscending;
 	else if (_nextTime > otherTime) return NSOrderedDescending;
