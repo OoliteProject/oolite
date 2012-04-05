@@ -168,6 +168,7 @@ static JSClass sTimerClass;
 	if (description == nil)
 	{
 		[self unscheduleTimer];
+		OOJSRelinquishContext(context);
 		return;
 	}
 	
