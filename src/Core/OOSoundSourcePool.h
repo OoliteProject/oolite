@@ -42,6 +42,7 @@ SOFTWARE.
 	struct OOSoundSourcePoolElement	*_sources;
 	uint8_t							_count;
 	uint8_t							_latest;
+	uint8_t							_reserved;
 	OOTimeDelta						_minRepeat;
 	OOTimeAbsolute					_nextRepeat;
 	NSString						*_lastKey;
@@ -58,5 +59,8 @@ SOFTWARE.
 				 priority:(float)priority;	// expiryTime:0.1 +/- 0.5
 
 - (void) playSoundWithKey:(NSString *)key;	// priority: 1.0, expiryTime:0.1 +/- 0.5
+
+- (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap;	// if overlap == NO it waits for key to finish before playing key again
+
 
 @end

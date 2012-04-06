@@ -332,7 +332,11 @@ static OOSoundSource		*sAfterburnerSources[2];
 {
 	static double scoopSoundPlayTime = 0.0;
 	scoopSoundPlayTime -= delta_t;
-	if (scoopSoundPlayTime < 0.0)
+	if (!scoopsActive || ![self scoopOverride])
+	{
+		scoopSoundPlayTime = 0.0;
+	}
+	if (scoopSoundPlayTime < 0.0 && ![sInterfaceBeepSource isPlaying])
 	{
 		[self playInterfaceBeep:@"[scoop]"];
 		scoopSoundPlayTime = 0.5;
@@ -340,7 +344,7 @@ static OOSoundSource		*sAfterburnerSources[2];
 }
 
 
-//	time delay method for playing afterburner sounds
+// time delay method for playing afterburner sounds
 // this overlaps two sounds each 2 seconds long, but with a 0.75s
 // crossfade
 - (void) updateAfterburnerSound
@@ -569,7 +573,7 @@ static OOSoundSource		*sAfterburnerSources[2];
 
 - (void) playWeaponOverheated
 {
-	[sWeaponSoundPool playSoundWithKey:@"[weapon-overheat]"];
+	[sWeaponSoundPool playSoundWithKey:@"[weapon-overheat]" overlap:NO];
 }
 
 

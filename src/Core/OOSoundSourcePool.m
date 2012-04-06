@@ -67,6 +67,7 @@ typedef struct OOSoundSourcePoolElement
 		if (count == 0)  count = 1;
 		if (count == kNoSlot)  --count;
 		_count = count;
+		_reserved = kNoSlot;
 		
 		if (minRepeat < 0.0)  minRepeat = 0.0;
 		_minRepeat = minRepeat;
@@ -101,6 +102,7 @@ typedef struct OOSoundSourcePoolElement
 - (void) playSoundWithKey:(NSString *)key
 				 priority:(float)priority
 			   expiryTime:(OOTimeDelta)expiryTime
+				 overlap:(BOOL)overlap
 {
 	uint8_t					slot;
 	OOTimeAbsolute			now, absExpiryTime;
@@ -113,6 +115,7 @@ typedef struct OOSoundSourcePoolElement
 	
 	// Avoid repeats if required
 	if (now < _nextRepeat && [key isEqualToString:_lastKey])  return;
+	if (!overlap && _reserved != kNoSlot && [_sources[_reserved].source isPlaying]) return;
 	
 	// Look for a slot in the source list to use
 	slot = [self selectSlotForPriority:priority];
@@ -130,6 +133,8 @@ typedef struct OOSoundSourcePoolElement
 		element->source = [[OOSoundSource alloc] init];
 		if (element->source == nil)  return;
 	}
+	if (slot == _reserved) _reserved = kNoSlot;	// _reserved has finished playing!
+	if (!overlap) _reserved = slot;
 	
 	// Play and store metadata
 	[element->source playSound:sound];
@@ -149,15 +154,36 @@ typedef struct OOSoundSourcePoolElement
 
 - (void) playSoundWithKey:(NSString *)key
 				 priority:(float)priority
+			   expiryTime:(OOTimeDelta)expiryTime
+{
+	[self playSoundWithKey:key
+				  priority:priority
+				expiryTime:expiryTime
+				   overlap:YES];
+}
+
+
+- (void) playSoundWithKey:(NSString *)key
+				 priority:(float)priority
 {
 	[self playSoundWithKey:key
 				  priority:priority
 				expiryTime:0.5 + randf() * 0.1];
 }
 
+
 - (void) playSoundWithKey:(NSString *)key
 {
 	[self playSoundWithKey:key priority:1.0];
+}
+
+
+- (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap
+{
+	[self playSoundWithKey:key
+				  priority:1.0
+				expiryTime:0.5
+				   overlap:overlap];
 }
 
 @end
@@ -184,7 +210,7 @@ typedef struct OOSoundSourcePoolElement
 		else if (element->priority < priority)
 		{
 			if (element->expiryTime <= now)  expiredLower = curr;	// Second-best type: expired lower-priority
-			else unexpiredLower = curr;								// Third-best type: unexpired lower-priority
+			else if (curr != _reserved) unexpiredLower = curr;		// Third-best type: unexpired lower-priority
 		}
 		else if (element->priority == priority && element->expiryTime <= now)
 		{

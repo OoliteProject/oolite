@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #if NEW_PLANETS
 
-#define NEW_ATMOSPHERE 0
+#define NEW_ATMOSPHERE 1
 
 #import "OOPlanetDrawable.h"
 
@@ -125,7 +125,7 @@ MA 02110-1301, USA.
 		[self setUpAtmosphereParametersWithSourceInfo:dict targetInfo:planetInfo];
 		
 		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color", @"polar_air_color", @"cloud_color", @"polar_cloud_color", @"cloud_alpha",
-																								@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
+															@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
 	}
 	else
 #else
@@ -141,12 +141,11 @@ MA 02110-1301, USA.
 	
 	NSString *textureName = [dict oo_stringForKey:@"texture"];
 	[self setUpPlanetFromTexture:textureName];
-	
-	_rotationAxis = kBasisYVector;
-	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };	// do we want to do something more interesting here?
-										// EW: NO, setting orientation should be handled by the code that adds the planet, not by planetEntity itself.
-										// just start with a default value.
-	[_planetDrawable setRadius:collision_radius];
+	[_planetDrawable setRadius:collision_radius];	
+		
+	// Setting orientation should be handled by the code that adds the planet, not by planetEntity itself. Starting with a default value anyway.
+	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };
+	_rotationAxis = vector_up_from_quaternion(orientation);
 	
 	// set speed of rotation.
 	if ([dict objectForKey:@"rotational_velocity"])
@@ -365,24 +364,41 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
+const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts at 10x the height of the clouds
+
+
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
 	
-	if (!_miniature)
+	if (EXPECT(!_miniature))
 	{
+		if (_atmosphereDrawable)
+		{
+			double alt = sqrt(zero_distance) - collision_radius;
+			if ((alt > 0)&&(alt <= kMesosphere))
+			{
+				double aleph = (kMesosphere - alt) / kMesosphere;
+				if (aleph < 0.0) aleph = 0.0;
+				if (aleph > 1.0) aleph = 1.0;
+				// TODO: different atmospheres, different colours...
+				[UNIVERSE setSkyColorRed:0.8 * aleph * aleph
+								   green:0.8 * aleph * aleph
+									blue:0.9 * aleph
+								   alpha:aleph];
+			}
+		}
+		
 		double time = [UNIVERSE getTime];
 		
 		if (_shuttlesOnGround > 0 && time > _lastLaunchTime + _shuttleLaunchInterval)  [self launchShuttle];
-		
-		// FIXME: update atmosphere
 	}
 	
 	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * delta_t);
 
 	[self orientationChanged];
 	
-	// FIXME: update atmosphere
+	// FIXME: update atmosphere rotation
 }
 
 
