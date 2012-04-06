@@ -94,6 +94,7 @@ MA 02110-1301, USA.
 	[planetInfo autorelease];
 	
 	int radius_km = [dict oo_intForKey:KEY_RADIUS defaultValue:[planetInfo oo_intForKey:KEY_RADIUS]];
+	collision_radius = radius_km * 10.0;	// Scale down by a factor of 100
 	OOTechLevelID techLevel = [dict oo_intForKey:KEY_TECHLEVEL defaultValue:[planetInfo oo_intForKey:KEY_TECHLEVEL]];
 	
 	if (techLevel > 14)  techLevel = 14;
@@ -141,7 +142,6 @@ MA 02110-1301, USA.
 	NSString *textureName = [dict oo_stringForKey:@"texture"];
 	[self setUpPlanetFromTexture:textureName];
 	
-	collision_radius = radius_km * 10.0;	// Scale down by a factor of 100
 	_rotationAxis = kBasisYVector;
 	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };	// do we want to do something more interesting here?
 										// EW: NO, setting orientation should be handled by the code that adds the planet, not by planetEntity itself.
