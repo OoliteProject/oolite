@@ -241,9 +241,9 @@ static const BaseFace kTexturedFaces[][3] =
 	float		cloudAlpha;
 	
 	
-	clearSkyColor = [OOColor colorWithDescription:[dict objectForKey:@"clear_sky_color"]];
+	clearSkyColor = [OOColor colorWithDescription:[dict objectForKey:@"atmosphere_color"]];
 	cloudColor = [OOColor colorWithDescription:[dict objectForKey:@"cloud_color"]];
-	polarClearSkyColor = [OOColor colorWithDescription:[dict objectForKey:@"polar_clear_sky_color"]];
+	polarClearSkyColor = [OOColor colorWithDescription:[dict objectForKey:@"polar_atmosphere_color"]];
 	polarCloudColor = [OOColor colorWithDescription:[dict objectForKey:@"polar_cloud_color"]];
 	cloudAlpha = OOClamp_0_1_f([dict oo_floatForKey:@"cloud_alpha" defaultValue:1.0]);
 	

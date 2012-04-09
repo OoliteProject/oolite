@@ -188,7 +188,7 @@ OOINLINE Vector vector_add(Vector a, Vector b)
 
 OOINLINE Vector OOVectorInterpolate(Vector a, Vector b, OOScalar where)
 {
-	// EMMSTRAN: use smarter interpolation like OOLerp().
+	// TODO: use smarter interpolation like OOLerp()?
 	OOScalar invWhere = 1.0f - where;
 	return make_vector(a.x * invWhere + b.x * where,
 					   a.y * invWhere + b.y * where,

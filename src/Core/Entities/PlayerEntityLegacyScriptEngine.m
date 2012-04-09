@@ -2641,12 +2641,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		model_p0 = vector_add(model_p0, off);
 		
+		// TODO: find better quaternion values.		
 #if NEW_PLANETS
-		Quaternion model_q = { 0.912871, 0.365148, 0.182574, 0.0 }; // pole at top right for new planets.
+		//Quaternion model_q = { 0.83, 0.365148, 0.182574, 0.0 }; // shows new planets' north pole.
+		//Quaternion model_q = { 0.83, -0.365148, 0.182574, 0.0 }; // shows new planets' south pole.
+		Quaternion model_q = { 0.83, 0.12, 0.44, 0.0 };	// new planets - default orientation.
 #else
-		// Only one quaternion needed.
 		//model_q = make_quaternion( M_SQRT1_2, 0.314, M_SQRT1_2, 0.0 );
-		Quaternion model_q = { 0.833492, 0.333396, 0.440611, 0.0 }; // TODO: find a better quaternion value.
+		Quaternion model_q = { 0.833492, 0.333396, 0.440611, 0.0 }; 
 #endif
 		OOLog(kOOLogDebugProcessSceneStringAddMiniPlanet, @"::::: adding %@ to scene:'%@'", i_key, doppelganger);
 		[doppelganger setOrientation: model_q];

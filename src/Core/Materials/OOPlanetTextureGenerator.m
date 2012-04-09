@@ -28,7 +28,7 @@
 #if NEW_PLANETS
 
 
-#define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
+#define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
 #define DEBUG_DUMP_RAW		(	1	&& DEBUG_DUMP)
 
 #define POLAR_CAPS			1
@@ -37,9 +37,9 @@
 
 #import "OOPlanetTextureGenerator.h"
 #import "OOCollectionExtractors.h"
+#import "OOColor.h"
 
 #ifndef TEXGEN_TEST_RIG
-#import "OOColor.h"
 #import "OOTexture.h"
 #import "Universe.h"
 #endif
@@ -116,6 +116,7 @@ static float QFactor(float *accbuffer, int x, int y, unsigned width, float polar
 static float GetQ(float *qbuffer, int x, int y, unsigned width, unsigned height, unsigned widthMask, unsigned heightMask);
 
 static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
+static float BlendAlpha(float fraction, float a, float b);
 static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatureFraction);
 static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nearPole);
 static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float nearPole);
@@ -161,7 +162,6 @@ enum
 			_info.cloudFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"cloud_fraction" defaultValue:0.3]);
 			_info.airColor = FloatRGBFromDictColor(planetInfo, @"air_color");
 			_info.cloudColor = FloatRGBFromDictColor(planetInfo, @"cloud_color");
-			_info.paleAirColor = FloatRGBFromDictColor(planetInfo, @"polar_air_color");
 			_info.paleCloudColor = FloatRGBFromDictColor(planetInfo, @"polar_cloud_color");
 		}
 		
@@ -402,28 +402,19 @@ enum
 	[self dumpNoiseBuffer:_info.fbmBuffer];
 #endif
 	
-	//TODO: sort out CloudMix
 	float paleClouds = (_info.cloudFraction * _info.fbmBuffer[0] < 1.0f - _info.cloudFraction) ? 0.0f : 1.0f;
 	float poleValue = (_info.landFraction > 0.5f) ? 0.5f * _info.landFraction : 0.0f;
 	float seaBias = _info.landFraction - 1.0f;
 	
-	/*	The system key 'polar_sea_colour' was used as 'paleSeaColour'.
-		The generated texture had presumably iceberg covered shallows.
-		paleSeaColour is now a pale blend of sea and land colours, giving
-		a softer transition colour for the shallows - those have also been
-		widened from 1.73 to smooth out the coast / deep sea boundary.
-		-- Kaks
-	*/
-	_info.paleSeaColor = Blend(0.45f, _info.polarSeaColor, Blend(0.7f, _info.seaColor, _info.landColor));
+	_info.paleSeaColor = Blend(0.35f, _info.polarSeaColor, Blend(0.7f, _info.seaColor, _info.landColor));
 	float normalScale = 1 << _planetScale;
 	if (!generateNormalMap)  normalScale *= 3.0f;
 	
-	// Deep sea colour: slightly darkened so the sea isn't just a uniform colour.
-	_info.deepSeaColor = Blend(0.80f, _info.seaColor, (FloatRGB){ 0, 0, 0 });
+	// Deep sea colour: sea darker past the continental shelf.
+	_info.deepSeaColor = Blend(0.85f, _info.seaColor, (FloatRGB){ 0, 0, 0 });
 	
-	unsigned x, y;
+	int x, y;
 	FloatRGBA color;
-	FloatRGBA cloudColor = (FloatRGBA){_info.cloudColor.r, _info.cloudColor.g, _info.cloudColor.b, 1.0f};
 	Vector norm;
 	float q, yN, yS, yW, yE, nearPole;
 	GLfloat shade;
@@ -448,17 +439,16 @@ enum
 	}
 	
 	// second pass, use q.
-	float cloudAlpha = _info.cloudAlpha;
 	float cloudFraction = _info.cloudFraction;
 	unsigned widthMask = _width - 1;
 	unsigned heightMask = _height - 1;
 	
-	for (y = 0, fy = 0.0f; y < _height; y++, fy++)
+	for (y--, fy--; y >= 0; y--, fy--)
 	{
 		nearPole = (2.0f * fy - fHeight) * rHeight;
 		nearPole *= nearPole;
 		
-		for (x = 0; x < _width; x++)
+		for (x = _width - 1; x >= 0; x--)
 		{
 			q = _info.qBuffer[y * _width + x];	// no need to use GetQ, x and y are always within bounds.
 			yN = GetQ(_info.qBuffer, x, y - 1, _width, _height, widthMask, heightMask);	// recalculates x & y if they go out of bounds.
@@ -468,12 +458,12 @@ enum
 			
 			color = PlanetMix(&_info, q, nearPole);
 			
-			norm = vector_normal(make_vector(normalScale * (yW - yE), normalScale * (yS - yN), 1.0f));
+			norm = vector_normal(make_vector(normalScale * (yE - yW), normalScale * (yN - yS), 1.0f));
 			if (generateNormalMap)
 			{
 				shade = 1.0f;
 				
-				// Flatten in the sea.
+				// Flatten the sea.
 				norm = OOVectorInterpolate(norm, kBasisZVector, color.a);
 				
 				// Put norm in normal map, scaled from [-1..1] to [0..255].
@@ -504,22 +494,13 @@ enum
 			
 			if (generateAtmosphere)
 			{
-				//TODO: sort out CloudMix
-				if (NO) 
-				{
-					q = QFactor(_info.fbmBuffer, x, y, _width, paleClouds, cloudFraction, nearPole);
-					color = CloudMix(&_info, q, nearPole);
-				}
-				else
-				{
-					q = _info.fbmBuffer[y * _width + x];
-					q *= q;
-					color = cloudColor;
-				}
+				q = QFactor(_info.fbmBuffer, x, y, _width, paleClouds, cloudFraction, nearPole);
+				color = CloudMix(&_info, q, nearPole);
+				
 				*apx++ = 255.0f * color.r;
 				*apx++ = 255.0f * color.g;
 				*apx++ = 255.0f * color.b;
-				*apx++ = 255.0f * cloudAlpha * q;
+				*apx++ = 255.0f * color.a * _info.cloudAlpha;
 			}
 		}
 	}
@@ -612,80 +593,61 @@ static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
 }
 
 
+static float BlendAlpha(float fraction, float a, float b)
+{
+	return Lerp(b, a, fraction);
+}
+
+
 static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nearPole)
 {
-#define AIR_ALPHA				(0.05f)
-#define CLOUD_ALPHA				(0.50f)
-#define POLAR_AIR_ALPHA			(0.34f)
-#define POLAR_CLOUD_ALPHA		(0.75f)
+#define AIR_ALPHA				(0.15f)
+#define CLOUD_ALPHA				(1.0f)
 
-#define POLAR_BOUNDARY			(0.66f)
-#define RECIP_CLOUD_BOUNDARY	(200.0f)
-#define CLOUD_BOUNDARY			(1.0f / RECIP_CLOUD_BOUNDARY)
+#define POLAR_BOUNDARY			(0.33f)
+#define CLOUD_BOUNDARY			(0.5f)
+#define RECIP_CLOUD_BOUNDARY	(1.0f / CLOUD_BOUNDARY)
 
 	FloatRGB result = info->cloudColor;
-	float alpha = info->cloudAlpha;
-	float portion = 0.0f;
+	float alpha = info->cloudAlpha, portion = 0.0f;
 	
-	q -= CLOUD_BOUNDARY;
+	q -= CLOUD_BOUNDARY * 0.5f;
 	
 	if (nearPole > POLAR_BOUNDARY)
 	{
-		portion = nearPole > POLAR_BOUNDARY + 0.06f ? 1.0f : 0.4f + (nearPole - POLAR_BOUNDARY) * 10.0f;	// x * 10 == ((x / 0.06) * 0.6
-		
-		if (q <= 0.0f)
-		{
-			alpha *= Lerp(POLAR_CLOUD_ALPHA, CLOUD_ALPHA, portion);
-			if (q >= -CLOUD_BOUNDARY)
-			{
-				portion = -q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f;
-				result = Blend(portion, info->paleCloudColor, info->paleAirColor);
-			}
-			else
-			{
-				result = info->paleCloudColor;
-			}
+		portion = nearPole > POLAR_BOUNDARY + 0.2f ? 1.0f : (nearPole - POLAR_BOUNDARY) * 5.0f;
+		result = Blend(portion, info->paleCloudColor, info->cloudColor);
+		// 
+		portion = nearPole > POLAR_BOUNDARY + 0.625f ? 1.0f : (nearPole - POLAR_BOUNDARY) * 1.6f;
+	}
+	else
+	{
+		result = info->cloudColor;
+	}
+	
+	if (q <= 0.0f)
+	{
+		if (q >= -CLOUD_BOUNDARY){
+			alpha *=  BlendAlpha(-q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f, CLOUD_ALPHA, AIR_ALPHA);
 		}
-		else 
+		else
 		{
-			alpha *= portion * POLAR_AIR_ALPHA;
-			if (q < CLOUD_BOUNDARY)
-			{
-				result = Blend(q * RECIP_CLOUD_BOUNDARY, info->paleAirColor, info->paleCloudColor);
-			}
-			else
-			{
-				result = info->paleAirColor;
-			}
+			alpha *= CLOUD_ALPHA;
 		}
 	}
 	else
 	{
-		if (q <= 0.0f)
-		{
-			if (q >= -CLOUD_BOUNDARY){
-				portion = -q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f;
-				alpha *=  portion * CLOUD_ALPHA;
-				result = Blend(portion, info->cloudColor, info->airColor);
-			}
-			else
-			{
-				result = info->cloudColor;
-				alpha *= CLOUD_ALPHA;
-			}
+		if (q < CLOUD_BOUNDARY){
+			alpha *=  BlendAlpha( q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f,  AIR_ALPHA,CLOUD_ALPHA);
 		}
-		else if (q < CLOUD_BOUNDARY)
+		else
 		{
-			alpha *= AIR_ALPHA;
-			result = Blend(q * RECIP_CLOUD_BOUNDARY, info->airColor, info->cloudColor);
-		}
-		else if (q >= CLOUD_BOUNDARY)
-		{
-			alpha *= AIR_ALPHA;
-			result = info->airColor;
+			alpha *= AIR_ALPHA ;
 		}
 	}
-
+	// magic numbers! at the poles we have fairly thin air.
+	alpha *= BlendAlpha(portion, 0.6f, 1.0f);
+	
 	return (FloatRGBA){ result.r, result.g, result.b, alpha };
 }
 
@@ -696,6 +658,9 @@ static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float ne
 #define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
 #define SHALLOWS					(2.0f * COASTLINE_PORTION)	// increased shallows area.
 #define RECIP_SHALLOWS				(1.0f / SHALLOWS)
+// N.B.: DEEPS can't be more than RECIP_COASTLINE_PORTION * COASTLINE_PORTION!
+#define DEEPS						(40.0f * COASTLINE_PORTION) 
+#define RECIP_DEEPS					(1.0f / DEEPS)
 	
 	const FloatRGB white = { 1.0f, 1.0f, 1.0f };
 	FloatRGB diffuse;
@@ -715,7 +680,8 @@ static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float ne
 		else
 		{
 			// Open sea.
-			diffuse = Blend(-q, info->deepSeaColor, info->seaColor);
+			if (q > -DEEPS)  diffuse = Blend(-q * RECIP_DEEPS, info->deepSeaColor, info->seaColor);
+			else  diffuse = info->deepSeaColor;
 			specular = Lerp(1.0f, 0.85f, -q);
 		}
 	}
@@ -728,7 +694,7 @@ static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float ne
 	}
 	else if (q > 1.0f)
 	{
-		// High up - snow-capped peaks. -- Question: does q ever get higher than 1.0 ? --Kaks 20091228
+		// High up - snow-capped peaks. With overrides q can range between -2 to +2.
 		diffuse = white;
 	}
 	else if (q > info->mix_hi)
@@ -747,7 +713,8 @@ static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float ne
 	if (q > phi)	 // (nearPole + q) / 2 > pole
 	{
 		// thinner to thicker ice.
-		specular = q > phi + 0.02f ? 1.0f : 0.4f + (q - phi) * 30.0f;	// (q - phi) * 30 == ((q-phi) / 0.02) * 0.6
+		specular = q > phi + 0.02f ? 1.0f : 0.2f + (q - phi) * 40.0f;	// (q - phi) * 40 == ((q-phi) / 0.02) * 0.8
+		//diffuse = info->polarSeaColor;
 		diffuse = Blend(specular, info->polarSeaColor, diffuse);
 		specular = specular * 0.5f; // softer contours under ice, but still contours.
 	}

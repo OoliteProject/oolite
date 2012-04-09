@@ -30,6 +30,8 @@ MA 02110-1301, USA.
 #else
 
 #import "Entity.h"
+#import "OOColor.h"
+
 
 @class OOPlanetDrawable, ShipEntity, OOMaterial;
 
@@ -41,6 +43,8 @@ MA 02110-1301, USA.
 	OOPlanetDrawable		*_atmosphereDrawable;
 	
 	BOOL					_miniature;
+	OOColor					*_airColor;
+	double					_mesopause2;
 	
 	Vector					_rotationAxis;
 	float					_rotationalVelocity;
