@@ -572,8 +572,9 @@ MA 02110-1301, USA.
 	 * The current Ubuntu LTS is 10.04, which doesn't seem to have that problem.
 	 * 12.04 LTS is going to be released soon, also without apparent problems.
 	 * Changed to SDL_NOFRAME, throwing caution to the wind - Kaks 2012.03.23
+	 * Took SDL_NOFRAME out, since it still causes strange problems here - cim 2012.04.09
 	 */
-	 surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
+	 surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
 	
   #endif
 	
