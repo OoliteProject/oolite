@@ -149,252 +149,252 @@
 	// *** Planet description generator ***
 	system_description =
 	(
-		(
+		( // [0]
 			"fabled",
 			"notable",
 			"well known",
 			"famous",
 			"noted"
 		),
-		(
+		( // [1]
 			"very",
 			"mildly",
 			"most",
 			"reasonably",
 			""
 		),
-		(
+		( // [2]
 			"ancient",
 			"[20]",
 			"great",
 			"vast",
 			"pink"
 		),
-		(
+		( // [3]
 			"[29] [28] plantations",
 			"mountains",
 			"[27]",
 			"[19] forests",
 			"oceans"
 		),
-		(
+		( // [4]
 			"shyness",
 			"silliness",
 			"mating traditions",
 			"loathing of [5]",
 			"love for [5]"
 		),
-		(
+		( // [5]
 			"food blenders",
 			"tourists",
 			"poetry",
 			"discos",
 			"[13]"
 		),
-		(
+		( // [6]
 			"talking tree",
 			"crab",
 			"bat",
 			"lobst",
 			"%R"
 		),
-		(
+		( // [7]
 			"beset",
 			"plagued",
 			"ravaged",
 			"cursed",
 			"scourged"
 		),
-		(
+		( // [8]
 			"[21] civil war",
 			"[26] [23] [24]s",
 			"[26] disease",
 			"[21] earthquakes",
 			"[21] solar activity"
 		),
-		(
+		( // [9]
 			"its [2] [3]",
 			"the %I [23] [24]",
 			"its inhabitants’ [25] [4]",
 			"[32]",
 			"its [12] [13]"
 		),
-		(
+		( // [10]
 			"juice",
 			"brandy",
 			"water",
 			"brew",
 			"gargle blasters"
 		),
-		(
+		( // [11]
 			"%R",
 			"%I [24]",
 			"%I %R",
 			"%I [26]",
 			"[26] %R"
 		),
-		(
+		( // [12]
 			"fabulous",
 			"exotic",
 			"hoopy",
 			"unusual",
 			"exciting"
 		),
-		(
+		( // [13]
 			"cuisine",
 			"night life",
 			"casinos",
 			"sit coms",
 			"[32]"
 		),
-		(
+		( // [14]
 			"%H",
 			"The planet %H",
 			"The world %H",
 			"This planet",
 			"This world"
 		),
-		(
+		( // [15]
 			"n unremarkable",
 			" boring",
 			" dull",
 			" tedious",
 			" revolting"
 		),
-		(
+		( // [16]
 			"planet",
 			"world",
 			"place",
 			"little planet",
 			"dump"
 		),
-		(
+		( // [17]
 			"wasp",
 			"moth",
 			"grub",
 			"ant",
 			"%R"
 		),
-		(
+		( // [18]
 			"poet",
 			"arts graduate",
 			"yak",
 			"snail",
 			"slug"
 		),
-		(
+		( // [19]
 			"tropical",
 			"dense",
 			"rain",
 			"impenetrable",
 			"exuberant"
 		),
-		(
+		( // [20]
 			"funny",
 			"weird",
 			"unusual",
 			"strange",
 			"peculiar"
 		),
-		(
+		( // [21]
 			"frequent",
 			"occasional",
 			"unpredictable",
 			"dreadful",
 			"deadly"
 		),
-		(
+		( // [22]
 			"[1] [0] for [9]",
 			"[1] [0] for [9] and [9]",
 			"[7] by [8]",
 			"[1] [0] for [9] but [7] by [8]",
 			"a[15] [16]"
 		),
-		(
+		( // [23]
 			"[26]",
 			"mountain",
 			"edible",
 			"tree",
 			"spotted"
 		),
-		(
+		( // [24]
 			"[30]",
 			"[31]",
 			"[6]oid",
 			"[18]",
 			"[17]"
 		),
-		(
+		( // [25]
 			"ancient",
 			"exceptional",
 			"eccentric",
 			"ingrained",
 			"[20]"
 		),
-		(
+		( // [26]
 			"killer",
 			"deadly",
 			"evil",
 			"lethal",
 			"vicious"
 		),
-		(
+		( // [27]
 			"parking meters",
 			"dust clouds",
 			"ice bergs",
 			"rock formations",
 			"volcanoes"
 		),
-		(
+		( // [28]
 			"plant",
 			"tulip",
 			"banana",
 			"corn",
 			"%Rweed"
 		),
-		(
+		( // [29]
 			"%R",
 			"%I %R",
 			"%I [26]",
 			"inhabitant",
 			"%I %R"
 		),
-		(
+		( // [30]
 			"shrew",
 			"beast",
 			"bison",
 			"snake",
 			"wolf"
 		),
-		(
+		( // [31]
 			"leopard",
 			"cat",
 			"monkey",
 			"goat",
 			"fish"
 		),
-		(
+		( // [32]
 			"[11] [10]",
 			"%I [30] [33]",
 			"its [12] [31] [33]",
 			"[34] [35]",
 			"[11] [10]"
 		),
-		(
+		( // [33]
 			"meat",
 			"cutlet",
 			"steak",
 			"burgers",
 			"soup"
 		),
-		(
+		( // [34]
 			"ice",
 			"mud",
 			"Zero-G",
 			"vacuum",
 			"%I ultra"
 		),
-		(
+		( // [35]
 			"hockey",
 			"cricket",
 			"karate",
