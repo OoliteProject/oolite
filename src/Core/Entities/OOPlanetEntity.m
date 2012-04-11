@@ -137,12 +137,13 @@ const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts 
 	}
 	else
 #else
-	// old atmosphere: differentiate between normal planets and moons.
+	// NEW_ATMOSPHERE is 0? still differentiate between normal planets and moons.
 	if (atmosphere)
 	{
 		_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
 		_airColor = [[OOColor colorWithCalibratedRed:0.8 green:0.8 blue:0.9 alpha:1.0] retain];
 	}
+	if (YES) // create _materialParameters when NEW_ATMOSPHERE is set to 0
 #endif
 	{
 		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
@@ -280,11 +281,11 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 	else
 	{
-		landHSB = RandomHSBColor();	// makes cloud colour similar to the old planets'.
+		landHSB = RandomHSBColor();	// NB: randomcolor is called twice to make the cloud colour similar to the old one.
 
-		// make the air colour a cross between sky blue({0.66, 0.3, 1}) and cloud_color.
-		seaHSB = vector_add(landHSB,((Vector){0.66, 0.3, 1}));
-		scale_vector(&seaHSB, 0.5);
+		// add a cloud_color tinge to sky blue({0.66, 0.3, 1}).
+		seaHSB = vector_add(landHSB,((Vector){1.333, 0.6, 2}));	// 1 part cloud, 2 parts sky blue
+		scale_vector(&seaHSB, 0.333);
 		
 		//seaHSB = (Vector){0, 1,1};//red
 		//landHSB = (Vector){0.66,0.3,1};//blue

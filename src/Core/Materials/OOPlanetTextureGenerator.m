@@ -160,7 +160,6 @@ enum
 			// we have an atmosphere:
 			_info.cloudAlpha = [planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f];
 			_info.cloudFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"cloud_fraction" defaultValue:0.3]);
-			_info.airColor = FloatRGBFromDictColor(planetInfo, @"air_color");
 			_info.cloudColor = FloatRGBFromDictColor(planetInfo, @"cloud_color");
 			_info.paleCloudColor = FloatRGBFromDictColor(planetInfo, @"polar_cloud_color");
 		}
@@ -427,12 +426,12 @@ enum
 	_info.qBuffer = malloc(_width * _height * sizeof (float));
 	FAIL_IF_NULL(_info.qBuffer);
 	
-	for (y = 0, fy = 0.0f; y < _height; y++, fy++)
+	for (y = (int)_height - 1, fy = (float)y; y >=0; y--, fy--)
 	{
 		nearPole = (2.0f * fy - fHeight) * rHeight;
 		nearPole *= nearPole;
 		
-		for (x = 0; x < _width; x++)
+		for (x = (int)_width - 1; x >=0; x--)
 		{
 			_info.qBuffer[y * _width + x] = QFactor(_info.fbmBuffer, x, y, _width, poleValue, seaBias, nearPole);
 		}
@@ -443,12 +442,12 @@ enum
 	unsigned widthMask = _width - 1;
 	unsigned heightMask = _height - 1;
 	
-	for (y--, fy--; y >= 0; y--, fy--)
+	for (y = (int)_height - 1, fy = (float)y; y >= 0; y--, fy--)
 	{
 		nearPole = (2.0f * fy - fHeight) * rHeight;
 		nearPole *= nearPole;
 		
-		for (x = _width - 1; x >= 0; x--)
+		for (x = (int)_width - 1; x >= 0; x--)
 		{
 			q = _info.qBuffer[y * _width + x];	// no need to use GetQ, x and y are always within bounds.
 			yN = GetQ(_info.qBuffer, x, y - 1, _width, _height, widthMask, heightMask);	// recalculates x & y if they go out of bounds.

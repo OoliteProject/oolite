@@ -60,7 +60,6 @@ typedef struct OOPlanetTextureGeneratorInfo
 	float							cloudFraction;
 	FloatRGB						airColor;
 	FloatRGB						cloudColor;
-	FloatRGB						paleAirColor;
 	FloatRGB						paleCloudColor;
 	
 	// Noise generation stuff.
