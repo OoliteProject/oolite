@@ -2408,6 +2408,34 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (void) clearBeacon:(ShipEntity *) beaconShip
+{
+	ShipEntity				*tmp = nil;
+
+	if ([beaconShip isBeacon])
+	{
+		if ([self firstBeacon] == beaconShip)
+		{
+			tmp = [[beaconShip nextBeacon] nextBeacon];
+			[self setFirstBeacon:[beaconShip nextBeacon]];
+			[[beaconShip prevBeacon] setNextBeacon:tmp];
+		}
+		else if ([self lastBeacon] == beaconShip)
+		{
+			tmp = [[beaconShip prevBeacon] prevBeacon];
+			[self setLastBeacon:[beaconShip prevBeacon]];
+			[[beaconShip nextBeacon] setPrevBeacon:tmp];
+		}
+		else
+		{
+			[[beaconShip nextBeacon] setPrevBeacon:[beaconShip prevBeacon]];
+			[[beaconShip prevBeacon] setNextBeacon:[beaconShip nextBeacon]];
+		}
+		[beaconShip setBeaconCode:nil];
+	}
+}
+
+
 - (GLfloat *) skyClearColor
 {
 	return skyClearColor;
@@ -8885,22 +8913,8 @@ Entity *gOOJSPlayerIfStale = nil;
 		if ([entity isShip])
 		{
 			ShipEntity *se = (ShipEntity*)entity;
-			if ([se isBeacon])
-			{
-				if ([self firstBeacon] == se)
-				{
-					[self setFirstBeacon:[se nextBeacon]];
-				}
-				if ([self lastBeacon] == se)
-				{
-					[self setLastBeacon:[se prevBeacon]];
-				}
-				[[se prevBeacon] setNextBeacon:[se nextBeacon]];
-				[[se nextBeacon] setPrevBeacon:[se prevBeacon]];
-				[se setBeaconCode:nil];
-			}
+			[self clearBeacon:se];
 		}
-		
 		
 		if ([entity isWormhole])
 		{

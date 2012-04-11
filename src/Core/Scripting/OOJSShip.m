@@ -51,6 +51,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 
 static JSBool ShipSetScript(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetAI(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipSetBeacon(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSwitchAI(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipExitAI(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipReactToAIMessage(JSContext *context, uintN argc, jsval *vp);
@@ -306,6 +307,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
 	{ "sendAIMessage",			ShipSendAIMessage,			1 },
 	{ "setAI",					ShipSetAI,					1 },
+	{ "setBeacon",					ShipSetBeacon,					1 },
 	{ "setCargo",				ShipSetCargo,				1 },
 	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
 	{ "setMaterials",			ShipSetMaterials,			1 },
@@ -964,6 +966,56 @@ static JSBool ShipSetScript(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	[thisEnt setShipScript:name];
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+// setBeacon(beaconCode: String)
+static JSBool ShipSetBeacon(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	ShipEntity				*thisEnt = nil;
+	NSString				*name = nil;
+	
+	GET_THIS_SHIP(thisEnt);
+	if (argc > 0)  name = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(name == nil))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"setBeacon", MIN(argc, 1U), OOJS_ARGV, nil, @"string (Beacon code)");
+		return NO;
+	}
+	if (EXPECT_NOT([thisEnt isPlayer]))
+	{
+		OOJSReportErrorForCaller(context, @"Ship", @"setBeacon", @"Not valid for player ship.");
+		return NO;
+	}
+	
+	if ([name length] == 0) 
+	{
+		if ([thisEnt isBeacon]) 
+		{
+			[UNIVERSE clearBeacon:thisEnt];
+			if ([PLAYER nextBeacon] == thisEnt)
+			{
+				[PLAYER setCompassMode:COMPASS_MODE_PLANET];
+			}
+		}
+	}
+	else 
+	{
+		if ([thisEnt isBeacon]) 
+		{
+			[thisEnt setBeaconCode:name];
+		}
+		else // Universe needs to update beacon lists in this case only
+		{
+			[thisEnt setBeaconCode:name];
+			[UNIVERSE setNextBeacon:thisEnt];
+		}
+	}
+
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT

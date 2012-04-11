@@ -383,6 +383,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (ShipEntity *) firstBeacon;
 - (ShipEntity *) lastBeacon;
 - (void) setNextBeacon:(ShipEntity *) beaconShip;
+- (void) clearBeacon:(ShipEntity *) beaconShip;
 
 - (GLfloat *) skyClearColor;
 // Note: the alpha value is also air resistance!
