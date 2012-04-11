@@ -438,6 +438,14 @@ static OOColor *ColorWithHSBColor(Vector c)
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (translucent || [UNIVERSE breakPatternHide])   return; // DON'T DRAW
+
+#if FRUSTUM_CULL
+	if (![UNIVERSE checkFrustum:position:([self radius] + ATMOSPHERE_DEPTH)]) 
+	{
+		// Don't draw
+		return;
+	}
+#endif	
 	
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
 	

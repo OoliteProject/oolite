@@ -79,7 +79,27 @@ MA 02110-1301, USA.
 		// Don't draw.
 		return;
 	}
-	
+#if FRUSTUM_CULL
+	if (no_draw_distance != INFINITY)
+	{ 
+		// (always draw sky!)
+		if (![self isSubEntity]) 
+		{
+			if (![UNIVERSE checkFrustum:position:collision_radius]) 
+			{
+				return;
+			}
+		} 
+		else 
+		{ // check correct sub-entity position
+			if (![UNIVERSE checkFrustum:[super absolutePositionForSubentity]:collision_radius]) 
+			{
+				return;
+			}
+		}
+	}
+#endif	
+
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
 		
 	if (translucent)  [drawable renderTranslucentParts];
