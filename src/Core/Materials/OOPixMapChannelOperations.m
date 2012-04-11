@@ -68,16 +68,7 @@ static void ExtractChannel_4(OOPixMap *ioPixMap, uint8_t channelIndex)
 	uint_fast32_t		xCount, y;
 	
 	dst = ioPixMap->pixels;
-	
-#if OOLITE_BIG_ENDIAN
-	// FIXME: Not flipping here gives right result. Either we're doing something wrong somewhere, or I'm confused.
-//	shift = 24 - 8 * channelIndex;
 	shift = 8 * channelIndex;
-#elif OOLITE_LITTLE_ENDIAN
-	shift = 8 * channelIndex;
-#else
-#error Unknown byte order.
-#endif
 	
 	for (y = 0; y < ioPixMap->height; y++)
 	{
@@ -152,14 +143,7 @@ static void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx)
 		
 		do
 		{
-#if OOLITE_BIG_ENDIAN
-		//	*dst++ = (*src++ * 0x01010100) | 0x000000FF;
 			*dst++ = (*src++ * 0x00010101) | 0xFF000000;
-#elif OOLITE_LITTLE_ENDIAN
-			*dst++ = (*src++ * 0x00010101) | 0xFF000000;
-#else
-#error Unknown byte order.
-#endif
 		}
 		while (--xCount);
 	}
@@ -186,7 +170,6 @@ static void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx)
 		{
 			px = *src++;
 #if OOLITE_BIG_ENDIAN
-		//	*dst++ = (((px & 0xFF00) >> 8) * 0x01010100) | (px & 0x00FF);
 			*dst++ = (((px & 0xFF00) >> 8) * 0x00010101) | ((px & 0x00FF) << 24);
 #elif OOLITE_LITTLE_ENDIAN
 			*dst++ = ((px & 0x00FF) * 0x00010101) | ((px & 0xFF00) << 16);
@@ -210,14 +193,7 @@ BOOL OOPixMapModulateUniform(OOPixMap *ioPixMap, float f0, float f1, float f2, f
 }
 
 
-#if OOLITE_LITTLE_ENDIAN
 static void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_t f1, uint16_t f0)
-#elif OOLITE_BIG_ENDIAN
-static void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_t f1, uint16_t f0)
-//static void ModulateUniform_4(OOPixMap pixMap, uint16_t f0, uint16_t f1, uint16_t f2, uint16_t f3)
-#else
-#error Unknown byte order.
-#endif
 {
 	NSCParameterAssert(OOPixMapBytesPerPixel(pixMap) == 4);
 	
