@@ -2009,7 +2009,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self noteLostTarget];
 			}
 		}
-
+		
 		switch (behaviour)
 		{
 			case BEHAVIOUR_TUMBLE :
@@ -4125,6 +4125,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		Entity		*father = my_owner;
 		OOMatrix	r_mat;
 		
+		OOGL(glPushMatrix());
+		
 		while ((father)&&(father != last)  &&father != NO_TARGET)
 		{
 			r_mat = [father drawRotationMatrix];
@@ -4135,12 +4137,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		
 		GLLoadOOMatrix([UNIVERSE viewMatrix]);
-		OOGL(glPopMatrix());
-		OOGL(glPushMatrix());
 		GLTranslateOOVector(abspos);
 		GLMultOOMatrix(rotMatrix);
-		
 		[self drawEntity:immediate :translucent];
+		
+		OOGL(glPopMatrix());
 	}
 	else
 	{
@@ -4148,7 +4149,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		
 		GLTranslateOOVector(position);
 		GLMultOOMatrix(rotMatrix);
-		
 		[self drawEntity:immediate :translucent];
 		
 		OOGL(glPopMatrix());
@@ -6798,65 +6798,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector twelve = position;
 	twelve.x += dist * v_up.x;	twelve.y += dist * v_up.y;	twelve.z += dist * v_up.z;
 	return twelve;
-}
-
-
-- (double) ballTrackTarget:(double) delta_t
-{
-	Vector		vector_to_target;
-	Vector		axis_to_track_by;
-	Vector		my_position = position;  // position relative to parent
-	Vector		my_aim = vector_forward_from_quaternion(orientation);
-	Vector		my_ref = reference;
-	double		aim_cos;
-	
-	Entity		*target = [self primaryTarget];
-	
-	Entity		*last = nil;
-	Entity		*father = [self parentEntity];
-	OOMatrix	r_mat;
-	BOOL		doTrack;
-	
-	while (father && father != last && father != NO_TARGET)
-	{
-		r_mat = [father drawRotationMatrix];
-		my_position = vector_add(OOVectorMultiplyMatrix(my_position, r_mat), [father position]);
-		my_ref = OOVectorMultiplyMatrix(my_ref, r_mat);
-		last = father;
-		if (![last isSubEntity]) break;
-		father = [father owner];
-	}
-
-	if (target)
-	{
-		vector_to_target = vector_subtract([target position], my_position);
-		vector_to_target = vector_normal_or_fallback(vector_to_target, kBasisZVector);
-		
-		doTrack = (dot_product(vector_to_target, my_ref) > TURRET_MINIMUM_COS);
-	}
-	else
-	{
-		doTrack = NO;
-	}
-
-	if (doTrack)  // target is forward of self
-	{
-		// do the tracking!
-		aim_cos = dot_product(vector_to_target, my_aim);
-		axis_to_track_by = cross_product(vector_to_target, my_aim);
-	}
-	else
-	{
-		aim_cos = 0.0;
-		axis_to_track_by = cross_product(my_ref, my_aim);	//	return to center
-	}
-	
-	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
-	[self orientationChanged];
-	
-	[self setStatus:STATUS_ACTIVE];
-	
-	return aim_cos;
 }
 
 

@@ -840,7 +840,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) trackOntoTarget:(double) delta_t withDForward: (GLfloat) dp;
 
-- (double) ballTrackTarget:(double) delta_t;
 - (double) ballTrackLeadingTarget:(double) delta_t;
 
 - (GLfloat) rollToMatchUp:(Vector) up_vec rotating:(GLfloat) match_roll;
