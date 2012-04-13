@@ -133,6 +133,7 @@ MA 02110-1301, USA.
 - (void) fightOrFleeMissile;
 
 - (void) setCourseToPlanet;
+- (void) performLandOnPlanet;
 - (void) setTakeOffFromPlanet;
 - (void) landOnPlanet;
 
@@ -883,6 +884,25 @@ MA 02110-1301, USA.
 	{
 		OOLog(@"ai.setTakeOffFromPlanet.noPlanet", @"***** Error. Planet not found during take off!");
 	}
+}
+
+
+- (void) performLandOnPlanet
+{
+	OOPlanetEntity	*nearest = [self findNearestPlanet];
+	if (isNearPlanetSurface)
+	{
+		destination = [nearest position];
+		behaviour = BEHAVIOUR_LAND_ON_PLANET;
+		planetForLanding = [nearest universalID];
+	}
+	else
+	{
+		behaviour = BEHAVIOUR_IDLE;
+		[shipAI message:@"NO_PLANET_NEARBY"];
+	}
+	
+	frustration = 0.0;
 }
 
 

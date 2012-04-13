@@ -2075,6 +2075,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self behaviour_face_destination: delta_t];
 				break;
 
+			case BEHAVIOUR_LAND_ON_PLANET :
+				[self behaviour_land_on_planet: delta_t];
+				break;
+				
 			case BEHAVIOUR_FORMATION_FORM_UP :
 				[self behaviour_formation_form_up: delta_t];
 				break;
@@ -3678,14 +3682,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_face_destination:(double) delta_t
 {
-	double max_cos = 0.995;
+	double max_cos = MAX_COS;
 	double distance = [self rangeToDestination];
 	double old_pitch = flightPitch;
 	desired_speed = 0.0;
 	if (desired_range > 1.0 && distance > desired_range)
+	{
 		max_cos = sqrt(1 - 0.90 * desired_range*desired_range/(distance * distance));   // Head for a point within 95% of desired_range (must match the value in trackDestination)
-	else
-		max_cos = 0.995;	// 0.995 - cos(5 degrees) is close enough
+	}
 	double confidenceFactor = [self trackDestination:delta_t:NO];
 	if (confidenceFactor >= max_cos && flightPitch == 0.0)
 	{
@@ -3719,6 +3723,47 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		flightPitch += 0.5 * old_pitch; // damping with last pitch value.
 	}
+	
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+		[self avoidCollision];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyThrust:delta_t];
+}
+
+
+- (void) behaviour_land_on_planet:(double) delta_t
+{
+	double max_cos = MAX_COS2; // trackDestination returns the squared confidence in reverse mode.
+	desired_speed = 0.0;
+	
+	OOPlanetEntity* planet = [UNIVERSE entityForUniversalID:planetForLanding];
+	
+	if (![planet isPlanet]) 
+	{
+		behaviour = BEHAVIOUR_IDLE;
+		[shipAI message:@"NO_PLANET_NEARBY"];
+		return;
+	}
+		  
+	if (distance(position, [planet position]) + [self collisionRadius] < [planet radius])
+	{
+		// we have landed. (completely disappeared inside planet)
+		[self landOnPlanet:planet];
+		return;
+	}
+
+	double confidenceFactor = [self trackDestination:delta_t:YES]; // turn away from destination
+	
+	if (confidenceFactor >= max_cos && flightSpeed == 0.0)
+	{
+		// We are now turned away from planet. Start landing by flying backward.
+		thrust = 0.0; // stop forward acceleration.
+		if (magnitude2(velocity) < MAX_LANDING_SPEED2)
+		{
+			[self adjustVelocity:vector_multiply_scalar([self forwardVector], -max_thrust * delta_t)];
+		}
+	}
+	
 	
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
@@ -7228,7 +7273,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double reversePlayer = 1.0;
 
 	double min_d = 0.004;
-	double max_cos = 0.995;  // was 0.85; should match default value of max_cos in behaviour_fly_to_destination!
+	double max_cos = MAX_COS;  // should match default value of max_cos in behaviour_fly_to_destination!
 	double precision = we_are_docking ? 0.25 : 0.9025; // lower values force a direction closer to the target. (resp. 50% and 95% within range)
 
 	if (retreat)
@@ -9578,11 +9623,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) landOnPlanet:(OOPlanetEntity *)planet
 {
-	if (planet)
+	if (planet && [self isShuttle])
 	{
-		[planet welcomeShuttle:self];   // 10km from the surface
+		[planet welcomeShuttle:self];
 	}
-	[shipAI message:@"LANDED_ON_PLANET"];
+	[self doScriptEvent:OOJSID("shipLandedOnPlanet") withArgument:planet andReactToAIMessage:@"LANDED_ON_PLANET"];
 	
 #ifndef NDEBUG
 	if ([self reportAIMessages])

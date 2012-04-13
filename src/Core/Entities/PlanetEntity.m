@@ -642,9 +642,8 @@ static const BaseFace kTexturedFaces[][3] =
 	if (other->isShip)
 	{
 		ShipEntity *ship = (ShipEntity *)other;
-		if ([ship isShuttle])
+		if ([ship behaviour] == BEHAVIOUR_LAND_ON_PLANET)
 		{
-			[ship landOnPlanet:self];
 			return NO;
 		}
 #ifndef NDEBUG

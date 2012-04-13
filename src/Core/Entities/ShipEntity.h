@@ -114,6 +114,12 @@ MA 02110-1301, USA.
 #define WEAPON_FACING_PORT				4
 #define WEAPON_FACING_STARBOARD			8
 
+#define MAX_LANDING_SPEED				50.0
+#define MAX_LANDING_SPEED2				(MAX_LANDING_SPEED * MAX_LANDING_SPEED)
+
+#define MAX_COS							0.995	// cos(5 degrees) is close enough in most cases for navigation
+#define MAX_COS2						(MAX_COS * MAX_COS)
+
 
 #define ENTRY(label, value) label = value,
 
@@ -297,6 +303,7 @@ typedef enum
 	OOUInteger				_maxShipSubIdx;				// serialisation index - the number of ship subentities inside the shipdata
 	double					launch_time;				// time at which launched
 	double					launch_delay;				// delay for thinking after launch
+	OOUniversalID			planetForLanding;			// for landing
 	
 	GLfloat					frustration,				// degree of dissatisfaction with the current behavioural state, factor used to test this
 							success_factor;
@@ -580,6 +587,7 @@ typedef enum
 - (void) behaviour_flee_target:(double) delta_t;
 - (void) behaviour_fly_range_from_destination:(double) delta_t;
 - (void) behaviour_face_destination:(double) delta_t;
+- (void) behaviour_land_on_planet:(double) delta_t;
 - (void) behaviour_formation_form_up:(double) delta_t;
 - (void) behaviour_fly_to_destination:(double) delta_t;
 - (void) behaviour_fly_from_destination:(double) delta_t;

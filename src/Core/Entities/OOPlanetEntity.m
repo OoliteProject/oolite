@@ -467,6 +467,23 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
+- (BOOL) checkCloseCollisionWith:(Entity *)other
+{
+	if (!other)
+		return NO;
+	if (other->isShip)
+	{
+		ShipEntity *ship = (ShipEntity *)other;
+		if ([ship behaviour] == BEHAVIOUR_LAND_ON_PLANET)
+		{
+			return NO;
+		}
+	}
+	
+	return YES;
+}
+
+
 - (void) launchShuttle
 {
 	if (_shuttlesOnGround == 0)  return;
