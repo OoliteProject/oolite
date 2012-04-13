@@ -106,7 +106,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	
 #ifndef NDEBUG
 	gLiveEntityCount--;
-	gTotalEntityMemory += [self oo_objectSize];
+	gTotalEntityMemory -= [self oo_objectSize];
 #endif
 	
 	[super dealloc];
