@@ -403,11 +403,20 @@ static OOColor *ColorWithHSBColor(Vector c)
 		if (EXPECT_NOT(_atmosphereDrawable && zero_distance < _mesopause2))
 		{
 			double alt = (sqrt(zero_distance) - collision_radius) / kMesosphere;
+
 			if (EXPECT_NOT(alt > 0 && alt <= 1.0))	// ensure aleph is clamped between 0 and 1
 			{
 				double aleph = 1.0 - alt;
 				double aleph2 = aleph * aleph;
-				if (EXPECT(_airColor != nil))
+			if (EXPECT_NOT(!PLAYER->isSunlit && PLAYER->shadingEntityID == [self universalID]))
+			{
+				// night sky, reddish flash on entering the atmosphere, low light pollution otherwhise
+				[UNIVERSE setSkyColorRed: (EXPECT_NOT(alt > 0.98) ? 30 : 0.1) * aleph2
+								   green: 0.1 * aleph2
+									blue: 0.1 * aleph
+								   alpha:aleph];
+			}
+			else if (EXPECT(_airColor != nil))
 				{
 					[UNIVERSE setSkyColorRed:[_airColor redComponent] * aleph2
 									   green:[_airColor greenComponent] * aleph2
