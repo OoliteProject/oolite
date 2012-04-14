@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "OOPlanetTextureGenerator.h"
 #import "OOSingleTextureMaterial.h"
 #import "OOShaderMaterial.h"
+#import "OOEntityFilterPredicate.h"
 
 
 @interface OOPlanetEntity (Private)
@@ -103,7 +104,8 @@ const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts 
 	if (techLevel > 14)  techLevel = 14;
 	_shuttlesOnGround = 1 + techLevel / 2;
 	_shuttleLaunchInterval = 3600.0 / (double)_shuttlesOnGround;	// All are launched in one hour.
-	_lastLaunchTime = 30.0 - _shuttleLaunchInterval;				// debug - launch 30s after player enters universe	 FIXME: is 0 the correct non-debug value?
+	_lastLaunchTime = [UNIVERSE getTime] + 30.0 - _shuttleLaunchInterval;	// launch 30s after player enters universe.
+																			// make delay > 0 to allow scripts adding a station nearby.
 	
 	int percent_land = [planetInfo oo_intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
 	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
@@ -510,9 +512,32 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
+- (BOOL) planetHasStation
+{
+	// find the nearest station...
+	ShipEntity	*station =  nil;
+	station = [UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
+										   parameter:nil
+									relativeToEntity:self];
+	
+	if (station && distance([station position], position) < 4 * collision_radius) // there is a station in range.
+	{
+		return YES;
+	}
+	return NO;
+}
+
+
 - (void) launchShuttle
 {
 	if (_shuttlesOnGround == 0)  return;
+	
+	if (self != [UNIVERSE planet] && ![self planetHasStation])
+	{
+		// don't launch shuttles when no station is nearby.
+		_shuttlesOnGround = 0;
+		return;
+	}
 	
 	Quaternion  q1;
 	quaternion_set_random(&q1);

@@ -39,6 +39,6 @@
 	}; 
     "LANDING" = {
 		ENTER = (performLandOnPlanet);
-		NO_PLANET_NEARBY = ("setStateTo: APPROACH");
+		"NO_PLANET_NEARBY" = ("setStateTo: APPROACH");
 	}; 
 }

@@ -439,7 +439,7 @@ static const BaseFace kTexturedFaces[][3] =
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 3600.0 / shuttles_on_ground; // all are launched in an hour
 
-	last_launch_time = 30.0 - shuttle_launch_interval;   // debug - launch 30s after player enters universe
+	last_launch_time = [UNIVERSE getTime] + 30.0 - shuttle_launch_interval;   // debug - launch 30s after player enters universe
 
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
 	

@@ -65,6 +65,7 @@ MA 02110-1301, USA.
 - (double) rotationalVelocity;
 - (void) setRotationalVelocity:(double) v;
 
+- (BOOL) planetHasStation;
 - (void) launchShuttle;
 - (void) welcomeShuttle:(ShipEntity *)shuttle;
 
