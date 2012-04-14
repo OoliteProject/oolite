@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 	return [NSString stringWithFormat:@"ID: %d, %d subregions, %d ents", crid, n_subs, n_entities];
 }
 
+
 // basic alloc/ dealloc routines
 //
 static int crid_counter = 1;
@@ -69,6 +70,7 @@ static int crid_counter = 1;
 	return self;
 }
 
+
 - (id) initAtLocation:(Vector) locn withRadius:(GLfloat) rad withinRegion:(CollisionRegion*) otherRegion
 {
 	self = [super init];
@@ -93,6 +95,7 @@ static int crid_counter = 1;
 	return self;
 }
 
+
 - (void) dealloc
 {
 	if (entity_array)
@@ -102,6 +105,7 @@ static int crid_counter = 1;
 	[super dealloc];
 }
 
+
 - (void) clearSubregions
 {
 	int i;
@@ -110,6 +114,7 @@ static int crid_counter = 1;
 		[(CollisionRegion*)[subregions objectAtIndex: i] clearSubregions];
 	[subregions removeAllObjects];
 }
+
 
 - (void) addSubregionAtPosition:(Vector) pos withRadius:(GLfloat) rad
 {
@@ -161,6 +166,7 @@ BOOL positionIsWithinRegion( Vector position, CollisionRegion* region)
 	return YES;
 }
 
+
 BOOL sphereIsWithinRegion( Vector position, GLfloat rad, CollisionRegion* region)
 {
 	if (!region)
@@ -179,6 +185,7 @@ BOOL sphereIsWithinRegion( Vector position, GLfloat rad, CollisionRegion* region
 	
 	return YES;
 }
+
 
 BOOL positionIsWithinBorders( Vector position, CollisionRegion* region)
 {
@@ -199,6 +206,7 @@ BOOL positionIsWithinBorders( Vector position, CollisionRegion* region)
 	return YES;
 }
 
+
 BOOL positionIsOnBorders( Vector position, CollisionRegion* region)
 {
 	if (!region)
@@ -217,6 +225,7 @@ BOOL positionIsOnBorders( Vector position, CollisionRegion* region)
 
 	return (!positionIsWithinRegion( position, region));
 }
+
 
 NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 {
@@ -247,6 +256,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	isPlayerInRegion = NO;
 }
 
+
 - (void) addEntity:(Entity*) ent
 {
 	// expand if necessary
@@ -265,6 +275,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	isPlayerInRegion |= (ent->isPlayer);
 	entity_array[n_entities++] = ent;
 }
+
 
 - (BOOL) checkEntity:(Entity*) ent
 {
@@ -438,14 +449,14 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	}
 }
 
-static BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, OOSunEntity* the_sun)
+
+// an outValue of 1 means it's just being occluded.
+static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *the_sun, double *outValue)
 {
+	*outValue = 1.5;	// initial 'fully lit' value
 	// simple tests
-	if (e1 == e2)
-		return NO;	// you can't shade self
-	//
-	if (e2 == the_sun)
-		return NO;	// sun can't shade itself
+	if (EXPECT_NOT(e1 == e2 || e2 == the_sun))
+		return NO;	// you can't shade self and sun can't shade itself
 	//
 	if (![e2 isShip] && ![e2 isPlanet])
 		return NO;	// only ships and planets shade.
@@ -464,19 +475,19 @@ static BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, OOSunEntity* the_
 	//
 	GLfloat d2_e2 = distance2( e1->position, e2->position);
 	GLfloat cr_sun = the_sun->collision_radius;
-	GLfloat cr_e2 = e2->collision_radius;
-	if (e2->isShip)
-		cr_e2 *= 0.90f;	// 10% smaller shadow for ships
-	if ([e2 isPlanet])
-		cr_e2 = e2->collision_radius;	// use collision radius for planets
+	GLfloat cr_e2 = e2->collision_radius;	// use collision radius as planets shadow
+	if (e2->isShip) cr_e2 *= 0.90f;	// and a 10% smaller shadow for ships
 	//
 	GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
 	if (cr_e2 * cr_e2 < cr2_sun_scaled)
 		return NO;	// if solar disc projected to the distance of e2 > collision radius it can't be shaded by e2
 	//
 	// check angles subtended by sun and occluder
-	double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
-	double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
+	// double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
+	// double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
+	// find the difference between the angles subtended by occluder and sun
+	double theta_diff = asin(cr_e2 / sqrt(d2_e2)) - asin(cr_sun / sqrt(d2_sun));
+	
 	Vector p_sun = the_sun->position;
 	Vector p_e2 = e2->position;
 	Vector p_e1 = e1->position;
@@ -492,14 +503,24 @@ static BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, OOSunEntity* the_
 	else
 		v_e2.x = 1.0f;
 	double phi = acos( dot_product( v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint
+	*outValue = (phi / theta_diff);	// 1 means just occluded, < 1 means in shadow
 	//
-	if (theta_sun + phi > theta_e2)
+	//if (theta_sun + phi > theta_e2)
+	if (phi > theta_diff)
 		return NO;	// sun is not occluded
 	//
 	// all tests done e1 is in shade!
 	//
 	return YES;
 }
+
+
+static BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntity *the_sun)
+{
+	double tmp;		// we're not interested in the amount of occlusion just now.
+	return entityByEntityOcclusionToValue(e1, e2, the_sun, &tmp);
+}
+
 
 - (void) findShadowedEntities
 {
@@ -569,13 +590,15 @@ static BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, OOSunEntity* the_
 			//
 			//	test planets
 			//
+			double occlusionNumber;
 			for (j = 0; j < n_planets; j++)
 			{
-				if (testEntityOccludedByEntity(e1, planets[j], the_sun))
+				if (entityByEntityOcclusionToValue(e1, planets[j], the_sun, &occlusionNumber))
 				{
 					e1->isSunlit = NO;
 					e1->shadingEntityID = [planets[j] universalID];
 				}
+				if (EXPECT_NOT([e1 isPlayer])) ((PlayerEntity *)e1)->occlusion_dial = occlusionNumber;
 			}
 			//
 			// test local entities
@@ -591,6 +614,7 @@ static BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, OOSunEntity* the_
 		}
 	}
 }
+
 
 - (NSString*) debugOut
 {

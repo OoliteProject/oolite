@@ -246,6 +246,7 @@ typedef enum
 @public
 	Random_Seed				system_seed;
 	Random_Seed				target_system_seed;
+	float					occlusion_dial;
 	
 @private
 	Random_Seed				found_system_seed;

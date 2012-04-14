@@ -286,10 +286,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		// add a cloud_color tinge to sky blue({0.66, 0.3, 1}).
 		seaHSB = vector_add(landHSB,((Vector){1.333, 0.6, 2}));	// 1 part cloud, 2 parts sky blue
 		scale_vector(&seaHSB, 0.333);
-		
-		//seaHSB = (Vector){0, 1,1};//red
-		//landHSB = (Vector){0.66,0.3,1};//blue
-		
+				
 		float cloudAlpha = OOClamp_0_1_f([sourceInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f]);
 		[targetInfo setObject:[NSNumber numberWithFloat:cloudAlpha] forKey:@"cloud_alpha"];
 		
@@ -305,7 +302,6 @@ static OOColor *ColorWithHSBColor(Vector c)
 		
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"polar_cloud_color"]];
 		if (color != nil) landPolarHSB = HSBColorWithColor(color);
-		OOLog (@"kaks",@" air colour :%@", VectorDescription(seaHSB));
 		
 		[targetInfo setObject:ColorWithHSBColor(seaHSB) forKey:@"air_color"];
 		[targetInfo setObject:ColorWithHSBColor(landHSB) forKey:@"cloud_color"];
@@ -402,27 +398,48 @@ static OOColor *ColorWithHSBColor(Vector c)
 	{
 		if (EXPECT_NOT(_atmosphereDrawable && zero_distance < _mesopause2))
 		{
-			double alt = (sqrt(zero_distance) - collision_radius) / kMesosphere;
-
+			NSAssert(_airColor != nil, @"Expected a non-nil air colour for normal planet. Exiting.");
+			double		alt = (sqrt(zero_distance) - collision_radius) / kMesosphere;
 			if (EXPECT_NOT(alt > 0 && alt <= 1.0))	// ensure aleph is clamped between 0 and 1
 			{
-				double aleph = 1.0 - alt;
-				double aleph2 = aleph * aleph;
-			if (EXPECT_NOT(!PLAYER->isSunlit && PLAYER->shadingEntityID == [self universalID]))
-			{
+				double	aleph = 1.0 - alt;
+				double	aleph2 = aleph * aleph;
+				
 				// night sky, reddish flash on entering the atmosphere, low light pollution otherwhise
-				[UNIVERSE setSkyColorRed: (EXPECT_NOT(alt > 0.98) ? 30 : 0.1) * aleph2
-								   green: 0.1 * aleph2
-									blue: 0.1 * aleph
-								   alpha:aleph];
-			}
-			else if (EXPECT(_airColor != nil))
+				OOColor	*mixColor = [OOColor colorWithCalibratedRed:(EXPECT_NOT(alt > 0.98) ? 30 : 0.1)
+															  green:0.1
+															   blue:0.1
+															  alpha:aleph];
+															  
+				// occlusion rate: .9 is 18 degrees after the terminus, where twilight ends.
+				// 1 is the terminus, 1.033 is 6 degrees before the terminus, where the sky begins to redden
+				double rate = (PLAYER->occlusion_dial - 0.97)/0.06; // from 0.97 to 1.03
+
+				if (EXPECT(rate <= 1.0 && rate > 0.0))
 				{
-					[UNIVERSE setSkyColorRed:[_airColor redComponent] * aleph2
-									   green:[_airColor greenComponent] * aleph2
-										blue:[_airColor blueComponent] * aleph
-									   alpha:aleph];
+					mixColor = [mixColor blendedColorWithFraction:rate ofColor:_airColor];
+					// TODO: properly calculated pink sky - needs to depend on sun's angular size,
+					// and its angular height on the horizon.
+					/*
+					rate -= 0.7;
+					if (rate >= 0.0) // pink sky!
+					{
+						rate = 0.5 - (fabs(rate - 0.15) / 0.3);	// at most a 50% blend!
+						mixColor = [mixColor blendedColorWithFraction:rate ofColor:[OOColor colorWithCalibratedRed:0.6
+																											 green:0.1
+																											  blue:0.0
+																											 alpha:aleph]];
+					}
+					*/
 				}
+				else
+				{
+					if (PLAYER->isSunlit && _airColor != nil) mixColor = _airColor;
+				}
+				[UNIVERSE setSkyColorRed:[mixColor redComponent] * aleph2
+								   green:[mixColor greenComponent] * aleph2
+									blue:[mixColor blueComponent] * aleph
+								   alpha:aleph];
 				[_atmosphereDrawable setRadius:collision_radius + (ATMOSPHERE_DEPTH * alt)];
 			}
 		}
