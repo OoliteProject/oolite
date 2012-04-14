@@ -1313,7 +1313,11 @@
 	"commodity-name platinum"		= "Platinum";
 	"commodity-name gem-stones"		= "Gem-Stones";
 	"commodity-name alien items"	= "Alien Items";
-	
+	// Commodity names: new spellings
+	"commodity-name liquor_wines"	= "Liquor/Wines";
+	"commodity-name gem_stones"		= "Gem-Stones";
+	"commodity-name alien_items"		= "Alien Items";
+
 	// autosave filename identifier
 	"autosave-commander-suffix"		= " (autosave)";
 	

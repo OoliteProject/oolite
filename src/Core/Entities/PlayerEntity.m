@@ -7335,6 +7335,8 @@ static NSString *last_outfitting_key=nil;
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 	
 	if ([UNIVERSE autoSave])  [UNIVERSE setAutoSaveNow:YES];
+
+	[self doScriptEvent:OOJSID("playerBoughtCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:purchase], [NSNumber numberWithInt: pricePerUnit], nil]];
 	
 	return YES;
 }
@@ -7379,6 +7381,8 @@ static NSString *last_outfitting_key=nil;
 
 	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	
+	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:sell], [NSNumber numberWithInt: pricePerUnit], nil]];
+
 	return YES;
 }
 
