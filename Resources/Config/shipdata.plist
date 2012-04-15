@@ -807,7 +807,7 @@
 	"buoy" =
 	{
 		ai_type = "buoyAI.plist";
-		beacon = "N0100 Navigation Buoy";
+/*		beacon = "N0100 Navigation Buoy"; */
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		forward_weapon_type = "WEAPON_NONE";

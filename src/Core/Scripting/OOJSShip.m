@@ -51,7 +51,6 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 
 static JSBool ShipSetScript(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetAI(JSContext *context, uintN argc, jsval *vp);
-static JSBool ShipSetBeacon(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSwitchAI(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipExitAI(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipReactToAIMessage(JSContext *context, uintN argc, jsval *vp);
@@ -197,7 +196,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "aftWeapon",				kShip_aftWeapon,			OOJS_PROP_READONLY_CB },
 	{ "AI",						kShip_AI,					OOJS_PROP_READONLY_CB },
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
-	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READONLY_CB },
+	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
 	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
@@ -307,7 +306,6 @@ static JSFunctionSpec sShipMethods[] =
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
 	{ "sendAIMessage",			ShipSendAIMessage,			1 },
 	{ "setAI",					ShipSetAI,					1 },
-	{ "setBeacon",					ShipSetBeacon,					1 },
 	{ "setCargo",				ShipSetCargo,				1 },
 	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
 	{ "setMaterials",			ShipSetMaterials,			1 },
@@ -741,6 +739,37 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 		
+	  case kShip_beaconCode:
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			if (EXPECT_NOT([entity universalID] == [[UNIVERSE station] universalID]))  goto mainstationReadOnly;
+
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue == nil || [sValue length] == 0) 
+			{
+				if ([entity isBeacon]) 
+				{
+					[UNIVERSE clearBeacon:entity];
+					if ([PLAYER nextBeacon] == entity)
+					{
+						[PLAYER setCompassMode:COMPASS_MODE_PLANET];
+					}
+				}
+			}
+			else 
+			{
+				if ([entity isBeacon]) 
+				{
+					[entity setBeaconCode:sValue];
+				}
+				else // Universe needs to update beacon lists in this case only
+				{
+					[entity setBeaconCode:sValue];
+					[UNIVERSE setNextBeacon:entity];
+				}
+			}
+			return YES;
+			break;
+
 		case kShip_fuel:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
@@ -931,6 +960,10 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 playerReadOnly:
 	OOJSReportError(context, @"player.ship.%@ is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
 	return NO;
+
+mainstationReadOnly:
+	OOJSReportError(context, @"system.mainStation.%@ is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -966,56 +999,6 @@ static JSBool ShipSetScript(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	[thisEnt setShipScript:name];
-	OOJS_RETURN_VOID;
-	
-	OOJS_NATIVE_EXIT
-}
-
-// setBeacon(beaconCode: String)
-static JSBool ShipSetBeacon(JSContext *context, uintN argc, jsval *vp)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	ShipEntity				*thisEnt = nil;
-	NSString				*name = nil;
-	
-	GET_THIS_SHIP(thisEnt);
-	if (argc > 0)  name = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	if (EXPECT_NOT(name == nil))
-	{
-		OOJSReportBadArguments(context, @"Ship", @"setBeacon", MIN(argc, 1U), OOJS_ARGV, nil, @"string (Beacon code)");
-		return NO;
-	}
-	if (EXPECT_NOT([thisEnt isPlayer]))
-	{
-		OOJSReportErrorForCaller(context, @"Ship", @"setBeacon", @"Not valid for player ship.");
-		return NO;
-	}
-	
-	if ([name length] == 0) 
-	{
-		if ([thisEnt isBeacon]) 
-		{
-			[UNIVERSE clearBeacon:thisEnt];
-			if ([PLAYER nextBeacon] == thisEnt)
-			{
-				[PLAYER setCompassMode:COMPASS_MODE_PLANET];
-			}
-		}
-	}
-	else 
-	{
-		if ([thisEnt isBeacon]) 
-		{
-			[thisEnt setBeaconCode:name];
-		}
-		else // Universe needs to update beacon lists in this case only
-		{
-			[thisEnt setBeaconCode:name];
-			[UNIVERSE setNextBeacon:thisEnt];
-		}
-	}
-
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT

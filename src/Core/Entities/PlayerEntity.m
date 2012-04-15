@@ -3299,7 +3299,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) setPrevCompassMode
 {
-	OOAegisStatus	aegis = AEGIS_NONE;
+	//	OOAegisStatus	aegis = AEGIS_NONE;
 	ShipEntity		*beacon = nil;
 	
 	switch (compassMode)
@@ -3347,15 +3347,15 @@ static GLfloat		sBaseMass = 0.0;
 			break;
 
 		case COMPASS_MODE_SUN:
-			aegis = [self checkForAegis];
-			if (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE)
-			{
-				[self setCompassMode:COMPASS_MODE_STATION];
-			}
+			/*aegis = [self checkForAegis];
+				if (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE)
+							{ */
+			[self setCompassMode:COMPASS_MODE_STATION];
+			/*			}
 			else
 			{
 				[self setCompassMode:COMPASS_MODE_PLANET];
-			}
+				} */
 			break;
 
 		case COMPASS_MODE_STATION:
@@ -3367,22 +3367,22 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) setNextCompassMode
 {
-	OOAegisStatus	aegis = AEGIS_NONE;
+	//	OOAegisStatus	aegis = AEGIS_NONE;
 	ShipEntity		*beacon = nil;
 	
 	switch (compassMode)
 	{
 		case COMPASS_MODE_BASIC:
 		case COMPASS_MODE_PLANET:
-			aegis = [self checkForAegis];
+			/*			aegis = [self checkForAegis];
 			if (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE)
-			{
-				[self setCompassMode:COMPASS_MODE_STATION];
-			}
+			{ */
+			[self setCompassMode:COMPASS_MODE_STATION];
+				/*}
 			else
 			{
 				[self setCompassMode:COMPASS_MODE_SUN];
-			}
+				}*/
 			break;
 			
 		case COMPASS_MODE_STATION:
