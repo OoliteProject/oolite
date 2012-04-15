@@ -8070,7 +8070,7 @@ static NSString *last_outfitting_key=nil;
 		
 		if ((potential_target)&&(potential_target->isShip))
 		{
-			if (potential_target->zero_distance < SCANNER_MAX_RANGE2)
+			if (potential_target->zero_distance < SCANNER_MAX_RANGE2 && (![potential_target isCloaked]))
 			{
 				[super addTarget:potential_target];
 				if (missile_status != MISSILE_STATUS_SAFE)
