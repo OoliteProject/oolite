@@ -852,15 +852,16 @@ MA 02110-1301, USA.
 	OOPlanetEntity	*the_planet =  [self findNearestPlanetExcludingMoons];
 	if (the_planet)
 	{
+		double variation = (aegis_status == AEGIS_NONE ? 0.5 : 0.2); // more random deviation when far from planet.
 		Vector p_pos = the_planet->position;
 		double p_cr = the_planet->collision_radius;		// the surface
 		Vector p1 = vector_between(p_pos, position);
 		p1 = vector_normal(p1);			// vector towards ship
-		p1.x += 0.5 * (randf() - 0.5);
-		p1.y += 0.5 * (randf() - 0.5);
-		p1.z += 0.5 * (randf() - 0.5);
+		p1.x += variation * (randf() - variation);
+		p1.y += variation * (randf() - variation);
+		p1.z += variation * (randf() - variation);
 		p1 = vector_normal(p1); 
-		destination = make_vector(p_pos.x + p1.x * p_cr, p_pos.y + p1.y * p_cr, p_pos.z + p1.z * p_cr);	// on surface
+		destination = vector_add(p_pos, vector_multiply_scalar(p1, p_cr));	// on surface
 		desired_range = collision_radius + 100.0;	// +100m from the destination
 	}
 	else
