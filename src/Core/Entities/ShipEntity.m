@@ -413,8 +413,14 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// setWeaponDataFromType inside setUpFromDictionary should set weapon_damage from the front laser.
 	// no weapon_damage? It's a missile: set weapon_damage from shipdata!
-	if (weapon_damage == 0.0) weapon_damage_override = weapon_damage = [shipDict oo_floatForKey:@"weapon_energy"]; // any damage value for missiles/bombs
-	else weapon_damage_override = OOClamp_0_max_f([shipinfoDictionary oo_floatForKey:@"weapon_energy" defaultValue:weapon_damage],50.0); // front laser damage can be modified, within limits!
+	if (weapon_damage == 0.0) 
+	{
+		weapon_damage_override = weapon_damage = [shipDict oo_floatForKey:@"weapon_energy"]; // any damage value for missiles/bombs
+	}
+	else
+	{ 
+		weapon_damage_override = OOClamp_0_max_f([shipinfoDictionary oo_floatForKey:@"weapon_energy" defaultValue:weapon_damage],50.0); // front laser damage can be modified, within limits!
+	}
 
 	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:(float)SCANNER_MAX_RANGE];
 	
@@ -5793,6 +5799,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			double ecr = [e2 collisionRadius];
 			double d = (magnitude(p2) - ecr) * 2.6; // 2.6 is a correction constant to stay in limits of the old code.
 			double damage = (d > 0) ? weapon_damage * desired_range / (d * d) : weapon_damage;
+			if (damage > weapon_damage/18.0) {
+				// 18.0 is another correction constant to avoid infinite damage potential at too-short range (common at low FPS)
+				damage = weapon_damage/18.0;
+			}
 			[e2 takeEnergyDamage:damage from:self becauseOf:[self owner]];
 		}
 	}
