@@ -741,7 +741,6 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 		
 	  case kShip_beaconCode:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
-			if (EXPECT_NOT([entity universalID] == [[UNIVERSE station] universalID]))  goto mainstationReadOnly;
 
 			sValue = OOStringFromJSValue(context,*value);
 			if (sValue == nil || [sValue length] == 0) 
@@ -961,10 +960,6 @@ playerReadOnly:
 	OOJSReportError(context, @"player.ship.%@ is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
 	return NO;
 
-mainstationReadOnly:
-	OOJSReportError(context, @"system.mainStation.%@ is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
-	return NO;
-	
 	OOJS_NATIVE_EXIT
 }
 

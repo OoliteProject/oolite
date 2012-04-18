@@ -1339,14 +1339,26 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	SetCompassBlipColor(relativePosition.z, alpha);
 	
 	OOGLBEGIN(GL_LINES);
-		glVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
+	/*		glVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
 		glVertex3f(relativePosition.x, relativePosition.y + 0.5 * siz.height, z1);
 		
 		glVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
 		glVertex3f(relativePosition.x, relativePosition.y + 0.5 * siz.height, z1);
 		
 		glVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-		glVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
+		glVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1); */
+	glVertex3f(relativePosition.x + 0.6 * siz.width, relativePosition.y, z1);
+	glVertex3f(relativePosition.x, relativePosition.y + 0.6 * siz.height, z1);
+
+	glVertex3f(relativePosition.x - 0.6 * siz.width, relativePosition.y, z1);
+	glVertex3f(relativePosition.x, relativePosition.y + 0.6 * siz.height, z1);
+
+	glVertex3f(relativePosition.x + 0.6 * siz.width, relativePosition.y, z1);
+	glVertex3f(relativePosition.x, relativePosition.y - 0.6 * siz.height, z1);
+
+	glVertex3f(relativePosition.x - 0.6 * siz.width, relativePosition.y, z1);
+	glVertex3f(relativePosition.x, relativePosition.y - 0.6 * siz.height, z1);
+
 	OOGLEND();
 }
 
