@@ -617,7 +617,7 @@ static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	if (!ValidateContracts(context, argc, vp, NO, &start, &destination, &eta, &fee))  return NO; // always go through validate contracts (cargo)
+	if (!ValidateContracts(context, argc, vp, NO, &start, &destination, &eta, &fee))  return NO; // always go through validate contracts (passenger)
 	
 	// Ensure there's space.
 	if ([player passengerCount] >= [player passengerCapacity])  OOJS_RETURN_BOOL(NO);

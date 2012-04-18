@@ -3776,6 +3776,7 @@ static GLfloat		sBaseMass = 0.0;
 	float  mine_speed = 500.0f;
 	Vector mvel = vector_subtract([mine velocity], vector_multiply_scalar(v_forward, mine_speed));
 	[mine setVelocity: mvel];
+	[self doScriptEvent:OOJSID("shipReleasedEquipment") withArgument:mine];
 	return mine;
 }
 

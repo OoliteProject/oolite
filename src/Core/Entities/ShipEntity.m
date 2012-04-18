@@ -8049,16 +8049,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[self doScriptEvent:OOJSID("shipFiredMissile") withArgument:missile andArgument:target_ship];
 		[target_ship setPrimaryAggressor:self];
 		[target_ship doScriptEvent:OOJSID("shipAttackedWithMissile") withArgument:missile andArgument:self];
-		[target_ship reactToAIMessage:@"INCOMING_MISSILE" context:@"hay guise, someone's shooting at me!"];
+		[target_ship reactToAIMessage:@"INCOMING_MISSILE" context:@"someone's shooting at me!"];
+		if (cloaking_device_active && cloakPassive)
+		{
+			// parity between player &NPCs, only deactivate cloak for missiles
+			[self deactivateCloakingDevice];
+		}
 	}
 	else
 	{
-		[self doScriptEvent:OOJSID("shipReleasedEquipment") withArgument:missile andArgument:self];
-	}
-	
-	if (cloaking_device_active && cloakPassive)
-	{
-		[self deactivateCloakingDevice];
+		[self doScriptEvent:OOJSID("shipReleasedEquipment") withArgument:missile];
 	}
 	
 	return missile;
