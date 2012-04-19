@@ -4066,11 +4066,11 @@ static GLfloat		sBaseMass = 0.0;
 	if ([self status] == STATUS_DEAD)  return;
 	if (amount == 0.0)  return;
 	
-	BOOL energyMine = [ent isCascadeWeapon];
-	BOOL cascade = NO;
-	if (energyMine)
+	BOOL cascadeWeapon = [ent isCascadeWeapon];
+	BOOL cascading = NO;
+	if (cascadeWeapon)
 	{
-		cascade = [self cascadeIfAppropriateWithDamageAmount:amount cascadeOwner:[ent owner]];
+		cascading = [self cascadeIfAppropriateWithDamageAmount:amount cascadeOwner:[ent owner]];
 	}
 	
 	// make sure ent (& its position) is the attacking _ship_/missile !
@@ -4121,19 +4121,19 @@ static GLfloat		sBaseMass = 0.0;
 			amount = 0.0;
 		}
 	}
-
+	
+	OOShipDamageType damageType = cascadeWeapon ? kOODamageTypeCascadeWeapon : kOODamageTypeEnergy;
+	
 	if (amount > 0.0)
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= amount;
 		[self playDirectHit];
 		ship_temperature += (amount / [self heatInsulation]);
+		
+		[self noteTakingDamage:amount from:other type:damageType];
 	}
-	
-	OOShipDamageType damageType = kOODamageTypeEnergy;
-	if (energyMine)  damageType = kOODamageTypeCascadeWeapon;
-	[self noteTakingDamage:amount from:other type:damageType];
-	if (cascade) energy = 0.0; // explicit set energy to zero when cascading, in case an oxp raised the energy in previous line.
+	if (cascading) energy = 0.0; // explicitly set energy to zero when cascading, in case an oxp raised the energy in noteTakingDamage.
 	
 	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
 	{
