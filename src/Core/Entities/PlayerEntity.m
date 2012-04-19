@@ -4130,9 +4130,8 @@ static GLfloat		sBaseMass = 0.0;
 		energy -= amount;
 		[self playDirectHit];
 		ship_temperature += (amount / [self heatInsulation]);
-		
-		[self noteTakingDamage:amount from:other type:damageType];
 	}
+	[self noteTakingDamage:amount from:other type:damageType];
 	if (cascading) energy = 0.0; // explicitly set energy to zero when cascading, in case an oxp raised the energy in noteTakingDamage.
 	
 	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
