@@ -1882,6 +1882,7 @@ static GLfloat		sBaseMass = 0.0;
 			{
 				[self setFuel:[self fuel] + 1];
 				fuel_accumulator -= 1.0f;
+				[self doScriptEvent:OOJSID("shipScoopedFuel")];
 			}
 			[UNIVERSE displayCountdownMessage:DESC(@"fuel-scoop-active") forCount:1.0];
 		}
