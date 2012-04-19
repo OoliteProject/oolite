@@ -62,6 +62,7 @@ static JSBool ShipEjectItem(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipEjectSpecificItem(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipDumpCargo(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSpawn(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipDealEnergyDamage(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipExplode(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRemove(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRunLegacyScriptActions(JSContext *context, uintN argc, jsval *vp);
@@ -286,6 +287,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
+	{ "dealEnergyDamage",			ShipDealEnergyDamage,			2 },
 	{ "deployEscorts",			ShipDeployEscorts,			0 },
 	{ "dockEscorts",			ShipDockEscorts,			0 },
 	{ "dumpCargo",				ShipDumpCargo,				0 },
@@ -1298,6 +1300,62 @@ static JSBool ShipSpawn(JSContext *context, uintN argc, jsval *vp)
 
 	OOJS_RETURN_OBJECT(result);
 	
+	OOJS_NATIVE_EXIT
+}
+
+
+// dealEnergyDamage(). Replaces AI's dealEnergyDamageWithinDesiredRange
+static JSBool ShipDealEnergyDamage(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	ShipEntity				*thisEnt = nil;
+	jsdouble baseDamage;
+	jsdouble range;
+	double maxRange;
+	BOOL gotDamage;
+	BOOL gotRange;
+	GET_THIS_SHIP(thisEnt);
+
+	if (argc < 2)
+	{
+		OOJSReportBadArguments(context, @"Ship", @"dealEnergyDamage", argc, OOJS_ARGV, nil, @"damage and range needed");
+		return NO;
+	}
+	
+	gotDamage = JS_ValueToNumber(context, OOJS_ARGV[0], &baseDamage);
+	if (EXPECT_NOT(baseDamage < 0))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"dealEnergyDamage", argc, OOJS_ARGV, nil, @"damage must be positive");
+		return NO;
+	}
+	gotRange = JS_ValueToNumber(context, OOJS_ARGV[1], &range);
+	if (EXPECT_NOT(range < 0))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"dealEnergyDamage", argc, OOJS_ARGV, nil, @"range must be positive");
+		return NO;
+	}
+	
+	maxRange = range * sqrt(baseDamage);
+	
+	NSArray* targets = [UNIVERSE getEntitiesWithinRange:maxRange ofEntity:thisEnt];
+	if ([targets count] > 0)
+	{
+		unsigned i;
+		for (i = 0; i < [targets count]; i++)
+		{
+			Entity *e2 = [targets objectAtIndex:i];
+			Vector p2 = vector_subtract([e2 position], [thisEnt position]);
+			double ecr = [e2 collisionRadius];
+			double d = (magnitude(p2) - ecr) / range;
+			// base damage within defined range, inverse-square falloff outside
+			double damage = (d > 1) ? baseDamage / (d * d) : baseDamage;
+			[e2 takeEnergyDamage:damage from:thisEnt becauseOf:[thisEnt owner]];
+		}
+	}
+	
+	return YES;
+
 	OOJS_NATIVE_EXIT
 }
 

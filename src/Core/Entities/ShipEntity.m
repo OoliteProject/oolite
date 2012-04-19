@@ -5799,10 +5799,6 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			double ecr = [e2 collisionRadius];
 			double d = (magnitude(p2) - ecr) * 2.6; // 2.6 is a correction constant to stay in limits of the old code.
 			double damage = (d > 0) ? weapon_damage * desired_range / (d * d) : weapon_damage;
-			if (damage > weapon_damage/18.0) {
-				// 18.0 is another correction constant to avoid infinite damage potential at too-short range (common at low FPS)
-				damage = weapon_damage/18.0;
-			}
 			[e2 takeEnergyDamage:damage from:self becauseOf:[self owner]];
 		}
 	}
@@ -8026,8 +8022,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// is this a submunition?
 	if (![self isMissileFlagSet])  [missile setOwner:self];
 	else  [missile setOwner:[self owner]];
-	
+
 // end special cases
+
+  // set the default missile script if none is assigned
+	// harmless if it's an OXP missile that doesn't need it
+	if ([[[missile shipScript] name] isEqualToString:@"oolite-default-ship-script"]) 
+	{
+		[missile setShipScript:@"oolite-missile.js"];
+	} 
 	
 	[missile setPosition:origin];
 	[missile addTarget:target];	

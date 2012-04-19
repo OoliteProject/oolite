@@ -18,7 +18,7 @@
 	};
 	DETONATE =
 	{
-		ENTER = ("setDesiredRangeTo: 250.0", dealEnergyDamageWithinDesiredRange, becomeExplosion);
+		ENTER = ("sendScriptMessage: detonate");
 	};
 	EXPLODE =
 	{
