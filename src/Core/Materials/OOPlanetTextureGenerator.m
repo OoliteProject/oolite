@@ -607,7 +607,7 @@ static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nea
 #define CLOUD_BOUNDARY			(0.5f)
 #define RECIP_CLOUD_BOUNDARY	(1.0f / CLOUD_BOUNDARY)
 
-	FloatRGB result = info->cloudColor;
+	FloatRGB cloudColor = info->cloudColor;
 	float alpha = info->cloudAlpha, portion = 0.0f;
 	
 	q -= CLOUD_BOUNDARY * 0.5f;
@@ -615,19 +615,16 @@ static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nea
 	if (nearPole > POLAR_BOUNDARY)
 	{
 		portion = nearPole > POLAR_BOUNDARY + 0.2f ? 1.0f : (nearPole - POLAR_BOUNDARY) * 5.0f;
-		result = Blend(portion, info->paleCloudColor, info->cloudColor);
-		// 
+		cloudColor = Blend(portion, info->paleCloudColor, cloudColor);
+		 
 		portion = nearPole > POLAR_BOUNDARY + 0.625f ? 1.0f : (nearPole - POLAR_BOUNDARY) * 1.6f;
-	}
-	else
-	{
-		result = info->cloudColor;
 	}
 	
 	if (q <= 0.0f)
 	{
-		if (q >= -CLOUD_BOUNDARY){
-			alpha *=  BlendAlpha(-q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f, CLOUD_ALPHA, AIR_ALPHA);
+		if (q >= -CLOUD_BOUNDARY)
+		{
+			alpha *= BlendAlpha(-q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f, CLOUD_ALPHA, AIR_ALPHA);
 		}
 		else
 		{
@@ -636,18 +633,19 @@ static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nea
 	}
 	else
 	{
-		if (q < CLOUD_BOUNDARY){
-			alpha *=  BlendAlpha( q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f,  AIR_ALPHA,CLOUD_ALPHA);
+		if (q < CLOUD_BOUNDARY)
+		{
+			alpha *= BlendAlpha( q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f,  AIR_ALPHA,CLOUD_ALPHA);
 		}
 		else
 		{
-			alpha *= AIR_ALPHA ;
+			alpha *= AIR_ALPHA;
 		}
 	}
 	// magic numbers! at the poles we have fairly thin air.
 	alpha *= BlendAlpha(portion, 0.6f, 1.0f);
 	
-	return (FloatRGBA){ result.r, result.g, result.b, alpha };
+	return (FloatRGBA){ cloudColor.r, cloudColor.g, cloudColor.b, alpha };
 }
 
 
@@ -663,7 +661,7 @@ static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float ne
 	
 	const FloatRGB white = { 1.0f, 1.0f, 1.0f };
 	FloatRGB diffuse;
-	// windows specular 'fix': 0 was showing pitch black continents when on the dark side, 0.01 shows the same shading as on macs.
+	// windows specular 'fix': 0 was showing pitch black continents when on the dark side, 0.01 shows the same shading as on Macs.
 	// TODO: a less hack-like fix.
 	float specular = 0.01f;
 	

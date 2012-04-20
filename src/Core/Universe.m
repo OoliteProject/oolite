@@ -6903,8 +6903,11 @@ static NSDictionary	*sCachedSystemData = nil;
 		[_preloadingPlanetMaterials addObject:[planet material]];
 		
 		// In some instances (retextured planets atm), the main planet might not have an atmosphere defined.
-		// Trying to add nil to _preloadingPlanetMaterials  will prematurely terminate the calling function.(!) --Kaks 20100107
-		if ([planet atmosphereMaterial]) [_preloadingPlanetMaterials addObject:[planet atmosphereMaterial]];
+		// Trying to add nil to _preloadingPlanetMaterials will prematurely terminate the calling function.(!) --Kaks 20100107
+		OOMaterial *atmo = [planet atmosphereMaterial];
+		if (atmo != nil)  [_preloadingPlanetMaterials addObject:atmo];
+		
+		[planet release];
 	}
 #endif
 }

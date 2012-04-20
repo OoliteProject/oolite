@@ -8723,7 +8723,8 @@ else _dockTarget = NO_TARGET;
 	key_weapons_online_toggle &&
 	_sysInfoLight.x &&
 	selFunctionIdx &&
-	stickFunctions;
+	stickFunctions &&
+	showingLongRangeChart;
 }
 
 @end
