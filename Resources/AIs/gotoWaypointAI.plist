@@ -13,6 +13,8 @@
 		"LAUNCHED OKAY" = ("exitAIWithMessage: LAUNCHED OKAY");
 		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
 		"DOCKING_REQUESTED" = ("exitAIWithMessage: DOCKING_REQUESTED");
+		"APPROACHING_SURFACE" = ("exitAIWithMessage: APPROACHING_SURFACE");
+		"AEGIS_CLOSE_TO_MAIN_PLANET" = ("exitAIWithMessage: AEGIS_CLOSE_TO_MAIN_PLANET");
 		UPDATE = (performFlyToRangeFromDestination, 
 				checkCourseToDestination, "pauseAI: 2.0");
 	};
@@ -27,5 +29,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setDesiredRangeTo: 1000.0", exitAI);
 		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
 		"DOCKING_REQUESTED" = ("exitAIWithMessage: DOCKING_REQUESTED");
+		"APPROACHING_SURFACE" = ("exitAIWithMessage: APPROACHING_SURFACE");
+		"AEGIS_CLOSE_TO_MAIN_PLANET" = ("exitAIWithMessage: AEGIS_CLOSE_TO_MAIN_PLANET");
 	};
 }
