@@ -86,7 +86,7 @@ There are now several outcomes:
   Immediately leave the station. The station should explode behind you.
   Leave the system with alacrity. The sun should go nova nine seconds after
   you selected [No, sorry]. (This is visible as a rising cabin temperature,
-  not to mention a growing sun. In full shader mode, your ship should be\
+  not to mention a growing sun. In full shader mode, your ship should be
   glowing pink by the time you jump.)
   
   Verify that missionVariables.nova is "NOVA_ESCAPE_COWARD", then dock. You
