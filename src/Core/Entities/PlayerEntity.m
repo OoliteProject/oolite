@@ -86,6 +86,8 @@ MA 02110-1301, USA.
 // 10m/s forward drift
 #define	OG_ELITE_FORWARD_DRIFT			10.0f
 #define PLAYER_DEFAULT_NAME				@"Jameson"
+// default passenger berth required space
+#define PASSENGER_BERTH_SPACE			5
 
 enum
 {
@@ -511,10 +513,12 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[result setObject:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] forKey:@"written_by_version"];
 
-	NSString *gal_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d", galaxy_seed.a, galaxy_seed.b, galaxy_seed.c, galaxy_seed.d, galaxy_seed.e, galaxy_seed.f];
-	NSString *gal_coords = [NSString stringWithFormat:@"%d %d",(int)galaxy_coordinates.x,(int)galaxy_coordinates.y];
-	NSString *tgt_coords = [NSString stringWithFormat:@"%d %d",(int)cursor_coordinates.x,(int)cursor_coordinates.y];
-
+	NSString	*gal_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d", galaxy_seed.a, galaxy_seed.b, galaxy_seed.c, galaxy_seed.d, galaxy_seed.e, galaxy_seed.f];
+	NSString	*gal_coords = [NSString stringWithFormat:@"%d %d",(int)galaxy_coordinates.x,(int)galaxy_coordinates.y];
+	NSString	*tgt_coords = [NSString stringWithFormat:@"%d %d",(int)cursor_coordinates.x,(int)cursor_coordinates.y];
+	unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
+	if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
+	
 	[result setObject:gal_seed		forKey:@"galaxy_seed"];
 	[result setObject:gal_coords	forKey:@"galaxy_coordinates"];
 	[result setObject:tgt_coords	forKey:@"target_coordinates"];
@@ -552,7 +556,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setInteger:starboard_weapon_type	forKey:@"starboard_weapon"];
 	[result setObject:[self serializeShipSubEntities] forKey:@"subentities_status"];
 	
-	[result oo_setInteger:max_cargo + 5 * max_passengers	forKey:@"max_cargo"];
+	[result oo_setInteger:max_cargo + passenger_space * max_passengers	forKey:@"max_cargo"];
 	
 	[result setObject:shipCommodityData		forKey:@"shipCommodityData"];
 	
@@ -888,18 +892,21 @@ static GLfloat		sBaseMass = 0.0;
 	if (shipyard_record == nil)  shipyard_record = [[NSMutableDictionary alloc] init];
 	
 	// Normalize cargo capacity
-	unsigned original_hold_size = [UNIVERSE maxCargoForShip:[self shipDataKey]];
+	unsigned	original_hold_size = [UNIVERSE maxCargoForShip:[self shipDataKey]];
+	unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
+	if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
+
 	max_cargo = [dict oo_unsignedIntForKey:@"max_cargo" defaultValue:max_cargo];
 	if (max_cargo > original_hold_size)  [self addEquipmentItem:@"EQ_CARGO_BAY"];
 	max_cargo = original_hold_size + ([self hasExpandedCargoBay] ? extra_cargo : 0);
-	if (max_cargo >= max_passengers * 5)
+	if (max_cargo >= max_passengers * passenger_space)
 	{
-		max_cargo -= max_passengers * 5;
+		max_cargo -= max_passengers * passenger_space;
 	}
 	else // Handle case where something went wrong. Possibly the save file was hacked to contain more passenger cabins than the available cargo space would allow - Nikos 20110731
 	{
 		unsigned originalMaxPassengers = max_passengers;
-		max_passengers = (unsigned)(max_cargo / 5);		// we should really make the magic number 5 a constant - something like PASSENGER_BERTH_REQUIRED_SPACE or similar
+		max_passengers = (unsigned)(max_cargo / passenger_space);
 		OOLogWARN(@"setCommanderDataFromDictionary.max_cargo.isNegative", @"max_cargo for player ship %@ gone negative, probably due to max_passengers (%u) being set to a value that requires more cargo space than it is available on player ship. Resetting max_passengers to %u to compensate.", [self name], originalMaxPassengers, max_passengers);
 	}
 	
@@ -6862,7 +6869,10 @@ static NSString *last_outfitting_key=nil;
 		return NO;
 	}
 	
-	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"] && cargoSpace < 5)
+	unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
+	if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
+	
+	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"] && cargoSpace < passenger_space)
 	{
 		return NO;
 	}
@@ -6985,9 +6995,11 @@ static NSString *last_outfitting_key=nil;
 {
 	if (addRemove == 0) return NO;
 	addRemove = (addRemove > 0) ? 1 : -1;	// change only by one berth at a time!
-	if ((max_passengers < 1 && addRemove == -1) || (max_cargo - current_cargo < 5 && addRemove == 1)) return NO;
+	unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
+	if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
+	if ((max_passengers < 1 && addRemove == -1) || (max_cargo - current_cargo < passenger_space && addRemove == 1)) return NO;
 	max_passengers += addRemove;
-	max_cargo -= 5 * addRemove;
+	max_cargo -= passenger_space * addRemove;
 	return YES;
 }
 
