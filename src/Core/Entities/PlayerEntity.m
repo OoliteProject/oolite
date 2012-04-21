@@ -6793,7 +6793,6 @@ static NSString *last_outfitting_key=nil;
 	NSString				*eqKeyDamaged	= [eqType damagedIdentifier];
 	double					price			= pricePerUnit;
 	double					priceFactor		= 1.0;
-	OOCargoQuantityDelta	cargoSpace		= max_cargo - current_cargo;
 	OOCreditsQuantity		tradeIn			= 0;
 	
 	// repairs cost 50%
@@ -6872,7 +6871,7 @@ static NSString *last_outfitting_key=nil;
 	unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
 	if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
 	
-	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"] && cargoSpace < passenger_space)
+	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"] && [self availableCargoSpace] < passenger_space)
 	{
 		return NO;
 	}
@@ -6997,7 +6996,7 @@ static NSString *last_outfitting_key=nil;
 	addRemove = (addRemove > 0) ? 1 : -1;	// change only by one berth at a time!
 	unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
 	if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
-	if ((max_passengers < 1 && addRemove == -1) || (max_cargo - current_cargo < passenger_space && addRemove == 1)) return NO;
+	if ((max_passengers < 1 && addRemove == -1) || ([self availableCargoSpace] < passenger_space && addRemove == 1)) return NO;
 	max_passengers += addRemove;
 	max_cargo -= passenger_space * addRemove;
 	return YES;
@@ -7324,14 +7323,22 @@ static NSString *last_outfitting_key=nil;
 
 	int purchase = all ? 127 : 1;
 	if (purchase > market_quantity)
+	{
 		purchase = market_quantity;					// limit to what's available
+	}
 	if (purchase * pricePerUnit > credits)
+	{
 		purchase = floor (credits / pricePerUnit);	// limit to what's affordable
+	}
 	// TODO - fix brokenness here...
 	if (purchase + current_cargo > (unit == UNITS_TONS ? max_cargo : 10000))
-		purchase = max_cargo - current_cargo;		// limit to available cargo space
+	{
+		purchase = [self availableCargoSpace];		// limit to available cargo space
+	}
 	if (purchase <= 0)
+	{
 		return NO;									// stop if that results in nothing to be bought
+	}
 
 	manifest_quantity += purchase;
 	market_quantity -= purchase;

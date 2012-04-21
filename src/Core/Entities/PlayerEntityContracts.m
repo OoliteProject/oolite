@@ -620,7 +620,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if (cargoUnits == UNITS_GRAMS)  cargoSpaceRequired = (cargoSpaceRequired + 500000) / 1000000; // if more than 500000g, count as 1t
 		
 		float premium = [info oo_floatForKey:CONTRACT_KEY_PREMIUM];
-		if ((cargoSpaceRequired > max_cargo - current_cargo)||(premium * 10 > credits)) 
+		if ((cargoSpaceRequired > [self availableCargoSpace])||(premium * 10 > credits)) 
 		{
 			[contract_market removeObjectAtIndex:i--];
 		}
@@ -700,7 +700,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			if (cargo_units == UNITS_GRAMS)		cargo_space_required = (cargo_space_required + 500000) / 1000000; // if more than 500000g, count as 1t
 			
 			float premium = [(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] floatValue];
-			BOOL not_possible = ((cargo_space_required > max_cargo - current_cargo)||(premium * 10 > credits));
+			BOOL not_possible = ((cargo_space_required > [self availableCargoSpace])||(premium * 10 > credits));
 			int dest_eta = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
 			[row_info removeAllObjects];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info objectForKey:CARGO_KEY_DESCRIPTION]]];
@@ -846,7 +846,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	if (contractCargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired /= 1000;
 	if (contractCargoUnits == UNITS_GRAMS)  cargoSpaceRequired /= 1000000;
 	
-	if (cargoSpaceRequired > max_cargo - current_cargo) return NO;
+	if (cargoSpaceRequired > [self availableCargoSpace]) return NO;
 	
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
 	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
@@ -915,11 +915,15 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if (contractCargoUnits == UNITS_GRAMS)  cargoSpaceRequired /= 1000000;
 		
 		// tests for refusal...
-		if (cargoSpaceRequired > max_cargo - current_cargo)	// no room for cargo
+		if (cargoSpaceRequired > [self availableCargoSpace])	// no room for cargo
+		{
 			return NO;
+		}
 			
 		if (contractPremium * 10 > credits)					// can't afford contract
+		{
 			return NO;
+		}
 			
 		// okay passed all tests ...
 		

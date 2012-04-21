@@ -2003,8 +2003,8 @@
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "javascript-errors.plist"; sourceTree = "<group>"; };
-		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
-		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; };
+		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		B3EA9395154147EB00AB3C5B /* oolite-missile.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-missile.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
