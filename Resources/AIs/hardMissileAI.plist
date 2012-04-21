@@ -14,9 +14,20 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: DETONATE");
 		"TARGET_DESTROYED" = ("setStateTo: EXPLODE");
 		"TARGET_LOST" = ("setStateTo: EXPLODE");
+		"TARGET_CLOAKED" = ("setStateTo: FLY_AHEAD");
 		"GONE_BEYOND_RANGE" = ("setStateTo: EXPLODE");
 		ECM = ("setStateTo: CHECK_EXPLOSION");
 		UPDATE = ("setDesiredRangeTo: 30000.0", checkDistanceTravelled, "setDesiredRangeTo: 25.0", "pauseAI: 5.0");
+	};
+	"FLY_AHEAD" =
+	{
+		ENTER = (setDestinationToTarget, "setSpeedFactorTo: 1", "setThrustFactorTo: 0", performFlyToRangeFromDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: DETONATE");
+		"GONE_BEYOND_RANGE" = ("setStateTo: EXPLODE");
+		ECM = ("rollD: 40");
+		"ROLL_1" = ("setStateTo: DETONATE");
+		"ROLL_2" = ("setStateTo: EXPLODE");
+		UPDATE = ("setDesiredRangeTo: 30000.0", checkDistanceTravelled, "setDesiredRangeTo: 175.0", "pauseAI: 0.5");
 	};
 	DETONATE =
 	{

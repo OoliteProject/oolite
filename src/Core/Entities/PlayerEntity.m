@@ -6884,7 +6884,7 @@ static NSString *last_outfitting_key=nil;
 	//unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
 	//if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
 	
-	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"] && cargoSpace < PASSENGER_BERTH_SPACE)
+	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"] && [self availableCargoSpace] < PASSENGER_BERTH_SPACE)
 	{
 		return NO;
 	}
