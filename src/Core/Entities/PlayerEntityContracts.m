@@ -172,7 +172,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// check passenger contracts
 	for (i = 0; i < [passengers count]; i++)
 	{
-		NSDictionary* passenger_info = (NSDictionary *)[passengers objectAtIndex:i];
+		NSDictionary* passenger_info = [passengers oo_dictionaryAtIndex:i];
 		NSString* passenger_name = [passenger_info oo_stringForKey:PASSENGER_KEY_NAME];
 		int dest = [passenger_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		Random_Seed dest_seed = [UNIVERSE systemSeedForSystemNumber:dest];
@@ -337,7 +337,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			unsigned j;
 			for (j = 0; j < [passengers count]; j++)
 			{
-				NSDictionary* passenger_info = (NSDictionary *)[passengers objectAtIndex:j];
+				NSDictionary* passenger_info = [passengers oo_dictionaryAtIndex:j];
 				if ([[passenger_info objectForKey:PASSENGER_KEY_NAME] isEqual:[names objectAtIndex:i]])
 					on_board = YES;
 			}
@@ -791,8 +791,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	
 	for (i = 0; i < [passengers count]; i++)
 	{
-		NSDictionary	*this_info = (NSDictionary *)[passengers objectAtIndex:i];
-		NSString		*this_name = [this_info oo_stringForKey:PASSENGER_KEY_NAME];
+		NSString		*this_name = [[passengers oo_dictionaryAtIndex:i] oo_stringForKey:PASSENGER_KEY_NAME];
 		
 		if ([Name isEqualToString:this_name])
 		{

@@ -741,9 +741,9 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 		
-	  case kShip_beaconCode:
+		case kShip_beaconCode:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
-
+			
 			sValue = OOStringFromJSValue(context,*value);
 			if (sValue == nil || [sValue length] == 0) 
 			{
@@ -770,7 +770,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			return YES;
 			break;
-
+			
 		case kShip_fuel:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{

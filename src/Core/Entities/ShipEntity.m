@@ -295,12 +295,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 			explicit, we add an extra missile slot to compensate.
 			-- Ahruman 2011-03-25
 		*/
-		if (max_missiles == missiles && max_missiles < SHIPENTITY_MAX_MISSILES && [shipDict objectForKey:@"max_missiles"] == nil)
-		{
-			max_missiles++;
-		}
 		if ([shipDict oo_fuzzyBooleanForKey:@"has_energy_bomb"])
 		{
+			if (max_missiles == missiles && max_missiles < SHIPENTITY_MAX_MISSILES && [shipDict objectForKey:@"max_missiles"] == nil)
+			{
+				max_missiles++;
+			}
 			[self addEquipmentItem:@"EQ_QC_MINE"];
 		}
 	}
