@@ -189,6 +189,9 @@
 	mesh.load.error.tooManyFaces			= inherit;
 	
 	
+	missile.damage.calc		= no; // Debugging of missile damage curves
+	
+	
 	oxp.versionMismatch						= $error;
 	
 	

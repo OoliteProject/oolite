@@ -1312,9 +1312,11 @@ static JSBool ShipDealEnergyDamage(JSContext *context, uintN argc, jsval *vp)
 	ShipEntity				*thisEnt = nil;
 	jsdouble baseDamage;
 	jsdouble range;
+	jsdouble velocityBias = 0.0;
 	double maxRange;
 	BOOL gotDamage;
 	BOOL gotRange;
+	BOOL gotVBias;
 	GET_THIS_SHIP(thisEnt);
 
 	if (argc < 2)
@@ -1335,9 +1337,16 @@ static JSBool ShipDealEnergyDamage(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportBadArguments(context, @"Ship", @"dealEnergyDamage", argc, OOJS_ARGV, nil, @"range must be positive");
 		return NO;
 	}
-	
+	if (argc >= 3) 
+	{
+		gotVBias = JS_ValueToNumber(context, OOJS_ARGV[2], &velocityBias);
+	}
+
+// FIXME: this next bit should be moved to ShipEntity.m once it's
+// working and stable.
 	maxRange = range * sqrt(baseDamage);
-	
+	OOLog(@"missile.damage.calc",@"Range: %f | Damage: %f | MaxRange: %f",range,baseDamage,maxRange);
+
 	NSArray* targets = [UNIVERSE getEntitiesWithinRange:maxRange ofEntity:thisEnt];
 	if ([targets count] > 0)
 	{
@@ -1349,10 +1358,26 @@ static JSBool ShipDealEnergyDamage(JSContext *context, uintN argc, jsval *vp)
 			double ecr = [e2 collisionRadius];
 			double d = (magnitude(p2) - ecr) / range;
 			// base damage within defined range, inverse-square falloff outside
-			double damage = (d > 1) ? baseDamage / (d * d) : baseDamage;
+			double localDamage = baseDamage;
+			OOLog(@"missile.damage.calc",@"Base damage: %f",baseDamage);
+			if (velocityBias > 0)
+			{
+				Vector v2 = vector_subtract([thisEnt velocity], [e2 velocity]);
+				double vSign = dot_product(v2, p2);
+				// vSign should always be positive for the missile's actual target
+        // but might be negative for other nearby ships which are
+        // actually moving further away from the missile
+				double vMag = vSign > 0.0 ? magnitude(v2) : -magnitude(v2);
+				localDamage += vMag * velocityBias;
+				OOLog(@"missile.damage.calc",@"Velocity magnitude factor: %f",vMag);
+				OOLog(@"missile.damage.calc",@"Velocity corrected damage: %f",localDamage);
+			}
+			double damage = (d > 1) ? localDamage / (d * d) : localDamage;
+			OOLog(@"missile.damage.calc",@"%f at range %f (d=%f)",damage,magnitude(p2)-ecr,d);
 			[e2 takeEnergyDamage:damage from:thisEnt becauseOf:[thisEnt owner]];
 		}
 	}
+// End of bit to be moved to ShipEntity
 	
 	return YES;
 
