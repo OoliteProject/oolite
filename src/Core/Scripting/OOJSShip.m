@@ -1685,12 +1685,12 @@ static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	// berths are not in hasOneEquipmentItem
-	OK = [thisEnt hasOneEquipmentItem:key includeMissiles:YES] || ([key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0);
+	OK = [thisEnt hasOneEquipmentItem:key includeMissiles:YES whileLoading:NO] || ([key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0);
 	if (!OK)
 	{
 		// Allow removal of damaged equipment.
 		key = [key stringByAppendingString:@"_DAMAGED"];
-		OK = [thisEnt hasOneEquipmentItem:key includeMissiles:NO];
+		OK = [thisEnt hasOneEquipmentItem:key includeMissiles:NO whileLoading:NO];
 	}
 	if (OK)
 	{
@@ -1881,7 +1881,7 @@ static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	if ([thisEnt hasEquipmentItem:key includeWeapons:YES])  OOJS_RETURN(strOK);
+	if ([thisEnt hasEquipmentItem:key includeWeapons:YES whileLoading:NO])  OOJS_RETURN(strOK);
 	else if ([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]])  OOJS_RETURN(strDamaged);
 	
 	OOJS_RETURN(strUnavailable);

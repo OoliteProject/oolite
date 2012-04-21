@@ -7557,7 +7557,7 @@ static NSString *last_outfitting_key=nil;
 - (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles
 {
 	// Check basic equipment the normal way.
-	if ([super hasOneEquipmentItem:itemKey includeMissiles:NO])  return YES;
+	if ([super hasOneEquipmentItem:itemKey includeMissiles:NO whileLoading:NO])  return YES;
 	
 	// Custom handling for player missiles.
 	if (includeMissiles)

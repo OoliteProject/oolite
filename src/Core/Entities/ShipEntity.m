@@ -2233,9 +2233,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 // Equipment
 
-- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeWeapons:(BOOL)includeWeapons
+- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading
 {
-	if ([self hasOneEquipmentItem:itemKey includeMissiles:includeWeapons])  return YES;
+	if ([self hasOneEquipmentItem:itemKey includeMissiles:includeWeapons whileLoading:loading])  return YES;
+
+	if (loading) 
+	{
+		NSString *damaged = [itemKey stringByAppendingString:@"_DAMAGED"];
+		if ([_equipment containsObject:damaged])  return YES;
+	}
+
 	if (includeWeapons)
 	{
 		// Check for primary weapon
@@ -2250,10 +2257,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles
+- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles whileLoading:(BOOL)loading
 {
 	if ([_equipment containsObject:itemKey])  return YES;
 	
+	if (loading) 
+	{
+		NSString *damaged = [itemKey stringByAppendingString:@"_DAMAGED"];
+		if ([_equipment containsObject:damaged])  return YES;
+	}
+
 	if (includeMissiles && missiles > 0)
 	{
 		unsigned i;
@@ -2284,12 +2297,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons
+- (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading
 {
 	// this method is also used internally to find out if an equipped item is undamaged.
 	if ([equipmentKeys isKindOfClass:[NSString class]])
 	{
-		return [self hasOneEquipmentItem:equipmentKeys includeWeapons:includeWeapons];
+		return [self hasOneEquipmentItem:equipmentKeys includeWeapons:includeWeapons whileLoading:loading];
 	}
 	else
 	{
@@ -2298,7 +2311,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		id key = nil;
 		foreach (key, equipmentKeys)
 		{
-			if ([self hasOneEquipmentItem:key includeWeapons:includeWeapons])  return YES;
+			if ([self hasOneEquipmentItem:key includeWeapons:includeWeapons whileLoading:loading])  return YES;
 		}
 	}
 	
@@ -2308,11 +2321,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasEquipmentItem:(id)equipmentKeys
 {
-	return [self hasEquipmentItem:equipmentKeys includeWeapons:NO];
+	return [self hasEquipmentItem:equipmentKeys includeWeapons:NO whileLoading:NO];
 }
 
 
-- (BOOL) hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons
+- (BOOL) hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading
 {
 	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
@@ -2325,7 +2338,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	for (keyEnum = [equipmentKeys objectEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		if (![self hasOneEquipmentItem:key includeWeapons:includeWeapons])  return NO;
+		if (![self hasOneEquipmentItem:key includeWeapons:includeWeapons whileLoading:loading])  return NO;
 	}
 	
 	return YES;
@@ -2334,7 +2347,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasAllEquipment:(id)equipmentKeys
 {
-	return [self hasAllEquipment:equipmentKeys includeWeapons:NO];
+	return [self hasAllEquipment:equipmentKeys includeWeapons:NO whileLoading:NO];
 }
 
 
@@ -2491,9 +2504,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([eqType requiresEmptyPylon] && [self missileCount] >= [self missileCapacity] && !loading)  return NO;
 	if ([eqType  requiresMountedPylon] && [self missileCount] == 0 && !loading)  return NO;
 	if ([self availableCargoSpace] < [eqType requiredCargoSpace])  return NO;
-	if ([eqType requiresEquipment] != nil && ![self hasAllEquipment:[eqType requiresEquipment] includeWeapons:YES])  return NO;
-	if ([eqType requiresAnyEquipment] != nil && ![self hasEquipmentItem:[eqType requiresAnyEquipment] includeWeapons:YES])  return NO;
-	if ([eqType incompatibleEquipment] != nil && [self hasEquipmentItem:[eqType incompatibleEquipment] includeWeapons:YES])  return NO;
+	if ([eqType requiresEquipment] != nil && ![self hasAllEquipment:[eqType requiresEquipment] includeWeapons:YES whileLoading:loading])  return NO;
+	if ([eqType requiresAnyEquipment] != nil && ![self hasEquipmentItem:[eqType requiresAnyEquipment] includeWeapons:YES whileLoading:loading])  return NO;
+	if ([eqType incompatibleEquipment] != nil && [self hasEquipmentItem:[eqType incompatibleEquipment] includeWeapons:YES whileLoading:loading])  return NO;
 	if ([eqType requiresCleanLegalRecord] && [self legalStatus] != 0 && !loading)  return NO;
 	if ([eqType requiresNonCleanLegalRecord] && [self legalStatus] == 0 && !loading)  return NO;
 	if ([eqType requiresFreePassengerBerth] && [self passengerCount] >= [self passengerCapacity])  return NO;
@@ -2934,7 +2947,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasCascadeMine
 {
-	return [self hasEquipmentItem:@"EQ_QC_MINE" includeWeapons:YES];
+	return [self hasEquipmentItem:@"EQ_QC_MINE" includeWeapons:YES whileLoading:NO];
 }
 
 
