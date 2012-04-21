@@ -1817,7 +1817,15 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 			{
 				// these player methods are different to the ship ones.
 				[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO];
-				if (hasOK) [(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
+				if (hasOK)
+				{
+					[(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
+				}
+				else if (hasDamaged)
+				{
+					[(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentRepaired") withArgument:key];
+				}
+				
 				// if player's Docking Computers are set to EQUIPMENT_DAMAGED while on, stop them
 				if (hasOK && [key isEqualToString:@"EQ_DOCK_COMP"])  [(PlayerEntity*)thisEnt disengageAutopilot];
 			}

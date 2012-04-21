@@ -6806,11 +6806,13 @@ static NSString *last_outfitting_key=nil;
 	double					price			= pricePerUnit;
 	double					priceFactor		= 1.0;
 	OOCreditsQuantity		tradeIn			= 0;
+	BOOL	isRepair = NO;
 	
 	// repairs cost 50%
 	if ([self hasEquipmentItem:eqKeyDamaged])
 	{
 		price /= 2.0;
+		isRepair = YES;
 	}
 	
 	if ([eqKey isEqualToString:@"EQ_RENOVATION"])
@@ -6996,6 +6998,10 @@ static NSString *last_outfitting_key=nil;
 	{
 		credits -= price;
 		[self addEquipmentItem:eqKey withValidation:NO]; // no need to validate twice.
+		if (isRepair)
+		{
+			[self doScriptEvent:OOJSID("equipmentRepaired") withArgument:eqKey];
+		}
 		return YES;
 	}
 
