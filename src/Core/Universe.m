@@ -756,7 +756,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[thargoid setPosition:tharg_pos];
 			quaternion_set_random(&tharg_quaternion);
 			[thargoid setOrientation:tharg_quaternion];
-			[thargoid setScanClass: CLASS_THARGOID];
+			if (![thargoid crew])
+			{
+				[thargoid setCrew:[NSArray arrayWithObject:
+										[OOCharacter characterWithRole:@"thargoid"
+														   andOriginalSystem: system_seed]]];
+			}
+			if ([thargoid scanClass] == CLASS_NOT_SET)
+				[thargoid setScanClass: CLASS_THARGOID];
 			[thargoid setBounty:100];
 			[thargoid setGroup:thargoidGroup];
 			
@@ -1959,7 +1966,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			// nothing extra to do
 			success = [self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally			
 		}
-		else	// witchpace incoming traders & pirates need extra settings.
+		else	// witchspace incoming traders & pirates need extra settings.
 		{
 			if (trader)
 			{
@@ -2559,10 +2566,17 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 				{
 					[ship setAITo:autoAI];
 					// Nikos 20090604
-					// Pirate or trader with auto_ai? Follow populator rules for them.
+					// Pirate, trader or police with auto_ai? Follow populator rules for them.
 					if ([role isEqualToString:@"pirate"]) [ship setBounty:20 + randf() * 50];
 					if ([role isEqualToString:@"trader"]) [ship setBounty:0];
+					if ([role isEqualToString:@"police"]) [ship setScanClass: CLASS_POLICE];
+					if ([role isEqualToString:@"interceptor"])
+					{
+						[ship setScanClass: CLASS_POLICE];
+						[ship setPrimaryRole:@"police"]; // to make sure interceptors get the correct pilot later on.
+					}
 				}
+				if ([role isEqualToString:@"thargoid"]) [ship setScanClass: CLASS_THARGOID]; // thargoids are not on the autoAIMap
 			}
 		}
 	}
@@ -9382,6 +9396,12 @@ static void PreloadOneSound(NSString *soundName)
 		if (thargoid_ship)
 		{
 			[thargoid_ship setPosition:launchPos];
+			if (![thargoid_ship crew])
+			{
+				[thargoid_ship setCrew:[NSArray arrayWithObject:
+									  [OOCharacter characterWithRole:@"thargoid"
+														 andOriginalSystem: system_seed]]];
+			}
 			if ([thargoid_ship scanClass] == CLASS_NOT_SET)
 				[thargoid_ship setScanClass: CLASS_THARGOID];
 			[thargoid_ship setBounty:100];

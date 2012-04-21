@@ -164,6 +164,8 @@ typedef enum
 
 - (void) launchShip:(ShipEntity *) ship;
 
+- (BOOL) fitsInDock:(ShipEntity *) ship;
+
 - (ShipEntity *) launchIndependentShip:(NSString*) role;
 
 - (void) noteDockedShip:(ShipEntity *) ship;

@@ -1243,7 +1243,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			if (([self hasNPCTraffic])&&(aegis_status != AEGIS_NONE))
 			{
 				[self launchShuttle];
-				docked_shuttles--;
 			}
 			last_shuttle_launch_time = unitime;
 		}
@@ -1315,26 +1314,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	if (![ship isShip])  return;
 	
-	// [ship totalBoundingBox] is not yet defined for 'ship', so calculate this size.
 	BoundingBox bb = [ship boundingBox];
-	ShipEntity *se = nil;
-	foreach (se, [ship subEntities])
-	{
-		if ([se isShip])
-		{
-			BoundingBox sebb = [se findSubentityBoundingBox];
-			bounding_box_add_vector(&bb, sebb.max);
-			bounding_box_add_vector(&bb, sebb.min);
-		}
-	}
-	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
-		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)) && ![ship isPlayer])
-	{
-		[self addShipToStationCount: ship]; // restore ship count for station.
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as it is too large for the docking port of the %@.",
-			  [ship displayName], [ship primaryRole], [self displayName]);
-		return;
-	}
 	
 	Vector launchPos = position;
 	Vector launchVel = velocity;
@@ -1384,6 +1364,33 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+- (BOOL) fitsInDock:(ShipEntity *) ship
+{
+	if (![ship isShip])  return NO;
+	
+	// [ship totalBoundingBox] is not yet defined for 'launching npc ships', so calculate this size.
+	BoundingBox bb = [ship boundingBox];
+	ShipEntity *se = nil;
+	foreach (se, [ship subEntities])
+	{
+		if ([se isShip])
+		{
+			BoundingBox sebb = [se findSubentityBoundingBox];
+			bounding_box_add_vector(&bb, sebb.max);
+			bounding_box_add_vector(&bb, sebb.min);
+		}
+	}
+	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
+		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)) && ![ship isPlayer])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as it is too large for the docking port of the %@.",
+			  [ship displayName], [ship primaryRole], [self displayName]);
+		return NO;
+	}
+	return YES;
+}	
+
+	
 - (void) noteDockedShip:(ShipEntity *) ship
 {
 	if (ship == nil)  return;	
@@ -1594,6 +1601,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		ship = [UNIVERSE newShipWithRole:role];
 	}
 
+	if (![self fitsInDock:ship])
+	{
+		[ship release];
+		return nil;
+	}
+	
 	if (ship)
 	{
 		traderDict = [ship shipInfoDictionary];
@@ -1626,7 +1639,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 		OOShipGroup *escortGroup = [ship escortGroup];
 		if ([ship group] == nil) [ship setGroup:escortGroup];
-		// Eric: Escorts are defined both as _group and as _escortGroup because friendly attacks are only handled withing _group.
+		// Eric: Escorts are defined both as _group and as _escortGroup because friendly attacks are only handled within _group.
 		[escortGroup setLeader:ship];
 				
 		// add escorts to the trader
@@ -1669,7 +1682,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					escort_ship = [UNIVERSE newShipWithRole:escortRole];	// retained
 				}
 				
-				if (escort_ship)
+				if (escort_ship && [self fitsInDock:escort_ship])
 				{
 					if (![escort_ship crew] && ![escort_ship isUnpiloted])
 						[escort_ship setCrew:[NSArray arrayWithObject:
@@ -1688,8 +1701,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					[escort_ship switchAITo:@"escortAI.plist"];
 					[self addShipToLaunchQueue:escort_ship :NO];
 					
-					[escort_ship release];
 				}
+				[escort_ship release];
 			}
 		}
 		
@@ -1746,7 +1759,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			police_ship = [UNIVERSE newShipWithRole:@"police"];   // retain count = 1
 		}
 		
-		if (police_ship)
+		if (police_ship && [self fitsInDock:police_ship])
 		{
 			if (![police_ship crew])
 			{
@@ -1758,14 +1771,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[police_ship setGroup:[self stationGroup]];	// who's your Daddy
 			[police_ship setPrimaryRole:@"police"];
 			[police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
-			[police_ship setScanClass:CLASS_POLICE];
+			if ([police_ship scanClass] == CLASS_NOT_SET)
+				[police_ship setScanClass: CLASS_POLICE];
 			[police_ship setBounty:0];
 			[police_ship switchAITo:@"policeInterceptAI.plist"];
 			[self addShipToLaunchQueue:police_ship :YES];
-			[police_ship autorelease];
 			defenders_launched++;
 			[result addObject:police_ship];
 		}
+		[police_ship autorelease];
 	}
 	[self abortAllDockings];
 	return result;
@@ -1815,9 +1829,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	if (!defense_ship && default_defense_ship_role != defense_ship_role)
+
 		defense_ship = [UNIVERSE newShipWithRole:default_defense_ship_role];
-	if (!defense_ship)
+	if (!defense_ship || ![self fitsInDock:defense_ship])
+	{
+		[defense_ship release];
 		return nil;
+	}
 	
 	if ([defense_ship isPolice] || [defense_ship hasPrimaryRole:@"hermit-ship"])
 	{
@@ -1845,8 +1863,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[defense_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 
 	if ((scanClass != CLASS_ROCK)&&(scanClass != CLASS_STATION))
+	{
 		[defense_ship setScanClass: scanClass];	// same as self
-	
+	}
+	else if ([defense_ship scanClass] == CLASS_NOT_SET)
+	{
+		[defense_ship setScanClass: CLASS_NEUTRAL];
+	}
+
 	[self addShipToLaunchQueue:defense_ship :YES];
 	[defense_ship autorelease];
 	[self abortAllDockings];
@@ -1864,10 +1888,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if (scavs >= max_scavengers)  return nil;
 	if (scavengers_launched >= max_scavengers)  return nil;
-	
-	scavengers_launched++;
-		
+			
 	scavenger_ship = [UNIVERSE newShipWithRole:@"scavenger"];   // retain count = 1
+	
+	if (![self fitsInDock:scavenger_ship])
+	{
+		[scavenger_ship release];
+		return nil;
+	}
+	
 	if (scavenger_ship)
 	{
 		if (![scavenger_ship crew])
@@ -1875,6 +1904,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[OOCharacter randomCharacterWithRole: @"hunter"
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
+		scavengers_launched++;
 		[scavenger_ship setScanClass: CLASS_NEUTRAL];
 		[scavenger_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[scavenger_ship switchAITo:@"scavengerAI.plist"];
@@ -1899,6 +1929,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (scavengers_launched >= max_scavengers)  return nil;
 	
 	miner_ship = [UNIVERSE newShipWithRole:@"miner"];   // retain count = 1
+
+	if (![self fitsInDock:miner_ship])
+	{
+		[miner_ship release];
+		return nil;
+	}
+	
 	if (miner_ship)
 	{
 		if (![miner_ship crew])
@@ -1933,12 +1970,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return nil;
 	}
 	
-	defenders_launched++;
-	
 	// Yep! The standard hermit defence ships, even if they're the aggressor.
 	pirate_ship = [UNIVERSE newShipWithRole:@"pirate"];   // retain count = 1
 	// Nope, use standard pirates in a generic method.
 	
+	if (![self fitsInDock:pirate_ship])
+	{
+		[pirate_ship release];
+		return nil;
+	}
+		
 	if (pirate_ship)
 	{
 		if (![pirate_ship crew])
@@ -1948,6 +1989,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 								   andOriginalSystem: [UNIVERSE systemSeed]]]];
 		}
 				
+		defenders_launched++;
+		
 		// set the owner of the ship to the station so that it can check back for docking later
 		[pirate_ship setOwner:self];
 		[pirate_ship setGroup:[self stationGroup]];	// who's your Daddy
@@ -1972,6 +2015,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		
 	shuttle_ship = [UNIVERSE newShipWithRole:@"shuttle"];   // retain count = 1
 	
+	if (![self fitsInDock:shuttle_ship])
+	{
+		[shuttle_ship release];
+		return nil;
+	}
+	
 	if (shuttle_ship)
 	{
 		if (![shuttle_ship crew])
@@ -1979,6 +2028,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[OOCharacter randomCharacterWithRole: @"trader"
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
+		docked_shuttles--;
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
 		[shuttle_ship switchAITo:@"fallingShuttleAI.plist"];
@@ -1997,7 +2047,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		
 	escort_ship = [UNIVERSE newShipWithRole:@"escort"];   // retain count = 1
 	
-	if (escort_ship)
+	if (escort_ship && [self fitsInDock:escort_ship])
 	{
 		if (![escort_ship crew] && ![escort_ship isUnpiloted])
 			[escort_ship setCrew:[NSArray arrayWithObject:
@@ -2009,8 +2059,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[escort_ship switchAITo:@"escortAI.plist"];
 		[self addShipToLaunchQueue:escort_ship :NO];
 		
-		[escort_ship release];
 	}
+	[escort_ship release];
 }
 
 
@@ -2026,12 +2076,17 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (techlevel == NSNotFound)
 			techlevel = 6;
 			
-		defenders_launched++;
-		
 		if ((Ranrot() & 7) + 6 <= techlevel)
 			patrol_ship = [UNIVERSE newShipWithRole:@"interceptor"];   // retain count = 1
 		else
 			patrol_ship = [UNIVERSE newShipWithRole:@"police"];   // retain count = 1
+
+		if (![self fitsInDock:patrol_ship])
+		{
+			[patrol_ship release];
+			return nil;
+		}
+		
 		if (patrol_ship)
 		{
 			if (![patrol_ship crew])
@@ -2039,8 +2094,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					[OOCharacter randomCharacterWithRole: @"police"
 					andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
+			defenders_launched++;
 			[patrol_ship switchLightsOff];
-			[patrol_ship setScanClass: CLASS_POLICE];
+			if ([patrol_ship scanClass] == CLASS_NOT_SET)
+				[patrol_ship setScanClass: CLASS_POLICE];
 			[patrol_ship setPrimaryRole:@"police"];
 			[patrol_ship setBounty:0];
 			[patrol_ship setGroup:[self stationGroup]];	// who's your Daddy
@@ -2059,7 +2116,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void) launchShipWithRole:(NSString*) role
 {
 	ShipEntity  *ship = [UNIVERSE newShipWithRole: role];   // retain count = 1
-	if (ship)
+	if (ship && [self fitsInDock:ship])
 	{
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
@@ -2069,8 +2126,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[ship setPrimaryRole:role];
 		[ship setGroup:[self stationGroup]];	// who's your Daddy
 		[self addShipToLaunchQueue:ship :NO];
-		[ship release];
 	}
+	[ship release];
 }
 
 

@@ -308,6 +308,15 @@ MA 02110-1301, USA.
 		specialSetUpDone = YES;
 	}
 	
+	else if ([role isEqual:@"thargoid"])
+	{
+		[self setLegalStatus:100];
+		[self setInsuranceCredits:0];
+		[self setName: @"a thargoid"];
+		[self setShortDescription: @"an alien from outerspace"];
+		specialSetUpDone = YES;
+	}
+	
 	// do long description here
 	//
 	
