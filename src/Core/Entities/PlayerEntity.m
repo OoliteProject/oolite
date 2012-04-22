@@ -322,6 +322,7 @@ static GLfloat		sBaseMass = 0.0;
 	if (quantity > 0)
 	{
 		OOCargoQuantity podsRequiredForQuantity = (units == UNITS_TONS) ? quantity : (units == UNITS_KILOGRAMS) ? quantity / 1000 : quantity / 1000000;
+		OOCargoQuantity amountToLoadInCargopod = (units == UNITS_TONS) ? 1 : (units == UNITS_KILOGRAMS) ? 1000 : 1000000;
 		
 		// put each ton in a separate container
 		for (j = 0; j < podsRequiredForQuantity; j++)
@@ -329,7 +330,6 @@ static GLfloat		sBaseMass = 0.0;
 			ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
 			if (container)
 			{
-				OOCargoQuantity amountToLoadInCargopod = (units == UNITS_TONS) ? 1 : (units == UNITS_KILOGRAMS) ? 1000 : 1000000;
 				[container setScanClass: CLASS_CARGO];
 				[container setStatus:STATUS_IN_HOLD];
 				[container setCommodity:type andAmount:amountToLoadInCargopod];
@@ -735,10 +735,10 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
-	unsigned i;
+	unsigned	i;
 	
 	[[UNIVERSE gameView] resetTypedString];
-
+	
 	// Required keys
 	if ([dict oo_stringForKey:@"ship_desc"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
@@ -906,7 +906,7 @@ static GLfloat		sBaseMass = 0.0;
 		// Something went wrong. Possibly the save file was hacked to contain more passenger cabins than the available cargo space would allow - Nikos 20110731
 		unsigned originalMaxPassengers = max_passengers;
 		max_passengers = (unsigned)(max_cargo / PASSENGER_BERTH_SPACE);
-		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.max_cargo", @"player ship %@ had max_passengers (%u) set to a value requiring more cargo space than currently available. Resetting max_passengers to %u to compensate.", [self name], originalMaxPassengers, max_passengers);
+		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.max_passengers", @"player ship %@ had max_passengers set to a value requiring more cargo space than currently available (%u). Setting max_passengers to maximum possible value (%u).", [self name], originalMaxPassengers, max_passengers);
 	}
 	max_cargo -= max_passengers * PASSENGER_BERTH_SPACE;
 	
@@ -914,12 +914,64 @@ static GLfloat		sBaseMass = 0.0;
 	if (passengers && ([passengers count] > max_passengers))
 	{
 		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.passengers", @"player ship %@ had more passengers (%u) than passenger berths (%u). Removing extra passengers.", [self name], [passengers count], max_passengers);
-		unsigned i;
 		for (i = [passengers count] - 1; i >= max_passengers; i--)
 		{
 			[passenger_record removeObjectForKey:[[passengers oo_dictionaryAtIndex:i] oo_stringForKey:PASSENGER_KEY_NAME]];
 			[passengers removeObjectAtIndex:i];
 		}
+	}
+	
+	// too much cargo?	
+	int excessCargo = [self cargoQuantityOnBoard] - [self maxCargo];
+	if (excessCargo > 0)
+	{
+		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.cargo", @"player ship %@ had more cargo (%i) than it can hold (%u). Removing extra cargo.", [self name], [self cargoQuantityOnBoard], max_cargo);
+		
+		NSMutableArray		*manifest = [NSMutableArray arrayWithArray:shipCommodityData];
+		OOCommodityType		type;
+		OOMassUnit			units;
+		OOCargoQuantity		oldAmount, toRemove;
+		
+		i = excessCargo;
+		
+		// manifest always contains entries for all 17 commodities, even if their quantity is 0.
+		for (type = (OOCommodityType)[manifest count]; i > 0 && type >= 0; type--)
+		{
+			units =	[UNIVERSE unitsForCommodity:type];
+			NSMutableArray	*manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
+			oldAmount = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
+			BOOL roundedTon = (units != UNITS_TONS) && ((units == UNITS_KILOGRAMS && oldAmount > CARGO_KG_ROUNDUP) || (units == UNITS_GRAMS && oldAmount > (CARGO_KG_ROUNDUP * 1000)));
+			if (roundedTon || (units == UNITS_TONS && oldAmount > 0))
+			{
+				// let's remove stuff
+				OOCargoQuantity partAmount = oldAmount;
+				toRemove = 0;
+				while (i > 0 && partAmount > 0)
+				{
+					if (EXPECT_NOT(roundedTon && ((units == UNITS_KILOGRAMS && partAmount > CARGO_KG_ROUNDUP) || (units == UNITS_GRAMS && partAmount > (CARGO_KG_ROUNDUP *1000)))))
+					{
+						toRemove += (units == UNITS_KILOGRAMS) ? (partAmount > 1000 ? 1000 : partAmount): (partAmount > 1000000 ? 1000000 : partAmount);
+						partAmount = oldAmount - toRemove;
+						i--;
+					}
+					else if (!roundedTon)
+					{
+						toRemove++;
+						partAmount--;
+						i--;
+					}
+					else
+					{
+						partAmount = 0;
+					}
+				}
+				
+				[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt: oldAmount - toRemove]];
+				[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
+			}
+		}
+		[shipCommodityData release];
+		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 	}
 	
 	credits = OODeciCreditsFromObject([dict objectForKey:@"credits"]);
@@ -7164,13 +7216,13 @@ static NSString *last_outfitting_key=nil;
 		NSArray *commodityInfo = [NSArray arrayWithArray:[manifest objectAtIndex:i]];
 		OOCargoQuantity quantity = [commodityInfo oo_intAtIndex:MARKET_QUANTITY];
 		
-		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
+		// manifest contains entries for all 17 commodities, even when their quantity is 0.
 		OOMassUnit commodityUnits = [UNIVERSE unitsForCommodity:i];
 		
 		if (commodityUnits != UNITS_TONS)
 		{
-			if (commodityUnits == UNITS_KILOGRAMS) quantity = (quantity + 500) / 1000;
-			else quantity = (quantity + 500000) / 1000000;	// grams
+			if (commodityUnits == UNITS_KILOGRAMS)  quantity = (quantity + CARGO_KG_ROUNDUP) / 1000;
+			else  quantity = (quantity + (CARGO_KG_ROUNDUP * 1000)) / 1000000;	// grams
 		}
 		cargoQtyOnBoard += quantity;
 	}

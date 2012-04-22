@@ -5561,6 +5561,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (OOCargoQuantity) availableCargoSpace
 {
+	// OOCargoQuantity is unsigned, we need to check for underflows.
+	if (EXPECT_NOT([self cargoQuantityOnBoard] >= [self maxCargo])) return 0;
 	return [self maxCargo] - [self cargoQuantityOnBoard];
 }
 

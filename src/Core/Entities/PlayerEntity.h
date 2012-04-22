@@ -852,7 +852,8 @@ OOINLINE PlayerEntity *OOGetPlayer(void)
 #endif
 	return gOOPlayer;
 }
-#define PLAYER OOGetPlayer()
+#define PLAYER				OOGetPlayer()
+#define CARGO_KG_ROUNDUP	500
 
 
 NSString *OODisplayRatingStringFromKillCount(unsigned kills);
