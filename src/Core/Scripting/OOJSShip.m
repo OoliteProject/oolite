@@ -1590,6 +1590,7 @@ static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 	NSString					*identifier = nil;
 	BOOL						OK = YES;
 	BOOL						berth;
+	BOOL            isRepair = NO;
 	
 	GET_THIS_SHIP(thisEnt);
 	
@@ -1640,7 +1641,12 @@ static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 			}
 			else
 			{
+				isRepair = [thisEnt hasEquipmentItem:[identifier stringByAppendingString:@"_DAMAGED"]];
 				OK = [player addEquipmentItem:identifier withValidation:YES];
+				if (OK && isRepair) 
+				{
+					[player doScriptEvent:OOJSID("equipmentRepaired") withArgument:identifier];
+				}
 			}
 		}
 		else
