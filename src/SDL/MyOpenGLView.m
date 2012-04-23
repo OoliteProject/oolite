@@ -1935,7 +1935,9 @@ keys[a] = NO; keys[b] = NO; \
 
 - (void) setGammaValue: (float) value
 {
-	value = OOClamp_0_max_f(value, 2.0f);
+	if (value < 0.2f)  value = 0.2f;
+	if (value > 4.0f)  value = 4.0f;
+	
 	_gamma = value;
 	SDL_SetGamma(_gamma, _gamma, _gamma);
 }
