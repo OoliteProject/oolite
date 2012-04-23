@@ -5945,7 +5945,6 @@ static GLfloat		sBaseMass = 0.0;
 		NSString* gammaWordDesc = DESC(@"gameoptions-gamma-value");
 		NSString* v1_string = @"|||||||||||||||||||||||||";
 		NSString* v0_string = @".........................";
-		NSLog(@"gamma is now %f", gamma);
 		v1_string = [v1_string substringToIndex:(int)(gamma * 10)];
 		v0_string = [v0_string substringToIndex:20 - (int)(gamma * 10)];
 		[gui setText:[NSString stringWithFormat:@"%@%@%@ (%.1f) ", gammaWordDesc, v1_string, v0_string, gamma] forRow:GUI_ROW(GAME,GAMMA) align:GUI_ALIGN_CENTER];
