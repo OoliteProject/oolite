@@ -5939,6 +5939,19 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,VOLUME)];
 		}
 		
+#if OOLITE_SDL		
+		// gamma control
+		float gamma = [gameView gammaValue];
+		NSString* gammaWordDesc = DESC(@"gameoptions-gamma-value");
+		NSString* v1_string = @"|||||||||||||||||||||||||";
+		NSString* v0_string = @".........................";
+		NSLog(@"gamma is now %f", gamma);
+		v1_string = [v1_string substringToIndex:(int)(gamma * 10)];
+		v0_string = [v0_string substringToIndex:20 - (int)(gamma * 10)];
+		[gui setText:[NSString stringWithFormat:@"%@%@%@ (%.1f) ", gammaWordDesc, v1_string, v0_string, gamma] forRow:GUI_ROW(GAME,GAMMA) align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,GAMMA)];
+#endif
+		
 #if OOLITE_MAC_OS_X && GROOLITE_VISIBLE
 		// Growl priority control
 		{

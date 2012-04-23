@@ -3,7 +3,7 @@
 MyOpenGLView.h
 
 Oolite
-Copyright (C) 2004-2012 Giles C Williams and contributors
+Copyright (C) 2004-2011 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -125,6 +125,8 @@ extern int debug;
 
     double				squareX,squareY;
 	NSRect				bounds;
+	
+	float				_gamma;
 
    // Full screen sizes
 	NSMutableArray		*screenSizes;
@@ -230,6 +232,9 @@ extern int debug;
 
 - (void) setKeyboardTo: (NSString *) value;
 - (void) setMouseInDeltaMode: (BOOL) inDelta;
+
+- (void) setGammaValue: (float) value;
+- (float) gammaValue;
 
 // Check current state of shift key rather than relying on last event.
 + (BOOL)pollShiftKey;

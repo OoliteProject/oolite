@@ -72,6 +72,9 @@ static BOOL				next_target_pressed;
 static BOOL				previous_target_pressed;
 static BOOL				prime_equipment_pressed;
 static BOOL				activate_equipment_pressed;
+#if FEATURE_REQUEST_5496
+static BOOL				mode_equipment_pressed;
+#endif
 static BOOL				next_missile_pressed;
 static BOOL				fire_missile_pressed;
 static BOOL				target_missile_pressed;
@@ -99,6 +102,9 @@ static BOOL				upDownKeyPressed;
 static BOOL				leftRightKeyPressed;
 static BOOL				musicModeKeyPressed;
 static BOOL				volumeControlPressed;
+#if OOLITE_SDL
+static BOOL				gammaControlPressed;
+#endif
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
 static BOOL				queryPressed;
@@ -214,6 +220,9 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_prime_equipment,		'N'			);
 	LOAD_KEY_SETTING(key_activate_equipment,	'n'			);
+#if FEATURE_REQUEST_5496
+	LOAD_KEY_SETTING(key_mode_equipment,		'b'			);
+#endif
 	
 	LOAD_KEY_SETTING(key_target_missile,		't'			);
 	LOAD_KEY_SETTING(key_untarget_missile,		'u'			);
@@ -970,6 +979,28 @@ static NSTimeInterval	time_last_frame;
 					activate_equipment_pressed = YES;
 				}
 				else  activate_equipment_pressed = NO;
+				
+			#if FEATURE_REQUEST_5496	
+				exceptionContext = @"mode equipment";
+				// mode equipment 'b' - runs the mode() function inside the equipment's script.
+				if ([gameView isDown:key_mode_equipment])
+				{
+
+				if (!mode_equipment_pressed)
+					{
+						// primedEquipment == [eqScripts count] means we don't want to change mode of any equipment.
+						if(primedEquipment < [eqScripts count])
+						{
+							OOJSScript *eqScript = [[eqScripts oo_arrayAtIndex:primedEquipment] objectAtIndex:1];
+							JSContext *context = OOJSAcquireContext();
+							[eqScript callMethod:OOJSID("mode") inContext:context withArguments:NULL count:0 result:NULL];
+							OOJSRelinquishContext(context);
+						}
+					}
+					mode_equipment_pressed = YES;
+				}
+				else  mode_equipment_pressed = NO;
+			#endif	// FEATURE_REQUEST_5496
 				
 				exceptionContext = @"incoming missile T";
 				// target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
@@ -2471,6 +2502,32 @@ static NSTimeInterval	time_last_frame;
 	}
 	else
 		volumeControlPressed = NO;
+		
+#if OOLITE_SDL
+	if ((guiSelectedRow == GUI_ROW(GAME,GAMMA))
+		&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	{
+		if (!gammaControlPressed)
+		{
+			BOOL rightKeyDown = [gameView isDown:gvArrowKeyRight];
+			BOOL leftKeyDown = [gameView isDown:gvArrowKeyLeft];
+			float gamma = [gameView gammaValue];
+			gamma += (((rightKeyDown && (gamma < 2.0f)) ? 0.2f : 0.0f) - ((leftKeyDown && (gamma > 0.0f)) ? 0.2f : 0.0f));
+			if (gamma > 2.0f) gamma = 2.0f;
+			if (gamma < 0.05f) gamma = 0.0f;
+			[gameView setGammaValue:gamma];
+			NSString* gammaWordDesc = DESC(@"gameoptions-gamma-value");
+			NSString* v1_string = @"|||||||||||||||||||||||||";
+			NSString* v0_string = @".........................";
+			v1_string = [v1_string substringToIndex:gamma * 10];
+			v0_string = [v0_string substringToIndex:20 - gamma * 10];
+			[gui setText:[NSString stringWithFormat:@"%@%@%@ (%.1f) ", gammaWordDesc, v1_string, v0_string, gamma]	forRow:GUI_ROW(GAME,GAMMA)  align:GUI_ALIGN_CENTER];
+		}
+		gammaControlPressed = YES;
+	}
+	else
+		gammaControlPressed = NO;
+#endif
 	
 #if OOLITE_MAC_OS_X && GROOLITE_VISIBLE
 	if ((guiSelectedRow == GUI_ROW(GAME,GROWL))&&([gameView isDown:gvArrowKeyRight]||[gameView isDown:gvArrowKeyLeft]))

@@ -1029,6 +1029,7 @@
 	"gameoptions-autosave-yes"				= " Autosave: On ";
 	"gameoptions-autosave-no"				= " Autosave: Off ";
 	"gameoptions-sound-volume"				= " Sound Volume: ";
+	"gameoptions-gamma-value"				= " Gamma: ";
 	"gameoptions-sound-volume-mute"			= " Sound Volume: Mute ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";
 	"gameoptions-show-growl-messages-@"		= " Show Growl Messages: %@ ";

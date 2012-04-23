@@ -113,8 +113,17 @@ MA 02110-1301, USA.
 		updateContext = YES;
 #endif
 		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
+		
 		// blank the surface / go to fullscreen
 		[self initialiseGLWithSize: firstScreen];
+	}
+	
+	_gamma = 1.0f;
+	if (SDL_SetGamma(_gamma, _gamma, _gamma) < 0 ) 
+	{
+		char * errStr = SDL_GetError();
+		OOLogERR(@"gamma.set.error", @"Could not set gamma: %s", errStr);
+		exit(1);
 	}
 }
 
@@ -1921,6 +1930,23 @@ keys[a] = NO; keys[b] = NO; \
 - (void) setMouseInDeltaMode: (BOOL) inDelta
 {
 	mouseInDeltaMode=inDelta;
+}
+
+
+- (void) setGammaValue: (float) value
+{
+	//if (value > 2.0f)  value = 2.0f;
+	//if (value < 0.0f)  value = 0.0f;
+	value = OOClamp_0_max_f(value, 2.0f);
+	
+	_gamma = value;
+	SDL_SetGamma(_gamma, _gamma, _gamma);
+}
+
+
+- (float) gammaValue
+{
+	return _gamma;
 }
 
 
