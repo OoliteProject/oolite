@@ -122,8 +122,10 @@ MA 02110-1301, USA.
 	if (SDL_SetGamma(_gamma, _gamma, _gamma) < 0 ) 
 	{
 		char * errStr = SDL_GetError();
-		OOLogERR(@"gamma.set.error", @"Could not set gamma: %s", errStr);
-		exit(1);
+		OOLogWARN(@"gamma.set.error", @"Could not set gamma: %s", errStr);
+		// CIM: this doesn't seem to necessarily be fatal. Gamma settings
+		// mostly work on mine despite this function failing.
+		//	exit(1);
 	}
 }
 
