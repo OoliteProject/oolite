@@ -54,6 +54,7 @@ static JSBool PlayerDecreaseContractReputation(JSContext *context, uintN argc, j
 static JSBool PlayerIncreasePassengerReputation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerDecreasePassengerReputation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsval *vp);
 
 
@@ -129,6 +130,7 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation,	0 },
 	{ "increaseContractReputation",		PlayerIncreaseContractReputation,	0 },
 	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
+	{ "replaceShip", PlayerReplaceShip, 1},
 	{ "setEscapePodDestination",		PlayerSetEscapePodDestination,		1 },	// null destination must be set explicitly
 	{ 0 }
 };
@@ -421,6 +423,33 @@ static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, js
 	
 	[player addMessageToReport:report];
 	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// replaceShip (shipyard-key : String)
+static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString				*shipKey = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+	
+	if (argc > 0)  shipKey = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (shipKey == nil)
+	{
+		OOJSReportBadArguments(context, @"Player", @"replaceShip", MIN(argc, 1U), OOJS_ARGV, nil, @"string (shipyard key)");
+		return NO;
+	}
+
+	if (EXPECT_NOT(!([player status] == STATUS_DOCKED)))
+	{
+		OOJSReportError(context, @"Player.replaceShip() only works while the player is docked.");
+		return NO;
+	}
+	
+	OOJS_RETURN_BOOL([player buyNamedShip:shipKey]);
 	
 	OOJS_NATIVE_EXIT
 }

@@ -724,6 +724,7 @@ typedef enum
 - (void) highlightEquipShipScreenKey:(NSString *)key;
 - (void) showInformationForSelectedUpgrade;
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
+- (BOOL) setWeaponMount:(int)chosen_weapon_facing toWeapon:(NSString *)eqKey;
 - (BOOL) changePassengerBerths:(int) addRemove;
 - (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type;
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount;

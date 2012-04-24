@@ -98,5 +98,7 @@ MA 02110-1301, USA.
 - (void) showTradeInInformationFooter;
 
 - (BOOL) buySelectedShip;
+- (BOOL) buyNamedShip:(NSString *)shipName;
+- (void) newShipCommonSetup:(NSString *)shipKey yardInfo:(NSDictionary *)ship_info baseInfo:(NSDictionary *)ship_base_dict; 
 
 @end

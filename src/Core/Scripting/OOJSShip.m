@@ -107,7 +107,7 @@ static JSClass sShipClass =
 enum
 {
 	// Property IDs
-	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read only
+	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read/write
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_beaconCode,			// beacon code, string, read-only (should probably be read/write, but the beacon list needs to be maintained.)
@@ -124,7 +124,7 @@ enum
 	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
 	kShip_escortGroup,			// group, ShipGroup, read-only
 	kShip_escorts,				// deployed escorts, array of Ship, read-only
-	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read only
+	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read/write
 	kShip_fuel,					// fuel, float, read/write
 	kShip_fuelChargeRate,		// fuel scoop rate & charge multiplier, float, read-only
 	kShip_group,				// group, ShipGroup, read/write
@@ -160,7 +160,7 @@ enum
 	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
 	kShip_passengerCount,		// number of passengers on ship, integer, read-only
 	kShip_passengers,			// passengers contracts, array - strings & whatnot, read only
-	kShip_portWeapon,			// the ship's port weapon, equipmentType, read only
+	kShip_portWeapon,			// the ship's port weapon, equipmentType, read/write
 	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
 	kShip_primaryRole,			// Primary role, string, read/write
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
@@ -174,7 +174,7 @@ enum
 	kShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
 	kShip_speed,				// current flight speed, double, read-only
-	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read only
+	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read/write
 	kShip_subEntities,			// subentities, array of Ship, read-only
 	kShip_subEntityCapacity,	// max subentities for this ship, int, read-only
 	kShip_target,				// target, Ship, read/write
@@ -194,7 +194,7 @@ enum
 static JSPropertySpec sShipProperties[] =
 {
 	// JS name					ID							flags
-	{ "aftWeapon",				kShip_aftWeapon,			OOJS_PROP_READONLY_CB },
+	{ "aftWeapon",				kShip_aftWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "AI",						kShip_AI,					OOJS_PROP_READONLY_CB },
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
@@ -212,7 +212,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
 	{ "escorts",				kShip_escorts,				OOJS_PROP_READONLY_CB },
 	{ "escortGroup",			kShip_escortGroup,			OOJS_PROP_READONLY_CB },
-	{ "forwardWeapon",			kShip_forwardWeapon,		OOJS_PROP_READONLY_CB },
+	{ "forwardWeapon",			kShip_forwardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "fuel",					kShip_fuel,					OOJS_PROP_READWRITE_CB },
 	{ "fuelChargeRate",			kShip_fuelChargeRate,		OOJS_PROP_READONLY_CB },
 	{ "group",					kShip_group,				OOJS_PROP_READWRITE_CB },
@@ -248,7 +248,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "passengerCount",			kShip_passengerCount,		OOJS_PROP_READONLY_CB },
 	{ "passengerCapacity",		kShip_passengerCapacity,	OOJS_PROP_READONLY_CB },
 	{ "passengers",				kShip_passengers,			OOJS_PROP_READONLY_CB },
-	{ "portWeapon",				kShip_portWeapon,			OOJS_PROP_READONLY_CB },
+	{ "portWeapon",				kShip_portWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "potentialCollider",		kShip_potentialCollider,	OOJS_PROP_READONLY_CB },
 	{ "primaryRole",			kShip_primaryRole,			OOJS_PROP_READWRITE_CB },
 	{ "reportAIMessages",		kShip_reportAIMessages,		OOJS_PROP_READWRITE_CB },
@@ -262,7 +262,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "scriptedMisjump",		kShip_scriptedMisjump,		OOJS_PROP_READWRITE_CB },
 	{ "scriptInfo",				kShip_scriptInfo,			OOJS_PROP_READONLY_CB },
 	{ "speed",					kShip_speed,				OOJS_PROP_READONLY_CB },
-	{ "starboardWeapon",		kShip_starboardWeapon,		OOJS_PROP_READONLY_CB },
+	{ "starboardWeapon",		kShip_starboardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "subEntities",			kShip_subEntities,			OOJS_PROP_READONLY_CB },
 	{ "subEntityCapacity",		kShip_subEntityCapacity,	OOJS_PROP_READONLY_CB },
 	{ "target",					kShip_target,				OOJS_PROP_READWRITE_CB },
@@ -949,7 +949,32 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
-		
+
+// TO DO: make these work for NPC ships too
+		case kShip_aftWeapon: 
+		case kShip_forwardWeapon: 
+		case kShip_portWeapon: 
+		case kShip_starboardWeapon:
+			if (EXPECT_NOT(![entity isPlayer]))  goto npcReadOnly;
+			sValue = OOStringFromJSValue(context,*value);
+			switch (JSID_TO_INT(propID))
+			{
+			case kShip_aftWeapon: 
+				[PLAYER setWeaponMount:WEAPON_FACING_AFT toWeapon:sValue];
+				break;
+			case kShip_forwardWeapon: 
+				[PLAYER setWeaponMount:WEAPON_FACING_FORWARD toWeapon:sValue];
+				break;
+			case kShip_portWeapon: 
+				[PLAYER setWeaponMount:WEAPON_FACING_PORT toWeapon:sValue];
+				break;
+			case kShip_starboardWeapon:
+				[PLAYER setWeaponMount:WEAPON_FACING_STARBOARD toWeapon:sValue];
+				break;
+			}
+			return YES;
+			break;
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sShipProperties);
 			return NO;
@@ -961,6 +986,11 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 playerReadOnly:
 	OOJSReportError(context, @"player.ship.%@ is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
 	return NO;
+
+npcReadOnly:
+	OOJSReportError(context, @"npc.ship.%@ is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
+	return NO;
+
 
 	OOJS_NATIVE_EXIT
 }

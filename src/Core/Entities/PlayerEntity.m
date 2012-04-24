@@ -7072,6 +7072,48 @@ static NSString *last_outfitting_key=nil;
 	return NO;
 }
 
+- (BOOL) setWeaponMount:(int)facing toWeapon:(NSString *)eqKey
+{
+		NSDictionary		*shipyardInfo = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:[self shipDataKey]];
+		unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];	// use defaults  explicitly
+
+// facing exists?
+		if (!(available_facings & facing)) 
+		{
+			return NO;
+		}
+
+// weapon allowed (or NONE)?
+		if (![eqKey isEqualToString:@"EQ_WEAPON_NONE"]) 
+		{
+			if (![self canAddEquipment:eqKey]) 
+			{
+				return NO;
+			}
+		}
+
+// sets WEAPON_NONE if not recognised
+		int chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
+		
+		switch (facing)
+		{
+			case WEAPON_FACING_FORWARD :
+				forward_weapon_type = chosen_weapon;
+				break;
+			case WEAPON_FACING_AFT :
+				aft_weapon_type = chosen_weapon;
+				break;
+			case WEAPON_FACING_PORT :
+				port_weapon_type = chosen_weapon;
+				break;
+			case WEAPON_FACING_STARBOARD :
+				starboard_weapon_type = chosen_weapon;
+				break;
+		}
+
+		return YES;
+}
+
 
 - (BOOL) changePassengerBerths:(int) addRemove
 {

@@ -1548,6 +1548,7 @@ static NSMutableDictionary* currentShipyard = nil;
 
 - (BOOL) buySelectedShip
 {
+
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	int sel_row = [gui selectedRow];
 	
@@ -1568,12 +1569,13 @@ static NSMutableDictionary* currentShipyard = nil;
 			[[UNIVERSE gui] setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
 		return YES;
 	}
-	
+
 	// first check you can afford it!
 	NSDictionary* ship_info = [currentShipyard oo_dictionaryForKey:key];
 	OOCreditsQuantity price = [ship_info oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
 	OOCreditsQuantity trade_in = [self tradeInValue];
-	
+
+
 	if (credits + trade_in < price * 10)
 		return NO;	// you can't afford it!
 	
@@ -1583,11 +1585,36 @@ static NSMutableDictionary* currentShipyard = nil;
 	{
 		[self trySellingCommodity:i all:YES];
 	}
-	
 	// We tried to sell everything. If there are still items present in our inventory, it
 	// means that the market got saturated (quantity in station > 127 t) before we could sell
 	// it all. Everything that could not be sold will be lost. -- Nikos 20083012
-	if (current_cargo)
+
+	// pay over the mazoolah
+	credits -= 10 * price - trade_in;
+	
+	NSDictionary *shipDict = [ship_info oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
+	[self newShipCommonSetup:[ship_info oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY] yardInfo:ship_info baseInfo:shipDict];
+
+	// this ship has a clean record
+	legalStatus = 0;
+
+	NSArray* extras = [ship_info oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
+	for (i = 0; i < [extras count]; i++)
+	{
+		NSString* eq_key = [extras oo_stringAtIndex:i];
+		if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])
+		{
+			max_passengers++;
+			max_cargo -= 5;
+		}
+		else
+		{
+			[self addEquipmentItem:eq_key withValidation:YES]; 
+		}
+	}
+
+
+/*	if (current_cargo)
 	{
 		// Zero out our manifest.
 		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
@@ -1606,19 +1633,14 @@ static NSMutableDictionary* currentShipyard = nil;
 	[passengers removeAllObjects];
 		
 	// contracts stay the same, so if you default - tough!
-	// okay we need to switch the model used, lots of the stats, and add all the extras
-	// pay over the mazoolah
-	credits -= 10 * price - trade_in;
+	// okay we need to switch the model used, lots of the stats, and add all the extras 
 	
-	[self clearSubEntities];
+	[self clearSubEntities]; 
 	[self setShipDataKey:[ship_info oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY]];
-	NSDictionary *shipDict = [ship_info oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
+
 	
 	// get a full tank for free
 	[self setFuel:[self fuelCapacity]];
-	
-	// this ship has a clean record
-	legalStatus = 0;
 	
 	// get forward_weapon aft_weapon port_weapon starboard_weapon from ship_info
 	aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"aft_weapon_type"]);
@@ -1663,23 +1685,9 @@ static NSMutableDictionary* currentShipyard = nil;
 	}
 	
 	// refill from ship_info
-	NSArray* extras = [ship_info oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
-	for (i = 0; i < [extras count]; i++)
-	{
-		NSString* eq_key = [extras oo_stringAtIndex:i];
-		if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])
-		{
-			max_passengers++;
-			max_cargo -= 5;
-		}
-		else
-		{
-			[self addEquipmentItem:eq_key withValidation:YES]; 
-		}
-	}
 	
 	// set up subentities from scratch; new ship could carry more or fewer than the old one
-	[self setUpSubEntities];
+	[self setUpSubEntities]; */
 	
 	// add bought ship to shipyard_record
 	[shipyard_record setObject:[self shipDataKey] forKey:[ship_info objectForKey:SHIPYARD_KEY_ID]];
@@ -1705,6 +1713,126 @@ static NSMutableDictionary* currentShipyard = nil;
 	return YES;
 }
 
+- (BOOL) buyNamedShip:(NSString *)shipKey
+{
+
+	NSDictionary *ship_info = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:shipKey];
+	
+	NSDictionary *ship_base_dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+
+	if (ship_info == nil || ship_base_dict == nil) {
+		return NO;
+	}
+	
+	[self newShipCommonSetup:shipKey yardInfo:ship_info baseInfo:ship_base_dict];
+
+	// refill from ship_info
+	NSArray* extras = [NSMutableArray arrayWithArray:[[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
+	for (unsigned i = 0; i < [extras count]; i++)
+	{
+		NSString* eq_key = [extras oo_stringAtIndex:i];
+		if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])
+		{
+			max_passengers++;
+			max_cargo -= 5;
+		}
+		else
+		{
+			[self addEquipmentItem:eq_key withValidation:YES]; 
+		}
+	}
+
+	// perform the transformation
+	NSDictionary* cmdr_dict = [self commanderDataDictionary];	// gather up all the info
+	if (![self setCommanderDataFromDictionary:cmdr_dict])  return NO;
+
+	[self setEntityPersonalityInt:[ship_info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
+	
+	return YES;
+}
+
+- (void) newShipCommonSetup:(NSString *)shipKey yardInfo:(NSDictionary *)ship_info baseInfo:(NSDictionary *)ship_base_dict 
+{
+
+	unsigned i;
+	if (current_cargo)
+	{
+		// Zero out our manifest.
+		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
+		for (i = 0; i < [manifest count]; i++)
+		{
+			NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:i]];
+			[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+			[manifest replaceObjectAtIndex:i withObject:manifest_commodity];
+		}
+		[shipCommodityData release];
+		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+		current_cargo = 0;
+	}
+	
+	// drop all passengers
+	[passengers removeAllObjects];
+		
+	// contracts stay the same, so if you default - tough!
+	// okay we need to switch the model used, lots of the stats, and add all the extras
+	
+	[self clearSubEntities];
+
+	[self setShipDataKey:shipKey];
+
+	NSDictionary *shipDict = ship_base_dict;
+
+
+	// get a full tank for free
+	[self setFuel:[self fuelCapacity]];
+	
+	// get forward_weapon aft_weapon port_weapon starboard_weapon from ship_info
+	aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"aft_weapon_type"]);
+	port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"port_weapon_type"]);
+	starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"starboard_weapon_type"]);
+	forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"forward_weapon_type"]);
+	
+	// get basic max_cargo
+	max_cargo = [UNIVERSE maxCargoForShip:[self shipDataKey]];
+
+	// ensure all missiles are tidied up and start at pylon 0
+	[self tidyMissilePylons];
+
+	// get missiles from ship_info
+	missiles = [shipDict oo_unsignedIntForKey:@"missiles"];
+	
+	// reset max_passengers
+	max_passengers = 0;
+	
+	// reset and refill extra_equipment then set flags from it
+	
+	// keep track of portable equipment..
+
+	NSMutableSet	*portable_equipment = [NSMutableSet set];
+	NSEnumerator	*eqEnum = nil;
+	NSString		*eq_desc = nil;
+	OOEquipmentType	*item = nil;
+	
+	for (eqEnum = [self equipmentEnumerator]; (eq_desc = [eqEnum nextObject]);)
+	{
+		item = [OOEquipmentType equipmentTypeWithIdentifier:eq_desc];
+		if ([item isPortableBetweenShips])  [portable_equipment addObject:eq_desc];
+	}
+	
+	// remove ALL
+	[self removeAllEquipment];
+	
+	// restore  portable equipment
+	for (eqEnum = [portable_equipment objectEnumerator]; (eq_desc = [eqEnum nextObject]); )
+	{
+		[self addEquipmentItem:eq_desc withValidation:NO];
+	}
+
+
+	// set up subentities from scratch; new ship could carry more or fewer than the old one
+	[self setUpSubEntities];
+
+}
 
 @end
 
