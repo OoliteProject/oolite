@@ -691,6 +691,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	Vector						vValue;
 	OOShipGroup					*group = nil;
 	OOColor						*colorForScript = nil;
+	BOOL exists;
 	
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity)))  return NO;
 	if (OOIsStaleEntity(entity))  return YES;
@@ -950,20 +951,39 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 
-// TO DO: make these work for NPC ships too
-		case kShip_aftWeapon: 
-		case kShip_forwardWeapon: 
+
 		case kShip_portWeapon: 
 		case kShip_starboardWeapon:
 			if (EXPECT_NOT(![entity isPlayer]))  goto npcReadOnly;
-			sValue = OOStringFromJSValue(context,*value);
+		case kShip_aftWeapon: 
+		case kShip_forwardWeapon: 
+
+			sValue = JSValueToEquipmentKeyRelaxed(context, *value, &exists);
+			if (sValue == nil) 
+			{
+				sValue = @"EQ_WEAPON_NONE";
+			}
 			switch (JSID_TO_INT(propID))
 			{
 			case kShip_aftWeapon: 
-				[PLAYER setWeaponMount:WEAPON_FACING_AFT toWeapon:sValue];
+				if ([entity isPlayer])
+				{
+					[PLAYER setWeaponMount:WEAPON_FACING_AFT toWeapon:sValue];
+				} 
+				else
+				{
+					[entity setWeaponMount:WEAPON_FACING_AFT toWeapon:sValue];
+				}
 				break;
 			case kShip_forwardWeapon: 
-				[PLAYER setWeaponMount:WEAPON_FACING_FORWARD toWeapon:sValue];
+				if ([entity isPlayer])
+				{
+					[PLAYER setWeaponMount:WEAPON_FACING_FORWARD toWeapon:sValue];
+				} 
+				else
+				{
+					[entity setWeaponMount:WEAPON_FACING_FORWARD toWeapon:sValue];
+				}
 				break;
 			case kShip_portWeapon: 
 				[PLAYER setWeaponMount:WEAPON_FACING_PORT toWeapon:sValue];

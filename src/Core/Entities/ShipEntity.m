@@ -2525,6 +2525,32 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (BOOL) setWeaponMount:(int)facing toWeapon:(NSString *)eqKey
+{
+// sets WEAPON_NONE if not recognised
+		int chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
+		
+		switch (facing)
+		{
+			case WEAPON_FACING_FORWARD :
+				forward_weapon_type = chosen_weapon;
+				break;
+			case WEAPON_FACING_AFT :
+				aft_weapon_type = chosen_weapon;
+				break;
+/* // not for now
+			case WEAPON_FACING_PORT :
+				port_weapon_type = chosen_weapon;
+				break;
+			case WEAPON_FACING_STARBOARD :
+				starboard_weapon_type = chosen_weapon;
+				break; */
+		}
+
+		return YES;
+}
+
+
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey
 {
 	return [self addEquipmentItem:equipmentKey withValidation:YES];
