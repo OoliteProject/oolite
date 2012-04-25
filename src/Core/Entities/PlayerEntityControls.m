@@ -1450,7 +1450,7 @@ static NSTimeInterval	time_last_frame;
 				[UNIVERSE addMessage:@"Shader debug ON" forCount:3];
 			}
 
-			if (([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvArrowKeyRight]) && gui_screen != GUI_SCREEN_GAMEOPTIONS)
+			if (([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvArrowKeyRight]) && gui_screen != GUI_SCREEN_GAMEOPTIONS && [UNIVERSE displayFPS])
 			{
 				if (!leftRightKeyPressed)
 				{
