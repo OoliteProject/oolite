@@ -435,6 +435,7 @@ static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp)
 	
 	NSString				*shipKey = nil;
 	PlayerEntity			*player = OOPlayerForScripting();
+	BOOL success = NO;
 	
 	if (argc > 0)  shipKey = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (shipKey == nil)
@@ -449,7 +450,12 @@ static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	OOJS_RETURN_BOOL([player buyNamedShip:shipKey]);
+	success = [player buyNamedShip:shipKey];
+	if (success) 
+	{ // slightly misnamed world event now
+		[player doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:player];
+	}
+	OOJS_RETURN_BOOL(success);
 	
 	OOJS_NATIVE_EXIT
 }
