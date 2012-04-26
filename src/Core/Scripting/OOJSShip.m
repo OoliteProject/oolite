@@ -1413,18 +1413,29 @@ static JSBool ShipDealEnergyDamage(JSContext *context, uintN argc, jsval *vp)
 			if (velocityBias > 0)
 			{
 				Vector v2 = vector_subtract([thisEnt velocity], [e2 velocity]);
-				double vSign = dot_product(v2, p2);
+				double vSign = dot_product(vector_normal([thisEnt velocity]), vector_normal(p2));
 				// vSign should always be positive for the missile's actual target
         // but might be negative for other nearby ships which are
         // actually moving further away from the missile
-				double vMag = vSign > 0.0 ? magnitude(v2) : -magnitude(v2);
+//				double vMag = vSign > 0.0 ? magnitude(v2) : -magnitude(v2);
+				double vMag = vSign * magnitude(v2);
+				if (vMag > 1000.0) {
+					vMag = 1000.0; 
+// cap effective closing speed to 1.0LM or injector-collisions can still do
+// ridiculous damage
+				}
+
 				localDamage += vMag * velocityBias;
+				OOLog(@"missile.damage.calc",@"Velocity magnitude + sign: %f , %f",magnitude(v2),vSign);
 				OOLog(@"missile.damage.calc",@"Velocity magnitude factor: %f",vMag);
 				OOLog(@"missile.damage.calc",@"Velocity corrected damage: %f",localDamage);
 			}
 			double damage = (d > 1) ? localDamage / (d * d) : localDamage;
 			OOLog(@"missile.damage.calc",@"%f at range %f (d=%f)",damage,magnitude(p2)-ecr,d);
-			[e2 takeEnergyDamage:damage from:thisEnt becauseOf:[thisEnt owner]];
+			if (damage > 0.0)
+			{
+				[e2 takeEnergyDamage:damage from:thisEnt becauseOf:[thisEnt owner]];
+			}
 		}
 	}
 // End of bit to be moved to ShipEntity

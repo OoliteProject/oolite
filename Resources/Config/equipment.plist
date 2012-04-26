@@ -303,7 +303,7 @@
 			available_to_all = true;
 		}
 	),
-	/* renovation price is a dummy value, actually 10% of the ship's value which will vary by ship */
+	/* renovation price is a dummy value - calculated to be 1% of the value of a fully-maintained ship of that type and equipment */
 	(
 		6, 1000, "Maintenance Overhaul",
 		"EQ_RENOVATION",
