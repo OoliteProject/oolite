@@ -175,6 +175,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) populateSpaceFromActiveWormholes;
 - (void) populateSpaceFromHyperPoint:(Vector)h1_pos toPlanetPosition:(Vector)p1_pos andSunPosition:(Vector)s1_pos;
 - (int)	scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
+- (int)	scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(OOUInteger)clusterSize;
 
 - (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary;
 
@@ -9268,7 +9269,7 @@ static void PreloadOneSound(NSString *soundName)
 		
 		ShipEntity  *trader_ship;
 		launchPos = h1_pos;
-		r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
+		r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
 		double ship_location = d_route1 * r / total_clicks;
 		launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
 		launchPos.y += ship_location * v_route1.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
@@ -9310,7 +9311,7 @@ static void PreloadOneSound(NSString *soundName)
 		
 		launchPos = h1_pos;
 		// random group position along route1
-		r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
+		r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
 		double ship_location = d_route1 * r / total_clicks;
 		launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
 		launchPos.y += ship_location * v_route1.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
@@ -9364,7 +9365,7 @@ static void PreloadOneSound(NSString *soundName)
 
 		ShipEntity  *hunter_ship;
 		// random position along route1
-		r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
+		r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
 		
 		hunter_ship = [self spawnPatrolShipAt:h1_pos alongRoute:v_route1 withOffset:d_route1 * r / total_clicks];	// add a patrol ship to the universe
 		
@@ -9382,7 +9383,7 @@ static void PreloadOneSound(NSString *soundName)
 	}
 	
 	// add the thargoids to route1 (witchspace exit to space-station / planet) clustered together
-	r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
+	r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
 	double thargoid_location = d_route1 * r / total_clicks;
 	for (i = 0; (i < thargoid_parties)&&(!sunGoneNova); i++)
 	{
@@ -9412,16 +9413,14 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
-	// add the asteroids to route1 (witchspace exit to space-station / planet) clustered together in a preset location.
-	// set the system seed for random number generation
-	seed_RNG_only_for_planet_description(system_seed);
+	// add the asteroids to route1 (witchspace exit to space-station / planet)
 	
 	for (i = 0; (i + 1) < (rockClusters / 2); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
 		clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
-		r = 2 + (gen_rnd_number() % (total_clicks - 2));  // find an empty slot
+		r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
 		asteroidLocation = d_route1 * r / total_clicks;
 		
 		launchPos = OOVectorTowards(h1_pos, v_route1, asteroidLocation);
@@ -9430,7 +9429,8 @@ static void PreloadOneSound(NSString *soundName)
 		totalRocks += [self scatterAsteroidsAt:launchPos
 								  withVelocity:kZeroVector
 						   includingRockHermit:includeHermit
-									 asCinders:NO];
+									 asCinders:NO
+					 clusterSize:clusterSize];
 		
 		[pool release];
 	}
@@ -9574,8 +9574,7 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
-	// add the asteroids to route2 clustered together in a preset location.
-	seed_RNG_only_for_planet_description(system_seed);	// set the system seed for random number generation
+	// add the asteroids to route2.
 	
 	for (i = 0; i < (rockClusters / 2 + 1U); i++)
 	{
@@ -9594,18 +9593,25 @@ static void PreloadOneSound(NSString *soundName)
 		totalRocks += [self scatterAsteroidsAt:launchPos
 								  withVelocity:kZeroVector
 						   includingRockHermit:includeHermit
-									 asCinders:NO];
+									 asCinders:NO
+					 clusterSize:clusterSize
+			];
 		[pool release];
 	}
 	
 }
 
-
 - (int) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders
+{
+	OOUInteger clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
+	return [self scatterAsteroidsAt:spawnPos withVelocity:spawnVel includingRockHermit:spawnHermit asCinders:asCinders clusterSize:clusterSize];
+}
+
+- (int) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(OOUInteger)clusterSize
 {
 	OOUInteger	rocks = 0;
 //	Vector		launchPos;
-	OOUInteger	i, clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
+	OOUInteger	i;
 	
 	NSString	*role = asCinders ? @"cinder" : @"asteroid";
 	
@@ -9631,7 +9637,7 @@ static void PreloadOneSound(NSString *soundName)
 	// hermits are placed near to other asteroids for obvious reasons
 	
 	// hermits should not be placed too near the planet-end of route2,
-	// or ships will dock there rather than at the main station !
+	// or ships might dock there rather than at the main station !
 	
 	if (spawnHermit)
 	{
