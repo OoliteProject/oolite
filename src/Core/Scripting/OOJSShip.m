@@ -1395,6 +1395,10 @@ static JSBool ShipDealEnergyDamage(JSContext *context, uintN argc, jsval *vp)
 // FIXME: this next bit should be moved to ShipEntity.m once it's
 // working and stable.
 	maxRange = range * sqrt(baseDamage);
+	if (maxRange > SCANNER_MAX_RANGE) 
+	{
+		maxRange = SCANNER_MAX_RANGE; // range cap
+	}
 	OOLog(@"missile.damage.calc",@"Range: %f | Damage: %f | MaxRange: %f",range,baseDamage,maxRange);
 
 	NSArray* targets = [UNIVERSE getEntitiesWithinRange:maxRange ofEntity:thisEnt];
