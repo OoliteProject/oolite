@@ -102,6 +102,7 @@ enum
 	kPlayerShip_galaxyCoordinatesInLY,			// galaxy coordinates (in LY), Vector3D, read only
 	kPlayerShip_hud,							// hud name identifier, string, read/write
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
+	kPlayerShip_laserHeatLevel,					// laser temperature, float, read-only
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_price,				// idealised trade-in value decicredits, positive int, read-only
@@ -137,12 +138,13 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "hud",							kPlayerShip_hud,							OOJS_PROP_READWRITE_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
 	// manifest defined in OOJSManifest.m
+	{ "laserHeatLevel",					kPlayerShip_laserHeatLevel,					OOJS_PROP_READONLY_CB },
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READONLY_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
-	{ "price",				kPlayerShip_price,				OOJS_PROP_READONLY_CB },
+	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
 	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
-	{ "serviceLevel",				kPlayerShip_serviceLevel,				OOJS_PROP_READONLY_CB },
+	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READONLY_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
@@ -287,6 +289,9 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			
 		case kPlayerShip_aftShield:
 			return JS_NewNumberValue(context, [player aftShieldLevel], value);
+			
+		case kPlayerShip_laserHeatLevel:
+			return JS_NewNumberValue(context, [player laserHeatLevel], value);
 			
 		case kPlayerShip_maxForwardShield:
 			return JS_NewNumberValue(context, [player maxForwardShieldLevel], value);
