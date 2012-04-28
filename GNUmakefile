@@ -80,6 +80,10 @@ ifeq ($(NO_SHADERS),yes)
     ADDITIONAL_CFLAGS            += -DNO_SHADERS=1
     ADDITIONAL_OBJCFLAGS         += -DNO_SHADERS=1
 endif
+ifeq ($(FEATURE_REQUEST_5496),yes)
+	ADDITIONAL_CFLAGS += -DFEATURE_REQUEST_5496=1
+	ADDITIONAL_OBJCFLAGS += -DFEATURE_REQUEST_5496=1
+endif
 
 # DEPLOYMENT_RELEASE_CONFIGURATION value is passed from Makefile. Note that the deployment release settings
 # are forced, while test release settings are adjustable.

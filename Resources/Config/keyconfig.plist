@@ -18,6 +18,7 @@
 
 	key_prime_equipment			= "N";
 	key_activate_equipment		= "n";
+	key_mode_equipment			= "b";
 
 	key_target_incoming_missile	= "T";
 	key_target_missile			= "t";

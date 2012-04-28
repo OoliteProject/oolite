@@ -394,6 +394,9 @@ typedef enum
 	
 	OOKeyCode				key_prime_equipment;
 	OOKeyCode				key_activate_equipment;
+#if FEATURE_REQUEST_5496
+	OOKeyCode				key_mode_equipment;
+#endif
 	
 	OOKeyCode				key_target_missile;
 	OOKeyCode				key_untarget_missile;
