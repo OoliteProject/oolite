@@ -118,6 +118,7 @@ enum
 	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
 	kShip_cloakAutomatic,		// should cloack start by itself or by script, read/write
 	kShip_cruiseSpeed,			// desired cruising speed, number, read only
+	kShip_dataKey,
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_displayName,			// name displayed on screen, string, read-only
 	kShip_entityPersonality,	// per-ship random number, int, read-only
@@ -206,6 +207,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "contracts",				kShip_contracts,			OOJS_PROP_READONLY_CB },
 	{ "cloakAutomatic",			kShip_cloakAutomatic,		OOJS_PROP_READWRITE_CB},
 	{ "cruiseSpeed",			kShip_cruiseSpeed,			OOJS_PROP_READONLY_CB },
+	{ "dataKey",			kShip_dataKey,			OOJS_PROP_READONLY_CB },
 	{ "desiredSpeed",			kShip_desiredSpeed,			OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
@@ -505,6 +507,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_cruiseSpeed:
 			return JS_NewNumberValue(context, [entity cruiseSpeed], value);
+
+		case kShip_dataKey:
+			result = [entity shipDataKey];
+			break;
 			
 		case kShip_desiredSpeed:
 			return JS_NewNumberValue(context, [entity desiredSpeed], value);
