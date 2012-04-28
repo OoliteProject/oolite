@@ -104,8 +104,10 @@ enum
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
+	kPlayerShip_price,				// idealised trade-in value decicredits, positive int, read-only
 	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
 	kPlayerShip_scoopOverride,					// Scooping
+	kPlayerShip_serviceLevel,				// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
@@ -137,8 +139,10 @@ static JSPropertySpec sPlayerShipProperties[] =
 	// manifest defined in OOJSManifest.m
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READONLY_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
+	{ "price",				kPlayerShip_price,				OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
 	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
+	{ "serviceLevel",				kPlayerShip_serviceLevel,				OOJS_PROP_READONLY_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
@@ -303,7 +307,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			
 		case kPlayerShip_cursorCoordinates:
 			return NSPointToVectorJSValue(context, [player cursor_coordinates], value);
-			
+
 		case kPlayerShip_cursorCoordinatesInLY:
 			return VectorToJSValue(context, OOGalacticCoordinatesFromInternal([player cursor_coordinates]), value);
 			
@@ -339,6 +343,12 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			*value = OOJSValueFromViewID(context, [UNIVERSE viewDirection]);
 			return YES;
 		
+	  case kPlayerShip_price:
+			return JS_NewNumberValue(context, [UNIVERSE tradeInValueForCommanderDictionary:[player commanderDataDictionary]], value);
+
+	  case kPlayerShip_serviceLevel:
+			return JS_NewNumberValue(context, [player tradeInFactor], value);
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 	}

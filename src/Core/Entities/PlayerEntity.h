@@ -750,6 +750,7 @@ typedef enum
  
 - (void) getFined;
 - (void) adjustTradeInFactorBy:(int)value;
+- (int) tradeInFactor;
 
 - (void) setDefaultViewOffsets;
 - (void) setDefaultCustomViews;

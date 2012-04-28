@@ -7825,6 +7825,11 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (int) tradeInFactor
+{
+	return ship_trade_in_factor;
+}
+
 - (void) setDefaultViewOffsets
 {
 	float halfLength = 0.5f * (boundingBox.max.z - boundingBox.min.z);
