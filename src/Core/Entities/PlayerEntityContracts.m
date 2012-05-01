@@ -1772,6 +1772,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// drop all passengers
 	[passengers removeAllObjects];
+	[passenger_record removeAllObjects]; 
 		
 	// contracts stay the same, so if you default - tough!
 	// okay we need to switch the model used, lots of the stats, and add all the extras
