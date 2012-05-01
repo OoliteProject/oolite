@@ -413,11 +413,17 @@ static NSTimeInterval	time_last_frame;
 	found_system_seed = target_system_seed;
 	if (!whileTyping)
 	{
-		[[UNIVERSE gameView] resetTypedString];
-		if (planetSearchString) [planetSearchString release];
-		planetSearchString = nil;
+		[self clearPlanetSearchString];
 	}
 	cursor_moving = YES;
+}
+
+
+- (void) clearPlanetSearchString
+{
+	[[UNIVERSE gameView] resetTypedString];
+	if (planetSearchString)  [planetSearchString release];
+	planetSearchString = nil;
 }
 
 
@@ -1600,9 +1606,7 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						found_system_seed = kNilRandomSeed;
-						[gameView resetTypedString];
-						if (planetSearchString) [planetSearchString release];
-						planetSearchString = nil;
+						[self clearPlanetSearchString];
 					}
 				}
 				else

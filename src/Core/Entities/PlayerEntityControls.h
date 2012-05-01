@@ -5,7 +5,7 @@ PlayerEntityControls.h
 Input management methods.
 
 Oolite
-Copyright (C) 2004-2012 Giles C Williams and contributors
+Copyright (C) 2004-2011 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 
 - (void) pollControls:(double)delta_t;
 - (BOOL) handleGUIUpDownArrowKeys;
+- (void) clearPlanetSearchString;
 - (void) targetNewSystem:(int) direction;
 - (void) switchToMainView;
 - (void) noteSwitchToView:(OOViewID)toView fromView:(OOViewID)fromView;

@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "Universe.h"
 #import "PlayerEntity.h"
+#import "PlayerEntityControls.h"
 #import "OOTextureSprite.h"
 #import "ResourceManager.h"
 #import "OOSound.h"
@@ -1638,6 +1639,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		int planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 		int destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 		NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
+		
+		// if the ANA has been activated and we are in string input mode (i.e. planet search),
+		// get out of it so that distance and time data can be displayed
+		if ([[[UNIVERSE gameView] typedString] length] > 0)  [player clearPlanetSearchString];
 		
 		if (!routeInfo)  routeExists = NO;
 		
