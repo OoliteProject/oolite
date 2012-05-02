@@ -7015,7 +7015,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (double) ballTrackLeadingTarget:(double) delta_t atTarget:(Entity *)target;
+- (double) ballTrackLeadingTarget:(double) delta_t atTarget:(Entity *)target
 {
 	Vector		vector_to_target;
 	Vector		axis_to_track_by;

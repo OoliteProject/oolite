@@ -724,6 +724,8 @@
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
+		B32E44DF1551DD2E00A78964 /* fleeQMineAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = B32E44D81551DCFA00A78964 /* fleeQMineAI.plist */; };
+		B32E44E01551DD2E00A78964 /* respondQMineAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = B32E44D51551DCDE00A78964 /* respondQMineAI.plist */; };
 		B3460D4515285BF1002592D0 /* oolite-default-planet.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */; };
 		B3460D4615285BF1002592D0 /* oolite-default-planet.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */; };
 		B3EA93961541480E00AB3C5B /* oolite-missile.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = B3EA9395154147EB00AB3C5B /* oolite-missile.js */; };
@@ -952,6 +954,8 @@
 				1A2317B90B9D022500EF0852 /* escortAI.plist in Copy AIs */,
 				1A2317BA0B9D022500EF0852 /* exitingTraderAI.plist in Copy AIs */,
 				1A2317BB0B9D022500EF0852 /* fallingShuttleAI.plist in Copy AIs */,
+				B32E44DF1551DD2E00A78964 /* fleeQMineAI.plist in Copy AIs */,
+				B32E44E01551DD2E00A78964 /* respondQMineAI.plist in Copy AIs */,
 				1A2317BC0B9D022500EF0852 /* fttAI.plist in Copy AIs */,
 				1A2317BD0B9D022500EF0852 /* gotoWaypointAI.plist in Copy AIs */,
 				1A2317BE0B9D022500EF0852 /* hardMissileAI.plist in Copy AIs */,
@@ -2003,6 +2007,8 @@
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "javascript-errors.plist"; sourceTree = "<group>"; };
+		B32E44D51551DCDE00A78964 /* respondQMineAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = respondQMineAI.plist; sourceTree = "<group>"; };
+		B32E44D81551DCFA00A78964 /* fleeQMineAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = fleeQMineAI.plist; sourceTree = "<group>"; };
 		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		B3EA9395154147EB00AB3C5B /* oolite-missile.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-missile.js"; sourceTree = "<group>"; };
@@ -2191,6 +2197,8 @@
 				1A2317B20B9D022500EF0852 /* timebombAI.plist */,
 				1A644E211052A9FD00833636 /* traderInterceptAI.plist */,
 				1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */,
+				B32E44D81551DCFA00A78964 /* fleeQMineAI.plist */,
+				B32E44D51551DCDE00A78964 /* respondQMineAI.plist */,
 			);
 			path = AIs;
 			sourceTree = "<group>";
