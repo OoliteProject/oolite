@@ -5602,8 +5602,8 @@ static GLfloat		sBaseMass = 0.0;
 		int 		dest_eta = [dict oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
 		[contract setObject:[NSNumber numberWithInt:dest_eta] forKey:@"eta"];
 		[contract setObject:[UNIVERSE shortTimeDescription:dest_eta] forKey:@"etaDescription"];
-		[contract setObject:[dict oo_stringForKey:CONTRACT_KEY_PREMIUM] forKey:CONTRACT_KEY_PREMIUM]; 
-		[contract setObject:[dict oo_stringForKey:CONTRACT_KEY_FEE] forKey:CONTRACT_KEY_FEE]; 
+		[contract setObject:[NSNumber numberWithInt:[dict oo_intForKey:CONTRACT_KEY_PREMIUM]] forKey:CONTRACT_KEY_PREMIUM]; 
+		[contract setObject:[NSNumber numberWithInt:[dict oo_intForKey:CONTRACT_KEY_FEE]] forKey:CONTRACT_KEY_FEE]; 
 		[result addObject:contract];
 	}
 
