@@ -581,6 +581,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if ((isUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"]))  [self setCrew:nil];
 	
 	[self setShipScript:[shipDict oo_stringForKey:@"script"]];
+
+	// retained array of defense targets
+	defenseTargets = [[NSMutableArray alloc] initWithCapacity:MAX_TARGETS];
 	
 	return YES;
 	
@@ -812,6 +815,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(crew);
 	DESTROY(lastRadioMessage);
 	DESTROY(octree);
+	[defenseTargets removeAllObjects];
+	DESTROY(defenseTargets);
 	
 	[self setSubEntityTakingDamage:nil];
 	[self removeAllEquipment];
@@ -3312,16 +3317,23 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if (universalID & 1)	// 50% of ships are smart S.M.R.T. smart!
+		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
 		{
-			if (randf() < 0.75)
-				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
-			else
 				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
-		}
-		else
+		} 
+		else 
 		{
-			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+			if (universalID & 1)	// 50% of ships are smart S.M.R.T. smart!
+			{
+				if (randf() < 0.75)
+					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
+				else
+					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+			}
+			else
+			{
+				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+			}
 		}
 		jink = kZeroVector;
 	}
@@ -3398,9 +3410,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// target-twelve
 	if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE)
 	{
-		// head for a point 1.25km above the target
-		//
-		destination = [target distance_twelve:1250];
+		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
+		{
+      // head for a point near the target, avoiding common Galcop weapon mount locations
+			GLfloat offset = (([self entityPersonalityInt] & 15) * 1000.0) - 7500.0;
+			destination = [target distance_twelve:(2000.0*(1+([self entityPersonalityInt]%5))) withOffset:offset];
+		}
+		else 
+		{
+			// head for a point 1.25km above the target
+			destination = [target distance_twelve:1250 withOffset:0];
+		}
 	}
 
 	double confidenceFactor = [self trackDestination:delta_t :NO];
@@ -3421,6 +3441,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			else
 				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 		}
+		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
+		{
+				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+		} 
+
 	}
 
 	// use weaponry
@@ -3604,6 +3629,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			frustration = 0.0;
 		}
 	}
+
 	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || flightSpeed > (scannerRange - range) * max_flight_pitch / 6.28)
 	{
 		jink = kZeroVector;
@@ -3636,10 +3662,22 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		jink = kZeroVector;
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
+		{
+				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+		} 
 		frustration = 0.0;
 	}
 	[self trackPrimaryTarget:delta_t:YES];
-	[self fireAftWeapon:range];
+	if (forward_weapon_type == WEAPON_THARGOID_LASER) 
+	{
+// most Thargoids will only have the forward weapon
+		[self fireMainWeapon:range];
+	}
+	else 
+	{
+		[self fireAftWeapon:range];
+	}
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
@@ -3694,6 +3732,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 
+// thargoids won't normally be fleeing, but if they do, they can still shoot
+	if (forward_weapon_type == WEAPON_THARGOID_LASER)
+	{
+		[self fireMainWeapon:range];
+	}
+
 	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
 	if (([(ShipEntity *)[self primaryTarget] primaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
 		[self fireMissile];
@@ -3709,7 +3753,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (distance < desired_range)
 	{
 		behaviour = BEHAVIOUR_FLY_FROM_DESTINATION;
-		desired_speed = maxFlightSpeed;  // Not all AI define speed when flying away. Start with max speed to stay compatible with such AI's.
+		if (desired_speed < maxFlightSpeed) 
+		{
+			desired_speed = maxFlightSpeed;  // Not all AI define speed when flying away. Start with max speed to stay compatible with such AI's, but allow faster flight if it's (e.g.) used to flee from coordinates rather than entity
+		}
 	}
 	else
 	{
@@ -3980,11 +4027,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_track_as_turret:(double) delta_t
 {
-	double aim = [self ballTrackLeadingTarget:delta_t];
+	double aim = -2.0;
 	ShipEntity *turret_owner = (ShipEntity *)[self owner];
 	ShipEntity *turret_target = (ShipEntity *)[turret_owner primaryTarget];
-	
 	if (turret_owner && turret_target && [turret_owner hasHostileTarget])
+	{
+		aim = [self ballTrackLeadingTarget:delta_t atTarget:turret_target];
+	}
+	if (aim > -1.0) // potential target
 	{
 		Vector p = vector_subtract([turret_target position], [turret_owner position]);
 		double cr = [turret_owner collisionRadius];
@@ -3993,7 +4043,47 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			[self fireTurretCannon:magnitude(p) - cr];
 		}
+		return;
 	}
+
+// can't fire on primary target; track secondary targets instead
+	unsigned i;
+	
+	for (i = 0; i < [[turret_owner getDefenseTargets] count]; i++)
+	{
+		Entity *my_target = [[turret_owner getDefenseTargets] objectAtIndex:i];
+		if (my_target == nil || [my_target scanClass] == CLASS_NO_DRAW || ![my_target isShip] || [(ShipEntity *)my_target isCloaked] || [my_target energy] <= 0.0)
+		{
+			[turret_owner removeDefenseTarget:i--];
+		}
+		else 
+		{
+			double range = [turret_owner rangeToSecondaryTarget:my_target];
+			if (range < weaponRange)
+			{
+				aim = [self ballTrackLeadingTarget:delta_t atTarget:my_target];
+				if (aim > -1.0)
+				{ // tracking...
+					Vector p = vector_subtract([my_target position], [turret_owner position]);
+					double cr = [turret_owner collisionRadius];
+		
+					if (aim > .95)
+					{ // fire!
+						[self fireTurretCannon:magnitude(p) - cr];
+					}
+					return;
+				}
+// else that target is out of range, try the next priority defense target
+			}
+			else if (range > scannerRange)
+			{
+				[turret_owner removeDefenseTarget:i--];
+			}
+		}
+	}
+
+	// turrets now don't return to neutral facing if no suitable target
+  // better for shooting at targets that are on edge of fire arc
 }
 
 
@@ -4964,7 +5054,18 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 			break;
 		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
 			weapon_damage =			12.5;
-			weapon_recharge_rate =	0.5;
+			if (forward_weapon_type == WEAPON_THARGOID_LASER && aft_weapon_type == WEAPON_THARGOID_LASER)
+			{
+				// fit two lasers, do twice the damage, since an 'aft' laser
+				// doesn't make sense as such for an omni-directional weapon.
+				weapon_damage =			25.0;
+// TODO: generalise if we ever give NPCs side lasers as an option
+			}
+// changing weapon_recharge_rate to accompany change to onTarget - CIM 20120502
+//			weapon_recharge_rate =	0.5;
+// old behaviour gave range of 0.7-1.3 between 25 and 100 FPS
+// so duplicate this range
+			weapon_recharge_rate = 0.7+(0.6*[self entityPersonality]);
 			weaponRange =			17500;
 			break;
 		case WEAPON_MILITARY_LASER:
@@ -6323,6 +6424,27 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+// Exposed to AI
+- (void) broadcastEnergyBlastImminent
+{
+	NSArray* targets = [UNIVERSE getEntitiesWithinRange:SCANNER_MAX_RANGE ofEntity:self];
+	if ([targets count] > 0)
+	{
+		unsigned i;
+		for (i = 0; i < [targets count]; i++)
+		{
+			Entity *e2 = [targets objectAtIndex:i];
+			if ([e2 isShip]) 
+			{
+				ShipEntity *se = (ShipEntity *)e2;
+				[se setFound_target:self];
+				[se reactToAIMessage:@"CASCADE_WEAPON_DETECTED" context:@"nearby Q-mine"];
+			}
+		}
+	}
+}
+
+
 - (void)subEntityDied:(ShipEntity *)sub
 {
 	if ([self subEntityTakingDamage] == sub)  [self setSubEntityTakingDamage:nil];
@@ -6770,6 +6892,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	id target = nil;
 	if (primaryTarget != NO_TARGET)
 	{
+		if ([self isDefenseTarget:primaryTarget]) 
+		{
+			[self removeDefenseTargetByID:primaryTarget];
+		}
 		ShipEntity* ship = [UNIVERSE entityForUniversalID:primaryTarget];
 		target = (ship && ship->isShip) ? (id)ship : nil;
 		if (primaryAggressor == primaryTarget) primaryAggressor = NO_TARGET;
@@ -6797,6 +6923,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[self removeTarget:target];
 		[self doScriptEvent:OOJSID("shipTargetDestroyed") withArgument:target];
 		[shipAI message:@"TARGET_DESTROYED"];
+	}
+	if ([self isDefenseTarget:[target universalID]]) 
+	{
+		[self removeDefenseTargetByID:[target universalID]];
+		[shipAI message:@"DEFENSE_TARGET_DESTROYED"];
 	}
 }
 
@@ -6840,10 +6971,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (Vector) distance_twelve: (GLfloat) dist
+- (Vector) distance_twelve: (GLfloat) dist withOffset:(GLfloat)offset
 {
 	Vector twelve = position;
 	twelve.x += dist * v_up.x;	twelve.y += dist * v_up.y;	twelve.z += dist * v_up.z;
+	twelve.x += offset * v_right.x;	twelve.y += offset * v_right.y;	twelve.z += offset * v_right.z;
 	return twelve;
 }
 
@@ -6883,7 +7015,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (double) ballTrackLeadingTarget:(double) delta_t
+- (double) ballTrackLeadingTarget:(double) delta_t atTarget:(Entity *)target;
 {
 	Vector		vector_to_target;
 	Vector		axis_to_track_by;
@@ -6891,7 +7023,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector		my_aim = vector_forward_from_quaternion(orientation);
 	Vector		my_ref = reference;
 	double		aim_cos, ref_cos;
-	Entity		*target = [self primaryTarget];
 	Vector		leading = [target velocity];
 	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
@@ -6910,6 +7041,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (target)
 	{
 		vector_to_target = vector_subtract([target position], my_position);
+		if (magnitude(vector_to_target) > weaponRange * 1.01)
+		{
+			return -2.0; // out of range
+		}
+
 		float lead = magnitude(vector_to_target) / TURRET_SHOT_SPEED;
 		
 		vector_to_target = vector_add(vector_to_target, vector_multiply_scalar(leading, lead));
@@ -6931,8 +7067,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	else
 	{
-		aim_cos = 0.0;
-		axis_to_track_by = cross_product(my_ref, my_aim);	//	return to center
+		return -2.0; // target is out of fire arc
 	}
 	
 	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
@@ -7438,11 +7573,90 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (NSMutableArray*) getDefenseTargets
+{
+//	return [defenseTargets weakRefUnderlyingObject];
+	return defenseTargets;
+}
+
+
+- (BOOL) addDefenseTarget:(OOUniversalID)target
+{
+	Entity *dtarget = [UNIVERSE entityForUniversalID:target];
+	if ([defenseTargets count] >= MAX_TARGETS)
+	{
+		return NO;
+	}
+	if (dtarget == nil || [defenseTargets containsObject:dtarget])
+	{
+		return NO;
+	}
+	[defenseTargets addObject:dtarget];
+	return YES;
+}
+
+
+- (BOOL) isDefenseTarget:(OOUniversalID)target
+{
+	Entity *dtarget = [UNIVERSE entityForUniversalID:target];
+	if (dtarget == nil || ![defenseTargets containsObject:dtarget])
+	{
+		return NO;
+	}
+	return YES;
+}
+
+
+// exposed to AI
+- (void) clearDefenseTargets
+{
+	[defenseTargets removeAllObjects];
+}
+
+
+- (void) removeDefenseTarget:(unsigned)index
+{
+	if (index < [defenseTargets count])
+	{
+		if ([defenseTargets count] == 1)
+		{
+			[shipAI reactToMessage:@"DEFENSE_TARGET_LOST" context:@"flight updates"];	// last defense target lost
+		}
+		else
+		{
+			[shipAI message:@"DEFENSE_TARGET_LOST"];	// no major urgency, we have more
+		}
+
+		[defenseTargets removeObjectAtIndex:index];
+	}
+}
+
+
+- (void) removeDefenseTargetByID:(OOUniversalID)target
+{
+	unsigned index = [defenseTargets indexOfObject:[UNIVERSE entityForUniversalID:target]];
+	[self removeDefenseTarget:index];
+}
+
+
 - (double) rangeToPrimaryTarget
 {
 	double dist;
 	Vector delta;
 	Entity  *target = [self primaryTarget];
+	if (target == nil)   // leave now!
+		return 0.0;
+	delta = vector_subtract(target->position, position);
+	dist = magnitude(delta);
+	dist -= target->collision_radius;
+	dist -= collision_radius;
+	return dist;
+}
+
+- (double) rangeToSecondaryTarget:(Entity *)target
+{
+	double dist;
+	Vector delta;
 	if (target == nil)   // leave now!
 		return 0.0;
 	delta = vector_subtract(target->position, position);
@@ -7460,7 +7674,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	int weapon_type = (fwd_weapon)? forward_weapon_type : aft_weapon_type;
 	if (weapon_type == WEAPON_THARGOID_LASER)
 	{
-		return (randf() < 0.05);	// one in twenty shots on target
+/* this gives a frame rate dependency. Modified weapon_recharge_time
+ * elsewhere to give a similar effect - CIM 20120502 */		
+// if (randf() < 0.05) return YES;	// one in twenty shots on target
+		return YES;
 	}
 	
 	Entity  *target = [self primaryTarget];
@@ -7493,8 +7710,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
 	
-	if (range > randf() * weaponRange * accuracy)  return NO;
-	if (range > weaponRange)  return NO;
+	if (weapon_type != WEAPON_THARGOID_LASER)
+	{ // thargoid laser may just pick secondary target in this case
+		if (range > randf() * weaponRange * accuracy)  return NO;
+		if (range > weaponRange)  return NO;
+	}
 	BOOL fireForward = (direction == VIEW_FORWARD);
 	if (![self onTarget:fireForward])  return NO;
 	
@@ -7515,7 +7735,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			break;
 		
 		case WEAPON_THARGOID_LASER :
-			[self fireDirectLaserShot];
+			[self fireDirectLaserShot:range];
 			fired = YES;
 			break;
 		
@@ -7692,11 +7912,46 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) fireDirectLaserShot
+- (BOOL) fireDirectLaserShot:(double)range
 {
 	Entity			*my_target = [self primaryTarget];
-	if (my_target == nil)  return NO;
-	
+	if (my_target == nil)  return [self fireDirectLaserDefensiveShot];
+	if (range > randf() * weaponRange * accuracy)  return [self fireDirectLaserDefensiveShot];
+	if (range > weaponRange)  return [self fireDirectLaserDefensiveShot];
+	return [self fireDirectLaserShotAt:my_target];
+}
+
+
+- (BOOL) fireDirectLaserDefensiveShot
+{
+	unsigned i;
+	for (i = 0; i < [defenseTargets count]; i++)
+	{
+		Entity *my_target = [defenseTargets objectAtIndex:i];
+		if (my_target == nil || [my_target scanClass] == CLASS_NO_DRAW || ![my_target isShip] || [(ShipEntity *)my_target isCloaked] || [my_target energy] <= 0.0)
+		{
+			[self removeDefenseTarget:i--];
+		}
+		else 
+		{
+			double range = [self rangeToSecondaryTarget:my_target];
+			if (range < weaponRange)
+			{
+				OOLog(@"point.defense.test",@"%@ firing point defense at %@",[self displayName],[(ShipEntity*)my_target displayName]);
+				return [self fireDirectLaserShotAt:my_target];
+			}
+			else if (range > scannerRange)
+			{
+				[self removeDefenseTarget:i--];
+			}
+		}
+	}
+	return NO;
+}
+
+
+- (BOOL) fireDirectLaserShotAt:(Entity *)my_target
+{
 	GLfloat			hit_at_range;
 	double			range_limit2 = weaponRange*weaponRange;
 	Vector			r_pos;

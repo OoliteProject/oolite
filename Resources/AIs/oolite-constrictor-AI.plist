@@ -9,6 +9,7 @@
 		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"ENERGY_LOW" = ("setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_DESTROYED" = ("setStateTo: LURK");
 		"TARGET_LOST" = ("setStateTo: LURK");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
@@ -21,6 +22,7 @@
 		"TARGET_LOST" = (performIdle, "setStateTo: LURK");
 		"DESIRED_RANGE_ACHIEVED" = (performIdle, "setStateTo: LURK");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle, "pauseAI: 10.0");
 		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		UPDATE = ("sendScriptMessage: _checkDistance", "pauseAI: 5.0");
@@ -32,6 +34,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK");
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"EXITED WITCHSPACE" = ("setStateTo: LURK");
 		UPDATE = ("sendScriptMessage: _checkDistance", "pauseAI: 1.0");
 	};
@@ -40,6 +43,7 @@
 		ENTER = ("setSpeedTo: 0.0", performIdle);
 		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, checkGroupOddsVersusTarget);
 		"ODDS_GOOD" = (groupAttackTarget);
 		"ODDS_LEVEL" = (groupAttackTarget);

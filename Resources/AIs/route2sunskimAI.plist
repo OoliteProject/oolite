@@ -19,6 +19,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: GO_TO_SKIM");
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         "EXITED WITCHSPACE" = ("switchAITo: route1traderAI.plist"); 
 		"RESTARTED" = ("setStateTo: LOOK_FOR_SUN");
 		UPDATE = (setDestinationFromCoordinates, checkCourseToDestination, "pauseAI: 15");

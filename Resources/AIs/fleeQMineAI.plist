@@ -1,0 +1,13 @@
+{
+	GLOBAL = 
+	{
+			ENTER = (setTargetToFoundTarget, addFoundTargetAsDefenseTarget, setDestinationToTarget, "setDesiredRangeTo: 25600", performFlee, "pauseAI: 15.0");
+			DESIRED_RANGE_ACHIEVED = (exitAI);
+			"ATTACKED" = (addPrimaryAggressorAsDefenseTarget);
+			CASCADE_WEAPON_DETECTED = ("setStateTo: GLOBAL");
+			TARGET_LOST = ("setSpeedFactorTo: 10","performFlyToRangeFromDestination");
+			REACHED_SAFETY = (exitAI);
+			UPDATE = (exitAI);
+	};
+
+}

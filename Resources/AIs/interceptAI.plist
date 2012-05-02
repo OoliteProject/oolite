@@ -10,10 +10,13 @@
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ESCORT_ATTACKED" = (setTargetToPrimaryAggressor, groupAttackTarget); 
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_DESTROYED" = (performIdle, switchLightsOff, exitAI);
 		"TARGET_LOST" = (performIdle, switchLightsOff, exitAI);
 		"PLAYER WITCHSPACE" = ("setStateTo: PLAYER_WITCHSPACE");
 		"ENTER WORMHOLE" = (performIdle, switchLightsOff, "exitAIWithMessage: ENTER WORMHOLE");
+		"DEFENSE_TARGET_LOST" = (findNewDefenseTarget);
+		"DEFENSE_TARGET_DESTROYED" = (findNewDefenseTarget);
 	};
 	FLEE =
 	{
@@ -23,8 +26,12 @@
 		"TARGET_DESTROYED" = (performIdle, switchLightsOff, exitAI);
 		"REACHED_SAFETY" = (performIdle, switchLightsOff, exitAI); 
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"PLAYER WITCHSPACE" = ("setStateTo: PLAYER_WITCHSPACE");
 		"ENTER WORMHOLE" = (performIdle, switchLightsOff, "exitAIWithMessage: ENTER WORMHOLE");
+		"ATTACKED" = (addPrimaryAggressorAsDefenseTarget);
+		"DEFENSE_TARGET_LOST" = (findNewDefenseTarget);
+		"DEFENSE_TARGET_DESTROYED" = (findNewDefenseTarget);
 	};
 	"PLAYER_WITCHSPACE" =
 	{

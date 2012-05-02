@@ -15,6 +15,7 @@
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: INBOUND_LOOT", "setAITo: interceptAI.plist");
 		RESTARTED = (checkAegis);
@@ -32,6 +33,7 @@
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: OUTBOUND_LOOT", "setAITo: interceptAI.plist");
 		UPDATE = (setCourseToWitchpoint, checkCourseToDestination, scanForOffenders, "pauseAI: 10.0");
@@ -45,6 +47,7 @@
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
 		"NOTHING_FOUND" = ("setStateTo: INBOUND_CHECK");
 		"HOLD_FULL" = ("setStateTo: INBOUND_CHECK");
@@ -59,6 +62,7 @@
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
 		"NOTHING_FOUND" = ("setStateTo: OUTBOUND_CHECK");
 		"HOLD_FULL" = ("setStateTo: OUTBOUND_CHECK");

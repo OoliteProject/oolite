@@ -12,6 +12,7 @@
 		"CARGO_SCOOPED" = ("exitAIWithMessage: CARGO_SCOOPED");
 		"HOLD_FULL" = ("exitAIWithMessage: HOLD_FULL");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "exitAIWithMessage: INCOMING_MISSILE");
+		"CASCADE_WEAPON_DETECTED" = ("exitAIWithMessage: CASCADE_WEAPON_DETECTED");
 		"TARGET_LOST" = (exitAI);
 	};
 }

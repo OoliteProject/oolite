@@ -8,6 +8,7 @@
 		ENTER = (performAttack);
 		"ATTACKED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, fireMissile, "setStateTo: ATTACK_SHIP");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: respondQMineAI.plist");
 		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_TARGETS");
 		"TARGET_FOUND" = ("rollD: 4");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_TARGETS");
@@ -15,13 +16,15 @@
 		"ROLL_2" = (setTargetToFoundTarget, fireMissile);
 		"ROLL_3" = ("pauseAI: 45.0");
 		"ROLL_4" = ("setStateTo: LOOK_FOR_TARGETS");
-		UPDATE = (scanForNonThargoid, "pauseAI: 30.0");
+		"DEFENSE_TARGET_LOST" = (findNewDefenseTarget);
+		UPDATE = (findNewDefenseTarget, scanForNonThargoid, "pauseAI: 30.0");
 	};
 	"LOOK_FOR_TARGETS" =
 	 {
 		ENTER = ("setSpeedTo: 0.0", performTumble, scanForNonThargoid, "pauseAI: 5.0");
 		"ATTACKED" = (setTargetToPrimaryAggressor, deployEscorts, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: respondQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, "setStateTo: ATTACK_SHIP");
 		"NOTHING_FOUND" = ("setStateTo: HEAD_FOR_PLANET");
 		UPDATE = (scanForNonThargoid, "pauseAI: 5.0");
@@ -35,6 +38,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_TARGETS");
 		ATTACKED = (setTargetToPrimaryAggressor, deployEscorts, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: respondQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, "setStateTo: ATTACK_SHIP");
         	"INTERSTELLAR_SPACE" = ("setStateTo: HEAD_FOR_WITCHPOINT"); 
 		UPDATE = (setCourseToPlanet, "setDesiredRangeTo: 80000.0", checkCourseToDestination, scanForNonThargoid, "pauseAI: 10.0");
@@ -47,6 +51,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_TARGETS");
 		ATTACKED = (setTargetToPrimaryAggressor, deployEscorts, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: respondQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, "setStateTo: ATTACK_SHIP");
 		UPDATE = (setCourseToWitchpoint, "setDesiredRangeTo: 15000.0", checkCourseToDestination, scanForNonThargoid, "pauseAI: 10.0");
 	};

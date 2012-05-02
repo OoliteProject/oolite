@@ -6,6 +6,7 @@
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		DEPLOYING_ESCORTS = (setTargetToPrimaryAggressor, "setStateTo: FLEE_WITH_ESCORTS");
 		"INCOMING_MISSILE" = ("setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_DESTROYED" = (exitAI); 
 		"TARGET_LOST" = (exitAI);
 	}; 
@@ -15,6 +16,7 @@
         "ESCORT_ATTACKED" = (setTargetToPrimaryAggressor, groupAttackTarget); 
 		"ENERGY_LOW" = (setTargetToPrimaryAggressor, broadcastDistressMessage, deployEscorts, "setStateTo: FLEE"); 
 		"INCOMING_MISSILE" = ("setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_DESTROYED" = (exitAI); 
 		"TARGET_LOST" = (exitAI); 
 	}; 
@@ -28,6 +30,7 @@
 		"TARGET_LOST" = (performIdle, exitAI); 
 		"TARGET_DESTROYED" = (performIdle, exitAI); 
 		"INCOMING_MISSILE" = ("setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"REACHED_SAFETY" = (performIdle, exitAI); 
 	}; 
 	"FLEE_WITH_ESCORTS" = 
@@ -43,6 +46,7 @@
 		"TARGET_DESTROYED" = (performIdle, exitAI); 
 		"ENERGY_LOW" = (setTargetToPrimaryAggressor, deployEscorts); 
 		"INCOMING_MISSILE" = ("setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"REACHED_SAFETY" = (performIdle, exitAI); 
 	}; 
 	"FLEE_FOR_MISSILE" = 
@@ -54,6 +58,7 @@
 		"NOTHING_FOUND" = (exitAI);
 		"TARGET_DESTROYED" = (performIdle, exitAI); 
 		"INCOMING_MISSILE" = ("setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"REACHED_SAFETY" = (performIdle, exitAI); 
 		"UPDATE" = (fightOrFleeMissile, "pauseAI: 10");
 	}; 

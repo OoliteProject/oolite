@@ -13,6 +13,7 @@
 			"pauseAI: 15.0",
 			"setStateTo: EXIT_SYSTEM"
 		);
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_DESTROYED" = ("setStateTo: CONSIDER_RESUMING");
 		"TARGET_LOST" = ("setStateTo: CONSIDER_RESUMING");
 	};
@@ -30,6 +31,7 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile);
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"REACHED_SAFETY" = (performIdle, "setStateTo: CONSIDER_RESUMING");
 		"TARGET_DESTROYED" = (performIdle, "setStateTo: CONSIDER_RESUMING");
 		"TARGET_LOST" = (performIdle, "setStateTo: CONSIDER_RESUMING");
@@ -43,6 +45,7 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
 	};
 	"HEAD_FOR_SUN" =
@@ -55,6 +58,7 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT1");
 	};
 	"LEAVE_SUN" =
@@ -71,6 +75,7 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 	};
 	"SKIM_SUN" =
 	{
@@ -86,6 +91,7 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 	};
 	CONSIDER_RESUMING =
 	{

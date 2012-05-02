@@ -11,6 +11,7 @@
         "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		"EXITED WITCHSPACE" = ("switchAITo: enteringPirateAI.plist");
@@ -24,6 +25,7 @@
         "TARGET_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED");
         "ENERGY_LOW" = ("setStateTo: FLEE"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         "TARGET_DESTROYED" = ("setStateTo: COLLECT_LOOT"); 
         "TARGET_LOST" = ("setStateTo: COLLECT_LOOT"); 
         "CARGO_DUMPED" = (checkForFullHold);
@@ -32,6 +34,8 @@
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		"PLAYER WITCHSPACE" = (enterTargetWormhole, wormholeEscorts);
         "ACCEPTED_ESCORT" = (groupAttackTarget); 
+		"DEFENSE_TARGET_LOST" = (findNewDefenseTarget);
+		"DEFENSE_TARGET_DESTROYED" = (findNewDefenseTarget);
     }; 
     FLEE = {
         ENTER = ("setDesiredRangeTo: 25600", performFlee); 
@@ -40,8 +44,11 @@
         "TARGET_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); // added
         "DESIRED_RANGE_ACHIEVED" = ("setStateTo: RECOVER"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+				"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         "REACHED_SAFETY" = ("setStateTo: RECOVER"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE"); 
+		"DEFENSE_TARGET_LOST" = (findNewDefenseTarget);
+		"DEFENSE_TARGET_DESTROYED" = (findNewDefenseTarget);
     }; 
     "FLEE_FOR_CLOAKED" = {
         ENTER = (setDestinationToCurrentLocation, "setDesiredRangeTo: 7500", performFlyToRangeFromDestination); 
@@ -49,6 +56,7 @@
         "ENERGY_LOW" = ("setStateTo: FLEE"); 
         "DESIRED_RANGE_ACHIEVED" = ("setStateTo: RECOVER"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+				"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
     }; 
     RECOVER = {
@@ -57,6 +65,7 @@
         "ENERGY_HIGH" = ("setStateTo: COLLECT_LOOT"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
         UPDATE = (checkEnergy, "pauseAI: 10.0"); 
     }; 
@@ -67,6 +76,7 @@
         "HOLD_FULL" = ("setStateTo: CONSIDER_DOCKING"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         "TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: LOOT"); 
         "NOTHING_FOUND" = ("setStateTo: CONSIDER_DOCKING"); 
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
@@ -80,6 +90,7 @@
         FRUSTRATED = ("setStateTo: COLLECT_LOOT"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         "TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: LOOT"); 
         "NOTHING_FOUND" = ("setStateTo: CONSIDER_DOCKING"); 
         "TARGET_LOST" = ("setStateTo: CHECK_CARGO"); 
@@ -94,6 +105,7 @@
         "NO_CARGO_BAY" = ("setStateTo: CONSIDER_DOCKING"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 	}; 
     "CONSIDER_LEAVING" = {
@@ -102,6 +114,7 @@
 		"NOTHING_FOUND" = ("setStateTo: EXIT_SYSTEM", "pauseAI: 5.0");
 		"STATION_FOUND" = ("setAITo: dockingAI.plist");
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		UPDATE = (checkForMotherStation);
 	}; 
@@ -123,6 +136,7 @@
 		"STATION_FOUND" = (dockEscorts, "setAITo: dockingAI.plist");
         "CARGO_SCOOPED" = ("setStateTo: CHECK_CARGO"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		UPDATE = (checkForMotherStation);
 	}; 
@@ -133,6 +147,7 @@
 		"NOTHING_FOUND" = ("setAITo: route1traderAI.plist");
 		"STATION_FOUND" = (dockEscorts, "setAITo: dockingAI.plist");
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 	}; 
     "ENTER_WORMHOLE" = {
@@ -158,6 +173,7 @@
         "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		"FRUSTRATED" = ("setStateTo: LURK");
         "TARGET_FOUND" = (setTargetToFoundTarget, checkGroupOddsVersusTarget); 
@@ -172,6 +188,7 @@
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
 		"TARGET_LOST" = ("setStateTo: TRAVEL_TO_LURK_AREA", "pauseAI: 0.5");
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         "NOTHING_FOUND" = ("setStateTo: SCAN_FOR_LOOT"); 
         "TARGET_FOUND" = (setTargetToFoundTarget, checkGroupOddsVersusTarget); 
         "CARGO_SCOOPED" = ("setStateTo: CHECK_CARGO"); 
@@ -187,6 +204,7 @@
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         "TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: LOOT"); 
         "NOTHING_FOUND" = ("setStateTo: LURK"); 
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");

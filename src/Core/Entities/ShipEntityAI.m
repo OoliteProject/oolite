@@ -262,6 +262,11 @@ MA 02110-1301, USA.
 - (void) setRacepointsFromTarget;
 - (void) performFlyRacepoints;
 
+// defense targets 
+- (void) addPrimaryAggressorAsDefenseTarget;
+- (void) addFoundTargetAsDefenseTarget;
+- (void) findNewDefenseTarget;
+
 @end
 
 
@@ -293,7 +298,7 @@ MA 02110-1301, USA.
 	{
 		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
-		if ((d2 < found_d2) && ([thing isThargoid] || (([thing primaryTarget] == self) && [thing hasHostileTarget])))
+		if ((d2 < found_d2) && ([thing isThargoid] || (([thing primaryTarget] == self) && [thing hasHostileTarget]) || [thing isDefenseTarget:[self universalID]]))
 		{
 			found_target = [thing universalID];
 			found_d2 = d2;
@@ -471,6 +476,8 @@ MA 02110-1301, USA.
 		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET:
 		case BEHAVIOUR_ATTACK_FLY_TO_TARGET:
 			if (randf() < 0.75)	// if I'm attacking, ignore 75% of new aggressor's attacks
+// but add them as a secondary target anyway
+				[self addDefenseTarget:primaryAggressor];
 				return;
 			break;
 		
@@ -492,6 +499,21 @@ MA 02110-1301, USA.
 		
 		// okay, so let's now target the aggressor
 		[self addTarget:[UNIVERSE entityForUniversalID:primaryAggressor]];
+	}
+}
+
+
+- (void) addPrimaryAggressorAsDefenseTarget
+{
+	Entity *primeAggressor = [UNIVERSE entityForUniversalID:primaryAggressor];
+	if (!primeAggressor)
+		return;
+	if ([self isDefenseTarget:primaryAggressor])
+		return;
+
+	if ([primeAggressor isShip] && ![(ShipEntity *)primeAggressor isFriendlyTo:self])
+	{
+		[self addDefenseTarget:primaryAggressor];
 	}
 }
 
@@ -670,6 +692,18 @@ MA 02110-1301, USA.
 }
 
 
+- (void) addFoundTargetAsDefenseTarget
+{
+	Entity* fTarget = [UNIVERSE entityForUniversalID:found_target];
+	if (!fTarget)
+	{
+		if ([fTarget isShip] && ![(ShipEntity *)fTarget isFriendlyTo:self])
+		{
+			[self addDefenseTarget:found_target];
+		}
+	}
+}
+
 - (void) checkForFullHold
 {
 	if (!max_cargo)
@@ -805,6 +839,7 @@ MA 02110-1301, USA.
 	if (missile == nil)  return;
 	
 	[self addTarget:missile];
+	[self addDefenseTarget:[missile universalID]];
 
 	// Notify own ship script that we are being attacked.	
 	ShipEntity *hunter = [missile owner];
@@ -1091,6 +1126,25 @@ MA 02110-1301, USA.
 		return;
 	}
 	[shipAI message:@"INSULATION_OK"];
+}
+
+
+- (void) findNewDefenseTarget
+{
+	[self checkScanner];
+	unsigned i;
+	for (i = 0; i < n_scanned_ships ; i++)
+	{
+		ShipEntity *ship = scanned_ships[i];
+		if (([ship primaryTarget] == self && [ship hasHostileTarget]) || [ship isMine] || ([ship isThargoid] != [self isThargoid]))
+		{
+			if (![self isDefenseTarget:[ship universalID]])
+			{
+				[self addDefenseTarget:[ship universalID]];
+				return;
+			}
+		}
+	}
 }
 
 
@@ -1399,6 +1453,10 @@ MA 02110-1301, USA.
 		{
 			[other removeTarget:self];
 		}
+		if ([other isDefenseTarget:[self universalID]])
+		{
+			[other removeDefenseTargetByID:[self universalID]];
+		}
 	}
 	// now we're just a bunch of alien artefacts!
 	scanClass = CLASS_CARGO;
@@ -1419,6 +1477,8 @@ MA 02110-1301, USA.
 
 - (void) fightOrFleeHostiles
 {
+	[self addDefenseTarget:found_target];
+
 	if ([self hasEscorts])
 	{
 		if (found_target == last_escort_target)

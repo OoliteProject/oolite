@@ -204,7 +204,10 @@
 		"debugMessage:",
 		"disengageAutopilot",		// Only useful for player root AI
 		"thargonCheckMother",
-				
+		"addPrimaryAggressorAsDefenseTarget",
+		"addFoundTargetAsDefenseTarget",
+		"findNewDefenseTarget",	
+		"clearDefenseTargets",	
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",
 		"decreaseAlertLevel",
@@ -226,6 +229,7 @@
 		"fireECM",
 		"becomeExplosion",
 		"becomeEnergyBlast",
+		"broadcastEnergyBlastImminent",
 		"abortDocking",
 		"deployEscorts",
 		"dockEscorts",

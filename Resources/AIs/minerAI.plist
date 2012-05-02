@@ -10,6 +10,7 @@
 		"NOTHING_FOUND" = ("setStateTo: DOCK_WITH_STATION");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		UPDATE = (scanForRocks, "pauseAI: 10.0");
 	};
 	"BREAK_ROCKS" =
@@ -19,6 +20,7 @@
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_SPLINTERS");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 	};
 	"LOOK_FOR_SPLINTERS" =
 	{
@@ -29,6 +31,7 @@
 		"NO_CARGO_BAY" = ("setStateTo: DOCK_WITH_STATION"); 
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		UPDATE = (scanForRandomLoot, "pauseAI: 8.0");
 	};
 	"COLLECT_STUFF" =
@@ -41,6 +44,7 @@
 		"COLLISION" = ("setStateTo: LOOK_FOR_SPLINTERS");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 	};
 	"DOCK_WITH_STATION" =
 	{
@@ -48,6 +52,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_LOST" = ("setStateTo: GO_TO_STATION");
 	};
     "GO_TO_STATION" = 
@@ -57,6 +62,7 @@
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		UPDATE = (setTargetToNearestStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget,
 					checkCourseToDestination, "pauseAI: 10.0");
@@ -65,8 +71,11 @@
 	{
 		ENTER = ("setDesiredRangeTo: 25600", performFlee);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle);
 		"ENERGY_FULL" = (performIdle, "setStateTo: LOOK_FOR_SPLINTERS");
 		"TARGET_LOST" = (performIdle, "setStateTo: LOOK_FOR_SPLINTERS");
+		"ATTACKED" = (addPrimaryAggressorAsDefenseTarget);
+
 	};
 }

@@ -10,6 +10,7 @@
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", performEscort);
 		"INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ATTACKED" = ("messageMother: ATTACKED", "messageMother: ESCORT_ATTACKED");
 		"NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_BUSINESS");
@@ -48,6 +49,7 @@
             performFlyToRangeFromDestination
         ); 
 		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLYING_ESCORT", "setAITo: interceptAI.plist");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: FLYING_ESCORT", "setAITo: interceptAI.plist");
         "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS"); 
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: NEXT_TARGET");
@@ -74,7 +76,8 @@
 		ENTER = (scanForFormationLeader);
 		RESTARTED = ("setStateTo: BEGIN_BUSINESS");
 		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
-		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
+		ATTACKED = (setTargetToPrimaryAggressor, );
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
 		"NOT_ESCORTING" = ("rollD: 10");
 		"ROLL_1" = ("setStateTo: CHOOSE_NEW_CAREER");
@@ -91,6 +94,7 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
 		"MOTHER_LOST" = (switchLightsOff, "setStateTo: BEGIN_BUSINESS"); 
 		"INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
     }; 
     "CHOOSE_NEW_CAREER" = {
 		ENTER = (checkOwnLegalStatus); 

@@ -9,6 +9,7 @@
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
 		"ENERGY_LOW" = ("setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_DESTROYED" = ("setStateTo: DOCK_WITH_STATION");
 		"TARGET_LOST" = ("setStateTo: CLEAR_STATION"); 
 	};
@@ -23,6 +24,7 @@
 		ATTACKED = (switchLightsOn, setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = (switchLightsOn, setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		UPDATE = ("setStateTo: DOCK_WITH_STATION", "pauseAI: 5.0");
 	};
 	"DOCK_WITH_STATION" =
@@ -44,6 +46,7 @@
 		"GROUP_ATTACK_TARGET" = (switchLightsOn, setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		UPDATE = 
 		(
 			setTargetToNearestStation,
@@ -56,10 +59,12 @@
 	FLEE =
 	{
 		ENTER = ("setDesiredRangeTo: 25600", performFlee);
+		"ATTACKED" = (addPrimaryAggressorAsDefenseTarget);
 		"ENERGY_FULL" = ("setStateTo: ATTACK_SHIP");
 		"TARGET_LOST" = ("setStateTo: DOCK_WITH_STATION");
 		"TARGET_DESTROYED" = ("setStateTo: DOCK_WITH_STATION");
 		"REACHED_SAFETY" = ("pauseAI: 10.0", "setStateTo: DOCK_WITH_STATION");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 	};
 }

@@ -6,6 +6,7 @@
 	"ATTACK_SHIP" =
 	{
 		ENTER = (performAttack);
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: respondQMineAI.plist");
 		"THARGOID_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL");
 		"TARGET_DESTROYED" = ("setStateTo: CHECK_FOR_CONTROL");
 		"TARGET_LOST" = ("setStateTo: CHECK_FOR_CONTROL");
@@ -22,6 +23,7 @@
 	"LOOK_FOR_TARGETS" =
 	 {
 		ENTER = (scanForNonThargoid, "pauseAI: 1.0");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: respondQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"NOTHING_FOUND" = ("pauseAI: 10.0", "setStateTo: CHECK_FOR_CONTROL");
 	};

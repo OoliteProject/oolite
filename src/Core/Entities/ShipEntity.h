@@ -299,6 +299,8 @@ typedef enum
 	OOUniversalID			primaryAggressor;			// recorded after an attack
 	OOUniversalID			targetStation;				// for docking
 	OOUniversalID			found_target;				// from scans
+	NSMutableArray	 *defenseTargets;			 // defense targets
+
 	OOUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
 	OOUInteger				_maxShipSubIdx;				// serialisation index - the number of ship subentities inside the shipdata
 	double					launch_time;				// time at which launched
@@ -671,6 +673,15 @@ typedef enum
 - (BOOL) hasHostileTarget;
 - (BOOL) isHostileTo:(Entity *)entity;
 
+// defense target handling
+- (NSMutableArray*) getDefenseTargets;
+- (BOOL) addDefenseTarget:(OOUniversalID)target;
+- (BOOL) isDefenseTarget:(OOUniversalID)target;
+- (void) removeDefenseTarget:(unsigned)index;
+- (void) removeDefenseTargetByID:(OOUniversalID)target;
+- (void) clearDefenseTargets;
+
+
 - (GLfloat) weaponRange;
 - (void) setWeaponRange:(GLfloat) value;
 - (void) setWeaponDataFromType:(OOWeaponType)weapon_type;
@@ -789,6 +800,7 @@ typedef enum
 - (void) becomeExplosion;
 - (void) becomeLargeExplosion:(double) factor;
 - (void) becomeEnergyBlast;
+- (void) broadcastEnergyBlastImminent;
 
 - (Vector) positionOffsetForAlignment:(NSString*) align;
 Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q, NSString* align);
@@ -842,7 +854,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) trackOntoTarget:(double) delta_t withDForward: (GLfloat) dp;
 
-- (double) ballTrackLeadingTarget:(double) delta_t;
+- (double) ballTrackLeadingTarget:(double) delta_t atTarget:(Entity *)target;
 
 - (GLfloat) rollToMatchUp:(Vector) up_vec rotating:(GLfloat) match_roll;
 
@@ -854,13 +866,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (Vector) coordinates;
 - (Vector) destination;
 - (Vector) distance_six: (GLfloat) dist;
-- (Vector) distance_twelve: (GLfloat) dist;
+- (Vector) distance_twelve: (GLfloat) dist withOffset:(GLfloat)offset;
 
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat;
 - (double) missileTrackPrimaryTarget:(double) delta_t;
 
 //return 0.0 if there is no primary target
 - (double) rangeToPrimaryTarget;
+- (double) rangeToSecondaryTarget:(Entity *)target;
 - (BOOL) onTarget:(BOOL) fwd_weapon;
 
 - (OOTimeDelta) shotTime;
@@ -872,7 +885,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) setLaserColor:(OOColor *)color;
 - (OOColor *)laserColor;
 - (BOOL) fireSubentityLaserShot:(double)range;
-- (BOOL) fireDirectLaserShot;
+- (BOOL) fireDirectLaserShot:(double)range;
+- (BOOL) fireDirectLaserDefensiveShot;
+- (BOOL) fireDirectLaserShotAt:(Entity*)my_target;
 - (BOOL) fireLaserShotInDirection:(OOViewID)direction;
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color;
 - (ShipEntity *) fireMissile;

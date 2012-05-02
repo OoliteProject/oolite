@@ -7,6 +7,7 @@
 		"STATION_LAUNCHED_SHIP" = ("pauseAI: 10.0");
 		ATTACKED = ("exitAIWithMessage: ATTACKED");
 		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
+		"CASCADE_WEAPON_DETECTED" = ("exitAIWithMessage: CASCADE_WEAPON_DETECTED");
 		UPDATE = ("pauseAI: 10.0");
 	};
 	"WAIT_A_MOMENT" =
@@ -16,6 +17,7 @@
 		"STATION_LAUNCHED_SHIP" = ("pauseAI: 10.0");
 		ATTACKED = ("exitAIWithMessage: ATTACKED");
 		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
+		"CASCADE_WEAPON_DETECTED" = ("exitAIWithMessage: CASCADE_WEAPON_DETECTED");
 		UPDATE = (exitAI);
 	};
 }

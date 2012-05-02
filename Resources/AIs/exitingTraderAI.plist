@@ -8,6 +8,7 @@
 		ENTER = (performAttack);
 		"ENERGY_LOW" = ("setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_DESTROYED" = ("setStateTo: HEAD_AWAY_FROM_PLANET");
 		"TARGET_LOST" = ("setStateTo: HEAD_AWAY_FROM_PLANET");
 	};
@@ -27,6 +28,7 @@
 		"TARGET_LOST" = (performIdle, "setStateTo: GLOBAL");
 		"TARGET_DESTROYED" = (performIdle, "setStateTo: GLOBAL");
 		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile);
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL");
 	};
 	"HEAD_AWAY_FROM_PLANET" =
@@ -44,6 +46,7 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"EXITED WITCHSPACE" = ("switchAITo: enteringTraderAI.plist");
 		"LAUNCHED OKAY" = ("setStateTo: HEAD_AWAY_FROM_PLANET");
 	};

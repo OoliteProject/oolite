@@ -29,6 +29,7 @@
 		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 		"INCOMING_MISSILE" = (setTargetToFoundTarget, "markTargetForOffence: 15",
 					"setAITo: delayedReactToAttackAI.plist");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7",
 					"sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist");
 		UPDATE = (setDestinationFromCoordinates, checkCourseToDestination, scanForOffenders, "pauseAI: 7.5");
