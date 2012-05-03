@@ -2202,13 +2202,14 @@ static GLfloat		sBaseMass = 0.0;
 - (void) updateFuelScoops:(OOTimeDelta)delta_t
 {
 	if (scoopsActive)
-	{
-		[self updateFuelScoopSoundWithInterval:delta_t];
-		if (![self scoopOverride])
-		{
-			scoopsActive = NO;
-		}
-	}
+   {
+      [self updateFuelScoopSoundWithInterval:delta_t];
+      if (![self scoopOverride])
+      {
+         scoopsActive = NO;
+         [self updateFuelScoopSoundWithInterval:delta_t];
+      }
+   }
 }
 
 

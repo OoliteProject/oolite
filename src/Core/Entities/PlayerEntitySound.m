@@ -332,14 +332,18 @@ static OOSoundSource		*sAfterburnerSources[2];
 {
 	static double scoopSoundPlayTime = 0.0;
 	scoopSoundPlayTime -= delta_t;
-	if (!scoopsActive || ![self scoopOverride])
+	if (scoopSoundPlayTime < 0.0)
+	{
+		if(![sInterfaceBeepSource isPlaying])
+		{
+			[self playInterfaceBeep:@"[scoop]"];
+			scoopSoundPlayTime = 0.5;
+		}
+		else scoopSoundPlayTime = 0.0;
+	}
+	if (![self scoopOverride])
 	{
 		scoopSoundPlayTime = 0.0;
-	}
-	if (scoopSoundPlayTime < 0.0 && ![sInterfaceBeepSource isPlaying])
-	{
-		[self playInterfaceBeep:@"[scoop]"];
-		scoopSoundPlayTime = 0.5;
 	}
 }
 
