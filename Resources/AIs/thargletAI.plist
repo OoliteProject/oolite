@@ -26,5 +26,6 @@
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: respondQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"NOTHING_FOUND" = ("pauseAI: 10.0", "setStateTo: CHECK_FOR_CONTROL");
+		RESTARTED = ("setStateTo: CHECK_FOR_CONTROL");
 	};
 }

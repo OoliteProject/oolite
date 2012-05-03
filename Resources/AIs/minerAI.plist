@@ -21,6 +21,7 @@
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		RESTARTED = ("setStateTo: LOOK_FOR_SPLINTERS");
 	};
 	"LOOK_FOR_SPLINTERS" =
 	{
@@ -45,6 +46,7 @@
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		RESTARTED = ("setStateTo: LOOK_FOR_SPLINTERS");
 	};
 	"DOCK_WITH_STATION" =
 	{
@@ -54,6 +56,7 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_LOST" = ("setStateTo: GO_TO_STATION");
+		RESTARTED = ("setStateTo: LOOK_FOR_SPLINTERS");
 	};
     "GO_TO_STATION" = 
 	{
@@ -76,6 +79,6 @@
 		"ENERGY_FULL" = (performIdle, "setStateTo: LOOK_FOR_SPLINTERS");
 		"TARGET_LOST" = (performIdle, "setStateTo: LOOK_FOR_SPLINTERS");
 		"ATTACKED" = (addPrimaryAggressorAsDefenseTarget);
-
+		RESTARTED = ("setStateTo: LOOK_FOR_SPLINTERS");
 	};
 }

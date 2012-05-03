@@ -16,6 +16,7 @@
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		"EXITED WITCHSPACE" = ("switchAITo: enteringPirateAI.plist");
 		"FRUSTRATED" = ("setStateTo: LURK");
+		RESTARTED = ("setStateTo: RECOVER");
     }; 
     "ATTACK_SHIP" = {
         ENTER = (performAttack); 
@@ -36,6 +37,7 @@
         "ACCEPTED_ESCORT" = (groupAttackTarget); 
 		"DEFENSE_TARGET_LOST" = (findNewDefenseTarget);
 		"DEFENSE_TARGET_DESTROYED" = (findNewDefenseTarget);
+		RESTARTED = ("setStateTo: RECOVER");
     }; 
     FLEE = {
         ENTER = ("setDesiredRangeTo: 25600", performFlee); 
@@ -44,11 +46,12 @@
         "TARGET_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); // added
         "DESIRED_RANGE_ACHIEVED" = ("setStateTo: RECOVER"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-				"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         "REACHED_SAFETY" = ("setStateTo: RECOVER"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE"); 
 		"DEFENSE_TARGET_LOST" = (findNewDefenseTarget);
 		"DEFENSE_TARGET_DESTROYED" = (findNewDefenseTarget);
+		RESTARTED = ("setStateTo: RECOVER");
     }; 
     "FLEE_FOR_CLOAKED" = {
         ENTER = (setDestinationToCurrentLocation, "setDesiredRangeTo: 7500", performFlyToRangeFromDestination); 
@@ -56,8 +59,9 @@
         "ENERGY_LOW" = ("setStateTo: FLEE"); 
         "DESIRED_RANGE_ACHIEVED" = ("setStateTo: RECOVER"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-				"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+		RESTARTED = ("setStateTo: RECOVER");
     }; 
     RECOVER = {
 		ENTER = ("setSpeedTo: 0.0", performIdle, "pauseAI: 5.0");
@@ -95,6 +99,7 @@
         "NOTHING_FOUND" = ("setStateTo: CONSIDER_DOCKING"); 
         "TARGET_LOST" = ("setStateTo: CHECK_CARGO"); 
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
+		RESTARTED = ("setStateTo: RECOVER");
     }; 
     "CHECK_CARGO" = {
         ENTER = ("setSpeedTo: 0.0", performIdle, checkForFullHold); 
@@ -107,6 +112,7 @@
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
+		RESTARTED = ("setStateTo: RECOVER");
 	}; 
     "CONSIDER_LEAVING" = {
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
@@ -149,6 +155,7 @@
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
+		RESTARTED = ("setStateTo: RECOVER");
 	}; 
     "ENTER_WORMHOLE" = {
 		ENTER = (setDestinationToTarget,

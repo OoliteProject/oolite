@@ -16,6 +16,7 @@
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_DESTROYED" = ("setStateTo: CONSIDER_RESUMING");
 		"TARGET_LOST" = ("setStateTo: CONSIDER_RESUMING");
+		RESTARTED = (performIdle, "setStateTo: CONSIDER_RESUMING");
 	};
 	"EXIT_SYSTEM" =
 	{
@@ -35,6 +36,7 @@
 		"REACHED_SAFETY" = (performIdle, "setStateTo: CONSIDER_RESUMING");
 		"TARGET_DESTROYED" = (performIdle, "setStateTo: CONSIDER_RESUMING");
 		"TARGET_LOST" = (performIdle, "setStateTo: CONSIDER_RESUMING");
+		RESTARTED = (performIdle, "setStateTo: CONSIDER_RESUMING");
 	};
 	"GO_TO_WAYPOINT1" =
 	{
@@ -47,6 +49,7 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
+		RESTARTED = ("setStateTo: HEAD_FOR_SUN");
 	};
 	"HEAD_FOR_SUN" =
 	{
@@ -60,6 +63,7 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT1");
+		RESTARTED = ("setStateTo: HEAD_FOR_SUN");
 	};
 	"LEAVE_SUN" =
 	{
@@ -76,6 +80,7 @@
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		RESTARTED = ("setStateTo: HEAD_FOR_SUN");
 	};
 	"SKIM_SUN" =
 	{
@@ -92,6 +97,7 @@
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		RESTARTED = ("setStateTo: HEAD_FOR_SUN");
 	};
 	CONSIDER_RESUMING =
 	{

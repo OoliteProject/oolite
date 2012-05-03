@@ -51,6 +51,7 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"REACHED_SAFETY" = ("setSpeedTo: 0.0", "pauseAI: 60", "setStateTo: LOOK_FOR_STUFF");
+		RESTARTED = ("setStateTo: LOOK_FOR_STUFF");
 	};
 	"COLLECT_STUFF" =
 	{
@@ -64,5 +65,6 @@
 		"HOLD_FULL" = ("setStateTo: DOCK_WITH_STATION");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		RESTARTED = ("setStateTo: LOOK_FOR_STUFF");
 	};
 }

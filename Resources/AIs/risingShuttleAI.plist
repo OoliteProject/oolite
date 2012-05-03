@@ -51,5 +51,6 @@
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle, "pauseAI: 90.0", "messageSelf: TARGET_LOST");
+		RESTARTED = ("setStateTo: GO_TO_STATION");
 	};
 }

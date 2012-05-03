@@ -12,6 +12,7 @@
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_DESTROYED" = ("setStateTo: DOCK_WITH_STATION");
 		"TARGET_LOST" = ("setStateTo: CLEAR_STATION"); 
+		RESTARTED = ("setStateTo: DOCK_WITH_STATION"); 
 	};
 	"CLEAR_STATION" =
 	{
@@ -66,5 +67,6 @@
 		"REACHED_SAFETY" = ("pauseAI: 10.0", "setStateTo: DOCK_WITH_STATION");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		RESTARTED = ("setStateTo: DOCK_WITH_STATION"); 
 	};
 }

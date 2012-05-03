@@ -25,6 +25,7 @@
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"AEGIS_LEAVING_DOCKING_RANGE" = ("setStateTo: APPROACH");
 		"INCOMING_MISSILE" = (fireECM); 
+		RESTARTED = ("setStateTo: FLY_HOME");
 		UPDATE = ("pauseAI: 10.0");
 	}; 
 	"CLEAR_STATION" = {
@@ -39,6 +40,7 @@
         ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
         "INCOMING_MISSILE" = (fireECM, "setSpeedFactorTo: 1.0");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist"); 
+		RESTARTED = ("setStateTo: FLY_HOME");
 	}; 
     "LANDING" = {
 		ENTER = (performLandOnPlanet);

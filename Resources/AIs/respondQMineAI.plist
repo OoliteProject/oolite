@@ -2,11 +2,11 @@
 	GLOBAL = 
 	{
 			ENTER = (setTargetToFoundTarget, clearDefenseTargets, addFoundTargetAsDefenseTarget, fireMissile, performAttack, setDestinationToTarget, "pauseAI: 4.0");
-			DESIRED_RANGE_ACHIEVED = (exitAI);
-			CASCADE_WEAPON_DETECTED = ("setStateTo: GLOBAL");
-			TARGET_LOST = ("setSpeedFactorTo: 1", "setDesiredRangeTo: 25600","performFlyToRangeFromDestination");
-			REACHED_SAFETY = (exitAI);
-			UPDATE = ("setSpeedFactorTo: 1", "setDesiredRangeTo: 25600","performFlyToRangeFromDestination",exitAI);
+			"DESIRED_RANGE_ACHIEVED" = (exitAI);
+			"CASCADE_WEAPON_DETECTED" = ("setStateTo: GLOBAL");
+			"TARGET_LOST" = ("setSpeedFactorTo: 1", "setDesiredRangeTo: 25600", performFlyToRangeFromDestination);
+			"REACHED_SAFETY" = (exitAI);
+			UPDATE = ("setSpeedFactorTo: 1", "setDesiredRangeTo: 25600", performFlyToRangeFromDestination, exitAI);
 	};
 
 }
