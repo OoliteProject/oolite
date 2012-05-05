@@ -127,6 +127,8 @@ enum
 #define SHIPYARD_KEY_PRICE					@"price"
 #define SHIPYARD_KEY_PERSONALITY			@"personality"
 #define SHIPYARD_KEY_DESCRIPTION			@"description"
+// default passenger berth required space
+#define PASSENGER_BERTH_SPACE				5
 
 #define PLANETINFO_UNIVERSAL_KEY			@"universal"
 

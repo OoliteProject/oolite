@@ -130,7 +130,7 @@ MA 02110-1301, USA.
 					while (amount > 0)
 					{
 						int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
-						if ([cargo count] < max_cargo)
+						if ([cargo count] < [self maxAvailableCargoSpace])
 						{
 							ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
 							if (container)
@@ -153,7 +153,7 @@ MA 02110-1301, USA.
 				// put each ton in a separate container
 				while (amount)
 				{
-					if ([cargo count] < max_cargo)
+					if ([cargo count] < [self maxAvailableCargoSpace])
 					{
 						ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
 						if (container)
@@ -178,7 +178,7 @@ MA 02110-1301, USA.
 		NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 		NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
 		int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
-		while ((amount)&&(current_cargo < max_cargo))
+		while ((amount)&&(current_cargo < [self maxAvailableCargoSpace]))
 		{
 			manifest_quantity++;
 			amount--;

@@ -86,8 +86,6 @@ MA 02110-1301, USA.
 // 10m/s forward drift
 #define	OG_ELITE_FORWARD_DRIFT			10.0f
 #define PLAYER_DEFAULT_NAME				@"Jameson"
-// default passenger berth required space
-#define PASSENGER_BERTH_SPACE			5
 
 enum
 {
@@ -365,7 +363,7 @@ static GLfloat		sBaseMass = 0.0;
 			while (quantity > 0)
 			{
 				int smaller_quantity = 1 + ((quantity - 1) % amount_per_container);
-				if ([cargo count] < max_cargo)
+				if ([cargo count] < [self maxAvailableCargoSpace])
 				{
 					ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
 					if (container)
@@ -401,7 +399,7 @@ static GLfloat		sBaseMass = 0.0;
 			// put each ton in a separate container
 			while (quantity)
 			{
-				if ([cargo count] < max_cargo)
+				if ([cargo count] < [self maxAvailableCargoSpace])
 				{
 					ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
 					if (container)
@@ -922,10 +920,10 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	// too much cargo?	
-	int excessCargo = [self cargoQuantityOnBoard] - [self maxCargo];
+	int excessCargo = [self cargoQuantityOnBoard] - [self maxAvailableCargoSpace];
 	if (excessCargo > 0)
 	{
-		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.cargo", @"player ship %@ had more cargo (%i) than it can hold (%u). Removing extra cargo.", [self name], [self cargoQuantityOnBoard], max_cargo);
+		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.cargo", @"player ship %@ had more cargo (%i) than it can hold (%u). Removing extra cargo.", [self name], [self cargoQuantityOnBoard], [self maxAvailableCargoSpace]);
 		
 		NSMutableArray		*manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 		OOCommodityType		type;
@@ -3302,7 +3300,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		if (scoopsActive)
 			return SCOOP_STATUS_ACTIVE;
-		if ([cargo count] >= max_cargo || specialCargo)
+		if ([cargo count] >= [self maxAvailableCargoSpace] || specialCargo)
 			return SCOOP_STATUS_FULL_HOLD;
 		return SCOOP_STATUS_OKAY;
 	}
@@ -4577,7 +4575,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL) takeInternalDamage
 {
-	unsigned n_cargo = max_cargo;
+	unsigned n_cargo = [self maxAvailableCargoSpace];
 	unsigned n_mass = [self mass] / 10000;
 	unsigned n_considered = (n_cargo + n_mass) * ship_trade_in_factor / 100; // a lower value of n_considered means more vulnerable to damage.
 	unsigned damage_to = n_considered ? (ranrot_rand() % n_considered) : 0;	// n_considered can be 0 for small ships.
@@ -7123,7 +7121,7 @@ static NSString *last_outfitting_key=nil;
 	// NSFO!
 	//unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
 	//if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
-	if ((max_passengers < 1 && addRemove == -1) || (max_cargo - current_cargo < PASSENGER_BERTH_SPACE && addRemove == 1)) return NO;
+	if ((max_passengers < 1 && addRemove == -1) || ([self maxAvailableCargoSpace] - current_cargo < PASSENGER_BERTH_SPACE && addRemove == 1)) return NO;
 	max_passengers += addRemove;
 	max_cargo -= PASSENGER_BERTH_SPACE * addRemove;
 	return YES;
@@ -7204,7 +7202,7 @@ static NSString *last_outfitting_key=nil;
 		amount =  available + oldAmount;
 	}
 	// if we have 1499 kg the ship registers only 1 ton, so it's possible to exceed the max cargo:
-	// eg: with maxCargo 2 & gold 1499kg, you can still add 1 ton alloy. 
+	// eg: with maxAvailableCargoSpace 2 & gold 1499kg, you can still add 1 ton alloy. 
 	else if (unit == UNITS_KILOGRAMS && amount > oldAmount)
 	{
 		// Allow up to 0.5 ton of kg goods above the cargo capacity but respect existing quantities.
@@ -7252,7 +7250,7 @@ static NSString *last_outfitting_key=nil;
 {
 	if ([self specialCargo] != nil)
 	{
-		return [self maxCargo];
+		return [self maxAvailableCargoSpace];
 	}	
 	
 	/*
@@ -7382,9 +7380,9 @@ static NSString *last_outfitting_key=nil;
 		}
 		 // actually count the containers and  valuables (may be > max_cargo)
 		current_cargo = [self cargoQuantityOnBoard];
-		if (current_cargo > max_cargo) current_cargo = max_cargo; 
+		if (current_cargo > [self maxAvailableCargoSpace]) current_cargo = [self maxAvailableCargoSpace]; 
 		
-		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, max_cargo]  forRow: GUI_ROW_MARKET_CASH];
+		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
 		
 		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
 		{
@@ -7458,7 +7456,7 @@ static NSString *last_outfitting_key=nil;
 		purchase = floor (credits / pricePerUnit);	// limit to what's affordable
 	}
 	// TODO - fix brokenness here...
-	if (purchase + current_cargo > (unit == UNITS_TONS ? max_cargo : 10000))
+	if (purchase + current_cargo > (unit == UNITS_TONS ? [self maxAvailableCargoSpace] : 10000))
 	{
 		purchase = [self availableCargoSpace];		// limit to available cargo space
 	}

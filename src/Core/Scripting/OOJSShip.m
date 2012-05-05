@@ -491,11 +491,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 			
 		case kShip_cargoSpaceCapacity:
-			*value = INT_TO_JSVAL([entity maxCargo]);
+			*value = INT_TO_JSVAL([entity maxAvailableCargoSpace]);
 			return YES;
 			
 		case kShip_cargoSpaceUsed:
-			*value = INT_TO_JSVAL([entity maxCargo] - [entity availableCargoSpace]);
+			*value = INT_TO_JSVAL([entity maxAvailableCargoSpace] - [entity availableCargoSpace]);
 			return YES;
 			
 		case kShip_cargoSpaceAvailable:

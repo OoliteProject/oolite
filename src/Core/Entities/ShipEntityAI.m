@@ -600,7 +600,7 @@ MA 02110-1301, USA.
 			[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 			return;
 		}
-		if ([cargo count] >= max_cargo)
+		if ([cargo count] >= [self maxAvailableCargoSpace])
 		{
 			if (max_cargo)  [shipAI message:@"HOLD_FULL"];	//can't collect loot if holds are full!
 			[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if holds are full!
@@ -710,7 +710,7 @@ MA 02110-1301, USA.
 	{
 		[shipAI message:@"NO_CARGO_BAY"];
 	}
-	else if ([cargo count] >= max_cargo)
+	else if ([cargo count] >= [self maxAvailableCargoSpace])
 	{
 		[shipAI message:@"HOLD_FULL"];
 	}
@@ -1358,7 +1358,7 @@ MA 02110-1301, USA.
 	if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL || cargo_flag == CARGO_FLAG_FULL_SCARCE)
 	{
 		NSArray *jetsam;
-		int cargo_to_go = 0.1 * max_cargo;
+		int cargo_to_go = 0.1 * [self maxAvailableCargoSpace];
 		while (cargo_to_go > 15)
 		{
 			cargo_to_go = ranrot_rand() % cargo_to_go;

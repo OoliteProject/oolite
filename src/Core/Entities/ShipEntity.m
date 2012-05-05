@@ -80,6 +80,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "HeadUpDisplay.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOShipRegistry.h"
 #import "OOEquipmentType.h"
 
 #import "OODebugGLDrawing.h"
@@ -281,6 +282,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	missile_launch_time = [UNIVERSE getTime] + missile_load_time;
 	
 	// upgrades:
+	equipment_weight = 0; 
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
@@ -2520,6 +2522,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([self isPlayer])
 	{
 		if (![eqType isAvailableToPlayer])  return NO;
+		if (![eqType isAvailableToAll])  
+		{
+			// find options that agree with this ship. Only player ships have these options.
+			OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
+			NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
+			NSMutableSet		*options = [NSMutableSet setWithArray:[shipyardInfo oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
+			if (![options containsObject:equipmentKey])  return NO;
+		}
 	}
 	else
 	{
@@ -2613,6 +2623,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		max_cargo += extra_cargo;
 	}
+	else
+	{
+		if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"]) 
+		{
+			// Add to equipment_weight with all other equipment.
+			equipment_weight += [eqType requiredCargoSpace];
+			if (equipment_weight > max_cargo)
+			{
+				// should not even happen with old save games. Reject equipment now.
+				equipment_weight -= [eqType requiredCargoSpace];
+				return NO;
+			}
+		}
+	}
 	
 	if (!isPlayer)
 	{
@@ -2666,6 +2690,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if ([equipmentKey isEqual:@"EQ_CARGO_BAY"] && [_equipment containsObject:equipmentKey])
 		{
 			max_cargo -= extra_cargo;
+		}
+		else
+		{
+			if ([_equipment containsObject:equipmentKey] && ![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
+			{
+				equipment_weight -= [eqType requiredCargoSpace]; // all other cases;
+			}
 		}
 		
 		if ([equipmentKey isEqualToString:@"EQ_CLOAKING_DEVICE"] && [_equipment containsObject:equipmentKey])
@@ -5673,17 +5704,17 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
-- (OOCargoQuantity) maxCargo
+- (OOCargoQuantity) maxAvailableCargoSpace
 {
-	return max_cargo;
+	return max_cargo - equipment_weight;
 }
 
 
 - (OOCargoQuantity) availableCargoSpace
 {
 	// OOCargoQuantity is unsigned, we need to check for underflows.
-	if (EXPECT_NOT([self cargoQuantityOnBoard] >= [self maxCargo])) return 0;
-	return [self maxCargo] - [self cargoQuantityOnBoard];
+	if (EXPECT_NOT([self cargoQuantityOnBoard] + equipment_weight >= [self maxAvailableCargoSpace])) return 0;
+	return [self maxAvailableCargoSpace] - [self cargoQuantityOnBoard];
 }
 
 
@@ -6124,7 +6155,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				unsigned cargo_chance = 10;
 				if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
 				{
-					cargo_to_go = max_cargo * cargo_chance / 100;
+					cargo_to_go = [self maxAvailableCargoSpace] * cargo_chance / 100;
 					while (cargo_to_go > 15)
 					{
 						cargo_to_go = ranrot_rand() % cargo_to_go;
@@ -6134,7 +6165,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					cargo_flag = CARGO_FLAG_CANISTERS;
 				}
 				
-				cargo_to_go = max_cargo * cargo_chance / 100;
+				cargo_to_go = [self maxAvailableCargoSpace] * cargo_chance / 100;
 				while (cargo_to_go > 15)
 				{
 					cargo_to_go = ranrot_rand() % cargo_to_go;
@@ -6593,7 +6624,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		unsigned cargo_chance = 10;
 		if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
 		{
-			cargo_to_go = max_cargo * cargo_chance / 100;
+			cargo_to_go = [self maxAvailableCargoSpace] * cargo_chance / 100;
 			while (cargo_to_go > 15)
 			{
 				cargo_to_go = ranrot_rand() % cargo_to_go;
@@ -6604,7 +6635,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL || cargo_flag == CARGO_FLAG_FULL_SCARCE)
 		{
-			cargo_to_go = max_cargo / 10;
+			cargo_to_go = [self maxAvailableCargoSpace] / 10;
 			while (cargo_to_go > 15)
 			{
 				cargo_to_go = ranrot_rand() % cargo_to_go;
@@ -8839,7 +8870,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	if (other == nil)							return NO;
 	if (![self hasScoop])						return NO;
-	if ([cargo count] >= max_cargo)				return NO;
+	if ([cargo count] >= [self maxAvailableCargoSpace])	return NO;
 	if (scanClass == CLASS_CARGO)				return NO;  // we have no power so we can't scoop
 	if ([other scanClass] != CLASS_CARGO)		return NO;
 	if ([other cargoType] == CARGO_NOT_CARGO)	return NO;
@@ -8848,7 +8879,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	Vector  loc = vector_between(position, [other position]);
 	
-	if (dot_product(v_forward, loc) < 0.0f)  return NO;  // Must be in front of us
+	if (dot_product(v_forward, loc) < 0.0f)		return NO;  // Must be in front of us
 	if ([self isPlayer] && dot_product(v_up, loc) > 0.0f)  return NO;  // player has to scoop on underside, give more flexibility to NPCs
 	
 	return YES;
@@ -8899,7 +8930,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	OOCargoQuantity	co_amount;
 	
 	// don't even think of trying to scoop if the cargo hold is already full
-	if (max_cargo && [cargo count] >= max_cargo)
+	if (max_cargo && [cargo count] >= [self maxAvailableCargoSpace])
 	{
 		[other setStatus:STATUS_IN_FLIGHT];
 		return;
@@ -9028,7 +9059,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[other setBehaviour:BEHAVIOUR_TUMBLE];
 		[self doScriptEvent:OOJSID("cargoScooped") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(co_type), [NSNumber numberWithInt:co_amount], nil]];
 		[shipAI message:@"CARGO_SCOOPED"];
-		if (max_cargo && [cargo count] >= max_cargo)  [shipAI message:@"HOLD_FULL"];
+		if (max_cargo && [cargo count] >= [self maxAvailableCargoSpace])  [shipAI message:@"HOLD_FULL"];
 	}
 	[[other collisionArray] removeObject:self];			// so it can't be scooped twice!
 	[self suppressTargetLost];

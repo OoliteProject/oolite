@@ -3940,6 +3940,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 						[se setRoll: 0.0];
 					}
 					[(StationEntity *)se setPlanet:[self planet]];
+					if ([se maxFlightSpeed] > 0) se->isExplicitlyNotMainStation = YES; // we never want carriers to become main stations.
 				}
 				// stations used to have STATUS_ACTIVE, they're all STATUS_IN_FLIGHT now.
 				[se setStatus:STATUS_IN_FLIGHT];
@@ -7380,7 +7381,7 @@ static double estimatedTimeForJourney(double distance, int hops)
 						
 						// percentage taken by contracter
 						int contractors_share = 90 + destination_government;
-						// less 5% per op to a minimum of 10%
+						// less 5% per hop to a minimum of 10%
 						contractors_share -= route_hops * 10;
 						if (contractors_share < 10)
 							contractors_share = 10;
@@ -7721,9 +7722,9 @@ static double estimatedTimeForJourney(double distance, int hops)
 					{
 						if ([equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 						{
-							if ((max_cargo >= 5) && (randf() < chance))
+							if ((max_cargo >= PASSENGER_BERTH_SPACE) && (randf() < chance))
 							{
-								max_cargo -= 5;
+								max_cargo -= PASSENGER_BERTH_SPACE;
 								price += eqPrice;
 								[extras addObject:equipmentKey];
 								if (passenger_berths == 0)
