@@ -304,7 +304,13 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 	err = AUGraphConnectNodeInput(_graph, node, 0, _mixerNode, [inChannel ID]);
 	if (!err) err = AUGraphUpdate(_graph, NULL);
 	
-	if (err) OOLog(kOOLogSoundMixerFailedToConnectChannel, @"Sound mixer: failed to connect channel %@, error = %@.", inChannel, AudioErrorNSString(err));
+	if (err)
+	{
+		OOLog(kOOLogSoundMixerFailedToConnectChannel, @"Sound mixer: failed to connect channel %@, error = %@.", inChannel, AudioErrorNSString(err));
+#if OO_DEBUG
+		CAShow(_graph);
+#endif
+	}
 	
 	return !err;
 }

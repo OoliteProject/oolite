@@ -49,9 +49,6 @@ static NSString * const kOOLogSoundMachPortError		= @"sound.channel.machPortErro
 #ifndef NDEBUG
 // Tracks a kind of error that isn’t happening any more.
 #define COUNT_NULLS					1
-
-// Tracks a kind of error I'd like to think isn't happening any more, and which incidentally happened a lot more often than I thought.
-#define COUNT_BAD_STATES			0
 #endif
 
 
@@ -62,10 +59,6 @@ static OOSoundChannel_RenderIMP		SoundChannelRender = NULL;
 
 #if COUNT_NULLS
 static int32_t						sDebugUnexpectedNullCount = 0;
-#endif
-
-#if COUNT_BAD_STATES
-static int32_t						sDebugBadStateCount = 0;
 #endif
 
 /*
@@ -379,15 +372,6 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	}
 #endif
 	
-#if COUNT_BAD_STATES
-	SInt32 badStates = sDebugBadStateCount;
-	if (badStates != 0)
-	{
-		OSAtomicAdd32(-badStates, &sDebugBadStateCount);
-		OOLog(kOOLogSoundBadStateError, @"%u bad state errors have occured - hopefully, you didn't get a horribly loud buzzing noise.", (unsigned int)badStates);
-	}
-#endif
-	
 	if (nil != inSound)
 	{
 		[gOOCASoundSyncLock lock];
@@ -615,10 +599,6 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	else
 	{
 		renderSilence = YES;
-		
-#if COUNT_BAD_STATES
-		OSAtomicAdd32(1, &sDebugBadStateCount);
-#endif
 	}
 	
 	if (EXPECT_NOT(renderSilence))
