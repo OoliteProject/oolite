@@ -161,12 +161,14 @@ enum
 	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
 	kShip_passengerCount,		// number of passengers on ship, integer, read-only
 	kShip_passengers,			// passengers contracts, array - strings & whatnot, read only
+	kShip_pitch, // pitch level, float, read-only
 	kShip_portWeapon,			// the ship's port weapon, equipmentType, read/write
 	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
 	kShip_primaryRole,			// Primary role, string, read/write
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
 	kShip_roleWeights,			// roles and weights, dictionary, read-only
 	kShip_roles,				// roles, array, read-only
+	kShip_roll, // roll level, float, read-only
 	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
@@ -189,6 +191,7 @@ enum
 	kShip_velocity,				// velocity, vector, read/write
 	kShip_weaponRange,			// weapon range, double, read-only
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
+	kShip_yaw, // yaw level, float, read-only
 };
 
 
@@ -250,12 +253,14 @@ static JSPropertySpec sShipProperties[] =
 	{ "passengerCount",			kShip_passengerCount,		OOJS_PROP_READONLY_CB },
 	{ "passengerCapacity",		kShip_passengerCapacity,	OOJS_PROP_READONLY_CB },
 	{ "passengers",				kShip_passengers,			OOJS_PROP_READONLY_CB },
+	{ "pitch",				kShip_pitch,			OOJS_PROP_READONLY_CB },
 	{ "portWeapon",				kShip_portWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "potentialCollider",		kShip_potentialCollider,	OOJS_PROP_READONLY_CB },
 	{ "primaryRole",			kShip_primaryRole,			OOJS_PROP_READWRITE_CB },
 	{ "reportAIMessages",		kShip_reportAIMessages,		OOJS_PROP_READWRITE_CB },
 	{ "roleWeights",			kShip_roleWeights,			OOJS_PROP_READONLY_CB },
 	{ "roles",					kShip_roles,				OOJS_PROP_READONLY_CB },
+	{ "roll",				kShip_roll,			OOJS_PROP_READONLY_CB },
 	{ "savedCoordinates",		kShip_savedCoordinates,		OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	OOJS_PROP_READWRITE_CB },
@@ -278,6 +283,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "velocity",				kShip_velocity,				OOJS_PROP_READWRITE_CB },
 	{ "weaponRange",			kShip_weaponRange,			OOJS_PROP_READONLY_CB },
 	{ "withinStationAegis",		kShip_withinStationAegis,	OOJS_PROP_READONLY_CB },
+	{ "yaw",				kShip_yaw,			OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -669,6 +675,16 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_thrustVector:
 			return VectorToJSValue(context, [entity thrustVector], value);
+
+	  case kShip_pitch:
+			return JS_NewNumberValue(context, [entity flightPitch], value);
+
+	  case kShip_roll:
+			return JS_NewNumberValue(context, [entity flightRoll], value);
+
+	  case kShip_yaw:
+			return JS_NewNumberValue(context, [entity flightYaw], value);
+		
 			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sShipProperties);
