@@ -5054,13 +5054,6 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 			break;
 		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
 			weapon_damage =			12.5;
-			if (forward_weapon_type == WEAPON_THARGOID_LASER && aft_weapon_type == WEAPON_THARGOID_LASER)
-			{
-				// fit two lasers, do twice the damage, since an 'aft' laser
-				// doesn't make sense as such for an omni-directional weapon.
-				weapon_damage =			25.0;
-// TODO: generalise if we ever give NPCs side lasers as an option
-			}
 // changing weapon_recharge_rate to accompany change to onTarget - CIM 20120502
 //			weapon_recharge_rate =	0.5;
 // old behaviour gave range of 0.7-1.3 between 25 and 100 FPS
