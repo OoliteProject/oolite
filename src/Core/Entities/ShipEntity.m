@@ -2576,7 +2576,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	OOEquipmentType			*eqType = nil;
 	NSString				*lcEquipmentKey = [equipmentKey lowercaseString];
+	NSString				*damagedKey;
 	BOOL					isEqThargon = [lcEquipmentKey hasSuffix:@"thargon"] || [lcEquipmentKey hasPrefix:@"thargon"];
+	BOOL					isRepairedEquipment = NO;
 	
 	if([lcEquipmentKey isEqualToString:@"thargon"]) equipmentKey = @"EQ_THARGON";
 	
@@ -2591,7 +2593,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 		// in case we have the damaged version!
-		[_equipment removeObject:[equipmentKey stringByAppendingString:@"_DAMAGED"]];
+		damagedKey = [equipmentKey stringByAppendingString:@"_DAMAGED"];
+		if ([_equipment containsObject:damagedKey])
+		{
+			[_equipment removeObject:damagedKey];
+			isRepairedEquipment = YES;
+		}
 	}
 	
 	// does this equipment actually exist?
@@ -2625,7 +2632,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"]) 
+		if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"] && !isRepairedEquipment) 
 		{
 			// Add to equipment_weight with all other equipment.
 			equipment_weight += [eqType requiredCargoSpace];
@@ -2687,28 +2694,37 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if ([equipmentKey isEqual:@"EQ_CARGO_BAY"] && [_equipment containsObject:equipmentKey])
+		if ([_equipment containsObject:equipmentKey])
 		{
-			max_cargo -= extra_cargo;
-		}
-		else
-		{
-			if ([_equipment containsObject:equipmentKey] && ![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
+			if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
 			{
-				equipment_weight -= [eqType requiredCargoSpace]; // all other cases;
+				max_cargo -= extra_cargo;
+			}
+			else
+			{
+				if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
+				{
+					equipment_weight -= [eqType requiredCargoSpace]; // all other cases;
+				}
+			}
+			
+			if ([equipmentKey isEqualToString:@"EQ_CLOAKING_DEVICE"])
+			{
+				if ([self isCloaked])  [self setCloaked:NO];
 			}
 		}
 		
-		if ([equipmentKey isEqualToString:@"EQ_CLOAKING_DEVICE"] && [_equipment containsObject:equipmentKey])
+		if (![equipmentKey hasSuffix:@"_DAMAGED"])
 		{
-			if ([self isCloaked])  [self setCloaked:NO];
+			NSString *damagedKey = [equipmentKey stringByAppendingString:@"_DAMAGED"];
+			if ([_equipment containsObject:damagedKey])
+			{
+				[_equipment removeObject:damagedKey]; // remove the damaged counterpart
+				equipment_weight -= [eqType requiredCargoSpace];
+			}
 		}
 		
 		[_equipment removeObject:equipmentKey];
-		if (![equipmentKey hasSuffix:@"_DAMAGED"])
-		{
-			[_equipment removeObject:[equipmentKey stringByAppendingString:@"_DAMAGED"]];
-		}
 		if ([_equipment count] == 0)  [self removeAllEquipment];
 		if (!isPlayer)
 		{
