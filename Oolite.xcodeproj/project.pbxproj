@@ -613,6 +613,8 @@
 		1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC5452C0D4D298E00C90E5B /* oolite-font.plist */; };
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
+		1AC83179155534ED0032448F /* fleeQMineAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1AC83175155534A30032448F /* fleeQMineAI.plist */; };
+		1AC8317A155534ED0032448F /* respondQMineAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1AC83177155534B00032448F /* respondQMineAI.plist */; };
 		1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC973F90C9847850010C42B /* pirate-victim-roles.plist */; };
 		1ACB1D18118DCBC0007B9A1F /* OOConcreteTexture.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1D16118DCBC0007B9A1F /* OOConcreteTexture.h */; };
 		1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACB1D17118DCBC0007B9A1F /* OOConcreteTexture.m */; };
@@ -724,8 +726,6 @@
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
-		B32E44DF1551DD2E00A78964 /* fleeQMineAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = B32E44D81551DCFA00A78964 /* fleeQMineAI.plist */; };
-		B32E44E01551DD2E00A78964 /* respondQMineAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = B32E44D51551DCDE00A78964 /* respondQMineAI.plist */; };
 		B3460D4515285BF1002592D0 /* oolite-default-planet.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */; };
 		B3460D4615285BF1002592D0 /* oolite-default-planet.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */; };
 		B3EA93961541480E00AB3C5B /* oolite-missile.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = B3EA9395154147EB00AB3C5B /* oolite-missile.js */; };
@@ -941,6 +941,8 @@
 			dstPath = AIs;
 			dstSubfolderSpec = 7;
 			files = (
+				1AC83179155534ED0032448F /* fleeQMineAI.plist in Copy AIs */,
+				1AC8317A155534ED0032448F /* respondQMineAI.plist in Copy AIs */,
 				1A06F3151196FB6F00AFA5B4 /* oolite-player-AI.plist in Copy AIs */,
 				1A644E221052AA0100833636 /* traderInterceptAI.plist in Copy AIs */,
 				1A94E4FC0F348D5700F1B5D9 /* delayedReactToAttackAI.plist in Copy AIs */,
@@ -954,8 +956,6 @@
 				1A2317B90B9D022500EF0852 /* escortAI.plist in Copy AIs */,
 				1A2317BA0B9D022500EF0852 /* exitingTraderAI.plist in Copy AIs */,
 				1A2317BB0B9D022500EF0852 /* fallingShuttleAI.plist in Copy AIs */,
-				B32E44DF1551DD2E00A78964 /* fleeQMineAI.plist in Copy AIs */,
-				B32E44E01551DD2E00A78964 /* respondQMineAI.plist in Copy AIs */,
 				1A2317BC0B9D022500EF0852 /* fttAI.plist in Copy AIs */,
 				1A2317BD0B9D022500EF0852 /* gotoWaypointAI.plist in Copy AIs */,
 				1A2317BE0B9D022500EF0852 /* hardMissileAI.plist in Copy AIs */,
@@ -1272,7 +1272,7 @@
 		1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityLoadRestore.m; sourceTree = "<group>"; };
 		1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-default-player-script.js"; sourceTree = "<group>"; };
 		1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-docktile.xcodeproj"; path = "Mac-specific/Oolite-docktile/Oolite-docktile.xcodeproj"; sourceTree = "<group>"; };
-		1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-tangent-space-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-tangent-space-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A033F90132687DC006F9DB7 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		1A033FA213268821006F9DB7 /* OoliteReadMe.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = OoliteReadMe.pdf; sourceTree = "<group>"; };
 		1A033FB613268ABB006F9DB7 /* OOPDFView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPDFView.h; sourceTree = "<group>"; };
@@ -1288,7 +1288,7 @@
 		1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSObjectOOExtensions.h; sourceTree = "<group>"; };
 		1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSObjectOOExtensions.m; sourceTree = "<group>"; };
 		1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundDebugMonitor.h; sourceTree = "<group>"; };
-		1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-player-AI.plist"; sourceTree = "<group>"; };
+		1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "oolite-player-AI.plist"; sourceTree = "<group>"; };
 		1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConvertSystemDescriptions.h; sourceTree = "<group>"; };
 		1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConvertSystemDescriptions.m; sourceTree = "<group>"; };
 		1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OldSchoolPropertyListWriting.h; sourceTree = "<group>"; };
@@ -1303,8 +1303,8 @@
 		1A0BF3DC10DAE3490099984D /* python_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux2.dat; sourceTree = "<group>"; };
 		1A0BF3DF10DAE3610099984D /* transporter_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = transporter_redux1.dat; sourceTree = "<group>"; };
 		1A0BF3E110DAE3760099984D /* worm_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = worm_redux1.dat; sourceTree = "<group>"; };
-		1A0C3EDD1193306B007935E5 /* oolite-dust.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-dust.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
-		1A0C3EEA11933272007935E5 /* oolite-dust.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-dust.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		1A0C3EDD1193306B007935E5 /* oolite-dust.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-dust.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		1A0C3EEA11933272007935E5 /* oolite-dust.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-dust.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSpecialFunctions.h; sourceTree = "<group>"; };
 		1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSpecialFunctions.m; sourceTree = "<group>"; };
 		1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOExhaustPlumeEntity.h; sourceTree = "<group>"; };
@@ -1358,39 +1358,39 @@
 		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = shipdata.plist; sourceTree = "<group>"; };
 		1A2316EC0B9CFAD700EF0852 /* shipyard.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.plist.xml; path = shipyard.plist; sourceTree = "<group>"; };
 		1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = speech_pronunciation_guide.plist; sourceTree = "<group>"; };
-		1A2317910B9D022400EF0852 /* buoyAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = buoyAI.plist; sourceTree = "<group>"; };
-		1A2317920B9D022500EF0852 /* collectLootAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = collectLootAI.plist; sourceTree = "<group>"; };
-		1A2317930B9D022500EF0852 /* dockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = dockingAI.plist; sourceTree = "<group>"; };
-		1A2317940B9D022500EF0852 /* dumbAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = dumbAI.plist; sourceTree = "<group>"; };
-		1A2317950B9D022500EF0852 /* enteringPirateAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = enteringPirateAI.plist; sourceTree = "<group>"; };
-		1A2317960B9D022500EF0852 /* enteringTraderAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = enteringTraderAI.plist; sourceTree = "<group>"; };
-		1A2317970B9D022500EF0852 /* escortAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = escortAI.plist; sourceTree = "<group>"; };
-		1A2317980B9D022500EF0852 /* exitingTraderAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = exitingTraderAI.plist; sourceTree = "<group>"; };
-		1A2317990B9D022500EF0852 /* fallingShuttleAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = fallingShuttleAI.plist; sourceTree = "<group>"; };
-		1A23179A0B9D022500EF0852 /* fttAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = fttAI.plist; sourceTree = "<group>"; };
-		1A23179B0B9D022500EF0852 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = gotoWaypointAI.plist; sourceTree = "<group>"; };
-		1A23179C0B9D022500EF0852 /* hardMissileAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = hardMissileAI.plist; sourceTree = "<group>"; };
-		1A23179D0B9D022500EF0852 /* homeAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = homeAI.plist; sourceTree = "<group>"; };
-		1A23179E0B9D022500EF0852 /* interceptAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = interceptAI.plist; sourceTree = "<group>"; };
-		1A23179F0B9D022500EF0852 /* minerAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = minerAI.plist; sourceTree = "<group>"; };
-		1A2317A00B9D022500EF0852 /* missileAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = missileAI.plist; sourceTree = "<group>"; };
-		1A2317A10B9D022500EF0852 /* nullAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = nullAI.plist; sourceTree = "<group>"; };
-		1A2317A20B9D022500EF0852 /* pirateAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = pirateAI.plist; sourceTree = "<group>"; };
-		1A2317A30B9D022500EF0852 /* planetPatrolAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = planetPatrolAI.plist; sourceTree = "<group>"; };
-		1A2317A40B9D022500EF0852 /* policeInterceptAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = policeInterceptAI.plist; sourceTree = "<group>"; };
-		1A2317A50B9D022500EF0852 /* receiveDockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = receiveDockingAI.plist; sourceTree = "<group>"; };
-		1A2317A60B9D022500EF0852 /* risingShuttleAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = risingShuttleAI.plist; sourceTree = "<group>"; };
-		1A2317A70B9D022500EF0852 /* rockHermitAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = rockHermitAI.plist; sourceTree = "<group>"; };
-		1A2317A80B9D022500EF0852 /* route1patrolAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = route1patrolAI.plist; sourceTree = "<group>"; };
-		1A2317A90B9D022500EF0852 /* route1traderAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = route1traderAI.plist; sourceTree = "<group>"; };
-		1A2317AA0B9D022500EF0852 /* route2patrolAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = route2patrolAI.plist; sourceTree = "<group>"; };
-		1A2317AB0B9D022500EF0852 /* route2sunskimAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = route2sunskimAI.plist; sourceTree = "<group>"; };
-		1A2317AC0B9D022500EF0852 /* scavengerAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = scavengerAI.plist; sourceTree = "<group>"; };
-		1A2317AE0B9D022500EF0852 /* stationAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = stationAI.plist; sourceTree = "<group>"; };
-		1A2317AF0B9D022500EF0852 /* sunSkimExitAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = sunSkimExitAI.plist; sourceTree = "<group>"; };
-		1A2317B00B9D022500EF0852 /* thargletAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = thargletAI.plist; sourceTree = "<group>"; };
-		1A2317B10B9D022500EF0852 /* thargoidAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = thargoidAI.plist; sourceTree = "<group>"; };
-		1A2317B20B9D022500EF0852 /* timebombAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = timebombAI.plist; sourceTree = "<group>"; };
+		1A2317910B9D022400EF0852 /* buoyAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = buoyAI.plist; sourceTree = "<group>"; };
+		1A2317920B9D022500EF0852 /* collectLootAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = collectLootAI.plist; sourceTree = "<group>"; };
+		1A2317930B9D022500EF0852 /* dockingAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = dockingAI.plist; sourceTree = "<group>"; };
+		1A2317940B9D022500EF0852 /* dumbAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = dumbAI.plist; sourceTree = "<group>"; };
+		1A2317950B9D022500EF0852 /* enteringPirateAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = enteringPirateAI.plist; sourceTree = "<group>"; };
+		1A2317960B9D022500EF0852 /* enteringTraderAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = enteringTraderAI.plist; sourceTree = "<group>"; };
+		1A2317970B9D022500EF0852 /* escortAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = escortAI.plist; sourceTree = "<group>"; };
+		1A2317980B9D022500EF0852 /* exitingTraderAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = exitingTraderAI.plist; sourceTree = "<group>"; };
+		1A2317990B9D022500EF0852 /* fallingShuttleAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = fallingShuttleAI.plist; sourceTree = "<group>"; };
+		1A23179A0B9D022500EF0852 /* fttAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = fttAI.plist; sourceTree = "<group>"; };
+		1A23179B0B9D022500EF0852 /* gotoWaypointAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = gotoWaypointAI.plist; sourceTree = "<group>"; };
+		1A23179C0B9D022500EF0852 /* hardMissileAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = hardMissileAI.plist; sourceTree = "<group>"; };
+		1A23179D0B9D022500EF0852 /* homeAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = homeAI.plist; sourceTree = "<group>"; };
+		1A23179E0B9D022500EF0852 /* interceptAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = interceptAI.plist; sourceTree = "<group>"; };
+		1A23179F0B9D022500EF0852 /* minerAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = minerAI.plist; sourceTree = "<group>"; };
+		1A2317A00B9D022500EF0852 /* missileAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = missileAI.plist; sourceTree = "<group>"; };
+		1A2317A10B9D022500EF0852 /* nullAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = nullAI.plist; sourceTree = "<group>"; };
+		1A2317A20B9D022500EF0852 /* pirateAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = pirateAI.plist; sourceTree = "<group>"; };
+		1A2317A30B9D022500EF0852 /* planetPatrolAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = planetPatrolAI.plist; sourceTree = "<group>"; };
+		1A2317A40B9D022500EF0852 /* policeInterceptAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = policeInterceptAI.plist; sourceTree = "<group>"; };
+		1A2317A50B9D022500EF0852 /* receiveDockingAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = receiveDockingAI.plist; sourceTree = "<group>"; };
+		1A2317A60B9D022500EF0852 /* risingShuttleAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = risingShuttleAI.plist; sourceTree = "<group>"; };
+		1A2317A70B9D022500EF0852 /* rockHermitAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = rockHermitAI.plist; sourceTree = "<group>"; };
+		1A2317A80B9D022500EF0852 /* route1patrolAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = route1patrolAI.plist; sourceTree = "<group>"; };
+		1A2317A90B9D022500EF0852 /* route1traderAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = route1traderAI.plist; sourceTree = "<group>"; };
+		1A2317AA0B9D022500EF0852 /* route2patrolAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = route2patrolAI.plist; sourceTree = "<group>"; };
+		1A2317AB0B9D022500EF0852 /* route2sunskimAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = route2sunskimAI.plist; sourceTree = "<group>"; };
+		1A2317AC0B9D022500EF0852 /* scavengerAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = scavengerAI.plist; sourceTree = "<group>"; };
+		1A2317AE0B9D022500EF0852 /* stationAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = stationAI.plist; sourceTree = "<group>"; };
+		1A2317AF0B9D022500EF0852 /* sunSkimExitAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = sunSkimExitAI.plist; sourceTree = "<group>"; };
+		1A2317B00B9D022500EF0852 /* thargletAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = thargletAI.plist; sourceTree = "<group>"; };
+		1A2317B10B9D022500EF0852 /* thargoidAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = thargoidAI.plist; sourceTree = "<group>"; };
+		1A2317B20B9D022500EF0852 /* timebombAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = timebombAI.plist; sourceTree = "<group>"; };
 		1A23181E0B9D026D00EF0852 /* adder_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = adder_redux.png; sourceTree = "<group>"; };
 		1A23181F0B9D026D00EF0852 /* anaconda_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = anaconda_redux.png; sourceTree = "<group>"; };
 		1A2318200B9D026D00EF0852 /* arcdetail.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = arcdetail.png; sourceTree = "<group>"; };
@@ -1689,7 +1689,7 @@
 		1A572FC00D84B640003D4A26 /* oolite-cloaking-device-pod.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device-pod.js"; sourceTree = "<group>"; };
 		1A572FC10D84B640003D4A26 /* oolite-global-prefix.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-global-prefix.js"; sourceTree = "<group>"; };
 		1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-thargoid-warship.js"; sourceTree = "<group>"; };
-		1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-constrictor-AI.plist"; sourceTree = "<group>"; };
+		1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "oolite-constrictor-AI.plist"; sourceTree = "<group>"; };
 		1A5AA3220C0098AF0029C78A /* OOOpenGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGL.m; sourceTree = "<group>"; };
 		1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToString.h; sourceTree = "<group>"; };
 		1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConstToString.m; sourceTree = "<group>"; };
@@ -1709,9 +1709,9 @@
 		1A60AFB60D56093B0070510D /* OOMusicController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMusicController.m; sourceTree = "<group>"; };
 		1A62F0FB0E26A2A000897506 /* OOEquipmentType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEquipmentType.m; sourceTree = "<group>"; };
 		1A62F0FC0E26A2A000897506 /* OOEquipmentType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOEquipmentType.h; sourceTree = "<group>"; };
-		1A644E211052A9FD00833636 /* traderInterceptAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = traderInterceptAI.plist; sourceTree = "<group>"; };
-		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
-		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		1A644E211052A9FD00833636 /* traderInterceptAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = traderInterceptAI.plist; sourceTree = "<group>"; };
+		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A6A3A7E1135E0F200697AF8 /* oolite-snapshot.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-snapshot.xcconfig"; path = "src/Cocoa/oolite-snapshot.xcconfig"; sourceTree = "<group>"; };
 		1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIGraphViz.m; sourceTree = "<group>"; };
 		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
@@ -1812,7 +1812,7 @@
 		1A94D5AD0D65A6960072C805 /* OOLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLight.h; sourceTree = "<group>"; };
 		1A94D5B30D65A6B40072C805 /* OOCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCamera.h; sourceTree = "<group>"; };
 		1A94D5B40D65A6B40072C805 /* OOCamera.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCamera.m; sourceTree = "<group>"; };
-		1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = delayedReactToAttackAI.plist; sourceTree = "<group>"; };
+		1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = delayedReactToAttackAI.plist; sourceTree = "<group>"; };
 		1A9533890C02089E004EBB58 /* material-defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "material-defaults.plist"; sourceTree = "<group>"; };
 		1A95338A0C02089E004EBB58 /* planetinfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = planetinfo.plist; sourceTree = "<group>"; };
 		1A95C03E118A450E002EE302 /* OOConvertCubeMapToLatLong.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOConvertCubeMapToLatLong.h; path = src/Core/OOConvertCubeMapToLatLong.h; sourceTree = SOURCE_ROOT; };
@@ -1884,6 +1884,8 @@
 		1AC5452C0D4D298E00C90E5B /* oolite-font.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-font.plist"; sourceTree = "<group>"; };
 		1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugGLDrawing.h; sourceTree = "<group>"; };
 		1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugGLDrawing.m; sourceTree = "<group>"; };
+		1AC83175155534A30032448F /* fleeQMineAI.plist */ = {isa = PBXFileReference; explicitFileType = text; path = fleeQMineAI.plist; sourceTree = "<group>"; };
+		1AC83177155534B00032448F /* respondQMineAI.plist */ = {isa = PBXFileReference; explicitFileType = text; path = respondQMineAI.plist; sourceTree = "<group>"; };
 		1AC973F90C9847850010C42B /* pirate-victim-roles.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "pirate-victim-roles.plist"; sourceTree = "<group>"; };
 		1ACB1CEF118DBC65007B9A1F /* OOEnvironmentCubeMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOEnvironmentCubeMap.h; sourceTree = "<group>"; };
 		1ACB1CF0118DBC65007B9A1F /* OOEnvironmentCubeMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEnvironmentCubeMap.m; sourceTree = "<group>"; };
@@ -2007,10 +2009,8 @@
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "javascript-errors.plist"; sourceTree = "<group>"; };
-		B32E44D51551DCDE00A78964 /* respondQMineAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = respondQMineAI.plist; sourceTree = "<group>"; };
-		B32E44D81551DCFA00A78964 /* fleeQMineAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = fleeQMineAI.plist; sourceTree = "<group>"; };
-		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
-		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
+		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		B3EA9395154147EB00AB3C5B /* oolite-missile.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-missile.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -2171,6 +2171,7 @@
 				1A2317970B9D022500EF0852 /* escortAI.plist */,
 				1A2317980B9D022500EF0852 /* exitingTraderAI.plist */,
 				1A2317990B9D022500EF0852 /* fallingShuttleAI.plist */,
+				1AC83175155534A30032448F /* fleeQMineAI.plist */,
 				1A23179A0B9D022500EF0852 /* fttAI.plist */,
 				1A23179B0B9D022500EF0852 /* gotoWaypointAI.plist */,
 				1A23179C0B9D022500EF0852 /* hardMissileAI.plist */,
@@ -2183,6 +2184,7 @@
 				1A2317A30B9D022500EF0852 /* planetPatrolAI.plist */,
 				1A2317A40B9D022500EF0852 /* policeInterceptAI.plist */,
 				1A2317A50B9D022500EF0852 /* receiveDockingAI.plist */,
+				1AC83177155534B00032448F /* respondQMineAI.plist */,
 				1A2317A60B9D022500EF0852 /* risingShuttleAI.plist */,
 				1A2317A70B9D022500EF0852 /* rockHermitAI.plist */,
 				1A2317A80B9D022500EF0852 /* route1patrolAI.plist */,
@@ -2197,8 +2199,6 @@
 				1A2317B20B9D022500EF0852 /* timebombAI.plist */,
 				1A644E211052A9FD00833636 /* traderInterceptAI.plist */,
 				1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */,
-				B32E44D81551DCFA00A78964 /* fleeQMineAI.plist */,
-				B32E44D51551DCDE00A78964 /* respondQMineAI.plist */,
 			);
 			path = AIs;
 			sourceTree = "<group>";
