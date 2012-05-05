@@ -6591,10 +6591,17 @@ static NSString *last_outfitting_key=nil;
 		{
 			NSString* desc = [[OOEquipmentType equipmentTypeWithIdentifier:eqKey] descriptiveText];
 			NSString* eq_key_damaged = [NSString stringWithFormat:@"%@_DAMAGED", eqKey];
+			int weight = [[OOEquipmentType equipmentTypeWithIdentifier:eqKey] requiredCargoSpace];
 			if ([self hasEquipmentItem:eq_key_damaged])
+			{
 				desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-repairing"), desc];
-			else if([eqKey hasSuffix:@"ENERGY_UNIT"] && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
-				desc = [NSString stringWithFormat:DESC(@"@-will-replace-other-energy"), desc];
+			}
+			else
+			{
+				if([eqKey hasSuffix:@"ENERGY_UNIT"] && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
+					desc = [NSString stringWithFormat:DESC(@"@-will-replace-other-energy"), desc];
+				if (weight > 0) desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-weight-d-of-equipment"), desc, weight];
+			}
 			if (formatString) desc = [NSString stringWithFormat:formatString, desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
 		}

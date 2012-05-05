@@ -1432,7 +1432,7 @@ static NSMutableDictionary* currentShipyard = nil;
 			if ([[ship_extras oo_stringAtIndex:i] isEqualToString:@"EQ_CARGO_BAY"])
 				cargo_rating += cargo_extra;
 			else if ([[ship_extras oo_stringAtIndex:i] isEqualToString:@"EQ_PASSENGER_BERTH"])
-				cargo_rating -= 5;
+				cargo_rating -= PASSENGER_BERTH_SPACE;
 		}
 		
 		[row_info replaceObjectAtIndex:2 withObject:[NSString stringWithFormat:DESC(@"shipyard-cargo-d-tc"), cargo_rating]];
@@ -1605,7 +1605,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])
 		{
 			max_passengers++;
-			max_cargo -= 5;
+			max_cargo -= PASSENGER_BERTH_SPACE;
 		}
 		else
 		{
@@ -1734,7 +1734,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])
 		{
 			max_passengers++;
-			max_cargo -= 5;
+			max_cargo -= PASSENGER_BERTH_SPACE;
 		}
 		else
 		{

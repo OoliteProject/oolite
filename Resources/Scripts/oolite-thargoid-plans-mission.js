@@ -51,12 +51,12 @@ this._setUpShips = function ()
 		}
 		if (system.countShipsWithRole("thargoid") < 2)
 		{
-			system.legacy_addSystemShips("thargoid", 1, 0.33);
-			system.legacy_addSystemShips("thargoid", 1, 0.66);
+			system.addShipsToRoute("thargoid", 1, 0.33);
+			system.addShipsToRoute("thargoid", 1, 0.66);
 		}
 		if (system.countShipsWithRole("thargoid") < 5 && Math.random() < 0.5)
 		{
-			system.legacy_addShips("thargoid", 1);
+			system.addShips("thargoid", 1);
 		}
 	}
 	
@@ -160,6 +160,7 @@ this.missionScreenOpportunity = function ()
 				}
 				player.ship.awardEquipment("EQ_NAVAL_ENERGY_UNIT");
 				EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").effectiveTechLevel = 13;
+				clock.addSeconds(EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").price + 600); // time to mount the equipment.
 				mission.unmarkSystem(36);
 				this._cleanUp();
 			}
