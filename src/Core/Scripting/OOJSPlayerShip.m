@@ -144,7 +144,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
 	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
-	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READONLY_CB },
+	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
@@ -470,6 +470,15 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				return YES;
 			}
 			break;
+
+	  case kPlayerShip_serviceLevel:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				int newLevel = (int)fValue;
+				[player adjustTradeInFactorBy:(newLevel-[player tradeInFactor])];
+				return YES;
+			}
+			
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
