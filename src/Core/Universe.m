@@ -7167,6 +7167,12 @@ static double estimatedTimeForJourney(double distance, int hops)
 					NULL];
 				
 				[resultArray addObject:passenger_info_dictionary];
+
+				if ([resultArray count] > 5+[player passengerCapacity]-[player passengerCount])
+				{
+					break; // we should have enough passengers now
+				}
+
 			}
 		}
 		
@@ -7366,7 +7372,8 @@ static double estimatedTimeForJourney(double distance, int hops)
 				// total profit
 				float profit_for_trip = destination_cargo_value - local_cargo_value;
 				
-				if (profit_for_trip > 100.0)	// overheads!!
+				// check overheads, and ignore most contracts too big for the player's ship
+				if (profit_for_trip > 100.0 && (unit != UNITS_TONS || co_amount < [player maxAvailableCargoSpace] || [resultArray count] < 5))	
 				{
 					// determine information about the route...
 					NSDictionary* routeInfo = [self routeFromSystem:start toSystem:contract_destination optimizedBy:OPTIMIZED_BY_JUMPS];
@@ -7430,6 +7437,10 @@ static double estimatedTimeForJourney(double distance, int hops)
 							NULL];
 						
 						[resultArray addObject:contract_info_dictionary];
+						if ([resultArray count] > 10)
+						{
+							break; // we probably have enough by now
+						}
 					}
 				}
 			}
