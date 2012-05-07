@@ -868,7 +868,7 @@ MA 02110-1301, USA.
 		found_target = primaryAggressor;
 		
 		// if I'm a copper and you're not, then mark the other as an offender!
-		if ([self isPolice] && ![hunter isPolice])  [hunter markAsOffender:64];
+		if ([self isPolice] && ![hunter isPolice])  [hunter markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
 		
 		[self fireECM];
 		return;
@@ -1539,8 +1539,9 @@ MA 02110-1301, USA.
 			if (([mother legalStatus] > 0)&&(bounty <= 0))
 			{
 				int extra = 1 | (ranrot_rand() & 15);
-				[mother setBounty: [mother legalStatus] + extra];
-				bounty += extra;	// obviously we're dodgier than we thought!
+				[mother setBounty: [mother legalStatus] + extra withReason:kOOLegalStatusReasonAssistingOffender];
+				[self setBounty:(bounty+extra) withReason:kOOLegalStatusReasonAssistingOffender];
+//				bounty += extra;	// obviously we're dodgier than we thought!
 			}
 			
 			[self setOwner:mother];
@@ -1888,7 +1889,7 @@ MA 02110-1301, USA.
 			return;
 		}
 		NSString* finalValue = ExpandDescriptionForCurrentSystem(valueString);	// expand values
-		[ship markAsOffender:[finalValue intValue]];
+		[ship markAsOffender:[finalValue intValue] withReason:kOOLegalStatusReasonSeenByPolice];
 	}
 }
 
@@ -2699,7 +2700,7 @@ MA 02110-1301, USA.
 	found_target = [[other primaryTarget] universalID];
 	if ([self isPolice])
 	{
-		[[UNIVERSE entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
+		[[UNIVERSE entityForUniversalID:found_target] markAsOffender:8 withReason:kOOLegalStatusReasonDistressCall];  // you have been warned!!
 	}
 	
 	NSString *context = nil;
@@ -2721,7 +2722,7 @@ MA 02110-1301, USA.
 	
 	int old_target = primaryTarget;
 	primaryTarget = [[other primaryTarget] universalID];
-	[(ShipEntity *)[other primaryTarget] markAsOffender:8];	// mark their card
+	[(ShipEntity *)[other primaryTarget] markAsOffender:8 withReason:kOOLegalStatusReasonDistressCall];	// mark their card
 	[self launchDefenseShip];
 	primaryTarget = old_target;
 	

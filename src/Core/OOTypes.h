@@ -142,6 +142,15 @@ enum
 
 #undef ENTRY
 
+typedef enum
+{
+#define DIFF_STRING_ENTRY(label, string) label,
+	#include "OOLegalStatusReason.tbl"
+#undef DIFF_STRING_ENTRY
+	
+	kOOLegalStatusReasonDefault = kOOLegalStatusReasonUnknown
+} OOLegalStatusReason;
+
 
 typedef enum
 {

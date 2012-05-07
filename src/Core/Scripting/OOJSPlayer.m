@@ -292,7 +292,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				if (iValue < 0)  iValue = 0;
-				[player setBounty:iValue];
+				[player setBounty:iValue withReason:kOOLegalStatusReasonByScript];
 				return YES;
 			}
 			break;

@@ -303,7 +303,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			
 			// Don't reduce bounty on misjump. Fixes #17992
 			// - MKW 2011.03.10	
-			if (!_misjump)  [ship setBounty:[ship bounty]/2];	// adjust legal status for new system
+			if (!_misjump)  [ship setBounty:[ship bounty]/2 withReason:kOOLegalStatusReasonNewSystem];	// adjust legal status for new system
 			
 			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 			{

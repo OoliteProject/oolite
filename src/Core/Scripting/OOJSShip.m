@@ -807,7 +807,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				if (iValue < 0)  iValue = 0;
-				[entity setBounty:iValue];
+				[entity setBounty:iValue withReason:kOOLegalStatusReasonByScript];
 				return YES;
 			}
 			break;

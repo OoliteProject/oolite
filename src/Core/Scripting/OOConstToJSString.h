@@ -265,3 +265,16 @@ OOINLINE jsval OOJSValueFromShipDamageType(JSContext *context, OOShipDamageType 
 	return STRING_TO_JSVAL(OOJSStringFromShipDamageType(context, value));
 }
 
+
+
+OOINLINE JSString *OOJSStringFromLegalStatusReason(JSContext *context, OOLegalStatusReason value)
+{
+	extern struct ConstTable gOOLegalStatusReasonConstTable;
+	return OOJSStringFromConstantPRIVATE(context, value, &gOOLegalStatusReasonConstTable);
+}
+
+
+OOINLINE jsval OOJSValueFromLegalStatusReason(JSContext *context, OOLegalStatusReason value)
+{
+	return STRING_TO_JSVAL(OOJSStringFromLegalStatusReason(context, value));
+}

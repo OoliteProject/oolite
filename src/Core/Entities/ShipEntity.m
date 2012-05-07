@@ -1399,7 +1399,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 		[escorter setPrimaryRole:defaultRole];	//for mothership
 		[escorter setScanClass:scanClass];		// you are the same as I
-		if ([self bounty] == 0)  [escorter setBounty:0];	// Avoid dirty escorts for clean mothers
+		if ([self bounty] == 0)  [escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];	// Avoid dirty escorts for clean mothers
 		
 		// find the right autoAI.
 		escortShipDict = [escorter shipInfoDictionary];
@@ -1435,11 +1435,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		{
 			int extra = 1 | (ranrot_rand() & 15);
 			bounty += extra;	// obviously we're dodgier than we thought!
-			[escorter setBounty: extra];
+			[escorter setBounty: extra withReason:kOOLegalStatusReasonSetup];
 		}
 		else
 		{
-			[escorter setBounty:0];
+			[escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];
 		}
 		[escorter release];
 		_pendingEscortCount--;
@@ -5648,13 +5648,31 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setBounty:(OOCreditsQuantity) amount
 {
+	[self setBounty:amount withReason:kOOLegalStatusReasonUnknown];
+}
+
+
+- (void) setBounty:(OOCreditsQuantity) amount withReason:(OOLegalStatusReason)reason
+{
 	if ([self isSubEntity]) 
 	{
 		[[self parentEntity] setBounty:amount];
 	}
 	else 
 	{
-		bounty = amount;
+		JSContext *context = OOJSAcquireContext();
+	
+		jsval amountVal = JSVAL_VOID;
+		JS_NewNumberValue(context, (int)amount-(int)bounty, &amountVal);
+
+		bounty = amount; // can't set the new bounty until the size of the change is known
+
+		jsval reasonVal = OOJSValueFromLegalStatusReason(context, reason);
+		
+		ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
+		
+		OOJSRelinquishContext(context);
+
 	}
 }
 
@@ -6325,7 +6343,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 								quaternion_set_random(&q);
 								
 								[rock setTemperature:[self randomEjectaTemperature]];
-								[rock setBounty: 0];
+								[rock setBounty: 0 withReason:kOOLegalStatusReasonSetup];
 								[rock setCommodity:[UNIVERSE commodityForName:@"Minerals"] andAmount: 1];
 								[rock setOrientation:q];
 								[rock setScanClass: CLASS_CARGO];
@@ -7978,7 +7996,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			double range = [self rangeToSecondaryTarget:my_target];
 			if (range < weaponRange)
 			{
-				OOLog(@"point.defense.test",@"%@ firing point defense at %@",[self displayName],[(ShipEntity*)my_target displayName]);
 				return [self fireDirectLaserShotAt:my_target];
 			}
 			else if (range > scannerRange)
@@ -9228,7 +9245,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		// if I'm a copper and you're not, then mark the other as an offender!
 		if (iAmTheLaw && !uAreTheLaw)
 		{
-			[hunter markAsOffender:64];
+			[hunter markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
 		}
 
 		if ((group != nil && [hunter group] == group) || (iAmTheLaw && uAreTheLaw))
@@ -9513,10 +9530,34 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) markAsOffender:(int)offence_value
 {
+	[self markAsOffender:offence_value withReason:kOOLegalStatusReasonUnknown];
+}
+
+
+- (void) markAsOffender:(int)offence_value withReason:(OOLegalStatusReason)reason
+{
 	if (![self isPolice] && ![self isCloaked] && self != [UNIVERSE station])
 	{
-		if ([self isSubEntity]) [[self parentEntity]markAsOffender:offence_value];
-		else bounty |= offence_value;
+		if ([self isSubEntity]) 
+		{
+			[[self parentEntity]markAsOffender:offence_value withReason:reason];
+		}
+		else
+		{
+			JSContext *context = OOJSAcquireContext();
+	
+			jsval amountVal = JSVAL_VOID;
+			JS_NewNumberValue(context, (bounty | offence_value)-bounty, &amountVal);
+
+			bounty |= offence_value; // can't set the new bounty until the size of the change is known
+
+			jsval reasonVal = OOJSValueFromLegalStatusReason(context, reason);
+		
+			ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
+		
+			OOJSRelinquishContext(context);
+		
+		}
 	}
 }
 
@@ -10170,7 +10211,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 			if (scanClass == CLASS_POLICE)
 			{
 				[self sendExpandedMessage:@"[police-thanks-for-assist]" toShip:rescueShip];
-				[rescueShip setBounty:[rescueShip bounty] * 0.80];	// lower bounty by 20%
+				[rescueShip setBounty:[rescueShip bounty] * 0.80 withReason:kOOLegalStatusReasonAssistingPolice];	// lower bounty by 20%
 			}
 			else
 			{
@@ -10180,7 +10221,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 			// we don't want clean ships that change target from one pirate to the other pirate getting a bounty.
 			if ([switchingShip bounty] > 0 || [rescueShip bounty] == 0)
 			{	
-				[switchingShip setBounty:[switchingShip bounty] + 5 + (ranrot_rand() & 15)];	// reward
+				[switchingShip setBounty:[switchingShip bounty] + 5 + (ranrot_rand() & 15) withReason:kOOLegalStatusReasonAttackedInnocent];	// reward
 			}
 		}
 	}

@@ -765,7 +765,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			}
 			if ([thargoid scanClass] == CLASS_NOT_SET)
 				[thargoid setScanClass: CLASS_THARGOID];
-			[thargoid setBounty:100];
+			[thargoid setBounty:100 withReason:kOOLegalStatusReasonSetup];
 			[thargoid setGroup:thargoidGroup];
 			
 			[self addEntity:thargoid];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -1861,7 +1861,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		if ([role isEqual:@"pirate"])
 		{
 			[ship setCargoFlag: CARGO_FLAG_PIRATE];
-			[ship setBounty: (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
+			[ship setBounty: (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23) withReason:kOOLegalStatusReasonSetup];	// they already have a price on their heads
 		}
 		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
@@ -1983,7 +1983,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			}
 			else if ([role isEqual:@"pirate"])
 			{
-				[ship setBounty:(Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
+				[ship setBounty:(Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23) withReason:kOOLegalStatusReasonSetup];	// they already have a price on their heads
 			}
 			
 			// Status changes inside the following call: AI state GLOBAL, then STATUS_EXITING_WITCHSPACE, 
@@ -2568,8 +2568,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 					[ship setAITo:autoAI];
 					// Nikos 20090604
 					// Pirate, trader or police with auto_ai? Follow populator rules for them.
-					if ([role isEqualToString:@"pirate"]) [ship setBounty:20 + randf() * 50];
-					if ([role isEqualToString:@"trader"]) [ship setBounty:0];
+					if ([role isEqualToString:@"pirate"]) [ship setBounty:20 + randf() * 50 withReason:kOOLegalStatusReasonSetup];
+					if ([role isEqualToString:@"trader"]) [ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 					if ([role isEqualToString:@"police"]) [ship setScanClass: CLASS_POLICE];
 					if ([role isEqualToString:@"interceptor"])
 					{
@@ -8992,7 +8992,7 @@ Entity *gOOJSPlayerIfStale = nil;
 		if (hunter_ship)
 		{
 			[hunter_ship setPosition:launchPos];
-			[hunter_ship setBounty:0];
+			[hunter_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			[self addEntity:hunter_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			
 			[hunter_ship release];	// addEntity retains!
@@ -9297,7 +9297,7 @@ static void PreloadOneSound(NSString *soundName)
 			if ([trader_ship scanClass] == CLASS_NOT_SET)
 				[trader_ship setScanClass:CLASS_NEUTRAL];
 			[trader_ship setPosition:launchPos];
-			[trader_ship setBounty:0];
+			[trader_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
 			
 			if (([trader_ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
@@ -9357,7 +9357,7 @@ static void PreloadOneSound(NSString *soundName)
 				{
 					[pirate_ship setScanClass: CLASS_NEUTRAL];
 				}
-				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() & 7)];
+				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() & 7) withReason:kOOLegalStatusReasonSetup];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
 				[pirate_ship setGroup:wolfpackGroup];
 				
@@ -9417,7 +9417,7 @@ static void PreloadOneSound(NSString *soundName)
 			}
 			if ([thargoid_ship scanClass] == CLASS_NOT_SET)
 				[thargoid_ship setScanClass: CLASS_THARGOID];
-			[thargoid_ship setBounty:100];
+			[thargoid_ship setBounty:100 withReason:kOOLegalStatusReasonSetup];
 			[self addEntity:thargoid_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			[thargoid_ship release];
 		}
@@ -9483,7 +9483,7 @@ static void PreloadOneSound(NSString *soundName)
 			{
 				[trader_ship setScanClass: CLASS_NEUTRAL];
 			}
-			[trader_ship setBounty:0];
+			[trader_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 			[trader_ship setPrimaryRole:@"trader"];	// set this to allow escorts to pair with the ship
 			[self makeSunSkimmer:trader_ship andSetAI:NO];
@@ -9541,7 +9541,7 @@ static void PreloadOneSound(NSString *soundName)
 						andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
 				
 				if ([pirate_ship scanClass] == CLASS_NOT_SET) [pirate_ship setScanClass: CLASS_NEUTRAL];
-				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7)];
+				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7) withReason:kOOLegalStatusReasonSetup];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
 				[pirate_ship setGroup:wolfpackGroup];
 				

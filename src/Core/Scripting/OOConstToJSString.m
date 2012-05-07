@@ -113,6 +113,12 @@ static TableEntry sOOShipDamageTypeTableEntries[] =
 	#include "OOShipDamageType.tbl"
 };
 
+static TableEntry sOOLegalStatusReasonTableEntries[] =
+{
+	#include "OOLegalStatusReason.tbl"
+};
+
+
 #undef ENTRY
 #undef GALACTIC_HYPERSPACE_ENTRY
 #undef DIFF_STRING_ENTRY
@@ -125,6 +131,7 @@ ConstTable gOOGUIScreenIDConstTable					= TABLE(sOOGUIScreenIDTableEntries);
 ConstTable gOOScanClassConstTable					= TABLE(sOOScanClassTableEntries);
 ConstTable gOOViewIDConstTable						= TABLE(sOOViewIDTableEntries);
 ConstTable gOOShipDamageTypeConstTable				= TABLE(sOOShipDamageTypeTableEntries);
+ConstTable gOOLegalStatusReasonConstTable				= TABLE(sOOLegalStatusReasonTableEntries);
 
 static void InitTable(JSContext *context, ConstTable *table);
 
@@ -145,6 +152,7 @@ void OOConstToJSStringInit(JSContext *context)
 	InitTable(context, &gOOScanClassConstTable);
 	InitTable(context, &gOOViewIDConstTable);
 	InitTable(context, &gOOShipDamageTypeConstTable);
+	InitTable(context, &gOOLegalStatusReasonConstTable);
 	
 #ifndef NDEBUG
 	sInited = YES;

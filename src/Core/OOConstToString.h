@@ -108,6 +108,8 @@ NSString *DisplayStringForMassUnitForCommodity(OOCommodityType commodity);
 NSString *OOStringFromCompassMode(OOCompassMode mode);
 OOCompassMode OOCompassModeFromString(NSString *string);
 
+NSString *OOStringFromLegalStatusReason(OOLegalStatusReason reason);
+
 NSString *RouteTypeToString(OORouteType routeType);
 OORouteType StringToRouteType(NSString *string);
 

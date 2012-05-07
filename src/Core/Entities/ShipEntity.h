@@ -727,6 +727,7 @@ typedef enum
  Does not check to see if the ship is allowed to have a bounty, for example if it is police.
  */
 - (void) setBounty:(OOCreditsQuantity) amount;
+- (void) setBounty:(OOCreditsQuantity) amount withReason:(OOLegalStatusReason)reason;
 - (OOCreditsQuantity) bounty;
 
 - (int) legalStatus;
@@ -935,6 +936,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
    are not markable.  The final bounty may not be equal to existing bounty plus offence_value.
  */
 - (void) markAsOffender:(int)offence_value;
+- (void) markAsOffender:(int)offence_value withReason:(OOLegalStatusReason)reason;
 
 - (void) switchLightsOn;
 - (void) switchLightsOff;

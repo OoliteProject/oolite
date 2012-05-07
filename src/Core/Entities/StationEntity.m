@@ -1501,7 +1501,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		{
 			b *= 1.5; //bigger bounty!
 		}
-		[(ShipEntity*)other markAsOffender:b];
+		[(ShipEntity*)other markAsOffender:b withReason:kOOLegalStatusReasonAttackedMainStation];
 		
 		[self setPrimaryAggressor:other];
 		found_target = primaryAggressor;

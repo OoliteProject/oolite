@@ -1986,7 +1986,8 @@ static GLfloat		sBaseMass = 0.0;
 		UPDATE_STAGE(@"resetting after escape");
 		ShipEntity	*doppelganger = [UNIVERSE entityForUniversalID:found_target];
 		// reset legal status again! Could have changed if a previously launched missile hit a clean NPC while in the escape pod.
-		legalStatus = 0;
+		[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
+//		legalStatus = 0;
 		bounty = 0;
 		// no access to all player.ship properties while inside the escape pod,
 		// we're not supposed to be inside our ship anymore! 
@@ -4410,7 +4411,8 @@ static GLfloat		sBaseMass = 0.0;
 	[self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:escapePod];	// no player.ship properties should be available to script
 	
 	// reset legal status
-	legalStatus = 0;
+	[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
+//	legalStatus = 0;
 	bounty = 0;
 	
 	// reset trumbles
@@ -4503,7 +4505,27 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) setBounty:(OOCreditsQuantity) amount
 {
-	legalStatus = (int)amount;
+	[self setBounty:amount withReason:kOOLegalStatusReasonUnknown];
+}
+
+
+- (void) setBounty:(int)amount withReason:(OOLegalStatusReason)reason
+{
+	JSContext *context = OOJSAcquireContext();
+	
+	jsval amountVal = JSVAL_VOID;
+	int amountVal2 = (int)amount-(int)legalStatus;
+	JS_NewNumberValue(context, amountVal2, &amountVal);
+
+
+	legalStatus = amount; // can't set the new bounty until the size of the change is known
+
+	jsval reasonVal = OOJSValueFromLegalStatusReason(context, reason);
+		
+	ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
+		
+	OOJSRelinquishContext(context);
+
 }
 
 
@@ -4521,7 +4543,29 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) markAsOffender:(int)offence_value
 {
-	if (![self isCloaked]) legalStatus |= offence_value;
+	[self markAsOffender:offence_value withReason:kOOLegalStatusReasonUnknown];
+}
+
+
+- (void) markAsOffender:(int)offence_value withReason:(OOLegalStatusReason)reason
+{
+	if (![self isCloaked])
+	{
+		JSContext *context = OOJSAcquireContext();
+	
+		jsval amountVal = JSVAL_VOID;
+		int amountVal2 = (legalStatus | offence_value) - offence_value;
+		JS_NewNumberValue(context, amountVal2, &amountVal);
+
+		legalStatus |= offence_value; // can't set the new bounty until the size of the change is known
+
+		jsval reasonVal = OOJSValueFromLegalStatusReason(context, reason);
+		
+		ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
+		
+		OOJSRelinquishContext(context);
+
+	}
 }
 
 
@@ -4535,7 +4579,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if ([other isPolice])   // oops, we shot a copper!
 	{
-		legalStatus |= 64;
+		[self markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
 	}
 	
 	if (![UNIVERSE strict])	// only mess with the scores if we're not in 'strict' mode
@@ -4854,7 +4898,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (station == [UNIVERSE station])
 	{
-		legalStatus |= [UNIVERSE legalStatusOfManifest:shipCommodityData];  // 'leaving with those guns were you sir?'
+//		legalStatus |= [UNIVERSE legalStatusOfManifest:shipCommodityData];  // 'leaving with those guns were you sir?'
+		[self markAsOffender:[UNIVERSE legalStatusOfManifest:shipCommodityData] withReason:kOOLegalStatusReasonIllegalExports];
 	}
 	[self loadCargoPods];
 	
@@ -5135,7 +5180,8 @@ static GLfloat		sBaseMass = 0.0;
 	target_system_seed = system_seed;
 	
 	// let's make a fresh start!
-	legalStatus = 0;
+//	legalStatus = 0;
+	[self setBounty:0 withReason:kOOLegalStatusReasonNewGalaxy];
 	cursor_coordinates.x = system_seed.d;
 	cursor_coordinates.y = system_seed.b;
 	
@@ -5225,7 +5271,8 @@ static GLfloat		sBaseMass = 0.0;
 	if (!misjump)
 	{
 		system_seed = sTo;
-		legalStatus /= 2;								// 'another day, another system'
+//		legalStatus /= 2;								// 'another day, another system'
+		[self setBounty:(legalStatus/2) withReason:kOOLegalStatusReasonNewSystem];
 		[self witchEnd];
 		if (market_rnd < 8) [self erodeReputation];		// every 32 systems or so, drop back towards 'unknown'
 	}
@@ -7807,12 +7854,14 @@ static NSString *last_outfitting_key=nil;
 	if (fine > credits)
 	{
 		int payback = (int)(legalStatus * credits / fine);
-		legalStatus -= payback;
+		[self setBounty:(legalStatus-payback) withReason:kOOLegalStatusReasonPaidFine];
+//		legalStatus -= payback;
 		credits = 0;
 	}
 	else
 	{
-		legalStatus = 0;
+		[self setBounty:0 withReason:kOOLegalStatusReasonPaidFine];
+//		legalStatus = 0;
 		credits -= fine;
 	}
 	

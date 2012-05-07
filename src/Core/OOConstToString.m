@@ -114,6 +114,17 @@ NSString *OOStringFromShipDamageType(OOShipDamageType value)
 	return @"UNDEFINED";
 }
 
+NSString *OOStringFromLegalStatusReason(OOLegalStatusReason value)
+{
+	switch (value)
+	{
+		#include "OOLegalStatusReason.tbl"
+	}
+	
+	return @"UNDEFINED";
+}
+
+
 #undef ENTRY
 #undef GALACTIC_HYPERSPACE_ENTRY
 
