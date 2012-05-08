@@ -8531,6 +8531,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	OOUniversalID		result = NO_TARGET;
 	ShipEntity			*mainPod = nil;
 	unsigned			n_pods, i;
+	NSMutableArray		*passengers = nil;
 	
 	/*
 		CHANGE: both player & NPCs can now launch escape pods in interstellar
@@ -8539,6 +8540,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	// check number of pods aboard -- require at least one.
 	n_pods = [shipinfoDictionary oo_unsignedIntForKey:@"has_escape_pod"];
+	if (n_pods > 65) n_pods = 65; // maximum of 64 passengers.
+	if (n_pods > 1) passengers = [NSMutableArray arrayWithCapacity:n_pods-1];
 	
 	if (crew)	// transfer crew
 	{
@@ -8553,19 +8556,20 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			result = [mainPod universalID];
 			[self setCrew:nil];
-			[self setHulk:YES]; //CmdrJames experiment with fixing ejection behaviour
+			[self setHulk:YES]; // we are without crew now.
 		}
 	}
 	
 	// launch other pods (passengers)
 	for (i = 1; i < n_pods; i++)
 	{
+		ShipEntity	*passenger = nil;
 		Random_Seed orig = [UNIVERSE systemSeedForSystemNumber:gen_rnd_number()];
-		[self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystem:orig]]];
+		passenger = [self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystem:orig]]];
+		[passengers addObject:passenger];
 	}
 	
-	// EMMSTRAN: provide array of secondary pods.
-	if (mainPod) [self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:mainPod];
+	if (mainPod) [self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:mainPod andArgument:passengers];
 	
 	return result;
 }
@@ -9319,8 +9323,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			frustration = 0.0;
 			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
 			thrust = thrust * 0.5;
+			if (thrust > 5) thrust = 5; // 5 is the thrust of an escape-capsule
 			desired_speed = 0.0;
-			//[self setHulk:YES];	// already set inside launchEscapeCapsule
 			if ([self group]) [self setGroup:nil]; // remove self from group.
 			if (![self isSubEntity] && [self owner]) [self setOwner:nil]; //unset owner, but not if we are a subent
 			if ([self hasEscorts])
