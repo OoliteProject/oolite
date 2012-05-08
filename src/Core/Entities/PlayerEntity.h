@@ -722,6 +722,7 @@ typedef enum
 - (void) setGuiToShortRangeChartScreen;
 - (void) setGuiToLoadSaveScreen;
 - (void) setGuiToGameOptionsScreen;
+- (unsigned) availableFacings;
 - (void) setGuiToEquipShipScreen:(int)skip selectingFacingFor:(NSString *)eqKeyForSelectFacing;
 - (void) setGuiToEquipShipScreen:(int)skip;
 - (void) highlightEquipShipScreenKey:(NSString *)key;

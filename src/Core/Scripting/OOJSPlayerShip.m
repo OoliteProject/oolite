@@ -112,6 +112,7 @@ enum
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
+	kPlayerShip_weaponFacings,         // available weapon facings, int, read-only
 	kPlayerShip_weaponsOnline,					// weapons online status, boolean, read-only
 };
 
@@ -148,6 +149,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
+	{ "weaponFacings",					kPlayerShip_weaponFacings,					OOJS_PROP_READONLY_CB },
 	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					OOJS_PROP_READONLY_CB },
 	{ 0 }			
 };
@@ -347,6 +349,9 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_viewDirection:
 			*value = OOJSValueFromViewID(context, [UNIVERSE viewDirection]);
 			return YES;
+
+		case kPlayerShip_weaponFacings:
+			return JS_NewNumberValue(context, [player availableFacings], value);
 		
 	  case kPlayerShip_price:
 			return JS_NewNumberValue(context, [UNIVERSE tradeInValueForCommanderDictionary:[player commanderDataDictionary]], value);

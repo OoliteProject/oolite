@@ -6279,6 +6279,15 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (unsigned) availableFacings
+{
+	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
+	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
+	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];	// use defaults  explicitly
+	return available_facings;
+}
+
+
 - (void) setGuiToEquipShipScreen:(int)skipParam selectingFacingFor:(NSString *)eqKeyForSelectFacing
 {
 	missiles = [self countMissiles];
