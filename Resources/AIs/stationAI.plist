@@ -1,8 +1,12 @@
 {
+	GLOBAL =
+	{
+		ENTER = ("setStateTo: IDLE");
+	};
 	"DEFENSE_MODE" =
 	{
 		ENTER = (checkTargetLegalStatus);
-		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel);
+		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, groupAttackTarget);
 		"RED_ALERT" = (launchDefenseShip);
 		"YELLOW_ALERT" = ("setStateTo: IDLE");
 		"GREEN_ALERT" = ("setStateTo: CHECK_FOR_DEBRIS");
@@ -10,7 +14,7 @@
 		"TARGET_OFFENDER" = (increaseAlertLevel);
 		"TARGET_FUGITIVE" = (increaseAlertLevel);
 		"ENERGY_FULL" = ("pauseAI: 20.0", "setStateTo: IDLE");
-		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel);
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel, groupAttackTarget);
 		"TARGET_DESTROYED" = ("pauseAI: 20.0", "setStateTo: IDLE");
 		"TARGET_LOST" = ("pauseAI: 20.0", "setStateTo: IDLE");
 		"NO_TARGET" = ("pauseAI: 20.0", "setStateTo: IDLE");
@@ -18,20 +22,16 @@
 	"CHECK_FOR_DEBRIS" =
 	{
 		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE");
-		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel);
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel, groupAttackTarget);
 		"INCOMING_MISSILE" = (fireECM, increaseAlertLevel);
 		"TARGET_FOUND" = (launchScavenger, "setStateTo: IDLE");
 		"NOTHING_FOUND" = ("setStateTo: IDLE", "pauseAI: 20.0");
 		UPDATE = (scanForLoot, "pauseAI: 10.0");
 	};
-	GLOBAL =
-	{
-		ENTER = ("setStateTo: IDLE");
-	};
 	IDLE =
 	{
 		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE");
-		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel);
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel, groupAttackTarget);
 		"INCOMING_MISSILE" = (fireECM, increaseAlertLevel);
 		UPDATE = (decreaseAlertLevel, "setStateTo: CHECK_FOR_DEBRIS");
 	};

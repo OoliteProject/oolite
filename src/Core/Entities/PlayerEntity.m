@@ -4509,7 +4509,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) setBounty:(int)amount withReason:(OOLegalStatusReason)reason
+- (void) setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason
 {
 	JSContext *context = OOJSAcquireContext();
 	
