@@ -501,6 +501,7 @@ typedef enum
 - (BOOL)setUpFromDictionary:(NSDictionary *) shipDict;
 - (BOOL)setUpShipFromDictionary:(NSDictionary *) shipDict;
 - (BOOL)setUpSubEntities;
+- (GLfloat)frustumRadius;
 
 - (NSString *) shipDataKey;
 - (void)setShipDataKey:(NSString *)key;

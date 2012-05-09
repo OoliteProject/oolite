@@ -704,6 +704,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (GLfloat) frustumRadius
+{
+	return _profileRadius;
+}
+
+
 - (BOOL) setUpOneSubentity:(NSDictionary *) subentDict
 {
 	OOJS_PROFILE_ENTER

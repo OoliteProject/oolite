@@ -42,7 +42,7 @@ extern size_t gTotalEntityMemory;
 #endif
 
 
-#define NO_DRAW_DISTANCE_FACTOR		512.0
+#define NO_DRAW_DISTANCE_FACTOR		1024.0
 #define ABSOLUTE_NO_DRAW_DISTANCE2	(2500.0 * 2500.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR)
 // ie. the furthest away thing we can draw is at 1280km (a 2.5km wide object would disappear at that range)
 

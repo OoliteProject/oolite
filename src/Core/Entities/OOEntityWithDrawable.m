@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #import "OOEntityWithDrawable.h"
 #import "OODrawable.h"
 #import "Universe.h"
-
+#import "ShipEntity.h"
 
 @implementation OOEntityWithDrawable
 
@@ -85,7 +85,13 @@ MA 02110-1301, USA.
 		// (always draw sky!)
 		if (![self isSubEntity]) 
 		{
-			if (![UNIVERSE checkFrustum:position:collision_radius]) 
+			GLfloat clipradius = collision_radius;
+			if ([self isShip])
+			{
+				ShipEntity* shipself = (ShipEntity*)self;
+				clipradius = [shipself frustumRadius];
+			}
+			if (![UNIVERSE checkFrustum:position:clipradius]) 
 			{
 				return;
 			}
