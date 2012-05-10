@@ -1773,6 +1773,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
 			if ([police_ship scanClass] == CLASS_NOT_SET)
 				[police_ship setScanClass: CLASS_POLICE];
+			if ([police_ship heatInsulation] < [self heatInsulation])
+				[police_ship setHeatInsulation:[self heatInsulation]];
 			[police_ship setBounty:0];
 			[police_ship switchAITo:@"policeInterceptAI.plist"];
 			[self addShipToLaunchQueue:police_ship :YES];
@@ -1829,8 +1831,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	if (!defense_ship && default_defense_ship_role != defense_ship_role)
-
 		defense_ship = [UNIVERSE newShipWithRole:default_defense_ship_role];
+
 	if (!defense_ship || ![self fitsInDock:defense_ship])
 	{
 		[defense_ship release];
@@ -1871,6 +1873,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[defense_ship setScanClass: CLASS_NEUTRAL];
 	}
 
+	if ([defense_ship heatInsulation] < [self heatInsulation])
+	{
+		[defense_ship setHeatInsulation:[self heatInsulation]];
+	}
+
 	[self addShipToLaunchQueue:defense_ship :YES];
 	[defense_ship autorelease];
 	[self abortAllDockings];
@@ -1906,6 +1913,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		scavengers_launched++;
 		[scavenger_ship setScanClass: CLASS_NEUTRAL];
+		if ([scavenger_ship heatInsulation] < [self heatInsulation])
+			[scavenger_ship setHeatInsulation:[self heatInsulation]];
 		[scavenger_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[scavenger_ship switchAITo:@"scavengerAI.plist"];
 		[self addShipToLaunchQueue:scavenger_ship :NO];
@@ -1945,6 +1954,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		scavengers_launched++;
 		[miner_ship setScanClass:CLASS_NEUTRAL];
+		if ([miner_ship heatInsulation] < [self heatInsulation])
+			[miner_ship setHeatInsulation:[self heatInsulation]];
 		[miner_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[miner_ship switchAITo:@"minerAI.plist"];
 		[self addShipToLaunchQueue:miner_ship :NO];
@@ -1997,6 +2008,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[pirate_ship setPrimaryRole:@"defense_ship"];
 		[pirate_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 		[pirate_ship setScanClass: CLASS_NEUTRAL];
+		if ([pirate_ship heatInsulation] < [self heatInsulation])
+			[pirate_ship setHeatInsulation:[self heatInsulation]];
 		//**Lazygun** added 30 Nov 04 to put a bounty on those pirates' heads.
 		[pirate_ship setBounty: 10 + floor(randf() * 20)];	// modified for variety
 
@@ -2098,6 +2111,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[patrol_ship switchLightsOff];
 			if ([patrol_ship scanClass] == CLASS_NOT_SET)
 				[patrol_ship setScanClass: CLASS_POLICE];
+			if ([patrol_ship heatInsulation] < [self heatInsulation])
+				[patrol_ship setHeatInsulation:[self heatInsulation]];
 			[patrol_ship setPrimaryRole:@"police"];
 			[patrol_ship setBounty:0];
 			[patrol_ship setGroup:[self stationGroup]];	// who's your Daddy

@@ -2012,6 +2012,7 @@
 		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
 		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		B3EA9395154147EB00AB3C5B /* oolite-missile.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-missile.js"; sourceTree = "<group>"; };
+		B3EC10B6155C154000778240 /* OOLegalStatusReason.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOLegalStatusReason.tbl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2539,6 +2540,7 @@
 				1A972FFC12E6077D001F2406 /* OOCompassMode.tbl */,
 				1A35251112E1F89100244C9D /* OOEntityStatus.tbl */,
 				1A97302012E60F9B001F2406 /* OOGUIScreenID.tbl */,
+				B3EC10B6155C154000778240 /* OOLegalStatusReason.tbl */,
 				1A97305C12E61427001F2406 /* OOGalacticHyperspaceBehaviour.tbl */,
 				1A35256012E1FC0100244C9D /* OOScanClass.tbl */,
 				1A85AE4D12EE0ED9000E1FCD /* OOViewID.tbl */,
