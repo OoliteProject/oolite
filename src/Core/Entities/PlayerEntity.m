@@ -4511,21 +4511,26 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason
 {
+	NSString* nReason = OOStringFromLegalStatusReason(reason);
+	[self setBounty:amount withReasonAsString:nReason];
+}
+
+
+- (void) setBounty:(OOCreditsQuantity)amount withReasonAsString:(NSString *)reason
+{
 	JSContext *context = OOJSAcquireContext();
 	
 	jsval amountVal = JSVAL_VOID;
 	int amountVal2 = (int)amount-(int)legalStatus;
 	JS_NewNumberValue(context, amountVal2, &amountVal);
 
-
 	legalStatus = amount; // can't set the new bounty until the size of the change is known
 
-	jsval reasonVal = OOJSValueFromLegalStatusReason(context, reason);
+	jsval reasonVal = OOJSValueFromNativeObject(context,reason);
 		
 	ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
 		
 	OOJSRelinquishContext(context);
-
 }
 
 
@@ -4554,7 +4559,7 @@ static GLfloat		sBaseMass = 0.0;
 		JSContext *context = OOJSAcquireContext();
 	
 		jsval amountVal = JSVAL_VOID;
-		int amountVal2 = (legalStatus | offence_value) - offence_value;
+		int amountVal2 = (legalStatus | offence_value) - legalStatus;
 		JS_NewNumberValue(context, amountVal2, &amountVal);
 
 		legalStatus |= offence_value; // can't set the new bounty until the size of the change is known

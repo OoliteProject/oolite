@@ -77,6 +77,7 @@ static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSelectNewMissile(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipFireMissile(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipSetBounty(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetCargo(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetShaders(JSContext *context, uintN argc, jsval *vp);
@@ -316,6 +317,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
 	{ "sendAIMessage",			ShipSendAIMessage,			1 },
 	{ "setAI",					ShipSetAI,					1 },
+	{ "setBounty",					ShipSetBounty,					2 },
 	{ "setCargo",				ShipSetCargo,				1 },
 	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
 	{ "setMaterials",			ShipSetMaterials,			1 },
@@ -2027,6 +2029,34 @@ static JSBool ShipFireMissile(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_NATIVE_EXIT
 }
+
+// setBounty(amount, reason)
+static JSBool ShipSetBounty(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	ShipEntity				*thisEnt = nil;
+	NSString				*reason = nil;
+	int32					newbounty = 0;
+	BOOL					gotBounty = YES;
+	
+	GET_THIS_SHIP(thisEnt);
+	
+	if (argc > 0)  gotBounty = JS_ValueToInt32(context, OOJS_ARGV[0], &newbounty);
+	if (argc > 1)  reason = OOStringFromJSValue(context, OOJS_ARGV[1]);
+	if (EXPECT_NOT(reason == nil || !gotBounty || newbounty < 0))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"setBounty", argc, OOJS_ARGV, nil, @"new bounty and reason");
+		return NO;
+	}
+	
+	[thisEnt setBounty:(OOCreditsQuantity)newbounty withReasonAsString:reason];
+	
+	return YES;
+	
+	OOJS_NATIVE_EXIT
+}
+
 
 // setCargo(cargoType : String [, number : count])
 static JSBool ShipSetCargo(JSContext *context, uintN argc, jsval *vp)

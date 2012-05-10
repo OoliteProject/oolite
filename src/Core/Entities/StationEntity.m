@@ -1621,7 +1621,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		
 		if (trader)
 		{
-			[ship setBounty:0];
+			[ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			[ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 			if (sunskimmer) 
 			{
@@ -1773,9 +1773,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
 			if ([police_ship scanClass] == CLASS_NOT_SET)
 				[police_ship setScanClass: CLASS_POLICE];
+			[police_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			if ([police_ship heatInsulation] < [self heatInsulation])
 				[police_ship setHeatInsulation:[self heatInsulation]];
-			[police_ship setBounty:0];
 			[police_ship switchAITo:@"policeInterceptAI.plist"];
 			[self addShipToLaunchQueue:police_ship :YES];
 			defenders_launched++;
@@ -2011,7 +2011,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if ([pirate_ship heatInsulation] < [self heatInsulation])
 			[pirate_ship setHeatInsulation:[self heatInsulation]];
 		//**Lazygun** added 30 Nov 04 to put a bounty on those pirates' heads.
-		[pirate_ship setBounty: 10 + floor(randf() * 20)];	// modified for variety
+		[pirate_ship setBounty: 10 + floor(randf() * 20) withReason:kOOLegalStatusReasonSetup];	// modified for variety
 
 		[self addShipToLaunchQueue:pirate_ship :NO];
 		[pirate_ship autorelease];
@@ -2114,7 +2114,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			if ([patrol_ship heatInsulation] < [self heatInsulation])
 				[patrol_ship setHeatInsulation:[self heatInsulation]];
 			[patrol_ship setPrimaryRole:@"police"];
-			[patrol_ship setBounty:0];
+			[patrol_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			[patrol_ship setGroup:[self stationGroup]];	// who's your Daddy
 			[patrol_ship switchAITo:@"planetPatrolAI.plist"];
 			[self addShipToLaunchQueue:patrol_ship :NO];

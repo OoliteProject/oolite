@@ -5662,7 +5662,20 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 {
 	if ([self isSubEntity]) 
 	{
-		[[self parentEntity] setBounty:amount];
+		[[self parentEntity] setBounty:amount withReason:reason];
+	}
+	else 
+	{
+		NSString* nReason = OOStringFromLegalStatusReason(reason);
+		[self setBounty:amount withReasonAsString:nReason];
+	}
+}
+
+- (void) setBounty:(OOCreditsQuantity) amount withReasonAsString:(NSString*)reason
+{
+	if ([self isSubEntity]) 
+	{
+		[[self parentEntity] setBounty:amount withReasonAsString:reason];
 	}
 	else 
 	{
@@ -5673,7 +5686,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 		bounty = amount; // can't set the new bounty until the size of the change is known
 
-		jsval reasonVal = OOJSValueFromLegalStatusReason(context, reason);
+		jsval reasonVal = OOJSValueFromNativeObject(context,reason);
 		
 		ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
 		
@@ -5681,6 +5694,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 	}
 }
+
 
 
 - (OOCreditsQuantity) bounty

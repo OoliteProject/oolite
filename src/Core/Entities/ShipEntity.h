@@ -729,6 +729,7 @@ typedef enum
  */
 - (void) setBounty:(OOCreditsQuantity) amount;
 - (void) setBounty:(OOCreditsQuantity) amount withReason:(OOLegalStatusReason)reason;
+- (void) setBounty:(OOCreditsQuantity) amount withReasonAsString:(NSString *)reason;
 - (OOCreditsQuantity) bounty;
 
 - (int) legalStatus;
