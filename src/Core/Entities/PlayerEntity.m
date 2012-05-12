@@ -7807,11 +7807,12 @@ static NSString *last_outfitting_key=nil;
 	if (missile_entity[pylon] != nil)
 	{
 		NSString	*identifier = [missile_entity[pylon] primaryRole];
-		// Remove the missile.
+		[super removeExternalStore:[OOEquipmentType equipmentTypeWithIdentifier:identifier]];
+
+		// Remove the missile (must wait until we've finished with its identifier string!)
 		[missile_entity[pylon] release];
 		missile_entity[pylon] = nil;
 		
-		[super removeExternalStore:[OOEquipmentType equipmentTypeWithIdentifier:identifier]];
 		[self tidyMissilePylons];
 		
 		// This should be the currently selected missile, deselect it.
