@@ -101,7 +101,7 @@ OOINLINE void bounding_box_reset_to_vector(BoundingBox *box, Vector vec)
 
 OOINLINE void bounding_box_get_dimensions(BoundingBox bb, GLfloat *xSize, GLfloat *ySize, GLfloat *zSize)
 {
-	if (xSize != NULL)  *xSize = bb.max.x - bb.min.y;
+	if (xSize != NULL)  *xSize = bb.max.x - bb.min.x;
 	if (ySize != NULL)  *ySize = bb.max.y - bb.min.y;
 	if (zSize != NULL)  *zSize = bb.max.z - bb.min.z;
 }

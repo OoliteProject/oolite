@@ -193,6 +193,9 @@ enum
 	kShip_weaponRange,			// weapon range, double, read-only
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
 	kShip_yaw, // yaw level, float, read-only
+	kShip_width, // bounding box width, float, read-only
+	kShip_height, // bounding box width, float, read-only
+	kShip_length, // bounding box width, float, read-only
 };
 
 
@@ -285,6 +288,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "weaponRange",			kShip_weaponRange,			OOJS_PROP_READONLY_CB },
 	{ "withinStationAegis",		kShip_withinStationAegis,	OOJS_PROP_READONLY_CB },
 	{ "yaw",				kShip_yaw,			OOJS_PROP_READONLY_CB },
+	{ "width",				kShip_width,			OOJS_PROP_READONLY_CB },
+	{ "height",				kShip_height,			OOJS_PROP_READONLY_CB },
+	{ "length",				kShip_length,			OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -687,6 +693,32 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 	  case kShip_yaw:
 			return JS_NewNumberValue(context, [entity flightYaw], value);
 		
+  	case kShip_width:
+  	case kShip_height:
+  	case kShip_length:
+		{
+			GLfloat ew, eh, el;
+			BoundingBox box;
+
+			if ([entity isSubEntity])
+			{
+				box = [entity boundingBox];
+			}
+			else
+			{
+				box = [entity totalBoundingBox];
+			}
+			bounding_box_get_dimensions(box,&ew,&eh,&el);
+			switch (JSID_TO_INT(propID))
+			{
+			  case kShip_width:
+					return JS_NewNumberValue(context, ew, value);
+			  case kShip_height:
+					return JS_NewNumberValue(context, eh, value);
+			  case kShip_length:
+					return JS_NewNumberValue(context, el, value);
+			}			
+		}
 			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sShipProperties);
