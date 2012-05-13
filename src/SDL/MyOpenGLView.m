@@ -231,18 +231,25 @@ MA 02110-1301, USA.
 	[self createSurface];
 	if (surface == NULL)
 	{
-		// Retry, allowing 16-bit contexts.
-		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+		// Retry with a 24-bit depth buffer
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		[self createSurface];
-		
 		if (surface == NULL)
 		{
-			char * errStr = SDL_GetError();
-			OOLogERR(@"display.mode.error", @"Could not create display surface: %s", errStr);
-			exit(1);
+			// Still not working? One last go...
+			// Retry, allowing 16-bit contexts.
+			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+			[self createSurface];
+			
+			if (surface == NULL)
+			{
+				char * errStr = SDL_GetError();
+				OOLogERR(@"display.mode.error", @"Could not create display surface: %s", errStr);
+				exit(1);
+			}
 		}
 	}
 	
@@ -780,6 +787,10 @@ MA 02110-1301, USA.
 		videoModeFlags &= ~SDL_FULLSCREEN;
 		videoModeFlags |= SDL_RESIZABLE;
 		surface = SDL_SetVideoMode((int)viewSize.width, (int)viewSize.height, 32, videoModeFlags);
+	}
+	if (!surface)
+	{
+		return; // fall back with a NULL surface to a different context
 	}
 
 	bounds.size.width = surface->w;
