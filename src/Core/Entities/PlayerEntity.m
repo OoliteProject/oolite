@@ -4646,15 +4646,49 @@ static GLfloat		sBaseMass = 0.0;
 		damage_to = n_considered - (damage_to + 1);	// reverse the die-roll
 	}
 	// equipment damage
-	if (damage_to < [self equipmentCount])
+	NSEnumerator *eqEnum = [self equipmentEnumerator];
+	OOEquipmentType	*eqType;
+	NSString		*system_key;
+	unsigned damageableCounter = 0;
+	GLfloat damageableOdds = 0.0;
+	while ((system_key = [eqEnum nextObject]) != nil)
 	{
-		NSArray			*systems = [[self equipmentEnumerator] allObjects];
-		NSString		*system_key = [systems objectAtIndex:damage_to];
-		OOEquipmentType	*eqType = [OOEquipmentType equipmentTypeWithIdentifier:system_key];
+		eqType = [OOEquipmentType equipmentTypeWithIdentifier:system_key];
+		if ([eqType canBeDamaged])
+		{
+			damageableCounter++;
+			damageableOdds += [eqType damageProbability];
+		}
+	}
+
+	if (damage_to < damageableCounter)
+	{
+		GLfloat target = randf() * damageableOdds;
+		GLfloat accumulator = 0.0;
+		eqEnum = [self equipmentEnumerator];
+		while ((system_key = [eqEnum nextObject]) != nil)
+		{
+			eqType = [OOEquipmentType equipmentTypeWithIdentifier:system_key];
+			accumulator += [eqType damageProbability];
+			if (accumulator > target) 
+			{
+				[system_key retain];
+				break;
+			}
+		}
+		if (system_key == nil)
+		{
+			[system_key release];
+			return NO;
+		}
+
 		NSString		*system_name = [eqType name];
-		
-		if (![eqType canBeDamaged] || system_name == nil)  return NO;
-		
+		if (![eqType canBeDamaged] || system_name == nil)
+		{
+			[system_key release];
+			return NO;
+		}
+
 		// set the following so removeEquipment works on the right entity
 		[self setScriptTarget:self];
 		[UNIVERSE clearPreviousMessage];
@@ -4690,6 +4724,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			[self disengageAutopilot];
 		}
+		[system_key release];
 		return YES;
 	}
 	//cosmetic damage

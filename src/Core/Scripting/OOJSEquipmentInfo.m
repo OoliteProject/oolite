@@ -47,6 +47,7 @@ enum
 	// Property IDs
 	kEquipmentInfo_canBeDamaged,
 	kEquipmentInfo_canCarryMultiple,
+	kEquipmentInfo_damageProbability,
 	kEquipmentInfo_description,
 	kEquipmentInfo_effectiveTechLevel,
 	kEquipmentInfo_equipmentKey,
@@ -80,6 +81,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	// JS name							ID											flags
 	{ "canBeDamaged",					kEquipmentInfo_canBeDamaged,				OOJS_PROP_READONLY_CB },
 	{ "canCarryMultiple",				kEquipmentInfo_canCarryMultiple,			OOJS_PROP_READONLY_CB },
+	{ "damageProbability",					kEquipmentInfo_damageProbability,				OOJS_PROP_READONLY_CB },
 	{ "description",					kEquipmentInfo_description,					OOJS_PROP_READONLY_CB },
 	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			OOJS_PROP_READWRITE_CB },
 	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				OOJS_PROP_READONLY_CB },
@@ -257,6 +259,9 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 			result = [eqType descriptiveText];
 			break;
 			
+		case kEquipmentInfo_damageProbability:
+			return JS_NewNumberValue(context, [eqType damageProbability], value);
+
 		case kEquipmentInfo_techLevel:
 			*value = INT_TO_JSVAL([eqType techLevel]);
 			return YES;

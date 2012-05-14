@@ -18,6 +18,8 @@
 			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
 			requires_empty_pylon = true;
 			strict_mode_compatible = true;
+			/* NOTE: this is always zero for pylon-mounted equipment */
+			damage_probability = 0;
 		}
 	),
 	(
@@ -25,6 +27,7 @@
 		"EQ_CARGO_BAY",
 		"Retro-fitted hull extensions permit the enclosure of a few extra tons of cargo capacity.",
 		{
+		  damage_probability = 0;
 			strict_mode_compatible = true;
 		}
 	),
@@ -171,6 +174,7 @@
 		{
 			strict_mode_compatible = true;
 			visible = false;	// Hidden on status screen.
+			damage_probability = 0;
 		}
 	),
 	( /* Passenger Compartment, like missiles this can be bought multiple times */
@@ -181,6 +185,7 @@
 			available_to_all = true;
 			available_to_NPCs = false;
 			requires_cargo_space = 5;
+			damage_probability = 0;
 		}
 	),
 	( /* Passenger Compartment Removal */
@@ -210,6 +215,8 @@
 			available_to_all = true;
 			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
 			requires_empty_pylon = true;
+			/* NOTE: this is always zero for pylon-mounted equipment */
+			damage_probability = 0;
 		}
 	),
 	(
@@ -268,6 +275,8 @@
 			available_to_all = true;
 			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
 			requires_empty_pylon = true;
+			/* NOTE: this is always zero for pylon-mounted equipment */
+			damage_probability = 0;
 		}
 	),
 	(

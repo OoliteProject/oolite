@@ -180,6 +180,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 		_isVisible = YES;
 		_isAvailableToPlayer = YES;
 		_isAvailableToNPCs = YES;
+		_damageProbability = 1.0;
 	}
 	
 	if (OK && [info count] > EQUIPMENT_EXTRA_INFO_INDEX)
@@ -211,6 +212,8 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_isVisible = [extra oo_boolForKey:@"visible" defaultValue:_isVisible];
 			
 			_requiredCargoSpace = [extra oo_unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
+
+			_damageProbability = [extra oo_floatForKey:@"damage_probability" defaultValue:(_isMissileOrMine?0.0:1.0)];
 			
 			id object = [extra objectForKey:@"requires_equipment"];
 			if ([object isKindOfClass:[NSString class]])  _requiresEquipment = [[NSSet setWithObject:object] retain];
@@ -415,18 +418,24 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
+- (GLfloat) damageProbability 
+{
+	if ([self isMissileOrMine])  return 0.0;
+
+	return _damageProbability;
+}
+
+
 - (BOOL) canBeDamaged
 {
 	if ([self isMissileOrMine])  return NO;
 	
-	if ([_identifier isEqualToString:@"EQ_TRUMBLE"] ||
-		[_identifier isEqualToString:@"EQ_PASSENGER_BERTH"] ||
-		[_identifier isEqualToString:@"EQ_CARGO_BAY"])
+	if ([self damageProbability] > 0.0)
 	{
-		return NO;
+		return YES;
 	}
 	
-	return YES;
+	return NO;
 }
 
 

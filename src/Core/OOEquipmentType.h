@@ -55,6 +55,7 @@ SOFTWARE.
 							_isVisible: 1,
 							_isAvailableToPlayer: 1,
 							_isAvailableToNPCs: 1;
+	GLfloat     _damageProbability;
 	OOCargoQuantity			_requiredCargoSpace;
 	NSSet					*_requiresEquipment;
 	NSSet					*_requiresAnyEquipment;
@@ -97,6 +98,7 @@ SOFTWARE.
 - (BOOL) isPortableBetweenShips;
 
 - (BOOL) canCarryMultiple;
+- (GLfloat) damageProbability;
 - (BOOL) canBeDamaged;
 - (BOOL) isVisible;				// Visible in UI?
 
