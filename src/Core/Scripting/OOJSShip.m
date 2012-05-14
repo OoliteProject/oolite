@@ -112,6 +112,7 @@ enum
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_beaconCode,			// beacon code, string, read-only (should probably be read/write, but the beacon list needs to be maintained.)
+	kShip_boundingBox,				// boundingBox, vector, read-only
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_cargoSpaceAvailable,	// free cargo space, integer, read-only
 	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
@@ -193,9 +194,6 @@ enum
 	kShip_weaponRange,			// weapon range, double, read-only
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
 	kShip_yaw, // yaw level, float, read-only
-	kShip_width, // bounding box width, float, read-only
-	kShip_height, // bounding box width, float, read-only
-	kShip_length, // bounding box width, float, read-only
 };
 
 
@@ -206,6 +204,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "AI",						kShip_AI,					OOJS_PROP_READONLY_CB },
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
+	{ "boundingBox",				kShip_boundingBox,			OOJS_PROP_READONLY_CB },
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
 	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
@@ -288,9 +287,6 @@ static JSPropertySpec sShipProperties[] =
 	{ "weaponRange",			kShip_weaponRange,			OOJS_PROP_READONLY_CB },
 	{ "withinStationAegis",		kShip_withinStationAegis,	OOJS_PROP_READONLY_CB },
 	{ "yaw",				kShip_yaw,			OOJS_PROP_READONLY_CB },
-	{ "width",				kShip_width,			OOJS_PROP_READONLY_CB },
-	{ "height",				kShip_height,			OOJS_PROP_READONLY_CB },
-	{ "length",				kShip_length,			OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -693,11 +689,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 	  case kShip_yaw:
 			return JS_NewNumberValue(context, [entity flightYaw], value);
 		
-  	case kShip_width:
-  	case kShip_height:
-  	case kShip_length:
+  	case kShip_boundingBox:
 		{
-			GLfloat ew, eh, el;
+			Vector bbvect;
 			BoundingBox box;
 
 			if ([entity isSubEntity])
@@ -708,16 +702,8 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			{
 				box = [entity totalBoundingBox];
 			}
-			bounding_box_get_dimensions(box,&ew,&eh,&el);
-			switch (JSID_TO_INT(propID))
-			{
-			  case kShip_width:
-					return JS_NewNumberValue(context, ew, value);
-			  case kShip_height:
-					return JS_NewNumberValue(context, eh, value);
-			  case kShip_length:
-					return JS_NewNumberValue(context, el, value);
-			}			
+			bounding_box_get_dimensions(box,&bbvect.x,&bbvect.y,&bbvect.z);
+			return VectorToJSValue(context, bbvect, value);
 		}
 			
 		default:
