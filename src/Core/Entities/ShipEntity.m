@@ -691,6 +691,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	NSArray *subs = [shipDict oo_arrayForKey:@"subentities"];
 	
+	totalBoundingBox = boundingBox;
+	
 	for (i = 0; i < [subs count]; i++)
 	{
 		[self setUpOneSubentity:[subs oo_dictionaryAtIndex:i]];
@@ -780,6 +782,15 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	[self addSubEntity:subentity];
 	[subentity setSubIdx:_maxShipSubIdx];
 	_maxShipSubIdx++;
+
+	// update subentities
+	if ([subentity isShip])
+	{
+		BoundingBox sebb = [subentity findSubentityBoundingBox];
+		bounding_box_add_vector(&totalBoundingBox, sebb.max);
+		bounding_box_add_vector(&totalBoundingBox, sebb.min);
+	}
+
 	[subentity release];
 	
 	return YES;
