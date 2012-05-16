@@ -1,36 +1,36 @@
 /*
-
-ShipEntity.h
-
-Entity subclass representing a ship, or various other flying things like cargo
-pods and stations (a subclass).
-
-Oolite
-Copyright (C) 2004-2012 Giles C Williams and contributors
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
-
-*/
+ 
+ ShipEntity.h
+ 
+ Entity subclass representing a ship, or various other flying things like cargo
+ pods and stations (a subclass).
+ 
+ Oolite
+ Copyright (C) 2004-2012 Giles C Williams and contributors
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ MA 02110-1301, USA.
+ 
+ */
 
 #import "OOEntityWithDrawable.h"
 #import "OOPlanetEntity.h"
 #import "OOJSPropID.h"
 
 @class	OOColor, StationEntity, WormholeEntity, AI, Octree, OOMesh, OOScript,
-		OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
+OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 
 #ifdef OO_BRAIN_AI
 @class OOBrain;
@@ -125,7 +125,7 @@ MA 02110-1301, USA.
 
 typedef enum OOBehaviour
 {
-	#include "OOBehaviour.tbl"
+#include "OOBehaviour.tbl"
 } OOBehaviour;
 
 #undef ENTRY
@@ -158,7 +158,7 @@ typedef enum
 typedef enum
 {
 #define DIFF_STRING_ENTRY(label, string) label,
-	#include "OOShipDamageType.tbl"
+#include "OOShipDamageType.tbl"
 #undef DIFF_STRING_ENTRY
 	
 	kOOShipDamageTypeDefault = kOODamageTypeEnergy
@@ -225,36 +225,36 @@ typedef enum
 	// TODO: stick all equipment in a list, and move list from playerEntity to shipEntity. -- Ahruman
 	unsigned				military_jammer_active: 1,	// military_jammer
 	
-							docking_match_rotation: 1,
+docking_match_rotation: 1,
 	
 	
-							pitching_over: 1,			// set to YES if executing a sharp loop
-							reportAIMessages: 1,		// normally NO, suppressing AI message reporting
+pitching_over: 1,			// set to YES if executing a sharp loop
+reportAIMessages: 1,		// normally NO, suppressing AI message reporting
 	
-							being_mined: 1,				// normally NO, set to Yes when fired on by mining laser
+being_mined: 1,				// normally NO, set to Yes when fired on by mining laser
 	
-							being_fined: 1,
+being_fined: 1,
 	
-							isHulk: 1,					// This is used to distinguish abandoned ships from cargo
-							trackCloseContacts: 1,
+isHulk: 1,					// This is used to distinguish abandoned ships from cargo
+trackCloseContacts: 1,
 	
-							isNearPlanetSurface: 1,		// check for landing on planet
-							isFrangible: 1,				// frangible => subEntities can be damaged individually
-							cloaking_device_active: 1,	// cloaking_device
-							cloakPassive: 1,			// cloak deactivates when main weapons or missiles are fired
-							cloakAutomatic: 1,			// cloak activates itself automatic during attack
-							canFragment: 1,				// Can it break into wreckage?
-							suppressExplosion: 1,		// Avoid exploding on death (script hook)
-							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
-							isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
-							isUnpiloted: 1,				// Is meant to not have crew
-							hasScoopMessage: 1,			// suppress scoop messages when false.
+isNearPlanetSurface: 1,		// check for landing on planet
+isFrangible: 1,				// frangible => subEntities can be damaged individually
+cloaking_device_active: 1,	// cloaking_device
+cloakPassive: 1,			// cloak deactivates when main weapons or missiles are fired
+cloakAutomatic: 1,			// cloak activates itself automatic during attack
+canFragment: 1,				// Can it break into wreckage?
+suppressExplosion: 1,		// Avoid exploding on death (script hook)
+suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
+isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
+isUnpiloted: 1,				// Is meant to not have crew
+hasScoopMessage: 1,			// suppress scoop messages when false.
 	
 	// scripting
-							scripted_misjump: 1,
-							haveExecutedSpawnAction: 1,
-							noRocks: 1,
-							_lightsActive: 1;
+scripted_misjump: 1,
+haveExecutedSpawnAction: 1,
+noRocks: 1,
+_lightsActive: 1;
 	
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
@@ -300,8 +300,8 @@ typedef enum
 	OOUniversalID			primaryAggressor;			// recorded after an attack
 	OOUniversalID			targetStation;				// for docking
 	OOUniversalID			found_target;				// from scans
-	NSMutableArray	 *defenseTargets;			 // defense targets
-
+	NSMutableArray			*defenseTargets;			 // defense targets
+	
 	OOUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
 	OOUInteger				_maxShipSubIdx;				// serialisation index - the number of ship subentities inside the shipdata
 	double					launch_time;				// time at which launched
@@ -309,7 +309,7 @@ typedef enum
 	OOUniversalID			planetForLanding;			// for landing
 	
 	GLfloat					frustration,				// degree of dissatisfaction with the current behavioural state, factor used to test this
-							success_factor;
+	success_factor;
 	
 	int						patrol_counter;				// keeps track of where the ship is along a patrol route
 	
@@ -322,10 +322,10 @@ typedef enum
 	double					cargo_dump_time;			// time cargo was last dumped
 	
 	NSMutableArray			*cargo;						// cargo containers go in here
-
+	
 	OOCommodityType			commodity_type;				// type of commodity in a container
 	OOCargoQuantity			commodity_amount;			// 1 if unit is TONNES (0), possibly more if precious metals KILOGRAMS (1)
-														// or gem stones GRAMS (2)
+	// or gem stones GRAMS (2)
 	
 	// navigation
 	GLfloat					flightSpeed;				// current speed
@@ -337,21 +337,22 @@ typedef enum
 	float					pitch_tolerance;
 	
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
-
+	
 	
 	double					messageTime;				// counts down the seconds a radio message is active for
 	
 	double					next_spark_time;			// time of next spark when throwing sparks
 	
 	OOUniversalID			thanked_ship_id;			// last ship thanked
+	OOUniversalID			remembered_ship;			// ship being remembered
 	
 	Vector					collision_vector;			// direction of colliding thing.
 	
 	//position of gun ports
 	Vector					forwardWeaponOffset,
-							aftWeaponOffset,
-							portWeaponOffset,
-							starboardWeaponOffset;
+	aftWeaponOffset,
+	portWeaponOffset,
+	starboardWeaponOffset;
 	
 	// crew (typically one OOCharacter - the pilot)
 	NSArray					*crew;
@@ -828,10 +829,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) resetExhaustPlumes;
 
 /*-----------------------------------------
-
-	AI piloting methods
-
------------------------------------------*/
+ 
+ AI piloting methods
+ 
+ -----------------------------------------*/
 
 - (void) checkScanner;
 - (ShipEntity**) scannedShips;
@@ -934,8 +935,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) witchspaceLeavingEffects;
 
 /* 
-   Mark this ship as an offender, this is different to setBounty as some ships such as police 
-   are not markable.  The final bounty may not be equal to existing bounty plus offence_value.
+ Mark this ship as an offender, this is different to setBounty as some ships such as police 
+ are not markable.  The final bounty may not be equal to existing bounty plus offence_value.
  */
 - (void) markAsOffender:(int)offence_value;
 - (void) markAsOffender:(int)offence_value withReason:(OOLegalStatusReason)reason;
@@ -1005,9 +1006,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (Entity *)entityForShaderProperties;
 
 /*	*** Script events.
-	For NPC ships, these call doEvent: on the ship script.
-	For the player, they do that and also call doWorldScriptEvent:.
-*/
+ For NPC ships, these call doEvent: on the ship script.
+ For the player, they do that and also call doWorldScriptEvent:.
+ */
 - (void) doScriptEvent:(jsid)message;
 - (void) doScriptEvent:(jsid)message withArgument:(id)argument;
 - (void) doScriptEvent:(jsid)message withArgument:(id)argument1 andArgument:(id)argument2;
@@ -1016,18 +1017,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) doScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc;
 
 /*	Convenience to send an event with raw JS values, for example:
-	ShipScriptEventNoCx(ship, "doSomething", INT_TO_JSVAL(42));
-*/
+ ShipScriptEventNoCx(ship, "doSomething", INT_TO_JSVAL(42));
+ */
 #define ShipScriptEvent(context, ship, event, ...) do { \
-	jsval argv[] = { __VA_ARGS__ }; \
-	uintN argc = sizeof argv / sizeof *argv; \
-	[ship doScriptEvent:OOJSID(event) inContext:context withArguments:argv count:argc]; \
+jsval argv[] = { __VA_ARGS__ }; \
+uintN argc = sizeof argv / sizeof *argv; \
+[ship doScriptEvent:OOJSID(event) inContext:context withArguments:argv count:argc]; \
 } while (0)
 
 #define ShipScriptEventNoCx(ship, event, ...) do { \
-	jsval argv[] = { __VA_ARGS__ }; \
-	uintN argc = sizeof argv / sizeof *argv; \
-	[ship doScriptEvent:OOJSID(event) withArguments:argv count:argc]; \
+jsval argv[] = { __VA_ARGS__ }; \
+uintN argc = sizeof argv / sizeof *argv; \
+[ship doScriptEvent:OOJSID(event) withArguments:argv count:argc]; \
 } while (0)
 
 - (void) reactToAIMessage:(NSString *)message context:(NSString *)debugContext;	// Immediate message

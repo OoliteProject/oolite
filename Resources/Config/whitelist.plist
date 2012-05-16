@@ -208,6 +208,8 @@
 		"addFoundTargetAsDefenseTarget",
 		"findNewDefenseTarget",	
 		"clearDefenseTargets",	
+		"storeTarget",
+		"recallStoredTarget",
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",
 		"decreaseAlertLevel",

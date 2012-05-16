@@ -406,7 +406,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (![shipsOnHold objectForKey:shipID])
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
-		//[self performStop]; // This should be handled by "DOCKING_REQUESTED" in the AI itself.
 		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
@@ -415,7 +414,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (![shipsOnHold objectForKey:shipID])
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
-		//[self performStop];
 		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
@@ -431,7 +429,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			if (![shipsOnHold objectForKey:shipID])
 				[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 			[shipsOnHold setObject: shipID forKey: shipID];
-			//[self performStop];
 			return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
@@ -1368,18 +1365,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	if (![ship isShip])  return NO;
 	
-	// [ship totalBoundingBox] is not yet defined for 'launching npc ships', so calculate this size.
-	BoundingBox bb = [ship boundingBox];
-	ShipEntity *se = nil;
-	foreach (se, [ship subEntities])
-	{
-		if ([se isShip])
-		{
-			BoundingBox sebb = [se findSubentityBoundingBox];
-			bounding_box_add_vector(&bb, sebb.max);
-			bounding_box_add_vector(&bb, sebb.min);
-		}
-	}
+	BoundingBox bb = [ship totalBoundingBox];
 	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
 		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)) && ![ship isPlayer])
 	{

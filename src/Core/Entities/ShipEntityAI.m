@@ -1,26 +1,26 @@
 /*
-
-ShipEntityAI.m
-
-Oolite
-Copyright (C) 2004-2012 Giles C Williams and contributors
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
-
-*/
+ 
+ ShipEntityAI.m
+ 
+ Oolite
+ Copyright (C) 2004-2012 Giles C Williams and contributors
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ MA 02110-1301, USA.
+ 
+ */
 
 #import "ShipEntityAI.h"
 #import "OOMaths.h"
@@ -212,6 +212,9 @@ MA 02110-1301, USA.
 
 - (void) markTargetForOffence:(NSString *) valueString;
 
+- (void) storeTarget;
+- (void) recallStoredTarget;
+
 - (void) scanForRocks;
 
 - (void) performMining;
@@ -364,7 +367,7 @@ MA 02110-1301, USA.
 {
 	NSArray*	tokens = ScanTokensFromString(intervalString);
 	double start, end;
-
+	
 	if ([tokens count] != 2)
 	{
 		OOLog(@"ai.syntax.randomPauseAI", @"***** ERROR: cannot read min and max value for randomPauseAI:, needs 2 values: '%@'.", intervalString);
@@ -467,7 +470,7 @@ MA 02110-1301, USA.
 		return;
 	if (primaryTarget == primaryAggressor)
 		return;
-		
+	
 	// a more considered approach here:
 	// if we're already busy attacking a target we don't necessarily want to break off
 	//
@@ -476,11 +479,11 @@ MA 02110-1301, USA.
 		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET:
 		case BEHAVIOUR_ATTACK_FLY_TO_TARGET:
 			if (randf() < 0.75)	// if I'm attacking, ignore 75% of new aggressor's attacks
-// but add them as a secondary target anyway
+				// but add them as a secondary target anyway
 				[self addDefenseTarget:primaryAggressor];
-				return;
+			return;
 			break;
-		
+			
 		default:
 			break;
 	}
@@ -510,7 +513,7 @@ MA 02110-1301, USA.
 		return;
 	if ([self isDefenseTarget:primaryAggressor])
 		return;
-
+	
 	if ([primeAggressor isShip] && ![(ShipEntity *)primeAggressor isFriendlyTo:self])
 	{
 		[self addDefenseTarget:primaryAggressor];
@@ -766,8 +769,8 @@ MA 02110-1301, USA.
 	//
 	StationEntity	*station =  nil;
 	station = [UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
-											   parameter:nil
-										relativeToEntity:self];
+										   parameter:nil
+									relativeToEntity:self];
 	
 	if (station && distance2([station position], position) < SCANNER_MAX_RANGE2) // there is a station in range.
 	{
@@ -840,7 +843,7 @@ MA 02110-1301, USA.
 	
 	[self addTarget:missile];
 	[self addDefenseTarget:[missile universalID]];
-
+	
 	// Notify own ship script that we are being attacked.	
 	ShipEntity *hunter = [missile owner];
 	[self doScriptEvent:OOJSID("shipBeingAttacked") withArgument:hunter];
@@ -913,7 +916,7 @@ MA 02110-1301, USA.
 	if (the_planet)
 	{
 		destination = vector_add([the_planet position], vector_multiply_scalar(
-			vector_normal(vector_subtract([the_planet position],position)),-10000.0-the_planet->collision_radius));// 10km straight up
+																			   vector_normal(vector_subtract([the_planet position],position)),-10000.0-the_planet->collision_radius));// 10km straight up
 		desired_range = 50.0;
 	}
 	else
@@ -1064,27 +1067,27 @@ MA 02110-1301, USA.
 			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, keep for compatibility with pre-1.72 AI plists.
 			break;
 		case AEGIS_CLOSE_TO_ANY_PLANET:
+		{
+			Entity<OOStellarBody> *nearest = [self findNearestStellarBody];
+			
+			if([nearest isSun])
 			{
-				Entity<OOStellarBody> *nearest = [self findNearestStellarBody];
-				
-				if([nearest isSun])
+				[shipAI message:@"CLOSE_TO_SUN"];
+			}
+			else
+			{
+				[shipAI message:@"CLOSE_TO_PLANET"];
+				if ([nearest planetType] == STELLAR_TYPE_MOON)
 				{
-					[shipAI message:@"CLOSE_TO_SUN"];
+					[shipAI message:@"CLOSE_TO_MOON"];
 				}
 				else
 				{
-					[shipAI message:@"CLOSE_TO_PLANET"];
-					if ([nearest planetType] == STELLAR_TYPE_MOON)
-					{
-						[shipAI message:@"CLOSE_TO_MOON"];
-					}
-					else
-					{
-						[shipAI message:@"CLOSE_TO_SECONDARY_PLANET"];
-					}
+					[shipAI message:@"CLOSE_TO_SECONDARY_PLANET"];
 				}
-				break;
 			}
+			break;
+		}
 		case AEGIS_IN_DOCKING_RANGE:
 			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
 			break;
@@ -1119,7 +1122,7 @@ MA 02110-1301, USA.
 - (void) checkHeatInsulation
 {
 	float minInsulation = 1000 / [self maxFlightSpeed] + 1;
-
+	
 	if ([self heatInsulation] < minInsulation)
 	{
 		[shipAI message:@"INSULATION_POOR"];
@@ -1158,7 +1161,7 @@ MA 02110-1301, USA.
 		gov_factor = 1.0;
 	//
 	found_target = NO_TARGET;
-
+	
 	// find the worst offender on the scanner
 	//
 	[self checkScanner];
@@ -1257,7 +1260,7 @@ MA 02110-1301, USA.
 	// We now have no escorts..
 	[_escortGroup release];
 	_escortGroup = nil;
-
+	
 }
 
 
@@ -1300,7 +1303,7 @@ MA 02110-1301, USA.
 - (void) broadcastDistressMessage
 {
 	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
-
+	
 	[self checkScanner];
 	found_target = NO_TARGET;
 	
@@ -1319,7 +1322,7 @@ MA 02110-1301, USA.
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity*	ship = scanned_ships[i];
-	
+		
 		// tell it!
 		if (ship->isPlayer)
 		{
@@ -1478,7 +1481,7 @@ MA 02110-1301, USA.
 - (void) fightOrFleeHostiles
 {
 	[self addDefenseTarget:found_target];
-
+	
 	if ([self hasEscorts])
 	{
 		if (found_target == last_escort_target)
@@ -1541,7 +1544,7 @@ MA 02110-1301, USA.
 				int extra = 1 | (ranrot_rand() & 15);
 				[mother setBounty: [mother legalStatus] + extra withReason:kOOLegalStatusReasonAssistingOffender];
 				[self setBounty:(bounty+extra) withReason:kOOLegalStatusReasonAssistingOffender];
-//				bounty += extra;	// obviously we're dodgier than we thought!
+				//				bounty += extra;	// obviously we're dodgier than we thought!
 			}
 			
 			[self setOwner:mother];
@@ -1556,7 +1559,7 @@ MA 02110-1301, USA.
 			OOLog(@"ai.suggestEscort.refused", @"DEBUG: %@ refused by %@", self, mother);
 		}
 #endif
-
+		
 	}
 	[self setOwner:self];
 	[shipAI message:@"NOT_ESCORTING"];
@@ -1681,7 +1684,7 @@ MA 02110-1301, USA.
 			[self setPrimaryRole:@"police"]; // other wingman can now select this ship as leader.
 		}
 	}
-
+	
 }
 
 
@@ -1894,10 +1897,52 @@ MA 02110-1301, USA.
 }
 
 
+- (void) storeTarget
+{
+	Entity	*target = [UNIVERSE entityForUniversalID:primaryTarget];
+	
+	if (target)
+	{
+		remembered_ship = primaryTarget;
+	}
+	else
+	{
+		remembered_ship = NO_TARGET;
+	}
+	
+}
+
+- (void) recallStoredTarget
+{
+	ShipEntity	*oldTarget = [UNIVERSE entityForUniversalID:remembered_ship];
+	BOOL	found = NO;
+	
+	if (oldTarget && ![oldTarget isCloaked])
+	{
+		GLfloat range2 = distance2([oldTarget position], position);
+		if (range2 <= scannerRange * scannerRange && range2 <= SCANNER_MAX_RANGE2)
+		{
+			found = YES;
+		}
+	}
+	
+	if (found)
+	{
+		found_target = remembered_ship;
+		[shipAI message:@"TARGET_FOUND"];
+	}
+	else
+	{
+		if (oldTarget == nil) remembered_ship = NO_TARGET; // ship no longer exists
+		[shipAI message:@"NOTHING_FOUND"];
+	}
+	
+}
+
 - (void) scanForRocks
 {
 	/*-- Locates the all boulders and asteroids in range and selects nearest --*/
-
+	
 	// find boulders then asteroids within range
 	//
 	found_target = NO_TARGET;
@@ -1933,7 +1978,7 @@ MA 02110-1301, USA.
 			}
 		}
 	}
-
+	
 	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
 	else  [shipAI message:@"NOTHING_FOUND"];
 }
@@ -1992,7 +2037,7 @@ MA 02110-1301, USA.
 			}
 		}
 	}
-		
+	
 	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
 	else  [shipAI message:@"NOTHING_FOUND"];
 }
@@ -2083,19 +2128,19 @@ MA 02110-1301, USA.
 - (void) scanForNearestShipMatchingPredicate:(NSString *)predicateExpression
 {
 	/*	Takes a boolean-valued JS expression where "ship" is the ship being
-		evaluated and "this" is our ship's ship script. the expression is
-		turned into a JS function of the form:
-		
-			function _oo_AIScanPredicate(ship)
-			{
-				return $expression;
-			}
-		
-		Examples of expressions:
-		ship.isWeapon
-		this.someComplicatedPredicate(ship)
-		function (ship) { ...do something complicated... } ()
-	*/
+	 evaluated and "this" is our ship's ship script. the expression is
+	 turned into a JS function of the form:
+	 
+	 function _oo_AIScanPredicate(ship)
+	 {
+	 return $expression;
+	 }
+	 
+	 Examples of expressions:
+	 ship.isWeapon
+	 this.someComplicatedPredicate(ship)
+	 function (ship) { ...do something complicated... } ()
+	 */
 	
 	static NSMutableDictionary	*scriptCache = nil;
 	NSString					*aiName = nil;
@@ -2110,10 +2155,10 @@ MA 02110-1301, USA.
 	aiName = [[self getAI] name];
 #ifndef NDEBUG
 	/*	In debug/test release builds, scripts are cached per AI in order to be
-		able to report errors correctly. For end-user releases, we only cache
-		one copy of each predicate, potentially leading to error messages for
-		the wrong AI.
-	*/
+	 able to report errors correctly. For end-user releases, we only cache
+	 one copy of each predicate, potentially leading to error messages for
+	 the wrong AI.
+	 */
 	key = [NSString stringWithFormat:@"%@\n%@", aiName, predicateExpression];
 #else
 	key = predicateExpression;
@@ -2185,7 +2230,7 @@ MA 02110-1301, USA.
 	NSString*	xString = nil;
 	NSString*	yString = nil;
 	NSString*	zString = nil;
-
+	
 	if ([tokens count] != 4)
 	{
 		OOLog(@"ai.syntax.setCoordinates", @"***** ERROR: cannot setCoordinates: '%@'.",system_x_y_z);
@@ -2279,14 +2324,14 @@ MA 02110-1301, USA.
 		[shipAI message:@"NO_STATION_FOUND"];
 		targetStation = NO_TARGET;
 	}
-
+	
 }
 
 - (void) requestDockingCoordinates
 {
 	/*-	requests coordinates from the target station
-		if the target station can't be found
-		then use the nearest it can find (which may be a rock hermit) -*/
+	 if the target station can't be found
+	 then use the nearest it can find (which may be a rock hermit) -*/
 	
 	StationEntity	*station =  nil;
 	Entity			*targStation = nil;
@@ -2301,8 +2346,8 @@ MA 02110-1301, USA.
 	else
 	{
 		station = [UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
-												parameter:nil
-												relativeToEntity:self];
+											   parameter:nil
+										relativeToEntity:self];
 	}
 	
 	distanceToStation2 = distance2([station position], [self position]);
@@ -2326,7 +2371,7 @@ MA 02110-1301, USA.
 			message = [dockingInstructions objectForKey:@"comms_message"];
 			if (message != nil)  [station sendExpandedMessage:message toShip:self];
 		}
-
+		
 	}
 	else
 	{
@@ -2372,7 +2417,7 @@ MA 02110-1301, USA.
 	WormholeEntity *whole = nil;
 	ShipEntity		*targEnt = [self primaryTarget];
 	double found_d2 = scannerRange * scannerRange;
-
+	
 	if (targEnt && (distance2(position, [targEnt position]) < found_d2))
 	{
 		if ([targEnt isWormhole])
@@ -2708,7 +2753,7 @@ MA 02110-1301, USA.
 	context = [NSString stringWithFormat:@"%@ broadcastDistressMessage", [other shortDescription]];
 #endif
 	[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL" context:context];
-
+	
 }
 
 @end
