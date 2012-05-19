@@ -858,7 +858,14 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
 	if (_status != STATUS_COCKPIT_DISPLAY)
 	{
-		zero_distance = distance2(PLAYER->position, position);
+		if ([self isSubEntity])
+		{
+			zero_distance = [[self owner] zeroDistance];
+		}
+		else
+		{
+			zero_distance = distance2(PLAYER->position, position);
+		}
 	}
 	else
 	{

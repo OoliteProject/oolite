@@ -3621,7 +3621,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	double target_speed = [target speed];
 	if (range <= slow_down_range)
-		desired_speed = fmax(target_speed, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
+		desired_speed = fmax(target_speed * 1.05, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
 	else
 		desired_speed = max_available_speed; // use afterburner to approach
 
@@ -3735,7 +3735,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackPrimaryTarget:delta_t:YES];
 	if (forward_weapon_type == WEAPON_THARGOID_LASER) 
 	{
-// most Thargoids will only have the forward weapon
+		// most Thargoids will only have the forward weapon
 		[self fireMainWeapon:range];
 	}
 	else 
@@ -4306,22 +4306,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
-	Entity* my_owner = [self owner];
-	if (my_owner)
+	if (zero_distance > no_draw_distance) // this test provides an opportunity to do simple LoD culling
 	{
-		// this test provides an opportunity to do simple LoD culling
-		zero_distance = [my_owner zeroDistance];
-		if (zero_distance > no_draw_distance)
-		{
-			return; // TOO FAR AWAY
-		}
+		return; // TOO FAR AWAY
 	}
 	
 	if ([self status] == STATUS_ACTIVE)
 	{
 		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
 		Entity		*last = nil;
-		Entity		*father = my_owner;
+		Entity		*father = [self owner]; 
 		OOMatrix	r_mat;
 		
 		OOGL(glPushMatrix());
@@ -8420,7 +8414,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[missile setPosition:origin];
 	[missile addTarget:target];	
 	[missile setOrientation:q1];
-	//[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
 	[missile setIsMissileFlag:YES];
 	[missile setVelocity:vel];
 	[missile setSpeed:150.0f];
@@ -9125,6 +9118,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[cargo insertObject:other atIndex:0];	// places most recently scooped object at eject position
 		[other setStatus:STATUS_IN_HOLD];
 		[other setBehaviour:BEHAVIOUR_TUMBLE];
+		// next event is not yet documented on the wiki. Should it not become: shipScoopedCargo, for consistency?
 		[self doScriptEvent:OOJSID("cargoScooped") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(co_type), [NSNumber numberWithInt:co_amount], nil]];
 		[shipAI message:@"CARGO_SCOOPED"];
 		if (max_cargo && [cargo count] >= [self maxAvailableCargoSpace])  [shipAI message:@"HOLD_FULL"];
