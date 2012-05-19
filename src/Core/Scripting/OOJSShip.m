@@ -83,9 +83,13 @@ static JSBool ShipSetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipExitSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipUpdateEscortFormation(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipClearDefenseTargets(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp);
+
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
+
 
 
 static JSClass sShipClass =
@@ -120,7 +124,8 @@ enum
 	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
 	kShip_cloakAutomatic,		// should cloack start by itself or by script, read/write
 	kShip_cruiseSpeed,			// desired cruising speed, number, read only
-	kShip_dataKey,
+	kShip_dataKey,          // string, read-only, shipdata.plist key
+	kShip_defenseTargets,   // array, read-only, defense targets
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_displayName,			// name displayed on screen, string, read-only
 	kShip_entityPersonality,	// per-ship random number, int, read-only
@@ -214,6 +219,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "cloakAutomatic",			kShip_cloakAutomatic,		OOJS_PROP_READWRITE_CB},
 	{ "cruiseSpeed",			kShip_cruiseSpeed,			OOJS_PROP_READONLY_CB },
 	{ "dataKey",			kShip_dataKey,			OOJS_PROP_READONLY_CB },
+	{ "defenseTargets",			kShip_defenseTargets,			OOJS_PROP_READONLY_CB },
 	{ "desiredSpeed",			kShip_desiredSpeed,			OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
@@ -295,8 +301,10 @@ static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
 	{ "abandonShip",			ShipAbandonShip,			0 },
+	{ "addDefenseTarget",			ShipAddDefenseTarget,			1 },
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
+	{ "clearDefenseTargets",			ShipClearDefenseTargets,			0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ "dealEnergyDamage",			ShipDealEnergyDamage,			2 },
 	{ "deployEscorts",			ShipDeployEscorts,			0 },
@@ -424,6 +432,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity primaryTarget];
 			break;
 		
+		case kShip_defenseTargets:
+			result = [NSArray arrayWithArray:[entity getDefenseTargets]];
+			if ([result count] == 0)  result = nil;
+			break;
+
 		case kShip_escorts:
 			result = [[entity escortGroup] memberArrayExcludingLeader];
 			if ([result count] == 0)  result = nil;
@@ -2306,6 +2319,41 @@ static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL 
 	[thisEnt setEnergy:1];
 	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
 	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+static JSBool ShipClearDefenseTargets(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt clearDefenseTargets];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	ShipEntity				*target = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"addDefenseTarget", 1U, OOJS_ARGV, nil, @"target");
+		return NO;
+	}
+	
+	[thisEnt addDefenseTarget:[target universalID]];
+
 	OOJS_RETURN_VOID;
 	
 	OOJS_PROFILE_EXIT
