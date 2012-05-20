@@ -1017,21 +1017,21 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			{
 				sValue = @"EQ_WEAPON_NONE";
 			}
-			int facing;
+			int facing = WEAPON_FACING_FORWARD;
 			switch (JSID_TO_INT(propID))
 			{
-			case kShip_aftWeapon: 
-				facing = WEAPON_FACING_AFT;
-				break;
-			case kShip_forwardWeapon: 
-				facing = WEAPON_FACING_FORWARD;
-				break;
-			case kShip_portWeapon: 
-				facing = WEAPON_FACING_PORT;
-				break;
-			case kShip_starboardWeapon:
-				facing = WEAPON_FACING_STARBOARD;
-				break;
+				case kShip_aftWeapon: 
+					facing = WEAPON_FACING_AFT;
+					break;
+				case kShip_forwardWeapon: 
+					facing = WEAPON_FACING_FORWARD;
+					break;
+				case kShip_portWeapon: 
+					facing = WEAPON_FACING_PORT;
+					break;
+				case kShip_starboardWeapon:
+					facing = WEAPON_FACING_STARBOARD;
+					break;
 			}
 			if ([entity isPlayer])
 			{
@@ -1057,10 +1057,12 @@ playerReadOnly:
 	OOJSReportError(context, @"player.ship.%@ is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
 	return NO;
 
+// Not used (yet)
+/*
 npcReadOnly:
 	OOJSReportError(context, @"npc.ship.%@ is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
 	return NO;
-
+*/
 
 	OOJS_NATIVE_EXIT
 }
