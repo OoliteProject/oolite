@@ -99,6 +99,7 @@
 		"performHold",
 		"setTargetToPrimaryAggressor",
 		"performAttack",
+		"performBroadside",
 		"scanForNearestMerchantman",
 		"scanForRandomMerchantman",
 		"scanForLoot",

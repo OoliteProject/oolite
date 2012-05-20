@@ -62,6 +62,7 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 
 #define COMBAT_IN_RANGE_FACTOR			0.035f
 #define COMBAT_OUT_RANGE_FACTOR			0.500f
+#define COMBAT_BROADSIDE_RANGE_FACTOR			0.900f
 #define COMBAT_WEAPON_RANGE_FACTOR		1.200f
 #define COMBAT_JINK_OFFSET				500.0f
 
@@ -229,6 +230,7 @@ docking_match_rotation: 1,
 	
 	
 pitching_over: 1,			// set to YES if executing a sharp loop
+rolling_over: 1,			// set to YES if executing a sharp roll
 reportAIMessages: 1,		// normally NO, suppressing AI message reporting
 	
 being_mined: 1,				// normally NO, set to Yes when fired on by mining laser
@@ -271,6 +273,8 @@ _lightsActive: 1;
 	
 	OOWeaponType			forward_weapon_type;		// type of forward weapon (allows lasers, plasma cannon, others)
 	OOWeaponType			aft_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
+	OOWeaponType			port_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
+	OOWeaponType			starboard_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
 	GLfloat					weapon_damage;				// energy damage dealt by weapon
 	GLfloat					weapon_damage_override;		// custom energy damage dealt by front laser, if applicable
 	GLfloat					weaponRange;				// range of the weapon (in meters)
@@ -592,6 +596,11 @@ _lightsActive: 1;
 - (void) behaviour_attack_fly_from_target:(double) delta_t;
 - (void) behaviour_running_defense:(double) delta_t;
 - (void) behaviour_flee_target:(double) delta_t;
+- (void) behaviour_attack_broadside:(double) delta_t;
+- (void) behaviour_attack_broadside_left:(double) delta_t;
+- (void) behaviour_attack_broadside_right:(double) delta_t;
+- (void) behaviour_close_to_broadside_range:(double) delta_t;
+- (void) behaviour_attack_broadside_target:(double) delta_t leftside:(BOOL)leftside;
 - (void) behaviour_fly_range_from_destination:(double) delta_t;
 - (void) behaviour_face_destination:(double) delta_t;
 - (void) behaviour_land_on_planet:(double) delta_t;
@@ -874,18 +883,21 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (Vector) distance_twelve: (GLfloat) dist withOffset:(GLfloat)offset;
 
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat;
+- (double) trackSideTarget:(double) delta_t :(BOOL) leftside;
 - (double) missileTrackPrimaryTarget:(double) delta_t;
 
 //return 0.0 if there is no primary target
 - (double) rangeToPrimaryTarget;
 - (double) rangeToSecondaryTarget:(Entity *)target;
-- (BOOL) onTarget:(BOOL) fwd_weapon;
+- (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon;
 
 - (OOTimeDelta) shotTime;
 - (void) resetShotTime;
 
 - (BOOL) fireMainWeapon:(double)range;
 - (BOOL) fireAftWeapon:(double)range;
+- (BOOL) firePortWeapon:(double)range;
+- (BOOL) fireStarboardWeapon:(double)range;
 - (BOOL) fireTurretCannon:(double)range;
 - (void) setLaserColor:(OOColor *)color;
 - (OOColor *)laserColor;

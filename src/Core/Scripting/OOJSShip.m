@@ -1009,7 +1009,6 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 
 		case kShip_portWeapon: 
 		case kShip_starboardWeapon:
-			if (EXPECT_NOT(![entity isPlayer]))  goto npcReadOnly;
 		case kShip_aftWeapon: 
 		case kShip_forwardWeapon: 
 
@@ -1018,35 +1017,31 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			{
 				sValue = @"EQ_WEAPON_NONE";
 			}
+			int facing;
 			switch (JSID_TO_INT(propID))
 			{
 			case kShip_aftWeapon: 
-				if ([entity isPlayer])
-				{
-					[PLAYER setWeaponMount:WEAPON_FACING_AFT toWeapon:sValue];
-				} 
-				else
-				{
-					[entity setWeaponMount:WEAPON_FACING_AFT toWeapon:sValue];
-				}
+				facing = WEAPON_FACING_AFT;
 				break;
 			case kShip_forwardWeapon: 
-				if ([entity isPlayer])
-				{
-					[PLAYER setWeaponMount:WEAPON_FACING_FORWARD toWeapon:sValue];
-				} 
-				else
-				{
-					[entity setWeaponMount:WEAPON_FACING_FORWARD toWeapon:sValue];
-				}
+				facing = WEAPON_FACING_FORWARD;
 				break;
 			case kShip_portWeapon: 
-				[PLAYER setWeaponMount:WEAPON_FACING_PORT toWeapon:sValue];
+				facing = WEAPON_FACING_PORT;
 				break;
 			case kShip_starboardWeapon:
-				[PLAYER setWeaponMount:WEAPON_FACING_STARBOARD toWeapon:sValue];
+				facing = WEAPON_FACING_STARBOARD;
 				break;
 			}
+			if ([entity isPlayer])
+			{
+				[PLAYER setWeaponMount:facing toWeapon:sValue];
+			} 
+			else
+			{
+				[entity setWeaponMount:facing toWeapon:sValue];
+			}
+
 			return YES;
 			break;
 

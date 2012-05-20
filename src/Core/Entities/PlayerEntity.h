@@ -358,8 +358,8 @@ typedef enum
 	OOWeaponType			forward_weapon;		// Is there a reason for having both this and forward_weapon_type? -- ahruman
 	OOWeaponType			aft_weapon;			// ditto 	- No good reason, and it could lead to some inconsistent state. Fixed. -- kaks
 	*/
-	OOWeaponType			port_weapon_type;
-	OOWeaponType			starboard_weapon_type;
+/*	OOWeaponType			port_weapon_type; // now in ShipEntity -- cim
+		OOWeaponType			starboard_weapon_type; */
 	
 	NSMutableArray			*shipCommodityData;
 	

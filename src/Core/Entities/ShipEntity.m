@@ -267,6 +267,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	forward_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	aft_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	port_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"port_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	starboard_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"starboard_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	[self setWeaponDataFromType:forward_weapon_type];
 	
 	cloaking_device_active = NO;
@@ -1977,6 +1979,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			// ignore behaviour just keep moving...
+			flightYaw = 0.0;
 			[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 			[self applyThrust:delta_t];
 			if (energy < maxEnergy)
@@ -2017,6 +2020,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if ([self status] == STATUS_COCKPIT_DISPLAY)
 	{
+		flightYaw = 0.0;
 		[self applyRoll: delta_t * flightRoll andClimb: delta_t * flightPitch];
 		GLfloat range2 = 0.1 * distance2(position, destination) / (collision_radius * collision_radius);
 		if ((range2 > 1.0)||(velocity.z > 0.0))	range2 = 1.0;
@@ -2091,6 +2095,22 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 			case BEHAVIOUR_RUNNING_DEFENSE :
 				[self behaviour_running_defense: delta_t];
+				break;
+
+  		case BEHAVIOUR_ATTACK_BROADSIDE :
+				[self behaviour_attack_broadside: delta_t];
+				break;
+
+  		case BEHAVIOUR_ATTACK_BROADSIDE_LEFT :
+				[self behaviour_attack_broadside_left: delta_t];
+				break;
+
+  		case BEHAVIOUR_ATTACK_BROADSIDE_RIGHT :
+				[self behaviour_attack_broadside_right: delta_t];
+				break;
+
+  		case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE :
+				[self behaviour_close_to_broadside_range: delta_t];
 				break;
 
 			case BEHAVIOUR_FLEE_TARGET :
@@ -2310,7 +2330,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	NSEnumerator				*subEntEnum = nil;
 	ShipEntity					*subEntity = nil;
 	
-	if (forward_weapon_type == weaponType || aft_weapon_type == weaponType)  return YES;
+	if (forward_weapon_type == weaponType || aft_weapon_type == weaponType || port_weapon_type == weaponType || starboard_weapon_type == weaponType)  return YES;
 	
 	for (subEntEnum = [self shipSubEntityEnumerator]; (subEntity = [subEntEnum nextObject]); )
 	{
@@ -2424,6 +2444,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			break;
 		case WEAPON_FACING_AFT:
 			weapon_type = aft_weapon_type;
+			break;
+		case WEAPON_FACING_PORT:
+			weapon_type = port_weapon_type;
+			break;
+		case WEAPON_FACING_STARBOARD:
+			weapon_type = starboard_weapon_type;
 			break;
 		// any other value is not a facing for NPC ships...
 		default:
@@ -2571,13 +2597,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			case WEAPON_FACING_AFT :
 				aft_weapon_type = chosen_weapon;
 				break;
-/* // not for now
 			case WEAPON_FACING_PORT :
 				port_weapon_type = chosen_weapon;
 				break;
 			case WEAPON_FACING_STARBOARD :
 				starboard_weapon_type = chosen_weapon;
-				break; */
+				break;
 		}
 
 		return YES;
@@ -3133,6 +3158,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		flightPitch += (flightPitch < -damping) ? damping : -flightPitch;
 	if (flightPitch > 0)
 		flightPitch -= (flightPitch > damping) ? damping : flightPitch;
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3157,6 +3183,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (flightPitch > 0)
 			flightPitch -= (flightPitch > damping) ? damping : flightPitch;
 	}
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3164,6 +3191,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_tumble:(double) delta_t
 {
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3243,6 +3271,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 	}
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	desired_speed = 0.0;
 	thrust = 25.0;	// used to damp velocity (must be less than hauler thrust)
@@ -3263,6 +3292,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self avoidCollision];
 	}
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3337,6 +3367,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3384,8 +3415,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
 		{
-				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 		} 
+		else if ((port_weapon_type != WEAPON_NONE || starboard_weapon_type != WEAPON_NONE) && randf() < 0.67)
+// anyone with a side laser fitted presumably knows how to use it
+		{
+			behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
+	  }
 		else 
 		{
 			if (universalID & 1)	// 50% of ships are smart S.M.R.T. smart!
@@ -3403,8 +3439,297 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		jink = kZeroVector;
 	}
 	frustration = 0.0;	// behaviour changed, so reset frustration
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
+}
+
+
+- (void) behaviour_attack_broadside:(double) delta_t
+{
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
+	float	max_available_speed = maxFlightSpeed;
+	double  range = [self rangeToPrimaryTarget];
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
+	
+	if (cloakAutomatic) [self activateCloakingDevice];
+	
+	desired_speed = max_available_speed;
+	if (range < COMBAT_IN_RANGE_FACTOR * weaponRange)
+	{
+		if (aft_weapon_type == WEAPON_NONE)
+		{	
+			if (!pitching_over) // don't change jink in the middle of a sharp turn.
+			{
+				/*
+				For most AIs, is behaviour_attack_target called as starting behaviour on every hit.
+				Target can both fly towards or away from ourselves here. Both situations
+				need a different jink.z for optimal collision avoidance at high speed approach and low speed dogfighting.
+				The COMBAT_JINK_OFFSET intentionally over-compensates the range for collision radii to send ships towards
+				the target at low speeds.
+				*/
+				ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
+				jink.x = (ranrot_rand() % 256) - 128.0;
+				jink.y = (ranrot_rand() % 256) - 128.0;
+				jink.z =  range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch;
+			}
+
+			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+		}
+		else
+		{
+			jink = kZeroVector;
+			behaviour = BEHAVIOUR_RUNNING_DEFENSE;
+		}
+	}
+	else
+	{
+		if (randf() < 0.5)
+		{
+			if (port_weapon_type == WEAPON_NONE)
+			{
+				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_RIGHT;
+				[self setWeaponDataFromType:starboard_weapon_type];
+			}
+			else
+			{
+				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_LEFT;
+				[self setWeaponDataFromType:port_weapon_type];
+			}
+		}
+		else
+		{
+			if (starboard_weapon_type != WEAPON_NONE)
+			{
+				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_RIGHT;
+				[self setWeaponDataFromType:starboard_weapon_type];
+			}
+			else
+			{
+				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_LEFT;
+				[self setWeaponDataFromType:port_weapon_type];
+			}
+		}
+		jink = kZeroVector;
+		if (weapon_damage == 0.0)
+		{ // safety in case side lasers no longer exist
+			behaviour = BEHAVIOUR_ATTACK_TARGET;
+		}
+		else if (range > 0.9 * weaponRange)
+		{
+			behaviour = BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE;
+		}
+	}
+
+	frustration = 0.0;	// behaviour changed, so reset frustration
+	flightYaw = 0.0;
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyThrust:delta_t];
+}
+
+
+- (void) behaviour_attack_broadside_left:(double) delta_t
+{
+	[self behaviour_attack_broadside_target:delta_t leftside:YES];
+}
+
+
+- (void) behaviour_attack_broadside_right:(double) delta_t
+{
+	[self behaviour_attack_broadside_target:delta_t leftside:NO];
+}
+
+
+- (void) behaviour_attack_broadside_target:(double) delta_t leftside:(BOOL) leftside
+{
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
+	float	max_available_speed = maxFlightSpeed;
+	double  range = [self rangeToPrimaryTarget];
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
+	if (primaryTarget == NO_TARGET)
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
+	if (range > COMBAT_BROADSIDE_RANGE_FACTOR * weaponRange)
+	{
+		behaviour = BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE;
+		[self applyRoll:delta_t*flightRoll climb:delta_t*flightPitch andYaw:delta_t*flightYaw];
+		[self applyThrust:delta_t];
+		return;
+	}
+
+	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+// can get closer on broadsides since there's less risk of a collision
+	if ((range*2.0 < COMBAT_IN_RANGE_FACTOR * weaponRange)||(proximity_alert != NO_TARGET))
+	{
+	/* FIXME: this next block is shared with behaviour_attack_target; rationalise to function */
+
+		if (proximity_alert == NO_TARGET || proximity_alert == primaryTarget)
+		{
+			if (aft_weapon_type == WEAPON_NONE)
+			{
+				/*
+				jink.z has a great influence on the dogfight expecience at close range. Strongest jink behaviour for a frontal approaching
+				ship is achieved with a z-distance at the size of the actual distance. However, to allow fast flying ships avoiding collisions,
+				the jink point should be defined closer to the ship itself.
+				*/
+				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
+				jink.x = (ranrot_rand() % 256) - 128.0;
+				jink.y = (ranrot_rand() % 256) - 128.0;
+				jink.z = range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch; // range= ~440 for pulse weapon and ~1050 for military laser. 
+				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+				frustration = 0.0;
+			}
+			else
+			{
+				// entering running defense mode
+				jink = kZeroVector;
+				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
+				frustration = 0.0;
+			}
+		}
+		else
+		{
+			[self avoidCollision];
+			return;
+		}
+	}
+	else
+	{
+		if (range > SCANNER_MAX_RANGE)
+		{
+			[self noteLostTargetAndGoIdle];
+			return;
+		}
+	}
+	// control speed
+	//
+	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
+	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
+//	double target_speed = [target speed];
+	if (range <= slow_down_range)
+		desired_speed = fmin(0.8 * maxFlightSpeed, fmax((2.0-frustration)*maxFlightSpeed, 0.1 * maxFlightSpeed));   // within the weapon's range slow down to aim
+	else
+		desired_speed = max_available_speed; // use afterburner to approach
+
+	double last_success_factor = success_factor;
+	success_factor = [self trackSideTarget:delta_t:leftside];	// do the actual piloting
+	if (success_factor < -0.9)
+	{ // will probably have more luck with the other laser or picking a different attack method
+		if (leftside)
+		{
+			if (starboard_weapon_type != WEAPON_NONE)
+			{
+				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_RIGHT;
+			}
+			else
+			{
+				behaviour = BEHAVIOUR_ATTACK_TARGET;
+			}
+		}
+		else
+		{
+			if (port_weapon_type != WEAPON_NONE)
+			{
+				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_LEFT;
+			}
+			else 
+			{
+				behaviour = BEHAVIOUR_ATTACK_TARGET;
+			}
+		}
+	}
+
+
+/* FIXME: again, basically all of this next bit common with standard attack  */
+	if ((success_factor > 0.999)||(success_factor > last_success_factor))
+	{
+		frustration -= delta_t;
+		if (frustration < 0.0)
+			frustration = 0.0;
+	}
+	else
+	{
+		frustration += delta_t;
+		if (frustration > 3.0)	// 3s of frustration
+		{
+			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_ATTACK_BROADSIDE"];
+			jink.x = (ranrot_rand() % 256) - 128.0;
+			jink.y = (ranrot_rand() % 256) - 128.0;
+			jink.z = 1000.0;
+			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+			frustration = 0.0;
+			desired_speed = maxFlightSpeed;
+		}
+	}
+
+	int missile_chance = 0;
+	int rhs = 3.2 / delta_t;
+	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
+
+	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
+	if (missiles > missile_chance * hurt_factor)
+	{
+		[self fireMissile];
+	}
+	if (cloakAutomatic) [self activateCloakingDevice];
+	if (leftside)
+	{
+		[self firePortWeapon:range];
+	}
+	else 
+	{
+		[self fireStarboardWeapon:range];
+	}
+	[self applyRoll:delta_t*flightRoll climb:delta_t*flightPitch andYaw:delta_t*flightYaw];
+	[self applyThrust:delta_t];
+
+
+}
+
+
+- (void) behaviour_close_to_broadside_range:(double) delta_t
+{
+	double  range = [self rangeToPrimaryTarget];
+	if (proximity_alert != NO_TARGET)
+	{
+		if (proximity_alert == primaryTarget)
+		{
+			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET; // this behaviour will handle proximity_alert.
+			[self behaviour_attack_fly_from_target: delta_t]; // do it now.
+		}
+		else
+		{
+			[self avoidCollision];
+		}
+		return;
+	}
+	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
+
+	behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+	[self behaviour_fly_to_target_six:delta_t];
+	if (port_weapon_type != WEAPON_NONE)
+	{
+		[self setWeaponDataFromType:port_weapon_type];
+	}
+	else
+	{
+		[self setWeaponDataFromType:starboard_weapon_type];
+	}
+	if (range <= COMBAT_BROADSIDE_RANGE_FACTOR * weaponRange)
+	{
+		behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
+	}
+	else
+	{
+		behaviour = BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE;
+	}
 }
 
 
@@ -3525,6 +3850,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3558,6 +3884,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	[self trackPrimaryTarget:delta_t:NO];
 	[self fireMainWeapon:range];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3660,6 +3987,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3715,6 +4043,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3726,7 +4055,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (range > weaponRange || range > 0.8 * scannerRange || range == 0)
 	{
 		jink = kZeroVector;
-		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
 		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
 		{
 				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
@@ -3746,6 +4075,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3807,6 +4137,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (([(ShipEntity *)[self primaryTarget] primaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
 		[self fireMissile];
 	if (cloakAutomatic) [self activateCloakingDevice];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3832,6 +4163,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self avoidCollision];
 	}
 	frustration = 0.0;
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3883,6 +4215,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3924,6 +4257,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -3975,6 +4309,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -4040,6 +4375,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -4060,6 +4396,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackDestination:delta_t:YES];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -4085,6 +4422,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// (tested with boa class cruiser on collisioncourse with buoy)
 		desired_speed = maxFlightSpeed * (0.5 * dq + 0.5);
 	}
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -4229,6 +4567,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
+	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	GLfloat temp = desired_speed;
 	desired_speed *= v0 * v0;
@@ -4613,6 +4952,25 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 	if (roll1)  quaternion_rotate_about_z(&q1, -roll1);
 	if (climb1)  quaternion_rotate_about_x(&q1, -climb1);
+
+	orientation = quaternion_multiply(q1, orientation);
+	[self orientationChanged];
+}
+
+
+- (void) applyRoll:(GLfloat) roll1 climb:(GLfloat) climb1 andYaw:(GLfloat) yaw1
+{
+	if ((roll1 == 0.0)&&(climb1 == 0.0)&&(yaw1 == 0.0)&&(!hasRotated))
+		return;
+
+	Quaternion q1 = kIdentityQuaternion;
+
+	if (roll1)
+		quaternion_rotate_about_z(&q1, -roll1);
+	if (climb1)
+		quaternion_rotate_about_x(&q1, -climb1);
+	if (yaw1)
+		quaternion_rotate_about_y(&q1, -yaw1);
 
 	orientation = quaternion_multiply(q1, orientation);
 	[self orientationChanged];
@@ -5045,6 +5403,10 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX:
 	//	case BEHAVIOUR_ATTACK_MINING_TARGET:
 		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE:
+		case BEHAVIOUR_ATTACK_BROADSIDE:
+		case BEHAVIOUR_ATTACK_BROADSIDE_LEFT:
+		case BEHAVIOUR_ATTACK_BROADSIDE_RIGHT:
+ 	  case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE:
 			return YES;
 			
 		default:
@@ -5062,6 +5424,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		return NO;
 	if ([self isMissile])
 		return YES;	// missiles are always fired against a hostile target
+
 	if ((behaviour == BEHAVIOUR_AVOID_COLLISION)&&(previousCondition))
 	{
 		int old_behaviour = [previousCondition oo_intForKey:@"behaviour"];
@@ -5069,6 +5432,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 	}
 	return IsBehaviourHostile(behaviour);
 }
+
 
 - (BOOL) isHostileTo:(Entity *)entity
 {
@@ -7338,6 +7702,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// apply stick to attitude control
 	flightRoll = stick_roll;
 	flightPitch = stick_pitch;
+	flightYaw = 0.0;
 
 	if (retreat)
 		d_forward *= d_forward;	// make positive AND decrease granularity
@@ -7350,6 +7715,161 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	return d_forward;
 }
+
+
+- (double) trackSideTarget:(double) delta_t :(BOOL) leftside
+{
+	Entity*	target = [self primaryTarget];
+
+	if (!target)   // leave now!
+	{
+		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
+		return 0.0;
+	}
+
+	if (scanClass == CLASS_MISSILE) // never?
+		return [self missileTrackPrimaryTarget: delta_t];
+
+	GLfloat  d_forward, d_up, d_right;
+	
+	Vector  relPos = vector_subtract(target->position, position);
+	double	range2 = magnitude2(relPos);
+
+	if (range2 > SCANNER_MAX_RANGE2)
+	{
+		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
+		return 0.0;
+	}
+
+	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
+	else  relPos.z = 1.0;
+
+	double	targetRadius = 0.75 * target->collision_radius;
+
+	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
+
+	double  rate3 = 4.0 * delta_t;
+	double  rate2 = 4.0 * delta_t;
+	double  rate1 = 2.0 * delta_t;
+
+	double stick_roll = 0.0;	//desired roll and pitch
+	double stick_pitch = 0.0;
+	double stick_yaw = 0.0;
+
+	double reverse = (leftside)? -1.0: 1.0;
+
+	double min_d = 0.004;
+
+	d_right		=   dot_product(relPos, v_right);
+	d_up		=   dot_product(relPos, v_up);
+	d_forward   =   dot_product(relPos, v_forward);	// == cos of angle between v_forward and vector to target
+
+	if (d_right * reverse > max_cos)	// on_target!
+	{
+		return d_right * reverse;
+	}
+
+	// begin rule-of-thumb manoeuvres
+	stick_pitch = 0.0;
+	stick_roll = 0.0;
+	stick_yaw = 0.0;
+
+/*
+	if ((fabs(d_forward) > 0.5) && !pitching_over) // we're going the wrong way!
+		pitching_over = YES;
+
+	if (pitching_over)
+	{
+		if (d_up > 0) // pitch up
+			stick_pitch = max_flight_pitch;
+		else
+			stick_pitch = -max_flight_pitch;
+		pitching_over = (fabs(d_forward) < 0.2);
+	}
+*/
+	// check if we are flying toward the destination..
+	if ((d_right * reverse < max_cos))	// not on course so we must adjust controls..
+	{
+		if (d_right < -max_cos)  // hack to avoid just pointing away from the destination
+		{
+			d_forward = min_d * 2.0;
+		}
+
+		if (d_forward > min_d)
+		{
+			int factor = sqrt(fabs(d_up) / fabs(min_d));
+			if (factor > 8)
+				factor = 8;
+			if (d_up > min_d)
+				stick_pitch = + max_flight_pitch * 0.125 * factor; // note#
+			if (d_up < -min_d)
+				stick_pitch = - max_flight_pitch * 0.125 * factor; // note#
+		}
+		if (d_forward < -min_d)
+		{
+			int factor = sqrt(fabs(d_up) / fabs(min_d));
+			if (factor > 8)
+				factor = 8;
+			if (d_up > min_d)
+				stick_pitch = + max_flight_pitch * 0.125 * factor; // note#
+			if (d_up < -min_d)
+				stick_pitch = - max_flight_pitch * 0.125 * factor; // note#
+		}
+
+		if (fabs(stick_pitch) == 0.0 || fabs(d_forward) > 0.5)
+		{
+			stick_pitch = 0.0;
+			int factor = sqrt(fabs(d_forward) / fabs(min_d));
+			if (factor > 8)
+				factor = 8;
+			if (d_forward > min_d)
+				stick_yaw = - max_flight_yaw * reverse * 0.125 * factor;
+			if (d_forward < -min_d)
+			{
+				if (factor < 4.0)
+					factor *= 2.0;
+				stick_yaw = + max_flight_yaw * reverse * 0.125 * factor;
+			}
+		}
+	}
+
+
+	// end rule-of-thumb manoeuvres
+
+	// apply 'quick-stop' to roll and pitch adjustments
+	if (((stick_roll > 0.0)&&(flightRoll < 0.0))||((stick_roll < 0.0)&&(flightRoll > 0.0)))
+		rate1 *= 4.0;	// much faster correction
+	if (((stick_yaw > 0.0)&&(flightYaw < 0.0))||((stick_yaw < 0.0)&&(flightYaw > 0.0)))
+		rate2 *= 4.0;	// much faster correction
+	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
+		rate3 *= 4.0;	// much faster correction
+
+	// apply stick movement limits
+	if (flightRoll < stick_roll - rate1)
+		stick_roll = flightRoll + rate1;
+	if (flightRoll > stick_roll + rate1)
+		stick_roll = flightRoll - rate1;
+	if (flightYaw < stick_yaw - rate2)
+		stick_yaw = flightYaw + rate2;
+	if (flightYaw > stick_yaw + rate2)
+		stick_yaw = flightYaw - rate2;
+	if (flightPitch < stick_pitch - rate3)
+		stick_pitch = flightPitch + rate3;
+	if (flightPitch > stick_pitch + rate3)
+		stick_pitch = flightPitch - rate3;
+
+	// apply stick to attitude control
+	flightRoll = stick_roll;
+	flightPitch = stick_pitch;
+	flightYaw = stick_yaw;
+
+
+	if ((!flightPitch)&&(!flightYaw))	// no correction
+		return 1.0;
+
+	return d_right * reverse;
+}
+
 
 
 - (double) missileTrackPrimaryTarget:(double) delta_t
@@ -7752,11 +8272,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) onTarget:(BOOL) fwd_weapon
+- (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon_type
 {
 	GLfloat d2, radius, dq, astq;
 	Vector rel_pos, urp;
-	int weapon_type = (fwd_weapon)? forward_weapon_type : aft_weapon_type;
 	if (weapon_type == WEAPON_THARGOID_LASER)
 	{
 /* this gives a frame rate dependency. Modified weapon_recharge_time
@@ -7781,8 +8300,31 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		urp = vector_normal(rel_pos);
 	else
 		urp = make_vector(0, 0, 1);
-	dq = dot_product(urp, v_forward);				// cosine of angle between v_forward and unit relative position
-	if (((fwd_weapon)&&(dq < 0.0)) || ((!fwd_weapon)&&(dq > 0.0)))
+
+	dq = 0.0;
+	switch (direction)
+	{
+	case VIEW_CUSTOM:
+	case VIEW_NONE:
+	case VIEW_GUI_DISPLAY:
+	case VIEW_BREAK_PATTERN:
+// first four should never happen here
+	case VIEW_FORWARD:
+		dq = +dot_product(urp, v_forward);				// cosine of angle between v_forward and unit relative position
+		break;
+	case VIEW_AFT:
+		dq = -dot_product(urp, v_forward);				// cosine of angle between v_forward and unit relative position
+		break;
+	case VIEW_PORT:
+		dq = -dot_product(urp, v_right);				// cosine of angle between v_right and unit relative position
+		break;
+	case VIEW_STARBOARD:
+		dq = +dot_product(urp, v_right);				// cosine of angle between v_right and unit relative position
+		break;
+
+	}
+
+	if (dq < 0.0)
 		return NO;
 
 	astq = sqrt(1.0 - radius * radius / d2);	// cosine of half angle subtended by target
@@ -7800,8 +8342,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (range > randf() * weaponRange * accuracy)  return NO;
 		if (range > weaponRange)  return NO;
 	}
-	BOOL fireForward = (direction == VIEW_FORWARD);
-	if (![self onTarget:fireForward])  return NO;
+	if (![self onTarget:direction withWeapon:weapon_type])  return NO;
 	
 	BOOL fired = NO;
 	switch (weapon_type)
@@ -7830,7 +8371,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			break;
 	}
 	
-	if (fireForward)
+	if (direction == VIEW_FORWARD)
 	{
 		//can we fire lasers from our subentities?
 		NSEnumerator	*subEnum = nil;
@@ -7869,6 +8410,26 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[self setWeaponDataFromType:aft_weapon_type];
 	
 	return [self fireWeapon:aft_weapon_type direction:VIEW_AFT range:range];
+}
+
+
+- (BOOL) firePortWeapon:(double) range
+{
+	// set the values from port_weapon_type.
+	
+	[self setWeaponDataFromType:port_weapon_type];
+	
+	return [self fireWeapon:port_weapon_type direction:VIEW_PORT range:range];
+}
+
+
+- (BOOL) fireStarboardWeapon:(double) range
+{
+	// set the values from port_weapon_type.
+	
+	[self setWeaponDataFromType:starboard_weapon_type];
+	
+	return [self fireWeapon:starboard_weapon_type direction:VIEW_STARBOARD range:range];
 }
 
 
