@@ -207,6 +207,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		{
 			[self showCommanderShip: idx];
 		}
+		else
+		{
+			[UNIVERSE removeDemoShips];
+			[gui setText:@"" forRow:CDRDESCROW align:GUI_ALIGN_LEFT];
+			[gui setText:@"" forRow:CDRDESCROW + 1 align:GUI_ALIGN_LEFT];
+			[gui setText:@"" forRow:CDRDESCROW + 2 align:GUI_ALIGN_LEFT];
+		}
+
 	}
 	else
 	{
@@ -292,9 +300,19 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			else
 				commanderNameString = [gameView typedString];
 		}
+		else
+		{
+			[UNIVERSE removeDemoShips];
+			[gui setText:@"" forRow:CDRDESCROW align:GUI_ALIGN_LEFT];
+			[gui setText:@"" forRow:CDRDESCROW + 1 align:GUI_ALIGN_LEFT];
+			[gui setText:@"" forRow:CDRDESCROW + 2 align:GUI_ALIGN_LEFT];
+		}
 	}
 	else
+	{
 		commanderNameString = [gameView typedString];
+	}
+	
 	[gameView setTypedString: commanderNameString];
 	
 	[gui setText:
@@ -303,14 +321,16 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	
 	// handle page <-- and page --> keys, and on-screen buttons
-	if ((([gameView isDown:gvMouseDoubleClick] && [gui selectedRow] == BACKROW) || [gameView isDown:gvArrowKeyLeft]) && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
+	if (((([gameView isDown:gvMouseDoubleClick] || [gameView isDown: 13]) && [gui selectedRow] == BACKROW) || [gameView isDown:gvArrowKeyLeft])
+					&& [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage--;
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
 		[gameView supressKeysUntilKeyUp];
 	}
 	//
-	if ((([gameView isDown:gvMouseDoubleClick] && [gui selectedRow] == MOREROW) || [gameView isDown:gvArrowKeyRight]) && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
+	if (((([gameView isDown:gvMouseDoubleClick] || [gameView isDown: 13]) && [gui selectedRow] == MOREROW) || [gameView isDown:gvArrowKeyRight])
+					&& [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage++;
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
@@ -324,6 +344,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			int guiSelectedRow=[gui selectedRow];
 			int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
 			NSDictionary* cdr = [cdrDetailArray objectAtIndex:idx];
+			
 			if (![cdr oo_boolForKey:@"isSavedGame"])	// don't open saved games
 			{
 				// change directory to the selected path

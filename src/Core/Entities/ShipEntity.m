@@ -2545,6 +2545,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
 			NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
 			NSMutableSet		*options = [NSMutableSet setWithArray:[shipyardInfo oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
+			[options addObjectsFromArray:[[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
 			if (![options containsObject:equipmentKey])  return NO;
 		}
 	}
