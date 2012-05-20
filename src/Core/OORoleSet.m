@@ -347,7 +347,8 @@ NSDictionary *OOParseRolesFromString(NSString *string)
 			[scanner release];
 		}
 		
-		if (0 <= probability)
+    // shipKey roles start with [ so other roles can't
+		if (0 <= probability && ![role hasPrefix:@"["])
 		{
 			[result setObject:[NSNumber numberWithFloat:probability] forKey:role];
 		}

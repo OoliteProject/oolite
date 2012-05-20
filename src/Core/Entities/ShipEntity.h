@@ -509,6 +509,7 @@ _lightsActive: 1;
 - (GLfloat)frustumRadius;
 
 - (NSString *) shipDataKey;
+- (NSString *) shipDataKeyAutoRole;
 - (void)setShipDataKey:(NSString *)key;
 
 - (NSDictionary *)shipInfoDictionary;

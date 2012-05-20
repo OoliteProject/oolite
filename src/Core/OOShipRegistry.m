@@ -1016,6 +1016,10 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	*/
 	
 	rolesAndWeights = OOParseRolesFromString(roles);
+  // add default [shipKey] role
+	NSMutableDictionary *mutable = [NSMutableDictionary dictionaryWithDictionary:rolesAndWeights];
+	[mutable setObject:[NSNumber numberWithFloat:1.0] forKey:[[[NSString alloc] initWithFormat:@"[%@]",shipKey] autorelease]];
+	rolesAndWeights = mutable;
 	
 	id thargonValue = [rolesAndWeights objectForKey:@"thargon"];
 	if (thargonValue != nil && [rolesAndWeights objectForKey:@"EQ_THARGON"] == nil)

@@ -1475,6 +1475,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (NSString *)shipDataKeyAutoRole
+{
+	return [[[NSString alloc] initWithFormat:@"[%@]",[self shipDataKey]] autorelease];
+}
+
+
 - (void)setShipDataKey:(NSString *)key
 {
 	DESTROY(_shipKey);
@@ -5247,14 +5253,14 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 - (BOOL) hasRole:(NSString *)role
 {
-	return [roleSet hasRole:role] || [role isEqual:primaryRole];
+	return [roleSet hasRole:role] || [role isEqual:primaryRole] || [role isEqual:[self shipDataKeyAutoRole]];
 }
 
 
 - (OORoleSet *)roleSet
 {
 	if (roleSet == nil)  roleSet = [[OORoleSet alloc] initWithRoleString:primaryRole];
-	return [roleSet roleSetWithAddedRoleIfNotSet:primaryRole probability:1.0];
+	return [[roleSet roleSetWithAddedRoleIfNotSet:primaryRole probability:1.0] roleSetWithAddedRoleIfNotSet:[self shipDataKeyAutoRole] probability:1.0];
 }
 
 
