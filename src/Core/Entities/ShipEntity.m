@@ -1769,7 +1769,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		OOLog(@"ship.sanityCheck.failed", @"Ship %@ %@ infinite top speed, clamped to 300.", self, @"had");
 		maxFlightSpeed = 300;
 	}
-	
+
+	if (![self isSubEntity] && scanClass == CLASS_NOT_SET)
+	{
+		scanClass = CLASS_NEUTRAL;
+		OOLog(@"ship.sanityCheck.failed", @"Ship %@ %@ with scanClass CLASS_NOT_SET; forced to CLASS_NEUTRAL.", self, [self primaryRole]);
+	}
+
 	//
 	// deal with collisions
 	//
