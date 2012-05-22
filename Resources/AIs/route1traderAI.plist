@@ -26,6 +26,7 @@
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
+        "ATTACKED_BY_CLOAKED" = ("setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		RESTARTED = (checkAegis);
 		UPDATE =
 		(
@@ -49,6 +50,7 @@
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 1.5"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
+        "ATTACKED_BY_CLOAKED" = ("setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		UPDATE = 
 		(
 			setTargetToSystemStation,
@@ -72,6 +74,7 @@
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 1.5"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
+        "ATTACKED_BY_CLOAKED" = ("setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		UPDATE = 
 		(
 			setTargetToNearestFriendlyStation,
@@ -94,6 +97,7 @@
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 1.5"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
+        "ATTACKED_BY_CLOAKED" = ("setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		UPDATE = 
 		(
 			setTargetToLastStation,

@@ -17,6 +17,8 @@
 		"ENERGY_LOW" = (setTargetToPrimaryAggressor, broadcastDistressMessage, deployEscorts, "setStateTo: FLEE"); 
 		"INCOMING_MISSILE" = ("setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 0.75"); 
 		"CASCADE_WEAPON_DETECTED" = ("exitAIWithMessage: CASCADE_WEAPON_DETECTED");
+        "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
+        "TARGET_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED");
 		"TARGET_DESTROYED" = (exitAI); 
 		"TARGET_LOST" = (exitAI); 
 	}; 
@@ -27,6 +29,7 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		DEPLOYING_ESCORTS = (setTargetToPrimaryAggressor, "setStateTo: FLEE_WITH_ESCORTS");
+        "TARGET_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED");
 		"TARGET_LOST" = (performIdle, exitAI); 
 		"TARGET_DESTROYED" = (performIdle, exitAI); 
 		"INCOMING_MISSILE" = ("setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 0.75"); 
@@ -42,6 +45,7 @@
 		"ROLL_2" = ("setDesiredRangeTo: 25600", performFlee);
 		"ROLL_3" = ("setDesiredRangeTo: 25600", performFlee);
         "ESCORT_ATTACKED" = (setTargetToPrimaryAggressor, groupAttackTarget); // only player attacks escorts
+        "TARGET_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED");
 		"TARGET_LOST" = (performIdle, exitAI); 
 		"TARGET_DESTROYED" = (performIdle, exitAI); 
 		"ENERGY_LOW" = (setTargetToPrimaryAggressor, deployEscorts); 
@@ -62,6 +66,25 @@
 		"REACHED_SAFETY" = (performIdle, exitAI); 
 		"UPDATE" = (fightOrFleeMissile, "pauseAI: 10");
 	}; 
+    "FLEE_FOR_CLOAKED" = {
+        ENTER = (storeTarget,
+			setDestinationToJinkPosition,
+			"setDesiredRangeTo: 25600",
+			performFlyToRangeFromDestination,
+			"setSpeedFactorTo: 7"
+		); 
+        "DESIRED_RANGE_ACHIEVED" = (exitAI); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        "ATTACKED_BY_CLOAKED" = (setDestinationToJinkPosition); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, fightOrFleeHostiles); 
+		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+		DEPLOYING_ESCORTS = (setTargetToPrimaryAggressor, "setStateTo: FLEE_WITH_ESCORTS");
+		RESTARTED = (exitAI);
+		UPDATE = (recallStoredTarget, "pauseAI: 2.0");
+    }; 
 	"INCOMING_MISSILE" = 
 	{
 		ATTACKED = ("setStateTo: GLOBAL", fightOrFleeMissile, fightOrFleeHostiles); 

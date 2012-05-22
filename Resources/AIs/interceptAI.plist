@@ -13,6 +13,8 @@
 		"CASCADE_WEAPON_DETECTED" = ("exitAIWithMessage: CASCADE_WEAPON_DETECTED");
 		"TARGET_DESTROYED" = (performIdle, switchLightsOff, exitAI);
 		"TARGET_LOST" = (performIdle, switchLightsOff, exitAI);
+        "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
+        "TARGET_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED");
 		"PLAYER WITCHSPACE" = ("setStateTo: PLAYER_WITCHSPACE");
 		"ENTER WORMHOLE" = (performIdle, switchLightsOff, "exitAIWithMessage: ENTER WORMHOLE");
 		"DEFENSE_TARGET_LOST" = (findNewDefenseTarget);
@@ -27,6 +29,8 @@
 		"REACHED_SAFETY" = (performIdle, switchLightsOff, exitAI); 
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("exitAIWithMessage: CASCADE_WEAPON_DETECTED");
+        "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
+        "TARGET_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED");
 		"PLAYER WITCHSPACE" = ("setStateTo: PLAYER_WITCHSPACE");
 		"ENTER WORMHOLE" = (performIdle, switchLightsOff, "exitAIWithMessage: ENTER WORMHOLE");
 		"ATTACKED" = (addPrimaryAggressorAsDefenseTarget);
@@ -34,6 +38,21 @@
 		"DEFENSE_TARGET_DESTROYED" = (findNewDefenseTarget);
 		"TARGET_LOST" = (performIdle, switchLightsOff, exitAI);
 	};
+    "FLEE_FOR_CLOAKED" = {
+        ENTER = (storeTarget,
+			setDestinationToCurrentLocation,
+			"setDesiredRangeTo: 25600",
+			performFlyToRangeFromDestination
+		); 
+        "DESIRED_RANGE_ACHIEVED" = (performIdle, switchLightsOff, exitAI); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        "ATTACKED_BY_CLOAKED" = (setDestinationToJinkPosition); 
+        "TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
+		RESTARTED = (performIdle, switchLightsOff, exitAI);
+		UPDATE = (recallStoredTarget, "pauseAI: 2.0");
+    }; 
 	"PLAYER_WITCHSPACE" =
 	{
 		"ENTER WORMHOLE" = (performIdle, switchLightsOff, exitAI, enterTargetWormhole);

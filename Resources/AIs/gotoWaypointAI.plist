@@ -9,6 +9,7 @@
 		"WAYPOINT_SET" = ("setStateTo: NEW_WAYPOINT");
 		"DESIRED_RANGE_ACHIEVED" = ("setDesiredRangeTo: 1000.0", exitAI);
 		ATTACKED = ("exitAIWithMessage: ATTACKED");
+		"ATTACKED_BY_CLOAKED" = ("exitAIWithMessage: ATTACKED_BY_CLOAKED");
 		"CASCADE_WEAPON_DETECTED" = ("exitAIWithMessage: CASCADE_WEAPON_DETECTED");
 		"FRUSTRATED" = ("setSpeedFactorTo: 0.1", "setDesiredRangeTo: 1000.0", exitAI);
 		"LAUNCHED OKAY" = ("exitAIWithMessage: LAUNCHED OKAY");
@@ -27,6 +28,7 @@
 		"FRUSTRATED" = ("setSpeedFactorTo: 0.1", "setDesiredRangeTo: 1000.0", exitAI);
 		"LAUNCHED OKAY" = ("exitAIWithMessage: LAUNCHED OKAY");
 		ATTACKED = ("exitAIWithMessage: ATTACKED");
+		"ATTACKED_BY_CLOAKED" = ("exitAIWithMessage: ATTACKED_BY_CLOAKED");
 		"CASCADE_WEAPON_DETECTED" = ("exitAIWithMessage: CASCADE_WEAPON_DETECTED");
 		"DESIRED_RANGE_ACHIEVED" = ("setDesiredRangeTo: 1000.0", exitAI);
 		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");

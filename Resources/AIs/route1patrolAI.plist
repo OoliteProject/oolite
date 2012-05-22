@@ -17,6 +17,7 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
+        "ATTACKED_BY_CLOAKED" = ("setAITo: interceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: INBOUND_LOOT", "setAITo: interceptAI.plist");
 		RESTARTED = (checkAegis);
 		UPDATE = (setCourseToPlanet, "setDesiredRangeTo: 50000.0", checkCourseToDestination, scanForOffenders, "pauseAI: 10.0");
@@ -35,6 +36,7 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
+        "ATTACKED_BY_CLOAKED" = ("setAITo: interceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: OUTBOUND_LOOT", "setAITo: interceptAI.plist");
 		UPDATE = (setCourseToWitchpoint, checkCourseToDestination, scanForOffenders, "pauseAI: 10.0");
 	};

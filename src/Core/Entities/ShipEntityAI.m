@@ -409,6 +409,13 @@
 }
 
 
+- (void) setDestinationToJinkPosition
+{
+	Vector front = vector_multiply_scalar([self forwardVector], flightSpeed / max_flight_pitch * 2);
+	destination = vector_add(position, vector_add(front, OOVectorRandomSpatial(100)));
+}
+
+
 - (void) setDesiredRangeTo:(NSString *)rangeString
 {
 	desired_range = [rangeString doubleValue];

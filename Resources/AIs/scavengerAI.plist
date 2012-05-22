@@ -26,7 +26,7 @@
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
-		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		"CASCADE_WEAPON_DETECTED" = ("setStateTo: COLLECT_STUFF", "setAITo: fleeQMineAI.plist");
 		"TARGET_LOST" = ("setStateTo: GO_TO_STATION");
 		RESTARTED = ("switchAITo: route1traderAI.plist");
 	};

@@ -12,6 +12,7 @@
 		"INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ATTACKED" = ("messageMother: ATTACKED", "messageMother: ESCORT_ATTACKED");
+        "ATTACKED_BY_CLOAKED" = ("messageMother: ATTACKED_BY_CLOAKED"); 
 		"NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_BUSINESS");
 		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_BUSINESS");

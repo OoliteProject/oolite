@@ -19,6 +19,8 @@
 		energy_recharge_rate = "positiveFloat";
 		forward_weapon_type = "$weaponType";
 		aft_weapon_type = "$weaponType";
+		port_weapon_type = "$weaponType";
+		starboard_weapon_type = "$weaponType";
 		weapon_energy = "positiveFloat";
 		weapon_range = "positiveFloat";
 		scanner_range = "positiveFloat";

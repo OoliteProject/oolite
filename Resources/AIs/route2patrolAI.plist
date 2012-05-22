@@ -12,6 +12,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_SUN");
 		"AEGIS_CLOSE_TO_MAIN_PLANET" = ("setStateTo: HEAD_FOR_SUN");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
+        "ATTACKED_BY_CLOAKED" = ("setAITo: interceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
@@ -46,6 +47,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
 		"CLOSE_TO_SUN" = ("setStateTo: HEAD_FOR_PLANET");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
+        "ATTACKED_BY_CLOAKED" = ("setAITo: interceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
