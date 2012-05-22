@@ -429,6 +429,7 @@ _lightsActive: 1;
 - (void) setStateMachine:(NSString *)ai_desc;
 - (void) setAI:(AI *)ai;
 - (AI *) getAI;
+- (BOOL) hasAutoAI;
 - (void) setShipScript:(NSString *)script_name;
 - (void) removeScript;
 - (OOScript *) shipScript;

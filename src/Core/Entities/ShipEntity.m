@@ -5934,6 +5934,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (BOOL) hasAutoAI
+{
+	return 	[[self shipInfoDictionary] oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES];
+}
+
+
 - (void) setShipScript:(NSString *)script_name
 {
 	NSMutableDictionary		*properties = nil;

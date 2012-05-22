@@ -115,7 +115,8 @@ enum
 	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read/write
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
-	kShip_beaconCode,			// beacon code, string, read-only (should probably be read/write, but the beacon list needs to be maintained.)
+	kShip_autoAI,    // bool, read-only, auto_ai from shipdata
+	kShip_beaconCode,			// beacon code, string, read/write
 	kShip_boundingBox,				// boundingBox, vector, read-only
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_cargoSpaceAvailable,	// free cargo space, integer, read-only
@@ -208,6 +209,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "aftWeapon",				kShip_aftWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "AI",						kShip_AI,					OOJS_PROP_READONLY_CB },
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
+	{ "autoAI",						kShip_autoAI,					OOJS_PROP_READONLY_CB },
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
 	{ "boundingBox",				kShip_boundingBox,			OOJS_PROP_READONLY_CB },
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
@@ -405,6 +407,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_AIState:
 			result = [[entity getAI] state];
 			break;
+
+		case kShip_autoAI:
+			*value = OOJSValueFromBOOL([entity hasAutoAI]);
+			return YES;
 			
 		case kShip_fuel:
 			return JS_NewNumberValue(context, [entity fuel] * 0.1, value);

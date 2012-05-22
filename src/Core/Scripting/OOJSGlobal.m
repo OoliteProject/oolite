@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
+#import "ResourceManager.h"
 
 #import "NSFileManagerOOExtensions.h"
 
@@ -68,6 +69,7 @@ static JSBool GlobalRandomName(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetScreenBackground(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetScreenOverlay(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp);
 
 #ifndef NDEBUG
 static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp);
@@ -123,6 +125,7 @@ static JSFunctionSpec sGlobalMethods[] =
 {
 	// JS name							Function								min args
 	{ "log",							GlobalLog,							1 },
+	{ "autoAIForRole",		GlobalAutoAIForRole,		1 },
 	{ "expandDescription",				GlobalExpandDescription,			1 },
 	{ "expandMissionText",				GlobalExpandMissionText,			1 },
 	{ "displayNameForCommodity",		GlobalDisplayNameForCommodity,		1 },
@@ -488,3 +491,25 @@ static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_EXIT
 }
 #endif
+
+// autoAIForRole(role : String) : String
+static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString			*string = nil;
+	
+	if (argc > 0)  string = OOStringFromJSValue(context,OOJS_ARGV[0]);
+	if (string == nil)
+	{
+		OOJSReportBadArguments(context, nil, @"autoAIForRole", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
+		return NO;
+	}
+
+	NSDictionary *autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
+	NSString *autoAI = [autoAIMap oo_stringForKey:string];
+
+	OOJS_RETURN_OBJECT(autoAI);
+	
+	OOJS_NATIVE_EXIT
+}
