@@ -273,7 +273,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
-	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:NO];
+	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:YES]; // Nikos - switched passive cloak default to YES 20120523
 	cloakAutomatic = [shipDict oo_boolForKey:@"cloak_automatic" defaultValue:YES];
 	
 	missiles = [shipDict oo_intForKey:@"missiles" defaultValue:0];
