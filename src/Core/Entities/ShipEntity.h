@@ -804,6 +804,7 @@ _lightsActive: 1;
 // the percentage of damage taken (100 is destroyed, 0 is fine)
 - (int) damage;
 
+- (void) dealEnergyDamage:(GLfloat) baseDamage atRange:(GLfloat) range withBias:(GLfloat) velocityBias;
 - (void) dealEnergyDamageWithinDesiredRange;
 - (void) dealMomentumWithinDesiredRange:(double)amount;
 

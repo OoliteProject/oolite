@@ -6393,6 +6393,68 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (void) dealEnergyDamage:(GLfloat) baseDamage atRange:(GLfloat) range withBias:(GLfloat) velocityBias
+{
+
+	GLfloat maxRange = range * sqrt(baseDamage);
+	if (maxRange > SCANNER_MAX_RANGE) 
+	{
+		maxRange = SCANNER_MAX_RANGE; // range cap
+	}
+	OOLog(@"missile.damage.calc",@"Range: %f | Damage: %f | MaxRange: %f",range,baseDamage,maxRange);
+
+	NSArray* targets = [UNIVERSE getEntitiesWithinRange:maxRange ofEntity:self];
+	if ([targets count] > 0)
+	{
+		unsigned i;
+		for (i = 0; i < [targets count]; i++)
+		{
+			Entity *e2 = [targets objectAtIndex:i];
+			Vector p2 = vector_subtract([e2 position], [self position]);
+			double ecr = [e2 collisionRadius];
+			double d = (magnitude(p2) - ecr) / range;
+			// base damage within defined range, inverse-square falloff outside
+			double localDamage = baseDamage;
+			OOLog(@"missile.damage.calc",@"Base damage: %f",baseDamage);
+			if (velocityBias > 0)
+			{
+				Vector v2 = vector_subtract([self velocity], [e2 velocity]);
+				double vSign = dot_product(vector_normal([self velocity]), vector_normal(p2));
+				// vSign should always be positive for the missile's actual target
+        // but might be negative for other nearby ships which are
+        // actually moving further away from the missile
+//				double vMag = vSign > 0.0 ? magnitude(v2) : -magnitude(v2);
+				double vMag = vSign * magnitude(v2);
+				if (vMag > 1000.0) {
+					vMag = 1000.0; 
+// cap effective closing speed to 1.0LM or injector-collisions can still do
+// ridiculous damage
+				}
+
+				localDamage += vMag * velocityBias;
+				OOLog(@"missile.damage.calc",@"Velocity magnitude + sign: %f , %f",magnitude(v2),vSign);
+				OOLog(@"missile.damage.calc",@"Velocity magnitude factor: %f",vMag);
+				OOLog(@"missile.damage.calc",@"Velocity corrected damage: %f",localDamage);
+			}
+			double damage = (d > 1) ? localDamage / (d * d) : localDamage;
+			OOLog(@"missile.damage.calc",@"%f at range %f (d=%f)",damage,magnitude(p2)-ecr,d);
+			if (damage > 0.0)
+			{
+				if ([self owner])
+				{
+					[e2 takeEnergyDamage:damage from:self becauseOf:[self owner]];
+				} 
+				else
+				{
+					[e2 takeEnergyDamage:damage from:self becauseOf:self];
+				}
+			}
+		}
+	}
+}
+
+
+// dealEnergyDamage preferred
 // Exposed to AI
 - (void) dealEnergyDamageWithinDesiredRange
 {
