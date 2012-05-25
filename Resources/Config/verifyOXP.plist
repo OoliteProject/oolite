@@ -254,6 +254,7 @@
 			"weapon_position_aft",
 			"weapon_position_port",
 			"weapon_position_starboard",
+			"weapon_facings",
 			"weapon_offset_x",
 			"scoop_position",
 			"heat_insulation",

@@ -413,6 +413,7 @@
 {
 	Vector front = vector_multiply_scalar([self forwardVector], flightSpeed / max_flight_pitch * 2);
 	destination = vector_add(position, vector_add(front, OOVectorRandomSpatial(100)));
+	pitching_over = YES; // don't complete roll first, but immediately start with pitching. 
 }
 
 

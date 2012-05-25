@@ -21,6 +21,7 @@
 		aft_weapon_type = "$weaponType";
 		port_weapon_type = "$weaponType";
 		starboard_weapon_type = "$weaponType";
+		weapon_facings = "positiveInteger";
 		weapon_energy = "positiveFloat";
 		weapon_range = "positiveFloat";
 		scanner_range = "positiveFloat";
