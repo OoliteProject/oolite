@@ -178,16 +178,15 @@ static int leafcount;
 static float volumecount;
 - (Octree*) findOctreeToDepth: (int) depth
 {
-	//
 	leafcount = 0;
 	volumecount = 0.0f;
-	//
+	
 	GLfloat foundRadius = 0.5f + [self findMaxDimensionFromOrigin];	// pad out from geometry by a half meter
-	//	
-	NSObject* foundOctree = [self octreeWithinRadius:foundRadius toDepth:depth];
-	//
-	Octree*	octreeRepresentation = [[Octree alloc] initWithRepresentationOfOctree:foundRadius :foundOctree :leafcount];
-	//
+	
+	NSObject *foundOctree = [self octreeWithinRadius:foundRadius toDepth:depth];
+	
+	Octree*	octreeRepresentation = [[Octree alloc] initWithRadius:foundRadius leafCount:leafcount objectRepresentation:foundOctree];
+	
 	return [octreeRepresentation autorelease];
 }
 

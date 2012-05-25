@@ -54,21 +54,19 @@ typedef struct
 	unsigned char	*octree_collision;
 }
 
-- (GLfloat)	radius;
-- (int)		leafs;
-- (int*)	octree;
-- (BOOL)	hasCollision;
-- (void)	setHasCollision:(BOOL) value;
-- (unsigned char*)	octree_collision;
-
-- (Octree_details)	octreeDetails;
-
-- (id) initWithRepresentationOfOctree:(GLfloat) octRadius :(NSObject*) octreeArray :(int) leafsize;
+- (id) initWithRadius:(GLfloat)radius leafCount:(unsigned)leafCount objectRepresentation:(id)objectRepresentation;
 - (id) initWithDictionary:(NSDictionary*) dict;
 
-- (Octree*) octreeScaledBy:(GLfloat) factor;
+- (GLfloat) radius;
+- (int) leafs;
+- (int *) octree;
+- (BOOL) hasCollision;
+- (void) setHasCollision:(BOOL) value;
+- (unsigned char *) octree_collision;
 
-int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocation, int nextFreeLocation);
+- (Octree_details) octreeDetails;
+
+- (Octree *) octreeScaledBy:(GLfloat)factor;
 
 Vector offsetForOctant(int oct, GLfloat r);
 

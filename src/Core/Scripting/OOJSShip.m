@@ -310,7 +310,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
 	{ "clearDefenseTargets",			ShipClearDefenseTargets,			0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
-	{ "dealEnergyDamage",			ShipDealEnergyDamage,			2 },
+	{ "dealEnergyDamage",		ShipDealEnergyDamage,		2 },
 	{ "deployEscorts",			ShipDeployEscorts,			0 },
 	{ "dockEscorts",			ShipDockEscorts,			0 },
 	{ "dumpCargo",				ShipDumpCargo,				0 },
@@ -327,11 +327,11 @@ static JSFunctionSpec sShipMethods[] =
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
 	{ "restoreSubEntities",		ShipRestoreSubEntities,		0 },
-	{ "__runLegacyScriptActions", ShipRunLegacyScriptActions,	2 },	// Deliberately not documented
+	{ "__runLegacyScriptActions", ShipRunLegacyScriptActions, 2 },	// Deliberately not documented
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
 	{ "sendAIMessage",			ShipSendAIMessage,			1 },
 	{ "setAI",					ShipSetAI,					1 },
-	{ "setBounty",					ShipSetBounty,					2 },
+	{ "setBounty",				ShipSetBounty,				2 },
 	{ "setCargo",				ShipSetCargo,				1 },
 	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
 	{ "setMaterials",			ShipSetMaterials,			1 },

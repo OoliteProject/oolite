@@ -2570,7 +2570,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 					// Pirate, trader or police with auto_ai? Follow populator rules for them.
 					if ([role isEqualToString:@"pirate"]) [ship setBounty:20 + randf() * 50 withReason:kOOLegalStatusReasonSetup];
 					if ([role isEqualToString:@"trader"]) [ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
-					if ([role isEqualToString:@"police"]) [ship setScanClass: CLASS_POLICE];
+					if ([role isEqualToString:@"police"]) [ship setScanClass:CLASS_POLICE];
 					if ([role isEqualToString:@"interceptor"])
 					{
 						[ship setScanClass: CLASS_POLICE];

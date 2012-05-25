@@ -8389,19 +8389,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([target status] == STATUS_DEAD)  return NO;
 	
 	if (isSunlit && (target->isSunlit == NO) && (randf() < 0.75))
+	{
 		return NO;	// 3/4 of the time you can't see from a lit place into a darker place
+	}
 	radius = target->collision_radius;
-	rel_pos = target->position;
-	rel_pos.x -= position.x;
-	rel_pos.y -= position.y;
-	rel_pos.z -= position.z;
+	rel_pos = vector_subtract(target->position, position);
 	d2 = magnitude2(rel_pos);
-	if (d2)
-		urp = vector_normal(rel_pos);
-	else
-		urp = make_vector(0, 0, 1);
-
-	dq = 0.0;
+	urp = vector_normal_or_zbasis(rel_pos);
+	
 	switch (direction)
 	{
 	case VIEW_CUSTOM:
@@ -8410,25 +8405,24 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	case VIEW_BREAK_PATTERN:
 // first four should never happen here
 	case VIEW_FORWARD:
-		dq = +dot_product(urp, v_forward);				// cosine of angle between v_forward and unit relative position
+		dq = +dot_product(urp, v_forward);		// cosine of angle between v_forward and unit relative position
 		break;
 	case VIEW_AFT:
-		dq = -dot_product(urp, v_forward);				// cosine of angle between v_forward and unit relative position
+		dq = -dot_product(urp, v_forward);		// cosine of angle between v_forward and unit relative position
 		break;
 	case VIEW_PORT:
-		dq = -dot_product(urp, v_right);				// cosine of angle between v_right and unit relative position
+		dq = -dot_product(urp, v_right);		// cosine of angle between v_right and unit relative position
 		break;
 	case VIEW_STARBOARD:
-		dq = +dot_product(urp, v_right);				// cosine of angle between v_right and unit relative position
+		dq = +dot_product(urp, v_right);		// cosine of angle between v_right and unit relative position
 		break;
 
 	}
 
-	if (dq < 0.0)
-		return NO;
-
+	if (dq < 0.0)  return NO;
+	
 	astq = sqrt(1.0 - radius * radius / d2);	// cosine of half angle subtended by target
-
+	
 	return (fabs(dq) >= astq);
 }
 

@@ -63,55 +63,123 @@ static BOOL	isHitByOctree(Octree_details axialDetails, Octree_details otherDetai
 
 - (id) init
 {
-	self = [super init];
+	if (!(self = [super init]))  return nil;
 	radius = 0;
 	leafs = 0;
-	octree = malloc(sizeof(int));
-	octree_collision = malloc(sizeof(char));
-	octree[0] = 0;
-	octree_collision[0] = (char)0;
 	hasCollision = NO;
+	
+	octree = calloc(1, sizeof *octree);
+	octree_collision = calloc(1, sizeof *octree_collision);
+	
+	if (octree == NULL || octree_collision == NULL)
+	{
+		[self release];
+		return nil;
+	}
+	
 	return self;
 }
+
+
+- (id) initWithRadius:(GLfloat)inRadius leafCount:(unsigned)leafCount objectRepresentation:(id)objectRepresentation
+{
+	if (!(self = [super init]))  return nil;
+	
+	radius = inRadius;
+	leafs = leafCount;
+	hasCollision = NO;
+	
+	octree = calloc(leafCount, sizeof *octree);
+	octree_collision = calloc(leafCount, sizeof *octree_collision);
+	
+	if (octree == NULL || octree_collision == NULL)
+	{
+		[self release];
+		return nil;
+	}
+	
+	copyRepresentationIntoOctree(objectRepresentation, octree, 0, 1);
+	
+	return self;
+}
+
+
+- (id) initWithDictionary:(NSDictionary *)dict
+{
+	if (!(self = [super init]))  return nil;
+	
+	radius = [[dict objectForKey:@"radius"] floatValue];
+	leafs = [[dict objectForKey:@"leafs"] intValue];
+	NSData *dataStore = [dict objectForKey:@"octree"];
+	hasCollision = NO;
+	
+	size_t dataSize = leafs * sizeof *octree;
+	if (dataSize != [dataStore length])
+	{
+		OOLogERR(@"octree.load", @"Serialized octree leaf data has incorrect size.");
+		[self release];
+		return nil;
+	}
+	octree = malloc(leafs * sizeof *octree);
+	octree_collision = calloc(leafs, sizeof *octree_collision);
+	
+	if (octree == NULL || octree_collision == NULL)
+	{
+		[self release];
+		return nil;
+	}
+	
+	memmove(octree, [dataStore bytes], dataSize);
+	
+	return self;
+}
+
 
 - (void) dealloc
 {
 	free(octree);
 	free(octree_collision);
+	
 	[super dealloc];
 }
+
 
 - (GLfloat) radius
 {
 	return radius;
 }
 
+
 - (int) leafs
 {
 	return leafs;
 }
 
-- (int*) octree
+
+- (int *) octree
 {
 	return octree;
 }
 
-- (BOOL)	hasCollision
+- (BOOL) hasCollision
 {
 	return hasCollision;
 }
 
-- (void)	setHasCollision:(BOOL) value
+
+- (void) setHasCollision:(BOOL)value
 {
-	hasCollision = value;
+	hasCollision = !!value;
 }
 
-- (unsigned char*)	octree_collision
+
+- (unsigned char *) octree_collision
 {
 	return octree_collision;
 }
 
-- (Octree_details)	octreeDetails
+
+- (Octree_details) octreeDetails
 {
 	Octree_details	details;
 	details.octree = octree;
@@ -120,63 +188,21 @@ static BOOL	isHitByOctree(Octree_details axialDetails, Octree_details otherDetai
 	return details;
 }
 
-- (id) initWithRepresentationOfOctree:(GLfloat) octRadius :(NSObject*) octreeArray :(int) leafsize
-{
-	self = [super init];
-	
-	radius = octRadius;
-	leafs = leafsize;
-	octree = malloc(leafsize *sizeof(int));
-	octree_collision = malloc(leafsize *sizeof(char));
-	hasCollision = NO;
-	
-	int i;
-	for (i = 0; i< leafsize; i++)
-	{
-		octree[i] = 0;
-		octree_collision[i] = (char)0;
-	}
-	
-	copyRepresentationIntoOctree( octreeArray, octree, 0, 1);
-	
-	return self;
-}
-
-- (id) initWithDictionary:(NSDictionary*) dict
-{
-	self = [super init];
-	
-	radius = [[dict objectForKey:@"radius"] floatValue];
-	leafs = [[dict objectForKey:@"leafs"] intValue];
-	octree = malloc(leafs *sizeof(int));
-	octree_collision = malloc(leafs *sizeof(char));
-	int* data = (int*)[(NSData*)[dict objectForKey:@"octree"] bytes];
-	hasCollision = NO;
-	
-	int i;
-	for (i = 0; i< leafs; i++)
-	{
-		octree[i] = data[i];
-		octree_collision[i] = (char)0;
-	}
-	
-	return self;
-}
-
-- (Octree*) octreeScaledBy:(GLfloat) factor
+- (Octree *) octreeScaledBy:(GLfloat)factor
 {
 	GLfloat temp = radius;
 	radius *= factor;
-	Octree* result = [[Octree alloc] initWithDictionary:[self dictionaryRepresentation]];
+	Octree *result = [[Octree alloc] initWithDictionary:[self dictionaryRepresentation]];
 	radius = temp;
 	return [result autorelease];
 }
 
-int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocation, int nextFreeLocation)
+
+static int copyRepresentationIntoOctree(NSObject *theRep, int *theBuffer, int atLocation, int nextFreeLocation)
 {
 	if ([theRep isKindOfClass:[NSNumber class]])	// ie. a terminating leaf
 	{
-		if ([(NSNumber*)theRep intValue] != 0)
+		if ([(NSNumber *)theRep intValue] != 0)
 		{
 			theBuffer[atLocation] = -1;
 			return nextFreeLocation;
@@ -189,7 +215,7 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 	}
 	if ([theRep isKindOfClass:[NSArray class]])		// ie. a subtree
 	{
-		NSArray* theArray = (NSArray*)theRep;
+		NSArray *theArray = (NSArray*)theRep;
 		int i;
 		int theNextSpace = nextFreeLocation + 8;
 		for (i = 0; i < 8; i++)
