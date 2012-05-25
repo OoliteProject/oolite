@@ -1788,10 +1788,28 @@ static NSMutableDictionary* currentShipyard = nil;
 	[self setFuel:[self fuelCapacity]];
 	
 	// get forward_weapon aft_weapon port_weapon starboard_weapon from ship_info
-	aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"aft_weapon_type"]);
-	port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"port_weapon_type"]);
-	starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"starboard_weapon_type"]);
-	forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"forward_weapon_type"]);
+	int base_facings = [shipDict oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];
+	int available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:base_facings];
+
+	if (available_facings & WEAPON_FACING_AFT)
+		aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"aft_weapon_type"]);
+	else
+		aft_weapon_type = WEAPON_NONE;
+
+	if (available_facings & WEAPON_FACING_PORT)
+		port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"port_weapon_type"]);
+	else
+		port_weapon_type = WEAPON_NONE;
+
+	if (available_facings & WEAPON_FACING_STARBOARD)
+		starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"starboard_weapon_type"]);
+	else
+		starboard_weapon_type = WEAPON_NONE;
+
+	if (available_facings & WEAPON_FACING_FORWARD)
+		forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"forward_weapon_type"]);
+	else
+		forward_weapon_type = WEAPON_NONE;
 	
 	// get basic max_cargo
 	max_cargo = [UNIVERSE maxCargoForShip:[self shipDataKey]];

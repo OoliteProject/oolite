@@ -197,6 +197,7 @@ enum
 	kShip_vectorRight,			// rightVector of a ship, read-only
 	kShip_vectorUp,				// upVector of a ship, read-only
 	kShip_velocity,				// velocity, vector, read/write
+	kShip_weaponFacings,			// weapon range, double, read-only
 	kShip_weaponRange,			// weapon range, double, read-only
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
 	kShip_yaw, // yaw level, float, read-only
@@ -292,6 +293,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "vectorRight",			kShip_vectorRight,			OOJS_PROP_READONLY_CB },
 	{ "vectorUp",				kShip_vectorUp,				OOJS_PROP_READONLY_CB },
 	{ "velocity",				kShip_velocity,				OOJS_PROP_READWRITE_CB },
+	{ "weaponFacings",			kShip_weaponFacings,			OOJS_PROP_READONLY_CB },
 	{ "weaponRange",			kShip_weaponRange,			OOJS_PROP_READONLY_CB },
 	{ "withinStationAegis",		kShip_withinStationAegis,	OOJS_PROP_READONLY_CB },
 	{ "yaw",				kShip_yaw,			OOJS_PROP_READONLY_CB },
@@ -507,6 +509,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_weaponRange:
 			return JS_NewNumberValue(context, [entity weaponRange], value);
+
+		case kShip_weaponFacings:
+			if ([entity isPlayer])
+			{
+				PlayerEntity *pent = (PlayerEntity*)entity;
+				return JS_NewNumberValue(context, [pent availableFacings], value);
+			}
+			return JS_NewNumberValue(context, [entity weaponFacings], value);
 		
 		case kShip_scannerRange:
 			return JS_NewNumberValue(context, [entity scannerRange], value);

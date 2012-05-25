@@ -271,10 +271,11 @@ _lightsActive: 1;
 	
 	GLfloat					energy_recharge_rate;		// recharge rate for energy banks
 	
+	int weapon_facings; // weapon mounts available (bitmask)
 	OOWeaponType			forward_weapon_type;		// type of forward weapon (allows lasers, plasma cannon, others)
 	OOWeaponType			aft_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
-	OOWeaponType			port_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
-	OOWeaponType			starboard_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
+	OOWeaponType			port_weapon_type;			// type of port weapon
+	OOWeaponType			starboard_weapon_type;			// type of starboard weapon
 	GLfloat					weapon_damage;				// energy damage dealt by weapon
 	GLfloat					weapon_damage_override;		// custom energy damage dealt by front laser, if applicable
 	GLfloat					weaponRange;				// range of the weapon (in meters)
@@ -523,6 +524,7 @@ _lightsActive: 1;
 - (void) respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other;
 
 // Equipment
+- (int) weaponFacings;
 - (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading;	// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment. If includeWeapons is NO, missiles and primary weapons are not checked.
 - (BOOL) hasEquipmentItem:(id)equipmentKeys;			// Short for hasEquipmentItem:foo includeWeapons:NO whileLoading:NO
 - (BOOL) hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading;		// Like hasEquipmentItem:includeWeapons:, but requires _all_ elements in collection.

@@ -24,6 +24,7 @@
 		roles = "hunter scavenger shuttle hermit-ship";
 		scoop_position = "0.0 -2.0 -7.5";
 		thrust = 30;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 0.0 -22.5";
 		weapon_position_forward = "0.0 0.0 22.5";
 		weapon_position_port = "-15.0 0.0 -14.5";
@@ -53,6 +54,7 @@
 		view_position_forward = "0.0 2.5 14.0";
 		view_position_port = "-12.0 1.5 -1.0";
 		view_position_starboard = "12.0 1.5 -1.0";
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 0.0 -22.5";
 		weapon_position_forward = "0.0 0.0 22.5";
 		weapon_position_port = "-15.0 0.0 -14.5";
@@ -177,6 +179,7 @@
 		roles = "trader";
 		scoop_position = "0.0 -30.0 -60";
 		thrust = 14;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 0.0 -85.0";
 		weapon_position_forward = "0.0 -4.0 85.0";
 		weapon_position_port = "-37.5 -4.0 -40.0";
@@ -206,6 +209,7 @@
 		view_position_forward = "0.0 -0.5 70.0";
 		view_position_port = "-2.15 -0.5 70.0";
 		view_position_starboard = "2.15 -0.5 70.0";
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 0.0 -85.0";
 		weapon_position_forward = "0.0 -4.0 85.0";
 		weapon_position_port = "-37.5 -4.0 -40.0";
@@ -310,6 +314,7 @@
 		scoop_position = "0.0 -5.0 -15";
 		smooth = yes;
 		thrust = 50;
+		weapon_facings = 3;
 		weapon_position_aft = "0.0 -5.0 -35.0";
 		weapon_position_forward = "0.0 0.0 22.5";
 		weapon_position_port = "-32.5 0.0 -7.0";
@@ -540,6 +545,7 @@
 		roles = "trader";
 		scoop_position = "0.0 -16.0 -19";
 		thrust = 36;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 11.0 -56.0";
 		weapon_position_forward = "0.0 8.0 57.5";
 		weapon_position_port = "-16.25 8.0 11.0";
@@ -574,6 +580,7 @@
 		scoop_position = "0.0 -20.0 -10.0";
 		thrust = 40;
 		weapon_energy = 15;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 8.625 -54.125";
 		weapon_position_forward = "0.0 8.0 57.5";
 		weapon_position_port = "-16.25 1.75 0.0";
@@ -603,6 +610,7 @@
 		view_position_forward = "0.0 12.5 19.4375";
 		view_position_port = "-20.67 11.17 -14.67";
 		view_position_starboard = "20.67 11.17 -14.67";
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 8.625 -54.125";
 		weapon_position_forward = "0.0 1.8 47.5";
 		weapon_position_port = "-16.25 1.75 0.0";
@@ -695,6 +703,7 @@
 		view_position_forward = "0.0 16.25 23.9";
 		view_position_port = "-7.3 16.25 23.9";
 		view_position_starboard = "7.3 16.25 23.9";
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 11.0 -56.0";
 		weapon_position_forward = "0.0 8.0 43.0";
 		weapon_position_port = "-16.25 8.0 11.0";
@@ -942,6 +951,7 @@
 		roles = "trader scavenger sunskim-trader";
 		scoop_position = "0.0 -10.0 -10.0";
 		thrust = 30;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 0.0 -32.5";
 		weapon_position_forward = "0.0 0.0 27.5";
 		weapon_position_port = "-40.0 0.0 -6.0";
@@ -1090,6 +1100,7 @@
 		name = "Cobra Mark I";
 		roles = "pirate hunter scavenger trader hermit-ship";
 		thrust = 25;
+		weapon_facings = 3;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
 		weapon_position_port = "-35.0 -1.0 0.5";
@@ -1228,6 +1239,7 @@
 		pilot = "constrictor-mission-thief";	// key to entry in characters.plist
 		roles = "constrictor";
 		thrust = 50;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 -4.5 -30.0";
 		weapon_position_forward = "0.0 0.0 27.5";
 		weapon_position_port = "-18.5 0.0 -14.0";
@@ -1566,6 +1578,7 @@
 		roles = "pirate hunter";
 		scoop_position = "0.0 -8.0 -14";
 		thrust = 36;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 0.0 -42.5";
 		weapon_position_forward = "0.0 0.0 4.18";
 		weapon_position_port = "-16.875 -4.0 3.5";
@@ -1596,6 +1609,7 @@
 		view_position_forward = "0.0 0.0 9.0";
 		view_position_port = "-16.875 2.0 3.5";
 		view_position_starboard = "16.875 2.0 3.5";
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 0.0 -42.5";
 		weapon_position_forward = "0.0 -9.5 35.0";
 		weapon_position_port = "-16.875 -4.0 3.5";
@@ -1689,6 +1703,7 @@
 		roles = "pirate";
 		scoop_position = "0.0 -5.0 -9";
 		thrust = 45;
+		weapon_facings = 1;
 		weapon_position_forward = "0.0 0.0417 16.6667";
 		weapon_position_port = "-13.75 -2.0625 -1.875";
 		weapon_position_starboard = "13.75 -2.0625 -1.875";
@@ -1780,6 +1795,7 @@
 		roles = "pirate hunter";
 		scoop_position = "0.0 -2.0 -3";
 		thrust = 35;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 -5.0 -20.0";
 		weapon_position_forward = "0.0 0.0417 16.6667";
 		weapon_position_port = "-45.0 0.0 -13.5";
@@ -1810,6 +1826,7 @@
 		roles = "pirate";
 		scoop_position = "0.0 -2.0 -3";
 		thrust = 32;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 -4.5 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
 		weapon_position_port = "-16.5 -3.0 0.0";
@@ -1841,6 +1858,7 @@
 		name = "Mamba Escort";
 		roles = "escort";
 		thrust = 32;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 -4.5 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
 		weapon_position_port = "-16.5 -3.0 0.0";
@@ -1892,6 +1910,7 @@
 		roles = "pirate";
 		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 32;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 1.625 -20.0";
 		weapon_position_forward = "0.0 0.0 27.5";
 		weapon_position_port = "-30.0 -2.0 6.25";
@@ -1921,6 +1940,7 @@
 		view_position_forward = "0.0 4.4 22.5";
 		view_position_port = "-22.5 5.25 11.875";
 		view_position_starboard = "22.5 5.25 11.875";
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 1.625 -10.0";
 		weapon_position_forward = "0.0 -10.5 30.5";
 		weapon_position_port = "-30.0 -2.0 6.25";
@@ -2017,6 +2037,7 @@
 		roles = "trader sunskim-trader";
 		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 32;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 1.625 -20.0";
 		weapon_position_forward = "0.0 0.0 27.5";
 		weapon_position_port = "-30.0 -2.0 6.25";
@@ -2050,6 +2071,7 @@
 		view_position_forward = "0.0 4.4 22.5";
 		view_position_port = "-22.5 5.25 11.875";
 		view_position_starboard = "22.5 5.25 11.875";
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 1.625 -10.0";
 		weapon_position_forward = "0.0 -10.5 30.5";
 		weapon_position_port = "-30.0 -2.0 6.25";
@@ -2163,6 +2185,7 @@
 		roles = "trader pirate";
 		scoop_position = "0.0 -15.0 -21.5";
 		thrust = 20;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 10 -65.0";
 		weapon_position_forward = "0.0 0.0 65.0";
 		weapon_position_port = "-26.67 0.0 4.33";
@@ -2200,6 +2223,7 @@
 		roles = "pirate blackdog";
 		scoop_position = "0.0 -15.0 -21.5";
 		thrust = 20;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 10 -65.0";
 		weapon_position_forward = "0.0 0.0 65.0";
 		weapon_position_port = "-26.67 0.0 4.33";
@@ -2229,6 +2253,7 @@
 		view_position_forward = "0.0 10.0 31.5";
 		view_position_port = "-16.0 4.0 15.2";
 		view_position_starboard = "16.0 4.0 15.2";
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 10 -55.0";
 		weapon_position_forward = "0.0 0.0 55.0";
 		weapon_position_port = "-26.67 0.0 4.33";
@@ -2327,6 +2352,7 @@
 		roles = "trader";
 		scoop_position = "0.0 -15.0 -21.5";
 		thrust = 20;
+		weapon_facings = 15;
 		weapon_position_aft = "0.0 10 -65.0";
 		weapon_position_forward = "0.0 0.0 65.0";
 		weapon_position_port = "-26.67 0.0 4.33";
@@ -2481,6 +2507,7 @@
 		name = "Orbital Shuttle";
 		roles = "shuttle";
 		thrust = 16;
+		weapon_facings = 0;
 		weapon_position_aft = "0.0 0.0 -17.5";
 		weapon_position_forward = "0.0 -4.5 17.5";
 		weapon_position_port = "-9.0 0.0 11.5";
@@ -2506,6 +2533,7 @@
 		name = "Sidewinder Scout Ship";
 		roles = "pirate hunter";
 		thrust = 37;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 -6.5 -17.5";
 		weapon_position_forward = "0.0 -4.5 17.5";
 		weapon_position_port = "-24.25 0.0 0.0";
@@ -2531,6 +2559,7 @@
 		name = "Sidewinder Scout Ship";
 		roles = "escort hunter";
 		thrust = 37;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 -6.5 -17.5";
 		weapon_position_forward = "0.0 -4.5 17.5";
 		weapon_position_port = "-24.25 0.0 0.0";
@@ -2602,6 +2631,7 @@
 		scanner_range = 50000;
 		thrust = 40;
 		unpiloted = yes;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 0.0 -16.5";
 		weapon_position_forward = "0.0 -4.5 18.0";
 		weapon_position_port = "-19.0 -4.5 4.5";
@@ -2634,6 +2664,7 @@
 		scanner_range = 60000;
 		script = "oolite-thargoid-warship.js";
 		thrust = 50;
+		weapon_facings = 3;
 	};
 	"transporter" =
 	{
@@ -2656,6 +2687,7 @@
 		roles = "shuttle";
 		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 20;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 -1.0 -17.5";
 		weapon_position_forward = "0.0 -3.4 17.5";
 		weapon_position_port = "-14.25 -3.0 6.0";
@@ -2782,6 +2814,7 @@
 			}
 		);
 		thrust = 32;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 -2.67 18.33";
 		weapon_position_port = "-12.5 0.0 0.0";
@@ -2901,6 +2934,7 @@
 			}
 		);
 		thrust = 50;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 -8.0 -32.0";
 		weapon_position_forward = "0.0 -3.33 21.33";
 		weapon_position_port = "-23.75 0.0 -1.75";
@@ -2927,6 +2961,7 @@
 		roles = "wingman";
 		scan_class = "CLASS_POLICE";
 		thrust = 36;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 -2.67 18.33";
 		weapon_position_port = "-12.5 0.0 0.0";
@@ -2953,6 +2988,7 @@
 		name = "Worm";
 		roles = "shuttle";
 		thrust = 12;
+		weapon_facings = 1;
 		weapon_position_aft = "0.0 -4.8 -17.5";
 		weapon_position_forward = "0.0 -4.4 15.5";
 		weapon_position_port = "-12.5 -3.0 -2.5";

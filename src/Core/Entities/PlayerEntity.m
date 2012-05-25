@@ -976,10 +976,29 @@ static GLfloat		sBaseMass = 0.0;
 	
 	fuel = [dict oo_unsignedIntForKey:@"fuel" defaultValue:fuel];
 	galaxy_number = [dict oo_intForKey:@"galaxy_number"];
-	forward_weapon_type = [dict oo_intForKey:@"forward_weapon"];
-	aft_weapon_type = [dict oo_intForKey:@"aft_weapon"];
-	port_weapon_type = [dict oo_intForKey:@"port_weapon"];
-	starboard_weapon_type = [dict oo_intForKey:@"starboard_weapon"];
+//
+	NSDictionary *shipyard_info = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:[self shipDataKey]];
+	int available_facings = [shipyard_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];
+
+	if (available_facings & WEAPON_FACING_FORWARD)
+		forward_weapon_type = [dict oo_intForKey:@"forward_weapon"];
+	else
+		forward_weapon_type = WEAPON_NONE;
+
+	if (available_facings & WEAPON_FACING_AFT)
+		aft_weapon_type = [dict oo_intForKey:@"aft_weapon"];
+	else
+		aft_weapon_type = WEAPON_NONE;
+
+	if (available_facings & WEAPON_FACING_PORT)
+		port_weapon_type = [dict oo_intForKey:@"port_weapon"];
+	else
+		port_weapon_type = WEAPON_NONE;
+
+	if (available_facings & WEAPON_FACING_STARBOARD)
+		starboard_weapon_type = [dict oo_intForKey:@"starboard_weapon"];
+	else
+		starboard_weapon_type = WEAPON_NONE;
 	
 	weapons_online = [dict oo_boolForKey:@"weapons_online" defaultValue:YES];
 	
@@ -6323,7 +6342,7 @@ static NSString *last_outfitting_key=nil;
 {
 	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
 	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
-	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];	// use defaults  explicitly
+	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
 	return available_facings;
 }
 
@@ -6374,7 +6393,7 @@ static NSString *last_outfitting_key=nil;
 	unsigned			i = 0;
 	NSEnumerator		*eqEnum = nil;
 	OOEquipmentType		*eqType = nil;
-	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];	// use defaults  explicitly
+	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
 
 	
 	if (eqKeyForSelectFacing != nil) // Weapons purchase subscreen.
@@ -7177,7 +7196,7 @@ static NSString *last_outfitting_key=nil;
 - (BOOL) setWeaponMount:(int)facing toWeapon:(NSString *)eqKey
 {
 		NSDictionary		*shipyardInfo = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:[self shipDataKey]];
-		unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];	// use defaults  explicitly
+		unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
 
 // facing exists?
 		if (!(available_facings & facing)) 
