@@ -100,7 +100,7 @@ static JSPropertySpec sEntityProperties[] =
 	{ "orientation",			kEntity_orientation,		OOJS_PROP_READWRITE_CB },
 	{ "owner",					kEntity_owner,				OOJS_PROP_READONLY_CB },
 	{ "position",				kEntity_position,			OOJS_PROP_READWRITE_CB },
-	{ "scanClass",				kEntity_scanClass,			OOJS_PROP_READONLY_CB },
+	{ "scanClass",				kEntity_scanClass,			OOJS_PROP_READWRITE_CB },
 	{ "spawnTime",				kEntity_spawnTime,			OOJS_PROP_READONLY_CB },
 	{ "status",					kEntity_status,				OOJS_PROP_READONLY_CB },
 	{ "isPlanet",				kEntity_isPlanet,			OOJS_PROP_READONLY_CB },
@@ -318,7 +318,24 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 				return YES;
 			}
 			break;
-		
+
+		case kEntity_scanClass:
+			if ([entity isShip] && ![entity isPlayer])
+			{
+				OOScanClass newClass = OOScanClassFromJSValue(context, *value);
+				if (newClass == CLASS_NOT_SET || newClass == CLASS_NO_DRAW || newClass == CLASS_TARGET || newClass == CLASS_WORMHOLE || newClass == CLASS_PLAYER)
+				{
+					OOJSReportError(context, @"entity.scanClass cannot be set to that value.");
+					return NO;
+				}
+				[entity setScanClass:newClass];
+				return YES;
+			}
+			else
+			{
+				OOJSReportError(context, @"entity.scanClass is read-only except on NPC ships.");
+				return NO;
+			}
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sEntityProperties);
 			return NO;
