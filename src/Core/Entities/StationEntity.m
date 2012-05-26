@@ -826,7 +826,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	max_police = [dict oo_unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
 	equipmentPriceFactor = [dict oo_nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
 	equipmentPriceFactor = fmaxf(equipmentPriceFactor, 0.5f);
-	hasNPCTraffic = [dict oo_fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:YES];
+	hasNPCTraffic = [dict oo_fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:(maxFlightSpeed == 0)]; // carriers default to NO
 	hasPatrolShips = [dict oo_fuzzyBooleanForKey:@"has_patrol_ships" defaultValue:NO];
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
 	NSDictionary *universalInfo = [[UNIVERSE planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
@@ -844,7 +844,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	double unitime = [UNIVERSE getTime];
 
-	if ([self isRotatingStation] && [self hasNPCTraffic])
+	if ([self hasNPCTraffic])  // removed the 'isRotatingStation' restriction.
 	{
 		docked_shuttles = ranrot_rand() & 3;   // 0..3;
 		shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
@@ -863,7 +863,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	patrol_launch_interval = 300.0;	// 5 minutes
 	last_patrol_report_time = unitime - patrol_launch_interval;
 	
-	[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[UNIVERSE systemSeed]]]];
+	if ([self crew] == nil)
+	{
+		[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[UNIVERSE systemSeed]]]];
+	}
 	
 	if ([self group] == nil)
 	{

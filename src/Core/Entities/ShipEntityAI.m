@@ -301,7 +301,9 @@
 	{
 		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
-		if ((d2 < found_d2) && ([thing isThargoid] || (([thing primaryTarget] == self) && [thing hasHostileTarget]) || [thing isDefenseTarget:[self universalID]]))
+		if ((d2 < found_d2) 
+			&& ([thing isThargoid] || (([thing primaryTarget] == self) && [thing hasHostileTarget]) || [thing isDefenseTarget:[self universalID]])
+			&& ![thing isCloaked])
 		{
 			found_target = [thing universalID];
 			found_d2 = d2;
@@ -560,7 +562,7 @@
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ship = scanned_ships[i];
-		if ([ship isPirateVictim] && ([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED))
+		if ([ship isPirateVictim] && ([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED) && ![ship isCloaked])
 		{
 			d2 = distance2_scanned_ships[i];
 			if (PIRATES_PREFER_PLAYER && (d2 < desired_range * desired_range) && ship->isPlayer && [self isPirate])
@@ -593,7 +595,7 @@
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity *ship = scanned_ships[i];
-		if (([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED) && [ship isPirateVictim])
+		if (([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED) && [ship isPirateVictim] && ![ship isCloaked])
 			ids_found[n_found++] = ship->universalID;
 	}
 	if (n_found == 0)
@@ -2738,7 +2740,8 @@
 	{
 		candidate = scanned_ships[i];
 		d2 = distance2_scanned_ships[i];
-		if ((d2 < found_d2) && (candidate->scanClass != CLASS_CARGO) && ([candidate status] != STATUS_DOCKED) && predicate(candidate, parameter))
+		if ((d2 < found_d2) && (candidate->scanClass != CLASS_CARGO) && ([candidate status] != STATUS_DOCKED) 
+					&& predicate(candidate, parameter) && ![candidate isCloaked])
 		{
 			found_target = candidate->universalID;
 			found_d2 = d2;
