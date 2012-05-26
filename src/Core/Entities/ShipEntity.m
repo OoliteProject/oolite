@@ -3810,22 +3810,32 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// control speed
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
 	double	slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
+	double	back_off_range = weaponRange * COMBAT_OUT_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
-		double last_success_factor = success_factor;
+	double last_success_factor = success_factor;
 	double distance = [self rangeToDestination];
-		success_factor = distance;
+	success_factor = distance;
 		
 	if (range < slow_down_range)
 	{
-		desired_speed = fmax(target_speed, 0.4 * maxFlightSpeed);
+		if (range < back_off_range)
+		{
+			desired_speed = fmax(0.9 * target_speed, 0.4 * maxFlightSpeed);
+		} 
+		else
+		{
+			desired_speed = fmax(target_speed * 1.2, maxFlightSpeed);
+		}
 		
 		// avoid head-on collision
 		if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
 			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 	}
 	else
+	{
 		desired_speed = max_available_speed; // use afterburner to approach
+	}
 
 
 	// if within 0.75km of the target's six or twelve, or if target almost at standstill for 62.5% of non-thargoid ships (!),
@@ -3994,11 +4004,23 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
 	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
+	double	back_off_range = weaponRange * COMBAT_OUT_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	double target_speed = [target speed];
 	if (range <= slow_down_range)
-		desired_speed = fmax(target_speed * 1.05, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
+	{
+		if (range < back_off_range)
+		{
+			desired_speed = fmax(target_speed * 1.05, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
+		}
+		else
+		{
+			desired_speed = fmax(target_speed * 1.25, maxFlightSpeed);
+		}
+	}
 	else
+	{
 		desired_speed = max_available_speed; // use afterburner to approach
+	}
 
 	double last_success_factor = success_factor;
 	success_factor = [self trackPrimaryTarget:delta_t:NO];	// do the actual piloting
@@ -8509,9 +8531,23 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// OXPs can override the default front laser energy damage.
 	
 	[self setWeaponDataFromType:forward_weapon_type];
+
 	weapon_damage = weapon_damage_override;
 	
-	return [self fireWeapon:forward_weapon_type direction:VIEW_FORWARD range:range];
+	BOOL result = [self fireWeapon:forward_weapon_type direction:VIEW_FORWARD range:range];
+	if (forward_weapon_type == WEAPON_NONE)
+	{
+// need to check subentities to avoid AI oddities
+		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
+		ShipEntity		*se = nil;
+		OOWeaponType 			weapon_type = WEAPON_NONE;
+		while (weapon_type == WEAPON_NONE && (se = [subEnum nextObject]))
+		{
+			weapon_type = se->forward_weapon_type;
+		}
+		[self setWeaponDataFromType:weapon_type];
+	}
+	return result;
 }
 
 
