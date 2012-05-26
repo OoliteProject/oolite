@@ -546,13 +546,27 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if (accuracy >= -5.0f && accuracy <= 10.0f)
 	{
 		pitch_tolerance = 0.01 * (85.0f + accuracy);
+		if (scanClass == CLASS_MISSILE)
+		{
+			accuracy = OOClamp_0_max_f(accuracy, 10.0f);
+		}
+	}
+	else if (scanClass == CLASS_MISSILE)
+	{
+		accuracy = 0.0f;
+		pitch_tolerance = 0.01 * (80.0 + (randf() * 15.0));
 	}
 	else
 	{
-		pitch_tolerance = 0.01 * (80 + (randf() * 15.0f));
+		accuracy = (randf() * 15.0f) - 5.0f;
+		if (scanClass == CLASS_MILITARY || scanClass == CLASS_POLICE) accuracy += 5.0;  // police and military pilots have a better average skill. 
+		if (accuracy > 10.0f) accuracy = 10.0f;
+
+		pitch_tolerance = 0.01 * (85.0 + accuracy);
+
 	}
 
-	// If this entity is a missile, clamp its accuracy within range from 0.0 to 10.0.
+/*	// If this entity is a missile, clamp its accuracy within range from 0.0 to 10.0.
 	// Otherwise, just make sure that the accuracy value does not fall below 1.0.
 	// Using a switch statement, in case accuracy for other scan classes need be considered in the future.
 	switch (scanClass)
@@ -563,7 +577,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		default :
 			if (accuracy < 1.0f) accuracy = 1.0f;
 			break;
-	}
+			} */
 		
 	//  escorts
 	_maxEscortCount = MIN([shipDict oo_unsignedCharForKey:@"escorts" defaultValue:0], (uint8_t)MAX_ESCORTS);
@@ -3456,7 +3470,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	  }
 		else 
 		{
-			if (universalID & 1)	// 50% of ships are smart S.M.R.T. smart!
+//			if (universalID & 1)	// 50% of ships are smart S.M.R.T. smart!
+			if (pitch_tolerance >= 87.5) // may as well make it the 50% who can shoot straight
 			{
 				if (randf() < 0.75)
 					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
@@ -3835,7 +3850,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
 		{
       // head for a point near the target, avoiding common Galcop weapon mount locations
-			GLfloat offset = (([self entityPersonalityInt] & 15) * 1000.0) - 7500.0;
+			GLfloat offset = ((pitch_tolerance-80) * 1000.0) - 7500.0;
 			destination = [target distance_twelve:(2000.0*(1+([self entityPersonalityInt]%5))) withOffset:offset];
 		}
 		else 
@@ -7690,7 +7705,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
 
-	double	targetRadius = 0.75 * target->collision_radius;
+	double	targetRadius = (1.625 - pitch_tolerance) * target->collision_radius;
 
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 
@@ -7844,7 +7859,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
 
-	double	targetRadius = 0.75 * target->collision_radius;
+	double	targetRadius = (1.625-pitch_tolerance) * target->collision_radius;
 
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 
@@ -8436,7 +8451,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	if (weapon_type != WEAPON_THARGOID_LASER)
 	{ // thargoid laser may just pick secondary target in this case
-		if (range > randf() * weaponRange * accuracy)  return NO;
+		if (range > randf() * weaponRange * (accuracy+5.5))  return NO;
 		if (range > weaponRange)  return NO;
 	}
 	if (![self onTarget:direction withWeapon:weapon_type])  return NO;
@@ -8659,7 +8674,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	Entity			*my_target = [self primaryTarget];
 	if (my_target == nil)  return [self fireDirectLaserDefensiveShot];
-	if (range > randf() * weaponRange * accuracy)  return [self fireDirectLaserDefensiveShot];
+	if (range > randf() * weaponRange * (accuracy+5.5))  return [self fireDirectLaserDefensiveShot];
 	if (range > weaponRange)  return [self fireDirectLaserDefensiveShot];
 	return [self fireDirectLaserShotAt:my_target];
 }
