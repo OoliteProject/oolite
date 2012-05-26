@@ -58,6 +58,8 @@ static Vector randomFullNodeFrom(Octree_details details, Vector offset);
 
 static BOOL	isHitByOctree(Octree_details axialDetails, Octree_details otherDetails, Vector delta, Triangle other_ijk);
 
+static int copyRepresentationIntoOctree(NSObject *theRep, int *theBuffer, int atLocation, int nextFreeLocation);
+
 
 @implementation Octree
 

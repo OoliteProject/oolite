@@ -8374,7 +8374,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon_type
 {
-	GLfloat d2, radius, dq, astq;
+	// initialize dq to a value that would normally return NO; dq is handled inside the defaultless switch(direction) statement
+	// and should alaways be recalculated anyway. Initialization here needed to silence compiler warning - Nikos 20120526
+	GLfloat dq = -1.0f;
+	GLfloat d2, radius, astq;
 	Vector rel_pos, urp;
 	if (weapon_type == WEAPON_THARGOID_LASER)
 	{
@@ -8399,24 +8402,24 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	switch (direction)
 	{
-	case VIEW_CUSTOM:
-	case VIEW_NONE:
-	case VIEW_GUI_DISPLAY:
-	case VIEW_BREAK_PATTERN:
-// first four should never happen here
-	case VIEW_FORWARD:
-		dq = +dot_product(urp, v_forward);		// cosine of angle between v_forward and unit relative position
-		break;
-	case VIEW_AFT:
-		dq = -dot_product(urp, v_forward);		// cosine of angle between v_forward and unit relative position
-		break;
-	case VIEW_PORT:
-		dq = -dot_product(urp, v_right);		// cosine of angle between v_right and unit relative position
-		break;
-	case VIEW_STARBOARD:
-		dq = +dot_product(urp, v_right);		// cosine of angle between v_right and unit relative position
-		break;
-
+		case VIEW_CUSTOM:
+		case VIEW_NONE:
+		case VIEW_GUI_DISPLAY:
+		case VIEW_BREAK_PATTERN:
+		// first four should never happen here
+		case VIEW_FORWARD:
+			dq = +dot_product(urp, v_forward);		// cosine of angle between v_forward and unit relative position
+			break;
+		case VIEW_AFT:
+			dq = -dot_product(urp, v_forward);		// cosine of angle between v_forward and unit relative position
+			break;
+		case VIEW_PORT:
+			dq = -dot_product(urp, v_right);		// cosine of angle between v_right and unit relative position
+			break;
+		case VIEW_STARBOARD:
+			dq = +dot_product(urp, v_right);		// cosine of angle between v_right and unit relative position
+			break;
+		// no default
 	}
 
 	if (dq < 0.0)  return NO;
