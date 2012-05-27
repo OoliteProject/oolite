@@ -68,7 +68,7 @@ void clear_checksum();
 int munge_checksum(int value);
 
 // cunning price rounding routine:
-double cunningFee(double value);
+double cunningFee(double value, double precision); // precision is the fraction below which numbers become insignificant.
 
 // an implementation of RANROT
 // pseudo random number generator

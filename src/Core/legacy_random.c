@@ -57,15 +57,17 @@ int munge_checksum(int value)
 
 // cunning price rounding routine:
 //
-double cunningFee(double value)
+double cunningFee(double value, double precision)
 {
 	double fee = value;
 	double superfee = 100000.0;
+	double max = 1 + precision;
+	double min = 1 - precision;
 	unsigned long long rounded_fee = superfee * floor(0.5 + fee / superfee);
 	if (rounded_fee == 0)  rounded_fee = 1;
 	double ratio = fee / (double)rounded_fee;
 	
-	while ((ratio < 0.95 || ratio > 1.05) && superfee > 1)
+	while ((ratio < min || ratio > max) && superfee > 1)
 	{
 		rounded_fee = superfee * floor(0.5 + fee / superfee);
 		if (rounded_fee == 0)  rounded_fee = 1;
@@ -73,7 +75,7 @@ double cunningFee(double value)
 		superfee /= 10.0;
 	}
 	
-	if (ratio > 0.95 && ratio < 1.05)
+	if (ratio > min && ratio < max)
 		fee = rounded_fee;
 	
 	return fee;

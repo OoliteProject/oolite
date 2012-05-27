@@ -755,6 +755,7 @@ typedef enum
 - (void) getFined;
 - (void) adjustTradeInFactorBy:(int)value;
 - (int) tradeInFactor;
+- (double) renovationCosts;
 
 - (void) setDefaultViewOffsets;
 - (void) setDefaultCustomViews;

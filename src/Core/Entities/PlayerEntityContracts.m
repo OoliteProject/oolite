@@ -1469,8 +1469,8 @@ static NSMutableDictionary* currentShipyard = nil;
 	OOCreditsQuantity tradeIn = [self tradeInValue];
 	[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_MARKET_CASH - 1];
 	[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_MARKET_CASH];
-	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), [self displayName], OOCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH - 1];
-	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH];
+	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), [self displayName], OOIntCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH - 1];
+	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOIntCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH];
 }
 
 
@@ -1540,8 +1540,8 @@ static NSMutableDictionary* currentShipyard = nil;
 		-- Ahruman 20070707, fix applied 20070708
 	*/
 	unsigned long long value = [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]];
-	value -= cunningFee(value * 0.006 * [self missingSubEntitiesAdjustment]);	// TODO: 0.006 might need rethinking.
-	value = ((value * 75 * ship_trade_in_factor) + 5000) / 10000;	// Multiply by two percentages, divide by 100*100. The +5000 is to get normal rounding.
+	value -= value * 0.006 * [self missingSubEntitiesAdjustment];	// TODO: 0.006 might need rethinking.
+	value = cunningFee(((value * 75 * ship_trade_in_factor) + 5000) / 10000, 0.005);	// Multiply by two percentages, divide by 100*100. The +5000 is to get normal rounding.
 	return value * 10;
 }
 

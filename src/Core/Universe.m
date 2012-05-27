@@ -7128,7 +7128,7 @@ static double estimatedTimeForJourney(double distance, int hops)
 				// Credits increase exponentially with number of hops (more with reputation > 5) + 8..15 cr per LY + bonus for low government level of destination
 				OOCreditsQuantity fee = 5 * pow(route_hops, player_repute > 5 ? 2.65 : 2.5) + route_length * (8 + (passenger_seed.e & 7)) + 5 * (7 - destination_government) * (7 - destination_government);
 				
-				fee = cunningFee(fee);
+				fee = cunningFee(fee, 0.05);
 				
 				// premium = 20% of fee
 				int premium = fee * 20 / 100;
@@ -7397,7 +7397,7 @@ static double estimatedTimeForJourney(double distance, int hops)
 						// what the contract pays
 						float fee = profit_for_trip * contract_share / 100;
 						
-						fee = round(cunningFee(fee));
+						fee = round(cunningFee(fee, 0.05));
 						
 						// premium = local price
 						float premium = round(local_cargo_value);
@@ -7805,7 +7805,7 @@ static double estimatedTimeForJourney(double distance, int hops)
 			}
 			if (price > base_price)
 			{
-				price = base_price + cunningFee(price - base_price);
+				price = base_price + cunningFee(price - base_price, 0.05);
 			}
 			
 			[description appendFormat:DESC(@"shipyard-selling-price-@"), OOIntCredits(price)];

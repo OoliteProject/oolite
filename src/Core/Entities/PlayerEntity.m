@@ -6533,8 +6533,7 @@ static NSString *last_outfitting_key=nil;
 				}
 				else if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 				{
-					price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
-					price += price * (0.1 * [self missingSubEntitiesAdjustment]);
+					price = [self renovationCosts];
 					[gui setColor:[OOColor orangeColor] forRow:row]; // color renovation in orange
 				}
 				else price = pricePerUnit;
@@ -7002,8 +7001,7 @@ static NSString *last_outfitting_key=nil;
 	
 	if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 	{
-		price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
-		price += price * (0.1 * [self missingSubEntitiesAdjustment]);
+		price = [self renovationCosts];
 	}
 	
 	if (dockedStation)
@@ -7953,6 +7951,17 @@ static NSString *last_outfitting_key=nil;
 {
 	return ship_trade_in_factor;
 }
+
+
+- (double) renovationCosts
+{
+	// 4% of value of ships wear + correction for missing subentities.
+	OOCreditsQuantity shipValue = [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]];
+	double costs = 0.004 * (100 - ship_trade_in_factor) * shipValue;
+	costs += 0.01 * shipValue * [self missingSubEntitiesAdjustment];
+	return cunningFee(costs, 0.05);
+}
+
 
 - (void) setDefaultViewOffsets
 {

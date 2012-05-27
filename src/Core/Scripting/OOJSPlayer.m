@@ -130,7 +130,7 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation,	0 },
 	{ "increaseContractReputation",		PlayerIncreaseContractReputation,	0 },
 	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
-	{ "replaceShip", PlayerReplaceShip, 1},
+	{ "replaceShip",					PlayerReplaceShip,					1 },
 	{ "setEscapePodDestination",		PlayerSetEscapePodDestination,		1 },	// null destination must be set explicitly
 	{ 0 }
 };
