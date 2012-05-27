@@ -404,6 +404,12 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	}
 	if (demoShip != nil)
 	{
+		if (JS_GetProperty(context, params, "modelPersonality", &value) && !JSVAL_IS_VOID(value))
+		{
+			int personality = 0;
+			JS_ValueToInt32(context,value,&personality);
+			[demoShip setEntityPersonalityInt:personality];
+		}
 		jsval demoShipVal = [demoShip oo_jsValueInContext:context];
 		JS_SetProperty(context, sMissionObject, "displayModel", &demoShipVal);
 	}

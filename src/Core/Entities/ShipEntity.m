@@ -437,7 +437,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	fuel_accumulator = 1.0;
 	
-	bounty = [shipDict oo_unsignedIntForKey:@"bounty"];
+	[self setBounty:[shipDict oo_unsignedIntForKey:@"bounty" defaultValue:0] withReason:kOOLegalStatusReasonSetup];
 	
 	[shipAI autorelease];
 	shipAI = [[AI alloc] init];
@@ -1472,8 +1472,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		if (bounty)
 		{
 			int extra = 1 | (ranrot_rand() & 15);
-			bounty += extra;	// obviously we're dodgier than we thought!
-			[escorter setBounty: extra withReason:kOOLegalStatusReasonSetup];
+//			bounty += extra;	// obviously we're dodgier than we thought!
+			[escorter setBounty:bounty+extra withReason:kOOLegalStatusReasonSetup];
 		}
 		else
 		{
@@ -1806,7 +1806,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (scanClass == CLASS_POLICE)
 	{
 		if (bounty > 0)
-			bounty = 0;
+			[self setBounty:0 withReason:kOOLegalStatusReasonPoliceAreClean];
 		ShipEntity* target = [UNIVERSE entityForUniversalID:primaryTarget];
 		if ((target)&&([target scanClass] == CLASS_POLICE))
 		{
@@ -3861,7 +3861,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
       // head for a point near the target, avoiding common Galcop weapon mount locations
 			GLfloat offset = ((pitch_tolerance-80) * 1000.0) - 7500.0;
-			destination = [target distance_twelve:(2000.0*(1+([self entityPersonalityInt]%5))) withOffset:offset];
+			destination = [target distance_twelve:(2000.0*(1.0+fabs(accuracy))) withOffset:offset];
 		}
 		else 
 		{
@@ -5550,7 +5550,8 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 //			weapon_recharge_rate =	0.5;
 // old behaviour gave range of 0.7-1.3 between 25 and 100 FPS
 // so duplicate this range
-			weapon_recharge_rate = 0.7+(0.6*[self entityPersonality]);
+//			weapon_recharge_rate = 0.7+(0.6*[self entityPersonality]);
+			weapon_recharge_rate = 0.7+(0.04*(10-accuracy));
 			weaponRange =			17500;
 			break;
 		case WEAPON_MILITARY_LASER:
@@ -6111,6 +6112,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 	else 
 	{
+		if (scanClass == CLASS_THARGOID && reason != kOOLegalStatusReasonSetup && reason != kOOLegalStatusReasonByScript)
+		{
+			return; // we ignore your puny human laws
+		}
 		NSString* nReason = OOStringFromLegalStatusReason(reason);
 		[self setBounty:amount withReasonAsString:nReason];
 	}
@@ -7246,6 +7251,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) collectBountyFor:(ShipEntity *)other
 {
+// TODO: change this to use setBounty
 	if ([self isPirate])  bounty += [other bounty];
 }
 
@@ -10283,6 +10289,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		else
 		{
+			if (scanClass == CLASS_THARGOID && reason != kOOLegalStatusReasonSetup && reason != kOOLegalStatusReasonByScript)
+			{
+				return; // we ignore your puny human laws
+			}
+
 			JSContext *context = OOJSAcquireContext();
 	
 			jsval amountVal = JSVAL_VOID;
