@@ -1469,8 +1469,8 @@ static NSMutableDictionary* currentShipyard = nil;
 	OOCreditsQuantity tradeIn = [self tradeInValue];
 	[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_MARKET_CASH - 1];
 	[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_MARKET_CASH];
-	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), [self displayName], OOIntCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH - 1];
-	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOIntCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH];
+	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), [self displayName], OOIntCredits(tradeIn/10)]  forRow: GUI_ROW_MARKET_CASH - 1];
+	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOIntCredits(tradeIn/10)]  forRow: GUI_ROW_MARKET_CASH];
 }
 
 
