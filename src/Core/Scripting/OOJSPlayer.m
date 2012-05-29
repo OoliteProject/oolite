@@ -455,7 +455,7 @@ static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp)
 	if (argc > 1)
 	{
 		JS_ValueToInt32(context,OOJS_ARGV[1],&personality);
-		if (personality >= 0 && personality < ENTITY_PERSONALITY_MAX)
+		if (personality >= 0 && (uint16_t)personality < ENTITY_PERSONALITY_MAX)
 		{
 			[player setEntityPersonalityInt:(uint16_t)personality];
 		}
