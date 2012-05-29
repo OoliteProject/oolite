@@ -66,6 +66,9 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 #define COMBAT_WEAPON_RANGE_FACTOR		1.200f
 #define COMBAT_JINK_OFFSET				500.0f
 
+#define COMBAT_AI_IS_SMART  5.0f
+#define COMBAT_AI_TRACKS_CLOSER 7.5f
+
 #define SHIP_COOLING_FACTOR				1.0f
 #define SHIP_INSULATION_FACTOR			0.00175f
 #define SHIP_MAX_CABIN_TEMP				256.0f
@@ -114,6 +117,9 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 #define WEAPON_FACING_AFT				2
 #define WEAPON_FACING_PORT				4
 #define WEAPON_FACING_STARBOARD			8
+
+#define WEAPON_COOLING_FACTOR			6.0f
+#define NPC_MAX_WEAPON_TEMP				256.0f
 
 #define MAX_LANDING_SPEED				50.0
 #define MAX_LANDING_SPEED2				(MAX_LANDING_SPEED * MAX_LANDING_SPEED)
@@ -280,6 +286,9 @@ _lightsActive: 1;
 	GLfloat					weapon_damage_override;		// custom energy damage dealt by front laser, if applicable
 	GLfloat					weaponRange;				// range of the weapon (in meters)
 	
+	GLfloat					weapon_temp, weapon_shot_temperature; // active weapon temp, delta-temp
+	GLfloat					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp; // current weapon temperatures
+
 	GLfloat					scannerRange;				// typically 25600
 	
 	unsigned				missiles;					// number of on-board missiles
@@ -340,6 +349,7 @@ _lightsActive: 1;
 	
 	float					accuracy;
 	float					pitch_tolerance;
+	float					aim_tolerance;
 	
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
 	
@@ -443,6 +453,9 @@ _lightsActive: 1;
 - (OOBrain *)brain;
 - (void)setBrain:(OOBrain*) aBrain;
 #endif
+
+- (GLfloat)accuracy;
+- (void)setAccuracy:(GLfloat) new_accuracy;
 
 - (OOMesh *)mesh;
 - (void)setMesh:(OOMesh *)mesh;

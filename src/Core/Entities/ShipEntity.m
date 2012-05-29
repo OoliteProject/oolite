@@ -419,6 +419,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// Start with full energy banks.
 	energy = maxEnergy;
+	weapon_temp				= 0.0f;
+	forward_weapon_temp		= 0.0f;
+	aft_weapon_temp			= 0.0f;
+	port_weapon_temp		= 0.0f;
+	starboard_weapon_temp	= 0.0f;
 	
 	// setWeaponDataFromType inside setUpFromDictionary should set weapon_damage from the front laser.
 	// no weapon_damage? It's a missile: set weapon_damage from shipdata!
@@ -542,42 +547,28 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 
 	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
+
+// missiles: range 0 to +10
+// ships: range -5 to +10, but randomly only -5 to +5
+// enables "better" AIs above +5
+// police and military always have positive accuracy
+
 	accuracy = [shipDict oo_floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
-	if (accuracy >= -5.0f && accuracy <= 10.0f)
+	if (accuracy < -5.0f || accuracy > 10.0f)
 	{
-		pitch_tolerance = 0.01 * (85.0f + accuracy);
-		if (scanClass == CLASS_MISSILE)
-		{
-			accuracy = OOClamp_0_max_f(accuracy, 10.0f);
+		accuracy = (randf() * 10.0)-5.0;
+
+		if (accuracy < 0.0f && (scanClass == CLASS_MILITARY || scanClass == CLASS_POLICE))
+		{ // police and military pilots have a better average skill. 
+			accuracy = -accuracy;
 		}
 	}
-	else if (scanClass == CLASS_MISSILE)
-	{
-		accuracy = 0.0f;
-		pitch_tolerance = 0.01 * (80.0 + (randf() * 15.0));
+	if (scanClass == CLASS_MISSILE)
+	{ // missile accuracy range is 0 to 10
+		accuracy = OOClamp_0_max_f(accuracy, 10.0f);
 	}
-	else
-	{
-		accuracy = (randf() * 15.0f) - 5.0f;
-		if (scanClass == CLASS_MILITARY || scanClass == CLASS_POLICE) accuracy += 5.0;  // police and military pilots have a better average skill. 
-		if (accuracy > 10.0f) accuracy = 10.0f;
+	[self setAccuracy:accuracy]; // set derived variables
 
-		pitch_tolerance = 0.01 * (85.0 + accuracy);
-
-	}
-
-/*	// If this entity is a missile, clamp its accuracy within range from 0.0 to 10.0.
-	// Otherwise, just make sure that the accuracy value does not fall below 1.0.
-	// Using a switch statement, in case accuracy for other scan classes need be considered in the future.
-	switch (scanClass)
-	{
-		case CLASS_MISSILE :
-			accuracy = OOClamp_0_max_f(accuracy, 10.0f);
-			break;
-		default :
-			if (accuracy < 1.0f) accuracy = 1.0f;
-			break;
-			} */
 		
 	//  escorts
 	_maxEscortCount = MIN([shipDict oo_unsignedCharForKey:@"escorts" defaultValue:0], (uint8_t)MAX_ESCORTS);
@@ -919,6 +910,29 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	return [NSString stringWithFormat:@"\"%@\"", [self name]];
 }
 
+
+- (GLfloat) accuracy
+{
+	return accuracy;
+}
+
+
+- (void) setAccuracy:(GLfloat) new_accuracy
+{
+	if (new_accuracy < -5.0f)
+	{
+		new_accuracy = -5.0;
+	}
+	else if (new_accuracy > 10.0f)
+	{
+		new_accuracy = 10.0;
+	}
+	accuracy = new_accuracy;
+	pitch_tolerance = 0.01 * (85.0f + accuracy);
+// especially against small targets, less good pilots will waste some shots
+	GLfloat aim_tolerance_at_ten = 400.0 - (40.0f * accuracy);
+	aim_tolerance= sqrt(1-(aim_tolerance_at_ten * aim_tolerance_at_ten / 100000000.0));
+}
 
 - (OOMesh *)mesh
 {
@@ -1886,6 +1900,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 #endif
 
+
+	// cool all weapons.
+	weapon_temp = fmaxf(weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	forward_weapon_temp = fmaxf(forward_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	aft_weapon_temp = fmaxf(aft_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	port_weapon_temp = fmaxf(port_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	starboard_weapon_temp = fmaxf(starboard_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
 	// update time between shots
 	shot_time += delta_t;
 
@@ -3471,7 +3492,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else 
 		{
 //			if (universalID & 1)	// 50% of ships are smart S.M.R.T. smart!
-			if (pitch_tolerance >= 87.5) // may as well make it the 50% who can shoot straight
+			if (accuracy > 0.0) // may as well make it the 50% who can shoot straight
 			{
 				if (randf() < 0.75)
 					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
@@ -3860,8 +3881,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
 		{
       // head for a point near the target, avoiding common Galcop weapon mount locations
-			GLfloat offset = ((pitch_tolerance-80) * 1000.0) - 7500.0;
-			destination = [target distance_twelve:(2000.0*(1.0+fabs(accuracy))) withOffset:offset];
+			GLfloat offset = 1000.0;
+			GLfloat spacing = 2000.0;
+			if (accuracy > 0.0) 
+			{
+				offset = accuracy * 750.0;
+				spacing = 2000.0 + (accuracy * 500.0);
+			}
+			if (entity_personality & 1)
+			{ // half at random
+				offset = -offset;
+			}
+			destination = [target distance_twelve:spacing withOffset:offset];
 		}
 		else 
 		{
@@ -5528,20 +5559,24 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 			weapon_damage =			6.0;
 			weapon_recharge_rate =	0.25;
 			weaponRange =			5000;
+			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_PULSE_LASER:
 			weapon_damage =			15.0;
 			weapon_recharge_rate =	0.33;
 			weaponRange =			12500;
+			weapon_shot_temperature =	7.0f;
 			break;
 		case WEAPON_BEAM_LASER:
 			weapon_damage =			15.0;
 			weapon_recharge_rate =	0.25;
 			weaponRange =			15000;
+			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_MINING_LASER:
 			weapon_damage =			50.0;
 			weapon_recharge_rate =	0.5;
+			weapon_shot_temperature =	10.0f;
 			weaponRange =			12500;
 			break;
 		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
@@ -5553,17 +5588,20 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 //			weapon_recharge_rate = 0.7+(0.6*[self entityPersonality]);
 			weapon_recharge_rate = 0.7+(0.04*(10-accuracy));
 			weaponRange =			17500;
+			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_MILITARY_LASER:
 			weapon_damage =			23.0;
 			weapon_recharge_rate =	0.20;
 			weaponRange =			30000;
+			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_NONE:
 		case WEAPON_UNDEFINED:
 			weapon_damage =			0.0;	// indicating no weapon!
 			weapon_recharge_rate =	0.20;	// maximum rate
 			weaponRange =			32000;
+			weapon_shot_temperature =	0.0f;
 			break;
 	}
 }
@@ -7264,7 +7302,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (GLfloat)laserHeatLevel
 {
-	float result = (weapon_recharge_rate - [self shotTime]) / weapon_recharge_rate;
+//	float result = (weapon_recharge_rate - [self shotTime]) / weapon_recharge_rate;
+	float result = weapon_temp / NPC_MAX_WEAPON_TEMP;
 	return OOClamp_0_1_f(result);
 }
 
@@ -7733,8 +7772,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
 
-	double	targetRadius = (1.625 - pitch_tolerance) * target->collision_radius;
+	double	targetRadius = (1.5 - pitch_tolerance) * target->collision_radius;
 
+	if (accuracy > COMBAT_AI_TRACKS_CLOSER) 
+	{
+		targetRadius /= 5.0;
+	}
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 
 	double  rate2 = 4.0 * delta_t;
@@ -7746,13 +7789,21 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double reverse = (retreat)? -1.0: 1.0;
 
 	double min_d = 0.004;
+	if (accuracy > COMBAT_AI_TRACKS_CLOSER)
+	{
+		min_d = 0.002;
+	}
+	int max_factor = 8;
+	double r_max_factor = 0.125;
 
 	d_right		=   dot_product(relPos, v_right);
 	d_up		=   dot_product(relPos, v_up);
 	d_forward   =   dot_product(relPos, v_forward);	// == cos of angle between v_forward and vector to target
 
 	if (d_forward * reverse > max_cos)	// on_target!
+	{
 		return d_forward;
+	}
 
 	// begin rule-of-thumb manoeuvres
 	stick_pitch = 0.0;
@@ -7782,33 +7833,33 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (d_up > min_d)
 		{
 			int factor = sqrt(fabs(d_right) / fabs(min_d));
-			if (factor > 8)
-				factor = 8;
+			if (factor > max_factor)
+				factor = max_factor;
 			if (d_right > min_d)
-				stick_roll = - max_flight_roll * 0.125 * factor; // note#
+				stick_roll = - max_flight_roll * r_max_factor * factor; // note#
 			if (d_right < -min_d)
-				stick_roll = + max_flight_roll * 0.125 * factor; // note#
+				stick_roll = + max_flight_roll * r_max_factor * factor; // note#
 		}
 		if (d_up < -min_d)
 		{
 			int factor = sqrt(fabs(d_right) / fabs(min_d));
-			if (factor > 8)
-				factor = 8;
+			if (factor > max_factor)
+				factor = max_factor;
 			if (d_right > min_d)
-				stick_roll = + max_flight_roll * 0.125 * factor; // note#
+				stick_roll = + max_flight_roll * r_max_factor * factor; // note#
 			if (d_right < -min_d)
-				stick_roll = - max_flight_roll * 0.125 * factor; // note#
+				stick_roll = - max_flight_roll * r_max_factor * factor; // note#
 		}
 
 		if (stick_roll == 0.0)
 		{
 			int factor = sqrt(fabs(d_up) / fabs(min_d));
-			if (factor > 8)
-				factor = 8;
+			if (factor > max_factor)
+				factor = max_factor;
 			if (d_up > min_d)
-				stick_pitch = - max_flight_pitch * reverse * 0.125 * factor;
+				stick_pitch = - max_flight_pitch * reverse * r_max_factor * factor;
 			if (d_up < -min_d)
-				stick_pitch = + max_flight_pitch * reverse * 0.125 * factor;
+				stick_pitch = + max_flight_pitch * reverse * r_max_factor * factor;
 		}
 	}
 	/*	#  note
@@ -7846,6 +7897,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	flightRoll = stick_roll;
 	flightPitch = stick_pitch;
 	flightYaw = 0.0;
+
 
 	if (retreat)
 		d_forward *= d_forward;	// make positive AND decrease granularity
@@ -7887,7 +7939,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
 
-	double	targetRadius = (1.625-pitch_tolerance) * target->collision_radius;
+	double	targetRadius = (1.6-pitch_tolerance) * target->collision_radius;
 
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 
@@ -7902,6 +7954,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double reverse = (leftside)? -1.0: 1.0;
 
 	double min_d = 0.004;
+	int max_factor = 8;
+	double r_max_factor = 0.125;
 
 	d_right		=   dot_product(relPos, v_right);
 	d_up		=   dot_product(relPos, v_up);
@@ -7941,37 +7995,37 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (d_forward > min_d)
 		{
 			int factor = sqrt(fabs(d_up) / fabs(min_d));
-			if (factor > 8)
-				factor = 8;
+			if (factor > max_factor)
+				factor = max_factor;
 			if (d_up > min_d)
-				stick_pitch = + max_flight_pitch * 0.125 * factor; // note#
+				stick_pitch = + max_flight_pitch * r_max_factor * factor; // note#
 			if (d_up < -min_d)
-				stick_pitch = - max_flight_pitch * 0.125 * factor; // note#
+				stick_pitch = - max_flight_pitch * r_max_factor * factor; // note#
 		}
 		if (d_forward < -min_d)
 		{
 			int factor = sqrt(fabs(d_up) / fabs(min_d));
-			if (factor > 8)
-				factor = 8;
+			if (factor > max_factor)
+				factor = max_factor;
 			if (d_up > min_d)
-				stick_pitch = + max_flight_pitch * 0.125 * factor; // note#
+				stick_pitch = + max_flight_pitch * r_max_factor * factor; // note#
 			if (d_up < -min_d)
-				stick_pitch = - max_flight_pitch * 0.125 * factor; // note#
+				stick_pitch = - max_flight_pitch * r_max_factor * factor; // note#
 		}
 
 		if (fabs(stick_pitch) == 0.0 || fabs(d_forward) > 0.5)
 		{
 			stick_pitch = 0.0;
 			int factor = sqrt(fabs(d_forward) / fabs(min_d));
-			if (factor > 8)
-				factor = 8;
+			if (factor > max_factor)
+				factor = max_factor;
 			if (d_forward > min_d)
-				stick_yaw = - max_flight_yaw * reverse * 0.125 * factor;
+				stick_yaw = - max_flight_yaw * reverse * r_max_factor * factor;
 			if (d_forward < -min_d)
 			{
-				if (factor < 4.0)
+				if (factor < max_factor/2.0) // compensate for forward thrust
 					factor *= 2.0;
-				stick_yaw = + max_flight_yaw * reverse * 0.125 * factor;
+				stick_yaw = + max_flight_yaw * reverse * r_max_factor * factor;
 			}
 		}
 	}
@@ -8417,6 +8471,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon_type
 {
+
 	// initialize dq to a value that would normally return NO; dq is handled inside the defaultless switch(direction) statement
 	// and should alaways be recalculated anyway. Initialization here needed to silence compiler warning - Nikos 20120526
 	GLfloat dq = -1.0f;
@@ -8467,19 +8522,44 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	if (dq < 0.0)  return NO;
 	
+	if (dq > aim_tolerance) return YES;
+
 	astq = sqrt(1.0 - radius * radius / d2);	// cosine of half angle subtended by target
-	
+
 	return (fabs(dq) >= astq);
 }
 
 
 - (BOOL) fireWeapon:(OOWeaponType)weapon_type direction:(OOViewID)direction range:(double)range
 {
+	weapon_temp = 0.0;
+	switch (direction)
+	{
+		case VIEW_CUSTOM:
+		case VIEW_NONE:
+		case VIEW_GUI_DISPLAY:
+		case VIEW_BREAK_PATTERN:
+		// first four should never happen here
+		case VIEW_FORWARD:
+			weapon_temp = forward_weapon_temp;
+			break;
+		case VIEW_AFT:
+			weapon_temp = aft_weapon_temp;
+			break;
+		case VIEW_PORT:
+			weapon_temp = port_weapon_temp;
+			break;
+		case VIEW_STARBOARD:
+			weapon_temp = starboard_weapon_temp;
+			break;
+		// no default
+	}
+	if (weapon_temp / NPC_MAX_WEAPON_TEMP >= 0.85) return NO;
+
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
-	
 	if (weapon_type != WEAPON_THARGOID_LASER)
 	{ // thargoid laser may just pick secondary target in this case
-		if (range > randf() * weaponRange * (accuracy+5.5))  return NO;
+		if (range > randf() * weaponRange * (accuracy+7.5))  return NO;
 		if (range > weaponRange)  return NO;
 	}
 	if (![self onTarget:direction withWeapon:weapon_type])  return NO;
@@ -8509,6 +8589,31 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		case WEAPON_UNDEFINED:
 			// Do nothing
 			break;
+	}
+
+	if (fired)
+	{
+		switch (direction)
+		{
+		case VIEW_CUSTOM:
+		case VIEW_NONE:
+		case VIEW_GUI_DISPLAY:
+		case VIEW_BREAK_PATTERN:
+			// first four should never happen here
+		case VIEW_FORWARD:
+			forward_weapon_temp += weapon_shot_temperature;
+			break;
+		case VIEW_AFT:
+			aft_weapon_temp += weapon_shot_temperature;
+			break;
+		case VIEW_PORT:
+			port_weapon_temp += weapon_shot_temperature;
+			break;
+		case VIEW_STARBOARD:
+			starboard_weapon_temp += weapon_shot_temperature;
+			break;
+			// no default
+		}
 	}
 	
 	if (direction == VIEW_FORWARD)
@@ -8805,10 +8910,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[self resetShotTime];
 	
 	// random laser over-heating for AI ships
-	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_damage)&&(![self isMining]))
+/*	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_damage)&&(![self isMining]))
 	{
 		shot_time -= (randf() * weapon_damage);
-	}
+		} */
 	
 	return YES;
 }
@@ -8882,10 +8987,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[self resetShotTime];
 
 	// random laser over-heating for AI ships
-	if (!isPlayer && (ranrot_rand() & 255) < weapon_damage && ![self isMining])
+/*	if (!isPlayer && (ranrot_rand() & 255) < weapon_damage && ![self isMining])
 	{
 		shot_time -= (randf() * weapon_damage);
-	}
+		} */
 
 	return YES;
 }

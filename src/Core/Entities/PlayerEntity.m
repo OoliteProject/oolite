@@ -3985,34 +3985,28 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		case WEAPON_PLASMA_CANNON :
 			weapon_energy_use =			6.0f;
-			weapon_shot_temperature =	8.0f;
 			weapon_reload_time =		0.25f;
 			break;
 		case WEAPON_PULSE_LASER :
 			weapon_energy_use =			0.8f;
-			weapon_shot_temperature =	7.0f;
 			weapon_reload_time =		0.5f;
 			break;
 		case WEAPON_BEAM_LASER :
 			weapon_energy_use =			1.0f;
-			weapon_shot_temperature =	8.0f;
 			weapon_reload_time =		0.1f;
 			break;
 		case WEAPON_MINING_LASER :
 			weapon_energy_use =			1.4f;
-			weapon_shot_temperature =	10.0f;
 			weapon_reload_time =		2.5f;
 			break;
 		case WEAPON_THARGOID_LASER :
 		case WEAPON_MILITARY_LASER :
 			weapon_energy_use =			1.2f;
-			weapon_shot_temperature =	8.0f;
 			weapon_reload_time =		0.1f;
 			break;
 		case WEAPON_NONE:
 		case WEAPON_UNDEFINED:
 			weapon_energy_use =			0.0f;
-			weapon_shot_temperature =	0.0f;
 			weapon_reload_time =		0.1f;
 			break;
 	}

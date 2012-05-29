@@ -112,6 +112,7 @@ static JSClass sShipClass =
 enum
 {
 	// Property IDs
+	kShip_accuracy,			// the ship's accuracy, float, read/write
 	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read/write
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
@@ -207,6 +208,7 @@ enum
 static JSPropertySpec sShipProperties[] =
 {
 	// JS name					ID							flags
+	{ "accuracy",				kShip_accuracy,			OOJS_PROP_READWRITE_CB },
 	{ "aftWeapon",				kShip_aftWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "AI",						kShip_AI,					OOJS_PROP_READONLY_CB },
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
@@ -413,6 +415,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_autoAI:
 			*value = OOJSValueFromBOOL([entity hasAutoAI]);
 			return YES;
+
+		case kShip_accuracy:
+			return JS_NewNumberValue(context, [entity accuracy], value);
 			
 		case kShip_fuel:
 			return JS_NewNumberValue(context, [entity fuel] * 0.1, value);
@@ -843,6 +848,14 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			return YES;
 			break;
 			
+		case kShip_accuracy:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setAccuracy:fValue];
+				return YES;
+			}
+			break;
+
 		case kShip_fuel:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
