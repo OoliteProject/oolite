@@ -4034,7 +4034,7 @@ static GLfloat		sBaseMass = 0.0;
 		return NO;
 	}
 	
-	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= 0.85)
+	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT)
 	{
 		[self playWeaponOverheated];
 		[UNIVERSE addMessage:DESC(@"weapon-overheat") forCount:3.0];

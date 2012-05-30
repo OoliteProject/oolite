@@ -568,7 +568,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		accuracy = OOClamp_0_max_f(accuracy, 10.0f);
 	}
 	[self setAccuracy:accuracy]; // set derived variables
-
+	if (accuracy >= COMBAT_AI_ISNT_AWFUL && missile_load_time < 0.1)
+	{
+		missile_load_time = 2.0; // smart enough not to waste all missiles on 1 ECM!
+	}
 		
 	//  escorts
 	_maxEscortCount = MIN([shipDict oo_unsignedCharForKey:@"escorts" defaultValue:0], (uint8_t)MAX_ESCORTS);
@@ -598,7 +601,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 	// retained array of defense targets
 	defenseTargets = [[NSMutableArray alloc] initWithCapacity:MAX_TARGETS];
-	
+
 	return YES;
 	
 	OOJS_PROFILE_EXIT
@@ -3446,66 +3449,101 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
+	desired_speed = max_available_speed;
 	
 	if (cloakAutomatic) [self activateCloakingDevice];
-	
-	desired_speed = max_available_speed;
-	if (range < COMBAT_IN_RANGE_FACTOR * weaponRange)
-	{
-		if (aft_weapon_type == WEAPON_NONE)
-		{	
-			if (!pitching_over) // don't change jink in the middle of a sharp turn.
-			{
-				/*
-				For most AIs, is behaviour_attack_target called as starting behaviour on every hit.
-				Target can both fly towards or away from ourselves here. Both situations
-				need a different jink.z for optimal collision avoidance at high speed approach and low speed dogfighting.
-				The COMBAT_JINK_OFFSET intentionally over-compensates the range for collision radii to send ships towards
-				the target at low speeds.
-				*/
-				ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
-				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
-				jink.x = (ranrot_rand() % 256) - 128.0;
-				jink.y = (ranrot_rand() % 256) - 128.0;
-				jink.z =  range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch;
-			}
 
+	if (forward_weapon_type == WEAPON_THARGOID_LASER) 
+	{
+		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+	} 
+	else 
+	{
+		BOOL aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
+		BOOL forward_weapon_ready = (forward_weapon_type != WEAPON_NONE) && (forward_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
+		BOOL port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
+		BOOL starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
+// if no weapons cool enough to be good choices, be less picky
+		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
+		{
+			aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
+			forward_weapon_ready = (forward_weapon_type != WEAPON_NONE) && (forward_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
+			port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
+			starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
+		}
+		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
+		{ // no usable weapons! Either not fitted or overheated
+			// TODO: good pilots use behaviour_evasive_action instead
 			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 		}
-		else
-		{
-			jink = kZeroVector;
-			behaviour = BEHAVIOUR_RUNNING_DEFENSE;
-		}
-	}
-	else
-	{
-		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
-		{
-			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
-		} 
-		else if ((port_weapon_type != WEAPON_NONE || starboard_weapon_type != WEAPON_NONE) && randf() < 0.67)
-// anyone with a side laser fitted presumably knows how to use it
-		{
-			behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
-	  }
 		else 
 		{
-//			if (universalID & 1)	// 50% of ships are smart S.M.R.T. smart!
-			if (accuracy > 0.0) // may as well make it the 50% who can shoot straight
+			BOOL nearby = range < COMBAT_IN_RANGE_FACTOR * getWeaponRangeFromType(forward_weapon_type);
+
+			if (nearby && aft_weapon_ready)
 			{
-				if (randf() < 0.75)
-					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
-				else
-					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+				jink = kZeroVector; // almost all behaviours
+				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
 			}
-			else
+			else if (nearby && (port_weapon_ready || starboard_weapon_ready))
 			{
-				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+				jink = kZeroVector; // almost all behaviours
+				behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
+			}
+			else if (nearby)
+			{
+				if (!pitching_over) // don't change jink in the middle of a sharp turn.
+				{
+					/*
+						For most AIs, is behaviour_attack_target called as starting behaviour on every hit.
+						Target can both fly towards or away from ourselves here. Both situations
+						need a different jink.z for optimal collision avoidance at high speed approach and low speed dogfighting.
+						The COMBAT_JINK_OFFSET intentionally over-compensates the range for collision radii to send ships towards
+						the target at low speeds.
+					*/
+					ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+					float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
+					jink.x = (ranrot_rand() % 256) - 128.0;
+					jink.y = (ranrot_rand() % 256) - 128.0;
+					jink.z =  range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch;
+				}
+				// TODO: good pilots use behaviour_break_off_target instead
+				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+
+			}
+			else if (forward_weapon_ready)
+			{
+				jink = kZeroVector; // almost all behaviours
+
+				// TODO: good pilots use behaviour_attack_sniper sometimes
+
+				double aspect = [self approachAspectToPrimaryTarget];
+				if (accuracy >= COMBAT_AI_ISNT_AWFUL && aspect < 0)
+				{
+					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
+				}
+				else if (accuracy >= COMBAT_AI_ISNT_AWFUL && canBurn)
+				{
+					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+				}
+				else
+				{
+					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+				}
+			}
+			else if (port_weapon_ready || starboard_weapon_ready)
+			{
+				jink = kZeroVector; // almost all behaviours
+				behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
+			}
+			else if (aft_weapon_ready)
+			{
+				jink = kZeroVector; // almost all behaviours
+				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
 			}
 		}
-		jink = kZeroVector;
 	}
+
 	frustration = 0.0;	// behaviour changed, so reset frustration
 	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
@@ -3523,37 +3561,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (cloakAutomatic) [self activateCloakingDevice];
 	
 	desired_speed = max_available_speed;
-	if (range < COMBAT_IN_RANGE_FACTOR * weaponRange)
+	if (range < COMBAT_BROADSIDE_IN_RANGE_FACTOR * weaponRange)
 	{
-		if (aft_weapon_type == WEAPON_NONE)
-		{	
-			if (!pitching_over) // don't change jink in the middle of a sharp turn.
-			{
-				/*
-				For most AIs, is behaviour_attack_target called as starting behaviour on every hit.
-				Target can both fly towards or away from ourselves here. Both situations
-				need a different jink.z for optimal collision avoidance at high speed approach and low speed dogfighting.
-				The COMBAT_JINK_OFFSET intentionally over-compensates the range for collision radii to send ships towards
-				the target at low speeds.
-				*/
-				ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
-				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
-				jink.x = (ranrot_rand() % 256) - 128.0;
-				jink.y = (ranrot_rand() % 256) - 128.0;
-				jink.z =  range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch;
-			}
-
-			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
-		}
-		else
-		{
-			jink = kZeroVector;
-			behaviour = BEHAVIOUR_RUNNING_DEFENSE;
-		}
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
 	else
 	{
-		if (randf() < 0.5)
+		if (port_weapon_temp < starboard_weapon_temp)
 		{
 			if (port_weapon_type == WEAPON_NONE)
 			{
@@ -3620,7 +3634,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self noteLostTargetAndGoIdle];
 		return;
 	}
-	if (range > COMBAT_BROADSIDE_RANGE_FACTOR * weaponRange)
+	GLfloat currentWeaponRange = getWeaponRangeFromType(leftside?port_weapon_type:starboard_weapon_type);
+	if (range > COMBAT_BROADSIDE_RANGE_FACTOR * currentWeaponRange)
 	{
 		behaviour = BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE;
 		[self applyRoll:delta_t*flightRoll climb:delta_t*flightPitch andYaw:delta_t*flightYaw];
@@ -3628,35 +3643,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return;
 	}
 
-	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
-// can get closer on broadsides since there's less risk of a collision
-	if ((range*2.0 < COMBAT_IN_RANGE_FACTOR * weaponRange)||(proximity_alert != NO_TARGET))
-	{
-	/* FIXME: this next block is shared with behaviour_attack_target; rationalise to function */
 
+// can get closer on broadsides since there's less risk of a collision
+	if ((range < COMBAT_BROADSIDE_IN_RANGE_FACTOR * currentWeaponRange)||(proximity_alert != NO_TARGET))
+	{
 		if (proximity_alert == NO_TARGET || proximity_alert == primaryTarget)
 		{
-			if (aft_weapon_type == WEAPON_NONE)
-			{
-				/*
-				jink.z has a great influence on the dogfight expecience at close range. Strongest jink behaviour for a frontal approaching
-				ship is achieved with a z-distance at the size of the actual distance. However, to allow fast flying ships avoiding collisions,
-				the jink point should be defined closer to the ship itself.
-				*/
-				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
-				jink.x = (ranrot_rand() % 256) - 128.0;
-				jink.y = (ranrot_rand() % 256) - 128.0;
-				jink.z = range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch; // range= ~440 for pulse weapon and ~1050 for military laser. 
-				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
-				frustration = 0.0;
-			}
-			else
-			{
-				// entering running defense mode
-				jink = kZeroVector;
-				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
-				frustration = 0.0;
-			}
+			behaviour = BEHAVIOUR_ATTACK_TARGET;
 		}
 		else
 		{
@@ -3675,7 +3668,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// control speed
 	//
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
-	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
+	double slow_down_range = currentWeaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 //	double target_speed = [target speed];
 	if (range <= slow_down_range)
 		desired_speed = fmin(0.8 * maxFlightSpeed, fmax((2.0-frustration)*maxFlightSpeed, 0.1 * maxFlightSpeed));   // within the weapon's range slow down to aim
@@ -3684,7 +3677,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	double last_success_factor = success_factor;
 	success_factor = [self trackSideTarget:delta_t:leftside];	// do the actual piloting
-	if (success_factor < -0.9)
+	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
 	{ // will probably have more luck with the other laser or picking a different attack method
 		if (leftside)
 		{
@@ -3754,7 +3747,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll climb:delta_t*flightPitch andYaw:delta_t*flightYaw];
 	[self applyThrust:delta_t];
 
-
+	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
 }
 
 
@@ -3838,7 +3834,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double distance = [self rangeToDestination];
 	success_factor = distance;
 		
-	if (range < slow_down_range)
+	if (range < slow_down_range && (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
 	{
 		if (range < back_off_range)
 		{
@@ -3907,23 +3903,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else if(frustration > 0.0) frustration -= delta_t * 0.75;
 	if(frustration > 10)
 	{
-		frustration = 0.0;
-		if (randf() < 0.4) 
-		{
-			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
-		}
-		else
-		{
-			if (randf() < 0.5)
-				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
-			else
-				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
-		}
-		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
-		{
-				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
-		} 
-
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
 
 	// use weaponry
@@ -3941,6 +3921,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
+
+	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
 }
 
 
@@ -3994,27 +3979,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (proximity_alert == NO_TARGET || proximity_alert == primaryTarget)
 		{
-			if (aft_weapon_type == WEAPON_NONE)
-			{
-				/*
-				jink.z has a great influence on the dogfight expecience at close range. Strongest jink behaviour for a frontal approaching
-				ship is achieved with a z-distance at the size of the actual distance. However, to allow fast flying ships avoiding collisions,
-				the jink point should be defined closer to the ship itself.
-				*/
-				float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
-				jink.x = (ranrot_rand() % 256) - 128.0;
-				jink.y = (ranrot_rand() % 256) - 128.0;
-				jink.z = range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch; // range= ~440 for pulse weapon and ~1050 for military laser. 
-				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
-				frustration = 0.0;
-			}
-			else
-			{
-				// entering running defense mode
-				jink = kZeroVector;
-				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
-				frustration = 0.0;
-			}
+			behaviour = BEHAVIOUR_ATTACK_TARGET;
 		}
 		else
 		{
@@ -4070,7 +4035,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			jink.x = (ranrot_rand() % 256) - 128.0;
 			jink.y = (ranrot_rand() % 256) - 128.0;
 			jink.z = 1000.0;
-			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+			behaviour = BEHAVIOUR_ATTACK_TARGET;
 			frustration = 0.0;
 			desired_speed = maxFlightSpeed;
 		}
@@ -4090,6 +4055,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
+
+	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
 }
 
 
@@ -4107,20 +4077,30 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (last_success_factor > success_factor) // our target is closing in.
 	{
 		frustration += delta_t;
-		if (frustration > 10.0)
-		{
-			if (randf() < 0.3) desired_speed = maxFlightSpeed * (([self hasFuelInjection] && (fuel > MIN_FUEL)) ? [self afterburnerFactor] : 1);
-			else if (range > COMBAT_IN_RANGE_FACTOR * weaponRange && randf() < 0.3) behaviour = BEHAVIOUR_ATTACK_TARGET;
-			
-			jink.x = (ranrot_rand() % 256) - 128.0;
-			jink.y = (ranrot_rand() % 256) - 128.0;
-			if (randf() < 0.3)
-			{
-				jink.z /= 2; // move the z-offset closer to the target to let him fly away from the target.
-				desired_speed = flightSpeed * 2; // increase speed a bit.
-			}
-			frustration = 0.0;
+	}
+	else
+	{ // not getting away fast enough?
+		frustration += delta_t / 4.0 ;
+	}
+
+	if (frustration > 10.0 - accuracy/2.0)
+	{
+		if (randf() < 0.3) {
+			desired_speed = maxFlightSpeed * (([self hasFuelInjection] && (fuel > MIN_FUEL)) ? [self afterburnerFactor] : 1);
 		}
+		else if (range > COMBAT_IN_RANGE_FACTOR * weaponRange && randf() < 0.3)
+		{
+			behaviour = BEHAVIOUR_ATTACK_TARGET;
+		}
+		
+		jink.x = (ranrot_rand() % 256) - 128.0;
+		jink.y = (ranrot_rand() % 256) - 128.0;
+		if (randf() < 0.3)
+		{
+			jink.z /= 2; // move the z-offset closer to the target to let him fly away from the target.
+			desired_speed = flightSpeed * 2; // increase speed a bit.
+		}
+		frustration /= 2.0;
 	}
 
 	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || flightSpeed > (scannerRange - range) * max_flight_pitch / 6.28)
@@ -4178,6 +4158,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	flightYaw = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
+
+	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
 }
 
 
@@ -5553,31 +5538,28 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 
 - (void) setWeaponDataFromType: (OOWeaponType) weapon_type
 {
+	weaponRange = getWeaponRangeFromType(weapon_type);
 	switch (weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON:
 			weapon_damage =			6.0;
 			weapon_recharge_rate =	0.25;
-			weaponRange =			5000;
 			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_PULSE_LASER:
 			weapon_damage =			15.0;
 			weapon_recharge_rate =	0.33;
-			weaponRange =			12500;
 			weapon_shot_temperature =	7.0f;
 			break;
 		case WEAPON_BEAM_LASER:
 			weapon_damage =			15.0;
 			weapon_recharge_rate =	0.25;
-			weaponRange =			15000;
 			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_MINING_LASER:
 			weapon_damage =			50.0;
 			weapon_recharge_rate =	0.5;
 			weapon_shot_temperature =	10.0f;
-			weaponRange =			12500;
 			break;
 		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
 			weapon_damage =			12.5;
@@ -5587,20 +5569,17 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 // so duplicate this range
 //			weapon_recharge_rate = 0.7+(0.6*[self entityPersonality]);
 			weapon_recharge_rate = 0.7+(0.04*(10-accuracy));
-			weaponRange =			17500;
 			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_MILITARY_LASER:
 			weapon_damage =			23.0;
 			weapon_recharge_rate =	0.20;
-			weaponRange =			30000;
 			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_NONE:
 		case WEAPON_UNDEFINED:
 			weapon_damage =			0.0;	// indicating no weapon!
 			weapon_recharge_rate =	0.20;	// maximum rate
-			weaponRange =			32000;
 			weapon_shot_temperature =	0.0f;
 			break;
 	}
@@ -7774,10 +7753,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	double	targetRadius = (1.5 - pitch_tolerance) * target->collision_radius;
 
-	if (accuracy > COMBAT_AI_TRACKS_CLOSER) 
+	if (accuracy >= COMBAT_AI_TRACKS_CLOSER) 
 	{
 		targetRadius /= 5.0;
 	}
+	else if (retreat && accuracy < COMBAT_AI_ISNT_AWFUL)
+	{
+		targetRadius *= 1.3; // bad pilots worse with aft laser
+	}
+
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 
 	double  rate2 = 4.0 * delta_t;
@@ -7789,7 +7773,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double reverse = (retreat)? -1.0: 1.0;
 
 	double min_d = 0.004;
-	if (accuracy > COMBAT_AI_TRACKS_CLOSER)
+	if (accuracy >= COMBAT_AI_TRACKS_CLOSER)
 	{
 		min_d = 0.002;
 	}
@@ -7939,7 +7923,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
 
-	double	targetRadius = (1.6-pitch_tolerance) * target->collision_radius;
+// worse shots with side lasers than fore/aft, in general
+	double	targetRadius = (1.7-pitch_tolerance) * target->collision_radius;
+
+	if (accuracy >= COMBAT_AI_TRACKS_CLOSER) 
+	{
+		targetRadius /= 5.0;
+	}
+	else if (accuracy < COMBAT_AI_ISNT_AWFUL)
+	{
+		targetRadius *= 1+randf(); // probably misses with side lasers
+// really shouldn't fit them to this bad a shot - CIM
+	}
 
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 
@@ -7954,6 +7949,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double reverse = (leftside)? -1.0: 1.0;
 
 	double min_d = 0.004;
+	if (accuracy >= COMBAT_AI_TRACKS_CLOSER) 
+	{
+		min_d = 0.002;
+	}
 	int max_factor = 8;
 	double r_max_factor = 0.125;
 
@@ -8455,6 +8454,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	return dist;
 }
 
+
 - (double) rangeToSecondaryTarget:(Entity *)target
 {
 	double dist;
@@ -8466,6 +8466,22 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	dist -= target->collision_radius;
 	dist -= collision_radius;
 	return dist;
+}
+
+
+- (double) approachAspectToPrimaryTarget
+{
+	Vector delta;
+	Entity  *target = [self primaryTarget];
+	if (target == nil || ![target isShip])   // leave now!
+	{
+		return 0.0;
+	}
+	ShipEntity  *ship_target = (ShipEntity *)target;
+
+	delta = vector_subtract(position, target->position);
+	
+	return dot_product(vector_normal(delta), ship_target->v_forward);
 }
 
 
@@ -8554,7 +8570,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			break;
 		// no default
 	}
-	if (weapon_temp / NPC_MAX_WEAPON_TEMP >= 0.85) return NO;
+	if (weapon_temp / NPC_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT) return NO;
 
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
 	if (weapon_type != WEAPON_THARGOID_LASER)
@@ -11583,4 +11599,28 @@ BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget)
 	}
 	
 	return NO;
+}
+
+
+GLfloat getWeaponRangeFromType(OOWeaponType weapon_type)
+{
+	switch (weapon_type)
+	{
+	case WEAPON_PLASMA_CANNON:
+		return 5000.0;
+	case WEAPON_PULSE_LASER:
+	case WEAPON_MINING_LASER:
+		return 12500.0;
+	case WEAPON_BEAM_LASER:
+		return 15000.0;
+	case WEAPON_THARGOID_LASER:
+		return 17500.0;
+	case WEAPON_MILITARY_LASER:
+		return 30000.0;
+	case WEAPON_NONE:
+	case WEAPON_UNDEFINED:
+		return 32000.0;
+	}
+// never reached
+	return 32000.0;
 }

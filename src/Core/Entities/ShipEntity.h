@@ -61,13 +61,11 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 #define MILITARY_JAMMER_MIN_ENERGY		128
 
 #define COMBAT_IN_RANGE_FACTOR			0.035f
+#define COMBAT_BROADSIDE_IN_RANGE_FACTOR			0.020f
 #define COMBAT_OUT_RANGE_FACTOR			0.500f
 #define COMBAT_BROADSIDE_RANGE_FACTOR			0.900f
 #define COMBAT_WEAPON_RANGE_FACTOR		1.200f
 #define COMBAT_JINK_OFFSET				500.0f
-
-#define COMBAT_AI_IS_SMART  5.0f
-#define COMBAT_AI_TRACKS_CLOSER 7.5f
 
 #define SHIP_COOLING_FACTOR				1.0f
 #define SHIP_INSULATION_FACTOR			0.00175f
@@ -120,6 +118,14 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 
 #define WEAPON_COOLING_FACTOR			6.0f
 #define NPC_MAX_WEAPON_TEMP				256.0f
+#define WEAPON_COOLING_CUTOUT     0.85f
+
+#define COMBAT_AI_WEAPON_TEMP_READY  0.25f * NPC_MAX_WEAPON_TEMP
+#define COMBAT_AI_WEAPON_TEMP_USABLE  WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP
+#define COMBAT_AI_ISNT_AWFUL  0.0f
+#define COMBAT_AI_IS_SMART  5.0f
+#define COMBAT_AI_TRACKS_CLOSER 7.5f
+
 
 #define MAX_LANDING_SPEED				50.0
 #define MAX_LANDING_SPEED2				(MAX_LANDING_SPEED * MAX_LANDING_SPEED)
@@ -906,6 +912,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 //return 0.0 if there is no primary target
 - (double) rangeToPrimaryTarget;
+- (double) approachAspectToPrimaryTarget;
 - (double) rangeToSecondaryTarget:(Entity *)target;
 - (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon;
 
@@ -1088,6 +1095,7 @@ uintN argc = sizeof argv / sizeof *argv; \
 
 NSDictionary *OODefaultShipShaderMacros(void);
 
+GLfloat getWeaponRangeFromType(OOWeaponType weapon_type);
 
 // Stuff implemented in OOConstToString.m
 enum
