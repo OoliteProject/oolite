@@ -549,8 +549,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
 
 // missiles: range 0 to +10
-// ships: range -5 to +10, but randomly only -5 to +5
-// enables "better" AIs above +5
+// ships: range -5 to +10, but randomly only -5 <= accuracy < +5
+// enables "better" AIs at +5 and above
 // police and military always have positive accuracy
 
 	accuracy = [shipDict oo_floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
@@ -568,10 +568,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		accuracy = OOClamp_0_max_f(accuracy, 10.0f);
 	}
 	[self setAccuracy:accuracy]; // set derived variables
-	if (accuracy >= COMBAT_AI_ISNT_AWFUL && missile_load_time < 0.1)
-	{
-		missile_load_time = 2.0; // smart enough not to waste all missiles on 1 ECM!
-	}
 		
 	//  escorts
 	_maxEscortCount = MIN([shipDict oo_unsignedCharForKey:@"escorts" defaultValue:0], (uint8_t)MAX_ESCORTS);
@@ -935,6 +931,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 // especially against small targets, less good pilots will waste some shots
 	GLfloat aim_tolerance_at_ten = 400.0 - (40.0f * accuracy);
 	aim_tolerance= sqrt(1-(aim_tolerance_at_ten * aim_tolerance_at_ten / 100000000.0));
+
+	if (accuracy >= COMBAT_AI_ISNT_AWFUL && missile_load_time < 0.1)
+	{
+		missile_load_time = 2.0; // smart enough not to waste all missiles on 1 ECM!
+	}
 }
 
 - (OOMesh *)mesh
@@ -2148,6 +2149,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self behaviour_attack_fly_from_target: delta_t];
 				break;
 
+			case BEHAVIOUR_ATTACK_BREAK_OFF_TARGET :
+				[self behaviour_attack_break_off_target: delta_t];
+				break;
+
 			case BEHAVIOUR_RUNNING_DEFENSE :
 				[self behaviour_running_defense: delta_t];
 				break;
@@ -2166,6 +2171,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
   		case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE :
 				[self behaviour_close_to_broadside_range: delta_t];
+				break;
+
+			case BEHAVIOUR_EVASIVE_ACTION :
+			case BEHAVIOUR_FLEE_EVASIVE_ACTION :
+				[self behaviour_evasive_action: delta_t];
 				break;
 
 			case BEHAVIOUR_FLEE_TARGET :
@@ -3443,6 +3453,77 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (void) behaviour_attack_break_off_target:(double) delta_t
+{
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
+	float	max_available_speed = maxFlightSpeed;
+	double  range = [self rangeToPrimaryTarget];
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
+	desired_speed = max_available_speed;
+	
+	if (cloakAutomatic) [self activateCloakingDevice];
+	if (proximity_alert != NO_TARGET)
+	{
+		[self avoidCollision];
+		return;
+	}
+
+	frustration += delta_t;
+	if (frustration - floor(frustration) < 0.5)
+	{
+		[self trackPrimaryTarget:delta_t:YES];
+	}
+	else
+	{
+		[self evasiveAction:delta_t];
+	}
+
+	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange || frustration > 5.0)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
+
+	flightYaw = 0.0;
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyThrust:delta_t];
+}
+
+- (void) behaviour_evasive_action:(double) delta_t
+{
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
+	float	max_available_speed = maxFlightSpeed;
+//	double  range = [self rangeToPrimaryTarget];
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
+	desired_speed = max_available_speed;
+	
+	if (cloakAutomatic) [self activateCloakingDevice];
+	if (proximity_alert != NO_TARGET)
+	{
+		[self avoidCollision];
+		return;
+	}
+
+	[self evasiveAction:delta_t];
+
+	frustration += delta_t;
+	if (frustration > 0.5)
+	{
+		if (behaviour == BEHAVIOUR_FLEE_EVASIVE_ACTION)
+		{
+			behaviour = BEHAVIOUR_FLEE_TARGET;
+		}
+		else
+		{
+			behaviour = BEHAVIOUR_ATTACK_TARGET;
+		}
+	}
+
+	flightYaw = 0.0;
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyThrust:delta_t];
+}
+
+
 - (void) behaviour_attack_target:(double) delta_t
 {
 	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
@@ -3453,28 +3534,58 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (cloakAutomatic) [self activateCloakingDevice];
 
-	if (forward_weapon_type == WEAPON_THARGOID_LASER) 
+/* Start of behaviour selection:
+ * Anything beyond the basics should require accuracy >= COMBAT_AI_ISNT_AWFUL
+ * Anything fancy should require accuracy >= COMBAT_AI_IS_SMART
+ * If precise aim is required, behaviour should have accuracy >= COMBAT_AI_TRACKS_CLOSER
+ * - CIM
+ */
+
+	OOWeaponType forward_weapon_real_type = forward_weapon_type;
+	GLfloat forward_weapon_real_temp = forward_weapon_temp;
+
+// if forward weapon is actually on a subent
+	if (forward_weapon_real_type == WEAPON_NONE)
+	{
+		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
+		ShipEntity		*se = nil;
+		while (forward_weapon_real_type == WEAPON_NONE && (se = [subEnum nextObject]))
+		{
+			forward_weapon_real_type = se->forward_weapon_type;
+			forward_weapon_real_temp = se->forward_weapon_temp;
+		}
+	}
+
+
+	if (forward_weapon_real_type == WEAPON_THARGOID_LASER) 
 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 	} 
 	else 
 	{
 		BOOL aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
-		BOOL forward_weapon_ready = (forward_weapon_type != WEAPON_NONE) && (forward_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
+		BOOL forward_weapon_ready = (forward_weapon_real_type != WEAPON_NONE) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_READY);
 		BOOL port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
 		BOOL starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
 // if no weapons cool enough to be good choices, be less picky
 		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
 		{
 			aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
-			forward_weapon_ready = (forward_weapon_type != WEAPON_NONE) && (forward_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
+			forward_weapon_ready = (forward_weapon_real_type != WEAPON_NONE) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
 			port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
 			starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
 		}
 		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
 		{ // no usable weapons! Either not fitted or overheated
-			// TODO: good pilots use behaviour_evasive_action instead
-			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+			// good pilots use behaviour_evasive_action instead
+			if (accuracy >= COMBAT_AI_IS_SMART && randf() < 0.75)
+			{
+				behaviour = BEHAVIOUR_EVASIVE_ACTION;
+			}
+			else 
+			{
+				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+			}
 		}
 		else 
 		{
@@ -3507,9 +3618,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					jink.y = (ranrot_rand() % 256) - 128.0;
 					jink.z =  range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch;
 				}
-				// TODO: good pilots use behaviour_break_off_target instead
-				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
-
+				// good pilots use behaviour_attack_break_off_target instead
+				if (accuracy >= COMBAT_AI_IS_SMART)
+				{
+					behaviour = BEHAVIOUR_ATTACK_BREAK_OFF_TARGET;
+				}
+				else
+				{
+					behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+				}
 			}
 			else if (forward_weapon_ready)
 			{
@@ -3522,7 +3639,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				{
 					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
 				}
-				else if (accuracy >= COMBAT_AI_ISNT_AWFUL && canBurn)
+				else if (accuracy >= COMBAT_AI_ISNT_AWFUL && canBurn && randf() < 0.33)
 				{
 					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 				}
@@ -3851,7 +3968,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		desired_speed = max_available_speed; // use afterburner to approach
+		if (range < back_off_range)
+		{
+			desired_speed = fmax(0.9 * target_speed, 0.4 * maxFlightSpeed);
+		} 
+		else 
+		{
+			desired_speed = max_available_speed; // use afterburner to approach
+		}
 	}
 
 
@@ -4056,7 +4180,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 
-	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
+	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL)
 	{
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
@@ -5485,6 +5609,9 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET:
 		case BEHAVIOUR_RUNNING_DEFENSE:
 		case BEHAVIOUR_FLEE_TARGET:
+		case BEHAVIOUR_ATTACK_BREAK_OFF_TARGET:
+		case BEHAVIOUR_EVASIVE_ACTION:
+		case BEHAVIOUR_FLEE_EVASIVE_ACTION:
 		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX:
 	//	case BEHAVIOUR_ATTACK_MINING_TARGET:
 		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE:
@@ -6609,6 +6736,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	
 	ShipScriptEvent(context, self, "shipTakingDamage", amountVal, entityVal, typeVal);
 	
+	if ([self hasHostileTarget] && accuracy >= COMBAT_AI_IS_SMART && randf()*10.0 < accuracy && behaviour != BEHAVIOUR_EVASIVE_ACTION && behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION)
+	{
+		if (behaviour == BEHAVIOUR_FLEE_TARGET)
+		{
+			behaviour = BEHAVIOUR_FLEE_EVASIVE_ACTION;
+		}
+		else 
+		{
+			behaviour = BEHAVIOUR_EVASIVE_ACTION;
+		}
+		frustration = 0.0;
+	}
+
 	OOJSRelinquishContext(context);
 }
 
@@ -7686,6 +7826,46 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[self setStatus:STATUS_ACTIVE];
 	
 	return aim_cos;
+}
+
+
+- (void) evasiveAction:(double) delta_t
+{
+	double stick_roll = flightRoll;	//desired roll and pitch
+	double stick_pitch = flightPitch;
+
+	if (stick_roll >= 0.0) {
+		stick_roll = max_flight_roll;
+	} else {
+		stick_roll = -max_flight_roll;
+	}
+	if (stick_pitch >= 0.0) {
+		stick_pitch = max_flight_pitch;
+	} else {
+		stick_pitch = -max_flight_pitch;
+	}
+
+	double  rate2 = 4.0 * delta_t;
+	double  rate1 = 2.0 * delta_t;
+
+	if (((stick_roll > 0.0)&&(flightRoll < 0.0))||((stick_roll < 0.0)&&(flightRoll > 0.0)))
+		rate1 *= 4.0;	// much faster correction
+	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
+		rate2 *= 4.0;	// much faster correction
+
+	// apply stick movement limits
+	if (flightRoll < stick_roll - rate1)
+		stick_roll = flightRoll + rate1;
+	if (flightRoll > stick_roll + rate1)
+		stick_roll = flightRoll - rate1;
+	if (flightPitch < stick_pitch - rate2)
+		stick_pitch = flightPitch + rate2;
+	if (flightPitch > stick_pitch + rate2)
+		stick_pitch = flightPitch - rate2;
+
+	// apply stick to attitude control
+	flightRoll = stick_roll;
+	flightPitch = stick_pitch;
 }
 
 

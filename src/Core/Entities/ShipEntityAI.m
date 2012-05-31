@@ -484,18 +484,11 @@
 	// a more considered approach here:
 	// if we're already busy attacking a target we don't necessarily want to break off
 	//
-	switch (behaviour)
+	if ([self hasHostileTarget] && randf() < 0.75)	// if I'm attacking, ignore 75% of new aggressor's attacks
 	{
-		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET:
-		case BEHAVIOUR_ATTACK_FLY_TO_TARGET:
-			if (randf() < 0.75)	// if I'm attacking, ignore 75% of new aggressor's attacks
 				// but add them as a secondary target anyway
-				[self addDefenseTarget:primaryAggressor];
-			return;
-			break;
-			
-		default:
-			break;
+		[self addDefenseTarget:primaryAggressor];
+		return;
 	}
 	
 	// react only if the primary aggressor is not a friendly ship, else ignore it

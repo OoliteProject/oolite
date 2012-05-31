@@ -613,6 +613,8 @@ _lightsActive: 1;
 - (void) behaviour_track_target:(double) delta_t;
 - (void) behaviour_intercept_target:(double) delta_t;
 - (void) behaviour_attack_target:(double) delta_t;
+- (void) behaviour_evasive_action:(double) delta_t;
+- (void) behaviour_attack_break_off_target:(double) delta_t;
 - (void) behaviour_fly_to_target_six:(double) delta_t;
 - (void) behaviour_attack_mining_target:(double) delta_t;
 - (void) behaviour_attack_fly_to_target:(double) delta_t;
@@ -906,6 +908,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (Vector) distance_six: (GLfloat) dist;
 - (Vector) distance_twelve: (GLfloat) dist withOffset:(GLfloat)offset;
 
+- (void) evasiveAction:(double) delta_t;
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat;
 - (double) trackSideTarget:(double) delta_t :(BOOL) leftside;
 - (double) missileTrackPrimaryTarget:(double) delta_t;
