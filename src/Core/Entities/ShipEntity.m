@@ -207,7 +207,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	weapon_recharge_rate = 6.0;
 	shot_time = INITIAL_SHOT_TIME;
 	ship_temperature = SHIP_MIN_CABIN_TEMP;
-	
+	weapon_temp				= 0.0f;
+	forward_weapon_temp		= 0.0f;
+	aft_weapon_temp			= 0.0f;
+	port_weapon_temp		= 0.0f;
+	starboard_weapon_temp	= 0.0f;
+
 	if (![self setUpShipFromDictionary:dict])
 	{
 		[self release];
@@ -389,6 +394,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
+
 	
 	return YES;
 	
@@ -8851,6 +8857,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		while (weapon_type == WEAPON_NONE && (se = [subEnum nextObject]))
 		{
 			weapon_type = se->forward_weapon_type;
+			weapon_temp = se->forward_weapon_temp;
 		}
 		[self setWeaponDataFromType:weapon_type];
 	}
@@ -8974,8 +8981,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
 
+	if (forward_weapon_temp > WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP) return NO;
+
 	if (range > weaponRange)  return NO;
 	
+	forward_weapon_temp += weapon_shot_temperature;
+
+
 	hit_at_range = weaponRange;
 	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
 	[self setShipHitByLaser:victim];
