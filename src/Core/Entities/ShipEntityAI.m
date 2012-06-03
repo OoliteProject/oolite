@@ -752,15 +752,9 @@
 - (void) performFlee
 {
 	behaviour = BEHAVIOUR_FLEE_TARGET;
-//	double agility = ([self universalID] & 3) * 5; // make some ships more fanatic in avoiding the line of fire.
-//	if (scanClass == CLASS_MILITARY) agility += 5;  // military pilots have a better average skill. 
-	// may as well use existing accuracy variable
-	if (accuracy > 0)
-	{
-		jink.x = ((ranrot_rand() % 256) - 128.0) * accuracy;
-		jink.y = ((ranrot_rand() % 256) - 128.0) * accuracy;
-		jink.z = 400.0; // just within the 500 meter boundary were jink changes.
-	}
+
+	[self setEvasiveJink:400.0];
+
 	frustration = 0.0;
 }
 

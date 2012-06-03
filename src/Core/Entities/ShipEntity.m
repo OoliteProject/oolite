@@ -3475,12 +3475,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	frustration += delta_t;
-	if (frustration - floor(frustration) < 0.5)
+	if (frustration - floor(frustration) < 0.5 || range > 3000.0)
 	{
 		[self trackPrimaryTarget:delta_t:YES];
 	}
 	else
 	{
+// less useful at long range if not under direct fire
 		[self evasiveAction:delta_t];
 	}
 
@@ -3516,6 +3517,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (behaviour == BEHAVIOUR_FLEE_EVASIVE_ACTION)
 		{
+			[self setEvasiveJink:400.0];
 			behaviour = BEHAVIOUR_FLEE_TARGET;
 		}
 		else
@@ -3590,6 +3592,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 			else 
 			{
+				
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 			}
 		}
@@ -3620,9 +3623,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					*/
 					ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 					float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
-					jink.x = (ranrot_rand() % 256) - 128.0;
-					jink.y = (ranrot_rand() % 256) - 128.0;
-					jink.z =  range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch;
+					[self setEvasiveJink:(range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch)];
 				}
 				// good pilots use behaviour_attack_break_off_target instead
 				if (accuracy >= COMBAT_AI_IS_SMART)
@@ -3840,9 +3841,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (frustration > 3.0)	// 3s of frustration
 		{
 			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_ATTACK_BROADSIDE"];
-			jink.x = (ranrot_rand() % 256) - 128.0;
-			jink.y = (ranrot_rand() % 256) - 128.0;
-			jink.z = 1000.0;
+			[self setEvasiveJink:1000.0];
 			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 			frustration = 0.0;
 			desired_speed = maxFlightSpeed;
@@ -4162,9 +4161,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (frustration > 3.0)	// 3s of frustration
 		{
 			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_ATTACK_FLY_TO_TARGET"];
-			jink.x = (ranrot_rand() % 256) - 128.0;
-			jink.y = (ranrot_rand() % 256) - 128.0;
-			jink.z = 1000.0;
+			[self setEvasiveJink:1000.0];
 			behaviour = BEHAVIOUR_ATTACK_TARGET;
 			frustration = 0.0;
 			desired_speed = maxFlightSpeed;
@@ -4222,14 +4219,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			behaviour = BEHAVIOUR_ATTACK_TARGET;
 		}
-		
-		jink.x = (ranrot_rand() % 256) - 128.0;
-		jink.y = (ranrot_rand() % 256) - 128.0;
+		GLfloat z = jink.z;
 		if (randf() < 0.3)
 		{
-			jink.z /= 2; // move the z-offset closer to the target to let him fly away from the target.
+			z /= 2; // move the z-offset closer to the target to let him fly away from the target.
 			desired_speed = flightSpeed * 2; // increase speed a bit.
 		}
+		[self setEvasiveJink:z];
+
 		frustration /= 2.0;
 	}
 
@@ -6746,6 +6743,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		if (behaviour == BEHAVIOUR_FLEE_TARGET)
 		{
+// jink should be sufficient most of the time
+// if not, this will make a sharp turn and then select a new jink position
 			behaviour = BEHAVIOUR_FLEE_EVASIVE_ACTION;
 		}
 		else 
@@ -7835,6 +7834,46 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (void) setEvasiveJink:(GLfloat) z;
+{
+	if (accuracy < COMBAT_AI_ISNT_AWFUL)
+	{
+		jink = kZeroVector;
+	}
+	else 
+	{
+		jink.x = (ranrot_rand() % 256) - 128.0;
+		jink.y = (ranrot_rand() % 256) - 128.0;
+		jink.z = z;
+		if (accuracy >= COMBAT_AI_IS_SMART)
+		{
+			// make sure we don't accidentally have near-zero jink
+			if (jink.x < 0) 
+			{
+				jink.x -= 128.0;
+			}
+			else
+			{
+				jink.x += 128.0;
+			}
+			if (jink.y < 0) 
+			{
+				jink.y -= 128.0;
+			}
+			else
+			{
+				jink.y += 128.0;
+			}
+			if (accuracy >= COMBAT_AI_FLEES_BETTER_2)
+			{
+				jink.x *= 5.0;
+				jink.y *= 5.0;
+			}
+		}
+	}
+}
+
+
 - (void) evasiveAction:(double) delta_t
 {
 	double stick_roll = flightRoll;	//desired roll and pitch
@@ -7926,16 +7965,29 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			avoidCollision  =  (dot_product(targetDirection, v_forward) > -0.1); // is flying toward target or only slightly outward.
 		}
 		
+		GLfloat dist_adjust_factor = 1.0;
+		if (accuracy >= COMBAT_AI_FLEES_BETTER)
+		{
+			double	range = magnitude(relPos);
+			if (range > 2000.0)
+			{
+				dist_adjust_factor = range / 2000.0;
+			}
+		}
+
 		if (!avoidCollision)  // it is safe to jink
 		{
-			relPos.x += (jink.x * vx.x + jink.y * vy.x + jink.z * vz.x);
-			relPos.y += (jink.x * vx.y + jink.y * vy.y + jink.z * vz.y);
+			relPos.x += (jink.x * vx.x + jink.y * vy.x + jink.z * vz.x) * dist_adjust_factor;
+			relPos.y += (jink.x * vx.y + jink.y * vy.y + jink.z * vz.y) * dist_adjust_factor;
 			relPos.z += (jink.x * vx.z + jink.y * vy.z + jink.z * vz.z);
 		}
 	}
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
+// FIXME: should multiply x and y by distance to target
+// otherwise the relative jink angle becomes tiny at medium range
+// and they're an easy target for sniping
 
 	double	targetRadius = (1.5 - pitch_tolerance) * target->collision_radius;
 

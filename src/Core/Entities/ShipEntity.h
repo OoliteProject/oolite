@@ -125,6 +125,8 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 #define COMBAT_AI_ISNT_AWFUL  0.0f
 #define COMBAT_AI_IS_SMART  5.0f
 #define COMBAT_AI_TRACKS_CLOSER 7.5f
+#define COMBAT_AI_FLEES_BETTER 6.0f
+#define COMBAT_AI_FLEES_BETTER_2 9.0f
 
 
 #define MAX_LANDING_SPEED				50.0
@@ -908,6 +910,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (Vector) distance_six: (GLfloat) dist;
 - (Vector) distance_twelve: (GLfloat) dist withOffset:(GLfloat)offset;
 
+- (void) setEvasiveJink:(GLfloat) z;
 - (void) evasiveAction:(double) delta_t;
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat;
 - (double) trackSideTarget:(double) delta_t :(BOOL) leftside;
