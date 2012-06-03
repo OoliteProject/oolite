@@ -77,6 +77,7 @@ enum
 	kStation_equipmentPriceFactor,
 	kStation_equivalentTechLevel,
 	kStation_hasNPCTraffic,
+	kStation_hasShipyard,
 	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
 	kStation_requiresDockingClearance,
 	kStation_allowsFastDocking,
@@ -97,6 +98,7 @@ static JSPropertySpec sStationProperties[] =
 	{ "equipmentPriceFactor",		kStation_equipmentPriceFactor,		OOJS_PROP_READONLY_CB },
 	{ "equivalentTechLevel",		kStation_equivalentTechLevel,		OOJS_PROP_READONLY_CB },
 	{ "hasNPCTraffic",				kStation_hasNPCTraffic,				OOJS_PROP_READWRITE_CB },
+	{ "hasShipyard",				kStation_hasShipyard,				OOJS_PROP_READONLY_CB },
 	{ "isMainStation",				kStation_isMainStation,				OOJS_PROP_READONLY_CB },
 	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	OOJS_PROP_READWRITE_CB },
 	{ "suppressArrivalReports",		kStation_suppressArrivalReports,	OOJS_PROP_READWRITE_CB },
@@ -186,6 +188,10 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 		
 		case kStation_hasNPCTraffic:
 			*value = OOJSValueFromBOOL([entity hasNPCTraffic]);
+			return YES;
+			
+		case kStation_hasShipyard:
+			*value = OOJSValueFromBOOL([entity hasShipyard]);
 			return YES;
 		
 		case kStation_alertCondition:
