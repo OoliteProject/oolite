@@ -3681,8 +3681,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 
-	if ([UNIVERSE entityForUniversalID:[PLAYER primaryTargetID]] == self)	OOLog(@"new.behaviour",@"%d",behaviour);
-
 	frustration = 0.0;	// behaviour changed, so reset frustration
 
 	[self applyAttitudeChanges:delta_t];
@@ -4228,8 +4226,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		desired_speed = max_available_speed; // use afterburner to approach
 	}
-
-	if ([UNIVERSE entityForUniversalID:[PLAYER primaryTargetID]] == self)	OOLog(@"new.behaviour.speed",@"%f (c:%f)",desired_speed,flightSpeed);
 
 
 	double last_success_factor = success_factor;
@@ -5204,6 +5200,11 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	// check for speed
 	if (desired_speed > max_available_speed)
 		desired_speed = max_available_speed;
+
+	if (flightSpeed > maxFlightSpeed)
+	{
+		dt_thrust *= [self afterburnerFactor]; // like player get higher thrust under injection
+	}
 
 	if (flightSpeed > desired_speed)
 	{
