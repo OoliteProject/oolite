@@ -3559,7 +3559,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 
-
 	if (forward_weapon_real_type == WEAPON_THARGOID_LASER) 
 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
@@ -3571,13 +3570,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		BOOL port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
 		BOOL starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
 // if no weapons cool enough to be good choices, be less picky
+		BOOL weapons_heating = NO;
 		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
 		{
+			weapons_heating = YES;
 			aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
 			forward_weapon_ready = (forward_weapon_real_type != WEAPON_NONE) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
 			port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
 			starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
 		}
+		
+		ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+
 		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
 		{ // no usable weapons! Either not fitted or overheated
 			// good pilots use behaviour_evasive_action instead
@@ -3590,6 +3594,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 			}
+		}
+// if our current target isn't targeting us, and we have some idea of how to fight, and our weapons are running hot, and we're fairly nearby
+		else if (weapons_heating && accuracy >= COMBAT_AI_ISNT_AWFUL && [target primaryTargetID] != universalID && range < COMBAT_OUT_RANGE_FACTOR * weaponRange) 
+		{
+// then back off a bit for weapons to cool so we get a good attack run later, rather than weaving closer
+			float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
+			[self setEvasiveJink:(range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch)];
+			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 		}
 		else 
 		{
@@ -3616,7 +3628,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 						The COMBAT_JINK_OFFSET intentionally over-compensates the range for collision radii to send ships towards
 						the target at low speeds.
 					*/
-					ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 					float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
 					[self setEvasiveJink:(range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch)];
 				}
@@ -4222,7 +4233,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		frustration /= 2.0;
 	}
 
-	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || flightSpeed > (scannerRange - range) * max_flight_pitch / 6.28)
+	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || 
+			flightSpeed > (scannerRange - range) * max_flight_pitch / 6.28)
 	{
 		jink = kZeroVector;
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
@@ -10569,7 +10581,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	stick_pitch = 0.0;
 	flightYaw = 0.0;
 	stick_yaw = 0.0;
-	flightSpeed = 0.05; // constant speed same for all ships
+	flightSpeed = 50.0; // constant speed same for all ships
 // was a quarter of max speed, so the Anaconda speeds up and most
 // others slow down - CIM
 	velocity = kZeroVector;

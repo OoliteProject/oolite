@@ -5400,7 +5400,7 @@ static GLfloat		sBaseMass = 0.0;
 	flightRoll = 0.0f;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;
-	flightSpeed = maxFlightSpeed * 0.25f;
+	flightSpeed = fmin(maxFlightSpeed,50.0f);
 	velocity = kZeroVector;
 	[self setStatus:STATUS_EXITING_WITCHSPACE];
 	gui_screen = GUI_SCREEN_MAIN;
