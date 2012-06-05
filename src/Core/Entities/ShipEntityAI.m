@@ -317,8 +317,8 @@
 
 - (void) performTumble
 {
-	flightRoll = max_flight_roll*2.0*(randf() - 0.5);
-	flightPitch = max_flight_pitch*2.0*(randf() - 0.5);
+	stick_roll = max_flight_roll*2.0*(randf() - 0.5);
+	stick_pitch = max_flight_pitch*2.0*(randf() - 0.5);
 	behaviour = BEHAVIOUR_TUMBLE;
 	frustration = 0.0;
 }

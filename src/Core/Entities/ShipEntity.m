@@ -2042,7 +2042,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			// ignore behaviour just keep moving...
 			flightYaw = 0.0;
-			[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+			[self applyAttitudeChanges:delta_t];
 			[self applyThrust:delta_t];
 			if (energy < maxEnergy)
 			{
@@ -2083,7 +2083,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([self status] == STATUS_COCKPIT_DISPLAY)
 	{
 		flightYaw = 0.0;
-		[self applyRoll: delta_t * flightRoll andClimb: delta_t * flightPitch];
+		[self applyAttitudeChanges:delta_t];
 		GLfloat range2 = 0.1 * distance2(position, destination) / (collision_radius * collision_radius);
 		if ((range2 > 1.0)||(velocity.z > 0.0))	range2 = 1.0;
 		position = vector_add(position, vector_multiply_scalar(velocity, range2 * delta_t));
@@ -3233,52 +3233,45 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 //            //
 - (void) behaviour_stop_still:(double) delta_t
 {
-	double		damping = 0.5 * delta_t;
-	// damp roll
-	if (flightRoll < 0)
-		flightRoll += (flightRoll < -damping) ? damping : -flightRoll;
-	if (flightRoll > 0)
-		flightRoll -= (flightRoll > damping) ? damping : flightRoll;
-	// damp pitch
-	if (flightPitch < 0)
-		flightPitch += (flightPitch < -damping) ? damping : -flightPitch;
-	if (flightPitch > 0)
-		flightPitch -= (flightPitch > damping) ? damping : flightPitch;
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	stick_roll = 0.0;
+	stick_pitch = 0.0;
+	stick_yaw = 0.0;
+	[self applySticks:delta_t];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
 
 - (void) behaviour_idle:(double) delta_t
 {
-	double		damping = 0.5 * delta_t;
+	stick_yaw = 0.0;
 	if ((!isStation)&&(scanClass != CLASS_BUOY))
 	{
-		// damp roll
-		if (flightRoll < 0)
-			flightRoll += (flightRoll < -damping) ? damping : -flightRoll;
-		if (flightRoll > 0)
-			flightRoll -= (flightRoll > damping) ? damping : flightRoll;
+		stick_roll = 0.0;
+	}
+	else
+	{
+		stick_roll = flightRoll;
 	}
 	if (scanClass != CLASS_BUOY)
 	{
-		// damp pitch
-		if (flightPitch < 0)
-			flightPitch += (flightPitch < -damping) ? damping : -flightPitch;
-		if (flightPitch > 0)
-			flightPitch -= (flightPitch > damping) ? damping : flightPitch;
+		stick_pitch = 0.0;
 	}
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	else
+	{
+		stick_pitch = flightPitch;
+	}
+	[self applySticks:delta_t];
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
 
 - (void) behaviour_tumble:(double) delta_t
 {
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applySticks:delta_t];
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -3293,7 +3286,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		double  distance = [self rangeToDestination];
 		if (distance < desired_range)
 		{
-			behaviour = BEHAVIOUR_TUMBLE;
+			[self performTumble];
 			[self setStatus:STATUS_IN_FLIGHT];
 			[hauler scoopUp:self];
 			return;
@@ -3357,8 +3350,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 	}
+
+// being tractored; sticks ignored - CIM
 	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyAttitudeChanges:delta_t];
 	desired_speed = 0.0;
 	thrust = 25.0;	// used to damp velocity (must be less than hauler thrust)
 	[self applyThrust:delta_t];
@@ -3373,13 +3368,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self noteLostTargetAndGoIdle];
 		return;
 	}
-	[self trackPrimaryTarget:delta_t:NO];
+	[self trackPrimaryTarget:delta_t:NO]; // applies sticks
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 	{
 		[self avoidCollision];
 	}
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -3453,8 +3448,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -3491,7 +3486,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -3527,7 +3522,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -3669,8 +3664,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	frustration = 0.0;	// behaviour changed, so reset frustration
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -3729,8 +3724,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	frustration = 0.0;	// behaviour changed, so reset frustration
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -3762,7 +3757,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (range > COMBAT_BROADSIDE_RANGE_FACTOR * currentWeaponRange)
 	{
 		behaviour = BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE;
-		[self applyRoll:delta_t*flightRoll climb:delta_t*flightPitch andYaw:delta_t*flightYaw];
+		[self applyAttitudeChanges:delta_t];
 		[self applyThrust:delta_t];
 		return;
 	}
@@ -3866,7 +3861,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self fireStarboardWeapon:range];
 	}
-	[self applyRoll:delta_t*flightRoll climb:delta_t*flightPitch andYaw:delta_t*flightYaw];
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
@@ -4047,8 +4042,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
@@ -4086,8 +4080,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	[self trackPrimaryTarget:delta_t:NO];
 	[self fireMainWeapon:range];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4179,8 +4172,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL)
@@ -4250,8 +4242,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4282,8 +4273,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
@@ -4349,8 +4340,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (([(ShipEntity *)[self primaryTarget] primaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
 		[self fireMissile];
 	if (cloakAutomatic) [self activateCloakingDevice];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4375,8 +4366,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self avoidCollision];
 	}
 	frustration = 0.0;
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4427,8 +4418,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4469,8 +4460,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4521,8 +4512,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4587,8 +4578,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4608,8 +4599,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackDestination:delta_t:YES];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4634,8 +4625,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// (tested with boa class cruiser on collisioncourse with buoy)
 		desired_speed = maxFlightSpeed * (0.5 * dq + 0.5);
 	}
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
 
@@ -4779,8 +4770,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
-	flightYaw = 0.0;
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+
+	[self applyAttitudeChanges:delta_t];
 	GLfloat temp = desired_speed;
 	desired_speed *= v0 * v0;
 	[self applyThrust:delta_t];
@@ -5186,6 +5177,12 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 	orientation = quaternion_multiply(q1, orientation);
 	[self orientationChanged];
+}
+
+
+- (void) applyAttitudeChanges:(double) delta_t
+{
+	[self applyRoll:flightRoll*delta_t climb:flightPitch*delta_t andYaw:flightYaw*delta_t];
 }
 
 
@@ -6218,6 +6215,63 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 #endif
 	
 	return rate;
+}
+
+
+- (void) applySticks:(double)delta_t
+{
+	
+	double  rate1 = 2.0 * delta_t; //roll 
+	double  rate2 = 4.0 * delta_t; //pitch
+	double  rate3 = 4.0 * delta_t; //yaw
+
+	if (((stick_roll > 0.0)&&(flightRoll < 0.0))||((stick_roll < 0.0)&&(flightRoll > 0.0)))
+		rate1 *= 4.0;	// much faster correction
+	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
+		rate2 *= 4.0;	// much faster correction
+	if (((stick_yaw > 0.0)&&(flightYaw < 0.0))||((stick_yaw < 0.0)&&(flightYaw > 0.0)))
+		rate3 *= 4.0;	// much faster correction
+
+	// apply stick movement limits
+	if (flightRoll < stick_roll - rate1)
+	{
+		flightRoll = flightRoll + rate1;
+	}
+	else if (flightRoll > stick_roll + rate1)
+	{
+		flightRoll = flightRoll - rate1;
+	}
+	else
+	{
+		flightRoll = stick_roll;
+	}
+
+	if (flightPitch < stick_pitch - rate1)
+	{
+		flightPitch = flightPitch + rate1;
+	}
+	else if (flightPitch > stick_pitch + rate1)
+	{
+		flightPitch = flightPitch - rate1;
+	}
+	else
+	{
+		flightPitch = stick_pitch;
+	}
+
+	if (flightYaw < stick_yaw - rate1)
+	{
+		flightYaw = flightYaw + rate1;
+	}
+	else if (flightYaw > stick_yaw + rate1)
+	{
+		flightYaw = flightYaw - rate1;
+	}
+	else
+	{
+		flightYaw = stick_yaw;
+	}
+
 }
 
 
@@ -7767,6 +7821,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	flightRoll = 0.0;
 	flightPitch = 0.0;
+	flightYaw = 0.0;
+	stick_roll = 0.0;
+	stick_pitch = 0.0;
+	stick_yaw = 0.0;
 }
 
 
@@ -7876,8 +7934,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) evasiveAction:(double) delta_t
 {
-	double stick_roll = flightRoll;	//desired roll and pitch
-	double stick_pitch = flightPitch;
+	stick_roll = flightRoll;	//desired roll and pitch
+	stick_pitch = flightPitch;
 
 	if (stick_roll >= 0.0) {
 		stick_roll = max_flight_roll;
@@ -7889,28 +7947,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	} else {
 		stick_pitch = -max_flight_pitch;
 	}
-
-	double  rate2 = 4.0 * delta_t;
-	double  rate1 = 2.0 * delta_t;
-
-	if (((stick_roll > 0.0)&&(flightRoll < 0.0))||((stick_roll < 0.0)&&(flightRoll > 0.0)))
-		rate1 *= 4.0;	// much faster correction
-	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
-		rate2 *= 4.0;	// much faster correction
-
-	// apply stick movement limits
-	if (flightRoll < stick_roll - rate1)
-		stick_roll = flightRoll + rate1;
-	if (flightRoll > stick_roll + rate1)
-		stick_roll = flightRoll - rate1;
-	if (flightPitch < stick_pitch - rate2)
-		stick_pitch = flightPitch + rate2;
-	if (flightPitch > stick_pitch + rate2)
-		stick_pitch = flightPitch - rate2;
-
-	// apply stick to attitude control
-	flightRoll = stick_roll;
-	flightPitch = stick_pitch;
+	
+  [self applySticks:delta_t];
 }
 
 
@@ -8002,11 +8040,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 
-	double  rate2 = 4.0 * delta_t;
-	double  rate1 = 2.0 * delta_t;
-
-	double stick_roll = 0.0;	//desired roll and pitch
-	double stick_pitch = 0.0;
+	stick_roll = 0.0;	//desired roll and pitch
+	stick_pitch = 0.0;
 
 	double reverse = (retreat)? -1.0: 1.0;
 
@@ -8098,28 +8133,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	 */
 
 	// end rule-of-thumb manoeuvres
-
-	// apply 'quick-stop' to roll and pitch adjustments
-	if (((stick_roll > 0.0)&&(flightRoll < 0.0))||((stick_roll < 0.0)&&(flightRoll > 0.0)))
-		rate1 *= 4.0;	// much faster correction
-	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
-		rate2 *= 4.0;	// much faster correction
-
-	// apply stick movement limits
-	if (flightRoll < stick_roll - rate1)
-		stick_roll = flightRoll + rate1;
-	if (flightRoll > stick_roll + rate1)
-		stick_roll = flightRoll - rate1;
-	if (flightPitch < stick_pitch - rate2)
-		stick_pitch = flightPitch + rate2;
-	if (flightPitch > stick_pitch + rate2)
-		stick_pitch = flightPitch - rate2;
-
-	// apply stick to attitude control
-	flightRoll = stick_roll;
-	flightPitch = stick_pitch;
-	flightYaw = 0.0;
-
+	stick_yaw = 0.0;
+	
+	[self applySticks:delta_t];
 
 	if (retreat)
 		d_forward *= d_forward;	// make positive AND decrease granularity
@@ -8176,13 +8192,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
 
-	double  rate3 = 4.0 * delta_t;
-	double  rate2 = 4.0 * delta_t;
-	double  rate1 = 2.0 * delta_t;
-
-	double stick_roll = 0.0;	//desired roll and pitch
-	double stick_pitch = 0.0;
-	double stick_yaw = 0.0;
+	stick_roll = 0.0;	//desired roll and pitch
+	stick_pitch = 0.0;
+	stick_yaw = 0.0;
 
 	double reverse = (leftside)? -1.0: 1.0;
 
@@ -8208,19 +8220,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	stick_roll = 0.0;
 	stick_yaw = 0.0;
 
-/*
-	if ((fabs(d_forward) > 0.5) && !pitching_over) // we're going the wrong way!
-		pitching_over = YES;
-
-	if (pitching_over)
-	{
-		if (d_up > 0) // pitch up
-			stick_pitch = max_flight_pitch;
-		else
-			stick_pitch = -max_flight_pitch;
-		pitching_over = (fabs(d_forward) < 0.2);
-	}
-*/
 	// check if we are flying toward the destination..
 	if ((d_right * reverse < max_cos))	// not on course so we must adjust controls..
 	{
@@ -8270,33 +8269,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	// end rule-of-thumb manoeuvres
 
-	// apply 'quick-stop' to roll and pitch adjustments
-	if (((stick_roll > 0.0)&&(flightRoll < 0.0))||((stick_roll < 0.0)&&(flightRoll > 0.0)))
-		rate1 *= 4.0;	// much faster correction
-	if (((stick_yaw > 0.0)&&(flightYaw < 0.0))||((stick_yaw < 0.0)&&(flightYaw > 0.0)))
-		rate2 *= 4.0;	// much faster correction
-	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
-		rate3 *= 4.0;	// much faster correction
-
-	// apply stick movement limits
-	if (flightRoll < stick_roll - rate1)
-		stick_roll = flightRoll + rate1;
-	if (flightRoll > stick_roll + rate1)
-		stick_roll = flightRoll - rate1;
-	if (flightYaw < stick_yaw - rate2)
-		stick_yaw = flightYaw + rate2;
-	if (flightYaw > stick_yaw + rate2)
-		stick_yaw = flightYaw - rate2;
-	if (flightPitch < stick_pitch - rate3)
-		stick_pitch = flightPitch + rate3;
-	if (flightPitch > stick_pitch + rate3)
-		stick_pitch = flightPitch - rate3;
-
-	// apply stick to attitude control
-	flightRoll = stick_roll;
-	flightPitch = stick_pitch;
-	flightYaw = stick_yaw;
-
+	[self applySticks:delta_t];
 
 	if ((!flightPitch)&&(!flightYaw))	// no correction
 		return 1.0;
@@ -8317,11 +8290,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return 0.0;
 
 	double  damping = 0.5 * delta_t;
-	double  rate2 = 4.0 * delta_t;
-	double  rate1 = 2.0 * delta_t;
 
-	double stick_roll = 0.0;	//desired roll and pitch
-	double stick_pitch = 0.0;
+	stick_roll = 0.0;	//desired roll and pitch
+	stick_pitch = 0.0;
+	stick_yaw = 0.0;
 
 	relPos = vector_subtract(target->position, position);
 	
@@ -8385,6 +8357,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	// end rule-of-thumb manoeuvres
 
+// TODO: check this
 	// apply damping
 	if (flightRoll < 0)
 		flightRoll += (flightRoll < -damping) ? damping : -flightRoll;
@@ -8395,19 +8368,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (flightPitch > 0)
 		flightPitch -= (flightPitch > damping) ? damping : flightPitch;
 
-	// apply stick movement limits
-	if (flightRoll + rate1 < stick_roll)
-		stick_roll = flightRoll + rate1;
-	if (flightRoll - rate1 > stick_roll)
-		stick_roll = flightRoll - rate1;
-	if (flightPitch + rate2 < stick_pitch)
-		stick_pitch = flightPitch + rate2;
-	if (flightPitch - rate2 > stick_pitch)
-		stick_pitch = flightPitch - rate2;
-
-	// apply stick to attitude
-	flightRoll = stick_roll;
-	flightPitch = stick_pitch;
+	
+	[self applySticks:delta_t];
 
 	//
 	//  return target confidence 0.0 .. 1.0
@@ -8425,11 +8387,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	BOOL	we_are_docking = (nil != dockingInstructions);
 
-	double  rate2 = 4.0 * delta_t;
-	double  rate1 = 2.0 * delta_t;
-
-	double stick_roll = 0.0;	//desired roll and pitch
-	double stick_pitch = 0.0;
+	stick_roll = 0.0;	//desired roll and pitch
+	stick_pitch = 0.0;
+	stick_yaw = 0.0;
 
 	double reverse = 1.0;
 	double reversePlayer = 1.0;
@@ -8543,25 +8503,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	// end rule-of-thumb manoeuvres
 
-	// apply 'quick-stop' to roll and pitch adjustments
-	if (((stick_roll > 0.0)&&(flightRoll < 0.0))||((stick_roll < 0.0)&&(flightRoll > 0.0)))
-		rate1 *= 4.0;	// much faster correction
-	if (((stick_pitch > 0.0)&&(flightPitch < 0.0))||((stick_pitch < 0.0)&&(flightPitch > 0.0)))
-		rate2 *= 4.0;	// much faster correction
-	
-	// apply stick movement limits
-	if (flightRoll < stick_roll - rate1)
-		stick_roll = flightRoll + rate1;
-	if (flightRoll > stick_roll + rate1)
-		stick_roll = flightRoll - rate1;
-	if (flightPitch < stick_pitch - rate2)
-		stick_pitch = flightPitch + rate2;
-	if (flightPitch > stick_pitch + rate2)
-		stick_pitch = flightPitch - rate2;
-	
-	// apply stick to attitude control
-	flightRoll = stick_roll;
-	flightPitch = stick_pitch;
+	[self applySticks:delta_t];
 
 	if (retreat)
 		d_forward *= d_forward;	// make positive AND decrease granularity
@@ -10198,7 +10140,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		[cargo insertObject:other atIndex:0];	// places most recently scooped object at eject position
 		[other setStatus:STATUS_IN_HOLD];
-		[other setBehaviour:BEHAVIOUR_TUMBLE];
+		[other performTumble];
 		// next event is not yet documented on the wiki. Should it not become: shipScoopedCargo, for consistency?
 		[self doScriptEvent:OOJSID("cargoScooped") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(co_type), [NSNumber numberWithInt:co_amount], nil]];
 		[shipAI message:@"CARGO_SCOOPED"];
@@ -10622,8 +10564,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// all ships exiting witchspace will share the same orientation.
 	orientation = [UNIVERSE getWitchspaceExitRotation];
 	flightRoll = 0.0;
+	stick_roll = 0.0;
 	flightPitch = 0.0;
-	flightSpeed = maxFlightSpeed * 0.25;
+	stick_pitch = 0.0;
+	flightYaw = 0.0;
+	stick_yaw = 0.0;
+	flightSpeed = 0.05; // constant speed same for all ships
+// was a quarter of max speed, so the Anaconda speeds up and most
+// others slow down - CIM
 	velocity = kZeroVector;
 	if (![UNIVERSE addEntity:self])	// AI and status get initialised here
 	{

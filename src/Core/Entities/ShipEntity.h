@@ -203,6 +203,10 @@ typedef enum
 	OOUniversalID			primaryTarget;				// for combat or rendezvous
 	GLfloat					desired_range;				// range to which to journey/scan
 	GLfloat					desired_speed;				// speed at which to travel
+// next three used to set desired attitude, flightRoll etc. gradually catch up to target
+	GLfloat         stick_roll;           // stick roll
+	GLfloat         stick_pitch;          // stick pitch
+	GLfloat         stick_yaw;            // stick yaw
 	OOBehaviour				behaviour;					// ship's behavioural state
 	
 	BoundingBox				totalBoundingBox;			// records ship configuration
@@ -652,6 +656,7 @@ _lightsActive: 1;
 - (BOOL) isJammingScanning;
 
 - (void) applyThrust:(double) delta_t;
+- (void) applyAttitudeChanges:(double) delta_t;
 
 - (void) avoidCollision;
 - (void) resumePostProximityAlert;
@@ -757,6 +762,8 @@ _lightsActive: 1;
 - (void) setRoll:(double) amount;
 - (void) setPitch:(double) amount;
 - (void) setThrust:(double) amount;
+- (void) applySticks:(double)delta_t;
+
 
 - (void)setThrustForDemo:(float)factor;
 
