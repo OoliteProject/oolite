@@ -5201,11 +5201,6 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	if (desired_speed > max_available_speed)
 		desired_speed = max_available_speed;
 
-	if (flightSpeed > maxFlightSpeed)
-	{
-		dt_thrust *= [self afterburnerFactor]; // like player get higher thrust under injection
-	}
-
 	if (flightSpeed > desired_speed)
 	{
 		[self decrease_flight_speed: dt_thrust];
