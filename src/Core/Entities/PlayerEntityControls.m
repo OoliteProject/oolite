@@ -2862,7 +2862,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride)
 	{
-		double stick_roll = max_flight_roll * virtualStick.x;
+		stick_roll = max_flight_roll * virtualStick.x;
 		if (flightRoll < stick_roll)
 		{
 			[self increase_flight_roll:delta_t*roll_delta];
@@ -2912,7 +2912,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	if(mouse_control_on || (numSticks && !keyboardPitchOverride))
 	{
-		double stick_pitch = max_flight_pitch * virtualStick.y;
+		stick_pitch = max_flight_pitch * virtualStick.y;
 		if (flightPitch < stick_pitch)
 		{
 			[self increase_flight_pitch:delta_t*pitch_delta];
@@ -2966,7 +2966,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			// I think yaw is handled backwards in the code,
 			// which is why the negative sign is here.
-			double stick_yaw = max_flight_yaw * (-reqYaw);
+			stick_yaw = max_flight_yaw * (-reqYaw);
 			if (flightYaw < stick_yaw)
 			{
 				[self increase_flight_yaw:delta_t*yaw_delta];
