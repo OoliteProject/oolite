@@ -61,6 +61,8 @@ typedef enum
 	
 	double			witch_mass;
 	double			shrink_factor;	// used during nova mission
+// not used yet
+//	double      exit_speed; // exit speed of ships in this wormhole
 	
 	WORMHOLE_SCANINFO	scan_info;
 	BOOL			hasExitPosition;
@@ -82,6 +84,7 @@ typedef enum
 - (void) setMisjump;	// Flags up a wormhole as 'misjumpy'
 - (BOOL) withMisjump;
 
+- (double) exitSpeed;	// exit speed from this wormhole
 - (double) expiryTime;	// Time at which the wormholes entrance closes
 - (double) arrivalTime;	// Time at which the wormholes exit opens
 - (double) estimatedArrivalTime;	// Time when wormhole should open (different from arrival_time for misjump wormholes)

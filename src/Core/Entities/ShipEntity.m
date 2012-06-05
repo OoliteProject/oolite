@@ -2179,6 +2179,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self behaviour_close_to_broadside_range: delta_t];
 				break;
 
+			case BEHAVIOUR_ATTACK_SNIPER :
+				[self behaviour_attack_sniper: delta_t];
+				break;
+
 			case BEHAVIOUR_EVASIVE_ACTION :
 			case BEHAVIOUR_FLEE_EVASIVE_ACTION :
 				[self behaviour_evasive_action: delta_t];
@@ -3644,11 +3648,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			else if (forward_weapon_ready)
 			{
 				jink = kZeroVector; // almost all behaviours
+				double aspect = [self approachAspectToPrimaryTarget];
 
 				// TODO: good pilots use behaviour_attack_sniper sometimes
-
-				double aspect = [self approachAspectToPrimaryTarget];
-				if (accuracy >= COMBAT_AI_ISNT_AWFUL && aspect < 0)
+				if (getWeaponRangeFromType(forward_weapon_real_type) > getWeaponRangeFromType(WEAPON_PULSE_LASER) && range > getWeaponRangeFromType(WEAPON_PULSE_LASER))
+				{
+					behaviour = BEHAVIOUR_ATTACK_SNIPER;
+				}
+				else if (accuracy >= COMBAT_AI_ISNT_AWFUL && aspect < 0)
 				{
 					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
 				}
@@ -3673,6 +3680,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 	}
+
+	if ([UNIVERSE entityForUniversalID:[PLAYER primaryTargetID]] == self)	OOLog(@"new.behaviour",@"%d",behaviour);
 
 	frustration = 0.0;	// behaviour changed, so reset frustration
 
@@ -3925,6 +3934,72 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (void) behaviour_attack_sniper:(double) delta_t
+{
+	double  range = [self rangeToPrimaryTarget];
+	float	max_available_speed = maxFlightSpeed;
+
+	if (range < getWeaponRangeFromType(WEAPON_PULSE_LASER))
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
+	else 
+	{
+		if (range > weaponRange)
+		{
+			desired_speed = max_available_speed;
+		}
+		else
+		{
+			desired_speed = max_available_speed / 10.0f;
+		}
+
+		double last_success_factor = success_factor;
+		success_factor = [self trackPrimaryTarget:delta_t:NO];
+		
+		if ((success_factor > 0.999)||(success_factor > last_success_factor))
+		{
+			frustration -= delta_t;
+			if (frustration < 0.0)
+				frustration = 0.0;
+		}
+		else
+		{
+			frustration += delta_t;
+			if (frustration > 3.0)	// 3s of frustration
+			{
+				[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_ATTACK_SNIPER"];
+				[self setEvasiveJink:1000.0];
+				behaviour = BEHAVIOUR_ATTACK_TARGET;
+				frustration = 0.0;
+				desired_speed = maxFlightSpeed;
+			}
+		}
+
+	}
+
+	int missile_chance = 0;
+	int rhs = 3.2 / delta_t;
+	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
+
+	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
+	if (missiles > missile_chance * hurt_factor)
+	{
+		[self fireMissile];
+	}
+	if (cloakAutomatic) [self activateCloakingDevice];
+	[self fireMainWeapon:range];
+	[self applyAttitudeChanges:delta_t];
+	[self applyThrust:delta_t];
+
+	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
+
+}
+
+
 - (void) behaviour_fly_to_target_six:(double) delta_t
 {
 	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
@@ -3981,7 +4056,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (range < back_off_range)
 		{
-			desired_speed = fmax(0.9 * target_speed, 0.4 * maxFlightSpeed);
+			desired_speed = fmax(0.9 * target_speed, 0.8 * maxFlightSpeed);
 		} 
 		else 
 		{
@@ -4031,12 +4106,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			destination = [target distance_twelve:1250 withOffset:0];
 		}
 	}
-
+	
+	pitching_over = NO; // in case it's set from elsewhere
 	double confidenceFactor = [self trackDestination:delta_t :NO];
 	
 	if(success_factor > last_success_factor || confidenceFactor < 0.85) frustration += delta_t;
 	else if(frustration > 0.0) frustration -= delta_t * 0.75;
-	if(frustration > 10)
+
+	double aspect = [self approachAspectToPrimaryTarget];
+	if(frustration > 10 || aspect > 0.75)
 	{
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
@@ -4150,6 +4228,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		desired_speed = max_available_speed; // use afterburner to approach
 	}
+
+	if ([UNIVERSE entityForUniversalID:[PLAYER primaryTargetID]] == self)	OOLog(@"new.behaviour.speed",@"%f (c:%f)",desired_speed,flightSpeed);
+
 
 	double last_success_factor = success_factor;
 	success_factor = [self trackPrimaryTarget:delta_t:NO];	// do the actual piloting
@@ -5631,6 +5712,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		case BEHAVIOUR_ATTACK_BROADSIDE_LEFT:
 		case BEHAVIOUR_ATTACK_BROADSIDE_RIGHT:
  	  case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE:
+ 	  case BEHAVIOUR_ATTACK_SNIPER:
 			return YES;
 			
 		default:
@@ -8064,6 +8146,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	int max_factor = 8;
 	double r_max_factor = 0.125;
+	if (accuracy >= COMBAT_AI_TRACKS_CLOSER && max_flight_pitch > 1.0)
+	{
+		max_factor = floor(max_flight_pitch/0.125);
+		r_max_factor = 1.0/max_factor;
+	}
 
 	d_right		=   dot_product(relPos, v_right);
 	d_up		=   dot_product(relPos, v_up);
@@ -8369,7 +8456,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	// end rule-of-thumb manoeuvres
 
-// TODO: check this
 	// apply damping
 	if (flightRoll < 0)
 		flightRoll += (flightRoll < -damping) ? damping : -flightRoll;
@@ -10584,6 +10670,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	flightSpeed = 50.0; // constant speed same for all ships
 // was a quarter of max speed, so the Anaconda speeds up and most
 // others slow down - CIM
+// will be overridden if left witchspace via a genuine wormhole
 	velocity = kZeroVector;
 	if (![UNIVERSE addEntity:self])	// AI and status get initialised here
 	{

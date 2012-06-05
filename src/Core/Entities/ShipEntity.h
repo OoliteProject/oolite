@@ -124,8 +124,9 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 #define COMBAT_AI_WEAPON_TEMP_USABLE  WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP
 #define COMBAT_AI_ISNT_AWFUL  0.0f
 #define COMBAT_AI_IS_SMART  5.0f
-#define COMBAT_AI_TRACKS_CLOSER 7.5f
 #define COMBAT_AI_FLEES_BETTER 6.0f
+#define COMBAT_AI_TRACKS_CLOSER 7.5f
+#define COMBAT_AI_USES_SNIPING 8.5f
 #define COMBAT_AI_FLEES_BETTER_2 9.0f
 
 
@@ -632,6 +633,7 @@ _lightsActive: 1;
 - (void) behaviour_attack_broadside_right:(double) delta_t;
 - (void) behaviour_close_to_broadside_range:(double) delta_t;
 - (void) behaviour_attack_broadside_target:(double) delta_t leftside:(BOOL)leftside;
+- (void) behaviour_attack_sniper:(double) delta_t;
 - (void) behaviour_fly_range_from_destination:(double) delta_t;
 - (void) behaviour_face_destination:(double) delta_t;
 - (void) behaviour_land_on_planet:(double) delta_t;

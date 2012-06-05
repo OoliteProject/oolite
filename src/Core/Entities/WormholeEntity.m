@@ -320,10 +320,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				[ship setOrientation: [UNIVERSE getWitchspaceExitRotation]];
 				[ship setPitch: 0.0];
 				[ship setRoll: 0.0];
-				[ship setSpeed: [ship maxFlightSpeed] * 0.25];
 				[ship setVelocity: kZeroVector];
 				[UNIVERSE addEntity:ship];	// AI and status get initialised here
 			}
+			[ship setSpeed:[self exitSpeed]]; // all ships from this wormhole have same velocity
+
 			
 			// Should probably pass the wormhole, but they have no JS representation
 			[ship doScriptEvent:OOJSID("shipExitedWormhole") andReactToAIMessage:@"EXITED WITCHSPACE"];
@@ -380,6 +381,12 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 - (NSPoint) destinationCoordinates
 {
 	return destinationCoords;
+}
+
+- (double) exitSpeed
+{
+	// return exit_speed; // later
+	return 50.0; 
 }
 
 - (double) expiryTime

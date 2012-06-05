@@ -5371,7 +5371,6 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		// player is not allone in his wormhole, synchronise player and wormhole position.
 		double	wh_arrival_time = ([PLAYER clockTimeAdjusted] - [wormhole arrivalTime]);
-		Vector distance;
 		if (wh_arrival_time > 0)
 		{
 			// Player is following other ship 
@@ -5383,7 +5382,8 @@ static GLfloat		sBaseMass = 0.0;
 			whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], -500.0f));
 			
 		}
-		distance = vector_subtract(whpos, pos);
+
+		Vector distance = vector_subtract(whpos, pos);
 		if (magnitude2(distance) < MIN_DISTANCE_TO_BUOY2 ) // within safety distance from the buoy?
 		{
 			// the wormhole is to close to the buoy. Move both player and wormhole away from it in the x-y plane.
@@ -5394,13 +5394,14 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		[wormhole setExitPosition: whpos];
 	}
+	flightSpeed = [wormhole exitSpeed];
 	[wormhole release];
 	wormhole = nil;
 
 	flightRoll = 0.0f;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;
-	flightSpeed = fmin(maxFlightSpeed,50.0f);
+
 	velocity = kZeroVector;
 	[self setStatus:STATUS_EXITING_WITCHSPACE];
 	gui_screen = GUI_SCREEN_MAIN;
