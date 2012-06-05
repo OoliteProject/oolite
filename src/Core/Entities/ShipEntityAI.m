@@ -1992,8 +1992,17 @@
 
 - (void) performMining
 {
-	behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
-	frustration = 0.0;
+	Entity *target = [self primaryTarget];
+	// mining is not seen as hostile behaviour, so ensure it is only used against rocks.
+	if (target &&  [target scanClass] == CLASS_ROCK)
+	{
+		behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
+		frustration = 0.0;
+	}
+	else
+	{	
+		[self noteLostTargetAndGoIdle];
+	}
 }
 
 

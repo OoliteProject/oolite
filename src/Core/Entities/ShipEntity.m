@@ -7904,7 +7904,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) setEvasiveJink:(GLfloat) z;
+- (void) setEvasiveJink:(GLfloat) z
 {
 	if (accuracy < COMBAT_AI_ISNT_AWFUL)
 	{
