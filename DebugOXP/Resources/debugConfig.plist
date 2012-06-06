@@ -103,7 +103,7 @@
 		"logOn"		= "console.setDisplayMessagesInClass(PARAM, true)";
 		"logOff"	= "console.setDisplayMessagesInClass(PARAM, false)";
 		
-		// ":spawn foo" -- create a ship with role "foo" near the station.
+		// ":spawn foo" -- create a ship with role "foo" near the player.
 		"spawn"		= "this.T = system.addShips(PARAM, 1, player.ship.position, 10000); if (this.T) this.T = this.T[0]; else consoleMessage('command-error', 'Could not spawn \"' + PARAM + '\".');";
 		
 		// ":qotd" -- quote of the day. Or the moment, anyway.
