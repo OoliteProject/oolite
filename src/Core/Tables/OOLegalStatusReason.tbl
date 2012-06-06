@@ -14,3 +14,4 @@ DIFF_STRING_ENTRY(kOOLegalStatusReasonPaidFine,			"paid fine")
 DIFF_STRING_ENTRY(kOOLegalStatusReasonEscapePod,			"escape pod")
 DIFF_STRING_ENTRY(kOOLegalStatusReasonAssistingPolice,			"assisting police")
 DIFF_STRING_ENTRY(kOOLegalStatusReasonPoliceAreClean,			"police are clean")
+
