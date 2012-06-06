@@ -279,7 +279,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		port_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"port_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	if (weapon_facings & WEAPON_FACING_STARBOARD)
 		starboard_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"starboard_weapon_type" defaultValue:@"WEAPON_NONE"]);
-	[self setWeaponDataFromType:forward_weapon_type];
 	
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
@@ -376,6 +375,32 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	[self clearSubEntities];
 	[self setUpSubEntities];
+
+// correctly initialise weaponRange, etc. (must be after subentity setup)
+	if (forward_weapon_type == WEAPON_NONE)
+	{
+		OOWeaponType 			weapon_type = WEAPON_NONE;
+		BOOL hasTurrets = NO;
+		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
+		ShipEntity		*se = nil;
+		while (weapon_type == WEAPON_NONE && (se = [subEnum nextObject]))
+		{
+			weapon_type = se->forward_weapon_type;
+			if (se->behaviour == BEHAVIOUR_TRACK_AS_TURRET)
+			{
+				hasTurrets = YES;
+			}
+		}
+		if (weapon_type == WEAPON_NONE && hasTurrets)
+		{ // safety for ships only equipped with turrets
+			weapon_type = WEAPON_PLASMA_CANNON;
+		}
+		[self setWeaponDataFromType:weapon_type];
+	}
+	else
+	{
+		[self setWeaponDataFromType:forward_weapon_type];
+	}
 	
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
