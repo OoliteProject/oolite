@@ -51,6 +51,10 @@ this.shipSpawned = function ()
 {
 	this._legalPoints = this.ship.bounty;
 	this.ship.bounty = 0;
+	if (this.ship.accuracy < 0)
+	{ // make sure it is always reasonably good AI
+		this.ship.accuracy = -this.ship.accuracy;
+	}
 	if (player.score > 512)
 	{
 		this.ship.awardEquipment("EQ_SHIELD_BOOSTER"); // Player is Dangerous

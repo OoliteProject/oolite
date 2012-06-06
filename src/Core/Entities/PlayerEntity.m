@@ -5367,7 +5367,7 @@ static GLfloat		sBaseMass = 0.0;
 	// the more common case of the player following other ships, the player tends to
 	// ram the back of the ships, or even jump on top of is when the ship jumped without initial speed, which is messy. 
 	// To avoid this problem, a small wormhole displacement is added.
-	if (0 && [[wormhole shipsInTransit] count] > 0) // **** Currently disabled. Activate for 1.76?
+	if ([[wormhole shipsInTransit] count] > 0) // **** Currently disabled. Activate for 1.76?
 	{
 		// player is not allone in his wormhole, synchronise player and wormhole position.
 		double	wh_arrival_time = ([PLAYER clockTimeAdjusted] - [wormhole arrivalTime]);
@@ -5375,13 +5375,15 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			// Player is following other ship 
 			whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], 1000.0f));
+			[wormhole setContainsPlayer:YES];
 		}
 		else
 		{
 			// Player is the leadship 
 			whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], -500.0f));
-			
-		}
+			// so it won't contain the player by the time they exit
+			[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
+		} 
 
 		Vector distance = vector_subtract(whpos, pos);
 		if (magnitude2(distance) < MIN_DISTANCE_TO_BUOY2 ) // within safety distance from the buoy?
@@ -5394,6 +5396,12 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		[wormhole setExitPosition: whpos];
 	}
+	else
+	{
+		// no-one else in the wormhole
+		[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
+	}
+
 	flightSpeed = [wormhole exitSpeed];
 	[wormhole release];
 	wormhole = nil;

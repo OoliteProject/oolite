@@ -935,7 +935,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	accuracy = new_accuracy;
 	pitch_tolerance = 0.01 * (85.0f + accuracy);
 // especially against small targets, less good pilots will waste some shots
-	GLfloat aim_tolerance_at_ten = 400.0 - (40.0f * accuracy);
+	GLfloat aim_tolerance_at_ten = 200.0 - (20.0f * accuracy);
 	aim_tolerance= sqrt(1-(aim_tolerance_at_ten * aim_tolerance_at_ten / 100000000.0));
 
 	if (accuracy >= COMBAT_AI_ISNT_AWFUL && missile_load_time < 0.1)
@@ -3465,7 +3465,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	desired_speed = max_available_speed;
-	
+	if (desired_speed > maxFlightSpeed)
+	{
+		ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+		double target_speed = [target speed];
+		if (desired_speed > target_speed * 3.0)
+		{
+			desired_speed = target_speed * 3.0; // don't overuse the injectors
+		}
+	}
+
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if (proximity_alert != NO_TARGET)
 	{
@@ -3474,7 +3483,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	frustration += delta_t;
-	if (frustration - floor(frustration) < 0.5 || range > 3000.0)
+	if (frustration - floor(frustration) < 0.33 || range > 3000.0)
 	{
 		[self trackPrimaryTarget:delta_t:YES];
 	}
@@ -3484,7 +3493,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self evasiveAction:delta_t];
 	}
 
-	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange || frustration > 5.0)
+	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange || (frustration > 10.0 && range > COMBAT_IN_RANGE_FACTOR * weaponRange))
 	{
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
@@ -3501,6 +3510,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 //	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	desired_speed = max_available_speed;
+	if (desired_speed > maxFlightSpeed)
+	{
+		ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+		double target_speed = [target speed];
+		if (desired_speed > target_speed)
+		{
+			desired_speed = target_speed; // don't overuse the injectors
+		}
+	}
 	
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if (proximity_alert != NO_TARGET)
@@ -3655,11 +3673,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				{
 					behaviour = BEHAVIOUR_ATTACK_SNIPER;
 				}
-				else if (accuracy >= COMBAT_AI_ISNT_AWFUL && aspect < 0)
+// generally not good tactics the next two
+				else if (accuracy < COMBAT_AI_ISNT_AWFUL && aspect < 0)
 				{
 					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
 				}
-				else if (accuracy >= COMBAT_AI_ISNT_AWFUL && canBurn && randf() < 0.33)
+				else if (accuracy < COMBAT_AI_ISNT_AWFUL)
 				{
 					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 				}
@@ -4290,7 +4309,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		frustration += delta_t / 4.0 ;
 	}
 
-	if (frustration > 10.0 - accuracy/2.0)
+	if (frustration > 10.0)
 	{
 		if (randf() < 0.3) {
 			desired_speed = maxFlightSpeed * (([self hasFuelInjection] && (fuel > MIN_FUEL)) ? [self afterburnerFactor] : 1);
@@ -4308,6 +4327,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self setEvasiveJink:z];
 
 		frustration /= 2.0;
+	}
+	if (desired_speed > maxFlightSpeed)
+	{
+		ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+		double target_speed = [target speed];
+		if (desired_speed > target_speed * 2.0)
+		{
+			desired_speed = target_speed * 2.0; // don't overuse the injectors
+		}
 	}
 
 	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || 
@@ -4339,6 +4367,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_running_defense:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
+	desired_speed = maxFlightSpeed; // not injectors
 	if (range > weaponRange || range > 0.8 * scannerRange || range == 0)
 	{
 		jink = kZeroVector;
@@ -6336,26 +6365,26 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		flightRoll = stick_roll;
 	}
 
-	if (flightPitch < stick_pitch - rate1)
+	if (flightPitch < stick_pitch - rate2)
 	{
-		flightPitch = flightPitch + rate1;
+		flightPitch = flightPitch + rate2;
 	}
-	else if (flightPitch > stick_pitch + rate1)
+	else if (flightPitch > stick_pitch + rate2)
 	{
-		flightPitch = flightPitch - rate1;
+		flightPitch = flightPitch - rate2;
 	}
 	else
 	{
 		flightPitch = stick_pitch;
 	}
 
-	if (flightYaw < stick_yaw - rate1)
+	if (flightYaw < stick_yaw - rate3)
 	{
-		flightYaw = flightYaw + rate1;
+		flightYaw = flightYaw + rate3;
 	}
-	else if (flightYaw > stick_yaw + rate1)
+	else if (flightYaw > stick_yaw + rate3)
 	{
-		flightYaw = flightYaw - rate1;
+		flightYaw = flightYaw - rate3;
 	}
 	else
 	{

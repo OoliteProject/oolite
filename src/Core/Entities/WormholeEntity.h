@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 
 #define WORMHOLE_EXPIRES_TIMEINTERVAL	900.0
 #define WORMHOLE_SHRINK_RATE			4000.0
+#define WORMHOLE_LEADER_SPEED_FACTOR 0.25
 
 @class ShipEntity, Universe;
 
@@ -62,11 +63,12 @@ typedef enum
 	double			witch_mass;
 	double			shrink_factor;	// used during nova mission
 // not used yet
-//	double      exit_speed; // exit speed of ships in this wormhole
+	double      exit_speed; // exit speed of ships in this wormhole
 	
 	WORMHOLE_SCANINFO	scan_info;
 	BOOL			hasExitPosition;
 	BOOL			_misjump;
+  BOOL      containsPlayer;
 }
 
 - (WormholeEntity*) initWithDict:(NSDictionary*)dict;
@@ -85,12 +87,15 @@ typedef enum
 - (BOOL) withMisjump;
 
 - (double) exitSpeed;	// exit speed from this wormhole
+- (void) setExitSpeed:(double) speed;	// set exit speed from this wormhole
+
 - (double) expiryTime;	// Time at which the wormholes entrance closes
 - (double) arrivalTime;	// Time at which the wormholes exit opens
 - (double) estimatedArrivalTime;	// Time when wormhole should open (different from arrival_time for misjump wormholes)
 - (double) travelTime;	// Time needed for a ship to traverse the wormhole
 - (double) scanTime;	// Time when wormhole was scanned
 - (void) setScannedAt:(double)time;
+- (void) setContainsPlayer:(BOOL)val; // mark the wormhole as waiting for player exit
 
 - (BOOL) isScanned;		// True if the wormhole has been scanned by the player
 - (WORMHOLE_SCANINFO) scanInfo; // Stage of scanning
