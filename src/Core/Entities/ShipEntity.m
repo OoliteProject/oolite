@@ -3572,12 +3572,22 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 // if forward weapon is actually on a subent
 	if (forward_weapon_real_type == WEAPON_NONE)
 	{
+		BOOL hasTurrets = NO;
 		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
 		ShipEntity		*se = nil;
 		while (forward_weapon_real_type == WEAPON_NONE && (se = [subEnum nextObject]))
 		{
 			forward_weapon_real_type = se->forward_weapon_type;
 			forward_weapon_real_temp = se->forward_weapon_temp;
+			if (se->behaviour == BEHAVIOUR_TRACK_AS_TURRET)
+			{
+				hasTurrets = YES;
+			}
+		}
+		if (forward_weapon_real_type == WEAPON_NONE && hasTurrets)
+		{ // safety for ships only equipped with turrets
+			forward_weapon_real_type = WEAPON_PLASMA_CANNON;
+			forward_weapon_real_temp = COMBAT_AI_WEAPON_TEMP_USABLE * 0.9;
 		}
 	}
 
@@ -3603,18 +3613,31 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		
 		ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+		double aspect = [self approachAspectToPrimaryTarget];
 
 		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
 		{ // no usable weapons! Either not fitted or overheated
-			// good pilots use behaviour_evasive_action instead
-			if (accuracy >= COMBAT_AI_IS_SMART && randf() < 0.75)
+			
+			// if unarmed
+			if (forward_weapon_real_type == WEAPON_NONE && aft_weapon_type == WEAPON_NONE && port_weapon_type == WEAPON_NONE && starboard_weapon_type == WEAPON_NONE)
 			{
-				behaviour = BEHAVIOUR_EVASIVE_ACTION;
-			}
-			else 
-			{
-				
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+			}
+			else if (aspect > 0)
+			{
+				if (accuracy >= COMBAT_AI_IS_SMART && randf() < 0.75)
+				{
+					behaviour = BEHAVIOUR_EVASIVE_ACTION;
+				}
+				else 
+				{
+				
+					behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+				}
+			} 
+			else // if target is running away, stay on target
+			{
+					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 			}
 		}
 // if our current target isn't targeting us, and we have some idea of how to fight, and our weapons are running hot, and we're fairly nearby
@@ -3666,7 +3689,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			else if (forward_weapon_ready)
 			{
 				jink = kZeroVector; // almost all behaviours
-				double aspect = [self approachAspectToPrimaryTarget];
 
 				// TODO: good pilots use behaviour_attack_sniper sometimes
 				if (getWeaponRangeFromType(forward_weapon_real_type) > getWeaponRangeFromType(WEAPON_PULSE_LASER) && range > getWeaponRangeFromType(WEAPON_PULSE_LASER))
@@ -4284,7 +4306,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL)
 	{
-		behaviour = BEHAVIOUR_ATTACK_TARGET;
+		double aspect = [self approachAspectToPrimaryTarget];
+		if (aspect < 0 || aft_weapon_type != WEAPON_NONE || port_weapon_type != WEAPON_NONE || starboard_weapon_type != WEAPON_NONE)
+		{
+			behaviour = BEHAVIOUR_ATTACK_TARGET;
+		}
+		// don't do this if the target is fleeing and the front laser is
+		// the only weapon
 	}
 }
 
@@ -8971,12 +8999,24 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
 		ShipEntity		*se = nil;
 		OOWeaponType 			weapon_type = WEAPON_NONE;
+		BOOL hasTurrets = NO;
 		while (weapon_type == WEAPON_NONE && (se = [subEnum nextObject]))
 		{
 			weapon_type = se->forward_weapon_type;
 			weapon_temp = se->forward_weapon_temp;
+			if (se->behaviour == BEHAVIOUR_TRACK_AS_TURRET)
+			{
+				hasTurrets = YES;
+			}
 		}
-		[self setWeaponDataFromType:weapon_type];
+		if (weapon_type == WEAPON_NONE && hasTurrets)
+		{ // no forward weapon but has turrets, so set up range calculations accordingly
+			[self setWeaponDataFromType:WEAPON_PLASMA_CANNON];
+		}
+		else
+		{
+			[self setWeaponDataFromType:weapon_type];
+		}
 	}
 	return result;
 }
