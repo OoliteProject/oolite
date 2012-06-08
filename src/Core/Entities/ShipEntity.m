@@ -4960,7 +4960,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	for (i = 0; i < [[turret_owner getDefenseTargets] count]; i++)
 	{
-		Entity *my_target = [[turret_owner getDefenseTargets] objectAtIndex:i];
+		Entity *my_target = [turret_owner getDefenseTarget:i];
 		if (my_target == nil || [my_target scanClass] == CLASS_NO_DRAW || ![my_target isShip] || [(ShipEntity *)my_target isCloaked] || [my_target energy] <= 0.0)
 		{
 			[turret_owner removeDefenseTarget:i--];
@@ -8892,6 +8892,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (Entity*) getDefenseTarget:(int)index
+{
+	return [UNIVERSE entityForUniversalID:[[defenseTargets objectAtIndex:index] intValue]];
+}
+
+
 - (BOOL) addDefenseTarget:(OOUniversalID)target
 {
 	Entity *dtarget = [UNIVERSE entityForUniversalID:target];
@@ -8899,11 +8905,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		return NO;
 	}
-	if (dtarget == nil || [defenseTargets containsObject:dtarget])
+	if (dtarget == nil || [defenseTargets containsObject:[NSNumber numberWithInt:target]])
 	{
 		return NO;
 	}
-	[defenseTargets addObject:dtarget];
+	[defenseTargets addObject:[NSNumber numberWithInt:target]];
 	return YES;
 }
 
@@ -8911,7 +8917,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) isDefenseTarget:(OOUniversalID)target
 {
 	Entity *dtarget = [UNIVERSE entityForUniversalID:target];
-	if (dtarget == nil || ![defenseTargets containsObject:dtarget])
+	if (dtarget == nil || ![defenseTargets containsObject:[NSNumber numberWithInt:target]])
 	{
 		return NO;
 	}
@@ -8946,7 +8952,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) removeDefenseTargetByID:(OOUniversalID)target
 {
-	unsigned index = [defenseTargets indexOfObject:[UNIVERSE entityForUniversalID:target]];
+	unsigned index = [defenseTargets indexOfObject:[NSNumber numberWithInt:target]];
 	[self removeDefenseTarget:index];
 }
 
@@ -9377,7 +9383,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	unsigned i;
 	for (i = 0; i < [defenseTargets count]; i++)
 	{
-		Entity *my_target = [defenseTargets objectAtIndex:i];
+		Entity *my_target = [self getDefenseTarget:i];
 		if (my_target == nil || [my_target scanClass] == CLASS_NO_DRAW || ![my_target isShip] || [(ShipEntity *)my_target isCloaked] || [my_target energy] <= 0.0)
 		{
 			[self removeDefenseTarget:i--];

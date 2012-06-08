@@ -446,10 +446,21 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			break;
 		
 		case kShip_defenseTargets:
-			result = [NSArray arrayWithArray:[entity getDefenseTargets]];
+		{
+			NSArray *dtargets = [entity getDefenseTargets];
+			NSMutableArray* targets = [NSMutableArray arrayWithCapacity:[dtargets count]];
+			for (int i=0;i<[dtargets count];i++)
+			{
+				Entity *dtarget = [entity getDefenseTarget:i];
+				if (dtarget != nil)
+				{
+					[targets addObject:dtarget];
+				}
+			}
+			result = [NSArray arrayWithArray:targets];
 			if ([result count] == 0)  result = nil;
 			break;
-
+		}
 		case kShip_escorts:
 			result = [[entity escortGroup] memberArrayExcludingLeader];
 			if ([result count] == 0)  result = nil;

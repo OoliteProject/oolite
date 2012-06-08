@@ -728,6 +728,7 @@ _lightsActive: 1;
 
 // defense target handling
 - (NSMutableArray*) getDefenseTargets;
+- (Entity*) getDefenseTarget:(int)index;
 - (BOOL) addDefenseTarget:(OOUniversalID)target;
 - (BOOL) isDefenseTarget:(OOUniversalID)target;
 - (void) removeDefenseTarget:(unsigned)index;
