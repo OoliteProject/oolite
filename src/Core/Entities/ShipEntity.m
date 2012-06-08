@@ -5000,7 +5000,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 // can't fire on primary target; track secondary targets instead
 	unsigned i;
 	
-	for (i = 0; i < [[turret_owner getDefenseTargets] count]; i++)
+	for (i = 0; i < [turret_owner->defenseTargets count]; i++)
 	{
 		Entity *my_target = [turret_owner getDefenseTarget:i];
 		if (my_target == nil || [my_target scanClass] == CLASS_NO_DRAW || ![my_target isShip] || [(ShipEntity *)my_target isCloaked] || [my_target energy] <= 0.0)

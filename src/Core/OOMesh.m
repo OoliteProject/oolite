@@ -2088,6 +2088,7 @@ static void Scribble(void *bytes, size_t size)
 
 - (void *) allocateBytesWithSize:(size_t)size count:(OOUInteger)count key:(NSString *)key
 {
+	if (count == 0) { count=1; }
 	size *= count;
 	void *bytes = malloc(size);
 	if (bytes != NULL)
