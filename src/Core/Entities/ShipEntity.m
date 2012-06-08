@@ -483,6 +483,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	likely_cargo = [shipDict oo_unsignedIntForKey:@"likely_cargo"];
 	noRocks = [shipDict oo_fuzzyBooleanForKey:@"no_boulders"];
 	
+	commodity_amount = 0;
 	NSString *cargoString = [shipDict oo_stringForKey:@"cargo_carried"];
 	if (cargoString != nil)
 	{
@@ -519,15 +520,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	cargoString = [shipDict oo_stringForKey:@"cargo_type"];
 	if (cargoString)
 	{
-		cargo_type = StringToCargoType(cargoString);
-		
 		if (cargo != nil) [cargo autorelease];
 		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
-		if (cargo_type == CARGO_SCRIPTED_ITEM)
-		{
-			commodity_amount = 1; // value > 0 is needed to be recognised as cargo by scripts;
-			commodity_type = COMMODITY_UNDEFINED;
-		}
+		
+		[self setUpCargoType:cargoString];
 	}
 	
 	hasScoopMessage = [shipDict oo_boolForKey:@"has_scoop_message" defaultValue:YES];
@@ -836,6 +832,52 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	[subentity release];
 	
 	return YES;
+}
+
+
+- (void) setUpCargoType:(NSString *) cargoString
+{
+	cargo_type = StringToCargoType(cargoString);
+	
+	switch (cargo_type)
+	{
+		case CARGO_SLAVES:
+			commodity_amount = 1;
+			commodity_type = [UNIVERSE commodityForName:@"Slaves"];
+			cargo_type = CARGO_RANDOM; // not realy random, but it tells that cargo is selected.
+			break;
+			
+		case CARGO_ALLOY:
+			commodity_amount = 1;
+			commodity_type = [UNIVERSE commodityForName:@"Alloys"];
+			cargo_type = CARGO_RANDOM;
+			break;
+			
+		case CARGO_MINERALS:
+			commodity_amount = 1;
+			commodity_type = [UNIVERSE commodityForName:@"Minerals"];
+			cargo_type = CARGO_RANDOM;
+			break;
+			
+		case CARGO_THARGOID:
+			commodity_amount = 1;
+			commodity_type = [UNIVERSE commodityForName:@"Alien Items"];
+			cargo_type = CARGO_RANDOM;
+			break;
+			
+		case CARGO_SCRIPTED_ITEM:
+			commodity_amount = 1; // value > 0 is needed to be recognised as cargo by scripts;
+			commodity_type = COMMODITY_UNDEFINED; // will be defined elsewhere when needed.
+			break;
+			
+		case CARGO_RANDOM:
+			// Could already be set by the cargo_carried key. If not, ensure at least one.
+			if (commodity_amount == 0) commodity_amount = 1;
+			break;
+
+		default:
+			break;
+	}
 }
 
 
@@ -10369,7 +10411,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return;
 	}
 	
-	[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other];	// fixed: shipScoopedOther() event now fires for all scoop events.
+	[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other];	// fixed: shipScoopedOther() event fires for all scoop events.
 	
 	switch ([other cargoType])
 	{
@@ -10378,33 +10420,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			co_amount = [other commodityAmount];
 			break;
 		
-		case CARGO_SLAVES:
-			co_amount = 1;
-			co_type = [UNIVERSE commodityForName:@"Slaves"];
-			break;
-		
-		case CARGO_ALLOY:
-			co_amount = 1;
-			co_type = [UNIVERSE commodityForName:@"Alloys"];
-			break;
-		
-		case CARGO_MINERALS:
-			co_amount = 1;
-			co_type = [UNIVERSE commodityForName:@"Minerals"];
-			break;
-		
-		case CARGO_THARGOID:
-			co_amount = 1;
-			co_type = [UNIVERSE commodityForName:@"Alien Items"];
-			break;
-		
 		case CARGO_SCRIPTED_ITEM:
 			{
 				//scripting
 				PlayerEntity *player = PLAYER;
 				[player setScriptTarget:self];
 				[other doScriptEvent:OOJSID("shipWasScooped") withArgument:self];
-				// [self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other]; // fixed: already fired for all scoop events!
 				
 				if ([other commodityType] != COMMODITY_UNDEFINED)
 				{

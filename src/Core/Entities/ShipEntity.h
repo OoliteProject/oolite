@@ -788,6 +788,7 @@ _lightsActive: 1;
 
 - (int) legalStatus;
 
+- (void) setUpCargoType:(NSString *) cargoString;
 - (void) setCommodity:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;
 - (void) setCommodityForPod:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;
 - (OOCommodityType) commodityType;

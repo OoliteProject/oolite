@@ -449,7 +449,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		{
 			NSArray *dtargets = [entity getDefenseTargets];
 			NSMutableArray* targets = [NSMutableArray arrayWithCapacity:[dtargets count]];
-			for (int i=0;i<[dtargets count];i++)
+			for (unsigned i=0;i<[dtargets count];i++)
 			{
 				Entity *dtarget = [entity getDefenseTarget:i];
 				if (dtarget != nil)
