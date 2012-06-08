@@ -2184,6 +2184,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self behaviour_attack_break_off_target: delta_t];
 				break;
 
+			case BEHAVIOUR_ATTACK_SLOW_DOGFIGHT :
+				[self behaviour_attack_slow_dogfight: delta_t];
+				break;
+
 			case BEHAVIOUR_RUNNING_DEFENSE :
 				[self behaviour_running_defense: delta_t];
 				break;
@@ -2258,7 +2262,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				// Do nothing
 				break;
 		}
-		
+
 		// manage energy
 		if (energy < maxEnergy)
 		{
@@ -3490,9 +3494,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	desired_speed = max_available_speed;
+	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+
 	if (desired_speed > maxFlightSpeed)
 	{
-		ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 		double target_speed = [target speed];
 		if (desired_speed > target_speed * 3.0)
 		{
@@ -3508,7 +3513,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	frustration += delta_t;
-	if (frustration - floor(frustration) < 0.33 || range > 3000.0)
+	if (frustration > 15.0 && accuracy >= COMBAT_AI_DOGFIGHTER && !canBurn)
+	{
+		desired_speed = maxFlightSpeed / 2.0;
+	}
+	double aspect = [self approachAspectToPrimaryTarget];
+	if (range > 3000.0 || [target primaryTargetID] != universalID || frustration - floor(frustration) > fmin(1.6/max_flight_roll,aspect))
 	{
 		[self trackPrimaryTarget:delta_t:YES];
 	}
@@ -3518,15 +3528,104 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self evasiveAction:delta_t];
 	}
 
-	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange || (frustration > 10.0 && range > COMBAT_IN_RANGE_FACTOR * weaponRange))
+	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange)
 	{
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
+	else if (aspect < -0.75 && accuracy >= COMBAT_AI_DOGFIGHTER)
+	{
+		behaviour = BEHAVIOUR_ATTACK_SLOW_DOGFIGHT;
+	}
+	else if (frustration > 10.0 && [self approachAspectToPrimaryTarget] < 0.85 && forward_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY)
+	{
+		frustration = 0.0;
+		if (accuracy >= COMBAT_AI_DOGFIGHTER)
+		{
+			behaviour = BEHAVIOUR_ATTACK_SLOW_DOGFIGHT;
+		}
+		else
+		{
+			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+		}
 	}
 
 	flightYaw = 0.0;
 	[self applyAttitudeChanges:delta_t];
 	[self applyThrust:delta_t];
 }
+
+
+- (void) behaviour_attack_slow_dogfight:(double) delta_t
+{
+	double  range = [self rangeToPrimaryTarget];
+	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+	if (proximity_alert != NO_TARGET && proximity_alert != primaryTarget)
+	{
+		[self avoidCollision];
+		return;
+	} 
+	double aspect = [self approachAspectToPrimaryTarget];
+	if (range < 2.5*(collision_radius+target->collision_radius) && proximity_alert == primaryTarget && aspect > 0) {
+		desired_speed = maxFlightSpeed;
+		[self avoidCollision];
+		return;
+	}
+	if (aspect < -0.5 && range > COMBAT_IN_RANGE_FACTOR * weaponRange * 2.0)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
+	else if (aspect < -0.5)
+	{
+// mostly behind target - try to stay there and keep up
+		desired_speed = fmin(maxFlightSpeed * 0.5,[target speed]*0.5);		
+	}
+	else if (aspect < 0.3)
+	{
+// to side of target - slow right down
+		desired_speed = maxFlightSpeed * 0.1;
+	}
+	else
+	{
+// coming to front of target - accelerate for a quick getaway
+		desired_speed = maxFlightSpeed * fmin(aspect*2.5,1.0);
+	}
+	if (aspect > 0.85)
+	{
+		behaviour = BEHAVIOUR_ATTACK_BREAK_OFF_TARGET;
+	}
+	if (aspect > 0.0)
+	{
+		frustration += delta_t;
+	}
+	else
+	{
+		frustration -= delta_t;
+	}
+	if (frustration > 10.0)
+	{
+		desired_speed /= 2.0;
+	}
+	else if (frustration < 0.0)
+		frustration = 0.0;
+	
+	[self trackPrimaryTarget:delta_t:NO];
+	
+	int missile_chance = 0;
+	int rhs = 3.2 / delta_t;
+	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
+
+	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
+	if (missiles > missile_chance * hurt_factor)
+	{
+		[self fireMissile];
+	}
+	if (cloakAutomatic) [self activateCloakingDevice];
+	[self fireMainWeapon:range];
+	[self applyAttitudeChanges:delta_t];
+	[self applyThrust:delta_t];
+
+}
+
 
 - (void) behaviour_evasive_action:(double) delta_t
 {
@@ -3555,6 +3654,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self evasiveAction:delta_t];
 
 	frustration += delta_t;
+	
 	if (frustration > 0.5)
 	{
 		if (behaviour == BEHAVIOUR_FLEE_EVASIVE_ACTION)
@@ -3702,7 +3802,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					[self setEvasiveJink:(range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch)];
 				}
 				// good pilots use behaviour_attack_break_off_target instead
-				if (accuracy >= COMBAT_AI_IS_SMART)
+				if (accuracy >= COMBAT_AI_FLEES_BETTER)
 				{
 					behaviour = BEHAVIOUR_ATTACK_BREAK_OFF_TARGET;
 				}
@@ -4277,15 +4377,46 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	double	back_off_range = weaponRange * COMBAT_OUT_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	double target_speed = [target speed];
+	double aspect = [self approachAspectToPrimaryTarget];
+
 	if (range <= slow_down_range)
 	{
 		if (range < back_off_range)
 		{
-			desired_speed = fmax(target_speed * 1.05, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
+			if (accuracy < COMBAT_AI_IS_SMART || [target primaryTargetID] == universalID || aspect > 0.8)
+			{
+				if (accuracy >= COMBAT_AI_FLEES_BETTER && aspect > 0.8)
+				{
+					desired_speed = fmax(target_speed * 1.05, 0.8 * maxFlightSpeed);
+					// stay at high speed if might be taking return fire
+				}
+				else
+				{
+					desired_speed = fmax(target_speed * 1.05, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
+				}
+			}
+			else
+			{ // smart, and not being shot at right now - slow down to attack
+				desired_speed = fmax(0.1 * target_speed, 0.1 * maxFlightSpeed);
+			}
 		}
 		else
 		{
-			desired_speed = fmax(target_speed * 1.25, maxFlightSpeed);
+			if (accuracy < COMBAT_AI_IS_SMART || [target primaryTargetID] == universalID || range > weaponRange)
+			{
+				desired_speed = fmax(target_speed * 1.25, maxFlightSpeed);
+			}
+			else
+			{ // smart, and not being shot at right now - slow down to attack
+				if (aspect > -0.25)
+				{
+					desired_speed = fmax(0.5 * target_speed, 0.5 * maxFlightSpeed);
+				}
+				else
+				{
+					desired_speed = fmax(1.05 * target_speed, 0.5 * maxFlightSpeed);
+				}
+			}
 		}
 	}
 	else
@@ -4296,6 +4427,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	double last_success_factor = success_factor;
 	success_factor = [self trackPrimaryTarget:delta_t:NO];	// do the actual piloting
+
 	if ((success_factor > 0.999)||(success_factor > last_success_factor))
 	{
 		frustration -= delta_t;
@@ -4483,6 +4615,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FLEE_TARGET"];
 			frustration = 0.0;
+		}
+	}
+
+	if (accuracy >= COMBAT_AI_FLEES_BETTER)
+	{
+		double aspect = [self approachAspectToPrimaryTarget];
+		if (range < 1000.0 || aspect > 0.9999)
+		{
+			frustration = 0.0;
+			behaviour = BEHAVIOUR_FLEE_EVASIVE_ACTION;
 		}
 	}
 	
@@ -5781,6 +5923,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		case BEHAVIOUR_RUNNING_DEFENSE:
 		case BEHAVIOUR_FLEE_TARGET:
 		case BEHAVIOUR_ATTACK_BREAK_OFF_TARGET:
+		case BEHAVIOUR_ATTACK_SLOW_DOGFIGHT:
 		case BEHAVIOUR_EVASIVE_ACTION:
 		case BEHAVIOUR_FLEE_EVASIVE_ACTION:
 		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX:
@@ -6965,15 +7108,15 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	
 	ShipScriptEvent(context, self, "shipTakingDamage", amountVal, entityVal, typeVal);
 	
-	if ([self hasHostileTarget] && accuracy >= COMBAT_AI_IS_SMART && randf()*10.0 < accuracy && behaviour != BEHAVIOUR_EVASIVE_ACTION && behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION)
+	if ([self hasHostileTarget] && accuracy >= COMBAT_AI_IS_SMART && (randf()*10.0 < accuracy || desired_speed < 0.5 * maxFlightSpeed) && behaviour != BEHAVIOUR_EVASIVE_ACTION && behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION)
 	{
 		if (behaviour == BEHAVIOUR_FLEE_TARGET)
 		{
-// jink should be sufficient most of the time
+// jink should be sufficient to avoid being hit most of the time
 // if not, this will make a sharp turn and then select a new jink position
 			behaviour = BEHAVIOUR_FLEE_EVASIVE_ACTION;
 		}
-		else 
+		else
 		{
 			behaviour = BEHAVIOUR_EVASIVE_ACTION;
 		}
@@ -8078,7 +8221,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (accuracy >= COMBAT_AI_IS_SMART)
 		{
 			// make sure we don't accidentally have near-zero jink
-			if (jink.x < 0) 
+			if (jink.x < 0.0) 
 			{
 				jink.x -= 128.0;
 			}
@@ -8094,11 +8237,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			{
 				jink.y += 128.0;
 			}
-			if (accuracy >= COMBAT_AI_FLEES_BETTER_2)
-			{
-				jink.x *= 5.0;
-				jink.y *= 5.0;
-			}
 		}
 	}
 }
@@ -8109,10 +8247,19 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	stick_roll = flightRoll;	//desired roll and pitch
 	stick_pitch = flightPitch;
 
-	if (stick_roll >= 0.0) {
-		stick_roll = max_flight_roll;
-	} else {
-		stick_roll = -max_flight_roll;
+	ShipEntity* target = [self primaryTarget];
+	double agreement = dot_product(v_right,target->v_right);
+	if (agreement > -0.3 && agreement < 0.3)
+	{
+		stick_roll = 0.0;
+	}
+	else
+	{
+		if (stick_roll >= 0.0) {
+			stick_roll = max_flight_roll;
+		} else {
+			stick_roll = -max_flight_roll;
+		}
 	}
 	if (stick_pitch >= 0.0) {
 		stick_pitch = max_flight_pitch;
@@ -8140,6 +8287,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	GLfloat  d_forward, d_up, d_right;
 	
 	Vector  relPos = vector_subtract(target->position, position);
+	if (accuracy >= COMBAT_AI_TRACKS_CLOSER)
+	{ // aim slightly ahead of target
+		Vector leading = [target velocity]; 
+		relPos.x += (delta_t * leading.x * (accuracy / 10.0f)); 
+		relPos.y += (delta_t * leading.y * (accuracy / 10.0f)); 
+		relPos.z += (delta_t * leading.z * (accuracy / 10.0f));
+	}
+
 	double	range2 = magnitude2(relPos);
 
 	if (range2 > SCANNER_MAX_RANGE2)
@@ -8182,6 +8337,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			if (range > 2000.0)
 			{
 				dist_adjust_factor = range / 2000.0;
+				if (accuracy >= COMBAT_AI_FLEES_BETTER_2)
+				{
+					dist_adjust_factor *= 3;
+				}
+			}
+			if (jink.x == 0.0)
+			{ // test for zero jink and correct
+				[self setEvasiveJink:400.0];
 			}
 		}
 
@@ -8191,13 +8354,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			relPos.y += (jink.x * vx.y + jink.y * vy.y + jink.z * vz.y) * dist_adjust_factor;
 			relPos.z += (jink.x * vx.z + jink.y * vy.z + jink.z * vz.z);
 		}
+
 	}
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
-// FIXME: should multiply x and y by distance to target
-// otherwise the relative jink angle becomes tiny at medium range
-// and they're an easy target for sniping
 
 	double	targetRadius = (1.5 - pitch_tolerance) * target->collision_radius;
 
@@ -8218,16 +8379,20 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double reverse = (retreat)? -1.0: 1.0;
 
 	double min_d = 0.004;
-	if (accuracy >= COMBAT_AI_TRACKS_CLOSER)
-	{
-		min_d = 0.002;
-	}
 	int max_factor = 8;
 	double r_max_factor = 0.125;
-	if (accuracy >= COMBAT_AI_TRACKS_CLOSER && max_flight_pitch > 1.0)
-	{
-		max_factor = floor(max_flight_pitch/0.125);
-		r_max_factor = 1.0/max_factor;
+	if (!retreat && accuracy >= COMBAT_AI_TRACKS_CLOSER && magnitude(relPos) > COMBAT_OUT_RANGE_FACTOR * weaponRange)
+	{ 
+// greater precision at long range (unhelpful at short range with high
+// relative angular speed)
+		if (max_flight_pitch > 1.0)
+		{
+			max_factor = floor(max_flight_pitch/0.125);
+			r_max_factor = 1.0/max_factor;
+		}
+		min_d = 0.001;
+		max_factor *= 2;
+		r_max_factor /= 2.0;
 	}
 
 	d_right		=   dot_product(relPos, v_right);

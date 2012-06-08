@@ -123,10 +123,16 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 #define COMBAT_AI_WEAPON_TEMP_READY  0.25f * NPC_MAX_WEAPON_TEMP
 #define COMBAT_AI_WEAPON_TEMP_USABLE  WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP
 #define COMBAT_AI_ISNT_AWFUL  0.0f
+// removes BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX/TWELVE (unless thargoid)
 #define COMBAT_AI_IS_SMART  5.0f
+// adds BEHAVIOUR_(FLEE_)EVASIVE_ACTION
 #define COMBAT_AI_FLEES_BETTER 6.0f
+// adds BEHAVIOUR_ATTACK_BREAK_OFF_TARGET
+#define COMBAT_AI_DOGFIGHTER 6.5f
+// adds BEHAVIOUR_ATTACK_SLOW_DOGFIGHT
 #define COMBAT_AI_TRACKS_CLOSER 7.5f
 #define COMBAT_AI_USES_SNIPING 8.5f
+// adds BEHAVIOUR_ATTACK_SNIPER
 #define COMBAT_AI_FLEES_BETTER_2 9.0f
 
 
@@ -620,6 +626,7 @@ _lightsActive: 1;
 - (void) behaviour_track_target:(double) delta_t;
 - (void) behaviour_intercept_target:(double) delta_t;
 - (void) behaviour_attack_target:(double) delta_t;
+- (void) behaviour_attack_slow_dogfight:(double) delta_t;
 - (void) behaviour_evasive_action:(double) delta_t;
 - (void) behaviour_attack_break_off_target:(double) delta_t;
 - (void) behaviour_fly_to_target_six:(double) delta_t;
