@@ -20,7 +20,7 @@
 	"constrictor_hunt_debrief" = "---INCOMING MESSAGE\n\nCongratulations Commander!\n\nThere will always be a place for you in Her Imperial Majesty’s Space Navy.\n\nAnd maybe sooner than you think…\n\n---MESSAGE ENDS.";
 	"constrictor_hunt_thief_captured" = "You captured the thief who stole the constrictor! Her Imperial Navy awards you a bonus of 1000 credits!\n";
 	"constrictor_hunt_thief_captured2" = "You captured an empty escape pod. The thief who stole the constrictor is still on board and you left the ship intact! Her Imperial Navy gives you a second chance!\n";
-	"constrictor_hunt_pilot_captured" = "You captured a pilot from a constrictor! %I police awards you a bonus of 250 credits!\n";
+	"constrictor_hunt_pilot_captured" = "You captured a pilot from a Constrictor! %I police awards you a bonus of 250 credits!\n";
 	
 	
 	// Thargoid Plans mission (oolite-thargoid-plans-mission.js)
