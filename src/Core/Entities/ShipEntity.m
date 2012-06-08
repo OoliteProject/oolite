@@ -4618,16 +4618,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 
-	if (accuracy >= COMBAT_AI_FLEES_BETTER)
-	{
-		double aspect = [self approachAspectToPrimaryTarget];
-		if (range < 1000.0 || aspect > 0.9999)
-		{
-			frustration = 0.0;
-			behaviour = BEHAVIOUR_FLEE_EVASIVE_ACTION;
-		}
-	}
-	
 	[self trackPrimaryTarget:delta_t:YES];
 
 	int missile_chance = 0;
