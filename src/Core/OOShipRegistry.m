@@ -1253,7 +1253,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	Vector					position = kZeroVector;
 	NSArray					*colors = nil;
 	id						colorDesc = nil;
-	float					size, frequency, phase;
+	float					size, frequency, phase, brightfraction;
 	BOOL					initiallyOn;
 	
 #define kDefaultFlasherColor @"redColor"
@@ -1306,19 +1306,26 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		OOLogWARN(@"shipData.load.warning.flasher.badSize", @"skipping flasher of invalid size %g for ship %@.", size, shipKey);
 		return nil;
 	}
+
+	brightfraction = [declaration oo_floatForKey:@"bright_fraction" defaultValue:0.5];
+	if (brightfraction < 0.0 || brightfraction > 1.0)
+	{
+		OOLogWARN(@"shipData.load.warning.flasher.badFraction", @"skipping flasher of invalid bright fraction %g for ship %@.", brightfraction, shipKey);
+		return nil;
+	}
 	
 	frequency = [declaration oo_floatForKey:@"frequency" defaultValue:2.0];
 	phase = [declaration oo_floatForKey:@"phase" defaultValue:0.0];
-	
 	initiallyOn = [declaration oo_boolForKey:@"initially_on" defaultValue:YES];
 	
-	result = [NSMutableDictionary dictionaryWithCapacity:7];
+	result = [NSMutableDictionary dictionaryWithCapacity:8];
 	[result setObject:@"flasher" forKey:@"type"];
 	[result setObject:colors forKey:@"colors"];
 	[result oo_setVector:position forKey:@"position"];
 	[result setObject:[NSNumber numberWithFloat:size] forKey:@"size"];
 	[result setObject:[NSNumber numberWithFloat:frequency] forKey:@"frequency"];
 	if (phase != 0)  [result setObject:[NSNumber numberWithFloat:phase] forKey:@"phase"];
+	[result setObject:[NSNumber numberWithFloat:brightfraction] forKey:@"bright_fraction"];
 	[result setObject:[NSNumber numberWithBool:initiallyOn] forKey:@"initially_on"];
 	
 	return [[result copy] autorelease];

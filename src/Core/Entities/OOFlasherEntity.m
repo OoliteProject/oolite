@@ -55,7 +55,8 @@ MA 02110-1301, USA.
 	{
 		_frequency = [dictionary oo_floatForKey:@"frequency" defaultValue:1.0f] * 2.0f;
 		_phase = [dictionary oo_floatForKey:@"phase" defaultValue:0.0f];
-		
+		_brightfraction = [dictionary oo_floatForKey:@"bright_fraction" defaultValue:0.5f];
+
 		[self setUpColors:[dictionary oo_arrayForKey:@"colors"]];
 		[self getCurrentColorComponents];
 		
@@ -126,8 +127,20 @@ MA 02110-1301, USA.
 		}
 		else
 			if (_justSwitched) _justSwitched = NO;
+
+		float threshold = cos(_brightfraction * M_PI);
 		
-		_colorComponents[3] = 0.5 * wave + 0.5;
+		float brightness = _brightfraction;
+		if (wave > threshold)
+		{
+			brightness = _brightfraction + (((1-_brightfraction)/(1-threshold))*(wave-threshold));
+		}
+		else if (wave < threshold)
+		{
+			brightness = _brightfraction + ((_brightfraction/(threshold+1))*(wave-threshold));
+		}
+
+		_colorComponents[3] = brightness;
 		
 		_wave = wave;
 	}
