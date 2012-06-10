@@ -484,6 +484,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	noRocks = [shipDict oo_fuzzyBooleanForKey:@"no_boulders"];
 	
 	commodity_amount = 0;
+	commodity_type = COMMODITY_UNDEFINED;
 	NSString *cargoString = [shipDict oo_stringForKey:@"cargo_carried"];
 	if (cargoString != nil)
 	{
