@@ -1066,15 +1066,6 @@
 				weapon_facing = "FORWARD";
 			}
 		);
-		
-		materials =
-		{
-			"cobra3_redux.png" =
-			{
-				// TEMP: swizzle player cobra's colours so it's obvious synthesizer is active.
-				diffuse_map = { name = "cobra3_redux.png"; extract_channel = "bgr"; };
-			};
-		};
 	};
 	cobramk1 =
 	{
