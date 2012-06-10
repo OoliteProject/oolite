@@ -991,7 +991,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 - (void) setAccuracy:(GLfloat) new_accuracy
 {
-	if (new_accuracy < -5.0f)
+	if (new_accuracy < 0.0f && scanClass == CLASS_MISSILE)
+	{
+		new_accuracy = 0.0;
+	}
+	else if (new_accuracy < -5.0f)
 	{
 		new_accuracy = -5.0;
 	}

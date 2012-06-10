@@ -860,6 +860,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 			
 		case kShip_accuracy:
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[entity setAccuracy:fValue];
