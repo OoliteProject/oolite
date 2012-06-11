@@ -8292,6 +8292,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	stick_pitch = flightPitch;
 
 	ShipEntity* target = [self primaryTarget];
+	if (!target)   // leave now!
+	{
+		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
+		return;
+	}
+
 	double agreement = dot_product(v_right,target->v_right);
 	if (agreement > -0.3 && agreement < 0.3)
 	{
