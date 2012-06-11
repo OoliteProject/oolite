@@ -873,6 +873,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (NSComparisonResult) compareBeaconCodeWith:(ShipEntity *)other;
 
+- (GLfloat)weaponRecoveryTime;
 - (GLfloat)laserHeatLevel;
 - (GLfloat)hullHeatLevel;
 - (GLfloat)entityPersonality;

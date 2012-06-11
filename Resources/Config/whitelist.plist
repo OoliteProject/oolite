@@ -384,6 +384,7 @@
 		"maxFlightSpeed",
 		"speedFactor",
 		"damage",
+		"weaponRecoveryTime",
 		"laserHeatLevel",
 		"hullHeatLevel",
 		"entityPersonality",

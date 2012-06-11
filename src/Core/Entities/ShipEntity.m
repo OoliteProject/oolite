@@ -7830,9 +7830,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+// for shaders, equivalent to 1.76's NPC laserHeatLevel
+- (GLfloat) weaponRecoveryTime
+{
+	float result = (weapon_recharge_rate - [self shotTime]) / weapon_recharge_rate;
+	return OOClamp_0_1_f(result);
+}
+
+
 - (GLfloat)laserHeatLevel
 {
-//	float result = (weapon_recharge_rate - [self shotTime]) / weapon_recharge_rate;
 	float result = weapon_temp / NPC_MAX_WEAPON_TEMP;
 	return OOClamp_0_1_f(result);
 }
