@@ -963,6 +963,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) setIsMissileFlag:(BOOL)newValue;
 - (OOTimeDelta) missileLoadTime;
 - (void) setMissileLoadTime:(OOTimeDelta)newMissileLoadTime;
+- (void) noticeECM;
 - (BOOL) fireECM;
 - (BOOL) cascadeIfAppropriateWithDamageAmount:(double)amount cascadeOwner:(Entity *)owner;
 - (BOOL) activateCloakingDevice;

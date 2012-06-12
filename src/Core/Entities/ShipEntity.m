@@ -9902,6 +9902,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+// reactions to ECM that are not dependent on current AI state here
+- (void) noticeECM
+{
+	if (accuracy >= COMBAT_AI_ISNT_AWFUL && missiles > 0 && [[missile_list[0] identifier] isEqualTo:@"EQ_MISSILE"])
+	{
+// if we're being ECMd, and our missiles appear to be standard, and we
+// have some combat sense, wait a bit before firing the next one!
+		missile_launch_time = [UNIVERSE getTime] + fmax(2.0,missile_load_time); // set minimum launchtime for the next missile.
+	}
+}
+
+
 // Exposed to AI
 - (BOOL) fireECM
 {
