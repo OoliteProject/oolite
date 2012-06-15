@@ -5352,7 +5352,7 @@ static GLfloat		sBaseMass = 0.0;
 	Vector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 	Quaternion	q1;
 	Vector		whpos, exitpos;
-
+	
 	quaternion_set_random(&q1);
 	if (abs((int)d1) < MIN_DISTANCE_TO_BUOY)	
 	{
@@ -5367,43 +5367,46 @@ static GLfloat		sBaseMass = 0.0;
 	// the more common case of the player following other ships, the player tends to
 	// ram the back of the ships, or even jump on top of is when the ship jumped without initial speed, which is messy. 
 	// To avoid this problem, a small wormhole displacement is added.
-	if ([[wormhole shipsInTransit] count] > 0) // **** Currently disabled. Activate for 1.76?
+	if (wormhole)	// will be nil for galactic jump
 	{
-		// player is not allone in his wormhole, synchronise player and wormhole position.
-		double	wh_arrival_time = ([PLAYER clockTimeAdjusted] - [wormhole arrivalTime]);
-		if (wh_arrival_time > 0)
+		if ([[wormhole shipsInTransit] count] > 0)
 		{
-			// Player is following other ship 
-			whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], 1000.0f));
-			[wormhole setContainsPlayer:YES];
+			// player is not allone in his wormhole, synchronise player and wormhole position.
+			double	wh_arrival_time = ([PLAYER clockTimeAdjusted] - [wormhole arrivalTime]);
+			if (wh_arrival_time > 0)
+			{
+				// Player is following other ship 
+				whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], 1000.0f));
+				[wormhole setContainsPlayer:YES];
+			}
+			else
+			{
+				// Player is the leadship 
+				whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], -500.0f));
+				// so it won't contain the player by the time they exit
+				[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
+			} 
+
+			Vector distance = vector_subtract(whpos, pos);
+			if (magnitude2(distance) < MIN_DISTANCE_TO_BUOY2 ) // within safety distance from the buoy?
+			{
+				// the wormhole is to close to the buoy. Move both player and wormhole away from it in the x-y plane.
+			distance.z = 0;
+				distance = vector_multiply_scalar(vector_normal(distance), MIN_DISTANCE_TO_BUOY);
+				whpos = vector_add(whpos, distance);
+				position = vector_add(position, distance);
+			}
+			[wormhole setExitPosition: whpos];
 		}
 		else
 		{
-			// Player is the leadship 
-			whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], -500.0f));
-			// so it won't contain the player by the time they exit
+			// no-one else in the wormhole
 			[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
-		} 
-
-		Vector distance = vector_subtract(whpos, pos);
-		if (magnitude2(distance) < MIN_DISTANCE_TO_BUOY2 ) // within safety distance from the buoy?
-		{
-			// the wormhole is to close to the buoy. Move both player and wormhole away from it in the x-y plane.
-			distance.z = 0;
-			distance = vector_multiply_scalar(vector_normal(distance), MIN_DISTANCE_TO_BUOY);
-			whpos = vector_add(whpos, distance);
-			position = vector_add(position, distance);
 		}
-		[wormhole setExitPosition: whpos];
-	}
-	else
-	{
-		// no-one else in the wormhole
-		[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
 	}
 
-	flightSpeed = [wormhole exitSpeed];
-	[wormhole release];
+	flightSpeed = wormhole ? [wormhole exitSpeed] : fmin(maxFlightSpeed,50.0f);
+	[wormhole release];	// OK even if nil
 	wormhole = nil;
 
 	flightRoll = 0.0f;
