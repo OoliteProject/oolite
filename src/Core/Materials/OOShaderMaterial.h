@@ -139,7 +139,8 @@ typedef uint16_t OOUniformConvertOptions;
 */
 - (void)setUniform:(NSString *)uniformName intValue:(int)value;
 - (void)setUniform:(NSString *)uniformName floatValue:(float)value;
-- (void)setUniform:(NSString *)uniformName vectorValue:(Vector)value;
+- (void)setUniform:(NSString *)uniformName vectorValue:(GLfloat[static 4])value;
+- (void)setUniform:(NSString *)uniformName vectorObjectValue:(id)value;	// Array of four numbers, or something that can be OOVectorFromObject()ed.
 - (void)setUniform:(NSString *)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix;
 
 /*	Add constant uniforms. Same format as uniforms dictionary of configuration

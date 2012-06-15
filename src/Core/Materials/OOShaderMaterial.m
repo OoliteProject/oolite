@@ -391,7 +391,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 }
 
 
-- (void)setUniform:(NSString *)uniformName vectorValue:(Vector)value
+- (void)setUniform:(NSString *)uniformName vectorValue:(GLfloat[static 4])value
 {
 	OOShaderUniform			*uniform = nil;
 	
@@ -400,6 +400,44 @@ static NSString *MacrosToString(NSDictionary *macros);
 	uniform = [[OOShaderUniform alloc] initWithName:uniformName
 									  shaderProgram:shaderProgram
 										vectorValue:value];
+	if (uniform != nil)
+	{
+		OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
+		[uniforms setObject:uniform forKey:uniformName];
+		[uniform release];
+	}
+	else
+	{
+		OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
+		[uniforms removeObjectForKey:uniformName];
+	}
+}
+
+
+- (void)setUniform:(NSString *)uniformName vectorObjectValue:(id)value
+{
+	if (uniformName == nil) return;
+	
+	GLfloat vecArray[4];
+	if ([value isKindOfClass:[NSArray class]] && [value count] == 4)
+	{
+		for (unsigned i = 0; i < 4; i++)
+		{
+			vecArray[i] = OOFloatFromObject([value objectAtIndex:i], 0.0f);
+		}
+	}
+	else
+	{
+		Vector vec = OOVectorFromObject(value, kZeroVector);
+		vecArray[0] = vec.x;
+		vecArray[1] = vec.y;
+		vecArray[2] = vec.z;
+		vecArray[3] = 1.0;
+	}
+	
+	OOShaderUniform *uniform = [[OOShaderUniform alloc] initWithName:uniformName
+													   shaderProgram:shaderProgram
+														 vectorValue:vecArray];
 	if (uniform != nil)
 	{
 		OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
@@ -569,7 +607,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		else if ([type isEqualToString:@"vector"])
 		{
-			[self setUniform:name vectorValue:OOVectorFromObject(value, kZeroVector)];
+			[self setUniform:name vectorObjectValue:value];
 			gotValue = YES;
 		}
 		else if ([type isEqualToString:@"quaternion"])

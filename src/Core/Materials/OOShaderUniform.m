@@ -82,16 +82,13 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 }
 
 
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram vectorValue:(Vector)constValue
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram vectorValue:(GLfloat [static 4])constValue
 {
 	self = [self initWithName:uniformName shaderProgram:shaderProgram];
 	if (self != nil)
 	{
 		type = kOOShaderUniformTypeVector;
-		value.constVector[0] = constValue.x;
-		value.constVector[1] = constValue.y;
-		value.constVector[2] = constValue.z;
-		value.constVector[3] = 1.0f;
+		memcpy(value.constVector, constValue, sizeof value.constVector);
 	}
 	
 	return self;
