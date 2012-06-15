@@ -5391,7 +5391,7 @@ static GLfloat		sBaseMass = 0.0;
 			if (magnitude2(distance) < MIN_DISTANCE_TO_BUOY2 ) // within safety distance from the buoy?
 			{
 				// the wormhole is to close to the buoy. Move both player and wormhole away from it in the x-y plane.
-			distance.z = 0;
+				distance.z = 0;
 				distance = vector_multiply_scalar(vector_normal(distance), MIN_DISTANCE_TO_BUOY);
 				whpos = vector_add(whpos, distance);
 				position = vector_add(position, distance);
