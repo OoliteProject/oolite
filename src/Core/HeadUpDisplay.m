@@ -238,13 +238,28 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:YES];
 	
 	last_transmitter = NO_TARGET;
-	
-	_crosshairOverrides = [[hudinfo oo_dictionaryForKey:@"crosshairs"] retain];
+
+	[crosshairDefinition release];
+
+	NSString *crossfile = [[hudinfo oo_stringForKey:@"crosshair_file"] retain];
+	if (crossfile == nil)
+	{
+		_crosshairOverrides = [[hudinfo oo_dictionaryForKey:@"crosshairs"] retain];
+		crosshairDefinition = nil;
+	}
+	else
+	{
+		[self setCrosshairDefinition:crossfile];
+	}
+	[crossfile release];
+
 	id crosshairColor = [hudinfo oo_objectForKey:@"crosshair_color" defaultValue:@"greenColor"];
 	_crosshairColor = [[OOColor colorWithDescription:crosshairColor] retain];
 	_crosshairScale = [hudinfo oo_floatForKey:@"crosshair_scale" defaultValue:32.0f];
 	_crosshairWidth = [hudinfo oo_floatForKey:@"crosshair_width" defaultValue:1.5f];
+
 	
+
 	return self;
 }
 
@@ -257,6 +272,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	DESTROY(deferredHudName);
 	DESTROY(propertiesReticleTargetSensitive);
 	DESTROY(_crosshairOverrides);
+	DESTROY(crosshairDefinition);
 	
 	[super dealloc];
 }
@@ -649,6 +665,36 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	}
 	
 	[_crosshairs render];
+}
+
+
+- (NSString *) crosshairDefinition
+{
+	return crosshairDefinition;
+}
+
+
+- (BOOL) setCrosshairDefinition:(NSString *)newDefinition
+{
+	// force crosshair redraw
+	[_crosshairs release];
+	_crosshairs = nil;
+
+	[_crosshairOverrides release];
+	_crosshairOverrides = [[ResourceManager dictionaryFromFilesNamed:newDefinition
+																												 inFolder:@"Config"
+																												 andMerge:YES] retain];
+	if (_crosshairOverrides == nil || [_crosshairOverrides count] == 0)
+	{ // invalid file
+		[_crosshairOverrides release];
+		_crosshairOverrides = [[ResourceManager dictionaryFromFilesNamed:@"crosshairs.plist"
+																													 inFolder:@"Config"
+																													 andMerge:YES] retain];
+		crosshairDefinition = [[NSString stringWithString:@"crosshairs.plist"] retain];
+		return NO;
+	}
+	crosshairDefinition = [[NSString stringWithString:newDefinition] retain];
+	return YES;
 }
 
 

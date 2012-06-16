@@ -88,6 +88,7 @@ enum
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
+	kPlayerShip_crosshairs,					// custom plist file defining crosshairs
 	kPlayerShip_cursorCoordinates,				// cursor coordinates (unscaled), Vector3D, read only
 	kPlayerShip_cursorCoordinatesInLY,			// cursor coordinates (in LY), Vector3D, read only
 	kPlayerShip_docked,							// docked, boolean, read-only
@@ -124,6 +125,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READONLY_CB },
 	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READONLY_CB },
 	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
+	{ "crosshairs",				kPlayerShip_crosshairs,				OOJS_PROP_READWRITE_CB },
 	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				OOJS_PROP_READONLY_CB },
 	{ "cursorCoordinatesInLY",			kPlayerShip_cursorCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "docked",							kPlayerShip_docked,							OOJS_PROP_READONLY_CB },
@@ -337,6 +339,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_hud:
 			result = [[player hud] hudName];
 			break;
+
+		case kPlayerShip_crosshairs:
+			result = [[player hud] crosshairDefinition];
+			break;
 			
 		case kPlayerShip_hudHidden:
 			*value = OOJSValueFromBOOL([[player hud] isHidden]);
@@ -468,6 +474,26 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			}
 			break;
 			
+		case kPlayerShip_crosshairs:
+			sValue = OOStringFromJSValue(context, *value);
+			if (sValue == nil)
+			{
+				// reset HUD back to its plist settings
+				NSString *hud = [[[player hud] hudName] retain];
+				[player switchHudTo:hud];
+				[hud release];
+				return YES;
+			}
+			else
+			{
+				if (![[player hud] setCrosshairDefinition:sValue])
+				{
+					OOLog(@"script.javaScript.warning",@"Crosshair definition file %@ not found or invalid",sValue);
+				}
+				return YES;
+			}
+			break;
+
 		case kPlayerShip_hudHidden:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{

@@ -237,6 +237,8 @@ MA 02110-1301, USA.
 	OOColor				*_crosshairColor;
 	GLfloat				_crosshairScale;
 	GLfloat				_crosshairWidth;
+	NSString			*crosshairDefinition;
+
 }
 
 - (id) initWithDictionary:(NSDictionary *) hudinfo;
@@ -263,6 +265,8 @@ MA 02110-1301, USA.
 - (BOOL) isUpdating;
 - (void) setDeferredHudName:(NSString *)newDeferredHudName;
 - (NSString *) deferredHudName;
+- (NSString *) crosshairDefinition;
+- (BOOL) setCrosshairDefinition:(NSString *)newDefinition;
 
 - (void) addLegend:(NSDictionary *) info;
 - (void) addDial:(NSDictionary *) info;
