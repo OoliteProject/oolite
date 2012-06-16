@@ -78,6 +78,7 @@
 		1A0DA2EF0D71D280009B0970 /* OOJSSpecialFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */; };
 		1A11273B105994D000DF9D12 /* OOExhaustPlumeEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */; };
 		1A11273C105994D000DF9D12 /* OOExhaustPlumeEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A11273A105994D000DF9D12 /* OOExhaustPlumeEntity.m */; };
+		1A115ED5158CFB4D005842DA /* splash@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A115ED4158CFB4D005842DA /* splash@2x.png */; };
 		1A11C2B111CFC35000F3EE77 /* OOJSEngineTimeManagement.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A11C2AF11CFC35000F3EE77 /* OOJSEngineTimeManagement.h */; };
 		1A11C2B211CFC35000F3EE77 /* OOJSEngineTimeManagement.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A11C2B011CFC35000F3EE77 /* OOJSEngineTimeManagement.m */; };
 		1A11F84A0F35F60C001C886C /* OOJSShipGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A11F8480F35F60C001C886C /* OOJSShipGroup.m */; };
@@ -1309,6 +1310,7 @@
 		1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSpecialFunctions.m; sourceTree = "<group>"; };
 		1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOExhaustPlumeEntity.h; sourceTree = "<group>"; };
 		1A11273A105994D000DF9D12 /* OOExhaustPlumeEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOExhaustPlumeEntity.m; sourceTree = "<group>"; };
+		1A115ED4158CFB4D005842DA /* splash@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "splash@2x.png"; sourceTree = "<group>"; };
 		1A11C2AF11CFC35000F3EE77 /* OOJSEngineTimeManagement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSEngineTimeManagement.h; sourceTree = "<group>"; };
 		1A11C2B011CFC35000F3EE77 /* OOJSEngineTimeManagement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSEngineTimeManagement.m; sourceTree = "<group>"; };
 		1A11F8480F35F60C001C886C /* OOJSShipGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSShipGroup.m; sourceTree = "<group>"; };
@@ -2116,6 +2118,7 @@
 				2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */,
 				1A23154E0B9C778400EF0852 /* solar.png */,
 				1A23154F0B9C778400EF0852 /* splash.png */,
+				1A115ED4158CFB4D005842DA /* splash@2x.png */,
 				1A2315510B9C778400EF0852 /* trumblebox.png */,
 			);
 			path = Images;
@@ -3658,6 +3661,7 @@
 				1AE8838012EF91E80075814F /* SparkleVerificationKey.pem in Resources */,
 				1A033FA313268821006F9DB7 /* OoliteReadMe.pdf in Resources */,
 				1A504D9114DC964A003E5363 /* Oolite.xib in Resources */,
+				1A115ED5158CFB4D005842DA /* splash@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3966,6 +3970,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1ABFEE2110507987005AA752 /* oolite-nonshared.xcconfig */;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
 				DEAD_CODE_STRIPPING = YES;
@@ -4018,6 +4023,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1ABFEE2110507987005AA752 /* oolite-nonshared.xcconfig */;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
@@ -4086,6 +4092,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1ABFEE2110507987005AA752 /* oolite-nonshared.xcconfig */;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
 				COPY_SCR_SHIM = 1;
