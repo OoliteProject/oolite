@@ -2798,6 +2798,13 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) applyAttitudeChanges:(double) delta_t
+{
+	[self applyRoll:flightRoll*delta_t andClimb:flightPitch*delta_t];
+	[self applyYaw:flightYaw*delta_t];
+}
+
+
 - (void) applyRoll:(GLfloat) roll1 andClimb:(GLfloat) climb1
 {
 	if (roll1 == 0.0 && climb1 == 0.0 && hasRotated == NO)
