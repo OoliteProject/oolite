@@ -447,9 +447,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_defenseTargets:
 		{
-			NSArray *dtargets = [entity getDefenseTargets];
-			NSMutableArray* targets = [NSMutableArray arrayWithCapacity:[dtargets count]];
-			for (unsigned i=0;i<[dtargets count];i++)
+			unsigned ndts = [entity numDefenseTargets];
+			NSMutableArray* targets = [NSMutableArray arrayWithCapacity:ndts];
+			for (unsigned i=0;i<ndts;i++)
 			{
 				Entity *dtarget = [entity getDefenseTarget:i];
 				if (dtarget != nil)
@@ -2339,7 +2339,7 @@ static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	[thisEnt addDefenseTarget:[target universalID]];
+	[thisEnt addDefenseTarget:target];
 
 	OOJS_RETURN_VOID;
 	

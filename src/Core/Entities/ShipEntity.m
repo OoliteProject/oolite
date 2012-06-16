@@ -5005,7 +5005,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 // can't fire on primary target; track secondary targets instead
 	unsigned i;
 	
-	for (i = 0; i < [turret_owner->defenseTargets count]; i++)
+	for (i = 0; i < [turret_owner numDefenseTargets]; i++)
 	{
 		Entity *my_target = [turret_owner getDefenseTarget:i];
 		if (my_target == nil || [my_target scanClass] == CLASS_NO_DRAW || ![my_target isShip] || [(ShipEntity *)my_target isCloaked] || [my_target energy] <= 0.0)
@@ -8060,11 +8060,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	id target = nil;
 	if (primaryTarget != NO_TARGET)
 	{
-		if ([self isDefenseTarget:primaryTarget]) 
-		{
-			[self removeDefenseTargetByID:primaryTarget];
-		}
 		ShipEntity* ship = [UNIVERSE entityForUniversalID:primaryTarget];
+		if ([self isDefenseTarget:ship]) 
+		{
+			[self removeDefenseTargetByID:ship];
+		}
 		target = (ship && ship->isShip) ? (id)ship : nil;
 		if (primaryAggressor == primaryTarget) primaryAggressor = NO_TARGET;
 		primaryTarget = NO_TARGET;
@@ -8092,9 +8092,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[self doScriptEvent:OOJSID("shipTargetDestroyed") withArgument:target];
 		[shipAI message:@"TARGET_DESTROYED"];
 	}
-	if ([self isDefenseTarget:[target universalID]]) 
+	if ([self isDefenseTarget:target]) 
 	{
-		[self removeDefenseTargetByID:[target universalID]];
+		[self removeDefenseTargetByID:target];
 		[shipAI message:@"DEFENSE_TARGET_DESTROYED"];
 	}
 }
@@ -8945,43 +8945,49 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (NSMutableArray*) getDefenseTargets
+- (unsigned) numDefenseTargets
 {
 //	return [defenseTargets weakRefUnderlyingObject];
-	return defenseTargets;
+	return [defenseTargets count];
 }
 
 
 - (Entity*) getDefenseTarget:(int)index
 {
-	return [UNIVERSE entityForUniversalID:[[defenseTargets objectAtIndex:index] intValue]];
+	return [[defenseTargets objectAtIndex:index] weakRefUnderlyingObject];
 }
 
 
-- (BOOL) addDefenseTarget:(OOUniversalID)target
+- (BOOL) addDefenseTarget:(Entity*)target
 {
-	Entity *dtarget = [UNIVERSE entityForUniversalID:target];
 	if ([defenseTargets count] >= MAX_TARGETS)
 	{
 		return NO;
 	}
-	if (dtarget == nil || [defenseTargets containsObject:[NSNumber numberWithInt:target]])
+	if (target == nil || [self isDefenseTarget:target])
 	{
 		return NO;
 	}
-	[defenseTargets addObject:[NSNumber numberWithInt:target]];
+	OOLog(@"defense.debug",@"Added defense target");
+	[defenseTargets addObject:[target weakRetain]];
 	return YES;
 }
 
 
-- (BOOL) isDefenseTarget:(OOUniversalID)target
+- (BOOL) isDefenseTarget:(Entity*)target
 {
-	Entity *dtarget = [UNIVERSE entityForUniversalID:target];
-	if (dtarget == nil || ![defenseTargets containsObject:[NSNumber numberWithInt:target]])
+	if (target == nil)
 	{
 		return NO;
 	}
-	return YES;
+	for (unsigned i=0; i<[defenseTargets count]; i++)
+	{
+		if ([[defenseTargets objectAtIndex:i] weakRefUnderlyingObject] == target)
+		{
+			return YES;
+		}
+	}
+	return NO;
 }
 
 
@@ -9004,16 +9010,22 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			[shipAI message:@"DEFENSE_TARGET_LOST"];	// no major urgency, we have more
 		}
-
+		OOLog(@"defense.debug",@"Removed defense target");
 		[defenseTargets removeObjectAtIndex:index];
 	}
 }
 
 
-- (void) removeDefenseTargetByID:(OOUniversalID)target
+- (void) removeDefenseTargetByID:(Entity*)target
 {
-	unsigned index = [defenseTargets indexOfObject:[NSNumber numberWithInt:target]];
-	[self removeDefenseTarget:index];
+	for (unsigned i=0; i<[defenseTargets count]; i++)
+	{
+		if ([[defenseTargets objectAtIndex:i] weakRefUnderlyingObject] == target)
+		{
+			[self removeDefenseTarget:i];
+			return;
+		}
+	}
 }
 
 

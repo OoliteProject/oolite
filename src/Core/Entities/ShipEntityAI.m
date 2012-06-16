@@ -302,7 +302,7 @@
 		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
 		if ((d2 < found_d2) 
-			&& ([thing isThargoid] || (([thing primaryTarget] == self) && [thing hasHostileTarget]) || [thing isDefenseTarget:[self universalID]])
+			&& ([thing isThargoid] || (([thing primaryTarget] == self) && [thing hasHostileTarget]) || [thing isDefenseTarget:self])
 			&& ![thing isCloaked])
 		{
 			found_target = [thing universalID];
@@ -487,7 +487,7 @@
 	if ([self hasHostileTarget] && randf() < 0.75)	// if I'm attacking, ignore 75% of new aggressor's attacks
 	{
 				// but add them as a secondary target anyway
-		[self addDefenseTarget:primaryAggressor];
+		[self addDefenseTarget:(ShipEntity*)primeAggressor];
 		return;
 	}
 	
@@ -514,12 +514,12 @@
 	Entity *primeAggressor = [UNIVERSE entityForUniversalID:primaryAggressor];
 	if (!primeAggressor)
 		return;
-	if ([self isDefenseTarget:primaryAggressor])
+	if ([self isDefenseTarget:primeAggressor])
 		return;
 	
-	if ([primeAggressor isShip] && ![(ShipEntity *)primeAggressor isFriendlyTo:self])
+	if ([primeAggressor isShip] && ![(ShipEntity*)primeAggressor isFriendlyTo:self])
 	{
-		[self addDefenseTarget:primaryAggressor];
+		[self addDefenseTarget:primeAggressor];
 	}
 }
 
@@ -713,7 +713,7 @@
 	{
 		if ([fTarget isShip] && ![(ShipEntity *)fTarget isFriendlyTo:self])
 		{
-			[self addDefenseTarget:found_target];
+			[self addDefenseTarget:fTarget];
 		}
 	}
 }
@@ -848,7 +848,7 @@
 	if (missile == nil)  return;
 	
 	[self addTarget:missile];
-	[self addDefenseTarget:[missile universalID]];
+	[self addDefenseTarget:missile];
 	
 	// Notify own ship script that we are being attacked.	
 	ShipEntity *hunter = [missile owner];
@@ -1147,9 +1147,9 @@
 		ShipEntity *ship = scanned_ships[i];
 		if (([ship primaryTarget] == self && [ship hasHostileTarget]) || [ship isMine] || ([ship isThargoid] != [self isThargoid]))
 		{
-			if (![self isDefenseTarget:[ship universalID]])
+			if (![self isDefenseTarget:ship])
 			{
-				[self addDefenseTarget:[ship universalID]];
+				[self addDefenseTarget:ship];
 				return;
 			}
 		}
@@ -1462,9 +1462,9 @@
 		{
 			[other removeTarget:self];
 		}
-		if ([other isDefenseTarget:[self universalID]])
+		if ([other isDefenseTarget:self])
 		{
-			[other removeDefenseTargetByID:[self universalID]];
+			[other removeDefenseTargetByID:self];
 		}
 	}
 	// now we're just a bunch of alien artefacts!
@@ -1486,7 +1486,7 @@
 
 - (void) fightOrFleeHostiles
 {
-	[self addDefenseTarget:found_target];
+	[self addDefenseTarget:[UNIVERSE entityForUniversalID:found_target]];
 	
 	if ([self hasEscorts])
 	{

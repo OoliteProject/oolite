@@ -727,12 +727,12 @@ _lightsActive: 1;
 - (BOOL) isHostileTo:(Entity *)entity;
 
 // defense target handling
-- (NSMutableArray*) getDefenseTargets;
+- (unsigned) numDefenseTargets;
 - (Entity*) getDefenseTarget:(int)index;
-- (BOOL) addDefenseTarget:(OOUniversalID)target;
-- (BOOL) isDefenseTarget:(OOUniversalID)target;
+- (BOOL) addDefenseTarget:(Entity*)target;
+- (BOOL) isDefenseTarget:(Entity*)target;
 - (void) removeDefenseTarget:(unsigned)index;
-- (void) removeDefenseTargetByID:(OOUniversalID)target;
+- (void) removeDefenseTargetByID:(Entity*)target;
 - (void) clearDefenseTargets;
 
 
