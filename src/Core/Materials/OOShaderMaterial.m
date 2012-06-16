@@ -391,7 +391,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 }
 
 
-- (void)setUniform:(NSString *)uniformName vectorValue:(GLfloat[static 4])value
+- (void)setUniform:(NSString *)uniformName vectorValue:(GLfloat[4])value
 {
 	OOShaderUniform			*uniform = nil;
 	

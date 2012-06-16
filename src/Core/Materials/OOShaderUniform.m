@@ -82,7 +82,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 }
 
 
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram vectorValue:(GLfloat [static 4])constValue
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram vectorValue:(GLfloat[4])constValue
 {
 	self = [self initWithName:uniformName shaderProgram:shaderProgram];
 	if (self != nil)
