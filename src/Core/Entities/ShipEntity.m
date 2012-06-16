@@ -8968,7 +8968,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		return NO;
 	}
-	OOLog(@"defense.debug",@"Added defense target");
 	[defenseTargets addObject:[target weakRetain]];
 	return YES;
 }
@@ -9010,7 +9009,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			[shipAI message:@"DEFENSE_TARGET_LOST"];	// no major urgency, we have more
 		}
-		OOLog(@"defense.debug",@"Removed defense target");
 		[defenseTargets removeObjectAtIndex:index];
 	}
 }
@@ -12104,6 +12102,22 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
+// exposed for shaders; fake alert level
+// since NPCs don't have torus drive, they're never at condition green
+- (OOAlertCondition) alertCondition
+{
+	if ([self status] == STATUS_DOCKED) 
+	{
+		return ALERT_CONDITION_DOCKED;
+	}
+	if ([self hasHostileTarget] || energy < maxEnergy / 4)
+	{
+		return ALERT_CONDITION_RED;
+	}
+	return ALERT_CONDITION_YELLOW;
+}
+
+
 // Exposed to AI and scripts.
 - (void) doNothing
 {
@@ -12229,3 +12243,4 @@ GLfloat getWeaponRangeFromType(OOWeaponType weapon_type)
 // never reached
 	return 32000.0;
 }
+

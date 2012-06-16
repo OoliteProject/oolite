@@ -404,7 +404,10 @@
 		"missileCapacity",		// Was dialMaxMissiles
 		
 		// New in 1.74
-		"missileCount"
+		"missileCount",
+
+    // previously player-only, NPC too in 1.77
+		"alertCondition"
 	);
 	
 	shader_player_ship_binding_methods =
@@ -418,7 +421,6 @@
 		"dialFuelScoopStatus",
 		"compassMode",
 		"dialIdentEngaged",
-		"alertCondition",
 		"trumbleCount"
 	);
 	
