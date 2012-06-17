@@ -64,7 +64,11 @@ MA 02110-1301, USA.
 	#endif
 	
 	#if defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-		#define OOLITE_SNOW_LEOPARD	1
+		#define OOLITE_MAC_OS_X_10_6	1
+	#endif
+	
+	#if defined MAC_OS_X_VERSION_10_7 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+		#define OOLITE_MAC_OS_X_10_7	1
 	#endif
 #endif
 
@@ -73,8 +77,12 @@ MA 02110-1301, USA.
 	#define OOLITE_GNUSTEP_1_20		0
 #endif
 
-#ifndef OOLITE_SNOW_LEOPARD
-	#define OOLITE_SNOW_LEOPARD		0
+#ifndef OOLITE_MAC_OS_X_10_6
+	#define OOLITE_MAC_OS_X_10_6	0
+#endif
+
+#ifndef OOLITE_MAC_OS_X_10_7
+	#define OOLITE_MAC_OS_X_10_7	0
 #endif
 
 

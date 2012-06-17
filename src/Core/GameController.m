@@ -651,7 +651,9 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		CGLGetParameter(cglContext, kCGLCPSwapInterval, &oldSwapInterval);
 		newSwapInterval = 1;
 		CGLSetParameter(cglContext, kCGLCPSwapInterval, &newSwapInterval);
-
+		
+		fullscreen = YES;
+		
 		// Tell the scene the dimensions of the area it's going to render to, so it can set up an appropriate viewport and viewing transformation.
 		[gameView initialiseGLWithSize:NSMakeSize(width,height)];
 		
@@ -659,7 +661,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		// The shift here is from a model in which we passively receive events handed to us by the AppKit to one in which we are actively driving event processing.
 		stayInFullScreenMode = YES;
 		
-		fullscreen = YES;
 		[gameView clearCommandF];	// Avoid immediately switching back to windowed mode.
 		[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"fullscreen"];
 		

@@ -54,10 +54,27 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 @end
 
 
-#if !OOLITE_SNOW_LEOPARD
+#if !OOLITE_MAC_OS_X_10_6
 @interface NSResponder (SnowLeopard)
 
 - (void) setAcceptsTouchEvents:(BOOL)value;
+
+@end
+#endif
+
+
+#if !OOLITE_MAC_OS_X_10_7
+@interface NSView (Lion)
+
+- (BOOL) wantsBestResolutionOpenGLSurface;
+- (void) setWantsBestResolutionOpenGLSurface:(BOOL)flag;
+
+- (NSPoint) convertPointToBacking:(NSPoint)aPoint;
+- (NSPoint) convertPointFromBacking:(NSPoint)aPoint;
+- (NSSize) convertSizeToBacking:(NSSize)aSize;
+- (NSSize) convertSizeFromBacking:(NSSize)aSize;
+- (NSRect) convertRectToBacking:(NSRect)aRect;
+- (NSRect) convertRectFromBacking:(NSRect)aRect;
 
 @end
 #endif
@@ -75,6 +92,12 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 #endif
 	
 	if (!(self = [super initWithFrame:frameRect]))  return nil;
+	
+	if ([self respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)])
+	{
+		// Enable high resolution on Retina displays.
+		[self setWantsBestResolutionOpenGLSurface:YES];
+	}
 	
 	// Pixel Format Attributes for the View-based (non-FullScreen) NSOpenGLContext
 	NSOpenGLPixelFormatAttribute attrs[] =
@@ -111,7 +134,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	_pixelFormatAttributes = [[NSData alloc] initWithBytes:attrs length:sizeof attrs];
 	
 	// Create our non-FullScreen pixel format.
-	NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] autorelease];
+	NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] autorelease];
 	
 	self = [super initWithFrame:frameRect pixelFormat:pixelFormat];
 	
@@ -142,21 +165,25 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
-- (void) setStringInput: (enum StringInput) value
+- (void) setStringInput:(enum StringInput)value
 {
 	allowingStringInput = value;
 }
 
 
-- (void) allowStringInput: (BOOL) value
+- (void) allowStringInput:(BOOL)value
 {
 	if (value)
+	{
 		allowingStringInput = gvStringInputAlpha;
+	}
 	else
+	{
 		allowingStringInput = gvStringInputNo;
+	}
 }
 
--(enum StringInput) allowingStringInput
+- (enum StringInput) allowingStringInput
 {
 	return allowingStringInput;
 }
@@ -174,7 +201,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
-- (void) setTypedString:(NSString*) value
+- (void) setTypedString:(NSString *)value
 {
 	[typedString setString:value];
 }
@@ -204,7 +231,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
-- (GameController *)gameController
+- (GameController *) gameController
 {
 	return gameController;
 }
@@ -226,6 +253,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 {
 	if ((viewSize.width != [self frame].size.width)||(viewSize.height != [self frame].size.height)) // resized
 	{
+		OOLog(@"temp", @"Changing view size from %@ to %@.", NSStringFromSize(viewSize), NSStringFromSize([self frame].size));
 		m_glContextInitialized = NO;
 		viewSize = [self frame].size;
 	}
@@ -287,7 +315,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
-- (void) initialiseGLWithSize:(NSSize) v_size
+- (void) initialiseGLWithSize:(NSSize)v_size
 {
 	viewSize = v_size;
 	if (viewSize.width/viewSize.height > 4.0/3.0) {
@@ -300,8 +328,14 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		y_offset = 320.0 * viewSize.height/viewSize.width;
 	}
 	
-	[self openGLContext];
-	[[self gameController] setUpBasicOpenGLStateWithSize:viewSize];
+	if (![[self gameController] inFullScreenMode] && [self respondsToSelector:@selector(convertSizeToBacking:)])
+	{
+		// High resolution mode support.
+		v_size = [self convertSizeToBacking:v_size];
+	}
+	
+	[self openGLContext];	// Force lazy setup if needed.
+	[[self gameController] setUpBasicOpenGLStateWithSize:v_size];
 	[[self openGLContext] flushBuffer];
 	
 	m_glContextInitialized = YES;
