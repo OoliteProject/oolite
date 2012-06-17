@@ -2841,7 +2841,7 @@ static NSTimeInterval	time_last_frame;
 	double pitch_dampner = PITCH_DAMPING_FACTOR * delta_t;
 	double yaw_dampner = YAW_DAMPING_FACTOR * delta_t;
 	
-	double	flightArrowKeyPrecisionFactor = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"flight-arrow-key-precision-factor" defaultValue:0.75];
+	double	flightArrowKeyPrecisionFactor = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"flight-arrow-key-precision-factor" defaultValue:0.5];
 	BOOL	isCtrlDown = [gameView isCtrlDown];
 	
 	rolling = NO;
@@ -2852,14 +2852,14 @@ static NSTimeInterval	time_last_frame;
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll > 0.0)  flightRoll = 0.0;
-			[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor * roll_dampner : delta_t * roll_delta];
+			[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta: delta_t*roll_delta];
 			rolling = YES;
 		}
 		if ([gameView isDown:key_roll_right])
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll < 0.0)  flightRoll = 0.0;
-			[self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor * roll_dampner: delta_t*roll_delta];
+			[self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta: delta_t*roll_delta];
 			rolling = YES;
 		}
 	}
@@ -2902,14 +2902,14 @@ static NSTimeInterval	time_last_frame;
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch < 0.0)  flightPitch = 0.0;
-			[self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor * pitch_dampner : delta_t*pitch_delta];
+			[self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor*pitch_dampner*pitch_delta : delta_t*pitch_delta];
 			pitching = YES;
 		}
 		if ([gameView isDown:key_pitch_forward])
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch > 0.0)  flightPitch = 0.0;
-			[self decrease_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor * pitch_dampner : delta_t*pitch_delta];
+			[self decrease_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor*pitch_dampner*pitch_delta : delta_t*pitch_delta];
 			pitching = YES;
 		}
 	}
@@ -2954,14 +2954,14 @@ static NSTimeInterval	time_last_frame;
 			{
 				keyboardYawOverride=YES;
 				if (flightYaw < 0.0)  flightYaw = 0.0;
-				[self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor * yaw_dampner : delta_t*yaw_delta];
+				[self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
 				yawing = YES;
 			}
 			else if ([gameView isDown:key_yaw_right])
 			{
 				keyboardYawOverride=YES;
 				if (flightYaw > 0.0)  flightYaw = 0.0;
-				[self decrease_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor * yaw_dampner : delta_t*yaw_delta];
+				[self decrease_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
 				yawing = YES;
 			}
 		}
