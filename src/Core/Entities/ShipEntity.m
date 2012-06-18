@@ -11762,8 +11762,11 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		ShipEntity* ship = my_entities[i];
 		Vector delta = vector_between(position, ship->position);
 		GLfloat d2 = magnitude2(delta);
-		if ((k * [ship mass] > d2)&&(d2 < SCANNER_MAX_RANGE2))	// if you go off scanner from a blocker - it ceases to block
-			result = [ship universalID];
+		if (![ship isPlayer] || ![PLAYER isDocked])
+		{ // player doesn't block if docked
+			if ((k * [ship mass] > d2)&&(d2 < SCANNER_MAX_RANGE2))	// if you go off scanner from a blocker - it ceases to block
+				result = [ship universalID];
+		}
 	}
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release];	//		released

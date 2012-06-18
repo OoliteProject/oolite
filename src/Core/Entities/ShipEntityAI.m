@@ -2440,7 +2440,7 @@
 		else if ([targEnt isPlayer])
 			whole = [PLAYER wormhole];
 	}
-	
+
 	if (!whole)
 	{
 		// locate nearest wormhole

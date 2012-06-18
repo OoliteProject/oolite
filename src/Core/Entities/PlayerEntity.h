@@ -842,6 +842,8 @@ typedef enum
 - (NSArray *) scannedWormholes;
 
 - (WormholeEntity *) wormhole;
+- (void) setWormhole:(WormholeEntity *)newWormhole;
+- (void) addScannedWormhole:(WormholeEntity*)wormhole;
 
 @end
 

@@ -125,7 +125,6 @@ static GLfloat		sBaseMass = 0.0;
 - (void) updateTargeting;
 - (BOOL) isValidTarget:(Entity*)target;
 - (void) showGameOver;
-- (void) addScannedWormhole:(WormholeEntity*)wormhole;
 - (void) updateWormholes;
 
 // Shopping
@@ -502,8 +501,23 @@ static GLfloat		sBaseMass = 0.0;
 
 - (WormholeEntity *) wormhole
 {
-    return wormhole;
+	return wormhole;
 }
+
+
+- (void) setWormhole:(WormholeEntity*)newWormhole
+{
+	[wormhole release];
+	if (newWormhole != nil)
+	{
+		wormhole = [newWormhole retain];
+	}
+	else
+	{
+		wormhole = nil;
+	}
+}
+
 
 - (NSDictionary *) commanderDataDictionary
 {

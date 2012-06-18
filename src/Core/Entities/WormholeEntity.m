@@ -251,10 +251,18 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	[ship setStatus:STATUS_ENTERING_WITCHSPACE];
 	[ship doScriptEvent:OOJSID("shipWillEnterWormhole")];
 	[[ship getAI] message:@"ENTERED_WITCHSPACE"];
-	
+
 	[UNIVERSE removeEntity:ship];
 	[[ship getAI] clearStack];	// get rid of any preserved states
-	
+
+	if ([ship isStation])
+	{
+		if ([PLAYER dockedStation] && [PLAYER dockedStation] == (StationEntity*)ship) 
+		{ // the carrier has jumped while the player is docked
+			[UNIVERSE carryPlayerOn:(StationEntity*)ship inWormhole:self];
+		}
+	}		
+
 	return YES;
 }
 

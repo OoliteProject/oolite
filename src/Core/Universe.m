@@ -537,6 +537,35 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
+- (void) carryPlayerOn:(StationEntity*)carrier inWormhole:(WormholeEntity*)wormhole
+{
+		PlayerEntity	*player = PLAYER;
+		Random_Seed dest = [wormhole destination];
+
+		[player setWormhole:wormhole];
+		[player addScannedWormhole:wormhole];
+
+		ShipScriptEventNoCx(player, "shipWillEnterWitchspace", OOJSSTR("carried"));
+		
+		[self allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
+
+		[player addToAdjustTime:[wormhole travelTime]];
+// clear old entities
+		[self removeAllEntitiesExceptPlayer];
+
+		[player setSystem_seed:dest];
+		[self setSystemTo: dest];
+
+		[self setUpSpace];
+		// which will kick the ship out of the wormhole with the
+		// player still aboard
+		[player doScriptEvent:OOJSID("shipWillExitWitchspace")];
+		[player doScriptEvent:OOJSID("shipExitedWitchspace")];
+		[player setWormhole:nil];
+
+}
+
+
 - (void) setUpUniverseFromStation
 {
 	if (![self sun])
