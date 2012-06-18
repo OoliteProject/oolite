@@ -2841,8 +2841,11 @@ static NSTimeInterval	time_last_frame;
 	double pitch_dampner = PITCH_DAMPING_FACTOR * delta_t;
 	double yaw_dampner = YAW_DAMPING_FACTOR * delta_t;
 	
-	double	flightArrowKeyPrecisionFactor = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"flight-arrow-key-precision-factor" defaultValue:0.5];
 	BOOL	isCtrlDown = [gameView isCtrlDown];
+	
+	double	flightArrowKeyPrecisionFactor = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"flight-arrow-key-precision-factor" defaultValue:0.5];
+	if (flightArrowKeyPrecisionFactor < 0.05)  flightArrowKeyPrecisionFactor = 0.05;
+	if (flightArrowKeyPrecisionFactor > 1.0)  flightArrowKeyPrecisionFactor = 1.0; 
 	
 	rolling = NO;
 	// if we have yaw on the mouse x-axis, then allow using the keyboard roll keys
@@ -2852,14 +2855,14 @@ static NSTimeInterval	time_last_frame;
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll > 0.0)  flightRoll = 0.0;
-			[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta: delta_t*roll_delta];
+			[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
 			rolling = YES;
 		}
 		if ([gameView isDown:key_roll_right])
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll < 0.0)  flightRoll = 0.0;
-			[self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta: delta_t*roll_delta];
+			[self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
 			rolling = YES;
 		}
 	}
