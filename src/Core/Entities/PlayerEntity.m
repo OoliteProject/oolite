@@ -467,6 +467,13 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) setGalaxyCoordinates:(NSPoint)newPosition
+{
+	galaxy_coordinates.x = newPosition.x;
+	galaxy_coordinates.y = newPosition.y;
+}
+
+
 - (NSPoint) cursor_coordinates
 {
 	return cursor_coordinates;

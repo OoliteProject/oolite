@@ -571,6 +571,7 @@ typedef enum
 - (int) random_factor;
 - (Random_Seed) galaxy_seed;
 - (NSPoint) galaxy_coordinates;
+- (void) setGalaxyCoordinates:(NSPoint)newPosition;
 - (NSPoint) cursor_coordinates;
 
 - (Random_Seed) system_seed;

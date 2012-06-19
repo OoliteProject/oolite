@@ -344,6 +344,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (void) setUpUniverseFromWitchspace;
 - (void) setUpUniverseFromMisjump;
 - (void) setUpWitchspace;
+- (void) setUpWitchspaceBetweenSystem:(Random_Seed)s1 andSystem:(Random_Seed)s2;
 - (void) setUpSpace;
 - (void) setLighting;
 - (void) forceLightSwitch;

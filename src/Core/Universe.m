@@ -549,16 +549,34 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		
 		[self allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
 
+// misjump on wormhole sets correct travel time if needed
 		[player addToAdjustTime:[wormhole travelTime]];
 // clear old entities
 		[self removeAllEntitiesExceptPlayer];
 
-		[player setSystem_seed:dest];
-		[self setSystemTo: dest];
+		if (![wormhole withMisjump])
+		{
+			[player setSystem_seed:dest];
+			[self setSystemTo: dest];
+			
+			[self setUpSpace];
+		}
+		else
+		{
+			[player setGalaxyCoordinates:[wormhole destinationCoordinates]];
 
-		[self setUpSpace];
+			[self setUpWitchspaceBetweenSystem:[wormhole origin] andSystem:[wormhole destination]];
+	
+		}
 		// which will kick the ship out of the wormhole with the
 		// player still aboard
+
+		//reset atmospherics in case carrier was in atmosphere
+		[UNIVERSE setSkyColorRed:0.0f		// back to black
+											 green:0.0f
+												blue:0.0f
+											 alpha:0.0f];
+
 		[player doScriptEvent:OOJSID("shipWillExitWitchspace")];
 		[player doScriptEvent:OOJSID("shipExitedWitchspace")];
 		[player setWormhole:nil];
@@ -715,6 +733,15 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) setUpWitchspace
 {
+	PlayerEntity*		player = PLAYER;
+	Random_Seed		s1 = player->system_seed;
+	Random_Seed		s2 = player->target_system_seed;
+	[self setUpWitchspaceBetweenSystem:s1 andSystem:s2];
+}
+
+
+- (void) setUpWitchspaceBetweenSystem:(Random_Seed)s1 andSystem:(Random_Seed)s2
+{
 	// new system is hyper-centric : witchspace exit point is origin
 	
 	Entity				*thing;
@@ -723,8 +750,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	NSMutableDictionary *systeminfo = [NSMutableDictionary dictionaryWithCapacity:4];
 	
-	Random_Seed		s1 = player->system_seed;
-	Random_Seed		s2 = player->target_system_seed;
 	NSString*		override_key = [self keyForInterstellarOverridesForSystemSeeds:s1 :s2 inGalaxySeed:galaxy_seed];
 	
 	// check at this point
