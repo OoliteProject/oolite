@@ -270,7 +270,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	assert(sizeof(jschar) == sizeof(unichar));
 	
 	// initialize the JS run time, and return result in runtime.
-	_runtime = JS_NewRuntime(8L * 1024L * 1024L);
+	_runtime = JS_NewRuntime(32L * 1024L * 1024L);
 	
 	// if runtime creation failed, end the program here.
 	if (_runtime == NULL)
