@@ -161,6 +161,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (id) objectForRow:(OOGUIRow)row;
 - (NSString*) keyForRow:(OOGUIRow)row;
+- (OOGUIRow) rowForKey:(NSString*)key;
 - (int) selectedRow;
 - (BOOL) setSelectedRow:(OOGUIRow)row;
 - (BOOL) setNextRow:(int) direction;

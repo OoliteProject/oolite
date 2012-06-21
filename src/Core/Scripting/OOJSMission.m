@@ -436,6 +436,15 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	[player setMissionChoices:GetParameterString(context, params, "choicesKey")];
+	NSString *firstKey = GetParameterString(context, params, "initialChoicesKey");
+	if (firstKey != nil)
+	{
+		OOGUIRow row = [[UNIVERSE gui] rowForKey:firstKey];
+		if (row != -1)
+		{
+			[[UNIVERSE gui] setSelectedRow:row];
+		}
+	}
 	
 	// now clean up!
 	[player setMissionOverlayDescriptor:nil];

@@ -382,6 +382,19 @@ static BOOL _refreshStarChart = NO;
 }
 
 
+- (OOGUIRow) rowForKey:(NSString*)key
+{
+	for (unsigned i=0;i<[rowKey count];i++)
+	{
+		if ([key isEqualToString:[rowKey objectAtIndex:i]])
+		{
+			return (OOGUIRow)i;
+		}
+	}
+	return -1;
+}
+
+
 - (NSString*) keyForRow:(OOGUIRow)row
 {
 	if (RowInRange(row, rowRange))
