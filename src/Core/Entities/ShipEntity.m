@@ -2177,7 +2177,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self noteLostTarget];
 			}
 		}
-		
+		BOOL applyThrust = YES;
 		switch (behaviour)
 		{
 			case BEHAVIOUR_TUMBLE :
@@ -2298,6 +2298,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				break;
 
 			case BEHAVIOUR_TRACK_AS_TURRET :
+				applyThrust = NO;
 				[self behaviour_track_as_turret: delta_t];
 				break;
 
@@ -2306,8 +2307,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				break;
 
 			case BEHAVIOUR_ENERGY_BOMB_COUNTDOWN:
+				applyThrust = NO;
 				// Do nothing
 				break;
+		}
+
+		if (applyThrust)
+		{
+			[self applyAttitudeChanges:delta_t];
+			[self applyThrust:delta_t];
 		}
 
 		// manage energy
@@ -3318,8 +3326,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	stick_yaw = 0.0;
 	[self applySticks:delta_t];
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -3343,16 +3351,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		stick_pitch = flightPitch;
 	}
 	[self applySticks:delta_t];
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
 - (void) behaviour_tumble:(double) delta_t
 {
 	[self applySticks:delta_t];
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -3433,10 +3441,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 // being tractored; sticks ignored - CIM
 	flightYaw = 0.0;
-	[self applyAttitudeChanges:delta_t];
+	
 	desired_speed = 0.0;
 	thrust = 25.0;	// used to damp velocity (must be less than hauler thrust)
-	[self applyThrust:delta_t];
+	
 	thrust = 0.0;	// must reset thrust now
 }
 
@@ -3446,6 +3454,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
+		
+		
 		return;
 	}
 	[self trackPrimaryTarget:delta_t:NO]; // applies sticks
@@ -3454,8 +3464,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self avoidCollision];
 	}
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -3475,7 +3485,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// = BEHAVIOUR_COLLECT_TARGET
 		ShipEntity*	target = [self primaryTarget];
-		if (!target)
+// if somehow ended up in this state but target is not cargo, stop
+// trying to scoop it
+		if (!target || [target scanClass] != CLASS_CARGO || [target cargoType] == CARGO_NOT_CARGO)
 		{
 			[self noteLostTargetAndGoIdle];
 			return;
@@ -3504,6 +3516,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				return;
 			}
 		}
+		if (desired_speed > maxFlightSpeed)
+		{ // never use injectors for scooping
+			desired_speed = maxFlightSpeed;
+		}
 
 		destination = target->position;
 		desired_range = 0.5 * target->collision_radius;
@@ -3529,8 +3545,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -3556,6 +3572,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (proximity_alert != NO_TARGET)
 	{
 		[self avoidCollision];
+		
+		
+
 		return;
 	}
 
@@ -3597,8 +3616,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	flightYaw = 0.0;
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -3609,12 +3628,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (proximity_alert != NO_TARGET && proximity_alert != primaryTarget)
 	{
 		[self avoidCollision];
+		
+		
 		return;
 	} 
 	double aspect = [self approachAspectToPrimaryTarget];
 	if (range < 2.5*(collision_radius+target->collision_radius) && proximity_alert == primaryTarget && aspect > 0) {
 		desired_speed = maxFlightSpeed;
 		[self avoidCollision];
+		
+		
 		return;
 	}
 	if (aspect < -0.5 && range > COMBAT_IN_RANGE_FACTOR * weaponRange * 2.0)
@@ -3668,8 +3691,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 
 }
 
@@ -3695,6 +3718,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (proximity_alert != NO_TARGET)
 	{
 		[self avoidCollision];
+		
+		
 		return;
 	}
 
@@ -3716,8 +3741,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	flightYaw = 0.0;
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -3896,8 +3921,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	frustration = 0.0;	// behaviour changed, so reset frustration
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -3956,8 +3981,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	frustration = 0.0;	// behaviour changed, so reset frustration
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -3982,14 +4007,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
+		
+		
 		return;
 	}
 	GLfloat currentWeaponRange = getWeaponRangeFromType(leftside?port_weapon_type:starboard_weapon_type);
 	if (range > COMBAT_BROADSIDE_RANGE_FACTOR * currentWeaponRange)
 	{
 		behaviour = BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE;
-		[self applyAttitudeChanges:delta_t];
-		[self applyThrust:delta_t];
+		
+		
 		return;
 	}
 
@@ -4004,6 +4031,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
+			
+			
 			return;
 		}
 	}
@@ -4012,6 +4041,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (range > SCANNER_MAX_RANGE)
 		{
 			[self noteLostTargetAndGoIdle];
+			
+			
 			return;
 		}
 	}
@@ -4092,8 +4123,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self fireStarboardWeapon:range];
 	}
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
 	{
@@ -4115,12 +4146,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
+			
+			
 		}
 		return;
 	}
 	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
+		
+		
 		return;
 	}
 
@@ -4200,8 +4235,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL)
 	{
@@ -4229,12 +4264,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
+			
+			
 		}
 		return;
 	}
 	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
+		
+		
 		return;
 	}
 
@@ -4342,8 +4381,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
 	{
@@ -4359,6 +4398,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self noteLostTargetAndGoIdle];
 		desired_speed = maxFlightSpeed * 0.375;
+		
+		
 		return;
 	}
 	else if ((range < 650) || (proximity_alert != NO_TARGET))
@@ -4370,6 +4411,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
+			
+			
 		}
 	}
 	else
@@ -4380,8 +4423,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	[self trackPrimaryTarget:delta_t:NO];
 	[self fireMainWeapon:range];
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -4394,6 +4437,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
+		
+		
 		return;
 	}
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
@@ -4406,6 +4451,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
+			
+			
 			return;
 		}
 	}
@@ -4414,6 +4461,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (range > SCANNER_MAX_RANGE)
 		{
 			[self noteLostTargetAndGoIdle];
+			
+			
 			return;
 		}
 	}
@@ -4505,8 +4554,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL)
 	{
@@ -4530,6 +4579,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
+		
+		
 		return;
 	}
 	if (last_success_factor > success_factor) // our target is closing in.
@@ -4591,8 +4642,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+
+	
+	
 }
 
 
@@ -4624,8 +4676,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
 	{
@@ -4691,8 +4743,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self fireMissile];
 	if (cloakAutomatic) [self activateCloakingDevice];
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -4717,8 +4769,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	frustration = 0.0;
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -4769,8 +4821,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -4811,8 +4863,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -4863,8 +4915,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -4929,8 +4981,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -4950,8 +5002,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -4976,8 +5028,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = maxFlightSpeed * (0.5 * dq + 0.5);
 	}
 
-	[self applyAttitudeChanges:delta_t];
-	[self applyThrust:delta_t];
+	
+	
 }
 
 
@@ -5121,10 +5173,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 
-	[self applyAttitudeChanges:delta_t];
+	
 	GLfloat temp = desired_speed;
 	desired_speed *= v0 * v0;
-	[self applyThrust:delta_t];
+	
 	desired_speed = temp;
 }
 
