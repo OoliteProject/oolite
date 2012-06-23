@@ -4364,9 +4364,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else if(frustration > 0.0) frustration -= delta_t * 0.75;
 
 	double aspect = [self approachAspectToPrimaryTarget];
-	if(frustration > 10 || aspect > 0.75)
+	if(forward_weapon_type != WEAPON_THARGOID_LASER && (frustration > 10 || aspect > 0.75))
 	{
-		behaviour = BEHAVIOUR_ATTACK_TARGET;
+		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 	}
 
 	// use weaponry
