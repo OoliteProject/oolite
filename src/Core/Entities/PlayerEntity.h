@@ -569,6 +569,7 @@ typedef enum
 - (OOCreditsQuantity) deciCredits;
 
 - (int) random_factor;
+- (void) setRandom_factor:(int)rf;
 - (Random_Seed) galaxy_seed;
 - (NSPoint) galaxy_coordinates;
 - (void) setGalaxyCoordinates:(NSPoint)newPosition;

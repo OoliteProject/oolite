@@ -455,6 +455,12 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) setRandom_factor:(int)rf
+{
+	market_rnd = rf;
+}
+
+
 - (Random_Seed) galaxy_seed
 {
 	return galaxy_seed;
