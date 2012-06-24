@@ -253,7 +253,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 {
 	if ((viewSize.width != [self frame].size.width)||(viewSize.height != [self frame].size.height)) // resized
 	{
-		OOLog(@"temp", @"Changing view size from %@ to %@.", NSStringFromSize(viewSize), NSStringFromSize([self frame].size));
 		m_glContextInitialized = NO;
 		viewSize = [self frame].size;
 	}
