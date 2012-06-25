@@ -9559,9 +9559,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	r_pos = vector_normal_or_zbasis(vector_subtract(my_target->position, position));
 
 	Quaternion		q_laser = quaternion_rotation_between(r_pos, kBasisZVector);
-	q_laser.x += 0.01 * (randf() - 0.5);	// randomise aim a little (+/- 0.005)
-	q_laser.y += 0.01 * (randf() - 0.5);
-	q_laser.z += 0.01 * (randf() - 0.5);
+
+	GLfloat acc_factor = (10.0 - accuracy) * 0.001;
+
+	q_laser.x += acc_factor * (randf() - 0.5);	// randomise aim a little (+/- 0.005 at accuracy 0, never miss at accuracy 10)
+	q_laser.y += acc_factor * (randf() - 0.5);
+	q_laser.z += acc_factor * (randf() - 0.5);
 	quaternion_normalize(&q_laser);
 
 	Quaternion q_save = orientation;	// save rotation
