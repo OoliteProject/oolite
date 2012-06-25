@@ -3681,17 +3681,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackPrimaryTarget:delta_t:NO];
 	
 	if (missiles) [self considerFiringMissile:delta_t];
-	/*
-	int missile_chance = 0;
-	int rhs = 3.2 / delta_t;
-	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
 
-	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
-	if (missiles > missile_chance * hurt_factor)
-	{
-		[self fireMissile];
-	}
-	 */
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
 	
@@ -4109,17 +4099,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	if (missiles) [self considerFiringMissile:delta_t];
-	/*
-	int missile_chance = 0;
-	int rhs = 3.2 / delta_t;
-	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
 
-	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
-	if (missiles > missile_chance * hurt_factor)
-	{
-		[self fireMissile];
-	}
-	*/
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if (leftside)
 	{
@@ -4231,17 +4211,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	if (missiles) [self considerFiringMissile:delta_t];
-	/*
-	int missile_chance = 0;
-	int rhs = 3.2 / delta_t;
-	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
 
-	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
-	if (missiles > missile_chance * hurt_factor)
-	{
-		[self fireMissile];
-	}
-	 */
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
 	
@@ -4380,17 +4350,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	// use weaponry
 	if (missiles) [self considerFiringMissile:delta_t];
-	/*
-	int missile_chance = 0;
-	int rhs = 3.2 / delta_t;
-	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
 
-	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
-	if (missiles > missile_chance * hurt_factor)
-	{
-		[self fireMissile];
-	}
-	 */
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
 	
@@ -4556,17 +4516,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	if (missiles) [self considerFiringMissile:delta_t];
-	/*
-	int missile_chance = 0;
-	int rhs = 3.2 / delta_t;
-	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
 
-	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
-	if (missiles > missile_chance * hurt_factor)
-	{
-		[self fireMissile];
-	}
-	 */
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
 	
@@ -4646,17 +4596,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackPrimaryTarget:delta_t:YES];
 
 	if (missiles) [self considerFiringMissile:delta_t];
-	/*
-	int missile_chance = 0;
-	int rhs = 3.2 / delta_t;
-	if (rhs) missile_chance = 1 + (ranrot_rand() % rhs);
 
-	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
-	if (missiles > missile_chance * hurt_factor)
-	{
-		[self fireMissile];
-	}
-	*/
 	if (cloakAutomatic) [self activateCloakingDevice];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
@@ -4741,14 +4681,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self considerFiringMissile:delta_t];
 	}
-	/*
-	int missile_chance = 0;
-	int rhs = 3.2 / delta_t;
-	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
-	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
-	if (([(ShipEntity *)[self primaryTarget] primaryTarget] == self)&&(missiles > missile_chance * hurt_factor))
-		[self fireMissile];
-	*/
+
 	if (([self hasCascadeMine]) && (range < 10000.0) && canBurn)
 	{
 		float	qbomb_chance = 0.01 * delta_t;
@@ -10543,8 +10476,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return;
 	}
 	
-	[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other];	// fixed: shipScoopedOther() event fires for all scoop events.
-	
 	switch ([other cargoType])
 	{
 		case CARGO_RANDOM:
@@ -10645,7 +10576,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[other performTumble];
 		// Eric: next event is not yet documented on the wiki. Do we need it? or could we place the existing 'shipScoopedOther' from above here,
 		// after the cargo script has fired and expose type and amount of the cargo object in JS?
-		[self doScriptEvent:OOJSID("shipScoopedCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(co_type), [NSNumber numberWithInt:co_amount], nil]];
+		// [self doScriptEvent:OOJSID("shipScoopedCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(co_type), [NSNumber numberWithInt:co_amount], nil]];
+		[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other];
 		[shipAI message:@"CARGO_SCOOPED"];
 		if (max_cargo && [cargo count] >= [self maxAvailableCargoSpace])  [shipAI message:@"HOLD_FULL"];
 	}

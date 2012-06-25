@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
 #import "OOMesh.h"
+#import "OOConstToString.h"
 
 
 static JSObject *sShipPrototype;
@@ -112,22 +113,24 @@ static JSClass sShipClass =
 enum
 {
 	// Property IDs
-	kShip_accuracy,			// the ship's accuracy, float, read/write
+	kShip_accuracy,				// the ship's accuracy, float, read/write
 	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read/write
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
-	kShip_autoAI,    // bool, read-only, auto_ai from shipdata
+	kShip_autoAI,				// bool, read-only, auto_ai from shipdata
 	kShip_beaconCode,			// beacon code, string, read/write
-	kShip_boundingBox,				// boundingBox, vector, read-only
+	kShip_boundingBox,			// boundingBox, vector, read-only
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_cargoSpaceAvailable,	// free cargo space, integer, read-only
 	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
 	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
 	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
+	kShip_commodity,			// commodity of a ship, read only
+	kShip_commodityAmount,		// commodityAmount of a ship, read only
 	kShip_cloakAutomatic,		// should cloack start by itself or by script, read/write
 	kShip_cruiseSpeed,			// desired cruising speed, number, read only
-	kShip_dataKey,          // string, read-only, shipdata.plist key
-	kShip_defenseTargets,   // array, read-only, defense targets
+	kShip_dataKey,				// string, read-only, shipdata.plist key
+	kShip_defenseTargets,		// array, read-only, defense targets
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_displayName,			// name displayed on screen, string, read-only
 	kShip_entityPersonality,	// per-ship random number, int, read-only
@@ -170,14 +173,14 @@ enum
 	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
 	kShip_passengerCount,		// number of passengers on ship, integer, read-only
 	kShip_passengers,			// passengers contracts, array - strings & whatnot, read only
-	kShip_pitch, // pitch level, float, read-only
+	kShip_pitch,				// pitch level, float, read-only
 	kShip_portWeapon,			// the ship's port weapon, equipmentType, read/write
 	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
 	kShip_primaryRole,			// Primary role, string, read/write
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
 	kShip_roleWeights,			// roles and weights, dictionary, read-only
 	kShip_roles,				// roles, array, read-only
-	kShip_roll, // roll level, float, read-only
+	kShip_roll,					// roll level, float, read-only
 	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
@@ -198,33 +201,35 @@ enum
 	kShip_vectorRight,			// rightVector of a ship, read-only
 	kShip_vectorUp,				// upVector of a ship, read-only
 	kShip_velocity,				// velocity, vector, read/write
-	kShip_weaponFacings,			// weapon range, double, read-only
+	kShip_weaponFacings,		// weapon range, double, read-only
 	kShip_weaponRange,			// weapon range, double, read-only
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
-	kShip_yaw, // yaw level, float, read-only
+	kShip_yaw,					// yaw level, float, read-only
 };
 
 
 static JSPropertySpec sShipProperties[] =
 {
 	// JS name					ID							flags
-	{ "accuracy",				kShip_accuracy,			OOJS_PROP_READWRITE_CB },
+	{ "accuracy",				kShip_accuracy,				OOJS_PROP_READWRITE_CB },
 	{ "aftWeapon",				kShip_aftWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "AI",						kShip_AI,					OOJS_PROP_READONLY_CB },
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
-	{ "autoAI",						kShip_autoAI,					OOJS_PROP_READONLY_CB },
+	{ "autoAI",					kShip_autoAI,				OOJS_PROP_READONLY_CB },
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
-	{ "boundingBox",				kShip_boundingBox,			OOJS_PROP_READONLY_CB },
+	{ "boundingBox",			kShip_boundingBox,			OOJS_PROP_READONLY_CB },
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
 	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
 	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
 	// contracts instead of cargo to distinguish them from the manifest
+	{ "commodity",				kShip_commodity,			OOJS_PROP_READONLY_CB },
+	{ "commodityAmount",		kShip_commodityAmount,		OOJS_PROP_READONLY_CB },
 	{ "contracts",				kShip_contracts,			OOJS_PROP_READONLY_CB },
 	{ "cloakAutomatic",			kShip_cloakAutomatic,		OOJS_PROP_READWRITE_CB},
 	{ "cruiseSpeed",			kShip_cruiseSpeed,			OOJS_PROP_READONLY_CB },
-	{ "dataKey",			kShip_dataKey,			OOJS_PROP_READONLY_CB },
-	{ "defenseTargets",			kShip_defenseTargets,			OOJS_PROP_READONLY_CB },
+	{ "dataKey",				kShip_dataKey,				OOJS_PROP_READONLY_CB },
+	{ "defenseTargets",			kShip_defenseTargets,		OOJS_PROP_READONLY_CB },
 	{ "desiredSpeed",			kShip_desiredSpeed,			OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
@@ -267,14 +272,14 @@ static JSPropertySpec sShipProperties[] =
 	{ "passengerCount",			kShip_passengerCount,		OOJS_PROP_READONLY_CB },
 	{ "passengerCapacity",		kShip_passengerCapacity,	OOJS_PROP_READONLY_CB },
 	{ "passengers",				kShip_passengers,			OOJS_PROP_READONLY_CB },
-	{ "pitch",				kShip_pitch,			OOJS_PROP_READONLY_CB },
+	{ "pitch",					kShip_pitch,				OOJS_PROP_READONLY_CB },
 	{ "portWeapon",				kShip_portWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "potentialCollider",		kShip_potentialCollider,	OOJS_PROP_READONLY_CB },
 	{ "primaryRole",			kShip_primaryRole,			OOJS_PROP_READWRITE_CB },
 	{ "reportAIMessages",		kShip_reportAIMessages,		OOJS_PROP_READWRITE_CB },
 	{ "roleWeights",			kShip_roleWeights,			OOJS_PROP_READONLY_CB },
 	{ "roles",					kShip_roles,				OOJS_PROP_READONLY_CB },
-	{ "roll",				kShip_roll,			OOJS_PROP_READONLY_CB },
+	{ "roll",					kShip_roll,					OOJS_PROP_READONLY_CB },
 	{ "savedCoordinates",		kShip_savedCoordinates,		OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	OOJS_PROP_READWRITE_CB },
@@ -557,6 +562,17 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			*value = INT_TO_JSVAL([entity availableCargoSpace]);
 			return YES;
 			
+		case kShip_commodity:
+			if ([entity commodityAmount] > 0)
+			{
+				result = CommodityTypeToString([entity commodityType]);
+			}
+			break;
+			
+		case kShip_commodityAmount:
+			*value = INT_TO_JSVAL([entity commodityAmount]);
+			return YES;
+			
 		case kShip_speed:
 			return JS_NewNumberValue(context, [entity flightSpeed], value);
 			
@@ -725,31 +741,31 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_thrustVector:
 			return VectorToJSValue(context, [entity thrustVector], value);
 
-	  case kShip_pitch:
+		case kShip_pitch:
 			return JS_NewNumberValue(context, [entity flightPitch], value);
 
-	  case kShip_roll:
+		case kShip_roll:
 			return JS_NewNumberValue(context, [entity flightRoll], value);
 
-	  case kShip_yaw:
+		case kShip_yaw:
 			return JS_NewNumberValue(context, [entity flightYaw], value);
 		
-  	case kShip_boundingBox:
-		{
-			Vector bbvect;
-			BoundingBox box;
+		case kShip_boundingBox:
+			{
+				Vector bbvect;
+				BoundingBox box;
 
-			if ([entity isSubEntity])
-			{
-				box = [entity boundingBox];
+				if ([entity isSubEntity])
+				{
+					box = [entity boundingBox];
+				}
+				else
+				{
+					box = [entity totalBoundingBox];
+				}
+				bounding_box_get_dimensions(box,&bbvect.x,&bbvect.y,&bbvect.z);
+				return VectorToJSValue(context, bbvect, value);
 			}
-			else
-			{
-				box = [entity totalBoundingBox];
-			}
-			bounding_box_get_dimensions(box,&bbvect.x,&bbvect.y,&bbvect.z);
-			return VectorToJSValue(context, bbvect, value);
-		}
 			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sShipProperties);
