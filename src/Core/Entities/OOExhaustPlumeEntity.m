@@ -86,12 +86,18 @@ MA 02110-1301, USA.
 
 - (void) update:(OOTimeDelta) delta_t
 {
-// Profiling: this function and subfunctions are *really* expensive - CIM
+// Profiling: this function and subfunctions are expensive - CIM
 
-	// don't draw if there's no ship, or if we're just jumping out of whitchspace/docked at a station!
+	// don't draw if there's no ship, or if we're just jumping out of witchspace/docked at a station!
 	ShipEntity  *ship = [self owner];
 // also don't draw if the ship isn't visible
 	if (EXPECT_NOT(ship == nil || ![ship isVisible] || ([ship isPlayer] && [ship suppressFlightNotifications]))) return;
+
+// Moved this check to be earlier - CIM
+	GLfloat speed = [ship speedFactor];
+	// don't draw if not moving.
+	if (EXPECT_NOT(speed <= 0.001f)) return;
+
 
 	OOTimeAbsolute now = [UNIVERSE getTime];
 	if ([UNIVERSE getTime] > _trackTime + kTimeStep)
@@ -99,7 +105,7 @@ MA 02110-1301, USA.
 		[self saveToLastFrame];
 		_trackTime = now;
 	}
-	
+
 	GLfloat ex_emissive[4]	= {0.6f, 0.8f, 1.0f, 0.9f * kOverallAlpha};   // pale blue
 	const GLfloat s1[8] = { 0.0, M_SQRT1_2, 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2};
 	const GLfloat c1[8] = { 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2, 0.0, M_SQRT1_2};
@@ -110,13 +116,9 @@ MA 02110-1301, USA.
 	{
 		.timeframe = [UNIVERSE getTime],
 		.orientation = shipQrotation,
-		.k = vector_forward_from_quaternion(shipQrotation)
+		.k = [ship forwardVector]
 	};
 	int dam = [ship damage];
-	GLfloat speed = [ship speedFactor];
-	
-	// don't draw if not moving.
-	if (EXPECT_NOT(speed <= 0.001f)) return;
 	
 	GLfloat hyper_fade = 8.0f / (8.0f + speed * speed * speed);
 	
@@ -137,13 +139,13 @@ MA 02110-1301, USA.
 		flare_factor = 0.0;
 	
 	Vector currentPos = ship->position;
-	Vector vfwd = vector_forward_from_quaternion(shipQrotation);
+	Vector vfwd = [ship forwardVector];
 	GLfloat	spd = 0.5 * [ship flightSpeed];
 	vfwd = vector_multiply_scalar(vfwd, spd);
-	Vector master_i = vector_right_from_quaternion(shipQrotation);
+	Vector master_i = [ship rightVector];
 	Vector vi,vj,vk;
 	vi = master_i;
-	vj = vector_up_from_quaternion(shipQrotation);
+	vj = [ship upVector];
 	vk = cross_product(vi, vj);
 	zero.position = make_vector(currentPos.x + vi.x * position.x + vj.x * position.y + vk.x * position.z,
 								currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,

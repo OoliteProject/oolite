@@ -566,6 +566,10 @@ static BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntity *the_
 	for (i = 0; i < n_entities; i++)
 	{
 		e1 = entity_array[i];
+		if (![e1 isVisible])
+		{
+			continue; // don't check shading of objects we can't see
+		}
 		BOOL occluder_moved = NO;
 		if ([e1 status] == STATUS_COCKPIT_DISPLAY)
 		{

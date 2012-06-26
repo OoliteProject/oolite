@@ -1885,85 +1885,90 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		maxFlightSpeed = 300;
 	}
 
-	if (![self isSubEntity] && scanClass == CLASS_NOT_SET)
+	if (![self isSubEntity])
 	{
-		scanClass = CLASS_NEUTRAL;
-		OOLog(@"ship.sanityCheck.failed", @"Ship %@ %@ with scanClass CLASS_NOT_SET; forced to CLASS_NEUTRAL.", self, [self primaryRole]);
-	}
-
-	//
-	// deal with collisions
-	//
-	[self manageCollisions];
-	
-	//
-	// reset any inadvertant legal mishaps
-	//
-	if (scanClass == CLASS_POLICE)
-	{
-		if (bounty > 0)
-			[self setBounty:0 withReason:kOOLegalStatusReasonPoliceAreClean];
-		ShipEntity* target = [UNIVERSE entityForUniversalID:primaryTarget];
-		if ((target)&&([target scanClass] == CLASS_POLICE))
+		if (scanClass == CLASS_NOT_SET)
 		{
-			[self noteLostTarget];
+			scanClass = CLASS_NEUTRAL;
+			OOLog(@"ship.sanityCheck.failed", @"Ship %@ %@ with scanClass CLASS_NOT_SET; forced to CLASS_NEUTRAL.", self, [self primaryRole]);
 		}
-	}
+
+		//
+		// deal with collisions
+		//
+		[self manageCollisions];
+    // subentity collisions managed via parent entity
 	
-	if (trackCloseContacts)
-	{
-		// in checkCloseCollisionWith: we check if some thing has come within touch range (origin within our collision_radius)
-		// here we check if it has gone outside that range
-		NSString *other_key = nil;
-		foreachkey (other_key, closeContactsInfo)
+		//
+		// reset any inadvertant legal mishaps
+		//
+		if (scanClass == CLASS_POLICE)
 		{
-			ShipEntity* other = [UNIVERSE entityForUniversalID:[other_key intValue]];
-			if ((other != nil) && (other->isShip))
+			if (bounty > 0)
+				[self setBounty:0 withReason:kOOLegalStatusReasonPoliceAreClean];
+			ShipEntity* target = [UNIVERSE entityForUniversalID:primaryTarget];
+			if ((target)&&([target scanClass] == CLASS_POLICE))
 			{
-				if (distance2(position, other->position) > collision_radius * collision_radius)	// moved beyond our sphere!
+				[self noteLostTarget];
+			}
+		}
+		
+		if (trackCloseContacts)
+		{
+			// in checkCloseCollisionWith: we check if some thing has come within touch range (origin within our collision_radius)
+			// here we check if it has gone outside that range
+			NSString *other_key = nil;
+			foreachkey (other_key, closeContactsInfo)
+			{
+				ShipEntity* other = [UNIVERSE entityForUniversalID:[other_key intValue]];
+				if ((other != nil) && (other->isShip))
 				{
-					// calculate position with respect to our own position and orientation
-					Vector	dpos = vector_between(position, other->position);
-					Vector  pos1 = make_vector(dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
-					Vector	pos0 = {0, 0, 0};
-					ScanVectorFromString([closeContactsInfo objectForKey: other_key], &pos0);
-					// send AI messages about the contact
-					int	temp_id = primaryTarget;
-					primaryTarget = other->universalID;
-					if ((pos0.x < 0.0)&&(pos1.x > 0.0))
+					if (distance2(position, other->position) > collision_radius * collision_radius)	// moved beyond our sphere!
 					{
-						[self doScriptEvent:OOJSID("shipTraversePositiveX") withArgument:other andReactToAIMessage:@"POSITIVE X TRAVERSE"];
+						// calculate position with respect to our own position and orientation
+						Vector	dpos = vector_between(position, other->position);
+						Vector  pos1 = make_vector(dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
+						Vector	pos0 = {0, 0, 0};
+						ScanVectorFromString([closeContactsInfo objectForKey: other_key], &pos0);
+						// send AI messages about the contact
+						int	temp_id = primaryTarget;
+						primaryTarget = other->universalID;
+						if ((pos0.x < 0.0)&&(pos1.x > 0.0))
+						{
+							[self doScriptEvent:OOJSID("shipTraversePositiveX") withArgument:other andReactToAIMessage:@"POSITIVE X TRAVERSE"];
+						}
+						if ((pos0.x > 0.0)&&(pos1.x < 0.0))
+						{
+							[self doScriptEvent:OOJSID("shipTraverseNegativeX") withArgument:other andReactToAIMessage:@"NEGATIVE X TRAVERSE"];
+						}
+						if ((pos0.y < 0.0)&&(pos1.y > 0.0))
+						{
+							[self doScriptEvent:OOJSID("shipTraversePositiveY") withArgument:other andReactToAIMessage:@"POSITIVE Y TRAVERSE"];
+						}
+						if ((pos0.y > 0.0)&&(pos1.y < 0.0))
+						{
+							[self doScriptEvent:OOJSID("shipTraverseNegativeY") withArgument:other andReactToAIMessage:@"NEGATIVE Y TRAVERSE"];
+						}
+						if ((pos0.z < 0.0)&&(pos1.z > 0.0))
+						{
+							[self doScriptEvent:OOJSID("shipTraversePositiveZ") withArgument:other andReactToAIMessage:@"POSITIVE Z TRAVERSE"];
+						}
+						if ((pos0.z > 0.0)&&(pos1.z < 0.0))
+						{
+							[self doScriptEvent:OOJSID("shipTraverseNegativeZ") withArgument:other andReactToAIMessage:@"NEGATIVE Z TRAVERSE"];
+						}
+						primaryTarget = temp_id;
+						[closeContactsInfo removeObjectForKey: other_key];
 					}
-					if ((pos0.x > 0.0)&&(pos1.x < 0.0))
-					{
-						[self doScriptEvent:OOJSID("shipTraverseNegativeX") withArgument:other andReactToAIMessage:@"NEGATIVE X TRAVERSE"];
-					}
-					if ((pos0.y < 0.0)&&(pos1.y > 0.0))
-					{
-						[self doScriptEvent:OOJSID("shipTraversePositiveY") withArgument:other andReactToAIMessage:@"POSITIVE Y TRAVERSE"];
-					}
-					if ((pos0.y > 0.0)&&(pos1.y < 0.0))
-					{
-						[self doScriptEvent:OOJSID("shipTraverseNegativeY") withArgument:other andReactToAIMessage:@"NEGATIVE Y TRAVERSE"];
-					}
-					if ((pos0.z < 0.0)&&(pos1.z > 0.0))
-					{
-						[self doScriptEvent:OOJSID("shipTraversePositiveZ") withArgument:other andReactToAIMessage:@"POSITIVE Z TRAVERSE"];
-					}
-					if ((pos0.z > 0.0)&&(pos1.z < 0.0))
-					{
-						[self doScriptEvent:OOJSID("shipTraverseNegativeZ") withArgument:other andReactToAIMessage:@"NEGATIVE Z TRAVERSE"];
-					}
-					primaryTarget = temp_id;
+				}
+				else
+				{
 					[closeContactsInfo removeObjectForKey: other_key];
 				}
 			}
-			else
-			{
-				[closeContactsInfo removeObjectForKey: other_key];
-			}
 		}
-	}
+
+	} // end if !isSubEntity
 	
 	// think!
 #ifdef OO_BRAIN_AI
@@ -2001,30 +2006,37 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	// temperature factors
-	double external_temp = 0.0;
-	OOSunEntity *sun = [UNIVERSE sun];
-	if (sun != nil)
+	if(![self isSubEntity])
 	{
-		// set the ambient temperature here
-		double  sun_zd = magnitude2(vector_between(position, [sun position]));	// square of distance
-		double  sun_cr = sun->collision_radius;
-		double	alt1 = sun_cr * sun_cr / sun_zd;
-		external_temp = SUN_TEMPERATURE * alt1;
-		if ([sun goneNova])  external_temp *= 100;
-	}
-
-	// work on the ship temperature
-	//
-	float heatThreshold = [self heatInsulation] * 100.0f;
-	if (external_temp > heatThreshold &&  external_temp > ship_temperature)
-		ship_temperature += (external_temp - ship_temperature) * delta_t * SHIP_INSULATION_FACTOR / [self heatInsulation];
-	else
-	{
-		if (ship_temperature > SHIP_MIN_CABIN_TEMP)
+		double external_temp = 0.0;
+		OOSunEntity *sun = [UNIVERSE sun];
+		if (sun != nil)
 		{
-			ship_temperature += (external_temp - heatThreshold - ship_temperature) * delta_t * SHIP_COOLING_FACTOR / [self heatInsulation];
-			if (ship_temperature < SHIP_MIN_CABIN_TEMP) ship_temperature = SHIP_MIN_CABIN_TEMP;
+			// set the ambient temperature here
+			double  sun_zd = magnitude2(vector_between(position, [sun position]));	// square of distance
+			double  sun_cr = sun->collision_radius;
+			double	alt1 = sun_cr * sun_cr / sun_zd;
+			external_temp = SUN_TEMPERATURE * alt1;
+			if ([sun goneNova])  external_temp *= 100;
 		}
+
+		// work on the ship temperature
+		//
+		float heatThreshold = [self heatInsulation] * 100.0f;
+		if (external_temp > heatThreshold &&  external_temp > ship_temperature)
+			ship_temperature += (external_temp - ship_temperature) * delta_t * SHIP_INSULATION_FACTOR / [self heatInsulation];
+		else
+		{
+			if (ship_temperature > SHIP_MIN_CABIN_TEMP)
+			{
+				ship_temperature += (external_temp - heatThreshold - ship_temperature) * delta_t * SHIP_COOLING_FACTOR / [self heatInsulation];
+				if (ship_temperature < SHIP_MIN_CABIN_TEMP) ship_temperature = SHIP_MIN_CABIN_TEMP;
+			}
+		}
+	}
+	else //subents
+	{
+		ship_temperature = [[self owner] temperature];
 	}
 
 	if (ship_temperature > SHIP_MAX_CABIN_TEMP)
@@ -2079,7 +2091,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	// check outside factors
-	aegis_status = [self checkForAegis];   // is a station or something nearby??
+	if (![self isSubEntity])
+	{
+		aegis_status = [self checkForAegis];   // is a station or something nearby??
+	}
 
 	// scripting
 	if (!haveExecutedSpawnAction)
@@ -2329,23 +2344,26 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 		
-		// update destination position for escorts
-		[self refreshEscortPositions];
-		if ([self hasEscorts])
+		if (![self isSubEntity])
 		{
-			ShipEntity	*escort = nil;
-			unsigned	i = 0;
-			// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
-			foreach(escort, [self escortArray])
+		// update destination position for escorts
+			[self refreshEscortPositions];
+			if ([self hasEscorts])
 			{
-				[escort setEscortDestination:[self coordinatesForEscortPosition:i++]];
-			}
+				ShipEntity	*escort = nil;
+				unsigned	i = 0;
+				// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
+				foreach(escort, [self escortArray])
+				{
+					[escort setEscortDestination:[self coordinatesForEscortPosition:i++]];
+				}
 			
-			ShipEntity *leader = [[self escortGroup] leader];
-			if (leader != nil && ([leader scanClass] != [self scanClass])) {
-				OOLog(@"ship.sanityCheck.failed", @"Ship %@ escorting %@ with wrong scanclass!", self, leader);
-				[[self escortGroup] removeShip:self];
-				[self setEscortGroup:nil];
+				ShipEntity *leader = [[self escortGroup] leader];
+				if (leader != nil && ([leader scanClass] != [self scanClass])) {
+					OOLog(@"ship.sanityCheck.failed", @"Ship %@ escorting %@ with wrong scanclass!", self, leader);
+					[[self escortGroup] removeShip:self];
+					[self setEscortGroup:nil];
+				}
 			}
 		}
 	}
