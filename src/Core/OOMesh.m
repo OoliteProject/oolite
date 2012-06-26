@@ -272,7 +272,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 #if OO_MULTITEXTURE
 	_textureUnitCount = NSNotFound;
 #endif
-	
+
+	_lastPosition = kZeroVector;
+	_lastRotMatrix = kZeroMatrix; // not identity
+	_lastBoundingBox = kZeroBoundingBox;
+
 	return self;
 }
 
@@ -717,7 +721,14 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 {
 	// HACK! Should work out what the various bounding box things do and make it neat and consistent.
 	// FIXME: this is a bottleneck.
-	
+// Try to fix bottleneck by caching for common case where subentity
+// pos+rot is constant from frame to frame. - CIM
+
+	if (vector_equal(position,_lastPosition) && OOMatrixEqual(rotMatrix,_lastRotMatrix))
+	{
+		return _lastBoundingBox;
+	}
+
 	BoundingBox		result;
 	Vector			v;
 	
@@ -731,6 +742,10 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		bounding_box_add_vector(&result,v);
 	}
 	
+	_lastBoundingBox = result;
+	_lastPosition = position;
+	_lastRotMatrix = rotMatrix;
+
 	return result;
 }
 

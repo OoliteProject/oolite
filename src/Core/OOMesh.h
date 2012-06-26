@@ -125,6 +125,10 @@ typedef struct
 	NSString				*_cacheKey;
 	NSDictionary			*_shaderMacros;
 	id						_shaderBindingTarget;
+
+	Vector _lastPosition;
+	OOMatrix _lastRotMatrix;
+	BoundingBox _lastBoundingBox;
 	
 #if OO_MULTITEXTURE
 	OOUInteger				_textureUnitCount;

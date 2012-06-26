@@ -86,9 +86,12 @@ MA 02110-1301, USA.
 
 - (void) update:(OOTimeDelta) delta_t
 {
+// Profiling: this function and subfunctions are *really* expensive - CIM
+
 	// don't draw if there's no ship, or if we're just jumping out of whitchspace/docked at a station!
 	ShipEntity  *ship = [self owner];
-	if (EXPECT_NOT(ship == nil || ([ship isPlayer] && [ship suppressFlightNotifications]))) return;
+// also don't draw if the ship isn't visible
+	if (EXPECT_NOT(ship == nil || ![ship isVisible] || ([ship isPlayer] && [ship suppressFlightNotifications]))) return;
 
 	OOTimeAbsolute now = [UNIVERSE getTime];
 	if ([UNIVERSE getTime] > _trackTime + kTimeStep)
