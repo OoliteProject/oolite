@@ -2203,21 +2203,22 @@ static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp
 	if (fromShaders)
 	{
 		materials = [[thisEnt mesh] materials];
+		params = JSVAL_TO_OBJECT(OOJS_ARGV[0]);
+		shaders = OOJSNativeObjectFromJSObject(context, params);
 	}
 	else
 	{
 		params = JSVAL_TO_OBJECT(OOJS_ARGV[0]);
 		materials = OOJSNativeObjectFromJSObject(context, params);
-	}
-	
-	if (withShaders)
-	{
-		params = JSVAL_TO_OBJECT(OOJS_ARGV[1]);
-		shaders = OOJSNativeObjectFromJSObject(context, params);
-	}
-	else
-	{
-		shaders = [[thisEnt mesh] shaders];
+		if (withShaders)
+		{
+			params = JSVAL_TO_OBJECT(OOJS_ARGV[1]);
+			shaders = OOJSNativeObjectFromJSObject(context, params);
+		}
+		else
+		{
+			shaders = [[thisEnt mesh] shaders];
+		}
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
