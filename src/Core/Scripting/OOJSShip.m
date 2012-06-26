@@ -86,6 +86,8 @@ static JSBool ShipExitSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipUpdateEscortFormation(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipClearDefenseTargets(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
 
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
@@ -329,6 +331,8 @@ static JSFunctionSpec sShipMethods[] =
 	{ "explode",				ShipExplode,				0 },
 	{ "fireECM",				ShipFireECM,				0 },
 	{ "fireMissile",			ShipFireMissile,			0 },
+	{ "getMaterials",         ShipGetMaterials,				0 },
+	{ "getShaders",            ShipGetShaders,				0 },
 	{ "hasRole",				ShipHasRole,				1 },
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
@@ -2359,6 +2363,41 @@ static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp)
 	[thisEnt addDefenseTarget:target];
 
 	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+//getMaterials()
+static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity		*thisEnt = nil;
+	NSObject			*result = nil;
+	
+	GET_THIS_SHIP(thisEnt);
+	
+	result = [[thisEnt mesh] materials];
+	if (result == nil)  result = [NSDictionary dictionary];
+	OOJS_RETURN_OBJECT(result);
+	
+	OOJS_PROFILE_EXIT
+}
+
+//getShaders()
+static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity		*thisEnt = nil;
+	NSObject		*result = nil;
+	
+	GET_THIS_SHIP(thisEnt);
+	
+	result = [[thisEnt mesh] shaders];
+	if (result == nil)  result = [NSDictionary dictionary];
+	OOJS_RETURN_OBJECT(result);
 	
 	OOJS_PROFILE_EXIT
 }
