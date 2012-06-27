@@ -5184,7 +5184,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		ShipEntity *subEntity = nil;
 		foreach (subEntity, [self subEntities])
 		{
-			[subEntity setOwner:self]; // refresh ownership
+// already set on subentity creation and not going to have changed, isn't it?
+// anyway, didn't appear to break anything when I took it out - CIM
+//			[subEntity setOwner:self]; // refresh ownership
 			[subEntity drawSubEntity:immediate :translucent];
 		}
 	}
