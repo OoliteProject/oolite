@@ -10594,13 +10594,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[cargo insertObject:other atIndex:0];	// places most recently scooped object at eject position
 		[other setStatus:STATUS_IN_HOLD];
 		[other performTumble];
-		// Eric: next event is not yet documented on the wiki. Do we need it? or could we place the existing 'shipScoopedOther' from above here,
-		// after the cargo script has fired and expose type and amount of the cargo object in JS?
-		// [self doScriptEvent:OOJSID("shipScoopedCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(co_type), [NSNumber numberWithInt:co_amount], nil]];
-		[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other];
 		[shipAI message:@"CARGO_SCOOPED"];
 		if (max_cargo && [cargo count] >= [self maxAvailableCargoSpace])  [shipAI message:@"HOLD_FULL"];
 	}
+	[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other]; // always fire, even without commodity.
 	[[other collisionArray] removeObject:self];			// so it can't be scooped twice!
 	[self suppressTargetLost];
 	[UNIVERSE removeEntity:other];
