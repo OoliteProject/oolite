@@ -146,7 +146,7 @@ MA 02110-1301, USA.
 	Vector vi,vj,vk;
 	vi = master_i;
 	vj = [ship upVector];
-	vk = cross_product(vi, vj);
+	vk = [ship forwardVector];
 	zero.position = make_vector(currentPos.x + vi.x * position.x + vj.x * position.y + vk.x * position.z,
 								currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
 								currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
