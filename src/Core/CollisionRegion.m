@@ -453,7 +453,6 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 // an outValue of 1 means it's just being occluded.
 static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *the_sun, double *outValue)
 {
-	if ([e1 isPlayer]) { OOLog(@"testing.occlusion",@"%@ by %@",e1,e2); }
 	*outValue = 1.5;	// initial 'fully lit' value
 	// simple tests
 //	if (EXPECT_NOT(e1 == e2 || e2 == the_sun))
@@ -476,7 +475,6 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	if (cr_e2 < e1->collision_radius)
 		return NO;	// smaller can't shade bigger
 
-	if ([e1 isPlayer]) { OOLog(@"testing.occlusion2",@"%@ by %@",e1,e2); }
 		// tested in construction of e2 list
 //	if (e2->isSunlit == NO)
 //		return NO;	// things already /in/ shade can't shade things more.
@@ -486,7 +484,6 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	GLfloat d2_e2sun = distance2(e2->position, the_sun->position);
 	if (d2_e2sun > d2_sun)
 		return NO;	// you are nearer the sun than the potential occluder, so it can't shade you
-	if ([e1 isPlayer]) { OOLog(@"testing.occlusion3",@"%@ by %@",e1,e2); }
 
 	//
 	GLfloat d2_e2 = distance2( e1->position, e2->position);
@@ -495,7 +492,6 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
 	if (cr_e2 * cr_e2 < cr2_sun_scaled)
 		return NO;	// if solar disc projected to the distance of e2 > collision radius it can't be shaded by e2
-	if ([e1 isPlayer]) { OOLog(@"testing.occlusion4",@"%@ by %@",e1,e2); }
 	//
 	// check angles subtended by sun and occluder
 	// double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
@@ -523,7 +519,6 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	//if (theta_sun + phi > theta_e2)
 	if (phi > theta_diff)
 		return NO;	// sun is not occluded
-	if ([e1 isPlayer]) { OOLog(@"testing.occlusion5",@"%@ by %@",e1,e2); }
 	//
 	// all tests done e1 is in shade!
 	//
