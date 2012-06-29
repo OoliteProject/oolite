@@ -463,9 +463,20 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
+- (BOOL) isFinishedLoading
+{
+	OOMaterial *material = [self material];
+	if (material != nil && ![material isFinishedLoading])  return NO;
+	material = [self atmosphereMaterial];
+	if (material != nil && ![material isFinishedLoading])  return NO;
+	return YES;
+}
+
+
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (translucent || [UNIVERSE breakPatternHide])   return; // DON'T DRAW
+	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.
 
 #if FRUSTUM_CULL
 	if (![UNIVERSE checkFrustum:position:([self radius] + ATMOSPHERE_DEPTH)]) 

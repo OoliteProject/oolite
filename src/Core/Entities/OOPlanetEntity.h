@@ -80,6 +80,8 @@ MA 02110-1301, USA.
 - (OOMaterial *) material;
 - (OOMaterial *) atmosphereMaterial;
 
+- (BOOL) isFinishedLoading;
+
 @end
 
 #endif	// NEW_PLANETS
