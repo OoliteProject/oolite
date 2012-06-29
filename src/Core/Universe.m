@@ -6968,10 +6968,17 @@ static NSDictionary	*sCachedSystemData = nil;
 	The preloading materials list is pruned before preloading, and also once
 	per frame so textures can fall out of the regular cache.
 	-- Ahruman 2009-12-19
+	
+	DISABLED due to crashes on some Windows systems. Textures generated here
+	remain in the sRecentTextures cache when released, suggesting a retain
+	imbalance somewhere. Cannot reproduce under Mac OS X. Needs further
+	analysis before reenabling.
+	http://www.aegidian.org/bb/viewtopic.php?f=3&t=12109
+	-- Ahruman 2012-06-29
 */
 - (void) preloadPlanetTexturesForSystem:(Random_Seed)seed
 {
-#if NEW_PLANETS
+#if 0 // NEW_PLANETS
 	[self prunePreloadingPlanetMaterials];
 	
 	if ([_preloadingPlanetMaterials count] < 3)
