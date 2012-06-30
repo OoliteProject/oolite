@@ -607,12 +607,10 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	Vector		abspos = vector_add(position, OOVectorMultiplyMatrix(offset, rotMatrix));
 	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
-	OOMatrix	r_mat;
 	
-	while ((father)&&(father != last)  && (father != NO_TARGET))
+	while (father != nil && father != last)
 	{
-		r_mat = [father drawRotationMatrix];
-		abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
+		abspos = vector_add(OOVectorMultiplyMatrix(abspos, [father drawRotationMatrix]), [father position]);
 		last = father;
 		if (![last isSubEntity]) break;
 		father = [father owner];
