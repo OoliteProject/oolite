@@ -104,6 +104,7 @@ enum OOScanClass
 	OOScanClass				scanClass;
 	
 	GLfloat					zero_distance;
+	GLfloat					cam_zero_distance;
 	GLfloat					no_draw_distance;		// 10 km initially
 	GLfloat					collision_radius;
 	Vector					position;
@@ -201,6 +202,7 @@ enum OOScanClass
 - (Vector) absolutePositionForSubentityOffset:(Vector) offset;
 
 - (double) zeroDistance;
+- (double) camZeroDistance;
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
 
 - (BoundingBox) boundingBox;

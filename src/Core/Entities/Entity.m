@@ -625,6 +625,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (double) camZeroDistance
+{
+	return cam_zero_distance;
+}
+
+
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity
 {
 	if ((otherEntity)&&(zero_distance > otherEntity->zero_distance))
@@ -859,15 +865,18 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		if ([self isSubEntity])
 		{
 			zero_distance = [[self owner] zeroDistance];
+			cam_zero_distance = [[self owner] camZeroDistance];
 		}
 		else
 		{
 			zero_distance = distance2(PLAYER->position, position);
+			cam_zero_distance = distance2([PLAYER viewpointPosition], position);
 		}
 	}
 	else
 	{
 		zero_distance = magnitude2(position);
+		cam_zero_distance = zero_distance;
 	}
 	
 	hasMoved = !vector_equal(position, lastPosition);
@@ -1022,7 +1031,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (BOOL) isVisible
 {
-	return zero_distance <= ABSOLUTE_NO_DRAW_DISTANCE2;
+	return cam_zero_distance <= ABSOLUTE_NO_DRAW_DISTANCE2;
 }
 
 @end

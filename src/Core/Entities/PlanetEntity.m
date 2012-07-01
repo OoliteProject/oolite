@@ -662,7 +662,7 @@ static const BaseFace kTexturedFaces[][3] =
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
-	sqrt_zero_distance = sqrt(zero_distance);
+	sqrt_zero_distance = sqrt(cam_zero_distance);
 
 	switch (planet_type)
 	{
@@ -763,7 +763,7 @@ static const BaseFace kTexturedFaces[][3] =
 	double  drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
 	double  drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
 	
-	if (zero_distance > 0.0)
+	if (cam_zero_distance > 0.0)
 	{
 		subdivideLevel = 2 + floor(drawRatio2);
 		if (subdivideLevel > 4)  subdivideLevel = 4;
@@ -796,7 +796,7 @@ static const BaseFace kTexturedFaces[][3] =
 	
 	BOOL ignoreDepthBuffer = (planet_type == STELLAR_TYPE_ATMOSPHERE);
 	
-	if (zero_distance > collision_radius * collision_radius * 25) // is 'far away'
+	if (cam_zero_distance > collision_radius * collision_radius * 25) // is 'far away'
 	{
 		ignoreDepthBuffer |= YES;
 	}

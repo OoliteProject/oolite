@@ -398,10 +398,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 	if (EXPECT(!_miniature))
 	{
-		if (EXPECT_NOT(_atmosphereDrawable && zero_distance < _mesopause2))
+		if (EXPECT_NOT(_atmosphereDrawable && cam_zero_distance < _mesopause2))
 		{
 			NSAssert(_airColor != nil, @"Expected a non-nil air colour for normal planet. Exiting.");
-			double		alt = (sqrt(zero_distance) - collision_radius) / kMesosphere;
+			double		alt = (sqrt(cam_zero_distance) - collision_radius) / kMesosphere;
 			if (EXPECT_NOT(alt > 0 && alt <= 1.0))	// ensure aleph is clamped between 0 and 1
 			{
 				double	aleph = 1.0 - alt;
@@ -490,7 +490,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 	if (!_miniature)
 	{
-		[_planetDrawable calculateLevelOfDetailForViewDistance:zero_distance];
+		[_planetDrawable calculateLevelOfDetailForViewDistance:cam_zero_distance];
 		[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
 	}
 	

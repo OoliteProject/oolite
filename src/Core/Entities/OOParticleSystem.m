@@ -177,7 +177,7 @@ do { \
 	{
 		float distanceThreshold = collision_radius * 2.0f;	// Distance between player and middle of effect where we start to transition to "non-fast rendering."
 		float thresholdSq = distanceThreshold * distanceThreshold;
-		float distanceSq = zero_distance;
+		float distanceSq = cam_zero_distance;
 		
 		if (distanceSq > thresholdSq)
 		{

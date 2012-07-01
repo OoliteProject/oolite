@@ -133,7 +133,7 @@ MA 02110-1301, USA.
 	
 	OOGL(glColor4fv(_color));
 	OOGLBEGIN(GL_TRIANGLE_FAN);
-		GLDrawBallBillboard(collision_radius, 4, sqrtf(zero_distance));
+		GLDrawBallBillboard(collision_radius, 4, sqrtf(cam_zero_distance));
 	OOGLEND();
 	
 	OOGL(glPopAttrib());

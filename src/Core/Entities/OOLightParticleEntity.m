@@ -104,8 +104,8 @@ static OOTexture *sBlobTexture = nil;
 		zero_distances are necessary for flashers, if they haven't already.
 		-- Ahruman 2009-09-20
 	*/
-	zero_distance = [[self owner] zeroDistance];
-	if (no_draw_distance <= zero_distance)  return;
+	cam_zero_distance = [[self owner] camZeroDistance];
+	if (no_draw_distance <= cam_zero_distance)  return;
 	
 	OO_ENTER_OPENGL();
 	
@@ -136,7 +136,7 @@ static OOTexture *sBlobTexture = nil;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
-	if (no_draw_distance <= zero_distance)  return;
+	if (no_draw_distance <= cam_zero_distance)  return;
 	
 	OO_ENTER_OPENGL();
 		
@@ -146,7 +146,7 @@ static OOTexture *sBlobTexture = nil;
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
 	
-	GLfloat distanceAttenuation = zero_distance / no_draw_distance;
+	GLfloat distanceAttenuation = cam_zero_distance / no_draw_distance;
 	distanceAttenuation = 1.0 - distanceAttenuation;
 	GLfloat components[4] = { _colorComponents[0], _colorComponents[1], _colorComponents[2], _colorComponents[3] * distanceAttenuation };
 	OOGL(glColor4fv(components));

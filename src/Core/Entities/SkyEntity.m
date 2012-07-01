@@ -166,7 +166,8 @@ MA 02110-1301, USA.
 {
 	PlayerEntity *player = PLAYER;
 	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
-	if (player != nil)  position = player->position;
+	cam_zero_distance = zero_distance;
+	if (player != nil)  position = [player viewpointPosition];
 }
 
 

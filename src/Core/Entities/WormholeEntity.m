@@ -600,7 +600,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	if ([UNIVERSE breakPatternHide])
 		return;		// DON'T DRAW DURING BREAK PATTERN
 	
-	if (zero_distance > no_draw_distance)
+	if (cam_zero_distance > no_draw_distance)
 		return;	// TOO FAR AWAY TO SEE
 		
 	if (witch_mass <= 0.0)
@@ -615,7 +615,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	if (translucent)
 	{
 		// for now, a simple copy of the energy bomb draw routine
-		float srzd = sqrtf(zero_distance);
+		float srzd = sqrtf(cam_zero_distance);
 		
 		GLfloat	color_fv[4] = { 0.0, 0.0, 1.0, 0.25};
 		

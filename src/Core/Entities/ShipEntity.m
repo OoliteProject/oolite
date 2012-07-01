@@ -1320,7 +1320,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 - (BOOL) isVisible
 {
-	return zero_distance <= no_draw_distance;
+	return cam_zero_distance <= no_draw_distance;
 }
 
 
@@ -5157,7 +5157,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
-	if ((no_draw_distance < zero_distance) ||	// Done redundantly to skip subentities
+	if ((no_draw_distance < cam_zero_distance) ||	// Done redundantly to skip subentities
 		(cloaking_device_active && randf() > 0.10))
 	{
 		// Don't draw.
@@ -5227,7 +5227,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
-	if (zero_distance > no_draw_distance) // this test provides an opportunity to do simple LoD culling
+	if (cam_zero_distance > no_draw_distance) // this test provides an opportunity to do simple LoD culling
 	{
 		return; // TOO FAR AWAY
 	}

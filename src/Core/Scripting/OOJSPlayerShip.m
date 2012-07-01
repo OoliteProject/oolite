@@ -27,10 +27,12 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJSShip.h"
 #import "OOJSVector.h"
+#import "OOJSQuaternion.h"
 #import "OOJavaScriptEngine.h"
 #import "EntityOOJavaScriptExtensions.h"
 
 #import "PlayerEntity.h"
+#import "PlayerEntityControls.h"
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityScriptMethods.h"
 #import "PlayerEntityLegacyScriptEngine.h"
@@ -60,6 +62,7 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN a
 static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee);
 
@@ -168,6 +171,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "launch",							PlayerShipLaunch,							0 },
 	{ "removeAllCargo",					PlayerShipRemoveAllCargo,					0 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
+	{ "setCustomView",				PlayerShipSetCustomView,					1 },
 	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,					1 },
 	{ 0 }
 };
@@ -744,6 +748,65 @@ static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp)
 	BOOL OK = [player awardContract:qty commodity:key start:start destination:destination eta:eta fee:fee];
 	OOJS_RETURN_BOOL(OK);
 	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	
+	if (argc < 2)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"setCustomView", argc, OOJS_ARGV, nil, @"position, orientiation, [weapon]");
+		return NO;
+	}
+
+// must be in custom view
+	if ([UNIVERSE viewDirection] != VIEW_CUSTOM) 
+	{
+		OOJSReportError(context, @"PlayerShip.setCustomView only works when custom view is active.");
+		return NO;
+	}
+
+	NSMutableDictionary			*viewData = [NSMutableDictionary dictionaryWithCapacity:3];
+
+	Vector position = kZeroVector;
+	BOOL gotpos = JSValueToVector(context, OOJS_ARGV[0], &position);
+	if (!gotpos)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"setCustomView", argc, OOJS_ARGV, nil, @"position, orientiation, [weapon]");
+		return NO;
+	}
+	NSString *positionstr = [[NSString alloc] initWithFormat:@"%f %f %f",position.x,position.y,position.z];   
+
+	Quaternion orientation = kIdentityQuaternion;
+	BOOL gotquat = JSValueToQuaternion(context, OOJS_ARGV[1], &orientation);
+	if (!gotquat)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"setCustomView", argc, OOJS_ARGV, nil, @"position, orientiation, [weapon]");
+		return NO;
+	}
+	NSString *orientationstr = [[NSString alloc] initWithFormat:@"%f %f %f %f",orientation.w,orientation.x,orientation.y,orientation.z];
+
+	[viewData setObject:positionstr forKey:@"view_position"];
+	[viewData setObject:orientationstr forKey:@"view_orientation"];
+
+/*	if (argc > 2)
+	{
+		NSString* facing = OOStringFromJSValue(context,OOJS_ARGV[2]);
+		[viewData setObject:facing forKey:@"weapon_facing"];
+		} */
+
+	[player setCustomViewDataFromDictionary:viewData];
+	[player noteSwitchToView:VIEW_CUSTOM fromView:VIEW_CUSTOM];
+
+	[positionstr release];
+	[orientationstr release];
+
+	OOJS_RETURN_BOOL(YES);
 	OOJS_NATIVE_EXIT
 }
 
