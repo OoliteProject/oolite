@@ -6763,17 +6763,14 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setCommodityForPod:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount
 {
-	if (co_type != COMMODITY_UNDEFINED)
-	{
-		// pod content should never be greater than 1 ton or this will give cargo counting problems elsewhere in the code.
-		// so do first a mass check for cargo added by script/plist.
-		OOMassUnit	unit = [UNIVERSE unitsForCommodity:co_type];
-		if (unit == UNITS_TONS) co_amount = 1;
-		else if (unit == UNITS_KILOGRAMS && co_amount > 1000) co_amount = 1000;
-		else if (unit == UNITS_GRAMS && co_amount > 1000000) co_amount = 1000000;
-		commodity_type = co_type;
-		commodity_amount = co_amount;
-	}
+	// pod content should never be greater than 1 ton or this will give cargo counting problems elsewhere in the code.
+	// so do first a mass check for cargo added by script/plist.
+	OOMassUnit	unit = [UNIVERSE unitsForCommodity:co_type];
+	if (unit == UNITS_TONS && co_amount > 1) co_amount = 1;
+	else if (unit == UNITS_KILOGRAMS && co_amount > 1000) co_amount = 1000;
+	else if (unit == UNITS_GRAMS && co_amount > 1000000) co_amount = 1000000;
+	commodity_type = co_type;
+	commodity_amount = co_amount;
 }
 
 
@@ -10524,15 +10521,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:scoopedMS forCount:4];
 					}
+					[other setCommodityForPod:COMMODITY_UNDEFINED andAmount:0];
 					co_amount = 0;
-					co_type = 0;
+					co_type = COMMODITY_UNDEFINED;
 				}
 			}
 			break;
 		
 		default :
 			co_amount = 0;
-			co_type = 0;
+			co_type = COMMODITY_UNDEFINED;
 			break;
 	}
 	
@@ -10544,7 +10542,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		Fix 2: catch NSNotFound here and substitute random cargo type.
 		-- Ahruman 20070714
 	*/
-	if (co_type == COMMODITY_UNDEFINED)
+	if (co_type == COMMODITY_UNDEFINED && co_amount > 0)
 	{
 		co_type = [UNIVERSE getRandomCommodity];
 		co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];
