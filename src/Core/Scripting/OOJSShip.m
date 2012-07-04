@@ -165,6 +165,11 @@ enum
 	kShip_isThargoid,			// is thargoid, boolean, read-only
 	kShip_isTrader,				// is trader, boolean, read-only
 	kShip_isWeapon,				// is missile or mine, boolean, read-only
+	kShip_laserHeatLevel,					// active laser temperature, float, read-only
+	kShip_laserHeatLevelAft,					// aft laser temperature, float, read-only
+	kShip_laserHeatLevelForward,					// fore laser temperature, float, read-only
+	kShip_laserHeatLevelPort,					// port laser temperature, float, read-only
+	kShip_laserHeatLevelStarboard,					// starboard laser temperature, float, read-only
 	kShip_lightsActive,			// flasher/shader light flag, boolean, read/write
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
 	kShip_maxThrust,			// maximum thrust, double, read-only
@@ -264,6 +269,11 @@ static JSPropertySpec sShipProperties[] =
 	{ "isThargoid",				kShip_isThargoid,			OOJS_PROP_READONLY_CB },
 	{ "isTrader",				kShip_isTrader,				OOJS_PROP_READONLY_CB },
 	{ "isWeapon",				kShip_isWeapon,				OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevel",					kShip_laserHeatLevel,					OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevelAft",					kShip_laserHeatLevelAft,					OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevelForward",					kShip_laserHeatLevelForward,					OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevelPort",					kShip_laserHeatLevelPort,					OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevelStarboard",					kShip_laserHeatLevelStarboard,					OOJS_PROP_READONLY_CB },
 	{ "lightsActive",			kShip_lightsActive,			OOJS_PROP_READWRITE_CB },
 	{ "maxSpeed",				kShip_maxSpeed,				OOJS_PROP_READONLY_CB },
 	{ "maxThrust",				kShip_maxThrust,			OOJS_PROP_READONLY_CB },
@@ -692,13 +702,28 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity weaponTypeForFacing:WEAPON_FACING_AFT];
 			break;
 		
-		case kShip_portWeapon:		// for future expansion
+		case kShip_portWeapon:
 			result = [entity weaponTypeForFacing:WEAPON_FACING_PORT];
 			break;
 		
-		case kShip_starboardWeapon: // for future expansion
+		case kShip_starboardWeapon:
 			result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD];
 			break;
+
+		case kShip_laserHeatLevel:
+			return JS_NewNumberValue(context, [entity laserHeatLevel], value);
+
+		case kShip_laserHeatLevelAft:
+			return JS_NewNumberValue(context, [entity laserHeatLevelAft], value);
+
+		case kShip_laserHeatLevelForward:
+			return JS_NewNumberValue(context, [entity laserHeatLevelForward], value);
+
+		case kShip_laserHeatLevelPort:
+			return JS_NewNumberValue(context, [entity laserHeatLevelPort], value);
+
+		case kShip_laserHeatLevelStarboard:
+			return JS_NewNumberValue(context, [entity laserHeatLevelStarboard], value);
 		
 		case kShip_missiles:
 			result = [entity missilesList];

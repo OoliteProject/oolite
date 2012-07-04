@@ -875,6 +875,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (GLfloat)weaponRecoveryTime;
 - (GLfloat)laserHeatLevel;
+- (GLfloat)laserHeatLevelAft;
+- (GLfloat)laserHeatLevelForward;
+- (GLfloat)laserHeatLevelPort;
+- (GLfloat)laserHeatLevelStarboard;
 - (GLfloat)hullHeatLevel;
 - (GLfloat)entityPersonality;
 - (GLint)entityPersonalityInt;

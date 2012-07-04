@@ -3252,6 +3252,37 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (GLfloat)laserHeatLevelAft
+{
+	GLfloat result = aft_weapon_temp / (GLfloat)PLAYER_MAX_WEAPON_TEMP;
+	return OOClamp_0_1_f(result);
+}
+
+
+- (GLfloat)laserHeatLevelForward
+{
+	GLfloat result = forward_weapon_temp / (GLfloat)PLAYER_MAX_WEAPON_TEMP;
+// no need to check subents here
+	return OOClamp_0_1_f(result);
+}
+
+
+- (GLfloat)laserHeatLevelPort
+{
+	GLfloat result = port_weapon_temp / PLAYER_MAX_WEAPON_TEMP;
+	return OOClamp_0_1_f(result);
+}
+
+
+- (GLfloat)laserHeatLevelStarboard
+{
+	GLfloat result = starboard_weapon_temp / PLAYER_MAX_WEAPON_TEMP;
+	return OOClamp_0_1_f(result);
+}
+
+
+
+
 - (GLfloat) dialAltitude
 {
 	if ([self isDocked])  return 0.0f;

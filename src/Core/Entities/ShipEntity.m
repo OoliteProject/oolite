@@ -7865,7 +7865,49 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (GLfloat)laserHeatLevel
 {
-	float result = weapon_temp / NPC_MAX_WEAPON_TEMP;
+	GLfloat result = weapon_temp / NPC_MAX_WEAPON_TEMP;
+	return OOClamp_0_1_f(result);
+}
+
+
+- (GLfloat)laserHeatLevelAft
+{
+	GLfloat result = aft_weapon_temp / NPC_MAX_WEAPON_TEMP;
+	return OOClamp_0_1_f(result);
+}
+
+
+- (GLfloat)laserHeatLevelForward
+{
+	GLfloat result = forward_weapon_temp / NPC_MAX_WEAPON_TEMP;
+	if (forward_weapon_type == WEAPON_NONE) 
+	{ // must check subents
+		OOWeaponType forward_weapon_real_type = WEAPON_NONE;
+		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
+		ShipEntity		*se = nil;
+		while (forward_weapon_real_type == WEAPON_NONE && (se = [subEnum nextObject]))
+		{
+			if (se->forward_weapon_type != WEAPON_NONE)
+			{
+				forward_weapon_real_type = se->forward_weapon_type;
+				result = se->forward_weapon_temp / NPC_MAX_WEAPON_TEMP;
+			}
+		}
+	}
+	return OOClamp_0_1_f(result);
+}
+
+
+- (GLfloat)laserHeatLevelPort
+{
+	GLfloat result = port_weapon_temp / NPC_MAX_WEAPON_TEMP;
+	return OOClamp_0_1_f(result);
+}
+
+
+- (GLfloat)laserHeatLevelStarboard
+{
+	GLfloat result = starboard_weapon_temp / NPC_MAX_WEAPON_TEMP;
 	return OOClamp_0_1_f(result);
 }
 
