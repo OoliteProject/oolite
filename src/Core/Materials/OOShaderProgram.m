@@ -287,7 +287,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 							 key:(NSString *)inKey
 {
 	BOOL					OK = YES;
-	const GLcharARB			*sourceStrings[2] = { "", NULL };
+	const GLcharARB			*sourceStrings[3] = { "", "#line 0\n", NULL };
 	GLhandleARB				vertexShader = NULL_SHADER;
 	GLhandleARB				fragmentShader = NULL_SHADER;
 	
@@ -309,8 +309,8 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 		OOGL(vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB));
 		if (vertexShader != NULL_SHADER)
 		{
-			sourceStrings[1] = [vertexSource UTF8String];
-			OOGL(glShaderSourceARB(vertexShader, 2, sourceStrings, NULL));
+			sourceStrings[2] = [vertexSource UTF8String];
+			OOGL(glShaderSourceARB(vertexShader, 3, sourceStrings, NULL));
 			OOGL(glCompileShaderARB(vertexShader));
 			
 			OK = ValidateShaderObject(vertexShader, vertexName);
@@ -324,8 +324,8 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 		OOGL(fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB));
 		if (fragmentShader != NULL_SHADER)
 		{
-			sourceStrings[1] = [fragmentSource UTF8String];
-			OOGL(glShaderSourceARB(fragmentShader, 2, sourceStrings, NULL));
+			sourceStrings[2] = [fragmentSource UTF8String];
+			OOGL(glShaderSourceARB(fragmentShader, 3, sourceStrings, NULL));
 			OOGL(glCompileShaderARB(fragmentShader));
 			
 			OK = ValidateShaderObject(fragmentShader, fragmentName);
