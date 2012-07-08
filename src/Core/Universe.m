@@ -4913,22 +4913,21 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	[universeRegion clearEntityList];
 	
 	for (i = 0; i < n_entities; i++)
-		[universeRegion checkEntity: sortedEntities[i]];	//	sorts out which region it's in
+	{
+		[universeRegion checkEntity:sortedEntities[i]];	// sorts out which region it's in
+	}
 	
 	[universeRegion findCollisions];
 	
 	// do check for entities that can't see the sun!
 	[universeRegion findShadowedEntities];
-	
 }
 
 
 - (NSString*) collisionDescription
 {
-	if (universeRegion)
-		return	[NSString stringWithFormat:@"p%d - c%d", universeRegion->checks_this_tick, universeRegion->checks_within_range];
-	else
-		return	@"-";
+	if (universeRegion != nil)  return [universeRegion collisionDescription];
+	else  return @"-";
 }
 
 

@@ -100,15 +100,16 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 
 - (id) init
 {
-	self = [super init];
-	
-	aiStack = [[NSMutableArray alloc] init];
-	pendingMessages = [[NSMutableSet alloc] init];
-	
-	nextThinkTime = INFINITY;	// don't think for a while
-	thinkTimeInterval = AI_THINK_INTERVAL;
-	
-	stateMachineName = [[NSString stringWithString:@"<no AI>"] retain];	// no initial brain
+	if ((self = [super init]))
+	{
+		aiStack = [[NSMutableArray alloc] init];
+		pendingMessages = [[NSMutableSet alloc] init];
+		
+		nextThinkTime = INFINITY;	// don't think for a while
+		thinkTimeInterval = AI_THINK_INTERVAL;
+		
+		stateMachineName = @"<no AI>";	// no initial brain
+	}
 	
 	return self;
 }
@@ -116,10 +117,11 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 
 - (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName
 {
-	self = [self init];
-	
-	if (smName != nil)  [self setStateMachine:smName];
-	if (stateName != nil)  currentState = [stateName retain];
+	if ((self = [self init]))
+	{
+		if (smName != nil)  [self setStateMachine:smName];
+		if (stateName != nil)  currentState = [stateName retain];
+	}
 	
 	return self;
 }

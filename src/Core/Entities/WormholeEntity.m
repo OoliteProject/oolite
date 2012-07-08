@@ -279,16 +279,17 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	int i;
 	for (i = 0; i < n_ships; i++)
 	{
-		ShipEntity* ship = (ShipEntity*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"ship"];
-		NSString *shipBeacon = [(NSDictionary *)[shipsInTransit objectAtIndex:i] objectForKey:@"shipBeacon"];
-		double	ship_arrival_time = arrival_time + [(NSNumber*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"time"] doubleValue];
+		NSDictionary *shipInfo = [shipsInTransit objectAtIndex:i];
+		ShipEntity *ship = [shipInfo objectForKey:@"ship"];
+		NSString *shipBeacon = [shipInfo objectForKey:@"shipBeacon"];
+		double	ship_arrival_time = arrival_time + [shipInfo oo_doubleForKey:@"time"];
 		double	time_passed = now - ship_arrival_time;
 		
 		if ([ship status] == STATUS_DEAD) continue; // skip dead ships.
 		
 		if (ship_arrival_time > now)
 		{
-			[shipsStillInTransit addObject:[shipsInTransit objectAtIndex:i]];
+			[shipsStillInTransit addObject:shipInfo];
 		}
 		else
 		{

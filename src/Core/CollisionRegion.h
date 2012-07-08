@@ -28,16 +28,17 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOMaths.h"
 
+
 #define	COLLISION_REGION_BORDER_RADIUS	32000.0f
 #define	COLLISION_MAX_ENTITIES			128
 #define MINIMUM_SHADOWING_ENTITY_RADIUS 75.0
 
-@class	Entity;
+@class Entity;
 
-@interface CollisionRegion : NSObject
+
+@interface CollisionRegion: NSObject
 {
-@public
-
+@private
 	BOOL				isUniverse;			// if YES location is origin and radius is 0.0f
 	
 	int					crid;				// identifier
@@ -45,22 +46,18 @@ MA 02110-1301, USA.
 	GLfloat				radius;				// inner radius of the region
 	GLfloat				border_radius;		// additiønal, border radius of the region (typically 32km or some value > the scanner range)
 
-	int					checks_this_tick;
-	int					checks_within_range;
+	unsigned			checks_this_tick;
+	unsigned			checks_within_range;
 
 	NSMutableArray		*subregions;
-	
-@protected
 	
 	BOOL				isPlayerInRegion;
 	
 	Entity				**entity_array;	// entities within the region
-	int					n_entities;		// number of entities
-	int					max_entities;	// so storage can be expanded
-	
+	unsigned			n_entities;		// number of entities
+	unsigned			max_entities;	// so storage can be expanded
 	
 	CollisionRegion		*parentRegion;
-
 }
 
 - (id) initAsUniverse;
@@ -69,24 +66,17 @@ MA 02110-1301, USA.
 - (void) clearSubregions;
 - (void) addSubregionAtPosition:(Vector) pos withRadius:(GLfloat) rad;
 
-// update routines to check if a position is within the radius or within it's borders
-//
-BOOL positionIsWithinRegion( Vector position, CollisionRegion* region);
-BOOL sphereIsWithinRegion( Vector position, GLfloat rad, CollisionRegion* region);
-BOOL positionIsWithinBorders( Vector position, CollisionRegion* region);
-BOOL positionIsOnBorders( Vector position, CollisionRegion* region);
-NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region);
-
 // collision checking
-//
 - (void) clearEntityList;
-- (void) addEntity:(Entity*) ent;
-//
-- (BOOL) checkEntity:(Entity*) ent;
-//
+- (void) addEntity:(Entity *)ent;
+- (BOOL) checkEntity:(Entity *)ent;
+
 - (void) findCollisions;
 - (void) findShadowedEntities;
 
-- (NSString*) debugOut;
+// Description for FPS HUD
+- (NSString *) collisionDescription;
+
+- (NSString *) debugOut;
 
 @end

@@ -36,87 +36,75 @@ MA 02110-1301, USA.
 
 @implementation CollisionRegion
 
-- (NSString *) description
-{
-	int n_subs = [subregions count];
-	return [NSString stringWithFormat:@"ID: %d, %d subregions, %d ents", crid, n_subs, n_entities];
-}
-
-
 // basic alloc/ dealloc routines
 //
 static int crid_counter = 1;
-//
-- (id) initAsUniverse
+
+
+- (id) init	// Designated initializer.
 {
-	self = [super init];
-	
-	location = kZeroVector;
-	radius = 0.0f;
-	border_radius = 0.0f;
-	isUniverse = YES;
-	isPlayerInRegion = NO;
-	
-	max_entities = COLLISION_MAX_ENTITIES;
-	n_entities = 0;
-	entity_array = (Entity**) malloc( max_entities * sizeof(Entity*));
-	
-	subregions = [[NSMutableArray alloc] initWithCapacity: 32];	// retained
-	
-	parentRegion = nil;
-	
-	crid = crid_counter++;
-	
+	if ((self = [super init]))
+	{
+		max_entities = COLLISION_MAX_ENTITIES;
+		entity_array = (Entity **)malloc(max_entities * sizeof(Entity *));
+		if (entity_array == NULL)
+		{
+			[self release];
+			return nil;
+		}
+		
+		crid = crid_counter++;
+	}
 	return self;
 }
 
 
-- (id) initAtLocation:(Vector) locn withRadius:(GLfloat) rad withinRegion:(CollisionRegion*) otherRegion
+- (id) initAsUniverse
 {
-	self = [super init];
-	
-	location = locn;
-	radius = rad;
-	border_radius = COLLISION_REGION_BORDER_RADIUS;
-	isUniverse = NO;
-	isPlayerInRegion = NO;
-	
-	max_entities = COLLISION_MAX_ENTITIES;
-	n_entities = 0;
-	entity_array = (Entity**) malloc( max_entities * sizeof(Entity*));
-	
-	subregions = [[NSMutableArray alloc] initWithCapacity: 32];	// retained
-	
-	if (otherRegion)
+	if ((self = [self init]))
+	{
+		isUniverse = YES;
+	}
+	return self;
+}
+
+
+- (id) initAtLocation:(Vector)locn withRadius:(GLfloat)rad withinRegion:(CollisionRegion *)otherRegion
+{
+	if ((self = [self init]))
+	{
+		location = locn;
+		radius = rad;
+		border_radius = COLLISION_REGION_BORDER_RADIUS;
 		parentRegion = otherRegion;
-	
-	crid = crid_counter++;
-	
+	}
 	return self;
 }
 
 
 - (void) dealloc
 {
-	if (entity_array)
-		free((void *)entity_array);	// free up the allocated space
-	if (subregions)
-		[subregions release];
+	free(entity_array);
+	DESTROY(subregions);
+	
 	[super dealloc];
+}
+
+
+- (NSString *) description
+{
+	return [NSString stringWithFormat:@"<%@ %p>{ID: %d, %u subregions, %u ents}", [self class], self, crid, [subregions count], n_entities];
 }
 
 
 - (void) clearSubregions
 {
-	int i;
-	int n_subs = [subregions count];
-	for (i = 0; i < n_subs; i++)
-		[(CollisionRegion*)[subregions objectAtIndex: i] clearSubregions];
+	[subregions makeObjectsPerformSelector:@selector(clearSubregions)];
 	[subregions removeAllObjects];
 }
 
 
-- (void) addSubregionAtPosition:(Vector) pos withRadius:(GLfloat) rad
+- (void) addSubregionAtPosition:(Vector)pos withRadius:(GLfloat)rad
 {
 	// check if this can be fitted within any of the subregions
 	//
@@ -124,14 +112,14 @@ static int crid_counter = 1;
 	int n_subs = [subregions count];
 	for (i = 0; i < n_subs; i++)
 	{
-		CollisionRegion* sub = (CollisionRegion*)[subregions objectAtIndex: i];
-		if (sphereIsWithinRegion( pos, rad, sub))
+		CollisionRegion *sub = (CollisionRegion *)[subregions objectAtIndex:i];
+		if (sphereIsWithinRegion(pos, rad, sub))
 		{
 			// if it fits, put it in!
-			[sub addSubregionAtPosition: pos withRadius: rad];
+			[sub addSubregionAtPosition:pos withRadius:rad];
 			return;
 		}
-		if (positionIsWithinRegion( pos, sub))
+		if (positionIsWithinRegion(pos, sub))
 		{
 			// crosses the border of this region already - leave it out
 			return;
@@ -139,203 +127,205 @@ static int crid_counter = 1;
 	}
 	// no subregion fit - move on...
 	//
-	CollisionRegion* sub = [[CollisionRegion alloc] initAtLocation: pos withRadius: rad withinRegion: self];
+	CollisionRegion *sub = [[CollisionRegion alloc] initAtLocation:pos withRadius:rad withinRegion:self];
+	if (subregions == nil)  subregions = [[NSMutableArray alloc] initWithCapacity:32];
 	[subregions addObject:sub];
 	[sub release];
 }
 
 
-// update routines to check if a position is within the radius or within it's borders
+// update routines to check if a position is within the radius or within its borders
 //
-BOOL positionIsWithinRegion( Vector position, CollisionRegion* region)
+static BOOL positionIsWithinRegion(Vector position, CollisionRegion *region)
 {
-	if (!region)
-		return NO;
-		
-	if (region->isUniverse)
-		return YES;
+	if (region == nil)  return NO;
+	if (region->isUniverse)  return YES;
 	
 	Vector loc = region->location;
 	GLfloat r1 = region->radius;
 	
 	 if ((position.x < loc.x - r1)||(position.x > loc.x + r1)||
-		(position.y < loc.y - r1)||(position.y > loc.y + r1)||
-		(position.z < loc.z - r1)||(position.z > loc.z + r1))
-		return NO;
+		 (position.y < loc.y - r1)||(position.y > loc.y + r1)||
+		 (position.z < loc.z - r1)||(position.z > loc.z + r1))
+	 {
+		 return NO;
+	 }
 	
 	return YES;
 }
 
 
-BOOL sphereIsWithinRegion( Vector position, GLfloat rad, CollisionRegion* region)
+static BOOL sphereIsWithinRegion(Vector position, GLfloat rad, CollisionRegion *region)
 {
-	if (!region)
-		return NO;
-		
-	if (region->isUniverse)
-		return YES;
+	if (region == nil)  return NO;
+	if (region->isUniverse)  return YES;
 	
 	Vector loc = region->location;
 	GLfloat r1 = region->radius;
 	
 	 if ((position.x - rad < loc.x - r1)||(position.x + rad > loc.x + r1)||
-		(position.y - rad < loc.y - r1)||(position.y + rad > loc.y + r1)||
-		(position.z - rad < loc.z - r1)||(position.z + rad > loc.z + r1))
-		return NO;
+		 (position.y - rad < loc.y - r1)||(position.y + rad > loc.y + r1)||
+		 (position.z - rad < loc.z - r1)||(position.z + rad > loc.z + r1))
+	 {
+		 return NO;
+	 }
 	
 	return YES;
 }
 
 
-BOOL positionIsWithinBorders( Vector position, CollisionRegion* region)
+static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region)
 {
-	if (!region)
-		return NO;
-		
-	if (region->isUniverse)
-		return YES;
+	if (region == nil)  return NO;
+	if (region->isUniverse)  return YES;
 	
 	Vector loc = region->location;
 	GLfloat r1 = region->radius + region->border_radius;
 	
 	 if ((position.x < loc.x - r1)||(position.x > loc.x + r1)||
-		(position.y < loc.y - r1)||(position.y > loc.y + r1)||
-		(position.z < loc.z - r1)||(position.z > loc.z + r1))
-		return NO;
+		 (position.y < loc.y - r1)||(position.y > loc.y + r1)||
+		 (position.z < loc.z - r1)||(position.z > loc.z + r1))
+	 {
+		 return NO;
+	 }
 	
 	return YES;
 }
 
 
-BOOL positionIsOnBorders( Vector position, CollisionRegion* region)
+#if 0
+// These were lying about unused when I found them, honest guv. -- Ahruman 2012-07-08
+
+static BOOL positionIsOnBorders(Vector position, CollisionRegion *region)
 {
-	if (!region)
-		return NO;
-		
-	if (region->isUniverse)
-		return NO;
+	if (region == nil)  return NO;
+	if (region->isUniverse)  return NO;
 	
 	Vector loc = region->location;
 	GLfloat r2 = region->radius + region->border_radius;
 	
-	 if ((position.x < loc.x - r2)||(position.x > loc.x + r2)||
+	if ((position.x < loc.x - r2)||(position.x > loc.x + r2)||
 		(position.y < loc.y - r2)||(position.y > loc.y + r2)||
 		(position.z < loc.z - r2)||(position.z > loc.z + r2))
+	{
 		return NO;
+	}
 
-	return (!positionIsWithinRegion( position, region));
+	return !positionIsWithinRegion(position, region);
 }
 
 
-NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
+static NSArray *subregionsContainingPosition(Vector position, CollisionRegion *region)
 {
-	NSArray* subs = region->subregions;
-	NSMutableArray* result = [NSMutableArray array];	// autoreleased
+	NSArray *subs = region->subregions;
+	NSMutableArray *result = [NSMutableArray array];	// autoreleased
 	
-	if (!subs)
-		return result;	// empty array
-	
-	int i;
-	int n_subs = [subs count];
+	int i, n_subs = [subs count];
 	for (i = 0; i < n_subs; i++)
-		if (positionIsWithinBorders( position, (CollisionRegion*)[subs objectAtIndex: i]))
-			[result addObject: [subs objectAtIndex: i]];
+	{
+		if (positionIsWithinBorders(position, (CollisionRegion *)[subs objectAtIndex:i]))
+		{
+			[result addObject:[subs objectAtIndex:i]];
+		}
+	}
 	return result;
 }
+#endif
 
 
 // collision checking
 //
 - (void) clearEntityList
 {
+	[subregions makeObjectsPerformSelector:@selector(clearEntityList)];
 	n_entities = 0;
-	int i;
-	int n_subs = [subregions count];
-	for (i = 0; i < n_subs; i++)
-		[(CollisionRegion*)[subregions objectAtIndex: i] clearEntityList];
 	isPlayerInRegion = NO;
 }
 
 
-- (void) addEntity:(Entity*) ent
+- (void) addEntity:(Entity *)ent
 {
 	// expand if necessary
 	//	
 	if (n_entities == max_entities)
 	{
 		max_entities = 1 + max_entities * 2;
-		Entity** new_store = (Entity**) malloc( max_entities * sizeof(Entity*));
-		int i;
-		for (i = 0; i < n_entities; i++)
-			new_store[i] = entity_array[i];
-		free( (void*)entity_array);
+		Entity **new_store = (Entity **)realloc(entity_array, max_entities * sizeof(Entity *));
+		if (new_store == NULL)
+		{
+			[NSException raise:NSMallocException format:@"Not enough memory to grow collision region member list."];
+		}
+		
 		entity_array = new_store;
 	}
 	
-	isPlayerInRegion |= (ent->isPlayer);
+	if ([ent isPlayer])  isPlayerInRegion = YES;
 	entity_array[n_entities++] = ent;
 }
 
 
-- (BOOL) checkEntity:(Entity*) ent
+- (BOOL) checkEntity:(Entity *)ent
 {
 	Vector position = ent->position;
 	
 	// check subregions
-	BOOL foundRegion = NO;
-	int n_subs = [subregions count];
-	int i;
+	int i, n_subs = [subregions count];
 	for (i = 0; i < n_subs; i++)
 	{
-		CollisionRegion* sub = (CollisionRegion*)[subregions objectAtIndex:i];
-		if (positionIsWithinBorders( position, sub))
-			foundRegion |= [sub checkEntity:ent];
+		CollisionRegion *sub = [subregions objectAtIndex:i];
+		if (positionIsWithinBorders(position, sub) && [sub checkEntity:ent])
+		{
+			return YES;
+		}
 	}
-	if (foundRegion)
-		return YES;	// it's in a subregion so no further action is neccesary
 	
-	if (!positionIsWithinBorders( position, self))
+	if (!positionIsWithinBorders(position, self))
+	{
 		return NO;
+	}
 	
-	[self addEntity: ent];
-	[ent setCollisionRegion: self];
+	[self addEntity:ent];
+	[ent setCollisionRegion:self];
 	return YES;
 }
 
 
 - (void) findCollisions
 {
+	// test for collisions in each subregion
+	[subregions makeObjectsPerformSelector:@selector(findCollisions)];
+	
+	// reject trivial cases
+	if (n_entities < 2)  return;
+	
 	//
 	// According to Shark, when this was in Universe this was where Oolite spent most time!
 	//
-	Entity *e1,*e2;
-	Vector p1, p2;
-	double dist2, r1, r2, r0, min_dist2;
-	int i;
-	Entity*	entities_to_test[n_entities];
-	//
-	
-	// reject trivial cases
-	//
-	if (n_entities < 2)
-		return;
+	Entity		*e1, *e2;
+	Vector		p1, p2;
+	double		dist2, r1, r2, r0, min_dist2;
+	unsigned	i;
+	Entity		*entities_to_test[n_entities];
 	
 	// only check unfiltered entities
-	int n_entities_to_test = 0;
+	unsigned n_entities_to_test = 0;
 	for (i = 0; i < n_entities; i++)
 	{
 		e1 = entity_array[i];
 		if (!(e1->collisionTestFilter))
+		{
 			entities_to_test[n_entities_to_test++] = e1;
+		}
 	}
 	
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_COLLISIONS)
+	{
 		OOLog(@"collisionRegion.debug", @"DEBUG in collision region %@ testing %d out of %d entities", self, n_entities_to_test, n_entities);
+	}
 #endif
 	
-	if (n_entities_to_test < 2)
-		return;
+	if (n_entities_to_test < 2)  return;
 
 	//	clear collision variables
 	//
@@ -343,23 +333,16 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	{
 		e1 = entities_to_test[i];
 		if (e1->hasCollided)
+		{
 			[[e1 collisionArray] removeAllObjects];
-		e1->hasCollided = NO;
+			e1->hasCollided = NO;
+		}
 		if (e1->isShip)
+		{
 			[(ShipEntity*)e1 setProximity_alert:nil];
+		}
 		e1->collider = nil;
 	}
-	
-	// test for collisions in each subregion
-	//
-	/* There are never subregions created in the current code, so skip this check for now.
-	 
-	int n_subs = [subregions count];
-	for (i = 0; i < n_subs; i++)
-		[(CollisionRegion*)[subregions objectAtIndex: i] findCollisions];
-	 
-	*/
-	//
 	
 	checks_this_tick = 0;
 	checks_within_range = 0;
@@ -378,10 +361,9 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 		{
 			checks_this_tick++;
 			
-			p2 = e2->position;
+			p2 = vector_subtract(e2->position, p1);
 			r2 = e2->collision_radius;
 			r0 = r1 + r2;
-			p2 = vector_subtract(p2, p1);
 			dist2 = magnitude2(p2);
 			min_dist2 = r0 * r0;
 			if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
@@ -395,7 +377,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 #endif
 				checks_within_range++;
 				
-				if ((e1->isShip) && (e2->isShip))
+				if (e1->isShip && e2->isShip)
 				{
 					if ((dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) || (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1))
 					{
@@ -409,36 +391,54 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 					
 					if (e1->isStation)
 					{
-						StationEntity* se1 = (StationEntity*) e1;
-						if ([se1 shipIsInDockingCorridor: (ShipEntity*)e2])
+						StationEntity* se1 = (StationEntity *)e1;
+						if ([se1 shipIsInDockingCorridor:(ShipEntity *)e2])
+						{
 							collision = NO;
+						}
 						else
-							collision = [e1 checkCloseCollisionWith: e2];
+						{
+							collision = [e1 checkCloseCollisionWith:e2];
+						}
 					}
 					else if (e2->isStation)
 					{
-						StationEntity* se2 = (StationEntity*) e2;
-						if ([se2 shipIsInDockingCorridor: (ShipEntity*)e1])
+						StationEntity* se2 = (StationEntity *)e2;
+						if ([se2 shipIsInDockingCorridor:(ShipEntity *)e1])
+						{
 							collision = NO;
+						}
 						else
-							collision = [e2 checkCloseCollisionWith: e1];
+						{
+							collision = [e2 checkCloseCollisionWith:e1];
+						}
 					}
 					else
-						collision = [e1 checkCloseCollisionWith: e2];
+					{
+						collision = [e1 checkCloseCollisionWith:e2];
+					}
 				
 					if (collision)
 					{
 						// now we have no need to check the e2-e1 collision
 						if (e1->collider)
+						{
 							[[e1 collisionArray] addObject:e1->collider];
+						}
 						else
+						{
 							[[e1 collisionArray] addObject:e2];
+						}
 						e1->hasCollided = YES;
-						//
+						
 						if (e2->collider)
+						{
 							[[e2 collisionArray] addObject:e2->collider];
+						}
 						else
+						{
 							[[e2 collisionArray] addObject:e1];
+						}
 						e2->hasCollided = YES;
 					}
 				}
@@ -535,58 +535,59 @@ static BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntity *the_
 
 - (void) findShadowedEntities
 {
+	// reject trivial cases
+	if (n_entities < 2)  return;
+	
 	//
 	// Copy/pasting the collision code to detect occlusion!
 	//
-	Entity* e1;
-	int i,j;
+	unsigned i, j;
 	
 	if ([UNIVERSE reducedDetail])  return;	// don't do this in reduced detail mode
 	
 	OOSunEntity* the_sun = [UNIVERSE sun];
 	
-	if (!the_sun)
+	if (the_sun == nil)
+	{
 		return;	// sun is required
-		
-	//
-	// get a list of planet entities because they can shade across regions
-	int			ent_count =		UNIVERSE->n_entities;
-	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	Entity*		planets[ent_count];
-	int n_planets = 0;
-	Entity*		ships[ent_count];
-	int n_ships = 0;
+	}
+	
+	unsigned	ent_count =	UNIVERSE->n_entities;
+	Entity		**uni_entities = UNIVERSE->sortedEntities;	// grab the public sorted list
+	Entity		*planets[ent_count];
+	unsigned	n_planets = 0;
+	Entity		*ships[ent_count];
+	unsigned	n_ships = 0;
+	
 	for (i = 0; i < ent_count; i++)
 	{
-		if ([uni_entities[i] isPlanet] && uni_entities[i]->isSunlit)
-			planets[n_planets++] = uni_entities[i];		//	don't bother retaining - nothing will happen to them!
-
-// and a list of shipentities large enough that they might cast a noticeable shadow
-// if we can't see it, it can't be shadowing anything important
-		else if ([uni_entities[i] isShip] && uni_entities[i]->isSunlit && [uni_entities[i] isVisible] && uni_entities[i]->collision_radius >= MINIMUM_SHADOWING_ENTITY_RADIUS)
+		if (uni_entities[i]->isSunlit)
 		{
-			ships[n_ships++] = uni_entities[i];		//	don't bother retaining - nothing will happen to them!
+			// get a list of planet entities because they can shade across regions
+			if ([uni_entities[i] isPlanet])
+			{
+				//	don't bother retaining - nothing will happen to them!
+				planets[n_planets++] = uni_entities[i];
+			}
+			
+			// and a list of shipentities large enough that they might cast a noticeable shadow
+			// if we can't see it, it can't be shadowing anything important
+			else if ([uni_entities[i] isShip] &&
+					 [uni_entities[i] isVisible] && 
+					 uni_entities[i]->collision_radius >= MINIMUM_SHADOWING_ENTITY_RADIUS)
+			{
+				ships[n_ships++] = uni_entities[i];		//	don't bother retaining - nothing will happen to them!
+			}
 		}
 	}
 	
-	
-	// reject trivial cases
-	//
-	if (n_entities < 2)
-		return;
-	
 	// test for shadows in each subregion
-	//
-	int n_subs = [subregions count];
-	for (i = 0; i < n_subs; i++)
-		[[subregions objectAtIndex: i] findShadowedEntities];
-	//
+	[subregions makeObjectsPerformSelector:@selector(findShadowedEntities)];
 	
 	// test each entity in this region against the others
-	//
 	for (i = 0; i < n_entities; i++)
 	{
-		e1 = entity_array[i];
+		Entity *e1 = entity_array[i];
 		if (![e1 isVisible])
 		{
 			continue; // don't check shading of objects we can't see
@@ -598,12 +599,14 @@ static BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntity *the_
 			e1->shadingEntityID = NO_TARGET;
 			continue;	// don't check shading in demo mode
 		}
-		Entity* occluder = nil;
+		Entity *occluder = nil;
 		if (e1->isSunlit == NO)
 		{
 			occluder = [UNIVERSE entityForUniversalID:e1->shadingEntityID];
-			if (occluder)
+			if (occluder != nil)
+			{
 				occluder_moved = occluder->hasMoved;
+			}
 		}
 		if (([e1 isShip] ||[e1 isPlanet]) && (e1->hasMoved || occluder_moved))
 		{
@@ -612,39 +615,47 @@ static BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntity *the_
 			//
 			// check demo mode here..
 			if ([e1 isPlayer] && ([(PlayerEntity*)e1 showDemoShips]))
+			{
 				continue;	// don't check shading in demo mode
-			//
+			}
+			
 			// test last occluder (most likely case)
-			//
-			double occlusionNumber;
 			if (occluder)
 			{
-				if (entityByEntityOcclusionToValue(e1, occluder, the_sun, &occlusionNumber))	
+				if (testEntityOccludedByEntity(e1, occluder, the_sun))	
 				{
 					e1->isSunlit = NO;
 					e1->shadingEntityID = [occluder universalID];
 				}
 			}
-			if (!e1->isSunlit) // no point in continuing tests
+			if (!e1->isSunlit)
+			{
+				// no point in continuing tests
 				continue;
-			//
-			//	test planets
-			//
+			}
+			
+			// test planets
 			for (j = 0; j < n_planets; j++)
 			{
+				double occlusionNumber;
 				if (entityByEntityOcclusionToValue(e1, planets[j], the_sun, &occlusionNumber))
 				{
 					e1->isSunlit = NO;
 					e1->shadingEntityID = [planets[j] universalID];
 					break;
 				}
-				if (EXPECT_NOT([e1 isPlayer])) ((PlayerEntity *)e1)->occlusion_dial = occlusionNumber;
+				if ([e1 isPlayer])
+				{
+					((PlayerEntity *)e1)->occlusion_dial = occlusionNumber;
+				}
 			}
-			if (!e1->isSunlit) // no point in continuing tests
+			if (!e1->isSunlit)
+			{
+				// no point in continuing tests
 				continue;
-			//
+			}
+			
 			// test local entities
-			//
 			for (j = 0; j < n_ships; j++)
 			{
 				if (testEntityOccludedByEntity(e1, ships[j], the_sun))
@@ -659,13 +670,21 @@ static BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntity *the_
 }
 
 
-- (NSString*) debugOut
+- (NSString *) collisionDescription
+{
+	return [NSString stringWithFormat:@"p%u - c%u", checks_this_tick, checks_within_range];
+}
+
+
+- (NSString *) debugOut
 {
 	int i;
 	int n_subs = [subregions count];
-	NSMutableString* result = [[NSMutableString alloc] initWithFormat:@"%d:", n_entities];
+	NSMutableString *result = [[NSMutableString alloc] initWithFormat:@"%d:", n_entities];
 	for (i = 0; i < n_subs; i++)
+	{
 		[result appendString:[(CollisionRegion*)[subregions objectAtIndex:i] debugOut]];
+	}
 	return [result autorelease];
 }
 

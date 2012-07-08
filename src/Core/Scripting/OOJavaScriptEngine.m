@@ -876,7 +876,7 @@ NSString *OOJSDescribeLocation(JSContext *context, JSStackFrame *stackFrame)
 	const char	*fileName;
 	OOUInteger	lineNo;
 	GetLocationNameAndLine(context, stackFrame, &fileName, &lineNo);
-	if (fileName == NULL)  return NO;
+	if (fileName == NULL)  return nil;
 	
 	// If this stops working, we probably need to switch to strcmp().
 	if (fileName == sConsoleScriptName && lineNo >= sConsoleEvalLineNo)  return @"<console input>";
