@@ -451,17 +451,16 @@ static NSArray *subregionsContainingPosition(Vector position, CollisionRegion *r
 
 
 // an outValue of 1 means it's just being occluded.
-static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *the_sun, double *outValue)
+static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *the_sun, float *outValue)
 {
-	*outValue = 1.5;	// initial 'fully lit' value
-	// simple tests
-//	if (EXPECT_NOT(e1 == e2 || e2 == the_sun))
+	*outValue = 1.5f;	// initial 'fully lit' value
+	
 	if (EXPECT_NOT(e1 == e2))
-		return NO;	// you can't shade self
-	// (no longer needed; we rule out the others before this function)
-//	if (![e2 isShip] && ![e2 isPlanet])
-//		return NO;	// only ships and planets shade.
-	//
+	{
+		// you can't shade self
+		return NO;
+	}
+	
 	GLfloat cr_e2;
 	if ([e2 isShip])
 	{
@@ -473,9 +472,12 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 		cr_e2 = e2->collision_radius;
 	}
 	if (cr_e2 < e1->collision_radius)
-		return NO;	// smaller can't shade bigger
-
-		// tested in construction of e2 list
+	{
+		// smaller can't shade bigger
+		return NO;
+	}
+	
+	// tested in construction of e2 list
 //	if (e2->isSunlit == NO)
 //		return NO;	// things already /in/ shade can't shade things more.
 	//
@@ -483,52 +485,53 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	GLfloat d2_sun = distance2(e1->position, the_sun->position);
 	GLfloat d2_e2sun = distance2(e2->position, the_sun->position);
 	if (d2_e2sun > d2_sun)
-		return NO;	// you are nearer the sun than the potential occluder, so it can't shade you
-
-	//
+	{
+		// you are nearer the sun than the potential occluder, so it can't shade you
+		return NO;
+	}
+	
 	GLfloat d2_e2 = distance2( e1->position, e2->position);
 	GLfloat cr_sun = the_sun->collision_radius;
-	//
+	
 	GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
 	if (cr_e2 * cr_e2 < cr2_sun_scaled)
-		return NO;	// if solar disc projected to the distance of e2 > collision radius it can't be shaded by e2
-	//
+	{
+		// if solar disc projected to the distance of e2 > collision radius it can't be shaded by e2
+		return NO;
+	}
+	
 	// check angles subtended by sun and occluder
 	// double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
 	// double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
 	// find the difference between the angles subtended by occluder and sun
-	double theta_diff = asin(cr_e2 / sqrt(d2_e2)) - asin(cr_sun / sqrt(d2_sun));
+	float theta_diff = asinf(cr_e2 / sqrtf(d2_e2)) - asinf(cr_sun / sqrtf(d2_sun));
 	
 	Vector p_sun = the_sun->position;
 	Vector p_e2 = e2->position;
 	Vector p_e1 = e1->position;
-	Vector v_sun = make_vector( p_sun.x - p_e1.x, p_sun.y - p_e1.y, p_sun.z - p_e1.z);
-	if (v_sun.x||v_sun.y||v_sun.z)
-		v_sun = vector_normal(v_sun);
-	else
-		v_sun.z = 1.0f;
-	//
-	Vector v_e2 = make_vector( p_e2.x - p_e1.x, p_e2.y - p_e1.y, p_e2.z - p_e1.z);
-	if (v_e2.x||v_e2.y||v_e2.z)
-		v_e2 = vector_normal(v_e2);
-	else
-		v_e2.x = 1.0f;
-	double phi = acos( dot_product( v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint
+	Vector v_sun = vector_subtract(p_sun, p_e1);
+	v_sun = vector_normal_or_zbasis(v_sun);
+	
+	Vector v_e2 = vector_subtract(p_e2, p_e1);
+	v_e2 = vector_normal_or_xbasis(v_e2);
+	
+	float phi = acosf(dot_product(v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint
 	*outValue = (phi / theta_diff);	// 1 means just occluded, < 1 means in shadow
-	//
-	//if (theta_sun + phi > theta_e2)
+	
 	if (phi > theta_diff)
-		return NO;	// sun is not occluded
-	//
+	{
+		// sun is not occluded
+		return NO;
+	}
+	
 	// all tests done e1 is in shade!
-	//
 	return YES;
 }
 
 
-static BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntity *the_sun)
+static inline BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntity *the_sun)
 {
-	double tmp;		// we're not interested in the amount of occlusion just now.
+	float tmp;		// we're not interested in the amount of occlusion just now.
 	return entityByEntityOcclusionToValue(e1, e2, the_sun, &tmp);
 }
 
@@ -637,7 +640,7 @@ static BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntity *the_
 			// test planets
 			for (j = 0; j < n_planets; j++)
 			{
-				double occlusionNumber;
+				float occlusionNumber;
 				if (entityByEntityOcclusionToValue(e1, planets[j], the_sun, &occlusionNumber))
 				{
 					e1->isSunlit = NO;
