@@ -91,14 +91,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	}
 #endif
 	
-	if (!(self = [super initWithFrame:frameRect]))  return nil;
-	
-	if ([self respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)])
-	{
-		// Enable high resolution on Retina displays.
-		[self setWantsBestResolutionOpenGLSurface:YES];
-	}
-	
 	// Pixel Format Attributes for the View-based (non-FullScreen) NSOpenGLContext
 	NSOpenGLPixelFormatAttribute attrs[] =
 	{
@@ -136,21 +128,29 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	// Create our non-FullScreen pixel format.
 	NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] autorelease];
 	
-	self = [super initWithFrame:frameRect pixelFormat:pixelFormat];
-	
-	virtualJoystickPosition = NSMakePoint(0.0,0.0);
-	if ([self respondsToSelector:@selector(setAcceptsTouchEvents:)])
+	if ((self = [super initWithFrame:frameRect pixelFormat:pixelFormat]))
 	{
-		[self setAcceptsTouchEvents:YES];
-	}
-	
-	typedString = [[NSMutableString alloc] initWithString:@""];
-	allowingStringInput = gvStringInputNo;
-	isAlphabetKeyDown = NO;
+		if ([self respondsToSelector:@selector(setAcceptsTouchEvents:)])
+		{
+			[self setAcceptsTouchEvents:YES];
+		}
 		
-	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
-	
-	_virtualScreen = [[self openGLContext] currentVirtualScreen];
+		if ([self respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)])
+		{
+			// Enable high resolution on Retina displays.
+			[self setWantsBestResolutionOpenGLSurface:YES];
+		}
+		
+		virtualJoystickPosition = NSMakePoint(0.0,0.0);
+		
+		typedString = [[NSMutableString alloc] initWithString:@""];
+		allowingStringInput = gvStringInputNo;
+		isAlphabetKeyDown = NO;
+			
+		timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
+		
+		_virtualScreen = [[self openGLContext] currentVirtualScreen];
+	}
 	
 	return self;
 }
