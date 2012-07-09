@@ -34,6 +34,11 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 
 
+static BOOL positionIsWithinRegion(Vector position, CollisionRegion *region);
+static BOOL sphereIsWithinRegion(Vector position, GLfloat rad, CollisionRegion *region);
+static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region);
+
+
 @implementation CollisionRegion
 
 // basic alloc/ dealloc routines
