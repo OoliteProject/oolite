@@ -192,6 +192,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return @"TOO_BIG_TO_DOCK";
 	}
 	
+/* not any more: StationEntity checks this on a per-dock basis
+
 	// If the ship is not on its docking approach and the player has
 	// requested or even been granted docking clearance, then tell the
 	// ship to wait.
@@ -207,6 +209,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		return @"TRY_AGAIN_LATER";
 	}
+*/
 
 	return @"DOCKING_POSSIBLE";
 }
@@ -502,24 +505,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // safe to do this for now, as it just clears the ship from the docking queue
 	[self abortDockingForShip:ship];
 
-	PlayerEntity *player = PLAYER;
-	BOOL isDockingStation = ([self parentEntity] == [player getTargetDockStation]);
-	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
-			[player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED)
-	{
-		if ([shipsOnApproach count])
-		{
-			[[self parentEntity] sendExpandedMessage:[NSString stringWithFormat:
-				DESC(@"station-docking-clearance-holding-d-ships-approaching"),
-				[shipsOnApproach count]+1] toShip:player];
-		}
-		else if([launchQueue count])
-		{
-			[[self parentEntity] sendExpandedMessage:[NSString stringWithFormat:
-				DESC(@"station-docking-clearance-holding-d-ships-departing"),
-				[launchQueue count]+1] toShip:player];
-		}
-	}
+// avoid clashes with outgoing ships
+	last_launch_time = [UNIVERSE getTime];
 
 }
 
@@ -929,7 +916,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (void)setDimensionsAndCorridor
+- (void)setDimensionsAndCorridor:(BOOL)docking:(BOOL)launching
 {
 
 	BoundingBox bb = [self boundingBox];
@@ -947,6 +934,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	port_corridor = start.z - position.z;
 
+	allow_docking = docking;
+	allow_launching = launching;
 }
 
 

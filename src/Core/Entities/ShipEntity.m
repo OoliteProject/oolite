@@ -840,7 +840,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
 	{
-		[(DockEntity *)subentity setDimensionsAndCorridor];
+		BOOL allow_docking = [subentDict oo_boolForKey:@"allow_docking" defaultValue:YES];
+		BOOL allow_launching = [subentDict oo_boolForKey:@"allow_launching" defaultValue:YES];
+
+		[(DockEntity *)subentity setDimensionsAndCorridor:allow_docking:allow_launching];
+		[subentity setDisplayName:[subentDict oo_stringForKey:@"dock_label" defaultValue:@"the docking bay"]];
 	}
 
 	[subentity release];

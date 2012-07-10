@@ -51,6 +51,7 @@ typedef enum
 	NSMutableDictionary		*shipsOnApproach;
 	NSMutableDictionary		*shipsOnHold;
 	NSMutableArray			*launchQueue;
+	DockEntity          *player_reserved_dock;
 	double					last_launch_time;
 	double					approach_spacing;
 	OOStationAlertLevel		alertLevel;
@@ -158,7 +159,9 @@ typedef enum
 
 - (void) abortDockingForShip:(ShipEntity *) ship;
 
+- (BOOL) hasMultipleDocks;
 - (BOOL) hasClearDock;
+- (DockEntity*) getClearDock;
 - (unsigned) currentlyInLaunchingQueues;
 - (unsigned) currentlyInDockingQueues;
 

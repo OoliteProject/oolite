@@ -1392,7 +1392,21 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	[result setObject:subentityKey forKey:@"subentity_key"];
 	[result oo_setVector:position forKey:@"position"];
 	[result oo_setQuaternion:orientation forKey:@"orientation"];
-	if (isDock)  [result oo_setBool:YES forKey:@"is_dock"];
+	if (isDock) 
+	{
+		[result oo_setBool:YES forKey:@"is_dock"];
+
+		NSString* docklabel = [declaration oo_stringForKey:@"dock_label" defaultValue:@"the docking bay"];
+		[result setObject:docklabel forKey:@"dock_label"];
+
+		BOOL dockable = [declaration oo_boolForKey:@"allow_docking" defaultValue:YES];
+		BOOL undockable = [declaration oo_boolForKey:@"allow_launching" defaultValue:YES];
+
+		[result oo_setBool:dockable forKey:@"allow_docking"];
+		[result oo_setBool:undockable forKey:@"allow_launching"];
+
+	}
+
 	if (isTurret)
 	{
 		// default constants are defined and set in shipEntity

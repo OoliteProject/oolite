@@ -711,6 +711,13 @@
 		"Docking authorized. You have an approach slot terminating at %@",
 		"Permission granted. Proceed for docking approach. Slot valid until %@"
 	);
+	"station-docking-clearance-granted-in-@-until-@" =
+	(
+		"You are cleared to dock in %@. Please proceed. Clearance expires at %@",
+		"You have docking clearance for %@, Commander. Your window is up to %@",
+		"Docking authorized for %@. You have an approach slot terminating at %@",
+		"Permission granted. Proceed for docking approach to %@. Slot valid until %@"
+	);
 	"station-docking-clearance-extended-until-@" =
 	(
 		"Your docking clearance extension has been approved, you now have until %@"

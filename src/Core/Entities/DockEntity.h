@@ -44,8 +44,8 @@ MA 02110-1301, USA.
 	double					port_corridor;				// corridor length inside station.
 	
 	unsigned				no_docking_while_launching: 1;
-	BOOL				allow_launching: YES;
-	BOOL				allow_docking: YES;
+	BOOL				allow_launching;
+	BOOL				allow_docking;
 
 }
 
@@ -71,7 +71,7 @@ MA 02110-1301, USA.
 - (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb;
 - (void) clear;
 - (void) noteDockingForShip:(ShipEntity *) ship;
-- (void)setDimensionsAndCorridor;
+- (void)setDimensionsAndCorridor:(BOOL)docking:(BOOL)launching;
 - (unsigned) dockingQueueSize;
 - (int) launchQueueSize;
 - (BOOL) shipIsInDockingQueue:(ShipEntity *)ship;
