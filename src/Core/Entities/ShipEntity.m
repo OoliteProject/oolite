@@ -60,6 +60,7 @@ MA 02110-1301, USA.
 
 #import "OOParticleSystem.h"
 #import "StationEntity.h"
+#import "DockEntity.h"
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
 #import "PlayerEntity.h"
@@ -790,16 +791,23 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	subentKey = [subentDict oo_stringForKey:@"subentity_key"];
 	if (subentKey == nil)  return NO;
 	
-	subentity = [UNIVERSE newShipWithName:subentKey];
+	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
+	{
+		subentity = [UNIVERSE newDockWithName:subentKey];
+	}
+	else 
+	{
+		subentity = [UNIVERSE newShipWithName:subentKey];
+	}
 	if (subentity == nil)  return NO;
 	
 	subPosition = [subentDict oo_vectorForKey:@"position"];
 	subOrientation = [subentDict oo_quaternionForKey:@"orientation"];
 	
-	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
+/*	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
 	{
 		[(StationEntity *)self setDockingPortModel:subentity :subPosition :subOrientation];
-	}
+		} */
 	
 	[subentity setPosition:subPosition];
 	[subentity setOrientation:subOrientation];
@@ -828,6 +836,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		BoundingBox sebb = [subentity findSubentityBoundingBox];
 		bounding_box_add_vector(&totalBoundingBox, sebb.max);
 		bounding_box_add_vector(&totalBoundingBox, sebb.min);
+	}
+
+	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
+	{
+		[(DockEntity *)subentity setDimensionsAndCorridor];
 	}
 
 	[subentity release];

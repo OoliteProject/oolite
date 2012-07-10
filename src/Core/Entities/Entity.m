@@ -131,6 +131,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (BOOL)isDock
+{
+	return NO;
+}
+
+
 - (BOOL)isStation
 {
 	return isStation;

@@ -59,6 +59,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityScriptMethods.h"
 #import "StationEntity.h"
+#import "DockEntity.h"
 #import "SkyEntity.h"
 #import "DustEntity.h"
 #import "OOPlanetEntity.h"
@@ -2691,6 +2692,42 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (DockEntity *) newDockWithName:(NSString *)shipKey
+{
+	OOJS_PROFILE_ENTER
+	
+	NSDictionary	*shipDict = nil;
+	DockEntity		*ship = nil;
+	
+	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+	if (shipDict == nil)  return nil;
+	
+	volatile Class shipClass = [DockEntity class];
+	
+	NS_DURING
+		ship = [[shipClass alloc] initWithKey:shipKey definition:shipDict];
+	NS_HANDLER
+		[ship release];
+		ship = nil;
+		
+		if ([[localException name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
+		{
+			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newDockWithName: %@ ] *****", [localException reason], shipKey);
+		}
+		else  [localException raise];
+	NS_ENDHANDLER
+	
+	// Set primary role to same as ship name, if ship name is also a role.
+	// Otherwise, if caller doesn't set a role, one will be selected randomly.
+	if ([ship hasRole:shipKey])  [ship setPrimaryRole:shipKey];
+	
+	// MKW 20090327 - retain count is actually 2!
+	return ship;   // retain count = 1
+	
+	OOJS_PROFILE_EXIT
+}
+
+
 - (ShipEntity *) newShipWithName:(NSString *)shipKey
 {
 	return [self newShipWithName:shipKey usePlayerProxy:NO];
@@ -2716,6 +2753,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	isStation = [dict oo_boolForKey:@"isCarrier" defaultValue:isStation];
 	isStation = [dict oo_boolForKey:@"is_carrier" defaultValue:isStation];
 	
+
 	return isStation ? [StationEntity class] : [ShipEntity class];
 	
 	OOJS_PROFILE_EXIT

@@ -102,7 +102,9 @@ typedef enum
 							allowsAutoDocking: 1;
 }
 
-- (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q;
+- (NSEnumerator *)dockSubEntityEnumerator;
+
+// - (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q;
 
 - (NSMutableArray *) localMarket;
 - (void) setLocalMarket:(NSArray *) some_market;
@@ -139,11 +141,9 @@ typedef enum
 
 - (void) autoDockShipsOnApproach;
 
-- (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship;
-- (void) addShipToShipsOnApproach:(ShipEntity *) ship;
-
-- (Vector) portUpVector;
 - (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb;
+
+- (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship;
 
 - (BOOL) shipIsInDockingCorridor:(ShipEntity*) ship;
 

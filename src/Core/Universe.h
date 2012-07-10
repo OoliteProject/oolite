@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
 		Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
-	PlayerEntity, OORoleSet, WormholeEntity;
+	PlayerEntity, OORoleSet, WormholeEntity, DockEntity;
 
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
@@ -407,6 +407,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 - (NSString *) randomShipKeyForRoleRespectingConditions:(NSString *)role;
 - (ShipEntity *) newShipWithRole:(NSString *)role OO_RETURNS_RETAINED;		// Selects ship using role weights, applies auto_ai, respects conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey OO_RETURNS_RETAINED;	// Does not apply auto_ai or respect conditions
+- (DockEntity *) newDockWithName:(NSString *)shipKey OO_RETURNS_RETAINED;	// Does not apply auto_ai or respect conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy OO_RETURNS_RETAINED;	// If usePlayerProxy, non-carriers are instantiated as ProxyPlayerEntity.
 
 - (Class) shipClassForShipDictionary:(NSDictionary *)dict;

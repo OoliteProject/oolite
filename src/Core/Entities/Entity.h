@@ -158,6 +158,7 @@ enum OOScanClass
 - (OOUInteger) sessionID;
 
 - (BOOL) isShip;
+- (BOOL) isDock;
 - (BOOL) isStation;
 - (BOOL) isSubEntity;
 - (BOOL) isPlayer;

@@ -150,6 +150,7 @@ OOLITE_DEBUG_FILES = \
     OOTCPStreamDecoderAbstractionLayer.m
 
 OOLITE_ENTITY_FILES = \
+    DockEntity.m \
     DustEntity.m \
     Entity.m \
     OOEntityWithDrawable.m \
