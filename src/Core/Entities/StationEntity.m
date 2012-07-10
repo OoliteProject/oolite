@@ -838,9 +838,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void) addShipToLaunchQueue:(ShipEntity *) ship :(BOOL) priority
 {
 	NSEnumerator	*subEnum = nil;
-	DockEntity* sub = nil;
-	unsigned threshold = 0;
-	while (threshold < 16) {
+	DockEntity		*sub = nil;
+	int				threshold = 0;
+	
+	while (threshold < 16)
+	{
 		for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 		{
 // rotates through the launch docks
