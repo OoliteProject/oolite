@@ -255,16 +255,28 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// only used by player
 - (void) launchShip:(ShipEntity*)ship
 {
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
+	
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+	{
+		if ([sub launchQueueSize] != -1) 
+		{
+			[sub launchShip:ship];
+			return;
+		}
+	}
+
+// ship has no launch	docks specified; just use the last one
+	if (sub != nil)
 	{
 		[sub launchShip:ship];
 		return;
 	}
-// FIXME: handle case where station has no dock and is using default dock position!
+	// FIXME: case where ship has no docks specified at all
 }
 
 
@@ -390,15 +402,20 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	NSEnumerator	*subEnum = nil;
 	DockEntity *chosenDock = nil;
 	NSString *docking = nil;
-// FIXME: this needs to check if a dock has already claimed this ship
-// and use that dock preferentially
 	DockEntity* sub = nil;
+	unsigned queue = 100;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		docking = [sub canAcceptShipForDocking:ship];
-		if ([docking isEqualToString:@"DOCKING_POSSIBLE"]) {
+		if ([sub shipIsInDockingQueue:ship]) 
+		{ // if already claimed a docking queue, use that one
 			chosenDock = sub;
 			break;
+		}
+		docking = [sub canAcceptShipForDocking:ship];
+		if ([docking isEqualToString:@"DOCKING_POSSIBLE"] && [sub dockingQueueSize] < queue) {
+// try to select the dock with the fewest ships already enqueued
+			chosenDock = sub;
+			queue = [sub dockingQueueSize];
 		}
 	}	
 	if (chosenDock == nil) { // no docks accept this ship
@@ -718,12 +735,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		{
 			if (last_launch_time-30 < unitime && [player getDockingClearanceStatus] != DOCKING_CLEARANCE_STATUS_TIMING_OUT)
 			{
-				[[self parentEntity] sendExpandedMessage:DESC(@"station-docking-clearance-about-to-expire") toShip:player];
+				[self sendExpandedMessage:DESC(@"station-docking-clearance-about-to-expire") toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
 			}
 			else if (last_launch_time < unitime)
 			{
-				[[self parentEntity] sendExpandedMessage:DESC(@"station-docking-clearance-expired") toShip:player];
+				[self sendExpandedMessage:DESC(@"station-docking-clearance-expired") toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];	// Docking clearance for player has expired.
 				if ([shipsOnApproach count] == 0) [[[self parentEntity] getAI] message:@"DOCKING_COMPLETE"];
 			}
@@ -739,10 +756,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 
 		else if ([player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED &&
-				[shipsOnApproach count] == 0 && [launchQueue count] == 0)
+				[self hasClearDock])
 		{
 			last_launch_time = unitime + DOCKING_CLEARANCE_WINDOW;
-			[[self parentEntity] sendExpandedMessage:[NSString stringWithFormat:
+			[self sendExpandedMessage:[NSString stringWithFormat:
 					DESC(@"station-docking-clearance-granted-until-@"),
 						ClockToString([player clockTime] + DOCKING_CLEARANCE_WINDOW, NO)]
 					toShip:player];
@@ -803,16 +820,43 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (void) addShipToLaunchQueue:(ShipEntity *) ship :(BOOL) priority
+// is there a dock free for the player to dock manually?
+- (BOOL) hasClearDock
 {
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-// FIXME: should check if dock is suitable
-		[sub addShipToLaunchQueue:ship:priority];
-		break;
+		if ([sub allowsDocking] && [sub launchQueueSize] < 1 && [sub dockingQueueSize] < 1)
+		{
+			return YES;
+		}
 	}
+	return NO;
+}
+
+- (void) addShipToLaunchQueue:(ShipEntity *) ship :(BOOL) priority
+{
+	NSEnumerator	*subEnum = nil;
+	DockEntity* sub = nil;
+	unsigned threshold = 0;
+	while (threshold < 16) {
+		for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+		{
+// rotates through the launch docks
+			if ([sub launchQueueSize] > -1 && [sub launchQueueSize] <= threshold)
+			{
+				if ([sub fitsInDock:ship])
+				{
+					[sub addShipToLaunchQueue:ship:priority];
+					return;
+				}
+			}
+		}
+		threshold++;
+	}
+	OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as the %@ has too many ships in its launch queue(s) or no suitable launch docks.",
+			  [ship displayName], [ship primaryRole], [self displayName]);
 }
 
 
@@ -1633,6 +1677,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// used by player
 - (NSString *) acceptDockingClearanceRequestFrom:(ShipEntity *)other
 {
 	NSString	*result = nil;
@@ -1721,19 +1766,19 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 
 	// Put ship in queue if we've got incoming or outgoing traffic
-	if (result == nil && [shipsOnApproach count] && last_launch_time < timeNow)
+	if (result == nil && [self currentlyInDockingQueues] && last_launch_time < timeNow)
 	{
 		[self sendExpandedMessage:[NSString stringWithFormat:
 			DESC(@"station-docking-clearance-acknowledged-d-ships-approaching"),
-			[shipsOnApproach count]+1] toShip:other];
+			[self currentlyInDockingQueues]+1] toShip:other];
 		// No need to set status to REQUESTED as we've already done that earlier.
 		result = @"DOCKING_CLEARANCE_DENIED_TRAFFIC_INBOUND";
 	}
-	if (result == nil && [launchQueue count] && no_docking_while_launching)
+	if (result == nil && [self currentlyInLaunchingQueues])
 	{
 		[self sendExpandedMessage:[NSString stringWithFormat:
 			DESC(@"station-docking-clearance-acknowledged-d-ships-departing"),
-			[launchQueue count]+1] toShip:other];
+			[self currentlyInLaunchingQueues]+1] toShip:other];
 		// No need to set status to REQUESTED as we've already done that earlier.
 		result = @"DOCKING_CLEARANCE_DENIED_TRAFFIC_OUTBOUND";
 	}
@@ -1752,6 +1797,32 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
 	}
 	return result;
+}
+
+
+- (unsigned) currentlyInDockingQueues
+{
+	NSEnumerator	*subEnum = nil;
+	DockEntity* sub = nil;
+	unsigned soa = 0;
+	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+	{
+		soa += [sub dockingQueueSize];
+	}
+	return soa;
+}
+
+
+- (unsigned) currentlyInLaunchingQueues
+{
+	NSEnumerator	*subEnum = nil;
+	DockEntity* sub = nil;
+	unsigned soa = 0;
+	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+	{
+		soa += [sub launchQueueSize] > 0 ? [sub launchQueueSize] : 0;
+	}
+	return soa;
 }
 
 

@@ -169,8 +169,18 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+- (BOOL) allowsDocking
+{
+	return allow_docking;
+}
+
+
 - (NSString*) canAcceptShipForDocking:(ShipEntity *) ship
 {
+	if (!allow_docking)
+	{
+		return @"TRY_AGAIN_LATER";
+	}
 	if (no_docking_while_launching)
 	{
 		return @"TRY_AGAIN_LATER";
@@ -540,6 +550,37 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		return vector_right_from_quaternion(quaternion_multiply(orientation, [[self parentEntity] orientation]));
 	}
+}
+
+
+- (BOOL) shipIsInDockingQueue:(ShipEntity *)ship
+{
+	if (![ship isShip])  return NO;
+	if ([ship isPlayer] && [ship status] == STATUS_DEAD)  return NO;
+	OOUniversalID	ship_id = [ship universalID];
+	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:ship_id];
+
+	if ([shipsOnApproach objectForKey:shipID])
+	{
+		return YES;
+	}
+	return NO;
+}
+
+
+- (unsigned) dockingQueueSize
+{
+	return [shipsOnApproach count];
+}
+
+
+- (int) launchQueueSize
+{
+	if (allow_launching)
+	{
+		return [launchQueue count];
+	}
+	return -1;
 }
 
 
@@ -927,7 +968,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		shipsOnApproach = [[NSMutableDictionary alloc] init];
 		launchQueue = [[NSMutableArray alloc] init];
+		allow_docking = YES;
+		allow_launching = YES;
+// TODO: do something with these variables
 	}
+
 
 	return self;
 	
