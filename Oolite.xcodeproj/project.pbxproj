@@ -594,6 +594,8 @@
 		1AB8130A0E90D8E500A84923 /* OOLogOutputHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */; };
 		1AB9AE8B107F459B00B6F3CE /* OOPolygonSprite.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB9AE89107F459B00B6F3CE /* OOPolygonSprite.h */; };
 		1AB9AE8C107F459B00B6F3CE /* OOPolygonSprite.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB9AE8A107F459B00B6F3CE /* OOPolygonSprite.m */; };
+		1ABA415E15ACBB6700F7E841 /* DockEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABA415C15ACBB6700F7E841 /* DockEntity.h */; };
+		1ABA415F15ACBB6700F7E841 /* DockEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABA415D15ACBB6700F7E841 /* DockEntity.m */; };
 		1ABAD7310F350B3400FD2CBF /* OOShipGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABAD72F0F350B3400FD2CBF /* OOShipGroup.m */; };
 		1ABAD7320F350B3400FD2CBF /* OOShipGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABAD7300F350B3400FD2CBF /* OOShipGroup.h */; };
 		1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABB688B0D044306008BE96D /* OOLoggingExtended.h */; };
@@ -1861,6 +1863,8 @@
 		1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogOutputHandler.h; sourceTree = "<group>"; };
 		1AB9AE89107F459B00B6F3CE /* OOPolygonSprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPolygonSprite.h; sourceTree = "<group>"; };
 		1AB9AE8A107F459B00B6F3CE /* OOPolygonSprite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPolygonSprite.m; sourceTree = "<group>"; };
+		1ABA415C15ACBB6700F7E841 /* DockEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DockEntity.h; sourceTree = "<group>"; };
+		1ABA415D15ACBB6700F7E841 /* DockEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DockEntity.m; sourceTree = "<group>"; };
 		1ABAD72F0F350B3400FD2CBF /* OOShipGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShipGroup.m; sourceTree = "<group>"; };
 		1ABAD7300F350B3400FD2CBF /* OOShipGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShipGroup.h; sourceTree = "<group>"; };
 		1ABB688B0D044306008BE96D /* OOLoggingExtended.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLoggingExtended.h; sourceTree = "<group>"; };
@@ -2943,6 +2947,8 @@
 				1AA7FDDA10C2DC800058FBED /* OOSunEntity.h */,
 				1AA7FDDB10C2DC800058FBED /* OOSunEntity.m */,
 				1ADA564710CD68D800E891B8 /* OOStellarBody.h */,
+				1ABA415C15ACBB6700F7E841 /* DockEntity.h */,
+				1ABA415D15ACBB6700F7E841 /* DockEntity.m */,
 				1A817DCA106D44D900AA2F97 /* Particles */,
 			);
 			path = Entities;
@@ -3465,6 +3471,7 @@
 				1A033FB813268ABB006F9DB7 /* OOPDFView.h in Headers */,
 				1A54115B14B8913E00B8A4BE /* OOMacJoystickManager.h in Headers */,
 				1A6F665314DF323900695C11 /* OODefaultShaderSynthesizer.h in Headers */,
+				1ABA415E15ACBB6700F7E841 /* DockEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3917,6 +3924,7 @@
 				1A033FB913268ABB006F9DB7 /* OOPDFView.m in Sources */,
 				1A54115C14B8913E00B8A4BE /* OOMacJoystickManager.m in Sources */,
 				1A6F665414DF323900695C11 /* OODefaultShaderSynthesizer.m in Sources */,
+				1ABA415F15ACBB6700F7E841 /* DockEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
