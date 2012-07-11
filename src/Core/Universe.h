@@ -166,7 +166,7 @@ typedef uint8_t		OOEconomyID;		// 0..7
 {
 @public
 	// use a sorted list for drawing and other activities
-	Entity					*sortedEntities[UNIVERSE_MAX_ENTITIES];
+	Entity					*sortedEntities[UNIVERSE_MAX_ENTITIES + 1];	// One extra for padding; see -doRemoveEntity:.
 	unsigned				n_entities;
 	
 	int						cursor_row;

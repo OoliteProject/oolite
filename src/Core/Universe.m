@@ -5394,21 +5394,27 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 								{
 									[demo_ship switchAITo:@"nullAI.plist"];
 									[demo_ship setOrientation:q2];
-									[self addEntity:demo_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-									[demo_ship release];		// We now own a reference through the entity list.
-									[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
-									demo_start_z=DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius;
-									[demo_ship setPositionX:0.0f y:0.0f z:demo_start_z];
-									[demo_ship setDestination: make_vector(0.0f, 0.0f, demo_start_z * 0.01f)];	// ideal position
-									[demo_ship setVelocity:kZeroVector];
-									[demo_ship setScanClass: CLASS_NO_DRAW];
-									[demo_ship setRoll:M_PI/5.0];
-									[demo_ship setPitch:M_PI/10.0];
-									[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
-									
-									demo_stage = DEMO_FLY_IN;
-									demo_start_time=universal_time;
-									demo_stage_time = demo_start_time + DEMO2_FLY_IN_STAGE_TIME;
+									if ([self addEntity:demo_ship])
+									{
+										[demo_ship release];		// We now own a reference through the entity list.
+										[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
+										demo_start_z=DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius;
+										[demo_ship setPositionX:0.0f y:0.0f z:demo_start_z];
+										[demo_ship setDestination: make_vector(0.0f, 0.0f, demo_start_z * 0.01f)];	// ideal position
+										[demo_ship setVelocity:kZeroVector];
+										[demo_ship setScanClass: CLASS_NO_DRAW];
+										[demo_ship setRoll:M_PI/5.0];
+										[demo_ship setPitch:M_PI/10.0];
+										[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+										
+										demo_stage = DEMO_FLY_IN;
+										demo_start_time=universal_time;
+										demo_stage_time = demo_start_time + DEMO2_FLY_IN_STAGE_TIME;
+									}
+									else
+									{
+										demo_ship = nil;
+									}
 								}
 								break;
 						}
@@ -9164,10 +9170,29 @@ Entity *gOOJSPlayerIfStale = nil;
 			while ((unsigned)index < n_entities)
 			{
 				while (((unsigned)index + n < n_entities)&&(sortedEntities[index + n] == entity))
+				{
 					n++;	// ie there's a duplicate entry for this entity
+				}
+				
+				/*
+					BUG: when n_entities == UNIVERSE_MAX_ENTITIES, this read
+					off the end of the array and copied (Entity *)n_entities =
+					0x800 into the list. The subsequent update of zero_index
+					derferenced 0x800 and crashed.
+					FIX: add an extra unused slot to sortedEntities, which is
+					always nil.
+					EFFICIENCY CONCERNS: this could have been an alignment
+					issue since UNIVERSE_MAX_ENTITIES == 2048, but it isn't
+					really. sortedEntities is part of the object, not malloced,
+					it isn't aligned, and the end of it is only live in
+					degenerate cases.
+					-- Ahruman 2012-07-11
+				*/
 				sortedEntities[index] = sortedEntities[index + n];	// copy entity[index + n] -> entity[index] (preserves sort order)
 				if (sortedEntities[index])
+				{
 					sortedEntities[index]->zero_index = index;				// give it its correct position
+				}
 				index++;
 			}
 			if (n > 1)
