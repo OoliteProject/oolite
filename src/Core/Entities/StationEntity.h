@@ -47,9 +47,9 @@ typedef enum
 
 @interface StationEntity: ShipEntity
 {
-	
-	NSMutableDictionary		*shipsOnHold;
-	DockEntity          *player_reserved_dock;
+@private
+	NSMutableSet			*_shipsOnHold;
+	DockEntity				*player_reserved_dock;
 	double					last_launch_time;
 	double					approach_spacing;
 	OOStationAlertLevel		alertLevel;
@@ -69,7 +69,7 @@ typedef enum
 	ShipEntity				*port_model;
 	double					port_corridor; */				// corridor length inside station.
 	Vector  				port_dimensions;
-	double          port_radius;
+	double					port_radius;
 	
 	unsigned				no_docking_while_launching: 1,
 							hasNPCTraffic: 1;

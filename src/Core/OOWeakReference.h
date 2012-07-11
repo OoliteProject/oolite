@@ -15,8 +15,8 @@ Client use is extremely simple: to get a weak reference to the object, call
 finished, release the proxy. Messages sent to the proxy will be forwarded as
 long as the underlying object exists; beyond that, they will act exactly like
 messages to nil. (IMPORTANT: this means messages returning floating-point or
-struct values have undefined return values, so use -weakRefObjectStillExists
-or -weakRefUnderlyingObject in such cases.) Example:
+struct values have undefined return values, so use -weakRefUnderlyingObject in
+such cases.) Example:
 
 @interface ThingWatcher: NSObject
 {
@@ -109,7 +109,6 @@ This code is hereby placed in the public domain.
 	id<OOWeakReferenceSupport>	_object;
 }
 
-- (BOOL)weakRefObjectStillExists;
 - (id)weakRefUnderlyingObject;
 
 - (id)weakRetain OO_RETURNS_RETAINED;	// Returns [self retain] for weakrefs.
@@ -123,7 +122,6 @@ This code is hereby placed in the public domain.
 
 @interface NSObject (OOWeakReference)
 
-- (BOOL)weakRefObjectStillExists;	// Always YES for non-weakrefs. ObjC semantics causes it to return NO for nil, so it acts as an existence check.
 - (id)weakRefUnderlyingObject;		// Always self for non-weakrefs (and of course nil for nil).
 
 @end

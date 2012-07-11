@@ -13,7 +13,6 @@ This code is hereby placed in the public domain.
 @interface OOWeakReferenceTemplates: NSObject
 
 + (void)weakRefDrop;
-+ (BOOL)weakRefObjectStillExists;
 + (id)weakRefUnderlyingObject;
 + (id)nilMethod;
 
@@ -47,12 +46,6 @@ This code is hereby placed in the public domain.
 {
 	if (_object != nil)  return [_object description];
 	else  return [NSString stringWithFormat:@"<Dead %@ %p>", [self class], self];
-}
-
-
-- (BOOL)weakRefObjectStillExists
-{
-	return _object != nil;
 }
 
 
@@ -101,7 +94,6 @@ This code is hereby placed in the public domain.
 	
 	if (__builtin_expect(
 		selector != @selector(weakRefDrop) &&
-		selector != @selector(weakRefObjectStillExists) &&
 		selector != @selector(weakRefUnderlyingObject), 1))
 	{
 		// Not a proxy method; get signature from _object if it exists, otherwise generic signature for nil calls.
@@ -121,8 +113,7 @@ This code is hereby placed in the public domain.
 - (BOOL)respondsToSelector:(SEL)selector
 {
 	if (__builtin_expect(_object != nil &&
-		selector != @selector(weakRefDrop)
-		&& selector != @selector(weakRefObjectStillExists) &&
+		selector != @selector(weakRefDrop) &&
 		selector != @selector(weakRefUnderlyingObject), 1))
 	{
 		// _object exists and it's not one of our methods, ask _object.
@@ -147,12 +138,6 @@ This code is hereby placed in the public domain.
 
 
 @implementation NSObject (OOWeakReference)
-
-- (BOOL)weakRefObjectStillExists
-{
-	return YES;
-}
-
 
 - (id)weakRefUnderlyingObject
 {
@@ -190,7 +175,6 @@ This code is hereby placed in the public domain.
 
 // These are never called, but an implementation must exist so that -methodSignatureForSelector: works.
 + (void)weakRefDrop  {}
-+ (BOOL)weakRefObjectStillExists  { return NO; }
 + (id)weakRefUnderlyingObject  { return nil; }
 + (id)nilMethod { return nil; }
 

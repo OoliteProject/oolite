@@ -55,6 +55,10 @@ MA 02110-1301, USA.
 - (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority;
 - (unsigned) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
 
+- (NSDictionary *) holdPositionInstructionForShip:(ShipEntity *)ship;
+
+- (void) compactShipsOnHold;
+
 @end
 
 
@@ -224,17 +228,25 @@ MA 02110-1301, USA.
 	}
 
 	if (soa == 0)
-	{ // if all docks have no ships on approach
+	{
+		// if all docks have no ships on approach
 		[shipAI message:@"DOCKING_COMPLETE"];
 	}
 	
-	NSArray *ships = [shipsOnHold allKeys];
-	for (unsigned i = 0; i < [ships count]; i++)
+	[self compactShipsOnHold];
+}
+
+
+- (void) compactShipsOnHold
+{
+	NSArray *ships = [_shipsOnHold allObjects];
+	OOUInteger i, count = [ships count];
+	for (i = 0; i < count; i++)
 	{
-		int sid = [[ships objectAtIndex:i] intValue];
-		if ((sid == NO_TARGET)||(![UNIVERSE entityForUniversalID:sid]))
+		OOWeakReference *ref = [ships objectAtIndex:i];
+		if ([ref weakRefUnderlyingObject] == nil)
 		{
-			[shipsOnHold removeObjectForKey:[ships objectAtIndex:i]];
+			[_shipsOnHold removeObject:ref];
 		}
 	}
 }
@@ -320,49 +332,45 @@ MA 02110-1301, USA.
 	{
 		[sub abortAllDockings];
 	}
-
-	NSArray *ships = [shipsOnHold allKeys];
-	for (unsigned i = 0; i < [ships count]; i++)
+	
+	OOWeakReference *ref = nil;
+	foreach (ref, _shipsOnHold)
 	{
-		int sid = [[ships objectAtIndex:i] intValue];
-		if ([UNIVERSE entityForUniversalID:sid])
-			[[[UNIVERSE entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
+		[[ref weakRefUnderlyingObject] sendAIMessage:@"DOCKING_ABORTED"];
 	}
-	[shipsOnHold removeAllObjects];
+	[_shipsOnHold removeAllObjects];
 	
 	[shipAI message:@"DOCKING_COMPLETE"];
 
 }
 
 
-- (void) autoDockShipsInQueue:(NSMutableDictionary *)queue
+- (void) autoDockShipsOnHold
 {
-	NSArray		*ships = [queue allKeys];
-	unsigned	i, count = [ships count];
-	
-	for (i = 0; i < count; i++)
+	OOWeakReference *ref = nil;
+	foreach (ref, _shipsOnHold)
 	{
-		ShipEntity *ship = [UNIVERSE entityForUniversalID:[ships oo_unsignedIntAtIndex:i]];
-		if ([ship isShip])
+		ShipEntity *ship = [ref weakRefUnderlyingObject];
+		if (ship != nil)
 		{
 			[self pullInShipIfPermitted:ship];
 		}
 	}
 	
-	[queue removeAllObjects];
+	[_shipsOnHold removeAllObjects];
 }
 
 
 - (void) autoDockShipsOnApproach
 {
 	NSEnumerator	*subEnum = nil;
-	DockEntity* sub = nil;
+	DockEntity		*sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		[sub autoDockShipsOnApproach];
 	}
 
-	[self autoDockShipsInQueue:shipsOnHold];
+	[self autoDockShipsOnHold];
 	
 	[shipAI message:@"DOCKING_COMPLETE"];
 }
@@ -371,7 +379,7 @@ MA 02110-1301, USA.
 - (Vector) portUpVectorForShip:(ShipEntity*) ship
 {
 	NSEnumerator	*subEnum = nil;
-	DockEntity* sub = nil;
+	DockEntity		*sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		if ([sub shipIsInDockingQueue:ship])
@@ -407,44 +415,33 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 //
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship
 {	
-	int			ship_id = [ship universalID];
-	NSNumber	*shipID = [NSNumber numberWithUnsignedShort:ship_id];
-
-	if (!ship)
-		return nil;
+	if (ship == nil)  return nil;
 	
-	if (ship->isPlayer)
+	if ([ship isPlayer])
 	{
 		player_reserved_dock = nil; // clear any dock reservation for manual docking
 	}
 
-	if ((ship->isPlayer)&&([ship legalStatus] > 50))	// note: non-player fugitives dock as normal
+	if ([ship isPlayer] && [ship legalStatus] > 50)	// note: non-player fugitives dock as normal
 	{
 		// refuse docking to the fugitive player
 		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
 	}
 	
-	if	(magnitude2(velocity) > 1.0)		// no docking while moving
+	if	(magnitude2(velocity) > 1.0 ||
+		 fabsf(flightPitch) > 0.01 ||
+		 fabsf(flightYaw) > 0.01)
 	{
-		if (![shipsOnHold objectForKey:shipID])
-			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
-		[shipsOnHold setObject: shipID forKey: shipID];
-		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
-	}
-	
-	if	(fabs(flightPitch) > 0.01 || fabs(flightYaw) > 0.01)		// no docking while pitching or yawing
-	{
-		if (![shipsOnHold objectForKey:shipID])
-			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
-		[shipsOnHold setObject: shipID forKey: shipID];
-		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+		// no docking while station is moving, pitching or yawing
+		return [self holdPositionInstructionForShip:ship];
 	}
 	
 	NSEnumerator	*subEnum = nil;
-	DockEntity *chosenDock = nil;
-	NSString *docking = nil;
-	DockEntity* sub = nil;
-	unsigned queue = 100;
+	DockEntity		*chosenDock = nil;
+	NSString		*docking = nil;
+	DockEntity		*sub = nil;
+	unsigned		queue = 100;
+	
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		if ([sub shipIsInDockingQueue:ship]) 
@@ -462,47 +459,53 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 			}
 		}
 	}	
-	if (chosenDock == nil) { // no docks accept this ship (or the player is blocking them)
+	if (chosenDock == nil)
+	{
+		// no docks accept this ship (or the player is blocking them)
 		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, docking, nil, NO);
 	}
 
 	// rolling is okay for some
-	if	(fabs(flightRoll) > 0.01)		// rolling
+	if	(fabsf(flightRoll) > 0.01 && [chosenDock isOffCentre])
 	{
-		BOOL isOffCentre = [chosenDock isOffCentre];
-
-		if (isOffCentre)
-		{
-			if (![shipsOnHold objectForKey:shipID])
-				[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
-			[shipsOnHold setObject: shipID forKey: shipID];
-			return OOMakeDockingInstructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
-		}
+		return [self holdPositionInstructionForShip:ship];
 	}
 	
 	// we made it through holding!
-	//
-	if ([shipsOnHold objectForKey:shipID])
-		[shipsOnHold removeObjectForKey:shipID];
+	OOWeakReference *weakShip = [ship weakRetain];
+	[_shipsOnHold removeObject:weakShip];
+	[weakShip release];
 	
 	[shipAI reactToMessage:@"DOCKING_REQUESTED" context:@"requestDockingCoordinates"];	// react to the request	
-
+	
 	return [chosenDock dockingInstructionsForShip:ship];
+}
+
+
+- (NSDictionary *) holdPositionInstructionForShip:(ShipEntity *)ship
+{
+	OOWeakReference *weakShip = [ship weakRetain];
+	if (![_shipsOnHold containsObject:weakShip])
+	{
+		[self sendExpandedMessage:@"[station-acknowledges-hold-position]" toShip:ship];
+		[_shipsOnHold addObject:weakShip];
+	}
+	[weakShip release];
+	
+	return OOMakeDockingInstructions(universalID, [ship position], 0, 100, @"HOLD_POSITION", nil, NO);
 }
 
 
 - (void) abortDockingForShip:(ShipEntity *) ship
 {
-	int			ship_id = [ship universalID];
-	NSNumber	*shipID = [NSNumber numberWithUnsignedShort:ship_id];
-	if ([UNIVERSE entityForUniversalID:[ship universalID]])
-		[[[UNIVERSE entityForUniversalID:[ship universalID]] getAI] message:@"DOCKING_ABORTED"];
+	[ship sendAIMessage:@"DOCKING_ABORTED"];
 	
-	if ([shipsOnHold objectForKey:shipID])
-		[shipsOnHold removeObjectForKey:shipID];
+	OOWeakReference *weakShip = [ship weakRetain];
+	[_shipsOnHold removeObject:weakShip];
+	[weakShip release];
 	
 	NSEnumerator	*subEnum = nil;
-	DockEntity* sub = nil;
+	DockEntity		*sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		[sub abortDockingForShip:ship];
@@ -527,9 +530,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 	if (self != nil)
 	{
 		isStation = YES;
-		
-		shipsOnHold = [[NSMutableDictionary alloc] init];
-		player_reserved_dock = nil;
+		_shipsOnHold = [[NSMutableSet alloc] init];
 	}
 	
 	return self;
@@ -540,8 +541,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 
 - (void) dealloc
 {
-	DESTROY(shipsOnHold);
-	
+	DESTROY(_shipsOnHold);
 	DESTROY(localMarket);
 	DESTROY(localPassengers);
 	DESTROY(localContracts);
@@ -901,7 +901,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 		[sub clear];
 	}
 	
-	[shipsOnHold removeAllObjects];
+	[_shipsOnHold removeAllObjects];
 }
 
 
@@ -2263,9 +2263,9 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 	OOLog(@"dumpState.stationEntity", @"Flags: %@", flagsString);
 	
 	// approach and hold lists.
-	unsigned i;
+	/*unsigned i;
 	ShipEntity		*ship = nil;
-	/*	NSArray*	ships = [shipsOnApproach allKeys];
+		NSArray*	ships = [shipsOnApproach allKeys];
 	if([ships count] > 0 ) OOLog(@"dumpState.stationEntity", @"%i Ships on approach (unsorted):", [ships count]);
 	for (i = 0; i < [ships count]; i++)
 	{
@@ -2278,19 +2278,21 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 																					[ship primaryRole]);
 		}
 		} */
-
-	NSArray* ships = [shipsOnHold allKeys];  // only used with moving stations (= carriers)
-	if([ships count] > 0 ) OOLog(@"dumpState.stationEntity", @"%i Ships on hold (unsorted):", [ships count]);
-	for (i = 0; i < [ships count]; i++)
+	
+	// Ships on hold list, only used with moving stations (= carriers)
+	[self compactShipsOnHold];
+	if([_shipsOnHold count] > 0)
 	{
-		int sid = [[ships objectAtIndex:i] intValue];
-		if ([UNIVERSE entityForUniversalID:sid])
+		OOLog(@"dumpState.stationEntity", @"%i Ships on hold (unsorted):", [_shipsOnHold count]);
+		OOWeakReference *ref = nil;
+		OOLogIndent();
+		unsigned i = 1;
+		foreach (ref, _shipsOnHold)
 		{
-			ship = [UNIVERSE entityForUniversalID:sid];
-			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i+1, [ship displayName], 
-																			sqrtf(distance2(position, [ship position])),
-																					[ship primaryRole]);
+			ShipEntity *ship = [ref weakRefUnderlyingObject];
+			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i++, [ship displayName], distance(position, [ship position]), [ship primaryRole]);
 		}
+		OOLogOutdent();
 	}
 }
 
