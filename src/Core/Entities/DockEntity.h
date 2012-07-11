@@ -2,7 +2,7 @@
 
 DockEntity.h
 
-ShipEntity subclass representing a dock entity
+ShipEntity subclass representing a dock.
 
 Oolite
 Copyright (C) 2004-2012 Giles C Williams and contributors
@@ -25,14 +25,12 @@ MA 02110-1301, USA.
 */
 
 #import "ShipEntity.h"
-#import "StationEntity.h"
-#import "Universe.h"
-#import "legacy_random.h"
+#import "StationEntity.h"	// For MAX_DOCKING_STAGES
 
 
 @interface DockEntity: ShipEntity
 {
-	
+@private
 	NSMutableDictionary		*shipsOnApproach;
 	NSMutableArray			*launchQueue;
 	double					last_launch_time;
@@ -43,43 +41,39 @@ MA 02110-1301, USA.
 	Vector  				port_dimensions;
 	double					port_corridor;				// corridor length inside station.
 	
-	unsigned				no_docking_while_launching: 1;
-	BOOL				allow_launching;
-	BOOL				allow_docking;
-
+	BOOL					no_docking_while_launching;
+	BOOL					allow_launching;
+	BOOL					allow_docking;
 }
 
-- (void) clearIdLocks:(ShipEntity *)ship;
+- (void) clear;
+
+// Docking
+- (BOOL) allowsDocking;
+- (unsigned) dockingQueueSize;
+- (NSDictionary *) dockingInstructionsForShip:(ShipEntity *)ship;
+- (NSString *) canAcceptShipForDocking:(ShipEntity *)ship;
+- (BOOL) shipIsInDockingCorridor:(ShipEntity *)ship;
+- (BOOL) shipIsInDockingQueue:(ShipEntity *)ship;
+- (void) abortDockingForShip:(ShipEntity *)ship;
 - (void) abortAllDockings;
-- (unsigned) sanityCheckShipsOnApproach;
-- (void) autoDockShipsOnApproach;
-- (void) autoDockShipsInQueue:(NSMutableDictionary *)queue;
-- (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship;
-- (NSString*) canAcceptShipForDocking:(ShipEntity *) ship;
-- (BOOL) isOffCentre;
-- (void) addShipToShipsOnApproach:(ShipEntity *) ship;
-- (void) abortDockingForShip:(ShipEntity *) ship;
-- (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb;
-- (void) pullInShipIfPermitted:(ShipEntity *)ship;
-- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
-- (void) launchShip:(ShipEntity *) ship;
-- (void) addShipToLaunchQueue:(ShipEntity *) ship :(BOOL) priority;
-- (BOOL) fitsInDock:(ShipEntity *) ship;
 - (BOOL) dockingCorridorIsEmpty;
 - (void) clearDockingCorridor;
-- (BOOL) shipIsInDockingCorridor:(ShipEntity *)ship;
-- (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb;
-- (void) clear;
-- (void) noteDockingForShip:(ShipEntity *) ship;
-- (void)setDimensionsAndCorridor:(BOOL)docking:(BOOL)launching;
-- (unsigned) dockingQueueSize;
-- (unsigned) launchQueueSize;
-- (BOOL) shipIsInDockingQueue:(ShipEntity *)ship;
-- (BOOL) allowsDocking;
+- (void) autoDockShipsOnApproach;
+- (unsigned) sanityCheckShipsOnApproach;
+- (void) noteDockingForShip:(ShipEntity *)ship;
+
+// Launching
 - (BOOL) allowsLaunching;
+- (unsigned) launchQueueSize;
+- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
+- (void) launchShip:(ShipEntity *)ship;
+- (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority;
 
-
+// Geometry
+- (void) setDimensionsAndCorridor:(BOOL)docking :(BOOL)launching;
+- (Vector) portUpVectorForShipsBoundingBox:(BoundingBox)bb;
+- (BOOL) fitsInDock:(ShipEntity *)ship;
+- (BOOL) isOffCentre;
 
 @end
-
-

@@ -45,24 +45,28 @@ MA 02110-1301, USA.
 #import "OODebugGLDrawing.h"
 #import "OODebugFlags.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
 
+@interface StationEntity (OOPrivate)
 
-static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
-
-@interface StationEntity (private)
-
+- (BOOL) fitsInDock:(ShipEntity *)ship;
 - (void) pullInShipIfPermitted:(ShipEntity *)ship;
+- (void) addShipToStationCount:(ShipEntity *)ship;
+
+- (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority;
+- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
 
 @end
 
+
 #ifndef NDEBUG
 @interface StationEntity (mwDebug)
+
 - (NSArray *) dbgGetShipsOnApproach;
 - (NSArray *) dbgGetIdLocks;
 - (NSString *) dbgDumpIdLocks;
 @end
 #endif
+
 
 @implementation StationEntity
 
@@ -387,19 +391,22 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation)
+NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation)
 {
-	NSMutableDictionary* acc = [NSMutableDictionary dictionaryWithCapacity:8];
+	NSMutableDictionary *acc = [NSMutableDictionary dictionaryWithCapacity:8];
 	[acc setObject:[NSString stringWithFormat:@"%.2f %.2f %.2f", coords.x, coords.y, coords.z] forKey:@"destination"];
-	[acc setObject:[NSNumber numberWithFloat:speed] forKey:@"speed"];
-	[acc setObject:[NSNumber numberWithFloat:range] forKey:@"range"];
-	[acc setObject:[NSNumber numberWithInt:station_id] forKey:@"station_id"];
-	[acc setObject:[NSNumber numberWithBool:match_rotation] forKey:@"match_rotation"];
+	[acc oo_setFloat:speed forKey:@"speed"];
+	[acc oo_setFloat:range forKey:@"range"];
+	[acc oo_setInteger:station_id forKey:@"station_id"];
+	[acc oo_setBool:match_rotation forKey:@"match_rotation"];
 	if (ai_message)
+	{
 		[acc setObject:ai_message forKey:@"ai_message"];
+	}
 	if (comms_message)
+	{
 		[acc setObject:comms_message forKey:@"comms_message"];
-	//
+	}
 	return [NSDictionary dictionaryWithDictionary:acc];
 }
 
@@ -422,7 +429,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ((ship->isPlayer)&&([ship legalStatus] > 50))	// note: non-player fugitives dock as normal
 	{
 		// refuse docking to the fugitive player
-		return instructions(universalID, ship->position, 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
+		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
 	}
 	
 	if	(magnitude2(velocity) > 1.0)		// no docking while moving
@@ -430,7 +437,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (![shipsOnHold objectForKey:shipID])
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
-		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	if	(fabs(flightPitch) > 0.01 || fabs(flightYaw) > 0.01)		// no docking while pitching or yawing
@@ -438,7 +445,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (![shipsOnHold objectForKey:shipID])
 			[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 		[shipsOnHold setObject: shipID forKey: shipID];
-		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	NSEnumerator	*subEnum = nil;
@@ -464,7 +471,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 	}	
 	if (chosenDock == nil) { // no docks accept this ship (or the player is blocking them)
-		return instructions(universalID, ship->position, 0, 100, docking, nil, NO);
+		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, docking, nil, NO);
 	}
 
 	// rolling is okay for some
@@ -477,7 +484,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			if (![shipsOnHold objectForKey:shipID])
 				[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];
 			[shipsOnHold setObject: shipID forKey: shipID];
-			return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+			return OOMakeDockingInstructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
 	
@@ -901,8 +908,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		[sub clear];
 	}
-	if (shipsOnHold)
-		[shipsOnHold removeAllObjects];
+	
+	[shipsOnHold removeAllObjects];
 }
 
 
@@ -969,7 +976,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (void) addShipToLaunchQueue:(ShipEntity *) ship :(BOOL) priority
+- (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority
 {
 	NSEnumerator	*subEnum = nil;
 	DockEntity		*sub = nil;
@@ -990,7 +997,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					{
 						if ([sub fitsInDock:ship])
 						{
-							[sub addShipToLaunchQueue:ship:priority];
+							[sub addShipToLaunchQueue:ship withPriority:priority];
 							return;
 						}
 					}
@@ -1020,7 +1027,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				{
 					if ([sub fitsInDock:ship])
 					{
-						[sub addShipToLaunchQueue:ship:priority];
+						[sub addShipToLaunchQueue:ship withPriority:priority];
 						return;
 					}
 				}
@@ -1328,7 +1335,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			}
 		}
 		
-		[self addShipToLaunchQueue:ship :NO];
+		[self addShipToLaunchQueue:ship withPriority:NO];
 
 		OOShipGroup *escortGroup = [ship escortGroup];
 		if ([ship group] == nil) [ship setGroup:escortGroup];
@@ -1392,7 +1399,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					[escort_ship setOwner:ship];
 					
 					[escort_ship switchAITo:@"escortAI.plist"];
-					[self addShipToLaunchQueue:escort_ship :NO];
+					[self addShipToLaunchQueue:escort_ship withPriority:NO];
 					
 				}
 				[escort_ship release];
@@ -1477,7 +1484,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			if ([police_ship heatInsulation] < [self heatInsulation])
 				[police_ship setHeatInsulation:[self heatInsulation]];
 			[police_ship switchAITo:@"policeInterceptAI.plist"];
-			[self addShipToLaunchQueue:police_ship :YES];
+			[self addShipToLaunchQueue:police_ship withPriority:YES];
 			defenders_launched++;
 			[result addObject:police_ship];
 		}
@@ -1585,7 +1592,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[defense_ship setHeatInsulation:[self heatInsulation]];
 	}
 
-	[self addShipToLaunchQueue:defense_ship :YES];
+	[self addShipToLaunchQueue:defense_ship withPriority:YES];
 	[defense_ship autorelease];
 	[self abortAllDockings];
 	
@@ -1631,7 +1638,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[scavenger_ship setHeatInsulation:[self heatInsulation]];
 		[scavenger_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[scavenger_ship switchAITo:@"scavengerAI.plist"];
-		[self addShipToLaunchQueue:scavenger_ship :NO];
+		[self addShipToLaunchQueue:scavenger_ship withPriority:NO];
 		[scavenger_ship autorelease];
 	}
 	return scavenger_ship;
@@ -1679,7 +1686,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[miner_ship setHeatInsulation:[self heatInsulation]];
 		[miner_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[miner_ship switchAITo:@"minerAI.plist"];
-		[self addShipToLaunchQueue:miner_ship :NO];
+		[self addShipToLaunchQueue:miner_ship withPriority:NO];
 		[miner_ship autorelease];
 	}
 	return miner_ship;
@@ -1740,7 +1747,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		//**Lazygun** added 30 Nov 04 to put a bounty on those pirates' heads.
 		[pirate_ship setBounty: 10 + floor(randf() * 20) withReason:kOOLegalStatusReasonSetup];	// modified for variety
 
-		[self addShipToLaunchQueue:pirate_ship :NO];
+		[self addShipToLaunchQueue:pirate_ship withPriority:NO];
 		[pirate_ship autorelease];
 		[self abortAllDockings];
 	}
@@ -1778,7 +1785,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
 		[shuttle_ship switchAITo:@"fallingShuttleAI.plist"];
-		[self addShipToLaunchQueue:shuttle_ship :NO];
+		[self addShipToLaunchQueue:shuttle_ship withPriority:NO];
 		
 		[shuttle_ship autorelease];
 	}
@@ -1809,7 +1816,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 		[escort_ship switchAITo:@"escortAI.plist"];
-		[self addShipToLaunchQueue:escort_ship :NO];
+		[self addShipToLaunchQueue:escort_ship withPriority:NO];
 		
 	}
 	[escort_ship release];
@@ -1862,7 +1869,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[patrol_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			[patrol_ship setGroup:[self stationGroup]];	// who's your Daddy
 			[patrol_ship switchAITo:@"planetPatrolAI.plist"];
-			[self addShipToLaunchQueue:patrol_ship :NO];
+			[self addShipToLaunchQueue:patrol_ship withPriority:NO];
 			[self acceptPatrolReportFrom:patrol_ship];
 			[patrol_ship autorelease];
 			return patrol_ship;
@@ -1891,7 +1898,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (ship->scanClass == CLASS_NOT_SET) [ship setScanClass: CLASS_NEUTRAL];
 		[ship setPrimaryRole:role];
 		[ship setGroup:[self stationGroup]];	// who's your Daddy
-		[self addShipToLaunchQueue:ship :NO];
+		[self addShipToLaunchQueue:ship withPriority:NO];
 	}
 	[ship release];
 }

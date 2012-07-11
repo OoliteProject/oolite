@@ -44,37 +44,33 @@ MA 02110-1301, USA.
 #import "OODebugGLDrawing.h"
 #import "OODebugFlags.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
 
+@interface DockEntity (OOPrivate)
 
-static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
-
-@interface DockEntity (private)
-
-
-@end
-
-#ifndef NDEBUG
-@interface DockEntity (mwDebug)
+- (void) clearIdLocks:(ShipEntity *)ship;
+- (void) autoDockShipsInQueue:(NSMutableDictionary *)queue;
+- (void) addShipToShipsOnApproach:(ShipEntity *)ship;
+- (void) pullInShipIfPermitted:(ShipEntity *)ship;
 
 @end
-#endif
+
 
 @implementation DockEntity
 
 - (unsigned) sanityCheckShipsOnApproach
 {
-	unsigned i;
-	NSArray*	ships = [shipsOnApproach allKeys];
+	NSArray		*ships = [shipsOnApproach allKeys];
+	unsigned	i, count = [ships count];
 	
 	// Remove dead entities.
 	// No enumerator because we mutate the dictionary.
-	for (i = 0; i < [ships count]; i++)
+	for (i = 0; i < count; i++)
 	{
-		int sid = [[ships objectAtIndex:i] intValue];
-		if ((sid == NO_TARGET)||(![UNIVERSE entityForUniversalID:sid]))
+		NSNumber *idObj = [ships objectAtIndex:i];
+		ShipEntity *ship = [UNIVERSE entityForUniversalID:[idObj unsignedIntValue]];
+		if (ship == nil)
 		{
-			[shipsOnApproach removeObjectForKey:[ships objectAtIndex:i]];
+			[shipsOnApproach removeObjectForKey:idObj];
 		}
 	}
 	
@@ -86,26 +82,30 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 		approach_spacing = 0.0;
 	}
-
+	
 	return [shipsOnApproach count];
 }
 
 
 - (void) abortAllDockings
 {
-	unsigned i;
-	NSArray*	ships = [shipsOnApproach allKeys];
+	NSArray		*ships = [shipsOnApproach allKeys];
+	unsigned	i, count = [ships count];
 	double		playerExtraTime = 0;
+	
 	no_docking_while_launching = YES;
 
-	for (i = 0; i < [ships count]; i++)
+	for (i = 0; i < count; i++)
 	{
-		int sid = [[ships objectAtIndex:i] intValue];
-		if ([UNIVERSE entityForUniversalID:sid])
-			[[[UNIVERSE entityForUniversalID:sid] getAI] message:@"DOCKING_ABORTED"];
+		OOUniversalID sid = [ships oo_unsignedIntAtIndex:i];
+		ShipEntity *ship = [UNIVERSE entityForUniversalID:sid];
+		if (ship != nil)
+		{
+			[ship sendAIMessage:@"DOCKING_ABORTED"];
+		}
 	}
 	[shipsOnApproach removeAllObjects];
-
+	
 	PlayerEntity *player = PLAYER;
 	BOOL isDockingStation = ([self parentEntity] == [player getTargetDockStation]);
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
@@ -119,7 +119,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		else
 		{
 			playerExtraTime = 10; // when very close to the port, give the player a few seconds to react on the abort message.
-			[self sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime ] toShip:player];
+			[self sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime] toShip:player];
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
 		}
 
@@ -150,22 +150,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void) autoDockShipsOnApproach
 {
 	[self autoDockShipsInQueue:shipsOnApproach];
-}
-
-static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation)
-{
-	NSMutableDictionary* acc = [NSMutableDictionary dictionaryWithCapacity:8];
-	[acc setObject:[NSString stringWithFormat:@"%.2f %.2f %.2f", coords.x, coords.y, coords.z] forKey:@"destination"];
-	[acc setObject:[NSNumber numberWithFloat:speed] forKey:@"speed"];
-	[acc setObject:[NSNumber numberWithFloat:range] forKey:@"range"];
-	[acc setObject:[NSNumber numberWithInt:station_id] forKey:@"station_id"];
-	[acc setObject:[NSNumber numberWithBool:match_rotation] forKey:@"match_rotation"];
-	if (ai_message)
-		[acc setObject:ai_message forKey:@"ai_message"];
-	if (comms_message)
-		[acc setObject:comms_message forKey:@"comms_message"];
-	//
-	return [NSDictionary dictionaryWithDictionary:acc];
 }
 
 
@@ -209,12 +193,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) isOffCentre
 {
-	if (fabs(position.x) + fabs(position.y) > 0.1f)
+	if (fabsf(position.x) + fabsf(position.y) > 0.1f)
 	{
 		return YES;
 	}
 	Vector dir = vector_forward_from_quaternion(orientation);
-	if (fabs(dir.x) + fabs(dir.y) > 0.1f)
+	if (fabsf(dir.x) + fabsf(dir.y) > 0.1f)
 	{
 		return YES;
 	}
@@ -226,8 +210,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {	
 	Vector		coords;
 	
-	int			ship_id = [ship universalID];
-	NSNumber	*shipID = [NSNumber numberWithUnsignedShort:ship_id];
+	OOUniversalID	ship_id = [ship universalID];
+	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:ship_id];
 
 	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(orientation, [[self parentEntity] orientation]));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
@@ -236,8 +220,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	Vector vj = cross_product(launchVector, vi);
 	Vector vk = launchVector;
 	
-	if (!ship)
-		return nil;
+	if (!ship)  return nil;
 	
 	// check if this is a new ship on approach
 	//
@@ -246,32 +229,38 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		Vector	delta = vector_subtract([ship position], [self absolutePositionForSubentity]);
 		float	ship_distance = magnitude(delta);
 
-		if (ship_distance > SCANNER_MAX_RANGE)	// too far away - don't claim a docking slot by not putting on approachlist for now.
-			return instructions([[self parentEntity] universalID], [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
+		if (ship_distance > SCANNER_MAX_RANGE)
+		{
+			// too far away - don't claim a docking slot by not putting on approachlist for now.
+			return OOMakeDockingInstructions([[self parentEntity] universalID], [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
+		}
 
 		[self addShipToShipsOnApproach: ship];
 		
 		if (ship_distance < 1000.0 + [[self parentEntity] collisionRadius] + ship->collision_radius)	// too close - back off
-			return instructions([[self parentEntity] universalID], [self absolutePositionForSubentity], 0, 5000, @"BACK_OFF", nil, NO);
+			return OOMakeDockingInstructions([[self parentEntity] universalID], [self absolutePositionForSubentity], 0, 5000, @"BACK_OFF", nil, NO);
 		
 		float dot = dot_product(launchVector, delta);
 		if (dot < 0) // approaching from the wrong side of the station - construct a vector to the side of the station.
 		{
 			Vector approachVector = cross_product(vector_normal(delta), launchVector);
 			approachVector = cross_product(launchVector, approachVector); // vector, 90 degr rotated from launchVector towards target.
-			return instructions([[self parentEntity] universalID], OOVectorTowards([self absolutePositionForSubentity], approachVector, [[self parentEntity] collisionRadius] + 5000) , 0, 1000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions([[self parentEntity] universalID], OOVectorTowards([self absolutePositionForSubentity], approachVector, [[self parentEntity] collisionRadius] + 5000) , 0, 1000, @"APPROACH", nil, NO);
 		}
 		
-		if (ship_distance > 12500.0)	// long way off - approach more closely
-			return instructions([[self parentEntity] universalID], [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
+		if (ship_distance > 12500.0)
+		{
+			// long way off - approach more closely
+			return OOMakeDockingInstructions([[self parentEntity] universalID], [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
+		}
 	}
 	
 	if (![shipsOnApproach objectForKey:shipID])
 	{
 		// some error has occurred - log it, and send the try-again message
 		OOLogERR(@"station.issueDockingInstructions.failed", @"couldn't addShipToShipsOnApproach:%@ in %@, retrying later -- shipsOnApproach:\n%@", ship, self, shipsOnApproach);
-		//
-		return instructions([[self parentEntity] universalID], ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
+		
+		return OOMakeDockingInstructions([[self parentEntity] universalID], ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 
 
@@ -283,20 +272,20 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		OOLogERR(@"station.issueDockingInstructions.failed", @" -- coordinatesStack = %@", coordinatesStack);
 		
-		return instructions([[self parentEntity] universalID], ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+		return OOMakeDockingInstructions([[self parentEntity] universalID], ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	// get the docking information from the instructions	
-	NSMutableDictionary* nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:0];
+	NSMutableDictionary *nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:0];
 	int docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
 	float speedAdvised = [nextCoords oo_floatForKey:@"speed"];
 	float rangeAdvised = [nextCoords oo_floatForKey:@"range"];
 	
 	// calculate world coordinates from relative coordinates
 	Vector rel_coords;
-	rel_coords.x = [(NSNumber *)[nextCoords objectForKey:@"rx"] floatValue];
-	rel_coords.y = [(NSNumber *)[nextCoords objectForKey:@"ry"] floatValue];
-	rel_coords.z = [(NSNumber *)[nextCoords objectForKey:@"rz"] floatValue];
+	rel_coords.x = [nextCoords oo_floatForKey:@"rx"];
+	rel_coords.y = [nextCoords oo_floatForKey:@"ry"];
+	rel_coords.z = [nextCoords oo_floatForKey:@"rz"];
 	coords = [self absolutePositionForSubentity];
 	coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
 	coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
@@ -304,15 +293,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	// check if the ship is at the control point
 	double max_allowed_range = 2.0 * rangeAdvised + ship->collision_radius;	// maximum distance permitted from control point - twice advised range
-	Vector delta = ship->position;
-	delta.x -= coords.x;	delta.y -= coords.y;	delta.z -= coords.z;
-
+	Vector delta = vector_subtract(ship->position, coords);
+	
 	if (magnitude2(delta) > max_allowed_range * max_allowed_range)	// too far from the coordinates - do not remove them from the stack!
 	{
 		if ((docking_stage == 1) &&(magnitude2(delta) < 1000000.0))	// 1km*1km
 			speedAdvised *= 0.5;	// half speed
 		
-		return instructions([[self parentEntity] universalID], coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
+		return OOMakeDockingInstructions([[self parentEntity] universalID], coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
 	}
 	else
 	{
@@ -337,17 +325,17 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 				
 		// calculate world coordinates from relative coordinates
-		rel_coords.x = [(NSNumber *)[nextCoords objectForKey:@"rx"] floatValue];
-		rel_coords.y = [(NSNumber *)[nextCoords objectForKey:@"ry"] floatValue];
-		rel_coords.z = [(NSNumber *)[nextCoords objectForKey:@"rz"] floatValue];
+		rel_coords.x = [nextCoords oo_floatForKey:@"rx"];
+		rel_coords.y = [nextCoords oo_floatForKey:@"ry"];
+		rel_coords.z = [nextCoords oo_floatForKey:@"rz"];
 		coords = [self absolutePositionForSubentity];
 		coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
 		coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
 		coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
 		
-		if( ([id_lock[docking_stage] weakRefUnderlyingObject] == nil)
-		   &&([id_lock[docking_stage + 1] weakRefUnderlyingObject] == nil)
-		   &&([id_lock[docking_stage + 2] weakRefUnderlyingObject] == nil))	// check three stages ahead
+		if([id_lock[docking_stage] weakRefUnderlyingObject] == nil &&
+		   [id_lock[docking_stage + 1] weakRefUnderlyingObject] == nil &&
+		   [id_lock[docking_stage + 2] weakRefUnderlyingObject] == nil)	// check three stages ahead
 		{
 			// approach is clear - move to next position
 			//
@@ -364,7 +352,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			//remove the previous stage from the stack
 			[coordinatesStack removeObjectAtIndex:0];
 			
-			return instructions([[self parentEntity] universalID], coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation);
+			return OOMakeDockingInstructions([[self parentEntity] universalID], coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation);
 		}
 		else
 		{
@@ -380,12 +368,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
 			}
 
-			return instructions([[self parentEntity] universalID], ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+			return OOMakeDockingInstructions([[self parentEntity] universalID], ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
 	
 	// we should never reach here.
-	return instructions([[self parentEntity] universalID], coords, 50, 10, @"APPROACH_COORDINATES", nil, NO);
+	return OOMakeDockingInstructions([[self parentEntity] universalID], coords, 50, 10, @"APPROACH_COORDINATES", nil, NO);
 }
 
 
@@ -409,8 +397,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	// will select a direction for offset based on the entity personality (was ship ID)
 	int offset_id = [ship entityPersonalityInt] & 0xf;	// 16  point compass
-	double c = cos(offset_id * M_PI * ONE_EIGHTH);
-	double s = sin(offset_id * M_PI * ONE_EIGHTH);
+	float c = cosf(offset_id * M_PI * ONE_EIGHTH);
+	float s = sinf(offset_id * M_PI * ONE_EIGHTH);
 	
 	// test if this points at the ship
 	Vector point1 = [self absolutePositionForSubentity];
@@ -431,44 +419,49 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	//
-	NSMutableArray*		coordinatesStack =  [NSMutableArray arrayWithCapacity: MAX_DOCKING_STAGES];
-	double port_depth = port_dimensions.z;	// 250m deep standard port.
+	NSMutableArray *coordinatesStack = [NSMutableArray arrayWithCapacity: MAX_DOCKING_STAGES];
+	float port_depth = port_dimensions.z;	// 250m deep standard port.
 	
-	//
 	int i;
-	double corridor_length;
 	for (i = corridor_count - 1; i >= 0; i--)
 	{
-		NSMutableDictionary*	nextCoords =	[NSMutableDictionary dictionaryWithCapacity:3];
-		
+		NSMutableDictionary *nextCoords = [NSMutableDictionary dictionaryWithCapacity:3];
 		int offset = corridor_offset[i];
 		
 		// space out first coordinate further if there are many ships
 		if ((i == corridor_count - 1) && offset)
+		{
 			offset += approach_spacing / port_depth;
+		}
 		
-		[nextCoords setObject:[NSNumber numberWithInt: corridor_count - i] forKey:@"docking_stage"];
-
-		[nextCoords setObject:[NSNumber numberWithFloat: s * port_depth * offset]	forKey:@"rx"];
-		[nextCoords setObject:[NSNumber numberWithFloat: c * port_depth * offset]	forKey:@"ry"];
-		corridor_length = port_depth * corridor_distance[i];
-		 // add the lenght inside the station to the corridor, except for the final position, inside the dock.
-		if (corridor_distance[i] > 0) corridor_length += port_corridor;
-		[nextCoords setObject:[NSNumber numberWithFloat: corridor_length]	forKey:@"rz"];
-		[nextCoords setObject:[NSNumber numberWithFloat: corridor_speed[i]] forKey:@"speed"];
-		[nextCoords setObject:[NSNumber numberWithFloat: corridor_range[i]] forKey:@"range"];
+		float corridor_length = port_depth * corridor_distance[i];
+		// add the lenght inside the station to the corridor, except for the final position, inside the dock.
+		if (corridor_distance[i] > 0)  corridor_length += port_corridor;
+		
+		[nextCoords oo_setInteger:corridor_count - i	forKey:@"docking_stage"];
+		[nextCoords oo_setFloat:s * port_depth * offset	forKey:@"rx"];
+		[nextCoords oo_setFloat:c * port_depth * offset	forKey:@"ry"];
+		[nextCoords oo_setFloat:corridor_length			forKey:@"rz"];
+		[nextCoords oo_setFloat:corridor_speed[i]		forKey:@"speed"];
+		[nextCoords oo_setFloat:corridor_range[i]		forKey:@"range"];
 		
 		if (corridor_rotate[i])
+		{
 			[nextCoords setObject:@"YES" forKey:@"match_rotation"];
+		}
 		
 		if (i == corridor_final_approach)
 		{
 			if ([self parentEntity] == [UNIVERSE station])
+			{
 				[nextCoords setObject:@"[station-begin-final-aproach]" forKey:@"comms_message"];
+			}
 			else
+			{
 				[nextCoords setObject:@"[docking-begin-final-aproach]" forKey:@"comms_message"];
+			}
 		}
-
+		
 		[coordinatesStack addObject:nextCoords];
 	}
 	
@@ -481,43 +474,49 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// Post 1.76 this probably should replace it with a proper list of holding slots so  that close by slots
 	// can be used again once the ship has left the Approach queue. In the current fix, resetting can
 	// result in two ships getting the same holding position.
-	if (approach_spacing > 2 * SCANNER_MAX_RANGE && approach_spacing / 500 > 5 * [shipsOnApproach count]) approach_spacing = 0;
+	if (approach_spacing > 2 * SCANNER_MAX_RANGE && approach_spacing / 500 > 5 * [shipsOnApproach count])
+	{
+		approach_spacing = 0;
+	}
 	
 	// COMM-CHATTER
 	if ([self parentEntity] == [UNIVERSE station])
-		[[self parentEntity] sendExpandedMessage: @"[station-welcome]" toShip: ship];
+	{
+		[[self parentEntity] sendExpandedMessage: @"[station-welcome]" toShip:ship];
+	}
 	else
-		[[self parentEntity] sendExpandedMessage: @"[docking-welcome]" toShip: ship];
-
+	{
+		[[self parentEntity] sendExpandedMessage: @"[docking-welcome]" toShip:ship];
+	}
 }
 
 
 - (void) noteDockingForShip:(ShipEntity *) ship
 {
-// safe to do this for now, as it just clears the ship from the docking queue
+	// safe to do this for now, as it just clears the ship from the docking queue
 	[self abortDockingForShip:ship];
-
-// avoid clashes with outgoing ships
+	
+	// avoid clashes with outgoing ships
 	last_launch_time = [UNIVERSE getTime];
 
 }
 
-- (void) abortDockingForShip:(ShipEntity *) ship
+- (void) abortDockingForShip:(ShipEntity *)ship
 {
 	OOUniversalID	ship_id = [ship universalID];
 	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:ship_id];
-
+	
 	if ([shipsOnApproach objectForKey:shipID])
 	{
 		[shipsOnApproach removeObjectForKey:shipID];
 	}
-		
+	
 	// clear any previously owned docking stages
 	[self clearIdLocks:ship];
 }
 
 
-- (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb
+- (Vector) portUpVectorForShipsBoundingBox:(BoundingBox)bb
 {
 	BOOL twist = ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y));
 
@@ -536,9 +535,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	if (![ship isShip])  return NO;
 	if ([ship isPlayer] && [ship status] == STATUS_DEAD)  return NO;
+	
 	OOUniversalID	ship_id = [ship universalID];
 	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:ship_id];
-
+	
 	if ([shipsOnApproach objectForKey:shipID])
 	{
 		return YES;
@@ -584,8 +584,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	ww *= 0.5;
 	hh *= 0.5;
-
-
+	
 #ifndef NDEBUG
 	if ([ship isPlayer] && (gDebugFlags & DEBUG_DOCKING))
 	{
@@ -607,10 +606,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			range);
 	}
 #endif
-
+	
 	if (arbb.max.z < -dd)
+	{
 		return NO;
-
+	}
+	
 	if ((arbb.max.x < ww)&&(arbb.min.x > -ww)&&(arbb.max.y < hh)&&(arbb.min.y > -hh))
 	{
 		if ([ship status] != STATUS_LAUNCHING && !allow_docking)
@@ -654,16 +655,22 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[ship doScriptEvent:OOJSID("shipCollided") withArgument:[self parentEntity]]; // no COLLISION message to ship AI, dockingAI.plist would abort.
 			
 			Vector delta;
-			delta.x = 0.5 * (arbb.max.x + arbb.min.x) * correction_factor;
-			delta.y = 0.5 * (arbb.max.y + arbb.min.y) * correction_factor;
+			delta.x = 0.5f * (arbb.max.x + arbb.min.x) * correction_factor;
+			delta.y = 0.5f * (arbb.max.y + arbb.min.y) * correction_factor;
 			
-			if (arbb.max.x < ww && arbb.min.x > -ww)	// x is okay - no need to correct
-				delta.x = 0;
-			if (arbb.max.y > hh && arbb.min.x > -hh)	// y is okay - no need to correct
-				delta.y = 0;
+			if (arbb.max.x < ww && arbb.min.x > -ww)
+			{
+				// x is okay - no need to correct
+				delta.x = 0.0f;
+			}
+			if (arbb.max.y > hh && arbb.min.x > -hh)
+			{
+				// y is okay - no need to correct
+				delta.y = 0.0f;
+			}
 				
 			// adjust the ship back to the center of the port
-			Vector pos = ship->position;
+			Vector pos = [ship position];
 			pos.x -= delta.y * vj.x + delta.x * vi.x;
 			pos.y -= delta.y * vj.y + delta.x * vi.y;
 			pos.z -= delta.y * vj.z + delta.x * vi.z;
@@ -671,7 +678,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 		
 		// if far enough in - dock
-		if (0.90 * arbb.max.z + 0.10 * arbb.min.z < 0.0)
+		if (0.90f * arbb.max.z + 0.10f * arbb.min.z < 0.0f)
 		{
 			[self pullInShipIfPermitted:ship];
 		}
@@ -692,18 +699,25 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (void) addShipToLaunchQueue:(ShipEntity *) ship :(BOOL) priority
+- (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority
 {
 	[self sanityCheckShipsOnApproach];
-	if (!launchQueue)
-		launchQueue = [[NSMutableArray alloc] init]; // retained
-	if (ship)
+	
+	if (ship == nil)  return;
+	
+	if (launchQueue == nil)
 	{
-		[ship setStatus: STATUS_DOCKED];
-		if (priority)
-			[launchQueue insertObject: ship atIndex: 0];
-		else 
-			[launchQueue addObject:ship];
+		launchQueue = [[NSMutableArray alloc] init]; // retained
+	}
+	
+	[ship setStatus:STATUS_DOCKED];
+	if (priority)
+	{
+		[launchQueue insertObject:ship atIndex:0];
+	}
+	else
+	{
+		[launchQueue addObject:ship];
 	}
 }
 
@@ -788,23 +802,20 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) clear
 {
-	if (launchQueue)
-		[launchQueue removeAllObjects];
-	if (shipsOnApproach)
-		[shipsOnApproach removeAllObjects];
-
+	[launchQueue removeAllObjects];
+	[shipsOnApproach removeAllObjects];
 }
 
 
 - (BOOL) dockingCorridorIsEmpty
 {
-	if (!UNIVERSE)
-		return NO;
-	
 	double unitime = [UNIVERSE getTime];
 	
-	if (unitime < last_launch_time + STATION_DELAY_BETWEEN_LAUNCHES)	// leave sufficient pause between launches
+	if (unitime < last_launch_time + STATION_DELAY_BETWEEN_LAUNCHES)
+	{
+		// leave sufficient pause between launches
 		return NO;
+	}
 	
 	// check against all ships
 	BOOL		isEmpty = YES;
@@ -813,10 +824,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	Entity*		my_entities[ent_count];
 	int i;
 	int ship_count = 0;
+	
 	for (i = 0; i < ent_count; i++)
+	{
 		//on red alert, launch even if the player is trying block the corridor. Ignore cargopods or other small debris.
 		if ([uni_entities[i] isShip] && ([(StationEntity*)[self parentEntity] alertLevel] < STATION_ALERT_LEVEL_RED || ![uni_entities[i] isPlayer]) && [uni_entities[i] mass] > 1000)
+		{
 			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+		}
+	}
 
 	for (i = 0; (i < ship_count)&&(isEmpty); i++)
 	{
@@ -850,7 +866,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	for (i = 0; i < ship_count; i++)
+	{
 		[my_entities[i] release];		//released
+	}
 
 	return isEmpty;
 }
@@ -865,9 +883,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	Entity*		my_entities[ent_count];
 	int i;
 	int ship_count = 0;
+	
 	for (i = 0; i < ent_count; i++)
+	{
 		if (uni_entities[i]->isShip)
+		{
 			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
+		}
+	}
 
 	for (i = 0; i < ship_count; i++)
 	{
@@ -916,29 +939,30 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	
 	for (i = 0; i < ship_count; i++)
+	{
 		[my_entities[i] release];		//released
+	}
 
 }
 
 
-- (void)setDimensionsAndCorridor:(BOOL)docking:(BOOL)launching
+- (void)setDimensionsAndCorridor:(BOOL)docking :(BOOL)launching
 {
-
 	BoundingBox bb = [self boundingBox];
 	port_dimensions = make_vector(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
-
+	
 	Vector vk = vector_forward_from_quaternion(orientation);
-
+	
 	BoundingBox stbb = [[self parentEntity] boundingBox];
 	Vector start = position;
-	while (	(start.x > stbb.min.x)&&(start.x < stbb.max.x)&&
-		   (start.y > stbb.min.y)&&(start.y < stbb.max.y)&&
+	while ((start.x > stbb.min.x)&&(start.x < stbb.max.x) &&
+		   (start.y > stbb.min.y)&&(start.y < stbb.max.y) &&
 		   (start.z > stbb.min.z)&&(start.z < stbb.max.z) )
 	{
 		start = vector_add(start, vector_multiply_scalar(vk, port_dimensions.z));
 	}
 	port_corridor = start.z - position.z;
-
+	
 	allow_docking = docking;
 	allow_launching = launching;
 }
@@ -966,8 +990,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		allow_launching = YES;
 // TODO: do something with these variables
 	}
-
-
+	
 	return self;
 	
 	OOJS_PROFILE_EXIT
@@ -1004,7 +1027,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	isStation = NO;
 	
 	if (![super setUpShipFromDictionary:dict])  return NO;
-
+	
 	return YES;
 	
 	OOJS_PROFILE_EXIT
@@ -1014,30 +1037,24 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 - (void) update:(OOTimeDelta) delta_t
 {
-
 	[super update:delta_t];
-
+	
 	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&[self dockingCorridorIsEmpty])
 	{
 		ShipEntity *se=(ShipEntity *)[launchQueue objectAtIndex:0];
 		[self launchShip:se];
 		[launchQueue removeObjectAtIndex:0];
 	}
-	if (([launchQueue count] == 0)&&(no_docking_while_launching))
+	if (([launchQueue count] == 0) && no_docking_while_launching)
+	{
 		no_docking_while_launching = NO;	// launching complete
-
+	}
+	
 	if (approach_spacing > 0.0)
 	{
 		approach_spacing -= delta_t * 10.0;	// reduce by 10 m/s
 		if (approach_spacing < 0.0)   approach_spacing = 0.0;
 	}
-
-
 }
 
-
-
-
 @end
-
-

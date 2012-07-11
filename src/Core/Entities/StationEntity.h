@@ -157,23 +157,17 @@ typedef enum
 - (BOOL) hasMultipleDocks;
 - (BOOL) hasClearDock;
 - (BOOL) hasLaunchDock;
-- (DockEntity*) getClearDock;
+- (DockEntity *) getClearDock;
 - (unsigned) currentlyInLaunchingQueues;
 - (unsigned) currentlyInDockingQueues;
 
 
-- (void) addShipToLaunchQueue:(ShipEntity *) ship :(BOOL) priority;
+- (void) launchShip:(ShipEntity *)ship;
 
-- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
+- (ShipEntity *) launchIndependentShip:(NSString *)role;
 
-- (void) launchShip:(ShipEntity *) ship;
+- (void) noteDockedShip:(ShipEntity *)ship;
 
-- (BOOL) fitsInDock:(ShipEntity *) ship;
-
-- (ShipEntity *) launchIndependentShip:(NSString*) role;
-
-- (void) noteDockedShip:(ShipEntity *) ship;
-- (void) addShipToStationCount:(ShipEntity *) ship;
 - (BOOL) interstellarUndockingAllowed;
 - (BOOL) hasNPCTraffic;
 - (void) setHasNPCTraffic:(BOOL)flag;
@@ -218,3 +212,7 @@ typedef enum
 - (void) setSuppressArrivalReports:(BOOL)newValue;
 
 @end
+
+
+
+NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation);

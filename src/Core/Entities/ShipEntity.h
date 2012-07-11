@@ -251,37 +251,35 @@ typedef enum
 	// TODO: stick all equipment in a list, and move list from playerEntity to shipEntity. -- Ahruman
 	unsigned				military_jammer_active: 1,	// military_jammer
 	
-docking_match_rotation: 1,
+							docking_match_rotation: 1,
 	
+							pitching_over: 1,			// set to YES if executing a sharp loop
+							rolling_over: 1,			// set to YES if executing a sharp roll
+							reportAIMessages: 1,		// normally NO, suppressing AI message reporting
 	
-pitching_over: 1,			// set to YES if executing a sharp loop
-rolling_over: 1,			// set to YES if executing a sharp roll
-reportAIMessages: 1,		// normally NO, suppressing AI message reporting
+							being_mined: 1,				// normally NO, set to Yes when fired on by mining laser
 	
-being_mined: 1,				// normally NO, set to Yes when fired on by mining laser
+							being_fined: 1,
 	
-being_fined: 1,
-	
-isHulk: 1,					// This is used to distinguish abandoned ships from cargo
-trackCloseContacts: 1,
-	
-isNearPlanetSurface: 1,		// check for landing on planet
-isFrangible: 1,				// frangible => subEntities can be damaged individually
-cloaking_device_active: 1,	// cloaking_device
-cloakPassive: 1,			// cloak deactivates when main weapons or missiles are fired
-cloakAutomatic: 1,			// cloak activates itself automatic during attack
-canFragment: 1,				// Can it break into wreckage?
-suppressExplosion: 1,		// Avoid exploding on death (script hook)
-suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
-isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
-isUnpiloted: 1,				// Is meant to not have crew
-hasScoopMessage: 1,			// suppress scoop messages when false.
-	
-	// scripting
-scripted_misjump: 1,
-haveExecutedSpawnAction: 1,
-noRocks: 1,
-_lightsActive: 1;
+							isHulk: 1,					// This is used to distinguish abandoned ships from cargo
+							trackCloseContacts: 1,
+							isNearPlanetSurface: 1,		// check for landing on planet
+							isFrangible: 1,				// frangible => subEntities can be damaged individually
+							cloaking_device_active: 1,	// cloaking_device
+							cloakPassive: 1,			// cloak deactivates when main weapons or missiles are fired
+							cloakAutomatic: 1,			// cloak activates itself automatic during attack
+							canFragment: 1,				// Can it break into wreckage?
+							suppressExplosion: 1,		// Avoid exploding on death (script hook)
+							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
+							isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
+							isUnpiloted: 1,				// Is meant to not have crew
+							hasScoopMessage: 1,			// suppress scoop messages when false.
+							
+							// scripting
+							scripted_misjump: 1,
+							haveExecutedSpawnAction: 1,
+							noRocks: 1,
+							_lightsActive: 1;
 	
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
