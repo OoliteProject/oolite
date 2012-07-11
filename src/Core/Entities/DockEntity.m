@@ -547,13 +547,13 @@ MA 02110-1301, USA.
 }
 
 
-- (unsigned) dockingQueueSize
+- (unsigned) countOfShipsInDockingQueue
 {
 	return [shipsOnApproach count];
 }
 
 
-- (unsigned) launchQueueSize
+- (unsigned) countOfShipsInLaunchQueue
 {
 	return [launchQueue count];
 }
@@ -773,7 +773,7 @@ MA 02110-1301, USA.
 }
 
 
-- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role
+- (unsigned) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role
 {
 	unsigned i, count, result = 0;
 	count = [launchQueue count];

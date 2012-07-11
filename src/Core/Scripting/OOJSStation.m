@@ -211,15 +211,15 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 			return YES;
 
 		case kStation_dockedContractors:
-			*value = INT_TO_JSVAL([entity dockedContractors]);
+			*value = INT_TO_JSVAL([entity countOfDockedContractors]);
 			return YES;
 			
 		case kStation_dockedPolice:
-			*value = INT_TO_JSVAL([entity dockedPolice]);
+			*value = INT_TO_JSVAL([entity countOfDockedPolice]);
 			return YES;
 			
 		case kStation_dockedDefenders:
-			*value = INT_TO_JSVAL([entity dockedDefenders]);
+			*value = INT_TO_JSVAL([entity countOfDockedDefenders]);
 			return YES;
 			
 		case kStation_equivalentTechLevel:

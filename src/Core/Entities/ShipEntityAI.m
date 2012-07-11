@@ -1220,7 +1220,9 @@
 - (void) setDestinationToStationBeacon
 {
 	if ([UNIVERSE station])
-		destination = [[UNIVERSE station] getBeaconPosition];
+	{
+		destination = [[UNIVERSE station] beaconPosition];
+	}
 }
 
 

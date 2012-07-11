@@ -50,7 +50,7 @@ MA 02110-1301, USA.
 
 // Docking
 - (BOOL) allowsDocking;
-- (unsigned) dockingQueueSize;
+- (unsigned) countOfShipsInDockingQueue;
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *)ship;
 - (NSString *) canAcceptShipForDocking:(ShipEntity *)ship;
 - (BOOL) shipIsInDockingCorridor:(ShipEntity *)ship;
@@ -65,8 +65,8 @@ MA 02110-1301, USA.
 
 // Launching
 - (BOOL) allowsLaunching;
-- (unsigned) launchQueueSize;
-- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
+- (unsigned) countOfShipsInLaunchQueue;
+- (unsigned) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
 - (void) launchShip:(ShipEntity *)ship;
 - (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority;
 

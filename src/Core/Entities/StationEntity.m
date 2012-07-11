@@ -53,7 +53,7 @@ MA 02110-1301, USA.
 - (void) addShipToStationCount:(ShipEntity *)ship;
 
 - (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority;
-- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
+- (unsigned) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
 
 @end
 
@@ -82,20 +82,12 @@ MA 02110-1301, USA.
 }
 
 
-- (double) port_radius
-{
-	return port_radius;
-}
-
-
-- (Vector) getBeaconPosition
+- (Vector) beaconPosition
 {
 	double buoy_distance = 10000.0;				// distance from station entrance
-	Vector result = position;
-	Vector v_f = vector_forward_from_quaternion(orientation);
-	result.x += buoy_distance * v_f.x;
-	result.y += buoy_distance * v_f.y;
-	result.z += buoy_distance * v_f.z;
+	Vector v_f = vector_forward_from_quaternion([self orientation]);
+	Vector result = vector_add([self position], vector_multiply_scalar(v_f, buoy_distance));
+	
 	return result;
 }
 
@@ -196,19 +188,19 @@ MA 02110-1301, USA.
 }
 
 
-- (unsigned) dockedContractors
+- (unsigned) countOfDockedContractors
 {
 	return max_scavengers > scavengers_launched ? max_scavengers - scavengers_launched : 0;
 }
 
 
-- (unsigned) dockedPolice
+- (unsigned) countOfDockedPolice
 {
 	return max_police > defenders_launched ? max_police - defenders_launched : 0;
 }
 
 
-- (unsigned) dockedDefenders
+- (unsigned) countOfDockedDefenders
 {
 	return max_defense_ships > defenders_launched ? max_defense_ships - defenders_launched : 0;
 }
@@ -257,7 +249,7 @@ MA 02110-1301, USA.
 // try to find an unused dock first
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsLaunching] && [sub launchQueueSize] == 0) 
+		if ([sub allowsLaunching] && [sub countOfShipsInLaunchQueue] == 0) 
 		{
 			[sub launchShip:ship];
 			return;
@@ -463,10 +455,10 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 		if (sub != player_reserved_dock)
 		{
 			docking = [sub canAcceptShipForDocking:ship];
-			if ([docking isEqualToString:@"DOCKING_POSSIBLE"] && [sub dockingQueueSize] < queue) {
+			if ([docking isEqualToString:@"DOCKING_POSSIBLE"] && [sub countOfShipsInDockingQueue] < queue) {
 // try to select the dock with the fewest ships already enqueued
 				chosenDock = sub;
-				queue = [sub dockingQueueSize];
+				queue = [sub countOfShipsInDockingQueue];
 			}
 		}
 	}	
@@ -838,7 +830,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 		else if ([player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED &&
 				[self hasClearDock])
 		{
-			DockEntity* dock = [self getClearDock];
+			DockEntity *dock = [self selectDockForDocking];
 			last_launch_time = unitime + DOCKING_CLEARANCE_WINDOW;
 			if ([self hasMultipleDocks]) 
 			{
@@ -936,7 +928,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsDocking] && [sub launchQueueSize] == 0 && [sub dockingQueueSize] == 0)
+		if ([sub allowsDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
 		{
 			return YES;
 		}
@@ -961,13 +953,13 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 }
 
 
-- (DockEntity*) getClearDock
+- (DockEntity *) selectDockForDocking
 {
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsDocking] && [sub launchQueueSize] == 0 && [sub dockingQueueSize] == 0)
+		if ([sub allowsDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
 		{
 			return sub;
 		}
@@ -991,9 +983,9 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 		{
 			if (sub != player_reserved_dock)
 			{
-				if ([sub dockingQueueSize] == 0)
+				if ([sub countOfShipsInDockingQueue] == 0)
 				{
-					if ([sub allowsLaunching] && [sub launchQueueSize] <= threshold)
+					if ([sub allowsLaunching] && [sub countOfShipsInLaunchQueue] <= threshold)
 					{
 						if ([sub fitsInDock:ship])
 						{
@@ -1023,7 +1015,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 // every launch this update to the same dock
 // (edge case where new docking ship appears in the middle, probably
 // not a problem)
-				if ([sub allowsLaunching] && [sub dockingQueueSize] <= threshold)
+				if ([sub allowsLaunching] && [sub countOfShipsInDockingQueue] <= threshold)
 				{
 					if ([sub fitsInDock:ship])
 					{
@@ -1041,14 +1033,14 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 }
 
 
-- (unsigned) countShipsInLaunchQueueWithPrimaryRole:(NSString *)role
+- (unsigned) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role
 {
 	unsigned result = 0;
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		result += [sub countShipsInLaunchQueueWithPrimaryRole:role];
+		result += [sub countOfShipsInLaunchQueueWithPrimaryRole:role];
 	}
 	return result;
 }
@@ -1612,7 +1604,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 
 	ShipEntity  *scavenger_ship;
 	
-	unsigned scavs = [UNIVERSE countShipsWithPrimaryRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"scavenger"];
+	unsigned scavs = [UNIVERSE countShipsWithPrimaryRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countOfShipsInLaunchQueueWithPrimaryRole:@"scavenger"];
 	
 	if (scavs >= max_scavengers)  return nil;
 	if (scavengers_launched >= max_scavengers)  return nil;
@@ -1657,7 +1649,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 
 	ShipEntity  *miner_ship;
 	
-	int		n_miners = [UNIVERSE countShipsWithPrimaryRole:@"miner" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"miner"];
+	int		n_miners = [UNIVERSE countShipsWithPrimaryRole:@"miner" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countOfShipsInLaunchQueueWithPrimaryRole:@"miner"];
 	
 	if (n_miners >= 1)	// just the one
 		return nil;
@@ -2071,7 +2063,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 		if ([other isPlayer]) 
 		{
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-			player_reserved_dock = [self getClearDock];
+			player_reserved_dock = [self selectDockForDocking];
 		}
 
 		if ([self hasMultipleDocks] && [other isPlayer])
@@ -2104,7 +2096,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 	unsigned soa = 0;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		soa += [sub dockingQueueSize];
+		soa += [sub countOfShipsInDockingQueue];
 	}
 	return soa;
 }
@@ -2117,7 +2109,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 	unsigned soa = 0;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		soa += [sub launchQueueSize];
+		soa += [sub countOfShipsInLaunchQueue];
 	}
 	return soa;
 }

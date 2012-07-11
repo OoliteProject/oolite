@@ -81,7 +81,7 @@ enum
 	kEntity_isPlayer,			// is player, boolean, read-only.
 	kEntity_isShip,				// is ship, boolean, read-only.
 	kEntity_isStation,			// is station, boolean, read-only.
-	kEntity_isDock,				// is ship, boolean, read-only.
+	kEntity_isDock,				// is dock, boolean, read-only.
 	kEntity_isSubEntity,		// is subentity, boolean, read-only.
 	kEntity_isSun,				// is sun, boolean, read-only.
 	kEntity_isValid,			// is not stale, boolean, read-only.

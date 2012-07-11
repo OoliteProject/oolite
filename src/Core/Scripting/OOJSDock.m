@@ -154,11 +154,11 @@ static JSBool DockGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 		
 		case kDock_dockingQueueLength:
-			*value = INT_TO_JSVAL([entity dockingQueueSize]);
+			*value = INT_TO_JSVAL([entity countOfShipsInDockingQueue]);
 			return YES;
 
 		case kDock_launchingQueueLength:
-			*value = INT_TO_JSVAL([entity launchQueueSize]);
+			*value = INT_TO_JSVAL([entity countOfShipsInLaunchQueue]);
 			return YES;
 			
 		default:

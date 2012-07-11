@@ -1156,7 +1156,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		{
 			[nav_buoy setRoll:	0.10];
 			[nav_buoy setPitch:	0.15];
-			[nav_buoy setPosition:[a_station getBeaconPosition]];
+			[nav_buoy setPosition:[a_station beaconPosition]];
 			[nav_buoy setScanClass: CLASS_BUOY];
 			[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			[nav_buoy release];
