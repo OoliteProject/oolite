@@ -81,6 +81,7 @@ enum
 	kEntity_isPlayer,			// is player, boolean, read-only.
 	kEntity_isShip,				// is ship, boolean, read-only.
 	kEntity_isStation,			// is station, boolean, read-only.
+	kEntity_isDock,				// is ship, boolean, read-only.
 	kEntity_isSubEntity,		// is subentity, boolean, read-only.
 	kEntity_isSun,				// is sun, boolean, read-only.
 	kEntity_isValid,			// is not stale, boolean, read-only.
@@ -106,6 +107,7 @@ static JSPropertySpec sEntityProperties[] =
 	{ "isPlanet",				kEntity_isPlanet,			OOJS_PROP_READONLY_CB },
 	{ "isPlayer",				kEntity_isPlayer,			OOJS_PROP_READONLY_CB },
 	{ "isShip",					kEntity_isShip,				OOJS_PROP_READONLY_CB },
+	{ "isDock",					kEntity_isDock,				OOJS_PROP_READONLY_CB },
 	{ "isStation",				kEntity_isStation,			OOJS_PROP_READONLY_CB },
 	{ "isSubEntity",			kEntity_isSubEntity,		OOJS_PROP_READONLY_CB },
 	{ "isSun",					kEntity_isSun,				OOJS_PROP_READONLY_CB },
@@ -238,6 +240,10 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 		
 		case kEntity_isStation:
 			*value = OOJSValueFromBOOL([entity isStation]);
+			return YES;
+
+		case kEntity_isDock:
+			*value = OOJSValueFromBOOL([entity isDock]);
 			return YES;
 			
 		case kEntity_isSubEntity:

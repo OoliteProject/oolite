@@ -191,6 +191,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		return @"TRY_AGAIN_LATER";
 	}
+// if there are pending launches, temporarily don't accept docking requests
+	if (allow_launching && [launchQueue count])
+	{
+		return @"TRY_AGAIN_LATER";
+	}
 	BoundingBox bb = [ship totalBoundingBox];
 	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
 		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)))
