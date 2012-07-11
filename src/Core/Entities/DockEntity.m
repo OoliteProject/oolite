@@ -175,6 +175,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+- (BOOL) allowsLaunching
+{
+	return allow_launching;
+}
+
+
 - (NSString*) canAcceptShipForDocking:(ShipEntity *) ship
 {
 	if (!allow_docking)

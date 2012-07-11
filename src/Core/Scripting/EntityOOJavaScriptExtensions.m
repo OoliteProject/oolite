@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 #import "OOJSShip.h"
 #import "OOJSStation.h"
 #import "StationEntity.h"
+#import "OOJSDock.h"
+#import "DockEntity.h"
 #import "OOPlanetEntity.h"
 
 

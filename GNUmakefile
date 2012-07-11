@@ -268,6 +268,7 @@ OOLITE_SCRIPTING_FILES = \
     OOConstToJSString.m \
     OOJSCall.m \
     OOJSClock.m \
+    OOJSDock.m \
     OOJSEntity.m \
     OOJSEquipmentInfo.m \
     OOJSFunction.m \

@@ -674,6 +674,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		sometimes straight through.
 		-- Ahruman 2011-01-29
 	*/
+/* allow_docking on DockEntity now gives working collision detection
+ * for this case, so it could be resurrected that way - CIM */
 	if (EXPECT_NOT(ship == nil))  return;
 	
 	JSContext	*context = OOJSAcquireContext();

@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJSShip.h"
 #import "OOJSStation.h"
+#import "OOJSDock.h"
 #import "OOJSPlayer.h"
 #import "OOJSPlayerShip.h"
 #import "OOJSManifest.h"
@@ -344,6 +345,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSEntity(gOOJSMainThreadContext, _globalObject);
 	InitOOJSShip(gOOJSMainThreadContext, _globalObject);
 	InitOOJSStation(gOOJSMainThreadContext, _globalObject);
+	InitOOJSDock(gOOJSMainThreadContext, _globalObject);
 	InitOOJSPlayer(gOOJSMainThreadContext, _globalObject);
 	InitOOJSPlayerShip(gOOJSMainThreadContext, _globalObject);
 	InitOOJSManifest(gOOJSMainThreadContext, _globalObject);
