@@ -901,10 +901,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 		{
-// rotates through the launch docks with no docking ships
+			// rotates through the launch docks with no docking ships
 			if (sub != player_reserved_dock)
 			{
-				if ([sub dockingQueueSize] == 0) {
+				if ([sub dockingQueueSize] == 0)
+				{
 					if ([sub launchQueueSize] > -1 && [sub launchQueueSize] <= threshold)
 					{
 						if ([sub fitsInDock:ship])
@@ -919,15 +920,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		threshold++;
 	}
 	// if we get this far, all docks have incoming traffic.
-// probably most efficient (since launching is far faster than docking)
-// to assign all ships to the *same* dock with the smallest incoming queue
+	// probably most efficient (since launching is far faster than docking)
+	// to assign all ships to the *same* dock with the smallest incoming queue
 	threshold = 0;
-	while (threshold < 16) {
+	while (threshold < 16)
+	{
 		for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 		{
 			if (sub != player_reserved_dock)
 			{
-				if ([sub launchQueueSize] > -1 && [sub dockingQueueSize] <= threshold)
+				if ([sub launchQueueSize] > -1 && (int)[sub dockingQueueSize] <= threshold)
 				{
 					if ([sub fitsInDock:ship])
 					{
@@ -939,7 +941,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 		threshold++;
 	}
-
+	
 	OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as the %@ has too many ships in its launch queue(s) or no suitable launch docks.",
 			  [ship displayName], [ship primaryRole], [self displayName]);
 }
