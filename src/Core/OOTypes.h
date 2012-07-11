@@ -190,6 +190,10 @@ enum
 {
 	kOOVariableTechLevel	= 99
 };
+typedef OOUInteger	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so OOUInteger required.
+
+typedef uint8_t		OOGovernmentID;		// 0..7
+typedef uint8_t		OOEconomyID;		// 0..7
 
 
 typedef uint8_t		OOGalaxyID;			// 0..7

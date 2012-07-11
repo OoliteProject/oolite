@@ -132,9 +132,6 @@ enum
 
 #define PLANETINFO_UNIVERSAL_KEY			@"universal"
 
-// Derived constants (MIN_ENTITY_UID, MAX_ENTITY_UID) are defined in OOTypes.h
-#define	UNIVERSE_MAX_ENTITIES				2048
-
 #define OOLITE_EXCEPTION_LOOPING			@"OoliteLoopingException"
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND		@"OoliteDataNotFoundException"
 #define OOLITE_EXCEPTION_FATAL				@"OoliteFatalException"
@@ -155,11 +152,6 @@ enum
 #ifndef MASS_DEPENDENT_FUEL_PRICES
 #define MASS_DEPENDENT_FUEL_PRICES	1
 #endif
-
-
-typedef OOUInteger	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so OOUInteger required.
-typedef uint8_t		OOGovernmentID;		// 0..7
-typedef uint8_t		OOEconomyID;		// 0..7
 
 
 @interface Universe: OOWeakRefObject
