@@ -64,11 +64,12 @@ typedef enum
 	OOTechLevelID			equivalentTechLevel;
 	float					equipmentPriceFactor;
 
-	Vector					port_position;
+/*	Vector					port_position; // these four now handled by DockEntity
 	Quaternion				port_orientation;
-	Vector  				port_dimensions;
 	ShipEntity				*port_model;
-	double					port_corridor;				// corridor length inside station.
+	double					port_corridor; */				// corridor length inside station.
+	Vector  				port_dimensions;
+	double          port_radius;
 	
 	unsigned				no_docking_while_launching: 1,
 							hasNPCTraffic: 1;
@@ -120,8 +121,6 @@ typedef enum
 
 - (double) port_radius;
 
-- (Vector) getPortPosition;
-
 - (Vector) getBeaconPosition;
 
 - (float) equipmentPriceFactor;
@@ -157,6 +156,7 @@ typedef enum
 
 - (BOOL) hasMultipleDocks;
 - (BOOL) hasClearDock;
+- (BOOL) hasLaunchDock;
 - (DockEntity*) getClearDock;
 - (unsigned) currentlyInLaunchingQueues;
 - (unsigned) currentlyInDockingQueues;

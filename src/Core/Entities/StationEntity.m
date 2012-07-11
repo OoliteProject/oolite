@@ -80,17 +80,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (double) port_radius
 {
-	return magnitude(port_position);
-}
-
-
-- (Vector) getPortPosition
-{
-	Vector result = position;
-	result.x += port_position.x * v_right.x + port_position.y * v_up.x + port_position.z * v_forward.x;
-	result.y += port_position.x * v_right.y + port_position.y * v_up.y + port_position.z * v_forward.y;
-	result.z += port_position.x * v_right.z + port_position.y * v_up.z + port_position.z * v_forward.z;
-	return result;
+	return port_radius;
 }
 
 
@@ -254,7 +244,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-// only used by player
+// only used by player - everything else ends up in a Dock's launch queue
 - (void) launchShip:(ShipEntity*)ship
 {
 	NSEnumerator	*subEnum = nil;
@@ -263,7 +253,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // try to find an unused dock first
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub launchQueueSize] == 0) 
+		if ([sub allowsLaunching] && [sub launchQueueSize] == 0) 
 		{
 			[sub launchShip:ship];
 			return;
@@ -272,7 +262,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // otherwise any launchable dock will do
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub launchQueueSize] != -1) 
+		if ([sub allowsLaunching]) 
 		{
 			[sub launchShip:ship];
 			return;
@@ -285,7 +275,43 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[sub launchShip:ship];
 		return;
 	}
-	// FIXME: case where ship has no docks specified at all
+	// case where ship has no docks specified at all
+	// legacy situation, so virtual dock will be at 0,0,0 and aligned to station
+
+	Vector launchPos = position;
+	Vector launchVel = [self velocity];
+	double launchSpeed = 0.5 * [ship maxFlightSpeed];
+	if ([self maxFlightSpeed] > 0 && [self flightSpeed] > 0) // is self a carrier in flight.
+	{
+		launchSpeed = 0.5 * [ship maxFlightSpeed] * (1.0 + [self flightSpeed]/[self maxFlightSpeed]);
+	}
+	Vector launchVector = vector_forward_from_quaternion(orientation);
+	launchPos = vector_add(launchPos,vector_multiply_scalar(launchVector,port_radius));
+	Quaternion q1 = orientation;
+	if ([ship isPlayer]) q1.w = -q1.w; // need this as a fix for the player and before shipWillLaunchFromStation.
+	[ship setOrientation:q1];
+	[ship setPosition:launchPos];
+	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0]; // Make sure no extra escorts are added after launch. (e.g. for miners etc.)
+	if ([ship hasEscorts]) no_docking_while_launching = YES;
+		launchVel = vector_add(launchVel, vector_multiply_scalar(launchVector, launchSpeed));
+	launchSpeed = magnitude(launchVel);
+	[ship setSpeed:launchSpeed];
+	[ship setVelocity:launchVel];
+	// launch roll/pitch
+	[ship setRoll: flightRoll];
+	[ship setPitch:0.0];
+	[UNIVERSE addEntity:ship];
+	[ship setStatus: STATUS_LAUNCHING];
+	[ship setDesiredSpeed:launchSpeed]; // must be set after initialising the AI to correct any speed set by AI
+	last_launch_time = [UNIVERSE getTime];
+	double delay = 1.1*collision_radius/launchSpeed;
+	[ship setLaunchDelay:delay];
+	[[ship getAI] setNextThinkTime:last_launch_time + delay]; // pause while launching
+	
+	[ship resetExhaustPlumes];	// resets stuff for tracking/exhausts
+	
+	[ship doScriptEvent:OOJSID("shipWillLaunchFromStation") withArgument:self];
+	[self doScriptEvent:OOJSID("stationLaunchedShip") withArgument:ship andReactToAIMessage: @"STATION_LAUNCHED_SHIP"];
 }
 
 
@@ -534,10 +560,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	isStation = YES;
 	alertLevel = STATION_ALERT_LEVEL_GREEN;
 	
-	double port_radius = [dict oo_nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
-	port_position = make_vector(0, 0, port_radius);
-	port_orientation = kIdentityQuaternion;
-	port_corridor = 0;
+	port_radius = [dict oo_nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
 	
 	// port_dimensions can be set for rock-hermits and other specials
 	port_dimensions = make_vector(69, 69, 250);
@@ -651,13 +674,52 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
+	unsigned docks = 0;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		if ([sub shipIsInDockingCorridor:ship])
 		{
 			return YES;
 		}
+		docks++;
 	}
+	if (docks > 0) 
+	{
+		return NO;
+	}
+// handle case where station has no dock subentities (legacy case)
+	
+	Vector vi = vector_right_from_quaternion(orientation);
+	Vector vj = vector_up_from_quaternion(orientation);
+	Vector vk = vector_forward_from_quaternion(orientation);
+	Vector port_pos = vector_add(position,vector_multiply_scalar(vk,port_radius));
+
+	BoundingBox shipbb = [ship boundingBox];
+	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition: port_pos InVectors: vi : vj : vk];
+	
+	// port dimensions..
+	GLfloat ww = port_dimensions.x;
+	GLfloat hh = port_dimensions.y;
+	GLfloat dd = port_dimensions.z;
+
+	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
+	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
+	
+	ww *= 0.5;
+	hh *= 0.5;
+
+	if (arbb.max.z < -dd)
+		return NO;
+
+	if ((arbb.max.x < ww)&&(arbb.min.x > -ww)&&(arbb.max.y < hh)&&(arbb.min.y > -hh))
+	{
+		if (0.90 * arbb.max.z + 0.10 * arbb.min.z < 0.0)	// we're 90% in docking position!
+		{
+			[self pullInShipIfPermitted:ship];
+		}
+		return YES;
+	}
+
 	return NO;
 }
 
@@ -752,7 +814,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			{
 				[self sendExpandedMessage:DESC(@"station-docking-clearance-expired") toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];	// Docking clearance for player has expired.
-				if ([self currentlyInDockingQueues] == 0) [[[self parentEntity] getAI] message:@"DOCKING_COMPLETE"];
+				if ([self currentlyInDockingQueues] == 0) [[self getAI] message:@"DOCKING_COMPLETE"];
 				player_reserved_dock = nil;
 			}
 		}
@@ -762,7 +824,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			if (last_launch_time < unitime)
 			{
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
-				if ([self currentlyInDockingQueues] == 0) [[[self parentEntity] getAI] message:@"DOCKING_COMPLETE"];
+				if ([self currentlyInDockingQueues] == 0) [[self getAI] message:@"DOCKING_COMPLETE"];
 			}
 		}
 
@@ -867,7 +929,23 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsDocking] && [sub launchQueueSize] < 1 && [sub dockingQueueSize] < 1)
+		if ([sub allowsDocking] && [sub launchQueueSize] == 0 && [sub dockingQueueSize] == 0)
+		{
+			return YES;
+		}
+	}
+	return NO;
+}
+
+
+// is there any dock which may launch ships?
+- (BOOL) hasLaunchDock
+{
+	NSEnumerator	*subEnum = nil;
+	DockEntity* sub = nil;
+	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+	{
+		if ([sub allowsLaunching])
 		{
 			return YES;
 		}
@@ -882,7 +960,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsDocking] && [sub launchQueueSize] < 1 && [sub dockingQueueSize] < 1)
+		if ([sub allowsDocking] && [sub launchQueueSize] == 0 && [sub dockingQueueSize] == 0)
 		{
 			return sub;
 		}
@@ -895,18 +973,20 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	NSEnumerator	*subEnum = nil;
 	DockEntity		*sub = nil;
-	int				threshold = 0;
-	
+	unsigned			threshold = 0;
+
+	// quickest launch if we assign ships to those bays with no incoming ships
+	// and spread the ships evenly around those bays
+  // much easier if the station has at least one launch-only dock
 	while (threshold < 16)
 	{
 		for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 		{
-			// rotates through the launch docks with no docking ships
 			if (sub != player_reserved_dock)
 			{
 				if ([sub dockingQueueSize] == 0)
 				{
-					if ([sub launchQueueSize] > -1 && [sub launchQueueSize] <= threshold)
+					if ([sub allowsLaunching] && [sub launchQueueSize] <= threshold)
 					{
 						if ([sub fitsInDock:ship])
 						{
@@ -919,9 +999,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 		threshold++;
 	}
-	// if we get this far, all docks have incoming traffic.
-	// probably most efficient (since launching is far faster than docking)
+	// if we get this far, all docks have at least some incoming traffic.
+	// usually most efficient (since launching is far faster than docking)
 	// to assign all ships to the *same* dock with the smallest incoming queue
+  // rather than to try spreading them out across several queues
+  // also stops escorts being launched before their mothership 
 	threshold = 0;
 	while (threshold < 16)
 	{
@@ -929,7 +1011,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		{
 			if (sub != player_reserved_dock)
 			{
-				if ([sub launchQueueSize] > -1 && (int)[sub dockingQueueSize] <= threshold)
+// so this time as long as it allows launching only check the docking queue size
+// so long as enumerator order is deterministic, this will assign
+// every launch this update to the same dock
+// (edge case where new docking ship appears in the middle, probably
+// not a problem)
+				if ([sub allowsLaunching] && [sub dockingQueueSize] <= threshold)
 				{
 					if ([sub fitsInDock:ship])
 					{
@@ -1180,6 +1267,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (ShipEntity *) launchIndependentShip:(NSString*) role
 {
+	if (![self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a ship with role %@, as the %@ has no launch docks.",
+			  role, [self displayName]);
+		return nil;
+	}
+
 	BOOL			trader = [role isEqualToString:@"trader"];
 	BOOL			sunskimmer = ([role isEqualToString:@"sunskim-trader"]);
 	ShipEntity		*ship = nil;
@@ -1187,7 +1281,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	NSString		*escortRole = nil;
 	NSString		*escortShipKey = nil;
 	NSDictionary	*traderDict = nil;
-	
+
 	if((trader && (randf() < 0.1)) || sunskimmer) 
 	{
 		ship = [UNIVERSE newShipWithRole:@"sunskim-trader"];
@@ -1332,6 +1426,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (NSArray *) launchPolice
 {
+	if (![self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a police ship, as the %@ has no launch docks.",
+			  [self displayName]);
+		return [NSArray array];
+	}
+
 	OOUniversalID	police_target = primaryTarget;
 	unsigned		i;
 	NSMutableArray	*result = nil;
@@ -1390,6 +1491,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (ShipEntity *) launchDefenseShip
 {
+	if (![self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a defense ship, as the %@ has no launch docks.",
+			  [self displayName]);
+		return nil;
+	}
+
 	OOUniversalID	defense_target = primaryTarget;
 	ShipEntity	*defense_ship = nil;
 	NSString	*defense_ship_key = nil,
@@ -1488,6 +1596,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (ShipEntity *) launchScavenger
 {
+	if (![self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a scavenger ship, as the %@ has no launch docks.",
+			  [self displayName]);
+		return nil;
+	}
+
 	ShipEntity  *scavenger_ship;
 	
 	unsigned scavs = [UNIVERSE countShipsWithPrimaryRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"scavenger"];
@@ -1526,6 +1641,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (ShipEntity *) launchMiner
 {
+	if (![self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a miner ship, as the %@ has no launch docks.",
+			  [self displayName]);
+		return nil;
+	}
+
 	ShipEntity  *miner_ship;
 	
 	int		n_miners = [UNIVERSE countShipsWithPrimaryRole:@"miner" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"miner"];
@@ -1568,6 +1690,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (ShipEntity *) launchPirateShip
 {
+	if ([self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a pirate ship, as the %@ has no launch docks.",
+			  [self displayName]);
+		return nil;
+	}
 	//Pirate ships are launched from the same pool as defence ships.
 	OOUniversalID	defense_target = primaryTarget;
 	ShipEntity		*pirate_ship = nil;
@@ -1623,6 +1751,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (ShipEntity *) launchShuttle
 {
+	if (![self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a shuttle ship, as the %@ has no launch docks.",
+			  [self displayName]);
+		return nil;
+	}
 	ShipEntity  *shuttle_ship;
 		
 	shuttle_ship = [UNIVERSE newShipWithRole:@"shuttle"];   // retain count = 1
@@ -1655,6 +1789,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (void) launchEscort
 {
+	if (![self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for an escort ship, as the %@ has no launch docks.",
+			  [self displayName]);
+		return;
+	}
 	ShipEntity  *escort_ship;
 		
 	escort_ship = [UNIVERSE newShipWithRole:@"escort"];   // retain count = 1
@@ -1679,6 +1819,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (ShipEntity *) launchPatrol
 {
+	if (![self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a patrol ship, as the %@ has no launch docks.",
+			  [self displayName]);
+		return nil;
+	}
 	if (defenders_launched < max_police)
 	{
 		ShipEntity		*patrol_ship = nil;
@@ -1729,6 +1875,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (void) launchShipWithRole:(NSString*) role
 {
+	if (![self hasLaunchDock])
+	{
+		OOLog(@"station.launchShip.failed", @"Cancelled launch for a ship with role %@, as the %@ has no launch docks.",
+			  role, [self displayName]);
+		return;
+	}
 	ShipEntity  *ship = [UNIVERSE newShipWithRole: role];   // retain count = 1
 	if (ship && [self fitsInDock:ship])
 	{
@@ -1958,7 +2110,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	unsigned soa = 0;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		soa += [sub launchQueueSize] > 0 ? [sub launchQueueSize] : 0;
+		soa += [sub launchQueueSize];
 	}
 	return soa;
 }
@@ -2152,13 +2304,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
-	Vector				adjustedPosition;
-	Vector				halfDimensions;
-	
 	[super drawEntity:immediate:translucent];
 	
-	if (gDebugFlags & DEBUG_BOUNDING_BOXES)
+/*	if (gDebugFlags & DEBUG_BOUNDING_BOXES)
 	{
+	Vector				adjustedPosition;
+	Vector				halfDimensions;
+
 		OODebugDrawBasisAtOrigin(50.0f);
 		
 		OOMatrix matrix;
@@ -2174,7 +2326,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		OODebugDrawBasisAtOrigin(30.0f);
 		
 		OOGL(glPopMatrix());
-	}
+		} */
 }
 
 

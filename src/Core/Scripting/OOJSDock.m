@@ -158,14 +158,7 @@ static JSBool DockGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 
 		case kDock_launchingQueueLength:
-			if ([entity allowsLaunching])
-			{
-				*value = INT_TO_JSVAL([entity launchQueueSize]);
-			}
-			else
-			{
-				*value = INT_TO_JSVAL(0);
-			}
+			*value = INT_TO_JSVAL([entity launchQueueSize]);
 			return YES;
 			
 		default:

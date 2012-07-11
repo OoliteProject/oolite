@@ -73,7 +73,7 @@ MA 02110-1301, USA.
 - (void) noteDockingForShip:(ShipEntity *) ship;
 - (void)setDimensionsAndCorridor:(BOOL)docking:(BOOL)launching;
 - (unsigned) dockingQueueSize;
-- (int) launchQueueSize;
+- (unsigned) launchQueueSize;
 - (BOOL) shipIsInDockingQueue:(ShipEntity *)ship;
 - (BOOL) allowsDocking;
 - (BOOL) allowsLaunching;

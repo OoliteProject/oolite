@@ -548,13 +548,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (int) launchQueueSize
+- (unsigned) launchQueueSize
 {
-	if (allow_launching)
-	{
-		return [launchQueue count];
-	}
-	return -1;
+	return [launchQueue count];
 }
 
 
