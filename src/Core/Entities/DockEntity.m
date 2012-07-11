@@ -192,25 +192,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return @"TOO_BIG_TO_DOCK";
 	}
 	
-/* not any more: StationEntity checks this on a per-dock basis
-
-	// If the ship is not on its docking approach and the player has
-	// requested or even been granted docking clearance, then tell the
-	// ship to wait.
-	PlayerEntity *player = PLAYER;
-	BOOL isDockingStation = [self parentEntity] == [player getTargetDockStation];
-
-	OOUniversalID	ship_id = [ship universalID];
-	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:ship_id];
-
-	if (isDockingStation && ![shipsOnApproach objectForKey:shipID] &&
-			player && [player status] == STATUS_IN_FLIGHT &&
-			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
-	{
-		return @"TRY_AGAIN_LATER";
-	}
-*/
-
 	return @"DOCKING_POSSIBLE";
 }
 
@@ -596,7 +577,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	ww *= 0.5;
 	hh *= 0.5;
-	
+
+
 #ifndef NDEBUG
 	if ([ship isPlayer] && (gDebugFlags & DEBUG_DOCKING))
 	{
@@ -624,6 +606,20 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 	if ((arbb.max.x < ww)&&(arbb.min.x > -ww)&&(arbb.max.y < hh)&&(arbb.min.y > -hh))
 	{
+		if ([ship status] != STATUS_LAUNCHING && !allow_docking)
+		{ // launch-only dock: will collide!
+			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:[self parentEntity]];
+			// and bounce
+			Vector rel = vector_subtract([ship position],port_pos);
+			rel = vector_multiply_scalar(vector_normal(rel),[ship flightSpeed]*0.4);
+			[ship adjustVelocity:rel];
+
+			if (arbb.max.z < 0.0)
+			{ // give some warning before exploding...
+				return NO;
+			}
+		}
+
 		// in lane
 		if (0.90 * arbb.max.z + 0.10 * arbb.min.z < 0.0)	// we're 90% in docking position!
 		{
@@ -682,8 +678,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) pullInShipIfPermitted:(ShipEntity *)ship
 {
-	// FIXME: check if dock is launch-only, etc.
-	[ship enterDock:(StationEntity*)[self parentEntity]];
+	if (allow_docking)
+	{
+		[ship enterDock:(StationEntity*)[self parentEntity]];
+	}
 }
 
 

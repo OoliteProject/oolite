@@ -52,7 +52,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 @interface StationEntity (private)
 
-- (void)clearIdLocks:(ShipEntity*)ship;
 - (void) pullInShipIfPermitted:(ShipEntity *)ship;
 
 @end
@@ -261,6 +260,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
 	
+// try to find an unused dock first
+	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+	{
+		if ([sub launchQueueSize] == 0) 
+		{
+			[sub launchShip:ship];
+			return;
+		}
+	}
+// otherwise any launchable dock will do
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		if ([sub launchQueueSize] != -1) 
@@ -337,14 +346,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb
+- (Vector) portUpVectorForShip:(ShipEntity*) ship
 {
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
-// FIXME: this needs rewriting to check which dock is looked at!
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		return [sub portUpVectorForShipsBoundingBox:bb];
+		if ([sub shipIsInDockingQueue:ship])
+		{
+			return [sub portUpVectorForShipsBoundingBox:[ship totalBoundingBox]];
+		}
 	}
 	return kZeroVector;
 }
@@ -377,6 +388,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (!ship)
 		return nil;
 	
+	if (ship->isPlayer)
+	{
+		player_reserved_dock = nil; // clear any dock reservation for manual docking
+	}
+
 	if ((ship->isPlayer)&&([ship legalStatus] > 50))	// note: non-player fugitives dock as normal
 	{
 		// refuse docking to the fugitive player
@@ -487,9 +503,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		isStation = YES;
 		
-		shipsOnApproach = [[NSMutableDictionary alloc] init];
 		shipsOnHold = [[NSMutableDictionary alloc] init];
-		launchQueue = [[NSMutableArray alloc] init];
 		player_reserved_dock = nil;
 	}
 	
@@ -501,10 +515,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) dealloc
 {
-	DESTROY(shipsOnApproach);
 	DESTROY(shipsOnHold);
-	DESTROY(launchQueue);
-	[self clearIdLocks:nil];
 	
 	DESTROY(localMarket);
 	DESTROY(localPassengers);
@@ -512,18 +523,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	DESTROY(localShipyard);
 	
 	[super dealloc];
-}
-
-- (void) clearIdLocks:(ShipEntity *)ship
-{
-	int i;
-	for (i = 1; i < MAX_DOCKING_STAGES; i++)
-	{
-		if (ship == nil || ship == [id_lock[i] weakRefUnderlyingObject])
-		{
-			DESTROY(id_lock[i]);
-		}
-	}
 }
 
 
@@ -751,7 +750,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			{
 				[self sendExpandedMessage:DESC(@"station-docking-clearance-expired") toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];	// Docking clearance for player has expired.
-				if ([shipsOnApproach count] == 0) [[[self parentEntity] getAI] message:@"DOCKING_COMPLETE"];
+				if ([self currentlyInDockingQueues] == 0) [[[self parentEntity] getAI] message:@"DOCKING_COMPLETE"];
 				player_reserved_dock = nil;
 			}
 		}
@@ -761,7 +760,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			if (last_launch_time < unitime)
 			{
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
-				if ([shipsOnApproach count] == 0) [[[self parentEntity] getAI] message:@"DOCKING_COMPLETE"];
+				if ([self currentlyInDockingQueues] == 0) [[[self parentEntity] getAI] message:@"DOCKING_COMPLETE"];
 			}
 		}
 
@@ -1846,7 +1845,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 				result = @"DOCKING_CLEARANCE_CANCELLED";
 				player_reserved_dock = nil;
-				if ([shipsOnApproach count] == 0) [shipAI message:@"DOCKING_COMPLETE"];
+				if ([self currentlyInDockingQueues] == 0) [shipAI message:@"DOCKING_COMPLETE"];
 				break;
 			case DOCKING_CLEARANCE_STATUS_NONE:
 			case DOCKING_CLEARANCE_STATUS_NOT_REQUIRED:
@@ -1858,6 +1857,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// switching docking targets - even if we later set it back to NONE.
 	if (result == nil && [other isPlayer] && self != [player getTargetDockStation])
 	{
+		player_reserved_dock = nil; // and clear any previously reserved dock
 		[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_REQUESTED];
 	}
 
@@ -2110,7 +2110,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// approach and hold lists.
 	unsigned i;
 	ShipEntity		*ship = nil;
-	NSArray*	ships = [shipsOnApproach allKeys];
+	/*	NSArray*	ships = [shipsOnApproach allKeys];
 	if([ships count] > 0 ) OOLog(@"dumpState.stationEntity", @"%i Ships on approach (unsorted):", [ships count]);
 	for (i = 0; i < [ships count]; i++)
 	{
@@ -2122,9 +2122,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 																			sqrtf(distance2(position, [ship position])),
 																					[ship primaryRole]);
 		}
-	}
+		} */
 
-	ships = [shipsOnHold allKeys];  // only used with moving stations (= carriers)
+	NSArray* ships = [shipsOnHold allKeys];  // only used with moving stations (= carriers)
 	if([ships count] > 0 ) OOLog(@"dumpState.stationEntity", @"%i Ships on hold (unsorted):", [ships count]);
 	for (i = 0; i < [ships count]; i++)
 	{

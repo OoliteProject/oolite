@@ -8972,7 +8972,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 		if ((station_for_docking)&&(station_for_docking->isStation))
 		{
-			stick_roll = [self rollToMatchUp:[station_for_docking portUpVectorForShipsBoundingBox: totalBoundingBox] rotating:[station_for_docking flightRoll]];
+			stick_roll = [self rollToMatchUp:[station_for_docking portUpVectorForShip:self] rotating:[station_for_docking flightRoll]];
 		}
 	}
 

@@ -48,15 +48,11 @@ typedef enum
 @interface StationEntity: ShipEntity
 {
 	
-	NSMutableDictionary		*shipsOnApproach;
 	NSMutableDictionary		*shipsOnHold;
-	NSMutableArray			*launchQueue;
 	DockEntity          *player_reserved_dock;
 	double					last_launch_time;
 	double					approach_spacing;
 	OOStationAlertLevel		alertLevel;
-	
-	ShipEntity				*id_lock[MAX_DOCKING_STAGES];	// OOWeakReferences to a ShipEntity
 	
 	unsigned				max_police;					// max no. of police ships allowed
 	unsigned				max_defense_ships;			// max no. of defense ships allowed
@@ -142,7 +138,7 @@ typedef enum
 
 - (void) autoDockShipsOnApproach;
 
-- (Vector) portUpVectorForShipsBoundingBox:(BoundingBox) bb;
+- (Vector) portUpVectorForShip:(ShipEntity *) ship;
 
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship;
 
