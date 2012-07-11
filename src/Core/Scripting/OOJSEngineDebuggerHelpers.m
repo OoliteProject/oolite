@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 		const char *JSStringToStrDbg(JSString *)
 		Converts any JS value/object/JSString to a string, using the complete
 		process and potentially calling into SpiderMonkey with a secondory
-		contenxt and invoking JS toString() methods. This might mess up
+		context and invoking JS toString() methods. This might mess up
 		SpiderMonkey internal state in some cases.
 		
 		const char *JSValueToStrSafeDbg(jsval)
@@ -54,7 +54,7 @@ MA 02110-1301, USA.
 		const char *JSValueTypeDbg(jsval)
 		Returns the type of the jsval, or the class name if it's an object.
 	
-	All dynamic strings are autorelease.
+	All dynamic strings are autoreleased.
  
 	 Another useful function is OOJSDumpStack (results are found in the log):
 		
