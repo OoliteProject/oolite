@@ -391,13 +391,13 @@ MA 02110-1301, USA.
 }
 
 
-NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation)
+NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation)
 {
 	NSMutableDictionary *acc = [NSMutableDictionary dictionaryWithCapacity:8];
 	[acc setObject:[NSString stringWithFormat:@"%.2f %.2f %.2f", coords.x, coords.y, coords.z] forKey:@"destination"];
 	[acc oo_setFloat:speed forKey:@"speed"];
 	[acc oo_setFloat:range forKey:@"range"];
-	[acc oo_setInteger:station_id forKey:@"station_id"];
+	[acc oo_setInteger:[station universalID] forKey:@"station_id"];
 	[acc oo_setBool:match_rotation forKey:@"match_rotation"];
 	if (ai_message)
 	{
@@ -425,7 +425,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 	if ([ship isPlayer] && [ship legalStatus] > 50)	// note: non-player fugitives dock as normal
 	{
 		// refuse docking to the fugitive player
-		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
+		return OOMakeDockingInstructions(self, [ship position], 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
 	}
 	
 	if	(magnitude2(velocity) > 1.0 ||
@@ -462,7 +462,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 	if (chosenDock == nil)
 	{
 		// no docks accept this ship (or the player is blocking them)
-		return OOMakeDockingInstructions(universalID, ship->position, 0, 100, docking, nil, NO);
+		return OOMakeDockingInstructions(self, [ship position], 0, 100, docking, nil, NO);
 	}
 
 	// rolling is okay for some
@@ -492,7 +492,7 @@ NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, fl
 	}
 	[weakShip release];
 	
-	return OOMakeDockingInstructions(universalID, [ship position], 0, 100, @"HOLD_POSITION", nil, NO);
+	return OOMakeDockingInstructions(self, [ship position], 0, 100, @"HOLD_POSITION", nil, NO);
 }
 
 

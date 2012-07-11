@@ -211,4 +211,4 @@ typedef enum
 
 
 
-NSDictionary *OOMakeDockingInstructions(OOUInteger station_id, Vector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation);
+NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation);

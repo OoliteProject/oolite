@@ -206,21 +206,20 @@ MA 02110-1301, USA.
 }
 
 
-- (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship
+- (NSDictionary *) dockingInstructionsForShip:(ShipEntity *)ship
 {	
-	Vector		coords;
+	if (ship == nil)  return nil;
 	
 	OOUniversalID	ship_id = [ship universalID];
 	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:ship_id];
+	StationEntity	*station = (StationEntity *)[self parentEntity];
 
-	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(orientation, [[self parentEntity] orientation]));
+	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
 	temp = cross_product(launchVector, temp);	// 90 deg to launchVector & temp
 	Vector vi = cross_product(launchVector, temp);
 	Vector vj = cross_product(launchVector, vi);
 	Vector vk = launchVector;
-	
-	if (!ship)  return nil;
 	
 	// check if this is a new ship on approach
 	//
@@ -232,26 +231,26 @@ MA 02110-1301, USA.
 		if (ship_distance > SCANNER_MAX_RANGE)
 		{
 			// too far away - don't claim a docking slot by not putting on approachlist for now.
-			return OOMakeDockingInstructions([[self parentEntity] universalID], [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
 		}
 
 		[self addShipToShipsOnApproach: ship];
 		
-		if (ship_distance < 1000.0 + [[self parentEntity] collisionRadius] + ship->collision_radius)	// too close - back off
-			return OOMakeDockingInstructions([[self parentEntity] universalID], [self absolutePositionForSubentity], 0, 5000, @"BACK_OFF", nil, NO);
+		if (ship_distance < 1000.0 + [station collisionRadius] + ship->collision_radius)	// too close - back off
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], 0, 5000, @"BACK_OFF", nil, NO);
 		
 		float dot = dot_product(launchVector, delta);
 		if (dot < 0) // approaching from the wrong side of the station - construct a vector to the side of the station.
 		{
 			Vector approachVector = cross_product(vector_normal(delta), launchVector);
 			approachVector = cross_product(launchVector, approachVector); // vector, 90 degr rotated from launchVector towards target.
-			return OOMakeDockingInstructions([[self parentEntity] universalID], OOVectorTowards([self absolutePositionForSubentity], approachVector, [[self parentEntity] collisionRadius] + 5000) , 0, 1000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, OOVectorTowards([self absolutePositionForSubentity], approachVector, [station collisionRadius] + 5000) , 0, 1000, @"APPROACH", nil, NO);
 		}
 		
 		if (ship_distance > 12500.0)
 		{
 			// long way off - approach more closely
-			return OOMakeDockingInstructions([[self parentEntity] universalID], [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
 		}
 	}
 	
@@ -260,7 +259,7 @@ MA 02110-1301, USA.
 		// some error has occurred - log it, and send the try-again message
 		OOLogERR(@"station.issueDockingInstructions.failed", @"couldn't addShipToShipsOnApproach:%@ in %@, retrying later -- shipsOnApproach:\n%@", ship, self, shipsOnApproach);
 		
-		return OOMakeDockingInstructions([[self parentEntity] universalID], ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
+		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 
 
@@ -272,7 +271,7 @@ MA 02110-1301, USA.
 	{
 		OOLogERR(@"station.issueDockingInstructions.failed", @" -- coordinatesStack = %@", coordinatesStack);
 		
-		return OOMakeDockingInstructions([[self parentEntity] universalID], ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"HOLD_POSITION", nil, NO);
 	}
 	
 	// get the docking information from the instructions	
@@ -286,7 +285,7 @@ MA 02110-1301, USA.
 	rel_coords.x = [nextCoords oo_floatForKey:@"rx"];
 	rel_coords.y = [nextCoords oo_floatForKey:@"ry"];
 	rel_coords.z = [nextCoords oo_floatForKey:@"rz"];
-	coords = [self absolutePositionForSubentity];
+	Vector coords = [self absolutePositionForSubentity];
 	coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
 	coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
 	coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
@@ -300,7 +299,7 @@ MA 02110-1301, USA.
 		if ((docking_stage == 1) &&(magnitude2(delta) < 1000000.0))	// 1km*1km
 			speedAdvised *= 0.5;	// half speed
 		
-		return OOMakeDockingInstructions([[self parentEntity] universalID], coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
+		return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
 	}
 	else
 	{
@@ -321,7 +320,7 @@ MA 02110-1301, USA.
 		
 		if (comms_message)
 		{
-			[[self parentEntity] sendExpandedMessage: comms_message toShip: ship];
+			[station sendExpandedMessage:comms_message toShip:ship];
 		}
 				
 		// calculate world coordinates from relative coordinates
@@ -352,7 +351,7 @@ MA 02110-1301, USA.
 			//remove the previous stage from the stack
 			[coordinatesStack removeObjectAtIndex:0];
 			
-			return OOMakeDockingInstructions([[self parentEntity] universalID], coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation);
+			return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation);
 		}
 		else
 		{
@@ -368,12 +367,12 @@ MA 02110-1301, USA.
 				[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
 			}
 
-			return OOMakeDockingInstructions([[self parentEntity] universalID], ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+			return OOMakeDockingInstructions(station, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 		}
 	}
 	
 	// we should never reach here.
-	return OOMakeDockingInstructions([[self parentEntity] universalID], coords, 50, 10, @"APPROACH_COORDINATES", nil, NO);
+	return OOMakeDockingInstructions(station, coords, 50, 10, @"APPROACH_COORDINATES", nil, NO);
 }
 
 
@@ -387,9 +386,10 @@ MA 02110-1301, USA.
 	int			corridor_count = 9;
 	int			corridor_final_approach = 3;
 	
-	NSNumber	*shipID = [NSNumber numberWithUnsignedShort:[ship universalID]];
+	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:[ship universalID]];
+	StationEntity	*station = (StationEntity *)[self parentEntity];
 	
-	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(orientation, [[self parentEntity] orientation]));
+	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
 	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
 	temp = cross_product(launchVector, temp);	// 90 deg to launchVector & temp
 	Vector rightVector = cross_product(launchVector, temp);
@@ -452,7 +452,7 @@ MA 02110-1301, USA.
 		
 		if (i == corridor_final_approach)
 		{
-			if ([self parentEntity] == [UNIVERSE station])
+			if (station == [UNIVERSE station])
 			{
 				[nextCoords setObject:@"[station-begin-final-aproach]" forKey:@"comms_message"];
 			}
@@ -480,13 +480,13 @@ MA 02110-1301, USA.
 	}
 	
 	// COMM-CHATTER
-	if ([self parentEntity] == [UNIVERSE station])
+	if (station == [UNIVERSE station])
 	{
-		[[self parentEntity] sendExpandedMessage: @"[station-welcome]" toShip:ship];
+		[station sendExpandedMessage: @"[station-welcome]" toShip:ship];
 	}
 	else
 	{
-		[[self parentEntity] sendExpandedMessage: @"[docking-welcome]" toShip:ship];
+		[station sendExpandedMessage: @"[docking-welcome]" toShip:ship];
 	}
 }
 
@@ -564,7 +564,9 @@ MA 02110-1301, USA.
 	if (![ship isShip])  return NO;
 	if ([ship isPlayer] && [ship status] == STATUS_DEAD)  return NO;
 	
-	Quaternion q0 = quaternion_multiply(orientation, [[self parentEntity] orientation]);
+	StationEntity *station = (StationEntity *)[self parentEntity];
+	
+	Quaternion q0 = quaternion_multiply(orientation, [station orientation]);
 	Vector vi = vector_right_from_quaternion(q0);
 	Vector vj = vector_up_from_quaternion(q0);
 	Vector vk = vector_forward_from_quaternion(q0);
@@ -616,7 +618,7 @@ MA 02110-1301, USA.
 	{
 		if ([ship status] != STATUS_LAUNCHING && !allow_docking)
 		{ // launch-only dock: will collide!
-			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:[self parentEntity]];
+			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:station];
 			// and bounce
 			Vector rel = vector_subtract([ship position],port_pos);
 			rel = vector_multiply_scalar(vector_normal(rel),[ship flightSpeed]*0.4);
@@ -650,9 +652,9 @@ MA 02110-1301, USA.
 			GLfloat correction_factor = -arbb.min.z / (arbb.max.z - arbb.min.z);	// proportion of ship inside
 		
 			// damage the ship according to velocity - don't send collision messages to AIs to avoid problems.
-			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:[self parentEntity]];
-			[[self parentEntity] doScriptEvent:OOJSID("shipCollided") withArgument:ship]; // no COLLISION message to station AI, carriers would move away!
-			[ship doScriptEvent:OOJSID("shipCollided") withArgument:[self parentEntity]]; // no COLLISION message to ship AI, dockingAI.plist would abort.
+			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:station];
+			[station doScriptEvent:OOJSID("shipCollided") withArgument:ship]; // no COLLISION message to station AI, carriers would move away!
+			[ship doScriptEvent:OOJSID("shipCollided") withArgument:station]; // no COLLISION message to ship AI, dockingAI.plist would abort.
 			
 			Vector delta;
 			delta.x = 0.5f * (arbb.max.x + arbb.min.x) * correction_factor;
@@ -726,16 +728,17 @@ MA 02110-1301, USA.
 {
 	if (![ship isShip])  return;
 	
-	BoundingBox bb = [ship boundingBox];
+	BoundingBox		bb = [ship boundingBox];
+	StationEntity	*station = (StationEntity *)[self parentEntity];
 	
 	Vector launchPos = [self absolutePositionForSubentity];
-	Vector launchVel = [[self parentEntity] velocity];
+	Vector launchVel = [station velocity];
 	double launchSpeed = 0.5 * [ship maxFlightSpeed];
-	if ([[self parentEntity] maxFlightSpeed] > 0 && [[self parentEntity] flightSpeed] > 0) // is self a carrier in flight.
+	if ([station maxFlightSpeed] > 0 && [station flightSpeed] > 0) // is self a carrier in flight.
 	{
-		launchSpeed = 0.5 * [ship maxFlightSpeed] * (1.0 + [[self parentEntity] flightSpeed]/[[self parentEntity] maxFlightSpeed]);
+		launchSpeed = 0.5 * [ship maxFlightSpeed] * (1.0 + [station flightSpeed]/[station maxFlightSpeed]);
 	}
-	Quaternion q1 = [[self parentEntity] orientation];
+	Quaternion q1 = [station orientation];
 	q1 = quaternion_multiply(orientation, q1);
 	Vector launchVector = vector_forward_from_quaternion(q1);
 	
@@ -756,7 +759,7 @@ MA 02110-1301, USA.
 	[ship setSpeed:launchSpeed];
 	[ship setVelocity:launchVel];
 	// launch roll/pitch
-	[ship setRoll:[[self parentEntity] flightRoll]];
+	[ship setRoll:[station flightRoll]];
 	[ship setPitch:0.0];
 	[UNIVERSE addEntity:ship];
 	[ship setStatus: STATUS_LAUNCHING];
@@ -768,8 +771,8 @@ MA 02110-1301, USA.
 	
 	[ship resetExhaustPlumes];	// resets stuff for tracking/exhausts
 	
-	[ship doScriptEvent:OOJSID("shipWillLaunchFromStation") withArgument:[self parentEntity]];
-	[[self parentEntity] doScriptEvent:OOJSID("stationLaunchedShip") withArgument:ship andReactToAIMessage: @"STATION_LAUNCHED_SHIP"];
+	[ship doScriptEvent:OOJSID("shipWillLaunchFromStation") withArgument:station];
+	[station doScriptEvent:OOJSID("stationLaunchedShip") withArgument:ship andReactToAIMessage: @"STATION_LAUNCHED_SHIP"];
 }
 
 
@@ -818,17 +821,18 @@ MA 02110-1301, USA.
 	}
 	
 	// check against all ships
-	BOOL		isEmpty = YES;
-	int			ent_count =		UNIVERSE->n_entities;
-	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+	StationEntity	*station = (StationEntity *)[self parentEntity];
+	BOOL			isEmpty = YES;
+	int				ent_count =		UNIVERSE->n_entities;
+	Entity			**uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
+	Entity			*my_entities[ent_count];
 	int i;
 	int ship_count = 0;
 	
 	for (i = 0; i < ent_count; i++)
 	{
 		//on red alert, launch even if the player is trying block the corridor. Ignore cargopods or other small debris.
-		if ([uni_entities[i] isShip] && ([(StationEntity*)[self parentEntity] alertLevel] < STATION_ALERT_LEVEL_RED || ![uni_entities[i] isPlayer]) && [uni_entities[i] mass] > 1000)
+		if ([uni_entities[i] isShip] && ([station alertLevel] < STATION_ALERT_LEVEL_RED || ![uni_entities[i] isPlayer]) && [uni_entities[i] mass] > 1000)
 		{
 			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
 		}
@@ -837,15 +841,15 @@ MA 02110-1301, USA.
 	for (i = 0; (i < ship_count)&&(isEmpty); i++)
 	{
 		ShipEntity*	ship = (ShipEntity*)my_entities[i];
-		double		d2 = distance2([[self parentEntity] position], ship->position);
-		if ((ship != [self parentEntity])&&(d2 < 25000000)&&([ship status] != STATUS_DOCKED))	// within 5km
+		double		d2 = distance2([station position], [ship position]);
+		if ((ship != station) && (d2 < 25000000)&&([ship status] != STATUS_DOCKED))	// within 5km
 		{
 			Vector ppos = [self absolutePositionForSubentity];
 			d2 = distance2(ppos, ship->position);
 			if (d2 < 4000000)	// within 2km of the port entrance
 			{
-				Quaternion q1 = [[self parentEntity] orientation];
-				q1 = quaternion_multiply(orientation, q1);
+				Quaternion q1 = [station orientation];
+				q1 = quaternion_multiply([self orientation], q1);
 				//
 				Vector v_out = vector_forward_from_quaternion(q1);
 				Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
@@ -877,10 +881,11 @@ MA 02110-1301, USA.
 - (void) clearDockingCorridor
 {
 	// check against all ships
-	BOOL		isClear = YES;
-	int			ent_count =		UNIVERSE->n_entities;
-	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
+	StationEntity	*station = (StationEntity *)[self parentEntity];
+	BOOL			isClear = YES;
+	int				ent_count =			UNIVERSE->n_entities;
+	Entity			**uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
+	Entity			*my_entities[ent_count];
 	int i;
 	int ship_count = 0;
 	
@@ -894,9 +899,9 @@ MA 02110-1301, USA.
 
 	for (i = 0; i < ship_count; i++)
 	{
-		ShipEntity*	ship = (ShipEntity*)my_entities[i];
-		double		d2 = distance2([[self parentEntity] position], ship->position);
-		if ((ship != [self parentEntity])&&(d2 < 25000000)&&([ship status] != STATUS_DOCKED))	// within 5km
+		ShipEntity	*ship = (ShipEntity*)my_entities[i];
+		double		d2 = distance2([station position], [ship position]);
+		if ((ship != station)&&(d2 < 25000000)&&([ship status] != STATUS_DOCKED))	// within 5km
 		{
 			Vector ppos = [self absolutePositionForSubentity];
 			float time_out = -15.00;	// 15 secs
@@ -906,8 +911,8 @@ MA 02110-1301, USA.
 				d2 = distance2(ppos, ship->position);
 				if (d2 < 4000000)	// within 2km of the port entrance
 				{
-					Quaternion q1 = [[self parentEntity] orientation];
-					q1 = quaternion_multiply(orientation, q1);
+					Quaternion q1 = [station orientation];
+					q1 = quaternion_multiply([self orientation], q1);
 					//
 					Vector v_out = vector_forward_from_quaternion(q1);
 					Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
