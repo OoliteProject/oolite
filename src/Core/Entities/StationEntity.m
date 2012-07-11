@@ -221,7 +221,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
-	unsigned soa;
+	unsigned soa = 0;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		soa += [sub sanityCheckShipsOnApproach];
