@@ -4456,8 +4456,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
-		
-		
 		return;
 	}
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
@@ -4470,8 +4468,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
-			
-			
 			return;
 		}
 	}
@@ -4480,8 +4476,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (range > SCANNER_MAX_RANGE)
 		{
 			[self noteLostTargetAndGoIdle];
-			
-			
 			return;
 		}
 	}
@@ -8608,6 +8602,20 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			if (d_up < -min_d)
 				stick_pitch = + max_flight_pitch * reverse * r_max_factor * factor;
 		}
+
+		if (accuracy >= COMBAT_AI_ISNT_AWFUL)
+		{
+			// don't overshoot target (helps accuracy at low frame rates)
+			if (fabs(d_right) < fabs(stick_roll) * delta_t) 
+			{
+				stick_roll = fabs(d_right) / delta_t * (stick_roll<0 ? -1 : 1);
+			}
+			if (fabs(d_up) < fabs(stick_pitch) * delta_t) 
+			{
+				stick_pitch = fabs(d_up) / delta_t * (stick_pitch<0 ? -1 : 1);
+			}
+		}
+
 	}
 	/*	#  note
 		Eric 9-9-2010: Removed the "reverse" variable from the stick_roll calculation. This was mathematical wrong and
