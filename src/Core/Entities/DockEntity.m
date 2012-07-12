@@ -179,14 +179,23 @@ MA 02110-1301, USA.
 
 - (NSString*) canAcceptShipForDocking:(ShipEntity *) ship
 {
+	// First test permanent rejection reasons
 	if (!allow_docking && (![ship isPlayer] || !allow_player_docking))
 	{
-		return @"TRY_AGAIN_LATER";
+		return @"TOO_BIG_TO_DOCK"; // not strictly true, but is the permanent-reject code
 	}
 	if (!allow_player_docking && [ship isPlayer])
 	{
-		return @"TRY_AGAIN_LATER";
+		return @"TOO_BIG_TO_DOCK"; // not strictly true, but is the permanent-reject code
 	}
+	BoundingBox bb = [ship totalBoundingBox];
+	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
+		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)))
+	{
+		return @"TOO_BIG_TO_DOCK";
+	}
+
+	// Second test temporary rejection reasons
 	if (no_docking_while_launching)
 	{
 		return @"TRY_AGAIN_LATER";
@@ -195,12 +204,6 @@ MA 02110-1301, USA.
 	if (allow_launching && [launchQueue count])
 	{
 		return @"TRY_AGAIN_LATER";
-	}
-	BoundingBox bb = [ship totalBoundingBox];
-	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
-		(port_dimensions.y < (bb.max.x - bb.min.x) || port_dimensions.x < (bb.max.y - bb.min.y)))
-	{
-		return @"TOO_BIG_TO_DOCK";
 	}
 	
 	return @"DOCKING_POSSIBLE";

@@ -381,8 +381,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 }
 
 
-// this routine does more than set coordinates - it provides a whole set of docking instructions and messages at each stage..
-//
+// this routine does initial traffic control, before passing the ship
+// to an appropriate dock for docking coordinates and instructions
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship
 {	
 	if (ship == nil)  return nil;
@@ -412,11 +412,13 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	DockEntity		*sub = nil;
 	unsigned		queue = 100;
 	
+	BOOL alldockstoosmall = YES;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		if ([sub shipIsInDockingQueue:ship]) 
 		{ // if already claimed a docking queue, use that one
 			chosenDock = sub;
+			alldockstoosmall = NO;
 			break;
 		}
 		if (sub != player_reserved_dock)
@@ -426,11 +428,26 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 // try to select the dock with the fewest ships already enqueued
 				chosenDock = sub;
 				queue = [sub countOfShipsInDockingQueue];
+				alldockstoosmall = NO;
 			}
+			else if (![docking isEqualToString:@"TOO_BIG_TO_DOCK"])
+			{
+				alldockstoosmall = NO;
+			}
+		}
+		else
+		{
+			alldockstoosmall = NO;
 		}
 	}	
 	if (chosenDock == nil)
 	{
+		if ([docking isEqualToString:@"TOO_BIG_TO_DOCK"] && !alldockstoosmall)
+		{
+			// last dock was too small, but there may be an acceptable one
+			// not tested yet or returning TRY_AGAIN_LATER
+			docking = @"TRY_AGAIN_LATER";
+		}
 		// no docks accept this ship (or the player is blocking them)
 		return OOMakeDockingInstructions(self, [ship position], 0, 100, docking, nil, NO);
 	}
