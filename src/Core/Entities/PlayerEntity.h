@@ -784,6 +784,8 @@ typedef enum
 
 - (void) applyYaw:(GLfloat) yaw;
 
+-	(OOViewID) currentWeaponFacing;
+
 /* GILES custom viewpoints */
 
 // custom view points

@@ -8474,6 +8474,12 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+-	(OOViewID) currentWeaponFacing
+{
+	return currentWeaponFacing;
+}
+
+
 - (Quaternion)customViewQuaternion
 {
 	return customViewQuaternion;

@@ -92,6 +92,7 @@ enum
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
+	kPlayerShip_currentWeapon,      // shortcut property to _aftWeapon, etc.
 	kPlayerShip_crosshairs,					// custom plist file defining crosshairs
 	kPlayerShip_cursorCoordinates,				// cursor coordinates (unscaled), Vector3D, read only
 	kPlayerShip_cursorCoordinatesInLY,			// cursor coordinates (in LY), Vector3D, read only
@@ -128,6 +129,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READONLY_CB },
 	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READONLY_CB },
 	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
+	{ "currentWeapon",					kPlayerShip_currentWeapon,					OOJS_PROP_READWRITE_CB },
 	{ "crosshairs",				kPlayerShip_crosshairs,				OOJS_PROP_READWRITE_CB },
 	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				OOJS_PROP_READONLY_CB },
 	{ "cursorCoordinatesInLY",			kPlayerShip_cursorCoordinatesInLY,			OOJS_PROP_READONLY_CB },
@@ -344,7 +346,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_crosshairs:
 			result = [[player hud] crosshairDefinition];
 			break;
-			
+
 		case kPlayerShip_hudHidden:
 			*value = OOJSValueFromBOOL([[player hud] isHidden]);
 			return YES;
@@ -357,8 +359,28 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			*value = OOJSValueFromViewID(context, [UNIVERSE viewDirection]);
 			return YES;
 
-//		case kPlayerShip_weaponFacings:
-//			return JS_NewNumberValue(context, [player availableFacings], value);
+		case kPlayerShip_currentWeapon:
+			switch ([player currentWeaponFacing])
+			{
+			case VIEW_FORWARD:
+				result = [player weaponTypeForFacing:WEAPON_FACING_FORWARD];
+				break;
+			case VIEW_AFT:
+				result = [player weaponTypeForFacing:WEAPON_FACING_AFT];
+				break;
+			case VIEW_PORT:
+				result = [player weaponTypeForFacing:WEAPON_FACING_PORT];
+				break;
+			case VIEW_STARBOARD:
+				result = [player weaponTypeForFacing:WEAPON_FACING_STARBOARD];
+				break;
+			case VIEW_CUSTOM:
+			case VIEW_NONE:
+			case VIEW_GUI_DISPLAY:
+			case VIEW_BREAK_PATTERN:
+				result = nil;
+			}
+			break;
 		
 	  case kPlayerShip_price:
 			return JS_NewNumberValue(context, [UNIVERSE tradeInValueForCommanderDictionary:[player commanderDataDictionary]], value);
@@ -511,7 +533,39 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				return YES;
 			}
 			
-		
+		case kPlayerShip_currentWeapon:
+		{
+			BOOL exists = NO;
+			sValue = JSValueToEquipmentKeyRelaxed(context, *value, &exists);
+			if (!exists || sValue == nil) 
+			{
+				sValue = @"EQ_WEAPON_NONE";
+			}
+			switch ([player currentWeaponFacing])
+			{
+			case VIEW_FORWARD:
+				[player setWeaponMount:WEAPON_FACING_FORWARD toWeapon:sValue];
+				break;
+			case VIEW_AFT:
+				[player setWeaponMount:WEAPON_FACING_AFT toWeapon:sValue];
+				break;
+			case VIEW_PORT:
+				[player setWeaponMount:WEAPON_FACING_PORT toWeapon:sValue];
+				break;
+			case VIEW_STARBOARD:
+				[player setWeaponMount:WEAPON_FACING_STARBOARD toWeapon:sValue];
+				break;
+			case VIEW_CUSTOM: // in this context does not actually mean custom view
+			case VIEW_NONE:
+			case VIEW_GUI_DISPLAY:
+			case VIEW_BREAK_PATTERN:
+				OOJSReportError(context, @"player.ship.currentWeapon is only valid when a weapon view is active.", OOStringFromJSPropertyIDAndSpec(context, propID, sPlayerShipProperties));
+				return NO;
+			}
+
+			return YES;
+			break;
+		}
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 			return NO;
