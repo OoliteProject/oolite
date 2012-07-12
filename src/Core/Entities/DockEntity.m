@@ -159,15 +159,31 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL) allowsPlayerDocking
+{
+	return allow_player_docking;
+}
+
+
 - (BOOL) allowsLaunching
 {
 	return allow_launching;
 }
 
 
+- (void) setVirtual
+{
+	virtual_dock = YES;
+}
+
+
 - (NSString*) canAcceptShipForDocking:(ShipEntity *) ship
 {
-	if (!allow_docking)
+	if (!allow_docking && (![ship isPlayer] || !allow_player_docking))
+	{
+		return @"TRY_AGAIN_LATER";
+	}
+	if (!allow_player_docking && [ship isPlayer])
 	{
 		return @"TRY_AGAIN_LATER";
 	}
@@ -563,6 +579,20 @@ MA 02110-1301, USA.
 {
 	if (![ship isShip])  return NO;
 	if ([ship isPlayer] && [ship status] == STATUS_DEAD)  return NO;
+
+	BOOL allow_docking_thisship = allow_docking;
+	if (!allow_docking && allow_player_docking)
+	{
+		// player can dock here
+		allow_docking_thisship = YES;
+		// other ships also allowed to dock here, but will never be directed
+		// here by traffic control
+	}
+	else if (allow_docking && !allow_player_docking && [ship isPlayer])
+	{
+		// player cannot dock here
+		allow_docking_thisship = NO;
+	}
 	
 	StationEntity *station = (StationEntity *)[self parentEntity];
 	
@@ -616,7 +646,7 @@ MA 02110-1301, USA.
 	
 	if ((arbb.max.x < ww)&&(arbb.min.x > -ww)&&(arbb.max.y < hh)&&(arbb.min.y > -hh))
 	{
-		if ([ship status] != STATUS_LAUNCHING && !allow_docking)
+		if ([ship status] != STATUS_LAUNCHING && !allow_docking_thisship)
 		{ // launch-only dock: will collide!
 			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:station];
 			// and bounce
@@ -694,7 +724,20 @@ MA 02110-1301, USA.
 
 - (void) pullInShipIfPermitted:(ShipEntity *)ship
 {
-	if (allow_docking)
+	BOOL allow_docking_thisship = allow_docking;
+	if (!allow_docking && allow_player_docking)
+	{
+		// player can dock here
+		allow_docking_thisship = YES;
+		// other ships also allowed to dock here, but will never be directed
+		// here by traffic control
+	}
+	else if (allow_docking && !allow_player_docking && [ship isPlayer])
+	{
+		// player cannot dock here
+		allow_docking_thisship = NO;
+	}
+	if (allow_docking_thisship)
 	{
 		[ship enterDock:(StationEntity*)[self parentEntity]];
 	}
@@ -951,14 +994,22 @@ MA 02110-1301, USA.
 }
 
 
-- (void)setDimensionsAndCorridor:(BOOL)docking :(BOOL)launching
+- (void)setDimensionsAndCorridor:(BOOL)docking :(BOOL)playerdocking :(BOOL)launching
 {
-	BoundingBox bb = [self boundingBox];
-	port_dimensions = make_vector(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
-	
+	StationEntity *station = (StationEntity*)[self parentEntity];
+	if (virtual_dock)
+	{
+		port_dimensions = [station virtualPortDimensions];
+	}
+	else
+	{
+		BoundingBox bb = [self boundingBox];
+		port_dimensions = make_vector(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
+	}
+
 	Vector vk = vector_forward_from_quaternion(orientation);
 	
-	BoundingBox stbb = [[self parentEntity] boundingBox];
+	BoundingBox stbb = [station boundingBox];
 	Vector start = position;
 	while ((start.x > stbb.min.x)&&(start.x < stbb.max.x) &&
 		   (start.y > stbb.min.y)&&(start.y < stbb.max.y) &&
@@ -969,6 +1020,7 @@ MA 02110-1301, USA.
 	port_corridor = start.z - position.z;
 	
 	allow_docking = docking;
+	allow_player_docking = playerdocking;
 	allow_launching = launching;
 }
 
@@ -992,8 +1044,9 @@ MA 02110-1301, USA.
 		shipsOnApproach = [[NSMutableDictionary alloc] init];
 		launchQueue = [[NSMutableArray alloc] init];
 		allow_docking = YES;
+		allow_player_docking = YES;
 		allow_launching = YES;
-// TODO: do something with these variables
+		virtual_dock = NO;
 	}
 	
 	return self;
@@ -1010,6 +1063,7 @@ MA 02110-1301, USA.
 	
 	[super dealloc];
 }
+
 
 - (void) clearIdLocks:(ShipEntity *)ship
 {
@@ -1039,7 +1093,6 @@ MA 02110-1301, USA.
 }
 
 
-	
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
@@ -1060,6 +1113,38 @@ MA 02110-1301, USA.
 		approach_spacing -= delta_t * 10.0;	// reduce by 10 m/s
 		if (approach_spacing < 0.0)   approach_spacing = 0.0;
 	}
+}
+
+
+// avoid possibility of shooting the virtual dock damaging the station
+- (void) noteTakingDamage:(double)amount from:(Entity *)entity type:(OOShipDamageType)type
+{
+	if (virtual_dock) // can't be damaged
+	{
+		return;
+	}
+	[super noteTakingDamage:amount from:entity type:type];
+}
+
+
+- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
+{
+	if (virtual_dock) // can't be damaged
+	{
+		return;
+	}
+	[super takeEnergyDamage:amount from:ent becauseOf:other];
+}
+
+
+// virtual docks are invisible
+- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
+{
+	if (virtual_dock) // not drawn
+	{
+		return;
+	}
+	[super drawEntity:immediate :translucent];
 }
 
 @end

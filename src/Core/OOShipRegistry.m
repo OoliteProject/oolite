@@ -1387,7 +1387,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	orientation = [declaration oo_quaternionForKey:@"orientation"];
 	quaternion_normalize(&orientation);
 	
-	result = [NSMutableDictionary dictionaryWithCapacity:5];
+	result = [NSMutableDictionary dictionaryWithCapacity:10];
 	[result setObject:isTurret ? @"ball_turret" : @"standard" forKey:@"type"];
 	[result setObject:subentityKey forKey:@"subentity_key"];
 	[result oo_setVector:position forKey:@"position"];
@@ -1400,9 +1400,11 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		[result setObject:docklabel forKey:@"dock_label"];
 
 		BOOL dockable = [declaration oo_boolForKey:@"allow_docking" defaultValue:YES];
+		BOOL playerdockable = [declaration oo_boolForKey:@"allow_player_docking" defaultValue:YES];
 		BOOL undockable = [declaration oo_boolForKey:@"allow_launching" defaultValue:YES];
 
 		[result oo_setBool:dockable forKey:@"allow_docking"];
+		[result oo_setBool:playerdockable forKey:@"allow_player_docking"];
 		[result oo_setBool:undockable forKey:@"allow_launching"];
 
 	}

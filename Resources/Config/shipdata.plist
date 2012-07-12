@@ -1411,6 +1411,14 @@
 		name = "Docking Slit (horizontal)";
 		roles = "docking-slit-horizontal";
 	};
+	"dock-virtual" =
+	{ /* used for virtual docks for stations without defined dock subentity */
+		ai_type = "nullAI.plist";
+		model = "alloy.dat";
+		name = "Docking Slit (virtual)";
+		roles = "docking-slit-virtual";
+	};
+
 	"dodecahedron-station" =
 	{
 		ai_type = "stationAI.plist";

@@ -61,6 +61,7 @@ enum
 {
 	// Property IDs
 	kDock_allowsDocking,
+	kDock_allowsPlayerDocking,
 	kDock_allowsLaunching,
 	kDock_dockingQueueLength,
 	kDock_launchingQueueLength
@@ -71,6 +72,7 @@ static JSPropertySpec sDockProperties[] =
 {
 	// JS name						ID									flags
 	{ "allowsDocking",				kDock_allowsDocking,			OOJS_PROP_READONLY_CB },
+	{ "allowsPlayerDocking",				kDock_allowsPlayerDocking,			OOJS_PROP_READONLY_CB },
 	{ "allowsLaunching",				kDock_allowsLaunching,			OOJS_PROP_READONLY_CB },
 	{ "dockingQueueLength",				kDock_dockingQueueLength,			OOJS_PROP_READONLY_CB },
 	{ "launchingQueueLength",				kDock_launchingQueueLength,			OOJS_PROP_READONLY_CB },
@@ -147,6 +149,10 @@ static JSBool DockGetProperty(JSContext *context, JSObject *this, jsid propID, j
 	{
 		case kDock_allowsDocking:
 			*value = OOJSValueFromBOOL([entity allowsDocking]);
+			return YES;
+
+		case kDock_allowsPlayerDocking:
+			*value = OOJSValueFromBOOL([entity allowsPlayerDocking]);
 			return YES;
 
 		case kDock_allowsLaunching:

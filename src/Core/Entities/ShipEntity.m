@@ -143,7 +143,6 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 
 - (BOOL) setUpOneSubentity:(NSDictionary *) subentDict;
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict;
-- (BOOL) setUpOneStandardSubentity:(NSDictionary *) subentDict asTurret:(BOOL)asTurret;
 
 - (Entity<OOStellarBody> *) lastAegisLock;
 - (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock;
@@ -789,7 +788,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	Quaternion			subOrientation;
 	
 	subentKey = [subentDict oo_stringForKey:@"subentity_key"];
-	if (subentKey == nil)  return NO;
+	if (subentKey == nil) {
+		OOLog(@"setup.ship.badEntry.subentities",@"Failed to set up entity - no subentKey in %@",subentDict);
+		return NO;
+	}
 	
 	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
 	{
@@ -799,7 +801,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	{
 		subentity = [UNIVERSE newShipWithName:subentKey];
 	}
-	if (subentity == nil)  return NO;
+	if (subentity == nil) {
+		OOLog(@"setup.ship.badEntry.subentities",@"Failed to set up entity %@",subentKey);
+		return NO;
+	}
 	
 	subPosition = [subentDict oo_vectorForKey:@"position"];
 	subOrientation = [subentDict oo_quaternionForKey:@"orientation"];
@@ -841,9 +846,16 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
 	{
 		BOOL allow_docking = [subentDict oo_boolForKey:@"allow_docking" defaultValue:YES];
+		BOOL allow_player = [subentDict oo_boolForKey:@"allow_player_docking" defaultValue:YES];
 		BOOL allow_launching = [subentDict oo_boolForKey:@"allow_launching" defaultValue:YES];
-
-		[(DockEntity *)subentity setDimensionsAndCorridor:allow_docking:allow_launching];
+		// do not include this key in OOShipRegistry; should never be set by shipdata
+		BOOL virtual_dock = [subentDict oo_boolForKey:@"_is_virtual_dock" defaultValue:NO];
+		if (virtual_dock)
+		{
+			[(DockEntity *)subentity setVirtual];
+		}
+		
+		[(DockEntity *)subentity setDimensionsAndCorridor:allow_docking:allow_player:allow_launching];
 		[subentity setDisplayName:[subentDict oo_stringForKey:@"dock_label" defaultValue:@"the docking bay"]];
 	}
 

@@ -86,6 +86,12 @@ MA 02110-1301, USA.
 }
 
 
+- (Vector) virtualPortDimensions
+{
+	return port_dimensions;
+}
+
+
 - (Vector) beaconPosition
 {
 	double buoy_distance = 10000.0;				// distance from station entrance
@@ -283,43 +289,7 @@ MA 02110-1301, USA.
 		[sub launchShip:ship];
 		return;
 	}
-	// case where ship has no docks specified at all
-	// legacy situation, so virtual dock will be at 0,0,0 and aligned to station
-
-	Vector launchPos = position;
-	Vector launchVel = [self velocity];
-	double launchSpeed = 0.5 * [ship maxFlightSpeed];
-	if ([self maxFlightSpeed] > 0 && [self flightSpeed] > 0) // is self a carrier in flight.
-	{
-		launchSpeed = 0.5 * [ship maxFlightSpeed] * (1.0 + [self flightSpeed]/[self maxFlightSpeed]);
-	}
-	Vector launchVector = vector_forward_from_quaternion(orientation);
-	launchPos = vector_add(launchPos,vector_multiply_scalar(launchVector,port_radius));
-	Quaternion q1 = orientation;
-	if ([ship isPlayer]) q1.w = -q1.w; // need this as a fix for the player and before shipWillLaunchFromStation.
-	[ship setOrientation:q1];
-	[ship setPosition:launchPos];
-	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0]; // Make sure no extra escorts are added after launch. (e.g. for miners etc.)
-	if ([ship hasEscorts]) no_docking_while_launching = YES;
-		launchVel = vector_add(launchVel, vector_multiply_scalar(launchVector, launchSpeed));
-	launchSpeed = magnitude(launchVel);
-	[ship setSpeed:launchSpeed];
-	[ship setVelocity:launchVel];
-	// launch roll/pitch
-	[ship setRoll: flightRoll];
-	[ship setPitch:0.0];
-	[UNIVERSE addEntity:ship];
-	[ship setStatus: STATUS_LAUNCHING];
-	[ship setDesiredSpeed:launchSpeed]; // must be set after initialising the AI to correct any speed set by AI
-	last_launch_time = [UNIVERSE getTime];
-	double delay = 1.1*collision_radius/launchSpeed;
-	[ship setLaunchDelay:delay];
-	[[ship getAI] setNextThinkTime:last_launch_time + delay]; // pause while launching
-	
-	[ship resetExhaustPlumes];	// resets stuff for tracking/exhausts
-	
-	[ship doScriptEvent:OOJSID("shipWillLaunchFromStation") withArgument:self];
-	[self doScriptEvent:OOJSID("stationLaunchedShip") withArgument:ship andReactToAIMessage: @"STATION_LAUNCHED_SHIP"];
+// guaranteed to always be a dock as virtual dock will suffice
 }
 
 
@@ -635,6 +605,44 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 }
 
 
+// used to set up a virtual dock if necessary
+- (BOOL) setUpSubEntities
+{
+	if (![super setUpSubEntities])
+	{
+		return NO;
+	}
+	// and now check for docks
+	NSEnumerator	*subEnum = nil;
+	DockEntity		*sub = nil;
+	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+	{
+		return YES;
+	}
+
+	OOLog(@"ship.setup.docks",@"No docks set up for %@, making virtual dock",self);
+
+	// no real docks, make a virtual one
+	NSMutableDictionary *virtualDockDict = [NSMutableDictionary dictionaryWithCapacity:10];
+	[virtualDockDict setObject:@"standard" forKey:@"type"];
+	[virtualDockDict setObject:@"dock-virtual" forKey:@"subentity_key"];
+	[virtualDockDict oo_setVector:make_vector(0,0,port_radius) forKey:@"position"];
+	[virtualDockDict oo_setQuaternion:kIdentityQuaternion forKey:@"orientation"];
+	[virtualDockDict oo_setBool:YES forKey:@"is_dock"];
+	[virtualDockDict setObject:@"the docking bay" forKey:@"dock_label"];
+	[virtualDockDict oo_setBool:YES forKey:@"allow_docking"];
+	[virtualDockDict oo_setBool:YES forKey:@"allow_player_docking"];
+	[virtualDockDict oo_setBool:YES forKey:@"allow_launching"];
+	[virtualDockDict oo_setBool:YES forKey:@"_is_virtual_dock"];
+
+	if (![self setUpOneStandardSubentity:virtualDockDict asTurret:NO])
+	{
+		return NO;
+	}
+	return YES;
+}
+
+
 /*- (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q
 {
 	port_model = dock_model;
@@ -673,52 +681,13 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
-	unsigned docks = 0;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		if ([sub shipIsInDockingCorridor:ship])
 		{
 			return YES;
 		}
-		docks++;
 	}
-	if (docks > 0) 
-	{
-		return NO;
-	}
-// handle case where station has no dock subentities (legacy case)
-	
-	Vector vi = vector_right_from_quaternion(orientation);
-	Vector vj = vector_up_from_quaternion(orientation);
-	Vector vk = vector_forward_from_quaternion(orientation);
-	Vector port_pos = vector_add(position,vector_multiply_scalar(vk,port_radius));
-
-	BoundingBox shipbb = [ship boundingBox];
-	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition: port_pos InVectors: vi : vj : vk];
-	
-	// port dimensions..
-	GLfloat ww = port_dimensions.x;
-	GLfloat hh = port_dimensions.y;
-	GLfloat dd = port_dimensions.z;
-
-	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
-	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
-	
-	ww *= 0.5;
-	hh *= 0.5;
-
-	if (arbb.max.z < -dd)
-		return NO;
-
-	if ((arbb.max.x < ww)&&(arbb.min.x > -ww)&&(arbb.max.y < hh)&&(arbb.min.y > -hh))
-	{
-		if (0.90 * arbb.max.z + 0.10 * arbb.min.z < 0.0)	// we're 90% in docking position!
-		{
-			[self pullInShipIfPermitted:ship];
-		}
-		return YES;
-	}
-
 	return NO;
 }
 
@@ -922,13 +891,14 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 
 // is there a dock free for the player to dock manually?
+// not used for NPCs
 - (BOOL) hasClearDock
 {
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
+		if ([sub allowsPlayerDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
 		{
 			return YES;
 		}
@@ -952,14 +922,14 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	return NO;
 }
 
-
+// only used to pick a dock for the player
 - (DockEntity *) selectDockForDocking
 {
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
+		if ([sub allowsPlayerDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
 		{
 			return sub;
 		}
