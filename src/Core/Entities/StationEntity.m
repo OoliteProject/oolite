@@ -625,7 +625,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	// no real docks, make a virtual one
 	NSMutableDictionary *virtualDockDict = [NSMutableDictionary dictionaryWithCapacity:10];
 	[virtualDockDict setObject:@"standard" forKey:@"type"];
-	[virtualDockDict setObject:@"dock-virtual" forKey:@"subentity_key"];
+	[virtualDockDict setObject:@"oolite-dock-virtual" forKey:@"subentity_key"];
 	[virtualDockDict oo_setVector:make_vector(0,0,port_radius) forKey:@"position"];
 	[virtualDockDict oo_setQuaternion:kIdentityQuaternion forKey:@"orientation"];
 	[virtualDockDict oo_setBool:YES forKey:@"is_dock"];

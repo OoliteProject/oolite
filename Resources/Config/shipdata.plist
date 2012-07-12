@@ -1411,7 +1411,7 @@
 		name = "Docking Slit (horizontal)";
 		roles = "docking-slit-horizontal";
 	};
-	"dock-virtual" =
+	"oolite-dock-virtual" =
 	{ /* used for virtual docks for stations without defined dock subentity */
 		ai_type = "nullAI.plist";
 		model = "alloy.dat";
