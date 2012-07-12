@@ -864,7 +864,7 @@
 		
 		for (policeEnum = [[self group] mutationSafeEnumerator]; (police = [policeEnum nextObject]); )
 		{
-			[police setFound_target:hunter];
+			[police setFoundTarget:hunter];
 			[police setPrimaryAggressor:hunter];
 		}
 	}
@@ -1643,7 +1643,7 @@
 	NSArray *groupMembers = [[self group] memberArray];
 	for (shipEnum = [groupMembers objectEnumerator]; (ship = [shipEnum nextObject]); )
 	{
-		[ship setFound_target:target];
+		[ship setFoundTarget:target];
 		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
 		if ([ship escortGroup] != [ship group] && [[ship escortGroup] count] > 1) // Ship has a seperate escort group.
 		{
@@ -1652,7 +1652,7 @@
 			NSArray			*escortMembers = [[ship escortGroup] memberArrayExcludingLeader];
 			for (shipEnum = [escortMembers objectEnumerator]; (escort = [shipEnum nextObject]); )
 			{
-				[escort setFound_target:target];
+				[escort setFoundTarget:target];
 				[escort reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
 			}
 		}

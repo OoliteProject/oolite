@@ -210,10 +210,10 @@ typedef enum
 	OOUniversalID			primaryTarget;				// for combat or rendezvous
 	GLfloat					desired_range;				// range to which to journey/scan
 	GLfloat					desired_speed;				// speed at which to travel
-// next three used to set desired attitude, flightRoll etc. gradually catch up to target
-	GLfloat         stick_roll;           // stick roll
-	GLfloat         stick_pitch;          // stick pitch
-	GLfloat         stick_yaw;            // stick yaw
+	// next three used to set desired attitude, flightRoll etc. gradually catch up to target
+	GLfloat					stick_roll;					// stick roll
+	GLfloat					stick_pitch;				// stick pitch
+	GLfloat					stick_yaw;					// stick yaw
 	OOBehaviour				behaviour;					// ship's behavioural state
 	
 	BoundingBox				totalBoundingBox;			// records ship configuration
@@ -294,7 +294,7 @@ typedef enum
 	
 	GLfloat					energy_recharge_rate;		// recharge rate for energy banks
 	
-	int weapon_facings; // weapon mounts available (bitmask)
+	int						weapon_facings;				// weapon mounts available (bitmask)
 	OOWeaponType			forward_weapon_type;		// type of forward weapon (allows lasers, plasma cannon, others)
 	OOWeaponType			aft_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
 	OOWeaponType			port_weapon_type;			// type of port weapon
@@ -382,9 +382,9 @@ typedef enum
 	
 	//position of gun ports
 	Vector					forwardWeaponOffset,
-	aftWeaponOffset,
-	portWeaponOffset,
-	starboardWeaponOffset;
+							aftWeaponOffset,
+							portWeaponOffset,
+							starboardWeaponOffset;
 	
 	// crew (typically one OOCharacter - the pilot)
 	NSArray					*crew;
@@ -401,7 +401,7 @@ typedef enum
 	float					ship_temperature;
 	
 	// for advanced scanning etc.
-	ShipEntity*				scanned_ships[MAX_SCAN_NUMBER + 1];
+	ShipEntity				*scanned_ships[MAX_SCAN_NUMBER + 1];
 	GLfloat					distance2_scanned_ships[MAX_SCAN_NUMBER + 1];
 	unsigned				n_scanned_ships;
 	
@@ -896,7 +896,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (ShipEntity**) scannedShips;
 - (int) numberOfScannedShips;
 
-- (void) setFound_target:(Entity *) targetEntity;
+- (void) setFoundTarget:(Entity *) targetEntity;
 - (void) setPrimaryAggressor:(Entity *) targetEntity;
 - (void) setTargetStation:(Entity *) targetEntity;
 - (void) addTarget:(Entity *) targetEntity;

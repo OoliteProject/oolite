@@ -2454,7 +2454,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				//evict them from our group
 				[group removeShip:hunter];
 				
-				[groupLeader setFound_target:other];
+				[groupLeader setFoundTarget:other];
 				[groupLeader setPrimaryAggressor:hunter];
 				[groupLeader respondToAttackFrom:from becauseOf:other];
 			}
@@ -7638,7 +7638,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if ([e2 isShip]) 
 			{
 				ShipEntity *se = (ShipEntity *)e2;
-				[se setFound_target:self];
+				[se setFoundTarget:self];
 				[se reactToAIMessage:@"CASCADE_WEAPON_DETECTED" context:@"nearby Q-mine"];
 			}
 		}
@@ -8034,7 +8034,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) setFound_target:(Entity *) targetEntity
+- (void) setFoundTarget:(Entity *) targetEntity
 {
 	if (targetEntity != nil)
 	{
@@ -10765,7 +10765,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				ShipEntity *groupLeader = [group leader];
 				if (groupLeader != self)
 				{
-					[groupLeader setFound_target:hunter];
+					[groupLeader setFoundTarget:hunter];
 					[groupLeader setPrimaryAggressor:hunter];
 					[groupLeader respondToAttackFrom:ent becauseOf:hunter];
 					//unsetting group leader for carriers can break stuff
@@ -10780,7 +10780,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				{
 					if (otherPirate != self && randf() < 0.5)	// 50% chance they'll help
 					{
-						[otherPirate setFound_target:hunter];
+						[otherPirate setFoundTarget:hunter];
 						[otherPirate setPrimaryAggressor:hunter];
 						[otherPirate respondToAttackFrom:ent becauseOf:hunter];
 					}
@@ -10795,7 +10795,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				{
 					if (otherPolice != self)
 					{
-						[otherPolice setFound_target:hunter];
+						[otherPolice setFoundTarget:hunter];
 						[otherPolice setPrimaryAggressor:hunter];
 						[otherPolice respondToAttackFrom:ent becauseOf:hunter];
 					}
@@ -11613,7 +11613,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		authEnum = [authorities objectEnumerator];
 		while ((auth = [authEnum nextObject]))
 		{
-			[auth setFound_target:aggressor_ship];
+			[auth setFoundTarget:aggressor_ship];
 			[auth doScriptEvent:OOJSID("offenceCommittedNearby") withArgument:aggressor_ship andArgument:self];
 			[auth reactToAIMessage:@"OFFENCE_COMMITTED" context:@"combat update"];
 		}
