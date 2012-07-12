@@ -7873,8 +7873,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) collectBountyFor:(ShipEntity *)other
 {
-// TODO: change this to use setBounty
-	if ([self isPirate])  bounty += [other bounty];
+	if ([self isPirate]) 
+	{
+		[self setBounty:(bounty+[other bounty]) withReason:kOOLegalStatusReasonThereCanBeOnlyOne];
+	}
 }
 
 
