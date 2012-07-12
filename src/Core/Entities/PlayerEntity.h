@@ -794,6 +794,7 @@ typedef enum
 - (Vector)customViewUpVector;
 - (Vector)customViewRightVector;
 - (NSString *)customViewDescription;
+- (void)resetCustomView;
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
 - (Vector) viewpointPosition;
 - (Vector) viewpointOffset;

@@ -8515,6 +8515,13 @@ static NSString *last_outfitting_key=nil;
 	return customViewDescription;
 }
 
+
+- (void)resetCustomView
+{
+	[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex]];
+}
+
+
 - (void)setCustomViewDataFromDictionary:(NSDictionary *)viewDict
 {
 	customViewMatrix = kIdentityMatrix;

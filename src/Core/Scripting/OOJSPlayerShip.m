@@ -63,6 +63,7 @@ static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee);
 
@@ -169,7 +170,8 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "launch",							PlayerShipLaunch,							0 },
 	{ "removeAllCargo",					PlayerShipRemoveAllCargo,					0 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
-	{ "setCustomView",				PlayerShipSetCustomView,					1 },
+	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
+	{ "setCustomView",				PlayerShipSetCustomView,					2 },
 	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,					1 },
 	{ 0 }
 };
@@ -789,17 +791,38 @@ static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp)
 	[viewData setObject:positionstr forKey:@"view_position"];
 	[viewData setObject:orientationstr forKey:@"view_orientation"];
 
-/*	if (argc > 2)
+	if (argc > 2)
 	{
 		NSString* facing = OOStringFromJSValue(context,OOJS_ARGV[2]);
 		[viewData setObject:facing forKey:@"weapon_facing"];
-		} */
+	} 
 
 	[player setCustomViewDataFromDictionary:viewData];
 	[player noteSwitchToView:VIEW_CUSTOM fromView:VIEW_CUSTOM];
 
 	[positionstr release];
 	[orientationstr release];
+
+	OOJS_RETURN_BOOL(YES);
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	
+// must be in custom view
+	if ([UNIVERSE viewDirection] != VIEW_CUSTOM) 
+	{
+		OOJSReportError(context, @"PlayerShip.setCustomView only works when custom view is active.");
+		return NO;
+	}
+
+	[player resetCustomView];
+	[player noteSwitchToView:VIEW_CUSTOM fromView:VIEW_CUSTOM];
 
 	OOJS_RETURN_BOOL(YES);
 	OOJS_NATIVE_EXIT
