@@ -1400,7 +1400,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		[result setObject:docklabel forKey:@"dock_label"];
 
 		BOOL dockable = [declaration oo_boolForKey:@"allow_docking" defaultValue:YES];
-		BOOL playerdockable = [declaration oo_boolForKey:@"allow_player_docking" defaultValue:YES];
+		BOOL playerdockable = [declaration oo_boolForKey:@"allow_player_docking" defaultValue:dockable];
 		BOOL undockable = [declaration oo_boolForKey:@"allow_launching" defaultValue:YES];
 
 		[result oo_setBool:dockable forKey:@"allow_docking"];
