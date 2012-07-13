@@ -72,13 +72,13 @@ MA 02110-1301, USA.
 - (void) setAllowsLaunching:(BOOL)allow;
 - (unsigned) countOfShipsInLaunchQueue;
 - (unsigned) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
+- (BOOL) allowsLaunchingOf:(ShipEntity *)ship;
 - (void) launchShip:(ShipEntity *)ship;
 - (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority;
 
 // Geometry
 - (void) setDimensionsAndCorridor:(BOOL)docking :(BOOL)playerdocking :(BOOL)launching;
 - (Vector) portUpVectorForShipsBoundingBox:(BoundingBox)bb;
-- (BOOL) fitsInDock:(ShipEntity *)ship;
 - (BOOL) isOffCentre;
 - (void) setVirtual;
 

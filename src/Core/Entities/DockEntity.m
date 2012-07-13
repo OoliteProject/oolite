@@ -236,12 +236,28 @@ MA 02110-1301, USA.
 		return @"TOO_BIG_TO_DOCK";
 	}
 
+	// callback to allow more complex filtering on accept/reject
+	JSContext	*context = OOJSAcquireContext();
+	jsval		rval = JSVAL_VOID;
+	jsval		args[] = { OOJSValueFromNativeObject(context, ship) };
+	JSBool accept = YES;
+	
+	BOOL OK = [[self script] callMethod:OOJSID("acceptDockingRequestFrom") inContext:context withArguments:args count:1 result:&rval];
+	if (OK)  OK = JS_ValueToBoolean(context, rval, &accept);
+	if (!OK)  accept = YES; // default to permreject
+	OOJSRelinquishContext(context);
+
+	if (!accept)
+	{
+		return @"TOO_BIG_TO_DOCK";
+	}
+
 	// Second test temporary rejection reasons
 	if (no_docking_while_launching)
 	{
 		return @"TRY_AGAIN_LATER";
 	}
-// if there are pending launches, temporarily don't accept docking requests
+	// if there are pending launches, temporarily don't accept docking requests
 	if (allow_launching && [launchQueue count])
 	{
 		return @"TRY_AGAIN_LATER";
@@ -876,7 +892,7 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) fitsInDock:(ShipEntity *) ship
+- (BOOL) allowsLaunchingOf:(ShipEntity *) ship
 {
 	if (![ship isShip])  return NO;
 	
@@ -886,6 +902,22 @@ MA 02110-1301, USA.
 	{
 		return NO;
 	}
+
+	// callback to allow more complex filtering on accept/reject
+	JSContext	*context = OOJSAcquireContext();
+	jsval		rval = JSVAL_VOID;
+	jsval		args[] = { OOJSValueFromNativeObject(context, ship) };
+	JSBool accept = YES;
+	
+	BOOL OK = [[self script] callMethod:OOJSID("acceptLaunchingRequestFrom") inContext:context withArguments:args count:1 result:&rval];
+	if (OK)  OK = JS_ValueToBoolean(context, rval, &accept);
+	if (!OK)  accept = YES; // default to permreject
+	OOJSRelinquishContext(context);
+	if (!accept)
+	{
+		return NO;
+	}
+
 	return YES;
 }	
 

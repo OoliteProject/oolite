@@ -1003,7 +1003,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 				{
 					if ([sub allowsLaunching] && [sub countOfShipsInLaunchQueue] <= threshold)
 					{
-						if ([sub fitsInDock:ship])
+						if ([sub allowsLaunchingOf:ship])
 						{
 							[sub addShipToLaunchQueue:ship withPriority:priority];
 							return;
@@ -1033,7 +1033,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 // not a problem)
 				if ([sub allowsLaunching] && [sub countOfShipsInDockingQueue] <= threshold)
 				{
-					if ([sub fitsInDock:ship])
+					if ([sub allowsLaunchingOf:ship])
 					{
 						[sub addShipToLaunchQueue:ship withPriority:priority];
 						return;
@@ -1070,7 +1070,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub fitsInDock:ship])
+		if ([sub allowsLaunchingOf:ship])
 		{
 			return YES;
 		}
