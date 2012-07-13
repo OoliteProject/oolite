@@ -48,7 +48,7 @@ extern "C" {
 #endif
 
 #include "OOFunctionAttributes.h"
-#include <math.h>
+#include <tgmath.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>

@@ -199,8 +199,8 @@ float TexLongitude(float z, float y)
 	
 	float ratio = z / y;
 	
-	float r1 = 1.0 / ((ratio + kMagic / ratio) * k2Pi);	// Result when abs(y) >= abs(x).
-	float r2 = 0.25 * sign(ratio) - ratio / ((1.0 + kMagic * ratio * ratio) * k2Pi);  // Result when abs(y) <= abs(x).
+	float r1 = 1.0 / ((ratio + kMagic / ratio) * k2Pi);	// Result when abs(z) >= abs(x).
+	float r2 = 0.25 * sign(ratio) - ratio / ((1.0 + kMagic * ratio * ratio) * k2Pi);  // Result when abs(z) <= abs(x).
 	
 	float result = (abs(ratio) > 1.0) ? r1 : r2;
 	
