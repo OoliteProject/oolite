@@ -107,19 +107,20 @@ MA 02110-1301, USA.
 	[shipsOnApproach removeAllObjects];
 	
 	PlayerEntity *player = PLAYER;
-	BOOL isDockingStation = ([self parentEntity] == [player getTargetDockStation]);
+	StationEntity *station = (StationEntity*)[self parentEntity];
+	BOOL isDockingStation = (station == [player getTargetDockStation]) && ([station playerReservedDock] == self);
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
 			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
 	{
 		if (magnitude2(vector_subtract([player position], [self absolutePositionForSubentity])) > 2250000) // within 1500m of the dock
 		{
-			[self sendExpandedMessage:DESC(@"station-docking-clearance-abort-cancelled") toShip:player];
+			[station sendExpandedMessage:DESC(@"station-docking-clearance-abort-cancelled") toShip:player];
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 		}
 		else
 		{
 			playerExtraTime = 10; // when very close to the port, give the player a few seconds to react on the abort message.
-			[self sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime] toShip:player];
+			[station sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime] toShip:player];
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
 		}
 
@@ -128,6 +129,26 @@ MA 02110-1301, USA.
 	last_launch_time = [UNIVERSE getTime] + playerExtraTime;
 	approach_spacing = 0.0;
 }
+
+
+- (void) abortAllLaunches
+{
+	unsigned	i, count = [launchQueue count];
+	
+	no_docking_while_launching = NO;
+
+	for (i = 0; i < count; i++)
+	{
+		OOUniversalID sid = [launchQueue oo_unsignedIntAtIndex:i];
+		ShipEntity *ship = [UNIVERSE entityForUniversalID:sid];
+		if (ship != nil)
+		{
+			[ship release];
+		}
+	}
+	[launchQueue removeAllObjects];
+}
+
 
 - (void) autoDockShipsInQueue:(NSMutableDictionary *)queue
 {
@@ -159,6 +180,16 @@ MA 02110-1301, USA.
 }
 
 
+- (void) setAllowsDocking:(BOOL)allowed
+{
+	if (!allowed && allow_docking) 
+	{
+		[self abortAllDockings];
+	}
+	allow_docking = allowed;
+}
+
+
 - (BOOL) allowsPlayerDocking
 {
 	return allow_player_docking;
@@ -168,6 +199,16 @@ MA 02110-1301, USA.
 - (BOOL) allowsLaunching
 {
 	return allow_launching;
+}
+
+
+- (void) setAllowsLaunching:(BOOL)allowed
+{
+	if (!allowed && allow_launching) 
+	{
+		[self abortAllLaunches];
+	}
+	allow_launching = allowed;
 }
 
 
@@ -182,11 +223,11 @@ MA 02110-1301, USA.
 	// First test permanent rejection reasons
 	if (!allow_docking && (![ship isPlayer] || !allow_player_docking))
 	{
-		return @"TOO_BIG_TO_DOCK"; // not strictly true, but is the permanent-reject code
+		return @"DOCK_CLOSED"; // could be temp or perm reject
 	}
 	if (!allow_player_docking && [ship isPlayer])
 	{
-		return @"TOO_BIG_TO_DOCK"; // not strictly true, but is the permanent-reject code
+		return @"TOO_BIG_TO_DOCK"; // player always gets perm-reject in this case
 	}
 	BoundingBox bb = [ship totalBoundingBox];
 	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 

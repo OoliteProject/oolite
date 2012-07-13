@@ -92,6 +92,12 @@ MA 02110-1301, USA.
 }
 
 
+- (DockEntity*) playerReservedDock
+{
+	return player_reserved_dock;
+}
+
+
 - (Vector) beaconPosition
 {
 	double buoy_distance = 10000.0;				// distance from station entrance
@@ -424,6 +430,29 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		if (sub != player_reserved_dock)
 		{
 			docking = [sub canAcceptShipForDocking:ship];
+			if ([docking isEqualToString:@"DOCK_CLOSED"])
+			{
+				JSContext	*context = OOJSAcquireContext();
+				jsval		rval = JSVAL_VOID;
+				jsval		args[] = { OOJSValueFromNativeObject(context, sub),
+													 OOJSValueFromNativeObject(context, ship) };
+				JSBool tempreject = NO;
+
+				BOOL OK = [[self script] callMethod:OOJSID("willOpenDockingPortFor") inContext:context withArguments:args count:1 result:&rval];
+				if (OK)  OK = JS_ValueToBoolean(context, rval, &tempreject);
+				if (!OK)  tempreject = NO; // default to permreject
+				if (tempreject)
+				{
+					docking = @"TRY_AGAIN_LATER";
+				}
+				else
+				{
+					docking = @"TOO_BIG_TO_DOCK";
+				}
+
+				OOJSRelinquishContext(context);
+			}
+
 			if ([docking isEqualToString:@"DOCKING_POSSIBLE"] && [sub countOfShipsInDockingQueue] < queue) {
 // try to select the dock with the fewest ships already enqueued
 				chosenDock = sub;

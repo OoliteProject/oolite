@@ -100,8 +100,6 @@ typedef enum
 							allowsAutoDocking: 1;
 }
 
-- (NSEnumerator *) dockSubEntityEnumerator;
-
 - (NSMutableArray *) localMarket;
 - (void) setLocalMarket:(NSArray *)market;
 - (NSMutableArray *) localPassengers;
@@ -117,7 +115,9 @@ typedef enum
 - (OOTechLevelID) equivalentTechLevel;
 - (void) setEquivalentTechLevel:(OOTechLevelID)value;
 
+- (NSEnumerator *) dockSubEntityEnumerator;
 - (Vector) virtualPortDimensions;
+- (DockEntity*) playerReservedDock;
 
 - (Vector) beaconPosition;
 

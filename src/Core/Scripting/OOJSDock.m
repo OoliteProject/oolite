@@ -71,9 +71,9 @@ enum
 static JSPropertySpec sDockProperties[] =
 {
 	// JS name						ID									flags
-	{ "allowsDocking",				kDock_allowsDocking,			OOJS_PROP_READONLY_CB },
+	{ "allowsDocking",				kDock_allowsDocking,			OOJS_PROP_READWRITE_CB },
 	{ "allowsPlayerDocking",				kDock_allowsPlayerDocking,			OOJS_PROP_READONLY_CB },
-	{ "allowsLaunching",				kDock_allowsLaunching,			OOJS_PROP_READONLY_CB },
+	{ "allowsLaunching",				kDock_allowsLaunching,			OOJS_PROP_READWRITE_CB },
 	{ "dockingQueueLength",				kDock_dockingQueueLength,			OOJS_PROP_READONLY_CB },
 	{ "launchingQueueLength",				kDock_launchingQueueLength,			OOJS_PROP_READONLY_CB },
 	{ 0 }
@@ -183,7 +183,7 @@ static JSBool DockSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	OOJS_NATIVE_ENTER(context)
 	
 	DockEntity				*entity = nil;
-//	JSBool						bValue;
+	JSBool						bValue;
 //	int32						iValue;
 	
 	if (!JSDockGetDockEntity(context, this, &entity)) return NO;
@@ -191,6 +191,22 @@ static JSBool DockSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kDock_allowsDocking:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setAllowsDocking:bValue];
+				return YES;
+			}
+			break;
+
+		case kDock_allowsLaunching:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setAllowsLaunching:bValue];
+				return YES;
+			}
+			break;
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sDockProperties);
 			return NO;

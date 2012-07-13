@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 
 // Docking
 - (BOOL) allowsDocking;
+- (void) setAllowsDocking:(BOOL)allow;
 - (BOOL) allowsPlayerDocking;
 - (unsigned) countOfShipsInDockingQueue;
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *)ship;
@@ -68,6 +69,7 @@ MA 02110-1301, USA.
 
 // Launching
 - (BOOL) allowsLaunching;
+- (void) setAllowsLaunching:(BOOL)allow;
 - (unsigned) countOfShipsInLaunchQueue;
 - (unsigned) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
 - (void) launchShip:(ShipEntity *)ship;
