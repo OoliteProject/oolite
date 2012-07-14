@@ -38,6 +38,7 @@ SOFTWARE.
 #import <OSAtomic.h>
 #import "OOErrorDescription.h"
 #import "OOLogging.h"
+#import "OOMaths.h"
 
 
 @interface OOSound (Internal)

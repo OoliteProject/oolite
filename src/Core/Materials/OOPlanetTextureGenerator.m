@@ -845,9 +845,9 @@ static float SampleNoise3D(OOPlanetTextureGeneratorInfo *info, Vector p)
 	uint16_t	*permutations = info->permutations;
 	
 	// Split coordinates into integer and fractional parts.
-	float		fx = floorf(p.x);
-	float		fy = floorf(p.y);
-	float		fz = floorf(p.z);
+	float		fx = floor(p.x);
+	float		fy = floor(p.y);
+	float		fz = floor(p.z);
 	int			X = fx;
 	int			Y = fy;
 	int			Z = fz;
@@ -964,15 +964,15 @@ static BOOL GenerateFBMNoise(OOPlanetTextureGeneratorInfo *info)
 	
 	for (y = 0, lat = -M_PI_2; y < height; y++, lat += dlat)
 	{
-		float las = sinf(lat);
-		float lac = cosf(lat);
+		float las = sin(lat);
+		float lac = cos(lat);
 		
 		for (x = 0, lon = -M_PI; x < width; x++, lon += dlon)
 		{
 			// FIXME: in real life, we really don't want sin and cos per pixel.
 			// Convert spherical coordinates to vector.
-			float los = sinf(lon);
-			float loc = cosf(lon);
+			float los = sin(lon);
+			float loc = cos(lon);
 			
 			Vector p =
 			{

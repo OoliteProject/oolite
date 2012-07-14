@@ -203,7 +203,7 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 		// Extract and convert weights.
 		for (i = 0; i < count; ++i)
 		{
-			rawWeights[i] = fmaxf([weights oo_floatAtIndex:i], 0.0f);
+			rawWeights[i] = fmax([weights oo_floatAtIndex:i], 0.0f);
 		}
 		
 		self = [self initWithObjects:rawObjects weights:rawWeights count:count];
@@ -438,7 +438,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	if ((self = [super initPriv]))
 	{
 		_object = [object retain];
-		_weight = fmaxf(weight, 0.0f);
+		_weight = fmax(weight, 0.0f);
 	}
 	
 	return self;
@@ -805,7 +805,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	{
 		for (i = 0; i != count; ++i)
 		{
-			[self setWeight:fmaxf(weights[i], 0.0f) forObject:objects[i]];
+			[self setWeight:fmax(weights[i], 0.0f) forObject:objects[i]];
 		}
 	}
 	
@@ -946,7 +946,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 {
 	if (object == nil)  return;
 	
-	weight = fmaxf(weight, 0.0f);
+	weight = fmax(weight, 0.0f);
 	OOUInteger index = [_objects indexOfObject:object];
 	if (index == NSNotFound)
 	{

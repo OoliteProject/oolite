@@ -59,7 +59,7 @@ static OOTexture *sFlashTexture = nil;
 {
 	if ((self = [self initWithPosition:pos size:size color:[OOColor whiteColor] duration:kExplosionFlashDuration]))
 	{
-		_growthRate = fmaxf(_growthRate, kMinExplosionGrowth);
+		_growthRate = fmax(_growthRate, kMinExplosionGrowth);
 		[self setVelocity:vel];
 	}
 	return self;

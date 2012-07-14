@@ -748,8 +748,8 @@ static JSBool VectorAngleTo(JSContext *context, uintN argc, jsval *vp)
 	if (result > 1.0f) result = 1.0f;
 	if (result < -1.0f) result = -1.0f;
 	// for identical vectors the dot_product sometimes returnes a value > 1.0 because of rounding errors, resulting
-	// in an undefined result for the acosf.
-	result = acosf(result);
+	// in an undefined result for the acos.
+	result = acos(result);
 	
 	OOJS_RETURN_DOUBLE(result);
 	

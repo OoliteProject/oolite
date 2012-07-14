@@ -405,8 +405,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	}
 	
 	if	(magnitude2(velocity) > 1.0 ||
-		 fabsf(flightPitch) > 0.01 ||
-		 fabsf(flightYaw) > 0.01)
+		 fabs(flightPitch) > 0.01 ||
+		 fabs(flightYaw) > 0.01)
 	{
 		// no docking while station is moving, pitching or yawing
 		return [self holdPositionInstructionForShip:ship];
@@ -482,7 +482,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	}
 
 	// rolling is okay for some
-	if	(fabsf(flightRoll) > 0.01 && [chosenDock isOffCentre])
+	if	(fabs(flightRoll) > 0.01 && [chosenDock isOffCentre])
 	{
 		return [self holdPositionInstructionForShip:ship];
 	}
@@ -598,7 +598,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	max_defense_ships = [dict oo_unsignedIntForKey:@"max_defense_ships" defaultValue:3];
 	max_police = [dict oo_unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
 	equipmentPriceFactor = [dict oo_nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
-	equipmentPriceFactor = fmaxf(equipmentPriceFactor, 0.5f);
+	equipmentPriceFactor = fmax(equipmentPriceFactor, 0.5f);
 	hasNPCTraffic = [dict oo_fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:(maxFlightSpeed == 0)]; // carriers default to NO
 	hasPatrolShips = [dict oo_fuzzyBooleanForKey:@"has_patrol_ships" defaultValue:NO];
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
@@ -2290,7 +2290,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		{
 			ship = [UNIVERSE entityForUniversalID:sid];
 			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i+1, [ship displayName], 
-																			sqrtf(distance2(position, [ship position])),
+																			distance(position, [ship position])),
 																					[ship primaryRole]);
 		}
 		} */

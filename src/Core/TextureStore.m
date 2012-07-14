@@ -323,7 +323,7 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 		
 		norm = vector_normal(norm);
 		
-		GLfloat shade = powf( norm.z, 3.2);
+		GLfloat shade = pow(norm.z, 3.2);
 		
 		FloatRGB color = PlanetTextureColor(q, impress, bias, seaColor, paleSeaColor, landColor, paleLandColor);
 		

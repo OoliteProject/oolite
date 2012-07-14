@@ -62,8 +62,8 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension heig
 	for (x = 0; x < width; x++)
 	{
 		float lon = ((float)x * rheight) * kPiF;
-		sinTable[x] = sinf(lon);
-		cosTable[x] = cosf(lon);
+		sinTable[x] = sin(lon);
+		cosTable[x] = cos(lon);
 	}
 	
 	for (y = 0; y < height; y++)
@@ -79,15 +79,15 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension heig
 		*/
 		float cy = -sinTable[width * 3 / 4 - y];
 		float lac = -cosTable[width * 3 / 4 - y];
-		float ay = fabsf(cy);
+		float ay = fabs(cy);
 		
 		for (x = 0; x < width; x++)
 		{
 			float cx = sinTable[x] * lac;
 			float cz = cosTable[x] * lac;
 			
-			float ax = fabsf(cx);
-			float az = fabsf(cz);
+			float ax = fabs(cx);
+			float az = fabs(cz);
 			
 			// Y offset of start of this face in image.
 			OOPixMapDimension yOffset;

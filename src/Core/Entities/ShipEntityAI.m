@@ -2407,7 +2407,7 @@
 	if (dockingInstructions != nil)
 	{
 		destination = [dockingInstructions oo_vectorForKey:@"destination"];
-		desired_speed = fminf([dockingInstructions oo_floatForKey:@"speed"], maxFlightSpeed);
+		desired_speed = fmin([dockingInstructions oo_floatForKey:@"speed"], maxFlightSpeed);
 		desired_range = [dockingInstructions oo_floatForKey:@"range"];
 		if ([dockingInstructions objectForKey:@"station_id"])
 		{

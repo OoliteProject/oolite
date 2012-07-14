@@ -74,7 +74,7 @@ MA 02110-1301, USA.
 
 - (void) setFuelLeakRate:(float)value
 {
-	_fuelLeakRate = fmaxf(value, 0.0f);
+	_fuelLeakRate = fmax(value, 0.0f);
 }
 
 

@@ -1,4 +1,5 @@
 #import "OOFunctionAttributes.h"
+#include <tgmath.h>
 
 
 // Utilities for working with NSPoints as 2D vectors.
@@ -39,7 +40,7 @@ OOINLINE NSPoint PtRotACW(NSPoint p)
 	return NSMakePoint(-p.y, p.x);
 }
 
-OOINLINE NSPoint PtFastNormal(NSPoint p)
+OOINLINE NSPoint PtNormal(NSPoint p)
 {
-	return PtScale(p, 1.0f / sqrtf(PtDot(p, p)));
+	return PtScale(p, 1.0f / sqrt(PtDot(p, p)));
 }

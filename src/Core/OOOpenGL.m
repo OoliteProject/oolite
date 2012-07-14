@@ -117,8 +117,8 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance)
 	glVertex3i(0, 0, 0);
 	for (i = 0; i < (M_PI * 2.0); i += delta)
 	{
-		s = r * sinf(i);
-		c = r * cosf(i);
+		s = r * sin(i);
+		c = r * cos(i);
 		glVertex3f(s, c, 0.0);
 	}
 	glVertex3f(0.0, r, 0.0);	//repeat the zero value to close
@@ -140,7 +140,7 @@ static void GLDrawOvalPoints(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloa
 	
 	for (theta = 0.0f; theta < (2.0f * M_PI); theta += delta)
 	{
-		glVertex3f(x + ww * sinf(theta), y + hh * cosf(theta), z);
+		glVertex3f(x + ww * sin(theta), y + hh * cos(theta), z);
 	}
 	glVertex3f(x, y + hh, z);
 }

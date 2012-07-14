@@ -616,9 +616,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	if (translucent)
 	{
 		// for now, a simple copy of the energy bomb draw routine
-		float srzd = sqrtf(cam_zero_distance);
+		float srzd = sqrt(cam_zero_distance);
 		
-		GLfloat	color_fv[4] = { 0.0, 0.0, 1.0, 0.25};
+		GLfloat	color_fv[4] = { 0.0, 0.0, 1.0, 0.25 };
 		
 		OOGL(glDisable(GL_CULL_FACE));			// face culling
 		OOGL(glDisable(GL_TEXTURE_2D));
@@ -668,13 +668,13 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			
 			q = activity.location + rv0 * activity.length;
 			
-			s0 = r0 * sinf(theta);
-			c0 = r0 * cosf(theta);
+			s0 = r0 * sin(theta);
+			c0 = r0 * cos(theta);
 			glColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
 			glVertex3f(s0, c0, 0.0);
 
-			s1 = r1 * sinf(theta - halfStep) * 0.5 * (1.0 + rv1);
-			c1 = r1 * cosf(theta - halfStep) * 0.5 * (1.0 + rv1);
+			s1 = r1 * sin(theta - halfStep) * 0.5 * (1.0 + rv1);
+			c1 = r1 * cos(theta - halfStep) * 0.5 * (1.0 + rv1);
 			glColor4f(col4v1[0], col4v1[1], col4v1[2], 0.0);
 			glVertex3f(s1, c1, 0.0);
 			
@@ -685,13 +685,13 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			
 		q = activity.location + rv0 * activity.length;
 		
-		s0 = 0.0f;	// r0 * sinf(0);
-		c0 = r0;	// r0 * cosf(0);
+		s0 = 0.0f;	// r0 * sin(0);
+		c0 = r0;	// r0 * cos(0);
 		glColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
 		glVertex3f(s0, c0, 0.0);
 
-		s1 = r1 * sinf(halfStep) * 0.5 * (1.0 + rv1);
-		c1 = r1 * cosf(halfStep) * 0.5 * (1.0 + rv1);
+		s1 = r1 * sin(halfStep) * 0.5 * (1.0 + rv1);
+		c1 = r1 * cos(halfStep) * 0.5 * (1.0 + rv1);
 		glColor4f(col4v1[0], col4v1[1], col4v1[2], 0.0);
 		glVertex3f(s1, c1, 0.0);
 	OOGLEND();

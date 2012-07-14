@@ -234,7 +234,7 @@ OOINLINE OOScalar magnitude2(Vector vec)
 
 OOINLINE OOScalar magnitude(Vector vec)
 {
-	return sqrtf(magnitude2(vec));
+	return sqrt(magnitude2(vec));
 }
 
 
@@ -242,7 +242,7 @@ OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback)
 {
 	OOScalar mag2 = magnitude2(vec);
 	if (EXPECT_NOT(mag2 == 0.0f))  return fallback;
-	return vector_multiply_scalar(vec, 1.0f / sqrtf(mag2));
+	return vector_multiply_scalar(vec, 1.0f / sqrt(mag2));
 }
 
 

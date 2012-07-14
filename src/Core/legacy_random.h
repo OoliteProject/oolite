@@ -134,16 +134,16 @@ OOINLINE int rotate_byte_left(int x)
 // a method used to determine interplanetary distances,
 // if accurate, it has to scale distance down by a factor of 7.15:7.0
 // to allow routes navigable in the original!
-OOINLINE double distanceBetweenPlanetPositions ( int x1, int y1, int x2, int y2)
+OOINLINE double distanceBetweenPlanetPositions(int x1, int y1, int x2, int y2)
 {
 	int dx = x1 - x2;
 	int dy = (y1 - y2)/2;
-	int dist = sqrtf(dx*dx + dy*dy);	// N.b. Rounding error due to truncation is desired.
+	int dist = sqrt(dx*dx + dy*dy);	// N.b. Rounding error due to truncation is desired.
 	return 0.4 * dist;
 }
 
 
-OOINLINE double accurateDistanceBetweenPlanetPositions ( int x1, int y1, int x2, int y2)
+OOINLINE double accurateDistanceBetweenPlanetPositions(int x1, int y1, int x2, int y2)
 {
 	double dx = x1 - x2;
 	double dy = (y1 - y2) / 2.0;
@@ -152,7 +152,7 @@ OOINLINE double accurateDistanceBetweenPlanetPositions ( int x1, int y1, int x2,
 }
 
 
-OOINLINE double travelTimeBetweenPlanetPositions ( int x1, int y1, int x2, int y2)
+OOINLINE double travelTimeBetweenPlanetPositions(int x1, int y1, int x2, int y2)
 {
 	double distance = distanceBetweenPlanetPositions(x1, y1, x2, y2);
 	return distance * distance;

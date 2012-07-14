@@ -100,7 +100,7 @@ MA 02110-1301, USA.
 		Vector	rp = vector_subtract([ent position], [ship position]);
 		GLfloat	sz = ent->collision_radius + cr;
 		GLfloat	d = magnitude(rp) - sz;
-		d = fmaxf(d, 0.01);		// 1 cm is suitably small
+		d = fmax(d, 0.01);		// 1 cm is suitably small
 		Vector	rv = vector_subtract([ent velocity], u);
 		GLfloat	approach_v = dot_product(rv, vector_normal(rp));
 		

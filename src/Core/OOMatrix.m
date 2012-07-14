@@ -46,7 +46,7 @@ OOMatrix OOMatrixForRotation(Vector axis, OOScalar angle)
 	axis = vector_normal(axis);
 	
 	OOScalar x = axis.x, y = axis.y, z = axis.z;
-	OOScalar s = sinf(angle), c = cosf(angle);
+	OOScalar s = sin(angle), c = cos(angle);
 	OOScalar t = 1.0f - c;
 	
 	// Lots of opportunity for common subexpression elimintation here, but I'll leave it to the compiler for now.

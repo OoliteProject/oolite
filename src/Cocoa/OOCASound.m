@@ -361,9 +361,9 @@ static BOOL VerifyOneBuffer(AudioBuffer *buffer, OOUInteger numFrames, float *ba
 		float val = floatBuffer[i];
 		BOOL abnormal = isnan(val) || !isfinite(val);
 		
-		if (abnormal || (fabsf(val) > kOOAudioSlop))
+		if (abnormal || (fabs(val) > kOOAudioSlop))
 		{
-			if (abnormal || (!abnormal && !worstAbnormal && fabsf(*badVal < fabsf(val))))
+			if (abnormal || (!abnormal && !worstAbnormal && fabs(*badVal < fabs(val))))
 			{
 				worstAbnormal = abnormal;
 				*badVal = val;

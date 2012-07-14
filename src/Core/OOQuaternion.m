@@ -190,7 +190,7 @@ void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *ou
 Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 {
 	Quaternion q;
-	OOScalar s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
+	OOScalar s = sqrt((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
 	if (EXPECT(s > 0.0f))
 	{
 		OOScalar is = 1.0f / s;
@@ -221,16 +221,16 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxArc)	// vectors both normalised
 {
 	Quaternion q;
-	OOScalar min_s = 2.0f * cosf(0.5f * maxArc);
-	OOScalar s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
+	OOScalar min_s = 2.0f * cos(0.5f * maxArc);
+	OOScalar s = sqrt((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
 	// for some anti parallel vectors, s returns a NaN instead of 0. Testing s > 0 catches both.
 	if (EXPECT(s > 0.0f))
 	{
 		if (s < min_s)	// larger angle => smaller cos
 		{
 			OOScalar a = maxArc * 0.5f;
-			OOScalar w = cosf(a);
-			OOScalar scale = sinf(a);
+			OOScalar w = cos(a);
+			OOScalar scale = sin(a);
 			q.x = (v0.y * v1.z - v0.z * v1.y) * scale;
 			q.y = (v0.z * v1.x - v0.x * v1.z) * scale;
 			q.z = (v0.x * v1.y - v0.y * v1.x) * scale;
@@ -277,8 +277,8 @@ void quaternion_rotate_about_y(Quaternion *quat, OOScalar angle)
 {
 	Quaternion result;
 	OOScalar a = angle * 0.5f;
-	OOScalar w = cosf(a);
-	OOScalar scale = sinf(a);
+	OOScalar w = cos(a);
+	OOScalar scale = sin(a);
 	
 	result.w = quat->w * w - quat->y * scale;
 	result.x = quat->x * w - quat->z * scale;
@@ -296,8 +296,8 @@ void quaternion_rotate_about_z(Quaternion *quat, OOScalar angle)
 {
 	Quaternion result;
 	OOScalar a = angle * 0.5f;
-	OOScalar w = cosf(a);
-	OOScalar scale = sinf(a);
+	OOScalar w = cos(a);
+	OOScalar scale = sin(a);
 	
 	result.w = quat->w * w - quat->z * scale;
 	result.x = quat->x * w + quat->y * scale;
@@ -315,8 +315,8 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, OOScalar angle)
 {
 	Quaternion q2 /*, result */;
 	OOScalar a = angle * 0.5f;
-	OOScalar w = cosf(a);
-	OOScalar scale = sinf(a);
+	OOScalar w = cos(a);
+	OOScalar scale = sin(a);
 	
 	q2.w = w;
 	q2.x = axis.x * scale;
@@ -333,9 +333,9 @@ NSString *QuaternionDescription(Quaternion quaternion)
 	float			x, y, z;
 	char			xs, ys, zs;
 	
-	x = fabsf(quaternion.x);
-	y = fabsf(quaternion.y);
-	z = fabsf(quaternion.z);
+	x = fabs(quaternion.x);
+	y = fabs(quaternion.y);
+	z = fabs(quaternion.z);
 	
 	xs = (quaternion.x >= 0) ? '+' : '-';
 	ys = (quaternion.y >= 0) ? '+' : '-';

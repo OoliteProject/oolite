@@ -269,7 +269,7 @@ enum
 	if (!warp_stars)
 	{
 		// Draw points.
-		float dustPointSize = ceilf(idealDustSize);
+		float dustPointSize = ceil(idealDustSize);
 		if (dustPointSize < 1.0f)  dustPointSize = 1.0f;
 		OOGL(glPointSize(dustPointSize));
 		dustIntensity = OOClamp_0_1_f(idealDustSize / dustPointSize);
@@ -278,7 +278,7 @@ enum
 	{
 		// Draw lines.
 		float idealLineSize = idealDustSize * 0.5f;
-		float dustLineSize = ceilf(idealLineSize);
+		float dustLineSize = ceil(idealLineSize);
 		if (dustLineSize < 1.0f)  dustLineSize = 1.0f;
 		OOGL(glLineWidth(dustLineSize));
 		dustIntensity = OOClamp_0_1_f(idealLineSize / dustLineSize);

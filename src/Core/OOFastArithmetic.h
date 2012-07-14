@@ -71,7 +71,7 @@ OOINLINE float OOLerp(float v0, float v1, float fraction) INLINE_CONST_FUNC;
 
 OOINLINE float OOClamp_0_1_f(float value)
 {
-	return fmaxf(0.0f, fminf(value, 1.0f));
+	return fmax(0.0f, fmin(value, 1.0f));
 }
 
 OOINLINE double OOClamp_0_1_d(double value)
@@ -81,7 +81,7 @@ OOINLINE double OOClamp_0_1_d(double value)
 
 OOINLINE float OOClamp_0_max_f(float value, float max)
 {
-	return fmaxf(0.0f, fminf(value, max));
+	return fmax(0.0f, fmin(value, max));
 }
 
 OOINLINE double OOClamp_0_max_d(double value, double max)

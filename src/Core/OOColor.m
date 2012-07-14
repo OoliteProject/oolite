@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 	}
 	OOCGFloat f, p, q, t;
 	int i;
-	h = fmodf(h, 360.0f);
+	h = fmod(h, 360.0f);
 	if (h < 0.0) h += 360.0f;
 	h /= 60.0f;
 	

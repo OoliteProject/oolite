@@ -83,7 +83,7 @@ MA 02110-1301, USA.
 */
 
 	// anything more than a minimal hue drift will wipe out the original colour.
-	float hue_drift = 0.038f * fabsf(randf() - randf());
+	float hue_drift = 0.038f * fabs(randf() - randf());
 	
 	// set the lighting color for the sun
 	GLfloat		r,g,b,a;
@@ -305,7 +305,7 @@ MA 02110-1301, USA.
 {
 	int subdivideLevel = 2;		// 4 is probably the maximum!
 	
-	float sqrt_zero_distance = sqrtf(cam_zero_distance);
+	float sqrt_zero_distance = sqrt(cam_zero_distance);
 	float drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
 	float drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
 	
@@ -404,7 +404,7 @@ MA 02110-1301, USA.
 	GLfloat				r = inner_radius;
 	GLfloat				c = outer_radius;
 	GLfloat				z = z_distance;
-	GLfloat				x = sqrtf(z * z - r * r);
+	GLfloat				x = sqrt(z * z - r * r);
 	
 	GLfloat				r1 = r * x / z;
 	GLfloat				z1 = r * r / z;
@@ -428,8 +428,8 @@ MA 02110-1301, USA.
 	OOGLBEGIN(GL_TRIANGLE_STRIP);
 		for (i = 0; i < 360; i += step)
 		{
-			si = sinf(theta);
-			ci = cosf(theta);
+			si = sin(theta);
+			ci = cos(theta);
 			theta += delta;
 			
 			rv0 = pt0 * rvalue[i + rv] + pt1 * rvalue[i + rv + 360];

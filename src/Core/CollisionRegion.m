@@ -509,7 +509,7 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	// double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
 	// double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
 	// find the difference between the angles subtended by occluder and sun
-	float theta_diff = asinf(cr_e2 / sqrtf(d2_e2)) - asinf(cr_sun / sqrtf(d2_sun));
+	float theta_diff = asin(cr_e2 / sqrt(d2_e2)) - asin(cr_sun / sqrt(d2_sun));
 	
 	Vector p_sun = the_sun->position;
 	Vector p_e2 = e2->position;
@@ -520,7 +520,7 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	Vector v_e2 = vector_subtract(p_e2, p_e1);
 	v_e2 = vector_normal_or_xbasis(v_e2);
 	
-	float phi = acosf(dot_product(v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint
+	float phi = acos(dot_product(v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint
 	*outValue = (phi / theta_diff);	// 1 means just occluded, < 1 means in shadow
 	
 	if (phi > theta_diff)

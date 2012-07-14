@@ -85,7 +85,7 @@ MA 02110-1301, USA.
 	GLfloat expansionSpeed = 0.0;
 	if (_timePassed > 0)	// Avoid divide by 0
 	{
-		expansionSpeed = fminf(240 + 10 / (tf * tf), 1000.0f);
+		expansionSpeed = fmin(240.0f + 10.0f / (tf * tf), 1000.0f);
 	}
 	
 	velocity.z = expansionSpeed;	// What's this for? Velocity is never applied. -- Ahruman 2011-02-05
@@ -95,7 +95,7 @@ MA 02110-1301, USA.
 	
 	_color[3] = OOClamp_0_1_f(0.5f * ((0.025f / tf) + 1.0f - stf));
 	
-	_color[0] = _color[1] = fminf(1.0f - 5.0f * tf, 1.0f);
+	_color[0] = _color[1] = fmin(1.0f - 5.0f * tf, 1.0f);
 	if (_color[0] < 0.0f)
 	{
 		_color[0] = 0.25f * tf * randf();
@@ -133,7 +133,7 @@ MA 02110-1301, USA.
 	
 	OOGL(glColor4fv(_color));
 	OOGLBEGIN(GL_TRIANGLE_FAN);
-		GLDrawBallBillboard(collision_radius, 4, sqrtf(cam_zero_distance));
+		GLDrawBallBillboard(collision_radius, 4, sqrt(cam_zero_distance));
 	OOGLEND();
 	
 	OOGL(glPopAttrib());

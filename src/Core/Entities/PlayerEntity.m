@@ -1839,15 +1839,17 @@ static GLfloat		sBaseMass = 0.0;
 	
 	UPDATE_STAGE(@"updating weapon temperatures and shot times");
 	// cool all weapons.
-	forward_weapon_temp = fmaxf(forward_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
-	aft_weapon_temp = fmaxf(aft_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
-	port_weapon_temp = fmaxf(port_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
-	starboard_weapon_temp = fmaxf(starboard_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	float coolAmount = WEAPON_COOLING_FACTOR * delta_t;
+	forward_weapon_temp = fdim(forward_weapon_temp, coolAmount);
+	aft_weapon_temp = fdim(aft_weapon_temp, coolAmount);
+	port_weapon_temp = fdim(port_weapon_temp, coolAmount);
+	starboard_weapon_temp = fdim(starboard_weapon_temp, coolAmount);
+	
 	// update shot times.
-	forward_shot_time+=delta_t;
-	aft_shot_time+=delta_t;
-	port_shot_time+=delta_t;
-	starboard_shot_time+=delta_t;
+	forward_shot_time += delta_t;
+	aft_shot_time += delta_t;
+	port_shot_time += delta_t;
+	starboard_shot_time += delta_t;
 		
 	// copy new temp & shot time to main temp & shot time
 	switch (currentWeaponFacing)
@@ -3295,7 +3297,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	GLfloat	zd = nearestPlanet->zero_distance;
 	GLfloat	cr = nearestPlanet->collision_radius;
-	GLfloat	alt = sqrtf(zd) - cr;
+	GLfloat	alt = sqrt(zd) - cr;
 	
 	return OOClamp_0_1_f(alt / (GLfloat)PLAYER_DIAL_MAX_ALTITUDE);
 }
@@ -3402,19 +3404,17 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) setFuelLeakRate:(float)value
 {
-	fuel_leak_rate = fmaxf(value, 0.0f);
+	fuel_leak_rate = fmax(value, 0.0f);
 }
 
 
-- (NSMutableArray*) commLog
+- (NSMutableArray *) commLog
 {
-	unsigned			count;
-	
 	assert(kCommLogTrimSize < kCommLogTrimThreshold);
 	
 	if (commLog != nil)
 	{
-		count = [commLog count];
+		OOUInteger count = [commLog count];
 		if (count >= kCommLogTrimThreshold)
 		{
 			[commLog removeObjectsInRange:NSMakeRange(0, count - kCommLogTrimSize)];
@@ -4442,7 +4442,7 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setBlockJSPlayerShipProps:YES]; 	// no player.ship properties while inside the pod!
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
-	flightSpeed = fmaxf(flightSpeed, 50.0f);
+	flightSpeed = fmax(flightSpeed, 50.0f);
 	
 	doppelganger = [self createDoppelganger];
 	if (doppelganger)
@@ -8731,7 +8731,7 @@ static NSString *last_outfitting_key=nil;
 
 - (void) setGalacticHyperspaceFixedCoords:(NSPoint)point
 {
-	return [self setGalacticHyperspaceFixedCoordsX:OOClamp_0_max_f(roundf(point.x), 255.0f) y:OOClamp_0_max_f(roundf(point.y), 255.0f)];
+	return [self setGalacticHyperspaceFixedCoordsX:OOClamp_0_max_f(round(point.x), 255.0f) y:OOClamp_0_max_f(round(point.y), 255.0f)];
 }
 
 

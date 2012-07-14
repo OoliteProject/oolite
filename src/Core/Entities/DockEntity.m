@@ -269,12 +269,12 @@ MA 02110-1301, USA.
 
 - (BOOL) isOffCentre
 {
-	if (fabsf(position.x) + fabsf(position.y) > 0.1f)
+	if (fabs(position.x) + fabs(position.y) > 0.1f)
 	{
 		return YES;
 	}
 	Vector dir = vector_forward_from_quaternion(orientation);
-	if (fabsf(dir.x) + fabsf(dir.y) > 0.1f)
+	if (fabs(dir.x) + fabs(dir.y) > 0.1f)
 	{
 		return YES;
 	}
@@ -291,7 +291,7 @@ MA 02110-1301, USA.
 	StationEntity	*station = (StationEntity *)[self parentEntity];
 
 	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
-	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
+	Vector temp = (fabs(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
 	temp = cross_product(launchVector, temp);	// 90 deg to launchVector & temp
 	Vector vi = cross_product(launchVector, temp);
 	Vector vj = cross_product(launchVector, vi);
@@ -466,15 +466,15 @@ MA 02110-1301, USA.
 	StationEntity	*station = (StationEntity *)[self parentEntity];
 	
 	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
-	Vector temp = (fabsf(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
+	Vector temp = (fabs(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
 	temp = cross_product(launchVector, temp);	// 90 deg to launchVector & temp
 	Vector rightVector = cross_product(launchVector, temp);
 	Vector upVector = cross_product(launchVector, rightVector);
 	
 	// will select a direction for offset based on the entity personality (was ship ID)
 	int offset_id = [ship entityPersonalityInt] & 0xf;	// 16  point compass
-	float c = cosf(offset_id * M_PI * ONE_EIGHTH);
-	float s = sinf(offset_id * M_PI * ONE_EIGHTH);
+	float c = cos(offset_id * M_PI * ONE_EIGHTH);
+	float s = sin(offset_id * M_PI * ONE_EIGHTH);
 	
 	// test if this points at the ship
 	Vector point1 = [self absolutePositionForSubentity];

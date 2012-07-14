@@ -162,8 +162,8 @@ OOMatrix OOMatrixForRotationX(OOScalar angle)
 {
 	OOScalar			s, c;
 	
-	s = sinf(angle);
-	c = cosf(angle);
+	s = sin(angle);
+	c = cos(angle);
 	
 	return OOMatrixConstruct
 	(
@@ -179,8 +179,8 @@ OOMatrix OOMatrixForRotationY(OOScalar angle)
 {
 	OOScalar			s, c;
 	
-	s = sinf(angle);
-	c = cosf(angle);
+	s = sin(angle);
+	c = cos(angle);
 	
 	return OOMatrixConstruct
 	(
@@ -196,8 +196,8 @@ OOMatrix OOMatrixForRotationZ(OOScalar angle)
 {
 	OOScalar			s, c;
 	
-	s = sinf(angle);
-	c = cosf(angle);
+	s = sin(angle);
+	c = cos(angle);
 	
 	return OOMatrixConstruct
 	(

@@ -135,9 +135,9 @@ OOINLINE Quaternion quaternion_conjugate(Quaternion q)
 OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, OOScalar angle)
 {
 	OOScalar a = angle * 0.5f;
-	OOScalar scale = sinf(a);
+	OOScalar scale = sin(a);
 	
-	quat->w = cosf(a);
+	quat->w = cos(a);
 	quat->x = axis.x * scale;
 	quat->y = axis.y * scale;
 	quat->z = axis.z * scale;
@@ -157,7 +157,7 @@ OOINLINE void quaternion_normalize(Quaternion *quat)
 	OOScalar	y = quat->y;
 	OOScalar	z = quat->z;
 	
-	OOScalar	lv = 1.0f / sqrtf(w*w + x*x + y*y + z*z);
+	OOScalar	lv = 1.0f / sqrt(w*w + x*x + y*y + z*z);
 	
 	quat->w = lv * w;
 	quat->x = lv * x;

@@ -1692,28 +1692,8 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 	float	a2 = distance2(vertices[vertIndices[0]], vertices[vertIndices[1]]);
 	float	b2 = distance2(vertices[vertIndices[1]], vertices[vertIndices[2]]);
 	float	c2 = distance2(vertices[vertIndices[2]], vertices[vertIndices[0]]);
-	return sqrtf((2.0 * (a2 * b2 + b2 * c2 + c2 * a2) - (a2 * a2 + b2 * b2 +c2 * c2)) * 0.0625);
+	return sqrt((2.0f * (a2 * b2 + b2 * c2 + c2 * a2) - (a2 * a2 + b2 * b2 +c2 * c2)) * 0.0625f);
 }
-
-
-#if 0
-static float FaceAreaBroken(GLuint *vertIndices, Vector *vertices)
-{
-	/*	This is supposed to calculate areas using Heron's formula, but doesn't.
-		(The *0.25 is supposed to be outside the sqrt.) This bug was introduced
-		somewhere between version 1.40 and 1.55, so we can't really fix it at
-		this point.
-		Current plan: replace DAT files with a better format post-MNSR. The
-		format converter will be responsible for any smoothing and can do it
-		right.
-		-- Ahruman 2010-05-22
-	*/
-	float	a2 = distance2(vertices[vertIndices[0]], vertices[vertIndices[1]]);
-	float	b2 = distance2(vertices[vertIndices[1]], vertices[vertIndices[2]]);
-	float	c2 = distance2(vertices[vertIndices[2]], vertices[vertIndices[0]]);
-	return sqrtf(2.0 * (a2 * b2 + b2 * c2 + c2 * a2) - 0.25 * (a2 * a2 + b2 * b2 +c2 * c2));
-}
-#endif
 
 
 - (void) calculateVertexNormalsAndTangentsWithFaceRefs:(VertexFaceRef *)faceRefs
@@ -2041,7 +2021,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 		
 		// Draw normal
 		length = magnitude2(n);
-		blend = fabsf(length - 1) * 5.0;
+		blend = fabs(length - 1) * 5.0;
 		color[0] = MIN(blend, 1.0f);
 		color[1] = 1.0f - color[0];
 		color[2] = color[1];

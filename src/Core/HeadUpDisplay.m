@@ -823,7 +823,7 @@ static BOOL hostiles;
 	
 	double			max_zoomed_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0/(scanner_zoom*scanner_zoom);
 	
-	GLfloat			max_zoomed_range = sqrtf(max_zoomed_range2);
+	GLfloat			max_zoomed_range = sqrt(max_zoomed_range2);
 	
 	BOOL			isHostile = NO;
 	BOOL			foundHostiles = NO;
@@ -924,7 +924,7 @@ static BOOL hostiles;
 					continue;
 				
 				// exit if it's too far away
-				GLfloat	act_dist = sqrtf(drawthing->zero_distance);
+				GLfloat	act_dist = sqrt(drawthing->zero_distance);
 				GLfloat	lim_dist = act_dist - drawthing->collision_radius;
 				
 				if (lim_dist > max_zoomed_range)
@@ -2748,7 +2748,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	//rotate to face player1
 	GLMultOOMatrix(back_mat);
 	// draw the reticle
-	float range = sqrtf(target->zero_distance) - target->collision_radius;
+	float range = sqrt(target->zero_distance) - target->collision_radius;
 	
 	// Draw reticle cyan for Wormholes
 	if ([target isWormhole])
@@ -3183,9 +3183,9 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 	OOGLBEGIN(GL_LINE_LOOP);
 		for (theta = 0.0f; theta < (2.0f * M_PI); theta += delta)
 		{
-			s = sinf(theta);
-			glColor4f(color4v[0], color4v[1], color4v[2], fabsf(s * color4v[3]));
-			glVertex3f(x + ww * s, y + hh * cosf(theta), z);
+			s = sin(theta);
+			glColor4f(color4v[0], color4v[1], color4v[2], fabs(s * color4v[3]));
+			glVertex3f(x + ww * s, y + hh * cos(theta), z);
 		}
 	OOGLEND();
 }

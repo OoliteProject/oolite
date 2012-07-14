@@ -52,14 +52,14 @@ MA 02110-1301, USA.
 		_vertexCount = (sides + 1) * 2;
 		float angle = startAngleDegrees * M_PI / 180.0f;
 		float deltaAngle = M_PI * 2.0f / sides;
-		float xAspect = fminf(1.0, aspectRatio);
-		float yAspect = fminf(1.0, 1.0 / aspectRatio);
+		float xAspect = fmin(1.0f, aspectRatio);
+		float yAspect = fmin(1.0f, 1.0f / aspectRatio);
 		
 		OOUInteger vi = 0;
 		for (OOUInteger i = 0; i < sides; i++)
 		{
-			float s = sinf(angle) * xAspect;
-			float c = cosf(angle) * yAspect;
+			float s = sin(angle) * xAspect;
+			float c = cos(angle) * yAspect;
 			
 			_vertexPosition[vi++] = (Vector) { s * 50, c * 50, -40 };
 			_vertexPosition[vi++] = (Vector) { s * 40, c * 40, 0 };

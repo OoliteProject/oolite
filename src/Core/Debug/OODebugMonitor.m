@@ -388,7 +388,7 @@ static NSString *SizeString(size_t size)
 	
 	float unit = 1 << (magnitude * 10);
 	float sizef = (float)size / unit;
-	sizef = roundf(sizef * 100.0f) / 100.f;
+	sizef = round(sizef * 100.0f) / 100.f;
 	
 	return [NSString stringWithFormat:@"%.2f %@", sizef, suffix];
 }

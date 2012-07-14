@@ -559,8 +559,8 @@ static NSArray *BuildOutlineContour(NSArray *dataArray, GLfloat width, BOOL inne
 	
 	for (i = 0; i < count; i++)
 	{
-		NSPoint a = PtFastNormal(PtSub(current, prev));
-		NSPoint b = PtFastNormal(PtSub(next, current));
+		NSPoint a = PtNormal(PtSub(current, prev));
+		NSPoint b = PtNormal(PtSub(next, current));
 		
 		OOCGFloat dot = PtDot(a, b);
 		BOOL clockwise = PtCross(a, b) < 0.0f;
@@ -568,7 +568,7 @@ static NSArray *BuildOutlineContour(NSArray *dataArray, GLfloat width, BOOL inne
 		if (-dot < kCosMitreLimit || !clockwise)
 		{
 			// Non-mitreing case.
-			NSPoint t = PtFastNormal(PtAdd(a, b));
+			NSPoint t = PtNormal(PtAdd(a, b));
 			NSPoint v = PtScale(PtRotACW(t), width / PtDot(t, a));
 			
 			if (!isnan(v.x) && !isnan(v.y))
