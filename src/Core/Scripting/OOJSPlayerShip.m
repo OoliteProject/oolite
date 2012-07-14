@@ -64,6 +64,8 @@ static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *v
 static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
+
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee);
 
@@ -174,6 +176,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
 	{ "setCustomView",				PlayerShipSetCustomView,					2 },
+	{ "takeInternalDamage",				PlayerShipTakeInternalDamage,					0 },
 	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,					1 },
 	{ 0 }
 };
@@ -879,6 +882,19 @@ static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *v
 	[player noteSwitchToView:VIEW_CUSTOM fromView:VIEW_CUSTOM];
 
 	OOJS_RETURN_BOOL(YES);
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	
+	BOOL took = [player takeInternalDamage];
+
+	OOJS_RETURN_BOOL(took);
 	OOJS_NATIVE_EXIT
 }
 
