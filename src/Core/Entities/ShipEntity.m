@@ -3500,8 +3500,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
-		
-		
 		return;
 	}
 	[self trackPrimaryTarget:delta_t:NO]; // applies sticks
@@ -3509,8 +3507,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self avoidCollision];
 	}
-
-	
 	
 }
 
@@ -3601,6 +3597,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
+	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	desired_speed = max_available_speed;
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
@@ -3618,9 +3619,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (proximity_alert != NO_TARGET)
 	{
 		[self avoidCollision];
-		
-		
-
 		return;
 	}
 
@@ -3662,8 +3660,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	flightYaw = 0.0;
-	
-	
 }
 
 
@@ -3671,19 +3667,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	double  range = [self rangeToPrimaryTarget];
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
 	if (proximity_alert != NO_TARGET && proximity_alert != primaryTarget)
 	{
 		[self avoidCollision];
-		
-		
 		return;
 	} 
 	double aspect = [self approachAspectToPrimaryTarget];
 	if (range < 2.5*(collision_radius+target->collision_radius) && proximity_alert == primaryTarget && aspect > 0) {
 		desired_speed = maxFlightSpeed;
 		[self avoidCollision];
-		
-		
 		return;
 	}
 	if (aspect < -0.5 && range > COMBAT_IN_RANGE_FACTOR * weaponRange * 2.0)
@@ -3730,8 +3727,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	
-	
 
 }
 
@@ -3757,8 +3752,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (proximity_alert != NO_TARGET)
 	{
 		[self avoidCollision];
-		
-		
 		return;
 	}
 
@@ -3973,6 +3966,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
 	if (cloakAutomatic) [self activateCloakingDevice];
+
+	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
 	
 	desired_speed = max_available_speed;
 	if (range < COMBAT_BROADSIDE_IN_RANGE_FACTOR * weaponRange)
@@ -4046,19 +4045,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
-		
-		
 		return;
 	}
 	GLfloat currentWeaponRange = getWeaponRangeFromType(leftside?port_weapon_type:starboard_weapon_type);
 	if (range > COMBAT_BROADSIDE_RANGE_FACTOR * currentWeaponRange)
 	{
 		behaviour = BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE;
-		
-		
 		return;
 	}
-
 
 // can get closer on broadsides since there's less risk of a collision
 	if ((range < COMBAT_BROADSIDE_IN_RANGE_FACTOR * currentWeaponRange)||(proximity_alert != NO_TARGET))
@@ -4070,8 +4064,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
-			
-			
 			return;
 		}
 	}
@@ -4080,8 +4072,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (range > SCANNER_MAX_RANGE)
 		{
 			[self noteLostTargetAndGoIdle];
-			
-			
 			return;
 		}
 	}
@@ -4122,7 +4112,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 	}
-
 
 /* FIXME: again, basically all of this next bit common with standard attack  */
 	if ((success_factor > 0.999)||(success_factor > last_success_factor))
@@ -4178,16 +4167,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
-			
-			
 		}
 		return;
 	}
 	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
-		
-		
 		return;
 	}
 
@@ -4217,7 +4202,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	float	max_available_speed = maxFlightSpeed;
 
-	if (range < getWeaponRangeFromType(WEAPON_PULSE_LASER))
+	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
+	else if (range < getWeaponRangeFromType(WEAPON_PULSE_LASER))
 	{
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
@@ -4260,8 +4250,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	if (cloakAutomatic) [self activateCloakingDevice];
 	[self fireMainWeapon:range];
-	
-	
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL)
 	{
@@ -4289,16 +4277,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
-			
-			
 		}
 		return;
 	}
 	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
-		
-		
 		return;
 	}
 
@@ -4416,8 +4400,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self noteLostTargetAndGoIdle];
 		desired_speed = maxFlightSpeed * 0.375;
-		
-		
 		return;
 	}
 	else if ((range < 650) || (proximity_alert != NO_TARGET))
@@ -4429,8 +4411,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			[self avoidCollision];
-			
-			
 		}
 	}
 	else
@@ -4584,8 +4564,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (primaryTarget == NO_TARGET)
 	{
 		[self noteLostTargetAndGoIdle];
-		
-		
 		return;
 	}
 	if (last_success_factor > success_factor) // our target is closing in.
@@ -4649,6 +4627,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_running_defense:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
+	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
+
 	desired_speed = maxFlightSpeed; // not injectors
 	if (range > weaponRange || range > 0.8 * scannerRange || range == 0)
 	{
@@ -4689,6 +4673,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
+	if (primaryTarget == NO_TARGET)
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
 	double last_range = success_factor;
@@ -4738,8 +4727,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	if (cloakAutomatic) [self activateCloakingDevice];
-
-	
 	
 }
 
