@@ -850,8 +850,7 @@ MA 02110-1301, USA.
 	{
 		quaternion_rotate_about_axis(&q1, launchVector, M_PI*0.5);  // to account for the slot being at 90 degrees to vertical
 	}
-	if ([ship isPlayer]) q1.w = -q1.w; // need this as a fix for the player and before shipWillLaunchFromStation.
-	[ship setOrientation:q1];
+	[ship setNormalOrientation:q1];
 	// launch position
 	[ship setPosition:launchPos];
 	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0]; // Make sure no extra escorts are added after launch. (e.g. for miners etc.)

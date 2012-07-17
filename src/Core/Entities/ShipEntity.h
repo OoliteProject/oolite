@@ -136,6 +136,7 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 #define COMBAT_AI_FLEES_BETTER_2 9.0f
 
 
+
 #define MAX_LANDING_SPEED				50.0
 #define MAX_LANDING_SPEED2				(MAX_LANDING_SPEED * MAX_LANDING_SPEED)
 
