@@ -1345,6 +1345,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	float					fireRate = -1.0f; // out of range constants
 	float					weaponRange = -1.0f;
 	float					weaponEnergy = -1.0f;
+	NSDictionary			*scriptInfo = nil;
 	
 	subentityKey = [declaration objectForKey:@"subentity_key"];
 	if (subentityKey == nil)
@@ -1387,6 +1388,8 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	orientation = [declaration oo_quaternionForKey:@"orientation"];
 	quaternion_normalize(&orientation);
 	
+	scriptInfo = [declaration oo_dictionaryForKey:@"script_info"];
+	
 	result = [NSMutableDictionary dictionaryWithCapacity:10];
 	[result setObject:isTurret ? @"ball_turret" : @"standard" forKey:@"type"];
 	[result setObject:subentityKey forKey:@"subentity_key"];
@@ -1415,6 +1418,11 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		if (fireRate > 0) [result oo_setFloat:fireRate forKey:@"fire_rate"];
 		if (weaponRange >= 0) [result oo_setFloat:weaponRange forKey:@"weapon_range"];
 		if (weaponEnergy >= 0) [result oo_setFloat:weaponEnergy forKey:@"weapon_energy"];
+	}
+	
+	if (scriptInfo != nil)
+	{
+		[result setObject:scriptInfo forKey:@"script_info"];
 	}
 	
 	return [[result copy] autorelease];

@@ -1064,8 +1064,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) pilotArrived;
 #endif
 
-- (OOJSScript *)script;
-- (NSDictionary *)scriptInfo;
+- (OOJSScript *) script;
+- (NSDictionary *) scriptInfo;
+- (void) overrideScriptInfo:(NSDictionary *)override;	// Add items from override (if not nil) to scriptInfo, replacing in case of duplicates. Used for subentities.
 
 - (BOOL) scriptedMisjump;
 - (void) setScriptedMisjump:(BOOL)newValue;

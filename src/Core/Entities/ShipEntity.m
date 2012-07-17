@@ -780,7 +780,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (BOOL) setUpOneStandardSubentity:(NSDictionary *) subentDict asTurret:(BOOL)asTurret
+- (BOOL) setUpOneStandardSubentity:(NSDictionary *)subentDict asTurret:(BOOL)asTurret
 {
 	ShipEntity			*subentity = nil;
 	NSString			*subentKey = nil;
@@ -831,17 +831,16 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		[subentity setStatus:STATUS_INACTIVE];
 	}
 	
+	[subentity overrideScriptInfo:[subentDict oo_dictionaryForKey:@"script_info"]];
+	
 	[self addSubEntity:subentity];
 	[subentity setSubIdx:_maxShipSubIdx];
 	_maxShipSubIdx++;
-
+	
 	// update subentities
-	if ([subentity isShip])
-	{
-		BoundingBox sebb = [subentity findSubentityBoundingBox];
-		bounding_box_add_vector(&totalBoundingBox, sebb.max);
-		bounding_box_add_vector(&totalBoundingBox, sebb.min);
-	}
+	BoundingBox sebb = [subentity findSubentityBoundingBox];
+	bounding_box_add_vector(&totalBoundingBox, sebb.max);
+	bounding_box_add_vector(&totalBoundingBox, sebb.min);
 
 	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
 	{
@@ -12090,6 +12089,19 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (NSDictionary *)scriptInfo
 {
 	return (scriptInfo != nil) ? scriptInfo : (NSDictionary *)[NSDictionary dictionary];
+}
+
+
+- (void) overrideScriptInfo:(NSDictionary *)override
+{
+	if (scriptInfo == nil)  scriptInfo = [override retain];
+	else if (override != nil)
+	{
+		NSMutableDictionary *newInfo = [NSMutableDictionary dictionaryWithDictionary:scriptInfo];
+		[newInfo addEntriesFromDictionary:override];
+		[scriptInfo release];
+		scriptInfo = [newInfo copy];
+	}
 }
 
 
