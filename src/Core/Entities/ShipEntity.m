@@ -114,7 +114,7 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 	GLfloat result = (kMassCharge * myMass / baseMass) + kBaseCharge;
 	
 	// round the result to the second decimal digit.
-	result = round(result * 100.0f) / 100.0f;
+	result = roundf(result * 100.0f) / 100.0f;
 	
 	// Make sure that the rate is clamped to between three times and a third of the standard charge rate.
 	if (result > 3.0f) result = 3.0f;
@@ -2017,12 +2017,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 #endif
 	
 	// cool all weapons.
-	float coolAmount = (WEAPON_COOLING_FACTOR * delta_t);
-	weapon_temp = fdim(weapon_temp, coolAmount);
-	forward_weapon_temp = fdim(forward_weapon_temp, coolAmount);
-	aft_weapon_temp = fdim(aft_weapon_temp, coolAmount);
-	port_weapon_temp = fdim(port_weapon_temp, coolAmount);
-	starboard_weapon_temp = fdim(starboard_weapon_temp, coolAmount);
+	weapon_temp = fmaxf(weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	forward_weapon_temp = fmaxf(forward_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	aft_weapon_temp = fmaxf(aft_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	port_weapon_temp = fmaxf(port_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	starboard_weapon_temp = fmaxf(starboard_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
 	
 	// update time between shots
 	shot_time += delta_t;
@@ -2030,7 +2029,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// handle radio message effects
 	if (messageTime > 0.0)
 	{
-		messageTime = fdim(messageTime, delta_t);
+		messageTime -= delta_t;
+		if (messageTime < 0.0)  messageTime = 0.0;
 	}
 	
 	// temperature factors
@@ -5488,7 +5488,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		GLfloat velmag = magnitude(velocity);
 		if (velmag)
 		{
-			GLfloat vscale = fmax((velmag - dt_thrust) / velmag, 0.0f);
+			GLfloat vscale = fmaxf((velmag - dt_thrust) / velmag, 0.0f);
 			scale_vector(&velocity, vscale);
 		}
 	}
@@ -7276,8 +7276,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	Vector v;
 	Quaternion q;
 	int speed_low = 200;
-	int n_alloys = floor(sqrt(sqrt(mass / 25000.0f)));
-
+	int n_alloys = floorf(sqrtf(sqrtf(mass / 25000.0f)));
+	
 	if ([self status] == STATUS_DEAD)
 	{
 		[UNIVERSE removeEntity:self];
@@ -7510,7 +7510,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						{
 							GLfloat expected_mass = 0.1f * mass * (0.75 + 0.5 * randf());
 							GLfloat wreck_mass = [wreck mass];
-							GLfloat scale_factor = cbrt(expected_mass / wreck_mass);	// cube root of volume ratio
+							GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f);	// cube root of volume ratio
 							[wreck rescaleBy: scale_factor];
 							
 							Vector r1 = [octree randomPoint];
