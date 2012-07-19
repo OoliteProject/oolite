@@ -21,7 +21,7 @@
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
-            buildForTesting = "NO"
+            buildForTesting = "YES"
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
@@ -34,6 +34,20 @@
                ReferencedContainer = "container:Oolite.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1A0CD53515AF0BCE00970505"
+               BuildableName = "OoliteUnitTests.octest"
+               BlueprintName = "OoliteUnitTests"
+               ReferencedContainer = "container:tests/OCUnitTests/OoliteUnitTests.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -42,6 +56,16 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       buildConfiguration = "TestRelease">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1A0CD53515AF0BCE00970505"
+               BuildableName = "OoliteUnitTests.octest"
+               BlueprintName = "OoliteUnitTests"
+               ReferencedContainer = "container:tests/OCUnitTests/OoliteUnitTests.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

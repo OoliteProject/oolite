@@ -26,7 +26,9 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 #import "Universe.h"
-#import "legacy_random.h"
+
+@class OOWeakSet;
+
 
 typedef enum
 {
@@ -45,10 +47,11 @@ typedef enum
 
 #define DOCKING_CLEARANCE_WINDOW		126.0
 
+
 @interface StationEntity: ShipEntity
 {
 @private
-	NSMutableSet			*_shipsOnHold;
+	OOWeakSet				*_shipsOnHold;
 	DockEntity				*player_reserved_dock;
 	double					last_launch_time;
 	double					approach_spacing;

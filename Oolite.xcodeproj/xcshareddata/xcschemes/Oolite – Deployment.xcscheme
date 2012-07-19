@@ -34,6 +34,20 @@
                ReferencedContainer = "container:Oolite.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1A0CD53515AF0BCE00970505"
+               BuildableName = "OoliteUnitTests.octest"
+               BlueprintName = "OoliteUnitTests"
+               ReferencedContainer = "container:tests/OCUnitTests/OoliteUnitTests.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -42,6 +56,16 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       buildConfiguration = "Deployment">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1A0CD53515AF0BCE00970505"
+               BuildableName = "OoliteUnitTests.octest"
+               BlueprintName = "OoliteUnitTests"
+               ReferencedContainer = "container:tests/OCUnitTests/OoliteUnitTests.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
@@ -55,7 +79,7 @@
    </TestAction>
    <LaunchAction
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
-      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.GDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       buildConfiguration = "Deployment"

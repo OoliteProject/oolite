@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OODebugGLDrawing.h"
 #import "OODebugFlags.h"
+#import "OOWeakSet.h"
 
 
 @interface StationEntity (OOPrivate)
@@ -56,8 +57,6 @@ MA 02110-1301, USA.
 - (unsigned) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role;
 
 - (NSDictionary *) holdPositionInstructionForShip:(ShipEntity *)ship;
-
-- (void) compactShipsOnHold;
 
 @end
 
@@ -244,28 +243,11 @@ MA 02110-1301, USA.
 		// if all docks have no ships on approach
 		[shipAI message:@"DOCKING_COMPLETE"];
 	}
-	
-	[self compactShipsOnHold];
-}
-
-
-- (void) compactShipsOnHold
-{
-	NSArray *ships = [_shipsOnHold allObjects];
-	OOUInteger i, count = [ships count];
-	for (i = 0; i < count; i++)
-	{
-		OOWeakReference *ref = [ships objectAtIndex:i];
-		if ([ref weakRefUnderlyingObject] == nil)
-		{
-			[_shipsOnHold removeObject:ref];
-		}
-	}
 }
 
 
 // only used by player - everything else ends up in a Dock's launch queue
-- (void) launchShip:(ShipEntity*)ship
+- (void) launchShip:(ShipEntity *)ship
 {
 	NSEnumerator	*subEnum = nil;
 	DockEntity* sub = nil;
@@ -303,17 +285,13 @@ MA 02110-1301, USA.
 - (void) abortAllDockings
 {
 	NSEnumerator	*subEnum = nil;
-	DockEntity* sub = nil;
+	DockEntity		*sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		[sub abortAllDockings];
 	}
 	
-	OOWeakReference *ref = nil;
-	foreach (ref, _shipsOnHold)
-	{
-		[[ref weakRefUnderlyingObject] sendAIMessage:@"DOCKING_ABORTED"];
-	}
+	[_shipsOnHold makeObjectsPerformSelector:@selector(sendAIMessage:) withObject:@"DOCKING_ABORTED"];
 	[_shipsOnHold removeAllObjects];
 	
 	[shipAI message:@"DOCKING_COMPLETE"];
@@ -323,14 +301,11 @@ MA 02110-1301, USA.
 
 - (void) autoDockShipsOnHold
 {
-	OOWeakReference *ref = nil;
-	foreach (ref, _shipsOnHold)
+	NSEnumerator	*onHoldEnum = [_shipsOnHold objectEnumerator];
+	ShipEntity		*ship = nil;
+	while ((ship = [onHoldEnum nextObject]))
 	{
-		ShipEntity *ship = [ref weakRefUnderlyingObject];
-		if (ship != nil)
-		{
-			[self pullInShipIfPermitted:ship];
-		}
+		[self pullInShipIfPermitted:ship];
 	}
 	
 	[_shipsOnHold removeAllObjects];
@@ -488,9 +463,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	}
 	
 	// we made it through holding!
-	OOWeakReference *weakShip = [ship weakRetain];
-	[_shipsOnHold removeObject:weakShip];
-	[weakShip release];
+	[_shipsOnHold removeObject:ship];
 	
 	[shipAI reactToMessage:@"DOCKING_REQUESTED" context:@"requestDockingCoordinates"];	// react to the request	
 	
@@ -498,15 +471,13 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 }
 
 
-- (NSDictionary *) holdPositionInstructionForShip:(ShipEntity *)ship
+- (NSDictionary *)holdPositionInstructionForShip:(ShipEntity *)ship
 {
-	OOWeakReference *weakShip = [ship weakRetain];
-	if (![_shipsOnHold containsObject:weakShip])
+	if (![_shipsOnHold containsObject:ship])
 	{
 		[self sendExpandedMessage:@"[station-acknowledges-hold-position]" toShip:ship];
-		[_shipsOnHold addObject:weakShip];
+		[_shipsOnHold addObject:ship];
 	}
-	[weakShip release];
 	
 	return OOMakeDockingInstructions(self, [ship position], 0, 100, @"HOLD_POSITION", nil, NO);
 }
@@ -516,9 +487,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	[ship sendAIMessage:@"DOCKING_ABORTED"];
 	
-	OOWeakReference *weakShip = [ship weakRetain];
-	[_shipsOnHold removeObject:weakShip];
-	[weakShip release];
+	[_shipsOnHold removeObject:ship];
 	
 	NSEnumerator	*subEnum = nil;
 	DockEntity		*sub = nil;
@@ -546,7 +515,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	if (self != nil)
 	{
 		isStation = YES;
-		_shipsOnHold = [[NSMutableSet alloc] init];
+		_shipsOnHold = [[OOWeakSet alloc] init];
 	}
 	
 	return self;
@@ -2296,17 +2265,17 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		} */
 	
 	// Ships on hold list, only used with moving stations (= carriers)
-	[self compactShipsOnHold];
 	if([_shipsOnHold count] > 0)
 	{
 		OOLog(@"dumpState.stationEntity", @"%i Ships on hold (unsorted):", [_shipsOnHold count]);
-		OOWeakReference *ref = nil;
+		
 		OOLogIndent();
-		unsigned i = 1;
-		foreach (ref, _shipsOnHold)
+		NSEnumerator	*onHoldEnum = [_shipsOnHold objectEnumerator];
+		ShipEntity		*ship = nil;
+		unsigned		i = 1;
+		while ((ship = [onHoldEnum nextObject]))
 		{
-			ShipEntity *ship = [ref weakRefUnderlyingObject];
-			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i++, [ship displayName], distance(position, [ship position]), [ship primaryRole]);
+			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i++, [ship displayName], distance([self position], [ship position]), [ship primaryRole]);
 		}
 		OOLogOutdent();
 	}

@@ -667,6 +667,8 @@
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
 		1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */; };
 		1AEF57D312E51DDB00546444 /* OOJSEngineNativeWrappers.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEF57D212E51DDB00546444 /* OOJSEngineNativeWrappers.h */; };
+		1AF4AF4A15B858AA009243BE /* OOWeakSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AF4AF4815B858AA009243BE /* OOWeakSet.h */; };
+		1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF4AF4915B858AA009243BE /* OOWeakSet.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -799,6 +801,13 @@
 			proxyType = 2;
 			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
 			remoteInfo = DebugOXP;
+		};
+		1AB2D62315B86EA500177AAF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1A0CD53615AF0BCE00970505;
+			remoteInfo = OoliteUnitTests;
 		};
 		1AB7760112CA2E53001478BB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1854,6 +1863,7 @@
 		1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifier.h; sourceTree = "<group>"; };
 		1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifier.m; sourceTree = "<group>"; };
 		1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = verifyOXP.plist; path = ../../../Resources/Config/verifyOXP.plist; sourceTree = "<group>"; };
+		1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OoliteUnitTests.xcodeproj; path = tests/OCUnitTests/OoliteUnitTests.xcodeproj; sourceTree = "<group>"; };
 		1AB4AEB60D688AD9003076D6 /* OOLogHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogHeader.h; sourceTree = "<group>"; };
 		1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogHeader.m; sourceTree = "<group>"; };
 		1AB5E1ED12BD628500C334DD /* OOJoystickManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJoystickManager.h; sourceTree = "<group>"; };
@@ -1946,6 +1956,8 @@
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
 		1AEF57D212E51DDB00546444 /* OOJSEngineNativeWrappers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSEngineNativeWrappers.h; sourceTree = "<group>"; };
+		1AF4AF4815B858AA009243BE /* OOWeakSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOWeakSet.h; sourceTree = "<group>"; };
+		1AF4AF4915B858AA009243BE /* OOWeakSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOWeakSet.m; sourceTree = "<group>"; };
 		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = contributors.txt; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
@@ -2909,6 +2921,8 @@
 				1AEB4919119D5AAA007BD514 /* OORegExpMatcher.m */,
 				1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */,
 				1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */,
+				1AF4AF4815B858AA009243BE /* OOWeakSet.h */,
+				1AF4AF4915B858AA009243BE /* OOWeakSet.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -3135,6 +3149,14 @@
 			path = OXPVerifier;
 			sourceTree = "<group>";
 		};
+		1AB2D61D15B86EA400177AAF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1AB2D62415B86EA500177AAF /* OoliteUnitTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		1AB775FD12CA2E53001478BB /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -3219,6 +3241,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		1AF4AF4C15B8616F009243BE /* Unit tests */ = {
+			isa = PBXGroup;
+			children = (
+				1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */,
+			);
+			name = "Unit tests";
+			sourceTree = "<group>";
+		};
 		29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */ = {
 			isa = PBXGroup;
 			children = (
@@ -3230,6 +3260,7 @@
 				1A5BF2710916D45B00BF238F /* External bundles */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
+				1AF4AF4C15B8616F009243BE /* Unit tests */,
 				1AEA229D12CBD18600EC0F43 /* CoreServices.framework */,
 				1A033F90132687DC006F9DB7 /* Quartz.framework */,
 			);
@@ -3479,6 +3510,7 @@
 				1A6F665314DF323900695C11 /* OODefaultShaderSynthesizer.h in Headers */,
 				1ABA415E15ACBB6700F7E841 /* DockEntity.h in Headers */,
 				1ABA416215ADAB8D00F7E841 /* OOJSDock.h in Headers */,
+				1AF4AF4A15B858AA009243BE /* OOWeakSet.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3570,6 +3602,10 @@
 					ProjectRef = 1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */;
 				},
 				{
+					ProductGroup = 1AB2D61D15B86EA400177AAF /* Products */;
+					ProjectRef = 1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */;
+				},
+				{
 					ProductGroup = 1AE3455212CB77AC00FD8C62 /* Products */;
 					ProjectRef = 1AE3455112CB77AC00FD8C62 /* Vorbis.xcodeproj */;
 				},
@@ -3623,6 +3659,13 @@
 			fileType = wrapper.cfbundle;
 			path = Debug.oxp;
 			remoteRef = 1A8FAA9D12F0E44D008FF5A2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1AB2D62415B86EA500177AAF /* OoliteUnitTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = OoliteUnitTests.octest;
+			remoteRef = 1AB2D62315B86EA500177AAF /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1AB7760212CA2E53001478BB /* libjs_for_oolite.a */ = {
@@ -3933,6 +3976,7 @@
 				1A6F665414DF323900695C11 /* OODefaultShaderSynthesizer.m in Sources */,
 				1ABA415F15ACBB6700F7E841 /* DockEntity.m in Sources */,
 				1ABA416315ADAB8D00F7E841 /* OOJSDock.m in Sources */,
+				1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4071,6 +4115,7 @@
 				);
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
+				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
@@ -4137,6 +4182,7 @@
 				);
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
+				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
