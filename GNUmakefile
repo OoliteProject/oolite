@@ -344,6 +344,7 @@ OO_UTILITY_FILES = \
     OOShipGroup.m \
     OOStringParsing.m \
     OOWeakReference.m \
+    OOWeakSet.m \
     OOXMLExtensions.m \
     OODeepCopy.m \
     OORegExpMatcher.m \
