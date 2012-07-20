@@ -371,7 +371,6 @@ static id sSharedStickHandler = nil;
 		// ...then check if axis moved more than AXCBTHRESH - (fix for BUG #17482)
 		if(axisvalue > AXCBTHRESH) 
 		{
-			OOLog(@"decodeAxisEventNotification", @"Callback...");
 			NSDictionary *fnDict = [NSDictionary dictionaryWithObjectsAndKeys:
 									[NSNumber numberWithBool: YES], STICK_ISAXIS,
 									[NSNumber numberWithInt: evt->which], STICK_NUMBER, 
