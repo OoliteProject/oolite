@@ -992,6 +992,14 @@
 	
 	// Long Range Chart Screen
 	"long-range-chart-title-d"		= "Galactic Chart %d";
+	"long-range-chart-title-0"		= "Galactic Chart 1";
+	"long-range-chart-title-1"		= "Galactic Chart 2";
+	"long-range-chart-title-2"		= "Galactic Chart 3";
+	"long-range-chart-title-3"		= "Galactic Chart 4";
+	"long-range-chart-title-4"		= "Galactic Chart 5";
+	"long-range-chart-title-5"		= "Galactic Chart 6";
+	"long-range-chart-title-6"		= "Galactic Chart 7";
+	"long-range-chart-title-7"		= "Galactic Chart 8";
 	"long-range-chart-distance-f"	= "[charts-distance-f]";
 	"long-range-chart-est-travel-time-f" = "[charts-est-travel-time-f]";
 	"long-range-chart-find-planet-@" = "Find planet: %@";

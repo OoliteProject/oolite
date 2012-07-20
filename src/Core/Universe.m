@@ -580,6 +580,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		}
 		// which will kick the ship out of the wormhole with the
 		// player still aboard
+		[wormhole disgorgeShips];
 
 		//reset atmospherics in case carrier was in atmosphere
 		[UNIVERSE setSkyColorRed:0.0f		// back to black

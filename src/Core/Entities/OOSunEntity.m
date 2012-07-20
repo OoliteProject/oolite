@@ -224,7 +224,7 @@ MA 02110-1301, USA.
 	
 	PlayerEntity	*player = PLAYER;
 	assert(player != nil);
-	rotMatrix = OOMatrixForBillboard(position, [player position]);
+	rotMatrix = OOMatrixForBillboard(position, [player viewpointPosition]);
 	
 	if (throw_sparks && velocity.z > 0)	// going NOVA!
 	{

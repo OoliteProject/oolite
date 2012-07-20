@@ -1596,11 +1596,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		if (bounty)
 		{
 			int extra = 1 | (ranrot_rand() & 15);
-//			bounty += extra;	// obviously we're dodgier than we thought!
-			[escorter setBounty:bounty+extra withReason:kOOLegalStatusReasonSetup];
+			// if mothership is offender, make sure escorter is too.
+			[escorter markAsOffender:extra withReason:kOOLegalStatusReasonSetup];
 		}
 		else
 		{
+			// otherwise force the escort to be clean
 			[escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];
 		}
 		[escorter release];
@@ -6705,6 +6706,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		{
 			return; // we ignore your puny human laws
 		}
+		if (scanClass == CLASS_POLICE && amount != 0)
+		{
+			return; // police never have bounties
+		}
 		NSString* nReason = OOStringFromLegalStatusReason(reason);
 		[self setBounty:amount withReasonAsString:nReason];
 	}
@@ -7852,9 +7857,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) collectBountyFor:(ShipEntity *)other
 {
-	if ([self isPirate]) 
+	if ([other isPolice])   // oops, we shot a copper!
 	{
-		[self setBounty:(bounty+[other bounty]) withReason:kOOLegalStatusReasonThereCanBeOnlyOne];
+		[self markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
 	}
 }
 
@@ -11013,6 +11018,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
 {
 	if (w_hole == nil)  return;
+	if ([self status] == STATUS_ENTERING_WITCHSPACE)
+	{
+		return; // has already entered a different wormhole
+	}
 
 	if (replacing && ![[UNIVERSE sun] willGoNova] && [UNIVERSE sun] != nil)
 	{
@@ -11786,7 +11795,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		if ((switcher_id == primaryAggressor)&&(switcher_id == primaryTarget)&&(switcher)&&(rescuer)&&(rescuer->isShip)&&(thanked_ship_id != rescuer_id)&&(scanClass != CLASS_THARGOID))
 		{
 			ShipEntity* rescueShip = (ShipEntity*)rescuer;
-			ShipEntity* switchingShip = (ShipEntity*)switcher;
+//			ShipEntity* switchingShip = (ShipEntity*)switcher;
 			if (scanClass == CLASS_POLICE)
 			{
 				[self sendExpandedMessage:@"[police-thanks-for-assist]" toShip:rescueShip];
@@ -11798,10 +11807,11 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 			}
 			thanked_ship_id = rescuer_id;
 			// we don't want clean ships that change target from one pirate to the other pirate getting a bounty.
-			if ([switchingShip bounty] > 0 || [rescueShip bounty] == 0)
+			// removed after discussion at http://aegidian.org/bb/viewtopic.php?f=2&t=12151 - CIM
+/*			if ([switchingShip bounty] > 0 || [rescueShip bounty] == 0)
 			{	
 				[switchingShip setBounty:[switchingShip bounty] + 5 + (ranrot_rand() & 15) withReason:kOOLegalStatusReasonAttackedInnocent];	// reward
-			}
+				} */
 		}
 	}
 }

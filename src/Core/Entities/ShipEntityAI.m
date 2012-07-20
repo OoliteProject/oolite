@@ -869,15 +869,15 @@
 		}
 	}
 	
+	// if I'm a copper and you're not, then mark the other as an offender!
+	if ([self isPolice] && ![hunter isPolice])  [hunter markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
+
 	if ([self hasECM])
 	{
 		// use the ECM and battle on
 		
 		[self setPrimaryAggressor:hunter];	// lets get them now for that!
 		found_target = primaryAggressor;
-		
-		// if I'm a copper and you're not, then mark the other as an offender!
-		if ([self isPolice] && ![hunter isPolice])  [hunter markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
 		
 		[self fireECM];
 		return;
@@ -1330,6 +1330,13 @@
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity*	ship = scanned_ships[i];
+
+    // dump cargo if energy is low
+		if (!is_buoy && primaryAggressor == [ship universalID] && energy < 0.375 * maxEnergy)
+		{
+			[self ejectCargo];
+			[self performFlee];
+		}
 		
 		// tell it!
 		if (ship->isPlayer)
@@ -1337,11 +1344,11 @@
 			if (!is_buoy && primaryAggressor == [ship universalID] && energy < 0.375 * maxEnergy)
 			{
 				[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(@"[beg-for-mercy]") toShip:ship];
-				[self ejectCargo];
-				[self performFlee];
 			}
-			else
+			else if ([self bounty] == 0)
 			{
+				// only send distress message to player if plausibly sending
+				// one more generally
 				[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(distress_message) toShip:ship];
 			}
 			
@@ -1550,8 +1557,8 @@
 			if (([mother legalStatus] > 0)&&(bounty <= 0))
 			{
 				int extra = 1 | (ranrot_rand() & 15);
-				[mother setBounty: [mother legalStatus] + extra withReason:kOOLegalStatusReasonAssistingOffender];
-				[self setBounty:(bounty+extra) withReason:kOOLegalStatusReasonAssistingOffender];
+//				[mother setBounty: [mother legalStatus] + extra withReason:kOOLegalStatusReasonAssistingOffender];
+				[self markAsOffender:extra withReason:kOOLegalStatusReasonAssistingOffender];
 				//				bounty += extra;	// obviously we're dodgier than we thought!
 			}
 			
@@ -2653,6 +2660,11 @@
 	if(![self hasHyperspaceMotor])
 	{
 		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE" context:@"performHyperSpaceExit"];
+		return NO;
+	}
+	if([self status] == STATUS_ENTERING_WITCHSPACE)
+	{
+// already in a wormhole
 		return NO;
 	}
 	

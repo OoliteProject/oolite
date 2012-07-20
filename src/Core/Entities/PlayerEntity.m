@@ -2265,6 +2265,7 @@ static GLfloat		sBaseMass = 0.0;
 	// shot time updates are still needed here for STATUS_DEAD!
 	shot_time += delta_t;
 	script_time += delta_t;
+	unsigned prev_day = floor(ship_clock / 86400);
 	ship_clock += delta_t;
 	if (ship_clock_adjust > 0.0)				// adjust for coming out of warp (add LY * LY hrs)
 	{
@@ -2289,6 +2290,15 @@ static GLfloat		sBaseMass = 0.0;
 	else 
 		ship_clock_adjust = 0.0;
 	
+	unsigned now_day = floor(ship_clock / 86400.0);
+	while (prev_day < now_day)
+	{
+		prev_day++;
+		[self doScriptEvent:OOJSID("dayChanged") withArgument:[NSNumber numberWithUnsignedInt:prev_day]];
+		// not impossible that at ultra-low frame rates two of these will
+		// happen in a single update.
+	}
+
 	//fps
 	if (ship_clock > fps_check_time)
 	{
@@ -5313,6 +5323,11 @@ static GLfloat		sBaseMass = 0.0;
 // If the wormhole generator misjumped, the player's ship misjumps too. Kaks 20110211
 - (void) enterWormhole:(WormholeEntity *) w_hole
 {
+	if ([self status] == STATUS_ENTERING_WITCHSPACE
+			|| [self status] == STATUS_EXITING_WITCHSPACE)
+	{
+		return; // has already entered a different wormhole
+	}
 	BOOL misjump = [self scriptedMisjump] || [w_hole withMisjump] || flightPitch == max_flight_pitch || randf() > 0.995;
 	wormhole = [w_hole retain];
 	[self addScannedWormhole:wormhole];
@@ -5956,7 +5971,15 @@ static GLfloat		sBaseMass = 0.0;
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
-		[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"), galaxy_number+1]];
+		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
+		if ([[UNIVERSE descriptions] valueForKey:gal_key] == nil)
+		{
+			[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"), galaxy_number+1]];
+		}
+		else
+		{
+			[gui setTitle:[UNIVERSE descriptionForKey:gal_key]];
+		}
 		
 		[gui setText:targetSystemName	forRow:17];
 		

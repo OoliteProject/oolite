@@ -204,13 +204,28 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (BOOL) suckInShip:(ShipEntity *) ship
 {
-	if (!ship)
+	if (!ship || [ship status] == STATUS_ENTERING_WITCHSPACE)
+	{
 		return NO;
+	}
+	if (!equal_seeds(origin,[UNIVERSE systemSeed]))
+	{
+		// if we're no longer in the origin system, can't suck in
+		return NO;
+	}
+	if ([PLAYER galaxy_coordinates].x != originCoords.x || [PLAYER galaxy_coordinates].y != originCoords.y)
+	{
+		// if we're no longer at the origin coordinates, can't suck in (handles interstellar space case)
+		return NO;
+	}
 
 	double now = [PLAYER clockTimeAdjusted];
 
-	if (now > arrival_time)
-		return NO;	// far end of the wormhole!
+/* CIM: removed test. Not valid for wormholes which last longer than their travel time. Most likely for short distances e.g. zero-distance doubles. equal_seeds test above should cover it, with expiry_time test for safety.  */
+/*	if (now > arrival_time)
+		return NO;	// far end of the wormhole! */
+	if( now > expiry_time )
+		return NO;
 	
 	// MKW 2010.11.18 - calculate time it takes for ship to reach wormhole
 	// This is for AI ships which get told to enter the wormhole even though they
@@ -553,10 +568,18 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (BOOL) canCollide
 {
-	if ([PLAYER clockTime] > arrival_time)
+	/* Correct test for far end of wormhole */
+	if (!equal_seeds(origin,[UNIVERSE systemSeed]))
 	{
-		return NO;	// far end of the wormhole!
+		// if we're no longer in the origin system, can't suck in
+		return NO;
 	}
+	if ([PLAYER galaxy_coordinates].x != originCoords.x || [PLAYER galaxy_coordinates].y != originCoords.y)
+	{
+		// if we're no longer at the origin coordinates, can't suck in (handles interstellar space case)
+		return NO;
+	}
+
 	return (witch_mass > 0.0);
 }
 
@@ -573,7 +596,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	
 	PlayerEntity	*player = PLAYER;
 	assert(player != nil);
-	rotMatrix = OOMatrixForBillboard(position, [player position]);
+	rotMatrix = OOMatrixForBillboard(position, [player viewpointPosition]);
 	double now = [player clockTimeAdjusted];
 	
 	if (witch_mass > 0.0)
