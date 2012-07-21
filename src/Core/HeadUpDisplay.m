@@ -901,18 +901,19 @@ static BOOL hostiles;
 				{
 					switch (drawClass)
 					{
-						case CLASS_BUOY :
-						case CLASS_ROCK :
-						case CLASS_CARGO :
-						case CLASS_MINE :
+						case CLASS_BUOY:
+						case CLASS_ROCK:
+						case CLASS_CARGO:
+						case CLASS_MINE:
 							break;
-						case CLASS_THARGOID :
-						case CLASS_MISSILE :
-						case CLASS_STATION :
-						case CLASS_POLICE :
-						case CLASS_MILITARY :
-						case CLASS_WORMHOLE :
-						default :
+							
+						case CLASS_THARGOID:
+						case CLASS_MISSILE:
+						case CLASS_STATION:
+						case CLASS_POLICE:
+						case CLASS_MILITARY:
+						case CLASS_WORMHOLE:
+						default:
 							mass_locked = YES;
 							break;
 					}
@@ -976,21 +977,21 @@ static BOOL hostiles;
 				
 				switch (drawClass)
 				{
-					case CLASS_THARGOID :
+					case CLASS_THARGOID:
 						foundHostiles = YES;
 						break;
-					case CLASS_ROCK :
-					case CLASS_CARGO :
-					case CLASS_MISSILE :
-					case CLASS_STATION :
-					case CLASS_BUOY :
-					case CLASS_POLICE :
-					case CLASS_MILITARY :
-					case CLASS_MINE :
-					case CLASS_WORMHOLE :
-					default :
-						if (isHostile)
-							foundHostiles = YES;
+						
+					case CLASS_ROCK:
+					case CLASS_CARGO:
+					case CLASS_MISSILE:
+					case CLASS_STATION:
+					case CLASS_BUOY:
+					case CLASS_POLICE:
+					case CLASS_MILITARY:
+					case CLASS_MINE:
+					case CLASS_WORMHOLE:
+					default:
+						foundHostiles = isHostile;
 						break;
 				}
 				
@@ -1676,7 +1677,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawForwardShieldBar:(NSDictionary *) info
+- (void) drawForwardShieldBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
@@ -1973,11 +1974,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		
 		switch (status)
 		{
-			case MISSILE_STATUS_SAFE :
-				GLColorWithOverallAlpha(green_color, alpha);		break;
-			case MISSILE_STATUS_ARMED :
+			case MISSILE_STATUS_SAFE:
+				GLColorWithOverallAlpha(green_color, alpha);	break;
+			case MISSILE_STATUS_ARMED:
 				GLColorWithOverallAlpha(yellow_color, alpha);	break;
-			case MISSILE_STATUS_TARGET_LOCKED :
+			case MISSILE_STATUS_TARGET_LOCKED:
 				GLColorWithOverallAlpha(red_color, alpha);		break;
 		}
 	}
@@ -2065,12 +2066,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		sp *= 0.75;
 		switch ([player dialMissileStatus])
 		{
-			case MISSILE_STATUS_SAFE :
+			case MISSILE_STATUS_SAFE:
 				GLColorWithOverallAlpha(green_color, alpha);	break;
-			case MISSILE_STATUS_ARMED :
+			case MISSILE_STATUS_ARMED:
 				GLColorWithOverallAlpha(yellow_color, alpha);	break;
-			case MISSILE_STATUS_TARGET_LOCKED :
-				GLColorWithOverallAlpha(red_color, alpha);	break;
+			case MISSILE_STATUS_TARGET_LOCKED:
+				GLColorWithOverallAlpha(red_color, alpha);		break;
 		}
 		OOGLBEGIN(GL_QUADS);
 			glVertex3i(x , y, z1);
@@ -2123,23 +2124,26 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	switch(alertCondition)
 	{
-		case ALERT_CONDITION_RED :
+		case ALERT_CONDITION_RED:
 			status_color[0] = red_color[0];
 			status_color[1] = red_color[1];
 			status_color[2] = blueAlert ? blue_color[2] : red_color[2];
 			break;
-		case ALERT_CONDITION_GREEN :
+			
+		case ALERT_CONDITION_GREEN:
 			status_color[0] = green_color[0];
 			status_color[1] = green_color[1];
 			status_color[2] = blueAlert ? blue_color[2] : green_color[2];
 			break;
-		case ALERT_CONDITION_YELLOW :
+			
+		case ALERT_CONDITION_YELLOW:
 			status_color[0] = yellow_color[0];
 			status_color[1] = yellow_color[1];
 			status_color[2] = blueAlert ? blue_color[2] : yellow_color[2];
 			break;
-		default :
-		case ALERT_CONDITION_DOCKED :
+			
+		default:
+		case ALERT_CONDITION_DOCKED:
 			break;
 	}
 	status_color[3] = flash_alpha;
@@ -2358,14 +2362,16 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	switch (scoop_status)
 	{
-		case SCOOP_STATUS_NOT_INSTALLED :
+		case SCOOP_STATUS_NOT_INSTALLED:
 			return;	// don't draw
-		case SCOOP_STATUS_FULL_HOLD :
+			
+		case SCOOP_STATUS_FULL_HOLD:
 			s0_color = darkgreen_color;
 			alpha *= 0.75;
 			break;
-		case SCOOP_STATUS_ACTIVE :
-		case SCOOP_STATUS_OKAY :
+			
+		case SCOOP_STATUS_ACTIVE:
+		case SCOOP_STATUS_OKAY:
 			s0_color = green_color;
 			break;
 	}
@@ -2716,22 +2722,26 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	switch ([UNIVERSE viewDirection])
 	{
 		default:
-		case VIEW_FORWARD :
+		case VIEW_FORWARD:
 			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = 1.0;
 			break;
-		case VIEW_AFT :
+			
+		case VIEW_AFT:
 			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
 			quaternion_rotate_about_axis(&back_q, v1, M_PI);
 			break;
-		case VIEW_PORT :
+			
+		case VIEW_PORT:
 			view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
 			quaternion_rotate_about_axis(&back_q, v1, 0.5 * M_PI);
 			break;
-		case VIEW_STARBOARD :
+			
+		case VIEW_STARBOARD:
 			view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
 			quaternion_rotate_about_axis(&back_q, v1, -0.5 * M_PI);
 			break;
-		case VIEW_CUSTOM :
+			
+		case VIEW_CUSTOM:
 			view_dir = [player1 customViewForwardVector];
 			view_up = [player1 customViewUpVector];
 			back_q = quaternion_multiply([player1 customViewQuaternion], back_q);
@@ -3146,22 +3156,25 @@ static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir,
 
 		switch (v_dir)
 		{
-			case VIEW_BREAK_PATTERN :
-			case VIEW_GUI_DISPLAY :
-			case VIEW_FORWARD :
-			case VIEW_NONE :
+			case VIEW_BREAK_PATTERN:
+			case VIEW_GUI_DISPLAY:
+			case VIEW_FORWARD:
+			case VIEW_NONE:
 				glVertex3f(x, y, z); glVertex3f(x - w2, y + hh, z);
 				glVertex3f(x, y, z); glVertex3f(x + w2, y + hh, z);
 				break;
-			case VIEW_AFT :
+				
+			case VIEW_AFT:
 				glVertex3f(x, y, z); glVertex3f(x - w2, y - hh, z);
 				glVertex3f(x, y, z); glVertex3f(x + w2, y - hh, z);
 				break;
-			case VIEW_PORT :
+				
+			case VIEW_PORT:
 				glVertex3f(x, y, z); glVertex3f(x - ww, y + h2, z);
 				glVertex3f(x, y, z); glVertex3f(x - ww, y - h2, z);
 				break;
-			case VIEW_STARBOARD :
+				
+			case VIEW_STARBOARD:
 				glVertex3f(x, y, z); glVertex3f(x + ww, y + h2, z);
 				glVertex3f(x, y, z); glVertex3f(x + ww, y - h2, z);
 				break;
