@@ -3690,9 +3690,9 @@ static const OOMatrix	starboard_matrix =
 			
 			CheckOpenGLErrors(@"Universe after drawing entities");
 
-			GLfloat	line_width = [gameView viewSize].width / 1024.0; // restore line size
-			if (line_width < 1.0)  line_width = 1.0;
-			OOGL(glLineWidth(line_width));
+			GLfloat	lineWidth = [gameView viewSize].width / 1024.0; // restore line size
+			if (lineWidth < 1.0)  lineWidth = 1.0;
+			OOGL(glLineWidth(lineWidth));
 
 			[self drawMessage];
 			
@@ -3726,7 +3726,7 @@ static const OOMatrix	starboard_matrix =
 			
 			if (v_status != STATUS_DEAD && v_status != STATUS_ESCAPE_SEQUENCE)
 			{
-				[theHUD setLine_width:line_width];
+				[theHUD setLineWidth:lineWidth];
 				[theHUD renderHUD];
 			}
 			

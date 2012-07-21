@@ -84,13 +84,13 @@ enum
 - (void) drawLegends;
 - (void) drawDials;
 
-- (void) drawLegend:(NSDictionary *) info;
-- (void) drawHUDItem:(NSDictionary *) info;
+- (void) drawLegend:(NSDictionary *)info;
+- (void) drawHUDItem:(NSDictionary *)info;
 
-- (void) drawScanner:(NSDictionary *) info;
-- (void) drawScannerZoomIndicator:(NSDictionary *) info;
+- (void) drawScanner:(NSDictionary *)info;
+- (void) drawScannerZoomIndicator:(NSDictionary *)info;
 
-- (void) drawCompass:(NSDictionary *) info;
+- (void) drawCompass:(NSDictionary *)info;
 - (void) drawCompassPlanetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 - (void) drawCompassStationBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 - (void) drawCompassSunBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
@@ -98,32 +98,32 @@ enum
 - (void) drawCompassWitchpointBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 - (void) drawCompassBeaconBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 
-- (void) drawAegis:(NSDictionary *) info;
-- (void) drawSpeedBar:(NSDictionary *) info;
-- (void) drawRollBar:(NSDictionary *) info;
-- (void) drawPitchBar:(NSDictionary *) info;
-- (void) drawYawBar:(NSDictionary *) info;
-- (void) drawEnergyGauge:(NSDictionary *) info;
-- (void) drawForwardShieldBar:(NSDictionary *) info;
-- (void) drawAftShieldBar:(NSDictionary *) info;
-- (void) drawFuelBar:(NSDictionary *) info;
-- (void) drawCabinTempBar:(NSDictionary *) info;
-- (void) drawWeaponTempBar:(NSDictionary *) info;
-- (void) drawAltitudeBar:(NSDictionary *) info;
-- (void) drawMissileDisplay:(NSDictionary *) info;
-- (void) drawTargetReticle:(NSDictionary *) info;
-- (void) drawStatusLight:(NSDictionary *) info;
-- (void) drawDirectionCue:(NSDictionary *) info;
-- (void) drawClock:(NSDictionary *) info;
-- (void) drawWeaponsOfflineText:(NSDictionary *) info;
-- (void) drawFPSInfoCounter:(NSDictionary *) info;
-- (void) drawScoopStatus:(NSDictionary *) info;
-- (void) drawStickSenitivityIndicator:(NSDictionary *) info;
+- (void) drawAegis:(NSDictionary *)info;
+- (void) drawSpeedBar:(NSDictionary *)info;
+- (void) drawRollBar:(NSDictionary *)info;
+- (void) drawPitchBar:(NSDictionary *)info;
+- (void) drawYawBar:(NSDictionary *)info;
+- (void) drawEnergyGauge:(NSDictionary *)info;
+- (void) drawForwardShieldBar:(NSDictionary *)info;
+- (void) drawAftShieldBar:(NSDictionary *)info;
+- (void) drawFuelBar:(NSDictionary *)info;
+- (void) drawCabinTempBar:(NSDictionary *)info;
+- (void) drawWeaponTempBar:(NSDictionary *)info;
+- (void) drawAltitudeBar:(NSDictionary *)info;
+- (void) drawMissileDisplay:(NSDictionary *)info;
+- (void) drawTargetReticle:(NSDictionary *)info;
+- (void) drawStatusLight:(NSDictionary *)info;
+- (void) drawDirectionCue:(NSDictionary *)info;
+- (void) drawClock:(NSDictionary *)info;
+- (void) drawWeaponsOfflineText:(NSDictionary *)info;
+- (void) drawFPSInfoCounter:(NSDictionary *)info;
+- (void) drawScoopStatus:(NSDictionary *)info;
+- (void) drawStickSenitivityIndicator:(NSDictionary *)info;
 
-- (void) drawGreenSurround:(NSDictionary *) info;
-- (void) drawYellowSurround:(NSDictionary *) info;
+- (void) drawGreenSurround:(NSDictionary *)info;
+- (void) drawYellowSurround:(NSDictionary *)info;
 
-- (void) drawTrumbles:(NSDictionary *) info;
+- (void) drawTrumbles:(NSDictionary *)info;
 
 - (NSArray *) crosshairDefinitionForWeaponType:(OOWeaponType)weapon;
 
@@ -171,7 +171,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	self = [super init];
 	
-	line_width = 1.0;
+	lineWidth = 1.0;
 	
 	if (sFontTexture == nil)  InitTextEngine();
 	
@@ -507,7 +507,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) addLegend:(NSDictionary *) info
+- (void) addLegend:(NSDictionary *)info
 {
 	NSString			*imageName = nil;
 	OOTexture			*texture = nil;
@@ -548,7 +548,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) addDial:(NSDictionary *) info
+- (void) addDial:(NSDictionary *)info
 {
 	static NSSet *allowedSelectors = nil;
 	if (allowedSelectors == nil)
@@ -580,15 +580,15 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	hudUpdating = YES;
 	
-	if (_crosshairWidth * line_width > 0)
+	if (_crosshairWidth * lineWidth > 0)
 	{
-		OOGL(glLineWidth(_crosshairWidth * line_width));
+		OOGL(glLineWidth(_crosshairWidth * lineWidth));
 		[self drawCrosshairs];
 	}
 	
-	if (line_width > 0)
+	if (lineWidth > 0)
 	{
-		OOGL(glLineWidth(line_width));
+		OOGL(glLineWidth(lineWidth));
 		[self drawLegends];
 	}
 	
@@ -732,7 +732,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) drawLegend:(NSDictionary *) info
+- (void) drawLegend:(NSDictionary *)info
 {
 	OOTextureSprite				*legendSprite = nil;
 	NSString					*legendText = nil;
@@ -770,7 +770,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) drawHUDItem:(NSDictionary *) info
+- (void) drawHUDItem:(NSDictionary *)info
 {
 	NSString *equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	if (equipment != nil && ![PLAYER hasEquipmentItem:equipment])
@@ -791,7 +791,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 //---------------------------------------------------------------------//
 
 static BOOL hostiles;
-- (void) drawScanner:(NSDictionary *) info
+- (void) drawScanner:(NSDictionary *)info
 {
 	int				x;
 	int				y;
@@ -854,7 +854,7 @@ static BOOL hostiles;
 	rotMatrix = [player rotationMatrix];
 	
 	OOGL(glColor4fv(scanner_color));
-	drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], line_width, scanner_zoom);
+	drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, scanner_zoom);
 	
 	OOEntityStatus p_status = [player status];
 	
@@ -1096,7 +1096,7 @@ static BOOL hostiles;
 }
 
 
-- (void) drawScannerZoomIndicator:(NSDictionary *) info
+- (void) drawScannerZoomIndicator:(NSDictionary *)info
 {
 	int				x;
 	int				y;
@@ -1139,7 +1139,7 @@ static BOOL hostiles;
 }
 
 
-- (void) drawCompass:(NSDictionary *) info
+- (void) drawCompass:(NSDictionary *)info
 {
 	int				x;
 	int				y;
@@ -1171,7 +1171,7 @@ static BOOL hostiles;
 	GLfloat h3 = siz.height * 0.375;
 	GLfloat w1 = siz.width * 0.125;
 	GLfloat w3 = siz.width * 0.375;
-	OOGL(glLineWidth(2.0 * line_width));	// thicker
+	OOGL(glLineWidth(2.0 * lineWidth));	// thicker
 	OOGL(glColor4f(compass_color[0], compass_color[1], compass_color[2], alpha));
 	GLDrawOval(x, y, z1, siz, 12);	
 	OOGL(glColor4f(compass_color[0], compass_color[1], compass_color[2], 0.5f * alpha));
@@ -1181,7 +1181,7 @@ static BOOL hostiles;
 		glVertex3f(x, y - h1, z1);	glVertex3f(x, y - h3, z1);
 		glVertex3f(x, y + h1, z1);	glVertex3f(x, y + h3, z1);
 	OOGLEND();
-	OOGL(glLineWidth(line_width));	// thinner
+	OOGL(glLineWidth(lineWidth));	// thinner
 	
 	OOSunEntity		*the_sun = [UNIVERSE sun];
 	OOPlanetEntity	*the_planet = [UNIVERSE planet];
@@ -1410,7 +1410,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawAegis:(NSDictionary *) info
+- (void) drawAegis:(NSDictionary *)info
 {
 	if (([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([PLAYER checkForAegis] != AEGIS_IN_DOCKING_RANGE))
 		return;	// don't draw
@@ -1465,14 +1465,14 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawSpeedBar:(NSDictionary *) info
+- (void) drawSpeedBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:SPEED_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1504,14 +1504,14 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawRollBar:(NSDictionary *) info
+- (void) drawRollBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:ROLL_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1536,7 +1536,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawPitchBar:(NSDictionary *) info
+- (void) drawPitchBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
@@ -1568,14 +1568,14 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawYawBar:(NSDictionary *) info
+- (void) drawYawBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	// YAW does not exist in strict mode
 	if ([UNIVERSE strict])  return;
@@ -1603,14 +1603,14 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawEnergyGauge:(NSDictionary *) info
+- (void) drawEnergyGauge:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround, labelled;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:ENERGY_GAUGE_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1684,7 +1684,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1714,14 +1714,14 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawAftShieldBar:(NSDictionary *) info
+- (void) drawAftShieldBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1751,14 +1751,14 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawFuelBar:(NSDictionary *) info
+- (void) drawFuelBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
 	float			fu, hr;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:FUEL_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1786,13 +1786,13 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawCabinTempBar:(NSDictionary *) info
+- (void) drawCabinTempBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1828,13 +1828,13 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawWeaponTempBar:(NSDictionary *) info
+- (void) drawWeaponTempBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1858,13 +1858,13 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-- (void) drawAltitudeBar:(NSDictionary *) info
+- (void) drawAltitudeBar:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:ALTITUDE_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -2012,14 +2012,14 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawMissileDisplay:(NSDictionary *) info
+- (void) drawMissileDisplay:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
 	int				sp;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:MISSILES_DISPLAY_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -2086,7 +2086,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawTargetReticle:(NSDictionary *) info
+- (void) drawTargetReticle:(NSDictionary *)info
 {
 	PlayerEntity *player = PLAYER;
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
@@ -2099,14 +2099,14 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawStatusLight:(NSDictionary *) info
+- (void) drawStatusLight:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			blueAlert = cloakIndicatorOnStatusLight && [player isCloaked];
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -2242,13 +2242,13 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawClock:(NSDictionary *) info
+- (void) drawClock:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
 	NSSize			siz;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
 	x = [info oo_intForKey:X_KEY defaultValue:CLOCK_DISPLAY_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -2265,7 +2265,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawWeaponsOfflineText:(NSDictionary *) info
+- (void) drawWeaponsOfflineText:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	
@@ -2274,7 +2274,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		int				x;
 		int				y;
 		NSSize			siz;
-		GLfloat		alpha = overallAlpha;
+		GLfloat			alpha = overallAlpha;
 		
 		x = [info oo_intForKey:X_KEY defaultValue:WEAPONSOFFLINETEXT_DISPLAY_X] +
 			[[UNIVERSE gameView] x_offset] *
@@ -2292,7 +2292,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawFPSInfoCounter:(NSDictionary *) info
+- (void) drawFPSInfoCounter:(NSDictionary *)info
 {
 	if (![UNIVERSE displayFPS])  return;
 	
@@ -2332,7 +2332,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawScoopStatus:(NSDictionary *) info
+- (void) drawScoopStatus:(NSDictionary *)info
 {
 	PlayerEntity	*player = PLAYER;
 	int				x;
@@ -2427,7 +2427,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawStickSensitivityIndicator:(NSDictionary *) info
+- (void) drawStickSensitivityIndicator:(NSDictionary *)info
 {
 	GLfloat			x, y;
 	NSSize			siz;
@@ -2452,7 +2452,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLDrawFilledOval(x, y, z1, siz, 10);
 	
 	GLColorWithOverallAlpha((div < 1.0 || mouse) ? lightgray_color : green_color, alpha);
-	OOGL(glLineWidth(_crosshairWidth * line_width));
+	OOGL(glLineWidth(_crosshairWidth * lineWidth));
 	
 	if (div >= 1.0)
 	{
@@ -2467,8 +2467,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		
 		if ([stickHandler joystickCount])
 		{
-			siz.width -= _crosshairWidth * line_width / 2;
-			siz.height -= _crosshairWidth * line_width / 2;
+			siz.width -= _crosshairWidth * lineWidth / 2;
+			siz.height -= _crosshairWidth * lineWidth / 2;
 			GLDrawOval(x, y, z1, siz, 10);
 		}
 	}
@@ -2502,19 +2502,19 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawGreenSurround:(NSDictionary *) info
+- (void) drawGreenSurround:(NSDictionary *)info
 {
 	[self drawSurround:info color:green_color];
 }
 
 
-- (void) drawYellowSurround:(NSDictionary *) info
+- (void) drawYellowSurround:(NSDictionary *)info
 {
 	[self drawSurround:info color:yellow_color];
 }
 
 
-- (void) drawTrumbles:(NSDictionary *) info
+- (void) drawTrumbles:(NSDictionary *)info
 {
 	PlayerEntity *player = PLAYER;
 	
@@ -3204,15 +3204,15 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 }
 
 
-- (void) setLine_width:(GLfloat) value
+- (void) setLineWidth:(GLfloat) value
 {
-	line_width = value;
+	lineWidth = value;
 }
 
 
-- (GLfloat) line_width
+- (GLfloat) lineWidth
 {
-	return line_width;
+	return lineWidth;
 }
 
 @end

@@ -210,7 +210,7 @@ MA 02110-1301, USA.
 	
 	//where to draw it
 	GLfloat				z1;
-	GLfloat				line_width;
+	GLfloat				lineWidth;
 	
 	NSString			*hudName;
 	NSString			*deferredHudName;	// Usually it will be nil. If not nil, then it means that we have a deferred HUD waiting to be drawn This may happen
@@ -241,22 +241,22 @@ MA 02110-1301, USA.
 
 }
 
-- (id) initWithDictionary:(NSDictionary *) hudinfo;
+- (id) initWithDictionary:(NSDictionary *)hudinfo;
 - (id) initWithDictionary:(NSDictionary *)hudinfo inFile:(NSString *)hudFileName;
 
-- (void) resetGuis:(NSDictionary *) info;
+- (void) resetGuis:(NSDictionary *)info;
 
 - (NSString *) hudName;
 - (void) setHudName:(NSString *)newHudName;
 
 - (double) scannerZoom;
-- (void) setScannerZoom:(double) value;
+- (void) setScannerZoom:(double)value;
 
 - (GLfloat) overallAlpha;
-- (void) setOverallAlpha:(GLfloat) newAlphaValue;
+- (void) setOverallAlpha:(GLfloat)newAlphaValue;
 
 - (BOOL) reticleTargetSensitive;
-- (void) setReticleTargetSensitive:(BOOL) newReticleTargetSensitiveValue;
+- (void) setReticleTargetSensitive:(BOOL)newReticleTargetSensitiveValue;
 - (NSMutableDictionary *) propertiesReticleTargetSensitive;
 
 - (BOOL) isHidden;
@@ -268,17 +268,17 @@ MA 02110-1301, USA.
 - (NSString *) crosshairDefinition;
 - (BOOL) setCrosshairDefinition:(NSString *)newDefinition;
 
-- (void) addLegend:(NSDictionary *) info;
-- (void) addDial:(NSDictionary *) info;
+- (void) addLegend:(NSDictionary *)info;
+- (void) addDial:(NSDictionary *)info;
 
 - (void) renderHUD;
 
 - (void) refreshLastTransmitter;
 
-- (void) setLine_width:(GLfloat) value;
-- (GLfloat) line_width;
+- (void) setLineWidth:(GLfloat)value;
+- (GLfloat) lineWidth;
 
-- (void) drawWatermarkString:(NSString *) watermarkString;
+- (void) drawWatermarkString:(NSString *)watermarkString;
 
 @end
 
