@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 
 
 static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp);
+static JSBool MissionMarkedSystems(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionAddMessageText(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionSetInstructions(JSContext *context, uintN argc, jsval *vp);
@@ -72,6 +73,7 @@ static JSFunctionSpec sMissionMethods[] =
 	// JS name					Function					min args
 	{ "addMessageText",			MissionAddMessageText,		1 },
 	{ "markSystem",				MissionMarkSystem,			1 },
+	{ "markedSystems",				MissionMarkedSystems,			1 },
 	{ "runScreen",				MissionRunScreen,			1 }, // the callback function is optional!
 	{ "setInstructions",		MissionSetInstructions,		1 },
 	{ "setInstructionsKey",		MissionSetInstructionsKey,	1 },
@@ -493,4 +495,20 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	OOJS_RETURN_BOOL(YES);
 	
 	OOJS_NATIVE_EXIT
+}
+
+
+//getShaders()
+static JSBool MissionMarkedSystems(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	PlayerEntity		*player = PLAYER;
+	NSObject		*result = nil;
+	
+	result = [player getMissionDestinations];
+	if (result == nil)  result = [NSDictionary dictionary];
+	OOJS_RETURN_OBJECT(result);
+	
+	OOJS_PROFILE_EXIT
 }

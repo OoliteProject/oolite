@@ -853,6 +853,7 @@ typedef enum
 - (void) initialiseMissionDestinations:(NSDictionary *)destinations andLegacy:(NSArray *)legacy;
 - (void) addMissionDestination:(OOSystemID)dest forGroup:(NSString *)group;
 - (void) removeMissionDestination:(OOSystemID)dest forGroup:(NSString *)group;
+- (NSMutableDictionary*) getMissionDestinations;
 
 @end
 

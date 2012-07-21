@@ -9098,6 +9098,10 @@ else _dockTarget = NO_TARGET;
 }
 
 
+- (NSMutableDictionary*) getMissionDestinations
+{
+	return missionDestinations;
+}
 
 
 #ifndef NDEBUG
