@@ -9038,9 +9038,9 @@ else _dockTarget = NO_TARGET;
 }
 
 
-- (void) addMissionDestination:(unsigned)dest forGroup:(NSString *)group
+- (void) addMissionDestination:(OOSystemID)dest forGroup:(NSString *)group
 {
-	if (dest < 0 || dest > 255 || group == nil)
+	if (dest < 0 || dest > kOOMaximumSystemID || group == nil)
 	{
 		return;
 	}
@@ -9050,8 +9050,9 @@ else _dockTarget = NO_TARGET;
 		groupDests = [[NSMutableArray alloc] init];
 		[missionDestinations setObject:groupDests forKey:group];
 	}
-	unsigned i, pnum;
-	for (i = 0; i < [groupDests count]; i++)
+	OOUInteger i, count = [groupDests count];
+	OOSystemID pnum;
+	for (i = 0; i < count; i++)
 	{
 		pnum = [groupDests oo_intAtIndex:i];
 		if (pnum == dest)
@@ -9063,9 +9064,9 @@ else _dockTarget = NO_TARGET;
 }
 
 
-- (void) removeMissionDestination:(unsigned)dest forGroup:(NSString *)group;
+- (void) removeMissionDestination:(OOSystemID)dest forGroup:(NSString *)group
 {
-	if (dest < 0 || dest > 255 || group == nil)
+	if (dest < 0 || dest > kOOMaximumSystemID || group == nil)
 	{
 		return;
 	}
@@ -9075,8 +9076,9 @@ else _dockTarget = NO_TARGET;
 		return;
 	}
 	BOOL removeDest = NO;
-	unsigned i, pnum;
-	for (i = 0; i < [groupDests count]; i++)
+	OOUInteger i, count = [groupDests count];
+	OOSystemID pnum;
+	for (i = 0; i < count; i++)
 	{
 		pnum = [groupDests oo_intAtIndex:i];
 		if (pnum == dest)

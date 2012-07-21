@@ -851,8 +851,8 @@ typedef enum
 - (void) addScannedWormhole:(WormholeEntity*)wormhole;
 
 - (void) initialiseMissionDestinations:(NSDictionary *)destinations andLegacy:(NSArray *)legacy;
-- (void) addMissionDestination:(unsigned)dest forGroup:(NSString *)group;
-- (void) removeMissionDestination:(unsigned)dest forGroup:(NSString *)group;
+- (void) addMissionDestination:(OOSystemID)dest forGroup:(NSString *)group;
+- (void) removeMissionDestination:(OOSystemID)dest forGroup:(NSString *)group;
 
 @end
 
