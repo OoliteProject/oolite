@@ -1978,61 +1978,33 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addMissionDestination:(NSString *)destinations
 {
-	unsigned i, j;
-	int pnum, dest;
+	unsigned j;
+	int dest;
 	NSMutableArray *tokens = ScanTokensFromString(destinations);
-	BOOL addDestination;
 	
 	for (j = 0; j < [tokens count]; j++)
 	{
 		dest = [tokens oo_intAtIndex:j];
 		if (dest < 0 || dest > 255)
 			continue;
-		
-		addDestination = YES;
-		for (i = 0; i < [missionDestinations count]; i++)
-		{
-			pnum = [missionDestinations oo_intAtIndex:i];
-			if (pnum == dest)
-			{
-				addDestination = NO;
-				break;
-			}
-		}
-		
-		if (addDestination == YES)
-			[missionDestinations addObject:[NSNumber numberWithUnsignedInt:dest]];
+
+		[self addMissionDestination:(unsigned)dest forGroup:@"__oolite_legacy_destinations"];
 	}
 }
 
 
 - (void) removeMissionDestination:(NSString *)destinations
 {
-	unsigned			i, j;
-	int					pnum, dest;
+	unsigned			j;
+	int					dest;
 	NSMutableArray		*tokens = ScanTokensFromString(destinations);
-	BOOL				removeDestination;
 
 	for (j = 0; j < [tokens count]; j++)
 	{
 		dest = [[tokens objectAtIndex:j] intValue];
 		if (dest < 0 || dest > 255)  continue;
-		
-		removeDestination = NO;
-		for (i = 0; i < [missionDestinations count]; i++)
-		{
-			pnum = [missionDestinations oo_intAtIndex:i];
-			if (pnum == dest)
-			{
-				removeDestination = YES;
-				break;
-			}
-		}
-		
-		if (removeDestination == YES)
-		{
-			[missionDestinations removeObjectAtIndex:i];
-		}
+
+		[self removeMissionDestination:(unsigned)dest forGroup:@"__legacy"];
 	}
 }
 

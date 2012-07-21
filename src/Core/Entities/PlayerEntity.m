@@ -685,7 +685,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:contracts forKey:@"contracts"];
 	[result setObject:contract_record forKey:@"contract_record"];
 
-	[result setObject:missionDestinations forKey:@"missionDestinations"];
+	[result setObject:missionDestinations forKey:@"mission_destinations"];
 
 	//shipyard
 	[result setObject:shipyard_record forKey:@"shipyard_record"];
@@ -910,8 +910,10 @@ static GLfloat		sBaseMass = 0.0;
 	specialCargo = [[dict oo_stringForKey:@"special_cargo"] copy];
 	
 	// mission destinations
-	missionDestinations = [[dict oo_arrayForKey:@"missionDestinations"] mutableCopy];
-	if (missionDestinations == nil)  missionDestinations = [[NSMutableArray alloc] init];
+	NSArray *legacyDestinations = [dict oo_arrayForKey:@"missionDestinations"];
+
+	NSDictionary *newDestinations = [dict oo_dictionaryForKey:@"mission_destinations"];
+	[self initialiseMissionDestinations:newDestinations andLegacy:legacyDestinations];
 	
 	// shipyard
 	shipyard_record = [[dict oo_dictionaryForKey:@"shipyard_record"] mutableCopy];
@@ -1186,6 +1188,8 @@ static GLfloat		sBaseMass = 0.0;
 	return YES;
 }
 
+
+
 /////////////////////////////////////////////////////////
 
 
@@ -1368,7 +1372,7 @@ static GLfloat		sBaseMass = 0.0;
 	contract_record = [[NSMutableDictionary alloc] init];
 	
 	[missionDestinations release];
-	missionDestinations = [[NSMutableArray alloc] init];
+	missionDestinations = [[NSMutableDictionary alloc] init];
 	
 	[shipyard_record release];
 	shipyard_record = [[NSMutableDictionary alloc] init];
@@ -5939,10 +5943,21 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		mark[[[contracts oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION]] = YES;
 	}
-	for (i = 0; i < [missionDestinations count]; i++)
+
+	NSEnumerator				*keyEnum = nil;
+	NSString					*key = nil;
+	NSArray						*value = nil;
+
+	for (keyEnum = [missionDestinations keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		mark[[missionDestinations oo_unsignedCharAtIndex:i]] = YES;
+		value = [missionDestinations objectForKey:key];
+
+		for (i = 0; i < [value count]; i++)
+		{
+			mark[[value oo_unsignedCharAtIndex:i]] = YES;
+		}
 	}
+
 	for (i = 0; i < 256; i++)
 	{
 		[destinations addObject:[NSNumber numberWithBool:mark[i]]];
@@ -8989,6 +9004,98 @@ else _dockTarget = NO_TARGET;
 {
 	return [NSArray arrayWithArray:scannedWormholes];
 }
+
+
+- (void) initialiseMissionDestinations:(NSDictionary *)destinations andLegacy:(NSArray *)legacy
+{
+	NSEnumerator				*keyEnum = nil;
+	NSString					*key = nil;
+	id							value = nil;
+
+	/* same need to make inner objects mutable as in localPlanetInfoOverrides */
+
+	[missionDestinations release];
+	missionDestinations = [[NSMutableDictionary alloc] init];
+
+	for (keyEnum = [destinations keyEnumerator]; (key = [keyEnum nextObject]); )
+	{
+		value = [destinations objectForKey:key];
+		if (value != nil)
+		{
+			value = [value mutableCopy];
+			[missionDestinations setObject:value forKey:key];
+			[value release];
+		}
+	}
+	
+	if (legacy != nil)
+	{
+		value = [legacy mutableCopy];
+		[missionDestinations setObject:value forKey:@"__oolite_legacy_destinations"];
+		[value release];
+	}
+
+}
+
+
+- (void) addMissionDestination:(unsigned)dest forGroup:(NSString *)group
+{
+	if (dest < 0 || dest > 255 || group == nil)
+	{
+		return;
+	}
+	NSMutableArray *groupDests = [missionDestinations objectForKey:group];
+	if (groupDests == nil)
+	{
+		groupDests = [[NSMutableArray alloc] init];
+		[missionDestinations setObject:groupDests forKey:group];
+	}
+	unsigned i, pnum;
+	for (i = 0; i < [groupDests count]; i++)
+	{
+		pnum = [groupDests oo_intAtIndex:i];
+		if (pnum == dest)
+		{
+			return;
+		}
+	}
+	[groupDests addObject:[NSNumber numberWithUnsignedInt:dest]];
+}
+
+
+- (void) removeMissionDestination:(unsigned)dest forGroup:(NSString *)group;
+{
+	if (dest < 0 || dest > 255 || group == nil)
+	{
+		return;
+	}
+	NSMutableArray *groupDests = [missionDestinations objectForKey:group];
+	if (groupDests == nil)
+	{
+		return;
+	}
+	BOOL removeDest = NO;
+	unsigned i, pnum;
+	for (i = 0; i < [groupDests count]; i++)
+	{
+		pnum = [groupDests oo_intAtIndex:i];
+		if (pnum == dest)
+		{
+			removeDest = YES;
+			break;
+		}
+	}
+	if (removeDest)
+	{
+		[groupDests removeObjectAtIndex:i];
+		if ([groupDests count] == 0)
+		{
+			[missionDestinations removeObjectForKey:group];
+		}
+	}
+}
+
+
 
 
 #ifndef NDEBUG

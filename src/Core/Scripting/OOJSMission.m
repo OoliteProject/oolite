@@ -158,12 +158,29 @@ static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
-	NSString			*params = nil;
+	NSString *group = [[OOJSScript currentlyRunningScript] name];
+	unsigned i;
+	int dest;
+
+	// two pass. Once to validate, once to apply if they validate
+	for (i=0;i<argc;i++)
+	{
+		if (!JS_ValueToInt32(context, OOJS_ARGV[i], &dest)) 
+		{
+			OOJSReportBadArguments(context, @"Mission", @"markSystem", MIN(argc, 1U), OOJS_ARGV, nil, @"numbers (system IDs)");
+			return NO;
+		}
+	}
+
+	for (i=0;i<argc;i++)
+	{
+		if (JS_ValueToInt32(context, OOJS_ARGV[i], &dest)) 
+		{
+			[player addMissionDestination:(unsigned)dest forGroup:group];
+		}
+	}
 	
-	params = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV count:argc separator:@" " inContext:context];
-	[player addMissionDestination:params];
-	
-	OOJS_RETURN_VOID;
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -175,12 +192,31 @@ static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
-	NSString			*params = nil;
+	NSString *group = [[OOJSScript currentlyRunningScript] name];
+	unsigned i;
+	int dest;
+
+	// two pass. Once to validate, once to apply if they validate
+	for (i=0;i<argc;i++)
+	{
+		if (!JS_ValueToInt32(context, OOJS_ARGV[i], &dest)) 
+		{
+			OOJSReportBadArguments(context, @"Mission", @"unmarkSystem", MIN(argc, 1U), OOJS_ARGV, nil, @"numbers (system IDs)");
+			return NO;
+		}
+	}
+
+	for (i=0;i<argc;i++)
+	{
+		if (JS_ValueToInt32(context, OOJS_ARGV[i], &dest)) 
+		{
+			[player removeMissionDestination:(unsigned)dest forGroup:group];
+			// for compatibility with older saves, also remove from legacy set
+			[player removeMissionDestination:(unsigned)dest forGroup:@"__oolite_legacy_destinations"];
+		}
+	}
 	
-	params = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV count:argc separator:@" " inContext:context];
-	[player removeMissionDestination:params];
-	
-	OOJS_RETURN_VOID;
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }

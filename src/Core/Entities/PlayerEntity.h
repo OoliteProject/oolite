@@ -283,7 +283,7 @@ typedef enum
 	
 	NSMutableDictionary		*shipyard_record;
 	
-	NSMutableArray			*missionDestinations;
+	NSMutableDictionary			*missionDestinations;
 
 	double					script_time;
 	double					script_time_check;
@@ -849,6 +849,10 @@ typedef enum
 - (WormholeEntity *) wormhole;
 - (void) setWormhole:(WormholeEntity *)newWormhole;
 - (void) addScannedWormhole:(WormholeEntity*)wormhole;
+
+- (void) initialiseMissionDestinations:(NSDictionary *)destinations andLegacy:(NSArray *)legacy;
+- (void) addMissionDestination:(unsigned)dest forGroup:(NSString *)group;
+- (void) removeMissionDestination:(unsigned)dest forGroup:(NSString *)group;
 
 @end
 
