@@ -11039,6 +11039,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	found_target = primaryTarget;
 	[shipAI reactToMessage:@"WITCHSPACE OKAY" context:@"performHyperSpaceExit"];	// must be a reaction, the ship is about to disappear
 	
+	// CIM 2012.07.22 above only covers those cases where ship expected to leave
+	if ([[self escortArray] count] > 1)
+	{
+		// so wormhole escorts anyway if it leaves unexpectedly.
+		[self wormholeEscorts];
+	}
+
 	if ([self scriptedMisjump])
 	{
 		[self setScriptedMisjump:NO];

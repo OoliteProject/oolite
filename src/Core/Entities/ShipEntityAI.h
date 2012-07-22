@@ -42,4 +42,8 @@ MA 02110-1301, USA.
 - (BOOL) performHyperSpaceToSpecificSystem:(OOSystemID)systemID;
 - (void) scanForNearestIncomingMissile;
 
+- (void) enterTargetWormhole;
+
+- (void) wormholeEscorts;
+
 @end

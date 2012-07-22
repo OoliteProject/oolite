@@ -2183,6 +2183,29 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
+// used to avoid having lost escorts when player advances clock while docked
+- (void) forceWitchspaceEntries
+{
+	unsigned i;
+	for (i = 0; i < n_entities; i++)
+	{
+		if (sortedEntities[i]->isShip)
+		{
+			ShipEntity *my_ship = (ShipEntity*)sortedEntities[i];
+			Entity* my_target = [my_ship primaryTarget];
+			if ([my_target isWormhole])
+			{
+				[my_ship enterTargetWormhole];
+			}
+			else if ([[[my_ship getAI] state] isEqualToString:@"ENTER_WORMHOLE"])
+			{
+				[my_ship enterTargetWormhole];
+			}
+		}
+	}
+}
+
+
 - (void) addWitchspaceJumpEffectForShip:(ShipEntity *)ship
 {
 	[self addEntity:[OORingEffectEntity ringFromEntity:ship]];

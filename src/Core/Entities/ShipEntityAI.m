@@ -161,7 +161,6 @@
 
 - (void) performHyperSpaceExit;
 - (void) performHyperSpaceExitWithoutReplacing;
-- (void) wormholeEscorts;
 - (void) wormholeGroup;
 - (void) wormholeEntireGroup;
 
@@ -248,8 +247,6 @@
 - (void) addFuel:(NSString *) fuel_number;
 
 - (void) enterPlayerWormhole;
-
-- (void) enterTargetWormhole;
 
 - (void) scriptActionOnTarget:(NSString *) action;
 
@@ -346,6 +343,78 @@
 		IsHostileAgainstTargetPredicate, self
 	};
 	[self scanForNearestShipWithPredicate:ANDPredicate parameter:&param];
+}
+
+
+- (void) enterTargetWormhole
+{
+	WormholeEntity *whole = nil;
+	ShipEntity		*targEnt = [self primaryTarget];
+	double found_d2 = scannerRange * scannerRange;
+	
+	if (targEnt && (distance2(position, [targEnt position]) < found_d2))
+	{
+		if ([targEnt isWormhole])
+			whole = (WormholeEntity *)targEnt;
+		else if ([targEnt isPlayer])
+			whole = [PLAYER wormhole];
+	}
+
+	if (!whole)
+	{
+		// locate nearest wormhole
+		int				ent_count =		UNIVERSE->n_entities;
+		Entity**		uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
+		WormholeEntity*	wormholes[ent_count];
+		int i;
+		int wh_count = 0;
+		for (i = 0; i < ent_count; i++)
+			if (uni_entities[i]->isWormhole)
+				wormholes[wh_count++] = [(WormholeEntity *)uni_entities[i] retain];
+		//
+		//double found_d2 = scannerRange * scannerRange;
+		for (i = 0; i < wh_count ; i++)
+		{
+			WormholeEntity *wh = wormholes[i];
+			double d2 = distance2(position, wh->position);
+			if (d2 < found_d2)
+			{
+				whole = wh;
+				found_d2 = d2;
+			}
+			[wh release];
+		}
+	}
+	
+	[self enterWormhole:whole replacing:NO];
+}
+
+
+// FIXME: resolve this stuff.
+- (void) wormholeEscorts
+{
+	NSEnumerator		*shipEnum = nil;
+	ShipEntity			*ship = nil;
+	NSString			*context = nil;
+	WormholeEntity		*whole = nil;
+	
+	whole = [self primaryTarget];
+	if (![whole isWormhole])  return;
+	
+#ifndef NDEBUG
+	context = [NSString stringWithFormat:@"%@ wormholeEscorts", [self shortDescription]];
+#endif
+	
+	for (shipEnum = [self escortEnumerator]; (ship = [shipEnum nextObject]); )
+	{
+		[ship addTarget:whole];
+		[ship reactToAIMessage:@"ENTER WORMHOLE" context:context];
+	}
+	
+	// We now have no escorts..
+	[_escortGroup release];
+	_escortGroup = nil;
+	
 }
 
 @end
@@ -1241,34 +1310,6 @@
 - (void) disengageAutopilot
 {
 	OOLogERR(@"ai.invalid.notPlayer", @"Error in %@:%@, AI method endAutoPilot is only applicable to the player.", [shipAI name], [shipAI state]);
-}
-
-
-// FIXME: resolve this stuff.
-- (void) wormholeEscorts
-{
-	NSEnumerator		*shipEnum = nil;
-	ShipEntity			*ship = nil;
-	NSString			*context = nil;
-	WormholeEntity		*whole = nil;
-	
-	whole = [self primaryTarget];
-	if (![whole isWormhole])  return;
-	
-#ifndef NDEBUG
-	context = [NSString stringWithFormat:@"%@ wormholeEscorts", [self shortDescription]];
-#endif
-	
-	for (shipEnum = [self escortEnumerator]; (ship = [shipEnum nextObject]); )
-	{
-		[ship addTarget:whole];
-		[ship reactToAIMessage:@"ENTER WORMHOLE" context:context];
-	}
-	
-	// We now have no escorts..
-	[_escortGroup release];
-	_escortGroup = nil;
-	
 }
 
 
@@ -2431,52 +2472,10 @@
 	[self setFuel:[self fuel] + [fuel_number intValue] * 10];
 }
 
+
 - (void) enterPlayerWormhole
 {
 	[self enterWormhole:[PLAYER wormhole] replacing:NO];
-}
-
-- (void) enterTargetWormhole
-{
-	WormholeEntity *whole = nil;
-	ShipEntity		*targEnt = [self primaryTarget];
-	double found_d2 = scannerRange * scannerRange;
-	
-	if (targEnt && (distance2(position, [targEnt position]) < found_d2))
-	{
-		if ([targEnt isWormhole])
-			whole = (WormholeEntity *)targEnt;
-		else if ([targEnt isPlayer])
-			whole = [PLAYER wormhole];
-	}
-
-	if (!whole)
-	{
-		// locate nearest wormhole
-		int				ent_count =		UNIVERSE->n_entities;
-		Entity**		uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-		WormholeEntity*	wormholes[ent_count];
-		int i;
-		int wh_count = 0;
-		for (i = 0; i < ent_count; i++)
-			if (uni_entities[i]->isWormhole)
-				wormholes[wh_count++] = [(WormholeEntity *)uni_entities[i] retain];
-		//
-		//double found_d2 = scannerRange * scannerRange;
-		for (i = 0; i < wh_count ; i++)
-		{
-			WormholeEntity *wh = wormholes[i];
-			double d2 = distance2(position, wh->position);
-			if (d2 < found_d2)
-			{
-				whole = wh;
-				found_d2 = d2;
-			}
-			[wh release];
-		}
-	}
-	
-	[self enterWormhole:whole replacing:NO];
 }
 
 
@@ -2785,6 +2784,9 @@
 	[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL" context:context];
 	
 }
+
+
+
 
 @end
 

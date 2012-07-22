@@ -364,6 +364,7 @@ enum
 
 - (BOOL) roleIsPirateVictim:(NSString *)role;
 
+- (void) forceWitchspaceEntries;
 - (void) addWitchspaceJumpEffectForShip:(ShipEntity *)ship;
 
 - (void) setUpBreakPattern:(Vector)pos orientation:(Quaternion)q forDocking:(BOOL)forDocking;

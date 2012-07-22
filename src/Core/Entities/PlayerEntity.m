@@ -5075,6 +5075,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[[OOMusicController sharedController] stop];
 
+	[UNIVERSE forceWitchspaceEntries];
 	ship_clock_adjust += 600.0;			// 10 minutes to leave dock
 	
 	[station launchShip:self];
@@ -7089,6 +7090,7 @@ static NSString *last_outfitting_key=nil;
 			// adjust time before playerBoughtEquipment gets to change credits dynamically
 			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
 			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
+			[UNIVERSE forceWitchspaceEntries];
 			ship_clock_adjust += time_adjust + 600.0;
 			
 			[self doScriptEvent:OOJSID("playerBoughtEquipment") withArgument:key];
@@ -8064,6 +8066,7 @@ static NSString *last_outfitting_key=nil;
 	// one of the fined-@-credits strings includes expansion tokens
 	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(DESC(@"fined-@-credits")), OOCredits(fine)];
 	[self addMessageToReport:fined_message];
+	[UNIVERSE forceWitchspaceEntries];
 	ship_clock_adjust += 24 * 3600;	// take up a day
 }
 

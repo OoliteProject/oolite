@@ -3580,6 +3580,7 @@ static BOOL autopilot_pause;
 		}
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 		
+		[UNIVERSE forceWitchspaceEntries];
 		ship_clock_adjust += 1200.0;			// 20 minutes penalty to enter dock
 		ident_engaged = NO;
 		[self safeAllMissiles];
