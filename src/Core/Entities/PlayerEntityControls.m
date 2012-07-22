@@ -875,7 +875,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"next target";
 				//	'+' // next target
-				if ([gameView isDown:key_next_target])
+				if ([gameView isDown:key_next_target] || joyButtonState[BUTTON_NEXTTARGET])
 				{
 					if ((!next_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
 					{
@@ -887,7 +887,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"previous target";
 				//	'-' // previous target
-				if ([gameView isDown:key_previous_target])
+				if ([gameView isDown:key_previous_target] || joyButtonState[BUTTON_PREVTARGET])
 				{
 					if ((!previous_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
 					{

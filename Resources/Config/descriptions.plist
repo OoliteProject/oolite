@@ -1087,6 +1087,8 @@
 	"stickmapper-weapons-online-toggle"	= "Weapons online toggle";
 	"stickmapper-ECM"				= "ECM";
 	"stickmapper-toggle-ID"			= "Toggle ID";
+	"stickmapper-previous-target"	= "Select previous target";
+	"stickmapper-next-target"		= "Select next target";
 	"stickmapper-fuel-injection"	= "Fuel injection";
 	"stickmapper-hyperspeed"		= "Hyperspeed";
 	"stickmapper-roll/pitch-precision-toggle"	= "Roll/pitch precision toggle";

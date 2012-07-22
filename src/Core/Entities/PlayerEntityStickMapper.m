@@ -502,6 +502,16 @@ MA 02110-1301, USA.
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_ID]];
 	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-previous-target")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_PREVTARGET]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-next-target")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_NEXTTARGET]];
+	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-fuel-injection")
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
