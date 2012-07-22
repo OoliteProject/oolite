@@ -991,7 +991,7 @@ static BOOL hostiles;
 					case CLASS_MINE:
 					case CLASS_WORMHOLE:
 					default:
-						foundHostiles = isHostile;
+						foundHostiles |= isHostile;
 						break;
 				}
 				
