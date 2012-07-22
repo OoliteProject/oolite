@@ -2032,7 +2032,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:MISSILE_ICON_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
 	
-	if (![player weaponsOnline])  alpha *= 0.2f;	// darken missile display if weapons are offline
+	BOOL weaponsOnline = [player weaponsOnline];
+	if (!weaponsOnline)  alpha *= 0.2f;	// darken missile display if weapons are offline
 	
 	if (![player dialIdentEngaged])
 	{
@@ -2045,16 +2046,16 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			if (missile)
 			{
 				[self drawIconForMissile:missile
-								selected:i == [player activeMissile]
+								selected:weaponsOnline && i == [player activeMissile]
 								  status:status
 									   x:x + (int)i * sp + 2 y:y
-								   width:siz.width *0.25f height:siz.height *0.25f
+								   width:siz.width * 0.25f height:siz.height * 0.25f
 								   alpha:alpha];
 			}
 			else
 			{
 				[self drawIconForEmptyPylonAtX:x + (int)i * sp + 2 y:y
-									width:siz.width *0.25f height:siz.height *0.25f alpha:alpha];
+									width:siz.width * 0.25f height:siz.height * 0.25f alpha:alpha];
 			}
 		}
 	}

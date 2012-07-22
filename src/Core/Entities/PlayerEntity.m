@@ -3341,26 +3341,26 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (NSString*) dial_clock
+- (NSString *) dial_clock
 {
 	return ClockToString(ship_clock, ship_clock_adjust > 0);
 }
 
 
-- (NSString*) dial_clock_adjusted
+- (NSString *) dial_clock_adjusted
 {
 	return ClockToString(ship_clock + ship_clock_adjust, NO);
 }
 
 
-- (NSString*) dial_fpsinfo
+- (NSString *) dial_fpsinfo
 {
 	unsigned fpsVal = fps_counter;	
 	return [NSString stringWithFormat:@"FPS: %3d", fpsVal];
 }
 
 
-- (NSString*) dial_objinfo
+- (NSString *) dial_objinfo
 {
 	NSString *result = [NSString stringWithFormat:@"Entities: %3d", [UNIVERSE entityCount]];
 #ifndef NDEBUG
@@ -3386,14 +3386,29 @@ static GLfloat		sBaseMass = 0.0;
 
 - (OOMissileStatus) dialMissileStatus
 {
-	return missile_status;
+	if ([self weaponsOnline])
+	{
+		return missile_status;
+	}
+	else
+	{
+		// Invariant/safety interlock: weapons offline implies missiles safe. -- Ahruman 2012-07-21
+		if (missile_status != MISSILE_STATUS_SAFE)
+		{
+			OOLogERR(@"player.missilesUnsafe", @"Missile state is not SAFE when weapons are offline. This is a bug, please report it.");
+			[self safeAllMissiles];
+		}
+		return MISSILE_STATUS_SAFE;
+	}
 }
 
-- (BOOL) canScoop:(ShipEntity*)other
+
+- (BOOL) canScoop:(ShipEntity *)other
 {
 	if (specialCargo)	return NO;
 	return [super canScoop:other];
 }
+
 
 - (OOFuelScoopStatus) dialFuelScoopStatus
 {
@@ -3406,7 +3421,9 @@ static GLfloat		sBaseMass = 0.0;
 		return SCOOP_STATUS_OKAY;
 	}
 	else
+	{
 		return SCOOP_STATUS_NOT_INSTALLED;
+	}
 }
 
 
@@ -3699,6 +3716,8 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) selectNextMissile
 {
+	if (![self weaponsOnline])  return;
+	
 	unsigned i;
 	for (i = 1; i < max_missiles; i++)
 	{
@@ -4101,6 +4120,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setWeaponsOnline:(BOOL)newValue
 {
 	weapons_online = !!newValue;
+	if (!weapons_online)  [self safeAllMissiles];
 }
 
 
@@ -8421,7 +8441,7 @@ static NSString *last_outfitting_key=nil;
 		[self playIdentLockedOn];
 		[self printIdentLockedOnForMissile:NO];
 	}
-	else if( [targetEntity isShip] ) // Only let missiles target-lock onto ships
+	else if ([targetEntity isShip] && [self weaponsOnline]) // Only let missiles target-lock onto ships
 	{
 		if ([missile_entity[activeMissile] isMissile])
 		{
@@ -8459,7 +8479,7 @@ static NSString *last_outfitting_key=nil;
 		while (target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)  target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
 		
 		int targ_id = target_memory[target_memory_index];
-		ShipEntity* potential_target = [UNIVERSE entityForUniversalID: targ_id];
+		ShipEntity *potential_target = [UNIVERSE entityForUniversalID: targ_id];
 		
 		if ((potential_target)&&(potential_target->isShip))
 		{
@@ -8518,55 +8538,55 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (Quaternion)customViewQuaternion
+- (Quaternion) customViewQuaternion
 {
 	return customViewQuaternion;
 }
 
 
-- (OOMatrix)customViewMatrix
+- (OOMatrix) customViewMatrix
 {
 	return customViewMatrix;
 }
 
 
-- (Vector)customViewOffset
+- (Vector) customViewOffset
 {
 	return customViewOffset;
 }
 
 
-- (Vector)customViewForwardVector
+- (Vector) customViewForwardVector
 {
 	return customViewForwardVector;
 }
 
 
-- (Vector)customViewUpVector
+- (Vector) customViewUpVector
 {
 	return customViewUpVector;
 }
 
 
-- (Vector)customViewRightVector
+- (Vector) customViewRightVector
 {
 	return customViewRightVector;
 }
 
 
-- (NSString*)customViewDescription
+- (NSString *) customViewDescription
 {
 	return customViewDescription;
 }
 
 
-- (void)resetCustomView
+- (void) resetCustomView
 {
 	[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex]];
 }
 
 
-- (void)setCustomViewDataFromDictionary:(NSDictionary *)viewDict
+- (void) setCustomViewDataFromDictionary:(NSDictionary *)viewDict
 {
 	customViewMatrix = kIdentityMatrix;
 	customViewOffset = kZeroVector;
@@ -8607,7 +8627,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (BOOL)showInfoFlag
+- (BOOL) showInfoFlag
 {
 	return show_info_flag;
 }

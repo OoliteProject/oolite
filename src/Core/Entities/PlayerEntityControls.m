@@ -151,6 +151,10 @@ static NSTimeInterval	time_last_frame;
 
 - (void) handleAutopilotOn:(BOOL)fastDocking;
 
+// Handlers for individual controls
+- (void) handleButtonIdent;
+- (void) handleButtonTargetMissile;
+
 @end
 
 
@@ -860,7 +864,7 @@ static NSTimeInterval	time_last_frame;
 				//  shoot 'y'   // next missile
 				if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
 				{
-					if ((!ident_engaged)&&(!next_missile_pressed))
+					if (!ident_engaged && !next_missile_pressed && [self weaponsOnline])
 					{
 						[self playNextMissileSelected];
 						[self selectNextMissile];
@@ -900,24 +904,7 @@ static NSTimeInterval	time_last_frame;
 					// ident 'on' here
 					if (!ident_pressed)
 					{
-						// Clear current target if we're already in Ident mode
-						if (ident_engaged)
-						{
-							if (primaryTarget != NO_TARGET) [self noteLostTarget];
-							primaryTarget = NO_TARGET;
-						}
-						[self safeAllMissiles];
-						ident_engaged = YES;
-						if ([self primaryTargetID] == NO_TARGET)
-						{
-							[self playIdentOn];
-							[UNIVERSE addMessage:DESC(@"ident-on") forCount:2.0];
-						}
-						else
-						{
-							[self playIdentLockedOn];
-							[self printIdentLockedOnForMissile:NO];
-						}
+						[self handleButtonIdent];
 					}
 					ident_pressed = YES;
 				}
@@ -1027,37 +1014,7 @@ static NSTimeInterval	time_last_frame;
 					// targeting 'on' here
 					if (!target_missile_pressed)
 					{
-						// Clear current target if we're already in Missile Targeting mode
-						if (missile_status != MISSILE_STATUS_SAFE)
-						{
-							primaryTarget = NO_TARGET;
-						}
-
-						// Arm missile and check for missile lock
-						missile_status = MISSILE_STATUS_ARMED;
-						if ([missile_entity[activeMissile] isMissile])
-						{
-							if ([[self primaryTarget] isShip])
-							{
-								missile_status = MISSILE_STATUS_TARGET_LOCKED;
-								[missile_entity[activeMissile] addTarget:[self primaryTarget]];
-								[self printIdentLockedOnForMissile:YES];
-								[self playMissileLockedOn];
-							}
-							else
-							{
-								[self removeTarget:nil];
-								[missile_entity[activeMissile] removeTarget:nil];
-								[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
-								[self playMissileArmed];
-							}
-						}
-						else if ([missile_entity[activeMissile] isMine])
-						{
-							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
-							[self playMineArmed];
-						}
-						ident_engaged = NO;
+						[self handleButtonTargetMissile];
 					}
 					target_missile_pressed = YES;
 				}
@@ -1073,7 +1030,7 @@ static NSTimeInterval	time_last_frame;
 						if (primaryTarget != NO_TARGET) [self noteLostTarget];
 						primaryTarget = NO_TARGET;
 						[self safeAllMissiles];
-						if (!ident_engaged)
+						if (!ident_engaged && [self weaponsOnline])
 						{
 							[UNIVERSE addMessage:DESC(@"missile-safe") forCount:2.0];
 							[self playMissileSafe];
@@ -3498,7 +3455,6 @@ static BOOL autopilot_pause;
 			[self endMissionScreenAndNoteOpportunity];	// missionScreenEnded, plus opportunity events.
 		}
 	}
-
 }
 
 
@@ -3641,6 +3597,68 @@ abort:
 	// Clean-up code
 	if (message != nil) [UNIVERSE addMessage:message forCount:4.5];
 	return;
+}
+
+
+- (void) handleButtonIdent
+{
+	// Clear current target if we're already in Ident mode
+	if (ident_engaged)  [self noteLostTarget];
+	
+	[self safeAllMissiles];
+	ident_engaged = YES;
+	if ([self primaryTargetID] == NO_TARGET)
+	{
+		[self playIdentOn];
+		[UNIVERSE addMessage:DESC(@"ident-on") forCount:2.0];
+	}
+	else
+	{
+		[self playIdentLockedOn];
+		[self printIdentLockedOnForMissile:NO];
+	}
+}
+
+
+- (void) handleButtonTargetMissile
+{
+	if (![self weaponsOnline])
+	{
+		[self handleButtonIdent];
+		return;
+	}
+	
+	// Clear current target if we're already in Missile Targeting mode
+	if (missile_status != MISSILE_STATUS_SAFE)
+	{
+		primaryTarget = NO_TARGET;
+	}
+	
+	// Arm missile and check for missile lock
+	missile_status = MISSILE_STATUS_ARMED;
+	if ([missile_entity[activeMissile] isMissile])
+	{
+		if ([[self primaryTarget] isShip])
+		{
+			missile_status = MISSILE_STATUS_TARGET_LOCKED;
+			[missile_entity[activeMissile] addTarget:[self primaryTarget]];
+			[self printIdentLockedOnForMissile:YES];
+			[self playMissileLockedOn];
+		}
+		else
+		{
+			[self noteLostTarget];
+			[missile_entity[activeMissile] noteLostTarget];
+			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
+			[self playMissileArmed];
+		}
+	}
+	else if ([missile_entity[activeMissile] isMine])
+	{
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
+		[self playMineArmed];
+	}
+	ident_engaged = NO;
 }
 
 @end
