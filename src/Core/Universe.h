@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
 		Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
-	PlayerEntity, OORoleSet, WormholeEntity, DockEntity;
+	PlayerEntity, OORoleSet, WormholeEntity, DockEntity, OOJSScript;
 
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
@@ -302,6 +302,8 @@ enum
 #if FRUSTUM_CULL
 	GLfloat         frustum[6][4];
 #endif
+
+	NSMutableDictionary  *conditionScripts;
 	
 	BOOL					_pauseMessage;
 	BOOL					_autoCommLog;
@@ -702,6 +704,10 @@ enum
 
 - (BOOL) blockJSPlayerShipProps;
 - (void) setBlockJSPlayerShipProps:(BOOL)value;
+
+- (void) loadConditionScripts;
+- (void) addConditionScripts:(NSEnumerator *)scripts;
+- (OOJSScript*) getConditionScript:(NSString *)scriptname;
 
 @end
 

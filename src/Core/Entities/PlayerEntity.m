@@ -1309,6 +1309,7 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	[worldScripts release];
 	worldScripts = [[ResourceManager loadScripts] retain];
+	[UNIVERSE loadConditionScripts];
 	
 	// if there is cargo remaining from previously (e.g. a game restart), remove it
 	if ([self cargoList] != nil)

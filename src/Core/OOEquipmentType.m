@@ -29,6 +29,7 @@ SOFTWARE.
 #import "Universe.h"
 #import "OOCollectionExtractors.h"
 #import "OOLegacyScriptWhitelist.h"
+#import "OOCacheManager.h"
 
 
 static NSArray			*sEquipmentTypes = nil;
@@ -53,12 +54,14 @@ static NSDictionary		*sMissilesRegistry = nil;
 	NSArray				*itemInfo = nil;
 	OOEquipmentType		*item = nil;
 	NSEnumerator		*itemEnum = nil;
+	NSMutableArray *conditionScripts = nil;
 	
 	equipmentData = [UNIVERSE equipmentData];
 	
 	[sEquipmentTypes release];
 	sEquipmentTypes = nil;
 	equipmentTypes = [NSMutableArray arrayWithCapacity:[equipmentData count]];
+	conditionScripts = [NSMutableArray arrayWithCapacity:[equipmentData count]];
 	DESTROY(sEquipmentTypesByIdentifier);
 	equipmentTypesByIdentifier = [NSMutableDictionary dictionaryWithCapacity:[equipmentData count]];
 	
@@ -70,8 +73,18 @@ static NSDictionary		*sMissilesRegistry = nil;
 			[equipmentTypes addObject:item];
 			[equipmentTypesByIdentifier setObject:item forKey:[item identifier]];
 		}
+		NSString* condition_script = [item conditionScript];
+		if (condition_script != nil)
+		{
+			if (![conditionScripts containsObject:condition_script])
+			{
+				[conditionScripts addObject:condition_script];
+			}
+		}
 	}
 	
+	[[OOCacheManager sharedCache] setObject:conditionScripts forKey:@"equipment conditions" inCache:@"condition scripts"];
+
 	sEquipmentTypes = [equipmentTypes copy];
 	sEquipmentTypesByIdentifier = [[NSDictionary alloc] initWithDictionary:equipmentTypesByIdentifier];
 }
@@ -139,6 +152,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	BOOL				OK = YES;
 	NSDictionary		*extra = nil;
 	NSArray				*conditions = nil;
+	NSString      *condition_script = nil;
 	
 	self = [super init];
 	if (self == nil)  OK = NO;
@@ -251,6 +265,24 @@ static NSDictionary		*sMissilesRegistry = nil;
 				_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
 				[_conditions retain];
 			}
+
+			object = [extra objectForKey:@"condition_script"];
+			if ([object isKindOfClass:[NSString class]])
+			{
+				condition_script = object;
+			}
+			else if (object != nil)
+			{
+				OOLog(@"equipment.load", @"***** ERROR: %@ for equipment item %@ is not a string.", @"condition_script", _identifier);
+			}
+			if (condition_script != nil)
+			{
+				_condition_script = [condition_script retain];
+			}
+			/* Condition scripts are shared: all equipment/ships using the
+			 * same condition script use one shared instance. Equipment
+			 * scripts and ship scripts are not shared and get one instance
+			 * per item. */
 			
 			_scriptInfo = [extra oo_dictionaryForKey:@"script_info"];
 			[_scriptInfo retain];
@@ -279,6 +311,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	DESTROY(_requiresAnyEquipment);
 	DESTROY(_incompatibleEquipment);
 	DESTROY(_conditions);
+	DESTROY(_condition_script);
 	DESTROY(_scriptInfo);
 	DESTROY(_script);
 	
@@ -484,6 +517,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 - (NSArray *) conditions
 {
 	return _conditions;
+}
+
+
+- (NSString *) conditionScript
+{
+	return _condition_script;
 }
 
 

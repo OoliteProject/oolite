@@ -79,6 +79,7 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 #import "OOJoystickManager.h"
 #import "OOScriptTimer.h"
+#import "OOJSScript.h"
 #import "OOJSFrameCallbacks.h"
 
 #if OO_LOCALIZATION_TOOLS
@@ -407,6 +408,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	espeak_Cancel();
 #endif
 #endif
+	[conditionScripts release];
 	
 	[super dealloc];
 }
@@ -2568,8 +2570,42 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 {
 	NSDictionary			*shipInfo = nil;
 	NSArray					*conditions = nil;
-	
+	NSString  *condition_script = nil;
 	shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+
+	condition_script = [shipInfo oo_stringForKey:@"condition_script"];
+	if (condition_script != nil)
+	{
+		OOJSScript *condScript = [self getConditionScript:condition_script];
+		if (condScript != nil) // should always be non-nil, but just in case
+		{
+			JSContext			*context = OOJSAcquireContext();
+			BOOL OK;
+			JSBool allow_instantiation;
+			jsval result;
+			jsval args[] = { OOJSValueFromNativeObject(context, shipKey) };
+			
+			OOJSStartTimeLimiter();
+			OK = [condScript callMethod:OOJSID("allowSpawnShip")
+						  inContext:context
+					  withArguments:args count:sizeof args / sizeof *args
+							 result:&result];
+			OOJSStopTimeLimiter();
+
+			if (OK) OK = JS_ValueToBoolean(context, result, &allow_instantiation);
+			
+			OOJSRelinquishContext(context);
+
+			if (OK && !allow_instantiation)
+			{
+				/* if the script exists, the function exists, the function
+				 * returns a bool, and that bool is false, block
+				 * instantiation. Otherwise allow it as default */
+				return NO;
+			}
+		}
+	}
+
 	conditions = [shipInfo oo_arrayForKey:@"conditions"];
 	if (conditions == nil)  return YES;
 	
@@ -7662,6 +7698,39 @@ static double estimatedTimeForJourney(double distance, int hops)
 			{
 				[keysForShips removeObjectAtIndex:si--];
 			}
+			NSString *condition_script = [dict oo_stringForKey:@"condition_script"];
+			if (condition_script != nil)
+			{
+				OOJSScript *condScript = [self getConditionScript:condition_script];
+				if (condScript != nil) // should always be non-nil, but just in case
+				{
+					JSContext			*context = OOJSAcquireContext();
+					BOOL OK;
+					JSBool allow_purchase;
+					jsval result;
+					jsval args[] = { OOJSValueFromNativeObject(context, key) };
+			
+					OOJSStartTimeLimiter();
+					OK = [condScript callMethod:OOJSID("allowOfferShip")
+												inContext:context
+										withArguments:args count:sizeof args / sizeof *args
+													 result:&result];
+					OOJSStopTimeLimiter();
+
+					if (OK) OK = JS_ValueToBoolean(context, result, &allow_purchase);
+			
+					OOJSRelinquishContext(context);
+
+					if (OK && !allow_purchase)
+					{
+						/* if the script exists, the function exists, the function
+						 * returns a bool, and that bool is false, block
+						 * purchase. Otherwise allow it as default */
+						[keysForShips removeObjectAtIndex:si--];
+					}
+				}
+			}
+
 		}
 		
 		NSDictionary	*systemInfo = [self generateSystemData:system_seed];
@@ -8821,7 +8890,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	memset(entity_for_uid, 0, sizeof entity_for_uid);
 	
 	[self setMainLightPosition:kZeroVector];
-	
+
 	[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init];
 	
@@ -8891,7 +8960,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	[equipmentData autorelease];
 	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (strict)  [self filterOutNonStrictEquipment];
-	
+
 	[OOEquipmentType loadEquipment];
 }
 
@@ -10058,6 +10127,41 @@ static void PreloadOneSound(NSString *soundName)
 	if (max < value)  value = max;
 	
 	shaderEffectsLevel = value;
+}
+
+
+
+- (void) loadConditionScripts
+{
+	[conditionScripts autorelease];
+	conditionScripts = [[NSMutableDictionary alloc] init];
+	// get list of names from cache manager 
+	[self addConditionScripts:[[[OOCacheManager sharedCache] objectForKey:@"equipment conditions" inCache:@"condition scripts"] objectEnumerator]];
+	
+	[self addConditionScripts:[[[OOCacheManager sharedCache] objectForKey:@"ship conditions" inCache:@"condition scripts"] objectEnumerator]];
+}
+
+
+- (void) addConditionScripts:(NSEnumerator *)scripts;
+{
+	NSString *scriptname = nil;
+	while ((scriptname = [scripts nextObject]))
+	{
+		if ([conditionScripts objectForKey:scriptname] == nil)
+		{
+			OOJSScript *script = [OOScript jsScriptFromFileNamed:scriptname properties:nil];
+			if (script != nil)
+			{
+				[conditionScripts setObject:script forKey:scriptname];
+			}
+		}
+	}
+}
+
+
+- (OOJSScript*) getConditionScript:(NSString *)scriptname
+{
+	return [conditionScripts objectForKey:scriptname];
 }
 
 @end

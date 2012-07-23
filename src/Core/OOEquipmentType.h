@@ -63,6 +63,7 @@ SOFTWARE.
 	NSArray					*_conditions;
 	NSDictionary			*_scriptInfo;
 	NSString				*_script;
+	NSString				*_condition_script;
 	
 	struct JSObject			*_jsSelf;
 }
@@ -112,6 +113,8 @@ SOFTWARE.
 
 // FIXME: should have general mechanism to handle scripts or legacy conditions.
 - (NSArray *) conditions;
+
+- (NSString *) conditionScript;
 
 - (NSDictionary *) scriptInfo;
 - (NSString *) scriptName;

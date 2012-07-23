@@ -38,6 +38,7 @@ SOFTWARE.
 #import "OOLegacyScriptWhitelist.h"
 #import "OODeepCopy.h"
 #import "OOColor.h"
+#import "Universe.h"
 
 
 #define PRELOAD 0
@@ -52,6 +53,7 @@ static NSString * const	kShipRegistryCacheName = @"ship registry";
 static NSString * const	kShipDataCacheKey = @"ship data";
 static NSString * const	kPlayerShipsCacheKey = @"player ships";
 static NSString * const	kDemoShipsCacheKey = @"demo ships";
+static NSString * const	kConditionScriptsCacheKey = @"condition scripts";
 static NSString * const	kRoleWeightsCacheKey = @"role weights";
 static NSString * const	kDefaultDemoShip = @"coriolis-station";
 
@@ -854,6 +856,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 
 /*	Transform conditions, determinant (if conditions array) and
 	shipyard.conditions from hasShipyard to sanitized form.
+  Also get list of condition_scripts
 */
 - (BOOL) sanitizeConditions:(NSMutableDictionary *)ioData
 {
@@ -864,11 +867,24 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSArray					*conditions = nil;
 	NSArray					*hasShipyard = nil;
 	NSArray					*shipyardConditions = nil;
+	NSString        *condition_script = nil;
+	NSString        *shipyard_condition_script = nil;
 	
+	NSMutableArray *conditionScripts = [[NSMutableArray alloc] init];
+
 	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		conditions = [shipEntry objectForKey:@"conditions"];
+		condition_script = [shipEntry oo_stringForKey:@"condition_script"];
+		if (condition_script != nil)
+		{
+			if (![conditionScripts containsObject:condition_script])
+			{
+				[conditionScripts addObject:condition_script];
+			}
+		}
+
 		hasShipyard = [shipEntry objectForKey:@"has_shipyard"];
 		if (![hasShipyard isKindOfClass:[NSArray class]])  hasShipyard = nil;	// May also be fuzzy boolean
 		if (hasShipyard == nil)
@@ -877,6 +893,15 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			if (![hasShipyard isKindOfClass:[NSArray class]])  hasShipyard = nil;	// May also be fuzzy boolean
 		}
 		shipyardConditions = [[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] objectForKey:@"conditions"];
+		shipyard_condition_script = [[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] oo_stringForKey:@"condition_script"];
+		if (shipyard_condition_script != nil)
+		{
+			if (![conditionScripts containsObject:shipyard_condition_script])
+			{
+				[conditionScripts addObject:shipyard_condition_script];
+			}
+		}
+
 		
 		if (conditions == nil && hasShipyard && shipyardConditions == nil)  continue;
 		
@@ -943,7 +968,10 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			[shipEntry setObject:mutableShipyard forKey:@"_oo_shipyard"];
 		}
 	}
-	
+
+	[[OOCacheManager sharedCache] setObject:conditionScripts forKey:@"ship conditions" inCache:@"condition scripts"];
+	[conditionScripts release];
+
 	return YES;
 }
 

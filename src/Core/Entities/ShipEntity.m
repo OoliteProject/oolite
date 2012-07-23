@@ -2775,6 +2775,43 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([eqType requiresFreePassengerBerth] && [self passengerCount] >= [self passengerCapacity])  return NO;
 	if ([eqType requiresFullFuel] && [self fuel] < [self fuelCapacity] && !loading)  return NO;
 	if ([eqType requiresNonFullFuel] && [self fuel] >= [self fuelCapacity] && !loading)  return NO;
+
+	if (!loading)
+	{
+		NSString *condition_script = [eqType conditionScript];
+		if (condition_script != nil)
+		{
+			OOJSScript *condScript = [UNIVERSE getConditionScript:condition_script];
+			if (condScript != nil) // should always be non-nil, but just in case
+			{
+				JSContext			*context = OOJSAcquireContext();
+				BOOL OK;
+				JSBool allow_addition;
+				jsval result;
+				jsval args[] = { OOJSValueFromNativeObject(context, equipmentKey) , OOJSValueFromNativeObject(context, self) };
+				
+				OOJSStartTimeLimiter();
+				OK = [condScript callMethod:OOJSID("allowAwardEquipment")
+											inContext:context
+									withArguments:args count:sizeof args / sizeof *args
+												 result:&result];
+				OOJSStopTimeLimiter();
+
+				if (OK) OK = JS_ValueToBoolean(context, result, &allow_addition);
+				
+				OOJSRelinquishContext(context);
+
+				if (OK && !allow_addition)
+				{
+					/* if the script exists, the function exists, the function
+					 * returns a bool, and that bool is false, block
+					 * addition. Otherwise allow it as default */
+					return NO;
+				}
+			}
+		}
+	}
+
 	if ([self isPlayer])
 	{
 		if (![eqType isAvailableToPlayer])  return NO;
