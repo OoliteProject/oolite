@@ -5243,7 +5243,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) drawDebugStuff
 {
 	
-	if (reportAIMessages)
+	if (0 && reportAIMessages)
 	{
 		OODebugDrawPoint(destination, [OOColor blueColor]);
 		OODebugDrawColoredLine([self position], destination, [OOColor colorWithCalibratedWhite:0.15 alpha:1.0]);
