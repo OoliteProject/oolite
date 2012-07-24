@@ -221,13 +221,9 @@ MA 02110-1301, USA.
 - (NSString*) canAcceptShipForDocking:(ShipEntity *) ship
 {
 	// First test permanent rejection reasons
-	if (!allow_docking && (![ship isPlayer] || !allow_player_docking))
+	if (!allow_docking)
 	{
 		return @"DOCK_CLOSED"; // could be temp or perm reject
-	}
-	if (!allow_player_docking && [ship isPlayer])
-	{
-		return @"TOO_BIG_TO_DOCK"; // player always gets perm-reject in this case
 	}
 	BoundingBox bb = [ship totalBoundingBox];
 	if ((port_dimensions.x < (bb.max.x - bb.min.x) || port_dimensions.y < (bb.max.y - bb.min.y)) && 
@@ -643,15 +639,10 @@ MA 02110-1301, USA.
 	BOOL allow_docking_thisship = allow_docking;
 	if (!allow_docking && allow_player_docking)
 	{
-		// player can dock here
 		allow_docking_thisship = YES;
-		// other ships also allowed to dock here, but will never be directed
-		// here by traffic control
-	}
-	else if (allow_docking && !allow_player_docking && [ship isPlayer])
-	{
-		// player cannot dock here
-		allow_docking_thisship = NO;
+		// ships can physically dock here, and this routine is mainly for
+		// collision detection, but will never be directed here by traffic
+		// control
 	}
 	
 	StationEntity *station = (StationEntity *)[self parentEntity];
@@ -784,20 +775,9 @@ MA 02110-1301, USA.
 
 - (void) pullInShipIfPermitted:(ShipEntity *)ship
 {
-	BOOL allow_docking_thisship = allow_docking;
-	if (!allow_docking && allow_player_docking)
-	{
-		// player can dock here
-		allow_docking_thisship = YES;
-		// other ships also allowed to dock here, but will never be directed
-		// here by traffic control
-	}
-	else if (allow_docking && !allow_player_docking && [ship isPlayer])
-	{
-		// player cannot dock here
-		allow_docking_thisship = NO;
-	}
-	if (allow_docking_thisship)
+	// allow_docking: docking permitted and expected
+	// allow_player_docking: unauthorised docking does not result in explosion
+	if (allow_docking || allow_player_docking)
 	{
 		[ship enterDock:(StationEntity*)[self parentEntity]];
 	}

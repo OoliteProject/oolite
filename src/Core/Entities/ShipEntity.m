@@ -845,7 +845,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
 	{
 		BOOL allow_docking = [subentDict oo_boolForKey:@"allow_docking" defaultValue:YES];
-		BOOL allow_player = [subentDict oo_boolForKey:@"allow_player_docking" defaultValue:YES];
+		// note the inversion at this point
+		BOOL allow_player = ![subentDict oo_boolForKey:@"disallowed_docking_collides" defaultValue:NO];
 		BOOL allow_launching = [subentDict oo_boolForKey:@"allow_launching" defaultValue:YES];
 		// do not include this key in OOShipRegistry; should never be set by shipdata
 		BOOL virtual_dock = [subentDict oo_boolForKey:@"_is_virtual_dock" defaultValue:NO];

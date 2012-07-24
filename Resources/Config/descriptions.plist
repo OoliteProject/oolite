@@ -704,6 +704,20 @@
 		"Negative. Your ship cannot dock here.",
 		"Docking clearance denied."
 	);
+	"station-docking-clearance-denied-no-docks" =
+	(
+		"Docking clearance refused to all vessels.",
+		"Docking is not allowed at this station.",
+		"Negative. Your ship cannot dock here.",
+		"Docking clearance denied."
+	);
+	"station-docking-clearance-denied-no-docks-yet" =
+	(
+		"Docking clearance is refused at this time.",
+		"Docking bays are closed. Please come back later.",
+		"We do not have any docks open at this time.",
+		"Docking clearance denied."
+	);
 	"station-docking-clearance-granted-until-@" =
 	(
 		"You are cleared to dock. Please proceed. Clearance expires at %@",

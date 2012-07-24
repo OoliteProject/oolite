@@ -646,7 +646,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	[virtualDockDict oo_setBool:YES forKey:@"is_dock"];
 	[virtualDockDict setObject:@"the docking bay" forKey:@"dock_label"];
 	[virtualDockDict oo_setBool:YES forKey:@"allow_docking"];
-	[virtualDockDict oo_setBool:YES forKey:@"allow_player_docking"];
+	[virtualDockDict oo_setBool:NO forKey:@"disallowed_docking_collides"];
 	[virtualDockDict oo_setBool:YES forKey:@"allow_launching"];
 	[virtualDockDict oo_setBool:YES forKey:@"_is_virtual_dock"];
 
@@ -913,7 +913,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsPlayerDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
+		if ([sub allowsDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
 		{
 			return YES;
 		}
@@ -944,7 +944,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsPlayerDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
+		if ([sub allowsDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
 		{
 			return sub;
 		}
@@ -1253,7 +1253,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if (![self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a ship with role %@, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a ship with role %@, as the %@ has no launch docks.",
 			  role, [self displayName]);
 		return nil;
 	}
@@ -1412,7 +1412,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if (![self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a police ship, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a police ship, as the %@ has no launch docks.",
 			  [self displayName]);
 		return [NSArray array];
 	}
@@ -1477,7 +1477,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if (![self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a defense ship, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a defense ship, as the %@ has no launch docks.",
 			  [self displayName]);
 		return nil;
 	}
@@ -1582,7 +1582,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if (![self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a scavenger ship, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a scavenger ship, as the %@ has no launch docks.",
 			  [self displayName]);
 		return nil;
 	}
@@ -1627,7 +1627,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if (![self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a miner ship, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a miner ship, as the %@ has no launch docks.",
 			  [self displayName]);
 		return nil;
 	}
@@ -1676,7 +1676,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if ([self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a pirate ship, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a pirate ship, as the %@ has no launch docks.",
 			  [self displayName]);
 		return nil;
 	}
@@ -1737,7 +1737,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if (![self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a shuttle ship, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a shuttle ship, as the %@ has no launch docks.",
 			  [self displayName]);
 		return nil;
 	}
@@ -1775,7 +1775,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if (![self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for an escort ship, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for an escort ship, as the %@ has no launch docks.",
 			  [self displayName]);
 		return;
 	}
@@ -1805,7 +1805,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if (![self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a patrol ship, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a patrol ship, as the %@ has no launch docks.",
 			  [self displayName]);
 		return nil;
 	}
@@ -1861,7 +1861,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	if (![self hasLaunchDock])
 	{
-		OOLog(@"station.launchShip.failed", @"Cancelled launch for a ship with role %@, as the %@ has no launch docks.",
+		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a ship with role %@, as the %@ has no launch docks.",
 			  role, [self displayName]);
 		return;
 	}
@@ -2038,6 +2038,52 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 																					[self currentlyInLaunchingQueues]+1] toShip:other];
 			// No need to set status to REQUESTED as we've already done that earlier.
 			result = @"DOCKING_CLEARANCE_DENIED_TRAFFIC_OUTBOUND";
+		}
+		if (result == nil)
+		{
+			// if this happens, the station has no docks which allow
+			// docking, so deny clearance
+			if ([other isPlayer])
+			{
+				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+			}
+			result = @"DOCKING_CLEARANCE_DENIED_NO_DOCKS";
+			// but can check to see if we'll open some for later.
+			NSEnumerator	*subEnum = nil;
+			DockEntity* sub = nil;
+			BOOL openLater = NO;
+			for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+			{
+				NSString *docking = [sub canAcceptShipForDocking:other];
+				if ([docking isEqualToString:@"DOCK_CLOSED"])
+				{
+					JSContext	*context = OOJSAcquireContext();
+					jsval		rval = JSVAL_VOID;
+					jsval		args[] = { OOJSValueFromNativeObject(context, sub),
+														 OOJSValueFromNativeObject(context, other) };
+					JSBool tempreject = NO;
+
+					BOOL OK = [[self script] callMethod:OOJSID("willOpenDockingPortFor") inContext:context withArguments:args count:2 result:&rval];
+					if (OK)  OK = JS_ValueToBoolean(context, rval, &tempreject);
+					if (!OK)  tempreject = NO; // default to permreject
+					if (tempreject)
+					{
+						openLater = YES;
+					}
+					OOJSRelinquishContext(context);			
+				}
+				if (openLater) break;
+			}
+
+			if (openLater)
+			{
+				[self sendExpandedMessage:DESC(@"station-docking-clearance-denied-no-docks-yet") toShip:other];
+			} 
+			else
+			{
+				[self sendExpandedMessage:DESC(@"station-docking-clearance-denied-no-docks") toShip:other];
+			}
+
 		}
 	}
 
