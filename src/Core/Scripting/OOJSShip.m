@@ -134,7 +134,7 @@ enum
 	kShip_dataKey,				// string, read-only, shipdata.plist key
 	kShip_defenseTargets,		// array, read-only, defense targets
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
-	kShip_displayName,			// name displayed on screen, string, read-only
+	kShip_displayName,			// name displayed on screen, string, read/write
 	kShip_entityPersonality,	// per-ship random number, int, read-only
 	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
 	kShip_escortGroup,			// group, ShipGroup, read-only
