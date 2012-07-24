@@ -4,7 +4,7 @@ Modifications to external libraries' source code for running Oolite
 The various ports of Oolite are using a number of external libraries for graphics, sound, input and event handling. Throughout development, certain changes to the source code of these libraries have been deemed necessary, either to enable Oolite to run in a more efficient and independent manner, or simply to fix issues that occurred as a result of these external libraries themselves. Of these libraries, the ones that have to be rebuilt specifically for Oolite, together with the main reasons/areas changed for this reason are:
 
 1. gnustep-base v1.20.1 (Windows) - bug in NSInteger definition, change to dictionary format of NSUserDefaults, fix for integer truncation of integers to 32-bit when parsing XML plists (bug #32495 on the gnustep.org bugtracker) and changes to facilitate native Obj-C exceptions support.
-2. SDL v1.2.13 - (Windows) window resizing issues.
+2. SDL v1.2.13 - (Windows) window resizing issues, backported fix for setting gamma crash.
 3. SpiderMonkey v1.85 (all platforms) - certain JS macro definitions required by Oolite not guaranteed or non-existent in standard library.
 4. eSpeak v1.43.03 (Windows) - Special build of the Windows speech synthesis libespeak.dll to enable asynchronous playback. Also, defaults the eSpeak data directory to Resources/espeak-data.
 
@@ -57,6 +57,18 @@ ftp://ftp.gnustep.org/pub/gnustep/core/gnustep-base-1.20.1.tar.gz
 	SDL_VideoSurface->h = h;
 #endif
 to enable window resizing without side effects like texture corruption in the Windows port of Oolite. The entire source of the modified SDL library is included in the source distribution of the game under <source code installation folder>/deps/Cross-platform-deps/SDL/SDL-1.2.13.zip
+
+- SDL_dibvideo.c:768: Changed from
+/* BitBlt() maps colors for us */
+video->flags |= SDL_HWPALETTE;
+to
+if ( screen_pal )
+{
+	/* BitBlt() maps colors for us */
+	video->flags |= SDL_HWPALETTE;
+}
+to fix crash occuring when attempting to set the screen gamma value. This fix occured in a later version of SDL and was backported to the version used with the Windows port of Oolite.
+
 
 
 
