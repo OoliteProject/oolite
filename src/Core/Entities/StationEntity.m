@@ -413,7 +413,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 													 OOJSValueFromNativeObject(context, ship) };
 				JSBool tempreject = NO;
 
-				BOOL OK = [[self script] callMethod:OOJSID("willOpenDockingPortFor") inContext:context withArguments:args count:1 result:&rval];
+				BOOL OK = [[self script] callMethod:OOJSID("willOpenDockingPortFor") inContext:context withArguments:args count:2 result:&rval];
 				if (OK)  OK = JS_ValueToBoolean(context, rval, &tempreject);
 				if (!OK)  tempreject = NO; // default to permreject
 				if (tempreject)
