@@ -10142,7 +10142,7 @@ static void PreloadOneSound(NSString *soundName)
 }
 
 
-- (void) addConditionScripts:(NSEnumerator *)scripts;
+- (void) addConditionScripts:(NSEnumerator *)scripts
 {
 	NSString *scriptname = nil;
 	while ((scriptname = [scripts nextObject]))
