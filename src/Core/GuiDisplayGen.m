@@ -999,6 +999,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
+- (int) statusPage
+{
+	return statusPage;
+}
+
+
 - (void) drawEqptList:(NSArray *)eqptList z:(GLfloat)z 
 {
 	if ([eqptList count] == 0) return;

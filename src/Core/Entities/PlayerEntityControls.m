@@ -2164,6 +2164,62 @@ static NSTimeInterval	time_last_frame;
 			}
 
 			break;
+		case GUI_SCREEN_MANIFEST:
+			[self handleGUIUpDownArrowKeys];
+			if ([gameView isDown:gvArrowKeyLeft])
+			{
+
+				if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+				{
+					if ([[gui keyForRow:MANIFEST_SCREEN_ROW_BACK] isEqual:GUI_KEY_OK])
+					{
+						[gui setSelectedRow:MANIFEST_SCREEN_ROW_BACK];
+						[self playMenuPagePrevious];
+						[gui setStatusPage:-1];
+						[self setGuiToManifestScreen];
+					}
+					timeLastKeyPress = script_time;
+				}
+			}
+			if ([gameView isDown:gvArrowKeyRight])
+			{
+
+				if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+				{
+					if ([[gui keyForRow:MANIFEST_SCREEN_ROW_NEXT] isEqual:GUI_KEY_OK])
+					{
+						[gui setSelectedRow:MANIFEST_SCREEN_ROW_NEXT];
+						[self playMenuPageNext];
+						[gui setStatusPage:+1];
+						[self setGuiToManifestScreen];
+					}
+					timeLastKeyPress = script_time;
+				}
+			}
+			leftRightKeyPressed = [gameView isDown:gvArrowKeyRight]|[gameView isDown:gvArrowKeyLeft];
+			
+			if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick])   // 'enter'
+			{
+				if ([gameView isDown:gvMouseDoubleClick])
+				{
+					selectPressed = NO;
+					[gameView clearMouse];
+				}
+				if ((!selectPressed)&&([gui selectedRow] > -1))
+				{
+					[gui setStatusPage:([gui selectedRow] == MANIFEST_SCREEN_ROW_BACK ? -1 : +1)];
+					[self setGuiToManifestScreen];
+
+					selectPressed = YES;
+				}
+			}
+			else
+			{
+				selectPressed = NO;
+			}
+
+			break;
+
 		case GUI_SCREEN_SHIPYARD:
 			if ([self handleGUIUpDownArrowKeys])
 			{

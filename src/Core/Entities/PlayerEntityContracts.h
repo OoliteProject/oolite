@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "GuiDisplayGen.h"
 
 #define PASSENGER_KEY_NAME				@"name"
 
@@ -56,6 +57,9 @@ MA 02110-1301, USA.
 
 #define MAX_ROWS_SHIPS_FOR_SALE		12
 
+// only use within setGuiToManifestScreen
+#define SET_MANIFEST_ROW(obj,color,row) ([self setManifestScreenRow:obj inColor:[OOColor color] forRow:row ofRows:max_rows andOffset:page_offset inMultipage:multi_page])
+
 @interface PlayerEntity (Contracts)
 
 - (NSString *) processEscapePods;		// removes pods from cargo bay and treats categories of characters carried
@@ -85,6 +89,8 @@ MA 02110-1301, USA.
 - (NSArray *) passengerList;
 - (NSArray *) contractList;
 - (void) setGuiToManifestScreen;
+- (void) setManifestScreenRow:(id)object inColor:(OOColor*)color forRow:(OOGUIRow)row ofRows:(OOGUIRow)max_rows andOffset:(OOGUIRow)offset inMultipage:(BOOL)multi;
+
 
 - (void) setGuiToDockingReportScreen;
 
