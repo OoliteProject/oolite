@@ -37,12 +37,12 @@
 			<string>Viewer</string>
 			<key>LSHandlerRank</key>
 			<string>Alternate</string>
-			<key>LSTypeIsPackage</key>
-			<true/>
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>org.aegidian.oolite.oxp</string>
 			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
@@ -61,24 +61,33 @@
 	<string>Ool8</string>
 	<key>CFBundleVersion</key>
 	<string>1.77</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.games</string>
+	<key>LSMinimumSystemVersionByArchitecture</key>
+	<dict>
+		<key>x86_64</key>
+		<string>10.6.0</string>
+	</dict>
+	<key>NSDockTilePlugIn</key>
+	<string>Oolite.docktileplugin</string>
 	<key>NSMainNibFile</key>
 	<string>Oolite</string>
 	<key>NSPrincipalClass</key>
 	<string>OoliteApp</string>
-	<key>NSDockTilePlugIn</key>
-	<string>Oolite.docktileplugin</string>
+	<key>SUPublicDSAKeyFile</key>
+	<string>SparkleVerificationKey.pem</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.aegidian.oolite.save</string>
-			<key>UTTypeDescription</key>
-			<string>Oolite Saved Game</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.text</string>
 				<string>com.apple.property-list</string>
 			</array>
+			<key>UTTypeDescription</key>
+			<string>Oolite Saved Game</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.aegidian.oolite.save</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -88,15 +97,15 @@
 			</dict>
 		</dict>
 		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.aegidian.oolite.oxp</string>
-			<key>UTTypeDescription</key>
-			<string>Oolite Expansion Pack</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.item</string>
 				<string>com.apple.package</string>
 			</array>
+			<key>UTTypeDescription</key>
+			<string>Oolite Expansion Pack</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.aegidian.oolite.oxp</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -106,12 +115,5 @@
 			</dict>
 		</dict>
 	</array>
-	<key>LSMinimumSystemVersionByArchitecture</key>
-	<dict>
-		<key>x86_64</key>
-		<string>10.6.0</string>
-	</dict>
-	<key>SUPublicDSAKeyFile</key>
-	<string>SparkleVerificationKey.pem</string>
 </dict>
 </plist>
