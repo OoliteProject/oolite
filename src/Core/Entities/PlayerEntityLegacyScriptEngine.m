@@ -2333,7 +2333,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[gui setSelectableRange:NSMakeRange(0,0)];
 		
 		[gui setForegroundTextureDescriptor:[self missionOverlayDescriptorOrDefault]];
-		[gui setBackgroundTextureDescriptor:[self missionBackgroundDescriptorOrDefault]];
+		NSDictionary *background_desc = [self missionBackgroundDescriptorOrDefault];
+		NSNumber *background_spec = [background_desc objectForKey:@"special"];
+		if (background_spec != nil)
+		{
+			[gui setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)[background_spec intValue]];
+		}
+		else
+		{
+			[gui setBackgroundTextureDescriptor:background_desc];
+		}
 		
 		[gui setShowTextCursor:NO];
 	}

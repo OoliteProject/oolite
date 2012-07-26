@@ -912,9 +912,18 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
+- (void) setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)spec
+{
+	[backgroundSprite autorelease];
+	backgroundSpecial = spec;
+	[self refreshStarChart];
+}
+
+
 - (BOOL) setBackgroundTextureDescriptor:(NSDictionary *)descriptor
 {
 	[backgroundSprite autorelease];
+	backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
 	backgroundSprite = NewTextureSpriteWithDescriptor(descriptor);
 	return backgroundSprite != nil;
 }
@@ -970,7 +979,15 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (result == nil)
 	{
 		NSString *name = OOStringFromJSValue(context, value);
-		if (name != nil)
+		if ([name isEqualToString:@"SHORT_RANGE_CHART"])
+		{
+			return [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:GUI_BACKGROUND_SPECIAL_SHORT] forKey:@"special"];
+		}
+		else if ([name isEqualToString:@"LONG_RANGE_CHART"])
+		{
+			return [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:GUI_BACKGROUND_SPECIAL_LONG] forKey:@"special"];
+		}
+		else if (name != nil)
 		{
 			result = [NSDictionary dictionaryWithObject:name forKey:@"name"];
 			if ([name length] == 0)  return result;	// Explicit empty string may be used to indicate no texture.
@@ -1110,10 +1127,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	GLfloat y = drawPosition.y;
 	GLfloat z = [[UNIVERSE gameView] display_z];
 
-	if (backgroundSprite!=nil)
+	if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_NONE)
 	{
-		[backgroundSprite blitBackgroundCentredToX:x Y:y Z:z alpha:1.0f];
+		if (backgroundSprite!=nil)
+		{
+			[backgroundSprite blitBackgroundCentredToX:x Y:y Z:z alpha:1.0f];
+		}
 	}
+
 }
 
 
@@ -1137,9 +1158,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		if (self == [UNIVERSE gui])
 		{
-			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
+			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART || backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT)
+			{
 				[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
-			if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART)
+			}
+			if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART || backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG)
 			{
 				[self drawGalaxyChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 			}
@@ -1679,22 +1702,25 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		time = distance * distance;
 	}
 	
-	if (routeExists)
+	if (!(backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG))
 	{
-		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		[self setText:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-distance-f]"), distance] forRow:18];
-		NSString *travelTimeLine = @"";
-		if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
+		if (routeExists)
 		{
-			travelTimeLine = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-est-travel-time-f]"), time];
+			// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
+			[self setText:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-distance-f]"), distance] forRow:18];
+			NSString *travelTimeLine = @"";
+			if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
+			{
+				travelTimeLine = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-est-travel-time-f]"), time];
+			}
+			[self setText:travelTimeLine forRow:19];
 		}
-		[self setText:travelTimeLine forRow:19];
+		else
+		{
+			[self setText:DESC(@"long-range-chart-system-unreachable")  forRow:18];
+		}
 	}
-	else
-	{
-		[self setText:DESC(@"long-range-chart-system-unreachable")  forRow:18];
-	}
-	
+
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
 	OOGL(glLineWidth(2.0f));
 	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));

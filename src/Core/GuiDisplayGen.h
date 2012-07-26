@@ -50,6 +50,13 @@ typedef enum
 	GUI_ALIGN_CENTER
 } OOGUIAlignment;
 
+typedef enum
+{
+	GUI_BACKGROUND_SPECIAL_NONE,
+	GUI_BACKGROUND_SPECIAL_SHORT,
+	GUI_BACKGROUND_SPECIAL_LONG
+} OOGUIBackgroundSpecial;
+
 #define GUI_KEY_OK				@"OK"
 #define GUI_KEY_SKIP			@"SKIP-ROW"
 
@@ -81,7 +88,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	
 	OOTextureSprite	*backgroundSprite;
 	OOTextureSprite	*foregroundSprite;
-	
+	OOGUIBackgroundSpecial backgroundSpecial;	
+
 	NSString		*title;
 	
 	NSMutableArray  *rowText;
@@ -212,11 +220,15 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (void) scrollUp:(int) how_much;
 
+/* allows the use of special dynamic backgrounds */
+- (void) setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)spec;
+
 /*
 	A background/foreground texture descriptor is a dictionary with a string
 	property keyed "name" and optional number properties keyed "width" and
 	"height".
 */
+
 - (BOOL) setBackgroundTextureDescriptor:(NSDictionary *)descriptor;
 - (BOOL) setForegroundTextureDescriptor:(NSDictionary *)descriptor;
 - (BOOL) setBackgroundTextureKey:(NSString *)key;
