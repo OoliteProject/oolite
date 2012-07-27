@@ -1672,7 +1672,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	BOOL		routeExists = YES;
 	
 	int			i;
-	double		distance, time;
+	double		distance = 0.0, time = 0.0;
 	
 	if (showAdvancedNavArray) advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
 	
