@@ -79,6 +79,9 @@ typedef enum
 + (NSDictionary *) whitelistDictionary;
 + (NSDictionary *) shaderBindingTypesDictionary;
 
+// This has special merging rules.
++ (NSDictionary *) logControlDictionary;
+
 + (OOSound *)ooSoundNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 + (OOMusic *)ooMusicNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 

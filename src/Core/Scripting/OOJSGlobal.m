@@ -125,7 +125,7 @@ static JSFunctionSpec sGlobalMethods[] =
 {
 	// JS name							Function								min args
 	{ "log",							GlobalLog,							1 },
-	{ "autoAIForRole",		GlobalAutoAIForRole,		1 },
+	{ "autoAIForRole",					GlobalAutoAIForRole,				1 },
 	{ "expandDescription",				GlobalExpandDescription,			1 },
 	{ "expandMissionText",				GlobalExpandMissionText,			1 },
 	{ "displayNameForCommodity",		GlobalDisplayNameForCommodity,		1 },
@@ -243,6 +243,12 @@ static JSBool GlobalLog(JSContext *context, uintN argc, jsval *vp)
 	else
 	{
 		messageClass = OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]);
+		if (!OOLogWillDisplayMessagesInClass(messageClass))
+		{
+			// Do nothing (and short-circuit) if message class is filtered out.
+			OOJS_RETURN_VOID;
+		}
+		
 		message = [NSString concatenationOfStringsFromJavaScriptValues:OOJS_ARGV + 1 count:argc - 1 separator:@", " inContext:context];
 	}
 	

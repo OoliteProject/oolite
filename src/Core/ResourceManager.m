@@ -753,6 +753,89 @@ static NSMutableDictionary *sStringCache;
 }
 
 
+static NSString *LogClassKeyRoot(NSString *key)
+{
+	NSRange dot = [key rangeOfString:@"."];
+	if (dot.location != NSNotFound)
+	{
+		return [key substringToIndex:dot.location];
+	}
+	else
+	{
+		return key;
+	}
+}
+
+
++ (NSDictionary *) logControlDictionary
+{
+	// Load built-in copy of logcontrol.plist.
+	NSString *path = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"]
+					  stringByAppendingPathComponent:@"logcontrol.plist"];
+	NSMutableDictionary *logControl = [NSMutableDictionary dictionaryWithDictionary:OODictionaryFromFile(path)];
+	if (logControl == nil)  logControl = [NSMutableDictionary dictionary];
+	
+	// Build list of root log message classes that appear in the built-in list.
+	NSMutableSet *coreRoots = [NSMutableSet set];
+	NSString *key = nil;
+	foreachkey(key, logControl)
+	{
+		[coreRoots addObject:LogClassKeyRoot(key)];
+	}
+	
+	NSArray *rootPaths = [self rootPaths];
+	NSString *configPath = nil;
+	NSDictionary *dict = nil;
+	
+	// Look for logcontrol.plists inside OXPs (but not in root paths). These are not allowed to define keys in hierarchies used by the build-in one.
+	NSEnumerator *pathEnum = [self pathEnumerator];
+	while ((path = [pathEnum nextObject]))
+	{
+		if ([rootPaths containsObject:path])  continue;
+		
+		configPath = [[path stringByAppendingPathComponent:@"Config"]
+					  stringByAppendingPathComponent:@"logcontrol.plist"];
+		dict = OODictionaryFromFile(configPath);
+		if (dict == nil)
+		{
+			configPath = [path stringByAppendingPathComponent:@"logcontrol.plist"];
+			dict = OODictionaryFromFile(configPath);
+		}
+		foreachkey (key, dict)
+		{
+			if (![coreRoots containsObject:LogClassKeyRoot(key)])
+			{
+				[logControl setObject:[dict objectForKey:key] forKey:key];
+			}
+		}
+	}
+	
+	// Now, look for logcontrol.plists in root paths, i.e. not within OXPs. These are allowed to override the built-in copy.
+	pathEnum = [rootPaths objectEnumerator];
+	while ((path = [pathEnum nextObject]))
+	{
+		configPath = [[path stringByAppendingPathComponent:@"Config"]
+					  stringByAppendingPathComponent:@"logcontrol.plist"];
+		dict = OODictionaryFromFile(configPath);
+		if (dict == nil)
+		{
+			configPath = [path stringByAppendingPathComponent:@"logcontrol.plist"];
+			dict = OODictionaryFromFile(configPath);
+		}
+		foreachkey (key, dict)
+		{
+			[logControl setObject:[dict objectForKey:key] forKey:key];
+		}
+	}
+	
+	// Finally, look in preferences, which can override all of the above.
+	dict = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"logging-enable"];
+	if (dict != nil)  [logControl addEntriesFromDictionary:dict];
+	
+	return logControl;
+}
+
+
 + (NSDictionary *) shaderBindingTypesDictionary
 {
 	static id shaderBindingTypesDictionary = nil;

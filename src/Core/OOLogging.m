@@ -94,8 +94,8 @@ static THREAD_LOCAL OOLogIndentStackElement
 #endif
 static BOOL						sShowFunction = NO;
 static BOOL						sShowFileAndLine = NO;
-static BOOL						sShowTime = YES;
-static BOOL						sShowClass = YES;
+static BOOL						sShowTime = NO;		// This is defaulted to YES when loading settings, but after printing log header.
+static BOOL						sShowClass = NO;	// Ditto.
 static BOOL						sDefaultDisplay = YES;
 static BOOL						sOverrideInEffect = NO;
 static BOOL						sOverrideValue = NO;
@@ -194,9 +194,8 @@ void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag)
 		
 		[sExplicitSettings setObject:CacheValue(inFlag) forKey:inClass];
 		
-		// Clear cache and let it be rebuilt as needed. Cost of rebuilding cache is not sufficient to warrant complexity of a partial clear.
-		[sDerivedSettingsCache release];
-		sDerivedSettingsCache = nil;
+		// Clear cache and let it be rebuilt as needed.
+		DESTROY(sDerivedSettingsCache);
 	}
 	else
 	{
@@ -595,9 +594,9 @@ void OOLoggingInit(void)
 	sInited = YES;	// Must be before OOLogOutputHandlerInit().
 	OOLogOutputHandlerInit();
 	
-	LoadExplicitSettings();
-	
 	OOPrintLogHeader();
+	
+	LoadExplicitSettings();
 	
 	[pool release];
 }
@@ -614,6 +613,12 @@ void OOLoggingTerminate(void)
 		is done by writing to stderr in this case; on other platforms, NSLog()
 		is used and OOLogOutputHandlerClose() is a no-op.
 	*/
+}
+
+
+void OOLoggingReloadSettings(void)
+{
+	LoadExplicitSettings();
 }
 
 
@@ -672,48 +677,50 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 
 
 /*	LoadExplicitSettings()
-	Read settings from logcontrol.plist, merge in settings from preferences.
+	Read settings from logcontrol.plists, merge in settings from preferences.
+	
+	Log settings are loaded from the following locations, from lowest to
+	highest priority:
+		* Built-in logcontrol.plist.
+		* logcontrol.plist inside OXPs, but only in hierarchies not defined
+		  by the built-in plist.
+		* Loose logcontrol.plist files in AddOns folders.
+		* Preferences (settable through the debug log).
+	
+	Because the settings are loaded very early (OOLoggingInit() time), before
+	the state of strict mode has been set, OXP settings are always loaded.
+	Since these generally shouldn't have any effect in strict mode, that's
+	fine.
 */
 static void LoadExplicitSettings(void)
 {
-	NSEnumerator		*rootEnum = nil;
-	NSString			*basePath = nil;
-	NSString			*configPath = nil;
-	NSDictionary		*dict = nil;
-	NSUserDefaults		*prefs = nil;
-	id					value = nil;
+	NSDictionary *oldSettings = sExplicitSettings;
 	
-	if (sExplicitSettings != nil) return;
+	/*
+		HACK: we look up search paths while loading settings, which touches
+		the cache, which logs stuff. To avoid spam like dataCache.retrieve.success,
+		we first load the built-in logcontrol.plist only and use it while
+		loading the full settings.
+	*/
+	NSString *path = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"]
+					  stringByAppendingPathComponent:@"logcontrol.plist"];
+	sExplicitSettings = [NSMutableDictionary dictionary];
+	LoadExplicitSettingsFromDictionary(OODictionaryFromFile(path));
 	
+	// Release previous sExplicitSettings.
+	[oldSettings release];
+	
+	// Load new settings.
+	NSDictionary *settings = [ResourceManager logControlDictionary];
+	
+	// Replace the old dictionary.
 	sExplicitSettings = [[NSMutableDictionary alloc] init];
 	
-	rootEnum = [[ResourceManager rootPaths] objectEnumerator];
-	while ((basePath = [rootEnum nextObject]))
-	{
-		configPath = [[basePath stringByAppendingPathComponent:@"Config"]
-								stringByAppendingPathComponent:@"logcontrol.plist"];
-		dict = OODictionaryFromFile(configPath);
-		if (dict == nil)
-		{
-			configPath = [basePath stringByAppendingPathComponent:@"logcontrol.plist"];
-			dict = OODictionaryFromFile(configPath);
-		}
-		if (dict != nil)
-		{
-			LoadExplicitSettingsFromDictionary(dict);
-		}
-	}
+	// Populate.
+	LoadExplicitSettingsFromDictionary(settings);
 	
-	// Get overrides from preferences
-	prefs = [NSUserDefaults standardUserDefaults];
-	dict = [prefs objectForKey:@"logging-enable"];
-	if ([dict isKindOfClass:[NSDictionary class]])
-	{
-		LoadExplicitSettingsFromDictionary(dict);
-	}
-	
-	// Get _default and _override value
-	value = [sExplicitSettings objectForKey:@"_default"];
+	// Get _default and _override values.
+	id value = [sExplicitSettings objectForKey:@"_default"];
 	if (value != nil && [value respondsToSelector:@selector(boolValue)])
 	{
 		if (value == kTrueToken) sDefaultDisplay = YES;
@@ -740,11 +747,15 @@ static void LoadExplicitSettings(void)
 		[sExplicitSettings removeObjectForKey:@"_override"];
 	}
 	
-	// Load display settings
-	sShowFunction = [prefs oo_boolForKey:@"logging-show-function" defaultValue:sShowFunction];
-	sShowFileAndLine = [prefs oo_boolForKey:@"logging-show-file-and-line" defaultValue:sShowFileAndLine];
-	sShowTime = [prefs oo_boolForKey:@"logging-show-time" defaultValue:sShowTime];
-	sShowClass = [prefs oo_boolForKey:@"logging-show-class" defaultValue:sShowClass];
+	// Load display settings.
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	sShowFunction = [prefs oo_boolForKey:@"logging-show-function" defaultValue:NO];
+	sShowFileAndLine = [prefs oo_boolForKey:@"logging-show-file-and-line" defaultValue:NO];
+	sShowTime = [prefs oo_boolForKey:@"logging-show-time" defaultValue:YES];
+	sShowClass = [prefs oo_boolForKey:@"logging-show-class" defaultValue:YES];
+	
+	// Invalidate cache.
+	DESTROY(sDerivedSettingsCache);
 	
 	OOLogInternal(OOLOG_SETTING_SET, @"Settings: %@", sExplicitSettings);
 }
@@ -755,13 +766,10 @@ static void LoadExplicitSettings(void)
 */
 static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict)
 {
-	NSEnumerator		*keyEnum = nil;
-	id					key = nil;
-	id					value = nil;
-	
-	for (keyEnum = [inDict keyEnumerator]; (key = [keyEnum nextObject]); )
+	id key = nil;
+	foreachkey (key, inDict)
 	{
-		value = [inDict objectForKey:key];
+		id value = [inDict objectForKey:key];
 		
 		/*	Supported values:
 			"yes", "true" or "on" -> kTrueToken
