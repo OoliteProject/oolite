@@ -681,11 +681,11 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 	
 	Log settings are loaded from the following locations, from lowest to
 	highest priority:
-		* Built-in logcontrol.plist.
 		* logcontrol.plist inside OXPs, but only in hierarchies not defined
 		  by the built-in plist.
+		* Built-in logcontrol.plist.
 		* Loose logcontrol.plist files in AddOns folders.
-		* Preferences (settable through the debug log).
+		* Preferences (settable through the debug console).
 	
 	Because the settings are loaded very early (OOLoggingInit() time), before
 	the state of strict mode has been set, OXP settings are always loaded.
