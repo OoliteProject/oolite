@@ -694,6 +694,13 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 */
 static void LoadExplicitSettings(void)
 {
+	// Load display settings.
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	sShowFunction = [prefs oo_boolForKey:@"logging-show-function" defaultValue:NO];
+	sShowFileAndLine = [prefs oo_boolForKey:@"logging-show-file-and-line" defaultValue:NO];
+	sShowTime = [prefs oo_boolForKey:@"logging-show-time" defaultValue:YES];
+	sShowClass = [prefs oo_boolForKey:@"logging-show-class" defaultValue:YES];
+	
 	NSDictionary *oldSettings = sExplicitSettings;
 	
 	/*
@@ -746,13 +753,6 @@ static void LoadExplicitSettings(void)
 		
 		[sExplicitSettings removeObjectForKey:@"_override"];
 	}
-	
-	// Load display settings.
-	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-	sShowFunction = [prefs oo_boolForKey:@"logging-show-function" defaultValue:NO];
-	sShowFileAndLine = [prefs oo_boolForKey:@"logging-show-file-and-line" defaultValue:NO];
-	sShowTime = [prefs oo_boolForKey:@"logging-show-time" defaultValue:YES];
-	sShowClass = [prefs oo_boolForKey:@"logging-show-class" defaultValue:YES];
 	
 	// Invalidate cache.
 	DESTROY(sDerivedSettingsCache);
