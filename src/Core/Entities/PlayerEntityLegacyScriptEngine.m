@@ -2004,7 +2004,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		dest = [[tokens objectAtIndex:j] intValue];
 		if (dest < 0 || dest > 255)  continue;
 
-		[self removeMissionDestination:(unsigned)dest forGroup:@"__legacy"];
+		[self removeMissionDestination:(unsigned)dest forGroup:@"__oolite_legacy_destinations"];
 	}
 }
 
