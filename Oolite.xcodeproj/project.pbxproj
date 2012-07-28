@@ -3561,7 +3561,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 0430;
+				LastUpgradeCheck = 0440;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
@@ -4196,6 +4196,7 @@
 		1AD267690C8305A200B4BFD1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "Build All";
 			};
 			name = Debug;
@@ -4203,6 +4204,7 @@
 		1AD2676A0C8305A200B4BFD1 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "Build All";
 			};
 			name = Deployment;
@@ -4210,6 +4212,7 @@
 		1AD2676B0C8305A200B4BFD1 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "Build All";
 			};
 			name = TestRelease;
