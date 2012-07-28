@@ -87,7 +87,6 @@
 #if __has_attribute(format) || (__GNUC__ && OOLITE_GCC_VERSION >= 40600)
 	#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck) __attribute__((format(NSString, stringIndex, firstToCheck)))
 #else
-	#warning No string format checking.
 	#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck)
 #endif
 
