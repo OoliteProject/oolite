@@ -891,7 +891,7 @@ NSString *OOJSDescribeLocation(JSContext *context, JSStackFrame *stackFrame)
 	NSString	*shortFileName = [fileNameObj lastPathComponent];
 	if (![[shortFileName lowercaseString] isEqualToString:@"script.js"])  fileNameObj = shortFileName;
 	
-	return [NSString stringWithFormat:@"%@:%u", fileNameObj, lineNo];
+	return [NSString stringWithFormat:@"%@:%lu", fileNameObj, lineNo];
 }
 
 

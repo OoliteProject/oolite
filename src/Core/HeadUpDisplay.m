@@ -430,7 +430,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	if (newHudName != nil)
 	{
 		[hudName release];
-		hudName = [[NSString stringWithString:newHudName] retain];
+		hudName = [newHudName copy];
 	}
 }
 
@@ -497,7 +497,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (void) setDeferredHudName:(NSString *)newDeferredHudName
 {
 	[deferredHudName release];
-	deferredHudName = [[NSString stringWithString:newDeferredHudName] retain];
+	deferredHudName = [newDeferredHudName copy];
 }
 
 
@@ -690,10 +690,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		_crosshairOverrides = [[ResourceManager dictionaryFromFilesNamed:@"crosshairs.plist"
 																													 inFolder:@"Config"
 																													 andMerge:YES] retain];
-		crosshairDefinition = [[NSString stringWithString:@"crosshairs.plist"] retain];
+		crosshairDefinition = @"crosshairs.plist";
 		return NO;
 	}
-	crosshairDefinition = [[NSString stringWithString:newDefinition] retain];
+	crosshairDefinition = [newDefinition copy];
 	return YES;
 }
 

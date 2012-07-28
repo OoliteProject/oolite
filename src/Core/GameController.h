@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 
 #import "OOCocoa.h"
+#import "OOFunctionAttributes.h"
 
 #if OOLITE_HAVE_APPKIT
 #import <Quartz/Quartz.h>	// For PDFKit.
@@ -167,9 +168,9 @@ MA 02110-1301, USA.
 - (void) beginSplashScreen;
 - (void) logProgress:(NSString *)message;
 #if OO_DEBUG
-- (void) debugLogProgress:(NSString *)format, ...;
-- (void) debugLogProgress:(NSString *)format arguments:(va_list)arguments;
-- (void) debugPushProgressMessage:(NSString *)format, ...;
+- (void) debugLogProgress:(NSString *)format, ...  OO_TAKES_FORMAT_STRING(1, 2);
+- (void) debugLogProgress:(NSString *)format arguments:(va_list)arguments  OO_TAKES_FORMAT_STRING(1, 0);
+- (void) debugPushProgressMessage:(NSString *)format, ...  OO_TAKES_FORMAT_STRING(1, 2);
 - (void) debugPopProgressMessage;
 #endif
 - (void) setProgressBarValue:(float)value;	// Negative for hidden

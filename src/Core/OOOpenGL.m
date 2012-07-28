@@ -360,7 +360,7 @@ static void GLDumpFogState(void)
 		OOLogIndent();
 		
 		OOGL(glGetIntegerv(GL_FOG_MODE, &value));
-		OOLog(kOOLogOpenGLStateDump, @"Fog mode: *@", GLEnumToString(value));
+		OOLog(kOOLogOpenGLStateDump, @"Fog mode: %@", GLEnumToString(value));
 		
 		OOGL(glGetFloatv(GL_FOG_COLOR, color));
 		OOLog(kOOLogOpenGLStateDump, @"Fog colour: %@", GLColorToString(color));

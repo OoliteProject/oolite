@@ -475,7 +475,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	if (!OOLogWillDisplayMessagesInClass(@"universe.objectDump"))  return;
 	
-	OOLog(@"universe.objectDump", @"DEBUG: Entity Dump - [entities count] = %d,\tn_entities = %d", [entities count], n_entities);
+	OOLog(@"universe.objectDump", @"DEBUG: Entity Dump - [entities count] = %lu,\tn_entities = %u", [entities count], n_entities);
 	
 	OOLogIndent();
 	for (i = 0; i < show_count; i++)
@@ -6989,7 +6989,7 @@ static NSDictionary	*sCachedSystemData = nil;
 		{		
 			if (distance < 0)
 			{
-				OOLogWARN(@"universe.findsystems", @"DEBUG: Universe neighboursToRandomSeed: found a system (%d) a negative distance (%d) away from %d", distance, seed, systems[i]);
+				OOLogWARN(@"universe.findsystems", @"DEBUG: Universe neighboursToRandomSeed: found a system pair with a negative distance (%f).", distance);
 				//i guess its still in range, but skip as it makes no sense
 				continue;
 			}
@@ -9135,7 +9135,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
 	OO_DEBUG_POP_PROGRESS();
 	
-	OO_DEBUG_PUSH_PROGRESS(@"Player init: setUpShipFromDictionary", __PRETTY_FUNCTION__);
+	OO_DEBUG_PUSH_PROGRESS(@"Player init: setUpShipFromDictionary");
 	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player shipDataKey]]];	// the standard cobra at this point
 	[player baseMass]; // bootstrap the base mass used in all fuel charge calculations.
 	OO_DEBUG_POP_PROGRESS();
@@ -10323,5 +10323,5 @@ NSString *DESC_PLURAL_(NSString *key, int count)
 	}
 	
 passed:
-	return DESC_([NSString stringWithFormat:@"%@%%%d", key, index]);
+	return DESC_([NSString stringWithFormat:@"%@%%%ld", key, index]);
 }

@@ -1130,7 +1130,7 @@ static NSMutableArray *sMessageStack;
 		OOLogOutdentIf(@"startup.progress");
 		
 		NSString *message = [sMessageStack lastObject];
-		if ([message length] > 0)  [self debugLogProgress:message];
+		if ([message length] > 0)  [self logProgress:message];
 		[sMessageStack removeLastObject];
 	}
 }
@@ -1311,7 +1311,7 @@ static NSMutableArray *sMessageStack;
 		[playerFileToLoad autorelease];
 	playerFileToLoad = nil;
 	if ([[[filename pathExtension] lowercaseString] isEqual:@"oolite-save"])
-		playerFileToLoad = [[NSString stringWithString:filename] retain];
+		playerFileToLoad = [filename copy];
 }
 
 

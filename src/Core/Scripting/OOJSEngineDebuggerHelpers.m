@@ -146,7 +146,7 @@ const char *JSValueToStrSafeDbg(jsval val)
 {
 	NSString *formatted = nil;
 	
-	if (JSVAL_IS_INT(val))			formatted = [NSString stringWithFormat:@"%i", (long)JSVAL_TO_INT(val)];
+	if (JSVAL_IS_INT(val))			formatted = [NSString stringWithFormat:@"%i", JSVAL_TO_INT(val)];
 	else if (JSVAL_IS_DOUBLE(val))	formatted = [NSString stringWithFormat:@"%g", JSVAL_TO_DOUBLE(val)];
 	else if (JSVAL_IS_BOOLEAN(val))	formatted = (JSVAL_TO_BOOLEAN(val)) ? @"true" : @"false";
 	else if (JSVAL_IS_STRING(val))
@@ -189,7 +189,7 @@ const char *JSIDToStrSafeDbg(jsid anID)
 {
 	NSString *formatted = nil;
 	
-	if (JSID_IS_INT(anID))			formatted = [NSString stringWithFormat:@"%i", (long)JSID_TO_INT(anID)];
+	if (JSID_IS_INT(anID))			formatted = [NSString stringWithFormat:@"%i", JSID_TO_INT(anID)];
 	else if (JSID_IS_VOID(anID))	return "void";
 	else if (JSID_IS_EMPTY(anID))	return "empty";
 	else if (JSID_IS_ZERO(anID))	return "0";

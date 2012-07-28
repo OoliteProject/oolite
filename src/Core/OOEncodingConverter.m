@@ -115,7 +115,7 @@ static unsigned				sCacheMisses = 0;
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"encoding: %u", _encoding];
+	return [NSString stringWithFormat:@"encoding: %lu", _encoding];
 }
 
 

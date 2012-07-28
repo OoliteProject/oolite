@@ -94,7 +94,7 @@ MA 02110-1301, USA.
 		{
 			[stickHandler clearCallback];
 			[gui setArray: [NSArray arrayWithObjects:
-							[NSString stringWithString: @"Function setting aborted."], nil]
+							@"Function setting aborted.", nil]
 				   forRow: GUI_ROW_INSTRUCT];
 			waitingForStickCallback=NO;
 		}
@@ -321,17 +321,17 @@ MA 02110-1301, USA.
 			switch(allowable)
 			{
 				case HW_AXIS:
-					allowedThings=[NSString stringWithString: @"Axis"];
+					allowedThings=@"Axis";
 					assignment=[self describeStickDict:
 								[assignedAxes objectForKey: axFuncKey]];
 					break;
 				case HW_BUTTON:
-					allowedThings=[NSString stringWithString: @"Button"];
+					allowedThings=@"Button";
 					assignment=[self describeStickDict:
 								[assignedButs objectForKey: butFuncKey]];
 					break;
 				default:
-					allowedThings=[NSString stringWithString: @"Axis/Button"];
+					allowedThings=@"Axis/Button";
 					
 					// axis has priority
 					assignment=[self describeStickDict:
@@ -342,8 +342,10 @@ MA 02110-1301, USA.
 			}
 			
 			// Find out what's assigned for this function currently.
-			if(!assignment)
-				assignment=[NSString stringWithString: @"   -   "];
+			if (assignment == nil)
+			{
+				assignment = @"   -   ";
+			}
 			
 			[gui setArray: [NSArray arrayWithObjects: 
 							[entry objectForKey: KEY_GUIDESC], assignment, allowedThings, nil]
@@ -403,13 +405,13 @@ MA 02110-1301, USA.
 	switch(hwFlags)
 	{
 		case HW_AXIS:
-			hwString=[NSString stringWithString: @"axis"];
+			hwString = @"axis";
 			break;
 		case HW_BUTTON:
-			hwString=[NSString stringWithString: @"button"];
+			hwString = @"button";
 			break;
 		default:
-			hwString=[NSString stringWithString: @"axis/button"];
+			hwString = @"axis/button";
 	}
 	return hwString;   
 }

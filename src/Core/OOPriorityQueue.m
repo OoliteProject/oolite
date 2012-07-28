@@ -175,7 +175,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 
 - (NSString *) description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{count=%u, capacity=%u}", [self class], self, _count, _capacity];
+	return [NSString stringWithFormat:@"<%@ %p>{count=%lu, capacity=%lu}", [self class], self, _count, _capacity];
 }
 
 
@@ -185,7 +185,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	NSMutableString				*result = nil;
 	
 	result = [NSMutableString string];
-	[result appendFormat:@"<%@ %p> (count=%u, capacity=%u, comparator=%@)", [self class], self, _count, _capacity, NSStringFromSelector(_comparator)];
+	[result appendFormat:@"<%@ %p> (count=%lu, capacity=%lu, comparator=%@)", [self class], self, _count, _capacity, NSStringFromSelector(_comparator)];
 	
 	if (_count != 0)
 	{
@@ -670,14 +670,14 @@ static NSString *EscapedString(NSString *string)
 			desc = [[desc substringToIndex:64] stringByAppendingString:@"..."];
 		}
 		
-		[result appendFormat:@"\tnode_%u [label=\"<f0> | <f1> %@ | <f2>\"];\n", i, EscapedString(desc)];
+		[result appendFormat:@"\tnode_%lu [label=\"<f0> | <f1> %@ | <f2>\"];\n", i, EscapedString(desc)];
 	}
 	
 	// Arcs
 	for (i = 0; PQLeftChild(i) < _count; ++i)
 		{
-		[result appendFormat:@"\tnode_%u:f0 -> node_%u:f1;\n", i, PQLeftChild(i)];
-		if (PQRightChild(i) < _count)  [result appendFormat:@"\tnode_%u:f2 -> node_%u:f1;\n", i, PQRightChild(i)];
+		[result appendFormat:@"\tnode_%lu:f0 -> node_%lu:f1;\n", i, PQLeftChild(i)];
+		if (PQRightChild(i) < _count)  [result appendFormat:@"\tnode_%lu:f2 -> node_%lu:f1;\n", i, PQRightChild(i)];
 	}
 	
 	[result appendString:@"}\n"];

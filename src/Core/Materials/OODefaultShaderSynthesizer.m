@@ -495,7 +495,7 @@ static NSString *GetExtractMode(NSDictionary *textureSpecifier)
 	unsigned idx = 1;
 	while ([_uniforms objectForKey:name] != nil)
 	{
-		name = [NSString stringWithFormat:@"%@%u", ++idx];
+		name = [NSString stringWithFormat:@"%@%u", baseName, ++idx];
 	}
 	
 	[self addFragmentUniform:name ofType:type];
@@ -625,7 +625,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	{
 		texID = [_texturesByName count];
 		NSNumber	*texIDObj = [NSNumber numberWithUnsignedInteger:texID];
-		NSString	*texUniform = [NSString stringWithFormat:@"uTexture%u", texID];
+		NSString	*texUniform = [NSString stringWithFormat:@"uTexture%lu", texID];
 		
 #ifndef NDEBUG
 		BOOL useInternalFormat = NO;
@@ -666,7 +666,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	if ((NSUInteger)NSHashGet(_sampledTextures, (const void *)(texID + 1)) == 0)
 	{
 		NSHashInsertKnownAbsent(_sampledTextures, (const void *)(texID + 1));
-		[_fragmentTextureLookups appendFormat:@"\tvec4 tex%uSample = texture2D(uTexture%u, texCoords);  // %@\n", texID, texID, [textureSpec oo_stringForKey:kOOTextureSpecifierNameKey]];
+		[_fragmentTextureLookups appendFormat:@"\tvec4 tex%luSample = texture2D(uTexture%lu, texCoords);  // %@\n", texID, texID, [textureSpec oo_stringForKey:kOOTextureSpecifierNameKey]];
 	}
 }
 
@@ -678,7 +678,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	[self setUpOneTexture:textureSpec];
 	NSUInteger	texID = [self textureIDForSpec:textureSpec];
 	
-	*outSampleName = [NSString stringWithFormat:@"tex%uSample", texID];
+	*outSampleName = [NSString stringWithFormat:@"tex%luSample", texID];
 	*outSwizzleOp = GetExtractMode(textureSpec);
 }
 
@@ -704,7 +704,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1 or 3");
+	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %lu channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1 or 3");
 	return nil;
 }
 
@@ -726,7 +726,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1");
+	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %lu channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1");
 	return nil;
 }
 
@@ -840,7 +840,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 				[_fragmentPreTextures appendString:@"\t// Parallax mapping\n"];
 				
 				NSUInteger texID = [self assignIDForTexture:parallaxMap];
-				[_fragmentPreTextures appendFormat:@"\tfloat parallax = texture2D(uTexture%u, vTexCoords).%@;\n", texID, swizzle];
+				[_fragmentPreTextures appendFormat:@"\tfloat parallax = texture2D(uTexture%lu, vTexCoords).%@;\n", texID, swizzle];
 				
 				if (parallaxScale != 1.0f)
 				{
@@ -857,7 +857,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 			}
 			else
 			{
-				OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self entityName], channelCount, @"1");
+				OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %lu channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self entityName], channelCount, @"1");
 			}
 		}
 	}
@@ -1010,7 +1010,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		}
 		else
 		{
-			OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %u channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self entityName], [swizzle length], @"3");
+			OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %lu channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self entityName], [swizzle length], @"3");
 		}
 	}
 	_constZNormal = YES;

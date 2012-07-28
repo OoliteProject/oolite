@@ -329,7 +329,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 
 - (NSString *)descriptionComponents
 {
-	return [NSString stringWithFormat:@"\"%@\", %u vertices, %u faces, radius: %g m normals: %@", [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], NormalModeDescription(_normalMode)];
+	return [NSString stringWithFormat:@"\"%@\", %zu vertices, %zu faces, radius: %g m normals: %@", [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], NormalModeDescription(_normalMode)];
 }
 
 
@@ -416,7 +416,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		/*	It should not be possible to have multiple texture units if
 			texture combiners are not available.
 		*/
-		NSAssert2([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], @"Mesh %@ uses %u texture units, but multitexturing is not available.", [self shortDescription], _textureUnitCount);
+		NSAssert2([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], @"Mesh %@ uses %lu texture units, but multitexturing is not available.", [self shortDescription], _textureUnitCount);
 		
 		for (unit = 0; unit < _textureUnitCount; unit++)
 		{
@@ -1335,11 +1335,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						if (n_v < 3)
 						{
 							failFlag = YES;
-							failString = [NSString stringWithFormat:@"%@Face[%u] has fewer than three vertices.\n", failString];
+							failString = [NSString stringWithFormat:@"%@Face[%u] has fewer than three vertices.\n", failString, j];
 						}
 						else if (n_v > 3)
 						{
-							OOLogWARN(@"mesh.load.warning.nonTriangular", @"Face[%u] of %@ has %u vertices specified. Only the first three will be used.", baseFile, n_v);
+							OOLogWARN(@"mesh.load.warning.nonTriangular", @"Face[%u] of %@ has %u vertices specified. Only the first three will be used.", j, baseFile, n_v);
 							n_v = 3;
 						}
 					}

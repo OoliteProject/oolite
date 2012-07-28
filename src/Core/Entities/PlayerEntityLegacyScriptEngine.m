@@ -370,7 +370,7 @@ static BOOL sRunningScript = NO;
 			}
 			else
 			{
-				OOLog(@"script.trace.legacy.runWorld.recurse", @"----- Running world script recursively.", OOStringFromEntityStatus(restoreStatus), OOStringFromEntityStatus(status));
+				OOLog(@"script.trace.legacy.runWorld.recurse", @"----- Running world script recursively.");
 			}
 		}
 		sRunningScript = YES;
@@ -548,7 +548,7 @@ static BOOL sRunningScript = NO;
 					rhsComponents = [expandedRHS componentsSeparatedByString:@","];
 					count = [rhsComponents count];
 					
-					TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %u elements: is %@ ONEOF %@ ?", count, lhsString, expandedRHS);
+					TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %lu elements: is %@ ONEOF %@ ?", count, lhsString, expandedRHS);
 					
 					whitespace = [NSCharacterSet whitespaceCharacterSet];
 					lhsString = [lhsString stringByTrimmingCharactersInSet:whitespace];
@@ -581,7 +581,7 @@ static BOOL sRunningScript = NO;
 			rhsComponents = [expandedRHS componentsSeparatedByString:@","];
 			count = [rhsComponents count];
 			
-			TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %u elements: is %@ ONEOF %@ ?", count, lhsString, expandedRHS);
+			TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %lu elements: is %@ ONEOF %@ ?", count, lhsString, expandedRHS);
 			
 			for (i = 0; i < count; i++)
 			{
@@ -1813,7 +1813,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else
 	{
-		OOLog(kOOLogSyntaxAdd, @"***** SCRIPT ERROR: in %@, CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value);
+		OOLog(kOOLogSyntaxAdd, @"***** SCRIPT ERROR: in %@, CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value, missionVariableString_value);
 	}
 }
 
@@ -1853,7 +1853,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else
 	{
-		OOLog(kOOLogSyntaxSubtract, @"***** SCRIPT ERROR: in %@, CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value);
+		OOLog(kOOLogSyntaxSubtract, @"***** SCRIPT ERROR: in %@, CANNOT SUBTRACT: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value, missionVariableString_value);
 	}
 }
 
@@ -2677,7 +2677,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	[eqScripts addObject:[NSArray arrayWithObjects:eq_key,s,nil]];
 	if (primedEquipment == [eqScripts count] - 1) primedEquipment++;	// if primed-none, keep it as primed-none.
-	OOLog(@"player.equipmentScript", @"Scriptable equipment available: %u.",[eqScripts count]);
+	OOLog(@"player.equipmentScript", @"Scriptable equipment available: %lu.", [eqScripts count]);
 	return YES;
 }
 

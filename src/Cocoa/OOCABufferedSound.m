@@ -55,7 +55,7 @@ SOFTWARE.
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %s, %g Hz, %u bytes}", [self className], self, [self name], _stereo ? "stereo" : "mono", _sampleRate, _size * sizeof (float) * (_stereo ? 2 : 1)];
+	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %s, %g Hz, %lu bytes}", [self className], self, [self name], _stereo ? "stereo" : "mono", _sampleRate, _size * sizeof (float) * (_stereo ? 2 : 1)];
 }
 
 

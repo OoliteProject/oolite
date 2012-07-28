@@ -2718,7 +2718,7 @@
 	double dist = [(NSDictionary*)[sDests objectAtIndex:i] oo_doubleForKey:@"distance"];
 	if (dist > [self maxHyperspaceDistance] || dist > fuel/10) 
 	{
-		OOLogWARN(@"script.debug", @"DEBUG: %@ Jumping %d which is further than allowed.  I have %d fuel", self, dist, fuel);
+		OOLogWARN(@"script.debug", @"DEBUG: %@ Jumping %f which is further than allowed.  I have %d fuel", self, dist, fuel);
 	}
 	fuel -= 10 * dist;
 	

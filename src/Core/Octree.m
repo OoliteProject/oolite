@@ -545,7 +545,7 @@ static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GL
 	}
 	else
 	{
-		OctreeDebugLog(@"DEBUG Missed!", hit_dist);
+		OctreeDebugLog(@"DEBUG Missed!");
 		hasCollision = hasCollided;
 		return 0.0;
 	}

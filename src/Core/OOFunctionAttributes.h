@@ -11,9 +11,13 @@
 #endif
 
 
-// Clang feature testing extension.
+// Clang feature testing extensions.
 #ifndef __has_feature
 	#define __has_feature(x) (0)
+#endif
+
+#ifndef __has_attribute
+	#define __has_attribute(x) (0)
 #endif
 
 
@@ -70,6 +74,21 @@
 	#define OO_UNREACHABLE() __builtin_unreachable()
 #else
 	#define OO_UNREACHABLE() do {} while (0)
+#endif
+
+
+/*
+	OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck): marks a function that applies
+	[NSString stringWithFormat:]-type formatting to arguments.
+	
+	According to the fine manuals, mainline GCC supports basic checking of
+	NSString format strings since 4.6, but doesn't validate the arguments.
+*/
+#if __has_attribute(format) || (__GNUC__ && OOLITE_GCC_VERSION >= 40600)
+	#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck) __attribute__((format(NSString, stringIndex, firstToCheck)))
+#else
+	#warning No string format checking.
+	#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck)
 #endif
 
 

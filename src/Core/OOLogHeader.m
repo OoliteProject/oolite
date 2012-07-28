@@ -291,7 +291,7 @@ static NSString *GetCPUDescription(void)
 					break;
 				
 				default:
-					subTypeStr = [NSString stringWithFormat:@":%u", sysCPUSubType];
+					subTypeStr = [NSString stringWithFormat:@":%llu", sysCPUSubType];
 			}
 			break;
 			
@@ -324,7 +324,7 @@ static NSString *GetCPUDescription(void)
 					break;
 					
 				default:
-					subTypeStr = [NSString stringWithFormat:@" (family %x)", sysCPUFamily];
+					subTypeStr = [NSString stringWithFormat:@" (family %llx)", sysCPUFamily];
 			}
 			break;
 		
@@ -361,12 +361,12 @@ static NSString *GetCPUDescription(void)
 						break;
 					
 					default:
-						subTypeStr = [NSString stringWithFormat:@" (family %u)", sysCPUFamily];
+						subTypeStr = [NSString stringWithFormat:@" (family %llu)", sysCPUFamily];
 				}
 			}
 	}
 	
-	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"%u", sysCPUType];
+	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"%llu", sysCPUType];
 	
 	return [NSString stringWithFormat:@"%llu x %@%@ @ %llu MHz", sysCPUCount, typeStr, subTypeStr, (sysCPUFrequency + 500000) / 1000000];
 }

@@ -29,6 +29,7 @@ SOFTWARE.
 */
 
 #import "OOCocoa.h"
+#import "OOFunctionAttributes.h"
 #include <stdarg.h>
 
 
@@ -111,9 +112,9 @@ void OOLogOutdentIf(NSString *inMessageClass);
 void OOLogPushIndent(void);
 void OOLogPopIndent(void);
 
-void OOLogWithPrefix(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inPrefix, NSString *inFormat, ...);
-void OOLogWithFunctionFileAndLine(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, ...);
-void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, va_list inArguments);
+void OOLogWithPrefix(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inPrefix, NSString *inFormat, ...)  OO_TAKES_FORMAT_STRING(6, 7);
+void OOLogWithFunctionFileAndLine(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, ...)  OO_TAKES_FORMAT_STRING(5, 6);
+void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, va_list inArguments)  OO_TAKES_FORMAT_STRING(5, 0);
 
 // OOLogGenericParameterError(): general parameter error message, "***** $function_name: bad parameters. (This is an internal programming error, please report it.)"
 #define OOLogGenericParameterError()	OOLogGenericParameterErrorForFunction(OOLOG_FUNCTION_NAME)

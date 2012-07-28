@@ -843,7 +843,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			}
 			else if ([ResourceManager pathForFileNamed:modelName inFolder:@"Models"] == nil)
 			{
-				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies non-existent model \"%@\".", shipKey, modelName, @"model");
+				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies non-existent model \"%@\".", shipKey, modelName);
 				remove = YES;
 			}
 		}
@@ -1136,12 +1136,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	{
 		if (!isFlasher)
 		{
-			OOLogERR(@"shipData.load.error.badSubentity", @"the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %u).", shipKey, subentityKey, [tokens count]);
+			OOLogERR(@"shipData.load.error.badSubentity", @"the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %lu).", shipKey, subentityKey, [tokens count]);
 			*outFatalError = YES;
 		}
 		else
 		{
-			OOLogWARN(@"shipData.load.warning.badFlasher", @"the shipdata.plist entry \"%@\" has a broken flasher definition (should have 8 tokens, has %u). This flasher will be ignored.", shipKey, [tokens count]);
+			OOLogWARN(@"shipData.load.warning.badFlasher", @"the shipdata.plist entry \"%@\" has a broken flasher definition (should have 8 tokens, has %lu). This flasher will be ignored.", shipKey, [tokens count]);
 		}
 		return nil;
 	}

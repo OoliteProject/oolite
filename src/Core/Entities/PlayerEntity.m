@@ -940,7 +940,7 @@ static GLfloat		sBaseMass = 0.0;
 	// Do we have extra passengers?
 	if (passengers && ([passengers count] > max_passengers))
 	{
-		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.passengers", @"player ship %@ had more passengers (%u) than passenger berths (%u). Removing extra passengers.", [self name], [passengers count], max_passengers);
+		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.passengers", @"player ship %@ had more passengers (%lu) than passenger berths (%u). Removing extra passengers.", [self name], [passengers count], max_passengers);
 		for (i = [passengers count] - 1; i >= max_passengers; i--)
 		{
 			[passenger_record removeObjectForKey:[[passengers oo_dictionaryAtIndex:i] oo_stringForKey:PASSENGER_KEY_NAME]];
@@ -3365,7 +3365,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSString *result = [NSString stringWithFormat:@"Entities: %3d", [UNIVERSE entityCount]];
 #ifndef NDEBUG
-	result = [NSString stringWithFormat:@"%@ (%d, %u KiB, avg %u bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
+	result = [NSString stringWithFormat:@"%@ (%d, %zu KiB, avg %lu bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
 #endif
 	
 	return result;
@@ -6428,7 +6428,7 @@ static NSString *last_outfitting_key=nil;
 	NSString 		*otherKey = @"";
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	[last_outfitting_key release];
-	last_outfitting_key = [[NSString stringWithString:key] retain];
+	last_outfitting_key = [key copy];
 	[self setGuiToEquipShipScreen:-1];
 	key = last_outfitting_key;
 	// TODO: redo the equipShipScreen in a way that isn't broken. this whole method 'works'
@@ -6580,20 +6580,20 @@ static NSString *last_outfitting_key=nil;
 		
 		if (searchStatus == STATUS_DEAD && isOK)
 		{
-			showKey=[NSString stringWithString:eqKey];
+			showKey = eqKey;
 			searchStatus = STATUS_ACTIVE;
 		}
 		if (searchStatus == STATUS_TEST)
 		{
-			if (isOK) showKey=[NSString stringWithString:eqKey];
+			if (isOK) showKey = eqKey;
 			if ([eqKey isEqualToString:last_outfitting_key]) 
 				searchStatus = isOK ? STATUS_ACTIVE : STATUS_DEAD;
 		}
 	}
-	if (searchStatus != STATUS_TEST && showKey)
+	if (searchStatus != STATUS_TEST && showKey != nil)
 	{
 		[last_outfitting_key release];
-		last_outfitting_key = [showKey retain];
+		last_outfitting_key = [showKey copy];
 	}
 	
 	// GUI stuff
@@ -9145,7 +9145,7 @@ else _dockTarget = NO_TARGET;
 	OOLog(@"dumpState.playerEntity", @"Missile status: %i", missile_status);
 	OOLog(@"dumpState.playerEntity", @"Energy unit: %@", EnergyUnitTypeToString([self installedEnergyUnitType]));
 	OOLog(@"dumpState.playerEntity", @"Fuel leak rate: %g", fuel_leak_rate);
-	OOLog(@"dumpState.playerEntity", @"Trumble count: %u", trumbleCount);
+	OOLog(@"dumpState.playerEntity", @"Trumble count: %lu", trumbleCount);
 	
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }

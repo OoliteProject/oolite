@@ -535,7 +535,7 @@ static NSMutableDictionary *sStringCache;
 			break;
 		
 		default:
-			OOLog(kOOLogParameterError, @"Unknown dictionary merge mode %u for %@. (This is an internal programming error, please report it.)", fileName, mergeMode);
+			OOLog(kOOLogParameterError, @"Unknown dictionary merge mode %u for %@. (This is an internal programming error, please report it.)", mergeMode, fileName);
 			return nil;
 	}
 	

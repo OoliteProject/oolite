@@ -98,7 +98,7 @@ static int crid_counter = 1;
 
 - (NSString *) description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{ID: %d, %u subregions, %u ents}", [self class], self, crid, [subregions count], n_entities];
+	return [NSString stringWithFormat:@"<%@ %p>{ID: %d, %lu subregions, %u ents}", [self class], self, crid, [subregions count], n_entities];
 }
 
 

@@ -423,11 +423,11 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 		{
 			if (sShowFunction)
 			{
-				formattedMessage = [NSString stringWithFormat:@"%s (%@:%u): %@", inFunction, OOLogAbbreviatedFileName(inFile), inLine, formattedMessage];
+				formattedMessage = [NSString stringWithFormat:@"%s (%@:%lu): %@", inFunction, OOLogAbbreviatedFileName(inFile), inLine, formattedMessage];
 			}
 			else
 			{
-				formattedMessage = [NSString stringWithFormat:@"%@:%u: %@", OOLogAbbreviatedFileName(inFile), inLine, formattedMessage];
+				formattedMessage = [NSString stringWithFormat:@"%@:%lu: %@", OOLogAbbreviatedFileName(inFile), inLine, formattedMessage];
 			}
 		}
 		else

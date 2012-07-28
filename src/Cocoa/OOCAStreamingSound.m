@@ -274,7 +274,7 @@ enum
 				inContext->empty = NO;
 			}
 			
-			OOLog(kOOLogSoundStreamingRefill, @"Buffering %u frames for sound %@.", frames, self);
+			OOLog(kOOLogSoundStreamingRefill, @"Buffering %zu frames for sound %@.", frames, self);
 			frames = [_decoder streamStereoToBufferL:(float *)ptrL bufferR:(float *)ptrR maxFrames:frames];
 			inContext->readOffset += frames;
 			[inContext->bufferL didWriteLength:frames * sizeof (float)];

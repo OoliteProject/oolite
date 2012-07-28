@@ -2067,6 +2067,8 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1AEA229D12CBD18600EC0F43 /* CoreServices.framework */,
+				1A033F90132687DC006F9DB7 /* Quartz.framework */,
 				1AE8837312EF91560075814F /* Sparkle.framework */,
 				0878FD2F086EF845004CB752 /* Carbon.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
@@ -3261,8 +3263,6 @@
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				1AF4AF4C15B8616F009243BE /* Unit tests */,
-				1AEA229D12CBD18600EC0F43 /* CoreServices.framework */,
-				1A033F90132687DC006F9DB7 /* Quartz.framework */,
 			);
 			name = Oolite_GUSTO;
 			sourceTree = "<group>";
@@ -4069,10 +4069,8 @@
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
-					"-Wall",
 					"-Wextra",
-					"-Wno-unused-parameter",
-					"-Wno-missing-field-initializers",
+					$OO_WARNING_FLAGS,
 				);
 				WRAPPER_EXTENSION = app;
 			};
@@ -4084,7 +4082,6 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				EXPORTED_SYMBOLS_FILE = "src/Cocoa/exports-release.exp";
 				"EXPORTED_SYMBOLS_FILE[arch=x86_64]" = "src/Cocoa/exports-release.exp";
@@ -4117,11 +4114,7 @@
 				SECTORDER_FLAGS = "";
 				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
-				WARNING_CFLAGS = (
-					"-Wall",
-					"-Wno-unused-parameter",
-					"-Wno-missing-field-initializers",
-				);
+				WARNING_CFLAGS = $OO_WARNING_FLAGS;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
@@ -4184,11 +4177,7 @@
 				SECTORDER_FLAGS = "";
 				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
-				WARNING_CFLAGS = (
-					"-Wall",
-					"-Wno-unused-parameter",
-					"-Wno-missing-field-initializers",
-				);
+				WARNING_CFLAGS = $OO_WARNING_FLAGS;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};

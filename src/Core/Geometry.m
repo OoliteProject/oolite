@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"%u triangles, %@", n_triangles, [self testIsConvex]?@"convex":@"not convex"];
+	return [NSString stringWithFormat:@"%lu triangles, %@", n_triangles, [self testIsConvex]?@"convex":@"not convex"];
 }
 
 - (id)initWithCapacity:(OOUInteger)amount

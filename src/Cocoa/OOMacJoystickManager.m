@@ -280,8 +280,7 @@ static uint8_t MapHatValue(CFIndex value, CFIndex max)
 					 gammaIndex, kJoystickGammaTableSize,
 					 (int)intValue, (int)min, (int)max,
 					 axisValue,
-					 axisValue * kJoystickGammaTableSize,
-					 kJoystickGammaTableSize
+					 axisValue * kJoystickGammaTableSize
 			);
 			
 			return;
