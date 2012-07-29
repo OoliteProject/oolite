@@ -2092,7 +2092,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	PlayerEntity *player = PLAYER;
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
 	
-	if ([player primaryTargetID] != NO_TARGET)
+	if ([player primaryTarget] != nil)
 	{
 		hudDrawReticleOnTarget([player primaryTarget], player, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive);
 		[self drawDirectionCue:info];

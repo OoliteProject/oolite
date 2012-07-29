@@ -18,6 +18,7 @@
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: GO_TO_SKIM");
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
+		"ATTACKER_MISSED" = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
         "ATTACKED_BY_CLOAKED" = ("setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");

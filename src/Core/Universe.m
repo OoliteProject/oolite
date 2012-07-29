@@ -9402,7 +9402,7 @@ static void PreloadOneSound(NSString *soundName)
 {
 	unsigned			i, r, escortsWeight;
 	unsigned			totalRocks = 0;
-	BOOL				includeHermit;
+	BOOL				includeHermit, includedHermit = NO;
 	unsigned			clusterSize;
 	double				asteroidLocation;
 	Vector				launchPos;
@@ -9663,6 +9663,8 @@ static void PreloadOneSound(NSString *soundName)
 		launchPos = OOVectorTowards(h1_pos, v_route1, asteroidLocation);
 		includeHermit = (Ranrot() & 31) <= clusterSize && r < total_clicks * 2 / 3 && !sunGoneNova;
 		
+		includedHermit |= includeHermit;
+
 		totalRocks += [self scatterAsteroidsAt:launchPos
 								  withVelocity:kZeroVector
 						   includingRockHermit:includeHermit
@@ -9827,6 +9829,8 @@ static void PreloadOneSound(NSString *soundName)
 		launchPos = OOVectorTowards(p1_pos, v_route2, asteroidLocation);
 		includeHermit = (Ranrot() & 31) <= clusterSize && asteroidLocation > 0.33 * maxLength && !sunGoneNova;
 		
+		includedHermit |= includeHermit;
+
 		totalRocks += [self scatterAsteroidsAt:launchPos
 								  withVelocity:kZeroVector
 						   includingRockHermit:includeHermit
@@ -9836,6 +9840,26 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
+	if (!sunGoneNova && !includedHermit)
+	{
+		// if we haven't had a non-main station yet
+		// add a loose rock hermit for full pirates to dock with well out of the way
+		Vector  v_route1_mid = vector_multiply_scalar(v_route1,0.5);
+		Vector  v_off_plane = cross_product(v_route1,v_route2);
+		// make sure it is well out of sun/planet/wp plane to make sure
+		// player doesn't run across it accidentally
+		Vector  v_hermit_area = vector_add(v_route1_mid,vector_multiply_scalar(v_off_plane,500000.0));
+		// if they manage to follow a pirate out there, fair enough.
+		// there are quicker ways to make money
+		Vector  v_hermit_pos = vector_add(v_hermit_area,OOVectorRandomSpatial(200000.0));
+		
+		[self scatterAsteroidsAt:v_hermit_pos
+								withVelocity:kZeroVector
+				 includingRockHermit:YES
+									 asCinders:NO
+								 clusterSize:1 + (Ranrot() % 6)];
+	}
+
 }
 
 - (int) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders

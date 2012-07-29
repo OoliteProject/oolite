@@ -4,12 +4,16 @@
 		ENTER = ("setStateTo: CHECK_STATUS"); 
 	}; 
     "CHECK_STATUS" = {
-		ENTER = (checkOwnLegalStatus, "setDesiredRangeTo: 500000.0"); 
+		ENTER = (checkOwnLegalStatus, "setDesiredRangeTo: 1000000.0"); 
 		"SELF_CLEAN" = ("setStateTo: HEAD_FOR_PLANET");
-		"SELF_MINOR_OFFENDER" = (setTargetToRandomStation);
-		"SELF_OFFENDER" = (setTargetToRandomStation);
+		"SELF_MINOR_OFFENDER" = ("rollD: 2"); // head for main station 50%
+		"SELF_OFFENDER" = ("rollD: 4"); // head for main station 25%
 		"SELF_FUGITIVE" = (setTargetToRandomStation);
 		"SELF_THARGOID" = ("switchAITo: thargoidAI.plist");
+		"ROLL_1" = ("setStateTo: HEAD_FOR_PLANET");
+		"ROLL_2" = (setTargetToRandomStation);
+		"ROLL_3" = (setTargetToRandomStation);
+		"ROLL_4" = (setTargetToRandomStation);
 		"NO_STATION_IN_RANGE" = ("setStateTo: HEAD_FOR_PLANET");
 		"STATION_FOUND" = ("setStateTo: GO_TO_RANDOM_STATION");
     }; 
@@ -25,6 +29,7 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		"ATTACKER_MISSED" = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
         "ATTACKED_BY_CLOAKED" = ("setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		RESTARTED = (checkAegis);
@@ -49,6 +54,7 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 1.5"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		"ATTACKER_MISSED" = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
         "ATTACKED_BY_CLOAKED" = ("setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		UPDATE = 
@@ -73,6 +79,7 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 1.5"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		"ATTACKER_MISSED" = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
         "ATTACKED_BY_CLOAKED" = ("setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		UPDATE = 
@@ -96,6 +103,7 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 1.5"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		"ATTACKER_MISSED" = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
         "ATTACKED_BY_CLOAKED" = ("setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		UPDATE = 

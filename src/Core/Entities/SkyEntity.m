@@ -167,7 +167,14 @@ MA 02110-1301, USA.
 	PlayerEntity *player = PLAYER;
 	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
 	cam_zero_distance = zero_distance;
-	if (player != nil)  position = [player viewpointPosition];
+	if (player != nil) 
+	{
+		position = [player viewpointPosition];
+	}
+	else
+	{
+		OOLog(@"sky.warning",@"PLAYER is nil");
+	}
 }
 
 

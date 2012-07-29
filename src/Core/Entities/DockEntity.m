@@ -190,9 +190,9 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) allowsPlayerDocking
+- (BOOL) disallowedDockingCollides
 {
-	return allow_player_docking;
+	return disallowed_docking_collides;
 }
 
 
@@ -209,6 +209,12 @@ MA 02110-1301, USA.
 		[self abortAllLaunches];
 	}
 	allow_launching = allowed;
+}
+
+
+- (void) setDisallowedDockingCollides:(BOOL)ddc
+{
+	disallowed_docking_collides = ddc;
 }
 
 
@@ -636,14 +642,10 @@ MA 02110-1301, USA.
 	if (![ship isShip])  return NO;
 	if ([ship isPlayer] && [ship status] == STATUS_DEAD)  return NO;
 
-	BOOL allow_docking_thisship = allow_docking;
-	if (!allow_docking && allow_player_docking)
-	{
-		allow_docking_thisship = YES;
-		// ships can physically dock here, and this routine is mainly for
-		// collision detection, but will never be directed here by traffic
-		// control
-	}
+	BOOL allow_docking_thisship = allow_docking || !disallowed_docking_collides;
+	// ships can physically dock here, and this routine is mainly for
+	// collision detection, but will never be directed here by traffic
+	// control, if allow_docking is false but d_d_c is true
 	
 	StationEntity *station = (StationEntity *)[self parentEntity];
 	
@@ -776,8 +778,8 @@ MA 02110-1301, USA.
 - (void) pullInShipIfPermitted:(ShipEntity *)ship
 {
 	// allow_docking: docking permitted and expected
-	// allow_player_docking: unauthorised docking does not result in explosion
-	if (allow_docking || allow_player_docking)
+	// disallowed_docking_collides: unauthorised docking does not result in explosion
+	if (allow_docking || !disallowed_docking_collides)
 	{
 		[ship enterDock:(StationEntity*)[self parentEntity]];
 	}
@@ -1049,7 +1051,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void)setDimensionsAndCorridor:(BOOL)docking :(BOOL)playerdocking :(BOOL)launching
+- (void)setDimensionsAndCorridor:(BOOL)docking :(BOOL)ddc :(BOOL)launching
 {
 	StationEntity *station = (StationEntity*)[self parentEntity];
 	if (virtual_dock)
@@ -1075,7 +1077,7 @@ MA 02110-1301, USA.
 	port_corridor = start.z - position.z;
 	
 	allow_docking = docking;
-	allow_player_docking = playerdocking;
+	disallowed_docking_collides = ddc;
 	allow_launching = launching;
 }
 
@@ -1099,7 +1101,7 @@ MA 02110-1301, USA.
 		shipsOnApproach = [[NSMutableDictionary alloc] init];
 		launchQueue = [[NSMutableArray alloc] init];
 		allow_docking = YES;
-		allow_player_docking = YES;
+		disallowed_docking_collides = NO;
 		allow_launching = YES;
 		virtual_dock = NO;
 	}

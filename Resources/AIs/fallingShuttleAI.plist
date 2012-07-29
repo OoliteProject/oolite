@@ -10,6 +10,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setSpeedFactorTo: 0.7", "setStateTo: APPROACH");
 		"AEGIS_LEAVING_DOCKING_RANGE" = ("setStateTo: APPROACH");
 		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
         ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
         "INCOMING_MISSILE" = (fireECM); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
@@ -21,6 +22,7 @@
 		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
 		"APPROACHING_SURFACE" = ("setStateTo: LANDING");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: FLY_HOME");
+    "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
 		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"AEGIS_LEAVING_DOCKING_RANGE" = ("setStateTo: APPROACH");
@@ -37,6 +39,7 @@
 		ENTER = (setCourseToPlanet, performFlyToRangeFromDestination);
 		"APPROACHING_SURFACE" = ("setStateTo: LANDING");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LANDING");
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
         ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
         "INCOMING_MISSILE" = (fireECM, "setSpeedFactorTo: 1.0");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist"); 

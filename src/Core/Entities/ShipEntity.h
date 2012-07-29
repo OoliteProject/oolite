@@ -208,7 +208,7 @@ typedef enum
 	
 	// variables which are controlled by instincts/AI
 	Vector					destination;				// for flying to/from a set point
-	OOUniversalID			primaryTarget;				// for combat or rendezvous
+
 	GLfloat					desired_range;				// range to which to journey/scan
 	GLfloat					desired_speed;				// speed at which to travel
 	// next three used to set desired attitude, flightRoll etc. gradually catch up to target
@@ -230,8 +230,6 @@ typedef enum
 	
 	//docking instructions
 	NSDictionary			*dockingInstructions;
-	
-	OOUniversalID			last_escort_target;			// last target an escort was deployed after
 	
 	OOColor					*laser_color;
 	OOColor					*scanner_display_color1;
@@ -328,9 +326,6 @@ typedef enum
 	Vector					jink;						// x and y set factors for offsetting a pursuing ship's position
 	Vector					coordinates;				// for flying to/from a set point
 	Vector					reference;					// a direction vector of magnitude 1 (* turrets *)
-	OOUniversalID			primaryAggressor;			// recorded after an attack
-	OOUniversalID			targetStation;				// for docking
-	OOUniversalID			found_target;				// from scans
 	NSMutableArray			*defenseTargets;			 // defense targets
 	
 	OOUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
@@ -344,7 +339,6 @@ typedef enum
 	
 	int						patrol_counter;				// keeps track of where the ship is along a patrol route
 	
-	OOUniversalID			proximity_alert;			// id of a ShipEntity within 2x collision_radius
 	NSMutableDictionary		*previousCondition;			// restored after collision avoidance
 	
 	// derived variables
@@ -374,9 +368,6 @@ typedef enum
 	double					messageTime;				// counts down the seconds a radio message is active for
 	
 	double					next_spark_time;			// time of next spark when throwing sparks
-	
-	OOUniversalID			thanked_ship_id;			// last ship thanked
-	OOUniversalID			remembered_ship;			// ship being remembered
 	
 	Vector					collision_vector;			// direction of colliding thing.
 	
@@ -423,10 +414,23 @@ typedef enum
 	
 	NSMutableArray			*subEntities;
 	OOEquipmentType			*missile_list[SHIPENTITY_MAX_MISSILES];
+
+	// various types of target
+	OOWeakReference	*_primaryTarget;				// for combat or rendezvous
+	OOWeakReference	*_primaryAggressor;				// recorded after attack
+  OOWeakReference *_targetStation; // for docking
+	OOWeakReference	*_foundTarget;				// from scans
+	OOWeakReference	*_lastEscortTarget;			// last target an escort was deployed after
+	OOWeakReference	*_thankedShip;			// last ship thanked
+	OOWeakReference	*_rememberedShip;			// ship being remembered
+	OOWeakReference	*_proximityAlert;			// a ShipEntity within 2x collision_radius
+	
+	
+
 	
 @private
 	OOWeakReference			*_subEntityTakingDamage;	//	frangible => subEntities can be damaged individually
-	
+
 	NSString				*_shipKey;
 	
 	NSMutableSet			*_equipment;
@@ -690,9 +694,6 @@ typedef enum
 - (uint8_t) pendingEscortCount;
 - (void) setPendingEscortCount:(uint8_t)count;
 
-- (ShipEntity *) proximity_alert;
-- (void) setProximity_alert:(ShipEntity*) other;
-
 - (NSString *) name;
 - (NSString *) displayName;
 - (void) setName:(NSString *)inName;
@@ -897,13 +898,24 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (ShipEntity**) scannedShips;
 - (int) numberOfScannedShips;
 
+- (Entity *)foundTarget;
+- (Entity *)primaryAggressor;
+- (Entity *)lastEscortTarget;
+- (Entity *)thankedShip;
+- (Entity *)rememberedShip;
+- (Entity *)proximityAlert;
 - (void) setFoundTarget:(Entity *) targetEntity;
 - (void) setPrimaryAggressor:(Entity *) targetEntity;
+- (void) setLastEscortTarget:(Entity *) targetEntity;
+- (void) setThankedShip:(Entity *) targetEntity;
+- (void) setRememberedShip:(Entity *) targetEntity;
+- (void) setProximityAlert:(Entity *) targetEntity;
 - (void) setTargetStation:(Entity *) targetEntity;
+- (BOOL) isValidTarget:(Entity *) target;
 - (void) addTarget:(Entity *) targetEntity;
 - (void) removeTarget:(Entity *) targetEntity;
 - (id) primaryTarget;
-- (OOUniversalID) primaryTargetID;
+- (StationEntity *) targetStation;
 
 - (BOOL) isFriendlyTo:(ShipEntity *)otherShip;
 
@@ -942,6 +954,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (double) rangeToPrimaryTarget;
 - (double) approachAspectToPrimaryTarget;
 - (double) rangeToSecondaryTarget:(Entity *)target;
+- (BOOL) hasProximityAlertIgnoringTarget:(BOOL)ignore_target;
 - (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon;
 
 - (OOTimeDelta) shotTime;
@@ -973,7 +986,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;
 - (BOOL) launchCascadeMine;
-- (OOUniversalID) launchEscapeCapsule;
+- (ShipEntity *) launchEscapeCapsule;
 - (OOCommodityType) dumpCargo;
 - (ShipEntity *) dumpCargoItem;
 - (OOCargoType) dumpItem: (ShipEntity*) jetto;

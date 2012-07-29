@@ -12,6 +12,7 @@
 		"INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"ATTACKED" = ("messageMother: ATTACKED", "messageMother: ESCORT_ATTACKED");
+		"ATTACKER_MISSED" = ("messageMother: ATTACKER_MISSED", "messageMother: ESCORT_ATTACKED");
         "ATTACKED_BY_CLOAKED" = ("messageMother: ATTACKED_BY_CLOAKED"); 
 		"NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_BUSINESS");
@@ -77,7 +78,8 @@
 		ENTER = (scanForFormationLeader);
 		RESTARTED = ("setStateTo: BEGIN_BUSINESS");
 		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
-		ATTACKED = (setTargetToPrimaryAggressor, );
+		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
+		ATTACKER_MISSED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
 		"NOT_ESCORTING" = ("rollD: 10");

@@ -123,7 +123,6 @@ static GLfloat		sBaseMass = 0.0;
 - (void) performDockingUpdates:(OOTimeDelta)delta_t;
 - (void) performDeadUpdates:(OOTimeDelta)delta_t;
 - (void) updateTargeting;
-- (BOOL) isValidTarget:(Entity*)target;
 - (void) showGameOver;
 - (void) updateWormholes;
 
@@ -1591,7 +1590,7 @@ static GLfloat		sBaseMass = 0.0;
 		missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
 	}
 	
-	primaryTarget = NO_TARGET;
+	DESTROY(_primaryTarget);
 	[self safeAllMissiles];
 	[self setActiveMissile:0];
 	
@@ -2037,7 +2036,7 @@ static GLfloat		sBaseMass = 0.0;
 	if ((status == STATUS_ESCAPE_SEQUENCE)&&(shot_time > ESCAPE_SEQUENCE_TIME))
 	{
 		UPDATE_STAGE(@"resetting after escape");
-		ShipEntity	*doppelganger = [UNIVERSE entityForUniversalID:found_target];
+		ShipEntity	*doppelganger = (ShipEntity*)[self foundTarget];
 		// reset legal status again! Could have changed if a previously launched missile hit a clean NPC while in the escape pod.
 		[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
 //		legalStatus = 0;
@@ -2062,7 +2061,7 @@ static GLfloat		sBaseMass = 0.0;
 			[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 			[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 		}
-		primaryTarget = _dockTarget;	// main station in the original system, unless overridden.
+		[self addTarget:[UNIVERSE entityForUniversalID:_dockTarget]];	// main station in the original system, unless overridden.
 		[UNIVERSE setBlockJSPlayerShipProps:NO];	// re-enable player.ship!
 		if ([[self primaryTarget] isStation]) // also fails if primaryTarget is NO_TARGET
 		{
@@ -2201,7 +2200,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	// scanner sanity check - lose any targets further than maximum scanner range
-	ShipEntity *primeTarget = [UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity *primeTarget = [self primaryTarget];
 	if (primeTarget && distance2([primeTarget position], [self position]) > SCANNER_MAX_RANGE2 && !autopilot_engaged)
 	{
 		[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
@@ -2394,13 +2393,13 @@ static GLfloat		sBaseMass = 0.0;
 	if (stationForDocking == nil)   return NO;
 	if ([self isDocked])  return NO;
 	
-	if (autopilot_engaged && targetStation == [stationForDocking universalID])
+	if (autopilot_engaged && [self targetStation] == stationForDocking)
 	{	
 		return YES;
 	}
 		
-	targetStation = [stationForDocking universalID];
-	primaryTarget = NO_TARGET;
+	[self setTargetStation:stationForDocking];
+	DESTROY(_primaryTarget);
 	autopilot_engaged = YES;
 	ident_engaged = NO;
 	[self safeAllMissiles];
@@ -2431,8 +2430,8 @@ static GLfloat		sBaseMass = 0.0;
 		behaviour = BEHAVIOUR_IDLE;
 		frustration = 0.0;
 		autopilot_engaged = NO;
-		primaryTarget = NO_TARGET;
-		targetStation = NO_TARGET;
+		DESTROY(_primaryTarget);
+		[self setTargetStation:nil];
 		[self setStatus:STATUS_IN_FLIGHT];
 		[self playAutopilotOff];
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
@@ -2672,6 +2671,11 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			return NO;
 		}
+		OOEntityStatus tstatus = [targetShip status];
+		if (tstatus == STATUS_ENTERING_WITCHSPACE || tstatus == STATUS_IN_HOLD || tstatus == STATUS_DOCKED)
+		{ // checks for ships entering wormholes, docking, or been scooped
+			return NO;
+		}
 		return YES;
 	}
 
@@ -2715,7 +2719,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// check for lost ident target and ensure the ident system is actually scanning
 	UPDATE_STAGE(@"checking ident target");
-	if (ident_engaged && [self primaryTargetID] != NO_TARGET)
+	if (ident_engaged && [self primaryTarget] != nil)
 	{
 		if (![self isValidTarget:[self primaryTarget]])
 		{
@@ -2730,7 +2734,7 @@ static GLfloat		sBaseMass = 0.0;
 				suppressTargetLost = NO;
 			}
 
-			primaryTarget = NO_TARGET;
+			DESTROY(_primaryTarget);
 		}
 	}
 
@@ -2741,7 +2745,7 @@ static GLfloat		sBaseMass = 0.0;
 		unsigned i;
 		for (i = 0; i < max_missiles; i++)
 		{
-			if ([missile_entity[i] primaryTargetID] != NO_TARGET &&
+			if ([missile_entity[i] primaryTarget] != nil &&
 					![self isValidTarget:[missile_entity[i] primaryTarget]])
 			{
 				[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
@@ -2750,7 +2754,7 @@ static GLfloat		sBaseMass = 0.0;
 				if (i == activeMissile)
 				{
 					[self noteLostTarget];
-					primaryTarget = NO_TARGET;
+					DESTROY(_primaryTarget);
 					missile_status = MISSILE_STATUS_ARMED;
 				}
 			}
@@ -2760,7 +2764,7 @@ static GLfloat		sBaseMass = 0.0;
 	// if we don't have a primary target, and we're scanning, then check for a new
 	// target to lock on to
 	UPDATE_STAGE(@"looking for new target");
-	if ([self primaryTargetID] == NO_TARGET && 
+	if ([self primaryTarget] == nil && 
 			(ident_engaged || missile_status != MISSILE_STATUS_SAFE) &&
 			([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
 	{
@@ -3652,7 +3656,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (NSString *) dialTargetName
 {
-	Entity		*target_entity = [UNIVERSE entityForUniversalID:primaryTarget];
+	Entity		*target_entity = [self primaryTarget];
 	NSString	*result = nil;
 	
 	if (target_entity == nil)
@@ -3686,7 +3690,7 @@ static GLfloat		sBaseMass = 0.0;
 	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
-		if (missile_entity[i] && [missile_entity[i] primaryTarget] != NO_TARGET)
+		if (missile_entity[i] && [missile_entity[i] primaryTarget] != nil)
 			[missile_entity[i] removeTarget:nil];
 	}
 	missile_status = MISSILE_STATUS_SAFE;
@@ -3742,19 +3746,19 @@ static GLfloat		sBaseMass = 0.0;
 				if( [missile_entity[activeMissile] isMissile] )
 				{
 					if( [self hasEquipmentItem:@"EQ_MULTI_TARGET"] &&
-							([missile_entity[next_missile] primaryTargetID] != NO_TARGET))
+							([missile_entity[next_missile] primaryTarget] != nil))
 					{
 						// copy the missile's target
 						[self addTarget:[missile_entity[next_missile] primaryTarget]];
 						missile_status = MISSILE_STATUS_TARGET_LOCKED;
 					}
-					else if ([self primaryTargetID] != NO_TARGET)
+					else if ([self primaryTarget] != nil)
 					{
 						// never inherit target if we have EQ_MULTI_TARGET installed! [ Bug #16221 : Targeting enhancement regression ]
 						if([self hasEquipmentItem:@"EQ_MULTI_TARGET"])
 						{
 							[self noteLostTarget];
-							primaryTarget = NO_TARGET;
+							DESTROY(_primaryTarget);
 						}
 						else
 						{
@@ -3852,7 +3856,7 @@ static GLfloat		sBaseMass = 0.0;
 		[UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
 		autopilot_engaged = NO;
 		[self resetAutopilotAI];
-		primaryTarget = NO_TARGET;
+		DESTROY(_primaryTarget);
 		[self setStatus:STATUS_IN_FLIGHT];
 		[[OOMusicController sharedController] stopDockingMusic];
 		[self doScriptEvent:OOJSID("playerDockingRefused")];
@@ -4456,7 +4460,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (OOUniversalID)launchEscapeCapsule
+- (ShipEntity*)launchEscapeCapsule
 {
 	ShipEntity		*doppelganger = nil;
 	ShipEntity		*escapePod = nil;
@@ -4547,7 +4551,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[escapePod release];
 	
-	return result;
+	return doppelganger;
 }
 
 
@@ -4930,7 +4934,7 @@ static GLfloat		sBaseMass = 0.0;
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
 	[self safeAllMissiles];
-	primaryTarget = NO_TARGET; // must happen before showing break_pattern to supress active reticule.
+	DESTROY(_primaryTarget); // must happen before showing break_pattern to supress active reticule.
 	[self clearTargetMemory];
 	
 	[hud setScannerZoom:1.0];
@@ -5128,10 +5132,10 @@ static GLfloat		sBaseMass = 0.0;
 	suppressAegisMessages=YES;
 	hyperspeed_engaged = NO;
 	
-	if (primaryTarget != NO_TARGET)
+	if ([self primaryTarget] == nil)
 	{
 		[self noteLostTarget];	// losing target? Fire lost target event!
-		primaryTarget = NO_TARGET;
+		DESTROY(_primaryTarget);
 	}
 	
 	[hud setScannerZoom:1.0];
@@ -8410,7 +8414,7 @@ static NSString *last_outfitting_key=nil;
 		// if targeted previously use that memory space
 		for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
 		{
-			if (primaryTarget == target_memory[i])
+			if ([[self primaryTarget] universalID] == target_memory[i])
 			{
 				target_memory_index = i;
 				foundSlot = YES;
@@ -8425,7 +8429,7 @@ static NSString *last_outfitting_key=nil;
 			{
 				if (target_memory[target_memory_index] == NO_TARGET)
 				{
-					target_memory[target_memory_index] = primaryTarget;
+					target_memory[target_memory_index] = [[self primaryTarget] universalID];
 					foundSlot = YES;
 					break;
 				}
@@ -8436,7 +8440,7 @@ static NSString *last_outfitting_key=nil;
 		{
 			// use the next memory space
 			target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
-			target_memory[target_memory_index] = primaryTarget;
+			target_memory[target_memory_index] = [[self primaryTarget] universalID];
 		}
 	}
 	

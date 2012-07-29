@@ -2727,15 +2727,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) targetNearestHostile
 {
 	[self scanForHostiles];
-	if (found_target != NO_TARGET)
+	Entity *ent = [self foundTarget];
+	if (ent != nil)
 	{
-		Entity *ent = [UNIVERSE entityForUniversalID:found_target];
-		if (ent != 0x00)
-		{
-			ident_engaged = YES;
-			missile_status = MISSILE_STATUS_TARGET_LOCKED;
-			[self addTarget:ent];
-		}
+		ident_engaged = YES;
+		missile_status = MISSILE_STATUS_TARGET_LOCKED;
+		[self addTarget:ent];
 	}
 }
 
@@ -2743,7 +2740,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) targetNearestIncomingMissile
 {
 	[self scanForNearestIncomingMissile];
-	Entity *ent = [UNIVERSE entityForUniversalID:found_target];
+	Entity *ent = [self foundTarget];
 	if (ent != nil)
 	{
 		ident_engaged = YES;

@@ -22,6 +22,7 @@
 		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
 		"DESIRED_RANGE_ACHIEVED" = (setTargetToNearestStation, "setAITo: dockingAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
+		"ATTACKER_MISSED" = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		UPDATE = (setTargetToNearestStation, "setDesiredRangeTo: 5000.0",
@@ -37,6 +38,7 @@
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
 		"DESIRED_RANGE_ACHIEVED" = (setTargetToSystemStation, "setAITo: dockingAI.plist");
+		"ATTACKER_MISSED" = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
 		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");

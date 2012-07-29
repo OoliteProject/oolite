@@ -79,6 +79,7 @@
 		"RESTART_DOCKING" = ("setStateTo: GLOBAL");
 		"REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL");
 		"DESIRED_RANGE_ACHIEVED" = (performIdle, "setStateTo: GLOBAL");
+		"ATTACKER_MISSED" = ("setStateTo: ATTACK_SHIP");
 		ATTACKED = ("setStateTo: ATTACK_SHIP");
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");

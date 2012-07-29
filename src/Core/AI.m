@@ -399,14 +399,13 @@ static AIStackElement *sStack = NULL;
 	static unsigned	recursionLimiter = 0;
 	AI				*previousRunning = sCurrentlyRunningAI;
 	
-	
 	/*	CRASH in _freedHandler when called via -setState: __NSFireDelayedPerform (1.69, OS X/x86).
 		Analysis: owner invalid.
 		Fix: make owner an OOWeakReference.
 		 -- Ahruman, 20070706
 	*/
 	if (message == nil || owner == nil || [owner universalID] == NO_TARGET)  return;
-	
+
 #ifndef NDEBUG
 	// Push debug stack frame.
 	if (debugContext == nil)  debugContext = @"unspecified";

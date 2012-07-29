@@ -30,6 +30,7 @@
 	"TRAVEL_TO_LURK_AREA" =
 	{
 		ENTER = (setDestinationToCurrentLocation, "setDesiredRangeTo: 1500.0", performFlyToRangeFromDestination);
+		"ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK");
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
@@ -41,6 +42,7 @@
 	LURK =
 	{
 		ENTER = ("setSpeedTo: 0.0", performIdle);
+		"ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");

@@ -587,6 +587,7 @@ typedef enum
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict;
 
 - (void) doBookkeeping:(double) delta_t;
+- (BOOL) isValidTarget:(Entity*)target;
 
 - (BOOL) massLocked;
 - (BOOL) atHyperspeed;

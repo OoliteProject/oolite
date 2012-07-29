@@ -348,7 +348,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	[acc setObject:[NSString stringWithFormat:@"%.2f %.2f %.2f", coords.x, coords.y, coords.z] forKey:@"destination"];
 	[acc oo_setFloat:speed forKey:@"speed"];
 	[acc oo_setFloat:range forKey:@"range"];
-	[acc oo_setInteger:[station universalID] forKey:@"station_id"];
+	[acc setObject:[station weakRetain] forKey:@"station"];
+	[acc oo_setInteger:[station universalID] forKey:@"station_id"]; // TODO: remove
 	[acc oo_setBool:match_rotation forKey:@"match_rotation"];
 	if (ai_message)
 	{
@@ -1174,7 +1175,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		[(ShipEntity*)other markAsOffender:b withReason:kOOLegalStatusReasonAttackedMainStation];
 		
 		[self setPrimaryAggressor:other];
-		found_target = primaryAggressor;
+		[self setFoundTarget:other];
 		[self launchPolice];
 
 		if (isEnergyMine) //don't blow up!
@@ -1417,7 +1418,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		return [NSArray array];
 	}
 
-	OOUniversalID	police_target = primaryTarget;
+	OOUniversalID	police_target = [[self primaryTarget] universalID];
 	unsigned		i;
 	NSMutableArray	*result = nil;
 	OOTechLevelID	techlevel = [self equivalentTechLevel];
@@ -1482,7 +1483,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		return nil;
 	}
 
-	OOUniversalID	defense_target = primaryTarget;
+	OOUniversalID	defense_target = [[self primaryTarget] universalID];
 	ShipEntity	*defense_ship = nil;
 	NSString	*defense_ship_key = nil,
 				*defense_ship_role = nil,
@@ -1681,7 +1682,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		return nil;
 	}
 	//Pirate ships are launched from the same pool as defence ships.
-	OOUniversalID	defense_target = primaryTarget;
+	OOUniversalID	defense_target = [[self primaryTarget] universalID];
 	ShipEntity		*pirate_ship = nil;
 	
 	if (defenders_launched >= max_defense_ships)  return nil;   // shuttles are to rockhermits what police ships are to stations

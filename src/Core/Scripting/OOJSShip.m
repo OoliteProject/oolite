@@ -531,7 +531,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 		
 		case kShip_potentialCollider:
-			result = [entity proximity_alert];
+			result = [entity proximityAlert];
 			break;
 		
 		case kShip_hasHostileTarget:

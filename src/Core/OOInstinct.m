@@ -174,7 +174,7 @@ MA 02110-1301, USA.
 		saved_desired_range = ship->desired_range;
 		saved_desired_speed = ship->desired_speed;
 		saved_behaviour = ship->behaviour;
-		saved_target_id = ship->primaryTarget;
+		saved_target_id = [[ship primaryTarget] universalID];
 	}
 }
 
@@ -186,7 +186,7 @@ MA 02110-1301, USA.
 		ship->desired_range	= saved_desired_range;
 		ship->desired_speed = saved_desired_speed;
 		ship->behaviour = saved_behaviour;
-		ship->primaryTarget = saved_target_id;
+		[ship addTarget:[UNIVERSE entityForUniversalID:saved_target_id]];
 	}
 }
 
@@ -198,7 +198,7 @@ MA 02110-1301, USA.
 		ship->desired_range	= desired_range;
 		ship->desired_speed = desired_speed;
 		ship->behaviour = behaviour;
-		ship->primaryTarget = target_id;
+		[ship addTarget:[UNIVERSE entityForUniversalID:target_id]];
 	}
 }
 
@@ -210,7 +210,7 @@ MA 02110-1301, USA.
 		desired_range = ship->desired_range;
 		desired_speed = ship->desired_speed;
 		behaviour = ship->behaviour;
-		target_id = ship->primaryTarget;
+		target_id = [[ship primaryTarget] universalID];
 	}
 }
 

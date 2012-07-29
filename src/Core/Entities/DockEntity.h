@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 	BOOL					no_docking_while_launching;
 	BOOL					allow_launching;
 	BOOL					allow_docking;
-	BOOL					allow_player_docking;
+	BOOL					disallowed_docking_collides; 
 	BOOL					virtual_dock;
 }
 
@@ -53,7 +53,8 @@ MA 02110-1301, USA.
 // Docking
 - (BOOL) allowsDocking;
 - (void) setAllowsDocking:(BOOL)allow;
-- (BOOL) allowsPlayerDocking;
+- (BOOL) disallowedDockingCollides; 
+- (void) setDisallowedDockingCollides:(BOOL)ddc;
 - (unsigned) countOfShipsInDockingQueue;
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *)ship;
 - (NSString *) canAcceptShipForDocking:(ShipEntity *)ship;
@@ -77,7 +78,7 @@ MA 02110-1301, USA.
 - (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority;
 
 // Geometry
-- (void) setDimensionsAndCorridor:(BOOL)docking :(BOOL)playerdocking :(BOOL)launching;
+- (void) setDimensionsAndCorridor:(BOOL)docking :(BOOL)ddc :(BOOL)launching;
 - (Vector) portUpVectorForShipsBoundingBox:(BoundingBox)bb;
 - (BOOL) isOffCentre;
 - (void) setVirtual;

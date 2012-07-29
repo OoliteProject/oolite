@@ -27,6 +27,7 @@
 		"TARGET_OFFENDER" = ("sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist", groupAttackTarget);
 		"TARGET_FUGITIVE" = ("setAITo: interceptAI.plist", groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
+		"ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
         "ATTACKED_BY_CLOAKED" = ("setAITo: interceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		"INCOMING_MISSILE" = (setTargetToFoundTarget, "markTargetForOffence: 15",
 					"setAITo: delayedReactToAttackAI.plist");

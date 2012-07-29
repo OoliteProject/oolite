@@ -72,7 +72,7 @@ static JSPropertySpec sDockProperties[] =
 {
 	// JS name						ID									flags
 	{ "allowsDocking",				kDock_allowsDocking,			OOJS_PROP_READWRITE_CB },
-	{ "disallowedDockingCollides",				kDock_disallowedDockingCollides,			OOJS_PROP_READONLY_CB },
+	{ "disallowedDockingCollides",				kDock_disallowedDockingCollides,			OOJS_PROP_READWRITE_CB },
 	{ "allowsLaunching",				kDock_allowsLaunching,			OOJS_PROP_READWRITE_CB },
 	{ "dockingQueueLength",				kDock_dockingQueueLength,			OOJS_PROP_READONLY_CB },
 	{ "launchingQueueLength",				kDock_launchingQueueLength,			OOJS_PROP_READONLY_CB },
@@ -152,7 +152,7 @@ static JSBool DockGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 
 		case kDock_disallowedDockingCollides:
-			*value = OOJSValueFromBOOL(![entity allowsPlayerDocking]);
+			*value = OOJSValueFromBOOL([entity disallowedDockingCollides]);
 			return YES;
 
 		case kDock_allowsLaunching:
@@ -203,6 +203,14 @@ static JSBool DockSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setAllowsLaunching:bValue];
+				return YES;
+			}
+			break;
+
+		case kDock_disallowedDockingCollides:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setDisallowedDockingCollides:bValue];
 				return YES;
 			}
 			break;

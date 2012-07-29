@@ -6,6 +6,7 @@
 	LOOT =
 	{
 		ENTER = (performCollect);
+		"ATTACKER_MISSED" = ("exitAIWithMessage: ATTACKED"); 
 		ATTACKED = ("exitAIWithMessage: ATTACKED");
 		"COLLISION" = (exitAI);
 		"FRUSTRATED" = ("setSpeedTo: 0.0", performIdle, exitAI);

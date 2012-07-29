@@ -6,6 +6,7 @@
             "setDesiredRangeTo: 1500.0", 
             performFlyToRangeFromDestination
         ); 
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
         "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
@@ -74,6 +75,7 @@
 		ENTER = ("setSpeedTo: 0.0", performIdle, "pauseAI: 5.0");
         "ENERGY_FULL" = ("setStateTo: COLLECT_LOOT"); 
         "ENERGY_HIGH" = ("setStateTo: COLLECT_LOOT"); 
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
@@ -82,6 +84,7 @@
     }; 
     "COLLECT_LOOT" = {
         ENTER = ("setSpeedTo: 0.0", performIdle); 
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
         "HOLD_FULL" = ("setStateTo: CONSIDER_DOCKING"); 
@@ -95,6 +98,7 @@
     }; 
     LOOT = {
         ENTER = (performCollect); 
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
         "CARGO_SCOOPED" = ("setStateTo: CHECK_CARGO"); 
@@ -110,6 +114,7 @@
     }; 
     "CHECK_CARGO" = {
         ENTER = ("setSpeedTo: 0.0", performIdle, checkForFullHold); 
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
         "HOLD_FULL" = ("setStateTo: CONSIDER_LEAVING"); 
@@ -122,6 +127,7 @@
 		RESTARTED = ("setStateTo: RECOVER");
 	}; 
     "CONSIDER_LEAVING" = {
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
 		"NOTHING_FOUND" = ("setStateTo: EXIT_SYSTEM", "pauseAI: 5.0");
@@ -145,6 +151,7 @@
     "CONSIDER_DOCKING" = {
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
        "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
+       "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
 		"NOTHING_FOUND" = ("setStateTo: TRAVEL_TO_LURK_AREA");
 		"STATION_FOUND" = (dockEscorts, "setAITo: dockingAI.plist");
         "CARGO_SCOOPED" = ("setStateTo: CHECK_CARGO"); 
@@ -155,6 +162,7 @@
 	}; 
     "DOCK_WITH_STATION" = {
 		ENTER = (checkForMotherStation);
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
 		"NOTHING_FOUND" = ("setAITo: route1traderAI.plist");
@@ -183,6 +191,7 @@
 		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
         ATTACKED = (setTargetToPrimaryAggressor,  groupAttackTarget); 
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
         "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
@@ -199,6 +208,7 @@
     LURK = {
         ENTER = ("setSpeedTo: 0.0", performIdle); 
         ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
 		"TARGET_LOST" = ("setStateTo: TRAVEL_TO_LURK_AREA", "pauseAI: 0.5");
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
@@ -215,6 +225,7 @@
     "SCAN_FOR_LOOT" = {
         ENTER = ("setSpeedTo: 0.0", performIdle); 
         ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
+        "ATTACKER_MISSED" = (setTargetToPrimaryAggressor, groupAttackTarget); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 

@@ -1027,8 +1027,8 @@ static NSTimeInterval	time_last_frame;
 					if (!safety_pressed)
 					{
 						//targeting off in both cases!
-						if (primaryTarget != NO_TARGET) [self noteLostTarget];
-						primaryTarget = NO_TARGET;
+						if ([self primaryTarget] != nil) [self noteLostTarget];
+						DESTROY(_primaryTarget);
 						[self safeAllMissiles];
 						if (!ident_engaged && [self weaponsOnline])
 						{
@@ -1101,7 +1101,9 @@ static NSTimeInterval	time_last_frame;
 						}
 					}
 					if (goodToLaunch)
-						found_target = [self launchEscapeCapsule];
+					{
+						[self setFoundTarget:[self launchEscapeCapsule]];
+					}
 				}
 				
 				exceptionContext = @"dump cargo";
@@ -3664,7 +3666,7 @@ abort:
 	
 	[self safeAllMissiles];
 	ident_engaged = YES;
-	if ([self primaryTargetID] == NO_TARGET)
+	if ([self primaryTarget] == nil)
 	{
 		[self playIdentOn];
 		[UNIVERSE addMessage:DESC(@"ident-on") forCount:2.0];
@@ -3688,7 +3690,7 @@ abort:
 	// Clear current target if we're already in Missile Targeting mode
 	if (missile_status != MISSILE_STATUS_SAFE)
 	{
-		primaryTarget = NO_TARGET;
+		DESTROY(_primaryTarget);
 	}
 	
 	// Arm missile and check for missile lock

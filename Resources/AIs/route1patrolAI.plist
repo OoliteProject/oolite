@@ -17,6 +17,7 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
+		"ATTACKER_MISSED" = (setTargetToPrimaryAggressor, groupAttackTarget);
         "ATTACKED_BY_CLOAKED" = ("setAITo: interceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: INBOUND_LOOT", "setAITo: interceptAI.plist");
 		RESTARTED = (checkAegis);
@@ -35,6 +36,7 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
+		"ATTACKER_MISSED" = (setTargetToPrimaryAggressor, groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
         "ATTACKED_BY_CLOAKED" = ("setAITo: interceptAI.plist", "setStateTo: FLEE_FOR_CLOAKED"); 
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: OUTBOUND_LOOT", "setAITo: interceptAI.plist");
@@ -48,6 +50,7 @@
 		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
+		"ATTACKER_MISSED" = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
@@ -63,6 +66,7 @@
 		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
+		"ATTACKER_MISSED" = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
