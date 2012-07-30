@@ -123,8 +123,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		0
 	};
 	
-	_pixelFormatAttributes = [[NSData alloc] initWithBytes:attrs length:sizeof attrs];
-	
 	// Create our non-FullScreen pixel format.
 	NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] autorelease];
 	
@@ -141,6 +139,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			[self setWantsBestResolutionOpenGLSurface:YES];
 		}
 		
+		_pixelFormatAttributes = [[NSData alloc] initWithBytes:attrs length:sizeof attrs];
 		virtualJoystickPosition = NSMakePoint(0.0,0.0);
 		
 		typedString = [[NSMutableString alloc] initWithString:@""];

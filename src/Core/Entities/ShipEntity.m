@@ -9227,7 +9227,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) addDefenseTarget:(Entity*)target
+- (BOOL) addDefenseTarget:(Entity *)target
 {
 	if ([defenseTargets count] >= MAX_TARGETS)
 	{
@@ -9237,12 +9237,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		return NO;
 	}
-	[defenseTargets addObject:[target weakRetain]];
+	[defenseTargets addObject:[[target weakRetain] autorelease]];
 	return YES;
 }
 
 
-- (BOOL) isDefenseTarget:(Entity*)target
+- (BOOL) isDefenseTarget:(Entity *)target
 {
 	if (target == nil)
 	{
@@ -9283,7 +9283,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) removeDefenseTargetByID:(Entity*)target
+- (void) removeDefenseTargetByID:(Entity *)target
 {
 	for (unsigned i=0; i<[defenseTargets count]; i++)
 	{

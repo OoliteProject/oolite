@@ -4460,11 +4460,10 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (ShipEntity*)launchEscapeCapsule
+- (ShipEntity *) launchEscapeCapsule
 {
 	ShipEntity		*doppelganger = nil;
 	ShipEntity		*escapePod = nil;
-	OOUniversalID	result = NO_TARGET;
 	
 	if ([UNIVERSE displayGUI]) [self switchToMainView];	// Clear the F7 screen!
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
@@ -4490,8 +4489,6 @@ static GLfloat		sBaseMass = 0.0;
 		[doppelganger setRoll:0.2 * (randf() - 0.5)];
 		[doppelganger setOwner:self];
 		[UNIVERSE addEntity:doppelganger];
-		
-		result = [doppelganger universalID];
 	}
 	
 	// set up you
@@ -9076,7 +9073,7 @@ else _dockTarget = NO_TARGET;
 	NSMutableArray *groupDests = [missionDestinations objectForKey:group];
 	if (groupDests == nil)
 	{
-		groupDests = [[NSMutableArray alloc] init];
+		groupDests = [NSMutableArray array];
 		[missionDestinations setObject:groupDests forKey:group];
 	}
 	OOUInteger i, count = [groupDests count];
