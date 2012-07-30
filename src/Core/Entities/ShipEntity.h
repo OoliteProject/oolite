@@ -909,7 +909,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) setLastEscortTarget:(Entity *) targetEntity;
 - (void) setThankedShip:(Entity *) targetEntity;
 - (void) setRememberedShip:(Entity *) targetEntity;
-- (void) setProximityAlert:(Entity *) targetEntity;
+- (void) setProximityAlert:(ShipEntity *) targetEntity;
 - (void) setTargetStation:(Entity *) targetEntity;
 - (BOOL) isValidTarget:(Entity *) target;
 - (void) addTarget:(Entity *) targetEntity;
