@@ -5462,11 +5462,12 @@ static GLfloat		sBaseMass = 0.0;
 	Vector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 	Quaternion	q1;
 	Vector		whpos, exitpos;
-	
+
+	GLfloat min_d1 = [UNIVERSE safeWitchspaceExitDistance];
 	quaternion_set_random(&q1);
-	if (abs((int)d1) < MIN_DISTANCE_TO_BUOY)	
+	if (abs((int)d1) < min_d1)	
 	{
-		d1 += ((d1 > 0.0)? MIN_DISTANCE_TO_BUOY: -MIN_DISTANCE_TO_BUOY); // not to close to the buoy.
+		d1 += ((d1 > 0.0)? min_d1: -min_d1); // not too close to the buoy.
 	}
 	Vector		v1 = vector_forward_from_quaternion(q1);
 	exitpos = vector_add(pos, vector_multiply_scalar(v1, d1)); // randomise exit position
@@ -5498,11 +5499,11 @@ static GLfloat		sBaseMass = 0.0;
 			} 
 
 			Vector distance = vector_subtract(whpos, pos);
-			if (magnitude2(distance) < MIN_DISTANCE_TO_BUOY2 ) // within safety distance from the buoy?
+			if (magnitude2(distance) < min_d1*min_d1 ) // within safety distance from the buoy?
 			{
 				// the wormhole is to close to the buoy. Move both player and wormhole away from it in the x-y plane.
 				distance.z = 0;
-				distance = vector_multiply_scalar(vector_normal(distance), MIN_DISTANCE_TO_BUOY);
+				distance = vector_multiply_scalar(vector_normal(distance), min_d1);
 				whpos = vector_add(whpos, distance);
 				position = vector_add(position, distance);
 			}

@@ -312,11 +312,12 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			if (!hasExitPosition)
 			{
 				position = [UNIVERSE getWitchspaceExitPosition];	// no need to reset PRNG.
+				GLfloat min_d1 = [UNIVERSE safeWitchspaceExitDistance];
 				Quaternion	q1;
 				quaternion_set_random(&q1);
 				double		d1 = SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
-				if (abs(d1) < 750.0)	// no closer than 750m
-					d1 += ((d1 > 0.0)? 750.0: -750.0);
+				if (abs(d1) < min_d1)	// no closer than 750m to edge of buoy
+					d1 += ((d1 > 0.0)? min_d1: -min_d1);
 				Vector		v1 = vector_forward_from_quaternion(q1);
 				position.x += v1.x * d1; // randomise exit position
 				position.y += v1.y * d1;

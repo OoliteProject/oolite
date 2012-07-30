@@ -2215,6 +2215,20 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
+- (GLfloat) safeWitchspaceExitDistance
+{
+	for (unsigned i = 0; i < n_entities; i++)
+	{
+		Entity *e2 = sortedEntities[i];
+		if ([e2 isShip] && [(ShipEntity*)e2 hasPrimaryRole:@"buoy-witchpoint"])
+		{
+			return [(ShipEntity*)e2 collisionRadius] + MIN_DISTANCE_TO_BUOY;
+		}
+	}
+	return MIN_DISTANCE_TO_BUOY;
+}
+
+
 - (void) setUpBreakPattern:(Vector) pos orientation:(Quaternion) q forDocking:(BOOL) forDocking
 {
 	int						i;

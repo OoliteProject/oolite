@@ -144,6 +144,8 @@ enum
 
 #define DEMO_LIGHT_POSITION 5000.0f, 25000.0f, -10000.0f
 
+#define MIN_DISTANCE_TO_BUOY			750.0f // don't add ships within this distance
+#define MIN_DISTANCE_TO_BUOY2			(MIN_DISTANCE_TO_BUOY * MIN_DISTANCE_TO_BUOY)
 
 #ifndef OO_LOCALIZATION_TOOLS
 #define OO_LOCALIZATION_TOOLS	1
@@ -368,6 +370,7 @@ enum
 
 - (void) forceWitchspaceEntries;
 - (void) addWitchspaceJumpEffectForShip:(ShipEntity *)ship;
+- (GLfloat) safeWitchspaceExitDistance;
 
 - (void) setUpBreakPattern:(Vector)pos orientation:(Quaternion)q forDocking:(BOOL)forDocking;
 - (void) handleGameOver;

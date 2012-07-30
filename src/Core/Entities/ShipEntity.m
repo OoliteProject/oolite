@@ -11275,7 +11275,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector		v1 = vector_forward_from_quaternion(q1);
 	double		d1 = 0.0;
 	
-	while (abs(d1) < MIN_DISTANCE_TO_BUOY)
+	GLfloat min_d1 = [UNIVERSE safeWitchspaceExitDistance];
+
+	while (abs(d1) < min_d1)
 	{
 		d1 = SCANNER_MAX_RANGE * (randf() - randf());
 	}
