@@ -182,7 +182,7 @@ static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp)
 		}
 	}
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -218,7 +218,7 @@ static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp)
 		}
 	}
 	
-	return YES;
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
