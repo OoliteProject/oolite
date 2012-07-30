@@ -9900,6 +9900,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			 * amateurs. So should only respond to ATTACKER_MISSED if not
 			 * already fighting */
 			[victim setPrimaryAggressor:self];
+			[victim setFoundTarget:self];
 			[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
 		}
 
