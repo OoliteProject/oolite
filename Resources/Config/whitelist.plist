@@ -208,8 +208,8 @@
 		"thargonCheckMother",
 		"addPrimaryAggressorAsDefenseTarget",
 		"addFoundTargetAsDefenseTarget",
-		"findNewDefenseTarget",	
-		"clearDefenseTargets",	
+		"findNewDefenseTarget",
+		"clearDefenseTargets",
 		"storeTarget",
 		"recallStoredTarget",
 		// StationEntity.m/stubs in ShipEntityAI.m
@@ -241,7 +241,8 @@
 		"setTargetToNearestFriendlyStation",
 		"setTargetToSystemStation",
 		"setUpEscorts",
-		"fireMissile"
+		"fireMissile",
+		"removeAllDefenseTargets"	// Don't use, use clearDefenseTargets instead
 	);
 	
 	ai_and_action_methods =
@@ -456,5 +457,6 @@
 		"scanForRandomMerchantmen" = "scanForRandomMerchantman";
 		"setUpEscorts" = "doNothing";
 		"becomeExplosion" = "explodeSelf";
+		"clearDefenseTargets" = "removeAllDefenseTargets";
 	};
 }

@@ -30,7 +30,7 @@
 #import "OOJSPropID.h"
 
 @class	OOColor, StationEntity, WormholeEntity, AI, Octree, OOMesh, OOScript,
-OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
+OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
 
 #ifdef OO_BRAIN_AI
 @class OOBrain;
@@ -323,7 +323,6 @@ typedef enum
 	Vector					jink;						// x and y set factors for offsetting a pursuing ship's position
 	Vector					coordinates;				// for flying to/from a set point
 	Vector					reference;					// a direction vector of magnitude 1 (* turrets *)
-	NSMutableArray			*defenseTargets;			 // defense targets
 	
 	OOUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
 	OOUInteger				_maxShipSubIdx;				// serialisation index - the number of ship subentities inside the shipdata
@@ -442,6 +441,8 @@ typedef enum
 	// Cache of ship-relative positions, managed by -coordinatesForEscortPosition:.
 	Vector					_escortPositions[MAX_ESCORTS];
 	BOOL					_escortPositionsValid;
+	
+	OOWeakSet				*_defenseTargets;			 // defense targets
 	
 	GLfloat					_profileRadius;
 	
@@ -724,13 +725,13 @@ typedef enum
 - (BOOL) isHostileTo:(Entity *)entity;
 
 // defense target handling
-- (unsigned) numDefenseTargets;
-- (Entity*) getDefenseTarget:(int)index;
-- (BOOL) addDefenseTarget:(Entity*)target;
-- (BOOL) isDefenseTarget:(Entity*)target;
-- (void) removeDefenseTarget:(unsigned)index;
-- (void) removeDefenseTargetByID:(Entity*)target;
-- (void) clearDefenseTargets;
+- (OOUInteger) defenseTargetCount;
+- (NSArray *) allDefenseTargets;
+- (NSEnumerator *) defenseTargetEnumerator;
+- (BOOL) addDefenseTarget:(Entity *)target;
+- (BOOL) isDefenseTarget:(Entity *)target;
+- (void) removeDefenseTarget:(Entity *)target;
+- (void) removeAllDefenseTargets;
 
 
 - (GLfloat) weaponRange;
@@ -741,13 +742,13 @@ typedef enum
 - (void) setWeaponEnergy:(float)value;
 
 - (GLfloat) scannerRange;
-- (void) setScannerRange: (GLfloat) value;
+- (void) setScannerRange:(GLfloat)value;
 
 - (Vector) reference;
-- (void) setReference:(Vector) v;
+- (void) setReference:(Vector)v;
 
 - (BOOL) reportAIMessages;
-- (void) setReportAIMessages:(BOOL) yn;
+- (void) setReportAIMessages:(BOOL)yn;
 
 - (void) transitionToAegisNone;
 - (OOPlanetEntity *) findNearestPlanet;
@@ -757,18 +758,18 @@ typedef enum
 - (BOOL) withinStationAegis;
 
 - (NSArray*) crew;
-- (void) setCrew: (NSArray*) crewArray;
+- (void) setCrew:(NSArray *)crewArray;
 
 // Fuel and capacity in tenths of light-years.
 - (OOFuelQuantity) fuel;
-- (void) setFuel:(OOFuelQuantity) amount;
+- (void) setFuel:(OOFuelQuantity)amount;
 - (OOFuelQuantity) fuelCapacity;
 
 - (GLfloat) fuelChargeRate;
 
-- (void) setRoll:(double) amount;
-- (void) setPitch:(double) amount;
-- (void) setThrust:(double) amount;
+- (void) setRoll:(double)amount;
+- (void) setPitch:(double)amount;
+- (void) setThrust:(double)amount;
 - (void) applySticks:(double)delta_t;
 
 
@@ -778,14 +779,14 @@ typedef enum
  Sets the bounty on this ship to amount.  
  Does not check to see if the ship is allowed to have a bounty, for example if it is police.
  */
-- (void) setBounty:(OOCreditsQuantity) amount;
-- (void) setBounty:(OOCreditsQuantity) amount withReason:(OOLegalStatusReason)reason;
-- (void) setBounty:(OOCreditsQuantity) amount withReasonAsString:(NSString *)reason;
+- (void) setBounty:(OOCreditsQuantity)amount;
+- (void) setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason;
+- (void) setBounty:(OOCreditsQuantity)amount withReasonAsString:(NSString *)reason;
 - (OOCreditsQuantity) bounty;
 
 - (int) legalStatus;
 
-- (void) setUpCargoType:(NSString *) cargoString;
+- (void) setUpCargoType:(NSString *)cargoString;
 - (void) setCommodity:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;
 - (void) setCommodityForPod:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;
 - (OOCommodityType) commodityType;
@@ -796,35 +797,35 @@ typedef enum
 - (OOCargoQuantity) cargoQuantityOnBoard;
 - (OOCargoType) cargoType;
 - (NSMutableArray *) cargo;
-- (void) setCargo:(NSArray *) some_cargo;
+- (void) setCargo:(NSArray *)some_cargo;
 - (BOOL) showScoopMessage;
 
 - (NSArray *) passengerListForScripting;
 - (NSArray *) contractListForScripting;
 - (NSArray *) equipmentListForScripting;
-- (OOEquipmentType *) weaponTypeForFacing:(int) facing;
+- (OOEquipmentType *) weaponTypeForFacing:(int)facing;
 - (NSArray *) missilesList;
 
 - (OOCargoFlag) cargoFlag;
-- (void) setCargoFlag:(OOCargoFlag) flag;
+- (void) setCargoFlag:(OOCargoFlag)flag;
 
-- (void) setSpeed:(double) amount;
+- (void) setSpeed:(double)amount;
 - (double) desiredSpeed;
-- (void) setDesiredSpeed:(double) amount;
+- (void) setDesiredSpeed:(double)amount;
 
 - (double) cruiseSpeed;
 
 - (Vector) thrustVector;
 - (void) setTotalVelocity:(Vector)vel;	// Set velocity to vel - thrustVector, effectively setting the instanteneous velocity to vel.
 
-- (void) increase_flight_speed:(double) delta;
-- (void) decrease_flight_speed:(double) delta;
-- (void) increase_flight_roll:(double) delta;
-- (void) decrease_flight_roll:(double) delta;
-- (void) increase_flight_pitch:(double) delta;
-- (void) decrease_flight_pitch:(double) delta;
-- (void) increase_flight_yaw:(double) delta;
-- (void) decrease_flight_yaw:(double) delta;
+- (void) increase_flight_speed:(double)delta;
+- (void) decrease_flight_speed:(double)delta;
+- (void) increase_flight_roll:(double)delta;
+- (void) decrease_flight_roll:(double)delta;
+- (void) increase_flight_pitch:(double)delta;
+- (void) decrease_flight_pitch:(double)delta;
+- (void) increase_flight_yaw:(double)delta;
+- (void) decrease_flight_yaw:(double)delta;
 
 - (GLfloat) flightRoll;
 - (GLfloat) flightPitch;

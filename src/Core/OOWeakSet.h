@@ -49,6 +49,8 @@ This code is hereby placed in the public domain.
 - (void) makeObjectsPerformSelector:(SEL)selector;
 - (void) makeObjectsPerformSelector:(SEL)selector withObject:(id)argument;
 
+- (NSArray *) allObjects;
+
 - (void) removeAllObjects;
 
 @end

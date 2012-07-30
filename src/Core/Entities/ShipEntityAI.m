@@ -1507,7 +1507,7 @@
 		}
 		if ([other isDefenseTarget:self])
 		{
-			[other removeDefenseTargetByID:self];
+			[other removeDefenseTarget:self];
 		}
 	}
 	// now we're just a bunch of alien artefacts!

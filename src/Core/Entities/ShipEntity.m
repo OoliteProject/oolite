@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
 #import "OOExcludeObjectEnumerator.h"
+#import "OOWeakSet.h"
 
 #import "OOCharacter.h"
 #import "AI.h"
@@ -622,10 +623,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if ((isUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"]))  [self setCrew:nil];
 	
 	[self setShipScript:[shipDict oo_stringForKey:@"script"]];
-
-	// retained array of defense targets
-	defenseTargets = [[NSMutableArray alloc] initWithCapacity:MAX_TARGETS];
-
+	
 	return YES;
 	
 	OOJS_PROFILE_EXIT
@@ -947,8 +945,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(crew);
 	DESTROY(lastRadioMessage);
 	DESTROY(octree);
-	[defenseTargets removeAllObjects];
-	DESTROY(defenseTargets);
+	DESTROY(_defenseTargets);
 	
 	[self setSubEntityTakingDamage:nil];
 	[self removeAllEquipment];
@@ -5079,26 +5076,25 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		return;
 	}
-
-// can't fire on primary target; track secondary targets instead
-	unsigned i;
 	
-	for (i = 0; i < [turret_owner numDefenseTargets]; i++)
+	// can't fire on primary target; track secondary targets instead
+	NSEnumerator *targetEnum = [turret_owner defenseTargetEnumerator];
+	Entity *target = nil;
+	while ((target = [targetEnum nextObject]))
 	{
-		Entity *my_target = [turret_owner getDefenseTarget:i];
-		if (my_target == nil || [my_target scanClass] == CLASS_NO_DRAW || ![my_target isShip] || [(ShipEntity *)my_target isCloaked] || [my_target energy] <= 0.0)
+		if ([target scanClass] == CLASS_NO_DRAW || [(ShipEntity *)target isCloaked] || [target energy] <= 0.0)
 		{
-			[turret_owner removeDefenseTarget:i--];
+			[turret_owner removeDefenseTarget:target];
 		}
 		else 
 		{
-			double range = [turret_owner rangeToSecondaryTarget:my_target];
+			double range = [turret_owner rangeToSecondaryTarget:target];
 			if (range < weaponRange)
 			{
-				aim = [self ballTrackLeadingTarget:delta_t atTarget:my_target];
+				aim = [self ballTrackLeadingTarget:delta_t atTarget:target];
 				if (aim > -1.0)
 				{ // tracking...
-					Vector p = vector_subtract([my_target position], [turret_owner position]);
+					Vector p = vector_subtract([target position], [turret_owner position]);
 					double cr = [turret_owner collisionRadius];
 		
 					if (aim > .95)
@@ -5107,17 +5103,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					}
 					return;
 				}
-// else that target is out of range, try the next priority defense target
+				// else that target is out of range, try the next priority defense target
 			}
 			else if (range > scannerRange)
 			{
-				[turret_owner removeDefenseTarget:i--];
+				[turret_owner removeDefenseTarget:target];
 			}
 		}
 	}
 
 	// turrets now don't return to neutral facing if no suitable target
-  // better for shooting at targets that are on edge of fire arc
+	// better for shooting at targets that are on edge of fire arc
 }
 
 
@@ -8316,7 +8312,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		ShipEntity* ship = [self primaryTarget];
 		if ([self isDefenseTarget:ship]) 
 		{
-			[self removeDefenseTargetByID:ship];
+			[self removeDefenseTarget:ship];
 		}
 		target = (ship && ship->isShip) ? (id)ship : nil;
 		if ([self primaryAggressor] == ship) 
@@ -8350,7 +8346,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	if ([self isDefenseTarget:target]) 
 	{
-		[self removeDefenseTargetByID:target];
+		[self removeDefenseTarget:target];
 		[shipAI message:@"DEFENSE_TARGET_DESTROYED"];
 	}
 }
@@ -9215,21 +9211,27 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (unsigned) numDefenseTargets
+- (OOUInteger) defenseTargetCount
 {
-	return [defenseTargets count];
+	return [_defenseTargets count];
 }
 
 
-- (Entity*) getDefenseTarget:(int)index
+- (NSArray *) allDefenseTargets
 {
-	return [[defenseTargets objectAtIndex:index] weakRefUnderlyingObject];
+	return [_defenseTargets allObjects];
+}
+
+
+- (NSEnumerator *) defenseTargetEnumerator
+{
+	return [_defenseTargets objectEnumerator];
 }
 
 
 - (BOOL) addDefenseTarget:(Entity *)target
 {
-	if ([defenseTargets count] >= MAX_TARGETS)
+	if ([self defenseTargetCount] >= MAX_TARGETS)
 	{
 		return NO;
 	}
@@ -9237,62 +9239,33 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		return NO;
 	}
-	[defenseTargets addObject:[[target weakRetain] autorelease]];
+	if (_defenseTargets == nil)
+	{
+		// Allocate lazily for the benefit of the ships that never get in fights.
+		_defenseTargets = [[OOWeakSet alloc] init];
+	}
+	
+	[_defenseTargets addObject:target];
 	return YES;
 }
 
 
 - (BOOL) isDefenseTarget:(Entity *)target
 {
-	if (target == nil)
-	{
-		return NO;
-	}
-	for (unsigned i=0; i<[defenseTargets count]; i++)
-	{
-		if ([[defenseTargets objectAtIndex:i] weakRefUnderlyingObject] == target)
-		{
-			return YES;
-		}
-	}
-	return NO;
+	return [_defenseTargets containsObject:target];
 }
 
 
-// exposed to AI
-- (void) clearDefenseTargets
+// exposed to AI (as alias of clearDefenseTargets)
+- (void) removeAllDefenseTargets
 {
-	[defenseTargets removeAllObjects];
+	[_defenseTargets removeAllObjects];
 }
 
 
-- (void) removeDefenseTarget:(unsigned)index
+- (void) removeDefenseTarget:(Entity *)target
 {
-	if (index < [defenseTargets count])
-	{
-		if ([defenseTargets count] == 1)
-		{
-			[shipAI reactToMessage:@"DEFENSE_TARGET_LOST" context:@"flight updates"];	// last defense target lost
-		}
-		else
-		{
-			[shipAI message:@"DEFENSE_TARGET_LOST"];	// no major urgency, we have more
-		}
-		[defenseTargets removeObjectAtIndex:index];
-	}
-}
-
-
-- (void) removeDefenseTargetByID:(Entity *)target
-{
-	for (unsigned i=0; i<[defenseTargets count]; i++)
-	{
-		if ([[defenseTargets objectAtIndex:i] weakRefUnderlyingObject] == target)
-		{
-			[self removeDefenseTarget:i];
-			return;
-		}
-	}
+	[_defenseTargets removeObject:target];
 }
 
 
@@ -9729,24 +9702,24 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) fireDirectLaserDefensiveShot
 {
-	unsigned i;
-	for (i = 0; i < [defenseTargets count]; i++)
+	NSEnumerator *targetEnum = [self defenseTargetEnumerator];
+	Entity *target = nil;
+	while ((target = [targetEnum nextObject]))
 	{
-		Entity *my_target = [self getDefenseTarget:i];
-		if (my_target == nil || [my_target scanClass] == CLASS_NO_DRAW || ![my_target isShip] || [(ShipEntity *)my_target isCloaked] || [my_target energy] <= 0.0)
+		if ([target scanClass] == CLASS_NO_DRAW || [(ShipEntity *)target isCloaked] || [target energy] <= 0.0)
 		{
-			[self removeDefenseTarget:i--];
+			[self removeDefenseTarget:target];
 		}
 		else 
 		{
-			double range = [self rangeToSecondaryTarget:my_target];
+			double range = [self rangeToSecondaryTarget:target];
 			if (range < weaponRange)
 			{
-				return [self fireDirectLaserShotAt:my_target];
+				return [self fireDirectLaserShotAt:target];
 			}
 			else if (range > scannerRange)
 			{
-				[self removeDefenseTarget:i--];
+				[self removeDefenseTarget:target];
 			}
 		}
 	}

@@ -212,6 +212,24 @@ This code is hereby placed in the public domain.
 }
 
 
+- (NSArray *) allObjects
+{
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[_objects count]];
+	OOWeakReference *weakRef = nil;
+	foreach (weakRef, _objects)
+	{
+		id object = [weakRef weakRefUnderlyingObject];
+		if (object != nil)  [result addObject:object];
+	}
+	
+#ifdef NDEBUG
+	return result;
+#else
+	return [NSArray arrayWithArray:result];
+#endif
+}
+
+
 - (void) removeAllObjects
 {
 	[_objects removeAllObjects];
