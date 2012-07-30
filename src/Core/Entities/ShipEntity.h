@@ -39,9 +39,6 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType;
 @protocol OOHUDBeaconIcon;
 
 
-#define MIN_DISTANCE_TO_BUOY			750.0f // don't add ships within this distance
-#define MIN_DISTANCE_TO_BUOY2			(MIN_DISTANCE_TO_BUOY * MIN_DISTANCE_TO_BUOY)
-
 #define MAX_TARGETS						24
 #define RAIDER_MAX_CARGO				5
 #define MERCHANTMAN_MAX_CARGO			125
