@@ -133,19 +133,7 @@ MA 02110-1301, USA.
 
 - (void) abortAllLaunches
 {
-	unsigned	i, count = [launchQueue count];
-	
 	no_docking_while_launching = NO;
-
-	for (i = 0; i < count; i++)
-	{
-		OOUniversalID sid = [launchQueue oo_unsignedIntAtIndex:i];
-		ShipEntity *ship = [UNIVERSE entityForUniversalID:sid];
-		if (ship != nil)
-		{
-			[ship release];
-		}
-	}
 	[launchQueue removeAllObjects];
 }
 
