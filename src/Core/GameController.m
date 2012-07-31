@@ -72,7 +72,10 @@ static GameController *sSharedController = nil;
 
 + (id) sharedController
 {
-	if (sSharedController == nil)  OOConsumeReference([[self alloc] init]);
+	if (sSharedController == nil)
+	{
+		sSharedController = [[self alloc] init];
+	}
 	return sSharedController;
 }
 
@@ -86,7 +89,6 @@ static GameController *sSharedController = nil;
 	}
 	
 	self = [super init];
-	sSharedController = self;
 	
 	last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
 	delta_t = 0.01; // one hundredth of a second

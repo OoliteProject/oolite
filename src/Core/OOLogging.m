@@ -127,8 +127,8 @@ static NSMapTable				*sFileNamesCache = NULL;
 
 
 // Given a boolean, return the appropriate value for the cache dictionary.
-static inline id CacheValue(BOOL inValue) __attribute__((pure));
-static inline id CacheValue(BOOL inValue)
+OOINLINE id CacheValue(BOOL inValue) PURE_FUNC;
+OOINLINE id CacheValue(BOOL inValue)
 {
 	return inValue ? kTrueToken : kFalseToken;
 }
@@ -137,7 +137,7 @@ static inline id CacheValue(BOOL inValue)
 /*	Inited()
 	Test wether OOLoggingInit() has been called.
 */
-static inline BOOL Inited(void)
+OOINLINE BOOL Inited(void)
 {
 	if (EXPECT(sInited)) return YES;
 	OOLogInternal(OOLOG_NOT_INITED, @"***** ERROR: OOLoggingInit() has not been called.");

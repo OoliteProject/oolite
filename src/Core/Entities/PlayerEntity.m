@@ -154,7 +154,10 @@ static GLfloat		sBaseMass = 0.0;
 
 + (PlayerEntity *)sharedPlayer
 {
-	if (EXPECT_NOT(gOOPlayer == nil))  OOConsumeReference([[PlayerEntity alloc] init]);
+	if (EXPECT_NOT(gOOPlayer == nil))
+	{
+		gOOPlayer = [[PlayerEntity alloc] init];
+	}
 	return gOOPlayer;
 }
 
@@ -1207,8 +1210,7 @@ static GLfloat		sBaseMass = 0.0;
 - (id) init
 {
 	NSAssert(gOOPlayer == nil, @"Expected only one PlayerEntity to exist at a time.");
-	gOOPlayer = [super initBypassForPlayer];
-	return gOOPlayer;
+	return [super initBypassForPlayer];
 }
 
 

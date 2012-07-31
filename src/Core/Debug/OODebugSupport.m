@@ -44,6 +44,9 @@ static id LoadDebugPlugIn(NSString *path);
 #endif
 
 
+static id sDebugPlugInController;
+
+
 @interface NSObject (OODebugPlugInController)
 
 - (id<OODebuggerInterface>) setUpDebugger;
@@ -54,7 +57,6 @@ static id LoadDebugPlugIn(NSString *path);
 void OOInitDebugSupport(void)
 {
 	NSString				*debugOXPPath = nil;
-	id						plugInController = nil;
 	NSDictionary			*debugSettings = nil;
 	NSString				*consoleHost = nil;
 	unsigned short			consolePort = 0;
@@ -72,18 +74,17 @@ void OOInitDebugSupport(void)
 	if (debugOXPPath != nil)
 	{
 		// Load plug-in debugging code on platforms where this is supported.
-		plugInController = LoadDebugPlugIn(debugOXPPath);
+		sDebugPlugInController = LoadDebugPlugIn(debugOXPPath);
 		
 		consoleHost = [debugSettings oo_stringForKey:@"console-host"];
 		consolePort = [debugSettings oo_unsignedShortForKey:@"console-port"];
 		
 		// If consoleHost is nil, and the debug plug-in can set up a debugger, use that.
-		if (consoleHost == nil && [plugInController respondsToSelector:@selector(setUpDebugger)])
+		if (consoleHost == nil && [sDebugPlugInController respondsToSelector:@selector(setUpDebugger)])
 		{
-			debugger = [plugInController setUpDebugger];
+			debugger = [sDebugPlugInController setUpDebugger];
 			[[OODebugMonitor sharedDebugMonitor] setUsingPlugInController:YES];
 		}
-		OOConsumeReference(plugInController);
 		
 		// Otherwise, use TCP debugger connection.
 		if (debugger == nil)
