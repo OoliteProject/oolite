@@ -3171,8 +3171,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 - (void) setGameView:(MyOpenGLView *)view
 {
 	[gameView release];
-	gameView = view;
-	[gameView retain];
+	gameView = [view retain];
 }
 
 

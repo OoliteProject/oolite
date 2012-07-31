@@ -1153,9 +1153,6 @@ static NSMutableArray *sMessageStack;
 	[gameWindow setAcceptsMouseMovedEvents:YES];
 	[gameWindow setContentView:gameView];
 	[gameWindow makeFirstResponder:gameView];
-	
-	//[_splashStart release];  // releasing this will crash logging with '_override = yes'
-	                           // FIXME: Why was whis only released on mac builds?
 #elif OOLITE_SDL
 	[gameView endSplashScreen];
 #endif

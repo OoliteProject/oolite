@@ -244,7 +244,10 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) updateScreen
 {
-	[self drawRect:NSMakeRect(0, 0, viewSize.width, viewSize.height)];
+	if ([[self window] isVisible])
+	{
+		[self drawRect:NSMakeRect(0, 0, viewSize.width, viewSize.height)];
+	}
 }
 
 
