@@ -28,6 +28,7 @@ SOFTWARE.
 */
 
 #import "OOCocoa.h"
+#import "OOFunctionAttributes.h"
 
 
 @implementation NSObject (OODescriptionComponents)
@@ -76,3 +77,11 @@ SOFTWARE.
 }
 
 @end
+
+
+#ifndef NDEBUG
+id OOConsumeReference(id OO_NS_CONSUMED value)
+{
+	return value;
+}
+#endif

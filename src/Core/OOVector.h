@@ -188,11 +188,9 @@ OOINLINE Vector vector_add(Vector a, Vector b)
 
 OOINLINE Vector OOVectorInterpolate(Vector a, Vector b, OOScalar where)
 {
-	// TODO: use smarter interpolation like OOLerp()?
-	OOScalar invWhere = 1.0f - where;
-	return make_vector(a.x * invWhere + b.x * where,
-					   a.y * invWhere + b.y * where,
-					   a.z * invWhere + b.z * where);
+	return make_vector(OOLerp(a.x, b.x, where),
+					   OOLerp(a.y, b.y, where),
+					   OOLerp(a.z, b.z, where));
 }
 
 

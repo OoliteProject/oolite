@@ -924,10 +924,12 @@ typedef struct
 
 static void DumpCallback(const char *name, void *rp, JSGCRootType type, void *datap)
 {
+	assert(type == JS_GC_ROOT_VALUE_PTR || type == JS_GC_ROOT_GCTHING_PTR);
+	
 	DumpCallbackData *data = datap;
 	
 	const char *typeString = "unknown type";
-	jsval value = JSVAL_VOID;
+	jsval value;
 	switch (type)
 	{
 		case JS_GC_ROOT_VALUE_PTR:

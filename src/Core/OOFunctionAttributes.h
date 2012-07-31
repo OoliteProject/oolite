@@ -78,13 +78,13 @@
 
 
 /*
-	OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck): marks a function that applies
-	[NSString stringWithFormat:]-type formatting to arguments.
+	OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck): marks a function that
+	applies [NSString stringWithFormat:]-type formatting to arguments.
 	
 	According to the fine manuals, mainline GCC supports basic checking of
 	NSString format strings since 4.6, but doesn't validate the arguments.
 */
-#if __has_attribute(format) || (__GNUC__ && OOLITE_GCC_VERSION >= 40600)
+#if __has_attribute(format) || (defined(OOLITE_GCC_VERSION) && OOLITE_GCC_VERSION >= 40600)
 	#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck) __attribute__((format(NSString, stringIndex, firstToCheck)))
 #else
 	#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck)
@@ -102,11 +102,17 @@
 	don't use it.
 	-- Ahruman 2011-01-28
 */
+#if NDEBUG
 OOINLINE id OOConsumeReference(id OO_NS_CONSUMED value) ALWAYS_INLINE_FUNC;
 OOINLINE id OOConsumeReference(id OO_NS_CONSUMED value)
 {
 	return value;
 }
+#else
+// Externed to work around analyzer being too "clever" and ignoring attributes
+// when it's inlined.
+id OOConsumeReference(id OO_NS_CONSUMED value);
+#endif
 #endif
 
 #endif	/* INCLUDED_OOFUNCTIONATTRIBUTES_h */
