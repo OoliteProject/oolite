@@ -1,30 +1,8 @@
 ARCHS									= i386 x86_64
 SDKROOT									= macosx10.7
 
-
-// MACOSX_DEPLOYMENT_TARGET should be 10.6 -- 64-bit Oolite is limited to 10.6
-// through Info.plist anyway. However, there are three issues:
-// * Our file handling in PlayerEntityLoadSave is deprecated. This is an easy
-//   fix, but the replacement methods are not available in 10.5, so we'd need
-//   different code for 32-bit and 64-bit.
-// * Our display handling in GameController.m is also deprecated. The
-//   recommended fix is to stop capturing the display and just use a full-
-//   screen window; for lower resolution modes, if needed, we'd have to draw
-//   to an FBO or similiar and rescale. This should work on 10.5 too, although
-//   a different approach to switching the window to full screen should be
-//   used for 10.7 and later.
-// * There is an undocumented change to NSOpenGL semantics when compiling for
-//   10.6, GL_INVALID_FRAMEBUFFER_OPERATION_EXT on the first GL operation. It
-//   is triggered purely by changing the deployment target, and I haven't been
-//   able to find any information about what the issue is.
-//
-// When playing around with this stuff, it's helpful to add
-// -Wno-error=deprecated-declarations to OO_WARNING_FLAGS. Doesn't help with
-// the OpenGL error, though.
-// 
-//   -- Ahruman 2012-07-28
 MACOSX_DEPLOYMENT_TARGET[arch=i386]		= 10.5
-MACOSX_DEPLOYMENT_TARGET				= 10.5
+MACOSX_DEPLOYMENT_TARGET				= 10.6
 
 GCC_VERSION								= com.apple.compilers.llvm.clang.1_0
 
@@ -36,4 +14,4 @@ GCC_VERSION								= com.apple.compilers.llvm.clang.1_0
 OO_ARCH_WARNING_FLAGS =
 OO_ARCH_WARNING_FLAGS[arch=i386] = -Wno-format
 
-OO_WARNING_FLAGS = -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers $OO_ARCH_WARNING_FLAGS
+OO_WARNING_FLAGS = -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wno-error=deprecated-declarations $OO_ARCH_WARNING_FLAGS
