@@ -30,8 +30,6 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (ScriptMethods)
 
-- (NSString *) playerName;
-
 - (unsigned) score;
 - (void) setScore:(unsigned)value;
 

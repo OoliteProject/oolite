@@ -562,7 +562,7 @@ static GLfloat		sBaseMass = 0.0;
 	// Write the name of the targeted system. Useful for overlapping systems.
 	[result setObject:[UNIVERSE getSystemName:[self target_system_seed]] forKey:@"target_system_name"];
 	
-	[result setObject:player_name		forKey:@"player_name"];
+	[result setObject:[self commanderName] forKey:@"player_name"];
 	
 	/*
 		BUG: GNUstep truncates integer values to 32 bits when loading XML plists.
@@ -805,8 +805,7 @@ static GLfloat		sBaseMass = 0.0;
 	keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
 	found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
 	
-	[player_name release];
-	player_name = [[dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME] copy];
+	[self setCommanderName:[dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME]];
 	
 	[shipCommodityData autorelease];
 	shipCommodityData = [[dict oo_arrayForKey:@"shipCommodityData" defaultValue:shipCommodityData] copy];
@@ -1410,7 +1409,8 @@ static GLfloat		sBaseMass = 0.0;
 	// player commander data
 	// Most of this is probably also set more than once
 	
-	player_name				= [PLAYER_DEFAULT_NAME copy];
+	[self setCommanderName:PLAYER_DEFAULT_NAME];
+	
 	galaxy_coordinates		= NSMakePoint(0x14,0xAD);	// 20,173
 	galaxy_seed				= gal_seed;
 	credits					= 1000;
@@ -1656,7 +1656,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(_missionBackgroundDescriptor);
 	DESTROY(_equipScreenBackgroundDescriptor);
 	
-	DESTROY(player_name);
+	DESTROY(_commanderName);
 	DESTROY(shipCommodityData);
 	
 	DESTROY(specialCargo);
@@ -5584,7 +5584,7 @@ static GLfloat		sBaseMass = 0.0;
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		text = DESC(@"status-commander-@");
-		[gui setTitle:[NSString stringWithFormat:text, player_name]];
+		[gui setTitle:[NSString stringWithFormat:text, [self commanderName]]];
 		
 		[gui setText:shipName forRow:0 align:GUI_ALIGN_CENTER];
 		
@@ -6147,7 +6147,7 @@ static GLfloat		sBaseMass = 0.0;
 		int first_sel_row = GUI_FIRST_ROW(GAME)-5; // repositioned menu
 
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), player_name]]; // Same title as status screen.
+		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), [self commanderName]]]; // Same title as status screen.
 		
 		[gui setText:displayModeString forRow:GUI_ROW(GAME,DISPLAY) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DISPLAY)];
@@ -6348,7 +6348,7 @@ static GLfloat		sBaseMass = 0.0;
 			first_sel_row = GUI_ROW(,QUICKSAVE);
 
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), player_name]]; //Same title as status screen.
+		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), [self commanderName]]]; //Same title as status screen.
 		
 		[gui setText:DESC(@"options-quick-save") forRow:GUI_ROW(,QUICKSAVE) align:GUI_ALIGN_CENTER];
 		if (canQuickSave)
@@ -8159,10 +8159,15 @@ static NSString *last_outfitting_key=nil;
 
 	while ([trumbleDigrams length] < PLAYER_MAX_TRUMBLES + 2)
 	{
-		if ((player_name)&&[player_name length])
-			[trumbleDigrams appendFormat:@"%@%@", player_name, [[self mesh] modelName]];
+		NSString *commanderName = [self commanderName];
+		if ([commanderName length] > 0)
+		{
+			[trumbleDigrams appendFormat:@"%@%@", commanderName, [[self mesh] modelName]];
+		}
 		else
+		{
 			[trumbleDigrams appendString:@"Some Random Text!"];
+		}
 	}
 	int i;
 	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
@@ -8170,9 +8175,8 @@ static NSString *last_outfitting_key=nil;
 		digramchars[0] = ([trumbleDigrams characterAtIndex:i] & 0x007f) | 0x0020;
 		digramchars[1] = (([trumbleDigrams characterAtIndex:i + 1] ^ xchar) & 0x007f) | 0x0020;
 		xchar = digramchars[0];
-		NSString* digramstring = [NSString stringWithCharacters:digramchars length:2];
-		if (trumble[i])
-			[trumble[i] release];
+		NSString *digramstring = [NSString stringWithCharacters:digramchars length:2];
+		[trumble[i] release];
 		trumble[i] = [[OOTrumble alloc] initForPlayer:self digram:digramstring];
 	}
 	
@@ -8182,19 +8186,19 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) addTrumble:(OOTrumble*) papaTrumble
+- (void) addTrumble:(OOTrumble *)papaTrumble
 {
 	if (trumbleCount >= PLAYER_MAX_TRUMBLES)
 	{
 		return;
 	}
-	OOTrumble* trumblePup = trumble[trumbleCount];
+	OOTrumble *trumblePup = trumble[trumbleCount];
 	[trumblePup spawnFrom:papaTrumble];
 	trumbleCount++;
 }
 
 
-- (void) removeTrumble:(OOTrumble*) deadTrumble
+- (void) removeTrumble:(OOTrumble *)deadTrumble
 {
 	if (trumbleCount <= 0)
 	{
@@ -8233,11 +8237,11 @@ static NSString *last_outfitting_key=nil;
 
 - (id)trumbleValue
 {
-	NSString	*namekey = [NSString stringWithFormat:@"%@-humbletrash", player_name];
+	NSString	*namekey = [NSString stringWithFormat:@"%@-humbletrash", [self commanderName]];
 	int			trumbleHash;
 	
 	clear_checksum();
-	[self mungChecksumWithNSString:player_name];
+	[self mungChecksumWithNSString:[self commanderName]];
 	munge_checksum((int)credits);
 	munge_checksum(ship_kills);
 	trumbleHash = munge_checksum(trumbleCount);
@@ -8245,7 +8249,7 @@ static NSString *last_outfitting_key=nil;
 	[[NSUserDefaults standardUserDefaults]  setInteger:trumbleHash forKey:namekey];
 	
 	int i;
-	NSMutableArray* trumbleArray = [NSMutableArray arrayWithCapacity:PLAYER_MAX_TRUMBLES];
+	NSMutableArray *trumbleArray = [NSMutableArray arrayWithCapacity:PLAYER_MAX_TRUMBLES];
 	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
 	{
 		[trumbleArray addObject:[trumble[i] dictionary]];
@@ -8261,9 +8265,9 @@ static NSString *last_outfitting_key=nil;
 	int trumbleHash;
 	int putativeHash = 0;
 	int putativeNTrumbles = 0;
-	NSArray* putativeTrumbleArray = nil;
+	NSArray *putativeTrumbleArray = nil;
 	int i;
-	NSString* namekey = [NSString stringWithFormat:@"%@-humbletrash", player_name];
+	NSString *namekey = [NSString stringWithFormat:@"%@-humbletrash", [self commanderName]];
 	
 	[self setUpTrumbles];
 	
@@ -8284,7 +8288,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		// calculate a hash for the putative values
 		clear_checksum();
-		[self mungChecksumWithNSString:player_name];
+		[self mungChecksumWithNSString:[self commanderName]];
 		munge_checksum((int)credits);
 		munge_checksum(ship_kills);
 		trumbleHash = munge_checksum(putativeNTrumbles);
@@ -8302,7 +8306,7 @@ static NSString *last_outfitting_key=nil;
 		{
 			// try to determine trumbleCount from the key in the saved game
 			clear_checksum();
-			[self mungChecksumWithNSString:player_name];
+			[self mungChecksumWithNSString:[self commanderName]];
 			munge_checksum((int)credits);
 			munge_checksum(ship_kills);
 			trumbleHash = munge_checksum(i);
@@ -8324,7 +8328,7 @@ static NSString *last_outfitting_key=nil;
 		for (i = 1; (info_failed)&&(i < PLAYER_MAX_TRUMBLES); i++)
 		{
 			clear_checksum();
-			[self mungChecksumWithNSString:player_name];
+			[self mungChecksumWithNSString:[self commanderName]];
 			munge_checksum((int)credits);
 			munge_checksum(ship_kills);
 			trumbleHash = munge_checksum(i);
@@ -8348,7 +8352,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	
 	clear_checksum();
-	[self mungChecksumWithNSString:player_name];
+	[self mungChecksumWithNSString:[self commanderName]];
 	munge_checksum((int)credits);
 	munge_checksum(ship_kills);
 	trumbleHash = munge_checksum(trumbleCount);
@@ -8856,9 +8860,17 @@ else _dockTarget = NO_TARGET;
 }
 
 
-- (NSString *) captainName
+- (NSString *) commanderName
 {
-	return [[player_name retain] autorelease];
+	return _commanderName;
+}
+
+
+- (void) setCommanderName:(NSString *)value
+{
+	NSParameterAssert(value != nil);
+	[_commanderName autorelease];
+	_commanderName = [value copy];
 }
 
 

@@ -347,7 +347,7 @@ typedef enum
 	float					witchspaceCountdown;
 	
 	// player commander data
-	NSString				*player_name;
+	NSString				*_commanderName;
 	NSPoint					galaxy_coordinates;
 	
 	Random_Seed				galaxy_seed;
@@ -555,7 +555,8 @@ typedef enum
 - (void) completeSetUp;
 - (void) completeSetUpAndSetTarget:(BOOL)setTarget;
 
-- (NSString *) captainName;
+- (NSString *) commanderName;
+- (void) setCommanderName:(NSString *)value;
 
 - (BOOL) isDocked;
 

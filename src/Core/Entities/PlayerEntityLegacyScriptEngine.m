@@ -1125,7 +1125,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) commanderName_string
 {
-	return [self playerName];
+	return [self commanderName];
 }
 
 

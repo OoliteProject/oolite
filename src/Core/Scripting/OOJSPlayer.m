@@ -185,7 +185,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 	switch (JSID_TO_INT(propID))
 	{
 		case kPlayer_name:
-			result = [player playerName];
+			result = [player commanderName];
 			break;
 			
 		case kPlayer_score:

@@ -32,12 +32,6 @@ MA 02110-1301, USA.
 
 @implementation PlayerEntity (ScriptMethods)
 
-- (NSString *) playerName
-{
-	return [[player_name retain] autorelease];
-}
-
-
 - (unsigned) score
 {
 	return ship_kills;

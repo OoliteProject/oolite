@@ -70,6 +70,10 @@ MA 02110-1301, USA.
 	#if defined MAC_OS_X_VERSION_10_7 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
 		#define OOLITE_MAC_OS_X_10_7	1
 	#endif
+	
+	#if defined MAC_OS_X_VERSION_10_8 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_8
+		#define OOLITE_MAC_OS_X_10_8	1
+	#endif
 #endif
 
 
@@ -83,6 +87,10 @@ MA 02110-1301, USA.
 
 #ifndef OOLITE_MAC_OS_X_10_7
 	#define OOLITE_MAC_OS_X_10_7	0
+#endif
+
+#ifndef OOLITE_MAC_OS_X_10_8
+	#define OOLITE_MAC_OS_X_10_8	0
 #endif
 
 
