@@ -166,7 +166,7 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 	{
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
 		lock = [[NSLock alloc] init];
-		[lock ooSetName:@"OOOpenGLExtensionManager extension set lock"];
+		[lock setName:@"OOOpenGLExtensionManager extension set lock"];
 #endif
 		
 		[self reset];
