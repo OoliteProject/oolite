@@ -588,6 +588,19 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (Vector) position
+{
+	return position;
+}
+
+
+// Exposed to uniform bindings.
+- (Vector) relativePosition
+{
+	return vector_subtract([self position], [PLAYER position]);
+}
+
+
 - (void) setPosition:(Vector) posn
 {
 	position = posn;
@@ -798,13 +811,11 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (void) moveForward:(double) amount
+- (void) moveForward:(double)amount
 {
-	Vector		forward = vector_forward_from_quaternion(orientation);
+	Vector forward = vector_multiply_scalar(vector_forward_from_quaternion(orientation), amount);
+	position = vector_add(position, forward);
 	distanceTravelled += amount;
-	position.x += amount * forward.x;
-	position.y += amount * forward.y;
-	position.z += amount * forward.z;
 }
 
 
@@ -831,12 +842,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
 	OOMatrix result = rotMatrix;
 	return OOMatrixTranslate(result, position);
-}
-
-
-- (Vector) position
-{
-	return position;
 }
 
 
