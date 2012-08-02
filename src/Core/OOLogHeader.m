@@ -198,40 +198,19 @@ NSString *OOPlatformDescription(void)
 #include <sys/sysctl.h>
 
 
-#ifndef CPUFAMILY_INTEL_6_13
-// Copied from OS X 10.5 SDK
-#define CPUFAMILY_INTEL_6_13	0xaa33392b
-#define CPUFAMILY_INTEL_6_14	0x73d67300  /* "Intel Core Solo" and "Intel Core Duo" (32-bit Pentium-M with SSE3) */
-#define CPUFAMILY_INTEL_6_15	0x426f69ef  /* "Intel Core 2 Duo" */
-#define CPUFAMILY_INTEL_6_23	0x78ea4fbc  /* Penryn */
-#define CPUFAMILY_INTEL_6_26	0x6b5a4cd2
-
-#define CPUFAMILY_INTEL_YONAH	CPUFAMILY_INTEL_6_14
-#define CPUFAMILY_INTEL_MEROM	CPUFAMILY_INTEL_6_15
-#define CPUFAMILY_INTEL_PENRYN	CPUFAMILY_INTEL_6_23
-#define CPUFAMILY_INTEL_NEHALEM	CPUFAMILY_INTEL_6_26
-
-#define CPUFAMILY_INTEL_CORE	CPUFAMILY_INTEL_6_14
-#define CPUFAMILY_INTEL_CORE2	CPUFAMILY_INTEL_6_15
-#endif
-
 #ifndef CPUFAMILY_INTEL_WESTMERE
 // Copied from OS X 10.6 SDK
 #define CPUFAMILY_INTEL_WESTMERE	0x573b5eec
 #endif
 
-#ifndef CPU_TYPE_ARM
-#define CPU_TYPE_ARM			((cpu_type_t) 12)
-#define CPU_SUBTYPE_ARM_ALL		((cpu_subtype_t) 0)
-#define CPU_SUBTYPE_ARM_V4T		((cpu_subtype_t) 5)
-#define CPU_SUBTYPE_ARM_V6		((cpu_subtype_t) 6)
-#define CPUFAMILY_ARM_9			0xe73283ae
-#define CPUFAMILY_ARM_11		0x8ff620d8
+#ifndef CPUFAMILY_INTEL_SANDYBRIDGE
+// Copied from OS X 10.7 SDK
+#define CPUFAMILY_INTEL_SANDYBRIDGE	0x5490b78c
 #endif
-#ifndef CPUFAMILY_ARM_XSCALE
-// From 10.6 SDK
-#define CPUFAMILY_ARM_XSCALE 0x53b005f5
-#define CPUFAMILY_ARM_13     0x0cc90e64
+
+#ifndef CPUFAMILY_INTEL_IVYBRIDGE
+// Copied from OS X 10.8 SDK
+#define CPUFAMILY_INTEL_IVYBRIDGE	0x1f65e835
 #endif
 
 
@@ -323,6 +302,14 @@ static NSString *GetCPUDescription(void)
 					subTypeStr = @" (Westmere)";
 					break;
 					
+				case CPUFAMILY_INTEL_SANDYBRIDGE:
+					subTypeStr = @" (Sandy Bridge)";
+					break;
+					
+				case CPUFAMILY_INTEL_IVYBRIDGE:
+					subTypeStr = @" (Ivy Bridge)";
+					break;
+					
 				default:
 					subTypeStr = [NSString stringWithFormat:@" (family %llx)", sysCPUFamily];
 			}
@@ -330,43 +317,9 @@ static NSString *GetCPUDescription(void)
 		
 		case CPU_TYPE_ARM:
 			typeStr = @"ARM";
-			switch (sysCPUSubType)
-			{
-				case CPU_SUBTYPE_ARM_V4T:
-					subTypeStr = @" v4T";
-					break;
-					
-				case CPU_SUBTYPE_ARM_V6:
-					subTypeStr = @"v6";		// No space
-					break;
-			}
-			if (subTypeStr == nil)
-			{
-				switch (sysCPUFamily)
-				{
-					case CPUFAMILY_ARM_9:
-						subTypeStr = @"9";	// No space
-						break;
-						
-					case CPUFAMILY_ARM_11:
-						subTypeStr = @"11";	// No space
-						break;
-						
-					case CPUFAMILY_ARM_XSCALE:
-						subTypeStr = @" XScale";
-						break;
-						
-					case CPUFAMILY_ARM_13:
-						subTypeStr = @"13";	// No such thing?
-						break;
-					
-					default:
-						subTypeStr = [NSString stringWithFormat:@" (family %llu)", sysCPUFamily];
-				}
-			}
 	}
 	
-	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"%llu", sysCPUType];
+	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"CPU type %llu", sysCPUType];
 	
 	return [NSString stringWithFormat:@"%llu x %@%@ @ %llu MHz", sysCPUCount, typeStr, subTypeStr, (sysCPUFrequency + 500000) / 1000000];
 }

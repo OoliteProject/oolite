@@ -584,7 +584,7 @@ void OOLoggingInit(void)
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	sLock = [[NSLock alloc] init];
-	[sLock ooSetName:@"OOLogging lock"];
+	[sLock setName:@"OOLogging lock"];
 	if (sLock == nil) exit(EXIT_FAILURE);
 	
 #ifndef OOLOG_NO_FILE_NAME

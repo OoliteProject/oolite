@@ -44,6 +44,13 @@
 #define INLINE_CONST_FUNC	ALWAYS_INLINE_FUNC CONST_FUNC
 
 
+#if __has_extension(attribute_deprecated_with_message)
+#define DEPRECATED_MSG(msg)	__attribute__((deprecated(msg)))
+#else
+#define DEPRECATED_MSG(msg)	DEPRECATED_FUNC
+#endif
+
+
 #ifdef __GNUC__
 	#define EXPECT(x)		__builtin_expect((x), 1)
 	#define EXPECT_NOT(x)	__builtin_expect((x), 0)

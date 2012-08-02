@@ -394,7 +394,7 @@ VERIFY_PROTO(DelegatedType);
 	}
 	else
 	{
-		OOLog(@"plistVerifier.failed", @"Verification of property list \"%@\" failed at %@: %@", name, [error plistKeyPathDescription], [error localizedDescription]);
+		OOLog(@"plistVerifier.failed", @"Verification of property list \"%@\" failed at %@: %@", name, [error plistKeyPathDescription], [error localizedFailureReason]);
 		result = NO;
 	}
 	return result;
@@ -1448,7 +1448,7 @@ static NSError *ErrorWithDictionaryAndArguments(OOPListSchemaVerifierErrorCode e
 	message = [[NSString alloc] initWithFormat:format arguments:arguments];
 	
 	userInfo = [NSMutableDictionary dictionaryWithDictionary:dict];
-	[userInfo setObject:message forKey:NSLocalizedDescriptionKey];
+	[userInfo setObject:message forKey:NSLocalizedFailureReasonErrorKey];
 	if (keyPath != NULL)
 	{
 		[userInfo setObject:KeyPathToArray(*keyPath) forKey:kPListKeyPathErrorKey];

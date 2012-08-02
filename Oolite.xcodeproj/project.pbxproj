@@ -718,7 +718,6 @@
 		25F3E63B0994F08A002F25FD /* OOOpenGL.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E63A0994F08A002F25FD /* OOOpenGL.h */; };
 		25F3E6BD0994F30A002F25FD /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F3E6BC0994F30A002F25FD /* main.m */; };
 		25F3E6F20994F466002F25FD /* Groolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6F00994F466002F25FD /* Groolite.h */; };
-		25F3E6F30994F466002F25FD /* Groolite.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F3E6F10994F466002F25FD /* Groolite.m */; };
 		25F3E8A70994FE65002F25FD /* oolite-document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A40994FE65002F25FD /* oolite-document.icns */; };
 		25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */; };
 		25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A60994FE65002F25FD /* oolite-icon.icns */; };
@@ -3767,7 +3766,6 @@
 			files = (
 				25F3E6330994F04C002F25FD /* legacy_random.c in Sources */,
 				25F3E6BD0994F30A002F25FD /* main.m in Sources */,
-				25F3E6F30994F466002F25FD /* Groolite.m in Sources */,
 				251610E2099544090037C2E1 /* OOCASoundReferencePoint.m in Sources */,
 				251610E4099544090037C2E1 /* OOCASoundMixer.m in Sources */,
 				251610E5099544090037C2E1 /* OOCABufferedSound.m in Sources */,

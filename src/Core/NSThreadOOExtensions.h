@@ -28,13 +28,12 @@ SOFTWARE.
 */
 
 #import <Foundation/Foundation.h>
+#import "OOFunctionAttributes.h"
 
 
 @interface NSThread (OOExtensions)
 
-/*	Set name of current thread for identification during debugging. Only works
-	on Mac OS X 10.5 or later, does nothing on other platforms.
-*/
+//	Set name of current thread for identification during debugging.
 + (void) ooSetCurrentThreadName:(NSString *)name;
 
 @end
@@ -42,29 +41,20 @@ SOFTWARE.
 
 @interface NSLock (OOExtensions)
 
-/*	Set name of lock for identification during debugging. Only works
-	on Mac OS X 10.5 or later, does nothing on other platforms.
-*/
-- (void) ooSetName:(NSString *)name;
+- (void) ooSetName:(NSString *)name DEPRECATED_MSG("Use setName: instead.");
 
 @end
 
 
 @interface NSRecursiveLock (OOExtensions)
 
-/*	Set name of lock for identification during debugging. Only works
-	on Mac OS X 10.5 or later, does nothing on other platforms.
-*/
-- (void) ooSetName:(NSString *)name;
+- (void) ooSetName:(NSString *)name DEPRECATED_MSG("Use setName: instead.");
 
 @end
 
 
 @interface NSConditionLock (OOExtensions)
 
-/*	Set name of lock for identification during debugging. Only works
-	on Mac OS X 10.5 or later, does nothing on other platforms.
-*/
-- (void) ooSetName:(NSString *)name;
+- (void) ooSetName:(NSString *)name DEPRECATED_MSG("Use setName: instead.");
 
 @end

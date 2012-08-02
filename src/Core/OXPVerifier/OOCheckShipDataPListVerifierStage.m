@@ -373,7 +373,7 @@ withPropertyList:(id)rootPList
 	expectedType:(NSDictionary *)localSchema
 {
 	// FIXME: use fancy new error codes to provide useful error descriptions.
-	[self message:@"***** ERROR: verification of ship \"%@\" failed at \"%@\": %@", name, [error plistKeyPathDescription], [error localizedDescription]];
+	[self message:@"***** ERROR: verification of ship \"%@\" failed at \"%@\": %@", name, [error plistKeyPathDescription], [error localizedFailureReason]];
 	return YES;
 }
 

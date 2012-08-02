@@ -106,7 +106,7 @@ extern NSString * const kUnknownTypeErrorKey;			// Set for kPListErrorSchemaUnkn
 extern NSString * const kUndefinedMacroErrorKey;		// Set for kPListErrorSchemaUndefiniedMacroReference.
 
 
-// All plist verifier errors have a short error description in their -localizedDescription. Generally this is something that would be more suitable to -localizedFailureReason, but we need Mac OS X 10.3 compatibility.
+// All plist verifier errors have a short error description in their -localizedFailureReason.
 
 typedef enum
 {

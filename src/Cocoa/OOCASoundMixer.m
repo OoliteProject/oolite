@@ -90,7 +90,7 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 	if (nil != self)
 	{
 		_listLock = [[NSLock alloc] init];
-		[_listLock ooSetName:@"OOSoundMixer list lock"];
+		[_listLock setName:@"OOSoundMixer list lock"];
 		OK = nil != _listLock;
 		
 		if (OK)

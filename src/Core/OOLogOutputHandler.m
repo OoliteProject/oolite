@@ -311,7 +311,7 @@ enum
 		// set up threadStateMonitor -- used as a binary semaphore of sorts to check when the worker thread starts and stops.
 		threadStateMonitor = [[NSConditionLock alloc] initWithCondition:kConditionReadyToDealloc];
 		if (threadStateMonitor == nil)  OK = NO;
-		[threadStateMonitor ooSetName:@"OOLogOutputHandler thread state monitor"];
+		[threadStateMonitor setName:@"OOLogOutputHandler thread state monitor"];
 	}
 	
 	if (OK)

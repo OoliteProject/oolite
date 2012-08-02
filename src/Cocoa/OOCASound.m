@@ -133,7 +133,7 @@ static struct
 	if (!gOOSoundSetUp)
 	{
 		gOOCASoundSyncLock = [[NSRecursiveLock alloc] init];
-		[gOOCASoundSyncLock ooSetName:@"OOCASound synchronization lock"];
+		[gOOCASoundSyncLock setName:@"OOCASound synchronization lock"];
 		if (nil == gOOCASoundSyncLock)
 		{
 			OOLog(kOOLogSoundInitError, @"Failed to set up sound (lock allocation failed). No sound will be played.");

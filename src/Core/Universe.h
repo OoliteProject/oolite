@@ -288,7 +288,7 @@ enum
 	
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
-	NSSpeechSynthesizer		*speechSynthesizer;		// use this from OS X 10.3 onwards
+	NSSpeechSynthesizer		*speechSynthesizer;
 #elif OOLITE_ESPEAK
 	const espeak_VOICE		**espeak_voices;
 	unsigned int			espeak_voice_count;
