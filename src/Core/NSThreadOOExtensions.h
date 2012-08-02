@@ -2,7 +2,7 @@
 
 NSThreadOOExtensions.h
 
-Utility methods for NSThread and NS*Lock.
+Utility methods for NSThread.
 
  
 Copyright (C) 2007-2012 Jens Ayton
@@ -34,27 +34,8 @@ SOFTWARE.
 @interface NSThread (OOExtensions)
 
 //	Set name of current thread for identification during debugging.
+//	Under OS X, this does more than -setName:.
 + (void) ooSetCurrentThreadName:(NSString *)name;
 
 @end
 
-
-@interface NSLock (OOExtensions)
-
-- (void) ooSetName:(NSString *)name DEPRECATED_MSG("Use setName: instead.");
-
-@end
-
-
-@interface NSRecursiveLock (OOExtensions)
-
-- (void) ooSetName:(NSString *)name DEPRECATED_MSG("Use setName: instead.");
-
-@end
-
-
-@interface NSConditionLock (OOExtensions)
-
-- (void) ooSetName:(NSString *)name DEPRECATED_MSG("Use setName: instead.");
-
-@end

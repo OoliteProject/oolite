@@ -53,33 +53,3 @@ SOFTWARE.
 }
 
 @end
-
-
-@implementation NSLock (OOExtensions)
-
-- (void) ooSetName:(NSString *)name
-{
-	[self setName:name];
-}
-
-@end
-
-
-@implementation NSRecursiveLock (OOExtensions)
-
-- (void) ooSetName:(NSString *)name
-{
-	[self setName:name];
-}
-
-@end
-
-
-@implementation NSConditionLock (OOExtensions)
-
-- (void) ooSetName:(NSString *)name
-{
-	[self setName:name];
-}
-
-@end
