@@ -20,6 +20,10 @@
 	#define __has_attribute(x) (0)
 #endif
 
+#ifndef __has_extension
+	#define __has_extension(x) (0)
+#endif
+
 
 #if __cplusplus
 #define OOINLINE			inline
