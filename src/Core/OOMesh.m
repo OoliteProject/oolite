@@ -1972,14 +1972,14 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	OOMeshVertexCount	i;
 	Vector				*vertex = NULL;
 	
-	for (i = 0; i <= vertexCount; i++)
+	for (i = 0; i < vertexCount; i++)
 	{
 		vertex = &_vertices[i];
 		*vertex = vector_multiply_scalar(*vertex, factor);
 	}
 	
 	// Rescale actual display vertices.
-	for (i = 0; i <= _displayLists.count; i++)
+	for (i = 0; i < _displayLists.count; i++)
 	{
 		vertex = &_displayLists.vertexArray[i];
 		*vertex = vector_multiply_scalar(*vertex, factor);
