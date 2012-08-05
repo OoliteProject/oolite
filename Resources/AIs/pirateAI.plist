@@ -21,7 +21,7 @@
     }; 
     "ATTACK_SHIP" = {
         ENTER = (performAttack); 
-        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, "setStateTo: ATTACK_SHIP"); 
         "ESCORT_ATTACKED" = (setTargetToPrimaryAggressor, groupAttackTarget); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
         "TARGET_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED");
@@ -49,7 +49,7 @@
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
 		"CASCADE_WEAPON_DETECTED" = ("setAITo: fleeQMineAI.plist");
         "REACHED_SAFETY" = ("setStateTo: RECOVER"); 
-        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, "setStateTo: FLEE"); 
 		"DEFENSE_TARGET_LOST" = (findNewDefenseTarget);
 		"DEFENSE_TARGET_DESTROYED" = (findNewDefenseTarget);
 		RESTARTED = ("setStateTo: RECOVER");

@@ -4248,7 +4248,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else 
 	{
-		if (range > weaponRange)
+		if (range > weaponRange || range > SCANNER_MAX_RANGE * 0.8)
 		{
 			desired_speed = max_available_speed;
 		}
@@ -4637,6 +4637,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			desired_speed = target_speed * 2.0; // don't overuse the injectors
 		}
+	}
+	else if (desired_speed < maxFlightSpeed * 0.5)
+	{
+		desired_speed = maxFlightSpeed;
 	}
 
 	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || 
