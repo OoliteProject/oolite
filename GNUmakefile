@@ -354,6 +354,7 @@ OOLITE_MISC_FILES = \
     AI.m \
     AIGraphViz.m \
     GameController.m \
+    GameController+SDLFullScreen.m \
     OOJoystickManager.m \
     OOSDLJoystickManager.m \
     main.m \

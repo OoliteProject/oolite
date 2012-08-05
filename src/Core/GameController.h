@@ -73,7 +73,7 @@ MA 02110-1301, USA.
 #endif
 
 
-@interface GameController : NSObject
+@interface GameController: NSObject
 {
 #if OOLITE_HAVE_APPKIT
 	IBOutlet NSTextField	*splashProgressTextField;
@@ -83,79 +83,77 @@ MA 02110-1301, USA.
 	IBOutlet OOProgressBar	*progressBar;
 	IBOutlet NSMenu			*dockMenu;
 #endif
-
-#if OOLITE_SDL
-	NSRect					fsGeometry;
-	MyOpenGLView			*switchView;
-#endif
+	
 	IBOutlet MyOpenGLView	*gameView;
-
+	
 	NSTimeInterval			last_timeInterval;
 	double					delta_t;
-
+	
 	int						my_mouse_x, my_mouse_y;
 
 	NSString				*playerFileDirectory;
 	NSString				*playerFileToLoad;
 	NSMutableArray			*expansionPathsToInclude;
-
+	
 	NSTimer					*timer;
 	
 	NSDate					*_splashStart;
-
-	/*  GDC example code */
-
+	
+	SEL						pauseSelector;
+	NSObject				*pauseTarget;
+	
+	BOOL					gameIsPaused;
+	
+// Fullscreen mode stuff
+#if OOLITE_SDL
+	NSRect					fsGeometry;
+	MyOpenGLView			*switchView;
+	
 	NSMutableArray			*displayModes;
-
+	
 	unsigned int			width, height;
 	unsigned int			refresh;
 	BOOL					fullscreen;
 	NSDictionary			*originalDisplayMode;
 	NSDictionary			*fullscreenDisplayMode;
-
-#if OOLITE_MAC_OS_X
+	
+	BOOL					stayInFullScreenMode;
+#elif OOLITE_MAC_OS_X
+	NSMutableArray			*displayModes;
+	
+	unsigned int			width, height;
+	unsigned int			refresh;
+	BOOL					fullscreen;
+	NSDictionary			*originalDisplayMode;
+	NSDictionary			*fullscreenDisplayMode;
+	
+	BOOL					stayInFullScreenMode;
+	BOOL					_switchRez;
+	BOOL					_switchRezDeferred;
+	
 	NSOpenGLContext			*fullScreenContext;
 #endif
-
-	BOOL					stayInFullScreenMode;
-
-	/*  end of GDC */
-
-	SEL						pauseSelector;
-	NSObject				*pauseTarget;
-
-	BOOL					gameIsPaused;
 }
 
 + (id)sharedController;
 
-- (void) applicationDidFinishLaunching: (NSNotification *)notification;
+- (void) applicationDidFinishLaunching:(NSNotification *)notification;
 - (BOOL) isGamePaused;
 - (void) pauseGame;
 - (void) unpauseGame;
 
+- (void) performGameTick:(id)sender;
+
 #if OOLITE_HAVE_APPKIT
-- (IBAction) goFullscreen:(id)sender;
 - (IBAction) showLogAction:(id)sender;
 - (IBAction) showLogFolderAction:(id)sender;
 - (IBAction) showSnapshotsAction:(id)sender;
 - (IBAction) showAddOnsAction:(id)sender;
-- (void) changeFullScreenResolution;
 - (void) recenterVirtualJoystick;
-#elif OOLITE_SDL
-- (void) setFullScreenMode:(BOOL)fsm;
 #endif
-- (void) exitFullScreenMode;
-- (BOOL) inFullScreenMode;
 
-- (void) pauseFullScreenModeToPerform:(SEL) selector onTarget:(id) target;
 - (void) exitAppWithContext:(NSString *)context;
 - (void) exitAppCommandQ;
-
-- (BOOL) setDisplayWidth:(unsigned int) d_width Height:(unsigned int)d_height Refresh:(unsigned int) d_refresh;
-- (NSDictionary *) findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh;
-- (NSArray *) displayModes;
-- (OOUInteger) indexOfCurrentDisplayMode;
 
 - (NSString *) playerFileToLoad;
 - (void) setPlayerFileToLoad:(NSString *)filename;
@@ -187,6 +185,31 @@ MA 02110-1301, USA.
 - (void)setUpBasicOpenGLStateWithSize:(NSSize)viewSize;
 
 - (NSURL *) snapshotsURLCreatingIfNeeded:(BOOL)create;
+
+@end
+
+
+@interface GameController (FullScreen)
+
+#if OOLITE_HAVE_APPKIT
+- (IBAction) goFullscreen:(id)sender;
+- (void) changeFullScreenResolution;
+#elif OOLITE_SDL
+- (void) setFullScreenMode:(BOOL)fsm;
+#endif
+- (void) exitFullScreenMode;
+- (BOOL) inFullScreenMode;
+
+- (BOOL) setDisplayWidth:(unsigned int) d_width Height:(unsigned int)d_height Refresh:(unsigned int) d_refresh;
+- (NSDictionary *) findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh;
+- (NSArray *) displayModes;
+- (OOUInteger) indexOfCurrentDisplayMode;
+
+- (void) pauseFullScreenModeToPerform:(SEL) selector onTarget:(id) target;
+
+
+// Internal use only.
+- (void) setUpDisplayModes;
 
 @end
 
