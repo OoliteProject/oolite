@@ -28,14 +28,14 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 
-#if OOLITE_MAC_OS_X // && !OOLITE_64_BIT
+#if OOLITE_MAC_OS_X && !OOLITE_64_BIT
 
 #import "OOCollectionExtractors.h"
 #import "MyOpenGLView.h"
 #import "Universe.h"
 
 
-@implementation GameController(FullScreen)
+@implementation GameController (FullScreen)
 
 static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 {

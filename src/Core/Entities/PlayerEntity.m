@@ -6116,28 +6116,6 @@ static GLfloat		sBaseMass = 0.0;
 #ifdef GNUSTEP
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 #endif
-	GameController	*controller = [UNIVERSE gameController];
-	OOUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
-	NSArray			*modeList = [controller displayModes];
-	NSDictionary	*mode = nil;
-	
-	if (displayModeIndex == NSNotFound)
-	{
-		OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
-		displayModeIndex = 0;
-	}
-	
-	if ([modeList count])
-	{
-		mode = [modeList objectAtIndex:displayModeIndex];
-	}
-	if (mode == nil)  return;	// Got a better idea?
-	
-	int modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
-	int modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
-	float modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
-	
-	NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 	
 	// GUI stuff
 	{
@@ -6149,8 +6127,31 @@ static GLfloat		sBaseMass = 0.0;
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), [self commanderName]]]; // Same title as status screen.
 		
+#if OO_RESOLUTION_OPTION
+		GameController	*controller = [UNIVERSE gameController];
+		NSArray			*modeList = [controller displayModes];
+		NSDictionary	*mode = nil;
+		if ([modeList count])
+		{
+			mode = [modeList objectAtIndex:displayModeIndex];
+		}
+		if (mode == nil)  return;	// Got a better idea?
+		
+		OOUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
+		if (displayModeIndex == NSNotFound)
+		{
+			OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
+			displayModeIndex = 0;
+		}
+		
+		int modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
+		int modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
+		float modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
+		
+		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 		[gui setText:displayModeString forRow:GUI_ROW(GAME,DISPLAY) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DISPLAY)];
+#endif
 
 		if ([UNIVERSE autoSave])
 			[gui setText:DESC(@"gameoptions-autosave-yes") forRow:GUI_ROW(GAME,AUTOSAVE) align:GUI_ALIGN_CENTER];

@@ -670,6 +670,7 @@
 		1AF4AF4A15B858AA009243BE /* OOWeakSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AF4AF4815B858AA009243BE /* OOWeakSet.h */; };
 		1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF4AF4915B858AA009243BE /* OOWeakSet.m */; };
 		1AF6163915CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF6163815CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m */; };
+		1AF6163C15CF01FE001D85AC /* GameController+MacFullScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF6163B15CF01FE001D85AC /* GameController+MacFullScreen.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -1959,6 +1960,7 @@
 		1AF4AF4815B858AA009243BE /* OOWeakSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOWeakSet.h; sourceTree = "<group>"; };
 		1AF4AF4915B858AA009243BE /* OOWeakSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOWeakSet.m; sourceTree = "<group>"; };
 		1AF6163815CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GameController+MacLegacyFullScreen.m"; sourceTree = "<group>"; };
+		1AF6163B15CF01FE001D85AC /* GameController+MacFullScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GameController+MacFullScreen.m"; sourceTree = "<group>"; };
 		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = contributors.txt; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
@@ -2848,6 +2850,7 @@
 				1A033FB713268ABB006F9DB7 /* OOPDFView.m */,
 				1A54115914B8913E00B8A4BE /* OOMacJoystickManager.h */,
 				1A54115A14B8913E00B8A4BE /* OOMacJoystickManager.m */,
+				1AF6163B15CF01FE001D85AC /* GameController+MacFullScreen.m */,
 				1AF6163815CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m */,
 			);
 			name = "Mac-specific";
@@ -3979,6 +3982,7 @@
 				1ABA416315ADAB8D00F7E841 /* OOJSDock.m in Sources */,
 				1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */,
 				1AF6163915CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m in Sources */,
+				1AF6163C15CF01FE001D85AC /* GameController+MacFullScreen.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -32,6 +32,10 @@ MA 02110-1301, USA.
 #import <Quartz/Quartz.h>	// For PDFKit.
 #endif
 
+#if OOLITE_MAC_OS_X && !OOLITE_64_BIT
+#define OOLITE_MAC_LEGACY_FULLSCREEN	1
+#endif
+
 
 #define MODE_WINDOWED			100
 #define MODE_FULL_SCREEN		200
@@ -118,7 +122,7 @@ MA 02110-1301, USA.
 	NSDictionary			*fullscreenDisplayMode;
 	
 	BOOL					stayInFullScreenMode;
-#elif OOLITE_MAC_OS_X
+#elif OOLITE_MAC_LEGACY_FULLSCREEN
 	NSMutableArray			*displayModes;
 	
 	unsigned int			width, height;
@@ -132,6 +136,8 @@ MA 02110-1301, USA.
 	BOOL					_switchRezDeferred;
 	
 	NSOpenGLContext			*fullScreenContext;
+#elif OOLITE_MAC_OS_X
+	bool					_fullScreen;
 #endif
 }
 
@@ -193,7 +199,9 @@ MA 02110-1301, USA.
 
 #if OOLITE_HAVE_APPKIT
 - (IBAction) goFullscreen:(id)sender;
+#if OOLITE_MAC_LEGACY_FULLSCREEN
 - (void) changeFullScreenResolution;
+#endif
 #elif OOLITE_SDL
 - (void) setFullScreenMode:(BOOL)fsm;
 #endif

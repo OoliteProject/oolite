@@ -96,7 +96,9 @@ static BOOL				m_key_pressed;
 static BOOL				pling_pressed;
 static BOOL				cursor_moving;
 static BOOL				disc_operation_in_progress;
+#if OO_RESOLUTION_OPTION
 static BOOL				switching_resolution;
+#endif
 static BOOL				wait_for_key_up;
 static BOOL				upDownKeyPressed;
 static BOOL				leftRightKeyPressed;
@@ -2325,8 +2327,6 @@ static NSTimeInterval	time_last_frame;
 
 - (void) handleGameOptionsScreenKeys
 {
-	GameController		*controller = [UNIVERSE gameController];
-	NSArray				*modes = [controller displayModes];
 	MyOpenGLView		*gameView = [UNIVERSE gameView];
 	GuiDisplayGen		*gui = [UNIVERSE gui];
 	GUI_ROW_INIT(gui);
@@ -2342,12 +2342,16 @@ static NSTimeInterval	time_last_frame;
 		[self setGuiToStickMapperScreen: 0];
 	}
 	
+#if OO_RESOLUTION_OPTION
 	if (!switching_resolution &&
 		guiSelectedRow == GUI_ROW(GAME,DISPLAY) &&
 		([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
 	{
-		int			direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
-		OOInteger	displayModeIndex = [controller indexOfCurrentDisplayMode];
+		GameController	*controller = [UNIVERSE gameController];
+		int				direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
+		OOUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
+		NSArray			*modes = [controller displayModes];
+		
 		if (displayModeIndex == NSNotFound)
 		{
 			OOLogWARN(@"graphics.mode.notFound", @"couldn't find current fullscreen setting, switching to default.");
@@ -2386,6 +2390,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		switching_resolution = NO;
 	}
+#endif	// OO_RESOLUTION_OPTION
 	
 #if OOLITE_SPEECH_SYNTH
 	if ((guiSelectedRow == GUI_ROW(GAME,SPEECH))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))

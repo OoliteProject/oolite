@@ -218,9 +218,10 @@ static GameController *sSharedController = nil;
 	
 	// Release anything allocated above that is not required.
 	[pool release];
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_LEGACY_FULLSCREEN
 	if (fullscreen) [self goFullscreen:nil];
-#else
+#endif
+#if !OOLITE_HAVE_APPKIT
 	[[NSRunLoop currentRunLoop] run];
 #endif
 }
@@ -258,12 +259,15 @@ static GameController *sSharedController = nil;
 
 - (void) performGameTick:(id)sender
 {
-	if (EXPECT_NOT(_switchRezDeferred)) 
+#if OOLITE_MAC_LEGACY_FULLSCREEN
+	if (EXPECT_NOT(_switchRezDeferred))
 	{
 		_switchRezDeferred = NO;
 		[self goFullscreen:nil];
+		return;
 	}
-	else [self doPerformGameTick];
+#endif
+	[self doPerformGameTick];
 }
 
 #else
@@ -301,7 +305,7 @@ static GameController *sSharedController = nil;
 			OOJSFrameCallbacksInvoke(delta_t);
 		}
 		
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_LEGACY_FULLSCREEN
 		if (fullscreen)
 		{
 			[UNIVERSE drawUniverse];
