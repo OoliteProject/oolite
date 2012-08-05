@@ -2349,10 +2349,10 @@ static NSTimeInterval	time_last_frame;
 	{
 		GameController	*controller = [UNIVERSE gameController];
 		int				direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
-		OOUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
+		OOInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
 		NSArray			*modes = [controller displayModes];
 		
-		if (displayModeIndex == NSNotFound)
+		if (displayModeIndex == (OOInteger)NSNotFound)
 		{
 			OOLogWARN(@"graphics.mode.notFound", @"couldn't find current fullscreen setting, switching to default.");
 			displayModeIndex = 0;
