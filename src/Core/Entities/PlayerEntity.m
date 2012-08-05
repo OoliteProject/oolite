@@ -6129,13 +6129,6 @@ static GLfloat		sBaseMass = 0.0;
 		
 #if OO_RESOLUTION_OPTION
 		GameController	*controller = [UNIVERSE gameController];
-		NSArray			*modeList = [controller displayModes];
-		NSDictionary	*mode = nil;
-		if ([modeList count])
-		{
-			mode = [modeList objectAtIndex:displayModeIndex];
-		}
-		if (mode == nil)  return;	// Got a better idea?
 		
 		OOUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
 		if (displayModeIndex == NSNotFound)
@@ -6143,6 +6136,14 @@ static GLfloat		sBaseMass = 0.0;
 			OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
 			displayModeIndex = 0;
 		}
+		
+		NSArray			*modeList = [controller displayModes];
+		NSDictionary	*mode = nil;
+		if ([modeList count])
+		{
+			mode = [modeList objectAtIndex:displayModeIndex];
+		}
+		if (mode == nil)  return;	// Got a better idea?
 		
 		int modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
 		int modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
