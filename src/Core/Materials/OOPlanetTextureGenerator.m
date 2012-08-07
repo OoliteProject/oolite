@@ -341,18 +341,18 @@ enum
 	if (![self isReady])
 	{
 		waiting = true;
-		OOLog(@"planetTex.temp", @"%s generator %@", "Waiting for", self);
+		OOLog(@"texture.planet.generate.wait", @"%s generator %@", "Waiting for", self);
 	}
 	
 	BOOL result = [super getResult:outData format:outFormat originalWidth:outWidth originalHeight:outHeight];
 	
 	if (waiting)
 	{
-		OOLog(@"planetTex.temp", @"%s generator %@", result ? "Dequeued" : "Failed to dequeue", self);
+		OOLog(@"texture.planet.generate.dequeue", @"%s generator %@", result ? "Dequeued" : "Failed to dequeue", self);
 	}
 	else
 	{
-		OOLog(@"planetTex.temp", @"%s generator %@ without waiting.", result ? "Dequeued" : "Failed to dequeue", self);
+		OOLog(@"texture.planet.generate.dequeue", @"%s generator %@ without waiting.", result ? "Dequeued" : "Failed to dequeue", self);
 	}
 	
 	return result;
@@ -361,7 +361,7 @@ enum
 
 - (void) loadTexture
 {
-	OOLog(@"planetTex.temp", @"Started generator %@", self);
+	OOLog(@"texture.planet.generate.begin", @"Started generator %@", self);
 	
 	BOOL success = NO;
 	BOOL generateNormalMap = (_nMapGenerator != nil);
@@ -526,7 +526,7 @@ END:
 	DESTROY(_nMapGenerator);
 	DESTROY(_atmoGenerator);
 	
-	OOLog(@"planetTex.temp", @"Completed generator %@ %@successfully", self, success ? @"" : @"un");
+	OOLog(@"texture.planet.generate.complete", @"Completed generator %@ %@successfully", self, success ? @"" : @"un");
 	
 #if DEBUG_DUMP
 	if (success)
