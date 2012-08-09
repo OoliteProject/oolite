@@ -297,6 +297,7 @@ typedef enum
 	GLfloat					weapon_damage;				// energy damage dealt by weapon
 	GLfloat					weapon_damage_override;		// custom energy damage dealt by front laser, if applicable
 	GLfloat					weaponRange;				// range of the weapon (in meters)
+	OOViewID				currentWeaponFacing;	// not necessarily the same as view for the player
 	
 	GLfloat					weapon_temp, weapon_shot_temperature; // active weapon temp, delta-temp
 	GLfloat					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp; // current weapon temperatures
@@ -354,9 +355,10 @@ typedef enum
 	GLfloat					flightPitch;				// current pitch rate
 	GLfloat					flightYaw;					// current yaw rate
 	
-	float					accuracy;
-	float					pitch_tolerance;
-	float					aim_tolerance;
+	GLfloat					accuracy;
+	GLfloat					pitch_tolerance;
+	GLfloat					aim_tolerance;
+	int					_missed_shots;
 	
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
 	
@@ -740,6 +742,7 @@ typedef enum
 - (float) weaponRechargeRate;
 - (void) setWeaponRechargeRate:(float)value;
 - (void) setWeaponEnergy:(float)value;
+-	(OOViewID) currentWeaponFacing;
 
 - (GLfloat) scannerRange;
 - (void) setScannerRange:(GLfloat)value;
@@ -953,6 +956,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (double) approachAspectToPrimaryTarget;
 - (double) rangeToSecondaryTarget:(Entity *)target;
 - (BOOL) hasProximityAlertIgnoringTarget:(BOOL)ignore_target;
+- (GLfloat) currentAimTolerance;
 - (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon;
 
 - (OOTimeDelta) shotTime;
@@ -970,6 +974,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) fireDirectLaserDefensiveShot;
 - (BOOL) fireDirectLaserShotAt:(Entity*)my_target;
 - (BOOL) fireLaserShotInDirection:(OOViewID)direction;
+- (void) adjustMissedShots:(int)delta;
+- (int) missedShots;
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color;
 - (void) considerFiringMissile:(double)delta_t;
 - (ShipEntity *) fireMissile;

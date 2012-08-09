@@ -486,7 +486,6 @@ typedef enum
 	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
 	NSString				*customViewDescription;
 	
-	OOViewID				currentWeaponFacing;	// decoupled from view direction
 	
 	// docking reports
 	NSMutableString			*dockingReport;
@@ -798,8 +797,6 @@ typedef enum
 - (void) printIdentLockedOnForMissile:(BOOL)missile;
 
 - (void) applyYaw:(GLfloat) yaw;
-
--	(OOViewID) currentWeaponFacing;
 
 /* GILES custom viewpoints */
 

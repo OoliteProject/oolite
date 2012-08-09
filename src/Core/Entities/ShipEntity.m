@@ -209,6 +209,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	shot_time = INITIAL_SHOT_TIME;
 	ship_temperature = SHIP_MIN_CABIN_TEMP;
 	weapon_temp				= 0.0f;
+	currentWeaponFacing = VIEW_FORWARD;
 	forward_weapon_temp		= 0.0f;
 	aft_weapon_temp			= 0.0f;
 	port_weapon_temp		= 0.0f;
@@ -597,7 +598,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		accuracy = OOClamp_0_max_f(accuracy, 10.0f);
 	}
 	[self setAccuracy:accuracy]; // set derived variables
-		
+	_missed_shots = 0;
+
 	//  escorts
 	_maxEscortCount = MIN([shipDict oo_unsignedCharForKey:@"escorts" defaultValue:0], (uint8_t)MAX_ESCORTS);
 	_pendingEscortCount = _maxEscortCount;
@@ -1032,8 +1034,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	accuracy = new_accuracy;
 	pitch_tolerance = 0.01 * (85.0f + accuracy);
 // especially against small targets, less good pilots will waste some shots
-	GLfloat aim_tolerance_at_ten = 200.0 - (20.0f * accuracy);
-	aim_tolerance= sqrt(1-(aim_tolerance_at_ten * aim_tolerance_at_ten / 100000000.0));
+	aim_tolerance = 125.0 - (12.0f * accuracy);
 
 	if (accuracy >= COMBAT_AI_ISNT_AWFUL && missile_load_time < 0.1)
 	{
@@ -6173,6 +6174,12 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 }
 
 
+-	(OOViewID) currentWeaponFacing
+{
+	return currentWeaponFacing;
+}
+
+
 - (GLfloat) scannerRange
 {
 	return scannerRange;
@@ -7238,8 +7245,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	OOJSRelinquishContext(context);
 	
 	if ([entity isShip]) {
-		ShipEntity* attacker = (ShipEntity *)entity;
-		if ([self hasHostileTarget] && accuracy >= COMBAT_AI_IS_SMART && (randf()*10.0 < accuracy || desired_speed < 0.5 * maxFlightSpeed) && behaviour != BEHAVIOUR_EVASIVE_ACTION && behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION && [attacker scanClass] != CLASS_THARGOID)
+//		ShipEntity* attacker = (ShipEntity *)entity;
+		if ([self hasHostileTarget] && accuracy >= COMBAT_AI_IS_SMART && (randf()*10.0 < accuracy || desired_speed < 0.5 * maxFlightSpeed) && behaviour != BEHAVIOUR_EVASIVE_ACTION && behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION)
 		{
 			if (behaviour == BEHAVIOUR_FLEE_TARGET)
 			{
@@ -8593,14 +8600,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	GLfloat  d_forward, d_up, d_right;
 	
 	Vector  relPos = vector_subtract(target->position, position);
-	if (accuracy >= COMBAT_AI_TRACKS_CLOSER)
-	{ // aim slightly ahead of target
-		Vector leading = [target velocity]; 
-		relPos.x += (delta_t * leading.x * (accuracy / 10.0f)); 
-		relPos.y += (delta_t * leading.y * (accuracy / 10.0f)); 
-		relPos.z += (delta_t * leading.z * (accuracy / 10.0f));
-	}
-
+	
 	double	range2 = magnitude2(relPos);
 
 	if (range2 > SCANNER_MAX_RANGE2)
@@ -8666,18 +8666,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
 
-	double	targetRadius = (1.5 - pitch_tolerance) * target->collision_radius;
-
-	if (accuracy >= COMBAT_AI_TRACKS_CLOSER) 
-	{
-		targetRadius /= 5.0;
-	}
-	else if (retreat && accuracy < COMBAT_AI_ISNT_AWFUL)
-	{
-		targetRadius *= 1.3; // bad pilots worse with aft laser
-	}
-
-	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
+	double	max_cos = [self currentAimTolerance];
 
 	stick_roll = 0.0;	//desired roll and pitch
 	stick_pitch = 0.0;
@@ -8696,9 +8685,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			max_factor = floor(max_flight_pitch/0.125);
 			r_max_factor = 1.0/max_factor;
 		}
-		min_d = 0.001;
-		max_factor *= 2;
-		r_max_factor /= 2.0;
+		min_d = 0.0004; // 10 times more precision
+		max_factor *= 3;
+		r_max_factor /= 3.0;
 	}
 
 	d_right		=   dot_product(relPos, v_right);
@@ -8840,19 +8829,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	else  relPos.z = 1.0;
 
 // worse shots with side lasers than fore/aft, in general
-	double	targetRadius = (1.7-pitch_tolerance) * target->collision_radius;
 
-	if (accuracy >= COMBAT_AI_TRACKS_CLOSER) 
-	{
-		targetRadius /= 5.0;
-	}
-	else if (accuracy < COMBAT_AI_ISNT_AWFUL)
-	{
-		targetRadius *= 1+randf(); // probably misses with side lasers
-// really shouldn't fit them to this bad a shot - CIM
-	}
-
-	double	max_cos = sqrt(1 - targetRadius*targetRadius/range2);
+	double	max_cos = [self currentAimTolerance];
 
 	stick_roll = 0.0;	//desired roll and pitch
 	stick_pitch = 0.0;
@@ -9328,6 +9306,39 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+// lower is better. Defines angular size of circle in which ship
+// thinks is on target
+- (GLfloat) currentAimTolerance
+{
+	GLfloat basic_aim = aim_tolerance;
+	if (accuracy >= COMBAT_AI_TRACKS_CLOSER)
+	{ // deadly shots
+		basic_aim /= 5.0;
+	}
+	if (accuracy >= COMBAT_AI_ISNT_AWFUL)
+	{ // if missing, aim better!
+		basic_aim /= 1.0 + ((GLfloat)[self missedShots] / 5.0);
+	}
+	if (currentWeaponFacing == VIEW_AFT && accuracy < COMBAT_AI_ISNT_AWFUL)
+	{ // bad shots with aft lasers
+		basic_aim *= 1.3;
+	}
+	else if (currentWeaponFacing == VIEW_PORT || currentWeaponFacing == VIEW_STARBOARD) 
+	{ // everyone a bit worse with side lasers
+		if (accuracy < COMBAT_AI_ISNT_AWFUL) 
+		{ // especially these
+			basic_aim *= 1.3 + randf();
+		}
+		else
+		{
+			basic_aim *= 1.3;
+		}
+	}
+	GLfloat max_cos = sqrt(1-(basic_aim * basic_aim / 100000000.0));
+	return max_cos;
+}
+
+
 - (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon_type
 {
 
@@ -9381,7 +9392,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	if (dq < 0.0)  return NO;
 	
-	if (dq > aim_tolerance) return YES;
+	GLfloat aim = [self currentAimTolerance];
+	if (dq > aim*aim) return YES;
 
 	astq = sqrt(1.0 - radius * radius / d2);	// cosine of half angle subtended by target
 
@@ -9499,7 +9511,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	// set the values from forward_weapon_type.
 	// OXPs can override the default front laser energy damage.
-	
+	currentWeaponFacing = VIEW_FORWARD;
 	[self setWeaponDataFromType:forward_weapon_type];
 
 	weapon_damage = weapon_damage_override;
@@ -9507,7 +9519,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	BOOL result = [self fireWeapon:forward_weapon_type direction:VIEW_FORWARD range:range];
 	if (forward_weapon_type == WEAPON_NONE)
 	{
-// need to check subentities to avoid AI oddities
+		// need to check subentities to avoid AI oddities
+		// will already have fired them by now, though
 		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
 		ShipEntity		*se = nil;
 		OOWeaponType 			weapon_type = WEAPON_NONE;
@@ -9537,7 +9550,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) fireAftWeapon:(double) range
 {
 	// set the values from aft_weapon_type.
-	
+	currentWeaponFacing = VIEW_AFT;
 	[self setWeaponDataFromType:aft_weapon_type];
 	
 	return [self fireWeapon:aft_weapon_type direction:VIEW_AFT range:range];
@@ -9547,7 +9560,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) firePortWeapon:(double) range
 {
 	// set the values from port_weapon_type.
-	
+	currentWeaponFacing = VIEW_PORT;
 	[self setWeaponDataFromType:port_weapon_type];
 	
 	return [self fireWeapon:port_weapon_type direction:VIEW_PORT range:range];
@@ -9556,8 +9569,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) fireStarboardWeapon:(double) range
 {
-	// set the values from port_weapon_type.
-	
+	// set the values from starboard_weapon_type.
+	currentWeaponFacing = VIEW_STARBOARD;
 	[self setWeaponDataFromType:starboard_weapon_type];
 	
 	return [self fireWeapon:starboard_weapon_type direction:VIEW_STARBOARD range:range];
@@ -9667,6 +9680,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	if (victim != nil)
 	{
+		[self adjustMissedShots:-1];
+
 		ShipEntity *subent = [victim subEntityTakingDamage];
 		if (subent != nil && [victim isFrangible])
 		{
@@ -9684,6 +9699,26 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
 			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
 		}
+	}
+	else
+	{
+		if (randf()*COMBAT_AI_TRACKS_CLOSER < [[self owner] accuracy])
+		{
+			[self adjustMissedShots:+1];
+			// makes future shots more careful until the next hit
+		}
+		// see ATTACKER_MISSED section of main entity laser routine
+		if (![[self owner] isCloaked])
+		{
+			victim = [[self owner] primaryTarget];
+
+			if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal(vector_subtract([victim position],[[self owner] position]))) > 0.995) {
+				[victim setPrimaryAggressor:[self owner]];
+				[victim setFoundTarget:[self owner]];
+				[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
+			}
+		}
+
 	}
 	
 	[UNIVERSE addEntity:shot];
@@ -9835,6 +9870,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	if (victim != nil)
 	{
+		[self adjustMissedShots:-1];
+
 		/*	CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
 			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
 			object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
@@ -9861,26 +9898,28 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
 		}
 	}
-	else if (![self isCloaked])
+	else
 	{
 		// shot missed
-		victim = [self primaryTarget];
+		if (![self isCloaked])
+		{
+			victim = [self primaryTarget];
 
-		/* player currently gets a bit of an advantage here if they ambush
-		 * without having their target actually targeted. Though in those
-		 * circumstances they shouldn't be missing their first shot
-		 * anyway. */
-		if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal(vector_subtract([victim position],[self position]))) > 0.995) {
-			/* plausibly aimed at target. Allows reaction before attacker
-			 * actually hits. But we need to be able to distinguish in AI
-			 * from ATTACKED so that ships in combat aren't bothered by
-			 * amateurs. So should only respond to ATTACKER_MISSED if not
-			 * already fighting */
-			[victim setPrimaryAggressor:self];
-			[victim setFoundTarget:self];
-			[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
+			/* player currently gets a bit of an advantage here if they ambush
+			 * without having their target actually targeted. Though in those
+			 * circumstances they shouldn't be missing their first shot
+			 * anyway. */
+			if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal(vector_subtract([victim position],[self position]))) > 0.995) {
+				/* plausibly aimed at target. Allows reaction before attacker
+				 * actually hits. But we need to be able to distinguish in AI
+				 * from ATTACKED so that ships in combat aren't bothered by
+				 * amateurs. So should only respond to ATTACKER_MISSED if not
+				 * already fighting */
+				[victim setPrimaryAggressor:self];
+				[victim setFoundTarget:self];
+				[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
+			}
 		}
-
 	}
 	
 	[UNIVERSE addEntity:shot];
@@ -9889,6 +9928,37 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	return YES;
 }
+
+
+- (void) adjustMissedShots:(int) delta
+{
+	if ([self isSubEntity])
+	{
+		[[self owner] adjustMissedShots:delta];
+	}
+	else
+	{
+		_missed_shots += delta;
+		if (_missed_shots < 0)
+		{
+			_missed_shots = 0;
+		}
+	}
+}
+
+
+- (int) missedShots
+{
+	if ([self isSubEntity])
+	{
+		return [[self owner] missedShots];
+	}
+	else
+	{
+		return _missed_shots;
+	}
+}
+
 
 - (void) throwSparks
 {
