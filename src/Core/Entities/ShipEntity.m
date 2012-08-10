@@ -9650,81 +9650,77 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) fireSubentityLaserShot:(double)range
 {
-	int				direction = VIEW_FORWARD;
-	GLfloat			hit_at_range;
-	
 	[self setShipHitByLaser:nil];
-
+	
 	if (forward_weapon_type == WEAPON_NONE)  return NO;
 	[self setWeaponDataFromType:forward_weapon_type];
-
-	ShipEntity* parent = (ShipEntity*)[self owner];
-
-	if ([self shotTime] < weapon_recharge_rate)
-		return NO;
-
+	
+	ShipEntity *parent = [self owner];
+	NSAssert([parent isShipWithSubEntityShip:self], @"-fireSubentityLaserShot: called on ship which is not a subentity.");
+	
+	if ([self shotTime] < weapon_recharge_rate)  return NO;
 	if (forward_weapon_temp > WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP) return NO;
-
 	if (range > weaponRange)  return NO;
 	
 	forward_weapon_temp += weapon_shot_temperature;
-
-
-	hit_at_range = weaponRange;
-	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset: make_vector(0,0,0) rangeFound: &hit_at_range];
+	
+	GLfloat hitAtRange = weaponRange;
+	int direction = VIEW_FORWARD;
+	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset:kZeroVector rangeFound:&hitAtRange];
 	[self setShipHitByLaser:victim];
 	
 	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self view:direction offset:kZeroVector];
 	[shot setColor:laser_color];
-	[shot setScanClass: CLASS_NO_DRAW];
+	[shot setScanClass:CLASS_NO_DRAW];
 	
 	if (victim != nil)
 	{
 		[self adjustMissedShots:-1];
-
+		
 		ShipEntity *subent = [victim subEntityTakingDamage];
 		if (subent != nil && [victim isFrangible])
 		{
 			// do 1% bleed-through damage...
-			[victim takeEnergyDamage: 0.01 * weapon_damage from:self becauseOf: parent];
+			[victim takeEnergyDamage:0.01 * weapon_damage from:self becauseOf:parent];
 			victim = subent;
 		}
-
-		if (hit_at_range < weaponRange)
+		
+		if (hitAtRange < weaponRange)
 		{
-			[victim takeEnergyDamage:weapon_damage from:self becauseOf: parent];	// a very palpable hit
-
-			[shot setRange:hit_at_range];
+			[victim takeEnergyDamage:weapon_damage from:self becauseOf:parent];  // a very palpable hit
+			
+			[shot setRange:hitAtRange];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
-			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
+			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hitAtRange));
 			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
 		}
 	}
 	else
 	{
-		if (randf()*COMBAT_AI_TRACKS_CLOSER < [[self owner] accuracy])
+		if (randf() * COMBAT_AI_TRACKS_CLOSER < [parent accuracy])
 		{
 			[self adjustMissedShots:+1];
 			// makes future shots more careful until the next hit
 		}
 		// see ATTACKER_MISSED section of main entity laser routine
-		if (![[self owner] isCloaked])
+		if (![parent isCloaked])
 		{
-			victim = [[self owner] primaryTarget];
-
-			if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal(vector_subtract([victim position],[[self owner] position]))) > 0.995) {
-				[victim setPrimaryAggressor:[self owner]];
-				[victim setFoundTarget:[self owner]];
+			victim = [parent primaryTarget];
+			
+			Vector shotDirection = vector_forward_from_quaternion([shot orientation]);
+			Vector victimDirection = vector_normal(vector_subtract([victim position], [parent position]));
+			if (dot_product(shotDirection, victimDirection) > 0.995)	// Within 84.26 degrees
+			{
+				[victim setPrimaryAggressor:parent];
+				[victim setFoundTarget:parent];
 				[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
 			}
 		}
-
 	}
 	
 	[UNIVERSE addEntity:shot];
-	
 	[self resetShotTime];
-
+	
 	return YES;
 }
 
