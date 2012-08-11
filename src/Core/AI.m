@@ -507,11 +507,7 @@ static AIStackElement *sStack = NULL;
 
 - (void) takeAction:(NSString *) action
 {
-	NSArray			*tokens = ScanTokensFromString(action);
-	NSString		*dataString = nil;
-	NSString		*selectorStr;
-	SEL				selector;
-	ShipEntity		*owner = [self owner];
+	ShipEntity *owner = [self owner];
 	
 #ifndef NDEBUG
 	BOOL report = [owner reportAIMessages];
@@ -522,33 +518,35 @@ static AIStackElement *sStack = NULL;
 	}
 #endif
 	
-	if ([tokens count] != 0)
+	NSArray *tokens = ScanTokensFromString(action);
+	OOUInteger tokenCount = [tokens count];
+	
+	if (tokenCount != 0)
 	{
-		selectorStr = [tokens objectAtIndex:0];
+		NSString *selectorStr = [tokens objectAtIndex:0];
 		
 		if (owner != nil)
 		{
-			if ([tokens count] > 1)
+			NSString *dataString = nil;
+			
+			if (tokenCount == 2)
 			{
-				dataString = [[tokens subarrayWithRange:NSMakeRange(1, [tokens count] - 1)] componentsJoinedByString:@" "];
+				dataString = [tokens objectAtIndex:1];
+			}
+			else if ([tokens count] > 1)
+			{
+				dataString = [[tokens subarrayWithRange:NSMakeRange(1, tokenCount - 1)] componentsJoinedByString:@" "];
 			}
 			
-			selector = NSSelectorFromString(selectorStr);
+			SEL selector = NSSelectorFromString(selectorStr);
 			if ([owner respondsToSelector:selector])
 			{
-				if (dataString)  [owner performSelector:selector withObject:dataString];
+				if (dataString != nil)  [owner performSelector:selector withObject:dataString];
 				else  [owner performSelector:selector];
 			}
 			else
 			{
-				if ([selectorStr isEqual:@"debugMessage:"])
-				{
-					OOLog(@"ai.takeAction.debugMessage", @"DEBUG: AI MESSAGE from %@: %@", ownerDesc, dataString);
-				}
-				else
-				{
-					OOLogERR(@"ai.takeAction.badSelector", @"in AI %@ in state %@: %@ does not respond to %@", stateMachineName, currentState, ownerDesc, selectorStr);
-				}
+				OOLogERR(@"ai.takeAction.badSelector", @"in AI %@ in state %@: %@ does not respond to %@", stateMachineName, currentState, ownerDesc, selectorStr);
 			}
 		}
 		else

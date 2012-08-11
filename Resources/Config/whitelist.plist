@@ -77,7 +77,6 @@
 		"debugMessage:",
 		"playSound:",
 		"setGuiToMissionScreen",
-	//	"setBackgroundFromDescriptionsKey:",	// Is this ever used from a script? It seems a bad match for future plans of mine. -- Ahruman
 		"setGalacticHyperspaceBehaviourTo:",
 		"setGalacticHyperspaceFixedCoordsTo:",
 	);
@@ -197,13 +196,14 @@
 		"dropMessages:",
 		"exitAIWithMessage:",
 		"ai_throwSparks",			// Don't use, use throwSparks instead
-		"explodeSelf",			// Don't use, use becomeExplosion instead
+		"explodeSelf",				// Don't use, use becomeExplosion instead
 		"checkAegis",
 		"checkEnergy",
 		"checkHeatInsulation",
 		"setThrustFactorTo:",
 		"setStateTo:",
 		"debugMessage:",
+		"ai_debugMessage:",			// Don't use, use debugMessage: instead
 		"disengageAutopilot",		// Only useful for player root AI
 		"thargonCheckMother",
 		"addPrimaryAggressorAsDefenseTarget",
@@ -458,5 +458,6 @@
 		"setUpEscorts" = "doNothing";
 		"becomeExplosion" = "explodeSelf";
 		"clearDefenseTargets" = "removeAllDefenseTargets";
+		"debugMessage:" = "ai_debugMessage:";
 	};
 }

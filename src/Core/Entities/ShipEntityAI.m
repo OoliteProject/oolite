@@ -254,9 +254,11 @@
 
 - (void) sendScriptMessage:(NSString *)message;
 
+- (void) ai_throwSparks;
+
 - (void) explodeSelf;
 
-- (void) ai_throwSparks;
+- (void) ai_debugMessage:(NSString *)message;
 
 // racing code.
 - (void) targetFirstBeaconWithCode:(NSString *) code;
@@ -2564,11 +2566,19 @@
 	[self setThrowSparks:YES];
 }
 
+
 - (void) explodeSelf
 {
 	[self getDestroyedBy:nil damageType:kOODamageTypeEnergy];
 }
 
+
+- (void) ai_debugMessage:(NSString *)message
+{
+	NSString *desc = [NSString stringWithFormat:@"%@ %d", [self name], [self universalID]];
+	if ([self isPlayer])  desc = @"player autopilot";
+	OOLog(@"ai.takeAction.debugMessage", @"DEBUG: AI MESSAGE from %@: %@", desc, message);
+}
 
 
 
