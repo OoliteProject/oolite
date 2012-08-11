@@ -49,6 +49,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (void) drawCrossHairsWithSize:(GLfloat) size x:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
+- (void) drawSystemMarkers:(NSArray *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale;
+- (void) drawSystemMarker:(NSDictionary *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale;
+
 - (void) drawEqptList: (NSArray *)eqptList z:(GLfloat)z;
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) route optimizedBy:(OORouteType) optimizeBy;
 
@@ -1433,7 +1436,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		cursor_coordinates = galaxy_coordinates;	// home
 	
 	// get a list of systems marked as contract destinations
-	NSArray* markedDestinations = [player markedDestinations];
+	NSDictionary* markedDestinations = [player markedDestinations];
 	
 	// get present location
 	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
@@ -1466,16 +1469,19 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		if ((dx < 20)&&(dy < 38))
 		{
-			if ([markedDestinations oo_boolAtIndex:i])	// is marked
+			NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
+			if (markers != nil)	// is marked
 			{
-				GLfloat mark_size = 0.5f * blob_size + 2.5f;
-				OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	// red
+				GLfloat base_size = 0.5f * blob_size + 2.5f;
+/*				OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	// red
 				OOGLBEGIN(GL_LINES);
 					glVertex3f(x + star.x - mark_size,	y + star.y - mark_size,	z);
 					glVertex3f(x + star.x + mark_size,	y + star.y + mark_size,	z);
 					glVertex3f(x + star.x - mark_size,	y + star.y + mark_size,	z);
 					glVertex3f(x + star.x + mark_size,	y + star.y - mark_size,	z);
-				OOGLEND();
+					OOGLEND(); */
+				[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:base_size];
+
 				OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
 			}
 			GLDrawFilledOval(x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
@@ -1600,6 +1606,76 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
+- (void) drawSystemMarkers:(NSArray *)markers atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale
+{
+	NSEnumerator *mEnum; 
+	NSDictionary *marker;
+	for (mEnum = [markers objectEnumerator]; (marker = [mEnum nextObject]); )
+	{
+		[self drawSystemMarker:marker atX:x andY:y andZ:z withAlpha:alpha andScale:scale];
+	}
+}
+
+- (void) drawSystemMarker:(NSDictionary *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale
+{
+	NSString *colorDesc = [marker oo_stringForKey:@"markerColor" defaultValue:@"redColor"];
+	OORGBAComponents color = [[OOColor colorWithDescription:colorDesc] rgbaComponents];
+	
+	OOGL(glColor4f(color.r, color.g, color.b, alpha));	// red
+	GLfloat mark_size = [marker oo_floatForKey:@"markerScale" defaultValue:1.0];
+	if (mark_size > 2.0)
+	{
+		mark_size = 2.0;
+	}
+	else if (mark_size < 0.5)
+	{
+		mark_size = 0.5;
+	}
+	mark_size *= scale;
+
+	OODestinationMarker shape = [marker oo_intForKey:@"markerShape" defaultValue:DESTINATION_MARKER_X];
+
+	OOGLBEGIN(GL_LINES);
+	switch (shape)
+	{
+	case DESTINATION_MARKER_PLUS:
+		glVertex3f(x,	y - mark_size,	z);
+		glVertex3f(x,	y + mark_size,	z);
+		glVertex3f(x - mark_size,	y,	z);
+		glVertex3f(x + mark_size,	y,	z);
+		break;
+	case DESTINATION_MARKER_SQUARE:
+		glVertex3f(x - mark_size,	y - mark_size,	z);
+		glVertex3f(x - mark_size,	y + mark_size,	z);
+		glVertex3f(x - mark_size,	y + mark_size,	z);
+		glVertex3f(x + mark_size,	y + mark_size,	z);
+		glVertex3f(x + mark_size,	y + mark_size,	z);
+		glVertex3f(x + mark_size,	y - mark_size,	z);
+		glVertex3f(x + mark_size,	y - mark_size,	z);
+		glVertex3f(x - mark_size,	y - mark_size,	z);
+		break;
+	case DESTINATION_MARKER_DIAMOND:
+		glVertex3f(x,	y - mark_size,	z);
+		glVertex3f(x - mark_size,	y,	z);
+		glVertex3f(x - mark_size,	y,	z);
+		glVertex3f(x,	y + mark_size,	z);
+		glVertex3f(x,	y + mark_size,	z);
+		glVertex3f(x + mark_size,	y,	z);
+		glVertex3f(x + mark_size,	y,	z);
+		glVertex3f(x,	y - mark_size,	z);
+		break;
+	case DESTINATION_MARKER_X:
+	default:
+		glVertex3f(x - mark_size,	y - mark_size,	z);
+		glVertex3f(x + mark_size,	y + mark_size,	z);
+		glVertex3f(x - mark_size,	y + mark_size,	z);
+		glVertex3f(x + mark_size,	y - mark_size,	z);
+	}
+	OOGLEND();
+
+}
+
+
 - (Random_Seed) targetNextFoundSystem:(int)direction // +1 , 0 , -1
 {
 	Random_Seed sys = [PLAYER target_system_seed];
@@ -1657,7 +1733,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double fuel = 35.0 * [player dialFuel];
 	
 	// get a list of systems marked as contract destinations
-	NSArray		*markedDestinations = [player markedDestinations];
+	NSDictionary		*markedDestinations = [player markedDestinations];
 	
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
 	
@@ -1744,21 +1820,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// draw marks
 	//
 	OOGL(glLineWidth(1.5f));
-	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
-		BOOL mark = [markedDestinations oo_boolAtIndex:i];
-		if (mark)
+		NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
+		if (markers != nil)
 		{
 			star.x = (float)(g_seed.d * hscale + hoffset);
 			star.y = (float)(g_seed.b * vscale + voffset);
-			OOGLBEGIN(GL_LINES);
-				glVertex3f(x + star.x - 2.5f,	y + star.y - 2.5f,	z);
-				glVertex3f(x + star.x + 2.5f,	y + star.y + 2.5f,	z);
-				glVertex3f(x + star.x - 2.5f,	y + star.y + 2.5f,	z);
-				glVertex3f(x + star.x + 2.5f,	y + star.y - 2.5f,	z);
-			OOGLEND();
+			
+			[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:2.5f];
 		}
 	}
 	

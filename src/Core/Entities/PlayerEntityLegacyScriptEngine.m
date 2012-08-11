@@ -1988,7 +1988,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if (dest < 0 || dest > 255)
 			continue;
 
-		[self addMissionDestination:(unsigned)dest forGroup:@"__oolite_legacy_destinations"];
+		[self addMissionDestinationMarker:[self defaultMarker:dest]];
 	}
 }
 
@@ -2004,7 +2004,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		dest = [[tokens objectAtIndex:j] intValue];
 		if (dest < 0 || dest > 255)  continue;
 
-		[self removeMissionDestination:(unsigned)dest forGroup:@"__oolite_legacy_destinations"];
+		[self removeMissionDestinationMarker:[self defaultMarker:dest]];
 	}
 }
 

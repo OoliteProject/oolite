@@ -132,6 +132,8 @@ static GLfloat		sBaseMass = 0.0;
 // Cargo & passenger contracts
 - (NSArray*) contractsListForScriptingFromArray:(NSArray *) contracts_array forCargo:(BOOL)forCargo;
 
+- (void) prepareMarkedDestination:(NSMutableDictionary *)markers:(NSDictionary *)marker;
+
 - (void) witchStart;
 - (void) witchJumpTo:(Random_Seed)sTo misjump:(BOOL)misjump;
 - (void) witchEnd;
@@ -5954,39 +5956,50 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (NSArray *) markedDestinations
+- (void) prepareMarkedDestination:(NSMutableDictionary *)markers:(NSDictionary *)marker
+{
+	NSNumber *key = [NSNumber numberWithInt:[marker oo_intForKey:@"system"]];
+	NSMutableArray *list = [markers objectForKey:key];
+	if (list == nil)
+	{
+		list = [NSMutableArray arrayWithObject:marker];
+	}
+	else
+	{
+		[list addObject:marker];
+	}
+	[markers setObject:list forKey:key];
+}
+
+
+- (NSDictionary *) markedDestinations
 {
 	// get a list of systems marked as contract destinations
-	NSMutableArray	*destinations = [NSMutableArray arrayWithCapacity:256];
-	BOOL			mark[256] = {0};
+	NSMutableDictionary	*destinations = [NSMutableDictionary dictionaryWithCapacity:256];
 	unsigned		i;
-	
+	OOSystemID sysid;
+	NSDictionary *marker;
+
 	for (i = 0; i < [passengers count]; i++)
 	{
-		mark[[[passengers oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION]] = YES;
+		sysid = [[passengers oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION];
+		marker = [self passengerContractMarker:sysid];
+		[self prepareMarkedDestination:destinations:marker];
 	}
 	for (i = 0; i < [contracts count]; i++)
 	{
-		mark[[[contracts oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION]] = YES;
+		sysid = [[contracts oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION];
+		marker = [self cargoContractMarker:sysid];
+		[self prepareMarkedDestination:destinations:marker];
 	}
 
 	NSEnumerator				*keyEnum = nil;
 	NSString					*key = nil;
-	NSArray						*value = nil;
 
 	for (keyEnum = [missionDestinations keyEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		value = [missionDestinations objectForKey:key];
-
-		for (i = 0; i < [value count]; i++)
-		{
-			mark[[value oo_unsignedCharAtIndex:i]] = YES;
-		}
-	}
-
-	for (i = 0; i < 256; i++)
-	{
-		[destinations addObject:[NSNumber numberWithBool:mark[i]]];
+		marker = [missionDestinations objectForKey:key];
+		[self prepareMarkedDestination:destinations:marker];
 	}
 	
 	return destinations;
@@ -9058,79 +9071,56 @@ else _dockTarget = NO_TARGET;
 		value = [destinations objectForKey:key];
 		if (value != nil)
 		{
-			value = [value mutableCopy];
-			[missionDestinations setObject:value forKey:key];
-			[value release];
+			if ([value isKindOfClass:[NSDictionary class]])
+			{
+				value = [value mutableCopy];
+				[missionDestinations setObject:value forKey:key];
+				[value release];
+			}
 		}
 	}
 	
 	if (legacy != nil)
 	{
-		value = [legacy mutableCopy];
-		[missionDestinations setObject:value forKey:@"__oolite_legacy_destinations"];
-		[value release];
+		OOSystemID dest;
+		NSNumber *legacyMarker;
+		for (keyEnum = [legacy objectEnumerator]; (legacyMarker = [keyEnum nextObject]); )
+		{
+			dest = [legacyMarker intValue];
+			[self addMissionDestinationMarker:[self defaultMarker:dest]];
+		}
 	}
 
 }
 
 
-- (void) addMissionDestination:(OOSystemID)dest forGroup:(NSString *)group
+- (NSString *)markerKey:(NSDictionary *)marker
 {
-	if (dest < 0 || dest > kOOMaximumSystemID || group == nil)
-	{
-		return;
-	}
-	NSMutableArray *groupDests = [missionDestinations objectForKey:group];
-	if (groupDests == nil)
-	{
-		groupDests = [NSMutableArray array];
-		[missionDestinations setObject:groupDests forKey:group];
-	}
-	OOUInteger i, count = [groupDests count];
-	OOSystemID pnum;
-	for (i = 0; i < count; i++)
-	{
-		pnum = [groupDests oo_intAtIndex:i];
-		if (pnum == dest)
-		{
-			return;
-		}
-	}
-	[groupDests addObject:[NSNumber numberWithUnsignedInt:dest]];
+	return [NSString stringWithFormat:@"%d-%@",[marker oo_intForKey:@"system"], [marker oo_stringForKey:@"name"]];
 }
 
 
-- (void) removeMissionDestination:(OOSystemID)dest forGroup:(NSString *)group
+- (void) addMissionDestinationMarker:(NSDictionary *)marker;
 {
-	if (dest < 0 || dest > kOOMaximumSystemID || group == nil)
+	NSDictionary *validated = [self validatedMarker:marker];
+	if (validated == nil) 
 	{
 		return;
 	}
-	NSMutableArray *groupDests = [missionDestinations objectForKey:group];
-	if (groupDests == nil)
+	
+	[missionDestinations setObject:validated forKey:[self markerKey:validated]];
+}
+
+
+- (void) removeMissionDestinationMarker:(NSDictionary *)marker
+{
+	NSDictionary *validated = [self validatedMarker:marker];
+	if (validated == nil) 
 	{
 		return;
 	}
-	BOOL removeDest = NO;
-	OOUInteger i, count = [groupDests count];
-	OOSystemID pnum;
-	for (i = 0; i < count; i++)
-	{
-		pnum = [groupDests oo_intAtIndex:i];
-		if (pnum == dest)
-		{
-			removeDest = YES;
-			break;
-		}
-	}
-	if (removeDest)
-	{
-		[groupDests removeObjectAtIndex:i];
-		if ([groupDests count] == 0)
-		{
-			[missionDestinations removeObjectForKey:group];
-		}
-	}
+	
+	[missionDestinations removeObjectForKey:[self markerKey:validated]];
 }
 
 

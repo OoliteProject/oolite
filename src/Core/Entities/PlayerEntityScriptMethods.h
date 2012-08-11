@@ -55,6 +55,11 @@ MA 02110-1301, USA.
 - (unsigned) systemPseudoRandom256;
 - (double) systemPseudoRandomFloat;
 
+- (NSDictionary *) passengerContractMarker:(OOSystemID)system;
+- (NSDictionary *) cargoContractMarker:(OOSystemID)system;
+- (NSDictionary *) defaultMarker:(OOSystemID)system;
+- (NSDictionary *) validatedMarker:(NSDictionary *)marker;
+
 @end
 
 

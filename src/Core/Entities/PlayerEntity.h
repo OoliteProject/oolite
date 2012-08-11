@@ -190,6 +190,15 @@ typedef enum
 } OOMissileStatus;
 
 
+typedef enum
+{
+	DESTINATION_MARKER_X = 0,
+	DESTINATION_MARKER_PLUS,
+	DESTINATION_MARKER_SQUARE,
+	DESTINATION_MARKER_DIAMOND
+} OODestinationMarker;
+
+
 #define ENERGY_RECHARGE_FACTOR			energy_recharge_rate
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f
@@ -254,6 +263,7 @@ typedef enum
 #define	MANIFEST_SCREEN_ROW_BACK 1
 #define	MANIFEST_SCREEN_ROW_NEXT [[PLAYER hud] isHidden]?27:20
 
+#define MISSION_DEST_LEGACY   @"__oolite_legacy_destinations"
 
 @interface PlayerEntity: ShipEntity
 {
@@ -730,7 +740,7 @@ typedef enum
 - (NSArray *) cargoList;
 - (NSArray *) cargoListForScripting;
 - (void) setGuiToSystemDataScreen;
-- (NSArray *) markedDestinations;
+- (NSDictionary *) markedDestinations;
 - (void) setGuiToLongRangeChartScreen;
 - (void) setGuiToShortRangeChartScreen;
 - (void) setGuiToLoadSaveScreen;
@@ -863,8 +873,9 @@ typedef enum
 - (void) addScannedWormhole:(WormholeEntity*)wormhole;
 
 - (void) initialiseMissionDestinations:(NSDictionary *)destinations andLegacy:(NSArray *)legacy;
-- (void) addMissionDestination:(OOSystemID)dest forGroup:(NSString *)group;
-- (void) removeMissionDestination:(OOSystemID)dest forGroup:(NSString *)group;
+- (NSString *)markerKey:(NSDictionary*)marker;
+- (void) addMissionDestinationMarker:(NSDictionary *)marker;
+- (void) removeMissionDestinationMarker:(NSDictionary *)marker;
 - (NSMutableDictionary*) getMissionDestinations;
 
 @end
