@@ -190,15 +190,6 @@ typedef enum
 } OOMissileStatus;
 
 
-typedef enum
-{
-	DESTINATION_MARKER_X = 0,
-	DESTINATION_MARKER_PLUS,
-	DESTINATION_MARKER_SQUARE,
-	DESTINATION_MARKER_DIAMOND
-} OODestinationMarker;
-
-
 #define ENERGY_RECHARGE_FACTOR			energy_recharge_rate
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f

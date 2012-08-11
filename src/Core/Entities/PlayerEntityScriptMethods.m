@@ -267,7 +267,7 @@ MA 02110-1301, USA.
 								[NSNumber numberWithInt:system], @"system",
 								MISSION_DEST_LEGACY, @"name",
 								@"orangeColor", @"markerColor",
-								[NSNumber numberWithInt:DESTINATION_MARKER_DIAMOND], @"markerShape",
+								@"MARKER_DIAMOND", @"markerShape",
 								nil] retain] autorelease];
 }
 
@@ -277,7 +277,7 @@ MA 02110-1301, USA.
 								[NSNumber numberWithInt:system], @"system",
 								MISSION_DEST_LEGACY, @"name",
 								@"orangeColor", @"markerColor",
-								[NSNumber numberWithInt:DESTINATION_MARKER_SQUARE], @"markerShape",
+								@"MARKER_SQUARE", @"markerShape",
 								nil] retain] autorelease];
 }
 
@@ -287,7 +287,7 @@ MA 02110-1301, USA.
 								[NSNumber numberWithInt:system], @"system",
 								MISSION_DEST_LEGACY, @"name",
 								@"redColor", @"markerColor",
-								[NSNumber numberWithInt:DESTINATION_MARKER_X], @"markerShape",
+								@"MARKER_X", @"markerShape",
 								nil] retain] autorelease];
 }
 
@@ -301,26 +301,11 @@ MA 02110-1301, USA.
 	}
 	NSString *group = [marker oo_stringForKey:@"name" defaultValue:MISSION_DEST_LEGACY];
 
-	NSString *shapeString = [marker oo_stringForKey:@"markerShape" defaultValue:@"MARKER_X"];
-	OODestinationMarker shape = DESTINATION_MARKER_X;
-	if ([shapeString isEqualToString:@"MARKER_PLUS"])
-	{
-		shape = DESTINATION_MARKER_PLUS;
-	}
-	else if ([shapeString isEqualToString:@"MARKER_SQUARE"])
-	{
-		shape = DESTINATION_MARKER_SQUARE;
-	}
-	else if ([shapeString isEqualToString:@"MARKER_DIAMOND"])
-	{
-		shape = DESTINATION_MARKER_DIAMOND;
-	}
-
 	return [[[NSDictionary dictionaryWithObjectsAndKeys:
 								[NSNumber numberWithInt:dest], @"system",
 								group, @"name",
 								[marker oo_stringForKey:@"markerColor" defaultValue:@"redColor"], @"markerColor",
-								[NSNumber numberWithInt:shape], @"markerShape",
+								[marker oo_stringForKey:@"markerShape" defaultValue:@"MARKER_X"], @"markerShape",
 							  [NSNumber numberWithFloat:[marker oo_floatForKey:@"markerScale" defaultValue:1.0]], @"markerScale",
 								nil] retain] autorelease];
 

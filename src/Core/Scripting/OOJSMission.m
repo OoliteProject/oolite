@@ -521,17 +521,16 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-//getShaders()
 static JSBool MissionMarkedSystems(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
 	PlayerEntity		*player = PLAYER;
-	NSObject		*result = nil;
+	NSDictionary		*result = nil;
 	
 	result = [player getMissionDestinations];
 	if (result == nil)  result = [NSDictionary dictionary];
-	OOJS_RETURN_OBJECT(result);
+	OOJS_RETURN_OBJECT([result allValues]);
 	
 	OOJS_PROFILE_EXIT
 }

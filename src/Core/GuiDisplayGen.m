@@ -1633,18 +1633,25 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	mark_size *= scale;
 
-	OODestinationMarker shape = [marker oo_intForKey:@"markerShape" defaultValue:DESTINATION_MARKER_X];
+	NSString *shape = [marker oo_stringForKey:@"markerShape" defaultValue:@"MARKER_X"];
 
 	OOGLBEGIN(GL_LINES);
-	switch (shape)
+	if ([shape isEqualToString:@"MARKER_X"])
 	{
-	case DESTINATION_MARKER_PLUS:
+		glVertex3f(x - mark_size,	y - mark_size,	z);
+		glVertex3f(x + mark_size,	y + mark_size,	z);
+		glVertex3f(x - mark_size,	y + mark_size,	z);
+		glVertex3f(x + mark_size,	y - mark_size,	z);
+	}
+	else if ([shape isEqualToString:@"MARKER_PLUS"])
+	{
 		glVertex3f(x,	y - mark_size,	z);
 		glVertex3f(x,	y + mark_size,	z);
 		glVertex3f(x - mark_size,	y,	z);
 		glVertex3f(x + mark_size,	y,	z);
-		break;
-	case DESTINATION_MARKER_SQUARE:
+	}
+	else if ([shape isEqualToString:@"MARKER_SQUARE"])
+	{
 		glVertex3f(x - mark_size,	y - mark_size,	z);
 		glVertex3f(x - mark_size,	y + mark_size,	z);
 		glVertex3f(x - mark_size,	y + mark_size,	z);
@@ -1653,8 +1660,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		glVertex3f(x + mark_size,	y - mark_size,	z);
 		glVertex3f(x + mark_size,	y - mark_size,	z);
 		glVertex3f(x - mark_size,	y - mark_size,	z);
-		break;
-	case DESTINATION_MARKER_DIAMOND:
+	}
+	else if ([shape isEqualToString:@"MARKER_DIAMOND"])
+	{
 		glVertex3f(x,	y - mark_size,	z);
 		glVertex3f(x - mark_size,	y,	z);
 		glVertex3f(x - mark_size,	y,	z);
@@ -1663,13 +1671,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		glVertex3f(x + mark_size,	y,	z);
 		glVertex3f(x + mark_size,	y,	z);
 		glVertex3f(x,	y - mark_size,	z);
-		break;
-	case DESTINATION_MARKER_X:
-	default:
-		glVertex3f(x - mark_size,	y - mark_size,	z);
-		glVertex3f(x + mark_size,	y + mark_size,	z);
-		glVertex3f(x - mark_size,	y + mark_size,	z);
-		glVertex3f(x + mark_size,	y - mark_size,	z);
 	}
 	OOGLEND();
 
