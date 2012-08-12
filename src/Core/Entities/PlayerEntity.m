@@ -9100,7 +9100,7 @@ else _dockTarget = NO_TARGET;
 }
 
 
-- (void) addMissionDestinationMarker:(NSDictionary *)marker;
+- (void) addMissionDestinationMarker:(NSDictionary *)marker
 {
 	NSDictionary *validated = [self validatedMarker:marker];
 	if (validated == nil) 
