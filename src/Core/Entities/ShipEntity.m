@@ -9659,7 +9659,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	NSAssert([parent isShipWithSubEntityShip:self], @"-fireSubentityLaserShot: called on ship which is not a subentity.");
 	
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
-	if (forward_weapon_temp > WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP) return NO;
+	if (forward_weapon_temp > WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP)  return NO;
 	if (range > weaponRange)  return NO;
 	
 	forward_weapon_temp += weapon_shot_temperature;

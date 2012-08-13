@@ -27,6 +27,8 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 #import "OOFunctionAttributes.h"
+#import "OOFullScreenController.h"
+
 
 #if OOLITE_HAVE_APPKIT
 #import <Quartz/Quartz.h>	// For PDFKit.
@@ -61,7 +63,7 @@ MA 02110-1301, USA.
 // * reduced from 0.5s for tgape * //
 
 
-@class MyOpenGLView, OOProgressBar;
+@class MyOpenGLView, OOProgressBar, OOFullScreenController;
 
 
 #if OOLITE_MAC_OS_X
@@ -123,6 +125,7 @@ MA 02110-1301, USA.
 	
 	BOOL					stayInFullScreenMode;
 #elif OOLITE_MAC_LEGACY_FULLSCREEN
+#if OBSOLETE
 	NSMutableArray			*displayModes;
 	
 	unsigned int			width, height;
@@ -136,6 +139,9 @@ MA 02110-1301, USA.
 	BOOL					_switchRezDeferred;
 	
 	NSOpenGLContext			*fullScreenContext;
+#else
+	OOFullScreenController	*_fullScreenController;
+#endif
 #elif OOLITE_MAC_OS_X
 	bool					_fullScreen;
 #endif

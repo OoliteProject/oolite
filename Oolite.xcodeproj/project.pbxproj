@@ -491,6 +491,8 @@
 		1A7B967F0E620C9E00322821 /* OOSoundInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7B967E0E620C9E00322821 /* OOSoundInternal.h */; };
 		1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */; };
 		1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */; };
+		1A7BF96E15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7BF96C15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h */; };
+		1A7BF96F15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */; };
 		1A7C27CA14FA70A500F2D2A8 /* shader-uniform-bindings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */; };
 		1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7C75980CC39D11005D0AA2 /* OOJSSun.m */; };
 		1A7C75C50CC39EC9005D0AA2 /* OOJSSun.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7C75990CC39D11005D0AA2 /* OOJSSun.h */; };
@@ -644,6 +646,8 @@
 		1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */; };
 		1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */; };
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
+		1AE1A94115D2C4E4003F4D56 /* OOFullScreenController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE1A93F15D2C4E4003F4D56 /* OOFullScreenController.h */; };
+		1AE1A94215D2C4E4003F4D56 /* OOFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE1A94015D2C4E4003F4D56 /* OOFullScreenController.m */; };
 		1AE242C51054226900EAA7F2 /* OOFlasherEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */; };
 		1AE242C61054226900EAA7F2 /* OOFlasherEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */; };
 		1AE24373105439B500EAA7F2 /* OOLightParticleEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */; };
@@ -1758,6 +1762,8 @@
 		1A7B967E0E620C9E00322821 /* OOSoundInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundInternal.h; sourceTree = "<group>"; };
 		1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityScriptMethods.h; sourceTree = "<group>"; };
 		1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityScriptMethods.m; sourceTree = "<group>"; };
+		1A7BF96C15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOMacLegacyFullScreenController.h; path = ../Core/OOMacLegacyFullScreenController.h; sourceTree = "<group>"; };
+		1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOMacLegacyFullScreenController.m; path = ../Core/OOMacLegacyFullScreenController.m; sourceTree = "<group>"; };
 		1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */ = {isa = PBXFileReference; explicitFileType = text; path = "shader-uniform-bindings.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A7C75980CC39D11005D0AA2 /* OOJSSun.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSun.m; sourceTree = "<group>"; };
 		1A7C75990CC39D11005D0AA2 /* OOJSSun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSun.h; sourceTree = "<group>"; };
@@ -1935,6 +1941,8 @@
 		1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODeepCopy.m; sourceTree = "<group>"; };
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
 		1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBasicMaterial.m; sourceTree = "<group>"; };
+		1AE1A93F15D2C4E4003F4D56 /* OOFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFullScreenController.h; sourceTree = "<group>"; };
+		1AE1A94015D2C4E4003F4D56 /* OOFullScreenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFullScreenController.m; sourceTree = "<group>"; };
 		1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFlasherEntity.h; sourceTree = "<group>"; };
 		1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFlasherEntity.m; sourceTree = "<group>"; };
 		1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLightParticleEntity.h; sourceTree = "<group>"; };
@@ -2852,6 +2860,8 @@
 				1A54115A14B8913E00B8A4BE /* OOMacJoystickManager.m */,
 				1AF6163B15CF01FE001D85AC /* GameController+MacFullScreen.m */,
 				1AF6163815CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m */,
+				1A7BF96C15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h */,
+				1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -3202,6 +3212,8 @@
 				25161108099544390037C2E1 /* OOTrumble.m */,
 				2516110B099544390037C2E1 /* GameController.h */,
 				2516110C099544390037C2E1 /* GameController.m */,
+				1AE1A93F15D2C4E4003F4D56 /* OOFullScreenController.h */,
+				1AE1A94015D2C4E4003F4D56 /* OOFullScreenController.m */,
 				1A5218D80D72EC21000865E9 /* OOSpatialReference.h */,
 				1A5218DD0D72ECE5000865E9 /* OOSpatialReference.m */,
 				1ACEA3470C91507000C7CE97 /* OORoleSet.h */,
@@ -3516,6 +3528,8 @@
 				1ABA415E15ACBB6700F7E841 /* DockEntity.h in Headers */,
 				1ABA416215ADAB8D00F7E841 /* OOJSDock.h in Headers */,
 				1AF4AF4A15B858AA009243BE /* OOWeakSet.h in Headers */,
+				1AE1A94115D2C4E4003F4D56 /* OOFullScreenController.h in Headers */,
+				1A7BF96E15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3983,6 +3997,8 @@
 				1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */,
 				1AF6163915CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m in Sources */,
 				1AF6163C15CF01FE001D85AC /* GameController+MacFullScreen.m in Sources */,
+				1AE1A94215D2C4E4003F4D56 /* OOFullScreenController.m in Sources */,
+				1A7BF96F15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4072,6 +4088,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				PRODUCT_NAME = Oolite;
+				"SDKROOT[arch=i386]" = macosx10.6;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (

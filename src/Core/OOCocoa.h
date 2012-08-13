@@ -240,6 +240,9 @@ enum {
 #endif
 
 
+#define OOLITE_PROPERTY_SYNTAX	(OOLITE_MAC_OS_X || defined(__OBJC2__))
+
+
 // When Oolite-Linux used AppKit, the load/save dialogs didn't work well with the SDL window, so we use a separate macro for this.
 #define OOLITE_USE_APPKIT_LOAD_SAVE	OOLITE_MAC_OS_X
 

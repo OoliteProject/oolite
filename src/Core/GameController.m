@@ -219,7 +219,7 @@ static GameController *sSharedController = nil;
 	// Release anything allocated above that is not required.
 	[pool release];
 #if OOLITE_MAC_LEGACY_FULLSCREEN
-	if (fullscreen) [self goFullscreen:nil];
+	if ([self inFullScreenMode])  [self goFullscreen:nil];
 #endif
 #if !OOLITE_HAVE_APPKIT
 	[[NSRunLoop currentRunLoop] run];
@@ -260,12 +260,15 @@ static GameController *sSharedController = nil;
 - (void) performGameTick:(id)sender
 {
 #if OOLITE_MAC_LEGACY_FULLSCREEN
+#if 0
+	// FIXME
 	if (EXPECT_NOT(_switchRezDeferred))
 	{
 		_switchRezDeferred = NO;
 		[self goFullscreen:nil];
 		return;
 	}
+#endif
 #endif
 	[self doPerformGameTick];
 }
@@ -305,6 +308,7 @@ static GameController *sSharedController = nil;
 			OOJSFrameCallbacksInvoke(delta_t);
 		}
 		
+#if OBSOLETE
 #if OOLITE_MAC_LEGACY_FULLSCREEN
 		if (fullscreen)
 		{
@@ -312,12 +316,20 @@ static GameController *sSharedController = nil;
 			NS_VOIDRETURN;
 		}
 #endif
+#endif
 	NS_HANDLER
 	NS_ENDHANDLER
 	
+#if OOLITE_MAC_LEGACY_FULLSCREEN
+	if ([self inFullScreenMode])
+	{
+		// Mac legacy full screen controller makes its own arrangements for rendering.
+		return;
+	}
+#endif
+	
 	NS_DURING
-		if (gameView != nil)  [gameView display];
-		else  OOLog(kOOLogInconsistentState, @"***** gameView not set : delta_t %f",(float)delta_t);
+		[gameView display];
 	NS_HANDLER
 	NS_ENDHANDLER
 }

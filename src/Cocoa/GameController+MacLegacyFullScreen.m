@@ -28,14 +28,94 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 
-#if OOLITE_MAC_OS_X && !OOLITE_64_BIT
+#if OOLITE_MAC_LEGACY_FULLSCREEN
 
+#if OBSOLETE
 #import "OOCollectionExtractors.h"
 #import "MyOpenGLView.h"
 #import "Universe.h"
+#else
+#import "OOMacLegacyFullScreenController.h"
+#if OOLITE_MAC_LEGACY_FULLSCREEN
+#import "Universe.h"
+#endif
+#endif
 
 
 @implementation GameController (FullScreen)
+
+- (void) setUpDisplayModes
+{
+	_fullScreenController = [[OOMacLegacyFullScreenController alloc] initWithGameView:gameView];
+}
+
+
+- (IBAction) goFullscreen:(id)sender
+{
+	[_fullScreenController setFullScreenMode:YES];
+#if OOLITE_MAC_LEGACY_FULLSCREEN
+	if (_fullScreenController.fullScreenMode)
+	{
+		[(OOMacLegacyFullScreenController *)_fullScreenController runFullScreenModalEventLoopWithFrameAction:^{
+			[self performGameTick:self];
+			[UNIVERSE drawUniverse];
+		}];
+	}
+#endif
+}
+
+
+- (void) changeFullScreenResolution
+{
+	// FIXME
+}
+
+
+- (void) exitFullScreenMode
+{
+	[_fullScreenController setFullScreenMode:NO];
+}
+
+
+- (BOOL) inFullScreenMode
+{
+	return [_fullScreenController inFullScreenMode];
+}
+
+
+- (BOOL) setDisplayWidth:(unsigned int) d_width Height:(unsigned int)d_height Refresh:(unsigned int) d_refresh
+{
+	return [_fullScreenController setDisplayWidth:d_width height:d_height refreshRate:d_refresh];
+}
+
+
+- (NSDictionary *) findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
+{
+	return [_fullScreenController findDisplayModeForWidth:d_width height:d_height refreshRate:d_refresh];
+}
+
+
+- (NSArray *) displayModes
+{
+	return _fullScreenController.displayModes;
+}
+
+
+- (OOUInteger) indexOfCurrentDisplayMode
+{
+	return _fullScreenController.indexOfCurrentDisplayMode;
+}
+
+
+- (void) pauseFullScreenModeToPerform:(SEL)selector onTarget:(id)target
+{
+	[(OOMacLegacyFullScreenController *)_fullScreenController suspendFullScreenToPerform:^{
+		[target performSelector:selector];
+	}];
+}
+
+
+#if OBSOLETE
 
 static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 {
@@ -309,7 +389,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"fullscreen"];
 		
 		[UNIVERSE forceLightSwitch];	// Avoid lighting glitch when switching to full screen.
-						
+		
 		BOOL past_first_mouse_delta = NO;
 		
 		while (stayInFullScreenMode)
@@ -532,7 +612,8 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	stayInFullScreenMode = NO;
 }
 
-@end
+#endif
 
+@end
 
 #endif
