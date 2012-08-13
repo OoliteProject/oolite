@@ -125,23 +125,7 @@ MA 02110-1301, USA.
 	
 	BOOL					stayInFullScreenMode;
 #elif OOLITE_MAC_LEGACY_FULLSCREEN
-#if OBSOLETE
-	NSMutableArray			*displayModes;
-	
-	unsigned int			width, height;
-	unsigned int			refresh;
-	BOOL					fullscreen;
-	NSDictionary			*originalDisplayMode;
-	NSDictionary			*fullscreenDisplayMode;
-	
-	BOOL					stayInFullScreenMode;
-	BOOL					_switchRez;
-	BOOL					_switchRezDeferred;
-	
-	NSOpenGLContext			*fullScreenContext;
-#else
 	OOFullScreenController	*_fullScreenController;
-#endif
 #elif OOLITE_MAC_OS_X
 	bool					_fullScreen;
 #endif

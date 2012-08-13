@@ -307,16 +307,6 @@ static GameController *sSharedController = nil;
 			[OOSound update];
 			OOJSFrameCallbacksInvoke(delta_t);
 		}
-		
-#if OBSOLETE
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-		if (fullscreen)
-		{
-			[UNIVERSE drawUniverse];
-			NS_VOIDRETURN;
-		}
-#endif
-#endif
 	NS_HANDLER
 	NS_ENDHANDLER
 	
