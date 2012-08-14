@@ -481,6 +481,7 @@ static NSTimeInterval	time_last_frame;
 			exceptionContext = @"command key controls";
 			if ([gameView isCommandFDown])
 			{
+				[gameView clearCommandF];
 				[[gameView gameController] exitFullScreenMode];
 				if (mouse_control_on)
 				{

@@ -208,10 +208,13 @@ static GameController *sSharedController = nil;
 	
 	OOLog(@"loading.complete", @"========== Loading complete. ==========");
 	
+#if OO_USE_FULLSCREEN_CONTROLLER
+	[self setFullScreenMode:[[NSUserDefaults standardUserDefaults] boolForKey:@"fullscreen"]];
+#endif
+	
 	// Release anything allocated above that is not required.
 	[pool release];
 	
-	// FIXME: initial setup of full screen mode.
 #if !OOLITE_HAVE_APPKIT
 	[[NSRunLoop currentRunLoop] run];
 #endif
@@ -342,7 +345,7 @@ static GameController *sSharedController = nil;
 }
 
 
-#if OOLITE_MAC_OS_X && !OOLITE_SDL
+#if OOLITE_MAC_OS_X
 
 - (void) recenterVirtualJoystick
 {

@@ -66,6 +66,10 @@ MA 02110-1301, USA.
 @class MyOpenGLView, OOFullScreenController;
 
 
+// TEMP: whether to use separate OOFullScreenController object, will hopefully be used for all builds soon.
+#define OO_USE_FULLSCREEN_CONTROLLER	OOLITE_MAC_OS_X
+
+
 #if OOLITE_MAC_OS_X
 #define kOODisplayWidth			((NSString *)kCGDisplayWidth)
 #define kOODisplayHeight		((NSString *)kCGDisplayHeight)
@@ -109,8 +113,10 @@ MA 02110-1301, USA.
 	
 	BOOL					gameIsPaused;
 	
-// Fullscreen mode stuff
-#if OOLITE_SDL
+// Fullscreen mode stuff.
+#if OO_USE_FULLSCREEN_CONTROLLER
+	OOFullScreenController	*_fullScreenController;
+#elif OOLITE_SDL
 	NSRect					fsGeometry;
 	MyOpenGLView			*switchView;
 	
@@ -123,8 +129,6 @@ MA 02110-1301, USA.
 	NSDictionary			*fullscreenDisplayMode;
 	
 	BOOL					stayInFullScreenMode;
-#elif OOLITE_MAC_OS_X
-	OOFullScreenController	*_fullScreenController;
 #endif
 }
 
@@ -183,15 +187,21 @@ MA 02110-1301, USA.
 
 @interface GameController (FullScreen)
 
-#if OOLITE_HAVE_APPKIT
+#if OO_USE_FULLSCREEN_CONTROLLER
+#if OOLITE_MAC_OS_X
 - (IBAction) toggleFullScreenAction:(id)sender;
-#if OOLITE_MAC_LEGACY_FULLSCREEN
+#endif
+
 - (void) changeFullScreenResolution;
+
+/*	NOTE: on 32-bit Mac OS X (OOLITE_MAC_LEGACY_FULLSCREEN),
+	setFullScreenMode:YES takes over the event loop and doesn't return until
+	exiting full screen mode.
+*/
+- (void) setFullScreenMode:(BOOL)value;
 #endif
-#elif OOLITE_SDL
-- (void) setFullScreenMode:(BOOL)fsm;
-#endif
-- (void) exitFullScreenMode;
+
+- (void) exitFullScreenMode;	// FIXME: should be setFullScreenMode:NO
 - (BOOL) inFullScreenMode;
 
 - (BOOL) setDisplayWidth:(unsigned int) d_width Height:(unsigned int)d_height Refresh:(unsigned int) d_refresh;

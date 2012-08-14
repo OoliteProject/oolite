@@ -437,7 +437,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		/*	Tell the scene the dimensions of the area it's going to render to,
 			so it can set up an appropriate viewport and viewing transformation.
 		*/
-		NSLog(@"Current OpenGL context: %@", [NSOpenGLContext currentContext]);
 		[gameView initialiseGLWithSize:(NSSize){ _width, _height }];
 		[UNIVERSE forceLightSwitch];	// Avoid lighting glitch when switching to full screen. FIXME: can we move this to MyOpenGLView so we don't need to know about Universe here?
 		
