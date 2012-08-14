@@ -29,6 +29,30 @@ MA 02110-1301, USA.
 
 @implementation OOFullScreenController
 
+- (id) initWithGameView:(MyOpenGLView *)view
+{
+	if ((self = [super init]))
+	{
+		_gameView = [view retain];
+	}
+	return self;
+}
+
+
+- (void) dealloc
+{
+	DESTROY(_gameView);
+	
+	[super dealloc];
+}
+
+
+- (MyOpenGLView *) gameView
+{
+	return _gameView;
+}
+
+
 - (BOOL) inFullScreenMode
 {
 	OOLogGenericSubclassResponsibility();

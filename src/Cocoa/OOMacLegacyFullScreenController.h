@@ -31,8 +31,6 @@ MA 02110-1301, USA.
 
 #define OO_MAC_USE_LEGACY_FULL_SCREEN 1
 
-@class MyOpenGLView;
-
 
 @protocol OOMacLegacyFullScreenControllerDelegate;
 
@@ -40,7 +38,6 @@ MA 02110-1301, USA.
 @interface OOMacLegacyFullScreenController: OOFullScreenController
 {
 @private
-	MyOpenGLView			*_gameView;
 	id <OOMacLegacyFullScreenControllerDelegate> _delegate;
 	
 	NSMutableArray			*_displayModes;
@@ -60,10 +57,7 @@ MA 02110-1301, USA.
 	BOOL					_switchRezDeferred;
 }
 
-@property (nonatomic, readonly) MyOpenGLView *gameView;
 @property (nonatomic, assign) id <OOMacLegacyFullScreenControllerDelegate> delegate;
-
-- (id) initWithGameView:(MyOpenGLView *)view;
 
 // The legacy full screen controller takes over event dispatch. Delegate's -handleFullScreenFrameTick is called each frame.
 - (void) runFullScreenModalEventLoop;

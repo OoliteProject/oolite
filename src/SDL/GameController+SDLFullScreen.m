@@ -147,7 +147,7 @@ MA 02110-1301, USA.
 	else
 		return [displayModes indexOfObject:mode];
 
-   return NSNotFound; 
+   return NSNotFound;
 }
 
 

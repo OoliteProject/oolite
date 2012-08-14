@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 
+@class MyOpenGLView;
+
 
 #if OOLITE_MAC_OS_X && !OOLITE_64_BIT
 #define OOLITE_MAC_LEGACY_FULLSCREEN	1
@@ -35,14 +37,23 @@ MA 02110-1301, USA.
 
 
 @interface OOFullScreenController: NSObject
+{
+@private
+	MyOpenGLView			*_gameView;
+}
+
+- (id) initWithGameView:(MyOpenGLView *)view;
 
 #if OOLITE_PROPERTY_SYNTAX
 
+@property (nonatomic, readonly) MyOpenGLView *gameView;
 @property (nonatomic, getter=inFullScreenMode) BOOL fullScreenMode;
 @property (nonatomic, readonly) NSArray *displayModes;
 @property (nonatomic, readonly) OOUInteger indexOfCurrentDisplayMode;
 
 #else
+
+- (MyOpenGLView *) gameView;
 
 - (BOOL) inFullScreenMode;
 - (void) setFullScreenMode:(BOOL)value;

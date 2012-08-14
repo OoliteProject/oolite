@@ -60,7 +60,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 
 @implementation OOMacLegacyFullScreenController
 
-@synthesize gameView = _gameView;
 @synthesize delegate = _delegate;
 @synthesize fullScreenDisplayMode = _fullScreenDisplayMode;
 @synthesize originalDisplayMode = _originalDisplayMode;
@@ -69,7 +68,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 
 - (id) initWithGameView:(MyOpenGLView *)view
 {
-	if ((self = [super init]))
+	if ((self = [super initWithGameView:view]))
 	{
 		NSArray				*modes = nil;
 		NSDictionary		*mode = nil, *mode2 = nil;
@@ -79,8 +78,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		float				modeRefresh, modeRefresh2;
 		NSUserDefaults		*userDefaults = nil;
 		BOOL				deleteFirst;
-		
-		_gameView = [view retain];
 		
 		// Load preferences.
 		userDefaults = [NSUserDefaults standardUserDefaults];
@@ -215,7 +212,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 
 - (void) dealloc
 {
-	DESTROY(_gameView);
 	DESTROY(_displayModes);
 	DESTROY(_originalDisplayMode);
 	DESTROY(_fullScreenDisplayMode);
