@@ -33,13 +33,16 @@ MA 02110-1301, USA.
 
 @class MyOpenGLView;
 
-typedef void (^OOActionBlock)(void);
+
+@protocol OOMacLegacyFullScreenControllerDelegate;
 
 
 @interface OOMacLegacyFullScreenController: OOFullScreenController
 {
 @private
 	MyOpenGLView			*_gameView;
+	id <OOMacLegacyFullScreenControllerDelegate> _delegate;
+	
 	NSMutableArray			*_displayModes;
 	
 	OOUInteger				_width, _height;
@@ -51,22 +54,31 @@ typedef void (^OOActionBlock)(void);
 	
 	OOUInteger				_state;
 	
-	OOActionBlock			_frameAction;
-	OOActionBlock			_suspendAction;
-	
 	BOOL					_stayInFullScreenMode;
+	BOOL					_callSuspendAction;
 	BOOL					_switchRez;
 	BOOL					_switchRezDeferred;
 }
 
 @property (nonatomic, readonly) MyOpenGLView *gameView;
+@property (nonatomic, assign) id <OOMacLegacyFullScreenControllerDelegate> delegate;
 
 - (id) initWithGameView:(MyOpenGLView *)view;
 
-// The legacy full screen controller takes over event dispatch.
-- (void) runFullScreenModalEventLoopWithFrameAction:(OOActionBlock)frameAction;
+// The legacy full screen controller takes over event dispatch. Delegate's -handleFullScreenFrameTick is called each frame.
+- (void) runFullScreenModalEventLoop;
 
-- (void) suspendFullScreenToPerform:(OOActionBlock)action;
+// Suspend full screen mode at the end of the event loop and call delegate's -handleFullScreenSuspendedAction.
+- (void) suspendFullScreen;
+
+@end
+
+
+@protocol OOMacLegacyFullScreenControllerDelegate
+
+// Note: unlike standard delegate pattern, these are required.
+- (void) handleFullScreenSuspendedAction;
+- (void) handleFullScreenFrameTick;
 
 @end
 

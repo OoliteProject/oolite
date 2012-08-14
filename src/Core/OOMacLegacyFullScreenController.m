@@ -49,14 +49,11 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 @property (nonatomic, copy) NSDictionary *fullScreenDisplayMode;
 @property (nonatomic, copy) NSDictionary *originalDisplayMode;
 @property (nonatomic, retain) NSOpenGLContext *fullScreenContext;
-@property (nonatomic, copy) OOActionBlock frameAction;
-@property (nonatomic, copy) OOActionBlock suspendAction;
 
 - (void) beginFullScreenMode;
 - (void) runFullScreenModalEventLoopInner;
 
 - (void) recenterCursor;
-- (void) dispatchSuspendAction;
 
 @end
 
@@ -64,11 +61,10 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 @implementation OOMacLegacyFullScreenController
 
 @synthesize gameView = _gameView;
+@synthesize delegate = _delegate;
 @synthesize fullScreenDisplayMode = _fullScreenDisplayMode;
 @synthesize originalDisplayMode = _originalDisplayMode;
 @synthesize fullScreenContext = _fullScreenContext;
-@synthesize frameAction = _frameAction;
-@synthesize suspendAction = _suspendAction;
 
 
 - (id) initWithGameView:(MyOpenGLView *)view
@@ -224,8 +220,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 	DESTROY(_originalDisplayMode);
 	DESTROY(_fullScreenDisplayMode);
 	DESTROY(_fullScreenContext);
-	DESTROY(_frameAction);
-	DESTROY(_suspendAction);
 	
 	[super dealloc];
 }
@@ -306,49 +300,29 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 }
 
 
-- (void) runFullScreenModalEventLoopWithFrameAction:(OOActionBlock)frameAction
+- (void) runFullScreenModalEventLoop
 {
 	NSAssert(_state == kStateNominallyFullScreen, @"Internal usage error: %s called in wrong state.", __FUNCTION__);
 	
 	@try
 	{
-		self.frameAction = frameAction;
-		self.suspendAction = nil;
 		[self runFullScreenModalEventLoopInner];
 		
 	}
 	@finally
 	{
-		[self dispatchSuspendAction];
-		self.frameAction = nil;
 		_state = kStateNotFullScreen;
 		self.fullScreenContext = nil;
 	}
 }
 
 
-- (void) suspendFullScreenToPerform:(OOActionBlock)action
+- (void) suspendFullScreen
 {
-	// To avoid fussy logic in caller, just run the action immediately if not in full screen.
-	if (!self.fullScreenMode)
-	{
-		action();
-		return;
-	}
+	NSAssert(_state != kStateNotFullScreen, @"Internal usage error: %s called in wrong state.", __FUNCTION__);
 	
-	OOActionBlock previousAction = self.suspendAction;
-	if (previousAction == NULL)
-	{
-		self.suspendAction = action;
-	}
-	else
-	{
-		// Allow queueing multiple actions to perform in-order.
-		self.suspendAction = ^{
-			previousAction();
-			action();
-		};
-	}
+	_stayInFullScreenMode = NO;
+	_callSuspendAction = YES;
 }
 
 
@@ -370,6 +344,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 	self.originalDisplayMode = (NSDictionary *)CGDisplayCurrentMode(kCGDirectMainDisplay);
 	
 	_state = kStateNominallyFullScreen;
+	_callSuspendAction = NO;
 	
 	// empty the event queue and strip all keys - stop problems with hangover keys
 	while ([NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES] != NULL)  {}
@@ -480,9 +455,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		
 		BOOL pastFirstMouseDelta = NO;
 		
-		OOActionBlock frameAction = self.frameAction;
-		if (frameAction == NULL)  frameAction = ^{};
-		
 		while (_stayInFullScreenMode)
 		{
 			NSAutoreleasePool *pool = [NSAutoreleasePool new];
@@ -547,7 +519,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 			}
 			
 			// Update our stuff.
-			frameAction();
+			[self.delegate handleFullScreenFrameTick];
 			
 			[context flushBuffer];
 			
@@ -597,9 +569,9 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		*/
 		[gameView setNeedsDisplay:YES];
 		
-		if (self.suspendAction != NULL)
+		if (_callSuspendAction)
 		{
-			[self dispatchSuspendAction];
+			[self.delegate handleFullScreenSuspendedAction];
 		}
 		else
 		{
@@ -622,24 +594,13 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 	CGDisplayMoveCursorToPoint(kCGDirectMainDisplay, (CGPoint){ _width / 2.0f, _height / 2.0f });
 }
 
-
-- (void) dispatchSuspendAction
-{
-	OOActionBlock action = self.suspendAction;
-	if (action != NULL)
-	{
-		action();
-		self.suspendAction = nil;
-	}
-}
-
 @end
 
 
 static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 {
-	NSDictionary *mode1 = (NSDictionary *)arg1;
-	NSDictionary *mode2 = (NSDictionary *)arg2;
+	NSDictionary *mode1 = arg1;
+	NSDictionary *mode2 = arg2;
 	OOUInteger size1, size2;
 	
 	// Sort first on pixel count...

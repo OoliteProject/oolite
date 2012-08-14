@@ -86,19 +86,11 @@ static GameController *sSharedController = nil;
 		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one GameController to exist at a time.", __PRETTY_FUNCTION__];
 	}
 	
-	self = [super init];
-	
-	last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
-	delta_t = 0.01; // one hundredth of a second
-	//
-	my_mouse_x = my_mouse_y = 0;
-	//
-	playerFileToLoad = nil;
-	playerFileDirectory = nil;
-	expansionPathsToInclude = nil;
-	pauseSelector = (SEL)nil;
-	pauseTarget = nil;
-	gameIsPaused = NO;
+	if ((self = [super init]))
+	{
+		last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
+		delta_t = 0.01; // one hundredth of a second
+	}
 	
 	return self;
 }

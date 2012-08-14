@@ -28,11 +28,15 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 
-#if OOLITE_MAC_LEGACY_FULLSCREEN
+#if OOLITE_MAC_LEGACY_FULLSCREEN	// TEMP, will become general case
 
-#import "OOMacLegacyFullScreenController.h"
 #if OOLITE_MAC_LEGACY_FULLSCREEN
+#import "OOMacLegacyFullScreenController.h"
 #import "Universe.h"
+
+@interface GameController (OOMacLegacyFullScreenControllerDelegate) <OOMacLegacyFullScreenControllerDelegate>
+@end
+
 #endif
 
 
@@ -40,20 +44,21 @@ MA 02110-1301, USA.
 
 - (void) setUpDisplayModes
 {
-	_fullScreenController = [[OOMacLegacyFullScreenController alloc] initWithGameView:gameView];
+	OOMacLegacyFullScreenController *fullScreenController = [[OOMacLegacyFullScreenController alloc] initWithGameView:gameView];
+	fullScreenController.delegate = self;
+	_fullScreenController = fullScreenController;
 }
 
 
 - (IBAction) goFullscreen:(id)sender
 {
 	[_fullScreenController setFullScreenMode:YES];
+	
 #if OOLITE_MAC_LEGACY_FULLSCREEN
+	// Mac legacy controller needs to take over the world. By which I mean the event loop.
 	if (_fullScreenController.fullScreenMode)
 	{
-		[(OOMacLegacyFullScreenController *)_fullScreenController runFullScreenModalEventLoopWithFrameAction:^{
-			[self performGameTick:self];
-			[UNIVERSE drawUniverse];
-		}];
+		[(OOMacLegacyFullScreenController *)_fullScreenController runFullScreenModalEventLoop];
 	}
 #endif
 }
@@ -77,13 +82,13 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) setDisplayWidth:(unsigned int) d_width Height:(unsigned int)d_height Refresh:(unsigned int) d_refresh
+- (BOOL) setDisplayWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
 {
 	return [_fullScreenController setDisplayWidth:d_width height:d_height refreshRate:d_refresh];
 }
 
 
-- (NSDictionary *) findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
+- (NSDictionary *) findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
 {
 	return [_fullScreenController findDisplayModeForWidth:d_width height:d_height refreshRate:d_refresh];
 }
@@ -103,11 +108,36 @@ MA 02110-1301, USA.
 
 - (void) pauseFullScreenModeToPerform:(SEL)selector onTarget:(id)target
 {
-	[(OOMacLegacyFullScreenController *)_fullScreenController suspendFullScreenToPerform:^{
-		[target performSelector:selector];
-	}];
+	[pauseTarget release];
+	pauseTarget = [target retain];
+	pauseSelector = selector;
+	
+	[(OOMacLegacyFullScreenController *)_fullScreenController suspendFullScreen];
 }
 
 @end
+
+
+#if OOLITE_MAC_LEGACY_FULLSCREEN
+
+@implementation GameController (OOMacLegacyFullScreenControllerDelegate)
+
+- (void) handleFullScreenSuspendedAction
+{
+	[pauseTarget performSelector:pauseSelector];
+	DESTROY(pauseTarget);
+	pauseSelector = NULL;
+}
+
+
+- (void) handleFullScreenFrameTick
+{
+	[self performGameTick:self];
+	[UNIVERSE drawUniverse];
+}
+
+@end
+
+#endif
 
 #endif
