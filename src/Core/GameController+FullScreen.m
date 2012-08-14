@@ -1,8 +1,6 @@
 /*
 
-GameController+MacLegacyFullScreen.m
-
-Full-screen rendering support for 32-bit Mac Oolite.
+GameController+FullScreen.m
 
 
 Oolite
@@ -28,7 +26,7 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 
-#if OOLITE_MAC_LEGACY_FULLSCREEN	// TEMP, will become general case
+#if OOLITE_MAC_OS_X	// TEMP, should be used for SDL too
 
 #if OOLITE_MAC_LEGACY_FULLSCREEN
 #import "OOMacLegacyFullScreenController.h"
@@ -37,6 +35,10 @@ MA 02110-1301, USA.
 @interface GameController (OOMacLegacyFullScreenControllerDelegate) <OOMacLegacyFullScreenControllerDelegate>
 @end
 
+#else
+
+#import "OOMacSnowLeopardFullScreenController.h"
+
 #endif
 
 
@@ -44,24 +46,40 @@ MA 02110-1301, USA.
 
 - (void) setUpDisplayModes
 {
+#if OOLITE_MAC_LEGACY_FULLSCREEN
 	OOMacLegacyFullScreenController *fullScreenController = [[OOMacLegacyFullScreenController alloc] initWithGameView:gameView];
 	fullScreenController.delegate = self;
+#else
+	OOMacSnowLeopardFullScreenController *fullScreenController = [[OOMacSnowLeopardFullScreenController alloc] initWithGameView:gameView];
+#endif
+	
 	_fullScreenController = fullScreenController;
 }
 
 
-- (IBAction) goFullscreen:(id)sender
+#if OOLITE_MAC_OS_X
+
+- (IBAction) toggleFullScreenAction:(id)sender
 {
-	[_fullScreenController setFullScreenMode:YES];
-	
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-	// Mac legacy controller needs to take over the world. By which I mean the event loop.
-	if (_fullScreenController.fullScreenMode)
+	if (![_fullScreenController inFullScreenMode])
 	{
-		[(OOMacLegacyFullScreenController *)_fullScreenController runFullScreenModalEventLoop];
+		[_fullScreenController setFullScreenMode:YES];
+		
+		#if OOLITE_MAC_LEGACY_FULLSCREEN
+			// Mac legacy controller needs to take over the world. By which I mean the event loop.
+			if (_fullScreenController.fullScreenMode)
+			{
+				[(OOMacLegacyFullScreenController *)_fullScreenController runFullScreenModalEventLoop];
+			}
+		#endif
 	}
-#endif
+	else
+	{
+		[_fullScreenController setFullScreenMode:NO];
+	}
 }
+
+#endif
 
 
 - (void) changeFullScreenResolution
@@ -108,11 +126,15 @@ MA 02110-1301, USA.
 
 - (void) pauseFullScreenModeToPerform:(SEL)selector onTarget:(id)target
 {
+#if OOLITE_MAC_LEGACY_FULLSCREEN
 	[pauseTarget release];
 	pauseTarget = [target retain];
 	pauseSelector = selector;
 	
 	[(OOMacLegacyFullScreenController *)_fullScreenController suspendFullScreen];
+#else
+	[target performSelector:selector];
+#endif
 }
 
 @end

@@ -210,9 +210,8 @@ static GameController *sSharedController = nil;
 	
 	// Release anything allocated above that is not required.
 	[pool release];
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-	if ([self inFullScreenMode])  [self goFullscreen:nil];
-#endif
+	
+	// FIXME: initial setup of full screen mode.
 #if !OOLITE_HAVE_APPKIT
 	[[NSRunLoop currentRunLoop] run];
 #endif
@@ -499,7 +498,7 @@ static void RemovePreference(NSString *key)
 
 - (BOOL) validateMenuItem:(NSMenuItem *)menuItem
 {
-	SEL action = [menuItem action];
+	SEL action = menuItem.action;
 	
 	if (action == @selector(showLogAction:))
 	{
@@ -516,8 +515,24 @@ static void RemovePreference(NSString *key)
 	if (action == @selector(showSnapshotsAction:))
 	{
 		BOOL	pathIsDirectory;
-		if(![[NSFileManager defaultManager] fileExistsAtPath:[[self snapshotsURLCreatingIfNeeded:NO] path] isDirectory:&pathIsDirectory]) return NO;
+		if(![[NSFileManager defaultManager] fileExistsAtPath:[self snapshotsURLCreatingIfNeeded:NO].path isDirectory:&pathIsDirectory])
+		{
+			return NO;
+		}
 		return pathIsDirectory;
+	}
+	
+	if (action == @selector(toggleFullScreenAction:))
+	{
+		if (_fullScreenController.fullScreenMode)
+		{
+			// NOTE: not DESC, because menu titles are not generally localizable.
+			menuItem.title = NSLocalizedString(@"Exit Full Screen", NULL);
+		}
+		else
+		{
+			menuItem.title = NSLocalizedString(@"Enter Full Screen", NULL);
+		}
 	}
 	
 	// default

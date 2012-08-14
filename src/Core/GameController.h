@@ -124,10 +124,8 @@ MA 02110-1301, USA.
 	NSDictionary			*fullscreenDisplayMode;
 	
 	BOOL					stayInFullScreenMode;
-#elif OOLITE_MAC_LEGACY_FULLSCREEN
-	OOFullScreenController	*_fullScreenController;
 #elif OOLITE_MAC_OS_X
-	bool					_fullScreen;
+	OOFullScreenController	*_fullScreenController;
 #endif
 }
 
@@ -188,7 +186,7 @@ MA 02110-1301, USA.
 @interface GameController (FullScreen)
 
 #if OOLITE_HAVE_APPKIT
-- (IBAction) goFullscreen:(id)sender;
+- (IBAction) toggleFullScreenAction:(id)sender;
 #if OOLITE_MAC_LEGACY_FULLSCREEN
 - (void) changeFullScreenResolution;
 #endif
