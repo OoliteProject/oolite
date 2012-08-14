@@ -659,7 +659,6 @@ static NSMutableArray *sMessageStack;
 	// These views will be released when we replace the content view.
 	splashProgressTextField = nil;
 	splashView = nil;
-	progressBar = nil;
 	
 	[gameWindow setAcceptsMouseMovedEvents:YES];
 	[gameWindow setContentView:gameView];
@@ -671,13 +670,6 @@ static NSMutableArray *sMessageStack;
 
 
 #if OOLITE_HAVE_APPKIT
-
-- (void) setProgressBarValue:(float)value
-{
-	[progressBar setDoubleValue:value];
-	[progressBar display];
-}
-
 
 // NIB methods
 - (void)awakeFromNib
@@ -737,10 +729,6 @@ static NSMutableArray *sMessageStack;
 }
 
 #elif OOLITE_SDL
-
-- (void) setProgressBarValue:(float)value
-{}
-
 
 - (void) exitAppWithContext:(NSString *)context
 {

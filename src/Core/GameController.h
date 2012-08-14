@@ -63,7 +63,7 @@ MA 02110-1301, USA.
 // * reduced from 0.5s for tgape * //
 
 
-@class MyOpenGLView, OOProgressBar, OOFullScreenController;
+@class MyOpenGLView, OOFullScreenController;
 
 
 #if OOLITE_MAC_OS_X
@@ -86,7 +86,6 @@ MA 02110-1301, USA.
 	IBOutlet NSView			*splashView;
 	IBOutlet NSWindow		*gameWindow;
 	IBOutlet PDFView		*helpView;
-	IBOutlet OOProgressBar	*progressBar;
 	IBOutlet NSMenu			*dockMenu;
 #endif
 	
@@ -165,7 +164,6 @@ MA 02110-1301, USA.
 - (void) debugPushProgressMessage:(NSString *)format, ...  OO_TAKES_FORMAT_STRING(1, 2);
 - (void) debugPopProgressMessage;
 #endif
-- (void) setProgressBarValue:(float)value;	// Negative for hidden
 - (void) endSplashScreen;
 
 - (void) startAnimationTimer;
