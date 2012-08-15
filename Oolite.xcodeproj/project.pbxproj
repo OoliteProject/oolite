@@ -559,6 +559,9 @@
 		1A95C040118A450E002EE302 /* OOConvertCubeMapToLatLong.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A95C03E118A450E002EE302 /* OOConvertCubeMapToLatLong.h */; };
 		1A95C041118A450E002EE302 /* OOConvertCubeMapToLatLong.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A95C03F118A450E002EE302 /* OOConvertCubeMapToLatLong.m */; settings = {COMPILER_FLAGS = "$OO_MATHS_OPTS -ffast-math"; }; };
 		1A97D77F12FDBB9B0009D74A /* OOQuiriumCascadeEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A97D77312FDB6610009D74A /* OOQuiriumCascadeEntity.m */; };
+		1A9FCF2315DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9FCF2115DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h */; };
+		1A9FCF2415DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9FCF2215DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m */; };
+		1A9FCF2615DAC9BC00E965D5 /* GameController+FullScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9FCF2515DAC9BC00E965D5 /* GameController+FullScreen.m */; };
 		1AA7FCAB10C2B9BA0058FBED /* OOPlanetDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */; };
 		1AA7FCAC10C2B9BA0058FBED /* OOPlanetDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */; };
 		1AA7FCAF10C2BA3B0058FBED /* OOPlanetData.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */; };
@@ -673,8 +676,6 @@
 		1AEF57D312E51DDB00546444 /* OOJSEngineNativeWrappers.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEF57D212E51DDB00546444 /* OOJSEngineNativeWrappers.h */; };
 		1AF4AF4A15B858AA009243BE /* OOWeakSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AF4AF4815B858AA009243BE /* OOWeakSet.h */; };
 		1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF4AF4915B858AA009243BE /* OOWeakSet.m */; };
-		1AF6163915CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF6163815CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m */; };
-		1AF6163C15CF01FE001D85AC /* GameController+MacFullScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF6163B15CF01FE001D85AC /* GameController+MacFullScreen.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
@@ -1350,8 +1351,6 @@
 		1A19783D117F81B10060DB56 /* OOPixMapChannelOperations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMapChannelOperations.m; sourceTree = "<group>"; };
 		1A1B24C313293ED2007A0940 /* exports-release.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-release.exp"; path = "src/Cocoa/exports-release.exp"; sourceTree = "<group>"; };
 		1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bsd_string.h; path = src/BSDCompat/bsd_string.h; sourceTree = SOURCE_ROOT; };
-		1A1E99B40EF04837008B48E2 /* OOProgressBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProgressBar.h; sourceTree = "<group>"; };
-		1A1E99B50EF04837008B48E2 /* OOProgressBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProgressBar.m; sourceTree = "<group>"; };
 		1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSparkEntity.h; sourceTree = "<group>"; };
 		1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSparkEntity.m; sourceTree = "<group>"; };
 		1A1F7DA6117B5BDB00332757 /* OOMaterialSpecifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMaterialSpecifier.h; sourceTree = "<group>"; };
@@ -1762,8 +1761,8 @@
 		1A7B967E0E620C9E00322821 /* OOSoundInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundInternal.h; sourceTree = "<group>"; };
 		1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityScriptMethods.h; sourceTree = "<group>"; };
 		1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityScriptMethods.m; sourceTree = "<group>"; };
-		1A7BF96C15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOMacLegacyFullScreenController.h; path = ../Core/OOMacLegacyFullScreenController.h; sourceTree = "<group>"; };
-		1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOMacLegacyFullScreenController.m; path = ../Core/OOMacLegacyFullScreenController.m; sourceTree = "<group>"; };
+		1A7BF96C15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMacLegacyFullScreenController.h; sourceTree = "<group>"; };
+		1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMacLegacyFullScreenController.m; sourceTree = "<group>"; };
 		1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */ = {isa = PBXFileReference; explicitFileType = text; path = "shader-uniform-bindings.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A7C75980CC39D11005D0AA2 /* OOJSSun.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSun.m; sourceTree = "<group>"; };
 		1A7C75990CC39D11005D0AA2 /* OOJSSun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSun.h; sourceTree = "<group>"; };
@@ -1845,6 +1844,9 @@
 		1A97D68512FD83BD0009D74A /* OOShipDamageType.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOShipDamageType.tbl; sourceTree = "<group>"; };
 		1A97D77212FDB6610009D74A /* OOQuiriumCascadeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOQuiriumCascadeEntity.h; sourceTree = "<group>"; };
 		1A97D77312FDB6610009D74A /* OOQuiriumCascadeEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOQuiriumCascadeEntity.m; sourceTree = "<group>"; };
+		1A9FCF2115DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMacSnowLeopardFullScreenController.h; sourceTree = "<group>"; };
+		1A9FCF2215DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMacSnowLeopardFullScreenController.m; sourceTree = "<group>"; };
+		1A9FCF2515DAC9BC00E965D5 /* GameController+FullScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GameController+FullScreen.m"; sourceTree = "<group>"; };
 		1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetDrawable.h; sourceTree = "<group>"; };
 		1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetDrawable.m; sourceTree = "<group>"; };
 		1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OOPlanetData.c; sourceTree = "<group>"; };
@@ -1967,8 +1969,6 @@
 		1AEF57D212E51DDB00546444 /* OOJSEngineNativeWrappers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSEngineNativeWrappers.h; sourceTree = "<group>"; };
 		1AF4AF4815B858AA009243BE /* OOWeakSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOWeakSet.h; sourceTree = "<group>"; };
 		1AF4AF4915B858AA009243BE /* OOWeakSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOWeakSet.m; sourceTree = "<group>"; };
-		1AF6163815CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GameController+MacLegacyFullScreen.m"; sourceTree = "<group>"; };
-		1AF6163B15CF01FE001D85AC /* GameController+MacFullScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GameController+MacFullScreen.m"; sourceTree = "<group>"; };
 		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = contributors.txt; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
@@ -2849,8 +2849,6 @@
 				2576E7B209B4F418007410F7 /* MyOpenGLView.h */,
 				25F4676309969672009483BF /* MyOpenGLView.m */,
 				1A8A3D9E0B9B05C400AB7625 /* Groolite */,
-				1A1E99B40EF04837008B48E2 /* OOProgressBar.h */,
-				1A1E99B50EF04837008B48E2 /* OOProgressBar.m */,
 				1AAF56160F1A198400A2F2E6 /* Comparison.h */,
 				1A143A4611EF22C5001BAB8D /* JAPersistentFileReference.h */,
 				1A143A4711EF22C5001BAB8D /* JAPersistentFileReference.m */,
@@ -2858,10 +2856,10 @@
 				1A033FB713268ABB006F9DB7 /* OOPDFView.m */,
 				1A54115914B8913E00B8A4BE /* OOMacJoystickManager.h */,
 				1A54115A14B8913E00B8A4BE /* OOMacJoystickManager.m */,
-				1AF6163B15CF01FE001D85AC /* GameController+MacFullScreen.m */,
-				1AF6163815CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m */,
 				1A7BF96C15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h */,
 				1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */,
+				1A9FCF2115DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h */,
+				1A9FCF2215DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -3212,6 +3210,7 @@
 				25161108099544390037C2E1 /* OOTrumble.m */,
 				2516110B099544390037C2E1 /* GameController.h */,
 				2516110C099544390037C2E1 /* GameController.m */,
+				1A9FCF2515DAC9BC00E965D5 /* GameController+FullScreen.m */,
 				1AE1A93F15D2C4E4003F4D56 /* OOFullScreenController.h */,
 				1AE1A94015D2C4E4003F4D56 /* OOFullScreenController.m */,
 				1A5218D80D72EC21000865E9 /* OOSpatialReference.h */,
@@ -3530,6 +3529,7 @@
 				1AF4AF4A15B858AA009243BE /* OOWeakSet.h in Headers */,
 				1AE1A94115D2C4E4003F4D56 /* OOFullScreenController.h in Headers */,
 				1A7BF96E15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h in Headers */,
+				1A9FCF2315DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3995,10 +3995,10 @@
 				1ABA415F15ACBB6700F7E841 /* DockEntity.m in Sources */,
 				1ABA416315ADAB8D00F7E841 /* OOJSDock.m in Sources */,
 				1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */,
-				1AF6163915CEEAF8001D85AC /* GameController+MacLegacyFullScreen.m in Sources */,
-				1AF6163C15CF01FE001D85AC /* GameController+MacFullScreen.m in Sources */,
 				1AE1A94215D2C4E4003F4D56 /* OOFullScreenController.m in Sources */,
 				1A7BF96F15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m in Sources */,
+				1A9FCF2415DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m in Sources */,
+				1A9FCF2615DAC9BC00E965D5 /* GameController+FullScreen.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
