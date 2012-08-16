@@ -109,6 +109,8 @@
 		"performCollect",
 		"performIntercept",
 		"performFlee",
+		"performScriptedAI",
+		"performScriptedAttackAI",
 		"getWitchspaceEntryCoordinates",
 		"setDestinationFromCoordinates",
 		"setCoordinatesFromPosition",

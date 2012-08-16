@@ -653,6 +653,7 @@ typedef enum
 - (void) behaviour_avoid_collision:(double) delta_t;
 - (void) behaviour_track_as_turret:(double) delta_t;
 - (void) behaviour_fly_thru_navpoints:(double) delta_t;
+- (void) behaviour_scripted_ai:(double) delta_t;
 
 - (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2;
 - (void)setScannerDisplayColor1:(OOColor *)color1;
@@ -834,7 +835,10 @@ typedef enum
 - (GLfloat) flightPitch;
 - (GLfloat) flightYaw;
 - (GLfloat) flightSpeed;
+- (GLfloat) maxFlightPitch;
 - (GLfloat) maxFlightSpeed;
+- (GLfloat) maxFlightRoll;
+- (GLfloat) maxFlightYaw;
 - (GLfloat) speedFactor;
 
 - (GLfloat) temperature;

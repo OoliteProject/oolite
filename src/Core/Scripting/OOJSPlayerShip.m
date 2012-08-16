@@ -112,8 +112,10 @@ enum
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
+	kPlayerShip_pitch,        // pitch (overrules Ship)
 	kPlayerShip_price,				// idealised trade-in value decicredits, positive int, read-only
 	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
+	kPlayerShip_roll,        // roll (overrules Ship)
 	kPlayerShip_scoopOverride,					// Scooping
 	kPlayerShip_serviceLevel,				// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
@@ -121,6 +123,7 @@ enum
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
 //	kPlayerShip_weaponFacings,         // available weapon facings, int, read-only
 	kPlayerShip_weaponsOnline,					// weapons online status, boolean, read-only
+	kPlayerShip_yaw,        // yaw (overrules Ship)
 };
 
 
@@ -151,7 +154,9 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READONLY_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
+	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
+	{ "roll",							kPlayerShip_roll,							OOJS_PROP_READONLY_CB },
 	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
 	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
@@ -159,6 +164,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
 //	{ "weaponFacings",					kPlayerShip_weaponFacings,					OOJS_PROP_READONLY_CB },
 	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					OOJS_PROP_READONLY_CB },
+	{ "yaw",							kPlayerShip_yaw,							OOJS_PROP_READONLY_CB },
 	{ 0 }			
 };
 
@@ -390,6 +396,18 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 
 	  case kPlayerShip_serviceLevel:
 			return JS_NewNumberValue(context, [player tradeInFactor], value);
+
+			// make roll, pitch, yaw reported to JS use same +/- convention as
+			// for NPC ships
+		case kPlayerShip_pitch:
+			return JS_NewNumberValue(context, -[player flightPitch], value);
+
+		case kPlayerShip_roll:
+			return JS_NewNumberValue(context, -[player flightRoll], value);
+
+		case kPlayerShip_yaw:
+			return JS_NewNumberValue(context, -[player flightYaw], value);
+
 
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);

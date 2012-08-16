@@ -2347,6 +2347,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self behaviour_fly_thru_navpoints: delta_t];
 				break;
 
+			case BEHAVIOUR_SCRIPTED_AI:
+			case BEHAVIOUR_SCRIPTED_ATTACK_AI:
+				[self behaviour_scripted_ai: delta_t];
+				break;
+
 			case BEHAVIOUR_ENERGY_BOMB_COUNTDOWN:
 				applyThrust = NO;
 				// Do nothing
@@ -5208,6 +5213,100 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (void) behaviour_scripted_ai:(double) delta_t
+{
+	
+	JSContext	*context = OOJSAcquireContext();
+	jsval		rval = JSVAL_VOID;
+	jsval		args[] = { OOJSValueFromNativeObject(context, [NSNumber numberWithFloat:delta_t]) };
+	NSDictionary *result;
+
+	BOOL OK = [[self script] callMethod:OOJSID("scriptedAI") inContext:context withArguments:args count:1 result:&rval];
+
+	if (!OK)
+	{
+		OOLog(@"ai.error",@"Could not call scriptedAI in ship script of %@, reverting to idle",self);
+		behaviour = BEHAVIOUR_IDLE;
+		OOJSRelinquishContext(context);
+		return;
+	}
+
+	if (!JSVAL_IS_OBJECT(rval))
+	{
+		OOLog(@"ai.error",@"Invalid return value of scriptedAI in ship script of %@, reverting to idle",self);
+		behaviour = BEHAVIOUR_IDLE;
+		OOJSRelinquishContext(context);
+		return;
+	}
+
+	result = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(rval));
+	OOJSRelinquishContext(context);
+
+	stick_roll = [result oo_floatForKey:@"stickRoll" defaultValue:0.0];
+	if (stick_roll > max_flight_roll) 
+	{
+		stick_roll = max_flight_roll;
+	}
+	else if (stick_roll < -max_flight_roll)
+	{
+		stick_roll = -max_flight_roll;
+	}
+	stick_pitch = [result oo_floatForKey:@"stickPitch" defaultValue:0.0];
+	if (stick_pitch > max_flight_pitch) 
+	{
+		stick_pitch = max_flight_pitch;
+	}
+	else if (stick_pitch < -max_flight_pitch)
+	{
+		stick_pitch = -max_flight_pitch;
+	}
+	stick_yaw = [result oo_floatForKey:@"stickYaw" defaultValue:0.0];
+	if (stick_yaw > max_flight_yaw) 
+	{
+		stick_yaw = max_flight_yaw;
+	}
+	else if (stick_yaw < -max_flight_yaw)
+	{
+		stick_yaw = -max_flight_yaw;
+	}	
+
+	[self applySticks:delta_t];
+
+	desired_speed = [result oo_floatForKey:@"desiredSpeed" defaultValue:0.0];
+	if (desired_speed < 0.0)
+	{
+		desired_speed = 0.0;
+	}
+	// overspeed is handled by applyThrust
+
+	if (behaviour == BEHAVIOUR_SCRIPTED_ATTACK_AI)
+	{
+		NSString* chosen_weapon = [result oo_stringForKey:@"chosenWeapon" defaultValue:@"FORWARD"];
+		double  range = [self rangeToPrimaryTarget];
+			
+		if ([chosen_weapon isEqualToString:@"FORWARD"])
+		{
+			[self fireMainWeapon:range];
+		}
+		else if ([chosen_weapon isEqualToString:@"AFT"])
+		{
+			[self fireAftWeapon:range];
+		}
+		else if ([chosen_weapon isEqualToString:@"PORT"])
+		{
+			[self firePortWeapon:range];
+		}
+		else if ([chosen_weapon isEqualToString:@"STARBOARD"])
+		{
+			[self fireStarboardWeapon:range];
+		}
+
+	}
+	
+
+}
+
+
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if ((no_draw_distance < cam_zero_distance) ||	// Done redundantly to skip subentities
@@ -6062,6 +6161,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		case BEHAVIOUR_ATTACK_BROADSIDE_RIGHT:
  	  case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE:
  	  case BEHAVIOUR_ATTACK_SNIPER:
+		case BEHAVIOUR_SCRIPTED_ATTACK_AI:
 			return YES;
 			
 		default:
@@ -7042,9 +7142,27 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (GLfloat) maxFlightPitch
+{
+	return max_flight_pitch;
+}
+
+
 - (GLfloat) maxFlightSpeed
 {
 	return maxFlightSpeed;
+}
+
+
+- (GLfloat) maxFlightRoll
+{
+	return max_flight_roll;
+}
+
+
+- (GLfloat) maxFlightYaw
+{
+	return max_flight_yaw;
 }
 
 
@@ -7246,7 +7364,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	
 	if ([entity isShip]) {
 //		ShipEntity* attacker = (ShipEntity *)entity;
-		if ([self hasHostileTarget] && accuracy >= COMBAT_AI_IS_SMART && (randf()*10.0 < accuracy || desired_speed < 0.5 * maxFlightSpeed) && behaviour != BEHAVIOUR_EVASIVE_ACTION && behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION)
+		if ([self hasHostileTarget] && accuracy >= COMBAT_AI_IS_SMART && (randf()*10.0 < accuracy || desired_speed < 0.5 * maxFlightSpeed) && behaviour != BEHAVIOUR_EVASIVE_ACTION && behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION && behaviour != BEHAVIOUR_SCRIPTED_ATTACK_AI)
 		{
 			if (behaviour == BEHAVIOUR_FLEE_TARGET)
 			{

@@ -171,7 +171,10 @@ enum
 	kShip_laserHeatLevelPort,					// port laser temperature, float, read-only
 	kShip_laserHeatLevelStarboard,					// starboard laser temperature, float, read-only
 	kShip_lightsActive,			// flasher/shader light flag, boolean, read/write
+	kShip_maxPitch,				// maximum flight pitch, double, read-only
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
+	kShip_maxRoll,				// maximum flight roll, double, read-only
+	kShip_maxYaw,				// maximum flight yaw, double, read-only
 	kShip_maxThrust,			// maximum thrust, double, read-only
 	kShip_missileCapacity,		// max missiles capacity, integer, read-only
 	kShip_missileLoadTime,		// missile load time, double, read/write
@@ -275,7 +278,10 @@ static JSPropertySpec sShipProperties[] =
 	{ "laserHeatLevelPort",					kShip_laserHeatLevelPort,					OOJS_PROP_READONLY_CB },
 	{ "laserHeatLevelStarboard",					kShip_laserHeatLevelStarboard,					OOJS_PROP_READONLY_CB },
 	{ "lightsActive",			kShip_lightsActive,			OOJS_PROP_READWRITE_CB },
+	{ "maxPitch",				kShip_maxPitch,				OOJS_PROP_READONLY_CB },
 	{ "maxSpeed",				kShip_maxSpeed,				OOJS_PROP_READONLY_CB },
+	{ "maxRoll",				kShip_maxRoll,				OOJS_PROP_READONLY_CB },
+	{ "maxYaw",				kShip_maxYaw,				OOJS_PROP_READONLY_CB },
 	{ "maxThrust",				kShip_maxThrust,			OOJS_PROP_READONLY_CB },
 	{ "missileCapacity",		kShip_missileCapacity,		OOJS_PROP_READONLY_CB },
 	{ "missileLoadTime",		kShip_missileLoadTime,		OOJS_PROP_READWRITE_CB },
@@ -588,8 +594,17 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_desiredSpeed:
 			return JS_NewNumberValue(context, [entity desiredSpeed], value);
 			
+		case kShip_maxPitch:
+			return JS_NewNumberValue(context, [entity maxFlightPitch], value);
+
 		case kShip_maxSpeed:
 			return JS_NewNumberValue(context, [entity maxFlightSpeed], value);
+
+		case kShip_maxRoll:
+			return JS_NewNumberValue(context, [entity maxFlightRoll], value);
+
+		case kShip_maxYaw:
+			return JS_NewNumberValue(context, [entity maxFlightYaw], value);
 			
 		case kShip_script:
 			result = [entity shipScript];

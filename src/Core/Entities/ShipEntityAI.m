@@ -123,6 +123,9 @@
 
 - (void) performFlee;
 
+- (void) performScriptedAI;
+- (void) performScriptedAttackAI;
+
 - (void) requestDockingCoordinates;
 
 - (void) getWitchspaceEntryCoordinates;
@@ -821,6 +824,20 @@
 
 	[self setEvasiveJink:400.0];
 
+	frustration = 0.0;
+}
+
+
+- (void) performScriptedAI
+{
+	behaviour = BEHAVIOUR_SCRIPTED_AI;
+	frustration = 0.0;
+}
+
+
+- (void) performScriptedAttackAI
+{
+	behaviour = BEHAVIOUR_SCRIPTED_ATTACK_AI;
 	frustration = 0.0;
 }
 
