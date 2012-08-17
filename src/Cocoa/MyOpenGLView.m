@@ -95,7 +95,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	NSOpenGLPixelFormatAttribute attrs[] =
 	{
 		// Specify that we want a windowed OpenGL context.
-		// Must be first or we'll hit an assert in -[GameController goFullscreen:].
+		// Must be first or we'll hit an assert in the legacy fullscreen controller.
 		NSOpenGLPFAWindow,
 		
 		// We may be on a multi-display system (and each screen may be driven by a different renderer), so we need to specify which screen we want to take over.
@@ -583,16 +583,7 @@ FAIL:
 		if (!f12)
 		{
 			f12 = YES;
-			
-			if (![gameController inFullScreenMode])
-			{
-				// Command-F is handled by menu action in non-fullscreen mode; simulate.
-				[gameController performSelector:@selector(goFullscreen:) withObject:nil afterDelay:0.0];
-			}
-			else
-			{
-				commandF = YES;
-			}
+			[gameController performSelector:@selector(toggleFullScreenAction:) withObject:nil afterDelay:0.0];
 		}
 		
 		return;
