@@ -329,7 +329,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		y_offset = 320.0 * viewSize.height/viewSize.width;
 	}
 	
-	if (![[self gameController] inFullScreenMode] && [self respondsToSelector:@selector(convertSizeToBacking:)])
+	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
 	{
 		// High resolution mode support.
 		v_size = [self convertSizeToBacking:v_size];

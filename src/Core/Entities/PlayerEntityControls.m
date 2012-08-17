@@ -479,6 +479,7 @@ static NSTimeInterval	time_last_frame;
 		if ([[gameView gameController] inFullScreenMode])
 		{
 			exceptionContext = @"command key controls";
+#if !OOLITE_MAC_OS_X || !OOLITE_64_BIT	// On 64-bit Macs, this is handled by normal menu shortcuts.
 			if ([gameView isCommandFDown])
 			{
 				[gameView clearCommandF];
@@ -489,6 +490,7 @@ static NSTimeInterval	time_last_frame;
 					mouse_control_on = NO;
 				}
 			}
+#endif
 			
 			if ([gameView isCommandQDown])
 			{

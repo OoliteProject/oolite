@@ -66,6 +66,7 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 #import "OOCamera.h"
 #import "NSFileManagerOOExtensions.h"
+#import "OOFullScreenController.h"
 
 #import "OOJSScript.h"
 #import "OOScriptTimer.h"

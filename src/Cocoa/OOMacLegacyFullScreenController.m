@@ -33,6 +33,17 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 
+#ifndef GNUSTEP
+/*	OS X apps are permitted to assume 800x600 screens. Under OS X, we always
+	start up in windowed mode. Therefore, the default size fits an 800x600
+	screen and leaves space for the menu bar and title bar.
+*/
+#define DISPLAY_DEFAULT_WIDTH	800
+#define DISPLAY_DEFAULT_HEIGHT	540
+#define DISPLAY_DEFAULT_REFRESH	75
+#endif
+
+
 enum
 {
 	kStateNotFullScreen,		// self.fullScreen = NO
@@ -231,8 +242,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 {
 	if (!value && self.fullScreenMode)
 	{
-		// FIXME: default handling in caller?
-		[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"fullscreen"];
 		_stayInFullScreenMode = NO;
 	}
 	else if (value && !self.fullScreenMode)

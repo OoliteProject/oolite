@@ -32,6 +32,8 @@ MA 02110-1301, USA.
 
 #import "MyOpenGLView.h"
 #import "Universe.h"
+#import "OOFullScreenController.h"
+
 
 @implementation GameController (FullScreen)
 

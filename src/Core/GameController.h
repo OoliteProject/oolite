@@ -39,25 +39,10 @@ MA 02110-1301, USA.
 #endif
 
 
+#if 0	// Unused?
 #define MODE_WINDOWED			100
 #define MODE_FULL_SCREEN		200
-
-#define DISPLAY_MIN_COLOURS		32
-#define DISPLAY_MIN_WIDTH		640
-#define DISPLAY_MIN_HEIGHT		480
-
-#ifndef GNUSTEP
-/*	OS X apps are permitted to assume 800x600 screens. Under OS X, we always
-	start up in windowed mode. Therefore, the default size fits an 800x600
-	screen and leaves space for the menu bar and title bar.
-*/
-#define DISPLAY_DEFAULT_WIDTH	800
-#define DISPLAY_DEFAULT_HEIGHT	540
-#define DISPLAY_DEFAULT_REFRESH	75
 #endif
-
-#define DISPLAY_MAX_WIDTH		5040		// to cope with DaddyHoggy's 3840x1024 & up to 3 x 1680x1050 displays...
-#define DISPLAY_MAX_HEIGHT		1800
 
 #define MINIMUM_GAME_TICK		0.25
 // * reduced from 0.5s for tgape * //
@@ -68,19 +53,6 @@ MA 02110-1301, USA.
 
 // TEMP: whether to use separate OOFullScreenController object, will hopefully be used for all builds soon.
 #define OO_USE_FULLSCREEN_CONTROLLER	OOLITE_MAC_OS_X
-
-
-#if OOLITE_MAC_OS_X
-#define kOODisplayWidth			((NSString *)kCGDisplayWidth)
-#define kOODisplayHeight		((NSString *)kCGDisplayHeight)
-#define kOODisplayRefreshRate	((NSString *)kCGDisplayRefreshRate)
-#define kOODisplayBitsPerPixel	((NSString *)kCGDisplayBitsPerPixel)
-#define kOODisplayIOFlags		((NSString *)kCGDisplayIOFlags)
-#else
-#define kOODisplayWidth			(@"Width")
-#define kOODisplayHeight		(@"Height")
-#define kOODisplayRefreshRate	(@"RefreshRate")
-#endif
 
 
 @interface GameController: NSObject

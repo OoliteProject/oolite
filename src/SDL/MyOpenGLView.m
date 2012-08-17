@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "OOGraphicsResetManager.h"
 #import "OOCollectionExtractors.h" // for splash screen settings
+#import "OOFullScreenController.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 

@@ -558,6 +558,8 @@
 		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
 		1A95C040118A450E002EE302 /* OOConvertCubeMapToLatLong.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A95C03E118A450E002EE302 /* OOConvertCubeMapToLatLong.h */; };
 		1A95C041118A450E002EE302 /* OOConvertCubeMapToLatLong.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A95C03F118A450E002EE302 /* OOConvertCubeMapToLatLong.m */; settings = {COMPILER_FLAGS = "$OO_MATHS_OPTS -ffast-math"; }; };
+		1A97528F15DECA6600108FA5 /* OOFullScreenWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A97528D15DECA6600108FA5 /* OOFullScreenWindow.h */; };
+		1A97529015DECA6600108FA5 /* OOFullScreenWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A97528E15DECA6600108FA5 /* OOFullScreenWindow.m */; };
 		1A97D77F12FDBB9B0009D74A /* OOQuiriumCascadeEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A97D77312FDB6610009D74A /* OOQuiriumCascadeEntity.m */; };
 		1A9FCF2315DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9FCF2115DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h */; };
 		1A9FCF2415DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9FCF2215DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m */; };
@@ -1841,6 +1843,8 @@
 		1A972FFC12E6077D001F2406 /* OOCompassMode.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOCompassMode.tbl; sourceTree = "<group>"; };
 		1A97302012E60F9B001F2406 /* OOGUIScreenID.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOGUIScreenID.tbl; sourceTree = "<group>"; };
 		1A97305C12E61427001F2406 /* OOGalacticHyperspaceBehaviour.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOGalacticHyperspaceBehaviour.tbl; sourceTree = "<group>"; };
+		1A97528D15DECA6600108FA5 /* OOFullScreenWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFullScreenWindow.h; sourceTree = "<group>"; };
+		1A97528E15DECA6600108FA5 /* OOFullScreenWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFullScreenWindow.m; sourceTree = "<group>"; };
 		1A97D68512FD83BD0009D74A /* OOShipDamageType.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOShipDamageType.tbl; sourceTree = "<group>"; };
 		1A97D77212FDB6610009D74A /* OOQuiriumCascadeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOQuiriumCascadeEntity.h; sourceTree = "<group>"; };
 		1A97D77312FDB6610009D74A /* OOQuiriumCascadeEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOQuiriumCascadeEntity.m; sourceTree = "<group>"; };
@@ -2860,6 +2864,8 @@
 				1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */,
 				1A9FCF2115DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h */,
 				1A9FCF2215DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m */,
+				1A97528D15DECA6600108FA5 /* OOFullScreenWindow.h */,
+				1A97528E15DECA6600108FA5 /* OOFullScreenWindow.m */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -3530,6 +3536,7 @@
 				1AE1A94115D2C4E4003F4D56 /* OOFullScreenController.h in Headers */,
 				1A7BF96E15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h in Headers */,
 				1A9FCF2315DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h in Headers */,
+				1A97528F15DECA6600108FA5 /* OOFullScreenWindow.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3999,6 +4006,7 @@
 				1A7BF96F15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m in Sources */,
 				1A9FCF2415DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m in Sources */,
 				1A9FCF2615DAC9BC00E965D5 /* GameController+FullScreen.m in Sources */,
+				1A97529015DECA6600108FA5 /* OOFullScreenWindow.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4088,6 +4096,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				PRODUCT_NAME = Oolite;
+				SDKROOT = macosx10.6;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
@@ -4133,6 +4142,7 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				PRODUCT_NAME = Oolite;
+				SDKROOT = macosx10.6;
 				SECTORDER_FLAGS = "";
 				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
@@ -4196,6 +4206,7 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				PRODUCT_NAME = Oolite;
+				SDKROOT = macosx10.6;
 				SECTORDER_FLAGS = "";
 				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
