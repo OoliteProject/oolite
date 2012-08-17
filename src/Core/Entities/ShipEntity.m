@@ -5218,11 +5218,19 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	JSContext	*context = OOJSAcquireContext();
 	jsval		rval = JSVAL_VOID;
-	jsval		args[] = { OOJSValueFromNativeObject(context, [NSNumber numberWithFloat:delta_t]) };
-	NSDictionary *result;
-
-	BOOL OK = [[self script] callMethod:OOJSID("scriptedAI") inContext:context withArguments:args count:1 result:&rval];
-
+	jsval		deltaJS = JSVAL_VOID;
+	NSDictionary *result = nil;
+	
+	BOOL OK = JS_NewNumberValue(context, delta_t, &deltaJS);
+	if (OK)
+	{
+		OK = [[self script] callMethod:OOJSID("scriptedAI")
+							 inContext:context
+						 withArguments:&deltaJS
+								 count:1
+								result:&rval];
+	}
+	
 	if (!OK)
 	{
 		OOLog(@"ai.error",@"Could not call scriptedAI in ship script of %@, reverting to idle",self);
@@ -5300,10 +5308,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			[self fireStarboardWeapon:range];
 		}
-
 	}
-	
-
 }
 
 

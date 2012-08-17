@@ -558,7 +558,7 @@ void OOJSRegisterObjectConverter(JSClass *theClass, OOJSClassConverterCallback c
 		showingLocation:(in BOOL)showLocation
 			withMessage:(in NSString *)message;
 
-// Sent for JS log messages. Note: messageClass will be nil of Log() is used rather than LogWithClass().
+// Sent for JS log messages. Note: messageClass will be nil if Log() is used rather than LogWithClass().
 - (oneway void)jsEngine:(in byref OOJavaScriptEngine *)engine
 				context:(in JSContext *)context
 			 logMessage:(in NSString *)message
