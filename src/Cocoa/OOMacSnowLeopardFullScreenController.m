@@ -49,6 +49,8 @@ MA 02110-1301, USA.
 - (void) beginFullScreenMode;
 - (void) endFullScreenMode;
 
+- (void) screenParametersChanged:(NSNotification *)notification;
+
 - (void) setUpBlankingWindowsForScreensOtherThan:(NSScreen *)gameScreen;
 - (void) removeBlankingWindows;
 
