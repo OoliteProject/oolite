@@ -737,6 +737,7 @@ static NSMutableArray *sMessageStack;
 
 - (void) exitAppWithContext:(NSString *)context
 {
+	[gameView.window orderOut:nil];
 	[(OoliteApp *)NSApp setExitContext:context];
 	[NSApp terminate:self];
 }
