@@ -157,8 +157,8 @@ MA 02110-1301, USA.
 	
 	self.fullScreenWindow = [window autorelease];
 	
-	window.opaque = YES;
-	window.movable = NO;
+	[window setOpaque:YES];
+	[window setMovable:YES];
 	window.canBecomeKeyWindow = YES;
 	window.canBecomeMainWindow = YES;
 #if !OO_DEBUG
@@ -238,8 +238,8 @@ MA 02110-1301, USA.
 																			 backing:NSBackingStoreBuffered
 																			   defer:NO];
 		
-		window.opaque = YES;
-		window.movable = NO;
+		[window setOpaque:YES];
+		[window setMovable:YES];
 		window.collectionBehavior = NSWindowCollectionBehaviorTransient | NSWindowCollectionBehaviorIgnoresCycle;
 		window.canBecomeKeyWindow = NO;
 		window.canBecomeMainWindow = NO;
