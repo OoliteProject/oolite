@@ -55,10 +55,6 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOEquipmentType.h"
 
-#if OOLITE_MAC_OS_X
-#import "Groolite.h"
-#endif
-
 #import "OODebugSupport.h"
 #import "OODebugMonitor.h"
 
@@ -2576,43 +2572,6 @@ static NSTimeInterval	time_last_frame;
 	}
 	else
 		gammaControlPressed = NO;
-#endif
-	
-#if OOLITE_MAC_OS_X && GROOLITE_VISIBLE
-	if ((guiSelectedRow == GUI_ROW(GAME,GROWL))&&([gameView isDown:gvArrowKeyRight]||[gameView isDown:gvArrowKeyLeft]))
-	{
-		if ([Groolite isEnabled] && (!leftRightKeyPressed || script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
-		{
-			NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
-			BOOL rightKeyDown = [gameView isDown:gvArrowKeyRight];
-			BOOL leftKeyDown = [gameView isDown:gvArrowKeyLeft];
-			int growl_min_priority = 3;
-			if ([prefs objectForKey:@"groolite-min-priority"])
-				growl_min_priority = [prefs integerForKey:@"groolite-min-priority"];
-			int new_priority = growl_min_priority;
-			if (rightKeyDown)
-				new_priority--;
-			if (leftKeyDown)
-				new_priority++;
-			if (new_priority < kGroolitePriorityMinimum)	// sanity check values -2 .. 3
-				new_priority = kGroolitePriorityMinimum;
-			if (new_priority > kGroolitePriorityMaximum)
-				new_priority = kGroolitePriorityMaximum;
-			if (new_priority != growl_min_priority)
-			{
-				growl_min_priority = new_priority;
-				NSString* growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
-				[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-show-growl-messages-@"), growl_priority_desc]
-					  forRow:GUI_ROW(GAME,GROWL) align:GUI_ALIGN_CENTER];
-				[self playChangedOption];
-				[prefs setInteger:growl_min_priority forKey:@"groolite-min-priority"];
-			}
-			timeLastKeyPress = script_time;
-		}
-		leftRightKeyPressed = YES;
-	}
-	else
-		leftRightKeyPressed = NO;
 #endif
 	
 	if ((guiSelectedRow == GUI_ROW(GAME,WIREFRAMEGRAPHICS))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))

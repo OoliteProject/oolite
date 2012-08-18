@@ -77,10 +77,6 @@ MA 02110-1301, USA.
 #import "OOJoystickManager.h"
 #import "PlayerEntityStickMapper.h"
 
-#if OOLITE_MAC_OS_X
-#import "Groolite.h"
-#endif
-
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntity"
 
@@ -6211,35 +6207,6 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,GAMMA)];
 #endif
 		
-#if OOLITE_MAC_OS_X && GROOLITE_VISIBLE
-		// Growl priority control
-		{
-			if ([Groolite isEnabled])
-			{
-				NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-				NSString *growl_priority_desc = nil;
-				int growl_min_priority = 3;
-				if ([prefs objectForKey:@"groolite-min-priority"])
-					growl_min_priority = [prefs integerForKey:@"groolite-min-priority"];
-				if ((growl_min_priority < kGroolitePriorityMinimum)||(growl_min_priority > kGroolitePriorityMaximum))
-				{
-					growl_min_priority = kGroolitePriorityMaximum;
-					[prefs setInteger:kGroolitePriorityMaximum forKey:@"groolite-min-priority"];
-				}
-				growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
-				[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-show-growl-messages-@"), growl_priority_desc]
-					  forRow:GUI_ROW(GAME,GROWL) align:GUI_ALIGN_CENTER];
-				[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,GROWL)];
-			}
-			else
-			{
-				[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-show-growl-messages-@"), DESC(@"growl-disabled")]
-					  forRow:GUI_ROW(GAME,GROWL) align:GUI_ALIGN_CENTER];
-				[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,GROWL)];
-			}
-
-		}
-#endif
 #if OOLITE_SPEECH_SYNTH
 		// Speech control
 		if (isSpeechOn)

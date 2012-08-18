@@ -726,7 +726,6 @@
 		25F3E6330994F04C002F25FD /* legacy_random.c in Sources */ = {isa = PBXBuildFile; fileRef = 25F3E6320994F04C002F25FD /* legacy_random.c */; };
 		25F3E63B0994F08A002F25FD /* OOOpenGL.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E63A0994F08A002F25FD /* OOOpenGL.h */; };
 		25F3E6BD0994F30A002F25FD /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F3E6BC0994F30A002F25FD /* main.m */; };
-		25F3E6F20994F466002F25FD /* Groolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6F00994F466002F25FD /* Groolite.h */; };
 		25F3E8A70994FE65002F25FD /* oolite-document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A40994FE65002F25FD /* oolite-document.icns */; };
 		25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */; };
 		25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A60994FE65002F25FD /* oolite-icon.icns */; };
@@ -2027,8 +2026,6 @@
 		25F3E6320994F04C002F25FD /* legacy_random.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = legacy_random.c; sourceTree = "<group>"; };
 		25F3E63A0994F08A002F25FD /* OOOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGL.h; sourceTree = "<group>"; };
 		25F3E6BC0994F30A002F25FD /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		25F3E6F00994F466002F25FD /* Groolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Groolite.h; sourceTree = "<group>"; };
-		25F3E6F10994F466002F25FD /* Groolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Groolite.m; sourceTree = "<group>"; };
 		25F3E8A40994FE65002F25FD /* oolite-document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "oolite-document.icns"; sourceTree = "<group>"; };
 		25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "oolite-expansion-document.icns"; sourceTree = "<group>"; };
 		25F3E8A60994FE65002F25FD /* oolite-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "oolite-icon.icns"; sourceTree = "<group>"; };
@@ -2852,7 +2849,6 @@
 				25F46751099695D5009483BF /* OoliteApp.m */,
 				2576E7B209B4F418007410F7 /* MyOpenGLView.h */,
 				25F4676309969672009483BF /* MyOpenGLView.m */,
-				1A8A3D9E0B9B05C400AB7625 /* Groolite */,
 				1AAF56160F1A198400A2F2E6 /* Comparison.h */,
 				1A143A4611EF22C5001BAB8D /* JAPersistentFileReference.h */,
 				1A143A4711EF22C5001BAB8D /* JAPersistentFileReference.m */,
@@ -3105,15 +3101,6 @@
 			path = ../Cocoa;
 			sourceTree = "<group>";
 		};
-		1A8A3D9E0B9B05C400AB7625 /* Groolite */ = {
-			isa = PBXGroup;
-			children = (
-				25F3E6F00994F466002F25FD /* Groolite.h */,
-				25F3E6F10994F466002F25FD /* Groolite.m */,
-			);
-			name = Groolite;
-			sourceTree = "<group>";
-		};
 		1A8FAA9A12F0E44D008FF5A2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -3312,7 +3299,6 @@
 			files = (
 				25F3E6310994F033002F25FD /* legacy_random.h in Headers */,
 				25F3E63B0994F08A002F25FD /* OOOpenGL.h in Headers */,
-				25F3E6F20994F466002F25FD /* Groolite.h in Headers */,
 				25160E2F0995362F0037C2E1 /* OOCocoa.h in Headers */,
 				251610DD099544090037C2E1 /* OOCABufferedSound.h in Headers */,
 				251610DE099544090037C2E1 /* OOCASoundMixer.h in Headers */,

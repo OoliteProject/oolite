@@ -32,10 +32,6 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOJSPropID.h"
 
-#if OOLITE_MAC_OS_X
-#import "Groolite.h"	// Needed for GROOLITE_VISIBLE.
-#endif
-
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
@@ -122,9 +118,6 @@ enum
 	GUI_ROW_GAMEOPTIONS_AUTOSAVE,
 	GUI_ROW_GAMEOPTIONS_SPACER1,
 	GUI_ROW_GAMEOPTIONS_VOLUME,
-#if OOLITE_MAC_OS_X && GROOLITE_VISIBLE
-	GUI_ROW_GAMEOPTIONS_GROWL,
-#endif
 #if OOLITE_SPEECH_SYNTH
 	GUI_ROW_GAMEOPTIONS_SPEECH,
 #if !OOLITE_MAC_OS_X

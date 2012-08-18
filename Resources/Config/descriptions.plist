@@ -1061,7 +1061,6 @@
 	"gameoptions-gamma-value"				= " Gamma: ";
 	"gameoptions-sound-volume-mute"			= " Sound Volume: Mute ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";
-	"gameoptions-show-growl-messages-@"		= " Show Growl Messages: %@ ";
 	"gameoptions-spoken-messages-yes"		= " Spoken Messages: On ";
 	"gameoptions-spoken-messages-no"		= " Spoken Messages: Off ";
 	"gameoptions-voice-@"					= " Voice: %@ ";
@@ -1123,17 +1122,6 @@
 		"On",
 		"iTunes"
 	);
-	"growl-priority-levels" =
-	(
-		"On (for all messages)",
-		"On (for low priority messages)",
-		"On (for medium priority messages)",
-		"On (for high priority messages)",
-		"On (for highest priority messages)",
-		"Off (for all messages)"
-	);
-	"growl-not-available"					= "Not available";
-	"growl-disabled"						= "Disabled";
 	
 	// Equip ship screen
 	"equip-title"					= "Ship Outfitting";

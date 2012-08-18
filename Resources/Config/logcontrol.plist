@@ -455,9 +455,5 @@
 	
 	
 	/*** Mac OS X/Cocoa-specific ***/
-	growl.error								= $error;
-	growl.debug								= no;
-	
-	
 	iTunesIntegration.failed				= $error;
 }

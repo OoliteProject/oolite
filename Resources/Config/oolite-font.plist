@@ -25,7 +25,6 @@
 		"⌥"		= "(Option)";	// Mac OS X option key
 		"⌃"		= "(Control)";	// Up Arrowhead, Mac OS X control key
 		
-		// The following are for compatibility with GrowlTunes (and have been included since Growl support was added).
 		"★"		= "\b";			// Black Star
 		"✯"		= "\b";			// Pinwheel Star
 		"☆"		= "\030";		// White Star
