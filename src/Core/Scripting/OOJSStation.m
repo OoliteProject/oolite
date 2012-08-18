@@ -326,14 +326,15 @@ static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity	*player = OOPlayerForScripting();
+	GameController	*gameController = [UNIVERSE gameController];
 	
-	if (EXPECT_NOT([UNIVERSE isGamePaused]))
+	if (EXPECT_NOT([gameController isGamePaused]))
 	{
 		/*	Station.dockPlayer() was executed while the game was in pause.
 			Do we want to return an error or just unpause and continue?
 			I think unpausing is the sensible thing to do here - Nikos 20110208
 		*/
-		[[[UNIVERSE gameView] gameController] unpauseGame];
+		[gameController setGamePaused:NO];
 	}
 	
 	if (EXPECT(![player isDocked]))

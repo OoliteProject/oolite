@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #import "OOShipGroup.h"
 #import "OOExcludeObjectEnumerator.h"
 #import "OOWeakSet.h"
+#import "GameController.h"
 
 #import "OOCharacter.h"
 #import "AI.h"
@@ -7355,7 +7356,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) noteTakingDamage:(double)amount from:(Entity *)entity type:(OOShipDamageType)type
 {
-	if (amount < 0 || (amount == 0 && [UNIVERSE isGamePaused]))  return;
+	if (amount < 0 || (amount == 0 && [[UNIVERSE gameController] isGamePaused]))  return;
 	
 	JSContext *context = OOJSAcquireContext();
 	

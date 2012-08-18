@@ -120,15 +120,32 @@ static GameController *sSharedController = nil;
 }
 
 
-- (void) pauseGame
+- (void) setGamePaused:(BOOL)value
 {
-	gameIsPaused = YES;
+	if (value && !gameIsPaused)
+	{
+		_resumeMode = [self mouseInteractionMode];
+		[self setMouseInteractionMode:MOUSE_MODE_UI_SCREEN_WITH_INTERACTION];
+		gameIsPaused = YES;
+	}
+	else if (!value && gameIsPaused)
+	{
+		[self setMouseInteractionMode:_resumeMode];
+		gameIsPaused = NO;
+	}
 }
 
 
-- (void) unpauseGame
+- (OOMouseInteractionMode) mouseInteractionMode
 {
-	gameIsPaused = NO;
+	return _mouseMode;
+}
+
+
+- (void) setMouseInteractionMode:(OOMouseInteractionMode)mode
+{
+	// TODO: do stuff.
+	_mouseMode = mode;
 }
 
 

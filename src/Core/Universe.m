@@ -530,13 +530,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		}
 	}
 	
-	[[gameView gameController] pauseGame];
-}
-
-
-- (BOOL) isGamePaused
-{
-	return [[gameView gameController] isGamePaused];
+	[[self gameController] setGamePaused:YES];
 }
 
 
@@ -2294,9 +2288,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	// In unrestricted mode, reload last save game, if any. In strict mode, always restart as a fresh Jameson.
 	// NOTE: this is also called when loading a game fails, and when the js engine fails to reset properly.
 	
-	if (![self strict] && [[gameView gameController] playerFileToLoad])
+	if (![self strict] && [[self gameController] playerFileToLoad])
 	{
-		[[gameView gameController] loadPlayerIfRequired];
+		[[self gameController] loadPlayerIfRequired];
 	}
 	else
 	{
@@ -3183,7 +3177,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (GameController *) gameController
 {
-	return [gameView gameController];
+	return [[self gameView] gameController];
 }
 
 
@@ -8708,7 +8702,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 			OOLog(kOOLogException, @"***** Handling Fatal : %@ : %@ *****",[exception name], [exception reason]);
 			NSString* exception_msg = [NSString stringWithFormat:@"Exception : %@ : %@ Please take a screenshot and/or press esc or Q to quit.", [exception name], [exception reason]];
 			[self addMessage:exception_msg forCount:30.0];
-			[[self gameController] pauseGame];
+			[[self gameController] setGamePaused:YES];
 		}
 		else
 		{
@@ -9057,7 +9051,8 @@ Entity *gOOJSPlayerIfStale = nil;
 	//       be aware of cache flushes so it can automatically
 	//       reinitialize itself - mwerle 20081107.
 	[OOShipRegistry reload];
-	[[gameView gameController] unpauseGame];
+	[[self gameController] setGamePaused:NO];
+	[[self gameController] setMouseInteractionMode:MOUSE_MODE_UI_SCREEN_NO_INTERACTION];
 	[PLAYER setSpeed:0.0];
 	
 	if (strictChanged)
@@ -9094,7 +9089,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	[self addEntity:player];
 	demo_ship = nil;
-	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
+	[[self gameController] setPlayerFileToLoad:nil];		// reset Quicksave
 	
 	[self setUpInitialUniverse];
 	autoSaveNow = NO;	// don't autosave immediately after restarting a game

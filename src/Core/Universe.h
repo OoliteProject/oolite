@@ -333,7 +333,6 @@ enum
 #endif
 
 - (void) pauseGame;
-- (BOOL) isGamePaused;
 
 - (void) carryPlayerOn:(StationEntity*)carrier inWormhole:(WormholeEntity*)wormhole;
 - (void) setUpUniverseFromStation;

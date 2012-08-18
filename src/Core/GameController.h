@@ -38,12 +38,6 @@ MA 02110-1301, USA.
 #define OOLITE_MAC_LEGACY_FULLSCREEN	1
 #endif
 
-
-#if 0	// Unused?
-#define MODE_WINDOWED			100
-#define MODE_FULL_SCREEN		200
-#endif
-
 #define MINIMUM_GAME_TICK		0.25
 // * reduced from 0.5s for tgape * //
 
@@ -55,8 +49,34 @@ MA 02110-1301, USA.
 #define OO_USE_FULLSCREEN_CONTROLLER	OOLITE_MAC_OS_X
 
 
+/*
+	OOMouseInteractionMode
+	Mouse interaction states, defined in game-centric terms. The precise
+	semantics may vary across platforms.
+	
+	The primary distinction is between UI screens and flight screens. Flight
+	screens are screens 1-4 when neither docked nor paused. Every other screen
+	is a UI screen, including screens 1-4 when paused in flight.
+	
+	UI screens are divided between ones with clickable controls (like the
+	star chart, outfitting screen or pause screen), and ones without (like the
+	manifest screen and system data screen).
+	
+	Flight screens have two modes, one for mouse control enabled and one for
+	mouse control disabled.
+*/
+typedef enum
+{
+	MOUSE_MODE_UI_SCREEN_NO_INTERACTION,
+	MOUSE_MODE_UI_SCREEN_WITH_INTERACTION,
+	MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL,
+	MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL
+} OOMouseInteractionMode;
+
+
 @interface GameController: NSObject
 {
+@private
 #if OOLITE_HAVE_APPKIT
 	IBOutlet NSTextField	*splashProgressTextField;
 	IBOutlet NSView			*splashView;
@@ -85,6 +105,9 @@ MA 02110-1301, USA.
 	
 	BOOL					gameIsPaused;
 	
+	OOMouseInteractionMode	_mouseMode;
+	OOMouseInteractionMode	_resumeMode;
+	
 // Fullscreen mode stuff.
 #if OO_USE_FULLSCREEN_CONTROLLER
 	OOFullScreenController	*_fullScreenController;
@@ -107,9 +130,12 @@ MA 02110-1301, USA.
 + (id)sharedController;
 
 - (void) applicationDidFinishLaunching:(NSNotification *)notification;
+
 - (BOOL) isGamePaused;
-- (void) pauseGame;
-- (void) unpauseGame;
+- (void) setGamePaused:(BOOL)value;
+
+- (OOMouseInteractionMode) mouseInteractionMode;
+- (void) setMouseInteractionMode:(OOMouseInteractionMode)mode;
 
 - (void) performGameTick:(id)sender;
 
