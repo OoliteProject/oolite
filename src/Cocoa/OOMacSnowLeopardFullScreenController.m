@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 
-#define SUPRESS_BLANKING_WINDOWS		( 1 && OO_DEBUG)
+#define SUPRESS_BLANKING_WINDOWS		( 0 && OO_DEBUG)
 
 
 @interface OOMacSnowLeopardFullScreenController ()
@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 @property (nonatomic, retain) NSArray *blankingWindows;		// Plain black windows covering other screens if relevant.
 @property (nonatomic, retain) NSWindow *standardWindow;		// The main game window, stashed away for use when existing full screen mode.
 
-@property (nonatomic, readonly) NSScreen *gameScreen;
+@property (nonatomic, retain) NSScreen *gameScreen;
 
 - (void) beginFullScreenMode;
 - (void) endFullScreenMode;
@@ -61,13 +61,17 @@ MA 02110-1301, USA.
 @synthesize fullScreenWindow = _fullScreenWindow;
 @synthesize blankingWindows = _blankingWindows;
 @synthesize standardWindow = _standardWindow;
+@synthesize gameScreen = _gameScreen;
 
 
 - (void) dealloc
 {
+	[self endFullScreenMode];
+	
 	DESTROY(_fullScreenWindow);
 	DESTROY(_blankingWindows);
 	DESTROY(_standardWindow);
+	DESTROY(_gameScreen);
 	
 	[super dealloc];
 }
@@ -123,19 +127,6 @@ MA 02110-1301, USA.
 
 #pragma mark - Actual full screen mode handling
 
-- (NSScreen *) gameScreen
-{
-	if (self.fullScreenMode)
-	{
-		return self.fullScreenWindow.screen;
-	}
-	else
-	{
-		return self.gameView.window.screen;
-	}
-}
-
-
 - (void) beginFullScreenMode
 {
 	NSAssert(!self.fullScreenMode, @"%s called in wrong state.", __FUNCTION__);
@@ -147,8 +138,8 @@ MA 02110-1301, USA.
 		Set up a full-screen window. Based on OpenGL Programming Guide for Mac
 		[developer.apple.com], dated 2012-07-23, "Drawing to the Full Screen".
 	*/
-	NSScreen *gameScreen = self.gameScreen;
-	NSRect frame = gameScreen.frame;
+	self.gameScreen = self.gameView.window.screen;
+	NSRect frame = self.gameScreen.frame;
 	OOFullScreenWindow *window = [[OOFullScreenWindow alloc] initWithContentRect:frame
 																	   styleMask:NSBorderlessWindowMask
 																		 backing:NSBackingStoreBuffered
@@ -175,12 +166,18 @@ MA 02110-1301, USA.
 	window.contentView = self.gameView;
 	
 	SetSystemUIMode(kUIModeAllSuppressed, kUIOptionDisableMenuBarTransparency);
-	[self setUpBlankingWindowsForScreensOtherThan:gameScreen];
+	[self setUpBlankingWindowsForScreensOtherThan:self.gameScreen];
 	
 	[window makeKeyAndOrderFront:self];
 	OOLog(@"temp", @"%u", window.canBecomeMainWindow);
 	
 	_fullScreenMode = YES;
+	
+	// Subscribe to reconfiguration notifications.
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(screenParametersChanged:)
+												 name:NSApplicationDidChangeScreenParametersNotification
+											   object:NSApp];
 }
 
 
@@ -198,8 +195,23 @@ MA 02110-1301, USA.
 	
 	self.standardWindow = nil;
 	self.fullScreenWindow = nil;
+	self.gameScreen = nil;
 	
 	_fullScreenMode = NO;
+	
+	// Unsubscribe from notifications.
+	[[NSNotificationCenter defaultCenter] removeObserver:self
+													name:NSApplicationDidChangeScreenParametersNotification
+												  object:NSApp];
+}
+
+
+- (void) screenParametersChanged:(NSNotification *)notification
+{
+	NSAssert(self.fullScreenMode, @"%s called in wrong state.", __FUNCTION__);
+	
+	[self.fullScreenWindow setFrame:self.gameScreen.frame display:YES];
+	[self setUpBlankingWindowsForScreensOtherThan:self.gameScreen];
 }
 
 
