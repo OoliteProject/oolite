@@ -5251,7 +5251,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	result = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(rval));
 	OOJSRelinquishContext(context);
 
-	stick_roll = [result oo_floatForKey:@"stickRoll" defaultValue:0.0];
+	// roll or roll factor
+	if ([result objectForKey:@"stickRollFactor"] != nil)
+	{
+		stick_roll = [result oo_floatForKey:@"stickRollFactor" defaultValue:0.0] * max_flight_roll;
+	} 
+	else 
+	{
+		stick_roll = [result oo_floatForKey:@"stickRoll" defaultValue:0.0];
+	}
 	if (stick_roll > max_flight_roll) 
 	{
 		stick_roll = max_flight_roll;
@@ -5260,7 +5268,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		stick_roll = -max_flight_roll;
 	}
-	stick_pitch = [result oo_floatForKey:@"stickPitch" defaultValue:0.0];
+
+	// pitch or pitch factor
+	if ([result objectForKey:@"stickPitchFactor"] != nil)
+	{
+		stick_pitch = [result oo_floatForKey:@"stickPitchFactor" defaultValue:0.0] * max_flight_pitch;
+	} 
+	else 
+	{
+		stick_pitch = [result oo_floatForKey:@"stickPitch" defaultValue:0.0];
+	}
 	if (stick_pitch > max_flight_pitch) 
 	{
 		stick_pitch = max_flight_pitch;
@@ -5269,7 +5286,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		stick_pitch = -max_flight_pitch;
 	}
-	stick_yaw = [result oo_floatForKey:@"stickYaw" defaultValue:0.0];
+
+	// yaw or yaw factor
+	if ([result objectForKey:@"stickYawFactor"] != nil)
+	{
+		stick_yaw = [result oo_floatForKey:@"stickYawFactor" defaultValue:0.0] * max_flight_yaw;
+	} 
+	else 
+	{
+		stick_yaw = [result oo_floatForKey:@"stickYaw" defaultValue:0.0];
+	}
 	if (stick_yaw > max_flight_yaw) 
 	{
 		stick_yaw = max_flight_yaw;
@@ -5279,14 +5305,24 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		stick_yaw = -max_flight_yaw;
 	}	
 
+	// apply sticks to current flight profile
 	[self applySticks:delta_t];
 
-	desired_speed = [result oo_floatForKey:@"desiredSpeed" defaultValue:0.0];
+	// desired speed
+	if ([result objectForKey:@"desiredSpeedFactor"] != nil)
+	{
+		desired_speed = [result oo_floatForKey:@"desiredSpeedFactor" defaultValue:0.0] * maxFlightSpeed;
+	}
+	else
+	{
+		desired_speed = [result oo_floatForKey:@"desiredSpeed" defaultValue:0.0];
+	}
+
 	if (desired_speed < 0.0)
 	{
 		desired_speed = 0.0;
 	}
-	// overspeed is handled by applyThrust
+	// overspeed and injector use is handled by applyThrust
 
 	if (behaviour == BEHAVIOUR_SCRIPTED_ATTACK_AI)
 	{
