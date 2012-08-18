@@ -47,6 +47,23 @@ MA 02110-1301, USA.
 #define SAVE_OVERWRITE_NO_ROW	9
 
 
+// Set to 1 to use custom load/save dialogs in windowed mode on Macs in debug builds. No effect on other platforms.
+#define USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG		0
+
+#if USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG && OO_DEBUG && defined(OOLITE_USE_APPKIT_LOAD_SAVE)
+#undef OOLITE_USE_APPKIT_LOAD_SAVE
+#endif
+
+// Mac 64-bit builds: nevr use custom load/save dialogs.
+#if OOLITE_USE_APPKIT_LOAD_SAVE && OOLITE_64_BIT
+#define OO_USE_APPKIT_LOAD_SAVE_ALWAYS		1
+#else
+#define OO_USE_APPKIT_LOAD_SAVE_ALWAYS		0
+#endif
+
+#define OO_USE_CUSTOM_LOAD_SAVE					(!OO_USE_APPKIT_LOAD_SAVE_ALWAYS)
+
+
 @interface PlayerEntity (LoadSave)
 
 - (BOOL) loadPlayer;	// Returns NO on immediate failure, i.e. when using an OS X modal open panel which is cancelled.
@@ -54,9 +71,14 @@ MA 02110-1301, USA.
 - (void) quicksavePlayer;
 - (void) autosavePlayer;
 
+#if OO_USE_CUSTOM_LOAD_SAVE
+
+// Interface for PlayerEntityControls
 - (NSString *) commanderSelector;
 - (void) saveCommanderInputHandler;
 - (void) overwriteCommanderInputHandler;
+
+#endif
 
 - (BOOL) loadPlayerFromFile:(NSString *)fileToOpen;
 

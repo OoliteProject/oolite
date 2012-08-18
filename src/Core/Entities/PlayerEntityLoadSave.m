@@ -45,30 +45,22 @@
 #import "OOJavaScriptEngine.h"
 
 
-// Set to 1 to use custom load/save dialogs in windowed mode on Macs in debug builds. No effect on other platforms.
-#define USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG		0
-
-#if USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG && OO_DEBUG && defined(OOLITE_USE_APPKIT_LOAD_SAVE)
-#undef OOLITE_USE_APPKIT_LOAD_SAVE
-#endif
-
-
 // Name of modifier key used to issue commands. See also -isCommandModifierKeyDown.
-#if OOLITE_MAC_OS_X
-#define COMMAND_MODIFIER_KEY		"Ctrl" // was "Command"
-#else
 #define COMMAND_MODIFIER_KEY		"Ctrl"
-#endif
 
 
 static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
+
+#if OO_USE_CUSTOM_LOAD_SAVE
 
 @interface MyOpenGLView (OOLoadSaveExtensions)
 
 - (BOOL)isCommandModifierKeyDown;
 
 @end
+
+#endif
 
 
 @interface PlayerEntity (OOLoadSavePrivate)
@@ -80,15 +72,20 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
 #endif
 
+#if OO_USE_CUSTOM_LOAD_SAVE
+
 - (void) setGuiToLoadCommanderScreen;
 - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName;
 - (void) setGuiToOverwriteScreen: (NSString *)cdrName;
 - (void) lsCommanders: (GuiDisplayGen *)gui directory: (NSString*)directory pageNumber: (int)page highlightName: (NSString *)highlightName;
-- (void) writePlayerToPath:(NSString *)path;
-- (void) nativeSavePlayer: (NSString *)cdrName;
-- (BOOL) existingNativeSave: (NSString *)cdrName;
 - (void) showCommanderShip: (int)cdrArrayIndex;
 - (int) findIndexOfCommander: (NSString *)cdrName;
+- (void) nativeSavePlayer: (NSString *)cdrName;
+- (BOOL) existingNativeSave: (NSString *)cdrName;
+
+#endif
+
+- (void) writePlayerToPath:(NSString *)path;
 
 @end
 
@@ -99,7 +96,9 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 {
 	BOOL				OK = YES;
 	
-#if OOLITE_USE_APPKIT_LOAD_SAVE
+#if OO_USE_APPKIT_LOAD_SAVE_ALWAYS
+	OK = [self loadPlayerWithPanel];
+#elif OOLITE_USE_APPKIT_LOAD_SAVE
 	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
 	if ([[UNIVERSE gameController] inFullScreenMode])
 	{
@@ -119,7 +118,9 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
 - (void)savePlayer
 {
-#if OOLITE_USE_APPKIT_LOAD_SAVE
+#if OO_USE_APPKIT_LOAD_SAVE_ALWAYS
+	[self savePlayerWithPanel];
+#elif OOLITE_USE_APPKIT_LOAD_SAVE
 	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
 	if ([[UNIVERSE gameController] inFullScreenMode])
 	{
@@ -193,6 +194,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[self setGuiToStatusScreen];
 }
 
+
+#if OO_USE_CUSTOM_LOAD_SAVE
 
 - (NSString *)commanderSelector
 {
@@ -417,6 +420,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[self setGuiToSaveCommanderScreen:@""];
 	}
 }
+
+#endif
 
 
 - (BOOL) loadPlayerFromFile:(NSString *)fileToOpen
@@ -726,6 +731,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 }
 
 
+#if OO_USE_CUSTOM_LOAD_SAVE
 
 - (void) setGuiToLoadCommanderScreen
 {
@@ -1134,22 +1140,23 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	return -1;
 }
 
+#endif
+
 @end
 
+
+#if OO_USE_CUSTOM_LOAD_SAVE
 
 @implementation MyOpenGLView (OOLoadSaveExtensions)
 
 - (BOOL)isCommandModifierKeyDown
 {
-#if OOLITE_MAC_OS_X
-	//return [self isCommandDown];
 	return [self isCtrlDown];
-#else
-	return [self isCtrlDown];
-#endif
 }
 
 @end
+
+#endif
 
 
 static uint16_t PersonalityForCommanderDict(NSDictionary *dict)

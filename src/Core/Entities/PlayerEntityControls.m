@@ -1514,7 +1514,6 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	BOOL			moving = NO;
 	double			cursor_speed = 10.0;
-	NSString		*commanderFile;
 	GameController  *controller = [UNIVERSE gameController];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	GUI_ROW_INIT(gui);
@@ -1744,14 +1743,18 @@ static NSTimeInterval	time_last_frame;
 				queryPressed = NO;
 			break;
 			
+#if OO_USE_CUSTOM_LOAD_SAVE
 			// DJS: Farm off load/save screen options to LoadSave.m
 		case GUI_SCREEN_LOAD:
-			commanderFile = [self commanderSelector];
+		{
+			NSString *commanderFile = [self commanderSelector];
 			if(commanderFile)
 			{
 				[self loadPlayerFromFile:commanderFile];
 			}
 			break;
+		}
+			
 		case GUI_SCREEN_SAVE:
 			[self pollGuiScreenControlsWithFKeyAlias:NO];
 			if ([gameView isDown:gvFunctionKey1])  [self handleUndockControl];
@@ -1765,6 +1768,7 @@ static NSTimeInterval	time_last_frame;
 		case GUI_SCREEN_SAVE_OVERWRITE:
 			[self overwriteCommanderInputHandler];
 			break;
+#endif
 			
 		case GUI_SCREEN_STICKMAPPER:
 			[self stickMapperInputHandler: gui view: gameView];
