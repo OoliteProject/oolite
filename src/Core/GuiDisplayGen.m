@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "GuiDisplayGen.h"
 #import "Universe.h"
+#import "GameController.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityControls.h"
 #import "OOTextureSprite.h"
@@ -1046,7 +1047,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	i = items_per_column * 2 + 2;
 	if (items_count > i) // don't fit in one page?
 	{
-		[UNIVERSE setDisplayCursor: YES];
+		[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+		 
 		i = items_per_column * 4; // total items in the first and last pages
 		items_per_column--; // for all the middle pages.
 		if (items_count <= i) // two pages

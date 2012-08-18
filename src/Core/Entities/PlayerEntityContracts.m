@@ -745,9 +745,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[gui setShowTextCursor:NO];
 	}
 	
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: YES];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 	
 	if (guiChanged)
 	{
@@ -1192,9 +1191,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		lastTextKey = nil;
 	}
 	
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: NO];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
 	if (guiChanged)
 	{
@@ -1276,9 +1274,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		lastTextKey = nil;
 	}
 	
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: NO];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
 	if (guiChanged)
 	{
@@ -1433,8 +1430,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	// the following are necessary...
 
 	[self setShowDemoShips:(n_ships > 0)];
-	[UNIVERSE setDisplayCursor:YES];
-	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 	
 	if (guiChanged)
 	{

@@ -4870,7 +4870,6 @@ static GLfloat		sBaseMass = 0.0;
 	energy = 0.0f;
 	afterburner_engaged = NO;
 	[UNIVERSE setDisplayText:NO];
-	[UNIVERSE setDisplayCursor:NO];
 	[UNIVERSE setViewDirection:VIEW_AFT];
 	
 	// Let scripts know the player died.
@@ -4942,7 +4941,7 @@ static GLfloat		sBaseMass = 0.0;
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
-	[UNIVERSE setDisplayCursor:NO];
+	[[UNIVERSE gameController] setMouseInteractionModeForFlight];
 	if ([self status] == STATUS_LAUNCHING)  return; // a JS script has aborted the docking.
 	
 	[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
@@ -4963,7 +4962,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	[self setStatus:STATUS_DOCKED];
-	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
 	[self loseTargetStatus];
 	
@@ -5076,7 +5075,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayText:NO];
-	[UNIVERSE setDisplayCursor:NO];
+	[[UNIVERSE gameController] setMouseInteractionModeForFlight];
 
 	[[UNIVERSE gameView] clearKeys];	// try to stop keybounces
 	
@@ -5532,7 +5531,7 @@ static GLfloat		sBaseMass = 0.0;
 	being_fined = NO;				// until you're scanned by a copper!
 	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
-	[UNIVERSE setDisplayCursor:NO];
+	[[UNIVERSE gameController] setMouseInteractionModeForFlight];
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:NO];
 	[self playExitWitchspace];
@@ -5553,6 +5552,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	gui_screen = GUI_SCREEN_STATUS;
 	BOOL			guiChanged = (oldScreen != gui_screen);
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
 	
 	// Both system_seed & target_system_seed are != nil at all times when this function is called.
 	
@@ -5613,9 +5614,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[[UNIVERSE gameView] clearMouse];
 		
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: NO];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
 	if (guiChanged)
 	{
@@ -5862,6 +5862,8 @@ static GLfloat		sBaseMass = 0.0;
 	gui_screen = GUI_SCREEN_SYSTEM_DATA;
 	BOOL			guiChanged = (oldScreen != gui_screen);
 	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+	
 	// GUI stuff
 	{
 		OOGUITabSettings tab_stops;
@@ -5921,9 +5923,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[targetSystemData release];
 	
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: NO];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
 	// if the system has gone nova, there's no planet to display
 	if (!sunGoneNova)
@@ -6014,12 +6015,13 @@ static GLfloat		sBaseMass = 0.0;
 	
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
 	BOOL			guiChanged = (oldScreen != gui_screen);
-	NSString		*targetSystemName;
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 			target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	
-	targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
+	NSString *targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
 	
 	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 	
@@ -6051,9 +6053,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[targetSystemName release];
 	
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: YES];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 	
 	if (guiChanged)
 	{
@@ -6076,6 +6077,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
 	BOOL			guiChanged = (oldScreen != gui_screen);
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
 	// don't target planets outside the immediate vicinity.
 	if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
@@ -6111,9 +6114,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[targetSystemName release]; // released
 	
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: YES];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 	
 	if (guiChanged)
 	{
@@ -6130,6 +6132,8 @@ static GLfloat		sBaseMass = 0.0;
 #ifdef GNUSTEP
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 #endif
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
 	// GUI stuff
 	{
@@ -6333,9 +6337,8 @@ static GLfloat		sBaseMass = 0.0;
 	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_GAMEOPTIONS;
 
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: YES];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
 
@@ -6344,6 +6347,8 @@ static GLfloat		sBaseMass = 0.0;
 	BOOL			canLoadOrSave = NO;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	OOGUIScreenID	oldScreen = gui_screen;
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 
 	if ([self status] == STATUS_DOCKED)
 	{
@@ -6431,9 +6436,8 @@ static GLfloat		sBaseMass = 0.0;
 	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_OPTIONS;
 
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: YES];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 	[self noteGUIDidChangeFrom:oldScreen to:gui_screen]; 
 }
 
@@ -6500,6 +6504,8 @@ static NSString *last_outfitting_key=nil;
 
 - (void) setGuiToEquipShipScreen:(int)skipParam selectingFacingFor:(NSString *)eqKeyForSelectFacing
 {
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+	
 	missiles = [self countMissiles];
 	OOEntityStatus searchStatus; // use STATUS_TEST, STATUS_DEAD & STATUS_ACTIVE
 	NSString *showKey = nil;
@@ -6821,9 +6827,8 @@ static NSString *last_outfitting_key=nil;
 	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_EQUIP_SHIP;
 
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: YES];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
 
@@ -6879,6 +6884,8 @@ static NSString *last_outfitting_key=nil;
 	NSString 		*text = nil;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	int 			msgLine = 2;
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
 
 	if (justCobra)
 	{
@@ -7004,10 +7011,9 @@ static NSString *last_outfitting_key=nil;
 	}
 	[[OOMusicController sharedController] playThemeMusic];
 	
-	[self setShowDemoShips: YES];
-	[UNIVERSE setDisplayCursor: NO];
+	[self setShowDemoShips:YES];
 	[gui setBackgroundTextureKey:@"intro"];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 }
 
 
@@ -7581,6 +7587,8 @@ static NSString *last_outfitting_key=nil;
 	gui_screen = GUI_SCREEN_MARKET;
 	BOOL			guiChanged = (oldScreen != gui_screen);
 	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+	
 	// fix problems with economies in witchspace
 	if ([UNIVERSE station] == nil)
 	{
@@ -7673,8 +7681,7 @@ static NSString *last_outfitting_key=nil;
 	[[UNIVERSE gameView] clearMouse];
 	
 	[self setShowDemoShips:NO];
-	[UNIVERSE setDisplayCursor:[self status] == STATUS_DOCKED];
-	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:[self status] == STATUS_DOCKED];
 	
 	if (guiChanged)
 	{

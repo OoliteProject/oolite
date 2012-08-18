@@ -55,12 +55,13 @@ MA 02110-1301, USA.
 	semantics may vary across platforms.
 	
 	The primary distinction is between UI screens and flight screens. Flight
-	screens are screens 1-4 when neither docked nor paused. Every other screen
-	is a UI screen, including screens 1-4 when paused in flight.
+	screens are screens 1-4 when neither docked nor paused, or the break
+	pattern screen. Every other screen is a UI screen, including screens 1-4
+	when paused in flight.
 	
 	UI screens are divided between ones with clickable controls (like the
-	star chart, outfitting screen or pause screen), and ones without (like the
-	manifest screen and system data screen).
+	star chart, outfitting screen and config screen), and ones without (like
+	the manifest screen, system data screen and pause screen).
 	
 	Flight screens have two modes, one for mouse control enabled and one for
 	mouse control disabled.
@@ -136,6 +137,8 @@ typedef enum
 
 - (OOMouseInteractionMode) mouseInteractionMode;
 - (void) setMouseInteractionMode:(OOMouseInteractionMode)mode;
+- (void) setMouseInteractionModeForFlight;	// Chooses mouse control mode appropriately.
+- (void) setMouseInteractionModeForUIWithMouseInteraction:(BOOL)interaction;
 
 - (void) performGameTick:(id)sender;
 
@@ -225,3 +228,8 @@ typedef enum
 #define OO_DEBUG_PUSH_PROGRESS(...)	do {} while (0)
 #define OO_DEBUG_POP_PROGRESS()		do {} while (0)
 #endif
+
+
+NSString *OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
+BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode);
+BOOL OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode);

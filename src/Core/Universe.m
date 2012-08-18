@@ -2357,7 +2357,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		[gui setColor:[OOColor whiteColor] forRow:19];
 	}
 	
-	[self setViewDirection:VIEW_GUI_DISPLAY];
+	[self enterGUIViewModeWithMouseInteraction:NO];
 	if (!justCobra)
 	{
 		demo_stage = DEMO_SHOW_THING;
@@ -3857,8 +3857,14 @@ static const OOMatrix	starboard_matrix =
 	float overallAlpha = [[PLAYER hud] overallAlpha];
 	if (displayGUI)
 	{
-		if (displayCursor)  cursor_row = [gui drawGUI:1.0 drawCursor:YES];
-		else  [gui drawGUI:1.0 drawCursor:NO];
+		if ([[self gameController] mouseInteractionMode] == MOUSE_MODE_UI_SCREEN_WITH_INTERACTION)
+		{
+			cursor_row = [gui drawGUI:1.0 drawCursor:YES];
+		}
+		else
+		{
+			[gui drawGUI:1.0 drawCursor:NO];
+		}
 	}
 	
 	[message_gui drawGUI:[message_gui alpha] * overallAlpha drawCursor:NO];
@@ -5042,57 +5048,62 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
+- (OOViewID) viewDirection
+{
+	return viewDirection;
+}
+
+
 - (void) setViewDirection:(OOViewID) vd
 {
 	NSString		*ms = nil;
-	BOOL			mouseDelta = YES;
+	BOOL			guiSelected = NO;
 	
-	if ((viewDirection == vd)&&(vd != VIEW_CUSTOM)&&(!displayGUI))
+	if ((viewDirection == vd) && (vd != VIEW_CUSTOM) && (!displayGUI))
 		return;
 	
 	switch (vd)
 	{
 		case VIEW_FORWARD:
 			ms = DESC(@"forward-view-string");
-			displayGUI = NO;   // switch off any text displays
 			break;
 			
 		case VIEW_AFT:
 			ms = DESC(@"aft-view-string");
-			displayGUI = NO;   // switch off any text displays
 			break;
 			
 		case VIEW_PORT:
 			ms = DESC(@"port-view-string");
-			displayGUI = NO;   // switch off any text displays
 			break;
 			
 		case VIEW_STARBOARD:
 			ms = DESC(@"starboard-view-string");
-			displayGUI = NO;   // switch off any text displays
 			break;
 			
 		case VIEW_CUSTOM:
 			ms = [PLAYER customViewDescription];
-			displayGUI = NO;   // switch off any text displays
 			break;
 			
 		case VIEW_GUI_DISPLAY:
 			[self setDisplayText:YES];
 			[self setMainLightPosition:(Vector){ DEMO_LIGHT_POSITION }];
-			mouseDelta = NO;
-
+			guiSelected = YES;
 			break;
 			
 		default:
-			mouseDelta = NO;
+			guiSelected = YES;
 			break;
 	}
-#if OOLITE_SDL
-	[gameView setMouseInDeltaMode: mouseDelta];
-#else
-	(void)mouseDelta;
-#endif
+	
+	if (guiSelected)
+	{
+		[[self gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+	}
+	else
+	{
+		displayGUI = NO;   // switch off any text displays
+		[[self gameController] setMouseInteractionModeForFlight];
+	}
 	
 	if (viewDirection != vd || viewDirection == VIEW_CUSTOM)
 	{
@@ -5107,9 +5118,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (OOViewID) viewDirection
+- (void) enterGUIViewModeWithMouseInteraction:(BOOL)mouseInteraction
 {
-	return viewDirection;
+	[self setViewDirection:VIEW_GUI_DISPLAY];
+	[[self gameController] setMouseInteractionModeForUIWithMouseInteraction:mouseInteraction];
 }
 
 
@@ -8554,24 +8566,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
-- (void) setDisplayCursor:(BOOL) value
-{
-	displayCursor = !!value;
-	
-#ifdef GNUSTEP
-	
-	[gameView autoShowMouse];
-	
-#endif
-}
-
-
-- (BOOL) displayCursor
-{
-	return displayCursor;
-}
-
-
 - (void) setDisplayText:(BOOL) value
 {
 	displayGUI = !!value;
@@ -9052,7 +9046,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	//       reinitialize itself - mwerle 20081107.
 	[OOShipRegistry reload];
 	[[self gameController] setGamePaused:NO];
-	[[self gameController] setMouseInteractionMode:MOUSE_MODE_UI_SCREEN_NO_INTERACTION];
+	[[self gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
 	[PLAYER setSpeed:0.0];
 	
 	if (strictChanged)
@@ -9151,7 +9145,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	// Player init above finishes initialising all standard player ship properties. Now that the base mass is set, we can run setUpSpace! 
 	[self setUpSpace];
 
-	[self setViewDirection:VIEW_GUI_DISPLAY];
+	[self enterGUIViewModeWithMouseInteraction:NO];
 	[player setPosition:[[self station] position]];
 	[player setOrientation:kIdentityQuaternion];
 }

@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOFilteringEnumerator.h"
 
 #import "Universe.h"
+#import "GameController.h"
 #import "HeadUpDisplay.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
@@ -1894,7 +1895,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		// undock the player!
 		[player leaveDock:self];
 		[UNIVERSE setViewDirection:VIEW_FORWARD];
-		[UNIVERSE setDisplayCursor:NO];
+		[[UNIVERSE gameController] setMouseInteractionModeForFlight];
 		[player warnAboutHostiles];	// sound a klaxon
 	}
 	

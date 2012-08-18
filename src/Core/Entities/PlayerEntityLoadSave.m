@@ -535,7 +535,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[UNIVERSE setAutoSaveNow:NO];
 	
 	[self setStatus:STATUS_DOCKED];
-	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
 	dockedStation = [UNIVERSE station];
 	if (dockedStation)
@@ -751,9 +751,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	
-	[self setShowDemoShips: YES];
-	[UNIVERSE setDisplayCursor: YES];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:YES];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
 
@@ -784,8 +783,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gameView supressKeysUntilKeyUp];
 	
 	[self setShowDemoShips:YES];
-	[UNIVERSE setDisplayCursor:YES];
-	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
 
@@ -819,10 +817,9 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setForegroundTextureKey:@"overwrite_overlay"];
 	[gui setBackgroundTextureKey:@"load_save"];
 	
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayCursor: NO];
-	[gameView setStringInput: gvStringInputNo];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[gameView setStringInput:gvStringInputNo];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];	// FIXME: should be YES, but was NO before introducing new mouse mode stuff. If set to YES, choices can be selected but not activated.
 }
 
 

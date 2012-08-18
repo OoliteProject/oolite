@@ -205,7 +205,6 @@ enum
 	
 	BOOL					displayGUI;
 	BOOL					wasDisplayGUI;
-	BOOL					displayCursor;
 	
 	BOOL					autoSaveNow;
 	BOOL					autoSave;
@@ -507,8 +506,9 @@ enum
 - (NSString*) collisionDescription;
 - (void) dumpCollisions;
 
-- (void) setViewDirection:(OOViewID) vd;
 - (OOViewID) viewDirection;
+- (void) setViewDirection:(OOViewID)vd;
+- (void) enterGUIViewModeWithMouseInteraction:(BOOL)mouseInteraction;	// Use instead of setViewDirection:VIEW_GUI_DISPLAY
 
 - (NSString *) soundNameForCustomSoundKey:(NSString *)key;
 - (NSDictionary *) screenTextureDescriptorForKey:(NSString *)key;
@@ -642,9 +642,6 @@ enum
 - (GuiDisplayGen *) messageGUI;
 
 - (void) resetCommsLogColor;
-
-- (void) setDisplayCursor:(BOOL) value;
-- (BOOL) displayCursor;
 
 - (void) setDisplayText:(BOOL) value;
 - (BOOL) displayGUI;

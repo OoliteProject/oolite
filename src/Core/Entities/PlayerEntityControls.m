@@ -62,6 +62,7 @@ MA 02110-1301, USA.
 #import "OODebugSupport.h"
 #import "OODebugMonitor.h"
 
+
 static BOOL				jump_pressed;
 static BOOL				hyperspace_pressed;
 static BOOL				galhyperspace_pressed;
@@ -449,7 +450,7 @@ static NSTimeInterval	time_last_frame;
 		[UNIVERSE removeDemoShips];
 	}
 	[(MyOpenGLView *)[UNIVERSE gameView] allowStringInput:NO];
-	[UNIVERSE setDisplayCursor:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
 
@@ -473,36 +474,37 @@ static NSTimeInterval	time_last_frame;
 	
 	// does fullscreen / quit / snapshot
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
+	GameController *gameController = [UNIVERSE gameController];
 	
 	NS_DURING
-		//  command-key controls
-		if ([[UNIVERSE gameController] inFullScreenMode])
+	//  command-key controls
+	#if !OOLITE_MAC_OS_X || !OOLITE_64_BIT	// On 64-bit Macs, these are handled by normal menu shortcuts.
+		if ([gameController inFullScreenMode])
 		{
 			exceptionContext = @"command key controls";
-#if !OOLITE_MAC_OS_X || !OOLITE_64_BIT	// On 64-bit Macs, this is handled by normal menu shortcuts.
 			if ([gameView isCommandFDown])
 			{
 				[gameView clearCommandF];
-				[[UNIVERSE gameController] exitFullScreenMode];
+				[gameController exitFullScreenMode];
 				if (mouse_control_on)
 				{
 					[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
 					mouse_control_on = NO;
 				}
 			}
-#endif
 			
 			if ([gameView isCommandQDown])
 			{
-				[[UNIVERSE gameController] pauseFullScreenModeToPerform:@selector(exitAppCommandQ) onTarget:[UNIVERSE gameController]];
+				[gameController pauseFullScreenModeToPerform:@selector(exitAppCommandQ) onTarget:gameController];
 			}
 		}
+	#endif
 		
 	#if OOLITE_WINDOWS
 		if ( ([gameView isDown:'Q']) )
 		{
 			exceptionContext = @"windows - Q";
-			[[UNIVERSE gameController] exitAppWithContext:@"Q pressed [Windows]"];
+			[gameController exitAppWithContext:@"Q pressed [Windows]"];
 			exit(0); // Force it
 		}
 	#endif
@@ -513,11 +515,11 @@ static NSTimeInterval	time_last_frame;
 			exceptionContext = @"error handling mode";
 			if ([gameView isDown:113]||[gameView isDown:81]||[gameView isDown:27])   // 'q' | 'Q' | esc
 			{
-				[[UNIVERSE gameController] exitAppWithContext:@"Q or escape pressed in error handling mode"];
+				[gameController exitAppWithContext:@"Q or escape pressed in error handling mode"];
 			}
 		}
 		
-		if ([[UNIVERSE gameController] isGamePaused])
+		if ([gameController isGamePaused])
 		{
 			// What's the status?
 			switch ([self status])
@@ -534,12 +536,11 @@ static NSTimeInterval	time_last_frame;
 						// In all other cases we can't handle pause. Unpause immediately.
 						script_time = saved_script_time;
 						[gameView allowStringInput:NO];
-						[UNIVERSE setDisplayCursor:NO];
 						if ([UNIVERSE pauseMessageVisible])
 						{
 							[UNIVERSE clearPreviousMessage];	// remove the 'paused' message.
 						}
-						[[UNIVERSE gameController] setGamePaused:NO];
+						[gameController setGamePaused:NO];
 					}
 					break;
 			}
@@ -579,7 +580,7 @@ static NSTimeInterval	time_last_frame;
 	#if OO_DEBUG
 		allowMouseControl = YES;
 	#else
-		allowMouseControl = [[UNIVERSE gameController] inFullScreenMode] ||
+		allowMouseControl = [gameController inFullScreenMode] ||
 					[[NSUserDefaults standardUserDefaults] boolForKey:@"mouse-control-in-windowed-mode"];
 	#endif
 		
@@ -610,6 +611,10 @@ static NSTimeInterval	time_last_frame;
 						[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
 					}
 				}
+				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
+				{
+					[gameController setMouseInteractionModeForFlight];
+				}
 				m_key_pressed = YES;
 			}
 			else
@@ -623,11 +628,16 @@ static NSTimeInterval	time_last_frame;
 			{
 				mouse_control_on = NO;
 				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+				
+				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
+				{
+					[gameController setMouseInteractionModeForFlight];
+				}
 			}
 		}
 		
 		// HUD toggle
-		if ([gameView isDown:key_hud_toggle] && [[UNIVERSE gameController] isGamePaused])	// 'o' key while paused
+		if ([gameView isDown:key_hud_toggle] && [gameController isGamePaused])	// 'o' key while paused
 		{
 			exceptionContext = @"toggle HUD";
 			if (!hide_hud_pressed)
@@ -728,7 +738,7 @@ static NSTimeInterval	time_last_frame;
 			//  view keys
 			[self pollViewControls];
 			
-			if (![UNIVERSE displayCursor])
+			if (OOMouseInteractionModeIsFlightMode([[UNIVERSE gameController] mouseInteractionMode]))
 			{
 				exceptionContext = @"afterburner";
 				if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel]) &&
@@ -1480,7 +1490,6 @@ static NSTimeInterval	time_last_frame;
 							break;
 					}
 					[gameView allowStringInput:NO];
-					[UNIVERSE setDisplayCursor:NO];
 					[UNIVERSE clearPreviousMessage];
 					[UNIVERSE setViewDirection:saved_view_direction];
 					// make sure the light comes from the right direction after resuming from pause!
@@ -3316,7 +3325,6 @@ static BOOL autopilot_pause;
 				{
 					script_time = saved_script_time;
 					[gameView allowStringInput:NO];
-					[UNIVERSE setDisplayCursor:NO];
 					if ([UNIVERSE pauseMessageVisible])
 					{
 						[UNIVERSE clearPreviousMessage];	// remove the 'paused' message.
