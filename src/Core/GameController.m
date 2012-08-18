@@ -717,16 +717,17 @@ static NSMutableArray *sMessageStack;
 		[self setPlayerFileDirectory:filename];
 		return YES;
 	}
-	if ([[filename pathExtension] isEqualToString:@"oxp"] ||
-		[[filename pathExtension] isEqual:@"oolite_expansion_pack"])
+	if ([[filename pathExtension] isEqualToString:@"oxp"])
 	{
 		BOOL dir_test;
 		[[NSFileManager defaultManager] fileExistsAtPath:filename isDirectory:&dir_test];
 		if (dir_test)
 		{
-			if (!expansionPathsToInclude)
-				expansionPathsToInclude = [[NSMutableArray alloc] initWithCapacity: 4];	// retained
-			[expansionPathsToInclude addObject: filename];
+			if (expansionPathsToInclude == nil)
+			{
+				expansionPathsToInclude = [[NSMutableArray alloc] init];
+			}
+			[expansionPathsToInclude addObject:filename];
 			return YES;
 		}
 	}
