@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOFunctionAttributes.h"
 #import "OOFullScreenController.h"
+#import "OOMouseInteractionMode.h"
 
 
 #if OOLITE_HAVE_APPKIT
@@ -47,32 +48,6 @@ MA 02110-1301, USA.
 
 // TEMP: whether to use separate OOFullScreenController object, will hopefully be used for all builds soon.
 #define OO_USE_FULLSCREEN_CONTROLLER	OOLITE_MAC_OS_X
-
-
-/*
-	OOMouseInteractionMode
-	Mouse interaction states, defined in game-centric terms. The precise
-	semantics may vary across platforms.
-	
-	The primary distinction is between UI screens and flight screens. Flight
-	screens are screens 1-4 when neither docked nor paused, or the break
-	pattern screen. Every other screen is a UI screen, including screens 1-4
-	when paused in flight.
-	
-	UI screens are divided between ones with clickable controls (like the
-	star chart, outfitting screen and config screen), and ones without (like
-	the manifest screen, system data screen and pause screen).
-	
-	Flight screens have two modes, one for mouse control enabled and one for
-	mouse control disabled.
-*/
-typedef enum
-{
-	MOUSE_MODE_UI_SCREEN_NO_INTERACTION,
-	MOUSE_MODE_UI_SCREEN_WITH_INTERACTION,
-	MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL,
-	MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL
-} OOMouseInteractionMode;
 
 
 @interface GameController: NSObject
@@ -228,8 +203,3 @@ typedef enum
 #define OO_DEBUG_PUSH_PROGRESS(...)	do {} while (0)
 #define OO_DEBUG_POP_PROGRESS()		do {} while (0)
 #endif
-
-
-NSString *OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
-BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode);
-BOOL OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode);

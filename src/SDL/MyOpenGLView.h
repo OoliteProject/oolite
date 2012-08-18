@@ -24,10 +24,11 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
+#import "OOMouseInteractionMode.h"
 
 #include <SDL.h>
 
-#define OpenGLViewSuperClass	NSObject
+
 #define MOUSEVIRTUALSTICKSENSITIVITYFACTOR	0.95f
 #define MOUSEX_MAXIMUM 0.6
 #define MOUSEY_MAXIMUM 0.6
@@ -95,7 +96,7 @@ enum KeyboardType
 
 extern int debug;
 
-@interface MyOpenGLView : OpenGLViewSuperClass
+@interface MyOpenGLView : NSObject
 {
 	GameController		*gameController;
 	BOOL				keys[NUM_KEYS];
@@ -173,6 +174,8 @@ extern int debug;
 
 - (GameController *) gameController;
 - (void) setGameController:(GameController *) controller;
+
+- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
 
 - (void) initialiseGLWithSize:(NSSize) v_size;
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode;

@@ -127,6 +127,14 @@ MA 02110-1301, USA.
 }
 
 
+- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode
+{
+	NSAssert(self.fullScreenMode, @"%s called in wrong state.", __FUNCTION__);
+	
+	[self.gameView noteMouseInteractionModeChangedFrom:oldMode to:newMode];
+}
+
+
 #pragma mark - Actual full screen mode handling
 
 - (void) beginFullScreenMode

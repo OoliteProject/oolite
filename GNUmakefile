@@ -362,6 +362,7 @@ OOLITE_MISC_FILES = \
     OOCharacter.m \
     OOCocoa.m \
     OOEquipmentType.m \
+    OOMouseInteractionMode.m \
     OORoleSet.m \
     OOShipRegistry.m \
     OOSpatialReference.m \

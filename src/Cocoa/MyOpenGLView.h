@@ -24,8 +24,8 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
+#import "OOMouseInteractionMode.h"
 
-#define OpenGLViewSuperClass	NSOpenGLView
 
 #define MAX_CLEAR_DEPTH		100000000.0
 // 100 000 km.
@@ -82,7 +82,7 @@ enum StringInput
 
 extern int debug;
 
-@interface MyOpenGLView : OpenGLViewSuperClass
+@interface MyOpenGLView : NSOpenGLView
 {
 @private
 	GameController		*gameController;
@@ -131,6 +131,8 @@ extern int debug;
 
 - (GameController *) gameController;
 - (void) setGameController:(GameController *) controller;
+
+- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
 
 - (void) initialiseGLWithSize:(NSSize) v_size;
 

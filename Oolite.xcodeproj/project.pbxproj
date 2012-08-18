@@ -479,6 +479,8 @@
 		1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E8780BCE8EB100CD5C13 /* libz.dylib */; };
 		1A71EA8C0BCF8C6B00CD5C13 /* OOXMLExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161102099544380037C2E1 /* OOXMLExtensions.m */; };
 		1A71EA8D0BCF8C6C00CD5C13 /* OOXMLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161107099544390037C2E1 /* OOXMLExtensions.h */; };
+		1A72F86515E002E200281337 /* OOMouseInteractionMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A72F86315E002E100281337 /* OOMouseInteractionMode.h */; };
+		1A72F86615E002E200281337 /* OOMouseInteractionMode.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A72F86415E002E100281337 /* OOMouseInteractionMode.m */; };
 		1A736BD30C61E9370097AC37 /* OOJSPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A736BD10C61E9370097AC37 /* OOJSPlayer.h */; };
 		1A736BD40C61E9370097AC37 /* OOJSPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A736BD20C61E9370097AC37 /* OOJSPlayer.m */; };
 		1A736C7F0C61FD220097AC37 /* OOJSCall.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A736C7D0C61FD220097AC37 /* OOJSCall.h */; };
@@ -1750,6 +1752,8 @@
 		1A71D8A80E5F17410088C456 /* OOSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSoundSource.m; sourceTree = "<group>"; };
 		1A71D8A90E5F17410088C456 /* OOSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundSource.h; sourceTree = "<group>"; };
 		1A71E8780BCE8EB100CD5C13 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
+		1A72F86315E002E100281337 /* OOMouseInteractionMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMouseInteractionMode.h; sourceTree = "<group>"; };
+		1A72F86415E002E100281337 /* OOMouseInteractionMode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMouseInteractionMode.m; sourceTree = "<group>"; };
 		1A736BD10C61E9370097AC37 /* OOJSPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlayer.h; sourceTree = "<group>"; };
 		1A736BD20C61E9370097AC37 /* OOJSPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSPlayer.m; sourceTree = "<group>"; };
 		1A736C7D0C61FD220097AC37 /* OOJSCall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSCall.h; sourceTree = "<group>"; };
@@ -3204,6 +3208,8 @@
 				2516110B099544390037C2E1 /* GameController.h */,
 				2516110C099544390037C2E1 /* GameController.m */,
 				1A9FCF2515DAC9BC00E965D5 /* GameController+FullScreen.m */,
+				1A72F86315E002E100281337 /* OOMouseInteractionMode.h */,
+				1A72F86415E002E100281337 /* OOMouseInteractionMode.m */,
 				1AE1A93F15D2C4E4003F4D56 /* OOFullScreenController.h */,
 				1AE1A94015D2C4E4003F4D56 /* OOFullScreenController.m */,
 				1A5218D80D72EC21000865E9 /* OOSpatialReference.h */,
@@ -3523,6 +3529,7 @@
 				1A7BF96E15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h in Headers */,
 				1A9FCF2315DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h in Headers */,
 				1A97528F15DECA6600108FA5 /* OOFullScreenWindow.h in Headers */,
+				1A72F86515E002E200281337 /* OOMouseInteractionMode.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3993,6 +4000,7 @@
 				1A9FCF2415DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m in Sources */,
 				1A9FCF2615DAC9BC00E965D5 /* GameController+FullScreen.m in Sources */,
 				1A97529015DECA6600108FA5 /* OOFullScreenWindow.m in Sources */,
+				1A72F86615E002E200281337 /* OOMouseInteractionMode.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

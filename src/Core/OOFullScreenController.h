@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
+#import "OOMouseInteractionMode.h"
 
 @class MyOpenGLView;
 
@@ -85,5 +86,7 @@ MA 02110-1301, USA.
 
 - (BOOL) setDisplayWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)refresh;
 - (NSDictionary *) findDisplayModeForWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)d_refresh;
+
+- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
 
 @end

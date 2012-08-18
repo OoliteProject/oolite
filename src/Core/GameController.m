@@ -144,19 +144,22 @@ static GameController *sSharedController = nil;
 
 - (void) setMouseInteractionMode:(OOMouseInteractionMode)mode
 {
-#ifndef NDEBUG
-	if (mode != _mouseMode)
-	{
-		OOLog(@"input.mouseMode.changed", @"Mouse interaction mode changed from %@ to %@", OOStringFromMouseInteractionMode(_mouseMode), OOStringFromMouseInteractionMode(mode));
-	}
-#endif
+	OOMouseInteractionMode oldMode = _mouseMode;
+	if (mode == oldMode)  return;
 	
 	_mouseMode = mode;
+	OOLog(@"input.mouseMode.changed", @"Mouse interaction mode changed from %@ to %@", OOStringFromMouseInteractionMode(oldMode), OOStringFromMouseInteractionMode(mode));
 	
-#if OOLITE_SDL
-	[gameView autoShowMouse];
-	[gameView setMouseInDeltaMode:OOMouseInteractionModeIsFlightMode(mode)];
+#if OO_USE_FULLSCREEN_CONTROLLER
+	if ([self inFullScreenMode])
+	{
+		[_fullScreenController noteMouseInteractionModeChangedFrom:oldMode to:mode];
+	}
+	else
 #endif
+	{
+		[[self gameView] noteMouseInteractionModeChangedFrom:oldMode to:mode];
+	}
 }
 
 
@@ -944,48 +947,6 @@ static NSMutableArray *sMessageStack;
 }
 
 @end
-
-
-NSString *OOStringFromMouseInteractionMode(OOMouseInteractionMode mode)
-{
-	switch (mode)
-	{
-		case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:	return @"UI_SCREEN_NO_INTERACTION";
-		case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:	return @"UI_SCREEN_WITH_INTERACTION";
-		case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:	return @"FLIGHT_NO_MOUSE_CONTROL";
-		case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:	return @"FLIGHT_WITH_MOUSE_CONTROL";
-	}
-	
-	return [NSString stringWithFormat:@"<unknown mode %u>", mode];
-}
-
-
-BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode)
-{
-	switch (mode)
-	{
-		case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:	return YES;
-		case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:	return YES;
-		case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:	return NO;
-		case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:	return NO;
-	}
-	
-	return NO;
-}
-
-
-BOOL OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode)
-{
-	switch (mode)
-	{
-		case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:	return NO;
-		case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:	return NO;
-		case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:	return YES;
-		case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:	return YES;
-	}
-	
-	return NO;
-}
 
 
 #if OOLITE_MAC_OS_X

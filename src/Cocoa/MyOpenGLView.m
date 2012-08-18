@@ -45,6 +45,11 @@ static NSString * kOOLogKeyUp				= @"input.keyMapping.keyPress.keyUp";
 static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 
+static void GetDesiredCursorState(OOMouseInteractionMode mode, BOOL *outHidden, BOOL *outObscured);
+static void ApplyCursorState(OOMouseInteractionMode mode);
+static void UnapplyCursorState(OOMouseInteractionMode mode);
+
+
 @interface MyOpenGLView(Internal)
 
 - (int) translateKeyCode:(int)input;
@@ -239,6 +244,13 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 - (void) setGameController:(GameController *) controller
 {
 	gameController = controller;
+}
+
+
+- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode
+{
+	UnapplyCursorState(oldMode);
+	ApplyCursorState(newMode);
 }
 
 
@@ -1136,5 +1148,32 @@ FAIL:
 }
 
 #endif
+
+
+static void GetDesiredCursorState(OOMouseInteractionMode mode, BOOL *outHidden, BOOL *outObscured)
+{
+	NSCParameterAssert(outHidden != NULL && outObscured != NULL);
+	
+	*outHidden = (mode == MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL);
+	*outObscured = (mode == MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL);
+}
+
+
+static void ApplyCursorState(OOMouseInteractionMode mode)
+{
+	BOOL hidden, obscured;
+	GetDesiredCursorState(mode, &hidden, &obscured);
+	if (hidden)  [NSCursor hide];
+	if (obscured)  [NSCursor setHiddenUntilMouseMoves:YES];
+}
+
+
+static void UnapplyCursorState(OOMouseInteractionMode mode)
+{
+	BOOL hidden, obscured;
+	GetDesiredCursorState(mode, &hidden, &obscured);
+	if (hidden)  [NSCursor unhide];
+	if (obscured)  [NSCursor setHiddenUntilMouseMoves:NO];
+}
 
 @end

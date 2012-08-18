@@ -93,4 +93,10 @@ MA 02110-1301, USA.
 	return nil;
 }
 
+
+- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode
+{
+	
+}
+
 @end

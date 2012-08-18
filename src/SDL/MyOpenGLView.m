@@ -446,6 +446,13 @@ MA 02110-1301, USA.
 }
 
 
+- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode
+{
+	[self autoShowMouse];
+	[self setMouseInDeltaMode:OOMouseInteractionModeIsFlightMode(mode)];
+}
+
+
 - (BOOL) inFullScreenMode
 {
 	return fullScreen;
