@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 
-#define SUPRESS_BLANKING_WINDOWS		( 0 && OO_DEBUG)
+#define SUPRESS_BLANKING_WINDOWS		( 1 && OO_DEBUG)
 
 
 @interface OOMacSnowLeopardFullScreenController ()
