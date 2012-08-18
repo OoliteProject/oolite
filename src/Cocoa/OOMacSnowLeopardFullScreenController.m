@@ -154,6 +154,7 @@ MA 02110-1301, USA.
 	[window setMovable:YES];
 	window.canBecomeKeyWindow = YES;
 	window.canBecomeMainWindow = YES;
+	window.acceptsMouseMovedEvents = YES;
 #if !OO_DEBUG
 	/*
 		Leaving a full-screen window visible in the background is anti-social,
