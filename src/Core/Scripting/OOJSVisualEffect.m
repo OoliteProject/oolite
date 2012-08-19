@@ -68,14 +68,18 @@ static JSClass sVisualEffectClass =
 enum
 {
 	// Property IDs
-	kVisualEffect_isBreakPattern
+	kVisualEffect_isBreakPattern,
+	kVisualEffect_scannerDisplayColor1,
+	kVisualEffect_scannerDisplayColor2
 };
 
 
 static JSPropertySpec sVisualEffectProperties[] =
 {
 	// JS name						ID									flags
-	{ "isBreakPatterns",	kVisualEffect_isBreakPattern,	OOJS_PROP_READWRITE_CB },
+	{ "isBreakPattern",	kVisualEffect_isBreakPattern,	OOJS_PROP_READWRITE_CB },
+	{ "scannerDisplayColor1", kVisualEffect_scannerDisplayColor1, OOJS_PROP_READWRITE_CB },
+	{ "scannerDisplayColor2", kVisualEffect_scannerDisplayColor2, OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 
@@ -152,6 +156,7 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 	OOJS_NATIVE_ENTER(context)
 	
 	OOVisualEffectEntity				*entity = nil;
+	id result = nil;
 	
 	if (!JSVisualEffectGetVisualEffectEntity(context, this, &entity))  return NO;
 	if (entity == nil)  { *value = JSVAL_VOID; return YES; }
@@ -162,10 +167,23 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 			*value = OOJSValueFromBOOL([entity isBreakPattern]);
 
 			return YES;
+
+		case kVisualEffect_scannerDisplayColor1:
+			result = [[entity scannerDisplayColor1] normalizedArray];
+			break;
+			
+		case kVisualEffect_scannerDisplayColor2:
+			result = [[entity scannerDisplayColor2] normalizedArray];
+			break;
+
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sVisualEffectProperties);
 			return NO;
 	}
+
+	*value = OOJSValueFromNativeObject(context, result);
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
@@ -179,6 +197,7 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 	
 	OOVisualEffectEntity				*entity = nil;
 	JSBool						bValue;
+	OOColor *colorForScript;
 //	int32						iValue;
 	
 	if (!JSVisualEffectGetVisualEffectEntity(context, this, &entity)) return NO;
@@ -190,6 +209,24 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setIsBreakPattern:bValue];
+				return YES;
+			}
+			break;
+
+		case kVisualEffect_scannerDisplayColor1:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setScannerDisplayColor1:colorForScript];
+				return YES;
+			}
+			break;
+			
+		case kVisualEffect_scannerDisplayColor2:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setScannerDisplayColor2:colorForScript];
 				return YES;
 			}
 			break;

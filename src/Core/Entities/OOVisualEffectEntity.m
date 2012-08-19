@@ -126,10 +126,10 @@ MA 02110-1301, USA.
 	[self clearSubEntities];
 	[self setUpSubEntities];
 
-//	[self setScannerDisplayColor1:nil];
-//	[self setScannerDisplayColor2:nil];
+	[self setScannerDisplayColor1:nil];
+	[self setScannerDisplayColor2:nil];
 
-	scanClass = CLASS_NO_DRAW; // TODO: allow appearance on scanner?
+	scanClass = CLASS_VISUAL_EFFECT;
 
 	[self setStatus:STATUS_EFFECT];
 
@@ -144,8 +144,8 @@ MA 02110-1301, USA.
 	[self clearSubEntities];
 	DESTROY(_effectKey);
 	DESTROY(effectinfoDictionary);
-//	DESTROY(scanner_display_color1);
-//	DESTROY(scanner_display_color2);
+	DESTROY(scanner_display_color1);
+	DESTROY(scanner_display_color2);
 
 	[super dealloc];
 }
@@ -360,7 +360,19 @@ MA 02110-1301, USA.
 }
 
 
-/*- (void)setScannerDisplayColor1:(OOColor *)color
+- (OOColor *)scannerDisplayColor1
+{
+	return [[scanner_display_color1 retain] autorelease];
+}
+
+
+- (OOColor *)scannerDisplayColor2
+{
+	return [[scanner_display_color2 retain] autorelease];
+}
+
+
+- (void)setScannerDisplayColor1:(OOColor *)color
 {
 	DESTROY(scanner_display_color1);
 	
@@ -375,7 +387,39 @@ MA 02110-1301, USA.
 	
 	if (color == nil)  color = [OOColor colorWithDescription:[effectinfoDictionary objectForKey:@"scanner_display_color2"]];
 	scanner_display_color2 = [color retain];
-	}*/
+}
+
+static GLfloat default_color[4] =	{ 0.0, 0.0, 0.0, 0.0};
+static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
+
+- (GLfloat *) scannerDisplayColorForShip:(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2
+{
+	
+	if (scannerDisplayColor1 || scannerDisplayColor2)
+	{
+		if (scannerDisplayColor1 && !scannerDisplayColor2)
+		{
+			[scannerDisplayColor1 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+		}
+		
+		if (!scannerDisplayColor1 && scannerDisplayColor2)
+		{
+			[scannerDisplayColor2 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+		}
+		
+		if (scannerDisplayColor1 && scannerDisplayColor2)
+		{
+			if (flash)
+				[scannerDisplayColor1 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+			else
+				[scannerDisplayColor2 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+		}
+		
+		return scripted_color;
+	}
+
+	return default_color; // transparent black if not specified
+}
 
 
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent

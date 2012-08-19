@@ -11082,6 +11082,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		case CLASS_WORMHOLE:
 		case CLASS_ROCK:
 		case CLASS_CARGO:
+		case CLASS_VISUAL_EFFECT:
 		case CLASS_BUOY:
 			// does not normally cascade
 			if ((fuel > MIN_FUEL) || isStation) 

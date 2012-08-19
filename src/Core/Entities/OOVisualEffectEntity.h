@@ -43,8 +43,8 @@
 
 	GLfloat					_profileRadius; // for frustum culling
 
-//	OOColor					*scanner_display_color1;
-//	OOColor					*scanner_display_color2;
+	OOColor					*scanner_display_color1;
+	OOColor					*scanner_display_color2;
 
 @private
 	NSString				*_effectKey;
@@ -69,9 +69,11 @@
 - (NSEnumerator *)effectSubEntityEnumerator;
 - (NSEnumerator *)flasherEnumerator;
 
-// TODO: optional appearance on scanners
-/*- (void)setScannerDisplayColor1:(OOColor *)color;
-	- (void)setScannerDisplayColor2:(OOColor *)color; */
+- (OOColor *)scannerDisplayColor1;
+- (OOColor *)scannerDisplayColor2;
+- (void)setScannerDisplayColor1:(OOColor *)color;
+- (void)setScannerDisplayColor2:(OOColor *)color; 
+- (GLfloat *) scannerDisplayColorForShip:(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2;
 
 // convenience for shaders
 // FIXME: make this actually work

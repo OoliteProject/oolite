@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
 #import "StationEntity.h"
+#import "OOVisualEffectEntity.h"
 #import "OOQuiriumCascadeEntity.h"
 #import "Universe.h"
 #import "OOTrumble.h"
@@ -905,6 +906,7 @@ static BOOL hostiles;
 						case CLASS_ROCK:
 						case CLASS_CARGO:
 						case CLASS_MINE:
+						case CLASS_VISUAL_EFFECT:
 							break;
 							
 						case CLASS_THARGOID:
@@ -966,7 +968,13 @@ static BOOL hostiles;
 					GLfloat* base_col = [ship scannerDisplayColorForShip:player :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
-				
+				else if ([drawthing isVisualEffect])
+				{
+					OOVisualEffectEntity *vis = (OOVisualEffectEntity *)drawthing;
+					GLfloat* base_col = [vis scannerDisplayColorForShip:flash :[vis scannerDisplayColor1] :[vis scannerDisplayColor2]];
+					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
+				}
+
 				if ([drawthing isWormhole])
 				{
 					col[0] = blue_color[0];	col[1] = (flash)? 1.0 : blue_color[1];	col[2] = blue_color[2];	col[3] = alpha * blue_color[3];
@@ -977,6 +985,9 @@ static BOOL hostiles;
 				
 				switch (drawClass)
 				{
+					case CLASS_VISUAL_EFFECT:
+						break;
+
 					case CLASS_THARGOID:
 						foundHostiles = YES;
 						break;

@@ -329,7 +329,7 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 			if ([entity isShip] && ![entity isPlayer])
 			{
 				OOScanClass newClass = OOScanClassFromJSValue(context, *value);
-				if (newClass == CLASS_NOT_SET || newClass == CLASS_NO_DRAW || newClass == CLASS_TARGET || newClass == CLASS_WORMHOLE || newClass == CLASS_PLAYER)
+				if (newClass == CLASS_NOT_SET || newClass == CLASS_NO_DRAW || newClass == CLASS_TARGET || newClass == CLASS_WORMHOLE || newClass == CLASS_PLAYER || newClass == CLASS_VISUAL_EFFECT)
 				{
 					OOJSReportError(context, @"entity.scanClass cannot be set to that value.");
 					return NO;
