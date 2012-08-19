@@ -60,7 +60,6 @@ static GameController *sSharedController = nil;
 
 - (void)reportUnhandledStartupException:(NSException *)exception;
 
-- (void)performGameTick:(id)userInfo;
 - (void)doPerformGameTick;
 
 @end
@@ -296,17 +295,6 @@ static GameController *sSharedController = nil;
 
 - (void) performGameTick:(id)sender
 {
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-#if 0
-	// FIXME
-	if (EXPECT_NOT(_switchRezDeferred))
-	{
-		_switchRezDeferred = NO;
-		[self goFullscreen:nil];
-		return;
-	}
-#endif
-#endif
 	[self doPerformGameTick];
 }
 

@@ -168,8 +168,6 @@ MA 02110-1301, USA.
 - (IBAction) toggleFullScreenAction:(id)sender;
 #endif
 
-- (void) changeFullScreenResolution;
-
 /*	NOTE: on 32-bit Mac OS X (OOLITE_MAC_LEGACY_FULLSCREEN),
 	setFullScreenMode:YES takes over the event loop and doesn't return until
 	exiting full screen mode.

@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 
-#ifndef GNUSTEP
 /*	OS X apps are permitted to assume 800x600 screens. Under OS X, we always
 	start up in windowed mode. Therefore, the default size fits an 800x600
 	screen and leaves space for the menu bar and title bar.
@@ -41,7 +40,6 @@ MA 02110-1301, USA.
 #define DISPLAY_DEFAULT_WIDTH	800
 #define DISPLAY_DEFAULT_HEIGHT	540
 #define DISPLAY_DEFAULT_REFRESH	75
-#endif
 
 
 enum
@@ -87,19 +85,13 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		OOUInteger			modeWidth2, modeHeight2, color2;
 		BOOL				stretched, stretched2, interlaced, interlaced2;
 		float				modeRefresh, modeRefresh2;
-		NSUserDefaults		*userDefaults = nil;
 		BOOL				deleteFirst;
 		
-		// Load preferences.
-		userDefaults = [NSUserDefaults standardUserDefaults];
-		_width = [userDefaults oo_unsignedIntForKey:@"display_width" defaultValue:DISPLAY_DEFAULT_WIDTH];
-		_height = [userDefaults oo_unsignedIntForKey:@"display_height" defaultValue:DISPLAY_DEFAULT_HEIGHT];
-		_refresh = [userDefaults oo_unsignedIntForKey:@"display_refresh" defaultValue:DISPLAY_DEFAULT_REFRESH];
-		
-#if 0
-		// FIXME: handle in caller.
-		_fullScreen = [userDefaults oo_boolForKey:@"fullscreen" defaultValue:NO];
-#endif
+		// Initial settings are current settings of screen.
+		NSDictionary *currentMode = (NSDictionary *)CGDisplayCurrentMode(kCGDirectMainDisplay);
+		_width = [currentMode oo_unsignedIntegerForKey:kOODisplayWidth];
+		_height = [currentMode oo_unsignedIntegerForKey:kOODisplayHeight];
+		_refresh = [currentMode oo_unsignedIntegerForKey:kOODisplayRefreshRate];
 		
 		// Get the list of all available modes
 		modes = (NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay);
@@ -274,13 +266,8 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		_refresh = refresh;
 		self.fullScreenDisplayMode = mode;
 		
-		NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-		
-		[userDefaults setInteger:_width   forKey:@"display_width"];
-		[userDefaults setInteger:_height  forKey:@"display_height"];
-		[userDefaults setInteger:_refresh forKey:@"display_refresh"];
-		
-		[userDefaults synchronize];
+		_stayInFullScreenMode = NO;
+		_switchRez = YES;
 		
 		return YES;
 	}
@@ -393,16 +380,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 			OOLogERR(@"display.context.create.failed", @"Failed to create fullScreenContext.");
 			return;
 		}
-		
-		// FIXME: what about this? Caller?
-	#if 0
-		/*	Pause animation in the OpenGL view. While we're in full-screen
-			mode, we'll drive the animation actively
-			instead of using a timer callback.
-		*/
-		if (timer)
-			[self stopAnimationTimer];
-	#endif
 		
 		/*	Take control of the display where we're about to go full-screen.
 			this stops windows from being shuffled around.
@@ -579,14 +556,14 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		}
 		else
 		{
+			if (_switchRez)
+			{
+				_switchRez = NO;
+				[self.delegate scheduleFullScreenModeRestart];
+			}
+			
 			break;
 		}
-	}
-	
-	if(_switchRez)
-	{
-		_switchRez = NO;
-		_switchRezDeferred = YES;
 	}
 	
 	_state = kStateNotFullScreen;

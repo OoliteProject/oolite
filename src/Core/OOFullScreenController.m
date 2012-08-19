@@ -73,6 +73,12 @@ MA 02110-1301, USA.
 }
 
 
+- (NSDictionary *) currentDisplayMode
+{
+	return [[self displayModes] objectAtIndex:[self indexOfCurrentDisplayMode]];
+}
+
+
 - (OOUInteger) indexOfCurrentDisplayMode
 {
 	OOLogGenericSubclassResponsibility();

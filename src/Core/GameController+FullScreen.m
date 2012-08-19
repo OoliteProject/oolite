@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 #import "MyOpenGLView.h"
+#import "OOCollectionExtractors.h"
+
 
 #if OOLITE_MAC_OS_X	// TEMP, should be used for SDL too
 
@@ -53,6 +55,19 @@ MA 02110-1301, USA.
 #else
 	OOMacSnowLeopardFullScreenController *fullScreenController = [[OOMacSnowLeopardFullScreenController alloc] initWithGameView:gameView];
 #endif
+	
+	// Load preferred display mode, falling back to current mode if no preferences set.
+	NSDictionary *currentMode = [fullScreenController currentDisplayMode];
+	NSUInteger width = [currentMode oo_unsignedIntegerForKey:kOODisplayWidth];
+	NSUInteger height = [currentMode oo_unsignedIntegerForKey:kOODisplayHeight];
+	NSUInteger refresh = [currentMode oo_unsignedIntegerForKey:kOODisplayRefreshRate];
+	
+	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+	width = [userDefaults oo_unsignedIntForKey:@"display_width" defaultValue:width];
+	height = [userDefaults oo_unsignedIntForKey:@"display_height" defaultValue:height];
+	refresh = [userDefaults oo_unsignedIntForKey:@"display_refresh" defaultValue:refresh];
+	
+	[fullScreenController setDisplayWidth:width height:height refreshRate:refresh];
 	
 	_fullScreenController = fullScreenController;
 }
@@ -93,7 +108,9 @@ MA 02110-1301, USA.
 			// Mac legacy controller needs to take over the world. By which I mean the event loop.
 			if ([_fullScreenController inFullScreenMode])
 			{
+				[self stopAnimationTimer];
 				[(OOMacLegacyFullScreenController *)_fullScreenController runFullScreenModalEventLoop];
+				[self startAnimationTimer];
 			}
 			else
 			{
@@ -108,21 +125,30 @@ MA 02110-1301, USA.
 }
 
 
-- (void) changeFullScreenResolution
-{
-	// FIXME
-}
-
-
 - (void) exitFullScreenMode
 {
 	[self setFullScreenMode:NO];
 }
 
 
-- (BOOL) setDisplayWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
+- (BOOL) setDisplayWidth:(unsigned int)width Height:(unsigned int)height Refresh:(unsigned int)refreshRate
 {
-	return [_fullScreenController setDisplayWidth:d_width height:d_height refreshRate:d_refresh];
+	if ([_fullScreenController setDisplayWidth:width height:height refreshRate:refreshRate])
+	{
+		NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+		
+		[userDefaults setInteger:width			forKey:@"display_width"];
+		[userDefaults setInteger:height			forKey:@"display_height"];
+		[userDefaults setInteger:refreshRate	forKey:@"display_refresh"];
+		
+		[userDefaults synchronize];
+		
+		return YES;
+	}
+	else
+	{
+		return NO;
+	}
 }
 
 
@@ -176,6 +202,18 @@ MA 02110-1301, USA.
 {
 	[self performGameTick:self];
 	[UNIVERSE drawUniverse];
+}
+
+
+- (void) scheduleFullScreenModeRestart
+{
+	/*
+		We're about to fall out of full screen mode, but should change back
+		immediately. This happens when the user changes full screen resolution
+		in-game while in full screen mode. It shouldn't be necessary, but the
+		obvious "fix" results in windows being messed up.
+	*/
+	[self performSelector:@selector(toggleFullScreenAction:) withObject:nil afterDelay:0.0];
 }
 
 @end

@@ -54,7 +54,6 @@ MA 02110-1301, USA.
 	BOOL					_stayInFullScreenMode;
 	BOOL					_callSuspendAction;
 	BOOL					_switchRez;
-	BOOL					_switchRezDeferred;
 }
 
 @property (nonatomic, assign) id <OOMacLegacyFullScreenControllerDelegate> delegate;
@@ -73,6 +72,7 @@ MA 02110-1301, USA.
 // Note: unlike standard delegate pattern, these are required.
 - (void) handleFullScreenSuspendedAction;
 - (void) handleFullScreenFrameTick;
+- (void) scheduleFullScreenModeRestart;
 
 @end
 

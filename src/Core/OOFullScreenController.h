@@ -70,6 +70,7 @@ MA 02110-1301, USA.
 @property (nonatomic, readonly) MyOpenGLView *gameView;
 @property (nonatomic, getter=inFullScreenMode) BOOL fullScreenMode;
 @property (nonatomic, readonly) NSArray *displayModes;
+@property (nonatomic, readonly) NSDictionary *currentDisplayMode;
 @property (nonatomic, readonly) OOUInteger indexOfCurrentDisplayMode;
 
 #else
@@ -80,6 +81,7 @@ MA 02110-1301, USA.
 - (void) setFullScreenMode:(BOOL)value;
 
 - (NSArray *) displayModes;
+- (NSDictionary *) currentDisplayMode;
 - (OOUInteger) indexOfCurrentDisplayMode;
 
 #endif
