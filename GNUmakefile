@@ -185,7 +185,8 @@ OOLITE_ENTITY_FILES = \
     ShipEntityLoadRestore.m \
     OOLaserShotEntity.m \
     OOQuiriumCascadeEntity.m \
-    OORingEffectEntity.m
+    OORingEffectEntity.m \
+    OOVisualEffectEntity.m 
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
     OODrawable.m \
@@ -292,6 +293,7 @@ OOLITE_SCRIPTING_FILES = \
     OOJSSystem.m \
     OOJSSystemInfo.m \
     OOJSTimer.m \
+		OOJSVisualEffect.m \
     OOJSVector.m \
     OOJSWorldScripts.m \
     OOLegacyScriptWhitelist.m \

@@ -1,8 +1,8 @@
 /*
 
-OOEntityWithDrawable.h
+OOJSVisualEffect.h
 
-Abstract intermediate class for entities which use an OODrawable to render.
+JavaScript proxy for OOVisualEffectEntities.
 
 Oolite
 Copyright (C) 2004-2012 Giles C Williams and contributors
@@ -24,23 +24,10 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#import <Foundation/Foundation.h>
+#include <jsapi.h>
 
-@class OODrawable;
+@class OOVisualEffectEntity;
 
-// Methods that must be supported by subentities, regardless of type.
-@protocol OOSubEntity
 
-- (void) rescaleBy:(GLfloat)factor;
-
-@end
-
-@interface OOEntityWithDrawable: Entity
-{
-	OODrawable				*drawable;
-}
-
-- (OODrawable *)drawable;
-- (void)setDrawable:(OODrawable *)drawable;
-
-@end
+void InitOOJSVisualEffect(JSContext *context, JSObject *global);

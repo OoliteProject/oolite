@@ -519,6 +519,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		isStation = YES;
 		_shipsOnHold = [[OOWeakSet alloc] init];
 	}
+
+	hasBreakPattern = YES;
 	
 	return self;
 	
@@ -2241,6 +2243,18 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 - (void) setSuppressArrivalReports:(BOOL)newValue
 {
 	suppress_arrival_reports = !!newValue;	// ensure YES or NO
+}
+
+
+- (BOOL) hasBreakPattern
+{
+	return hasBreakPattern;
+}
+
+
+- (void) setHasBreakPattern:(BOOL)newValue
+{
+	hasBreakPattern = !!newValue;
 }
 
 

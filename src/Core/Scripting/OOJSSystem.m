@@ -73,6 +73,7 @@ static JSBool SystemAddShips(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddGroup(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddShipsToRoute(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddGroupToRoute(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool SystemLegacyAddShips(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemLegacyAddSystemShips(JSContext *context, uintN argc, jsval *vp);
@@ -106,6 +107,8 @@ enum
 {
 	// Property IDs
 	kSystem_allShips,				// ships in system, array of Ship, read-only
+	kSystem_allVisualEffects,				// VEs in system, array of VEs, read-only
+	kSystem_breakPattern, // witchspace break pattern shown
 	kSystem_description,			// description, string, read/write
 	kSystem_economy,				// economy ID, integer, read/write
 	kSystem_economyDescription,		// economy ID description, string, read-only
@@ -133,6 +136,8 @@ static JSPropertySpec sSystemProperties[] =
 {
 	// JS name					ID								flags
 	{ "allShips",				kSystem_allShips,				OOJS_PROP_READONLY_CB },
+	{ "allVisualEffects",	 kSystem_allVisualEffects,		OOJS_PROP_READONLY_CB },
+	{ "breakPattern",			kSystem_breakPattern,			OOJS_PROP_READWRITE_CB },
 	{ "description",			kSystem_description,			OOJS_PROP_READWRITE_CB },
 	{ "economy",				kSystem_economy,				OOJS_PROP_READWRITE_CB },
 	{ "economyDescription",		kSystem_economyDescription,		OOJS_PROP_READONLY_CB },
@@ -167,6 +172,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "addPlanet",						SystemAddPlanet,					1 },
 	{ "addShips",						SystemAddShips,						3 },
 	{ "addShipsToRoute",				SystemAddShipsToRoute,				2 },
+	{ "addVisualEffect",						SystemAddVisualEffect,						2 },
 	{ "countEntitiesWithScanClass",		SystemCountEntitiesWithScanClass,	1 },
 	{ "countShipsWithPrimaryRole",		SystemCountShipsWithPrimaryRole,	1 },
 	{ "countShipsWithRole",				SystemCountShipsWithRole,			1 },
@@ -255,6 +261,13 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			OOJS_END_FULL_NATIVE
 			handled = YES;
 			break;
+
+		case kSystem_allVisualEffects:
+			OOJS_BEGIN_FULL_NATIVE(context)
+			result = [UNIVERSE findVisualEffectsMatchingPredicate:JSEntityIsJavaScriptSearchablePredicate parameter:NULL inRange:-1 ofEntity:nil];
+			OOJS_END_FULL_NATIVE
+			handled = YES;
+			break;
 			
 		case kSystem_info:
 			*value = GetJSSystemInfoForSystem(context, [player currentGalaxyID], [player currentSystemID]);
@@ -269,6 +282,10 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			
 		case kSystem_pseudoRandom256:
 			*value = INT_TO_JSVAL([player systemPseudoRandom256]);
+			return YES;
+
+		case kSystem_breakPattern:
+			*value = OOJSValueFromBOOL([UNIVERSE witchspaceBreakPattern]);
 			return YES;
 	}
 	
@@ -398,13 +415,29 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOSystemID					system;
 	NSString					*stringValue = nil;
 	int32						iValue;
+	JSBool            bValue;
 	
 	player = OOPlayerForScripting();
 	
 	galaxy = [player currentGalaxyID];
 	system = [player currentSystemID];
+
+	switch (JSID_TO_INT(propID))
+	{
+		case kSystem_breakPattern:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[UNIVERSE setWitchspaceBreakPattern:bValue];
+				return YES;
+			}
+
+			break;
+		default:
+		{}// do nothing yet
+	}
+
 	
-	if (system == -1)  return YES;	// Can't change anything in interstellar space.
+	if (system == -1)  return YES;	// Can't change anything else in interstellar space.
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -1071,7 +1104,9 @@ static JSBool SystemStaticSystemIDForName(JSContext *context, uintN argc, jsval 
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
+
 	result = [UNIVERSE systemIDForSystemSeed:[UNIVERSE systemSeedForSystemName:name]];
+
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_INT(result);
@@ -1111,6 +1146,41 @@ static JSBool SystemStaticInfoForSystem(JSContext *context, uintN argc, jsval *v
 	OOJS_NATIVE_EXIT
 }
 
+
+static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString			*key = nil;
+	Vector         where;
+	
+	uintN				consumed = 0;
+
+	if (argc > 0)  key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"System", @"addVisualEffect", MIN(argc, 1U), &OOJS_ARGV[0], nil, @"string (key)");
+		return NO;
+	}
+
+	if (!VectorFromArgumentListNoError(context, argc - 1, OOJS_ARGV + 1, &where, &consumed))
+	{
+		OOJSReportBadArguments(context, @"System", @"addVisualEffect", MIN(argc - 1, 1U), &OOJS_ARGV[1], nil, @"vector");
+		return NO;
+	}
+
+	OOVisualEffectEntity *result = nil;
+
+	OOJS_BEGIN_FULL_NATIVE(context)
+
+	result = [UNIVERSE addVisualEffectAt:where withKey:key];
+
+	OOJS_END_FULL_NATIVE
+	
+	OOJS_RETURN_OBJECT(result);
+
+	OOJS_NATIVE_EXIT
+}
 
 // *** Helper functions ***
 

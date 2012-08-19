@@ -185,15 +185,6 @@ typedef enum
 } OOShipDamageType;
 
 
-// Methods that must be supported by subentities, regardless of type.
-@protocol OOSubEntity
-
-- (void) rescaleBy:(GLfloat)factor;
-
-@end
-
-
-
 @interface ShipEntity: OOEntityWithDrawable <OOSubEntity>
 {
 @public

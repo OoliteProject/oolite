@@ -980,7 +980,7 @@ static BOOL hostiles;
 					case CLASS_THARGOID:
 						foundHostiles = YES;
 						break;
-						
+
 					case CLASS_ROCK:
 					case CLASS_CARGO:
 					case CLASS_MISSILE:

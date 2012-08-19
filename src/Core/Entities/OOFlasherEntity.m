@@ -62,7 +62,6 @@ MA 02110-1301, USA.
 		
 		[self setActive:[dictionary oo_boolForKey:@"initially_on" defaultValue:YES]];
 	}
-	
 	return self;
 }
 
@@ -112,6 +111,7 @@ MA 02110-1301, USA.
 	[super update:delta_t];
 	
 	_time += delta_t;
+
 	if (_frequency != 0)
 	{
 		float wave = sin(_frequency * M_PI * (_time + _phase));

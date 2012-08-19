@@ -132,6 +132,9 @@
 	display.mode.switch.failed				= $error;
 	display.mode.unknown					= $error;
 	display.initGL							= no;
+
+	effectData.load.begin						= yes;
+	effectData.load.done						= no;
 	
 	
 	$linkedListError						= $error;

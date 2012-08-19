@@ -49,6 +49,7 @@ static void DumpStringAddrs(NSDictionary *dict, NSString *context);
 
 static OOShipRegistry	*sSingleton = nil;
 
+
 static NSString * const	kShipRegistryCacheName = @"ship registry";
 static NSString * const	kShipDataCacheKey = @"ship data";
 static NSString * const	kPlayerShipsCacheKey = @"player ships";
@@ -56,6 +57,8 @@ static NSString * const	kDemoShipsCacheKey = @"demo ships";
 static NSString * const	kConditionScriptsCacheKey = @"condition scripts";
 static NSString * const	kRoleWeightsCacheKey = @"role weights";
 static NSString * const	kDefaultDemoShip = @"coriolis-station";
+static NSString * const	kVisualEffectRegistryCacheName = @"visual effect registry";
+static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 
 @interface OOShipRegistry (OODataLoader)
@@ -65,13 +68,13 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 - (void) loadCachedRoleProbabilitySets;
 - (void) buildRoleProbabilitySets;
 
-- (BOOL) applyLikeShips:(NSMutableDictionary *)ioData;
+- (BOOL) applyLikeShips:(NSMutableDictionary *)ioData withKey:(NSString *)likeKey;
 - (BOOL) loadAndMergeShipyard:(NSMutableDictionary *)ioData;
 - (BOOL) stripPrivateKeys:(NSMutableDictionary *)ioData;
 - (BOOL) makeShipEntriesMutable:(NSMutableDictionary *)ioData;
 - (BOOL) loadAndApplyShipDataOverrides:(NSMutableDictionary *)ioData;
 - (BOOL) canonicalizeAndTagSubentities:(NSMutableDictionary *)ioData;
-- (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData;
+- (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData shipMode:(BOOL)shipMode;
 - (BOOL) sanitizeConditions:(NSMutableDictionary *)ioData;
 
 #if PRELOAD
@@ -145,6 +148,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		
 		_shipData = [[cache objectForKey:kShipDataCacheKey inCache:kShipRegistryCacheName] retain];
 		_playerShips = [[cache objectForKey:kPlayerShipsCacheKey inCache:kShipRegistryCacheName] retain];
+		_effectData = [[cache objectForKey:kVisualEffectDataCacheKey inCache:kVisualEffectRegistryCacheName] retain];
 		if ([_shipData count] == 0)	// Don't accept nil or empty
 		{
 			[self loadShipData];
@@ -198,6 +202,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 - (NSDictionary *) shipInfoForKey:(NSString *)key
 {
 	return [_shipData objectForKey:key];
+}
+
+
+- (NSDictionary *) effectInfoForKey:(NSString *)key
+{
+	return [_effectData objectForKey:key];
 }
 
 
@@ -287,7 +297,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	OOLog(@"shipData.load.done", @"Finished stripping private keys...");
 	
 	// Resolve like_ship entries.
-	if (![self applyLikeShips:result])  return;
+	if (![self applyLikeShips:result withKey:@"like_ship"])  return;
 	OOLog(@"shipData.load.done", @"Finished resolving like_ships...");
 	
 	// Clean up subentity declarations and tag subentities so they won't be pruned.
@@ -295,7 +305,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	OOLog(@"shipData.load.done", @"Finished cleaning up subentities...");
 	
 	// Clean out templates and invalid entries.
-	if (![self removeUnusableEntries:result])  return;
+	if (![self removeUnusableEntries:result shipMode:YES])  return;
 	OOLog(@"shipData.load.done", @"Finished removing invalid entries...");
 	
 	// Add shipyard entries into shipdata entries.
@@ -317,6 +327,39 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	OOLogOutdentIf(@"shipData.load.begin");
 	OOLog(@"shipData.load.done", @"Ship data loaded.");
+
+	[_effectData release];
+	_effectData = nil;
+
+	result = [[[ResourceManager dictionaryFromFilesNamed:@"effectdata.plist"
+												inFolder:@"Config"
+											   mergeMode:MERGE_BASIC
+												   cache:NO] mutableCopy] autorelease];
+	if (result == nil)  return;
+
+	// Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
+	if (![self makeShipEntriesMutable:result])  return;
+	OOLog(@"effectData.load.done", @"Finished initial cleanup...");
+
+	// Strip private keys (anything starting with _oo_).
+	if (![self stripPrivateKeys:result])  return;
+	OOLog(@"effectData.load.done", @"Finished stripping private keys...");
+	
+	// Resolve like_ship entries.
+	if (![self applyLikeShips:result withKey:@"like_effect"])  return;
+	OOLog(@"effectData.load.done", @"Finished resolving like_effects...");
+	
+	// Clean up subentity declarations and tag subentities so they won't be pruned.
+	if (![self canonicalizeAndTagSubentities:result])  return;
+	OOLog(@"effectData.load.done", @"Finished cleaning up subentities...");
+
+	// Clean out templates and invalid entries.
+	if (![self removeUnusableEntries:result shipMode:NO])  return;
+	OOLog(@"effectData.load.done", @"Finished removing invalid entries...");
+	
+	_effectData = OODeepCopy(result);
+	[[OOCacheManager sharedCache] setObject:_effectData forKey:kVisualEffectDataCacheKey inCache:kVisualEffectRegistryCacheName];
+
 }
 
 
@@ -434,7 +477,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	resolved (either their like_ships do not exist, or they form reference
 	cycles) so we stop looping and report it.
 */
-- (BOOL) applyLikeShips:(NSMutableDictionary *)ioData
+- (BOOL) applyLikeShips:(NSMutableDictionary *)ioData withKey:(NSString *)likeKey
 {
 	NSMutableSet			*remainingLikeShips = nil;
 	NSEnumerator			*enumerator = nil;
@@ -450,7 +493,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	for (enumerator = [ioData keyEnumerator]; (key = [enumerator nextObject]); )
 	{
 		shipEntry = [ioData objectForKey:key];
-		if ([shipEntry oo_stringForKey:@"like_ship"] != nil)
+		if ([shipEntry oo_stringForKey:likeKey] != nil)
 		{
 			[remainingLikeShips addObject:key];
 		}
@@ -463,7 +506,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		{
 			// Look up like_ship entry
 			shipEntry = [ioData objectForKey:key];
-			parentKey = [shipEntry objectForKey:@"like_ship"];
+			parentKey = [shipEntry objectForKey:likeKey];
 			if (![remainingLikeShips containsObject:parentKey])
 			{
 				// If parent is fully resolved, we can resolve this child.
@@ -497,7 +540,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			if ([reportedBadShips count] != 0)
 			{
 				[reportedBadShips sortUsingSelector:@selector(caseInsensitiveCompare:)];
-				OOLogERR(@"shipData.merge.failed", @"one or more shipdata.plist entries have like_ship references that cannot be resolved: %@", [reportedBadShips componentsJoinedByString:@", "]);
+				OOLogERR(@"shipData.merge.failed", @"one or more shipdata.plist entries have %@ references that cannot be resolved: %@", likeKey, [reportedBadShips componentsJoinedByString:@", "]); // FIXME: distinguish shipdata and effectdata
 			}
 			break;
 		}
@@ -813,7 +856,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
-- (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData
+- (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData shipMode:(BOOL)shipMode
 {
 	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
@@ -828,7 +871,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		remove = NO;
 		
 		if ([shipEntry oo_boolForKey:@"is_template"] || [shipEntry oo_boolForKey:@"_oo_deferred_remove"])  remove = YES;
-		else if ([[shipEntry oo_stringForKey:@"roles"] length] == 0 && ![shipEntry oo_boolForKey:@"_oo_is_subentity"])
+		else if (shipMode && [[shipEntry oo_stringForKey:@"roles"] length] == 0 && ![shipEntry oo_boolForKey:@"_oo_is_subentity"] && ![shipEntry oo_boolForKey:@"_oo_is_effect"])
 		{
 			OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"roles");
 			remove = YES;
@@ -836,12 +879,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		else
 		{
 			modelName = [shipEntry oo_stringForKey:@"model"];
-			if ([modelName length] == 0)
+			if (shipMode && [modelName length] == 0)
 			{
 				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"model");
 				remove = YES;
 			}
-			else if ([ResourceManager pathForFileNamed:modelName inFolder:@"Models"] == nil)
+			else if (shipMode && [ResourceManager pathForFileNamed:modelName inFolder:@"Models"] == nil)
 			{
 				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies non-existent model \"%@\".", shipKey, modelName);
 				remove = YES;

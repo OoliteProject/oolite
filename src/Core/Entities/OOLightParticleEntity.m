@@ -135,7 +135,20 @@ static OOTexture *sBlobTexture = nil;
 
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
-	if (!translucent || [UNIVERSE breakPatternHide])  return;
+	if (!translucent) return;
+	if ([UNIVERSE breakPatternHide] && !isImmuneToBreakPatternHide)
+	{
+		Entity *father = [self owner];
+		while (father != nil && father != NO_TARGET)
+		{
+			if (![father isSubEntity])  break;
+			father = [father owner];
+		}
+		if (!father->isImmuneToBreakPatternHide)
+		{
+			return;
+		}
+	}
 	if (no_draw_distance <= cam_zero_distance)  return;
 	
 	OO_ENTER_OPENGL();

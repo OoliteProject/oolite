@@ -190,6 +190,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (BOOL) isVisualEffect
+{
+	return NO;
+}
+
+
 - (BOOL) validForAddToUniverse
 {
 	OOUInteger mySessionID = [self sessionID];

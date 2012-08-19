@@ -71,6 +71,9 @@ enum
 {
 	// Property IDs
 	kStation_alertCondition,
+	kStation_allowsAutoDocking,
+	kStation_allowsFastDocking,
+	kStation_breakPattern,
 	kStation_dockedContractors, // miners and scavengers.
 	kStation_dockedDefenders,
 	kStation_dockedPolice,
@@ -80,8 +83,6 @@ enum
 	kStation_hasShipyard,
 	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
 	kStation_requiresDockingClearance,
-	kStation_allowsFastDocking,
-	kStation_allowsAutoDocking,
 	kStation_suppressArrivalReports,
 };
 
@@ -92,6 +93,7 @@ static JSPropertySpec sStationProperties[] =
 	{ "alertCondition",				kStation_alertCondition,			OOJS_PROP_READWRITE_CB },
 	{ "allowsAutoDocking",			kStation_allowsAutoDocking,			OOJS_PROP_READWRITE_CB },
 	{ "allowsFastDocking",			kStation_allowsFastDocking,			OOJS_PROP_READWRITE_CB },
+	{ "breakPattern",				kStation_breakPattern,				OOJS_PROP_READWRITE_CB },
 	{ "dockedContractors",			kStation_dockedContractors,			OOJS_PROP_READONLY_CB },
 	{ "dockedDefenders",			kStation_dockedDefenders,			OOJS_PROP_READONLY_CB },
 	{ "dockedPolice",				kStation_dockedPolice,				OOJS_PROP_READONLY_CB },
@@ -233,6 +235,10 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 			*value = OOJSValueFromBOOL([entity suppressArrivalReports]);
 			return YES;
 			
+		case kStation_breakPattern:
+			*value = OOJSValueFromBOOL([entity hasBreakPattern]);
+			return YES;
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sStationProperties);
 			return NO;
@@ -301,6 +307,14 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setSuppressArrivalReports:bValue];
+				return YES;
+			}
+			break;
+
+		case kStation_breakPattern:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setHasBreakPattern:bValue];
 				return YES;
 			}
 			break;

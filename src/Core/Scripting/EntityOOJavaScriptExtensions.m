@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOJSDock.h"
 #import "DockEntity.h"
 #import "OOPlanetEntity.h"
+#import "OOVisualEffectEntity.h"
 
 
 @implementation Entity (OOJavaScriptExtensions)
@@ -154,6 +155,16 @@ MA 02110-1301, USA.
 		[me addTarget:target];
 	}
 	else  [me removeTarget:[me primaryTarget]];
+}
+
+@end
+
+
+@implementation OOVisualEffectEntity (OOJavaScriptExtensions)
+
+- (BOOL) isVisibleToScripts
+{
+	return YES;
 }
 
 @end

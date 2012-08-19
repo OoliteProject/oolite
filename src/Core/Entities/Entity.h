@@ -99,7 +99,8 @@ enum OOScanClass
 							collisionTestFilter: 1,
 							throw_sparks: 1,
 							isImmuneToBreakPatternHide: 1,
-							isExplicitlyNotMainStation: 1;
+							isExplicitlyNotMainStation: 1,
+							isVisualEffect: 1;
 	
 	OOScanClass				scanClass;
 	
@@ -168,6 +169,7 @@ enum OOScanClass
 - (BOOL) isSky;
 - (BOOL) isWormhole;
 - (BOOL) isEffect;
+- (BOOL) isVisualEffect;
 
 - (BOOL) validForAddToUniverse;
 - (void) addToLinkedLists;

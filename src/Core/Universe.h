@@ -41,8 +41,9 @@ MA 02110-1301, USA.
 #endif
 
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
-		Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
-	PlayerEntity, OORoleSet, WormholeEntity, DockEntity, OOJSScript;
+	Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
+	OOVisualEffectEntity, PlayerEntity, OORoleSet, WormholeEntity, 
+	DockEntity, OOJSScript;
 
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
@@ -309,6 +310,7 @@ enum
 	BOOL					_pauseMessage;
 	BOOL					_autoCommLog;
 	BOOL					_permanentCommLog;
+	BOOL          _witchspaceBreakPattern;
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
@@ -360,6 +362,7 @@ enum
 - (void) witchspaceShipWithPrimaryRole:(NSString *)role;
 - (ShipEntity *) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;
 
+- (OOVisualEffectEntity *) addVisualEffectAt:(Vector)pos withKey:(NSString *)key;
 - (ShipEntity *) addShipAt:(Vector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius;
 - (NSArray *) addShipsAt:(Vector)pos withRole:(NSString *)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup;
 - (NSArray *) addShipsToRoute:(NSString *)route withRole:(NSString *)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
@@ -371,6 +374,10 @@ enum
 - (GLfloat) safeWitchspaceExitDistance;
 
 - (void) setUpBreakPattern:(Vector)pos orientation:(Quaternion)q forDocking:(BOOL)forDocking;
+- (BOOL) witchspaceBreakPattern;
+- (void) setWitchspaceBreakPattern:(BOOL)newValue;
+
+
 - (void) handleGameOver;
 
 - (void) setupIntroFirstGo:(BOOL)justCobra;
@@ -403,6 +410,7 @@ enum
 - (NSString *) randomShipKeyForRoleRespectingConditions:(NSString *)role;
 - (ShipEntity *) newShipWithRole:(NSString *)role OO_RETURNS_RETAINED;		// Selects ship using role weights, applies auto_ai, respects conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey OO_RETURNS_RETAINED;	// Does not apply auto_ai or respect conditions
+- (OOVisualEffectEntity *) newVisualEffectWithName:(NSString *)effectKey OO_RETURNS_RETAINED;
 - (DockEntity *) newDockWithName:(NSString *)shipKey OO_RETURNS_RETAINED;	// Does not apply auto_ai or respect conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy OO_RETURNS_RETAINED;	// If usePlayerProxy, non-carriers are instantiated as ProxyPlayerEntity.
 
@@ -488,6 +496,10 @@ enum
 - (id) findOneEntityMatchingPredicate:(EntityFilterPredicate)predicate
 							parameter:(void *)parameter;
 - (NSMutableArray *) findShipsMatchingPredicate:(EntityFilterPredicate)predicate
+									  parameter:(void *)parameter
+										inRange:(double)range
+									   ofEntity:(Entity *)entity;
+- (NSMutableArray *) findVisualEffectsMatchingPredicate:(EntityFilterPredicate)predicate
 									  parameter:(void *)parameter
 										inRange:(double)range
 									   ofEntity:(Entity *)entity;

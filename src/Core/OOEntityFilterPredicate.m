@@ -145,6 +145,12 @@ BOOL IsSunPredicate(Entity *entity, void *parameter)
 }
 
 
+BOOL IsVisualEffectPredicate(Entity *entity, void *parameter)
+{
+	return [entity isVisualEffect] && ![entity isSubEntity];
+}
+
+
 BOOL HasRolePredicate(Entity *ship, void *parameter)
 {
 	return [(ShipEntity *)ship hasRole:(NSString *)parameter];

@@ -154,6 +154,9 @@ MA 02110-1301, USA.
 
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
+	// check if has been hidden.
+	if (!isImmuneToBreakPatternHide) return;
+
 	OO_ENTER_OPENGL();
 	
 	if (translucent || immediate)

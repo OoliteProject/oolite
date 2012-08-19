@@ -2056,6 +2056,7 @@ static GLfloat		sBaseMass = 0.0;
 			[self setDockTarget:[UNIVERSE station]];
 			// send world script events to let oxps know we're in a new system.
 			// all player.ship properties are still disabled at this stage.
+			[UNIVERSE setWitchspaceBreakPattern:YES];
 			[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
 			[self doScriptEvent:OOJSID("shipExitedWitchspace")];
 			
@@ -5529,9 +5530,10 @@ static GLfloat		sBaseMass = 0.0;
 	[self setShowDemoShips:NO];
 	[[UNIVERSE gameController] setMouseInteractionModeForFlight];
 	[UNIVERSE setDisplayText:NO];
-	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:NO];
+	[UNIVERSE setWitchspaceBreakPattern:YES];
 	[self playExitWitchspace];
 	[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
+	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:NO];
 }
 
 

@@ -67,6 +67,7 @@ BOOL IsShipPredicate(Entity *entity, void *parameter);					// Parameter: ignored
 BOOL IsStationPredicate(Entity *entity, void *parameter);				// Parameter: ignored. Tests isStation.
 BOOL IsPlanetPredicate(Entity *entity, void *parameter);				// Parameter: ignored. Tests isPlanet and planetType == STELLAR_TYPE_NORMAL_PLANET.
 BOOL IsSunPredicate(Entity *entity, void *parameter);					// Parameter: ignored. Tests isSun.
+BOOL IsVisualEffectPredicate(Entity *entity, void *parameter);					// Parameter: ignored. Tests isVisualEffect and !isSubentity.
 
 // These predicates assume their parameter is a ShipEntity.
 BOOL HasRolePredicate(Entity *ship, void *parameter);					// Parameter: NSString

@@ -100,7 +100,8 @@ typedef enum
 							requiresDockingClearance: 1,
 							interstellarUndockingAllowed: 1,
 							allowsFastDocking: 1,
-							allowsAutoDocking: 1;
+							allowsAutoDocking: 1,
+							hasBreakPattern: 1;
 }
 
 - (NSMutableArray *) localMarket;
@@ -211,6 +212,10 @@ typedef enum
 
 - (BOOL) suppressArrivalReports;
 - (void) setSuppressArrivalReports:(BOOL)newValue;
+
+- (BOOL) hasBreakPattern;
+- (void) setHasBreakPattern:(BOOL)newValue;
+
 
 @end
 

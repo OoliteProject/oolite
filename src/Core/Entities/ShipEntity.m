@@ -5254,11 +5254,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// roll or roll factor
 	if ([result objectForKey:@"stickRollFactor"] != nil)
 	{
-		stick_roll = [result oo_floatForKey:@"stickRollFactor" defaultValue:0.0] * max_flight_roll;
+		stick_roll = [result oo_floatForKey:@"stickRollFactor"] * max_flight_roll;
 	} 
 	else 
 	{
-		stick_roll = [result oo_floatForKey:@"stickRoll" defaultValue:0.0];
+		stick_roll = [result oo_floatForKey:@"stickRoll"];
 	}
 	if (stick_roll > max_flight_roll) 
 	{
@@ -5272,11 +5272,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// pitch or pitch factor
 	if ([result objectForKey:@"stickPitchFactor"] != nil)
 	{
-		stick_pitch = [result oo_floatForKey:@"stickPitchFactor" defaultValue:0.0] * max_flight_pitch;
+		stick_pitch = [result oo_floatForKey:@"stickPitchFactor"] * max_flight_pitch;
 	} 
 	else 
 	{
-		stick_pitch = [result oo_floatForKey:@"stickPitch" defaultValue:0.0];
+		stick_pitch = [result oo_floatForKey:@"stickPitch"];
 	}
 	if (stick_pitch > max_flight_pitch) 
 	{
@@ -5290,11 +5290,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// yaw or yaw factor
 	if ([result objectForKey:@"stickYawFactor"] != nil)
 	{
-		stick_yaw = [result oo_floatForKey:@"stickYawFactor" defaultValue:0.0] * max_flight_yaw;
+		stick_yaw = [result oo_floatForKey:@"stickYawFactor"] * max_flight_yaw;
 	} 
 	else 
 	{
-		stick_yaw = [result oo_floatForKey:@"stickYaw" defaultValue:0.0];
+		stick_yaw = [result oo_floatForKey:@"stickYaw"];
 	}
 	if (stick_yaw > max_flight_yaw) 
 	{
@@ -5311,11 +5311,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// desired speed
 	if ([result objectForKey:@"desiredSpeedFactor"] != nil)
 	{
-		desired_speed = [result oo_floatForKey:@"desiredSpeedFactor" defaultValue:0.0] * maxFlightSpeed;
+		desired_speed = [result oo_floatForKey:@"desiredSpeedFactor"] * maxFlightSpeed;
 	}
 	else
 	{
-		desired_speed = [result oo_floatForKey:@"desiredSpeed" defaultValue:0.0];
+		desired_speed = [result oo_floatForKey:@"desiredSpeed"];
 	}
 
 	if (desired_speed < 0.0)

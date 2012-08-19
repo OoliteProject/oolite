@@ -63,6 +63,7 @@ MA 02110-1301, USA.
 #import "SkyEntity.h"
 #import "DustEntity.h"
 #import "OOPlanetEntity.h"
+#import "OOVisualEffectEntity.h"
 #import "OOSunEntity.h"
 #import "WormholeEntity.h"
 #import "OOBreakPatternEntity.h"
@@ -584,6 +585,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 												blue:0.0f
 											 alpha:0.0f];
 
+		[self setWitchspaceBreakPattern:YES];
 		[player doScriptEvent:OOJSID("shipWillExitWitchspace")];
 		[player doScriptEvent:OOJSID("shipExitedWitchspace")];
 		[player setWormhole:nil];
@@ -654,6 +656,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 					
 					[dockedStation setPosition: pos];
 				}
+				[self setWitchspaceBreakPattern:YES];
 				[player doScriptEvent:OOJSID("shipWillExitWitchspace")];
 				[player doScriptEvent:OOJSID("shipExitedWitchspace")];
 			}
@@ -1955,6 +1958,29 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
+- (OOVisualEffectEntity *) addVisualEffectAt:(Vector)pos withKey:(NSString *)key
+{
+	OOJS_PROFILE_ENTER
+	
+	// minimise the time between creating ship & assigning position.
+	
+	OOVisualEffectEntity  		*vis = [self newVisualEffectWithName:key]; // is retained
+	BOOL				success = NO;
+	if (vis != nil)
+	{
+		[vis setPosition:pos];
+		[vis setOrientation:OORandomQuaternion()];
+		
+		success = [self addEntity:vis]; // retained globally now
+		
+		[vis release];
+	}
+	return success ? vis : (OOVisualEffectEntity *)nil;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
 - (ShipEntity *) addShipAt:(Vector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius
 {
 	OOJS_PROFILE_ENTER
@@ -2277,9 +2303,31 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		[ring setVelocity:v];
 		[ring setLifetime:i*50.0];
 		[ring setScanClass: CLASS_NO_DRAW];
+		// FIXME: better would be to have break pattern timing not depend on
+		// these ring objects existing in the first place. - CIM
+		if (forDocking && ![[PLAYER dockedStation] hasBreakPattern])
+		{
+			ring->isImmuneToBreakPatternHide = NO;
+		}
+		else if (!forDocking && ![self witchspaceBreakPattern])
+		{
+			ring->isImmuneToBreakPatternHide = NO;
+		}
 		[self addEntity:ring];
 		breakPatternCounter++;
 	}
+}
+
+
+- (BOOL) witchspaceBreakPattern
+{
+	return _witchspaceBreakPattern;
+}
+
+
+- (void) setWitchspaceBreakPattern:(BOOL)newValue
+{
+	_witchspaceBreakPattern = !!newValue;
 }
 
 
@@ -2715,6 +2763,36 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	}
 	
 	return ship;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+- (OOVisualEffectEntity *) newVisualEffectWithName:(NSString *)effectKey
+{
+	OOJS_PROFILE_ENTER
+	
+	NSDictionary	*effectDict = nil;
+	OOVisualEffectEntity		*effect = nil;
+	
+	effectDict = [[OOShipRegistry sharedRegistry] effectInfoForKey:effectKey];
+	if (effectDict == nil)  return nil;
+	
+	NS_DURING
+		effect = [[OOVisualEffectEntity alloc] initWithKey:effectKey definition:effectDict];
+	NS_HANDLER
+		[effect release];
+		effect = nil;
+		
+		if ([[localException name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
+		{
+			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newVisualEffectWithName: %@ ] *****", [localException reason], effectKey);
+		}
+		else  [localException raise];
+	NS_ENDHANDLER
+	
+	// MKW 20090327 - retain count is actually 2!
+	return effect;   // retain count = 1
 	
 	OOJS_PROFILE_EXIT
 }
@@ -4941,6 +5019,34 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	else
 	{
 		return [self findEntitiesMatchingPredicate:IsShipPredicate
+										 parameter:NULL
+										   inRange:range
+										  ofEntity:entity];
+	}
+}
+
+
+- (NSMutableArray *) findVisualEffectsMatchingPredicate:(EntityFilterPredicate)predicate
+									  parameter:(void *)parameter
+										inRange:(double)range
+									   ofEntity:(Entity *)entity
+{
+	if (predicate != NULL)
+	{
+		BinaryOperationPredicateParameter param =
+		{
+			IsVisualEffectPredicate, NULL,
+			predicate, parameter
+		};
+		
+		return [self findEntitiesMatchingPredicate:ANDPredicate
+										 parameter:&param
+										   inRange:range
+										  ofEntity:entity];
+	}
+	else
+	{
+		return [self findEntitiesMatchingPredicate:IsVisualEffectPredicate
 										 parameter:NULL
 										   inRange:range
 										  ofEntity:entity];
@@ -9841,6 +9947,7 @@ static void PreloadOneSound(NSString *soundName)
 			];
 		[pool release];
 	}
+
 	
 	if (!sunGoneNova && !includedHermit)
 	{
