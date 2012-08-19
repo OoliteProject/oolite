@@ -40,7 +40,7 @@ SOFTWARE.
 
 #ifndef OOLOG_FUNCTION_NAME
 	#if defined (__GNUC__) && __GNUC__ >= 2
-		#define OOLOG_FUNCTION_NAME	__PRETTY_FUNCTION__
+		#define OOLOG_FUNCTION_NAME	__FUNCTION__
 	#elif 199901L <= __STDC_VERSION__
 		#define OOLOG_FUNCTION_NAME	__func__
 	#else
