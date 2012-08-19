@@ -137,6 +137,11 @@ static BOOL JSVisualEffectGetVisualEffectEntity(JSContext *context, JSObject *vi
 	return @"VisualEffect";
 }
 
+- (BOOL) isVisibleToScripts
+{
+	return YES;
+}
+
 @end
 
 

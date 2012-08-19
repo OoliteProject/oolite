@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "DockEntity.h"
 #import "OOPlanetEntity.h"
 #import "OOVisualEffectEntity.h"
+#import "OOJSVisualEffect.h"
 
 
 @implementation Entity (OOJavaScriptExtensions)
@@ -159,12 +160,3 @@ MA 02110-1301, USA.
 
 @end
 
-
-@implementation OOVisualEffectEntity (OOJavaScriptExtensions)
-
-- (BOOL) isVisibleToScripts
-{
-	return YES;
-}
-
-@end
