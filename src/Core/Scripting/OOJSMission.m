@@ -37,7 +37,6 @@ MA 02110-1301, USA.
 static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
 static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp);
-static JSBool MissionMarkedSystems(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionAddMessageText(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionSetInstructions(JSContext *context, uintN argc, jsval *vp);
