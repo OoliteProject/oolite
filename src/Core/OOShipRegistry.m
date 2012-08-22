@@ -884,7 +884,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"model");
 				remove = YES;
 			}
-			else if (shipMode && [ResourceManager pathForFileNamed:modelName inFolder:@"Models"] == nil)
+			else if ([modelName length] != 0 && [ResourceManager pathForFileNamed:modelName inFolder:@"Models"] == nil)
 			{
 				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies non-existent model \"%@\".", shipKey, modelName);
 				remove = YES;
