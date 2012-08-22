@@ -455,6 +455,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 }
 
 
+// faked for benefit of shaders
 - (GLfloat)hullHeatLevel
 {
 	return 60.0 / 256.0;
@@ -477,6 +478,5 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 {
 	return effectinfoDictionary;
 }
-
 
 @end

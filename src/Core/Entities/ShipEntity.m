@@ -12732,12 +12732,13 @@ NSDictionary *OODefaultShipShaderMacros(void)
 	return macros;
 }
 
-
+// is this the right place for this function now? - CIM
 BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget)
 {
 	static NSSet			*entityWhitelist = nil;
 	static NSSet			*shipWhitelist = nil;
 	static NSSet			*playerShipWhitelist = nil;
+	static NSSet			*visualEffectWhitelist = nil;
 	
 	if (entityWhitelist == nil)
 	{
@@ -12745,6 +12746,7 @@ BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget)
 		entityWhitelist = [[NSSet alloc] initWithArray:[wlDict oo_arrayForKey:@"shader_entity_binding_methods"]];
 		shipWhitelist = [[NSSet alloc] initWithArray:[wlDict oo_arrayForKey:@"shader_ship_binding_methods"]];
 		playerShipWhitelist = [[NSSet alloc] initWithArray:[wlDict oo_arrayForKey:@"shader_player_ship_binding_methods"]];
+		visualEffectWhitelist = [[NSSet alloc] initWithArray:[wlDict oo_arrayForKey:@"shader_visual_effect_binding_methods"]];
 	}
 	
 	if ([bindingTarget isKindOfClass:[Entity class]])
@@ -12757,6 +12759,10 @@ BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget)
 		if ([bindingTarget isPlayerLikeShip])
 		{
 			if ([playerShipWhitelist containsObject:propertyName])  return YES;
+		}
+		if ([bindingTarget isVisualEffect])
+		{
+			if ([visualEffectWhitelist containsObject:propertyName])  return YES;
 		}
 	}
 	

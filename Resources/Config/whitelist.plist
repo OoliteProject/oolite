@@ -430,7 +430,12 @@
 		"dialIdentEngaged",
 		"trumbleCount"
 	);
-	
+
+	shader_visual_effect_binding_methods = 
+	(	
+		"hullHeatLevel" // faked value so that default shader will work
+	);
+
 	action_method_aliases =
 	{
 		"setGuiToStatusScreen" = "doNothing";
