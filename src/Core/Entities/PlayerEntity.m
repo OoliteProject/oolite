@@ -9089,15 +9089,19 @@ else _dockTarget = NO_TARGET;
 }
 
 
-- (void) removeMissionDestinationMarker:(NSDictionary *)marker
+- (BOOL) removeMissionDestinationMarker:(NSDictionary *)marker
 {
 	NSDictionary *validated = [self validatedMarker:marker];
 	if (validated == nil) 
 	{
-		return;
+		return NO;
 	}
-	
+	BOOL result = NO;
+	if ([missionDestinations objectForKey:[self markerKey:validated]] != nil) {
+		result = YES;
+	}
 	[missionDestinations removeObjectForKey:[self markerKey:validated]];
+	return result;
 }
 
 

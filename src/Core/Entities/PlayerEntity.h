@@ -859,7 +859,7 @@ typedef enum
 - (void) initialiseMissionDestinations:(NSDictionary *)destinations andLegacy:(NSArray *)legacy;
 - (NSString *)markerKey:(NSDictionary*)marker;
 - (void) addMissionDestinationMarker:(NSDictionary *)marker;
-- (void) removeMissionDestinationMarker:(NSDictionary *)marker;
+- (BOOL) removeMissionDestinationMarker:(NSDictionary *)marker;
 - (NSMutableDictionary*) getMissionDestinations;
 
 @end

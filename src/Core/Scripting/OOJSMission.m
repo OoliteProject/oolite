@@ -265,11 +265,14 @@ static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp)
 		}
 	}
 
+	BOOL result = YES;
 	for (i=0;i<argc;i++)
 	{
 		if (JS_ValueToInt32(context, OOJS_ARGV[i], &dest)) 
 		{
-			[player removeMissionDestinationMarker:[player defaultMarker:dest]];
+			if (![player removeMissionDestinationMarker:[player defaultMarker:dest]]) {
+				result = NO;
+			}
 		}
 		else // must be object, from above
 		{
@@ -278,12 +281,14 @@ static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp)
 			OOSystemID system = [marker oo_intForKey:@"system" defaultValue:-1];
 			if (system >= 0)
 			{
-				[player removeMissionDestinationMarker:marker];
+				if (![player removeMissionDestinationMarker:marker]) {
+					result = NO;
+				}
 			}
 		}
 	}
 	
-	OOJS_RETURN_VOID;
+	OOJS_RETURN_BOOL(result);
 	
 	OOJS_NATIVE_EXIT
 }
