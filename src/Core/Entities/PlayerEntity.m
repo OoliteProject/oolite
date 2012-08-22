@@ -319,33 +319,94 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (quantity > 0)
 	{
-		OOCargoQuantity podsRequiredForQuantity = (units == UNITS_TONS) ? quantity : (units == UNITS_KILOGRAMS) ? quantity / 1000 : quantity / 1000000;
-		OOCargoQuantity amountToLoadInCargopod = (units == UNITS_TONS) ? 1 : (units == UNITS_KILOGRAMS) ? 1000 : 1000000;
-		
-		// put each ton in a separate container
-		for (j = 0; j < podsRequiredForQuantity; j++)
-		{
-			ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
-			if (container)
+		if (units == UNITS_TONS)
+		{ // easy case
+			for (j = 0; j < quantity; j++)
 			{
-				[container setScanClass: CLASS_CARGO];
-				[container setStatus:STATUS_IN_HOLD];
-				[container setCommodity:type andAmount:amountToLoadInCargopod];
-				[cargo addObject:container];
-				[container release];
+				ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+				if (container)
+				{
+					[container setScanClass: CLASS_CARGO];
+					[container setStatus:STATUS_IN_HOLD];
+					[container setCommodity:type andAmount:1];
+					[cargo addObject:container];
+					[container release];
+				}
+				else
+				{
+					OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
+					// throw an exception here...
+					[NSException raise:OOLITE_EXCEPTION_FATAL
+											format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
+				}
+			}
+			// adjust manifest for this commodity
+			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+			[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
+		}
+		else
+		{
+			OOCargoQuantity podsRequiredForQuantity, amountToLoadInCargopod, tmpQuantity;
+			// reserve up to 1/2 tonne of each commodity for the safe
+			if (units == UNITS_KILOGRAMS) 
+			{
+				if (quantity < 500) {
+					quantity = 0;
+					tmpQuantity = quantity;
+				}
+				else
+				{
+					quantity -= 499;
+					tmpQuantity = 499;
+				}
+				amountToLoadInCargopod = 1000;
+				podsRequiredForQuantity = 1+(quantity/1000);
 			}
 			else
 			{
-				OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
-				// throw an exception here...
-				[NSException raise:OOLITE_EXCEPTION_FATAL
-					format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
+				if (quantity < 500000) {
+					quantity = 0;
+					tmpQuantity = quantity;
+				}
+				else
+				{
+					quantity -= 499999;
+					tmpQuantity = 499999;
+				}
+				amountToLoadInCargopod = 1000000;
+				podsRequiredForQuantity = 1+(quantity/1000000);
 			}
+		
+			// put each ton or part-ton beyond that in a separate container
+			for (j = 0; j < podsRequiredForQuantity; j++)
+			{
+				ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+				if (container)
+				{
+					OOCargoQuantity containerQuantity = amountToLoadInCargopod;
+					if (containerQuantity > quantity)
+					{
+						containerQuantity = quantity;
+					}
+					[container setScanClass: CLASS_CARGO];
+					[container setStatus:STATUS_IN_HOLD];
+					[container setCommodity:type andAmount:containerQuantity];
+					[cargo addObject:container];
+					[container release];
+					quantity -= containerQuantity;
+				}
+				else
+				{
+					OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
+					// throw an exception here...
+					[NSException raise:OOLITE_EXCEPTION_FATAL
+											format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
+				}
+			}
+			// adjust manifest for this commodity
+			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:tmpQuantity]];
+			[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
 		}
-		// adjust manifest for this commodity
-		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:(units == UNITS_TONS) ? 0 : (units == UNITS_KILOGRAMS) ?
-															quantity % 1000 : quantity % 1000000]];
-		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
 	}
 	[commodityInfo release]; // release, done
 }
@@ -7704,9 +7765,33 @@ static NSString *last_outfitting_key=nil;
 		purchase = floor (credits / pricePerUnit);	// limit to what's affordable
 	}
 	// TODO - fix brokenness here...
-	if (purchase + current_cargo > (unit == UNITS_TONS ? [self maxAvailableCargoSpace] : 10000))
+	if (unit == UNITS_TONS && purchase + current_cargo > [self maxAvailableCargoSpace])
 	{
 		purchase = [self availableCargoSpace];		// limit to available cargo space
+	}
+	else
+	{
+		if (current_cargo == [self maxAvailableCargoSpace])
+		{ // otherwise definitely fine so long as buying limited to <1000
+			// but if this is true, need to see if there is more space in
+			// the manifest (safe) or an already-accounted-for pod
+			if (unit == UNITS_KILOGRAMS)
+			{
+				if (manifest_quantity % 1000 < 500 && (manifest_quantity + purchase) % 1000 >= 500)
+				{
+					// going from < n500 to >= n500 increases pods needed by 1
+					purchase = 499 - manifest_quantity; // max possible
+				}
+			}
+			else // UNITS_GRAMS
+			{
+				if (manifest_quantity % 1000000 < 500000 && (manifest_quantity + purchase) % 1000000 >= 500000)
+				{
+					// going from < n500 to >= n500 increases pods needed by 1
+					purchase = 499999 - manifest_quantity; // max possible
+				}
+			}
+		}		
 	}
 	if (purchase <= 0)
 	{
@@ -7716,8 +7801,6 @@ static NSString *last_outfitting_key=nil;
 	manifest_quantity += purchase;
 	market_quantity -= purchase;
 	credits -= pricePerUnit * purchase;
-	if (unit == UNITS_TONS)
-		current_cargo += purchase;
 
 	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
 	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
@@ -7726,6 +7809,8 @@ static NSString *last_outfitting_key=nil;
 
 	[shipCommodityData release];
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+
+	[self calculateCurrentCargo];
 	
 	if ([UNIVERSE autoSave])  [UNIVERSE setAutoSaveNow:YES];
 
