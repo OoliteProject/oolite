@@ -94,7 +94,7 @@ enum
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
-	kPlayerShip_currentWeapon,      // shortcut property to _aftWeapon, etc.
+	kPlayerShip_currentWeapon,      // shortcut property to _aftWeapon, etc. overrides kShip generic version
 	kPlayerShip_crosshairs,					// custom plist file defining crosshairs
 	kPlayerShip_cursorCoordinates,				// cursor coordinates (unscaled), Vector3D, read only
 	kPlayerShip_cursorCoordinatesInLY,			// cursor coordinates (in LY), Vector3D, read only

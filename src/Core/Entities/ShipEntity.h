@@ -543,6 +543,10 @@ typedef enum
 - (NSDictionary *)shipInfoDictionary;
 
 - (void) setDefaultWeaponOffsets;
+- (Vector) aftWeaponOffset;
+- (Vector) forwardWeaponOffset;
+- (Vector) portWeaponOffset;
+- (Vector) starboardWeaponOffset;
 
 - (BOOL) isFrangible;
 - (BOOL) suppressFlightNotifications;
@@ -807,6 +811,8 @@ typedef enum
 - (void) setSpeed:(double)amount;
 - (double) desiredSpeed;
 - (void) setDesiredSpeed:(double)amount;
+- (double) desiredRange;
+- (void) setDesiredRange:(double)amount;
 
 - (double) cruiseSpeed;
 

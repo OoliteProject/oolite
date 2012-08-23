@@ -1646,6 +1646,30 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (Vector) aftWeaponOffset
+{
+	return aftWeaponOffset;
+}
+
+
+- (Vector) forwardWeaponOffset
+{
+	return forwardWeaponOffset;
+}
+
+
+- (Vector) portWeaponOffset
+{
+	return portWeaponOffset;
+}
+
+
+- (Vector) starboardWeaponOffset
+{
+	return starboardWeaponOffset;
+}
+
+
 - (BOOL)isFrangible
 {
 	return isFrangible;
@@ -7073,6 +7097,18 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (double) desiredSpeed
 {
 	return desired_speed;
+}
+
+
+- (double) desiredRange
+{
+	return desired_range;
+}
+
+
+- (void) setDesiredRange:(double) amount
+{
+	desired_range = amount;
 }
 
 
