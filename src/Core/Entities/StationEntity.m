@@ -662,35 +662,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 }
 
 
-/*- (void) setDockingPortModel:(ShipEntity*) dock_model :(Vector) dock_pos :(Quaternion) dock_q
-{
-	port_model = dock_model;
-	
-	port_position = dock_pos;
-	port_orientation = dock_q;
-
-	BoundingBox bb = [port_model boundingBox];
-	port_dimensions = make_vector(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
-
-	Vector vk = vector_forward_from_quaternion(dock_q);
-	
-	if (bb.max.z > 0.0)
-	{
-		port_position.x += bb.max.z * vk.x;
-		port_position.y += bb.max.z * vk.y;
-		port_position.z += bb.max.z * vk.z;
-	}
-	
-	// check if start is within bounding box...
-	Vector start = port_position;
-	while (	(start.x > boundingBox.min.x)&&(start.x < boundingBox.max.x)&&
-		   (start.y > boundingBox.min.y)&&(start.y < boundingBox.max.y)&&
-		   (start.z > boundingBox.min.z)&&(start.z < boundingBox.max.z) )
-	{
-		start = vector_add(start, vector_multiply_scalar(vk, port_dimensions.z));
-	}
-	port_corridor = start.z - port_position.z; // length of the docking tunnel.
-	}*/
 
 
 - (BOOL) shipIsInDockingCorridor:(ShipEntity *)ship
@@ -715,30 +686,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 - (void) pullInShipIfPermitted:(ShipEntity *)ship
 {
-#if 0
-	/*
-		Experiment: allow station script to deny physical docking capability.
-		Doesn't work properly because the collision detection for docking ports
-		isn't designed to support this, and you can fly past the back and
-		sometimes straight through.
-		-- Ahruman 2011-01-29
-	*/
-/* allow_docking on DockEntity now gives working collision detection
- * for this case, so it could be resurrected that way - CIM */
-	if (EXPECT_NOT(ship == nil))  return;
-	
-	JSContext	*context = OOJSAcquireContext();
-	jsval		rval = JSVAL_VOID;
-	jsval		args[] = { OOJSValueFromNativeObject(context, ship) };
-	JSBool		permit = YES;
-	
-	BOOL OK = [[self script] callMethod:OOJSID("permitDocking") inContext:context withArguments:args count:1 result:&rval];
-	if (OK)  OK = JS_ValueToBoolean(context, rval, &permit);
-	if (!OK)  permit = YES; // In case of error, default to common behaviour.
-#else
-	BOOL permit = YES;
-#endif
-	if (permit)  [ship enterDock:self];
+	[ship enterDock:self]; // dock performs permitted checks
 }
 
 
@@ -2310,21 +2258,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	OOLog(@"dumpState.stationEntity", @"Flags: %@", flagsString);
 	
 	// approach and hold lists.
-	/*unsigned i;
-	ShipEntity		*ship = nil;
-		NSArray*	ships = [shipsOnApproach allKeys];
-	if([ships count] > 0 ) OOLog(@"dumpState.stationEntity", @"%i Ships on approach (unsorted):", [ships count]);
-	for (i = 0; i < [ships count]; i++)
-	{
-		int sid = [[ships objectAtIndex:i] intValue];
-		if ([UNIVERSE entityForUniversalID:sid])
-		{
-			ship = [UNIVERSE entityForUniversalID:sid];
-			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i+1, [ship displayName], 
-																			distance(position, [ship position])),
-																					[ship primaryRole]);
-		}
-		} */
 	
 	// Ships on hold list, only used with moving stations (= carriers)
 	if([_shipsOnHold count] > 0)
