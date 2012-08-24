@@ -351,8 +351,8 @@ static GLfloat		sBaseMass = 0.0;
 			if (units == UNITS_KILOGRAMS) 
 			{
 				if (quantity < 500) {
-					quantity = 0;
 					tmpQuantity = quantity;
+					quantity = 0;
 				}
 				else
 				{
@@ -365,8 +365,8 @@ static GLfloat		sBaseMass = 0.0;
 			else
 			{
 				if (quantity < 500000) {
-					quantity = 0;
 					tmpQuantity = quantity;
+					quantity = 0;
 				}
 				else
 				{
@@ -376,31 +376,33 @@ static GLfloat		sBaseMass = 0.0;
 				amountToLoadInCargopod = 1000000;
 				podsRequiredForQuantity = 1+(quantity/1000000);
 			}
-		
-			// put each ton or part-ton beyond that in a separate container
-			for (j = 0; j < podsRequiredForQuantity; j++)
-			{
-				ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
-				if (container)
+			if (quantity > 0) {
+
+				// put each ton or part-ton beyond that in a separate container
+				for (j = 0; j < podsRequiredForQuantity; j++)
 				{
-					OOCargoQuantity containerQuantity = amountToLoadInCargopod;
-					if (containerQuantity > quantity)
+					ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+					if (container)
 					{
-						containerQuantity = quantity;
+						OOCargoQuantity containerQuantity = amountToLoadInCargopod;
+						if (containerQuantity > quantity)
+						{
+							containerQuantity = quantity;
+						}
+						[container setScanClass: CLASS_CARGO];
+						[container setStatus:STATUS_IN_HOLD];
+						[container setCommodity:type andAmount:containerQuantity];
+						[cargo addObject:container];
+						[container release];
+						quantity -= containerQuantity;
 					}
-					[container setScanClass: CLASS_CARGO];
-					[container setStatus:STATUS_IN_HOLD];
-					[container setCommodity:type andAmount:containerQuantity];
-					[cargo addObject:container];
-					[container release];
-					quantity -= containerQuantity;
-				}
-				else
-				{
-					OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
-					// throw an exception here...
-					[NSException raise:OOLITE_EXCEPTION_FATAL
-											format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
+					else
+					{
+						OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
+						// throw an exception here...
+						[NSException raise:OOLITE_EXCEPTION_FATAL
+												format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
+					}
 				}
 			}
 			// adjust manifest for this commodity
