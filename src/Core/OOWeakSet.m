@@ -7,8 +7,9 @@ This code is hereby placed in the public domain.
 
 */
 
-#import "OOWeakSet.h"
 #import "OOCocoa.h"
+#import "OOWeakSet.h"
+
 
 
 @interface OOWeakRefUnpackingEnumerator: NSEnumerator

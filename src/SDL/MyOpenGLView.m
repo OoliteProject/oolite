@@ -1248,7 +1248,7 @@ MA 02110-1301, USA.
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
 			case SDL_JOYHATMOTION:
-				[[OOJoystickManager sharedStickHandler] handleSDLEvent: &event];
+				[(OOSDLJoystickManager*)[OOJoystickManager sharedStickHandler] handleSDLEvent: &event];
 				break;
 				
 			case SDL_MOUSEBUTTONDOWN:
