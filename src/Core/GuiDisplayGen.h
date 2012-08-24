@@ -71,6 +71,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 @interface GuiDisplayGen: NSObject
 {
+@private
 	NSSize			size_in_pixels;
 	unsigned		n_columns;
 	unsigned		n_rows;
@@ -168,7 +169,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setColor:(OOColor *)color forRow:(OOGUIRow)row;
 
 - (id) objectForRow:(OOGUIRow)row;
-- (NSString*) keyForRow:(OOGUIRow)row;
+- (NSString *) keyForRow:(OOGUIRow)row;
 - (OOGUIRow) rowForKey:(NSString*)key;
 - (int) selectedRow;
 - (BOOL) setSelectedRow:(OOGUIRow)row;

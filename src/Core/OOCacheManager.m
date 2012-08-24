@@ -148,7 +148,7 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
-+ (id)sharedCache
++ (OOCacheManager *) sharedCache
 {
 	// NOTE: assumes single-threaded access.
 	if (sSingleton == nil)

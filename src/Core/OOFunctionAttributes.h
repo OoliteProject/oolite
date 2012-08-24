@@ -55,6 +55,14 @@
 #endif
 
 
+#if __clang__
+#define DEPRECATED_METHOD(msg)	DEPRECATED_MSG(msg)
+#else
+// GCC doesn't support attributes on Objective-C methods.
+#define DEPRECATED_METHOD(msg)
+#endif
+
+
 #ifdef __GNUC__
 	#define EXPECT(x)		__builtin_expect((x), 1)
 	#define EXPECT_NOT(x)	__builtin_expect((x), 0)

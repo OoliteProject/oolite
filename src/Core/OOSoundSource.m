@@ -34,7 +34,7 @@ static NSMutableSet *sPlayingSoundSources;
 
 @implementation OOSoundSource
 
-+ (id) sourceWithSound:(OOSound *)inSound
++ (instancetype) sourceWithSound:(OOSound *)inSound
 {
 	return [[[self alloc] initWithSound:inSound] autorelease];
 }

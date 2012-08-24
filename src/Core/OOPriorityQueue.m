@@ -134,7 +134,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 
 @implementation OOPriorityQueue
 
-+ (id) queueWithComparator:(SEL)comparator
++ (instancetype) queueWithComparator:(SEL)comparator
 {
 	return [[[self alloc] initWithComparator:comparator] autorelease];
 }

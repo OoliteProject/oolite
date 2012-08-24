@@ -50,7 +50,7 @@ SOFTWARE.
 }
 
 // Note: -init is equivalent to -initWithComparator:@selector(compare:)
-+ (id) queueWithComparator:(SEL)comparator;
++ (instancetype) queueWithComparator:(SEL)comparator;
 - (id) initWithComparator:(SEL)comparator;
 
 - (void) addObject:(id)object;			// May throw NSInvalidArgumentException or NSMallocException.

@@ -45,7 +45,7 @@ SOFTWARE.
 	uint32_t					_badDelegateWarning: 1;
 }
 
-+ (id)verifierWithSchema:(NSDictionary *)schema;
++ (instancetype)verifierWithSchema:(NSDictionary *)schema;
 - (id)initWithSchema:(NSDictionary *)schema;
 
 - (void)setDelegate:(id)delegate;

@@ -53,7 +53,7 @@ enum
 	OOUInteger				_cachedFlags;
 }
 
-+ (id) regExpMatcher;
++ (instancetype) regExpMatcher;
 
 - (BOOL) string:(NSString *)string matchesExpression:(NSString *)regExp;
 - (BOOL) string:(NSString *)string matchesExpression:(NSString *)regExp flags:(OOUInteger)flags;

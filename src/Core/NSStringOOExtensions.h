@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOCocoa.h"
 
 
 @interface NSString (OOExtensions)
@@ -37,20 +37,20 @@ MA 02110-1301, USA.
 	* Otherwise, if the file can be interpreted as UTF-8, assume UTF-8.
 	* Otherwise, assume ISO-Latin-1.
 */
-+ (id)stringWithContentsOfUnicodeFile:(NSString *)path;
++ (instancetype) stringWithContentsOfUnicodeFile:(NSString *)path;
 
 
 /*	+stringWithUTF16String:
 	
 	Takes a NUL-terminated native-endian UTF-16 string.
 */
-+ (id)stringWithUTF16String:(const unichar *)chars;
++ (instancetype) stringWithUTF16String:(const unichar *)chars;
 
 
 /*	-utf16DataWithBOM:
 	Convert to native-endian UTF-16 data.
 */
-- (NSData *)utf16DataWithBOM:(BOOL)includeByteOrderMark;
+- (NSData *) utf16DataWithBOM:(BOOL)includeByteOrderMark;
 
 /*	- oo_hash
 	Hash function for when we want consistency across platforms and versions.

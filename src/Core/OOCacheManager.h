@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 	BOOL					_dirty;
 }
 
-+ (id)sharedCache;
++ (OOCacheManager *) sharedCache;
 
 - (id)objectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
 - (void)setObject:(id)inElement forKey:(NSString *)inKey inCache:(NSString *)inCacheKey;

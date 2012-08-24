@@ -151,7 +151,7 @@ static GLfloat		sBaseMass = 0.0;
 
 @implementation PlayerEntity
 
-+ (PlayerEntity *)sharedPlayer
++ (PlayerEntity *) sharedPlayer
 {
 	if (EXPECT_NOT(gOOPlayer == nil))
 	{

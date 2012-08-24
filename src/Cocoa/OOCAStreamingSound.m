@@ -139,12 +139,6 @@ enum
 }
 
 
-- (void)play
-{
-	[[OOSoundMixer sharedMixer] playSound:self];
-}
-
-
 - (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext looped:(BOOL)inLoop
 {
 	BOOL							OK = YES;

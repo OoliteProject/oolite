@@ -47,7 +47,7 @@ enum
 	double					_lifetime;
 }
 
-+ (id) breakPatternWithPolygonSides:(OOUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
++ (instancetype) breakPatternWithPolygonSides:(OOUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
 
 - (void) setInnerColor:(OOColor *)color1 outerColor:(OOColor *)color2;
 

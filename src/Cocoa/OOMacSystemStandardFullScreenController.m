@@ -50,7 +50,7 @@ MA 02110-1301, USA.
 	}
 	
 	// If safe to use, allow override for debugging.
-	NSString *override = [[NSUserDefaults standardUserDefaults] stringForKey:@"full-screen-mode-override"];
+	NSString *override = [NSUserDefaults.standardUserDefaults stringForKey:@"full-screen-mode-override"];
 	if (override != nil)
 	{
 		if ([override isEqualToString:@"lion"])  return YES;

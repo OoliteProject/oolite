@@ -121,7 +121,7 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResT
 	BOOL				_running;
 }
 
-+ (id) stopwatch;				// New stopwatch is initially started.
++ (instancetype) stopwatch;		// New stopwatch is initially started.
 
 - (void) start;
 - (void) stop;

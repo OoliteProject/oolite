@@ -66,7 +66,7 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 
 @implementation OOSoundMixer
 
-+ (id) sharedMixer
++ (OOSoundMixer *) sharedMixer
 {
 	if (nil == sSingleton)
 	{

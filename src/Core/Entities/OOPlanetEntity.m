@@ -386,7 +386,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
-- (id) miniatureVersion
+- (instancetype) miniatureVersion
 {
 	return [[[[self class] alloc] initAsMiniatureVersionOfPlanet:self] autorelease];
 }

@@ -39,23 +39,23 @@ SOFTWARE.
 	only if shaders are available). cacheKey is used for caching of synthesized
 	shader materials; nil may be passed for no caching.
 */
-+ (id) materialWithName:(NSString *)name
-			   cacheKey:(NSString *)cacheKey
-		  configuration:(NSDictionary *)configuration
-				 macros:(NSDictionary *)macros
-		  bindingTarget:(id<OOWeakReferenceSupport>)object
-		forSmoothedMesh:(BOOL)smooth;
++ (OOMaterial *) materialWithName:(NSString *)name
+						 cacheKey:(NSString *)cacheKey
+					configuration:(NSDictionary *)configuration
+						   macros:(NSDictionary *)macros
+					bindingTarget:(id<OOWeakReferenceSupport>)object
+				  forSmoothedMesh:(BOOL)smooth;
 
 /*	Select an appropriate material description (based on availability of
 	shaders and content of dictionaries, which may be nil) and call
 	+materialWithName:forModelNamed:configuration:macros:bindTarget:forSmoothedMesh:.
 */
-+ (id) materialWithName:(NSString *)name
-			   cacheKey:(NSString *)cacheKey
-	 materialDictionary:(NSDictionary *)materialDict
-	  shadersDictionary:(NSDictionary *)shadersDict
-				 macros:(NSDictionary *)macros
-		  bindingTarget:(id<OOWeakReferenceSupport>)object
-		forSmoothedMesh:(BOOL)smooth;
++ (OOMaterial *) materialWithName:(NSString *)name
+						 cacheKey:(NSString *)cacheKey
+			   materialDictionary:(NSDictionary *)materialDict
+				shadersDictionary:(NSDictionary *)shadersDict
+						   macros:(NSDictionary *)macros
+					bindingTarget:(id<OOWeakReferenceSupport>)object
+				  forSmoothedMesh:(BOOL)smooth;
 
 @end

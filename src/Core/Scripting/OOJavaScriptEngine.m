@@ -235,7 +235,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 @implementation OOJavaScriptEngine
 
-+ (OOJavaScriptEngine *)sharedEngine
++ (OOJavaScriptEngine *) sharedEngine
 {
 	if (sSharedEngine == nil)  sSharedEngine = [[self alloc] init];
 	
@@ -1682,19 +1682,19 @@ NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObje
 
 @implementation NSString (OOJavaScriptExtensions)
 
-+ (id) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
++ (NSString *) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
 	return OOStringFromJSValue(context, value);
 }
 
 
-+ (id) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
++ (NSString *) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
 	return OOStringFromJSValueEvenIfNull(context, value);
 }
 
 
-+ (id) stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context
++ (NSString *) stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1746,7 +1746,7 @@ NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObje
 }
 
 
-+ (id) concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context
++ (NSString *) concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
 	

@@ -35,7 +35,7 @@ static OONullTexture *sSingleton = nil;
 
 @implementation OONullTexture
 
-+ (id) sharedNullTexture
++ (OONullTexture *) sharedNullTexture
 {
 	// NOTE: assumes single-threaded access.
 	if (sSingleton == nil)

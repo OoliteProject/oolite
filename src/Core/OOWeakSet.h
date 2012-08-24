@@ -34,8 +34,8 @@ This code is hereby placed in the public domain.
 - (id) init;
 - (id) initWithCapacity:(NSUInteger)capacity;				// As with Foundation collections, capacity is only a hint.
 
-+ (id) set;
-+ (id) setWithCapacity:(NSUInteger)capacity;
++ (instancetype) set;
++ (instancetype) setWithCapacity:(NSUInteger)capacity;
 
 - (NSUInteger) count;
 - (BOOL) containsObject:(id<OOWeakReferenceSupport>)object;

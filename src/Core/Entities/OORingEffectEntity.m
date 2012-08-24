@@ -92,13 +92,13 @@ static NSPoint sCircleVerts[kCircleSegments];	// holds vector coordinates for a 
 }
 
 
-+ (id) ringFromEntity:(Entity *)sourceEntity
++ (instancetype) ringFromEntity:(Entity *)sourceEntity
 {
 	return [[[self alloc] initRingFromEntity:sourceEntity] autorelease];
 }
 
 
-+ (id) shrinkingRingFromEntity:(Entity *)sourceEntity
++ (instancetype) shrinkingRingFromEntity:(Entity *)sourceEntity
 {
 	OORingEffectEntity *result = [self ringFromEntity:sourceEntity];
 	if (result != nil)

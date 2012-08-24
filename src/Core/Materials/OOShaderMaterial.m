@@ -86,19 +86,19 @@ static NSString *MacrosToString(NSDictionary *macros);
 }
 
 
-+ (id)shaderMaterialWithName:(NSString *)name
-			   configuration:(NSDictionary *)configuration
-					  macros:(NSDictionary *)macros
-			   bindingTarget:(id<OOWeakReferenceSupport>)target
++ (instancetype) shaderMaterialWithName:(NSString *)name
+						  configuration:(NSDictionary *)configuration
+								 macros:(NSDictionary *)macros
+						  bindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	return [[[self alloc] initWithName:name configuration:configuration macros:macros bindingTarget:target] autorelease];
 }
 
 
-- (id)initWithName:(NSString *)name
-	 configuration:(NSDictionary *)configuration
-			macros:(NSDictionary *)macros
-	 bindingTarget:(id<OOWeakReferenceSupport>)target
+- (id) initWithName:(NSString *)name
+	  configuration:(NSDictionary *)configuration
+			 macros:(NSDictionary *)macros
+	  bindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	BOOL					OK = YES;
 	NSString				*macroString = nil;

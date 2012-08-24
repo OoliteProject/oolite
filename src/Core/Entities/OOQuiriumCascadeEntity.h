@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 	GLfloat				_color[4];
 }
 
-+ (id) quiriumCascadeFromShip:(ShipEntity *)ship;
++ (instancetype) quiriumCascadeFromShip:(ShipEntity *)ship;
 
 @end
 

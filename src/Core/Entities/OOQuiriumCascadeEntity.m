@@ -61,7 +61,7 @@ MA 02110-1301, USA.
 }
 
 
-+ (id) quiriumCascadeFromShip:(ShipEntity *)ship
++ (instancetype) quiriumCascadeFromShip:(ShipEntity *)ship
 {
 	return [[[self alloc] initQuiriumCascadeFromShip:ship] autorelease];
 }

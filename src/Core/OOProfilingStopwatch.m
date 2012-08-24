@@ -45,7 +45,7 @@ SOFTWARE.
 }
 
 
-+ (id) stopwatch
++ (instancetype) stopwatch
 {
 	return [[[self alloc] init] autorelease];
 }

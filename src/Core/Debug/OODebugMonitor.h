@@ -82,7 +82,7 @@ SOFTWARE.
 	BOOL								_usingPlugInController;
 }
 
-+ (id)sharedDebugMonitor;
++ (OODebugMonitor *) sharedDebugMonitor;
 - (BOOL)setDebugger:(id<OODebuggerInterface>)debugger;
 
 	// *** JavaScript console support.

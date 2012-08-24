@@ -126,9 +126,9 @@ typedef struct
 	NSDictionary			*_shaderMacros;
 	id						_shaderBindingTarget;
 
-	Vector _lastPosition;
-	OOMatrix _lastRotMatrix;
-	BoundingBox _lastBoundingBox;
+	Vector					_lastPosition;
+	OOMatrix				_lastRotMatrix;
+	BoundingBox				_lastBoundingBox;
 	
 #if OO_MULTITEXTURE
 	OOUInteger				_textureUnitCount;
@@ -140,15 +140,15 @@ typedef struct
 #endif
 }
 
-+ (id)meshWithName:(NSString *)name
-		  cacheKey:(NSString *)cacheKey
-materialDictionary:(NSDictionary *)materialDict
- shadersDictionary:(NSDictionary *)shadersDict
-			smooth:(BOOL)smooth
-	  shaderMacros:(NSDictionary *)macros
-shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
++ (instancetype) meshWithName:(NSString *)name
+					 cacheKey:(NSString *)cacheKey
+		   materialDictionary:(NSDictionary *)materialDict
+			shadersDictionary:(NSDictionary *)shadersDict
+					   smooth:(BOOL)smooth
+				 shaderMacros:(NSDictionary *)macros
+		  shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
-+ (OOMaterial *)placeholderMaterial;
++ (OOMaterial *) placeholderMaterial;
 
 - (NSString *) modelName;
 
@@ -157,19 +157,19 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 - (NSDictionary *) materials;
 - (NSDictionary *) shaders;
 
-- (size_t)vertexCount;
-- (size_t)faceCount;
+- (size_t) vertexCount;
+- (size_t) faceCount;
 
-- (Octree *)octree;
+- (Octree *) octree;
 
 // This needs a better name.
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv
 											basis:(Vector)ri :(Vector)rj :(Vector)rk
 									 selfPosition:(Vector)position
 										selfBasis:(Vector)si :(Vector)sj :(Vector)sk;
-- (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(OOMatrix)rotMatrix;
+- (BoundingBox) findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(OOMatrix)rotMatrix;
 
-- (OOMesh *)meshRescaledBy:(GLfloat)scaleFactor;
+- (OOMesh *) meshRescaledBy:(GLfloat)scaleFactor;
 
 @end
 

@@ -61,7 +61,7 @@ enum
 }
 
 // Singleton accessor
-+ (id) sharedMixer;
++ (OOSoundMixer *) sharedMixer;
 
 - (void) update;
 

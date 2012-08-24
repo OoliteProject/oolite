@@ -103,7 +103,7 @@ MA 02110-1301, USA.
 #endif
 }
 
-+ (id)sharedController;
++ (GameController *) sharedController;
 
 - (void) applicationDidFinishLaunching:(NSNotification *)notification;
 

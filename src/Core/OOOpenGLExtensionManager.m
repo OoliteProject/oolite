@@ -298,7 +298,7 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 }
 
 
-+ (id)sharedManager
++ (OOOpenGLExtensionManager *)sharedManager
 {
 	// NOTE: assumes single-threaded first access. See header.
 	if (sSingleton == nil)  sSingleton = [[self alloc] init];

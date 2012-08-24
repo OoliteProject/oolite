@@ -438,6 +438,43 @@ enum {
 #endif
 
 
+/*	instancetype contextual keyword; added in Clang 3.0ish.
+	
+	Pseudo-type indicating that the return value of an instance method is an
+	instance of the same class as the receiver, or for a class mothod, is an
+	instance of that class.
+	
+	For example, given:
+		@interface Foo: NSObject
+		+ (instancetype) fooWithProperty:(id)property;
+		@end
+		
+		@interface Bar: Foo
+		@end
+	
+	the type of [Bar fooWithProperty] is inferred to be Bar *.
+	
+	Clang treats methods of type id as instancetype when their names begin with
+	+alloc, +new, -init, -autorelease, -retain, or -self.
+	
+	For compilers without instancetype support, id is appropriate but less
+	type-safe.
+	
+	NOTE: it is not appropriate to use instancetype for a factory method which
+	chooses which publicly-visible subclass to instantiate based on parameters.
+	For instance, calling one of the OOMaterial convenience factory methods on
+	OOShaderMaterial might return an OOSingleTextureMaterial, so the correct
+	return type is either OOMaterial or id.
+	On the other hand, it is appropriate on factory methods which just wrap
+	the corresponding -init and/or -init + configuration through properties.
+	(Such factory methods should be implemented in terms of [[self alloc]
+	init...].)
+*/
+#if __OBJC__ && !__has_feature(objc_instancetype)
+typedef id instancetype;
+#endif
+
+
 #ifndef OO_DEBUG
 #define OO_DEBUG						0
 #endif

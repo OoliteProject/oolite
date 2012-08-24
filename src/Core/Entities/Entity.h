@@ -182,7 +182,7 @@ enum OOScanClass
 
 - (void) warnAboutHostiles;
 
-- (CollisionRegion*) collisionRegion;
+- (CollisionRegion *) collisionRegion;
 - (void) setCollisionRegion:(CollisionRegion*)region;
 
 - (void) setUniversalID:(OOUniversalID)uid;
@@ -193,9 +193,9 @@ enum OOScanClass
 - (void) throwSparks;
 
 - (void) setOwner:(Entity *)ent;
-- (id)owner;
-- (ShipEntity *)parentEntity;	// owner if self is subentity of owner, otherwise nil.
-- (ShipEntity *)rootShipEntity;	// like parentEntity, but recursive.
+- (id) owner;
+- (ShipEntity *) parentEntity;	// owner if self is subentity of owner, otherwise nil.
+- (ShipEntity *) rootShipEntity;	// like parentEntity, but recursive.
 
 - (void) setPosition:(Vector)posn;
 - (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
@@ -264,7 +264,7 @@ enum OOScanClass
 
 // Subclass repsonsibilities
 - (double) findCollisionRadius;
-- (Geometry*) geometry;
+- (Geometry *) geometry;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
 - (BOOL) isVisible;
 

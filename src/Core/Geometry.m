@@ -29,6 +29,13 @@ MA 02110-1301, USA.
 #import "OOLogging.h"
 
 
+@interface Geometry (OOPrivate)
+
+- (id) octreeWithinRadius:(GLfloat)octreeRadius toDepth:(int)depth;
+
+@end
+
+
 @implementation Geometry
 
 - (NSString *) descriptionComponents
@@ -36,18 +43,21 @@ MA 02110-1301, USA.
 	return [NSString stringWithFormat:@"%lu triangles, %@", n_triangles, [self testIsConvex]?@"convex":@"not convex"];
 }
 
-- (id)initWithCapacity:(OOUInteger)amount
+- (id) initWithCapacity:(OOUInteger)amount
 {
 	if (amount < 1)
+	{
+		[self release];
 		return nil;
-	self = [super init];
+	}
 	
-//	OOLog(@"geometry.init", @"Geometry inited with capacity %i", amount);
-	
-	max_triangles = amount;
-	triangles = malloc(max_triangles * sizeof(Triangle));	// allocate the required space
-	n_triangles = 0;
-	isConvex = NO;
+	if ((self = [super init]))
+	{
+		max_triangles = amount;
+		triangles = malloc(max_triangles * sizeof(Triangle));	// allocate the required space
+		n_triangles = 0;
+		isConvex = NO;
+	}
 	
 	return self;
 }
@@ -55,6 +65,7 @@ MA 02110-1301, USA.
 - (void) dealloc
 {
 	free(triangles);	// free up the allocated space
+	
 	[super dealloc];
 }
 

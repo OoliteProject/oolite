@@ -53,7 +53,7 @@ typedef struct OOSoundSourcePoolElement
 
 @implementation OOSoundSourcePool
 
-+ (id) poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat
++ (instancetype) poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat
 {
 	return [[[self alloc] initWithCount:count minRepeatTime:minRepeat] autorelease];
 }

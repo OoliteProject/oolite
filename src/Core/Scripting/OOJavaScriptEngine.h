@@ -323,20 +323,20 @@ jsid OOJSIDFromString(NSString *string);
 @interface NSString (OOJavaScriptExtensions)
 
 // For diagnostic messages; produces things like @"(42, true, "a string", an object description)".
-+ (id) stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context;
++ (NSString *) stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context;
 
 // Concatenate sequence of arbitrary JS objects into string.
-+ (id) concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context;
++ (NSString *) concatenationOfStringsFromJavaScriptValues:(jsval *)values count:(size_t)count separator:(NSString *)separator inContext:(JSContext *)context;
 
 // Add escape codes for string so that it's a valid JavaScript literal (if you put "" or '' around it).
 - (NSString *) escapedForJavaScriptLiteral;
 
 
 // Wrapper for OOStringFromJSValueEvenIfNull(). DEPRECATED
-+ (id) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
++ (NSString *) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context DEPRECATED_METHOD("use OOStringFromJSValueEvenIfNull() instead");
 
 // Wrapper for OOStringFromJSValue(). DEPRECATED
-+ (id) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
++ (NSString *) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context DEPRECATED_METHOD("use OOStringFromJSValue() instead");
 
 @end
 

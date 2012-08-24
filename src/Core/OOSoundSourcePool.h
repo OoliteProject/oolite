@@ -48,7 +48,7 @@ SOFTWARE.
 	NSString						*_lastKey;
 }
 
-+ (id) poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
++ (instancetype) poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
 - (id) initWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
 
 - (void) playSoundWithKey:(NSString *)key

@@ -36,7 +36,7 @@ static OORegExpMatcher *sActiveInstance;
 
 @implementation OORegExpMatcher
 
-+ (id) regExpMatcher
++ (instancetype) regExpMatcher
 {
 	NSAssert(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread currentThread] isMainThread], @"OORegExpMatcher may only be used on the main thread.");
 	

@@ -67,7 +67,7 @@ static GameController *sSharedController = nil;
 
 @implementation GameController
 
-+ (id) sharedController
++ (GameController *) sharedController
 {
 	if (sSharedController == nil)
 	{

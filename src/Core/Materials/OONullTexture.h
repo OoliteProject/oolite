@@ -33,6 +33,6 @@ SOFTWARE.
 
 @interface OONullTexture: OOTexture
 
-+ (id) sharedNullTexture;
++ (OONullTexture *) sharedNullTexture;
 
 @end

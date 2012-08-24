@@ -65,50 +65,50 @@ static BOOL _refreshStarChart = NO;
 
 - (id) init
 {
-	self = [super init];
+	if ((self = [super init]))
+	{
+		size_in_pixels  = NSMakeSize(MAIN_GUI_PIXEL_WIDTH, MAIN_GUI_PIXEL_HEIGHT);
+		n_columns		= GUI_DEFAULT_COLUMNS;
+		n_rows			= GUI_DEFAULT_ROWS;
+		pixel_row_center = size_in_pixels.width / 2;
+		pixel_row_height = MAIN_GUI_ROW_HEIGHT;
+		pixel_row_start	= MAIN_GUI_PIXEL_ROW_START;		// first position down the page...
+		max_alpha = 1.0;
 		
-	size_in_pixels  = NSMakeSize(MAIN_GUI_PIXEL_WIDTH, MAIN_GUI_PIXEL_HEIGHT);
-	n_columns		= GUI_DEFAULT_COLUMNS;
-	n_rows			= GUI_DEFAULT_ROWS;
-	pixel_row_center = size_in_pixels.width / 2;
-	pixel_row_height = MAIN_GUI_ROW_HEIGHT;
-	pixel_row_start	= MAIN_GUI_PIXEL_ROW_START;		// first position down the page...
-	max_alpha = 1.0;
-
-	pixel_text_size = NSMakeSize(0.9f * pixel_row_height, pixel_row_height);	// main gui has 18x20 characters
-	
-	pixel_title_size = NSMakeSize(pixel_row_height * 1.75f, pixel_row_height * 1.5f);
-	
-	int stops[6] = {0, 192, 256, 320, 384, 448};
-	unsigned i;
-	
-	rowRange = NSMakeRange(0,n_rows);
-
-	rowText =   [[NSMutableArray alloc] initWithCapacity:n_rows];   // alloc retains
-	rowKey =	[[NSMutableArray alloc] initWithCapacity:n_rows];   // alloc retains
-	rowColor =	[[NSMutableArray alloc] initWithCapacity:n_rows];   // alloc retains
-	
-	for (i = 0; i < n_rows; i++)
-	{
-		[rowText addObject:@"."];
-		[rowKey addObject:[NSString stringWithFormat:@"%d",i]];
-		[rowColor addObject:[OOColor yellowColor]];
-		rowPosition[i].x = 0.0f;
-		rowPosition[i].y = size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
-		rowAlignment[i] = GUI_ALIGN_LEFT;
+		pixel_text_size = NSMakeSize(0.9f * pixel_row_height, pixel_row_height);	// main gui has 18x20 characters
+		
+		pixel_title_size = NSMakeSize(pixel_row_height * 1.75f, pixel_row_height * 1.5f);
+		
+		int stops[6] = {0, 192, 256, 320, 384, 448};
+		unsigned i;
+		
+		rowRange = NSMakeRange(0,n_rows);
+		
+		rowText =   [[NSMutableArray alloc] initWithCapacity:n_rows];   // alloc retains
+		rowKey =	[[NSMutableArray alloc] initWithCapacity:n_rows];   // alloc retains
+		rowColor =	[[NSMutableArray alloc] initWithCapacity:n_rows];   // alloc retains
+		
+		for (i = 0; i < n_rows; i++)
+		{
+			[rowText addObject:@"."];
+			[rowKey addObject:[NSString stringWithFormat:@"%d",i]];
+			[rowColor addObject:[OOColor yellowColor]];
+			rowPosition[i].x = 0.0f;
+			rowPosition[i].y = size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
+			rowAlignment[i] = GUI_ALIGN_LEFT;
+		}
+		
+		for (i = 0; i < n_columns; i++)
+		{
+			tabStops[i] = stops[i];
+		}
+		
+		title = @"";
+		
+		textColor = [[OOColor yellowColor] retain];
+		
+		drawPosition = make_vector(0.0f, 0.0f, 640.0f);
 	}
-	
-	for (i = 0; i < n_columns; i++)
-	{
-		tabStops[i] = stops[i];
-	}
-	
-	title = @"";
-	
-	textColor = [[OOColor yellowColor] retain];
-	
-	drawPosition = make_vector(0.0f, 0.0f, 640.0f);
-
 	return self;
 }
 

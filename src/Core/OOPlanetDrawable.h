@@ -40,8 +40,8 @@ MA 02110-1301, USA.
 	unsigned				_lod;
 }
 
-+ (id) planetWithTextureName:(NSString *)textureName radius:(float)radius;
-+ (id) atmosphereWithRadius:(float)radius;
++ (instancetype) planetWithTextureName:(NSString *)textureName radius:(float)radius;
++ (instancetype) atmosphereWithRadius:(float)radius;
 
 - (id) initAsAtmosphere;
 

@@ -204,11 +204,11 @@ static BOOL sDumpShaderSource = NO;
 #endif
 
 
-+ (OOMaterial *)defaultShaderMaterialWithName:(NSString *)name
-									 cacheKey:(NSString *)cacheKey
-								configuration:(NSDictionary *)configuration
-									   macros:(NSDictionary *)macros
-								bindingTarget:(id<OOWeakReferenceSupport>)target
++ (OOMaterial *) defaultShaderMaterialWithName:(NSString *)name
+									  cacheKey:(NSString *)cacheKey
+								 configuration:(NSDictionary *)configuration
+										macros:(NSDictionary *)macros
+								 bindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	NSString		*vertexShader = nil;
 	NSString		*fragmentShader = nil;
@@ -261,12 +261,12 @@ static BOOL sDumpShaderSource = NO;
 #endif
 
 
-+ (id)materialWithName:(NSString *)name
-			  cacheKey:(NSString *)cacheKey
-		 configuration:(NSDictionary *)configuration
-				macros:(NSDictionary *)macros
-		 bindingTarget:(id<OOWeakReferenceSupport>)object
-	   forSmoothedMesh:(BOOL)smooth	// Internally, this flg really means "force use of shaders".
++ (OOMaterial *) materialWithName:(NSString *)name
+						 cacheKey:(NSString *)cacheKey
+					configuration:(NSDictionary *)configuration
+						   macros:(NSDictionary *)macros
+					bindingTarget:(id<OOWeakReferenceSupport>)object
+				  forSmoothedMesh:(BOOL)smooth	// Internally, this flg really means "force use of shaders".
 {
 	id result = nil;
 	
@@ -338,13 +338,13 @@ static BOOL sDumpShaderSource = NO;
 }
 
 
-+ (id)materialWithName:(NSString *)name
-			  cacheKey:(NSString *)cacheKey
-	materialDictionary:(NSDictionary *)materialDict
-	 shadersDictionary:(NSDictionary *)shadersDict
-				macros:(NSDictionary *)macros
-		 bindingTarget:(id<OOWeakReferenceSupport>)object
-	   forSmoothedMesh:(BOOL)smooth
++ (OOMaterial *) materialWithName:(NSString *)name
+						 cacheKey:(NSString *)cacheKey
+			   materialDictionary:(NSDictionary *)materialDict
+				shadersDictionary:(NSDictionary *)shadersDict
+						   macros:(NSDictionary *)macros
+					bindingTarget:(id<OOWeakReferenceSupport>)object
+				  forSmoothedMesh:(BOOL)smooth
 {
 	NSDictionary			*configuration = nil;
 	

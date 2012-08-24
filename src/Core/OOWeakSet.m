@@ -19,7 +19,7 @@ This code is hereby placed in the public domain.
 
 - (id) initWithEnumerator:(NSEnumerator *)enumerator;
 
-+ (id) enumeratorWithCollection:(id)collection;	// Collection must implement -objectEnumerator
++ (instancetype) enumeratorWithCollection:(id)collection;	// Collection must implement -objectEnumerator
 
 @end
 
@@ -54,13 +54,13 @@ This code is hereby placed in the public domain.
 }
 
 
-+ (id) set
++ (instancetype) set
 {
 	return [[[self alloc] init] autorelease];
 }
 
 
-+ (id) setWithCapacity:(OOUInteger)capacity
++ (instancetype) setWithCapacity:(OOUInteger)capacity
 {
 	return [[[self alloc] initWithCapacity:capacity] autorelease];
 }
@@ -287,7 +287,7 @@ This code is hereby placed in the public domain.
 }
 
 
-+ (id) enumeratorWithCollection:(id)collection
++ (instancetype) enumeratorWithCollection:(id)collection
 {
 	return [[[self alloc] initWithEnumerator:[collection objectEnumerator]] autorelease];
 }

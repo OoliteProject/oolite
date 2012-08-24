@@ -45,7 +45,7 @@ typedef enum
 
 @interface OOAsyncWorkManager: NSObject
 
-+ (id) sharedAsyncWorkManager;
++ (OOAsyncWorkManager *) sharedAsyncWorkManager;
 
 - (BOOL) addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority;
 

@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 	BOOL					_justSwitched;
 }
 
-+ (id) flasherWithDictionary:(NSDictionary *)dictionary;
++ (instancetype) flasherWithDictionary:(NSDictionary *)dictionary;
 - (id) initWithDictionary:(NSDictionary *)dictionary;
 
 - (BOOL) isActive;

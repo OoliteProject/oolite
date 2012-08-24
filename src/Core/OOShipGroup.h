@@ -47,8 +47,8 @@ MA 02110-1301, USA.
 
 - (id) init;
 - (id) initWithName:(NSString *)name;
-+ (id) groupWithName:(NSString *)name;
-+ (id) groupWithName:(NSString *)name leader:(ShipEntity *)leader;
++ (instancetype) groupWithName:(NSString *)name;
++ (instancetype) groupWithName:(NSString *)name leader:(ShipEntity *)leader;
 
 - (NSString *) name;
 - (void) setName:(NSString *)name;

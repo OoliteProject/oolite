@@ -550,7 +550,7 @@ typedef enum
 	ShipEntity				*demoShip; // Used while docked to maintain demo ship rotation.
 }
 
-+ (PlayerEntity *)sharedPlayer;
++ (PlayerEntity *) sharedPlayer;
 - (void) deferredInit;
 
 - (BOOL) setUpAndConfirmOK:(BOOL)stopOnError;

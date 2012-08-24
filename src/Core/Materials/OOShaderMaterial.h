@@ -53,6 +53,7 @@ typedef uint16_t OOUniformConvertOptions;
 
 @interface OOShaderMaterial: OOBasicMaterial
 {
+@private
 	OOShaderProgram					*shaderProgram;
 	NSMutableDictionary				*uniforms;
 	
@@ -87,15 +88,15 @@ typedef uint16_t OOUniformConvertOptions;
 	will be transformed into:
 		#define OO_ENGINE_LEVEL 1
 */
-+ (id)shaderMaterialWithName:(NSString *)name
-			   configuration:(NSDictionary *)configuration
-					  macros:(NSDictionary *)macros
-			   bindingTarget:(id<OOWeakReferenceSupport>)target;
++ (instancetype) shaderMaterialWithName:(NSString *)name
+						  configuration:(NSDictionary *)configuration
+								 macros:(NSDictionary *)macros
+						  bindingTarget:(id<OOWeakReferenceSupport>)target;
 
-- (id)initWithName:(NSString *)name
-	 configuration:(NSDictionary *)configuration
-			macros:(NSDictionary *)macros
-	 bindingTarget:(id<OOWeakReferenceSupport>)target;
+- (id) initWithName:(NSString *)name
+	  configuration:(NSDictionary *)configuration
+			 macros:(NSDictionary *)macros
+	  bindingTarget:(id<OOWeakReferenceSupport>)target;
 
 /*	Bind a uniform to a property of an object.
 	
@@ -120,28 +121,28 @@ typedef uint16_t OOUniformConvertOptions;
 	NOTE: this method *does not* check against the whitelist. See
 	-bindSafeUniform:toObject:propertyNamed:convertOptions: below.
 */
-- (BOOL)bindUniform:(NSString *)uniformName
-		   toObject:(id<OOWeakReferenceSupport>)target
-		   property:(SEL)selector
-	 convertOptions:(OOUniformConvertOptions)options;
+- (BOOL) bindUniform:(NSString *)uniformName
+			toObject:(id<OOWeakReferenceSupport>)target
+			property:(SEL)selector
+	  convertOptions:(OOUniformConvertOptions)options;
 
 /*	Bind a uniform to a property of an object.
 	
 	This is similar to -bindUniform:toObject:property:convertOptions:, except
 	that it checks against OOUniformBindingPermitted().
 */
-- (BOOL)bindSafeUniform:(NSString *)uniformName
-			   toObject:(id<OOWeakReferenceSupport>)target
-		  propertyNamed:(NSString *)property
-		 convertOptions:(OOUniformConvertOptions)options;
+- (BOOL) bindSafeUniform:(NSString *)uniformName
+				toObject:(id<OOWeakReferenceSupport>)target
+		   propertyNamed:(NSString *)property
+		  convertOptions:(OOUniformConvertOptions)options;
 
 /*	Set a uniform value.
 */
-- (void)setUniform:(NSString *)uniformName intValue:(int)value;
-- (void)setUniform:(NSString *)uniformName floatValue:(float)value;
-- (void)setUniform:(NSString *)uniformName vectorValue:(GLfloat[4])value;
-- (void)setUniform:(NSString *)uniformName vectorObjectValue:(id)value;	// Array of four numbers, or something that can be OOVectorFromObject()ed.
-- (void)setUniform:(NSString *)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix;
+- (void) setUniform:(NSString *)uniformName intValue:(int)value;
+- (void) setUniform:(NSString *)uniformName floatValue:(float)value;
+- (void) setUniform:(NSString *)uniformName vectorValue:(GLfloat[4])value;
+- (void) setUniform:(NSString *)uniformName vectorObjectValue:(id)value;	// Array of four numbers, or something that can be OOVectorFromObject()ed.
+- (void) setUniform:(NSString *)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix;
 
 /*	Add constant uniforms. Same format as uniforms dictionary of configuration
 	parameter to -initWithConfiguration:macros:. The target parameter is used
@@ -151,7 +152,7 @@ typedef uint16_t OOUniformConvertOptions;
 	any random bindings:
 		- (unsigned) randomSeedForShaders;
 */
--(void)addUniformsFromDictionary:(NSDictionary *)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target;
+-(void) addUniformsFromDictionary:(NSDictionary *)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target;
 
 @end
 

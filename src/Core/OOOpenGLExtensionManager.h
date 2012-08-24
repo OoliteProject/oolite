@@ -147,7 +147,7 @@ SOFTWARE.
 #endif
 }
 
-+ (id)sharedManager;
++ (OOOpenGLExtensionManager *) sharedManager;
 
 - (void) reset;
 

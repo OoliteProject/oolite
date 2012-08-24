@@ -101,13 +101,13 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 }
 
 
-+ (id) groupWithName:(NSString *)name
++ (instancetype) groupWithName:(NSString *)name
 {
 	return [[[self alloc] initWithName:name] autorelease];
 }
 
 
-+ (id) groupWithName:(NSString *)name leader:(ShipEntity *)leader
++ (instancetype) groupWithName:(NSString *)name leader:(ShipEntity *)leader
 {
 	OOShipGroup *result = [self groupWithName:name];
 	[result setLeader:leader];

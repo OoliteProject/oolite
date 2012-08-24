@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 
 @implementation OOLaserShotEntity
 
-- (id) initLaserFromShip:(ShipEntity *)srcEntity view:(OOViewID)view offset:(Vector)offset
+- (instancetype) initLaserFromShip:(ShipEntity *)srcEntity view:(OOViewID)view offset:(Vector)offset
 {
 	if (!(self = [super init]))  return nil;
 	

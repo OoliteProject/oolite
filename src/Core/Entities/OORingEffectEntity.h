@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 						_outerGrowthRate;
 }
 
-+ (id) ringFromEntity:(Entity *)sourceEntity;
-+ (id) shrinkingRingFromEntity:(Entity *)sourceEntity;
++ (instancetype) ringFromEntity:(Entity *)sourceEntity;
++ (instancetype) shrinkingRingFromEntity:(Entity *)sourceEntity;
 
 @end

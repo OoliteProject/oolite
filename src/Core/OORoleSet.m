@@ -41,13 +41,13 @@ SOFTWARE.
 
 @implementation OORoleSet
 
-+ (id)roleSetWithString:(NSString *)roleString
++ (instancetype) roleSetWithString:(NSString *)roleString
 {
 	return [[[self alloc] initWithRoleString:roleString] autorelease];
 }
 
 
-+ (id)roleSetWithRole:(NSString *)role probability:(float)probability
++ (instancetype) roleSetWithRole:(NSString *)role probability:(float)probability
 {
 	return [[[self alloc] initWithRole:role probability:probability] autorelease];
 }

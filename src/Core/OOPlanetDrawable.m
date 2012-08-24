@@ -56,7 +56,7 @@
 
 @implementation OOPlanetDrawable
 
-+ (id) planetWithTextureName:(NSString *)textureName radius:(float)radius
++ (instancetype) planetWithTextureName:(NSString *)textureName radius:(float)radius
 {
 	OOPlanetDrawable *result = [[[self alloc] init] autorelease];
 	[result setTextureName:textureName];
@@ -66,7 +66,7 @@
 }
 
 
-+ (id) atmosphereWithRadius:(float)radius
++ (instancetype) atmosphereWithRadius:(float)radius
 {
 	OOPlanetDrawable *result = [[[self alloc] initAsAtmosphere] autorelease];
 	[result setRadius:radius];

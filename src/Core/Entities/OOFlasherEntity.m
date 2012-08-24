@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 
 @implementation OOFlasherEntity
 
-+ (id) flasherWithDictionary:(NSDictionary *)dictionary
++ (instancetype) flasherWithDictionary:(NSDictionary *)dictionary
 {
 	return [[[OOFlasherEntity alloc] initWithDictionary:dictionary] autorelease];
 }

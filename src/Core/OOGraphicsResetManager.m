@@ -35,7 +35,7 @@ static OOGraphicsResetManager *sSingleton = nil;
 
 @implementation OOGraphicsResetManager
 
-- (void)dealloc
+- (void) dealloc
 {
 	if (sSingleton == self)  sSingleton = nil;
 	[clients release];
@@ -44,14 +44,14 @@ static OOGraphicsResetManager *sSingleton = nil;
 }
 
 
-+ (id)sharedManager
++ (OOGraphicsResetManager *) sharedManager
 {
 	if (sSingleton == nil)  sSingleton = [[self alloc] init];
 	return sSingleton;
 }
 
 
-- (void)registerClient:(id<OOGraphicsResetClient>)client
+- (void) registerClient:(id<OOGraphicsResetClient>)client
 {
 	if (client != nil)
 	{
@@ -61,13 +61,13 @@ static OOGraphicsResetManager *sSingleton = nil;
 }
 
 
-- (void)unregisterClient:(id<OOGraphicsResetClient>)client
+- (void) unregisterClient:(id<OOGraphicsResetClient>)client
 {
 	[clients removeObject:[NSValue valueWithPointer:client]];
 }
 
 
-- (void)resetGraphicsState
+- (void) resetGraphicsState
 {
 	NSEnumerator			*clientEnum = nil;
 	id						client = nil;
@@ -105,7 +105,7 @@ static OOGraphicsResetManager *sSingleton = nil;
 	// NOTE: assumes single-threaded first access.
 */
 
-+ (id)allocWithZone:(NSZone *)inZone
++ (id) allocWithZone:(NSZone *)inZone
 {
 	if (sSingleton == nil)
 	{
@@ -116,29 +116,29 @@ static OOGraphicsResetManager *sSingleton = nil;
 }
 
 
-- (id)copyWithZone:(NSZone *)inZone
+- (id) copyWithZone:(NSZone *)inZone
 {
 	return self;
 }
 
 
-- (id)retain
+- (id) retain
 {
 	return self;
 }
 
 
-- (OOUInteger)retainCount
+- (OOUInteger) retainCount
 {
 	return UINT_MAX;
 }
 
 
-- (void)release
+- (void) release
 {}
 
 
-- (id)autorelease
+- (id) autorelease
 {
 	return self;
 }

@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 
 @implementation NSString (OOExtensions)
 
-+ (id)stringWithContentsOfUnicodeFile:(NSString *)path
++ (instancetype) stringWithContentsOfUnicodeFile:(NSString *)path
 {
 	id				result = nil;
 	BOOL			OK = YES;
@@ -90,7 +90,7 @@ MA 02110-1301, USA.
 }
 
 
-+ (id)stringWithUTF16String:(const unichar *)chars
++ (instancetype) stringWithUTF16String:(const unichar *)chars
 {
 	size_t			length;
 	const unichar	*end;
@@ -106,7 +106,7 @@ MA 02110-1301, USA.
 }
 
 
-- (NSData *)utf16DataWithBOM:(BOOL)includeByteOrderMark
+- (NSData *) utf16DataWithBOM:(BOOL)includeByteOrderMark
 {
 	size_t			lengthInChars;
 	size_t			lengthInBytes;

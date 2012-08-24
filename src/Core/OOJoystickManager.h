@@ -234,7 +234,7 @@ typedef struct
 	BOOL		invertPitch;
 }
 
-+ (id) sharedStickHandler;
++ (OOJoystickManager *) sharedStickHandler;
 + (BOOL) setStickHandlerClass:(Class)aClass;
 
 // General.

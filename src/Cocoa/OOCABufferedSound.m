@@ -67,12 +67,6 @@ SOFTWARE.
 }
 
 
-- (void)play
-{
-	[[OOSoundMixer sharedMixer] playSound:self];
-}
-
-
 - (BOOL)getAudioStreamBasicDescription:(AudioStreamBasicDescription *)outFormat
 {
 	assert(NULL != outFormat);

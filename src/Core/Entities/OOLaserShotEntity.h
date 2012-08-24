@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 	Quaternion				_relOrientation;
 }
 
-+ (id) laserFromShip:(ShipEntity *)ship view:(OOViewID)view offset:(Vector)offset;
++ (instancetype) laserFromShip:(ShipEntity *)ship view:(OOViewID)view offset:(Vector)offset;
 
 - (void) setColor:(OOColor *)color;
 

@@ -232,13 +232,13 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 
 @implementation OOMesh
 
-+ (id)meshWithName:(NSString *)name
-		  cacheKey:(NSString *)cacheKey
-materialDictionary:(NSDictionary *)materialDict
- shadersDictionary:(NSDictionary *)shadersDict
-			smooth:(BOOL)smooth
-	  shaderMacros:(NSDictionary *)macros
-shaderBindingTarget:(id<OOWeakReferenceSupport>)object
++ (instancetype) meshWithName:(NSString *)name
+					 cacheKey:(NSString *)cacheKey
+		   materialDictionary:(NSDictionary *)materialDict
+			shadersDictionary:(NSDictionary *)shadersDict
+					   smooth:(BOOL)smooth
+				 shaderMacros:(NSDictionary *)macros
+		  shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	return [[[self alloc] initWithName:name
 							  cacheKey:cacheKey

@@ -84,13 +84,7 @@ MA 02110-1301, USA.
 }
 
 
-+ (id) breakPatternWithCircle
-{
-	return [self breakPatternWithPolygonSides:kOOBreakPatternMaxSides startAngle:0.0f aspectRatio:1.0f];
-}
-
-
-+ (id) breakPatternWithPolygonSides:(OOUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
++ (instancetype) breakPatternWithPolygonSides:(OOUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
 {
 	return [[[self alloc] initWithPolygonSides:sides startAngle:startAngleDegrees aspectRatio:aspectRatio] autorelease];
 }
