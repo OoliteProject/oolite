@@ -80,6 +80,7 @@ MA 02110-1301, USA.
 		OOPrimaryWindow *window = (OOPrimaryWindow *)self.gameView.window;
 		NSAssert([window isKindOfClass:OOPrimaryWindow.class], @"Incorrect UI setup; main game window should be OOPrimaryWindow.");
 		
+		[window makeKeyAndOrderFront:nil];
 		[window standardToggleFullScreen:nil];
 	}
 }
