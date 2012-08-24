@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 
 @interface OOPListScript: OOScript
 {
+@private
 	NSArray					*_script;
 	NSDictionary			*_metadata;
 }

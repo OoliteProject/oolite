@@ -38,6 +38,7 @@ SOFTWARE.
 
 @interface OOEncodingConverter: NSObject
 {
+@private
 	NSStringEncoding			_encoding;
 	OOCache						*_cache;
 	NSDictionary				*_substitutions;

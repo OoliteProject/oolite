@@ -36,6 +36,7 @@ SOFTWARE.
 
 @interface OOProbabilisticTextureManager: NSObject
 {
+@private
 	unsigned				_count;
 	OOTexture				**_textures;
 	float					*_prob;

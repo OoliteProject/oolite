@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 
 @interface OOCheckShipDataPListVerifierStage: OOTextureHandlingStage
 {
+@private
 	NSDictionary				*_shipdataPList;
 	NSSet						*_ooliteShipNames;
 	NSSet						*_basicKeys,

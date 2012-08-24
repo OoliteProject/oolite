@@ -44,6 +44,7 @@ enum
 
 @interface OOLight: NSObject
 {
+@private
 	OORGBAComponents		_ambient;
 	OORGBAComponents		_diffuse;
 	OORGBAComponents		_specular;

@@ -107,6 +107,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 // Helper class wrapped by JS SystemInfo objects
 @interface OOSystemInfo: NSObject
 {
+@private
 	OOGalaxyID				_galaxy;
 	OOSystemID				_system;
 	NSString				*_planetKey;

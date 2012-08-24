@@ -20,6 +20,7 @@ such cases.) Example:
 
 @interface ThingWatcher: NSObject
 {
+@private
 	Thing			*thing;
 }
 @end
@@ -56,6 +57,7 @@ OOWeakReferenceSupport implementation is also simple:
 
 @interface Thing: NSObject <OOWeakReferenceSupport>
 {
+@private
 	OOWeakReference		*weakSelf;
 }
 @end

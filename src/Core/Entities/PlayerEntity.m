@@ -3105,6 +3105,18 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (float) occlusionLevel
+{
+	return occlusion_dial;
+}
+
+
+- (void) setOcclusionLevel:(float)level
+{
+	occlusion_dial = level;
+}
+
+
 //			dial routines = all return 0.0 .. 1.0 or -1.0 .. 1.0
 
 - (void) setDockedAtMainStation

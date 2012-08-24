@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 
 @interface OOTextureSprite: NSObject
 {
+@private
 	OOTexture	*texture;
 	NSSize		size;
 }

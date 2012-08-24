@@ -82,7 +82,7 @@ enum StringInput
 
 extern int debug;
 
-@interface MyOpenGLView : NSOpenGLView
+@interface MyOpenGLView: NSOpenGLView
 {
 @private
 	GameController		*gameController;

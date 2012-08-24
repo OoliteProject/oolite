@@ -35,6 +35,7 @@ SOFTWARE.
 
 @interface OOFileScannerVerifierStage: OOOXPVerifierStage
 {
+@private
 	NSString					*_basePath;
 	NSMutableSet				*_usedFiles;
 	NSMutableSet				*_caseWarnings;

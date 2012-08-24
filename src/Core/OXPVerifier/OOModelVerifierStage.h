@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 @interface OOModelVerifierStage: OOTextureHandlingStage
 {
+@private
 	NSMutableSet					*_modelsToCheck;
 }
 

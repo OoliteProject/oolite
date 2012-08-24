@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 @interface OOTextureVerifierStage: OOFileHandlingVerifierStage
 {
+@private
 	NSMutableSet					*_usedTextures;
 }
 

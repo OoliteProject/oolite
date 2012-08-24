@@ -35,6 +35,7 @@ SOFTWARE.
 
 @interface OOMusic: OOSound
 {
+@private
 	OOSound				*sound;
 }
 

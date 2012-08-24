@@ -654,7 +654,7 @@ static inline BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntit
 				}
 				if ([e1 isPlayer])
 				{
-					((PlayerEntity *)e1)->occlusion_dial = occlusionNumber;
+					[(PlayerEntity *)e1 setOcclusionLevel:occlusionNumber];
 				}
 			}
 			if (!e1->isSunlit)

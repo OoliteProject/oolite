@@ -33,6 +33,7 @@ SOFTWARE.
 
 @interface OOSound: NSObject
 {
+@private
 	uint32_t			_playingCount;
 }
 

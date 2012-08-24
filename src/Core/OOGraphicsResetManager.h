@@ -44,6 +44,7 @@ SOFTWARE.
 
 @interface OOGraphicsResetManager: NSObject
 {
+@private
 	NSMutableSet			*clients;
 }
 

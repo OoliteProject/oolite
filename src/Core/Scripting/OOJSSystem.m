@@ -294,7 +294,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 		// Handle cases which do require systemData.
 		if (EXPECT (![UNIVERSE inInterstellarSpace]))
 		{
-			systemData = [UNIVERSE generateSystemData:player->system_seed];
+			systemData = [UNIVERSE currentSystemData];
 			
 			switch (JSID_TO_INT(propID))
 			{

@@ -35,6 +35,7 @@ SOFTWARE.
 
 @interface OOAsyncQueue: NSObject
 {
+@private
 	NSConditionLock				*_lock;
 	struct OOAsyncQueueElement	*_head,
 								*_tail,

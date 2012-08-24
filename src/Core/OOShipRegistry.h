@@ -34,6 +34,7 @@ SOFTWARE.
 
 @interface OOShipRegistry: NSObject
 {
+@private
 	NSDictionary			*_shipData;
 	NSDictionary			*_effectData;
 	NSArray					*_demoShips;

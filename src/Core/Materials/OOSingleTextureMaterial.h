@@ -34,6 +34,7 @@ SOFTWARE.
 
 @interface OOSingleTextureMaterial: OOBasicMaterial
 {
+@private
 	OOTexture				*_texture;
 }
 

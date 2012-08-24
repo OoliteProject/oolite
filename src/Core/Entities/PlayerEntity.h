@@ -251,12 +251,11 @@ typedef enum
 
 @interface PlayerEntity: ShipEntity
 {
-@public
+@private
 	Random_Seed				system_seed;
 	Random_Seed				target_system_seed;
 	float					occlusion_dial;
 	
-@private
 	Random_Seed				found_system_seed;
 	int						ship_trade_in_factor;
 	
@@ -595,6 +594,9 @@ typedef enum
 
 - (BOOL) massLocked;
 - (BOOL) atHyperspeed;
+
+- (float) occlusionLevel;
+- (void) setOcclusionLevel:(float)level;
 
 - (void) setDockedAtMainStation;
 - (StationEntity *) dockedStation;

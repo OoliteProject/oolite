@@ -46,6 +46,7 @@ typedef struct
 
 @interface Octree: NSObject
 {
+@private
 	GLfloat			radius;
 	int				leafs;
 	int				*octree;

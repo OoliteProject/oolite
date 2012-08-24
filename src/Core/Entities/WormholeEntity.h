@@ -46,6 +46,7 @@ typedef enum
 
 @interface WormholeEntity: Entity
 {
+@private
 	double			expiry_time;	// Time when wormhole entrance closes
 	double			travel_time;	// Time taken for a ship to traverse the wormhole
 	double			arrival_time;	// Time when wormhole exit opens

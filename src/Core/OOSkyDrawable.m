@@ -76,6 +76,7 @@ enum
 */
 @interface OOSkyQuadSet: NSObject
 {
+@private
 	OOTexture				*_texture;
 	unsigned				_count;
 	GLfloat					*_positions;	// 3 entries per vertex, 12 per quad

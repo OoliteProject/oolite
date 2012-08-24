@@ -38,6 +38,7 @@ OUT OF OR
 
 @interface OOSoundSource: NSObject
 {
+@private
 	OOSound						*_sound;
 	OOSoundChannel				*_channel;
 	BOOL						_loop;

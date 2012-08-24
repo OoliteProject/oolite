@@ -37,6 +37,7 @@ SOFTWARE.
 
 @interface OOTextureLoader: NSObject <OOAsyncWorkTask>
 {
+@protected
 	NSString					*_path;
 	
 	OOTextureFlags				_options;

@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 
 @interface DustEntity: Entity
 {
+@private
 	OOColor				*dust_color;
 	Vector				vertices[DUST_N_PARTICLES * 2];
 	GLushort			indices[DUST_N_PARTICLES * 2];

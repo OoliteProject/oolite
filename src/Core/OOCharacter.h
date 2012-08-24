@@ -35,8 +35,9 @@ MA 02110-1301, USA.
 @class OOJSScript;
 
 
-@interface OOCharacter : NSObject
+@interface OOCharacter: NSObject
 {
+@private
 	NSString			*name;
 	NSString			*shortDescription;
 	NSString			*longDescription;

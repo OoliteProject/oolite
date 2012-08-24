@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 
 @interface OoliteApp: NSApplication
 {
+@private
 	IBOutlet NSWindow			*_gameWindow;
 	IBOutlet GameController		*_gameController;
 	NSString					*_exitContext;

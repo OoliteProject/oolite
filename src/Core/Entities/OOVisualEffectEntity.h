@@ -33,20 +33,16 @@
 
 @interface OOVisualEffectEntity: OOEntityWithDrawable <OOSubEntity>
 {
-@public
-
-
-@protected
+@private
 	NSMutableArray			*subEntities;
 
-	NSDictionary        *effectinfoDictionary;
+	NSDictionary			*effectinfoDictionary;
 
 	GLfloat					_profileRadius; // for frustum culling
 
 	OOColor					*scanner_display_color1;
 	OOColor					*scanner_display_color2;
-
-@private
+	
 	NSString				*_effectKey;
 
 }

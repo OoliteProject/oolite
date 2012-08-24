@@ -47,6 +47,7 @@ enum
 
 @interface OOShipGroupEnumerator: NSEnumerator
 {
+	// ivars are public so ShipGroupIterate() can peek at both these and OOShipGroup's. Naughty!
 @public
 	OOShipGroup				*_group;
 	OOUInteger				_index, _updateCount;

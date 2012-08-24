@@ -37,8 +37,9 @@ MA 02110-1301, USA.
 #endif
 
 
-@interface AI : OOWeakRefObject
+@interface AI: OOWeakRefObject
 {
+@private
 	id					_owner;						// OOWeakReference to the ShipEntity this is the AI for
 	NSString			*ownerDesc;					// describes the object this is the AI for
 	

@@ -216,7 +216,7 @@ typedef struct
 
 @interface OOJoystickManager: NSObject 
 {
-@protected
+@private
 	// Axis/button mapping arrays
 	int8_t		axismap[MAX_STICKS][MAX_AXES];
 	int8_t		buttonmap[MAX_STICKS][MAX_BUTTONS];

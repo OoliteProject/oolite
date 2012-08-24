@@ -127,6 +127,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 @interface RouteElement: NSObject
 {
+@private
 	OOSystemID _location, _parent;
 	double _cost, _distance, _time;
 }
@@ -743,10 +744,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) setUpWitchspace
 {
-	PlayerEntity*		player = PLAYER;
-	Random_Seed		s1 = player->system_seed;
-	Random_Seed		s2 = player->target_system_seed;
-	[self setUpWitchspaceBetweenSystem:s1 andSystem:s2];
+	[self setUpWitchspaceBetweenSystem:[PLAYER system_seed] andSystem:[PLAYER target_system_seed]];
 }
 
 

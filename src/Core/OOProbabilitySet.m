@@ -79,6 +79,7 @@ static NSString * const	kWeightsKey = @"weights";
 
 @interface OOSingleObjectProbabilitySet: OOProbabilitySet
 {
+@private
 	id					_object;
 	float				_weight;
 }
@@ -90,6 +91,7 @@ static NSString * const	kWeightsKey = @"weights";
 
 @interface OOConcreteProbabilitySet: OOProbabilitySet <OOProbabilitySetEnumerable>
 {
+@private
 	OOUInteger			_count;
 	id					*_objects;
 	float				*_cumulativeWeights;	// Each cumulative weight is weight of object at this index + weight of all objects to left.
@@ -100,6 +102,7 @@ static NSString * const	kWeightsKey = @"weights";
 
 @interface OOConcreteMutableProbabilitySet: OOMutableProbabilitySet
 {
+@private
 	NSMutableArray		*_objects;
 	NSMutableArray		*_weights;
 	float				_sumOfWeights;
@@ -112,6 +115,7 @@ static NSString * const	kWeightsKey = @"weights";
 
 @interface OOProbabilitySetEnumerator: NSEnumerator
 {
+@private
 	id					_enumerable;
 	OOUInteger			_index;
 }

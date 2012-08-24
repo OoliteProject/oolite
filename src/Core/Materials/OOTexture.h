@@ -110,8 +110,8 @@ typedef OOPixMapFormat OOTextureDataFormat;
 
 @interface OOTexture: OOWeakRefObject
 {
-@protected
 #ifndef NDEBUG
+@protected
 	BOOL						_trace;
 #endif
 }

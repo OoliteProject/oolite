@@ -44,6 +44,7 @@ typedef  OSStatus (*OOSoundChannel_RenderIMP)(id inSelf, SEL inSelector, AudioUn
 
 @interface OOSoundChannel: NSObject
 {
+@private
 	OOSoundChannel				*_next;
 	id							_delegate;
 	AUNode						_subGraphNode;

@@ -39,6 +39,7 @@ SOFTWARE.
 
 @interface OOShaderProgram: NSObject
 {
+@private
 	GLhandleARB						program;
 	NSString						*key;
 }

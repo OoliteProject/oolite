@@ -39,6 +39,7 @@ SOFTWARE.
 
 @interface OOShaderUniform: NSObject
 {
+@private
 	NSString					*name;
 	GLint						location;
 	uint8_t						isBinding: 1,

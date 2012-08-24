@@ -39,6 +39,7 @@ SOFTWARE.
 
 @interface OOSoundSourcePool: NSObject
 {
+@private
 	struct OOSoundSourcePoolElement	*_sources;
 	uint8_t							_count;
 	uint8_t							_latest;

@@ -46,6 +46,7 @@ SOFTWARE.
 
 @interface OOOXPVerifier: NSObject
 {
+@private
 	NSDictionary				*_verifierPList;
 	
 	NSString					*_basePath;

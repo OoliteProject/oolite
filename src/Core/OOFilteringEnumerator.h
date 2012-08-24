@@ -56,6 +56,7 @@ SOFTWARE.
 
 @interface OOFilteringEnumerator: NSEnumerator
 {
+@private
 	NSEnumerator		*_underlyingEnum;
 	SEL					_selector;
 	id					_argument;

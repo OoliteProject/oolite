@@ -49,6 +49,7 @@
 
 @interface VirtualRingBuffer : NSObject
 {
+@private
     void *buffer;
     void *bufferEnd;
     OOUInteger bufferLength;

@@ -124,6 +124,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 // NSEnumerator subclass to pull objects from queue.
 @interface OOPriorityQueueEnumerator: NSEnumerator
 {
+@private
 	OOPriorityQueue			*_queue;
 }
 

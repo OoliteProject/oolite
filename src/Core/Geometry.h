@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 
 @interface Geometry: NSObject
 {
+@private
 	// a geometry essentially consists of a whole bunch of Triangles.
 	// Note: simply making these unsigned will break octree generation. If trying it, don't forget to flush the cache. -- Ahruman 20081101
 	OOInteger	n_triangles;			// how many triangles in the geometry

@@ -36,6 +36,7 @@ SOFTWARE.
 
 @interface OOBasicMaterial: OOMaterial
 {
+@private
 	NSString				*materialName;
 	
 	// Colours

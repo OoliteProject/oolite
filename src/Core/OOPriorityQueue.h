@@ -43,6 +43,7 @@ SOFTWARE.
 
 @interface OOPriorityQueue: NSObject <NSCopying>
 {
+@private
 	SEL						_comparator;
 	id						*_heap;
 	OOUInteger				_count,

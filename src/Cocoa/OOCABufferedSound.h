@@ -38,6 +38,7 @@ SOFTWARE.
 
 @interface OOCABufferedSound: OOSound
 {
+@private
 	float				*_bufferL,
 						*_bufferR;
 	size_t				_size;

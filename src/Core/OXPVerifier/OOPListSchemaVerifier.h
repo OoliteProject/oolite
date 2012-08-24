@@ -38,6 +38,7 @@ SOFTWARE.
 
 @interface OOPListSchemaVerifier: NSObject
 {
+@private
 	NSDictionary				*_schema;
 	NSDictionary				*_definitions;
 	

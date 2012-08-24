@@ -14,6 +14,7 @@
 
 @interface ReleaseLockProxy: NSProxy
 {
+@private
 	id<NSObject>		_object;
 	NSString			*_name;
 	BOOL				_locked;

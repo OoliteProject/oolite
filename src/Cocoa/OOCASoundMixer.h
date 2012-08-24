@@ -45,6 +45,7 @@ enum
 
 @interface OOSoundMixer: NSObject
 {
+@private
 	OOSoundChannel				*_channels[kMixerGeneralChannels];
 	OOSoundChannel				*_freeList;
 	NSLock						*_listLock;

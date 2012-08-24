@@ -415,7 +415,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 															  
 				// occlusion rate: .9 is 18 degrees after the terminus, where twilight ends.
 				// 1 is the terminus, 1.033 is 6 degrees before the terminus, where the sky begins to redden
-				double rate = (PLAYER->occlusion_dial - 0.97)/0.06; // from 0.97 to 1.03
+				double rate = ([PLAYER occlusionLevel] - 0.97)/0.06; // from 0.97 to 1.03
 
 				if (EXPECT(rate <= 1.0 && rate > 0.0))
 				{

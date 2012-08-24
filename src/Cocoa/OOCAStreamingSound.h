@@ -39,6 +39,7 @@ SOFTWARE.
 
 @interface OOCAStreamingSound: OOSound
 {
+@private
 	OOCASoundDecoder		*_decoder;
 }
 

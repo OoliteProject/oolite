@@ -41,8 +41,9 @@ typedef struct
 } OOHSBAComponents;
 
 
-@interface OOColor : NSObject <NSCopying>
+@interface OOColor: NSObject <NSCopying>
 {
+@private
 	OOCGFloat	rgba[4];
 }
 

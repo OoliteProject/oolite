@@ -35,6 +35,7 @@ SOFTWARE.
 
 @interface OOSkyDrawable: OODrawable
 {
+@private
 	unsigned				_starCount;
 	unsigned				_nebulaCount;
 	

@@ -64,6 +64,7 @@ SOFTWARE.
 
 @interface OODebugMonitor: OOWeakRefObject <OODebugMonitorInterface>
 {
+@private
 	id<OODebuggerInterface>				_debugger;
 	
 	// JavaScript console support.

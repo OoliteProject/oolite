@@ -49,6 +49,7 @@ typedef enum
 
 @interface OOMusicController: NSObject
 {
+@private
 	OOMusicMode				_mode;
 	NSString				*_missionMusic;
 	OOMusic					*_current;

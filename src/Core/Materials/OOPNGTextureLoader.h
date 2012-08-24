@@ -33,6 +33,7 @@ SOFTWARE.
 
 @interface OOPNGTextureLoader: OOTextureLoader
 {
+@private
 	png_structp					png;
 	png_infop					pngInfo;
 	png_infop					pngEndInfo;

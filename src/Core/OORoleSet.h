@@ -34,6 +34,7 @@ SOFTWARE.
 
 @interface OORoleSet: NSObject <NSCopying>
 {
+@private
 	NSString					*_roleString;
 	NSDictionary				*_rolesAndProbabilities;
 	NSSet						*_roles;

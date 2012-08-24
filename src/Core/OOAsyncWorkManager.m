@@ -84,6 +84,7 @@ static OOAsyncWorkManager *sSingleton = nil;
 
 @interface OOOperationQueueAsyncWorkManager: OOAsyncWorkManagerInternal
 {
+@private
 	OONSOperationQueue		_operationQueue;
 }
 

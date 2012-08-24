@@ -89,6 +89,7 @@ static BOOL DirectoryExistCreatingIfNecessary(NSString *path);
 
 @interface OOAsyncLogger: NSObject
 {
+@private
 	OOAsyncQueue		*messageQueue;
 	NSConditionLock		*threadStateMonitor;
 	NSFileHandle		*logFile;
