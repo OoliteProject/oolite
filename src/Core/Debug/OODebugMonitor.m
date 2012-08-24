@@ -143,7 +143,7 @@ static OODebugMonitor *sSingleton = nil;
 }
 
 
-+ (id)sharedDebugMonitor
++ (OODebugMonitor *) sharedDebugMonitor
 {
 	// NOTE: assumes single-threaded access. The debug monitor is not, on the whole, thread safe.
 	if (sSingleton == nil)

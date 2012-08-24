@@ -96,7 +96,6 @@ enum
 - (void) drawCompassStationBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 - (void) drawCompassSunBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 - (void) drawCompassTargetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
-- (void) drawCompassWitchpointBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 - (void) drawCompassBeaconBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
 
 - (void) drawAegis:(NSDictionary *)info;
@@ -1369,26 +1368,6 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	OOGLEND();
 	
 	GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
-}
-
-
-- (void) drawCompassWitchpointBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha
-{
-	SetCompassBlipColor(relativePosition.z, alpha);
-	
-	OOGLBEGIN(GL_LINES);
-		glVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y + 0.5 * siz.height, z1);
-		glVertex3f(relativePosition.x - 0.25 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-		
-		glVertex3f(relativePosition.x - 0.25 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-		glVertex3f(relativePosition.x, relativePosition.y, z1);
-		
-		glVertex3f(relativePosition.x, relativePosition.y, z1);
-		glVertex3f(relativePosition.x + 0.25 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-		
-		glVertex3f(relativePosition.x + 0.25 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-		glVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y + 0.5 * siz.height, z1);
-	OOGLEND();
 }
 
 
