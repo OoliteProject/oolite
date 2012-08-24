@@ -433,7 +433,14 @@
 
 	shader_visual_effect_binding_methods = 
 	(	
-		"hullHeatLevel" // faked value so that default shader will work
+		"hullHeatLevel", // faked value so that default shader will work
+		// arbitrary values of various types for shader bindings
+		"shaderFloat1",
+		"shaderFloat2",
+		"shaderInt1",
+		"shaderInt2",
+		"shaderVector1",
+		"shaderVector2"
 	);
 
 	action_method_aliases =

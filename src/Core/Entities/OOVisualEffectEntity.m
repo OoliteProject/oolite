@@ -133,6 +133,15 @@ MA 02110-1301, USA.
 
 	[self setStatus:STATUS_EFFECT];
 
+	_hullHeatLevel = 60.0 / 256.0;
+	_shaderFloat1 = 0.0;
+	_shaderFloat2 = 0.0;
+	_shaderInt1 = 0;
+	_shaderInt2 = 0;
+	_shaderVector1 = kZeroVector;
+	_shaderVector2 = kZeroVector;
+
+
 	return YES;
 
 	OOJS_PROFILE_EXIT
@@ -455,13 +464,6 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 }
 
 
-// faked for benefit of shaders
-- (GLfloat)hullHeatLevel
-{
-	return 60.0 / 256.0;
-}
-
-
 - (BOOL) isBreakPattern
 {
 	return isImmuneToBreakPatternHide;
@@ -478,5 +480,98 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 {
 	return effectinfoDictionary;
 }
+
+
+/* Shader bindable uniforms */
+
+// no automatic change of this, but simplifies use of default shader
+- (GLfloat)hullHeatLevel
+{
+	return _hullHeatLevel;
+}
+
+
+- (void)setHullHeatLevel:(GLfloat)value
+{
+	_hullHeatLevel = OOClamp_0_1_f(value);
+}
+
+
+- (GLfloat) shaderFloat1 
+{
+	return _shaderFloat1;
+}
+
+
+- (void)setShaderFloat1:(GLfloat)value
+{
+	_shaderFloat1 = value;
+}
+
+
+- (GLfloat) shaderFloat2 
+{
+	return _shaderFloat2;
+}
+
+
+- (void)setShaderFloat2:(GLfloat)value
+{
+	_shaderFloat2 = value;
+}
+
+
+- (int) shaderInt1 
+{
+	return _shaderInt1;
+}
+
+
+- (void)setShaderInt1:(int)value
+{
+	_shaderInt1 = value;
+}
+
+
+- (int) shaderInt2 
+{
+	return _shaderInt2;
+}
+
+
+- (void)setShaderInt2:(int)value
+{
+	_shaderInt2 = value;
+}
+
+
+- (Vector) shaderVector1 
+{
+	return _shaderVector1;
+}
+
+
+- (void)setShaderVector1:(Vector)value
+{
+	_shaderVector1 = value;
+}
+
+
+- (Vector) shaderVector2 
+{
+	return _shaderVector2;
+}
+
+
+- (void)setShaderVector2:(Vector)value
+{
+	_shaderVector2 = value;
+}
+
+
+
+
+
+
 
 @end

@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 #import "OOVisualEffectEntity.h"
 #import "OOJSVisualEffect.h"
 #import "OOJSEntity.h"
+#import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
 #import "OOMesh.h"
 #import "OOCollectionExtractors.h"
@@ -68,9 +69,16 @@ static JSClass sVisualEffectClass =
 enum
 {
 	// Property IDs
+	kVisualEffect_hullHeatLevel,
 	kVisualEffect_isBreakPattern,
 	kVisualEffect_scannerDisplayColor1,
-	kVisualEffect_scannerDisplayColor2
+	kVisualEffect_scannerDisplayColor2,
+	kVisualEffect_shaderFloat1,
+	kVisualEffect_shaderFloat2,
+	kVisualEffect_shaderInt1,
+	kVisualEffect_shaderInt2,
+	kVisualEffect_shaderVector1,
+	kVisualEffect_shaderVector2
 };
 
 
@@ -80,6 +88,13 @@ static JSPropertySpec sVisualEffectProperties[] =
 	{ "isBreakPattern",	kVisualEffect_isBreakPattern,	OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1", kVisualEffect_scannerDisplayColor1, OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2", kVisualEffect_scannerDisplayColor2, OOJS_PROP_READWRITE_CB },
+	{ "hullHeatLevel", kVisualEffect_hullHeatLevel, OOJS_PROP_READWRITE_CB },
+	{ "shaderFloat1",  kVisualEffect_shaderFloat1,  OOJS_PROP_READWRITE_CB },
+	{ "shaderFloat2",  kVisualEffect_shaderFloat2,  OOJS_PROP_READWRITE_CB },
+	{ "shaderInt1",    kVisualEffect_shaderInt1,    OOJS_PROP_READWRITE_CB },
+	{ "shaderInt2",    kVisualEffect_shaderInt2,    OOJS_PROP_READWRITE_CB },
+	{ "shaderVector1", kVisualEffect_shaderVector1, OOJS_PROP_READWRITE_CB },
+	{ "shaderVector2", kVisualEffect_shaderVector2, OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 
@@ -176,7 +191,29 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 			result = [[entity scannerDisplayColor2] normalizedArray];
 			break;
 
+		case kVisualEffect_hullHeatLevel:
+			return JS_NewNumberValue(context, [entity hullHeatLevel], value);
 
+		case kVisualEffect_shaderFloat1:
+			return JS_NewNumberValue(context, [entity shaderFloat1], value);
+
+		case kVisualEffect_shaderFloat2:
+			return JS_NewNumberValue(context, [entity shaderFloat2], value);
+
+		case kVisualEffect_shaderInt1:
+			*value = INT_TO_JSVAL([entity shaderInt1]);
+			return YES;
+
+		case kVisualEffect_shaderInt2:
+			*value = INT_TO_JSVAL([entity shaderInt2]);
+			return YES;
+
+		case kVisualEffect_shaderVector1:
+			return VectorToJSValue(context, [entity shaderVector1], value);
+
+		case kVisualEffect_shaderVector2:
+			return VectorToJSValue(context, [entity shaderVector2], value);
+			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sVisualEffectProperties);
 			return NO;
@@ -198,7 +235,9 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 	OOVisualEffectEntity				*entity = nil;
 	JSBool						bValue;
 	OOColor *colorForScript;
-//	int32						iValue;
+	int32						iValue;
+	jsdouble        fValue;
+	Vector          vValue;
 	
 	if (!JSVisualEffectGetVisualEffectEntity(context, this, &entity)) return NO;
 	if (entity == nil)  return YES;
@@ -230,6 +269,56 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 				return YES;
 			}
 			break;
+
+		case kVisualEffect_hullHeatLevel:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setHullHeatLevel:fValue];
+				return YES;
+			}
+
+		case kVisualEffect_shaderFloat1:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setShaderFloat1:fValue];
+				return YES;
+			}
+
+		case kVisualEffect_shaderFloat2:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setShaderFloat2:fValue];
+				return YES;
+			}
+
+		case kVisualEffect_shaderInt1:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				[entity setShaderInt1:iValue];
+				return YES;
+			}
+
+		case kVisualEffect_shaderInt2:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				[entity setShaderInt2:iValue];
+				return YES;
+			}
+
+		case kVisualEffect_shaderVector1:
+			if (JSValueToVector(context, *value, &vValue))
+			{
+				[entity setShaderVector1:vValue];
+				return YES;
+			}
+
+		case kVisualEffect_shaderVector2:
+			if (JSValueToVector(context, *value, &vValue))
+			{
+				[entity setShaderVector2:vValue];
+				return YES;
+			}
+
 
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sVisualEffectProperties);

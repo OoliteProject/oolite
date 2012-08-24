@@ -42,7 +42,15 @@
 
 	OOColor					*scanner_display_color1;
 	OOColor					*scanner_display_color2;
-	
+
+	GLfloat         _hullHeatLevel;
+	GLfloat         _shaderFloat1;
+	GLfloat         _shaderFloat2;
+	int             _shaderInt1;
+	int             _shaderInt2;
+	Vector          _shaderVector1;
+	Vector          _shaderVector2;
+
 	NSString				*_effectKey;
 
 }
@@ -72,8 +80,22 @@
 - (GLfloat *) scannerDisplayColorForShip:(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2;
 
 // convenience for shaders
-// FIXME: make this actually work
 - (GLfloat)hullHeatLevel;
+- (void)setHullHeatLevel:(GLfloat)value;
+// shader properties
+- (GLfloat) shaderFloat1;
+- (void)setShaderFloat1:(GLfloat)value;
+- (GLfloat) shaderFloat2; 
+- (void)setShaderFloat2:(GLfloat)value;
+- (int) shaderInt1; 
+- (void)setShaderInt1:(int)value;
+- (int) shaderInt2;
+- (void)setShaderInt2:(int)value;
+- (Vector) shaderVector1; 
+- (void)setShaderVector1:(Vector)value;
+- (Vector) shaderVector2; 
+- (void)setShaderVector2:(Vector)value;
+
 
 - (BOOL) isBreakPattern;
 - (void) setIsBreakPattern:(BOOL)bp;
