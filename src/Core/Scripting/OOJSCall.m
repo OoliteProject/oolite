@@ -92,6 +92,12 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *oo_jsClas
 							error = NO;
 	id						result = nil;
 	
+	if (argc == 0)
+	{
+		OOJSReportError(context, @"%@.callObjC(): no selector specified.", oo_jsClassName);
+		return NO;
+	}
+	
 	if ([object isKindOfClass:[ShipEntity class]])
 	{
 		[PLAYER setScriptTarget:object];
