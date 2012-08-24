@@ -1015,6 +1015,8 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 
 		case kShip_AIFoundTarget:
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+
 			if (JSVAL_IS_NULL(*value))
 			{
 				[entity setFoundTarget:nil];
@@ -1028,6 +1030,8 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 
 		case kShip_AIPrimaryAggressor:
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+
 			if (JSVAL_IS_NULL(*value))
 			{
 				[entity setPrimaryAggressor:nil];
