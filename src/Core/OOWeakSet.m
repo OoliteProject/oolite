@@ -1,13 +1,12 @@
 /*
 
-OOWeakSet.h
+OOWeakSet.m
 
 Written by Jens Ayton in 2012 for Oolite.
 This code is hereby placed in the public domain.
 
 */
 
-#import "OOCocoa.h"
 #import "OOWeakSet.h"
 
 

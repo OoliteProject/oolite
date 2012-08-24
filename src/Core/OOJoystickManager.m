@@ -53,7 +53,7 @@ static id sSharedStickHandler = nil;
 
 @implementation OOJoystickManager
 
-+ (OOJoystickManager *) sharedStickHandler
++ (id) sharedStickHandler
 {
 	if (sSharedStickHandler == nil)
 	{
