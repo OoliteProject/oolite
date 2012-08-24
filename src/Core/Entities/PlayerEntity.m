@@ -64,7 +64,6 @@ MA 02110-1301, USA.
 #import "OOEntityFilterPredicate.h"
 #import "OOShipRegistry.h"
 #import "OOEquipmentType.h"
-#import "OOCamera.h"
 #import "NSFileManagerOOExtensions.h"
 #import "OOFullScreenController.h"
 
@@ -3033,48 +3032,6 @@ static GLfloat		sBaseMass = 0.0;
 	
 	return viewpoint;
 }
-
-
-#if 0
-/*	Return the current player-centric camera.
-	FIXME: this should store a set of cameras and return the current one.
-	Currently, it synthesizes a camera based on the various legacy things.
-*/
-- (OOCamera *) currentCamera
-{
-	OOCamera		*camera = nil;
-	Quaternion		orient = kIdentityQuaternion;
-	
-	camera = [[OOCamera alloc] init];
-	[camera autorelease];
-	
-	[camera setPosition:[self viewpointPosition]];
-	
-	/*switch ([UNIVERSE viewDirection])
-	{
-		case VIEW_FORWARD:
-		case VIEW_NONE:
-		case VIEW_GUI_DISPLAY:
-		case VIEW_BREAK_PATTERN:
-			orient = kIdentityQuaternion;
-			break;
-		
-		case VIEW_AFT:
-			static const OOMatrix	aft_matrix =
-			{{
-				{-1.0f,  0.0f,  0.0f,  0.0f },
-				{ 0.0f,  1.0f,  0.0f,  0.0f },
-				{ 0.0f,  0.0f, -1.0f,  0.0f },
-				{ 0.0f,  0.0f,  0.0f,  1.0f }
-			}};
-			
-	}*/
-	
-	[camera setOrientation:orient];
-	
-	return camera;
-}
-#endif
 
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent

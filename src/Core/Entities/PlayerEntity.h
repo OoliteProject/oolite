@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
-@class OOJoystickManager, OOTexture, OOCamera;
+@class OOJoystickManager, OOTexture;
 
 
 #define SCRIPT_TIMER_INTERVAL			10.0
@@ -808,10 +808,6 @@ typedef enum
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
 - (Vector) viewpointPosition;
 - (Vector) viewpointOffset;
-
-#if 0
-- (OOCamera *) currentCamera;
-#endif
 
 - (NSDictionary *) missionOverlayDescriptor;
 - (NSDictionary *) missionOverlayDescriptorOrDefault;
