@@ -29,10 +29,6 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOJSScript.h"
 
-#ifdef OO_BRAIN_AI
-#import "OOBrain.h"
-#endif
-
 
 @interface OOCharacter (Private)
 
@@ -62,10 +58,8 @@ MA 02110-1301, USA.
 	[shortDescription release];
 	[longDescription release];
 	[script_actions release];
-#ifdef OO_BRAIN_AI
-	[brain release];
-#endif
 	DESTROY(_script);
+	
 	[super dealloc];
 }
 
@@ -370,28 +364,6 @@ MA 02110-1301, USA.
 {
 	return script_actions;
 }
-
-
-#ifdef OO_BRAIN_AI
-- (OOBrain *)brain
-{
-	return brain;
-}
-
-
-- (void) setBrain:(OOBrain *)aBrain
-{
-	if (aBrain != brain)
-	{
-		[brain release];
-		brain = [aBrain retain];
-		if (brain != nil)
-		{
-			[brain setOwner:self];
-		}
-	}
-}
-#endif
 
 
 - (void)setName:(NSString *)value

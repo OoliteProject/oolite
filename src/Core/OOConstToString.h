@@ -81,10 +81,6 @@ declaration, in particular:
 	OOShaderSettingFromString()
 	OOStringFromShaderSetting()
 	OODisplayStringFromShaderSetting()
-
-	OOInstinct.h:
-	OOStringFromInstinctID()
-	OOInstinctIDFromString()
 	
 */
 

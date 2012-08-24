@@ -31,10 +31,6 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
-#ifdef OO_BRAIN_AI
-#import "OOInstinct.h"
-#endif
-
 #define kOOLogUnconvertedNSLog @"unclassified.AI"
 
 
@@ -153,20 +149,6 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 {
 	return [NSString stringWithFormat:@"%@:%@", stateMachineName, currentState];
 }
-
-
-#ifdef OO_BRAIN_AI
-- (OOInstinct *) rulingInstinct
-{
-	return rulingInstinct;
-}
-
-
-- (void) setRulingInstinct:(OOInstinct*) instinct
-{
-	rulingInstinct = instinct;
-}
-#endif
 
 
 - (ShipEntity *)owner
@@ -459,10 +441,6 @@ static AIStackElement *sStack = NULL;
 	
 	actions = [[[messagesForState objectForKey:message] copy] autorelease];
 	
-#ifdef OO_BRAIN_AI
-	if (rulingInstinct != nil)  [rulingInstinct freezeShipVars];	// preserve the pre-thinking state
-#endif
-	
 	sCurrentlyRunningAI = self;
 	if ([actions count] > 0)
 	{
@@ -493,14 +471,6 @@ static AIStackElement *sStack = NULL;
 #ifndef NDEBUG
 	// Unwind stack.
 	if (sStack != NULL)  sStack = sStack->back;
-#endif
-	
-#ifdef OO_BRAIN_AI
-	if (rulingInstinct != nil)
-	{
-		[rulingInstinct getShipVars];		// record the post-thinking state
-		[rulingInstinct unfreezeShipVars];	// restore the pre-thinking state (AI is now abstract thought = instincts motivate)
-	}
 #endif
 }
 
@@ -685,19 +655,6 @@ static AIStackElement *sStack = NULL;
 {
 	OOLog(@"dumpState.ai", @"State machine name: %@", stateMachineName);
 	OOLog(@"dumpState.ai", @"Current state: %@", currentState);
-#ifdef OO_BRAIN_AI
-	if (rulingInstinct!= nil && OOLogWillDisplayMessagesInClass(@"dumpState.ai.instinct"))
-	{
-		OOLog(@"dumpState.ai.instinct", @"Ruling instinct:");
-		OOLogPushIndent();
-		OOLogIndent();
-		NS_DURING
-			[rulingInstinct dumpState];
-		NS_HANDLER
-		NS_ENDHANDLER
-		OOLogPopIndent();
-	}
-#endif
 	OOLog(@"dumpState.ai", @"Next think time: %g", nextThinkTime);
 	OOLog(@"dumpState.ai", @"Next think interval: %g", thinkTimeInterval);
 }

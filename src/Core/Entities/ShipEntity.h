@@ -32,10 +32,6 @@
 @class	OOColor, StationEntity, WormholeEntity, AI, Octree, OOMesh, OOScript,
 OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
 
-#ifdef OO_BRAIN_AI
-@class OOBrain;
-#endif
-
 @protocol OOHUDBeaconIcon;
 
 
@@ -194,7 +190,7 @@ typedef enum
 	// navigation
 	Vector					v_forward, v_up, v_right;	// unit vectors derived from the direction faced
 	
-	// variables which are controlled by instincts/AI
+	// variables which are controlled by AI
 	Vector					destination;				// for flying to/from a set point
 
 	GLfloat					desired_range;				// range to which to journey/scan
@@ -301,9 +297,6 @@ typedef enum
 	OOTimeDelta				missile_load_time;			// minimum time interval between missile launches
 	OOTimeAbsolute			missile_launch_time;		// time of last missile launch
 	
-#ifdef OO_BRAIN_AI
-	OOBrain					*brain;						// brain controlling ship, could be a character brain or the autopilot
-#endif
 	AI						*shipAI;					// ship's AI system
 	
 	NSString				*name;						// descriptive name
@@ -460,11 +453,6 @@ typedef enum
 - (void) setLaunchDelay:(double)delay;
 
 - (void) interpretAIMessage:(NSString *)message;
-
-#ifdef OO_BRAIN_AI
-- (OOBrain *)brain;
-- (void)setBrain:(OOBrain*) aBrain;
-#endif
 
 - (GLfloat)accuracy;
 - (void)setAccuracy:(GLfloat) new_accuracy;

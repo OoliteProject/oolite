@@ -28,7 +28,6 @@ MA );-);, USA.
 
 #import "Universe.h"
 #import "PlayerEntity.h"
-#import "OOInstinct.h"
 
 
 #define CASE(foo) case foo: return @#foo;
@@ -181,38 +180,6 @@ OOScanClass OOScanClassFromString(NSString *string)
 
 #undef ENTRY
 #undef GALACTIC_HYPERSPACE_ENTRY
-
-
-#ifdef OO_BRAIN_AI
-NSString *OOStringFromInstinctID(OOInstinctID instinct)
-{
-	switch (instinct)
-	{
-		CASE(INSTINCT_ATTACK_PREY);
-		CASE(INSTINCT_AVOID_PREDATORS);
-		CASE(INSTINCT_AVOID_HAZARDS);
-		CASE(INSTINCT_FIGHT_OR_FLIGHT);
-		CASE(INSTINCT_FLOCK_ALIKE);
-		CASE(INSTINCT_FOLLOW_AI);
-		CASE(INSTINCT_NULL);
-	}
-	
-	return @"INSTINCT_UNKNOWN";
-}
-
-
-OOInstinctID OOInstinctIDFromString(NSString *string)
-{
-	REVERSE_CASE(INSTINCT_ATTACK_PREY);
-	REVERSE_CASE(INSTINCT_AVOID_PREDATORS);
-	REVERSE_CASE(INSTINCT_AVOID_HAZARDS);
-	REVERSE_CASE(INSTINCT_FIGHT_OR_FLIGHT);
-	REVERSE_CASE(INSTINCT_FLOCK_ALIKE);
-	REVERSE_CASE(INSTINCT_FOLLOW_AI);
-	
-	return kOOInstinctIDDefault;
-}
-#endif
 
 
 NSString *RouteTypeToString(OORouteType routeType)
