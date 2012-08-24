@@ -28,6 +28,15 @@ SOFTWARE.
 #import "OOPrimaryWindow.h"
 
 
+#if !OOLITE_MAC_OS_X_10_7
+@interface NSWindow (Lion)
+
+- (void) toggleFullScreen:(id)sender;
+
+@end
+#endif
+
+
 @implementation OOPrimaryWindow
 
 @synthesize fullScreenDelegate = _fullScreenDelegate;
