@@ -359,7 +359,7 @@ static JSBool MissionSetInstructionsInternal(JSContext *context, uintN argc, jsv
 	
 	if (argc > 1)
 	{
-		missionKey = [NSString stringWithJavaScriptValue:OOJS_ARGV[1] inContext:context];
+		missionKey = OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[1]);
 	}
 	else
 	{

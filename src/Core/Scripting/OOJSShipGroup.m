@@ -167,7 +167,7 @@ static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid prop
 			break;
 			
 		case kShipGroup_name:
-			[group setName:[NSString stringWithJavaScriptValue:*value inContext:context]];
+			[group setName:OOStringFromJSValueEvenIfNull(context, *value)];
 			return YES;
 			break;
 			
@@ -204,7 +204,7 @@ static JSBool ShipGroupConstruct(JSContext *context, uintN argc, jsval *vp)
 			OOJSReportBadArguments(context, nil, @"ShipGroup()", 1, OOJS_ARGV, @"Could not create ShipGroup", @"group name");
 			return NO;
 		}
-		name = [NSString stringWithJavaScriptValue:OOJS_ARGV[0] inContext:context];
+		name = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	}
 	
 	if (argc >= 2)

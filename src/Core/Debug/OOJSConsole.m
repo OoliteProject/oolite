@@ -632,7 +632,7 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsi
 		}
 		else
 		{
-			OOJSReportWarning(context, @"debugConsole.settings: could not convert %@ to native object.", [NSString stringWithJavaScriptValue:*value inContext:context]);
+			OOJSReportWarning(context, @"debugConsole.settings: could not convert %@ to native object.", OOStringFromJSValue(context, *value));
 		}
 	}
 	OOJSResumeTimeLimiter();
@@ -775,7 +775,7 @@ static JSBool ConsoleCallObjCMethod(JSContext *context, uintN argc, jsval *vp)
 	object = OOJSNativeObjectFromJSObject(context, OOJS_THIS);
 	if (object == nil)
 	{
-		OOJSReportError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", [NSString stringWithJavaScriptValue:JS_THIS(context, vp) inContext:context]);
+		OOJSReportError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", OOStringFromJSValueEvenIfNull(context, JS_THIS(context, vp)));
 		return NO;
 	}
 	
@@ -847,8 +847,8 @@ static JSBool ConsoleDisplayMessagesInClass(JSContext *context, uintN argc, jsva
 	
 	NSString				*messageClass = nil;
 	
-	messageClass = [NSString stringWithJavaScriptValue:OOJS_ARGV[0] inContext:context];
-	OOJS_RETURN_BOOL(OOLogWillDisplayMessagesInClass(messageClass));
+	messageClass = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	OOJS_RETURN_BOOL(messageClass != nil && OOLogWillDisplayMessagesInClass(messageClass));
 	
 	OOJS_NATIVE_EXIT
 }

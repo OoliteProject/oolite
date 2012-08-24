@@ -331,13 +331,6 @@ jsid OOJSIDFromString(NSString *string);
 // Add escape codes for string so that it's a valid JavaScript literal (if you put "" or '' around it).
 - (NSString *) escapedForJavaScriptLiteral;
 
-
-// Wrapper for OOStringFromJSValueEvenIfNull(). DEPRECATED
-+ (NSString *) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context DEPRECATED_METHOD("use OOStringFromJSValueEvenIfNull() instead");
-
-// Wrapper for OOStringFromJSValue(). DEPRECATED
-+ (NSString *) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context DEPRECATED_METHOD("use OOStringFromJSValue() instead");
-
 @end
 
 

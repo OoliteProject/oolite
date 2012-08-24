@@ -1682,18 +1682,6 @@ NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObje
 
 @implementation NSString (OOJavaScriptExtensions)
 
-+ (NSString *) stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
-{
-	return OOStringFromJSValue(context, value);
-}
-
-
-+ (NSString *) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
-{
-	return OOStringFromJSValueEvenIfNull(context, value);
-}
-
-
 + (NSString *) stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context
 {
 	OOJS_PROFILE_ENTER
@@ -1759,7 +1747,7 @@ NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObje
 	
 	for (i = 0; i != count; ++i)
 	{
-		element = [NSString stringWithJavaScriptValue:values[i] inContext:context];
+		element = OOStringFromJSValueEvenIfNull(context, values[i]);
 		if (result == nil)  result = [[element mutableCopy] autorelease];
 		else
 		{
@@ -2292,8 +2280,7 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue
 		
 		if (objKey != nil && !JSVAL_IS_VOID(value))
 		{
-			// Note: we want nulls and undefines included, so not OOStringFromJSValue().
-			objValue = [NSString stringWithJavaScriptValue:value inContext:context];
+			objValue = OOStringFromJSValueEvenIfNull(context, value);
 			
 			if (objValue != nil)
 			{
@@ -2460,7 +2447,7 @@ static id JSArrayConverter(JSContext *context, JSObject *array)
 
 static id JSStringConverter(JSContext *context, JSObject *object)
 {
-	return [NSString stringOrNilWithJavaScriptValue:OBJECT_TO_JSVAL(object) inContext:context];
+	return OOStringFromJSValue(context, OBJECT_TO_JSVAL(object));
 }
 
 

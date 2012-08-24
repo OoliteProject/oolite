@@ -88,7 +88,7 @@ MA 02110-1301, USA.
 const char *JSValueToStrDbg(jsval val)
 {
 	JSContext *context = OOJSAcquireContext();
-	const char *result = [[NSString stringWithJavaScriptValue:val inContext:context] UTF8String];
+	const char *result = [OOStringFromJSValueEvenIfNull(context, val) UTF8String];
 	OOJSRelinquishContext(context);
 	
 	return result;

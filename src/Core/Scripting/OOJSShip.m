@@ -2333,7 +2333,7 @@ static JSBool ShipSetShaders(JSContext *context, uintN argc, jsval *vp)
 	if (JSVAL_IS_NULL(OOJS_ARGV[0]) || (!JSVAL_IS_NULL(OOJS_ARGV[0]) && !JSVAL_IS_OBJECT(OOJS_ARGV[0])))
 	{
 		// EMMSTRAN: JS_ValueToObject() and normal error handling here.
-		OOJSReportWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"setShaders", @"object", [NSString stringWithJavaScriptValue:OOJS_ARGV[0] inContext:context]);
+		OOJSReportWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"setShaders", @"object", OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]));
 		OOJS_RETURN_BOOL(NO);
 	}
 	
@@ -2358,7 +2358,7 @@ static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp
 	
 	if (JSVAL_IS_NULL(OOJS_ARGV[0]) || (!JSVAL_IS_NULL(OOJS_ARGV[0]) && !JSVAL_IS_OBJECT(OOJS_ARGV[0])))
 	{
-		OOJSReportWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"setMaterials", @"object", [NSString stringWithJavaScriptValue:OOJS_ARGV[0] inContext:context]);
+		OOJSReportWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"setMaterials", @"object", OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]));
 		OOJS_RETURN_BOOL(NO);
 	}
 	
@@ -2367,7 +2367,7 @@ static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp
 		withShaders = YES;
 		if (JSVAL_IS_NULL(OOJS_ARGV[1]) || (!JSVAL_IS_NULL(OOJS_ARGV[1]) && !JSVAL_IS_OBJECT(OOJS_ARGV[1])))
 		{
-			OOJSReportWarning(context, @"Ship.%@: expected %@ instead of '%@'.",  @"setMaterials", @"object as second parameter", [NSString stringWithJavaScriptValue:OOJS_ARGV[1] inContext:context]);
+			OOJSReportWarning(context, @"Ship.%@: expected %@ instead of '%@'.",  @"setMaterials", @"object as second parameter", OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[1]));
 			withShaders = NO;
 		}
 	}
