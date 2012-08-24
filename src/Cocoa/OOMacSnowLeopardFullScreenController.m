@@ -68,7 +68,7 @@ MA 02110-1301, USA.
 
 - (void) dealloc
 {
-	[self endFullScreenMode];
+	self.fullScreenMode = NO;
 	
 	DESTROY(_fullScreenWindow);
 	DESTROY(_blankingWindows);

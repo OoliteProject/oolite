@@ -41,6 +41,18 @@ MA 02110-1301, USA.
 #else
 
 #import "OOMacSnowLeopardFullScreenController.h"
+#import "OOMacSystemStandardFullScreenController.h"
+
+#endif
+
+
+#if OOLITE_MAC_OS_X
+
+#import "OOPrimaryWindow.h"
+
+
+@interface GameController (OOPrimaryWindowDelegate) <OOPrimaryWindowDelegate>
+@end
 
 #endif
 
@@ -52,8 +64,22 @@ MA 02110-1301, USA.
 #if OOLITE_MAC_LEGACY_FULLSCREEN
 	OOMacLegacyFullScreenController *fullScreenController = [[OOMacLegacyFullScreenController alloc] initWithGameView:gameView];
 	fullScreenController.delegate = self;
-#else
-	OOMacSnowLeopardFullScreenController *fullScreenController = [[OOMacSnowLeopardFullScreenController alloc] initWithGameView:gameView];
+#elif OOLITE_MAC_OS_X
+	OOFullScreenController *fullScreenController = nil;
+	
+#if OO_MAC_SUPPORT_SYSTEM_STANDARD_FULL_SCREEN
+	if ([OOMacSystemStandardFullScreenController shouldUseSystemStandardFullScreenController])
+	{
+		fullScreenController = [[OOMacSystemStandardFullScreenController alloc] initWithGameView:gameView];
+		if (fullScreenController != nil)  OOLog(@"display.fullScreen.temp", @"Selecting modern full-screen controller.");
+	}
+#endif
+	
+	if (fullScreenController == nil)
+	{
+		OOLog(@"display.fullScreen.temp", @"Selecting Snow Leopard full-screen controller.");
+		fullScreenController = [[OOMacSnowLeopardFullScreenController alloc] initWithGameView:gameView];
+	}
 #endif
 	
 	// Load preferred display mode, falling back to current mode if no preferences set.
@@ -78,6 +104,12 @@ MA 02110-1301, USA.
 - (IBAction) toggleFullScreenAction:(id)sender
 {
 	[self setFullScreenMode:![self inFullScreenMode]];
+}
+
+
+- (void) toggleFullScreenCalledForWindow:(OOPrimaryWindow *)window withSender:(id)sender
+{
+	[self toggleFullScreenAction:sender];
 }
 
 #endif

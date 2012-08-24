@@ -399,6 +399,8 @@
 		1A3D034A11736EDA005BF5E6 /* OOMaterialConvenienceCreators.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3D034811736EDA005BF5E6 /* OOMaterialConvenienceCreators.h */; };
 		1A3D034B11736EDA005BF5E6 /* OOMaterialConvenienceCreators.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3D034911736EDA005BF5E6 /* OOMaterialConvenienceCreators.m */; };
 		1A3E019B11C574C2000FF226 /* Oolite.mdimporter in Copy MDImporter */ = {isa = PBXBuildFile; fileRef = 1A3E019611C574AC000FF226 /* Oolite.mdimporter */; };
+		1A401F8815E7AF7B004CDF95 /* OOPrimaryWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A401F8615E7AF7B004CDF95 /* OOPrimaryWindow.h */; };
+		1A401F8915E7AF7B004CDF95 /* OOPrimaryWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A401F8715E7AF7B004CDF95 /* OOPrimaryWindow.m */; };
 		1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */; };
 		1A43234F0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */; };
 		1A43A0CC0CB91D2C00D0E239 /* OOJSPlanet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */; };
@@ -438,10 +440,6 @@
 		1A572FCD0D84B640003D4A26 /* oolite-thargoid-warship.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */; };
 		1A572FE50D84B6A3003D4A26 /* oolite-constrictor-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */; };
 		1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5AA3220C0098AF0029C78A /* OOOpenGL.m */; };
-		1A5D872915E166E90060A44A /* OOJSVisualEffect.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5D872715E166E90060A44A /* OOJSVisualEffect.h */; };
-		1A5D872A15E166E90060A44A /* OOJSVisualEffect.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5D872815E166E90060A44A /* OOJSVisualEffect.m */; };
-		1A5D872D15E1670E0060A44A /* OOVisualEffectEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5D872B15E1670E0060A44A /* OOVisualEffectEntity.h */; };
-		1A5D872E15E1670E0060A44A /* OOVisualEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5D872C15E1670E0060A44A /* OOVisualEffectEntity.m */; };
 		1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */; };
 		1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */; };
 		1A5DBAA60BC000DC00D57389 /* OOJavaScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */; };
@@ -485,6 +483,12 @@
 		1A71EA8D0BCF8C6C00CD5C13 /* OOXMLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161107099544390037C2E1 /* OOXMLExtensions.h */; };
 		1A72F86515E002E200281337 /* OOMouseInteractionMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A72F86315E002E100281337 /* OOMouseInteractionMode.h */; };
 		1A72F86615E002E200281337 /* OOMouseInteractionMode.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A72F86415E002E100281337 /* OOMouseInteractionMode.m */; };
+		1A72F86915E14F1100281337 /* OOMacSystemStandardFullScreenController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A72F86715E14F1100281337 /* OOMacSystemStandardFullScreenController.h */; };
+		1A72F86A15E14F1100281337 /* OOMacSystemStandardFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A72F86815E14F1100281337 /* OOMacSystemStandardFullScreenController.m */; };
+		1A72F86E15E5655D00281337 /* OOVisualEffectEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A72F86C15E5655C00281337 /* OOVisualEffectEntity.h */; };
+		1A72F86F15E5655D00281337 /* OOVisualEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A72F86D15E5655D00281337 /* OOVisualEffectEntity.m */; };
+		1A72F87215E5658E00281337 /* OOJSVisualEffect.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A72F87015E5658E00281337 /* OOJSVisualEffect.h */; };
+		1A72F87315E5658E00281337 /* OOJSVisualEffect.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A72F87115E5658E00281337 /* OOJSVisualEffect.m */; };
 		1A736BD30C61E9370097AC37 /* OOJSPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A736BD10C61E9370097AC37 /* OOJSPlayer.h */; };
 		1A736BD40C61E9370097AC37 /* OOJSPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A736BD20C61E9370097AC37 /* OOJSPlayer.m */; };
 		1A736C7F0C61FD220097AC37 /* OOJSCall.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A736C7D0C61FD220097AC37 /* OOJSCall.h */; };
@@ -1677,6 +1681,8 @@
 		1A3D034911736EDA005BF5E6 /* OOMaterialConvenienceCreators.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMaterialConvenienceCreators.m; sourceTree = "<group>"; };
 		1A3D68FB11C7F4D400651B08 /* CHECKLIST.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CHECKLIST.TXT; path = Doc/CHECKLIST.TXT; sourceTree = "<group>"; };
 		1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-importer.xcodeproj"; path = "Mac-specific/Oolite-importer/Oolite-importer.xcodeproj"; sourceTree = "<group>"; };
+		1A401F8615E7AF7B004CDF95 /* OOPrimaryWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPrimaryWindow.h; sourceTree = "<group>"; };
+		1A401F8715E7AF7B004CDF95 /* OOPrimaryWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPrimaryWindow.m; sourceTree = "<group>"; };
 		1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGLExtensionManager.h; sourceTree = "<group>"; };
 		1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLExtensionManager.m; sourceTree = "<group>"; };
 		1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlanet.h; sourceTree = "<group>"; };
@@ -1717,10 +1723,6 @@
 		1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-thargoid-warship.js"; sourceTree = "<group>"; };
 		1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "oolite-constrictor-AI.plist"; sourceTree = "<group>"; };
 		1A5AA3220C0098AF0029C78A /* OOOpenGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGL.m; sourceTree = "<group>"; };
-		1A5D872715E166E90060A44A /* OOJSVisualEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSVisualEffect.h; sourceTree = "<group>"; };
-		1A5D872815E166E90060A44A /* OOJSVisualEffect.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSVisualEffect.m; sourceTree = "<group>"; };
-		1A5D872B15E1670E0060A44A /* OOVisualEffectEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOVisualEffectEntity.h; sourceTree = "<group>"; };
-		1A5D872C15E1670E0060A44A /* OOVisualEffectEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOVisualEffectEntity.m; sourceTree = "<group>"; };
 		1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToString.h; sourceTree = "<group>"; };
 		1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConstToString.m; sourceTree = "<group>"; };
 		1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJavaScriptEngine.h; sourceTree = "<group>"; };
@@ -1762,6 +1764,12 @@
 		1A71E8780BCE8EB100CD5C13 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
 		1A72F86315E002E100281337 /* OOMouseInteractionMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMouseInteractionMode.h; sourceTree = "<group>"; };
 		1A72F86415E002E100281337 /* OOMouseInteractionMode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMouseInteractionMode.m; sourceTree = "<group>"; };
+		1A72F86715E14F1100281337 /* OOMacSystemStandardFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMacSystemStandardFullScreenController.h; sourceTree = "<group>"; };
+		1A72F86815E14F1100281337 /* OOMacSystemStandardFullScreenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMacSystemStandardFullScreenController.m; sourceTree = "<group>"; };
+		1A72F86C15E5655C00281337 /* OOVisualEffectEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOVisualEffectEntity.h; sourceTree = "<group>"; };
+		1A72F86D15E5655D00281337 /* OOVisualEffectEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOVisualEffectEntity.m; sourceTree = "<group>"; };
+		1A72F87015E5658E00281337 /* OOJSVisualEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSVisualEffect.h; sourceTree = "<group>"; };
+		1A72F87115E5658E00281337 /* OOJSVisualEffect.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSVisualEffect.m; sourceTree = "<group>"; };
 		1A736BD10C61E9370097AC37 /* OOJSPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlayer.h; sourceTree = "<group>"; };
 		1A736BD20C61E9370097AC37 /* OOJSPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSPlayer.m; sourceTree = "<group>"; };
 		1A736C7D0C61FD220097AC37 /* OOJSCall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSCall.h; sourceTree = "<group>"; };
@@ -2612,18 +2620,18 @@
 				1ABA416115ADAB8D00F7E841 /* OOJSDock.m */,
 				1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */,
 				1A2A8C140BC65FFD001E00FB /* OOJSEntity.m */,
+				1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */,
+				1A43A0CB0CB91D2C00D0E239 /* OOJSPlanet.m */,
+				1A54AB510E3E17A0001EB817 /* OOJSPlayerShip.h */,
+				1A54AB520E3E17A0001EB817 /* OOJSPlayerShip.m */,
 				1A3ACFE90C5FF33A00EC50A7 /* OOJSShip.h */,
 				1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */,
 				1A73712B0C623DAE0097AC37 /* OOJSStation.h */,
 				1A73712C0C623DAE0097AC37 /* OOJSStation.m */,
-				1A54AB510E3E17A0001EB817 /* OOJSPlayerShip.h */,
-				1A54AB520E3E17A0001EB817 /* OOJSPlayerShip.m */,
-				1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */,
-				1A43A0CB0CB91D2C00D0E239 /* OOJSPlanet.m */,
 				1A7C75990CC39D11005D0AA2 /* OOJSSun.h */,
 				1A7C75980CC39D11005D0AA2 /* OOJSSun.m */,
-				1A5D872715E166E90060A44A /* OOJSVisualEffect.h */,
-				1A5D872815E166E90060A44A /* OOJSVisualEffect.m */,
+				1A72F87015E5658E00281337 /* OOJSVisualEffect.h */,
+				1A72F87115E5658E00281337 /* OOJSVisualEffect.m */,
 				1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */,
 				1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */,
 			);
@@ -2874,6 +2882,10 @@
 				1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */,
 				1A9FCF2115DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h */,
 				1A9FCF2215DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m */,
+				1A72F86715E14F1100281337 /* OOMacSystemStandardFullScreenController.h */,
+				1A72F86815E14F1100281337 /* OOMacSystemStandardFullScreenController.m */,
+				1A401F8615E7AF7B004CDF95 /* OOPrimaryWindow.h */,
+				1A401F8715E7AF7B004CDF95 /* OOPrimaryWindow.m */,
 				1A97528D15DECA6600108FA5 /* OOFullScreenWindow.h */,
 				1A97528E15DECA6600108FA5 /* OOFullScreenWindow.m */,
 			);
@@ -2998,8 +3010,8 @@
 				1ADA564710CD68D800E891B8 /* OOStellarBody.h */,
 				1AA7FDDA10C2DC800058FBED /* OOSunEntity.h */,
 				1AA7FDDB10C2DC800058FBED /* OOSunEntity.m */,
-				1A5D872B15E1670E0060A44A /* OOVisualEffectEntity.h */,
-				1A5D872C15E1670E0060A44A /* OOVisualEffectEntity.m */,
+				1A72F86C15E5655C00281337 /* OOVisualEffectEntity.h */,
+				1A72F86D15E5655D00281337 /* OOVisualEffectEntity.m */,
 				1ABA415C15ACBB6700F7E841 /* DockEntity.h */,
 				1ABA415D15ACBB6700F7E841 /* DockEntity.m */,
 				1A817DCA106D44D900AA2F97 /* Particles */,
@@ -3542,8 +3554,10 @@
 				1A9FCF2315DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h in Headers */,
 				1A97528F15DECA6600108FA5 /* OOFullScreenWindow.h in Headers */,
 				1A72F86515E002E200281337 /* OOMouseInteractionMode.h in Headers */,
-				1A5D872915E166E90060A44A /* OOJSVisualEffect.h in Headers */,
-				1A5D872D15E1670E0060A44A /* OOVisualEffectEntity.h in Headers */,
+				1A72F86915E14F1100281337 /* OOMacSystemStandardFullScreenController.h in Headers */,
+				1A72F86E15E5655D00281337 /* OOVisualEffectEntity.h in Headers */,
+				1A72F87215E5658E00281337 /* OOJSVisualEffect.h in Headers */,
+				1A401F8815E7AF7B004CDF95 /* OOPrimaryWindow.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4015,8 +4029,10 @@
 				1A9FCF2615DAC9BC00E965D5 /* GameController+FullScreen.m in Sources */,
 				1A97529015DECA6600108FA5 /* OOFullScreenWindow.m in Sources */,
 				1A72F86615E002E200281337 /* OOMouseInteractionMode.m in Sources */,
-				1A5D872A15E166E90060A44A /* OOJSVisualEffect.m in Sources */,
-				1A5D872E15E1670E0060A44A /* OOVisualEffectEntity.m in Sources */,
+				1A72F86A15E14F1100281337 /* OOMacSystemStandardFullScreenController.m in Sources */,
+				1A72F86F15E5655D00281337 /* OOVisualEffectEntity.m in Sources */,
+				1A72F87315E5658E00281337 /* OOJSVisualEffect.m in Sources */,
+				1A401F8915E7AF7B004CDF95 /* OOPrimaryWindow.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4097,6 +4113,7 @@
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
+				IBC_WARNINGS = NO;
 				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				LIBRARY_SEARCH_PATHS = (
@@ -4146,6 +4163,7 @@
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
+				IBC_WARNINGS = NO;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -4209,6 +4227,7 @@
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
+				IBC_WARNINGS = NO;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
