@@ -264,7 +264,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	
 	if (OK && sizeInFrames)
 	{
-		remaining = MIN(sizeInFrames, (size_t)INT_MAX);
+		remaining = (int)MIN(sizeInFrames, (size_t)INT_MAX);
 		dst = buffer;
 		
 		do
@@ -337,7 +337,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	
 	if (OK && sizeInFrames)
 	{
-		remaining = MIN(sizeInFrames, (size_t)INT_MAX);
+		remaining = (int)MIN(sizeInFrames, (size_t)INT_MAX);
 		dstL = bufferL;
 		dstR = bufferR;
 		
@@ -392,7 +392,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	if (NULL == ioBufferL || NULL == ioBufferR || 0 == inMax) return 0;
 	if (_atEnd) return inMax;
 	
-	remaining = MIN(inMax, (size_t)INT_MAX);
+	remaining = (int)MIN(inMax, (size_t)INT_MAX);
 	do
 	{
 		chanCount = ov_info(&_vf, -1)->channels;

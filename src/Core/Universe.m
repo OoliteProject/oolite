@@ -178,8 +178,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) populateSpaceFromActiveWormholes;
 - (void) populateSpaceFromHyperPoint:(Vector)h1_pos toPlanetPosition:(Vector)p1_pos andSunPosition:(Vector)s1_pos;
-- (int)	scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
-- (int)	scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(OOUInteger)clusterSize;
+- (OOUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
+- (OOUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(OOUInteger)clusterSize;
 
 - (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary;
 
@@ -188,7 +188,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) dumpDebugGraphViz;
 - (void) dumpSystemDescriptionGraphViz;
 #endif
-- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(unsigned)nodeCount;
+- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(OOUInteger)nodeCount;
 - (void) runLocalizationTools;
 #endif
 
@@ -463,7 +463,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (int) entityCount
+- (OOUInteger) entityCount
 {
 	return [entities count];
 }
@@ -2920,15 +2920,10 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
  */
 - (OOCreditsQuantity) getEquipmentPriceForKey:(NSString *)eq_key
 {
-	unsigned				i, count;
-	NSArray					*itemData = nil;
-	NSString				*itemType = nil;
-	
-	count = [equipmentData count];
-	for (i = 0; i < count; i++)
+	NSArray *itemData;
+	foreach (itemData, equipmentData)
 	{
-		itemData = [equipmentData oo_arrayAtIndex:i];
-		itemType = [itemData oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
+		NSString *itemType = [itemData oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
 		
 		if ([itemType isEqual:eq_key])
 		{
@@ -2941,17 +2936,14 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (int) legalStatusOfManifest:(NSArray *)manifest
 {
-	unsigned				i, count;
 	unsigned				penalty = 0;
 	NSString				*commodity = nil;
 	OOCargoQuantity			amount;
 	NSArray					*entry = nil;
 	unsigned				penaltyPerUnit;
 	
-	count = [manifest count];
-	for (i = 0; i < count; i++)
+	foreach (entry, manifest)
 	{
-		entry = [manifest oo_arrayAtIndex:i];
 		commodity = [entry oo_stringAtIndex:MARKET_NAME];
 		amount = [entry oo_unsignedIntAtIndex:MARKET_QUANTITY];
 		
@@ -3134,10 +3126,10 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (OOCommodityType) commodityForName:(NSString *)co_name
 {
-	unsigned		i, count;
+	OOCommodityType	i, count;
 	NSString		*name;
 	
-	count = [commodityData count];
+	count = (OOCommodityType)[commodityData count];
 	for (i = 0; i < count; i++)
 	{
 		/*	Bug: NSNotFound being returned for valid names.
@@ -4098,11 +4090,10 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		uni->x_list_start = nil;
 		uni->y_list_start = nil;
 		uni->z_list_start = nil;
-		int n_ents = [allEntities count];
-		int i;
-		for (i = 0; i < n_ents; i++)
+		
+		Entity *ent = nil;
+		foreach (ent, allEntities)
 		{
-			Entity* ent = (Entity*)[allEntities objectAtIndex:i];
 			ent->x_next = nil;
 			ent->x_previous = nil;
 			ent->y_next = nil;
@@ -4121,7 +4112,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 {
 	if (entity)
 	{
-		ShipEntity* se = nil;
+		ShipEntity *se = nil;
 		
 		if (![entity validForAddToUniverse])  return NO;
 		
@@ -6312,12 +6303,11 @@ static NSDictionary	*sCachedSystemData = nil;
 		if (EXPECT(sCachedSystemData != nil && equal_seeds(cachedSeed, s_seed)))  return [[sCachedSystemData retain] autorelease];
 	}
 	
-	[sCachedSystemData release];
-	sCachedSystemData = nil;
+	DESTROY(sCachedSystemData);
 	cachedSeed = s_seed;
 	
 	RNG_Seed saved_seed = currentRandomSeed();
-	NSMutableDictionary* systemdata = [[NSMutableDictionary alloc] init];
+	NSMutableDictionary *systemdata = [[NSMutableDictionary alloc] init];
 	
 	OOGovernmentID government = (s_seed.c / 8) & 7;
 	
@@ -6327,7 +6317,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	
 	OOTechLevelID techlevel = (economy ^ 7) + (s_seed.d & 3) + (government / 2) + (government & 1);
 	
-	unsigned population = (techlevel * 4) + government + economy + 1;
+	unsigned population = (unsigned)(techlevel * 4) + government + economy + 1;
 	
 	unsigned productivity = ((economy ^ 7) + 3) * (government + 4) * population * 8;
 	
@@ -6919,12 +6909,18 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-- (int) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
+- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
 	if (!equal_seeds(gal_seed, galaxy_seed))
 		[self setGalaxySeed:gal_seed];
 	
-	OOUInteger	system = NSNotFound;
+	/*
+		NOTE: this previously used NSNotFound as the default value, but
+		returned an int, which would truncate on 64-bit systems. I assume
+		no-one was using it in a context where the default value was returned.
+		-- Ahruman 2012-08-25
+	*/
+	OOSystemID	system = kOOMinimumSystemID;
 	unsigned	distance, dx, dy;
 	unsigned	i;
 	unsigned	min_dist = 10000;
@@ -7325,14 +7321,14 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-static double estimatedTimeForJourney(double distance, int hops)
+static double estimatedTimeForJourney(double distance, OOUInteger hops)
 {
-	int min_hops = (hops > 1)? (hops - 1) : 1;
+	OOUInteger min_hops = (hops > 1)? (hops - 1) : 1;
 	return 2000 * hops + 4000 * distance * distance / min_hops;
 }
 
 
-- (NSArray *) passengersForLocalSystemAtTime:(OOTimeAbsolute) current_time
+- (NSArray *) passengersForLocalSystemAtTime:(OOTimeAbsolute)current_time
 {
 	PlayerEntity* player = PLAYER;
 	int player_repute = [player passengerReputation];
@@ -7411,7 +7407,7 @@ static double estimatedTimeForJourney(double distance, int hops)
 				passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed, nil), ExpandDescriptionForSeed(@"[nom]", passenger_seed, nil)];
 			
 			// determine information about the route...
-			NSDictionary* routeInfo = [self routeFromSystem:start toSystem:passenger_destination optimizedBy:OPTIMIZED_BY_JUMPS];
+			NSDictionary *routeInfo = [self routeFromSystem:start toSystem:passenger_destination optimizedBy:OPTIMIZED_BY_JUMPS];
 			
 			// some routes are impossible!
 			if (routeInfo)
@@ -7419,7 +7415,7 @@ static double estimatedTimeForJourney(double distance, int hops)
 				NSString* destination_name = [self getSystemName:destination_seed];
 				
 				double route_length = [routeInfo oo_doubleForKey:@"distance"];
-				int route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
+				OOUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
 				
 				// Credits increase exponentially with number of hops (more with reputation > 5) + 8..15 cr per LY + bonus for low government level of destination
 				OOCreditsQuantity fee = 5 * pow(route_hops, player_repute > 5 ? 2.65 : 2.5) + route_length * (8 + (passenger_seed.e & 7)) + 5 * (7 - destination_government) * (7 - destination_government);
@@ -7452,14 +7448,14 @@ static double estimatedTimeForJourney(double distance, int hops)
 				
 				NSDictionary* passenger_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
 					passenger_name,											PASSENGER_KEY_NAME,
-					[NSNumber numberWithInt:start],							CONTRACT_KEY_START,
-					[NSNumber numberWithInt:passenger_destination],			CONTRACT_KEY_DESTINATION,
+					[NSNumber numberWithInteger:start],						CONTRACT_KEY_START,
+					[NSNumber numberWithInteger:passenger_destination],		CONTRACT_KEY_DESTINATION,
 					destination_name,										CONTRACT_KEY_DESTINATION_NAME,
 					long_description,										CONTRACT_KEY_LONG_DESCRIPTION,
 					[NSNumber numberWithDouble:passenger_departure_time],	CONTRACT_KEY_DEPARTURE_TIME,
 					[NSNumber numberWithDouble:passenger_arrival_time],		CONTRACT_KEY_ARRIVAL_TIME,
-					[NSNumber numberWithInt:fee],							CONTRACT_KEY_FEE,
-					[NSNumber numberWithInt:premium],						CONTRACT_KEY_PREMIUM,
+					[NSNumber numberWithInteger:fee],						CONTRACT_KEY_FEE,
+					[NSNumber numberWithInteger:premium],					CONTRACT_KEY_PREMIUM,
 					NULL];
 				
 				[resultArray addObject:passenger_info_dictionary];
@@ -7672,7 +7668,7 @@ static double estimatedTimeForJourney(double distance, int hops)
 				if (profit_for_trip > 100.0 && (unit != UNITS_TONS || co_amount < [player maxAvailableCargoSpace] || [resultArray count] < 5))	
 				{
 					// determine information about the route...
-					NSDictionary* routeInfo = [self routeFromSystem:start toSystem:contract_destination optimizedBy:OPTIMIZED_BY_JUMPS];
+					NSDictionary *routeInfo = [self routeFromSystem:start toSystem:contract_destination optimizedBy:OPTIMIZED_BY_JUMPS];
 					
 					// some routes are impossible!
 					if (routeInfo)
@@ -7680,7 +7676,7 @@ static double estimatedTimeForJourney(double distance, int hops)
 						NSString *destination_name = [self getSystemName:destination_seed];
 						
 						double route_length = [routeInfo oo_doubleForKey:@"distance"];
-						int route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
+						OOUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
 						
 						// percentage taken by contracter
 						int contractors_share = 90 + destination_government;
@@ -7784,7 +7780,7 @@ static double estimatedTimeForJourney(double distance, int hops)
 }
 
 
-- (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time
+- (NSArray *) shipsForSaleForSystem:(Random_Seed)s_seed withTL:(OOTechLevelID)specialTL atTime:(OOTimeAbsolute)current_time
 {
 	Random_Seed ship_seed = [self marketSeed];
 	
@@ -8145,13 +8141,13 @@ static double estimatedTimeForJourney(double distance, int hops)
 			uint16_t personality = RanrotWithSeed(&personalitySeed) & ENTITY_PERSONALITY_MAX;
 			
 			NSDictionary* ship_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-				ship_id,						SHIPYARD_KEY_ID,
-				ship_key,						SHIPYARD_KEY_SHIPDATA_KEY,
-				ship_dict,						SHIPYARD_KEY_SHIP,
-				description,					SHIPYARD_KEY_DESCRIPTION,
-				short_description,				KEY_SHORT_DESCRIPTION,
-				[NSNumber numberWithInt:price],	SHIPYARD_KEY_PRICE,
-				extras,							KEY_EQUIPMENT_EXTRAS,
+				ship_id,							SHIPYARD_KEY_ID,
+				ship_key,							SHIPYARD_KEY_SHIPDATA_KEY,
+				ship_dict,							SHIPYARD_KEY_SHIP,
+				description,						SHIPYARD_KEY_DESCRIPTION,
+				short_description,					KEY_SHORT_DESCRIPTION,
+				[NSNumber numberWithInteger:price],	SHIPYARD_KEY_PRICE,
+				extras,								KEY_EQUIPMENT_EXTRAS,
 				[NSNumber numberWithUnsignedShort:personality], SHIPYARD_KEY_PERSONALITY,								  
 				NULL];
 			
@@ -8186,7 +8182,8 @@ static double estimatedTimeForJourney(double distance, int hops)
 	return [NSArray arrayWithArray:resultArray];
 }
 
-static OOComparisonResult compareName(id dict1, id dict2, void * context)
+
+static OOComparisonResult compareName(id dict1, id dict2, void *context)
 {
 	NSDictionary	*ship1 = [(NSDictionary *)dict1 oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
 	NSDictionary	*ship2 = [(NSDictionary *)dict2 oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
@@ -8200,13 +8197,15 @@ static OOComparisonResult compareName(id dict1, id dict2, void * context)
 		return comparePrice(dict1, dict2, context);
 }
 
-static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
+
+static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 {
 	NSNumber		*price1 = [(NSDictionary *)dict1 objectForKey:SHIPYARD_KEY_PRICE];
 	NSNumber		*price2 = [(NSDictionary *)dict2 objectForKey:SHIPYARD_KEY_PRICE];
 	
 	return [price1 compare:price2];
 }
+
 
 - (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary *)dict
 {
@@ -8311,7 +8310,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	extra_equipment_value += ship_other_weapons_value;
 	extra_equipment_value += ship_main_weapons_value - base_weapons_value;
 	
-	int i;
+	OOInteger i;
 	NSString *eq_key = nil;
 	
 	// shipyard.plist settings might have duplicate keys.
@@ -8352,12 +8351,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	// we'll return at least the scrap value
 	// TODO: calculate scrap value based on the size of the ship.
-	if ((long long)scrap_value > (long long)base_price + extra_equipment_value) return scrap_value; 
+	if ((long long)scrap_value > (long long)base_price + extra_equipment_value) return scrap_value;
 	
 	return base_price + extra_equipment_value;
 }
 
-- (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options
+
+- (NSString *) brochureDescriptionWithDictionary:(NSDictionary *)dict standardEquipment:(NSArray *)extras optionalEquipment:(NSArray *)options
 {
 	NSMutableArray	*mut_extras = [NSMutableArray arrayWithArray:extras];
 	NSString		*allOptions = [options componentsJoinedByString:@" "];
@@ -8420,8 +8420,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 			}
 			if (item_desc)
 			{
-				int c = [mut_extras count] - i;
-				switch (c)
+				switch ([mut_extras count] - i)
 				{
 					case 1:
 						[desc appendFormat:@" %@ fitted as standard.", item_desc];
@@ -8454,8 +8453,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 			}
 			if (item_desc)
 			{
-				int c = [options count] - i;
-				switch (c)
+				switch ([options count] - i)
 				{
 					case 1:
 						[desc appendFormat:@" %@ at suitably equipped starports.", item_desc];
@@ -9072,12 +9070,11 @@ Entity *gOOJSPlayerIfStale = nil;
 
 - (void) filterOutNonStrictEquipment
 {
-	unsigned i, count = [equipmentData count];
-	NSMutableArray *filteredEq = [NSMutableArray arrayWithCapacity:count];
-	for (i = 0; i < count; i++)
+	NSMutableArray *filteredEq = [NSMutableArray arrayWithCapacity:[equipmentData count]];
+	NSArray *eqDef = nil;
+	foreach (eqDef, equipmentData)
 	{
 		BOOL compatible = NO;
-		NSArray *eqDef = [equipmentData objectAtIndex:i];
 		if ([eqDef count] > EQUIPMENT_EXTRA_INFO_INDEX)
 		{
 			NSDictionary *extra = [eqDef oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
@@ -9969,13 +9966,14 @@ static void PreloadOneSound(NSString *soundName)
 
 }
 
-- (int) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders
+- (OOUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders
 {
 	OOUInteger clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
 	return [self scatterAsteroidsAt:spawnPos withVelocity:spawnVel includingRockHermit:spawnHermit asCinders:asCinders clusterSize:clusterSize];
 }
 
-- (int) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(OOUInteger)clusterSize
+
+- (OOUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(OOUInteger)clusterSize
 {
 	OOUInteger	rocks = 0;
 //	Vector		launchPos;
@@ -10054,7 +10052,7 @@ static void PreloadOneSound(NSString *soundName)
 	NSMutableString				*graphViz = nil;
 	NSArray						*systemDescriptions = nil;
 	NSArray						*thisDesc = nil;
-	unsigned					i, count, j, subCount;
+	OOUInteger					i, count, j, subCount;
 	NSString					*descLine = nil;
 	NSArray						*curses = nil;
 	NSString					*label = nil;
@@ -10099,14 +10097,14 @@ static void PreloadOneSound(NSString *soundName)
 	for (j = 0; j < subCount; ++j)
 	{
 		label = OOStringifySystemDescriptionLine([curses oo_stringAtIndex:j], keyMap, NO);
-		[graphViz appendFormat:@"\t\tthargoid_curse_%u [label=\"%@\"]\n", j, EscapedGraphVizString(label)];
+		[graphViz appendFormat:@"\t\tthargoid_curse_%lu [label=\"%@\"]\n", j, EscapedGraphVizString(label)];
 	}
 	[graphViz appendString:@"\t}\n"];
 	for (j = 0; j < subCount; ++j)
 	{
 		[self addNumericRefsInString:[curses oo_stringAtIndex:j]
 						  toGraphViz:graphViz
-							fromNode:[NSString stringWithFormat:@"thargoid_curse_%u", j]
+							fromNode:[NSString stringWithFormat:@"thargoid_curse_%lu", j]
 						   nodeCount:count];
 	}
 	[graphViz appendString:@"\t\n"];
@@ -10116,18 +10114,18 @@ static void PreloadOneSound(NSString *soundName)
 	for (i = 0; i < count; ++i)
 	{
 		// Build label, using sysdesc_key_table.plist if available
-		label = [keyMap objectForKey:[NSString stringWithFormat:@"%u", i]];
-		if (label == nil)  label = [NSString stringWithFormat:@"[%u]", i];
-		else  label = [NSString stringWithFormat:@"[%u] (%@)", i, label];
+		label = [keyMap objectForKey:[NSString stringWithFormat:@"%lu", i]];
+		if (label == nil)  label = [NSString stringWithFormat:@"[%lu]", i];
+		else  label = [NSString stringWithFormat:@"[%lu] (%@)", i, label];
 		
-		[graphViz appendFormat:@"\tsubgraph cluster_%u\n\t{\n\t\tlabel=\"%@\"\n", i, EscapedGraphVizString(label)];
+		[graphViz appendFormat:@"\tsubgraph cluster_%lu\n\t{\n\t\tlabel=\"%@\"\n", i, EscapedGraphVizString(label)];
 		
 		thisDesc = [systemDescriptions oo_arrayAtIndex:i];
 		subCount = [thisDesc count];
 		for (j = 0; j < subCount; ++j)
 		{
 			label = OOStringifySystemDescriptionLine([thisDesc oo_stringAtIndex:j], keyMap, NO);
-			[graphViz appendFormat:@"\t\tn%u_%u [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString(label)];
+			[graphViz appendFormat:@"\t\tn%lu_%lu [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString(label)];
 		}
 		
 		[graphViz appendString:@"\t}\n"];
@@ -10144,7 +10142,7 @@ static void PreloadOneSound(NSString *soundName)
 			descLine = [thisDesc oo_stringAtIndex:j];
 			[self addNumericRefsInString:descLine
 							  toGraphViz:graphViz
-								fromNode:[NSString stringWithFormat:@"n%u_%u", i, j]
+								fromNode:[NSString stringWithFormat:@"n%lu_%lu", i, j]
 							   nodeCount:count];
 		}
 	}
@@ -10156,10 +10154,10 @@ static void PreloadOneSound(NSString *soundName)
 #endif	// DEBUG_GRAPHVIZ
 
 
-- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(unsigned)nodeCount
+- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(OOUInteger)nodeCount
 {
 	NSString					*index = nil;
-	int							start, end;
+	OOInteger					start, end;
 	NSRange						remaining, subRange;
 	unsigned					i;
 	
@@ -10238,7 +10236,7 @@ static void PreloadOneSound(NSString *soundName)
 {
 	[[OOAsyncWorkManager sharedAsyncWorkManager] completePendingTasks];
 	
-	unsigned i = [_preloadingPlanetMaterials count];
+	OOUInteger i = [_preloadingPlanetMaterials count];
 	while (i--)
 	{
 		if ([[_preloadingPlanetMaterials objectAtIndex:i] isFinishedLoading])
@@ -10350,7 +10348,7 @@ static void PreloadOneSound(NSString *soundName)
 @end
 
 
-NSString *DESC_(NSString *key)
+NSString *OOLookUpDescriptionPRIV(NSString *key)
 {
 	NSString *result = [UNIVERSE descriptionForKey:key];
 	if (result == nil)  result = key;
@@ -10359,7 +10357,7 @@ NSString *DESC_(NSString *key)
 
 
 // There's a hint of gettext about this...
-NSString *DESC_PLURAL_(NSString *key, int count)
+NSString *OOLookUpPluralDescriptionPRIV(NSString *key, OOInteger count)
 {
 	NSArray *conditions = [[UNIVERSE descriptions] oo_arrayForKey:@"plural-rules"];
 	
@@ -10380,7 +10378,7 @@ NSString *DESC_PLURAL_(NSString *key, int count)
 	if (conditions == nil)
 	{
 		if (tmp == nil) // this should mean that descriptions.plist is from 1.73 or above.
-			return DESC_([NSString stringWithFormat:@"%@%%%d", key, count != 1]);
+			return OOLookUpDescriptionPRIV([NSString stringWithFormat:@"%@%%%d", key, count != 1]);
 		// still using an older descriptions.plist
 		return tmp;
 	}
@@ -10454,5 +10452,5 @@ NSString *DESC_PLURAL_(NSString *key, int count)
 	}
 	
 passed:
-	return DESC_([NSString stringWithFormat:@"%@%%%ld", key, index]);
+	return OOLookUpDescriptionPRIV([NSString stringWithFormat:@"%@%%%ld", key, index]);
 }

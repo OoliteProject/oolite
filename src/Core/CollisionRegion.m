@@ -113,11 +113,9 @@ static int crid_counter = 1;
 {
 	// check if this can be fitted within any of the subregions
 	//
-	int i;
-	int n_subs = [subregions count];
-	for (i = 0; i < n_subs; i++)
+	CollisionRegion *sub = nil;
+	foreach (sub, subregions)
 	{
-		CollisionRegion *sub = (CollisionRegion *)[subregions objectAtIndex:i];
 		if (sphereIsWithinRegion(pos, rad, sub))
 		{
 			// if it fits, put it in!
@@ -132,7 +130,7 @@ static int crid_counter = 1;
 	}
 	// no subregion fit - move on...
 	//
-	CollisionRegion *sub = [[CollisionRegion alloc] initAtLocation:pos withRadius:rad withinRegion:self];
+	sub = [[CollisionRegion alloc] initAtLocation:pos withRadius:rad withinRegion:self];
 	if (subregions == nil)  subregions = [[NSMutableArray alloc] initWithCapacity:32];
 	[subregions addObject:sub];
 	[sub release];
@@ -274,10 +272,9 @@ static NSArray *subregionsContainingPosition(Vector position, CollisionRegion *r
 	Vector position = ent->position;
 	
 	// check subregions
-	int i, n_subs = [subregions count];
-	for (i = 0; i < n_subs; i++)
+	CollisionRegion *sub = nil;
+	foreach (sub, subregions)
 	{
-		CollisionRegion *sub = [subregions objectAtIndex:i];
 		if (positionIsWithinBorders(position, sub) && [sub checkEntity:ent])
 		{
 			return YES;
@@ -686,12 +683,11 @@ static inline BOOL testEntityOccludedByEntity(Entity *e1, Entity *e2, OOSunEntit
 
 - (NSString *) debugOut
 {
-	int i;
-	int n_subs = [subregions count];
 	NSMutableString *result = [[NSMutableString alloc] initWithFormat:@"%d:", n_entities];
-	for (i = 0; i < n_subs; i++)
+	CollisionRegion *sub = nil;
+	foreach (sub, subregions)
 	{
-		[result appendString:[(CollisionRegion*)[subregions objectAtIndex:i] debugOut]];
+		[result appendString:[sub debugOut]];
 	}
 	return [result autorelease];
 }

@@ -1011,7 +1011,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
-- (void) setStatusPage:(int)pageNum
+- (void) setStatusPage:(OOUInteger)pageNum
 {
 	if (pageNum==0) 
 		statusPage=1;
@@ -1020,7 +1020,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
-- (int) statusPage
+- (OOUInteger) statusPage
 {
 	return statusPage;
 }
@@ -1360,17 +1360,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		}
 		if ([[rowText objectAtIndex:i] isKindOfClass:[NSArray class]])
 		{
-			unsigned j;
-			NSArray*	array = (NSArray *)[rowText objectAtIndex:i];
-			unsigned max_columns=[array count] < n_columns ? [array count] : n_columns;
-			BOOL isLeftAligned;
+			NSArray		*array = [rowText oo_arrayAtIndex:i];
+			OOUInteger	j, max_columns = MIN([array count], n_columns);
+			BOOL		isLeftAligned;
 			
-			for (j = 0; j < max_columns ; j++)
+			for (j = 0; j < max_columns; j++)
 			{
 				NSString*   text = [array oo_stringAtIndex:j];
 				if ([text length] != 0)
 				{
-					isLeftAligned=tabStops[j]>=0;
+					isLeftAligned = tabStops[j] >= 0;
 					rowPosition[i].x = abs(tabStops[j]);
 					
 					// we don't want to highlight leading space(s)
@@ -1793,9 +1792,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && ![UNIVERSE strict] && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		int planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-		int destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-		NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
+		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
 		
 		// if the ANA has been activated and we are in string input mode (i.e. planet search),
 		// get out of it so that distance and time data can be displayed
@@ -1954,7 +1953,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy
 {
 	Random_Seed		g_seed, g_seed2;
-	int				i, j;
+	OOUInteger		i, j;
 	double			hscale = size_in_pixels.width / 256.0;
 	double			vscale = -1.0 * size_in_pixels.height / 512.0;
 	double			hoffset = 0.0f;
@@ -1985,7 +1984,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	if (routeInfo)
 	{
-		int route_hops = [(NSArray *)[routeInfo objectForKey:@"route"] count] -1;
+		OOUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
 		
 		if (optimizeBy == OPTIMIZED_BY_JUMPS)
 		{
@@ -1995,7 +1994,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			OOGL(glColor4f(0.0f, 1.0f, 1.0f, alpha)); // Cyan for plotting routes optimized for time.
 		}
-		int loc;
+		OOSystemID loc;
 		for (i = 0; i < route_hops; i++)
 		{
 			loc = [[routeInfo objectForKey:@"route"] oo_intAtIndex:i];

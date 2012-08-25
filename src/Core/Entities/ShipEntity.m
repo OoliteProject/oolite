@@ -11548,7 +11548,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		if ([self isSubEntity]) 
 		{
-			[[self parentEntity]markAsOffender:offence_value withReason:reason];
+			[[self parentEntity] markAsOffender:offence_value withReason:reason];
 		}
 		else
 		{

@@ -2718,14 +2718,14 @@
 	
 	NSArray			*sDests = nil;
 	Random_Seed		targetSystem;
-	int 			i = 0;
+	OOUInteger		i = 0;
 	
 	// get a list of destinations within range
-	sDests = [UNIVERSE nearbyDestinationsWithinRange: 0.1 * fuel];
-	int n_dests = [sDests count];
+	sDests = [UNIVERSE nearbyDestinationsWithinRange: 0.1f * fuel];
+	OOUInteger n_dests = [sDests count];
 	
 	// if none available report to the AI and exit
-	if (!n_dests)
+	if (n_dests == 0)
 	{
 		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE" context:@"performHyperSpaceExit"];
 		
@@ -2747,9 +2747,11 @@
 	{
 		// select one at random
 		if (n_dests > 1)
+		{
 			i = ranrot_rand() % n_dests;
+		}
 		
-		NSString* systemSeedKey = [(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"system_seed"];
+		NSString *systemSeedKey = [[sDests oo_dictionaryAtIndex:i] objectForKey:@"system_seed"];
 		targetSystem = RandomSeedFromString(systemSeedKey);
 	}
 	else
@@ -2757,14 +2759,16 @@
 		targetSystem = [UNIVERSE systemSeedForSystemNumber:systemID];
 		
 		for (i = 0; i < n_dests; i++)
-			if (systemID == [(NSDictionary*)[sDests objectAtIndex:i] oo_intForKey:@"sysID"]) break;
+		{
+			if (systemID == [[sDests oo_dictionaryAtIndex:i] oo_intForKey:@"sysID"]) break;
+		}
 		
 		if (i == n_dests)	// no match found
 		{
 			return NO;
 		}
 	}
-	double dist = [(NSDictionary*)[sDests objectAtIndex:i] oo_doubleForKey:@"distance"];
+	float dist = [[sDests oo_dictionaryAtIndex:i] oo_floatForKey:@"distance"];
 	if (dist > [self maxHyperspaceDistance] || dist > fuel/10) 
 	{
 		OOLogWARN(@"script.debug", @"DEBUG: %@ Jumping %f which is further than allowed.  I have %d fuel", self, dist, fuel);
@@ -2772,7 +2776,7 @@
 	fuel -= 10 * dist;
 	
 	// create wormhole
-	WormholeEntity  *whole = [[[WormholeEntity alloc] initWormholeTo: targetSystem fromShip: self] autorelease];
+	WormholeEntity  *whole = [[[WormholeEntity alloc] initWormholeTo: targetSystem fromShip:self] autorelease];
 	[UNIVERSE addEntity: whole];
 	
 	[self enterWormhole:whole replacing:replace];

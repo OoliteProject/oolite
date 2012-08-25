@@ -4,6 +4,10 @@ NSScannerOOExtensions.h
 
 Additions to NSScanner to work around bugs.
 
+FIXME: does this work around bugs that actually exist in any system we're
+targetting? It's a conundrum.
+
+
 Oolite
 Copyright (C) 2004-2012 Giles C Williams and contributors
 
@@ -24,7 +28,8 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/NSScanner.h>
+#import "OOCocoa.h"
+
 
 @interface NSScanner (OOExtensions)
 

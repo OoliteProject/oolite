@@ -222,7 +222,7 @@ enum
 	OOTimeAbsolute			demo_start_time;
 	GLfloat					demo_start_z;
 	int						demo_stage;
-	int						demo_ship_index;
+	OOUInteger				demo_ship_index;
 	NSArray					*demo_ships;
 	
 	GLfloat					main_light_position[4];
@@ -327,7 +327,7 @@ enum
 
 - (void) reinitAndShowDemo:(BOOL)showDemo;
 
-- (int) entityCount;
+- (OOUInteger) entityCount;
 #ifndef NDEBUG
 - (void) debugDumpEntities;
 - (NSArray *) entityList;
@@ -597,7 +597,7 @@ enum
 
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
-- (int) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
+- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch;
 - (BOOL*) systemsFound;
@@ -718,7 +718,7 @@ enum
 
 - (void) loadConditionScripts;
 - (void) addConditionScripts:(NSEnumerator *)scripts;
-- (OOJSScript*) getConditionScript:(NSString *)scriptname;
+- (OOJSScript *) getConditionScript:(NSString *)scriptname;
 
 @end
 
@@ -727,20 +727,22 @@ enum
 	The purpose of this is that it makes UNIVERSE essentially a read-only
 	global with zero overhead.
 */
-OOINLINE Universe *GetUniverse(void) INLINE_CONST_FUNC;
-OOINLINE Universe *GetUniverse(void)
+OOINLINE Universe *OOGetUniverse(void) INLINE_CONST_FUNC;
+OOINLINE Universe *OOGetUniverse(void)
 {
 	extern Universe *gSharedUniverse;
 	return gSharedUniverse;
 }
-#define UNIVERSE GetUniverse()
+#define UNIVERSE OOGetUniverse()
 
 
 // Only for use with string literals, and only for looking up strings.
-NSString *DESC_(NSString *key);
-NSString *DESC_PLURAL_(NSString *key, int count);
-#define DESC(key)	(DESC_(key ""))
-#define DESC_PLURAL(key,count)	(DESC_PLURAL_(key, count))
+#define DESC(key)	(OOLookUpDescriptionPRIV(key ""))
+#define DESC_PLURAL(key,count)	(OOLookUpPluralDescriptionPRIV(key "", count))
+
+// Not for direct use.
+NSString *OOLookUpDescriptionPRIV(NSString *key);
+NSString *OOLookUpPluralDescriptionPRIV(NSString *key, OOInteger count);
 
 
 @interface OOSound (OOCustomSounds)

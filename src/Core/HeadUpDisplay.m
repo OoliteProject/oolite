@@ -383,7 +383,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		*/
 		
 		NSArray *cLog = [PLAYER commLog];
-		unsigned i, commCount = [cLog count];
+		OOUInteger i, commCount = [cLog count];
 		
 		[self resetGui:gui withInfo:gui_info];
 		
@@ -2510,7 +2510,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	PlayerEntity *player = PLAYER;
 	
 	OOTrumble** trumbles = [player trumbleArray];
-	int i;
+	OOUInteger i;
 	for (i = [player trumbleCount]; i > 0; i--)
 	{
 		OOTrumble* trum = trumbles[i - 1];
@@ -2882,7 +2882,7 @@ static void InitTextEngine(void)
 	NSDictionary			*fontSpec = nil;
 	NSArray					*widths = nil;
 	NSString				*texName = nil;
-	unsigned				i, count;
+	OOUInteger				i, count;
 	
 	fontSpec = [ResourceManager dictionaryFromFilesNamed:@"oolite-font.plist"
 												inFolder:@"Config"
@@ -2928,11 +2928,10 @@ static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSiz
 
 NSRect OORectFromString(NSString *text, double x, double y, NSSize siz)
 {
-	unsigned			i;
 	double				w = 0;
 	NSData				*data = nil;
 	const uint8_t		*bytes = NULL;
-	unsigned			length;
+	OOUInteger			i, length;
 	
 	data = [sEncodingCoverter convertString:text];
 	bytes = [data bytes];
@@ -2985,9 +2984,8 @@ void drawHighlight(double x, double y, double z, NSSize siz, double alpha)
 
 void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 {
-	unsigned		i;
 	double			cx = x;
-	unsigned		length;
+	OOUInteger		i, length;
 	NSData			*data = nil;
 	const uint8_t	*bytes = NULL;
 	

@@ -650,7 +650,7 @@ FAIL:
 /* Capture shift, ctrl, opt and command press & release */
 - (void)flagsChanged:(NSEvent *)theEvent
 {
-	int flags = [theEvent modifierFlags];
+	NSUInteger flags = [theEvent modifierFlags];
 	opt = (flags & NSAlternateKeyMask) ? YES : NO;
 	ctrl = (flags & NSControlKeyMask) ? YES : NO;
 	command = (flags & NSCommandKeyMask) ? YES : NO;

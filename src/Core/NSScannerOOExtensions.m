@@ -22,18 +22,17 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-
 #import "NSScannerOOExtensions.h"
+
 
 @implementation NSScanner (OOExtensions)
 
 - (BOOL) ooliteScanCharactersFromSet:(NSCharacterSet *)set intoString:(NSString **)value
 {
-	unsigned int	currentLocation = [self scanLocation];
+	OOUInteger		currentLocation = [self scanLocation];
 	NSRange			matchedRange = NSMakeRange( currentLocation, 0);
-	NSString*		scanString = [self string];
-	unsigned int	scanLength = [scanString length];
+	NSString		*scanString = [self string];
+	OOUInteger		scanLength = [scanString length];
 	
 	while ((currentLocation < scanLength)&&([set characterIsMember:[scanString characterAtIndex:currentLocation]]))
 	{
@@ -57,10 +56,10 @@ MA 02110-1301, USA.
 
 - (BOOL) ooliteScanUpToCharactersFromSet:(NSCharacterSet *)set intoString:(NSString **)value
 {
-	unsigned int	currentLocation = [self scanLocation];
+	OOUInteger		currentLocation = [self scanLocation];
 	NSRange			matchedRange = NSMakeRange( currentLocation, 0);
-	NSString*		scanString = [self string];
-	unsigned int	scanLength = [scanString length];
+	NSString		*scanString = [self string];
+	OOUInteger		scanLength = [scanString length];
 	
 	while ((currentLocation < scanLength)&&(![set characterIsMember:[scanString characterAtIndex:currentLocation]]))
 	{

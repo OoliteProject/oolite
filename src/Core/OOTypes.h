@@ -202,9 +202,10 @@ typedef int16_t		OOSystemID;			// 0..255, -1 for interstellar space (?)
 
 enum
 {
-	kOOMaximumGalaxyID		= 7,
-	kOOMaximumSystemID		= 255,
-	kOOMinimumSystemID		= -1
+	kOOMaximumGalaxyID				= 7,
+	kOOMaximumSystemID				= 255,
+	kOOMinimumSystemID				= -1,
+	kOOSystemIDInterstellarSpace	= kOOMinimumSystemID
 };
 
 

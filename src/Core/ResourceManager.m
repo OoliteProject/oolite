@@ -85,7 +85,7 @@ static NSMutableDictionary *sStringCache;
 + (NSString *) errors
 {
 	NSArray					*error = nil;
-	unsigned				i, count;
+	OOUInteger				i, count;
 	NSMutableArray			*result = nil;
 	NSString				*errStr = nil;
 	
@@ -1071,7 +1071,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	
 	if (OOLogWillDisplayMessagesInClass(@"script.load.world.listAll"))
 	{
-		unsigned count = [loadedScripts count];
+		OOUInteger count = [loadedScripts count];
 		if (count != 0)
 		{
 			NSMutableArray		*displayNames = nil;
@@ -1087,7 +1087,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 			}
 			
 			displayString = [[displayNames sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@"\n    "];
-			OOLog(@"script.load.world.listAll", @"Loaded %u world scripts:\n    %@", count, displayString);
+			OOLog(@"script.load.world.listAll", @"Loaded %lu world scripts:\n    %@", count, displayString);
 		}
 		else
 		{

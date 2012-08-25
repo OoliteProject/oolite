@@ -704,7 +704,10 @@ static JSScript *ScriptWithCompiledData(JSContext *context, NSData *data)
 	xdr = JS_XDRNewMem(context, JSXDR_DECODE);
 	if (xdr != NULL)
 	{
-		JS_XDRMemSetData(xdr, (void *)[data bytes], [data length]);
+		OOUInteger length = [data length];
+		if (EXPECT_NOT(length > UINT32_MAX))  return NULL;
+		
+		JS_XDRMemSetData(xdr, (void *)[data bytes], (uint32_t)length);
 		if (!JS_XDRScript(xdr, &result))  result = NULL;
 		
 		JS_XDRMemSetData(xdr, NULL, 0);	// Don't let it be freed by XDRDestroy

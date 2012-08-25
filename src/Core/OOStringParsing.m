@@ -207,7 +207,7 @@ NSPoint PointFromString(NSString *xyString)
 	NSArray		*tokens = ScanTokensFromString(xyString);
 	NSPoint		result = NSZeroPoint;
 	
-	int n_tokens = [tokens count];
+	OOUInteger n_tokens = [tokens count];
 	if (n_tokens == 2)
 	{
 		result.x = [[tokens objectAtIndex:0] floatValue];
@@ -801,7 +801,7 @@ NSArray *ComponentsFromVersionString(NSString *string)
 {
 	NSArray				*stringComponents = nil;
 	NSMutableArray		*result = nil;
-	unsigned			i, count;
+	OOUInteger			i, count;
 	int					value;
 	id					component;
 	

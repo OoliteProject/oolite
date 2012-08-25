@@ -3397,7 +3397,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (NSString *) dial_objinfo
 {
-	NSString *result = [NSString stringWithFormat:@"Entities: %3d", [UNIVERSE entityCount]];
+	NSString *result = [NSString stringWithFormat:@"Entities: %3ld", [UNIVERSE entityCount]];
 #ifndef NDEBUG
 	result = [NSString stringWithFormat:@"%@ (%d, %zu KiB, avg %lu bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
 #endif
@@ -5081,7 +5081,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (station == [UNIVERSE station])
 	{
-//		legalStatus |= [UNIVERSE legalStatusOfManifest:shipCommodityData];  // 'leaving with those guns were you sir?'
+		// 'leaving with those guns were you sir?'
 		[self markAsOffender:[UNIVERSE legalStatusOfManifest:shipCommodityData] withReason:kOOLegalStatusReasonIllegalExports];
 	}
 	[self loadCargoPods];
