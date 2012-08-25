@@ -4107,7 +4107,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				PRODUCT_NAME = Oolite;
-				"SDKROOT[arch=i386]" = macosx10.6;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
