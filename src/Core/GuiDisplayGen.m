@@ -1323,7 +1323,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				}
 				if (i == (unsigned)selectedRow)
 				{
-					NSRect block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
+					NSRect		block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
 					OOGL(glColor4f(1.0f, 0.0f, 0.0f, row_alpha));	// red
 					OOGLBEGIN(GL_QUADS);
 						glVertex3f(block.origin.x,						block.origin.y,						z);
@@ -1368,15 +1368,47 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				{
 					isLeftAligned=tabStops[j]>=0;
 					rowPosition[i].x = abs(tabStops[j]);
-					NSRect block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
+					
+					// we don't want to highlight leading space(s)
+					NSString	*hilitedText = [text stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" "]];
+					NSRange		txtRange = [text rangeOfString:hilitedText];
+					unsigned	leadingSpaces = 0;
+					
+					if (EXPECT_NOT(txtRange.location == NSNotFound))
+					{
+						// This never happens!
+						hilitedText = text;
+					}
+					else if (txtRange.location > 0)
+					{
+						// padded string!
+						NSRect charBlock = OORectFromString(@" ", 0, 0, characterSize);
+						leadingSpaces = charBlock.size.width * txtRange.location;
+						
+						// if we're displaying commodity-quantity-none, let's try and be pixel perfect!
+						NSString *qtyNone = DESC(@"commodity-quantity-none");
+						txtRange = [hilitedText rangeOfString:qtyNone];
+						
+						if (txtRange.location == 0) // bingo!
+						{
+							rowPosition[i].x += OORectFromString(@"0", 0, 0, characterSize).size.width - OORectFromString(qtyNone, 0, 0, characterSize).size.width;
+						}
+					}
+					
+					// baseline text rect, needed for correct highlight positioning.
+					NSRect		block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
+					
 					if(!isLeftAligned)
 					{
-						rowPosition[i].x -=block.size.width+6;
-						block = OORectFromString(text, x + rowPosition[i].x, y + rowPosition[i].y + 2, characterSize);
-						block.size.width+=2;
-					}					
+						rowPosition[i].x -= block.size.width + 3;
+					}
+					block = OORectFromString(hilitedText, x + rowPosition[i].x + 1 + leadingSpaces, y + rowPosition[i].y + 2, characterSize);
+					block.size.width += 3;
+						
+					
 					if (i == (unsigned)selectedRow)
 					{
+					
 						OOGL(glColor4f(1.0f, 0.0f, 0.0f, row_alpha));	// red
 						OOGLBEGIN(GL_QUADS);
 							glVertex3f(block.origin.x,						block.origin.y,						z);

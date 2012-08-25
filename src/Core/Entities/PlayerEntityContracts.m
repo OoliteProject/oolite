@@ -616,9 +616,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		OOCargoQuantity	cargoSpaceRequired = [info oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
 		OOMassUnit		cargoUnits = [UNIVERSE unitsForCommodity:[info oo_intForKey:CARGO_KEY_TYPE]];
 		
-		if (cargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired = (cargoSpaceRequired + CARGO_KG_ROUNDUP) / 1000; // if more than round up value (500kg), count as 1t
-		if (cargoUnits == UNITS_GRAMS)  cargoSpaceRequired = (cargoSpaceRequired + (CARGO_KG_ROUNDUP * 1000)) / 1000000; // if more than 500000g, count as 1t
-		
+		if (cargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargoSpaceRequired) / KILOGRAMS_PER_POD; // if more than 499kg, count as 1t
+		if (cargoUnits == UNITS_GRAMS)  cargoSpaceRequired = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargoSpaceRequired) / GRAMS_PER_POD; // if more than the safe can hold, count as 1t
+				
 		float premium = [info oo_floatForKey:CONTRACT_KEY_PREMIUM];
 		if ((cargoSpaceRequired > [self availableCargoSpace])||(premium * 10 > credits)) 
 		{
@@ -696,8 +696,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			NSDictionary		*contract_info = [contract_market oo_dictionaryAtIndex:i];
 			OOCargoQuantity		cargo_space_required = [contract_info oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
 			OOMassUnit			cargo_units = [UNIVERSE unitsForCommodity:[contract_info oo_unsignedIntForKey:CARGO_KEY_TYPE]];
-			if (cargo_units == UNITS_KILOGRAMS)	cargo_space_required = (cargo_space_required + CARGO_KG_ROUNDUP) / 1000; // if more than 500kg, count as 1t
-			if (cargo_units == UNITS_GRAMS)		cargo_space_required = (cargo_space_required + (CARGO_KG_ROUNDUP * 1000)) / 1000000; // if more than 500000g, count as 1t
+			// int math: 99/100 = 0!
+			if (cargo_units == UNITS_KILOGRAMS)	cargo_space_required = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargo_space_required) / KILOGRAMS_PER_POD; // if more than the safe can hold, count as 1t
+			if (cargo_units == UNITS_GRAMS)		cargo_space_required = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargo_space_required) / GRAMS_PER_POD; // if more than 499999g, count as 1t
 			
 			float premium = [(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] floatValue];
 			BOOL not_possible = ((cargo_space_required > [self availableCargoSpace])||(premium * 10 > credits));

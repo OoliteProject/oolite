@@ -307,11 +307,33 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+// TODO: better feedback on the log as to why failing to create player cargo pods causes a CTD?
+- (void) createCargoPodWithType:(OOCommodityType)type andAmount:(OOCargoQuantity)amount
+{
+	ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+	if (container)
+	{
+		[container setScanClass: CLASS_CARGO];
+		[container setStatus:STATUS_IN_HOLD];
+		[container setCommodity:type andAmount:amount];
+		[cargo addObject:container];
+		[container release];
+	}
+	else
+	{
+		OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
+		// throw an exception here...
+		[NSException raise:OOLITE_EXCEPTION_FATAL
+								format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
+	}
+}
+
+
 - (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest
 {
 	// load commodities from the ships manifest into individual cargo pods
 	unsigned j;
-
+	
 	NSMutableArray*	commodityInfo = [[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]] retain];  // retain
 	OOCargoQuantity	quantity = [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
 	OOMassUnit		units =	[UNIVERSE unitsForCommodity:type];
@@ -319,25 +341,11 @@ static GLfloat		sBaseMass = 0.0;
 	if (quantity > 0)
 	{
 		if (units == UNITS_TONS)
-		{ // easy case
+		{
+			// easy case
 			for (j = 0; j < quantity; j++)
 			{
-				ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
-				if (container)
-				{
-					[container setScanClass: CLASS_CARGO];
-					[container setStatus:STATUS_IN_HOLD];
-					[container setCommodity:type andAmount:1];
-					[cargo addObject:container];
-					[container release];
-				}
-				else
-				{
-					OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
-					// throw an exception here...
-					[NSException raise:OOLITE_EXCEPTION_FATAL
-											format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
-				}
+				[self createCargoPodWithType:type andAmount:1];		// or CTD if unsuccesful (!)
 			}
 			// adjust manifest for this commodity
 			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
@@ -346,67 +354,53 @@ static GLfloat		sBaseMass = 0.0;
 		else
 		{
 			OOCargoQuantity podsRequiredForQuantity, amountToLoadInCargopod, tmpQuantity;
-			// reserve up to 1/2 tonne of each commodity for the safe
+			// reserve up to 1/2 ton of each commodity for the safe
 			if (units == UNITS_KILOGRAMS) 
 			{
-				if (quantity < 500) {
+				if (quantity <= MAX_KILOGRAMS_IN_SAFE)
+				{
 					tmpQuantity = quantity;
-					quantity = 0;
+					 quantity = 0;
 				}
 				else
 				{
-					quantity -= 499;
-					tmpQuantity = 499;
+					tmpQuantity = MAX_KILOGRAMS_IN_SAFE;
+					quantity -= tmpQuantity;
 				}
-				amountToLoadInCargopod = 1000;
-				podsRequiredForQuantity = 1+(quantity/1000);
+				amountToLoadInCargopod = KILOGRAMS_PER_POD;
 			}
 			else
 			{
-				if (quantity < 500000) {
+				if (quantity <= MAX_GRAMS_IN_SAFE) {
 					tmpQuantity = quantity;
 					quantity = 0;
 				}
 				else
 				{
-					quantity -= 499999;
-					tmpQuantity = 499999;
+					tmpQuantity = MAX_GRAMS_IN_SAFE;
+					quantity -= tmpQuantity;
 				}
-				amountToLoadInCargopod = 1000000;
-				podsRequiredForQuantity = 1+(quantity/1000000);
+				amountToLoadInCargopod = GRAMS_PER_POD;
 			}
-			if (quantity > 0) {
-
+			if (quantity > 0)
+			{
+				podsRequiredForQuantity = 1 + (quantity/amountToLoadInCargopod);
+				
 				// put each ton or part-ton beyond that in a separate container
 				for (j = 0; j < podsRequiredForQuantity; j++)
 				{
-					ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
-					if (container)
+					if (amountToLoadInCargopod > quantity)
 					{
-						OOCargoQuantity containerQuantity = amountToLoadInCargopod;
-						if (containerQuantity > quantity)
-						{
-							containerQuantity = quantity;
-						}
-						[container setScanClass: CLASS_CARGO];
-						[container setStatus:STATUS_IN_HOLD];
-						[container setCommodity:type andAmount:containerQuantity];
-						[cargo addObject:container];
-						[container release];
-						quantity -= containerQuantity;
+						// last pod gets the dregs. :)
+						amountToLoadInCargopod = quantity;
 					}
-					else
-					{
-						OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
-						// throw an exception here...
-						[NSException raise:OOLITE_EXCEPTION_FATAL
-												format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
-					}
+					[self createCargoPodWithType:type andAmount:amountToLoadInCargopod];	// or CTD if unsuccesful (!)
+					quantity -= amountToLoadInCargopod;
 				}
+				// adjust manifest for this commodity
+				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:tmpQuantity]];
+				[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
 			}
-			// adjust manifest for this commodity
-			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:tmpQuantity]];
-			[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
 		}
 	}
 	[commodityInfo release]; // release, done
@@ -421,7 +415,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		if (unit != UNITS_TONS)
 		{
-			int amount_per_container = (unit == UNITS_KILOGRAMS)? 1000 : 1000000;
+			int amount_per_container = (unit == UNITS_KILOGRAMS)? KILOGRAMS_PER_POD : GRAMS_PER_POD;
 			while (quantity > 0)
 			{
 				int smaller_quantity = 1 + ((quantity - 1) % amount_per_container);
@@ -445,8 +439,9 @@ static GLfloat		sBaseMass = 0.0;
 					NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
 					NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:type]];	
 					amount = [commodityInfo oo_intAtIndex:MARKET_QUANTITY] + smaller_quantity;
-					if (amount >= 499 && unit == UNITS_KILOGRAMS) amount = 499;
-					if (amount >= 499999 && unit == UNITS_GRAMS) amount = 499999;
+					if (amount > MAX_GRAMS_IN_SAFE && unit == UNITS_GRAMS) amount = MAX_GRAMS_IN_SAFE;
+					else if (amount > MAX_KILOGRAMS_IN_SAFE && unit == UNITS_KILOGRAMS) amount = MAX_KILOGRAMS_IN_SAFE;
+
 					[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]]; // enter the adjusted amount
 					[manifest replaceObjectAtIndex:type withObject:commodityInfo];
 					
@@ -1029,7 +1024,7 @@ static GLfloat		sBaseMass = 0.0;
 			units =	[UNIVERSE unitsForCommodity:type];
 			NSMutableArray	*manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
 			oldAmount = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
-			BOOL roundedTon = (units != UNITS_TONS) && ((units == UNITS_KILOGRAMS && oldAmount > CARGO_KG_ROUNDUP) || (units == UNITS_GRAMS && oldAmount > (CARGO_KG_ROUNDUP * 1000)));
+			BOOL roundedTon = (units != UNITS_TONS) && ((units == UNITS_KILOGRAMS && oldAmount > MAX_KILOGRAMS_IN_SAFE) || (units == UNITS_GRAMS && oldAmount > MAX_GRAMS_IN_SAFE));
 			if (roundedTon || (units == UNITS_TONS && oldAmount > 0))
 			{
 				// let's remove stuff
@@ -1037,9 +1032,10 @@ static GLfloat		sBaseMass = 0.0;
 				toRemove = 0;
 				while (i > 0 && partAmount > 0)
 				{
-					if (EXPECT_NOT(roundedTon && ((units == UNITS_KILOGRAMS && partAmount > CARGO_KG_ROUNDUP) || (units == UNITS_GRAMS && partAmount > (CARGO_KG_ROUNDUP *1000)))))
+					if (EXPECT_NOT(roundedTon && ((units == UNITS_KILOGRAMS && partAmount > MAX_KILOGRAMS_IN_SAFE) || (units == UNITS_GRAMS && partAmount > MAX_GRAMS_IN_SAFE))))
 					{
-						toRemove += (units == UNITS_KILOGRAMS) ? (partAmount > 1000 ? 1000 : partAmount): (partAmount > 1000000 ? 1000000 : partAmount);
+						toRemove += (units == UNITS_KILOGRAMS) ? (partAmount > (KILOGRAMS_PER_POD + MAX_KILOGRAMS_IN_SAFE) ? KILOGRAMS_PER_POD : partAmount - MAX_KILOGRAMS_IN_SAFE)
+									: (partAmount > (GRAMS_PER_POD + MAX_GRAMS_IN_SAFE) ? GRAMS_PER_POD : partAmount - MAX_GRAMS_IN_SAFE);
 						partAmount = oldAmount - toRemove;
 						i--;
 					}
@@ -7296,13 +7292,13 @@ static NSString *last_outfitting_key=nil;
 		
 		return YES;
 	}
-
+	
 	if ([eqKey hasSuffix:@"MISSILE"] || [eqKey hasSuffix:@"MINE"])
 	{
 		ShipEntity* weapon = [[UNIVERSE newShipWithRole:eqKey] autorelease];
 		if (weapon)  OOLog(kOOLogBuyMountedOK, @"Got ship for mounted weapon role %@", eqKey);
 		else  OOLog(kOOLogBuyMountedFailed, @"Could not find ship for mounted weapon role %@", eqKey);
-
+		
 		BOOL mounted_okay = [self mountMissile:weapon];
 		if (mounted_okay)
 		{
@@ -7313,21 +7309,21 @@ static NSString *last_outfitting_key=nil;
 		}
 		return mounted_okay;
 	}
-
+	
 	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 	{
 		[self changePassengerBerths:+1];
 		credits -= price;
 		return YES;
 	}
-
+	
 	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
 	{
 		[self changePassengerBerths:-1];
 		credits -= price;
 		return YES;
 	}
-
+	
 	if ([eqKey isEqualToString:@"EQ_MISSILE_REMOVAL"])
 	{
 		credits -= price;
@@ -7346,50 +7342,51 @@ static NSString *last_outfitting_key=nil;
 		}
 		return YES;
 	}
-
+	
 	return NO;
 }
 
+
 - (BOOL) setWeaponMount:(int)facing toWeapon:(NSString *)eqKey
 {
-		NSDictionary		*shipyardInfo = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:[self shipDataKey]];
-		unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
-
-// facing exists?
-		if (!(available_facings & facing)) 
+	NSDictionary		*shipyardInfo = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:[self shipDataKey]];
+	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
+	
+	// facing exists?
+	if (!(available_facings & facing)) 
+	{
+		return NO;
+	}
+	
+	// weapon allowed (or NONE)?
+	if (![eqKey isEqualToString:@"EQ_WEAPON_NONE"]) 
+	{
+		if (![self canAddEquipment:eqKey]) 
 		{
 			return NO;
 		}
-
-// weapon allowed (or NONE)?
-		if (![eqKey isEqualToString:@"EQ_WEAPON_NONE"]) 
-		{
-			if (![self canAddEquipment:eqKey]) 
-			{
-				return NO;
-			}
-		}
-
-// sets WEAPON_NONE if not recognised
-		int chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
-		
-		switch (facing)
-		{
-			case WEAPON_FACING_FORWARD :
-				forward_weapon_type = chosen_weapon;
-				break;
-			case WEAPON_FACING_AFT :
-				aft_weapon_type = chosen_weapon;
-				break;
-			case WEAPON_FACING_PORT :
-				port_weapon_type = chosen_weapon;
-				break;
-			case WEAPON_FACING_STARBOARD :
-				starboard_weapon_type = chosen_weapon;
-				break;
-		}
-
-		return YES;
+	}
+	
+	// sets WEAPON_NONE if not recognised
+	int chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
+	
+	switch (facing)
+	{
+		case WEAPON_FACING_FORWARD :
+			forward_weapon_type = chosen_weapon;
+			break;
+		case WEAPON_FACING_AFT :
+			aft_weapon_type = chosen_weapon;
+			break;
+		case WEAPON_FACING_PORT :
+			port_weapon_type = chosen_weapon;
+			break;
+		case WEAPON_FACING_STARBOARD :
+			starboard_weapon_type = chosen_weapon;
+			break;
+	}
+	
+	return YES;
 }
 
 
@@ -7471,7 +7468,7 @@ static NSString *last_outfitting_key=nil;
 	OOMassUnit			unit = [UNIVERSE unitsForCommodity:type];
 	if([self specialCargo] && unit == UNITS_TONS) return 0;	// don't do anything if we've got a special cargo...
 	
-	OOCargoQuantity 	oldAmount = [self cargoQuantityForType:type];
+	OOCargoQuantity		oldAmount = [self cargoQuantityForType:type];
 	OOCargoQuantity		available = [self availableCargoSpace];
 	BOOL				inPods = ([self status] != STATUS_DOCKED);
 	
@@ -7484,12 +7481,14 @@ static NSString *last_outfitting_key=nil;
 	// eg: with maxAvailableCargoSpace 2 & gold 1499kg, you can still add 1 ton alloy. 
 	else if (unit == UNITS_KILOGRAMS && amount > oldAmount)
 	{
-		// Allow up to 0.5 ton of kg goods above the cargo capacity but respect existing quantities.
-		if (available * 1000 + 499 < amount) amount = (available * 1000 + 499 < oldAmount) ? oldAmount : (available * 1000 + 499);
+		// Allow up to 0.5 ton of kg (& g) goods above the cargo capacity but respect existing quantities.
+		OOCargoQuantity		safeAmount = available * KILOGRAMS_PER_POD + MAX_KILOGRAMS_IN_SAFE;
+		if (safeAmount < amount) amount = (safeAmount < oldAmount) ? oldAmount : safeAmount;
 	}
 	else if (unit == UNITS_GRAMS && amount > oldAmount)
 	{
-		if (available * 1000000 + 499999 < amount) amount = (available * 1000000 + 499999 < oldAmount) ? oldAmount : (available * 1000000 + 499999);
+		OOCargoQuantity		safeAmount = available * GRAMS_PER_POD + MAX_GRAMS_IN_SAFE;
+		if (safeAmount < amount) amount = (safeAmount < oldAmount) ? oldAmount : safeAmount;
 	}
 	
 	if (inPods)
@@ -7536,7 +7535,7 @@ static NSString *last_outfitting_key=nil;
 		The cargo array is nil when the player ship is docked, due to action in unloadCargopods. For
 		this reason, we must use a slightly more complex method to determine the quantity of cargo
 		carried in this case - Nikos 20090830
-
+		
 		Optimised this method, to compensate for increased usage - Kaks 20091002
 	*/
 	NSArray				*manifest = [NSArray arrayWithArray:[self shipCommodityData]];
@@ -7553,8 +7552,13 @@ static NSString *last_outfitting_key=nil;
 		
 		if (commodityUnits != UNITS_TONS)
 		{
-			if (commodityUnits == UNITS_KILOGRAMS)  quantity = (quantity + CARGO_KG_ROUNDUP) / 1000;
-			else  quantity = (quantity + (CARGO_KG_ROUNDUP * 1000)) / 1000000;	// grams
+			// calculate the number of pods that would be used
+			// we're using integer math, so 99/100 = 0 ,  100/100 = 1, etc...
+			
+			assert(KILOGRAMS_PER_POD > MAX_KILOGRAMS_IN_SAFE && GRAMS_PER_POD > MAX_GRAMS_IN_SAFE); // otherwise we're in trouble!
+			
+			if (commodityUnits == UNITS_KILOGRAMS)  quantity = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + quantity) / KILOGRAMS_PER_POD;
+			else  quantity = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + quantity) / GRAMS_PER_POD;
 		}
 		cargoQtyOnBoard += quantity;
 	}
@@ -7562,7 +7566,6 @@ static NSString *last_outfitting_key=nil;
 	
 	return cargoQtyOnBoard;
 }
-
 
 
 - (NSMutableArray *) localMarket
@@ -7604,7 +7607,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		localMarket = [NSArray arrayWithArray:ourEconomy];
 	}
-
+	
 	// GUI stuff
 	{
 		OOGUIRow			start_row = GUI_ROW_MARKET_START;
@@ -7623,7 +7626,7 @@ static NSString *last_outfitting_key=nil;
 			ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
 			in_hold[[container commodityType]] += [container commodityAmount];
 		}
-
+		
 		[gui clearAndKeepBackground:!guiChanged];
 		
 		[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
@@ -7631,13 +7634,13 @@ static NSString *last_outfitting_key=nil;
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
 		tab_stops[1] = 192;
-		tab_stops[2] = 288;
-		tab_stops[3] = 384;
+		tab_stops[2] = 272;
+		tab_stops[3] = 346;
 		[gui setTabStops:tab_stops];
 		
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
-		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), DESC(@"price-column-title"),
-							 DESC(@"for-sale-column-title"), DESC(@"in-hold-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
+		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringTo(DESC(@"price-column-title"),7.0),
+							 OOPadStringTo(DESC(@"for-sale-column-title"),11.0), OOPadStringTo(DESC(@"in-hold-column-title"),15.0), nil] forRow:GUI_ROW_MARKET_KEY];
 		
 		for (i = 0; i < n_commodities; i++)
 		{
@@ -7649,9 +7652,12 @@ static NSString *last_outfitting_key=nil;
 			OOCreditsQuantity pricePerUnit = [marketDef oo_unsignedIntAtIndex:MARKET_PRICE];
 			OOMassUnit unit = [UNIVERSE unitsForCommodity:i];
 			
-			NSString *available = (available_units > 0) ? OOPadStringTo([NSString stringWithFormat:@"%d",available_units],3.0) : OOPadStringTo(DESC(@"commodity-quantity-none"),2.4);
+			NSString *available = OOPadStringTo(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 6.0);
 			NSString *price = OOPadStringTo([NSString stringWithFormat:@" %.1f ",0.1 * pricePerUnit],7.0);
-			NSString *owned = (units_in_hold > 0) ? OOPadStringTo([NSString stringWithFormat:@"%d",units_in_hold],3.0) : OOPadStringTo(DESC(@"commodity-quantity-none"),2.4);
+			
+			// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
+			
+			NSString *owned = OOPadStringTo((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 10.0);
 			NSString *units = DisplayStringForMassUnit(unit);
 			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
@@ -7718,14 +7724,15 @@ static NSString *last_outfitting_key=nil;
 	OOMassUnit			unit			= [UNIVERSE unitsForCommodity:index];
 
 	if (specialCargo != nil && unit == UNITS_TONS)
+	{
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
-
+	}
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
 	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:index]];
 	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
 	int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
 	int market_quantity = [market_commodity oo_intAtIndex:MARKET_QUANTITY];
-
+	
 	int purchase = all ? 127 : 1;
 	if (purchase > market_quantity)
 	{
@@ -7743,48 +7750,49 @@ static NSString *last_outfitting_key=nil;
 	else
 	{
 		if (current_cargo == [self maxAvailableCargoSpace])
-		{ // otherwise definitely fine so long as buying limited to <1000
-			// but if this is true, need to see if there is more space in
+		{
+			// other cases are fine so long as buying is limited to <1000kg / <1000000g
+			// but if this case is true, we need to see if there is more space in
 			// the manifest (safe) or an already-accounted-for pod
 			if (unit == UNITS_KILOGRAMS)
 			{
-				if (manifest_quantity % 1000 < 500 && (manifest_quantity + purchase) % 1000 >= 500)
+				if (manifest_quantity % KILOGRAMS_PER_POD <= MAX_KILOGRAMS_IN_SAFE && (manifest_quantity + purchase) % KILOGRAMS_PER_POD > MAX_KILOGRAMS_IN_SAFE)
 				{
-					// going from < n500 to >= n500 increases pods needed by 1
-					purchase = 499 - manifest_quantity; // max possible
+					// going from < n500 to >= n500 would increase pods needed by 1
+					purchase = MAX_KILOGRAMS_IN_SAFE - manifest_quantity; // max possible
 				}
 			}
 			else // UNITS_GRAMS
 			{
-				if (manifest_quantity % 1000000 < 500000 && (manifest_quantity + purchase) % 1000000 >= 500000)
+				if (manifest_quantity % GRAMS_PER_POD <= MAX_GRAMS_IN_SAFE && (manifest_quantity + purchase) % GRAMS_PER_POD > MAX_GRAMS_IN_SAFE)
 				{
-					// going from < n500 to >= n500 increases pods needed by 1
-					purchase = 499999 - manifest_quantity; // max possible
+					// going from < n500000 to >= n500000 would increase pods needed by 1
+					purchase = MAX_GRAMS_IN_SAFE - manifest_quantity; // max possible
 				}
 			}
-		}		
+		}
 	}
 	if (purchase <= 0)
 	{
 		return NO;									// stop if that results in nothing to be bought
 	}
-
+	
 	manifest_quantity += purchase;
 	market_quantity -= purchase;
 	credits -= pricePerUnit * purchase;
-
+	
 	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
 	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
 	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
 	[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
-
+	
 	[shipCommodityData release];
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-
+	
 	[self calculateCurrentCargo];
 	
 	if ([UNIVERSE autoSave])  [UNIVERSE setAutoSaveNow:YES];
-
+	
 	[self doScriptEvent:OOJSID("playerBoughtCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:purchase], [NSNumber numberWithInt: pricePerUnit], nil]];
 	
 	return YES;
@@ -7798,9 +7806,9 @@ static NSString *last_outfitting_key=nil;
 	NSMutableArray *localMarket = [self localMarket];
 	int available_units = [[shipCommodityData oo_arrayAtIndex:index] oo_intAtIndex:MARKET_QUANTITY];
 	int pricePerUnit = [[localMarket oo_arrayAtIndex:index] oo_intAtIndex:MARKET_PRICE];
-
+	
 	if (available_units == 0)  return NO;
-
+	
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
 	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:index]];
 	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
@@ -7814,7 +7822,7 @@ static NSString *last_outfitting_key=nil;
 		sell = 127 - market_quantity;			// avoid flooding the market
 	if (sell <= 0)
 		return NO;								// stop if that results in nothing to be sold
-
+	
 	current_cargo -= sell;
 	manifest_quantity -= sell;
 	market_quantity += sell;
@@ -7827,11 +7835,11 @@ static NSString *last_outfitting_key=nil;
 	
 	[shipCommodityData release];
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-
+	
 	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	
 	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:sell], [NSNumber numberWithInt: pricePerUnit], nil]];
-
+	
 	return YES;
 }
 

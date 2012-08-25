@@ -876,7 +876,11 @@ OOINLINE PlayerEntity *OOGetPlayer(void)
 	return gOOPlayer;
 }
 #define PLAYER				OOGetPlayer()
-#define CARGO_KG_ROUNDUP	500
+
+#define KILOGRAMS_PER_POD		1000
+#define MAX_KILOGRAMS_IN_SAFE	((KILOGRAMS_PER_POD / 2) - 1)
+#define GRAMS_PER_POD			(KILOGRAMS_PER_POD * 1000)
+#define MAX_GRAMS_IN_SAFE		((GRAMS_PER_POD / 2) - 1)
 
 
 NSString *OODisplayRatingStringFromKillCount(unsigned kills);
