@@ -62,6 +62,7 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN a
 static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipRemoveContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
@@ -179,10 +180,11 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
 	{ "launch",							PlayerShipLaunch,							0 },
 	{ "removeAllCargo",					PlayerShipRemoveAllCargo,					0 },
+	{ "removeContract",					PlayerShipRemoveContract,					2 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
-	{ "setCustomView",				PlayerShipSetCustomView,					2 },
-	{ "takeInternalDamage",				PlayerShipTakeInternalDamage,					0 },
+	{ "setCustomView",					PlayerShipSetCustomView,					2 },
+	{ "takeInternalDamage",				PlayerShipTakeInternalDamage,				0 },
 	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,					1 },
 	{ 0 }
 };
@@ -824,6 +826,43 @@ static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp)
 }
 
 
+// removeContract(commodity: string, destination: int)
+static JSBool PlayerShipRemoveContract(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	NSString			*key = nil;
+	int32				dest = 0;
+	
+	if (argc < 2)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"removeContract", argc, OOJS_ARGV, nil, @"commodity, destination");
+		return NO;
+	}
+	
+	key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	
+	if (EXPECT_NOT(key == nil))
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"removeContract", 1, &OOJS_ARGV[0], nil, @"string (commodity identifier)");
+		return NO;
+	}
+	
+	if (!JS_ValueToInt32(context, OOJS_ARGV[1], &dest) || dest < 0 || dest > 255)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"removeContract", 1, &OOJS_ARGV[1], nil, @"system ID");
+		return NO;
+	}
+	
+	BOOL OK = [player removeContract:key destination:(unsigned)dest];	
+	OOJS_RETURN_BOOL(OK);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// setCustomView(position:vector, orientation:quaternion [, weapon:string])
 static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
@@ -883,6 +922,7 @@ static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp)
 }
 
 
+// resetCustomView()
 static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
@@ -903,7 +943,7 @@ static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *v
 	OOJS_NATIVE_EXIT
 }
 
-
+// takeInternalDamage()
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)

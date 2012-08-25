@@ -865,6 +865,34 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
+- (BOOL) removeContract:(NSString*)commodity destination:(unsigned)dest	// removes the first match found, returns NO if none found
+{
+	if ([contracts count] == 0 || dest > 255)  return NO;
+
+	OOCommodityType	findType = [UNIVERSE commodityForName: commodity];
+
+	if (findType == COMMODITY_UNDEFINED)  return NO;
+	
+	unsigned			i;
+	
+	for (i = 0; i < [contracts count]; i++)
+	{
+		NSDictionary		*contract_info = [contracts oo_dictionaryAtIndex:i];
+		unsigned 			cargoDest = [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION];
+		OOCommodityType		cargoType = [contract_info oo_intForKey:CARGO_KEY_TYPE];
+		
+		if (cargoType == findType && cargoDest == dest)
+		{
+			[contract_record removeObjectForKey:[contract_info oo_stringForKey:CARGO_KEY_ID]];
+			[contracts removeObjectAtIndex:i];
+			return YES;
+		}
+	}
+	
+	return NO;
+}
+
+
 - (BOOL) pickFromGuiContractsScreen
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
