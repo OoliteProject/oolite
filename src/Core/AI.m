@@ -185,11 +185,11 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 		{
 			OOLogIndent();
 			
-			unsigned count = [aiStack count];
+			OOUInteger count = [aiStack count];
 			while (count--)
 			{
 				NSDictionary *pickledMachine = [aiStack objectAtIndex:count];
-				OOLog(@"ai.error.stackOverflow.dump", @"%3u: %@: %@", count, [pickledMachine oo_stringForKey:@"stateMachineName"], [pickledMachine oo_stringForKey:@"currentState"]);
+				OOLog(@"ai.error.stackOverflow.dump", @"%3lu: %@: %@", count, [pickledMachine oo_stringForKey:@"stateMachineName"], [pickledMachine oo_stringForKey:@"currentState"]);
 			}
 			
 			OOLogOutdent();
@@ -350,7 +350,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 }
 
 
-- (unsigned) stackDepth
+- (OOUInteger) stackDepth
 {
 	return [aiStack count];
 }

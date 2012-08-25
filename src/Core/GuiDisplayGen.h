@@ -64,7 +64,7 @@ typedef enum
 @class OOSound, OOColor, OOTexture, OOTextureSprite, HeadUpDisplay;
 
 
-typedef int OOGUIRow;	// -1 for none
+typedef OOInteger OOGUIRow;	// -1 for none
 typedef int OOGUITabStop; // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
@@ -72,52 +72,52 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 @interface GuiDisplayGen: NSObject
 {
 @private
-	NSSize			size_in_pixels;
-	unsigned		n_columns;
-	unsigned		n_rows;
-	int				pixel_row_center;
-	unsigned		pixel_row_height;
-	int				pixel_row_start;
-	NSSize			pixel_text_size;
+	NSSize					size_in_pixels;
+	unsigned				n_columns;
+	unsigned				n_rows;
+	int						pixel_row_center;
+	unsigned				pixel_row_height;
+	int						pixel_row_start;
+	NSSize					pixel_text_size;
 	
-	BOOL			showAdvancedNavArray;
+	BOOL					showAdvancedNavArray;
 	
-	NSSize			pixel_title_size;
-
-	OOColor			*backgroundColor;
-	OOColor			*textColor;
+	NSSize					pixel_title_size;
 	
-	OOTextureSprite	*backgroundSprite;
-	OOTextureSprite	*foregroundSprite;
-	OOGUIBackgroundSpecial backgroundSpecial;	
-
-	NSString		*title;
+	OOColor					*backgroundColor;
+	OOColor					*textColor;
 	
-	NSMutableArray  *rowText;
-	NSMutableArray  *rowKey;
-	NSMutableArray  *rowColor;
+	OOTextureSprite			*backgroundSprite;
+	OOTextureSprite			*foregroundSprite;
+	OOGUIBackgroundSpecial	backgroundSpecial;	
 	
-	Vector			drawPosition;
+	NSString				*title;
 	
-	NSPoint			rowPosition[GUI_MAX_ROWS];
-	OOGUIAlignment	rowAlignment[GUI_MAX_ROWS];
-	float			rowFadeTime[GUI_MAX_ROWS];
+	NSMutableArray			*rowText;
+	NSMutableArray			*rowKey;
+	NSMutableArray			*rowColor;
 	
-	OOGUITabSettings tabStops;
+	Vector					drawPosition;
 	
-	NSRange			rowRange;
-
-	OOGUIRow		selectedRow;
-	NSRange			selectableRange;
+	NSPoint					rowPosition[GUI_MAX_ROWS];
+	OOGUIAlignment			rowAlignment[GUI_MAX_ROWS];
+	float					rowFadeTime[GUI_MAX_ROWS];
 	
-	BOOL			showTextCursor;
-	OOGUIRow		currentRow;
+	OOGUITabSettings		tabStops;
 	
-	GLfloat			max_alpha;			// main alpha setting
-	GLfloat			fade_alpha;			// for fade-in / fade-out
-	GLfloat			fade_sign;			//	-1.0 to 1.0
-	int				statusPage; 		// status  screen: paging equipped items
-	int				foundSystem;
+	NSRange					rowRange;
+	
+	OOGUIRow				selectedRow;
+	NSRange					selectableRange;
+	
+	BOOL					showTextCursor;
+	OOGUIRow				currentRow;
+	
+	GLfloat					max_alpha;			// main alpha setting
+	GLfloat					fade_alpha;			// for fade-in / fade-out
+	GLfloat					fade_sign;			//	-1.0 to 1.0
+	OOUInteger				statusPage; 		// status  screen: paging equipped items
+	OOSystemID				foundSystem;
 }
 
 - (id) init;
@@ -171,7 +171,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (id) objectForRow:(OOGUIRow)row;
 - (NSString *) keyForRow:(OOGUIRow)row;
 - (OOGUIRow) rowForKey:(NSString*)key;
-- (int) selectedRow;
+- (OOGUIRow) selectedRow;
 - (BOOL) setSelectedRow:(OOGUIRow)row;
 - (BOOL) setNextRow:(int) direction;
 - (BOOL) setFirstSelectableRow;
@@ -194,9 +194,9 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setKey:(NSString *)str forRow:(OOGUIRow)row;
 - (void) setText:(NSString *)str forRow:(OOGUIRow)row;
 - (void) setText:(NSString *)str forRow:(OOGUIRow)row align:(OOGUIAlignment)alignment;
-- (int) addLongText:(NSString *)str
-	  startingAtRow:(OOGUIRow)row
-			  align:(OOGUIAlignment)alignment;
+- (OOGUIRow) addLongText:(NSString *)str
+		   startingAtRow:(OOGUIRow)row
+				   align:(OOGUIAlignment)alignment;
 - (void) printLongText:(NSString *)str
 				 align:(OOGUIAlignment)alignment
 				 color:(OOColor *)text_color

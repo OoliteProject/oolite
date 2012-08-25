@@ -105,7 +105,7 @@ OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 #define GLLoadTransposeOOMatrix(M) do { OOMatrix m_ = M; OOGL(glLoadTransposeMatrixf(OOMatrixValuesForOpenGL(m_))); } while (0)
 #define GLUniformMatrix(location, M) do { OOGL(glUniformMatrix4fvARB(location, 1, NO, OOMatrixValuesForOpenGL(M))); } while (0)
 
-OOINLINE OOMatrix OOMatrixLoadGLMatrix(unsigned long /* GLenum */ matrixID) ALWAYS_INLINE_FUNC;
+OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
 #endif
 
 
@@ -317,7 +317,7 @@ OOINLINE void OOMatrixGetBasisVectors(OOMatrix m, Vector *outRight, Vector *outU
 
 
 #if OOMATHS_OPENGL_INTEGRATION
-OOINLINE OOMatrix OOMatrixLoadGLMatrix(unsigned long /* GLenum */ matrixID)
+OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID)
 {
 	OOMatrix m;
 	glGetFloatv(matrixID, OOMatrixValuesForOpenGL(m));

@@ -326,8 +326,8 @@ enum
 
 - (OSStatus)renderWithFlags:(AudioUnitRenderActionFlags *)ioFlags frames:(UInt32)inNumFrames context:(OOCASoundRenderContext *)ioContext data:(AudioBufferList *)ioData
 {
-	size_t							available, availL, availR, remaining, underflow;
-	size_t							numBytes;
+	uint32_t						available, availL, availR, remaining, underflow;
+	uint32_t						numBytes;
 	void							*ptrL, *ptrR;
 	OOCAStreamingSoundRenderContext	context;
 	

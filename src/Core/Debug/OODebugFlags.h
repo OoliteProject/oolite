@@ -23,7 +23,7 @@ enum OODebugFlags
 
 #ifndef NDEBUG
 
-extern uint32_t gDebugFlags;
+extern OOUInteger gDebugFlags;
 extern uint32_t gLiveEntityCount;
 extern size_t gTotalEntityMemory;
 

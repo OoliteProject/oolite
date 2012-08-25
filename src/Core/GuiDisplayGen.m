@@ -408,7 +408,7 @@ static BOOL _refreshStarChart = NO;
 }
 
 
-- (int) selectedRow
+- (OOGUIRow) selectedRow
 {
 	if (RowInRange(selectedRow, selectableRange))
 		return selectedRow;
@@ -435,7 +435,7 @@ static BOOL _refreshStarChart = NO;
 
 - (BOOL) setNextRow:(int) direction
 {
-	int row = selectedRow + direction;
+	OOGUIRow row = selectedRow + direction;
 	while (RowInRange(row, selectableRange))
 	{
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
@@ -451,7 +451,7 @@ static BOOL _refreshStarChart = NO;
 
 - (BOOL) setFirstSelectableRow
 {
-	int row = selectableRange.location;
+	OOUInteger row = selectableRange.location;
 	while (RowInRange(row, selectableRange))
 	{
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
@@ -468,7 +468,7 @@ static BOOL _refreshStarChart = NO;
 
 - (BOOL) setLastSelectableRow
 {
-	int row = selectableRange.location + selectableRange.length - 1;
+	OOUInteger row = selectableRange.location + selectableRange.length - 1;
 	while (RowInRange(row, selectableRange))
 	{
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
@@ -597,9 +597,9 @@ static BOOL _refreshStarChart = NO;
 }
 
 
-- (int) addLongText:(NSString *)str
-	  startingAtRow:(OOGUIRow)row
-			  align:(OOGUIAlignment)alignment
+- (OOGUIRow) addLongText:(NSString *)str
+		   startingAtRow:(OOGUIRow)row
+				   align:(OOGUIAlignment)alignment
 {
 
 	if ([str rangeOfString:@"\n"].location != NSNotFound)
@@ -788,7 +788,7 @@ static BOOL _refreshStarChart = NO;
 	if([items count] == 0)
 		return;
 	
-	unsigned n_items = [items count];
+	OOUInteger n_items = [items count];
 	if ((item_keys)&&([item_keys count] != n_items))
 	{
 		// throw exception
@@ -1030,13 +1030,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 {
 	if ([eqptList count] == 0) return;
 	
-	int				first_row = STATUS_EQUIPMENT_FIRST_ROW;
-	int				items_per_column = STATUS_EQUIPMENT_MAX_ROWS;
+	OOGUIRow		first_row = STATUS_EQUIPMENT_FIRST_ROW;
+	OOUInteger		items_per_column = STATUS_EQUIPMENT_MAX_ROWS;
 
-	int				first_y = 40;	// first_row =10 :-> 40  - first_row=11 -> 24 etc...
-	int				items_count = [eqptList count];
-	int				page_count=1;
-	int				i, start;
+	OOUInteger		first_y = 40;	// first_row =10 :-> 40  - first_row=11 -> 24 etc...
+	OOUInteger		items_count = [eqptList count];
+	OOUInteger		page_count = 1;
+	OOUInteger		i;
+	OOUInteger		start;
 	NSArray			*info = nil;
 	NSString		*name = nil;
 	BOOL			damaged;
@@ -1054,7 +1055,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		if (items_count <= i) // two pages
 		{
 			page_count++;
-			if (statusPage == 1) start=0;
+			if (statusPage == 1)
+			{
+				start = 0;
+			}
 			else
 			{
 				statusPage = 2;
@@ -1070,8 +1074,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	else
 	{
-		statusPage=page_count; // one page
-		start=0;
+		statusPage = page_count; // one page
+		start = 0;
 	}
 	
 	if (statusPage > 1)

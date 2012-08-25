@@ -11667,7 +11667,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	//doesn't seem to have any adverse effect for now. - Kaks.
 	if ([shipAI stackDepth] > 3)
 	{
-		OOLog(@"ship.escort.reject", @"%@ rejecting escort %@ because AI stack depth is %u.",self, other_ship, [shipAI stackDepth]);
+		OOLog(@"ship.escort.reject", @"%@ rejecting escort %@ because AI stack depth is %lu.",self, other_ship, [shipAI stackDepth]);
 		return NO;
 	}
 	
@@ -11684,8 +11684,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			_maxEscortCount = MAX_ESCORTS;
 		}
 		
-		unsigned maxEscorts = _maxEscortCount; 	// never bigger than MAX_ESCORTS.
-		unsigned escortCount = [escortGroup count] - 1;	// always 0 or higher.
+		OOUInteger maxEscorts = _maxEscortCount; 	// never bigger than MAX_ESCORTS.
+		OOUInteger escortCount = [escortGroup count] - 1;	// always 0 or higher.
 		
 		if (escortCount < maxEscorts)
 		{
@@ -11710,7 +11710,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		else
 		{
-			OOLog(@"ship.escort.reject", @"%@ already got max escorts(%d). Escort rejected: %@.", self, escortCount, other_ship);
+			OOLog(@"ship.escort.reject", @"%@ already got max escorts(%ld). Escort rejected: %@.", self, escortCount, other_ship);
 		}
 	}
 	else

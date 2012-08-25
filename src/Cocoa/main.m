@@ -3,7 +3,7 @@
 
 
 #ifndef NDEBUG
-uint32_t gDebugFlags = 0;
+OOUInteger gDebugFlags = 0;
 #endif
 
 

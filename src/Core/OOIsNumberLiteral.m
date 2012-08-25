@@ -42,7 +42,7 @@ BOOL OOIsNumberLiteral(NSString *string, BOOL allowSpaces)
 							hadExp = NO,
 							allowDec = YES,
 							hadNumber = NO;
-	unsigned				i, count;
+	OOUInteger				i, count;
 	
 	if (string == nil)  return NO;
 	

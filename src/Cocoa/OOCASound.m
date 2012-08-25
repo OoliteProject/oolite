@@ -57,7 +57,7 @@ BOOL						gOOSoundBroken = NO;
 NSRecursiveLock				*gOOCASoundSyncLock = nil;	// Used to ensure thread-safety of play and stop, specifically because stop may be called from the CoreAudio thread.
 
 static OOSound				*sSingletonOOSound = nil;
-static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
+static int					sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 
 
 #ifndef NDEBUG
@@ -209,7 +209,7 @@ static struct
 	decoder = [[OOCASoundDecoder alloc] initWithPath:inPath];
 	if (nil == decoder) return nil;
 	
-	if ([decoder sizeAsBuffer] <= sMaxBufferedSoundSize)
+	if ([decoder sizeAsBuffer] <= (size_t)sMaxBufferedSoundSize)
 	{
 		self = [[OOCABufferedSound alloc] initWithDecoder:decoder];
 	}

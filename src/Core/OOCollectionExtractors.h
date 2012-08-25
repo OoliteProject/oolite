@@ -414,7 +414,7 @@ OOINLINE long long OOClampInteger(long long value, long long minValue, long long
 #define OO_DEFINE_CLAMP(type, typeName, min, max) \
 	OOINLINE type OO ## typeName ## FromObject(id object, type defaultValue) \
 	{ \
-		return OOClampInteger(OOLongLongFromObject(object, defaultValue), min, max); \
+		return (type)OOClampInteger(OOLongLongFromObject(object, defaultValue), min, max); \
 	}
 
 #define OO_DEFINE_CLAMP_PAIR(type, typeName, minMaxSymb) \

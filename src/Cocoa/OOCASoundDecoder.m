@@ -238,7 +238,8 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 - (BOOL)readMonoCreatingBuffer:(float **)outBuffer withFrameCount:(size_t *)outSize
 {
 	float					*buffer = NULL, *dst, **src;
-	size_t					sizeInFrames = 0, remaining;
+	size_t					sizeInFrames = 0;
+	int						remaining;
 	unsigned				chanCount;
 	long					framesRead;
 	ogg_int64_t				totalSizeInFrames;
@@ -263,7 +264,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	
 	if (OK && sizeInFrames)
 	{
-		remaining = sizeInFrames;
+		remaining = MIN(sizeInFrames, (size_t)INT_MAX);
 		dst = buffer;
 		
 		do
@@ -303,7 +304,8 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 - (BOOL)readStereoCreatingLeftBuffer:(float **)outLeftBuffer rightBuffer:(float **)outRightBuffer withFrameCount:(size_t *)outSize
 {
 	float					*bufferL = NULL, *bufferR = NULL, *dstL, *dstR, **src;
-	size_t					sizeInFrames = 0, remaining;
+	size_t					sizeInFrames = 0;
+	int						remaining;
 	unsigned				chanCount;
 	long					framesRead;
 	ogg_int64_t				totalSizeInFrames;
@@ -335,7 +337,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	
 	if (OK && sizeInFrames)
 	{
-		remaining = sizeInFrames;
+		remaining = MIN(sizeInFrames, (size_t)INT_MAX);
 		dstL = bufferL;
 		dstR = bufferR;
 		
@@ -382,14 +384,15 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	float					**src;
 	unsigned				chanCount;
 	long					framesRead;
-	size_t					size, remaining;
+	size_t					size;
+	int						remaining;
 	unsigned				rightChan;
 	
 	// Note: for our purposes, a frame is a set of one sample for each channel.
 	if (NULL == ioBufferL || NULL == ioBufferR || 0 == inMax) return 0;
 	if (_atEnd) return inMax;
 	
-	remaining = inMax;
+	remaining = MIN(inMax, (size_t)INT_MAX);
 	do
 	{
 		chanCount = ov_info(&_vf, -1)->channels;
