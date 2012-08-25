@@ -39,7 +39,7 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 static JSBool VisualEffectRemove(JSContext *context, uintN argc, jsval *vp);
-
+static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectSetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectGetMaterials(JSContext *context, uintN argc, jsval *vp);
@@ -102,9 +102,10 @@ static JSPropertySpec sVisualEffectProperties[] =
 static JSFunctionSpec sVisualEffectMethods[] =
 {
 	// JS name					Function						min args
-	{ "remove",         VisualEffectRemove,    0 },
 	{ "getMaterials",   VisualEffectGetMaterials,    0 },
 	{ "getShaders",     VisualEffectGetShaders,    0 },
+	{ "remove",         VisualEffectRemove,    0 },
+	{ "scale",         VisualEffectScale,    1 },
 	{ "setMaterials",     VisualEffectSetMaterials,    1 },
 	{ "setShaders",     VisualEffectSetShaders,    2 },
 
@@ -350,6 +351,37 @@ static JSBool VisualEffectRemove(JSContext *context, uintN argc, jsval *vp)
 	[UNIVERSE removeEntity:(Entity*)thisEnt];
 
 	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	OOVisualEffectEntity				*thisEnt = nil;
+	GET_THIS_EFFECT(thisEnt);
+	
+	jsdouble scale;
+	BOOL gotScale;
+
+	if (argc < 1)
+	{
+		OOJSReportBadArguments(context, @"VisualEffect", @"scale", argc, OOJS_ARGV, nil, @"scale factor needed");
+		return NO;
+	}
+
+	gotScale = JS_ValueToNumber(context, OOJS_ARGV[0], &scale);
+	if (EXPECT_NOT(scale <= 0.0 || !gotScale))
+	{
+		OOJSReportBadArguments(context, @"VisualEffect", @"scale", argc, OOJS_ARGV, nil, @"scale factor must be positive");
+		return NO;
+	}
+
+	[thisEnt rescaleBy:scale];
+
+	return YES;
 	
 	OOJS_NATIVE_EXIT
 }
