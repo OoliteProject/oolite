@@ -65,7 +65,7 @@ extern const Random_Seed	kNilRandomSeed;
 
 // checksum stuff
 void clear_checksum();
-int munge_checksum(int value);
+int16_t munge_checksum(int32_t value);
 
 // cunning price rounding routine:
 double cunningFee(double value, double precision); // precision is the fraction below which numbers become insignificant.

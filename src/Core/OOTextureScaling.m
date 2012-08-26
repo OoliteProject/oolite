@@ -890,7 +890,8 @@ static void StretchVerticallyN_x1(OOPixMap srcPx, OOPixMap dstPx)
 {
 	uint8_t				*src, *src0, *src1, *prev, *dst;
 	uint8_t				px0, px1;
-	uint_fast32_t		x, y, xCount, srcRowBytes;
+	uint_fast32_t		x, y, xCount;
+	size_t				srcRowBytes;
 	uint_fast16_t		weight0, weight1;
 	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
@@ -938,7 +939,8 @@ static void StretchVerticallyN_x4(OOPixMap srcPx, OOPixMap dstPx)
 	uint8_t				*src;
 	uint32_t			*src0, *src1, *prev, *dst;
 	uint32_t			px0, px1, ag, br;
-	uint_fast32_t		x, y, xCount, srcRowBytes;
+	uint_fast32_t		x, y, xCount;
+	size_t				srcRowBytes;
 	uint_fast16_t		weight0, weight1;
 	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
@@ -988,7 +990,8 @@ static void StretchVerticallyN_x8(OOPixMap srcPx, OOPixMap dstPx)
 	uint8_t				*src;
 	uint64_t			*src0, *src1, *prev, *dst;
 	uint64_t			px0, px1, agag, brbr;
-	uint_fast32_t		x, y, xCount, srcRowBytes;
+	uint_fast32_t		x, y, xCount;
+	size_t				srcRowBytes;
 	uint_fast16_t		weight0, weight1;
 	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
@@ -1037,7 +1040,8 @@ static void StretchHorizontally1(OOPixMap srcPx, OOPixMap dstPx)
 {
 	uint8_t				*src, *srcStart, *dst;
 	uint8_t				px0, px1;
-	uint_fast32_t		x, y, xCount, srcRowBytes;
+	uint_fast32_t		x, y, xCount;
+	size_t				srcRowBytes;
 	uint_fast16_t		weight0, weight1;
 	uint_fast32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 	
@@ -1096,7 +1100,8 @@ static void StretchHorizontally2(OOPixMap srcPx, OOPixMap dstPx)
 	uint16_t			*src, *srcStart, *dst;
 	uint16_t			px0, px1;
 	uint_fast32_t		hi, lo;
-	uint_fast32_t		x, y, xCount, srcRowBytes;
+	uint_fast32_t		x, y, xCount;
+	size_t				srcRowBytes;
 	uint_fast16_t		weight0, weight1;
 	uint_fast32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 	
@@ -1161,7 +1166,8 @@ static void StretchHorizontally4(OOPixMap srcPx, OOPixMap dstPx)
 	uint32_t			*src, *srcStart, *dst;
 	uint32_t			px0, px1;
 	uint32_t			ag, br;
-	uint_fast32_t		x, y, xCount, srcRowBytes;
+	uint_fast32_t		x, y, xCount;
+	size_t				srcRowBytes;
 	uint_fast16_t		weight0, weight1;
 	uint_fast32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 	
@@ -1225,7 +1231,8 @@ static void SqueezeHorizontally1(OOPixMap srcPx, OOPixMapDimension dstWidth)
 {
 	uint8_t				*src, *srcStart, *dst;
 	uint8_t				borderPx;
-	uint_fast32_t		x, y, xCount, endX, srcRowBytes;
+	uint_fast32_t		x, y, xCount, endX;
+	size_t				srcRowBytes;
 	uint_fast32_t		endFractX, deltaX;
 	uint_fast32_t		accum, weight;
 	uint_fast8_t		borderWeight;
@@ -1287,7 +1294,8 @@ static void SqueezeHorizontally1(OOPixMap srcPx, OOPixMapDimension dstWidth)
 static void SqueezeVertically1(OOPixMap srcPx, OOPixMapDimension dstHeight)
 {
 	uint8_t				*src, *srcStart, *dst;
-	uint_fast32_t		x, y, xCount, startY, endY, srcRowBytes, lastRow;
+	uint_fast32_t		x, y, xCount, startY, endY, lastRow;
+	size_t				srcRowBytes;
 	uint_fast32_t		endFractY, deltaY;
 	uint_fast32_t		accum, weight;
 	uint_fast8_t		startWeight, endWeight;
@@ -1375,7 +1383,8 @@ static void SqueezeHorizontally2(OOPixMap srcPx, OOPixMapDimension dstWidth)
 {
 	uint16_t			*src, *srcStart, *dst;
 	uint16_t			borderPx;
-	uint_fast32_t		x, y, xCount, endX, srcRowBytes;
+	uint_fast32_t		x, y, xCount, endX;
+	size_t				srcRowBytes;
 	uint_fast32_t		endFractX, deltaX;
 	uint_fast32_t		accumHi, accumLo, weight;
 	uint_fast8_t		borderWeight;
@@ -1436,7 +1445,8 @@ static void SqueezeHorizontally2(OOPixMap srcPx, OOPixMapDimension dstWidth)
 static void SqueezeVertically2(OOPixMap srcPx, OOPixMapDimension dstHeight)
 {
 	uint16_t			*src, *srcStart, *dst;
-	uint_fast32_t		x, y, xCount, startY, endY, srcRowBytes, lastRow;
+	uint_fast32_t		x, y, xCount, startY, endY, lastRow;
+	size_t				srcRowBytes;
 	uint_fast32_t		endFractY, deltaY;
 	uint_fast32_t		accumHi, accumLo, weight;
 	uint_fast8_t		startWeight, endWeight;
@@ -1538,7 +1548,8 @@ static void SqueezeHorizontally4(OOPixMap srcPx, OOPixMapDimension dstWidth)
 {
 	uint32_t			*src, *srcStart, *dst;
 	uint32_t			borderPx, ag, br;
-	uint_fast32_t		x, y, xCount, endX, srcRowBytes;
+	uint_fast32_t		x, y, xCount, endX;
+	size_t				srcRowBytes;
 	uint_fast32_t		endFractX, deltaX;
 	uint_fast32_t		accum1, accum2, accum3, accum4, weight;
 	uint_fast8_t		borderWeight;
@@ -1599,7 +1610,8 @@ static void SqueezeHorizontally4(OOPixMap srcPx, OOPixMapDimension dstWidth)
 static void SqueezeVertically4(OOPixMap srcPx, OOPixMapDimension dstHeight)
 {
 	uint32_t			*src, *srcStart, *dst;
-	uint_fast32_t		x, y, xCount, startY, endY, srcRowBytes, lastRow;
+	uint_fast32_t		x, y, xCount, startY, endY, lastRow;
+	size_t				srcRowBytes;
 	uint32_t			ag, br;
 	uint_fast32_t		endFractY, deltaY;
 	uint_fast32_t		accum1, accum2, accum3, accum4, weight;

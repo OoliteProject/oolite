@@ -55,9 +55,9 @@ SOFTWARE.
 	void						*_data;
 	uint32_t					_width,
 								_height,
-								_rowBytes,
 								_originalWidth,
 								_originalHeight;
+	size_t						_rowBytes;
 }
 
 + (id)loaderWithPath:(NSString *)path options:(uint32_t)options;

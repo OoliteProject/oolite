@@ -190,25 +190,22 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) unloadAllCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest
 {
-	int 			n_cargo = [cargo count];
-	if (n_cargo == 0)  return;
+	OOInteger i, cargoCount = [cargo count];
+	if (cargoCount == 0)  return;
 	
-	ShipEntity		*cargoItem = nil;
-	int				co_type, amount, i;
-
 	// step through the cargo pods adding in the quantities	
-	for (i =  n_cargo - 1; i >= 0 ; i--)
+	for (i =  cargoCount - 1; i >= 0 ; i--)
 	{
-		cargoItem = [cargo objectAtIndex:i];
-		co_type = [cargoItem commodityType];
-		if (co_type == COMMODITY_UNDEFINED || co_type == type)
+		ShipEntity *cargoItem = [cargo objectAtIndex:i];
+		OOCommodityType commodityType = [cargoItem commodityType];
+		if (commodityType == COMMODITY_UNDEFINED || commodityType == type)
 		{
-			if (co_type == type)
+			if (commodityType == type)
 			{
-				NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:co_type]];	
-				amount =  [commodityInfo oo_intAtIndex:MARKET_QUANTITY] + [cargoItem commodityAmount];
-				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]]; // enter the adjusted amount
-				[manifest replaceObjectAtIndex:co_type withObject:commodityInfo];
+				NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:commodityType]];	
+				OOCargoQuantity amount = [commodityInfo oo_unsignedIntAtIndex:MARKET_QUANTITY] + [cargoItem commodityAmount];
+				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithUnsignedInt:amount]]; // enter the adjusted amount
+				[manifest replaceObjectAtIndex:commodityType withObject:commodityInfo];
 			}
 			else	// undefined
 			{
@@ -803,9 +800,13 @@ static GLfloat		sBaseMass = 0.0;
 	munge_checksum(legalStatus);	munge_checksum(market_rnd);		munge_checksum(ship_kills);
 	
 	if (mission_variables != nil)
+	{
 		munge_checksum([[mission_variables description] length]);
+	}
 	if (equipment != nil)
+	{
 		munge_checksum([[equipment description] length]);
+	}
 	
 	int final_checksum = munge_checksum([[self shipDataKey] length]);
 
@@ -915,7 +916,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	eqScripts = [[NSMutableArray alloc] init];
 	[self addEquipmentFromCollection:equipment];
-	primedEquipment = [self getEqScriptIndexForKey:[dict oo_stringForKey:@"primed_equipment"]];	// if key not found primedEquipment is set to primed-none
+	primedEquipment = [self eqScriptIndexForKey:[dict oo_stringForKey:@"primed_equipment"]];	// if key not found primedEquipment is set to primed-none
 	
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
 	else  compassMode = COMPASS_MODE_BASIC;
@@ -2584,8 +2585,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self doBookkeeping:delta_t];
 	
 	UPDATE_STAGE(@"updating countdown timer");
-	witchspaceCountdown -= delta_t;
-	if (witchspaceCountdown < 0.0f)  witchspaceCountdown = 0.0f;
+	witchspaceCountdown = fdim(witchspaceCountdown, delta_t);
 	
 	// damaged gal drive? abort!
 	if (EXPECT_NOT(galactic_witchjump && ![self hasEquipmentItem:@"EQ_GAL_DRIVE"]))
@@ -2606,7 +2606,7 @@ static GLfloat		sBaseMass = 0.0;
 		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 	}
 	
-	if (witchspaceCountdown == 0.0f)
+	if (witchspaceCountdown == 0.0)
 	{
 		UPDATE_STAGE(@"preloading planet textures");
 		if (!galactic_witchjump)

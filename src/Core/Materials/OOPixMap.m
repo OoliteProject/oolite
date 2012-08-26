@@ -199,7 +199,7 @@ BOOL OOIsValidPixMapFormat(OOPixMapFormat format)
 
 
 #ifndef NDEBUG
-size_t OOPixMapBytesPerPixelForFormat(OOPixMapFormat format)
+unsigned short OOPixMapBytesPerPixelForFormat(OOPixMapFormat format)
 {
 	switch (format)
 	{

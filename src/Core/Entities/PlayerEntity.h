@@ -262,7 +262,7 @@ typedef enum
 	NSDictionary			*worldScripts;
 	NSMutableDictionary		*mission_variables;
 	NSMutableDictionary		*localVariables;
-	int						missionTextRow;
+	OOInteger /*OOGUIRow*/	missionTextRow;
 	NSString				*missionChoice;
 	BOOL					_missionWithCallback;
 	
@@ -341,13 +341,13 @@ typedef enum
 	OOAlertCondition		alertCondition;
 	OOAlertCondition		lastScriptAlertCondition;
 	OOMissileStatus			missile_status;
-	unsigned				activeMissile;
-	unsigned				primedEquipment;
+	OOUInteger				activeMissile;
+	OOUInteger				primedEquipment;
 	
 	OOCargoQuantity			current_cargo;
 	
 	NSPoint					cursor_coordinates;
-	float					witchspaceCountdown;
+	OOTimeDelta				witchspaceCountdown;
 	
 	// player commander data
 	NSString				*_commanderName;

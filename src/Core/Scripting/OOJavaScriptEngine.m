@@ -1170,20 +1170,25 @@ static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 	OOJS_PROFILE_ENTER
 	
 	JSObject				*result = NULL;
-	unsigned				i;
-	unsigned				count;
-	jsval					value;
 	
 	if (array == nil)  return NULL;
 	
-	NS_DURING
+	@try
+	{
+		NSUInteger fullCount = [array count];
+		if (EXPECT_NOT(fullCount > INT32_MAX))
+		{
+			return NULL;
+		}
+		
+		uint32_t i, count = (int32_t)fullCount;
+		
 		result = JS_NewArrayObject(context, 0, NULL);
 		if (result != NULL)
 		{
-			count = [array count];
 			for (i = 0; i != count; ++i)
 			{
-				value = [[array objectAtIndex:i] oo_jsValueInContext:context];
+				jsval value = [[array objectAtIndex:i] oo_jsValueInContext:context];
 				BOOL OK = JS_SetElement(context, result, i, &value);
 				
 				if (EXPECT_NOT(!OK))
@@ -1193,9 +1198,11 @@ static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 				}
 			}
 		}
-	NS_HANDLER
+	}
+	@catch (...)
+	{
 		result = NULL;
-	NS_ENDHANDLER
+	}
 	
 	return (JSObject *)result;
 	
@@ -1767,12 +1774,12 @@ NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObje
 	OOJS_PROFILE_ENTER
 	
 	NSMutableString			*result = nil;
-	unsigned				i, length;
+	NSUInteger				i, length;
 	unichar					c;
 	NSAutoreleasePool		*pool = nil;
 	
 	length = [self length];
-	result = [NSMutableString stringWithCapacity:[self length]];
+	result = [NSMutableString stringWithCapacity:length];
 	
 	// Not hugely efficient.
 	pool = [[NSAutoreleasePool alloc] init];
@@ -1900,7 +1907,7 @@ NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObje
 		}
 		else
 		{
-			result = INT_TO_JSVAL(longLongValue);
+			result = INT_TO_JSVAL((int32_t)longLongValue);
 		}
 	}
 	

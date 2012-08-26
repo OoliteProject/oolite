@@ -37,16 +37,16 @@ static RNG_Seed		rnd_seed;
 
 
 // TODO: Why is this based on a static? Should change to MungeCheckSum(&checkSum, value);
-static int checksum;
+static int32_t checksum;
 void clear_checksum()
 {
 	checksum = 0;
 }
 
 
-int munge_checksum(int value)
+int16_t munge_checksum(int32_t value)
 {
-	int mult1 = (value & 15) + 8;
+	int32_t mult1 = (value & 15) + 8;
 	checksum += value;
 	checksum *= mult1;
 	checksum += mult1;

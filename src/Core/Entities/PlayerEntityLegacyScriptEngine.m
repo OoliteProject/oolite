@@ -173,13 +173,9 @@ static BOOL TestScriptConditions(NSArray *conditions);
 
 static void PerformScriptActions(NSArray *actions, Entity *target)
 {
-	unsigned		i, count;
-	NSArray			*statement = nil;
-	
-	count = [actions count];
-	for (i = 0; i < count; i++)
+	NSArray *statement = nil;
+	foreach (statement, actions)
 	{
-		statement = [actions objectAtIndex:i];
 		if ([[statement objectAtIndex:0] boolValue])
 		{
 			PerformConditionalStatment(statement, target);
@@ -1054,7 +1050,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	{
 		return [self systemTechLevel_number];
 	}
-	return [NSNumber numberWithInt:[dockedStation equivalentTechLevel]];
+	return [NSNumber numberWithUnsignedInteger:[dockedStation equivalentTechLevel]];
 }
 
 - (NSString *) dockedStationName_string	// returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise (?)
@@ -1394,11 +1390,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if (forceRemoval && [self status] != STATUS_DOCKED)
 	{
-		int i;
-		for (i = [cargo count]-1; i >=0; i--)
+		OOInteger i;
+		for (i = [cargo count] - 1; i >= 0; i--)
 		{
 			ShipEntity* canister = [cargo objectAtIndex:i];
-			if (!canister) break;
+			if (!canister)  break;
 			// Since we are forcing cargo removal, we don't really care about the unit of measurement. Any
 			// commodity at more than 1000kg or 1000000gr will be inside cargopods, so remove those too.
 			[cargo removeObjectAtIndex:i];
@@ -1895,16 +1891,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addLiteralMissionText:(NSString *)text
 {
-	GuiDisplayGen		*gui = [UNIVERSE gui];
-	NSArray				*paras = [text componentsSeparatedByString:@"\n"];
-	unsigned			i, count;
-	
 	if (text != nil)
 	{
-		count = [paras count];
-		for (i = 0; i < count; i++)
+		GuiDisplayGen *gui = [UNIVERSE gui];
+		
+		NSString *para = nil;
+		foreach (para, [text componentsSeparatedByString:@"\n"])
 		{
-			missionTextRow = [gui addLongText:[paras objectAtIndex:i] startingAtRow:missionTextRow align:GUI_ALIGN_LEFT];
+			missionTextRow = [gui addLongText:para startingAtRow:missionTextRow align:GUI_ALIGN_LEFT];
 		}
 	}
 }
@@ -1924,37 +1918,37 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// and only if the selectable range is not present ask:
 	// Press Space Commander...
 	//
-	NSDictionary *choices_dict = [[UNIVERSE missiontext] oo_dictionaryForKey:choicesKey];
-	if ([choices_dict count] == 0)
+	NSDictionary *choicesDict = [[UNIVERSE missiontext] oo_dictionaryForKey:choicesKey];
+	if ([choicesDict count] == 0)
 	{
 		return;
 	}
 	
-	NSArray *choice_keys = [[choices_dict allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+	NSArray *choiceKeys = [[choicesDict allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
 	
 	[gui setText:@"" forRow:21];				// clears out the 'Press spacebar' message
 	[gui setKey:@"" forRow:21];					// clears the key to enable pollDemoControls to check for a selection
 	[gui setSelectableRange:NSMakeRange(0,0)];	// clears the selectable range
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES]; // enables mouse selection of the choices list items
 	
-	int					choices_row = 22 - [choice_keys count];
+	OOGUIRow			choicesRow = 22 - [choiceKeys count];
 	NSEnumerator		*choiceEnum = nil;
 	NSString			*choiceKey = nil;
 	NSString			*choiceText = nil;
 	
-	for (choiceEnum = [choice_keys objectEnumerator]; (choiceKey = [choiceEnum nextObject]); )
+	for (choiceEnum = [choiceKeys objectEnumerator]; (choiceKey = [choiceEnum nextObject]); )
 	{
-		choiceText = [NSString stringWithFormat:@" %@ ",[choices_dict objectForKey:choiceKey]];
+		choiceText = [NSString stringWithFormat:@" %@ ",[choicesDict objectForKey:choiceKey]];
 		choiceText = ExpandDescriptionForCurrentSystem(choiceText);
 		choiceText = [self replaceVariablesInString:choiceText];
-		[gui setText:choiceText forRow:choices_row align: GUI_ALIGN_CENTER];
-		[gui setKey:choiceKey forRow:choices_row];
-		[gui setColor:[OOColor yellowColor] forRow:choices_row];
-		choices_row++;
+		[gui setText:choiceText forRow:choicesRow align: GUI_ALIGN_CENTER];
+		[gui setKey:choiceKey forRow:choicesRow];
+		[gui setColor:[OOColor yellowColor] forRow:choicesRow];
+		choicesRow++;
 	}
 	
-	[gui setSelectableRange:NSMakeRange(22 - [choice_keys count], [choice_keys count])];
-	[gui setSelectedRow: 22 - [choice_keys count]];
+	[gui setSelectableRange:NSMakeRange(22 - [choiceKeys count], [choiceKeys count])];
+	[gui setSelectedRow: 22 - [choiceKeys count]];
 	
 	[self resetMissionChoice];
 }
@@ -2651,7 +2645,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	if (eq_key == nil) return NO;
 	
-	NSString			*key = nil;
 	NSString			*scriptName = [[OOEquipmentType equipmentTypeWithIdentifier:eq_key] scriptName];
 	
 	OOLog(@"player.equipmentScript", @"Added equipment %@, with the following script property: '%@'.", eq_key, scriptName);
@@ -2659,13 +2652,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (scriptName == nil) return NO;
 	
 	NSMutableDictionary	*properties = [NSMutableDictionary dictionary];
-	unsigned			i, c = [eqScripts count];
 	
 	// no duplicates!
-	for (i = 0; i < c; i++)
+	NSArray *eqScript = nil;
+	foreach (eqScript, eqScripts)
 	{
-		key = [[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0];
-		if ([key isEqualToString: eq_key]) return NO;
+		NSString *key = [eqScript oo_stringAtIndex:0];
+		if ([key isEqualToString: eq_key])  return NO;
 	}
 	
 	[properties setObject:self forKey:@"ship"];
@@ -2687,18 +2680,18 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (eq_key == nil) return;
 	
 	NSString			*key = nil;
-	unsigned			i, c = [eqScripts count];
+	OOUInteger			i, count = [eqScripts count];
 	
-	for (i = 0; i < c; i++)
+	for (i = 0; i < count; i++)
 	{
 		key = [[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0];
 		if ([key isEqualToString: eq_key]) 
 		{
 			[eqScripts removeObjectAtIndex:i];
 			
-			if (i == primedEquipment) primedEquipment = c;	// primed-none
-			else if (i < primedEquipment) primedEquipment--; // track the primed equipment
-			if (c == primedEquipment) primedEquipment--; // the array has shrunk by one!
+			if (i == primedEquipment)  primedEquipment = count;	// primed-none
+			else if (i < primedEquipment)  primedEquipment--; // track the primed equipment
+			if (count == primedEquipment)  primedEquipment--; // the array has shrunk by one!
 
 			OOLog(@"player.equipmentScript", @"Removed equipment %@, with the following script property: '%@'.", eq_key, [[OOEquipmentType equipmentTypeWithIdentifier:eq_key] scriptName]);
 		}
@@ -2706,21 +2699,20 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (unsigned) getEqScriptIndexForKey:(NSString *)eq_key
+- (OOUInteger) eqScriptIndexForKey:(NSString *)eq_key
 {
-	unsigned			i, c = [eqScripts count];
+	OOUInteger			i, count = [eqScripts count];
 	
-	if (eq_key == nil) return c;
-	
-	NSString			*key = nil;
-	
-	for (i = 0; i < c; i++)
+	if (eq_key != nil)
 	{
-		key = [[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0];
-		if ([key isEqualToString: eq_key]) return i;
+		for (i = 0; i < count; i++)
+		{
+			NSString *key = [[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0];
+			if ([key isEqualToString: eq_key]) return i;
+		}
 	}
 	
-	return c;
+	return count;
 }
 
 

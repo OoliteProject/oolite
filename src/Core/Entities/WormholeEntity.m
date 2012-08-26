@@ -285,16 +285,13 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 - (void) disgorgeShips
 {
 	double now = [PLAYER clockTimeAdjusted];
-	int n_ships = [shipsInTransit count];
-	NSMutableArray * shipsStillInTransit = [[NSMutableArray alloc] initWithCapacity:n_ships];
+	NSMutableArray* shipsStillInTransit = [[NSMutableArray alloc] initWithCapacity:[shipsInTransit count]];
 	BOOL hasShiftedExitPosition = NO;
 	BOOL useExitXYScatter = NO;
-
-
-	int i;
-	for (i = 0; i < n_ships; i++)
+	
+	NSDictionary *shipInfo = nil;
+	foreach (shipInfo, shipsInTransit)
 	{
-		NSDictionary *shipInfo = [shipsInTransit objectAtIndex:i];
 		ShipEntity *ship = [shipInfo objectForKey:@"ship"];
 		NSString *shipBeacon = [shipInfo objectForKey:@"shipBeacon"];
 		double	ship_arrival_time = arrival_time + [shipInfo oo_doubleForKey:@"time"];

@@ -119,16 +119,16 @@ BOOL OOIsValidPixMapFormat(OOPixMapFormat format);
 
 
 #ifndef NDEBUG
-size_t OOPixMapBytesPerPixelForFormat(OOPixMapFormat format) PURE_FUNC;
+unsigned short OOPixMapBytesPerPixelForFormat(OOPixMapFormat format) PURE_FUNC;
 #else
-OOINLINE size_t OOPixMapBytesPerPixelForFormat(OOPixMapFormat format)
+OOINLINE unsigned short OOPixMapBytesPerPixelForFormat(OOPixMapFormat format)
 {
 	// Currently, format values are component counts. This is subject to change.
 	return format;
 }
 #endif
 
-OOINLINE size_t OOPixMapBytesPerPixel(OOPixMap pixMap)
+OOINLINE unsigned short OOPixMapBytesPerPixel(OOPixMap pixMap)
 {
 	return OOPixMapBytesPerPixelForFormat(pixMap.format);
 }

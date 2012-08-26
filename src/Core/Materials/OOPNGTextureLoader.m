@@ -170,7 +170,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 			free(_data);
 			_data = NULL;
 		}
-		OOLog(kOOLogAllocationFailure, @"Failed to allocate space (%u bytes) for texture %@", _rowBytes * _height, _path);
+		OOLog(kOOLogAllocationFailure, @"Failed to allocate space (%zu bytes) for texture %@", _rowBytes * _height, _path);
 		goto FAIL;
 	}
 	
