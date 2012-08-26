@@ -1877,38 +1877,24 @@ NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObje
 	BOOL					isFloat = NO;
 	long long				longLongValue;
 	
-#if 0
-	/*	Under GNUstep, it is not possible to distinguish between boolean
-		NSNumbers and integer NSNumbers - there is no such distinction.
-		It is better to convert booleans to integers than vice versa.
-	*/
-	if ([self oo_isBoolean])
+	isFloat = [self oo_isFloatingPointNumber];
+	if (!isFloat)
 	{
-		if ([self boolValue])  result = JSVAL_TRUE;
-		else  result = JSVAL_FALSE;
+		longLongValue = [self longLongValue];
+		if (longLongValue < (long long)JSVAL_INT_MIN || (long long)JSVAL_INT_MAX < longLongValue)
+		{
+			// values outside JSVAL_INT range are returned as doubles.
+			isFloat = YES;
+		}
+	}
+	
+	if (isFloat)
+	{
+		if (!JS_NewNumberValue(context, [self doubleValue], &result)) result = JSVAL_VOID;
 	}
 	else
-#endif
 	{
-		isFloat = [self oo_isFloatingPointNumber];
-		if (!isFloat)
-		{
-			longLongValue = [self longLongValue];
-			if (longLongValue < (long long)JSVAL_INT_MIN || (long long)JSVAL_INT_MAX < longLongValue)
-			{
-				// values outside JSVAL_INT range are returned as doubles.
-				isFloat = YES;
-			}
-		}
-		
-		if (isFloat)
-		{
-			if (!JS_NewNumberValue(context, [self doubleValue], &result)) result = JSVAL_VOID;
-		}
-		else
-		{
-			result = INT_TO_JSVAL((int32_t)longLongValue);
-		}
+		result = INT_TO_JSVAL((int32_t)longLongValue);
 	}
 	
 	return result;

@@ -194,7 +194,7 @@ enum OOScanClass
 
 - (void) setOwner:(Entity *)ent;
 - (id) owner;
-- (ShipEntity *) parentEntity;	// owner if self is subentity of owner, otherwise nil.
+- (ShipEntity *) parentEntity;		// owner if self is subentity of owner, otherwise nil.
 - (ShipEntity *) rootShipEntity;	// like parentEntity, but recursive.
 
 - (void) setPosition:(Vector)posn;

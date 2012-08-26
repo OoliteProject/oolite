@@ -393,14 +393,14 @@ typedef enum
 	OOEquipmentType			*missile_list[SHIPENTITY_MAX_MISSILES];
 
 	// various types of target
-	OOWeakReference	*_primaryTarget;				// for combat or rendezvous
-	OOWeakReference	*_primaryAggressor;				// recorded after attack
-  OOWeakReference *_targetStation; // for docking
-	OOWeakReference	*_foundTarget;				// from scans
-	OOWeakReference	*_lastEscortTarget;			// last target an escort was deployed after
-	OOWeakReference	*_thankedShip;			// last ship thanked
-	OOWeakReference	*_rememberedShip;			// ship being remembered
-	OOWeakReference	*_proximityAlert;			// a ShipEntity within 2x collision_radius
+	OOWeakReference			*_primaryTarget;			// for combat or rendezvous
+	OOWeakReference			*_primaryAggressor;			// recorded after attack
+	OOWeakReference			*_targetStation;			// for docking
+	OOWeakReference			*_foundTarget;				// from scans
+	OOWeakReference			*_lastEscortTarget;			// last target an escort was deployed after
+	OOWeakReference			*_thankedShip;				// last ship thanked
+	OOWeakReference			*_rememberedShip;			// ship being remembered
+	OOWeakReference			*_proximityAlert;			// a ShipEntity within 2x collision_radius
 	
 	
 
@@ -921,7 +921,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (GLfloat) rangeToDestination;
 - (double) trackDestination:(double) delta_t :(BOOL) retreat;
-//- (double) trackPosition:(Vector) track_pos :(double) delta_t :(BOOL) retreat;
 
 - (void) setCoordinate:(Vector)coord;
 - (Vector) coordinates;
@@ -1075,9 +1074,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (Entity *)entityForShaderProperties;
 
 /*	*** Script events.
- For NPC ships, these call doEvent: on the ship script.
- For the player, they do that and also call doWorldScriptEvent:.
- */
+	For NPC ships, these call doEvent: on the ship script.
+	For the player, they do that and also call doWorldScriptEvent:.
+*/
 - (void) doScriptEvent:(jsid)message;
 - (void) doScriptEvent:(jsid)message withArgument:(id)argument;
 - (void) doScriptEvent:(jsid)message withArgument:(id)argument1 andArgument:(id)argument2;
@@ -1086,8 +1085,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) doScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc;
 
 /*	Convenience to send an event with raw JS values, for example:
- ShipScriptEventNoCx(ship, "doSomething", INT_TO_JSVAL(42));
- */
+	ShipScriptEventNoCx(ship, "doSomething", INT_TO_JSVAL(42));
+*/
 #define ShipScriptEvent(context, ship, event, ...) do { \
 jsval argv[] = { __VA_ARGS__ }; \
 uintN argc = sizeof argv / sizeof *argv; \

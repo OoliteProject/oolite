@@ -357,12 +357,6 @@ typedef enum
 	
 	OOCreditsQuantity		credits;	
 	OOGalaxyID				galaxy_number;
-	/*
-	OOWeaponType			forward_weapon;		// Is there a reason for having both this and forward_weapon_type? -- ahruman
-	OOWeaponType			aft_weapon;			// ditto 	- No good reason, and it could lead to some inconsistent state. Fixed. -- kaks
-	*/
-/*	OOWeaponType			port_weapon_type; // now in ShipEntity -- cim
-		OOWeaponType			starboard_weapon_type; */
 	
 	NSMutableArray			*shipCommodityData;
 	
@@ -487,7 +481,7 @@ typedef enum
 	unsigned				suppressTargetLost: 1,		// smart target lst reports
 							scoopsActive: 1,			// smart fuelscoops
 	
-							scoopOverride: 1, //scripted to just be on, ignoring normal rules
+							scoopOverride: 1,			//scripted to just be on, ignoring normal rules
 							game_over: 1,
 							finished: 1,
 							bomb_detonated: 1,
@@ -652,7 +646,7 @@ typedef enum
 - (float) fuelLeakRate;
 - (void) setFuelLeakRate:(float)value;
 
-- (double) clockTime;		// Note that this is not an OOTimeAbsolute
+- (double) clockTime;			// Note that this is not an OOTimeAbsolute
 - (double) clockTimeAdjusted;	// Note that this is not an OOTimeAbsolute
 - (BOOL) clockAdjusting;
 - (void) addToAdjustTime:(double) seconds ;
@@ -829,7 +823,6 @@ typedef enum
 // *** World script events.
 // In general, script events should be sent through doScriptEvent:..., which
 // will forward to the world scripts.
-//- (void) doWorldScriptEvent:(jsid)message withArguments:(NSArray *)arguments timeLimit:(OOTimeDelta)limit;
 - (BOOL) doWorldEventUntilMissionScreen:(jsid)message;
 - (void) doWorldScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc timeLimit:(OOTimeDelta)limit;
 

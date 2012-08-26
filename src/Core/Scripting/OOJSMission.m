@@ -304,13 +304,7 @@ static JSBool MissionAddMessageText(JSContext *context, uintN argc, jsval *vp)
 	
 	if (EXPECT_NOT(argc == 0))
 	{
-#if 0
-		// EMMSTRAN: fail.
-		OOJSReportBadArguments(context, @"Mission", @"addMessageText", argc, OOJS_ARGV, nil, @"string");
-		return NO;
-#else
 		OOJS_RETURN_VOID;
-#endif
 	}
 	
 	// Found "FIXME: warning if no mission screen running.",,,

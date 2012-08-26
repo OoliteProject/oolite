@@ -937,7 +937,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	/*- the dust particle system -*/
 	thing = [[DustEntity alloc] init];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
-	[self addEntity:thing]; // [entities addObject:thing];
+	[self addEntity:thing];
 	[(DustEntity *)thing setDustColor:pale_bgcolor]; 
 	[thing release];
 	/*--*/
@@ -1015,8 +1015,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_hues"];
 	dict_object=[systeminfo objectForKey: @"corona_flare"];
 	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_flare"];
-	//dict_object=[systeminfo objectForKey: @"sun_texture"];
-	//if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"sun_texture"];
 	
 	a_sun = [[OOSunEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!
 	
@@ -3438,8 +3436,6 @@ static const OOMatrix	starboard_matrix =
 }
 
 
-#if FRUSTUM_CULL
-
 /* Code adapted from http://www.crownandcutlass.com/features/technicaldetails/frustum.html
  * Original license is: "This page and its contents are Copyright 2000 by Mark Morley
  * Unless otherwise noted, you may use any and all code examples provided herein in any way you want."
@@ -3448,62 +3444,62 @@ static const OOMatrix	starboard_matrix =
 - (void) defineFrustum
 {
 	GLfloat   proj[16];
-  GLfloat   modl[16];
-  GLfloat   clip[16];
-  GLfloat   t;
-
+	GLfloat   modl[16];
+	GLfloat   clip[16];
+	GLfloat   rt;
+	
 	/* Get the current PROJECTION matrix from OpenGL */
 	glGetFloatv( GL_PROJECTION_MATRIX, proj );
-
+	
 	/* Get the current MODELVIEW matrix from OpenGL */
 	glGetFloatv( GL_MODELVIEW_MATRIX, modl );
-
+	
 	/* Combine the two matrices (multiply projection by modelview) */
 	clip[ 0] = modl[ 0] * proj[ 0] + modl[ 1] * proj[ 4] + modl[ 2] * proj[ 8] + modl[ 3] * proj[12];
 	clip[ 1] = modl[ 0] * proj[ 1] + modl[ 1] * proj[ 5] + modl[ 2] * proj[ 9] + modl[ 3] * proj[13];
 	clip[ 2] = modl[ 0] * proj[ 2] + modl[ 1] * proj[ 6] + modl[ 2] * proj[10] + modl[ 3] * proj[14];
 	clip[ 3] = modl[ 0] * proj[ 3] + modl[ 1] * proj[ 7] + modl[ 2] * proj[11] + modl[ 3] * proj[15];
-
+	
 	clip[ 4] = modl[ 4] * proj[ 0] + modl[ 5] * proj[ 4] + modl[ 6] * proj[ 8] + modl[ 7] * proj[12];
 	clip[ 5] = modl[ 4] * proj[ 1] + modl[ 5] * proj[ 5] + modl[ 6] * proj[ 9] + modl[ 7] * proj[13];
 	clip[ 6] = modl[ 4] * proj[ 2] + modl[ 5] * proj[ 6] + modl[ 6] * proj[10] + modl[ 7] * proj[14];
 	clip[ 7] = modl[ 4] * proj[ 3] + modl[ 5] * proj[ 7] + modl[ 6] * proj[11] + modl[ 7] * proj[15];
-
+	
 	clip[ 8] = modl[ 8] * proj[ 0] + modl[ 9] * proj[ 4] + modl[10] * proj[ 8] + modl[11] * proj[12];
 	clip[ 9] = modl[ 8] * proj[ 1] + modl[ 9] * proj[ 5] + modl[10] * proj[ 9] + modl[11] * proj[13];
 	clip[10] = modl[ 8] * proj[ 2] + modl[ 9] * proj[ 6] + modl[10] * proj[10] + modl[11] * proj[14];
 	clip[11] = modl[ 8] * proj[ 3] + modl[ 9] * proj[ 7] + modl[10] * proj[11] + modl[11] * proj[15];
-
+	
 	clip[12] = modl[12] * proj[ 0] + modl[13] * proj[ 4] + modl[14] * proj[ 8] + modl[15] * proj[12];
 	clip[13] = modl[12] * proj[ 1] + modl[13] * proj[ 5] + modl[14] * proj[ 9] + modl[15] * proj[13];
 	clip[14] = modl[12] * proj[ 2] + modl[13] * proj[ 6] + modl[14] * proj[10] + modl[15] * proj[14];
 	clip[15] = modl[12] * proj[ 3] + modl[13] * proj[ 7] + modl[14] * proj[11] + modl[15] * proj[15];
-
+	
 	/* Extract the numbers for the RIGHT plane */
 	frustum[0][0] = clip[ 3] - clip[ 0];
 	frustum[0][1] = clip[ 7] - clip[ 4];
 	frustum[0][2] = clip[11] - clip[ 8];
 	frustum[0][3] = clip[15] - clip[12];
-
+	
 	/* Normalize the result */
-	t = sqrt( frustum[0][0] * frustum[0][0] + frustum[0][1] * frustum[0][1] + frustum[0][2] * frustum[0][2] );
-	frustum[0][0] /= t;
-	frustum[0][1] /= t;
-	frustum[0][2] /= t;
-	frustum[0][3] /= t;
-
+	rt = 1.0f / sqrt(frustum[0][0] * frustum[0][0] + frustum[0][1] * frustum[0][1] + frustum[0][2] * frustum[0][2]);
+	frustum[0][0] *= rt;
+	frustum[0][1] *= rt;
+	frustum[0][2] *= rt;
+	frustum[0][3] *= rt;
+	
 	/* Extract the numbers for the LEFT plane */
 	frustum[1][0] = clip[ 3] + clip[ 0];
 	frustum[1][1] = clip[ 7] + clip[ 4];
 	frustum[1][2] = clip[11] + clip[ 8];
 	frustum[1][3] = clip[15] + clip[12];
-
+	
 	/* Normalize the result */
-	t = sqrt( frustum[1][0] * frustum[1][0] + frustum[1][1] * frustum[1][1] + frustum[1][2] * frustum[1][2] );
-	frustum[1][0] /= t;
-	frustum[1][1] /= t;
-	frustum[1][2] /= t;
-	frustum[1][3] /= t;
+	rt = 1.0f / sqrt(frustum[1][0] * frustum[1][0] + frustum[1][1] * frustum[1][1] + frustum[1][2] * frustum[1][2]);
+	frustum[1][0] *= rt;
+	frustum[1][1] *= rt;
+	frustum[1][2] *= rt;
+	frustum[1][3] *= rt;
 
 	/* Extract the BOTTOM plane */
 	frustum[2][0] = clip[ 3] + clip[ 1];
@@ -3512,11 +3508,11 @@ static const OOMatrix	starboard_matrix =
 	frustum[2][3] = clip[15] + clip[13];
 
 	/* Normalize the result */
-	t = sqrt( frustum[2][0] * frustum[2][0] + frustum[2][1] * frustum[2][1] + frustum[2][2] * frustum[2][2] );
-	frustum[2][0] /= t;
-	frustum[2][1] /= t;
-	frustum[2][2] /= t;
-	frustum[2][3] /= t;
+	rt = 1.0 / sqrt(frustum[2][0] * frustum[2][0] + frustum[2][1] * frustum[2][1] + frustum[2][2] * frustum[2][2]);
+	frustum[2][0] *= rt;
+	frustum[2][1] *= rt;
+	frustum[2][2] *= rt;
+	frustum[2][3] *= rt;
 
 	/* Extract the TOP plane */
 	frustum[3][0] = clip[ 3] - clip[ 1];
@@ -3525,11 +3521,11 @@ static const OOMatrix	starboard_matrix =
 	frustum[3][3] = clip[15] - clip[13];
 
 	/* Normalize the result */
-	t = sqrt( frustum[3][0] * frustum[3][0] + frustum[3][1] * frustum[3][1] + frustum[3][2] * frustum[3][2] );
-	frustum[3][0] /= t;
-	frustum[3][1] /= t;
-	frustum[3][2] /= t;
-	frustum[3][3] /= t;
+	rt = 1.0 / sqrt(frustum[3][0] * frustum[3][0] + frustum[3][1] * frustum[3][1] + frustum[3][2] * frustum[3][2]);
+	frustum[3][0] *= rt;
+	frustum[3][1] *= rt;
+	frustum[3][2] *= rt;
+	frustum[3][3] *= rt;
 
 	/* Extract the FAR plane */
 	frustum[4][0] = clip[ 3] - clip[ 2];
@@ -3538,11 +3534,11 @@ static const OOMatrix	starboard_matrix =
 	frustum[4][3] = clip[15] - clip[14];
 
 	/* Normalize the result */
-	t = sqrt( frustum[4][0] * frustum[4][0] + frustum[4][1] * frustum[4][1] + frustum[4][2] * frustum[4][2] );
-	frustum[4][0] /= t;
-	frustum[4][1] /= t;
-	frustum[4][2] /= t;
-	frustum[4][3] /= t;
+	rt = sqrt(frustum[4][0] * frustum[4][0] + frustum[4][1] * frustum[4][1] + frustum[4][2] * frustum[4][2]);
+	frustum[4][0] *= rt;
+	frustum[4][1] *= rt;
+	frustum[4][2] *= rt;
+	frustum[4][3] *= rt;
 
 	/* Extract the NEAR plane */
 	frustum[5][0] = clip[ 3] + clip[ 2];
@@ -3551,27 +3547,26 @@ static const OOMatrix	starboard_matrix =
 	frustum[5][3] = clip[15] + clip[14];
 
 	/* Normalize the result */
-	t = sqrt( frustum[5][0] * frustum[5][0] + frustum[5][1] * frustum[5][1] + frustum[5][2] * frustum[5][2] );
-	frustum[5][0] /= t;
-	frustum[5][1] /= t;
-	frustum[5][2] /= t;
-	frustum[5][3] /= t;
+	rt = sqrt(frustum[5][0] * frustum[5][0] + frustum[5][1] * frustum[5][1] + frustum[5][2] * frustum[5][2]);
+	frustum[5][0] *= rt;
+	frustum[5][1] *= rt;
+	frustum[5][2] *= rt;
+	frustum[5][3] *= rt;
 }
 
 
-- (BOOL) checkFrustum:(Vector) position:(GLfloat) radius
+- (BOOL) checkFrustum:(Vector)position :(GLfloat)radius
 {
 	int p;
-	for( p = 0; p < 6; p++ )
+	for (p = 0; p < 6; p++)
 	{
-		if( frustum[p][0] * position.x + frustum[p][1] * position.y + frustum[p][2] * position.z + frustum[p][3] <= -radius )
+		if (frustum[p][0] * position.x + frustum[p][1] * position.y + frustum[p][2] * position.z + frustum[p][3] <= -radius)
 		{
 			return NO;
 		}
 	}
 	return YES;
 }
-#endif
 
 
 - (void) drawUniverse
@@ -3690,9 +3685,8 @@ static const OOMatrix	starboard_matrix =
 				
 				OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
 				
-#if FRUSTUM_CULL
 				[self defineFrustum]; // camera is set up for this frame
-#endif				
+				
 				CheckOpenGLErrors(@"Universe after setting up for opaque pass");
 				//		DRAW ALL THE OPAQUE ENTITIES
 				for (i = furthest; i >= nearest; i--)
@@ -9556,7 +9550,6 @@ static void PreloadOneSound(NSString *soundName)
 	systeminfo = [self generateSystemData:system_seed];
 	sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
 	
-//	OOTechLevelID techlevel = [systeminfo  oo_unsignedCharForKey:KEY_TECHLEVEL];		// 0 .. 13
 	OOGovernmentID government = [systeminfo  oo_unsignedCharForKey:KEY_GOVERNMENT];	// 0 .. 7 (0 anarchic .. 7 most stable)
 	OOEconomyID economy = [systeminfo  oo_unsignedCharForKey:KEY_ECONOMY];			// 0 .. 7 (0 richest .. 7 poorest)
 	

@@ -196,46 +196,6 @@ static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region)
 }
 
 
-#if 0
-// These were lying about unused when I found them, honest guv. -- Ahruman 2012-07-08
-
-static BOOL positionIsOnBorders(Vector position, CollisionRegion *region)
-{
-	if (region == nil)  return NO;
-	if (region->isUniverse)  return NO;
-	
-	Vector loc = region->location;
-	GLfloat r2 = region->radius + region->border_radius;
-	
-	if ((position.x < loc.x - r2)||(position.x > loc.x + r2)||
-		(position.y < loc.y - r2)||(position.y > loc.y + r2)||
-		(position.z < loc.z - r2)||(position.z > loc.z + r2))
-	{
-		return NO;
-	}
-
-	return !positionIsWithinRegion(position, region);
-}
-
-
-static NSArray *subregionsContainingPosition(Vector position, CollisionRegion *region)
-{
-	NSArray *subs = region->subregions;
-	NSMutableArray *result = [NSMutableArray array];	// autoreleased
-	
-	int i, n_subs = [subs count];
-	for (i = 0; i < n_subs; i++)
-	{
-		if (positionIsWithinBorders(position, (CollisionRegion *)[subs objectAtIndex:i]))
-		{
-			[result addObject:[subs objectAtIndex:i]];
-		}
-	}
-	return result;
-}
-#endif
-
-
 // collision checking
 //
 - (void) clearEntityList

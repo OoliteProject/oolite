@@ -48,10 +48,6 @@ MA 02110-1301, USA.
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
 
-#ifndef FRUSTUM_CULL
-#define FRUSTUM_CULL 1
-#endif
-
 #ifndef OO_SCANCLASS_TYPE
 #define OO_SCANCLASS_TYPE
 typedef enum OOScanClass OOScanClass;
@@ -300,11 +296,9 @@ enum
 	NSMutableArray			*_preloadingPlanetMaterials;
 #endif
 	BOOL					doProcedurallyTexturedPlanets;
-
-#if FRUSTUM_CULL
-	GLfloat         frustum[6][4];
-#endif
-
+	
+	GLfloat					frustum[6][4];
+	
 	NSMutableDictionary  *conditionScripts;
 	
 	BOOL					_pauseMessage;
@@ -445,10 +439,10 @@ enum
 - (NSDictionary *) gameSettings;
 
 - (void) drawUniverse;
-#if FRUSTUM_CULL
+
 - (void) defineFrustum;
-- (BOOL) checkFrustum:(Vector) position:(GLfloat) radius;
-#endif
+- (BOOL) checkFrustum:(Vector)position :(GLfloat)radius;
+
 - (void) drawMessage;
 
 // Used to draw subentities. Should be getting this from camera.

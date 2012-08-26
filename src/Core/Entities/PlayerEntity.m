@@ -5131,20 +5131,7 @@ static GLfloat		sBaseMass = 0.0;
 	dockedStation = nil;
 	
 	suppressAegisMessages = YES;
-#if 0
-	// "Fix" for "simple" issue where space compass shows station with planet icon on launch.
-	// Has the slight unwanted side-effect of effectively giving the player an advanced compass.
-	if ([self checkForAegis] != AEGIS_NONE)
-	{
-		[self setCompassMode:COMPASS_MODE_STATION];
-	}
-	else
-	{
-		[self setCompassMode:COMPASS_MODE_PLANET];	
-	}
-#else
 	[self checkForAegis];
-#endif
 	suppressAegisMessages = NO;
 	ident_engaged = NO;
 	

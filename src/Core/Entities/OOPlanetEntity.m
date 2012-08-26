@@ -477,14 +477,12 @@ static OOColor *ColorWithHSBColor(Vector c)
 {
 	if (translucent || [UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.
-
-#if FRUSTUM_CULL
+	
 	if (![UNIVERSE checkFrustum:position:([self radius] + ATMOSPHERE_DEPTH)]) 
 	{
 		// Don't draw
 		return;
 	}
-#endif	
 	
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
 	

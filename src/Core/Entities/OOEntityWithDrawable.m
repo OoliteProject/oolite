@@ -79,7 +79,7 @@ MA 02110-1301, USA.
 		// Don't draw.
 		return;
 	}
-#if FRUSTUM_CULL
+	
 	if (no_draw_distance != INFINITY)
 	{ 
 		// (always draw sky!)
@@ -103,8 +103,7 @@ MA 02110-1301, USA.
 				return;
 			}
 		}
-	}
-#endif	
+	}	
 
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
 		

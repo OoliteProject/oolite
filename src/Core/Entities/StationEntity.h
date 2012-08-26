@@ -66,11 +66,7 @@ typedef enum
 	
 	OOTechLevelID			equivalentTechLevel;
 	float					equipmentPriceFactor;
-
-/*	Vector					port_position; // these four now handled by DockEntity
-	Quaternion				port_orientation;
-	ShipEntity				*port_model;
-	double					port_corridor; */				// corridor length inside station.
+	
 	Vector  				port_dimensions;
 	double					port_radius;
 	

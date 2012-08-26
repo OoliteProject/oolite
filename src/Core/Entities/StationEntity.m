@@ -251,9 +251,9 @@ MA 02110-1301, USA.
 - (void) launchShip:(ShipEntity *)ship
 {
 	NSEnumerator	*subEnum = nil;
-	DockEntity* sub = nil;
+	DockEntity		*sub = nil;
 	
-// try to find an unused dock first
+	// try to find an unused dock first
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		if ([sub allowsLaunching] && [sub countOfShipsInLaunchQueue] == 0) 
@@ -262,7 +262,7 @@ MA 02110-1301, USA.
 			return;
 		}
 	}
-// otherwise any launchable dock will do
+	// otherwise any launchable dock will do
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		if ([sub allowsLaunching]) 
@@ -272,13 +272,13 @@ MA 02110-1301, USA.
 		}
 	}
 
-// ship has no launch	docks specified; just use the last one
+	// ship has no launch	docks specified; just use the last one
 	if (sub != nil)
 	{
 		[sub launchShip:ship];
 		return;
 	}
-// guaranteed to always be a dock as virtual dock will suffice
+	// guaranteed to always be a dock as virtual dock will suffice
 }
 
 
@@ -364,8 +364,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 }
 
 
-// this routine does initial traffic control, before passing the ship
-// to an appropriate dock for docking coordinates and instructions
+// this method does initial traffic control, before passing the ship
+// to an appropriate dock for docking coordinates and instructions.
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship
 {	
 	if (ship == nil)  return nil;
@@ -399,7 +399,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		if ([sub shipIsInDockingQueue:ship]) 
-		{ // if already claimed a docking queue, use that one
+		{
+			// if already claimed a docking queue, use that one
 			chosenDock = sub;
 			alldockstoosmall = NO;
 			break;
@@ -431,7 +432,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 			}
 
 			if ([docking isEqualToString:@"DOCKING_POSSIBLE"] && [sub countOfShipsInDockingQueue] < queue) {
-// try to select the dock with the fewest ships already enqueued
+				// try to select the dock with the fewest ships already enqueued
 				chosenDock = sub;
 				queue = [sub countOfShipsInDockingQueue];
 				alldockstoosmall = NO;
@@ -913,7 +914,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 	// quickest launch if we assign ships to those bays with no incoming ships
 	// and spread the ships evenly around those bays
-  // much easier if the station has at least one launch-only dock
+	// much easier if the station has at least one launch-only dock
 	while (threshold < 16)
 	{
 		for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
@@ -938,8 +939,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	// if we get this far, all docks have at least some incoming traffic.
 	// usually most efficient (since launching is far faster than docking)
 	// to assign all ships to the *same* dock with the smallest incoming queue
-  // rather than to try spreading them out across several queues
-  // also stops escorts being launched before their mothership 
+	// rather than to try spreading them out across several queues
+	// also stops escorts being launched before their mothership 
 	threshold = 0;
 	while (threshold < 16)
 	{
@@ -947,11 +948,11 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		{
 			if (sub != player_reserved_dock)
 			{
-// so this time as long as it allows launching only check the docking queue size
-// so long as enumerator order is deterministic, this will assign
-// every launch this update to the same dock
-// (edge case where new docking ship appears in the middle, probably
-// not a problem)
+				// so this time as long as it allows launching only check the docking queue size
+				// so long as enumerator order is deterministic, this will assign
+				// every launch this update to the same dock
+				// (edge case where new docking ship appears in the middle, probably
+				// not a problem)
 				if ([sub allowsLaunching] && [sub countOfShipsInDockingQueue] <= threshold)
 				{
 					if ([sub allowsLaunchingOf:ship])
@@ -1010,7 +1011,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	PlayerEntity *player = PLAYER;
 	// set last launch time to avoid clashes with outgoing ships
 	if ([player getDockingClearanceStatus] != DOCKING_CLEARANCE_STATUS_GRANTED)
-	{ // avoid interfering with docking clearance on another bay
+	{
+		// avoid interfering with docking clearance on another bay
 		last_launch_time = [UNIVERSE getTime];
 	}
 	[self addShipToStationCount: ship];
@@ -1030,7 +1032,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 			[player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED)
 	{
 		if (![self hasClearDock])
-		{ // then say why
+		{
+			// then say why
 			if ([self currentlyInDockingQueues])
 			{
 				[self sendExpandedMessage:[NSString stringWithFormat:
@@ -1088,9 +1091,13 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 - (BOOL) collideWithShip:(ShipEntity *)other
 {
-	// 2010.06.10 - Micha. Commented out as there doesn't appear to be a good
-	//				reason for it and it interferes with docking clearance.
-	//[self abortAllDockings];
+	/*
+		There used to be a [self abortAllDockings] here. Removed as there
+		doesn't appear to be a good reason for it and it interferes with
+		docking clearance.
+		-- Micha 2010-06-10
+	       Reformatted, Ahruman 2012-08-26
+	*/
 	return [super collideWithShip:other];
 }
 
@@ -1102,7 +1109,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
-	//stations must ignore friendly fire, otherwise the defenders' AI gets stuck.
+	// stations must ignore friendly fire, otherwise the defenders' AI gets stuck.
 	BOOL			isFriend = NO;
 	OOShipGroup		*group = [self group];
 	
@@ -2277,46 +2284,3 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 }
 
 @end
-
-
-#ifndef NDEBUG
-
-@implementation StationEntity (OOWireframeDockingBox)
-
-- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
-{
-	[super drawEntity:immediate:translucent];
-	
-/*	if (gDebugFlags & DEBUG_BOUNDING_BOXES)
-	{
-	Vector				adjustedPosition;
-	Vector				halfDimensions;
-
-		OODebugDrawBasisAtOrigin(50.0f);
-		
-		OOMatrix matrix;
-		matrix = OOMatrixForQuaternionRotation(port_orientation);
-		OOGL(glPushMatrix());
-		GLMultOOMatrix(matrix);
-		
-		halfDimensions = vector_multiply_scalar(port_dimensions, 0.5f);
-		adjustedPosition = port_position;
-		adjustedPosition.z -= halfDimensions.z;
-		
-		OODebugDrawColoredBoundingBoxBetween(vector_subtract(adjustedPosition, halfDimensions), vector_add(adjustedPosition, halfDimensions), [OOColor redColor]);
-		OODebugDrawBasisAtOrigin(30.0f);
-		
-		OOGL(glPopMatrix());
-		} */
-}
-
-
-// Added to test exception wrapping in JS engine. If this is an ancient issue, delete this method. -- Ahruman 2010-06-21
-- (void) TEMPExceptionTest
-{
-	[NSException raise:@"TestException" format:@"This is a test exception which shouldn't crash the game."];
-}
-
-@end
-
-#endif
