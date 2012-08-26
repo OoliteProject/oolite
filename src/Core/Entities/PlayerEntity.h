@@ -332,7 +332,7 @@ typedef enum
 	OOTimeDelta				forward_shot_time, aft_shot_time, port_shot_time, starboard_shot_time;
 	GLfloat					weapon_energy_use, weapon_reload_time;
 	
-	int						chosen_weapon_facing;   // for purchasing weapons
+	OOWeaponFacing			chosen_weapon_facing;   // for purchasing weapons
 	
 	double					ecm_start_time;
 	
@@ -731,13 +731,13 @@ typedef enum
 - (void) setGuiToShortRangeChartScreen;
 - (void) setGuiToLoadSaveScreen;
 - (void) setGuiToGameOptionsScreen;
-- (unsigned) availableFacings;
+- (OOWeaponFacingSet) availableFacings;
 - (void) setGuiToEquipShipScreen:(int)skip selectingFacingFor:(NSString *)eqKeyForSelectFacing;
 - (void) setGuiToEquipShipScreen:(int)skip;
 - (void) highlightEquipShipScreenKey:(NSString *)key;
 - (void) showInformationForSelectedUpgrade;
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
-- (BOOL) setWeaponMount:(int)chosen_weapon_facing toWeapon:(NSString *)eqKey;
+- (BOOL) setWeaponMount:(OOWeaponFacing)chosen_weapon_facing toWeapon:(NSString *)eqKey;
 - (BOOL) changePassengerBerths:(int) addRemove;
 - (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type;
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount;

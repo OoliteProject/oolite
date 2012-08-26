@@ -270,7 +270,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// Each new ship should start in seemingly good operating condition, unless specifically told not to - this does not affect the ship's energy levels
 	[self setThrowSparks:[shipDict oo_boolForKey:@"throw_sparks" defaultValue:NO]];
 	
-	weapon_facings = [shipDict oo_intForKey:@"weapon_facings" defaultValue:15];
+	weapon_facings = [shipDict oo_intForKey:@"weapon_facings" defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
 	if (weapon_facings & WEAPON_FACING_FORWARD)
 		forward_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	if (weapon_facings & WEAPON_FACING_AFT)
@@ -2633,48 +2633,51 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (int) weaponFacings
+- (OOWeaponFacingSet) weaponFacings
 {
 	return weapon_facings;
 }
 
 
-- (OOEquipmentType *) weaponTypeForFacing:(int) facing
+- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing
 {
-	OOWeaponType 			weapon_type = WEAPON_NONE;
+	OOWeaponType weaponType = WEAPON_NONE;
 
 	if (facing & weapon_facings)
 	{
 		switch (facing)
 		{
-		case WEAPON_FACING_FORWARD:
-			weapon_type = forward_weapon_type;
-			// if no forward weapon, see if subentities have forward weapons, return the first one found.
-			if (weapon_type == WEAPON_NONE)
-			{
-				NSEnumerator	*subEntEnum = [self shipSubEntityEnumerator];
-				ShipEntity		*subEntity = nil;
-				while (weapon_type == WEAPON_NONE && (subEntity = [subEntEnum nextObject]))
+			case WEAPON_FACING_FORWARD:
+				weaponType = forward_weapon_type;
+				// if no forward weapon, see if subentities have forward weapons, return the first one found.
+				if (weaponType == WEAPON_NONE)
 				{
-					weapon_type = subEntity->forward_weapon_type;
+					NSEnumerator	*subEntEnum = [self shipSubEntityEnumerator];
+					ShipEntity		*subEntity = nil;
+					while (weaponType == WEAPON_NONE && (subEntity = [subEntEnum nextObject]))
+					{
+						weaponType = subEntity->forward_weapon_type;
+					}
 				}
-			}
-			break;
-		case WEAPON_FACING_AFT:
-			weapon_type = aft_weapon_type;
-			break;
-		case WEAPON_FACING_PORT:
-			weapon_type = port_weapon_type;
-			break;
-		case WEAPON_FACING_STARBOARD:
-			weapon_type = starboard_weapon_type;
-			break;
-			// any other value is not a facing for NPC ships...
-		default:
-			break;
+				break;
+				
+			case WEAPON_FACING_AFT:
+				weaponType = aft_weapon_type;
+				break;
+				
+			case WEAPON_FACING_PORT:
+				weaponType = port_weapon_type;
+				break;
+				
+			case WEAPON_FACING_STARBOARD:
+				weaponType = starboard_weapon_type;
+				break;
+				
+			case WEAPON_FACING_NONE:
+				break;
 		}
 	}
-	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weapon_type)];
+	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)];
 }
 
 
@@ -2839,26 +2842,31 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (BOOL) setWeaponMount:(int)facing toWeapon:(NSString *)eqKey
+- (BOOL) setWeaponMount:(OOWeaponFacing)facing toWeapon:(NSString *)eqKey
 {
-// sets WEAPON_NONE if not recognised
+	// sets WEAPON_NONE if not recognised
 	if (weapon_facings & facing) 
 	{
-
-		int chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
+		OOWeaponType chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
 		switch (facing)
 		{
-			case WEAPON_FACING_FORWARD :
+			case WEAPON_FACING_FORWARD:
 				forward_weapon_type = chosen_weapon;
 				break;
-			case WEAPON_FACING_AFT :
+				
+			case WEAPON_FACING_AFT:
 				aft_weapon_type = chosen_weapon;
 				break;
-			case WEAPON_FACING_PORT :
+				
+			case WEAPON_FACING_PORT:
 				port_weapon_type = chosen_weapon;
 				break;
-			case WEAPON_FACING_STARBOARD :
+				
+			case WEAPON_FACING_STARBOARD:
 				starboard_weapon_type = chosen_weapon;
+				break;
+				
+			case WEAPON_FACING_NONE:
 				break;
 		}
 

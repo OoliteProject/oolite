@@ -5727,31 +5727,35 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (OOEquipmentType *) weaponTypeForFacing:(int) facing
+- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing
 {
-	OOWeaponType 			weapon_type = WEAPON_NONE;
+	OOWeaponType weaponType = WEAPON_NONE;
 	
 	switch (facing)
 	{
 		case WEAPON_FACING_FORWARD:
-			weapon_type = forward_weapon_type;
+			weaponType = forward_weapon_type;
 			break;
+			
 		case WEAPON_FACING_AFT:
-			weapon_type = aft_weapon_type;
+			weaponType = aft_weapon_type;
 			break;
+			
 		case WEAPON_FACING_PORT:
-			weapon_type = port_weapon_type;
+			weaponType = port_weapon_type;
 			break;
+			
 		case WEAPON_FACING_STARBOARD:
-			weapon_type = starboard_weapon_type;
+			weaponType = starboard_weapon_type;
 			break;
-		// any other value is not a facing
-		default:
+			
+		case WEAPON_FACING_NONE:
 			break;
 	}
 
-	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weapon_type)];
+	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)];
 }
+
 
 - (NSArray *) missilesList
 {
@@ -6490,12 +6494,13 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (unsigned) availableFacings
+- (OOWeaponFacingSet) availableFacings
 {
 	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
 	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
 	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
-	return available_facings;
+	
+	return available_facings & VALID_WEAPON_FACINGS;
 }
 
 
@@ -7179,26 +7184,32 @@ static NSString *last_outfitting_key=nil;
 			return YES;
 		}
 		
-		int chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
-		int current_weapon = WEAPON_NONE;
+		OOWeaponType chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
+		OOWeaponType current_weapon = WEAPON_NONE;
 		
 		switch (chosen_weapon_facing)
 		{
-			case WEAPON_FACING_FORWARD :
+			case WEAPON_FACING_FORWARD:
 				current_weapon = forward_weapon_type;
 				forward_weapon_type = chosen_weapon;
 				break;
-			case WEAPON_FACING_AFT :
+				
+			case WEAPON_FACING_AFT:
 				current_weapon = aft_weapon_type;
 				aft_weapon_type = chosen_weapon;
 				break;
-			case WEAPON_FACING_PORT :
+				
+			case WEAPON_FACING_PORT:
 				current_weapon = port_weapon_type;
 				port_weapon_type = chosen_weapon;
 				break;
-			case WEAPON_FACING_STARBOARD :
+				
+			case WEAPON_FACING_STARBOARD:
 				current_weapon = starboard_weapon_type;
 				starboard_weapon_type = chosen_weapon;
+				break;
+				
+			case WEAPON_FACING_NONE:
 				break;
 		}
 		
@@ -7206,7 +7217,9 @@ static NSString *last_outfitting_key=nil;
 		
 		// Refund current_weapon
 		if (current_weapon != WEAPON_NONE)
-				tradeIn = [UNIVERSE getEquipmentPriceForKey:OOEquipmentIdentifierFromWeaponType(current_weapon)];
+		{
+			tradeIn = [UNIVERSE getEquipmentPriceForKey:OOEquipmentIdentifierFromWeaponType(current_weapon)];
+		}
 		
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		// If equipped, remove damaged weapon after repairs. -- But there's no way we should get a damaged weapon. Ever.
@@ -7347,7 +7360,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (BOOL) setWeaponMount:(int)facing toWeapon:(NSString *)eqKey
+- (BOOL) setWeaponMount:(OOWeaponFacing)facing toWeapon:(NSString *)eqKey
 {
 	NSDictionary		*shipyardInfo = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:[self shipDataKey]];
 	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
@@ -7372,17 +7385,23 @@ static NSString *last_outfitting_key=nil;
 	
 	switch (facing)
 	{
-		case WEAPON_FACING_FORWARD :
+		case WEAPON_FACING_FORWARD:
 			forward_weapon_type = chosen_weapon;
 			break;
-		case WEAPON_FACING_AFT :
+			
+		case WEAPON_FACING_AFT:
 			aft_weapon_type = chosen_weapon;
 			break;
-		case WEAPON_FACING_PORT :
+			
+		case WEAPON_FACING_PORT:
 			port_weapon_type = chosen_weapon;
 			break;
-		case WEAPON_FACING_STARBOARD :
+			
+		case WEAPON_FACING_STARBOARD:
 			starboard_weapon_type = chosen_weapon;
+			break;
+			
+		case WEAPON_FACING_NONE:
 			break;
 	}
 	

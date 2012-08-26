@@ -103,30 +103,38 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
 #define ENTITY_PERSONALITY_MAX			0x7FFFU
 #define ENTITY_PERSONALITY_INVALID		0xFFFFU
 
-#define WEAPON_FACING_NONE				0
-#define WEAPON_FACING_FORWARD			1
-#define WEAPON_FACING_AFT				2
-#define WEAPON_FACING_PORT				4
-#define WEAPON_FACING_STARBOARD			8
+typedef enum
+{
+	WEAPON_FACING_NONE					= 0,
+	WEAPON_FACING_FORWARD				= 1,
+	WEAPON_FACING_AFT					= 2,
+	WEAPON_FACING_PORT					= 4,
+	WEAPON_FACING_STARBOARD				= 8
+} OOWeaponFacing;
+
+typedef uint8_t OOWeaponFacingSet;	// May have multiple bits set.
+
+#define VALID_WEAPON_FACINGS			(WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)
+
 
 #define WEAPON_COOLING_FACTOR			6.0f
 #define NPC_MAX_WEAPON_TEMP				256.0f
-#define WEAPON_COOLING_CUTOUT     0.85f
+#define WEAPON_COOLING_CUTOUT			0.85f
 
-#define COMBAT_AI_WEAPON_TEMP_READY  0.25f * NPC_MAX_WEAPON_TEMP
-#define COMBAT_AI_WEAPON_TEMP_USABLE  WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP
-#define COMBAT_AI_ISNT_AWFUL  0.0f
+#define COMBAT_AI_WEAPON_TEMP_READY		0.25f * NPC_MAX_WEAPON_TEMP
+#define COMBAT_AI_WEAPON_TEMP_USABLE	WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP
+#define COMBAT_AI_ISNT_AWFUL			0.0f
 // removes BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX/TWELVE (unless thargoid)
-#define COMBAT_AI_IS_SMART  5.0f
+#define COMBAT_AI_IS_SMART				5.0f
 // adds BEHAVIOUR_(FLEE_)EVASIVE_ACTION
-#define COMBAT_AI_FLEES_BETTER 6.0f
+#define COMBAT_AI_FLEES_BETTER			6.0f
 // adds BEHAVIOUR_ATTACK_BREAK_OFF_TARGET
-#define COMBAT_AI_DOGFIGHTER 6.5f
+#define COMBAT_AI_DOGFIGHTER			6.5f
 // adds BEHAVIOUR_ATTACK_SLOW_DOGFIGHT
-#define COMBAT_AI_TRACKS_CLOSER 7.5f
-#define COMBAT_AI_USES_SNIPING 8.5f
+#define COMBAT_AI_TRACKS_CLOSER			7.5f
+#define COMBAT_AI_USES_SNIPING			8.5f
 // adds BEHAVIOUR_ATTACK_SNIPER
-#define COMBAT_AI_FLEES_BETTER_2 9.0f
+#define COMBAT_AI_FLEES_BETTER_2		9.0f
 
 
 
@@ -276,7 +284,7 @@ typedef enum
 	
 	GLfloat					energy_recharge_rate;		// recharge rate for energy banks
 	
-	int						weapon_facings;				// weapon mounts available (bitmask)
+	OOWeaponFacingSet		weapon_facings;				// weapon mounts available (bitmask)
 	OOWeaponType			forward_weapon_type;		// type of forward weapon (allows lasers, plasma cannon, others)
 	OOWeaponType			aft_weapon_type;			// type of aft weapon (allows lasers, plasma cannon, others)
 	OOWeaponType			port_weapon_type;			// type of port weapon
@@ -284,7 +292,7 @@ typedef enum
 	GLfloat					weapon_damage;				// energy damage dealt by weapon
 	GLfloat					weapon_damage_override;		// custom energy damage dealt by front laser, if applicable
 	GLfloat					weaponRange;				// range of the weapon (in meters)
-	OOViewID				currentWeaponFacing;	// not necessarily the same as view for the player
+	OOViewID				currentWeaponFacing;		// not necessarily the same as view for the player
 	
 	GLfloat					weapon_temp, weapon_shot_temperature; // active weapon temp, delta-temp
 	GLfloat					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp; // current weapon temperatures
@@ -542,12 +550,12 @@ typedef enum
 - (void) respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other;
 
 // Equipment
-- (int) weaponFacings;
+- (OOWeaponFacingSet) weaponFacings;
 - (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading;	// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment. If includeWeapons is NO, missiles and primary weapons are not checked.
 - (BOOL) hasEquipmentItem:(id)equipmentKeys;			// Short for hasEquipmentItem:foo includeWeapons:NO whileLoading:NO
 - (BOOL) hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading;		// Like hasEquipmentItem:includeWeapons:, but requires _all_ elements in collection.
 - (BOOL) hasAllEquipment:(id)equipmentKeys;				// Short for hasAllEquipment:foo includeWeapons:NO
-- (BOOL) setWeaponMount:(int)facing toWeapon:(NSString *)eqKey;
+- (BOOL) setWeaponMount:(OOWeaponFacing)facing toWeapon:(NSString *)eqKey;
 - (BOOL) canAddEquipment:(NSString *)equipmentKey;		// Test ability to add equipment, taking equipment-specific constriants into account. 
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey;	// Actual test if equipment satisfies validation criteria.
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey whileLoading:(BOOL)loading;
@@ -726,7 +734,7 @@ typedef enum
 - (float) weaponRechargeRate;
 - (void) setWeaponRechargeRate:(float)value;
 - (void) setWeaponEnergy:(float)value;
--	(OOViewID) currentWeaponFacing;
+-	(OOViewID) currentWeaponFacing;	// FIXME: this ought to be an OOWeaponFacing.
 
 - (GLfloat) scannerRange;
 - (void) setScannerRange:(GLfloat)value;
@@ -790,7 +798,7 @@ typedef enum
 - (NSArray *) passengerListForScripting;
 - (NSArray *) contractListForScripting;
 - (NSArray *) equipmentListForScripting;
-- (OOEquipmentType *) weaponTypeForFacing:(int)facing;
+- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing;
 - (NSArray *) missilesList;
 
 - (OOCargoFlag) cargoFlag;
