@@ -1199,7 +1199,7 @@ static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 			}
 		}
 	}
-	@catch (...)
+	@catch (id ex)
 	{
 		result = NULL;
 	}

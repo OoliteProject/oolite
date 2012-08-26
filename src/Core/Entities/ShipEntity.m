@@ -154,7 +154,7 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 - (void) addSubentityToCollisionRadius:(Entity<OOSubEntity> *) subent;
 - (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
 
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOViewID)direction;
+- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOWeaponFacing)direction;
 
 // equipment
 - (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role;
