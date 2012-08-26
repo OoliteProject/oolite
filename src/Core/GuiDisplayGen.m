@@ -53,7 +53,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (void) drawSystemMarkers:(NSArray *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale;
 - (void) drawSystemMarker:(NSDictionary *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale;
 
-- (void) drawEqptList: (NSArray *)eqptList z:(GLfloat)z;
+- (void) drawEquipmentList:(NSArray *)eqptList z:(GLfloat)z;
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) route optimizedBy:(OORouteType) optimizeBy;
 
 @end
@@ -1026,18 +1026,18 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
-- (void) drawEqptList:(NSArray *)eqptList z:(GLfloat)z 
+- (void) drawEquipmentList:(NSArray *)eqptList z:(GLfloat)z
 {
 	if ([eqptList count] == 0) return;
 	
-	OOGUIRow		first_row = STATUS_EQUIPMENT_FIRST_ROW;
-	OOUInteger		items_per_column = STATUS_EQUIPMENT_MAX_ROWS;
+	OOGUIRow		firstRow = STATUS_EQUIPMENT_FIRST_ROW;
+	OOUInteger		itemsPerColumn = STATUS_EQUIPMENT_MAX_ROWS;
 
-	OOUInteger		first_y = 40;	// first_row =10 :-> 40  - first_row=11 -> 24 etc...
-	OOUInteger		items_count = [eqptList count];
-	OOUInteger		page_count = 1;
+	OOInteger		firstY = 40;	// firstRow =10 :-> 40  - firstRow=11 -> 24 etc...
+	OOUInteger		eqptCount = [eqptList count];
+	OOUInteger		pageCount = 1;
 	OOUInteger		i;
-	OOUInteger		start;
+	OOInteger		start;
 	NSArray			*info = nil;
 	NSString		*name = nil;
 	BOOL			damaged;
@@ -1045,16 +1045,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// Paging calculations. Assuming 10 lines we get - one page:20 items per page (ipp)
 	// two pages: 18 ipp - three+ pages:  1st & last 18pp,  middle pages 16ipp
 	
-	i = items_per_column * 2 + 2;
-	if (items_count > i) // don't fit in one page?
+	i = itemsPerColumn * 2 + 2;
+	if (eqptCount > i) // don't fit in one page?
 	{
 		[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 		 
-		i = items_per_column * 4; // total items in the first and last pages
-		items_per_column--; // for all the middle pages.
-		if (items_count <= i) // two pages
+		i = itemsPerColumn * 4; // total items in the first and last pages
+		itemsPerColumn--; // for all the middle pages.
+		if (eqptCount <= i) // two pages
 		{
-			page_count++;
+			pageCount++;
 			if (statusPage == 1)
 			{
 				start = 0;
@@ -1067,64 +1067,66 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		}
 		else // three or more
 		{
-			page_count = ceil((float)(items_count-i)/(items_per_column*2)) + 2;
-			statusPage = OOClampInteger(statusPage, 1, page_count);
-			start = (statusPage == 1) ? 0 : (statusPage-1) * items_per_column * 2 + 2;
+			pageCount = ceil((float)(eqptCount-i)/(itemsPerColumn*2)) + 2;
+			statusPage = OOClampInteger(statusPage, 1, pageCount);
+			start = (statusPage == 1) ? 0 : (statusPage-1) * itemsPerColumn * 2 + 2;
 		}
 	}
 	else
 	{
-		statusPage = page_count; // one page
+		statusPage = pageCount; // one page
 		start = 0;
 	}
 	
 	if (statusPage > 1)
 	{
-		[self setColor:[OOColor greenColor] forRow:first_row];
-		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-back"),  @"", @" <-- ",nil] forRow:first_row];
-		[self setKey:GUI_KEY_OK forRow:first_row];
-		first_y -= 16; // start 1 row down!
-		if (statusPage == page_count)
+		[self setColor:[OOColor greenColor] forRow:firstRow];
+		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-back"),  @"", @" <-- ",nil] forRow:firstRow];
+		[self setKey:GUI_KEY_OK forRow:firstRow];
+		firstY -= 16; // start 1 row down!
+		if (statusPage == pageCount)
 		{
-			[self setSelectableRange:NSMakeRange(first_row, 1)];
-			[self setSelectedRow:first_row];
+			[self setSelectableRange:NSMakeRange(firstRow, 1)];
+			[self setSelectedRow:firstRow];
 		}
 	}
-	if (statusPage < page_count)
+	if (statusPage < pageCount)
 	{
-		[self setColor:[OOColor greenColor] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
-		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-more"),  @"", @" --> ",nil] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
-		[self setKey:GUI_KEY_OK forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+		[self setColor:[OOColor greenColor] forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-more"),  @"", @" --> ",nil] forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+		[self setKey:GUI_KEY_OK forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
 		if (statusPage == 1)
 		{
-			[self setSelectableRange:NSMakeRange(first_row + STATUS_EQUIPMENT_MAX_ROWS, 1)];
-			[self setSelectedRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+			[self setSelectableRange:NSMakeRange(firstRow + STATUS_EQUIPMENT_MAX_ROWS, 1)];
+			[self setSelectedRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
 		}
 	}
-	if (statusPage > 1 && statusPage < page_count)
+	if (statusPage > 1 && statusPage < pageCount)
 	{
-		[self setSelectableRange:NSMakeRange(first_row, first_row + STATUS_EQUIPMENT_MAX_ROWS)];
+		[self setSelectableRange:NSMakeRange(firstRow, firstRow + STATUS_EQUIPMENT_MAX_ROWS)];
 		// default selected row to 'More -->' if we are looking at one of the middle pages
-		if ([self selectedRow] == -1)  [self setSelectedRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+		if ([self selectedRow] == -1)  [self setSelectedRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
 	}
 
-	if (statusPage == 1 || statusPage == page_count) items_per_column++;
-	items_count = OOClampInteger(items_count, 1, start + items_per_column * 2);
-	for (i=start; i < items_count; i++)
+	if (statusPage == 1 || statusPage == pageCount) itemsPerColumn++;
+	eqptCount = OOClampInteger(eqptCount, 1, start + itemsPerColumn * 2);
+	for (i = start; i < eqptCount; i++)
 	{
-		info = [eqptList objectAtIndex:i];
+		info = [eqptList oo_arrayAtIndex:i];
 		name = [info oo_stringAtIndex:0];
+		if([name length] > 42)  name = [[name substringToIndex:40] stringByAppendingString:@"..."];
+		
 		damaged = ![info oo_boolAtIndex:1];
-		if (damaged)  glColor4f (1.0f, 0.5f, 0.0f, 1.0f); // Damaged items  show up  orange.
-		else glColor4f (1.0f, 1.0f, 0.0f, 1.0f);	// Normal items in yellow.
-		if([name length] > 42)  name =[[name substringToIndex:40] stringByAppendingString:@"..."];
-		if (i - start < items_per_column)
+		if (damaged)  glColor4f (1.0f, 0.5f, 0.0f, 1.0f); // Damaged items show up orange.
+		else  glColor4f (1.0f, 1.0f, 0.0f, 1.0f);	// Normal items in yellow.
+		
+		if (i - start < itemsPerColumn)
 		{
-			OODrawString (name, -220, first_y - 16 * (i - start), z, NSMakeSize(15, 15));
+			OODrawString(name, -220, firstY - 16 * (OOInteger)(i - start), z, NSMakeSize(15, 15));
 		}
 		else
 		{
-			OODrawString (name, 50, first_y - 16 * (i - items_per_column - start), z, NSMakeSize(15, 15));
+			OODrawString(name, 50, firstY - 16 * (OOInteger)(i - itemsPerColumn - start), z, NSMakeSize(15, 15));
 		}
 	}
 }
@@ -1177,7 +1179,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			}
 			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
-				[self drawEqptList:[player equipmentList] z:z ];
+				[self drawEquipmentList:[player equipmentList] z:z];
 			}
 		}
 		
@@ -1763,7 +1765,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
-	PlayerEntity*	player = PLAYER;
+	PlayerEntity	*player = PLAYER;
 	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint			cursor_coordinates = [player cursor_coordinates];
 	Random_Seed		galaxy_seed = [player galaxy_seed];
