@@ -129,8 +129,7 @@ static JSBool ShipGroupGetProperty(JSContext *context, JSObject *this, jsid prop
 			break;
 			
 		case kShipGroup_count:
-			*value = INT_TO_JSVAL([group count]);
-			return YES;
+			return JS_NewNumberValue(context, [group count], value);
 			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sShipGroupProperties);

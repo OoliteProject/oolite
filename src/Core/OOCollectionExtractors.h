@@ -469,12 +469,12 @@ OOINLINE OOInteger OOUIntegerFromObject(id object, OOUInteger defaultValue)
 #else
 OOINLINE OOInteger OOIntegerFromObject(id object, OOInteger defaultValue)
 {
-	return OOLongLongFromObject(object, defaultValue);
+	return OOLongFromObject(object, defaultValue);
 }
 
 OOINLINE OOInteger OOUIntegerFromObject(id object, OOUInteger defaultValue)
 {
-	return OOUnsignedLongLongFromObject(object, defaultValue);
+	return OOUnsignedLongFromObject(object, defaultValue);
 }
 #endif
 

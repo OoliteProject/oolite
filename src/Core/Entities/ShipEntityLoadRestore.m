@@ -354,7 +354,7 @@ static OOUInteger GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *conte
 
 static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *context)
 {
-	NSNumber *key = [NSNumber numberWithUnsignedInt:groupID];
+	NSNumber *key = [NSNumber numberWithUnsignedInteger:groupID];
 	
 	NSMutableDictionary *groups = [context objectForKey:@"groupsByID"];
 	if (groups == nil)

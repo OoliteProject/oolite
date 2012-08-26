@@ -7453,7 +7453,7 @@ static double estimatedTimeForJourney(double distance, OOUInteger hops)
 				fee = cunningFee(fee, 0.05);
 				
 				// premium = 20% of fee
-				int premium = fee * 20 / 100;
+				OOCreditsQuantity premium = fee * 20 / 100;
 				fee -= premium;
 				
 				// 1hr per LY*LY, + 30 mins per hop
@@ -7484,8 +7484,8 @@ static double estimatedTimeForJourney(double distance, OOUInteger hops)
 					long_description,										CONTRACT_KEY_LONG_DESCRIPTION,
 					[NSNumber numberWithDouble:passenger_departure_time],	CONTRACT_KEY_DEPARTURE_TIME,
 					[NSNumber numberWithDouble:passenger_arrival_time],		CONTRACT_KEY_ARRIVAL_TIME,
-					[NSNumber numberWithInteger:fee],						CONTRACT_KEY_FEE,
-					[NSNumber numberWithInteger:premium],					CONTRACT_KEY_PREMIUM,
+					[NSNumber numberWithUnsignedLongLong:fee],				CONTRACT_KEY_FEE,
+					[NSNumber numberWithUnsignedLongLong:premium],			CONTRACT_KEY_PREMIUM,
 					NULL];
 				
 				[resultArray addObject:passenger_info_dictionary];
@@ -8176,7 +8176,7 @@ static double estimatedTimeForJourney(double distance, OOUInteger hops)
 				ship_dict,							SHIPYARD_KEY_SHIP,
 				description,						SHIPYARD_KEY_DESCRIPTION,
 				short_description,					KEY_SHORT_DESCRIPTION,
-				[NSNumber numberWithInteger:price],	SHIPYARD_KEY_PRICE,
+				[NSNumber numberWithUnsignedLongLong:price], SHIPYARD_KEY_PRICE,
 				extras,								KEY_EQUIPMENT_EXTRAS,
 				[NSNumber numberWithUnsignedShort:personality], SHIPYARD_KEY_PERSONALITY,								  
 				NULL];

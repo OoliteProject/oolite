@@ -54,7 +54,7 @@ MA 02110-1301, USA.
 static BOOL				sInited = NO;
 
 
-static unsigned			sNumberOfCPUs = 0;	// Yes, really 0.
+static OOUInteger		sNumberOfCPUs = 0;	// Yes, really 0.
 
 
 void OOCPUInfoInit(void)

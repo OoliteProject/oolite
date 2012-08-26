@@ -1068,7 +1068,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		else // three or more
 		{
 			pageCount = ceil((float)(eqptCount-i)/(itemsPerColumn*2)) + 2;
-			statusPage = OOClampInteger(statusPage, 1, pageCount);
+			statusPage = (OOInteger)OOClampInteger(statusPage, 1, pageCount);
 			start = (statusPage == 1) ? 0 : (statusPage-1) * itemsPerColumn * 2 + 2;
 		}
 	}
@@ -1109,7 +1109,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 
 	if (statusPage == 1 || statusPage == pageCount) itemsPerColumn++;
-	eqptCount = OOClampInteger(eqptCount, 1, start + itemsPerColumn * 2);
+	eqptCount = (OOInteger)OOClampInteger(eqptCount, 1, start + itemsPerColumn * 2);
 	for (i = start; i < eqptCount; i++)
 	{
 		info = [eqptList oo_arrayAtIndex:i];

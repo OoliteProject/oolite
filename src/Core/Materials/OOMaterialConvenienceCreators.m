@@ -401,7 +401,7 @@ static void AddTexture(OOMaterialSynthContext *context, NSString *uniformName, N
 	NSCParameterAssert(context->texturesUsed < context->maxTextures);
 	
 	context->texturesUsed++;
-	SetUniform(context->uniforms, uniformName, @"texture", [NSNumber numberWithInt:[context->textures count]]);
+	SetUniform(context->uniforms, uniformName, @"texture", [NSNumber numberWithUnsignedInteger:[context->textures count]]);
 	[context->textures addObject:specifier];
 	if (nonShaderKey != nil)
 	{

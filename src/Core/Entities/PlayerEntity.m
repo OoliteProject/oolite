@@ -2098,7 +2098,6 @@ static GLfloat		sBaseMass = 0.0;
 		ShipEntity	*doppelganger = (ShipEntity*)[self foundTarget];
 		// reset legal status again! Could have changed if a previously launched missile hit a clean NPC while in the escape pod.
 		[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
-//		legalStatus = 0;
 		bounty = 0;
 		// no access to all player.ship properties while inside the escape pod,
 		// we're not supposed to be inside our ship anymore! 
@@ -4569,7 +4568,6 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// reset legal status
 	[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
-//	legalStatus = 0;
 	bounty = 0;
 	
 	// reset trumbles
@@ -4668,7 +4666,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason
 {
-	NSString* nReason = OOStringFromLegalStatusReason(reason);
+	NSString *nReason = OOStringFromLegalStatusReason(reason);
 	[self setBounty:amount withReasonAsString:nReason];
 }
 
@@ -5363,9 +5361,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	target_system_seed = system_seed;
 	
-	// let's make a fresh start!
-//	legalStatus = 0;
-	[self setBounty:0 withReason:kOOLegalStatusReasonNewGalaxy];
+	[self setBounty:0 withReason:kOOLegalStatusReasonNewGalaxy];	// let's make a fresh start!
 	cursor_coordinates.x = system_seed.d;
 	cursor_coordinates.y = system_seed.b;
 	
@@ -5460,8 +5456,7 @@ static GLfloat		sBaseMass = 0.0;
 	if (!misjump)
 	{
 		system_seed = sTo;
-//		legalStatus /= 2;								// 'another day, another system'
-		[self setBounty:(legalStatus/2) withReason:kOOLegalStatusReasonNewSystem];
+		[self setBounty:(legalStatus/2) withReason:kOOLegalStatusReasonNewSystem];	// 'another day, another system'
 		[self witchEnd];
 		if (market_rnd < 8) [self erodeReputation];		// every 32 systems or so, drop back towards 'unknown'
 	}
@@ -8133,13 +8128,11 @@ static NSString *last_outfitting_key=nil;
 	{
 		int payback = (int)(legalStatus * credits / fine);
 		[self setBounty:(legalStatus-payback) withReason:kOOLegalStatusReasonPaidFine];
-//		legalStatus -= payback;
 		credits = 0;
 	}
 	else
 	{
 		[self setBounty:0 withReason:kOOLegalStatusReasonPaidFine];
-//		legalStatus = 0;
 		credits -= fine;
 	}
 	

@@ -117,7 +117,7 @@ static OORegExpMatcher *sActiveInstance;
 		[regExp getCharacters:buffer];
 		
 		_cachedRegExpString = [regExp retain];
-		JSObject *regExpObj = JS_NewUCRegExpObjectNoStatics(context, buffer, expLength, flags);
+		JSObject *regExpObj = JS_NewUCRegExpObjectNoStatics(context, buffer, expLength, (uintN)flags);
 		_cachedRegExpObject = [[OOJSValue alloc] initWithJSObject:regExpObj inContext:context];
 		_cachedFlags = flags;
 		

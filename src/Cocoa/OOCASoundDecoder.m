@@ -252,8 +252,8 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	if (OK)
 	{
 		totalSizeInFrames = ov_pcm_total(&_vf, -1);
-		assert (kMaxDecodeSize < SIZE_MAX);	// Should have been checked by caller
-		sizeInFrames = totalSizeInFrames;
+		assert ((uint64_t)totalSizeInFrames < (uint64_t)SIZE_MAX);	// Should have been checked by caller
+		sizeInFrames = (size_t)totalSizeInFrames;
 	}
 	
 	if (OK)
@@ -319,8 +319,8 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	if (OK)
 	{
 		totalSizeInFrames = ov_pcm_total(&_vf, -1);
-		assert (kMaxDecodeSize < SIZE_MAX);	// Should have been checked by caller
-		sizeInFrames = totalSizeInFrames;
+		assert ((uint64_t)totalSizeInFrames < (uint64_t)SIZE_MAX);	// Should have been checked by caller
+		sizeInFrames = (size_t)totalSizeInFrames;
 	}
 	
 	if (OK)
@@ -427,7 +427,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	size = ov_pcm_total(&_vf, -1);
 	size *= sizeof(float) * ([self isStereo] ? 2 : 1);
 	if ((uint64_t)SIZE_MAX < (uint64_t)size) size = (ogg_int64_t)SIZE_MAX;
-	return size;
+	return (size_t)size;
 }
 
 

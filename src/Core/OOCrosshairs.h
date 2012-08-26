@@ -35,7 +35,7 @@ SOFTWARE.
 @interface OOCrosshairs: NSObject
 {
 @private
-	unsigned					_count;
+	OOUInteger					_count;
 	GLfloat						*_data;
 }
 

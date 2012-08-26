@@ -30,15 +30,8 @@ MA 02110-1301, USA.
 #else
 
 
-#ifdef WIN32
-	#define FASTINVSQRT_ENABLED	0	/* Doesn't work on Windows (why?) */
-#else
-	#define FASTINVSQRT_ENABLED	0	/* Disabled due to precision problems. */
-#endif
-
-
 /* Round integer up to nearest power of 2. */
-OOINLINE uint32_t OORoundUpToPowerOf2(uint32_t x) INLINE_CONST_FUNC;
+OOINLINE OOUInteger OORoundUpToPowerOf2(OOUInteger x) INLINE_CONST_FUNC;
 
 /* Clamp to range. */
 OOINLINE float OOClamp_0_1_f(float value) INLINE_CONST_FUNC;
@@ -50,22 +43,16 @@ OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
 OOINLINE float OOLerp(float v0, float v1, float fraction) INLINE_CONST_FUNC;
 
 
-#ifdef __GNUC__
-	OOINLINE uint32_t OORoundUpToPowerOf2(uint32_t value)
-	{
-		return 0x80000000 >> (__builtin_clz(value - 1) - 1);
-	}
+#if OOLITE_64_BIT
+OOINLINE OOUInteger OORoundUpToPowerOf2(OOUInteger value)
+{
+	return 0x8000000000000000ULL >> (__builtin_clzll(value - 1) - 1);
+}
 #else
-	OOINLINE uint32_t OORoundUpToPowerOf2(uint32_t value)
-	{
-		value -= 1;
-		value |= (value >> 1);
-		value |= (value >> 2);
-		value |= (value >> 4);
-		value |= (value >> 8);
-		value |= (value >> 16);
-		return value + 1;
-	}
+OOINLINE OOUInteger OORoundUpToPowerOf2(OOUInteger value)
+{
+	return 0x80000000U >> (__builtin_clz(value - 1) - 1);
+}
 #endif
 
 
