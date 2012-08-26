@@ -207,7 +207,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	shot_time = INITIAL_SHOT_TIME;
 	ship_temperature = SHIP_MIN_CABIN_TEMP;
 	weapon_temp				= 0.0f;
-	currentWeaponFacing = VIEW_FORWARD;
+	currentWeaponFacing		= WEAPON_FACING_FORWARD;
 	forward_weapon_temp		= 0.0f;
 	aft_weapon_temp			= 0.0f;
 	port_weapon_temp		= 0.0f;
@@ -6325,7 +6325,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 }
 
 
--	(OOViewID) currentWeaponFacing
+-	(OOWeaponFacing) currentWeaponFacing
 {
 	return currentWeaponFacing;
 }
@@ -7289,15 +7289,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) dealEnergyDamage:(GLfloat) baseDamage atRange:(GLfloat) range withBias:(GLfloat) velocityBias
 {
+	GLfloat maxRange = fmin(range * sqrt(baseDamage), SCANNER_MAX_RANGE);
+	
+	OOLog(@"missile.damage.calc", @"Range: %f | Damage: %f | MaxRange: %f",range,baseDamage,maxRange);
 
-	GLfloat maxRange = range * sqrt(baseDamage);
-	if (maxRange > SCANNER_MAX_RANGE) 
-	{
-		maxRange = SCANNER_MAX_RANGE; // range cap
-	}
-	OOLog(@"missile.damage.calc",@"Range: %f | Damage: %f | MaxRange: %f",range,baseDamage,maxRange);
-
-	NSArray* targets = [UNIVERSE getEntitiesWithinRange:maxRange ofEntity:self];
+	NSArray *targets = [UNIVERSE entitiesWithinRange:maxRange ofEntity:self];
 	if ([targets count] > 0)
 	{
 		unsigned i;
@@ -7309,7 +7305,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			double d = (magnitude(p2) - ecr) / range;
 			// base damage within defined range, inverse-square falloff outside
 			double localDamage = baseDamage;
-			OOLog(@"missile.damage.calc",@"Base damage: %f",baseDamage);
+			OOLog(@"missile.damage.calc", @"Base damage: %f",baseDamage);
 			if (velocityBias > 0)
 			{
 				Vector v2 = vector_subtract([self velocity], [e2 velocity]);
@@ -7352,7 +7348,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 // Exposed to AI
 - (void) dealEnergyDamageWithinDesiredRange
 {
-	NSArray* targets = [UNIVERSE getEntitiesWithinRange:(desired_range < SCANNER_MAX_RANGE ? desired_range : SCANNER_MAX_RANGE) ofEntity:self];
+	NSArray* targets = [UNIVERSE entitiesWithinRange:(desired_range < SCANNER_MAX_RANGE ? desired_range : SCANNER_MAX_RANGE) ofEntity:self];
 	if ([targets count] > 0)
 	{
 		unsigned i;
@@ -7371,7 +7367,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) dealMomentumWithinDesiredRange:(double)amount
 {
-	NSArray* targets = [UNIVERSE getEntitiesWithinRange:desired_range ofEntity:self];
+	NSArray* targets = [UNIVERSE entitiesWithinRange:desired_range ofEntity:self];
 	if ([targets count] > 0)
 	{
 		unsigned i;
@@ -7868,7 +7864,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 // Exposed to AI
 - (void) broadcastEnergyBlastImminent
 {
-	NSArray* targets = [UNIVERSE getEntitiesWithinRange:SCANNER_MAX_RANGE ofEntity:self];
+	NSArray* targets = [UNIVERSE entitiesWithinRange:SCANNER_MAX_RANGE ofEntity:self];
 	if ([targets count] > 0)
 	{
 		unsigned i;
@@ -7965,7 +7961,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector i = vector_right_from_quaternion(q);
 	Vector j = vector_up_from_quaternion(q);
 	Vector k = vector_forward_from_quaternion(q);
-	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition: make_vector(0,0,0) InVectors: i : j : k];
+	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition:kZeroVector InVectors:i :j :k];
 	Vector result = kZeroVector;
 	switch ([padAlign characterAtIndex:0])
 	{
@@ -9500,11 +9496,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{ // if missing, aim better!
 		basic_aim /= 1.0 + ((GLfloat)[self missedShots] / 5.0);
 	}
-	if (currentWeaponFacing == VIEW_AFT && accuracy < COMBAT_AI_ISNT_AWFUL)
+	if (currentWeaponFacing == WEAPON_FACING_AFT && accuracy < COMBAT_AI_ISNT_AWFUL)
 	{ // bad shots with aft lasers
 		basic_aim *= 1.3;
 	}
-	else if (currentWeaponFacing == VIEW_PORT || currentWeaponFacing == VIEW_STARBOARD) 
+	else if (currentWeaponFacing == WEAPON_FACING_PORT || currentWeaponFacing == WEAPON_FACING_STARBOARD)
 	{ // everyone a bit worse with side lasers
 		if (accuracy < COMBAT_AI_ISNT_AWFUL) 
 		{ // especially these
@@ -9520,9 +9516,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon_type
+- (BOOL) onTarget:(OOWeaponFacing)direction withWeapon:(OOWeaponType)weapon_type
 {
-
 	// initialize dq to a value that would normally return NO; dq is handled inside the defaultless switch(direction) statement
 	// and should alaways be recalculated anyway. Initialization here needed to silence compiler warning - Nikos 20120526
 	GLfloat dq = -1.0f;
@@ -9551,24 +9546,24 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	switch (direction)
 	{
-		case VIEW_CUSTOM:
-		case VIEW_NONE:
-		case VIEW_GUI_DISPLAY:
-		case VIEW_BREAK_PATTERN:
-		// first four should never happen here
-		case VIEW_FORWARD:
+		case WEAPON_FACING_FORWARD:
 			dq = +dot_product(urp, v_forward);		// cosine of angle between v_forward and unit relative position
 			break;
-		case VIEW_AFT:
+			
+		case WEAPON_FACING_AFT:
 			dq = -dot_product(urp, v_forward);		// cosine of angle between v_forward and unit relative position
 			break;
-		case VIEW_PORT:
+			
+		case WEAPON_FACING_PORT:
 			dq = -dot_product(urp, v_right);		// cosine of angle between v_right and unit relative position
 			break;
-		case VIEW_STARBOARD:
+			
+		case WEAPON_FACING_STARBOARD:
 			dq = +dot_product(urp, v_right);		// cosine of angle between v_right and unit relative position
 			break;
-		// no default
+			
+		case WEAPON_FACING_NONE:
+			break;
 	}
 
 	if (dq < 0.0)  return NO;
@@ -9582,29 +9577,29 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) fireWeapon:(OOWeaponType)weapon_type direction:(OOViewID)direction range:(double)range
+- (BOOL) fireWeapon:(OOWeaponType)weapon_type direction:(OOWeaponFacing)direction range:(double)range
 {
 	weapon_temp = 0.0;
 	switch (direction)
 	{
-		case VIEW_CUSTOM:
-		case VIEW_NONE:
-		case VIEW_GUI_DISPLAY:
-		case VIEW_BREAK_PATTERN:
-		// first four should never happen here
-		case VIEW_FORWARD:
+		case WEAPON_FACING_FORWARD:
 			weapon_temp = forward_weapon_temp;
 			break;
-		case VIEW_AFT:
+			
+		case WEAPON_FACING_AFT:
 			weapon_temp = aft_weapon_temp;
 			break;
-		case VIEW_PORT:
+			
+		case WEAPON_FACING_PORT:
 			weapon_temp = port_weapon_temp;
 			break;
-		case VIEW_STARBOARD:
+			
+		case WEAPON_FACING_STARBOARD:
 			weapon_temp = starboard_weapon_temp;
 			break;
-		// no default
+			
+		case WEAPON_FACING_NONE:
+			break;
 	}
 	if (weapon_temp / NPC_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT) return NO;
 
@@ -9619,20 +9614,20 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	BOOL fired = NO;
 	switch (weapon_type)
 	{
-		case WEAPON_PLASMA_CANNON :
+		case WEAPON_PLASMA_CANNON:
 			[self firePlasmaShotAtOffset:0.0 speed:NPC_PLASMA_SPEED color:[OOColor yellowColor] direction:direction];
 			fired = YES;
 			break;
 		
-		case WEAPON_PULSE_LASER :
-		case WEAPON_BEAM_LASER :
-		case WEAPON_MINING_LASER :
-		case WEAPON_MILITARY_LASER :
-			[self fireLaserShotInDirection: direction];
+		case WEAPON_PULSE_LASER:
+		case WEAPON_BEAM_LASER:
+		case WEAPON_MINING_LASER:
+		case WEAPON_MILITARY_LASER:
+			[self fireLaserShotInDirection:direction];
 			fired = YES;
 			break;
 		
-		case WEAPON_THARGOID_LASER :
+		case WEAPON_THARGOID_LASER:
 			[self fireDirectLaserShot:range];
 			fired = YES;
 			break;
@@ -9647,28 +9642,28 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		switch (direction)
 		{
-		case VIEW_CUSTOM:
-		case VIEW_NONE:
-		case VIEW_GUI_DISPLAY:
-		case VIEW_BREAK_PATTERN:
-			// first four should never happen here
-		case VIEW_FORWARD:
-			forward_weapon_temp += weapon_shot_temperature;
-			break;
-		case VIEW_AFT:
-			aft_weapon_temp += weapon_shot_temperature;
-			break;
-		case VIEW_PORT:
-			port_weapon_temp += weapon_shot_temperature;
-			break;
-		case VIEW_STARBOARD:
-			starboard_weapon_temp += weapon_shot_temperature;
-			break;
-			// no default
+			case WEAPON_FACING_FORWARD:
+				forward_weapon_temp += weapon_shot_temperature;
+				break;
+				
+			case WEAPON_FACING_AFT:
+				aft_weapon_temp += weapon_shot_temperature;
+				break;
+				
+			case WEAPON_FACING_PORT:
+				port_weapon_temp += weapon_shot_temperature;
+				break;
+				
+			case WEAPON_FACING_STARBOARD:
+				starboard_weapon_temp += weapon_shot_temperature;
+				break;
+				
+			case WEAPON_FACING_NONE:
+				break;
 		}
 	}
 	
-	if (direction == VIEW_FORWARD)
+	if (direction == WEAPON_FACING_FORWARD)
 	{
 		//can we fire lasers from our subentities?
 		NSEnumerator	*subEnum = nil;
@@ -9688,16 +9683,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) fireMainWeapon:(double) range
+- (BOOL) fireMainWeapon:(double)range
 {
 	// set the values from forward_weapon_type.
 	// OXPs can override the default front laser energy damage.
-	currentWeaponFacing = VIEW_FORWARD;
+	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	[self setWeaponDataFromType:forward_weapon_type];
 
 	weapon_damage = weapon_damage_override;
 	
-	BOOL result = [self fireWeapon:forward_weapon_type direction:VIEW_FORWARD range:range];
+	BOOL result = [self fireWeapon:forward_weapon_type direction:WEAPON_FACING_FORWARD range:range];
 	if (forward_weapon_type == WEAPON_NONE)
 	{
 		// need to check subentities to avoid AI oddities
@@ -9728,33 +9723,33 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) fireAftWeapon:(double) range
+- (BOOL) fireAftWeapon:(double)range
 {
 	// set the values from aft_weapon_type.
-	currentWeaponFacing = VIEW_AFT;
+	currentWeaponFacing = WEAPON_FACING_AFT;
 	[self setWeaponDataFromType:aft_weapon_type];
 	
-	return [self fireWeapon:aft_weapon_type direction:VIEW_AFT range:range];
+	return [self fireWeapon:aft_weapon_type direction:WEAPON_FACING_AFT range:range];
 }
 
 
-- (BOOL) firePortWeapon:(double) range
+- (BOOL) firePortWeapon:(double)range
 {
 	// set the values from port_weapon_type.
-	currentWeaponFacing = VIEW_PORT;
+	currentWeaponFacing = WEAPON_FACING_PORT;
 	[self setWeaponDataFromType:port_weapon_type];
 	
-	return [self fireWeapon:port_weapon_type direction:VIEW_PORT range:range];
+	return [self fireWeapon:port_weapon_type direction:WEAPON_FACING_PORT range:range];
 }
 
 
-- (BOOL) fireStarboardWeapon:(double) range
+- (BOOL) fireStarboardWeapon:(double)range
 {
 	// set the values from starboard_weapon_type.
-	currentWeaponFacing = VIEW_STARBOARD;
+	currentWeaponFacing = WEAPON_FACING_STARBOARD;
 	[self setWeaponDataFromType:starboard_weapon_type];
 	
-	return [self fireWeapon:starboard_weapon_type direction:VIEW_STARBOARD range:range];
+	return [self fireWeapon:starboard_weapon_type direction:WEAPON_FACING_STARBOARD range:range];
 }
 
 
@@ -9846,11 +9841,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	forward_weapon_temp += weapon_shot_temperature;
 	
 	GLfloat hitAtRange = weaponRange;
-	int direction = VIEW_FORWARD;
-	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset:kZeroVector rangeFound:&hitAtRange];
+	OOWeaponFacing direction = WEAPON_FACING_FORWARD;
+	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:kZeroVector gettingRangeFound:&hitAtRange];
 	[self setShipHitByLaser:victim];
 	
-	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self view:direction offset:kZeroVector];
+	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self direction:direction offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass:CLASS_NO_DRAW];
 	
@@ -9962,14 +9957,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	Quaternion q_save = orientation;	// save rotation
 	orientation = q_laser;			// face in direction of laser
-	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:VIEW_FORWARD offset: make_vector(0,0,0) rangeFound: &hit_at_range];
+	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:WEAPON_FACING_FORWARD offset:kZeroVector gettingRangeFound:&hit_at_range];
 	[self setShipHitByLaser:victim];
 	orientation = q_save;			// restore rotation
 
 	Vector  vel = vector_multiply_scalar(v_forward, flightSpeed);
 	
 	// do special effects laser line
-	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self view:VIEW_FORWARD offset:kZeroVector];
+	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self direction:WEAPON_FACING_FORWARD offset:kZeroVector];
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setPosition: position];
@@ -10011,9 +10006,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) fireLaserShotInDirection:(OOViewID)direction
+- (BOOL) fireLaserShotInDirection:(OOWeaponFacing)direction
 {
-	double			range_limit2 = weaponRange*weaponRange;
+	double			range_limit2 = weaponRange * weaponRange;
 	GLfloat			hit_at_range;
 	Vector			vel;
 
@@ -10021,25 +10016,30 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	Vector	laserPortOffset;
 
-	switch(direction)
+	switch (direction)
 	{
-		case VIEW_AFT:
+		case WEAPON_FACING_FORWARD:
+		case WEAPON_FACING_NONE:
+			laserPortOffset = forwardWeaponOffset;
+			break;
+			
+		case WEAPON_FACING_AFT:
 			laserPortOffset = aftWeaponOffset;
 			break;
-		case VIEW_PORT:
+			
+		case WEAPON_FACING_PORT:
 			laserPortOffset = portWeaponOffset;
 			break;
-		case VIEW_STARBOARD:
+			
+		case WEAPON_FACING_STARBOARD:
 			laserPortOffset = starboardWeaponOffset;
 			break;
-		default:
-			laserPortOffset = forwardWeaponOffset;
 	}
 	
-	ShipEntity *victim = [UNIVERSE getFirstShipHitByLaserFromShip:self inView:direction offset:laserPortOffset rangeFound: &hit_at_range];
+	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:laserPortOffset gettingRangeFound:&hit_at_range];
 	[self setShipHitByLaser:victim];
 	
-	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self view:direction offset:laserPortOffset];
+	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self direction:direction offset:laserPortOffset];
 	
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
@@ -10048,7 +10048,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (victim != nil)
 	{
 		[self adjustMissedShots:-1];
-
+		
 		/*	CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
 			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
 			object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
@@ -10064,7 +10064,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[victim takeEnergyDamage: 0.01 * weapon_damage from:self becauseOf:self];
 			victim = subent;
 		}
-
+		
 		if (hit_at_range * hit_at_range < range_limit2)
 		{
 			[victim takeEnergyDamage:weapon_damage from:self becauseOf:self];	// a very palpable hit
@@ -10086,7 +10086,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			 * without having their target actually targeted. Though in those
 			 * circumstances they shouldn't be missing their first shot
 			 * anyway. */
-			if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal(vector_subtract([victim position],[self position]))) > 0.995) {
+			if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal(vector_subtract([victim position],[self position]))) > 0.995)
+			{
 				/* plausibly aimed at target. Allows reaction before attacker
 				 * actually hits. But we need to be able to distinguish in AI
 				 * from ATTACKED so that ships in combat aren't bothered by
@@ -10173,11 +10174,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color
 {
-	return [self firePlasmaShotAtOffset:offset speed:speed color:color direction:VIEW_FORWARD];
+	return [self firePlasmaShotAtOffset:offset speed:speed color:color direction:WEAPON_FACING_FORWARD];
 }
 
 
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOViewID)direction
+- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOWeaponFacing)direction
 {
 	Vector  vel, rt;
 	Vector  origin = position;

@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 
 @implementation OOLaserShotEntity
 
-- (instancetype) initLaserFromShip:(ShipEntity *)srcEntity view:(OOViewID)view offset:(Vector)offset
+- (instancetype) initLaserFromShip:(ShipEntity *)srcEntity direction:(OOWeaponFacing)direction offset:(Vector)offset
 {
 	if (!(self = [super init]))  return nil;
 	
@@ -71,19 +71,20 @@ MA 02110-1301, USA.
 	Quaternion q0 = [ship normalOrientation];
 	velocity = vector_multiply_scalar(vector_forward_from_quaternion(q0), [ship flightSpeed]);
 	
-	switch (view)
+	switch (direction)
 	{
-		default:
-		case VIEW_AFT:
-			quaternion_rotate_about_axis(&q, q_up, M_PI);	
-		case VIEW_FORWARD:
+		case WEAPON_FACING_NONE:
+		case WEAPON_FACING_FORWARD:
 			break;
 			
-		case VIEW_PORT:
+		case WEAPON_FACING_AFT:
+			quaternion_rotate_about_axis(&q, q_up, M_PI);
+			
+		case WEAPON_FACING_PORT:
 			quaternion_rotate_about_axis(&q, q_up, M_PI/2.0);
 			break;
 			
-		case VIEW_STARBOARD:
+		case WEAPON_FACING_STARBOARD:
 			quaternion_rotate_about_axis(&q, q_up, -M_PI/2.0);
 			break;
 	}
@@ -105,9 +106,9 @@ MA 02110-1301, USA.
 }
 
 
-+ (id) laserFromShip:(ShipEntity *)ship view:(OOViewID)view offset:(Vector)offset
++ (instancetype) laserFromShip:(ShipEntity *)ship direction:(OOWeaponFacing)direction offset:(Vector)offset
 {
-	return [[[self alloc] initLaserFromShip:ship view:view offset:offset] autorelease];
+	return [[[self alloc] initLaserFromShip:ship direction:direction offset:offset] autorelease];
 }
 
 

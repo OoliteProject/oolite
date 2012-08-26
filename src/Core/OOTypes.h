@@ -211,3 +211,18 @@ enum
 
 typedef double OOTimeAbsolute;
 typedef double OOTimeDelta;
+
+
+typedef enum
+{
+	WEAPON_FACING_FORWARD				= 1,
+	WEAPON_FACING_AFT					= 2,
+	WEAPON_FACING_PORT					= 4,
+	WEAPON_FACING_STARBOARD				= 8,
+	
+	WEAPON_FACING_NONE					= 0
+} OOWeaponFacing;
+
+typedef uint8_t OOWeaponFacingSet;	// May have multiple bits set.
+
+#define VALID_WEAPON_FACINGS			(WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)

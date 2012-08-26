@@ -371,26 +371,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			return YES;
 
 		case kPlayerShip_currentWeapon:
-			switch ([player currentWeaponFacing])
-			{
-			case VIEW_FORWARD:
-				result = [player weaponTypeForFacing:WEAPON_FACING_FORWARD];
-				break;
-			case VIEW_AFT:
-				result = [player weaponTypeForFacing:WEAPON_FACING_AFT];
-				break;
-			case VIEW_PORT:
-				result = [player weaponTypeForFacing:WEAPON_FACING_PORT];
-				break;
-			case VIEW_STARBOARD:
-				result = [player weaponTypeForFacing:WEAPON_FACING_STARBOARD];
-				break;
-			case VIEW_CUSTOM:
-			case VIEW_NONE:
-			case VIEW_GUI_DISPLAY:
-			case VIEW_BREAK_PATTERN:
-				result = nil;
-			}
+			result = [player weaponTypeForFacing:[player currentWeaponFacing]];
 			break;
 		
 	  case kPlayerShip_price:
@@ -564,30 +545,8 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			{
 				sValue = @"EQ_WEAPON_NONE";
 			}
-			switch ([player currentWeaponFacing])
-			{
-			case VIEW_FORWARD:
-				[player setWeaponMount:WEAPON_FACING_FORWARD toWeapon:sValue];
-				break;
-			case VIEW_AFT:
-				[player setWeaponMount:WEAPON_FACING_AFT toWeapon:sValue];
-				break;
-			case VIEW_PORT:
-				[player setWeaponMount:WEAPON_FACING_PORT toWeapon:sValue];
-				break;
-			case VIEW_STARBOARD:
-				[player setWeaponMount:WEAPON_FACING_STARBOARD toWeapon:sValue];
-				break;
-			case VIEW_CUSTOM: // in this context does not actually mean custom view
-			case VIEW_NONE:
-			case VIEW_GUI_DISPLAY:
-			case VIEW_BREAK_PATTERN:
-				OOJSReportError(context, @"player.ship.currentWeapon is only valid when a weapon view is active.", OOStringFromJSPropertyIDAndSpec(context, propID, sPlayerShipProperties));
-				return NO;
-			}
-
+			[player setWeaponMount:[player currentWeaponFacing] toWeapon:sValue];
 			return YES;
-			break;
 		}
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);

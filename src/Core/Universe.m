@@ -4598,7 +4598,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (ShipEntity *) getFirstShipHitByLaserFromShip:(ShipEntity *)srcEntity inView:(OOViewID)viewdir offset:(Vector)offset rangeFound:(GLfloat*)range_ptr
+- (ShipEntity *) firstShipHitByLaserFromShip:(ShipEntity *)srcEntity inDirection:(OOWeaponFacing)direction offset:(Vector)offset gettingRangeFound:(GLfloat *)range_ptr
 {
 	if (srcEntity == nil) return nil;
 	
@@ -4638,18 +4638,22 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	basis_vectors_from_quaternion(q1, &r1, &u1, &f1);
 	p0 = vector_add(p0, OOVectorMultiplyMatrix(offset, OOMatrixFromBasisVectors(r1, u1, f1)));
 	
-	switch (viewdir)
+	switch (direction)
 	{
-		case VIEW_AFT :
+		case WEAPON_FACING_FORWARD:
+		case WEAPON_FACING_NONE:
+			break;
+			
+		case WEAPON_FACING_AFT:
 			quaternion_rotate_about_axis(&q1, u1, M_PI);
 			break;
-		case VIEW_PORT :
+			
+		case WEAPON_FACING_PORT:
 			quaternion_rotate_about_axis(&q1, u1, M_PI/2.0);
 			break;
-		case VIEW_STARBOARD :
+			
+		case WEAPON_FACING_STARBOARD:
 			quaternion_rotate_about_axis(&q1, u1, -M_PI/2.0);
-			break;
-		default:
 			break;
 	}
 	
@@ -4691,7 +4695,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		
 		if (range_ptr != NULL)
 		{
-			range_ptr[0] = (GLfloat)nearest;
+			*range_ptr = nearest;
 		}
 	}
 	
@@ -4701,7 +4705,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (Entity *) getFirstEntityTargetedByPlayer
+- (Entity *) firstEntityTargetedByPlayer
 {
 	PlayerEntity	*player = PLAYER;
 	Entity			*hit_entity = nil;
@@ -4727,6 +4731,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	Vector p1 = vector_add([player position], OOVectorMultiplyMatrix(offset, OOMatrixFromBasisVectors(r1, u1, f1)));
 	
+	// Note: deliberately tied to view direction, not weapon facing. All custom views count as forward for targeting.
 	switch (viewDirection)
 	{
 		case VIEW_AFT :
@@ -4786,7 +4791,38 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (NSArray *) getEntitiesWithinRange:(double)range ofEntity:(Entity *)entity
+- (Entity *) firstEntityTargetedByPlayerPrecisely
+{
+	OOWeaponFacing targetFacing;
+	
+	switch (viewDirection)
+	{
+		case VIEW_FORWARD:
+			targetFacing = WEAPON_FACING_FORWARD;
+			break;
+			
+		case VIEW_AFT:
+			targetFacing = WEAPON_FACING_AFT;
+			break;
+			
+		case VIEW_PORT:
+			targetFacing = WEAPON_FACING_PORT;
+			break;
+			
+		case VIEW_STARBOARD:
+			targetFacing = WEAPON_FACING_STARBOARD;
+			break;
+			
+		default:
+			// Match behaviour of -firstEntityTargetedByPlayer.
+			targetFacing = WEAPON_FACING_FORWARD;
+	}
+	
+	return [self firstShipHitByLaserFromShip:PLAYER inDirection:targetFacing offset:kZeroVector gettingRangeFound:NULL];
+}
+
+
+- (NSArray *) entitiesWithinRange:(double)range ofEntity:(Entity *)entity
 {
 	if (entity == nil)  return nil;
 	
@@ -7902,7 +7938,7 @@ static double estimatedTimeForJourney(double distance, OOUInteger hops)
 			[description appendFormat:@"%@:", shipName];
 			[short_description appendFormat:@"%@:", shipName];
 			
-			unsigned available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];	// use defaults  explicitly
+			OOWeaponFacingSet available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
 
 			OOWeaponType fwd_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(fwd_weapon_string);
 			OOWeaponType aft_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(aft_weapon_string);
@@ -7913,11 +7949,11 @@ static double estimatedTimeForJourney(double distance, OOUInteger hops)
 			BOOL weapon_customised = NO;
 			BOOL other_weapon_added = NO;
 			
-			NSString* fwd_weapon_desc = nil;
-			NSString* aft_weapon_desc = nil;
+			NSString *fwd_weapon_desc = nil;
+			NSString *aft_weapon_desc = nil;
 			
-			NSString* short_extras_string = DESC(@"plus-@");
-			NSString* passengerBerthLongDesc = nil;
+			NSString *short_extras_string = DESC(@"plus-@");
+			NSString *passengerBerthLongDesc = nil;
 			
 			// customise the ship (if chance = 1, then ship will get all possible add ons)
 			while ((randf() < chance) && ([options count]))

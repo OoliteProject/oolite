@@ -1065,7 +1065,7 @@ static GLfloat		sBaseMass = 0.0;
 	galaxy_number = [dict oo_intForKey:@"galaxy_number"];
 //
 	NSDictionary *shipyard_info = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:[self shipDataKey]];
-	int available_facings = [shipyard_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];
+	OOWeaponFacingSet available_facings = [shipyard_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];
 
 	if (available_facings & WEAPON_FACING_FORWARD)
 		forward_weapon_type = [dict oo_intForKey:@"forward_weapon"];
@@ -1543,7 +1543,7 @@ static GLfloat		sBaseMass = 0.0;
 	starboardViewOffset		= kZeroVector;
 	customViewOffset		= kZeroVector;
 	
-	currentWeaponFacing		= VIEW_FORWARD;
+	currentWeaponFacing		= WEAPON_FACING_FORWARD;
 	[self currentWeaponStats];
 	
 	[save_path autorelease];
@@ -1917,25 +1917,24 @@ static GLfloat		sBaseMass = 0.0;
 	// copy new temp & shot time to main temp & shot time
 	switch (currentWeaponFacing)
 	{
-		case VIEW_GUI_DISPLAY:
-		case VIEW_NONE:
-		case VIEW_BREAK_PATTERN:
-		case VIEW_FORWARD:
-		case VIEW_CUSTOM:
+		case WEAPON_FACING_FORWARD:
 			weapon_temp = forward_weapon_temp;
 			shot_time = forward_shot_time;
 			break;
-		case VIEW_AFT:
+		case WEAPON_FACING_AFT:
 			weapon_temp = aft_weapon_temp;
 			shot_time = aft_shot_time;
 			break;
-		case VIEW_PORT:
+		case WEAPON_FACING_PORT:
 			weapon_temp = port_weapon_temp;
 			shot_time = port_shot_time;
 			break;
-		case VIEW_STARBOARD:
+		case WEAPON_FACING_STARBOARD:
 			weapon_temp = starboard_weapon_temp;
 			shot_time = starboard_shot_time;
+			break;
+			
+		case WEAPON_FACING_NONE:
 			break;
 	}
 	
@@ -2828,7 +2827,7 @@ static GLfloat		sBaseMass = 0.0;
 			(ident_engaged || missile_status != MISSILE_STATUS_SAFE) &&
 			([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
 	{
-		Entity *target = [UNIVERSE getFirstEntityTargetedByPlayer];
+		Entity *target = [UNIVERSE firstEntityTargetedByPlayer];
 		if ([self isValidTarget:target])
 		{
 			[self addTarget:target];
@@ -4087,7 +4086,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (![self weaponsOnline])  return NO;
 
-	NSArray* targets = [UNIVERSE getEntitiesWithinRange:SCANNER_MAX_RANGE ofEntity:self];
+	NSArray* targets = [UNIVERSE entitiesWithinRange:SCANNER_MAX_RANGE ofEntity:self];
 	if ([targets count] > 0)
 	{
 		unsigned i;
@@ -4107,7 +4106,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) currentWeaponStats
 {
-	int currentWeapon = [self weaponForView: currentWeaponFacing];
+	OOWeaponType currentWeapon = [self currentWeapon];
 	// Did find & correct a minor mismatch between player and NPC weapon stats. This is the resulting code - Kaks 20101027
 	
 	// Basic stats: weapon_damage & weaponRange (weapon_recharge_rate is not used by the player)
@@ -4116,31 +4115,36 @@ static GLfloat		sBaseMass = 0.0;
 	// Advanced stats: all the other stats used by the player!
 	switch (currentWeapon)
 	{
-		case WEAPON_PLASMA_CANNON :
-			weapon_energy_use =			6.0f;
-			weapon_reload_time =		0.25f;
+		case WEAPON_PLASMA_CANNON:
+			weapon_energy_use =		6.0f;
+			weapon_reload_time =	0.25f;
 			break;
-		case WEAPON_PULSE_LASER :
-			weapon_energy_use =			0.8f;
-			weapon_reload_time =		0.5f;
+			
+		case WEAPON_PULSE_LASER:
+			weapon_energy_use =		0.8f;
+			weapon_reload_time =	0.5f;
 			break;
-		case WEAPON_BEAM_LASER :
-			weapon_energy_use =			1.0f;
-			weapon_reload_time =		0.1f;
+			
+		case WEAPON_BEAM_LASER:
+			weapon_energy_use =		1.0f;
+			weapon_reload_time =	0.1f;
 			break;
-		case WEAPON_MINING_LASER :
-			weapon_energy_use =			1.4f;
-			weapon_reload_time =		2.5f;
+			
+		case WEAPON_MINING_LASER:
+			weapon_energy_use =		1.4f;
+			weapon_reload_time =	2.5f;
 			break;
-		case WEAPON_THARGOID_LASER :
-		case WEAPON_MILITARY_LASER :
-			weapon_energy_use =			1.2f;
-			weapon_reload_time =		0.1f;
+			
+		case WEAPON_THARGOID_LASER:
+		case WEAPON_MILITARY_LASER:
+			weapon_energy_use =		1.2f;
+			weapon_reload_time =	0.1f;
 			break;
+			
 		case WEAPON_NONE:
 		case WEAPON_UNDEFINED:
-			weapon_energy_use =			0.0f;
-			weapon_reload_time =		0.1f;
+			weapon_energy_use =		0.0f;
+			weapon_reload_time =	0.1f;
 			break;
 	}
 }
@@ -4161,7 +4165,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL) fireMainWeapon
 {
-	int weapon_to_be_fired = [self weaponForView: currentWeaponFacing];
+	int weapon_to_be_fired = [self currentWeapon];
 
 	if (![self weaponsOnline])
 	{
@@ -4194,26 +4198,27 @@ static GLfloat		sBaseMass = 0.0;
 
 	switch (currentWeaponFacing)
 	{
-		case VIEW_GUI_DISPLAY:
-		case VIEW_NONE:
-		case VIEW_BREAK_PATTERN:
-		case VIEW_FORWARD:
+		case WEAPON_FACING_FORWARD:
 			forward_weapon_temp += weapon_shot_temperature;
 			forward_shot_time = 0.0;
 			break;
-		case VIEW_AFT:
+			
+		case WEAPON_FACING_AFT:
 			aft_weapon_temp += weapon_shot_temperature;
 			aft_shot_time = 0.0;
 			break;
-		case VIEW_PORT:
+			
+		case WEAPON_FACING_PORT:
 			port_weapon_temp += weapon_shot_temperature;
 			port_shot_time = 0.0;
 			break;
-		case VIEW_STARBOARD:
+			
+		case WEAPON_FACING_STARBOARD:
 			starboard_weapon_temp += weapon_shot_temperature;
 			starboard_shot_time = 0.0;
 			break;
-		case VIEW_CUSTOM:
+			
+		case WEAPON_FACING_NONE:
 			break;
 	}
 	
@@ -4229,7 +4234,7 @@ static GLfloat		sBaseMass = 0.0;
 		case WEAPON_BEAM_LASER:
 		case WEAPON_MINING_LASER:
 		case WEAPON_MILITARY_LASER:
-			[self fireLaserShotInDirection: currentWeaponFacing];
+			[self fireLaserShotInDirection:currentWeaponFacing];
 			weaponFired = YES;
 			break;
 		
@@ -4247,24 +4252,32 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (OOWeaponType) weaponForView:(OOViewID)view
+- (OOWeaponType) weaponForFacing:(OOWeaponFacing)facing
 {
-	if (view == VIEW_CUSTOM)
-		view = currentWeaponFacing;
-	
-	switch (view)
+	switch (facing)
 	{
-		case VIEW_PORT :
-			return port_weapon_type;
-		case VIEW_STARBOARD :
-			return starboard_weapon_type;
-		case VIEW_AFT :
-			return aft_weapon_type;
-		case VIEW_FORWARD :
+		case WEAPON_FACING_FORWARD:
 			return forward_weapon_type;
-		default :
-			return WEAPON_NONE;
+			
+		case WEAPON_FACING_AFT:
+			return aft_weapon_type;
+			
+		case WEAPON_FACING_PORT:
+			return port_weapon_type;
+			
+		case WEAPON_FACING_STARBOARD:
+			return starboard_weapon_type;
+			
+		case WEAPON_FACING_NONE:
+			break;
 	}
+	return WEAPON_NONE;
+}
+
+
+- (OOWeaponType) currentWeapon
+{
+	return [self weaponForFacing:currentWeaponFacing];
 }
 
 
@@ -5095,7 +5108,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
-	currentWeaponFacing = VIEW_FORWARD;
+	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	gui_screen = GUI_SCREEN_MAIN;
 	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
@@ -5152,7 +5165,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self safeAllMissiles];
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
-	currentWeaponFacing = VIEW_FORWARD;
+	currentWeaponFacing = WEAPON_FACING_FORWARD;
 
 	[self transitionToAegisNone];
 	suppressAegisMessages=YES;
@@ -8206,21 +8219,18 @@ static NSString *last_outfitting_key=nil;
 {
 	switch (currentWeaponFacing)
 	{
-		case VIEW_FORWARD:
+		case WEAPON_FACING_FORWARD:
 			return forwardViewOffset;
-		case VIEW_AFT:
+		case WEAPON_FACING_AFT:
 			return aftViewOffset;
-		case VIEW_PORT:
+		case WEAPON_FACING_PORT:
 			return portViewOffset;
-		case VIEW_STARBOARD:
+		case WEAPON_FACING_STARBOARD:
 			return starboardViewOffset;
-		case VIEW_CUSTOM:
+			
+		case WEAPON_FACING_NONE:
+			// N.b.: this case should never happen.
 			return customViewOffset;
-		
-		case VIEW_NONE:
-		case VIEW_GUI_DISPLAY:
-		case VIEW_BREAK_PATTERN:
-			break;
 	}
 	return kZeroVector;
 }
@@ -8689,19 +8699,19 @@ static NSString *last_outfitting_key=nil;
 	NSString *facing = [[viewDict oo_stringForKey:@"weapon_facing"] lowercaseString];
 	if ([facing isEqual:@"aft"])
 	{
-		currentWeaponFacing = VIEW_AFT;
+		currentWeaponFacing = WEAPON_FACING_AFT;
 	}
 	else if ([facing isEqual:@"port"])
 	{
-		currentWeaponFacing = VIEW_PORT;
+		currentWeaponFacing = WEAPON_FACING_PORT;
 	}
 	else if ([facing isEqual:@"starboard"])
 	{
-		currentWeaponFacing = VIEW_STARBOARD;
+		currentWeaponFacing = WEAPON_FACING_STARBOARD;
 	}
 	else if ([facing isEqual:@"forward"])
 	{
-		currentWeaponFacing = VIEW_FORWARD;
+		currentWeaponFacing = WEAPON_FACING_FORWARD;
 	}
 	// if the weapon facing is unset / unknown, 
 	// don't change current weapon facing!

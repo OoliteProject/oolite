@@ -3515,8 +3515,38 @@ static BOOL autopilot_pause;
 	}
 	if (processWeaponFacing)
 	{
-		currentWeaponFacing = viewDirection;
-		[self currentWeaponStats];
+		OOWeaponFacing facing = WEAPON_FACING_NONE;
+		switch (viewDirection)
+		{
+			case VIEW_FORWARD:
+				facing = WEAPON_FACING_FORWARD;
+				break;
+				
+			case VIEW_AFT:
+				facing = WEAPON_FACING_AFT;
+				break;
+				
+			case VIEW_PORT:
+				facing = WEAPON_FACING_PORT;
+				break;
+				
+			case VIEW_STARBOARD:
+				facing = WEAPON_FACING_STARBOARD;
+				break;
+				
+			default:
+				break;
+		}
+		
+		if (facing != WEAPON_FACING_NONE)
+		{
+			currentWeaponFacing = facing;
+			[self currentWeaponStats];
+		}
+		else
+		{
+			OOLogERR(kOOLogParameterError, @"%s called with processWeaponFacing=YES for non-main view %i.", __FUNCTION__, viewDirection);
+		}
 	}
 	if ((oldViewDirection != viewDirection || viewDirection == VIEW_CUSTOM) && ![[UNIVERSE gameController] isGamePaused])
 	{

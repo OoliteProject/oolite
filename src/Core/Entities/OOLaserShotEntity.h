@@ -25,11 +25,11 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#import "ShipEntity.h"
 #import "OOTypes.h"
 #import "OOMaths.h"
 
-@class ShipEntity, OOColor;
+@class OOColor;
 
 
 @interface OOLaserShotEntity: Entity
@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 	Quaternion				_relOrientation;
 }
 
-+ (instancetype) laserFromShip:(ShipEntity *)ship view:(OOViewID)view offset:(Vector)offset;
++ (instancetype) laserFromShip:(ShipEntity *)ship direction:(OOWeaponFacing)direction offset:(Vector)offset;
 
 - (void) setColor:(OOColor *)color;
 

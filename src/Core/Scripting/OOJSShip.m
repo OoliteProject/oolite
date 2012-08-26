@@ -742,26 +742,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			break;
 			
 		case kShip_currentWeapon:
-			switch ([entity currentWeaponFacing])
-			{
-			case VIEW_FORWARD:
-				result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD];
-				break;
-			case VIEW_AFT:
-				result = [entity weaponTypeForFacing:WEAPON_FACING_AFT];
-				break;
-			case VIEW_PORT:
-				result = [entity weaponTypeForFacing:WEAPON_FACING_PORT];
-				break;
-			case VIEW_STARBOARD:
-				result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD];
-				break;
-			case VIEW_CUSTOM:
-			case VIEW_NONE:
-			case VIEW_GUI_DISPLAY:
-			case VIEW_BREAK_PATTERN:
-				result = nil;
-			}
+			result = [entity weaponTypeForFacing:[entity currentWeaponFacing]];
 			break;
 
 		case kShip_forwardWeapon:
@@ -1213,20 +1194,18 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
-
-
-		case kShip_portWeapon: 
+			
+		case kShip_portWeapon:
 		case kShip_starboardWeapon:
-		case kShip_aftWeapon: 
-	  case kShip_forwardWeapon: 
-	  case kShip_currentWeapon: 
-
+		case kShip_aftWeapon:
+		case kShip_forwardWeapon:
+		case kShip_currentWeapon:
 			sValue = JSValueToEquipmentKeyRelaxed(context, *value, &exists);
 			if (sValue == nil) 
 			{
 				sValue = @"EQ_WEAPON_NONE";
 			}
-			int facing = WEAPON_FACING_FORWARD;
+			OOWeaponFacing facing = WEAPON_FACING_FORWARD;
 			switch (JSID_TO_INT(propID))
 			{
 				case kShip_aftWeapon: 
@@ -1242,42 +1221,12 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 					facing = WEAPON_FACING_STARBOARD;
 					break;
 				case kShip_currentWeapon:
-					switch ([entity currentWeaponFacing])
-					{
-					case VIEW_FORWARD:
-						facing = WEAPON_FACING_FORWARD;
-						break;
-					case VIEW_AFT:
-						facing = WEAPON_FACING_AFT;
-						break;
-					case VIEW_PORT:
-						facing = WEAPON_FACING_PORT;
-						break;
-					case VIEW_STARBOARD:
-						facing = WEAPON_FACING_STARBOARD;
-						break;
-					case VIEW_CUSTOM:
-					case VIEW_NONE:
-					case VIEW_GUI_DISPLAY:
-					case VIEW_BREAK_PATTERN:
-						facing = WEAPON_FACING_FORWARD; 
-						// shouldn't happen for NPCs, and currentWeapon is
-						// overridden for player
-					}
+					facing = [entity currentWeaponFacing];
 					break;
 			}
-			if ([entity isPlayer])
-			{
-				[PLAYER setWeaponMount:facing toWeapon:sValue];
-			} 
-			else
-			{
-				[entity setWeaponMount:facing toWeapon:sValue];
-			}
-
+			[entity setWeaponMount:facing toWeapon:sValue];
 			return YES;
-			break;
-
+			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sShipProperties);
 			return NO;

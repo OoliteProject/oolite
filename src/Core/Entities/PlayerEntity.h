@@ -704,7 +704,9 @@ typedef enum
 - (void) setWeaponsOnline:(BOOL)newValue;
 
 - (BOOL) fireMainWeapon;
-- (OOWeaponType) weaponForView:(OOViewID)view;
+
+- (OOWeaponType) weaponForFacing:(OOWeaponFacing)facing;
+- (OOWeaponType) currentWeapon;
 
 - (BOOL) hasEnergyBomb;
 

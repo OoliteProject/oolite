@@ -103,19 +103,6 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
 #define ENTITY_PERSONALITY_MAX			0x7FFFU
 #define ENTITY_PERSONALITY_INVALID		0xFFFFU
 
-typedef enum
-{
-	WEAPON_FACING_NONE					= 0,
-	WEAPON_FACING_FORWARD				= 1,
-	WEAPON_FACING_AFT					= 2,
-	WEAPON_FACING_PORT					= 4,
-	WEAPON_FACING_STARBOARD				= 8
-} OOWeaponFacing;
-
-typedef uint8_t OOWeaponFacingSet;	// May have multiple bits set.
-
-#define VALID_WEAPON_FACINGS			(WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)
-
 
 #define WEAPON_COOLING_FACTOR			6.0f
 #define NPC_MAX_WEAPON_TEMP				256.0f
@@ -292,7 +279,7 @@ typedef enum
 	GLfloat					weapon_damage;				// energy damage dealt by weapon
 	GLfloat					weapon_damage_override;		// custom energy damage dealt by front laser, if applicable
 	GLfloat					weaponRange;				// range of the weapon (in meters)
-	OOViewID				currentWeaponFacing;		// not necessarily the same as view for the player
+	OOWeaponFacing			currentWeaponFacing;		// not necessarily the same as view for the player
 	
 	GLfloat					weapon_temp, weapon_shot_temperature; // active weapon temp, delta-temp
 	GLfloat					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp; // current weapon temperatures
@@ -734,7 +721,7 @@ typedef enum
 - (float) weaponRechargeRate;
 - (void) setWeaponRechargeRate:(float)value;
 - (void) setWeaponEnergy:(float)value;
--	(OOViewID) currentWeaponFacing;	// FIXME: this ought to be an OOWeaponFacing.
+- (OOWeaponFacing) currentWeaponFacing;
 
 - (GLfloat) scannerRange;
 - (void) setScannerRange:(GLfloat)value;
@@ -954,7 +941,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (double) rangeToSecondaryTarget:(Entity *)target;
 - (BOOL) hasProximityAlertIgnoringTarget:(BOOL)ignore_target;
 - (GLfloat) currentAimTolerance;
-- (BOOL) onTarget:(OOViewID) direction withWeapon:(OOWeaponType)weapon;
+- (BOOL) onTarget:(OOWeaponFacing)direction withWeapon:(OOWeaponType)weapon;
 
 - (OOTimeDelta) shotTime;
 - (void) resetShotTime;
@@ -969,8 +956,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) fireSubentityLaserShot:(double)range;
 - (BOOL) fireDirectLaserShot:(double)range;
 - (BOOL) fireDirectLaserDefensiveShot;
-- (BOOL) fireDirectLaserShotAt:(Entity*)my_target;
-- (BOOL) fireLaserShotInDirection:(OOViewID)direction;
+- (BOOL) fireDirectLaserShotAt:(Entity *)my_target;
+- (BOOL) fireLaserShotInDirection:(OOWeaponFacing)direction;
 - (void) adjustMissedShots:(int)delta;
 - (int) missedShots;
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color;

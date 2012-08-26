@@ -628,8 +628,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	PlayerEntity				*player = PLAYER;
 	OOViewID					viewID = [UNIVERSE viewDirection];
-	OOWeaponType				weapon = [player weaponForView:viewID];
-	BOOL					weaponsOnline = [player weaponsOnline];
+	OOWeaponType				weapon = [player currentWeapon];
+	BOOL						weaponsOnline = [player weaponsOnline];
 	NSArray						*points = nil;
 	
 	if (viewID == VIEW_CUSTOM ||
@@ -644,8 +644,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	if (weapon != _lastWeaponType || overallAlpha != _lastOverallAlpha || weaponsOnline != _lastWeaponsOnline)
 	{
-		[_crosshairs release];
-		_crosshairs = nil;
+		DESTROY(_crosshairs);
 	}
 	
 	if (_crosshairs == nil)
@@ -2759,8 +2758,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	else
 	{
 		// Reticle sensitivity accuracy calculation
-		BOOL			isTargeted=NO;
-		GLfloat 		target_distance;   // Not used. Just to give a memory plaeholder for getFirstShipHitByLaserFromShip to return a value
+		BOOL			isTargeted = NO;
 		GLfloat			probabilityAccuracy;
 		
 		// Only if target is within player's weapon range, we mind for reticle accuracy
@@ -2783,20 +2781,18 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 				if ([propertiesReticleTargetSensitive oo_boolForKey:@"isAccurate"])
 				{
 					// high accuracy reticle
-					ShipEntity *hitShip = [UNIVERSE getFirstShipHitByLaserFromShip:player1 inView:[UNIVERSE viewDirection] offset:make_vector(0,0,0) rangeFound: &target_distance];
-					isTargeted = (hitShip == target);
+					isTargeted = ([UNIVERSE firstEntityTargetedByPlayerPrecisely] == target);
 				}
 				else
 				{
 					// low accuracy reticle
-					isTargeted = ([UNIVERSE getFirstEntityTargetedByPlayer] == target);
+					isTargeted = ([UNIVERSE firstEntityTargetedByPlayer] == target);
 				}
 			}
 			else
 			{
 				// high accuracy reticle
-				ShipEntity *hitShip = [UNIVERSE getFirstShipHitByLaserFromShip:player1 inView:[UNIVERSE viewDirection] offset:make_vector(0,0,0) rangeFound: &target_distance];
-				isTargeted = (hitShip == target);
+				isTargeted = ([UNIVERSE firstEntityTargetedByPlayerPrecisely] == target);
 			}
 		}
 		
