@@ -10010,11 +10010,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	double			range_limit2 = weaponRange * weaponRange;
 	GLfloat			hit_at_range;
-	Vector			vel;
-
-	vel = vector_multiply_scalar(v_forward, flightSpeed);
-
-	Vector	laserPortOffset;
+	Vector			vel = vector_multiply_scalar(v_forward, flightSpeed);
+	Vector			laserPortOffset = kZeroVector;
 
 	switch (direction)
 	{

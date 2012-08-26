@@ -119,8 +119,8 @@ enum
 	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read/write
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
-	kShip_AIFoundTarget, // AI "found target", entity, read/write
-	kShip_AIPrimaryAggressor, // AI "primary aggressor", entity, read/write
+	kShip_AIFoundTarget,		// AI "found target", entity, read/write
+	kShip_AIPrimaryAggressor,	// AI "primary aggressor", entity, read/write
 	kShip_autoAI,				// bool, read-only, auto_ai from shipdata
 	kShip_beaconCode,			// beacon code, string, read/write
 	kShip_boundingBox,			// boundingBox, vector, read-only
@@ -136,9 +136,9 @@ enum
 	kShip_currentWeapon,		// the ship's active weapon, equipmentType, read/write
 	kShip_dataKey,				// string, read-only, shipdata.plist key
 	kShip_defenseTargets,		// array, read-only, defense targets
-	kShip_desiredRange,      // desired Range, double, read/write
+	kShip_desiredRange,			// desired Range, double, read/write
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
-	kShip_destination,      // flight destination, Vector, read/write
+	kShip_destination,			// flight destination, Vector, read/write
 	kShip_displayName,			// name displayed on screen, string, read/write
 	kShip_entityPersonality,	// per-ship random number, int, read-only
 	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
@@ -170,11 +170,11 @@ enum
 	kShip_isThargoid,			// is thargoid, boolean, read-only
 	kShip_isTrader,				// is trader, boolean, read-only
 	kShip_isWeapon,				// is missile or mine, boolean, read-only
-	kShip_laserHeatLevel,					// active laser temperature, float, read-only
-	kShip_laserHeatLevelAft,					// aft laser temperature, float, read-only
-	kShip_laserHeatLevelForward,					// fore laser temperature, float, read-only
-	kShip_laserHeatLevelPort,					// port laser temperature, float, read-only
-	kShip_laserHeatLevelStarboard,					// starboard laser temperature, float, read-only
+	kShip_laserHeatLevel,			// active laser temperature, float, read-only
+	kShip_laserHeatLevelAft,		// aft laser temperature, float, read-only
+	kShip_laserHeatLevelForward,	// fore laser temperature, float, read-only
+	kShip_laserHeatLevelPort,		// port laser temperature, float, read-only
+	kShip_laserHeatLevelStarboard,	// starboard laser temperature, float, read-only
 	kShip_lightsActive,			// flasher/shader light flag, boolean, read/write
 	kShip_maxPitch,				// maximum flight pitch, double, read-only
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
@@ -216,11 +216,11 @@ enum
 	kShip_vectorRight,			// rightVector of a ship, read-only
 	kShip_vectorUp,				// upVector of a ship, read-only
 	kShip_velocity,				// velocity, vector, read/write
-	kShip_weaponFacings,		// weapon range, double, read-only
-	kShip_weaponPositionAft, // weapon offset, vector, read-only
-	kShip_weaponPositionForward, // weapon offset, vector, read-only
-	kShip_weaponPositionPort, // weapon offset, vector, read-only
-	kShip_weaponPositionStarboard, // weapon offset, vector, read-only
+	kShip_weaponFacings,		// available facings, int, read-only
+	kShip_weaponPositionAft,	// weapon offset, vector, read-only
+	kShip_weaponPositionForward,	// weapon offset, vector, read-only
+	kShip_weaponPositionPort,	// weapon offset, vector, read-only
+	kShip_weaponPositionStarboard,	// weapon offset, vector, read-only
 	kShip_weaponRange,			// weapon range, double, read-only
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
 	kShip_yaw,					// yaw level, float, read-only
@@ -234,8 +234,8 @@ static JSPropertySpec sShipProperties[] =
 	{ "aftWeapon",				kShip_aftWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "AI",						kShip_AI,					OOJS_PROP_READONLY_CB },
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
-	{ "AIFoundTarget",  kShip_AIFoundTarget, 	OOJS_PROP_READWRITE_CB },
-	{ "AIPrimaryAggressor",  kShip_AIPrimaryAggressor, 	OOJS_PROP_READWRITE_CB },
+	{ "AIFoundTarget",			kShip_AIFoundTarget,		OOJS_PROP_READWRITE_CB },
+	{ "AIPrimaryAggressor",		kShip_AIPrimaryAggressor,	OOJS_PROP_READWRITE_CB },
 	{ "autoAI",					kShip_autoAI,				OOJS_PROP_READONLY_CB },
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
 	{ "boundingBox",			kShip_boundingBox,			OOJS_PROP_READONLY_CB },
@@ -286,16 +286,16 @@ static JSPropertySpec sShipProperties[] =
 	{ "isThargoid",				kShip_isThargoid,			OOJS_PROP_READONLY_CB },
 	{ "isTrader",				kShip_isTrader,				OOJS_PROP_READONLY_CB },
 	{ "isWeapon",				kShip_isWeapon,				OOJS_PROP_READONLY_CB },
-	{ "laserHeatLevel",					kShip_laserHeatLevel,					OOJS_PROP_READONLY_CB },
-	{ "laserHeatLevelAft",					kShip_laserHeatLevelAft,					OOJS_PROP_READONLY_CB },
-	{ "laserHeatLevelForward",					kShip_laserHeatLevelForward,					OOJS_PROP_READONLY_CB },
-	{ "laserHeatLevelPort",					kShip_laserHeatLevelPort,					OOJS_PROP_READONLY_CB },
-	{ "laserHeatLevelStarboard",					kShip_laserHeatLevelStarboard,					OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevel",			kShip_laserHeatLevel,		OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevelAft",		kShip_laserHeatLevelAft,	OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevelForward",	kShip_laserHeatLevelForward,	OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevelPort",		kShip_laserHeatLevelPort,	OOJS_PROP_READONLY_CB },
+	{ "laserHeatLevelStarboard",	kShip_laserHeatLevelStarboard,	OOJS_PROP_READONLY_CB },
 	{ "lightsActive",			kShip_lightsActive,			OOJS_PROP_READWRITE_CB },
 	{ "maxPitch",				kShip_maxPitch,				OOJS_PROP_READONLY_CB },
 	{ "maxSpeed",				kShip_maxSpeed,				OOJS_PROP_READONLY_CB },
 	{ "maxRoll",				kShip_maxRoll,				OOJS_PROP_READONLY_CB },
-	{ "maxYaw",				kShip_maxYaw,				OOJS_PROP_READONLY_CB },
+	{ "maxYaw",					kShip_maxYaw,				OOJS_PROP_READONLY_CB },
 	{ "maxThrust",				kShip_maxThrust,			OOJS_PROP_READONLY_CB },
 	{ "missileCapacity",		kShip_missileCapacity,		OOJS_PROP_READONLY_CB },
 	{ "missileLoadTime",		kShip_missileLoadTime,		OOJS_PROP_READWRITE_CB },
@@ -332,11 +332,11 @@ static JSPropertySpec sShipProperties[] =
 	{ "vectorRight",			kShip_vectorRight,			OOJS_PROP_READONLY_CB },
 	{ "vectorUp",				kShip_vectorUp,				OOJS_PROP_READONLY_CB },
 	{ "velocity",				kShip_velocity,				OOJS_PROP_READWRITE_CB },
-	{ "weaponFacings",			kShip_weaponFacings,			OOJS_PROP_READONLY_CB },
-	{ "weaponPositionAft", 	kShip_weaponPositionAft,  OOJS_PROP_READONLY_CB },
-	{ "weaponPositionForward", 	kShip_weaponPositionForward,  OOJS_PROP_READONLY_CB },
-	{ "weaponPositionPort", 	kShip_weaponPositionPort,  OOJS_PROP_READONLY_CB },	
-	{ "weaponPositionStarboard", 	kShip_weaponPositionStarboard,  OOJS_PROP_READONLY_CB },
+	{ "weaponFacings",			kShip_weaponFacings,		OOJS_PROP_READONLY_CB },
+	{ "weaponPositionAft",		kShip_weaponPositionAft,	OOJS_PROP_READONLY_CB },
+	{ "weaponPositionForward",	kShip_weaponPositionForward,	OOJS_PROP_READONLY_CB },
+	{ "weaponPositionPort",		kShip_weaponPositionPort,	OOJS_PROP_READONLY_CB },	
+	{ "weaponPositionStarboard",	kShip_weaponPositionStarboard,	OOJS_PROP_READONLY_CB },
 	{ "weaponRange",			kShip_weaponRange,			OOJS_PROP_READONLY_CB },
 	{ "withinStationAegis",		kShip_withinStationAegis,	OOJS_PROP_READONLY_CB },
 	{ "yaw",				kShip_yaw,			OOJS_PROP_READONLY_CB },
@@ -348,10 +348,10 @@ static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
 	{ "abandonShip",			ShipAbandonShip,			0 },
-	{ "addDefenseTarget",			ShipAddDefenseTarget,			1 },
+	{ "addDefenseTarget",		ShipAddDefenseTarget,		1 },
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
-	{ "clearDefenseTargets",			ShipClearDefenseTargets,			0 },
+	{ "clearDefenseTargets",	ShipClearDefenseTargets,	0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ "dealEnergyDamage",		ShipDealEnergyDamage,		2 },
 	{ "deployEscorts",			ShipDeployEscorts,			0 },
@@ -365,8 +365,8 @@ static JSFunctionSpec sShipMethods[] =
 	{ "explode",				ShipExplode,				0 },
 	{ "fireECM",				ShipFireECM,				0 },
 	{ "fireMissile",			ShipFireMissile,			0 },
-	{ "getMaterials",         ShipGetMaterials,				0 },
-	{ "getShaders",            ShipGetShaders,				0 },
+	{ "getMaterials",			ShipGetMaterials,			0 },
+	{ "getShaders",				ShipGetShaders,				0 },
 	{ "hasRole",				ShipHasRole,				1 },
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
@@ -446,27 +446,27 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_primaryRole:
 			result = [entity primaryRole];
 			break;
-			
+		
 		case kShip_AI:
 			result = [[entity getAI] name];
 			break;
-			
+		
 		case kShip_AIState:
 			result = [[entity getAI] state];
 			break;
-
+		
 		case kShip_AIFoundTarget:
 			result = [entity foundTarget];
 			break;
-
+		
 		case kShip_AIPrimaryAggressor:
 			result = [entity primaryAggressor];
 			break;
-
+		
 		case kShip_autoAI:
 			*value = OOJSValueFromBOOL([entity hasAutoAI]);
 			return YES;
-
+		
 		case kShip_accuracy:
 			return JS_NewNumberValue(context, [entity accuracy], value);
 			
@@ -575,16 +575,16 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_weaponPositionAft:
 			return VectorToJSValue(context, [entity aftWeaponOffset], value);
-
+		
 		case kShip_weaponPositionForward:
 			return VectorToJSValue(context, [entity forwardWeaponOffset], value);
-
+		
 		case kShip_weaponPositionPort:
 			return VectorToJSValue(context, [entity portWeaponOffset], value);
-
+		
 		case kShip_weaponPositionStarboard:
 			return VectorToJSValue(context, [entity starboardWeaponOffset], value);
-
+		
 		case kShip_scannerRange:
 			return JS_NewNumberValue(context, [entity scannerRange], value);
 		
@@ -595,19 +595,19 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_withinStationAegis:
 			*value = OOJSValueFromBOOL([entity withinStationAegis]);
 			return YES;
-			
+		
 		case kShip_cargoSpaceCapacity:
 			*value = INT_TO_JSVAL([entity maxAvailableCargoSpace]);
 			return YES;
-			
+		
 		case kShip_cargoSpaceUsed:
 			*value = INT_TO_JSVAL([entity maxAvailableCargoSpace] - [entity availableCargoSpace]);
 			return YES;
-			
+		
 		case kShip_cargoSpaceAvailable:
 			*value = INT_TO_JSVAL([entity availableCargoSpace]);
 			return YES;
-			
+		
 		case kShip_commodity:
 			if ([entity commodityAmount] > 0)
 			{
@@ -624,29 +624,29 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_cruiseSpeed:
 			return JS_NewNumberValue(context, [entity cruiseSpeed], value);
-
+		
 		case kShip_dataKey:
 			result = [entity shipDataKey];
 			break;
 			
 		case kShip_desiredRange:
 			return JS_NewNumberValue(context, [entity desiredRange], value);
-
+		
 		case kShip_desiredSpeed:
 			return JS_NewNumberValue(context, [entity desiredSpeed], value);
 			
 		case kShip_destination:
 			return VectorToJSValue(context, [entity destination], value);
-
+		
 		case kShip_maxPitch:
 			return JS_NewNumberValue(context, [entity maxFlightPitch], value);
-
+		
 		case kShip_maxSpeed:
 			return JS_NewNumberValue(context, [entity maxFlightSpeed], value);
-
+		
 		case kShip_maxRoll:
 			return JS_NewNumberValue(context, [entity maxFlightRoll], value);
-
+		
 		case kShip_maxYaw:
 			return JS_NewNumberValue(context, [entity maxFlightYaw], value);
 			
@@ -726,7 +726,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_passengerCapacity:
 			*value = INT_TO_JSVAL([entity passengerCapacity]);
 			return YES;
-
+		
 		case kShip_missileCapacity:
 			*value = INT_TO_JSVAL([entity missileCapacity]);
 			return YES;
@@ -744,7 +744,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_currentWeapon:
 			result = [entity weaponTypeForFacing:[entity currentWeaponFacing]];
 			break;
-
+		
 		case kShip_forwardWeapon:
 			result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD];
 			break;
@@ -760,19 +760,19 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_starboardWeapon:
 			result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD];
 			break;
-
+		
 		case kShip_laserHeatLevel:
 			return JS_NewNumberValue(context, [entity laserHeatLevel], value);
-
+		
 		case kShip_laserHeatLevelAft:
 			return JS_NewNumberValue(context, [entity laserHeatLevelAft], value);
-
+		
 		case kShip_laserHeatLevelForward:
 			return JS_NewNumberValue(context, [entity laserHeatLevelForward], value);
-
+		
 		case kShip_laserHeatLevelPort:
 			return JS_NewNumberValue(context, [entity laserHeatLevelPort], value);
-
+		
 		case kShip_laserHeatLevelStarboard:
 			return JS_NewNumberValue(context, [entity laserHeatLevelStarboard], value);
 		
@@ -820,13 +820,13 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_thrustVector:
 			return VectorToJSValue(context, [entity thrustVector], value);
-
+		
 		case kShip_pitch:
 			return JS_NewNumberValue(context, [entity flightPitch], value);
-
+		
 		case kShip_roll:
 			return JS_NewNumberValue(context, [entity flightRoll], value);
-
+		
 		case kShip_yaw:
 			return JS_NewNumberValue(context, [entity flightYaw], value);
 		
@@ -834,7 +834,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			{
 				Vector bbvect;
 				BoundingBox box;
-
+				
 				if ([entity isSubEntity])
 				{
 					box = [entity boundingBox];
@@ -963,7 +963,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
-
+		
 		case kShip_fuel:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
@@ -994,10 +994,10 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
-
+		
 		case kShip_AIFoundTarget:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
-
+			
 			if (JSVAL_IS_NULL(*value))
 			{
 				[entity setFoundTarget:nil];
@@ -1009,10 +1009,10 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
-
+		
 		case kShip_AIPrimaryAggressor:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
-
+			
 			if (JSVAL_IS_NULL(*value))
 			{
 				[entity setPrimaryAggressor:nil];
@@ -1101,10 +1101,10 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
-
+		
 		case kShip_destination:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
-
+			
 			if (JSValueToVector(context, *value, &vValue))
 			{
 				// use setEscortDestination rather than setDestination as
@@ -1123,7 +1123,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
-
+		
 		case kShip_desiredRange:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
 			
