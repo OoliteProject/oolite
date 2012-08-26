@@ -478,7 +478,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	if (translucent || [UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.
 	
-	if (![UNIVERSE checkFrustum:position:([self radius] + ATMOSPHERE_DEPTH)]) 
+	if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:([self radius] + ATMOSPHERE_DEPTH)])
 	{
 		// Don't draw
 		return;

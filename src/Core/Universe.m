@@ -3555,7 +3555,7 @@ static const OOMatrix	starboard_matrix =
 }
 
 
-- (BOOL) checkFrustum:(Vector)position :(GLfloat)radius
+- (BOOL) viewFrustumIntersectsSphereAt:(Vector)position withRadius:(GLfloat)radius
 {
 	int p;
 	for (p = 0; p < 6; p++)

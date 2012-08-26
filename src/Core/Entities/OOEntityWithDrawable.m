@@ -91,14 +91,14 @@ MA 02110-1301, USA.
 				ShipEntity* shipself = (ShipEntity*)self;
 				clipradius = [shipself frustumRadius];
 			}
-			if (![UNIVERSE checkFrustum:position:clipradius]) 
+			if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:clipradius])
 			{
 				return;
 			}
 		} 
 		else 
 		{ // check correct sub-entity position
-			if (![UNIVERSE checkFrustum:[super absolutePositionForSubentity]:collision_radius]) 
+			if (![UNIVERSE viewFrustumIntersectsSphereAt:[super absolutePositionForSubentity] withRadius:collision_radius])
 			{
 				return;
 			}
