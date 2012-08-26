@@ -34,6 +34,11 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 
+#ifndef NSAppKitVersionNumber10_7
+#define NSAppKitVersionNumber10_7 1138
+#endif
+
+
 #define kFullScreenPresentationMode	  ( NSApplicationPresentationFullScreen | \
 										NSApplicationPresentationAutoHideDock | \
 										NSApplicationPresentationAutoHideMenuBar )
@@ -43,14 +48,14 @@ MA 02110-1301, USA.
 
 + (BOOL) shouldUseSystemStandardFullScreenController
 {
-	if (NSAppKitVersionNumber < NSAppKitVersionNumber10_7)
+	if (floor(NSAppKitVersionNumber) <= NSAppKitVersionNumber10_6)
 	{
 		// Never on 10.6 or earlier; the necessary API doesn't exist.
 		return NO;
 	}
 	
 	// If safe to use, allow override for debugging.
-	NSString *override = [NSUserDefaults.standardUserDefaults stringForKey:@"full-screen-mode-override"];
+	NSString *override = [[NSUserDefaults standardUserDefaults] stringForKey:@"full-screen-mode-override"];
 	if (override != nil)
 	{
 		if ([override isEqualToString:@"lion"])  return YES;
@@ -89,7 +94,11 @@ MA 02110-1301, USA.
 - (NSArray *) displayModes
 {
 	NSSize size = self.gameView.window.frame.size;
-	return @[@{ kOODisplayWidth: @(size.width), kOODisplayWidth: @(size.height) }];
+	NSDictionary *fakeMode = [NSDictionary dictionaryWithObjectsAndKeys:
+							  [NSNumber numberWithUnsignedInt:size.width], kOODisplayWidth,
+							  [NSNumber numberWithUnsignedInt:size.height], kOODisplayHeight,
+							  nil];
+	return [NSArray arrayWithObject:fakeMode];
 }
 
 

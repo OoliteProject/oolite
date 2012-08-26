@@ -30,10 +30,7 @@ MA 02110-1301, USA.
 #import "OOFullScreenController.h"
 
 /*
-	OOMacSystemStandardFullScreenController requires Xcode 4.4 or later with
-	the Mac OS X 10.7 SDK. At the time of writing, one contributor is using
-	an earlier version, so we exclude OOMacSystemStandardFullScreenController
-	support if the 10.7 SDK is not in use.
+	OOMacSystemStandardFullScreenController requires the Mac OS X 10.7 SDK.
 */
 #if OOLITE_MAC_OS_X
 #if OOLITE_64_BIT && defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
