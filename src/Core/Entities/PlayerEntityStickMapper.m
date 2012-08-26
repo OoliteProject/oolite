@@ -31,12 +31,12 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (StickMapperInternal)
 
-- (void) removeFunction: (int)selFunctionIdx;
+- (void) removeFunction:(int)selFunctionIdx;
 - (NSArray *)stickFunctionList;
-- (void)displayFunctionList: (GuiDisplayGen *)gui
-					   skip: (unsigned) skip;
-- (NSString *)describeStickDict: (NSDictionary *)stickDict;
-- (NSString *)hwToString: (int)hwFlags;
+- (void)displayFunctionList:(GuiDisplayGen *)gui
+					   skip:(OOUInteger) skip;
+- (NSString *)describeStickDict:(NSDictionary *)stickDict;
+- (NSString *)hwToString:(int)hwFlags;
 
 @end
 
@@ -69,7 +69,7 @@ MA 02110-1301, USA.
 			   forRow:i + GUI_ROW_STICKNAME];
 	}
 	
-	[self displayFunctionList: gui skip: skip];
+	[self displayFunctionList:gui skip:skip];
 	
 	[gui setArray:[NSArray arrayWithObject:@"Select a function and press Enter to modify or 'u' to unset."]
 		   forRow:GUI_ROW_INSTRUCT];
@@ -229,9 +229,9 @@ MA 02110-1301, USA.
 - (void) removeFunction:(int)idx
 {
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
-	NSDictionary	*entry = [stickFunctions objectAtIndex:idx];
-	NSNumber		*butfunc = [entry objectForKey:KEY_BUTTONFN];
-	NSNumber		*axfunc = [entry objectForKey:KEY_AXISFN];
+	NSDictionary		*entry = [stickFunctions objectAtIndex:idx];
+	NSNumber			*butfunc = [entry objectForKey:KEY_BUTTONFN];
+	NSNumber			*axfunc = [entry objectForKey:KEY_AXISFN];
 	selFunctionIdx = idx;
 	
 	// Some things can have either axis or buttons - make sure we clear
@@ -256,11 +256,10 @@ MA 02110-1301, USA.
 
 
 - (void) displayFunctionList:(GuiDisplayGen *)gui
-						skip:(unsigned) skip
+						skip:(OOUInteger)skip
 {
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	
-	unsigned i;
 	[gui setColor:[OOColor greenColor] forRow: GUI_ROW_HEADING];
 	[gui setArray:[NSArray arrayWithObjects:
 				   @"Function", @"Assigned to", @"Type", nil]
@@ -273,8 +272,8 @@ MA 02110-1301, USA.
 	NSDictionary *assignedAxes = [stickHandler axisFunctions];
 	NSDictionary *assignedButs = [stickHandler buttonFunctions];
 	
-	unsigned n_functions = [stickFunctions count];
-	int n_rows, start_row, previous = 0;
+	OOUInteger i, n_functions = [stickFunctions count];
+	OOInteger n_rows, start_row, previous = 0;
 	
 	if (skip >= n_functions)
 		skip = n_functions - 1;
@@ -307,7 +306,7 @@ MA 02110-1301, USA.
 		{
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_FUNCSTART];
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:GUI_ROW_FUNCSTART];
-			[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:GUI_ROW_FUNCSTART];
+			[gui setKey:[NSString stringWithFormat:@"More:%ld", previous] forRow:GUI_ROW_FUNCSTART];
 		}
 		
 		for(i=0; i < (n_functions - skip) && (int)i < n_rows; i++)
@@ -351,13 +350,13 @@ MA 02110-1301, USA.
 							[entry objectForKey: KEY_GUIDESC], assignment, allowedThings, nil]
 				   forRow: i + start_row];
 			//[gui setKey: GUI_KEY_OK forRow: i + start_row];
-			[gui setKey: [NSString stringWithFormat: @"Index:%d", i + skip] forRow: i + start_row];
+			[gui setKey: [NSString stringWithFormat: @"Index:%ld", i + skip] forRow: i + start_row];
 		}
 		if (i < n_functions - skip)
 		{
 			[gui setColor: [OOColor greenColor] forRow: start_row + i];
 			[gui setArray: [NSArray arrayWithObjects: DESC(@"gui-more"), @" --> ", nil] forRow: start_row + i];
-			[gui setKey: [NSString stringWithFormat: @"More:%d", n_rows + skip] forRow: start_row + i];
+			[gui setKey: [NSString stringWithFormat: @"More:%ld", n_rows + skip] forRow: start_row + i];
 			i++;
 		}
 		

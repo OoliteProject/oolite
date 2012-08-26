@@ -295,7 +295,7 @@ typedef struct
 
 
 //Methods that should be overridden by all subclasses
-- (NSString *) nameOfJoystick:(int)stickNumber;
-- (int16_t) getAxisWithStick:(int) stickNum axis:(int) axisNum ;
+- (NSString *) nameOfJoystick:(OOUInteger)stickNumber;
+- (int16_t) getAxisWithStick:(OOUInteger) stickNum axis:(OOUInteger)axisNum;
 
 @end

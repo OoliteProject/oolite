@@ -229,12 +229,14 @@ SOFTWARE.
 - (int) oo_intForKey:(id)key defaultValue:(int)value;
 - (long) oo_longForKey:(id)key defaultValue:(long)value;
 - (long long) oo_longLongForKey:(id)key defaultValue:(long long)value;
+- (OOInteger) oo_integerForKey:(id)key defaultValue:(OOInteger)value;
 
 - (unsigned char) oo_unsignedCharForKey:(id)key defaultValue:(unsigned char)value;
 - (unsigned short) oo_unsignedShortForKey:(id)key defaultValue:(unsigned short)value;
 - (unsigned int) oo_unsignedIntForKey:(id)key defaultValue:(unsigned int)value;
 - (unsigned long) oo_unsignedLongForKey:(id)key defaultValue:(unsigned long)value;
 - (unsigned long long) oo_unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
+- (OOUInteger) oo_unsignedIntegerForKey:(id)key defaultValue:(OOUInteger)value;
 
 - (BOOL) oo_boolForKey:(id)key defaultValue:(BOOL)value;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE

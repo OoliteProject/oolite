@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 
 - (id) init;
 - (BOOL) handleSDLEvent: (SDL_Event *)evt;
-- (NSString *) nameOfJoystick:(int)stickNumber;
-- (int16_t) getAxisWithStick:(int) stickNum axis:(int) axisNum ;
+- (NSString *) nameOfJoystick:(OOUInteger)stickNumber;
+- (int16_t) getAxisWithStick:(OOUInteger) stickNum axis:(OOUInteger) axisNum ;
 
 @end

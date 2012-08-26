@@ -985,7 +985,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 {
 	return [NSDictionary dictionaryWithObjectsAndKeys:
 			_function, @"name",
-			[NSNumber numberWithUnsignedInt:[self hitCount]], @"hitCount",
+			[NSNumber numberWithUnsignedInteger:[self hitCount]], @"hitCount",
 			[NSNumber numberWithDouble:[self totalTimeSum]], @"totalTimeSum",
 			[NSNumber numberWithDouble:[self selfTimeSum]], @"selfTimeSum",
 			[NSNumber numberWithDouble:[self totalTimeAverage]], @"totalTimeAverage",

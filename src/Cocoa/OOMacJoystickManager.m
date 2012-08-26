@@ -320,7 +320,7 @@ static uint8_t MapHatValue(CFIndex value, CFIndex max)
 }
 
 
-- (NSString *) nameOfJoystick:(int)stickNumber
+- (NSString *) nameOfJoystick:(OOUInteger)stickNumber
 {
 	IOHIDDeviceRef device = (IOHIDDeviceRef)CFArrayGetValueAtIndex(devices, stickNumber);
 	return (NSString *)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
@@ -328,7 +328,7 @@ static uint8_t MapHatValue(CFIndex value, CFIndex max)
 
 
 
-- (int16_t) getAxisWithStick:(int) stickNum axis:(int) axisNum 
+- (int16_t) getAxisWithStick:(OOUInteger) stickNum axis:(OOUInteger) axisNum 
 {
 	return 0;
 }

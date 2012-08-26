@@ -89,9 +89,9 @@ MA 02110-1301, USA.
 	NSUInteger refresh = [currentMode oo_unsignedIntegerForKey:kOODisplayRefreshRate];
 	
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-	width = [userDefaults oo_unsignedIntForKey:@"display_width" defaultValue:width];
-	height = [userDefaults oo_unsignedIntForKey:@"display_height" defaultValue:height];
-	refresh = [userDefaults oo_unsignedIntForKey:@"display_refresh" defaultValue:refresh];
+	width = [userDefaults oo_unsignedIntegerForKey:@"display_width" defaultValue:width];
+	height = [userDefaults oo_unsignedIntegerForKey:@"display_height" defaultValue:height];
+	refresh = [userDefaults oo_unsignedIntegerForKey:@"display_refresh" defaultValue:refresh];
 	
 	[fullScreenController setDisplayWidth:width height:height refreshRate:refresh];
 	

@@ -573,12 +573,12 @@ static id sSharedStickHandler = nil;
 
 // These get overidden by subclasses
 
-- (NSString *) nameOfJoystick:(int)stickNumber
+- (NSString *) nameOfJoystick:(OOUInteger)stickNumber
 {
 	return @"Dummy joystick";
 }
 
-- (int16_t) getAxisWithStick:(int)stickNum axis:(int)axisNum 
+- (int16_t) getAxisWithStick:(OOUInteger)stickNum axis:(OOUInteger)axisNum
 {
 	return 0;
 }

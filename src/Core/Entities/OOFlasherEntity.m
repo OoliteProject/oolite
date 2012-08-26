@@ -115,7 +115,7 @@ MA 02110-1301, USA.
 	if (_frequency != 0)
 	{
 		float wave = sin(_frequency * M_PI * (_time + _phase));
-		unsigned count = [_colors count];
+		OOUInteger count = [_colors count];
 		if (count > 1 && wave < 0) 
 		{
 			if (!_justSwitched && wave > _wave)	// don't test for wave >= _wave - could give wrong results with very low frequencies
@@ -125,8 +125,10 @@ MA 02110-1301, USA.
 				[self setColor:[_colors objectAtIndex:_activeColor]];
 			}
 		}
-		else
-			if (_justSwitched) _justSwitched = NO;
+		else if (_justSwitched)
+		{
+			_justSwitched = NO;
+		}
 
 		float threshold = cos(_brightfraction * M_PI);
 		

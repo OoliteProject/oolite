@@ -761,6 +761,12 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 }
 
 
+- (OOInteger) oo_integerForKey:(id)key defaultValue:(OOInteger)value
+{
+	return OOIntegerFromObject([self objectForKey:key], value);
+}
+
+
 - (unsigned char) oo_unsignedCharForKey:(id)key defaultValue:(unsigned char)value
 {
 	return OOUnsignedCharFromObject([self objectForKey:key], value);
@@ -788,6 +794,12 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 - (unsigned long long) oo_unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value
 {
 	return OOUnsignedLongLongFromObject([self objectForKey:key], value);
+}
+
+
+- (OOUInteger) oo_unsignedIntegerForKey:(id)key defaultValue:(OOUInteger)value
+{
+	return OOUIntegerFromObject([self objectForKey:key], value);
 }
 
 

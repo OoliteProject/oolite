@@ -97,13 +97,13 @@ MA 02110-1301, USA.
 }
 
 
-- (NSString *) nameOfJoystick:(int)stickNumber
+- (NSString *) nameOfJoystick:(OOUInteger)stickNumber
 {
-	return [NSString stringWithUTF8String:SDL_JoystickName(stickNumber)];
+	return [NSString stringWithUTF8String:SDL_JoystickName((int)stickNumber)];
 }
 
 
-- (int16_t) getAxisWithStick:(int) stickNum axis:(int) axisNum 
+- (int16_t) getAxisWithStick:(OOUInteger) stickNum axis:(OOUInteger) axisNum 
 {
 	return SDL_JoystickGetAxis(stick[stickNum], axisNum);
 }

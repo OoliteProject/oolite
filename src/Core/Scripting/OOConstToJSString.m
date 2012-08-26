@@ -174,7 +174,10 @@ static int CompareEntries(const void *a, const void *b)
 {
 	const TableEntry *entA = a;
 	const TableEntry *entB = b;
-	return entA->value - entB->value;
+	
+	if (entA->value < entB->value)  return -1;
+	if (entA->value > entB->value)  return 1;
+	return 0;
 }
 
 

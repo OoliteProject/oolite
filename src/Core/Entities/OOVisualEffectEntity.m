@@ -308,7 +308,7 @@ MA 02110-1301, USA.
 }
 
 
-- (unsigned) subEntityCount 
+- (OOUInteger) subEntityCount
 {
 	return [subEntities count];
 }
