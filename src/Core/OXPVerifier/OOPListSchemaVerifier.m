@@ -195,8 +195,8 @@ static BOOL IsFailureAlreadyReportedError(NSError *error);
 
 #define VERIFY_PROTO(T) static NSError *Verify_##T(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 VERIFY_PROTO(String);
-VERIFY_PROTO(Array) GCC_ATTR((noinline));		// Inlining suppressed to avoid "variable may be clobbered" warning when building for Mac OS X/x86.
-VERIFY_PROTO(Dictionary) GCC_ATTR((noinline));	// Ditto.
+VERIFY_PROTO(Array);
+VERIFY_PROTO(Dictionary);
 VERIFY_PROTO(Integer);
 VERIFY_PROTO(PositiveInteger);
 VERIFY_PROTO(Float);
