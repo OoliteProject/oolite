@@ -39,7 +39,7 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 static JSBool VisualEffectRemove(JSContext *context, uintN argc, jsval *vp);
-//static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp);
+static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectSetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectGetMaterials(JSContext *context, uintN argc, jsval *vp);
@@ -105,7 +105,7 @@ static JSFunctionSpec sVisualEffectMethods[] =
 	{ "getMaterials",   VisualEffectGetMaterials,    0 },
 	{ "getShaders",     VisualEffectGetShaders,    0 },
 	{ "remove",         VisualEffectRemove,    0 },
-//	{ "scale",         VisualEffectScale,    1 },
+	{ "scale",         VisualEffectScale,    1 },
 	{ "setMaterials",     VisualEffectSetMaterials,    1 },
 	{ "setShaders",     VisualEffectSetShaders,    2 },
 
@@ -356,7 +356,7 @@ static JSBool VisualEffectRemove(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-/* // doesn't work as meshes are shared
+ // doesn't work as meshes are shared
 static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
@@ -385,7 +385,7 @@ static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp)
 	return YES;
 	
 	OOJS_NATIVE_EXIT
-	} */
+} 
 
 
 

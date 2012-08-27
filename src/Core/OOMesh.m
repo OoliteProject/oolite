@@ -753,8 +753,26 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 - (OOMesh *)meshRescaledBy:(GLfloat)scaleFactor
 {
 	OOMesh *result = [self mutableCopy];
+	[result copyVertexArray];
 	[result rescaleByFactor:scaleFactor];
 	return [result autorelease];
+}
+
+
+// create copies of the vertex arrays for safe scaling
+- (void) copyVertexArray
+{
+	NSData *prevData = [_retainedObjects objectForKey:@"vertices"];
+	NSData *vertData = [[NSData alloc] initWithData:prevData];
+	[self setRetainedObject:vertData forKey:@"vertices"];
+	_vertices = (Vector *)[vertData bytes];
+	[vertData release];
+
+	NSData *prevVArray = [_retainedObjects objectForKey:@"vertexArray"];
+	NSData *vertArray = [[NSData alloc] initWithData:prevVArray];
+	[self setRetainedObject:vertArray forKey:@"vertexArray"];
+	_displayLists.vertexArray = (Vector *)[vertArray bytes];
+	[vertArray release];
 }
 
 
