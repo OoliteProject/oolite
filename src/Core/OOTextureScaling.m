@@ -342,7 +342,7 @@ FAIL:
 // FIXME: should take an OOPixMap.
 BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format)
 {
-	if (EXPECT_NOT(width != OORoundUpToPowerOf2(width) || height != OORoundUpToPowerOf2(height)))
+	if (EXPECT_NOT(width != OORoundUpToPowerOf2_PixMap(width) || height != OORoundUpToPowerOf2_PixMap(height)))
 	{
 		OOLog(kOOLogParameterError, @"Non-power-of-two dimensions (%ux%u) passed to %s() - ignoring, data will be junk.", width, height, __PRETTY_FUNCTION__);
 		return NO;

@@ -1376,7 +1376,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	OOLog(kOOLogNoteRemoveAllCargo, @"%@ removeAllCargo", forceRemoval ? @"Forcing" : @"Going to");
 	
 	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-	for (type = 0; type < (OOCommodityType)[manifest count]; type++)
+	for (type = 0; (OOUInteger)type < [manifest count]; type++)
 	{
 		NSMutableArray *manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
 		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.

@@ -54,7 +54,7 @@ static BOOL					sHaveSetUp = NO;
 + (void)setUp;
 
 - (void)applySettings;
-- (void)getDesiredWidth:(uint32_t *)outDesiredWidth andHeight:(uint32_t *)outDesiredHeight;
+- (void)getDesiredWidth:(OOPixMapDimension *)outDesiredWidth andHeight:(OOPixMapDimension *)outDesiredHeight;
 
 
 @end
@@ -275,7 +275,7 @@ static BOOL					sHaveSetUp = NO;
 	// Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can handle.
 	sUserMaxSize = [[NSUserDefaults standardUserDefaults] oo_unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
 	if (sUserMaxSize < 0x80000000)  OOLog(@"texture.load.rescale.maxSize", @"User maximum texture size: %u", sUserMaxSize);
-	sUserMaxSize = OORoundUpToPowerOf2(sUserMaxSize);
+	sUserMaxSize = OORoundUpToPowerOf2_32(sUserMaxSize);
 	sUserMaxSize = MAX(sUserMaxSize, 64U);
 	
 	
@@ -352,7 +352,7 @@ static BOOL					sHaveSetUp = NO;
 
 - (void)applySettings
 {
-	uint32_t			desiredWidth, desiredHeight;
+	OOPixMapDimension	desiredWidth, desiredHeight;
 	BOOL				rescale;
 	size_t				newSize;
 	uint8_t				components;
@@ -452,9 +452,9 @@ static BOOL					sHaveSetUp = NO;
 }
 
 
-- (void)getDesiredWidth:(uint32_t *)outDesiredWidth andHeight:(uint32_t *)outDesiredHeight
+- (void)getDesiredWidth:(OOPixMapDimension *)outDesiredWidth andHeight:(OOPixMapDimension *)outDesiredHeight
 {
-	uint32_t			desiredWidth, desiredHeight;
+	OOPixMapDimension	desiredWidth, desiredHeight;
 	
 	// Work out appropriate final size for textures.
 	if (!_noScalingWhatsoever)
@@ -464,7 +464,7 @@ static BOOL					sHaveSetUp = NO;
 		{
 			_isCubeMap = YES;
 			
-			desiredWidth = OORoundUpToPowerOf2((2 * _width) / 3);
+			desiredWidth = OORoundUpToPowerOf2_PixMap((2 * _width) / 3);
 			desiredWidth = MIN(desiredWidth, sGLMaxSize / 8);
 			if (sReducedDetail)
 			{
@@ -479,8 +479,8 @@ static BOOL					sHaveSetUp = NO;
 			if (!sHaveNPOTTextures)
 			{
 				// Round to nearest power of two. NOTE: this is duplicated in OOTextureVerifierStage.m.
-				desiredWidth = OORoundUpToPowerOf2((2 * _width) / 3);
-				desiredHeight = OORoundUpToPowerOf2((2 * _height) / 3);
+				desiredWidth = OORoundUpToPowerOf2_PixMap((2 * _width) / 3);
+				desiredHeight = OORoundUpToPowerOf2_PixMap((2 * _height) / 3);
 			}
 			else
 			{

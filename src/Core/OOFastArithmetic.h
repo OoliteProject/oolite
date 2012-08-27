@@ -30,9 +30,6 @@ MA 02110-1301, USA.
 #else
 
 
-/* Round integer up to nearest power of 2. */
-OOINLINE OOUInteger OORoundUpToPowerOf2(OOUInteger x) INLINE_CONST_FUNC;
-
 /* Clamp to range. */
 OOINLINE float OOClamp_0_1_f(float value) INLINE_CONST_FUNC;
 OOINLINE double OOClamp_0_1_d(double value) INLINE_CONST_FUNC;
@@ -43,15 +40,28 @@ OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
 OOINLINE float OOLerp(float v0, float v1, float fraction) INLINE_CONST_FUNC;
 
 
-#if OOLITE_64_BIT
-OOINLINE OOUInteger OORoundUpToPowerOf2(OOUInteger value)
+/* Round integer up to nearest power of 2. NOTE: these return 0 if the high bit of value is set. */
+OOINLINE INLINE_CONST_FUNC uint32_t OORoundUpToPowerOf2_32(uint32_t value)
+{
+	return 0x80000000U >> (__builtin_clz(value - 1) - 1);
+}
+
+
+OOINLINE INLINE_CONST_FUNC uint64_t OORoundUpToPowerOf2_64(uint64_t value)
 {
 	return 0x8000000000000000ULL >> (__builtin_clzll(value - 1) - 1);
 }
-#else
-OOINLINE OOUInteger OORoundUpToPowerOf2(OOUInteger value)
+
+
+#if OOLITE_64_BIT
+OOINLINE INLINE_CONST_FUNC OOUInteger OORoundUpToPowerOf2_NS(OOUInteger value)
 {
-	return 0x80000000U >> (__builtin_clz(value - 1) - 1);
+	return OORoundUpToPowerOf2_64(value);
+}
+#else
+OOINLINE INLINE_CONST_FUNC OOUInteger OORoundUpToPowerOf2_NS(OOUInteger value)
+{
+	return OORoundUpToPowerOf2_32(value);
 }
 #endif
 

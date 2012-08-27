@@ -71,7 +71,7 @@ typedef enum
 } OOCargoType;
 
 
-typedef enum
+enum
 {
 	COMMODITY_UNDEFINED		= -1,
 	
@@ -93,7 +93,8 @@ typedef enum
 	COMMODITY_PLATINUM,
 	COMMODITY_GEM_STONES,
 	COMMODITY_ALIEN_ITEMS
-} OOCommodityType;
+};
+typedef OOInteger OOCommodityType;
 
 
 typedef enum

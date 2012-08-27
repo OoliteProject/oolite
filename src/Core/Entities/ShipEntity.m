@@ -648,7 +648,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (NSString *) repeatString:(NSString *)str times:(uint)times
+- (NSString *) repeatString:(NSString *)str times:(OOUInteger)times
 {
 
 	if (times == 0)  return @"";
@@ -671,7 +671,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	NSMutableString		*result = [NSMutableString stringWithCapacity:4];
 	NSEnumerator		*subEnum = nil;
 	ShipEntity			*se = nil;
-	OOUInteger			diff,i = 0;
+	OOUInteger			diff, i = 0;
 	
 	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
@@ -689,8 +689,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (void) deserializeShipSubEntitiesFrom:(NSString *)string
 {
 	NSArray				*subEnts = [[self shipSubEntityEnumerator] allObjects];
-	int					i,idx, start = [subEnts count] - 1;
-	int					strMaxIdx = [string length] - 1;
+	OOInteger			i,idx, start = [subEnts count] - 1;
+	OOInteger			strMaxIdx = [string length] - 1;
 		
 	ShipEntity			*se = nil;
 	
@@ -1099,7 +1099,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (unsigned) subEntityCount
+- (OOUInteger) subEntityCount
 {
 	return [subEntities count];
 }
@@ -1714,11 +1714,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// check prime subentities against the other's hull
-	NSArray* prime_subs = prime->subEntities;
+	NSArray *prime_subs = prime->subEntities;
 	if (prime_subs)
 	{
-		int i;
-		int n_subs = [prime_subs count];
+		OOUInteger i, n_subs = [prime_subs count];
 		for (i = 0; i < n_subs; i++)
 		{
 			Entity* se = [prime_subs objectAtIndex:i];
@@ -1728,11 +1727,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	// check prime hull against the other's subentities
-	NSArray* other_subs = other->subEntities;
+	NSArray *other_subs = other->subEntities;
 	if (other_subs)
 	{
-		int i;
-		int n_subs = [other_subs count];
+		OOUInteger i, n_subs = [other_subs count];
 		for (i = 0; i < n_subs; i++)
 		{
 			Entity* se = [other_subs objectAtIndex:i];
@@ -1744,15 +1742,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// check prime subenties against the other's subentities
 	if ((prime_subs)&&(other_subs))
 	{
-		int i;
-		int n_osubs = [other_subs count];
+		OOUInteger i, n_osubs = [other_subs count];
 		for (i = 0; i < n_osubs; i++)
 		{
 			Entity* oe = [other_subs objectAtIndex:i];
 			if ([oe isShip] && [oe canCollide])
 			{
-				int j;
-				int n_psubs = [prime_subs count];
+				OOUInteger j, n_psubs = [prime_subs count];
 				for (j = 0; j <  n_psubs; j++)
 				{
 					Entity* pe = [prime_subs objectAtIndex:j];
@@ -2982,7 +2978,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (unsigned) equipmentCount
+- (OOUInteger) equipmentCount
 {
 	return [_equipment count];
 }
@@ -3231,38 +3227,38 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (int) removeMissiles
+- (OOCreditsQuantity) removeMissiles
 {
 	missiles = 0;
 	return 0;
 }
 
 
-- (unsigned) passengerCount
+- (OOUInteger) passengerCount
 {
 	return 0;
 }
 
 
-- (unsigned) passengerCapacity
+- (OOUInteger) passengerCapacity
 {
 	return 0;
 }
 
 
-- (unsigned) missileCount
+- (OOUInteger) missileCount
 {
 	return missiles;
 }
 
 
-- (unsigned) missileCapacity
+- (OOUInteger) missileCapacity
 {
 	return max_missiles;
 }
 
 
-- (unsigned) extraCargo
+- (OOUInteger) extraCargo
 {
 	return extra_cargo;
 }
@@ -6971,7 +6967,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		return 5 * collision_radius;
 	if (scanClass == CLASS_ROCK)
 		return 0;
-	return [self bounty];
+	return (int)[self bounty];
 }
 
 
@@ -7026,7 +7022,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (OOCargoQuantity) cargoQuantityOnBoard
 {
-	return [[self cargo] count];
+	OOUInteger result = [[self cargo] count];
+	NSAssert(result < UINT32_MAX, @"Cargo quantity out of bounds.");
+	return (OOCargoQuantity)result;
 }
 
 
@@ -7516,11 +7514,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 	
 	Vector xposition = position;
-	int i;
+	OOUInteger i;
 	Vector v;
 	Quaternion q;
 	int speed_low = 200;
-	int n_alloys = floorf(sqrtf(sqrtf(mass / 25000.0f)));
+	OOUInteger n_alloys = floorf(sqrtf(sqrtf(mass / 25000.0f)));
 	
 	if ([self status] == STATUS_DEAD)
 	{
@@ -7621,9 +7619,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				//  Throw out cargo
 				if (jetsam)
 				{
-					int n_jetsam = [jetsam count];
-					//NSDictionary *containerShipDict = nil;
-					//
+					OOUInteger n_jetsam = [jetsam count];
+					
 					for (i = 0; i < n_jetsam; i++)
 					{
 						if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
@@ -7662,7 +7659,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				{
 					if (!noRocks && (being_mined || randf() < 0.20))
 					{
-						int n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
+						OOUInteger n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
 						
 						NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:@"boulder"];
 						for (i = 0; i < n_rocks; i++)
@@ -7699,7 +7696,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				{
 					if ((being_mined)||(ranrot_rand() % 100 < 20))
 					{
-						int n_rocks = 2 + (ranrot_rand() % 5);
+						OOUInteger n_rocks = 2 + (ranrot_rand() % 5);
 						
 						NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:@"splinter"];
 						for (i = 0; i < n_rocks; i++)
@@ -7738,7 +7735,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				//
 				if (n_alloys && canFragment)
 				{
-					int n_wreckage = 0;
+					OOUInteger n_wreckage = 0;
 					
 					if (UNIVERSE->n_entities < 0.50 * UNIVERSE_MAX_ENTITIES)
 					{
@@ -11804,7 +11801,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([self primaryTarget] == nil || _escortGroup == nil)  return;
 	
 	OOShipGroup *escortGroup = [self escortGroup];
-	unsigned escortCount = [escortGroup count] - 1;  // escorts minus leader.
+	OOUInteger escortCount = [escortGroup count] - 1;  // escorts minus leader.
 	if (escortCount == 0)  return;
 	
 	if ([self group] == nil)  [self setGroup:escortGroup];
@@ -12449,7 +12446,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Roles: %@", [self roleSet]);
 	OOLog(@"dumpState.shipEntity", @"Primary role: %@", primaryRole);
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);
-	OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [self subEntityCount]);
+	OOLog(@"dumpState.shipEntity", @"Subentity count: %lu", [self subEntityCount]);
 	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", OOStringFromBehaviour(behaviour));
 	if ([self primaryTarget] != nil)  OOLog(@"dumpState.shipEntity", @"Target: %@", [self primaryTarget]);
 	OOLog(@"dumpState.shipEntity", @"Destination: %@", VectorDescription(destination));
@@ -12578,7 +12575,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	jsval					*argv = NULL;
 	
 	// Convert arguments to JS values and make them temporarily un-garbage-collectable.
-	argc = [arguments count];
+	argc = (uintN)[arguments count];
 	if (argc != 0)
 	{
 		argv = malloc(sizeof *argv * argc);

@@ -86,7 +86,7 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	
 	[updatedShipInfo setObject:[[self roleSet] roleString] forKey:KEY_ROLES];
 	[updatedShipInfo oo_setUnsignedInteger:fuel forKey:KEY_FUEL];
-	[updatedShipInfo oo_setUnsignedInteger:bounty forKey:KEY_BOUNTY];
+	[updatedShipInfo oo_setUnsignedLongLong:bounty forKey:KEY_BOUNTY];
 	[updatedShipInfo setObject:OOStringFromWeaponType(forward_weapon_type) forKey:KEY_FORWARD_WEAPON];
 	[updatedShipInfo setObject:OOStringFromWeaponType(aft_weapon_type) forKey:KEY_AFT_WEAPON];
 	[updatedShipInfo setObject:OOStringFromScanClass(scanClass) forKey:KEY_SCAN_CLASS];

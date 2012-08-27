@@ -450,7 +450,7 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 	{
 		if (_capacity > _count * 2)
 		{
-			newCapacity = OORoundUpToPowerOf2(_count);
+			newCapacity = OORoundUpToPowerOf2_NS(_count);
 			if (newCapacity < kMinSize) newCapacity = kMinSize;
 		}
 	}

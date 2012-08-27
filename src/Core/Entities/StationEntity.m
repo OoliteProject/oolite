@@ -236,7 +236,7 @@ MA 02110-1301, USA.
 	unsigned soa = 0;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		soa += [sub sanityCheckShipsOnApproach];
+		soa += [sub pruneAndCountShipsOnApproach];
 	}
 
 	if (soa == 0)
@@ -393,7 +393,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	DockEntity		*chosenDock = nil;
 	NSString		*docking = nil;
 	DockEntity		*sub = nil;
-	unsigned		queue = 100;
+	OOUInteger		queue = 100;
 	
 	BOOL alldockstoosmall = YES;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )

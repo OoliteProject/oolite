@@ -720,16 +720,13 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 			
 		case kShip_passengerCount:
-			*value = INT_TO_JSVAL([entity passengerCount]);
-			return YES;
+			return JS_NewNumberValue(context, [entity passengerCount], value);
 			
 		case kShip_passengerCapacity:
-			*value = INT_TO_JSVAL([entity passengerCapacity]);
-			return YES;
+			return JS_NewNumberValue(context, [entity passengerCapacity], value);
 		
 		case kShip_missileCapacity:
-			*value = INT_TO_JSVAL([entity missileCapacity]);
-			return YES;
+			return JS_NewNumberValue(context, [entity missileCapacity], value);
 			
 		case kShip_missileLoadTime:
 			return JS_NewNumberValue(context, [entity missileLoadTime], value);

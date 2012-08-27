@@ -462,7 +462,7 @@ typedef enum
 - (Vector) rightVector;
 
 - (NSArray *)subEntities;
-- (unsigned) subEntityCount;
+- (OOUInteger) subEntityCount;
 - (BOOL) hasSubEntity:(Entity<OOSubEntity> *)sub;
 
 - (NSEnumerator *)subEntityEnumerator;
@@ -551,11 +551,11 @@ typedef enum
 - (BOOL) hasHyperspaceMotor;
 
 - (NSEnumerator *) equipmentEnumerator;
-- (unsigned) equipmentCount;
+- (OOUInteger) equipmentCount;
 - (void) removeEquipmentItem:(NSString *)equipmentKey;
 - (void) removeAllEquipment;
 - (OOEquipmentType *) selectMissile;
-- (int) removeMissiles;
+- (OOCreditsQuantity) removeMissiles;
 
 // Internal, subject to change. Use the methods above instead.
 - (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeWeapons:(BOOL)includeMissiles whileLoading:(BOOL)loading;
@@ -564,13 +564,13 @@ typedef enum
 - (BOOL) removeExternalStore:(OOEquipmentType *)eqType;
 
 // Passengers - not supported for NPCs, but interface is here for genericity.
-- (unsigned) passengerCount;
-- (unsigned) passengerCapacity;
+- (OOUInteger) passengerCount;
+- (OOUInteger) passengerCapacity;
 
-- (unsigned) missileCount;
-- (unsigned) missileCapacity;
+- (OOUInteger) missileCount;
+- (OOUInteger) missileCapacity;
 
-- (unsigned) extraCargo;
+- (OOUInteger) extraCargo;
 
 // Tests for the various special-cased equipment items
 - (BOOL) hasScoop;

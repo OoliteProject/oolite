@@ -522,7 +522,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 
 - (NSDictionary *)lowercaseMap:(NSArray *)array
 {
-	unsigned				i, count;
+	OOUInteger				i, count;
 	NSString				*canonical = nil,
 							*lowercase = nil;
 	NSMutableDictionary		*result = nil;
@@ -661,7 +661,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	NSArray					*stems = nil,
 							*extensions = nil;
 	NSMutableSet			*result = nil;
-	unsigned				i, j, stemCount, extCount;
+	OOUInteger				i, j, stemCount, extCount;
 	NSString				*stem = nil,
 							*extension = nil;
 	

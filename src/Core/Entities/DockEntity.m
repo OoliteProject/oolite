@@ -57,16 +57,13 @@ MA 02110-1301, USA.
 
 @implementation DockEntity
 
-- (unsigned) sanityCheckShipsOnApproach
+- (OOUInteger) pruneAndCountShipsOnApproach
 {
-	NSArray		*ships = [shipsOnApproach allKeys];
-	unsigned	i, count = [ships count];
-	
 	// Remove dead entities.
-	// No enumerator because we mutate the dictionary.
-	for (i = 0; i < count; i++)
+	// Enumerate over allKeys explicitly because we mutate the dictionary.
+	NSNumber *idObj = nil;
+	foreach (idObj, [shipsOnApproach allKeys])
 	{
-		NSNumber *idObj = [ships objectAtIndex:i];
 		ShipEntity *ship = [UNIVERSE entityForUniversalID:[idObj unsignedIntValue]];
 		if (ship == nil)
 		{
@@ -89,17 +86,15 @@ MA 02110-1301, USA.
 
 - (void) abortAllDockings
 {
-	NSArray		*ships = [shipsOnApproach allKeys];
-	unsigned	i, count = [ships count];
 	double		playerExtraTime = 0;
 	
 	no_docking_while_launching = YES;
-
-	for (i = 0; i < count; i++)
+	
+	NSNumber *idObj = nil;
+	foreach (idObj, [shipsOnApproach allKeys])
 	{
-		OOUniversalID sid = [ships oo_unsignedIntAtIndex:i];
-		ShipEntity *ship = [UNIVERSE entityForUniversalID:sid];
-		if (ship != nil)
+		ShipEntity *ship = [UNIVERSE entityForUniversalID:[idObj unsignedIntValue]];
+		if ([ship isShip])
 		{
 			[ship sendAIMessage:@"DOCKING_ABORTED"];
 		}
@@ -139,16 +134,14 @@ MA 02110-1301, USA.
 
 
 - (void) autoDockShipsInQueue:(NSMutableDictionary *)queue
-{
-	NSArray		*ships = [queue allKeys];
-	unsigned	i, count = [ships count];
-	
-	for (i = 0; i < count; i++)
+{	
+	NSNumber *idObj = nil;
+	foreach (idObj, [queue allKeys])
 	{
-		ShipEntity *ship = [UNIVERSE entityForUniversalID:[ships oo_unsignedIntAtIndex:i]];
+		ShipEntity *ship = [UNIVERSE entityForUniversalID:[idObj unsignedIntValue]];
 		if ([ship isShip])
 		{
-			[self pullInShipIfPermitted:ship];
+			[ship sendAIMessage:@"DOCKING_ABORTED"];
 		}
 	}
 	
@@ -613,13 +606,13 @@ MA 02110-1301, USA.
 }
 
 
-- (unsigned) countOfShipsInDockingQueue
+- (OOUInteger) countOfShipsInDockingQueue
 {
 	return [shipsOnApproach count];
 }
 
 
-- (unsigned) countOfShipsInLaunchQueue
+- (OOUInteger) countOfShipsInLaunchQueue
 {
 	return [launchQueue count];
 }
@@ -776,7 +769,7 @@ MA 02110-1301, USA.
 
 - (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority
 {
-	[self sanityCheckShipsOnApproach];
+	[self pruneAndCountShipsOnApproach];
 	
 	if (ship == nil)  return;
 	
@@ -848,16 +841,15 @@ MA 02110-1301, USA.
 }
 
 
-- (unsigned) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role
+- (OOUInteger) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role
 {
-	unsigned i, count, result = 0;
-	count = [launchQueue count];
-	
-	for (i = 0; i < count; i++)
+	OOUInteger count = 0;
+	ShipEntity *ship = nil;
+	foreach (ship, launchQueue)
 	{
-		if ([[launchQueue objectAtIndex:i] hasPrimaryRole:role])  result++;
+		if ([ship hasPrimaryRole:role])  count++;
 	}
-	return result;
+	return count;
 }
 
 

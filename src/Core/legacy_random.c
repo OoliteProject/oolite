@@ -36,7 +36,7 @@ const Random_Seed	kNilRandomSeed = {0};
 static RNG_Seed		rnd_seed;
 
 
-// TODO: Why is this based on a static? Should change to MungeCheckSum(&checkSum, value);
+// TODO: Why is this based on a static? Should change to OOMungeCheckSum(&checkSum, value);
 static int32_t checksum;
 void clear_checksum()
 {
@@ -44,8 +44,9 @@ void clear_checksum()
 }
 
 
-int16_t munge_checksum(int32_t value)
+int16_t munge_checksum(long long value_)
 {
+	uint32_t value = (uint32_t)value_;
 	int32_t mult1 = (value & 15) + 8;
 	checksum += value;
 	checksum *= mult1;

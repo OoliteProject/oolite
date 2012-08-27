@@ -353,7 +353,7 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 }
 
 
-- (OOUInteger)textureImageUnitCount
+- (GLint)textureImageUnitCount
 {
 #if OO_SHADERS
 	return textureImageUnitCount;
@@ -393,7 +393,7 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 }
 
 
-- (OOUInteger)textureUnitCount
+- (GLint)textureUnitCount
 {
 #if OO_MULTITEXTURE
 	return textureUnitCount;

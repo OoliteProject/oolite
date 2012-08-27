@@ -363,7 +363,7 @@ typedef enum
 	ShipEntity				*missile_entity[PLAYER_MAX_MISSILES];	// holds the actual missile entities or equivalents
 	OOUniversalID			_dockTarget;	// used by the escape pod code
 	
-	int						legalStatus;
+	int						legalStatus;	// legalStatus both is and isn't an OOCreditsQuantity, because of quantum.
 	int						market_rnd;
 	unsigned				ship_kills;
 	
@@ -666,18 +666,18 @@ typedef enum
 - (void) setPrevCompassMode;
 - (void) setNextCompassMode;
 
-- (unsigned) activeMissile;
-- (void) setActiveMissile:(unsigned)value;
-- (unsigned) dialMaxMissiles;
+- (OOUInteger) activeMissile;
+- (void) setActiveMissile:(OOUInteger)value;
+- (OOUInteger) dialMaxMissiles;
 - (BOOL) dialIdentEngaged;
 - (void) setDialIdentEngaged:(BOOL)newValue;
 - (NSString *) specialCargo;
 - (NSString *) dialTargetName;
-- (ShipEntity *) missileForPylon:(unsigned)value;
+- (ShipEntity *) missileForPylon:(OOUInteger)value;
 - (void) safeAllMissiles;
 - (void) selectNextMissile;
 - (void) tidyMissilePylons;
-- (BOOL) removeFromPylon:(unsigned) pylon;
+- (BOOL) removeFromPylon:(OOUInteger) pylon;
 - (BOOL) assignToActivePylon:(NSString *)identifierKey;
 
 - (void) clearAlertFlags;
@@ -749,9 +749,9 @@ typedef enum
 - (OOGUIScreenID) guiScreen;
 
 - (void) buySelectedItem;
-- (BOOL) marketFlooded:(int) index;
-- (BOOL) tryBuyingCommodity:(int) index all:(BOOL) all;
-- (BOOL) trySellingCommodity:(int) index all:(BOOL) all;
+- (BOOL) marketFlooded:(OOCommodityType)type;
+- (BOOL) tryBuyingCommodity:(OOCommodityType)type all:(BOOL)all;
+- (BOOL) trySellingCommodity:(OOCommodityType)type all:(BOOL)all;
 
 - (BOOL) isSpeechOn;
 
@@ -767,12 +767,12 @@ typedef enum
 - (Vector) weaponViewOffset;
 
 - (void) setUpTrumbles;
-- (void) addTrumble:(OOTrumble*) papaTrumble;
-- (void) removeTrumble:(OOTrumble*) deadTrumble;
-- (OOTrumble**)trumbleArray;
+- (void) addTrumble:(OOTrumble *)papaTrumble;
+- (void) removeTrumble:(OOTrumble *)deadTrumble;
+- (OOTrumble **) trumbleArray;
 - (OOUInteger) trumbleCount;
 // loading and saving trumbleCount
-- (id)trumbleValue;
+- (id) trumbleValue;
 - (void) setTrumbleValueFrom:(NSObject*) trumbleValue;
 
 - (void) mungChecksumWithNSString:(NSString *)str;

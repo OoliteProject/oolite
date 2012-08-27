@@ -133,7 +133,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 	NSString					*path = nil;
 	OOFileScannerVerifierStage	*fileScanner = nil;
 	NSString					*displayName = nil;
-	uint32_t					rWidth, rHeight;
+	OOPixMapDimension			rWidth, rHeight;
 	BOOL						success;
 	OOPixMap					pixmap;
 	OOTextureDataFormat			format;
@@ -164,8 +164,8 @@ static NSString * const kStageName	= @"Testing textures and images";
 		
 		if (success)
 		{
-			rWidth = (uint32_t)OORoundUpToPowerOf2((2 * pixmap.width) / 3);
-			rHeight = (uint32_t)OORoundUpToPowerOf2((2 * pixmap.height) / 3);
+			rWidth = OORoundUpToPowerOf2_PixMap((2 * pixmap.width) / 3);
+			rHeight = OORoundUpToPowerOf2_PixMap((2 * pixmap.height) / 3);
 			if (pixmap.width != rWidth || pixmap.height != rHeight)
 			{
 				OOLog(@"verifyOXP.texture.notPOT", @"----- WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", displayName, pixmap.width, pixmap.height, rWidth, rHeight);

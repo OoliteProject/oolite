@@ -160,12 +160,10 @@ static JSBool DockGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 		
 		case kDock_dockingQueueLength:
-			*value = INT_TO_JSVAL([entity countOfShipsInDockingQueue]);
-			return YES;
+			return JS_NewNumberValue(context, [entity countOfShipsInDockingQueue], value);
 
 		case kDock_launchingQueueLength:
-			*value = INT_TO_JSVAL([entity countOfShipsInLaunchQueue]);
-			return YES;
+			return JS_NewNumberValue(context, [entity countOfShipsInLaunchQueue], value);
 			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sDockProperties);

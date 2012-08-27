@@ -2027,8 +2027,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	if (![player dialIdentEngaged])
 	{
 		OOMissileStatus status = [player dialMissileStatus];
-		unsigned n_mis = [player dialMaxMissiles];
-		unsigned i;
+		OOUInteger i, n_mis = [player dialMaxMissiles];
 		for (i = 0; i < n_mis; i++)
 		{
 			ShipEntity *missile = [player missileForPylon:i];

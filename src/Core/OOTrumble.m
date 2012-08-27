@@ -589,8 +589,8 @@ static void PlayTrumbleSqueal(void);
 		float foodfactor[17] = { 1.00, 0.25, 0.75, 0.01, 0.95, 1.25, 1.05, 0.00, 0.00, 0.00, 0.00, 0.15, 0.00, 0.00, 0.00, 0.00, 0.00};
 		for (i = 0 ; i < n_pods; i++)
 		{
-			ShipEntity* cargopod = [cargopods objectAtIndex:i];
-			int cargo_type = [cargopod commodityType];
+			ShipEntity *cargopod = [cargopods objectAtIndex:i];
+			OOCommodityType cargo_type = [cargopod commodityType];
 			float yumminess = (1.0 + randf()) * foodfactor[cargo_type];
 			if (yumminess > mostYummy)
 			{

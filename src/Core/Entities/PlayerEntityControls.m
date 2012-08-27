@@ -117,7 +117,7 @@ static BOOL				customView_pressed;
 static BOOL				weaponsOnlineToggle_pressed;
 static BOOL				escapePodKey_pressed;
 
-static unsigned			searchStringLength;
+static OOUInteger		searchStringLength;
 static double			timeLastKeyPress;
 static OOGUIRow			oldSelection;
 static int				saved_view_direction;
@@ -930,7 +930,7 @@ static NSTimeInterval	time_last_frame;
 					{
 
 						// cycle through all the relevant equipment.
-						unsigned c = [eqScripts count];
+						OOUInteger c = [eqScripts count];
 						
 						// if Ctrl is held down at the same time as the prime equipment key,
 						// cycle relevant equipment in reverse
@@ -1816,7 +1816,7 @@ static NSTimeInterval	time_last_frame;
 			
 		case GUI_SCREEN_OPTIONS:
 			[self handleGUIUpDownArrowKeys];
-			int guiSelectedRow = [gui selectedRow];
+			OOGUIRow guiSelectedRow = [gui selectedRow];
 			BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
 			
 			if (selectKeyPress)   // 'enter'
@@ -2344,7 +2344,7 @@ static NSTimeInterval	time_last_frame;
 	GUI_ROW_INIT(gui);
 	
 	[self handleGUIUpDownArrowKeys];
-	int guiSelectedRow = [gui selectedRow];
+	OOGUIRow guiSelectedRow = [gui selectedRow];
 	BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
 	if ([gameView isDown:gvMouseDoubleClick])  [gameView clearMouse];
 	
@@ -2773,12 +2773,12 @@ static NSTimeInterval	time_last_frame;
 
 - (void) pollFlightArrowKeyControls:(double)delta_t
 {
-	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	MyOpenGLView		*gameView = [UNIVERSE gameView];
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
-	int				numSticks = [stickHandler joystickCount];
-	NSPoint			virtualStick = NSZeroPoint;
-	double			reqYaw = 0.0;
-	double			deadzone;
+	OOUInteger			numSticks = [stickHandler joystickCount];
+	NSPoint				virtualStick = NSZeroPoint;
+	double				reqYaw = 0.0;
+	double				deadzone;
 	
 	if (mouse_control_on)
 	{

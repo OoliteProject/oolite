@@ -112,13 +112,13 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	else result = [NSString stringWithFormat:@"%@", self];
 	
 	// Allow infinities, but remember that they’ll be read in as strings
-	/*
+#if 0
 	if ([result isEqual:@"inf"] || [result isEqual:@"-inf"])
 	{
 		*outErrorDescription = @"infinities cannot be represented in old-school property lists";
 		return nil;
 	}
-	*/
+#endif
 	
 	return result;
 }
@@ -132,7 +132,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 {
 	const uint8_t			*srcBytes;
 	uint8_t					*dstBytes, *curr;
-	unsigned				i, j, srcLength, dstLength;
+	NSUInteger				i, j, srcLength, dstLength;
 	const char				hexTable[] = "0123456789ABCDEF";
 	NSString				*result;
 	
@@ -146,7 +146,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	{
 		if (NULL != outErrorDescription)
 		{
-			*outErrorDescription = [NSString stringWithFormat:@"failed to allocate space (%u bytes) for conversion of NSData to old-school property list representation", dstLength];
+			*outErrorDescription = [NSString stringWithFormat:@"failed to allocate space (%lu bytes) for conversion of NSData to old-school property list representation", dstLength];
 		}
 		return nil;
 	}
@@ -184,7 +184,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 - (NSString *)oldSchoolPListFormatWithIndentation:(unsigned)inIndentation errorDescription:(NSString **)outErrorDescription
 {
 	NSMutableString			*result;
-	unsigned				i, count;
+	NSUInteger				i, count;
 	id						object;
 	
 	result = [NSMutableString string];
@@ -230,7 +230,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 - (NSString *)oldSchoolPListFormatWithIndentation:(unsigned)inIndentation errorDescription:(NSString **)outErrorDescription
 {
 	NSMutableString			*result;
-	unsigned				i, count;
+	NSUInteger				i, count;
 	NSArray					*allKeys;
 	id						key, value;
 	NSString				*valueDesc;

@@ -457,7 +457,7 @@ typedef struct
 		
 		if ([entity isPlayer])
 		{
-			unsigned i, count = [entity dialMaxMissiles];
+			OOUInteger i, count = [entity dialMaxMissiles];
 			for (i = 0; i < count; i++)
 			{
 				subentity = [entity missileForPylon:i];

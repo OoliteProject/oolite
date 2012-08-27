@@ -31,7 +31,8 @@ SOFTWARE.
 
 
 typedef uint_fast32_t		OOPixMapDimension;		// Note: dimensions are assumed to be less than 1048576 (2^20) pixels.
-//typedef uint_fast8_t		OOPixMapComponentCount;	// Currently supported values are 1, 2 and 4.
+
+#define OORoundUpToPowerOf2_PixMap OORoundUpToPowerOf2_32
 
 
 typedef enum

@@ -98,7 +98,7 @@ MA 02110-1301, USA.
 
 // ---------------------------------------------------------------------- //
 
-- (void) setGuiToShipyardScreen:(unsigned) skip;
+- (void) setGuiToShipyardScreen:(OOUInteger)skip;
 
 - (void) showShipyardModel:(NSString *)shipKey shipData:(NSDictionary *)shipDict personality:(uint16_t)personality;
 - (void) showShipyardInfoForSelection;
