@@ -225,7 +225,7 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 			return YES;
 			
 		case kStation_equivalentTechLevel:
-			*value = INT_TO_JSVAL([entity equivalentTechLevel]);
+			*value = INT_TO_JSVAL((int32_t)[entity equivalentTechLevel]);
 			return YES;
 			
 		case kStation_equipmentPriceFactor:

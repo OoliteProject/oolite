@@ -186,7 +186,7 @@ NSArray *OOConvertSystemDescriptionsToArrayFormat(NSDictionary *descriptionsInDi
 	realResult = [NSMutableArray arrayWithCapacity:count];
 	for (i = 0; i < count; i++)
 	{
-		entry = [result objectForKey:[NSNumber numberWithUnsignedInt:i]];
+		entry = [result objectForKey:[NSNumber numberWithUnsignedInteger:i]];
 		if (entry == nil)  entry = [NSArray array];
 		[realResult addObject:entry];
 	}
@@ -323,7 +323,7 @@ static NSNumber *KeyToIndex(NSString *key, NSMutableDictionary *ioKeysToIndices,
 		// Search for free index
 		do
 		{
-			result = [NSNumber numberWithUnsignedInt:(*ioSlotCache)++];
+			result = [NSNumber numberWithUnsignedInteger:(*ioSlotCache)++];
 		}
 		while ([ioUsedIndicies containsObject:result]);
 		

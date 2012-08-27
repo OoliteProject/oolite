@@ -261,8 +261,8 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 		maximumShaderSetting = SHADERS_NOT_SUPPORTED;
 	}
 	
-	GLint texImageUnitOverride = [gpuConfig oo_unsignedIntegerForKey:@"texture_image_units" defaultValue:textureImageUnitCount];
-	if (texImageUnitOverride < textureImageUnitCount)  textureImageUnitCount = texImageUnitOverride;
+	GLint texImageUnitOverride = [gpuConfig oo_intForKey:@"texture_image_units" defaultValue:textureImageUnitCount];
+	if (texImageUnitOverride < textureImageUnitCount)  textureImageUnitCount = MAX(texImageUnitOverride, 0);
 #endif
 	
 #if OO_USE_VBO
@@ -273,8 +273,8 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 #endif
 #if OO_MULTITEXTURE
 	[self checkTextureCombinersSupported];
-	GLint texUnitOverride = [gpuConfig oo_unsignedIntegerForKey:@"texture_units" defaultValue:textureUnitCount];
-	if (texUnitOverride < textureUnitCount)  textureUnitCount = texUnitOverride;
+	GLint texUnitOverride = [gpuConfig oo_intForKey:@"texture_units" defaultValue:textureUnitCount];
+	if (texUnitOverride < textureUnitCount)  textureUnitCount = MAX(texUnitOverride, 0);
 #endif
 	
 	usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];

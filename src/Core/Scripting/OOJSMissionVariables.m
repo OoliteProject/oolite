@@ -175,7 +175,9 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 			enumerator = [[mvars objectEnumerator] retain];
 			*state = PRIVATE_TO_JSVAL(enumerator);
 			
-			if (idp != NULL)  *idp = INT_TO_JSID([mvars count]);
+			OOUInteger count = [mvars count];
+			assert(count <= INT32_MAX);
+			if (idp != NULL)  *idp = INT_TO_JSID((uint32_t)count);
 			return YES;
 		}
 		

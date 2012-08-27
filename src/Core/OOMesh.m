@@ -2235,7 +2235,7 @@ static void VFRAddFace(VertexFaceRef *vfr, OOUInteger index)
 	else
 	{
 		if (vfr->extra == nil)  vfr->extra = [NSMutableArray array];
-		[vfr->extra addObject:[NSNumber numberWithInt:index]];
+		[vfr->extra addObject:[NSNumber numberWithInteger:index]];
 	}
 }
 

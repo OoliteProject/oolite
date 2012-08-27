@@ -321,7 +321,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 {
 	BOOL					OK = YES;
 	NSMethodSignature		*signature = nil;
-	unsigned				argCount;
+	OOUInteger				argCount;
 	NSString				*methodProblem = nil;
 	id<OOWeakReferenceSupport> superCandidate = nil;
 	
@@ -496,7 +496,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		case kOOShaderUniformTypeUnsignedInt:
 		case kOOShaderUniformTypeLong:
 		case kOOShaderUniformTypeUnsignedLong:
-			iVal = OOCallIntegerMethod(object, value.binding.selector, value.binding.method, type);
+			iVal = (GLint)OOCallIntegerMethod(object, value.binding.selector, value.binding.method, type);
 			isInt = YES;
 			break;
 		

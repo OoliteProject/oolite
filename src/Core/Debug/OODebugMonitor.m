@@ -505,7 +505,7 @@ typedef struct
 	for (texEnum = [allTextures objectEnumerator]; (tex = [texEnum nextObject]); )
 	{
 		// We subtract one because allTextures retains the textures.
-		[textureRefCounts setObject:[NSNumber numberWithUnsignedInt:[tex retainCount] - 1] forKey:[NSValue valueWithNonretainedObject:tex]];
+		[textureRefCounts setObject:[NSNumber numberWithUnsignedInteger:[tex retainCount] - 1] forKey:[NSValue valueWithNonretainedObject:tex]];
 	}
 	
 	size_t totalSize = 0;

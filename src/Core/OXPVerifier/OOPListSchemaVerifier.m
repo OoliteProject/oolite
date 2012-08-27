@@ -121,9 +121,9 @@ OOINLINE BackLinkChain BackLink(BackLinkChain *link, id element)
 	return result;
 }
 
-OOINLINE BackLinkChain BackLinkIndex(BackLinkChain *link, unsigned index)
+OOINLINE BackLinkChain BackLinkIndex(BackLinkChain *link, OOUInteger index)
 {
-	BackLinkChain result = { link, [NSNumber numberWithInt:index] };
+	BackLinkChain result = { link, [NSNumber numberWithInteger:index] };
 	return result;
 }
 
@@ -761,7 +761,7 @@ static NSString *ArrayForErrorReport(NSArray *array)
 {
 	NSString				*result = nil;
 	NSString				*string = nil;
-	unsigned				i, count;
+	OOUInteger				i, count;
 	NSAutoreleasePool		*pool = nil;
 	
 	count = [array count];
@@ -830,8 +830,8 @@ static NSError *Verify_String(OOPListSchemaVerifier *verifier, id value, NSDicti
 {
 	NSString			*filteredString = nil;
 	id					testValue = nil;
-	unsigned			length;
-	unsigned			lengthConstraint;
+	OOUInteger			length;
+	OOUInteger			lengthConstraint;
 	NSError				*error = nil;
 	
 	REQUIRE_TYPE(NSString, @"string");
@@ -875,13 +875,13 @@ static NSError *Verify_String(OOPListSchemaVerifier *verifier, id value, NSDicti
 	
 	// Apply length bounds.
 	length = [filteredString length];
-	lengthConstraint = [params oo_unsignedIntForKey:@"minLength"];
+	lengthConstraint = [params oo_unsignedIntegerForKey:@"minLength"];
 	if (length < lengthConstraint)
 	{
 		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"String \"%@\" is too short (%u bytes, minimum is %u).", StringForErrorReport(filteredString), length, lengthConstraint);
 	}
 	
-	lengthConstraint = [params oo_unsignedIntForKey:@"maxLength" defaultValue:UINT_MAX];
+	lengthConstraint = [params oo_unsignedIntegerForKey:@"maxLength" defaultValue:NSUIntegerMax];
 	if (lengthConstraint < length)
 	{
 		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"String \"%@\" is too long (%u bytes, maximum is %u).", StringForErrorReport(filteredString), length, lengthConstraint);
@@ -896,9 +896,9 @@ static NSError *Verify_Array(OOPListSchemaVerifier *verifier, id value, NSDictio
 {
 	id						valueType = nil;
 	BOOL					OK = YES, stop = NO;
-	unsigned				i, count;
+	OOUInteger				i, count;
 	id						subProperty = nil;
-	unsigned				constraint;
+	OOUInteger				constraint;
 	
 	REQUIRE_TYPE(NSArray, @"array");
 	
@@ -906,13 +906,13 @@ static NSError *Verify_Array(OOPListSchemaVerifier *verifier, id value, NSDictio
 	
 	// Apply count bounds.
 	count = [value count];
-	constraint = [params oo_unsignedIntForKey:@"minCount" defaultValue:0];
+	constraint = [params oo_unsignedIntegerForKey:@"minCount" defaultValue:0];
 	if (count < constraint)
 	{
 		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Array has too few members (%u, minimum is %u).", count, constraint);
 	}
 	
-	constraint = [params oo_unsignedIntForKey:@"maxCount" defaultValue:UINT_MAX];
+	constraint = [params oo_unsignedIntegerForKey:@"maxCount" defaultValue:NSUIntegerMax];
 	if (constraint < count)
 	{
 		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Array has too many members (%u, maximum is %u).", count, constraint);
@@ -961,7 +961,7 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 	BOOL					allowOthers;
 	NSMutableSet			*requiredKeys = nil;
 	NSArray					*requiredKeyList = nil;
-	unsigned				count, constraint;
+	OOUInteger				count, constraint;
 	
 	REQUIRE_TYPE(NSDictionary, @"dictionary");
 	
@@ -969,12 +969,12 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 	
 	// Apply count bounds.
 	count = [value count];
-	constraint = [params oo_unsignedIntForKey:@"minCount" defaultValue:0];
+	constraint = [params oo_unsignedIntegerForKey:@"minCount" defaultValue:0];
 	if (count < constraint)
 	{
 		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Dictionary has too few pairs (%u, minimum is %u).", count, constraint);
 	}
-	constraint = [params oo_unsignedIntForKey:@"maxCount" defaultValue:UINT_MAX];
+	constraint = [params oo_unsignedIntegerForKey:@"maxCount" defaultValue:NSUIntegerMax];
 	if (constraint < count)
 	{
 		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Dictionary has too manu pairs (%u, maximum is %u).", count, constraint);

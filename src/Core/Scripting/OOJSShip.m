@@ -477,7 +477,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return JS_NewNumberValue(context, [entity fuelChargeRate], value);
 			
 		case kShip_bounty:
-			*value = INT_TO_JSVAL([entity bounty]);
+			return JS_NewNumberValue(context, [entity bounty], value);
 			return YES;
 			
 		case kShip_subEntities:
@@ -485,7 +485,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			break;
 			
 		case kShip_subEntityCapacity:
-			*value = INT_TO_JSVAL([entity maxShipSubEntities]);
+			return JS_NewNumberValue(context, [entity maxShipSubEntities], value);
 			return YES;
 			
 		case kShip_hasSuspendedAI:
@@ -1996,8 +1996,12 @@ static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp)
 	
 	if ([[thisEnt subEntitiesForScript] count] - subCount > 0)  numSubEntitiesRestored = [[thisEnt subEntitiesForScript] count] - subCount;
 	
-	// for each subentitiy restored, slightly increase the trade-in factor
-	if ([thisEnt isPlayer])  [(PlayerEntity *)thisEnt adjustTradeInFactorBy:(PLAYER_SHIP_SUBENTITY_TRADE_IN_VALUE * numSubEntitiesRestored)];
+	// for each subentity restored, slightly increase the trade-in factor
+	if ([thisEnt isPlayer])
+	{
+		int tradeInFactorChange = (int)MAX(PLAYER_SHIP_SUBENTITY_TRADE_IN_VALUE * numSubEntitiesRestored, 25U);
+		[(PlayerEntity *)thisEnt adjustTradeInFactorBy:tradeInFactorChange];
+	}
 	
 	OOJS_RETURN_BOOL(numSubEntitiesRestored > 0);
 	

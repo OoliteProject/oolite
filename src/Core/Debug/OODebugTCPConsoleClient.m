@@ -242,8 +242,8 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 	if (emphasisRange.length != 0)
 	{
 		range = [NSArray arrayWithObjects:
-						[NSNumber numberWithUnsignedInt:emphasisRange.location],
-						[NSNumber numberWithUnsignedInt:emphasisRange.length],
+						[NSNumber numberWithUnsignedInteger:emphasisRange.location],
+						[NSNumber numberWithUnsignedInteger:emphasisRange.length],
 						nil];
 		[parameters setObject:range forKey:kOOTCPEmphasisRanges];
 	}
@@ -338,14 +338,12 @@ noteChangedConfigrationValue:(in id)newValue
 
 - (BOOL) sendBytes:(const void *)bytes count:(size_t)count
 {
-	int						written;
-	
 	if (bytes == NULL || count == 0)  return YES;
 	if (!StatusIsSendable(_status) || _outStream == nil)  return NO;
 	
 	do
 	{
-		written = [_outStream write:bytes maxLength:count];
+		OOInteger written = [_outStream write:bytes maxLength:count];
 		if (written < 1)  return NO;
 		
 		count -= written;
@@ -471,24 +469,12 @@ noteChangedConfigrationValue:(in id)newValue
 	enum { kBufferSize = 16 << 10 };
 	
 	uint8_t							buffer[kBufferSize];
-	int								length;
+	OOInteger						length;
 	NSData							*data;
 	
 	length = [_inStream read:buffer maxLength:kBufferSize];
-	while( length > 0 )
+	while (length > 0)
 	{
-		/* This test is superfluous after the rewrite to fix Bug#014643
-		 * TODO: Put the BadStream test back into the code
-		if (length < 1)
-		{
-			// Under GNUstep, but not OS X (currently), -hasBytesAvailable will return YES when the buffer is in fact empty.
-			if ([_inStream streamStatus] == NSStreamStatusReading) break;
-			
-			[self breakConnectionWithBadStream:_inStream];
-			return;
-		}
-		*/
-		
 		data = [NSData dataWithBytesNoCopy:buffer length:length freeWhenDone:NO];
 		OOTCPStreamDecoderReceiveData(_decoder, data);
 		length = [_inStream read:buffer maxLength:kBufferSize];

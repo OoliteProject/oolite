@@ -263,16 +263,15 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 			return JS_NewNumberValue(context, [eqType damageProbability], value);
 
 		case kEquipmentInfo_techLevel:
-			*value = INT_TO_JSVAL([eqType techLevel]);
+			*value = INT_TO_JSVAL((int32_t)[eqType techLevel]);
 			return YES;
 			
 		case kEquipmentInfo_effectiveTechLevel:
-			*value = INT_TO_JSVAL([eqType effectiveTechLevel]);
+			*value = INT_TO_JSVAL((int32_t)[eqType effectiveTechLevel]);
 			return YES;
 			
 		case kEquipmentInfo_price:
-			*value = INT_TO_JSVAL([eqType price]);
-			return YES;
+			return JS_NewNumberValue(context, [eqType price], value);
 			
 		case kEquipmentInfo_isAvailableToAll:
 			*value = OOJSValueFromBOOL([eqType isAvailableToAll]);

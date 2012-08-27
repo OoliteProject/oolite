@@ -485,7 +485,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	NSString				*parentKey = nil;
 	NSDictionary			*shipEntry = nil;
 	NSDictionary			*parentEntry = nil;
-	unsigned				count, lastCount;
+	OOUInteger				count, lastCount;
 	NSMutableArray			*reportedBadShips = nil;
 	
 	// Build set of ships with like_ship references

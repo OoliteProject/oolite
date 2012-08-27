@@ -92,9 +92,11 @@ MA 02110-1301, USA.
 	
 	if (OK)
 	{
+		assert(argCount < UINT32_MAX);
+		
 		[code getCharacters:buffer];
 		
-		function = JS_CompileUCFunction(context, scope, [name UTF8String], argCount, argNames, buffer, length, [fileName UTF8String], lineNumber);
+		function = JS_CompileUCFunction(context, scope, [name UTF8String], (uint32_t)argCount, argNames, buffer, length, [fileName UTF8String], (uint32_t)lineNumber);
 		if (function == NULL)  OK = NO;
 		
 		free(buffer);
@@ -196,6 +198,7 @@ MA 02110-1301, USA.
 					  result:(jsval *)result
 {
 	OOUInteger i, argc = [arguments count];
+	assert(argc < UINT32_MAX);
 	jsval argv[argc];
 	
 	for (i = 0; i < argc; i++)
@@ -209,7 +212,7 @@ MA 02110-1301, USA.
 	if (jsThis != nil)  OK = JS_ValueToObject(context, [jsThis oo_jsValueInContext:context], &scopeObj);
 	if (OK)  OK = [self evaluateWithContext:context
 									  scope:scopeObj
-									   argc:argc
+									   argc:(uint32_t)argc
 									   argv:argv
 									 result:result];
 	

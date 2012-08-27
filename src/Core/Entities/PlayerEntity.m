@@ -298,8 +298,6 @@ static GLfloat		sBaseMass = 0.0;
 	[shipCommodityData release];
 	shipCommodityData = manifest;
 	
-	//[cargo removeAllObjects];   // empty the hold - not needed, done individually inside unloadAllCargoPodsForType
-	
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
 }
 

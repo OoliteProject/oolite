@@ -185,7 +185,7 @@ static JSBool OoliteCompareVersion(JSContext *context, uintN argc, jsval *vp)
 	
 	if (components != nil)
 	{
-		OOJS_RETURN_INT(CompareVersions(components, VersionComponents()));
+		OOJS_RETURN_INT((int32_t)CompareVersions(components, VersionComponents()));
 	}
 	else
 	{

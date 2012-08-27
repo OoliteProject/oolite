@@ -98,7 +98,7 @@ void OOCPUInfoInit(void)
 }
 
 
-unsigned OOCPUCount(void)
+OOUInteger OOCPUCount(void)
 {
 	if (!sInited)  OOCPUInfoInit();
 	return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;

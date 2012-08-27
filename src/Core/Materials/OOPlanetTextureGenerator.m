@@ -736,7 +736,7 @@ OOINLINE float Hermite(float q)
 }
 
 
-#if __BIG_ENDIAN_
+#if __BIG_ENDIAN__
 #define iman_ 1
 #else
 #define iman_ 0
@@ -744,10 +744,10 @@ OOINLINE float Hermite(float q)
 
  // (same behaviour as, but faster than, FLOAT->INT)
  //Works OK for -32728 to 32727.99999236688
-OOINLINE long fast_floor(double val)
+OOINLINE int32_t fast_floor(double val)
 {
    val += 68719476736.0 * 1.5;
-   return (((long*)&val)[iman_] >> 16);
+   return (((int32_t*)&val)[iman_] >> 16);
 }
 
 

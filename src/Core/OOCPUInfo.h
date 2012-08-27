@@ -34,7 +34,7 @@ void OOCPUInfoInit(void);
 /*	Number of processors (whether they be individual or cores), used to select
 	number of threads to use for things like texture loading.
 */
-unsigned OOCPUCount(void);
+OOUInteger OOCPUCount(void);
 
 
 /*	Set up OOLITE_BIG_ENDIAN and OOLITE_LITTLE_ENDIAN macros. Exactly one must

@@ -350,7 +350,9 @@ static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateO
 			enumerator = [[keys objectEnumerator] retain];
 			*state = PRIVATE_TO_JSVAL(enumerator);
 			
-			if (idp != NULL)  *idp = INT_TO_JSID([keys count]);
+			OOUInteger count = [keys count];
+			assert(count <= INT32_MAX);
+			if (idp != NULL)  *idp = INT_TO_JSID((int32_t)count);
 			return YES;
 		}
 		

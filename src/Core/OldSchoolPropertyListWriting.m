@@ -35,7 +35,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	NSRange				foundRange, searchRange;
 	NSString			*foundString;
 	NSMutableString		*newString;
-	unsigned			length;
+	NSUInteger			length;
 	
 	length = [self length];
 	if (0 != length

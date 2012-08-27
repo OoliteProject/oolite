@@ -200,7 +200,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return YES;
 			
 		case kPlayer_legalStatus:
-			*value = OOJSValueFromNativeObject(context, OODisplayStringFromLegalStatus([player bounty]));
+			*value = OOJSValueFromNativeObject(context, OODisplayStringFromLegalStatus([player legalStatus]));
 			return YES;
 			
 		case kPlayer_alertCondition:
@@ -517,7 +517,7 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsva
 					rescueRange = [UNIVERSE strict] ? MAX_JUMP_RANGE / 3.0 : MAX_JUMP_RANGE / 2.0;
 				}
 				NSMutableArray	*sDests = [UNIVERSE nearbyDestinationsWithinRange:rescueRange];
-				int 			i = 0, nDests = [sDests count];
+				OOUInteger		i = 0, nDests = [sDests count];
 				
 				if (nDests > 0)	for (i = --nDests; i > 0; i--)
 				{

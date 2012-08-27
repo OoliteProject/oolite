@@ -315,7 +315,7 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 	{
 #ifndef NDEBUG
 		case kConsole_debugFlags:
-			*value = INT_TO_JSVAL(gDebugFlags);
+			*value = INT_TO_JSVAL((uint32_t)gDebugFlags);
 			break;
 #endif		
 			
@@ -372,11 +372,11 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 			break;
 			
 		case kConsole_glFixedFunctionTextureUnitCount:
-			*value = INT_TO_JSVAL([[OOOpenGLExtensionManager sharedManager] textureUnitCount]);
+			*value = INT_TO_JSVAL((uint32_t)[[OOOpenGLExtensionManager sharedManager] textureUnitCount]);
 			break;
 			
 		case kConsole_glFragmentShaderTextureUnitCount:
-			*value = INT_TO_JSVAL([[OOOpenGLExtensionManager sharedManager] textureImageUnitCount]);
+			*value = INT_TO_JSVAL((uint32_t)[[OOOpenGLExtensionManager sharedManager] textureImageUnitCount]);
 			break;
 			
 #define DEBUG_FLAG_CASE(x) case kConsole_##x: *value = INT_TO_JSVAL(x); break;
