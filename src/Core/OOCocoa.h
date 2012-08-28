@@ -388,6 +388,15 @@ typedef NSUInteger				OOUInteger;
 #endif
 
 
+/*	Support for foreach() with NSEnumerators in GCC.
+	It works without this with for (x in y) support, but we leave it defined
+	to reduce differences between different build environments.
+*/
+@interface NSEnumerator (OOForEachSupport)
+- (NSEnumerator *) objectEnumerator;
+@end
+
+
 /*	Speech synthesis
 */
 #if OOLITE_MAC_OS_X || defined(HAVE_LIBESPEAK)

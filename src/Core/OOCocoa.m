@@ -2,7 +2,7 @@
 
 OOCocoa.m
 
-Runtime-like methods.
+Runtime-like and Cocoa/GNUstep compatibility methods.
 
 
 Copyright (C) 2008-2012 Jens Ayton
@@ -74,6 +74,16 @@ SOFTWARE.
 - (NSString *) shortDescriptionComponents
 {
 	return nil;
+}
+
+@end
+
+
+@implementation NSEnumerator (OOForEachSupport)
+
+- (NSEnumerator *) objectEnumerator
+{
+	return self;
 }
 
 @end
