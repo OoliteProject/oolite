@@ -38,15 +38,14 @@ MA 02110-1301, USA.
 	
 	#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION >= 20) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
 		#define OOLITE_GNUSTEP_1_20	1
+	#else
+		#error Oolite for non-Mac targets requires GNUstep 1.20.
 	#endif
 #else
 	#import <AppKit/AppKit.h>
 	
 	#define OOLITE_MAC_OS_X			1
 	#define OOLITE_HAVE_APPKIT		1
-	#ifdef OOLITE_SDL_MAC
-		#define OOLITE_SDL			1
-	#endif
 	
 	/*	Enforce type-clean use of nil and Nil under OS X. (They are untyped in
 		Cocoa, apparently for compatibility with legacy Mac OS code, but typed in
@@ -77,10 +76,6 @@ MA 02110-1301, USA.
 #endif
 
 
-#ifndef OOLITE_GNUSTEP_1_20
-	#define OOLITE_GNUSTEP_1_20		0
-#endif
-
 #ifndef OOLITE_MAC_OS_X_10_6
 	#define OOLITE_MAC_OS_X_10_6	0
 #endif
@@ -100,7 +95,7 @@ MA 02110-1301, USA.
 #endif
 
 
-#if OOLITE_GNUSTEP && !defined(OOLITE_SDL_MAC)
+#if OOLITE_GNUSTEP
 #include <stdint.h>
 #include <limits.h> // to get UINT_MAX
 
@@ -285,8 +280,7 @@ enum {
 
 
 /*	OOInteger and OOUInteger: int (32-bit) on 32-bit platforms, long (64-bit)
-	on 64-bit platforms. This is equivalent to NSInteger/NSUInteger in OS X
-	10.5 and GNUstep 1.16.
+	on 64-bit platforms.
 	
 	Why not long in 32-bit? Because we want to avoid "multiple methods"
 	warnings when using SDKs using int.
@@ -295,24 +289,15 @@ enum {
 	There is no need to make this distinction in GNUStep.
 */
 
+typedef NSInteger				OOInteger;
+typedef NSUInteger				OOUInteger;
+
 #if OOLITE_MAC_OS_X
-		typedef NSInteger		OOInteger;
-		typedef NSUInteger		OOUInteger;
-		typedef CGFloat			OOCGFloat;
-		#if __LP64__
-			#define OOLITE_64_BIT			1
-		#endif
-#elif OOLITE_GNUSTEP
-	/* MKW 20090414 - GNUStep 1.19 still has the NSInteger bug, so let's revert
-	 * to the older definitions for OOInteger */
-	#if OOLITE_GNUSTEP_1_20
-		typedef NSInteger		OOInteger;
-		typedef NSUInteger		OOUInteger;
-	#else
-		// Older versions of GNUstep used int on all systems.
-		typedef int				OOInteger;
-		typedef unsigned int	OOUInteger;
+	typedef CGFloat				OOCGFloat;
+	#if __LP64__
+		#define OOLITE_64_BIT	1
 	#endif
+#elif OOLITE_GNUSTEP
 	typedef float				OOCGFloat;
 
 	#ifndef NSIntegerMax
@@ -377,14 +362,6 @@ enum {
 
 #ifndef OOLITE_FAST_ENUMERATION
 #define OOLITE_FAST_ENUMERATION			0
-#endif
-
-
-// Availability of -[NSString stringByReplacingOccurrencesOfString:...] family.
-#if OOLITE_MAC_OS_X
-#define OOLITE_HAVE_STRING_BY_REPLACING	1
-#elif OOLITE_GNUSTEP
-#define OOLITE_HAVE_STRING_BY_REPLACING	OOLITE_GNUSTEP_1_20
 #endif
 
 

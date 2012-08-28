@@ -97,7 +97,8 @@ MA 02110-1301, USA.
 			}
 		} 
 		else 
-		{ // check correct sub-entity position
+		{
+			// check correct sub-entity position
 			if (![UNIVERSE viewFrustumIntersectsSphereAt:[super absolutePositionForSubentity] withRadius:collision_radius])
 			{
 				return;

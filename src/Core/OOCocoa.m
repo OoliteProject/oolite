@@ -85,14 +85,3 @@ id OOConsumeReference(id OO_NS_CONSUMED value)
 	return value;
 }
 #endif
-
-
-
-#if OOLITE_GNUSTEP && !OOLITE_GNUSTEP_1_20
-/*
-	I'm informed that we're using GNUstep 1.20.1 for Linux and Windows builds.
-	I'll leave this here for a while to see if anyone is hit before cleaning
-	up pre-1.20 cases. -- Ahruman 2012-08-25
-*/
-#error Oolite for non-Mac targets requires GNUstep 1.20.
-#endif

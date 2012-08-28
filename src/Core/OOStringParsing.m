@@ -285,11 +285,7 @@ NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed, NSString *n
 	// Stop randomly generated system description strings from containing double spaces!
 	if (EXPECT_NOT([text isEqualToString:@"[system-description-string]"]))
 	{
-#if OOLITE_HAVE_STRING_BY_REPLACING
 		result = [result stringByReplacingOccurrencesOfString:@"  " withString:@" "];
-#else
-		result = [[result componentsSeparatedByString:@"  "] componentsJoinedByString:@" "];
-#endif
 	}
 	
 	return result;

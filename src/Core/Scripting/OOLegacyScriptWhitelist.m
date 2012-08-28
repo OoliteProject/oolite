@@ -407,14 +407,7 @@ static NSArray *SanitizeActionStatement(NSString *statement, SanStackElement *st
 			argument = [tokens componentsJoinedByString:@" "];
 		}
 		
-#if OOLITE_HAVE_STRING_BY_REPLACING
 		argument = [argument stringByReplacingOccurrencesOfString:@"[credits_number]" withString:@"[_oo_legacy_credits_number]"];
-#else
-		if ([argument rangeOfString:@"[credits_number]"].location != NSNotFound)
-		{
-			argument = [[argument componentsSeparatedByString:@"[credits_number]"] componentsJoinedByString:@"[_oo_legacy_credits_number]"];
-		}
-#endif
 	}
 	
 	return [NSArray arrayWithObjects:[NSNumber numberWithBool:NO], selectorString, argument, nil];

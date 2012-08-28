@@ -5434,20 +5434,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				NSString *replacement_phrase = [thePair oo_stringAtIndex:replacementIndex];
 				if (![replacement_phrase isEqualToString:@"_"])
 				{
-#if OOLITE_HAVE_STRING_BY_REPLACING
 					spokenText = [spokenText stringByReplacingOccurrencesOfString:original_phrase withString:replacement_phrase];
-#else
-					spokenText = [[spokenText componentsSeparatedByString:original_phrase] componentsJoinedByString:replacement_phrase];
-#endif
 				}
 			}
-#if OOLITE_HAVE_STRING_BY_REPLACING
 			spokenText = [spokenText stringByReplacingOccurrencesOfString:systemName withString:systemSaid];
 			spokenText = [spokenText stringByReplacingOccurrencesOfString:h_systemName withString:h_systemSaid];
-#else
-			spokenText = [[spokenText componentsSeparatedByString:systemName] componentsJoinedByString:systemSaid];
-			spokenText = [[spokenText componentsSeparatedByString:h_systemName] componentsJoinedByString:h_systemSaid];
-#endif
 		}
 		[self stopSpeaking];
 		[self startSpeakingString:spokenText];
