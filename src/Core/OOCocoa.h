@@ -314,6 +314,12 @@ enum {
 		typedef unsigned int	OOUInteger;
 	#endif
 	typedef float				OOCGFloat;
+
+	#ifndef NSIntegerMax
+		#define NSIntegerMax	INTPTR_MAX
+		#define NSIntegerMin	INTPTR_MIN
+		#define NSUIntegerMax	UINTPTR_MAX
+	#endif
 #endif
 
 #ifndef OOLITE_64_BIT
