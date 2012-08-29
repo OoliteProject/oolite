@@ -41,10 +41,10 @@ MA 02110-1301, USA.
 - (id) initWithName:(NSString *)name
 			  scope:(JSObject *)scope		// may be NULL, in which case global object is used.
 			   code:(NSString *)code		// full JS code for function, including function declaration.
-	  argumentCount:(OOUInteger)argCount
+	  argumentCount:(NSUInteger)argCount
 	  argumentNames:(const char **)argNames
 		   fileName:(NSString *)fileName
-		 lineNumber:(OOUInteger)lineNumber
+		 lineNumber:(NSUInteger)lineNumber
 			context:(JSContext *)context;	// may be NULL. If not null, must be in a request.
 
 - (NSString *) name;

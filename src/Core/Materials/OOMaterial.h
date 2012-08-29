@@ -73,7 +73,7 @@ SOFTWARE.
 
 #if OO_MULTITEXTURE
 // Nasty hack: number of texture units for which the drawable should set its basic texture coordinates.
-- (OOUInteger) countOfTextureUnitsWithBaseCoordinates;
+- (NSUInteger) countOfTextureUnitsWithBaseCoordinates;
 #endif
 
 #ifndef NDEBUG

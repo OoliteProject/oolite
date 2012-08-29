@@ -770,7 +770,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 - (NSArray *) loadTexturesFromArray:(NSArray *)textureSpecs unitCount:(GLuint)max
 {
-	GLuint i, count = (GLuint)MIN([textureSpecs count], (OOUInteger)max);
+	GLuint i, count = (GLuint)MIN([textureSpecs count], (NSUInteger)max);
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:count];
 	
 	for (i = 0; i < count; i++)
@@ -788,7 +788,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 - (void) addTexturesFromArray:(NSArray *)textureObjects unitCount:(GLuint)max
 {
 	// Allocate space for texture object name array
-	texCount = (uint32_t)MIN([textureObjects count], (OOUInteger)max);
+	texCount = (uint32_t)MIN([textureObjects count], (NSUInteger)max);
 	if (texCount == 0)  return;
 	
 	textures = malloc(texCount * sizeof *textures);

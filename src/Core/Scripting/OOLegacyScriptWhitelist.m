@@ -41,7 +41,7 @@ struct SanStackElement
 {
 	SanStackElement		*back;
 	NSString			*key;		// Dictionary key; nil for arrays.
-	OOUInteger			index;		// Array index if key is nil.
+	NSUInteger			index;		// Array index if key is nil.
 };
 
 
@@ -74,7 +74,7 @@ static NSArray *OOSanitizeLegacyScriptInternal(NSArray *script, SanStackElement 
 	NSMutableArray				*result = nil;
 	NSEnumerator				*statementEnum = nil;
 	id							statement = nil;
-	OOUInteger					index = 0;
+	NSUInteger					index = 0;
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
@@ -130,7 +130,7 @@ static NSArray *OOSanitizeLegacyScriptConditionsInternal(NSArray *conditions, Sa
 	NSMutableArray				*result = nil;
 	NSArray						*tokens = nil;
 	BOOL						OK = YES;
-	OOUInteger					index = 0;
+	NSUInteger					index = 0;
 	
 	if (OOLegacyConditionsAreSanitized(conditions) || conditions == nil)  return conditions;
 	
@@ -177,7 +177,7 @@ BOOL OOLegacyConditionsAreSanitized(NSArray *conditions)
 static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 {
 	NSArray						*tokens = nil;
-	OOUInteger					i, tokenCount;
+	NSUInteger					i, tokenCount;
 	OOOperationType				opType;
 	NSString					*selectorString = nil;
 	NSString					*sanitizedSelectorString = nil;
@@ -372,7 +372,7 @@ static NSArray *SanitizeConditionalStatement(NSDictionary *statement, SanStackEl
 static NSArray *SanitizeActionStatement(NSString *statement, SanStackElement *stack, BOOL allowAIMethods)
 {
 	NSMutableArray				*tokens = nil;
-	OOUInteger					tokenCount;
+	NSUInteger					tokenCount;
 	NSString					*rawSelectorString = nil;
 	NSString					*selectorString = nil;
 	NSString					*argument = nil;

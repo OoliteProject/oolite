@@ -61,7 +61,7 @@ extern NSString * const kOOLogNoteAddShips;
 }
 
 
-- (NSArray *) spawnShipsWithRole:(NSString *)role count:(OOUInteger)count
+- (NSArray *) spawnShipsWithRole:(NSString *)role count:(NSUInteger)count
 {
 	ShipEntity				*ship = [self rootShipEntity];	// FIXME: (EMMSTRAN) implement an -absolutePosition method, use that in spawnShipWithRole:near:, and use self instead of root.
 	ShipEntity				*spawned = nil;

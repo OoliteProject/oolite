@@ -96,7 +96,7 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 	NSEnumerator				*entryEnum = nil;
 	NSArray						*entry = nil;
 	unsigned					entryIndex = 0;
-	OOUInteger					elemCount;
+	NSUInteger					elemCount;
 	NSString					*name = nil;
 	NSString					*entryDesc = nil;
 	

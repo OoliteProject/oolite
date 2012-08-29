@@ -54,8 +54,8 @@ typedef struct
 {
 	NSDictionary			*inConfig;
 	NSMutableDictionary		*outConfig;
-	OOUInteger				texturesUsed;
-	OOUInteger				maxTextures;
+	NSUInteger				texturesUsed;
+	NSUInteger				maxTextures;
 	
 	NSMutableDictionary		*macros;
 	NSMutableArray			*textures;

@@ -1163,7 +1163,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 - (void) writeLightMaps
 {
 	NSArray *lightMaps = [_configuration oo_arrayForKey:kOOMaterialLightMapsName];
-	OOUInteger idx, count = [lightMaps count];
+	NSUInteger idx, count = [lightMaps count];
 	if (count == 0)  return;
 	
 	REQUIRE_STAGE(writeTotalColor);
@@ -1198,7 +1198,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		
 		if (color != nil)
 		{
-			OOUInteger idx, count = [color count];
+			NSUInteger idx, count = [color count];
 			if (count > 4)  count = 4;
 			for (idx = 0; idx < count; idx++)
 			{

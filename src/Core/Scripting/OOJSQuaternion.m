@@ -196,12 +196,12 @@ BOOL JSValueToQuaternion(JSContext *context, jsval value, Quaternion *outQuatern
 
 typedef struct
 {
-	OOUInteger			quatCount;
-	OOUInteger			entityCount;
-	OOUInteger			arrayCount;
-	OOUInteger			protoCount;
-	OOUInteger			nullCount;
-	OOUInteger			failCount;
+	NSUInteger			quatCount;
+	NSUInteger			entityCount;
+	NSUInteger			arrayCount;
+	NSUInteger			protoCount;
+	NSUInteger			nullCount;
+	NSUInteger			failCount;
 } QuaternionStatistics;
 static QuaternionStatistics sQuaternionConversionStats;
 
@@ -215,7 +215,7 @@ static QuaternionStatistics sQuaternionConversionStats;
 {
 	QuaternionStatistics *stats = &sQuaternionConversionStats;
 	
-	OOUInteger sum = stats->quatCount + stats->entityCount + stats->arrayCount + stats->protoCount;
+	NSUInteger sum = stats->quatCount + stats->entityCount + stats->arrayCount + stats->protoCount;
 	double convFac = 100.0 / sum;
 	
 	return [NSString stringWithFormat:

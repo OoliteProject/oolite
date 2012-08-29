@@ -472,7 +472,7 @@ typedef struct
 		
 		if ([entity isPlayer])
 		{
-			OOUInteger i, count = [entity dialMaxMissiles];
+			NSUInteger i, count = [entity dialMaxMissiles];
 			for (i = 0; i < count; i++)
 			{
 				subentity = [entity missileForPylon:i];
@@ -1015,7 +1015,7 @@ NOTE: assumes single-threaded access.
 }
 
 
-- (OOUInteger)retainCount
+- (NSUInteger)retainCount
 {
 	return UINT_MAX;
 }

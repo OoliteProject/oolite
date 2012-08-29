@@ -173,35 +173,35 @@ extern int debug;
 // General image-dumping methods.
 - (void) dumpRGBAToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
-					   width:(OOUInteger)width
-					  height:(OOUInteger)height
-					rowBytes:(OOUInteger)rowBytes;
+					   width:(NSUInteger)width
+					  height:(NSUInteger)height
+					rowBytes:(NSUInteger)rowBytes;
 
 - (void) dumpRGBToFileNamed:(NSString *)name
 					  bytes:(uint8_t *)bytes
-					  width:(OOUInteger)width
-					 height:(OOUInteger)height
-				   rowBytes:(OOUInteger)rowBytes;
+					  width:(NSUInteger)width
+					 height:(NSUInteger)height
+				   rowBytes:(NSUInteger)rowBytes;
 
 - (void) dumpGrayToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
-					   width:(OOUInteger)width
-					  height:(OOUInteger)height
-					rowBytes:(OOUInteger)rowBytes;
+					   width:(NSUInteger)width
+					  height:(NSUInteger)height
+					rowBytes:(NSUInteger)rowBytes;
 
 - (void) dumpGrayAlphaToFileNamed:(NSString *)name
 							bytes:(uint8_t *)bytes
-							width:(OOUInteger)width
-						   height:(OOUInteger)height
-						 rowBytes:(OOUInteger)rowBytes;
+							width:(NSUInteger)width
+						   height:(NSUInteger)height
+						 rowBytes:(NSUInteger)rowBytes;
 
 // Split alpha into separate file.
 - (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
 			   andGrayFileNamed:(NSString *)grayName
 						  bytes:(uint8_t *)bytes
-						  width:(OOUInteger)width
-						 height:(OOUInteger)height
-					   rowBytes:(OOUInteger)rowBytes;
+						  width:(NSUInteger)width
+						 height:(NSUInteger)height
+					   rowBytes:(NSUInteger)rowBytes;
 #endif
 
 @end

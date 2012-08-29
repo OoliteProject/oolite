@@ -43,9 +43,9 @@ typedef enum
 
 @protocol OOCASoundDebugMonitor
 
-- (void) soundDebugMonitorNoteChannelMaxCount:(OOUInteger)maxChannels;
-- (void) soundDebugMonitorNoteActiveChannelCount:(OOUInteger)usedChannels;
-- (void) soundDebugMonitorNoteState:(OOCASoundDebugMonitorChannelState)state ofChannel:(OOUInteger)channel;
+- (void) soundDebugMonitorNoteChannelMaxCount:(NSUInteger)maxChannels;
+- (void) soundDebugMonitorNoteActiveChannelCount:(NSUInteger)usedChannels;
+- (void) soundDebugMonitorNoteState:(OOCASoundDebugMonitorChannelState)state ofChannel:(NSUInteger)channel;
 
 - (void) soundDebugMonitorNoteAUGraphLoad:(float)load;
 

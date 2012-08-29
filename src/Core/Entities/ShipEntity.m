@@ -630,25 +630,25 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (void) setSubIdx:(OOUInteger)value
+- (void) setSubIdx:(NSUInteger)value
 {
 	_subIdx = value;
 }
 
 
-- (OOUInteger) subIdx
+- (NSUInteger) subIdx
 {
 	return _subIdx;
 }
 
 
-- (OOUInteger) maxShipSubEntities
+- (NSUInteger) maxShipSubEntities
 {
 	return _maxShipSubIdx;
 }
 
 
-- (NSString *) repeatString:(NSString *)str times:(OOUInteger)times
+- (NSString *) repeatString:(NSString *)str times:(NSUInteger)times
 {
 
 	if (times == 0)  return @"";
@@ -671,7 +671,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	NSMutableString		*result = [NSMutableString stringWithCapacity:4];
 	NSEnumerator		*subEnum = nil;
 	ShipEntity			*se = nil;
-	OOUInteger			diff, i = 0;
+	NSUInteger			diff, i = 0;
 	
 	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
@@ -689,8 +689,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (void) deserializeShipSubEntitiesFrom:(NSString *)string
 {
 	NSArray				*subEnts = [[self shipSubEntityEnumerator] allObjects];
-	OOInteger			i,idx, start = [subEnts count] - 1;
-	OOInteger			strMaxIdx = [string length] - 1;
+	NSInteger			i,idx, start = [subEnts count] - 1;
+	NSInteger			strMaxIdx = [string length] - 1;
 		
 	ShipEntity			*se = nil;
 	
@@ -1099,7 +1099,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (OOUInteger) subEntityCount
+- (NSUInteger) subEntityCount
 {
 	return [subEntities count];
 }
@@ -1344,7 +1344,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if (_beaconDrawable == nil)
 	{
 		NSString	*beaconCode = [self beaconCode];
-		OOUInteger	length = [beaconCode length];
+		NSUInteger	length = [beaconCode length];
 		
 		if (length > 1)
 		{
@@ -1717,7 +1717,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	NSArray *prime_subs = prime->subEntities;
 	if (prime_subs)
 	{
-		OOUInteger i, n_subs = [prime_subs count];
+		NSUInteger i, n_subs = [prime_subs count];
 		for (i = 0; i < n_subs; i++)
 		{
 			Entity* se = [prime_subs objectAtIndex:i];
@@ -1730,7 +1730,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	NSArray *other_subs = other->subEntities;
 	if (other_subs)
 	{
-		OOUInteger i, n_subs = [other_subs count];
+		NSUInteger i, n_subs = [other_subs count];
 		for (i = 0; i < n_subs; i++)
 		{
 			Entity* se = [other_subs objectAtIndex:i];
@@ -1742,13 +1742,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// check prime subenties against the other's subentities
 	if ((prime_subs)&&(other_subs))
 	{
-		OOUInteger i, n_osubs = [other_subs count];
+		NSUInteger i, n_osubs = [other_subs count];
 		for (i = 0; i < n_osubs; i++)
 		{
 			Entity* oe = [other_subs objectAtIndex:i];
 			if ([oe isShip] && [oe canCollide])
 			{
-				OOUInteger j, n_psubs = [prime_subs count];
+				NSUInteger j, n_psubs = [prime_subs count];
 				for (j = 0; j <  n_psubs; j++)
 				{
 					Entity* pe = [prime_subs objectAtIndex:j];
@@ -2978,7 +2978,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (OOUInteger) equipmentCount
+- (NSUInteger) equipmentCount
 {
 	return [_equipment count];
 }
@@ -3234,31 +3234,31 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (OOUInteger) passengerCount
+- (NSUInteger) passengerCount
 {
 	return 0;
 }
 
 
-- (OOUInteger) passengerCapacity
+- (NSUInteger) passengerCapacity
 {
 	return 0;
 }
 
 
-- (OOUInteger) missileCount
+- (NSUInteger) missileCount
 {
 	return missiles;
 }
 
 
-- (OOUInteger) missileCapacity
+- (NSUInteger) missileCapacity
 {
 	return max_missiles;
 }
 
 
-- (OOUInteger) extraCargo
+- (NSUInteger) extraCargo
 {
 	return extra_cargo;
 }
@@ -7022,7 +7022,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (OOCargoQuantity) cargoQuantityOnBoard
 {
-	OOUInteger result = [[self cargo] count];
+	NSUInteger result = [[self cargo] count];
 	NSAssert(result < UINT32_MAX, @"Cargo quantity out of bounds.");
 	return (OOCargoQuantity)result;
 }
@@ -7514,11 +7514,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 	
 	Vector xposition = position;
-	OOUInteger i;
+	NSUInteger i;
 	Vector v;
 	Quaternion q;
 	int speed_low = 200;
-	OOUInteger n_alloys = floorf(sqrtf(sqrtf(mass / 25000.0f)));
+	NSUInteger n_alloys = floorf(sqrtf(sqrtf(mass / 25000.0f)));
 	
 	if ([self status] == STATUS_DEAD)
 	{
@@ -7620,7 +7620,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				//  Throw out cargo
 				if (jetsam)
 				{
-					OOUInteger n_jetsam = [jetsam count];
+					NSUInteger n_jetsam = [jetsam count];
 					
 					for (i = 0; i < n_jetsam; i++)
 					{
@@ -7660,7 +7660,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				{
 					if (!noRocks && (being_mined || randf() < 0.20))
 					{
-						OOUInteger n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
+						NSUInteger n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
 						
 						NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:@"boulder"];
 						for (i = 0; i < n_rocks; i++)
@@ -7696,7 +7696,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				{
 					if ((being_mined)||(ranrot_rand() % 100 < 20))
 					{
-						OOUInteger n_rocks = 2 + (ranrot_rand() % 5);
+						NSUInteger n_rocks = 2 + (ranrot_rand() % 5);
 						
 						NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:@"splinter"];
 						for (i = 0; i < n_rocks; i++)
@@ -7734,7 +7734,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				//
 				if (n_alloys && canFragment)
 				{
-					OOUInteger n_wreckage = 0;
+					NSUInteger n_wreckage = 0;
 					
 					if (UNIVERSE->n_entities < 0.50 * UNIVERSE_MAX_ENTITIES)
 					{
@@ -9363,7 +9363,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (OOUInteger) defenseTargetCount
+- (NSUInteger) defenseTargetCount
 {
 	return [_defenseTargets count];
 }
@@ -11683,8 +11683,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			_maxEscortCount = MAX_ESCORTS;
 		}
 		
-		OOUInteger maxEscorts = _maxEscortCount; 	// never bigger than MAX_ESCORTS.
-		OOUInteger escortCount = [escortGroup count] - 1;	// always 0 or higher.
+		NSUInteger maxEscorts = _maxEscortCount; 	// never bigger than MAX_ESCORTS.
+		NSUInteger escortCount = [escortGroup count] - 1;	// always 0 or higher.
 		
 		if (escortCount < maxEscorts)
 		{
@@ -11797,7 +11797,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([self primaryTarget] == nil || _escortGroup == nil)  return;
 	
 	OOShipGroup *escortGroup = [self escortGroup];
-	OOUInteger escortCount = [escortGroup count] - 1;  // escorts minus leader.
+	NSUInteger escortCount = [escortGroup count] - 1;  // escorts minus leader.
 	if (escortCount == 0)  return;
 	
 	if ([self group] == nil)  [self setGroup:escortGroup];
@@ -12254,7 +12254,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	NSArray		*tokens = ScanTokensFromString(roles_number);
 	NSString	*roleString = nil;
 	NSString	*numberString = nil;
-	OOUInteger	number;
+	NSUInteger	number;
 	
 	if ([tokens count] != 2)
 	{

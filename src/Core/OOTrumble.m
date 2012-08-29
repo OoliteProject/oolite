@@ -585,7 +585,7 @@ static void PlayTrumbleSqueal(void);
 		ShipEntity *selectedCargopod = nil;
 		float mostYummy = 0.0;
 		NSMutableArray *cargopods = [player cargo];	// the cargo pods
-		OOUInteger i, n_pods = [cargopods count];
+		NSUInteger i, n_pods = [cargopods count];
 		float foodfactor[17] = { 1.00, 0.25, 0.75, 0.01, 0.95, 1.25, 1.05, 0.00, 0.00, 0.00, 0.00, 0.15, 0.00, 0.00, 0.00, 0.00, 0.00};
 		for (i = 0 ; i < n_pods; i++)
 		{

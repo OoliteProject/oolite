@@ -117,7 +117,7 @@ static BOOL				customView_pressed;
 static BOOL				weaponsOnlineToggle_pressed;
 static BOOL				escapePodKey_pressed;
 
-static OOUInteger		searchStringLength;
+static NSUInteger		searchStringLength;
 static double			timeLastKeyPress;
 static OOGUIRow			oldSelection;
 static int				saved_view_direction;
@@ -934,7 +934,7 @@ static NSTimeInterval	time_last_frame;
 					{
 
 						// cycle through all the relevant equipment.
-						OOUInteger c = [eqScripts count];
+						NSUInteger c = [eqScripts count];
 						
 						// if Ctrl is held down at the same time as the prime equipment key,
 						// cycle relevant equipment in reverse
@@ -2369,10 +2369,10 @@ static NSTimeInterval	time_last_frame;
 	{
 		GameController	*controller = [UNIVERSE gameController];
 		int				direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
-		OOInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
+		NSInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
 		NSArray			*modes = [controller displayModes];
 		
-		if (displayModeIndex == (OOInteger)NSNotFound)
+		if (displayModeIndex == (NSInteger)NSNotFound)
 		{
 			OOLogWARN(@"graphics.mode.notFound", @"couldn't find current fullscreen setting, switching to default.");
 			displayModeIndex = 0;
@@ -2783,7 +2783,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView		*gameView = [UNIVERSE gameView];
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
-	OOUInteger			numSticks = [stickHandler joystickCount];
+	NSUInteger			numSticks = [stickHandler joystickCount];
 	NSPoint				virtualStick = NSZeroPoint;
 	double				reqYaw = 0.0;
 	double				deadzone;

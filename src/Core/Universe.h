@@ -168,7 +168,7 @@ enum
 	GLfloat					stars_ambient[4];
 	
 @private
-	OOUInteger				_sessionID;
+	NSUInteger				_sessionID;
 	
 	// colors
 	GLfloat					sun_diffuse[4];
@@ -218,7 +218,7 @@ enum
 	OOTimeAbsolute			demo_start_time;
 	GLfloat					demo_start_z;
 	int						demo_stage;
-	OOUInteger				demo_ship_index;
+	NSUInteger				demo_ship_index;
 	NSArray					*demo_ships;
 	
 	GLfloat					main_light_position[4];
@@ -308,7 +308,7 @@ enum
 - (id)initWithGameView:(MyOpenGLView *)gameView;
 
 // SessionID: a value that's incremented when the game is reset.
-- (OOUInteger) sessionID;
+- (NSUInteger) sessionID;
 
 - (BOOL) doProcedurallyTexturedPlanets;
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
@@ -319,7 +319,7 @@ enum
 
 - (void) reinitAndShowDemo:(BOOL)showDemo;
 
-- (OOUInteger) entityCount;
+- (NSUInteger) entityCount;
 #ifndef NDEBUG
 - (void) debugDumpEntities;
 - (NSArray *) entityList;
@@ -735,7 +735,7 @@ OOINLINE Universe *OOGetUniverse(void)
 
 // Not for direct use.
 NSString *OOLookUpDescriptionPRIV(NSString *key);
-NSString *OOLookUpPluralDescriptionPRIV(NSString *key, OOInteger count);
+NSString *OOLookUpPluralDescriptionPRIV(NSString *key, NSInteger count);
 
 
 @interface OOSound (OOCustomSounds)

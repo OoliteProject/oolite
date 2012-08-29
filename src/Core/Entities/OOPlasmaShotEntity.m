@@ -90,7 +90,7 @@ MA 02110-1301, USA.
 	const float attenuation = 1.0f;
 #endif
 	
-	OOUInteger i, count = [collidingEntities count];
+	NSUInteger i, count = [collidingEntities count];
 	for (i = 0; i < count; i++)
 	{
 		Entity *e = (Entity *)[collidingEntities objectAtIndex:i];

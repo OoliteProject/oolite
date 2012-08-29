@@ -67,7 +67,7 @@ id OODeepCopy(id object)
 
 - (id) ooDeepCopyWithSharedObjects:(NSMutableSet *)objects
 {
-	OOUInteger length = [self length];
+	NSUInteger length = [self length];
 	if (length == 0)  return [[NSString string] retain];
 	if (length > 128)  return [self copy];
 	
@@ -111,7 +111,7 @@ id OODeepCopy(id object)
 
 - (id) ooDeepCopyWithSharedObjects:(NSMutableSet *)objects
 {
-	OOUInteger				i, count;
+	NSUInteger				i, count;
 	id						*members = NULL;
 	NSArray					*result = nil;
 	BOOL					tempObjects = NO;
@@ -167,7 +167,7 @@ id OODeepCopy(id object)
 
 - (id) ooDeepCopyWithSharedObjects:(NSMutableSet *)objects
 {
-	OOUInteger				i, count;
+	NSUInteger				i, count;
 	id						*members = NULL;
 	NSSet					*result = nil;
 	BOOL					tempObjects = NO;
@@ -225,7 +225,7 @@ id OODeepCopy(id object)
 
 - (id) ooDeepCopyWithSharedObjects:(NSMutableSet *)objects
 {
-	OOUInteger				i, count;
+	NSUInteger				i, count;
 	id						*keys = NULL;
 	id						*values = NULL;
 	NSDictionary			*result = nil;

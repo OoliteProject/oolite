@@ -76,7 +76,7 @@ MA 02110-1301, USA.
 - (BOOL) hasSuspendedStateMachines;
 - (void) exitStateMachineWithMessage:(NSString *)message;
 
-- (OOUInteger) stackDepth;
+- (NSUInteger) stackDepth;
 
 // Immediately handle a message. This is the core dispatcher. DebugContext is a textual hint for diagnostics.
 - (void) reactToMessage:(NSString *) message context:(NSString *)debugContext;

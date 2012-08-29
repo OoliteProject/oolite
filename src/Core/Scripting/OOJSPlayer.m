@@ -517,7 +517,7 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsva
 					rescueRange = [UNIVERSE strict] ? MAX_JUMP_RANGE / 3.0 : MAX_JUMP_RANGE / 2.0;
 				}
 				NSMutableArray	*sDests = [UNIVERSE nearbyDestinationsWithinRange:rescueRange];
-				OOUInteger		i = 0, nDests = [sDests count];
+				NSUInteger		i = 0, nDests = [sDests count];
 				
 				if (nDests > 0)	for (i = --nDests; i > 0; i--)
 				{

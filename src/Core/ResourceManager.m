@@ -85,7 +85,7 @@ static NSMutableDictionary *sStringCache;
 + (NSString *) errors
 {
 	NSArray					*error = nil;
-	OOUInteger				i, count;
+	NSUInteger				i, count;
 	NSMutableArray			*result = nil;
 	NSString				*errStr = nil;
 	
@@ -706,7 +706,7 @@ static NSMutableDictionary *sStringCache;
 // the latest entry replaces the earliest.
 + (void) handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex
 {
-	OOUInteger i,j,k;
+	NSUInteger i,j,k;
 	NSMutableArray *refArray = [arrayToProcess objectAtIndex:[arrayToProcess count] - 1];
 	
 	// Any change to arrayRef will directly modify arrayToProcess.
@@ -715,7 +715,7 @@ static NSMutableDictionary *sStringCache;
 	{
 		for (j = 0; j < [arrayToProcess count] - 1; j++)
 		{
-			OOUInteger count = [[arrayToProcess oo_arrayAtIndex:j] count];
+			NSUInteger count = [[arrayToProcess oo_arrayAtIndex:j] count];
 			if (count == 0)  continue;
 			
 			for (k=0; k < count - 1; k++)
@@ -1074,7 +1074,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	
 	if (OOLogWillDisplayMessagesInClass(@"script.load.world.listAll"))
 	{
-		OOUInteger count = [loadedScripts count];
+		NSUInteger count = [loadedScripts count];
 		if (count != 0)
 		{
 			NSMutableArray		*displayNames = nil;
@@ -1110,12 +1110,12 @@ static NSString *LogClassKeyRoot(NSString *key)
 	if (directory == nil)  return NO;
 	
 	NSArray *nameComponents = [name componentsSeparatedByString:@"/"];
-	OOUInteger count = [nameComponents count];
+	NSUInteger count = [nameComponents count];
 	if (count > 1)
 	{
 		name = [nameComponents lastObject];
 		
-		for (OOUInteger i = 0; i < count - 1; i++)
+		for (NSUInteger i = 0; i < count - 1; i++)
 		{
 			NSString *component = [nameComponents objectAtIndex:i];
 			if ([component hasPrefix:@"."])

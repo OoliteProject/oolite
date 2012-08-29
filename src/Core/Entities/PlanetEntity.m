@@ -56,7 +56,7 @@ MA 02110-1301, USA.
 // straight C
 static Vector base_vertex_array[MAX_PLANET_VERTICES];
 static int base_terrain_array[MAX_PLANET_VERTICES];
-static OOUInteger next_free_vertex;
+static NSUInteger next_free_vertex;
 static NSMapTable *sEdgeToVertex;
 
 static int n_triangles[MAX_SUBDIVIDE];
@@ -1007,7 +1007,7 @@ static const BaseFace kTexturedFaces[][3] =
 	[self loadTexture:OOTextureSpecFromObject(fileName, nil)];
 	[self deleteDisplayLists];
 	
-	OOUInteger i;
+	NSUInteger i;
 	[self setUseTexturedModel:YES];
 	
 	// recolour main planet according to "texture_hsb_color"
@@ -1433,7 +1433,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 
 - (void) scaleVertices
 {
-	OOUInteger vi;
+	NSUInteger vi;
 	for (vi = 0; vi < next_free_vertex; vi++)
 	{
 		Vector	v = base_vertex_array[vi];

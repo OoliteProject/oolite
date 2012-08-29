@@ -39,7 +39,7 @@ This code is hereby placed in the public domain.
 }
 
 
-- (id) initWithCapacity:(OOUInteger)capacity
+- (id) initWithCapacity:(NSUInteger)capacity
 {
 	if ((self = [super init]))
 	{
@@ -60,7 +60,7 @@ This code is hereby placed in the public domain.
 }
 
 
-+ (instancetype) setWithCapacity:(OOUInteger)capacity
++ (instancetype) setWithCapacity:(NSUInteger)capacity
 {
 	return [[[self alloc] initWithCapacity:capacity] autorelease];
 }
@@ -139,7 +139,7 @@ This code is hereby placed in the public domain.
 
 // MARK: Meat and potatoes
 
-- (OOUInteger) count
+- (NSUInteger) count
 {
 	[self compact];
 	return [_objects count];

@@ -178,8 +178,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) populateSpaceFromActiveWormholes;
 - (void) populateSpaceFromHyperPoint:(Vector)h1_pos toPlanetPosition:(Vector)p1_pos andSunPosition:(Vector)s1_pos;
-- (OOUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
-- (OOUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(OOUInteger)clusterSize;
+- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
+- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(NSUInteger)clusterSize;
 
 - (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary;
 
@@ -188,7 +188,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) dumpDebugGraphViz;
 - (void) dumpSystemDescriptionGraphViz;
 #endif
-- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(OOUInteger)nodeCount;
+- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(NSUInteger)nodeCount;
 - (void) runLocalizationTools;
 #endif
 
@@ -416,7 +416,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (OOUInteger) sessionID
+- (NSUInteger) sessionID
 {
 	return _sessionID;
 }
@@ -463,7 +463,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (OOUInteger) entityCount
+- (NSUInteger) entityCount
 {
 	return [entities count];
 }
@@ -2954,7 +2954,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		reverse the probabilities for scarce goods.
 	*/
 	NSMutableArray  *accumulator = [NSMutableArray arrayWithCapacity:how_many];
-	OOUInteger		commodityCount = [commodityData count];
+	NSUInteger		commodityCount = [commodityData count];
 	OOCargoQuantity quantities[commodityCount];
 	OOCargoQuantity total_quantity = 0;
 	
@@ -2992,7 +2992,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 			co_type = 0;
 			while (qr > 0)
 			{
-				NSAssert((OOUInteger)co_type < commodityCount, @"Commodity type index out of range.");
+				NSAssert((NSUInteger)co_type < commodityCount, @"Commodity type index out of range.");
 				qr -= quantities[co_type++];
 			}
 			co_type--;
@@ -5418,7 +5418,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			{
 				NSString *original_phrase = [thePair oo_stringAtIndex:0];
 				
-				OOUInteger replacementIndex;
+				NSUInteger replacementIndex;
 #if OOLITE_MAC_OS_X
 				replacementIndex = 1;
 #elif OOLITE_ESPEAK
@@ -5503,7 +5503,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) update:(OOTimeDelta)inDeltaT
 {
 	volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
-	OOUInteger sessionID = _sessionID;
+	NSUInteger sessionID = _sessionID;
 	
 	if (EXPECT(!no_update))
 	{
@@ -7340,9 +7340,9 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-static double estimatedTimeForJourney(double distance, OOUInteger hops)
+static double estimatedTimeForJourney(double distance, NSUInteger hops)
 {
-	OOUInteger min_hops = (hops > 1)? (hops - 1) : 1;
+	NSUInteger min_hops = (hops > 1)? (hops - 1) : 1;
 	return 2000 * hops + 4000 * distance * distance / min_hops;
 }
 
@@ -7434,7 +7434,7 @@ static double estimatedTimeForJourney(double distance, OOUInteger hops)
 				NSString* destination_name = [self getSystemName:destination_seed];
 				
 				double route_length = [routeInfo oo_doubleForKey:@"distance"];
-				OOUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
+				NSUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
 				
 				// Credits increase exponentially with number of hops (more with reputation > 5) + 8..15 cr per LY + bonus for low government level of destination
 				OOCreditsQuantity fee = 5 * pow(route_hops, player_repute > 5 ? 2.65 : 2.5) + route_length * (8 + (passenger_seed.e & 7)) + 5 * (7 - destination_government) * (7 - destination_government);
@@ -7620,7 +7620,7 @@ static double estimatedTimeForJourney(double distance, OOUInteger hops)
 			// now we need a commodity that's both plentiful here and scarce there...
 			// build list of goods allocating 0..100 for each based on how
 			// much of each quantity there is. Use a ratio of n x 100/64
-			OOUInteger	marketCount = [localMarket count];
+			NSUInteger	marketCount = [localMarket count];
 			int			quantities[marketCount];
 			int			total_quantity = 0;
 			unsigned	i;
@@ -7652,7 +7652,7 @@ static double estimatedTimeForJourney(double distance, OOUInteger hops)
 			co_type = 0;
 			while (qr > 0)
 			{
-				NSAssert((OOUInteger)co_type < marketCount, @"Commodity type index out of range.");
+				NSAssert((NSUInteger)co_type < marketCount, @"Commodity type index out of range.");
 				qr -= quantities[co_type++];
 			}
 			if (--co_type < 0)  continue;
@@ -7695,7 +7695,7 @@ static double estimatedTimeForJourney(double distance, OOUInteger hops)
 						NSString *destination_name = [self getSystemName:destination_seed];
 						
 						double route_length = [routeInfo oo_doubleForKey:@"distance"];
-						OOUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
+						NSUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
 						
 						// percentage taken by contracter
 						int contractors_share = 90 + destination_government;
@@ -8329,7 +8329,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	extra_equipment_value += ship_other_weapons_value;
 	extra_equipment_value += ship_main_weapons_value - base_weapons_value;
 	
-	OOInteger i;
+	NSInteger i;
 	NSString *eq_key = nil;
 	
 	// shipyard.plist settings might have duplicate keys.
@@ -9985,18 +9985,18 @@ static void PreloadOneSound(NSString *soundName)
 
 }
 
-- (OOUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders
+- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders
 {
-	OOUInteger clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
+	NSUInteger clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
 	return [self scatterAsteroidsAt:spawnPos withVelocity:spawnVel includingRockHermit:spawnHermit asCinders:asCinders clusterSize:clusterSize];
 }
 
 
-- (OOUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(OOUInteger)clusterSize
+- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(NSUInteger)clusterSize
 {
-	OOUInteger	rocks = 0;
+	NSUInteger	rocks = 0;
 //	Vector		launchPos;
-	OOUInteger	i;
+	NSUInteger	i;
 	
 	NSString	*role = asCinders ? @"cinder" : @"asteroid";
 	
@@ -10071,7 +10071,7 @@ static void PreloadOneSound(NSString *soundName)
 	NSMutableString				*graphViz = nil;
 	NSArray						*systemDescriptions = nil;
 	NSArray						*thisDesc = nil;
-	OOUInteger					i, count, j, subCount;
+	NSUInteger					i, count, j, subCount;
 	NSString					*descLine = nil;
 	NSArray						*curses = nil;
 	NSString					*label = nil;
@@ -10173,10 +10173,10 @@ static void PreloadOneSound(NSString *soundName)
 #endif	// DEBUG_GRAPHVIZ
 
 
-- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(OOUInteger)nodeCount
+- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(NSUInteger)nodeCount
 {
 	NSString					*index = nil;
-	OOInteger					start, end;
+	NSInteger					start, end;
 	NSRange						remaining, subRange;
 	unsigned					i;
 	
@@ -10255,7 +10255,7 @@ static void PreloadOneSound(NSString *soundName)
 {
 	[[OOAsyncWorkManager sharedAsyncWorkManager] completePendingTasks];
 	
-	OOUInteger i = [_preloadingPlanetMaterials count];
+	NSUInteger i = [_preloadingPlanetMaterials count];
 	while (i--)
 	{
 		if ([[_preloadingPlanetMaterials objectAtIndex:i] isFinishedLoading])
@@ -10376,7 +10376,7 @@ NSString *OOLookUpDescriptionPRIV(NSString *key)
 
 
 // There's a hint of gettext about this...
-NSString *OOLookUpPluralDescriptionPRIV(NSString *key, OOInteger count)
+NSString *OOLookUpPluralDescriptionPRIV(NSString *key, NSInteger count)
 {
 	NSArray *conditions = [[UNIVERSE descriptions] oo_arrayForKey:@"plural-rules"];
 	

@@ -119,8 +119,8 @@ enum {
 
 - (NSArray *) dependencies;
 
-- (OOInteger) queuePriority;
-- (void) setQueuePriority:(OOInteger)p;
+- (NSInteger) queuePriority;
+- (void) setQueuePriority:(NSInteger)p;
 
 @end
 
@@ -143,8 +143,8 @@ enum {
 
 - (NSArray *) operations;
 
-- (OOInteger) maxConcurrentOperationCount;
-- (void) setMaxConcurrentOperationCount:(OOInteger)cnt;
+- (NSInteger) maxConcurrentOperationCount;
+- (void) setMaxConcurrentOperationCount:(NSInteger)cnt;
 
 - (void) setSuspended:(BOOL)b;
 - (BOOL) isSuspended;

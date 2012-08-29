@@ -64,7 +64,7 @@ typedef enum
 @class OOSound, OOColor, OOTexture, OOTextureSprite, HeadUpDisplay;
 
 
-typedef OOInteger OOGUIRow;	// -1 for none
+typedef NSInteger OOGUIRow;	// -1 for none
 typedef int OOGUITabStop; // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
@@ -116,7 +116,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	GLfloat					max_alpha;			// main alpha setting
 	GLfloat					fade_alpha;			// for fade-in / fade-out
 	GLfloat					fade_sign;			//	-1.0 to 1.0
-	OOUInteger				statusPage; 		// status  screen: paging equipped items
+	NSUInteger				statusPage; 		// status  screen: paging equipped items
 	OOSystemID				foundSystem;
 }
 
@@ -257,8 +257,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor;
 - (void) drawGUIBackground;
-- (void) setStatusPage:(OOUInteger) pageNum;
-- (OOUInteger) statusPage;
+- (void) setStatusPage:(NSUInteger) pageNum;
+- (NSUInteger) statusPage;
 - (void) refreshStarChart;
 
 - (Random_Seed) targetNextFoundSystem:(int)direction;

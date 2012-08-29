@@ -116,7 +116,7 @@ static OOMaterial *sActiveMaterial = nil;
 
 
 #if OO_MULTITEXTURE
-- (OOUInteger) countOfTextureUnitsWithBaseCoordinates
+- (NSUInteger) countOfTextureUnitsWithBaseCoordinates
 {
 	return 1;
 }

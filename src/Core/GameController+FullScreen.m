@@ -196,7 +196,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOUInteger) indexOfCurrentDisplayMode
+- (NSUInteger) indexOfCurrentDisplayMode
 {
 	return [_fullScreenController indexOfCurrentDisplayMode];
 }

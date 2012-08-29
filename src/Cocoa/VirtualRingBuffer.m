@@ -27,11 +27,11 @@
 
 @implementation VirtualRingBuffer
 
-static void *allocateVirtualBuffer(OOUInteger bufferLength);
-static void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength);
+static void *allocateVirtualBuffer(NSUInteger bufferLength);
+static void deallocateVirtualBuffer(void *buffer, NSUInteger bufferLength);
 
 
-- (id)initWithLength:(OOUInteger)length
+- (id)initWithLength:(NSUInteger)length
 {
     if (!(self = [super init]))  return nil;
 	
@@ -90,12 +90,12 @@ static void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength);
 // Read operations
 //
 
-- (OOUInteger)lengthAvailableToReadReturningPointer:(void **)returnedReadPointer
+- (NSUInteger)lengthAvailableToReadReturningPointer:(void **)returnedReadPointer
 {
     // Assumptions:
     // returnedReadPointer != NULL
 
-    OOUInteger length;
+    NSUInteger length;
     // Read this pointer exactly once, so we're safe in case it is changed in another thread
     void *localWritePointer = writePointer;
 
@@ -115,7 +115,7 @@ static void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength);
     return length;
 }
 
-- (void)didReadLength:(OOUInteger)length
+- (void)didReadLength:(NSUInteger)length
 {
     // Assumptions:
     // [self lengthAvailableToReadReturningPointer:] currently returns a value >= length
@@ -141,12 +141,12 @@ static void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength);
 // Write operations
 //
 
-- (OOUInteger)lengthAvailableToWriteReturningPointer:(void **)returnedWritePointer
+- (NSUInteger)lengthAvailableToWriteReturningPointer:(void **)returnedWritePointer
 {
     // Assumptions:
     // returnedWritePointer != NULL
     
-    OOUInteger length;
+    NSUInteger length;
     // Read this pointer exactly once, so we're safe in case it is changed in another thread
     void *localReadPointer = readPointer;
     
@@ -168,7 +168,7 @@ static void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength);
     return length;
 }
 
-- (void)didWriteLength:(OOUInteger)length
+- (void)didWriteLength:(NSUInteger)length
 {
     // Assumptions:
     // [self lengthAvailableToWriteReturningPointer:] currently returns a value >= length
@@ -195,7 +195,7 @@ static void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength);
 @end
 
 
-void *allocateVirtualBuffer(OOUInteger bufferLength)
+void *allocateVirtualBuffer(NSUInteger bufferLength)
 {
     kern_return_t error;
     vm_address_t originalAddress = 0;
@@ -292,7 +292,7 @@ errorReturn:
     return NULL;
 }
 
-void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength)
+void deallocateVirtualBuffer(void *buffer, NSUInteger bufferLength)
 {
     kern_return_t error;
 

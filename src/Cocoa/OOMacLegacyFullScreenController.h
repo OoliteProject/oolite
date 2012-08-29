@@ -42,14 +42,14 @@ MA 02110-1301, USA.
 	
 	NSMutableArray			*_displayModes;
 	
-	OOUInteger				_width, _height;
-	OOUInteger				_refresh;
+	NSUInteger				_width, _height;
+	NSUInteger				_refresh;
 	NSDictionary			*_originalDisplayMode;
 	NSDictionary			*_fullScreenDisplayMode;
 	
 	NSOpenGLContext			*_fullScreenContext;
 	
-	OOUInteger				_state;
+	NSUInteger				_state;
 	
 	BOOL					_stayInFullScreenMode;
 	BOOL					_callSuspendAction;

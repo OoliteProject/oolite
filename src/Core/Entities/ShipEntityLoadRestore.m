@@ -62,8 +62,8 @@ MA 02110-1301, USA.
 
 
 static void StripIgnoredKeys(NSMutableDictionary *dict);
-static OOUInteger GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context);
-static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *context);
+static NSUInteger GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context);
+static OOShipGroup *GroupForGroupID(NSUInteger groupID, NSMutableDictionary *context);
 
 
 @interface ShipEntity (LoadRestoreInternal)
@@ -224,7 +224,7 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	}
 	
 	// Groups.
-	OOUInteger groupID = [dict oo_integerForKey:KEY_GROUP_ID defaultValue:NSNotFound];
+	NSUInteger groupID = [dict oo_integerForKey:KEY_GROUP_ID defaultValue:NSNotFound];
 	if (groupID != NSNotFound)
 	{
 		OOShipGroup *group = GroupForGroupID(groupID, context);
@@ -308,7 +308,7 @@ static void StripIgnoredKeys(NSMutableDictionary *dict)
 }
 
 
-static OOUInteger GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context)
+static NSUInteger GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context)
 {
 	NSMutableDictionary *groupIDs = [context objectForKey:@"groupIDs"];
 	if (groupIDs == nil)
@@ -352,7 +352,7 @@ static OOUInteger GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *conte
 }
 
 
-static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *context)
+static OOShipGroup *GroupForGroupID(NSUInteger groupID, NSMutableDictionary *context)
 {
 	NSNumber *key = [NSNumber numberWithUnsignedInteger:groupID];
 	

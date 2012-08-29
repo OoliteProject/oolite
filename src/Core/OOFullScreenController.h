@@ -71,7 +71,7 @@ MA 02110-1301, USA.
 @property (nonatomic, getter=inFullScreenMode) BOOL fullScreenMode;
 @property (nonatomic, readonly) NSArray *displayModes;
 @property (nonatomic, readonly) NSDictionary *currentDisplayMode;
-@property (nonatomic, readonly) OOUInteger indexOfCurrentDisplayMode;
+@property (nonatomic, readonly) NSUInteger indexOfCurrentDisplayMode;
 
 #else
 
@@ -82,12 +82,12 @@ MA 02110-1301, USA.
 
 - (NSArray *) displayModes;
 - (NSDictionary *) currentDisplayMode;
-- (OOUInteger) indexOfCurrentDisplayMode;
+- (NSUInteger) indexOfCurrentDisplayMode;
 
 #endif
 
-- (BOOL) setDisplayWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)refresh;
-- (NSDictionary *) findDisplayModeForWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)d_refresh;
+- (BOOL) setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh;
+- (NSDictionary *) findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh;
 
 - (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
 

@@ -85,9 +85,9 @@ typedef struct
 
 
 static CallbackEntry	*sCallbacks;
-static OOUInteger		sCount;			// Number of slots in use.
-static OOUInteger		sSpace;			// Number of slots allocated.
-static OOUInteger		sHighWaterMark;	// Number of slots which are GC roots.
+static NSUInteger		sCount;			// Number of slots in use.
+static NSUInteger		sSpace;			// Number of slots allocated.
+static NSUInteger		sHighWaterMark;	// Number of slots which are GC roots.
 static NSMutableArray	*sDeferredOps;	// Deferred adds/removes while running.
 static uint32			sNextID;
 static BOOL				sRunning;
@@ -103,10 +103,10 @@ static JSBool GlobalIsValidFrameCallback(JSContext *context, uintN argc, jsval *
 static BOOL AddCallback(JSContext *context, jsval callback, uint32 trackingID, NSString **errorString);
 static BOOL GrowCallbackList(JSContext *context, NSString **errorString);
 
-static BOOL GetIndexForTrackingID(uint32 trackingID, OOUInteger *outIndex);
+static BOOL GetIndexForTrackingID(uint32 trackingID, NSUInteger *outIndex);
 
 static BOOL RemoveCallbackWithTrackingID(JSContext *context, uint32 trackingID);
-static void RemoveCallbackAtIndex(JSContext *context, OOUInteger index);
+static void RemoveCallbackAtIndex(JSContext *context, NSUInteger index);
 
 static void QueueDeferredOperation(NSString *opType, uint32 trackingID, OOJSValue *value);
 static void RunDeferredOperations(JSContext *context);
@@ -138,7 +138,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT)
 		const OOTimeDelta	delta = inDeltaT * [UNIVERSE timeAccelerationFactor];
 		JSContext			*context = OOJSAcquireContext();
 		jsval				deltaVal, result;
-		OOUInteger			i;
+		NSUInteger			i;
 		
 		if (EXPECT(JS_NewNumberValue(context, delta, &deltaVal)))
 		{
@@ -279,7 +279,7 @@ static JSBool GlobalIsValidFrameCallback(JSContext *context, uintN argc, jsval *
 		OOJS_RETURN_BOOL(NO);
 	}
 	
-	OOUInteger index;
+	NSUInteger index;
 	OOJS_RETURN_BOOL(GetIndexForTrackingID(trackingID, &index));
 	
 	OOJS_NATIVE_EXIT
@@ -327,7 +327,7 @@ static BOOL GrowCallbackList(JSContext *context, NSString **errorString)
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
 	NSCParameterAssert(errorString != NULL);
 	
-	OOUInteger newSpace = MAX(sSpace * 2, (OOUInteger)kMinCount);
+	NSUInteger newSpace = MAX(sSpace * 2, (NSUInteger)kMinCount);
 	
 	CallbackEntry *newCallbacks = calloc(sizeof (CallbackEntry), newSpace);
 	if (newCallbacks == NULL)  return NO;
@@ -335,14 +335,14 @@ static BOOL GrowCallbackList(JSContext *context, NSString **errorString)
 	CallbackEntry *oldCallbacks = sCallbacks;
 	
 	// Root and copy occupied slots.
-	OOUInteger newHighWaterMark = sCount;
-	OOUInteger i;
+	NSUInteger newHighWaterMark = sCount;
+	NSUInteger i;
 	for (i = 0; i < newHighWaterMark; i++)
 	{
 		if (EXPECT_NOT(!OOJSAddGCValueRoot(context, &newCallbacks[i].callback, "frame callback")))
 		{
 			// If we can't root them all, we fail; unroot all entries to date, free the buffer and return NO.
-			OOUInteger j;
+			NSUInteger j;
 			for (j = 0; j < i; j++)
 			{
 				JS_RemoveValueRoot(context, &newCallbacks[j].callback);
@@ -373,7 +373,7 @@ static BOOL GrowCallbackList(JSContext *context, NSString **errorString)
 }
 
 
-static BOOL GetIndexForTrackingID(uint32 trackingID, OOUInteger *outIndex)
+static BOOL GetIndexForTrackingID(uint32 trackingID, NSUInteger *outIndex)
 {
 	NSCParameterAssert(outIndex != NULL);
 	
@@ -382,7 +382,7 @@ static BOOL GetIndexForTrackingID(uint32 trackingID, OOUInteger *outIndex)
 		can switch to a sorted list or a separate lookup table without changing
 		the API.
 	*/
-	OOUInteger i;
+	NSUInteger i;
 	for (i = 0; i < sCount; i++)
 	{
 		if (sCallbacks[i].trackingID == trackingID)
@@ -401,7 +401,7 @@ static BOOL RemoveCallbackWithTrackingID(JSContext *context, uint32 trackingID)
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
 	NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 	
-	OOUInteger index = 0;
+	NSUInteger index = 0;
 	if (GetIndexForTrackingID(trackingID, &index))
 	{
 		RemoveCallbackAtIndex(context, index);
@@ -412,7 +412,7 @@ static BOOL RemoveCallbackWithTrackingID(JSContext *context, uint32 trackingID)
 }
 
 
-static void RemoveCallbackAtIndex(JSContext *context, OOUInteger index)
+static void RemoveCallbackAtIndex(JSContext *context, NSUInteger index)
 {
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
 	NSCParameterAssert(index < sCount && sCallbacks != NULL);

@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 - (void) removeFunction:(int)selFunctionIdx;
 - (NSArray *)stickFunctionList;
 - (void)displayFunctionList:(GuiDisplayGen *)gui
-					   skip:(OOUInteger) skip;
+					   skip:(NSUInteger) skip;
 - (NSString *)describeStickDict:(NSDictionary *)stickDict;
 - (NSString *)hwToString:(int)hwFlags;
 
@@ -256,7 +256,7 @@ MA 02110-1301, USA.
 
 
 - (void) displayFunctionList:(GuiDisplayGen *)gui
-						skip:(OOUInteger)skip
+						skip:(NSUInteger)skip
 {
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	
@@ -272,8 +272,8 @@ MA 02110-1301, USA.
 	NSDictionary *assignedAxes = [stickHandler axisFunctions];
 	NSDictionary *assignedButs = [stickHandler buttonFunctions];
 	
-	OOUInteger i, n_functions = [stickFunctions count];
-	OOInteger n_rows, start_row, previous = 0;
+	NSUInteger i, n_functions = [stickFunctions count];
+	NSInteger n_rows, start_row, previous = 0;
 	
 	if (skip >= n_functions)
 		skip = n_functions - 1;

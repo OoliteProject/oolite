@@ -36,13 +36,13 @@ MA 02110-1301, USA.
 @private
 	// a geometry essentially consists of a whole bunch of Triangles.
 	// Note: simply making these unsigned will break octree generation. If trying it, don't forget to flush the cache. -- Ahruman 20081101
-	OOInteger	n_triangles;			// how many triangles in the geometry
-	OOInteger	max_triangles;			// how many triangles are allowed in the geometry before expansion
+	NSInteger	n_triangles;			// how many triangles in the geometry
+	NSInteger	max_triangles;			// how many triangles are allowed in the geometry before expansion
 	Triangle	*triangles;				// pointer to an array of triangles which we'll grow as necessary...
 	BOOL		isConvex;				// set at initialisation to NO
 }
 
-- (id) initWithCapacity:(OOUInteger)amount;
+- (id) initWithCapacity:(NSUInteger)amount;
 
 - (BOOL) isConvex;
 - (void) setConvex:(BOOL) value;

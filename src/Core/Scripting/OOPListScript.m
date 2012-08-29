@@ -126,7 +126,7 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 	NSMutableDictionary	*cachedScripts = nil;
 	OOPListScript		*script = nil;
 	
-	OOUInteger count = [dictionary count];
+	NSUInteger count = [dictionary count];
 	result = [NSMutableArray arrayWithCapacity:count];
 	cachedScripts = [NSMutableDictionary dictionaryWithCapacity:count];
 	

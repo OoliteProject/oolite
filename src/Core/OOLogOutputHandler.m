@@ -422,7 +422,7 @@ enum
 {
 	id					message = nil;
 	NSAutoreleasePool	*rootPool = nil, *pool = nil;
-	OOUInteger			size = 0;
+	NSUInteger			size = 0;
 	
 	rootPool = [[NSAutoreleasePool alloc] init];
 	[NSThread ooSetCurrentThreadName:@"OOLogOutputHandler logging thread"];

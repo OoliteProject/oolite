@@ -79,21 +79,21 @@ MA 02110-1301, USA.
 }
 
 
-- (OOUInteger) indexOfCurrentDisplayMode
+- (NSUInteger) indexOfCurrentDisplayMode
 {
 	OOLogGenericSubclassResponsibility();
 	return NSNotFound;
 }
 
 
-- (BOOL) setDisplayWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)refresh
+- (BOOL) setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
 {
 	OOLogGenericSubclassResponsibility();
 	return NO;
 }
 
 
-- (NSDictionary *) findDisplayModeForWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)d_refresh
+- (NSDictionary *) findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh
 {
 	OOLogGenericSubclassResponsibility();
 	return nil;

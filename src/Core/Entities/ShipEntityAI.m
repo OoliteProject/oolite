@@ -1667,8 +1667,8 @@
 
 - (void) checkGroupOddsVersusTarget
 {
-	OOUInteger ownGroupCount = [[self group] count] + (ranrot_rand() & 3);			// add a random fudge factor
-	OOUInteger targetGroupCount = [[[self primaryTarget] group] count] + (ranrot_rand() & 3);	// add a random fudge factor
+	NSUInteger ownGroupCount = [[self group] count] + (ranrot_rand() & 3);			// add a random fudge factor
+	NSUInteger targetGroupCount = [[[self primaryTarget] group] count] + (ranrot_rand() & 3);	// add a random fudge factor
 	
 	if (ownGroupCount == targetGroupCount)
 	{
@@ -2626,7 +2626,7 @@
 	}
 	
 	// find the current beacon in the list..
-	OOUInteger i = [all_beacons indexOfObject:current_beacon];
+	NSUInteger i = [all_beacons indexOfObject:current_beacon];
 	
 	if (i == NSNotFound)
 	{
@@ -2718,11 +2718,11 @@
 	
 	NSArray			*sDests = nil;
 	Random_Seed		targetSystem;
-	OOUInteger		i = 0;
+	NSUInteger		i = 0;
 	
 	// get a list of destinations within range
 	sDests = [UNIVERSE nearbyDestinationsWithinRange: 0.1f * fuel];
-	OOUInteger n_dests = [sDests count];
+	NSUInteger n_dests = [sDests count];
 	
 	// if none available report to the AI and exit
 	if (n_dests == 0)

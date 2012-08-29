@@ -42,12 +42,12 @@ enum
 @private
 	Vector					_vertexPosition[kOOBreakPatternMaxVertices];
 	GLfloat					_vertexColor[kOOBreakPatternMaxVertices][4];
-	OOUInteger				_vertexCount;
+	NSUInteger				_vertexCount;
 	GLuint					_displayListName;
 	double					_lifetime;
 }
 
-+ (instancetype) breakPatternWithPolygonSides:(OOUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
++ (instancetype) breakPatternWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
 
 - (void) setInnerColor:(OOColor *)color1 outerColor:(OOColor *)color2;
 

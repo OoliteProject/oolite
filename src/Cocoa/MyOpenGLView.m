@@ -979,9 +979,9 @@ FAIL:
 // General image-dumping method.
 - (void) dumpRGBAToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
-					   width:(OOUInteger)width
-					  height:(OOUInteger)height
-					rowBytes:(OOUInteger)rowBytes
+					   width:(NSUInteger)width
+					  height:(NSUInteger)height
+					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
 	
@@ -1007,9 +1007,9 @@ FAIL:
 
 - (void) dumpRGBToFileNamed:(NSString *)name
 					  bytes:(uint8_t *)bytes
-					  width:(OOUInteger)width
-					 height:(OOUInteger)height
-				   rowBytes:(OOUInteger)rowBytes
+					  width:(NSUInteger)width
+					 height:(NSUInteger)height
+				   rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 3)  return;
 	
@@ -1036,9 +1036,9 @@ FAIL:
 
 - (void) dumpGrayToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
-					   width:(OOUInteger)width
-					  height:(OOUInteger)height
-					rowBytes:(OOUInteger)rowBytes
+					   width:(NSUInteger)width
+					  height:(NSUInteger)height
+					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width)  return;
 	
@@ -1065,9 +1065,9 @@ FAIL:
 
 - (void) dumpGrayAlphaToFileNamed:(NSString *)name
 							bytes:(uint8_t *)bytes
-							width:(OOUInteger)width
-						   height:(OOUInteger)height
-						 rowBytes:(OOUInteger)rowBytes
+							width:(NSUInteger)width
+						   height:(NSUInteger)height
+						 rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 2)  return;
 	
@@ -1095,14 +1095,14 @@ FAIL:
 - (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
 			   andGrayFileNamed:(NSString *)grayName
 						  bytes:(uint8_t *)bytes
-						  width:(OOUInteger)width
-						 height:(OOUInteger)height
-					   rowBytes:(OOUInteger)rowBytes
+						  width:(NSUInteger)width
+						 height:(NSUInteger)height
+					   rowBytes:(NSUInteger)rowBytes
 {
 	if ((rgbName == nil && grayName == nil) || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
 	
 	uint8_t				*rgbBytes, *rgbPx, *grayBytes, *grayPx, *srcPx;
-	OOUInteger			x, y;
+	NSUInteger			x, y;
 	BOOL				trivalAlpha = YES;
 	
 	rgbPx = rgbBytes = malloc(width * height * 3);

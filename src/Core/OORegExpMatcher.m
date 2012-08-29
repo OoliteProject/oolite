@@ -96,7 +96,7 @@ static OORegExpMatcher *sActiveInstance;
 }
 
 
-- (BOOL) string:(NSString *)string matchesExpression:(NSString *)regExp flags:(OOUInteger)flags
+- (BOOL) string:(NSString *)string matchesExpression:(NSString *)regExp flags:(NSUInteger)flags
 {
 	NSAssert(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread currentThread] isMainThread], @"OORegExpMatcher may only be used on the main thread.");
 	

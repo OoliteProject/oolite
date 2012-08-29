@@ -190,7 +190,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) unloadAllCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest
 {
-	OOInteger i, cargoCount = [cargo count];
+	NSInteger i, cargoCount = [cargo count];
 	if (cargoCount == 0)  return;
 	
 	// step through the cargo pods adding in the quantities	
@@ -220,7 +220,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) unloadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity)quantity
 {
-	OOInteger			i, n_cargo = [cargo count];
+	NSInteger			i, n_cargo = [cargo count];
 	if (n_cargo == 0)  return;
 	
 	ShipEntity			*cargoItem = nil;
@@ -277,7 +277,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) unloadCargoPods
 {
 	/* loads commodities from the cargo pods onto the ship's manifest */
-	OOUInteger i;
+	NSUInteger i;
 	NSMutableArray* localMarket = [dockedStation localMarket];
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:localMarket] retain];  // retain
 	
@@ -641,7 +641,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// sanitise commodity units - the savegame might contain the wrong units
 	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-	OOInteger i;
+	NSInteger i;
 	for (i = [manifest count] - 1; i >= 0 ; i--)
 	{
 		NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:i]];
@@ -817,7 +817,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
-	OOUInteger	i;
+	NSUInteger	i;
 	
 	[[UNIVERSE gameView] resetTypedString];
 	
@@ -1109,7 +1109,7 @@ static GLfloat		sBaseMass = 0.0;
 	commLog = [[NSMutableArray alloc] initWithCapacity:kCommLogTrimThreshold];
 	
 	NSArray *savedCommLog = [dict oo_arrayForKey:@"comm_log"];
-	OOUInteger commCount = [savedCommLog count];
+	NSUInteger commCount = [savedCommLog count];
 	for (i = 0; i < commCount; i++)
 	{
 		[UNIVERSE addCommsMessage:[savedCommLog objectAtIndex:i] forCount:0 andShowComms:NO logOnly:YES];
@@ -1736,7 +1736,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (OOUInteger) sessionID
+- (NSUInteger) sessionID
 {
 	// The player ship always belongs to the current session.
 	return [UNIVERSE sessionID];
@@ -2426,7 +2426,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) updateTrumbles:(OOTimeDelta)delta_t
 {
 	OOTrumble	**trumbles = [self trumbleArray];
-	OOUInteger	i;
+	NSUInteger	i;
 	
 	for (i = [self trumbleCount] ; i > 0; i--)
 	{
@@ -3474,7 +3474,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (commLog != nil)
 	{
-		OOUInteger count = [commLog count];
+		NSUInteger count = [commLog count];
 		if (count >= kCommLogTrimThreshold)
 		{
 			[commLog removeObjectsInRange:NSMakeRange(0, count - kCommLogTrimSize)];
@@ -3642,19 +3642,19 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (OOUInteger) activeMissile
+- (NSUInteger) activeMissile
 {
 	return activeMissile;
 }
 
 
-- (void) setActiveMissile:(OOUInteger)value
+- (void) setActiveMissile:(NSUInteger)value
 {
 	activeMissile = value;
 }
 
 
-- (OOUInteger) dialMaxMissiles
+- (NSUInteger) dialMaxMissiles
 {
 	return max_missiles;
 }
@@ -3699,7 +3699,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (ShipEntity *) missileForPylon:(OOUInteger)value
+- (ShipEntity *) missileForPylon:(NSUInteger)value
 {
 	if (value < max_missiles)  return missile_entity[value];
 	return nil;
@@ -4609,13 +4609,13 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) rotateCargo
 {
-	OOInteger i, n_cargo = [cargo count];
+	NSInteger i, n_cargo = [cargo count];
 	if (n_cargo == 0)  return;
 	
 	ShipEntity *pod = (ShipEntity *)[[cargo objectAtIndex:0] retain];
 	OOCommodityType current_contents = [pod commodityType];
 	OOCommodityType contents;
-	OOInteger rotates = 0;
+	NSInteger rotates = 0;
 	
 	do
 	{
@@ -5779,7 +5779,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSMutableArray		*list = [NSMutableArray array];
 	
-	OOUInteger			i, commodityCount = [shipCommodityData count];
+	NSUInteger			i, commodityCount = [shipCommodityData count];
 	OOCargoQuantity		quantityInHold[commodityCount];
 	
 	// following changed to work whether docked or not
@@ -5815,7 +5815,7 @@ static GLfloat		sBaseMass = 0.0;
 - (NSArray*) contractsListForScriptingFromArray:(NSArray *) contracts_array forCargo:(BOOL)forCargo
 {
 	NSMutableArray		*result = [NSMutableArray array];
-	OOUInteger 			i;
+	NSUInteger 			i;
 
 	for (i = 0; i < [contracts_array count]; i++)
 	{
@@ -6167,7 +6167,7 @@ static GLfloat		sBaseMass = 0.0;
 #if OO_RESOLUTION_OPTION
 		GameController	*controller = [UNIVERSE gameController];
 		
-		OOUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
+		NSUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
 		if (displayModeIndex == NSNotFound)
 		{
 			OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
@@ -6634,7 +6634,7 @@ static NSString *last_outfitting_key=nil;
 		[gui setTabStops:tab_stops];
 		
 		unsigned n_rows = GUI_MAX_ROWS_EQUIPMENT;
-		OOUInteger count = [equipmentAllowed count];
+		NSUInteger count = [equipmentAllowed count];
 
 		if (count > 0)
 		{
@@ -7461,7 +7461,7 @@ static NSString *last_outfitting_key=nil;
 	
 	if  ([self status] != STATUS_DOCKED)
 	{
-		OOInteger		i;
+		NSInteger		i;
 		OOCommodityType co_type;
 		ShipEntity		*cargoItem = nil;
 		
@@ -7556,7 +7556,7 @@ static NSString *last_outfitting_key=nil;
 		Optimised this method, to compensate for increased usage - Kaks 20091002
 	*/
 	NSArray				*manifest = [NSArray arrayWithArray:[self shipCommodityData]];
-	OOInteger			i, count = [manifest count];
+	NSInteger			i, count = [manifest count];
 	OOCargoQuantity		cargoQtyOnBoard = 0;
 	
 	for (i = count - 1; i >= 0 ; i--)
@@ -7629,7 +7629,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		OOGUIRow			start_row = GUI_ROW_MARKET_START;
 		OOGUIRow			row = start_row;
-		OOUInteger			i, commodityCount = [shipCommodityData count];
+		NSUInteger			i, commodityCount = [shipCommodityData count];
 		OOCargoQuantity		quantityInHold[commodityCount];
 		NSArray				*marketDef = nil;
 		
@@ -8062,7 +8062,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (BOOL) removeFromPylon:(OOUInteger)pylon
+- (BOOL) removeFromPylon:(NSUInteger)pylon
 {
 	if (pylon >= max_missiles) return NO;
 	
@@ -8094,13 +8094,13 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (OOUInteger) passengerCount
+- (NSUInteger) passengerCount
 {
 	return [passengers count];
 }
 
 
-- (OOUInteger) passengerCapacity
+- (NSUInteger) passengerCapacity
 {
 	return max_passengers;
 }
@@ -8273,8 +8273,8 @@ static NSString *last_outfitting_key=nil;
 	{
 		return;
 	}
-	OOUInteger	trumble_index = NSNotFound;
-	OOUInteger	i;
+	NSUInteger	trumble_index = NSNotFound;
+	NSUInteger	i;
 	
 	for (i = 0; (trumble_index == NSNotFound)&&(i < trumbleCount); i++)
 	{
@@ -8298,7 +8298,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (OOUInteger) trumbleCount
+- (NSUInteger) trumbleCount
 {
 	return trumbleCount;
 }
@@ -8434,7 +8434,7 @@ static NSString *last_outfitting_key=nil;
 {
 	if (str == nil)  return;
 	
-	OOUInteger i, length = [str length];
+	NSUInteger i, length = [str length];
 	for (i = 0; i < length; i++)
 	{
 		munge_checksum([str characterAtIndex:i]);

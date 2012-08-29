@@ -364,7 +364,7 @@ void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 }
 
 
-- (OOUInteger)retainCount
+- (NSUInteger)retainCount
 {
 	return UINT_MAX;
 }

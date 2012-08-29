@@ -573,7 +573,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 - (void) setGuiToContractsScreen
 {
-	OOUInteger		i;
+	NSUInteger		i;
 	NSMutableArray	*row_info = [NSMutableArray arrayWithCapacity:5];
 	OOGUIScreenID	oldScreen = gui_screen;
 	
@@ -628,8 +628,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 	// GUI stuff
 	{
-		OOUInteger passengerCount = MIN([passenger_market count], 5U);
-		OOUInteger contractCount = MIN([contract_market count], 5U);
+		NSUInteger passengerCount = MIN([passenger_market count], 5U);
+		NSUInteger contractCount = MIN([contract_market count], 5U);
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"@-contracts-title"),[UNIVERSE getSystemName:system_seed]]];
@@ -1053,10 +1053,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSArray*	passengerManifest = [self passengerList];
 		NSArray*	contractManifest = [self contractList];
 		
-		OOUInteger	i = 0;
-		OOUInteger	max_rows = 20;
-		OOUInteger	manifestCount = [cargoManifest count];
-		OOUInteger	cargoRowCount = (manifestCount + 1)/2;
+		NSUInteger	i = 0;
+		NSUInteger	max_rows = 20;
+		NSUInteger	manifestCount = [cargoManifest count];
+		NSUInteger	cargoRowCount = (manifestCount + 1)/2;
 		OOGUIRow	cargoRow = 2;
 		OOGUIRow	passengersRow = 2;
 		OOGUIRow	contractsRow = 2;
@@ -1065,14 +1065,14 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// show extra lines if no HUD is displayed.
 		if ([[self hud] isHidden]) max_rows += 7;
 		
-		OOInteger page_offset = 0;
+		NSInteger page_offset = 0;
 		BOOL multi_page = NO;
-		OOUInteger total_rows = cargoRowCount + [passengerManifest count] + [contractManifest count] + [missionsManifest count] + 4;
+		NSUInteger total_rows = cargoRowCount + [passengerManifest count] + [contractManifest count] + [missionsManifest count] + 4;
 		if (total_rows > max_rows)
 		{
 			max_rows -= 2;
 			page_offset = ([gui statusPage]-1) * max_rows;
-			if (page_offset < 0 || (OOUInteger)page_offset >= total_rows)
+			if (page_offset < 0 || (NSUInteger)page_offset >= total_rows)
 			{
 				[gui setStatusPage:0];
 				page_offset = 0;
@@ -1271,7 +1271,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			{
 				while (([dockingReport rangeOfString:@"\n"].location != NSNotFound)&&(text_row < 18))
 				{
-					OOUInteger line_break = [dockingReport rangeOfString:@"\n"].location;
+					NSUInteger line_break = [dockingReport rangeOfString:@"\n"].location;
 					NSString* line = [dockingReport substringToIndex:line_break];
 					[dockingReport deleteCharactersInRange: NSMakeRange( 0, line_break + 1)];
 					text_row = [gui addLongText:line startingAtRow:text_row align:GUI_ALIGN_LEFT];
@@ -1318,7 +1318,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 static NSMutableDictionary *currentShipyard = nil;
 
-- (void) setGuiToShipyardScreen:(OOUInteger)skip
+- (void) setGuiToShipyardScreen:(NSUInteger)skip
 {
 	OOGUIScreenID	oldScreen = gui_screen;
 	
@@ -1365,7 +1365,7 @@ static NSMutableDictionary *currentShipyard = nil;
 							forKey:[[shipyard oo_dictionaryAtIndex:i] oo_stringForKey:SHIPYARD_KEY_ID]];
 	}
 	
-	OOUInteger shipCount = [shipyard count];
+	NSUInteger shipCount = [shipyard count];
 
 	//error check
 	if (skip >= shipCount)  skip = shipCount - 1;
@@ -1386,7 +1386,7 @@ static NSMutableDictionary *currentShipyard = nil;
 		
 		int rowCount = MAX_ROWS_SHIPS_FOR_SALE;
 		int startRow = GUI_ROW_SHIPYARD_START;
-		OOInteger previous = 0;
+		NSInteger previous = 0;
 		
 		if (shipCount <= MAX_ROWS_SHIPS_FOR_SALE)
 			skip = 0;
@@ -1467,7 +1467,7 @@ static NSMutableDictionary *currentShipyard = nil;
 
 - (void) showShipyardInfoForSelection
 {
-	OOUInteger		i;
+	NSUInteger		i;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIRow		sel_row = [gui selectedRow];
 	
@@ -1599,10 +1599,10 @@ static NSMutableDictionary *currentShipyard = nil;
 }
 
 
-- (OOInteger) missingSubEntitiesAdjustment
+- (NSInteger) missingSubEntitiesAdjustment
 {
 	// each missing subentity depreciates the ship by 5%, up to a maximum of 35% depreciation.
-	OOUInteger percent = 5 * ([self maxShipSubEntities] - [[[self shipSubEntityEnumerator] allObjects] count]);
+	NSUInteger percent = 5 * ([self maxShipSubEntities] - [[[self shipSubEntityEnumerator] allObjects] count]);
 	return (percent > 35 ? 35 : percent);
 }
 
@@ -1640,7 +1640,7 @@ static NSMutableDictionary *currentShipyard = nil;
 
 	if ([key hasPrefix:@"More:"])
 	{
-		OOInteger fromShip = [[key componentsSeparatedByString:@":"] oo_integerAtIndex:1];
+		NSInteger fromShip = [[key componentsSeparatedByString:@":"] oo_integerAtIndex:1];
 		if (fromShip < 0)  fromShip = 0;
 		
 		[self setGuiToShipyardScreen:fromShip];
@@ -1665,7 +1665,7 @@ static NSMutableDictionary *currentShipyard = nil;
 		return NO;	// you can't afford it!
 	
 	// sell all the commodities carried
-	OOUInteger i;
+	NSUInteger i;
 	for (i = 0; i < [shipCommodityData count]; i++)
 	{
 		[self trySellingCommodity:i all:YES];

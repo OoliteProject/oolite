@@ -383,7 +383,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		*/
 		
 		NSArray *cLog = [PLAYER commLog];
-		OOUInteger i, commCount = [cLog count];
+		NSUInteger i, commCount = [cLog count];
 		
 		[self resetGui:gui withInfo:gui_info];
 		
@@ -2027,7 +2027,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	if (![player dialIdentEngaged])
 	{
 		OOMissileStatus status = [player dialMissileStatus];
-		OOUInteger i, n_mis = [player dialMaxMissiles];
+		NSUInteger i, n_mis = [player dialMaxMissiles];
 		for (i = 0; i < n_mis; i++)
 		{
 			ShipEntity *missile = [player missileForPylon:i];
@@ -2468,8 +2468,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawSurround:(NSDictionary *)info color:(const GLfloat[4])color
 {
-	OOInteger		x;
-	OOInteger		y;
+	NSInteger		x;
+	NSInteger		y;
 	NSSize			siz;
 	GLfloat			alpha = overallAlpha;
 	
@@ -2508,7 +2508,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	PlayerEntity *player = PLAYER;
 	
 	OOTrumble** trumbles = [player trumbleArray];
-	OOUInteger i;
+	NSUInteger i;
 	for (i = [player trumbleCount]; i > 0; i--)
 	{
 		OOTrumble* trum = trumbles[i - 1];
@@ -2877,7 +2877,7 @@ static void InitTextEngine(void)
 	NSDictionary			*fontSpec = nil;
 	NSArray					*widths = nil;
 	NSString				*texName = nil;
-	OOUInteger				i, count;
+	NSUInteger				i, count;
 	
 	fontSpec = [ResourceManager dictionaryFromFilesNamed:@"oolite-font.plist"
 												inFolder:@"Config"
@@ -2926,7 +2926,7 @@ NSRect OORectFromString(NSString *text, double x, double y, NSSize siz)
 	double				w = 0;
 	NSData				*data = nil;
 	const uint8_t		*bytes = NULL;
-	OOUInteger			i, length;
+	NSUInteger			i, length;
 	
 	data = [sEncodingCoverter convertString:text];
 	bytes = [data bytes];
@@ -2980,7 +2980,7 @@ void drawHighlight(double x, double y, double z, NSSize siz, double alpha)
 void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 {
 	double			cx = x;
-	OOUInteger		i, length;
+	NSUInteger		i, length;
 	NSData			*data = nil;
 	const uint8_t	*bytes = NULL;
 	

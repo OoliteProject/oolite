@@ -121,7 +121,7 @@ OOINLINE BackLinkChain BackLink(BackLinkChain *link, id element)
 	return result;
 }
 
-OOINLINE BackLinkChain BackLinkIndex(BackLinkChain *link, OOUInteger index)
+OOINLINE BackLinkChain BackLinkIndex(BackLinkChain *link, NSUInteger index)
 {
 	BackLinkChain result = { link, [NSNumber numberWithInteger:index] };
 	return result;
@@ -770,7 +770,7 @@ static NSString *ArrayForErrorReport(NSArray *array)
 {
 	NSString				*result = nil;
 	NSString				*string = nil;
-	OOUInteger				i, count;
+	NSUInteger				i, count;
 	NSAutoreleasePool		*pool = nil;
 	
 	count = [array count];
@@ -839,8 +839,8 @@ static NSError *Verify_String(OOPListSchemaVerifier *verifier, id value, NSDicti
 {
 	NSString			*filteredString = nil;
 	id					testValue = nil;
-	OOUInteger			length;
-	OOUInteger			lengthConstraint;
+	NSUInteger			length;
+	NSUInteger			lengthConstraint;
 	NSError				*error = nil;
 	
 	REQUIRE_TYPE(NSString, @"string");
@@ -905,9 +905,9 @@ static NSError *Verify_Array(OOPListSchemaVerifier *verifier, id value, NSDictio
 {
 	id						valueType = nil;
 	BOOL					OK = YES, stop = NO;
-	OOUInteger				i, count;
+	NSUInteger				i, count;
 	id						subProperty = nil;
-	OOUInteger				constraint;
+	NSUInteger				constraint;
 	
 	REQUIRE_TYPE(NSArray, @"array");
 	
@@ -970,7 +970,7 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 	BOOL					allowOthers;
 	NSMutableSet			*requiredKeys = nil;
 	NSArray					*requiredKeyList = nil;
-	OOUInteger				count, constraint;
+	NSUInteger				count, constraint;
 	
 	REQUIRE_TYPE(NSDictionary, @"dictionary");
 	

@@ -98,11 +98,11 @@ MA 02110-1301, USA.
 
 // ---------------------------------------------------------------------- //
 
-- (void) setGuiToShipyardScreen:(OOUInteger)skip;
+- (void) setGuiToShipyardScreen:(NSUInteger)skip;
 
 - (void) showShipyardModel:(NSString *)shipKey shipData:(NSDictionary *)shipDict personality:(uint16_t)personality;
 - (void) showShipyardInfoForSelection;
-- (OOInteger) missingSubEntitiesAdjustment;
+- (NSInteger) missingSubEntitiesAdjustment;
 - (void) showTradeInInformationFooter;
 
 - (BOOL) buySelectedShip;

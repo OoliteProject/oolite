@@ -287,9 +287,6 @@ enum {
 	There is no need to make this distinction in GNUStep.
 */
 
-typedef NSInteger				OOInteger;
-typedef NSUInteger				OOUInteger;
-
 #if OOLITE_MAC_OS_X
 	#if __LP64__
 		#define OOLITE_64_BIT	1
@@ -312,7 +309,7 @@ typedef NSUInteger				OOUInteger;
 	GNUstep.
 */
 #if OOLITE_MAC_OS_X
-	typedef OOInteger OOComparisonResult;
+	typedef NSInteger OOComparisonResult;
 #else
 	typedef NSComparisonResult OOComparisonResult;
 #endif

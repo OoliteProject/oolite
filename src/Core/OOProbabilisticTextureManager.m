@@ -54,7 +54,7 @@ SOFTWARE.
 {
 	BOOL				OK = YES;
 	NSArray				*config = nil;
-	OOUInteger			i, count;
+	NSUInteger			i, count;
 	id					entry = nil;
 	NSString			*name = nil;
 	float				probability;

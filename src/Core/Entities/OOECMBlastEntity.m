@@ -84,7 +84,7 @@ MA 02110-1301, USA.
 														 parameter:NULL
 														   inRange:radius
 														  ofEntity:self];
-		OOUInteger i, count = [targets count];
+		NSUInteger i, count = [targets count];
 		if (count > 0)
 		{
 			JSContext *context = OOJSAcquireContext();

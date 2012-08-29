@@ -136,7 +136,7 @@ static NSString * const kStageName	= @"Validating AIs";
 	NSString				*selector = nil;
 	NSMutableSet			*badSelectors = nil;
 	NSString				*badSelectorDesc = nil;
-	OOUInteger				index = 0;
+	NSUInteger				index = 0;
 	
 	OOLog(@"verifyOXP.verbose.validateAI", @"- Validating AI \"%@\".", aiName);
 	OOLogIndentIf(@"verifyOXP.verbose.validateAI");

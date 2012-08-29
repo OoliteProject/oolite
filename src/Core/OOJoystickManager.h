@@ -258,7 +258,7 @@ typedef struct
 // Accessors and discovery about the hardware.
 // These work directly on the internal lookup table so to be fast
 // since they are likely to be called by the game loop.
-- (OOUInteger) joystickCount;
+- (NSUInteger) joystickCount;
 - (BOOL) getButtonState:(int)function;
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;
@@ -295,7 +295,7 @@ typedef struct
 
 
 //Methods that should be overridden by all subclasses
-- (NSString *) nameOfJoystick:(OOUInteger)stickNumber;
-- (int16_t) getAxisWithStick:(OOUInteger) stickNum axis:(OOUInteger)axisNum;
+- (NSString *) nameOfJoystick:(NSUInteger)stickNumber;
+- (int16_t) getAxisWithStick:(NSUInteger) stickNum axis:(NSUInteger)axisNum;
 
 @end

@@ -393,7 +393,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	DockEntity		*chosenDock = nil;
 	NSString		*docking = nil;
 	DockEntity		*sub = nil;
-	OOUInteger		queue = 100;
+	NSUInteger		queue = 100;
 	
 	BOOL alldockstoosmall = YES;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )

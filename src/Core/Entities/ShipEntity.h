@@ -304,8 +304,8 @@ typedef enum
 	Vector					coordinates;				// for flying to/from a set point
 	Vector					reference;					// a direction vector of magnitude 1 (* turrets *)
 	
-	OOUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
-	OOUInteger				_maxShipSubIdx;				// serialisation index - the number of ship subentities inside the shipdata
+	NSUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
+	NSUInteger				_maxShipSubIdx;				// serialisation index - the number of ship subentities inside the shipdata
 	double					launch_time;				// time at which launched
 	double					launch_delay;				// delay for thinking after launch
 	OOUniversalID			planetForLanding;			// for landing
@@ -462,7 +462,7 @@ typedef enum
 - (Vector) rightVector;
 
 - (NSArray *)subEntities;
-- (OOUInteger) subEntityCount;
+- (NSUInteger) subEntityCount;
 - (BOOL) hasSubEntity:(Entity<OOSubEntity> *)sub;
 
 - (NSEnumerator *)subEntityEnumerator;
@@ -478,9 +478,9 @@ typedef enum
 // subentities management
 - (NSString *) serializeShipSubEntities;
 - (void) deserializeShipSubEntitiesFrom:(NSString *)string;
-- (OOUInteger) maxShipSubEntities;
-- (void) setSubIdx:(OOUInteger)value;
-- (OOUInteger) subIdx;
+- (NSUInteger) maxShipSubEntities;
+- (void) setSubIdx:(NSUInteger)value;
+- (NSUInteger) subIdx;
 
 - (Octree *) octree;
 - (float) volume;
@@ -551,7 +551,7 @@ typedef enum
 - (BOOL) hasHyperspaceMotor;
 
 - (NSEnumerator *) equipmentEnumerator;
-- (OOUInteger) equipmentCount;
+- (NSUInteger) equipmentCount;
 - (void) removeEquipmentItem:(NSString *)equipmentKey;
 - (void) removeAllEquipment;
 - (OOEquipmentType *) selectMissile;
@@ -564,13 +564,13 @@ typedef enum
 - (BOOL) removeExternalStore:(OOEquipmentType *)eqType;
 
 // Passengers - not supported for NPCs, but interface is here for genericity.
-- (OOUInteger) passengerCount;
-- (OOUInteger) passengerCapacity;
+- (NSUInteger) passengerCount;
+- (NSUInteger) passengerCapacity;
 
-- (OOUInteger) missileCount;
-- (OOUInteger) missileCapacity;
+- (NSUInteger) missileCount;
+- (NSUInteger) missileCapacity;
 
-- (OOUInteger) extraCargo;
+- (NSUInteger) extraCargo;
 
 // Tests for the various special-cased equipment items
 - (BOOL) hasScoop;
@@ -706,7 +706,7 @@ typedef enum
 - (BOOL) isHostileTo:(Entity *)entity;
 
 // defense target handling
-- (OOUInteger) defenseTargetCount;
+- (NSUInteger) defenseTargetCount;
 - (NSArray *) allDefenseTargets;
 - (NSEnumerator *) defenseTargetEnumerator;
 - (BOOL) addDefenseTarget:(Entity *)target;

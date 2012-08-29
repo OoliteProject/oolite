@@ -102,19 +102,19 @@ MA 02110-1301, USA.
 }
 
 
-- (OOUInteger) indexOfCurrentDisplayMode
+- (NSUInteger) indexOfCurrentDisplayMode
 {
 	return 0;
 }
 
 
-- (BOOL) setDisplayWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)refresh
+- (BOOL) setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
 {
 	return NO;
 }
 
 
-- (NSDictionary *) findDisplayModeForWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)refresh
+- (NSDictionary *) findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
 {
 	NSDictionary *fakeMode = [self.displayModes objectAtIndex:0];
 	if (width == [fakeMode oo_unsignedIntegerForKey:kOODisplayWidth] &&

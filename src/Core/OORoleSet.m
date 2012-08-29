@@ -99,7 +99,7 @@ SOFTWARE.
 }
 
 
-- (OOUInteger)hash
+- (NSUInteger)hash
 {
 	return [_rolesAndProbabilities hash];
 }
@@ -316,7 +316,7 @@ NSDictionary *OOParseRolesFromString(NSString *string)
 {
 	NSMutableDictionary		*result = nil;
 	NSArray					*tokens = nil;
-	OOUInteger				i, count;
+	NSUInteger				i, count;
 	NSString				*role = nil;
 	float					probability;
 	NSScanner				*scanner = nil;

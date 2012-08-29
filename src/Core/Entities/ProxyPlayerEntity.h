@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 	OOFuelScoopStatus		_fuelScoopStatus;
 	OOCompassMode			_compassMode;
 	OOAlertCondition		_alertCondition;
-	OOUInteger				_trumbleCount;
+	NSUInteger				_trumbleCount;
 	unsigned				_massLocked: 1,
 							_atHyperspeed: 1,
 							_dialIdentEngaged: 1;
@@ -89,8 +89,8 @@ MA 02110-1301, USA.
 - (void) setAlertCondition:(OOAlertCondition)condition;
 
 // Default: 0
-- (OOUInteger) trumbleCount;
-- (void) setTrumbleCount:(OOUInteger)value;
+- (NSUInteger) trumbleCount;
+- (void) setTrumbleCount:(NSUInteger)value;
 
 @end
 

@@ -139,7 +139,7 @@ MA 02110-1301, USA.
 
 - (uint32_t) oo_hash
 {
-	OOUInteger i, length = [self length];
+	NSUInteger i, length = [self length];
 	uint32_t hash = 5381;
 	for (i = 0; i < length; i++)
 	{

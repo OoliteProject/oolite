@@ -54,12 +54,12 @@ OOINLINE INLINE_CONST_FUNC uint64_t OORoundUpToPowerOf2_64(uint64_t value)
 
 
 #if OOLITE_64_BIT
-OOINLINE INLINE_CONST_FUNC OOUInteger OORoundUpToPowerOf2_NS(OOUInteger value)
+OOINLINE INLINE_CONST_FUNC NSUInteger OORoundUpToPowerOf2_NS(NSUInteger value)
 {
 	return OORoundUpToPowerOf2_64(value);
 }
 #else
-OOINLINE INLINE_CONST_FUNC OOUInteger OORoundUpToPowerOf2_NS(OOUInteger value)
+OOINLINE INLINE_CONST_FUNC NSUInteger OORoundUpToPowerOf2_NS(NSUInteger value)
 {
 	return OORoundUpToPowerOf2_32(value);
 }

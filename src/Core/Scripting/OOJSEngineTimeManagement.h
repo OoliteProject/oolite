@@ -153,7 +153,7 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 - (NSString *) description;
 
 - (NSString *) function;
-- (OOUInteger) hitCount;
+- (NSUInteger) hitCount;
 - (double) totalTimeSum;
 - (double) selfTimeSum;
 - (double) totalTimeAverage;

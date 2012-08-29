@@ -57,7 +57,7 @@ MA 02110-1301, USA.
 
 @implementation DockEntity
 
-- (OOUInteger) pruneAndCountShipsOnApproach
+- (NSUInteger) pruneAndCountShipsOnApproach
 {
 	// Remove dead entities.
 	// Enumerate over allKeys explicitly because we mutate the dictionary.
@@ -606,13 +606,13 @@ MA 02110-1301, USA.
 }
 
 
-- (OOUInteger) countOfShipsInDockingQueue
+- (NSUInteger) countOfShipsInDockingQueue
 {
 	return [shipsOnApproach count];
 }
 
 
-- (OOUInteger) countOfShipsInLaunchQueue
+- (NSUInteger) countOfShipsInLaunchQueue
 {
 	return [launchQueue count];
 }
@@ -841,9 +841,9 @@ MA 02110-1301, USA.
 }
 
 
-- (OOUInteger) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role
+- (NSUInteger) countOfShipsInLaunchQueueWithPrimaryRole:(NSString *)role
 {
-	OOUInteger count = 0;
+	NSUInteger count = 0;
 	ShipEntity *ship = nil;
 	foreach (ship, launchQueue)
 	{

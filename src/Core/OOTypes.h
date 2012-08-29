@@ -94,7 +94,7 @@ enum
 	COMMODITY_GEM_STONES,
 	COMMODITY_ALIEN_ITEMS
 };
-typedef OOInteger OOCommodityType;
+typedef NSInteger OOCommodityType;
 
 
 typedef enum
@@ -191,7 +191,7 @@ enum
 {
 	kOOVariableTechLevel	= 99
 };
-typedef OOUInteger	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so OOUInteger required.
+typedef NSUInteger	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so NSUInteger required.
 
 typedef uint8_t		OOGovernmentID;		// 0..7
 typedef uint8_t		OOEconomyID;		// 0..7

@@ -119,7 +119,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (OOUInteger) sessionID
+- (NSUInteger) sessionID
 {
 	return _sessionID;
 }
@@ -198,8 +198,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (BOOL) validForAddToUniverse
 {
-	OOUInteger mySessionID = [self sessionID];
-	OOUInteger currentSessionID = [UNIVERSE sessionID];
+	NSUInteger mySessionID = [self sessionID];
+	NSUInteger currentSessionID = [UNIVERSE sessionID];
 	if (EXPECT_NOT(mySessionID != currentSessionID))
 	{
 		OOLogERR(@"entity.invalidSession", @"Entity %@ from session %lu cannot be added to universe in session %lu. This is an internal error, please report it.", [self shortDescription], mySessionID, currentSessionID);

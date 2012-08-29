@@ -175,7 +175,7 @@ static JSBool MissionVariablesEnumerate(JSContext *context, JSObject *object, JS
 			enumerator = [[mvars objectEnumerator] retain];
 			*state = PRIVATE_TO_JSVAL(enumerator);
 			
-			OOUInteger count = [mvars count];
+			NSUInteger count = [mvars count];
 			assert(count <= INT32_MAX);
 			if (idp != NULL)  *idp = INT_TO_JSID((uint32_t)count);
 			return YES;

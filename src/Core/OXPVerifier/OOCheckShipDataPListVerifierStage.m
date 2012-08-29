@@ -326,7 +326,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 {
 	NSArray						*parts = nil;
 	NSMutableSet				*result = nil;
-	OOUInteger					i, count;
+	NSUInteger					i, count;
 	NSString					*role = nil;
 	NSRange						parenRange;
 	

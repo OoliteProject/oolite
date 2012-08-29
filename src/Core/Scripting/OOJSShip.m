@@ -1982,11 +1982,11 @@ static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	ShipEntity				*thisEnt = nil;
-	OOUInteger				numSubEntitiesRestored = 0U;
+	NSUInteger				numSubEntitiesRestored = 0U;
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	OOUInteger subCount = [[thisEnt subEntitiesForScript] count];
+	NSUInteger subCount = [[thisEnt subEntitiesForScript] count];
 	
 	[thisEnt clearSubEntities];
 	[thisEnt setUpSubEntities];

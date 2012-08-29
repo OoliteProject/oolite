@@ -66,7 +66,7 @@
 - (void) clearSubEntities;
 - (BOOL)setUpSubEntities;
 - (NSArray *)subEntities;
-- (OOUInteger) subEntityCount;
+- (NSUInteger) subEntityCount;
 - (BOOL) hasSubEntity:(Entity<OOSubEntity> *)sub;
 
 - (NSEnumerator *)subEntityEnumerator;

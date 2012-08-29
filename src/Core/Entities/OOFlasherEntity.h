@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 	float					_wave;
 	float         _brightfraction;
 	NSArray					*_colors;
-	OOUInteger				_activeColor;
+	NSUInteger				_activeColor;
 	
 	OOTimeDelta				_time;
 	

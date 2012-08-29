@@ -163,9 +163,9 @@ SOFTWARE.
 - (BOOL)textureCombinersSupported;
 - (GLint)textureUnitCount;				// Fixed function multitexture limit, does not apply to shaders. (GL_MAX_TEXTURE_UNITS_ARB)
 
-- (OOUInteger)majorVersionNumber;
-- (OOUInteger)minorVersionNumber;
-- (OOUInteger)releaseVersionNumber;
+- (NSUInteger)majorVersionNumber;
+- (NSUInteger)minorVersionNumber;
+- (NSUInteger)releaseVersionNumber;
 - (void)getVersionMajor:(unsigned *)outMajor minor:(unsigned *)outMinor release:(unsigned *)outRelease;
 - (BOOL) versionIsAtLeastMajor:(unsigned)maj minor:(unsigned)min;
 

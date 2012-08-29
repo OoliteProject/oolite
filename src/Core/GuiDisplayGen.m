@@ -451,7 +451,7 @@ static BOOL _refreshStarChart = NO;
 
 - (BOOL) setFirstSelectableRow
 {
-	OOUInteger row = selectableRange.location;
+	NSUInteger row = selectableRange.location;
 	while (RowInRange(row, selectableRange))
 	{
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
@@ -468,7 +468,7 @@ static BOOL _refreshStarChart = NO;
 
 - (BOOL) setLastSelectableRow
 {
-	OOUInteger row = selectableRange.location + selectableRange.length - 1;
+	NSUInteger row = selectableRange.location + selectableRange.length - 1;
 	while (RowInRange(row, selectableRange))
 	{
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
@@ -788,7 +788,7 @@ static BOOL _refreshStarChart = NO;
 	if([items count] == 0)
 		return;
 	
-	OOUInteger n_items = [items count];
+	NSUInteger n_items = [items count];
 	if ((item_keys)&&([item_keys count] != n_items))
 	{
 		// throw exception
@@ -1011,7 +1011,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
-- (void) setStatusPage:(OOUInteger)pageNum
+- (void) setStatusPage:(NSUInteger)pageNum
 {
 	if (pageNum==0) 
 		statusPage=1;
@@ -1020,7 +1020,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
-- (OOUInteger) statusPage
+- (NSUInteger) statusPage
 {
 	return statusPage;
 }
@@ -1031,13 +1031,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if ([eqptList count] == 0) return;
 	
 	OOGUIRow		firstRow = STATUS_EQUIPMENT_FIRST_ROW;
-	OOUInteger		itemsPerColumn = STATUS_EQUIPMENT_MAX_ROWS;
+	NSUInteger		itemsPerColumn = STATUS_EQUIPMENT_MAX_ROWS;
 
-	OOInteger		firstY = 40;	// firstRow =10 :-> 40  - firstRow=11 -> 24 etc...
-	OOUInteger		eqptCount = [eqptList count];
-	OOUInteger		pageCount = 1;
-	OOUInteger		i;
-	OOInteger		start;
+	NSInteger		firstY = 40;	// firstRow =10 :-> 40  - firstRow=11 -> 24 etc...
+	NSUInteger		eqptCount = [eqptList count];
+	NSUInteger		pageCount = 1;
+	NSUInteger		i;
+	NSInteger		start;
 	NSArray			*info = nil;
 	NSString		*name = nil;
 	BOOL			damaged;
@@ -1068,7 +1068,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		else // three or more
 		{
 			pageCount = ceil((float)(eqptCount-i)/(itemsPerColumn*2)) + 2;
-			statusPage = (OOInteger)OOClampInteger(statusPage, 1, pageCount);
+			statusPage = (NSInteger)OOClampInteger(statusPage, 1, pageCount);
 			start = (statusPage == 1) ? 0 : (statusPage-1) * itemsPerColumn * 2 + 2;
 		}
 	}
@@ -1109,7 +1109,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 
 	if (statusPage == 1 || statusPage == pageCount) itemsPerColumn++;
-	eqptCount = (OOInteger)OOClampInteger(eqptCount, 1, start + itemsPerColumn * 2);
+	eqptCount = (NSInteger)OOClampInteger(eqptCount, 1, start + itemsPerColumn * 2);
 	for (i = start; i < eqptCount; i++)
 	{
 		info = [eqptList oo_arrayAtIndex:i];
@@ -1122,11 +1122,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		if (i - start < itemsPerColumn)
 		{
-			OODrawString(name, -220, firstY - 16 * (OOInteger)(i - start), z, NSMakeSize(15, 15));
+			OODrawString(name, -220, firstY - 16 * (NSInteger)(i - start), z, NSMakeSize(15, 15));
 		}
 		else
 		{
-			OODrawString(name, 50, firstY - 16 * (OOInteger)(i - itemsPerColumn - start), z, NSMakeSize(15, 15));
+			OODrawString(name, 50, firstY - 16 * (NSInteger)(i - itemsPerColumn - start), z, NSMakeSize(15, 15));
 		}
 	}
 }
@@ -1363,7 +1363,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		if ([[rowText objectAtIndex:i] isKindOfClass:[NSArray class]])
 		{
 			NSArray		*array = [rowText oo_arrayAtIndex:i];
-			OOUInteger	j, max_columns = MIN([array count], n_columns);
+			NSUInteger	j, max_columns = MIN([array count], n_columns);
 			BOOL		isLeftAligned;
 			
 			for (j = 0; j < max_columns; j++)
@@ -1955,7 +1955,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy
 {
 	Random_Seed		g_seed, g_seed2;
-	OOUInteger		i, j;
+	NSUInteger		i, j;
 	double			hscale = size_in_pixels.width / 256.0;
 	double			vscale = -1.0 * size_in_pixels.height / 512.0;
 	double			hoffset = 0.0f;
@@ -1986,7 +1986,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	if (routeInfo)
 	{
-		OOUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
+		NSUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
 		
 		if (optimizeBy == OPTIMIZED_BY_JUMPS)
 		{

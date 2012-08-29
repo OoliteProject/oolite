@@ -126,9 +126,9 @@ typedef struct VertexFaceRef
 } VertexFaceRef;
 
 
-static void VFRAddFace(VertexFaceRef *vfr, OOUInteger index);
-static OOUInteger VFRGetCount(VertexFaceRef *vfr);
-static OOUInteger VFRGetFaceAtIndex(VertexFaceRef *vfr, OOUInteger index);
+static void VFRAddFace(VertexFaceRef *vfr, NSUInteger index);
+static NSUInteger VFRGetCount(VertexFaceRef *vfr);
+static NSUInteger VFRGetFaceAtIndex(VertexFaceRef *vfr, NSUInteger index);
 
 
 @interface OOMesh (Private) <NSMutableCopying, OOGraphicsResetClient>
@@ -166,13 +166,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 // Manage set of objects we need to hang on to, particularly NSDatas owning buffers.
 - (void) setRetainedObject:(id)object forKey:(NSString *)key;
-- (void *) allocateBytesWithSize:(size_t)size count:(OOUInteger)count key:(NSString *)key;
+- (void *) allocateBytesWithSize:(size_t)size count:(NSUInteger)count key:(NSString *)key;
 
 // Allocate all per-vertex/per-face buffers.
-- (BOOL) allocateVertexBuffersWithCount:(OOUInteger)count;
-- (BOOL) allocateNormalBuffersWithCount:(OOUInteger)count;
-- (BOOL) allocateFaceBuffersWithCount:(OOUInteger)count;
-- (BOOL) allocateVertexArrayBuffersWithCount:(OOUInteger)count;
+- (BOOL) allocateVertexBuffersWithCount:(NSUInteger)count;
+- (BOOL) allocateNormalBuffersWithCount:(NSUInteger)count;
+- (BOOL) allocateFaceBuffersWithCount:(NSUInteger)count;
+- (BOOL) allocateVertexArrayBuffersWithCount:(NSUInteger)count;
 
 - (void) renameTexturesFrom:(NSString *)from to:(NSString *)to;
 
@@ -401,12 +401,12 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		_textureUnitCount = 0;
 		for (ti = 0; ti < materialCount; ti++)
 		{
-			OOUInteger count = [materials[ti] countOfTextureUnitsWithBaseCoordinates];
+			NSUInteger count = [materials[ti] countOfTextureUnitsWithBaseCoordinates];
 			if (_textureUnitCount < count)  _textureUnitCount = count;
 		}
 	}
 	
-	OOUInteger unit;
+	NSUInteger unit;
 	if (_textureUnitCount <= 1)
 	{
 		OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -1723,7 +1723,7 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 	
 	NSParameterAssert(faceRefs != NULL);
 	
-	OOUInteger	i,j;
+	NSUInteger	i,j;
 	float		triangle_area[faceCount];
 	
 	NSAssert1(_normals != NULL && _tangents != NULL, @"Normal/tangent buffers not allocated in %s", __PRETTY_FUNCTION__);
@@ -1738,7 +1738,7 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 		Vector tangent_sum = kZeroVector;
 		
 		VertexFaceRef *vfr = &faceRefs[i];
-		OOUInteger fIter, fCount = VFRGetCount(vfr);
+		NSUInteger fIter, fCount = VFRGetCount(vfr);
 		for (fIter = 0; fIter < fCount; fIter++)
 		{
 			j = VFRGetFaceAtIndex(vfr, fIter);
@@ -1794,7 +1794,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 		smooth-grouped normal generation.
 		-- Ahruman 2010-05-22
 	*/
-	OOUInteger	i,j;
+	NSUInteger	i,j;
 	float	triangle_area[faceCount];
 	for (i = 0 ; i < faceCount; i++)
 	{
@@ -1805,7 +1805,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 		Vector tangent_sum = kZeroVector;
 		
 		VertexFaceRef *vfr = &faceRefs[i];
-		OOUInteger fIter, fCount = VFRGetCount(vfr);
+		NSUInteger fIter, fCount = VFRGetCount(vfr);
 		for (fIter = 0; fIter < fCount; fIter++)
 		{
 			j = VFRGetFaceAtIndex(vfr, fIter);
@@ -1829,7 +1829,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	
 	assert(outNormal != NULL && outTangent != NULL);
 	
-	OOUInteger j;
+	NSUInteger j;
 	Vector normal_sum = kZeroVector;
 	Vector tangent_sum = kZeroVector;
 	for (j = 0; j < faceCount; j++)
@@ -1856,7 +1856,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 {
 	OOJS_PROFILE_ENTER
 	
-	OOUInteger	fi, vi, mi;
+	NSUInteger	fi, vi, mi;
 	
 	if (![self allocateVertexArrayBuffersWithCount:faceCount])  return NO;
 	
@@ -2102,7 +2102,7 @@ static void Scribble(void *bytes, size_t size)
 #endif
 
 
-- (void *) allocateBytesWithSize:(size_t)size count:(OOUInteger)count key:(NSString *)key
+- (void *) allocateBytesWithSize:(size_t)size count:(NSUInteger)count key:(NSString *)key
 {
 	if (count == 0) { count=1; }
 	size *= count;
@@ -2117,14 +2117,14 @@ static void Scribble(void *bytes, size_t size)
 }
 
 
-- (BOOL) allocateVertexBuffersWithCount:(OOUInteger)count
+- (BOOL) allocateVertexBuffersWithCount:(NSUInteger)count
 {
 	_vertices = [self allocateBytesWithSize:sizeof *_vertices count:vertexCount key:@"vertices"];
 	return _vertices != NULL;
 }
 
 
-- (BOOL) allocateNormalBuffersWithCount:(OOUInteger)count
+- (BOOL) allocateNormalBuffersWithCount:(NSUInteger)count
 {
 	_normals = [self allocateBytesWithSize:sizeof *_normals count:vertexCount key:@"normals"];
 	_tangents = [self allocateBytesWithSize:sizeof *_tangents count:vertexCount key:@"tangents"];
@@ -2132,14 +2132,14 @@ static void Scribble(void *bytes, size_t size)
 }
 
 
-- (BOOL) allocateFaceBuffersWithCount:(OOUInteger)count
+- (BOOL) allocateFaceBuffersWithCount:(NSUInteger)count
 {
 	_faces = [self allocateBytesWithSize:sizeof *_faces count:faceCount key:@"faces"];
 	return	_faces != NULL;
 }
 
 
-- (BOOL) allocateVertexArrayBuffersWithCount:(OOUInteger)count
+- (BOOL) allocateVertexArrayBuffersWithCount:(NSUInteger)count
 {
 	_displayLists.indexArray = [self allocateBytesWithSize:sizeof *_displayLists.indexArray count:count * 3 key:@"indexArray"];
 	_displayLists.textureUVArray = [self allocateBytesWithSize:sizeof *_displayLists.textureUVArray count:count * 6 key:@"textureUVArray"];
@@ -2227,7 +2227,7 @@ static NSString * const kOOCacheOctrees = @"octrees";
 }
 
 
-static void VFRAddFace(VertexFaceRef *vfr, OOUInteger index)
+static void VFRAddFace(VertexFaceRef *vfr, NSUInteger index)
 {
 	NSCParameterAssert(vfr != NULL);
 	
@@ -2243,7 +2243,7 @@ static void VFRAddFace(VertexFaceRef *vfr, OOUInteger index)
 }
 
 
-static OOUInteger VFRGetCount(VertexFaceRef *vfr)
+static NSUInteger VFRGetCount(VertexFaceRef *vfr)
 {
 	NSCParameterAssert(vfr != NULL);
 	
@@ -2251,7 +2251,7 @@ static OOUInteger VFRGetCount(VertexFaceRef *vfr)
 }
 
 
-static OOUInteger VFRGetFaceAtIndex(VertexFaceRef *vfr, OOUInteger index)
+static NSUInteger VFRGetFaceAtIndex(VertexFaceRef *vfr, NSUInteger index)
 {
 	NSCParameterAssert(vfr != NULL && index < VFRGetCount(vfr));
 	

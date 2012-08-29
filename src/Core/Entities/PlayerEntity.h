@@ -262,7 +262,7 @@ typedef enum
 	NSDictionary			*worldScripts;
 	NSMutableDictionary		*mission_variables;
 	NSMutableDictionary		*localVariables;
-	OOInteger /*OOGUIRow*/	missionTextRow;
+	NSInteger /*OOGUIRow*/	missionTextRow;
 	NSString				*missionChoice;
 	BOOL					_missionWithCallback;
 	
@@ -341,8 +341,8 @@ typedef enum
 	OOAlertCondition		alertCondition;
 	OOAlertCondition		lastScriptAlertCondition;
 	OOMissileStatus			missile_status;
-	OOUInteger				activeMissile;
-	OOUInteger				primedEquipment;
+	NSUInteger				activeMissile;
+	NSUInteger				primedEquipment;
 	
 	OOCargoQuantity			current_cargo;
 	
@@ -457,7 +457,7 @@ typedef enum
 	Vector					_sysInfoLight;
 	
 	// trumbles
-	OOUInteger				trumbleCount;
+	NSUInteger				trumbleCount;
 	OOTrumble				*trumble[PLAYER_MAX_TRUMBLES];
 	
 	// smart zoom
@@ -533,7 +533,7 @@ typedef enum
 	NSPoint					galacticHyperspaceFixedCoords;
 	
 	NSArray					*_customViews;
-	OOUInteger				_customViewIndex;
+	NSUInteger				_customViewIndex;
 	
 	OODockingClearanceStatus dockingClearanceStatus;
 	
@@ -666,18 +666,18 @@ typedef enum
 - (void) setPrevCompassMode;
 - (void) setNextCompassMode;
 
-- (OOUInteger) activeMissile;
-- (void) setActiveMissile:(OOUInteger)value;
-- (OOUInteger) dialMaxMissiles;
+- (NSUInteger) activeMissile;
+- (void) setActiveMissile:(NSUInteger)value;
+- (NSUInteger) dialMaxMissiles;
 - (BOOL) dialIdentEngaged;
 - (void) setDialIdentEngaged:(BOOL)newValue;
 - (NSString *) specialCargo;
 - (NSString *) dialTargetName;
-- (ShipEntity *) missileForPylon:(OOUInteger)value;
+- (ShipEntity *) missileForPylon:(NSUInteger)value;
 - (void) safeAllMissiles;
 - (void) selectNextMissile;
 - (void) tidyMissilePylons;
-- (BOOL) removeFromPylon:(OOUInteger) pylon;
+- (BOOL) removeFromPylon:(NSUInteger) pylon;
 - (BOOL) assignToActivePylon:(NSString *)identifierKey;
 
 - (void) clearAlertFlags;
@@ -770,7 +770,7 @@ typedef enum
 - (void) addTrumble:(OOTrumble *)papaTrumble;
 - (void) removeTrumble:(OOTrumble *)deadTrumble;
 - (OOTrumble **) trumbleArray;
-- (OOUInteger) trumbleCount;
+- (NSUInteger) trumbleCount;
 // loading and saving trumbleCount
 - (id) trumbleValue;
 - (void) setTrumbleValueFrom:(NSObject*) trumbleValue;

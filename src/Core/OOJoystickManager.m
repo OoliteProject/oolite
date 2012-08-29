@@ -135,7 +135,7 @@ static id sSharedStickHandler = nil;
 
 - (NSArray *)listSticks
 {
-	OOUInteger i, stickCount = [self joystickCount];
+	NSUInteger i, stickCount = [self joystickCount];
 	
 	NSMutableArray *stickList = [NSMutableArray array];
 	for (i = 0; i < stickCount; i++)
@@ -519,7 +519,7 @@ static id sSharedStickHandler = nil;
 }
 
 
-- (OOUInteger) joystickCount
+- (NSUInteger) joystickCount
 {
 	return 0;
 }
@@ -573,12 +573,12 @@ static id sSharedStickHandler = nil;
 
 // These get overidden by subclasses
 
-- (NSString *) nameOfJoystick:(OOUInteger)stickNumber
+- (NSString *) nameOfJoystick:(NSUInteger)stickNumber
 {
 	return @"Dummy joystick";
 }
 
-- (int16_t) getAxisWithStick:(OOUInteger)stickNum axis:(OOUInteger)axisNum
+- (int16_t) getAxisWithStick:(NSUInteger)stickNum axis:(NSUInteger)axisNum
 {
 	return 0;
 }

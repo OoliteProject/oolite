@@ -146,13 +146,13 @@ SOFTWARE.
 }
 
 
-- (OOUInteger) textureUnitCount
+- (NSUInteger) textureUnitCount
 {
 	return _unitsUsed;
 }
 
 
-- (OOUInteger) countOfTextureUnitsWithBaseCoordinates
+- (NSUInteger) countOfTextureUnitsWithBaseCoordinates
 {
 	return _unitsUsed;
 }
@@ -204,7 +204,7 @@ SOFTWARE.
 	
 	[super unapplyWithNext:next];
 	
-	OOUInteger i;
+	NSUInteger i;
 	i = [next isKindOfClass:[OOMultiTextureMaterial class]] ? [(OOMultiTextureMaterial *)next textureUnitCount] : 0;
 	for (; i != _unitsUsed; ++i)
 	{

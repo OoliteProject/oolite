@@ -313,7 +313,7 @@ enum
 }
 
 
-- (OOUInteger) retainCount
+- (NSUInteger) retainCount
 {
 	return UINT_MAX;
 }

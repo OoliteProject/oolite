@@ -485,7 +485,7 @@ static BOOL sRunningScript = NO;
 	NSString					*expandedRHS = nil;
 	NSArray						*rhsComponents = nil;
 	NSString					*rhsItem = nil;
-	OOUInteger					i, count;
+	NSUInteger					i, count;
 	NSCharacterSet				*whitespace = nil;
 	double						lhsValue, rhsValue;
 	BOOL						lhsFlag, rhsFlag;
@@ -1385,7 +1385,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	OOLog(kOOLogNoteRemoveAllCargo, @"%@ removeAllCargo", forceRemoval ? @"Forcing" : @"Going to");
 	
 	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-	for (type = 0; (OOUInteger)type < [manifest count]; type++)
+	for (type = 0; (NSUInteger)type < [manifest count]; type++)
 	{
 		NSMutableArray *manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
 		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
@@ -1399,7 +1399,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if (forceRemoval && [self status] != STATUS_DOCKED)
 	{
-		OOInteger i;
+		NSInteger i;
 		for (i = [cargo count] - 1; i >= 0; i--)
 		{
 			ShipEntity* canister = [cargo objectAtIndex:i];
@@ -2689,7 +2689,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (eq_key == nil) return;
 	
 	NSString			*key = nil;
-	OOUInteger			i, count = [eqScripts count];
+	NSUInteger			i, count = [eqScripts count];
 	
 	for (i = 0; i < count; i++)
 	{
@@ -2708,9 +2708,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (OOUInteger) eqScriptIndexForKey:(NSString *)eq_key
+- (NSUInteger) eqScriptIndexForKey:(NSString *)eq_key
 {
-	OOUInteger			i, count = [eqScripts count];
+	NSUInteger			i, count = [eqScripts count];
 	
 	if (eq_key != nil)
 	{

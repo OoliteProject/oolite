@@ -149,14 +149,14 @@ enum OOScanClass
 	struct JSObject			*_jsSelf;
 	
 @private
-	OOUInteger				_sessionID;
+	NSUInteger				_sessionID;
 	
 	OOWeakReference			*_owner;
 	OOEntityStatus			_status;
 }
 
 // The session in which the entity was created.
-- (OOUInteger) sessionID;
+- (NSUInteger) sessionID;
 
 - (BOOL) isShip;
 - (BOOL) isDock;

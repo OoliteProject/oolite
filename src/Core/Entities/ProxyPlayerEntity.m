@@ -177,13 +177,13 @@ MA 02110-1301, USA.
 }
 
 
-- (OOUInteger) trumbleCount
+- (NSUInteger) trumbleCount
 {
 	return _trumbleCount;
 }
 
 
-- (void) setTrumbleCount:(OOUInteger)value
+- (void) setTrumbleCount:(NSUInteger)value
 {
 	_trumbleCount = value;
 }

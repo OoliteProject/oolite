@@ -485,7 +485,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	NSString				*parentKey = nil;
 	NSDictionary			*shipEntry = nil;
 	NSDictionary			*parentEntry = nil;
-	OOUInteger				count, lastCount;
+	NSUInteger				count, lastCount;
 	NSMutableArray			*reportedBadShips = nil;
 	
 	// Build set of ships with like_ship references
@@ -1029,7 +1029,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	NSString				*modelName = nil;
 	OOMesh					*mesh = nil;
 	NSAutoreleasePool		*pool = nil;
-	OOUInteger				i = 0, count;
+	NSUInteger				i = 0, count;
 	
 	count = [ioData count];
 	
@@ -1553,7 +1553,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 }
 
 
-- (OOUInteger) retainCount
+- (NSUInteger) retainCount
 {
 	return UINT_MAX;
 }

@@ -81,8 +81,8 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 	{
 		NSArray				*modes = nil;
 		NSDictionary		*mode = nil, *mode2 = nil;
-		OOUInteger			modeWidth, modeHeight, color;
-		OOUInteger			modeWidth2, modeHeight2, color2;
+		NSUInteger			modeWidth, modeHeight, color;
+		NSUInteger			modeWidth2, modeHeight2, color2;
 		BOOL				stretched, stretched2, interlaced, interlaced2;
 		float				modeRefresh, modeRefresh2;
 		BOOL				deleteFirst;
@@ -135,7 +135,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 			Basically, this needs redoing, but shouldn't hold up 1.70.
 			-- Ahruman
 		*/
-		OOUInteger modeIndex, mode2Index;
+		NSUInteger modeIndex, mode2Index;
 		for (modeIndex = 0; modeIndex + 1 < [_displayModes count]; modeIndex++)
 		{
 			mode = [_displayModes objectAtIndex:modeIndex];
@@ -248,7 +248,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 }
 
 
-- (OOUInteger) indexOfCurrentDisplayMode
+- (NSUInteger) indexOfCurrentDisplayMode
 {
 	NSDictionary *mode = [self findDisplayModeForWidth:_width height:_height refreshRate:_refresh];
 	if (mode == nil)  return NSNotFound;
@@ -256,7 +256,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 }
 
 
-- (BOOL) setDisplayWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)refresh
+- (BOOL) setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
 {
 	NSDictionary *mode = [self findDisplayModeForWidth:width height:height refreshRate:refresh];
 	if (mode != nil)
@@ -275,13 +275,13 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 }
 
 
-- (NSDictionary *) findDisplayModeForWidth:(OOUInteger)width height:(OOUInteger)height refreshRate:(OOUInteger)refresh
+- (NSDictionary *) findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
 {
 	for (NSDictionary *mode in _displayModes)
 	{
-		OOUInteger modeWidth = [mode oo_unsignedIntegerForKey:kOODisplayWidth];
-		OOUInteger modeHeight = [mode oo_unsignedIntegerForKey:kOODisplayHeight];
-		OOUInteger modeRefresh = [mode oo_unsignedIntegerForKey:kOODisplayRefreshRate];
+		NSUInteger modeWidth = [mode oo_unsignedIntegerForKey:kOODisplayWidth];
+		NSUInteger modeHeight = [mode oo_unsignedIntegerForKey:kOODisplayHeight];
+		NSUInteger modeRefresh = [mode oo_unsignedIntegerForKey:kOODisplayRefreshRate];
 		
 		if ((modeWidth == width) && (modeHeight == height) && (modeRefresh == refresh))
 		{
@@ -582,7 +582,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 {
 	NSDictionary *mode1 = arg1;
 	NSDictionary *mode2 = arg2;
-	OOUInteger size1, size2;
+	NSUInteger size1, size2;
 	
 	// Sort first on pixel count...
 	size1 = [mode1 oo_unsignedIntegerForKey:kOODisplayWidth] * [mode1 oo_unsignedIntegerForKey:kOODisplayHeight];

@@ -3,7 +3,7 @@
 
 
 #ifndef NDEBUG
-OOUInteger gDebugFlags = 0;
+NSUInteger gDebugFlags = 0;
 #endif
 
 

@@ -343,7 +343,7 @@ noteChangedConfigrationValue:(in id)newValue
 	
 	do
 	{
-		OOInteger written = [_outStream write:bytes maxLength:count];
+		NSInteger written = [_outStream write:bytes maxLength:count];
 		if (written < 1)  return NO;
 		
 		count -= written;
@@ -469,7 +469,7 @@ noteChangedConfigrationValue:(in id)newValue
 	enum { kBufferSize = 16 << 10 };
 	
 	uint8_t							buffer[kBufferSize];
-	OOInteger						length;
+	NSInteger						length;
 	NSData							*data;
 	
 	length = [_inStream read:buffer maxLength:kBufferSize];

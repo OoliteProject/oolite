@@ -131,7 +131,7 @@ typedef struct
 	BoundingBox				_lastBoundingBox;
 	
 #if OO_MULTITEXTURE
-	OOUInteger				_textureUnitCount;
+	NSUInteger				_textureUnitCount;
 #endif
 	
 #if OOMESH_PROFILE

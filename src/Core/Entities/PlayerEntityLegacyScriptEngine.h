@@ -234,7 +234,7 @@ typedef enum
 
 - (BOOL) addEqScriptForKey:(NSString *)eq_key;
 - (void) removeEqScriptForKey:(NSString *)eq_key;
-- (OOUInteger) eqScriptIndexForKey:(NSString *)eq_key;
+- (NSUInteger) eqScriptIndexForKey:(NSString *)eq_key;
 
 - (void) targetNearestHostile;
 - (void) targetNearestIncomingMissile;

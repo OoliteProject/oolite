@@ -630,7 +630,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 							   [self profilerOverhead] * 1000.0];
 	
 	NSArray *profileEntries = [self profileEntries];
-	OOUInteger i, count = [profileEntries count];
+	NSUInteger i, count = [profileEntries count];
 	if (count != 0)
 	{
 		[result appendString:@"\n                                                        NAME  T  COUNT    TOTAL     SELF  TOTAL%   SELF%  SELFMAX"];
@@ -889,7 +889,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 }
 
 
-- (OOUInteger) hitCount
+- (NSUInteger) hitCount
 {
 	return _hitCount;
 }

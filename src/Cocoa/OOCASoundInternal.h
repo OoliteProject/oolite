@@ -76,7 +76,7 @@ extern NSString * const kOOLogSoundInitError;
 
 
 #ifndef NDEBUG
-void OOCASoundVerifyBuffers(AudioBufferList *buffers, OOUInteger numFrames, OOSound *sound);
+void OOCASoundVerifyBuffers(AudioBufferList *buffers, NSUInteger numFrames, OOSound *sound);
 #else
 #define OOCASoundVerifyBuffers(buffers, numFrames, sound)  do {} while (0)
 #endif

@@ -218,12 +218,12 @@ BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)
 
 typedef struct
 {
-	OOUInteger			vectorCount;
-	OOUInteger			entityCount;
-	OOUInteger			arrayCount;
-	OOUInteger			protoCount;
-	OOUInteger			nullCount;
-	OOUInteger			failCount;
+	NSUInteger			vectorCount;
+	NSUInteger			entityCount;
+	NSUInteger			arrayCount;
+	NSUInteger			protoCount;
+	NSUInteger			nullCount;
+	NSUInteger			failCount;
 } VectorStatistics;
 static VectorStatistics sVectorConversionStats;
 
@@ -237,7 +237,7 @@ static VectorStatistics sVectorConversionStats;
 {
 	VectorStatistics *stats = &sVectorConversionStats;
 	
-	OOUInteger sum = stats->vectorCount + stats->entityCount + stats->arrayCount + stats->protoCount;
+	NSUInteger sum = stats->vectorCount + stats->entityCount + stats->arrayCount + stats->protoCount;
 	double convFac = 100.0 / sum;
 	if (sum == 0)  convFac = 0;
 	

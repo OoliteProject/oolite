@@ -86,7 +86,7 @@ static void HandleDeviceRemovalCallback(void * inContext, IOReturn inResult, voi
 }
 
 
-- (OOUInteger) joystickCount
+- (NSUInteger) joystickCount
 {
 	return CFArrayGetCount(devices);
 }
@@ -320,7 +320,7 @@ static uint8_t MapHatValue(CFIndex value, CFIndex max)
 }
 
 
-- (NSString *) nameOfJoystick:(OOUInteger)stickNumber
+- (NSString *) nameOfJoystick:(NSUInteger)stickNumber
 {
 	IOHIDDeviceRef device = (IOHIDDeviceRef)CFArrayGetValueAtIndex(devices, stickNumber);
 	return (NSString *)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
@@ -328,7 +328,7 @@ static uint8_t MapHatValue(CFIndex value, CFIndex max)
 
 
 
-- (int16_t) getAxisWithStick:(OOUInteger) stickNum axis:(OOUInteger) axisNum 
+- (int16_t) getAxisWithStick:(NSUInteger) stickNum axis:(NSUInteger) axisNum 
 {
 	return 0;
 }

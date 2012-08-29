@@ -36,9 +36,9 @@ struct ConstTable;
 
 
 // Private functions, don't use directly.
-JSString *OOJSStringFromConstantPRIVATE(JSContext *context, OOInteger value, struct ConstTable *table);
-OOUInteger OOConstantFromJSStringPRIVATE(JSContext *context, JSString *string, struct ConstTable *table, OOInteger defaultValue);
-OOUInteger OOConstantFromJSValuePRIVATE(JSContext *context, jsval value, struct ConstTable *table, OOInteger defaultValue);
+JSString *OOJSStringFromConstantPRIVATE(JSContext *context, NSInteger value, struct ConstTable *table);
+NSUInteger OOConstantFromJSStringPRIVATE(JSContext *context, JSString *string, struct ConstTable *table, NSInteger defaultValue);
+NSUInteger OOConstantFromJSValuePRIVATE(JSContext *context, jsval value, struct ConstTable *table, NSInteger defaultValue);
 
 
 /*	JSString *OOJSStringFromEntityStatus(JSContext *, OOEntityStatus)

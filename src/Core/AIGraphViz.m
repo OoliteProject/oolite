@@ -31,10 +31,10 @@ MA 02110-1301, USA.
 
 // Generate and track unique identifiers for state-handler pairs.
 static NSString *HandlerToken(NSString *state, NSString *handler, NSMutableDictionary *handlerKeys, NSMutableSet *uniqueSet);
-static void HandleOneCommand(NSMutableString *graphViz, NSString *stateKey, NSString *handlerKey, NSMutableDictionary *handlerKeys, NSArray *handlerCommands, OOUInteger commandIter, OOUInteger commandCount, NSMutableSet *specialNodes, NSMutableSet *uniqueSet, BOOL *haveSetOrSwichAI);
+static void HandleOneCommand(NSMutableString *graphViz, NSString *stateKey, NSString *handlerKey, NSMutableDictionary *handlerKeys, NSArray *handlerCommands, NSUInteger commandIter, NSUInteger commandCount, NSMutableSet *specialNodes, NSMutableSet *uniqueSet, BOOL *haveSetOrSwichAI);
 static void AddSimpleSpecialNodeLink(NSMutableString *graphViz, NSString *handlerToken, NSString *name, NSString *shape, NSString *color, NSMutableSet *specialNodes);
 static void AddExitAINode(NSMutableString *graphViz, NSString *handlerToken, NSString *message, NSMutableSet *specialNodes);
-static void AddChangeAINode(NSMutableString *graphViz, NSString *handlerToken, NSString *method, NSArray *components, NSArray *handlerCommands, OOUInteger commandIter, OOUInteger commandCount, NSMutableSet *specialNodes);
+static void AddChangeAINode(NSMutableString *graphViz, NSString *handlerToken, NSString *method, NSArray *components, NSArray *handlerCommands, NSUInteger commandIter, NSUInteger commandCount, NSMutableSet *specialNodes);
 
 
 void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSString *smName)
@@ -82,7 +82,7 @@ void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSString *smN
 		while ((handlerKey = [handlerKeyEnum nextObject]))
 		{
 			NSArray *handlerCommands = [state oo_arrayForKey:handlerKey];
-			OOUInteger commandIter, commandCount = [handlerCommands count];
+			NSUInteger commandIter, commandCount = [handlerCommands count];
 			BOOL haveSetOrSwichAI = NO;
 			
 			for (commandIter = 0; commandIter < commandCount; commandIter++)
@@ -134,7 +134,7 @@ static NSString *HandlerToken(NSString *state, NSString *handler, NSMutableDicti
 }
 
 
-static void HandleOneCommand(NSMutableString *graphViz, NSString *stateKey, NSString *handlerKey, NSMutableDictionary *handlerKeys, NSArray *handlerCommands, OOUInteger commandIter, OOUInteger commandCount, NSMutableSet *specialNodes, NSMutableSet *uniqueSet, BOOL *haveSetOrSwichAI)
+static void HandleOneCommand(NSMutableString *graphViz, NSString *stateKey, NSString *handlerKey, NSMutableDictionary *handlerKeys, NSArray *handlerCommands, NSUInteger commandIter, NSUInteger commandCount, NSMutableSet *specialNodes, NSMutableSet *uniqueSet, BOOL *haveSetOrSwichAI)
 {
 	NSString *command = [handlerCommands oo_stringAtIndex:commandIter];
 	if (EXPECT_NOT(command == nil))  return;
@@ -232,7 +232,7 @@ static void AddExitAINode(NSMutableString *graphViz, NSString *handlerToken, NSS
 }
 
 
-static void AddChangeAINode(NSMutableString *graphViz, NSString *handlerToken, NSString *method, NSArray *components, NSArray *handlerCommands, OOUInteger commandIter, OOUInteger commandCount, NSMutableSet *specialNodes)
+static void AddChangeAINode(NSMutableString *graphViz, NSString *handlerToken, NSString *method, NSArray *components, NSArray *handlerCommands, NSUInteger commandIter, NSUInteger commandCount, NSMutableSet *specialNodes)
 {
 	NSString *methodTag = [method substringToIndex:[method length] - 3];	// delete "To:".
 	
@@ -244,7 +244,7 @@ static void AddChangeAINode(NSMutableString *graphViz, NSString *handlerToken, N
 		
 		// Look through remaining commands for a setStateTo:, which applies to the new AI.
 		NSString *targetState = nil;
-		OOUInteger j = commandIter;
+		NSUInteger j = commandIter;
 		for (; j < commandCount; j++)
 		{
 			NSString *command = [handlerCommands oo_stringAtIndex:j];

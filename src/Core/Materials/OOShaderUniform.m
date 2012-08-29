@@ -321,7 +321,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 {
 	BOOL					OK = YES;
 	NSMethodSignature		*signature = nil;
-	OOUInteger				argCount;
+	NSUInteger				argCount;
 	NSString				*methodProblem = nil;
 	id<OOWeakReferenceSupport> superCandidate = nil;
 	

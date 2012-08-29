@@ -46,14 +46,14 @@ MA 02110-1301, USA.
 
 typedef struct
 {
-	OOInteger			value;
+	NSInteger			value;
 	const char			*cString;
 	JSString			*jsString;
 } TableEntry;
 
 typedef struct ConstTable
 {
-	OOUInteger			count;
+	NSUInteger			count;
 	TableEntry			*entries;
 } ConstTable;
 
@@ -185,7 +185,7 @@ static void InitTable(JSContext *context, ConstTable *table)
 {
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context) && table != NULL);
 	
-	OOUInteger i;
+	NSUInteger i;
 	for(i = 0; i < table->count; i++)
 	{
 		table->entries[i].jsString = JS_InternString(context, table->entries[i].cString);
@@ -197,18 +197,18 @@ static void InitTable(JSContext *context, ConstTable *table)
 
 // MARK: Lookup
 
-JSString *OOJSStringFromConstantPRIVATE(JSContext *context, OOInteger value, struct ConstTable *table)
+JSString *OOJSStringFromConstantPRIVATE(JSContext *context, NSInteger value, struct ConstTable *table)
 {
 	NSCAssert1(sInited, @"%s called before OOConstToJSStringInit().", __PRETTY_FUNCTION__);
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context));
 	NSCParameterAssert(table != NULL && table->count > 0);
 	
 	// Binary search.
-	OOUInteger min = 0, max = table->count - 1;
-	OOInteger current;
+	NSUInteger min = 0, max = table->count - 1;
+	NSInteger current;
 	do
 	{
-		OOUInteger mid = (min + max) / 2;
+		NSUInteger mid = (min + max) / 2;
 		current = table->entries[mid].value;
 		if (current < value)
 		{
@@ -229,13 +229,13 @@ JSString *OOJSStringFromConstantPRIVATE(JSContext *context, OOInteger value, str
 }
 
 
-OOUInteger OOConstantFromJSStringPRIVATE(JSContext *context, JSString *string, struct ConstTable *table, OOInteger defaultValue)
+NSUInteger OOConstantFromJSStringPRIVATE(JSContext *context, JSString *string, struct ConstTable *table, NSInteger defaultValue)
 {
 	NSCAssert1(sInited, @"%s called before OOConstToJSStringInit().", __PRETTY_FUNCTION__);
 	NSCParameterAssert(context != NULL && JS_IsInRequest(context) && table != NULL);
 	
 	// Quick pass: look for pointer-equal string.
-	OOUInteger i, count = table->count;
+	NSUInteger i, count = table->count;
 	for(i = 0; i < count; i++)
 	{
 		if (table->entries[i].jsString == string)
@@ -263,7 +263,7 @@ OOUInteger OOConstantFromJSStringPRIVATE(JSContext *context, JSString *string, s
 }
 
 
-OOUInteger OOConstantFromJSValuePRIVATE(JSContext *context, jsval value, struct ConstTable *table, OOInteger defaultValue)
+NSUInteger OOConstantFromJSValuePRIVATE(JSContext *context, jsval value, struct ConstTable *table, NSInteger defaultValue)
 {
 	if (EXPECT(JSVAL_IS_STRING(value)))
 	{

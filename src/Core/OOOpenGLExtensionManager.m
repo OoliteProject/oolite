@@ -403,19 +403,19 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 }
 
 
-- (OOUInteger)majorVersionNumber
+- (NSUInteger)majorVersionNumber
 {
 	return major;
 }
 
 
-- (OOUInteger)minorVersionNumber
+- (NSUInteger)minorVersionNumber
 {
 	return minor;
 }
 
 
-- (OOUInteger)releaseVersionNumber
+- (NSUInteger)releaseVersionNumber
 {
 	return release;
 }
@@ -744,7 +744,7 @@ NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void *context)
 }
 
 
-- (OOUInteger)retainCount
+- (NSUInteger)retainCount
 {
 	return UINT_MAX;
 }

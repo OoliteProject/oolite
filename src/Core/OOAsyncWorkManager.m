@@ -191,7 +191,7 @@ static void InitAsyncWorkManager(void)
 }
 
 
-- (OOUInteger) retainCount
+- (NSUInteger) retainCount
 {
 	return UINT_MAX;
 }
@@ -337,7 +337,7 @@ enum
 		}
 		
 		// Set up loading threads.
-		OOUInteger threadCount, threadNumber = 1;
+		NSUInteger threadCount, threadNumber = 1;
 #if OO_DEBUG
 		threadCount = kMaxWorkThreads;
 #else

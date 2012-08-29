@@ -185,7 +185,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 		{
 			OOLogIndent();
 			
-			OOUInteger count = [aiStack count];
+			NSUInteger count = [aiStack count];
 			while (count--)
 			{
 				NSDictionary *pickledMachine = [aiStack objectAtIndex:count];
@@ -350,7 +350,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 }
 
 
-- (OOUInteger) stackDepth
+- (NSUInteger) stackDepth
 {
 	return [aiStack count];
 }
@@ -492,7 +492,7 @@ static AIStackElement *sStack = NULL;
 #endif
 	
 	NSArray *tokens = ScanTokensFromString(action);
-	OOUInteger tokenCount = [tokens count];
+	NSUInteger tokenCount = [tokens count];
 	
 	if (tokenCount != 0)
 	{

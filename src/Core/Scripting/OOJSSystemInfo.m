@@ -193,9 +193,9 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, &sSystemInfoClass, sSystemInf
 }
 
 
-- (OOUInteger) hash
+- (NSUInteger) hash
 {
-	OOUInteger hash = _galaxy;
+	NSUInteger hash = _galaxy;
 	hash <<= 16;
 	hash |= (uint16_t)_system;
 	return hash;
@@ -350,7 +350,7 @@ static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateO
 			enumerator = [[keys objectEnumerator] retain];
 			*state = PRIVATE_TO_JSVAL(enumerator);
 			
-			OOUInteger count = [keys count];
+			NSUInteger count = [keys count];
 			assert(count <= INT32_MAX);
 			if (idp != NULL)  *idp = INT_TO_JSID((int32_t)count);
 			return YES;

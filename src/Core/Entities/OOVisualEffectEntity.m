@@ -308,7 +308,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOUInteger) subEntityCount
+- (NSUInteger) subEntityCount
 {
 	return [subEntities count];
 }
