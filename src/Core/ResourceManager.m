@@ -1049,7 +1049,8 @@ static NSString *LogClassKeyRoot(NSString *key)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		NS_DURING
+		@try
+		{
 			results = [OOScript worldScriptsAtPath:[path stringByAppendingPathComponent:@"Config"]];
 			if (results == nil) results = [OOScript worldScriptsAtPath:path];
 			if (results != nil)
@@ -1061,10 +1062,12 @@ static NSString *LogClassKeyRoot(NSString *key)
 					else  OOLog(@"script.load.unnamed", @"Discarding anonymous script %@", script);
 				}
 			}
-		NS_HANDLER
-			OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __PRETTY_FUNCTION__, [localException name], [localException reason], path);
+		}
+		@catch (NSException *exception)
+		{
+			OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __PRETTY_FUNCTION__, [exception name], [exception reason], path);
 			// Ignore exception and keep loading other scripts.
-		NS_ENDHANDLER
+		}
 		
 		[pool release];
 	}

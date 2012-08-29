@@ -332,7 +332,8 @@ VERIFY_PROTO(DelegatedType);
 	
 	if ([_delegate respondsToSelector:@selector(verifier:withPropertyList:named:testProperty:atPath:againstType:error:)])
 	{
-		NS_DURING
+		@try
+		{
 			result = [_delegate verifier:self
 						withPropertyList:rootPList
 								   named:name
@@ -340,11 +341,13 @@ VERIFY_PROTO(DelegatedType);
 								  atPath:KeyPathToArray(keyPath)
 							 againstType:typeKey
 								   error:&error];
-		NS_HANDLER
-			OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:testProperty:atPath:againstType: for type \"%@\" at %@ in %@ -- treating as failure.", [localException name], typeKey,KeyPathToString(keyPath), name);
+		}
+		@catch (NSException *exception)
+		{
+			OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:testProperty:atPath:againstType: for type \"%@\" at %@ in %@ -- treating as failure.", [exception name], typeKey,KeyPathToString(keyPath), name);
 			result = NO;
 			error = nil;
-		NS_ENDHANDLER
+		}
 		
 		if (outError != NULL)
 		{
@@ -380,17 +383,20 @@ VERIFY_PROTO(DelegatedType);
 	
 	if ([_delegate respondsToSelector:@selector(verifier:withPropertyList:named:failedForProperty:withError:expectedType:)])
 	{
-		NS_DURING
+		@try
+		{
 			result = [_delegate verifier:self
 						withPropertyList:rootPList
 								   named:name
 					   failedForProperty:subPList
 							   withError:error
 							expectedType:localSchema];
-		NS_HANDLER
-			OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:failedForProperty:atPath:expectedType: at %@ in %@ -- stopping.", [localException name], [error plistKeyPathDescription], name);
+		}
+		@catch (NSException *exception)
+		{
+			OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:failedForProperty:atPath:expectedType: at %@ in %@ -- stopping.", [exception name], [error plistKeyPathDescription], name);
 			result = NO;
-		NS_ENDHANDLER
+		}
 	}
 	else
 	{
@@ -421,7 +427,8 @@ VERIFY_PROTO(DelegatedType);
 	
 	DebugDumpPushIndent();
 	
-	NS_DURING
+	@try
+	{
 		DebugDumpIndent();
 		
 		resolvedSpecifier = [self resolveSchemaType:subSchema atPath:keyPath error:&error];
@@ -450,9 +457,11 @@ VERIFY_PROTO(DelegatedType);
 				// resolveSchemaType:... or StringToSchemaType() should have provided an error.
 				*outStop = YES;
 		}
-	NS_HANDLER
-		error = Error(kPListErrorInternal, (BackLinkChain *)&keyPath, @"Uncaught exception %@: %@ in plist verifier for \"%@\" at %@.", [localException name], [localException reason], name, KeyPathToString(keyPath));
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		error = Error(kPListErrorInternal, (BackLinkChain *)&keyPath, @"Uncaught exception %@: %@ in plist verifier for \"%@\" at %@.", [exception name], [exception reason], name, KeyPathToString(keyPath));
+	}
 	
 	DebugDumpPopIndent();
 	

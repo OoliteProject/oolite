@@ -196,7 +196,8 @@ static GameController *sSharedController = nil;
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	NS_DURING
+	@try
+	{
 		// if not verifying oxps, ensure that gameView is drawn to using beginSplashScreen
 		// OpenGL is initialised and that allows textures to initialise too.
 
@@ -216,8 +217,8 @@ static GameController *sSharedController = nil;
 #endif
 		
 #if OOLITE_MAC_OS_X
-	[OOJoystickManager setStickHandlerClass:[OOMacJoystickManager class]];
-	SetUpSparkle();
+		[OOJoystickManager setStickHandlerClass:[OOMacJoystickManager class]];
+		SetUpSparkle();
 #endif
 		
 		[self setUpDisplayModes];
@@ -243,10 +244,12 @@ static GameController *sSharedController = nil;
 		[self startAnimationTimer];
 		
 		[self endSplashScreen];
-	NS_HANDLER
-		[self reportUnhandledStartupException:localException];
+	}
+	@catch (NSException *exception)
+	{
+		[self reportUnhandledStartupException:exception];
 		exit(EXIT_FAILURE);
-	NS_ENDHANDLER
+	}
 	
 	OOLog(@"loading.complete", @"========== Loading complete. ==========");
 	
@@ -315,7 +318,8 @@ static GameController *sSharedController = nil;
 
 - (void) doPerformGameTick
 {
-	NS_DURING
+	@try
+	{
 		if (gameIsPaused)
 			delta_t = 0.0;  // no movement!
 		else
@@ -332,8 +336,8 @@ static GameController *sSharedController = nil;
 			[OOSound update];
 			OOJSFrameCallbacksInvoke(delta_t);
 		}
-	NS_HANDLER
-	NS_ENDHANDLER
+	}
+	@catch (id exception) {}
 	
 #if OOLITE_MAC_LEGACY_FULLSCREEN
 	if ([self inFullScreenMode])
@@ -343,10 +347,11 @@ static GameController *sSharedController = nil;
 	}
 #endif
 	
-	NS_DURING
+	@try
+	{
 		[gameView display];
-	NS_HANDLER
-	NS_ENDHANDLER
+	}
+	@catch (id exception) {}
 }
 
 

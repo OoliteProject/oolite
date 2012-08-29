@@ -477,18 +477,21 @@ static OOCacheManager *sSingleton = nil;
 	path = [self cachePathCreatingIfNecessary:NO];
 	if (path == nil) return nil;
 	
-	NS_DURING
+	@try
+	{
 		data = [NSData dataWithContentsOfFile:path];
-		if (data == nil)  NS_VALUERETURN(nil, NSDictionary *);
+		if (data == nil)  return nil;
 		
 		contents = [NSPropertyListSerialization propertyListFromData:data
 													mutabilityOption:NSPropertyListImmutable
 															  format:NULL
 													errorDescription:&errorString];
-	NS_HANDLER
-		errorString = [localException reason];
+	}
+	@catch (NSException *exception)
+	{
+		errorString = [exception reason];
 		contents = nil;
-	NS_ENDHANDLER
+	}
 	
 	if (errorString != nil)
 	{

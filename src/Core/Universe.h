@@ -268,8 +268,6 @@ enum
 	
 	NSMutableDictionary		*localPlanetInfoOverrides;
 	
-	NSException				*exception;
-	
 	NSMutableArray			*activeWormholes;
 	
 	NSMutableArray			*characterPool;
@@ -299,12 +297,12 @@ enum
 	
 	GLfloat					frustum[6][4];
 	
-	NSMutableDictionary  *conditionScripts;
+	NSMutableDictionary		*conditionScripts;
 	
 	BOOL					_pauseMessage;
 	BOOL					_autoCommLog;
 	BOOL					_permanentCommLog;
-	BOOL          _witchspaceBreakPattern;
+	BOOL					_witchspaceBreakPattern;
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
@@ -671,7 +669,7 @@ enum
 - (OOShaderSetting) shaderEffectsLevel;
 - (BOOL) useShaders;
 
-- (void) handleOoliteException:(NSException*) ooliteException;
+- (void) handleOoliteException:(NSException *)ooliteException;
 
 - (GLfloat)airResistanceFactor;
 

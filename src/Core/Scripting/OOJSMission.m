@@ -143,17 +143,20 @@ void MissionRunCallback()
 	[player setMissionChoice:nil withEvent:NO];
 	
 	// Call the callback.
-	NS_DURING
+	@try
+	{
 		[OOJSScript pushScript:cbScript];
 		[engine callJSFunction:cbFunction
 					 forObject:cbThis
 						  argc:1
 						  argv:&argval
 						result:&rval];
-	NS_HANDLER
+	}
+	@catch (NSException *exception)
+	{
 		// Squash any exception, allow cleanup to happen and so forth.
-		OOLog(kOOLogException, @"Ignoring exception %@:%@ during handling of mission screen completion callback.", [localException name], [localException reason]);
-	NS_ENDHANDLER
+		OOLog(kOOLogException, @"Ignoring exception %@:%@ during handling of mission screen completion callback.", [exception name], [exception reason]);
+	}
 	[OOJSScript popScript:cbScript];
 	
 	// Manage that memory.

@@ -445,14 +445,17 @@ static AIStackElement *sStack = NULL;
 	if ([actions count] > 0)
 	{
 		++recursionLimiter;
-		NS_DURING
+		@try
+		{
 			for (i = 0; i < [actions count]; i++)
 			{
 				[self takeAction:[actions objectAtIndex:i]];
 			}
-		NS_HANDLER
-			OOLog(kOOLogException, @"Squashing exception %@:%@ in AI handler %@:%@.%@", [localException name], [localException reason], stateMachineName, currentState, message);
-		NS_ENDHANDLER
+		}
+		@catch (NSException *exception)
+		{
+			OOLog(kOOLogException, @"Squashing exception %@:%@ in AI handler %@:%@.%@", [exception name], [exception reason], stateMachineName, currentState, message);
+		}
 		
 		--recursionLimiter;
 	}
@@ -747,7 +750,8 @@ static AIStackElement *sStack = NULL;
 		OOLogPushIndent();
 		OOLogIndentIf(@"ai.load");
 		
-		NS_DURING
+		@try
+		{
 			// Load state machine and validate against whitelist.
 			newSM = [ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" mergeMode:MERGE_NONE cache:NO];
 			if (newSM == nil)
@@ -759,7 +763,7 @@ static AIStackElement *sStack = NULL;
 					fromString = [NSString stringWithFormat:@" from %@:%@", [self name], [self state]];
 				}
 				OOLog(@"ai.load.failed.unknownAI", @"Can't switch AI for %@%@ to \"%@\" - could not load file.", [[self owner] shortDescription], fromString, smName);
-				NS_VALUERETURN(nil, NSDictionary *);
+				return nil;
 			}
 			
 			cleanSM = [NSMutableDictionary dictionaryWithCapacity:[newSM count]];
@@ -789,12 +793,12 @@ static AIStackElement *sStack = NULL;
 			
 			// Cache.
 			[cacheMgr setObject:newSM forKey:smName inCache:@"AIs"];
-		NS_HANDLER
+		}
+		@finally
+		{
 			OOLogPopIndent();
-			[localException raise];
-		NS_ENDHANDLER
+		}
 		
-		OOLogPopIndent();
 		[newSM retain];
 		[pool release];
 		[newSM autorelease];

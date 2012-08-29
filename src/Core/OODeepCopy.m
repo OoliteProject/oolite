@@ -119,7 +119,7 @@ id OODeepCopy(id object)
 	count = [self count];
 	if (count == 0)  return [[NSArray array] retain];
 	
-	members = malloc(sizeof *members * count);
+	members = calloc(sizeof *members, count);
 	if (members == NULL)
 	{
 		[NSException raise:NSMallocException format:@"Failed to allocate space for %lu objects in %s.", (unsigned long)count, __PRETTY_FUNCTION__];
@@ -133,30 +133,28 @@ id OODeepCopy(id object)
 	}
 	
 	[self getObjects:members];
-	NS_DURING
+	@try
+	{
 		// Deep copy members.
 		for (i = 0; i < count; i++)
 		{
 			members[i] = [members[i] ooDeepCopyWithSharedObjects:objects];
 		}
-	NS_HANDLER
-		// Clean up and rethrow.
+		
+		// Make NSArray of results.
+		result = [[NSArray alloc] initWithObjects:members count:count];
+	}
+	@finally
+	{
+		// Release objects.
+		for (i = 0; i < count; i++)
+		{
+			[members[i] release];
+		}
+		
 		free(members);
 		if (tempObjects)  [objects release];
-		[localException raise];
-	NS_ENDHANDLER
-	
-	// Make NSArray of results.
-	result = [[NSArray alloc] initWithObjects:members count:count];
-	
-	// Release objects.
-	for (i = 0; i < count; i++)
-	{
-		[members[i] release];
 	}
-	
-	free(members);
-	if (tempObjects)  [objects release];
 	
 	// Collections are not reused because comparing them is arbitrarily slow.
 	return result;
@@ -190,7 +188,8 @@ id OODeepCopy(id object)
 		tempObjects = YES;
 	}
 	
-	NS_DURING
+	@try
+	{
 		i = 0;
 		id member = nil;
 		// Deep copy members.
@@ -199,24 +198,21 @@ id OODeepCopy(id object)
 			members[i] = [member ooDeepCopyWithSharedObjects:objects];
 			i++;
 		}
-	NS_HANDLER
-		// Clean up and rethrow.
+		
+		// Make NSSet of results.
+		result = [[NSSet alloc] initWithObjects:members count:count];
+	}
+	@finally
+	{
+		// Release objects.
+		for (i = 0; i < count; i++)
+		{
+			[members[i] release];
+		}
+		
 		free(members);
 		if (tempObjects)  [objects release];
-		[localException raise];
-	NS_ENDHANDLER
-	
-	// Make NSArray of results.
-	result = [[NSSet alloc] initWithObjects:members count:count];
-	
-	// Release objects.
-	for (i = 0; i < count; i++)
-	{
-		[members[i] release];
 	}
-	
-	free(members);
-	if (tempObjects)  [objects release];
 	
 	// Collections are not reused because comparing them is arbitrarily slow.
 	return result;
@@ -254,7 +250,8 @@ id OODeepCopy(id object)
 		tempObjects = YES;
 	}
 	
-	NS_DURING
+	@try
+	{
 		i = 0;
 		id key = nil;
 		// Deep copy members.
@@ -264,27 +261,23 @@ id OODeepCopy(id object)
 			values[i] = [[self objectForKey:key] ooDeepCopyWithSharedObjects:objects];
 			i++;
 		}
-	NS_HANDLER
-		// Clean up and rethrow.
+		
+		// Make NSDictionary of results.
+		result = [[NSDictionary alloc] initWithObjects:values forKeys:keys count:count];
+	}
+	@finally
+	{
+		// Release objects.
+		for (i = 0; i < count; i++)
+		{
+			[keys[i] release];
+			[values[i] release];
+		}
+		
 		free(keys);
 		free(values);
 		if (tempObjects)  [objects release];
-		[localException raise];
-	NS_ENDHANDLER
-	
-	// Make NSArray of results.
-	result = [[NSDictionary alloc] initWithObjects:values forKeys:keys count:count];
-	
-	// Release objects.
-	for (i = 0; i < count; i++)
-	{
-		[keys[i] release];
-		[values[i] release];
 	}
-	
-	free(keys);
-	free(values);
-	if (tempObjects)  [objects release];
 	
 	// Collections are not reused because comparing them is arbitrarily slow.
 	return result;

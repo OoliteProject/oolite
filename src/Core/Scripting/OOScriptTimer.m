@@ -241,11 +241,14 @@ static NSMutableArray	*sDeferredTimers;
 {
 	OOTimeAbsolute		otherTime = -INFINITY;
 	
-	NS_DURING
+	@try
+	{
 		if (other != nil)  otherTime = [other nextTime];
-	NS_HANDLER
-		OOLog(kOOLogException, @"\n\n***** Ignoring Timer Exception: %@ : %@ *****\n\n",[localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(kOOLogException, @"\n\n***** Ignoring Timer Exception: %@ : %@ *****\n\n",[exception name], [exception reason]);
+	}
 	
 	if (_nextTime < otherTime) return NSOrderedAscending;
 	else if (_nextTime > otherTime) return NSOrderedDescending;

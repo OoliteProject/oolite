@@ -158,11 +158,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	[self setCommanderName:saveName];
 	
-	NS_DURING
+	@try
+	{
 		[self writePlayerToPath:savePath];
-	NS_HANDLER
+	}
+	@catch (id exception)
+	{
 		// Suppress exceptions silently. Warning the user about failed autosaves would be pretty unhelpful.
-	NS_ENDHANDLER
+	}
 	
 	if (tmp_path != nil)
 	{

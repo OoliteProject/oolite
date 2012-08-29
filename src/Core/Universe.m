@@ -2768,27 +2768,26 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 {
 	OOJS_PROFILE_ENTER
 	
-	NSDictionary	*effectDict = nil;
-	OOVisualEffectEntity		*effect = nil;
+	NSDictionary			*effectDict = nil;
+	OOVisualEffectEntity	*effect = nil;
 	
 	effectDict = [[OOShipRegistry sharedRegistry] effectInfoForKey:effectKey];
 	if (effectDict == nil)  return nil;
 	
-	NS_DURING
+	@try
+	{
 		effect = [[OOVisualEffectEntity alloc] initWithKey:effectKey definition:effectDict];
-	NS_HANDLER
-		[effect release];
-		effect = nil;
-		
-		if ([[localException name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
+	}
+	@catch (NSException *exception)
+	{
+		if ([[exception name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
 		{
-			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newVisualEffectWithName: %@ ] *****", [localException reason], effectKey);
+			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newVisualEffectWithName: %@ ] *****", [exception reason], effectKey);
 		}
-		else  [localException raise];
-	NS_ENDHANDLER
+		else  @throw exception;
+	}
 	
-	// MKW 20090327 - retain count is actually 2!
-	return effect;   // retain count = 1
+	return effect;
 	
 	OOJS_PROFILE_EXIT
 }
@@ -2810,61 +2809,57 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		shipClass = [ProxyPlayerEntity class];
 	}
 	
-	NS_DURING
+	@try
+	{
 		ship = [[shipClass alloc] initWithKey:shipKey definition:shipDict];
-	NS_HANDLER
-		[ship release];
-		ship = nil;
-		
-		if ([[localException name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
+	}
+	@catch (NSException *exception)
+	{
+		if ([[exception name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
 		{
-			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", [localException reason], shipKey);
+			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", [exception reason], shipKey);
 		}
-		else  [localException raise];
-	NS_ENDHANDLER
+		else  @throw exception;
+	}
 	
 	// Set primary role to same as ship name, if ship name is also a role.
 	// Otherwise, if caller doesn't set a role, one will be selected randomly.
 	if ([ship hasRole:shipKey])  [ship setPrimaryRole:shipKey];
 	
-	// MKW 20090327 - retain count is actually 2!
-	return ship;   // retain count = 1
+	return ship;
 	
 	OOJS_PROFILE_EXIT
 }
 
 
-- (DockEntity *) newDockWithName:(NSString *)shipKey
+- (DockEntity *) newDockWithName:(NSString *)shipDataKey
 {
 	OOJS_PROFILE_ENTER
 	
 	NSDictionary	*shipDict = nil;
-	DockEntity		*ship = nil;
+	DockEntity		*dock = nil;
 	
-	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDataKey];
 	if (shipDict == nil)  return nil;
 	
-	volatile Class shipClass = [DockEntity class];
-	
-	NS_DURING
-		ship = [[shipClass alloc] initWithKey:shipKey definition:shipDict];
-	NS_HANDLER
-		[ship release];
-		ship = nil;
-		
-		if ([[localException name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
+	@try
+	{
+		dock = [[DockEntity alloc] initWithKey:shipDataKey definition:shipDict];
+	}
+	@catch (NSException *exception)
+	{
+		if ([[exception name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
 		{
-			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newDockWithName: %@ ] *****", [localException reason], shipKey);
+			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newDockWithName: %@ ] *****", [exception reason], shipDataKey);
 		}
-		else  [localException raise];
-	NS_ENDHANDLER
+		else  @throw exception;
+	}
 	
-	// Set primary role to same as ship name, if ship name is also a role.
+	// Set primary role to same as name, if ship name is also a role.
 	// Otherwise, if caller doesn't set a role, one will be selected randomly.
-	if ([ship hasRole:shipKey])  [ship setPrimaryRole:shipKey];
+	if ([dock hasRole:shipDataKey])  [dock setPrimaryRole:shipDataKey];
 	
-	// MKW 20090327 - retain count is actually 2!
-	return ship;   // retain count = 1
+	return dock;
 	
 	OOJS_PROFILE_EXIT
 }
@@ -3573,8 +3568,8 @@ static const OOMatrix	starboard_matrix =
 {
 	if (!no_update)
 	{
-		NS_DURING
-			
+		@try
+		{
 			no_update = YES;	// block other attempts to draw
 			
 			int				i, v_status;
@@ -3874,22 +3869,21 @@ static const OOMatrix	starboard_matrix =
 			{
 				framesDoneThisUpdate++;
 			}
-			
-		NS_HANDLER
-			
+		}
+		@catch (NSException *exception)
+		{
 			no_update = NO;	// make sure we don't get stuck in all subsequent frames.
 			
-			if ([[localException name] hasPrefix:@"Oolite"])
+			if ([[exception name] hasPrefix:@"Oolite"])
 			{
-				[self handleOoliteException:localException];
+				[self handleOoliteException:exception];
 			}
 			else
 			{
-				OOLog(kOOLogException, @"***** Exception: %@ : %@ *****",[localException name], [localException reason]);
-				[localException raise];
+				OOLog(kOOLogException, @"***** Exception: %@ : %@ *****",[exception name], [exception reason]);
+				@throw exception;
 			}
-		
-		NS_ENDHANDLER
+		}
 	}
 }
 
@@ -5529,7 +5523,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		id volatile update_stage_param = nil;
 #endif
 		
-		NS_DURING
+		@try
+		{
 			PlayerEntity *player = PLAYER;
 			
 			skyClearColor[0] = 0.0;
@@ -5718,19 +5713,22 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				MaintainLinkedLists(self);
 				doLinkedListMaintenanceThisUpdate = NO;
 			}
-
-		NS_HANDLER
-			if ([[localException name] hasPrefix:@"Oolite"])
-				[self handleOoliteException:localException];
+		}
+		@catch (NSException *exception)
+		{
+			if ([[exception name] hasPrefix:@"Oolite"])
+			{
+				[self handleOoliteException:exception];
+			}
 			else
 			{
 #ifndef NDEBUG
 				if (update_stage_param != nil)  update_stage = [NSString stringWithFormat:update_stage, update_stage_param];
 #endif
-				OOLog(kOOLogException, @"***** Exception during [%@] in [Universe update:] : %@ : %@ *****", update_stage, [localException name], [localException reason]);
-				[localException raise];
+				OOLog(kOOLogException, @"***** Exception during [%@] in [Universe update:] : %@ : %@ *****", update_stage, [exception name], [exception reason]);
+				@throw exception;
 			}
-		NS_ENDHANDLER
+		}
 		
 		// dispose of the non-mutable copy and everything it references neatly
 		update_stage = @"clean up";
@@ -8805,15 +8803,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 }
 
 
-- (void) handleOoliteException:(NSException*) ooliteException
+- (void) handleOoliteException:(NSException *)exception
 {
-	if (ooliteException)
+	if (exception != nil)
 	{
-		if ([[ooliteException name] isEqual: OOLITE_EXCEPTION_FATAL])
+		if ([[exception name] isEqual:OOLITE_EXCEPTION_FATAL])
 		{
-			exception = [ooliteException retain];
-			
-			PlayerEntity* player = PLAYER;
+			PlayerEntity *player = PLAYER;
 			[player setStatus:STATUS_HANDLING_ERROR];
 			
 			OOLog(kOOLogException, @"***** Handling Fatal : %@ : %@ *****",[exception name], [exception reason]);
@@ -8823,7 +8819,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 		}
 		else
 		{
-			OOLog(kOOLogException, @"***** Handling Non-fatal : %@ : %@ *****",[ooliteException name], [ooliteException reason]);
+			OOLog(kOOLogException, @"***** Handling Non-fatal : %@ : %@ *****",[exception name], [exception reason]);
 		}
 	}
 }
@@ -9503,7 +9499,8 @@ static void PreloadOneSound(NSString *soundName)
 	while ([activeWormholes count])
 	{
 		pool = [[NSAutoreleasePool alloc] init];
-		NS_DURING
+		@try
+		{
 			WormholeEntity* whole = [activeWormholes objectAtIndex:0];		
 			// If the wormhole has been scanned by the player then the
 			// PlayerEntity will take care of it
@@ -9514,9 +9511,11 @@ static void PreloadOneSound(NSString *soundName)
 				[whole disgorgeShips];
 			}
 			[activeWormholes removeObjectAtIndex:0];	// empty it out
-		NS_HANDLER
-			OOLog(kOOLogException, @"Squashing exception during wormhole unpickling (%@: %@).", [localException name], [localException reason]);
-		NS_ENDHANDLER
+		}
+		@catch (NSException *exception)
+		{
+			OOLog(kOOLogException, @"Squashing exception during wormhole unpickling (%@: %@).", [exception name], [exception reason]);
+		}
 		[pool release];
 	}
 }

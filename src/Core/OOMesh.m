@@ -428,7 +428,8 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 #endif
 	
-	NS_DURING
+	@try
+	{
 		if (!listsReady)
 		{
 			OOGL(displayList0 = glGenLists(materialCount));
@@ -479,15 +480,17 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		
 		listsReady = YES;
 		brokenInRender = NO;
-	NS_HANDLER
+	}
+	@catch (NSException *exception)
+	{
 		if (!brokenInRender)
 		{
-			OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __PRETTY_FUNCTION__, self, [localException name], [localException reason]);
+			OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __PRETTY_FUNCTION__, self, [exception name], [exception reason]);
 			brokenInRender = YES;
 		}
-		if ([[localException name] hasPrefix:@"Oolite"])  [UNIVERSE handleOoliteException:localException];	// handle these ourself
-		else  [localException raise];	// pass these on
-	NS_ENDHANDLER
+		if ([[exception name] hasPrefix:@"Oolite"])  [UNIVERSE handleOoliteException:exception];	// handle these ourself
+		else  @throw exception;	// pass these on
+	}
 	
 	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 	OOGL(glDisableClientState(GL_NORMAL_ARRAY));

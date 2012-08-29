@@ -174,7 +174,8 @@ static OODebugMonitor *sSingleton = nil;
 		// If a new debugger was specified, try to connect it.
 		if (newDebugger != nil)
 		{
-			NS_DURING
+			@try
+			{
 				if ([newDebugger connectDebugMonitor:self errorMessage:&error])
 				{
 					[newDebugger debugMonitor:self
@@ -185,9 +186,11 @@ static OODebugMonitor *sSingleton = nil;
 				{
 					OOLog(@"debugMonitor.setDebugger.failed", @"Could not connect to debugger %@, because an error occurred: %@", newDebugger, error);
 				}
-			NS_HANDLER
-				OOLog(@"debugMonitor.setDebugger.failed", @"Could not connect to debugger %@, because an exception occurred: %@ -- %@", newDebugger, [localException name], [localException reason]);
-			NS_ENDHANDLER
+			}
+			@catch (NSException *exception)
+			{
+				OOLog(@"debugMonitor.setDebugger.failed", @"Could not connect to debugger %@, because an exception occurred: %@ -- %@", newDebugger, [exception name], [exception reason]);
+			}
 		}
 	}
 	
@@ -212,14 +215,17 @@ static OODebugMonitor *sSingleton = nil;
 {
 	if (string == nil)  return;
 	OOJSPauseTimeLimiter();
-	NS_DURING
+	@try
+	{
 		[_debugger debugMonitor:self
 				jsConsoleOutput:string
 					   colorKey:colorKey
 				  emphasisRange:emphasisRange];
-	NS_HANDLER
-		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to send JavaScript console text to debugger: %@ -- %@", [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to send JavaScript console text to debugger: %@ -- %@", [exception name], [exception reason]);
+	}
 	OOJSResumeTimeLimiter();
 }
 
@@ -236,11 +242,14 @@ static OODebugMonitor *sSingleton = nil;
 - (void)clearJSConsole
 {
 	OOJSPauseTimeLimiter();
-	NS_DURING
+	@try
+	{
 		[_debugger debugMonitorClearConsole:self];
-	NS_HANDLER
-		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to clear JavaScript console: %@ -- %@", [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to clear JavaScript console: %@ -- %@", [exception name], [exception reason]);
+	}
 	OOJSResumeTimeLimiter();
 }
 
@@ -248,11 +257,14 @@ static OODebugMonitor *sSingleton = nil;
 - (void)showJSConsole
 {
 	OOJSPauseTimeLimiter();
-	NS_DURING
+	@try
+	{
 		[_debugger debugMonitorShowConsole:self];
-	NS_HANDLER
-		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to show JavaScript console: %@ -- %@", [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to show JavaScript console: %@ -- %@", [exception name], [exception reason]);
+	}
 	OOJSResumeTimeLimiter();
 }
 
@@ -314,13 +326,16 @@ static OODebugMonitor *sSingleton = nil;
 		// Setting a nil value removes an override, and may reveal an underlying OXP-defined value
 		value = [self configurationValueForKey:key];
 	}
-	NS_DURING
+	@try
+	{
 		[_debugger debugMonitor:self
    noteChangedConfigrationValue:value
 						 forKey:key];
-	NS_HANDLER
-		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to send configuration update to debugger: %@ -- %@", [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to send configuration update to debugger: %@ -- %@", [exception name], [exception reason]);
+	}
 }
 
 
@@ -759,11 +774,14 @@ typedef struct
 
 - (void)disconnectDebuggerWithMessage:(NSString *)message
 {
-	NS_DURING
+	@try
+	{
 		[_debugger disconnectDebugMonitor:self message:message];
-	NS_HANDLER
-		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to disconnect debugger: %@ -- %@", [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(@"debugMonitor.debuggerConnection.exception", @"Exception while attempting to disconnect debugger: %@ -- %@", [exception name], [exception reason]);
+	}
 	
 	id debugger = _debugger;
 	_debugger = nil;

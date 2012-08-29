@@ -506,7 +506,8 @@ static void OpenLogFile(NSString *name);
 		
 		stageName = nil;
 		OOLogPushIndent();
-		NS_DURING
+		@try
+		{
 			stageName = [stageToRun name];
 			if ([stageToRun shouldRun])
 			{
@@ -520,10 +521,12 @@ static void OpenLogFile(NSString *name);
 				OOLog(@"verifyOXP.verbose.skipStage", @"- Skipping stage: %@ (nothing to do).", stageName);
 				[stageToRun noteSkipped];
 			}
-		NS_HANDLER
+		}
+		@catch (NSException *exception)
+		{
 			if (stageName == nil)  stageName = [[stageToRun class] description];
-			OOLog(@"verifyOXP.exception", @"***** Exception occurred when running OXP verifier stage \"%@\": %@: %@", stageName, [localException name], [localException reason]);
-		NS_ENDHANDLER
+			OOLog(@"verifyOXP.exception", @"***** Exception occurred when running OXP verifier stage \"%@\": %@: %@", stageName, [exception name], [exception reason]);
+		}
 		OOLogPopIndent();
 		
 		[_waitingStages removeObject:stageToRun];

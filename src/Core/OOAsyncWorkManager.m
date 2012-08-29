@@ -378,10 +378,11 @@ enum
 		pool = [[NSAutoreleasePool alloc] init];
 		
 		id<OOAsyncWorkTask> task = [_taskQueue dequeue];
-		NS_DURING
+		@try
+		{
 			[task performAsyncTask];
-		NS_HANDLER
-		NS_ENDHANDLER
+		}
+		@catch (id exception) {}
 		[self queueResult:task];
 		
 		[pool release];
@@ -453,10 +454,11 @@ enum
 
 - (void) dispatchTask:(id<OOAsyncWorkTask>)task
 {
-	NS_DURING
+	@try
+	{
 		[task performAsyncTask];
-	NS_HANDLER
-	NS_ENDHANDLER
+	}
+	@catch (id exception) {}
 	[self queueResult:task];
 }
 

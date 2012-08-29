@@ -166,11 +166,14 @@ SOFTWARE.
 	assert(_canRun && !_hasRun);
 	
 	OOLogPushIndent();
-	NS_DURING
+	@try
+	{
 		[self run];
-	NS_HANDLER
-		OOLog(@"verifyOXP.exception", @"***** Exception while running verification stage \"%@\": %@", [self name], localException);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(@"verifyOXP.exception", @"***** Exception while running verification stage \"%@\": %@", [self name], exception);
+	}
 	OOLogPopIndent();
 	
 	_hasRun = YES;

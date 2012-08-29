@@ -948,10 +948,11 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		OOLog(@"dumpState", @"State for %@:", self);
 		OOLogPushIndent();
 		OOLogIndent();
-		NS_DURING
+		@try
+		{
 			[self dumpSelfState];
-		NS_HANDLER
-		NS_ENDHANDLER
+		}
+		@catch (id exception) {}
 		OOLogPopIndent();
 	}
 }

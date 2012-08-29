@@ -723,7 +723,8 @@ void OOJSDumpStack(JSContext *context)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
-	NS_DURING
+	@try
+	{
 		JSStackFrame	*frame = NULL;
 		unsigned		idx = 0;
 		unsigned		skip = sErrorHandlerStackSkip;
@@ -837,9 +838,11 @@ void OOJSDumpStack(JSContext *context)
 				JS_PutPropertyDescArray(context, &properties);
 			}
 		}
-	NS_HANDLER
-		OOLog(kOOLogException, @"Exception during JavaScript stack trace: %@:%@", [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(kOOLogException, @"Exception during JavaScript stack trace: %@:%@", [exception name], [exception reason]);
+	}
 	
 	[pool release];
 }
@@ -994,15 +997,18 @@ void OOJSReportErrorForCaller(JSContext *context, NSString *scriptClass, NSStrin
 	va_list					args;
 	NSString				*msg = nil;
 	
-	NS_DURING
+	@try
+	{
 		va_start(args, format);
 		msg = [[NSString alloc] initWithFormat:format arguments:args];
 		va_end(args);
 		
 		OOJSReportError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
-	NS_HANDLER
+	}
+	@catch (id exception)
+	{
 		// Squash any secondary errors during error handling.
-	NS_ENDHANDLER
+	}
 	[msg release];
 }
 
@@ -1013,12 +1019,15 @@ void OOJSReportErrorWithArguments(JSContext *context, NSString *format, va_list 
 	
 	NSCParameterAssert(JS_IsInRequest(context));
 	
-	NS_DURING
+	@try
+	{
 		msg = [[NSString alloc] initWithFormat:format arguments:args];
 		JS_ReportError(context, "%s", [msg UTF8String]);
-	NS_HANDLER
+	}
+	@catch (id exception)
+	{
 		// Squash any secondary errors during error handling.
-	NS_ENDHANDLER
+	}
 	[msg release];
 }
 
@@ -1060,15 +1069,18 @@ void OOJSReportWarningForCaller(JSContext *context, NSString *scriptClass, NSStr
 	va_list					args;
 	NSString				*msg = nil;
 	
-	NS_DURING
+	@try
+	{
 		va_start(args, format);
 		msg = [[NSString alloc] initWithFormat:format arguments:args];
 		va_end(args);
 		
 		OOJSReportWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
-	NS_HANDLER
-	// Squash any secondary errors during error handling.
-	NS_ENDHANDLER
+	}
+	@catch (id exception)
+	{
+		// Squash any secondary errors during error handling.
+	}
 	[msg release];
 }
 
@@ -1077,12 +1089,15 @@ void OOJSReportWarningWithArguments(JSContext *context, NSString *format, va_lis
 {
 	NSString				*msg = nil;
 	
-	NS_DURING
+	@try
+	{
 		msg = [[NSString alloc] initWithFormat:format arguments:args];
 		JS_ReportWarning(context, "%s", [msg UTF8String]);
-	NS_HANDLER
-	// Squash any secondary errors during error handling.
-	NS_ENDHANDLER
+	}
+	@catch (id exception)
+	{
+		// Squash any secondary errors during error handling.
+	}
 	[msg release];
 }
 
@@ -1108,15 +1123,18 @@ void OOJSReportBadPropertyValue(JSContext *context, JSObject *thisObj, jsid prop
 
 void OOJSReportBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription)
 {
-	NS_DURING
+	@try
+	{
 		if (message == nil)  message = @"Invalid arguments";
 		message = [NSString stringWithFormat:@"%@ %@", message, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]];
 		if (expectedArgsDescription != nil)  message = [NSString stringWithFormat:@"%@ -- expected %@", message, expectedArgsDescription];
 		
 		OOJSReportErrorForCaller(context, scriptClass, function, @"%@.", message);
-	NS_HANDLER
-	// Squash any secondary errors during error handling.
-	NS_ENDHANDLER
+	}
+	@catch (id exception)
+	{
+		// Squash any secondary errors during error handling.
+	}
 }
 
 
@@ -1257,7 +1275,8 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 	
 	if (dictionary == nil)  return NULL;
 	
-	NS_DURING
+	@try
+	{
 		result = JS_NewObject(context, NULL, NULL, NULL);	// create object of class Object
 		if (result != NULL)
 		{
@@ -1289,9 +1308,11 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 				if (EXPECT_NOT(!OK))  break;
 			}
 		}
-	NS_HANDLER
+	}
+	@catch (id exception)
+	{
 		OK = NO;
-	NS_ENDHANDLER
+	}
 	
 	if (EXPECT_NOT(!OK))
 	{

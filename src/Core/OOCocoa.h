@@ -111,8 +111,6 @@ MA 02110-1301, USA.
 #endif
 
 
-#define Boolean unsigned char
-#define Byte unsigned char
 #define true 1
 #define false 0
 
@@ -124,10 +122,11 @@ MA 02110-1301, USA.
 	#define MIN(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __a : __b; })
 #endif
 
+
+// Pseudo-keywords used for AppKit UI bindings.
 #define IBOutlet /**/
 #define IBAction void
 
-typedef int32_t CGMouseDelta;
 
 #import "Comparison.h"
 
@@ -235,10 +234,9 @@ enum {
 #endif
 
 
-#define OOLITE_PROPERTY_SYNTAX	(OOLITE_MAC_OS_X || defined(__OBJC2__))
+#define OOLITE_PROPERTY_SYNTAX	(OOLITE_MAC_OS_X || defined(__clang__))
 
 
-// When Oolite-Linux used AppKit, the load/save dialogs didn't work well with the SDL window, so we use a separate macro for this.
 #define OOLITE_USE_APPKIT_LOAD_SAVE	OOLITE_MAC_OS_X
 
 
@@ -310,19 +308,6 @@ typedef NSUInteger				OOUInteger;
 #ifndef OOLITE_64_BIT
 	#define OOLITE_64_BIT				0
 #endif
-
-
-#undef NS_DURING
-#undef NS_HANDLER
-#undef NS_ENDHANDLER
-#undef NS_VALUERETURN
-#undef NS_VOIDRETURN
-
-#define NS_DURING					@try {
-#define NS_HANDLER					} @catch (NSException *localException) {
-#define NS_ENDHANDLER				}
-#define NS_VALUERETURN(v,t)			return (v)
-#define NS_VOIDRETURN				return
 
 
 /*	For some reason, return types for some comparison callbacks are typed

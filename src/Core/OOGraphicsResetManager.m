@@ -82,11 +82,14 @@ static OOGraphicsResetManager *sSingleton = nil;
 	
 	for (clientEnum = [clients objectEnumerator]; (client = [[clientEnum nextObject] pointerValue]); )
 	{
-		NS_DURING
+		@try
+		{
 			[client resetGraphicsState];
-		NS_HANDLER
-			OOLog(kOOLogException, @"***** EXCEPTION -- %@ : %@ -- ignored during graphics reset.", [localException name], [localException reason]);
-		NS_ENDHANDLER
+		}
+		@catch (NSException *exception)
+		{
+			OOLog(kOOLogException, @"***** EXCEPTION -- %@ : %@ -- ignored during graphics reset.", [exception name], [exception reason]);
+		}
 	}
 	
 	OOLogOutdentIf(@"rendering.reset.start");

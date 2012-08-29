@@ -1781,21 +1781,19 @@ static GLfloat		sBaseMass = 0.0;
 #ifndef NDEBUG
 #define STAGE_TRACKING_BEGIN	{ \
 									NSString * volatile updateStage = @"initialisation"; \
-									NS_DURING
-#define STAGE_TRACKING_END			NS_HANDLER \
-										OOLog(kOOLogException, @"***** Exception during [%@] in %s : %@ : %@ *****", updateStage, __PRETTY_FUNCTION__, [localException name], [localException reason]); \
-										[localException raise]; \
-									NS_ENDHANDLER \
+									@try {
+#define STAGE_TRACKING_END			} \
+									@catch (NSException *exception) \
+									{ \
+										OOLog(kOOLogException, @"***** Exception during [%@] in %s : %@ : %@ *****", updateStage, __PRETTY_FUNCTION__, [exception name], [exception reason]); \
+										@throw exception; \
+									} \
 								}
 #define UPDATE_STAGE(x) do { updateStage = (x); } while (0)
-#define ST_VALUERETURN			NS_VALUERETURN
-#define ST_VOIDRETURN			NS_VOIDRETURN
 #else
 #define STAGE_TRACKING_BEGIN	{
 #define STAGE_TRACKING_END		}
 #define UPDATE_STAGE(x) do { (void) (x); } while (0);
-#define ST_VALUERETURN(v,t)		return (v)
-#define ST_VOIDRETURN			return
 #endif
 
 

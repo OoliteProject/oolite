@@ -7498,7 +7498,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	ShipEntity *parent = [self parentEntity];
 	if (parent != nil)
 	{
-		ShipEntity* this_ship = [self retain];
+		ShipEntity *this_ship = [self retain];
 		Vector this_pos = [self absolutePositionForSubentity];
 		
 		// remove this ship from its parent's subentity list
@@ -7527,7 +7527,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 	[self setStatus:STATUS_DEAD];
 	
-	NS_DURING
+	@try
+	{
 		if ([self isThargoid] && [roleSet hasRole:@"thargoid-mothership"])  [self broadcastThargoidDestroyed];
 		
 		if (!suppressExplosion)
@@ -7689,8 +7690,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							}
 						}
 					}
-					[UNIVERSE removeEntity:self];
-					NS_VOIDRETURN; // don't do anything more
+					return;
 				}
 				else if ([self isBoulder])
 				{
@@ -7727,8 +7727,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							}
 						}
 					}
-					[UNIVERSE removeEntity:self];
-					NS_VOIDRETURN; // don't do anything more
+					return;
 				}
 
 				// throw out burning chunks of wreckage
@@ -7819,8 +7818,6 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 		{
 			[se setSuppressExplosion:suppressExplosion];
-			// [se setPosition:[se absolutePositionForSubentity]]; // happens already in becomeExplosion.
-			// [UNIVERSE addEntity:se];
 			[se becomeExplosion];
 		}
 		[self clearSubEntities];
@@ -7838,13 +7835,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	#endif
 				isPlayer = NO;
 			}
-			[UNIVERSE removeEntity:self];
 		}
-		
-	NS_HANDLER
+	}
+	@finally
+	{
 		if (self != PLAYER)  [UNIVERSE removeEntity:self];
-		[localException raise];
-	NS_ENDHANDLER
+	}
 }
 
 
@@ -8012,7 +8008,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([self status] == STATUS_DEAD)  return;
 	[self setStatus:STATUS_DEAD];
 	
-	NS_DURING
+	@try
+	{
 		// two parts to the explosion:
 		// 1. fast sparks
 		float how_many = factor;
@@ -8079,16 +8076,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 		{
 			[se setSuppressExplosion:suppressExplosion];
-			// [se setPosition:[se absolutePositionForSubentity]]; // is handled in becomeExplosion
-			// [UNIVERSE addEntity:se];
 			[se becomeExplosion];
 		}
 		[self clearSubEntities];
 		
+	}
+	@finally
+	{
 		if (!isPlayer)  [UNIVERSE removeEntity:self];
-	NS_HANDLER
-		if (!isPlayer)  [UNIVERSE removeEntity:self];
-	NS_ENDHANDLER
+	}
 }
 
 
@@ -12464,10 +12460,11 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		OOLog(@"dumpState.shipEntity.ai", @"AI:");
 		OOLogPushIndent();
 		OOLogIndent();
-		NS_DURING
+		@try
+		{
 			[shipAI dumpState];
-		NS_HANDLER
-		NS_ENDHANDLER
+		}
+		@catch (id exception) {}
 		OOLogPopIndent();
 	}
 	OOLog(@"dumpState.shipEntity", @"Jink position: %@", VectorDescription(jink));

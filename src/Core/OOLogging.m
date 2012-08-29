@@ -159,7 +159,8 @@ BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass)
 	value = [sDerivedSettingsCache objectForKey:inMessageClass];
 	if (EXPECT_NOT(value == nil))
 	{
-		NS_DURING
+		@try
+		{
 			// No cached value.
 			value = ResolveDisplaySetting(inMessageClass);
 			
@@ -168,10 +169,12 @@ BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass)
 				if (EXPECT_NOT(sDerivedSettingsCache == nil)) sDerivedSettingsCache = [[NSMutableDictionary alloc] init];
 				[sDerivedSettingsCache setObject:value forKey:inMessageClass];
 			}
-		NS_HANDLER
+		}
+		@catch (id exception)
+		{
 			[sLock unlock];
-			[localException raise];
-		NS_ENDHANDLER
+			@throw exception;
+		}
 	}
 	[sLock unlock];
 	
@@ -413,7 +416,8 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 #endif
 	
 	pool = [[NSAutoreleasePool alloc] init];
-	NS_DURING
+	@try
+	{
 		// Do argument substitution
 		formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:inArguments] autorelease];
 		
@@ -477,9 +481,11 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 		}
 		
 		OOLogOutputHandlerPrint(formattedMessage);
-	NS_HANDLER
-		OOLogInternal(OOLOG_EXCEPTION_IN_LOG, @"***** Exception thrown during logging: %@ : %@", [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLogInternal(OOLOG_EXCEPTION_IN_LOG, @"***** Exception thrown during logging: %@ : %@", [exception name], [exception reason]);
+	}
 	
 	[pool release];
 }
@@ -660,7 +666,8 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	NS_DURING
+	@try
+	{
 		va_start(args, inFormat);
 		formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:args] autorelease];
 		va_end(args);
@@ -668,9 +675,11 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 		formattedMessage = [NSString stringWithFormat:@"OOLogging internal - %s: %@", inFunction, formattedMessage];
 		
 		OOLogOutputHandlerPrint(formattedMessage);
-	NS_HANDLER
-		fprintf(stderr, "***** Exception in OOLogInternal_(): %s : %s", [[localException name] UTF8String], [[localException reason] UTF8String]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		fprintf(stderr, "***** Exception in OOLogInternal_(): %s : %s", [[exception name] UTF8String], [[exception reason] UTF8String]);
+	}
 	
 	[pool release];
 }

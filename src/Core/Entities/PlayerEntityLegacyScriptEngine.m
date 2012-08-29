@@ -355,7 +355,8 @@ static BOOL sRunningScript = NO;
 	*/
 	status = [self status];
 	restoreStatus = status;
-	NS_DURING
+	@try
+	{
 		if (sRunningScript)
 		{
 			status = RecursiveRemapStatus(status);
@@ -373,9 +374,11 @@ static BOOL sRunningScript = NO;
 		
 		// After all that, actually running the scripts is trivial.
 		[[worldScripts allValues] makeObjectsPerformSelector:@selector(runWithTarget:) withObject:self];
-	NS_HANDLER
-		OOLog(kOOLogException, @"***** Exception running world scripts: %@ : %@", [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(kOOLogException, @"***** Exception running world scripts: %@ : %@", [exception name], [exception reason]);
+	}
 	
 	// Restore anti-recursion measures.
 	sRunningScript = wasRunningScript;
@@ -397,16 +400,19 @@ static BOOL sRunningScript = NO;
 	oldMissionKey = sCurrentMissionKey;
 	sCurrentMissionKey = theMissionKey;
 	
-	NS_DURING
+	@try
+	{
 		PerformScriptActions(actions, target);
-	NS_HANDLER
+	}
+	@catch (NSException *exception)
+	{
 		OOLog(@"script.error.exception",
 			  @"***** EXCEPTION %@: %@ while handling legacy script actions for %@",
-			  [localException name],
-			  [localException reason],
+			  [exception name],
+			  [exception reason],
 			  [theMissionKey hasPrefix:kActionTempPrefix] ? [target shortDescription] : theMissionKey);
 		// Suppress exception
-	NS_ENDHANDLER
+	}
 	
 	sCurrentMissionKey = oldMissionKey;
 	[pool release];
@@ -425,15 +431,18 @@ static BOOL sRunningScript = NO;
 {
 	BOOL				result = NO;
 	
-	NS_DURING
+	@try
+	{
 		result = TestScriptConditions(array);
-	NS_HANDLER
+	}
+	@catch (NSException *exception)
+	{
 		OOLog(@"script.error.exception",
 			  @"***** EXCEPTION %@: %@ while testing legacy script conditions.",
-			  [localException name],
-			  [localException reason]);
+			  [exception name],
+			  [exception reason]);
 		// Suppress exception
-	NS_ENDHANDLER
+	}
 	
 	return result;
 }

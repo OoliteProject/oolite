@@ -291,9 +291,10 @@ static NSTimeInterval	time_last_frame;
 - (void) pollControls:(double)delta_t
 {
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
-	NSString * volatile	exceptionContext = @"setup";
+	NSString *exceptionContext = @"setup";
 	
-	NS_DURING
+	@try
+	{
 		if (gameView)
 		{
 			// poll the gameView keyboard things
@@ -332,10 +333,11 @@ static NSTimeInterval	time_last_frame;
 					break;
 			}
 		}
-	NS_HANDLER
-		// TEMP extra exception checking
-		OOLog(kOOLogException, @"***** Exception checking controls [%@]: %@ : %@", exceptionContext, [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(kOOLogException, @"***** Exception checking controls [%@]: %@ : %@", exceptionContext, [exception name], [exception reason]);
+	}
 }
 
 // DJS + aegidian: Moved from the big switch/case block in pollGuiArrowKeyControls
@@ -466,13 +468,14 @@ static NSTimeInterval	time_last_frame;
 {
 	if (!pollControls) return;
 	
-	NSString * volatile	exceptionContext = @"setup";
+	NSString *exceptionContext = @"setup";
 	
 	// does fullscreen / quit / snapshot
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	GameController *gameController = [UNIVERSE gameController];
 	
-	NS_DURING
+	@try
+	{
 	//  command-key controls
 	#if !OOLITE_MAC_OS_X || !OOLITE_64_BIT	// On 64-bit Macs, these are handled by normal menu shortcuts.
 		if ([gameController inFullScreenMode])
@@ -647,21 +650,22 @@ static NSTimeInterval	time_last_frame;
 		{
 			hide_hud_pressed = NO;
 		}
-	NS_HANDLER
-		// TEMP extra exception checking
-		OOLog(kOOLogException, @"***** Exception in pollApplicationControls [%@]: %@ : %@", exceptionContext, [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(kOOLogException, @"***** Exception in pollApplicationControls [%@]: %@ : %@", exceptionContext, [exception name], [exception reason]);
+	}
 }
 
 
 - (void) pollFlightControls:(double)delta_t
 {
-	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	MyOpenGLView		*gameView = [UNIVERSE gameView];
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
+	NSString			*exceptionContext = @"setup";
 	
-	NSString * volatile	exceptionContext = @"setup";
-	
-	NS_DURING
+	@try
+	{
 		exceptionContext = @"joystick handling";
 		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 		
@@ -1507,10 +1511,11 @@ static NSTimeInterval	time_last_frame;
 		{
 			pause_pressed = NO;
 		}
-	NS_HANDLER
-		// TEMP extra exception checking
-		OOLog(kOOLogException, @"***** Exception in pollFlightControls [%@]: %@ : %@", exceptionContext, [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(kOOLogException, @"***** Exception in pollFlightControls [%@]: %@ : %@", exceptionContext, [exception name], [exception reason]);
+	}
 }
 
 
@@ -1823,12 +1828,15 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ((guiSelectedRow == GUI_ROW(,QUICKSAVE))&&(!disc_operation_in_progress))
 				{
-					NS_DURING
+					@try
+					{
 						disc_operation_in_progress = YES;
 						[self quicksavePlayer];
-					NS_HANDLER
-						OOLog(kOOLogException, @"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
-						if ([[localException name] isEqual:@"GameNotSavedException"])	// try saving game instead
+					}
+					@catch (NSException *exception)
+					{
+						OOLog(kOOLogException, @"\n\n***** Handling exception: %@ : %@ *****\n\n",[exception name], [exception reason]);
+						if ([[exception name] isEqual:@"GameNotSavedException"])	// try saving game instead
 						{
 							OOLog(kOOLogException, @"\n\n***** Trying a normal save instead *****\n\n");
 							if ([controller inFullScreenMode])
@@ -1838,9 +1846,9 @@ static NSTimeInterval	time_last_frame;
 						}
 						else
 						{
-							[localException raise];
+							@throw exception;
 						}
-					NS_ENDHANDLER
+					}
 				}
 				if ((guiSelectedRow == GUI_ROW(,SAVE))&&(!disc_operation_in_progress))
 				{
@@ -3268,9 +3276,10 @@ static BOOL autopilot_pause;
 {
 	MyOpenGLView			*gameView = [UNIVERSE gameView];
 	GameController			*gameController = [UNIVERSE gameController];
-	NSString * volatile		exceptionContext = @"setup";
+	NSString				*exceptionContext = @"setup";
 	
-	NS_DURING
+	@try
+	{
 		// Pause game, 'p' key
 		exceptionContext = @"pause key";
 		if ([gameView isDown:key_pausebutton] && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
@@ -3305,7 +3314,7 @@ static BOOL autopilot_pause;
 			pause_pressed = NO;
 		}
 		
-		if ([gameController isGamePaused]) NS_VOIDRETURN; //return;	// TEMP
+		if ([gameController isGamePaused]) return;
 		
 		if(pollControls)
 		{
@@ -3329,11 +3338,13 @@ static BOOL autopilot_pause;
 		}
 		
 		[self pollGuiArrowKeyControls:delta_t];
-	NS_HANDLER
-		// TEMP extra exception checking
-		OOLog(kOOLogException, @"***** Exception in pollDockedControls [%@]: %@ : %@", exceptionContext, [localException name], [localException reason]);
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception)
+	{
+		OOLog(kOOLogException, @"***** Exception in pollDockedControls [%@]: %@ : %@", exceptionContext, [exception name], [exception reason]);
+	}
 }
+
 
 - (void) handleUndockControl
 {
@@ -3346,6 +3357,7 @@ static BOOL autopilot_pause;
 	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	[self leaveDock:dockedStation];
 }
+
 
 - (void) pollDemoControls:(double)delta_t
 {
@@ -3458,7 +3470,7 @@ static BOOL autopilot_pause;
 			}
 			break;
 			
-			default:
+		default:
 			break;
 	}
 }

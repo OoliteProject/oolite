@@ -671,17 +671,14 @@ static NSString *MacrosToString(NSDictionary *macros);
 	}
 	if (texCount > 1)  OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 	
-	NS_DURING
+	@try
+	{
 		for (uniformEnum = [uniforms objectEnumerator]; (uniform = [uniformEnum nextObject]); )
 		{
 			[uniform apply];
 		}
-	NS_HANDLER
-		/*	Supress exceptions during application of bound uniforms. We use a
-			single exception handler around all uniforms because ObjC
-			exceptions have some overhead.
-		*/
-	NS_ENDHANDLER
+	}
+	@catch (id exception) {}
 	
 	return YES;
 }

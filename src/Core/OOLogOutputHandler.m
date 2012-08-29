@@ -432,7 +432,8 @@ enum
 	[threadStateMonitor lock];
 	[threadStateMonitor unlockWithCondition:kConditionWorking];
 	
-	NS_DURING
+	@try
+	{
 		for (;;)
 		{
 			pool = [[NSAutoreleasePool alloc] init];
@@ -466,8 +467,8 @@ enum
 			
 			[pool release];
 		}
-	NS_HANDLER
-	NS_ENDHANDLER
+	}
+	@catch (NSException *exception) {}
 	[pool release];
 	
 	// Clean up; after this, ivars are out of bounds.
