@@ -1999,9 +1999,9 @@ keys[a] = NO; keys[b] = NO; \
 #ifndef NDEBUG
 - (void) dumpRGBAToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
-					   width:(OOUInteger)width
-					  height:(OOUInteger)height
-					rowBytes:(OOUInteger)rowBytes
+					   width:(NSUInteger)width
+					  height:(NSUInteger)height
+					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
 	
@@ -2018,9 +2018,9 @@ keys[a] = NO; keys[b] = NO; \
 
 - (void) dumpRGBToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
-					   width:(OOUInteger)width
-					  height:(OOUInteger)height
-					rowBytes:(OOUInteger)rowBytes
+					   width:(NSUInteger)width
+					  height:(NSUInteger)height
+					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 3)  return;
 	
@@ -2036,9 +2036,9 @@ keys[a] = NO; keys[b] = NO; \
 
 - (void) dumpGrayToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
-					   width:(OOUInteger)width
-					  height:(OOUInteger)height
-					rowBytes:(OOUInteger)rowBytes
+					   width:(NSUInteger)width
+					  height:(NSUInteger)height
+					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width)  return;
 	
@@ -2054,9 +2054,9 @@ keys[a] = NO; keys[b] = NO; \
 
 - (void) dumpGrayAlphaToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
-					   width:(OOUInteger)width
-					  height:(OOUInteger)height
-					rowBytes:(OOUInteger)rowBytes
+					   width:(NSUInteger)width
+					  height:(NSUInteger)height
+					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 2)  return;
 	
@@ -2073,14 +2073,14 @@ keys[a] = NO; keys[b] = NO; \
 - (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
 			   andGrayFileNamed:(NSString *)grayName
 						  bytes:(uint8_t *)bytes
-						  width:(OOUInteger)width
-						 height:(OOUInteger)height
-					   rowBytes:(OOUInteger)rowBytes
+						  width:(NSUInteger)width
+						 height:(NSUInteger)height
+					   rowBytes:(NSUInteger)rowBytes
 {
 	if ((rgbName == nil && grayName == nil) || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
 	
 	uint8_t				*rgbBytes, *rgbPx, *grayBytes, *grayPx, *srcPx;
-	OOUInteger			x, y;
+	NSUInteger			x, y;
 	BOOL				trivalAlpha = YES;
 	
 	rgbPx = rgbBytes = malloc(width * height * 3);

@@ -91,19 +91,19 @@ MA 02110-1301, USA.
 
 // Overrides
 
-- (OOUInteger) joystickCount
+- (NSUInteger) joystickCount
 {
 	return stickCount;
 }
 
 
-- (NSString *) nameOfJoystick:(OOUInteger)stickNumber
+- (NSString *) nameOfJoystick:(NSUInteger)stickNumber
 {
 	return [NSString stringWithUTF8String:SDL_JoystickName((int)stickNumber)];
 }
 
 
-- (int16_t) getAxisWithStick:(OOUInteger) stickNum axis:(OOUInteger) axisNum 
+- (int16_t) getAxisWithStick:(NSUInteger) stickNum axis:(NSUInteger) axisNum 
 {
 	return SDL_JoystickGetAxis(stick[stickNum], axisNum);
 }

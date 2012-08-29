@@ -139,7 +139,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOUInteger) indexOfCurrentDisplayMode
+- (NSUInteger) indexOfCurrentDisplayMode
 {
 	NSDictionary	*mode;
 	
