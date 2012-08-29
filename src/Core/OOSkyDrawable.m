@@ -688,7 +688,7 @@ static OOColor *DebugColor(Vector orientation)
 static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2)
 {
 	OOColor				*color = nil;
-	OOCGFloat			hue, saturation, brightness, alpha;
+	float				hue, saturation, brightness, alpha;
 	
 	color = [color1 blendedColorWithFraction:randf() ofColor:color2];
 	[color getHue:&hue saturation:&saturation brightness:&brightness alpha:&alpha];
@@ -699,5 +699,5 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2)
 		in [0, 360], but colorWithCalibratedHue:... takes hue values in
 		[0, 1].
 	*/
-	return [OOColor colorWithCalibratedHue:hue saturation:saturation brightness:brightness alpha:alpha];
+	return [OOColor colorWithHue:hue saturation:saturation brightness:brightness alpha:alpha];
 }

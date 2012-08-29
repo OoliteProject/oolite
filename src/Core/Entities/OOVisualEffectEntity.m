@@ -408,20 +408,20 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 	{
 		if (scannerDisplayColor1 && !scannerDisplayColor2)
 		{
-			[scannerDisplayColor1 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+			[scannerDisplayColor1 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
 		}
 		
 		if (!scannerDisplayColor1 && scannerDisplayColor2)
 		{
-			[scannerDisplayColor2 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+			[scannerDisplayColor2 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
 		}
 		
 		if (scannerDisplayColor1 && scannerDisplayColor2)
 		{
 			if (flash)
-				[scannerDisplayColor1 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+				[scannerDisplayColor1 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
 			else
-				[scannerDisplayColor2 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+				[scannerDisplayColor2 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
 		}
 		
 		return scripted_color;

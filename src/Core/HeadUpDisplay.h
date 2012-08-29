@@ -314,4 +314,4 @@ void OODrawHilightedString(NSString *text, double x, double y, double z, NSSize 
 void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
 NSRect OORectFromString(NSString *text, double x, double y, NSSize siz);
-OOCGFloat OOStringWidthInEm(NSString *text);
+CGFloat OOStringWidthInEm(NSString *text);

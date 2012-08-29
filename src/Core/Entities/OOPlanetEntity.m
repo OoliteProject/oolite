@@ -143,7 +143,7 @@ const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts 
 	if (atmosphere)
 	{
 		_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
-		_airColor = [[OOColor colorWithCalibratedRed:0.8 green:0.8 blue:0.9 alpha:1.0] retain];
+		_airColor = [[OOColor colorWithRed:0.8f green:0.8f blue:0.9f alpha:1.0f] retain];
 	}
 	if (YES) // create _materialParameters when NEW_ATMOSPHERE is set to 0
 #endif
@@ -220,7 +220,7 @@ static Vector HSBColorWithColor(OOColor *color)
 
 static OOColor *ColorWithHSBColor(Vector c)
 {
-	return [OOColor colorWithCalibratedHue:c.x saturation:c.y brightness:c.z alpha:1.0];
+	return [OOColor colorWithHue:c.x saturation:c.y brightness:c.z alpha:1.0];
 }
 
 
@@ -408,10 +408,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 				double	aleph2 = aleph * aleph;
 				
 				// night sky, reddish flash on entering the atmosphere, low light pollution otherwhise
-				OOColor	*mixColor = [OOColor colorWithCalibratedRed:(EXPECT_NOT(alt > 0.98) ? 30 : 0.1)
-															  green:0.1
-															   blue:0.1
-															  alpha:aleph];
+				OOColor	*mixColor = [OOColor colorWithRed:(EXPECT_NOT(alt > 0.98) ? 30.0f : 0.1f)
+													green:0.1f
+													 blue:0.1f
+													alpha:aleph];
 															  
 				// occlusion rate: .9 is 18 degrees after the terminus, where twilight ends.
 				// 1 is the terminus, 1.033 is 6 degrees before the terminus, where the sky begins to redden
@@ -427,10 +427,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 					if (rate >= 0.0) // pink sky!
 					{
 						rate = 0.5 - (fabs(rate - 0.15) / 0.3);	// at most a 50% blend!
-						mixColor = [mixColor blendedColorWithFraction:rate ofColor:[OOColor colorWithCalibratedRed:0.6
-																											 green:0.1
-																											  blue:0.0
-																											 alpha:aleph]];
+						mixColor = [mixColor blendedColorWithFraction:rate ofColor:[OOColor colorWithRed:0.6
+																								   green:0.1
+																									blue:0.0
+																								   alpha:aleph]];
 					}
 					*/
 				}

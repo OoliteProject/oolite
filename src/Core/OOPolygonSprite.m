@@ -456,15 +456,15 @@ static NSArray *DataArrayToPoints(TessPolygonData *data, NSArray *dataArray)
 		NSArray *polyDef = [dataArray objectAtIndex:polyIter];
 		OOUInteger vertIter, vertCount = [polyDef count] / 2;
 		NSMutableArray *newPolyDef = [NSMutableArray arrayWithCapacity:vertCount];
-		OOCGFloat area = 0;
+		CGFloat area = 0;
 		
-		OOCGFloat oldX = [polyDef oo_doubleAtIndex:(vertCount -1) * 2];
-		OOCGFloat oldY = [polyDef oo_doubleAtIndex:(vertCount -1) * 2 + 1];
+		CGFloat oldX = [polyDef oo_doubleAtIndex:(vertCount -1) * 2];
+		CGFloat oldY = [polyDef oo_doubleAtIndex:(vertCount -1) * 2 + 1];
 		
 		for (vertIter = 0; vertIter < vertCount; vertIter++)
 		{
-			OOCGFloat x = [polyDef oo_doubleAtIndex:vertIter * 2];
-			OOCGFloat y = [polyDef oo_doubleAtIndex:vertIter * 2 + 1];
+			CGFloat x = [polyDef oo_doubleAtIndex:vertIter * 2];
+			CGFloat y = [polyDef oo_doubleAtIndex:vertIter * 2 + 1];
 			
 			// Skip bad or duplicate vertices.
 			if (x == oldX && y == oldY)  continue;
@@ -562,7 +562,7 @@ static NSArray *BuildOutlineContour(NSArray *dataArray, GLfloat width, BOOL inne
 		NSPoint a = PtNormal(PtSub(current, prev));
 		NSPoint b = PtNormal(PtSub(next, current));
 		
-		OOCGFloat dot = PtDot(a, b);
+		CGFloat dot = PtDot(a, b);
 		BOOL clockwise = PtCross(a, b) < 0.0f;
 		
 		if (-dot < kCosMitreLimit || !clockwise)

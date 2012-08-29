@@ -263,9 +263,9 @@ do { \
 	
 	// Select base colour
 	// yellow/orange (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
-	OOColor *hsvColor = [OOColor colorWithCalibratedHue:0.12 + 0.08 * randf() saturation:1.0 brightness:1.0 alpha:1.0];
+	OOColor *hsvColor = [OOColor colorWithHue:0.12f + 0.08f * randf() saturation:1.0f brightness:1.0f alpha:1.0f];
 	GLfloat baseColor[4];
-	[hsvColor getGLRed:&baseColor[0] green:&baseColor[1] blue:&baseColor[2] alpha:&baseColor[3]];
+	[hsvColor getRed:&baseColor[0] green:&baseColor[1] blue:&baseColor[2] alpha:&baseColor[3]];
 	
 	if ((self = [super initWithPosition:fragPosition velocity:fragVelocity count:count minSpeed:kMinSpeed maxSpeed:kMaxSpeed duration:1.5 baseColor:baseColor]))
 	{

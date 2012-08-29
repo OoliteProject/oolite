@@ -100,7 +100,7 @@ NSString * const kOOMaterialLightMapsName					= @"light_map";
 	if (result == nil)  result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularColorLegacyName]];
 	if (result == nil)
 	{
-		result = [OOColor colorWithCalibratedWhite:0.2 alpha:1.0];
+		result = [OOColor colorWithWhite:0.2f alpha:1.0f];
 	}
 	return result;
 }

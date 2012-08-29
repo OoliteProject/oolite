@@ -402,7 +402,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[gui setCurrentRow:9];
 		[gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
 		[gui resizeTo:NSMakeSize(360, 120) characterHeight:12 title:nil];
-		[gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
+		[gui setBackgroundColor:[OOColor colorWithRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
 		[gui setTextColor:[OOColor whiteColor]];
 		[gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
 	}
@@ -2941,7 +2941,7 @@ NSRect OORectFromString(NSString *text, double x, double y, NSSize siz)
 }
 
 
-OOCGFloat OOStringWidthInEm(NSString *text)
+CGFloat OOStringWidthInEm(NSString *text)
 {
 	return OORectFromString(text, 0, 0, NSMakeSize(1.0 / (GLYPH_SCALE_FACTOR * 8.0), 1.0)).size.width;
 }
@@ -3270,7 +3270,7 @@ static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4])
 		color = [OOColor colorWithDescription:colorDesc];
 		if (color != nil)
 		{
-			[color getGLRed:&ioColor[0] green:&ioColor[1] blue:&ioColor[2] alpha:&ioColor[3]];
+			[color getRed:&ioColor[0] green:&ioColor[1] blue:&ioColor[2] alpha:&ioColor[3]];
 			return;
 		}
 	}

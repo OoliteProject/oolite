@@ -13,17 +13,17 @@ OOINLINE NSPoint PtSub(NSPoint a, NSPoint b)
 	return NSMakePoint(a.x - b.x, a.y - b.y);
 }
 
-OOINLINE NSPoint PtScale(NSPoint p, OOCGFloat scale)
+OOINLINE NSPoint PtScale(NSPoint p, CGFloat scale)
 {
 	return NSMakePoint(p.x * scale, p.y * scale);
 }
 
-OOINLINE OOCGFloat PtDot(NSPoint a, NSPoint b)
+OOINLINE CGFloat PtDot(NSPoint a, NSPoint b)
 {
 	return a.x * b.x + a.y * b.y;
 }
 
-OOINLINE OOCGFloat PtCross(NSPoint a, NSPoint b)
+OOINLINE CGFloat PtCross(NSPoint a, NSPoint b)
 {
 	return a.x * b.y - b.x * a.y;
 }

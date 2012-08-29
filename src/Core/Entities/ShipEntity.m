@@ -5399,13 +5399,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (0 && reportAIMessages)
 	{
 		OODebugDrawPoint(destination, [OOColor blueColor]);
-		OODebugDrawColoredLine([self position], destination, [OOColor colorWithCalibratedWhite:0.15 alpha:1.0]);
+		OODebugDrawColoredLine([self position], destination, [OOColor colorWithWhite:0.15 alpha:1.0]);
 		
 		Entity *pTarget = [self primaryTarget];
 		if (pTarget != nil)
 		{
 			OODebugDrawPoint([pTarget position], [OOColor redColor]);
-			OODebugDrawColoredLine([self position], [pTarget position], [OOColor colorWithCalibratedRed:0.2 green:0.0 blue:0.0 alpha:1.0]);
+			OODebugDrawColoredLine([self position], [pTarget position], [OOColor colorWithRed:0.2 green:0.0 blue:0.0 alpha:1.0]);
 		}
 		
 		Entity *sTarget = [self targetStation];
@@ -5496,20 +5496,20 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	{
 		if (scannerDisplayColor1 && !scannerDisplayColor2)
 		{
-			[scannerDisplayColor1 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+			[scannerDisplayColor1 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
 		}
 		
 		if (!scannerDisplayColor1 && scannerDisplayColor2)
 		{
-			[scannerDisplayColor2 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+			[scannerDisplayColor2 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
 		}
 		
 		if (scannerDisplayColor1 && scannerDisplayColor2)
 		{
 			if (flash)
-				[scannerDisplayColor1 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+				[scannerDisplayColor1 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
 			else
-				[scannerDisplayColor2 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+				[scannerDisplayColor2 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
 		}
 		
 		return scripted_color;
@@ -10146,7 +10146,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	Vector vel = vector_multiply_scalar(vector_subtract(origin, position), 2.0);
 	
-	OOColor *color = [OOColor colorWithCalibratedHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0];
+	OOColor *color = [OOColor colorWithHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0];
 	
 	OOSparkEntity *spark = [[OOSparkEntity alloc] initWithPosition:origin
 														  velocity:vel
@@ -12159,8 +12159,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (void) setCommsMessageColor
 {
-	float hue = 0.0625 * (universalID & 15);
-	[[UNIVERSE commLogGUI] setTextColor:[OOColor colorWithCalibratedHue:hue saturation:0.375 brightness:1.0 alpha:1.0]];
+	float hue = 0.0625f * (universalID & 15);
+	[[UNIVERSE commLogGUI] setTextColor:[OOColor colorWithHue:hue saturation:0.375f brightness:1.0f alpha:1.0f]];
 	if (scanClass == CLASS_THARGOID)
 		[[UNIVERSE commLogGUI] setTextColor:[OOColor greenColor]];
 	if (scanClass == CLASS_POLICE)

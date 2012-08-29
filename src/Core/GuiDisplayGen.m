@@ -894,14 +894,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		if (haveWidth)
 		{
 			// Width specified, but not height; preserve aspect ratio.
-			OOCGFloat ratio = originalDimensions.height / originalDimensions.width;
+			CGFloat ratio = originalDimensions.height / originalDimensions.width;
 			size.width = specifiedWidth;
 			size.height = ratio * size.width;
 		}
 		else if (haveHeight)
 		{
 			// Height specified, but not width; preserve aspect ratio.
-			OOCGFloat ratio = originalDimensions.width / originalDimensions.height;
+			CGFloat ratio = originalDimensions.width / originalDimensions.height;
 			size.height = specifiedHeight;
 			size.width = ratio * size.height;
 		}

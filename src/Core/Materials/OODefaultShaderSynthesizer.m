@@ -894,7 +894,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	
 	if (!haveDiffuseColor || ![diffuseColor isWhite])
 	{
-		OOCGFloat rgba[4];
+		float rgba[4];
 		[diffuseColor getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
 		NSString *format = nil;
 		if (haveDiffuseColor)
@@ -1083,7 +1083,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	
 	if (!haveSpecularColor || ![specularColor isWhite])
 	{
-		OOCGFloat rgba[4];
+		float rgba[4];
 		[specularColor getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
 		
 		NSString *comment = (scaleFactor == 1.0f) ? @"Constant colour" : @"Constant colour and scale factor";
@@ -1187,7 +1187,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		NSDictionary	*lightMapSpec = [lightMaps oo_dictionaryAtIndex:idx];
 		NSDictionary	*textureSpec = OOTextureSpecFromObject(lightMapSpec, nil);
 		NSArray			*color = [lightMapSpec oo_arrayForKey:kOOTextureSpecifierModulateColorKey];
-		OOCGFloat		rgba[4] = { 1, 1, 1, 1 };
+		float			rgba[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		BOOL			isIllumination = [lightMapSpec oo_boolForKey:kOOTextureSpecifierIlluminationModeKey];
 		
 		if (EXPECT_NOT(color == nil && textureSpec == nil))

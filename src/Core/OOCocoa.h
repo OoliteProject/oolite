@@ -291,13 +291,10 @@ typedef NSInteger				OOInteger;
 typedef NSUInteger				OOUInteger;
 
 #if OOLITE_MAC_OS_X
-	typedef CGFloat				OOCGFloat;
 	#if __LP64__
 		#define OOLITE_64_BIT	1
 	#endif
 #elif OOLITE_GNUSTEP
-	typedef float				OOCGFloat;
-
 	#ifndef NSIntegerMax
 		#define NSIntegerMax	INTPTR_MAX
 		#define NSIntegerMin	INTPTR_MIN

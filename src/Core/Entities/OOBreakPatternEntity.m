@@ -93,8 +93,8 @@ MA 02110-1301, USA.
 - (void) setInnerColor:(OOColor *)color1 outerColor:(OOColor *)color2
 {
 	GLfloat inner[4], outer[4];
-	[color1 getGLRed:&inner[0] green:&inner[1] blue:&inner[2] alpha:&inner[3]];
-	[color2 getGLRed:&outer[0] green:&outer[1] blue:&outer[2] alpha:&outer[3]];
+	[color1 getRed:&inner[0] green:&inner[1] blue:&inner[2] alpha:&inner[3]];
+	[color2 getRed:&outer[0] green:&outer[1] blue:&outer[2] alpha:&outer[3]];
 	[self setInnerColorComponents:inner outerColorComponents:outer];
 }
 

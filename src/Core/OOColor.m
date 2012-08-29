@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 @implementation OOColor
 
 // Set methods are internal, because OOColor is immutable (as seen from outside).
-- (void) setRGBA:(OOCGFloat)r:(OOCGFloat)g:(OOCGFloat)b:(OOCGFloat)a
+- (void) setRed:(float)r green:(float)g blue:(float)b alpha:(float)a
 {
 	rgba[0] = r;
 	rgba[1] = g;
@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setHSBA:(OOCGFloat)h:(OOCGFloat)s:(OOCGFloat)b:(OOCGFloat)a
+- (void) setHue:(float)h saturation:(float)s brightness:(float)b alpha:(float)a
 {
 	rgba[3] = a;
 	if (s == 0.0f)
@@ -47,7 +47,7 @@ MA 02110-1301, USA.
 		rgba[0] = rgba[1] = rgba[2] = b;
 		return;
 	}
-	OOCGFloat f, p, q, t;
+	float f, p, q, t;
 	int i;
 	h = fmod(h, 360.0f);
 	if (h < 0.0) h += 360.0f;
@@ -77,62 +77,60 @@ MA 02110-1301, USA.
 }
 
 
-- (id)copyWithZone:(NSZone *)zone
+- (id) copyWithZone:(NSZone *)zone
 {
 	// Copy is implemented as retain since OOColor is immutable.
 	return [self retain];
 }
 
 
-/* Create NSCalibratedRGBColorSpace colors.
-*/
-+ (OOColor *)colorWithCalibratedHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha
++ (OOColor *) colorWithHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha
 {
 	OOColor* result = [[OOColor alloc] init];
-	[result setHSBA: 360.0 * hue : saturation : brightness : alpha];
+	[result setHue:360.0f * hue saturation:saturation brightness:brightness alpha:alpha];
 	return [result autorelease];
 }
 
 
-+ (OOColor *)colorWithCalibratedRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha
++ (OOColor *) colorWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha
 {
 	OOColor* result = [[OOColor alloc] init];
-	[result setRGBA:red:green:blue:alpha];
+	[result setRed:red green:green blue:blue alpha:alpha];
 	return [result autorelease];
 }
 
 
-+ (OOColor *)colorWithCalibratedWhite:(float)white alpha:(float)alpha
++ (OOColor *) colorWithWhite:(float)white alpha:(float)alpha
 {
-	return [OOColor colorWithCalibratedRed:white green:white blue:white alpha:alpha];
+	return [OOColor colorWithRed:white green:white blue:white alpha:alpha];
 }
 
 
-+ (OOColor *)colorWithRGBAComponents:(OORGBAComponents)components
++ (OOColor *) colorWithRGBAComponents:(OORGBAComponents)components
 {
-	return [self colorWithCalibratedRed:components.r
-								  green:components.g
-								   blue:components.b
-								  alpha:components.a];
+	return [self colorWithRed:components.r
+						green:components.g
+						 blue:components.b
+						alpha:components.a];
 }
 
 
-+ (OOColor *)colorWithHSBAComponents:(OOHSBAComponents)components
++ (OOColor *) colorWithHSBAComponents:(OOHSBAComponents)components
 {
-	return [self colorWithCalibratedHue:components.h / 360.0f
-							 saturation:components.s
-							 brightness:components.b
-								  alpha:components.a];
+	return [self colorWithHue:components.h / 360.0f
+				   saturation:components.s
+				   brightness:components.b
+						alpha:components.a];
 }
 
 
-+ (OOColor *)colorWithDescription:(id)description
++ (OOColor *) colorWithDescription:(id)description
 {
 	return [self colorWithDescription:description saturationFactor:1.0f];
 }
 
 
-+ (OOColor *)colorWithDescription:(id)description saturationFactor:(float)factor
++ (OOColor *) colorWithDescription:(id)description saturationFactor:(float)factor
 {
 	NSDictionary			*dict = nil;
 	OOColor					*result = nil;
@@ -176,7 +174,7 @@ MA 02110-1301, USA.
 			if (a < 0.0f)  a = [dict oo_floatForKey:@"opacity" defaultValue:1.0f];
 			
 			// Not "result =", because we handle the saturation scaling here to allow oversaturation.
-			return [OOColor colorWithCalibratedHue:h / 360.0f saturation:s * factor brightness:b alpha:a];
+			return [OOColor colorWithHue:h / 360.0f saturation:s * factor brightness:b alpha:a];
 		}
 		else
 		{
@@ -187,33 +185,33 @@ MA 02110-1301, USA.
 			float a = [dict oo_floatForKey:@"alpha" defaultValue:-1.0f];
 			if (a < 0.0f)  a = [dict oo_floatForKey:@"opacity" defaultValue:1.0f];
 			
-			result = [OOColor colorWithCalibratedRed:r green:g blue:b alpha:a];
+			result = [OOColor colorWithRed:r green:g blue:b alpha:a];
 		}
 	}
 	
 	if (factor != 1.0f && result != nil)
 	{
-		OOCGFloat h, s, b, a;
+		float h, s, b, a;
 		[result getHue:&h saturation:&s brightness:&b alpha:&a];
 		h *= 1.0 / 360.0f;	// See note in header.
 		s *= factor;
-		result = [self colorWithCalibratedHue:h saturation:s brightness:b alpha:a];
+		result = [self colorWithHue:h saturation:s brightness:b alpha:a];
 	}
 	
 	return result;
 }
 
 
-+ (OOColor *)brightColorWithDescription:(id)description
++ (OOColor *) brightColorWithDescription:(id)description
 {
 	OOColor *color = [OOColor colorWithDescription:description];
 	if (color == nil || 0.5f <= [color brightnessComponent])  return color;
 	
-	return [OOColor colorWithCalibratedHue:[color hueComponent] / 360.0f saturation:[color saturationComponent] brightness:0.5f alpha:1.0f];
+	return [OOColor colorWithHue:[color hueComponent] / 360.0f saturation:[color saturationComponent] brightness:0.5f alpha:1.0f];
 }
 
 
-+ (OOColor *)colorFromString:(NSString*) colorFloatString
++ (OOColor *) colorFromString:(NSString*) colorFloatString
 {
 	float			rgbaValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	NSScanner		*scanner = [NSScanner scannerWithString:colorFloatString];
@@ -233,107 +231,111 @@ MA 02110-1301, USA.
 		if (1.0f < rgbaValue[i]) factor = 1.0f / 255.0f;
 	}
 	
-	return [OOColor colorWithCalibratedRed:rgbaValue[0] * factor green:rgbaValue[1] * factor blue:rgbaValue[2] * factor alpha:rgbaValue[3] * factor];
+	return [OOColor colorWithRed:rgbaValue[0] * factor green:rgbaValue[1] * factor blue:rgbaValue[2] * factor alpha:rgbaValue[3] * factor];
 }
 
 
-+ (OOColor *)blackColor			// 0.0 white
++ (OOColor *) blackColor		// 0.0 white
 {
-	return [OOColor colorWithCalibratedWhite:0.0f alpha:1.0f];
+	return [OOColor colorWithWhite:0.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)darkGrayColor		// 0.333 white
++ (OOColor *) darkGrayColor		// 0.333 white
 {
-	return [OOColor colorWithCalibratedWhite:1.0f/3.0f alpha:1.0f];
+	return [OOColor colorWithWhite:1.0f/3.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)lightGrayColor		// 0.667 white
++ (OOColor *) lightGrayColor	// 0.667 white
 {
-	return [OOColor colorWithCalibratedWhite:2.0f/3.0f alpha:1.0f];
+	return [OOColor colorWithWhite:2.0f/3.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)whiteColor			// 1.0 white
++ (OOColor *) whiteColor		// 1.0 white
 {
-	return [OOColor colorWithCalibratedWhite:1.0f alpha:1.0f];
+	return [OOColor colorWithWhite:1.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)grayColor			// 0.5 white
++ (OOColor *) grayColor			// 0.5 white
 {
-	return [OOColor colorWithCalibratedWhite:0.5f alpha:1.0f];
+	return [OOColor colorWithWhite:0.5f alpha:1.0f];
 }
 
 
-+ (OOColor *)redColor			// 1.0, 0.0, 0.0 RGB
++ (OOColor *) redColor			// 1.0, 0.0, 0.0 RGB
 {
-	return [OOColor colorWithCalibratedRed:1.0f green:0.0f blue:0.0f alpha:1.0f];
+	return [OOColor colorWithRed:1.0f green:0.0f blue:0.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)greenColor			// 0.0, 1.0, 0.0 RGB
++ (OOColor *) greenColor		// 0.0, 1.0, 0.0 RGB
 {
-	return [OOColor colorWithCalibratedRed:0.0f green:1.0f blue:0.0f alpha:1.0f];
+	return [OOColor colorWithRed:0.0f green:1.0f blue:0.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)blueColor			// 0.0, 0.0, 1.0 RGB
++ (OOColor *) blueColor			// 0.0, 0.0, 1.0 RGB
 {
-	return [OOColor colorWithCalibratedRed:0.0f green:0.0f blue:1.0f alpha:1.0f];
+	return [OOColor colorWithRed:0.0f green:0.0f blue:1.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)cyanColor			// 0.0, 1.0, 1.0 RGB
++ (OOColor *) cyanColor			// 0.0, 1.0, 1.0 RGB
 {
-	return [OOColor colorWithCalibratedRed:0.0f green:1.0f blue:1.0f alpha:1.0f];
+	return [OOColor colorWithRed:0.0f green:1.0f blue:1.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)yellowColor		// 1.0, 1.0, 0.0 RGB
++ (OOColor *) yellowColor		// 1.0, 1.0, 0.0 RGB
 {
-	return [OOColor colorWithCalibratedRed:1.0f green:1.0f blue:0.0f alpha:1.0f];
+	return [OOColor colorWithRed:1.0f green:1.0f blue:0.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)magentaColor		// 1.0, 0.0, 1.0 RGB
++ (OOColor *) magentaColor		// 1.0, 0.0, 1.0 RGB
 {
-	return [OOColor colorWithCalibratedRed:1.0f green:0.0f blue:1.0f alpha:1.0f];
+	return [OOColor colorWithRed:1.0f green:0.0f blue:1.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)orangeColor		// 1.0, 0.5, 0.0 RGB
++ (OOColor *) orangeColor		// 1.0, 0.5, 0.0 RGB
 {
-	return [OOColor colorWithCalibratedRed:1.0f green:0.5f blue:0.0f alpha:1.0f];
+	return [OOColor colorWithRed:1.0f green:0.5f blue:0.0f alpha:1.0f];
 }
 
 
-+ (OOColor *)purpleColor		// 0.5, 0.0, 0.5 RGB
++ (OOColor *) purpleColor		// 0.5, 0.0, 0.5 RGB
 {
-	return [OOColor colorWithCalibratedRed:0.5f green:0.0f blue:0.5f alpha:1.0f];
+	return [OOColor colorWithRed:0.5f green:0.0f blue:0.5f alpha:1.0f];
 }
 
 
 + (OOColor *)brownColor			// 0.6, 0.4, 0.2 RGB
 {
-	return [OOColor colorWithCalibratedRed:0.6f green:0.4f blue:0.2f alpha:1.0f];
+	return [OOColor colorWithRed:0.6f green:0.4f blue:0.2f alpha:1.0f];
 }
 
 
-+ (OOColor *)clearColor		// 0.0 white, 0.0 alpha
++ (OOColor *) clearColor		// 0.0 white, 0.0 alpha
 {
-	return [OOColor colorWithCalibratedWhite:0.0f alpha:0.0f];
+	return [OOColor colorWithWhite:0.0f alpha:0.0f];
 }
 
 
-- (OOColor *)blendedColorWithFraction:(float)fraction ofColor:(OOColor *)color
+- (OOColor *) blendedColorWithFraction:(float)fraction ofColor:(OOColor *)color
 {
-	GLfloat	rgba1[4];
-	[color getGLRed:&rgba1[0] green:&rgba1[1] blue:&rgba1[2] alpha:&rgba1[3]];
-	OOColor* result = [[OOColor alloc] init];
-	float prime = 1.0f - fraction;
-	[result setRGBA: prime * rgba[0] + fraction * rgba1[0] : prime * rgba[1] + fraction * rgba1[1] : prime * rgba[2] + fraction * rgba1[2] : prime * rgba[3] + fraction * rgba1[3]];
+	float	rgba1[4];
+	[color getRed:&rgba1[0] green:&rgba1[1] blue:&rgba1[2] alpha:&rgba1[3]];
+	
+	OOColor *result = [[OOColor alloc] init];
+	[result setRed:OOLerp(rgba[0], rgba1[0], fraction)
+			 green:OOLerp(rgba[1], rgba1[1], fraction)
+			  blue:OOLerp(rgba[2], rgba1[2], fraction)
+			 alpha:OOLerp(rgba[3], rgba1[3], fraction)];
+	
 	return [result autorelease];
 }
 
@@ -345,25 +347,25 @@ MA 02110-1301, USA.
 
 
 // Get the red, green, or blue components.
-- (OOCGFloat)redComponent
+- (float) redComponent
 {
 	return rgba[0];
 }
 
 
-- (OOCGFloat)greenComponent
+- (float) greenComponent
 {
 	return rgba[1];
 }
 
 
-- (OOCGFloat)blueComponent
+- (float) blueComponent
 {
 	return rgba[2];
 }
 
 
-- (void)getRed:(OOCGFloat *)red green:(OOCGFloat *)green blue:(OOCGFloat *)blue alpha:(OOCGFloat *)alpha
+- (void) getRed:(float *)red green:(float *)green blue:(float *)blue alpha:(float *)alpha
 {
 	NSParameterAssert(red != NULL && green != NULL && blue != NULL && alpha != NULL);
 	
@@ -374,75 +376,71 @@ MA 02110-1301, USA.
 }
 
 
-- (void)getGLRed:(GLfloat *)red green:(GLfloat *)green blue:(GLfloat *)blue alpha:(GLfloat *)alpha
-{
-	NSParameterAssert(red != NULL && green != NULL && blue != NULL && alpha != NULL);
-	
-	*red = rgba[0];
-	*green = rgba[1];
-	*blue = rgba[2];
-	*alpha = rgba[3];
-}
-
-
-- (OORGBAComponents)rgbaComponents
+- (OORGBAComponents) rgbaComponents
 {
 	OORGBAComponents c = { rgba[0], rgba[1], rgba[2], rgba[3] };
 	return c;
 }
 
 
-- (BOOL)isBlack
+- (BOOL) isBlack
 {
 	return rgba[0] == 0.0f && rgba[1] == 0.0f && rgba[2] == 0.0f;
 }
 
 
-- (BOOL)isWhite
+- (BOOL) isWhite
 {
 	return rgba[0] == 1.0f && rgba[1] == 1.0f && rgba[2] == 1.0f && rgba[3] == 1.0f;
 }
 
 
 // Get the components as hue, saturation, or brightness.
-- (OOCGFloat)hueComponent
+- (float) hueComponent
 {
-	OOCGFloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
-	OOCGFloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
+	float maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
+	float minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
 	if (maxrgb == minrgb)
-		return 0.0;
-	OOCGFloat delta = maxrgb - minrgb;
-	OOCGFloat hue = 0.0;
+	{
+		return 0.0f;
+	}
+	float delta = maxrgb - minrgb;
+	float hue = 0.0f;
 	if (rgba[0] == maxrgb)
+	{
 		hue = (rgba[1] - rgba[2]) / delta;
+	}
 	else if (rgba[1] == maxrgb)
-		hue = 2.0 + (rgba[2] - rgba[0]) / delta;
+	{
+		hue = 2.0f + (rgba[2] - rgba[0]) / delta;
+	}
 	else if (rgba[2] == maxrgb)
-		hue = 4.0 + (rgba[0] - rgba[1]) / delta;
-	hue *= 60.0;
-	while (hue < 0.0) hue += 360.0;
+	{
+		hue = 4.0f + (rgba[0] - rgba[1]) / delta;
+	}
+	hue *= 60.0f;
+	while (hue < 0.0f) hue += 360.0f;
 	return hue;
 }
 
-- (OOCGFloat)saturationComponent
+- (float) saturationComponent
 {
-	OOCGFloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
-	OOCGFloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
-	OOCGFloat brightness = 0.5 * (maxrgb + minrgb);
-	if (maxrgb == minrgb)
-		return 0.0;
-	OOCGFloat delta = maxrgb - minrgb;
-	return (brightness <= 0.5)? (delta / (maxrgb + minrgb)) : (delta / (2.0 - (maxrgb + minrgb)));
+	float maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
+	float minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
+	float brightness = 0.5f * (maxrgb + minrgb);
+	if (maxrgb == minrgb)  return 0.0f;
+	float delta = maxrgb - minrgb;
+	return (brightness <= 0.5f) ? (delta / (maxrgb + minrgb)) : (delta / (2.0f - (maxrgb + minrgb)));
 }
 
-- (OOCGFloat)brightnessComponent
+- (float) brightnessComponent
 {
-	OOCGFloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
-	OOCGFloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
-	return 0.5 * (maxrgb + minrgb);
+	float maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
+	float minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
+	return 0.5f * (maxrgb + minrgb);
 }
 
-- (void)getHue:(OOCGFloat *)hue saturation:(OOCGFloat *)saturation brightness:(OOCGFloat *)brightness alpha:(OOCGFloat *)alpha
+- (void) getHue:(float *)hue saturation:(float *)saturation brightness:(float *)brightness alpha:(float *)alpha
 {
 	NSParameterAssert(hue != NULL && saturation != NULL && brightness != NULL && alpha != NULL);
 	
@@ -450,28 +448,34 @@ MA 02110-1301, USA.
 	
 	int maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? 0:2):((rgba[1] > rgba[2])? 1:2);
 	int minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? 0:2):((rgba[1] < rgba[2])? 1:2);
-	*brightness = 0.5 * (rgba[maxrgb] + rgba[minrgb]);
+	*brightness = 0.5f * (rgba[maxrgb] + rgba[minrgb]);
 	if (rgba[maxrgb] == rgba[minrgb])
 	{
-		*saturation = 0.0;
-		*hue = 0.0;
+		*saturation = 0.0f;
+		*hue = 0.0f;
 		return;
 	}
-	OOCGFloat delta = rgba[maxrgb] - rgba[minrgb];
-	*saturation = (*brightness <= 0.5)? (delta / (rgba[maxrgb] + rgba[minrgb])) : (delta / (2.0 - (rgba[maxrgb] + rgba[minrgb])));
+	float delta = rgba[maxrgb] - rgba[minrgb];
+	*saturation = (*brightness <= 0.5f) ? (delta / (rgba[maxrgb] + rgba[minrgb])) : (delta / (2.0f - (rgba[maxrgb] + rgba[minrgb])));
 
-	if (maxrgb==0)
+	if (maxrgb == 0)
+	{
 		*hue = (rgba[1] - rgba[2]) / delta;
-	else if (maxrgb==1)
-		*hue = 2.0 + (rgba[2] - rgba[0]) / delta;
-	else if (maxrgb==2)
-		*hue = 4.0 + (rgba[0] - rgba[1]) / delta;
-	*hue *= 60.0;
-	while (*hue < 0.0) *hue += 360.0;
+	}
+	else if (maxrgb == 1)
+	{
+		*hue = 2.0f + (rgba[2] - rgba[0]) / delta;
+	}
+	else if (maxrgb == 2)
+	{
+		*hue = 4.0f + (rgba[0] - rgba[1]) / delta;
+	}
+	*hue *= 60.0f;
+	while (*hue < 0.0f)  *hue += 360.0f;
 }
 
 
-- (OOHSBAComponents)hsbaComponents
+- (OOHSBAComponents) hsbaComponents
 {
 	OOHSBAComponents c;
 	[self getHue:&c.h
@@ -483,51 +487,51 @@ MA 02110-1301, USA.
 
 
 // Get the alpha component.
-- (OOCGFloat)alphaComponent
+- (float) alphaComponent
 {
 	return rgba[3];
 }
 
 
-- (OOColor *)premultipliedColor
+- (OOColor *) premultipliedColor
 {
 	if (rgba[3] == 1.0f)  return [[self retain] autorelease];
-	return [OOColor colorWithCalibratedRed:rgba[0] * rgba[3]
-									 green:rgba[1] * rgba[3]
-									  blue:rgba[2] * rgba[3]
-									 alpha:1.0f];
+	return [OOColor colorWithRed:rgba[0] * rgba[3]
+						   green:rgba[1] * rgba[3]
+							blue:rgba[2] * rgba[3]
+						   alpha:1.0f];
 }
 
 
-- (OOColor *)colorWithBrightnessFactor:(float)factor
+- (OOColor *) colorWithBrightnessFactor:(float)factor
 {
-	return [OOColor colorWithCalibratedRed:OOClamp_0_1_f(rgba[0] * factor)
-									 green:OOClamp_0_1_f(rgba[1] * factor)
-									  blue:OOClamp_0_1_f(rgba[2] * factor)
-									 alpha:rgba[3]];
+	return [OOColor colorWithRed:OOClamp_0_1_f(rgba[0] * factor)
+						   green:OOClamp_0_1_f(rgba[1] * factor)
+							blue:OOClamp_0_1_f(rgba[2] * factor)
+						   alpha:rgba[3]];
 }
 
 
-- (NSArray *)normalizedArray
+- (NSArray *) normalizedArray
 {
-	OOCGFloat r, g, b, a;
+	float r, g, b, a;
 	[self getRed:&r green:&g blue:&b alpha:&a];
 	return [NSArray arrayWithObjects:
-		[NSNumber numberWithDouble:r],
-		[NSNumber numberWithDouble:g],
-		[NSNumber numberWithDouble:b],
-		[NSNumber numberWithDouble:a],
+		[NSNumber numberWithFloat:r],
+		[NSNumber numberWithFloat:g],
+		[NSNumber numberWithFloat:b],
+		[NSNumber numberWithFloat:a],
 		nil];
 }
 
 
-- (NSString *)rgbaDescription
+- (NSString *) rgbaDescription
 {
 	return OORGBAComponentsDescription([self rgbaComponents]);
 }
 
 
-- (NSString *)hsbaDescription
+- (NSString *) hsbaDescription
 {
 	return OOHSBAComponentsDescription([self hsbaComponents]);
 }

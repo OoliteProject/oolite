@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 		_duration = _timeRemaining = duration;
 		[self setCollisionRadius:2.0];
 		
-		[color getGLRed:&_baseRGBA[0] green:&_baseRGBA[1] blue:&_baseRGBA[2] alpha:&_baseRGBA[3]];
+		[color getRed:&_baseRGBA[0] green:&_baseRGBA[1] blue:&_baseRGBA[2] alpha:&_baseRGBA[3]];
 		[self performUpdate:0];	// Handle colour mixing and such.
 	}
 	

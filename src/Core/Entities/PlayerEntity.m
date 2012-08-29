@@ -6735,7 +6735,7 @@ static NSString *last_outfitting_key=nil;
 						
 						if(weaponMounted)
 						{
-							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+							[gui setColor:[OOColor colorWithRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
 						}
 						else
 						{

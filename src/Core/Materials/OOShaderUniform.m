@@ -552,10 +552,11 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 			}
 			else if ([objVal isKindOfClass:[OOColor class]])
 			{
-				expVVal[0] = [objVal redComponent];
-				expVVal[1] = [objVal greenComponent];
-				expVVal[2] = [objVal blueComponent];
-				expVVal[3] = [objVal alphaComponent];
+				OOColor *color = objVal;
+				expVVal[0] = [color redComponent];
+				expVVal[1] = [color greenComponent];
+				expVVal[2] = [color blueComponent];
+				expVVal[3] = [color alphaComponent];
 				isVector = YES;
 			}
 			break;

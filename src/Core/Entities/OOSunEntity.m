@@ -69,8 +69,8 @@ MA 02110-1301, USA.
 	
 	OO_ENTER_OPENGL();
 	
-	OOCGFloat	hue, sat, bri, alf;
-	OOColor		*color;
+	float		hue, sat, bri, alf;
+	OOColor		*color = nil;
 	
 	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
 	hue /= 360;
@@ -87,7 +87,7 @@ MA 02110-1301, USA.
 	
 	// set the lighting color for the sun
 	GLfloat		r,g,b,a;
-	[sun_color getGLRed:&r green:&g blue:&b alpha:&a];
+	[sun_color getRed:&r green:&g blue:&b alpha:&a];
 
 	GLfloat		sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// real ambient light inside gl_LightModel.ambient
 	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
@@ -104,7 +104,7 @@ MA 02110-1301, USA.
 	OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
 
 	// main disc less saturation more brightness
-	color = [OOColor colorWithCalibratedHue: hue saturation: sat * 0.333 brightness: 1.0 alpha: alf];
+	color = [OOColor colorWithHue:hue saturation:sat * 0.333f brightness:1.0f alpha:alf];
 	discColor[0] = [color redComponent];
 	discColor[1] = [color greenComponent];
 	discColor[2] = [color blueComponent];
@@ -113,7 +113,7 @@ MA 02110-1301, USA.
 	// nearest corona much more saturation
 	hue += hue_drift;
 	if (hue > 1.0)	hue -= 1.0;
-	color = [OOColor colorWithCalibratedHue:hue saturation: sat * 0.625 brightness:(bri + 2.0)/3.0 alpha:alf];
+	color = [OOColor colorWithHue:hue saturation:sat * 0.625f brightness:(bri + 2.0)/3.0 alpha:alf];
 	innerCoronaColor[0] = [color redComponent];
 	innerCoronaColor[1] = [color greenComponent];
 	innerCoronaColor[2] = [color blueComponent];
@@ -122,7 +122,7 @@ MA 02110-1301, USA.
 	// next corona slightly more saturation
 	hue += hue_drift;
 	if (hue > 1.0)	hue -= 1.0;
-	color = [OOColor colorWithCalibratedHue:hue saturation:sat brightness:bri alpha:alf];
+	color = [OOColor colorWithHue:hue saturation:sat brightness:bri alpha:alf];
 	middleCoronaColor[0] = [color redComponent];
 	middleCoronaColor[1] = [color greenComponent];
 	middleCoronaColor[2] = [color blueComponent];
@@ -132,7 +132,7 @@ MA 02110-1301, USA.
 	hue += hue_drift;
 	if (hue > 1.0)	hue -= 1.0;
 	// saturation = 1 would shift white to red
-	color = [OOColor colorWithCalibratedHue:hue saturation:OOClamp_0_1_f(sat*1.3f) brightness:bri * 0.75 alpha:alf*0.6];
+	color = [OOColor colorWithHue:hue saturation:OOClamp_0_1_f(sat*1.3f) brightness:bri * 0.75f alpha:alf * 0.6f];
 	outerCoronaColor[0] = [color redComponent];
 	outerCoronaColor[1] = [color greenComponent];
 	outerCoronaColor[2] = [color blueComponent];

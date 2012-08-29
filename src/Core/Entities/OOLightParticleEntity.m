@@ -85,7 +85,7 @@ static OOTexture *sBlobTexture = nil;
 
 - (void) setColor:(OOColor *)color
 {
-	[color getGLRed:&_colorComponents[0] green:&_colorComponents[1] blue:&_colorComponents[2] alpha:&_colorComponents[3]];
+	[color getRed:&_colorComponents[0] green:&_colorComponents[1] blue:&_colorComponents[2] alpha:&_colorComponents[3]];
 }
 
 

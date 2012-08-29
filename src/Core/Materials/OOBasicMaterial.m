@@ -132,10 +132,10 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 
 - (OOColor *)diffuseColor
 {
-	return [OOColor colorWithCalibratedRed:diffuse[0]
-									 green:diffuse[1]
-									  blue:diffuse[2]
-									 alpha:diffuse[3]];
+	return [OOColor colorWithRed:diffuse[0]
+						   green:diffuse[1]
+							blue:diffuse[2]
+						   alpha:diffuse[3]];
 }
 
 
@@ -160,10 +160,10 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 
 - (OOColor *)specularColor
 {
-	return [OOColor colorWithCalibratedRed:specular[0]
-									 green:specular[1]
-									  blue:specular[2]
-									 alpha:specular[3]];
+	return [OOColor colorWithRed:specular[0]
+						   green:specular[1]
+							blue:specular[2]
+						   alpha:specular[3]];
 }
 
 
@@ -181,10 +181,10 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 
 - (OOColor *)ambientColor
 {
-	return [OOColor colorWithCalibratedRed:ambient[0]
-									 green:ambient[1]
-									  blue:ambient[2]
-									 alpha:ambient[3]];
+	return [OOColor colorWithRed:ambient[0]
+						   green:ambient[1]
+							blue:ambient[2]
+						   alpha:ambient[3]];
 }
 
 
@@ -202,10 +202,10 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 
 - (OOColor *)emmisionColor
 {
-	return [OOColor colorWithCalibratedRed:emission[0]
-									 green:emission[1]
-									  blue:emission[2]
-									 alpha:emission[3]];
+	return [OOColor colorWithRed:emission[0]
+						   green:emission[1]
+							blue:emission[2]
+						   alpha:emission[3]];
 }
 
 

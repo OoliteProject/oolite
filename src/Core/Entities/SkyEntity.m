@@ -241,8 +241,8 @@ MA 02110-1301, USA.
 			float r2 = OOClamp_0_1_f([tokens oo_floatAtIndex:3]);
 			float g2 = OOClamp_0_1_f([tokens oo_floatAtIndex:4]);
 			float b2 = OOClamp_0_1_f([tokens oo_floatAtIndex:5]);
-			*ioColor1 = [OOColor colorWithCalibratedRed:r1 green:g1 blue:b1 alpha:1.0];
-			*ioColor2 = [OOColor colorWithCalibratedRed:r2 green:g2 blue:b2 alpha:1.0];
+			*ioColor1 = [OOColor colorWithRed:r1 green:g1 blue:b1 alpha:1.0];
+			*ioColor2 = [OOColor colorWithRed:r2 green:g2 blue:b2 alpha:1.0];
 		}
 		else
 		{
