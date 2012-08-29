@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOMouseInteractionMode.h"
 
 
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 #import <Quartz/Quartz.h>	// For PDFKit.
 #endif
 
@@ -53,7 +53,7 @@ MA 02110-1301, USA.
 @interface GameController: NSObject
 {
 @private
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 	IBOutlet NSTextField	*splashProgressTextField;
 	IBOutlet NSView			*splashView;
 	IBOutlet NSWindow		*gameWindow;
@@ -117,7 +117,7 @@ MA 02110-1301, USA.
 
 - (void) performGameTick:(id)sender;
 
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 - (IBAction) showLogAction:(id)sender;
 - (IBAction) showLogFolderAction:(id)sender;
 - (IBAction) showSnapshotsAction:(id)sender;

@@ -41,11 +41,23 @@ MA 02110-1301, USA.
 	#else
 		#error Oolite for non-Mac targets requires GNUstep 1.20.
 	#endif
+	
+	#ifndef NSIntegerMax
+		// Missing in GNUstep-base prior to 1.23.
+		#define NSIntegerMax	INTPTR_MAX
+		#define NSIntegerMin	INTPTR_MIN
+		#define NSUIntegerMax	UINTPTR_MAX
+	#endif
+	
 #else
 	#import <AppKit/AppKit.h>
 	
 	#define OOLITE_MAC_OS_X			1
-	#define OOLITE_HAVE_APPKIT		1
+	#define OOLITE_SPEECH_SYNTH		1
+	
+	#if __LP64__
+		#define OOLITE_64_BIT		1
+	#endif
 	
 	/*	Enforce type-clean use of nil and Nil under OS X. (They are untyped in
 		Cocoa, apparently for compatibility with legacy Mac OS code, but typed in
@@ -100,19 +112,19 @@ MA 02110-1301, USA.
 #include <limits.h> // to get UINT_MAX
 
 
-#define OOLITE_SDL				1
+#define OOLITE_SDL					1
 
 #ifdef WIN32
-#define OOLITE_WINDOWS			1
+#define OOLITE_WINDOWS				1
 #endif
 
 #ifdef LINUX
-#define OOLITE_LINUX			1
+#define OOLITE_LINUX				1
 #endif
 
 
-#define true 1
-#define false 0
+#define true						1
+#define false						0
 
 #if !defined(MAX)
 	#define MAX(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a > __b ? __a : __b; })
@@ -120,6 +132,11 @@ MA 02110-1301, USA.
 
 #if !defined(MIN)
 	#define MIN(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __a : __b; })
+#endif
+
+#ifdef HAVE_LIBESPEAK
+	#define OOLITE_SPEECH_SYNTH		1
+	#define OOLITE_ESPEAK			1
 #endif
 
 
@@ -210,34 +227,39 @@ enum {
 
 
 #ifndef OOLITE_GNUSTEP
-#define OOLITE_GNUSTEP			0
+#define OOLITE_GNUSTEP				0
 #endif
 
 #ifndef OOLITE_MAC_OS_X
-#define OOLITE_MAC_OS_X			0
+#define OOLITE_MAC_OS_X				0
 #endif
 
 #ifndef OOLITE_WINDOWS
-#define OOLITE_WINDOWS			0
+#define OOLITE_WINDOWS				0
 #endif
 
 #ifndef OOLITE_LINUX
-#define OOLITE_LINUX			0
+#define OOLITE_LINUX				0
 #endif
 
 #ifndef OOLITE_SDL
-#define OOLITE_SDL				0
+#define OOLITE_SDL					0
 #endif
 
-#ifndef OOLITE_HAVE_APPKIT
-#define OOLITE_HAVE_APPKIT		0
+#ifndef OOLITE_SPEECH_SYNTH
+#define OOLITE_SPEECH_SYNTH			0
+#endif
+
+#ifndef OOLITE_ESPEAK
+#define OOLITE_ESPEAK				0
+#endif
+
+#ifndef OOLITE_64_BIT
+	#define OOLITE_64_BIT			0
 #endif
 
 
 #define OOLITE_PROPERTY_SYNTAX	(OOLITE_MAC_OS_X || defined(__clang__))
-
-
-#define OOLITE_USE_APPKIT_LOAD_SAVE	OOLITE_MAC_OS_X
 
 
 #import "OOLogging.h"
@@ -273,34 +295,6 @@ enum {
 	#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
 #else
 	#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 0
-#endif
-
-
-
-/*	OOInteger and OOUInteger: int (32-bit) on 32-bit platforms, long (64-bit)
-	on 64-bit platforms.
-	
-	Why not long in 32-bit? Because we want to avoid "multiple methods"
-	warnings when using SDKs using int.
-	
-	Similarly, CGFloat is 64-bit in 64-bit and 32-bit in 32-bit under OS X.
-	There is no need to make this distinction in GNUStep.
-*/
-
-#if OOLITE_MAC_OS_X
-	#if __LP64__
-		#define OOLITE_64_BIT	1
-	#endif
-#elif OOLITE_GNUSTEP
-	#ifndef NSIntegerMax
-		#define NSIntegerMax	INTPTR_MAX
-		#define NSIntegerMin	INTPTR_MIN
-		#define NSUIntegerMax	UINTPTR_MAX
-	#endif
-#endif
-
-#ifndef OOLITE_64_BIT
-	#define OOLITE_64_BIT				0
 #endif
 
 
@@ -376,20 +370,6 @@ enum {
 @end
 
 
-/*	Speech synthesis
-*/
-#if OOLITE_MAC_OS_X || defined(HAVE_LIBESPEAK)
-	#define OOLITE_SPEECH_SYNTH			1
-	#if defined(HAVE_LIBESPEAK)
-		#define OOLITE_ESPEAK			1
-	#else
-		#define OOLITE_ESPEAK			0
-	#endif
-#else
-	#define OOLITE_SPEECH_SYNTH			0
-#endif
-
-
 /*	@optional directive for protocols: added in Objective-C 2.0.
 	
 	As a nasty, nasty hack, the OOLITE_OPTIONAL(foo) macro allows an optional
@@ -447,5 +427,6 @@ typedef id instancetype;
 
 
 #ifndef OO_DEBUG
-#define OO_DEBUG						0
+// Defined by makefile/Xcode in debug builds.
+#define OO_DEBUG					0
 #endif

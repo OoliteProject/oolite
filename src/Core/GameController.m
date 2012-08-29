@@ -97,7 +97,7 @@ static GameController *sSharedController = nil;
 
 - (void) dealloc
 {
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 	[[[NSWorkspace sharedWorkspace] notificationCenter]	removeObserver:UNIVERSE];
 #endif
 	
@@ -260,7 +260,7 @@ static GameController *sSharedController = nil;
 	// Release anything allocated above that is not required.
 	[pool release];
 	
-#if !OOLITE_HAVE_APPKIT
+#if !OOLITE_MAC_OS_X
 	[[NSRunLoop currentRunLoop] run];
 #endif
 }
@@ -278,7 +278,7 @@ static GameController *sSharedController = nil;
 
 - (void) beginSplashScreen
 {
-#if !OOLITE_HAVE_APPKIT
+#if !OOLITE_MAC_OS_X
 	if(!gameView)
 	{
 		gameView = [MyOpenGLView alloc];
@@ -294,7 +294,7 @@ static GameController *sSharedController = nil;
 }
 
 
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 
 - (void) performGameTick:(id)sender
 {
@@ -363,7 +363,7 @@ static GameController *sSharedController = nil;
 		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
 		
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSEventTrackingRunLoopMode];
 #endif
 	}
@@ -608,7 +608,7 @@ static void RemovePreference(NSString *key)
 
 - (void) logProgress:(NSString *)message
 {
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 	[splashProgressTextField setStringValue:message];	[splashProgressTextField display];
 #endif
 	OOLog(@"startup.progress", @"===== [%.2f s] %@", -[_splashStart timeIntervalSinceNow], message);
@@ -616,7 +616,7 @@ static void RemovePreference(NSString *key)
 
 
 #if OO_DEBUG
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 - (BOOL) debugMessageTrackingIsOn
 {
 	return splashProgressTextField != nil;
@@ -694,7 +694,7 @@ static NSMutableArray *sMessageStack;
 {
 	OOLogSetDisplayMessagesInClass(@"startup.progress", NO);
 	
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 	// These views will be released when we replace the content view.
 	splashProgressTextField = nil;
 	splashView = nil;
@@ -708,7 +708,7 @@ static NSMutableArray *sMessageStack;
 }
 
 
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X
 
 // NIB methods
 - (void)awakeFromNib

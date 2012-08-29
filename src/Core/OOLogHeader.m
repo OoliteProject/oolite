@@ -85,8 +85,6 @@ void OOPrintLogHeader(void)
 		#define OS_TYPE_STRING "Linux"	// Hmm, what about other unices?
 	#elif OOLITE_SDL
 		#define OS_TYPE_STRING "unknown SDL system"
-	#elif OOLITE_HAVE_APPKIT
-		#define OS_TYPE_STRING "unknown AppKit system"
 	#else
 		#define OS_TYPE_STRING "unknown system"
 	#endif
