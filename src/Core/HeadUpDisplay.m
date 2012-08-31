@@ -1273,7 +1273,7 @@ static BOOL hostiles;
 		switch ([player compassMode])
 		{
 			case COMPASS_MODE_BASIC:
-				[self drawCompassPlanetBlipAt:relativePosition Size:NSMakeSize(6, 6) Alpha:alpha];
+				[self drawCompassPlanetBlipAt:relativePosition Size:siz Alpha:alpha];
 				break;
 				
 			case COMPASS_MODE_PLANET:
