@@ -249,17 +249,17 @@ static const BaseFace kTexturedFaces[][3] =
 	
 	if (clearSkyColor != nil)
 	{
-		[clearSkyColor getGLRed:&amb_land[0] green:&amb_land[1] blue:&amb_land[2] alpha:&amb_land[3]];
+		[clearSkyColor getRed:&amb_land[0] green:&amb_land[1] blue:&amb_land[2] alpha:&amb_land[3]];
 	}
 	
 	if (cloudColor != nil)
 	{
-		[cloudColor getGLRed:&amb_sea[0] green:&amb_sea[1] blue:&amb_sea[2] alpha:&amb_sea[3]];
+		[cloudColor getRed:&amb_sea[0] green:&amb_sea[1] blue:&amb_sea[2] alpha:&amb_sea[3]];
 	}
 	
 	if (polarClearSkyColor != nil)
 	{
-		[polarClearSkyColor getGLRed:&amb_polar_land[0] green:&amb_polar_land[1] blue:&amb_polar_land[2] alpha:&amb_polar_land[3]];
+		[polarClearSkyColor getRed:&amb_polar_land[0] green:&amb_polar_land[1] blue:&amb_polar_land[2] alpha:&amb_polar_land[3]];
 	}
 	else if (clearSkyColor != nil)
 	{
@@ -269,7 +269,7 @@ static const BaseFace kTexturedFaces[][3] =
 	
 	if (polarCloudColor != nil)
 	{
-		[polarCloudColor getGLRed:&amb_polar_sea[0] green:&amb_polar_sea[1] blue:&amb_polar_sea[2] alpha:&amb_polar_sea[3]];
+		[polarCloudColor getRed:&amb_polar_sea[0] green:&amb_polar_sea[1] blue:&amb_polar_sea[2] alpha:&amb_polar_sea[3]];
 	}
 	else if (cloudColor != nil)
 	{
@@ -291,7 +291,7 @@ static const BaseFace kTexturedFaces[][3] =
 	{
 		RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
 		RNG_Seed saved_seed = currentRandomSeed();
-		cloudColor = [OOColor colorWithCalibratedRed: amb_sea[0] green: amb_sea[1] blue: amb_sea[2] alpha: amb_sea[3]];
+		cloudColor = [OOColor colorWithRed: amb_sea[0] green: amb_sea[1] blue: amb_sea[2] alpha: amb_sea[3]];
 		float cloud_bias = -0.01 * (float)percent_land;
 		float cloud_impress = 1.0 - cloud_bias;
 		
@@ -494,10 +494,10 @@ static const BaseFace kTexturedFaces[][3] =
 		land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 4.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
 		sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 4.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);
 		
-		OOColor *amb_land_color = [OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0];
-		OOColor *amb_sea_color = [OOColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0];
-		OOColor *amb_polar_land_color = [OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0];
-		OOColor *amb_polar_sea_color = [OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0];
+		OOColor *amb_land_color = [OOColor colorWithHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0];
+		OOColor *amb_sea_color = [OOColor colorWithHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0];
+		OOColor *amb_polar_land_color = [OOColor colorWithHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0];
+		OOColor *amb_polar_sea_color = [OOColor colorWithHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0];
 		
 		amb_land[0] = [amb_land_color redComponent];
 		amb_land[1] = [amb_land_color blueComponent];
@@ -989,13 +989,13 @@ static const BaseFace kTexturedFaces[][3] =
 	
 	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
 	
-	amb_sea[0] = amb_land[0] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
-	amb_sea[1] = amb_land[1] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
-	amb_sea[2] = amb_land[2] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
+	amb_sea[0] = amb_land[0] = [[OOColor colorWithHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
+	amb_sea[1] = amb_land[1] = [[OOColor colorWithHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
+	amb_sea[2] = amb_land[2] = [[OOColor colorWithHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
 	amb_sea[3] = amb_land[3] = 1.0;
-	amb_polar_sea[0] =amb_polar_land[0] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
-	amb_polar_sea[1] =amb_polar_land[1] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
-	amb_polar_sea[2] = amb_polar_land[2] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
+	amb_polar_sea[0] =amb_polar_land[0] = [[OOColor colorWithHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
+	amb_polar_sea[1] =amb_polar_land[1] = [[OOColor colorWithHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
+	amb_polar_sea[2] = amb_polar_land[2] = [[OOColor colorWithHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
 	amb_polar_sea[3] =amb_polar_land[3] = 1.0;
 }
 
