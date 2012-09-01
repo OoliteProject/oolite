@@ -48,6 +48,7 @@ MA 02110-1301, USA.
 #import "OOLegacyScriptWhitelist.h"
 #import "OOJavaScriptEngine.h"
 #import "OOEquipmentType.h"
+#import "HeadUpDisplay.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLegacyScriptEngine"
 
@@ -1933,14 +1934,20 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 	
+	NSUInteger end_row = 21;
+	if ([[self hud] isHidden]) 
+	{
+		end_row = 27;
+	}
+
 	NSArray *choiceKeys = [[choicesDict allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
 	
-	[gui setText:@"" forRow:21];				// clears out the 'Press spacebar' message
-	[gui setKey:@"" forRow:21];					// clears the key to enable pollDemoControls to check for a selection
+	[gui setText:@"" forRow:end_row];				// clears out the 'Press spacebar' message
+	[gui setKey:@"" forRow:end_row];					// clears the key to enable pollDemoControls to check for a selection
 	[gui setSelectableRange:NSMakeRange(0,0)];	// clears the selectable range
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES]; // enables mouse selection of the choices list items
 	
-	OOGUIRow			choicesRow = 22 - [choiceKeys count];
+	OOGUIRow			choicesRow = (end_row+1) - [choiceKeys count];
 	NSEnumerator		*choiceEnum = nil;
 	NSString			*choiceKey = nil;
 	NSString			*choiceText = nil;
@@ -1956,8 +1963,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		choicesRow++;
 	}
 	
-	[gui setSelectableRange:NSMakeRange(22 - [choiceKeys count], [choiceKeys count])];
-	[gui setSelectedRow: 22 - [choiceKeys count]];
+	[gui setSelectableRange:NSMakeRange((end_row+1) - [choiceKeys count], [choiceKeys count])];
+	[gui setSelectedRow: (end_row+1) - [choiceKeys count]];
 	
 	[self resetMissionChoice];
 }
@@ -2324,14 +2331,20 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 
+	NSUInteger end_row = 21;
+	if ([[self hud] isHidden]) 
+	{
+		end_row = 27;
+	}
+
 	// GUI stuff
 	{
 		[gui clear];
 		[gui setTitle: missionTitle ? missionTitle : DESC(@"mission-information")];
 		
-		[gui setText:DESC(@"press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor yellowColor] forRow:21];
-		[gui setKey:@"spacebar" forRow:21];
+		[gui setText:DESC(@"press-space-commander") forRow:end_row align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor yellowColor] forRow:end_row];
+		[gui setKey:@"spacebar" forRow:end_row];
 		
 		[gui setSelectableRange:NSMakeRange(0,0)];
 		

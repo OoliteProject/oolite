@@ -120,7 +120,7 @@ enum
 	kPlayerShip_scoopOverride,					// Scooping
 	kPlayerShip_serviceLevel,				// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
-	kPlayerShip_targetSystem,					// target system id, int, read-only
+	kPlayerShip_targetSystem,					// target system id, int, read-write
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
 //	kPlayerShip_weaponFacings,         // available weapon facings, int, read-only
 	kPlayerShip_weaponsOnline,					// weapons online status, boolean, read-only
@@ -161,7 +161,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
 	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
-	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READONLY_CB },
+	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
 //	{ "weaponFacings",					kPlayerShip_weaponFacings,					OOJS_PROP_READONLY_CB },
 	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					OOJS_PROP_READONLY_CB },
@@ -414,6 +414,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
 	JSBool						bValue;
+	int32             iValue;
 	NSString					*sValue = nil;
 	OOGalacticHyperspaceBehaviour ghBehaviour;
 	Vector						vValue;
@@ -548,6 +549,21 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			[player setWeaponMount:[player currentWeaponFacing] toWeapon:sValue];
 			return YES;
 		}
+
+		case kPlayerShip_targetSystem:
+			if ([player status] != STATUS_ENTERING_WITCHSPACE)
+			{
+				if (JS_ValueToInt32(context, *value, &iValue))
+				{
+					if (iValue >= 0)
+					{ 
+						Random_Seed seed = [UNIVERSE systemSeedForSystemNumber:(OOSystemID)iValue];
+						[player setTargetSystemSeed:seed];
+						return YES;
+					}
+				}
+			}
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 			return NO;

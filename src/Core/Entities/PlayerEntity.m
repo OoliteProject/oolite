@@ -6057,14 +6057,12 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setTitle:[UNIVERSE descriptionForKey:gal_key]];
 		}
 		
-		[gui setText:targetSystemName	forRow:17];
-		
 		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
-		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:16];
-		[gui setColor:[OOColor cyanColor] forRow:16];
+		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:17];
+		[gui setColor:[OOColor cyanColor] forRow:17];
 		
 		[gui setShowTextCursor:YES];
-		[gui setCurrentRow:16];
+		[gui setCurrentRow:17];
 	}
 	/* ends */
 	
