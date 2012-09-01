@@ -79,6 +79,7 @@ MA 02110-1301, USA.
 			
 		case WEAPON_FACING_AFT:
 			quaternion_rotate_about_axis(&q, q_up, M_PI);
+			break;
 			
 		case WEAPON_FACING_PORT:
 			quaternion_rotate_about_axis(&q, q_up, M_PI/2.0);
