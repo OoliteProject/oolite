@@ -106,6 +106,7 @@ enum
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
 #define STANDARD_STATION_ROLL				0.4
 #define WOLFPACK_SHIPS_DISTANCE				0.1
+#define FIXED_ASTEROID_FIELDS				0
 
 
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
@@ -9584,6 +9585,14 @@ static void PreloadOneSound(NSString *soundName)
 	RANROTSeed			ranrotSavedSeed = RANROTGetFullSeed();
 	RNG_Seed			savedSeed = currentRandomSeed();
 	
+	// Always have the same number of asteroid clusters per system.
+	
+	RANROTSetFullSeed(RanrotSeedFromRandomSeed(system_seed));
+	
+	unsigned			rockClusters = 2 * (1 + (Ranrot() % 3));
+	
+	RANROTSetFullSeed(ranrotSavedSeed);
+	
 	systeminfo = [self generateSystemData:system_seed];
 	sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
 	
@@ -9606,12 +9615,8 @@ static void PreloadOneSound(NSString *soundName)
 	while (trading_parties > 15)
 		trading_parties = 1 + (Ranrot() % trading_parties);   // reduce
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d %@trading vessels", trading_parties, @"");
-	
 	unsigned skim_trading_parties = (Ranrot() & 3) + trading_parties * (Ranrot() & 31) / 120;	// about 12%
-	
-	OOLog(kOOLogUniversePopulate, @"... adding %d %@trading vessels", skim_trading_parties, @"sun skim ");
-	
+		
 	// pirates
 	int anarchy = (8 - government);
 	unsigned raiding_parties = (Ranrot() % anarchy) + (Ranrot() % anarchy) + anarchy * trading_parties / 3;	// boosted
@@ -9619,11 +9624,7 @@ static void PreloadOneSound(NSString *soundName)
 	while (raiding_parties > 25)
 		raiding_parties = 12 + (Ranrot() % raiding_parties);   // reduce
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d %@pirate vessels", raiding_parties, @"");
-	
 	unsigned skim_raiding_parties = ((randf() < 0.14 * economy)? 1:0) + raiding_parties * (Ranrot() & 31) / 120;	// about 12%
-	
-	OOLog(kOOLogUniversePopulate, @"... adding %d %@pirate vessels", skim_raiding_parties, @"sun skim ");
 	
 	// bounty-hunters and the law
 	unsigned hunting_parties = (1 + government) * trading_parties / 8;
@@ -9636,28 +9637,55 @@ static void PreloadOneSound(NSString *soundName)
 	if (hunting_parties < 1)
 		hunting_parties = 1;
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d %@law/bounty-hunter vessels", hunting_parties, @"");
-	
 	unsigned skim_hunting_parties = ((randf() < 0.14 * government) ? 1 : 0) + hunting_parties * (Ranrot() & 31) / 160;	// about 10%
-	
-	OOLog(kOOLogUniversePopulate, @"... adding %d %@law/bounty-hunter vessels", skim_hunting_parties, @"sun skim ");
 	
 	unsigned thargoid_parties = 0;
 	while ((Ranrot() % 100) < thargoidChance && thargoid_parties < 16)
 		thargoid_parties++;
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d Thargoid warships", thargoid_parties);
+	/*
+		Adjusting parties amounts. Up to 1.76.x the adjustment meant
+		upping the number of asteroid fields. That's inconsistent with
+		the care we've taken to keep suns, planets & main stations exactly
+		where they are. The number of automatically generated asteroid fields
+		is now fixed for each system. However, position of the fields and rock
+		hermit presence is ATM still going to change periodically, to go along
+		with the unpredictability that has characterised these two features
+		of Oolite's systems thus far. I provided the option of fixing both
+		asteroid fields positions and hermit presence via the 
+		FIXED_ASTEROID_FIELDS #defined, just in case.  --Kaks 20120902
+	*/
 	
-	unsigned rockClusters = Ranrot() % 3;
-	
-	// Adding 1 to 3 asteroid fields if less than 10 groups of ships? Some mistake shurely[sic].
-	// TODO: add between 1 & 3 random ship groups to system instead..
 	if (trading_parties + raiding_parties + hunting_parties < 10)
-		rockClusters += 1 + (Ranrot() % 3);
-	
-	rockClusters *= 2;
+	{
+		// We add 2 to 6 assorted ship groups.
+		for (i = 2 + (Ranrot() % 5); i > 0; i--)
+		{
+			switch(Ranrot() % 3)
+			{
+				case 0:
+				trading_parties++;
+				break;
+				
+				case 1:
+				raiding_parties++;
+				break;
+				
+				case 2:
+				hunting_parties++;
+				break;
+			}
+		}
+	}
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d asteroid clusters", rockClusters);
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@trading vessels", trading_parties, @"");
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@trading vessels", skim_trading_parties, @"sun skim ");
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@pirate vessels", raiding_parties, @"");
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@pirate vessels", skim_raiding_parties, @"sun skim ");	
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@law/bounty-hunter vessels", hunting_parties, @"");
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@law/bounty-hunter vessels", skim_hunting_parties, @"sun skim ");
+	OOLog(kOOLogUniversePopulate, @"... adding %d Thargoid warships", thargoid_parties);
 	
 	totalCliques = trading_parties + raiding_parties + hunting_parties + thargoid_parties + rockClusters + skim_hunting_parties + skim_raiding_parties + skim_trading_parties;
 	
@@ -9893,10 +9921,18 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
-	
 	// Asteroids & rock hermits placement - route1 and route2
-	// NB: route1 has less rockClusters than route2!
 	
+#if FIXED_ASTEROID_FIELDS
+	// Make asteroid positions and rock hermit presence dependent on system_seed.
+	RANROTSetFullSeed(RanrotSeedFromRandomSeed(system_seed));
+#else
+	// Randomise their respective position & presence, but only every 97 days or so...
+	Random_Seed hermit_seed = [self marketSeed];
+	ranrot_srand(hermit_seed.c * 0x10000 + hermit_seed.e * 0x100 + hermit_seed.a);
+#endif
+	
+	// Route1. NB: less rockClusters than route2!
 	for (i = 0; i + 1 < (rockClusters / 2); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
@@ -10264,7 +10300,6 @@ static void PreloadOneSound(NSString *soundName)
 	
 	shaderEffectsLevel = value;
 }
-
 
 
 - (void) loadConditionScripts
