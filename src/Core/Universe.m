@@ -9292,7 +9292,7 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
-- (ShipEntity *) spawnPatrolShipFrom:(Vector)startPos alongRoute:(Vector)route withOffset:(double)offset;
+- (ShipEntity *) spawnPatrolShipFrom:(Vector)startPos alongRoute:(Vector)route withOffset:(double)offset
 
 {
 	ShipEntity			*hunter_ship = nil;
