@@ -105,6 +105,7 @@ enum
 #define MAX_NUMBER_OF_ENTITIES				200
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
 #define STANDARD_STATION_ROLL				0.4
+#define WOLFPACK_SHIPS_DISTANCE				0.1
 
 
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
@@ -171,7 +172,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) preloadSounds;
 - (void) setUpSettings;
 - (void) setUpInitialUniverse;
-- (ShipEntity *) spawnPatrolShipAt:(Vector)launchPos alongRoute:(Vector)v_route withOffset:(double)ship_location;
+- (ShipEntity *) spawnPatrolShipFrom:(Vector)startPos alongRoute:(Vector)route withOffset:(double)offset;
+- (void) addWolfpackShipNear:(Vector)launchPos withGroup:(OOShipGroup *)wolfpackGroup andBounty:(unsigned)bounty;
 - (Vector) fractionalPositionFrom:(Vector)point0 to:(Vector)point1 withFraction:(double)routeFraction;
 
 - (void) resetSystemDataCache;
@@ -209,6 +211,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) loadDescriptions;
 
 - (void) verifyEntitySessionIDs;
+- (float) randomDistanceWithinScanner;
+- (Vector) randomPlaceWithinScannerFrom:(Vector)pos alongRoute:(Vector)route withOffset:(double)offset;
 
 @end
 
@@ -641,7 +645,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			{
 				if ([dockedStation maxFlightSpeed] > 0) // we are a carrier: exit near the WitchspaceExitPosition
 				{
-					float		d1 = (float)(SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5));
+					float		d1 = [self randomDistanceWithinScanner];
 					Vector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 					Quaternion	q1;
 					
@@ -967,6 +971,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	sunDistanceModifier = [systeminfo oo_nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
 	// Any smaller than 6, the main planet can end up inside the sun
 	if (sunDistanceModifier < 6.0) sunDistanceModifier = 6.0;
+	// Simplifying Ranrot() here would modify where the sun acutally goes, so let's avoid that!
 	sun_distance = (sunDistanceModifier + (Ranrot() % 5) - (Ranrot() % 5) ) * planet_radius;
 	
 	sun_radius = [systeminfo oo_nonNegativeDoubleForKey:@"sun_radius" defaultValue:(2.5 + randf() - randf() ) * planet_radius];
@@ -1321,9 +1326,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	if (rfactor != 0.0)
 	{
 		// Calculate the position as soon as possible, to minimise 'lollipop flash'
-	 	launchPos.x += rfactor*(randf() - randf());
-		launchPos.y += rfactor*(randf() - randf());
-		launchPos.z += rfactor*(randf() - randf());
+	 	launchPos.x += 2 * rfactor * (randf() - 0.5);
+		launchPos.y += 2 * rfactor * (randf() - 0.5);
+		launchPos.z += 2 * rfactor * (randf() - 0.5);
 	}
 	
 	ShipEntity  *ship = [self newShipWithRole:desc];   // retain count = 1
@@ -1355,14 +1360,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 {
 	// adds a ship within scanner range of a point on route 1
 	
-	Entity* the_station = [self station];
-	if (!the_station)
+	Entity	*theStation = [self station];
+	if (!theStation)
+	{
 		return;
-	Vector  h1_pos = [self getWitchspaceExitPosition];
-	Vector  launchPos = the_station->position;
-	launchPos.x -= h1_pos.x;		launchPos.y -= h1_pos.y;		launchPos.z -= h1_pos.z;
-	launchPos.x *= route_fraction; launchPos.y *= route_fraction; launchPos.z *= route_fraction;
-	launchPos.x += h1_pos.x;		launchPos.y += h1_pos.y;		launchPos.z += h1_pos.z;
+	}
+	
+	Vector	launchPos = OOVectorInterpolate([self getWitchspaceExitPosition], [theStation position], route_fraction);
 	
 	[self addShipWithRole:desc launchPos:launchPos rfactor:SCANNER_MAX_RANGE];
 }
@@ -3092,6 +3096,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		return 0;
 	}
 	
+	//TODO: further simplify the Ranrot()s below? Hmm, being only pseudo random, 3 Ranrots should be less likely to add up to 0 than just one Ranrot... 
+	
 	units = [self unitsForCommodity:commodityIndex];
 	switch (units)
 	{
@@ -3102,7 +3108,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 			return 1 + (Ranrot() % 6) + (Ranrot() % 6) + (Ranrot() % 6);
 			break;
 		case 2 :	// GRAMS
-			return 4 + 3 * (Ranrot() % 6) + 2 * (Ranrot() % 6) + (Ranrot() % 6);
+			//return 4 + 3 * (Ranrot() % 6) + 2 * (Ranrot() % 6) + (Ranrot() % 6);
+			return 4 + (Ranrot() % 16) + (Ranrot() % 11) + (Ranrot() % 6);
 			break;
 	}
 	return 1;
@@ -9269,61 +9276,102 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
-- (ShipEntity *) spawnPatrolShipAt:(Vector)launchPos alongRoute:(Vector)v_route withOffset:(double)ship_location
+- (float) randomDistanceWithinScanner
 {
-		ShipEntity			*hunter_ship = nil;
-		NSDictionary		*systeminfo = [self generateSystemData:system_seed];
-		OOTechLevelID		techlevel = [systeminfo  oo_unsignedCharForKey:KEY_TECHLEVEL];		// 0 .. 13
-		OOGovernmentID		government = [systeminfo  oo_unsignedCharForKey:KEY_GOVERNMENT];	// 0 .. 7 (0 anarchic .. 7 most stable)
-		
-		launchPos.x += ship_location * v_route.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.y += ship_location * v_route.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.z += ship_location * v_route.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		
-		
-		if ((Ranrot() & 7) < government)
-		{
-			if ((Ranrot() & 7) + 6 <= techlevel)
-				hunter_ship = [self newShipWithRole:@"interceptor"];   // retain count = 1
-			else
-				hunter_ship = [self newShipWithRole:@"police"];   // retain count = 1
-			if (hunter_ship)
-			{
-				if (![hunter_ship crew])
-					[hunter_ship setCrew:[NSArray arrayWithObject:
-						[OOCharacter randomCharacterWithRole:@"police"
-						andOriginalSystem: (randf() > 0.05)? systems[Ranrot() & 255]:system_seed]]];
-				
-				[hunter_ship setPrimaryRole:@"police"];		// make sure interceptors are police...
-				if ([hunter_ship scanClass] == CLASS_NOT_SET)
-					[hunter_ship setScanClass: CLASS_POLICE];
-				while (((Ranrot() & 7) + 2 < government)&&([hunter_ship pendingEscortCount] < 6))
-				{
-					[hunter_ship setPendingEscortCount:[hunter_ship pendingEscortCount] + 2];
-				}
-			}
-		}
+	return SCANNER_MAX_RANGE * ((Ranrot() & 255) / 256.0 - 0.5);
+}
+
+
+- (Vector) randomPlaceWithinScannerFrom:(Vector)pos alongRoute:(Vector)route withOffset:(double)offset
+{
+	pos.x += offset * route.x + [self randomDistanceWithinScanner];
+	pos.y += offset * route.y + [self randomDistanceWithinScanner];
+	pos.z += offset * route.z + [self randomDistanceWithinScanner];
+	
+	return pos;
+}
+
+
+- (ShipEntity *) spawnPatrolShipFrom:(Vector)startPos alongRoute:(Vector)route withOffset:(double)offset;
+
+{
+	ShipEntity			*hunter_ship = nil;
+	NSDictionary		*systeminfo = [self generateSystemData:system_seed];
+	OOTechLevelID		techlevel = [systeminfo  oo_unsignedCharForKey:KEY_TECHLEVEL];		// 0 .. 13
+	OOGovernmentID		government = [systeminfo  oo_unsignedCharForKey:KEY_GOVERNMENT];	// 0 .. 7 (0 anarchic .. 7 most stable)
+	
+	Vector launchPos = [self randomPlaceWithinScannerFrom:startPos alongRoute:route withOffset:offset];
+	
+	if ((Ranrot() & 7) < government)
+	{
+		if ((Ranrot() & 7) + 6 <= techlevel)
+			hunter_ship = [self newShipWithRole:@"interceptor"];   // retain count = 1
 		else
-		{
-			hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
-			if ((hunter_ship)&&([hunter_ship scanClass] == CLASS_NOT_SET))
-				[hunter_ship setScanClass: CLASS_NEUTRAL];
-			if (![hunter_ship crew])
-					[hunter_ship setCrew:[NSArray arrayWithObject:
-						[OOCharacter randomCharacterWithRole:@"hunter"
-						andOriginalSystem: (randf() > 0.75)? systems[Ranrot() & 255]:system_seed]]];
-			
-		}
-		
+			hunter_ship = [self newShipWithRole:@"police"];   // retain count = 1
 		if (hunter_ship)
 		{
-			[hunter_ship setPosition:launchPos];
-			[hunter_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
-			[self addEntity:hunter_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+			if (![hunter_ship crew])
+				[hunter_ship setCrew:[NSArray arrayWithObject:
+					[OOCharacter randomCharacterWithRole:@"police"
+					andOriginalSystem: (randf() > 0.05)? systems[Ranrot() & 255]:system_seed]]];
 			
-			[hunter_ship release];	// addEntity retains!
+			[hunter_ship setPrimaryRole:@"police"];		// make sure interceptors are police...
+			if ([hunter_ship scanClass] == CLASS_NOT_SET)
+				[hunter_ship setScanClass: CLASS_POLICE];
+			while (((Ranrot() & 7) + 2 < government)&&([hunter_ship pendingEscortCount] < 6))
+			{
+				[hunter_ship setPendingEscortCount:[hunter_ship pendingEscortCount] + 2];
+			}
 		}
-		return hunter_ship;
+	}
+	else
+	{
+		hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
+		if ((hunter_ship)&&([hunter_ship scanClass] == CLASS_NOT_SET))
+			[hunter_ship setScanClass: CLASS_NEUTRAL];
+		if (![hunter_ship crew])
+				[hunter_ship setCrew:[NSArray arrayWithObject:
+					[OOCharacter randomCharacterWithRole:@"hunter"
+					andOriginalSystem: (randf() > 0.75)? systems[Ranrot() & 255]:system_seed]]];
+		
+	}
+	
+	if (hunter_ship)
+	{
+		[hunter_ship setPosition:launchPos];
+		[hunter_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
+		[self addEntity:hunter_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		
+		[hunter_ship release];	// addEntity retains!
+	}
+	return hunter_ship;
+}
+
+
+- (void) addWolfpackShipNear:(Vector)launchPos withGroup:(OOShipGroup *)wolfpackGroup andBounty:(unsigned)bounty
+{
+	// pirates get their custom random displacement, closer than most ships.
+	launchPos.x += [self randomDistanceWithinScanner] * WOLFPACK_SHIPS_DISTANCE;
+	launchPos.y += [self randomDistanceWithinScanner] * WOLFPACK_SHIPS_DISTANCE;
+	launchPos.z += [self randomDistanceWithinScanner] * WOLFPACK_SHIPS_DISTANCE;
+	
+	ShipEntity*	pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
+	if (pirate_ship)
+	{
+		[pirate_ship setPosition: launchPos];
+		if (![pirate_ship crew])
+			[pirate_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole:@"pirate"
+				andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
+		
+		if ([pirate_ship scanClass] == CLASS_NOT_SET) [pirate_ship setScanClass: CLASS_NEUTRAL];
+		[pirate_ship setBounty:bounty withReason:kOOLegalStatusReasonSetup];
+		[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
+		[pirate_ship setGroup:wolfpackGroup];
+		
+		[self addEntity:pirate_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		[pirate_ship release];
+	}
 }
 
 
@@ -9331,14 +9379,11 @@ Entity *gOOJSPlayerIfStale = nil;
 {
 	if (routeFraction == NSNotFound) routeFraction = randf();
 	
-	// EMMSTRAN: use OOVectorInterpolate().
-	point1.x -= point0.x;		point1.y -= point0.y;		point1.z -= point0.z;
-	point1.x *= routeFraction;	point1.y *= routeFraction;	point1.z *= routeFraction;
-	point1.x += point0.x;		point1.y += point0.y;		point1.z += point0.z;
+	point1 = OOVectorInterpolate(point0, point1, routeFraction);
 	
-	point1.x += SCANNER_MAX_RANGE*(randf() - randf());	// TODO: could be done with just one randf()!
-	point1.y += SCANNER_MAX_RANGE*(randf() - randf());
-	point1.z += SCANNER_MAX_RANGE*(randf() - randf());
+	point1.x += 2 * SCANNER_MAX_RANGE * (randf() - 0.5);
+	point1.y += 2 * SCANNER_MAX_RANGE * (randf() - 0.5);
+	point1.z += 2 * SCANNER_MAX_RANGE * (randf() - 0.5);
 	
 	return point1;
 }
@@ -9524,18 +9569,20 @@ static void PreloadOneSound(NSString *soundName)
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos
 {
 	unsigned			i, r, escortsWeight;
-	unsigned			totalRocks = 0;
+	unsigned			totalCliques, totalRocks = 0;
 	BOOL				includeHermit, includedHermit = NO;
 	unsigned			clusterSize;
 	double				asteroidLocation;
 	Vector				launchPos;
-	double				start, end, maxLength;
+	double				start, end, maxLength, locationOffset;
 	NSAutoreleasePool	*pool = nil;
 	NSDictionary		*systeminfo = nil;
 	BOOL				sunGoneNova;
 	unsigned			thargoidChance;
-	Vector				lastPiratePosition = kZeroVector;
-	unsigned			wolfPackCounter = 0;
+	unsigned			wolfpackCounter = 0;
+	
+	RANROTSeed			ranrotSavedSeed = RANROTGetFullSeed();
+	RNG_Seed			savedSeed = currentRandomSeed();
 	
 	systeminfo = [self generateSystemData:system_seed];
 	sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
@@ -9591,7 +9638,7 @@ static void PreloadOneSound(NSString *soundName)
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d %@law/bounty-hunter vessels", hunting_parties, @"");
 	
-	unsigned skim_hunting_parties = ((randf() < 0.14 * government)? 1:0) + hunting_parties * (Ranrot() & 31) / 160;	// about 10%
+	unsigned skim_hunting_parties = ((randf() < 0.14 * government) ? 1 : 0) + hunting_parties * (Ranrot() & 31) / 160;	// about 10%
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d %@law/bounty-hunter vessels", skim_hunting_parties, @"sun skim ");
 	
@@ -9602,6 +9649,9 @@ static void PreloadOneSound(NSString *soundName)
 	OOLog(kOOLogUniversePopulate, @"... adding %d Thargoid warships", thargoid_parties);
 	
 	unsigned rockClusters = Ranrot() % 3;
+	
+	// Adding 1 to 3 asteroid fields if less than 10 groups of ships? Some mistake shurely[sic].
+	// TODO: add between 1 & 3 random ship groups to system instead..
 	if (trading_parties + raiding_parties + hunting_parties < 10)
 		rockClusters += 1 + (Ranrot() % 3);
 	
@@ -9609,9 +9659,9 @@ static void PreloadOneSound(NSString *soundName)
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d asteroid clusters", rockClusters);
 	
-	unsigned total_clicks = trading_parties + raiding_parties + hunting_parties + thargoid_parties + rockClusters + skim_hunting_parties + skim_raiding_parties + skim_trading_parties;
+	totalCliques = trading_parties + raiding_parties + hunting_parties + thargoid_parties + rockClusters + skim_hunting_parties + skim_raiding_parties + skim_trading_parties;
 	
-	OOLog(kOOLogUniversePopulate, @"... for a total of %d parties", total_clicks);
+	OOLog(kOOLogUniversePopulate, @"... for a total of %d parties", totalCliques);
 	OOLogOutdentIf(kOOLogUniversePopulate);
 	
 	Vector  v_route1 = vector_subtract(p1_pos, h1_pos);
@@ -9620,20 +9670,18 @@ static void PreloadOneSound(NSString *soundName)
 	
 	v_route1 = vector_normal_or_fallback(v_route1, kBasisZVector);
 	
-	// add the traders to route1 (witchspace exit to space-station / planet)
-	if (total_clicks < 3)   total_clicks = 3;
+	// add traders to route1 (witchspace exit to space-station / planet)
+	if (totalCliques < 3)   totalCliques = 3;
 	for (i = 0; (i < trading_parties)&&(!sunGoneNova); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		ShipEntity  *trader_ship;
-		launchPos = h1_pos;
-		r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
-		double ship_location = d_route1 * r / total_clicks;
-		launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.y += ship_location * v_route1.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.z += ship_location * v_route1.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		trader_ship = [self newShipWithRole:@"trader"];   // retain count = 1
+		r = 2 + (Ranrot() % (totalCliques - 2));  // pick a slot
+		locationOffset = d_route1 * r / totalCliques;
+		
+		launchPos = [self randomPlaceWithinScannerFrom:h1_pos alongRoute:v_route1 withOffset:locationOffset];
+		
+		ShipEntity  *trader_ship = [self newShipWithRole:@"trader"];   // retain count = 1
 		if (trader_ship)
 		{
 			if (![trader_ship crew])
@@ -9660,73 +9708,42 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
-	// add the raiders to route1 (witchspace exit to space-station / planet)
-	// Eric 2009-07-13: reordered the wolfpack addition code for the new group code so each wolfpack group stays a seperate group.
+	// add raiders to route1 (witchspace exit to space-station / planet)
+	// Eric 2009-07-13: reordered the wolfpack addition code for the new group code so each wolfpack group stays separate.
 	i = 0;
 	while ((i < raiding_parties)&&(!sunGoneNova))
 	{
 		OOShipGroup *wolfpackGroup = [OOShipGroup groupWithName:@"raider wolfpack"];
-		wolfPackCounter = 0;
+		wolfpackCounter = 0;
 		
-		launchPos = h1_pos;
 		// random group position along route1
-		r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
-		double ship_location = d_route1 * r / total_clicks;
-		launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.y += ship_location * v_route1.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.z += ship_location * v_route1.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		lastPiratePosition = launchPos;
+		r = 2 + (Ranrot() % (totalCliques - 2));  // pick a slot
+		locationOffset = d_route1 * r / totalCliques;
 		
-		while (((Ranrot() & 7) > wolfPackCounter || wolfPackCounter == 0) && i < raiding_parties)
+		launchPos = [self randomPlaceWithinScannerFrom:h1_pos alongRoute:v_route1 withOffset:locationOffset];
+		
+		while (((Ranrot() & 7) > wolfpackCounter || wolfpackCounter == 0) && i < raiding_parties)
 		{
 			pool = [[NSAutoreleasePool alloc] init];
 			
-			ShipEntity  *pirate_ship;
-			// use last group position
-			launchPos = lastPiratePosition;
-			launchPos.x += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1; // pack them closer together
-			launchPos.y += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1;
-			launchPos.z += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1;
-			wolfPackCounter++;
-			
-			pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
-			if (pirate_ship)
-			{
-				[pirate_ship setPosition:launchPos];
-				if (![pirate_ship crew])
-				{
-					[pirate_ship setCrew:[NSArray arrayWithObject:
-						[OOCharacter randomCharacterWithRole:@"pirate"
-						andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
-				}
-				
-				if ([pirate_ship scanClass] == CLASS_NOT_SET)
-				{
-					[pirate_ship setScanClass: CLASS_NEUTRAL];
-				}
-				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() & 7) withReason:kOOLegalStatusReasonSetup];
-				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
-				[pirate_ship setGroup:wolfpackGroup];
-				
-				[self addEntity:pirate_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-				[pirate_ship release];
-			}
+			wolfpackCounter++;
+			[self addWolfpackShipNear:launchPos withGroup:wolfpackGroup andBounty:20 + government + wolfpackCounter + (Ranrot() & 7)];
 			
 			[pool release];
 			i++;
 		}
 	}
 	
-	// add the hunters and police ships to route1 (witchspace exit to space-station / planet)
+	// add hunters and police ships to route1 (witchspace exit to space-station / planet)
 	for (i = 0; (i < hunting_parties)&&(!sunGoneNova); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 
 		ShipEntity  *hunter_ship;
 		// random position along route1
-		r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
+		r = 2 + (Ranrot() % (totalCliques - 2));  // pick a slot
 		
-		hunter_ship = [self spawnPatrolShipAt:h1_pos alongRoute:v_route1 withOffset:d_route1 * r / total_clicks];	// add a patrol ship to the universe
+		hunter_ship = [self spawnPatrolShipFrom:h1_pos alongRoute:v_route1 withOffset:d_route1 * r / totalCliques];	// add a patrol ship to the universe
 		
 		if(hunter_ship)
 		{
@@ -9741,17 +9758,17 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
-	// add the thargoids to route1 (witchspace exit to space-station / planet) clustered together
-	r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
-	double thargoid_location = d_route1 * r / total_clicks;
+	// add thargoids to route1 (witchspace exit to space-station / planet) clustered together
+	r = 2 + (Ranrot() % (totalCliques - 2));  // pick a slot
+	double thargoid_location = d_route1 * r / totalCliques;
 	for (i = 0; (i < thargoid_parties)&&(!sunGoneNova); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
 		ShipEntity  *thargoid_ship;
-		launchPos.x = h1_pos.x + thargoid_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.y = h1_pos.y + thargoid_location * v_route1.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.z = h1_pos.z + thargoid_location * v_route1.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		
+		launchPos = [self randomPlaceWithinScannerFrom:h1_pos alongRoute:v_route1 withOffset:thargoid_location];
+		
 		thargoid_ship = [self newShipWithRole:@"thargoid"];   // retain count = 1
 		if (thargoid_ship)
 		{
@@ -9772,52 +9789,27 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
-	// add the asteroids to route1 (witchspace exit to space-station / planet)
-	
-	for (i = 0; (i + 1) < (rockClusters / 2); i++)
-	{
-		pool = [[NSAutoreleasePool alloc] init];
-		
-		clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
-		r = 2 + (Ranrot() % (total_clicks - 2));  // pick a slot
-		asteroidLocation = d_route1 * r / total_clicks;
-		
-		launchPos = OOVectorTowards(h1_pos, v_route1, asteroidLocation);
-		includeHermit = (Ranrot() & 31) <= clusterSize && r < total_clicks * 2 / 3 && !sunGoneNova;
-		
-		includedHermit |= includeHermit;
-
-		totalRocks += [self scatterAsteroidsAt:launchPos
-								  withVelocity:kZeroVector
-						   includingRockHermit:includeHermit
-									 asCinders:NO
-					 clusterSize:clusterSize];
-		
-		[pool release];
-	}
-	
 	//	Now do route2 planet -> sun
 	
 	Vector  v_route2 = vector_subtract(s1_pos, p1_pos);
 	double d_route2 = magnitude(v_route2);
 	v_route2 = vector_normal_or_xbasis(v_route2);
 	
+	// restrict the possible route2 spawn areas
+	start = 4.0 * [[self planet] radius];
+	end = 3.0 * [[self sun] radius];
+	maxLength = d_route2 - (start + end);
+	
 	// add the traders to route2
 	for (i = 0; (i < skim_trading_parties)&&(!sunGoneNova); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		ShipEntity*	trader_ship;
-		Vector		launchPos = p1_pos;
-		double		start = 4.0 * [[self planet] radius];
-		double		end = 3.0 * [[self sun] radius];
-		double		maxLength = d_route2 - (start + end);
-		double		ship_location = randf() * maxLength + start;
+		locationOffset = randf() * maxLength + start;
 		
-		launchPos.x += ship_location * v_route2.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.y += ship_location * v_route2.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.z += ship_location * v_route2.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		trader_ship = [self newShipWithRole:@"sunskim-trader"];   // retain count = 1
+		launchPos = [self randomPlaceWithinScannerFrom:p1_pos alongRoute:v_route2 withOffset:locationOffset];
+		
+		ShipEntity	*trader_ship = [self newShipWithRole:@"sunskim-trader"];   // retain count = 1
 		if (trader_ship)
 		{
 			[trader_ship setPosition:launchPos];
@@ -9850,53 +9842,23 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
-	// add the raiders to route2
+	// add raiders to route2
 	i = 0;
 	while ((i < skim_raiding_parties)&&(!sunGoneNova))
 	{
 		OOShipGroup *wolfpackGroup = [OOShipGroup groupWithName:@"raider wolfpack"];
-		wolfPackCounter = 0;
+		wolfpackCounter = 0;
 		
-		Vector		launchPos = p1_pos;
-		// random position along route2
-		double		start = 4.0 * [[self planet] radius];
-		double		end = 3.0 * [[self sun] radius];
-		double		maxLength = d_route2 - (start + end);
-		double		ship_location = randf() * maxLength + start;
-		launchPos.x += ship_location * v_route2.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.y += ship_location * v_route2.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.z += ship_location * v_route2.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		lastPiratePosition = launchPos;
+		locationOffset = randf() * maxLength + start;
 		
-		while (((Ranrot() & 7) > wolfPackCounter || wolfPackCounter == 0) && i < skim_raiding_parties)
+		launchPos = [self randomPlaceWithinScannerFrom:p1_pos alongRoute:v_route2 withOffset:locationOffset];
+		
+		while (((Ranrot() & 7) > wolfpackCounter || wolfpackCounter == 0) && i < skim_raiding_parties)
 		{
 			pool = [[NSAutoreleasePool alloc] init];
 			
-			ShipEntity*	pirate_ship;
-			// use last position
-			launchPos = lastPiratePosition;
-			launchPos.x += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1; // pack them closer together
-			launchPos.y += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1;
-			launchPos.z += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1;
-			wolfPackCounter++;
-			
-			pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
-			if (pirate_ship)
-			{
-				[pirate_ship setPosition: launchPos];
-				if (![pirate_ship crew])
-					[pirate_ship setCrew:[NSArray arrayWithObject:
-						[OOCharacter randomCharacterWithRole:@"pirate"
-						andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
-				
-				if ([pirate_ship scanClass] == CLASS_NOT_SET) [pirate_ship setScanClass: CLASS_NEUTRAL];
-				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7) withReason:kOOLegalStatusReasonSetup];
-				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
-				[pirate_ship setGroup:wolfpackGroup];
-				
-				[self addEntity:pirate_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-				[pirate_ship release];
-			}
+			wolfpackCounter++;
+			[self addWolfpackShipNear:launchPos withGroup:wolfpackGroup andBounty:20 + government + wolfpackCounter + (Ranrot() & 7)];
 			
 			[pool release];
 			i++;
@@ -9909,12 +9871,8 @@ static void PreloadOneSound(NSString *soundName)
 		pool = [[NSAutoreleasePool alloc] init];
 		
 		ShipEntity  *hunter_ship;
-		// random position along route2
-		start = 4.0 * [[self planet] radius];
-		end = 3.0 * [[self sun] radius];
-		maxLength = d_route2 - (start + end);
 		
-		hunter_ship = [self spawnPatrolShipAt:p1_pos alongRoute:v_route2 withOffset:randf() * maxLength + start]; 	// add a patrol ship to the universe
+		hunter_ship = [self spawnPatrolShipFrom:p1_pos alongRoute:v_route2 withOffset:randf() * maxLength + start]; 	// add a patrol ship to the universe
 		
 		if(hunter_ship)
 		{
@@ -9935,24 +9893,51 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
-	// add the asteroids to route2.
 	
-	for (i = 0; i < (rockClusters / 2 + 1U); i++)
+	// Asteroids & rock hermits placement - route1 and route2
+	// NB: route1 has less rockClusters than route2!
+	
+	for (i = 0; i + 1 < (rockClusters / 2); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		start = 6.0 * [[self planet] radius];
-		end = 4.5 * [[self sun] radius];
-		maxLength = d_route2 - (start + end);
+		//clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
+		clusterSize = 1 + (Ranrot() % 11);
+		r = 2 + (Ranrot() % (totalCliques - 2));  // pick a slot
+		asteroidLocation = d_route1 * r / totalCliques;
 		
+		launchPos = OOVectorTowards(h1_pos, v_route1, asteroidLocation);
+		includeHermit = (Ranrot() & 31) <= clusterSize && r < totalCliques * 2 / 3 && !sunGoneNova;
+		
+		includedHermit |= includeHermit;
+		
+		totalRocks += [self scatterAsteroidsAt:launchPos
+								  withVelocity:kZeroVector
+						   includingRockHermit:includeHermit
+									 asCinders:NO
+					 clusterSize:clusterSize];
+		
+		[pool release];
+	}
+	
+	// First ease the spawning restrictions...
+	start *= 1.5; end *= 1.5;
+	maxLength = d_route2 - (start + end);
+	
+	// Now add the remaining rockClusters to route2
+	for (; i < rockClusters ; i++)
+	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
+		//clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
+		clusterSize = 1 + (Ranrot() % 11);
 		asteroidLocation = randf() * maxLength + start;
-		clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
 		
 		launchPos = OOVectorTowards(p1_pos, v_route2, asteroidLocation);
 		includeHermit = (Ranrot() & 31) <= clusterSize && asteroidLocation > 0.33 * maxLength && !sunGoneNova;
 		
 		includedHermit |= includeHermit;
-
+		
 		totalRocks += [self scatterAsteroidsAt:launchPos
 								  withVelocity:kZeroVector
 						   includingRockHermit:includeHermit
@@ -9961,7 +9946,9 @@ static void PreloadOneSound(NSString *soundName)
 			];
 		[pool release];
 	}
-
+	
+	setRandomSeed(savedSeed);
+	RANROTSetFullSeed(ranrotSavedSeed);
 	
 	if (!sunGoneNova && !includedHermit)
 	{
@@ -9987,7 +9974,8 @@ static void PreloadOneSound(NSString *soundName)
 
 - (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders
 {
-	NSUInteger clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
+	//NSUInteger clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
+	NSUInteger clusterSize = 1 + (Ranrot() % 11);
 	return [self scatterAsteroidsAt:spawnPos withVelocity:spawnVel includingRockHermit:spawnHermit asCinders:asCinders clusterSize:clusterSize];
 }
 
