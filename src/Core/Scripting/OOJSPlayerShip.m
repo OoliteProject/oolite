@@ -551,9 +551,9 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_targetSystem:
 			if ([player status] != STATUS_ENTERING_WITCHSPACE)
 			{
-				if (EXPECT_NOT([player guiScreen] != GUI_SCREEN_MISSION))
+				if (EXPECT_NOT([player status] != STATUS_DOCKED))
 				{
-					OOJSReportError(context, @"player.ship.targetSystem is read-only unless called from a mission screen.");
+					OOJSReportError(context, @"player.ship.targetSystem is read-only unless called when docked.");
 					return NO;
 				}
 				
