@@ -361,6 +361,31 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 }
 
 
+#ifdef MAC_OS_X_VERSION_10_7	// If building against 10.7 SDK, where relevant symbols are defined...
+- (void) viewDidMoveToWindow
+{
+	/*	Subscrive to NSWindowDidChangeBackingPropertiesNotification on systems
+		which support it (10.7 and later). This notification fires when the
+		scale factor or colour space of the window's backing store changes.
+		We use it to track scale factor changes.
+	*/
+	if (NSWindowDidChangeBackingPropertiesNotification != nil && [self.window respondsToSelector:@selector(backingScaleFactor)])
+	{
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(backingPropertiesChanged:)
+													 name:NSWindowDidChangeBackingPropertiesNotification
+												   object:self.window];
+	}
+}
+
+
+- (void) backingPropertiesChanged:(NSNotification *)notification
+{
+	GLSetDisplayScaleFactor(self.window.backingScaleFactor);
+}
+#endif
+
+
 - (BOOL) snapShot:(NSString *)filename
 {
 	BOOL snapShotOK = YES;

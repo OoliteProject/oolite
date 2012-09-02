@@ -32,6 +32,8 @@ MA 02110-1301, USA.
 
 static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
 
+static GLfloat sDisplayScaleFactor = 1.0f;
+
 
 BOOL CheckOpenGLErrors(NSString *format, ...)
 {
@@ -86,7 +88,7 @@ void GLDebugWireframeModeOn(void)
 	OO_ENTER_OPENGL();
 	
 	OOGL(glPushAttrib(GL_POLYGON_BIT | GL_LINE_BIT | GL_TEXTURE_BIT));
-	OOGL(glLineWidth(1.0f));
+	OOGL(GLScaledLineWidth(1.0f));
 	OOGL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	OOGL(glDisable(GL_TEXTURE_2D));
 }
@@ -166,7 +168,34 @@ void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 }
 
 
-// ======== LogOpenGLState() and helpers ========
+void GLScaledLineWidth(GLfloat width)
+{
+	OO_ENTER_OPENGL();
+	glLineWidth(width * sDisplayScaleFactor);
+}
+
+
+void GLScaledPointSize(GLfloat size)
+{
+	OO_ENTER_OPENGL();
+	glPointSize(size * sDisplayScaleFactor);
+}
+
+
+GLfloat GLGetDisplayScaleFactor(void)
+{
+	return sDisplayScaleFactor;
+}
+
+
+void GLSetDisplayScaleFactor(GLfloat factor)
+{
+	NSCParameterAssert(factor >= 0.0f && isfinite(factor));
+	sDisplayScaleFactor = factor;
+}
+
+
+// MARK: LogOpenGLState() and helpers
 
 #ifndef NDEBUG
 

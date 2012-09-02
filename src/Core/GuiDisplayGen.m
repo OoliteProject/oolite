@@ -1241,7 +1241,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		GLfloat h1 = 3.0f;
 		GLfloat h3 = 9.0f;
 		OOGL(glColor4f(0.2f, 0.2f, 1.0f, 0.5f));
-		OOGL(glLineWidth(2.0f));
+		OOGL(GLScaledLineWidth(2.0f));
 		
 		cursor_x += x;
 		cursor_y += y;
@@ -1253,7 +1253,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			glVertex3f((float)cursor_x, (float)cursor_y - h1, z);	glVertex3f((float)cursor_x, (float)cursor_y - h3, z);
 			glVertex3f((float)cursor_x, (float)cursor_y + h1, z);	glVertex3f((float)cursor_x, (float)cursor_y + h3, z);
 		OOGLEND();
-		OOGL(glLineWidth(1.0f));
+		OOGL(GLScaledLineWidth(1.0f));
 		
 	}
 	
@@ -1509,13 +1509,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		// draw fuel range circle
 		OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
-		OOGL(glLineWidth(2.0f));
+		OOGL(GLScaledLineWidth(2.0f));
 		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
 	}
 		
 	// draw marks and stars
 	//
-	OOGL(glLineWidth(1.5f));
+	OOGL(GLScaledLineWidth(1.5f));
 	OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
 
 	for (i = 0; i < 256; i++)
@@ -1883,7 +1883,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
-	OOGL(glLineWidth(2.0f));
+	OOGL(GLScaledLineWidth(2.0f));
 	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
 	
 	if ([player hasHyperspaceMotor])
@@ -1904,7 +1904,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	// draw marks
 	//
-	OOGL(glLineWidth(1.5f));
+	OOGL(GLScaledLineWidth(1.5f));
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
@@ -1940,7 +1940,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 	// draw found stars and captions
 	//
-	OOGL(glLineWidth(1.5f));
+	OOGL(GLScaledLineWidth(1.5f));
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	int n_matches = 0, foundIndex = -1;
 	

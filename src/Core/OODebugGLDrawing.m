@@ -120,7 +120,7 @@ void OODebugDrawPoint(Vector position, OOColor *color)
 	OO_ENTER_OPENGL();
 	
 	ApplyColor(color);
-	OOGL(glPointSize(10));
+	OOGL(GLScaledPointSize(10));
 	
 	OOGLBEGIN(GL_POINTS);
 		glVertex3f(position.x, position.y, position.z);
@@ -153,7 +153,7 @@ OODebugWFState OODebugBeginWireframe(BOOL ignoreZ)
 		OOGL(glDepthMask(GL_TRUE));
 	}
 	
-	OOGL(glLineWidth(1.0f));
+	OOGL(GLScaledLineWidth(1.0f));
 	
 	return state;
 }

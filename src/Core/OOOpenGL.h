@@ -59,6 +59,23 @@ BOOL CheckOpenGLErrors(NSString *format, ...);
 void LogOpenGLState(void);
 
 
+/*	GLScaledLineWidth()
+	GLScaledPointSize()
+	GLGetDisplayScaleFactor()
+	GLSetDisplayScaleFactor()
+	
+	These functions wrap glLineWidth() and glPointSize(), and multiply the
+	specified size by a "display scale factor". This is currently used to
+	support Retina display modes in Mac OS X 10.7 and later.
+	
+	The default display scale factor is 1.0.
+*/
+void GLScaledLineWidth(GLfloat width);
+void GLScaledPointSize(GLfloat size);
+GLfloat GLGetDisplayScaleFactor(void);
+void GLSetDisplayScaleFactor(GLfloat factor);
+
+
 /*	GLDebugWireframeModeOn()
 	GLDebugWireframeModeOff()
 	Enable/disable debug wireframe mode. In debug wireframe mode, the polygon

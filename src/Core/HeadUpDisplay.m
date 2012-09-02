@@ -582,13 +582,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	if (_crosshairWidth * lineWidth > 0)
 	{
-		OOGL(glLineWidth(_crosshairWidth * lineWidth));
+		OOGL(GLScaledLineWidth(_crosshairWidth * lineWidth));
 		[self drawCrosshairs];
 	}
 	
 	if (lineWidth > 0)
 	{
-		OOGL(glLineWidth(lineWidth));
+		OOGL(GLScaledLineWidth(lineWidth));
 		[self drawLegends];
 	}
 	
@@ -1180,7 +1180,7 @@ static BOOL hostiles;
 	GLfloat h3 = siz.height * 0.375;
 	GLfloat w1 = siz.width * 0.125;
 	GLfloat w3 = siz.width * 0.375;
-	OOGL(glLineWidth(2.0 * lineWidth));	// thicker
+	OOGL(GLScaledLineWidth(2.0 * lineWidth));	// thicker
 	OOGL(glColor4f(compass_color[0], compass_color[1], compass_color[2], alpha));
 	GLDrawOval(x, y, z1, siz, 12);	
 	OOGL(glColor4f(compass_color[0], compass_color[1], compass_color[2], 0.5f * alpha));
@@ -1190,7 +1190,7 @@ static BOOL hostiles;
 		glVertex3f(x, y - h1, z1);	glVertex3f(x, y - h3, z1);
 		glVertex3f(x, y + h1, z1);	glVertex3f(x, y + h3, z1);
 	OOGLEND();
-	OOGL(glLineWidth(lineWidth));	// thinner
+	OOGL(GLScaledLineWidth(lineWidth));	// thinner
 	
 	OOSunEntity		*the_sun = [UNIVERSE sun];
 	OOPlanetEntity	*the_planet = [UNIVERSE planet];
@@ -1269,7 +1269,7 @@ static BOOL hostiles;
 		
 		siz.width *= 0.2;
 		siz.height *= 0.2;
-		OOGL(glLineWidth(2.0));
+		OOGL(GLScaledLineWidth(2.0));
 		switch ([player compassMode])
 		{
 			case COMPASS_MODE_BASIC:
@@ -2441,7 +2441,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLDrawFilledOval(x, y, z1, siz, 10);
 	
 	GLColorWithOverallAlpha((div < 1.0 || mouse) ? lightgray_color : green_color, alpha);
-	OOGL(glLineWidth(_crosshairWidth * lineWidth));
+	OOGL(GLScaledLineWidth(_crosshairWidth * lineWidth));
 	
 	if (div >= 1.0)
 	{
@@ -3115,9 +3115,9 @@ static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir,
 		ii = 1;
 	}
 	
-	OOGL(glLineWidth(2.0 * thickness));
+	OOGL(GLScaledLineWidth(2.0 * thickness));
 	GLDrawOval(x, y, z, siz, 4);	
-	OOGL(glLineWidth(thickness));
+	OOGL(GLScaledLineWidth(thickness));
 	
 	OOGLBEGIN(GL_LINES);
 		glVertex3f(x, y - hh, z);	glVertex3f(x, y + hh, z);

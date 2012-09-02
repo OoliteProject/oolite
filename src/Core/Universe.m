@@ -3823,7 +3823,7 @@ static const OOMatrix	starboard_matrix =
 
 			GLfloat	lineWidth = [gameView viewSize].width / 1024.0; // restore line size
 			if (lineWidth < 1.0)  lineWidth = 1.0;
-			OOGL(glLineWidth(lineWidth));
+			OOGL(GLScaledLineWidth(lineWidth));
 
 			[self drawMessage];
 			

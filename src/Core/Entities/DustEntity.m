@@ -271,7 +271,7 @@ enum
 		// Draw points.
 		float dustPointSize = ceil(idealDustSize);
 		if (dustPointSize < 1.0f)  dustPointSize = 1.0f;
-		OOGL(glPointSize(dustPointSize));
+		OOGL(GLScaledPointSize(dustPointSize));
 		dustIntensity = OOClamp_0_1_f(idealDustSize / dustPointSize);
 	}
 	else
@@ -280,7 +280,7 @@ enum
 		float idealLineSize = idealDustSize * 0.5f;
 		float dustLineSize = ceil(idealLineSize);
 		if (dustLineSize < 1.0f)  dustLineSize = 1.0f;
-		OOGL(glLineWidth(dustLineSize));
+		GLScaledLineWidth(dustLineSize);
 		dustIntensity = OOClamp_0_1_f(idealLineSize / dustLineSize);
 	}
 	
