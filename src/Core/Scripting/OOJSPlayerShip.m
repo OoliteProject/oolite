@@ -95,8 +95,8 @@ enum
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
-	kPlayerShip_currentWeapon,      // shortcut property to _aftWeapon, etc. overrides kShip generic version
-	kPlayerShip_crosshairs,					// custom plist file defining crosshairs
+	kPlayerShip_currentWeapon,					// shortcut property to _aftWeapon, etc. overrides kShip generic version
+	kPlayerShip_crosshairs,						// custom plist file defining crosshairs
 	kPlayerShip_cursorCoordinates,				// cursor coordinates (unscaled), Vector3D, read only
 	kPlayerShip_cursorCoordinatesInLY,			// cursor coordinates (in LY), Vector3D, read only
 	kPlayerShip_docked,							// docked, boolean, read-only
@@ -113,30 +113,29 @@ enum
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
-	kPlayerShip_pitch,        // pitch (overrules Ship)
-	kPlayerShip_price,				// idealised trade-in value decicredits, positive int, read-only
+	kPlayerShip_pitch,							// pitch (overrules Ship)
+	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
 	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
-	kPlayerShip_roll,        // roll (overrules Ship)
+	kPlayerShip_roll,							// roll (overrules Ship)
 	kPlayerShip_scoopOverride,					// Scooping
-	kPlayerShip_serviceLevel,				// servicing level, positive int 75-100, read-only
+	kPlayerShip_serviceLevel,					// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-write
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
-//	kPlayerShip_weaponFacings,         // available weapon facings, int, read-only
 	kPlayerShip_weaponsOnline,					// weapons online status, boolean, read-only
-	kPlayerShip_yaw,        // yaw (overrules Ship)
+	kPlayerShip_yaw,							// yaw (overrules Ship)
 };
 
 
 static JSPropertySpec sPlayerShipProperties[] =
 {
-	// JS name						ID									flags
+	// JS name							ID											flags
 	{ "aftShield",						kPlayerShip_aftShield,						OOJS_PROP_READWRITE_CB },
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READONLY_CB },
 	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READONLY_CB },
 	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
 	{ "currentWeapon",					kPlayerShip_currentWeapon,					OOJS_PROP_READWRITE_CB },
-	{ "crosshairs",				kPlayerShip_crosshairs,				OOJS_PROP_READWRITE_CB },
+	{ "crosshairs",						kPlayerShip_crosshairs,						OOJS_PROP_READWRITE_CB },
 	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				OOJS_PROP_READONLY_CB },
 	{ "cursorCoordinatesInLY",			kPlayerShip_cursorCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "docked",							kPlayerShip_docked,							OOJS_PROP_READONLY_CB },
@@ -163,7 +162,6 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
-//	{ "weaponFacings",					kPlayerShip_weaponFacings,					OOJS_PROP_READONLY_CB },
 	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					OOJS_PROP_READONLY_CB },
 	{ "yaw",							kPlayerShip_yaw,							OOJS_PROP_READONLY_CB },
 	{ 0 }			
@@ -414,7 +412,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
 	JSBool						bValue;
-	int32             iValue;
+	int32						iValue;
 	NSString					*sValue = nil;
 	OOGalacticHyperspaceBehaviour ghBehaviour;
 	Vector						vValue;
@@ -549,21 +547,31 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			[player setWeaponMount:[player currentWeaponFacing] toWeapon:sValue];
 			return YES;
 		}
-
+		
 		case kPlayerShip_targetSystem:
 			if ([player status] != STATUS_ENTERING_WITCHSPACE)
 			{
+				if (EXPECT_NOT([player guiScreen] != GUI_SCREEN_MISSION))
+				{
+					OOJSReportError(context, @"player.ship.targetSystem is read-only unless called from a mission screen.");
+					return NO;
+				}
+				
 				if (JS_ValueToInt32(context, *value, &iValue))
 				{
-					if (iValue >= 0)
+					if (iValue >= 0 && iValue < 256)
 					{ 
 						Random_Seed seed = [UNIVERSE systemSeedForSystemNumber:(OOSystemID)iValue];
 						[player setTargetSystemSeed:seed];
 						return YES;
 					}
+					else
+					{
+						return NO;
+					}
 				}
 			}
-
+		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 			return NO;
