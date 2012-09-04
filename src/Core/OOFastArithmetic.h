@@ -53,6 +53,7 @@ OOINLINE INLINE_CONST_FUNC uint64_t OORoundUpToPowerOf2_64(uint64_t value)
 }
 
 
+#if __OBJC__
 #if OOLITE_64_BIT
 OOINLINE INLINE_CONST_FUNC NSUInteger OORoundUpToPowerOf2_NS(NSUInteger value)
 {
@@ -63,6 +64,7 @@ OOINLINE INLINE_CONST_FUNC NSUInteger OORoundUpToPowerOf2_NS(NSUInteger value)
 {
 	return OORoundUpToPowerOf2_32(value);
 }
+#endif
 #endif
 
 
