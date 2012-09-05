@@ -3911,9 +3911,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 				}
 			} 
-			else // if target is running away, stay on target
+			else
 			{
+				// if target is running away, stay on target
+				// unless too close for safety
+				if (range < COMBAT_IN_RANGE_FACTOR * weaponRange) {
+					behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+				} else {
 					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+				}
 			}
 		}
 // if our current target isn't targeting us, and we have some idea of how to fight, and our weapons are running hot, and we're fairly nearby
