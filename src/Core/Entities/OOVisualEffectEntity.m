@@ -193,6 +193,12 @@ MA 02110-1301, USA.
 }
 
 
+- (NSString *)effectKey
+{
+	return _effectKey;
+}
+
+
 - (GLfloat)frustumRadius 
 {
 	return _profileRadius;

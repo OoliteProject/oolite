@@ -61,6 +61,8 @@
 - (OOMesh *)mesh;
 - (void)setMesh:(OOMesh *)mesh;
 
+- (NSString *)effectKey;
+
 - (GLfloat)frustumRadius;
 
 - (void) clearSubEntities;

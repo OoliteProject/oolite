@@ -86,6 +86,7 @@ enum
 	kEntity_isSun,				// is sun, boolean, read-only.
 	kEntity_isValid,			// is not stale, boolean, read-only.
 	kEntity_isVisible,			// is within drawing distance, boolean, read-only.
+	kEntity_isVisualEffect,	// is visual effect, boolean, read-only.
 };
 
 
@@ -113,6 +114,7 @@ static JSPropertySpec sEntityProperties[] =
 	{ "isSun",					kEntity_isSun,				OOJS_PROP_READONLY_CB },
 	{ "isValid",				kEntity_isValid,			OOJS_PROP_READONLY_CB },
 	{ "isVisible",				kEntity_isVisible,			OOJS_PROP_READONLY_CB },
+	{ "isVisualEffect",		kEntity_isVisualEffect,		OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -264,6 +266,10 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 		
 		case kEntity_isVisible:
 			*value = OOJSValueFromBOOL([entity isVisible]);
+			return YES;
+
+		case kEntity_isVisualEffect:
+			*value = OOJSValueFromBOOL([entity isVisualEffect]);
 			return YES;
 			
 		case kEntity_distanceTravelled:

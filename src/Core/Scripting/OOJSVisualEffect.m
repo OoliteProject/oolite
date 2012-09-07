@@ -69,6 +69,7 @@ static JSClass sVisualEffectClass =
 enum
 {
 	// Property IDs
+	kVisualEffect_dataKey,
 	kVisualEffect_hullHeatLevel,
 	kVisualEffect_isBreakPattern,
 	kVisualEffect_scannerDisplayColor1,
@@ -85,6 +86,7 @@ enum
 static JSPropertySpec sVisualEffectProperties[] =
 {
 	// JS name						ID									flags
+	{ "dataKey",	kVisualEffect_dataKey,	OOJS_PROP_READONLY_CB },
 	{ "isBreakPattern",	kVisualEffect_isBreakPattern,	OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1", kVisualEffect_scannerDisplayColor1, OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2", kVisualEffect_scannerDisplayColor2, OOJS_PROP_READWRITE_CB },
@@ -179,6 +181,10 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kVisualEffect_dataKey:
+			result = [entity effectKey];
+			break;
+
 		case kVisualEffect_isBreakPattern:
 			*value = OOJSValueFromBOOL([entity isBreakPattern]);
 
