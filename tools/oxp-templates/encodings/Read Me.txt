@@ -1,0 +1,17 @@
+These OXPs change the font and text encoding of Oolite to support
+additional languages. They are not intended to be used as-is, but rather to
+be used as the basis for localizations (translations) of Oolite.
+Modifications to the substitutions dictionary in oolite-font.plist may be
+needed.
+
+All five font textures (these, and the one in Oolite) are based on Apple's
+version of Linotype Helvetica Bold, 50 pt.
+
+The tool used to generate the images and can be found in the Oolite source
+repository under tools/fonttexgen. This is a hacked-together tool for
+Mac OS X 10.5 and later. It could be used to generate textures based on
+other fonts, but would require modification.
+
+These OXPs are hereby placed in the public domain.
+
+-- Jens Ayton
