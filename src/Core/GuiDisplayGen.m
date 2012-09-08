@@ -1854,33 +1854,31 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		time = distance * distance;
 	}
 	
-	if (!(backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG))
-	{
-		OOGUITabSettings tab_stops;
-		tab_stops[0] = 0;
-		tab_stops[1] = 96;
-		tab_stops[2] = 288;
-		[self setTabStops:tab_stops];
-		NSString *targetSystemName = [[UNIVERSE getSystemName:[PLAYER target_system_seed]] retain];
+	OOGUITabSettings tab_stops;
+	tab_stops[0] = 0;
+	tab_stops[1] = 96;
+	tab_stops[2] = 288;
+	[self setTabStops:tab_stops];
+	NSString *targetSystemName = [[UNIVERSE getSystemName:[PLAYER target_system_seed]] retain];
 
-		if (routeExists)
+	if (routeExists)
+	{
+		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
+		NSString *travelDistLine = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-distance-f]"), distance];
+		NSString *travelTimeLine = @"";
+		if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
 		{
-			// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-			NSString *travelDistLine = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-distance-f]"), distance];
-			NSString *travelTimeLine = @"";
-			if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
-			{
-				travelTimeLine = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-est-travel-time-f]"), time];
-			}
+			travelTimeLine = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-est-travel-time-f]"), time];
+		}
 			
-			[self setArray:[NSArray arrayWithObjects:targetSystemName, travelDistLine,travelTimeLine,nil] forRow:16];
-		}
-		else
-		{
-			[self setArray:[NSArray arrayWithObjects:targetSystemName, DESC(@"long-range-chart-system-unreachable"), nil] forRow:16];
-		}
-		[targetSystemName release];
+		[self setArray:[NSArray arrayWithObjects:targetSystemName, travelDistLine,travelTimeLine,nil] forRow:16];
 	}
+	else
+	{
+		[self setArray:[NSArray arrayWithObjects:targetSystemName, DESC(@"long-range-chart-system-unreachable"), nil] forRow:16];
+	}
+	[targetSystemName release];
+	
 
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
 	OOGL(GLScaledLineWidth(2.0f));
