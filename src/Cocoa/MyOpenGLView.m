@@ -375,6 +375,9 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 												 selector:@selector(backingPropertiesChanged:)
 													 name:NSWindowDidChangeBackingPropertiesNotification
 												   object:self.window];
+		
+		// Also, ensure the initial state makes sense.
+		[self backingPropertiesChanged:nil];
 	}
 }
 
