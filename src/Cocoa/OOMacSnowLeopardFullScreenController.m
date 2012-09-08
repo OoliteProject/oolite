@@ -180,7 +180,6 @@ MA 02110-1301, USA.
 	[self setUpBlankingWindowsForScreensOtherThan:self.gameScreen];
 	
 	[window makeKeyAndOrderFront:self];
-	OOLog(@"temp", @"%u", window.canBecomeMainWindow);
 	
 	_fullScreenMode = YES;
 	
