@@ -693,8 +693,27 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			OOCargoQuantity		cargo_space_required = [contract_info oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
 			OOMassUnit			cargo_units = [UNIVERSE unitsForCommodity:[contract_info oo_unsignedIntForKey:CARGO_KEY_TYPE]];
 			// int math: 99/100 = 0!
-			if (cargo_units == UNITS_KILOGRAMS)	cargo_space_required = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargo_space_required) / KILOGRAMS_PER_POD; // if more than the safe can hold, count as 1t
-			if (cargo_units == UNITS_GRAMS)		cargo_space_required = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargo_space_required) / GRAMS_PER_POD; // if more than 499999g, count as 1t
+			if (cargo_units == UNITS_KILOGRAMS)
+			{
+				// this calculation still isn't quite right, but it errs in
+				// favour of loading too little cargo rather than impossibly much
+				// - CIM 8 Sep 2012
+				OOCargoQuantity currentKilogramsInSafe = [[[self shipCommodityData] objectAtIndex:[contract_info oo_unsignedIntForKey:CARGO_KEY_TYPE]] oo_intAtIndex:MARKET_QUANTITY];
+				if (currentKilogramsInSafe > MAX_KILOGRAMS_IN_SAFE)
+				{
+					currentKilogramsInSafe = MAX_KILOGRAMS_IN_SAFE;
+				}
+				cargo_space_required = ((currentKilogramsInSafe + KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargo_space_required) / KILOGRAMS_PER_POD; // if more than the safe can *currently* hold, count as 1t
+			}
+			else if (cargo_units == UNITS_GRAMS)
+			{
+				OOCargoQuantity currentGramsInSafe = [[[self shipCommodityData] objectAtIndex:[contract_info oo_unsignedIntForKey:CARGO_KEY_TYPE]] oo_intAtIndex:MARKET_QUANTITY];
+				if (currentGramsInSafe > MAX_GRAMS_IN_SAFE)
+				{
+					currentGramsInSafe = MAX_GRAMS_IN_SAFE;
+				}
+				cargo_space_required = ((currentGramsInSafe + GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargo_space_required) / GRAMS_PER_POD; // if more than 499999g, count as 1t
+			}
 			
 			float premium = [(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] floatValue];
 			BOOL not_possible = ((cargo_space_required > [self availableCargoSpace])||(premium * 10 > credits));

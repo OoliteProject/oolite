@@ -1959,6 +1959,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	id            choiceValue = nil;
 	NSString			*choiceText = nil;
 	
+	BOOL selectableRowExists = NO;
+	NSUInteger firstSelectableRow = end_row;
+
 	for (choiceEnum = [choiceKeys objectEnumerator]; (choiceKey = [choiceEnum nextObject]); )
 	{
 		choiceValue = [choicesDict objectForKey:choiceKey];
@@ -1993,6 +1996,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			[gui setText:choiceText forRow:choicesRow align: alignment];
 			[gui setKey:choiceKey forRow:choicesRow];
 			[gui setColor:[OOColor yellowColor] forRow:choicesRow];
+			if (!selectableRowExists)
+			{
+				selectableRowExists = YES;
+				firstSelectableRow = choicesRow;
+			}
 		}
 		else 
 		{
@@ -2002,8 +2010,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		choicesRow++;
 	}
 	
+	if (!selectableRowExists)
+	{
+		// just in case choices are set but they're all blank.
+		[gui setText:@"  " forRow:end_row align: GUI_ALIGN_CENTER];
+		[gui setKey:@"" forRow:end_row];
+		[gui setColor:[OOColor yellowColor] forRow:end_row];
+	}
+
 	[gui setSelectableRange:NSMakeRange((end_row+1) - [choiceKeys count], [choiceKeys count])];
-	[gui setSelectedRow: (end_row+1) - [choiceKeys count]];
+	[gui setSelectedRow: firstSelectableRow];
 	
 	[self resetMissionChoice];
 }
