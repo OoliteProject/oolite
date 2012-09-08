@@ -203,6 +203,7 @@ typedef enum
 
 - (void) setMissionChoices:(NSString *)choicesKey;	// choicesKey is a key for a dictionary of
 													// choices/choice phrases in missiontext.plist and also..
+- (void) setMissionChoicesDictionary:(NSDictionary *)choicesDict;
 - (void) resetMissionChoice;						// resets MissionChoice to nil
 
 - (void) clearMissionScreen;

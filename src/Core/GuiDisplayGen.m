@@ -108,6 +108,8 @@ static BOOL _refreshStarChart = NO;
 		textColor = [[OOColor yellowColor] retain];
 		
 		drawPosition = make_vector(0.0f, 0.0f, 640.0f);
+		
+		backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
 	}
 	return self;
 }
@@ -918,7 +920,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 - (void) setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)spec
 {
-	[backgroundSprite autorelease];
 	backgroundSpecial = spec;
 	[self refreshStarChart];
 }
@@ -927,7 +928,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 - (BOOL) setBackgroundTextureDescriptor:(NSDictionary *)descriptor
 {
 	[backgroundSprite autorelease];
-	backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
+	backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE; // reset
 	backgroundSprite = NewTextureSpriteWithDescriptor(descriptor);
 	return backgroundSprite != nil;
 }
@@ -983,37 +984,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (result == nil)
 	{
 		NSString *name = OOStringFromJSValue(context, value);
-		if ([name isEqualToString:@"SHORT_RANGE_CHART"])
-		{
-			return [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:GUI_BACKGROUND_SPECIAL_SHORT] forKey:@"special"];
-		}
-		else if ([name isEqualToString:@"LONG_RANGE_CHART"])
-		{
-			return [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:GUI_BACKGROUND_SPECIAL_LONG] forKey:@"special"];
-		}
-		else if ([name isEqualToString:@"LONG_RANGE_CHART_SHORTEST"])
-		{
-			if ([PLAYER hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
-			{
-				return [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST] forKey:@"special"];
-			}
-			else
-			{
-				return [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:GUI_BACKGROUND_SPECIAL_LONG] forKey:@"special"];
-			}
-		}
-		else if ([name isEqualToString:@"LONG_RANGE_CHART_QUICKEST"])
-		{
-			if ([PLAYER hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
-			{
-				return [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST] forKey:@"special"];
-			}
-			else
-			{
-				return [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:GUI_BACKGROUND_SPECIAL_LONG] forKey:@"special"];
-			}
-		}
-		else if (name != nil)
+
+		if (name != nil)
 		{
 			result = [NSDictionary dictionaryWithObject:name forKey:@"name"];
 			if ([name length] == 0)  return result;	// Explicit empty string may be used to indicate no texture.
@@ -1160,14 +1132,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	GLfloat y = drawPosition.y;
 	GLfloat z = [[UNIVERSE gameView] display_z];
 
-	if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_NONE)
+	if (backgroundSprite!=nil)
 	{
-		if (backgroundSprite!=nil)
-		{
-			[backgroundSprite blitBackgroundCentredToX:x Y:y Z:z alpha:1.0f];
-		}
+		[backgroundSprite blitBackgroundCentredToX:x Y:y Z:z alpha:1.0f];
 	}
-
+	
 }
 
 

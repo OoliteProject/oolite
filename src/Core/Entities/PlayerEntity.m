@@ -1436,6 +1436,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self setMissionOverlayDescriptor:nil];
 	[self setMissionBackgroundDescriptor:nil];
+	[self setMissionBackgroundSpecial:nil];
 	[self setEquipScreenBackgroundDescriptor:nil];
 	
 	script_time = 0.0;
@@ -8760,6 +8761,54 @@ static NSString *last_outfitting_key=nil;
 	{
 		[_missionBackgroundDescriptor autorelease];
 		_missionBackgroundDescriptor = [descriptor copy];
+	}
+}
+
+
+- (OOGUIBackgroundSpecial) missionBackgroundSpecial
+{
+	return _missionBackgroundSpecial;
+}
+
+
+- (void) setMissionBackgroundSpecial:(NSString *)special
+{
+	if (special == nil) {
+		_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
+	}
+	else if ([special isEqualToString:@"SHORT_RANGE_CHART"])
+	{
+		_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT;
+	}
+	else if ([special isEqualToString:@"LONG_RANGE_CHART"])
+	{
+		_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG;
+	}
+	else if ([special isEqualToString:@"LONG_RANGE_CHART_SHORTEST"])
+	{
+		if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST;
+		}
+		else
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG;
+		}
+	}
+	else if ([special isEqualToString:@"LONG_RANGE_CHART_QUICKEST"])
+	{
+		if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST;
+		}
+		else
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG;
+		}
+	} 
+	else 
+	{
+		_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
 	}
 }
 

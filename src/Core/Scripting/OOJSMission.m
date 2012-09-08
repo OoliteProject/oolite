@@ -385,6 +385,20 @@ static JSBool MissionSetInstructionsInternal(JSContext *context, uintN argc, jsv
 }
 
 
+static NSDictionary *GetParameterDictionary(JSContext *context, JSObject *object, const char *key)
+{
+	jsval value = JSVAL_NULL;
+	if (JS_GetProperty(context, object, key, &value))
+	{
+		if (JSVAL_IS_OBJECT(value))
+		{
+			return OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(value));
+		}
+	}
+	return nil;
+}
+
+
 static NSString *GetParameterString(JSContext *context, JSObject *object, const char *key)
 {
 	jsval value = JSVAL_NULL;
@@ -483,7 +497,8 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	[[OOMusicController	sharedController] setMissionMusic:GetParameterString(context, params, "music")];
 	[player setMissionOverlayDescriptor:GetParameterImageDescriptor(context, params, "overlay")];
 	[player setMissionBackgroundDescriptor:GetParameterImageDescriptor(context, params, "background")];
-	
+	[player setMissionBackgroundSpecial:GetParameterString(context, params, "backgroundSpecial")];
+
 	[UNIVERSE removeDemoShips];	// remove any demoship or miniature planet that may be remaining from previous screens
 	
 	ShipEntity *demoShip = nil;
@@ -540,7 +555,17 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 		if (messageKey != nil)  [player addMissionText:messageKey];
 	}
 	
-	[player setMissionChoices:GetParameterString(context, params, "choicesKey")];
+	NSDictionary *choices = GetParameterDictionary(context, params, "choices");
+	if (choices == nil)
+	{
+		[player setMissionChoices:GetParameterString(context, params, "choicesKey")];
+	}
+	else 
+	{
+		[player setMissionChoicesDictionary:choices];		
+	}
+
+
 	NSString *firstKey = GetParameterString(context, params, "initialChoicesKey");
 	if (firstKey != nil)
 	{

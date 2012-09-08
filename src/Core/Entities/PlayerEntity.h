@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "WormholeEntity.h"
 #import "ShipEntity.h"
+#import "GuiDisplayGen.h"
 #import "OOTypes.h"
 #import "OOJSPropID.h"
 
@@ -274,6 +275,7 @@ typedef enum
 	
 	NSDictionary			*_missionOverlayDescriptor;
 	NSDictionary			*_missionBackgroundDescriptor;
+	OOGUIBackgroundSpecial	_missionBackgroundSpecial;
 	NSDictionary			*_equipScreenBackgroundDescriptor;
 	
 	BOOL					found_equipment;
@@ -812,6 +814,9 @@ typedef enum
 - (NSDictionary *) missionBackgroundDescriptor;
 - (NSDictionary *) missionBackgroundDescriptorOrDefault;
 - (void) setMissionBackgroundDescriptor:(NSDictionary *)descriptor;
+- (OOGUIBackgroundSpecial) missionBackgroundSpecial;
+- (void) setMissionBackgroundSpecial:(NSString *)special;
+
 
 // Nasty hack to keep background textures around while on equip screens.
 - (NSDictionary *) equipScreenBackgroundDescriptor;

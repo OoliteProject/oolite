@@ -1916,6 +1916,17 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionChoices:(NSString *)choicesKey	// choicesKey is a key for a dictionary of
 {													// choices/choice phrases in missiontext.plist and also..
+	NSDictionary *choicesDict = [[UNIVERSE missiontext] oo_dictionaryForKey:choicesKey];
+	if ([choicesDict count] == 0)
+	{
+		return;
+	}
+	[self setMissionChoicesDictionary:choicesDict];
+}
+
+
+- (void) setMissionChoicesDictionary:(NSDictionary *)choicesDict
+{
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	// TODO: MORE STUFF HERE
 	//
@@ -1928,11 +1939,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// and only if the selectable range is not present ask:
 	// Press Space Commander...
 	//
-	NSDictionary *choicesDict = [[UNIVERSE missiontext] oo_dictionaryForKey:choicesKey];
-	if ([choicesDict count] == 0)
-	{
-		return;
-	}
 	
 	NSUInteger end_row = 21;
 	if ([[self hud] isHidden]) 
@@ -1950,16 +1956,49 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	OOGUIRow			choicesRow = (end_row+1) - [choiceKeys count];
 	NSEnumerator		*choiceEnum = nil;
 	NSString			*choiceKey = nil;
+	id            choiceValue = nil;
 	NSString			*choiceText = nil;
 	
 	for (choiceEnum = [choiceKeys objectEnumerator]; (choiceKey = [choiceEnum nextObject]); )
 	{
-		choiceText = [NSString stringWithFormat:@" %@ ",[choicesDict objectForKey:choiceKey]];
+		choiceValue = [choicesDict objectForKey:choiceKey];
+		OOGUIAlignment alignment = GUI_ALIGN_CENTER;
+		if ([choiceValue isKindOfClass:[NSString class]])
+		{
+			choiceText = [NSString stringWithFormat:@" %@ ",(NSString*)choiceValue];
+		} 
+		else if ([choiceValue isKindOfClass:[NSDictionary class]])
+		{
+			NSDictionary *choiceOpts = (NSDictionary*)choiceValue;
+			choiceText = [NSString stringWithFormat:@" %@ ",[choiceOpts oo_stringForKey:@"text"]];
+			NSString *alignmentChoice = [choiceOpts oo_stringForKey:@"alignment" defaultValue:@"CENTER"];
+			if ([alignmentChoice isEqualToString:@"LEFT"])
+			{
+				alignment = GUI_ALIGN_LEFT;
+			}
+			else if ([alignmentChoice isEqualToString:@"RIGHT"])
+			{
+				alignment = GUI_ALIGN_RIGHT;
+			}
+		}
+		else
+		{
+			continue; // invalid type
+		}
 		choiceText = ExpandDescriptionForCurrentSystem(choiceText);
 		choiceText = [self replaceVariablesInString:choiceText];
-		[gui setText:choiceText forRow:choicesRow align: GUI_ALIGN_CENTER];
-		[gui setKey:choiceKey forRow:choicesRow];
-		[gui setColor:[OOColor yellowColor] forRow:choicesRow];
+		// allow blank rows
+		if (![choiceText isEqualToString:@"  "])
+		{
+			[gui setText:choiceText forRow:choicesRow align: alignment];
+			[gui setKey:choiceKey forRow:choicesRow];
+			[gui setColor:[OOColor yellowColor] forRow:choicesRow];
+		}
+		else 
+		{
+			[gui setText:@"" forRow:choicesRow align: alignment];
+			[gui setKey:GUI_KEY_SKIP forRow:choicesRow];
+		}
 		choicesRow++;
 	}
 	
@@ -1980,6 +2019,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	[self setMissionOverlayDescriptor:nil];
 	[self setMissionBackgroundDescriptor:nil];
+	[self setMissionBackgroundSpecial:nil];
 	[self setMissionTitle:nil];
 	[self setMissionMusic:nil];
 	[self showShipModel:nil];
@@ -2350,15 +2390,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		[gui setForegroundTextureDescriptor:[self missionOverlayDescriptorOrDefault]];
 		NSDictionary *background_desc = [self missionBackgroundDescriptorOrDefault];
-		NSNumber *background_spec = [background_desc objectForKey:@"special"];
-		if (background_spec != nil)
-		{
-			[gui setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)[background_spec intValue]];
-		}
-		else
-		{
-			[gui setBackgroundTextureDescriptor:background_desc];
-		}
+		[gui setBackgroundTextureDescriptor:background_desc];
+		// must set special second as setting the descriptor resets it
+		[gui setBackgroundTextureSpecial:[self missionBackgroundSpecial]];
 		
 		[gui setShowTextCursor:NO];
 	}
