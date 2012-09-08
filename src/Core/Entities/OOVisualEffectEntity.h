@@ -51,8 +51,12 @@
 	Vector          _shaderVector1;
 	Vector          _shaderVector2;
 
+	OOJSScript				*script;
+	NSDictionary			*scriptInfo;
+
 	NSString				*_effectKey;
 
+	BOOL            _haveExecutedSpawnAction;
 }
 
 - (id)initWithKey:(NSString *)key definition:(NSDictionary *) dict;
@@ -80,6 +84,13 @@
 - (void)setScannerDisplayColor1:(OOColor *)color;
 - (void)setScannerDisplayColor2:(OOColor *)color; 
 - (GLfloat *) scannerDisplayColorForShip:(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2;
+
+- (void) setScript:(NSString *)script_name;
+- (OOJSScript *)script;
+- (NSDictionary *)scriptInfo;
+- (void) doScriptEvent:(jsid)message;
+- (void) remove;
+
 
 // convenience for shaders
 - (GLfloat)hullHeatLevel;

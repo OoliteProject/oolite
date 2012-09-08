@@ -90,6 +90,7 @@ MA 02110-1301, USA.
 	}
 
 	collisionTestFilter = NO;
+	_haveExecutedSpawnAction = NO;
 
 	return self;
 	
@@ -141,6 +142,8 @@ MA 02110-1301, USA.
 	_shaderVector1 = kZeroVector;
 	_shaderVector2 = kZeroVector;
 
+	scriptInfo = [[effectDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
+	[self setScript:[effectDict oo_stringForKey:@"script"]];
 
 	return YES;
 
@@ -155,6 +158,8 @@ MA 02110-1301, USA.
 	DESTROY(effectinfoDictionary);
 	DESTROY(scanner_display_color1);
 	DESTROY(scanner_display_color2);
+	DESTROY(scriptInfo);
+	DESTROY(script);
 
 	[super dealloc];
 }
@@ -462,6 +467,11 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 {
 	[super update:delta_t];
 
+	if (!_haveExecutedSpawnAction) {
+		[self doScriptEvent:OOJSID("effectSpawned")];
+		_haveExecutedSpawnAction = YES;
+	}
+
 	Entity *se = nil;
 	foreach (se, [self subEntities])
 	{
@@ -485,6 +495,50 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 - (NSDictionary *)effectInfoDictionary
 {
 	return effectinfoDictionary;
+}
+
+
+- (void) setScript:(NSString *)script_name
+{
+	NSMutableDictionary		*properties = nil;
+	
+	properties = [NSMutableDictionary dictionary];
+	[properties setObject:self forKey:@"visualEffect"];
+	
+	[script autorelease];
+	script = [OOScript jsScriptFromFileNamed:script_name properties:properties];
+	// does not support legacy scripting
+	if (script == nil) {
+		script = [OOScript jsScriptFromFileNamed:@"oolite-default-effect-script.js" properties:properties];
+	}
+	[script retain];
+}
+
+
+- (OOJSScript *)script
+{
+	return script;
+}
+
+
+- (NSDictionary *)scriptInfo
+{
+	return (scriptInfo != nil) ? scriptInfo : (NSDictionary *)[NSDictionary dictionary];
+}
+
+// unlikely to need events with arguments
+- (void) doScriptEvent:(jsid)message
+{
+	JSContext *context = OOJSAcquireContext();
+	[script callMethod:message inContext:context withArguments:NULL count:0 result:NULL];
+	OOJSRelinquishContext(context);
+}
+
+
+- (void) remove
+{
+	[self doScriptEvent:OOJSID("effectRemoved")];
+	[UNIVERSE removeEntity:(Entity*)self];
 }
 
 

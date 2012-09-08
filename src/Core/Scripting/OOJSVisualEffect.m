@@ -74,6 +74,8 @@ enum
 	kVisualEffect_isBreakPattern,
 	kVisualEffect_scannerDisplayColor1,
 	kVisualEffect_scannerDisplayColor2,
+	kVisualEffect_script,
+	kVisualEffect_scriptInfo,
 	kVisualEffect_shaderFloat1,
 	kVisualEffect_shaderFloat2,
 	kVisualEffect_shaderInt1,
@@ -91,6 +93,8 @@ static JSPropertySpec sVisualEffectProperties[] =
 	{ "scannerDisplayColor1", kVisualEffect_scannerDisplayColor1, OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2", kVisualEffect_scannerDisplayColor2, OOJS_PROP_READWRITE_CB },
 	{ "hullHeatLevel", kVisualEffect_hullHeatLevel, OOJS_PROP_READWRITE_CB },
+	{ "script",				 kVisualEffect_script,				OOJS_PROP_READONLY_CB },
+	{ "scriptInfo", 	 kVisualEffect_scriptInfo,		OOJS_PROP_READONLY_CB },
 	{ "shaderFloat1",  kVisualEffect_shaderFloat1,  OOJS_PROP_READWRITE_CB },
 	{ "shaderFloat2",  kVisualEffect_shaderFloat2,  OOJS_PROP_READWRITE_CB },
 	{ "shaderInt1",    kVisualEffect_shaderInt1,    OOJS_PROP_READWRITE_CB },
@@ -221,6 +225,15 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 		case kVisualEffect_shaderVector2:
 			return VectorToJSValue(context, [entity shaderVector2], value);
 			
+		case kVisualEffect_script:
+			result = [entity script];
+			break;
+
+		case kVisualEffect_scriptInfo:
+			result = [entity scriptInfo];
+			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than null
+			break;
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sVisualEffectProperties);
 			return NO;
@@ -354,7 +367,7 @@ static JSBool VisualEffectRemove(JSContext *context, uintN argc, jsval *vp)
 	OOVisualEffectEntity				*thisEnt = nil;
 	GET_THIS_EFFECT(thisEnt);
 	
-	[UNIVERSE removeEntity:(Entity*)thisEnt];
+	[thisEnt remove];
 
 	OOJS_RETURN_VOID;
 	
