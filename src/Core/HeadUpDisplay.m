@@ -1196,7 +1196,7 @@ static BOOL hostiles;
 	OOPlanetEntity	*the_planet = [UNIVERSE planet];
 	StationEntity	*the_station = [UNIVERSE station];
 	Entity			*the_target = [player primaryTarget];
-	ShipEntity		*beacon = [player nextBeacon];
+	Entity <OOBeaconEntity>		*beacon = [player nextBeacon];
 	OOEntityStatus	p_status = [player status];
 	if	(((p_status == STATUS_IN_FLIGHT)
 		||(p_status == STATUS_AUTOPILOT_ENGAGED)

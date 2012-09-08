@@ -3516,7 +3516,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setPrevCompassMode
 {
 	OOAegisStatus	aegis = AEGIS_NONE;
-	ShipEntity		*beacon = nil;
+	Entity <OOBeaconEntity>		*beacon = nil;
 	
 	switch (compassMode)
 	{
@@ -3584,7 +3584,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setNextCompassMode
 {
 	OOAegisStatus	aegis = AEGIS_NONE;
-	ShipEntity		*beacon = nil;
+	Entity <OOBeaconEntity>		*beacon = nil;
 	
 	switch (compassMode)
 	{

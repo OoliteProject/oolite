@@ -142,6 +142,8 @@ MA 02110-1301, USA.
 	_shaderVector1 = kZeroVector;
 	_shaderVector2 = kZeroVector;
 
+	[self setBeaconCode:[effectDict oo_stringForKey:@"beacon"]];
+
 	scriptInfo = [[effectDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	[self setScript:[effectDict oo_stringForKey:@"script"]];
 
@@ -160,6 +162,8 @@ MA 02110-1301, USA.
 	DESTROY(scanner_display_color2);
 	DESTROY(scriptInfo);
 	DESTROY(script);
+	DESTROY(_beaconCode);
+	DESTROY(_beaconDrawable);
 
 	[super dealloc];
 }
@@ -498,6 +502,8 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 }
 
 
+/* scripting */
+
 - (void) setScript:(NSString *)script_name
 {
 	NSMutableDictionary		*properties = nil;
@@ -539,6 +545,100 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 {
 	[self doScriptEvent:OOJSID("effectRemoved")];
 	[UNIVERSE removeEntity:(Entity*)self];
+}
+
+
+/* beacons */
+
+- (NSComparisonResult) compareBeaconCodeWith:(Entity<OOBeaconEntity> *) other
+{
+	return [[self beaconCode] compare:[other beaconCode] options: NSCaseInsensitiveSearch];
+}
+
+
+- (NSString *) beaconCode
+{
+	return _beaconCode;
+}
+
+
+- (void) setBeaconCode:(NSString *)bcode
+{
+	if ([bcode length] == 0)  bcode = nil;
+	
+	if (_beaconCode != bcode)
+	{
+		[_beaconCode release];
+		_beaconCode = [bcode copy];
+		
+		DESTROY(_beaconDrawable);
+	}
+}
+
+- (BOOL) isBeacon
+{
+	return [self beaconCode] != nil;
+}
+
+- (id <OOHUDBeaconIcon>) beaconDrawable
+{
+	if (_beaconDrawable == nil)
+	{
+		NSString	*beaconCode = [self beaconCode];
+		NSUInteger	length = [beaconCode length];
+		
+		if (length > 1)
+		{
+			NSArray *iconData = [[UNIVERSE descriptions] oo_arrayForKey:beaconCode];
+			if (iconData != nil)  _beaconDrawable = [[OOPolygonSprite alloc] initWithDataArray:iconData outlineWidth:0.5 name:beaconCode];
+		}
+		
+		if (_beaconDrawable == nil)
+		{
+			if (length > 0)  _beaconDrawable = [[beaconCode substringToIndex:1] retain];
+			else  _beaconDrawable = @"";
+		}
+	}
+	
+	return _beaconDrawable;
+}
+
+
+- (Entity <OOBeaconEntity> *) prevBeacon
+{
+	return [_prevBeacon weakRefUnderlyingObject];
+}
+
+
+- (Entity <OOBeaconEntity> *) nextBeacon
+{
+	return [_nextBeacon weakRefUnderlyingObject];
+}
+
+
+- (void) setPrevBeacon:(Entity <OOBeaconEntity> *)beaconShip
+{
+	if (beaconShip != [self prevBeacon])
+	{
+		[_prevBeacon release];
+		_prevBeacon = [beaconShip weakRetain];
+	}
+}
+
+
+- (void) setNextBeacon:(Entity <OOBeaconEntity> *)beaconShip
+{
+	if (beaconShip != [self nextBeacon])
+	{
+		[_nextBeacon release];
+		_nextBeacon = [beaconShip weakRetain];
+	}
+}
+
+
+- (BOOL) isJammingScanning 
+{
+	return NO;
 }
 
 

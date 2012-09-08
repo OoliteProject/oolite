@@ -69,6 +69,7 @@ static JSClass sVisualEffectClass =
 enum
 {
 	// Property IDs
+	kVisualEffect_beaconCode,
 	kVisualEffect_dataKey,
 	kVisualEffect_hullHeatLevel,
 	kVisualEffect_isBreakPattern,
@@ -88,7 +89,8 @@ enum
 static JSPropertySpec sVisualEffectProperties[] =
 {
 	// JS name						ID									flags
-	{ "dataKey",	kVisualEffect_dataKey,	OOJS_PROP_READONLY_CB },
+	{ "beaconCode",	   kVisualEffect_beaconCode,	  OOJS_PROP_READWRITE_CB },
+	{ "dataKey",	     kVisualEffect_dataKey,	      OOJS_PROP_READONLY_CB },
 	{ "isBreakPattern",	kVisualEffect_isBreakPattern,	OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1", kVisualEffect_scannerDisplayColor1, OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2", kVisualEffect_scannerDisplayColor2, OOJS_PROP_READWRITE_CB },
@@ -185,6 +187,10 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kVisualEffect_beaconCode:
+			result = [entity beaconCode];
+			break;
+
 		case kVisualEffect_dataKey:
 			result = [entity effectKey];
 			break;
@@ -258,12 +264,42 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 	int32						iValue;
 	jsdouble        fValue;
 	Vector          vValue;
+	NSString					*sValue = nil;
+
 	
 	if (!JSVisualEffectGetVisualEffectEntity(context, this, &entity)) return NO;
 	if (entity == nil)  return YES;
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kVisualEffect_beaconCode:
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue == nil || [sValue length] == 0) 
+			{
+				if ([entity isBeacon]) 
+				{
+					[UNIVERSE clearBeacon:entity];
+					if ([PLAYER nextBeacon] == entity)
+					{
+						[PLAYER setCompassMode:COMPASS_MODE_PLANET];
+					}
+				}
+			}
+			else 
+			{
+				if ([entity isBeacon]) 
+				{
+					[entity setBeaconCode:sValue];
+				}
+				else // Universe needs to update beacon lists in this case only
+				{
+					[entity setBeaconCode:sValue];
+					[UNIVERSE setNextBeacon:entity];
+				}
+			}
+			return YES;
+			break;
+
 		case kVisualEffect_isBreakPattern:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{

@@ -32,9 +32,6 @@
 @class	OOColor, StationEntity, WormholeEntity, AI, Octree, OOMesh, OOScript,
 OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
 
-@protocol OOHUDBeaconIcon;
-
-
 #define MAX_TARGETS						24
 #define RAIDER_MAX_CARGO				5
 #define MERCHANTMAN_MAX_CARGO			125
@@ -176,7 +173,7 @@ typedef enum
 } OOShipDamageType;
 
 
-@interface ShipEntity: OOEntityWithDrawable <OOSubEntity>
+@interface ShipEntity: OOEntityWithDrawable <OOSubEntity, OOBeaconEntity>
 {
 @public
 	// derived variables
@@ -494,15 +491,15 @@ typedef enum
 
 - (Vector)absoluteTractorPosition;
 
-// beacons
-- (NSString *) beaconCode;
+// beacons // definitions now in <OOBeaconEntity> protocol
+/*- (NSString *) beaconCode;
 - (void) setBeaconCode:(NSString *)bcode;
 - (BOOL) isBeacon;
 - (id <OOHUDBeaconIcon>) beaconDrawable;
 - (ShipEntity *) prevBeacon;
 - (ShipEntity *) nextBeacon;
 - (void) setPrevBeacon:(ShipEntity*) beaconShip;
-- (void) setNextBeacon:(ShipEntity*) beaconShip;
+- (void) setNextBeacon:(ShipEntity*) beaconShip; */
 
 - (void) setIsBoulder:(BOOL)flag;
 - (BOOL) isBoulder;
@@ -643,8 +640,6 @@ typedef enum
 - (void)setCloaked:(BOOL)cloak;
 - (BOOL)hasAutoCloak;
 - (void)setAutoCloak:(BOOL)automatic;
-
-- (BOOL) isJammingScanning;
 
 - (void) applyThrust:(double) delta_t;
 - (void) applyAttitudeChanges:(double) delta_t;
@@ -855,8 +850,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BoundingBox) findSubentityBoundingBox;
 
 - (Triangle) absoluteIJKForSubentity;
-
-- (NSComparisonResult) compareBeaconCodeWith:(ShipEntity *)other;
 
 - (GLfloat)weaponRecoveryTime;
 - (GLfloat)laserHeatLevel;

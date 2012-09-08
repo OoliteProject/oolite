@@ -205,8 +205,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 // Set shader effects level without logging or triggering a reset -- should only be used directly during startup.
 - (void) setShaderEffectsLevelDirectly:(OOShaderSetting)value;
 
-- (void) setFirstBeacon:(ShipEntity *)beacon;
-- (void) setLastBeacon:(ShipEntity *)beacon;
+- (void) setFirstBeacon:(Entity <OOBeaconEntity> *)beacon;
+- (void) setLastBeacon:(Entity <OOBeaconEntity> *)beacon;
 
 - (void) verifyDescriptions;
 - (void) loadDescriptions;
@@ -2497,7 +2497,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (void) resetBeacons
 {
-	ShipEntity *beaconShip = [self firstBeacon], *next = nil;
+	Entity <OOBeaconEntity> *beaconShip = [self firstBeacon], *next = nil;
 	while (beaconShip)
 	{
 		next = [beaconShip nextBeacon];
@@ -2511,13 +2511,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (ShipEntity *) firstBeacon
+- (Entity <OOBeaconEntity> *) firstBeacon
 {
 	return [_firstBeacon weakRefUnderlyingObject];
 }
 
 
-- (void) setFirstBeacon:(ShipEntity *)beacon
+- (void) setFirstBeacon:(Entity <OOBeaconEntity> *)beacon
 {
 	if (beacon != [self firstBeacon])
 	{
@@ -2530,13 +2530,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (ShipEntity *) lastBeacon
+- (Entity <OOBeaconEntity> *) lastBeacon
 {
 	return [_lastBeacon weakRefUnderlyingObject];
 }
 
 
-- (void) setLastBeacon:(ShipEntity *)beacon
+- (void) setLastBeacon:(Entity <OOBeaconEntity> *)beacon
 {
 	if (beacon != [self lastBeacon])
 	{
@@ -2549,7 +2549,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) setNextBeacon:(ShipEntity *) beaconShip
+- (void) setNextBeacon:(Entity <OOBeaconEntity> *) beaconShip
 {
 	if ([beaconShip isBeacon])
 	{
@@ -2563,9 +2563,9 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) clearBeacon:(ShipEntity *) beaconShip
+- (void) clearBeacon:(Entity <OOBeaconEntity> *) beaconShip
 {
-	ShipEntity				*tmp = nil;
+	Entity <OOBeaconEntity>				*tmp = nil;
 
 	if ([beaconShip isBeacon])
 	{
@@ -4109,6 +4109,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	if (entity)
 	{
 		ShipEntity *se = nil;
+		OOVisualEffectEntity *ve = nil;
 		
 		if (![entity validForAddToUniverse])  return NO;
 		
@@ -4186,6 +4187,14 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		else
 		{
 			[entity setUniversalID:NO_TARGET];
+			if ([entity isVisualEffect])
+			{
+				ve = (OOVisualEffectEntity *)entity;
+				if ([ve isBeacon])
+				{
+					[self setNextBeacon:ve];
+				}
+			}
 		}
 		
 		// lighting considerations
@@ -8620,7 +8629,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 - (NSArray *) listBeaconsWithCode:(NSString *)code
 {
 	NSMutableArray	*result = [NSMutableArray array];
-	ShipEntity		*beacon = [self firstBeacon];
+	Entity <OOBeaconEntity>		*beacon = [self firstBeacon];
 	
 	while (beacon != nil)
 	{

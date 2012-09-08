@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOJSPropID.h"
 #import "OOStellarBody.h"
+#import "OOEntityWithDrawable.h"
 
 
 #if OOLITE_ESPEAK
@@ -387,10 +388,10 @@ enum
 - (StationEntity *) stationFriendlyTo:(ShipEntity *) ship;
 
 - (void) resetBeacons;
-- (ShipEntity *) firstBeacon;
-- (ShipEntity *) lastBeacon;
-- (void) setNextBeacon:(ShipEntity *) beaconShip;
-- (void) clearBeacon:(ShipEntity *) beaconShip;
+- (Entity <OOBeaconEntity> *) firstBeacon;
+- (Entity <OOBeaconEntity> *) lastBeacon;
+- (void) setNextBeacon:(Entity <OOBeaconEntity> *) beaconShip;
+- (void) clearBeacon:(Entity <OOBeaconEntity> *) beaconShip;
 
 - (GLfloat *) skyClearColor;
 // Note: the alpha value is also air resistance!

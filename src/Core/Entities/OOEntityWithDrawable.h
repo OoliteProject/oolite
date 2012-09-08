@@ -35,6 +35,26 @@ MA 02110-1301, USA.
 
 @end
 
+@protocol OOHUDBeaconIcon;
+
+// Methods that must be supported by entities with beacons, regardless of type.
+@protocol OOBeaconEntity
+
+- (NSComparisonResult) compareBeaconCodeWith:(Entity <OOBeaconEntity>*) other;
+- (NSString *) beaconCode;
+- (void) setBeaconCode:(NSString *)bcode;
+- (BOOL) isBeacon;
+- (id <OOHUDBeaconIcon>) beaconDrawable;
+- (Entity <OOBeaconEntity> *) prevBeacon;
+- (Entity <OOBeaconEntity> *) nextBeacon;
+- (void) setPrevBeacon:(Entity <OOBeaconEntity> *)beaconShip;
+- (void) setNextBeacon:(Entity <OOBeaconEntity> *)beaconShip;
+- (BOOL) isJammingScanning;
+
+@end
+
+
+
 @interface OOEntityWithDrawable: Entity
 {
 @private

@@ -27,11 +27,13 @@
 #import "OOEntityWithDrawable.h"
 #import "OOPlanetEntity.h"
 #import "OOJSPropID.h"
+#import "HeadUpDisplay.h"
+#import "OOWeakReference.h"
 
 @class	OOColor, OOMesh, OOScript, OOJSScript;
 
 
-@interface OOVisualEffectEntity: OOEntityWithDrawable <OOSubEntity>
+@interface OOVisualEffectEntity: OOEntityWithDrawable <OOSubEntity,OOBeaconEntity>
 {
 @private
 	NSMutableArray			*subEntities;
@@ -57,6 +59,13 @@
 	NSString				*_effectKey;
 
 	BOOL            _haveExecutedSpawnAction;
+
+	// beacons
+	NSString				*_beaconCode;
+	OOWeakReference			*_prevBeacon;
+	OOWeakReference			*_nextBeacon;
+	id <OOHUDBeaconIcon>	_beaconDrawable;
+
 }
 
 - (id)initWithKey:(NSString *)key definition:(NSDictionary *) dict;

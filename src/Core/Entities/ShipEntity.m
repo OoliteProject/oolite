@@ -1363,19 +1363,19 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (ShipEntity *) prevBeacon
+- (Entity <OOBeaconEntity> *) prevBeacon
 {
 	return [_prevBeacon weakRefUnderlyingObject];
 }
 
 
-- (ShipEntity *) nextBeacon
+- (Entity <OOBeaconEntity> *) nextBeacon
 {
 	return [_nextBeacon weakRefUnderlyingObject];
 }
 
 
-- (void) setPrevBeacon:(ShipEntity *)beaconShip
+- (void) setPrevBeacon:(Entity <OOBeaconEntity> *)beaconShip
 {
 	if (beaconShip != [self prevBeacon])
 	{
@@ -1384,7 +1384,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 }
 
-- (void) setNextBeacon:(ShipEntity *)beaconShip
+
+- (void) setNextBeacon:(Entity <OOBeaconEntity> *)beaconShip
 {
 	if (beaconShip != [self nextBeacon])
 	{
@@ -8103,7 +8104,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (NSComparisonResult) compareBeaconCodeWith:(ShipEntity*) other
+- (NSComparisonResult) compareBeaconCodeWith:(Entity<OOBeaconEntity> *) other
 {
 	return [[self beaconCode] compare:[other beaconCode] options: NSCaseInsensitiveSearch];
 }
