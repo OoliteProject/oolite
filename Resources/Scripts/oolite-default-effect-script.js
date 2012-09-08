@@ -2,7 +2,7 @@
 
 oolite-default-ship-effect.js
 
-Standard ship script; handles legacy foo_actions.
+Standard visual effect script.
 
 
 Oolite
