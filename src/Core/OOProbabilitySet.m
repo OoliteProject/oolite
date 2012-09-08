@@ -956,7 +956,11 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	{
 		[_objects addObject:object];
 		[_weights oo_addFloat:weight];
-		_sumOfWeights += weight;
+		if (_sumOfWeights >= 0)
+		{
+			_sumOfWeights += weight;
+		}
+		// Else, _sumOfWeights is invalid and will need to be recalculated on demand.
 	}
 	else
 	{
