@@ -26,6 +26,8 @@
 		<string>#</string>
 		<key>✯</key>
 		<string></string>
+		<key> </key>
+		<string></string>
 	</dict>
 	<key>texture</key>
 	<string>oolite-font-tu.png</string>
@@ -62,7 +64,7 @@
 		<real>6</real>
 		<real>6</real>
 		<real>6</real>
-		<real>6</real>
+		<real>0.1</real>
 		<real>1.7364501953125</real>
 		<real>2.081298828125</real>
 		<real>2.9632568359375</real>

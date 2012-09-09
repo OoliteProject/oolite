@@ -21,6 +21,7 @@
 		"♭"		= "b";			// Musical Flat Sign
 		"♮"		= "=";			// Musical Natural Sign
 		"♯"		= "#";			// Musical Sharp Sign
+		" "		="\037";		// Hair Space
 	};
 	
 	widths =
@@ -56,7 +57,7 @@
 		6,
 		6,
 		6,
-		6,
+		0.1, // the 'unit separator' control character \037. Usable as a narrow space for lining up columns
 		1.7364501953125,
 		2.081298828125,
 		2.9632568359375,
