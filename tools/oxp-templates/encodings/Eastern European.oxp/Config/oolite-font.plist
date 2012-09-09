@@ -21,7 +21,7 @@
 		"♭"		= "b";			// Musical Flat Sign
 		"♮"		= "=";			// Musical Natural Sign
 		"♯"		= "#";			// Musical Sharp Sign
-		" "		="\037";		// Hair Space
+		" "		= "\037";		// Hair Space
 	};
 	
 	widths =
