@@ -1889,7 +1889,7 @@
 		1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFastArithmetic.h; sourceTree = "<group>"; };
 		1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifier.h; sourceTree = "<group>"; };
 		1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifier.m; sourceTree = "<group>"; };
-		1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = verifyOXP.plist; path = ../../../Resources/Config/verifyOXP.plist; sourceTree = "<group>"; };
+		1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; name = verifyOXP.plist; path = ../../../Resources/Config/verifyOXP.plist; sourceTree = "<group>"; };
 		1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OoliteUnitTests.xcodeproj; path = tests/OCUnitTests/OoliteUnitTests.xcodeproj; sourceTree = "<group>"; };
 		1AB4AEB60D688AD9003076D6 /* OOLogHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogHeader.h; sourceTree = "<group>"; };
 		1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogHeader.m; sourceTree = "<group>"; };
