@@ -24,6 +24,11 @@
 		weapon_facings = "positiveInteger";
 		weapon_energy = "positiveFloat";
 		weapon_range = "positiveFloat";
+		fire_rate =
+		{
+			type = "positiveFloat";
+			minimum = "0.25";
+		};
 		scanner_range = "positiveFloat";
 		fuel_charge_rate = "positiveFloat";
 		missiles = "positiveInteger";

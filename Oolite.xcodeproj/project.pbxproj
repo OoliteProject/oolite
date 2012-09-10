@@ -1641,10 +1641,10 @@
 		1A2DA3540CB4D10800DE6823 /* OODebuggerInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebuggerInterface.h; sourceTree = "<group>"; };
 		1A2DA3EC0CB4E84900DE6823 /* OODebugSupport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugSupport.m; sourceTree = "<group>"; };
 		1A2DA3ED0CB4E84900DE6823 /* OODebugSupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugSupport.h; sourceTree = "<group>"; };
-		1A2F63950C5CC737003872C8 /* demoshipsSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = demoshipsSchema.plist; sourceTree = "<group>"; };
-		1A2F63960C5CC737003872C8 /* hudSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = hudSchema.plist; sourceTree = "<group>"; };
-		1A2F63980C5CC737003872C8 /* shipdataEntrySchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = shipdataEntrySchema.plist; sourceTree = "<group>"; };
-		1A2F63990C5CC737003872C8 /* shipyardSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = shipyardSchema.plist; sourceTree = "<group>"; };
+		1A2F63950C5CC737003872C8 /* demoshipsSchema.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = demoshipsSchema.plist; sourceTree = "<group>"; };
+		1A2F63960C5CC737003872C8 /* hudSchema.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = hudSchema.plist; sourceTree = "<group>"; };
+		1A2F63980C5CC737003872C8 /* shipdataEntrySchema.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = shipdataEntrySchema.plist; sourceTree = "<group>"; };
+		1A2F63990C5CC737003872C8 /* shipyardSchema.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = shipyardSchema.plist; sourceTree = "<group>"; };
 		1A3159250F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAIStateMachineVerifierStage.h; sourceTree = "<group>"; };
 		1A3159260F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAIStateMachineVerifierStage.m; sourceTree = "<group>"; };
 		1A3491290BC25EAA00802DA7 /* world-scripts.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "world-scripts.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
