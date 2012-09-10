@@ -2648,6 +2648,17 @@ static NSTimeInterval	time_last_frame;
 	}
 #endif
 
+	if ((guiSelectedRow == GUI_ROW(GAME,DOCKINGCLEARANCE))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	{
+		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE dockingClearanceProtocolActive])
+			[self playChangedOption];
+		[UNIVERSE setDockingClearanceProtocolActive:[gameView isDown:gvArrowKeyRight]];
+		if ([UNIVERSE dockingClearanceProtocolActive])
+			[gui setText:DESC(@"gameoptions-docking-clearance-yes")  forRow:GUI_ROW(GAME,DOCKINGCLEARANCE)  align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:DESC(@"gameoptions-docking-clearance-no")  forRow:GUI_ROW(GAME,DOCKINGCLEARANCE)  align:GUI_ALIGN_CENTER];
+	}
+	
 	if ((guiSelectedRow == GUI_ROW(GAME,BACK)) && selectKeyPress)
 	{
 		[gameView clearKeys];

@@ -2332,6 +2332,34 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
+- (BOOL) dockingClearanceProtocolActive;
+{
+	return _dockingClearanceProtocolActive;
+}
+
+
+- (void) setDockingClearanceProtocolActive:(BOOL)newValue;
+{
+	NSUInteger		i;
+	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
+	NSArray			*allStations = [self findShipsMatchingPredicate:IsStationPredicate
+											parameter:NULL
+											inRange:-1
+											ofEntity:nil];
+								   
+	for (i = 0; i < [allStations count]; i++)
+	{
+		NSString	*stationKey = [registry randomShipKeyForRole:[[allStations objectAtIndex:i] primaryRole]];
+		if (![[[registry shipInfoForKey:stationKey] allKeys] containsObject:@"requires_docking_clearance"])
+		{
+			[[allStations objectAtIndex:i] setRequiresDockingClearance:!!newValue];
+		}
+	}
+	
+	_dockingClearanceProtocolActive = !!newValue;
+}
+
+
 - (void) handleGameOver
 {
 	// In unrestricted mode, reload last save game, if any. In strict mode, always restart as a fresh Jameson.
@@ -9279,6 +9307,9 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	// Player init above finishes initialising all standard player ship properties. Now that the base mass is set, we can run setUpSpace! 
 	[self setUpSpace];
+	
+	[self setDockingClearanceProtocolActive:[[[self planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY] 
+											oo_boolForKey:@"stations_require_docking_clearance" defaultValue:NO]];
 
 	[self enterGUIViewModeWithMouseInteraction:NO];
 	[player setPosition:[[self station] position]];

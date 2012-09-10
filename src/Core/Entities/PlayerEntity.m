@@ -6310,6 +6310,16 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
 		}
 		
+		if ([UNIVERSE dockingClearanceProtocolActive])
+		{
+			[gui setText:DESC(@"gameoptions-docking-clearance-yes") forRow:GUI_ROW(GAME,DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
+		}
+		else
+		{
+			[gui setText:DESC(@"gameoptions-docking-clearance-no") forRow:GUI_ROW(GAME,DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
+		}
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DOCKINGCLEARANCE)];
+		
 		// Back menu option
 		[gui setText:DESC(@"gui-back") forRow:GUI_ROW(GAME,BACK) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,BACK)];

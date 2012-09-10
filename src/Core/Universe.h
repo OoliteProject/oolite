@@ -304,6 +304,7 @@ enum
 	BOOL					_autoCommLog;
 	BOOL					_permanentCommLog;
 	BOOL					_witchspaceBreakPattern;
+	BOOL					_dockingClearanceProtocolActive;
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
@@ -370,6 +371,8 @@ enum
 - (BOOL) witchspaceBreakPattern;
 - (void) setWitchspaceBreakPattern:(BOOL)newValue;
 
+- (BOOL) dockingClearanceProtocolActive;
+- (void) setDockingClearanceProtocolActive:(BOOL)newValue;
 
 - (void) handleGameOver;
 

@@ -1080,6 +1080,8 @@
 	"gameoptions-reduced-detail-no"			= " Reduced Detail: Off ";
 	"gameoptions-shaderfx-not-available"	= " Shader Effects: Not available ";
 	"gameoptions-shaderfx-@"				= " Shader Effects: %@ ";
+	"gameoptions-docking-clearance-yes"		= " Docking Clearance Protocol: On";
+	"gameoptions-docking-clearance-no"		= " Docking Clearance Protocol: Off";
 	"shaderfx-not-available"				= "Not available";
 	"shaderfx-off"							= "Off";
 	"shaderfx-simple"						= "Simple";

@@ -576,12 +576,10 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	hasNPCTraffic = [dict oo_fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:(maxFlightSpeed == 0)]; // carriers default to NO
 	hasPatrolShips = [dict oo_fuzzyBooleanForKey:@"has_patrol_ships" defaultValue:NO];
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
-	NSDictionary *universalInfo = [[UNIVERSE planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
 	
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
 	// but this variable should be irrelevant for them, as they do not make use of it anyway.
-	requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:
-		universalInfo != nil ?	[universalInfo oo_boolForKey:@"stations_require_docking_clearance" defaultValue:NO] : NO];
+	requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:[UNIVERSE dockingClearanceProtocolActive]];
 	
 	allowsFastDocking = [dict oo_boolForKey:@"allows_fast_docking" defaultValue:NO];
 	
