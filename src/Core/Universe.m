@@ -2332,13 +2332,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (BOOL) dockingClearanceProtocolActive;
+- (BOOL) dockingClearanceProtocolActive
 {
 	return _dockingClearanceProtocolActive;
 }
 
 
-- (void) setDockingClearanceProtocolActive:(BOOL)newValue;
+- (void) setDockingClearanceProtocolActive:(BOOL)newValue
 {
 	NSUInteger		i;
 	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
