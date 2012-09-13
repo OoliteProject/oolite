@@ -295,10 +295,28 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
 	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
 	
+	// Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
-	//// speech stuff
+#if OOLITE_MAC_OS_X_10_6
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0),
+	^{
+		/*
+			NSSpeechSynthesizer can take over a second on an SSD and several
+			seconds on an HDD for a cold start, and a third of a second upward
+			for a warm start. There are no particular thread safety consider-
+			ations documented for NSSpeechSynthesizer, so I'm assuming the
+			default one-thread-at-a-time access rule applies.
+			-- Ahruman 2012-09-13
+		*/
+		OOLog(@"speech.setup.begin", @"Starting to set up speech synthesizer.");
+		NSSpeechSynthesizer *synth = [[NSSpeechSynthesizer alloc] init];
+		OOLog(@"speech.setup.end", @"Finished setting up speech synthesizer.");
+		speechSynthesizer = synth;
+	});
+#else
 	speechSynthesizer = [[NSSpeechSynthesizer alloc] init];
+#endif
 #elif OOLITE_ESPEAK
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
 	espeak_SetParameter(espeakPUNCTUATION, espeakPUNCT_NONE, 0);

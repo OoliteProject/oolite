@@ -6430,8 +6430,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (OOPlanetEntity *) findNearestPlanet
 {
-	/*	Performance note: this method is called every frame by every ship, and
+	/*
+		Performance note: this method is called every frame by every ship, and
 		has a significant profiler presence.
+		-- Ahruman 2012-09-13
 	*/
 	OOPlanetEntity *planet = nil, *bestPlanet = nil;
 	float bestRange = INFINITY;
