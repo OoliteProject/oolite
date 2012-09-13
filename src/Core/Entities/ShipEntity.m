@@ -807,11 +807,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	subPosition = [subentDict oo_vectorForKey:@"position"];
 	subOrientation = [subentDict oo_quaternionForKey:@"orientation"];
 	
-/*	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
-	{
-		[(StationEntity *)self setDockingPortModel:subentity :subPosition :subOrientation];
-		} */
-	
 	[subentity setPosition:subPosition];
 	[subentity setOrientation:subOrientation];
 	[subentity setReference:vector_forward_from_quaternion(subOrientation)];
