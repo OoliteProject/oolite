@@ -127,6 +127,10 @@ enum
 
 - (NSArray *) crosshairDefinitionForWeaponType:(OOWeaponType)weapon;
 
+- (void) checkMassLock;
+- (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)scanClass;
+- (BOOL) checkPlayerInFlight;
+
 @end
 
 
@@ -142,7 +146,9 @@ static const GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
 static const GLfloat black_color[4] =		{0.0, 0.0, 0.0, 1.0};
 static const GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
 
-static float sGlyphWidths[256];
+static float	sGlyphWidths[256];
+static BOOL		scannerUpdated;
+static BOOL 	hostiles;
 
 
 static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSize siz);
@@ -167,7 +173,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	unsigned		i;
 	BOOL			areTrumblesToBeDrawn = NO;
-	BOOL			isScannerToBeDrawn = NO;
 	
 	self = [super init];
 	
@@ -188,7 +193,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		NSDictionary	*dial_info = [dials oo_dictionaryAtIndex:i];
 		if (!areTrumblesToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawTrumbles:"])  areTrumblesToBeDrawn = YES;
-		if (!isScannerToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawScanner:"])  isScannerToBeDrawn = YES;
 		[self addDial:dial_info];
 	}
 	
@@ -199,23 +203,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	}
 	
 	/* 
-	   Nikos 20110611: The scanner is very important and has to be drawn because mass locking depends on it. If we are using
-	   an OXP HUD which doesn't include the scanner definition, make sure we draw the scanner with full transparency.
-	   This will simulate scanner absence from the HUD, without messing up mass lock behaviour. The dictionary passed to
-	   drawScanner: is the same as the one in the default hud.plist. TODO post-1.76: Separate mass lock from scanner drawing.
+		We need to call drawScanner on every frame to ensure proximity checks / mass locking calculations are done properly.
+		This is now dealt with inside drawDials. -- Kaks 20120913
 	*/
-	if (EXPECT_NOT(!isScannerToBeDrawn))
-	{
-		NSDictionary	*scanner_dial_info = [NSDictionary dictionaryWithObjectsAndKeys:@"drawScanner:", SELECTOR_KEY,
-																						@"0.0", ALPHA_KEY,
-																						@"0.0", X_KEY,
-																						@"60.0", Y_KEY,
-																						@"-1.0", Y_ORIGIN_KEY,
-																						@"72.0", HEIGHT_KEY,
-																						@"288.0", WIDTH_KEY,
-																						nil];
-		[self addDial:scanner_dial_info];
-	}
 	
 	NSArray *legends = [hudinfo oo_arrayForKey:LEGENDS_KEY];
 	for (i = 0; i < [legends count]; i++)
@@ -234,13 +224,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 										[NSNumber numberWithBool:YES], @"isAccurate", 
 										[NSNumber numberWithDouble:[UNIVERSE getTime]], @"timeLastAccuracyProbabilityCalculation", 
 										nil];
-
+	
 	cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:YES];
 	
 	last_transmitter = NO_TARGET;
-
+	
 	[crosshairDefinition release];
-
+	
 	NSString *crossfile = [[hudinfo oo_stringForKey:@"crosshair_file"] retain];
 	if (crossfile == nil)
 	{
@@ -613,14 +603,20 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 // SLOW_CODE - HUD drawing is taking up a ridiculous 30%-40% of frame time. Much of this seems to be spent in string processing. String caching is needed. -- ahruman
 - (void) drawDials
-{
-	unsigned		i;
-	
+{	
 	z1 = [[UNIVERSE gameView] display_z];
-	for (i = 0; i < [dialArray count]; i++)
+	// reset drawScanner flag.
+	scannerUpdated = NO;
+	
+	// tight loop, we assume dialArray doesn't change in mid-draw.
+	for (int i = [dialArray count] - 1; i >= 0; i--)
 	{
 		[self drawHUDItem:[dialArray oo_dictionaryAtIndex:i]];
 	}
+	
+	// We always need to check the mass lock status. It's normally checked inside drawScanner,
+	// but if drawScanner wasn't called, we can check mass lock explicitly.
+	if (EXPECT_NOT(!scannerUpdated)) [self checkMassLock];
 }
 
 
@@ -771,178 +767,251 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) drawHUDItem:(NSDictionary *)info
 {
-	NSString *equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipment != nil && ![PLAYER hasEquipmentItem:equipment])
+	NSString	*equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
+	
+	if (EXPECT_NOT(equipment != nil && ![PLAYER hasEquipmentItem:equipment]))
 		return;
 	
-	if ([info oo_stringForKey:SELECTOR_KEY] != nil)
+	NSString	*selectorString = [info oo_stringForKey:SELECTOR_KEY];
+	
+	if (EXPECT(selectorString != nil))
 	{
-		SEL _selector = NSSelectorFromString([info oo_stringForKey:SELECTOR_KEY]);
+		SEL _selector = NSSelectorFromString(selectorString);
 		if ([self respondsToSelector:_selector])
+		{
 			[self performSelector:_selector withObject:info];
+			CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
+		}
 		else
-			OOLog(@"hud.unknownSelector", @"DEBUG HeadUpDisplay does not respond to '%@'",[info objectForKey:SELECTOR_KEY]);
+		{
+			OOLog(@"hud.unknownSelector", @"DEBUG HeadUpDisplay does not respond to '%@'", selectorString);
+		}	
+	}
+}
+
+
+- (BOOL) checkPlayerInFlight
+{
+	OOEntityStatus status = [PLAYER status];
+	
+	return ((status == STATUS_IN_FLIGHT)||(status == STATUS_AUTOPILOT_ENGAGED)||(status == STATUS_LAUNCHING)||(status == STATUS_WITCHSPACE_COUNTDOWN));
+}
+
+
+- (void) checkMassLock
+{	
+	if ([self checkPlayerInFlight])
+	{
+		int				i, scanClass, ent_count = UNIVERSE->n_entities;
+		Entity			**uni_entities	= UNIVERSE->sortedEntities;	// grab the public sorted list
+		Entity			*my_entities[ent_count];
+		Entity			*scannedEntity = nil;
+		BOOL			massLocked = NO;
+		
+		for (i = 0; i < ent_count; i++)
+		{
+			my_entities[i] = [uni_entities[i] retain];	// retained
+		}
+	
+		for (i = 0; i < ent_count && !massLocked; i++)
+		{
+			scannedEntity = my_entities[i];
+			scanClass = [scannedEntity scanClass];
+			
+			massLocked = [self checkEntityForMassLock:scannedEntity withScanClass:scanClass];
+		}
+		[PLAYER setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
+
+		for (i = 0; i < ent_count; i++)
+		{
+			[my_entities[i] release];	//	released
+		}
+	}
+}
+
+
+- (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)scanClass
+{
+	BOOL massLocked = NO;
+	
+	if (EXPECT_NOT([ent isStellarObject]))
+	{
+		Entity<OOStellarBody> *stellar = (Entity<OOStellarBody> *)ent;
+		if (EXPECT([stellar planetType] != STELLAR_TYPE_MINIATURE))
+		{
+			double dist =   stellar->zero_distance;
+			double rad =	stellar->collision_radius;
+			double factor = ([stellar isSun]) ? 2.0 : 4.0;
+			// plus ensure mass lock when 25 km or less from the surface of small stellar bodies
+			// dist is a square distance so it needs to be compared to (rad+25000) * (rad+25000)!
+			if (dist < rad*rad*factor || dist < rad*rad + 50000*rad + 625000000 ) 
+			{
+				massLocked = YES;
+			}
+		}
+	}
+	else if (scanClass != CLASS_NO_DRAW)
+	{
+		// cloaked ships do not mass lock!
+		if (EXPECT_NOT ([ent isShip] && [(ShipEntity *)ent isCloaked]))
+		{
+			scanClass = CLASS_NO_DRAW;
+		}
+	}
+
+	if (!massLocked && ent->zero_distance <= SCANNER_MAX_RANGE2)
+	{
+		switch (scanClass)
+		{
+			case CLASS_NO_DRAW:
+			case CLASS_PLAYER:
+			case CLASS_BUOY:
+			case CLASS_ROCK:
+			case CLASS_CARGO:
+			case CLASS_MINE:
+			case CLASS_VISUAL_EFFECT:
+				break;
+				
+			case CLASS_THARGOID:
+			case CLASS_MISSILE:
+			case CLASS_STATION:
+			case CLASS_POLICE:
+			case CLASS_MILITARY:
+			case CLASS_WORMHOLE:
+			default:
+				massLocked = YES;
+				break;
+		}
 	}
 	
-	CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
+	return massLocked;
 }
 
 //---------------------------------------------------------------------//
 
-static BOOL hostiles;
 - (void) drawScanner:(NSDictionary *)info
 {
-	int				x;
-	int				y;
+	if (scannerUpdated) return;		// there's never the need to draw the scanner twice per frame!
+	int				i, x, y;
 	NSSize			siz;
 	GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
 	
-	x = [info oo_intForKey:X_KEY defaultValue:SCANNER_CENTRE_X] + 
-		[[UNIVERSE gameView] x_offset] *
-		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-	y = [info oo_intForKey:Y_KEY defaultValue:SCANNER_CENTRE_Y] +
-		[[UNIVERSE gameView] y_offset] *
-		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCANNER_WIDTH];
-	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCANNER_HEIGHT];
-	GetRGBAArrayFromInfo(info, scanner_color);
-	
-	scanner_color[3] *= overallAlpha;
-	float alpha = scanner_color[3];
-	
-	double z_factor = siz.height / siz.width;	// approx 1/4
-	double y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
-	
-	int				i;
-	int				scanner_cx = x;
-	int				scanner_cy = y;
-	double			mass_lock_range2 = 25600.0*25600.0;
-	
-	int				scanner_scale = SCANNER_MAX_RANGE * 2.5 / siz.width;
-	
-	double			max_zoomed_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0/(scanner_zoom*scanner_zoom);
-	
-	GLfloat			max_zoomed_range = sqrt(max_zoomed_range2);
-	
+	BOOL			emptyDial = ([info oo_floatForKey:ALPHA_KEY] == 0.0f);
+		
 	BOOL			isHostile = NO;
 	BOOL			foundHostiles = NO;
-	BOOL			mass_locked = NO;
+	BOOL			massLocked = NO;
 	
-	Vector			relativePosition;
-	OOMatrix		rotMatrix;
-	int				flash = ((int)([UNIVERSE getTime] * 4))&1;
+	if (emptyDial)
+	{
+		// we can skip a lot of code.
+		x = y = 0;
+		scanner_color[3] = 0.0;			// nothing to see!
+		siz = NSMakeSize(1.0, 1.0);		// avoid divide by 0s
+	}
+	else
+	{
+		x = [info oo_intForKey:X_KEY defaultValue:SCANNER_CENTRE_X] + 
+			[[UNIVERSE gameView] x_offset] *
+			[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0f];
+		y = [info oo_intForKey:Y_KEY defaultValue:SCANNER_CENTRE_Y] +
+			[[UNIVERSE gameView] y_offset] *
+			[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0f];
+		siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCANNER_WIDTH];
+		siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCANNER_HEIGHT];
+		GetRGBAArrayFromInfo(info, scanner_color);
+		
+		scanner_color[3] *= overallAlpha;
+	}
 	
-	Universe		*uni			= UNIVERSE;
+	float 			alpha = scanner_color[3];
+	GLfloat			col[4] = { 1.0, 1.0, 1.0, alpha };	// temporary colour variable
+	
+	double			z_factor = siz.height / siz.width;	// approx 1/4
+	double			y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
+	
+	int				scanner_cx = x;
+	int				scanner_cy = y;
+	
+	int				scannerFootprint = SCANNER_MAX_RANGE * 2.5 / siz.width;
+	
+	double			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0 / (scanner_zoom * scanner_zoom);
+	GLfloat			max_zoomed_range = sqrt(max_zoomed_range2);
+		
 	PlayerEntity	*player = PLAYER;
+	
 	if (player == nil)  return;
 	
+	OOMatrix		rotMatrix = [player rotationMatrix];
+	Vector			relativePosition;
+	int				flash = ((int)([UNIVERSE getTime] * 4))&1;
+	
 	// use a non-mutable copy so this can't be changed under us.
-	int				ent_count		= uni->n_entities;
-	Entity			**uni_entities	= uni->sortedEntities;	// grab the public sorted list
+	int				ent_count		= UNIVERSE->n_entities;
+	Entity			**uni_entities	= UNIVERSE->sortedEntities;	// grab the public sorted list
 	Entity			*my_entities[ent_count];
+	Entity			*scannedEntity = nil;
 	
 	for (i = 0; i < ent_count; i++)
 	{
 		my_entities[i] = [uni_entities[i] retain];	// retained
 	}
 	
-	Entity	*drawthing = nil;
-	
-	GLfloat col[4] =	{ 1.0, 1.0, 1.0, alpha };	// can be manipulated
-	
-	rotMatrix = [player rotationMatrix];
-	
-	OOGL(glColor4fv(scanner_color));
-	drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, scanner_zoom);
-	
-	OOEntityStatus p_status = [player status];
-	
-	if ((p_status == STATUS_IN_FLIGHT)||(p_status == STATUS_AUTOPILOT_ENGAGED)||(p_status == STATUS_LAUNCHING)||(p_status == STATUS_WITCHSPACE_COUNTDOWN))
+	if (!emptyDial)
 	{
-		double upscale = scanner_zoom*1.25/scanner_scale;
+		OOGL(glColor4fv(scanner_color));
+		drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, scanner_zoom);
+	}
+	
+	if ([self checkPlayerInFlight])
+	{
+		double upscale = scanner_zoom * 1.25 / scannerFootprint;
 		double max_blip = 0.0;
+		int drawClass;
 		
 		for (i = 0; i < ent_count; i++)  // scanner lollypops
 		{
-			drawthing = my_entities[i];
+			scannedEntity = my_entities[i];
 			
-			int drawClass = drawthing->scanClass;
-			if (drawClass == CLASS_PLAYER)	drawClass = CLASS_NO_DRAW;
-			if (drawthing->isShip)
+			drawClass = [scannedEntity scanClass];
+			
+			// cloaked ships - and your own one - don't show up on the scanner.
+			if (EXPECT_NOT(drawClass == CLASS_PLAYER || ([scannedEntity isShip] && [(ShipEntity *)scannedEntity isCloaked])))
 			{
-				ShipEntity* ship = (ShipEntity*)drawthing;
-				if ([ship isCloaked])  drawClass = CLASS_NO_DRAW;
+				drawClass = CLASS_NO_DRAW;
 			}
 			
-			// consider large bodies for mass_lock
-			if ([drawthing isStellarObject])
-			{
-				Entity<OOStellarBody> *stellar = (Entity<OOStellarBody> *)drawthing;
-				if ([stellar planetType] != STELLAR_TYPE_MINIATURE)
-				{
-					double dist =   stellar->zero_distance;
-					double rad =	stellar->collision_radius;
-					double factor = ([stellar isSun]) ? 2.0 : 4.0;
-					// mass lock when 25 km or less from the surface - dist is a square distance so needs to be compared to (rad+25000) * (rad+25000)!
-					if (dist< rad*rad +50000*rad+625000000 || dist < rad*rad*factor) 
-					{
-						mass_locked = YES;
-					}
-				}
-			}
+			massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:drawClass];	// we just need one masslocker..
 			
 			if (drawClass != CLASS_NO_DRAW)
 			{
 				GLfloat x1,y1,y2;
 				float	ms_blip = 0.0;
 				
-				if (drawthing->zero_distance <= mass_lock_range2)
-				{
-					switch (drawClass)
-					{
-						case CLASS_BUOY:
-						case CLASS_ROCK:
-						case CLASS_CARGO:
-						case CLASS_MINE:
-						case CLASS_VISUAL_EFFECT:
-							break;
-							
-						case CLASS_THARGOID:
-						case CLASS_MISSILE:
-						case CLASS_STATION:
-						case CLASS_POLICE:
-						case CLASS_MILITARY:
-						case CLASS_WORMHOLE:
-						default:
-							mass_locked = YES;
-							break;
-					}
-				}
+				if (emptyDial)  continue;
 				
-				[player setAlertFlag:ALERT_FLAG_MASS_LOCK to:mass_locked];
-				
-				if (isnan(drawthing->zero_distance))
+				if (isnan(scannedEntity->zero_distance))
 					continue;
 				
 				// exit if it's too far away
-				GLfloat	act_dist = sqrt(drawthing->zero_distance);
-				GLfloat	lim_dist = act_dist - drawthing->collision_radius;
+				GLfloat	act_dist = sqrt(scannedEntity->zero_distance);
+				GLfloat	lim_dist = act_dist - scannedEntity->collision_radius;
 				
 				if (lim_dist > max_zoomed_range)
 					continue;
 				
 				// has it sent a recent message
 				//
-				if (drawthing->isShip) 
-					ms_blip = 2.0 * [(ShipEntity *)drawthing messageTime];
+				if ([scannedEntity isShip]) 
+					ms_blip = 2.0 * [(ShipEntity *)scannedEntity messageTime];
 				if (ms_blip > max_blip)
 				{
 					max_blip = ms_blip;
-					last_transmitter = [drawthing universalID];
+					last_transmitter = [scannedEntity universalID];
 				}
 				ms_blip -= floor(ms_blip);
 				
-				relativePosition = vector_subtract([drawthing position], [PLAYER position]);
+				relativePosition = vector_subtract([scannedEntity position], [PLAYER position]);
 				Vector rp = relativePosition;
 				
 				if (act_dist > max_zoomed_range)
@@ -958,22 +1027,22 @@ static BOOL hostiles;
 				y2 = y1 + y_factor * relativePosition.y;
 				
 				isHostile = NO;
-				if ([drawthing isShip])
+				if ([scannedEntity isShip])
 				{
-					ShipEntity* ship = (ShipEntity *)drawthing;
+					ShipEntity* ship = (ShipEntity *)scannedEntity;
 					double wr = [ship weaponRange];
-					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == player)&&(drawthing->zero_distance < wr*wr));
+					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == player)&&(scannedEntity->zero_distance < wr*wr));
 					GLfloat* base_col = [ship scannerDisplayColorForShip:player :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
-				else if ([drawthing isVisualEffect])
+				else if ([scannedEntity isVisualEffect])
 				{
-					OOVisualEffectEntity *vis = (OOVisualEffectEntity *)drawthing;
+					OOVisualEffectEntity *vis = (OOVisualEffectEntity *)scannedEntity;
 					GLfloat* base_col = [vis scannerDisplayColorForShip:flash :[vis scannerDisplayColor1] :[vis scannerDisplayColor2]];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 
-				if ([drawthing isWormhole])
+				if ([scannedEntity isWormhole])
 				{
 					col[0] = blue_color[0];	col[1] = (flash)? 1.0 : blue_color[1];	col[2] = blue_color[2];	col[3] = alpha * blue_color[3];
 				}
@@ -1004,9 +1073,9 @@ static BOOL hostiles;
 						break;
 				}
 				
-				if ([drawthing isShip])
+				if ([scannedEntity isShip])
 				{
-					ShipEntity* ship = (ShipEntity*)drawthing;
+					ShipEntity* ship = (ShipEntity*)scannedEntity;
 					if (ship->collision_radius * upscale > 4.5)
 					{
 						Vector bounds[6];
@@ -1043,9 +1112,9 @@ static BOOL hostiles;
 				{
 					DrawSpecialOval(x1 - 0.5, y2 + 1.5, z1, NSMakeSize(16.0 * (1.0 - ms_blip), 8.0 * (1.0 - ms_blip)), 30, col);
 				}
-				if ([drawthing isCascadeWeapon])
+				if ([scannedEntity isCascadeWeapon])
 				{
-					double r1 = 2.5 + drawthing->collision_radius * upscale;
+					double r1 = 2.5 + scannedEntity->collision_radius * upscale;
 					double l2 = r1*r1 - relativePosition.y*relativePosition.y;
 					double r0 = (l2 > 0)? sqrt(l2): 0;
 					if (r0 > 0)
@@ -1060,10 +1129,10 @@ static BOOL hostiles;
 				{
 
 #if IDENTIFY_SCANNER_LOLLIPOPS
-					if ([drawthing isShip])
+					if ([scannedEntity isShip])
 					{
 						glColor4f(1.0, 1.0, 0.5, alpha);
-						OODrawString([(ShipEntity *)drawthing displayName], x1 + 2, y2 + 2, z1, NSMakeSize(8, 8));
+						OODrawString([(ShipEntity *)scannedEntity displayName], x1 + 2, y2 + 2, z1, NSMakeSize(8, 8));
 					}
 #endif
 					OOGLBEGIN(GL_QUADS);
@@ -1076,6 +1145,8 @@ static BOOL hostiles;
 				}
 			}
 		}
+		
+		[player setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
 		
 		[player setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
 		
@@ -1090,7 +1161,11 @@ static BOOL hostiles;
 	}
 	
 	for (i = 0; i < ent_count; i++)
+	{
 		[my_entities[i] release];	//	released
+	}
+	
+	scannerUpdated = YES;
 }
 
 
@@ -1197,14 +1272,9 @@ static BOOL hostiles;
 	StationEntity	*the_station = [UNIVERSE station];
 	Entity			*the_target = [player primaryTarget];
 	Entity <OOBeaconEntity>		*beacon = [player nextBeacon];
-	OOEntityStatus	p_status = [player status];
-	if	(((p_status == STATUS_IN_FLIGHT)
-		||(p_status == STATUS_AUTOPILOT_ENGAGED)
-		||(p_status == STATUS_LAUNCHING)
-		||(p_status == STATUS_WITCHSPACE_COUNTDOWN))	// be in the right mode
-		&&(the_sun)
-		&&(the_planet)					// and be in a system
-		&& ![the_sun goneNova])				// and the system has not been novabombed
+	if ([self checkPlayerInFlight]		// be in the right mode
+		&& the_sun && the_planet		// and be in a system
+		&& ![the_sun goneNova])			// and the system has not been novabombed
 	{
 		Entity *reference = nil;
 		OOAegisStatus	aegis = AEGIS_NONE;
@@ -1662,7 +1732,6 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 			cy += qy;
 		}
 	}
-	
 }
 
 
@@ -1812,7 +1881,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 			GLColorWithOverallAlpha(green_color, alpha);
 	}
 
-	[player setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&([player status] == STATUS_IN_FLIGHT))];
+	[player setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&([self checkPlayerInFlight]))];
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
 
@@ -1887,7 +1956,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	hudDrawBarAt(x, y, z1, siz, alt);
 	
-	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&([player status] == STATUS_IN_FLIGHT))];
+	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&([self checkPlayerInFlight]))];
 }
 
 

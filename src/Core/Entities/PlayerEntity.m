@@ -5475,14 +5475,14 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) leaveWitchspace
 {
-	float		d1 = (float)(SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5));
+	float		d1 = (float)(SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5));
 	Vector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 	Quaternion	q1;
 	Vector		whpos, exitpos;
 
 	GLfloat min_d1 = [UNIVERSE safeWitchspaceExitDistance];
 	quaternion_set_random(&q1);
-	if (abs((int)d1) < min_d1)	
+	if (abs((int)d1) < min_d1)
 	{
 		d1 += ((d1 > 0.0)? min_d1: -min_d1); // not too close to the buoy.
 	}
