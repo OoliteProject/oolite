@@ -566,6 +566,33 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
+/*
+	SLOW_CODE
+	As of 2012-09-13 (r5320), HUD rendering is taking 25%-30% of rendering time,
+	or 15%-20% of game tick time, as tested on a couple of Macs using the
+	default HUD and models. This could be worse - there used to be a note here
+	saying 30%-40% of tick time - but could still improve.
+	
+	In a top-down perspective, of HUD rendering time, 67% is in -drawDials and
+	27% is in -drawLegends.
+	
+	Bottom-up, one profile shows:
+	21.2%	OODrawString()
+			(Caching the glyph conversion here was a win, but caching geometry
+			in vertex arrays/VBOs would be better.)
+	8.9%	-[HeadUpDisplay drawHudItem:]
+	5.1%	OOFloatFromObject
+			(Reifying HUD info instead of parsing plists each frame would be
+			a win.)
+	4.4%	hudDrawBarAt()
+			(Using fixed geometery and a vertex shader could help here,
+			especially if bars are grouped together and drawn at once if
+			possible.)
+	4.3%	-[OOCrosshairs render]
+			(Uses vertex arrays, but does more GL state manipulation than
+			strictly necessary.)
+	
+*/
 - (void) renderHUD
 {
 	hudUpdating = YES;
@@ -601,7 +628,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-// SLOW_CODE - HUD drawing is taking up a ridiculous 30%-40% of frame time. Much of this seems to be spent in string processing. String caching is needed. -- ahruman
 - (void) drawDials
 {	
 	z1 = [[UNIVERSE gameView] display_z];
@@ -609,14 +635,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	scannerUpdated = NO;
 	
 	// tight loop, we assume dialArray doesn't change in mid-draw.
-	for (int i = [dialArray count] - 1; i >= 0; i--)
+	for (NSInteger i = [dialArray count] - 1; i >= 0; i--)
 	{
 		[self drawHUDItem:[dialArray oo_dictionaryAtIndex:i]];
 	}
 	
 	// We always need to check the mass lock status. It's normally checked inside drawScanner,
 	// but if drawScanner wasn't called, we can check mass lock explicitly.
-	if (EXPECT_NOT(!scannerUpdated)) [self checkMassLock];
+	if (!scannerUpdated)  [self checkMassLock];
 }
 
 
