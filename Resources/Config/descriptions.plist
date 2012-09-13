@@ -1160,6 +1160,7 @@
 	"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps%0" = "%@ The route is %.1f light years long, a minimum of %d jump.";
 	"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps%1" = "%@ The route is %.1f light years long, a minimum of %d jumps.";
 	"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time" = "%@ You will need to depart within %@, in order to arrive within %@ time.";
+	"contracts-@-you-will-need-to-arrive-within-@-time" = "%@ You will need to arrive within %@ time.";
 	"contracts-@-will-pay-@-@-in-advance-and-@-on-arrival" = "%@ Will pay %@: %@ in advance, and %@ on arrival.";
 	"contracts-deliver-a-cargo-of-@-to-@" = "Deliver a cargo of %@ to %@.";
 	"contracts-@-the-contract-will-cost-you-@-and-pay-a-total-of-@" = "%@ The contract will cost you %@, and pay a total of %@.";

@@ -682,10 +682,13 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passengerInfo oo_stringForKey:CONTRACT_KEY_PREMIUM]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passengerInfo oo_stringForKey:CONTRACT_KEY_FEE]]];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_START + i];
-			if ((max_passengers > [passengers count]) && (etd > 0))
+			if (max_passengers > [passengers count] && (((eta - etd) / 4) + etd >= 0))
 			{
 				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_PASSENGERS_START + i];
-				[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
+				if (etd > 0)
+					[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
+				else
+					[gui setColor:[OOColor orangeColor] forRow:GUI_ROW_PASSENGERS_START + i];
 			}
 			else
 			{
@@ -739,15 +742,18 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contractInfo oo_stringForKey:CONTRACT_KEY_FEE]]];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_CARGO_START + i];
 			
-			if ((cargoSpaceRequired > [self availableCargoSpace]) || (premium * 10 > credits) || (etd <= 0) )
+			if ((cargoSpaceRequired <= [self availableCargoSpace]) && (premium * 10 <= credits) && (((eta - etd) / 4) + etd >= 0))
 			{
-				[gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_CARGO_START + i];
-				[gui setColor:[OOColor grayColor] forRow:GUI_ROW_CARGO_START + i];
+				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_CARGO_START + i];
+				if (etd > 0)
+					[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
+				else
+					[gui setColor:[OOColor orangeColor] forRow:GUI_ROW_CARGO_START + i];
 			}
 			else
 			{
-				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_CARGO_START + i];
-				[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
+				[gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_CARGO_START + i];
+				[gui setColor:[OOColor grayColor] forRow:GUI_ROW_CARGO_START + i];
 			}
 		}
 		
@@ -779,11 +785,22 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			NSString		*longText = [selectedContractInfo oo_stringForKey:CONTRACT_KEY_LONG_DESCRIPTION];
 			
 			// recalculate time to depart, could be out of sync with ship clock otherwise.
-			NSString		*etd = [NSString stringWithFormat:
+			NSString		*etaString;
+			int				etd = [selectedContractInfo oo_doubleForKey:CONTRACT_KEY_DEPARTURE_TIME] - ship_clock;
+			if (etd > 0)
+			{
+				etaString = [NSString stringWithFormat:
 							DESC(@"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time"), @"",
-							[UNIVERSE shortTimeDescription:([selectedContractInfo oo_doubleForKey:CONTRACT_KEY_DEPARTURE_TIME] - ship_clock)], [UNIVERSE shortTimeDescription:([selectedContractInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock)]];
+							[UNIVERSE shortTimeDescription:etd], [UNIVERSE shortTimeDescription:([selectedContractInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock)]];
+			}
+			else
+			{
+				etaString = [NSString stringWithFormat:
+							DESC(@"contracts-@-you-will-need-to-arrive-within-@-time"), @"",
+							[UNIVERSE shortTimeDescription:([selectedContractInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock)]];
+			}
 							
-			longText = [NSString stringWithFormat:longText, etd];
+			longText = [NSString stringWithFormat:longText, etaString];
 			
 			[gui addLongText:longText startingAtRow:GUI_ROW_CONTRACT_INFO_START align:GUI_ALIGN_LEFT];		
 		}
