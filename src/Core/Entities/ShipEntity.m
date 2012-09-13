@@ -6430,29 +6430,27 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (OOPlanetEntity *) findNearestPlanet
 {
-	OOPlanetEntity		*result = nil;
-	NSArray				*planets = nil;
+	/*	Performance note: this method is called every frame by every ship, and
+		has a significant profiler presence.
+	*/
+	OOPlanetEntity *planet = nil, *bestPlanet = nil;
+	float bestRange = INFINITY;
+	Vector myPosition = [self position];
 	
-	planets = [UNIVERSE planets];
-	if ([planets count] == 0)  return nil;
-	
-	planets = [planets sortedArrayUsingFunction:ComparePlanetsBySurfaceDistance context:self];
-	result = [planets objectAtIndex:0];
-	
-	// ignore miniature planets when determining nearest planet - Nikos 20090313
-	if ([result planetType] == STELLAR_TYPE_MINIATURE)
+	foreach (planet, [UNIVERSE planets])
 	{
-		if ([UNIVERSE sun])	// if we are not in witchspace give us the next in the list, else nothing
+		// Ignore miniature planets.
+		if ([planet planetType] == STELLAR_TYPE_MINIATURE)  continue;
+		
+		float range = SurfaceDistanceSqaredV(myPosition, planet);
+		if (range < bestRange)
 		{
-			result = [planets objectAtIndex:1];
-		}
-		else
-		{
-			result = nil;
+			bestPlanet = planet;
+			bestRange = range;
 		}
 	}
 	
-	return result;
+	return bestPlanet;
 }
 
 
