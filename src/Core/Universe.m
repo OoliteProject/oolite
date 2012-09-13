@@ -7501,10 +7501,10 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 				long_description = [NSString stringWithFormat:
 					DESC_PLURAL(@"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps", route_hops), long_description,
 					route_length, route_hops];
-				
-				long_description = [NSString stringWithFormat:
-					DESC(@"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time"), long_description,
-					[self shortTimeDescription:(passenger_departure_time - current_time)], [self shortTimeDescription:(passenger_arrival_time - current_time)]];
+					
+				// Placeholder for departure time description. Calculated dynamically in the contracts screen:
+				// DESC(@"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time"), 
+				long_description = [NSString stringWithFormat:@"%@ %%@", long_description];
 				
 				long_description = [NSString stringWithFormat:
 					DESC(@"contracts-@-will-pay-@-@-in-advance-and-@-on-arrival"), long_description,
@@ -7769,9 +7769,9 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 							DESC_PLURAL(@"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps", route_hops), long_description,
 							route_length, route_hops];
 						
-						long_description = [NSString stringWithFormat:
-							DESC(@"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time"), long_description,
-							[self shortTimeDescription:(contract_departure_time - current_time)], [self shortTimeDescription:(contract_arrival_time - current_time)]];
+						// Placeholder for departure time description. Calculated dynamically in the contracts screen:
+						// DESC(@"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time"), 
+						long_description = [NSString stringWithFormat:@"%@ %%@", long_description];
 						
 						long_description = [NSString stringWithFormat:
 							DESC(@"contracts-@-the-contract-will-cost-you-@-and-pay-a-total-of-@"), long_description,

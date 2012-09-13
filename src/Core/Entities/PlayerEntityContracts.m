@@ -616,8 +616,24 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		OOCargoQuantity	cargoSpaceRequired = [info oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
 		OOMassUnit		cargoUnits = [UNIVERSE unitsForCommodity:[info oo_intForKey:CARGO_KEY_TYPE]];
 		
-		if (cargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargoSpaceRequired) / KILOGRAMS_PER_POD; // if more than 499kg, count as 1t
-		if (cargoUnits == UNITS_GRAMS)  cargoSpaceRequired = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargoSpaceRequired) / GRAMS_PER_POD; // if more than the safe can hold, count as 1t
+		if (EXPECT_NOT(cargoUnits == UNITS_KILOGRAMS || cargoUnits == UNITS_GRAMS))
+		{
+			// Let's calculate the exact space requirement for non-ton units
+			// We're using int math, so 99/100 equals 0
+			
+			OOCargoQuantity		existingQty = [[[self shipCommodityData] objectAtIndex:[info oo_intForKey:CARGO_KEY_TYPE]] oo_intAtIndex:MARKET_QUANTITY];
+			OOCargoQuantity		usedCargoSpace;
+			if (cargoUnits == UNITS_KILOGRAMS)
+			{
+				usedCargoSpace = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + existingQty) / KILOGRAMS_PER_POD;
+				cargoSpaceRequired = (((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargoSpaceRequired + existingQty) / KILOGRAMS_PER_POD) - usedCargoSpace;
+			}
+			else	// UNITS_GRAMS
+			{
+				usedCargoSpace = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + existingQty) / GRAMS_PER_POD;
+				cargoSpaceRequired = (((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargoSpaceRequired + existingQty) / GRAMS_PER_POD) - usedCargoSpace;
+			}		
+		}
 				
 		float premium = [info oo_floatForKey:CONTRACT_KEY_PREMIUM];
 		if ((cargoSpaceRequired > [self availableCargoSpace])||(premium * 10 > credits)) 
@@ -652,24 +668,25 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_PASSENGERS_LABELS];
 		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_LABELS];
 		
-		BOOL can_take_passengers = (max_passengers > [passengers count]);
-		
 		for (i = 0; i < passengerCount; i++)
 		{
-			NSDictionary* passenger_info = [passenger_market oo_dictionaryAtIndex:i];
-			NSString *Name = [passenger_info oo_stringForKey:PASSENGER_KEY_NAME];
+			NSDictionary	*passengerInfo = [passenger_market oo_dictionaryAtIndex:i];
+			NSString		*Name = [passengerInfo oo_stringForKey:PASSENGER_KEY_NAME];
 			if([Name length] >27)	Name =[[Name substringToIndex:25] stringByAppendingString:@"..."];
-			int dest_eta = [passenger_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
+			int eta = [passengerInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
+			int etd = [passengerInfo oo_doubleForKey:CONTRACT_KEY_DEPARTURE_TIME] - ship_clock;
 			[row_info removeAllObjects];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",Name]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info oo_stringForKey:CONTRACT_KEY_DESTINATION_NAME]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:dest_eta]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info oo_stringForKey:CONTRACT_KEY_PREMIUM]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info oo_stringForKey:CONTRACT_KEY_FEE]]];
-			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passengerInfo oo_stringForKey:CONTRACT_KEY_DESTINATION_NAME]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:eta]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passengerInfo oo_stringForKey:CONTRACT_KEY_PREMIUM]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passengerInfo oo_stringForKey:CONTRACT_KEY_FEE]]];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_START + i];
-			if (can_take_passengers)
+			if ((max_passengers > [passengers count]) && (etd > 0))
+			{
 				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_PASSENGERS_START + i];
+				[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
+			}
 			else
 			{
 				[gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_PASSENGERS_START + i];
@@ -689,50 +706,49 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 		for (i = 0; i < contractCount; i++)
 		{
-			NSDictionary		*contract_info = [contract_market oo_dictionaryAtIndex:i];
-			OOCargoQuantity		cargo_space_required = [contract_info oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
-			OOMassUnit			cargo_units = [UNIVERSE unitsForCommodity:[contract_info oo_unsignedIntForKey:CARGO_KEY_TYPE]];
-			// int math: 99/100 = 0!
-			if (cargo_units == UNITS_KILOGRAMS)
+			NSDictionary		*contractInfo = [contract_market oo_dictionaryAtIndex:i];
+			OOCargoQuantity		cargoSpaceRequired = [contractInfo oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
+			OOMassUnit			cargoUnits = [UNIVERSE unitsForCommodity:[contractInfo oo_intForKey:CARGO_KEY_TYPE]];
+			if (EXPECT_NOT(cargoUnits == UNITS_KILOGRAMS || cargoUnits == UNITS_GRAMS))
 			{
-				// this calculation still isn't quite right, but it errs in
-				// favour of loading too little cargo rather than impossibly much
-				// - CIM 8 Sep 2012
-				OOCargoQuantity currentKilogramsInSafe = [[[self shipCommodityData] objectAtIndex:[contract_info oo_unsignedIntForKey:CARGO_KEY_TYPE]] oo_intAtIndex:MARKET_QUANTITY];
-				if (currentKilogramsInSafe > MAX_KILOGRAMS_IN_SAFE)
+				// Let's calculate the exact space requirement for non-ton units
+				// We're using int math, so 99/100 equals 0
+				
+				OOCargoQuantity		existingQty = [[[self shipCommodityData] objectAtIndex:[contractInfo oo_intForKey:CARGO_KEY_TYPE]] oo_intAtIndex:MARKET_QUANTITY];
+				OOCargoQuantity		usedCargoSpace;
+				if (cargoUnits == UNITS_KILOGRAMS)
 				{
-					currentKilogramsInSafe = MAX_KILOGRAMS_IN_SAFE;
+					usedCargoSpace = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + existingQty) / KILOGRAMS_PER_POD;
+					cargoSpaceRequired = (((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargoSpaceRequired + existingQty) / KILOGRAMS_PER_POD) - usedCargoSpace;
 				}
-				cargo_space_required = ((currentKilogramsInSafe + KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargo_space_required) / KILOGRAMS_PER_POD; // if more than the safe can *currently* hold, count as 1t
-			}
-			else if (cargo_units == UNITS_GRAMS)
-			{
-				OOCargoQuantity currentGramsInSafe = [[[self shipCommodityData] objectAtIndex:[contract_info oo_unsignedIntForKey:CARGO_KEY_TYPE]] oo_intAtIndex:MARKET_QUANTITY];
-				if (currentGramsInSafe > MAX_GRAMS_IN_SAFE)
+				else	// UNITS_GRAMS
 				{
-					currentGramsInSafe = MAX_GRAMS_IN_SAFE;
-				}
-				cargo_space_required = ((currentGramsInSafe + GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargo_space_required) / GRAMS_PER_POD; // if more than 499999g, count as 1t
+					usedCargoSpace = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + existingQty) / GRAMS_PER_POD;
+					cargoSpaceRequired = (((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargoSpaceRequired + existingQty) / GRAMS_PER_POD) - usedCargoSpace;
+				}		
 			}
 			
-			float premium = [(NSNumber *)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] floatValue];
-			BOOL not_possible = ((cargo_space_required > [self availableCargoSpace])||(premium * 10 > credits));
-			int dest_eta = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
+			float premium = [contractInfo oo_floatForKey:CONTRACT_KEY_PREMIUM];
+			int eta = [contractInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
+			int etd = [contractInfo oo_doubleForKey:CONTRACT_KEY_DEPARTURE_TIME] - ship_clock;
 			[row_info removeAllObjects];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info objectForKey:CARGO_KEY_DESCRIPTION]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info objectForKey:CONTRACT_KEY_DESTINATION_NAME]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:dest_eta]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info oo_stringForKey:CONTRACT_KEY_PREMIUM]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info oo_stringForKey:CONTRACT_KEY_FEE]]];
-			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contractInfo oo_stringForKey:CARGO_KEY_DESCRIPTION]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contractInfo oo_stringForKey:CONTRACT_KEY_DESTINATION_NAME]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:eta]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contractInfo oo_stringForKey:CONTRACT_KEY_PREMIUM]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contractInfo oo_stringForKey:CONTRACT_KEY_FEE]]];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_CARGO_START + i];
-			if (not_possible)
+			
+			if ((cargoSpaceRequired > [self availableCargoSpace]) || (premium * 10 > credits) || (etd <= 0) )
 			{
 				[gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_CARGO_START + i];
 				[gui setColor:[OOColor grayColor] forRow:GUI_ROW_CARGO_START + i];
 			}
 			else
+			{
 				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_CARGO_START + i];
+				[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
+			}
 		}
 		
 		[gui setText:[NSString stringWithFormat:DESC_PLURAL(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace], [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
@@ -747,15 +763,29 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if ([[gui selectedRowKey] isEqual:GUI_KEY_SKIP])
 			[gui setFirstSelectableRow];
 		
+		NSDictionary	*selectedContractInfo = nil;
+		
 		if (([gui selectedRow] >= GUI_ROW_PASSENGERS_START)&&([gui selectedRow] < (int)(GUI_ROW_PASSENGERS_START + passengerCount)))
 		{
-			NSString* long_info = (NSString*)[(NSDictionary*)[passenger_market objectAtIndex:[gui selectedRow] - GUI_ROW_PASSENGERS_START] objectForKey:CONTRACT_KEY_LONG_DESCRIPTION];
-			[gui addLongText:long_info startingAtRow:GUI_ROW_CONTRACT_INFO_START align:GUI_ALIGN_LEFT];
+			selectedContractInfo = [passenger_market oo_dictionaryAtIndex:[gui selectedRow] - GUI_ROW_PASSENGERS_START];
 		}
 		if (([gui selectedRow] >= GUI_ROW_CARGO_START)&&([gui selectedRow] < (int)(GUI_ROW_CARGO_START + contractCount)))
 		{
-			NSString* long_info = [[contract_market oo_dictionaryAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START] oo_stringForKey:CONTRACT_KEY_LONG_DESCRIPTION];
-			[gui addLongText:long_info startingAtRow:GUI_ROW_CONTRACT_INFO_START align:GUI_ALIGN_LEFT];
+			selectedContractInfo = [contract_market oo_dictionaryAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START];
+		}
+		
+		if (selectedContractInfo != nil)
+		{
+			NSString		*longText = [selectedContractInfo oo_stringForKey:CONTRACT_KEY_LONG_DESCRIPTION];
+			
+			// recalculate time to depart, could be out of sync with ship clock otherwise.
+			NSString		*etd = [NSString stringWithFormat:
+							DESC(@"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time"), @"",
+							[UNIVERSE shortTimeDescription:([selectedContractInfo oo_doubleForKey:CONTRACT_KEY_DEPARTURE_TIME] - ship_clock)], [UNIVERSE shortTimeDescription:([selectedContractInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock)]];
+							
+			longText = [NSString stringWithFormat:longText, etd];
+			
+			[gui addLongText:longText startingAtRow:GUI_ROW_CONTRACT_INFO_START align:GUI_ALIGN_LEFT];		
 		}
 		
 		[gui setShowTextCursor:NO];
@@ -892,13 +922,13 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	
 	for (i = 0; i < [contracts count]; i++)
 	{
-		NSDictionary		*contract_info = [contracts oo_dictionaryAtIndex:i];
-		unsigned 			cargoDest = [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION];
-		OOCommodityType		cargoType = [contract_info oo_intForKey:CARGO_KEY_TYPE];
+		NSDictionary		*contractInfo = [contracts oo_dictionaryAtIndex:i];
+		unsigned 			cargoDest = [contractInfo oo_intForKey:CONTRACT_KEY_DESTINATION];
+		OOCommodityType		cargoType = [contractInfo oo_intForKey:CARGO_KEY_TYPE];
 		
 		if (cargoType == findType && cargoDest == dest)
 		{
-			[contract_record removeObjectForKey:[contract_info oo_stringForKey:CARGO_KEY_ID]];
+			[contract_record removeObjectForKey:[contractInfo oo_stringForKey:CARGO_KEY_ID]];
 			[contracts removeObjectAtIndex:i];
 			return YES;
 		}
