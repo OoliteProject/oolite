@@ -6963,23 +6963,27 @@ static NSString *last_outfitting_key=nil;
 			if (skip > 0)	// lose the first row to Back <--
 			{
 				unsigned previous;
-
-				if (count <= n_rows || skip < n_rows)
+				
+				if (count <= n_rows || skip < (NSInteger)n_rows)
+				{
 					previous = 0;					// single page
+				}
 				else
 				{
 					previous = skip - (n_rows - 2);	// multi-page. 
 					if (previous < 2)
+					{
 						previous = 0;				// if only one previous item, just show it
+					}
 				}
-
+				
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				[gui setColor:[OOColor greenColor] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
 				row++;
 			}
 			
-			for (i = skip; i < count && (row - start_row < (OOGUIRow)n_rows); i++)
+			for (i = skip; i < (NSInteger)count && (row - start_row < (OOGUIRow)n_rows); i++)
 			{
 				NSString *interfaceKey = [interfaceKeys objectAtIndex:i];
 				OOJSInterfaceDefinition *definition = [interfaces objectForKey:interfaceKey];
@@ -6990,7 +6994,7 @@ static NSString *last_outfitting_key=nil;
 				row++;
 			}
 
-			if (i < count)
+			if (i < (NSInteger)count)
 			{
 				// just overwrite the last item :-)
 				[gui setColor:[OOColor greenColor] forRow:row - 1];
@@ -7001,7 +7005,9 @@ static NSString *last_outfitting_key=nil;
 			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
 
 			if ([gui selectedRow] != start_row)
+			{
 				[gui setSelectedRow:start_row];
+			}
 
 			[self showInformationForSelectedInterface];
 		}

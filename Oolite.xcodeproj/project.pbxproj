@@ -386,6 +386,9 @@
 		1A3591840C1C382700E52220 /* startextures.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3591820C1C382700E52220 /* startextures.plist */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; settings = {COMPILER_FLAGS = "-fvisibility=default"; }; };
+		1A38E9E31603C7A500EE19F1 /* OOJSInterfaceDefinition.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38E9E11603C7A500EE19F1 /* OOJSInterfaceDefinition.h */; };
+		1A38E9E41603C7A500EE19F1 /* OOJSInterfaceDefinition.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38E9E21603C7A500EE19F1 /* OOJSInterfaceDefinition.m */; };
+		1A38E9E71603C92A00EE19F1 /* oolite-contracts-parcels.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A38E9E51603C7ED00EE19F1 /* oolite-contracts-parcels.js */; };
 		1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A04610BC547DC00B5E2D9 /* OOTypes.h */; };
 		1A3ACFEB0C5FF33A00EC50A7 /* OOJSShip.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3ACFE90C5FF33A00EC50A7 /* OOJSShip.h */; };
 		1A3ACFEC0C5FF33A00EC50A7 /* OOJSShip.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */; };
@@ -1212,6 +1215,7 @@
 			dstPath = Scripts;
 			dstSubfolderSpec = 7;
 			files = (
+				1A38E9E71603C92A00EE19F1 /* oolite-contracts-parcels.js in Copy Scripts */,
 				1A5ABE6B15FBC86F006C97DC /* oolite-default-effect-script.js in Copy Scripts */,
 				1AE45E5A12EB177B00B570E1 /* oolite-constrictor-pilot.js in Copy Scripts */,
 				1AE45E5C12EB178100B570E1 /* oolite-locale-functions.js in Copy Scripts */,
@@ -1664,6 +1668,9 @@
 		1A37D1ED1049B2E400BC8976 /* CHANGELOG.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CHANGELOG.TXT; path = Doc/CHANGELOG.TXT; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
+		1A38E9E11603C7A500EE19F1 /* OOJSInterfaceDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSInterfaceDefinition.h; sourceTree = "<group>"; };
+		1A38E9E21603C7A500EE19F1 /* OOJSInterfaceDefinition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSInterfaceDefinition.m; sourceTree = "<group>"; };
+		1A38E9E51603C7ED00EE19F1 /* oolite-contracts-parcels.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-contracts-parcels.js"; sourceTree = "<group>"; };
 		1A3A04610BC547DC00B5E2D9 /* OOTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTypes.h; sourceTree = "<group>"; };
 		1A3ACFE90C5FF33A00EC50A7 /* OOJSShip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSShip.h; sourceTree = "<group>"; };
 		1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSShip.m; sourceTree = "<group>"; };
@@ -2568,6 +2575,7 @@
 				1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */,
 				1A572FBB0D84B640003D4A26 /* oolite-default-ship-script.js */,
 				1A572FBC0D84B640003D4A26 /* oolite-cloaking-device-mission.js */,
+				1A38E9E51603C7ED00EE19F1 /* oolite-contracts-parcels.js */,
 				1A572FBD0D84B640003D4A26 /* oolite-constrictor.js */,
 				1A572FBE0D84B640003D4A26 /* oolite-constrictor-hunt-mission.js */,
 				1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */,
@@ -2693,6 +2701,8 @@
 				1A11F8480F35F60C001C886C /* OOJSShipGroup.m */,
 				1A0942C712D7C011003B6273 /* OOJSFrameCallbacks.h */,
 				1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */,
+				1A38E9E11603C7A500EE19F1 /* OOJSInterfaceDefinition.h */,
+				1A38E9E21603C7A500EE19F1 /* OOJSInterfaceDefinition.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -3546,6 +3556,7 @@
 				1A72F86E15E5655D00281337 /* OOVisualEffectEntity.h in Headers */,
 				1A72F87215E5658E00281337 /* OOJSVisualEffect.h in Headers */,
 				1A401F8815E7AF7B004CDF95 /* OOPrimaryWindow.h in Headers */,
+				1A38E9E31603C7A500EE19F1 /* OOJSInterfaceDefinition.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4021,6 +4032,7 @@
 				1A72F86F15E5655D00281337 /* OOVisualEffectEntity.m in Sources */,
 				1A72F87315E5658E00281337 /* OOJSVisualEffect.m in Sources */,
 				1A401F8915E7AF7B004CDF95 /* OOPrimaryWindow.m in Sources */,
+				1A38E9E41603C7A500EE19F1 /* OOJSInterfaceDefinition.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
