@@ -229,7 +229,6 @@ typedef struct
 	// the desired function, and the hardware (axis or button etc.)
 	id			cbObject;
 	SEL			cbSelector;
-	int			cbFunc;
 	char		cbHardware;
 	BOOL		invertPitch;
 }

@@ -160,6 +160,13 @@ OOINLINE Vector2D MakeVector2D(OOScalar vx, OOScalar vy)
 
 OOINLINE void scale_vector(Vector *vec, OOScalar factor)
 {
+	/*
+		Clang static analyzer: reports an unintialized value here when called
+		from -[HeadUpDisplay rescaleByFactor:]. This is blatantly wrong, as
+		the array the vector comes from is fully initialized in the range being
+		looped over.
+		-- Ahruman 2012-09-14
+	*/
 	vec->x *= factor;
 	vec->y *= factor;
 	vec->z *= factor;
@@ -168,6 +175,12 @@ OOINLINE void scale_vector(Vector *vec, OOScalar factor)
 
 OOINLINE Vector vector_multiply_scalar(Vector v, OOScalar s)
 {
+	/*
+		Clang static analyzer: reports a garbage value here when called from
+		-[OOMesh rescaleByFactor:], apparently on baseless assumption that
+		OOMesh._vertices points to only one vertex.
+		-- Ahruman 2012-09-14
+	*/
 	Vector r;
 	r.x = v.x * s;
 	r.y = v.y * s;

@@ -70,12 +70,13 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension heig
 	{
 		// Calcuate sin/cos of latitude.
 		/*
-			Clang static analyzer (Xcode 3.2.5 version) says:
+			Clang static analyzer (Xcode 3.2.5 version, through to Xcode 4.4
+			and freestanding checker-268 at least) says:
 			"Assigned value is garbage or undefined."
 			Memsetting sinTable to all-zeros moves this to the cosTable line.
 			Since every value in each of those tables is in fact defined, this
 			is an error in the analyzer.
-			-- Ahruman 2011-01-25
+			-- Ahruman 2011-01-25/2012-09-14
 		*/
 		float cy = -sinTable[width * 3 / 4 - y];
 		float lac = -cosTable[width * 3 / 4 - y];

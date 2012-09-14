@@ -9298,7 +9298,6 @@ else _dockTarget = NO_TARGET;
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.playerEntity", @"Flags: %@", flagsString);
 }
-#endif
 
 
 /*	This method exists purely to suppress Clang static analyzer warnings that
@@ -9365,14 +9364,13 @@ else _dockTarget = NO_TARGET;
 	key_previous_target &&
 	key_custom_view &&
 	key_docking_clearance_request &&
-#ifndef NDEBUG
 	key_dump_target_state &&
-#endif
 	key_weapons_online_toggle &&
 	_sysInfoLight.x &&
 	selFunctionIdx &&
 	stickFunctions &&
 	showingLongRangeChart;
 }
+#endif
 
 @end

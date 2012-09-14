@@ -1052,4 +1052,10 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	return cam_zero_distance <= ABSOLUTE_NO_DRAW_DISTANCE2;
 }
 
+
+- (BOOL) isImmuneToBreakPatternHide
+{
+	return isImmuneToBreakPatternHide;
+}
+
 @end

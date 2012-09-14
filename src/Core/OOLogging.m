@@ -331,6 +331,11 @@ void OOLogPushIndent(void)
 		
 		elem->indent = [[threadDict objectForKey:kIndentLevelKey] intValue];
 		elem->link = [val pointerValue];
+		
+		/*
+			Clang static analyzer reports elem not released here. It is in fact
+			released in OOLogPopIndent().
+		*/
 		[threadDict setObject:[NSValue valueWithPointer:elem] forKey:kIndentStackKey];
 	}
 }

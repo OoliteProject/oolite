@@ -267,6 +267,7 @@ enum OOScanClass
 - (Geometry *) geometry;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
 - (BOOL) isVisible;
+- (BOOL) isImmuneToBreakPatternHide;
 
 // For shader bindings.
 - (GLfloat) universalTime;

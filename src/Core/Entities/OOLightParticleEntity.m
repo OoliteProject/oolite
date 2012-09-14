@@ -136,7 +136,7 @@ static OOTexture *sBlobTexture = nil;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent) return;
-	if ([UNIVERSE breakPatternHide] && !isImmuneToBreakPatternHide)
+	if ([UNIVERSE breakPatternHide] && ![self isImmuneToBreakPatternHide])
 	{
 		Entity *father = [self owner];
 		while (father != nil && father != NO_TARGET)
@@ -144,7 +144,7 @@ static OOTexture *sBlobTexture = nil;
 			if (![father isSubEntity])  break;
 			father = [father owner];
 		}
-		if (!father->isImmuneToBreakPatternHide)
+		if (![father isImmuneToBreakPatternHide])
 		{
 			return;
 		}

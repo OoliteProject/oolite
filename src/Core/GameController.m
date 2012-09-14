@@ -939,6 +939,18 @@ static NSMutableArray *sMessageStack;
 #endif
 }
 
+
+#ifndef NDEBUG
+/*	This method exists purely to suppress Clang static analyzer warnings that
+	these ivars are unused (but may be used by categories, which they are).
+*/
+- (BOOL) suppressClangStuff
+{
+	return pauseSelector &&
+	pauseTarget;
+}
+#endif
+
 @end
 
 
