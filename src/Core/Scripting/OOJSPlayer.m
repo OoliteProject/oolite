@@ -53,6 +53,8 @@ static JSBool PlayerIncreaseContractReputation(JSContext *context, uintN argc, j
 static JSBool PlayerDecreaseContractReputation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerIncreasePassengerReputation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerDecreasePassengerReputation(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerIncreaseParcelReputation(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerDecreaseParcelReputation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsval *vp);
@@ -90,6 +92,7 @@ enum
 	kPlayer_dockingClearanceStatus,	// docking clearance status, string, read only
 	kPlayer_legalStatus,			// legalStatus, string, read-only
 	kPlayer_name,					// Player name, string, read-only
+	kPlayer_parcelReputation,	// reputation for parcel contracts, integer, read-only
 	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read-only
 	kPlayer_rank,					// rank, string, read-only
 	kPlayer_score,					// kill count, integer, read/write
@@ -112,6 +115,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	OOJS_PROP_READONLY_CB },
 	{ "legalStatus",			kPlayer_legalStatus,		OOJS_PROP_READONLY_CB },
 	{ "name",					kPlayer_name,				OOJS_PROP_READONLY_CB },
+	{ "parcelReputation",	kPlayer_parcelReputation,	OOJS_PROP_READONLY_CB },
 	{ "passengerReputation",	kPlayer_passengerReputation,	OOJS_PROP_READONLY_CB },
 	{ "rank",					kPlayer_rank,				OOJS_PROP_READONLY_CB },
 	{ "score",					kPlayer_score,				OOJS_PROP_READWRITE_CB },
@@ -127,8 +131,10 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "commsMessage",					PlayerCommsMessage,					1 },
 	{ "consoleMessage",					PlayerConsoleMessage,				1 },
 	{ "decreaseContractReputation",		PlayerDecreaseContractReputation,	0 },
+	{ "decreaseParcelReputation",	    PlayerDecreaseParcelReputation,	0 },
 	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation,	0 },
 	{ "increaseContractReputation",		PlayerIncreaseContractReputation,	0 },
+	{ "increaseParcelReputation",	    PlayerIncreaseParcelReputation,	0 },
 	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
 	{ "replaceShip",					PlayerReplaceShip,					1 },
 	{ "setEscapePodDestination",		PlayerSetEscapePodDestination,		1 },	// null destination must be set explicitly
@@ -236,6 +242,10 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 			
 		case kPlayer_passengerReputation:
 			*value = INT_TO_JSVAL([player passengerReputation]);
+			return YES;
+
+		case kPlayer_parcelReputation:
+			*value = INT_TO_JSVAL([player parcelReputation]);
 			return YES;
 			
 		case kPlayer_dockingClearanceStatus:
@@ -377,6 +387,30 @@ static JSBool PlayerDecreaseContractReputation(JSContext *context, uintN argc, j
 	OOJS_NATIVE_ENTER(context)
 	
 	[OOPlayerForScripting() decreaseContractReputation];
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// increaseParcelReputation()
+static JSBool PlayerIncreaseParcelReputation(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	[OOPlayerForScripting() increaseParcelReputation];
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// decreaseParcelReputation()
+static JSBool PlayerDecreaseParcelReputation(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	[OOPlayerForScripting() decreaseParcelReputation];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT

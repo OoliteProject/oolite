@@ -71,6 +71,10 @@ MA 02110-1301, USA.
 - (void) increasePassengerReputation;
 - (void) decreasePassengerReputation;
 
+- (int) parcelReputation;
+- (void) increaseParcelReputation;
+- (void) decreaseParcelReputation;
+
 - (int) contractReputation;
 - (void) increaseContractReputation;
 - (void) decreaseContractReputation;
@@ -85,10 +89,13 @@ MA 02110-1301, USA.
 
 - (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee;	// for js scripting
 - (BOOL) removePassenger:(NSString*)Name;	// for js scripting
+- (BOOL) addParcel:(NSString*)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee;	// for js scripting
+- (BOOL) removeParcel:(NSString*)Name;	// for js scripting
 - (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee;	// for js scripting.
 - (BOOL) removeContract:(NSString*)commodity destination:(unsigned)destination;	// for js scripting
 
 - (NSArray *) passengerList;
+- (NSArray *) parcelList;
 - (NSArray *) contractList;
 - (void) setGuiToManifestScreen;
 - (void) setManifestScreenRow:(id)object inColor:(OOColor*)color forRow:(OOGUIRow)row ofRows:(OOGUIRow)max_rows andOffset:(OOGUIRow)offset inMultipage:(BOOL)multi;

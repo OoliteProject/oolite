@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOJSShip.h"
 #import "OOJSPlayer.h"
 #import "OOJavaScriptEngine.h"
+#import "OOJSInterfaceDefinition.h"
 
 #import "StationEntity.h"
 #import "GameController.h"
@@ -48,7 +49,7 @@ static JSBool StationLaunchPirateShip(JSContext *context, uintN argc, jsval *vp)
 static JSBool StationLaunchShuttle(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchPatrol(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchPolice(JSContext *context, uintN argc, jsval *vp);
-
+static JSBool StationSetInterface(JSContext *context, uintN argc, jsval *vp);
 
 static JSClass sStationClass =
 {
@@ -120,6 +121,7 @@ static JSFunctionSpec sStationMethods[] =
 	{ "launchScavenger",		StationLaunchScavenger,			0 },
 	{ "launchShipWithRole",		StationLaunchShipWithRole,		1 },
 	{ "launchShuttle",			StationLaunchShuttle,			0 },
+	{ "setInterface",			StationSetInterface,			0 },
 	{ 0 }
 };
 
@@ -475,5 +477,102 @@ static JSBool StationLaunchPolice(JSContext *context, uintN argc, jsval *vp)
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	OOJS_RETURN_OBJECT([station launchPolice]);
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool StationSetInterface(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	StationEntity *station = nil;
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
+
+	if (argc < 1)
+	{
+		OOJSReportBadArguments(context, @"Station", @"setInterface", MIN(argc, 1U), OOJS_ARGV, NULL, @"key [, definition]");
+		return NO;
+	}
+	NSString *key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+
+	if (argc < 2 || JSVAL_IS_NULL(OOJS_ARGV[1]))
+	{
+		[station setInterfaceDefinition:nil forKey:key];
+		OOJS_RETURN_VOID;
+	}
+	
+
+	jsval				value = JSVAL_NULL;
+	jsval				callback = JSVAL_NULL;
+	JSObject				*callbackThis = NULL;
+	JSObject			*params = NULL;
+
+	NSString      *title = nil;
+	NSString      *summary = nil;
+	NSString      *category = nil;
+
+	if (!JS_ValueToObject(context, OOJS_ARGV[1], &params))
+	{
+		OOJSReportBadArguments(context, @"Station", @"setInterface", MIN(argc, 1U), OOJS_ARGV, NULL, @"key [, definition]");
+		return NO;
+	}
+
+	// get and validate title
+	if (JS_GetProperty(context, params, "title", &value) == JS_FALSE || JSVAL_IS_VOID(value))
+	{
+		OOJSReportBadArguments(context, @"Station", @"setInterface", MIN(argc, 1U), OOJS_ARGV, NULL, @"key [, definition]; if definition is set, it must have a 'title' property.");
+		return NO;
+	}
+	title = OOStringFromJSValue(context, value);
+
+	// get category with default
+	if (JS_GetProperty(context, params, "category", &value) == JS_FALSE || JSVAL_IS_VOID(value))
+	{
+		category = [NSString stringWithString:DESC(@"interfaces-unspecified-category")];
+	}
+	else
+	{
+		category = OOStringFromJSValue(context, value);
+	}
+
+	// get and validate summary
+	if (JS_GetProperty(context, params, "summary", &value) == JS_FALSE || JSVAL_IS_VOID(value))
+	{
+		OOJSReportBadArguments(context, @"Station", @"setInterface", MIN(argc, 1U), OOJS_ARGV, NULL, @"key [, definition]; if definition is set, it must have a 'summary' property.");
+		return NO;
+	}
+	summary = OOStringFromJSValue(context, value);
+
+	// get and validate callback
+	if (JS_GetProperty(context, params, "callback", &callback) == JS_FALSE || JSVAL_IS_VOID(callback))
+	{
+		OOJSReportBadArguments(context, @"Station", @"setInterface", MIN(argc, 1U), OOJS_ARGV, NULL, @"key [, definition]; if definition is set, it must have a 'callback' property.");
+		return NO;
+	}
+	if (!OOJSValueIsFunction(context,callback))
+	{
+		OOJSReportBadArguments(context, @"Station", @"setInterface", MIN(argc, 1U), OOJS_ARGV, NULL, @"key [, definition]; 'callback' property must be a function.");
+		return NO;
+	}
+
+	OOJSInterfaceDefinition* definition = [[OOJSInterfaceDefinition alloc] init];
+	[definition setTitle:title];
+	[definition setCategory:category];
+	[definition setSummary:summary];
+	[definition setCallback:callback];
+
+	// get callback 'this'
+	if (JS_GetProperty(context, params, "cbThis", &value) == JS_TRUE && !JSVAL_IS_VOID(value))
+	{
+		JS_ValueToObject(context, value, &callbackThis);
+		[definition setCallbackThis:callbackThis];
+		// can do .bind(this) for callback instead
+	}
+	
+	[station setInterfaceDefinition:definition forKey:key];
+
+	[definition release];
+
+	OOJS_RETURN_VOID;
+
 	OOJS_NATIVE_EXIT
 }

@@ -61,6 +61,8 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipAddParcel(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipRemoveParcel(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemoveContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp);
@@ -68,7 +70,7 @@ static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *v
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
 
 
-static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee);
+static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, NSString *functionName);
 
 
 static JSClass sPlayerShipClass =
@@ -171,6 +173,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 static JSFunctionSpec sPlayerShipMethods[] =
 {
 	// JS name						Function							min args
+	{ "addParcel",   					PlayerShipAddParcel,						0 },
 	{ "addPassenger",					PlayerShipAddPassenger,						0 },
 	{ "awardContract",					PlayerShipAwardContract,					0 },
 	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,		1 },
@@ -179,6 +182,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "launch",							PlayerShipLaunch,							0 },
 	{ "removeAllCargo",					PlayerShipRemoveAllCargo,					0 },
 	{ "removeContract",					PlayerShipRemoveContract,					2 },
+	{ "removeParcel",   				PlayerShipRemoveParcel,					1 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
@@ -733,7 +737,7 @@ static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	if (!ValidateContracts(context, argc, vp, NO, &start, &destination, &eta, &fee))  return NO; // always go through validate contracts (passenger)
+	if (!ValidateContracts(context, argc, vp, NO, &start, &destination, &eta, &fee, @"addPassenger"))  return NO; // always go through validate contracts (passenger)
 	
 	// Ensure there's space.
 	if ([player passengerCount] >= [player passengerCapacity])  OOJS_RETURN_BOOL(NO);
@@ -763,6 +767,65 @@ static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *v
 	
 	OK = [player passengerCount] > 0 && [name length] > 0;
 	if (OK)  OK = [player removePassenger:name];
+	
+	OOJS_RETURN_BOOL(OK);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// addParcel(description: string, start: int, destination: int, ETA: double, fee: double) : Boolean
+static JSBool PlayerShipAddParcel(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	NSString 			*name = nil;
+	OOSystemID			start = 0, destination = 0;
+	jsdouble			eta = 0.0, fee = 0.0;
+	
+	if (argc < 5)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"addParcel", argc, OOJS_ARGV, nil, @"name, start, destination, ETA, fee");
+		return NO;
+	}
+	
+	name = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(name == nil))
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"addParcel", 1, &OOJS_ARGV[0], nil, @"string");
+		return NO;
+	}
+	
+	if (!ValidateContracts(context, argc, vp, NO, &start, &destination, &eta, &fee, @"addParcel"))  return NO; // always go through validate contracts (passenger/parcel mode)
+	
+	// Ensure there's space.
+	
+	BOOL OK = [player addParcel:name start:start destination:destination eta:eta fee:fee];
+	OOJS_RETURN_BOOL(OK);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// removeParcel(description :string)
+static JSBool PlayerShipRemoveParcel(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	NSString			*name = nil;
+	BOOL				OK = YES;
+	
+	if (argc > 0)  name = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(name == nil))
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"removeParcel", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
+		return NO;
+	}
+	
+	OK = [player parcelCount] > 0 && [name length] > 0;
+	if (OK)  OK = [player removeParcel:name];
 	
 	OOJS_RETURN_BOOL(OK);
 	
@@ -800,7 +863,7 @@ static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	if (!ValidateContracts(context, argc, vp, YES, &start, &destination, &eta, &fee))  return NO; // always go through validate contracts (cargo)
+	if (!ValidateContracts(context, argc, vp, YES, &start, &destination, &eta, &fee, @"awardContract"))  return NO; // always go through validate contracts (cargo)
 	
 	BOOL OK = [player awardContract:qty commodity:key start:start destination:destination eta:eta fee:fee];
 	OOJS_RETURN_BOOL(OK);
@@ -940,14 +1003,13 @@ static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval
 }
 
 
-static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee)
+static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, NSString *functionName)
 {
 	OOJS_PROFILE_ENTER
 	
 	NSCParameterAssert(context != NULL && vp != NULL && start != NULL && destination != NULL && eta != NULL && fee != NULL);
 	
 	unsigned		offset = isCargo ? 2 : 1;
-	NSString		*functionName = isCargo ? @"awardContract" : @"addPassenger";
 	jsdouble		fValue;
 	int32			iValue;
 	

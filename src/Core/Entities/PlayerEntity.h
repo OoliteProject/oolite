@@ -108,7 +108,13 @@ enum
 	GUI_ROW_EQUIPMENT_CASH				= 1,
 	GUI_ROW_MARKET_KEY					= 1,
 	GUI_ROW_MARKET_START				= 2,
-	GUI_ROW_MARKET_CASH					= 20
+	GUI_ROW_MARKET_CASH					= 20,
+	GUI_ROW_INTERFACES_HEADING    = 1,
+	GUI_ROW_INTERFACES_START      = 3,
+	GUI_MAX_ROWS_INTERFACES				= 12,
+	GUI_ROW_INTERFACES_DETAIL			= GUI_ROW_INTERFACES_START + GUI_MAX_ROWS_INTERFACES + 1,
+	GUI_ROW_NO_INTERFACES         = 3
+
 };
 #if GUI_FIRST_ROW() < 0
 # error Too many items in OPTIONS list!
@@ -237,6 +243,9 @@ typedef enum
 #define PASSAGE_GOOD_KEY				@"passage_fulfilled"
 #define PASSAGE_BAD_KEY					@"passage_expired"
 #define PASSAGE_UNKNOWN_KEY				@"passage_unknown"
+#define PARCEL_GOOD_KEY				@"parcels_fulfilled"
+#define PARCEL_BAD_KEY					@"parcels_expired"
+#define PARCEL_UNKNOWN_KEY				@"parcels_unknown"
 
 
 #define SCANNER_ZOOM_RATE_UP			2.0
@@ -286,6 +295,9 @@ typedef enum
 	unsigned				max_passengers;
 	NSMutableArray			*passengers;
 	NSMutableDictionary		*passenger_record;
+
+	NSMutableArray			*parcels;
+	NSMutableDictionary		*parcel_record;
 	
 	NSMutableArray			*contracts;
 	NSMutableDictionary		*contract_record;
@@ -733,6 +745,11 @@ typedef enum
 - (OOWeaponFacingSet) availableFacings;
 - (void) setGuiToEquipShipScreen:(int)skip selectingFacingFor:(NSString *)eqKeyForSelectFacing;
 - (void) setGuiToEquipShipScreen:(int)skip;
+
+- (void) setGuiToInterfacesScreen:(int)skip;
+- (void) showInformationForSelectedInterface;
+- (void) activateSelectedInterface;
+
 - (void) highlightEquipShipScreenKey:(NSString *)key;
 - (void) showInformationForSelectedUpgrade;
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
@@ -752,6 +769,7 @@ typedef enum
 - (OOGUIScreenID) guiScreen;
 
 - (void) buySelectedItem;
+
 - (BOOL) marketFlooded:(OOCommodityType)type;
 - (BOOL) tryBuyingCommodity:(OOCommodityType)type all:(BOOL)all;
 - (BOOL) trySellingCommodity:(OOCommodityType)type all:(BOOL)all;

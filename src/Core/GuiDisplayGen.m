@@ -1678,6 +1678,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	else if ([shape isEqualToString:@"MARKER_PLUS"])
 	{
+		mark_size *= 1.4; // match volumes
 		glVertex3f(x,	y - mark_size,	z);
 		glVertex3f(x,	y + mark_size,	z);
 		glVertex3f(x - mark_size,	y,	z);
@@ -1696,6 +1697,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	else if ([shape isEqualToString:@"MARKER_DIAMOND"])
 	{
+		mark_size *= 1.4; // match volumes
 		glVertex3f(x,	y - mark_size,	z);
 		glVertex3f(x - mark_size,	y,	z);
 		glVertex3f(x - mark_size,	y,	z);

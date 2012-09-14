@@ -1966,6 +1966,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	{
 		choiceValue = [choicesDict objectForKey:choiceKey];
 		OOGUIAlignment alignment = GUI_ALIGN_CENTER;
+		OOColor *rowColor = [OOColor yellowColor];
 		if ([choiceValue isKindOfClass:[NSString class]])
 		{
 			choiceText = [NSString stringWithFormat:@" %@ ",(NSString*)choiceValue];
@@ -1983,6 +1984,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			{
 				alignment = GUI_ALIGN_RIGHT;
 			}
+			id colorDesc = [choiceOpts objectForKey:@"color"];
+			if (colorDesc != nil)
+			{
+				rowColor = [OOColor colorWithDescription:colorDesc];
+			}
 		}
 		else
 		{
@@ -1995,7 +2001,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		{
 			[gui setText:choiceText forRow:choicesRow align: alignment];
 			[gui setKey:choiceKey forRow:choicesRow];
-			[gui setColor:[OOColor yellowColor] forRow:choicesRow];
+			[gui setColor:rowColor forRow:choicesRow];
 			if (!selectableRowExists)
 			{
 				selectableRowExists = YES;
@@ -2004,7 +2010,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		}
 		else 
 		{
-			[gui setText:@"" forRow:choicesRow align: alignment];
+//			[gui setText:@"" forRow:choicesRow align: alignment];
 			[gui setKey:GUI_KEY_SKIP forRow:choicesRow];
 		}
 		choicesRow++;

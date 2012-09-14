@@ -261,6 +261,7 @@ MA 02110-1301, USA.
 	
 }
 
+
 - (NSDictionary *) passengerContractMarker:(OOSystemID)system
 {
 	return [[[NSDictionary dictionaryWithObjectsAndKeys:
@@ -270,6 +271,18 @@ MA 02110-1301, USA.
 								@"MARKER_DIAMOND", @"markerShape",
 								nil] retain] autorelease];
 }
+
+
+- (NSDictionary *) parcelContractMarker:(OOSystemID)system
+{
+	return [[[NSDictionary dictionaryWithObjectsAndKeys:
+								[NSNumber numberWithInt:system], @"system",
+								MISSION_DEST_LEGACY, @"name",
+								@"orangeColor", @"markerColor",
+								@"MARKER_PLUS", @"markerShape",
+								nil] retain] autorelease];
+}
+
 
 - (NSDictionary *) cargoContractMarker:(OOSystemID)system
 {
@@ -281,6 +294,7 @@ MA 02110-1301, USA.
 								nil] retain] autorelease];
 }
 
+
 - (NSDictionary *) defaultMarker:(OOSystemID)system
 {
 	return [[[NSDictionary dictionaryWithObjectsAndKeys:
@@ -290,6 +304,7 @@ MA 02110-1301, USA.
 								@"MARKER_X", @"markerShape",
 								nil] retain] autorelease];
 }
+
 
 - (NSDictionary *) validatedMarker:(NSDictionary *)marker
 {

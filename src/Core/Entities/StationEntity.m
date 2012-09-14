@@ -170,6 +170,25 @@ MA 02110-1301, USA.
 }
 
 
+- (NSMutableDictionary *) localInterfaces
+{
+	return localInterfaces;
+}
+
+
+- (void) setInterfaceDefinition:(OOJSInterfaceDefinition *)definition forKey:(NSString *)key
+{
+	if (definition == nil)
+	{
+		[localInterfaces removeObjectForKey:key];
+	}
+	else
+	{
+		[localInterfaces setObject:definition forKey:key];
+	}
+}
+
+
 - (NSMutableArray *) initialiseLocalMarketWithRandomFactor:(int) random_factor
 {
 	return [self initialiseMarketWithSeed:[PLAYER system_seed] andRandomFactor:random_factor];
@@ -522,6 +541,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	}
 
 	hasBreakPattern = YES;
+	localInterfaces = [[NSMutableDictionary alloc] init];
 	
 	return self;
 	
@@ -536,7 +556,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	DESTROY(localPassengers);
 	DESTROY(localContracts);
 	DESTROY(localShipyard);
-	
+	DESTROY(localInterfaces);
+
 	[super dealloc];
 }
 

@@ -560,7 +560,8 @@ typedef enum
 - (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType;
 - (BOOL) removeExternalStore:(OOEquipmentType *)eqType;
 
-// Passengers - not supported for NPCs, but interface is here for genericity.
+// Passengers and parcels - not supported for NPCs, but interface is here for genericity.
+- (NSUInteger) parcelCount;
 - (NSUInteger) passengerCount;
 - (NSUInteger) passengerCapacity;
 
@@ -778,6 +779,7 @@ typedef enum
 - (BOOL) showScoopMessage;
 
 - (NSArray *) passengerListForScripting;
+- (NSArray *) parcelListForScripting;
 - (NSArray *) contractListForScripting;
 - (NSArray *) equipmentListForScripting;
 - (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing;

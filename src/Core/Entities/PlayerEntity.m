@@ -71,6 +71,7 @@ MA 02110-1301, USA.
 #import "OOScriptTimer.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
+#import "OOJSInterfaceDefinition.h"
 #import "OOConstToJSString.h"
 
 #import "OOJoystickManager.h"
@@ -726,10 +727,25 @@ static GLfloat		sBaseMass = 0.0;
 	// reputation
 	[result setObject:reputation forKey:@"reputation"];
 	
+	// initialise parcel reputations in dictionary if not set
+	int pGood = [reputation oo_intForKey:PARCEL_GOOD_KEY];
+	int pBad = [reputation oo_intForKey:PARCEL_BAD_KEY];
+	int pUnknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+	if (pGood+pBad+pUnknown != 7)
+	{
+		[reputation oo_setInteger:0 forKey:PARCEL_GOOD_KEY];
+		[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
+		[reputation oo_setInteger:7 forKey:PARCEL_UNKNOWN_KEY];
+	}
+
 	// passengers
 	[result oo_setInteger:max_passengers forKey:@"max_passengers"];
 	[result setObject:passengers forKey:@"passengers"];
 	[result setObject:passenger_record forKey:@"passenger_record"];
+
+	// parcels
+	[result setObject:parcels forKey:@"parcels"];
+	[result setObject:parcel_record forKey:@"parcel_record"];
 	
 	//specialCargo
 	if (specialCargo)  [result setObject:specialCargo forKey:@"special_cargo"];
@@ -933,6 +949,8 @@ static GLfloat		sBaseMass = 0.0;
 	if (reputation == nil)  reputation = [[NSMutableDictionary alloc] init];
 	
 	// passengers and contracts
+	[parcels release];
+	[parcel_record release];
 	[passengers release];
 	[passenger_record release];
 	[contracts release];
@@ -946,6 +964,8 @@ static GLfloat		sBaseMass = 0.0;
 		passenger_record = nil;
 		contracts = nil;
 		contract_record = nil;
+		parcels = nil;
+		parcel_record = nil;
 	}
 	else
 	{
@@ -954,12 +974,17 @@ static GLfloat		sBaseMass = 0.0;
 		passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
 		contracts = [[dict oo_arrayForKey:@"contracts"] mutableCopy];
 		contract_record = [[dict oo_dictionaryForKey:@"contract_record"] mutableCopy];
+		parcels = [[dict oo_arrayForKey:@"parcels"] mutableCopy];
+		parcel_record = [[dict oo_dictionaryForKey:@"parcel_record"] mutableCopy];
+
 	}
 	
 	if (passengers == nil)  passengers = [[NSMutableArray alloc] init];
 	if (passenger_record == nil)  passenger_record = [[NSMutableDictionary alloc] init];
 	if (contracts == nil)  contracts = [[NSMutableArray alloc] init];
 	if (contract_record == nil)  contract_record = [[NSMutableDictionary alloc] init];
+	if (parcels == nil)  parcels = [[NSMutableArray alloc] init];
+	if (parcel_record == nil)  parcel_record = [[NSMutableDictionary alloc] init];
 	
 	//specialCargo
 	[specialCargo release];
@@ -1402,6 +1427,9 @@ static GLfloat		sBaseMass = 0.0;
 	[reputation oo_setInteger:0 forKey:PASSAGE_GOOD_KEY];
 	[reputation oo_setInteger:0 forKey:PASSAGE_BAD_KEY];
 	[reputation oo_setInteger:7 forKey:PASSAGE_UNKNOWN_KEY];
+	[reputation oo_setInteger:0 forKey:PARCEL_GOOD_KEY];
+	[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
+	[reputation oo_setInteger:7 forKey:PARCEL_UNKNOWN_KEY];
 	
 	energy					= 256;
 	weapon_temp				= 0.0f;
@@ -1427,6 +1455,11 @@ static GLfloat		sBaseMass = 0.0;
 	contracts = [[NSMutableArray alloc] init];
 	[contract_record release];
 	contract_record = [[NSMutableDictionary alloc] init];
+
+	[parcels release];
+	parcels = [[NSMutableArray alloc] init];
+	[parcel_record release];
+	parcel_record = [[NSMutableDictionary alloc] init];
 	
 	[missionDestinations release];
 	missionDestinations = [[NSMutableDictionary alloc] init];
@@ -1706,6 +1739,8 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(passenger_record);
 	DESTROY(contracts);
 	DESTROY(contract_record);
+	DESTROY(parcels);
+	DESTROY(parcel_record);
 	DESTROY(missionDestinations);
 	DESTROY(shipyard_record);
 	
@@ -2407,6 +2442,7 @@ static GLfloat		sBaseMass = 0.0;
 			// Screens from which it's safe to jump to the mission screen
 			case GUI_SCREEN_CONTRACTS:
 			case GUI_SCREEN_EQUIP_SHIP:
+			case GUI_SCREEN_INTERFACES:
 			case GUI_SCREEN_LONG_RANGE_CHART:
 			case GUI_SCREEN_MANIFEST:
 			case GUI_SCREEN_SHIPYARD:
@@ -5028,7 +5064,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self unloadCargoPods];	// fill up the on-ship commodities before...
 
 	// check contracts
-	NSString *passengerAndCargoReport = [self checkPassengerContracts]; // Is also processing cargo contracts.
+	NSString *passengerAndCargoReport = [self checkPassengerContracts]; // Is also processing cargo and parcel contracts.
 	[self addMessageToReport:passengerAndCargoReport];
 		
 	[UNIVERSE setDisplayText:YES];
@@ -5301,9 +5337,12 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
 	
-	// remove any contracts for the old galaxy
+	// remove any contracts and parcels for the old galaxy
 	if (contracts)
 		[contracts removeAllObjects];
+
+	if (parcels)
+		[parcels removeAllObjects];
 	
 	// remove any mission destinations for the old galaxy
 	if (missionDestinations)
@@ -5861,6 +5900,12 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (NSArray *) parcelListForScripting
+{
+	return [self contractsListForScriptingFromArray:parcels forCargo:NO];
+}
+
+
 - (NSArray *) contractListForScripting
 {
 	return [self contractsListForScriptingFromArray:contracts forCargo:YES];
@@ -6006,6 +6051,12 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		sysid = [[passengers oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION];
 		marker = [self passengerContractMarker:sysid];
+		[self prepareMarkedDestination:destinations:marker];
+	}
+	for (i = 0; i < [parcels count]; i++)
+	{
+		sysid = [[parcels oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION];
+		marker = [self parcelContractMarker:sysid];
 		[self prepareMarkedDestination:destinations:marker];
 	}
 	for (i = 0; i < [contracts count]; i++)
@@ -6875,6 +6926,177 @@ static NSString *last_outfitting_key=nil;
 			if (formatString) desc = [NSString stringWithFormat:formatString, desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
 		}
+	}
+}
+
+
+- (void) setGuiToInterfacesScreen:(int)skip
+{
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+	
+	// build an array of available interfaces
+	NSDictionary *interfaces = [dockedStation localInterfaces];
+	NSArray		*interfaceKeys = [interfaces keysSortedByValueUsingSelector:@selector(interfaceCompare:)]; // sorts by category, then title
+	int i;
+	
+	// GUI stuff
+	{
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+		OOGUIRow		start_row = GUI_ROW_INTERFACES_START;
+		OOGUIRow		row = start_row;
+		BOOL			guiChanged = (gui_screen != GUI_SCREEN_INTERFACES);
+
+		[gui clearAndKeepBackground:!guiChanged];
+		[gui setTitle:DESC(@"interfaces-title")];
+		
+		
+		OOGUITabSettings tab_stops;
+		tab_stops[0] = 0;
+		tab_stops[1] = -480;
+		[gui setTabStops:tab_stops];
+		
+		unsigned n_rows = GUI_MAX_ROWS_INTERFACES;
+		NSUInteger count = [interfaceKeys count];
+
+		if (count > 0)
+		{
+			if (skip > 0)	// lose the first row to Back <--
+			{
+				unsigned previous;
+
+				if (count <= n_rows || skip < n_rows)
+					previous = 0;					// single page
+				else
+				{
+					previous = skip - (n_rows - 2);	// multi-page. 
+					if (previous < 2)
+						previous = 0;				// if only one previous item, just show it
+				}
+
+				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
+				[gui setColor:[OOColor greenColor] forRow:row];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
+				row++;
+			}
+			
+			for (i = skip; i < count && (row - start_row < (OOGUIRow)n_rows); i++)
+			{
+				NSString *interfaceKey = [interfaceKeys objectAtIndex:i];
+				OOJSInterfaceDefinition *definition = [interfaces objectForKey:interfaceKey];
+
+				[gui setKey:interfaceKey forRow:row];
+				[gui setArray:[NSArray arrayWithObjects:[definition title],[definition category], nil] forRow:row];
+
+				row++;
+			}
+
+			if (i < count)
+			{
+				// just overwrite the last item :-)
+				[gui setColor:[OOColor greenColor] forRow:row - 1];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row - 1];
+				[gui setKey:[NSString stringWithFormat:@"More:%d", i - 1] forRow:row - 1];
+			}
+			
+			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
+
+			if ([gui selectedRow] != start_row)
+				[gui setSelectedRow:start_row];
+
+			[self showInformationForSelectedInterface];
+		}
+		else
+		{
+			[gui setText:DESC(@"interfaces-no-interfaces-available-for-use") forRow:GUI_ROW_NO_INTERFACES align:GUI_ALIGN_LEFT];
+			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_INTERFACES];
+			
+			[gui setSelectableRange:NSMakeRange(0,0)];
+			[gui setNoSelectedRow];
+
+		}
+		
+		[gui setShowTextCursor:NO];
+
+		NSString *desc = [NSString stringWithFormat:DESC(@"interfaces-for-ship-@-and-station-@"), [self displayName], [dockedStation displayName]];
+		[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_INTERFACES_HEADING];
+		[gui setText:desc forRow:GUI_ROW_INTERFACES_HEADING];
+
+		
+		if (guiChanged)
+		{
+			[gui setForegroundTextureKey:@"docked_overlay"];
+			NSDictionary *background = [UNIVERSE screenTextureDescriptorForKey:@"interfaces"];
+			[self setEquipScreenBackgroundDescriptor:background];
+			[gui setBackgroundTextureDescriptor:background];
+		}
+	}
+	/* ends */
+
+
+	[self setShowDemoShips:NO];
+	gui_screen = GUI_SCREEN_INTERFACES;
+
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+
+}
+
+
+- (void) showInformationForSelectedInterface
+{
+	GuiDisplayGen* gui = [UNIVERSE gui];
+	NSString* interfaceKey = [gui selectedRowKey];
+	
+	int i;
+	
+	for (i = GUI_ROW_EQUIPMENT_DETAIL; i < GUI_MAX_ROWS; i++)
+	{
+		[gui setText:@"" forRow:i];
+		[gui setColor:[OOColor greenColor] forRow:i];
+	}
+	
+	if (interfaceKey && ![interfaceKey hasPrefix:@"More:"])
+	{
+		NSDictionary *interfaces = [dockedStation localInterfaces];
+		OOJSInterfaceDefinition *definition = [interfaces objectForKey:interfaceKey];
+		if (definition)
+		{
+			[gui addLongText:[definition summary] startingAtRow:GUI_ROW_INTERFACES_DETAIL align:GUI_ALIGN_LEFT];
+		}
+	}
+
+}
+
+
+- (void) activateSelectedInterface
+{
+	GuiDisplayGen* gui = [UNIVERSE gui];
+	NSString* key = [gui selectedRowKey];
+
+	if ([key hasPrefix:@"More:"])
+	{
+		int 		from_item = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
+		[self setGuiToInterfacesScreen:from_item];
+
+		if ([gui selectedRow] < 0)
+			[gui setSelectedRow:GUI_ROW_INTERFACES_START];
+		if (from_item == 0)
+			[gui setSelectedRow:GUI_ROW_INTERFACES_START + GUI_MAX_ROWS_INTERFACES - 1];
+		[self showInformationForSelectedInterface];
+
+
+		return;
+	}
+
+	NSDictionary *interfaces = [dockedStation localInterfaces];
+	OOJSInterfaceDefinition *definition = [interfaces objectForKey:key];
+	if (definition)
+	{
+		[definition runCallback:key];
+	}
+	else
+	{
+		OOLog(@"script.javaScript.error",@"Unable to find callback definition for key %@",key);
 	}
 }
 
@@ -8100,6 +8322,12 @@ static NSString *last_outfitting_key=nil;
 	}
 
 	return NO;
+}
+
+
+- (NSUInteger) parcelCount
+{
+	return [parcels count];
 }
 
 

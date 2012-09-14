@@ -185,6 +185,8 @@ enum
 	kShip_missileLoadTime,		// missile load time, double, read/write
 	kShip_missiles,				// the ship's missiles / external storage, array of equipmentTypes, read only
 	kShip_name,					// name, string, read-only
+	kShip_parcelCount,		// number of parcels on ship, integer, read-only
+	kShip_parcels,			// parcel contracts, array - strings & whatnot, read only
 	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
 	kShip_passengerCount,		// number of passengers on ship, integer, read-only
 	kShip_passengers,			// passengers contracts, array - strings & whatnot, read only
@@ -301,6 +303,8 @@ static JSPropertySpec sShipProperties[] =
 	{ "missileLoadTime",		kShip_missileLoadTime,		OOJS_PROP_READWRITE_CB },
 	{ "missiles",				kShip_missiles,				OOJS_PROP_READONLY_CB },
 	{ "name",					kShip_name,					OOJS_PROP_READWRITE_CB },
+	{ "parcelCount",			kShip_parcelCount,		OOJS_PROP_READONLY_CB },
+	{ "parcels",				kShip_parcels,			OOJS_PROP_READONLY_CB },
 	{ "passengerCount",			kShip_passengerCount,		OOJS_PROP_READONLY_CB },
 	{ "passengerCapacity",		kShip_passengerCapacity,	OOJS_PROP_READONLY_CB },
 	{ "passengers",				kShip_passengers,			OOJS_PROP_READONLY_CB },
@@ -721,6 +725,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_passengerCount:
 			return JS_NewNumberValue(context, [entity passengerCount], value);
+
+		case kShip_parcelCount:
+			return JS_NewNumberValue(context, [entity parcelCount], value);
 			
 		case kShip_passengerCapacity:
 			return JS_NewNumberValue(context, [entity passengerCapacity], value);
@@ -779,6 +786,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_passengers:
 			result = [entity passengerListForScripting];
+			break;
+
+		case kShip_parcels:
+			result = [entity parcelListForScripting];
 			break;
 		
 		case kShip_contracts:

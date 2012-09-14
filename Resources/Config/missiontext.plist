@@ -56,4 +56,35 @@
 		"OOLITE_TRUMBLE_NO" = "No thanks. No pets on my ship.";
 		"OOLITE_TRUMBLE_YES" = "Okay, I’ll take one, it looks cute.";
 	};
+
+	// Parcel delivery contracts (oolite-contracts-parcels.js)
+
+	"oolite-contracts-parcels-interface-title" = "Parcel contract deliveries ([oolite-contracts-parcels-interface-title-count] available)";
+	"oolite-contracts-parcels-interface-summary" = "Deliveries of small parcels to recipients in other systems. No special equipment is required, and the parcels will not take up space in your hold.";
+	"oolite-contracts-parcels-interface-category" = "Contracts";
+
+	"oolite-contracts-parcels-none-available-title" = "Parcel delivery contracts";
+	"oolite-contracts-parcels-none-available-message" = "There are currently no parcel delivery contracts available in this system.";
+
+	"oolite-contracts-parcels-title-summary" = "Parcel delivery contracts";
+	"oolite-contracts-parcels-title-detail" = "Parcel delivery contract [oolite-contracts-parcels-title-detail-number] of [oolite-contracts-parcels-title-detail-total]";
+
+	"oolite-contracts-parcels-column-cargo" = "Package";
+	"oolite-contracts-parcels-column-destination" = "Destination";
+	"oolite-contracts-parcels-column-within" = "Within";
+	"oolite-contracts-parcels-column-fee" = "Fee";
+
+	"oolite-contracts-parcels-long-description" = "[oolite-contracts-parcels-longdesc-sender] has some [oolite-contracts-parcels-longdesc-contents] that need to be taken to [oolite-contracts-parcels-longdesc-destination] within [oolite-contracts-parcels-longdesc-deadline]. The journey will take about [oolite-contracts-parcels-longdesc-time], and you will be paid [oolite-contracts-parcels-longdesc-payment] upon successful delivery.";
+
+	"oolite-contracts-parcels-command-ana-quickest" = "Show quickest route";
+	"oolite-contracts-parcels-command-ana-shortest" = "Show route with fewest jumps";
+	"oolite-contracts-parcels-command-back" = "Previous contract";
+	"oolite-contracts-parcels-command-next" = "Next contract";
+	"oolite-contracts-parcels-command-list" = "List all contracts";
+	"oolite-contracts-parcels-command-accept" = "Accept delivery contract";
+	"oolite-contracts-parcels-command-quit" = "Exit parcel delivery contracts";
+
+	"oolite-contracts-parcels-time-format" = "[oolite-contracts-parcels-time-format-hours] hours";
+		
+
 }

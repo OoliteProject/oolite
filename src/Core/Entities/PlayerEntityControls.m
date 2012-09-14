@@ -1985,6 +1985,57 @@ static NSTimeInterval	time_last_frame;
 			}
 			break;
 			
+		case GUI_SCREEN_INTERFACES:
+			if ([self handleGUIUpDownArrowKeys])
+			{
+				[self showInformationForSelectedInterface];
+			}
+			if ([gameView isDown:gvArrowKeyLeft])
+			{
+				if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+				{
+					if ([[gui keyForRow:GUI_ROW_INTERFACES_START] hasPrefix:@"More:"])
+					{
+						[self playMenuPagePrevious];
+						[gui setSelectedRow:GUI_ROW_INTERFACES_START];
+						[self activateSelectedInterface];
+					}
+					timeLastKeyPress = script_time;
+				}
+			}
+			if ([gameView isDown:gvArrowKeyRight])
+			{
+				if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+				{
+					if ([[gui keyForRow:GUI_ROW_INTERFACES_START + GUI_MAX_ROWS_INTERFACES - 1] hasPrefix:@"More:"])
+					{
+						[self playMenuPageNext];
+						[gui setSelectedRow:GUI_ROW_INTERFACES_START + GUI_MAX_ROWS_INTERFACES - 1];
+						[self activateSelectedInterface];
+					}
+					timeLastKeyPress = script_time;
+				}
+			}
+			leftRightKeyPressed = [gameView isDown:gvArrowKeyRight]|[gameView isDown:gvArrowKeyLeft];
+			if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick])   // 'enter'
+			{
+				if ([gameView isDown:gvMouseDoubleClick])
+				{
+					selectPressed = NO;
+					[gameView clearMouse];
+				}
+				if ((!selectPressed)&&([gui selectedRow] > -1))
+				{
+					[self activateSelectedInterface];
+					selectPressed = YES;
+				}
+			}
+			else
+			{
+				selectPressed = NO;
+			}
+			break;
+
 		case GUI_SCREEN_MARKET:
 			if ([self status] == STATUS_DOCKED)
 			{
@@ -3129,6 +3180,12 @@ static NSTimeInterval	time_last_frame;
 			switching_equipship_screens = NO;
 		}
 		
+		if ((([gameView isDown:gvFunctionKey4])||(fKeyAlias && [gameView isDown:gvNumberKey4])) && ![UNIVERSE strict])
+		{
+			[self setGuiToInterfacesScreen:0];
+			[gui setSelectedRow:GUI_ROW_INTERFACES_START];
+		}
+
 		if (([gameView isDown:gvFunctionKey8])||(fKeyAlias && [gameView isDown:gvNumberKey8]))
 		{
 			if (!switching_market_screens)

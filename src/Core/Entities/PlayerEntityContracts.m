@@ -52,7 +52,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 @interface PlayerEntity (ContractsPrivate)
 
 - (OOCreditsQuantity) tradeInValue;
-- (NSArray*) contractsListFromArray:(NSArray *) contracts_array forCargo:(BOOL) forCargo;
+- (NSArray*) contractsListFromArray:(NSArray *) contracts_array forCargo:(BOOL) forCargo forParcels:(BOOL)forParcels;
 
 @end
 
@@ -225,6 +225,63 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			}
 		}
 	}
+
+	// check parcel contracts
+	for (i = 0; i < [parcels count]; i++)
+	{
+		NSDictionary* parcel_info = [parcels oo_dictionaryAtIndex:i];
+		NSString* parcel_name = [parcel_info oo_stringForKey:PASSENGER_KEY_NAME];
+		int dest = [parcel_info oo_intForKey:CONTRACT_KEY_DESTINATION];
+		Random_Seed dest_seed = [UNIVERSE systemSeedForSystemNumber:dest];
+		int dest_eta = [parcel_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
+		
+		if (equal_seeds( system_seed, dest_seed))
+		{
+			// we've arrived in system!
+			if (dest_eta > 0)
+			{
+				// and in good time
+				long long fee = [parcel_info oo_longLongForKey:CONTRACT_KEY_FEE];
+				while ((randf() < 0.75)&&(dest_eta > 86400))	// delivered with more than a day to spare and a decent customer?
+				{
+					// lower tips than passengers
+					fee *= 110;	// tip + 10%
+					fee /= 100;
+					dest_eta *= 0.5;
+				}
+				credits += 10 * fee;
+				
+				[result appendFormatLine:DESC(@"parcel-delivered-okay-@-@"), parcel_name, OOIntCredits(fee)];
+				
+				[parcels removeObjectAtIndex:i--];
+				[self increaseParcelReputation];
+			}
+			else
+			{
+				// but we're late!
+				long long fee = [parcel_info oo_longLongForKey:CONTRACT_KEY_FEE] / 2;	// halve fare
+				while (randf() < 0.5)	// maybe halve fare a few times!
+					fee /= 2;
+				credits += 10 * fee;
+				
+				[result appendFormatLine:DESC(@"parcel-delivered-late-@-@"), parcel_name, OOIntCredits(fee)];
+				
+				[parcels removeObjectAtIndex:i--];
+			}
+		}
+		else
+		{
+			if (dest_eta < 0)
+			{
+				// we've run out of time!
+				[result appendFormatLine:DESC(@"parcel-failed-@"), parcel_name];
+				
+				[parcels removeObjectAtIndex:i--];
+				[self decreaseParcelReputation];
+			}
+		}
+	}
+
 	
 	// check cargo contracts
 	for (i = 0; i < [contracts count]; i++)
@@ -358,6 +415,18 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			[contract_record removeObjectForKey:[ids objectAtIndex:i]];
 		}
 	}
+
+	// check parcel_record for expired deliveries
+	ids = [parcel_record allKeys];
+	for (i = 0; i < [ids count]; i++)
+	{
+		double dest_eta = [(NSNumber*)[parcel_record objectForKey:[ids objectAtIndex:i]] doubleValue] - ship_clock;
+		if (dest_eta < 0)
+		{
+			[parcel_record removeObjectForKey:[ids objectAtIndex:i]];
+		}
+	}
+
 	
 	if ([result length] == 0)
 	{
@@ -460,6 +529,75 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
+- (int) parcelReputation
+{
+	int good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
+	int bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
+	int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+	
+	if (unknown > 0)
+		unknown = 7 - (market_rnd % unknown);
+	else
+		unknown = 7;
+	
+	return (good + unknown - 2 * bad) / 2;	// return a number from -7 to +7
+}
+
+
+- (void) increaseParcelReputation
+{
+	int good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
+	int bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
+	int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+	
+	if (bad > 0)
+	{
+		// shift a bean from bad to unknown
+		bad--;
+		if (unknown < 7)
+			unknown++;
+	}
+	else
+	{
+		// shift a bean from unknown to good
+		if (unknown > 0)
+			unknown--;
+		if (good < 7)
+			good++;
+	}
+	[reputation oo_setInteger:good		forKey:PARCEL_GOOD_KEY];
+	[reputation oo_setInteger:bad		forKey:PARCEL_BAD_KEY];
+	[reputation oo_setInteger:unknown	forKey:PARCEL_UNKNOWN_KEY];
+}
+
+
+- (void) decreaseParcelReputation
+{
+	int good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
+	int bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
+	int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+	
+	if (good > 0)
+	{
+		// shift a bean from good to bad
+		good--;
+		if (bad < 7)
+			bad++;
+	}
+	else
+	{
+		// shift a bean from unknown to bad
+		if (unknown > 0)
+			unknown--;
+		if (bad < 7)
+			bad++;
+	}
+	[reputation oo_setInteger:good		forKey:PARCEL_GOOD_KEY];
+	[reputation oo_setInteger:bad		forKey:PARCEL_BAD_KEY];
+	[reputation oo_setInteger:unknown	forKey:PARCEL_UNKNOWN_KEY];
+}
+
+
 - (int) contractReputation
 {
 	int good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
@@ -537,6 +675,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int p_good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
 	int p_bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
 	int p_unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
+	int pl_good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
+	int pl_bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
+	int pl_unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
 	
 	if (c_unknown < 7)
 	{
@@ -561,6 +702,18 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		}
 		p_unknown++;
 	}
+
+	if (pl_unknown < 7)
+	{
+		if (pl_bad > 0)
+			pl_bad--;
+		else
+		{
+			if (pl_good > 0)
+				pl_good--;
+		}
+		pl_unknown++;
+	}
 	
 	[reputation setObject:[NSNumber numberWithInt:c_good]		forKey:CONTRACTS_GOOD_KEY];
 	[reputation setObject:[NSNumber numberWithInt:c_bad]		forKey:CONTRACTS_BAD_KEY];
@@ -568,6 +721,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	[reputation setObject:[NSNumber numberWithInt:p_good]		forKey:PASSAGE_GOOD_KEY];
 	[reputation setObject:[NSNumber numberWithInt:p_bad]		forKey:PASSAGE_BAD_KEY];
 	[reputation setObject:[NSNumber numberWithInt:p_unknown]	forKey:PASSAGE_UNKNOWN_KEY];
+	[reputation setObject:[NSNumber numberWithInt:pl_good]		forKey:PARCEL_GOOD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:pl_bad]		forKey:PARCEL_BAD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:pl_unknown]	forKey:PARCEL_UNKNOWN_KEY];
 	
 }
 
@@ -867,6 +1023,50 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
+- (BOOL) addParcel:(NSString*)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee
+{
+	NSDictionary* parcel_info = [NSDictionary dictionaryWithObjectsAndKeys:
+		Name,																	PASSENGER_KEY_NAME,
+		[NSNumber numberWithInt:start],											CONTRACT_KEY_START,
+		[NSNumber numberWithInt:Destination],									CONTRACT_KEY_DESTINATION,
+		[NSNumber numberWithDouble:[PLAYER clockTime]],	CONTRACT_KEY_DEPARTURE_TIME,
+		[NSNumber numberWithDouble:eta],										CONTRACT_KEY_ARRIVAL_TIME,
+		[NSNumber numberWithDouble:fee],										CONTRACT_KEY_FEE,
+		[NSNumber numberWithInt:0],												CONTRACT_KEY_PREMIUM,
+		NULL];
+	
+	// extra checks, just in case.
+	if ([parcel_record objectForKey:Name] != nil) return NO;
+		
+	[parcels addObject:parcel_info];
+	[parcel_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
+	return YES;
+}
+
+
+- (BOOL) removeParcel:(NSString*)Name	// removes the first parcel that answers to Name, returns NO if none found
+{	
+	// extra check, just in case.
+	if ([parcels count] == 0) return NO;
+	
+	unsigned			i;
+	
+	for (i = 0; i < [parcels count]; i++)
+	{
+		NSString		*this_name = [[parcels oo_dictionaryAtIndex:i] oo_stringForKey:PASSENGER_KEY_NAME];
+		
+		if ([Name isEqualToString:this_name])
+		{
+			[parcels removeObjectAtIndex:i];
+			[parcel_record removeObjectForKey:Name];
+			return YES;
+		}
+	}
+	
+	return NO;
+}
+
+
 - (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start
 						destination:(unsigned)Destination eta:(double)eta fee:(double)fee
 {
@@ -1069,21 +1269,27 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 - (NSArray*) passengerList
 {
-	return [self contractsListFromArray:passengers forCargo:NO];
+	return [self contractsListFromArray:passengers forCargo:NO forParcels:NO];
+}
+
+
+- (NSArray*) parcelList
+{
+	return [self contractsListFromArray:parcels forCargo:NO forParcels:YES];
 }
 
 
 - (NSArray*) contractList
 {
-	return [self contractsListFromArray:contracts forCargo:YES];
+	return [self contractsListFromArray:contracts forCargo:YES forParcels:NO];
 }
 
 
-- (NSArray*) contractsListFromArray:(NSArray *) contracts_array forCargo:(BOOL) forCargo
+- (NSArray*) contractsListFromArray:(NSArray *) contracts_array forCargo:(BOOL) forCargo forParcels:(BOOL)forParcels;
 {
 	// check  contracts
 	NSMutableArray	*result = [NSMutableArray arrayWithCapacity:5];
-	NSString		*formatString = forCargo ? DESC(@"manifest-deliver-@-to-@within-@")
+	NSString		*formatString = (forCargo||forParcels) ? DESC(@"manifest-deliver-@-to-@within-@")
 											: DESC(@"manifest-@-travelling-to-@-to-arrive-within-@");
 	unsigned i;
 	for (i = 0; i < [contracts_array count]; i++)
@@ -1118,6 +1324,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSArray*	missionsManifest = [self missionsList];
 		NSArray*	passengerManifest = [self passengerList];
 		NSArray*	contractManifest = [self contractList];
+		NSArray*	parcelManifest = [self parcelList];
 		
 		NSUInteger	i = 0;
 		NSUInteger	max_rows = 20;
@@ -1126,6 +1333,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		OOGUIRow	cargoRow = 2;
 		OOGUIRow	passengersRow = 2;
 		OOGUIRow	contractsRow = 2;
+		OOGUIRow	parcelsRow = 2;
 		OOGUIRow	missionsRow = 2;
 		
 		// show extra lines if no HUD is displayed.
@@ -1200,7 +1408,28 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			manifestCount = 1;
 		}
 
-		contractsRow = passengersRow + manifestCount + 1;
+		parcelsRow = passengersRow + manifestCount + 1;
+
+		// Parcels Manifest
+		manifestCount = [parcelManifest count];
+		
+		SET_MANIFEST_ROW( (DESC(@"manifest-parcels")) , yellowColor, parcelsRow - 1);
+
+		if (manifestCount > 0)
+		{
+			for (i = 0; i < manifestCount; i++)
+			{
+				SET_MANIFEST_ROW( ((NSString*)[parcelManifest objectAtIndex:i]) , greenColor, parcelsRow + i);
+			}
+		}
+		else
+		{
+			SET_MANIFEST_ROW( (DESC(@"manifest-none")), greenColor, parcelsRow);
+			manifestCount = 1;
+		}
+
+
+		contractsRow = parcelsRow + manifestCount + 1;
 		
 		// Contracts Manifest
 		manifestCount = [contractManifest count];
@@ -1925,6 +2154,7 @@ static NSMutableDictionary *currentShipyard = nil;
 	[passengers removeAllObjects];
 	[passenger_record removeAllObjects]; 
 		
+	// parcels stay the same; easy to transfer between ships
 	// contracts stay the same, so if you default - tough!
 	// okay we need to switch the model used, lots of the stats, and add all the extras
 	

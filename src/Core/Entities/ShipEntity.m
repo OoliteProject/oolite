@@ -2685,6 +2685,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (NSArray *) parcelListForScripting
+{
+	return [NSArray array];
+}
+
+
 - (NSArray *) contractListForScripting
 {
 	return [NSArray array];
@@ -3226,6 +3232,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (OOCreditsQuantity) removeMissiles
 {
 	missiles = 0;
+	return 0;
+}
+
+
+- (NSUInteger) parcelCount
+{
 	return 0;
 }
 

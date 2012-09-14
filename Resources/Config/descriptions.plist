@@ -1141,7 +1141,13 @@
 	"weapon-installed-@"			= "Weapon installed: %@.";
 	"weapon-@-enter-to-replace"		= "Weapon installed: %@.  Press enter to replace it.";
 	"no-weapon-enter-to-install"	= "No weapon installed.  Press enter to install this weapon here.";
-	
+
+	// Interfaces screen
+	"interfaces-title"        = "Ship and System Interfaces";
+	"interfaces-no-interfaces-available-for-use" = "No interfaces are installed on your ship or enabled at this station";
+	"interfaces-for-ship-@-and-station-@" = "Interfaces for %@ and %@";
+	"interfaces-unspecified-category" = "Uncategorised";	
+
 	// Contracts screen
 	"@-contracts-title"				= "%@ Carrier Market";
 	
@@ -1186,6 +1192,7 @@
 	"manifest-none"					= " None.";
 	"manifest-cargo-d-d"			= "Cargo %d t (%d t):";
 	"manifest-passengers-d-d"		= "Passengers %d (%d):";
+	"manifest-parcels"			= "Parcels:";
 	"manifest-contracts"			= "Contracts:";
 	"manifest-missions"				= "Missions:";
 	"manifest-@-travelling-to-@-to-arrive-within-@"	= " %@ travelling to %@ to arrive within %@.";
@@ -1292,7 +1299,19 @@
 	"passenger-delivered-okay-@-@-@" = "%@ thanks you, and pays you %@ for delivering them to %@.\n";
 	"passenger-delivered-late-@-@-@" = "%@ pays you %@ for eventually delivering them to %@.\n";
 	"passenger-failed-@"			= "%@ leaves your ship, annoyed that you have wasted so much of their time.\n";
-	
+
+	"parcel-delivered-okay-@-@" = "You deliver %@, and are paid %@.\n";
+	"parcel-delivered-late-@-@" = "You have arrived late to deliver %@, and are only paid %@.\n";
+	"parcel-failed-@"			= "You have failed to deliver %@ on time, and will not be paid.\n";
+	"parcel-description"  = 
+	(	
+			"Videos of [34] [35]",
+			"Data backups",
+			"Tax returns",
+			"Licensing forms",
+			"Recipes for [30] [33]"
+	);
+
 	"cargo-delivered-okay-@-@"		= "Droids unload the %@ and you are paid %@.";
 	"cargo-delivered-short-@-@-d"	= "Droids unload the %@, but you are only paid %@ as there is a %d percent shortfall.";
 	"cargo-refused-short-%@"		= "You don’t have enough inventory to deliver the %@.";

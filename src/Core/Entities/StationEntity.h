@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 */
 
 #import "ShipEntity.h"
+#import "OOJSInterfaceDefinition.h"
 #import "Universe.h"
 
 @class OOWeakSet;
@@ -81,6 +82,8 @@ typedef enum
 	NSMutableArray			*localContracts;
 	NSMutableArray			*localShipyard;
 	
+	NSMutableDictionary *localInterfaces;
+
 	unsigned				docked_shuttles;
 	double					last_shuttle_launch_time;
 	double					shuttle_launch_interval;
@@ -108,6 +111,8 @@ typedef enum
 - (void) setLocalContracts:(NSArray *)market;
 - (NSMutableArray *) localShipyard;
 - (void) setLocalShipyard:(NSArray *)market;
+- (NSMutableDictionary *) localInterfaces;
+- (void) setInterfaceDefinition:(OOJSInterfaceDefinition *)definition forKey:(NSString *)key;
 
 - (NSMutableArray *) initialiseLocalMarketWithRandomFactor:(int)random_factor;
 - (NSMutableArray *) initialiseMarketWithSeed:(Random_Seed)seed andRandomFactor:(int)random_factor;
