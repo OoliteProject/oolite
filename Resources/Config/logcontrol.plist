@@ -411,6 +411,9 @@
 	sound.invalidBeep						= $soundError;
 	
 	
+	speech.setup							= $soundDebug;
+	
+	
 	startup.progress						= no;					// Startup progress stages. These are shown on-screen on Macs and of little interest otherwise.
 
 	station.launchShip.impossible = no; // generally cancelled launches due to station having no launch docks are uninteresting	
