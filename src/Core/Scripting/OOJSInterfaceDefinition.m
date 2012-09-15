@@ -148,7 +148,8 @@ MA 02110-1301, USA.
 
 	jsval         cKey = OOJSValueFromNativeObject(context, key);
 
-	[OOJSScript pushScript:_owningScript];
+	OOJSScript *owner = [_owningScript retain]; // local copy needed
+	[OOJSScript pushScript:owner];
 	
 	[engine callJSFunction:_callback
 				 forObject:_callbackThis
@@ -156,8 +157,9 @@ MA 02110-1301, USA.
 					  argv:&cKey
 					result:&rval];
 	
-	[OOJSScript popScript:_owningScript];
-	
+	[OOJSScript popScript:owner];
+	[owner release];
+
 	OOJSRelinquishContext(context);
 }
 

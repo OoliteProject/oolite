@@ -218,6 +218,8 @@ this._parcelContractsScreens = function(interfaceKey)
 		// the interfaceKey parameter is not used here, but would be useful if
 		// this callback managed more than one interface entry
 
+		this._validateParcels();
+
 		// set up variables used to remember state on the mission screens
 		this.$suspendedDestination = null;
 		this.$suspendedHUD = false;
@@ -237,8 +239,12 @@ this._parcelContractsScreens = function(interfaceKey)
 // to select the appropriate mission screen and display it
 this._parcelContractsDisplay = function(summary) {
 
-		// if there are no parcels (because the player has taken the last one)
-		// display a message and quit.
+		// Again. Has to be done on every call to this function, but also
+		// has to be done at the start.
+		this._validateParcels(); 
+
+		// if there are no parcels (usually because the player has taken
+		// the last one) display a message and quit.
 		if (this.$parcels.length === 0)
 		{
 				mission.runScreen({titleKey: "oolite-contracts-parcels-none-available-title",
@@ -549,6 +555,32 @@ this._acceptContract = function()
 }
 
 
+// removes any expired parcels
+this._validateParcels = function() 
+{
+		var c = this.$parcels.length-1;
+		var removed = false;
+		// iterate downwards so we can safely remove as we go
+		for (var i=c;i>=0;i--)
+		{
+				// if the time remaining is less than 1/3 of the estimated
+				// delivery time, even in the best case it's probably not
+				// going to get there.
+
+				if (this._timeRemainingSeconds(this.$parcels[i]) < this._timeEstimateSeconds(this.$parcels[i]) / 3)
+				{
+						// remove it
+						this.$parcels.splice(i,1);
+						removed = true;
+				}
+		}
+		if (removed) 
+		{
+				// update the interface description if we removed any
+				this._updateMainStationInterfacesList();
+		}
+}
+
 
 /* Utility functions */
 
@@ -615,3 +647,5 @@ this._formatTravelTime = function(seconds) {
 this._formatPackageName = function(name) {
 		return name.charAt(0).toLowerCase() + name.slice(1);
 }
+
+
