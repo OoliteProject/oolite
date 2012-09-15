@@ -354,6 +354,14 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 @end
 
 
+/*
+	SLOW_CODE
+	ExpandDescriptionsWithOptions() is one of our heaviest symbols in warm
+	startup profiles and is used a lot while the game is running, too. Within
+	ExpandDescriptionsWithOptions(), most time is spent within -[NSString
+	stringWithFormat:], -[NSString rangeOfString:] and dictionary lookups.
+	-- Ahruman 2012-09-14
+*/
 NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *pName)
 {
 	BOOL				textIsMutable = NO;

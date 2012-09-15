@@ -1285,7 +1285,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
-- (NSArray*) contractsListFromArray:(NSArray *) contracts_array forCargo:(BOOL) forCargo forParcels:(BOOL)forParcels;
+- (NSArray*) contractsListFromArray:(NSArray *) contracts_array forCargo:(BOOL) forCargo forParcels:(BOOL)forParcels
 {
 	// check  contracts
 	NSMutableArray	*result = [NSMutableArray arrayWithCapacity:5];

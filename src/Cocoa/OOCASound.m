@@ -126,6 +126,12 @@ static struct
 
 #pragma mark OOSound
 
+/*
+	SLOW_CODE +setUp takes up about 5% of launch time (measured with a light
+	OXP load), mostly in setting up the AUGraph -- much more than the actual
+	sound preloading. Setup should be easyish to do asynchronously.
+	-- Ahruman 2012-09-14
+*/
 + (void) setUp
 {
 	NSUserDefaults				*prefs = nil;

@@ -411,7 +411,9 @@
 	sound.invalidBeep						= $soundError;
 	
 	
-	speech.setup							= $soundDebug;
+	$speechDebug							= $soundDebug;
+	speech.setup							= $speechDebug;
+	speech.synthesis						= $speechDebug;
 	
 	
 	startup.progress						= no;					// Startup progress stages. These are shown on-screen on Macs and of little interest otherwise.

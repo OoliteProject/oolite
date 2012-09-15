@@ -58,6 +58,15 @@ static void HandleDeviceRemovalCallback(void * inContext, IOReturn inResult, voi
 			gammaTable[i] = (int) y;
 		}
 		
+		/*
+			SLOW_CODE
+			The call to IOHIDManagerSetDeviceMatching() has a significiant
+			presence in warm startup profiles; sometimes it's even makes
+			-[OOMacJoystickManager init] the single heaviest Oolite symbol
+			within -[GameController applicationDidFinishLaunching]. Setup
+			should be made asynchronous.
+			-- Ahruman 2012-09-14
+		*/
 		hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
 		IOHIDManagerSetDeviceMatching(hidManager, NULL);
 		
@@ -65,7 +74,7 @@ static void HandleDeviceRemovalCallback(void * inContext, IOReturn inResult, voi
 		IOHIDManagerRegisterDeviceRemovalCallback(hidManager, HandleDeviceRemovalCallback, self);
 		
 		IOHIDManagerScheduleWithRunLoop(hidManager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-		IOReturn iores = IOHIDManagerOpen( hidManager, kIOHIDOptionsTypeNone );
+		IOReturn iores = IOHIDManagerOpen(hidManager, kIOHIDOptionsTypeNone);
 		if (iores != kIOReturnSuccess)
 		{
 			OOLog(@"joystick.error.init", @"Cannot open HID manager; joystick support will not function.");
