@@ -6538,14 +6538,14 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	BOOL wasNearPlanetSurface = isNearPlanetSurface;
 	isNearPlanetSurface = (d2 - cr2) < (250000.0f + 1000.0f * cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
 	
-	if (EXPECT(!suppressAegisMessages))
+	if (EXPECT_NOT((wasNearPlanetSurface != isNearPlanetSurface) && !suppressAegisMessages))
 	{
-		if (!wasNearPlanetSurface && isNearPlanetSurface)
+		if (isNearPlanetSurface)
 		{
 			[self doScriptEvent:OOJSID("shipApproachingPlanetSurface") withArgument:nearest];
 			[shipAI reactToMessage:@"APPROACHING_SURFACE" context:@"flight update"];
 		}
-		if (wasNearPlanetSurface && !isNearPlanetSurface)
+		else
 		{
 			[self doScriptEvent:OOJSID("shipLeavingPlanetSurface") withArgument:nearest];
 			[shipAI reactToMessage:@"LEAVING_SURFACE" context:@"flight update"];
@@ -6575,12 +6575,13 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			}
 			else
 			{
-				d2 = magnitude2(vector_subtract([[UNIVERSE planet] position], [self position]));
-				cr2 = [[UNIVERSE planet] radius];
+				OOPlanetEntity *mainPlanet = [UNIVERSE planet];
+				d2 = magnitude2(vector_subtract([mainPlanet position], [self position]));
+				cr2 = [mainPlanet radius];
 				cr2 *= cr2;	
 				if (d2 < cr2 * 9.0f)
 				{
-					nearest = [UNIVERSE planet];
+					nearest = mainPlanet;
 					result = AEGIS_CLOSE_TO_MAIN_PLANET;
 				}
 			}
@@ -6599,6 +6600,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	if (EXPECT(!suppressAegisMessages))
 	{
 		// script/AI messages on change in status
+		if (EXPECT_NOT(aegis_status == AEGIS_IN_DOCKING_RANGE && result != aegis_status))
+		{
+			[self doScriptEvent:OOJSID("shipExitedStationAegis") withArgument:the_station];
+			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
+		}
+		
 		if (EXPECT_NOT(result == AEGIS_IN_DOCKING_RANGE && aegis_status != result))
 		{
 			[self doScriptEvent:OOJSID("shipEnteredStationAegis") withArgument:the_station];
@@ -6618,23 +6625,18 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			}
 			[self transitionToAegisNone];
 		}
-		// leaving..
-		else if (EXPECT_NOT(aegis_status == AEGIS_IN_DOCKING_RANGE && result != aegis_status))
-		{
-			[self doScriptEvent:OOJSID("shipExitedStationAegis") withArgument:the_station];
-			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
-		}
 		// approaching..
 		else if (EXPECT_NOT((result == AEGIS_CLOSE_TO_ANY_PLANET || result == AEGIS_CLOSE_TO_MAIN_PLANET) && [self lastAegisLock] != nearest))
 		{
 			if(aegis_status != AEGIS_NONE)	// we were close to another stellar body
 			{
 				[self doScriptEvent:OOJSID("shipExitedPlanetaryVicinity") withArgument:[self lastAegisLock]];
-				[shipAI message:@"AWAY_FROM_PLANET"];	// fires for all planets and moons.
+				[shipAI message:@"AWAY_FROM_PLANET"];	// fires for suns, planets and moons.
 			}
 			[self doScriptEvent:OOJSID("shipEnteredPlanetaryVicinity") withArgument:nearest];
 			[self setLastAegisLock:nearest];
-			if([nearest isSun])
+			
+			if (EXPECT_NOT([nearest isSun]))
 			{
 				[shipAI message:@"CLOSE_TO_SUN"];
 			}
