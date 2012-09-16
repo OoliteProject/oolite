@@ -1141,13 +1141,13 @@
 	"weapon-installed-@"			= "Weapon installed: %@.";
 	"weapon-@-enter-to-replace"		= "Weapon installed: %@.  Press enter to replace it.";
 	"no-weapon-enter-to-install"	= "No weapon installed.  Press enter to install this weapon here.";
-
+	
 	// Interfaces screen
-	"interfaces-title"        = "Ship and System Interfaces";
-	"interfaces-no-interfaces-available-for-use" = "No interfaces are installed on your ship or enabled at this station";
-	"interfaces-for-ship-@-and-station-@" = "Interfaces for %@ and %@";
-	"interfaces-unspecified-category" = "Uncategorised";	
-
+	"interfaces-title"								= "Ship and System Interfaces";
+	"interfaces-no-interfaces-available-for-use"	= "No interfaces are installed on your ship or enabled at this station";
+	"interfaces-for-ship-@-and-station-@"			= "Interfaces for %@ and %@";
+	"interfaces-unspecified-category"				= "Uncategorised";	
+	
 	// Contracts screen
 	"@-contracts-title"				= "%@ Carrier Market";
 	
@@ -1192,7 +1192,7 @@
 	"manifest-none"					= " None.";
 	"manifest-cargo-d-d"			= "Cargo %d t (%d t):";
 	"manifest-passengers-d-d"		= "Passengers %d (%d):";
-	"manifest-parcels"			= "Parcels:";
+	"manifest-parcels"				= "Parcels:";
 	"manifest-contracts"			= "Contracts:";
 	"manifest-missions"				= "Missions:";
 	"manifest-@-travelling-to-@-to-arrive-within-@"	= " %@ travelling to %@ to arrive within %@.";
@@ -1214,16 +1214,16 @@
 	"extra-@-@-(long-description)"			= " Extra %@ (%@)";
 	"extra-@-@-(passenger-berths)"			= " Extra %@ %@";
 	"extra-@-@-@-(passenger-berth-long-description)" =	"Extra %@%@ (%@)";
-	"plus-@"					= " Plus %@.";
+	"plus-@"						= " Plus %@.";
 	"shipyard-standard-customer-model" = " Standard customer model.";
 	"shipyard-forward-weapon-has-been-upgraded-to-a-@" = " Forward weapon has been upgraded to a %@.";
 	"shipyard-forward-weapon-upgraded-to-@" = " Forward weapon upgraded to %@.";
-	"shipyard-selling-price-@" = " Selling price %@.";
+	"shipyard-selling-price-@"		= " Selling price %@.";
 	"shipyard-price-@"				= " Price %@.";
 	
 	// Load/Save screens shared information
 	"loadsavescreen-commander-name" = "Commander Name";
-	"loadsavescreen-rating"		= "Rating";
+	"loadsavescreen-rating"			= "Rating";
 	"loadsavescreen-no-commanders-found" = "No commanders found";
 	"loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-location-@-g-@-timestamp-@" = "Commander %@ is rated %@ and has %@ in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@";
 	"loadsavescreen-hold-@-and-press-return-to-open-folder-@"= "Hold %@ and press return to open folder: %@";

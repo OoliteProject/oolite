@@ -49,11 +49,33 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
 
 
-#define ONE_SIXTEENTH			0.0625
-#define ONE_SIXTYFOURTH			0.015625
-#define DEFAULT_OVERALL_ALPHA	0.75
-#define GLYPH_SCALE_FACTOR		0.13		//  // 0.13 is an inherited magic number
+#define ONE_SIXTEENTH				0.0625
+#define ONE_SIXTYFOURTH				0.015625
+#define DEFAULT_OVERALL_ALPHA		0.75
+#define GLYPH_SCALE_FACTOR			0.13		// 0.13 is an inherited magic number
 #define IDENTIFY_SCANNER_LOLLIPOPS	(	0	&& !defined(NDEBUG))
+
+
+#define NOT_DEFINED					INFINITY
+#define WIDGET_INFO					0
+#define WIDGET_CACHE				1
+#define	WIDGET_SELECTOR				2
+
+
+struct CachedInfo
+{
+	float x, y, x0, y0;
+	float width, height, alpha;
+};
+
+static NSInteger _idx;
+static NSArray *_arrayAtIdx;
+static unsigned _energyBanks;
+
+OOINLINE float useDefined(float val, float validVal) 
+{
+	return (val == NOT_DEFINED) ? validVal : val;
+}
 
 
 static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v);
@@ -155,6 +177,8 @@ static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSiz
 
 static void InitTextEngine(void);
 
+static void prefetchData(NSDictionary *info, struct CachedInfo *data);
+
 
 OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
@@ -201,11 +225,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		NSDictionary	*trumble_dial_info = [NSDictionary dictionaryWithObjectsAndKeys: @"drawTrumbles:", SELECTOR_KEY, nil];
 		[self addDial:trumble_dial_info];
 	}
-	
-	/* 
-		We need to call drawScanner on every frame to ensure proximity checks / mass locking calculations are done properly.
-		This is now dealt with inside drawDials. -- Kaks 20120913
-	*/
+
 	
 	NSArray *legends = [hudinfo oo_arrayForKey:LEGENDS_KEY];
 	for (i = 0; i < [legends count]; i++)
@@ -218,6 +238,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	hudUpdating = NO;
 	
 	overallAlpha = [hudinfo oo_floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
+	
+	_energyBanks = [hudinfo oo_unsignedIntForKey:N_BARS_KEY defaultValue:[PLAYER dialMaxEnergy] / 64.0];
+	if (_energyBanks < 1)  _energyBanks = 1;
 	
 	reticleTargetSensitive = [hudinfo oo_boolForKey:@"reticle_target_sensitive" defaultValue:NO];
 	propertiesReticleTargetSensitive = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
@@ -242,14 +265,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[self setCrosshairDefinition:crossfile];
 	}
 	[crossfile release];
-
+	
 	id crosshairColor = [hudinfo oo_objectForKey:@"crosshair_color" defaultValue:@"greenColor"];
 	_crosshairColor = [[OOColor colorWithDescription:crosshairColor] retain];
 	_crosshairScale = [hudinfo oo_floatForKey:@"crosshair_scale" defaultValue:32.0f];
 	_crosshairWidth = [hudinfo oo_floatForKey:@"crosshair_width" defaultValue:1.5f];
-
 	
-
 	return self;
 }
 
@@ -504,6 +525,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	NSSize				imageSize;
 	OOTextureSprite		*legendSprite = nil;
 	NSMutableDictionary	*legendDict = nil;
+	struct CachedInfo	cache;
+	
+	// prefetch data associated with this legend
+	prefetchData(info, &cache);
 	
 	imageName = [info oo_stringForKey:IMAGE_KEY];
 	if (imageName != nil)
@@ -515,7 +540,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 									 lodBias:kOOTextureDefaultLODBias];
 		if (texture == nil)
 		{
-			OOLog(kOOLogFileNotFound, @"***** ERROR: HeadUpDisplay couldn't get an image texture name for %@", imageName);
+			OOLogERR(kOOLogFileNotFound, @"HeadUpDisplay couldn't get an image texture name for %@", imageName);
 			return;
 		}
 		
@@ -527,13 +552,16 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		
 		legendDict = [info mutableCopy];
 		[legendDict setObject:legendSprite forKey:SPRITE_KEY];
-		[legendArray addObject:legendDict];																	
+		// add WIDGET_INFO, WIDGET_CACHE to array
+		[legendArray addObject:[NSArray arrayWithObjects:legendDict, [NSValue valueWithBytes:&cache objCType:@encode(struct CachedInfo)], nil]];																	
 		[legendDict release];
 		[legendSprite release];
 	}
 	else if ([info oo_stringForKey:TEXT_KEY] != nil)
 	{
-		[legendArray addObject:info];
+		// add WIDGET_INFO, WIDGET_CACHE to array
+		[legendArray addObject:[NSArray arrayWithObjects:info, [NSValue valueWithBytes:&cache objCType:@encode(struct CachedInfo)], nil]];
+
 	}
 }
 
@@ -547,22 +575,36 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		allowedSelectors = [[NSSet alloc] initWithArray:[whitelist oo_arrayForKey:@"hud_dial_methods"]];
 	}
 	
-	NSString *dialSelector = [info oo_stringForKey:SELECTOR_KEY];
-	if (dialSelector == nil)
+	NSString *selectorString = [info oo_stringForKey:SELECTOR_KEY];
+	if (selectorString == nil)
 	{
 		OOLogERR(@"hud.dial.noSelector", @"HUD dial in %@ is missing selector.", hudName);
 		return;
 	}
 	
-	if (![allowedSelectors containsObject:dialSelector])
+	if (![allowedSelectors containsObject:selectorString])
 	{
-		OOLogERR(@"hud.dial.invalidSelector", @"HUD dial in %@ uses selector \"%@\" which is not in whitelist, and will be ignored.", hudName, dialSelector);
+		OOLogERR(@"hud.dial.invalidSelector", @"HUD dial in %@ uses selector \"%@\" which is not in whitelist, and will be ignored.", hudName, selectorString);
 		return;
 	}
 	
-	NSAssert2([self respondsToSelector:NSSelectorFromString(dialSelector)], @"HUD dial in %@ uses selector \"%@\" which is in whitelist, but not implemented.", hudName, dialSelector);
+	SEL selector = NSSelectorFromString(selectorString);
 	
-	[dialArray addObject:info];
+	NSAssert2([self respondsToSelector:selector], @"HUD dial in %@ uses selector \"%@\" which is in whitelist, but not implemented.", hudName, selectorString);
+	
+	//  handle the case above with NS_BLOCK_ASSERTIONS too.
+	if (![self respondsToSelector:selector])
+	{
+		OOLogERR(@"hud.dial.invalidSelector", @"HUD dial in %@ uses selector \"%@\"  which is in whitelist, but not implemented, and will be ignored.", hudName, selectorString);
+		return;
+	}
+	
+	// valid dial, now prefetch data
+	struct CachedInfo cache;
+	prefetchData(info, &cache);
+	// add WIDGET_INFO, WIDGET_CACHE, WIDGET_SELECTOR to array
+	[dialArray addObject:[NSArray arrayWithObjects:info, [NSValue valueWithBytes:&cache objCType:@encode(struct CachedInfo)],
+								[NSValue valueWithPointer:selector], nil]];
 }
 
 
@@ -618,12 +660,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) drawLegends
 {
-	unsigned		i;
-	
 	z1 = [[UNIVERSE gameView] display_z];
-	for (i = 0; i < [legendArray count]; i++)
+	for (_idx = [legendArray count] - 1; _idx >= 0; _idx--)
 	{
-		[self drawLegend:[legendArray oo_dictionaryAtIndex:i]];
+		_arrayAtIdx = [legendArray oo_arrayAtIndex:_idx];
+		[self drawLegend:[_arrayAtIdx oo_dictionaryAtIndex:WIDGET_INFO]];
 	}
 }
 
@@ -635,9 +676,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	scannerUpdated = NO;
 	
 	// tight loop, we assume dialArray doesn't change in mid-draw.
-	for (NSInteger i = [dialArray count] - 1; i >= 0; i--)
+	for (_idx = [dialArray count] - 1; _idx >= 0; _idx--)
 	{
-		[self drawHUDItem:[dialArray oo_dictionaryAtIndex:i]];
+		_arrayAtIdx = [dialArray oo_arrayAtIndex:_idx];
+		[self drawHUDItem:[_arrayAtIdx oo_dictionaryAtIndex:WIDGET_INFO]];
 	}
 	
 	// We always need to check the mass lock status. It's normally checked inside drawScanner,
@@ -648,15 +690,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) drawCrosshairs
 {
-	PlayerEntity				*player = PLAYER;
 	OOViewID					viewID = [UNIVERSE viewDirection];
-	OOWeaponType				weapon = [player currentWeapon];
-	BOOL						weaponsOnline = [player weaponsOnline];
+	OOWeaponType				weapon = [PLAYER currentWeapon];
+	BOOL						weaponsOnline = [PLAYER weaponsOnline];
 	NSArray						*points = nil;
 	
 	if (viewID == VIEW_CUSTOM ||
 		overallAlpha == 0.0f ||
-		!([player status] == STATUS_IN_FLIGHT || [player status] == STATUS_WITCHSPACE_COUNTDOWN) ||
+		!([PLAYER status] == STATUS_IN_FLIGHT || [PLAYER status] == STATUS_WITCHSPACE_COUNTDOWN) ||
 		[UNIVERSE displayGUI]
 		)
 	{
@@ -755,22 +796,25 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) drawLegend:(NSDictionary *)info
 {
-	OOTextureSprite				*legendSprite = nil;
-	NSString					*legendText = nil;
-	float						x, y;
-	NSSize						size;
-	GLfloat					alpha = overallAlpha;
-	
-// Feature request 5359 - equipment_required for HUD legends	
+	// check if equipment is required
 	NSString *equipmentRequired = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	if (equipmentRequired != nil && ![PLAYER hasEquipmentItem:equipmentRequired])
 		return;
 	
-	x = [info oo_floatForKey:X_KEY] + [[UNIVERSE gameView] x_offset] *
-		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-	y = [info oo_floatForKey:Y_KEY] + [[UNIVERSE gameView] y_offset] *
-		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+	OOTextureSprite				*legendSprite = nil;
+	NSString					*legendText = nil;
+	float						x, y;
+	NSSize						size;
+	GLfloat						alpha = overallAlpha;
+	struct CachedInfo			cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE]getValue:&cached];
+	
+	// if either x or y is missing, use 0 instead
+	
+	x = useDefined(cached.x, 0.0f) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0.0f) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	alpha *= cached.alpha;
 	
 	legendSprite = [info objectForKey:SPRITE_KEY];
 	if (legendSprite != nil)
@@ -782,8 +826,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		legendText = [info oo_stringForKey:TEXT_KEY];
 		if (legendText != nil)
 		{
-			size.width = [info oo_floatForKey:WIDTH_KEY];
-			size.height = [info oo_floatForKey:HEIGHT_KEY];
+			// randomly chosen default width & height
+			size.width = useDefined(cached.width, 14.0f);
+			size.height = useDefined(cached.height, 8.0f);
 			GLColorWithOverallAlpha(green_color, alpha);
 			OODrawString(legendText, x, y, z1, size);
 		}
@@ -798,21 +843,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	if (EXPECT_NOT(equipment != nil && ![PLAYER hasEquipmentItem:equipment]))
 		return;
 	
-	NSString	*selectorString = [info oo_stringForKey:SELECTOR_KEY];
-	
-	if (EXPECT(selectorString != nil))
-	{
-		SEL _selector = NSSelectorFromString(selectorString);
-		if ([self respondsToSelector:_selector])
-		{
-			[self performSelector:_selector withObject:info];
-			CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
-		}
-		else
-		{
-			OOLog(@"hud.unknownSelector", @"DEBUG HeadUpDisplay does not respond to '%@'", selectorString);
-		}	
-	}
+	// use the selector value stored during init.
+	[self performSelector:[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_SELECTOR] pointerValue] withObject:info];
+	CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
 }
 
 
@@ -865,8 +898,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		Entity<OOStellarBody> *stellar = (Entity<OOStellarBody> *)ent;
 		if (EXPECT([stellar planetType] != STELLAR_TYPE_MINIATURE))
 		{
-			double dist =   stellar->zero_distance;
-			double rad =	stellar->collision_radius;
+			double dist = stellar->zero_distance;
+			double rad = stellar->collision_radius;
 			double factor = ([stellar isSun]) ? 2.0 : 4.0;
 			// plus ensure mass lock when 25 km or less from the surface of small stellar bodies
 			// dist is a square distance so it needs to be compared to (rad+25000) * (rad+25000)!
@@ -913,11 +946,24 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	return massLocked;
 }
 
+
+static void prefetchData(NSDictionary *info, struct CachedInfo *data)
+{
+	data->x = [info oo_floatForKey:X_KEY defaultValue:NOT_DEFINED];
+	data->x0 = [info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	data->y = [info oo_floatForKey:Y_KEY defaultValue:NOT_DEFINED];
+	data->y0 = [info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
+	data->width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:NOT_DEFINED];
+	data->height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:NOT_DEFINED];
+	data->alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];	
+}
+
 //---------------------------------------------------------------------//
 
 - (void) drawScanner:(NSDictionary *)info
 {
-	if (scannerUpdated) return;		// there's never the need to draw the scanner twice per frame!
+	if (scannerUpdated)  return;		// there's never the need to draw the scanner twice per frame!
+	
 	int				i, x, y;
 	NSSize			siz;
 	GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
@@ -937,14 +983,15 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	}
 	else
 	{
-		x = [info oo_intForKey:X_KEY defaultValue:SCANNER_CENTRE_X] + 
-			[[UNIVERSE gameView] x_offset] *
-			[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0f];
-		y = [info oo_intForKey:Y_KEY defaultValue:SCANNER_CENTRE_Y] +
-			[[UNIVERSE gameView] y_offset] *
-			[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0f];
-		siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCANNER_WIDTH];
-		siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCANNER_HEIGHT];
+		struct CachedInfo	cached;
+	
+		[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+		
+		x = useDefined(cached.x, SCANNER_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+		y = useDefined(cached.y, SCANNER_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+		siz.width = useDefined(cached.width, SCANNER_WIDTH);
+		siz.height = useDefined(cached.height, SCANNER_HEIGHT);
+
 		GetRGBAArrayFromInfo(info, scanner_color);
 		
 		scanner_color[3] *= overallAlpha;
@@ -963,12 +1010,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	double			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0 / (scanner_zoom * scanner_zoom);
 	GLfloat			max_zoomed_range = sqrt(max_zoomed_range2);
-		
-	PlayerEntity	*player = PLAYER;
 	
-	if (player == nil)  return;
+	if (PLAYER == nil)  return;
 	
-	OOMatrix		rotMatrix = [player rotationMatrix];
+	OOMatrix		rotMatrix = [PLAYER rotationMatrix];
 	Vector			relativePosition;
 	int				flash = ((int)([UNIVERSE getTime] * 4))&1;
 	
@@ -1057,8 +1102,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 				{
 					ShipEntity* ship = (ShipEntity *)scannedEntity;
 					double wr = [ship weaponRange];
-					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == player)&&(scannedEntity->zero_distance < wr*wr));
-					GLfloat* base_col = [ship scannerDisplayColorForShip:player :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
+					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER)&&(scannedEntity->zero_distance < wr*wr));
+					GLfloat* base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 				else if ([scannedEntity isVisualEffect])
@@ -1172,9 +1217,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 			}
 		}
 		
-		[player setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
+		[PLAYER setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
 		
-		[player setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
+		[PLAYER setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
 		
 		if ((foundHostiles)&&(!hostiles))
 		{
@@ -1208,12 +1253,20 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) drawScannerZoomIndicator:(NSDictionary *)info
 {
-	int				x;
-	int				y;
-	NSSize			siz;
-	GLfloat			alpha;
-	GLfloat			zoom_color[4] = { 1.0f, 0.1f, 0.0f, 1.0f };
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha;
+	GLfloat				zoom_color[4] = { 1.0f, 0.1f, 0.0f, 1.0f };
+	struct CachedInfo	cached;
 	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, ZOOM_INDICATOR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, ZOOM_INDICATOR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, ZOOM_INDICATOR_WIDTH);
+	siz.height = useDefined(cached.height, ZOOM_INDICATOR_HEIGHT);
+
+/*
 	x = [info oo_intForKey:X_KEY defaultValue:ZOOM_INDICATOR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
 		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
@@ -1223,6 +1276,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ZOOM_INDICATOR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ZOOM_INDICATOR_HEIGHT];
 	
+	*/
 	GetRGBAArrayFromInfo(info, zoom_color);
 	zoom_color[3] *= overallAlpha;
 	alpha = zoom_color[3];
@@ -1251,12 +1305,20 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) drawCompass:(NSDictionary *)info
 {
-	int				x;
-	int				y;
-	NSSize			siz;
-	GLfloat			alpha;
-	GLfloat			compass_color[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha;
+	GLfloat				compass_color[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	struct CachedInfo	cached;
 	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, COMPASS_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, COMPASS_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, COMPASS_HALF_SIZE);
+	siz.height = useDefined(cached.height, COMPASS_HALF_SIZE);
+	
+	/*
 	x = [info oo_intForKey:X_KEY defaultValue:COMPASS_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
 		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
@@ -1266,16 +1328,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:COMPASS_HALF_SIZE];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:COMPASS_HALF_SIZE];
 	
+	*/
 	GetRGBAArrayFromInfo(info, compass_color);
 	compass_color[3] *= overallAlpha;
 	alpha = compass_color[3];
 	
 	// draw the compass
-	OOMatrix		rotMatrix;
-	PlayerEntity	*player = PLAYER;
-	Vector			position = [player position];
-	
-	rotMatrix = [player rotationMatrix];
+	Vector			position = [PLAYER position];
+	OOMatrix		rotMatrix = [PLAYER rotationMatrix];
 	
 	GLfloat h1 = siz.height * 0.125;
 	GLfloat h3 = siz.height * 0.375;
@@ -1296,8 +1356,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	OOSunEntity		*the_sun = [UNIVERSE sun];
 	OOPlanetEntity	*the_planet = [UNIVERSE planet];
 	StationEntity	*the_station = [UNIVERSE station];
-	Entity			*the_target = [player primaryTarget];
-	Entity <OOBeaconEntity>		*beacon = [player nextBeacon];
+	Entity			*the_target = [PLAYER primaryTarget];
+	Entity <OOBeaconEntity>		*beacon = [PLAYER nextBeacon];
 	if ([self checkPlayerInFlight]		// be in the right mode
 		&& the_sun && the_planet		// and be in a system
 		&& ![the_sun goneNova])			// and the system has not been novabombed
@@ -1305,11 +1365,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		Entity *reference = nil;
 		OOAegisStatus	aegis = AEGIS_NONE;
 		
-		switch ([player compassMode])
+		switch ([PLAYER compassMode])
 		{
 			case COMPASS_MODE_BASIC:
 				
-				aegis = [player checkForAegis];
+				aegis = [PLAYER checkForAegis];
 				if ((aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE) && the_station)
 				{
 					reference = the_station;
@@ -1343,14 +1403,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		
 		if (reference == nil)
 		{
-			[player setCompassMode:COMPASS_MODE_PLANET];
+			[PLAYER setCompassMode:COMPASS_MODE_PLANET];
 			reference = the_planet;
 		}
 		
-		if (reference != [player compassTarget])
+		if (reference != [PLAYER compassTarget])
 		{
-			[player setCompassTarget:reference];
-			[player doScriptEvent:OOJSID("compassTargetChanged") withArguments:[NSArray arrayWithObjects:reference, OOStringFromCompassMode([player compassMode]), nil]];
+			[PLAYER setCompassTarget:reference];
+			[PLAYER doScriptEvent:OOJSID("compassTargetChanged") withArguments:[NSArray arrayWithObjects:reference, OOStringFromCompassMode([PLAYER compassMode]), nil]];
 		}
 		
 		// translate and rotate the view
@@ -1366,7 +1426,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		siz.width *= 0.2;
 		siz.height *= 0.2;
 		OOGL(GLScaledLineWidth(2.0));
-		switch ([player compassMode])
+		switch ([PLAYER compassMode])
 		{
 			case COMPASS_MODE_BASIC:
 				[self drawCompassPlanetBlipAt:relativePosition Size:siz Alpha:alpha];
@@ -1500,21 +1560,18 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	if (([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([PLAYER checkForAegis] != AEGIS_IN_DOCKING_RANGE))
 		return;	// don't draw
 	
-	int				x;
-	int				y;
-	NSSize			siz;
-	GLfloat			alpha = 0.5f;
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha = 0.5f * overallAlpha;
+	struct CachedInfo	cached;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:AEGIS_CENTRE_X] +
-		[[UNIVERSE gameView] x_offset] *
-		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-	y = [info oo_intForKey:Y_KEY defaultValue:AEGIS_CENTRE_Y] +
-		[[UNIVERSE gameView] y_offset] *
-		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:AEGIS_WIDTH];
-	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
-	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
-	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, AEGIS_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, AEGIS_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, AEGIS_WIDTH);
+	siz.height = useDefined(cached.height, AEGIS_HEIGHT);
+	alpha *= cached.alpha;
 	
 	// draw the aegis indicator
 	//
@@ -1552,25 +1609,23 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 - (void) drawSpeedBar:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	BOOL			draw_surround;
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	double				ds = [PLAYER dialSpeed];
+	struct CachedInfo	cached;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:SPEED_BAR_CENTRE_X] +
-		[[UNIVERSE gameView] x_offset] *
-		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-	y = [info oo_intForKey:Y_KEY defaultValue:SPEED_BAR_CENTRE_Y] +
-		[[UNIVERSE gameView] y_offset] *
-		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SPEED_BAR_WIDTH];
-	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SPEED_BAR_HEIGHT];
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, SPEED_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, SPEED_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, SPEED_BAR_WIDTH);
+	siz.height = useDefined(cached.height, SPEED_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
-	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
 	
-	double ds = [player dialSpeed];
 	
 	GLColorWithOverallAlpha(green_color, alpha);
 	if (draw_surround)
@@ -1585,19 +1640,27 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		GLColorWithOverallAlpha(yellow_color, alpha);
 
 	hudDrawBarAt(x, y, z1, siz, ds);
-	
 }
 
 
 - (void) drawRollBar:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	BOOL			draw_surround;
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
 	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, ROLL_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, ROLL_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, ROLL_BAR_WIDTH);
+	siz.height = useDefined(cached.height, ROLL_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
+	
+/*
 	x = [info oo_intForKey:X_KEY defaultValue:ROLL_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
 		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
@@ -1608,6 +1671,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ROLL_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+*/
 	
 	if (draw_surround)
 	{
@@ -1617,18 +1681,28 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	}
 	// draw ROLL bar
 	GLColorWithOverallAlpha(yellow_color, alpha);
-	hudDrawIndicatorAt(x, y, z1, siz, [player dialRoll]);
+	hudDrawIndicatorAt(x, y, z1, siz, [PLAYER dialRoll]);
 }
 
 
 - (void) drawPitchBar:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	BOOL			draw_surround;
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, PITCH_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, PITCH_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, PITCH_BAR_WIDTH);
+	siz.height = useDefined(cached.height, PITCH_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
+	
+/*
 	
 	x = [info oo_intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1640,6 +1714,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+*/
 	
 	if (draw_surround)
 	{
@@ -1649,18 +1724,29 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	}
 	// draw PITCH bar
 	GLColorWithOverallAlpha(yellow_color, alpha);
-	hudDrawIndicatorAt(x, y, z1, siz, [player dialPitch]);
+	hudDrawIndicatorAt(x, y, z1, siz, [PLAYER dialPitch]);
 }
 
 
 - (void) drawYawBar:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	BOOL			draw_surround;
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	// No standard YAW definitions - using PITCH ones instead.
+	x = useDefined(cached.x, PITCH_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, PITCH_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, PITCH_BAR_WIDTH);
+	siz.height = useDefined(cached.height, PITCH_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
+	
+/*
 	
 	// YAW does not exist in strict mode
 	if ([UNIVERSE strict])  return;
@@ -1675,6 +1761,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+*/
 	
 	if (draw_surround)
 	{
@@ -1684,91 +1771,111 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	}
 	// draw YAW bar
 	GLColorWithOverallAlpha(yellow_color, alpha);
-	hudDrawIndicatorAt(x, y, z1, siz, [player dialYaw]);
+	hudDrawIndicatorAt(x, y, z1, siz, [PLAYER dialYaw]);
 }
 
 
 - (void) drawEnergyGauge:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	BOOL			draw_surround, labelled;
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	unsigned			i;
+	NSSize				siz;
+	BOOL				drawSurround, labelled, energyCritical = NO;
+	GLfloat				alpha = overallAlpha;
+	double				bankHeight, bankY;
+	double				energy = [PLAYER dialEnergy] * _energyBanks;
+	struct CachedInfo	cached;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:ENERGY_GAUGE_CENTRE_X] +
-		[[UNIVERSE gameView] x_offset] *
-		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-	y = [info oo_intForKey:Y_KEY defaultValue:ENERGY_GAUGE_CENTRE_Y] +
-		[[UNIVERSE gameView] y_offset] *
-		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ENERGY_GAUGE_WIDTH];
-	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ENERGY_GAUGE_HEIGHT];
-	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ENERGY_GAUGE_DRAW_SURROUND];
-	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, ENERGY_GAUGE_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, ENERGY_GAUGE_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, ENERGY_GAUGE_WIDTH);
+	siz.height = useDefined(cached.height, ENERGY_GAUGE_HEIGHT);
+	alpha *= cached.alpha;
+	drawSurround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ENERGY_GAUGE_DRAW_SURROUND];
 	labelled = [info oo_boolForKey:LABELLED_KEY defaultValue:YES];
+	if (_energyBanks > 8)  labelled = NO;
 	
-	int n_bars = [player dialMaxEnergy]/64.0;
-	n_bars = [info oo_unsignedIntForKey:N_BARS_KEY defaultValue:n_bars];
-	if (n_bars < 1)  n_bars = 1;
-	if (n_bars > 8)  labelled = NO;
+	// MKW - ensure we don't alert the player every time they use energy if they only have 1 energybank
+	//[player setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([player status] == STATUS_IN_FLIGHT))];
+	if(EXPECT([PLAYER status] == STATUS_IN_FLIGHT))
+	{
+		if(_energyBanks > 1)
+		{
+			energyCritical = energy < 1.0 ;
+		}
+		else
+		{
+			energyCritical = energy < 0.8;
+		}
+		if (EXPECT_NOT(energyCritical)) [PLAYER setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
+	}
 	
-	if (draw_surround)
+	if (drawSurround)
 	{
 		// draw energy surround
 		GLColorWithOverallAlpha(yellow_color, alpha);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	
-	// draw energy banks
+	bankHeight = siz.height / _energyBanks;
+	// draw energy banks	
+	NSSize barSize = NSMakeSize(siz.width, bankHeight - 2.0);		// leave a gap between bars
+	double midBank = bankHeight / 2.0;
+	bankY = y - (_energyBanks - 1) * midBank - 1.0;
+	
+	// avoid constant colour switching...
+	if (labelled)
 	{
-		int qy = siz.height / n_bars;
-		NSSize dial_size = NSMakeSize(siz.width,qy - 2);
-		int cy = y - (n_bars - 1) * qy / 2;
-		double energy = [player dialEnergy]*n_bars;
-		// MKW - ensure we don't alert the player every time they use energy if they only have 1 energybank
-		//[player setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([player status] == STATUS_IN_FLIGHT))];
-		bool energyCritical = false;
-		if( [player status] == STATUS_IN_FLIGHT )
+		GLColorWithOverallAlpha(green_color, alpha);
+		double labelStartX = x + 0.5 * barSize.width + 3.0;
+		NSSize labelSize = NSMakeSize(9.0, (bankHeight < 18.0)? bankHeight : 18.0 );
+		for (i = 0; i < _energyBanks; i++)
 		{
-			if( n_bars > 1 )
-				energyCritical = energy < 1.0 ;
-			else
-				energyCritical = energy < 0.8; 
+			OODrawString([NSString stringWithFormat:@"E%x", _energyBanks - i], labelStartX, bankY - midBank, z1, labelSize);
+			bankY += bankHeight;
 		}
-		[player setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
-		int i;
-		for (i = 0; i < n_bars; i++)
+	}
+	
+	GLColorWithOverallAlpha((energyCritical ? red_color : yellow_color), alpha);	
+	bankY = y - (_energyBanks - 1) * midBank;
+	for (i = 0; i < _energyBanks; i++)
+	{
+		if (energy > 1.0)
 		{
-			if( energyCritical )
-				GLColorWithOverallAlpha(red_color, alpha);
-			else
-				GLColorWithOverallAlpha(yellow_color, alpha);
-			if (energy > 1.0)
-				hudDrawBarAt(x, cy, z1, dial_size, 1.0);
-			if ((energy > 0.0)&&(energy <= 1.0))
-				hudDrawBarAt(x, cy, z1, dial_size, energy);
-			if (labelled)
-			{
-				GLColorWithOverallAlpha(green_color, alpha);
-				OODrawString([NSString stringWithFormat:@"E%x",n_bars - i], x + 0.5 * dial_size.width + 2, cy - 0.5 * qy, z1, NSMakeSize(9, (qy < 18)? qy : 18 ));
-			}
-			energy -= 1.0;
-			cy += qy;
+			hudDrawBarAt(x, bankY, z1, barSize, 1.0);
 		}
+		else if (energy > 0.0)
+		{
+			hudDrawBarAt(x, bankY, z1, barSize, energy);
+		}
+		
+		energy -= 1.0;
+		bankY += bankHeight;
 	}
 }
 
 
 - (void) drawForwardShieldBar:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	BOOL			draw_surround;
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	double				shield = [PLAYER dialForwardShield];
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, FORWARD_SHIELD_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, FORWARD_SHIELD_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, FORWARD_SHIELD_BAR_WIDTH);
+	siz.height = useDefined(cached.height, FORWARD_SHIELD_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:FORWARD_SHIELD_BAR_DRAW_SURROUND];
+	
+/*
 	
 	x = [info oo_intForKey:X_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1780,8 +1887,8 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FORWARD_SHIELD_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:FORWARD_SHIELD_BAR_DRAW_SURROUND];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+*/
 	
-	double shield = [player dialForwardShield];
 	if (draw_surround)
 	{
 		// draw forward_shield surround
@@ -1800,12 +1907,23 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 - (void) drawAftShieldBar:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	BOOL			draw_surround;
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	double				shield = [PLAYER dialAftShield];
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, AFT_SHIELD_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, AFT_SHIELD_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, AFT_SHIELD_BAR_WIDTH);
+	siz.height = useDefined(cached.height, AFT_SHIELD_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:AFT_SHIELD_BAR_DRAW_SURROUND];
+	
+/*
 	
 	x = [info oo_intForKey:X_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -1817,8 +1935,8 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AFT_SHIELD_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:AFT_SHIELD_BAR_DRAW_SURROUND];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+*/
 	
-	double shield = [player dialAftShield];
 	if (draw_surround)
 	{
 		// draw aft_shield surround
@@ -1837,6 +1955,29 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 - (void) drawFuelBar:(NSDictionary *)info
 {
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	float				fu, hr;
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, FUEL_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, FUEL_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, FUEL_BAR_WIDTH);
+	siz.height = useDefined(cached.height, FUEL_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+	
+	if (draw_surround)
+	{
+		GLColorWithOverallAlpha(green_color, alpha);
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	
+/*
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
@@ -1853,16 +1994,16 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:FUEL_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FUEL_BAR_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+*/
+	fu = [PLAYER dialFuel];
+	hr = [PLAYER dialHyperRange];
 	
-	fu = [player dialFuel];
-	hr = [player dialHyperRange];
-
 	// draw fuel bar
 	GLColorWithOverallAlpha(yellow_color, alpha);
 	hudDrawBarAt(x, y, z1, siz, fu);
 	
 	// draw range indicator
-	if (hr > 0 && hr <= 1.0)
+	if (hr > 0.0f && hr <= 1.0f)
 	{
 		GLColorWithOverallAlpha([PLAYER hasSufficientFuelForJump] ? green_color : red_color, alpha);
 		hudDrawMarkerAt(x, y, z1, siz, hr);
@@ -1872,6 +2013,29 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 - (void) drawCabinTempBar:(NSDictionary *)info
 {
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	double				temp = [PLAYER hullHeatLevel];
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, CABIN_TEMP_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, CABIN_TEMP_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, CABIN_TEMP_BAR_WIDTH);
+	siz.height = useDefined(cached.height, CABIN_TEMP_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+	
+	if (draw_surround)
+	{
+		GLColorWithOverallAlpha(green_color, alpha);
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	
+/*
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
@@ -1887,11 +2051,10 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:CABIN_TEMP_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CABIN_TEMP_BAR_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-	
-	double temp = [player hullHeatLevel];
+*/
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
-	// draw ship_temperature bar (only need to call GLColor() once!)
+	// what color are we?
 	if (temp > .80)
 	{
 		if (temp > .90 && flash)
@@ -1907,13 +2070,36 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 			GLColorWithOverallAlpha(green_color, alpha);
 	}
 
-	[player setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&([self checkPlayerInFlight]))];
+	[PLAYER setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&([self checkPlayerInFlight]))];
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
 
 
 - (void) drawWeaponTempBar:(NSDictionary *)info
 {
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	double				temp = [PLAYER laserHeatLevel];
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, WEAPON_TEMP_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, WEAPON_TEMP_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, WEAPON_TEMP_BAR_WIDTH);
+	siz.height = useDefined(cached.height, WEAPON_TEMP_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+	
+	if (draw_surround)
+	{
+		GLColorWithOverallAlpha(green_color, alpha);
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	
+/*
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
@@ -1929,8 +2115,8 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:WEAPON_TEMP_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:WEAPON_TEMP_BAR_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-	
-	double temp = [player laserHeatLevel];
+*/
+
 	// draw weapon_temp bar (only need to call GLColor() once!)
 	if (temp > .80)
 		GLColorWithOverallAlpha(red_color, alpha);
@@ -1944,12 +2130,29 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 - (void) drawAltitudeBar:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alt = [PLAYER dialAltitude];
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
 	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, ALTITUDE_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, ALTITUDE_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, ALTITUDE_BAR_WIDTH);
+	siz.height = useDefined(cached.height, ALTITUDE_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+	
+	if (draw_surround)
+	{
+		GLColorWithOverallAlpha(yellow_color, alpha);
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	
+/*	
 	x = [info oo_intForKey:X_KEY defaultValue:ALTITUDE_BAR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
 		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
@@ -1959,8 +2162,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ALTITUDE_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ALTITUDE_BAR_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-	
-	GLfloat alt = [player dialAltitude];
+*/
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
 	
@@ -1982,7 +2184,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	hudDrawBarAt(x, y, z1, siz, alt);
 	
-	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&([self checkPlayerInFlight]))];
+	[PLAYER setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&([self checkPlayerInFlight]))];
 }
 
 
@@ -2098,6 +2300,21 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawMissileDisplay:(NSDictionary *)info
 {
+	int					x, y, sp;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, MISSILES_DISPLAY_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, MISSILES_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, MISSILE_ICON_WIDTH);
+	siz.height = useDefined(cached.height, MISSILE_ICON_HEIGHT);
+	alpha *= cached.alpha;
+	sp = [info oo_unsignedIntForKey:SPACING_KEY defaultValue:MISSILES_DISPLAY_SPACING];
+
+	/*
 	PlayerEntity	*player = PLAYER;
 	int				x;
 	int				y;
@@ -2111,25 +2328,24 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	y = [info oo_intForKey:Y_KEY defaultValue:MISSILES_DISPLAY_Y] +
 		[[UNIVERSE gameView] y_offset] *
 		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	sp = [info oo_unsignedIntForKey:SPACING_KEY defaultValue:MISSILES_DISPLAY_SPACING];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:MISSILE_ICON_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:MISSILE_ICON_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-	
-	BOOL weaponsOnline = [player weaponsOnline];
+	*/
+	BOOL weaponsOnline = [PLAYER weaponsOnline];
 	if (!weaponsOnline)  alpha *= 0.2f;	// darken missile display if weapons are offline
 	
-	if (![player dialIdentEngaged])
+	if (![PLAYER dialIdentEngaged])
 	{
-		OOMissileStatus status = [player dialMissileStatus];
-		NSUInteger i, n_mis = [player dialMaxMissiles];
+		OOMissileStatus status = [PLAYER dialMissileStatus];
+		NSUInteger i, n_mis = [PLAYER dialMaxMissiles];
 		for (i = 0; i < n_mis; i++)
 		{
-			ShipEntity *missile = [player missileForPylon:i];
+			ShipEntity *missile = [PLAYER missileForPylon:i];
 			if (missile)
 			{
 				[self drawIconForMissile:missile
-								selected:weaponsOnline && i == [player activeMissile]
+								selected:weaponsOnline && i == [PLAYER activeMissile]
 								  status:status
 									   x:x + (int)i * sp + 2 y:y
 								   width:siz.width * 0.25f height:siz.height * 0.25f
@@ -2148,7 +2364,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		y -= siz.height * 0.75;
 		siz.width *= 0.80;
 		sp *= 0.75;
-		switch ([player dialMissileStatus])
+		switch ([PLAYER dialMissileStatus])
 		{
 			case MISSILE_STATUS_SAFE:
 				GLColorWithOverallAlpha(green_color, alpha);	break;
@@ -2164,7 +2380,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			glVertex3i(x , y + siz.height, z1);
 		OOGLEND();
 		GLColorWithOverallAlpha(green_color, alpha);
-		OODrawString([player dialTargetName], x + sp, y, z1, NSMakeSize(siz.width, siz.height));
+		OODrawString([PLAYER dialTargetName], x + sp, y, z1, NSMakeSize(siz.width, siz.height));
 	}
 	
 }
@@ -2172,12 +2388,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawTargetReticle:(NSDictionary *)info
 {
-	PlayerEntity *player = PLAYER;
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
 	
-	if ([player primaryTarget] != nil)
+	if ([PLAYER primaryTarget] != nil)
 	{
-		hudDrawReticleOnTarget([player primaryTarget], player, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive);
+		hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive);
 		[self drawDirectionCue:info];
 	}
 }
@@ -2185,12 +2400,21 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawStatusLight:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	BOOL			blueAlert = cloakIndicatorOnStatusLight && [player isCloaked];
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+	BOOL				blueAlert = cloakIndicatorOnStatusLight && [PLAYER isCloaked];
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, STATUS_LIGHT_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, STATUS_LIGHT_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, STATUS_LIGHT_HEIGHT);
+	siz.height = useDefined(cached.height, STATUS_LIGHT_HEIGHT);
+	alpha *= cached.alpha;
+	
+	/*
 	
 	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -2201,9 +2425,9 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-	
+*/	
 	GLfloat status_color[4] = { 0.25, 0.25, 0.25, 1.0};
-	int alertCondition = [player alertCondition];
+	int alertCondition = [PLAYER alertCondition];
 	double flash_alpha = 0.333 * (2.0 + sin([UNIVERSE getTime] * 2.5 * alertCondition));
 	
 	switch(alertCondition)
@@ -2244,28 +2468,35 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawDirectionCue:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	alpha *= cached.alpha;
+	
+	/*
+	The test below has already been performed by the calling method
 	NSString		*equipment = nil;
-	GLfloat			alpha = overallAlpha;
 	
  	// the direction cue is an advanced option
 	// so we need to check for its extra equipment flag first
 	equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipment != nil && ![player hasEquipmentItem:equipment])  return;
+	if (equipment != nil && ![PLAYER hasEquipmentItem:equipment])  return;
 	
-	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-	
+	*/
+		
 	if ([UNIVERSE displayGUI])  return;
 	
 	GLfloat		clear_color[4] = {0.0f, 1.0f, 0.0f, 0.0f};
-	Entity		*target = [player primaryTarget];
+	Entity		*target = [PLAYER primaryTarget];
 	if (target == nil)  return;
 	
 	// draw the direction cue
 	OOMatrix	rotMatrix;
-	Vector		position = [player position];
+	Vector		position = [PLAYER position];
 	
-	rotMatrix = [player rotationMatrix];
+	rotMatrix = [PLAYER rotationMatrix];
 	
 	if ([UNIVERSE viewDirection] != VIEW_GUI_DISPLAY)
 	{
@@ -2328,11 +2559,19 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawClock:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
-	GLfloat			alpha = overallAlpha;
+	int					x, y;
+	NSSize				siz;
+	GLfloat				itemColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, CLOCK_DISPLAY_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, CLOCK_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, CLOCK_DISPLAY_WIDTH);
+	siz.height = useDefined(cached.height, CLOCK_DISPLAY_HEIGHT);
+	
+	/*
 	
 	x = [info oo_intForKey:X_KEY defaultValue:CLOCK_DISPLAY_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -2343,23 +2582,33 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:CLOCK_DISPLAY_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CLOCK_DISPLAY_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+	*/
+	GetRGBAArrayFromInfo(info, itemColor);
+	itemColor[3] *= overallAlpha;
 	
-	GLColorWithOverallAlpha(green_color, alpha);
-	OODrawString([player dial_clock], x, y, z1, siz);
+	OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
+	OODrawString([PLAYER dial_clock], x, y, z1, siz);
 }
 
 
 - (void) drawWeaponsOfflineText:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	
-	if (![player weaponsOnline])
+	if (![PLAYER weaponsOnline])
 	{
-		int				x;
-		int				y;
-		NSSize			siz;
-		GLfloat			alpha = overallAlpha;
+		int					x, y;
+		NSSize				siz;
+		GLfloat				alpha = overallAlpha;
+		struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
 		
+		x = useDefined(cached.x, WEAPONSOFFLINETEXT_DISPLAY_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+		y = useDefined(cached.y, WEAPONSOFFLINETEXT_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+		siz.width = useDefined(cached.width, WEAPONSOFFLINETEXT_WIDTH);
+		siz.height = useDefined(cached.height, WEAPONSOFFLINETEXT_HEIGHT);
+		alpha *= cached.alpha;
+	
+/*
 		x = [info oo_intForKey:X_KEY defaultValue:WEAPONSOFFLINETEXT_DISPLAY_X] +
 			[[UNIVERSE gameView] x_offset] *
 			[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
@@ -2369,8 +2618,10 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:WEAPONSOFFLINETEXT_WIDTH];
 		siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:WEAPONSOFFLINETEXT_HEIGHT];
 		alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+*/
 	
 		GLColorWithOverallAlpha(green_color, alpha);
+		// TODO: some caching required...
 		OODrawString(DESC(@"weapons-systems-offline"), x, y, z1, siz);
 	}
 }
@@ -2380,32 +2631,29 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 {
 	if (![UNIVERSE displayFPS])  return;
 	
-	PlayerEntity	*player = PLAYER;
-	int				x;
-	int				y;
-	NSSize			siz;
+	int					x, y;
+	NSSize				siz;
+	struct CachedInfo	cached;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:FPSINFO_DISPLAY_X] +
-		[[UNIVERSE gameView] x_offset] *
-		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-	y = [info oo_intForKey:Y_KEY defaultValue:FPSINFO_DISPLAY_Y] +
-		[[UNIVERSE gameView] y_offset] *
-		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:FPSINFO_DISPLAY_WIDTH];
-	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FPSINFO_DISPLAY_HEIGHT];
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
-	Vector playerPos = [player position];
+	x = useDefined(cached.x, FPSINFO_DISPLAY_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, FPSINFO_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, FPSINFO_DISPLAY_WIDTH);
+	siz.height = useDefined(cached.height, FPSINFO_DISPLAY_HEIGHT);
+	
+	Vector playerPos = [PLAYER position];
 	NSString *positionInfo = [UNIVERSE expressPosition:playerPos inCoordinateSystem:@"pwm"];
 	positionInfo = [NSString stringWithFormat:@"abs %.2f %.2f %.2f / %@", playerPos.x, playerPos.y, playerPos.z, positionInfo];
 	
 	// We would normally set a variable alpha value here, but in this case we don't.
 	// We prefer the FPS counter to be always visible - Nikos 20100405
 	OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
-	OODrawString([player dial_fpsinfo], x, y, z1, siz);
+	OODrawString([PLAYER dial_fpsinfo], x, y, z1, siz);
 	
 #ifndef NDEBUG
 	NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
-	NSString *collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
+	NSString *collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [PLAYER dial_objinfo], [UNIVERSE collisionDescription]];
 	OODrawString(collDebugInfo, x, y - siz.height, z1, siz);
 	
 	OODrawString(positionInfo, x, y - 1.8 * siz.height, z1, siz08);
@@ -2418,8 +2666,22 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawScoopStatus:(NSDictionary *)info
 {
-	PlayerEntity	*player = PLAYER;
-	int				x;
+	int					i, x, y;
+	NSSize				siz;
+	GLfloat				alpha;
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, SCOOPSTATUS_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, SCOOPSTATUS_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, SCOOPSTATUS_WIDTH);
+	siz.height = useDefined(cached.height, SCOOPSTATUS_HEIGHT);
+	// default alpha value different from all others, won't use cached.alpha
+	alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:0.75f];
+
+	
+/*	int				x;
 	int				y;
 	NSSize			siz;
 	GLfloat			alpha;
@@ -2433,12 +2695,13 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCOOPSTATUS_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCOOPSTATUS_HEIGHT];
 	alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:0.75f];
+*/
 	
 	const GLfloat* s0_color = red_color;
 	GLfloat	s1c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s2c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s3c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	int scoop_status = [player dialFuelScoopStatus];
+	int scoop_status = [PLAYER dialFuelScoopStatus];
 	double t = [UNIVERSE getTime];
 	GLfloat a1 = alpha * 0.5f * (1.0f + sin(t * 8.0f));
 	GLfloat a2 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 1.0f));
@@ -2459,7 +2722,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			s0_color = green_color;
 			break;
 	}
-	int i;
+	
 	for (i = 0; i < 3; i++)
 	{
 		s1c[i] = s0_color[i];
@@ -2513,13 +2776,24 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawStickSensitivityIndicator:(NSDictionary *)info
 {
+	GLfloat				x, y;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+	BOOL				mouse = [PLAYER isMouseControlOn];
+	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, STATUS_LIGHT_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, STATUS_LIGHT_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, STATUS_LIGHT_HEIGHT);
+	siz.height = useDefined(cached.height, STATUS_LIGHT_HEIGHT);
+	alpha *= cached.alpha;
+/*
 	GLfloat			x, y;
 	NSSize			siz;
-	BOOL			mouse;
-	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
-	GLfloat			alpha = overallAlpha;
 	
-	mouse = [PLAYER isMouseControlOn];
 	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
 		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
@@ -2528,7 +2802,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
-	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f]];
+*/
 	
 	GLfloat div = [stickHandler getSensitivity];
 	
@@ -2563,26 +2838,27 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawSurround:(NSDictionary *)info color:(const GLfloat[4])color
 {
-	NSInteger		x;
-	NSInteger		y;
-	NSSize			siz;
-	GLfloat			alpha = overallAlpha;
+	NSInteger			x, y;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+	struct CachedInfo	cached;
 	
-	x = [info oo_integerForKey:X_KEY defaultValue:NSNotFound];
-	y = [info oo_integerForKey:Y_KEY defaultValue:NSNotFound];
-	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:NAN];
-	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:NAN];
-	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+	[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
-	if (x == NSNotFound || y == NSNotFound || isnan(siz.width) || isnan(siz.height))  return;
+	if (cached.x == NOT_DEFINED || cached.y == NOT_DEFINED || cached.width == NOT_DEFINED || cached.height == NOT_DEFINED)
+	{
+		return;
+	}
+		
+	x = cached.x + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = cached.y + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, WEAPONSOFFLINETEXT_WIDTH);
+	siz.height = useDefined(cached.height, WEAPONSOFFLINETEXT_HEIGHT);
+	alpha *= cached.alpha;
 	
-	// draw green surround
+	// draw the surround
 	GLColorWithOverallAlpha(color, alpha);
-	hudDrawSurroundAt(x + [[UNIVERSE gameView] x_offset] *
-					  [info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0],
-					  y + [[UNIVERSE gameView] y_offset] *
-					  [info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0], 
-					  z1, siz);
+	hudDrawSurroundAt(x, y, z1, siz);
 }
 
 
@@ -2600,11 +2876,9 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawTrumbles:(NSDictionary *)info
 {
-	PlayerEntity *player = PLAYER;
-	
-	OOTrumble** trumbles = [player trumbleArray];
+	OOTrumble** trumbles = [PLAYER trumbleArray];
 	NSUInteger i;
-	for (i = [player trumbleCount]; i > 0; i--)
+	for (i = [PLAYER trumbleCount]; i > 0; i--)
 	{
 		OOTrumble* trum = trumbles[i - 1];
 		[trum drawTrumble: z1];
@@ -3049,15 +3323,16 @@ void drawHighlight(double x, double y, double z, NSSize siz, double alpha)
 	
 	OOGLBEGIN(GL_POLYGON);
 	// thin 'halo' around the 'solid' highlight
-	glVertex3f(x , y + siz.height + 3.0f, z);
-	glVertex3f(x + siz.width + 4.0f, y + siz.height + 3.0f, z);
-	glVertex3f(x + siz.width + 5.0f, y + siz.height + 1.0f, z);
-	glVertex3f(x + siz.width + 5.0f, y + 3.0f, z);
-	glVertex3f(x + siz.width + 4.0f, y + 1.0f, z);
-	glVertex3f(x, y + 1.0f, z);
-	glVertex3f(x - 1.0f, y + 3.0f, z);
-	glVertex3f(x - 1.0f, y + siz.height + 1.0f, z);
+	glVertex3f(x + 1.0f , y + siz.height + 2.5f, z);
+	glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.5f, z);
+	glVertex3f(x + siz.width + 4.5f, y + siz.height + 1.0f, z);
+	glVertex3f(x + siz.width + 4.5f, y + 3.0f, z);
+	glVertex3f(x + siz.width + 3.0f, y + 1.5f, z);
+	glVertex3f(x + 1.0f, y + 1.5f, z);
+	glVertex3f(x - 0.5f, y + 3.0f, z);
+	glVertex3f(x - 0.5f, y + siz.height + 1.0f, z);
 	OOGLEND();
+
 	
 	OOGLBEGIN(GL_POLYGON);
 	glVertex3f(x + 1.0f, y + siz.height + 2.0f, z);
@@ -3069,8 +3344,8 @@ void drawHighlight(double x, double y, double z, NSSize siz, double alpha)
 	glVertex3f(x, y + 3.0f, z);
 	glVertex3f(x, y + siz.height + 1.0f, z);
 	OOGLEND();
-
 }
+
 
 void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 {

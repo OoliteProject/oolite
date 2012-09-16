@@ -1506,13 +1506,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			if (markers != nil)	// is marked
 			{
 				GLfloat base_size = 0.5f * blob_size + 2.5f;
-/*				OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	// red
-				OOGLBEGIN(GL_LINES);
-					glVertex3f(x + star.x - mark_size,	y + star.y - mark_size,	z);
-					glVertex3f(x + star.x + mark_size,	y + star.y + mark_size,	z);
-					glVertex3f(x + star.x - mark_size,	y + star.y + mark_size,	z);
-					glVertex3f(x + star.x + mark_size,	y + star.y - mark_size,	z);
-					OOGLEND(); */
 				[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:base_size];
 
 				OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
@@ -1585,6 +1578,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	int targetIdx = -1;
 	struct saved_system *sys;
+	NSSize chSize = NSMakeSize(pixel_row_height,pixel_row_height);
 	
 	for (i = 0; i < num_nearby_systems; i++)
 	{
@@ -1592,17 +1586,19 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		star.x = (float)(sys->seed_d * hscale + hoffset);
 		star.y = (float)(sys->seed_b * vscale + voffset);
-		if (sys->seed_d == target.d && sys->seed_b == target.b)
-			if ([sys->p_name isEqualToString:targetName]) targetIdx = i; // Distinguish between overlapping systems! (e.g. Divees & Tezabi in galaxy 5)
-		
-		if (![player showInfoFlag])
+		if (sys->seed_d == target.d && sys->seed_b == target.b	// same place as target system?
+			&& [sys->p_name isEqualToString:targetName])		// not overlapping twin? (example: Divees & Tezabi in galaxy 5)
 		{
-			OODrawString(sys->p_name, x + star.x + 2.0, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			 targetIdx = i;		// we have a winner!
 		}
-		else
+		
+		if (![player showInfoFlag])	// System's name
 		{
-			if ( sys->gov >= 0 )	// Not a nova? Show the info.
-				OODrawPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			OODrawString(sys->p_name, x + star.x + 2.0, y + star.y, z, chSize);
+		}
+		else if (EXPECT(sys->gov >= 0))	// Not a nova? Show the info.
+		{
+			OODrawPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, chSize);
 		}
 	}
 	
@@ -1616,22 +1612,20 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		if (![player showInfoFlag])
 		{
-			OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, chSize);
 		}
-		else
+		else if (sys->gov >= 0)	// Not a nova? Show the info.
 		{
-			if ( sys->gov >= 0 )	// Not a nova? Show the info.
-				OODrawHilightedPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z,
-										  NSMakeSize(pixel_row_height,pixel_row_height));
+			OODrawHilightedPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, chSize);
 		}
 	}
 	
-	// draw cross-hairs over current location
+	// draw crosshairs over current location
 	//
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
 	[self drawCrossHairsWithSize:14 x:x + cu.x y:y + cu.y z:z];
 	
-	// draw cross hairs over cursor
+	// draw crosshairs over cursor
 	//
 	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	//	red
 	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
@@ -1648,6 +1642,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		[self drawSystemMarker:marker atX:x andY:y andZ:z withAlpha:alpha andScale:scale];
 	}
 }
+
 
 - (void) drawSystemMarker:(NSDictionary *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale
 {
@@ -1708,7 +1703,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		glVertex3f(x,	y - mark_size,	z);
 	}
 	OOGLEND();
-
 }
 
 

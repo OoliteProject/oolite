@@ -6532,14 +6532,13 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	float			cr = [nearest radius];
 	float			cr2 = cr * cr;
 	OOAegisStatus	result = AEGIS_NONE;
-	float			d2;
+	float			d2 = magnitude2(vector_subtract([nearest position], [self position]));
 	
-	d2 = magnitude2(vector_subtract([nearest position], [self position]));
-	
-	// check if nearing surface
+	// check if nearing a surface	
 	BOOL wasNearPlanetSurface = isNearPlanetSurface;
 	isNearPlanetSurface = (d2 - cr2) < (250000.0f + 1000.0f * cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
-	if (!suppressAegisMessages)
+	
+	if (EXPECT(!suppressAegisMessages))
 	{
 		if (!wasNearPlanetSurface && isNearPlanetSurface)
 		{
@@ -6553,23 +6552,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		}
 	}
 	
-	if (d2 < cr2 * 9.0f) //to  3x radius of any planet/moon
-	{
-		result = AEGIS_CLOSE_TO_ANY_PLANET;
-	}
-	
-	if (!sunGoneNova)
-	{
-		d2 = magnitude2(vector_subtract([[UNIVERSE planet] position], [self position]));
-		cr2 = [[UNIVERSE planet] radius];
-		cr2 *= cr2;
-		if (d2 < cr2 * 9.0f) // to 3x radius of main planet
-		{
-			result = AEGIS_CLOSE_TO_MAIN_PLANET;
-		}
-	}
-	
-	// check station
+	// being close to the station takes precedence over planets
 	StationEntity	*the_station = [UNIVERSE station];
 	if (the_station)
 	{
@@ -6579,57 +6562,44 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			result = AEGIS_IN_DOCKING_RANGE;
 		}
 	}
-
+	else if (EXPECT_NOT(isNearPlanetSurface || d2 < cr2 * 9.0f)) // to 3x radius of any planet/moon - or 500m of tiny ones,
+	{
+		result = AEGIS_CLOSE_TO_ANY_PLANET;
+		
+		if (!sunGoneNova)
+		{
+			// are we also close to the main planet?
+			if (EXPECT((OOPlanetEntity *)nearest == [UNIVERSE planet]))
+			{
+				result = AEGIS_CLOSE_TO_MAIN_PLANET;
+			}
+			else
+			{
+				d2 = magnitude2(vector_subtract([[UNIVERSE planet] position], [self position]));
+				cr2 = [[UNIVERSE planet] radius];
+				cr2 *= cr2;	
+				if (d2 < cr2 * 9.0f)
+				{
+					nearest = [UNIVERSE planet];
+					result = AEGIS_CLOSE_TO_MAIN_PLANET;
+				}
+			}
+		}
+	}
+	
 	/*	Rewrote aegis stuff and tested it against redux.oxp that adds multiple planets and moons.
 		Made sure AI scripts can differentiate between MAIN and NON-MAIN planets so they can decide
 		if they can dock at the systemStation or just any station.
 		Added sun detection so route2Patrol can turn before they heat up in the sun.
 		-- Eric 2009-07-11
+		
+		More rewriting of the aegis stuff, it's now a bit faster and works properly when moving
+		from one secondary planet/moon vicinity to another one.  -- Kaks 20120917
 	*/
-	if (!suppressAegisMessages)
+	if (EXPECT(!suppressAegisMessages))
 	{
 		// script/AI messages on change in status
-		// approaching..
-		if ((aegis_status == AEGIS_NONE || aegis_status == AEGIS_CLOSE_TO_ANY_PLANET)&&(result == AEGIS_CLOSE_TO_MAIN_PLANET))
-		{
-			if(aegis_status == AEGIS_CLOSE_TO_ANY_PLANET)
-			{
-				[self doScriptEvent:OOJSID("shipExitedPlanetaryVicinity") withArgument:[self lastAegisLock]];
-				[shipAI message:@"AWAY_FROM_PLANET"];        // fires for all planets and moons.
-			}
-			[self doScriptEvent:OOJSID("shipEnteredPlanetaryVicinity") withArgument:[UNIVERSE planet]];
-			[self setLastAegisLock:[UNIVERSE planet]];
-			[shipAI message:@"CLOSE_TO_PLANET"];             // fires for all planets and moons.
-			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, keep for compatibility with pre-1.72 AI plists.
-			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];  // fires only for main planet.
-		}
-		if ((aegis_status == AEGIS_NONE || aegis_status == AEGIS_CLOSE_TO_MAIN_PLANET)&&(result == AEGIS_CLOSE_TO_ANY_PLANET))
-		{
-			if(aegis_status == AEGIS_CLOSE_TO_MAIN_PLANET)
-			{
-				[self doScriptEvent:OOJSID("shipExitedPlanetaryVicinity") withArgument:[UNIVERSE planet]];
-				[shipAI message:@"AWAY_FROM_PLANET"];
-			}
-			[self doScriptEvent:OOJSID("shipEnteredPlanetaryVicinity") withArgument:nearest];
-			[self setLastAegisLock:nearest];
-			if([nearest isSun])
-			{
-				[shipAI message:@"CLOSE_TO_SUN"];
-			}
-			else
-			{
-				[shipAI message:@"CLOSE_TO_PLANET"];
-				if ([nearest planetType] == STELLAR_TYPE_MOON)
-				{
-					[shipAI message:@"CLOSE_TO_MOON"];
-				}
-				else
-				{
-					[shipAI message:@"CLOSE_TO_SECONDARY_PLANET"];
-				}
-			}
-		}
-		if ((aegis_status != AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_IN_DOCKING_RANGE))
+		if (EXPECT_NOT(result == AEGIS_IN_DOCKING_RANGE && aegis_status != result))
 		{
 			[self doScriptEvent:OOJSID("shipEnteredStationAegis") withArgument:the_station];
 			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
@@ -6640,13 +6610,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				[self setLastAegisLock:[UNIVERSE planet]];
 			}
 		}
-		// leaving..
-		if ((aegis_status == AEGIS_IN_DOCKING_RANGE)&&(result != AEGIS_IN_DOCKING_RANGE))
-		{
-			[self doScriptEvent:OOJSID("shipExitedStationAegis") withArgument:the_station];
-			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
-		}
-		if ((aegis_status != AEGIS_NONE)&&(result == AEGIS_NONE))
+		else if (EXPECT_NOT(result == AEGIS_NONE && aegis_status != result))
 		{
 			if([self lastAegisLock] == nil && !sunGoneNova)
 			{
@@ -6654,6 +6618,48 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			}
 			[self transitionToAegisNone];
 		}
+		// leaving..
+		else if (EXPECT_NOT(aegis_status == AEGIS_IN_DOCKING_RANGE && result != aegis_status))
+		{
+			[self doScriptEvent:OOJSID("shipExitedStationAegis") withArgument:the_station];
+			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
+		}
+		// approaching..
+		else if (EXPECT_NOT((result == AEGIS_CLOSE_TO_ANY_PLANET || result == AEGIS_CLOSE_TO_MAIN_PLANET) && [self lastAegisLock] != nearest))
+		{
+			if(aegis_status != AEGIS_NONE)	// we were close to another stellar body
+			{
+				[self doScriptEvent:OOJSID("shipExitedPlanetaryVicinity") withArgument:[self lastAegisLock]];
+				[shipAI message:@"AWAY_FROM_PLANET"];	// fires for all planets and moons.
+			}
+			[self doScriptEvent:OOJSID("shipEnteredPlanetaryVicinity") withArgument:nearest];
+			[self setLastAegisLock:nearest];
+			if([nearest isSun])
+			{
+				[shipAI message:@"CLOSE_TO_SUN"];
+			}
+			else
+			{
+				[shipAI message:@"CLOSE_TO_PLANET"];
+				
+				if (EXPECT(result == AEGIS_CLOSE_TO_MAIN_PLANET))
+				{
+					// It's been years since 1.71 - it should be safe enough to comment out the line below for 1.77/1.78 -- Kaks 20120917
+					//[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	    // fires only for main planets, kept for compatibility with pre-1.72 AI plists.
+					[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];  // fires only for main planet.
+				}
+				else if (EXPECT_NOT([nearest planetType] == STELLAR_TYPE_MOON))
+				{
+					[shipAI message:@"CLOSE_TO_MOON"];
+				}
+				else
+				{
+					[shipAI message:@"CLOSE_TO_SECONDARY_PLANET"];
+				}
+			}
+		}
+		
+
 	}
 
 	aegis_status = result;	// put this here
