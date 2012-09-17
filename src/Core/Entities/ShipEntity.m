@@ -6534,8 +6534,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	OOAegisStatus	result = AEGIS_NONE;
 	float			d2 = magnitude2(vector_subtract([nearest position], [self position]));
 	
-	// check if nearing a surface	
-	BOOL wasNearPlanetSurface = isNearPlanetSurface;
+	// check if nearing a surface
+	unsigned wasNearPlanetSurface = isNearPlanetSurface;	// isNearPlanetSurface is a bit flag, not an actual BOOL
 	isNearPlanetSurface = (d2 - cr2) < (250000.0f + 1000.0f * cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
 	
 	if (EXPECT_NOT((wasNearPlanetSurface != isNearPlanetSurface) && !suppressAegisMessages))

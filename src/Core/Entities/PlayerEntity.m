@@ -6250,13 +6250,14 @@ static GLfloat		sBaseMass = 0.0;
 		// volume control
 		if ([OOSound respondsToSelector:@selector(masterVolume)])
 		{
-			int volume = 20 * [OOSound masterVolume];
+			double volume = 100.0 * [OOSound masterVolume];
+			int vol = (volume / 5.0 + 0.5); // avoid rounding errors
 			NSString* soundVolumeWordDesc = DESC(@"gameoptions-sound-volume");
 			NSString* v1_string = @"|||||||||||||||||||||||||";
 			NSString* v0_string = @".........................";
-			v1_string = [v1_string substringToIndex:volume];
-			v0_string = [v0_string substringToIndex:20 - volume];
-			if (volume > 0)
+			v1_string = [v1_string substringToIndex:vol];
+			v0_string = [v0_string substringToIndex:20 - vol];
+			if (vol > 0)
 				[gui setText:[NSString stringWithFormat:@"%@%@%@ ", soundVolumeWordDesc, v1_string, v0_string] forRow:GUI_ROW(GAME,VOLUME) align:GUI_ALIGN_CENTER];
 			else
 				[gui setText:DESC(@"gameoptions-sound-volume-mute") forRow:GUI_ROW(GAME,VOLUME) align:GUI_ALIGN_CENTER];
@@ -6271,11 +6272,12 @@ static GLfloat		sBaseMass = 0.0;
 #if OOLITE_SDL		
 		// gamma control
 		float gamma = [gameView gammaValue];
+		int gamma5 = (gamma * 5);
 		NSString* gammaWordDesc = DESC(@"gameoptions-gamma-value");
 		NSString* v1_string = @"|||||||||||||||||||||||||";
 		NSString* v0_string = @".........................";
-		v1_string = [v1_string substringToIndex:(int)(gamma * 5)];
-		v0_string = [v0_string substringToIndex:20 - (int)(gamma * 5)];
+		v1_string = [v1_string substringToIndex:gamma5];
+		v0_string = [v0_string substringToIndex:20 - gamma5];
 		[gui setText:[NSString stringWithFormat:@"%@%@%@ (%.1f) ", gammaWordDesc, v1_string, v0_string, gamma] forRow:GUI_ROW(GAME,GAMMA) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,GAMMA)];
 #endif

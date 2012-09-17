@@ -2582,19 +2582,20 @@ static NSTimeInterval	time_last_frame;
 		{
 			BOOL rightKeyDown = [gameView isDown:gvArrowKeyRight];
 			BOOL leftKeyDown = [gameView isDown:gvArrowKeyLeft];
-			int volume = 100 * [OOSound masterVolume];
-			volume += (((rightKeyDown && (volume < 100)) ? 5 : 0) - ((leftKeyDown && (volume > 0)) ? 5 : 0));
-			if (volume > 100) volume = 100;
-			if (volume < 0) volume = 0;
-			[OOSound setMasterVolume: 0.01 * volume];
+			double volume = 100.0 * [OOSound masterVolume];
+			int vol = (volume / 5.0 + 0.5);
+			if (rightKeyDown) vol++;
+			if (leftKeyDown) vol--;
+			vol = OOClampInteger(vol, 0, 20);
+			[OOSound setMasterVolume: 0.05 * vol];
 			[self playChangedOption];
-			if (volume > 0)
+			if (vol > 0)
 			{
 				NSString* soundVolumeWordDesc = DESC(@"gameoptions-sound-volume");
 				NSString* v1_string = @"|||||||||||||||||||||||||";
 				NSString* v0_string = @".........................";
-				v1_string = [v1_string substringToIndex:volume / 5];
-				v0_string = [v0_string substringToIndex:20 - volume / 5];
+				v1_string = [v1_string substringToIndex:vol];
+				v0_string = [v0_string substringToIndex:20 - vol];
 				[gui setText:[NSString stringWithFormat:@"%@%@%@ ", soundVolumeWordDesc, v1_string, v0_string]	forRow:GUI_ROW(GAME,VOLUME)  align:GUI_ALIGN_CENTER];
 			}
 			else
@@ -2619,11 +2620,12 @@ static NSTimeInterval	time_last_frame;
 			if (gamma > 3.95f) gamma = 4.0f;
 			if (gamma < 0.25f) gamma = 0.2f;
 			[gameView setGammaValue:gamma];
+			int gamma5 = gamma * 5;	// avoid rounding errors
 			NSString* gammaWordDesc = DESC(@"gameoptions-gamma-value");
 			NSString* v1_string = @"|||||||||||||||||||||||||";
 			NSString* v0_string = @".........................";
-			v1_string = [v1_string substringToIndex:gamma * 5];
-			v0_string = [v0_string substringToIndex:20 - gamma * 5];
+			v1_string = [v1_string substringToIndex:gamma5];
+			v0_string = [v0_string substringToIndex:20 - gamma5];
 			[gui setText:[NSString stringWithFormat:@"%@%@%@ (%.1f) ", gammaWordDesc, v1_string, v0_string, gamma]	forRow:GUI_ROW(GAME,GAMMA)  align:GUI_ALIGN_CENTER];
 		}
 		gammaControlPressed = YES;
