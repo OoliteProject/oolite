@@ -515,6 +515,12 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (OOGalaxyID) galaxyNumber
+{
+	return galaxy_number;
+}
+
+
 - (Random_Seed) galaxy_seed
 {
 	return galaxy_seed;

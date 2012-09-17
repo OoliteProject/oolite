@@ -41,9 +41,6 @@ this.version		= "1.77";
 
 /* Configuration options */
 
-// OXPs which alter the background for the long range chart screen may
-// wish to overwrite this value.
-this.$longRangeChartBackground = "oolite-long-range-chart.png";
 // OXPs which wish to add a background to the summary pages should
 // set this value
 this.$parcelSummaryPageBackground = "";
@@ -461,7 +458,7 @@ this._parcelContractSinglePage = function()
 		mission.runScreen({
 				title: title,
 				message: message,
-				background: this.$longRangeChartBackground,
+//				background: this.$longRangeChartBackground,
 				backgroundSpecial: backgroundSpecial,
 				choices: options,
 				initialChoicesKey: this.$lastChoice

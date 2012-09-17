@@ -918,8 +918,48 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
-- (void) setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)spec
+- (void) setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)spec withBackground:(BOOL)withBackground
 {
+	if (withBackground) 
+	{
+		NSDictionary *bgDescriptor = nil;
+		OOGalaxyID galaxy_number = [PLAYER galaxyNumber];
+
+		switch (spec) 
+		{
+		case GUI_BACKGROUND_SPECIAL_SHORT:
+			bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"short_range_chart_mission"];
+			if (bgDescriptor == nil) 
+			{
+				bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"short_range_chart"];
+			}
+			break;
+		case GUI_BACKGROUND_SPECIAL_LONG:
+		case GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST:
+		case GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST:
+			bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:[NSString stringWithFormat:@"long_range_chart%d_mission", galaxy_number+1]];
+			if (bgDescriptor == nil) 
+			{
+				bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"long_range_chart_mission"];
+				if (bgDescriptor == nil) 
+				{
+					bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:[NSString stringWithFormat:@"long_range_chart%d", galaxy_number+1]];
+					if (bgDescriptor == nil) 
+					{
+						bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"long_range_chart"];
+						
+					}
+				}
+			}
+			break;
+		case GUI_BACKGROUND_SPECIAL_NONE:
+			break;
+		}
+		if (bgDescriptor != nil)
+		{
+			[self setBackgroundTextureDescriptor:bgDescriptor];
+		}
+	}
 	backgroundSpecial = spec;
 	[self refreshStarChart];
 }

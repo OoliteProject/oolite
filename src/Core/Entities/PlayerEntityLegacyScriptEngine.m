@@ -2414,7 +2414,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		NSDictionary *background_desc = [self missionBackgroundDescriptorOrDefault];
 		[gui setBackgroundTextureDescriptor:background_desc];
 		// must set special second as setting the descriptor resets it
-		[gui setBackgroundTextureSpecial:[self missionBackgroundSpecial]];
+		BOOL overridden = ([self missionBackgroundDescriptor] != nil);
+		[gui setBackgroundTextureSpecial:[self missionBackgroundSpecial] withBackground:!overridden];
 		
 		[gui setShowTextCursor:NO];
 	}

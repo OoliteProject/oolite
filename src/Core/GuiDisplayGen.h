@@ -224,7 +224,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) scrollUp:(int) how_much;
 
 /* allows the use of special dynamic backgrounds */
-- (void) setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)spec;
+- (void) setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)spec withBackground:(BOOL)withBackground;
 
 /*
 	A background/foreground texture descriptor is a dictionary with a string
