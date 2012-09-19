@@ -2586,7 +2586,7 @@ static NSTimeInterval	time_last_frame;
 			int vol = (volume / 5.0 + 0.5);
 			if (rightKeyDown) vol++;
 			if (leftKeyDown) vol--;
-			vol = OOClampInteger(vol, 0, 20);
+			vol = (int)OOClampInteger(vol, 0, 20);
 			[OOSound setMasterVolume: 0.05 * vol];
 			[self playChangedOption];
 			if (vol > 0)
@@ -2596,7 +2596,9 @@ static NSTimeInterval	time_last_frame;
 				NSString* v0_string = @".........................";
 				v1_string = [v1_string substringToIndex:vol];
 				v0_string = [v0_string substringToIndex:20 - vol];
-				[gui setText:[NSString stringWithFormat:@"%@%@%@ ", soundVolumeWordDesc, v1_string, v0_string]	forRow:GUI_ROW(GAME,VOLUME)  align:GUI_ALIGN_CENTER];
+				[gui setText:[NSString stringWithFormat:@"%@%@%@ ", soundVolumeWordDesc, v1_string, v0_string]
+					  forRow:GUI_ROW(GAME,VOLUME)
+					   align:GUI_ALIGN_CENTER];
 			}
 			else
 				[gui setText:DESC(@"gameoptions-sound-volume-mute")	forRow:GUI_ROW(GAME,VOLUME)  align:GUI_ALIGN_CENTER];
