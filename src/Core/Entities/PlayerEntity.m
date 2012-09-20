@@ -2160,7 +2160,9 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		[self addTarget:[UNIVERSE entityForUniversalID:_dockTarget]];	// main station in the original system, unless overridden.
 		[UNIVERSE setBlockJSPlayerShipProps:NO];	// re-enable player.ship!
-		if ([[self primaryTarget] isStation]) // also fails if primaryTarget is NO_TARGET
+		
+		Entity	*dockTargetEntity = [UNIVERSE entityForUniversalID:_dockTarget];
+		if ([dockTargetEntity isStation]) // also fails if _dockTarget is NO_TARGET
 		{
 			[doppelganger becomeExplosion];	// blow up the doppelganger
 			// restore player ship
@@ -2173,9 +2175,9 @@ static GLfloat		sBaseMass = 0.0;
 			}
 			[UNIVERSE setViewDirection:VIEW_FORWARD];
 			
-			[self enterDock:(StationEntity *)[self primaryTarget]];
+			[self enterDock:(StationEntity *)dockTargetEntity];
 		}
-		else	// no target? target is not a station? game over!
+		else	// no dock target? dock target is not a station? game over!
 		{
 			[self setStatus:STATUS_DEAD];
 			//[self playGameOver];	// no death explosion sounds for player pods
