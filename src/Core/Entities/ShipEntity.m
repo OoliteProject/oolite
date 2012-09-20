@@ -5795,7 +5795,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		previousCondition = [[NSMutableDictionary dictionaryWithCapacity:5] retain];
 		
 		[previousCondition oo_setInteger:behaviour forKey:@"behaviour"];
-		if (_primaryTarget)
+		if ([self primaryTarget] != nil)
 		{
 			[previousCondition setObject:[self primaryTarget] forKey:@"primaryTarget"];
 		}
