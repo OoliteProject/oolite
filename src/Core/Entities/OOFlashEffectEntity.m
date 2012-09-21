@@ -105,7 +105,6 @@ static OOTexture *sFlashTexture = nil;
 - (void) update:(OOTimeDelta)delta_t
 {
 	[super update:delta_t];
-	[self applyVelocityWithTimeDelta:delta_t];
 	
 	float tf = _duration * 0.667;
 	float tf1 = _duration - tf;

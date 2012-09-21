@@ -81,7 +81,6 @@ MA 02110-1301, USA.
 - (void) update:(double)delta_t
 {
 	[super update:delta_t];
-	[super applyVelocityWithTimeDelta:delta_t];
 	
 	OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
 	

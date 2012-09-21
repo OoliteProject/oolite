@@ -119,7 +119,6 @@ static NSPoint sCircleVerts[kCircleSegments];	// holds vector coordinates for a 
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
-	[self applyVelocityWithTimeDelta:delta_t];
 	_timePassed += delta_t;
 	
 	_innerRadius += delta_t * _innerGrowthRate;

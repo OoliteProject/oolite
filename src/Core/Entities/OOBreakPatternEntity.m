@@ -116,7 +116,6 @@ MA 02110-1301, USA.
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
-	[self applyVelocityWithTimeDelta:delta_t];
 	
 	_lifetime -= BREAK_PATTERN_RING_SPEED * delta_t;
 	if (_lifetime < 0.0)

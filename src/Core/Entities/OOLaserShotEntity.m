@@ -150,14 +150,13 @@ MA 02110-1301, USA.
 	
 	if ([ship isPlayer]) 
 	{
-		// reposition this shot accurately.
+		/*
+			Reposition this shot accurately. This overrides integration over
+			velocity in -[Entity update:], which is considered sufficient for
+			NPC ships.
+		*/
 		position = vector_add([ship position], OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix]));
-		[self setOrientation:quaternion_multiply(_relOrientation,[ship normalOrientation])];
-	}
-	else
-	{
-		// NPCs will make do with approximate repositioning.
-		[self applyVelocityWithTimeDelta:delta_t];
+		[self setOrientation:quaternion_multiply(_relOrientation, [ship normalOrientation])];
 	}
 
 	if (_lifetime < 0)  

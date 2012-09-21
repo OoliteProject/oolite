@@ -110,7 +110,6 @@ MA 02110-1301, USA.
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
-	[self applyVelocityWithTimeDelta:delta_t];
 	
 	_timePassed += delta_t;
 	collision_radius += delta_t * _maxSpeed;

@@ -253,7 +253,6 @@ enum OOScanClass
 - (NSMutableArray *)collisionArray;
 
 - (void) update:(OOTimeDelta)delta_t;
-- (void) applyVelocityWithTimeDelta:(OOTimeDelta)delta_t;	// Newtonion mechanics is opt-in. (FIXME: is there actually anything with a non-zero velocity that doesn't want this? -- Ahruman 2011-01-31)
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other;
 

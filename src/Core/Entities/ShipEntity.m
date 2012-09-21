@@ -5685,10 +5685,9 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	float	max_available_speed = maxFlightSpeed;
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
-	[self applyVelocityWithTimeDelta:delta_t];
-	
 	if (thrust)
 	{
+		// If we have Newtonian (non-thrust) velocity, brake it.
 		GLfloat velmag = magnitude(velocity);
 		if (velmag)
 		{
@@ -10535,7 +10534,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[bomb setRoll:random_roll];
 	[bomb setPitch:random_pitch];
 	[bomb setVelocity:vel];
-	[bomb setScanClass:CLASS_MINE];	// TODO: should it be CLASS_ENERGY_BOMB?
+	[bomb setScanClass:CLASS_MINE];
 	[bomb setEnergy:5.0];	// 5 second countdown
 	[bomb setBehaviour:BEHAVIOUR_ENERGY_BOMB_COUNTDOWN];
 	[bomb setOwner:self];

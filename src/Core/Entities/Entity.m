@@ -896,16 +896,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		cam_zero_distance = zero_distance;
 	}
 	
+	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
+	
 	hasMoved = !vector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
 	lastOrientation = orientation;
-}
-
-
-- (void) applyVelocityWithTimeDelta:(OOTimeDelta)delta_t
-{
-	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
 }
 
 
