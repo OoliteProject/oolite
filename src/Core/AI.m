@@ -73,6 +73,28 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 #endif
 
 
+@interface OOPreservedAIStateMachine: NSObject
+{
+@private
+	NSDictionary		*_stateMachine;
+	NSString			*_name;
+	NSString			*_state;
+	NSMutableSet		*_pendingMessages;
+}
+
+- (id) initWithStateMachine:(NSDictionary *)stateMachine
+					   name:(NSString *)name
+					  state:(NSString *)state
+			pendingMessages:(NSSet *)pendingMessages;
+
+- (NSDictionary *) stateMachine;
+- (NSString *) name;
+- (NSString *) state;
+- (NSSet *) pendingMessages;
+
+@end
+
+
 @implementation AI
 
 + (AI *) currentlyRunningAI
@@ -98,9 +120,6 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 {
 	if ((self = [super init]))
 	{
-		aiStack = [[NSMutableArray alloc] init];
-		pendingMessages = [[NSMutableSet alloc] init];
-		
 		nextThinkTime = INFINITY;	// don't think for a while
 		thinkTimeInterval = AI_THINK_INTERVAL;
 		
@@ -111,7 +130,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 }
 
 
-- (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName
+- (id) initWithStateMachine:(NSString *)smName andState:(NSString *)stateName
 {
 	if ((self = [self init]))
 	{
@@ -125,15 +144,18 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 
 - (void) dealloc
 {
-	[_owner release];
-	[ownerDesc release];
-	[aiStack release];
-	[stateMachine release];
-	[stateMachineName release];
-	[currentState release];
-	[pendingMessages release];
+	if (sCurrentlyRunningAI == self)
+	{
+		sCurrentlyRunningAI = nil;
+	}
 	
-	if (sCurrentlyRunningAI == self)  sCurrentlyRunningAI = nil;
+	DESTROY(_owner);
+	DESTROY(ownerDesc);
+	DESTROY(aiStack);
+	DESTROY(stateMachine);
+	DESTROY(stateMachineName);
+	DESTROY(currentState);
+	DESTROY(pendingMessages);
 	
 	[super dealloc];
 }
@@ -188,8 +210,8 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 			NSUInteger count = [aiStack count];
 			while (count--)
 			{
-				NSDictionary *pickledMachine = [aiStack objectAtIndex:count];
-				OOLog(@"ai.error.stackOverflow.dump", @"%3lu: %@: %@", count, [pickledMachine oo_stringForKey:@"stateMachineName"], [pickledMachine oo_stringForKey:@"currentState"]);
+				OOPreservedAIStateMachine *preservedMachine = [aiStack objectAtIndex:count];
+				OOLog(@"ai.error.stackOverflow.dump", @"%3lu: %@: %@", count, [preservedMachine name], [preservedMachine state]);
 			}
 			
 			OOLogOutdent();
@@ -200,17 +222,12 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 
 - (void) preserveCurrentStateMachine
 {
-	if (!stateMachine)
-		return;
+	if (stateMachine == nil)  return;
 	
-	NSMutableDictionary *pickledMachine = [NSMutableDictionary dictionaryWithCapacity:3];
-	
-	[pickledMachine setObject:stateMachine forKey:@"stateMachine"];
-	[pickledMachine setObject:currentState forKey:@"currentState"];
-	[pickledMachine setObject:stateMachineName forKey:@"stateMachineName"];
-	[pickledMachine setObject:[[pendingMessages copy] autorelease] forKey:@"pendingMessages"];
-	
-	if (aiStack == nil)  aiStack = [[NSMutableArray alloc] init];
+	if (aiStack == nil)
+	{
+		aiStack = [[NSMutableArray alloc] init];
+	}
 	
 	if ([aiStack count] >= kStackLimiter)
 	{
@@ -220,10 +237,19 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 					format:@"AI stack overflow for %@", _owner];
 	}
 	
+	OOPreservedAIStateMachine *preservedMachine = [[OOPreservedAIStateMachine alloc]
+												   initWithStateMachine:stateMachine
+																   name:stateMachineName
+																  state:stateMachineName
+														pendingMessages:pendingMessages];
+	
 #ifndef NDEBUG
 	if ([[self owner] reportAIMessages])  OOLog(@"ai.stack.push", @"Pushing state machine for %@", self);
 #endif
-	[aiStack insertObject:pickledMachine atIndex:0];	//  PUSH
+	
+	[aiStack addObject:preservedMachine];  // PUSH
+	
+	[preservedMachine release];
 }
 
 
@@ -231,25 +257,21 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 {
 	if ([aiStack count] == 0)  return;
 	
-	NSMutableDictionary *pickledMachine = [aiStack objectAtIndex:0];
+	OOPreservedAIStateMachine *preservedMachine = [aiStack lastObject];
 	
 #ifndef NDEBUG
 	if ([[self owner] reportAIMessages])  OOLog(@"ai.stack.pop", @"Popping previous state machine for %@", self);
 #endif
 	
-	[stateMachine release];
-	stateMachine = [[pickledMachine objectForKey:@"stateMachine"] retain];
+	[self directSetStateMachine:[preservedMachine stateMachine]
+						   name:[preservedMachine name]];
 	
-	[currentState release];
-	currentState = [[pickledMachine objectForKey:@"currentState"] retain];
-	
-	[stateMachineName release];
-	stateMachineName = [[pickledMachine objectForKey:@"stateMachineName"] retain];
+	[self directSetState:[preservedMachine state]];
 	
 	[pendingMessages release];
-	pendingMessages = [[pickledMachine objectForKey:@"pendingMessages"] mutableCopy];  // restore a MUTABLE set
+	pendingMessages = [[preservedMachine pendingMessages] mutableCopy];  // restore a MUTABLE set
 	
-	[aiStack removeObjectAtIndex:0];   //  POP
+	[aiStack removeLastObject];  //  POP
 }
 
 
@@ -270,23 +292,42 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 }
 
 
-- (void) setStateMachine:(NSString *) smName
+- (void) directSetStateMachine:(NSDictionary *)newSM name:(NSString *)name
+{
+	if (stateMachine != newSM)
+	{
+		[stateMachine release];
+		stateMachine = [newSM copy];
+	}
+	if (stateMachineName != name)
+	{
+		[stateMachineName release];
+		stateMachineName = [name copy];
+	}
+}
+
+
+- (void) directSetState:(NSString *)state
+{
+	if (currentState != state)
+	{
+		[currentState release];
+		currentState = [state copy];
+	}
+}
+
+
+- (void) setStateMachine:(NSString *)smName
 {
 	NSDictionary *newSM = [self loadStateMachine:smName];
 	
 	if (newSM)
 	{
 		[self preserveCurrentStateMachine];
-		[stateMachine release];	// release old state machine
-		stateMachine = [newSM retain];
+		[self directSetStateMachine:newSM name:smName];
+		[self directSetState:@"GLOBAL"];
+		
 		nextThinkTime = 0.0;	// think at next tick
-		
-		[currentState release];
-		currentState = @"GLOBAL";
-		
-		// refresh stateMachineName
-		[stateMachineName release];
-		stateMachineName = [smName copy];
 
 		/*	CRASH in objc_msgSend, apparently on [self reactToMessage:@"ENTER"] (1.69, OS X/x86).
 			Analysis: self corrupted. We're being called by __NSFireDelayedPerform, which doesn't go
@@ -316,11 +357,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 			 -- Ahruman, 20070706
 		*/
 		[self reactToMessage:@"EXIT" context:@"changing state"];
-		if (currentState != stateName)
-		{
-			[currentState release];
-			currentState = [stateName copy];
-		}
+		[self directSetState:stateName];
 		[self reactToMessage:@"ENTER" context:@"changing state"];
 	}
 }
@@ -478,7 +515,7 @@ static AIStackElement *sStack = NULL;
 }
 
 
-- (void) takeAction:(NSString *) action
+- (void) takeAction:(NSString *)action
 {
 	ShipEntity *owner = [self owner];
 	
@@ -552,8 +589,11 @@ static AIStackElement *sStack = NULL;
 	
 	[self reactToMessage:@"UPDATE" context:@"periodic update"];
 
-	if ([pendingMessages count] > 0)  ms_list = [pendingMessages allObjects];
-	[pendingMessages removeAllObjects];
+	if ([pendingMessages count] > 0)
+	{
+		ms_list = [pendingMessages allObjects];
+		[pendingMessages removeAllObjects];
+	}
 	
 	if (ms_list != nil)
 	{
@@ -565,7 +605,7 @@ static AIStackElement *sStack = NULL;
 }
 
 
-- (void) message:(NSString *) ms
+- (void) message:(NSString *)ms
 {
 	if ([[self owner] universalID] == NO_TARGET)  return;  // don't think until launched
 
@@ -576,12 +616,16 @@ static AIStackElement *sStack = NULL;
 	}
 	else
 	{
+		if (pendingMessages == nil)
+		{
+			pendingMessages = [[NSMutableSet alloc] init];
+		}
 		[pendingMessages addObject:ms];
 	}
 }
 
 
-- (void) dropMessage:(NSString *) ms
+- (void) dropMessage:(NSString *)ms
 {
 	[pendingMessages removeObject:ms];
 }
@@ -589,7 +633,14 @@ static AIStackElement *sStack = NULL;
 
 - (NSSet *) pendingMessages
 {
-	return [[pendingMessages copy] autorelease];
+	if (pendingMessages != nil)
+	{
+		return [[pendingMessages copy] autorelease];
+	}
+	else
+	{
+		return [NSSet set];
+	}
 }
 
 
@@ -906,6 +957,62 @@ static AIStackElement *sStack = NULL;
 	
 	// Return immutable copy.
 	return [[result copy] autorelease];
+}
+
+@end
+
+
+@implementation OOPreservedAIStateMachine
+
+- (id) initWithStateMachine:(NSDictionary *)stateMachine
+					   name:(NSString *)name
+					  state:(NSString *)state
+			pendingMessages:(NSSet *)pendingMessages
+{
+	if ((self = [super init]))
+	{
+		_stateMachine = [stateMachine copy];
+		_name = [name copy];
+		_state = [state copy];
+		_pendingMessages = [pendingMessages copy];
+	}
+	
+	return self;
+}
+
+
+- (void) dealloc
+{
+	[_stateMachine autorelease];
+	[_name autorelease];
+	[_state autorelease];
+	[_pendingMessages autorelease];
+	
+	[super dealloc];
+}
+
+
+- (NSDictionary *) stateMachine
+{
+	return _stateMachine;
+}
+
+
+- (NSString *) name
+{
+	return _name;
+}
+
+
+- (NSString *) state
+{
+	return _state;
+}
+
+
+- (NSSet *) pendingMessages
+{
+	return _pendingMessages;
 }
 
 @end
