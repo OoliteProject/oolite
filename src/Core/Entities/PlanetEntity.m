@@ -706,7 +706,6 @@ static const BaseFace kTexturedFaces[][3] =
 		case STELLAR_TYPE_ATMOSPHERE:
 			{
 				// atmospheric rotation
-				//quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
 				quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * delta_t);
 				[self orientationChanged];
 			}

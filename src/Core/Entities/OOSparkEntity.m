@@ -62,13 +62,13 @@ MA 02110-1301, USA.
 - (void) update:(OOTimeDelta)delta_t
 {
 	[super update:delta_t];
+	[self applyVelocityWithTimeDelta:delta_t];
 	[self performUpdate:delta_t];
 }
 
 
 - (void) performUpdate:(OOTimeDelta)delta_t
 {
-	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
 	_timeRemaining -= delta_t;
 	
 	float mix = OOClamp_0_1_f(_timeRemaining / _duration);

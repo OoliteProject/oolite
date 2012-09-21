@@ -58,6 +58,8 @@ MA 02110-1301, USA.
 	double					corona_stage;				// 0.0 -> 1.0
 	GLfloat					rvalue[SUN_CORONA_SAMPLES];	// stores random values for adjusting colors in the corona
 	float					corona_blending;
+	
+	Vector					_splodey;					// Stuff that used to be stashed in velocity
 }
 
 - (id) initSunWithColor:(OOColor*)sun_color andDictionary:(NSDictionary*) dict;

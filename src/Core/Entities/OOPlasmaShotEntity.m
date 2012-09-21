@@ -81,6 +81,7 @@ MA 02110-1301, USA.
 - (void) update:(double)delta_t
 {
 	[super update:delta_t];
+	[super applyVelocityWithTimeDelta:delta_t];
 	
 	OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
 	
@@ -107,8 +108,6 @@ MA 02110-1301, USA.
 			[burst release];
 		}
 	}
-	
-	[self setPosition:vector_add([self position], vector_multiply_scalar([self velocity], delta_t))];
 	
 #if PLASMA_ATTENUATION
 	_colorComponents[3] = attenuation;

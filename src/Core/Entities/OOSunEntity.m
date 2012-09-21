@@ -226,11 +226,11 @@ MA 02110-1301, USA.
 	assert(player != nil);
 	rotMatrix = OOMatrixForBillboard(position, [player viewpointPosition]);
 	
-	if (throw_sparks && velocity.z > 0)	// going NOVA!
+	if (throw_sparks && _splodey.z > 0)	// going NOVA!
 	{
-		if (velocity.x >= 0.0)	// countdown
+		if (_splodey.x >= 0.0)	// countdown
 		{
-			velocity.x -= delta_t;
+			_splodey.x -= delta_t;
 			if (corona_speed_factor < 5.0)
 			{
 				corona_speed_factor += 0.75 * delta_t;
@@ -238,9 +238,9 @@ MA 02110-1301, USA.
 		}
 		else
 		{
-			if (velocity.y <= 60.0)	// expand for a minute
+			if (_splodey.y <= 60.0)	// expand for a minute
 			{
-				double sky_bri = 1.0 - 1.5 * velocity.y;
+				double sky_bri = 1.0 - 1.5 * _splodey.y;
 				if (sky_bri < 0)
 				{
 					[UNIVERSE setSkyColorRed:0.0f		// back to black
@@ -262,14 +262,14 @@ MA 02110-1301, USA.
 					OOLog(@"sun.nova.start", @"DEBUG: NOVA original radius %.1f", collision_radius);
 				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
-				velocity.y += delta_t;
-				[self setRadius: collision_radius + delta_t * velocity.z];
+				_splodey.y += delta_t;
+				[self setRadius: collision_radius + delta_t * _splodey.z];
 			}
 			else
 			{
 				OOLog(@"sun.nova.end", @"DEBUG: NOVA final radius %.1f", collision_radius);
 				// reset at the new size
-				velocity = kZeroVector;
+				_splodey = kZeroVector;
 				throw_sparks = YES;	// keep throw_sparks at YES to indicate the higher temperature
 			}
 		}
@@ -558,7 +558,7 @@ MA 02110-1301, USA.
 
 - (BOOL) goneNova
 {
-	return throw_sparks && velocity.x <= 0;
+	return throw_sparks && _splodey.x <= 0;
 }
 
 
@@ -567,12 +567,12 @@ MA 02110-1301, USA.
 	throw_sparks = yesno;
 	if (throw_sparks)
 	{
-		velocity.x = fmax(interval, 0.0);
-		OOLog(@"script.debug.setSunNovaIn", @"NOVA activated! time until Nova : %.1f s", velocity.x);
+		_splodey.x = fmax(interval, 0.0);
+		OOLog(@"script.debug.setSunNovaIn", @"NOVA activated! time until Nova : %.1f s", _splodey.x);
 	}
 	
-	velocity.y = 0;
-	velocity.z = 10000;
+	_splodey.y = 0;
+	_splodey.z = 10000;
 }
 
 

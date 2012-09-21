@@ -88,8 +88,6 @@ MA 02110-1301, USA.
 		expansionSpeed = fmin(240.0f + 10.0f / (tf * tf), 1000.0f);
 	}
 	
-	velocity.z = expansionSpeed;	// What's this for? Velocity is never applied. -- Ahruman 2011-02-05
-	
 	collision_radius += delta_t * expansionSpeed;		// expand
 	energy = delta_t * (100000 - 90000 * tf);	// adjusted to take into account delta_t
 	
