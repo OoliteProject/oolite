@@ -226,11 +226,11 @@ MA 02110-1301, USA.
 	assert(player != nil);
 	rotMatrix = OOMatrixForBillboard(position, [player viewpointPosition]);
 	
-	if (throw_sparks && _splodey.z > 0)	// going NOVA!
+	if (throw_sparks && _novaExpansionRate > 0)	// going NOVA!
 	{
-		if (_splodey.x >= 0.0)	// countdown
+		if (_novaCountdown >= 0.0)	// countdown
 		{
-			_splodey.x -= delta_t;
+			_novaCountdown -= delta_t;
 			if (corona_speed_factor < 5.0)
 			{
 				corona_speed_factor += 0.75 * delta_t;
@@ -238,9 +238,9 @@ MA 02110-1301, USA.
 		}
 		else
 		{
-			if (_splodey.y <= 60.0)	// expand for a minute
+			if (_novaExpansionTimer <= 60.0)	// expand for a minute
 			{
-				double sky_bri = 1.0 - 1.5 * _splodey.y;
+				double sky_bri = 1.0 - 1.5 * _novaExpansionTimer;
 				if (sky_bri < 0)
 				{
 					[UNIVERSE setSkyColorRed:0.0f		// back to black
@@ -262,14 +262,18 @@ MA 02110-1301, USA.
 					OOLog(@"sun.nova.start", @"DEBUG: NOVA original radius %.1f", collision_radius);
 				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
-				_splodey.y += delta_t;
-				[self setRadius: collision_radius + delta_t * _splodey.z];
+				_novaExpansionTimer += delta_t;
+				[self setRadius: collision_radius + delta_t * _novaExpansionRate];
 			}
 			else
 			{
 				OOLog(@"sun.nova.end", @"DEBUG: NOVA final radius %.1f", collision_radius);
+				
 				// reset at the new size
-				_splodey = kZeroVector;
+				_novaCountdown = 0.0;
+				_novaExpansionTimer = 0.0;
+				_novaExpansionRate = 0.0f;
+				
 				throw_sparks = YES;	// keep throw_sparks at YES to indicate the higher temperature
 			}
 		}
@@ -528,18 +532,23 @@ MA 02110-1301, USA.
 }
 
 
-- (double) radius
+- (GLfloat) radius
 {
 	return collision_radius;
 }
 
 
-- (void) setRadius:(double) rad
+- (void) setRadius:(GLfloat) rad
 {
 	collision_radius = rad;
-	cor4k =		rad * 4 / 100;				lim4k =		cor4k	* cor4k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
-	cor8k =		rad * 8 / 100;				lim8k =		cor8k	* cor8k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
-	cor16k =	rad * rad * 16/ 10000000;	lim16k =	cor16k	* cor16k* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
+	cor4k =		rad * 4 / 100;
+	lim4k =		cor4k	* cor4k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
+	
+	cor8k =		rad * 8 / 100;
+	lim8k =		cor8k	* cor8k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
+	
+	cor16k =	rad * rad * 16 / 10000000;
+	lim16k =	cor16k	* cor16k* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
 }
 
 
@@ -558,7 +567,7 @@ MA 02110-1301, USA.
 
 - (BOOL) goneNova
 {
-	return throw_sparks && _splodey.x <= 0;
+	return throw_sparks && _novaCountdown <= 0;
 }
 
 
@@ -567,12 +576,12 @@ MA 02110-1301, USA.
 	throw_sparks = yesno;
 	if (throw_sparks)
 	{
-		_splodey.x = fmax(interval, 0.0);
-		OOLog(@"script.debug.setSunNovaIn", @"NOVA activated! time until Nova : %.1f s", _splodey.x);
+		_novaCountdown = fmax(interval, 0.0);
+		OOLog(@"script.debug.setSunNovaIn", @"NOVA activated! time until Nova : %.1f s", _novaCountdown);
 	}
 	
-	_splodey.y = 0;
-	_splodey.z = 10000;
+	_novaExpansionTimer = 0;
+	_novaExpansionRate = 10000;
 }
 
 

@@ -50,16 +50,18 @@ MA 02110-1301, USA.
 	GLfloat					middleCoronaColor[4];
 	GLfloat					outerCoronaColor[4];
 	
-	double					cor4k, lim4k;
-	double					cor8k, lim8k;
-	double					cor16k, lim16k;
+	GLfloat					cor4k, lim4k;
+	GLfloat					cor8k, lim8k;
+	GLfloat					cor16k, lim16k;
 	
 	double					corona_speed_factor;		// multiply delta_t by this before adding it to corona_stage
 	double					corona_stage;				// 0.0 -> 1.0
 	GLfloat					rvalue[SUN_CORONA_SAMPLES];	// stores random values for adjusting colors in the corona
 	float					corona_blending;
 	
-	Vector					_splodey;					// Stuff that used to be stashed in velocity
+	OOTimeDelta				_novaCountdown;
+	OOTimeDelta				_novaExpansionTimer;
+	float					_novaExpansionRate;
 }
 
 - (id) initSunWithColor:(OOColor*)sun_color andDictionary:(NSDictionary*) dict;
@@ -71,8 +73,8 @@ MA 02110-1301, USA.
 - (void) getDiffuseComponents:(GLfloat[4])components;
 - (void) getSpecularComponents:(GLfloat[4])components;
 
-- (double) radius;	// metres
-- (void) setRadius:(double) rad;
+- (GLfloat) radius;	// metres
+- (void) setRadius:(GLfloat) rad;
 
 - (BOOL) willGoNova;
 - (BOOL) goneNova;
