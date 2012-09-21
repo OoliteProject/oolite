@@ -105,12 +105,10 @@ static OOTexture *sFlashTexture = nil;
 - (void) update:(OOTimeDelta)delta_t
 {
 	[super update:delta_t];
+	[self applyVelocityWithTimeDelta:delta_t];
 	
 	float tf = _duration * 0.667;
 	float tf1 = _duration - tf;
-	
-	// Move as necessary.
-	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
 	
 	// Scale up.
 	_diameter += delta_t * _growthRate;
