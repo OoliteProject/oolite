@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 
 @interface OOCharacter (Private)
 
-
 - (void) setCharacterFromDictionary:(NSDictionary *)dict;
 
 @end
@@ -98,6 +97,7 @@ MA 02110-1301, USA.
 	return [[[OOCharacter alloc] initWithRole: c_role andOriginalSystemSeed: o_seed] autorelease];
 }
 
+
 + (OOCharacter *) randomCharacterWithRole:(NSString *) c_role andOriginalSystem:(Random_Seed) o_seed
 {
 	Random_Seed r_seed;
@@ -114,6 +114,7 @@ MA 02110-1301, USA.
 	[castmember castInRole: c_role];
 	return castmember;
 }
+
 
 + (OOCharacter *) characterWithDictionary:(NSDictionary *) c_dict
 {
@@ -312,7 +313,6 @@ MA 02110-1301, USA.
 	}
 	
 	// do long description here
-	//
 	
 	return specialSetUpDone;
 }
@@ -422,6 +422,7 @@ MA 02110-1301, USA.
 {
 	return _script;
 }
+
 
 - (void) setCharacterScript:(NSString *)script_name
 {
