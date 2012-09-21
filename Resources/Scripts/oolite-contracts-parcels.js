@@ -66,8 +66,12 @@ this.startUp = function()
 
 this.shipWillExitWitchspace = function()
 {
-		this._initialiseParcelContractsForSystem();
-		this._updateMainStationInterfacesList();
+		if (!system.isInterstellarSpace && !system.sun.hasGoneNova && system.mainStation)
+		{
+				// must be a regular system with a main station
+				this._initialiseParcelContractsForSystem();
+				this._updateMainStationInterfacesList();
+		}
 }
 
 
