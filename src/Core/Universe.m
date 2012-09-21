@@ -2280,6 +2280,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	q.w = -q.w;		// reverse the quaternion because this is from the player's viewpoint
 	
 	Vector			v = vector_forward_from_quaternion(q);
+	Vector			vel = vector_multiply_scalar(v, -BREAK_PATTERN_RING_SPEED);
 	
 	// hyperspace colours
 	
@@ -2316,12 +2317,17 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	for (i = 1; i < 11; i++)
 	{
 		ring = [OOBreakPatternEntity breakPatternWithPolygonSides:sides startAngle:startAngle aspectRatio:aspectRatio];
-		if (!forDocking) [ring setInnerColor:col1 outerColor:col2];
-		[ring setPositionX:pos.x+v.x*i*50.0 y:pos.y+v.y*i*50.0 z:pos.z+v.z*i*50.0]; // ahead of the player
+		if (!forDocking)
+		{
+			[ring setInnerColor:col1 outerColor:col2];
+		}
+		
+		Vector offset = vector_multiply_scalar(v, i * BREAK_PATTERN_RING_SPACING);
+		[ring setPosition:vector_add(pos, offset)];  // ahead of the player
 		[ring setOrientation:q];
-		[ring setVelocity:v];
-		[ring setLifetime:i*50.0];
-		[ring setScanClass: CLASS_NO_DRAW];
+		[ring setVelocity:vel];
+		[ring setLifetime:i * BREAK_PATTERN_RING_SPACING];
+		
 		// FIXME: better would be to have break pattern timing not depend on
 		// these ring objects existing in the first place. - CIM
 		if (forDocking && ![[PLAYER dockedStation] hasBreakPattern])

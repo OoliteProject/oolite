@@ -31,9 +31,6 @@ MA 02110-1301, USA.
 #import "OOMacroOpenGL.h"
 
 
-#define RING_SPEED		200.0
-
-
 @interface OOBreakPatternEntity (Private)
 
 - (void) setInnerColorComponents:(GLfloat[4])color1 outerColorComponents:(GLfloat[4])color2;
@@ -73,9 +70,8 @@ MA 02110-1301, USA.
 		[self setInnerColorComponents:(GLfloat[]){ 1.0f, 0.0f, 0.0f, 0.5f }
 				 outerColorComponents:(GLfloat[]){ 0.0f, 0.0f, 1.0f, 0.25f }];
 		
-		_lifetime = 50.0;
-		velocity.z = 1.0;
 		[self setStatus:STATUS_EFFECT];
+		[self setScanClass:CLASS_NO_DRAW];
 		
 		isImmuneToBreakPatternHide = YES;
 	}
@@ -120,11 +116,9 @@ MA 02110-1301, USA.
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
+	[self applyVelocityWithTimeDelta:delta_t];
 	
-	double movement = RING_SPEED * delta_t;
-	position = vector_subtract(position, vector_multiply_scalar(velocity, movement));
-	_lifetime -= movement;
-	
+	_lifetime -= BREAK_PATTERN_RING_SPEED * delta_t;
 	if (_lifetime < 0.0)
 	{
 		[UNIVERSE removeEntity:self];

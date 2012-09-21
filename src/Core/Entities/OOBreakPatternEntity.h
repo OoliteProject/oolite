@@ -37,6 +37,10 @@ enum
 };
 
 
+#define BREAK_PATTERN_RING_SPACING		50.0
+#define BREAK_PATTERN_RING_SPEED		200.0
+
+
 @interface OOBreakPatternEntity: Entity
 {
 @private
