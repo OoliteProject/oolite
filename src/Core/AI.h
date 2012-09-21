@@ -64,9 +64,6 @@ MA 02110-1301, USA.
 - (void) setStateMachine:(NSString *)smName afterDelay:(NSTimeInterval)delay;
 - (void) setState:(NSString *)stateName afterDelay:(NSTimeInterval)delay;
 
-- (void) directSetStateMachine:(NSDictionary *)newSM name:(NSString *)name;
-- (void) directSetState:(NSString *)state;
-
 - (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName;
 
 - (ShipEntity *)owner;

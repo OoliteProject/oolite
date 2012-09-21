@@ -55,10 +55,14 @@ static AI *sCurrentlyRunningAI = nil;
 @interface AI (OOPrivate)
 
 // Wrapper for performSelector:withObject:afterDelay: to catch/fix bugs.
-- (void)performDeferredCall:(SEL)selector withObject:(id)object afterDelay:(NSTimeInterval)delay;
-+ (void)deferredCallTrampolineWithInfo:(NSValue *)info;
+- (void) performDeferredCall:(SEL)selector withObject:(id)object afterDelay:(NSTimeInterval)delay;
++ (void) deferredCallTrampolineWithInfo:(NSValue *)info;
 
-- (void)refreshOwnerDesc;
+- (void) refreshOwnerDesc;
+
+// Set state machine and state without side effects.
+- (void) directSetStateMachine:(NSDictionary *)newSM name:(NSString *)name;
+- (void) directSetState:(NSString *)state;
 
 // Loading/whitelisting
 - (NSDictionary *) loadStateMachine:(NSString *)smName;
@@ -289,31 +293,6 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 		[self restorePreviousStateMachine];
 		if (message == nil)  message = @"RESTARTED";
 		[self reactToMessage:message context:@"suspended AI restart"];
-	}
-}
-
-
-- (void) directSetStateMachine:(NSDictionary *)newSM name:(NSString *)name
-{
-	if (stateMachine != newSM)
-	{
-		[stateMachine release];
-		stateMachine = [newSM copy];
-	}
-	if (stateMachineName != name)
-	{
-		[stateMachineName release];
-		stateMachineName = [name copy];
-	}
-}
-
-
-- (void) directSetState:(NSString *)state
-{
-	if (currentState != state)
-	{
-		[currentState release];
-		currentState = [state copy];
 	}
 }
 
@@ -778,6 +757,31 @@ static AIStackElement *sStack = NULL;
 	else
 	{
 		ownerDesc = @"no owner";
+	}
+}
+
+
+- (void) directSetStateMachine:(NSDictionary *)newSM name:(NSString *)name
+{
+	if (stateMachine != newSM)
+	{
+		[stateMachine release];
+		stateMachine = [newSM copy];
+	}
+	if (stateMachineName != name)
+	{
+		[stateMachineName release];
+		stateMachineName = [name copy];
+	}
+}
+
+
+- (void) directSetState:(NSString *)state
+{
+	if (currentState != state)
+	{
+		[currentState release];
+		currentState = [state copy];
 	}
 }
 
