@@ -661,13 +661,17 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 {
 	if (octree == nil)
 	{
-		octree = [OOCacheManager octreeForModel:baseFile];
+		octree = [[OOCacheManager octreeForModel:baseFile] retain];
 		if (octree == nil)
 		{
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+			
 			octree = [[self geometry] findOctreeToDepth:[self octreeDepth]];
+			[octree retain];
 			[OOCacheManager setOctree:octree forModel:baseFile];
+			
+			[pool release];
 		}
-		[octree retain];
 	}
 	
 	return octree;
