@@ -33,6 +33,21 @@ MA 02110-1301, USA.
 
 - (id) octreeWithinRadius:(GLfloat)octreeRadius toDepth:(int)depth;
 
+- (BOOL) isConvex;
+- (void) setConvex:(BOOL)value;
+
+- (void) translate:(Vector)offset;
+- (void) scale:(GLfloat)scalar;
+
+- (void) x_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) x;
+- (void) y_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) y;
+- (void) z_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) z;
+
+- (BOOL) testHasGeometry;
+- (BOOL) testIsConvex;
+- (BOOL) testCornersWithinGeometry:(GLfloat) corner;
+- (GLfloat) findMaxDimensionFromOrigin;
+
 @end
 
 
@@ -40,8 +55,9 @@ MA 02110-1301, USA.
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"%lu triangles, %@", n_triangles, [self testIsConvex]?@"convex":@"not convex"];
+	return [NSString stringWithFormat:@"%lu triangles, %@", n_triangles, [self testIsConvex] ? @"convex" : @"not convex"];
 }
+
 
 - (id) initWithCapacity:(NSUInteger)amount
 {
@@ -62,6 +78,7 @@ MA 02110-1301, USA.
 	return self;
 }
 
+
 - (void) dealloc
 {
 	free(triangles);	// free up the allocated space
@@ -69,10 +86,12 @@ MA 02110-1301, USA.
 	[super dealloc];
 }
 
+
 - (BOOL) isConvex
 {
 	return isConvex;
 }
+
 
 - (void) setConvex:(BOOL) value
 {
@@ -80,38 +99,46 @@ MA 02110-1301, USA.
 }
 
 
+static inline BOOL OOTriangleIsDegenerate(Triangle tri)
+{
+	return vector_equal(tri.v[0], tri.v[1]) ||
+	       vector_equal(tri.v[1], tri.v[2]) ||
+	       vector_equal(tri.v[2], tri.v[0]);
+}
+
+
 // SLOW_CODE This is a relatively costly method. A lot of growing is done despite the 1 + capacity * 2 growth rate.
 - (void) addTriangle:(Triangle) tri
 {
-	// check for degenerate triangles
-	if ((tri.v[0].x == tri.v[1].x)&&(tri.v[0].y == tri.v[1].y)&&(tri.v[0].z == tri.v[1].z))	// v0 == v1 -> return
+	// Ignore degenerate triangles.
+	if (OOTriangleIsDegenerate(tri))
+	{
 		return;
-	if ((tri.v[1].x == tri.v[2].x)&&(tri.v[1].y == tri.v[2].y)&&(tri.v[1].z == tri.v[2].z))	// v1 == v2 -> return
-		return;
-	if ((tri.v[2].x == tri.v[0].x)&&(tri.v[2].y == tri.v[0].y)&&(tri.v[2].z == tri.v[0].z))	// v2 == v0 -> return
-		return;
-	// clear!
-	//
+	}
+	
 	// check for no-more-room
 	if (EXPECT_NOT(n_triangles == max_triangles))
 	{
 		// create more space by doubling the capacity of this geometry...
-	//	OOLog(@"geometry.grow", @"Expanding geometry %p from %u to %u triangles.", self, max_triangles, 1 + max_triangles * 2);
+		// OOLog(@"geometry.grow", @"Expanding geometry %p from %lu to %lu triangles.", self, max_triangles, 1 + max_triangles * 2);
 		max_triangles = 1 + max_triangles * 2;
 		triangles = realloc(triangles, max_triangles * sizeof(Triangle));
 		if (EXPECT_NOT(triangles == NULL))
 		{
+			// N.b.: realloc() leaked here, but we're about to crash anyway.
 			OOLog(kOOLogAllocationFailure, @"!!!!! Ran out of memory to allocate more geometry!");
-			exit(-1);
+			exit(EXIT_FAILURE);
 		}
 	}
 	triangles[n_triangles++] = tri;
 }
 
+
 - (BOOL) testHasGeometry
 {
 	return (n_triangles > 0);
 }
+
 
 - (BOOL) testIsConvex
 {
@@ -144,6 +171,7 @@ MA 02110-1301, USA.
 	return YES;
 }
 
+
 - (BOOL) testCornersWithinGeometry:(GLfloat)corner
 {
 	// enumerate over triangles
@@ -161,33 +189,35 @@ MA 02110-1301, USA.
 		{
 			Vector vc = make_vector(corner * x, corner * y, corner * z);
 			if (dot_product(vector_between(v0, vc), vn) < -0.001)
+			{
 				return NO;
+			}
 		}
 	}
 	return YES;
 }
 
+
 - (GLfloat) findMaxDimensionFromOrigin
 {
 	// enumerate over triangles
-	GLfloat result = 0;
+	GLfloat result = 0.0f;
 	NSInteger	i, j;
 	for (i = 0; i < n_triangles; i++) for (j = 0; j < 3; j++)
 	{
 		Vector v = triangles[i].v[j];
-		if (fabs(v.x) > result)
-			result = (float)fabs(v.x);
-		if (fabs(v.y) > result)
-			result = (float)fabs(v.y);
-		if (fabs(v.z) > result)
-			result = (float)fabs(v.z);
+		result = fmax(result, v.x);
+		result = fmax(result, v.y);
+		result = fmax(result, v.z);
 	}
 	return result;
 }
 
+
 static int leafcount;
 static float volumecount;
-- (Octree*) findOctreeToDepth: (int) depth
+
+- (Octree *) findOctreeToDepth:(int)depth
 {
 	leafcount = 0;
 	volumecount = 0.0f;
@@ -200,6 +230,7 @@ static float volumecount;
 	
 	return [octreeRepresentation autorelease];
 }
+
 
 - (id) octreeWithinRadius:(GLfloat)octreeRadius toDepth:(int)depth
 {
@@ -315,7 +346,8 @@ static float volumecount;
 	return result;
 }
 
-- (void) translate:(Vector) offset
+
+- (void) translate:(Vector)offset
 {
 	NSInteger	i;
 	for (i = 0; i < n_triangles; i++)
@@ -334,7 +366,8 @@ static float volumecount;
 	}
 }
 
-- (void) scale:(GLfloat) scalar
+
+- (void) scale:(GLfloat)scalar
 {
 	NSInteger	i;
 	for (i = 0; i < n_triangles; i++)
@@ -350,6 +383,7 @@ static float volumecount;
 		triangles[i].v[2].z *= scalar;
 	}
 }
+
 
 - (void) x_axisSplitBetween:(Geometry *)g_plus :(Geometry *)g_minus :(GLfloat)x
 {
@@ -481,6 +515,7 @@ static float volumecount;
 	[g_minus translate: make_vector(x, 0.0f, 0.0f)];
 }
 
+
 - (void) y_axisSplitBetween:(Geometry *)g_plus :(Geometry *)g_minus :(GLfloat)y
 {
 	// test each triangle splitting against y == 0.0
@@ -609,6 +644,7 @@ static float volumecount;
 	[g_plus translate: make_vector(0.0f, -y, 0.0f)];
 	[g_minus translate: make_vector(0.0f, y, 0.0f)];
 }
+
 
 - (void) z_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) z
 {

@@ -52,7 +52,6 @@ MA 02110-1301, USA.
 #import "OOMesh.h"
 #import "OOPlanetDrawable.h"
 
-#import "Geometry.h"
 #import "Octree.h"
 #import "OOColor.h"
 #import "OOPolygonSprite.h"

@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 
 #import "OOMaths.h"
-#import "Geometry.h"
 #import "Universe.h"
 #import "GameController.h"
 #import "ResourceManager.h"
@@ -915,13 +914,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
 	OOLogGenericSubclassResponsibility();
 	return 0;
-}
-
-
-- (Geometry *)geometry
-{
-	OOLogGenericSubclassResponsibility();
-	return nil;
 }
 
 

@@ -44,23 +44,8 @@ MA 02110-1301, USA.
 
 - (id) initWithCapacity:(NSUInteger)amount;
 
-- (BOOL) isConvex;
-- (void) setConvex:(BOOL) value;
-
 - (void) addTriangle:(Triangle) tri;
 
-- (BOOL) testHasGeometry;
-- (BOOL) testIsConvex;
-- (BOOL) testCornersWithinGeometry:(GLfloat) corner;
-- (GLfloat) findMaxDimensionFromOrigin;
-
 - (Octree *) findOctreeToDepth:(int)depth;
-
-- (void) translate:(Vector) offset;
-- (void) scale:(GLfloat) scalar;
-
-- (void) x_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) x;
-- (void) y_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) y;
-- (void) z_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) z;
 
 @end

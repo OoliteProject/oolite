@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOWeakReference.h"
 
-@class Universe, Geometry, CollisionRegion, ShipEntity;
+@class Universe, CollisionRegion, ShipEntity;
 
 
 #ifndef NDEBUG
@@ -263,7 +263,6 @@ enum OOScanClass
 
 // Subclass repsonsibilities
 - (double) findCollisionRadius;
-- (Geometry *) geometry;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
 - (BOOL) isVisible;
 - (BOOL) isImmuneToBreakPatternHide;
