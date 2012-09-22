@@ -614,6 +614,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	OOMeshFaceCount i;
 	for (i = 0; i < faceCount; i++)
 	{
+		// Somewhat surprisingly, this method doesn't even show up in profiles. -- Ahruman 2012-09-22
 		Triangle tri;
 		tri.v[0] = _vertices[_faces[i].vertex[0]];
 		tri.v[1] = _vertices[_faces[i].vertex[1]];

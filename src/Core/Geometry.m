@@ -22,11 +22,82 @@ MA 02110-1301, USA.
 
 */
 
+
+/*
+	PERFORMANCE NOTES
+	
+	This class has historically been noted for its significant presence in
+	startup profiles, and is believed to be a major source of in-game stutter,
+	so its performance characteristics are important.
+	
+	
+	The following observations were made in r5352, starting up with no OXPs
+	(except Debug.oxp) and no cache, and running through the complete set of
+	demo ships.
+	
+	* In total, 379,344 geometries were allocated.
+	* No more than 53 were allocated at a time.
+	* 37.3% of them (141,585) never had a triangle added.
+	* 51.2% had 4 or fewer triangles. 72.3% had 8 or fewer triangles. 93.3%
+      had 16 or fewer triangles.
+	* Triangle storage was reallocated 98,809 times.
+	* More time was spent in ObjC memory management than C memory management.
+	* In total, -addTriangle: was called 2,171,785 times.
+	* Degenerate triangles come from input geometry, but don't seem to be
+	  generated in inner nodes.
+	
+	Conclusions:
+	* addTriangle: should be a static C function. The degenerate check is only
+	  needed for input unless evidence to the contrary emerges.
+	* Triangle storage should be lazily allocated.
+	* Wasted space in triangle storage is unimportant with only 53 Geometries
+	  live at a time, so the splitting code should use a pessimistic heuristic
+	  for selecting the capacity of sub-geometries.
+	* A pool allocator for Geometries should be helpful.
+	* It may be worth putting space for some number of triangles in the
+	  Geometry itself (conceptually similar to the standard short string
+	  optimization). For example, if the isConvex flag used a bit in
+	  n_triangles, we could store 4 triangles in a 64-byte object (on a 64-
+	  bit system) before transitioning to dynamic storage. (This would avoid
+	  allocation for an additional 14% of objects over lazy allocation, so the
+	  win isn't that big. Raising the object size to 128 bytes gives us 9
+	  triangles.)
+	
+	All but the last of these is implemented in r5353.
+*/
+
+
 #import "Geometry.h"
 
 #import "OOMaths.h"
 #import "Octree.h"
 #import "OOLogging.h"
+
+
+#define USE_ALLOC_POOL			OOLITE_MAC_OS_X_10_6
+
+
+#if USE_ALLOC_POOL
+
+#import <objc/runtime.h>
+
+typedef struct FreeBlock
+{
+	struct FreeBlock		*next;
+} FreeBlock;
+
+static NSUInteger		sLiveInstancesCount;
+static NSMutableSet		*sAllocationChunks;
+static size_t			sAllocationSize;
+static size_t			sBlocksPerChunk;
+static FreeBlock		*sNextFreeBlock;
+
+enum
+{
+	kTargetPageSize				= 4096
+};
+
+#endif
 
 
 @interface Geometry (OOPrivate)
@@ -37,7 +108,6 @@ MA 02110-1301, USA.
 - (void) setConvex:(BOOL)value;
 
 - (void) translate:(Vector)offset;
-- (void) scale:(GLfloat)scalar;
 
 - (void) x_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) x;
 - (void) y_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) y;
@@ -59,6 +129,62 @@ MA 02110-1301, USA.
 }
 
 
+#if USE_ALLOC_POOL
++ (id) alloc
+{
+	if (sNextFreeBlock == NULL)
+	{
+		if (sAllocationSize == 0)
+		{
+			sAllocationSize = class_getInstanceSize(self);
+			// Round up to multiple of 16 to meet ObjC runtime alignment requirements.
+			sAllocationSize = (sAllocationSize + 0xF) & ~0xF;
+			
+			sBlocksPerChunk = kTargetPageSize / sAllocationSize;	// At time of writing, 85 on a 64-bit Mac.
+		}
+		
+		/*
+			Use a set of mutableDatas to hold on to our allocation blocks, so
+			we can easily free them all when allocation count drops to zero.
+		*/
+		NSMutableData *chunk = [NSMutableData dataWithLength:sAllocationSize * sBlocksPerChunk];
+		if (sAllocationChunks == nil)
+		{
+			sAllocationChunks = [[NSMutableSet alloc] init];
+		}
+		[sAllocationChunks addObject:chunk];
+		
+		if (EXPECT_NOT(chunk == nil || sAllocationChunks == nil))
+		{
+			[NSException raise:NSMallocException format:@"Could not allocate memory for Geometry pool allocator."];
+		}
+		
+		// Divide bytes up into FreeBlocks.
+		char *bytes = [chunk mutableBytes];
+		for (NSUInteger i = 0; i < sBlocksPerChunk; i++)
+		{
+			FreeBlock *block = (FreeBlock *)(bytes + i * sAllocationSize);
+			block->next = sNextFreeBlock;
+			sNextFreeBlock = block;
+		}
+	}
+	
+	NSAssert(sNextFreeBlock != NULL, @"Geometry pool allocator failed to grow pool and didn't throw as expected.");
+	
+	// Grab the first FreeBlock...
+	FreeBlock *block = sNextFreeBlock;
+	sNextFreeBlock = block->next;
+	
+	// ...Clear it (formally required)...
+	memset(block, 0, sAllocationSize);
+	
+	// ...and turn it into an instance.
+	sLiveInstancesCount++;
+	return objc_constructInstance(self, block);
+}
+#endif
+
+
 - (id) initWithCapacity:(NSUInteger)amount
 {
 	if (amount < 1)
@@ -69,8 +195,11 @@ MA 02110-1301, USA.
 	
 	if ((self = [super init]))
 	{
+		/*
+			Storage is allocated lazily, since almost 40% of geometries never
+			have any triangles added to them.
+		*/
 		max_triangles = amount;
-		triangles = malloc(max_triangles * sizeof(Triangle));	// allocate the required space
 		n_triangles = 0;
 		isConvex = NO;
 	}
@@ -82,6 +211,25 @@ MA 02110-1301, USA.
 - (void) dealloc
 {
 	free(triangles);	// free up the allocated space
+	
+#if USE_ALLOC_POOL
+	// Do the runtimey bits of deallocing...
+	FreeBlock *block = (FreeBlock *)objc_destructInstance(self);
+	self = nil;
+	
+	// ..and return memory to pool.
+	block->next = sNextFreeBlock;
+	sNextFreeBlock = block;
+	
+	// Destroy entire pool if there are no live Geometries.
+	if (--sLiveInstancesCount == 0)
+	{
+		DESTROY(sAllocationChunks);
+		sNextFreeBlock = NULL;
+	}
+	
+	return;
+#endif
 	
 	[super dealloc];
 }
@@ -107,8 +255,53 @@ static inline BOOL OOTriangleIsDegenerate(Triangle tri)
 }
 
 
-// SLOW_CODE This is a relatively costly method. A lot of growing is done despite the 1 + capacity * 2 growth rate.
-- (void) addTriangle:(Triangle) tri
+static GCC_ATTR((noinline)) void GrowTriangles(Geometry *self)
+{
+	if (self->triangles == NULL)
+	{
+		/*
+			Lazily allocate triangle storage, since a significant portion of
+			Geometries never have any triangles added to them. Note that
+			max_triangles is set to the specified capacity in init even though
+			the actual capacity is zero at that point.
+			
+			Profiling under the same conditions as the performance note at the
+			top of the file found that this condition had a hit rate of 11%,
+			which counterindicates the use of a branch hint.
+		*/
+		self->triangles = malloc(self->max_triangles * sizeof(Triangle));
+	}
+	
+	// check for no-more-room.
+	if (EXPECT_NOT(self->n_triangles == self->max_triangles))
+	{
+		// create more space by doubling the capacity of this geometry.
+		self->max_triangles = 1 + self->max_triangles * 2;
+		self->triangles = realloc(self->triangles, self->max_triangles * sizeof(Triangle));
+		
+		// N.b.: we leak here if realloc() failed, but we're about to abort anyway.
+	}
+	
+	if (EXPECT_NOT(self->triangles == NULL))
+	{
+		OOLog(kOOLogAllocationFailure, @"!!!!! Ran out of memory to allocate more geometry!");
+		exit(EXIT_FAILURE);
+	}
+}
+
+
+OOINLINE void AddTriangle(Geometry *self, Triangle tri)
+{
+	if (self->triangles == NULL || self->n_triangles == self->max_triangles)
+	{
+		GrowTriangles(self);
+	}
+	
+	self->triangles[self->n_triangles++] = tri;
+}
+
+
+- (void) addTriangle:(Triangle)tri
 {
 	// Ignore degenerate triangles.
 	if (OOTriangleIsDegenerate(tri))
@@ -116,21 +309,7 @@ static inline BOOL OOTriangleIsDegenerate(Triangle tri)
 		return;
 	}
 	
-	// check for no-more-room
-	if (EXPECT_NOT(n_triangles == max_triangles))
-	{
-		// create more space by doubling the capacity of this geometry...
-		// OOLog(@"geometry.grow", @"Expanding geometry %p from %lu to %lu triangles.", self, max_triangles, 1 + max_triangles * 2);
-		max_triangles = 1 + max_triangles * 2;
-		triangles = realloc(triangles, max_triangles * sizeof(Triangle));
-		if (EXPECT_NOT(triangles == NULL))
-		{
-			// N.b.: realloc() leaked here, but we're about to crash anyway.
-			OOLog(kOOLogAllocationFailure, @"!!!!! Ran out of memory to allocate more geometry!");
-			exit(EXIT_FAILURE);
-		}
-	}
-	triangles[n_triangles++] = tri;
+	AddTriangle(self, tri);
 }
 
 
@@ -142,11 +321,12 @@ static inline BOOL OOTriangleIsDegenerate(Triangle tri)
 
 - (BOOL) testIsConvex
 {
-	// enumerate over triangles
-	// calculate normal for each one
-	// then enumerate over vertices relative to a vertex on the triangle
-	// and check if they are on the forwardside or coplanar with the triangle
-	// if a vertex is on the backside of any triangle then return NO;
+	/*	Enumerate over triangles
+		calculate normal for each one,
+		then enumerate over vertices relative to a vertex on the triangle
+		and check if they are on the forwardside or coplanar with the triangle.
+		If a vertex is on the backside of any triangle then return NO.
+	*/
 	NSInteger	i, j;
 	for (i = 0; i < n_triangles; i++)
 	{
@@ -174,11 +354,12 @@ static inline BOOL OOTriangleIsDegenerate(Triangle tri)
 
 - (BOOL) testCornersWithinGeometry:(GLfloat)corner
 {
-	// enumerate over triangles
-	// calculate normal for each one
-	// then enumerate over corners relative to a vertex on the triangle
-	// and check if they are on the forwardside or coplanar with the triangle
-	// if a corner is on the backside of any triangle then return NO;
+	/*	enumerate over triangles
+		calculate normal for each one,
+		then enumerate over corners relative to a vertex on the triangle
+		and check if they are on the forwardside or coplanar with the triangle.
+		If a corner is on the backside of any triangle then return NO.
+	*/
 	NSInteger	i, x, y, z;
 	for (i = 0; i < n_triangles; i++)
 	{
@@ -234,26 +415,26 @@ static float volumecount;
 
 - (id) octreeWithinRadius:(GLfloat)octreeRadius toDepth:(int)depth
 {
-	//
 	GLfloat offset = 0.5f * octreeRadius;
-	//
+	
 	if (![self testHasGeometry])
 	{
 		leafcount++;	// nil or zero or 0
 		return [NSNumber numberWithBool:NO];	// empty octree
 	}
+	
 	// there is geometry!
-	//
 	if ((octreeRadius <= OCTREE_MIN_RADIUS)||(depth <= 0))	// maximum resolution
 	{
 		leafcount++;	// partially full or -1
 		volumecount += octreeRadius * octreeRadius * octreeRadius * 0.5f;
 		return [NSNumber numberWithBool:YES];	// at least partially full octree
 	}
-	//
+	
 	if (!isConvex)
+	{
 		[self testIsConvex]; // check!
-	//
+	}
 	if (isConvex)	// we're convex!
 	{
 		if ([self testCornersWithinGeometry: octreeRadius])	// all eight corners inside or on!
@@ -263,26 +444,63 @@ static float volumecount;
 			return [NSNumber numberWithBool:YES];	// full octree
 		}
 	}
-	//
-	// SLOW_CODE -- all these allocations and deallocations are quite costly. Would a bucket allocator work? --ahruman
-	Geometry* g_000 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_001 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_010 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_011 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_100 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_101 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_110 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_111 = [(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	//
-	Geometry* g_xx1 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	Geometry* g_xx0 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-	//
+	
+	/*
+		As per performance notes, we want to use a heuristic which keeps the
+		number of reallocations needed low with relatively little regard to
+		allocation size.
+		
+		This table shows observed performance for several heuristics using
+		vanilla Oolite r5352 (plus instrumentation). Values aren't precisely
+		reproducible, but are reasonably stable.
+		
+		Heuristic: expression used to initialize subCapacity.
+		
+		PER: number of geometries per reallocation; in other words, a realloc
+		     is needed one time per PER geometries.
+		
+		MEM: high water mark for total memory consumption (triangles arrays
+		     only) across all live Geometries.
+		
+		Heuristic                   PER         MEM
+		n_triangles                 3-4         71856
+		n_triangles * 2             100         111384
+		MAX(n_triangles * 2, 16)    300         111384
+		MAX(n_triangles * 2, 21)    500         148512
+		n_triangles * 3             500         165744
+		MAX(n_triangles * 3, 16)    12000       165744
+		MAX(n_triangles * 3, 21)    20000       165744
+		
+		The value 21 was chosen because it results in an allocator-friendly
+		size of 252 bytes. Performance profiling shows no discernible
+		difference between 2,16 and 3,21.
+	*/
+	enum
+	{
+		kFactor = 3,
+		kMinimum = 16
+	};
+	NSUInteger subCapacity = n_triangles * kFactor;
+	if (subCapacity < kMinimum)  subCapacity = kMinimum;
+	
+	Geometry* g_000 = [(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	Geometry* g_001 = [(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	Geometry* g_010 = [(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	Geometry* g_011 = [(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	Geometry* g_100 = [(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	Geometry* g_101 = [(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	Geometry* g_110 = [(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	Geometry* g_111 = [(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	
+	Geometry* g_xx1 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	Geometry* g_xx0 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+	
 	[self z_axisSplitBetween:g_xx1 :g_xx0 : offset];
 	if ([g_xx0 testHasGeometry])
 	{
-		Geometry* g_x00 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-		Geometry* g_x10 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-		//
+		Geometry* g_x00 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+		Geometry* g_x10 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+		
 		[g_xx0 y_axisSplitBetween: g_x10 : g_x00 : offset];
 		if ([g_x00 testHasGeometry])
 		{
@@ -301,9 +519,9 @@ static float volumecount;
 	}
 	if ([g_xx1 testHasGeometry])
 	{
-		Geometry* g_x01 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-		Geometry* g_x11 =	[(Geometry *)[Geometry alloc] initWithCapacity:n_triangles];
-		//
+		Geometry* g_x01 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+		Geometry* g_x11 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
+		
 		[g_xx1 y_axisSplitBetween: g_x11 : g_x01 :offset];
 		if ([g_x01 testHasGeometry])
 		{
@@ -323,6 +541,11 @@ static float volumecount;
 	[g_xx0 release];
 	[g_xx1 release];
 	
+	/*
+		Setting up result array has significant cost. Could be optimized with
+		a custom array class that short-circuits the retain/release dance.
+		-- Ahruman 2012-09-22
+	*/
 	leafcount++;	// pointer to array
 	NSObject* result = [NSArray arrayWithObjects:
 		[g_000 octreeWithinRadius: offset toDepth:depth - 1],
@@ -349,6 +572,11 @@ static float volumecount;
 
 - (void) translate:(Vector)offset
 {
+	/*
+		translate: has non-negligable profile presence. Separate translateX:,
+		translateY: and translateZ: may be beneficial.
+		-- Ahruman 2012-09-22
+	*/
 	NSInteger	i;
 	for (i = 0; i < n_triangles; i++)
 	{
@@ -367,24 +595,6 @@ static float volumecount;
 }
 
 
-- (void) scale:(GLfloat)scalar
-{
-	NSInteger	i;
-	for (i = 0; i < n_triangles; i++)
-	{
-		triangles[i].v[0].x *= scalar;
-		triangles[i].v[1].x *= scalar;
-		triangles[i].v[2].x *= scalar;
-		triangles[i].v[0].y *= scalar;
-		triangles[i].v[1].y *= scalar;
-		triangles[i].v[2].y *= scalar;
-		triangles[i].v[0].z *= scalar;
-		triangles[i].v[1].z *= scalar;
-		triangles[i].v[2].z *= scalar;
-	}
-}
-
-
 - (void) x_axisSplitBetween:(Geometry *)g_plus :(Geometry *)g_minus :(GLfloat)x
 {
 	// test each triangle splitting against x == 0.0
@@ -399,15 +609,15 @@ static float volumecount;
 		
 		if ((v0.x >= 0.0)&&(v1.x >= 0.0)&&(v2.x >= 0.0))
 		{
-			[g_plus addTriangle: triangles[i]];
+			AddTriangle(g_plus, triangles[i]);
 			done_tri = YES;
 		}
 		if ((v0.x <= 0.0)&&(v1.x <= 0.0)&&(v2.x <= 0.0))
 		{
-			[g_minus addTriangle: triangles[i]];
+			AddTriangle(g_minus, triangles[i]);
 			done_tri = YES;
 		}
-		if (!done_tri)	// triangle must cross y == 0.0
+		if (!done_tri)	// triangle must cross x == 0.0
 		{
 			GLfloat i01, i12, i20;
 			if (v0.x == v1.x)
@@ -426,87 +636,87 @@ static float volumecount;
 			Vector v12 = make_vector(0.0f, i12 * (v2.y - v1.y) + v1.y, i12 * (v2.z - v1.z) + v1.z);
 			Vector v20 = make_vector(0.0f, i20 * (v0.y - v2.y) + v2.y, i20 * (v0.z - v2.z) + v2.z);
 		
-			// cases where a vertex is on the split..
+			// cases where a vertex is on the split.
 			if (v0.x == 0.0)
 			{
 				if (v1.x > 0)
 				{
-					[g_plus addTriangle:make_triangle(v0, v1, v12)];
-					[g_minus addTriangle:make_triangle(v0, v12, v2)];
+					AddTriangle(g_plus, make_triangle(v0, v1, v12));
+					AddTriangle(g_minus, make_triangle(v0, v12, v2));
 				}
 				else
 				{
-					[g_minus addTriangle:make_triangle(v0, v1, v12)];
-					[g_plus addTriangle:make_triangle(v0, v12, v2)];
+					AddTriangle(g_minus, make_triangle(v0, v1, v12));
+					AddTriangle(g_plus, make_triangle(v0, v12, v2));
 				}
 			}
 			if (v1.x == 0.0)
 			{
 				if (v2.x > 0)
 				{
-					[g_plus addTriangle:make_triangle(v1, v2, v20)];
-					[g_minus addTriangle:make_triangle(v1, v20, v0)];
+					AddTriangle(g_plus, make_triangle(v1, v2, v20));
+					AddTriangle(g_minus, make_triangle(v1, v20, v0));
 				}
 				else
 				{
-					[g_minus addTriangle:make_triangle(v1, v2, v20)];
-					[g_plus addTriangle:make_triangle(v1, v20, v0)];
+					AddTriangle(g_minus, make_triangle(v1, v2, v20));
+					AddTriangle(g_plus, make_triangle(v1, v20, v0));
 				}
 			}
 			if (v2.x == 0.0)
 			{
 				if (v0.x > 0)
 				{
-					[g_plus addTriangle:make_triangle(v2, v0, v01)];
-					[g_minus addTriangle:make_triangle(v2, v01, v1)];
+					AddTriangle(g_plus, make_triangle(v2, v0, v01));
+					AddTriangle(g_minus, make_triangle(v2, v01, v1));
 				}
 				else
 				{
-					[g_minus addTriangle:make_triangle(v2, v0, v01)];
-					[g_plus addTriangle:make_triangle(v2, v01, v1)];
+					AddTriangle(g_minus, make_triangle(v2, v0, v01));
+					AddTriangle(g_plus, make_triangle(v2, v01, v1));
 				}
 			}
 			
 			if ((v0.x > 0.0)&&(v1.x > 0.0)&&(v2.x < 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v0, v12, v20)];
-				[g_plus addTriangle:make_triangle(v0, v1, v12)];
-				[g_minus addTriangle:make_triangle(v20, v12, v2)];
+				AddTriangle(g_plus, make_triangle(v0, v12, v20));
+				AddTriangle(g_plus, make_triangle(v0, v1, v12));
+				AddTriangle(g_minus, make_triangle(v20, v12, v2));
 			}
 			
 			if ((v0.x > 0.0)&&(v1.x < 0.0)&&(v2.x > 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v2, v01, v12)];
-				[g_plus addTriangle:make_triangle(v2, v0, v01)];
-				[g_minus addTriangle:make_triangle(v12, v01, v1)];
+				AddTriangle(g_plus, make_triangle(v2, v01, v12));
+				AddTriangle(g_plus, make_triangle(v2, v0, v01));
+				AddTriangle(g_minus, make_triangle(v12, v01, v1));
 			}
 			
 			if ((v0.x > 0.0)&&(v1.x < 0.0)&&(v2.x < 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v20, v0, v01)];
-				[g_minus addTriangle:make_triangle(v2, v20, v1)];
-				[g_minus addTriangle:make_triangle(v20, v01, v1)];
+				AddTriangle(g_plus, make_triangle(v20, v0, v01));
+				AddTriangle(g_minus, make_triangle(v2, v20, v1));
+				AddTriangle(g_minus, make_triangle(v20, v01, v1));
 			}
 			
 			if ((v0.x < 0.0)&&(v1.x > 0.0)&&(v2.x > 0.0))
 			{
-				[g_minus addTriangle:make_triangle(v01, v20, v0)];
-				[g_plus addTriangle:make_triangle(v1, v20, v01)];
-				[g_plus addTriangle:make_triangle(v1, v2, v20)];
+				AddTriangle(g_minus, make_triangle(v01, v20, v0));
+				AddTriangle(g_plus, make_triangle(v1, v20, v01));
+				AddTriangle(g_plus, make_triangle(v1, v2, v20));
 			}
 			
 			if ((v0.x < 0.0)&&(v1.x > 0.0)&&(v2.x < 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v01, v1, v12)];
-				[g_minus addTriangle:make_triangle(v0, v01, v2)];
-				[g_minus addTriangle:make_triangle(v01, v12, v2)];
+				AddTriangle(g_plus, make_triangle(v01, v1, v12));
+				AddTriangle(g_minus, make_triangle(v0, v01, v2));
+				AddTriangle(g_minus, make_triangle(v01, v12, v2));
 			}
 			
 			if ((v0.x < 0.0)&&(v1.x < 0.0)&&(v2.x > 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v12, v2, v20)];
-				[g_minus addTriangle:make_triangle(v1, v12, v0)];
-				[g_minus addTriangle:make_triangle(v12, v20, v0)];
+				AddTriangle(g_plus, make_triangle(v12, v2, v20));
+				AddTriangle(g_minus, make_triangle(v1, v12, v0));
+				AddTriangle(g_minus, make_triangle(v12, v20, v0));
 			}			
 
 		}
@@ -530,12 +740,12 @@ static float volumecount;
 
 		if ((v0.y >= 0.0)&&(v1.y >= 0.0)&&(v2.y >= 0.0))
 		{
-			[g_plus addTriangle: triangles[i]];
+			AddTriangle(g_plus, triangles[i]);
 			done_tri = YES;
 		}
 		if ((v0.y <= 0.0)&&(v1.y <= 0.0)&&(v2.y <= 0.0))
 		{
-			[g_minus addTriangle: triangles[i]];
+			AddTriangle(g_minus, triangles[i]);
 			done_tri = YES;
 		}
 		if (!done_tri)	// triangle must cross y == 0.0
@@ -557,87 +767,87 @@ static float volumecount;
 			Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, 0.0f, i12 * (v2.z - v1.z) + v1.z);
 			Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, 0.0f, i20 * (v0.z - v2.z) + v2.z);
 			
-			// cases where a vertex is on the split..
+			// cases where a vertex is on the split.
 			if (v0.y == 0.0)
 			{
 				if (v1.y > 0)
 				{
-					[g_plus addTriangle:make_triangle(v0, v1, v12)];
-					[g_minus addTriangle:make_triangle(v0, v12, v2)];
+					AddTriangle(g_plus, make_triangle(v0, v1, v12));
+					AddTriangle(g_minus, make_triangle(v0, v12, v2));
 				}
 				else
 				{
-					[g_minus addTriangle:make_triangle(v0, v1, v12)];
-					[g_plus addTriangle:make_triangle(v0, v12, v2)];
+					AddTriangle(g_minus, make_triangle(v0, v1, v12));
+					AddTriangle(g_plus, make_triangle(v0, v12, v2));
 				}
 			}
 			if (v1.y == 0.0)
 			{
 				if (v2.y > 0)
 				{
-					[g_plus addTriangle:make_triangle(v1, v2, v20)];
-					[g_minus addTriangle:make_triangle(v1, v20, v0)];
+					AddTriangle(g_plus, make_triangle(v1, v2, v20));
+					AddTriangle(g_minus, make_triangle(v1, v20, v0));
 				}
 				else
 				{
-					[g_minus addTriangle:make_triangle(v1, v2, v20)];
-					[g_plus addTriangle:make_triangle(v1, v20, v0)];
+					AddTriangle(g_minus, make_triangle(v1, v2, v20));
+					AddTriangle(g_plus, make_triangle(v1, v20, v0));
 				}
 			}
 			if (v2.y == 0.0)
 			{
 				if (v0.y > 0)
 				{
-					[g_plus addTriangle:make_triangle(v2, v0, v01)];
-					[g_minus addTriangle:make_triangle(v2, v01, v1)];
+					AddTriangle(g_plus, make_triangle(v2, v0, v01));
+					AddTriangle(g_minus, make_triangle(v2, v01, v1));
 				}
 				else
 				{
-					[g_minus addTriangle:make_triangle(v2, v0, v01)];
-					[g_plus addTriangle:make_triangle(v2, v01, v1)];
+					AddTriangle(g_minus, make_triangle(v2, v0, v01));
+					AddTriangle(g_plus, make_triangle(v2, v01, v1));
 				}
 			}
 			
 			if ((v0.y > 0.0)&&(v1.y > 0.0)&&(v2.y < 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v0, v12, v20)];
-				[g_plus addTriangle:make_triangle(v0, v1, v12)];
-				[g_minus addTriangle:make_triangle(v20, v12, v2)];
+				AddTriangle(g_plus, make_triangle(v0, v12, v20));
+				AddTriangle(g_plus, make_triangle(v0, v1, v12));
+				AddTriangle(g_minus, make_triangle(v20, v12, v2));
 			}
 			
 			if ((v0.y > 0.0)&&(v1.y < 0.0)&&(v2.y > 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v2, v01, v12)];
-				[g_plus addTriangle:make_triangle(v2, v0, v01)];
-				[g_minus addTriangle:make_triangle(v12, v01, v1)];
+				AddTriangle(g_plus, make_triangle(v2, v01, v12));
+				AddTriangle(g_plus, make_triangle(v2, v0, v01));
+				AddTriangle(g_minus, make_triangle(v12, v01, v1));
 			}
 			
 			if ((v0.y > 0.0)&&(v1.y < 0.0)&&(v2.y < 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v20, v0, v01)];
-				[g_minus addTriangle:make_triangle(v2, v20, v1)];
-				[g_minus addTriangle:make_triangle(v20, v01, v1)];
+				AddTriangle(g_plus, make_triangle(v20, v0, v01));
+				AddTriangle(g_minus, make_triangle(v2, v20, v1));
+				AddTriangle(g_minus, make_triangle(v20, v01, v1));
 			}
 			
 			if ((v0.y < 0.0)&&(v1.y > 0.0)&&(v2.y > 0.0))
 			{
-				[g_minus addTriangle:make_triangle(v01, v20, v0)];
-				[g_plus addTriangle:make_triangle(v1, v20, v01)];
-				[g_plus addTriangle:make_triangle(v1, v2, v20)];
+				AddTriangle(g_minus, make_triangle(v01, v20, v0));
+				AddTriangle(g_plus, make_triangle(v1, v20, v01));
+				AddTriangle(g_plus, make_triangle(v1, v2, v20));
 			}
 			
 			if ((v0.y < 0.0)&&(v1.y > 0.0)&&(v2.y < 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v01, v1, v12)];
-				[g_minus addTriangle:make_triangle(v0, v01, v2)];
-				[g_minus addTriangle:make_triangle(v01, v12, v2)];
+				AddTriangle(g_plus, make_triangle(v01, v1, v12));
+				AddTriangle(g_minus, make_triangle(v0, v01, v2));
+				AddTriangle(g_minus, make_triangle(v01, v12, v2));
 			}
 			
 			if ((v0.y < 0.0)&&(v1.y < 0.0)&&(v2.y > 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v12, v2, v20)];
-				[g_minus addTriangle:make_triangle(v1, v12, v0)];
-				[g_minus addTriangle:make_triangle(v12, v20, v0)];
+				AddTriangle(g_plus, make_triangle(v12, v2, v20));
+				AddTriangle(g_minus, make_triangle(v1, v12, v0));
+				AddTriangle(g_minus, make_triangle(v12, v20, v0));
 			}			
 		}
 	}
@@ -660,15 +870,15 @@ static float volumecount;
 		
 		if ((v0.z >= 0.0)&&(v1.z >= 0.0)&&(v2.z >= 0.0))
 		{
-			[g_plus addTriangle: triangles[i]];
+			AddTriangle(g_plus, triangles[i]);
 			done_tri = YES;
 		}
 		if ((v0.z <= 0.0)&&(v1.z <= 0.0)&&(v2.z <= 0.0))
 		{
-			[g_minus addTriangle: triangles[i]];
+			AddTriangle(g_minus, triangles[i]);
 			done_tri = YES;
 		}
-		if (!done_tri)	// triangle must cross y == 0.0
+		if (!done_tri)	// triangle must cross z == 0.0
 		{
 			GLfloat i01, i12, i20;
 			if (v0.z == v1.z)
@@ -687,87 +897,87 @@ static float volumecount;
 			Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, i12 * (v2.y - v1.y) + v1.y, 0.0f);
 			Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, i20 * (v0.y - v2.y) + v2.y, 0.0f);
 		
-			// cases where a vertex is on the split..
+			// cases where a vertex is on the split.
 			if (v0.z == 0.0)
 			{
 				if (v1.z > 0)
 				{
-					[g_plus addTriangle:make_triangle(v0, v1, v12)];
-					[g_minus addTriangle:make_triangle(v0, v12, v2)];
+					AddTriangle(g_plus, make_triangle(v0, v1, v12));
+					AddTriangle(g_minus, make_triangle(v0, v12, v2));
 				}
 				else
 				{
-					[g_minus addTriangle:make_triangle(v0, v1, v12)];
-					[g_plus addTriangle:make_triangle(v0, v12, v2)];
+					AddTriangle(g_minus, make_triangle(v0, v1, v12));
+					AddTriangle(g_plus, make_triangle(v0, v12, v2));
 				}
 			}
 			if (v1.z == 0.0)
 			{
 				if (v2.z > 0)
 				{
-					[g_plus addTriangle:make_triangle(v1, v2, v20)];
-					[g_minus addTriangle:make_triangle(v1, v20, v0)];
+					AddTriangle(g_plus, make_triangle(v1, v2, v20));
+					AddTriangle(g_minus, make_triangle(v1, v20, v0));
 				}
 				else
 				{
-					[g_minus addTriangle:make_triangle(v1, v2, v20)];
-					[g_plus addTriangle:make_triangle(v1, v20, v0)];
+					AddTriangle(g_minus, make_triangle(v1, v2, v20));
+					AddTriangle(g_plus, make_triangle(v1, v20, v0));
 				}
 			}
 			if (v2.z == 0.0)
 			{
 				if (v0.z > 0)
 				{
-					[g_plus addTriangle:make_triangle(v2, v0, v01)];
-					[g_minus addTriangle:make_triangle(v2, v01, v1)];
+					AddTriangle(g_plus, make_triangle(v2, v0, v01));
+					AddTriangle(g_minus, make_triangle(v2, v01, v1));
 				}
 				else
 				{
-					[g_minus addTriangle:make_triangle(v2, v0, v01)];
-					[g_plus addTriangle:make_triangle(v2, v01, v1)];
+					AddTriangle(g_minus, make_triangle(v2, v0, v01));
+					AddTriangle(g_plus, make_triangle(v2, v01, v1));
 				}
 			}
 			
 			if ((v0.z > 0.0)&&(v1.z > 0.0)&&(v2.z < 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v0, v12, v20)];
-				[g_plus addTriangle:make_triangle(v0, v1, v12)];
-				[g_minus addTriangle:make_triangle(v20, v12, v2)];
+				AddTriangle(g_plus, make_triangle(v0, v12, v20));
+				AddTriangle(g_plus, make_triangle(v0, v1, v12));
+				AddTriangle(g_minus, make_triangle(v20, v12, v2));
 			}
 			
 			if ((v0.z > 0.0)&&(v1.z < 0.0)&&(v2.z > 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v2, v01, v12)];
-				[g_plus addTriangle:make_triangle(v2, v0, v01)];
-				[g_minus addTriangle:make_triangle(v12, v01, v1)];
+				AddTriangle(g_plus, make_triangle(v2, v01, v12));
+				AddTriangle(g_plus, make_triangle(v2, v0, v01));
+				AddTriangle(g_minus, make_triangle(v12, v01, v1));
 			}
 			
 			if ((v0.z > 0.0)&&(v1.z < 0.0)&&(v2.z < 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v20, v0, v01)];
-				[g_minus addTriangle:make_triangle(v2, v20, v1)];
-				[g_minus addTriangle:make_triangle(v20, v01, v1)];
+				AddTriangle(g_plus, make_triangle(v20, v0, v01));
+				AddTriangle(g_minus, make_triangle(v2, v20, v1));
+				AddTriangle(g_minus, make_triangle(v20, v01, v1));
 			}
 			
 			if ((v0.z < 0.0)&&(v1.z > 0.0)&&(v2.z > 0.0))
 			{
-				[g_minus addTriangle:make_triangle(v01, v20, v0)];
-				[g_plus addTriangle:make_triangle(v1, v20, v01)];
-				[g_plus addTriangle:make_triangle(v1, v2, v20)];
+				AddTriangle(g_minus, make_triangle(v01, v20, v0));
+				AddTriangle(g_plus, make_triangle(v1, v20, v01));
+				AddTriangle(g_plus, make_triangle(v1, v2, v20));
 			}
 			
 			if ((v0.z < 0.0)&&(v1.z > 0.0)&&(v2.z < 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v01, v1, v12)];
-				[g_minus addTriangle:make_triangle(v0, v01, v2)];
-				[g_minus addTriangle:make_triangle(v01, v12, v2)];
+				AddTriangle(g_plus, make_triangle(v01, v1, v12));
+				AddTriangle(g_minus, make_triangle(v0, v01, v2));
+				AddTriangle(g_minus, make_triangle(v01, v12, v2));
 			}
 			
 			if ((v0.z < 0.0)&&(v1.z < 0.0)&&(v2.z > 0.0))
 			{
-				[g_plus addTriangle:make_triangle(v12, v2, v20)];
-				[g_minus addTriangle:make_triangle(v1, v12, v0)];
-				[g_minus addTriangle:make_triangle(v12, v20, v0)];
+				AddTriangle(g_plus, make_triangle(v12, v2, v20));
+				AddTriangle(g_minus, make_triangle(v1, v12, v0));
+				AddTriangle(g_minus, make_triangle(v12, v20, v0));
 			}			
 
 		}
