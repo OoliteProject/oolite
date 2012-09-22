@@ -113,12 +113,23 @@ enum
 - (void) y_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) y;
 - (void) z_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) z;
 
-- (BOOL) testHasGeometry;
 - (BOOL) testIsConvex;
 - (BOOL) testCornersWithinGeometry:(GLfloat) corner;
 - (GLfloat) findMaxDimensionFromOrigin;
 
 @end
+
+
+OOINLINE void AddTriangle(Geometry *self, Triangle tri);
+static GCC_ATTR((noinline)) void GrowTriangles(Geometry *self);
+
+
+OOINLINE BOOL OOTriangleIsDegenerate(Triangle tri)
+{
+	return vector_equal(tri.v[0], tri.v[1]) ||
+	vector_equal(tri.v[1], tri.v[2]) ||
+	vector_equal(tri.v[2], tri.v[0]);
+}
 
 
 @implementation Geometry
@@ -175,7 +186,7 @@ enum
 	FreeBlock *block = sNextFreeBlock;
 	sNextFreeBlock = block->next;
 	
-	// ...Clear it (formally required)...
+	// ...clear it (formally required)...
 	memset(block, 0, sAllocationSize);
 	
 	// ...and turn it into an instance.
@@ -247,49 +258,6 @@ enum
 }
 
 
-static inline BOOL OOTriangleIsDegenerate(Triangle tri)
-{
-	return vector_equal(tri.v[0], tri.v[1]) ||
-	       vector_equal(tri.v[1], tri.v[2]) ||
-	       vector_equal(tri.v[2], tri.v[0]);
-}
-
-
-static GCC_ATTR((noinline)) void GrowTriangles(Geometry *self)
-{
-	if (self->triangles == NULL)
-	{
-		/*
-			Lazily allocate triangle storage, since a significant portion of
-			Geometries never have any triangles added to them. Note that
-			max_triangles is set to the specified capacity in init even though
-			the actual capacity is zero at that point.
-			
-			Profiling under the same conditions as the performance note at the
-			top of the file found that this condition had a hit rate of 11%,
-			which counterindicates the use of a branch hint.
-		*/
-		self->triangles = malloc(self->max_triangles * sizeof(Triangle));
-	}
-	
-	// check for no-more-room.
-	if (EXPECT_NOT(self->n_triangles == self->max_triangles))
-	{
-		// create more space by doubling the capacity of this geometry.
-		self->max_triangles = 1 + self->max_triangles * 2;
-		self->triangles = realloc(self->triangles, self->max_triangles * sizeof(Triangle));
-		
-		// N.b.: we leak here if realloc() failed, but we're about to abort anyway.
-	}
-	
-	if (EXPECT_NOT(self->triangles == NULL))
-	{
-		OOLog(kOOLogAllocationFailure, @"!!!!! Ran out of memory to allocate more geometry!");
-		exit(EXIT_FAILURE);
-	}
-}
-
-
 OOINLINE void AddTriangle(Geometry *self, Triangle tri)
 {
 	if (self->triangles == NULL || self->n_triangles == self->max_triangles)
@@ -303,19 +271,10 @@ OOINLINE void AddTriangle(Geometry *self, Triangle tri)
 
 - (void) addTriangle:(Triangle)tri
 {
-	// Ignore degenerate triangles.
-	if (OOTriangleIsDegenerate(tri))
+	if (!OOTriangleIsDegenerate(tri))
 	{
-		return;
+		AddTriangle(self, tri);
 	}
-	
-	AddTriangle(self, tri);
-}
-
-
-- (BOOL) testHasGeometry
-{
-	return (n_triangles > 0);
 }
 
 
@@ -417,7 +376,7 @@ static float volumecount;
 {
 	GLfloat offset = 0.5f * octreeRadius;
 	
-	if (![self testHasGeometry])
+	if (n_triangles == 0)
 	{
 		leafcount++;	// nil or zero or 0
 		return [NSNumber numberWithBool:NO];	// empty octree
@@ -496,19 +455,19 @@ static float volumecount;
 	Geometry* g_xx0 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
 	
 	[self z_axisSplitBetween:g_xx1 :g_xx0 : offset];
-	if ([g_xx0 testHasGeometry])
+	if (g_xx0->n_triangles != 0)
 	{
 		Geometry* g_x00 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
 		Geometry* g_x10 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
 		
 		[g_xx0 y_axisSplitBetween: g_x10 : g_x00 : offset];
-		if ([g_x00 testHasGeometry])
+		if (g_x00->n_triangles != 0)
 		{
 			[g_x00 x_axisSplitBetween:g_100 :g_000 : offset];
 			[g_000 setConvex: isConvex];
 			[g_100 setConvex: isConvex];
 		}
-		if ([g_x10 testHasGeometry])
+		if (g_x10->n_triangles != 0)
 		{
 			[g_x10 x_axisSplitBetween:g_110 :g_010 : offset];
 			[g_010 setConvex: isConvex];
@@ -517,19 +476,19 @@ static float volumecount;
 		[g_x00 release];
 		[g_x10 release];
 	}
-	if ([g_xx1 testHasGeometry])
+	if (g_xx1->n_triangles != 0)
 	{
 		Geometry* g_x01 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
 		Geometry* g_x11 =	[(Geometry *)[Geometry alloc] initWithCapacity:subCapacity];
 		
 		[g_xx1 y_axisSplitBetween: g_x11 : g_x01 :offset];
-		if ([g_x01 testHasGeometry])
+		if (g_x01->n_triangles != 0)
 		{
 			[g_x01 x_axisSplitBetween:g_101 :g_001 :offset];
 			[g_001 setConvex: isConvex];
 			[g_101 setConvex: isConvex];
 		}
-		if ([g_x11 testHasGeometry])
+		if (g_x11->n_triangles != 0)
 		{
 			[g_x11 x_axisSplitBetween:g_111 :g_011 :offset];
 			[g_011 setConvex: isConvex];
@@ -984,6 +943,50 @@ static float volumecount;
 	}
 	[g_plus translate: make_vector(0.0f, 0.0f, -z)];
 	[g_minus translate: make_vector(0.0f, 0.0f, z)];
+}
+
+
+/*
+	void GrowTriangles(Geometry *self)
+	
+	Ensure there is enough space to add at least one more triangle.
+	This is marked noinline so that the fast path in AddTriange() can be
+	inlined. Without the attribute, clang (and probably gcc too) will inline
+	GrowTriangles() into AddTriangle() (because it only has one call site),
+	making AddTriangle() to heavy to inline.
+*/
+static GCC_ATTR((noinline)) void GrowTriangles(Geometry *self)
+{
+	if (self->triangles == NULL)
+	{
+		/*
+			Lazily allocate triangle storage, since a significant portion of
+			Geometries never have any triangles added to them. Note that
+			max_triangles is set to the specified capacity in init even though
+			the actual capacity is zero at that point.
+			
+			Profiling under the same conditions as the performance note at the
+			top of the file found that this condition had a hit rate of 11%,
+			which counterindicates the use of a branch hint.
+		*/
+		self->triangles = malloc(self->max_triangles * sizeof(Triangle));
+	}
+	
+	// check for no-more-room.
+	if (EXPECT_NOT(self->n_triangles == self->max_triangles))
+	{
+		// create more space by doubling the capacity of this geometry.
+		self->max_triangles = 1 + self->max_triangles * 2;
+		self->triangles = realloc(self->triangles, self->max_triangles * sizeof(Triangle));
+		
+		// N.b.: we leak here if realloc() failed, but we're about to abort anyway.
+	}
+	
+	if (EXPECT_NOT(self->triangles == NULL))
+	{
+		OOLog(kOOLogAllocationFailure, @"!!!!! Ran out of memory to allocate more geometry!");
+		exit(EXIT_FAILURE);
+	}
 }
 
 @end
