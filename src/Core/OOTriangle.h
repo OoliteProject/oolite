@@ -32,14 +32,14 @@ MA 02110-1301, USA.
 
 typedef struct
 {
-	Vector		v[4];	// three vertices + normal
+	Vector		v[3];
 } Triangle;
 
 
-/* Calculate normal for triangle, storing it in v[3] */
+/* Calculate normal for triangle. */
 OOINLINE Vector calculateNormalForTriangle(Triangle *ioTriangle) NONNULL_FUNC;
 
-/* Generate a triangle from three vertices. Also calculates normal. */
+/* Generate a triangle from three vertices. */
 OOINLINE Triangle make_triangle(Vector v0, Vector v1, Vector v2) CONST_FUNC;
 
 /* resolve vector in arbitrary ijk vectors */
@@ -50,12 +50,7 @@ OOINLINE Vector resolveVectorInIJK(Vector v0, Triangle ijk);
 
 OOINLINE Triangle make_triangle(Vector v0, Vector v1, Vector v2)
 {
-	Triangle result;
-	result.v[0] = v0;
-	result.v[1] = v1;
-	result.v[2] = v2;
-	calculateNormalForTriangle(&result);
-	return result;
+	return (Triangle){{ v0, v1, v2 }};
 }
 
 
@@ -63,8 +58,7 @@ OOINLINE Vector calculateNormalForTriangle(Triangle *tri)
 {
 	Vector v01 = vector_subtract(tri->v[1], tri->v[0]);
 	Vector v12 = vector_subtract(tri->v[2], tri->v[1]);
-	tri->v[3] = cross_product(v01, v12);
-	return tri->v[3];
+	return cross_product(v01, v12);
 }
 
 

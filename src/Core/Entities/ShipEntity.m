@@ -1817,7 +1817,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (Triangle) absoluteIJKForSubentity
 {
-	Triangle	result = {{ kBasisXVector, kBasisYVector, kBasisZVector, kZeroVector }};
+	Triangle	result = {{ kBasisXVector, kBasisYVector, kBasisZVector }};
 	Entity		*last = nil;
 	Entity		*father = self;
 	OOMatrix	r_mat;
