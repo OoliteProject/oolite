@@ -107,7 +107,9 @@ enum
 - (BOOL) isConvex;
 - (void) setConvex:(BOOL)value;
 
-- (void) translate:(Vector)offset;
+- (void) translateX:(OOScalar)offset;
+- (void) translateY:(OOScalar)offset;
+- (void) translateZ:(OOScalar)offset;
 
 - (void) x_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) x;
 - (void) y_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) y;
@@ -221,7 +223,14 @@ OOINLINE BOOL OOTriangleIsDegenerate(Triangle tri)
 
 - (void) dealloc
 {
-	free(triangles);	// free up the allocated space
+	if (triangles != NULL)
+	{
+		/*	Free up triangle storage. Because this is called so many times and
+			triangles is so often NULL, avoiding the call in those cases is
+			worthwhile.
+		*/
+		free(triangles);
+	}
 	
 #if USE_ALLOC_POOL
 	// Do the runtimey bits of deallocing...
@@ -529,27 +538,38 @@ static float volumecount;
 }
 
 
-- (void) translate:(Vector)offset
+- (void) translateX:(OOScalar)offset
 {
-	/*
-		translate: has non-negligable profile presence. Separate translateX:,
-		translateY: and translateZ: may be beneficial.
-		-- Ahruman 2012-09-22
-	*/
-	NSInteger	i;
-	for (i = 0; i < n_triangles; i++)
+	NSUInteger i, count = (NSUInteger)n_triangles;
+	for (i = 0; i < count; i++)
 	{
-		triangles[i].v[0].x += offset.x;
-		triangles[i].v[1].x += offset.x;
-		triangles[i].v[2].x += offset.x;
-		
-		triangles[i].v[0].y += offset.y;
-		triangles[i].v[1].y += offset.y;
-		triangles[i].v[2].y += offset.y;
-		
-		triangles[i].v[0].z += offset.z;
-		triangles[i].v[1].z += offset.z;
-		triangles[i].v[2].z += offset.z;
+		triangles[i].v[0].x += offset;
+		triangles[i].v[1].x += offset;
+		triangles[i].v[2].x += offset;
+	}
+}
+
+
+- (void) translateY:(OOScalar)offset
+{
+	NSUInteger i, count = (NSUInteger)n_triangles;
+	for (i = 0; i < count; i++)
+	{
+		triangles[i].v[0].y += offset;
+		triangles[i].v[1].y += offset;
+		triangles[i].v[2].y += offset;
+	}
+}
+
+
+- (void) translateZ:(OOScalar)offset
+{
+	NSUInteger i, count = (NSUInteger)n_triangles;
+	for (i = 0; i < count; i++)
+	{
+		triangles[i].v[0].z += offset;
+		triangles[i].v[1].z += offset;
+		triangles[i].v[2].z += offset;
 	}
 }
 
@@ -680,8 +700,8 @@ static float volumecount;
 
 		}
 	}
-	[g_plus translate: make_vector(-x, 0.0f, 0.0f)];
-	[g_minus translate: make_vector(x, 0.0f, 0.0f)];
+	[g_plus translateX:-x];
+	[g_minus translateX:x];
 }
 
 
@@ -810,8 +830,8 @@ static float volumecount;
 			}			
 		}
 	}
-	[g_plus translate: make_vector(0.0f, -y, 0.0f)];
-	[g_minus translate: make_vector(0.0f, y, 0.0f)];
+	[g_plus translateY:-y];
+	[g_minus translateY:y];
 }
 
 
@@ -941,8 +961,8 @@ static float volumecount;
 
 		}
 	}
-	[g_plus translate: make_vector(0.0f, 0.0f, -z)];
-	[g_minus translate: make_vector(0.0f, 0.0f, z)];
+	[g_plus translateZ:-z];
+	[g_minus translateZ:z];
 }
 
 

@@ -81,7 +81,7 @@ extern OOTextureInfo gOOTextureInfo;
 
 
 #ifndef GL_EXT_texture_filter_anisotropic
-#warning GL_EXT_texture_filter_anisotropic unavailble -- are you using an up-to-date glext.h?
+#warning GL_EXT_texture_filter_anisotropic unavailable -- are you using an up-to-date glext.h?
 #endif
 
 #ifndef GL_CLAMP_TO_EDGE
