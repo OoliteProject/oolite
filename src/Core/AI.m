@@ -245,7 +245,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	OOPreservedAIStateMachine *preservedMachine = [[OOPreservedAIStateMachine alloc]
 												   initWithStateMachine:stateMachine
 																   name:stateMachineName
-																  state:stateMachineName
+																  state:currentState
 														pendingMessages:pendingMessages];
 	
 #ifndef NDEBUG
