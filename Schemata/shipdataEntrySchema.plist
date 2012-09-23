@@ -105,7 +105,8 @@
 		missile_launch_position = "vector";
 		missile_load_time = "positiveFloat";
 		missile_role = "$shipRole";
-		escape_pod_model = "$shipRole";
+		escape_pod_role = "$shipRole";		// new, improved (1.77)
+		escape_pod_model = "$shipRole";		// old, deprecated
 		aft_eject_position = "vector";
 		auto_ai = "boolean";
 		script = "$scriptFileName";

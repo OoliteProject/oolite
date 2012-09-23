@@ -238,6 +238,7 @@ MA 02110-1301, USA.
 	GLfloat				_crosshairScale;
 	GLfloat				_crosshairWidth;
 	NSString			*crosshairDefinition;
+	BOOL				_compassActive;
 
 }
 
@@ -261,6 +262,8 @@ MA 02110-1301, USA.
 
 - (BOOL) isHidden;
 - (void) setHidden:(BOOL)newValue;
+- (BOOL) isCompassActive;
+- (void) setCompassActive:(BOOL)newValue;
 
 - (BOOL) isUpdating;
 - (void) setDeferredHudName:(NSString *)newDeferredHudName;

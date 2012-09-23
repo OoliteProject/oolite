@@ -139,6 +139,8 @@ static GLfloat		sBaseMass = 0.0;
 - (double) hyperspaceJumpDistance;
 - (OOFuelQuantity) fuelRequiredForJump;
 
+- (void) noteCompassLostTarget;
+
 @end
 
 
@@ -2158,11 +2160,9 @@ static GLfloat		sBaseMass = 0.0;
 			[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 			[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 		}
-		[self addTarget:[UNIVERSE entityForUniversalID:_dockTarget]];	// main station in the original system, unless overridden.
-		[UNIVERSE setBlockJSPlayerShipProps:NO];	// re-enable player.ship!
 		
-		Entity	*dockTargetEntity = [UNIVERSE entityForUniversalID:_dockTarget];
-		if ([dockTargetEntity isStation]) // also fails if _dockTarget is NO_TARGET
+		Entity	*dockTargetEntity = [UNIVERSE entityForUniversalID:_dockTarget];	// main station in the original system, unless overridden.
+		if ([dockTargetEntity isStation]) // fails if _dockTarget is NO_TARGET
 		{
 			[doppelganger becomeExplosion];	// blow up the doppelganger
 			// restore player ship
@@ -2174,7 +2174,7 @@ static GLfloat		sBaseMass = 0.0;
 				[player_ship release];						// we only wanted it for its polygons!
 			}
 			[UNIVERSE setViewDirection:VIEW_FORWARD];
-			
+			[UNIVERSE setBlockJSPlayerShipProps:NO];	// re-enable player.ship!
 			[self enterDock:(StationEntity *)dockTargetEntity];
 		}
 		else	// no dock target? dock target is not a station? game over!
@@ -2688,9 +2688,18 @@ static GLfloat		sBaseMass = 0.0;
 		
 		// announce arrival
 		if ([UNIVERSE planet])
+		{
 			[UNIVERSE addMessage:[NSString stringWithFormat:@" %@. ",[UNIVERSE getSystemName:system_seed]] forCount:3.0];
+			// and reset the compass
+			if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])
+				compassMode = COMPASS_MODE_PLANET;
+			else
+				compassMode = COMPASS_MODE_BASIC;
+		}
 		else
+		{
 			if ([UNIVERSE inInterstellarSpace])  [UNIVERSE addMessage:DESC(@"witch-engine-malfunction") forCount:3.0]; // if sun gone nova, print nothing
+		}
 		
 		[self setStatus:STATUS_IN_FLIGHT];
 		
@@ -3155,7 +3164,8 @@ static GLfloat		sBaseMass = 0.0;
 - (BOOL) switchHudTo:(NSString *)hudFileName
 {
 	NSDictionary 	*hudDict = nil;
-	BOOL 			theHudIsHidden = NO;
+	BOOL 			wasHidden = NO;
+	BOOL 			wasCompassActive = YES;
 	double			scannerZoom = 1.0;
 	
 	if (!hudFileName)  return NO;
@@ -3177,7 +3187,9 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (hud != nil)
 	{
-		theHudIsHidden = [hud isHidden];
+		// remember these values
+		wasHidden = [hud isHidden];
+		wasCompassActive = [hud isCompassActive];
 		scannerZoom = [hud scannerZoom];
 	}
 	
@@ -3187,9 +3199,11 @@ static GLfloat		sBaseMass = 0.0;
 		[hud setHidden:YES];	// hide the hud while rebuilding it.
 		DESTROY(hud);
 		hud = [[HeadUpDisplay alloc] initWithDictionary:hudDict inFile:hudFileName];
-		[hud setScannerZoom:scannerZoom];
 		[hud resetGuis:hudDict];
-		[hud setHidden:theHudIsHidden]; // now show it, or reset it to what it was before.
+		// reset zoom & hidden to what they were before the swich
+		[hud setScannerZoom:scannerZoom];
+		[hud setCompassActive:wasCompassActive];
+		[hud setHidden:wasHidden];
 	}
 	
 	return YES;
@@ -3565,6 +3579,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	switch (compassMode)
 	{
+		case COMPASS_MODE_INACTIVE:
 		case COMPASS_MODE_BASIC:
 		case COMPASS_MODE_PLANET:
 			beacon = [UNIVERSE lastBeacon];
@@ -3633,6 +3648,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	switch (compassMode)
 	{
+		case COMPASS_MODE_INACTIVE:
 		case COMPASS_MODE_BASIC:
 		case COMPASS_MODE_PLANET:
 			aegis = [self checkForAegis];
@@ -5206,12 +5222,6 @@ static GLfloat		sBaseMass = 0.0;
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
 	
-	//reset the compass
-	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])
-		compassMode = COMPASS_MODE_PLANET;
-	else
-		compassMode = COMPASS_MODE_BASIC;
-	
 	if ( ![self wormhole] && !galactic_witchjump)	// galactic hyperspace does not generate a wormhole
 	{
 		OOLog(kOOLogInconsistentState, @"Internal Error : Player entering witchspace with no wormhole.");
@@ -5333,6 +5343,21 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) noteCompassLostTarget
+{
+	if ([[self hud] isCompassActive])
+	{
+		// "the compass, it says we're lost!" :)
+		JSContext *context = OOJSAcquireContext();
+		jsval jsmode = OOJSValueFromCompassMode(context, [self compassMode]);
+		ShipScriptEvent(context, self, "compassTargetChanged", JSVAL_VOID, jsmode);
+		OOJSRelinquishContext(context);
+		
+		[[self hud] setCompassActive:NO];	// ensure a target change when returning to normal space.
+	}
+}
+
+
 - (void) enterGalacticWitchspace
 {
 	if (![self witchJumpChecklist:true])
@@ -5340,6 +5365,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("galactic jump"));
+	[self noteCompassLostTarget];
 	
 	[self witchStart];
 	
@@ -5444,12 +5470,12 @@ static GLfloat		sBaseMass = 0.0;
 
 	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
 	// 75% of the time a malfunction means a misjump
-	BOOL misjump = [self scriptedMisjump] || ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
+	BOOL misjump = [self scriptedMisjump] || (flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75));
 
 	if (malfunc && !misjump)
 	{
 		// some malfunctions will start fuel leaks, some will result in no witchjump at all.
-		if ([self takeInternalDamage])  // Depending on ship type and loaded cargo, will this return 20 - 50% true.
+		if ([self takeInternalDamage])  // Depending on ship type and loaded cargo, this will be true for 20 - 50% of the time.
 		{
 			[self playWitchjumpFailure];
 			[self setStatus:STATUS_IN_FLIGHT];
@@ -5461,19 +5487,20 @@ static GLfloat		sBaseMass = 0.0;
 			[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
 		}
 	}
-
+	
 	// From this point forward we are -definitely- witchjumping
-
+	
 	// burn the full fuel amount to create the wormhole
 	fuel -= [self fuelRequiredForJump];
-
-	// NEW: Create the players' wormhole
+	
+	// Create the players' wormhole
 	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_seed fromShip:self];
-	[UNIVERSE addEntity:wormhole]; // New new: Add new wormhole to Universe to let other ships target it. Required for ships following the player.
+	[UNIVERSE addEntity:wormhole]; // Add new wormhole to Universe to let other ships target it. Required for ships following the player.
 	[self addScannedWormhole:wormhole];
-
+	
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"));
+	[self noteCompassLostTarget];
 	if ([self scriptedMisjump]) misjump = YES; // a script could just have changed this to true;
 	[self witchJumpTo:target_system_seed misjump:misjump];
 }

@@ -270,6 +270,7 @@
 			"missile_launch_position",
 			"missile_load_time",
 			"missile_role",
+			"escape_pod_role",
 			"escape_pod_model",
 			"aft_eject_position",
 			"auto_ai",

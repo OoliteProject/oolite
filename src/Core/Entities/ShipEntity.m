@@ -1862,11 +1862,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	ShipEntity *pod = nil;
 	
-	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
+	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape_pod_role"]];	// or nil
 	if (!pod)
 	{
-		pod = [UNIVERSE newShipWithRole:@"escape-capsule"];
-		OOLog(@"shipEntity.noEscapePod", @"Ship %@ has no correct escape_pod_model defined. Now using default capsule.", self);
+		//	_role not defined? it might have _model defined;
+		pod = [UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
+		if (!pod)
+		{
+			pod = [UNIVERSE newShipWithRole:@"escape-capsule"];
+			OOLog(@"shipEntity.noEscapePod", @"Ship %@ has no correct escape_pod_role defined. Now using default capsule.", self);
+		}
 	}
 	
 	if (pod)

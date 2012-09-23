@@ -152,6 +152,7 @@ enum
 - (void) checkMassLock;
 - (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)scanClass;
 - (BOOL) checkPlayerInFlight;
+- (BOOL) checkPlayerInSystemFlight;
 
 @end
 
@@ -169,7 +170,8 @@ static const GLfloat black_color[4] =		{0.0, 0.0, 0.0, 1.0};
 static const GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
 
 static float	sGlyphWidths[256];
-static BOOL		scannerUpdated;
+static BOOL		_scannerUpdated;
+static BOOL		_compassUpdated;
 static BOOL 	hostiles;
 
 
@@ -196,6 +198,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (id) initWithDictionary:(NSDictionary *)hudinfo inFile:(NSString *)hudFileName
 {
 	unsigned		i;
+	BOOL			isCompassToBeDrawn = NO;
 	BOOL			areTrumblesToBeDrawn = NO;
 	
 	self = [super init];
@@ -217,6 +220,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		NSDictionary	*dial_info = [dials oo_dictionaryAtIndex:i];
 		if (!areTrumblesToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawTrumbles:"])  areTrumblesToBeDrawn = YES;
+		if (!isCompassToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawCompass:"])  isCompassToBeDrawn = YES;
 		[self addDial:dial_info];
 	}
 	
@@ -225,7 +229,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		NSDictionary	*trumble_dial_info = [NSDictionary dictionaryWithObjectsAndKeys: @"drawTrumbles:", SELECTOR_KEY, nil];
 		[self addDial:trumble_dial_info];
 	}
-
+	
+	_compassActive = isCompassToBeDrawn;
 	
 	NSArray *legends = [hudinfo oo_arrayForKey:LEGENDS_KEY];
 	for (i = 0; i < [legends count]; i++)
@@ -499,6 +504,18 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
+- (BOOL) isCompassActive
+{
+	return _compassActive;
+}
+
+
+- (void) setCompassActive:(BOOL)newValue
+{
+	_compassActive = !!newValue;
+}
+
+
 - (BOOL) isUpdating
 {
 	return hudUpdating;
@@ -673,7 +690,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {	
 	z1 = [[UNIVERSE gameView] display_z];
 	// reset drawScanner flag.
-	scannerUpdated = NO;
+	_scannerUpdated = NO;
+	_compassUpdated = NO;
 	
 	// tight loop, we assume dialArray doesn't change in mid-draw.
 	for (_idx = [dialArray count] - 1; _idx >= 0; _idx--)
@@ -682,9 +700,16 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[self drawHUDItem:[_arrayAtIdx oo_dictionaryAtIndex:WIDGET_INFO]];
 	}
 	
+	if (EXPECT_NOT(!_compassUpdated && _compassActive && [self checkPlayerInSystemFlight]))	// compass gone / broken / disabled ?
+	{
+		// trigger the targetChanged event with whom == null
+		_compassActive = NO;
+		[PLAYER doScriptEvent:OOJSID("compassTargetChanged") withArguments:[NSArray arrayWithObjects:[NSNull null], OOStringFromCompassMode([PLAYER compassMode]), nil]];
+	}
+	
 	// We always need to check the mass lock status. It's normally checked inside drawScanner,
 	// but if drawScanner wasn't called, we can check mass lock explicitly.
-	if (!scannerUpdated)  [self checkMassLock];
+	if (!_scannerUpdated)  [self checkMassLock];
 }
 
 
@@ -841,8 +866,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	NSString	*equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	
 	if (EXPECT_NOT(equipment != nil && ![PLAYER hasEquipmentItem:equipment]))
+	{
 		return;
-	
+	}
 	// use the selector value stored during init.
 	[self performSelector:[(NSValue *)[_arrayAtIdx objectAtIndex:WIDGET_SELECTOR] pointerValue] withObject:info];
 	CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
@@ -854,6 +880,17 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	OOEntityStatus status = [PLAYER status];
 	
 	return ((status == STATUS_IN_FLIGHT)||(status == STATUS_AUTOPILOT_ENGAGED)||(status == STATUS_LAUNCHING)||(status == STATUS_WITCHSPACE_COUNTDOWN));
+}
+
+
+- (BOOL) checkPlayerInSystemFlight
+{
+	OOSunEntity		*the_sun = [UNIVERSE sun];
+	OOPlanetEntity	*the_planet = [UNIVERSE planet];
+	
+	return [self checkPlayerInFlight]		// be in the right mode
+		&& the_sun && the_planet		// and be in a system
+		&& ![the_sun goneNova];
 }
 
 
@@ -962,7 +999,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 
 - (void) drawScanner:(NSDictionary *)info
 {
-	if (scannerUpdated)  return;		// there's never the need to draw the scanner twice per frame!
+	if (_scannerUpdated)  return;		// there's never the need to draw the scanner twice per frame!
 	
 	int				i, x, y;
 	NSSize			siz;
@@ -1236,7 +1273,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		[my_entities[i] release];	//	released
 	}
 	
-	scannerUpdated = YES;
+	_scannerUpdated = YES;
 }
 
 
@@ -1345,8 +1382,10 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		
 		switch ([PLAYER compassMode])
 		{
+			case COMPASS_MODE_INACTIVE:
+				break;
+			
 			case COMPASS_MODE_BASIC:
-				
 				aegis = [PLAYER checkForAegis];
 				if ((aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE) && the_station)
 				{
@@ -1385,8 +1424,9 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 			reference = the_planet;
 		}
 		
-		if (reference != [PLAYER compassTarget])
+		if (EXPECT_NOT(!_compassActive || reference != [PLAYER compassTarget]))
 		{
+			_compassActive = YES;
 			[PLAYER setCompassTarget:reference];
 			[PLAYER doScriptEvent:OOJSID("compassTargetChanged") withArguments:[NSArray arrayWithObjects:reference, OOStringFromCompassMode([PLAYER compassMode]), nil]];
 		}
@@ -1406,6 +1446,9 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		OOGL(GLScaledLineWidth(2.0));
 		switch ([PLAYER compassMode])
 		{
+			case COMPASS_MODE_INACTIVE:
+				break;
+			
 			case COMPASS_MODE_BASIC:
 				[self drawCompassPlanetBlipAt:relativePosition Size:siz Alpha:alpha];
 				break;
@@ -1431,6 +1474,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				[[beacon beaconDrawable] oo_drawHUDBeaconIconAt:NSMakePoint(x, y) size:siz alpha:alpha z:z1];
 				break;
 		}
+		_compassUpdated = YES;
 	}
 }
 

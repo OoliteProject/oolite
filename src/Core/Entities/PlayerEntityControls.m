@@ -262,7 +262,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_hud_toggle,			'o'			);
 	
 	LOAD_KEY_SETTING(key_comms_log,				'`'			);
-	LOAD_KEY_SETTING(key_prev_compass_mode,		'|'		);
+	LOAD_KEY_SETTING(key_prev_compass_mode,		'|'			);
 	LOAD_KEY_SETTING(key_next_compass_mode,		'\\'		);
 	
 	LOAD_KEY_SETTING(key_cloaking_device,		'0'			);
@@ -2813,27 +2813,30 @@ static NSTimeInterval	time_last_frame;
 			scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
 	}
 	
-	// Compass mode '|'
-	if ([gameView isDown:key_prev_compass_mode]) // look for the '|' key
+	if (EXPECT([[self hud] isCompassActive]))	// only switch compass modes if there is a compass
 	{
-		if ((!prev_compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
-			[self setPrevCompassMode];
-		prev_compass_mode_pressed = YES;
-	}
-	else
-	{
-		prev_compass_mode_pressed = NO;
-	}
-	// Compass mode '\'
-	if ([gameView isDown:key_next_compass_mode]) // look for the '\' key
-	{
-		if ((!next_compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
-			[self setNextCompassMode];
-		next_compass_mode_pressed = YES;
-	}
-	else
-	{
-		next_compass_mode_pressed = NO;
+		// Compass mode '|'
+		if ([gameView isDown:key_prev_compass_mode]) // look for the '|' key
+		{
+			if ((!prev_compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
+				[self setPrevCompassMode];
+			prev_compass_mode_pressed = YES;
+		}
+		else
+		{
+			prev_compass_mode_pressed = NO;
+		}
+		// Compass mode '\'
+		if ([gameView isDown:key_next_compass_mode]) // look for the '\' key
+		{
+			if ((!next_compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
+				[self setNextCompassMode];
+			next_compass_mode_pressed = YES;
+		}
+		else
+		{
+			next_compass_mode_pressed = NO;
+		}
 	}
 	
 	//  show comms log '`'
