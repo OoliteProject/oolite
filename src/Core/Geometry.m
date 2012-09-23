@@ -56,12 +56,7 @@ MA 02110-1301, USA.
 	* A pool allocator for Geometries should be helpful.
 	* It may be worth putting space for some number of triangles in the
 	  Geometry itself (conceptually similar to the standard short string
-	  optimization). For example, if the isConvex flag used a bit in
-	  n_triangles, we could store 4 triangles in a 64-byte object (on a 64-
-	  bit system) before transitioning to dynamic storage. (This would avoid
-	  allocation for an additional 14% of objects over lazy allocation, so the
-	  win isn't that big. Raising the object size to 128 bytes gives us 9
-	  triangles.)
+	  optimization).
 	
 	All but the last of these is implemented in r5353.
 */
@@ -459,9 +454,9 @@ static float volumecount;
 		MAX(n_triangles * 3, 16)    12000       165744
 		MAX(n_triangles * 3, 21)    20000       165744
 		
-		The value 21 was chosen because it results in an allocator-friendly
-		size of 252 bytes. Performance profiling shows no discernible
-		difference between 2,16 and 3,21.
+		The value 21 was chosen for reasons which, on reflection, were entirely
+		wrong. Performance profiling shows no discernible difference between
+		2,16 and 3,21.
 	*/
 	enum
 	{
