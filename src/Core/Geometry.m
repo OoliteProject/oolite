@@ -74,12 +74,32 @@ MA 02110-1301, USA.
 #import "OOLogging.h"
 
 
-#define USE_ALLOC_POOL			OOLITE_MAC_OS_X_10_6
+#define USE_ALLOC_POOL			1
 
 
 #if USE_ALLOC_POOL
 
-#import <objc/runtime.h>
+#if OOLITE_GNUSTEP
+#import <GNUstepBase/GSObjCRuntime.h>
+
+
+static id objc_constructInstance(Class cls, void *bytes)
+{
+	id result = bytes;
+	result->class_pointer = cls;
+	return result;
+}
+
+
+static void *objc_destructInstance(id obj)
+{
+	return obj;
+}
+
+#else
+#import <objc/objc-runtime.h>
+#endif
+
 
 typedef struct FreeBlock
 {
