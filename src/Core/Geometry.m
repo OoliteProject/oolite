@@ -1004,12 +1004,13 @@ static GCC_ATTR((noinline)) void GrowTriangles(Geometry *self)
 			top of the file found that this condition had a hit rate of 11%,
 			which counterindicates the use of a branch hint.
 		*/
+		NSCAssert(self->max_triangles > 0, @"Geometry has zero or negative max_triangles, which should be impossible.");
 		self->triangles = malloc(self->max_triangles * sizeof(Triangle));
 	}
-	
-	// check for no-more-room.
-	if (EXPECT_NOT(self->n_triangles == self->max_triangles))
+	else
 	{
+		NSCAssert(self->n_triangles == self->max_triangles, @"Geometry GrowTriangles called when in neither of the states requiring growth.");
+		
 		// create more space by doubling the capacity of this geometry.
 		self->max_triangles = 1 + self->max_triangles * 2;
 		self->triangles = realloc(self->triangles, self->max_triangles * sizeof(Triangle));
