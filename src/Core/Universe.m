@@ -2467,6 +2467,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
+
 - (void) selectIntro2Previous
 {
 	demo_stage = DEMO_SHOW_THING;

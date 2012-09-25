@@ -105,11 +105,11 @@ enum
 }
 
 /*
-	-buildOctree
+	-buildOctreeWithRadius:(GLfloat)radius
 	
-	Generate an octree with the current data in the builder, and clear the
-	builder. If NDEBUG is undefined, throws an exception if the structure of
-	the octree is invalid.
+	Generate an octree with the current data in the builder and the specified
+	radius, and clear the builder. If NDEBUG is undefined, throws an exception
+	if the structure of the octree is invalid.
 */
 - (Octree *) buildOctreeWithRadius:(GLfloat)radius;
 
