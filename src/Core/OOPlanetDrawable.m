@@ -230,14 +230,6 @@
 	OOGL(glVertexPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
 	OOGL(glTexCoordPointer(2, GL_FLOAT, 0, kOOPlanetTexCoords));
 	
-#ifndef NDEBUG
-	if (gDebugFlags & DEBUG_MISC)
-	{
-		LogOpenGLState();
-		gDebugFlags &= ~DEBUG_MISC;
-	}
-#endif
-	
 	// FIXME: instead of GL_RESCALE_NORMAL, consider copying and transforming the vertex array for each planet.
 	OOGL(glEnable(GL_RESCALE_NORMAL));
 	OOGL(glEnableClientState(GL_NORMAL_ARRAY));

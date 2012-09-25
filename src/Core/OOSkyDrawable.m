@@ -231,6 +231,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	}
 	
 	// Restore state
+	OOGL(glDisableClientState(GL_COLOR_ARRAY));
 	OOGL(glPopAttrib());
 }
 

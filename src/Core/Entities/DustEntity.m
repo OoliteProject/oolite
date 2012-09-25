@@ -308,6 +308,8 @@ enum
 	
 	OOGL(glDisable(GL_TEXTURE_2D));
 	OOGL(glEnable(GL_BLEND));
+	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+	OOGL(glDepthMask(GL_FALSE));
 	
 	if (warp_stars)
 	{
@@ -359,6 +361,9 @@ enum
 	{
 		OOGL(glDisable(GL_FOG));
 	}
+	
+	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+	OOGL(glDepthMask(GL_TRUE));
 	
 	CheckOpenGLErrors(@"DustEntity after drawing %@", self);
 }
