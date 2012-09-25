@@ -46,6 +46,6 @@ MA 02110-1301, USA.
 
 - (void) addTriangle:(Triangle) tri;
 
-- (Octree *) findOctreeToDepth:(int)depth;
+- (Octree *) findOctreeToDepth:(NSUInteger)depth;
 
 @end

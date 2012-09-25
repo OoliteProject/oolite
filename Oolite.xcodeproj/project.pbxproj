@@ -692,7 +692,7 @@
 		1AEF57D312E51DDB00546444 /* OOJSEngineNativeWrappers.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEF57D212E51DDB00546444 /* OOJSEngineNativeWrappers.h */; };
 		1AF4AF4A15B858AA009243BE /* OOWeakSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AF4AF4815B858AA009243BE /* OOWeakSet.h */; };
 		1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF4AF4915B858AA009243BE /* OOWeakSet.m */; };
-		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
+		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
 		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
 		2512834309BA27EC00F43D55 /* Geometry.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834109BA27EC00F43D55 /* Geometry.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };

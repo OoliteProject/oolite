@@ -109,6 +109,7 @@ static FreeBlock		*sNextFreeBlock;
 
 enum
 {
+	// Desired size per allocation chunk.
 	kTargetPageSize				= 4096
 };
 
@@ -117,7 +118,7 @@ enum
 
 @interface Geometry (OOPrivate)
 
-- (id) octreeWithinRadius:(GLfloat)octreeRadius toDepth:(int)depth;
+- (void) buildOctreeWithinRadius:(GLfloat)octreeRadius toDepth:(NSUInteger)depth intoBuilder:(OOOctreeBuilder *)builder;
 
 - (BOOL) isConvex;
 - (void) setConvex:(BOOL)value;
@@ -138,14 +139,14 @@ enum
 
 
 OOINLINE void AddTriangle(Geometry *self, Triangle tri);
-static GCC_ATTR((noinline)) void GrowTriangles(Geometry *self);
+static void GrowTriangles(Geometry *self) NO_INLINE_FUNC;
 
 
 OOINLINE BOOL OOTriangleIsDegenerate(Triangle tri)
 {
 	return vector_equal(tri.v[0], tri.v[1]) ||
-	vector_equal(tri.v[1], tri.v[2]) ||
-	vector_equal(tri.v[2], tri.v[0]);
+	       vector_equal(tri.v[1], tri.v[2]) ||
+	       vector_equal(tri.v[2], tri.v[0]);
 }
 
 
@@ -175,7 +176,7 @@ OOINLINE BOOL OOTriangleIsDegenerate(Triangle tri)
 			Use a set of mutableDatas to hold on to our allocation blocks, so
 			we can easily free them all when allocation count drops to zero.
 		*/
-		NSMutableData *chunk = [NSMutableData dataWithLength:sAllocationSize * sBlocksPerChunk];
+		NSMutableData *chunk = [NSMutableData dataWithLength:kTargetPageSize];
 		if (sAllocationChunks == nil)
 		{
 			sAllocationChunks = [[NSMutableSet alloc] init];
@@ -378,40 +379,33 @@ OOINLINE void AddTriangle(Geometry *self, Triangle tri)
 }
 
 
-static int leafcount;
-static float volumecount;
-
-- (Octree *) findOctreeToDepth:(int)depth
+- (Octree *) findOctreeToDepth:(NSUInteger)depth
 {
-	leafcount = 0;
-	volumecount = 0.0f;
+	OOOctreeBuilder *builder = [[[OOOctreeBuilder alloc] init] autorelease];
 	
 	GLfloat foundRadius = 0.5f + [self findMaxDimensionFromOrigin];	// pad out from geometry by a half meter
 	
-	NSObject *foundOctree = [self octreeWithinRadius:foundRadius toDepth:depth];
-	
-	Octree*	octreeRepresentation = [[Octree alloc] initWithRadius:foundRadius leafCount:leafcount objectRepresentation:foundOctree];
-	
-	return [octreeRepresentation autorelease];
+	[self buildOctreeWithinRadius:foundRadius toDepth:depth intoBuilder:builder];
+	return [builder buildOctreeWithRadius:foundRadius];
 }
 
 
-- (id) octreeWithinRadius:(GLfloat)octreeRadius toDepth:(int)depth
+- (void) buildOctreeWithinRadius:(GLfloat)octreeRadius toDepth:(NSUInteger)depth intoBuilder:(OOOctreeBuilder *)builder
 {
 	GLfloat offset = 0.5f * octreeRadius;
 	
 	if (n_triangles == 0)
 	{
-		leafcount++;	// nil or zero or 0
-		return [NSNumber numberWithBool:NO];	// empty octree
+		// No geometry here.
+		[builder writeEmpty];
+		return;
 	}
 	
-	// there is geometry!
-	if ((octreeRadius <= OCTREE_MIN_RADIUS)||(depth <= 0))	// maximum resolution
+	if (octreeRadius <= OCTREE_MIN_RADIUS || depth <= 0)
 	{
-		leafcount++;	// partially full or -1
-		volumecount += octreeRadius * octreeRadius * octreeRadius * 0.5f;
-		return [NSNumber numberWithBool:YES];	// at least partially full octree
+		// Maximum resolution reached and not full.
+		[builder writeSolid];
+		return;
 	}
 	
 	if (!isConvex)
@@ -422,12 +416,11 @@ static float volumecount;
 	{
 		if ([self testCornersWithinGeometry: octreeRadius])	// all eight corners inside or on!
 		{
-			leafcount++;	// full or -1
-			volumecount += octreeRadius * octreeRadius * octreeRadius;
-			return [NSNumber numberWithBool:YES];	// full octree
+			[builder writeSolid];
+			return;
 		}
 	}
-	
+
 	/*
 		As per performance notes, we want to use a heuristic which keeps the
 		number of reallocations needed low with relatively little regard to
@@ -440,10 +433,10 @@ static float volumecount;
 		Heuristic: expression used to initialize subCapacity.
 		
 		PER: number of geometries per reallocation; in other words, a realloc
-		     is needed one time per PER geometries.
+			 is needed one time per PER geometries.
 		
 		MEM: high water mark for total memory consumption (triangles arrays
-		     only) across all live Geometries.
+			 only) across all live Geometries.
 		
 		Heuristic                   PER         MEM
 		n_triangles                 3-4         71856
@@ -524,22 +517,18 @@ static float volumecount;
 	[g_xx0 release];
 	[g_xx1 release];
 	
-	/*
-		Setting up result array has significant cost. Could be optimized with
-		a custom array class that short-circuits the retain/release dance.
-		-- Ahruman 2012-09-22
-	*/
-	leafcount++;	// pointer to array
-	NSObject* result = [NSArray arrayWithObjects:
-		[g_000 octreeWithinRadius: offset toDepth:depth - 1],
-		[g_001 octreeWithinRadius: offset toDepth:depth - 1],
-		[g_010 octreeWithinRadius: offset toDepth:depth - 1],
-		[g_011 octreeWithinRadius: offset toDepth:depth - 1],
-		[g_100 octreeWithinRadius: offset toDepth:depth - 1],
-		[g_101 octreeWithinRadius: offset toDepth:depth - 1],
-		[g_110 octreeWithinRadius: offset toDepth:depth - 1],
-		[g_111 octreeWithinRadius: offset toDepth:depth - 1],
-		nil];
+	[builder beginInnerNode];
+	depth--;
+	[g_000 buildOctreeWithinRadius:offset toDepth:depth intoBuilder:builder];
+	[g_001 buildOctreeWithinRadius:offset toDepth:depth intoBuilder:builder];
+	[g_010 buildOctreeWithinRadius:offset toDepth:depth intoBuilder:builder];
+	[g_011 buildOctreeWithinRadius:offset toDepth:depth intoBuilder:builder];
+	[g_100 buildOctreeWithinRadius:offset toDepth:depth intoBuilder:builder];
+	[g_101 buildOctreeWithinRadius:offset toDepth:depth intoBuilder:builder];
+	[g_110 buildOctreeWithinRadius:offset toDepth:depth intoBuilder:builder];
+	[g_111 buildOctreeWithinRadius:offset toDepth:depth intoBuilder:builder];
+	[builder endInnerNode];
+	
 	[g_000 release];
 	[g_001 release];
 	[g_010 release];
@@ -548,8 +537,6 @@ static float volumecount;
 	[g_101 release];
 	[g_110 release];
 	[g_111 release];
-	
-	return result;
 }
 
 
@@ -990,7 +977,7 @@ static float volumecount;
 	GrowTriangles() into AddTriangle() (because it only has one call site),
 	making AddTriangle() to heavy to inline.
 */
-static GCC_ATTR((noinline)) void GrowTriangles(Geometry *self)
+static void GrowTriangles(Geometry *self)
 {
 	if (self->triangles == NULL)
 	{

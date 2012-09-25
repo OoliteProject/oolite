@@ -66,7 +66,7 @@ MA 02110-1301, USA.
 enum
 {
 	kBaseOctreeDepth				= 5,	// 32x32x32
-	kMaxOctreeDepth					= 7,	// 128x128x128
+//	kMaxOctreeDepth declared in Octree.h.
 	kSmallOctreeDepth				= 4,	// 16x16x16
 	kVerySmallOctreeDepth			= 3,	// 8x8x8
 	kOctreeSizeThreshold			= 900,	// Size at which we start increasing octree depth

@@ -43,6 +43,7 @@
 #define NONNULL_FUNC		GCC_ATTR((nonnull))			// Pointer parameters may not be NULL
 #define DEPRECATED_FUNC		GCC_ATTR((deprecated))		// Warn if this function is used
 #define NO_RETURN_FUNC		GCC_ATTR((noreturn))		// Function can never return
+#define NO_INLINE_FUNC		GCC_ATTR((noinline))		// Function must never be inlined
 
 #define INLINE_PURE_FUNC	ALWAYS_INLINE_FUNC PURE_FUNC
 #define INLINE_CONST_FUNC	ALWAYS_INLINE_FUNC CONST_FUNC

@@ -1,6 +1,6 @@
 /*
 
-Octtree.h
+Octree.h
 
 Octtree class for collision detection.
 
@@ -36,50 +36,40 @@ MA 02110-1301, USA.
 #endif
 
 
-typedef struct
-{
-	GLfloat				radius;
-	int					*octree;	
-	unsigned char		*octree_collision;
-} Octree_details;
-
-
 @interface Octree: NSObject
 {
 @private
-	GLfloat			radius;
-	int				leafs;
-	int				*octree;
-	BOOL			hasCollision;
+	GLfloat				_radius;
+	uint32_t			_nodeCount;
+	const int			*_octree;
+	BOOL				_hasCollision;
 	
-	unsigned char	*octree_collision;
+	unsigned char		*_collisionOctree;
+	
+	NSData				*_data;
 }
 
-- (id) initWithRadius:(GLfloat)radius leafCount:(unsigned)leafCount objectRepresentation:(id)objectRepresentation;
-- (id) initWithDictionary:(NSDictionary*) dict;
+/*
+	- (id) initWithDictionary:
+	
+	Deserialize an octree from cache representation.
+	(To make a new octree, build it with OOOctreeBuilder.)
+*/
+- (id) initWithDictionary:(NSDictionary *)dictionary;
 
 - (GLfloat) radius;
-- (int) leafs;
-- (int *) octree;
-- (BOOL) hasCollision;
-- (void) setHasCollision:(BOOL) value;
-- (unsigned char *) octree_collision;
-
-- (Octree_details) octreeDetails;
 
 - (Octree *) octreeScaledBy:(GLfloat)factor;
-
-Vector offsetForOctant(int oct, GLfloat r);
 
 #ifndef OODEBUGLDRAWING_DISABLE
 - (void) drawOctree;
 - (void) drawOctreeCollisions;
 #endif
 
-- (GLfloat) isHitByLine: (Vector) v0: (Vector) v1;
+- (GLfloat) isHitByLine:(Vector)v0 :(Vector)v1;
 
-- (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk;
-- (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk andScales: (GLfloat) s1: (GLfloat) s2;
+- (BOOL) isHitByOctree:(Octree *)other withOrigin:(Vector)origin andIJK:(Triangle)ijk;
+- (BOOL) isHitByOctree:(Octree *)other withOrigin:(Vector)origin andIJK:(Triangle)ijk andScales:(GLfloat)s1 :(GLfloat)s2;
 
 - (NSDictionary *) dictionaryRepresentation;
 
@@ -91,5 +81,57 @@ Vector offsetForOctant(int oct, GLfloat r);
 #ifndef NDEBUG
 - (size_t) totalSize;
 #endif
+
+@end
+
+
+enum
+{
+	kMaxOctreeDepth = 7	// 128x128x128
+};
+
+
+@interface OOOctreeBuilder: NSObject
+{
+@private
+	int					*_octree;
+	uint_fast32_t		_nodeCount, _capacity;
+	struct OOOctreeBuildState
+	{
+		uint32_t			insertionPoint;
+		uint32_t			remaining;
+	}					_stateStack[kMaxOctreeDepth + 1];
+	uint_fast8_t		_level;
+}
+
+/*
+	-buildOctree
+	
+	Generate an octree with the current data in the builder, and clear the
+	builder. If NDEBUG is undefined, throws an exception if the structure of
+	the octree is invalid.
+*/
+- (Octree *) buildOctreeWithRadius:(GLfloat)radius;
+
+/*
+	Append nodes to the octree.
+	
+	There are three types of nodes: solid, empty, and inner nodes.
+	An inner node must have exactly eight children, which may be any type of
+	node. Exactly one node must be added at root level.
+	
+	The order of child nodes is defined as follows: the index of a child node
+	is a three bit number. The highest bit represents x, the middle bit
+	represents y and the low bit represents z. A set bit indicates the high-
+	coordinate half of the parent node, and a clear bit indicates the low-
+	coordinate half.
+	
+	For instance, if the parent node is a cube ranging from -1 to 1 on each
+	axis, the child 101 (5) represents x 0..1, y -1..0, z 0..1.
+*/
+- (void) writeSolid;
+- (void) writeEmpty;
+- (void) beginInnerNode;
+- (void) endInnerNode;
 
 @end
