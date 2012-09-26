@@ -69,7 +69,8 @@ MA 02110-1301, USA.
 #import "OOLogging.h"
 
 
-#define USE_ALLOC_POOL			1
+// Alloc pool implementation, as-is, is incompatible with GNUstep's broken implementation of retain counts.
+#define USE_ALLOC_POOL			OOLITE_MAC_OS_X
 
 
 #if USE_ALLOC_POOL
