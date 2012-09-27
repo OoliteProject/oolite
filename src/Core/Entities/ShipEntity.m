@@ -6292,7 +6292,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 			break;
 		case WEAPON_MINING_LASER:
 			weapon_damage =			50.0;
-			weapon_recharge_rate =	0.5;
+			weapon_recharge_rate =	2.5;
 			weapon_shot_temperature =	10.0f;
 			break;
 		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
