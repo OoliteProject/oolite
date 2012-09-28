@@ -31,18 +31,23 @@ MA 02110-1301, USA.
 
 @class ShipEntity, Octree;
 
+
+enum
+{
+	kOOGeometrySmallDataSize = 16
+};
+
+
 @interface Geometry: NSObject
 {
 @private
 	struct OOGeometryInternalData
 	{
-		union
-		{
-			Triangle			*triangles;  // Pointer to malloced triangle array if capacity > 0.
-			uintptr_t			pendingCapacity;  // Initial capacity if capacity == 0.
-		};
-		uint_fast32_t		count;		// Number of used slots in triangles.
-		uint_fast32_t		capacity;	// Number of allocated slots in triangles.
+		Triangle			*triangles;			// Pointer to triangle array.
+		uint_fast32_t		count;				// Number of used slots in triangles.
+		uint_fast32_t		capacity;			// Number of allocated slots in triangles.
+		uint_fast32_t		pendingCapacity;	// Capacity to use for first growth.
+		Triangle			smallData[kOOGeometrySmallDataSize];
 	}					_data;
 }
 

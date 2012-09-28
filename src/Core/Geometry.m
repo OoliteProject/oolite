@@ -73,7 +73,7 @@ MA 02110-1301, USA.
 
 typedef struct OOGeometryInternalData GeometryData;
 
-OOINLINE GeometryData MakeGeometryData(uint_fast32_t capacity);
+OOINLINE void InitGeometryData(GeometryData *data, uint_fast32_t capacity);
 OOINLINE void DestroyGeometryData(GeometryData *data);
 
 OOINLINE void AddTriangle(GeometryData *data, Triangle tri);
@@ -90,35 +90,27 @@ static void SplitGeometryZ(GeometryData *data, GeometryData *dPlus, GeometryData
 
 // MARK: Inline function bodies.
 
-OOINLINE GeometryData MakeGeometryData(uint_fast32_t capacity)
+void InitGeometryData(GeometryData *data, uint_fast32_t capacity)
 {
-	NSCParameterAssert(capacity > 0);
-	
-	/*
-		Returns a GeometryData with the specified pendingCapacity and all other
-		fields 0. What we want is (Geometry){ .pendingCapacity = capacity }, but
-		at least in current Apple-clang this doesn't work with the anonymous
-		union.
-		-- Ahruman 2012-09-27
-	*/
-	GeometryData result = { .capacity = 0 };
-	result.pendingCapacity = capacity;
-	return result;
+	data->count = 0;
+	data->capacity = kOOGeometrySmallDataSize;
+	data->pendingCapacity = capacity;
+	data->triangles = data->smallData;
 }
 
 
 OOINLINE void DestroyGeometryData(GeometryData *data)
 {
-	NSCParameterAssert(data != 0);
+	NSCParameterAssert(data != 0 && data->capacity >= kOOGeometrySmallDataSize);
 	
 #if OO_DEBUG
 	Triangle * const kScribbleValue = (Triangle *)-1L;
 	NSCAssert(data->triangles != kScribbleValue, @"Attempt to destroy a GeometryData twice.");
 #endif
 	
-	if (data->capacity != 0)
+	if (data->capacity != kOOGeometrySmallDataSize)
 	{
-		// If capacity is 0, triangles is actually pendingCapacity, so free() would be bad.
+		// If capacity is kOOGeometrySmallDataSize, triangles points to smallData.
 		free(data->triangles);
 	}
 	
@@ -151,7 +143,7 @@ OOINLINE void AddTriangle(GeometryData *data, Triangle tri)
 	
 	if ((self = [super init]))
 	{
-		_data = MakeGeometryData((uint_fast32_t)capacity);
+		InitGeometryData(&_data, (uint_fast32_t)capacity);
 	}
 	
 	return self;
@@ -270,23 +262,25 @@ void BuildSubOctree(GeometryData *data, OOOctreeBuilder *builder, OOScalar octre
 	uint_fast32_t subCapacity = data->count * kFactor;
 	if (subCapacity < kMinimum)  subCapacity = kMinimum;
 	
-	GeometryData g_000 = MakeGeometryData(subCapacity);
-	GeometryData g_001 = MakeGeometryData(subCapacity);
-	GeometryData g_010 = MakeGeometryData(subCapacity);
-	GeometryData g_011 = MakeGeometryData(subCapacity);
-	GeometryData g_100 = MakeGeometryData(subCapacity);
-	GeometryData g_101 = MakeGeometryData(subCapacity);
-	GeometryData g_110 = MakeGeometryData(subCapacity);
-	GeometryData g_111 = MakeGeometryData(subCapacity);
+#define DECL_GEOMETRY(NAME, CAP) GeometryData NAME; InitGeometryData(&NAME, CAP);
 	
-	GeometryData g_xx1 = MakeGeometryData(subCapacity);
-	GeometryData g_xx0 = MakeGeometryData(subCapacity);
+	DECL_GEOMETRY(g_000, subCapacity);
+	DECL_GEOMETRY(g_001, subCapacity);
+	DECL_GEOMETRY(g_010, subCapacity);
+	DECL_GEOMETRY(g_011, subCapacity);
+	DECL_GEOMETRY(g_100, subCapacity);
+	DECL_GEOMETRY(g_101, subCapacity);
+	DECL_GEOMETRY(g_110, subCapacity);
+	DECL_GEOMETRY(g_111, subCapacity);
+	
+	DECL_GEOMETRY(g_xx1, subCapacity);
+	DECL_GEOMETRY(g_xx0, subCapacity);
 	
 	SplitGeometryZ(data, &g_xx1, &g_xx0, offset);
 	if (g_xx0.count != 0)
 	{
-		GeometryData g_x00 = MakeGeometryData(subCapacity);
-		GeometryData g_x10 = MakeGeometryData(subCapacity);
+		DECL_GEOMETRY(g_x00, subCapacity);
+		DECL_GEOMETRY(g_x10, subCapacity);
 		
 		SplitGeometryY(&g_xx0, &g_x10, &g_x00, offset);
 		if (g_x00.count != 0)
@@ -302,8 +296,8 @@ void BuildSubOctree(GeometryData *data, OOOctreeBuilder *builder, OOScalar octre
 	}
 	if (g_xx1.count != 0)
 	{
-		GeometryData g_x01 = MakeGeometryData(subCapacity);
-		GeometryData g_x11 = MakeGeometryData(subCapacity);
+		DECL_GEOMETRY(g_x01, subCapacity);
+		DECL_GEOMETRY(g_x11, subCapacity);
 		
 		SplitGeometryY(&g_xx1, &g_x11, &g_x01, offset);
 		if (g_x01.count != 0)
@@ -513,8 +507,7 @@ static void SplitGeometryX(GeometryData *data, GeometryData *dPlus, GeometryData
 				AddTriangle(dPlus, make_triangle(v12, v2, v20));
 				AddTriangle(dMinus, make_triangle(v1, v12, v0));
 				AddTriangle(dMinus, make_triangle(v12, v20, v0));
-			}			
-
+			}
 		}
 	}
 	TranslateGeometryX(dPlus, -x);
@@ -776,8 +769,7 @@ static void SplitGeometryZ(GeometryData *data, GeometryData *dPlus, GeometryData
 				AddTriangle(dPlus, make_triangle(v12, v2, v20));
 				AddTriangle(dMinus, make_triangle(v1, v12, v0));
 				AddTriangle(dMinus, make_triangle(v12, v20, v0));
-			}			
-
+			}
 		}
 	}
 	TranslateGeometryZ(dPlus, -z);
@@ -791,9 +783,9 @@ static void SplitGeometryZ(GeometryData *data, GeometryData *dPlus, GeometryData
 	Slow path for AddTriangle(). Ensure that there is enough space to add a
 	triangle, then actually add it.
 	
-	If no memory has been allocated yet, capacity is 0 and pendingCapacity is
-	the capacity passed to MakeGeometryData(). Otherwise, capacity > 0 and
-	triangles is a valid pointer.
+	If no memory has been allocated yet, capacity is kOOGeometrySmallDataSize,
+	triangles points at smallData and pendingCapacity is the capacity passed
+	to InitGeometryData(). Otherwise, triangles is a malloced pointer.
 	
 	This is marked noinline so that the fast path in AddTriange() can be
 	inlined. Without the attribute, clang (and probably gcc too) will inline
@@ -804,18 +796,11 @@ static NO_INLINE_FUNC void AddTriangle_slow(GeometryData *data, Triangle tri)
 {
 	NSCParameterAssert(data->count == data->capacity);
 	
-	if (data->capacity == 0)
+	if (data->capacity == kOOGeometrySmallDataSize)
 	{
-		/*
-			Lazily allocate triangle storage, since a significant portion of
-			Geometries never have any triangles added to them. Note that
-			max_triangles is set to the specified capacity in init even though
-			the actual capacity is zero at that point.
-		*/
-		NSCAssert(data->pendingCapacity > 0, @"GeometryData has zero pendingCapacity.");
-		
-		data->capacity = (uint_fast32_t)data->pendingCapacity;
+		data->capacity = MAX(data->pendingCapacity, (uint_fast32_t)kOOGeometrySmallDataSize * 2);
 		data->triangles = malloc(data->capacity * sizeof(Triangle));
+		memcpy(data->triangles, data->smallData, sizeof data->smallData);
 	}
 	else
 	{
