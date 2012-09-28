@@ -26,25 +26,36 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
-
 #import "OOMaths.h"
+
+
+// Enable/disable a costly structural optimization with a very low hit rate.
+#define PERFORM_CORNERS_WITHIN_GEOMETRY_TEST 0
+
 
 @class ShipEntity, Octree;
 
 @interface Geometry: NSObject
 {
 @private
-	// a geometry essentially consists of a whole bunch of Triangles.
-	// Note: simply making these unsigned will break octree generation. If trying it, don't forget to flush the cache. -- Ahruman 20081101
-	NSInteger	n_triangles;			// how many triangles in the geometry
-	NSInteger	max_triangles;			// how many triangles are allowed in the geometry before expansion
-	Triangle	*triangles;				// pointer to an array of triangles which we'll grow as necessary...
-	BOOL		isConvex;				// set at initialisation to NO
+	struct OOGeometryInternalData
+	{
+		union
+		{
+			Triangle			*triangles;  // Pointer to malloced triangle array if capacity > 0.
+			uintptr_t			pendingCapacity;  // Initial capacity if capacity == 0.
+		};
+		uint_fast32_t		count;		// Number of used slots in triangles.
+		uint_fast32_t		capacity;	// Number of allocated slots in triangles.
+#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST
+		bool				isKnownConvex;
+#endif
+	}					_data;
 }
 
-- (id) initWithCapacity:(NSUInteger)amount;
+- (id) initWithCapacity:(NSUInteger)capacity;
 
-- (void) addTriangle:(Triangle) tri;
+- (void) addTriangle:(Triangle)tri;
 
 - (Octree *) findOctreeToDepth:(NSUInteger)depth;
 

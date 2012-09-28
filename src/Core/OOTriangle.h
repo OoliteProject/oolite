@@ -45,6 +45,9 @@ OOINLINE Triangle make_triangle(Vector v0, Vector v1, Vector v2) CONST_FUNC;
 /* resolve vector in arbitrary ijk vectors */
 OOINLINE Vector resolveVectorInIJK(Vector v0, Triangle ijk);
 
+/* Test whether triangle's area is 0. */
+OOINLINE bool OOTriangleIsDegenerate(Triangle tri) CONST_FUNC;
+
 
 /*** Only inline definitions beyond this point ***/
 
@@ -69,6 +72,14 @@ OOINLINE Vector resolveVectorInIJK(Vector v0, Triangle ijk)
 	result.y = dot_product(v0, ijk.v[1]);
 	result.z = dot_product(v0, ijk.v[2]);
 	return result;
+}
+
+
+OOINLINE bool OOTriangleIsDegenerate(Triangle tri)
+{
+	return vector_equal(tri.v[0], tri.v[1]) ||
+	       vector_equal(tri.v[1], tri.v[2]) ||
+	       vector_equal(tri.v[2], tri.v[0]);
 }
 
 

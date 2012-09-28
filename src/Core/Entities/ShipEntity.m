@@ -1935,7 +1935,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (scanClass == CLASS_POLICE)
 		{
 			if (bounty > 0)
+			{
 				[self setBounty:0 withReason:kOOLegalStatusReasonPoliceAreClean];
+			}
 			ShipEntity* target = [self primaryTarget];
 			if ((target)&&([target scanClass] == CLASS_POLICE))
 			{
