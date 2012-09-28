@@ -677,8 +677,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) drawLegends
 {
+	/* Since the order of legend drawing is significant, this loop must be kept
+	 * as an incrementing one for compatibility with previous Oolite versions.
+	 * CIM: 28/9/12 */
 	z1 = [[UNIVERSE gameView] display_z];
-	for (_idx = [legendArray count] - 1; _idx >= 0; _idx--)
+	NSUInteger nLegends = [legendArray count];
+	for (_idx = 0; _idx < nLegends; _idx++)
 	{
 		_arrayAtIdx = [legendArray oo_arrayAtIndex:_idx];
 		[self drawLegend:[_arrayAtIdx oo_dictionaryAtIndex:WIDGET_INFO]];
