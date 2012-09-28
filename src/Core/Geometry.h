@@ -29,10 +29,6 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 
 
-// Enable/disable a costly structural optimization with a very low hit rate.
-#define PERFORM_CORNERS_WITHIN_GEOMETRY_TEST 0
-
-
 @class ShipEntity, Octree;
 
 @interface Geometry: NSObject
@@ -47,9 +43,6 @@ MA 02110-1301, USA.
 		};
 		uint_fast32_t		count;		// Number of used slots in triangles.
 		uint_fast32_t		capacity;	// Number of allocated slots in triangles.
-#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST
-		bool				isKnownConvex;
-#endif
 	}					_data;
 }
 

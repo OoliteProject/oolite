@@ -79,11 +79,6 @@ OOINLINE void DestroyGeometryData(GeometryData *data);
 OOINLINE void AddTriangle(GeometryData *data, Triangle tri);
 static NO_INLINE_FUNC void AddTriangle_slow(GeometryData *data, Triangle tri);
 
-#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST
-static bool GeometryIsConvex(GeometryData *data);
-static bool CornersAreWithinGeometry(GeometryData *data, OOScalar scale);
-#endif
-
 static OOScalar MaxDimensionFromOrigin(GeometryData *data);
 
 void BuildSubOctree(GeometryData *data, OOOctreeBuilder *builder, OOScalar octreeRadius, NSUInteger depth);
@@ -173,11 +168,7 @@ OOINLINE void AddTriangle(GeometryData *data, Triangle tri)
 
 - (NSString *) descriptionComponents
 {
-#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST && !defined(NDEBUG)
-	return [NSString stringWithFormat:@"%u triangles, %@", _data.count, GeometryIsConvex(&_data) ? @"convex" : @"not convex"];
-#else
 	return [NSString stringWithFormat:@"%u triangles", _data.count];
-#endif
 }
 
 
@@ -188,72 +179,6 @@ OOINLINE void AddTriangle(GeometryData *data, Triangle tri)
 		AddTriangle(&_data, tri);
 	}
 }
-
-
-#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST
-static bool GeometryIsConvex(GeometryData *data)
-{
-	NSCParameterAssert(data != NULL);
-	
-	if (data->isKnownConvex)  return true;
-	
-	/*	Enumerate over triangles
-		calculate normal for each one,
-		then enumerate over vertices relative to a vertex on the triangle
-		and check if they are on the forwardside or coplanar with the triangle.
-		If a vertex is on the backside of any triangle then return NO.
-	*/
-	uint_fast32_t	i, j;
-	for (i = 0; i < data->count; i++)
-	{
-		Vector v0 = data->triangles[i].v[0];
-		Vector vn = calculateNormalForTriangle(&data->triangles[i]);
-		
-		for (j = 0; j < data->count; j++)
-		{
-			if (j != i)
-			{
-				if ((dot_product(vector_between(v0, data->triangles[j].v[0]), vn) < -0.001) ||
-					(dot_product(vector_between(v0, data->triangles[j].v[1]), vn) < -0.001) ||
-					(dot_product(vector_between(v0, data->triangles[j].v[2]), vn) < -0.001))	// within 1mm tolerance
-				{
-					return false;
-				}
-			}
-		}
-	}
-	data->isKnownConvex = true;
-	return true;
-}
-
-
-static bool CornersAreWithinGeometry(GeometryData *data, OOScalar scale)
-{
-	/*	enumerate over triangles
-		calculate normal for each one,
-		then enumerate over corners relative to a vertex on the triangle
-		and check if they are on the forwardside or coplanar with the triangle.
-		If a corner is on the backside of any triangle then return NO.
-	*/
-	uint_fast32_t		i;
-	int_fast8_t			x, y, z;
-	for (i = 0; i < data->count; i++)
-	{
-		Vector v0 = data->triangles[i].v[0];
-		Vector vn = calculateNormalForTriangle(&data->triangles[i]);
-		
-		for (z = -1; z < 2; z += 2) for (y = -1; y < 2; y += 2) for (x = -1; x < 2; x += 2)
-		{
-			Vector vc = make_vector(scale * x, scale * y, scale * z);
-			if (dot_product(vector_between(v0, vc), vn) < -0.001)
-			{
-				return NO;
-			}
-		}
-	}
-	return YES;
-}
-#endif
 
 
 - (Octree *) findOctreeToDepth:(NSUInteger)depth
@@ -306,18 +231,6 @@ void BuildSubOctree(GeometryData *data, OOOctreeBuilder *builder, OOScalar octre
 		[builder writeSolid];
 		return;
 	}
-	
-#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST
-	if (GeometryIsConvex(data))	// we're convex!
-	{
-		if (CornersAreWithinGeometry(data, octreeRadius))	// all eight corners inside or on!
-		{
-			// FIXME: never reached?
-			[builder writeSolid];
-			return;
-		}
-	}
-#endif
 
 	/*
 		As per performance notes, we want to use a heuristic which keeps the
@@ -379,18 +292,10 @@ void BuildSubOctree(GeometryData *data, OOOctreeBuilder *builder, OOScalar octre
 		if (g_x00.count != 0)
 		{
 			SplitGeometryX(&g_x00, &g_100, &g_000, offset);
-#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST
-			g_000.isKnownConvex = data->isKnownConvex;
-			g_100.isKnownConvex = data->isKnownConvex;
-#endif
 		}
 		if (g_x10.count != 0)
 		{
 			SplitGeometryX(&g_x10, &g_110, &g_010, offset);
-#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST
-			g_010.isKnownConvex = data->isKnownConvex;
-			g_110.isKnownConvex = data->isKnownConvex;
-#endif
 		}
 		DestroyGeometryData(&g_x00);
 		DestroyGeometryData(&g_x10);
@@ -404,18 +309,10 @@ void BuildSubOctree(GeometryData *data, OOOctreeBuilder *builder, OOScalar octre
 		if (g_x01.count != 0)
 		{
 			SplitGeometryX(&g_x01, &g_101, &g_001, offset);
-#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST
-			g_001.isKnownConvex = data->isKnownConvex;
-			g_101.isKnownConvex = data->isKnownConvex;
-#endif
 		}
 		if (g_x11.count != 0)
 		{
 			SplitGeometryX(&g_x11, &g_111, &g_011, offset);
-#if PERFORM_CORNERS_WITHIN_GEOMETRY_TEST
-			g_011.isKnownConvex = data->isKnownConvex;
-			g_111.isKnownConvex = data->isKnownConvex;
-#endif
 		}
 		DestroyGeometryData(&g_x01);
 		DestroyGeometryData(&g_x11);

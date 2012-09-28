@@ -785,7 +785,7 @@ enum
 	/*
 		Initial capacity of OOOctreeBuilder. 16 KibiEntries is enough to handle
 		all but 2 built-in models; I expect similar results for OXPs, since
-		detail geometry has limited effect on the octree. Large models with
+		geometry detail has limited effect on the octree. Large models with
 		higher depth are more likely to need growth.
 	*/
 	kMinimumBuilderCapacity = 16 << 10
@@ -922,6 +922,27 @@ OOINLINE void InsertNode(OOOctreeBuilder *self, int value)
 	NSAssert1(_level > 0, @"Unbalanced call to %s", __FUNCTION__);
 	
 	_level--;
+	
+	/*
+		Check if the last eight nodes are solid. If so, we just inserted an
+		entirely solid subtree and can fold it into a single solid node. An
+		entirely solid subtree will always use the last eight nodes (any solid
+		subtrees within a child node will have been folded already), so this
+		simple approach to folding will produce an optimal result.
+		
+		We could do the same for empty nodes, but Geometry will never recurse
+		into an empty subtree.
+	*/
+	
+	NSAssert(_nodeCount > 8, @"After ending an inner node, there must be at least eight nodes in buffer.");
+	for (uint_fast32_t node = _nodeCount - 8; node < _nodeCount; node++)
+	{
+		if (_octree[node] != -1)  return;
+	}
+	
+	// If we got here, subtree is solid; fold it into a solid node.
+	_octree[State(self)->insertionPoint - 1] = -1;
+	_nodeCount -= 8;
 }
 
 
