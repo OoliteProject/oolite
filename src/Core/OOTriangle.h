@@ -46,7 +46,7 @@ OOINLINE Triangle make_triangle(Vector v0, Vector v1, Vector v2) CONST_FUNC;
 OOINLINE Vector resolveVectorInIJK(Vector v0, Triangle ijk);
 
 /* Test whether triangle's area is 0. */
-static bool OOTriangleIsDegenerate(Triangle tri) CONST_FUNC;
+OOINLINE bool OOTriangleIsDegenerate(Triangle tri) CONST_FUNC;
 
 
 /*** Only inline definitions beyond this point ***/
@@ -75,7 +75,7 @@ OOINLINE Vector resolveVectorInIJK(Vector v0, Triangle ijk)
 }
 
 
-static GCC_ATTR((unused)) bool OOTriangleIsDegenerate(Triangle tri)
+OOINLINE bool OOTriangleIsDegenerate(Triangle tri)
 {
 	return vector_equal(tri.v[0], tri.v[1]) ||
 	       vector_equal(tri.v[1], tri.v[2]) ||
