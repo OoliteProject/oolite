@@ -3785,7 +3785,7 @@ abort:
 	// Clear current target if we're already in Missile Targeting mode
 	if (missile_status != MISSILE_STATUS_SAFE)
 	{
-		DESTROY(_primaryTarget);
+		[self noteLostTarget];
 	}
 	
 	// Arm missile and check for missile lock
@@ -3801,7 +3801,11 @@ abort:
 		}
 		else
 		{
-			[self noteLostTarget];
+			// if it's nil, that means it was lost earlier
+			if ([self primaryTarget] != nil)
+			{
+				[self noteLostTarget];
+			}
 			[missile_entity[activeMissile] noteLostTarget];
 			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
 			[self playMissileArmed];

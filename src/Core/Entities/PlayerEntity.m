@@ -5212,7 +5212,7 @@ static GLfloat		sBaseMass = 0.0;
 	suppressAegisMessages=YES;
 	hyperspeed_engaged = NO;
 	
-	if ([self primaryTarget] == nil)
+	if ([self primaryTarget] != nil)
 	{
 		[self noteLostTarget];	// losing target? Fire lost target event!
 		DESTROY(_primaryTarget);
