@@ -92,6 +92,8 @@ static void SplitGeometryZ(GeometryData *data, GeometryData *dPlus, GeometryData
 
 void InitGeometryData(GeometryData *data, uint_fast32_t capacity)
 {
+	NSCParameterAssert(data != NULL);
+	
 	data->count = 0;
 	data->capacity = kOOGeometrySmallDataSize;
 	data->pendingCapacity = capacity;
@@ -206,7 +208,7 @@ static OOScalar MaxDimensionFromOrigin(GeometryData *data)
 
 void BuildSubOctree(GeometryData *data, OOOctreeBuilder *builder, OOScalar octreeRadius, NSUInteger depth)
 {
-	NSCParameterAssert(data != NULL && builder != nil);
+	NSCParameterAssert(data != NULL);
 	
 	OOScalar offset = 0.5f * octreeRadius;
 	
@@ -388,6 +390,8 @@ static void TranslateGeometryZ(GeometryData *data, OOScalar offset)
 
 static void SplitGeometryX(GeometryData *data, GeometryData *dPlus, GeometryData *dMinus, OOScalar x)
 {
+	NSCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+	
 	// test each triangle splitting against x == 0.0
 	uint_fast32_t	i, count = data->count;
 	for (i = 0; i < count; i++)
@@ -518,6 +522,8 @@ static void SplitGeometryX(GeometryData *data, GeometryData *dPlus, GeometryData
 
 static void SplitGeometryY(GeometryData *data, GeometryData *dPlus, GeometryData *dMinus, OOScalar y)
 {
+	NSCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+	
 	// test each triangle splitting against y == 0.0
 	uint_fast32_t	i, count = data->count;
 	for (i = 0; i < count; i++)
@@ -649,6 +655,8 @@ static void SplitGeometryY(GeometryData *data, GeometryData *dPlus, GeometryData
 
 static void SplitGeometryZ(GeometryData *data, GeometryData *dPlus, GeometryData *dMinus, OOScalar z)
 {
+	NSCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+	
 	// test each triangle splitting against z == 0.0
 	uint_fast32_t	i, count = data->count;
 	for (i = 0; i < count; i++)
@@ -788,13 +796,14 @@ static void SplitGeometryZ(GeometryData *data, GeometryData *dPlus, GeometryData
 	triangles points at smallData and pendingCapacity is the capacity passed
 	to InitGeometryData(). Otherwise, triangles is a malloced pointer.
 	
-	This is marked noinline so that the fast path in AddTriange() can be
+	This is marked noinline so that the fast path in AddTriangle() can be
 	inlined. Without the attribute, clang (and probably gcc too) will inline
 	AddTriangles_slow() into AddTriangle() (because it only has one call site),
-	making AddTriangle() to heavy to inline.
+	making AddTriangle() too heavy to inline.
 */
 static NO_INLINE_FUNC void AddTriangle_slow(GeometryData *data, Triangle tri)
 {
+	NSCParameterAssert(data != NULL);
 	NSCParameterAssert(data->count == data->capacity);
 	
 	if (data->capacity == kOOGeometrySmallDataSize)
