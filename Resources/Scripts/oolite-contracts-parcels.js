@@ -281,7 +281,7 @@ this._parcelContractsDisplay = function(summary) {
 this._parcelContractSummaryPage = function()
 {
 		// column 'tab stops'
-		var columns = [13,21,28];
+		var columns = [14,21,28];
 
 		// column header line
 		var headline = expandMissionText("oolite-contracts-parcels-column-cargo");
@@ -594,6 +594,10 @@ this._paddingText = function(currentText, desiredLength)
 		var hairSpaceLength = defaultFont.measureString(hairSpace);
 		// calculate number needed to fill remaining length
 		var padsNeeded = Math.floor((desiredLength - currentLength) / hairSpaceLength);
+		if (padsNeeded < 1) 
+		{
+				return "";
+		}
 		// quick way of generating a repeated string of that number
 		return new Array(padsNeeded).join(hairSpace);
 }
