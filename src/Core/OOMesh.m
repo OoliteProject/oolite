@@ -68,10 +68,8 @@ enum
 	kBaseOctreeDepth				= 5,	// 32x32x32
 //	kMaxOctreeDepth declared in Octree.h.
 	kSmallOctreeDepth				= 4,	// 16x16x16
-	kVerySmallOctreeDepth			= 3,	// 8x8x8
 	kOctreeSizeThreshold			= 900,	// Size at which we start increasing octree depth
-	kOctreeSmallSizeThreshold		= 50,
-	kOctreeVerySmallSizeThreshold	= 15
+	kOctreeSmallSizeThreshold		= 20
 };
 
 
@@ -638,8 +636,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	if (ys < zs)  { t = zs; zs = ys; ys = t; }
 	size = (xs + ys) / 2.0f;	// Use average of two largest
 	
-	if (size < kOctreeVerySmallSizeThreshold)  result = kVerySmallOctreeDepth;
-	else if (size < kOctreeSmallSizeThreshold)  result = kSmallOctreeDepth;
+	if (size < kOctreeSmallSizeThreshold)  result = kSmallOctreeDepth;
 	else while (result < kMaxOctreeDepth)
 	{
 		if (size < threshold) break;
