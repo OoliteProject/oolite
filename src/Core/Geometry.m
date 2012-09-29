@@ -196,9 +196,9 @@ static OOScalar MaxDimensionFromOrigin(GeometryData *data)
 	for (i = 0; i < data->count; i++) for (j = 0; j < 3; j++)
 	{
 		Vector v = data->triangles[i].v[j];
-		result = fmax(result, v.x);
-		result = fmax(result, v.y);
-		result = fmax(result, v.z);
+		result = fmax(result, fabs(v.x));
+		result = fmax(result, fabs(v.y));
+		result = fmax(result, fabs(v.z));
 	}
 	return result;
 }
@@ -253,14 +253,15 @@ void BuildSubOctree(GeometryData *data, OOOctreeBuilder *builder, OOScalar octre
 		The value 21 was chosen for reasons which, on reflection, were entirely
 		wrong. Performance profiling shows no discernible difference between
 		2,16 and 3,21.
+		
+		As of r5374, up to 16 entries are stored on the stack and there is no
+		benefit to specifying a minimum here any longer.
 	*/
 	enum
 	{
-		kFactor = 2,
-		kMinimum = 16
+		kFactor = 2
 	};
 	uint_fast32_t subCapacity = data->count * kFactor;
-	if (subCapacity < kMinimum)  subCapacity = kMinimum;
 	
 #define DECL_GEOMETRY(NAME, CAP) GeometryData NAME; InitGeometryData(&NAME, CAP);
 	
