@@ -232,7 +232,7 @@ OOLITE_GRAPHICS_MISC_FILES = \
 
 OOLITE_MATHS_FILES = \
     CollisionRegion.m \
-    Geometry.m \
+    OOMeshToOctreeConverter.m \
     Octree.m \
     OOMatrix.m \
     OOQuaternion.m \

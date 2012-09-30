@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "OOMaths.h"
 
-#define	OCTREE_MIN_RADIUS	1.0
+#define	OCTREE_MIN_HALF_WIDTH	1.0
 
 
 #if !defined(OODEBUGLDRAWING_DISABLE) && defined(NDEBUG)

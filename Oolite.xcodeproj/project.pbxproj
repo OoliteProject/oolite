@@ -465,7 +465,7 @@
 		1A644E221052AA0100833636 /* traderInterceptAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A644E211052A9FD00833636 /* traderInterceptAI.plist */; };
 		1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */; };
 		1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */; };
-		1A68A4A51615F4A400D7BB08 /* Geometry.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834109BA27EC00F43D55 /* Geometry.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
+		1A68A4A51615F4A400D7BB08 /* OOMeshToOctreeConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834109BA27EC00F43D55 /* OOMeshToOctreeConverter.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
 		1A6973CA12F46684000CC708 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A8FAA9E12F0E44D008FF5A2 /* Debug.oxp */; };
 		1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */; };
 		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
@@ -695,7 +695,7 @@
 		1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF4AF4915B858AA009243BE /* OOWeakSet.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
 		2512833F09BA27C100F43D55 /* Octree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512833D09BA27C100F43D55 /* Octree.h */; };
-		2512834209BA27EC00F43D55 /* Geometry.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* Geometry.h */; };
+		2512834209BA27EC00F43D55 /* OOMeshToOctreeConverter.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834009BA27EC00F43D55 /* OOMeshToOctreeConverter.h */; };
 		2512834609BA281500F43D55 /* CollisionRegion.h in Headers */ = {isa = PBXBuildFile; fileRef = 2512834409BA281500F43D55 /* CollisionRegion.h */; };
 		2512834709BA281500F43D55 /* CollisionRegion.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834509BA281500F43D55 /* CollisionRegion.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
 		25160E2F0995362F0037C2E1 /* OOCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 25160E2E0995362F0037C2E1 /* OOCocoa.h */; };
@@ -1997,8 +1997,8 @@
 		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = contributors.txt; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
-		2512834009BA27EC00F43D55 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = Geometry.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		2512834109BA27EC00F43D55 /* Geometry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = Geometry.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		2512834009BA27EC00F43D55 /* OOMeshToOctreeConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = OOMeshToOctreeConverter.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		2512834109BA27EC00F43D55 /* OOMeshToOctreeConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = OOMeshToOctreeConverter.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		2512834409BA281500F43D55 /* CollisionRegion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CollisionRegion.h; sourceTree = "<group>"; };
 		2512834509BA281500F43D55 /* CollisionRegion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CollisionRegion.m; sourceTree = "<group>"; };
 		25160E2E0995362F0037C2E1 /* OOCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCocoa.h; sourceTree = "<group>"; };
@@ -3072,8 +3072,8 @@
 		1A8A3C1E0B9640B4007D20B8 /* Mathematics */ = {
 			isa = PBXGroup;
 			children = (
-				2512834009BA27EC00F43D55 /* Geometry.h */,
-				2512834109BA27EC00F43D55 /* Geometry.m */,
+				2512834009BA27EC00F43D55 /* OOMeshToOctreeConverter.h */,
+				2512834109BA27EC00F43D55 /* OOMeshToOctreeConverter.m */,
 				2512833D09BA27C100F43D55 /* Octree.h */,
 				2512833C09BA27C100F43D55 /* Octree.m */,
 				2512834409BA281500F43D55 /* CollisionRegion.h */,
@@ -3350,7 +3350,7 @@
 				25F46752099695D5009483BF /* OoliteApp.h in Headers */,
 				2576E7B309B4F418007410F7 /* MyOpenGLView.h in Headers */,
 				2512833F09BA27C100F43D55 /* Octree.h in Headers */,
-				2512834209BA27EC00F43D55 /* Geometry.h in Headers */,
+				2512834209BA27EC00F43D55 /* OOMeshToOctreeConverter.h in Headers */,
 				2512834609BA281500F43D55 /* CollisionRegion.h in Headers */,
 				083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */,
 				1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */,
@@ -3833,7 +3833,7 @@
 				25F46753099695D5009483BF /* OoliteApp.m in Sources */,
 				25F4676509969672009483BF /* MyOpenGLView.m in Sources */,
 				2512833E09BA27C100F43D55 /* Octree.m in Sources */,
-				1A68A4A51615F4A400D7BB08 /* Geometry.m in Sources */,
+				1A68A4A51615F4A400D7BB08 /* OOMeshToOctreeConverter.m in Sources */,
 				2512834709BA281500F43D55 /* CollisionRegion.m in Sources */,
 				083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */,
 				1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */,

@@ -67,12 +67,6 @@ SOFTWARE.
 }
 
 
-- (Geometry *)geometry
-{
-	return nil;
-}
-
-
 - (BoundingBox)boundingBox
 {
 	return kZeroBoundingBox;

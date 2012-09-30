@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 
 #import "OOMesh.h"
 #import "Universe.h"
-#import "Geometry.h"
+#import "OOMeshToOctreeConverter.h"
 #import "ResourceManager.h"
 #import "Entity.h"		// for NO_DRAW_DISTANCE_FACTOR.
 #import "Octree.h"
@@ -606,23 +606,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 }
 
 
-- (Geometry *)geometry
-{
-	Geometry *result = [[Geometry alloc] initWithCapacity:faceCount];
-	OOMeshFaceCount i;
-	for (i = 0; i < faceCount; i++)
-	{
-		// Somewhat surprisingly, this method doesn't even show up in profiles. -- Ahruman 2012-09-22
-		Triangle tri;
-		tri.v[0] = _vertices[_faces[i].vertex[0]];
-		tri.v[1] = _vertices[_faces[i].vertex[1]];
-		tri.v[2] = _vertices[_faces[i].vertex[2]];
-		[result addTriangle:tri];
-	}
-	return [result autorelease];
-}
-
-
 #if ADAPTIVE_OCTREE_DEPTH
 - (unsigned) octreeDepth
 {
@@ -664,7 +647,19 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		{
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			
-			octree = [[self geometry] findOctreeToDepth:[self octreeDepth]];
+			OOMeshToOctreeConverter *converter = [OOMeshToOctreeConverter converterWithCapacity:faceCount];
+			OOMeshFaceCount i;
+			for (i = 0; i < faceCount; i++)
+			{
+				// Somewhat surprisingly, this method doesn't even show up in profiles. -- Ahruman 2012-09-22
+				Triangle tri;
+				tri.v[0] = _vertices[_faces[i].vertex[0]];
+				tri.v[1] = _vertices[_faces[i].vertex[1]];
+				tri.v[2] = _vertices[_faces[i].vertex[2]];
+				[converter addTriangle:tri];
+			}
+			
+			octree = [converter findOctreeToDepth:[self octreeDepth]];
 			[octree retain];
 			[OOCacheManager setOctree:octree forModel:baseFile];
 			

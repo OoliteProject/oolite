@@ -32,8 +32,6 @@ SOFTWARE.
 #import "OOMaths.h"
 #import "OOWeakReference.h"
 
-@class Geometry;
-
 
 @interface OODrawable: NSObject
 
@@ -44,7 +42,6 @@ SOFTWARE.
 
 - (GLfloat)collisionRadius;
 - (GLfloat)maxDrawDistance;
-- (Geometry *)geometry;
 
 - (BoundingBox)boundingBox;
 

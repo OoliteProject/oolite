@@ -930,8 +930,8 @@ OOINLINE void InsertNode(OOOctreeBuilder *self, int value)
 		subtrees within a child node will have been folded already), so this
 		simple approach to folding will produce an optimal result.
 		
-		We could do the same for empty nodes, but Geometry will never recurse
-		into an empty subtree.
+		We could do the same for empty nodes, but OOMeshToOctreeConverter will
+		never recurse into an empty subtree.
 	*/
 	
 	NSAssert(_nodeCount > 8, @"After ending an inner node, there must be at least eight nodes in buffer.");

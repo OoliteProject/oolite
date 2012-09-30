@@ -1,9 +1,9 @@
 /*
 
-Geometry.h
+OOMeshToOctreeConverter.h
 
-Class for reasoning about triangle meshes, in particular for the creation of
-octtrees for collision-detection purposes.
+Class to manage the construction of octrees from triangle soups.
+
 
 Oolite
 Copyright (C) 2004-2012 Giles C Williams and contributors
@@ -34,24 +34,25 @@ MA 02110-1301, USA.
 
 enum
 {
-	kOOGeometrySmallDataSize = 16
+	kOOMeshToOctreeConverterSmallDataCapacity = 16
 };
 
 
-@interface Geometry: NSObject
+@interface OOMeshToOctreeConverter: NSObject
 {
 @private
-	struct OOGeometryInternalData
+	struct OOMeshToOctreeConverterInternalData
 	{
-		Triangle			*triangles;			// Pointer to triangle array.
-		uint_fast32_t		count;				// Number of used slots in triangles.
-		uint_fast32_t		capacity;			// Number of allocated slots in triangles.
-		uint_fast32_t		pendingCapacity;	// Capacity to use for first growth.
-		Triangle			smallData[kOOGeometrySmallDataSize];
+		Triangle			*triangles;
+		uint_fast32_t		count;
+		uint_fast32_t		capacity;
+		uint_fast32_t		pendingCapacity;
+		Triangle			smallData[kOOMeshToOctreeConverterSmallDataCapacity];
 	}					_data;
 }
 
 - (id) initWithCapacity:(NSUInteger)capacity;
++ (instancetype) converterWithCapacity:(NSUInteger)capacity;
 
 - (void) addTriangle:(Triangle)tri;
 
