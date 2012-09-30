@@ -274,7 +274,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	{
 		if ([PLAYER dockedStation] && [PLAYER dockedStation] == (StationEntity*)ship) 
 		{ // the carrier has jumped while the player is docked
+			[ship retain];
 			[UNIVERSE carryPlayerOn:(StationEntity*)ship inWormhole:self];
+			[ship release];
 		}
 	}		
 
