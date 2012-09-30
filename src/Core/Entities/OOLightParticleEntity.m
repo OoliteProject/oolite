@@ -158,6 +158,7 @@ static OOTexture *sBlobTexture = nil;
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
+	OOGL(glDepthMask(GL_FALSE));
 	
 	GLfloat distanceAttenuation = cam_zero_distance / no_draw_distance;
 	distanceAttenuation = 1.0 - distanceAttenuation;
