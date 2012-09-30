@@ -1791,7 +1791,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		{
 			energyCritical = energy < 0.8;
 		}
-		if (EXPECT_NOT(energyCritical)) [PLAYER setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
+		[PLAYER setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
 	}
 	
 	if (drawSurround)

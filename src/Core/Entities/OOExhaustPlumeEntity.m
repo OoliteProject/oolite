@@ -303,6 +303,7 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
 	OOGL(glEnable(GL_BLEND));
+	OOGL(glDepthMask(GL_FALSE));
 	OOGL(glDisable(GL_TEXTURE_2D));
 	OOGL(glDisable(GL_CULL_FACE));		// face culling
 	OOGL(glShadeModel(GL_SMOOTH));
