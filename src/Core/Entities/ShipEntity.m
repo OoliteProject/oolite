@@ -6284,12 +6284,12 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 			break;
 		case WEAPON_PULSE_LASER:
 			weapon_damage =			15.0;
-			weapon_recharge_rate =	0.33;
+			weapon_recharge_rate =	0.5;
 			weapon_shot_temperature =	7.0f;
 			break;
 		case WEAPON_BEAM_LASER:
 			weapon_damage =			15.0;
-			weapon_recharge_rate =	0.25;
+			weapon_recharge_rate =	0.1;
 			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_MINING_LASER:
@@ -6309,7 +6309,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 			break;
 		case WEAPON_MILITARY_LASER:
 			weapon_damage =			23.0;
-			weapon_recharge_rate =	0.20;
+			weapon_recharge_rate =	0.10;
 			weapon_shot_temperature =	8.0f;
 			break;
 		case WEAPON_NONE:
