@@ -2865,6 +2865,8 @@ static GLfloat		sBaseMass = 0.0;
 					DESTROY(_primaryTarget);
 					missile_status = MISSILE_STATUS_ARMED;
 				}
+			} else if (i == activeMissile && [missile_entity[i] primaryTarget] == nil) {
+				missile_status = MISSILE_STATUS_ARMED;
 			}
 		}
 	}

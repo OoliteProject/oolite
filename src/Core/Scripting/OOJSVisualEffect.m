@@ -332,6 +332,7 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 				[entity setHullHeatLevel:fValue];
 				return YES;
 			}
+			break;
 
 		case kVisualEffect_shaderFloat1:
 			if (JS_ValueToNumber(context, *value, &fValue))
@@ -339,6 +340,7 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 				[entity setShaderFloat1:fValue];
 				return YES;
 			}
+			break;
 
 		case kVisualEffect_shaderFloat2:
 			if (JS_ValueToNumber(context, *value, &fValue))
@@ -346,6 +348,7 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 				[entity setShaderFloat2:fValue];
 				return YES;
 			}
+			break;
 
 		case kVisualEffect_shaderInt1:
 			if (JS_ValueToInt32(context, *value, &iValue))
@@ -353,6 +356,7 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 				[entity setShaderInt1:iValue];
 				return YES;
 			}
+			break;
 
 		case kVisualEffect_shaderInt2:
 			if (JS_ValueToInt32(context, *value, &iValue))
@@ -360,6 +364,7 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 				[entity setShaderInt2:iValue];
 				return YES;
 			}
+			break;
 
 		case kVisualEffect_shaderVector1:
 			if (JSValueToVector(context, *value, &vValue))
@@ -367,6 +372,7 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 				[entity setShaderVector1:vValue];
 				return YES;
 			}
+			break;
 
 		case kVisualEffect_shaderVector2:
 			if (JSValueToVector(context, *value, &vValue))
@@ -374,7 +380,7 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 				[entity setShaderVector2:vValue];
 				return YES;
 			}
-
+			break;
 
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sVisualEffectProperties);
