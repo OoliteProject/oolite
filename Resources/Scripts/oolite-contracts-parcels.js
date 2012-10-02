@@ -168,15 +168,15 @@ this._initialiseParcelContractsForSystem = function()
 				
 
 				// time allowed for delivery is time taken by "fewest jumps"
-				// route, plus 10-60%, plus one day
-				parcel.deadline = clock.seconds + Math.floor((routeToDestination.time * 3600 * 1.1+(Math.random()/2))) + 86400;
+				// route, plus 10-110%, plus one day
+				parcel.deadline = clock.seconds + Math.floor((routeToDestination.time * 3600 * (1.1+(Math.random())))) + 86400;
 
 				// total payment is small for these items.
 				parcel.payment = Math.floor(
 						// 2-3 credits per LY of route
 						(routeToDestination.distance * (2+Math.random())) +
 						// additional income for route length based on reputation
-						(Math.pow(routeToDestination.route.length,1+(0.1*player.parcelReputation))) +
+						(Math.pow(routeToDestination.route.length,1+(0.2*player.parcelReputation))) +
 						// small premium for delivery to more dangerous systems
 						(2 * Math.pow(7-destinationInfo.government,1.5))
 				);

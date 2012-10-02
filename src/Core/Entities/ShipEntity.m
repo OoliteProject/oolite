@@ -1026,7 +1026,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	accuracy = new_accuracy;
 	pitch_tolerance = 0.01 * (85.0f + accuracy);
 // especially against small targets, less good pilots will waste some shots
-	aim_tolerance = 125.0 - (12.0f * accuracy);
+	aim_tolerance = 250.0 - (24.0f * accuracy);
 
 	if (accuracy >= COMBAT_AI_ISNT_AWFUL && missile_load_time < 0.1)
 	{
@@ -9517,7 +9517,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	if (accuracy >= COMBAT_AI_ISNT_AWFUL)
 	{ // if missing, aim better!
-		basic_aim /= 1.0 + ((GLfloat)[self missedShots] / 5.0);
+		basic_aim /= 1.0 + ((GLfloat)[self missedShots] / 2.0);
 	}
 	if (currentWeaponFacing == WEAPON_FACING_AFT && accuracy < COMBAT_AI_ISNT_AWFUL)
 	{ // bad shots with aft lasers
@@ -9594,7 +9594,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	GLfloat aim = [self currentAimTolerance];
 	if (dq > aim*aim) return YES;
 
-	astq = sqrt(1.0 - radius * radius / d2);	// cosine of half angle subtended by target
+	// cosine of half of half angle subtended by target (mostly they'll
+	// fire sooner anyway due to currentAimTolerance, but this should
+	// almost always be a solid hit)
+	astq = sqrt(1.0 - radius * radius / (d2 * 4));	
 
 	return (fabs(dq) >= astq);
 }
