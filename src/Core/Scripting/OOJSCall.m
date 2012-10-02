@@ -103,7 +103,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *oo_jsClas
 		[PLAYER setScriptTarget:object];
 	}
 	
-	selectorString = OOStringFromJSValue(context,argv[0]);
+	selectorString = OOStringFromJSValue(context, argv[0]);
 	
 	// Join all parameters together with spaces.
 	if (1 < argc && [selectorString hasSuffix:@":"])
@@ -226,12 +226,13 @@ static BOOL SignatureMatch(NSMethodSignature *sig, SEL selector)
 static MethodType GetMethodType(id object, SEL selector)
 {
 	NSMethodSignature *sig = [object methodSignatureForSelector:selector];
-	MethodType type = (MethodType)OOShaderUniformTypeFromMethodSignature(sig);
-	if (type != kMethodTypeInvalid)  return type;
 	
 	if (SignatureMatch(sig, @selector(voidVoidMethod)))  return kMethodTypeVoidVoid;
 	if (SignatureMatch(sig, @selector(voidObjectMethod:)))  return kMethodTypeVoidObject;
 	if (SignatureMatch(sig, @selector(objectObjectMethod:)))  return kMethodTypeObjectObject;
+	
+	MethodType type = (MethodType)OOShaderUniformTypeFromMethodSignature(sig);
+	if (type != kMethodTypeInvalid)  return type;
 	
 	return kMethodTypeInvalid;
 }
