@@ -5544,7 +5544,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			if ([player isSpeechOn])
 			{
 				// EMMSTRAN: should say "Incoming message from ..." when prefixed with sender name.
-				NSString *format = ExpandDescriptionForCurrentSystem(DESC(@"speech-synthesis-incoming-message-@"));
+				NSString *format = ExpandDescriptionForCurrentSystem(@"[speech-synthesis-incoming-message-@]");
 				[self speakWithSubstitutions:[NSString stringWithFormat:format, text]];
 			}
 			

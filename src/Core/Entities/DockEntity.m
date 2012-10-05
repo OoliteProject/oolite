@@ -109,7 +109,7 @@ MA 02110-1301, USA.
 	{
 		if (magnitude2(vector_subtract([player position], [self absolutePositionForSubentity])) > 2250000) // within 1500m of the dock
 		{
-			[station sendExpandedMessage:DESC(@"station-docking-clearance-abort-cancelled") toShip:player];
+			[station sendExpandedMessage:@"[station-docking-clearance-abort-cancelled]" toShip:player];
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 		}
 		else
@@ -541,11 +541,11 @@ MA 02110-1301, USA.
 	// COMM-CHATTER
 	if (station == [UNIVERSE station])
 	{
-		[station sendExpandedMessage: @"[station-welcome]" toShip:ship];
+		[station sendExpandedMessage:@"[station-welcome]" toShip:ship];
 	}
 	else
 	{
-		[station sendExpandedMessage: @"[docking-welcome]" toShip:ship];
+		[station sendExpandedMessage:@"[docking-welcome]" toShip:ship];
 	}
 }
 

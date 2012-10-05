@@ -762,12 +762,12 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		{
 			if (last_launch_time-30 < unitime && [player getDockingClearanceStatus] != DOCKING_CLEARANCE_STATUS_TIMING_OUT)
 			{
-				[self sendExpandedMessage:DESC(@"station-docking-clearance-about-to-expire") toShip:player];
+				[self sendExpandedMessage:@"[station-docking-clearance-about-to-expire]" toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
 			}
 			else if (last_launch_time < unitime)
 			{
-				[self sendExpandedMessage:DESC(@"station-docking-clearance-expired") toShip:player];
+				[self sendExpandedMessage:@"[station-docking-clearance-expired]" toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];	// Docking clearance for player has expired.
 				if ([self currentlyInDockingQueues] == 0) [[self getAI] message:@"DOCKING_COMPLETE"];
 				player_reserved_dock = nil;
@@ -1929,7 +1929,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		
 		// No clearance is needed, but don't send friendly messages to hostile ships!
 		if (!(([other isPlayer] && [other hasHostileTarget]) || (self == [UNIVERSE station] && [other bounty] > 50)))
-			[self sendExpandedMessage:DESC(@"station-docking-clearance-not-required") toShip:other];
+			[self sendExpandedMessage:@"[station-docking-clearance-not-required]" toShip:other];
 		if ([other isPlayer])
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
@@ -1959,7 +1959,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 			case DOCKING_CLEARANCE_STATUS_REQUESTED:
 			case DOCKING_CLEARANCE_STATUS_GRANTED:
 				last_launch_time = timeNow;
-				[self sendExpandedMessage:DESC(@"station-docking-clearance-cancelled") toShip:other];
+				[self sendExpandedMessage:@"[station-docking-clearance-cancelled]" toShip:other];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 				result = @"DOCKING_CLEARANCE_CANCELLED";
 				player_reserved_dock = nil;
@@ -1984,7 +1984,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	//  apply to all stations?
 	if (result == nil && self == [UNIVERSE station] && [other bounty] > 50)	// do not grant docking clearance to fugitives
 	{
-		[self sendExpandedMessage:DESC(@"station-docking-clearance-H-clearance-refused") toShip:other];
+		[self sendExpandedMessage:@"[station-docking-clearance-H-clearance-refused]" toShip:other];
 		if ([other isPlayer])
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 		result = @"DOCKING_CLEARANCE_DENIED_SHIP_FUGITIVE";
@@ -1992,7 +1992,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	
 	if (result == nil && [other hasHostileTarget]) // do not grant docking clearance to hostile ships.
 	{
-		[self sendExpandedMessage:DESC(@"station-docking-clearance-denied") toShip:other];
+		[self sendExpandedMessage:@"[station-docking-clearance-denied]" toShip:other];
 		if ([other isPlayer])
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 		result = @"DOCKING_CLEARANCE_DENIED_SHIP_HOSTILE";
@@ -2055,11 +2055,11 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 			if (openLater)
 			{
-				[self sendExpandedMessage:DESC(@"station-docking-clearance-denied-no-docks-yet") toShip:other];
+				[self sendExpandedMessage:@"[station-docking-clearance-denied-no-docks-yet]" toShip:other];
 			} 
 			else
 			{
-				[self sendExpandedMessage:DESC(@"station-docking-clearance-denied-no-docks") toShip:other];
+				[self sendExpandedMessage:@"[station-docking-clearance-denied-no-docks]" toShip:other];
 			}
 
 		}

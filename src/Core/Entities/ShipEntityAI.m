@@ -1396,13 +1396,13 @@
 		{
 			if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
 			{
-				[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(@"[beg-for-mercy]") toShip:ship];
+				[self sendExpandedMessage:@"[beg-for-mercy]" toShip:ship];
 			}
 			else if ([self bounty] == 0)
 			{
 				// only send distress message to player if plausibly sending
 				// one more generally
-				[self sendExpandedMessage:ExpandDescriptionForCurrentSystem(distress_message) toShip:ship];
+				[self sendExpandedMessage:distress_message toShip:ship];
 			}
 			
 			// reset the thanked_ship_id

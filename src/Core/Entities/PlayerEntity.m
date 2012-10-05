@@ -8423,7 +8423,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	
 	// one of the fined-@-credits strings includes expansion tokens
-	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(DESC(@"fined-@-credits")), OOCredits(fine)];
+	NSString *fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[fined-@-credits]"), OOCredits(fine)];
 	[self addMessageToReport:fined_message];
 	[UNIVERSE forceWitchspaceEntries];
 	ship_clock_adjust += 24 * 3600;	// take up a day
