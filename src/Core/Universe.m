@@ -2400,11 +2400,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (void) setupIntroFirstGo: (BOOL) justCobra
+- (void) setupIntroFirstGo:(BOOL)justCobra
 {
 	PlayerEntity	*player = PLAYER;
 	ShipEntity		*ship = nil;
-	Quaternion		q2 = { (GLfloat)0.0f, (GLfloat)0.0f, (GLfloat)1.0f, (GLfloat)0.0f }; // w,x,y,z
+	Quaternion		q2 = { 0.0f, 0.0f, 1.0f, 0.0f }; // w,x,y,z
 	
 	// in status demo draw ships and display text
 	if (!justCobra)
@@ -4340,7 +4340,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	if (!(p0->isPlayer))
 	{
 		OOLog(kOOLogInconsistentState, @"***** First entity is not the player in Universe.removeAllEntitiesExceptPlayer - exiting.");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #endif
 	
@@ -6702,10 +6702,12 @@ static NSDictionary	*sCachedSystemData = nil;
 	}
 }
 
+
 - (NSString *) getSystemName:(Random_Seed)s_seed
 {
 	return [[self generateSystemData:s_seed] oo_stringForKey:KEY_NAME];
 }
+
 
 - (OOGovernmentID) getSystemGovernment:(Random_Seed)s_seed
 {

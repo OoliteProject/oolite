@@ -210,11 +210,11 @@
 
 - (void) checkForMotherStation;
 
-- (void) sendTargetCommsMessage:(NSString *) message;
+- (void) sendTargetCommsMessage:(NSString *)message;
 
 - (void) markTargetForFines;
 
-- (void) markTargetForOffence:(NSString *) valueString;
+- (void) markTargetForOffence:(NSString *)valueString;
 
 - (void) storeTarget;
 - (void) recallStoredTarget;
@@ -227,7 +227,7 @@
 
 - (void) requestNewTarget;
 
-- (void) rollD:(NSString *) die_number;
+- (void) rollD:(NSString *)die_number;
 
 - (void) scanForNearestShipWithPrimaryRole:(NSString *)scanRole;
 - (void) scanForNearestShipHavingRole:(NSString *)scanRole;
@@ -1952,7 +1952,7 @@
 }
 
 
-- (void) markTargetForOffence:(NSString*) valueString
+- (void) markTargetForOffence:(NSString *)valueString
 {
 	if ((isStation)||(scanClass == CLASS_POLICE))
 	{
@@ -2121,7 +2121,7 @@
 }
 
 
-- (void) rollD:(NSString*) die_number
+- (void) rollD:(NSString *)die_number
 {
 	int die_sides = [die_number intValue];
 	if (die_sides > 0)

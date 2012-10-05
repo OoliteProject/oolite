@@ -12116,7 +12116,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship
+- (void) sendExpandedMessage:(NSString *)message_text toShip:(ShipEntity *)other_ship
 {
 	if (!other_ship || !crew)
 		return;	// nobody to receive or send the signal
@@ -12127,7 +12127,10 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 	double d2 = distance2(position, [other_ship position]);
 	if (d2 > scannerRange * scannerRange)
-		return;					// out of comms range
+	{
+		// out of comms range
+		return;
+	}
 	
 	NSMutableString *localExpandedMessage = [NSMutableString stringWithString:message_text];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[self:name]"
