@@ -34,6 +34,11 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "GuiDisplayGen.h"
 
+#if NEW_STRING_EXPANDER
+#import "OOStringExpander.h"
+#endif
+
+
 static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
 static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp);
@@ -483,9 +488,13 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 			NSString *message = [[UNIVERSE missiontext] oo_stringForKey:titleKey];
 			if (message != nil)
 			{
+#if NEW_STRING_EXPANDER
+				[player setMissionTitle:OOExpand(message)];
+#else
 				message = ExpandDescriptionForCurrentSystem(message);
 				message = [player replaceVariablesInString:message];
 				[player setMissionTitle:message];
+#endif
 			}
 			else
 			{

@@ -595,6 +595,8 @@
 		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; settings = {COMPILER_FLAGS = "-Wno-objc-protocol-method-implementation"; }; };
 		1AABA83E11B941D1003487D5 /* OOPixMapTextureLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AABA83C11B941D1003487D5 /* OOPixMapTextureLoader.h */; };
 		1AABA83F11B941D1003487D5 /* OOPixMapTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AABA83D11B941D1003487D5 /* OOPixMapTextureLoader.m */; };
+		1AAEE9DA161F7523003A5A1E /* OOStringExpander.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAEE9D8161F7523003A5A1E /* OOStringExpander.h */; };
+		1AAEE9DB161F7523003A5A1E /* OOStringExpander.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAEE9D9161F7523003A5A1E /* OOStringExpander.m */; };
 		1AAF56170F1A198400A2F2E6 /* Comparison.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAF56160F1A198400A2F2E6 /* Comparison.h */; };
 		1AAF565A0F1A27EA00A2F2E6 /* whitelist.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AAF56590F1A27D900A2F2E6 /* whitelist.plist */; };
 		1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */; };
@@ -1889,6 +1891,8 @@
 		1AAB9A960D779F3C00A9F424 /* OOCocoa.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCocoa.m; sourceTree = "<group>"; };
 		1AABA83C11B941D1003487D5 /* OOPixMapTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPixMapTextureLoader.h; sourceTree = "<group>"; };
 		1AABA83D11B941D1003487D5 /* OOPixMapTextureLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMapTextureLoader.m; sourceTree = "<group>"; };
+		1AAEE9D8161F7523003A5A1E /* OOStringExpander.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOStringExpander.h; sourceTree = "<group>"; };
+		1AAEE9D9161F7523003A5A1E /* OOStringExpander.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOStringExpander.m; sourceTree = "<group>"; };
 		1AAF56160F1A198400A2F2E6 /* Comparison.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Comparison.h; sourceTree = "<group>"; };
 		1AAF56590F1A27D900A2F2E6 /* whitelist.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = whitelist.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTextureScaling.h; path = ../OOTextureScaling.h; sourceTree = "<group>"; };
@@ -2926,6 +2930,8 @@
 				1A38B4AB0B988532001ED4A0 /* OOLogging.m */,
 				1AB813070E90D8E500A84923 /* OOLogOutputHandler.m */,
 				1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */,
+				1AAEE9D8161F7523003A5A1E /* OOStringExpander.h */,
+				1AAEE9D9161F7523003A5A1E /* OOStringExpander.m */,
 				1A9400BF0BAF0EDB005F6CF3 /* OOStringParsing.h */,
 				1A9400BD0BAF0ECD005F6CF3 /* OOStringParsing.m */,
 				1A9403CF0BAF36C3005F6CF3 /* OOFunctionAttributes.h */,
@@ -3557,6 +3563,7 @@
 				1A72F87215E5658E00281337 /* OOJSVisualEffect.h in Headers */,
 				1A401F8815E7AF7B004CDF95 /* OOPrimaryWindow.h in Headers */,
 				1A38E9E31603C7A500EE19F1 /* OOJSInterfaceDefinition.h in Headers */,
+				1AAEE9DA161F7523003A5A1E /* OOStringExpander.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4033,6 +4040,7 @@
 				1A72F87315E5658E00281337 /* OOJSVisualEffect.m in Sources */,
 				1A401F8915E7AF7B004CDF95 /* OOPrimaryWindow.m in Sources */,
 				1A38E9E41603C7A500EE19F1 /* OOJSInterfaceDefinition.m in Sources */,
+				1AAEE9DB161F7523003A5A1E /* OOStringExpander.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

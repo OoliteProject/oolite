@@ -105,8 +105,13 @@ void OOLogIndentIf(NSString *inMessageClass);
 void OOLogOutdentIf(NSString *inMessageClass);
 #endif
 
-#define OOLogERR(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, @"***** ERROR: ",format, ## __VA_ARGS__)
-#define OOLogWARN(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, @"----- WARNING: ",format, ## __VA_ARGS__)
+
+#define OOLOG_ERROR_PREFIX		@"***** ERROR: "
+#define OOLOG_WARNING_PREFIX	@"----- WARNING: "
+
+#define OOLogERR(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, OOLOG_ERROR_PREFIX ,format, ## __VA_ARGS__)
+#define OOLogWARN(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, OOLOG_WARNING_PREFIX, format, ## __VA_ARGS__)
+
 
 // Remember/restore indent levels, for cases where an exception may occur while indented.
 void OOLogPushIndent(void);

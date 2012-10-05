@@ -36,6 +36,10 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOJSEngineTimeManagement.h"
 
+#if NEW_STRING_EXPANDER
+#import "OOStringExpander.h"
+#endif
+
 
 #define NSMakeRange(loc, len) ((NSRange){loc, len})
 
@@ -259,6 +263,10 @@ NSString *StringFromRandomSeed(Random_Seed seed)
 
 NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed, NSString *name)
 {
+#if NEW_STRING_EXPANDER
+	return OOExpandWithSeed(text, seed, name);
+#endif
+	
 	// to enable variables to return strings that can be expanded (eg. @"[commanderName_string]")
 	// we're going to loop until every expansion has been done!
 	// but to check this does not infinitely recurse
@@ -364,6 +372,17 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 */
 NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *pName)
 {
+#if NEW_STRING_EXPANDER
+	/*
+		Temporary shim for new string expander.
+		
+		I have a local branch where it's fully integrated, but this lets us
+		test it while allowing a simple rollback.
+		-- Ahruman 2012-10-05
+	*/
+	return OOExpandDescriptionString(text, seed, overrides, legacyLocals, pName, kOOExpandNoOptions);
+#endif
+	
 	BOOL				textIsMutable = NO;
 	NSDictionary		*descriptions = nil;
 	id					value = nil;

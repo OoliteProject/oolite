@@ -32,6 +32,10 @@ MA 02110-1301, USA.
 @class Entity;
 
 
+// If set, use new faster string expander with saner (but not entirely backwards-compatible) semantics.
+#define NEW_STRING_EXPANDER 1
+
+
 NSMutableArray *ScanTokensFromString(NSString *values);
 
 // Note: these functions will leave their out values untouched if they fail (and return NO). They will not log an error if passed a NULL string (but will return NO). This means they can be used to, say, read dictionary entries which might not exist. They also ignore any extra components in the string.

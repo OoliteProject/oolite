@@ -345,6 +345,7 @@ OO_UTILITY_FILES = \
     OOPriorityQueue.m \
     OOProbabilitySet.m \
     OOShipGroup.m \
+    OOStringExpander.m \
     OOStringParsing.m \
     OOWeakReference.m \
     OOWeakSet.m \
