@@ -191,7 +191,6 @@ typedef enum
 } OOMissileStatus;
 
 
-#define ENERGY_RECHARGE_FACTOR			energy_recharge_rate
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f
 
@@ -211,20 +210,11 @@ typedef enum
 
 #define	PLAYER_TARGET_MEMORY_SIZE		16
 
-	//  ~~~~~~~~~~~~~~~~~~~~~~~~	= 40km
-
-#define SHOT_RELOAD						0.25
-
 #define HYPERSPEED_FACTOR				32.0
 
 #define PLAYER_SHIP_DESC				@"cobra3-player"
 
 #define ESCAPE_SEQUENCE_TIME			10.0
-
-#define MS_WITCHSPACE_SF				@"[witch-to-@-in-f-seconds]"
-#define MS_GAL_WITCHSPACE_F				@"[witch-galactic-in-f-seconds]"
-
-#define WEAPON_OFFSET_DOWN				20
 
 #define FORWARD_FACING_STRING			DESC(@"forward-facing-string")
 #define AFT_FACING_STRING				DESC(@"aft-facing-string")
@@ -243,7 +233,7 @@ typedef enum
 #define PASSAGE_GOOD_KEY				@"passage_fulfilled"
 #define PASSAGE_BAD_KEY					@"passage_expired"
 #define PASSAGE_UNKNOWN_KEY				@"passage_unknown"
-#define PARCEL_GOOD_KEY				@"parcels_fulfilled"
+#define PARCEL_GOOD_KEY					@"parcels_fulfilled"
 #define PARCEL_BAD_KEY					@"parcels_expired"
 #define PARCEL_UNKNOWN_KEY				@"parcels_unknown"
 
@@ -255,10 +245,11 @@ typedef enum
 
 #define PLAYER_DOCKING_AI_NAME			@"oolite-player-AI.plist"
 
-#define	MANIFEST_SCREEN_ROW_BACK 1
-#define	MANIFEST_SCREEN_ROW_NEXT [[PLAYER hud] isHidden]?27:20
+#define	MANIFEST_SCREEN_ROW_BACK		1
+#define	MANIFEST_SCREEN_ROW_NEXT		([[PLAYER hud] isHidden]?27:20)
 
-#define MISSION_DEST_LEGACY   @"__oolite_legacy_destinations"
+#define MISSION_DEST_LEGACY				@"__oolite_legacy_destinations"
+
 
 @interface PlayerEntity: ShipEntity
 {
@@ -304,7 +295,7 @@ typedef enum
 	
 	NSMutableDictionary		*shipyard_record;
 	
-	NSMutableDictionary			*missionDestinations;
+	NSMutableDictionary		*missionDestinations;
 
 	double					script_time;
 	double					script_time_check;
