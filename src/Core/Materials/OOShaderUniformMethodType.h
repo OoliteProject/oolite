@@ -83,5 +83,6 @@ typedef Vector (*VectorReturnMsgSend)(id, SEL);
 typedef Quaternion (*QuaternionReturnMsgSend)(id, SEL);
 typedef OOMatrix (*MatrixReturnMsgSend)(id, SEL);
 typedef NSPoint (*PointReturnMsgSend)(id, SEL);
+typedef id (*ObjectReturnMsgSend)(id, SEL);
 
 #endif	// OO_SHADERS

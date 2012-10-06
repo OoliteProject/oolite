@@ -544,7 +544,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 			break;
 		
 		case kOOShaderUniformTypeObject:
-			objVal = value.binding.method(object, value.binding.selector);
+			objVal = ((ObjectReturnMsgSend)value.binding.method)(object, value.binding.selector);
 			if ([objVal isKindOfClass:[NSNumber class]])
 			{
 				fVal = [objVal floatValue];

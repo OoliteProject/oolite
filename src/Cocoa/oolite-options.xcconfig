@@ -3,4 +3,8 @@
 #include "oolite-snapshot.xcconfig"
 
 
-OOLITE_OPTION_MACROS				= OOLITE_MAC_OS_X=1
+// OOLITE_MAC_OS_X is used within Oolite to detect the platform it's being built for.
+// OBJC_OLD_DISPATCH_PROTOTYPES causes the Objective-C runtime headers (in the 10.8
+// SDK or later) to declare objc_msgSend(), etc. and IMP as void(*)(void), so they
+// need to be cast to the appropriate function pointer type.
+OOLITE_OPTION_MACROS				= OOLITE_MAC_OS_X=1 OBJC_OLD_DISPATCH_PROTOTYPES=0
