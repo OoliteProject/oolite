@@ -80,24 +80,13 @@ typedef struct
 } OOStringExpansionContext;
 
 
+/*	Accessors for lazily-instantiated caches in context.
+*/
 static NSString *GetSystemName(OOStringExpansionContext *context);		// %H
 static NSString *GetSystemNameIan(OOStringExpansionContext *context);	// %I
 static NSString *GetRandomNameN(OOStringExpansionContext *context);		// %N
 static NSString *GetRandomNameR(OOStringExpansionContext *context);		// %R
 static NSArray *GetSystemDescriptions(OOStringExpansionContext *context);
-
-
-static NSString *Expand(NSString *string, OOStringExpansionContext *context, NSUInteger sizeLimit, NSUInteger recursionLimit);
-
-static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength, NSUInteger sizeLimit, NSUInteger recursionLimit);
-static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger keyStart, NSUInteger keyLength, NSUInteger sizeLimit, NSUInteger recursionLimit);
-static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *key, NSUInteger sizeLimit, NSUInteger recursionLimit);
-static NSString *ExpandLegacyScriptSelectorKey(OOStringExpansionContext *context, NSString *key);
-static NSMapTable *SpecialSubstitutionSelectors(void);
-static SEL LookUpLegacySelector(NSString *key);
-
-static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
-static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
 
 static void AppendCharacters(NSMutableString **result, const unichar *characters, NSUInteger start, NSUInteger end);
 
@@ -105,6 +94,44 @@ static NSString *NewRandomDigrams(void);
 static NSString *OldRandomDigrams(void);
 
 
+// Various bits of expansion logic, each with a comment of its very own at the implementation.
+static NSString *Expand(OOStringExpansionContext *context, NSString *string, NSUInteger sizeLimit, NSUInteger recursionLimit);
+
+static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength, NSUInteger sizeLimit, NSUInteger recursionLimit);
+static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger keyStart, NSUInteger keyLength, NSUInteger sizeLimit, NSUInteger recursionLimit);
+static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *key, NSUInteger sizeLimit, NSUInteger recursionLimit);
+static NSString *ExpandStringKeyOverride(OOStringExpansionContext *context, NSString *key);
+static NSString *ExpandStringKeySpecial(OOStringExpansionContext *context, NSString *key);
+static NSMapTable *SpecialSubstitutionSelectors(void);
+static NSString *ExpandStringKeyFromDescriptions(OOStringExpansionContext *context, NSString *key, NSUInteger sizeLimit, NSUInteger recursionLimit);
+static NSString *ExpandStringKeyMissionVariable(OOStringExpansionContext *context, NSString *key);
+static NSString *ExpandStringKeyLegacyLocalVariable(OOStringExpansionContext *context, NSString *key);
+static NSString *ExpandLegacyScriptSelectorKey(OOStringExpansionContext *context, NSString *key);
+static SEL LookUpLegacySelector(NSString *key);
+
+static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
+static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
+#if WARNINGS
+static void ReportWarningForUnknownKey(OOStringExpansionContext *context, NSString *key);
+#endif
+
+
+/*	SyntaxWarning(context, logMessageClass, format, ...)
+ 	SyntaxError(context, logMessageClass, format, ...)
+	
+	Report warning or error for expansion syntax, including unknown keys.
+	
+	Warnings are reported as JS warnings or log messages (depending on the
+	context->isJavaScript flag) if the relevant log message class is enabled.
+	Warnings are completely disabled in Deployment builds.
+	
+	Errors are reported as JS warnings (not exceptions) or log messages (again
+	depending on context->isJavaScript) in all configurations. Exceptions are
+	not used to avoid breaking code that worked with the old expander, even if
+	it was questionable.
+	
+	Errors that are not syntax or invalid keys are reported with OOLogERR().
+*/
 static void SyntaxIssue(OOStringExpansionContext *context, const char *function, const char *fileName, NSUInteger line, NSString *logMessageClass, NSString *prefix, NSString *format, ...)  OO_TAKES_FORMAT_STRING(7, 8);
 #define SyntaxError(CONTEXT, CLASS, FORMAT, ...) SyntaxIssue(CONTEXT, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, CLASS, OOLOG_WARNING_PREFIX, FORMAT, ## __VA_ARGS__)
 
@@ -114,6 +141,9 @@ static void SyntaxIssue(OOStringExpansionContext *context, const char *function,
 #define SyntaxWarning(...) do {} while (0)
 #endif
 
+
+// MARK: -
+// MARK: Public functions
 
 NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *systemName, OOExpandOptions options)
 {
@@ -134,7 +164,7 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 	@try
 	{
 		// TODO: profile caching the results. Would need to keep track of whether we've done something nondeterministic (array selection, %R etc).
-		result = Expand(string, &context, kStackAllocationLimit, kRecursionLimit);
+		result = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
 	}
 	@finally
 	{
@@ -212,13 +242,20 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name)
 }
 
 
-OOINLINE bool IsASCIIDigit(unichar c)
-{
-	return '0' <= c && c <= '9';
-}
+// MARK: -
+// MARK: Guts
 
 
-static NSString *Expand(NSString *string, OOStringExpansionContext *context, NSUInteger sizeLimit, NSUInteger recursionLimit)
+/*	Expand(context, string, sizeLimit, recursionLimit)
+	
+	Top-level expander. Expands all types of substitution in a string.
+	
+	<sizeLimit> is the remaining budget for stack allocation of read buffers.
+	(Expand() is the only function that creates such buffers.) <recursionLimit>
+	limits the number of recursive calls of Expand() that are permitted. If one
+	of the limits would be exceeded, Expand() returns the input string unmodified.
+*/
+static NSString *Expand(OOStringExpansionContext *context, NSString *string, NSUInteger sizeLimit, NSUInteger recursionLimit)
 {
 	NSCParameterAssert(string != nil && context != NULL && sizeLimit <= kStackAllocationLimit);
 	
@@ -328,6 +365,14 @@ static NSString *Expand(NSString *string, OOStringExpansionContext *context, NSU
 }
 
 
+/*	ExpandKey(context, characters, size, idx, replaceLength, sizeLimit, recursionLimit)
+	
+	Expand a substitution key, i.e. a section surrounded by square brackets.
+	On entry, <idx> is the offset to an opening bracket. ExpandKey() searches
+	for the balancing closing bracket, and if it is found dispatches to either
+	ExpandDigitKey() (for a key consisting only of digits) or ExpandStringKey()
+	(for anything else).
+*/
 static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength, NSUInteger sizeLimit, NSUInteger recursionLimit)
 {
 	NSCParameterAssert(context != NULL && characters != NULL && replaceLength != NULL);
@@ -342,7 +387,7 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 		if (characters[end] == ']')  balanceCount--;
 		else
 		{
-			if (!IsASCIIDigit(characters[end]))  allDigits = false;
+			if (!isdigit(characters[end]))  allDigits = false;
 			if (characters[end] == '[')  balanceCount++;
 		}
 	}
@@ -375,7 +420,16 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 }
 
 
-// Expand a numeric key of the form [N] to a string from the system_description array in description.plist.
+/*	ExpandDigitKey(context, characters, keyStart, keyLength, sizeLimit, recursionLimit
+	
+	Expand a key (as per ExpandKey()) consisting entirely of digits. <keyStart>
+	and <keyLength> specify the range of characters containing the key.
+	
+	Digit-only keys are looked up in the system_description array in
+	descriptions.plist, which is expected to contain only arrays of strings (no
+	loose strings). When an array is retrieved, a string is selected from it
+	at random and the result is expanded recursively by calling Expand().
+*/
 static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger keyStart, NSUInteger keyLength, NSUInteger sizeLimit, NSUInteger recursionLimit)
 {
 	NSCParameterAssert(context != NULL && characters != NULL);
@@ -383,7 +437,7 @@ static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar
 	NSUInteger keyValue = 0, idx;
 	for (idx = keyStart; idx < (keyStart + keyLength); idx++)
 	{
-		NSCAssert2(IsASCIIDigit(characters[idx]), @"%s called with non-numeric key [%@].", __FUNCTION__, [NSString stringWithCharacters:characters + keyStart length:keyLength]);
+		NSCAssert2(isdigit(characters[idx]), @"%s called with non-numeric key [%@].", __FUNCTION__, [NSString stringWithCharacters:characters + keyStart length:keyLength]);
 		
 		keyValue = keyValue * 10 + characters[idx] - '0';
 	}
@@ -426,15 +480,59 @@ static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar
 	
 	// Look up and recursively expand string.
 	NSString *string = [entry oo_stringAtIndex:selection];
-	return Expand(string, context, sizeLimit, recursionLimit);
+	return Expand(context, string, sizeLimit, recursionLimit);
 }
 
 
+/*	ExpandStringKey(context, key, sizeLimit, recursionLimit)
+	
+	Expand a key (as per ExpandKey()) which doesn't consist entirely of digits.
+	Looks for the key in a number of different places in prioritized order.
+*/
 static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *key, NSUInteger sizeLimit, NSUInteger recursionLimit)
 {
 	NSCParameterAssert(context != NULL && key != nil);
 	
 	// Overrides have top priority.
+	NSString *result = ExpandStringKeyOverride(context, key);
+	
+	// Specials override descriptions.plist.
+	if (result == nil)  result = ExpandStringKeySpecial(context, key);
+	
+	// Now try descriptions.plist.
+	if (result == nil)  result = ExpandStringKeyFromDescriptions(context, key, sizeLimit, recursionLimit);
+	
+	// Try mission variables.
+	if (result == nil)  result = ExpandStringKeyMissionVariable(context, key);
+	
+	// Try legacy local variables.
+	if (result == nil)  result = ExpandStringKeyLegacyLocalVariable(context, key);
+	
+	// Try legacy script methods.
+	if (result == nil)  ExpandLegacyScriptSelectorKey(context, key);
+	
+#if WARNINGS
+	// None of that worked, so moan a bit.
+	if (result == nil)  ReportWarningForUnknownKey(context, key);
+#endif
+	
+	return result;
+}
+
+
+/*	ExpandStringKeyOverride(context, key)
+	
+	Attempt to expand a key by retriving it from the overrides dictionary of
+	the context (ultimately from OOExpandDescriptionString()). Overrides are
+	used to provide context-specific expansions, such as "[self:name]" in
+	comms messages, and can also be used from JavaScript.
+	
+	The main difference between overrides and legacy locals is priority.
+*/
+static NSString *ExpandStringKeyOverride(OOStringExpansionContext *context, NSString *key)
+{
+	NSCParameterAssert(context != NULL && key != nil);
+	
 	id value = [context->overrides objectForKey:key];
 	if (value != nil)
 	{
@@ -447,108 +545,45 @@ static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *ke
 		return [value description];
 	}
 	
-	// Specials override descriptions.plist.
+	return nil;
+}
+
+
+/*	ExpandStringKeySpecial(context, key)
+	
+	Attempt to expand a key by matching a set of special expansion codes that
+	call PlayerEntity methods but aren't legacy script methods. Also unlike
+	legacy script methods, all these methods return strings.
+*/
+static NSString *ExpandStringKeySpecial(OOStringExpansionContext *context, NSString *key)
+{
+	NSCParameterAssert(context != NULL && key != nil);
+	
 	NSMapTable *specials = SpecialSubstitutionSelectors();
 	SEL selector = NSMapGet(specials, key);
 	if (selector != NULL)
 	{
 		NSCAssert2([PLAYER respondsToSelector:selector], @"Special string expansion selector %@ for [%@] is not implemented.", NSStringFromSelector(selector), key);
 		
-		value = [PLAYER performSelector:selector];
-		if (value != nil)
+		NSString *result = [PLAYER performSelector:selector];
+		if (result != nil)
 		{
-			NSCAssert2([value isKindOfClass:[NSString class]], @"Special string expansion [%@] expanded to %@, but expected a string.", key, [value shortDescription]);
-			return value;
+			NSCAssert2([result isKindOfClass:[NSString class]], @"Special string expansion [%@] expanded to %@, but expected a string.", key, [result shortDescription]);
+			return result;
 		}
 	}
 	
-	// Now try descriptions.plist.
-	value = [[UNIVERSE descriptions] objectForKey:key];
-	if (value != nil)
-	{
-		if ([value isKindOfClass:[NSArray class]] && [value count] > 0)
-		{
-			NSUInteger rnd = gen_rnd_number() % [value count];
-			value = [value oo_objectAtIndex:rnd];
-		}
-		
-		if (![value isKindOfClass:[NSString class]])
-		{
-			// This is out of the scope of whatever triggered it, so shouldn't be a JS warning.
-			OOLogERR(@"strings.expand.invalidData", @"String expansion value %@ for [%@] from descriptions.plist is not a string or number.", [value shortDescription], key);
-			return nil;
-		}
-		
-		// Expand recursively.
-		return Expand(value, context, sizeLimit, recursionLimit);
-	}
-	
-	// Try mission variables.
-	if ([key hasPrefix:@"mission_"])
-	{
-		value = [PLAYER missionVariableForKey:key];
-		if (value != nil)
-		{
-			return value;
-		}
-	}
-	
-	// Try legacy local variables.
-	value = [context->legacyLocals objectForKey:key];
-	if (value != nil)
-	{
-		return [value description];
-	}
-	
-	// Try legacy script methods.
-	value = ExpandLegacyScriptSelectorKey(context, key);
-#if WARNINGS
-	if (value == nil)
-	{
-		if ([key hasSuffix:@"_string"] || [key hasSuffix:@"_number"] || [key hasSuffix:@"_bool"])
-		{
-			// If it looks like a legacy script selector, assume it is.
-			SyntaxError(context, @"strings.expand.invalidSelector", @"Unpermitted legacy script method [%@] in string.", key);
-		}
-		else
-		{
-			SyntaxWarning(context, @"strings.expand.warning.unknownExpansion", @"Unknown expansion key [%@] in string.", key);
-		}
-	}
-#endif
-	return value;
+	return nil;
 }
 
 
-static NSString *ExpandLegacyScriptSelectorKey(OOStringExpansionContext *context, NSString *key)
-{
-	NSCParameterAssert(context != NULL && key != nil);
+/*	SpecialSubstitutionSelectors()
 	
-	// Treat expansion key as a legacy script selector, with whitelisting and aliasing.
-	SEL selector = LookUpLegacySelector(key);
-	
-	if (selector != NULL)
-	{
-		return [[PLAYER performSelector:selector] description];
-	}
-	else
-	{
-		return nil;
-	}
-}
-
-
+	Retrieve the mapping of special keys for ExpandStringKeySpecial() to
+	selectors.
+*/
 static NSMapTable *SpecialSubstitutionSelectors(void)
 {
-	/*
-		Special substitution selectors:
-		These substitution keys map to methods on the player entity. They
-		have higher precedence than descriptions.plist entries, but lower
-		than explicit overrides.
-		
-		All of these methods return strings.
-	*/
-	
 	static NSMapTable *specials = NULL;
 	if (specials != NULL)  return specials;
 	
@@ -575,6 +610,95 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 }
 
 
+/*	ExpandStringKeyFromDescriptions(context, key, sizeLimit, recursionLimit)
+	
+	Attempt to expand a key by looking it up in descriptions.plist. Matches
+	may be single strings or arrays of strings. For arrays, one of the strings
+	is selected at random.
+	
+	Matched strings are expanded recursively by calling Expand().
+*/
+static NSString *ExpandStringKeyFromDescriptions(OOStringExpansionContext *context, NSString *key, NSUInteger sizeLimit, NSUInteger recursionLimit)
+{
+	id value = [[UNIVERSE descriptions] objectForKey:key];
+	if (value != nil)
+	{
+		if ([value isKindOfClass:[NSArray class]] && [value count] > 0)
+		{
+			NSUInteger rnd = gen_rnd_number() % [value count];
+			value = [value oo_objectAtIndex:rnd];
+		}
+		
+		if (![value isKindOfClass:[NSString class]])
+		{
+			// This is out of the scope of whatever triggered it, so shouldn't be a JS warning.
+			OOLogERR(@"strings.expand.invalidData", @"String expansion value %@ for [%@] from descriptions.plist is not a string or number.", [value shortDescription], key);
+			return nil;
+		}
+		
+		// Expand recursively.
+		return Expand(context, value, sizeLimit, recursionLimit);
+	}
+	
+	return nil;
+}
+
+
+/*	ExpandStringKeyMissionVariable(context, key)
+	
+	Attempt to expand a key by matching it to a mission variable.
+*/
+static NSString *ExpandStringKeyMissionVariable(OOStringExpansionContext *context, NSString *key)
+{
+	if ([key hasPrefix:@"mission_"])
+	{
+		return [PLAYER missionVariableForKey:key];
+	}
+	
+	return nil;
+}
+
+
+/*	ExpandStringKeyMissionVariable(context, key)
+	
+	Attempt to expand a key by matching it to a legacy local variable.
+	
+	The main difference between overrides and legacy locals is priority.
+*/
+static NSString *ExpandStringKeyLegacyLocalVariable(OOStringExpansionContext *context, NSString *key)
+{
+	return [[context->legacyLocals objectForKey:key] description];
+}
+
+
+/*	ExpandLegacyScriptSelectorKey(context, key)
+	
+	Attempt to expand a key by treating it as a legacy script query method and
+	invoking it. Only whitelisted methods are permitted, and aliases are
+	respected.
+*/
+static NSString *ExpandLegacyScriptSelectorKey(OOStringExpansionContext *context, NSString *key)
+{
+	NSCParameterAssert(context != NULL && key != nil);
+	
+	SEL selector = LookUpLegacySelector(key);
+	
+	if (selector != NULL)
+	{
+		return [[PLAYER performSelector:selector] description];
+	}
+	else
+	{
+		return nil;
+	}
+}
+
+
+/*	LookUpLegacySelector(key)
+	
+	If <key> is a whitelisted legacy script query method, or aliases to one,
+	return the corresponding selector.
+*/
 static SEL LookUpLegacySelector(NSString *key)
 {
 	SEL selector = NULL;
@@ -626,6 +750,46 @@ static SEL LookUpLegacySelector(NSString *key)
 }
 
 
+#if WARNINGS
+/*	ReportWarningForUnknownKey(context, key)
+	
+	Called when we fall through all the various ways of expanding string keys
+	above. If the key looks like a legacy script query method, assume it is
+	and report a bad selector. Otherwise, report it as an unknown key.
+*/
+static void ReportWarningForUnknownKey(OOStringExpansionContext *context, NSString *key)
+{
+	if ([key hasSuffix:@"_string"] || [key hasSuffix:@"_number"] || [key hasSuffix:@"_bool"])
+	{
+		SyntaxError(context, @"strings.expand.invalidSelector", @"Unpermitted legacy script method [%@] in string.", key);
+	}
+	else
+	{
+		SyntaxWarning(context, @"strings.expand.warning.unknownExpansion", @"Unknown expansion key [%@] in string.", key);
+	}
+}
+#endif
+
+
+/*	ExpandKey(context, characters, size, idx, replaceLength)
+	
+	Expand an escape code. <idx> is the index of the % sign introducing the
+	escape code. Supported escape codes are:
+		%H
+		%I
+		%N
+		%R
+		%J###, where ### are three digits
+		%%
+		%[
+		%]
+	
+	In addition, the codes %@, %d and %. are ignored, because they're used
+	with -[NSString stringWithFormat:] on strings that have already been
+	expanded.
+	
+	Any other code results in a warning.
+*/
 static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength)
 {
 	NSCParameterAssert(context != NULL && characters != NULL && replaceLength != NULL);
@@ -669,7 +833,8 @@ static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const un
 				Ideally, these would be replaced with the caller formatting
 				the value and passing it as an override - it would be safer
 				and make descriptions.plist clearer - but it would be a big
-				job and uglify the callers.
+				job and uglify the callers without newfangled Objective-C
+				dictionary literals.
 				-- Ahruman 2012-10-05
 			*/
 		case '@':
@@ -686,7 +851,11 @@ static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const un
 }
 
 
-// %J###
+/*	ExpandSystemNameEscape(context, characters, size, idx, replaceLength)
+	
+	Expand a %J### code by looking up the corresponding system name in the
+	current galaxy.
+*/
 static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength)
 {
 	NSCParameterAssert(context != NULL && characters != NULL && replaceLength != NULL);
@@ -707,7 +876,7 @@ static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const
 	char tens = characters[idx + 3];
 	char units = characters[idx + 4];
 	
-	if (!(IsASCIIDigit(hundreds) && IsASCIIDigit(tens) && IsASCIIDigit(units)))
+	if (!(isdigit(hundreds) && isdigit(tens) && isdigit(units)))
 	{
 		SyntaxError(context, @"strings.expand.invalidJEscape", kInvalidJEscapeMessage);
 		return nil;
