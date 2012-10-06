@@ -847,19 +847,19 @@ static void SyntaxIssue(OOStringExpansionContext *context, const char *function,
 	va_list args;
 	va_start(args, format);
 	
-	if (context->isJavaScript)
+	if (OOLogWillDisplayMessagesInClass(logMessageClass))
 	{
-		/*	NOTE: syntax errors are reported as warnings when called from JS
-			because we don't want to start throwing exceptions when the old
-			expander didn't.
-		*/
-		JSContext *jsc = OOJSAcquireContext();
-		OOJSReportWarningWithArguments(jsc, format, args);
-		OOJSRelinquishContext(jsc);
-	}
-	else
-	{
-		if (OOLogWillDisplayMessagesInClass(logMessageClass))
+		if (context->isJavaScript)
+		{
+			/*	NOTE: syntax errors are reported as warnings when called from JS
+				because we don't want to start throwing exceptions when the old
+				expander didn't.
+			*/
+			JSContext *jsc = OOJSAcquireContext();
+			OOJSReportWarningWithArguments(jsc, format, args);
+			OOJSRelinquishContext(jsc);
+		}
+		else
 		{
 			format = [prefix stringByAppendingString:format];
 			OOLogWithFunctionFileAndLineAndArguments(logMessageClass, function, fileName, line, format, args);
