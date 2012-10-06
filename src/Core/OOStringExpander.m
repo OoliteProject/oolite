@@ -92,8 +92,9 @@ static NSString *Expand(NSString *string, OOStringExpansionContext *context, NSU
 static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength, NSUInteger sizeLimit, NSUInteger recursionLimit);
 static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger keyStart, NSUInteger keyLength, NSUInteger sizeLimit, NSUInteger recursionLimit);
 static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *key, NSUInteger sizeLimit, NSUInteger recursionLimit);
-static NSMapTable *SpecialSubstitutionSelectors(void);
 static NSString *ExpandLegacyScriptSelectorKey(OOStringExpansionContext *context, NSString *key);
+static NSMapTable *SpecialSubstitutionSelectors(void);
+static SEL LookUpLegacySelector(NSString *key);
 
 static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
 static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
@@ -517,6 +518,24 @@ static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *ke
 }
 
 
+static NSString *ExpandLegacyScriptSelectorKey(OOStringExpansionContext *context, NSString *key)
+{
+	NSCParameterAssert(context != NULL && key != nil);
+	
+	// Treat expansion key as a legacy script selector, with whitelisting and aliasing.
+	SEL selector = LookUpLegacySelector(key);
+	
+	if (selector != NULL)
+	{
+		return [[PLAYER performSelector:selector] description];
+	}
+	else
+	{
+		return nil;
+	}
+}
+
+
 static NSMapTable *SpecialSubstitutionSelectors(void)
 {
 	/*
@@ -552,37 +571,54 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 }
 
 
-static NSString *ExpandLegacyScriptSelectorKey(OOStringExpansionContext *context, NSString *key)
+static SEL LookUpLegacySelector(NSString *key)
 {
-	NSCParameterAssert(context != NULL && key != nil);
+	SEL selector = NULL;
+	static NSMapTable *selectorCache = NULL;
 	
-	// Treat expansion key as a legacy script selector, with whitelisting and aliasing.
-	// NOTE: we could use an NSMapSet to cache SELs, but I don't think we hit this case very often.
-	static NSDictionary *aliases = nil;
-	static NSSet *whitelist = nil;
-	if (whitelist == nil)
+	// Try cache lookup.
+	if (selectorCache != NULL)
 	{
-		NSDictionary *whitelistDict = [ResourceManager whitelistDictionary];
-		whitelist = [[NSSet alloc] initWithArray:[whitelistDict oo_arrayForKey:@"query_methods"]];
-		aliases = [[whitelistDict oo_dictionaryForKey:@"query_method_aliases"] copy];
+		selector = NSMapGet(selectorCache, key);
 	}
 	
-	NSString *selectorName = [aliases oo_stringForKey:key];
-	if (selectorName == nil)  selectorName = key;
-	
-	if ([whitelist containsObject:selectorName])
+	if (selector == NULL)
 	{
-		SEL selector = NSSelectorFromString(selectorName);
+		static NSDictionary *aliases = nil;
+		static NSSet *whitelist = nil;
+		if (whitelist == nil)
+		{
+			NSDictionary *whitelistDict = [ResourceManager whitelistDictionary];
+			whitelist = [[NSSet alloc] initWithArray:[whitelistDict oo_arrayForKey:@"query_methods"]];
+			aliases = [[whitelistDict oo_dictionaryForKey:@"query_method_aliases"] copy];
+		}
 		
-		// This is an assertion, not a warning, because whitelist.plist is part of the game and cannot be overriden by OXPs.
-		NSCAssert1([PLAYER respondsToSelector:selector], @"Player does not respond to whitelisted query selector %@.", key);
+		NSString *selectorName = [aliases oo_stringForKey:key];
+		if (selectorName == nil)  selectorName = key;
 		
-		return [[PLAYER performSelector:selector] description];
+		if ([whitelist containsObject:selectorName])
+		{
+			selector = NSSelectorFromString(selectorName);
+			
+			/*	This is an assertion, not a warning, because whitelist.plist is
+				part of the game and cannot be overriden by OXPs. If there is an
+				invalid selector in the whitelist, it's a game bug.
+			*/
+			NSCAssert1([PLAYER respondsToSelector:selector], @"Player does not respond to whitelisted query selector %@.", key);
+		}
+		
+		if (selector != NULL)
+		{
+			// Add it to cache.
+			if (selectorCache == NULL)
+			{
+				selectorCache = NSCreateMapTable(NSObjectMapKeyCallBacks, NSNonOwnedPointerMapValueCallBacks, [whitelist count]);
+			}
+			NSMapInsertKnownAbsent(selectorCache, key, selector);
+		}
 	}
-	else
-	{
-		return nil;
-	}
+	
+	return selector;
 }
 
 
