@@ -12480,7 +12480,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);
 	OOLog(@"dumpState.shipEntity", @"Subentity count: %lu", [self subEntityCount]);
 	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", OOStringFromBehaviour(behaviour));
-	if ([self primaryTarget] != nil)  OOLog(@"dumpState.shipEntity", @"Target: %@", [self primaryTarget]);
+	id target = [self primaryTarget];
+	if (target == nil)  target = @"<none>";
+	OOLog(@"dumpState.shipEntity", @"Target: %@", target);
 	OOLog(@"dumpState.shipEntity", @"Destination: %@", VectorDescription(destination));
 	OOLog(@"dumpState.shipEntity", @"Other destination: %@", VectorDescription(coordinates));
 	OOLog(@"dumpState.shipEntity", @"Waypoint count: %u", number_of_navpoints);
