@@ -103,8 +103,12 @@
 	
 	According to the fine manuals, mainline GCC supports basic checking of
 	NSString format strings since 4.6, but doesn't validate the arguments.
+	
+	Update: apparently GCC 4.6.3 doesn't recognize Objective-C string literals
+	as being string literals for this purpose, and errors out.
+	-- Ahruman 2012-10-06
 */
-#if __has_attribute(format) || (defined(OOLITE_GCC_VERSION) && OOLITE_GCC_VERSION >= 40600)
+#if __has_attribute(format) /*|| (defined(OOLITE_GCC_VERSION) && OOLITE_GCC_VERSION >= 40600)*/
 	#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck) __attribute__((format(NSString, stringIndex, firstToCheck)))
 #else
 	#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck)
