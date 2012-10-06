@@ -452,6 +452,8 @@ static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *ke
 	SEL selector = NSMapGet(specials, key);
 	if (selector != NULL)
 	{
+		NSCAssert2([PLAYER respondsToSelector:selector], @"Special string expansion selector %@ for [%@] is not implemented.", NSStringFromSelector(selector), key);
+		
 		value = [PLAYER performSelector:selector];
 		if (value != nil)
 		{
@@ -543,6 +545,8 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 		These substitution keys map to methods on the player entity. They
 		have higher precedence than descriptions.plist entries, but lower
 		than explicit overrides.
+		
+		All of these methods return strings.
 	*/
 	
 	static NSMapTable *specials = NULL;

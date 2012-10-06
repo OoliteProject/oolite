@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOStringParsing.h"
 
 
 @implementation PlayerEntity (ScriptMethods)
@@ -324,6 +325,36 @@ MA 02110-1301, USA.
 							  [NSNumber numberWithFloat:[marker oo_floatForKey:@"markerScale" defaultValue:1.0]], @"markerScale",
 								nil] retain] autorelease];
 
+}
+
+
+// Implements string expansion code [credits_number].
+- (NSString *) creditsFormattedForSubstitution
+{
+	return OOStringFromDeciCredits([self deciCredits], YES, NO);
+}
+
+
+/*	Implements string expansion code [_oo_legacy_credits_number].
+	
+	Literal uses of [credits_number] in legacy scripts are converted to
+	[_oo_legacy_credits_number] in the script sanitizer. These are shown
+	unlocalized because legacy scripts may use it for arithmetic.
+*/
+- (NSString *) creditsFormattedForLegacySubstitution
+{
+	OOCreditsQuantity	tenthsOfCredits = [self deciCredits];
+	unsigned long long	integerCredits = tenthsOfCredits / 10;
+	unsigned long long	tenths = tenthsOfCredits % 10;
+	
+	return [NSString stringWithFormat:@"%llu.%llu", integerCredits, tenths];
+}
+
+
+// Implements string expansion code [commander_bounty].
+- (NSString *) commanderBountyAsString
+{
+	return [NSString stringWithFormat:@"%i", [self legalStatus]];
 }
 
 @end

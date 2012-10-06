@@ -313,9 +313,6 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 		These substitution keys map to methods on the player entity. They
 		have higher precedence than descriptions.plist entries, but lower
 		than explicit overrides.
-		
-		creditsFormattedForSubstitution is defined below, the rest are in
-		PlayerEntityLegacyScriptEngine.m.
 	*/
 	
 	struct { NSString *key; SEL selector; } selectors[] =
@@ -339,27 +336,6 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 	
 	return result;
 }
-
-
-@implementation PlayerEntity (OOStringParsingSubstition)
-
-- (NSString *) creditsFormattedForSubstitution
-{
-	return OOStringFromDeciCredits([self deciCredits], YES, NO);
-}
-
-
-- (NSString *) creditsFormattedForLegacySubstitution
-{
-	//	Unlocalized because legacy scripts may use it for arithmetic.
-	OOCreditsQuantity	tenthsOfCredits = [self deciCredits];
-	unsigned long long	integerCredits = tenthsOfCredits / 10;
-	unsigned long long	tenths = tenthsOfCredits % 10;
-	
-	return [NSString stringWithFormat:@"%llu.%llu", integerCredits, tenths];
-}
-
-@end
 
 
 /*

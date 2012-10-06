@@ -125,20 +125,32 @@ void OOJSUnreachable(const char *function, const char *file, unsigned line)  NO_
 	{ \
 		OOJSPauseTimeLimiter(); \
 		JSContext *oojsRequestContext = (context); \
-		jsrefcount oojsRequestRefCount = JS_SuspendRequest(oojsRequestContext);
+		jsrefcount oojsRequestRefCount = JS_SuspendRequest(oojsRequestContext); \
+		@try \
+		{
 
 #define OOJS_END_FULL_NATIVE \
-		JS_ResumeRequest(oojsRequestContext, oojsRequestRefCount); \
-		OOJSResumeTimeLimiter(); \
+		} \
+		@finally \
+		{ \
+			JS_ResumeRequest(oojsRequestContext, oojsRequestRefCount); \
+			OOJSResumeTimeLimiter(); \
+		} \
 	}
 #else
 #define OOJS_BEGIN_FULL_NATIVE(context) \
 	{ \
 		(void)(context); \
 		OOJSPauseTimeLimiter(); \
+		@try \
+		{
 
 #define OOJS_END_FULL_NATIVE \
-		OOJSResumeTimeLimiter(); \
+		} \
+		@finally \
+		{ \
+			OOJSResumeTimeLimiter(); \
+		} \
 	}
 #endif
 
