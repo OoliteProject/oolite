@@ -369,7 +369,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 		scale factor or colour space of the window's backing store changes.
 		We use it to track scale factor changes.
 	*/
-	if (NSWindowDidChangeBackingPropertiesNotification != nil && [self.window respondsToSelector:@selector(backingScaleFactor)])
+	if (&NSWindowDidChangeBackingPropertiesNotification != NULL && [self.window respondsToSelector:@selector(backingScaleFactor)])
 	{
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(backingPropertiesChanged:)
