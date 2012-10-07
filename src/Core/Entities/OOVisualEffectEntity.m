@@ -383,6 +383,37 @@ MA 02110-1301, USA.
 }
 
 
+- (void) orientationChanged
+{
+	[super orientationChanged];
+	
+	_v_forward   = vector_forward_from_quaternion(orientation);
+	_v_up		= vector_up_from_quaternion(orientation);
+	_v_right		= vector_right_from_quaternion(orientation);
+}
+
+
+// exposed to shaders
+- (Vector) forwardVector
+{
+	return _v_forward;
+}
+
+
+// exposed to shaders
+- (Vector) upVector
+{
+	return _v_up;
+}
+
+
+// exposed to shaders
+- (Vector) rightVector
+{
+	return _v_right;
+}
+
+
 - (OOColor *)scannerDisplayColor1
 {
 	return [[scanner_display_color1 retain] autorelease];

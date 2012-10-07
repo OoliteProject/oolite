@@ -53,6 +53,10 @@
 	Vector          _shaderVector1;
 	Vector          _shaderVector2;
 
+	Vector _v_forward;
+	Vector _v_up;
+	Vector _v_right;
+
 	OOJSScript				*script;
 	NSDictionary			*scriptInfo;
 
@@ -87,6 +91,11 @@
 - (NSEnumerator *)subEntityEnumerator;
 - (NSEnumerator *)effectSubEntityEnumerator;
 - (NSEnumerator *)flasherEnumerator;
+
+- (void) orientationChanged;
+- (Vector) forwardVector;
+- (Vector) rightVector;
+- (Vector) upVector;
 
 - (OOColor *)scannerDisplayColor1;
 - (OOColor *)scannerDisplayColor2;

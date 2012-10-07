@@ -434,6 +434,9 @@
 	shader_visual_effect_binding_methods = 
 	(	
 		"hullHeatLevel", // faked value so that default shader will work
+		"forwardVector",
+		"rightVector",
+		"upVector",
 		// arbitrary values of various types for shader bindings
 		"shaderFloat1",
 		"shaderFloat2",

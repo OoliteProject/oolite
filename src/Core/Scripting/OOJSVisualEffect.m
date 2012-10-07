@@ -82,7 +82,10 @@ enum
 	kVisualEffect_shaderInt1,
 	kVisualEffect_shaderInt2,
 	kVisualEffect_shaderVector1,
-	kVisualEffect_shaderVector2
+	kVisualEffect_shaderVector2,
+	kVisualEffect_vectorForward,
+	kVisualEffect_vectorRight,
+	kVisualEffect_vectorUp
 };
 
 
@@ -103,6 +106,9 @@ static JSPropertySpec sVisualEffectProperties[] =
 	{ "shaderInt2",    kVisualEffect_shaderInt2,    OOJS_PROP_READWRITE_CB },
 	{ "shaderVector1", kVisualEffect_shaderVector1, OOJS_PROP_READWRITE_CB },
 	{ "shaderVector2", kVisualEffect_shaderVector2, OOJS_PROP_READWRITE_CB },
+	{ "vectorForward", kVisualEffect_vectorForward,	OOJS_PROP_READONLY_CB },
+	{ "vectorRight",	 kVisualEffect_vectorRight,		OOJS_PROP_READONLY_CB },
+	{ "vectorUp",			 kVisualEffect_vectorUp,			OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -199,6 +205,15 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 			*value = OOJSValueFromBOOL([entity isBreakPattern]);
 
 			return YES;
+
+		case kVisualEffect_vectorRight:
+			return VectorToJSValue(context, [entity rightVector], value);
+			
+		case kVisualEffect_vectorForward:
+			return VectorToJSValue(context, [entity forwardVector], value);
+			
+		case kVisualEffect_vectorUp:
+			return VectorToJSValue(context, [entity upVector], value);
 
 		case kVisualEffect_scannerDisplayColor1:
 			result = [[entity scannerDisplayColor1] normalizedArray];
