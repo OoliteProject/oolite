@@ -367,7 +367,18 @@ static JSBool GlobalRandomName(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	OOJS_RETURN_OBJECT(RandomDigrams());
+	/*	Temporarily set the system generation seed to a "really random" seed,
+		so randomName() isn't repeatable.
+	*/
+	RNG_Seed savedSeed = currentRandomSeed();
+	setRandomSeed((RNG_Seed){ Ranrot(), Ranrot(), Ranrot(), Ranrot() });
+	
+	NSString *result = OOExpand(@"%N");
+	
+	// Restore seed.
+	setRandomSeed(savedSeed);
+	
+	OOJS_RETURN_OBJECT(result);
 	
 	OOJS_NATIVE_EXIT
 }

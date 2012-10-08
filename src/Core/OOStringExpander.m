@@ -1028,27 +1028,6 @@ static NSString *NewRandomDigrams(void)
 }
 
 
-// Similar to %N format code, but uses Ranrot() (the "really random" PRNG).
-NSString *OORandomDigrams(void)
-{
-	unsigned			i, length, count;
-	NSString			*digrams = nil;
-	NSMutableString		*name = nil;
-	
-	length = (Ranrot() % 4) + 1;
-	if ((Ranrot() % 5) < ((length == 1) ? 3 : 1))  ++length;	// Make two-letter names rarer and 10-letter names happen sometimes
-	digrams = [[UNIVERSE descriptions] objectForKey:@"digrams"];
-	count = [digrams length] / 2;
-	name = [NSMutableString stringWithCapacity:length * 2];
-	
-	for (i = 0; i != length; ++i)
-	{
-		[name appendString:[digrams substringWithRange:NSMakeRange((Ranrot() % count) * 2, 2)]];
-	}
-	return [name capitalizedString];
-}
-
-
 static void SyntaxIssue(OOStringExpansionContext *context, const char *function, const char *fileName, NSUInteger line, NSString *logMessageClass, NSString *prefix, NSString *format, ...)
 {
 	NSCParameterAssert(context != NULL);

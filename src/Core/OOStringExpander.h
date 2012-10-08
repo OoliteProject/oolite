@@ -143,16 +143,11 @@ NSString *OOExpandKey(NSString *key);
 /*
 	OOGenerateSystemDescription(seed, name)
 	
-	Generates the system description for the specified system seed.
+	Generates the default system description for the specified system seed.
 	Equivalent to OOExpand(@"[system-description-string]"), except that it
 	uses a special PRNG setting to tie the description to the seed.
+	
+	NOTE: this does not apply planetinfo overrides. To get the actual system
+	description, use [UNIVERSE generateSystemData:].
 */
 NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
-
-
-/*
-	OORandomDigrams()
-	
-	Generate a random name.
-*/
-NSString *OORandomDigrams(void);

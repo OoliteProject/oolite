@@ -364,7 +364,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 #ifdef MAC_OS_X_VERSION_10_7	// If building against 10.7 SDK, where relevant symbols are defined...
 - (void) viewDidMoveToWindow
 {
-	/*	Subscrive to NSWindowDidChangeBackingPropertiesNotification on systems
+	/*	Subscribe to NSWindowDidChangeBackingPropertiesNotification on systems
 		which support it (10.7 and later). This notification fires when the
 		scale factor or colour space of the window's backing store changes.
 		We use it to track scale factor changes.
