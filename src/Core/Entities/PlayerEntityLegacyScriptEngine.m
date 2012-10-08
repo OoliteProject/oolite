@@ -50,23 +50,6 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 #import "HeadUpDisplay.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLegacyScriptEngine"
-
-
-#define SUPPORT_TRACE_MESSAGES	(!defined NDEBUG)
-
-// Trace messages are very verbose debug messages in the script mechanism,
-// disabled in logcontrol.plist by default and disabled here in release builds
-// for performance reasons.
-#if SUPPORT_TRACE_MESSAGES
-#define TraceLog OOLog
-#else
-#define TraceLog(...) do {} while (0)
-#endif
-
-
-#define TRACE_AND_RETURN(x)	do { BOOL r = (x); TraceLog(kOOLogTraceTestConditionResult, @"      Result: %@", r ? @"YES" : @"NO"); return r; } while (0)
-
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
 static NSString * const kOOLogScriptMissionDescNoText		= @"script.missionDescription.noMissionText";
@@ -82,13 +65,6 @@ static NSString * const kOOLogDebugProcessSceneStringAddScene = @"script.debug.p
 static NSString * const kOOLogDebugProcessSceneStringAddModel = @"script.debug.processSceneString.addModel";
 static NSString * const kOOLogDebugProcessSceneStringAddMiniPlanet = @"script.debug.processSceneString.addMiniPlanet";
 static NSString * const kOOLogDebugProcessSceneStringAddBillboard = @"script.debug.processSceneString.addBillboard";
-
-static NSString * const kOOLogTraceScriptAction				= @"script.debug.trace.scriptAction";
-static NSString * const kOOLogTraceTestCondition			= @"script.debug.trace.testCondition";
-static NSString * const kOOLogTraceTestConditionCheckingVariable = @"script.debug.trace.testCondition.checkingVariable";
-static NSString * const kOOLogTraceTestConditionValues		= @"script.debug.trace.testCondition.testValues";
-static NSString * const kOOLogTraceTestConditionResult		= @"script.debug.trace.testCondition.testResult";
-static NSString * const kOOLogTraceTestConditionOneOf		= @"script.debug.trace.testCondition.oneOf";
 
 static NSString * const kOOLogNoteRemoveAllCargo			= @"script.debug.note.removeAllCargo";
 static NSString * const kOOLogNoteUseSpecialCargo			= @"script.debug.note.useSpecialCargo";
@@ -241,8 +217,6 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	selectorString = [statement objectAtIndex:1];
 	if ([statement count] > 2)  argumentString = [statement objectAtIndex:2];
 	
-	TraceLog(kOOLogTraceScriptAction, @"script action: \"%@%@\"", selectorString, argumentString ? (NSString *)[@" " stringByAppendingString:argumentString] : (NSString *)@"");
-	
 	selector = NSSelectorFromString(selectorString);
 	
 	if (target == nil || ![target respondsToSelector:selector])
@@ -255,15 +229,6 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 		// Method with argument; substitute [description] expressions.
 		locals = [player localVariablesForMission:sCurrentMissionKey];
 		expandedString = ExpandDescriptionsWithOptions(argumentString, [player system_seed], nil, locals, nil);
-		
-#if SUPPORT_TRACE_MESSAGES
-		if (![expandedString isEqualToString:argumentString])
-		{
-			OOLogIndent();
-			TraceLog(kOOLogTraceScriptAction, @"script action after expansion: \"%@ %@\"", selectorString, argumentString);
-			OOLogOutdent();
-		}
-#endif
 		
 		[target performSelector:selector withObject:expandedString];
 	}
@@ -498,8 +463,6 @@ static BOOL sRunningScript = NO;
 	comparator = [scriptCondition oo_unsignedIntAtIndex:3];
 	operandArray = [scriptCondition oo_arrayAtIndex:4];
 	
-	TraceLog(kOOLogTraceTestCondition, @"scriptTestCondition [%@]: \"%@\"", CurrentScriptDesc(), [scriptCondition oo_stringAtIndex:1]);
-	
 	// Transform mission/local var ops into string ops.
 	if (opType == OP_MISSION_VAR)
 	{
@@ -524,37 +487,29 @@ static BOOL sRunningScript = NO;
 	{
 		lhsString = [self performSelector:selector];
 		
-		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing %@ (from %@) to \"%@\" with operator %@",
-				 lhsString ? (NSString *)[NSString stringWithFormat:@"\"%@\"", lhsString] : (NSString *)@"nil",
-				 selectorString,
-				 expandedRHS ? expandedRHS: (NSString *)(comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
-				OOComparisonTypeToString(comparator));
-		
 	#define DOUBLEVAL(x) ((x != nil) ? [x doubleValue] : 0.0)
 		
 		switch (comparator)
 		{
 			case COMPARISON_UNDEFINED:
-				TRACE_AND_RETURN(lhsString == nil);
+				return lhsString == nil;
 				
 			case COMPARISON_EQUAL:
-				TRACE_AND_RETURN([lhsString isEqualToString:expandedRHS]);
+				return [lhsString isEqualToString:expandedRHS];
 				
 			case COMPARISON_NOTEQUAL:
-				TRACE_AND_RETURN(![lhsString isEqualToString:expandedRHS]);
+				return ![lhsString isEqualToString:expandedRHS];
 				
 			case COMPARISON_LESSTHAN:
-				TRACE_AND_RETURN(DOUBLEVAL(lhsString) < DOUBLEVAL(expandedRHS));
+				return DOUBLEVAL(lhsString) < DOUBLEVAL(expandedRHS);
 				
 			case COMPARISON_GREATERTHAN:
-				TRACE_AND_RETURN(DOUBLEVAL(lhsString) > DOUBLEVAL(expandedRHS));
+				return DOUBLEVAL(lhsString) > DOUBLEVAL(expandedRHS);
 				
 			case COMPARISON_ONEOF:
 				{
 					rhsComponents = [expandedRHS componentsSeparatedByString:@","];
 					count = [rhsComponents count];
-					
-					TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %lu elements: is %@ ONEOF %@ ?", count, lhsString, expandedRHS);
 					
 					whitespace = [NSCharacterSet whitespaceCharacterSet];
 					lhsString = [lhsString stringByTrimmingCharactersInSet:whitespace];
@@ -564,30 +519,21 @@ static BOOL sRunningScript = NO;
 						rhsItem = [[rhsComponents objectAtIndex:i] stringByTrimmingCharactersInSet:whitespace];
 						if ([lhsString isEqualToString:rhsItem])
 						{
-							TraceLog(kOOLogTraceTestConditionOneOf, @"found a match (\"%@\") in ONEOF!", rhsItem);
-							TRACE_AND_RETURN(YES);
+							return YES;
 						}
 					}
 				}
-				TRACE_AND_RETURN(NO);
+				return NO;
 		}
 	}
 	else if (opType == OP_NUMBER)
 	{
 		lhsValue = [[self performSelector:selector] doubleValue];
 		
-		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing %g (from %@) to \"%@\" with operator %@",
-				 lhsValue,
-				 selectorString,
-				 expandedRHS ? expandedRHS : (NSString *)@"nil",
-				 OOComparisonTypeToString(comparator));
-		
 		if (comparator == COMPARISON_ONEOF)
 		{
 			rhsComponents = [expandedRHS componentsSeparatedByString:@","];
 			count = [rhsComponents count];
-			
-			TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %lu elements: is %@ ONEOF %@ ?", count, lhsString, expandedRHS);
 			
 			for (i = 0; i < count; i++)
 			{
@@ -596,13 +542,11 @@ static BOOL sRunningScript = NO;
 				
 				if (lhsValue == rhsValue)
 				{
-					TraceLog(kOOLogTraceTestConditionOneOf, @"found a match (%@) in ONEOF!", rhsItem);
-					TRACE_AND_RETURN(YES);
+					return YES;
 				}
 			}
 			
-			TraceLog(kOOLogTraceTestConditionOneOf, @"No match in ONEOF");
-			TRACE_AND_RETURN(NO);
+			return NO;
 		}
 		else
 		{
@@ -611,22 +555,22 @@ static BOOL sRunningScript = NO;
 			switch (comparator)
 			{
 				case COMPARISON_EQUAL:
-					TRACE_AND_RETURN(lhsValue == rhsValue);
+					return lhsValue == rhsValue;
 					
 				case COMPARISON_NOTEQUAL:
-					TRACE_AND_RETURN(lhsValue != rhsValue);
+					return lhsValue != rhsValue;
 					
 				case COMPARISON_LESSTHAN:
-					TRACE_AND_RETURN(lhsValue < rhsValue);
+					return lhsValue < rhsValue;
 					
 				case COMPARISON_GREATERTHAN:
-					TRACE_AND_RETURN(lhsValue > rhsValue);
+					return lhsValue > rhsValue;
 					
 				case COMPARISON_UNDEFINED:
 				case COMPARISON_ONEOF:
 					// "Can't happen" - undefined should have been caught by the sanitizer, oneof is handled above.
 					OOLog(@"script.error.unexpectedOperator", @"***** SCRIPT ERROR: in %@, operator %@ is not valid for numbers, evaluating to false.", CurrentScriptDesc(), OOComparisonTypeToString(comparator));
-					TRACE_AND_RETURN(NO);
+					return NO;
 			}
 		}
 	}
@@ -638,10 +582,10 @@ static BOOL sRunningScript = NO;
 		switch (comparator)
 		{
 			case COMPARISON_EQUAL:
-				TRACE_AND_RETURN(lhsFlag == rhsFlag);
+				return lhsFlag == rhsFlag;
 				
 			case COMPARISON_NOTEQUAL:
-				TRACE_AND_RETURN(lhsFlag != rhsFlag);
+				return lhsFlag != rhsFlag;
 				
 			case COMPARISON_LESSTHAN:
 			case COMPARISON_GREATERTHAN:
@@ -649,7 +593,7 @@ static BOOL sRunningScript = NO;
 			case COMPARISON_ONEOF:
 				// "Can't happen" - should have been caught by the sanitizer.
 				OOLog(@"script.error.unexpectedOperator", @"***** SCRIPT ERROR: in %@, operator %@ is not valid for booleans, evaluating to false.", CurrentScriptDesc(), OOComparisonTypeToString(comparator));
-				TRACE_AND_RETURN(NO);
+				return NO;
 		}
 	}
 	

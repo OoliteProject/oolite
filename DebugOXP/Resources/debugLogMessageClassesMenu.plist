@@ -18,7 +18,6 @@
 	"Script Debug",					$scriptDebug,
 	"JavaScript Run Trace",			"script.trace.javaScript",
 	"Legacy Script Run Trace",		"script.trace.legacy",
-	"Legacy Script Detailed Trace",	"script.debug.trace",
 	"Shader Debug",					$shaderDebugOn,
 	"Troubleshooting Dumps",		$troubleShootingDump,
 	"Entity State",					$entityState,

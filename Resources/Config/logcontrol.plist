@@ -3,6 +3,9 @@
 	logcontrol.plist file in your AddOns folder, or a dictionary called “logging-enable” in
 	Oolite’s preferences.
 	
+	Message classes can be enabled or disabled temporarily using the debug console macros
+	:logOn and :logOff, as in “:logOn $scriptDebugOn”.
+	
 	Classes which are related, but not hierarchically, can be controlled using metaclasses, 
 	whose names start with a $. See $error etc. below for examples.
 	
@@ -256,13 +259,6 @@
 	script.debug.note.setFuelLeak			= inherit;
 	script.debug.note.addPlanet				= inherit;
 	
-	script.debug.trace						= off;					// Trace messages are very verbose, printing at least one message per script action. They are not available at all in release versions.
-	script.debug.trace.scriptAction			= inherit;				// Messages for each legacy script action executed.
-	script.debug.trace.testCondition		= inherit;				// Messages for each legacy script condition evaluated.
-	script.debug.trace.testCondition.checkingVariable = inherit;	// Messages for tests of mission/local variables in script conditions.
-	script.debug.trace.testCondition.testValues	= inherit;			// Messages for string and number comparisons.
-	script.debug.trace.testCondition.oneOf	= inherit;				// Messages for "oneof" tests.
-	
 	script.debug.syntax						= $scriptError;			// Messages relating to script formatting
 	script.debug.syntax.badConditional		= inherit;
 	script.debug.syntax.badComparison		= inherit;
@@ -307,9 +303,7 @@
 	/*
 		"Trace" events for legacy and JavaScript scripts. These indicate when
 		a JavaScript method or legacy script is called by the game, and should
-		not be confused with the confusingly-named script.debug.trace (which
-		shows the precise sequence of commands issued by legacy scripts) or
-		the JavaScript trace facility (part of the Debug OXP).
+		not be confused with the JavaScript trace facility (part of the Debug OXP).
 	*/
 	script.trace.legacy						= no;
 	script.trace.legacy.runWorld			= inherit;
