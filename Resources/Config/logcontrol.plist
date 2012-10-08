@@ -300,15 +300,10 @@
 	
 	script.plist.run.badTarget				= $error;
 	
-	/*
-		"Trace" events for legacy and JavaScript scripts. These indicate when
-		a JavaScript method or legacy script is called by the game, and should
-		not be confused with the JavaScript trace facility (part of the Debug OXP).
-	*/
-	script.trace.legacy						= no;
-	script.trace.legacy.runWorld			= inherit;
-	script.trace.legacy.plist.run			= inherit;
-	script.trace.javaScript					= no;
+	// These messages are logged whenever Oolite calls a JS script method or runs a legacy script, respectively.
+	$reportScriptEntry						= no;
+	script.javaScript.call					= $reportScriptEntry;
+	script.legacy.run						= $reportScriptEntry;
 	
 	script.deprecated.scriptActionOnTarget	= $scriptError;			// Warning not to use scriptActionOnTarget:
 	

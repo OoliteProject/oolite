@@ -323,10 +323,6 @@ static BOOL sRunningScript = NO;
 	
 	[self setScriptTarget:self];
 	
-	OOLogPushIndent();
-	OOLog(@"script.trace.legacy.runWorld", @"----- Running world script with state %@", [self status_string]);
-	OOLogIndentIf(@"script.trace.legacy.runWorld");
-	
 	/*	World scripts can potentially be invoked recursively, through
 		scriptActionOnTarget: and possibly other mechanisms. This is bad, but
 		that's the way it is. Legacy world scripts rely on only seeing certain
@@ -355,14 +351,6 @@ static BOOL sRunningScript = NO;
 		{
 			status = RecursiveRemapStatus(status);
 			[self setStatus:status];
-			if (RecursiveRemapStatus(status) != restoreStatus)
-			{
-				OOLog(@"script.trace.legacy.runWorld.recurse.lying", @"----- Running world script recursively and temporarily changing player status from %@ to %@.", OOStringFromEntityStatus(restoreStatus), OOStringFromEntityStatus(status));
-			}
-			else
-			{
-				OOLog(@"script.trace.legacy.runWorld.recurse", @"----- Running world script recursively.");
-			}
 		}
 		sRunningScript = YES;
 		
@@ -377,8 +365,6 @@ static BOOL sRunningScript = NO;
 	// Restore anti-recursion measures.
 	sRunningScript = wasRunningScript;
 	if (status != restoreStatus)  [self setStatus:restoreStatus];
-	
-	OOLogPopIndent();
 }
 
 

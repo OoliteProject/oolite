@@ -107,14 +107,14 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 		return;
 	}
 	
-	OOLog(@"script.trace.legacy.plist.run", @"Running script %@", [self displayName]);
-	OOLogIndentIf(@"script.trace.legacy.plist.run");
+	OOLog(@"script.legacy.run", @"Running script %@", [self displayName]);
+	OOLogIndentIf(@"script.legacy.run");
 	
 	[PLAYER runScriptActions:_script
 			 withContextName:[self name]
 				   forTarget:(ShipEntity *)target];
 	
-	OOLogOutdentIf(@"script.trace.legacy.plist.run");
+	OOLogOutdentIf(@"script.legacy.run");
 }
 
 @end

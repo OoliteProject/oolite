@@ -392,8 +392,8 @@ static JSFunctionSpec sScriptMethods[] =
 			JS_ClearPendingException(context);
 		}
 		
-		OOLog(@"script.trace.javaScript", @"Calling [%@].%@()", [self name], OOStringFromJSID(methodID));
-		OOLogIndentIf(@"script.trace.javaScript");
+		OOLog(@"script.javaScript.call", @"Calling [%@].%@()", [self name], OOStringFromJSID(methodID));
+		OOLogIndentIf(@"script.javaScript.call");
 #endif
 		
 		// Push self on stack of running scripts.
@@ -419,7 +419,7 @@ static JSFunctionSpec sScriptMethods[] =
 		sRunningStack = stackElement.back;
 		
 #ifndef NDEBUG
-		OOLogOutdentIf(@"script.trace.javaScript");
+		OOLogOutdentIf(@"script.javaScript.call");
 #endif
 	}
 	
