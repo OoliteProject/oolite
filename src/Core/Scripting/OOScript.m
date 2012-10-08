@@ -250,6 +250,12 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 }
 
 
+- (bool) requiresTickle
+{
+	return false;
+}
+
+
 - (void)runWithTarget:(Entity *)target
 {
 	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");

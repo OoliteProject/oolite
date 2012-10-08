@@ -288,10 +288,38 @@ OOINLINE OOEntityStatus RecursiveRemapStatus(OOEntityStatus status)
 static BOOL sRunningScript = NO;
 
 
+// Return the world scripts that care about -checkScript.
+- (NSDictionary *) worldScriptsRequiringTickle
+{
+	if (worldScriptsRequiringTickle != nil)  return worldScriptsRequiringTickle;
+	
+	NSMutableDictionary *tickleScripts = [NSMutableDictionary dictionaryWithCapacity:[worldScripts count]];
+	NSString *scriptName;
+	foreachkey (scriptName, worldScripts)
+	{
+		OOScript *candidateScript = [worldScripts objectForKey:scriptName];
+		if ([candidateScript requiresTickle])
+		{
+			[tickleScripts setObject:candidateScript forKey:scriptName];
+		}
+	}
+	
+	worldScriptsRequiringTickle = [tickleScripts copy];
+	return worldScriptsRequiringTickle;
+}
+
+
 - (void) checkScript
 {
 	BOOL						wasRunningScript = sRunningScript;
 	OOEntityStatus				status, restoreStatus;
+	
+	NSDictionary *tickleScripts = [self worldScriptsRequiringTickle];
+	if ([tickleScripts count] == 0)
+	{
+		// Quick exit if we only have JS scripts.
+		return;
+	}
 	
 	[self setScriptTarget:self];
 	
@@ -339,7 +367,7 @@ static BOOL sRunningScript = NO;
 		sRunningScript = YES;
 		
 		// After all that, actually running the scripts is trivial.
-		[[worldScripts allValues] makeObjectsPerformSelector:@selector(runWithTarget:) withObject:self];
+		[[tickleScripts allValues] makeObjectsPerformSelector:@selector(runWithTarget:) withObject:self];
 	}
 	@catch (NSException *exception)
 	{

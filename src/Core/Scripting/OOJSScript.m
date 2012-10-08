@@ -68,12 +68,15 @@ static JSScript *ScriptWithCompiledData(JSContext *context, NSData *data);
 static NSString *StrippedName(NSString *string);
 
 
+static JSBool ScriptAddProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+
+
 static JSClass sScriptClass =
 {
 	"Script",
 	JSCLASS_HAS_PRIVATE,
 	
-	JS_PropertyStub,
+	ScriptAddProperty,
 	JS_PropertyStub,
 	JS_PropertyStub,
 	JS_StrictPropertyStub,
@@ -360,10 +363,7 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (void)runWithTarget:(Entity *)target
 {
-	JSContext *context = OOJSAcquireContext();
-	jsval arg = OOJSValueFromEntityStatus(context, [PLAYER status]);
-	[self callMethod:OOJSID("tickle") inContext:context withArguments:&arg count:1 result:NULL];
-	OOJSRelinquishContext(context);
+	
 }
 
 
@@ -607,6 +607,24 @@ void InitOOJSScript(JSContext *context, JSObject *global)
 {
 	sScriptPrototype = JS_InitClass(context, global, NULL, &sScriptClass, OOJSUnconstructableConstruct, 0, NULL, sScriptMethods, NULL, NULL);
 	OOJSRegisterObjectConverter(&sScriptClass, OOJSBasicPrivateObjectConverter);
+}
+
+
+static JSBool ScriptAddProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+{
+	// Complain about attempts to set the property tickle.
+	if (JSID_IS_STRING(propID))
+	{
+		JSString *propName = JSID_TO_STRING(propID);
+		JSBool match;
+		if (JS_StringEqualsAscii(context, propName, "tickle", &match) && match)
+		{
+			OOJSScript *thisScript = OOJSNativeObjectOfClassFromJSObject(context, this, [OOJSScript class]);
+			OOJSReportWarning(context, @"Script %@ appears to use the tickle() event handler, which is no longer supported.", [thisScript name]);
+		}
+	}
+	
+	return YES;
 }
 
 

@@ -262,6 +262,7 @@ typedef enum
 	int						ship_trade_in_factor;
 	
 	NSDictionary			*worldScripts;
+	NSDictionary			*worldScriptsRequiringTickle;
 	NSMutableDictionary		*mission_variables;
 	NSMutableDictionary		*localVariables;
 	NSInteger /*OOGUIRow*/	missionTextRow;

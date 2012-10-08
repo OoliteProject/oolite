@@ -1396,7 +1396,8 @@ static GLfloat		sBaseMass = 0.0;
 						   properties:nil];
 	
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
-	[worldScripts release];
+	DESTROY(worldScripts);
+	DESTROY(worldScriptsRequiringTickle);
 	worldScripts = [[ResourceManager loadScripts] retain];
 	[UNIVERSE loadConditionScripts];
 	
@@ -1736,6 +1737,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(commLog);
 	
 	DESTROY(worldScripts);
+	DESTROY(worldScriptsRequiringTickle);
 	DESTROY(mission_variables);
 	
 	DESTROY(localVariables);

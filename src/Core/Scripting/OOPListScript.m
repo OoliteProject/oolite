@@ -93,6 +93,12 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 }
 
 
+- (bool) requiresTickle
+{
+	return true;
+}
+
+
 - (void)runWithTarget:(Entity *)target
 {
 	if (target != nil && ![target isKindOfClass:[ShipEntity class]])
