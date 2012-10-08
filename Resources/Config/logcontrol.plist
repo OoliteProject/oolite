@@ -298,12 +298,12 @@
 	script.load.unnamed						= $scriptError;
 	script.load.world.listAll				= $troubleShootingDump;	// List names and versions of all loaded world scripts at startup.
 	
-	script.plist.run.badTarget				= $error;
-	
 	// These messages are logged whenever Oolite calls a JS script method or runs a legacy script, respectively.
 	$reportScriptEntry						= no;
 	script.javaScript.call					= $reportScriptEntry;
 	script.legacy.run						= $reportScriptEntry;
+	
+	script.legacy.run.badTarget				= $error;
 	
 	script.deprecated.scriptActionOnTarget	= $scriptError;			// Warning not to use scriptActionOnTarget:
 	

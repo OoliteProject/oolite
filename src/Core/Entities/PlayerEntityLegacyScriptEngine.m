@@ -446,7 +446,7 @@ static BOOL sRunningScript = NO;
 		
 		operandArray is an array of operands. Each operand is itself an array
 		of two items: a boolean indicating whether it's a method selector
-		(true) or a string (false), and a string.
+		(true) or a literal string (false), and a string.
 		
 		The special opType OP_FALSE doesn't require any other elements in the
 		array. All other valid opTypes require the array to have five elements.

@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 
 
-static NSString * const kOOLogScriptSubclassResponsibility	= @"general.error.subclassResponsibility.OOScript";
 static NSString * const kOOLogLoadScriptJavaScript			= @"script.load.javaScript";
 static NSString * const kOOLogLoadScriptPList				= @"script.load.pList";
 static NSString * const kOOLogLoadScriptOK					= @"script.load.parseOK";
@@ -86,7 +85,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 				result = [NSArray arrayWithObject:script];
 				OOLog(kOOLogLoadScriptOK, @"Successfully loaded JavaScript script %@", filePath);
 			}
-			else  OOLog(kOOLogLoadScriptParseError, @"*** Failed to load JavaScript script %@", filePath);
+			else  OOLogERR(kOOLogLoadScriptParseError, @"Failed to load JavaScript script %@", filePath);
 			
 			OOLogOutdentIf(kOOLogLoadScriptJavaScript);
 		}
@@ -104,7 +103,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 			
 			result = [OOPListScript scriptsInPListFile:filePath];
 			if (result != nil)  OOLog(kOOLogLoadScriptOK, @"Successfully loaded property list script %@", filePath);
-			else  OOLog(kOOLogLoadScriptParseError, @"*** Failed to load property list script %@", filePath);
+			else  OOLogERR(kOOLogLoadScriptParseError, @"Failed to load property list script %@", filePath);
 			
 			OOLogOutdentIf(kOOLogLoadScriptPList);
 		}
@@ -121,22 +120,19 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 
 + (NSArray *)scriptsFromFileNamed:(NSString *)fileName
 {
-	NSEnumerator		*pathEnum = nil;
-	NSString			*path = nil;
-	NSString			*filePath = nil;
-	NSArray				*result = nil;
-	
-	if (fileName == nil) return nil;
-	
-	for (pathEnum = [[ResourceManager paths] objectEnumerator]; (path = [pathEnum nextObject]); )
+	NSArray *result = nil;
+	NSString *path = [ResourceManager pathForFileNamed:fileName inFolder:@"Scripts"];
+	if (path != nil)
 	{
-		filePath = [[path stringByAppendingPathComponent:@"Scripts"] stringByAppendingPathComponent:fileName];
-		result = [self scriptsFromFileAtPath:filePath];
-		if (result != nil) return result;
+		result = [self scriptsFromFileAtPath:path];
 	}
 	
-	OOLog(@"script.load.notFound", @"***** Could not find a valid script file named %@.", fileName);
-	return nil;
+	if (result == nil)
+	{
+		OOLogERR(@"script.load.notFound", @"Could not find script file %@.", fileName);
+	}
+	
+	return result;
 }
 
 
@@ -178,7 +174,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 		return [OOPListScript scriptsInPListFile:filePath];
 	}
 	
-	OOLog(@"script.load.badName", @"***** Don't know how to load a script from %@.", filePath);
+	OOLogERR(@"script.load.badName", @"Don't know how to load a script from %@.", filePath);
 	return nil;
 }
 
@@ -196,18 +192,18 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 		path = [ResourceManager pathForFileNamed:fileName inFolder:@"Scripts"];
 		if (path == nil)
 		{
-			OOLog(@"script.load.notFound", @"***** Could not find a script file named %@.", fileName);
+			OOLogERR(@"script.load.notFound", @"Could not find script file %@.", fileName);
 			return nil;
 		}
 		return [OOJSScript scriptWithPath:path properties:properties];
 	}
 	else if ([extension isEqualToString:@"plist"])
 	{
-		OOLog(@"script.load.badName", @"***** Can't load script named %@ - legacy scripts are not supported in this context.", fileName);
+		OOLogERR(@"script.load.badName", @"Can't load script named %@ - legacy scripts are not supported in this context.", fileName);
 		return nil;
 	}
 	
-	OOLog(@"script.load.badName", @"***** Don't know how to load a script from %@.", fileName);
+	OOLogERR(@"script.load.badName", @"Don't know how to load a script from %@.", fileName);
 	return nil;
 }
 
@@ -220,21 +216,21 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 
 - (NSString *)name
 {
-	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");
+	OOLogERR(kOOLogSubclassResponsibility, @"OOScript should not be used directly!");
 	return nil;
 }
 
 
 - (NSString *)scriptDescription
 {
-	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");
+	OOLogERR(kOOLogSubclassResponsibility, @"OOScript should not be used directly!");
 	return nil;
 }
 
 
 - (NSString *)version
 {
-	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");
+	OOLogERR(kOOLogSubclassResponsibility, @"OOScript should not be used directly!");
 	return nil;
 }
 
@@ -244,9 +240,9 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	NSString *name = [self name];
 	NSString *version = [self version];
 	
-	if (version != NULL) return [NSString stringWithFormat:@"%@ %@", name, version];
-	else if (name != NULL)  return [NSString stringWithFormat:@"%@", name];
-	else  return NULL;
+	if (version != nil)  return [NSString stringWithFormat:@"%@ %@", name, version];
+	else if (name != nil)  return [NSString stringWithFormat:@"%@", name];
+	else  return nil;
 }
 
 
@@ -258,7 +254,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 
 - (void)runWithTarget:(Entity *)target
 {
-	OOLog(kOOLogScriptSubclassResponsibility, @"OOScript should not be used directly!");
+	OOLogERR(kOOLogSubclassResponsibility, @"OOScript should not be used directly!");
 }
 
 @end

@@ -103,7 +103,7 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 {
 	if (target != nil && ![target isKindOfClass:[ShipEntity class]])
 	{
-		OOLog(@"script.plist.run.badTarget", @"Expected ShipEntity or nil for target, got %@.", [target class]);
+		OOLog(@"script.legacy.run.badTarget", @"Expected ShipEntity or nil for target, got %@.", [target class]);
 		return;
 	}
 	

@@ -168,8 +168,8 @@ extern NSString * const kOOLogAllocationFailure;			// @"general.error.allocation
 extern NSString * const kOOLogInconsistentState;			// @"general.error.inconsistentState"
 extern NSString * const kOOLogException;					// @"exception"
 
-extern NSString * const kOOLogFileNotFound;					// @"files.notfound"
-extern NSString * const kOOLogFileNotLoaded;				// @"files.notloaded"
+extern NSString * const kOOLogFileNotFound;					// @"files.notFound"
+extern NSString * const kOOLogFileNotLoaded;				// @"files.notLoaded"
 
 extern NSString * const kOOLogOpenGLError;					// @"rendering.opengl.error"
 
