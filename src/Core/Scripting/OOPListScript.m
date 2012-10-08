@@ -93,9 +93,9 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 }
 
 
-- (bool) requiresTickle
+- (BOOL) requiresTickle
 {
-	return true;
+	return YES;
 }
 
 

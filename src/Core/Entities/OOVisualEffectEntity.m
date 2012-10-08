@@ -370,7 +370,9 @@ MA 02110-1301, USA.
 
 - (void) rescaleBy:(GLfloat)factor 
 {
-	[self setMesh:[[self mesh] meshRescaledBy:factor]];
+	if ([self mesh] != nil) {
+		[self setMesh:[[self mesh] meshRescaledBy:factor]];
+	}
 	
 	// rescale subentities
 	Entity<OOSubEntity>	*se = nil;
@@ -482,7 +484,9 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 	{
 		return; // too far away to draw
 	}
-	[super drawEntity:immediate :translucent];
+	if([self mesh] != nil) {
+		[super drawEntity:immediate :translucent];
+	}
 
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?

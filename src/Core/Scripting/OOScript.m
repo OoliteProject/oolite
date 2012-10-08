@@ -250,9 +250,9 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 }
 
 
-- (bool) requiresTickle
+- (BOOL) requiresTickle
 {
-	return false;
+	return NO;
 }
 
 

@@ -59,7 +59,7 @@ MA 02110-1301, USA.
 - (NSString *)version;
 - (NSString *)displayName;	// "name version" if version is defined, otherwise just "name".
 
-- (bool) requiresTickle;
+- (BOOL) requiresTickle;
 - (void)runWithTarget:(Entity *)target;
 
 @end
