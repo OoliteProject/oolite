@@ -7141,7 +7141,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	else
 	{
-		OOLog(@"script.javaScript.error",@"Unable to find callback definition for key %@",key);
+		OOLog(@"interface.missingCallback", @"Unable to find callback definition for key %@", key);
 	}
 }
 

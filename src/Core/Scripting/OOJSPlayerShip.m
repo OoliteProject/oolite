@@ -518,7 +518,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			{
 				if (![[player hud] setCrosshairDefinition:sValue])
 				{
-					OOLog(@"script.javaScript.warning",@"Crosshair definition file %@ not found or invalid",sValue);
+					OOJSReportWarning(context, @"Crosshair definition file %@ not found or invalid", sValue);
 				}
 				return YES;
 			}

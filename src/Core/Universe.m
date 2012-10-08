@@ -7198,7 +7198,7 @@ static NSDictionary	*sCachedSystemData = nil;
 		{		
 			if (distance < 0)
 			{
-				OOLogWARN(@"universe.findsystems", @"DEBUG: Universe neighboursToRandomSeed: found a system pair with a negative distance (%f).", distance);
+				OOLogWARN(@"universe.findSystems.badDistance", @"DEBUG: Universe neighboursToRandomSeed: found a system pair with a negative distance (%f).", distance);
 				//i guess its still in range, but skip as it makes no sense
 				continue;
 			}

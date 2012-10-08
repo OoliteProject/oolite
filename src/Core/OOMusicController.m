@@ -355,7 +355,7 @@ enum
 	
 	[ootunesScript executeAndReturnError:&errDict];
 	if (errDict)
-		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", errDict);
+		OOLog(@"sound.music.iTunesIntegration.failed", @"ootunes returned :%@", errDict);
 }
 
 
@@ -366,7 +366,7 @@ enum
 	NSDictionary *errDict = nil;
 	[ootunesScript executeAndReturnError:&errDict];
 	if (errDict)
-		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", errDict);
+		OOLog(@"sound.music.iTunesIntegration.failed", @"ootunes returned :%@", errDict);
 	[ootunesScript release]; 
 }
 #else

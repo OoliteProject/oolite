@@ -50,10 +50,6 @@
 	files.notLoaded							= $error;				// A file should have been loaded at some earlier point, but wasn’t.
 	
 	
-	/*** Old-style logging calls ***/
-	unclassified							= yes;
-	
-	
 	/*** Module-specific message classes ***/
 	ai										= yes;					// AI messages are shown if a ship's reportAIMessages property is set, for instance through the JavaScript console.
 	ai.message.receive						= inherit;
@@ -62,7 +58,6 @@
 	ai.takeAction.orphaned					= $aiError;
 	ai.takeAction.debugMessage				= inherit;
 	ai.takeAction.badSelector				= inherit;
-	ai.pop									= inherit;
 	ai.error								= $aiError;
 	ai.error.recursion						= inherit;
 	ai.error.recursion.stackTrace			= inherit;
@@ -88,11 +83,10 @@
 	
 	
 	beacon.list								= $scriptDebugOn;
-	beacon.list.flightTraining				= inherit;
 	
 	
-	character								= $error;
-	character.load.unknownSystem			= inherit;
+	character								= yes;
+	character.load.unknownSystem			= $error;
 	
 	
 	$dataCacheStatus						= no;
@@ -106,7 +100,6 @@
 	dataCache.rebuild.pathsChanged			= inherit;
 	dataCache.rebuild.datesChanged			= inherit;
 	dataCache.rebuild.explicitFlush			= inherit;
-	dataCache.removedOld					= $dataCacheStatus;
 	dataCache.willWrite						= $dataCacheStatus;
 	dataCache.write.success					= $dataCacheStatus;
 	dataCache.write.buildPath.failed		= $dataCacheError;
@@ -121,7 +114,6 @@
 	dataCache.prune							= $dataCacheDebug;
 	
 	
-	display.modes.noneFound					= $error;
 	display.context.create.failed			= $error;
 	display.mode.found						= no;
 	display.mode.found.failed				= $error;
@@ -132,9 +124,9 @@
 	display.mode.switch.failed				= $error;
 	display.mode.unknown					= $error;
 	display.initGL							= no;
-
-	effectData.load.begin						= yes;
-	effectData.load.done						= no;
+	
+	
+	effectData.load.done					= no;
 	
 	
 	$linkedListError						= $error;
@@ -153,9 +145,11 @@
 	equip.buy.mounted						= no;
 	equip.buy.mounted.failed				= $scriptError;
 	
-	exit.context							= no;		// Log why game quit, for debugging cases of game quitting in an orderly yet unexpected way.
+	
+	exit.context							= yes;		// Log why game quit, for debugging cases of game quitting in an orderly yet unexpected way.
 	
 	fuelPrices								= no;
+	
 	
 	gui.reset								= no;
 	
@@ -166,6 +160,9 @@
 	input.keyMapping.keyPress.keyDown		= inherit;
 	input.keyMapping.keyPress.keyUp			= inherit;
 	input.mouseMode.changed					= no;
+	
+	
+	interface.missingCallback				= $scriptError;
 	
 	
 	joystick.init							= yes;	// SDL only
@@ -188,9 +185,11 @@
 	
 	mesh.load.error							= $error;
 	mesh.load.error.badCacheData			= inherit;
-	mesh.load.error.fileNotFound			= inherit;
-	mesh.load.error.tooManyVertices			= inherit;
-	mesh.load.error.tooManyFaces			= inherit;
+	
+	mesh.load.failed						= $error;
+	mesh.load.failed.fileNotFound			= inherit;
+	mesh.load.failed.tooManyVertices		= inherit;
+	mesh.load.failed.tooManyFaces			= inherit;
 	
 	
 	missile.damage.calc						= no; // Debugging of missile damage curves
@@ -224,10 +223,10 @@
 	resourceManager.foundFile				= no;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
 	
 	
-	save.failed								= yes;
+	save.failed								= $error;
 	save.success							= no;
-	quickSave.failed						= yes;
-	load.failed								= yes;
+	quickSave.failed						= $error;
+	load.failed								= $error;
 	
 	
 	setup.ship.badEntry.subentities			= inherit;
@@ -244,10 +243,6 @@
 	script.debug							= $scriptDebugOn;
 	script.debug.message					= inherit;				// debugMessage: script action
 	script.debug.onOff						= inherit;				// debugOn/debugOff script actions
-	script.debug.processSceneString.addScene = inherit;
-	script.debug.processSceneString.addModel = inherit;
-	script.debug.processSceneString.addMiniPlanet = inherit;
-	script.debug.processSceneString.addBillboard = inherit;
 	script.debug.setSunNovaIn				= inherit;
 	
 	script.debug.note						= inherit;
@@ -260,9 +255,6 @@
 	script.debug.note.showShipModel			= inherit;
 	script.debug.note.setFuelLeak			= inherit;
 	script.debug.note.addPlanet				= inherit;
-	script.debug.note.replaceVariablesInString = inherit;
-	script.debug.note.processSceneString	= inherit;
-	script.debug.note.testCondition			= no;
 	
 	script.debug.trace						= off;					// Trace messages are very verbose, printing at least one message per script action. They are not available at all in release versions.
 	script.debug.trace.scriptAction			= inherit;				// Messages for each legacy script action executed.
@@ -288,22 +280,17 @@
 	script.debug.syntax.subtract			= inherit;
 	
 	script.error							= $scriptError;
-	script.error.removeAllCargo.notDocked	= inherit;
 	script.error.addPlanet.keyNotFound		= inherit;
 	script.error.addPlanet.noPosition		= inherit;
 	script.error.exception					= inherit;
+	script.error.fallthrough				= inherit;
+	script.error.removeAllCargo.notDocked	= inherit;
+	script.error.unexpectedOperator			= inherit;
 	
-	script.javaScript.context				= no;
 	script.javaScript.load.success			= $scriptDebugOn;
 	script.javaScript.load.failed			= $scriptError;
 	script.javaScript.init.success			= no;
 	script.javaScript.init.error			= $error;				// Fatal start-up error
-	script.javaScript.call.badSelector		= $scriptError;
-	script.javaScript.error					= $scriptError;
-	script.javaScript.exception				= $scriptError;
-	script.javaScript.warning				= $scriptError;
-	script.javaScript.badParameter			= $scriptError;
-	script.javaScript.context.create		= no;
 	script.javaScript.timeLimit				= yes;					// Script ran for too long and has been killed.
 	script.javaScript.willLoad				= no;
 	
@@ -351,11 +338,12 @@
 	shader.uniform.badDescription			= inherit;				// A uniform specified in shipdata.plist could not be set up, because the configuration could not be understood.
 	shader.uniform.bind.failed				= inherit;				// Problem setting up uniform bound to an object property.
 	shader.uniform.unpermittedMethod		= $shaderError;
-	shader.uniform.unknownType				= $shaderError;
-	shader.vessel.init						= $shaderDebug;
-	shader.compile.vertex.failure			= $shaderError;
-	shader.compile.fragment.failure			= $shaderError;
+	
+	// Auditing note: these next four are constructed and do not occur as literals.
+	shader.compile.failure					= $shaderError;
+	shader.compile.validationFailure		= $shaderError;
 	shader.link.failure						= $shaderError;
+	shader.link.validationFailure			= $shaderError;
 	
 	
 	ship.noPrimaryRole						= no;
@@ -365,15 +353,22 @@
 	
 	ship.setUp.missiles						= no;					// Warnings when doing extra work to set up missiles without equipment.plist or shipdata.plist entries. Disabled because lots of OXPs trigger them, and there are fallbacks.
 	
+	
 	shipData.load.shipyard.unknown			= yes;					// Warning for when shipyard.plist entries do not have matching shipdata.plist entry.
 	shipData.load.begin						= yes;
 	shipData.load.done						= no;
 	shipData.load.error						= $error;
 	shipData.load.warning					= $error;
+	shipData.load.warning.badFlasher		= inherit;
+	shipData.load.warning.flasher.badColor	= inherit;
+	shipData.load.warning.flasher.badSize	= inherit;
+	shipData.load.warning.flasher.badFraction = inherit;
+	shipData.load.warning.turret.badFireRate = inherit;
+	shipData.load.warning.turret.badWeaponRange = inherit;
+	shipData.load.warning.turret.badWeaponEnergy = inherit;
 	shipData.translateSubentity				= no;
-	
-	
-	shipRegistry.selection.profile			= no;
+	shipData.translateSubentity.flasher		= inherit;
+	shipData.translateSubentity.standard	= inherit;
 	
 	
 	sky.setup								= no;
@@ -382,21 +377,22 @@
 	$soundError								= $error;
 	$soundDebug								= no;
 	$soundDebugVerbose						= $soundDebug;
+	sound.customSounds						= $soundDebug;
+	sound.customSounds.recursion			= $soundError;			// Circular dependency in customsounds.plist, e.g. [foo] = [bar], [bar] = [foo].
+	sound.load.success						= $soundDebug;
+	
+	// Mac-specific sound messages
 	sound.channel.cleanup.success			= $soundDebugVerbose;
 	sound.channel.cleanup.failed			= $soundError;
 	sound.channel.cleanup.failed.broken		= inherit;
 	sound.channel.cleanup.failed.badState	= inherit;
 	sound.channel.machPortError				= $soundError;
-	sound.customSounds						= $soundDebug;
-	sound.customSounds.recursion			= $soundError;			// Circular dependency in customsounds.plist, e.g. [foo] = [bar], [bar] = [foo].
-	sound.initialization					= $soundError;
-	sound.initialization.error				= inherit;
-	sound.load.success						= $soundDebug;
-	sound.load.failed						= $soundError;
+	sound.initialization.error				= $soundError;
 	sound.mixer.outOfChannels				= $soundError;
 	sound.mixer.inspector.loadFailed		= $soundError;
 	sound.mixer.replacingBrokenChannel		= $soundDebug;
 	sound.mixer.failedToConnectChannel		= $soundError;
+	sound.music.iTunesIntegration.failed	= $error;
 	sound.play.success						= $soundDebugVerbose;
 	sound.play.failed						= $soundError;
 	sound.play.failed.badReuse				= inherit;
@@ -408,7 +404,9 @@
 	sound.streaming.underflow				= $soundError;
 	sound.virtualringbuffer					= $soundError;
 	sound.streaming.releaseContext			= $soundDebug;
-	sound.invalidBeep						= $soundError;
+
+	// SDL-specific sound messages
+	sound.load.failed						= $soundError;	
 	
 	
 	$speechDebug							= $soundDebug;
@@ -416,9 +414,10 @@
 	speech.synthesis						= $speechDebug;
 	
 	
-	startup.progress						= no;					// Startup progress stages. These are shown on-screen on Macs and of little interest otherwise.
-
-	station.launchShip.impossible = no; // generally cancelled launches due to station having no launch docks are uninteresting	
+	startup.progress						= no;					// Startup progress stages.
+	
+	
+	station.launchShip.impossible			= no;					// generally cancelled launches due to station having no launch docks are uninteresting	
 	
 	strings.conversion						= $scriptError;			// Conversion of text to values (vectors, quaternions etc)
 	strings.conversion.vector				= inherit;
@@ -428,6 +427,8 @@
 	
 	
 	sun.nova								= no;					// Debug messages for nova
+	sun.nova.start							= inherit;
+	sun.nova.end							= inherit;
 	
 	
 	$textureDebug							= no;
@@ -438,30 +439,23 @@
 	texture.generator.queue					= $textureDebug;
 	texture.generator.queue.failed			= $error;
 	
-	textureNameCache						= $textureDebug;
-	
 	texture.load.asyncLoad					= $textureDebug;
 	texture.load.asyncLoad.done				= inherit;
 	texture.load.asyncLoad.exception		= $error;
-	texture.load.detachThreads.failed		= $error;
 	texture.load.noName						= $error;
-	texture.load.queueTask.inconsistency	= $error;
 	texture.load.rescale					= $textureDebug;
 	texture.load.rescale.maxSize			= inherit;
 	texture.load.unknownType				= $error;
 	
 	texture.reload							= $textureDebug;
 	
-	universe.findsystems					= inherit;
-
+	
+	universe.findSystems.badDistance		= $error;
+	
 	universe.populate						= no;				// “Populating a system with…” message when generating a star system
 	universe.populate.witchspace			= inherit;
 	universe.setup.badStation				= $scriptError;		// Message generated if the main station turns out not to be a station (for instance, this could happen if a non-station ship had the role coriolis).
 	universe.maxEntitiesDump				= no;				// Dumps all entities when universe is full (Can be quite verbose)
 	
 	verifyOXP.verbose						= yes;
-	
-	
-	/*** Mac OS X/Cocoa-specific ***/
-	iTunesIntegration.failed				= $error;
 }

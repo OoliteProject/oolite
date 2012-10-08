@@ -677,10 +677,10 @@ static NSMutableArray *sMessageStack;
 
 - (void) debugPopProgressMessage
 {
+	OOLogOutdentIf(@"startup.progress");
+	
 	if ([sMessageStack count] > 0)
 	{
-		OOLogOutdentIf(@"startup.progress");
-		
 		NSString *message = [sMessageStack lastObject];
 		if ([message length] > 0)  [self logProgress:message];
 		[sMessageStack removeLastObject];
