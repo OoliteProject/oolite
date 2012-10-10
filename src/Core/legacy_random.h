@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 
 #include "OOFunctionAttributes.h"
 #include <math.h>
+#include <stdint.h>
 
 
 typedef struct Random_Seed
@@ -108,6 +109,37 @@ void rotate_seed (Random_Seed *seed_ptr);
 OOINLINE int rotate_byte_left (int x) INLINE_CONST_FUNC;
 
 OOINLINE int equal_seeds(Random_Seed seed1, Random_Seed seed2) INLINE_CONST_FUNC;
+
+
+/*
+	The "really really random" PRNG. This is a separate RANROT seed that is
+	seeded once at startup and never reset under any circumstances. It can
+	also be used to seed get_rnd_number and the main RANROT seed. If doing this,
+	save and restore the seeds using the functions above ore OOSaveRandomState()
+	and OORestoreRandomState().
+	
+	Since these use a global seed, they may only be used from the main thread.
+*/
+
+uint32_t OOReallyRandom(void);
+void OOInitReallyRandom(uint64_t seed);
+
+void OOSetReallyRandomRANROTSeed(void);
+void OOSetReallyRandomRndSeed(void);
+void OOSetReallyRandomRANROTAndRndSeeds(void);
+
+/*
+	OOSaveRandomState()/OORestoreRandomState(): save and restore both the main
+	RANROT seed and the rnd seed in one shot.
+*/
+typedef struct
+{
+	RANROTSeed	ranrot;
+	RNG_Seed	rnd;
+} OORandomState;
+
+OORandomState OOSaveRandomState(void);
+void OORestoreRandomState(OORandomState state);
 
 
 

@@ -256,6 +256,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	self = [super init];
 	if (self == nil)  return nil;
 	
+	OOInitReallyRandom([NSDate timeIntervalSinceReferenceDate] * 1e9);
+	
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	
 	strict = [prefs oo_boolForKey:@"strict-gameplay" defaultValue:NO];

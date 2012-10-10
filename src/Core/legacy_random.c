@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #include <stdio.h>
 #include <math.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <assert.h>
 #include "legacy_random.h"
 
@@ -224,20 +225,84 @@ void setRandomSeed (RNG_Seed a_seed)
 int gen_rnd_number (void)
 {
 	int a,x;
-
+	
 	x = (rnd_seed.a * 2) & 0xFF;
 	a = x + rnd_seed.c;
 	if (rnd_seed.a > 127)
 		a++;
 	rnd_seed.a = a & 0xFF;
 	rnd_seed.c = x;
-
+	
 	a = a / 256;	/* a = any carry left from above */
 	x = rnd_seed.b;
 	a = (a + x + rnd_seed.d) & 0xFF;
 	rnd_seed.b = a;
 	rnd_seed.d = x;
 	return a;
+}
+
+
+static bool sReallyRandomInited = false;
+static RANROTSeed sReallyRandomSeed;
+
+
+uint32_t OOReallyRandom(void)
+{
+	assert(sReallyRandomInited);
+	return RanrotWithSeed(&sReallyRandomSeed);
+}
+
+
+void OOInitReallyRandom(uint64_t seed)
+{
+	assert(!sReallyRandomInited);
+	seed ^= 0xA471D52AEF3B6322ULL;
+	sReallyRandomSeed.high = (seed >> 32) & 0xFFFFFFFF;
+	sReallyRandomSeed.low = seed  & 0xFFFFFFFF;
+	sReallyRandomInited = true;
+	OOReallyRandom();
+}
+
+
+void OOSetReallyRandomRANROTSeed(void)
+{
+	assert(sReallyRandomInited);
+	sRANROT = sReallyRandomSeed;
+	OOReallyRandom();	// Don't go reusing it.
+}
+
+
+void OOSetReallyRandomRndSeed(void)
+{
+	uint32_t val = OOReallyRandom();
+	rnd_seed.a = (val >> 24) & 0xFF;
+	rnd_seed.b = (val >> 16) & 0xFF;
+	rnd_seed.c = (val >> 8) & 0xFF;
+	rnd_seed.d = val & 0xFF;
+}
+
+
+void OOSetReallyRandomRANROTAndRndSeeds(void)
+{
+	OOSetReallyRandomRANROTSeed();
+	OOSetReallyRandomRndSeed();
+}
+
+
+OORandomState OOSaveRandomState(void)
+{
+	return (OORandomState)
+	{
+		.ranrot = sRANROT,
+		.rnd = rnd_seed
+	};
+}
+
+
+void OORestoreRandomState(OORandomState state)
+{
+	sRANROT = state.ranrot;
+	rnd_seed = state.rnd;
 }
 
 
