@@ -141,6 +141,14 @@ NSString *OOExpandKey(NSString *key);
 
 
 /*
+	OOExpandKeyRandomized(key)
+	
+	Like OOExpandKey(), but uses a random-er random seed to avoid repeatability.
+*/
+NSString *OOExpandKeyRandomized(NSString *key);
+
+
+/*
 	OOGenerateSystemDescription(seed, name)
 	
 	Generates the default system description for the specified system seed.

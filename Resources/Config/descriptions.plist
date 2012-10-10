@@ -968,12 +968,32 @@
 	"load-previous-commander-yes"	= "y"; // Defines the key that corresponds to the yes answer to load-previous-commander.
 	"load-previous-commander-no"	= "n"; // Defines the key that corresponds to the no answer to load-previous-commander.
 	
-	// Loading screen (currently Mac only)
+	// Loading screen (currently Mac only), also logged under start.progress
 	"loading-ships"					= "Loading ship data";
 	"populating-space"				= "Populating space";
 	"initializing-debug-support"	= "Initializing debug support";
-	"running-scripts"				= "Running scripts";
+	"running-scripts"				= "Running world scripts";
+	"loading-scripts"				= "Loading scripts";
 	"loading-player"				= "Loading saved game";
+	"loading-miscellany" =
+	(
+		"Wasting your time",
+		"Working [1] hard",
+		"Squaring the circle",
+		"Consulting boffins",
+		"Reticulating splines",
+		"Patterning [12] giraffes",
+		"Doing stuff I forgot earlier",
+		"Flashing technical text at you",
+		"Wasting cycles",
+		"Simulating big bang",
+		"Twiddling bits",
+		"Twiddling thumbs",
+		"Invoking %R",
+		"Playing [34] [35]",
+		"Aggravating thargoids",
+		"Technical gubbins"
+	);
 	
 	// Status screen
 	"status-commander-@"			= "Commander %@";

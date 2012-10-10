@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOColor.h"
 #import "OOCacheManager.h"
+#import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
@@ -99,8 +100,6 @@ enum
 	DEMO_FLY_OUT
 };
 
-
-#define kOOLogUnconvertedNSLog @"unclassified.Universe"
 
 #define MAX_NUMBER_OF_ENTITIES				200
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
@@ -256,6 +255,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	self = [super init];
 	if (self == nil)  return nil;
 	
+	_doingStartUp = YES;
 	OOInitReallyRandom([NSDate timeIntervalSinceReferenceDate] * 1e9);
 	
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
@@ -337,6 +337,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	entities = [[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	
+	[[GameController sharedController] logProgress:OOExpandKeyRandomized(@"loading-miscellany")];
+	
 	// this MUST have the default no. of rows else the GUI_ROW macros in PlayerEntity.h need modification
 	gui = [[GuiDisplayGen alloc] init]; // alloc retains
 	comm_log_gui = [[GuiDisplayGen alloc] init]; // alloc retains
@@ -380,6 +382,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[self dumpDebugGraphViz];
 #endif
 #endif
+	
+	_doingStartUp = NO;
 	
 	return self;
 }
@@ -444,6 +448,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 - (NSUInteger) sessionID
 {
 	return _sessionID;
+}
+
+
+- (BOOL) doingStartUp
+{
+	return _doingStartUp;
 }
 
 

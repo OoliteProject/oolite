@@ -342,6 +342,7 @@
 	
 	shipData.load.shipyard.unknown			= yes;					// Warning for when shipyard.plist entries do not have matching shipdata.plist entry.
 	shipData.load.begin						= yes;
+	shipData.load.progress					= no;
 	shipData.load.done						= no;
 	shipData.load.error						= $error;
 	shipData.load.warning					= $error;

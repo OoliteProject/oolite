@@ -608,6 +608,8 @@ static void RemovePreference(NSString *key)
 
 - (void) logProgress:(NSString *)message
 {
+	if (![UNIVERSE doingStartUp])  return;
+	
 #if OOLITE_MAC_OS_X
 	[splashProgressTextField setStringValue:message];
 	[splashProgressTextField display];

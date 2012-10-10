@@ -1043,6 +1043,8 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSString					*name = nil;
 	NSAutoreleasePool			*pool = nil;
 	
+	OOLog(@"script.load.world.begin", @"Loading world scripts...");
+	
 	loadedScripts = [NSMutableDictionary dictionary];
 	paths = [ResourceManager paths];
 	for (pathEnum = [paths objectEnumerator]; (path = [pathEnum nextObject]); )

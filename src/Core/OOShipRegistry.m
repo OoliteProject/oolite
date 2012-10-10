@@ -286,46 +286,45 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	
 	// Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
 	if (![self makeShipEntriesMutable:result])  return;
-	OOLog(@"shipData.load.done", @"Finished initial cleanup...");
+	OOLog(@"shipData.load.progress", @"Finished initial cleanup...");
 	
 	// Apply patches.
 	if (![self loadAndApplyShipDataOverrides:result])  return;
-	OOLog(@"shipData.load.done", @"Finished applying patches...");
+	OOLog(@"shipData.load.progress", @"Finished applying patches...");
 	
 	// Strip private keys (anything starting with _oo_).
 	if (![self stripPrivateKeys:result])  return;
-	OOLog(@"shipData.load.done", @"Finished stripping private keys...");
+	OOLog(@"shipData.load.progress", @"Finished stripping private keys...");
 	
 	// Resolve like_ship entries.
 	if (![self applyLikeShips:result withKey:@"like_ship"])  return;
-	OOLog(@"shipData.load.done", @"Finished resolving like_ships...");
+	OOLog(@"shipData.load.progress", @"Finished resolving like_ships...");
 	
 	// Clean up subentity declarations and tag subentities so they won't be pruned.
 	if (![self canonicalizeAndTagSubentities:result])  return;
-	OOLog(@"shipData.load.done", @"Finished cleaning up subentities...");
+	OOLog(@"shipData.load.progress", @"Finished cleaning up subentities...");
 	
 	// Clean out templates and invalid entries.
 	if (![self removeUnusableEntries:result shipMode:YES])  return;
-	OOLog(@"shipData.load.done", @"Finished removing invalid entries...");
+	OOLog(@"shipData.load.progress", @"Finished removing invalid entries...");
 	
 	// Add shipyard entries into shipdata entries.
 	if (![self loadAndMergeShipyard:result])  return;
-	OOLog(@"shipData.load.done", @"Finished adding shipyard entries...");
+	OOLog(@"shipData.load.progress", @"Finished adding shipyard entries...");
 	
 	// Sanitize conditions.
 	if (![self sanitizeConditions:result])  return;
-	OOLog(@"shipData.load.done", @"Finished validating data...");
+	OOLog(@"shipData.load.progress", @"Finished validating data...");
 	
 #if PRELOAD
 	// Preload and cache meshes.
 	if (![self preloadShipMeshes:result])  return;
-	OOLog(@"shipData.load.done", @"Finished loading meshes...");
+	OOLog(@"shipData.load.progress", @"Finished loading meshes...");
 #endif
 	
 	_shipData = OODeepCopy(result);
 	[[OOCacheManager sharedCache] setObject:_shipData forKey:kShipDataCacheKey inCache:kShipRegistryCacheName];
 	
-	OOLogOutdentIf(@"shipData.load.begin");
 	OOLog(@"shipData.load.done", @"Ship data loaded.");
 
 	[_effectData release];
@@ -339,27 +338,28 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 	// Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
 	if (![self makeShipEntriesMutable:result])  return;
-	OOLog(@"effectData.load.done", @"Finished initial cleanup...");
+	OOLog(@"effectData.load.progress", @"Finished initial cleanup...");
 
 	// Strip private keys (anything starting with _oo_).
 	if (![self stripPrivateKeys:result])  return;
-	OOLog(@"effectData.load.done", @"Finished stripping private keys...");
+	OOLog(@"effectData.load.progress", @"Finished stripping private keys...");
 	
-	// Resolve like_ship entries.
+	// Resolve like_effect entries.
 	if (![self applyLikeShips:result withKey:@"like_effect"])  return;
-	OOLog(@"effectData.load.done", @"Finished resolving like_effects...");
+	OOLog(@"effectData.load.progress", @"Finished resolving like_effects...");
 	
 	// Clean up subentity declarations and tag subentities so they won't be pruned.
 	if (![self canonicalizeAndTagSubentities:result])  return;
-	OOLog(@"effectData.load.done", @"Finished cleaning up subentities...");
-
+	OOLog(@"effectData.load.progress", @"Finished cleaning up subentities...");
+	
 	// Clean out templates and invalid entries.
 	if (![self removeUnusableEntries:result shipMode:NO])  return;
-	OOLog(@"effectData.load.done", @"Finished removing invalid entries...");
+	OOLog(@"effectData.load.progress", @"Finished removing invalid entries...");
 	
 	_effectData = OODeepCopy(result);
 	[[OOCacheManager sharedCache] setObject:_effectData forKey:kVisualEffectDataCacheKey inCache:kVisualEffectRegistryCacheName];
-
+	
+	OOLog(@"effectData.load.done", @"Effect data loaded.");
 }
 
 

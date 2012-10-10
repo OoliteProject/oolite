@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "Octree.h"
 #import "OOCacheManager.h"
+#import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
 #import "OOCollectionExtractors.h"
@@ -1395,11 +1396,15 @@ static GLfloat		sBaseMass = 0.0;
 	[OOJSScript jsScriptFromFileNamed:@"oolite-locale-functions.js"
 						   properties:nil];
 	
+	[[GameController sharedController] logProgress:DESC(@"loading-scripts")];
+	
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
 	worldScripts = [[ResourceManager loadScripts] retain];
 	[UNIVERSE loadConditionScripts];
+	
+	[[GameController sharedController] logProgress:OOExpandKeyRandomized(@"loading-miscellany")];
 	
 	// if there is cargo remaining from previously (e.g. a game restart), remove it
 	if ([self cargoList] != nil)

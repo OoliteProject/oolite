@@ -305,6 +305,7 @@ enum
 	BOOL					_permanentCommLog;
 	BOOL					_witchspaceBreakPattern;
 	BOOL					_dockingClearanceProtocolActive;
+	BOOL					_doingStartUp;
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
@@ -320,6 +321,8 @@ enum
 - (BOOL) setStrict:(BOOL)value fromSaveGame: (BOOL)saveGame;
 
 - (void) reinitAndShowDemo:(BOOL)showDemo;
+
+- (BOOL) doingStartUp;	// True during initial game startup (not reset).
 
 - (NSUInteger) entityCount;
 #ifndef NDEBUG

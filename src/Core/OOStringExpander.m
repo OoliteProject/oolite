@@ -235,6 +235,20 @@ NSString *OOExpandKey(NSString *key)
 }
 
 
+NSString *OOExpandKeyRandomized(NSString *key)
+{
+	OORandomState savedRandomState = OOSaveRandomState();
+	OOSetReallyRandomRANROTAndRndSeeds();
+	
+	// N.b.: the systemSeed is used only to retrieve the system name, not for actual randomness.
+	NSString *result = OOExpandKeyWithSeed(key, [UNIVERSE systemSeed], nil);
+	
+	OORestoreRandomState(savedRandomState);
+	
+	return result;
+}
+
+
 NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name)
 {
 	seed_RNG_only_for_planet_description(seed);
