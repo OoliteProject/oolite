@@ -175,9 +175,6 @@
 	joystick.reject							= no;	// Lists HID devices that are not considered joysticks.
 	
 	
-	loading.complete						= yes;
-	
-	
 	material.canonicalForm					= no;	// Extremely verbose logging of normalized material specifier dictionaries.
 	
 	
@@ -404,6 +401,7 @@
 	
 	
 	startup.progress						= no;					// Startup progress stages.
+	loading.complete						= yes;
 	
 	
 	station.launchShip.impossible			= no;					// generally cancelled launches due to station having no launch docks are uninteresting	

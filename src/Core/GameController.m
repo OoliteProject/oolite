@@ -89,6 +89,8 @@ static GameController *sSharedController = nil;
 	{
 		last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
 		delta_t = 0.01; // one hundredth of a second
+		
+		_splashStart = [[NSDate alloc] init];
 	}
 	
 	return self;
@@ -251,7 +253,7 @@ static GameController *sSharedController = nil;
 		exit(EXIT_FAILURE);
 	}
 	
-	OOLog(@"loading.complete", @"========== Loading complete. ==========");
+	OOLog(@"startup.complete", @"========== Loading complete in %.2f seconds. ==========", -[_splashStart timeIntervalSinceNow]);
 	
 #if OO_USE_FULLSCREEN_CONTROLLER
 	[self setFullScreenMode:[[NSUserDefaults standardUserDefaults] boolForKey:@"fullscreen"]];
@@ -289,8 +291,6 @@ static GameController *sSharedController = nil;
 #else
 	[gameView updateScreen];
 #endif
-	
-	_splashStart = [[NSDate alloc] init];
 }
 
 
@@ -609,9 +609,13 @@ static void RemovePreference(NSString *key)
 - (void) logProgress:(NSString *)message
 {
 #if OOLITE_MAC_OS_X
-	[splashProgressTextField setStringValue:message];	[splashProgressTextField display];
+	[splashProgressTextField setStringValue:message];
+	[splashProgressTextField display];
 #endif
-	OOLog(@"startup.progress", @"===== [%.2f s] %@", -[_splashStart timeIntervalSinceNow], message);
+	if([message length] > 0)
+	{
+		OOLog(@"startup.progress", @"===== [%.2f s] %@", -[_splashStart timeIntervalSinceNow], message);
+	}
 }
 
 
