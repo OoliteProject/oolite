@@ -2434,13 +2434,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	if (justCobra)
 	{
 		/*- cobra - intro1 -*/
-		ship = [self newShipWithName:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
+		ship = [self newShipWithName:PLAYER_SHIP_DESC usePlayerProxy:YES];
 	}
 	else
 	{
 		/*- demo ships - intro2 -*/
 		demo_ship_index = 0;
-		if (!demo_ship) ship = [self newShipWithName:[demo_ships oo_stringAtIndex:0] usePlayerProxy:YES];   // retain count = 1
+		if (!demo_ship) ship = [self newShipWithName:[demo_ships oo_stringAtIndex:0] usePlayerProxy:YES];
 	}
 	
 	if (ship)

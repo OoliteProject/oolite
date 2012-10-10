@@ -8476,7 +8476,7 @@ static NSString *last_outfitting_key=nil;
 
 - (void) setDefaultCustomViews
 {
-	NSArray *customViews = [[[OOShipRegistry sharedRegistry] shipInfoForKey:@"cobra3-player"] oo_arrayForKey:@"custom_views"];
+	NSArray *customViews = [[[OOShipRegistry sharedRegistry] shipInfoForKey:PLAYER_SHIP_DESC] oo_arrayForKey:@"custom_views"];
 	
 	[_customViews release];
 	_customViews = nil;
