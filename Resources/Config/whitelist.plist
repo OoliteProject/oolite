@@ -11,7 +11,7 @@
 	query_method_aliases		Mappings from script queries (left) to internal names (right).
 	shader_*_binding_methods	Values that may be queried through shader bindings.
 	
-	Most Other types of legacy script - ship actions, character scripts,
+	Most other types of legacy script - ship actions, character scripts,
 	scriptActionOnTarget: - can use both action_methods and ai_methods. The exception is
 	systeminfo scripts, which can't use ai_methods as they aren't run with a ship target.
 */
@@ -187,7 +187,7 @@
 		"recallDockingInstructions",
 		"enterPlayerWormhole",
 		"enterTargetWormhole",
-		"scriptActionOnTarget:",
+//		"scriptActionOnTarget:",	// Aliased to safeScriptActionOnTarget:
 		"safeScriptActionOnTarget:",
 		"sendScriptMessage:",
 		"targetFirstBeaconWithCode:",
@@ -476,5 +476,6 @@
 		"becomeExplosion" = "explodeSelf";
 		"clearDefenseTargets" = "removeAllDefenseTargets";
 		"debugMessage:" = "ai_debugMessage:";
+		"scriptActionOnTarget:" = "safeScriptActionOnTarget:";
 	};
 }
