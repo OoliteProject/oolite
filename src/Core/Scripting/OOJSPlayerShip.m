@@ -553,8 +553,14 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 		}
 		
 		case kPlayerShip_targetSystem:
+			/* This first check is essential: if removed, it would be
+			 * possible to make jumps of arbitrary length - CIM */
 			if ([player status] != STATUS_ENTERING_WITCHSPACE)
 			{
+				/* These checks though similar are less important. The
+				 * consequences of allowing jump destination to be set in
+				 * flight are not as severe and do not allow the 7LY limit to
+				 * be broken. Nevertheless, it is not allowed. - CIM */
 				if (EXPECT_NOT([player status] != STATUS_DOCKED && [player status] != STATUS_LAUNCHING))
 				{
 					OOJSReportError(context, @"player.ship.targetSystem is read-only unless called when docked.");
@@ -574,6 +580,11 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 						return NO;
 					}
 				}
+			}
+			else
+			{
+				OOJSReportError(context, @"player.ship.targetSystem is read-only unless called when docked.");
+				return NO;
 			}
 		
 		default:
