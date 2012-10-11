@@ -547,12 +547,21 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 		JS_DeleteProperty(context, sMissionObject, "displayModel");
 	}
 
-	
+	JSBool allowInterrupt = NO;
+	if (JS_GetProperty(context, params, "allowInterrupt", &value) && !JSVAL_IS_VOID(value))
+	{
+		JS_ValueToBoolean(context, value, &allowInterrupt);
+	}
+
 	// Start the mission screen.
 	sCallbackFunction = function;
 	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(sCallbackFunction)];
-	
+
 	// Apply more settings. (These must be done after starting the screen for legacy reasons.)
+	if (allowInterrupt)
+	{
+		[player allowMissionInterrupt];
+	}
 	NSString *message = GetParameterString(context, params, "message");
 	if (message != nil)
 	{

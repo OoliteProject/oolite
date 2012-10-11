@@ -3541,6 +3541,15 @@ static BOOL autopilot_pause;
 				else
 				{
 					selectPressed = NO;
+					if (_missionAllowInterrupt)
+					{
+						[self pollGuiScreenControls];
+						if (gui_screen != GUI_SCREEN_MISSION)
+						{
+							[UNIVERSE removeDemoShips];
+							[self endMissionScreenAndNoteOpportunity];
+						}
+					}
 				}
 			}
 			break;
@@ -3555,11 +3564,11 @@ static BOOL autopilot_pause;
 {
 	[UNIVERSE removeDemoShips];
 	[[UNIVERSE gui] clearBackground];
-	
+
 	[self setGuiToStatusScreen]; // need this to find out if we call a new mission screen inside callback.
 	
 	if ([self status] != STATUS_DOCKED) [self switchToThisView:VIEW_FORWARD];
-	
+
 	if (_missionWithCallback)
 	{
 		[self doMissionCallback];

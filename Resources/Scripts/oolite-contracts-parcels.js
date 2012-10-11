@@ -82,13 +82,19 @@ this.playerWillSaveGame = function()
 }
 
 
-// if the player launches from within the mission screens, reset their
-// destination system and HUD settings, which the mission screens may
-// have affected.
-this.shipWillLaunchFromStation = function() {
-		if (this.$suspendedDestination) {
+// when the player exits the mission screens, reset their destination
+// system and HUD settings, which the mission screens may have
+// affected.
+this.guiScreenChanged = this.shipWillLaunchFromStation = function() {
+		if (this.$suspendedHUD)
+		{
+				player.ship.hudHidden = false;
+				this.$suspendedHUD = false;
+		}
+		if (this.$suspendedDestination !== null)
+		{
 				player.ship.targetSystem = this.$suspendedDestination;
-				player.ship.hudHidden = this.$suspendedHUD;
+				this.$suspendedDestination = null;
 		}
 }
 
@@ -249,7 +255,8 @@ this._parcelContractsDisplay = function(summary) {
 		if (this.$parcels.length === 0)
 		{
 				mission.runScreen({titleKey: "oolite-contracts-parcels-none-available-title",
-													 messageKey: "oolite-contracts-parcels-none-available-message"});
+													 messageKey: "oolite-contracts-parcels-none-available-message",
+													 allowInterrupt: true });
 				// no callback, just exits contracts system
 				return;
 		}
@@ -351,6 +358,7 @@ this._parcelContractSummaryPage = function()
 
 		var missionConfig = {titleKey: "oolite-contracts-parcels-title-summary",
 												 message: headline,
+												 allowInterrupt: true,
 												 choices: options,
 												 initialChoicesKey: initialChoice}; 
 		if (this.$parcelSummaryPageBackground != "") {
@@ -462,7 +470,7 @@ this._parcelContractSinglePage = function()
 		mission.runScreen({
 				title: title,
 				message: message,
-//				background: this.$longRangeChartBackground,
+				allowInterrupt: true,
 				backgroundSpecial: backgroundSpecial,
 				choices: options,
 				initialChoicesKey: this.$lastChoice
@@ -473,19 +481,6 @@ this._parcelContractSinglePage = function()
 
 this._processParcelChoice = function(choice)
 {
-		// firstly, restore the HUD and witchspace destination if
-		// necessary, and clear the stashed values
-		if (this.$suspendedDestination !== null)
-		{
-				player.ship.targetSystem = this.$suspendedDestination;
-				this.$suspendedDestination = null;
-		}
-		if (this.$suspendedHUD)
-		{
-				player.ship.hudHidden = false;
-				this.$suspendedHUD = false;
-		}
-
 		if (choice === null)
 		{
 				// can occur if ship launches mid mission screen

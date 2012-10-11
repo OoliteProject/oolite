@@ -2332,6 +2332,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) endMissionScreenAndNoteOpportunity
 {
+	_missionAllowInterrupt = NO;
 	// Older scripts might intercept missionScreenEnded first, and call secondary mission screens.
 	if(![self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")])
 	{
@@ -2399,6 +2400,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// the following are necessary...
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	_missionWithCallback = callback;
+	_missionAllowInterrupt = NO;
 }
 
 

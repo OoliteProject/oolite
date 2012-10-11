@@ -228,6 +228,12 @@ MA 02110-1301, USA.
 }
 
 
+- (void) allowMissionInterrupt
+{
+	_missionAllowInterrupt = YES;
+}
+
+
 - (OOTimeDelta) scriptTimer
 {
 	return script_time;

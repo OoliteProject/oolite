@@ -555,7 +555,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_targetSystem:
 			if ([player status] != STATUS_ENTERING_WITCHSPACE)
 			{
-				if (EXPECT_NOT([player status] != STATUS_DOCKED))
+				if (EXPECT_NOT([player status] != STATUS_DOCKED && [player status] != STATUS_LAUNCHING))
 				{
 					OOJSReportError(context, @"player.ship.targetSystem is read-only unless called when docked.");
 					return NO;

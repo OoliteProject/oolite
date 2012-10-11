@@ -48,6 +48,7 @@ MA 02110-1301, USA.
 
 - (void) setMissionChoice:(NSString *)newChoice;
 - (void) setMissionChoice:(NSString *)newChoice withEvent:(BOOL) withEvent;
+- (void) allowMissionInterrupt;
 
 - (OOTimeDelta) scriptTimer;
 

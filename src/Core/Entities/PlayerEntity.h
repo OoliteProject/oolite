@@ -268,6 +268,7 @@ typedef enum
 	NSInteger /*OOGUIRow*/	missionTextRow;
 	NSString				*missionChoice;
 	BOOL					_missionWithCallback;
+	BOOL					_missionAllowInterrupt;
 	
 	NSString				*specialCargo;
 	
