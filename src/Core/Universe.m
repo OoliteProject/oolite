@@ -9546,7 +9546,11 @@ Entity *gOOJSPlayerIfStale = nil;
 	// remove from the definitive list
 	if ([entities containsObject:entity])
 	{
-		if ([entity isBreakPattern])  breakPatternCounter--;
+		// FIXME: better approach needed for core break patterns - CIM
+		if ([entity isBreakPattern] && ![entity isVisualEffect])
+		{
+			breakPatternCounter--;
+		}
 		
 		if ([entity isShip])
 		{
