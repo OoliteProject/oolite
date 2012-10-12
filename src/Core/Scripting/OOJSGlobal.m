@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 
 #import "OOJSPlayer.h"
 #import "PlayerEntityScriptMethods.h"
-#import "OOStringParsing.h"
+#import "OOStringExpander.h"
 #import "OOConstToString.h"
 #import "OOConstToJSString.h"
 #import "OOCollectionExtractors.h"
@@ -38,10 +38,6 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 
 #import "NSFileManagerOOExtensions.h"
-
-#if NEW_STRING_EXPANDER
-#import "OOStringExpander.h"
-#endif
 
 
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -292,11 +288,7 @@ static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
-#if NEW_STRING_EXPANDER
 	string = OOExpandDescriptionString(string, [PLAYER system_seed], overrides, nil, nil, kOOExpandForJavaScript);
-#else
-	string = ExpandDescriptionsWithOptions(string, [PLAYER system_seed], overrides, nil, nil);
-#endif
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(string);
@@ -325,17 +317,7 @@ static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
-#if NEW_STRING_EXPANDER
 	string = OOExpandDescriptionString(string, [PLAYER system_seed], overrides, nil, nil, kOOExpandForJavaScript | kOOExpandBackslashN);
-#else
-	if (string != nil)
-	{
-		string = ExpandDescriptionsWithOptions(string, [PLAYER system_seed], overrides, nil, nil);
-		NSMutableString *mString = [NSMutableString stringWithString:string];
-		[mString replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:(NSRange){ 0, [mString length] }];
-		string = mString;
-	}
-#endif
 	
 	OOJS_RETURN_OBJECT(string);
 	

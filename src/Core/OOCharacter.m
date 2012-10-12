@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 
 #import "Universe.h"
+#import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOJSScript.h"
@@ -167,13 +168,13 @@ MA 02110-1301, USA.
 	seed_RNG_only_for_planet_description(genSeed);
 	NSString *genName = nil;
 	if ([speciesString hasPrefix:@"human"])
-		genName = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", genSeed, nil), ExpandDescriptionForSeed(@"[nom]", genSeed, nil)];
+		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(@"%R", genSeed, nil), OOExpandKeyWithSeed(@"nom", genSeed, nil)];
 	else
-		genName = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", genSeed, nil), ExpandDescriptionForSeed(@"%R", genSeed, nil)];
+		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(@"%R", genSeed, nil), OOExpandWithSeed(@"%R", genSeed, nil)];
 	
 	[self setName: genName];
 	
-	[self setShortDescription: [NSString stringWithFormat:ExpandDescriptionForSeed(@"[character-a-@-from-@]", genSeed, nil), speciesString, planetName]];
+	[self setShortDescription: [NSString stringWithFormat:OOExpandKeyWithSeed(@"character-a-@-from-@", genSeed, nil), speciesString, planetName]];
 	[self setLongDescription: [self shortDescription]];
 	
 	// determine legalStatus for a completely random character
@@ -221,11 +222,12 @@ MA 02110-1301, USA.
 		int sins = 0x08 | (genSeed.a & genSeed.b);
 		[self setLegalStatus: sins & 0x7f];
 		
-		NSString	*legalDesc = @"offender";
-		if (legalStatus > 50)  legalDesc = @"fugitive";
+		NSString *legalDesc = nil;
+		if (legalStatus > 50)  legalDesc = DESC(@"lowercase-fugitive");
+		else  DESC(@"lowercase-offender");
 		
-		[self setLongDescription:
-			ExpandDescriptionForSeed([NSString stringWithFormat:@"%@ is a [21] %@ from %@", [self name], legalDesc, [self planetOfOrigin]], genSeed, nil)];
+		NSString *longDesc = [NSString stringWithFormat:OOExpandKeyWithSeed(@"@-is-a-@-from-@", genSeed, nil), [self name], legalDesc, [self planetOfOrigin]];
+		[self setLongDescription:longDesc];
 		
 		specialSetUpDone = YES;
 	}

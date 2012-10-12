@@ -32,10 +32,6 @@ MA 02110-1301, USA.
 @class Entity;
 
 
-// If set, use new faster string expander with saner (but not entirely backwards-compatible) semantics.
-#define NEW_STRING_EXPANDER 1
-
-
 NSMutableArray *ScanTokensFromString(NSString *values);
 
 // Note: these functions will leave their out values untouched if they fail (and return NO). They will not log an error if passed a NULL string (but will return NO). This means they can be used to, say, read dictionary entries which might not exist. They also ignore any extra components in the string.
@@ -51,20 +47,6 @@ NSPoint PointFromString(NSString *xyString);
 
 Random_Seed RandomSeedFromString(NSString *abcdefString);
 NSString *StringFromRandomSeed(Random_Seed seed);
-
-
-NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed, NSString *name);
-NSString *ExpandDescriptionForCurrentSystem(NSString *text);
-
-NSString *ExpandDescriptionsWithOptions(NSString *text, Random_Seed seed, NSDictionary *overrides, NSDictionary *locals, NSString *pName);
-
-NSString *DescriptionForSystem(Random_Seed seed,NSString *name);
-NSString *DescriptionForCurrentSystem(void);
-
-// target and localVariables are optional; target will default to the player.
-NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *localVariables);
-
-NSString *RandomDigrams(void);
 
 
 NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol);

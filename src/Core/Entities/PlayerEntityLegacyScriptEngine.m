@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "OOColor.h"
 #import "OOStringParsing.h"
+#import "OOStringExpander.h"
 #import "OOConstToString.h"
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
@@ -228,7 +229,7 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	{
 		// Method with argument; substitute [description] expressions.
 		locals = [player localVariablesForMission:sCurrentMissionKey];
-		expandedString = ExpandDescriptionsWithOptions(argumentString, [player system_seed], nil, locals, nil);
+		expandedString = OOExpandDescriptionString(argumentString, [player system_seed], nil, locals, nil, kOOExpandNoOptions);
 		
 		[target performSelector:selector withObject:expandedString];
 	}
@@ -770,7 +771,7 @@ static BOOL sRunningScript = NO;
 		}
 		else if ([valueString hasPrefix:@"["]&&[valueString hasSuffix:@"]"])
 		{
-			NSString* replaceString = ExpandDescriptionForCurrentSystem(valueString);
+			NSString* replaceString = OOExpand(valueString);
 			[resultString replaceOccurrencesOfString:valueString withString:replaceString options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
 		}
 	}
@@ -812,7 +813,7 @@ static BOOL sRunningScript = NO;
 		return;
 	}
 
-	text = ExpandDescriptionForCurrentSystem(text);
+	text = OOExpand(text);
 	text = [self replaceVariablesInString: text];
 
 	[mission_variables setObject:text forKey:key];
@@ -1123,7 +1124,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	very_random_seed.e = rand() & 255;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
-	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
+	NSString* expandedMessage = OOExpand(valueString);
 	return [self replaceVariablesInString: expandedMessage];
 }
 
@@ -1384,7 +1385,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	[self removeAllCargo:YES];	
 	OOLog(kOOLogNoteUseSpecialCargo, @"Going to useSpecialCargo:'%@'", descriptionString);
-	specialCargo = [ExpandDescriptionForCurrentSystem(descriptionString) retain];
+	specialCargo = [OOExpand(descriptionString) retain];
 }
 
 
@@ -1839,7 +1840,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) addMissionText: (NSString *)textKey
 {
 	NSString			*text = nil;
-	NSArray				*paras = nil;
 	
 	if ([textKey isEqualToString:lastTextKey])  return; // don't repeatedly add the same text
 	[lastTextKey release];
@@ -1848,9 +1848,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// Replace literal \n in strings with line breaks and perform expansions.
 	text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
 	if (text == nil)  return;
-	text = ExpandDescriptionForCurrentSystem(text);
-	paras = [text componentsSeparatedByString:@"\\n"];
-	text = [paras componentsJoinedByString:@"\n"];
+	text = OOExpandDescriptionString(text, [UNIVERSE systemSeed], nil, nil, nil, kOOExpandBackslashN);
 	text = [self replaceVariablesInString:text];
 	
 	[self addLiteralMissionText:text];
@@ -1952,7 +1950,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		{
 			continue; // invalid type
 		}
-		choiceText = ExpandDescriptionForCurrentSystem(choiceText);
+		choiceText = OOExpand(choiceText);
 		choiceText = [self replaceVariablesInString:choiceText];
 		// allow blank rows
 		if (![choiceText isEqualToString:@"  "])

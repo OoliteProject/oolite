@@ -5556,7 +5556,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			if ([player isSpeechOn])
 			{
 				// EMMSTRAN: should say "Incoming message from ..." when prefixed with sender name.
-				NSString *format = ExpandDescriptionForCurrentSystem(@"[speech-synthesis-incoming-message-@]");
+				NSString *format = OOExpandKey(@"speech-synthesis-incoming-message-@");
 				[self speakWithSubstitutions:[NSString stringWithFormat:format, text]];
 			}
 			
@@ -6426,7 +6426,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	NSString *name = [self generateSystemName:s_seed];
 	NSString *inhabitant = [self generateSystemInhabitants:s_seed plural:NO];
 	NSString *inhabitants = [self generateSystemInhabitants:s_seed plural:YES];
-	NSString *description = DescriptionForSystem(s_seed,name); //avoids parsestring recursion
+	NSString *description = OOGenerateSystemDescription(s_seed, name);	// FIXME: is it necessary to generate this here? Can't we just generate a description if it's nil the second time (down below)? -- Ahrumn 2012-10-05
 	
 	NSString *override_key = [self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed:galaxy_seed];
 	
@@ -6455,7 +6455,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	// check if the description needs to be recalculated
 	if ([description isEqual:[systemdata oo_stringForKey:KEY_DESCRIPTION]] && ![name isEqual:[systemdata oo_stringForKey:KEY_NAME]])
 	{
-		[systemdata setObject:DescriptionForSystem(s_seed,[systemdata oo_stringForKey:KEY_NAME]) forKey:KEY_DESCRIPTION];
+		[systemdata setObject:OOGenerateSystemDescription(s_seed, [systemdata oo_stringForKey:KEY_NAME]) forKey:KEY_DESCRIPTION];
 	}
 	if (useCache) setRandomSeed(saved_seed);
 	sCachedSystemData = [systemdata copy];
@@ -7503,10 +7503,10 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 			
 			// determine the passenger's name
 			seed_RNG_only_for_planet_description(passenger_seed);
-			NSString *passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed, nil), ExpandDescriptionForSeed(@"%R", passenger_seed, nil)];
+			NSString *passenger_name = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(@"%R", passenger_seed, nil), OOExpandWithSeed(@"%R", passenger_seed, nil)];
 			// If passenger is a human, make his name more... human like.
 			if ([[passenger_species_string componentsSeparatedByString:@" "] containsObject:DESC(@"human-word")])
-				passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed, nil), ExpandDescriptionForSeed(@"[nom]", passenger_seed, nil)];
+				passenger_name = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(@"%R", passenger_seed, nil), OOExpandKeyWithSeed(@"nom", passenger_seed, nil)];
 			
 			// determine information about the route...
 			NSDictionary *routeInfo = [self routeFromSystem:start toSystem:passenger_destination optimizedBy:OPTIMIZED_BY_JUMPS];

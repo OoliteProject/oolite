@@ -413,6 +413,20 @@
 	strings.conversion.vectorAndQuaternion	= inherit;
 	strings.conversion.randomSeed			= inherit;
 	
+	strings.expand							= $scriptError;			// Errors encountered when converting [key] and %X-type markers in strings.
+	strings.expand.invalidData				= inherit;
+	strings.expand.invalidJEscape			= inherit;
+	strings.expand.invalidJEscape.range		= inherit;
+	strings.expand.invalidSelector			= inherit;
+	strings.expand.warning					= yes;
+	strings.expand.warning.emptyKey			= inherit;
+	strings.expand.warning.invalidOverride	= inherit;
+	strings.expand.warning.outOfRangeKey	= inherit;
+	strings.expand.warning.unbalancedClosingBracket = inherit;
+	strings.expand.warning.unbalancedOpeningBracket = inherit;
+	strings.expand.warning.unknownExpansion	= inherit;
+	strings.expand.warning.unknownPercentEscape = inherit;
+	
 	
 	sun.nova								= no;					// Debug messages for nova
 	sun.nova.start							= inherit;

@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 #import "StationEntity.h"
 #import "GuiDisplayGen.h"
+#import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
@@ -1556,7 +1557,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
-		[gui setTitle:ExpandDescriptionForCurrentSystem(@"[arrival-report-title]")];
+		[gui setTitle:OOExpandKey(@"arrival-report-title")];
 		
 		// dockingReport might be a multi-line message
 		

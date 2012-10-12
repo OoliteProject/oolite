@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOTextureSprite.h"
 #import "ResourceManager.h"
 #import "OOSound.h"
+#import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "HeadUpDisplay.h"
 #import "OOCollectionExtractors.h"
@@ -1869,11 +1870,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (routeExists)
 	{
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		NSString *travelDistLine = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-distance-f]"), distance];
+		NSString *travelDistLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-distance-f"), distance];
 		NSString *travelTimeLine = @"";
 		if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
 		{
-			travelTimeLine = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[long-range-chart-est-travel-time-f]"), time];
+			travelTimeLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-est-travel-time-f"), time];
 		}
 			
 		[self setArray:[NSArray arrayWithObjects:targetSystemName, travelDistLine,travelTimeLine,nil] forRow:16];

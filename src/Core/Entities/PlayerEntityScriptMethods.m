@@ -30,6 +30,9 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOStringParsing.h"
 
+#import "OOStringExpander.h"
+#import "OOStringParsing.h"
+
 
 @implementation PlayerEntity (ScriptMethods)
 

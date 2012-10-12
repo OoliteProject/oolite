@@ -37,6 +37,7 @@
 #import "OOJSFunction.h"
 #import "OOShipGroup.h"
 
+#import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOConstToString.h"
@@ -1962,7 +1963,7 @@
 			[self noteLostTarget];
 			return;
 		}
-		NSString* finalValue = ExpandDescriptionForCurrentSystem(valueString);	// expand values
+		NSString *finalValue = OOExpand(valueString);	// expand values
 		[ship markAsOffender:[finalValue intValue] withReason:kOOLegalStatusReasonSeenByPolice];
 	}
 }

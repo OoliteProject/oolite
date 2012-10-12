@@ -2808,14 +2808,14 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) showGameOver
 {
-	NSString *scoreMS = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-score-@]"),
+	NSString *scoreMS = [NSString stringWithFormat:OOExpandKey(@"gameoverscreen-score-@"),
 							KillCountToRatingAndKillString(ship_kills)];
 	
-	[UNIVERSE displayMessage:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-game-over]") forCount:kDeadResetTime];
+	[UNIVERSE displayMessage:OOExpandKey(@"gameoverscreen-game-over") forCount:kDeadResetTime];
 	[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
 	[UNIVERSE displayMessage:scoreMS forCount:kDeadResetTime];
 	[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
-	[UNIVERSE displayMessage:ExpandDescriptionForCurrentSystem(@"[gameoverscreen-press-space]") forCount:kDeadResetTime];
+	[UNIVERSE displayMessage:OOExpandKey(@"gameoverscreen-press-space") forCount:kDeadResetTime];
 	[UNIVERSE displayMessage:@" " forCount:kDeadResetTime];
 	[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
 	[self resetShotTime];
@@ -6000,7 +6000,7 @@ static GLfloat		sBaseMass = 0.0;
 			government_desc = DESC(@"nova-system-government");
 			economy_desc = DESC(@"nova-system-economy");
 			inhabitants = DESC(@"nova-system-inhabitants");
-			system_desc = ExpandDescriptionForSeed(@"[nova-system-description]", target_system_seed, nil);
+			system_desc = OOExpandKeyWithSeed(@"nova-system-description", target_system_seed, nil);
 		}
 		
 		[gui clearAndKeepBackground:!guiChanged];
@@ -6217,8 +6217,8 @@ static GLfloat		sBaseMass = 0.0;
 		[gui refreshStarChart];
 		[gui setText:targetSystemName forRow:19];
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		[gui setText:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[short-range-chart-distance-f]"), distance] forRow:20];
-		if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[short-range-chart-est-travel-time-f]"), estimatedTravelTime] : (NSString *)@"") forRow:21];
+		[gui setText:[NSString stringWithFormat:OOExpandKey(@"short-range-chart-distance-f"), distance] forRow:20];
+		if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:OOExpandKey(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (NSString *)@"") forRow:21];
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
@@ -8430,7 +8430,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	
 	// one of the fined-@-credits strings includes expansion tokens
-	NSString *fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[fined-@-credits]"), OOCredits(fine)];
+	NSString *fined_message = [NSString stringWithFormat:OOExpandKey(@"fined-@-credits"), OOCredits(fine)];
 	[self addMessageToReport:fined_message];
 	[UNIVERSE forceWitchspaceEntries];
 	ship_clock_adjust += 24 * 3600;	// take up a day

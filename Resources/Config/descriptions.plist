@@ -40,6 +40,16 @@
 	"number-decimal-separator" = ".";
 	"number-group-separator" = " ";		// Non-breaking space.
 	
+	/*	%H - homeworld
+		%I - homeworld+ian
+		%R - random digrams
+		%N - better random digrams
+		%@ - text to be inserted at this point
+		%d, %.1f etc. - printf type variables to be inserted
+		[$text] = $text is an entry here that will be expanded
+		[$number] = a random line from item $number of system_description is is used.
+	*/
+	
 	// *** Basic lists ***
 	condition =
 	(
@@ -161,7 +171,7 @@
 			"mildly",
 			"most",
 			"reasonably",
-			""
+			"\177"	// Special: deletes following character in the string it's expanded into.
 		),
 		( // [2]
 			"ancient",
@@ -498,15 +508,6 @@
 	"equipment-primed-none-available"	= "No equipment can be primed.";
 	
 	// Assorted messages sent out by ships etc..
-	/*	%H - homeworld
-			%I - homeworld+ian
-			%R - random digrams
-			%N - better random digrams
-			%@ - text to be inserted at this point
-			%d, %f, %x etc. - printf type variables to be inserted
-			[$text] = $text is an entry here that will be expanded
-			[$number] = a random line from item $number of system_description us is used.
-	*/
 	"beg-for-mercy" =
 	(
 		"No!",
@@ -1311,6 +1312,10 @@
 	"wormhole-collapsing-in-mm:ss"		= "Collapsing in %02d:%02d";
 	
 	"oxp-is-incompatible"			= "\t“%@” is incompatible with version %@ of Oolite.";
+	
+	"@-is-a-@-from-@"				= "%@ is a [21] %@ from %@";  // Character description: "<name> is a {frequent|etc} {offender|fugitive} from <system name>". Never actually visible.
+	"lowercase-offender"			= "offender";
+	"lowercase-fugitive"			= "fugitive";
 	
 
 	// delivery reports

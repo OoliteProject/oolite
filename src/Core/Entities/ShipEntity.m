@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 
 #import "ResourceManager.h"
+#import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
@@ -12102,7 +12103,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	if (d2 > scannerRange * scannerRange)
 		return;					// out of comms range
 
-	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(message_text); // consistent with broadcast message.
+	NSString *expandedMessage = OOExpand(message_text); // consistent with broadcast message.
 
 	if (other_ship->isPlayer)
 	{
@@ -12132,13 +12133,6 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		return;
 	}
 	
-	NSMutableString *localExpandedMessage = [NSMutableString stringWithString:message_text];
-	[localExpandedMessage	replaceOccurrencesOfString:@"[self:name]"
-							withString:[self displayName]
-							options:NSLiteralSearch range:NSMakeRange(0, [localExpandedMessage length])];
-	[localExpandedMessage	replaceOccurrencesOfString:@"[target:name]"
-							withString:[other_ship identFromShip: self]
-							options:NSLiteralSearch range:NSMakeRange(0, [localExpandedMessage length])];
 	Random_Seed very_random_seed;
 	very_random_seed.a = rand() & 255;
 	very_random_seed.b = rand() & 255;
@@ -12147,14 +12141,20 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	very_random_seed.e = rand() & 255;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
-	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(localExpandedMessage);
+	
+	NSDictionary *specials = [NSDictionary dictionaryWithObjectsAndKeys:
+							  [self displayName], @"[self:name]",
+							  [other_ship identFromShip: self], @"[target:name]",
+							  nil];
+	NSString *expandedMessage = OOExpandDescriptionString(message_text, [UNIVERSE systemSeed], specials, nil, nil, kOOExpandNoOptions);
+	
 	[self sendMessage:expandedMessage toShip:other_ship withUnpilotedOverride:NO];
 }
 
 
 - (void) broadcastAIMessage:(NSString *) ai_message
 {
-	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(ai_message);
+	NSString *expandedMessage = OOExpand(ai_message);
 
 	[self checkScanner];
 	unsigned i;
@@ -12168,7 +12168,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (void) broadcastMessage:(NSString *) message_text withUnpilotedOverride:(BOOL) unpilotedOverride
 {
-	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(message_text); // consistent with broadcast message.
+	NSString *expandedMessage = OOExpand(message_text); // consistent with broadcast message.
 
 
 	if (!crew && !unpilotedOverride)
