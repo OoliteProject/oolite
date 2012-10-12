@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #import "OOJSEquipmentInfo.h"
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
-#import "Entity.h"
 #import "ShipEntityAI.h"
 #import "ShipEntityScriptMethods.h"
 #import "AI.h"
@@ -117,7 +116,7 @@ enum
 	// Property IDs
 	kShip_accuracy,				// the ship's accuracy, float, read/write
 	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read/write
-	kShip_AI,					// AI state machine name, string, read/write
+	kShip_AI,					// AI state machine name, string, read-only
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_AIFoundTarget,		// AI "found target", entity, read/write
 	kShip_AIPrimaryAggressor,	// AI "primary aggressor", entity, read/write
@@ -937,7 +936,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
 			
 			sValue = OOStringFromJSValue(context,*value);
-			if (sValue == nil || [sValue length] == 0) 
+			if ([sValue length] == 0) 
 			{
 				if ([entity isBeacon]) 
 				{
@@ -1799,9 +1798,7 @@ static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 	
 	ShipEntity					*thisEnt = nil;
 	NSString					*key = nil;
-	OOEquipmentType				*eqType = nil;
 	BOOL						result;
-	BOOL						isBerth;
 	BOOL						exists;
 	
 	GET_THIS_SHIP(thisEnt);
@@ -1815,12 +1812,10 @@ static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 	
 	if (exists)
 	{
-		eqType = [OOEquipmentType equipmentTypeWithIdentifier:key];
 		result = YES;
 		
-		isBerth = [key isEqualToString:@"EQ_PASSENGER_BERTH"];
-		// can't add fuel as equipment, can add multiple berths if there's space.
-		if ([key isEqualToString:@"EQ_FUEL"])  result = NO;
+		// can't add fuel as equipment.
+		if (![key isEqualToString:@"EQ_FUEL"])  result = NO;
 		
 		if (result)  result = [thisEnt canAddEquipment:key];
 	}
