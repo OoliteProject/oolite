@@ -17,6 +17,8 @@
 	equip_ship			= "equip-ship.png";
 	mount_weapon		= "mount-weapon.png";		// if not defined, same as equip_ship
 	shipyard			= "shipyard.png";
+
+	interfaces    = "interfaces.png";
 	
 	long_range_chart1	= "long-range-chart1.png"; 	// if not defined, same as long_range_chart
 	long_range_chart2	= "long-range-chart2.png";	// if not defined, same as long_range_chart

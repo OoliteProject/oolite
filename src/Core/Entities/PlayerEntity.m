@@ -7078,7 +7078,6 @@ static NSString *last_outfitting_key=nil;
 		{
 			[gui setForegroundTextureKey:@"docked_overlay"];
 			NSDictionary *background = [UNIVERSE screenTextureDescriptorForKey:@"interfaces"];
-			[self setEquipScreenBackgroundDescriptor:background];
 			[gui setBackgroundTextureDescriptor:background];
 		}
 	}

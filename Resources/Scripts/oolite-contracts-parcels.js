@@ -50,6 +50,9 @@ this.$parcelSummaryPageBackground = "";
 
 this.startUp = function() 
 {
+		this.$suspendedDestination = null;
+		this.$suspendedHUD = false;
+
 		// stored contents of local main station's parcel contract list
 		if (missionVariables.oolite_contracts_parcels)
 		{
@@ -86,7 +89,7 @@ this.playerWillSaveGame = function()
 // system and HUD settings, which the mission screens may have
 // affected.
 this.guiScreenChanged = this.shipWillLaunchFromStation = function() {
-		if (this.$suspendedHUD)
+		if (this.$suspendedHUD !== false)
 		{
 				player.ship.hudHidden = false;
 				this.$suspendedHUD = false;
