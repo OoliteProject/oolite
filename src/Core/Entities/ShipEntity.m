@@ -2297,6 +2297,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self behaviour_close_to_broadside_range: delta_t];
 				break;
 
+  		case BEHAVIOUR_CLOSE_WITH_TARGET :
+				[self behaviour_close_with_target: delta_t];
+				break;
+
 			case BEHAVIOUR_ATTACK_SNIPER :
 				[self behaviour_attack_sniper: delta_t];
 				break;
@@ -3888,21 +3892,23 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	} 
 	else 
 	{
-		BOOL aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
-		BOOL forward_weapon_ready = (forward_weapon_real_type != WEAPON_NONE) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_READY);
-		BOOL port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
-		BOOL starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY);
+		BOOL in_good_range = aim_tolerance*range < COMBAT_AI_CONFIDENCE_FACTOR;
+
+		BOOL aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY) && in_good_range;
+		BOOL forward_weapon_ready = (forward_weapon_real_type != WEAPON_NONE) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_READY); // does not require in_good_range
+		BOOL port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY) && in_good_range;
+		BOOL starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY) && in_good_range;
 // if no weapons cool enough to be good choices, be less picky
 		BOOL weapons_heating = NO;
 		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
 		{
 			weapons_heating = YES;
-			aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
-			forward_weapon_ready = (forward_weapon_real_type != WEAPON_NONE) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
-			port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
-			starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE);
+			aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
+			forward_weapon_ready = (forward_weapon_real_type != WEAPON_NONE) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_USABLE); // does not require in_good_range
+			port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
+			starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
 		}
-		
+
 		ShipEntity*	target = [self primaryTarget];
 		double aspect = [self approachAspectToPrimaryTarget];
 
@@ -3916,14 +3922,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 			else if (aspect > 0)
 			{
-				if (accuracy >= COMBAT_AI_IS_SMART && randf() < 0.75)
+				if (in_good_range)
 				{
-					behaviour = BEHAVIOUR_EVASIVE_ACTION;
+					if (accuracy >= COMBAT_AI_IS_SMART && randf() < 0.75)
+					{
+						behaviour = BEHAVIOUR_EVASIVE_ACTION;
+					}
+					else 
+					{
+						behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+					}
 				}
 				else 
 				{
-				
-					behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+					// ready to get more accurate shots later
+					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 				}
 			} 
 			else
@@ -3948,6 +3961,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else 
 		{
 			BOOL nearby = range < COMBAT_IN_RANGE_FACTOR * getWeaponRangeFromType(forward_weapon_type);
+			BOOL midrange = range < COMBAT_OUT_RANGE_FACTOR * getWeaponRangeFromType(aft_weapon_type);
+
 
 			if (nearby && aft_weapon_ready)
 			{
@@ -4011,17 +4026,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink = kZeroVector; // almost all behaviours
 				behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
 			}
-			else if (aft_weapon_ready)
+			else if (aft_weapon_ready && midrange)
 			{
 				jink = kZeroVector; // almost all behaviours
 				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
+			} 
+			else
+			{
+				jink = kZeroVector; // almost all behaviours
+				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 			}
 		}
 	}
 
 	frustration = 0.0;	// behaviour changed, so reset frustration
-
-	
 	
 }
 
@@ -4262,6 +4280,45 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		behaviour = BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE;
 	}
+}
+
+
+- (void) behaviour_close_with_target:(double) delta_t
+{
+	double  range = [self rangeToPrimaryTarget];
+	if ([self proximityAlert] != nil)
+	{
+		if ([self proximityAlert] == [self primaryTarget])
+		{
+			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET; // this behaviour will handle proximity_alert.
+			[self behaviour_attack_fly_from_target: delta_t]; // do it now.
+		}
+		else
+		{
+			[self avoidCollision];
+		}
+		return;
+	}
+	if (range > SCANNER_MAX_RANGE || [self primaryTarget] == nil)
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
+	behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+	double saved_frustration = frustration;
+	[self behaviour_fly_to_target_six:delta_t];
+	frustration = saved_frustration; // ignore fly-to-12 frustration
+	frustration += delta_t;
+	if (range <= COMBAT_IN_RANGE_FACTOR * weaponRange || frustration > 5.0)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+	}
+	else
+	{
+		behaviour = BEHAVIOUR_CLOSE_WITH_TARGET;
+	}
+
+
 }
 
 
@@ -4610,7 +4667,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	
 
-	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL)
+	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL && aim_tolerance * range < COMBAT_AI_CONFIDENCE_FACTOR)
 	{
 		double aspect = [self approachAspectToPrimaryTarget];
 		if (aspect < 0 || aft_weapon_type != WEAPON_NONE || port_weapon_type != WEAPON_NONE || starboard_weapon_type != WEAPON_NONE)
@@ -4618,7 +4675,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			behaviour = BEHAVIOUR_ATTACK_TARGET;
 		}
 		// don't do this if the target is fleeing and the front laser is
-		// the only weapon
+		// the only weapon, or if we're too far away to use non-front
+		// lasers effectively
 	}
 }
 
@@ -4706,10 +4764,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	desired_speed = maxFlightSpeed; // not injectors
+	jink = kZeroVector;
 	if (range > weaponRange || range > 0.8 * scannerRange || range == 0)
 	{
-		jink = kZeroVector;
-		behaviour = BEHAVIOUR_ATTACK_TARGET;
+		behaviour = BEHAVIOUR_CLOSE_WITH_TARGET;
 		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
 		{
 				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
@@ -4730,13 +4788,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([self hasProximityAlertIgnoringTarget:YES])
 		[self avoidCollision];
 
-	
-	
-
-	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
+	if (behaviour != BEHAVIOUR_CLOSE_WITH_TARGET && weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
 	{
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
+
 }
 
 
@@ -6227,6 +6283,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		case BEHAVIOUR_ATTACK_BROADSIDE_LEFT:
 		case BEHAVIOUR_ATTACK_BROADSIDE_RIGHT:
  	  case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE:
+		case BEHAVIOUR_CLOSE_WITH_TARGET:
  	  case BEHAVIOUR_ATTACK_SNIPER:
 		case BEHAVIOUR_SCRIPTED_ATTACK_AI:
 			return YES;
@@ -8849,7 +8906,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					dist_adjust_factor *= 3;
 				}
 			}
-			if (jink.x == 0.0)
+			if (jink.x == 0.0 && behaviour != BEHAVIOUR_RUNNING_DEFENSE)
 			{ // test for zero jink and correct
 				[self setEvasiveJink:400.0];
 			}
@@ -9536,7 +9593,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 	}
 	GLfloat max_cos = sqrt(1-(basic_aim * basic_aim / 100000000.0));
-	return max_cos;
+	if (max_cos < 0.99999)
+	{
+		return max_cos;
+	}
+	return 0.99999;
 }
 
 

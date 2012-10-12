@@ -107,6 +107,9 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
 
 #define COMBAT_AI_WEAPON_TEMP_READY		0.25f * NPC_MAX_WEAPON_TEMP
 #define COMBAT_AI_WEAPON_TEMP_USABLE	WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP
+// factor determining how close to target AI has to be to be confident in aim
+// higher factor makes confident at longer ranges
+#define COMBAT_AI_CONFIDENCE_FACTOR		1250000.0f
 #define COMBAT_AI_ISNT_AWFUL			0.0f
 // removes BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX/TWELVE (unless thargoid)
 #define COMBAT_AI_IS_SMART				5.0f
@@ -618,6 +621,7 @@ typedef enum
 - (void) behaviour_attack_broadside_left:(double) delta_t;
 - (void) behaviour_attack_broadside_right:(double) delta_t;
 - (void) behaviour_close_to_broadside_range:(double) delta_t;
+- (void) behaviour_close_with_target:(double) delta_t;
 - (void) behaviour_attack_broadside_target:(double) delta_t leftside:(BOOL)leftside;
 - (void) behaviour_attack_sniper:(double) delta_t;
 - (void) behaviour_fly_range_from_destination:(double) delta_t;
