@@ -105,6 +105,10 @@ typedef enum
 
 - (NSMutableArray *) localMarket;
 - (void) setLocalMarket:(NSArray *)market;
+- (NSDictionary *) localMarketForScripting;
+- (void) setPrice:(NSUInteger) price forCommodity:(OOCommodityType) commodity;
+- (void) setQuantity:(NSUInteger) quantity forCommodity:(OOCommodityType) commodity;
+
 - (NSMutableArray *) localPassengers;
 - (void) setLocalPassengers:(NSArray *)market;
 - (NSMutableArray *) localContracts;

@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "GameController.h"
 #import "HeadUpDisplay.h"
+#import "OOConstToString.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "OOLegacyScriptWhitelist.h"
@@ -125,6 +126,59 @@ MA 02110-1301, USA.
 	if (localMarket)
 		[localMarket release];
 	localMarket = [[NSMutableArray alloc] initWithArray:some_market];
+}
+
+
+- (NSDictionary *) localMarketForScripting
+{
+	if (!localMarket)
+	{
+		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+	}
+
+	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:17];
+	OOCommodityType cType;
+
+	NSArray *commodityKeys = [[NSArray alloc] initWithObjects:@"displayName",@"quantity",@"price",@"marketBasePrice",@"marketEcoAdjustPrice",@"marketEcoAdjustQuantity",@"marketBaseQuantity",@"marketMaskPrice",@"marketMaskQuantity",@"quantityUnit",nil];
+	
+	for (cType=COMMODITY_FOOD; cType <= COMMODITY_ALIEN_ITEMS; cType++)
+	{
+		NSArray *marketLine = [localMarket objectAtIndex:cType];
+		NSMutableDictionary *commodity = [NSMutableDictionary dictionaryWithObjects:marketLine forKeys:commodityKeys];
+		[result setObject:commodity forKey:CommodityTypeToString(cType)];
+	}
+
+	[commodityKeys release];
+
+  return [NSDictionary dictionaryWithDictionary:result];
+}
+
+
+- (void) setPrice:(NSUInteger) price forCommodity:(OOCommodityType) commodity
+{
+	if (!localMarket)
+	{
+		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+	}
+	
+	NSMutableArray *commodityData = [[NSMutableArray alloc] initWithArray:[localMarket objectAtIndex:commodity]];
+	[commodityData replaceObjectAtIndex:MARKET_PRICE withObject:[NSNumber numberWithInt:price]];
+	[localMarket replaceObjectAtIndex:commodity withObject:[NSArray arrayWithArray:commodityData]];
+	[commodityData release];
+}
+
+
+- (void) setQuantity:(NSUInteger) quantity forCommodity:(OOCommodityType) commodity
+{
+	if (!localMarket)
+	{
+		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+	}
+	
+	NSMutableArray *commodityData = [[NSMutableArray alloc] initWithArray:[localMarket objectAtIndex:commodity]];
+	[commodityData replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:quantity]];
+	[localMarket replaceObjectAtIndex:commodity withObject:[NSArray arrayWithArray:commodityData]];
+	[commodityData release];
 }
 
 
@@ -2000,8 +2054,10 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 	if (![self hasClearDock]) // skip check if at least one dock clear
 	{
-		// Put ship in queue if we've got incoming or outgoing traffic
-		if (result == nil && [self currentlyInDockingQueues] && last_launch_time < timeNow)
+		// Put ship in queue if we've got incoming or outgoing traffic or
+		// if the player is waiting for manual clearance and we are not
+		// the player
+		if (result == nil && ([self currentlyInDockingQueues] && last_launch_time < timeNow || (![other isPlayer] && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED)))
 		{
 			[self sendExpandedMessage:[NSString stringWithFormat:
 																						DESC(@"station-docking-clearance-acknowledged-d-ships-approaching"),
@@ -2009,6 +2065,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 			// No need to set status to REQUESTED as we've already done that earlier.
 			result = @"DOCKING_CLEARANCE_DENIED_TRAFFIC_INBOUND";
 		}
+
 		if (result == nil && [self currentlyInLaunchingQueues])
 		{
 			[self sendExpandedMessage:[NSString stringWithFormat:

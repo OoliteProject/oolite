@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOJSInterfaceDefinition.h"
 
+#import "OOConstToString.h"
 #import "StationEntity.h"
 #import "GameController.h"
 
@@ -50,6 +51,8 @@ static JSBool StationLaunchShuttle(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchPatrol(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchPolice(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationSetInterface(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp);
 
 static JSClass sStationClass =
 {
@@ -83,6 +86,7 @@ enum
 	kStation_hasNPCTraffic,
 	kStation_hasShipyard,
 	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
+	kStation_market,
 	kStation_requiresDockingClearance,
 	kStation_suppressArrivalReports,
 };
@@ -103,6 +107,7 @@ static JSPropertySpec sStationProperties[] =
 	{ "hasNPCTraffic",				kStation_hasNPCTraffic,				OOJS_PROP_READWRITE_CB },
 	{ "hasShipyard",				kStation_hasShipyard,				OOJS_PROP_READONLY_CB },
 	{ "isMainStation",				kStation_isMainStation,				OOJS_PROP_READONLY_CB },
+	{ "market",        kStation_market,     OOJS_PROP_READONLY_CB },
 	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	OOJS_PROP_READWRITE_CB },
 	{ "suppressArrivalReports",		kStation_suppressArrivalReports,	OOJS_PROP_READWRITE_CB },
 	{ 0 }
@@ -122,6 +127,8 @@ static JSFunctionSpec sStationMethods[] =
 	{ "launchShipWithRole",		StationLaunchShipWithRole,		1 },
 	{ "launchShuttle",			StationLaunchShuttle,			0 },
 	{ "setInterface",			StationSetInterface,			0 },
+	{ "setMarketPrice",			StationSetMarketPrice,			2 },
+	{ "setMarketQuantity",			StationSetMarketQuantity,			2 },
 	{ 0 }
 };
 
@@ -240,6 +247,13 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 		case kStation_breakPattern:
 			*value = OOJSValueFromBOOL([entity hasBreakPattern]);
 			return YES;
+
+		case kStation_market:
+		{
+			NSDictionary *market = [entity localMarketForScripting];
+			*value = OOJSValueFromNativeObject(context, market);
+			return YES;
+		}
 
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sStationProperties);
@@ -573,6 +587,90 @@ static JSBool StationSetInterface(JSContext *context, uintN argc, jsval *vp)
 	[definition release];
 
 	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	StationEntity *station = nil;
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
+
+	if (argc < 2)
+	{
+		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"commodity, credits");
+		return NO;
+	}
+	
+	NSString *commodityString = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	OOCommodityType commodity = StringToCommodityType(commodityString);
+	if (EXPECT_NOT(commodity == COMMODITY_UNDEFINED))
+	{
+		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
+		return NO;
+	}
+
+	int32 price;
+	BOOL gotPrice = JS_ValueToInt32(context, OOJS_ARGV[1], &price);
+	if (EXPECT_NOT(!gotPrice || price < 0 || price > 1020))
+	{
+		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Price must be between 0 and 1020 decicredits");
+		return NO;
+	}
+
+	[station setPrice:(NSUInteger)price forCommodity:commodity];
+
+	if (station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_MARKET)
+	{
+		[PLAYER setGuiToMarketScreen]; // refresh screen
+	}
+
+	OOJS_RETURN_BOOL(YES);
+
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	StationEntity *station = nil;
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
+
+	if (argc < 2)
+	{
+		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"commodity, units");
+		return NO;
+	}
+	
+	NSString *commodityString = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	OOCommodityType commodity = StringToCommodityType(commodityString);
+	if (EXPECT_NOT(commodity == COMMODITY_UNDEFINED))
+	{
+		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
+		return NO;
+	}
+
+	int32 quantity;
+	BOOL gotQuantity = JS_ValueToInt32(context, OOJS_ARGV[1], &quantity);
+	if (EXPECT_NOT(!gotQuantity || quantity < 0 || quantity > 127))
+	{
+		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Quantity must be between 0 and 127 units");
+		return NO;
+	}
+
+	[station setQuantity:(NSUInteger)quantity forCommodity:commodity];
+	
+	if (station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_MARKET)
+	{
+		[PLAYER setGuiToMarketScreen]; // refresh screen
+	}
+
+	OOJS_RETURN_BOOL(YES);
 
 	OOJS_NATIVE_EXIT
 }
