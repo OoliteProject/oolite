@@ -2057,7 +2057,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		// Put ship in queue if we've got incoming or outgoing traffic or
 		// if the player is waiting for manual clearance and we are not
 		// the player
-		if (result == nil && ([self currentlyInDockingQueues] && last_launch_time < timeNow || (![other isPlayer] && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED)))
+		if (result == nil && (([self currentlyInDockingQueues] && last_launch_time < timeNow) || (![other isPlayer] && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED)))
 		{
 			[self sendExpandedMessage:[NSString stringWithFormat:
 																						DESC(@"station-docking-clearance-acknowledged-d-ships-approaching"),
