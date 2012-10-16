@@ -1342,7 +1342,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 		NSInteger page_offset = 0;
 		BOOL multi_page = NO;
-		NSUInteger total_rows = cargoRowCount + [passengerManifest count] + [contractManifest count] + [missionsManifest count] + 4;
+		NSUInteger total_rows = cargoRowCount + [passengerManifest count] + [contractManifest count] + [missionsManifest count] + [parcelManifest count] + 5;
 		if (total_rows > max_rows)
 		{
 			max_rows -= 2;

@@ -88,7 +88,6 @@ MA 02110-1301, USA.
 		self = nil;
 	}
 
-	collisionTestFilter = NO;
 	_haveExecutedSpawnAction = NO;
 
 	return self;
@@ -106,6 +105,8 @@ MA 02110-1301, USA.
 
 	orientation = kIdentityQuaternion;
 	rotMatrix	= kIdentityMatrix;
+
+	collision_radius = 0;
 
 	NSString *modelName = [effectDict oo_stringForKey:@"model"];
 	if (modelName != nil)
