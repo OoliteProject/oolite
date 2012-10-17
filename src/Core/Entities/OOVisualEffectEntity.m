@@ -106,7 +106,7 @@ MA 02110-1301, USA.
 	orientation = kIdentityQuaternion;
 	rotMatrix	= kIdentityMatrix;
 
-	collision_radius = 0;
+	collision_radius = 0.0;
 
 	NSString *modelName = [effectDict oo_stringForKey:@"model"];
 	if (modelName != nil)
@@ -221,7 +221,14 @@ MA 02110-1301, USA.
 	subEntities = nil;
 	
 	// reset size & mass!
-	collision_radius = [self findCollisionRadius];
+	if ([self mesh])
+	{
+		collision_radius = [self findCollisionRadius];
+	}
+	else
+	{
+		collision_radius = 0.0;
+	}
 	_profileRadius = collision_radius;
 }
 
