@@ -11241,6 +11241,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	hunter = [other rootShipEntity];
 	if (hunter == nil && [other isShip]) hunter = (ShipEntity *)other;
 	
+	// must check for this before potentially deleting 'other' for cloaking
+	if ((other)&&([other isShip]))
+	{
+		being_mined = [(ShipEntity *)other isMining];
+	}
+
 	if (hunter !=nil && [self owner] != hunter) // our owner could be the same entity as the one responsible for our taking damage in the case of submunitions
 	{
 		if ([hunter isCloaked])
@@ -11340,8 +11346,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			}
 		}
 
-		if ((other)&&([other isShip]))
-			being_mined = [(ShipEntity *)other isMining];
 	}
 	
 	OOShipDamageType damageType = kOODamageTypeEnergy;
