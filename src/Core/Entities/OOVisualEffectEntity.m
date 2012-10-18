@@ -38,7 +38,6 @@ MA 02110-1301, USA.
 
 #import "OOMesh.h"
 
-#import "Octree.h"
 #import "OOColor.h"
 #import "OOPolygonSprite.h"
 

@@ -134,12 +134,6 @@ static BOOL	isHitByOctree(Octree_details axialDetails, Octree_details otherDetai
 }
 
 
-- (GLfloat) radius
-{
-	return _radius;
-}
-
-
 - (BOOL) hasCollision
 {
 	return _hasCollision;

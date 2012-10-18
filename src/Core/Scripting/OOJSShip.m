@@ -342,7 +342,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "weaponPositionStarboard",	kShip_weaponPositionStarboard,	OOJS_PROP_READONLY_CB },
 	{ "weaponRange",			kShip_weaponRange,			OOJS_PROP_READONLY_CB },
 	{ "withinStationAegis",		kShip_withinStationAegis,	OOJS_PROP_READONLY_CB },
-	{ "yaw",				kShip_yaw,			OOJS_PROP_READONLY_CB },
+	{ "yaw",					kShip_yaw,					OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -1982,7 +1982,7 @@ static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-// restoreSubEntities()
+// restoreSubEntities(): boolean
 static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
@@ -2101,7 +2101,7 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 	{
 		if (hasOK && ![status isEqualToString:@"EQUIPMENT_OK"])
 		{
-			OOJSReportWarning(context, @"Equipment %@ cannot be damaged.", key);
+			OOJSReportWarningForCaller(context, @"Ship", @"setEquipmentStatus", @"Equipment %@ cannot be damaged.", key);
 			hasOK = NO;
 		}
 	}

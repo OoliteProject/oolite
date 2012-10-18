@@ -438,7 +438,7 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval value);
 	The signature of the generator is:
 	BOOL <name>(JSContext *context, JSObject *inObject, <class>** outObject)
 	If it returns NO, inObject is of the wrong class and an error has been
-	raised. Otherwise, outOjbect is either a native object of the specified
+	raised. Otherwise, outObject is either a native object of the specified
 	class (or a subclass) or nil.
 */
 #ifndef NDEBUG

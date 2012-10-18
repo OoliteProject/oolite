@@ -154,7 +154,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setPrice:(NSUInteger) price forCommodity:(OOCommodityType) commodity
+- (void) setPrice:(NSUInteger)price forCommodity:(OOCommodityType)commodity
 {
 	if (!localMarket)
 	{
@@ -162,13 +162,13 @@ MA 02110-1301, USA.
 	}
 	
 	NSMutableArray *commodityData = [[NSMutableArray alloc] initWithArray:[localMarket objectAtIndex:commodity]];
-	[commodityData replaceObjectAtIndex:MARKET_PRICE withObject:[NSNumber numberWithInt:price]];
+	[commodityData replaceObjectAtIndex:MARKET_PRICE withObject:[NSNumber numberWithUnsignedInteger:price]];
 	[localMarket replaceObjectAtIndex:commodity withObject:[NSArray arrayWithArray:commodityData]];
 	[commodityData release];
 }
 
 
-- (void) setQuantity:(NSUInteger) quantity forCommodity:(OOCommodityType) commodity
+- (void) setQuantity:(NSUInteger)quantity forCommodity:(OOCommodityType)commodity
 {
 	if (!localMarket)
 	{
@@ -176,7 +176,7 @@ MA 02110-1301, USA.
 	}
 	
 	NSMutableArray *commodityData = [[NSMutableArray alloc] initWithArray:[localMarket objectAtIndex:commodity]];
-	[commodityData replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:quantity]];
+	[commodityData replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithUnsignedInteger:quantity]];
 	[localMarket replaceObjectAtIndex:commodity withObject:[NSArray arrayWithArray:commodityData]];
 	[commodityData release];
 }

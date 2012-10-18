@@ -57,8 +57,6 @@ MA 02110-1301, USA.
 */
 - (id) initWithDictionary:(NSDictionary *)dictionary;
 
-- (GLfloat) radius;
-
 - (Octree *) octreeScaledBy:(GLfloat)factor;
 
 #ifndef OODEBUGLDRAWING_DISABLE

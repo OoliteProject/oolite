@@ -1545,7 +1545,7 @@ NSString *OOStringFromJSString(JSContext *context, JSString *string)
 	{
 		return nil;
 	}
-
+	
 	OOJS_PROFILE_EXIT
 }
 
