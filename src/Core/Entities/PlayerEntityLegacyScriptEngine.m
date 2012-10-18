@@ -2345,6 +2345,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// reset special background as legacy scripts can't use it, and this
 	// is only called by legacy scripts
 	[self setMissionBackgroundSpecial:nil];
+	// likewise exit screen target
+	[self setMissionExitScreen:GUI_SCREEN_STATUS];
 
 	[self setGuiToMissionScreenWithCallback:NO];
 }

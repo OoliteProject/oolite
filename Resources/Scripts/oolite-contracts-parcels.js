@@ -259,7 +259,8 @@ this._parcelContractsDisplay = function(summary) {
 		{
 				mission.runScreen({titleKey: "oolite-contracts-parcels-none-available-title",
 													 messageKey: "oolite-contracts-parcels-none-available-message",
-													 allowInterrupt: true });
+													 allowInterrupt: true,
+													 exitScreen: "GUI_SCREEN_INTERFACES"});
 				// no callback, just exits contracts system
 				return;
 		}
@@ -362,6 +363,7 @@ this._parcelContractSummaryPage = function()
 		var missionConfig = {titleKey: "oolite-contracts-parcels-title-summary",
 												 message: headline,
 												 allowInterrupt: true,
+												 exitScreen: "GUI_SCREEN_INTERFACES",
 												 choices: options,
 												 initialChoicesKey: initialChoice}; 
 		if (this.$parcelSummaryPageBackground != "") {
@@ -474,6 +476,7 @@ this._parcelContractSinglePage = function()
 				title: title,
 				message: message,
 				allowInterrupt: true,
+				exitScreen: "GUI_SCREEN_INTERFACES",
 				backgroundSpecial: backgroundSpecial,
 				choices: options,
 				initialChoicesKey: this.$lastChoice

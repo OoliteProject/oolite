@@ -9102,6 +9102,12 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) setMissionExitScreen:(OOGUIScreenID)screen
+{
+	_missionExitScreen = screen;
+}
+
+
 - (NSDictionary *) equipScreenBackgroundDescriptor
 {
 	return _equipScreenBackgroundDescriptor;

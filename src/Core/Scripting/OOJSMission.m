@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOJSMission.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJSScript.h"
+#import "OOConstToJSString.h"
 
 #import "OOJSPlayer.h"
 #import "PlayerEntityScriptMethods.h"
@@ -541,6 +542,15 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	if (JS_GetProperty(context, params, "allowInterrupt", &value) && !JSVAL_IS_VOID(value))
 	{
 		JS_ValueToBoolean(context, value, &allowInterrupt);
+	}
+
+	if (JS_GetProperty(context, params, "exitScreen", &value) && !JSVAL_IS_VOID(value))
+	{
+		[player setMissionExitScreen:OOGUIScreenIDFromJSValue(context, value)];
+	}
+	else
+	{
+		[player setMissionExitScreen:GUI_SCREEN_STATUS];
 	}
 
 	// Start the mission screen.

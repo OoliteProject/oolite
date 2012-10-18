@@ -144,6 +144,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollDockedControls:(double) delta_t;
 - (void) pollDemoControls:(double) delta_t;
 - (void) handleMissionCallback;
+- (void) setGuiToMissionEndScreen;
 - (void) switchToThisView:(OOViewID)viewDirection;
 - (void) switchToThisView:(OOViewID)viewDirection andProcessWeaponFacing:(BOOL)processWeaponFacing;
 - (void) switchToThisView:(OOViewID)viewDirection fromView:(OOViewID)oldViewDirection andProcessWeaponFacing:(BOOL)processWeaponFacing justNotify:(BOOL)justNotify;
@@ -3518,7 +3519,18 @@ static BOOL autopilot_pause;
 					spacePressed = YES;
 				}
 				else
+				{
 					spacePressed = NO;
+					if (_missionAllowInterrupt)
+					{
+						[self pollGuiScreenControls];
+						if (gui_screen != GUI_SCREEN_MISSION)
+						{
+							[UNIVERSE removeDemoShips];
+							[self endMissionScreenAndNoteOpportunity];
+						}
+					}
+				}
 			}
 			else
 			{
@@ -3565,7 +3577,7 @@ static BOOL autopilot_pause;
 	[UNIVERSE removeDemoShips];
 	[[UNIVERSE gui] clearBackground];
 
-	[self setGuiToStatusScreen]; // need this to find out if we call a new mission screen inside callback.
+	[self setGuiToMissionEndScreen]; // need this to find out if we call a new mission screen inside callback.
 	
 	if ([self status] != STATUS_DOCKED) [self switchToThisView:VIEW_FORWARD];
 
@@ -3583,9 +3595,78 @@ static BOOL autopilot_pause;
 	{
 		if (gui_screen != GUI_SCREEN_MISSION) // did we call a new mission screen inside callback?
 		{
-			[self setGuiToStatusScreen];	// if not, update status screen with callback changes, if any.
+			[self setGuiToMissionEndScreen];	// if not, update status screen with callback changes, if any.
 			[self endMissionScreenAndNoteOpportunity];	// missionScreenEnded, plus opportunity events.
 		}
+	}
+}
+
+
+- (void) setGuiToMissionEndScreen
+{
+	if ([self status] != STATUS_DOCKED)
+	{
+		// this setting is only applied when not docked
+		[self setGuiToStatusScreen];
+		return;
+	}
+	switch (_missionExitScreen)
+	{
+	case GUI_SCREEN_MANIFEST:
+		[self noteGUIWillChangeTo:GUI_SCREEN_MANIFEST];
+		[self setGuiToManifestScreen];
+		break;
+	case GUI_SCREEN_EQUIP_SHIP:
+		[self noteGUIWillChangeTo:GUI_SCREEN_EQUIP_SHIP];
+		[self setGuiToEquipShipScreen:0];
+		break;
+	case GUI_SCREEN_SHIPYARD:
+		if ([dockedStation hasShipyard])
+		{
+			[self noteGUIWillChangeTo:GUI_SCREEN_SHIPYARD];
+			[self setGuiToShipyardScreen:0];
+			[[UNIVERSE gui] setSelectedRow:GUI_ROW_SHIPYARD_START];
+			[self showShipyardInfoForSelection];
+		}
+		else
+		{
+			// that doesn't work here
+			[self setGuiToStatusScreen];
+		}
+		break;
+	case GUI_SCREEN_SHORT_RANGE_CHART:
+		[self setGuiToShortRangeChartScreen];
+		break;
+	case GUI_SCREEN_LONG_RANGE_CHART:
+		[self setGuiToLongRangeChartScreen];
+		break;
+	case GUI_SCREEN_SYSTEM_DATA:
+		[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
+		[self setGuiToSystemDataScreen];
+		break;
+	case GUI_SCREEN_MARKET:
+		[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
+		[self setGuiToMarketScreen];
+		[[UNIVERSE gui] setSelectedRow:GUI_ROW_MARKET_START];
+		break;
+	case GUI_SCREEN_CONTRACTS:
+		if (dockedStation == [UNIVERSE station] && [self hasHyperspaceMotor])
+		{
+			[self setGuiToContractsScreen];
+			[[UNIVERSE gui] setSelectedRow:GUI_ROW_PASSENGERS_START];
+		}
+		else
+		{
+			// can't get to contracts screen from here
+			[self setGuiToStatusScreen];
+		}
+		break;
+	case GUI_SCREEN_INTERFACES:
+		[self setGuiToInterfacesScreen:0];
+		break;
+	case GUI_SCREEN_STATUS:
+	default: // invalid screen specifications
+		[self setGuiToStatusScreen];
 	}
 }
 
