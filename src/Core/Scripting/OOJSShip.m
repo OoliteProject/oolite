@@ -244,9 +244,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
 	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
 	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
-	// contracts instead of cargo to distinguish them from the manifest
 	{ "commodity",				kShip_commodity,			OOJS_PROP_READONLY_CB },
 	{ "commodityAmount",		kShip_commodityAmount,		OOJS_PROP_READONLY_CB },
+	// contracts instead of cargo to distinguish them from the manifest
 	{ "contracts",				kShip_contracts,			OOJS_PROP_READONLY_CB },
 	{ "cloakAutomatic",			kShip_cloakAutomatic,		OOJS_PROP_READWRITE_CB},
 	{ "cruiseSpeed",			kShip_cruiseSpeed,			OOJS_PROP_READONLY_CB },
@@ -964,6 +964,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			
 		case kShip_accuracy:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[entity setAccuracy:fValue];
@@ -1102,6 +1103,8 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 		
 		case kShip_isBoulder:
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setIsBoulder:bValue];
@@ -2013,7 +2016,7 @@ static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp)
 
 
 
-// setEquipmentStatus(type : equipmentInfoExpression, status : String)
+// setEquipmentStatus(type : equipmentInfoExpression, status : String): boolean
 static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
