@@ -39,12 +39,85 @@ this.copyright		= "© 2012 the Oolite team.";
 this.description	= "Parcel delivery contracts.";
 this.version		= "1.77";
 
-/* Configuration options */
+/**** Configuration options and API ****/
 
-// OXPs which wish to add a background to the summary pages should
-// set this value
+/* OXPs which wish to add a background to the summary pages should
+   set this value */
 this.$parcelSummaryPageBackground = "";
+/* OXPs which wish to add an overlay to the parcel mission screens
+   should set this value */
+this.$parcelPageOverlay = "";
 
+
+/* this._addParcelToSystem(parcel)
+ * This function adds the defined parcel to the local main station's
+ * interface list. A parcel definition is an object with the following
+ * parameters, all required:
+ * 
+ * destination: system ID of destination system
+ * sender:      the name of the sender (max 40 chars)
+ * description: a short description of the parcel contents (max 40 chars)
+ * deadline:    the deadline for delivery, in clock seconds
+ * payment:     the payment for delivery on time, in credits
+ * 
+ * and optionally, the following parameter:
+ *
+ * route:       a route object generated with system.info.routeToSystem
+ *              describing the route between the source and destination 
+ *              systems.
+ * 
+ * If this is not specified, it will be generated automatically.
+ * 
+ * The function will return true if the parcel can be added, false
+ * otherwise.
+ */
+this._addParcelToSystem = function(parcel)
+{
+		if (!parcel.sender || parcel.sender.length > 40)
+		{
+				log(this.name,"Rejected parcel: sender missing or too long");
+				return false;
+		}
+		if (!parcel.description || parcel.description.length > 40)
+		{
+				log(this.name,"Rejected parcel: description missing or too long");
+				return false;
+		}
+		if (parcel.destination < 0 || parcel.destination > 255)
+		{
+				log(this.name,"Rejected parcel: destination missing or invalid");
+				return false;
+		}
+		if (parcel.deadline <= clock.seconds)
+		{
+				log(this.name,"Rejected parcel: deadline invalid");
+				return false;
+		}
+		if (parcel.payment < 0)
+		{
+				log(this.name,"Rejected parcel: payment invalid");
+				return false;
+		}
+		if (!parcel.route)
+		{
+				var destinationInfo = System.infoForSystem(galaxyNumber,destination);
+				parcel.route = system.info.routeToSystem(destinationInfo);
+				if (!parcel.route)
+				{
+						log(this.name,"Rejected parcel: route invalid");
+						return false;
+				}
+		}
+
+		this.$parcels.push(parcel);
+		this._updateMainStationInterfacesList();
+		return true;
+}
+
+
+
+/**** Internal methods. Do not call these from OXPs as they may change
+ **** without warning. ****/
 
 /* Event handlers */
 
@@ -88,7 +161,23 @@ this.playerWillSaveGame = function()
 // when the player exits the mission screens, reset their destination
 // system and HUD settings, which the mission screens may have
 // affected.
-this.guiScreenChanged = this.shipWillLaunchFromStation = function() {
+this.shipWillLaunchFromStation = function() 
+{
+		this._resetViews();
+}
+
+
+this.guiScreenWillChange = function(to, from)
+{
+		this._resetViews();
+}
+
+
+/* Interface functions */
+
+// resets HUD and jump destination
+this._resetViews = function()
+{
 		if (this.$suspendedHUD !== false)
 		{
 				player.ship.hudHidden = false;
@@ -101,19 +190,16 @@ this.guiScreenChanged = this.shipWillLaunchFromStation = function() {
 		}
 }
 
-
-/* Interface functions */
-
 // initialise a new parcel contract list for the current system
 this._initialiseParcelContractsForSystem = function() 
 {
 		// clear list
 		this.$parcels = [];
 		
-		// basic range -1 to +3 evenly distributed
+		// basic range -3 to +3 evenly distributed
 		// parcel contracts require far less investment than cargo or passenger
 		// so fewer are available
-		var numContracts = Math.floor(Math.random()*5) - 1;
+		var numContracts = Math.floor(Math.random()*7) - 3;
 		
 		// larger systems more likely to have contracts, smaller less likely
 		if (system.info.population > 50) 
@@ -132,12 +218,17 @@ this._initialiseParcelContractsForSystem = function()
 		// if they have a very good reputation, increase the numbers
 		else if (player.parcelReputation > 4)
 		{
-				numContracts += (player.parcelReputation - 4);
+				numContracts += Math.floor(Math.random()*(player.parcelReputation - 3));
 		}
 		// always have at least two available for new Jamesons
 		if (!missionVariables.oolite_contracts_parcels && numContracts < 2)
 		{
 				numContracts = 2;
+		} 
+		// reduce number of places with none whatsoever
+		else if (numContracts < 1 && player.parcelReputation >= 0 && Math.random() < 0.5)
+		{
+				numContracts = 1;
 		}
 
 		for (var i = 0; i < numContracts; i++)
@@ -191,13 +282,14 @@ this._initialiseParcelContractsForSystem = function()
 				);
 
 				// add parcel to contract list
-				this.$parcels.push(parcel);
+				this._addParcelToSystem(parcel);
 		}
 		
 }
 
-// this should be called every time the contents of this.$parcelContracts
-// change, as it updates the summary of the interface entry.
+
+// this should be called every time the contents of this.$parcels
+// changes, as it updates the summary of the interface entry.
 this._updateMainStationInterfacesList = function()
 {
 		if (this.$parcels.length === 0)
@@ -369,6 +461,9 @@ this._parcelContractSummaryPage = function()
 		if (this.$parcelSummaryPageBackground != "") {
 				missionConfig.background = this.$parcelSummaryPageBackground;
 		}
+		if (this.$parcelPageOverlay != "") {
+				missionConfig.overlay = this.$parcelPageOverlay;
+		}
 
 		// now run the mission screen
 		mission.runScreen(missionConfig, this._processParcelChoice);
@@ -472,7 +567,7 @@ this._parcelContractSinglePage = function()
 
 		// finally, after all that setup, actually create the mission screen
 
-		mission.runScreen({
+		var missionConfig = {
 				title: title,
 				message: message,
 				allowInterrupt: true,
@@ -480,13 +575,20 @@ this._parcelContractSinglePage = function()
 				backgroundSpecial: backgroundSpecial,
 				choices: options,
 				initialChoicesKey: this.$lastChoice
-		},this._processParcelChoice);
+		};
+
+		if (this.$parcelPageOverlay != "") {
+				missionConfig.overlay = this.$parcelPageOverlay;
+		}
+
+		mission.runScreen(missionConfig,this._processParcelChoice);
 
 }
 
 
 this._processParcelChoice = function(choice)
 {
+		this._resetViews();
 		if (choice === null)
 		{
 				// can occur if ship launches mid mission screen

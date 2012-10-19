@@ -5649,7 +5649,11 @@ static GLfloat		sBaseMass = 0.0;
 	
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIScreenID	oldScreen = gui_screen;
-	
+	if (oldScreen != GUI_SCREEN_STATUS)
+	{
+		[self noteGUIWillChangeTo:GUI_SCREEN_STATUS];
+	}
+
 	gui_screen = GUI_SCREEN_STATUS;
 	BOOL			guiChanged = (oldScreen != gui_screen);
 	
@@ -7085,8 +7089,11 @@ static NSString *last_outfitting_key=nil;
 
 
 	[self setShowDemoShips:NO];
+	
+	OOGUIScreenID	oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_INTERFACES;
-
+	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+	
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 

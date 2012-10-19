@@ -3526,7 +3526,10 @@ static BOOL autopilot_pause;
 						[self pollGuiScreenControls];
 						if (gui_screen != GUI_SCREEN_MISSION)
 						{
-							[UNIVERSE removeDemoShips];
+							if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
+							{
+								[UNIVERSE removeDemoShips];
+							}
 							[self endMissionScreenAndNoteOpportunity];
 						}
 					}
@@ -3558,7 +3561,10 @@ static BOOL autopilot_pause;
 						[self pollGuiScreenControls];
 						if (gui_screen != GUI_SCREEN_MISSION)
 						{
-							[UNIVERSE removeDemoShips];
+							if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
+							{
+								[UNIVERSE removeDemoShips];
+							}
 							[self endMissionScreenAndNoteOpportunity];
 						}
 					}
