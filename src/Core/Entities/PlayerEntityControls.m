@@ -3541,6 +3541,11 @@ static BOOL autopilot_pause;
 				
 				if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick])	//  '<enter/return>' or double click
 				{
+					if ([gameView isDown:gvMouseDoubleClick])
+					{
+						selectPressed = NO;
+						[gameView clearMouse];
+					}
 					if (!selectPressed)
 					{
 						[self setMissionChoice:[gui selectedRowKey]];
