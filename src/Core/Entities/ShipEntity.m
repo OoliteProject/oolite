@@ -4596,7 +4596,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (range < back_off_range)
 		{
-			if (accuracy < COMBAT_AI_IS_SMART || [target primaryTarget] == self || aspect > 0.8)
+			if (accuracy < COMBAT_AI_IS_SMART || [target primaryTarget] == self || aspect > 0.8 || aim_tolerance*range > COMBAT_AI_CONFIDENCE_FACTOR)
 			{
 				if (accuracy >= COMBAT_AI_FLEES_BETTER && aspect > 0.8)
 				{
@@ -4669,14 +4669,24 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE && accuracy >= COMBAT_AI_ISNT_AWFUL && aim_tolerance * range < COMBAT_AI_CONFIDENCE_FACTOR)
 	{
-		double aspect = [self approachAspectToPrimaryTarget];
-		if (aspect < 0 || aft_weapon_type != WEAPON_NONE || port_weapon_type != WEAPON_NONE || starboard_weapon_type != WEAPON_NONE)
-		{
-			behaviour = BEHAVIOUR_ATTACK_TARGET;
-		}
 		// don't do this if the target is fleeing and the front laser is
 		// the only weapon, or if we're too far away to use non-front
 		// lasers effectively
+		if (aspect < 0 || aft_weapon_type != WEAPON_NONE || port_weapon_type != WEAPON_NONE || starboard_weapon_type != WEAPON_NONE)
+		{
+			frustration = 0.0;
+			behaviour = BEHAVIOUR_ATTACK_TARGET;
+		}
+	}
+	else if (accuracy >= COMBAT_AI_FLEES_BETTER_2) 
+	{
+		// if we're right in their gunsights, dodge!
+		// need to dodge sooner if in aft sights
+		if (aspect > 0.99999 || aspect < -0.999) 
+		{
+			frustration = 0.0;
+			behaviour = BEHAVIOUR_EVASIVE_ACTION;
+		}
 	}
 }
 
@@ -4749,7 +4759,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([self hasProximityAlertIgnoringTarget:YES])
 		[self avoidCollision];
 
-	
+	if (accuracy >= COMBAT_AI_FLEES_BETTER_2) 
+	{
+		double aspect = [self approachAspectToPrimaryTarget];
+		// if we're right in their gunsights, dodge!
+		// need to dodge sooner if in aft sights
+		if (aspect > 0.99999 || aspect < -0.999) 
+		{
+			frustration = 0.0;
+			behaviour = BEHAVIOUR_EVASIVE_ACTION;
+		}
+	}
 	
 }
 
@@ -6915,6 +6935,16 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		rate2 *= 4.0;	// much faster correction
 	if (((stick_yaw > 0.0)&&(flightYaw < 0.0))||((stick_yaw < 0.0)&&(flightYaw > 0.0)))
 		rate3 *= 4.0;	// much faster correction
+
+	if (accuracy >= COMBAT_AI_TRACKS_CLOSER) 
+	{
+		if (stick_roll == 0.0)
+			rate1 *= 2.0;	// faster correction
+		if (stick_pitch == 0.0)
+			rate2 *= 2.0;	// faster correction
+		if (stick_yaw == 0.0)
+			rate3 *= 2.0;	// faster correction
+	}
 
 	// apply stick movement limits
 	if (flightRoll < stick_roll - rate1)
