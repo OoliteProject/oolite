@@ -2580,8 +2580,22 @@ static GLfloat		sBaseMass = 0.0;
 	
 	position = vector_add(position, vector_multiply_scalar(velocity, (float)delta_t));
 	
+	GLfloat thrust_factor = 1.0;
+	if (flightSpeed > maxFlightSpeed)
+	{
+		if (afterburner_engaged)
+		{
+			thrust_factor = [self afterburnerFactor];
+		}
+		else
+		{
+			thrust_factor = HYPERSPEED_FACTOR;
+		}
+	}
+	
+
 	GLfloat velmag = magnitude(velocity);
-	GLfloat velmag2 = velmag - (float)delta_t * thrust;
+	GLfloat velmag2 = velmag - (float)delta_t * thrust * thrust_factor;
 	if (velmag > 0)
 	{
 		UPDATE_STAGE(@"applying power braking");
