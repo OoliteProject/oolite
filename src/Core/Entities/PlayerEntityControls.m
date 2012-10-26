@@ -123,6 +123,7 @@ static OOGUIRow			oldSelection;
 static int				saved_view_direction;
 static double			saved_script_time;
 static int				saved_gui_screen;
+static OOWeaponFacing	saved_weapon_facing;
 static int 				pressedArrow = 0;
 static BOOL				mouse_x_axis_map_to_yaw = NO;
 static NSTimeInterval	time_last_frame;
@@ -1498,6 +1499,7 @@ static NSTimeInterval	time_last_frame;
 					[gameView allowStringInput:NO];
 					[UNIVERSE clearPreviousMessage];
 					[UNIVERSE setViewDirection:saved_view_direction];
+					currentWeaponFacing = saved_weapon_facing;
 					// make sure the light comes from the right direction after resuming from pause!
 					if (saved_gui_screen == GUI_SCREEN_SYSTEM_DATA) [UNIVERSE setMainLightPosition:_sysInfoLight];
 					[[UNIVERSE gui] setForegroundTextureKey:@"overlay"];
@@ -1508,6 +1510,7 @@ static NSTimeInterval	time_last_frame;
 					saved_view_direction = [UNIVERSE viewDirection];
 					saved_script_time = script_time;
 					saved_gui_screen = gui_screen;
+					saved_weapon_facing = currentWeaponFacing;
 					[UNIVERSE pauseGame];	// pause handler
 				}
 			}
