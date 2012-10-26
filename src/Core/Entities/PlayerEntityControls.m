@@ -3629,6 +3629,8 @@ static BOOL autopilot_pause;
 
 - (void) setGuiToMissionEndScreen
 {
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	[gameView clearKeys];
 	if ([self status] != STATUS_DOCKED)
 	{
 		// this setting is only applied when not docked
