@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 @class OOJoystickManager, OOTexture;
 
 
+#define ALLOW_CUSTOM_VIEWS_WHILE_PAUSED	1
 #define SCRIPT_TIMER_INTERVAL			10.0
 
 #define GUI_ROW_INIT(GUI) /*int n_rows = [(GUI) rows]*/

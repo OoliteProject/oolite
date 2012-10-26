@@ -5307,12 +5307,21 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	
 	if (viewDirection != vd || viewDirection == VIEW_CUSTOM)
 	{
+		#if (ALLOW_CUSTOM_VIEWS_WHILE_PAUSED)
+		BOOL gamePaused = [[self gameController] isGamePaused];
+		#else
+		BOOL gamePaused = NO;
+		#endif
 		// view notifications for when the player switches to/from gui!
 		//if (EXPECT(viewDirection == VIEW_GUI_DISPLAY || vd == VIEW_GUI_DISPLAY )) [PLAYER noteViewDidChangeFrom:viewDirection toView:vd];
 		viewDirection = vd;
-		if (ms)
+		if (ms && !gamePaused)
 		{
 			[self addMessage:ms forCount:3];
+		}
+		else if (gamePaused)
+		{
+			[message_gui clear];
 		}
 	}
 }

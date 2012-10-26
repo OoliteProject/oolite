@@ -135,6 +135,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollGuiArrowKeyControls:(double) delta_t;
 - (void) handleGameOptionsScreenKeys;
 - (void) pollApplicationControls;
+- (void) pollCustomViewControls;
 - (void) pollViewControls;
 - (void) pollGuiScreenControls;
 - (void) pollGuiScreenControlsWithFKeyAlias:(BOOL)fKeyAlias;
@@ -1346,6 +1347,10 @@ static NSTimeInterval	time_last_frame;
 				[gameView clearKeys];
 				[self setGuiToLoadSaveScreen];
 			}
+			
+			#if (ALLOW_CUSTOM_VIEWS_WHILE_PAUSED)
+			[self pollCustomViewControls];	// allow custom views during pause
+			#endif
 			
 			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
 			{
@@ -2723,6 +2728,29 @@ static NSTimeInterval	time_last_frame;
 }
 
 
+- (void) pollCustomViewControls
+{
+	if ([[UNIVERSE gameView] isDown:key_custom_view])
+	{
+		if (!customView_pressed && [_customViews count] != 0 && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)
+		{
+			if ([UNIVERSE viewDirection] == VIEW_CUSTOM)	// already in custom view mode
+			{
+				// rotate the custom views
+				_customViewIndex = (_customViewIndex + 1) % [_customViews count];
+			}
+	
+			[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex]];
+	
+			[self switchToThisView:VIEW_CUSTOM andProcessWeaponFacing:NO]; // weapon facing must not change, we just want an external view
+		}
+		customView_pressed = YES;
+	}
+	else
+		customView_pressed = NO;
+}
+
+
 - (void) pollViewControls
 {
 	if(!pollControls)
@@ -2767,24 +2795,7 @@ static NSTimeInterval	time_last_frame;
 		[self switchToThisView:VIEW_STARBOARD];
 	}
 	
-	if ([gameView isDown:key_custom_view])
-	{
-		if (!customView_pressed && [_customViews count] != 0 && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)
-		{
-			if ([UNIVERSE viewDirection] == VIEW_CUSTOM)	// already in custom view mode
-			{
-				// rotate the custom views
-				_customViewIndex = (_customViewIndex + 1) % [_customViews count];
-			}
-			
-			[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex]];
-			
-			[self switchToThisView:VIEW_CUSTOM andProcessWeaponFacing:NO]; // weapon facing must not change, we just want an external view
-		}
-		customView_pressed = YES;
-	}
-	else
-		customView_pressed = NO;
+	[self pollCustomViewControls];
 	
 	// Zoom scanner 'z'
 	if (([gameView isDown:key_scanner_zoom] && ([gameView allowingStringInput] == gvStringInputNo)) || joyButtonState[BUTTON_SCANNERZOOM]) // look for the 'z' key
