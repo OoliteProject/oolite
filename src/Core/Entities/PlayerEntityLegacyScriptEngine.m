@@ -2355,7 +2355,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) setGuiToMissionScreenWithCallback:(BOOL) callback
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-
+	OOGUIScreenID	oldScreen = gui_screen;
 	NSUInteger end_row = 21;
 	if ([[self hud] isHidden]) 
 	{
@@ -2386,6 +2386,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	missionTextRow = 1;
 
+	
 	if (gui)
 		gui_screen = GUI_SCREEN_MISSION;
 
@@ -2401,6 +2402,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	_missionWithCallback = callback;
 	_missionAllowInterrupt = NO;
+	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+
 }
 
 
