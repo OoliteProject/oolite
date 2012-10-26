@@ -738,6 +738,7 @@ typedef enum
 - (OOPlanetEntity *) findNearestPlanetExcludingMoons;
 - (OOAegisStatus) checkForAegis;
 - (BOOL) withinStationAegis;
+- (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock;
 
 - (NSArray*) crew;
 - (void) setCrew:(NSArray *)crewArray;

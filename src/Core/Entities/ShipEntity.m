@@ -144,7 +144,6 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict;
 
 - (Entity<OOStellarBody> *) lastAegisLock;
-- (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock;
 
 - (void) addSubEntity:(Entity<OOSubEntity> *) subent;
 
@@ -6619,7 +6618,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	float			cr2 = cr * cr;
 	OOAegisStatus	result = AEGIS_NONE;
 	float			d2 = magnitude2(vector_subtract([nearest position], [self position]));
-	
+	float 		sd2 = SCANNER_MAX_RANGE2 * 10.0f;
+
 	// check if nearing a surface
 	unsigned wasNearPlanetSurface = isNearPlanetSurface;	// isNearPlanetSurface is a bit flag, not an actual BOOL
 	isNearPlanetSurface = (d2 - cr2) < (250000.0f + 1000.0f * cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
@@ -6642,38 +6642,37 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	StationEntity	*the_station = [UNIVERSE station];
 	if (the_station)
 	{
-		d2 = magnitude2(vector_subtract([the_station position], [self position]));
-		if (d2 < SCANNER_MAX_RANGE2 * 4.0f) // double scanner range
-		{
-			result = AEGIS_IN_DOCKING_RANGE;
-		}
+		sd2 = magnitude2(vector_subtract([the_station position], [self position]));
+	}
+	if (sd2 < SCANNER_MAX_RANGE2 * 4.0f) // double scanner range
+	{
+		result = AEGIS_IN_DOCKING_RANGE;
 	}
 	else if (EXPECT_NOT(isNearPlanetSurface || d2 < cr2 * 9.0f)) // to 3x radius of any planet/moon - or 500m of tiny ones,
 	{
 		result = AEGIS_CLOSE_TO_ANY_PLANET;
-		
-		if (!sunGoneNova)
+		if (EXPECT((OOPlanetEntity *)nearest == [UNIVERSE planet]))
 		{
-			// are we also close to the main planet?
-			if (EXPECT((OOPlanetEntity *)nearest == [UNIVERSE planet]))
-			{
-				result = AEGIS_CLOSE_TO_MAIN_PLANET;
-			}
-			else
-			{
-				OOPlanetEntity *mainPlanet = [UNIVERSE planet];
-				d2 = magnitude2(vector_subtract([mainPlanet position], [self position]));
-				cr2 = [mainPlanet radius];
-				cr2 *= cr2;	
-				if (d2 < cr2 * 9.0f)
-				{
-					nearest = mainPlanet;
-					result = AEGIS_CLOSE_TO_MAIN_PLANET;
-				}
-			}
+			result = AEGIS_CLOSE_TO_MAIN_PLANET;
 		}
 	}
-	
+	// need to do this check separately from above case to avoid oddity where
+	// main planet and small moon are at just the wrong distance. - CIM
+	if (result != AEGIS_CLOSE_TO_MAIN_PLANET && result != AEGIS_IN_DOCKING_RANGE && !sunGoneNova)
+	{
+		// are we also close to the main planet?
+		OOPlanetEntity *mainPlanet = [UNIVERSE planet];
+		d2 = magnitude2(vector_subtract([mainPlanet position], [self position]));
+		cr2 = [mainPlanet radius];
+		cr2 *= cr2;	
+		if (d2 < cr2 * 9.0f)
+		{
+			nearest = mainPlanet;
+			result = AEGIS_CLOSE_TO_MAIN_PLANET;
+		}
+	}
+
+
 	/*	Rewrote aegis stuff and tested it against redux.oxp that adds multiple planets and moons.
 		Made sure AI scripts can differentiate between MAIN and NON-MAIN planets so they can decide
 		if they can dock at the systemStation or just any station.
@@ -6714,7 +6713,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		// approaching..
 		else if (EXPECT_NOT((result == AEGIS_CLOSE_TO_ANY_PLANET || result == AEGIS_CLOSE_TO_MAIN_PLANET) && [self lastAegisLock] != nearest))
 		{
-			if(aegis_status != AEGIS_NONE)	// we were close to another stellar body
+			if(aegis_status != AEGIS_NONE && [self lastAegisLock] != nil)	// we were close to another stellar body
 			{
 				[self doScriptEvent:OOJSID("shipExitedPlanetaryVicinity") withArgument:[self lastAegisLock]];
 				[shipAI message:@"AWAY_FROM_PLANET"];	// fires for suns, planets and moons.

@@ -1275,7 +1275,7 @@ static GLfloat		sBaseMass = 0.0;
 	// trumble information
 	[self setUpTrumbles];
 	[self setTrumbleValueFrom:[dict objectForKey:@"trumbles"]];	// if it doesn't exist we'll check user-defaults
-	
+
 	return YES;
 }
 
@@ -1640,7 +1640,8 @@ static GLfloat		sBaseMass = 0.0;
 {
 	[OOSoundSource stopAll];
 	dockedStation = [UNIVERSE station];
-	
+	[self setLastAegisLock:[UNIVERSE planet]];
+		
 	// If loading from a savegame don't reset the targetted system.
 	if (setTarget) target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	
