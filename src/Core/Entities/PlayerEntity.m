@@ -6468,7 +6468,9 @@ static GLfloat		sBaseMass = 0.0;
 	if ([self status] == STATUS_DOCKED)
 	{
 		if (dockedStation == nil)
+		{
 			dockedStation = [UNIVERSE station];
+		}
 		canLoadOrSave = (dockedStation == [UNIVERSE station] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]));
 	}
 	

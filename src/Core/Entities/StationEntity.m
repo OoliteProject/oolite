@@ -1920,7 +1920,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	
 	// launch docked ships if possible
 	PlayerEntity* player = PLAYER;
-	if ((player)&&([player status] == STATUS_DOCKED)&&([player dockedStation] == self))
+	if ((player)&&([player status] == STATUS_DOCKED || [player status] == STATUS_DOCKING)&&([player dockedStation] == self))
 	{
 		// undock the player!
 		[player leaveDock:self];
