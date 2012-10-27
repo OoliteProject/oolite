@@ -6494,11 +6494,10 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 static float SurfaceDistanceSqaredV(Vector reference, Entity<OOStellarBody> *stellar)
 {
 	float centerDistance = magnitude2(vector_subtract([stellar position], reference));
-	float r = [(OOPlanetEntity *)stellar radius];
-	
+	float r = [stellar radius];
 	/*	1.35: empirical value used to help determine proximity when non-nested
-		planets are close to each other
-	*/
+			planets are close to each other
+		*/
 	return centerDistance - 1.35 * r * r;
 }
 

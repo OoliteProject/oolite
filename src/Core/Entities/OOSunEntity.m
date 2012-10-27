@@ -532,7 +532,7 @@ MA 02110-1301, USA.
 }
 
 
-- (GLfloat) radius
+- (double) radius
 {
 	return collision_radius;
 }
