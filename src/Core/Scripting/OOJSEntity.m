@@ -309,7 +309,11 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 			if (JSValueToVector(context, *value, &vValue))
 			{
 				[entity setPosition:vValue];
-				if ([entity isShip]) [(ShipEntity *)entity resetExhaustPlumes];
+				if ([entity isShip])
+				{
+					[(ShipEntity *)entity resetExhaustPlumes];
+					[(ShipEntity *)entity forceAegisCheck];
+				}
 				return YES;
 			}
 			break;

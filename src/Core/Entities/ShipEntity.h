@@ -434,6 +434,8 @@ typedef enum
 	OOWeakReference			*_prevBeacon;
 	OOWeakReference			*_nextBeacon;
 	id <OOHUDBeaconIcon>	_beaconDrawable;
+
+	double			_nextAegisCheck;
 }
 
 // ship brains
@@ -737,6 +739,7 @@ typedef enum
 - (Entity<OOStellarBody> *) findNearestStellarBody;		// NOTE: includes sun.
 - (OOPlanetEntity *) findNearestPlanetExcludingMoons;
 - (OOAegisStatus) checkForAegis;
+- (void) forceAegisCheck;
 - (BOOL) withinStationAegis;
 - (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock;
 

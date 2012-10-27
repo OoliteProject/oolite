@@ -305,7 +305,7 @@ static NSString *Expand(OOStringExpansionContext *context, NSString *string, NSU
 			(minus one, because idx is incremented by the loop.)
 		*/
 		NSString *replacement = nil;
-		NSUInteger replaceLength;
+		NSUInteger replaceLength = 0;
 		unichar thisChar = characters[idx];
 		
 		if (thisChar == '[')

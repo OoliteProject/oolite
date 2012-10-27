@@ -212,6 +212,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	port_weapon_temp		= 0.0f;
 	starboard_weapon_temp	= 0.0f;
 
+	_nextAegisCheck = -0.1f;
+
 	if (![self setUpShipFromDictionary:dict])
 	{
 		[self release];
@@ -1998,7 +2000,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					[closeContactsInfo removeObjectForKey: other_key];
 				}
 			}
-		}
+		} // end if trackCloseContacts
 
 	} // end if !isSubEntity
 	
@@ -2083,44 +2085,64 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
-	// cloaking device
-	if ([self hasCloakingDevice])
-	{
-		if (cloaking_device_active)
-		{
-			energy -= delta_t * CLOAKING_DEVICE_ENERGY_RATE;
-			if (energy < CLOAKING_DEVICE_MIN_ENERGY)
-			{  
-				[self deactivateCloakingDevice];
-				if (energy < 0) energy = 0;
-			}
-		}
-	}
-
-	// military_jammer
-	if ([self hasMilitaryJammer])
-	{
-		if (military_jammer_active)
-		{
-			energy -= delta_t * MILITARY_JAMMER_ENERGY_RATE;
-			if (energy < MILITARY_JAMMER_MIN_ENERGY)
-			{
-				military_jammer_active = NO;
-				if (energy < 0) energy = 0;
-			}
-		}
-		else
-		{
-			if (energy > 1.5 * MILITARY_JAMMER_MIN_ENERGY)
-				military_jammer_active = YES;
-		}
-	}
-
-	// check outside factors
 	if (![self isSubEntity])
 	{
-		aegis_status = [self checkForAegis];   // is a station or something nearby??
-	}
+
+		// cloaking device
+		if ([self hasCloakingDevice])
+		{
+			if (cloaking_device_active)
+			{
+				energy -= delta_t * CLOAKING_DEVICE_ENERGY_RATE;
+				if (energy < CLOAKING_DEVICE_MIN_ENERGY)
+				{  
+					[self deactivateCloakingDevice];
+					if (energy < 0) energy = 0;
+				}
+			}
+		}
+
+		// military_jammer
+		if ([self hasMilitaryJammer])
+		{
+			if (military_jammer_active)
+			{
+				energy -= delta_t * MILITARY_JAMMER_ENERGY_RATE;
+				if (energy < MILITARY_JAMMER_MIN_ENERGY)
+				{
+					military_jammer_active = NO;
+					if (energy < 0) energy = 0;
+				}
+			}
+			else
+			{
+				if (energy > 1.5 * MILITARY_JAMMER_MIN_ENERGY)
+					military_jammer_active = YES;
+			}
+		}
+
+	// check outside factors
+		/* aegis checks are expensive, so only do them once every km or so of flight
+		 * unlikely to be important otherwise. (every 100m if already close to
+		 * planet, to watch for surface)
+
+		 * if have non-zero inertial velocity, need to check every frame,
+		 * as distanceTravelled does not include this component - CIM */
+		if (_nextAegisCheck < distanceTravelled || !vector_equal([super velocity],kZeroVector))
+		{
+			aegis_status = [self checkForAegis];   // is a station or something nearby??
+			if (aegis_status == AEGIS_NONE)
+			{
+				// in open space: check every km
+				_nextAegisCheck = distanceTravelled + 1000.0;
+			}
+			else
+			{
+				// near planets: check every 100m
+				_nextAegisCheck = distanceTravelled + 100.0;
+			}
+		}
+	} // end if !isSubEntity
 
 	// scripting
 	if (!haveExecutedSpawnAction)
@@ -2168,10 +2190,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				}
 			}
 			
-			ShipEntity *se = nil;
-			foreach (se, [self subEntities])
+			if ([self subEntityCount] > 0)
 			{
-				[se update:delta_t];
+				// only copy the subent array if there are subentities
+				ShipEntity *se = nil;
+				foreach (se, [self subEntities])
+				{
+					[se update:delta_t];
+				}
 			}
 			return;
 		}
@@ -2419,15 +2445,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	totalBoundingBox = boundingBox;
 	
 	// update subentities
-	ShipEntity *se = nil;
-	foreach (se, [self subEntities])
+
+	if ([self subEntityCount] > 0)
 	{
-		[se update:delta_t];
-		if ([se isShip])
+		// only copy the subent array if there are subentities
+		ShipEntity *se = nil;
+		foreach (se, [self subEntities])
 		{
-			BoundingBox sebb = [se findSubentityBoundingBox];
-			bounding_box_add_vector(&totalBoundingBox, sebb.max);
-			bounding_box_add_vector(&totalBoundingBox, sebb.min);
+			[se update:delta_t];
+			if ([se isShip])
+			{
+				BoundingBox sebb = [se findSubentityBoundingBox];
+				bounding_box_add_vector(&totalBoundingBox, sebb.max);
+				bounding_box_add_vector(&totalBoundingBox, sebb.min);
+			}
 		}
 	}
 }
@@ -5476,13 +5507,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?
 	{
-		ShipEntity *subEntity = nil;
-		foreach (subEntity, [self subEntities])
-		{
+		// save time by not copying the subentity array if it's empty - CIM
+		if ([self subEntityCount] > 0) 
+		{ 
+			ShipEntity *subEntity = nil;
+			foreach (subEntity, [self subEntities])
+			{
 // already set on subentity creation and not going to have changed, isn't it?
 // anyway, didn't appear to break anything when I took it out - CIM
 //			[subEntity setOwner:self]; // refresh ownership
-			[subEntity drawSubEntity:immediate :translucent];
+				[subEntity drawSubEntity:immediate :translucent];
+			}
 		}
 	}
 }
@@ -6750,6 +6785,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 	aegis_status = result;	// put this here
 	return result;
+}
+
+
+- (void) forceAegisCheck
+{
+	_nextAegisCheck = -1.0f;
 }
 
 
