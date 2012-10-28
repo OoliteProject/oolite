@@ -362,11 +362,17 @@ static void GLDumpCullingState(void)
 	
 	OO_ENTER_OPENGL();
 	
-	OOGL(glGetIntegerv(GL_CULL_FACE_MODE, &value));
-	OOLog(kOOLogOpenGLStateDump, @"Cull face mode: %@", GLEnumToString(value));
-	
-	OOGL(glGetIntegerv(GL_FRONT_FACE, &value));
-	OOLog(kOOLogOpenGLStateDump, @"Front face direction: %@", GLEnumToString(value));
+	bool enabled;
+	OOGL(enabled = glIsEnabled(GL_CULL_FACE));
+	OOLog(kOOLogOpenGLStateDump, @"Face culling: %@", enabled ? @"ENABLED" : @"disabled");
+	if (enabled)
+	{
+		OOGL(glGetIntegerv(GL_CULL_FACE_MODE, &value));
+		OOLog(kOOLogOpenGLStateDump, @"Cull face mode: %@", GLEnumToString(value));
+		
+		OOGL(glGetIntegerv(GL_FRONT_FACE, &value));
+		OOLog(kOOLogOpenGLStateDump, @"Front face direction: %@", GLEnumToString(value));
+	}
 }
 
 
@@ -423,13 +429,9 @@ static void GLDumpStateFlags(void)
 	DUMP_STATE_FLAG(GL_NORMAL_ARRAY);
 	DUMP_STATE_FLAG(GL_TEXTURE_COORD_ARRAY);
 	DUMP_STATE_FLAG(GL_COLOR_ARRAY);
-	DUMP_STATE_FLAG(GL_EDGE_FLAG_ARRAY);
 	DUMP_STATE_FLAG(GL_TEXTURE_2D);
 	DUMP_STATE_FLAG(GL_DEPTH_TEST);
 	DUMP_GET_FLAG(GL_DEPTH_WRITEMASK);
-	DUMP_GET_FLAG(GL_DITHER);
-	DUMP_STATE_FLAG(GL_POINT_SMOOTH);
-	DUMP_STATE_FLAG(GL_LINE_SMOOTH);
 	
 	OOLogOutdent();
 	
