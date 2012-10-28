@@ -442,7 +442,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship
 {	
 	if (ship == nil)  return nil;
-	
+
 	if ([ship isPlayer])
 	{
 		player_reserved_dock = nil; // clear any dock reservation for manual docking
@@ -461,7 +461,9 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		// no docking while station is moving, pitching or yawing
 		return [self holdPositionInstructionForShip:ship];
 	}
-	
+	PlayerEntity *player = PLAYER;
+	BOOL player_is_ahead = (![ship isPlayer] && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED && (self == [player getTargetDockStation]));
+
 	NSEnumerator	*subEnum = nil;
 	DockEntity		*chosenDock = nil;
 	NSString		*docking = nil;
@@ -477,6 +479,10 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 			chosenDock = sub;
 			alldockstoosmall = NO;
 			break;
+		}
+		if (player_is_ahead) {
+			// can't allocate a new queue while player is manually docking
+			continue;
 		}
 		if (sub != player_reserved_dock)
 		{
@@ -522,15 +528,17 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	}	
 	if (chosenDock == nil)
 	{
-		if ([docking isEqualToString:@"TOO_BIG_TO_DOCK"] && !alldockstoosmall)
+		if (player_is_ahead || ([docking isEqualToString:@"TOO_BIG_TO_DOCK"] && !alldockstoosmall))
 		{
-			// last dock was too small, but there may be an acceptable one
+			// either player is manually docking and we can't allocate new docks,
+			// or the last dock was too small, and there may be an acceptable one
 			// not tested yet or returning TRY_AGAIN_LATER
 			docking = @"TRY_AGAIN_LATER";
 		}
 		// no docks accept this ship (or the player is blocking them)
 		return OOMakeDockingInstructions(self, [ship position], 0, 100, docking, nil, NO);
 	}
+
 
 	// rolling is okay for some
 	if	(fabs(flightRoll) > 0.01 && [chosenDock isOffCentre])
@@ -542,7 +550,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	[_shipsOnHold removeObject:ship];
 	
 	[shipAI reactToMessage:@"DOCKING_REQUESTED" context:@"requestDockingCoordinates"];	// react to the request	
-	
+
 	return [chosenDock dockingInstructionsForShip:ship];
 }
 

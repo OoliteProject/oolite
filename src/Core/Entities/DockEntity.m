@@ -141,7 +141,7 @@ MA 02110-1301, USA.
 		ShipEntity *ship = [UNIVERSE entityForUniversalID:[idObj unsignedIntValue]];
 		if ([ship isShip])
 		{
-			[ship sendAIMessage:@"DOCKING_ABORTED"];
+			[self pullInShipIfPermitted:ship];
 		}
 	}
 	
