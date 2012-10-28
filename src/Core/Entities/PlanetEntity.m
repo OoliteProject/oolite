@@ -775,10 +775,11 @@ static const BaseFace kTexturedFaces[][3] =
 		
 	lastSubdivideLevel = subdivideLevel;	// record
 	
+	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 	OOGL(glPushAttrib(GL_ENABLE_BIT));
 	
-	OOGL(glEnable(GL_LIGHTING));
-	OOGL(glEnable(GL_LIGHT1));
+//	OOGL(glEnable(GL_LIGHTING));
+//	OOGL(glEnable(GL_LIGHT1));
 	GLfloat specular[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular));
 	OOGL(glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0));
@@ -810,8 +811,10 @@ static const BaseFace kTexturedFaces[][3] =
 				subdivideLevel = root_planet->lastSubdivideLevel;	// copy it from the planet (stops jerky LOD and such)
 			}
 			GLMultOOMatrix(rotMatrix);	// rotate the clouds!
+			OOGL(glEnable(GL_BLEND));
+			OOGL(glDisable(GL_LIGHTING));
 			// Fall through.
-			
+
 		case STELLAR_TYPE_MOON:
 		case STELLAR_TYPE_NORMAL_PLANET:
 		case STELLAR_TYPE_MINIATURE:
@@ -838,7 +841,7 @@ static const BaseFace kTexturedFaces[][3] =
 					}
 					else
 					{
-						OOGL(glEnable(GL_TEXTURE_2D));
+//						OOGL(glEnable(GL_TEXTURE_2D));
 					}
 					OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
 					[_texture apply];
@@ -862,9 +865,9 @@ static const BaseFace kTexturedFaces[][3] =
 				
 				OOGL(glEnableClientState(GL_COLOR_ARRAY));
 				OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
-				OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+//				OOGL(glEnableClientState(GL_VERTEX_ARRAY));
 				OOGL(glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
-				OOGL(glEnableClientState(GL_NORMAL_ARRAY));
+//				OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 				OOGL(glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array));
 				
 				if (_texture != nil)
@@ -905,26 +908,19 @@ static const BaseFace kTexturedFaces[][3] =
 						OOGL(glEndList());
 					}
 				}
-				
+
 #if OO_TEXTURE_CUBE_MAP
 				if ([_texture isCubeMap])
 				{
 					OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
+					OOGL(glEnable(GL_TEXTURE_2D));
 				}
 #endif
-				
-				if (atmosphere)
-				{
-					OOGL(glDisable(GL_DEPTH_TEST));
 
-					OOGL(glPopMatrix());	// get old draw matrix back
-					OOGL(glPushMatrix());	// and store it again
-					OOGL(glTranslatef(position.x,position.y,position.z)); // centre on the planet
-					// rotate
-					GLMultOOMatrix([atmosphere rotationMatrix]);
-					// draw atmosphere entity
-					[atmosphere drawEntity:NO :NO];
-				}
+			OOGL(glDisableClientState(GL_COLOR_ARRAY));
+			OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+			OOGL(glEnable(GL_DEPTH_TEST));
+
 			}
 			
 			//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
@@ -932,18 +928,40 @@ static const BaseFace kTexturedFaces[][3] =
 			{
 				OOGLWireframeModeOff();
 			}
+//			OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+//			OOGL(glDisableClientState(GL_NORMAL_ARRAY));
 			
-			OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-			OOGL(glDisableClientState(GL_NORMAL_ARRAY));
-			OOGL(glDisableClientState(GL_COLOR_ARRAY));
-			OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 			break;
 			
 		case STELLAR_TYPE_SUN:
 			break;
 	}
+
+	if (ignoreDepthBuffer)
+	{
+		OOGL(glEnable(GL_DEPTH_TEST));
+	}
+	OOGL(glEnable(GL_TEXTURE_2D));
+	OOGL(glEnable(GL_LIGHTING));
+	OOGL(glDisable(GL_BLEND));
+
+
 	OOGL(glPopAttrib());
+	OOVerifyOpenGLState();
 	OOCheckOpenGLErrors(@"PlanetEntity after drawing %@", self);
+
+	if (atmosphere)
+	{
+		OOGL(glPopMatrix());	// get old draw matrix back
+		OOGL(glPushMatrix());	// and store it again
+		OOGL(glTranslatef(position.x,position.y,position.z)); // centre on the planet
+		// rotate
+		GLMultOOMatrix([atmosphere rotationMatrix]);
+		// draw atmosphere entity
+		[atmosphere drawEntity:NO :NO];
+	}
+
+
 }
 
 

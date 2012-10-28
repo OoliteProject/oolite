@@ -98,7 +98,6 @@ typedef enum
 		GL_TEXTURE_2D is off
 		GL_BLEND is on
 		Blend mode is GL_SRC_ALPHA, GL_ONE
-		Fog is off (this is probably a bug)
 		GL_NORMAL_ARRAY is off
 		GL_DEPTH_WRITEMASK is off
 		GL_CULL_FACE is off
