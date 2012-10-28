@@ -202,7 +202,7 @@ MA 02110-1301, USA.
 	
 	[super drawEntity:immediate :translucent];
 	
-	CheckOpenGLErrors(@"SkyEntity after drawing %@", self);
+	OOCheckOpenGLErrors(@"SkyEntity after drawing %@", self);
 }
 
 

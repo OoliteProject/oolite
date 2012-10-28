@@ -121,6 +121,7 @@ MA 02110-1301, USA.
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
 	
 	OO_ENTER_OPENGL();
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
@@ -136,7 +137,8 @@ MA 02110-1301, USA.
 	
 	OOGL(glPopAttrib());
 	
-	CheckOpenGLErrors(@"OOQuiriumCascadeEntity after drawing %@", self);
+	OOVerifyOpenGLState();
+	OOCheckOpenGLErrors(@"OOQuiriumCascadeEntity after drawing %@", self);
 }
 
 

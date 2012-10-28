@@ -3677,11 +3677,9 @@ static const OOMatrix	starboard_matrix =
 			
 			[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
 			
-			CheckOpenGLErrors(@"Universe before doing anything");
+			OOCheckOpenGLErrors(@"Universe before doing anything");
 			
-			OOGL(glEnable(GL_DEPTH_TEST));
-			OOGL(glEnable(GL_CULL_FACE));			// face culling
-			OOGL(glDepthMask(GL_TRUE));	// restore write to depth buffer
+			OOSetOpenGLState(OPENGL_STATE_OPAQUE);  // FIXME: should be redundant.
 			
 			if (!displayGUI)
 			{
@@ -3704,7 +3702,7 @@ static const OOMatrix	starboard_matrix =
 			// If set, display background GUI image. Must be done before enabling lights to avoid dim backgrounds
 			if (displayGUI)  [gui drawGUIBackground];
 			
-			OOGL(glEnable(GL_LIGHTING));
+			OOSetOpenGLState(OPENGL_STATE_OPAQUE);  // FIXME: should be redundant.
 			
 			// Set up view transformation matrix
 			OOMatrix flipMatrix = kIdentityMatrix;
@@ -3754,7 +3752,9 @@ static const OOMatrix	starboard_matrix =
 				
 				[self defineFrustum]; // camera is set up for this frame
 				
-				CheckOpenGLErrors(@"Universe after setting up for opaque pass");
+				OOVerifyOpenGLState();
+				OOCheckOpenGLErrors(@"Universe after setting up for opaque pass");
+				
 				//		DRAW ALL THE OPAQUE ENTITIES
 				for (i = furthest; i >= nearest; i--)
 				{
@@ -3766,6 +3766,7 @@ static const OOMatrix	starboard_matrix =
 					if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either demo ship mode or in flight
 					{
 						// reset material properties
+						// FIXME: should be part of SetState
 						OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff));
 						OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no));
 						
@@ -3816,10 +3817,9 @@ static const OOMatrix	starboard_matrix =
 				
 				//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
 				
-				OOGL(glDepthMask(GL_FALSE));			// don't write to depth buffer
-				OOGL(glDisable(GL_LIGHTING));
+				OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);  // FIXME: should be redundant.
 				
-				CheckOpenGLErrors(@"Universe after setting up for translucent pass");
+				OOCheckOpenGLErrors(@"Universe after setting up for translucent pass");
 				for (i = furthest; i >= nearest; i--)
 				{
 					drawthing = my_entities[i];
@@ -3872,18 +3872,13 @@ static const OOMatrix	starboard_matrix =
 						OOGL(glPopMatrix());
 					}
 				}
-								
-				OOGL(glDepthMask(GL_TRUE));	// restore write to depth buffer
 			}
 			
 			OOGL(glPopMatrix()); //restore saved flat viewpoint
-
-			OOGL(glDisable(GL_LIGHTING));			// disable lighting
-			OOGL(glDisable(GL_DEPTH_TEST));			// disable depth test
-			OOGL(glDisable(GL_CULL_FACE));			// face culling
-			OOGL(glDepthMask(GL_FALSE));			// don't write to depth buffer
 			
-			CheckOpenGLErrors(@"Universe after drawing entities");
+			OOCheckOpenGLErrors(@"Universe after drawing entities");
+			
+			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
 
 			GLfloat	lineWidth = [gameView viewSize].width / 1024.0; // restore line size
 			if (lineWidth < 1.0)  lineWidth = 1.0;
@@ -3929,7 +3924,7 @@ static const OOMatrix	starboard_matrix =
 			[theHUD drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
 #endif
 			
-			CheckOpenGLErrors(@"Universe after drawing HUD");
+			OOCheckOpenGLErrors(@"Universe after drawing HUD");
 			
 			OOGL(glFlush());	// don't wait around for drawing to complete
 			
@@ -3980,6 +3975,8 @@ static const OOMatrix	starboard_matrix =
 
 - (void) drawMessage
 {
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+	
 	OOGL(glDisable(GL_TEXTURE_2D));	// for background sheets
 	
 	float overallAlpha = [[PLAYER hud] overallAlpha];
@@ -3997,6 +3994,8 @@ static const OOMatrix	starboard_matrix =
 	
 	[message_gui drawGUI:[message_gui alpha] * overallAlpha drawCursor:NO];
 	[comm_log_gui drawGUI:[comm_log_gui alpha] * overallAlpha drawCursor:NO];
+	
+	OOVerifyOpenGLState();
 }
 
 

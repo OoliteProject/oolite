@@ -1,0 +1,59 @@
+/*
+	State items and their abstract types for the OpenGL state setting/
+	verification system. This is included several times in OOOpenGL.m.
+	
+	Field names correspond to OpenGL enumerants without the GL_ prefix.
+	
+	ITEM_STATEFLAG(name) defines a field whose type is StateFlag and which is
+	read using glIsEnabled() and written using glEnable()/glDisable(). StateFlag
+	can be false, true, or kStateMaybe, in which case it is ignored by the
+	verifier.
+	
+	ITEM_CLIENTSTATEFLAG(name) is similar to ITEM_STATEFLAG, but values are
+	written using glEnableClientState()/glDisableClientState() and the Maybe
+	state is not supported.
+	
+	ITEM_SPECIAL(name, type, displayFunc) defines a field of the specified type
+	which is read and written by calling functions GetState_<name> and
+	SetState_<name>. <displayFunc> is the name of a function that converts
+	the value to an NSString.
+	
+	ITEM_INT(name) is like ITEM_SPECIAL(name, GLint, OOGLEnumToString) except
+	that values are read using glGetIntegerv().
+*/
+
+ITEM_STATEFLAG(LIGHTING);
+ITEM_STATEFLAG(LIGHT0);
+ITEM_STATEFLAG(LIGHT1);
+ITEM_STATEFLAG(LIGHT2);
+ITEM_STATEFLAG(LIGHT3);
+ITEM_STATEFLAG(LIGHT4);
+ITEM_STATEFLAG(LIGHT5);
+ITEM_STATEFLAG(LIGHT6);
+ITEM_STATEFLAG(LIGHT7);
+ITEM_STATEFLAG(TEXTURE_2D);
+ITEM_STATEFLAG(COLOR_MATERIAL);
+ITEM_STATEFLAG(BLEND);
+ITEM_STATEFLAG(FOG);
+ITEM_STATEFLAG(DEPTH_TEST);
+ITEM_STATEFLAG(NORMALIZE);
+ITEM_STATEFLAG(RESCALE_NORMAL);
+ITEM_CLIENTSTATEFLAG(VERTEX_ARRAY);
+ITEM_CLIENTSTATEFLAG(NORMAL_ARRAY);
+ITEM_CLIENTSTATEFLAG(COLOR_ARRAY);
+ITEM_CLIENTSTATEFLAG(INDEX_ARRAY);
+ITEM_CLIENTSTATEFLAG(TEXTURE_COORD_ARRAY);
+ITEM_CLIENTSTATEFLAG(EDGE_FLAG_ARRAY);
+// Smoothing flags are not included. They're set once at startup and never
+// disabled, except that they're not enabled if gpu-settings.plist says not to.
+//ITEM_SPECIAL(POINT_SMOOTH);
+//ITEM_SPECIAL(LINE_SMOOTH);
+ITEM_SPECIAL(DEPTH_WRITEMASK, bool, OOGLFlagToString);
+ITEM_STATEFLAG(CULL_FACE);
+ITEM_INT(SHADE_MODEL);
+ITEM_SPECIAL(TEXTURE_ENV_MODE, GLenum, OOGLEnumToString);
+ITEM_SPECIAL(ACTIVE_TEXTURE, GLenum, OOGLEnumToString);
+ITEM_SPECIAL(CLIENT_ACTIVE_TEXTURE, GLenum, OOGLEnumToString);
+ITEM_INT(CULL_FACE_MODE);
+ITEM_INT(FRONT_FACE);
+// Extra special handling: blend mode (two getters but one setter).

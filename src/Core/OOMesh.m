@@ -360,15 +360,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 {
 	OO_ENTER_OPENGL();
 	
-	OOGL(glPushAttrib(GL_ENABLE_BIT));
-	
-	OOGL(glShadeModel(GL_SMOOTH));
-	
-	OOGL(glDisableClientState(GL_COLOR_ARRAY));
-	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
-	
-	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-	OOGL(glEnableClientState(GL_NORMAL_ARRAY));
+	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 	
 	OOGL(glVertexPointer(3, GL_FLOAT, 0, _displayLists.vertexArray));
 	OOGL(glNormalPointer(GL_FLOAT, 0, _displayLists.normalArray));
@@ -380,8 +372,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, _displayLists.tangentArray));
 	}
 #endif
-	
-	OOGL(glDisable(GL_BLEND));
 	
 	BOOL usingNormalsAsTexCoords = NO;
 	OOMeshMaterialIndex ti;
@@ -458,7 +448,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 					{
 						OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
 						OOGL(glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray));
-						OOGL(glEnable(GL_TEXTURE_2D));
 					}
 					else
 					{
@@ -490,10 +479,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		else  @throw exception;	// pass these on
 	}
 	
-	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
-	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-	
 #if OO_SHADERS
 	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
 	{
@@ -502,12 +487,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 #endif
 	
 	[OOMaterial applyNone];
-	CheckOpenGLErrors(@"OOMesh after drawing %@", self);
-	
-#ifndef NDEBUG
-	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
-	if (gDebugFlags & DEBUG_OCTREE_DRAW)  [[self octree] drawOctree];
-#endif
+	OOCheckOpenGLErrors(@"OOMesh after drawing %@", self);
 	
 #if OO_MULTITEXTURE
 	if (_textureUnitCount <= 1)
@@ -529,7 +509,12 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 #endif
 	
-	OOGL(glPopAttrib());
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
+	if (gDebugFlags & DEBUG_OCTREE_DRAW)  [[self octree] drawOctree];
+#endif
+	
+	OOVerifyOpenGLState();
 }
 
 

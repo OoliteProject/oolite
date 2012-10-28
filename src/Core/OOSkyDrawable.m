@@ -193,20 +193,10 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	// since it'll be behind everything else anyway.
 	
 	OO_ENTER_OPENGL();
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
-	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
-	
-	OOGL(glDisable(GL_LIGHTING));
-	OOGL(glDisable(GL_DEPTH_TEST));		// don't read the depth buffer
-	OOGL(glDepthMask(GL_FALSE));		// don't write to depth buffer
-	OOGL(glDisable(GL_CULL_FACE));
-	OOGL(glDisable(GL_FOG));
-	
-	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
-	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
-	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-	OOGL(glEnableClientState(GL_COLOR_ARRAY));
+	OOGL(glDisable(GL_DEPTH_TEST));  // don't read the depth buffer
+	OOGL(glEnable(GL_TEXTURE_2D));
 	
 	if (_displayListName != 0)
 	{
@@ -217,22 +207,26 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		// Set up display list
 		[self ensureTexturesLoaded];
 		_displayListName = glGenLists(1);
+		
 		OOGL(glNewList(_displayListName, GL_COMPILE));
 		
-		OOGL(glEnable(GL_TEXTURE_2D));
-		OOGL(glBlendFunc(GL_ONE, GL_ONE));	// Pure additive blending, ignoring alpha
+		OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+		OOGL(glEnableClientState(GL_COLOR_ARRAY));
 		
 		[_quadSets makeObjectsPerformSelector:@selector(render)];
 		
-		OOGL(glDisable(GL_TEXTURE_2D));
-		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));	// Basic alpha blending
+		OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+		OOGL(glDisableClientState(GL_COLOR_ARRAY));
 		
 		OOGL(glEndList());
 	}
 	
 	// Restore state
-	OOGL(glDisableClientState(GL_COLOR_ARRAY));
-	OOGL(glPopAttrib());
+	OOGL(glEnable(GL_DEPTH_TEST));
+	OOGL(glDisable(GL_TEXTURE_2D));
+	
+	OOVerifyOpenGLState();
+	OOCheckOpenGLErrors(@"OOSkyDrawable after rendering");
 }
 
 

@@ -329,7 +329,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "target",					kShip_target,				OOJS_PROP_READWRITE_CB },
 	{ "temperature",			kShip_temperature,			OOJS_PROP_READWRITE_CB },
 	{ "thrust",					kShip_thrust,				OOJS_PROP_READWRITE_CB },
-	{ "thrustVector",			kShip_thrustVector,			OOJS_PROP_READWRITE_CB },
+	{ "thrustVector",			kShip_thrustVector,			OOJS_PROP_READONLY_CB },
 	{ "trackCloseContacts",		kShip_trackCloseContacts,	OOJS_PROP_READWRITE_CB },
 	{ "vectorForward",			kShip_vectorForward,		OOJS_PROP_READONLY_CB },
 	{ "vectorRight",			kShip_vectorRight,			OOJS_PROP_READONLY_CB },

@@ -484,7 +484,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		return;
 	}
 	
-	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
+	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOn();
 	
 	if (!_miniature)
 	{
@@ -500,7 +500,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 #endif
 	
-	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOff();
+	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOff();
 }
 
 

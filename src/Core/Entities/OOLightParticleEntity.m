@@ -152,7 +152,8 @@ static OOTexture *sBlobTexture = nil;
 	if (no_draw_distance <= cam_zero_distance)  return;
 	
 	OO_ENTER_OPENGL();
-		
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+	
 	OOGL(glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT));
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
@@ -274,6 +275,8 @@ static OOTexture *sBlobTexture = nil;
 	
 	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
 	OOGL(glPopAttrib());
+	
+	OOVerifyOpenGLState();
 }
 
 

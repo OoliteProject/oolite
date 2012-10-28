@@ -82,6 +82,7 @@ SOFTWARE.
 	if (_data != NULL)
 	{
 		OO_ENTER_OPENGL();
+		OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 		
 		OOGL(glPushAttrib(GL_ENABLE_BIT));
 		OOGL(glDisable(GL_LIGHTING));
@@ -102,6 +103,9 @@ SOFTWARE.
 		
 		OOGL(glPopMatrix());
 		OOGL(glPopAttrib());
+		
+		OOVerifyOpenGLState();
+		OOCheckOpenGLErrors(@"OOCrosshairs after rendering");
 	}
 }
 

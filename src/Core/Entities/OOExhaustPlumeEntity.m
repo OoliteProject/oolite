@@ -296,12 +296,14 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 	if ([ship speedFactor] <= 0.0)  return;	// don't draw if there's no fire!
 	
 	OO_ENTER_OPENGL();
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
 	OOGL(glPopMatrix());	// restore absolute positioning
 	OOGL(glPushMatrix());	// avoid stack underflow
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
+	OOGL(glDisable(GL_LIGHTING));
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glDepthMask(GL_FALSE));
 	OOGL(glDisable(GL_TEXTURE_2D));
@@ -309,13 +311,9 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 	OOGL(glShadeModel(GL_SMOOTH));
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
-	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-	OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertices));
 	OOGL(glEnableClientState(GL_COLOR_ARRAY));
+	OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertices));
 	OOGL(glColorPointer(4, GL_FLOAT, 0, _exhaustBaseColors));
-	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
-	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 	
 	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1));
 	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip1));
@@ -323,10 +321,11 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip3));
 	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2));
 	
-	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
 	
 	OOGL(glPopAttrib());
+	
+	OOVerifyOpenGLState();
 }
 
 

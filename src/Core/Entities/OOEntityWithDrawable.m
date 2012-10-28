@@ -100,12 +100,12 @@ MA 02110-1301, USA.
 		}
 	}	
 
-	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
+	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOn();
 		
 	if (translucent)  [drawable renderTranslucentParts];
 	else  [drawable renderOpaqueParts];
 	
-	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOff();
+	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOff();
 }
 
 

@@ -35,7 +35,7 @@ static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump"
 static GLfloat sDisplayScaleFactor = 1.0f;
 
 
-BOOL CheckOpenGLErrors(NSString *format, ...)
+BOOL OOCheckOpenGLErrors(NSString *format, ...)
 {
 	GLenum			errCode;
 	const GLubyte	*errString = NULL;
@@ -83,18 +83,17 @@ BOOL CheckOpenGLErrors(NSString *format, ...)
 }
 
 
-void GLDebugWireframeModeOn(void)
+void OOGLWireframeModeOn(void)
 {
 	OO_ENTER_OPENGL();
 	
 	OOGL(glPushAttrib(GL_POLYGON_BIT | GL_LINE_BIT | GL_TEXTURE_BIT));
 	OOGL(GLScaledLineWidth(1.0f));
 	OOGL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
-	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
 
-void GLDebugWireframeModeOff(void)
+void OOGLWireframeModeOff(void)
 {
 	OO_ENTER_OPENGL();
 	
@@ -199,9 +198,6 @@ void GLSetDisplayScaleFactor(GLfloat factor)
 
 #ifndef NDEBUG
 
-static NSString *GLColorToString(GLfloat color[4]);
-static NSString *GLEnumToString(GLenum value);
-
 static void GLDumpLightState(unsigned lightIdx);
 static void GLDumpMaterialState(void);
 static void GLDumpCullingState(void);
@@ -224,7 +220,7 @@ void LogOpenGLState(void)
 	GLDumpCullingState();
 	if (glIsEnabled(GL_LIGHTING))
 	{
-		OOLog(kOOLogOpenGLStateDump, @"Lighting: enabled");
+		OOLog(kOOLogOpenGLStateDump, @"Lighting: ENABLED");
 		for (i = 0; i != 8; ++i)
 		{
 			GLDumpLightState(i);
@@ -238,13 +234,13 @@ void LogOpenGLState(void)
 	GLDumpFogState();
 	GLDumpStateFlags();
 	
-	CheckOpenGLErrors(@"After state dump");
+	OOCheckOpenGLErrors(@"After state dump");
 	
 	OOLogOutdent();
 }
 
 
-static NSString *GLColorToString(GLfloat color[4])
+NSString *OOGLColorToString(GLfloat color[4])
 {
 	#define COLOR_EQUAL(color, r, g, b, a)  (color[0] == (r) && color[1] == (g) && color[2] == (b) && color[3] == (a))
 	#define COLOR_CASE(r, g, b, a, str)  do { if (COLOR_EQUAL(color, (r), (g), (b), (a)))  return (str); } while (0)
@@ -272,18 +268,18 @@ static void GLDumpLightState(unsigned lightIdx)
 	OO_ENTER_OPENGL();
 	
 	OOGL(enabled = glIsEnabled(lightID));
-	OOLog(kOOLogOpenGLStateDump, @"Light %u: %s", lightIdx, enabled ? "ENABLED" : "disabled");
+	OOLog(kOOLogOpenGLStateDump, @"Light %u: %@", lightIdx, OOGLFlagToString(enabled));
 	
 	if (enabled)
 	{
 		OOLogIndent();
 		
 		OOGL(glGetLightfv(GL_LIGHT1, GL_AMBIENT, color));
-		OOLog(kOOLogOpenGLStateDump, @"Ambient: %@", GLColorToString(color));
+		OOLog(kOOLogOpenGLStateDump, @"Ambient: %@", OOGLColorToString(color));
 		OOGL(glGetLightfv(GL_LIGHT1, GL_DIFFUSE, color));
-		OOLog(kOOLogOpenGLStateDump, @"Diffuse: %@", GLColorToString(color));
+		OOLog(kOOLogOpenGLStateDump, @"Diffuse: %@", OOGLColorToString(color));
 		OOGL(glGetLightfv(GL_LIGHT1, GL_SPECULAR, color));
-		OOLog(kOOLogOpenGLStateDump, @"Specular: %@", GLColorToString(color));
+		OOLog(kOOLogOpenGLStateDump, @"Specular: %@", OOGLColorToString(color));
 		
 		OOLogOutdent();
 	}
@@ -306,49 +302,49 @@ static void GLDumpMaterialState(void)
 	OOLogIndent();
 	
 	OOGL(glGetMaterialfv(GL_FRONT, GL_AMBIENT, color));
-	OOLog(kOOLogOpenGLStateDump, @"Ambient: %@", GLColorToString(color));
+	OOLog(kOOLogOpenGLStateDump, @"Ambient: %@", OOGLColorToString(color));
 	
 	OOGL(glGetMaterialfv(GL_FRONT, GL_DIFFUSE, color));
-	OOLog(kOOLogOpenGLStateDump, @"Diffuse: %@", GLColorToString(color));
+	OOLog(kOOLogOpenGLStateDump, @"Diffuse: %@", OOGLColorToString(color));
 	
 	OOGL(glGetMaterialfv(GL_FRONT, GL_EMISSION, color));
-	OOLog(kOOLogOpenGLStateDump, @"Emission: %@", GLColorToString(color));
+	OOLog(kOOLogOpenGLStateDump, @"Emission: %@", OOGLColorToString(color));
 	
 	OOGL(glGetMaterialfv(GL_FRONT, GL_SPECULAR, color));
-	OOLog(kOOLogOpenGLStateDump, @"Specular: %@", GLColorToString(color));
+	OOLog(kOOLogOpenGLStateDump, @"Specular: %@", OOGLColorToString(color));
 	
 	OOGL(glGetMaterialfv(GL_FRONT, GL_SHININESS, &shininess));
 	OOLog(kOOLogOpenGLStateDump, @"Shininess: %g", shininess);
 	
-	OOGL(OOLog(kOOLogOpenGLStateDump, @"Colour material: %s", glIsEnabled(GL_COLOR_MATERIAL) ? "ENABLED" : "disabled"));
+	OOGL(OOLog(kOOLogOpenGLStateDump, @"Colour material: %@", OOGLFlagToString(glIsEnabled(GL_COLOR_MATERIAL))));
 	
 	OOGL(glGetFloatv(GL_CURRENT_COLOR, color));
-	OOLog(kOOLogOpenGLStateDump, @"Current color: %@", GLColorToString(color));
+	OOLog(kOOLogOpenGLStateDump, @"Current color: %@", OOGLColorToString(color));
 	
 	OOGL(glGetIntegerv(GL_SHADE_MODEL, &shadeModel));
-	OOLog(kOOLogOpenGLStateDump, @"Shade model: %@", GLEnumToString(shadeModel));
+	OOLog(kOOLogOpenGLStateDump, @"Shade model: %@", OOGLEnumToString(shadeModel));
 	
 	OOGL(blending = glIsEnabled(GL_BLEND));
-	OOLog(kOOLogOpenGLStateDump, @"Blending: %s", blending ? "ENABLED" : "disabled");
+	OOLog(kOOLogOpenGLStateDump, @"Blending: %@", OOGLFlagToString(blending));
 	if (blending)
 	{
 		OOGL(glGetIntegerv(GL_BLEND_SRC, &blendSrc));
 		OOGL(glGetIntegerv(GL_BLEND_DST, &blendDst));
-		OOLog(kOOLogOpenGLStateDump, @"Blend function: %@, %@", GLEnumToString(blendSrc), GLEnumToString(blendDst));
+		OOLog(kOOLogOpenGLStateDump, @"Blend function: %@, %@", OOGLEnumToString(blendSrc), OOGLEnumToString(blendDst));
 	}
 	
 	OOGL(glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texMode));
-	OOLog(kOOLogOpenGLStateDump, @"Texture env mode: %@", GLEnumToString(texMode));
+	OOLog(kOOLogOpenGLStateDump, @"Texture env mode: %@", OOGLEnumToString(texMode));
 	
 #if OO_MULTITEXTURE
 	if ([[OOOpenGLExtensionManager sharedManager] textureUnitCount] > 1)
 	{
 		GLint textureUnit;
 		OOGL(glGetIntegerv(GL_ACTIVE_TEXTURE_ARB, &textureUnit));
-		OOLog(kOOLogOpenGLStateDump, @"Active texture unit: %@", GLEnumToString(textureUnit));
+		OOLog(kOOLogOpenGLStateDump, @"Active texture unit: %@", OOGLEnumToString(textureUnit));
 		
 		OOGL(glGetIntegerv(GL_CLIENT_ACTIVE_TEXTURE_ARB, &textureUnit));
-		OOLog(kOOLogOpenGLStateDump, @"Active client texture unit: %@", GLEnumToString(textureUnit));
+		OOLog(kOOLogOpenGLStateDump, @"Active client texture unit: %@", OOGLEnumToString(textureUnit));
 	}
 #endif
 	
@@ -358,20 +354,24 @@ static void GLDumpMaterialState(void)
 
 static void GLDumpCullingState(void)
 {
-	GLint					value;
-	
 	OO_ENTER_OPENGL();
 	
 	bool enabled;
 	OOGL(enabled = glIsEnabled(GL_CULL_FACE));
-	OOLog(kOOLogOpenGLStateDump, @"Face culling: %@", enabled ? @"ENABLED" : @"disabled");
+	OOLog(kOOLogOpenGLStateDump, @"Face culling: %@", OOGLFlagToString(enabled));
 	if (enabled)
 	{
+		GLint value;
+		
+		OOLogIndent();
+		
 		OOGL(glGetIntegerv(GL_CULL_FACE_MODE, &value));
-		OOLog(kOOLogOpenGLStateDump, @"Cull face mode: %@", GLEnumToString(value));
+		OOLog(kOOLogOpenGLStateDump, @"Cull face mode: %@", OOGLEnumToString(value));
 		
 		OOGL(glGetIntegerv(GL_FRONT_FACE, &value));
-		OOLog(kOOLogOpenGLStateDump, @"Front face direction: %@", GLEnumToString(value));
+		OOLog(kOOLogOpenGLStateDump, @"Front face direction: %@", OOGLEnumToString(value));
+		
+		OOLogOutdent();
 	}
 }
 
@@ -389,16 +389,16 @@ static void GLDumpFogState(void)
 	OO_ENTER_OPENGL();
 	
 	OOGL(enabled = glIsEnabled(GL_FOG));
-	OOLog(kOOLogOpenGLStateDump, @"Fog: %s", enabled ? "ENABLED" : "disabled");
+	OOLog(kOOLogOpenGLStateDump, @"Fog: %@", OOGLFlagToString(enabled));
 	if (enabled)
 	{
 		OOLogIndent();
 		
 		OOGL(glGetIntegerv(GL_FOG_MODE, &value));
-		OOLog(kOOLogOpenGLStateDump, @"Fog mode: %@", GLEnumToString(value));
+		OOLog(kOOLogOpenGLStateDump, @"Fog mode: %@", OOGLEnumToString(value));
 		
 		OOGL(glGetFloatv(GL_FOG_COLOR, color));
-		OOLog(kOOLogOpenGLStateDump, @"Fog colour: %@", GLColorToString(color));
+		OOLog(kOOLogOpenGLStateDump, @"Fog colour: %@", OOGLColorToString(color));
 		
 		OOGL(glGetFloatv(GL_FOG_START, &start));
 		OOGL(glGetFloatv(GL_FOG_START, &end));
@@ -419,8 +419,8 @@ static void GLDumpStateFlags(void)
 {
 	OO_ENTER_OPENGL();
 	
-#define DUMP_STATE_FLAG(x) OOLog(kOOLogOpenGLStateDump, @ #x ": %s", glIsEnabled(x) ? "ENABLED" : "disabled")
-#define DUMP_GET_FLAG(x) do { GLboolean flag; glGetBooleanv(x, &flag); OOLog(kOOLogOpenGLStateDump, @ #x ": %s", flag ? "ENABLED" : "disabled"); } while (0)
+#define DUMP_STATE_FLAG(x) OOLog(kOOLogOpenGLStateDump, @ #x ": %@", OOGLFlagToString(glIsEnabled(x)))
+#define DUMP_GET_FLAG(x) do { GLboolean flag; glGetBooleanv(x, &flag); OOLog(kOOLogOpenGLStateDump, @ #x ": %@", OOGLFlagToString(flag)); } while (0)
 	
 	OOLog(kOOLogOpenGLStateDump, @"Selected state flags:");
 	OOLogIndent();
@@ -441,7 +441,7 @@ static void GLDumpStateFlags(void)
 
 #define CASE(x)		case x: return @#x
 
-static NSString *GLEnumToString(GLenum value)
+NSString *OOGLEnumToString(GLenum value)
 {
 	switch (value)
 	{
@@ -509,6 +509,12 @@ static NSString *GLEnumToString(GLenum value)
 		
 		default: return [NSString stringWithFormat:@"unknown: %u", value];
 	}
+}
+
+
+NSString *OOGLFlagToString(bool value)
+{
+	return value ? @"ENABLED" : @"disabled";
 }
 
 #else

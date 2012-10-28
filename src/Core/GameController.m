@@ -878,9 +878,10 @@ static NSMutableArray *sMessageStack;
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;
 	
+	OOResetGLStateVerifier();
+	
 	OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
 	OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-	OOGL(glShadeModel(GL_FLAT));
 	
 	OOGL(glClearDepth(MAX_CLEAR_DEPTH));
 	OOGL(glViewport(0, 0, viewSize.width, viewSize.height));
@@ -891,15 +892,7 @@ static NSMutableArray *sMessageStack;
 	
 	OOGL(glMatrixMode(GL_MODELVIEW));
 	
-	OOGL(glEnable(GL_DEPTH_TEST));		// depth buffer
 	OOGL(glDepthFunc(GL_LESS));			// depth buffer
-	
-	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
-	OOGL(glCullFace(GL_BACK));			// face culling
-	OOGL(glEnable(GL_CULL_FACE));			// face culling
-	
-	OOGL(glEnable(GL_BLEND));									// alpha blending
-	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));	// alpha blending
 	
 	if (UNIVERSE)
 	{
@@ -917,10 +910,7 @@ static NSMutableArray *sMessageStack;
 		OOGL(glLightfv(GL_LIGHT1, GL_POSITION, black));
 		OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 		
-		OOGL(glEnable(GL_LIGHT1));		// lighting
-		
 	}
-	OOGL(glEnable(GL_LIGHTING));		// lighting
 	
 	if ([extMgr usePointSmoothing])  OOGL(glEnable(GL_POINT_SMOOTH));
 	if ([extMgr useLineSmoothing])  OOGL(glEnable(GL_LINE_SMOOTH));

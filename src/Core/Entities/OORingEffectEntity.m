@@ -136,19 +136,12 @@ static NSPoint sCircleVerts[kCircleSegments];	// holds vector coordinates for a 
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
 	
 	OO_ENTER_OPENGL();
-	
-	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
 	GLfloat alpha = OOClamp_0_1_f((kRingDuration - _timePassed) / kRingAttack);
 	
 	GLfloat ex_em_hi[4]		= {0.6, 0.8, 1.0, alpha};   // pale blue
 	GLfloat ex_em_lo[4]		= {0.2, 0.0, 1.0, 0.0};		// purplish-blue-black
-	
-	OOGL(glDisable(GL_CULL_FACE));
-	OOGL(glDisable(GL_TEXTURE_2D));
-	OOGL(glShadeModel(GL_SMOOTH));
-	OOGL(glEnable(GL_BLEND));
-	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
 	OOGLBEGIN(GL_TRIANGLE_STRIP);
 		for (unsigned i = 0; i < kCircleSegments; i++)
@@ -160,9 +153,8 @@ static NSPoint sCircleVerts[kCircleSegments];	// holds vector coordinates for a 
 		}
 	OOGLEND();
 	
-	OOGL(glPopAttrib());
-	
-	CheckOpenGLErrors(@"OOQuiriumCascadeEntity after drawing %@", self);
+	OOVerifyOpenGLState();
+	OOCheckOpenGLErrors(@"OOQuiriumCascadeEntity after drawing %@", self);
 }
 
 

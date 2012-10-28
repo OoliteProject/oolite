@@ -47,7 +47,6 @@ enum
 	Vector					_vertexPosition[kOOBreakPatternMaxVertices];
 	GLfloat					_vertexColor[kOOBreakPatternMaxVertices][4];
 	NSUInteger				_vertexCount;
-	GLuint					_displayListName;
 	double					_lifetime;
 }
 

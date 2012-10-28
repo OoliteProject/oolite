@@ -644,8 +644,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		
 		GLfloat	color_fv[4] = { 0.0, 0.0, 1.0, 0.25 };
 		
-		OOGL(glDisable(GL_CULL_FACE));			// face culling
-		OOGL(glDisable(GL_TEXTURE_2D));
+		OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);
+		OOGL(glDisable(GL_CULL_FACE));
+		OOGL(glEnable(GL_BLEND));
 		
 		OOGL(glColor4fv(color_fv));
 		OOGLBEGIN(GL_TRIANGLE_FAN);
@@ -654,9 +655,12 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				
 		DrawWormholeCorona(0.67 * collision_radius, collision_radius, 4, srzd, color_fv);
 					
-		OOGL(glEnable(GL_CULL_FACE));			// face culling
+		OOGL(glEnable(GL_CULL_FACE));
+		OOGL(glDisable(GL_BLEND));
 	}
-	CheckOpenGLErrors(@"WormholeEntity after drawing %@", self);
+	
+	OOVerifyOpenGLState();
+	OOCheckOpenGLErrors(@"WormholeEntity after drawing %@", self);
 }
 
 

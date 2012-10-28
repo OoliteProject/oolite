@@ -198,6 +198,8 @@
 	
 	OO_ENTER_OPENGL();
 	
+	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
 	OOGL(glShadeModel(GL_SMOOTH));
 	
@@ -222,9 +224,7 @@
 	OOGL(glEnable(GL_TEXTURE_2D));
 	
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
-	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 	
-	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
 	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 	
 	OOGL(glVertexPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
@@ -232,7 +232,6 @@
 	
 	// FIXME: instead of GL_RESCALE_NORMAL, consider copying and transforming the vertex array for each planet.
 	OOGL(glEnable(GL_RESCALE_NORMAL));
-	OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 	OOGL(glNormalPointer(GL_FLOAT, 0, kOOPlanetVertices));
 	
 	OOGL(glDrawElements(GL_TRIANGLES, data->faceCount*3, data->type, data->indices));
@@ -251,6 +250,10 @@
 	
 	[OOMaterial applyNone];
 	OOGL(glPopAttrib());
+	
+	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+	
+	OOVerifyOpenGLState();
 }
 
 

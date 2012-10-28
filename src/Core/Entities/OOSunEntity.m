@@ -81,14 +81,14 @@ MA 02110-1301, USA.
 	randf();randf();	// avoid ranrot dirft!
 	float hue_drift = 0.0f;
 */
-
+	
 	// anything more than a minimal hue drift will wipe out the original colour.
 	float hue_drift = 0.038f * fabs(randf() - randf());
 	
 	// set the lighting color for the sun
 	GLfloat		r,g,b,a;
 	[sun_color getRed:&r green:&g blue:&b alpha:&a];
-
+	
 	GLfloat		sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// real ambient light inside gl_LightModel.ambient
 	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
 	sun_diffuse[1] = 0.5 * (1.0 + g);	// paler
@@ -98,11 +98,11 @@ MA 02110-1301, USA.
 	sun_specular[1] = g;
 	sun_specular[2] = b;
 	sun_specular[3] = 1.0;
-
+	
 	OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
 	OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
 	OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
-
+	
 	// main disc less saturation more brightness
 	color = [OOColor colorWithHue:hue saturation:sat * 0.333f brightness:1.0f alpha:alf];
 	discColor[0] = [color redComponent];
@@ -137,7 +137,7 @@ MA 02110-1301, USA.
 	outerCoronaColor[1] = [color greenComponent];
 	outerCoronaColor[2] = [color blueComponent];
 	outerCoronaColor[3] = 0.45f;
-
+	
 	return YES;
 }
 
@@ -321,6 +321,8 @@ MA 02110-1301, USA.
 	}
 	OO_ENTER_OPENGL();
 	
+	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+	
 	OOGL(glPushAttrib(GL_ENABLE_BIT));
 	OOGL(glDisable(GL_CULL_FACE));
 	
@@ -345,6 +347,7 @@ MA 02110-1301, USA.
 	
 	OOGL(glDisable(GL_TEXTURE_2D));
 	OOGL(glDisable(GL_LIGHTING));
+	OOGL(glEnable(GL_BLEND));
 	OOGL(glColor3fv(discColor));
 	
 	// FIXME: use vertex arrays
@@ -354,7 +357,7 @@ MA 02110-1301, USA.
 	
 	if (![UNIVERSE reducedDetail])
 	{
-		OOGL(glDisable(GL_DEPTH_TEST));
+		if (!ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
 		if (cam_zero_distance < lim4k)
 		{
 			[self drawActiveCoronaWithInnerRadius:collision_radius
@@ -385,7 +388,8 @@ MA 02110-1301, USA.
 	}
 	
 	OOGL(glPopAttrib());
-	CheckOpenGLErrors(@"SunEntity after drawing %@", self);
+	OOCheckOpenGLErrors(@"SunEntity after drawing %@", self);
+	OOVerifyOpenGLState();
 }
 
 
@@ -428,7 +432,7 @@ MA 02110-1301, USA.
 	
 	OO_ENTER_OPENGL();
 	
-	OOGL(glShadeModel(GL_SMOOTH));
+	OOGL(glShadeModel(GL_SMOOTH));  // FIXME: should be redundant.
 	OOGLBEGIN(GL_TRIANGLE_STRIP);
 		for (i = 0; i < 360; i += step)
 		{

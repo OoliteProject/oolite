@@ -662,6 +662,7 @@
 		1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */; };
 		1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
 		1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
+		1AD3C339163A92F600469C4D /* OOOpenGLStateManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD3C338163A92F600469C4D /* OOOpenGLStateManager.m */; };
 		1ADA564810CD68D800E891B8 /* OOStellarBody.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADA564710CD68D800E891B8 /* OOStellarBody.h */; };
 		1ADA8AB30F42DBA80001BEC9 /* OODeepCopy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */; };
 		1ADA8AB40F42DBA80001BEC9 /* OODeepCopy.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */; };
@@ -1651,6 +1652,7 @@
 		1A2F63960C5CC737003872C8 /* hudSchema.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = hudSchema.plist; sourceTree = "<group>"; };
 		1A2F63980C5CC737003872C8 /* shipdataEntrySchema.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = shipdataEntrySchema.plist; sourceTree = "<group>"; };
 		1A2F63990C5CC737003872C8 /* shipyardSchema.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = shipyardSchema.plist; sourceTree = "<group>"; };
+		1A3091F81637447300C16E8B /* OOOpenGLStates.tbl */ = {isa = PBXFileReference; lastKnownFileType = text; path = OOOpenGLStates.tbl; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		1A3159250F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAIStateMachineVerifierStage.h; sourceTree = "<group>"; };
 		1A3159260F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAIStateMachineVerifierStage.m; sourceTree = "<group>"; };
 		1A3491290BC25EAA00802DA7 /* world-scripts.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "world-scripts.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
@@ -1964,6 +1966,7 @@
 		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; languageSpecificationIdentifier = plist; path = autoAImap.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
 		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
+		1AD3C338163A92F600469C4D /* OOOpenGLStateManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLStateManager.m; sourceTree = "<group>"; };
 		1AD5A81A12D3A9FD00B62503 /* exports-debug-32.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-32.exp"; path = "src/Cocoa/exports-debug-32.exp"; sourceTree = "<group>"; };
 		1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-64.exp"; path = "src/Cocoa/exports-debug-64.exp"; sourceTree = "<group>"; };
 		1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-options.xcconfig"; path = "src/Cocoa/oolite-options.xcconfig"; sourceTree = "<group>"; };
@@ -2513,6 +2516,7 @@
 			children = (
 				25F3E63A0994F08A002F25FD /* OOOpenGL.h */,
 				1A5AA3220C0098AF0029C78A /* OOOpenGL.m */,
+				1AD3C338163A92F600469C4D /* OOOpenGLStateManager.m */,
 				1A2A1DEA0BD2A28E00152975 /* OOMacroOpenGL.h */,
 				1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */,
 				1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */,
@@ -2605,6 +2609,7 @@
 				1A97305C12E61427001F2406 /* OOGalacticHyperspaceBehaviour.tbl */,
 				1A35256012E1FC0100244C9D /* OOScanClass.tbl */,
 				1A85AE4D12EE0ED9000E1FCD /* OOViewID.tbl */,
+				1A3091F81637447300C16E8B /* OOOpenGLStates.tbl */,
 			);
 			path = Tables;
 			sourceTree = "<group>";
@@ -4041,6 +4046,7 @@
 				1A401F8915E7AF7B004CDF95 /* OOPrimaryWindow.m in Sources */,
 				1A38E9E41603C7A500EE19F1 /* OOJSInterfaceDefinition.m in Sources */,
 				1AAEE9DB161F7523003A5A1E /* OOStringExpander.m in Sources */,
+				1AD3C339163A92F600469C4D /* OOOpenGLStateManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

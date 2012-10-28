@@ -125,64 +125,38 @@ MA 02110-1301, USA.
 }
 
 
-- (void) generateDisplayList
-{
-	OO_ENTER_OPENGL();
-	
-	OOGL(_displayListName = glGenLists(1));
-	if (_displayListName != 0)
-	{
-		OOGL(glNewList(_displayListName, GL_COMPILE));
-		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
-		OOGL(glEndList());
-	}
-}
-
-
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	// check if has been hidden.
 	if (!isImmuneToBreakPatternHide) return;
-
-	OO_ENTER_OPENGL();
 	
 	if (translucent || immediate)
 	{
-		if (immediate)
-		{
-			OOGL(glPushAttrib(GL_ENABLE_BIT));
-			
-			OOGL(glShadeModel(GL_SMOOTH));
-			OOGL(glDisable(GL_LIGHTING));
-			OOGL(glDisable(GL_TEXTURE_2D));
-			
-			OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-			OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertexPosition));
-			OOGL(glEnableClientState(GL_COLOR_ARRAY));
-			OOGL(glColorPointer(4, GL_FLOAT, 0, _vertexColor));
-			
-			OOGL(glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertexCount));
-			
-			OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-			OOGL(glDisableClientState(GL_COLOR_ARRAY));
-			
-			OOGL(glPopAttrib());
-		}
-		else
-		{
-			if (_displayListName == 0)
-			{
-				[self generateDisplayList];
-			}
-			else
-			{
-				// Don't call on first frame, because view orientation may be wrong.
-				OOGL(glCallList(_displayListName));
-			}
-		}
+		OO_ENTER_OPENGL();
+		OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+		
+		OOGL(glDisable(GL_LIGHTING));
+		OOGL(glDisable(GL_TEXTURE_2D));
+		OOGL(glEnable(GL_BLEND));
+		OOGL(glDepthMask(GL_FALSE));
+		OOGL(glDisableClientState(GL_NORMAL_ARRAY));
+		
+		OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertexPosition));
+		OOGL(glEnableClientState(GL_COLOR_ARRAY));
+		OOGL(glColorPointer(4, GL_FLOAT, 0, _vertexColor));
+		
+		OOGL(glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertexCount));
+		
+		OOGL(glEnable(GL_LIGHTING));
+		OOGL(glEnable(GL_TEXTURE_2D));
+		OOGL(glDisable(GL_BLEND));
+		OOGL(glDepthMask(GL_TRUE));
+		OOGL(glEnableClientState(GL_NORMAL_ARRAY));
+		OOGL(glDisableClientState(GL_COLOR_ARRAY));
+		
+		OOVerifyOpenGLState();
+		OOCheckOpenGLErrors(@"OOBreakPatternEntity after drawing %@", self);
 	}
-	
-	CheckOpenGLErrors(@"OOBreakPatternEntity after drawing %@", self);
 }
 
 

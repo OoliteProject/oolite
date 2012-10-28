@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOTextureSprite.h"
 #import "OOTexture.h"
 #import "OOMaths.h"
+#import "OOMacroOpenGL.h"
 
 
 @implementation OOTextureSprite
@@ -68,29 +69,33 @@ MA 02110-1301, USA.
 
 - (void) blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
+	OO_ENTER_OPENGL();
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+	
 	a = OOClamp_0_1_f(a);
 	OOGL(glEnable(GL_TEXTURE_2D));
 	OOGL(glColor4f(1.0, 1.0, 1.0, a));
 	
-	// Note that the textured Quad is drawn ACW from the Top Left
+	// Note that the textured Quad is drawn ACW from the top left.
 	
 	[texture apply];
 	OOGLBEGIN(GL_QUADS);
-	
-	glTexCoord2f(0.0, 0.0);
-	glVertex3f(x, y+size.height, z);
-	
-	glTexCoord2f(0.0, 1.0);
-	glVertex3f(x, y, z);
-	
-	glTexCoord2f(1.0, 1.0);
-	glVertex3f(x+size.width, y, z);
-	
-	glTexCoord2f(1.0, 0.0);
-	glVertex3f(x+size.width, y+size.height, z);
-	
+		glTexCoord2f(0.0, 0.0);
+		glVertex3f(x, y+size.height, z);
+		
+		glTexCoord2f(0.0, 1.0);
+		glVertex3f(x, y, z);
+		
+		glTexCoord2f(1.0, 1.0);
+		glVertex3f(x+size.width, y, z);
+		
+		glTexCoord2f(1.0, 0.0);
+		glVertex3f(x+size.width, y+size.height, z);
 	OOGLEND();
+	
 	OOGL(glDisable(GL_TEXTURE_2D));
+	
+	OOVerifyOpenGLState();
 }
 
 

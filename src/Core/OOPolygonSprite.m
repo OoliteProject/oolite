@@ -179,6 +179,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	NSParameterAssert(vbo != NULL && data != NULL);
 	
 	OO_ENTER_OPENGL();
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
 #if OO_USE_VBO
 	BOOL useVBO = [[OOOpenGLExtensionManager sharedManager] vboSupported];
@@ -210,6 +211,9 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 #if OO_USE_VBO
 	if (useVBO)  OOGL(glBindBufferARB(GL_ARRAY_BUFFER, 0));
 #endif
+	
+	OOVerifyOpenGLState();
+	OOCheckOpenGLErrors(@"OOPolygonSprite after rendering %@", self);
 }
 
 

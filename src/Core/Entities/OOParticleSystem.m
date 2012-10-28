@@ -142,6 +142,7 @@ do { \
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
 	
 	OO_ENTER_OPENGL();
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
@@ -230,7 +231,8 @@ do { \
 	
 	OOGL(glPopAttrib());
 	
-	CheckOpenGLErrors(@"OOParticleSystem after drawing %@", self);
+	OOVerifyOpenGLState();
+	OOCheckOpenGLErrors(@"OOParticleSystem after drawing %@", self);
 }
 
 

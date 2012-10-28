@@ -185,15 +185,9 @@ static const GLfloat kLaserVertices[] =
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
 	
 	OO_ENTER_OPENGL();
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
-	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
-	
-	OOGL(glDisable(GL_CULL_FACE));	// face culling
-	OOGL(glDisable(GL_TEXTURE_2D));
-	OOGL(glEnable(GL_BLEND));
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-	
 	
 	/*	FIXME: spread damage across the lifetime of the shot,
 		hurting whatever is hit in a given frame.
@@ -205,10 +199,10 @@ static const GLfloat kLaserVertices[] =
 	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
 	glDrawArrays(GL_QUADS, 0, 8);
 	
-	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-	OOGL(glPopAttrib());
+	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
-	CheckOpenGLErrors(@"OOLaserShotEntity after drawing %@", self);
+	OOVerifyOpenGLState();
+	OOCheckOpenGLErrors(@"OOLaserShotEntity after drawing %@", self);
 }
 
 

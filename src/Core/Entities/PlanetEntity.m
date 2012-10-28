@@ -821,7 +821,7 @@ static const BaseFace kTexturedFaces[][3] =
 				// Drop the detail level a bit, it still looks OK in wireframe and does not penalize
 				// the system that much.
 				subdivideLevel = 2;
-				GLDebugWireframeModeOn();
+				OOGLWireframeModeOn();
 			}
 			
 			{
@@ -860,7 +860,6 @@ static const BaseFace kTexturedFaces[][3] =
 				OOGL(glColor4fv(mat1));
 				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 				
-				OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 				OOGL(glEnableClientState(GL_COLOR_ARRAY));
 				OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
 				OOGL(glEnableClientState(GL_VERTEX_ARRAY));
@@ -931,7 +930,7 @@ static const BaseFace kTexturedFaces[][3] =
 			//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
 			if ([UNIVERSE wireframeGraphics])
 			{
-				GLDebugWireframeModeOff();
+				OOGLWireframeModeOff();
 			}
 			
 			OOGL(glDisableClientState(GL_VERTEX_ARRAY));
@@ -944,7 +943,7 @@ static const BaseFace kTexturedFaces[][3] =
 			break;
 	}
 	OOGL(glPopAttrib());
-	CheckOpenGLErrors(@"PlanetEntity after drawing %@", self);
+	OOCheckOpenGLErrors(@"PlanetEntity after drawing %@", self);
 }
 
 

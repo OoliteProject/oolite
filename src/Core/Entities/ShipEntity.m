@@ -5557,6 +5557,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
+	OOVerifyOpenGLState();
+	
 	if (cam_zero_distance > no_draw_distance) // this test provides an opportunity to do simple LoD culling
 	{
 		return; // TOO FAR AWAY
@@ -5604,7 +5606,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		OODebugDrawBoundingBox([self boundingBox]);
 	}
 #endif
-		
+	
+	OOVerifyOpenGLState();	
 }
 
 

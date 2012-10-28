@@ -259,7 +259,9 @@ enum
 #endif
 	
 	OO_ENTER_OPENGL();
-
+	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
+	
 	GLfloat	*fogcolor = [UNIVERSE skyClearColor];
 	float	idealDustSize = [[UNIVERSE gameView] viewSize].width / 800.0f;
 	
@@ -308,7 +310,6 @@ enum
 	
 	OOGL(glDisable(GL_TEXTURE_2D));
 	OOGL(glEnable(GL_BLEND));
-	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glDepthMask(GL_FALSE));
 	
 	if (warp_stars)
@@ -330,10 +331,8 @@ enum
 			}
 		}
 		
-		OOGL(glEnableClientState(GL_VERTEX_ARRAY));
 		OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
 		OOGL(glDrawElements(GL_LINES, DUST_N_PARTICLES * 2, GL_UNSIGNED_SHORT, indices));
-		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 		
 #if OO_SHADERS
 		if (useShader)
@@ -344,10 +343,8 @@ enum
 	}
 	else
 	{
-		OOGL(glEnableClientState(GL_VERTEX_ARRAY));
 		OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
 		OOGL(glDrawArrays(GL_POINTS, 0, DUST_N_PARTICLES));
-		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 	}
 	
 	// reapply normal conditions
@@ -362,10 +359,13 @@ enum
 		OOGL(glDisable(GL_FOG));
 	}
 	
-	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+	OOGL(glDisable(GL_BLEND));
 	OOGL(glDepthMask(GL_TRUE));
+	OOGL(glEnable(GL_TEXTURE_2D));
+	OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 	
-	CheckOpenGLErrors(@"DustEntity after drawing %@", self);
+	OOVerifyOpenGLState();
+	OOCheckOpenGLErrors(@"DustEntity after drawing %@", self);
 }
 
 

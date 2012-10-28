@@ -655,6 +655,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	hudUpdating = YES;
 	
+	OOVerifyOpenGLState();
+	
 	if (_crosshairWidth * lineWidth > 0)
 	{
 		OOGL(GLScaledLineWidth(_crosshairWidth * lineWidth));
@@ -668,7 +670,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	}
 	
 	[self drawDials];
-	CheckOpenGLErrors(@"After drawing HUD");
+	OOCheckOpenGLErrors(@"After drawing HUD");
+	
+	OOVerifyOpenGLState();
 	
 	hudUpdating = NO;
 }
@@ -869,13 +873,15 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	NSString	*equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	
-	if (EXPECT_NOT(equipment != nil && ![PLAYER hasEquipmentItem:equipment]))
+	if (equipment != nil && ![PLAYER hasEquipmentItem:equipment])
 	{
 		return;
 	}
 	// use the selector value stored during init.
 	[self performSelector:[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_SELECTOR] pointerValue] withObject:info];
-	CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
+	OOCheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
+	
+	OOVerifyOpenGLState();
 }
 
 
@@ -1081,6 +1087,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		double max_blip = 0.0;
 		int drawClass;
 		
+		OOVerifyOpenGLState();
+		
 		for (i = 0; i < ent_count; i++)  // scanner lollypops
 		{
 			scannedEntity = my_entities[i];
@@ -1276,6 +1284,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	{
 		[my_entities[i] release];	//	released
 	}
+	
+	OOVerifyOpenGLState();
 	
 	_scannerUpdated = YES;
 }
@@ -3148,6 +3158,8 @@ void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 	NSData			*data = nil;
 	const uint8_t	*bytes = NULL;
 	
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+	
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
 	
@@ -3164,6 +3176,8 @@ void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 	
 	[OOTexture applyNone];
 	OOGL(glDisable(GL_TEXTURE_2D));
+	
+	OOVerifyOpenGLState();
 }
 
 
@@ -3256,6 +3270,8 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, double x, double y, do
 
 static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom)
 {
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+	
 	GLfloat w1, h1;
 	GLfloat ww = 0.5 * siz.width;
 	GLfloat hh = 0.5 * siz.height;
@@ -3328,10 +3344,12 @@ static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir,
 				break;
 		}
 	OOGLEND();
+	
+	OOVerifyOpenGLState();
 }
 
 
-static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v)
+static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat *color4v)
 {
 	GLfloat			ww = 0.5 * siz.width;
 	GLfloat			hh = 0.5 * siz.height;
