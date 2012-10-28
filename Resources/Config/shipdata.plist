@@ -2397,6 +2397,7 @@
 		tunnel_corners = 6;
 		tunnel_start_angle = 0;
 		tunnel_aspect_ratio = 1;
+		scan_class = "CLASS_ROCK";
 		smooth = yes;
 		subentities = (
 			{
