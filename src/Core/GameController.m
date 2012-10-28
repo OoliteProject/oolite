@@ -878,8 +878,6 @@ static NSMutableArray *sMessageStack;
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;
 	
-	OOResetGLStateVerifier();
-	
 	OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
 	OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	
