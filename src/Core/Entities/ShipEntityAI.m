@@ -2073,7 +2073,7 @@
 
 - (void) setDestinationToDockingAbort
 {
-	Entity *the_target = [self primaryTarget];
+	Entity *the_target = [self targetStation];
 	double bo_distance = 8000; //	8km back off
 	Vector v0 = position;
 	Vector d0 = (the_target) ? the_target->position : kZeroVector;

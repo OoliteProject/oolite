@@ -3671,7 +3671,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		else
 		{
-			frustration += delta_t;
+			frustration += delta_t * 0.9;
 			if (frustration > 10.0)	// 10s of frustration
 			{
 				[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_INTERCEPT_TARGET"];
