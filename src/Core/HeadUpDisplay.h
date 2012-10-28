@@ -250,8 +250,8 @@ MA 02110-1301, USA.
 - (NSString *) hudName;
 - (void) setHudName:(NSString *)newHudName;
 
-- (double) scannerZoom;
-- (void) setScannerZoom:(double)value;
+- (GLfloat) scannerZoom;
+- (void) setScannerZoom:(GLfloat)value;
 
 - (GLfloat) overallAlpha;
 - (void) setOverallAlpha:(GLfloat)newAlphaValue;
@@ -312,9 +312,9 @@ MA 02110-1301, USA.
 @end
 
 
-void OODrawString(NSString *text, double x, double y, double z, NSSize siz);
-void OODrawHilightedString(NSString *text, double x, double y, double z, NSSize siz);
-void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
-void OODrawHilightedPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
-NSRect OORectFromString(NSString *text, double x, double y, NSSize siz);
+void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+void OODrawHilightedString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+NSRect OORectFromString(NSString *text, GLfloat x, GLfloat y, NSSize siz);
 CGFloat OOStringWidthInEm(NSString *text);

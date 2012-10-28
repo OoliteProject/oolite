@@ -81,13 +81,13 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 
 static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4]);
 
-static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount);
+static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount);
+static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount);
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
-static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary* propertiesReticleTargetSensitive);
-static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
+static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive);
+static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom);
 
 
 static OOTexture			*sFontTexture = nil;
@@ -174,7 +174,7 @@ static BOOL		_compassUpdated;
 static BOOL 	hostiles;
 
 
-static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSize siz);
+static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 
 static void InitTextEngine(void);
 
@@ -450,13 +450,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (double) scannerZoom
+- (GLfloat) scannerZoom
 {
 	return scanner_zoom;
 }
 
 
-- (void) setScannerZoom:(double) value
+- (void) setScannerZoom:(GLfloat)value
 {
 	scanner_zoom = value;
 }
@@ -1044,18 +1044,18 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		scanner_color[3] *= overallAlpha;
 	}
 	
-	float 			alpha = scanner_color[3];
+	GLfloat			alpha = scanner_color[3];
 	GLfloat			col[4] = { 1.0, 1.0, 1.0, alpha };	// temporary colour variable
 	
-	double			z_factor = siz.height / siz.width;	// approx 1/4
-	double			y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
+	GLfloat			z_factor = siz.height / siz.width;	// approx 1/4
+	GLfloat			y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
 	
 	int				scanner_cx = x;
 	int				scanner_cy = y;
 	
 	int				scannerFootprint = SCANNER_MAX_RANGE * 2.5 / siz.width;
 	
-	double			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0 / (scanner_zoom * scanner_zoom);
+	GLfloat			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0 / (scanner_zoom * scanner_zoom);
 	GLfloat			max_zoomed_range = sqrt(max_zoomed_range2);
 	
 	if (PLAYER == nil)  return;
@@ -1083,8 +1083,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	
 	if ([self checkPlayerInFlight])
 	{
-		double upscale = scanner_zoom * 1.25 / scannerFootprint;
-		double max_blip = 0.0;
+		GLfloat upscale = scanner_zoom * 1.25 / scannerFootprint;
+		GLfloat max_blip = 0.0;
 		int drawClass;
 		
 		OOVerifyOpenGLState();
@@ -1149,10 +1149,10 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				isHostile = NO;
 				if ([scannedEntity isShip])
 				{
-					ShipEntity* ship = (ShipEntity *)scannedEntity;
-					double wr = [ship weaponRange];
+					ShipEntity *ship = (ShipEntity *)scannedEntity;
+					GLfloat wr = [ship weaponRange];
 					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER)&&(scannedEntity->zero_distance < wr*wr));
-					GLfloat* base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
+					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 				else if ([scannedEntity isVisualEffect])
@@ -1234,9 +1234,9 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				}
 				if ([scannedEntity isCascadeWeapon])
 				{
-					double r1 = 2.5 + scannedEntity->collision_radius * upscale;
-					double l2 = r1*r1 - relativePosition.y*relativePosition.y;
-					double r0 = (l2 > 0)? sqrt(l2): 0;
+					GLfloat r1 = 2.5 + scannedEntity->collision_radius * upscale;
+					GLfloat l2 = r1 * r1 - relativePosition.y * relativePosition.y;
+					GLfloat r0 = (l2 > 0)? sqrt(l2): 0;
 					if (r0 > 0)
 					{
 						OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
@@ -1649,7 +1649,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize				siz;
 	BOOL				draw_surround;
 	GLfloat				alpha = overallAlpha;
-	double				ds = [PLAYER dialSpeed];
+	GLfloat				ds = [PLAYER dialSpeed];
 	struct CachedInfo	cached;
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
@@ -1774,8 +1774,8 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize				siz;
 	BOOL				drawSurround, labelled, energyCritical = NO;
 	GLfloat				alpha = overallAlpha;
-	double				bankHeight, bankY;
-	double				energy = [PLAYER dialEnergy] * sEnergyBanks;
+	GLfloat				bankHeight, bankY;
+	GLfloat				energy = [PLAYER dialEnergy] * sEnergyBanks;
 	struct CachedInfo	cached;
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
@@ -1814,15 +1814,15 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	bankHeight = siz.height / sEnergyBanks;
 	// draw energy banks	
 	NSSize barSize = NSMakeSize(siz.width, bankHeight - 2.0);		// leave a gap between bars
-	double midBank = bankHeight / 2.0;
+	GLfloat midBank = bankHeight / 2.0f;
 	bankY = y - (sEnergyBanks - 1) * midBank - 1.0;
 	
 	// avoid constant colour switching...
 	if (labelled)
 	{
 		GLColorWithOverallAlpha(green_color, alpha);
-		double labelStartX = x + 0.5 * barSize.width + 3.0;
-		NSSize labelSize = NSMakeSize(9.0, (bankHeight < 18.0)? bankHeight : 18.0 );
+		GLfloat labelStartX = x + 0.5f * barSize.width + 3.0f;
+		NSSize labelSize = NSMakeSize(9.0, (bankHeight < 18.0)? bankHeight : 18.0);
 		for (i = 0; i < sEnergyBanks; i++)
 		{
 			OODrawString([NSString stringWithFormat:@"E%x", sEnergyBanks - i], labelStartX, bankY - midBank, z1, labelSize);
@@ -1855,7 +1855,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize				siz;
 	BOOL				draw_surround;
 	GLfloat				alpha = overallAlpha;
-	double				shield = [PLAYER dialForwardShield];
+	GLfloat				shield = [PLAYER dialForwardShield];
 	struct CachedInfo	cached;
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
@@ -1889,7 +1889,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize				siz;
 	BOOL				draw_surround;
 	GLfloat				alpha = overallAlpha;
-	double				shield = [PLAYER dialAftShield];
+	GLfloat				shield = [PLAYER dialAftShield];
 	struct CachedInfo	cached;
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
@@ -1962,7 +1962,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	int					x, y;
 	NSSize				siz;
 	BOOL				draw_surround;
-	double				temp = [PLAYER hullHeatLevel];
+	GLfloat				temp = [PLAYER hullHeatLevel];
 	GLfloat				alpha = overallAlpha;
 	struct CachedInfo	cached;
 	
@@ -2009,7 +2009,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	int					x, y;
 	NSSize				siz;
 	BOOL				draw_surround;
-	double				temp = [PLAYER laserHeatLevel];
+	GLfloat				temp = [PLAYER laserHeatLevel];
 	GLfloat				alpha = overallAlpha;
 	struct CachedInfo	cached;
 	
@@ -2298,7 +2298,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	GLfloat status_color[4] = { 0.25, 0.25, 0.25, 1.0};
 	int alertCondition = [PLAYER alertCondition];
-	double flash_alpha = 0.333 * (2.0 + sin([UNIVERSE getTime] * 2.5 * alertCondition));
+	GLfloat flash_alpha = 0.333 * (2.0f + sin((GLfloat)[UNIVERSE getTime] * 2.5f * alertCondition));
 	
 	switch(alertCondition)
 	{
@@ -2520,7 +2520,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLfloat	s2c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s3c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	int scoop_status = [PLAYER dialFuelScoopStatus];
-	double t = [UNIVERSE getTime];
+	GLfloat t = [UNIVERSE getTime];
 	GLfloat a1 = alpha * 0.5f * (1.0f + sin(t * 8.0f));
 	GLfloat a2 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 1.0f));
 	GLfloat a3 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 2.0f));
@@ -2702,7 +2702,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 //---------------------------------------------------------------------//
 
-static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount)
 {
 	if (siz.width > siz.height)
 	{
@@ -2729,7 +2729,7 @@ static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, doub
 }
 
 
-static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount)
 {
 	if (siz.width > siz.height)
 	{
@@ -2756,7 +2756,7 @@ static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double 
 }
 
 
-static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount)
 {
 	GLfloat dial_ox =   x - siz.width/2;
 	GLfloat dial_oy =   y - siz.height/2;
@@ -2817,15 +2817,17 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary* propertiesReticleTargetSensitive)
+static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive)
 {
 	ShipEntity		*target_ship = nil;
 	NSString		*legal_desc = nil;
-	if ((!target)||(!player1))
-		return;
+	
+	if (target == nil || player1 == nil)  return;
 
 	if ([target isShip])
-		target_ship = (ShipEntity*)target;
+	{
+		target_ship = (ShipEntity *)target;
+	}
 
 	if ([target_ship isCloaked])  return;
 	
@@ -2868,8 +2870,8 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	
 	p1 = vector_subtract([target position], [player1 viewpointPosition]);
 	
-	double			rdist = magnitude(p1);
-	double			rsize = [target collisionRadius];
+	GLfloat			rdist = magnitude(p1);
+	GLfloat			rsize = [target collisionRadius];
 	
 	if (rsize < rdist * ONE_SIXTYFOURTH)
 		rsize = rdist * ONE_SIXTYFOURTH;
@@ -3028,7 +3030,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 			}
 			case WH_SCANINFO_COLLAPSE_TIME:
 			{
-				double timeForCollapsing = [(WormholeEntity *)target expiryTime] - [player1 clockTimeAdjusted];
+				OOTimeDelta timeForCollapsing = [(WormholeEntity *)target expiryTime] - [player1 clockTimeAdjusted];
 				int minutesToCollapse = floor (timeForCollapsing / 60.0);
 				int secondsToCollapse = (int)timeForCollapsing % 60;
 				
@@ -3075,7 +3077,7 @@ static void InitTextEngine(void)
 }
 
 
-static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSize siz)
+static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
 	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
 	GLfloat texture_y = ONE_SIXTEENTH * (chr >> 4);
@@ -3094,9 +3096,9 @@ static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSiz
 }
 
 
-NSRect OORectFromString(NSString *text, double x, double y, NSSize siz)
+NSRect OORectFromString(NSString *text, GLfloat x, GLfloat y, NSSize siz)
 {
-	double				w = 0;
+	GLfloat				w = 0;
 	NSData				*data = nil;
 	const uint8_t		*bytes = NULL;
 	NSUInteger			i, length;
@@ -3120,40 +3122,40 @@ CGFloat OOStringWidthInEm(NSString *text)
 }
 
 
-void drawHighlight(double x, double y, double z, NSSize siz, double alpha)
+void drawHighlight(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat alpha)
 {
 	// Rounded corners, fading 'shadow' version
 	OOGL(glColor4f(0.0f, 0.0f, 0.0f, alpha * 0.4f));	// dark translucent shadow
 	
 	OOGLBEGIN(GL_POLYGON);
-	// thin 'halo' around the 'solid' highlight
-	glVertex3f(x + 1.0f , y + siz.height + 2.5f, z);
-	glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.5f, z);
-	glVertex3f(x + siz.width + 4.5f, y + siz.height + 1.0f, z);
-	glVertex3f(x + siz.width + 4.5f, y + 3.0f, z);
-	glVertex3f(x + siz.width + 3.0f, y + 1.5f, z);
-	glVertex3f(x + 1.0f, y + 1.5f, z);
-	glVertex3f(x - 0.5f, y + 3.0f, z);
-	glVertex3f(x - 0.5f, y + siz.height + 1.0f, z);
+		// thin 'halo' around the 'solid' highlight
+		glVertex3f(x + 1.0f , y + siz.height + 2.5f, z);
+		glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.5f, z);
+		glVertex3f(x + siz.width + 4.5f, y + siz.height + 1.0f, z);
+		glVertex3f(x + siz.width + 4.5f, y + 3.0f, z);
+		glVertex3f(x + siz.width + 3.0f, y + 1.5f, z);
+		glVertex3f(x + 1.0f, y + 1.5f, z);
+		glVertex3f(x - 0.5f, y + 3.0f, z);
+		glVertex3f(x - 0.5f, y + siz.height + 1.0f, z);
 	OOGLEND();
 
 	
 	OOGLBEGIN(GL_POLYGON);
-	glVertex3f(x + 1.0f, y + siz.height + 2.0f, z);
-	glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.0f, z);
-	glVertex3f(x + siz.width + 4.0f, y + siz.height + 1.0f, z);
-	glVertex3f(x + siz.width + 4.0f, y + 3.0f, z);
-	glVertex3f(x + siz.width + 3.0f, y + 2.0f, z);
-	glVertex3f(x + 1.0f, y + 2.0f, z);
-	glVertex3f(x, y + 3.0f, z);
-	glVertex3f(x, y + siz.height + 1.0f, z);
+		glVertex3f(x + 1.0f, y + siz.height + 2.0f, z);
+		glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.0f, z);
+		glVertex3f(x + siz.width + 4.0f, y + siz.height + 1.0f, z);
+		glVertex3f(x + siz.width + 4.0f, y + 3.0f, z);
+		glVertex3f(x + siz.width + 3.0f, y + 2.0f, z);
+		glVertex3f(x + 1.0f, y + 2.0f, z);
+		glVertex3f(x, y + 3.0f, z);
+		glVertex3f(x, y + siz.height + 1.0f, z);
 	OOGLEND();
 }
 
 
-void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
+void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-	double			cx = x;
+	GLfloat			cx = x;
 	NSUInteger		i, length;
 	NSData			*data = nil;
 	const uint8_t	*bytes = NULL;
@@ -3168,10 +3170,10 @@ void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 	bytes = [data bytes];
 	
 	OOGLBEGIN(GL_QUADS);
-	for (i = 0; i < length; i++)
-	{
-		cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
-	}
+		for (i = 0; i < length; i++)
+		{
+			cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
+		}
 	OOGLEND();
 	
 	[OOTexture applyNone];
@@ -3181,13 +3183,15 @@ void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 }
 
 
-void OODrawHilightedString(NSString *text, double x, double y, double z, NSSize siz)
+void OODrawHilightedString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-	float color[4];
+	GLfloat color[4];
 	
 	// get the physical dimensions of the string
 	NSSize strsize = OORectFromString(text, 0.0f, 0.0f, siz).size;
 	strsize.width += 0.5f;
+	
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
 	OOGL(glPushAttrib(GL_CURRENT_BIT));	// save the text colour
 	OOGL(glGetFloatv(GL_CURRENT_COLOR, color));	// we need the original colour's alpha.
@@ -3197,10 +3201,12 @@ void OODrawHilightedString(NSString *text, double x, double y, double z, NSSize 
 	OOGL(glPopAttrib());	//restore the colour
 	
 	OODrawString(text, x, y, z, siz);
+	
+	OOVerifyOpenGLState();
 }
 
 
-void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz)
+void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
 	GLfloat govcol[] = {	0.5, 0.0, 0.7,
 							0.7, 0.5, 0.3,
@@ -3211,36 +3217,40 @@ void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, N
 							0.7, 0.7, 0.7,
 							0.7, 1.0, 1.0};
 	
-	double cx = x;
+	GLfloat cx = x;
 	int tl = tec + 1;
-	GLfloat ce1 = 1.0 - 0.125 * eco;
+	GLfloat ce1 = 1.0f - 0.125f * eco;
+	
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
 	
 	OOGLBEGIN(GL_QUADS);
-		glColor4f(ce1, 1.0, 0.0, 1.0);
+		glColor4f(ce1, 1.0f, 0.0f, 1.0f);
 		// see OODrawHilightedPlanetInfo
 		cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
 		glColor3fv(&govcol[gov * 3]);
-		cx += drawCharacterQuad(gov, cx, y, z, siz) - 1.0;		// charcters 0..7 are government symbols
-		glColor4f(0.5, 1.0, 1.0, 1.0);
+		cx += drawCharacterQuad(gov, cx, y, z, siz) - 1.0f;		// charcters 0..7 are government symbols
+		glColor4f(0.5f, 1.0f, 1.0f, 1.0f);
 		if (tl > 9)
 		{
 			// display TL clamped between 1..16, this must be a '1'!
-			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - 2.0;
+			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - 2.0f;
 		}
-		cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2, z, siz);
+		cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2.0f, z, siz);
 	OOGLEND();
 	
 	(void)cx;	// Suppress "value not used" analyzer issue.
 	
 	[OOTexture applyNone];
 	OOGL(glDisable(GL_TEXTURE_2D));
+	
+	OOVerifyOpenGLState();
 }
 
 
-void OODrawHilightedPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz)
+void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
 	float	color[4];
 	int		tl = tec + 1;
@@ -3257,6 +3267,8 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, double x, double y, do
 	if (tl > 9) hisize.width += siz.width * sGlyphWidths[49] - 2.0;
 	hisize.width += siz.width * sGlyphWidths[48 + (tl % 10)];
 	
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+	
 	OOGL(glPushAttrib(GL_CURRENT_BIT));	// save the text colour
 	OOGL(glGetFloatv(GL_CURRENT_COLOR, color));	// we need the original colour's alpha.
 	
@@ -3265,10 +3277,12 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, double x, double y, do
 	OOGL(glPopAttrib());	//restore the colour
 	
 	OODrawPlanetInfo(gov, eco, tec, x, y, z, siz);
+	
+	OOVerifyOpenGLState();
 }
 
 
-static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom)
+static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom)
 {
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	

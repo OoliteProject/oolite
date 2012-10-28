@@ -223,6 +223,7 @@ OOLITE_GRAPHICS_MISC_FILES = \
     OODebugGLDrawing.m \
     OOGraphicsResetManager.m \
     OOOpenGL.m \
+    OOOpenGLStateManager.m \
     OOOpenGLExtensionManager.m \
     OOProbabilisticTextureManager.m \
     OOSkyDrawable.m \
