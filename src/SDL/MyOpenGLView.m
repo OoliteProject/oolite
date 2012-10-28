@@ -612,6 +612,8 @@ MA 02110-1301, USA.
 	
   #endif
 	
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+
 	glViewport( 0, 0, dest.w, dest.h);
 	
 	glEnable( GL_TEXTURE_2D );
@@ -686,6 +688,9 @@ MA 02110-1301, USA.
 		SDL_FreeSurface( image );
 	}
 	glDeleteTextures(1, &texture);
+
+	glDisable( GL_TEXTURE_2D );
+	OOVerifyOpenGLState();
 }
 
 - (void) initialiseGLWithSize:(NSSize) v_size

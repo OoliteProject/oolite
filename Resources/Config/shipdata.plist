@@ -2391,7 +2391,6 @@
 		missiles = 0;
 		model = "new-rock.dat";
 		name = "Rock Hermit";
-		port_radius = 250;
 		requires_docking_clearance = no;
 		roles = "rockhermit station";
 		tunnel_corners = 6;

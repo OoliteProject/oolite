@@ -71,8 +71,8 @@ ifeq ($(debug),yes)
     ADDITIONAL_CFLAGS            += -g -O0
     ADDITIONAL_OBJCFLAGS         += -g -O0
     GNUSTEP_OBJ_DIR_NAME         := $(GNUSTEP_OBJ_DIR_NAME).dbg
-    ADDITIONAL_CFLAGS            += -DDEBUG -DOO_DEBUG
-    ADDITIONAL_OBJCFLAGS         += -DDEBUG -DOO_DEBUG
+    ADDITIONAL_CFLAGS            += -DDEBUG -DOO_DEBUG -DOO_CHECK_GL_HEAVY=1
+    ADDITIONAL_OBJCFLAGS         += -DDEBUG -DOO_DEBUG -DOO_CHECK_GL_HEAVY=1
 endif
 
 # these are common settings for both test and deployment release configurations
