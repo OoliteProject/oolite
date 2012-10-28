@@ -236,6 +236,7 @@ static inline void SetFunctionTracking(bool value)
 
 #else
 
+static inline void OOGLNoteCurrentFunction(const char *function, unsigned line)  {}
 static inline void SetFunctionTracking(bool value)  {}
 
 #endif
