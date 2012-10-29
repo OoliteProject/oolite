@@ -57,3 +57,4 @@ ITEM_SPECIAL(CLIENT_ACTIVE_TEXTURE, GLenum, OOGLEnumToString);
 ITEM_INT(CULL_FACE_MODE);
 ITEM_INT(FRONT_FACE);
 // Extra special handling: blend mode (two getters but one setter).
+
