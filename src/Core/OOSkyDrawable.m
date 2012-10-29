@@ -444,7 +444,7 @@ static OOColor *DebugColor(Vector orientation)
 	{
 		sStarTextures = [[OOProbabilisticTextureManager alloc]
 							initWithPListName:@"startextures.plist"
-									  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear
+									  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
 								   anisotropy:0.0f
 									  lodBias:-0.0f];
 		if (sStarTextures == nil)
@@ -464,7 +464,7 @@ static OOColor *DebugColor(Vector orientation)
 	{
 		sNebulaTextures = [[OOProbabilisticTextureManager alloc]
 							initWithPListName:@"nebulatextures.plist"
-									  options:kOOTextureDefaultOptions
+									  options:kOOTextureDefaultOptions | kOOTextureAlphaMask
 								   anisotropy:0.0f
 									  lodBias:0.0f];
 		if (sNebulaTextures == nil)
