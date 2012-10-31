@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "OOMacroOpenGL.h"
 
 
-#define kLaserDuration		(0.175)	// seconds
+#define kLaserDuration		(0.09)	// seconds
 
 // Default colour
 #define kLaserRed			(1.0f)
