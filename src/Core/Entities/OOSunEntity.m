@@ -307,10 +307,7 @@ MA 02110-1301, USA.
 	}
 	OO_ENTER_OPENGL();
 	
-	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
-	
-	OOGL(glPushAttrib(GL_ENABLE_BIT));
-	OOGL(glDisable(GL_CULL_FACE));
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
 	/*
 	 
@@ -325,27 +322,22 @@ MA 02110-1301, USA.
 	
 	int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
 	
-	// far enough away to draw flat ?
-	if (ignoreDepthBuffer)
-	{
-		OOGL(glDisable(GL_DEPTH_TEST));
-	}
+	// Close enough not to draw flat?
+	if (!ignoreDepthBuffer)  OOGL(glEnable(GL_DEPTH_TEST));
 	
-	OOGL(glDisable(GL_TEXTURE_2D));
-	OOGL(glDisable(GL_LIGHTING));
-	OOGL(glEnable(GL_BLEND));
+	OOGL(glDisable(GL_BLEND));
 	OOGL(glColor3fv(discColor));
 	
 	// FIXME: use vertex arrays
 	OOGLBEGIN(GL_TRIANGLE_FAN);
 		GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
-	OOGLEND(); 
+	OOGLEND();
+	
+	OOGL(glEnable(GL_BLEND));
+	if (!ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
 	
 	if (![UNIVERSE reducedDetail])
 	{
-		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
-		if (!ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
-		
 		if (cam_zero_distance < lim4k)
 		{
 			[self drawActiveCoronaWithInnerRadius:collision_radius
@@ -375,9 +367,8 @@ MA 02110-1301, USA.
 		}
 	}
 	
-	OOGL(glPopAttrib());
-	OOCheckOpenGLErrors(@"SunEntity after drawing %@", self);
 	OOVerifyOpenGLState();
+	OOCheckOpenGLErrors(@"SunEntity after drawing %@", self);
 }
 
 
