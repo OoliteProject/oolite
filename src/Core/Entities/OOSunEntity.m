@@ -411,7 +411,6 @@ MA 02110-1301, USA.
 	
 	OO_ENTER_OPENGL();
 	
-	OOGL(glShadeModel(GL_SMOOTH));  // FIXME: should be redundant.
 	OOGLBEGIN(GL_TRIANGLE_STRIP);
 		for (i = 0; i < 360; i += step)
 		{
