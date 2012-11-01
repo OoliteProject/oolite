@@ -31,6 +31,8 @@
 	"[could-not-buy-commodity]"		= "[@boop]";
 	"[could-not-sell-commodity]"	= "[@boop]";
 	"[could-not-buy-ship]"			= "[could-not-buy-commodity]";
+	"[contract-accepted]"			= "[buy-commodity]";
+	"[contract-rejected]"			= "[could-not-buy-commodity]";
 	"[cargo-jettisoned]"			= "[@beep]";
 	"[autopilot-on]"				= "[@switch-on]";
 	"[autopilot-off]"				= "[@switch-off]";

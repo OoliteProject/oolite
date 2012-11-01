@@ -1923,6 +1923,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		choiceValue = [choicesDict objectForKey:choiceKey];
 		OOGUIAlignment alignment = GUI_ALIGN_CENTER;
 		OOColor *rowColor = [OOColor yellowColor];
+		BOOL selectable = YES;
 		if ([choiceValue isKindOfClass:[NSString class]])
 		{
 			choiceText = [NSString stringWithFormat:@" %@ ",(NSString*)choiceValue];
@@ -1941,9 +1942,17 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				alignment = GUI_ALIGN_RIGHT;
 			}
 			id colorDesc = [choiceOpts objectForKey:@"color"];
+			if ([choiceOpts oo_boolForKey:@"unselectable"])
+			{
+				selectable = NO;
+			}
 			if (colorDesc != nil)
 			{
 				rowColor = [OOColor colorWithDescription:colorDesc];
+			}
+			else if (!selectable) // different default
+			{
+				rowColor = [OOColor darkGrayColor];
 			}
 		}
 		else
@@ -1956,9 +1965,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if (![choiceText isEqualToString:@"  "])
 		{
 			[gui setText:choiceText forRow:choicesRow align: alignment];
-			[gui setKey:choiceKey forRow:choicesRow];
+			if (selectable)
+			{
+				[gui setKey:choiceKey forRow:choicesRow];
+			}
+			else
+			{
+				[gui setKey:GUI_KEY_SKIP forRow:choicesRow];
+			}
 			[gui setColor:rowColor forRow:choicesRow];
-			if (!selectableRowExists)
+			if (selectable && !selectableRowExists)
 			{
 				selectableRowExists = YES;
 				firstSelectableRow = choicesRow;

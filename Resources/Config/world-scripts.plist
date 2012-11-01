@@ -4,5 +4,8 @@
 	"oolite-nova-mission.js",
 	"oolite-thargoid-plans-mission.js",
 	"oolite-trumbles-mission.js",
-	"oolite-contracts-parcels.js"
+	"oolite-contracts-cargo.js",
+	"oolite-contracts-helpers.js",
+	"oolite-contracts-parcels.js",
+	"oolite-contracts-passengers.js"
 )

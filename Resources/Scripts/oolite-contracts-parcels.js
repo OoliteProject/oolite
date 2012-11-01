@@ -123,6 +123,8 @@ this._addParcelToSystem = function(parcel)
 
 this.startUp = function() 
 {
+		this.$helper = worldScripts["oolite-contracts-helpers"];
+
 		this.$suspendedDestination = null;
 		this.$suspendedHUD = false;
 
@@ -389,11 +391,11 @@ this._parcelContractSummaryPage = function()
 		// column header line
 		var headline = expandMissionText("oolite-contracts-parcels-column-cargo");
 		// pad to correct length to give a table-like layout
-		headline += this._paddingText(headline,columns[0]);
+		headline += this.$helper._paddingText(headline,columns[0]);
 		headline += expandMissionText("oolite-contracts-parcels-column-destination");
-		headline += this._paddingText(headline,columns[1]);
+		headline += this.$helper._paddingText(headline,columns[1]);
 		headline += expandMissionText("oolite-contracts-parcels-column-within");
-		headline += this._paddingText(headline,columns[2]);
+		headline += this.$helper._paddingText(headline,columns[2]);
 		headline += expandMissionText("oolite-contracts-parcels-column-fee");
 		// required because of way choices are displayed.
 		headline = " "+headline;
@@ -407,14 +409,14 @@ this._parcelContractSummaryPage = function()
 				var parcel = this.$parcels[i];
 				// write the parcel description, padded to line up with the headers
 				var optionText = parcel.description;
-				optionText += this._paddingText(optionText, columns[0]);
+				optionText += this.$helper._paddingText(optionText, columns[0]);
 				optionText += System.infoForSystem(galaxyNumber, parcel.destination).name;
-				optionText += this._paddingText(optionText, columns[1]);
-				optionText += this._timeRemaining(parcel);
-				optionText += this._paddingText(optionText, columns[2]);
+				optionText += this.$helper._paddingText(optionText, columns[1]);
+				optionText += this.$helper._timeRemaining(parcel);
+				optionText += this.$helper._paddingText(optionText, columns[2]);
 				// right-align the fee so that the credits signs line up
 				var priceText = formatCredits(parcel.payment,false,true);
-				priceText = this._paddingText(priceText, 2.5)+priceText;
+				priceText = this.$helper._paddingText(priceText, 2.5)+priceText;
 				optionText += priceText
 				
 				// maximum of seven contracts available, so no need to pad the number
@@ -423,7 +425,7 @@ this._parcelContractSummaryPage = function()
 				options["01_CONTRACT_"+i] = { text: optionText, alignment: "LEFT" };
 				
 				// if there doesn't appear to be sufficient time remaining
-				if (this._timeRemainingSeconds(parcel) < this._timeEstimateSeconds(parcel))
+				if (this.$helper._timeRemainingSeconds(parcel) < this.$helper._timeEstimateSeconds(parcel))
 				{
 						options["01_CONTRACT_"+i].color = "orangeColor";
 				}
@@ -503,9 +505,9 @@ this._parcelContractSinglePage = function()
 		message += expandMissionText("oolite-contracts-parcels-long-description",{
 				"oolite-contracts-parcels-longdesc-sender": parcel.sender,
 				"oolite-contracts-parcels-longdesc-contents": this._formatPackageName(parcel.description),
-				"oolite-contracts-parcels-longdesc-destination": System.infoForSystem(galaxyNumber,parcel.destination).name,
-				"oolite-contracts-parcels-longdesc-deadline": this._timeRemaining(parcel),
-				"oolite-contracts-parcels-longdesc-time": this._timeEstimate(parcel),
+				"oolite-contracts-parcels-longdesc-destination": this.$helper._systemName(parcel.destination),
+				"oolite-contracts-parcels-longdesc-deadline": this.$helper._timeRemaining(parcel),
+				"oolite-contracts-parcels-longdesc-time": this.$helper._timeEstimate(parcel),
 				"oolite-contracts-parcels-longdesc-payment": formatCredits(parcel.payment,false,true)
 		});
 
@@ -521,7 +523,7 @@ this._parcelContractSinglePage = function()
 		};
 
 		// if there's not much time left, change the option colour as a warning!
-		if (this._timeRemainingSeconds(parcel) < this._timeEstimateSeconds(parcel))
+		if (this.$helper._timeRemainingSeconds(parcel) < this.$helper._timeEstimateSeconds(parcel))
 		{
 				options["05_ACCEPT"].color = "orangeColor";
 		}
@@ -600,7 +602,7 @@ this._processParcelChoice = function(choice)
 		{
 				// contract selected from summary page
 				// set the index to that contract, and show details
-				var index = parseInt(choice.slice(12));
+				var index = parseInt(choice.slice(12),10);
 				this.$contractIndex = index;
 				this.$lastChoice = "04_LIST";
 				this._parcelContractsDisplay(false);
@@ -656,6 +658,8 @@ this._acceptContract = function()
 
 		// update the interface description
 		this._updateMainStationInterfacesList();
+
+		this.$helper._soundSuccess();
 }
 
 
@@ -671,7 +675,7 @@ this._validateParcels = function()
 				// delivery time, even in the best case it's probably not
 				// going to get there.
 
-				if (this._timeRemainingSeconds(this.$parcels[i]) < this._timeEstimateSeconds(this.$parcels[i]) / 3)
+				if (this.$helper._timeRemainingSeconds(this.$parcels[i]) < this.$helper._timeEstimateSeconds(this.$parcels[i]) / 3)
 				{
 						// remove it
 						this.$parcels.splice(i,1);
@@ -688,72 +692,7 @@ this._validateParcels = function()
 
 /* Utility functions */
 
-// returns a string containing the necessary number of "hair spaces" to
-// pad the currentText string to the specified length in 'em'
-this._paddingText = function(currentText, desiredLength)
-{
-		var hairSpace = String.fromCharCode(31);
-		var currentLength = defaultFont.measureString(currentText);
-		var hairSpaceLength = defaultFont.measureString(hairSpace);
-		// calculate number needed to fill remaining length
-		var padsNeeded = Math.floor((desiredLength - currentLength) / hairSpaceLength);
-		if (padsNeeded < 1) 
-		{
-				return "";
-		}
-		// quick way of generating a repeated string of that number
-		return new Array(padsNeeded).join(hairSpace);
-}
-
-
-// gives a text description of the time remaining to deliver this parcel
-this._timeRemaining = function(parcel)
-{
-		return this._formatTravelTime(this._timeRemainingSeconds(parcel));
-}
-
-
-this._timeRemainingSeconds = function(parcel) {
-		return parcel.deadline - clock.seconds;
-}
-
-
-// gives a text description of a reasonable travel time to deliver this parcel
-this._timeEstimate = function(parcel)
-{
-		// allow 30 minutes in each system on the shortest route
-		return this._formatTravelTime(this._timeEstimateSeconds(parcel));
-}
-
-
-this._timeEstimateSeconds = function(parcel)
-{
-		return (parcel.route.time * 3600) + (parcel.route.route.length * 1800);
-}
-
-
-// format the travel time
-this._formatTravelTime = function(seconds) {
-		// this function uses an hours-only format
-		// but provides enough information to use a days&hours format if
-		// oolite-contracts-parcels-time-format in missiontext.plist is overridden
-
-		// extra minutes are discarded
-		var hours = Math.floor(seconds/3600);
-		
-		var days = Math.floor(hours/24);
-		var spareHours = hours % 24;
-		
-		return expandMissionText("oolite-contracts-parcels-time-format",{
-				"oolite-contracts-parcels-time-format-hours": hours,
-				"oolite-contracts-parcels-time-format-days": days,
-				"oolite-contracts-parcels-time-format-spare-hours": spareHours
-		});
-}
-
 // lower-cases the initial letter of the package contents
 this._formatPackageName = function(name) {
 		return name.charAt(0).toLowerCase() + name.slice(1);
 }
-
-

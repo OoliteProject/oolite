@@ -57,11 +57,16 @@
 		"OOLITE_TRUMBLE_YES" = "Okay, I’ll take one, it looks cute.";
 	};
 
+
+	// General contracts (oolite-contracts-*.js)
+	
+	"oolite-contracts-time-format" = "[oolite-contracts-time-format-hours] hours";
+
 	// Parcel delivery contracts (oolite-contracts-parcels.js)
 
 	"oolite-contracts-parcels-interface-title" = "Parcel contract deliveries ([oolite-contracts-parcels-interface-title-count] available)";
 	"oolite-contracts-parcels-interface-summary" = "Deliveries of small parcels to recipients in other systems. No special equipment is required, and the parcels will not take up space in your hold.";
-	"oolite-contracts-parcels-interface-category" = "Contracts";
+	"oolite-contracts-parcels-interface-category" = "[interfaces-category-deliveries]";
 
 	"oolite-contracts-parcels-none-available-title" = "Parcel delivery contracts";
 	"oolite-contracts-parcels-none-available-message" = "There are currently no parcel delivery contracts available in this system.";
@@ -84,7 +89,63 @@
 	"oolite-contracts-parcels-command-accept" = "Accept delivery contract";
 	"oolite-contracts-parcels-command-quit" = "Exit parcel delivery contracts";
 
-	"oolite-contracts-parcels-time-format" = "[oolite-contracts-parcels-time-format-hours] hours";
-		
+	// Passenger delivery contracts (oolite-contracts-passengers.js)
+
+	"oolite-contracts-passengers-interface-title" = "Passenger contract deliveries ([oolite-contracts-passengers-interface-title-count] available)";
+	"oolite-contracts-passengers-interface-summary" = "Transportation of passengers to other systems. One passenger cabin (available from all systems Tech Level 6 or higher) is needed for each passenger.";
+	"oolite-contracts-passengers-interface-category" = "[interfaces-category-deliveries]";
+
+	"oolite-contracts-passengers-none-available-title" = "Passenger transport contracts";
+	"oolite-contracts-passengers-none-available-message" = "There are currently no passenger transport contracts available in this system.";
+
+	"oolite-contracts-passengers-title-summary" = "Passenger transport contracts";
+	"oolite-contracts-passengers-title-detail" = "Passenger transport contract [oolite-contracts-passengers-title-detail-number] of [oolite-contracts-passengers-title-detail-total]";
+
+	"oolite-contracts-passengers-column-name" = "Name";
+	"oolite-contracts-passengers-column-destination" = "Destination";
+	"oolite-contracts-passengers-column-within" = "Within";
+	"oolite-contracts-passengers-column-advance" = "Advance";
+	"oolite-contracts-passengers-column-fee" = "Fee";
+
+	"oolite-contracts-passengers-long-description" = "[oolite-contracts-passengers-longdesc-name], a [oolite-contracts-passengers-longdesc-species], wishes to go to [oolite-contracts-passengers-longdesc-destination] within [oolite-contracts-passengers-longdesc-deadline]. The journey will take about [oolite-contracts-passengers-longdesc-time]. You will be paid [oolite-contracts-passengers-longdesc-advance] in advance and [oolite-contracts-passengers-longdesc-payment] upon successful delivery.";
+
+	"oolite-contracts-passengers-command-ana-quickest" = "Show quickest route";
+	"oolite-contracts-passengers-command-ana-shortest" = "Show route with fewest jumps";
+	"oolite-contracts-passengers-command-back" = "Previous contract";
+	"oolite-contracts-passengers-command-next" = "Next contract";
+	"oolite-contracts-passengers-command-list" = "List all contracts";
+	"oolite-contracts-passengers-command-accept" = "Accept transport contract";
+	"oolite-contracts-passengers-command-unavailable" = "(no free passenger cabins)";
+	"oolite-contracts-passengers-command-quit" = "Exit passenger transport contracts";
+
+	// Cargo delivery contracts (oolite-contracts-cargo.js)
+
+	"oolite-contracts-cargo-interface-title" = "Cargo contract deliveries ([oolite-contracts-cargo-interface-title-count] available)";
+	"oolite-contracts-cargo-interface-summary" = "Transportation of cargo in bulk to other systems. Sufficient hold space is required, and you will need to pay a deposit to insure against failure to deliver.";
+	"oolite-contracts-cargo-interface-category" = "[interfaces-category-deliveries]";
+
+	"oolite-contracts-cargo-none-available-title" = "Cargo transport contracts";
+	"oolite-contracts-cargo-none-available-message" = "There are currently no cargo transport contracts available in this system.";
+
+	"oolite-contracts-cargo-title-summary" = "Cargo transport contracts";
+	"oolite-contracts-cargo-title-detail" = "Cargo transport contract [oolite-contracts-cargo-title-detail-number] of [oolite-contracts-cargo-title-detail-total]";
+
+	"oolite-contracts-cargo-column-goods" = "Goods";
+	"oolite-contracts-cargo-column-destination" = "Destination";
+	"oolite-contracts-cargo-column-within" = "Within";
+	"oolite-contracts-cargo-column-deposit" = "Deposit";
+	"oolite-contracts-cargo-column-fee" = "Fee";
+
+	"oolite-contracts-cargo-long-description" = "Deliver a cargo of [oolite-contracts-cargo-longdesc-goods] to [oolite-contracts-cargo-longdesc-destination] within [oolite-contracts-cargo-longdesc-deadline]. The journey will take about [oolite-contracts-cargo-longdesc-time]. You will be paid [oolite-contracts-cargo-longdesc-payment] upon successful delivery, and must pay [oolite-contracts-cargo-longdesc-deposit] to take the contract.";
+
+	"oolite-contracts-cargo-command-ana-quickest" = "Show quickest route";
+	"oolite-contracts-cargo-command-ana-shortest" = "Show route with fewest jumps";
+	"oolite-contracts-cargo-command-back" = "Previous contract";
+	"oolite-contracts-cargo-command-next" = "Next contract";
+	"oolite-contracts-cargo-command-list" = "List all contracts";
+	"oolite-contracts-cargo-command-accept" = "Accept cargo contract";
+	"oolite-contracts-cargo-command-unavailable" = "(insufficient resources)";
+	"oolite-contracts-cargo-command-quit" = "Exit cargo transport contracts";
+
 
 }

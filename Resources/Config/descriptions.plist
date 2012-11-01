@@ -1167,8 +1167,18 @@
 	"interfaces-title"								= "Ship and System Interfaces";
 	"interfaces-no-interfaces-available-for-use"	= "No interfaces are installed on your ship or enabled at this station";
 	"interfaces-for-ship-@-and-station-@"			= "Interfaces for %@ and %@";
-	"interfaces-unspecified-category"				= "Uncategorised";	
-	
+	// standard categories for easy translations
+	"interfaces-category-uncategorised"				= "Uncategorised";	
+	"interfaces-category-bounties"            = "Bounties";	
+	"interfaces-category-deliveries"          = "Deliveries";	
+	"interfaces-category-employment"          = "Employment";	
+	"interfaces-category-help"                = "Help";	
+	"interfaces-category-logs"                = "Logs";	
+	"interfaces-category-news"                = "News";	
+	"interfaces-category-organisations"       = "Organisations";	
+	"interfaces-category-ship-systems"        = "Ship Systems";	
+
+
 	// Contracts screen
 	"@-contracts-title"				= "%@ Carrier Market";
 	
