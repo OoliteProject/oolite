@@ -104,39 +104,25 @@ MA 02110-1301, USA.
 	OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
 	
 	// main disc less saturation more brightness
-	color = [OOColor colorWithHue:hue saturation:sat * 0.333f brightness:1.0f alpha:alf];
-	discColor[0] = [color redComponent];
-	discColor[1] = [color greenComponent];
-	discColor[2] = [color blueComponent];
-	discColor[3] = 1.0f;
+	color = [OOColor colorWithHue:hue saturation:sat * 0.333f brightness:1.0f alpha:1.0f];
+	[color getRed:&discColor[0] green:&discColor[1] blue:&discColor[2] alpha:&discColor[3]];
 	
-	// nearest corona much more saturation
+	/*	Two inner corona layers with low alpha and saturation are additively
+		blended with main corona. This produces something vaguely like a bloom
+		effect.
+	*/
 	hue += hue_drift;
-	if (hue > 1.0)	hue -= 1.0;
-	color = [OOColor colorWithHue:hue saturation:sat * 0.625f brightness:(bri + 2.0)/3.0 alpha:alf];
-	innerCoronaColor[0] = [color redComponent];
-	innerCoronaColor[1] = [color greenComponent];
-	innerCoronaColor[2] = [color blueComponent];
-	innerCoronaColor[3] = 0.75f;
+	color = [OOColor colorWithHue:hue saturation:sat * 0.1f brightness:(bri + 2.0)/3.0 alpha:0.25f];
+	[color getRed:&innerCoronaColor[0] green:&innerCoronaColor[1] blue:&innerCoronaColor[2] alpha:&innerCoronaColor[3]];
 	
-	// next corona slightly more saturation
 	hue += hue_drift;
-	if (hue > 1.0)	hue -= 1.0;
-	color = [OOColor colorWithHue:hue saturation:sat brightness:bri alpha:alf];
-	middleCoronaColor[0] = [color redComponent];
-	middleCoronaColor[1] = [color greenComponent];
-	middleCoronaColor[2] = [color blueComponent];
-	middleCoronaColor[3] = 0.625f;
+	color = [OOColor colorWithHue:hue saturation:sat * 0.1f brightness:bri alpha:0.25f];
+	[color getRed:&middleCoronaColor[0] green:&middleCoronaColor[1] blue:&middleCoronaColor[2] alpha:&middleCoronaColor[3]];
 	
-	// last corona, highest saturation, less bright
 	hue += hue_drift;
-	if (hue > 1.0)	hue -= 1.0;
 	// saturation = 1 would shift white to red
-	color = [OOColor colorWithHue:hue saturation:OOClamp_0_1_f(sat*1.3f) brightness:bri * 0.75f alpha:alf * 0.6f];
-	outerCoronaColor[0] = [color redComponent];
-	outerCoronaColor[1] = [color greenComponent];
-	outerCoronaColor[2] = [color blueComponent];
-	outerCoronaColor[3] = 0.45f;
+	color = [OOColor colorWithHue:hue saturation:OOClamp_0_1_f(sat*1.0f) brightness:bri * 0.75f alpha:0.45f];
+	[color getRed:&outerCoronaColor[0] green:&outerCoronaColor[1] blue:&outerCoronaColor[2] alpha:&outerCoronaColor[3]];
 	
 	return YES;
 }
@@ -353,11 +339,13 @@ MA 02110-1301, USA.
 	// FIXME: use vertex arrays
 	OOGLBEGIN(GL_TRIANGLE_FAN);
 		GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
-	OOGLEND();
+	OOGLEND(); 
 	
 	if (![UNIVERSE reducedDetail])
 	{
+		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 		if (!ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
+		
 		if (cam_zero_distance < lim4k)
 		{
 			[self drawActiveCoronaWithInnerRadius:collision_radius
