@@ -96,7 +96,7 @@ static OOTexture *sBlobTexture = nil;
 }
 
 
-- (void) drawSubEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (!translucent)  return;
 	
@@ -127,13 +127,13 @@ static OOTexture *sBlobTexture = nil;
 	OOGL(glPopMatrix());  OOGL(glPushMatrix());  // restore zero!
 	GLTranslateOOVector(abspos);	// move to absolute position
 	
-	[self drawEntity:immediate :translucent];
+	[self drawImmediate:immediate translucent:translucent];
 	
 	GLLoadOOMatrix(temp_matrix);
 }
 
 
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (!translucent) return;
 	if ([UNIVERSE breakPatternHide] && ![self isImmuneToBreakPatternHide])

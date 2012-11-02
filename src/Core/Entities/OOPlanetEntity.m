@@ -473,7 +473,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (translucent || [UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.

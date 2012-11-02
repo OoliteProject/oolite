@@ -620,7 +620,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 }
 
 
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {	
 	if ([UNIVERSE breakPatternHide])
 		return;		// DON'T DRAW DURING BREAK PATTERN

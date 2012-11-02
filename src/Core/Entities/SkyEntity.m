@@ -196,11 +196,11 @@ MA 02110-1301, USA.
 }
 
 
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if ([UNIVERSE breakPatternHide])  return;
 	
-	[super drawEntity:immediate :translucent];
+	[super drawImmediate:immediate translucent:translucent];
 	
 	OOCheckOpenGLErrors(@"SkyEntity after drawing %@", self);
 }

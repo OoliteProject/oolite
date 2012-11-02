@@ -1175,13 +1175,13 @@ MA 02110-1301, USA.
 
 
 // virtual docks are invisible
-- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (virtual_dock) // not drawn
 	{
 		return;
 	}
-	[super drawEntity:immediate :translucent];
+	[super drawImmediate:immediate translucent:translucent];
 }
 
 @end

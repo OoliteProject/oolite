@@ -108,7 +108,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 #if ECM_DEBUG_DRAW && OO_DEBUG
 	OODebugDrawPoint(kZeroVector, [OOColor cyanColor]);

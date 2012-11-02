@@ -748,9 +748,9 @@ static const BaseFace kTexturedFaces[][3] =
 
 
 // TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	if ([UNIVERSE breakPatternHide] || translucent || immediate)   return; // DON'T DRAW
+	if ([UNIVERSE breakPatternHide] || translucent || immediate)  return;  // DON'T DRAW
 	[self drawUnconditionally];
 }
 
@@ -958,7 +958,7 @@ static const BaseFace kTexturedFaces[][3] =
 		// rotate
 		GLMultOOMatrix([atmosphere rotationMatrix]);
 		// draw atmosphere entity
-		[atmosphere drawEntity:NO :NO];
+		[atmosphere drawImmediate:false translucent:false];
 	}
 
 

@@ -3102,7 +3102,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	switch ([self status])
 	{
@@ -3116,7 +3116,7 @@ static GLfloat		sBaseMass = 0.0;
 			if ([UNIVERSE breakPatternHide])  return;
 	}
 	
-	[super drawEntity:immediate :translucent];
+	[super drawImmediate:immediate translucent:translucent];
 }
 
 

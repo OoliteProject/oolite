@@ -288,7 +288,7 @@ GLuint qstrip3[18] =  {	17,	25,	18,	26,	19,	27,	20,	28,	21,	29,	22,	30,	23,	31,	
 GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 64..73
 
 
-- (void) drawSubEntity:(BOOL) immediate:(BOOL) translucent
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (!translucent)  return;
 	

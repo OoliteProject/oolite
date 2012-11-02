@@ -129,8 +129,6 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 
 @interface ShipEntity (Private)
 
-- (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent;
-
 - (void)subEntityDied:(ShipEntity *)sub;
 - (void)subEntityReallyDied:(ShipEntity *)sub;
 
@@ -5481,7 +5479,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if ((no_draw_distance < cam_zero_distance) ||	// Done redundantly to skip subentities
 		(cloaking_device_active && randf() > 0.10))
@@ -5491,7 +5489,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// Draw self.
-	[super drawEntity:immediate :translucent];
+	[super drawImmediate:immediate translucent:translucent];
 	
 #ifndef NDEBUG
 	// Draw bounding boxes if we have to before going for the subentities.
@@ -5510,13 +5508,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// save time by not copying the subentity array if it's empty - CIM
 		if ([self subEntityCount] > 0) 
 		{ 
-			ShipEntity *subEntity = nil;
+			Entity<OOSubEntity> *subEntity = nil;
 			foreach (subEntity, [self subEntities])
 			{
-// already set on subentity creation and not going to have changed, isn't it?
-// anyway, didn't appear to break anything when I took it out - CIM
-//			[subEntity setOwner:self]; // refresh ownership
-				[subEntity drawSubEntity:immediate :translucent];
+				NSAssert3([subEntity owner] == self, @"Subentity ownership broke - %@ should be owned by %@ but is owned by %@.", subEntity, self, [subEntity owner]);
+				[subEntity drawSubEntityImmediate:immediate translucent:translucent];
 			}
 		}
 	}
@@ -5555,7 +5551,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 #endif
 
 
-- (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
 	OOVerifyOpenGLState();
 	
@@ -5585,7 +5581,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		GLLoadOOMatrix([UNIVERSE viewMatrix]);
 		GLTranslateOOVector(abspos);
 		GLMultOOMatrix(rotMatrix);
-		[self drawEntity:immediate :translucent];
+		[self drawImmediate:immediate translucent:translucent];
 		
 		OOGL(glPopMatrix());
 	}
@@ -5595,7 +5591,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		
 		GLTranslateOOVector(position);
 		GLMultOOMatrix(rotMatrix);
-		[self drawEntity:immediate :translucent];
+		[self drawImmediate:immediate translucent:translucent];
 		
 		OOGL(glPopMatrix());
 	}
@@ -12863,6 +12859,12 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (BOOL) isShipWithSubEntityShip:(Entity *)other
 {
 	return NO;
+}
+
+
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
+{
+	// Do nothing.
 }
 
 @end

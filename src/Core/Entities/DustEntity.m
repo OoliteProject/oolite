@@ -242,7 +242,7 @@ enum
 }
 
 
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if ([UNIVERSE breakPatternHide] || !translucent)  return;	// DON'T DRAW
 	

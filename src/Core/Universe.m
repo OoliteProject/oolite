@@ -3803,7 +3803,7 @@ static const OOMatrix	starboard_matrix =
 						[self lightForEntity:demoShipMode || drawthing->isSunlit];
 						
 						// draw the thing
-						[drawthing drawEntity:NO:NO];
+						[drawthing drawImmediate:false translucent:false];
 						
 						// atmospheric fog
 						if (fogging)
@@ -3861,7 +3861,7 @@ static const OOMatrix	starboard_matrix =
 						}
 						
 						// draw the thing
-						[drawthing drawEntity:NO:YES];
+						[drawthing drawImmediate:false translucent:true];
 						
 						// atmospheric fog
 						if (fogging)

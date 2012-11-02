@@ -180,7 +180,7 @@ static const GLfloat kLaserVertices[] =
 };
 
 
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
 	

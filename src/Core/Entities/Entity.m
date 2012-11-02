@@ -917,7 +917,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	OOLogGenericSubclassResponsibility();
 }

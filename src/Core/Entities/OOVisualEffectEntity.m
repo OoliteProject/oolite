@@ -53,7 +53,7 @@ MA 02110-1301, USA.
 
 @interface OOVisualEffectEntity (Private)
 
-- (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent;
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
 
 - (void) addSubEntity:(Entity<OOSubEntity> *) subent;
 - (BOOL) setUpOneSubentity:(NSDictionary *) subentDict;
@@ -306,7 +306,8 @@ MA 02110-1301, USA.
 }
 
 
-- (void) addSubEntity:(Entity<OOSubEntity> *) sub {
+- (void) addSubEntity:(Entity<OOSubEntity> *)sub
+{
 	if (sub == nil)  return;
 	
 	if (subEntities == nil)  subEntities = [[NSMutableArray alloc] init];
@@ -359,7 +360,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent 
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent 
 {
 	if (cam_zero_distance > no_draw_distance) // this test provides an opportunity to do simple LoD culling
 	{
@@ -369,7 +370,7 @@ MA 02110-1301, USA.
 		
 	GLTranslateOOVector(position);
 	GLMultOOMatrix(rotMatrix);
-	[self drawEntity:immediate :translucent];
+	[self drawImmediate:immediate translucent:translucent];
 	
 	OOGL(glPopMatrix());
 }
@@ -485,14 +486,15 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 }
 
 
-- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (no_draw_distance < cam_zero_distance)
 	{
 		return; // too far away to draw
 	}
-	if([self mesh] != nil) {
-		[super drawEntity:immediate :translucent];
+	if ([self mesh] != nil)
+	{
+		[super drawImmediate:immediate translucent:translucent];
 	}
 
 	// Draw subentities.
@@ -501,7 +503,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 		OOVisualEffectEntity *subEntity = nil;
 		foreach (subEntity, [self subEntities])
 		{
-			[subEntity drawSubEntity:immediate :translucent];
+			[subEntity drawSubEntityImmediate:immediate translucent:translucent];
 		}
 	}
 

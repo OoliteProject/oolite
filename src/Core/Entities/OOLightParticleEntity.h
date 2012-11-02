@@ -55,4 +55,7 @@ MA 02110-1301, USA.
 + (void) setUpTexture;
 + (OOTexture *) defaultParticleTexture;
 
+
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
+
 @end

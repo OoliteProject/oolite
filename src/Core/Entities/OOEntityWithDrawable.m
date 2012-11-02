@@ -66,7 +66,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (no_draw_distance < cam_zero_distance)
 	{

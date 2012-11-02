@@ -285,7 +285,7 @@ MA 02110-1301, USA.
 
 
 // TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (![UNIVERSE breakPatternHide] && !translucent)  [self drawUnconditionally];
 }

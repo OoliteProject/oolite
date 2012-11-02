@@ -33,7 +33,11 @@ MA 02110-1301, USA.
 
 - (void) rescaleBy:(GLfloat)factor;
 
+// Separate drawing path for subentities of ships.
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
+
 @end
+
 
 @protocol OOHUDBeaconIcon;
 

@@ -263,7 +263,7 @@ enum OOScanClass
 
 // Subclass repsonsibilities
 - (double) findCollisionRadius;
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent;
 - (BOOL) isVisible;
 - (BOOL) isImmuneToBreakPatternHide;
 

@@ -1119,9 +1119,11 @@ uintN argc = sizeof argv / sizeof *argv; \
 #endif
 
 
-// For the common case of testing whether foo is a ship, bar is a ship, bar is a subentity of foo and this relationship is represented sanely.
 @interface Entity (SubEntityRelationship)
 
+/*	For the common case of testing whether foo is a ship, bar is a ship, bar
+	is a subentity of foo and this relationship is represented sanely.
+*/
 - (BOOL) isShipWithSubEntityShip:(Entity *)other;
 
 @end
