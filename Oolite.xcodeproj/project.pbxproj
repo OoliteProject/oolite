@@ -39,6 +39,9 @@
 		1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A01574111034A86008EE36A /* ShipEntityLoadRestore.h */; };
 		1A01574411034A86008EE36A /* ShipEntityLoadRestore.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */; };
 		1A01BC7011C5515B0011197F /* oolite-default-player-script.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */; };
+		1A02B4C61643DFF80013749D /* oolite-contracts-cargo.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A02B4C01643DF6B0013749D /* oolite-contracts-cargo.js */; };
+		1A02B4C71643DFF80013749D /* oolite-contracts-helpers.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A02B4C11643DF6B0013749D /* oolite-contracts-helpers.js */; };
+		1A02B4C81643DFF80013749D /* oolite-contracts-passengers.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A02B4C21643DF6B0013749D /* oolite-contracts-passengers.js */; };
 		1A02FD460EE0490B008F9B09 /* oolite-tangent-space-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */; };
 		1A033F91132687DC006F9DB7 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A033F90132687DC006F9DB7 /* Quartz.framework */; };
 		1A033FA313268821006F9DB7 /* OoliteReadMe.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 1A033FA213268821006F9DB7 /* OoliteReadMe.pdf */; };
@@ -1218,6 +1221,9 @@
 			dstPath = Scripts;
 			dstSubfolderSpec = 7;
 			files = (
+				1A02B4C61643DFF80013749D /* oolite-contracts-cargo.js in Copy Scripts */,
+				1A02B4C71643DFF80013749D /* oolite-contracts-helpers.js in Copy Scripts */,
+				1A02B4C81643DFF80013749D /* oolite-contracts-passengers.js in Copy Scripts */,
 				1A38E9E71603C92A00EE19F1 /* oolite-contracts-parcels.js in Copy Scripts */,
 				1A5ABE6B15FBC86F006C97DC /* oolite-default-effect-script.js in Copy Scripts */,
 				1AE45E5A12EB177B00B570E1 /* oolite-constrictor-pilot.js in Copy Scripts */,
@@ -1308,6 +1314,9 @@
 		1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityLoadRestore.m; sourceTree = "<group>"; };
 		1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-default-player-script.js"; sourceTree = "<group>"; };
 		1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-docktile.xcodeproj"; path = "Mac-specific/Oolite-docktile/Oolite-docktile.xcodeproj"; sourceTree = "<group>"; };
+		1A02B4C01643DF6B0013749D /* oolite-contracts-cargo.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-contracts-cargo.js"; sourceTree = "<group>"; };
+		1A02B4C11643DF6B0013749D /* oolite-contracts-helpers.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-contracts-helpers.js"; sourceTree = "<group>"; };
+		1A02B4C21643DF6B0013749D /* oolite-contracts-passengers.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-contracts-passengers.js"; sourceTree = "<group>"; };
 		1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-tangent-space-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A033F90132687DC006F9DB7 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		1A033FA213268821006F9DB7 /* OoliteReadMe.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = OoliteReadMe.pdf; sourceTree = "<group>"; };
@@ -2586,7 +2595,10 @@
 				1A572FBD0D84B640003D4A26 /* oolite-constrictor.js */,
 				1A572FBE0D84B640003D4A26 /* oolite-constrictor-hunt-mission.js */,
 				1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */,
+				1A02B4C01643DF6B0013749D /* oolite-contracts-cargo.js */,
+				1A02B4C11643DF6B0013749D /* oolite-contracts-helpers.js */,
 				1A38E9E51603C7ED00EE19F1 /* oolite-contracts-parcels.js */,
+				1A02B4C21643DF6B0013749D /* oolite-contracts-passengers.js */,
 				B3EA9395154147EB00AB3C5B /* oolite-missile.js */,
 				1A572FBF0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js */,
 				1A572FC00D84B640003D4A26 /* oolite-cloaking-device-pod.js */,

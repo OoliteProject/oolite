@@ -164,7 +164,7 @@ defineMethod(SoundSource.prototype, "playSound", function playSound(sound, count
 
 
 /**** Default implementations of script methods ****/
-/*    (Note: oolite-default-ship-script.js methods aren’t inherited.
+/*    (Note: oolite-default-ship-script.js methods aren’t inherited.)
 */
 
 const escortPositions =
