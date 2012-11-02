@@ -360,7 +360,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) drawImmediate:(bool)immediate translucent:(bool)translucent 
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (cam_zero_distance > no_draw_distance) // this test provides an opportunity to do simple LoD culling
 	{
@@ -371,7 +371,7 @@ MA 02110-1301, USA.
 	GLTranslateOOVector(position);
 	GLMultOOMatrix(rotMatrix);
 	[self drawImmediate:immediate translucent:translucent];
-	
+
 	OOGL(glPopMatrix());
 }
 
@@ -485,8 +485,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 	return default_color; // transparent black if not specified
 }
 
-
-- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
+- (void) drawImmediate:(bool)immediate translucent:(bool)translucent 
 {
 	if (no_draw_distance < cam_zero_distance)
 	{
@@ -500,7 +499,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?
 	{
-		OOVisualEffectEntity *subEntity = nil;
+		Entity<OOSubEntity> *subEntity = nil;
 		foreach (subEntity, [self subEntities])
 		{
 			[subEntity drawSubEntityImmediate:immediate translucent:translucent];

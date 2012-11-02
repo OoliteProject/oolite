@@ -85,6 +85,11 @@ MA 02110-1301, USA.
 				ShipEntity* shipself = (ShipEntity*)self;
 				clipradius = [shipself frustumRadius];
 			}
+			else if ([self isVisualEffect])
+			{
+				OOVisualEffectEntity* veself = (OOVisualEffectEntity*)self;
+				clipradius = [veself frustumRadius];
+			}
 			if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:clipradius])
 			{
 				return;
@@ -93,7 +98,7 @@ MA 02110-1301, USA.
 		else 
 		{
 			// check correct sub-entity position
-			if (![UNIVERSE viewFrustumIntersectsSphereAt:[super absolutePositionForSubentity] withRadius:collision_radius])
+			if (![UNIVERSE viewFrustumIntersectsSphereAt:[self absolutePositionForSubentity] withRadius:collision_radius])
 			{
 				return;
 			}
