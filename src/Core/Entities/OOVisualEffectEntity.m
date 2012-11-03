@@ -390,6 +390,8 @@ MA 02110-1301, USA.
 		[se rescaleBy:factor];
 	}
 
+	collision_radius *= factor;
+	_profileRadius *= factor;
 }
 
 
