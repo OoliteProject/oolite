@@ -7201,37 +7201,10 @@ static NSString *last_outfitting_key=nil;
 		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor grayColor] forRow:17];
 		
-		// Ask to load previous commander only if we have at least one previous commander to load.
-		
-		NSFileManager *saveFileManager = [NSFileManager defaultManager];
-		NSArray *cdrArray = [saveFileManager commanderContentsOfPath: [[UNIVERSE gameController] playerFileDirectory]];
-		unsigned j;
-		BOOL fileExists, isDir, oneCdr = NO;
-		
-		for(j = 0; j < [cdrArray count] && !oneCdr; j++)
-		{
-			NSString*	path = [cdrArray objectAtIndex:j];
-			fileExists = [saveFileManager fileExistsAtPath:path isDirectory:&isDir];
-			
-			if (fileExists && !isDir && [[[path pathExtension] lowercaseString] isEqualToString:@"oolite-save"])
-			{
-				oneCdr = YES;
-			}
-		}
-		
-		if (oneCdr)
-		{
-			text = DESC(@"load-previous-commander");
-			[gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
-			[gui setColor:[OOColor yellowColor] forRow:19];
-		}
-		else
-		{
-			text = DESC(@"press-space-commander");
-			[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
-			[gui setColor:[OOColor yellowColor] forRow:21];
-			justCobra = NO;
-		}
+        text = DESC(@"load-previous-commander");
+        [gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
+        [gui setColor:[OOColor yellowColor] forRow:19];
+
 		
 		// check for error messages from Resource Manager
 		//[ResourceManager paths]; done in Universe already
