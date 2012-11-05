@@ -88,6 +88,7 @@ enum
 	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
 	kStation_market,
 	kStation_requiresDockingClearance,
+	kStation_roll,
 	kStation_suppressArrivalReports,
 };
 
@@ -109,6 +110,7 @@ static JSPropertySpec sStationProperties[] =
 	{ "isMainStation",				kStation_isMainStation,				OOJS_PROP_READONLY_CB },
 	{ "market",        kStation_market,     OOJS_PROP_READONLY_CB },
 	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	OOJS_PROP_READWRITE_CB },
+	{ "roll",						kStation_roll,						OOJS_PROP_READWRITE_CB },
 	{ "suppressArrivalReports",		kStation_suppressArrivalReports,	OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
@@ -213,6 +215,9 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 			*value = OOJSValueFromBOOL([entity requiresDockingClearance]);
 			return YES;
 			
+		case kStation_roll:
+			return JS_NewNumberValue(context, [entity flightRoll] * 2.0 / M_PI, value);
+			
 		case kStation_allowsFastDocking:
 			*value = OOJSValueFromBOOL([entity allowsFastDocking]);
 			return YES;
@@ -273,6 +278,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 	StationEntity				*entity = nil;
 	JSBool						bValue;
 	int32						iValue;
+	jsdouble					fValue;
 	
 	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
 	if (entity == nil)  return YES;
@@ -299,6 +305,16 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setRequiresDockingClearance:bValue];
+				return YES;
+			}
+			break;
+			
+		case kStation_roll:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < -2.0)  fValue = -2.0;
+				if (fValue > 2.0)  fValue = 2.0;	// clamping to -2.0...2.0 gives us ±M_PI actual maximum rotation
+				[entity setRoll:fValue];
 				return YES;
 			}
 			break;
