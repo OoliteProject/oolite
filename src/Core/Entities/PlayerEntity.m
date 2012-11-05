@@ -943,7 +943,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
 	else  compassMode = COMPASS_MODE_BASIC;
-	compassTarget = nil;
+	DESTROY(compassTarget);
 	
 	// speech
 	isSpeechOn = [dict oo_boolForKey:@"speech_on"];
@@ -1653,7 +1653,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *)shipDict
 {
-	compassTarget = nil;
+	DESTROY(compassTarget);
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	
 	if (![super setUpFromDictionary:shipDict]) return NO;
@@ -1738,7 +1738,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) dealloc
 {
-	compassTarget = nil;
+	DESTROY(compassTarget);
 	DESTROY(hud);
 	DESTROY(commLog);
 	
@@ -3574,13 +3574,20 @@ static GLfloat		sBaseMass = 0.0;
 
 - (Entity *) compassTarget
 {
-	return compassTarget;
+	Entity *result = [compassTarget weakRefUnderlyingObject];
+	if (result == nil)
+	{
+		DESTROY(compassTarget);
+		return nil;
+	}
+	return result;
 }
 
 
 - (void) setCompassTarget:(Entity *)value
 {
-	compassTarget = value;
+	[compassTarget release];
+	compassTarget = [value weakRetain];
 }
 
 
