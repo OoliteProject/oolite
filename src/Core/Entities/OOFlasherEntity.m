@@ -162,6 +162,15 @@ MA 02110-1301, USA.
 }
 
 
+- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
+{
+	if (_active)
+	{
+		[super drawSubEntityImmediate:immediate translucent:translucent];
+	}
+}
+
+
 - (BOOL) isFlasher
 {
 	return YES;
