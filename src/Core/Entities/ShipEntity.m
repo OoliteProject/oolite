@@ -8025,6 +8025,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				ShipEntity *se = (ShipEntity *)e2;
 				[se setFoundTarget:self];
 				[se reactToAIMessage:@"CASCADE_WEAPON_DETECTED" context:@"nearby Q-mine"];
+				[se doScriptEvent:OOJSID("cascadeWeaponDetected") withArgument:self];
 			}
 		}
 	}
@@ -10046,6 +10047,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				[victim setPrimaryAggressor:parent];
 				[victim setFoundTarget:parent];
 				[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
+				[victim doScriptEvent:OOJSID("shipBeingAttackedUnsuccessfully") withArgument:parent];
+
 			}
 		}
 	}
@@ -10249,6 +10252,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				[victim setPrimaryAggressor:self];
 				[victim setFoundTarget:self];
 				[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
+				[victim doScriptEvent:OOJSID("shipBeingAttackedUnsuccessfully") withArgument:self];
+
 			}
 		}
 	}
