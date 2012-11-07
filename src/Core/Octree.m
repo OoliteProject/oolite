@@ -750,7 +750,7 @@ static Vector randomFullNodeFrom(Octree_details details, Vector offset)
 		if (nextBuffer[octant])	// don't test empty octants
 		{
 			nextDetails.octree = &nextBuffer[octant];
-			Vector voff = vector_add(voff, offsetForOctant(octant, octRadius));
+			Vector voff = vector_add(offset, offsetForOctant(octant, octRadius));
 			return randomFullNodeFrom(nextDetails, voff);
 		}
 	}
