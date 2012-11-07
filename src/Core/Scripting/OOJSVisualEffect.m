@@ -39,7 +39,6 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 static JSBool VisualEffectRemove(JSContext *context, uintN argc, jsval *vp);
-static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectSetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectGetMaterials(JSContext *context, uintN argc, jsval *vp);
