@@ -73,6 +73,9 @@ enum
 	kVisualEffect_dataKey,
 	kVisualEffect_hullHeatLevel,
 	kVisualEffect_isBreakPattern,
+	kVisualEffect_scaleX,
+	kVisualEffect_scaleY,
+	kVisualEffect_scaleZ,
 	kVisualEffect_scannerDisplayColor1,
 	kVisualEffect_scannerDisplayColor2,
 	kVisualEffect_script,
@@ -95,6 +98,9 @@ static JSPropertySpec sVisualEffectProperties[] =
 	{ "beaconCode",	   kVisualEffect_beaconCode,	  OOJS_PROP_READWRITE_CB },
 	{ "dataKey",	     kVisualEffect_dataKey,	      OOJS_PROP_READONLY_CB },
 	{ "isBreakPattern",	kVisualEffect_isBreakPattern,	OOJS_PROP_READWRITE_CB },
+	{ "scaleX", kVisualEffect_scaleX, OOJS_PROP_READWRITE_CB },
+	{ "scaleY", kVisualEffect_scaleY, OOJS_PROP_READWRITE_CB },	
+	{ "scaleZ", kVisualEffect_scaleZ, OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1", kVisualEffect_scannerDisplayColor1, OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2", kVisualEffect_scannerDisplayColor2, OOJS_PROP_READWRITE_CB },
 	{ "hullHeatLevel", kVisualEffect_hullHeatLevel, OOJS_PROP_READWRITE_CB },
@@ -119,7 +125,6 @@ static JSFunctionSpec sVisualEffectMethods[] =
 	{ "getMaterials",   VisualEffectGetMaterials,    0 },
 	{ "getShaders",     VisualEffectGetShaders,    0 },
 	{ "remove",         VisualEffectRemove,    0 },
-	{ "scale",         VisualEffectScale,    1 },
 	{ "setMaterials",     VisualEffectSetMaterials,    1 },
 	{ "setShaders",     VisualEffectSetShaders,    2 },
 
@@ -214,6 +219,15 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 			
 		case kVisualEffect_vectorUp:
 			return VectorToJSValue(context, [entity upVector], value);
+
+		case kVisualEffect_scaleX:
+			return JS_NewNumberValue(context, [entity scaleX], value);
+
+		case kVisualEffect_scaleY:
+			return JS_NewNumberValue(context, [entity scaleY], value);
+
+		case kVisualEffect_scaleZ:
+			return JS_NewNumberValue(context, [entity scaleZ], value);
 
 		case kVisualEffect_scannerDisplayColor1:
 			result = [[entity scannerDisplayColor1] normalizedArray];
@@ -341,6 +355,30 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 			}
 			break;
 
+		case kVisualEffect_scaleX:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setScaleX:fValue];
+				return YES;
+			}
+			break;
+
+		case kVisualEffect_scaleY:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setScaleY:fValue];
+				return YES;
+			}
+			break;
+
+		case kVisualEffect_scaleZ:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setScaleZ:fValue];
+				return YES;
+			}
+			break;
+
 		case kVisualEffect_hullHeatLevel:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
@@ -430,39 +468,6 @@ static JSBool VisualEffectRemove(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_NATIVE_EXIT
 }
-
-
- // doesn't work as meshes are shared
-static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	OOVisualEffectEntity				*thisEnt = nil;
-	GET_THIS_EFFECT(thisEnt);
-	
-	jsdouble scale;
-	BOOL gotScale;
-
-	if (argc < 1)
-	{
-		OOJSReportBadArguments(context, @"VisualEffect", @"scale", argc, OOJS_ARGV, nil, @"scale factor needed");
-		return NO;
-	}
-
-	gotScale = JS_ValueToNumber(context, OOJS_ARGV[0], &scale);
-	if (EXPECT_NOT(scale <= 0.0 || !gotScale))
-	{
-		OOJSReportBadArguments(context, @"VisualEffect", @"scale", argc, OOJS_ARGV, nil, @"scale factor must be positive");
-		return NO;
-	}
-
-	[thisEnt rescaleBy:scale];
-
-	return YES;
-	
-	OOJS_NATIVE_EXIT
-} 
-
 
 
 //getMaterials()

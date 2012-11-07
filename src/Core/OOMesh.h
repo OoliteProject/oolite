@@ -170,7 +170,6 @@ typedef struct
 - (BoundingBox) findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(OOMatrix)rotMatrix;
 
 - (OOMesh *) meshRescaledBy:(GLfloat)scaleFactor;
-- (void) copyVertexArray;
 
 @end
 

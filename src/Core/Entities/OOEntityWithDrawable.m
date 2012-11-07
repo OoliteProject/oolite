@@ -98,7 +98,7 @@ MA 02110-1301, USA.
 		else 
 		{
 			// check correct sub-entity position
-			if (![UNIVERSE viewFrustumIntersectsSphereAt:[self absolutePositionForSubentity] withRadius:collision_radius])
+			if (![UNIVERSE viewFrustumIntersectsSphereAt:[self absolutePositionForSubentity] withRadius:[self collisionRadius]])
 			{
 				return;
 			}

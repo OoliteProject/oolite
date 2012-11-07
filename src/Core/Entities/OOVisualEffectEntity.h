@@ -70,6 +70,11 @@
 	OOWeakReference			*_nextBeacon;
 	id <OOHUDBeaconIcon>	_beaconDrawable;
 
+	// scaling
+	GLfloat scaleX;
+	GLfloat scaleY;
+	GLfloat scaleZ;
+
 }
 
 - (id)initWithKey:(NSString *)key definition:(NSDictionary *) dict;
@@ -109,6 +114,13 @@
 - (void) doScriptEvent:(jsid)message;
 - (void) remove;
 
+- (GLfloat) scaleMax; // used for calculating frustum cull size
+- (GLfloat) scaleX;
+- (void) setScaleX:(GLfloat)factor;
+- (GLfloat) scaleY;
+- (void) setScaleY:(GLfloat)factor;
+- (GLfloat) scaleZ;
+- (void) setScaleZ:(GLfloat)factor;
 
 // convenience for shaders
 - (GLfloat)hullHeatLevel;

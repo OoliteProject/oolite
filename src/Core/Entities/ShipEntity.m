@@ -5575,7 +5575,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 			last = father;
 			if (![last isSubEntity]) break;
-				father = [father owner];
+			father = [father owner];
 		}
 		
 		GLLoadOOMatrix([UNIVERSE viewMatrix]);

@@ -146,6 +146,10 @@ MA 02110-1301, USA.
 	scriptInfo = [[effectDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	[self setScript:[effectDict oo_stringForKey:@"script"]];
 
+	scaleX = 1.0;
+	scaleY = 1.0;
+	scaleZ = 1.0;
+
 	return YES;
 
 	OOJS_PROFILE_EXIT
@@ -209,7 +213,7 @@ MA 02110-1301, USA.
 
 - (GLfloat)frustumRadius 
 {
-	return _profileRadius;
+	return [self scaleMax] * _profileRadius;
 }
 
 
@@ -395,6 +399,112 @@ MA 02110-1301, USA.
 }
 
 
+- (GLfloat) scaleMax
+{
+	GLfloat scale = 1.0;
+	if (scaleX > scaleY)
+	{
+		if (scaleX > scaleZ)
+		{
+			scale *= scaleX;
+		}
+		else
+		{
+			scale *= scaleZ;
+		}
+	}
+	else if (scaleY > scaleZ)
+	{
+		scale *= scaleY;
+	}
+	else
+	{
+		scale *= scaleZ;
+	}
+	return scale;
+}
+
+- (GLfloat) scaleX
+{
+	return scaleX;
+}
+
+
+- (void) setScaleX:(GLfloat)factor
+{
+	// rescale subentities
+	Entity<OOSubEntity>	*se = nil;
+	foreach (se, [self subEntities])
+	{
+		Vector move = [se position];
+		move.x *= factor/scaleX;
+		[se setPosition:move];
+		if ([se isVisualEffect])
+		{
+			[(OOVisualEffectEntity*)se setScaleX:factor];
+		}
+	}
+
+	scaleX = factor;
+}
+
+
+- (GLfloat) scaleY
+{
+	return scaleY;
+}
+
+
+- (void) setScaleY:(GLfloat)factor
+{
+	// rescale subentities
+	Entity<OOSubEntity>	*se = nil;
+	foreach (se, [self subEntities])
+	{
+		Vector move = [se position];
+		move.y *= factor/scaleY;
+		[se setPosition:move];
+		if ([se isVisualEffect])
+		{
+			[(OOVisualEffectEntity*)se setScaleY:factor];
+		}
+	}
+
+	scaleY = factor;
+}
+
+
+- (GLfloat) scaleZ
+{
+	return scaleZ;
+}
+
+
+- (void) setScaleZ:(GLfloat)factor
+{
+	// rescale subentities
+	Entity<OOSubEntity>	*se = nil;
+	foreach (se, [self subEntities])
+	{
+		Vector move = [se position];
+		move.z *= factor/scaleZ;
+		[se setPosition:move];
+		if ([se isVisualEffect])
+		{
+			[(OOVisualEffectEntity*)se setScaleZ:factor];
+		}
+	}
+
+	scaleZ = factor;
+}
+
+
+- (GLfloat) collisionRadius
+{
+	return [self scaleMax] * collision_radius;
+}
+
+
 - (void) orientationChanged
 {
 	[super orientationChanged];
@@ -493,10 +603,13 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 	{
 		return; // too far away to draw
 	}
+	OOGL(glPushMatrix());
+	OOGL(glScalef(scaleX,scaleY,scaleZ));
 	if ([self mesh] != nil)
 	{
 		[super drawImmediate:immediate translucent:translucent];
 	}
+	OOGL(glPopMatrix());
 
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?
@@ -507,7 +620,6 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 			[subEntity drawSubEntityImmediate:immediate translucent:translucent];
 		}
 	}
-
 }
 
 
