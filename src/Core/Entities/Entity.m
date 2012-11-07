@@ -975,10 +975,11 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	ADD_FLAG_IF_SET(hasMoved);
 	ADD_FLAG_IF_SET(hasRotated);
 	ADD_FLAG_IF_SET(isSunlit);
-	ADD_FLAG_IF_SET(collisionTestFilter);
 	ADD_FLAG_IF_SET(throw_sparks);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.entity", @"Flags: %@", flagsString);
+	OOLog(@"dumpState.entity", @"Collision Test Filter: %u", collisionTestFilter);
+
 }
 
 

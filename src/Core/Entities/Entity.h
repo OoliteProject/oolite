@@ -96,7 +96,7 @@ enum OOScanClass
 							hasRotated: 1,
 							hasCollided: 1,
 							isSunlit: 1,
-							collisionTestFilter: 1,
+							collisionTestFilter: 2,
 							throw_sparks: 1,
 							isImmuneToBreakPatternHide: 1,
 							isExplicitlyNotMainStation: 1,

@@ -5227,7 +5227,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		[universeRegion checkEntity:sortedEntities[i]];	// sorts out which region it's in
 	}
 	
-	[universeRegion findCollisions];
+	if (![[self gameController] isGamePaused])
+	{
+		[universeRegion findCollisions];
+	}
 	
 	// do check for entities that can't see the sun!
 	[universeRegion findShadowedEntities];
@@ -5880,19 +5883,25 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	becomes significant larger. However, almost all of these extra pairs are dealt with by a simple distance check.
 	I currently see no noticeable negative effect while playing, but this change might still give some trouble I missed.
 	*/
-	Entity	*e0, *next;
-	GLfloat start, finish, next_start, next_finish;
+	Entity	*e0, *next, *prev;
+	GLfloat start, finish, next_start, next_finish, prev_start, prev_finish;
 	
 	// using the z_list - set or clear collisionTestFilter and clear collision_chain
 	e0 = z_list_start;
 	while (e0)
 	{
-		e0->collisionTestFilter = (![e0 canCollide]);
+		e0->collisionTestFilter = [e0 canCollide]?0:3;
 		e0->collision_chain = nil;
 		e0 = e0->z_next;
 	}
 	// done.
 	
+	/* We need to check the lists in both ascending and descending order
+	 * to catch some cases with interposition of entities. We set cTF =
+	 * 1 on the way up, and |= 2 on the way down. Therefore it's only 3
+	 * at the end of the list if it was caught both ways on the same
+	 * list. - CIM: 7/11/2012 */
+
 	// start with the z_list
 	e0 = z_list_start;
 	while (e0)
@@ -5901,7 +5910,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		start = e0->position.z - 2.0f * e0->collision_radius;
 		finish = start + 4.0f * e0->collision_radius;
 		next = e0->z_next;
-		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+		while ((next)&&(next->collisionTestFilter == 3))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->z_next;
 		if (next)
 		{
@@ -5917,7 +5926,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 						finish = next_finish;
 					e0 = next;
 					next = e0->z_next;
-					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+					while ((next)&&(next->collisionTestFilter==3))	// next has been eliminated - so skip it
 						next = next->z_next;
 					if (next)
 						next_start = next->position.z - 2.0f * next->collision_radius;
@@ -5927,15 +5936,59 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			else
 			{
 				// e0 is a singleton
-				e0->collisionTestFilter = YES;
+				e0->collisionTestFilter = 1;
 			}
 		}
 		else // (next == nil)
 		{
 			// at the end of the list so e0 is a singleton
-			e0->collisionTestFilter = YES;
+			e0->collisionTestFilter = 1;
 		}
 		e0 = next;
+	}
+	// list filtered upwards, now filter downwards
+	// e0 currently = end of z list
+	while (e0)
+	{
+		// here we are either at the start of the list or just past a gap
+		start = e0->position.z + 2.0f * e0->collision_radius;
+		finish = start - 4.0f * e0->collision_radius;
+		prev = e0->z_previous;
+		while ((prev)&&(prev->collisionTestFilter == 3))	// next has been eliminated from the list of possible colliders - so skip it
+			prev = prev->z_previous;
+		if (prev)
+		{
+			prev_start = prev->position.z + 2.0f * prev->collision_radius;
+			if (prev_start > finish)
+			{
+				// e0 and next overlap
+				while ((prev)&&(prev_start > finish))
+				{
+					// skip forward to the next gap or the end of the list
+					prev_finish = prev_start - 4.0f * prev->collision_radius;
+					if (prev_finish < finish)
+						finish = prev_finish;
+					e0 = prev;
+					prev = e0->z_previous;
+					while ((prev)&&(prev->collisionTestFilter==3))	// next has been eliminated - so skip it
+						prev = prev->z_previous;
+					if (prev)
+						prev_start = prev->position.z + 2.0f * prev->collision_radius;
+				}
+				// now either (prev == nil) or (prev_start <= finish)-which would imply a gap!
+			}
+			else
+			{
+				// e0 is a singleton
+				e0->collisionTestFilter |= 2;
+			}
+		}
+		else // (prev == nil)
+		{
+			// at the end of the list so e0 is a singleton
+			e0->collisionTestFilter |= 2;
+		}
+		e0 = prev;
 	}
 	// done! list filtered
 	
@@ -5947,7 +6000,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		start = e0->position.y - 2.0f * e0->collision_radius;
 		finish = start + 4.0f * e0->collision_radius;
 		next = e0->y_next;
-		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+		while ((next)&&(next->collisionTestFilter==3))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->y_next;
 		if (next)
 		{
@@ -5964,7 +6017,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 						finish = next_finish;
 					e0 = next;
 					next = e0->y_next;
-					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+					while ((next)&&(next->collisionTestFilter==3))	// next has been eliminated - so skip it
 						next = next->y_next;
 					if (next)
 						next_start = next->position.y - 2.0f * next->collision_radius;
@@ -5974,15 +6027,59 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			else
 			{
 				// e0 is a singleton
-				e0->collisionTestFilter = YES;
+				e0->collisionTestFilter = 1;
 			}
 		}
 		else // (next == nil)
 		{
 			// at the end of the list so e0 is a singleton
-			e0->collisionTestFilter = YES;
+			e0->collisionTestFilter = 1;
 		}
 		e0 = next;
+	}
+	// list filtered upwards, now filter downwards
+	// e0 currently = end of y list
+	while (e0)
+	{
+		// here we are either at the start of the list or just past a gap
+		start = e0->position.y + 2.0f * e0->collision_radius;
+		finish = start - 4.0f * e0->collision_radius;
+		prev = e0->y_previous;
+		while ((prev)&&(prev->collisionTestFilter == 3))	// next has been eliminated from the list of possible colliders - so skip it
+			prev = prev->y_previous;
+		if (prev)
+		{
+			prev_start = prev->position.y + 2.0f * prev->collision_radius;
+			if (prev_start > finish)
+			{
+				// e0 and next overlap
+				while ((prev)&&(prev_start > finish))
+				{
+					// skip forward to the next gap or the end of the list
+					prev_finish = prev_start - 4.0f * prev->collision_radius;
+					if (prev_finish < finish)
+						finish = prev_finish;
+					e0 = prev;
+					prev = e0->y_previous;
+					while ((prev)&&(prev->collisionTestFilter==3))	// next has been eliminated - so skip it
+						prev = prev->y_previous;
+					if (prev)
+						prev_start = prev->position.y + 2.0f * prev->collision_radius;
+				}
+				// now either (prev == nil) or (prev_start <= finish)-which would imply a gap!
+			}
+			else
+			{
+				// e0 is a singleton
+				e0->collisionTestFilter |= 2;
+			}
+		}
+		else // (prev == nil)
+		{
+			// at the end of the list so e0 is a singleton
+			e0->collisionTestFilter |= 2;
+		}
+		e0 = prev;
 	}
 	// done! list filtered
 	
@@ -5994,7 +6091,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		start = e0->position.x - 2.0f * e0->collision_radius;
 		finish = start + 4.0f * e0->collision_radius;
 		next = e0->x_next;
-		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+		while ((next)&&(next->collisionTestFilter==3))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->x_next;
 		if (next)
 		{
@@ -6010,7 +6107,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 						finish = next_finish;
 					e0 = next;
 					next = e0->x_next;
-					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+					while ((next)&&(next->collisionTestFilter==3))	// next has been eliminated - so skip it
 						next = next->x_next;
 					if (next)
 						next_start = next->position.x - 2.0f * next->collision_radius;
@@ -6020,15 +6117,59 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			else
 			{
 				// e0 is a singleton
-				e0->collisionTestFilter = YES;
+				e0->collisionTestFilter = 1;
 			}
 		}
 		else // (next == nil)
 		{
 			// at the end of the list so e0 is a singleton
-			e0->collisionTestFilter = YES;
+			e0->collisionTestFilter = 1;
 		}
 		e0 = next;
+	}
+	// list filtered upwards, now filter downwards
+	// e0 currently = end of x list
+	while (e0)
+	{
+		// here we are either at the start of the list or just past a gap
+		start = e0->position.x + 2.0f * e0->collision_radius;
+		finish = start - 4.0f * e0->collision_radius;
+		prev = e0->x_previous;
+		while ((prev)&&(prev->collisionTestFilter == 3))	// next has been eliminated from the list of possible colliders - so skip it
+			prev = prev->x_previous;
+		if (prev)
+		{
+			prev_start = prev->position.x + 2.0f * prev->collision_radius;
+			if (prev_start > finish)
+			{
+				// e0 and next overlap
+				while ((prev)&&(prev_start > finish))
+				{
+					// skip forward to the next gap or the end of the list
+					prev_finish = prev_start - 4.0f * prev->collision_radius;
+					if (prev_finish < finish)
+						finish = prev_finish;
+					e0 = prev;
+					prev = e0->x_previous;
+					while ((prev)&&(prev->collisionTestFilter==3))	// next has been eliminated - so skip it
+						prev = prev->x_previous;
+					if (prev)
+						prev_start = prev->position.x + 2.0f * prev->collision_radius;
+				}
+				// now either (prev == nil) or (prev_start <= finish)-which would imply a gap!
+			}
+			else
+			{
+				// e0 is a singleton
+				e0->collisionTestFilter |= 2;
+			}
+		}
+		else // (prev == nil)
+		{
+			// at the end of the list so e0 is a singleton
+			e0->collisionTestFilter |= 2;
+		}
+		e0 = prev;
 	}
 	// done! list filtered
 	
@@ -6040,7 +6181,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		start = e0->position.y - 2.0f * e0->collision_radius;
 		finish = start + 4.0f * e0->collision_radius;
 		next = e0->y_next;
-		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+		while ((next)&&(next->collisionTestFilter==3))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->y_next;
 		if (next)
 		{
@@ -6056,7 +6197,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 						finish = next_finish;
 					e0 = next;
 					next = e0->y_next;
-					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+					while ((next)&&(next->collisionTestFilter==3))	// next has been eliminated - so skip it
 						next = next->y_next;
 					if (next)
 						next_start = next->position.y - 2.0f * next->collision_radius;
@@ -6066,15 +6207,58 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			else
 			{
 				// e0 is a singleton
-				e0->collisionTestFilter = YES;
+				e0->collisionTestFilter = 1;
 			}
 		}
 		else // (next == nil)
 		{
 			// at the end of the list so e0 is a singleton
-			e0->collisionTestFilter = YES;
+			e0->collisionTestFilter = 1;
 		}
 		e0 = next;
+	}
+	// e0 currently = end of y list
+	while (e0)
+	{
+		// here we are either at the start of the list or just past a gap
+		start = e0->position.y + 2.0f * e0->collision_radius;
+		finish = start - 4.0f * e0->collision_radius;
+		prev = e0->y_previous;
+		while ((prev)&&(prev->collisionTestFilter == 3))	// next has been eliminated from the list of possible colliders - so skip it
+			prev = prev->y_previous;
+		if (prev)
+		{
+			prev_start = prev->position.y + 2.0f * prev->collision_radius;
+			if (prev_start > finish)
+			{
+				// e0 and next overlap
+				while ((prev)&&(prev_start > finish))
+				{
+					// skip forward to the next gap or the end of the list
+					prev_finish = prev_start - 4.0f * prev->collision_radius;
+					if (prev_finish < finish)
+						finish = prev_finish;
+					e0 = prev;
+					prev = e0->y_previous;
+					while ((prev)&&(prev->collisionTestFilter==3))	// next has been eliminated - so skip it
+						prev = prev->y_previous;
+					if (prev)
+						prev_start = prev->position.y + 2.0f * prev->collision_radius;
+				}
+				// now either (prev == nil) or (prev_start <= finish)-which would imply a gap!
+			}
+			else
+			{
+				// e0 is a singleton
+				e0->collisionTestFilter |= 2;
+			}
+		}
+		else // (prev == nil)
+		{
+			// at the end of the list so e0 is a singleton
+			e0->collisionTestFilter |= 2;
+		}
+		e0 = prev;
 	}
 	// done! list filtered
 	
@@ -6086,7 +6270,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		start = e0->position.z - 2.0f * e0->collision_radius;
 		finish = start + 4.0f * e0->collision_radius;
 		next = e0->z_next;
-		while ((next)&&(next->collisionTestFilter))	// next has been eliminated from the list of possible colliders - so skip it
+		while ((next)&&(next->collisionTestFilter==3))	// next has been eliminated from the list of possible colliders - so skip it
 			next = next->z_next;
 		if (next)
 		{
@@ -6104,7 +6288,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 						finish = next_finish;
 					e0 = next;
 					next = e0->z_next;
-					while ((next)&&(next->collisionTestFilter))	// next has been eliminated - so skip it
+					while ((next)&&(next->collisionTestFilter==3))	// next has been eliminated - so skip it
 						next = next->z_next;
 					if (next)
 						next_start = next->position.z - 2.0f * next->collision_radius;
@@ -6115,15 +6299,88 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			else
 			{
 				// e0 is a singleton
-				e0->collisionTestFilter = YES;
+				e0->collisionTestFilter = 1;
 			}
 		}
 		else // (next == nil)
 		{
 			// at the end of the list so e0 is a singleton
-			e0->collisionTestFilter = YES;
+			e0->collisionTestFilter = 1;
 		}
 		e0 = next;
+	}
+	// e0 currently = end of z list
+	while (e0)
+	{
+		// here we are either at the start of the list or just past a gap
+		start = e0->position.z + 2.0f * e0->collision_radius;
+		finish = start - 4.0f * e0->collision_radius;
+		prev = e0->z_previous;
+		while ((prev)&&(prev->collisionTestFilter == 3))	// next has been eliminated from the list of possible colliders - so skip it
+			prev = prev->z_previous;
+		if (prev)
+		{
+			prev_start = prev->position.z + 2.0f * prev->collision_radius;
+			if (prev_start > finish)
+			{
+				// e0 and next overlap
+				while ((prev)&&(prev_start > finish))
+				{
+					// e0 probably already in collision chain at this point, but if it
+					// isn't we have to insert it
+					if (prev->collision_chain != e0)
+					{
+						if (prev->collision_chain == nil)
+						{
+							// easy, just add it onto the start of the chain
+							prev->collision_chain = e0;
+						}
+						else
+						{
+							/* not nil and not e0 shouldn't be possible, I think.
+							 * if it is, that implies that e0->collision_chain is nil, though
+							 * so: */
+							if (e0->collision_chain == nil)
+							{
+								e0->collision_chain = prev->collision_chain;
+								prev->collision_chain = e0;
+							}
+							else
+							{
+								/* This shouldn't happen... If it does, we accept
+								 * missing collision checks and move on */
+								OOLog(@"general.error.inconsistentState",@"Unexpected state in collision chain builder prev=%@, prev->c=%@, e0=%@, e0->c=%@",prev,prev->collision_chain,e0,e0->collision_chain);
+							}
+						}
+					}
+					// skip forward to the next gap or the end of the list
+					prev_finish = prev_start - 4.0f * prev->collision_radius;
+					if (prev_finish < finish)
+						finish = prev_finish;
+					e0 = prev;
+					prev = e0->z_previous;
+					while ((prev)&&(prev->collisionTestFilter==3))	// next has been eliminated - so skip it
+						prev = prev->z_previous;
+					if (prev)
+						prev_start = prev->position.z + 2.0f * prev->collision_radius;
+				}
+				// now either (prev == nil) or (prev_start <= finish)-which would imply a gap!
+
+				// all the collision chains are already terminated somewhere
+				// at this point so no need to set e0->collision_chain = nil
+			}
+			else
+			{
+				// e0 is a singleton
+				e0->collisionTestFilter |= 2;
+			}
+		}
+		else // (prev == nil)
+		{
+			// at the end of the list so e0 is a singleton
+			e0->collisionTestFilter |= 2;
+		}
+		e0 = prev;
 	}
 	// done! list filtered
 }

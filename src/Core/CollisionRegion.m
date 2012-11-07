@@ -274,12 +274,12 @@ static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region)
 	for (i = 0; i < n_entities; i++)
 	{
 		e1 = entity_array[i];
-		if (!(e1->collisionTestFilter))
+		if (e1->collisionTestFilter != 3)
 		{
 			entities_to_test[n_entities_to_test++] = e1;
 		}
 	}
-	
+
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_COLLISIONS)
 	{
@@ -334,7 +334,7 @@ static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region)
 				if (gDebugFlags & DEBUG_COLLISIONS)
 				{
 					OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
-						  e1, (e1->collisionTestFilter)?@"YES":@"NO", e2, (e2->collisionTestFilter)?@"YES":@"NO");
+						  e1, (e1->collisionTestFilter==3)?@"YES":@"NO", e2, (e2->collisionTestFilter==3)?@"YES":@"NO");
 				}
 #endif
 				checks_within_range++;
