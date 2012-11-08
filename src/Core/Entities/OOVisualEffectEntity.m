@@ -122,6 +122,9 @@ MA 02110-1301, USA.
 	}
 
 	isImmuneToBreakPatternHide = [effectDict oo_boolForKey:@"is_break_pattern"];
+	scaleX = 1.0;
+	scaleY = 1.0;
+	scaleZ = 1.0;
 
 	[self clearSubEntities];
 	[self setUpSubEntities];
@@ -145,10 +148,6 @@ MA 02110-1301, USA.
 
 	scriptInfo = [[effectDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	[self setScript:[effectDict oo_stringForKey:@"script"]];
-
-	scaleX = 1.0;
-	scaleY = 1.0;
-	scaleZ = 1.0;
 
 	return YES;
 
@@ -617,6 +616,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 	}
 	OOGL(glPushMatrix());
 	OOGL(glScalef(scaleX,scaleY,scaleZ));
+
 	if ([self mesh] != nil)
 	{
 		[super drawImmediate:immediate translucent:translucent];

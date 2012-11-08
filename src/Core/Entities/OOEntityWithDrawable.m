@@ -74,9 +74,9 @@ MA 02110-1301, USA.
 		return;
 	}
 	
-	if (no_draw_distance != INFINITY)
+	if (no_draw_distance != INFINITY && ![self isImmuneToBreakPatternHide])
 	{ 
-		// (always draw sky!)
+		// (always draw sky, always draw break patterns)
 		if (![self isSubEntity]) 
 		{
 			GLfloat clipradius = collision_radius;
