@@ -247,10 +247,19 @@ MA 02110-1301, USA.
 		[self setUpOneSubentity:[subs oo_dictionaryAtIndex:i]];
 	}
 
-	no_draw_distance = _profileRadius * _profileRadius * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 2.0;
+	[self setNoDrawDistance];
 
 	return YES;
 }
+
+
+- (void) setNoDrawDistance
+{
+	GLfloat r = _profileRadius * [self scaleMax];
+	no_draw_distance = r * r * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 2.0;
+
+}
+
 
 - (BOOL) setUpOneSubentity:(NSDictionary *) subentDict 
 {
@@ -446,6 +455,7 @@ MA 02110-1301, USA.
 	}
 
 	scaleX = factor;
+	[self setNoDrawDistance];
 }
 
 
@@ -471,6 +481,7 @@ MA 02110-1301, USA.
 	}
 
 	scaleY = factor;
+	[self setNoDrawDistance];
 }
 
 
@@ -496,6 +507,7 @@ MA 02110-1301, USA.
 	}
 
 	scaleZ = factor;
+	[self setNoDrawDistance];
 }
 
 
@@ -885,9 +897,30 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 }
 
 
+@end
 
+@implementation OOVisualEffectEntity (SubEntityRelationship)
 
-
-
+// a slightly misnamed test now things other than ships can have subents
+- (BOOL) isShipWithSubEntityShip:(Entity *)other
+{
+	assert ([self isVisualEffect]);
+	
+	if (![other isVisualEffect])  return NO;
+	if (![other isSubEntity])  return NO;
+	if ([other owner] != self)  return NO;
+	
+#ifndef NDEBUG
+	// Sanity check; this should always be true.
+	if (![self hasSubEntity:(OOVisualEffectEntity *)other])
+	{
+		OOLogERR(@"visualeffect.subentity.sanityCheck.failed", @"%@ thinks it's a subentity of %@, but the supposed parent does not agree. %@", [other shortDescription], [self shortDescription], @"This is an internal error, please report it.");
+		[other setOwner:nil];
+		return NO;
+	}
+#endif
+	
+	return YES;
+}
 
 @end

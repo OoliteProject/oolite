@@ -89,6 +89,7 @@
 
 - (void) clearSubEntities;
 - (BOOL)setUpSubEntities;
+- (void) setNoDrawDistance;
 - (NSArray *)subEntities;
 - (NSUInteger) subEntityCount;
 - (BOOL) hasSubEntity:(Entity<OOSubEntity> *)sub;

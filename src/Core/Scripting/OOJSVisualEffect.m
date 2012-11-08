@@ -43,6 +43,7 @@ static JSBool VisualEffectGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectSetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectSetMaterials(JSContext *context, uintN argc, jsval *vp);
+static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSBool VisualEffectSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, OOVisualEffectEntity *thisEnt, BOOL fromShaders);
@@ -124,7 +125,8 @@ static JSFunctionSpec sVisualEffectMethods[] =
 	{ "getMaterials",   VisualEffectGetMaterials,    0 },
 	{ "getShaders",     VisualEffectGetShaders,    0 },
 	{ "remove",         VisualEffectRemove,    0 },
-	{ "setMaterials",     VisualEffectSetMaterials,    1 },
+	{ "scale",				  VisualEffectScale, 1 },
+	{ "setMaterials",   VisualEffectSetMaterials,    1 },
 	{ "setShaders",     VisualEffectSetShaders,    2 },
 
 	{ 0 }
@@ -357,24 +359,33 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 		case kVisualEffect_scaleX:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				[entity setScaleX:fValue];
-				return YES;
+				if (fValue > 0.0)
+				{
+					[entity setScaleX:fValue];
+					return YES;
+				}
 			}
 			break;
 
 		case kVisualEffect_scaleY:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				[entity setScaleY:fValue];
-				return YES;
+				if (fValue > 0.0)
+				{
+					[entity setScaleY:fValue];
+					return YES;
+				}
 			}
 			break;
 
 		case kVisualEffect_scaleZ:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				[entity setScaleZ:fValue];
-				return YES;
+				if (fValue > 0.0)
+				{
+					[entity setScaleZ:fValue];
+					return YES;
+				}
 			}
 			break;
 
@@ -631,3 +642,34 @@ static JSBool VisualEffectSetMaterialsInternal(JSContext *context, uintN argc, j
 	
 	OOJS_PROFILE_EXIT
 }
+
+static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	OOVisualEffectEntity *thisEnt = nil;
+	GET_THIS_EFFECT(thisEnt);
+	jsdouble scale;
+	BOOL gotScale;
+ 
+	if (argc < 1)
+	{
+		OOJSReportBadArguments(context, @"VisualEffect", @"scale", argc, OOJS_ARGV, nil, @"scale factor needed");
+		return NO;
+	}
+ 
+	gotScale = JS_ValueToNumber(context, OOJS_ARGV[0], &scale);
+	if (EXPECT_NOT(scale <= 0.0 || !gotScale))
+	{
+		OOJSReportBadArguments(context, @"VisualEffect", @"scale", argc, OOJS_ARGV, nil, @"scale factor must be positive");
+		return NO;
+	}
+ 
+	// set all three scales
+	[thisEnt setScaleX:scale];
+	[thisEnt setScaleY:scale];
+	[thisEnt setScaleZ:scale];
+ 
+	return YES;
+	OOJS_NATIVE_EXIT
+		} 
