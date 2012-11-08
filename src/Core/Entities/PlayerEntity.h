@@ -820,6 +820,7 @@ typedef enum
 - (void)resetCustomView;
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
 - (Vector) viewpointPosition;
+- (Vector) breakPatternPosition;
 - (Vector) viewpointOffset;
 
 - (NSDictionary *) missionOverlayDescriptor;

@@ -3058,10 +3058,17 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (Vector) breakPatternPosition
+{
+	return vector_add(position,quaternion_rotate_vector(quaternion_conjugate(orientation),forwardViewOffset));
+}
+
+
 - (Vector) viewpointOffset
 {
-	if ([UNIVERSE breakPatternHide])
-		return kZeroVector;	// center view for break pattern
+//	if ([UNIVERSE breakPatternHide])
+//		return kZeroVector;	// center view for break pattern
+	// now done by positioning break pattern correctly
 
 	switch ([UNIVERSE viewDirection])
 	{
@@ -5068,7 +5075,7 @@ static GLfloat		sBaseMass = 0.0;
 	if ([self status] == STATUS_LAUNCHING)  return; // a JS script has aborted the docking.
 	
 	[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
-	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:YES];
+	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:YES];
 	[self playDockWithStation];
 	[station noteDockedShip:self];
 	
@@ -5211,7 +5218,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	launchRoll = -flightRoll; // save the station's spin. (inverted for player)
 	flightRoll = 0; // don't spin when showing the break pattern.
-	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:YES];
+	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:YES];
 
 	dockedStation = nil;
 	
@@ -5657,7 +5664,7 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setWitchspaceBreakPattern:YES];
 	[self playExitWitchspace];
 	[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
-	[UNIVERSE setUpBreakPattern:position orientation:orientation forDocking:NO];
+	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:NO];
 }
 
 
