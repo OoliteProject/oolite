@@ -32,7 +32,8 @@ MA 02110-1301, USA.
 
 
 #ifndef NEW_PLANETS
-#define NEW_PLANETS 1
+// not for 1.77/8
+#define NEW_PLANETS 0
 #endif
 
 

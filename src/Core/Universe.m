@@ -4244,7 +4244,10 @@ static BOOL MaintainLinkedLists(Universe *uni)
 					if ([se maxFlightSpeed] > 0) se->isExplicitlyNotMainStation = YES; // we never want carriers to become main stations.
 				}
 				// stations used to have STATUS_ACTIVE, they're all STATUS_IN_FLIGHT now.
-				[se setStatus:STATUS_IN_FLIGHT];
+				if ([se status] != STATUS_COCKPIT_DISPLAY)
+				{
+					[se setStatus:STATUS_IN_FLIGHT];
+				}
 			}
 		}
 		else
@@ -5676,6 +5679,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 								{
 									[demo_ship switchAITo:@"nullAI.plist"];
 									[demo_ship setOrientation:q2];
+									[demo_ship setScanClass: CLASS_NO_DRAW];
+									[demo_ship setStatus: STATUS_COCKPIT_DISPLAY]; // prevents it getting escorts on addition
 									if ([self addEntity:demo_ship])
 									{
 										[demo_ship release];		// We now own a reference through the entity list.

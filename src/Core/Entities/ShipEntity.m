@@ -1537,6 +1537,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 		[escorter setPrimaryRole:defaultRole];	//for mothership
 		[escorter setScanClass:scanClass];		// you are the same as I
+		
 		if ([self bounty] == 0)  [escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];	// Avoid dirty escorts for clean mothers
 		
 		// find the right autoAI.

@@ -751,6 +751,12 @@ static const BaseFace kTexturedFaces[][3] =
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if ([UNIVERSE breakPatternHide] || translucent || immediate)  return;  // DON'T DRAW
+	if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:([self radius] + ATMOSPHERE_DEPTH)])
+	{
+		// Don't draw
+		return;
+	}
+
 	[self drawUnconditionally];
 }
 
@@ -1549,6 +1555,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 	unsigned char *data;
 	GLuint width, height;
 	
+	fillRanNoiseBuffer();
 	if (![TextureStore getCloudTextureNameFor:cloudColor
 											 :cloud_impress
 											 :cloud_bias

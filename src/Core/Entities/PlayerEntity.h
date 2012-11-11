@@ -38,6 +38,9 @@ MA 02110-1301, USA.
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
 @class OOJoystickManager, OOTexture;
 
+#ifndef FEATURE_REQUEST_5496
+#define FEATURE_REQUEST_5496 1
+#endif
 
 #define ALLOW_CUSTOM_VIEWS_WHILE_PAUSED	1
 #define SCRIPT_TIMER_INTERVAL			10.0
