@@ -36,8 +36,8 @@ MA 02110-1301, USA.
 #import "OOMaterial.h"
 
 
-#define SKY_MAX_STARS			4800
-#define SKY_MAX_BLOBS			1280
+#define SKY_BASIS_STARS			4800
+#define SKY_BASIS_BLOBS			1280
 #define SKY_clusterChance		0.80
 #define SKY_alpha				0.10
 #define SKY_scale				10.0
@@ -86,25 +86,37 @@ MA 02110-1301, USA.
 	nebulaCountMultiplier = [systemInfo oo_unsignedIntForKey:@"nebula_count_multiplier" defaultValue:1];
 	if (0 <= starCount)
 	{
-		starCount = MIN(SKY_MAX_STARS, starCount);
+		// nothing
 	}
 	else
 	{
-		starCount = starCountMultiplier * SKY_MAX_STARS * 0.5 * randf() * randf();
+		starCount = starCountMultiplier * SKY_BASIS_STARS * 0.5 * randf() * randf();
 	}
 	
 	// ...and nebula count. (Note: simplifying this would change the appearance of stars/blobs.)
 	nebulaCount = [systemInfo oo_floatForKey:@"sky_n_blurs" defaultValue:-1];
 	if (0 <= nebulaCount)
 	{
-		nebulaCount = MIN(SKY_MAX_BLOBS, nebulaCount);
+		// nothing
 	}
 	else
 	{
-		nebulaCount = nebulaCountMultiplier * SKY_MAX_BLOBS * 0.5 * randf() * randf();
+		nebulaCount = nebulaCountMultiplier * SKY_BASIS_BLOBS * 0.5 * randf() * randf();
 	}
 	
-	if ([UNIVERSE reducedDetail]) starCount /= 2; // Halve the number of stars in the reduced detail setting.
+	if ([UNIVERSE reducedDetail]) 
+	{
+		// limit stars and blobs to basis levels, and halve stars again
+		if (starCount > SKY_BASIS_STARS)
+		{
+			starCount = SKY_BASIS_STARS;
+		}
+		starCount /= 2; 
+		if (nebulaCount > SKY_BASIS_BLOBS)
+		{
+			nebulaCount = SKY_BASIS_BLOBS;
+		}
+	}
 	
 	skyDrawable = [[OOSkyDrawable alloc]
 				   initWithColor1:col1
