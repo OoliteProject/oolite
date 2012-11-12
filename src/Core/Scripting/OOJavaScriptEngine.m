@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "NSNumberOOExtensions.h"
 #import "OOConstToJSString.h"
+#import "OOVisualEffectEntity.h"
 
 #import "OOJSGlobal.h"
 #import "OOJSMissionVariables.h"

@@ -106,11 +106,11 @@ static BOOL				gammaControlPressed;
 #endif
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
-static BOOL				queryPressed;
+//static BOOL				queryPressed;
 static BOOL				spacePressed;
 static BOOL				switching_chart_screens;
 static BOOL				switching_status_screens;
-static BOOL				switching_market_screens;
+//static BOOL				switching_market_screens;
 static BOOL				switching_equipship_screens;
 static BOOL				zoom_pressed;
 static BOOL				customView_pressed;
@@ -119,7 +119,7 @@ static BOOL				escapePodKey_pressed;
 
 static NSUInteger		searchStringLength;
 static double			timeLastKeyPress;
-static OOGUIRow			oldSelection;
+//static OOGUIRow			oldSelection;
 static int				saved_view_direction;
 static double			saved_script_time;
 static int				saved_gui_screen;

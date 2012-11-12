@@ -7693,11 +7693,11 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-static double estimatedTimeForJourney(double distance, NSUInteger hops)
+/*static double estimatedTimeForJourney(double distance, NSUInteger hops)
 {
 	NSUInteger min_hops = (hops > 1)? (hops - 1) : 1;
 	return 2000 * hops + 4000 * distance * distance / min_hops;
-}
+	}*/
 
 /*
 - (NSArray *) passengersForLocalSystemAtTime:(OOTimeAbsolute)current_time

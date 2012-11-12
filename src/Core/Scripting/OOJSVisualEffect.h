@@ -31,3 +31,12 @@ MA 02110-1301, USA.
 
 
 void InitOOJSVisualEffect(JSContext *context, JSObject *global);
+
+@interface OOVisualEffectEntity (OOJavaScriptExtensions)
+
+- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
+- (NSString *) oo_jsClassName;
+- (BOOL) isVisibleToScripts;
+- (NSArray *) subEntitiesForScript;
+
+@end
