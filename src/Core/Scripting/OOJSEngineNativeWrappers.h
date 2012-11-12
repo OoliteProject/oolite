@@ -59,13 +59,13 @@ MA 02110-1301, USA.
 			OOJSProfileEnter(&oojsProfilerStackFrame, NAME);
 
 #define OOJS_PROFILE_ENTER \
-	OOJS_PROFILE_ENTER_NAMED(__PRETTY_FUNCTION__)
+	OOJS_PROFILE_ENTER_NAMED(__FUNCTION__)
 
 #define OOJS_PROFILE_EXIT_VAL(rval) \
 		} @finally { \
 			OOJSProfileExit(&oojsProfilerStackFrame); \
 		} \
-		OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); \
+		OOJSUnreachable(__FUNCTION__, __FILE__, __LINE__); \
 		return rval; \
 	}
 #define OOJS_PROFILE_EXIT_VOID return; OOJS_PROFILE_EXIT_VAL()
@@ -75,7 +75,7 @@ MA 02110-1301, USA.
 #else
 
 #define OOJS_PROFILE_ENTER			{
-#define OOJS_PROFILE_EXIT_VAL(rval)	} OOJSUnreachable(__PRETTY_FUNCTION__, __FILE__, __LINE__); return (rval);
+#define OOJS_PROFILE_EXIT_VAL(rval)	} OOJSUnreachable(__FUNCTION__, __FILE__, __LINE__); return (rval);
 #define OOJS_PROFILE_EXIT_VOID		} return;
 #define OOJS_PROFILE_ENTER_FOR_NATIVE @try {
 
