@@ -84,8 +84,8 @@ MA 02110-1301, USA.
 - (void) addMessageToReport:(NSString*) report;
 
 // - (void) setGuiToContractsScreen;
-- (BOOL) pickFromGuiContractsScreen;
-- (void) highlightSystemFromGuiContractsScreen;
+//- (BOOL) pickFromGuiContractsScreen;
+//- (void) highlightSystemFromGuiContractsScreen;
 
 - (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee;	// for js scripting
 - (BOOL) removePassenger:(NSString*)Name;	// for js scripting

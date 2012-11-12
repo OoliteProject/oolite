@@ -1157,7 +1157,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	return NO;
 }
 
-
+/*
 - (BOOL) pickFromGuiContractsScreen
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
@@ -1242,8 +1242,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	}
 	return NO;
 }
+*/
 
-
+ /*
 - (void) highlightSystemFromGuiContractsScreen
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -1267,7 +1268,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	[self setGuiToLongRangeChartScreen];
 	[UNIVERSE findSystemCoordinatesWithPrefix:[dest_name lowercaseString] exactMatch:YES]; // if dest_name is 'Ra', make sure there's only 1 result.
 	[self targetNewSystem:1]; // now highlight the 1 result found.
-}
+} */
 
 
 - (NSArray*) passengerList
