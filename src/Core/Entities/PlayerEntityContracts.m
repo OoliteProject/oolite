@@ -728,6 +728,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	
 }
 
+/*
 - (void) setGuiToContractsScreen
 {
 	NSUInteger		i;
@@ -978,6 +979,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
+*/
 
 
 - (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee

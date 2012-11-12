@@ -78,8 +78,8 @@ typedef enum
 	OOUniversalID			planet;
 	
 	NSMutableArray			*localMarket;
-	NSMutableArray			*localPassengers;
-	NSMutableArray			*localContracts;
+//	NSMutableArray			*localPassengers;
+//	NSMutableArray			*localContracts;
 	NSMutableArray			*localShipyard;
 	
 	NSMutableDictionary *localInterfaces;
@@ -109,10 +109,10 @@ typedef enum
 - (void) setPrice:(NSUInteger) price forCommodity:(OOCommodityType) commodity;
 - (void) setQuantity:(NSUInteger) quantity forCommodity:(OOCommodityType) commodity;
 
-- (NSMutableArray *) localPassengers;
+/*- (NSMutableArray *) localPassengers;
 - (void) setLocalPassengers:(NSArray *)market;
 - (NSMutableArray *) localContracts;
-- (void) setLocalContracts:(NSArray *)market;
+- (void) setLocalContracts:(NSArray *)market; */
 - (NSMutableArray *) localShipyard;
 - (void) setLocalShipyard:(NSArray *)market;
 - (NSMutableDictionary *) localInterfaces;

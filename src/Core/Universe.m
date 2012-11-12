@@ -7699,7 +7699,7 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 	return 2000 * hops + 4000 * distance * distance / min_hops;
 }
 
-
+/*
 - (NSArray *) passengersForLocalSystemAtTime:(OOTimeAbsolute)current_time
 {
 	PlayerEntity* player = PLAYER;
@@ -7849,7 +7849,7 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 	
 	return [NSArray arrayWithArray:resultArray];
 }
-
+*/
 
 - (NSString *) timeDescription:(double) interval
 {
@@ -7921,7 +7921,7 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 	return [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
-
+/*
 - (NSArray *) contractsForLocalSystemAtTime:(double) current_time
 {
 	PlayerEntity* player = PLAYER;
@@ -8119,7 +8119,7 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 	
 	return [NSArray arrayWithArray:resultArray];
 }
-
+*/
 
 - (void) makeSunSkimmer:(ShipEntity *) ship andSetAI:(BOOL)setAI
 {

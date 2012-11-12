@@ -83,7 +83,7 @@ MA 02110-1301, USA.
 
 - (void) addMessageToReport:(NSString*) report;
 
-- (void) setGuiToContractsScreen;
+// - (void) setGuiToContractsScreen;
 - (BOOL) pickFromGuiContractsScreen;
 - (void) highlightSystemFromGuiContractsScreen;
 

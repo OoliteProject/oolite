@@ -1747,7 +1747,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			
 		case GUI_SCREEN_SYSTEM_DATA:
-			if ([self status] == STATUS_DOCKED && dockedStation == [UNIVERSE station] && [gameView isDown:key_contract_info] && ![UNIVERSE strict] && [self hasHyperspaceMotor])  // '?' toggle between maps/info and contract screen
+/*			if ([self status] == STATUS_DOCKED && dockedStation == [UNIVERSE station] && [gameView isDown:key_contract_info] && ![UNIVERSE strict] && [self hasHyperspaceMotor])  // '?' toggle between maps/info and contract screen
 			{
 				if (!queryPressed)
 				{
@@ -1759,7 +1759,7 @@ static NSTimeInterval	time_last_frame;
 				queryPressed = YES;
 			}
 			else
-				queryPressed = NO;
+			queryPressed = NO; */
 			break;
 			
 #if OO_USE_CUSTOM_LOAD_SAVE
@@ -2127,7 +2127,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			break;
 			
-		case GUI_SCREEN_CONTRACTS:
+/*		case GUI_SCREEN_CONTRACTS:
 			if ([self status] == STATUS_DOCKED)
 			{
 				if ([self handleGUIUpDownArrowKeys])
@@ -2167,7 +2167,7 @@ static NSTimeInterval	time_last_frame;
 				else
 					queryPressed = NO;
 			}
-			break;
+			break; */
 			
 		case GUI_SCREEN_REPORT:
 			if ([gameView isDown:32])	// spacebar
@@ -3210,7 +3210,7 @@ static NSTimeInterval	time_last_frame;
 
 		if (([gameView isDown:gvFunctionKey8])||(fKeyAlias && [gameView isDown:gvNumberKey8]))
 		{
-			if (!switching_market_screens)
+/*			if (!switching_market_screens)
 			{
 				if ((gui_screen == GUI_SCREEN_MARKET)&&(dockedStation == [UNIVERSE station])&&(![UNIVERSE strict] && [self hasHyperspaceMotor]))
 				{
@@ -3219,35 +3219,36 @@ static NSTimeInterval	time_last_frame;
 					[gui setSelectedRow:GUI_ROW_PASSENGERS_START];
 				}
 				else
-				{
+				{ */
 					[gameView clearKeys];
 					[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
 					[self setGuiToMarketScreen];
 					[gui setSelectedRow:GUI_ROW_MARKET_START];
-				}
+/*				}
 			}
-			switching_market_screens = YES;
+			switching_market_screens = YES; 
 		}
 		else
 		{
 			switching_market_screens = NO;
+		  */
 		}
 	}
 	else
 	{
 		if (([gameView isDown:gvFunctionKey8])||(fKeyAlias && [gameView isDown:gvNumberKey8]))
 		{
-			if (!switching_market_screens)
-			{
+/*			if (!switching_market_screens)
+				{ */
 				[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
 				[self setGuiToMarketScreen];
 				[gui setSelectedRow:GUI_ROW_MARKET_START];
-			}
+/*			}
 			switching_market_screens = YES;
 		}
 		else
 		{
-			switching_market_screens = NO;
+		switching_market_screens = NO; */
 		}
 	}
 }
@@ -3676,18 +3677,6 @@ static BOOL autopilot_pause;
 		[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
 		[self setGuiToMarketScreen];
 		[[UNIVERSE gui] setSelectedRow:GUI_ROW_MARKET_START];
-		break;
-	case GUI_SCREEN_CONTRACTS:
-		if (dockedStation == [UNIVERSE station] && [self hasHyperspaceMotor])
-		{
-			[self setGuiToContractsScreen];
-			[[UNIVERSE gui] setSelectedRow:GUI_ROW_PASSENGERS_START];
-		}
-		else
-		{
-			// can't get to contracts screen from here
-			[self setGuiToStatusScreen];
-		}
 		break;
 	case GUI_SCREEN_INTERFACES:
 		[self setGuiToInterfacesScreen:0];

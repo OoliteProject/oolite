@@ -182,7 +182,7 @@ MA 02110-1301, USA.
 }
 
 
-- (NSMutableArray *) localPassengers
+/*- (NSMutableArray *) localPassengers
 {
 	return localPassengers;
 }
@@ -207,7 +207,7 @@ MA 02110-1301, USA.
 	if (localContracts)
 		[localContracts release];
 	localContracts = [[NSMutableArray alloc] initWithArray:some_market];
-}
+	} */
 
 
 - (NSMutableArray *) localShipyard
@@ -615,8 +615,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	DESTROY(_shipsOnHold);
 	DESTROY(localMarket);
-	DESTROY(localPassengers);
-	DESTROY(localContracts);
+//	DESTROY(localPassengers);
+//	DESTROY(localContracts);
 	DESTROY(localShipyard);
 	DESTROY(localInterfaces);
 
