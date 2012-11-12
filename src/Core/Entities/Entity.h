@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOWeakReference.h"
 
-@class Universe, CollisionRegion, ShipEntity;
+@class Universe, CollisionRegion, ShipEntity, OOVisualEffectEntity;
 
 
 #ifndef NDEBUG

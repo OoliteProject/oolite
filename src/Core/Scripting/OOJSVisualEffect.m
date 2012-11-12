@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 #import "OOMesh.h"
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
+#import "EntityOOJavaScriptExtensions.h"
+
 
 static JSObject		*sVisualEffectPrototype;
 
@@ -44,7 +46,7 @@ static JSBool VisualEffectSetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectSetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp);
-
+static JSBool VisualEffectRestoreSubEntities(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool VisualEffectSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, OOVisualEffectEntity *thisEnt, BOOL fromShaders);
 
@@ -86,6 +88,7 @@ enum
 	kVisualEffect_shaderInt2,
 	kVisualEffect_shaderVector1,
 	kVisualEffect_shaderVector2,
+	kVisualEffect_subEntities,
 	kVisualEffect_vectorForward,
 	kVisualEffect_vectorRight,
 	kVisualEffect_vectorUp
@@ -112,6 +115,7 @@ static JSPropertySpec sVisualEffectProperties[] =
 	{ "shaderInt2",    kVisualEffect_shaderInt2,    OOJS_PROP_READWRITE_CB },
 	{ "shaderVector1", kVisualEffect_shaderVector1, OOJS_PROP_READWRITE_CB },
 	{ "shaderVector2", kVisualEffect_shaderVector2, OOJS_PROP_READWRITE_CB },
+	{ "subEntities",			kVisualEffect_subEntities,			OOJS_PROP_READONLY_CB },
 	{ "vectorForward", kVisualEffect_vectorForward,	OOJS_PROP_READONLY_CB },
 	{ "vectorRight",	 kVisualEffect_vectorRight,		OOJS_PROP_READONLY_CB },
 	{ "vectorUp",			 kVisualEffect_vectorUp,			OOJS_PROP_READONLY_CB },
@@ -125,6 +129,7 @@ static JSFunctionSpec sVisualEffectMethods[] =
 	{ "getMaterials",   VisualEffectGetMaterials,    0 },
 	{ "getShaders",     VisualEffectGetShaders,    0 },
 	{ "remove",         VisualEffectRemove,    0 },
+	{ "restoreSubEntities", VisualEffectRestoreSubEntities, 0 },
 	{ "scale",				  VisualEffectScale, 1 },
 	{ "setMaterials",   VisualEffectSetMaterials,    1 },
 	{ "setShaders",     VisualEffectSetShaders,    2 },
@@ -180,6 +185,11 @@ static BOOL JSVisualEffectGetVisualEffectEntity(JSContext *context, JSObject *vi
 - (BOOL) isVisibleToScripts
 {
 	return YES;
+}
+
+- (NSArray *) subEntitiesForScript
+{
+	return [[self visualEffectSubEntityEnumerator] allObjects];
 }
 
 @end
@@ -260,6 +270,11 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 
 		case kVisualEffect_shaderVector2:
 			return VectorToJSValue(context, [entity shaderVector2], value);
+
+		case kVisualEffect_subEntities:
+			result = [entity subEntitiesForScript];
+			break;
+			
 			
 		case kVisualEffect_script:
 			result = [entity script];
@@ -472,7 +487,15 @@ static JSBool VisualEffectRemove(JSContext *context, uintN argc, jsval *vp)
 	OOVisualEffectEntity				*thisEnt = nil;
 	GET_THIS_EFFECT(thisEnt);
 	
-	[thisEnt remove];
+	if ([thisEnt isSubEntity])
+	{
+		OOVisualEffectEntity				*parent = [thisEnt owner];
+		[parent removeSubEntity:thisEnt];
+	}
+	else
+	{
+		[thisEnt remove];
+	}
 
 	OOJS_RETURN_VOID;
 	
@@ -672,4 +695,29 @@ static JSBool VisualEffectScale(JSContext *context, uintN argc, jsval *vp)
  
 	return YES;
 	OOJS_NATIVE_EXIT
-		} 
+		
+} 
+
+
+// restoreSubEntities(): boolean
+static JSBool VisualEffectRestoreSubEntities(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	OOVisualEffectEntity				*thisEnt = nil;
+	NSUInteger				numSubEntitiesRestored = 0U;
+	
+	GET_THIS_EFFECT(thisEnt);
+	
+	NSUInteger subCount = [[thisEnt subEntitiesForScript] count];
+	
+	[thisEnt clearSubEntities];
+	[thisEnt setUpSubEntities];
+	
+	if ([[thisEnt subEntitiesForScript] count] - subCount > 0)  numSubEntitiesRestored = [[thisEnt subEntitiesForScript] count] - subCount;
+	
+	OOJS_RETURN_BOOL(numSubEntitiesRestored > 0);
+	
+	OOJS_NATIVE_EXIT
+}
+

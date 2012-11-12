@@ -74,7 +74,7 @@ static JSClass sMissionClass =
 enum
 {
 	kMission_markedSystems,
-	kMission_currentID,
+	kMission_screenID,
 	kMission_exitScreen
 };
 

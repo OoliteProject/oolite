@@ -50,7 +50,6 @@ MA 02110-1301, USA.
 
 #import "OOFilteringEnumerator.h"
 
-
 @interface OOVisualEffectEntity (Private)
 
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
@@ -252,6 +251,13 @@ MA 02110-1301, USA.
 }
 
 
+- (void) removeSubEntity:(OOVisualEffectEntity *)sub
+{
+	[sub setOwner:nil];
+	[subEntities removeObject:sub];
+}
+
+
 - (void) setNoDrawDistance
 {
 	GLfloat r = _profileRadius * [self scaleMax];
@@ -345,6 +351,12 @@ MA 02110-1301, USA.
 - (NSUInteger) subEntityCount
 {
 	return [subEntities count];
+}
+
+
+- (NSEnumerator *) visualEffectSubEntityEnumerator
+{
+	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isVisualEffect)];
 }
 
 

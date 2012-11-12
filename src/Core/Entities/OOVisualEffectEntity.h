@@ -88,10 +88,12 @@
 - (GLfloat)frustumRadius;
 
 - (void) clearSubEntities;
-- (BOOL)setUpSubEntities;
+- (BOOL) setUpSubEntities;
+- (void) removeSubEntity:(OOVisualEffectEntity *)sub;
 - (void) setNoDrawDistance;
 - (NSArray *)subEntities;
 - (NSUInteger) subEntityCount;
+- (NSEnumerator *) visualEffectSubEntityEnumerator;
 - (BOOL) hasSubEntity:(Entity<OOSubEntity> *)sub;
 
 - (NSEnumerator *)subEntityEnumerator;
