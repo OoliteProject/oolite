@@ -3620,6 +3620,7 @@ static BOOL autopilot_pause;
 	{
 		if (gui_screen != GUI_SCREEN_MISSION) // did we call a new mission screen inside callback?
 		{
+			// note that this might not be the same end screen as last time...
 			[self setGuiToMissionEndScreen];	// if not, update status screen with callback changes, if any.
 			[self endMissionScreenAndNoteOpportunity];	// missionScreenEnded, plus opportunity events.
 		}

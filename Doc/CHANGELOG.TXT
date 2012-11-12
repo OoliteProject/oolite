@@ -1,4 +1,5 @@
 Changes between Oolite 1.76 and Oolite 1.77:
+
 Gameplay:
 =========
 
@@ -6,12 +7,168 @@ General:
 --------
 * Enabled reverse-stepping through list of beacons shown by the Advanced
   Space Compass.  The default key is '|' (Shift-'\').
+* Energy bomb made strict mode only.
+* Ships with a bounty will often avoid the main station
+* A certain classified device is now possible to repair and has had
+  minor changes to its behaviour.
+* Improvements to sound effect handling for scoop and laser
+* Several efficiency improvements for smoother gameplay
+* New combat behaviour and AI, including:
+	More consistent missile explosion behaviour
+	Smarter Thargoids
+	Smarter use of turret weapons
+	Better reactions against cloaked opponents
+	Better reaction to deployment of Q-mines
+	NPCs can now use side weapons
+	NPC lasers now equivalent to player lasers in terms of rate of fire
+	and overheating.
+
+* Gamma control for SDL builds
+* System populator cleaner, and hermits now semi-persistent
+* Longer visibility distance
+* Criminal behaviour sanctions now equivalent for player and NPCs
+* Witchspace exit speed now depends on the lead ship, and player
+  following NPC through a wormhole now behaves better.
+* Keyboard precision mode
+* Stations can now have multiple docks
+* Docking Clearance Protocol now a Game Option
+* Interfaces screen on docked F4 for accessing arbitrary station or
+  ship systems. Passenger and cargo contracts moved to this screen;
+  parcel contracts added.
+* Can switch to custom views while paused
+* Improved rendering of planetary atmosphere and sun
+* New 'b' key for activation of secondary function of primable
+  equipment (e.g. a mode switch)
 
 Bug fixes:
 ----------
 * 'sendAllShipsAway' no longer tries to send ships without a hyperspace
   motor away.
 * Added missing new keyboard controls to the BBC keyconfig.plist
+* Scoop icon fixed for ships carrying special cargo
+* Docking behaviour now more reliable at low frame rates and at odd
+  approach angles
+* Negative ship distances on HUD fixed
+* Laser position display fix
+* Target system memory expansion now works properly with cloaked ships
+* Cargo rounding and save/load bugs fixed
+* Advanced Navigation Array display bug fixed
+* Being on board a witchspacing carrier now works more sensibly
+* Larger witchbuoys no longer a collision risk
+* Several crash bugs fixed
+
+Expansion Pack Development:
+===========================
+
+AI:
+---
+* New events:
+	DEFENSE_TARGET_LOST
+	DEFENSE_TARGET_DESTROYED
+	CASCADE_WEAPON_DETECTED
+	ATTACKER_MISSED
+* New commands: 
+	addPrimaryAggressorAsDefenseTarget
+	addFoundTargetAsDefenseTarget
+	findNewDefenseTarget
+	clearDefenseTargets
+	setTargetToRandomStation
+	setTargetToLastStation
+	performLandOnPlanet
+	storeTarget
+	recallStoredTarget
+	performScriptedAI
+	performScriptedCombatAI
+* Higher skill combat AIs available through 'accuracy' setting
+* Full frame-by-frame control over ship AI now available from script
+
+Config files:
+-------------
+* Required space in equipment.plist now works as intended
+* damage_probability setting in equipment.plist
+* Ship role list now automatically includes "[shipDataKey]"; roles beginning "[" forbidden.
+* Shipdata weapon_facings property to set available laser mounts
+* bright_fraction property for flasher subentities
+* Crosshair plist files separate from HUD
+* Several new descriptions.plist and missiontext.plist entries
+* New effectdata.plist to define visual effects - items with a visual appearance, and perhaps a scanner and compass signal, but no physical presence. These can be used to supplement/replace break patterns, among other effects.
+
+Scripting:
+----------
+* Various debug console improvements
+* Additional 'b' key and mode() function for primable equipment
+* "Dock" entity type, for control over docking and launching,
+  especially in multidock stations.
+* More parameters for mission.markSystem, to allow custom markers
+* Condition scripts for equipment, ships, and shipyard to replace
+  legacy conditions.
+* Numerous additional options for mission.runScreen, and related
+  properties for mission objects
+* "VisualEffect" entity type, for management of effects defined
+  through effectdata.plist
+
+* New properties
+	ship.beaconCode				
+	ship.*Weapon now editable
+	ship.dataKey
+	player.ship.price
+	ship.weaponFacings
+	player.ship.serviceLevel
+	ship.pitch, ship.roll, ship.yaw
+	ship.boundingBox
+	ship.autoAI
+	station.hasShipyard
+	ship.commodity
+	ship.commodityCount
+	ship.laserHeatLevel
+	system.breakPattern
+	station.breakPattern
+  ship.currentWeapon
+  ship.weaponPosition*
+  ship.AIFoundTarget
+  ship.AIPrimaryAggressor
+  ship.destination
+  ship.desiredRange
+	station.market
+
+* New methods
+	player.replaceShip(key)
+	ship.setBounty
+	global.autoAIForRole(role)
+	ship.dealEnergyDamage
+	ship.getMaterials
+	ship.getShaders
+	player.ship.setCustomView(position,orientation)
+	player.ship.resetCustomView		
+	player.ship.takeInternalDamage()
+	system.addVisualEffect
+	station.setMarketPrice(cargo,price)
+	station.setMarketQuantity(cargo,price)
+	
+* New events
+  shipHitByECM {new 'whom' argument}
+	shipLandedOnPlanet(planet)
+	playerBoughtCargo
+  playerSoldCargo
+	shipScoopedFuel
+	equipmentRepaired
+	shipBountyChanged(delta,reason)
+	dayChanged(day)
+	cascadeWeaponDetected(weapon)
+	shipBeingAttackedUnsuccessfully(attacker)
+
+Miscellaneous:
+--------------
+* TAF changes only possible when FPS display is active
+* Planettool updated
+
+Bugfixes:
+---------
+* Turret declarations now work as intended
+* Planetinfo overrides now cleaned up from savegames
+* guiScreenWillChange fires correctly
+* Timer allocation fixed
+
 
 System requirements:
 ====================

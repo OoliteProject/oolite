@@ -2344,9 +2344,29 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+- (void) clearMissionScreenID
+{
+	[_missionScreenID release];
+	_missionScreenID = nil;
+}
+
+
+- (void) setMissionScreenID:(NSString *)msid
+{
+	_missionScreenID = [msid retain];
+}
+
+
+- (NSString *) missionScreenID
+{
+	return _missionScreenID;
+}
+
+
 - (void) endMissionScreenAndNoteOpportunity
 {
 	_missionAllowInterrupt = NO;
+	[self clearMissionScreenID];
 	// Older scripts might intercept missionScreenEnded first, and call secondary mission screens.
 	if(![self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")])
 	{

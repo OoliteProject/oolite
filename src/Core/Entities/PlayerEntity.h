@@ -285,6 +285,7 @@ typedef enum
 	NSDictionary			*_missionBackgroundDescriptor;
 	OOGUIBackgroundSpecial	_missionBackgroundSpecial;
 	NSDictionary			*_equipScreenBackgroundDescriptor;
+	NSString          *_missionScreenID;
 	
 	BOOL					found_equipment;
 	
@@ -836,6 +837,7 @@ typedef enum
 - (OOGUIBackgroundSpecial) missionBackgroundSpecial;
 - (void) setMissionBackgroundSpecial:(NSString *)special;
 - (void) setMissionExitScreen:(OOGUIScreenID)screen;
+- (OOGUIScreenID) missionExitScreen;
 
 // Nasty hack to keep background textures around while on equip screens.
 - (NSDictionary *) equipScreenBackgroundDescriptor;

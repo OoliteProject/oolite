@@ -245,6 +245,9 @@ typedef enum
 
 /*-----------------------------------------------------*/
 
+- (void) clearMissionScreenID;
+- (void) setMissionScreenID:(NSString *)msid;
+- (NSString *) missionScreenID;
 - (void) setGuiToMissionScreen;
 - (void) setGuiToMissionScreenWithCallback:(BOOL) callback;
 - (void) doMissionCallback;

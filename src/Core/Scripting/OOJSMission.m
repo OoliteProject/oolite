@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 
 
 static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp);
@@ -62,7 +63,7 @@ static JSClass sMissionClass =
 	JS_PropertyStub,
 	JS_PropertyStub,
 	MissionGetProperty,
-	JS_StrictPropertyStub,
+	MissionSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
@@ -73,6 +74,8 @@ static JSClass sMissionClass =
 enum
 {
 	kMission_markedSystems,
+	kMission_currentID,
+	kMission_exitScreen
 };
 
 
@@ -80,6 +83,8 @@ static JSPropertySpec sMissionProperties[] =
 {
 	// JS name					ID								flags
 	{ "markedSystems", kMission_markedSystems, OOJS_PROP_READONLY_CB },
+	{ "screenID", kMission_screenID, OOJS_PROP_READONLY_CB },
+	{ "exitScreen", kMission_exitScreen, OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 
@@ -187,6 +192,14 @@ static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsid propID
 			result = [result allValues];
 			break;
 
+		case kMission_screenID:
+			result = [player missionScreenID];
+			break;
+
+		case kMission_exitScreen:
+			*value = OOJSValueFromGUIScreenID(context, [player missionExitScreen]);
+			return YES;
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sMissionProperties);
 			return NO;
@@ -197,6 +210,34 @@ static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsid propID
 	
 	OOJS_NATIVE_EXIT
 }
+
+
+static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
+{
+	if (!JSID_IS_INT(propID))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
+	OOGUIScreenID exitScreen;
+	PlayerEntity		*player = OOPlayerForScripting();
+
+	switch (JSID_TO_INT(propID))
+	{
+		case kMission_exitScreen:
+			exitScreen = OOGUIScreenIDFromJSValue(context, *value);
+			[player setMissionExitScreen:exitScreen];
+			return YES;
+	
+		default:
+			OOJSReportBadPropertySelector(context, this, propID, sMissionProperties);
+	}
+	
+	OOJSReportBadPropertyValue(context, this, propID, sMissionProperties, *value);
+	return NO;
+	
+	OOJS_NATIVE_EXIT
+}
+
 
 
 // *** Methods ***
@@ -551,6 +592,15 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	else
 	{
 		[player setMissionExitScreen:GUI_SCREEN_STATUS];
+	}
+
+	if (JS_GetProperty(context, params, "screenID", &value) && !JSVAL_IS_VOID(value))
+	{
+		[player setMissionScreenID:OOStringFromJSValue(context, value)];
+	}
+	else
+	{
+		[player clearMissionScreenID];
 	}
 
 	// Start the mission screen.

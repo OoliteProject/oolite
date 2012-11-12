@@ -426,6 +426,7 @@ this._cargoContractsDisplay = function(summary) {
 				mission.runScreen({titleKey: "oolite-contracts-cargo-none-available-title",
 													 messageKey: "oolite-contracts-cargo-none-available-message",
 													 allowInterrupt: true,
+													 screenID: "oolite-contracts-cargo-none",
 													 exitScreen: "GUI_SCREEN_INTERFACES"});
 				// no callback, just exits contracts system
 				return;
@@ -560,6 +561,7 @@ this._cargoContractSummaryPage = function()
 		var missionConfig = {titleKey: "oolite-contracts-cargo-title-summary",
 												 message: headline,
 												 allowInterrupt: true,
+												 screenID: "oolite-contracts-cargo-summary",
 												 exitScreen: "GUI_SCREEN_INTERFACES",
 												 choices: options,
 												 initialChoicesKey: initialChoice}; 
@@ -688,6 +690,7 @@ this._cargoContractSinglePage = function()
 				title: title,
 				message: message,
 				allowInterrupt: true,
+				screenID: "oolite-contracts-cargo-details",
 				exitScreen: "GUI_SCREEN_INTERFACES",
 				backgroundSpecial: backgroundSpecial,
 				choices: options,
