@@ -97,14 +97,19 @@ enum
 	dust_color = [[OOColor colorWithRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
 	[self setStatus:STATUS_ACTIVE];
 
-	texture = [[OOTexture textureWithName:@"oolite-particle-dust.png"
-										  inFolder:@"Textures"
-										   options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-										anisotropy:kOOTextureDefaultAnisotropy / 2.0
-										   lodBias:0.0] retain];
+	hasPointSprites = [[OOOpenGLExtensionManager sharedManager] haveExtension:@"GL_ARB_point_sprite"];
 	
+	if (hasPointSprites)
+	{
+		texture = [[OOTexture textureWithName:@"oolite-particle-dust.png"
+																 inFolder:@"Textures"
+																	options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
+															 anisotropy:kOOTextureDefaultAnisotropy / 2.0
+																	lodBias:0.0] retain];
+	}	
+
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
-	
+
 	return self;
 }
 
@@ -353,11 +358,21 @@ enum
 	}
 	else
 	{
-		OOGL(glEnable(GL_POINT_SPRITE_ARB));
-		[texture apply];
-		OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
-		OOGL(glDrawArrays(GL_POINTS, 0, DUST_N_PARTICLES));
-		OOGL(glDisable(GL_POINT_SPRITE_ARB));
+		if (hasPointSprites)
+		{
+			OOGL(glEnable(GL_POINT_SPRITE_ARB));
+			[texture apply];
+			OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
+			OOGL(glDrawArrays(GL_POINTS, 0, DUST_N_PARTICLES));
+			OOGL(glDisable(GL_POINT_SPRITE_ARB));
+		}
+		else
+		{
+			OOGL(glDisable(GL_TEXTURE_2D));
+			OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
+			OOGL(glDrawArrays(GL_POINTS, 0, DUST_N_PARTICLES));
+			OOGL(glEnable(GL_TEXTURE_2D));
+		}
 	}
 	
 	// reapply normal conditions

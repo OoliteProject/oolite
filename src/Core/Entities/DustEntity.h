@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 	GLushort			indices[DUST_N_PARTICLES * 2];
 	GLfloat				color_fv[4];
 	OOTexture     *texture;
+	bool          hasPointSprites;
 	
 #if OO_SHADERS
 	GLfloat				warpinessAttr[DUST_N_PARTICLES * 2];
