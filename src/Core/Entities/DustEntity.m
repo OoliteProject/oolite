@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 #import "OOMacroOpenGL.h"
 
+
 #if OO_SHADERS
 #import "OOMaterial.h"		// For kTangentAttributeIndex
 #import "OOShaderProgram.h"
@@ -95,6 +96,12 @@ enum
 	
 	dust_color = [[OOColor colorWithRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
 	[self setStatus:STATUS_ACTIVE];
+
+	texture = [[OOTexture textureWithName:@"oolite-particle-dust.png"
+										  inFolder:@"Textures"
+										   options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
+										anisotropy:kOOTextureDefaultAnisotropy / 2.0
+										   lodBias:0.0] retain];
 	
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
 	
@@ -106,7 +113,8 @@ enum
 {
 	DESTROY(dust_color);
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
-	
+
+	DESTROY(texture);
 #if OO_SHADERS
 	DESTROY(shader);
 	DESTROY(uniforms);
@@ -308,12 +316,12 @@ enum
 		OOGL(glFogf(GL_FOG_END, FAR_PLANE));
 	}
 	
-	OOGL(glDisable(GL_TEXTURE_2D));
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glDepthMask(GL_FALSE));
 	
 	if (warp_stars)
 	{
+		OOGL(glDisable(GL_TEXTURE_2D));
 #if OO_SHADERS
 		if (useShader)
 		{
@@ -340,11 +348,16 @@ enum
 			OOGL(glDisableVertexAttribArrayARB(kTangentAttributeIndex));
 		}
 #endif
+		OOGL(glEnable(GL_TEXTURE_2D));
+	
 	}
 	else
 	{
+		OOGL(glEnable(GL_POINT_SPRITE_ARB));
+		[texture apply];
 		OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
 		OOGL(glDrawArrays(GL_POINTS, 0, DUST_N_PARTICLES));
+		OOGL(glDisable(GL_POINT_SPRITE_ARB));
 	}
 	
 	// reapply normal conditions
@@ -361,7 +374,6 @@ enum
 	
 	OOGL(glDisable(GL_BLEND));
 	OOGL(glDepthMask(GL_TRUE));
-	OOGL(glEnable(GL_TEXTURE_2D));
 	OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 	
 	OOVerifyOpenGLState();

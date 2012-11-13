@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOTexture.h"
 
 #define DUST_SCALE			2000
 #define DUST_N_PARTICLES	600
@@ -40,6 +41,7 @@ MA 02110-1301, USA.
 	Vector				vertices[DUST_N_PARTICLES * 2];
 	GLushort			indices[DUST_N_PARTICLES * 2];
 	GLfloat				color_fv[4];
+	OOTexture     *texture;
 	
 #if OO_SHADERS
 	GLfloat				warpinessAttr[DUST_N_PARTICLES * 2];
