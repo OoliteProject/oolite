@@ -40,23 +40,6 @@ General:
 * New 'b' key for activation of secondary function of primable
   equipment (e.g. a mode switch)
 
-Bug fixes:
-----------
-* 'sendAllShipsAway' no longer tries to send ships without a hyperspace
-  motor away.
-* Added missing new keyboard controls to the BBC keyconfig.plist
-* Scoop icon fixed for ships carrying special cargo
-* Docking behaviour now more reliable at low frame rates and at odd
-  approach angles
-* Negative ship distances on HUD fixed
-* Laser position display fix
-* Target system memory expansion now works properly with cloaked ships
-* Cargo rounding and save/load bugs fixed
-* Advanced Navigation Array display bug fixed
-* Being on board a witchspacing carrier now works more sensibly
-* Larger witchbuoys no longer a collision risk
-* Several crash bugs fixed
-
 Expansion Pack Development:
 ===========================
 
@@ -162,12 +145,25 @@ Miscellaneous:
 * TAF changes only possible when FPS display is active
 * Planettool updated
 
-Bugfixes:
----------
+Bug fixes:
+==========
+* 'sendAllShipsAway' no longer tries to send ships without a hyperspace
+  motor away.
+* Added missing new keyboard controls to the BBC keyconfig.plist
+* Scoop icon fixed for ships carrying special cargo
+* Docking behaviour now more reliable at low frame rates and at odd
+  approach angles
+* Negative ship distances on HUD fixed
+* Laser position display fix
+* Target system memory expansion now works properly with cloaked ships
+* Cargo rounding and save/load bugs fixed
+* Advanced Navigation Array display bug fixed
+* Being on board a witchspacing carrier now works more sensibly
+* Larger witchbuoys no longer a collision risk
+* Several crash bugs fixed
 * Turret declarations now work as intended
 * Planetinfo overrides now cleaned up from savegames
 * guiScreenWillChange fires correctly
-* Timer allocation fixed
 
 
 System requirements:
