@@ -323,7 +323,7 @@ MA 02110-1301, USA.
 	int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
 	
 	// Close enough not to draw flat?
-	if (!ignoreDepthBuffer)  OOGL(glEnable(GL_DEPTH_TEST));
+	if (ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
 	
 	OOGL(glDisable(GL_BLEND));
 	OOGL(glColor3fv(discColor));
@@ -334,7 +334,7 @@ MA 02110-1301, USA.
 	OOGLEND();
 	
 	OOGL(glEnable(GL_BLEND));
-	if (!ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
+	if (ignoreDepthBuffer)  OOGL(glEnable(GL_DEPTH_TEST));
 	
 	if (![UNIVERSE reducedDetail])
 	{
