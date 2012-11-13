@@ -1,4 +1,4 @@
-Changes between Oolite 1.76 and Oolite 1.77:
+Changes between Oolite 1.76.1 and Oolite 1.77:
 
 Gameplay:
 =========
@@ -176,6 +176,62 @@ System requirements:
 Mac-specific
 ------------
 * Oolite now requires an Intel processor and Mac OS X 10.5 or later.
+
+-------------------------------------------------------------------------------
+
+Changes between Oolite 1.76 and Oolite 1.76.1:
+
+* Fixed potential bug loading player with no mission_variables dictionary.
+* player.ship.launch() can now also be used within the shipWillDockWithStation
+  and the shipDockedWithStation handler without side effects.
+* Ships that have a specific commodity defined as cargo, no longer get their
+  bounty reduced to 10% when the pilot ejects.
+* The scoop icon now correctly shows a full cargo hold when special cargo is
+  transported.
+* Fixed a problem with the shipyard screen when a ship with chance=1 defined
+  non-installed optional equipment.
+* Don't disgorge and revive dead ships from wormholes.
+* 32-bit GL contexts are now strongly preferred on SDL systems, with 16-bit
+  fallback.
+* Fixed weapon facing not resetting to forward view when launching from station.
+* takeSnapShot() is excluded from the timelimiter.
+* Added code to prevent overcorrection pitch and roll with low frame rates.
+  Should lower the change of ships jumping between two headings, without
+  proceeding.
+* weapon_range and weapon_energy keys in the turret subentity declaration now
+  work as intended. Values are maximised at 7500 and 100 respectively.
+* Buggy consoleMessage() behaviour when called from JS debug console has been
+  rectified.
+* JS debug console macros are saved when Oolite exits to desktop in all
+  platforms, as originally intended.
+* Regression fix: in the log, the searchPaths.dumpAll is shown once every time
+  searchPaths change (strict/unrestricted mode).
+* No more negative ship distances, see http://aegidian.org/bb/viewtopic.php?t=11785
+* Fix for guiScreenWillChange for system data screen not firing when double
+  clicking on systems.
+* Fixed crash with malformed gui declarations inside hud plists.
+* Fixed timer related crashes.
+* The Windows Oolite executable is now large address aware, allowing for more
+  than 2GB of memory to be allocated to the game.
+* Fix for bug where standard subentities defined after any turret subentity
+  would exhibit turret behaviour.
+* Savefiles with wrong passengers and/or passengers berths data are now handled
+  a bit better.
+* Fix bug where equipment depending on currently damaged equipment would be
+  silently removed from the player's ship on game load.
+* Target system memory expansion doesn't try to restore locks on cloaked ships
+  anymore.
+* Fixed bug with resetting of passenger contracts on ship change.
+* Fixed Nav Array not showing distance and time information when target system
+  was selected by using the Find Planet method.
+* Frame Callbacks now transfer the correct time difference when
+  timeAccelerationFactor is active.
+* The available_to_all key is now also respected by JS methods that add
+  equipment.
+* Improved the docking approach when arriving from the backside of a station.
+* Fixed fuel scoops sound loop issue, discussed in
+  http://www.aegidian.org/bb/viewtopic.php?f=4&t=11611
+* Fixed intermittent crash on missile removal.
 
 -------------------------------------------------------------------------------
 
