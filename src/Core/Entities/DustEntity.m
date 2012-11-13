@@ -320,7 +320,7 @@ enum
 		OOGL(glFogf(GL_FOG_START, NEAR_PLANE));
 		OOGL(glFogf(GL_FOG_END, FAR_PLANE));
 	}
-	
+
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glDepthMask(GL_FALSE));
 	
@@ -360,6 +360,12 @@ enum
 	{
 		if (hasPointSprites)
 		{
+#if OO_SHADERS
+			if (!useShader)
+#endif
+			{
+				OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+			}
 			OOGL(glEnable(GL_POINT_SPRITE_ARB));
 			[texture apply];
 			OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
