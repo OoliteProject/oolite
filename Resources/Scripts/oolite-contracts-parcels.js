@@ -175,6 +175,15 @@ this.guiScreenWillChange = function(to, from)
 }
 
 
+this.guiScreenChanged = function(to, from)
+{
+		if (to != "GUI_SCREEN_MISSION")
+		{
+				this._resetViews();
+		}
+}
+
+
 /* Interface functions */
 
 // resets HUD and jump destination
