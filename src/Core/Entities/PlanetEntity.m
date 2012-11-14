@@ -551,7 +551,7 @@ static const BaseFace kTexturedFaces[][3] =
 
 	// do atmosphere
 	NSDictionary *atmoDict = dict;
-	if (_texture != nil)  atmoDict = [NSDictionary dictionaryWithObject:@"0" forKey:@"percent_cloud"];
+	if (_texture != nil)  atmoDict = 	[NSDictionary dictionaryWithObjectsAndKeys:@"0", @"percent_cloud", [NSNumber numberWithFloat:[planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0]], @"cloud_alpha", nil];
 	if (atmo)  atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmoDict];
 	
 	setRandomSeed(saved_seed);
@@ -1045,7 +1045,9 @@ static const BaseFace kTexturedFaces[][3] =
 	
 	[self scaleVertices];
 	
-	NSDictionary *atmo_dictionary = [NSDictionary dictionaryWithObject:@"0" forKey:@"percent_cloud"];
+	GLfloat oldCloudAlpha = [atmosphere amb_sea][3] / CLOUD_ALPHA;
+
+	NSDictionary *atmo_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:@"0", @"percent_cloud", [NSNumber numberWithFloat:oldCloudAlpha], @"cloud_alpha", nil];
 	[atmosphere autorelease];
 	atmosphere = [self hasAtmosphere] ? [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary] : nil;
 	
