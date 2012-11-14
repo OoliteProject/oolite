@@ -348,7 +348,8 @@ this._initialiseCargoContractsForSystem = function()
 
 				// higher share for transporter for longer routes, less safe systems
 				var share = 100 + destinationInfo.government - (10*routeToDestination.route.length);
-				if (share < 10) {
+				if (share < 10) 
+				{
 						share = 10;
 				}
 				share = 100-share;
@@ -358,6 +359,11 @@ this._initialiseCargoContractsForSystem = function()
 
 				cargo.payment = fee;
 				cargo.deposit = localValue - (localValue % 20);
+				if (cargo.deposit >= cargo.payment) 
+				{
+						// rare but not impossible; last safety check
+						return;
+				}
 
 				// time allowed for delivery is time taken by "fewest jumps"
 				// route, plus timer above. Higher reputation makes longer
@@ -432,11 +438,18 @@ this._cargoContractsDisplay = function(summary) {
 		// the last one) display a message and quit.
 		if (this.$contracts.length === 0)
 		{
-				mission.runScreen({titleKey: "oolite-contracts-cargo-none-available-title",
+				var missionConfig = {titleKey: "oolite-contracts-cargo-none-available-title",
 													 messageKey: "oolite-contracts-cargo-none-available-message",
 													 allowInterrupt: true,
 													 screenID: "oolite-contracts-cargo-none",
-													 exitScreen: "GUI_SCREEN_INTERFACES"});
+													 exitScreen: "GUI_SCREEN_INTERFACES"};
+				if (this.$cargoSummaryPageBackground != "") {
+						missionConfig.background = this.$cargoSummaryPageBackground;
+				}
+				if (this.$cargoPageOverlay != "") {
+						missionConfig.overlay = this.$cargoPageOverlay;
+				}
+				mission.runScreen(missionConfig);
 				// no callback, just exits contracts system
 				return;
 		}

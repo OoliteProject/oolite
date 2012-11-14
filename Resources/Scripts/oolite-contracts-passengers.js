@@ -372,11 +372,19 @@ this._passengerContractsDisplay = function(summary) {
 		// the last one) display a message and quit.
 		if (this.$passengers.length === 0)
 		{
-				mission.runScreen({titleKey: "oolite-contracts-passengers-none-available-title",
-													 messageKey: "oolite-contracts-passengers-none-available-message",
-													 allowInterrupt: true,
-													 screenID: "oolite-contracts-passengers-none",
-													 exitScreen: "GUI_SCREEN_INTERFACES"});
+				var missionConfig = {titleKey: "oolite-contracts-passengers-none-available-title",
+														 messageKey: "oolite-contracts-passengers-none-available-message",
+														 allowInterrupt: true,
+														 screenID: "oolite-contracts-passengers-none",
+														 
+														 exitScreen: "GUI_SCREEN_INTERFACES"};
+				if (this.$passengerSummaryPageBackground != "") {
+						missionConfig.background = this.$passengerSummaryPageBackground;
+				}
+				if (this.$passengerPageOverlay != "") {
+						missionConfig.overlay = this.$passengerPageOverlay;
+				}
+				mission.runScreen(missionConfig);
 				// no callback, just exits contracts system
 				return;
 		}

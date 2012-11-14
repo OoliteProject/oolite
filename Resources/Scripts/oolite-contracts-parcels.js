@@ -360,11 +360,19 @@ this._parcelContractsDisplay = function(summary) {
 		// the last one) display a message and quit.
 		if (this.$parcels.length === 0)
 		{
-				mission.runScreen({titleKey: "oolite-contracts-parcels-none-available-title",
+				var missionConfig = {titleKey: "oolite-contracts-parcels-none-available-title",
 													 messageKey: "oolite-contracts-parcels-none-available-message",
 													 allowInterrupt: true,
 													 screenID: "oolite-contracts-parcels-none",
-													 exitScreen: "GUI_SCREEN_INTERFACES"});
+													 exitScreen: "GUI_SCREEN_INTERFACES"};
+				if (this.$parcelSummaryPageBackground != "") {
+						missionConfig.background = this.$parcelSummaryPageBackground;
+				}
+				if (this.$parcelPageOverlay != "") {
+						missionConfig.overlay = this.$parcelPageOverlay;
+				}
+				mission.runScreen(missionConfig);
+
 				// no callback, just exits contracts system
 				return;
 		}
