@@ -68,10 +68,10 @@
 	"oolite-contracts-parcels-interface-summary" = "Deliveries of small parcels to recipients in other systems. No special equipment is required, and the parcels will not take up space in your hold.";
 	"oolite-contracts-parcels-interface-category" = "[interfaces-category-deliveries]";
 
-	"oolite-contracts-parcels-none-available-title" = "Parcel delivery contracts";
+	"oolite-contracts-parcels-none-available-title" = "Parcel Delivery Contracts";
 	"oolite-contracts-parcels-none-available-message" = "There are currently no parcel delivery contracts available in this system.";
 
-	"oolite-contracts-parcels-title-summary" = "Parcel delivery contracts";
+	"oolite-contracts-parcels-title-summary" = "Parcel Delivery Contracts";
 	"oolite-contracts-parcels-title-detail" = "Parcel delivery contract [oolite-contracts-parcels-title-detail-number] of [oolite-contracts-parcels-title-detail-total]";
 
 	"oolite-contracts-parcels-column-cargo" = "Package";
@@ -95,10 +95,10 @@
 	"oolite-contracts-passengers-interface-summary" = "Transportation of passengers to other systems. One passenger cabin (available from all systems Tech Level 6 or higher) is needed for each passenger.";
 	"oolite-contracts-passengers-interface-category" = "[interfaces-category-deliveries]";
 
-	"oolite-contracts-passengers-none-available-title" = "Passenger transport contracts";
+	"oolite-contracts-passengers-none-available-title" = "Passenger Transport Contracts";
 	"oolite-contracts-passengers-none-available-message" = "There are currently no passenger transport contracts available in this system.";
 
-	"oolite-contracts-passengers-title-summary" = "Passenger transport contracts";
+	"oolite-contracts-passengers-title-summary" = "Passenger Transport Contracts";
 	"oolite-contracts-passengers-title-detail" = "Passenger transport contract [oolite-contracts-passengers-title-detail-number] of [oolite-contracts-passengers-title-detail-total]";
 
 	"oolite-contracts-passengers-column-name" = "Name";
@@ -124,10 +124,10 @@
 	"oolite-contracts-cargo-interface-summary" = "Transportation of cargo in bulk to other systems. Sufficient hold space is required, and you will need to pay a deposit to insure against failure to deliver.";
 	"oolite-contracts-cargo-interface-category" = "[interfaces-category-deliveries]";
 
-	"oolite-contracts-cargo-none-available-title" = "Cargo transport contracts";
+	"oolite-contracts-cargo-none-available-title" = "Cargo Transport Contracts";
 	"oolite-contracts-cargo-none-available-message" = "There are currently no cargo transport contracts available in this system.";
 
-	"oolite-contracts-cargo-title-summary" = "Cargo transport contracts";
+	"oolite-contracts-cargo-title-summary" = "Cargo Transport Contracts";
 	"oolite-contracts-cargo-title-detail" = "Cargo transport contract [oolite-contracts-cargo-title-detail-number] of [oolite-contracts-cargo-title-detail-total]";
 
 	"oolite-contracts-cargo-column-goods" = "Goods";
