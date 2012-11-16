@@ -1,3 +1,44 @@
 (
-	"oolite-star-1.png"
+	"oolite-star-1.png", 
+	{
+		texture = "oolite-star-1-large.png";
+		probability = 0.00002;
+	},
+	{
+		texture = "oolite-star-1-alt.png";
+		probability = 0.0005;
+	},
+	{
+		texture = "oolite-star-2.png";
+		probability = 0.00005;
+	},
+    {
+ 	    texture = "oolite-star-3.png";
+		probability = 0.05;
+	},
+    {
+ 	    texture = "oolite-star-4.png";
+		probability = 0.0005;
+	},
+    {
+ 	    texture = "oolite-star-5.png";
+		probability = 0.00005;
+	},
+    {
+ 	    texture = "oolite-star-6.png";
+		probability = 0.00005;
+	},
+	{
+ 	    texture = "oolite-star-7.png";
+		probability = 0.9;
+	},
+	{
+ 	    texture = "oolite-star-8.png";
+		probability = 0.9;
+	},
+		{
+ 	    texture = "oolite-star-9.png";
+		probability = 0.0005;
+	},
+	"oolite-star-2-large.png"
 )

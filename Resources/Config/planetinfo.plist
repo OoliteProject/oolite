@@ -12,7 +12,7 @@
 		// The two multiplier values below determine how many more stars will be used to populate space
 		// with respect to the number normally used. Apply to all systems by being included in the 
 		// "universal" section.
-		star_count_multiplier = 2;
+		star_count_multiplier = 5;
 		nebula_count_multiplier = 1;
 		
 		corona_flare = 0.075;

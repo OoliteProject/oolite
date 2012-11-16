@@ -39,6 +39,7 @@ General:
 * Improved rendering of planetary atmosphere and sun
 * New 'b' key for activation of secondary function of primable
   equipment (e.g. a mode switch)
+* New starfield textures
 
 Expansion Pack Development:
 ===========================
@@ -106,12 +107,12 @@ Scripting:
 	ship.laserHeatLevel
 	system.breakPattern
 	station.breakPattern
-  ship.currentWeapon
-  ship.weaponPosition*
-  ship.AIFoundTarget
-  ship.AIPrimaryAggressor
-  ship.destination
-  ship.desiredRange
+	ship.currentWeapon
+	ship.weaponPosition*
+	ship.AIFoundTarget
+	ship.AIPrimaryAggressor
+	ship.destination
+	ship.desiredRange
 	station.market
 
 * New methods
@@ -129,10 +130,10 @@ Scripting:
 	station.setMarketQuantity(cargo,price)
 	
 * New events
-  shipHitByECM {new 'whom' argument}
+	shipHitByECM {new 'whom' argument}
 	shipLandedOnPlanet(planet)
 	playerBoughtCargo
-  playerSoldCargo
+	playerSoldCargo
 	shipScoopedFuel
 	equipmentRepaired
 	shipBountyChanged(delta,reason)
