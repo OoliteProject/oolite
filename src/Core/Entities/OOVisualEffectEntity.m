@@ -454,6 +454,7 @@ MA 02110-1301, USA.
 {
 	// rescale subentities
 	Entity<OOSubEntity>	*se = nil;
+	GLfloat flasher_factor = pow(factor/scaleX,1.0/3.0);
 	foreach (se, [self subEntities])
 	{
 		Vector move = [se position];
@@ -462,6 +463,10 @@ MA 02110-1301, USA.
 		if ([se isVisualEffect])
 		{
 			[(OOVisualEffectEntity*)se setScaleX:factor];
+		}
+		else
+		{
+			[se rescaleBy:flasher_factor];
 		}
 	}
 
@@ -480,6 +485,7 @@ MA 02110-1301, USA.
 {
 	// rescale subentities
 	Entity<OOSubEntity>	*se = nil;
+	GLfloat flasher_factor = pow(factor/scaleX,1.0/3.0);
 	foreach (se, [self subEntities])
 	{
 		Vector move = [se position];
@@ -488,6 +494,10 @@ MA 02110-1301, USA.
 		if ([se isVisualEffect])
 		{
 			[(OOVisualEffectEntity*)se setScaleY:factor];
+		}
+		else
+		{
+			[se rescaleBy:flasher_factor];
 		}
 	}
 
@@ -506,6 +516,7 @@ MA 02110-1301, USA.
 {
 	// rescale subentities
 	Entity<OOSubEntity>	*se = nil;
+	GLfloat flasher_factor = pow(factor/scaleX,1.0/3.0);
 	foreach (se, [self subEntities])
 	{
 		Vector move = [se position];
@@ -514,6 +525,10 @@ MA 02110-1301, USA.
 		if ([se isVisualEffect])
 		{
 			[(OOVisualEffectEntity*)se setScaleZ:factor];
+		}
+		else
+		{
+			[se rescaleBy:flasher_factor];
 		}
 	}
 
