@@ -56,7 +56,7 @@ MA 02110-1301, USA.
 // straight C
 static Vector base_vertex_array[MAX_PLANET_VERTICES];
 static int base_terrain_array[MAX_PLANET_VERTICES];
-static NSUInteger next_free_vertex;
+static unsigned next_free_vertex;
 static NSMapTable *sEdgeToVertex;
 
 static int n_triangles[MAX_SUBDIVIDE];
@@ -76,7 +76,7 @@ static GLfloat	texture_uv_array[MAX_PLANET_VERTICES * 2];
 
 
 - (void) initialiseBaseTerrainArray:(int) percent_land;
-- (void) paintVertex:(int) vi :(int) seed;
+- (void) paintVertex:(unsigned) vi :(int) seed;
 - (void) scaleVertices;
 
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict;
@@ -1029,7 +1029,7 @@ static const BaseFace kTexturedFaces[][3] =
 	[self loadTexture:OOTextureSpecFromObject(fileName, nil)];
 	[self deleteDisplayLists];
 	
-	NSUInteger i;
+	unsigned i;
 	[self setUseTexturedModel:YES];
 	
 	// recolour main planet according to "texture_hsb_color"
@@ -1300,7 +1300,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 		vb = temp;
 	}
 	void *key = (void *)(((uintptr_t)va << 16) | vb);
-	uintptr_t num = (uintptr_t)NSMapGet(sEdgeToVertex, key);
+	unsigned num = (unsigned)NSMapGet(sEdgeToVertex, key);
 	if (num != 0)
 	{
 		// Overall cache hit rate is just over 83 %.
@@ -1408,7 +1408,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 }
 
 
-- (void) paintVertex:(int) vi :(int) seed
+- (void) paintVertex:(unsigned) vi :(int) seed
 {
 	BOOL isTextured = _texture != nil;
 	
