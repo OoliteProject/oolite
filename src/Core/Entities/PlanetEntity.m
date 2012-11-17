@@ -346,7 +346,7 @@ static const BaseFace kTexturedFaces[][3] =
 	[self scaleVertices];
 
 	// set speed of rotation
-	rotational_velocity = [dict oo_floatForKey:@"atmosphere_rotational_velocity" defaultValue:0.01f + 0.02f * randf()]; // 0.01 .. 0.03 avr 0.02
+	rotational_velocity = [dict oo_floatForKey:@"atmosphere_rotational_velocity" defaultValue:[planet rotationalVelocity]*(0.9+(randf()*0.2))]; // 90-110% of planet rotation speed
 	
 	root_planet = planet;
 	
@@ -545,7 +545,7 @@ static const BaseFace kTexturedFaces[][3] =
 	}
 	else
 	{
-		rotational_velocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
+		rotational_velocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.002 * (0.5+0.5*randf())]; // 0.001 .. 0.002 avr 0.0015
 		rotational_velocity *= [planetInfo oo_floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
 	}
 
@@ -962,7 +962,7 @@ static const BaseFace kTexturedFaces[][3] =
 		OOGL(glPushMatrix());	// and store it again
 		OOGL(glTranslatef(position.x,position.y,position.z)); // centre on the planet
 		// rotate
-		GLMultOOMatrix([atmosphere rotationMatrix]);
+//		GLMultOOMatrix([atmosphere rotationMatrix]);
 		// draw atmosphere entity
 		[atmosphere drawImmediate:false translucent:false];
 	}

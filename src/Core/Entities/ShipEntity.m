@@ -7066,9 +7066,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 	else 
 	{
-		if (scanClass == CLASS_THARGOID && reason != kOOLegalStatusReasonSetup && reason != kOOLegalStatusReasonByScript)
+		if ((scanClass == CLASS_THARGOID || scanClass == CLASS_STATION) && reason != kOOLegalStatusReasonSetup && reason != kOOLegalStatusReasonByScript)
 		{
-			return; // we ignore your puny human laws
+			return; // no standard bounties for Thargoids / Stations
 		}
 		if (scanClass == CLASS_POLICE && amount != 0)
 		{
@@ -11724,9 +11724,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		else
 		{
-			if (scanClass == CLASS_THARGOID && reason != kOOLegalStatusReasonSetup && reason != kOOLegalStatusReasonByScript)
+			if ((scanClass == CLASS_THARGOID || scanClass == CLASS_STATION) && reason != kOOLegalStatusReasonSetup && reason != kOOLegalStatusReasonByScript)
 			{
-				return; // we ignore your puny human laws
+				return; // no non-scripted bounties for thargoids and stations
 			}
 
 			JSContext *context = OOJSAcquireContext();
