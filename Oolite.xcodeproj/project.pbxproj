@@ -30,6 +30,17 @@
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
+		1A0024961657B5BF00EAE045 /* oolite-star-1-alt.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248B1657B56E00EAE045 /* oolite-star-1-alt.png */; };
+		1A0024971657B5BF00EAE045 /* oolite-star-1-large.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248C1657B56E00EAE045 /* oolite-star-1-large.png */; };
+		1A0024981657B5BF00EAE045 /* oolite-star-2-large.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248D1657B56E00EAE045 /* oolite-star-2-large.png */; };
+		1A0024991657B5BF00EAE045 /* oolite-star-2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248E1657B56E00EAE045 /* oolite-star-2.png */; };
+		1A00249A1657B5BF00EAE045 /* oolite-star-3.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248F1657B56E00EAE045 /* oolite-star-3.png */; };
+		1A00249B1657B5BF00EAE045 /* oolite-star-4.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024901657B56E00EAE045 /* oolite-star-4.png */; };
+		1A00249C1657B5BF00EAE045 /* oolite-star-5.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024911657B56E00EAE045 /* oolite-star-5.png */; };
+		1A00249D1657B5BF00EAE045 /* oolite-star-6.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024921657B56E00EAE045 /* oolite-star-6.png */; };
+		1A00249E1657B5BF00EAE045 /* oolite-star-7.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024931657B56E00EAE045 /* oolite-star-7.png */; };
+		1A00249F1657B5BF00EAE045 /* oolite-star-8.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024941657B56E00EAE045 /* oolite-star-8.png */; };
+		1A0024A01657B5BF00EAE045 /* oolite-star-9.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024951657B56E00EAE045 /* oolite-star-9.png */; };
 		1A00C65510663D3700A8737D /* OOProfilingStopwatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A00C65310663D3700A8737D /* OOProfilingStopwatch.h */; };
 		1A00C65610663D3700A8737D /* OOProfilingStopwatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A00C65410663D3700A8737D /* OOProfilingStopwatch.m */; };
 		1A00C7BA10667D3100A8737D /* OOECMBlastEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A00C7B810667D3100A8737D /* OOECMBlastEntity.h */; };
@@ -479,6 +490,7 @@
 		1A6B228E0C9B40D4000717CF /* OOJSTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B228C0C9B40D4000717CF /* OOJSTimer.m */; };
 		1A6B25EE0C9C2746000717CF /* OOJSClock.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B25EC0C9C2745000717CF /* OOJSClock.h */; };
 		1A6B25EF0C9C2746000717CF /* OOJSClock.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B25ED0C9C2746000717CF /* OOJSClock.m */; };
+		1A6C6D5D1652E05D005D1D3B /* oolite-particle-dust.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A6C6D5C1652E038005D1D3B /* oolite-particle-dust.png */; };
 		1A6DD1230C57B5BC00A892F4 /* OOPListSchemaVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */; };
 		1A6DD1240C57B5BC00A892F4 /* OOPListSchemaVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */; };
 		1A6F665314DF323900695C11 /* OODefaultShaderSynthesizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6F665114DF323900695C11 /* OODefaultShaderSynthesizer.h */; };
@@ -1031,6 +1043,18 @@
 			dstPath = Textures;
 			dstSubfolderSpec = 7;
 			files = (
+				1A0024961657B5BF00EAE045 /* oolite-star-1-alt.png in Copy Textures */,
+				1A0024971657B5BF00EAE045 /* oolite-star-1-large.png in Copy Textures */,
+				1A0024981657B5BF00EAE045 /* oolite-star-2-large.png in Copy Textures */,
+				1A0024991657B5BF00EAE045 /* oolite-star-2.png in Copy Textures */,
+				1A00249A1657B5BF00EAE045 /* oolite-star-3.png in Copy Textures */,
+				1A00249B1657B5BF00EAE045 /* oolite-star-4.png in Copy Textures */,
+				1A00249C1657B5BF00EAE045 /* oolite-star-5.png in Copy Textures */,
+				1A00249D1657B5BF00EAE045 /* oolite-star-6.png in Copy Textures */,
+				1A00249E1657B5BF00EAE045 /* oolite-star-7.png in Copy Textures */,
+				1A00249F1657B5BF00EAE045 /* oolite-star-8.png in Copy Textures */,
+				1A0024A01657B5BF00EAE045 /* oolite-star-9.png in Copy Textures */,
+				1A6C6D5D1652E05D005D1D3B /* oolite-particle-dust.png in Copy Textures */,
 				1A033FBE13268B39006F9DB7 /* asteroid.png in Copy Textures */,
 				1A817DBF106D441200AA2F97 /* oolite-particle-flash.png in Copy Textures */,
 				1A817C17106D123F00AA2F97 /* oolite-particle-blur.png in Copy Textures */,
@@ -1304,6 +1328,17 @@
 		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		1A00248B1657B56E00EAE045 /* oolite-star-1-alt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-1-alt.png"; sourceTree = "<group>"; };
+		1A00248C1657B56E00EAE045 /* oolite-star-1-large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-1-large.png"; sourceTree = "<group>"; };
+		1A00248D1657B56E00EAE045 /* oolite-star-2-large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-2-large.png"; sourceTree = "<group>"; };
+		1A00248E1657B56E00EAE045 /* oolite-star-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-2.png"; sourceTree = "<group>"; };
+		1A00248F1657B56E00EAE045 /* oolite-star-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-3.png"; sourceTree = "<group>"; };
+		1A0024901657B56E00EAE045 /* oolite-star-4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-4.png"; sourceTree = "<group>"; };
+		1A0024911657B56E00EAE045 /* oolite-star-5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-5.png"; sourceTree = "<group>"; };
+		1A0024921657B56E00EAE045 /* oolite-star-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-6.png"; sourceTree = "<group>"; };
+		1A0024931657B56E00EAE045 /* oolite-star-7.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-7.png"; sourceTree = "<group>"; };
+		1A0024941657B56E00EAE045 /* oolite-star-8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-8.png"; sourceTree = "<group>"; };
+		1A0024951657B56E00EAE045 /* oolite-star-9.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-star-9.png"; sourceTree = "<group>"; };
 		1A00C65310663D3700A8737D /* OOProfilingStopwatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProfilingStopwatch.h; sourceTree = "<group>"; };
 		1A00C65410663D3700A8737D /* OOProfilingStopwatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProfilingStopwatch.m; sourceTree = "<group>"; };
 		1A00C7B810667D3100A8737D /* OOECMBlastEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOECMBlastEntity.h; sourceTree = "<group>"; };
@@ -1773,6 +1808,7 @@
 		1A6B228C0C9B40D4000717CF /* OOJSTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSTimer.m; sourceTree = "<group>"; };
 		1A6B25EC0C9C2745000717CF /* OOJSClock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSClock.h; sourceTree = "<group>"; };
 		1A6B25ED0C9C2746000717CF /* OOJSClock.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSClock.m; sourceTree = "<group>"; };
+		1A6C6D5C1652E038005D1D3B /* oolite-particle-dust.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-particle-dust.png"; sourceTree = "<group>"; };
 		1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPListSchemaVerifier.h; sourceTree = "<group>"; };
 		1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListSchemaVerifier.m; sourceTree = "<group>"; };
 		1A6F665114DF323900695C11 /* OODefaultShaderSynthesizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODefaultShaderSynthesizer.h; sourceTree = "<group>"; };
@@ -2327,8 +2363,20 @@
 				1A35916B0C1C375400E52220 /* oolite-nebula-3.png */,
 				1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */,
 				1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */,
+				1A6C6D5C1652E038005D1D3B /* oolite-particle-dust.png */,
 				1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */,
 				1A35916A0C1C375400E52220 /* oolite-star-1.png */,
+				1A00248B1657B56E00EAE045 /* oolite-star-1-alt.png */,
+				1A00248C1657B56E00EAE045 /* oolite-star-1-large.png */,
+				1A00248D1657B56E00EAE045 /* oolite-star-2-large.png */,
+				1A00248E1657B56E00EAE045 /* oolite-star-2.png */,
+				1A00248F1657B56E00EAE045 /* oolite-star-3.png */,
+				1A0024901657B56E00EAE045 /* oolite-star-4.png */,
+				1A0024911657B56E00EAE045 /* oolite-star-5.png */,
+				1A0024921657B56E00EAE045 /* oolite-star-6.png */,
+				1A0024931657B56E00EAE045 /* oolite-star-7.png */,
+				1A0024941657B56E00EAE045 /* oolite-star-8.png */,
+				1A0024951657B56E00EAE045 /* oolite-star-9.png */,
 				1A2318490B9D026D00EF0852 /* pod2_redux.png */,
 				1A23184A0B9D026D00EF0852 /* python_redux.png */,
 				1A23184B0B9D026D00EF0852 /* python_redux1.png */,
