@@ -3703,7 +3703,7 @@ static GLfloat		sBaseMass = 0.0;
 		case COMPASS_MODE_BASIC:
 		case COMPASS_MODE_PLANET:
 			aegis = [self checkForAegis];
-			if (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE)
+			if ([UNIVERSE station] && (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE))
 			{ 
 				[self setCompassMode:COMPASS_MODE_STATION];
 			}

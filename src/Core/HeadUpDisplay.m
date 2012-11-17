@@ -1432,7 +1432,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				break;
 		}
 		
-		if (reference == nil)
+		if (reference == nil || [reference status] < STATUS_ACTIVE || [reference status] == STATUS_IN_HOLD)
 		{
 			[PLAYER setCompassMode:COMPASS_MODE_PLANET];
 			reference = the_planet;
