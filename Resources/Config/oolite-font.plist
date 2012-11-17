@@ -20,7 +20,7 @@
 			hard-coded conversions are no longer needed because of the expanded
 			font (curly quotes are now supported, for instance).
 		*/
-		"₢"		= "€";			// Cruziero Sign to Euro Sign. Oolite's font uses a Cruziero sign in place of the Euro sign. This way, either can be used in text to generate ₢, the sign used as a credits currency symbol.
+		"₢"		= "€";			// Cruzeiro Sign to Euro Sign. Oolite's font uses a Cruziero sign in place of the Euro sign. This way, either can be used in text to generate ₢, the sign used as a credits currency symbol.
 		"⌘"		= "(Command)";	// Place Of Interest Sign, used under Mac OS X as symbol for the Command key.
 		"⌥"		= "(Option)";	// Mac OS X option key
 		"⌃"		= "(Control)";	// Up Arrowhead, Mac OS X control key
