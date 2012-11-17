@@ -778,6 +778,12 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:[NSNumber numberWithBool:voice_gender_m] forKey:@"speech_gender"];
 #endif
 
+	// gamma control
+	[result setObject:[NSNumber numberWithFloat:[[UNIVERSE gameView] gammaValue]] forKey:@"gamma_control"];
+	
+	// docking clearance
+	[result setObject:[NSNumber numberWithBool:[UNIVERSE dockingClearanceProtocolActive]] forKey:@"docking_clearance_protocol"];
+
 	//base ship description
 	[result setObject:[self shipDataKey] forKey:@"ship_desc"];
 	[result setObject:[[self shipInfoDictionary] oo_stringForKey:KEY_NAME] forKey:@"ship_name"];
@@ -1271,6 +1277,13 @@ static GLfloat		sBaseMass = 0.0;
 	// custom view no.
 	if (_customViews != nil)
 		_customViewIndex = [dict oo_unsignedIntForKey:@"custom_view_index"] % [_customViews count];
+
+
+	// gamma
+	[[UNIVERSE gameView] setGammaValue:[dict oo_floatForKey:@"gamma_control" defaultValue:1.0]];
+
+	// docking clearance protocol
+	[UNIVERSE setDockingClearanceProtocolActive:[dict oo_boolForKey:@"docking_clearance_protocol" defaultValue:NO]];
 	
 	// trumble information
 	[self setUpTrumbles];

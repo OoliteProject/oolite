@@ -1204,4 +1204,15 @@ static void UnapplyCursorState(OOMouseInteractionMode mode)
 	if (obscured)  [NSCursor setHiddenUntilMouseMoves:NO];
 }
 
+
+- (void) setGammaValue: (float) value
+{
+	// no-op
+}
+
+- (float) gammaValue
+{
+	return 1.0;
+}
+
 @end

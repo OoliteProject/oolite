@@ -204,4 +204,8 @@ extern int debug;
 					   rowBytes:(NSUInteger)rowBytes;
 #endif
 
+// no-ops to allow gamma value to be easily saved/restored
+- (void) setGammaValue: (float) value;
+- (float) gammaValue;
+
 @end
