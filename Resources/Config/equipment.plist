@@ -200,6 +200,7 @@
 		{
 			available_to_all = true;
 			available_to_NPCs = false;
+			condition_script = "oolite-conditions.js";
 			requires_cargo_space = 5;
 			damage_probability = 0;
 		}
@@ -211,6 +212,7 @@
 		{
 			available_to_all = true;
 			available_to_NPCs = false;
+			condition_script = "oolite-conditions.js";
 			requires_free_passenger_berth = true;
 		}
 	),
@@ -220,6 +222,7 @@
 		"Unmounts, safes, and re-sells at full market value all missiles and mines currently mounted on your craft.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 			requires_mounted_pylon = true;
 		}
 	),

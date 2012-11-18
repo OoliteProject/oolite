@@ -7953,14 +7953,7 @@ static NSString *last_outfitting_key=nil;
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		
-		if (dockedStation == nil || dockedStation == [UNIVERSE station])
-		{
-			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
-		}
-		else
-		{
-			[gui setTitle:[NSString stringWithFormat:DESC(@"@-commodity-market"), [dockedStation displayName]]];
-		}
+		[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
