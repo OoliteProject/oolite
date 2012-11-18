@@ -1043,6 +1043,7 @@
 	// Market screen
 	"commodity-market"				= "Commodity Market";	// used if we're in witchspace. Needed for non-english languages.
 	"@-commodity-market"			= "%@ Commodity Market";
+	"@-station-commodity-market"			= "%@ Market"; // non-main stations
 	"commodity-column-title"		= "Commodity:";
 	"price-column-title"			= "Price:";
 	"for-sale-column-title"			= "For sale:";

@@ -5156,7 +5156,12 @@ static GLfloat		sBaseMass = 0.0;
 	}
 		
 	// apply any pending fines. (No need to check gui_screen as fines is no longer an on-screen message).
-	if (being_fined && ![[UNIVERSE sun] willGoNova] && ![dockedStation suppressArrivalReports]) [self getFined];
+	if (dockedStation == [UNIVERSE station])
+	{
+		// TODO: A proper system to allow some OXP stations to have a
+		// galcop presence for fines. - CIM 18/11/2012
+		if (being_fined && ![[UNIVERSE sun] willGoNova] && ![dockedStation suppressArrivalReports]) [self getFined];
+	}
 
 	// it's time to check the script - can trigger legacy missions
 	if (gui_screen != GUI_SCREEN_MISSION)  [self checkScript]; // a scripted pilot could have created a mission screen.
@@ -7953,7 +7958,14 @@ static NSString *last_outfitting_key=nil;
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		
-		[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
+		if (dockedStation == nil || dockedStation == [UNIVERSE station])
+		{
+			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
+		}
+		else
+		{
+			[gui setTitle:[NSString stringWithFormat:DESC(@"@-station-commodity-market"), [dockedStation displayName]]];
+		}
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
