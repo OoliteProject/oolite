@@ -8291,6 +8291,8 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 			NSString *short_extras_string = DESC(@"plus-@");
 			NSString *passengerBerthLongDesc = nil;
 			
+			// for testing condition scripts
+			ShipEntity *testship = [[ProxyPlayerEntity alloc] initWithKey:ship_key definition:ship_dict];
 			// customise the ship (if chance = 1, then ship will get all possible add ons)
 			while ((randf() < chance) && ([options count]))
 			{
@@ -8348,6 +8350,41 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 						}
 					}
 					
+					/* Check condition scripts */
+					NSString *condition_script = [item conditionScript];
+					if (condition_script != nil)
+					{
+						OOJSScript *condScript = [self getConditionScript:condition_script];
+						if (condScript != nil) // should always be non-nil, but just in case
+						{
+							JSContext			*JScontext = OOJSAcquireContext();
+							BOOL OK;
+							JSBool allow_addition;
+							jsval result;
+							jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey) , OOJSValueFromNativeObject(JScontext, testship) , OOJSValueFromNativeObject(JScontext, @"newShip")};
+				
+							OOJSStartTimeLimiter();
+							OK = [condScript callMethod:OOJSID("allowAwardEquipment")
+																inContext:JScontext
+														withArguments:args count:sizeof args / sizeof *args
+																	 result:&result];
+							OOJSStopTimeLimiter();
+
+							if (OK) OK = JS_ValueToBoolean(JScontext, result, &allow_addition);
+				
+							OOJSRelinquishContext(JScontext);
+
+							if (OK && !allow_addition)
+							{
+								/* if the script exists, the function exists, the function
+								 * returns a bool, and that bool is false, block
+								 * addition. Otherwise allow it as default */
+								break;
+							}
+						}
+					}
+
+
 					if ([item requiresEquipment] != nil && extras != nil)
 					{
 						NSEnumerator				*keyEnum = nil;
@@ -8470,7 +8507,8 @@ static double estimatedTimeForJourney(double distance, NSUInteger hops)
 				{
 					[options removeObject:equipmentKey];
 				}
-			}
+			} // end adding optional equipment
+			[testship release];
 			// i18n: Some languages require that no conversion to lower case string takes place.
 			BOOL lowercaseIgnore = [[self descriptions] oo_boolForKey:@"lowercase_ignore"];
 			

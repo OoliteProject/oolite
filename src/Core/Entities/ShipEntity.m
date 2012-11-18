@@ -293,10 +293,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// upgrades:
 	equipment_weight = 0; 
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_cloaking_device"])  [self addEquipmentItem:@"EQ_CLOAKING_DEVICE"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM" inContext:@"npc"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS" inContext:@"npc"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD" inContext:@"npc"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_cloaking_device"])  [self addEquipmentItem:@"EQ_CLOAKING_DEVICE" inContext:@"npc"];
 	if ([shipDict oo_floatForKey:@"has_energy_bomb"] > 0)
 	{
 		/*	NOTE: has_energy_bomb actually refers to QC mines.
@@ -313,16 +313,16 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 			{
 				max_missiles++;
 			}
-			[self addEquipmentItem:@"EQ_QC_MINE"];
+			[self addEquipmentItem:@"EQ_QC_MINE" inContext:@"npc"];
 		}
 	}
 	if (![UNIVERSE strict])
 	{
 		// These items are not available in strict mode.
-		if ([shipDict oo_fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipmentItem:@"EQ_FUEL_INJECTION"];
+		if ([shipDict oo_fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipmentItem:@"EQ_FUEL_INJECTION" inContext:@"npc"];
 #if USEMASC
-		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipmentItem:@"EQ_MILITARY_JAMMER"];
-		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER"];
+		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipmentItem:@"EQ_MILITARY_JAMMER" inContext:@"npc"];
+		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER" inContext:@"npc"];
 #endif
 	}
 	
@@ -444,8 +444,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	isShip = YES;
 
 	// FIXME: give NPCs shields instead.
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_booster"])  [self addEquipmentItem:@"EQ_SHIELD_BOOSTER"];
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_enhancer"])  [self addEquipmentItem:@"EQ_SHIELD_ENHANCER"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_booster"])  [self addEquipmentItem:@"EQ_SHIELD_BOOSTER" inContext:@"npc"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_enhancer"])  [self addEquipmentItem:@"EQ_SHIELD_ENHANCER" inContext:@"npc"];
 	
 	// Start with full energy banks.
 	energy = maxEnergy;
@@ -2643,7 +2643,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (BOOL) canAddEquipment:(NSString *)equipmentKey
+- (BOOL) canAddEquipment:(NSString *)equipmentKey inContext:(NSString *)context
 {
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
@@ -2659,7 +2659,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	
 	if (![eqType canCarryMultiple] && [self hasEquipmentItem:equipmentKey])  return NO;
-	if (![self equipmentValidToAdd:equipmentKey])  return NO;
+	if (![self equipmentValidToAdd:equipmentKey inContext:context])  return NO;
 	
 	return YES;
 }
@@ -2790,13 +2790,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (BOOL) equipmentValidToAdd:(NSString *)equipmentKey
+- (BOOL) equipmentValidToAdd:(NSString *)equipmentKey inContext:(NSString *)context
 {
-	return [self equipmentValidToAdd:equipmentKey whileLoading:NO];
+	return [self equipmentValidToAdd:equipmentKey whileLoading:NO inContext:context];
 }
 
 
-- (BOOL) equipmentValidToAdd:(NSString *)equipmentKey whileLoading:(BOOL)loading
+- (BOOL) equipmentValidToAdd:(NSString *)equipmentKey whileLoading:(BOOL)loading inContext:(NSString *)context
 {
 	OOEquipmentType			*eqType = nil;
 	
@@ -2830,22 +2830,22 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			OOJSScript *condScript = [UNIVERSE getConditionScript:condition_script];
 			if (condScript != nil) // should always be non-nil, but just in case
 			{
-				JSContext			*context = OOJSAcquireContext();
+				JSContext			*JScontext = OOJSAcquireContext();
 				BOOL OK;
 				JSBool allow_addition;
 				jsval result;
-				jsval args[] = { OOJSValueFromNativeObject(context, equipmentKey) , OOJSValueFromNativeObject(context, self) };
+				jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey) , OOJSValueFromNativeObject(JScontext, self) , OOJSValueFromNativeObject(JScontext, context)};
 				
 				OOJSStartTimeLimiter();
 				OK = [condScript callMethod:OOJSID("allowAwardEquipment")
-											inContext:context
+											inContext:JScontext
 									withArguments:args count:sizeof args / sizeof *args
 												 result:&result];
 				OOJSStopTimeLimiter();
 
-				if (OK) OK = JS_ValueToBoolean(context, result, &allow_addition);
+				if (OK) OK = JS_ValueToBoolean(JScontext, result, &allow_addition);
 				
-				OOJSRelinquishContext(context);
+				OOJSRelinquishContext(JScontext);
 
 				if (OK && !allow_addition)
 				{
@@ -2917,13 +2917,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (BOOL) addEquipmentItem:(NSString *)equipmentKey
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey inContext:(NSString *)context
 {
-	return [self addEquipmentItem:equipmentKey withValidation:YES];
+	return [self addEquipmentItem:equipmentKey withValidation:YES inContext:context];
 }
 
 
-- (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition inContext:(NSString *)context
 {
 	OOEquipmentType			*eqType = nil;
 	NSString				*lcEquipmentKey = [equipmentKey lowercaseString];
@@ -2934,7 +2934,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if([lcEquipmentKey isEqualToString:@"thargon"]) equipmentKey = @"EQ_THARGON";
 	
 	// canAddEquipment always checks if the undamaged version is equipped.
-	if (validateAddition == YES && ![self canAddEquipment:equipmentKey])  return NO;
+	if (validateAddition == YES && ![self canAddEquipment:equipmentKey inContext:context])  return NO;
 	
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{

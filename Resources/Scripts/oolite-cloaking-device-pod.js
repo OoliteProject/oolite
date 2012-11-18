@@ -51,10 +51,11 @@ this.shipWasScooped = function (scooper)
 		player.ship.manifest.gold += 100;
 	}
 	
-	if (scooper.isPlayer)
+	// now handled by condition script	
+	/*	if (scooper.isPlayer)
 	{
 		// effectiveTechLevel 15 makes it repairable at a level 15 system.
 		// Level 15 systems only exist in G1 (1x), G2 (1x), G5 (1x), G6 (1x) and G7 (2x)
 		EquipmentInfo.infoForKey("EQ_CLOAKING_DEVICE").effectiveTechLevel = 15;
-	}
+	} */
 };

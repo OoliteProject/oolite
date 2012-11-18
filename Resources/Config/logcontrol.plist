@@ -128,7 +128,7 @@
 	display.mode.unknown					= $error;
 	display.initGL							= no;
 	
-	
+	effectData.load.progress					= no;
 	effectData.load.done					= no;
 	
 	

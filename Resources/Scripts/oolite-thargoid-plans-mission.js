@@ -159,7 +159,8 @@ this.missionScreenOpportunity = function ()
 					player.ship.removeEquipment("EQ_ENERGY_UNIT");
 				}
 				player.ship.awardEquipment("EQ_NAVAL_ENERGY_UNIT");
-				EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").effectiveTechLevel = 13;
+				// next line handled by condition script instead
+				// EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").effectiveTechLevel = 13;
 				clock.addSeconds(EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").price + 600); // time to mount the equipment.
 				mission.unmarkSystem(36);
 				this._cleanUp();

@@ -1022,7 +1022,7 @@ static GLfloat		sBaseMass = 0.0;
 	//if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
 	
 	max_cargo = [dict oo_unsignedIntForKey:@"max_cargo" defaultValue:max_cargo];
-	if (max_cargo > original_hold_size)  [self addEquipmentItem:@"EQ_CARGO_BAY"];
+	if (max_cargo > original_hold_size)  [self addEquipmentItem:@"EQ_CARGO_BAY" inContext:@"loading"];
 	max_cargo = original_hold_size + ([self hasExpandedCargoBay] ? extra_cargo : 0);
 	if (max_cargo < max_passengers * PASSENGER_BERTH_SPACE)
 	{
@@ -4958,7 +4958,7 @@ static GLfloat		sBaseMass = 0.0;
 		if (![UNIVERSE strict])
 		{
 			NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
-			[self addEquipmentItem:damagedKey withValidation: NO];	// for possible future repair.
+			[self addEquipmentItem:damagedKey withValidation: NO inContext:@"damage"];	// for possible future repair.
 			[self doScriptEvent:OOJSID("equipmentDamaged") withArgument:system_key];
 			
 			if (![self hasEquipmentItem:system_name] && [self hasEquipmentItem:damagedKey])
@@ -6744,7 +6744,7 @@ static NSString *last_outfitting_key=nil;
 		if (isOK)
 		{
 			if (techlevel < minTechLevel) isOK = NO;
-			if (![self canAddEquipment:eqKey]) isOK = NO;
+			if (![self canAddEquipment:eqKey inContext:@"purchase"]) isOK = NO;
 			if (available_facings == 0 && [eqType isPrimaryWeapon]) isOK = NO;
 			if (isOK)  [equipmentAllowed addObject:eqKey];
 		}
@@ -7649,10 +7649,10 @@ static NSString *last_outfitting_key=nil;
 		return YES;
 	}
 	
-	if ([self canAddEquipment:eqKey])
+	if ([self canAddEquipment:eqKey inContext:@"purchase"])
 	{
 		credits -= price;
-		[self addEquipmentItem:eqKey withValidation:NO]; // no need to validate twice.
+		[self addEquipmentItem:eqKey withValidation:NO inContext:@"purchase"]; // no need to validate twice.
 		if (isRepair)
 		{
 			[self doScriptEvent:OOJSID("equipmentRepaired") withArgument:eqKey];
@@ -7678,7 +7678,7 @@ static NSString *last_outfitting_key=nil;
 	// weapon allowed (or NONE)?
 	if (![eqKey isEqualToString:@"EQ_WEAPON_NONE"]) 
 	{
-		if (![self canAddEquipment:eqKey]) 
+		if (![self canAddEquipment:eqKey inContext:@"purchase"]) 
 		{
 			return NO;
 		}
@@ -7953,7 +7953,14 @@ static NSString *last_outfitting_key=nil;
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		
-		[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
+		if (dockedStation == nil || dockedStation == [UNIVERSE station])
+		{
+			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
+		}
+		else
+		{
+			[gui setTitle:[NSString stringWithFormat:DESC(@"@-commodity-market"), [dockedStation displayName]]];
+		}
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -8180,10 +8187,10 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (BOOL) canAddEquipment:(NSString *)equipmentKey
+- (BOOL) canAddEquipment:(NSString *)equipmentKey inContext:(NSString *)context
 {
 	if ([equipmentKey isEqualToString:@"EQ_RENOVATION"] && !(ship_trade_in_factor < 85 || [[[self shipSubEntityEnumerator] allObjects] count] < [self maxShipSubEntities]))  return NO;
-	if (![super canAddEquipment:equipmentKey])  return NO;
+	if (![super canAddEquipment:equipmentKey inContext:context])  return NO;
 	
 	NSArray *conditions = [[OOEquipmentType equipmentTypeWithIdentifier:equipmentKey] conditions];
 	if (conditions != nil && ![self scriptTestConditions:conditions])  return NO;
@@ -8192,13 +8199,13 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (BOOL) addEquipmentItem:(NSString *)equipmentKey
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey inContext:(NSString *)context
 {
-	return [self addEquipmentItem:equipmentKey withValidation:YES];
+	return [self addEquipmentItem:equipmentKey withValidation:YES inContext:context];
 }
 
 
-- (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition inContext:(NSString *)context
 {
 	// deal with trumbles..
 	if ([equipmentKey isEqualToString:@"EQ_TRUMBLE"])
@@ -8218,7 +8225,7 @@ static NSString *last_outfitting_key=nil;
 		return NO;
 	}
 	
-	BOOL OK = [super addEquipmentItem:equipmentKey withValidation:validateAddition];
+	BOOL OK = [super addEquipmentItem:equipmentKey withValidation:validateAddition inContext:context];
 	
 	if (OK)
 	{
@@ -8288,7 +8295,7 @@ static NSString *last_outfitting_key=nil;
 		// unintentionally excluding valid equipment, just because the required equipment existed but had
 		// not been yet added to the equipment list at the time of the canAddEquipment validation check.
 		// Nikos, 20080817.
-		[self addEquipmentItem:eqDesc withValidation:NO];
+		[self addEquipmentItem:eqDesc withValidation:NO inContext:@"loading"];
 	}
 	
 	// Pass 2: Remove items that do not satisfy validation criteria (like requires_equipment etc.).
@@ -8307,7 +8314,7 @@ static NSString *last_outfitting_key=nil;
 	// Now remove items that should not be in the equipment list.
 	while ((eqDesc = [eqEnum nextObject]))
 	{
-		if (![self equipmentValidToAdd:eqDesc whileLoading:YES])
+		if (![self equipmentValidToAdd:eqDesc whileLoading:YES inContext:@"loading"])
 		{
 			[self removeEquipmentItem:eqDesc];
 		}

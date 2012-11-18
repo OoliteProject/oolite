@@ -1820,7 +1820,7 @@ static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 		// can't add fuel as equipment.
 		if (![key isEqualToString:@"EQ_FUEL"])  result = NO;
 		
-		if (result)  result = [thisEnt canAddEquipment:key];
+		if (result)  result = [thisEnt canAddEquipment:key inContext:@"scripted"];
 	}
 	else
 	{
@@ -1896,7 +1896,7 @@ static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 			else
 			{
 				isRepair = [thisEnt hasEquipmentItem:[identifier stringByAppendingString:@"_DAMAGED"]];
-				OK = [player addEquipmentItem:identifier withValidation:YES];
+				OK = [player addEquipmentItem:identifier withValidation:YES inContext:@"scripted"];
 				if (OK && isRepair) 
 				{
 					[player doScriptEvent:OOJSID("equipmentRepaired") withArgument:identifier];
@@ -1912,7 +1912,7 @@ static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 			// no passenger handling for NPCs. EQ_CARGO_BAY is dealt with inside addEquipmentItem
 			else if (!berth && ![identifier isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
 			{
-				OK = [thisEnt addEquipmentItem:identifier withValidation:YES];	
+				OK = [thisEnt addEquipmentItem:identifier withValidation:YES inContext:@"scripted"];	
 			}
 			else
 			{
@@ -2080,7 +2080,7 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 			if ([thisEnt isPlayer])
 			{
 				// these player methods are different to the ship ones.
-				[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO];
+				[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO inContext:@"scripted"];
 				if (hasOK)
 				{
 					[(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
@@ -2095,7 +2095,7 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 			}
 			else
 			{
-				[thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO];
+				[thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO  inContext:@"scripted"];
 				if (hasOK) [thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
 			}
 		}

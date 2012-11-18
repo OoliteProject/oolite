@@ -110,8 +110,8 @@ typedef struct
 - (void) setPlanetType:(OOStellarBodyType) pt;
 
 
-- (double) radius;	// metres
-- (void) setRadius:(double) rad;
+- (GLfloat) radius;	// metres
+- (void) setRadius:(GLfloat) rad;
 - (double) rotationalVelocity;
 - (void) setRotationalVelocity:(double) v;
 

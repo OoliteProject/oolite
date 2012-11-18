@@ -5,6 +5,7 @@
 		"Fuel for the witchspace engines.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 			requires_non_full_fuel = true;
 			strict_mode_compatible = true;
 		}
@@ -15,6 +16,7 @@
 		"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
 			requires_empty_pylon = true;
 			strict_mode_compatible = true;
@@ -27,6 +29,7 @@
 		"EQ_CARGO_BAY",
 		"Retro-fitted hull extensions permit the enclosure of a few extra tons of cargo capacity.",
 		{
+			condition_script = "oolite-conditions.js";
 		  damage_probability = 0;
 			strict_mode_compatible = true;
 		}
@@ -36,6 +39,7 @@
 		"EQ_ECM",
 		"High power disruptor circuits capable of remotely detonating inbound missiles.",
 		{
+			condition_script = "oolite-conditions.js";
 			strict_mode_compatible = true;
 		}
 	),
@@ -44,6 +48,7 @@
 		"EQ_FUEL_SCOOPS",
 		"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.",
 		{
+			condition_script = "oolite-conditions.js";
 			strict_mode_compatible = true;
 		}
 	),
@@ -52,6 +57,7 @@
 		"EQ_ESCAPE_POD",
 		"A simple emergency capsule with a life-support system, purchase includes comprehensive insurance for your ship and systems.",
 		{
+			condition_script = "oolite-conditions.js";
 			strict_mode_compatible = true;
 		}
 	),
@@ -60,6 +66,7 @@
 		"EQ_ENERGY_BOMB",
 		"A one-shot super-weapon capable of destroying all small craft within range.",
 		{
+			condition_script = "oolite-conditions.js";
 			strict_mode_only = true;
 		}
 	),
@@ -68,16 +75,18 @@
 		"EQ_ENERGY_UNIT",
 		"An improved efficiency energy recharge unit.",
 		{
+			condition_script = "oolite-conditions.js";
 			incompatible_with_equipment = "EQ_NAVAL_ENERGY_UNIT";
 			strict_mode_compatible = true;
 		}
 	),
-	/* next item has too high initial TL to be available */
+	/* condition script blocks this one from appearing normally */
 	(
-		99, 500000, "Naval Energy Unit",
+		13, 500000, "Naval Energy Unit",
 		"EQ_NAVAL_ENERGY_UNIT",
 		"A special improved efficiency energy recharge unit, as supplied to Navy vessels.",
 		{
+			condition_script = "oolite-conditions.js";
 			strict_mode_compatible = true;
 		}
 		/* Special case: this eq MUST STAY COMPATIBLE with EQ_ENERGY_UNIT - It's all handled properly in code.
@@ -89,6 +98,7 @@
 		"EQ_DOCK_COMP",
 		"A simple autopilot and in-system communication system interlocking with local station systems.",
 		{
+			condition_script = "oolite-conditions.js";
 			strict_mode_compatible = true;
 		}
 	),
@@ -97,6 +107,7 @@
 		"EQ_GAL_DRIVE",
 		"A one-shot overcharge for the witchspace engines, enabling inter-galactic travel.",
 		{
+			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			strict_mode_compatible = true;
 		}
@@ -106,6 +117,7 @@
 		"EQ_WEAPON_PULSE_LASER",
 		"High powered pulse laser, a basic defense configuration.",
 		{
+			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			strict_mode_compatible = true;
 		}
@@ -115,6 +127,7 @@
 		"EQ_WEAPON_BEAM_LASER",
 		"Rapid cycle laser, delivers more energy in less time for more effective results.",
 		{
+			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			strict_mode_compatible = true;
 		}
@@ -124,6 +137,7 @@
 		"EQ_WEAPON_MINING_LASER",
 		"High power, slow recharge. Ideal for mineral extraction from large asteroids.",
 		{
+			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			strict_mode_compatible = true;
 		}
@@ -133,16 +147,18 @@
 		"EQ_WEAPON_MILITARY_LASER",
 		"Increased power beam laser, developed for Naval use.",
 		{
+			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			strict_mode_compatible = true;
 		}
 	),
-	/* next item has too high initial TL to be available */
+	/* condition script blocks this one from appearing normally */
 	(
-		99, 500000, "Cloaking Device",
+		15, 500000, "Cloaking Device",
 		"EQ_CLOAKING_DEVICE",
 		"Experimental Naval cloaking device.",
 		{
+			condition_script = "oolite-conditions.js";
 			portable_between_ships = true;
 			available_to_all = true;
 			strict_mode_compatible = true;
@@ -212,6 +228,7 @@
 		"EQ_HARDENED_MISSILE",
 		"Faulcon de Lacy HMX5 homing missile - hardened against ECM.",
 		{
+			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
 			requires_empty_pylon = true;
@@ -222,17 +239,26 @@
 	(
 		10, 6000, "Witchdrive Fuel Injectors",
 		"EQ_FUEL_INJECTION",
-		"A convertor added to your in-system drive that can inject unused witch-drive fuel into your exhaust, massively increasing your speed."
+		"A convertor added to your in-system drive that can inject unused witch-drive fuel into your exhaust, massively increasing your speed.",
+		{
+			condition_script = "oolite-conditions.js";
+		}
 	),
 	(
 		11, 4500, "Scanner Targeting Enhancement",
 		"EQ_SCANNER_SHOW_MISSILE_TARGET",
-		"Adds a visible indicator, range and legal status display around the target currently locked into your targeting computer."
+		"Adds a visible indicator, range and legal status display around the target currently locked into your targeting computer.",
+		{
+			condition_script = "oolite-conditions.js";
+		}
 	),
 	(
 		5, 3250, "Multi-Targeting System",
 		"EQ_MULTI_TARGET",
-		"Per-missile target memory, maintains multiple target locks."
+		"Per-missile target memory, maintains multiple target locks.",
+		{
+			condition_script = "oolite-conditions.js";
+		}
 	),
 	(
 		7, 6500, "Advanced Space Compass",
@@ -240,6 +266,7 @@
 		"A Tyley-Feynman GW-99 astro-navigation compass with user-selectable target modes.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 		}
 	),
 	(
@@ -248,6 +275,7 @@
 		"Navigation Computer software upgrade, improving the functionality of the Galactic Chart and enabling efficient route planning.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 		}
 	),
 	(
@@ -256,6 +284,7 @@
 		"A sixteen core target memory matrix. Allows selection of previous target locks.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 		}
 	),
 	/* NPC equipment, incompatible with player ship. Not buyable because of its TL. */
@@ -273,6 +302,7 @@
 		"Tyley-Feynman Quirium cascade mine. Mounts in place of a missile, but deploys to the rear of your craft. Capable of massive destruction and triggering chain reactions in the witchdrives of ships caught in its blast range.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
 			requires_empty_pylon = true;
 			/* NOTE: this is always zero for pylon-mounted equipment */
@@ -282,12 +312,18 @@
 	(
 		10, 147500, "Shield Boosters",
 		"EQ_SHIELD_BOOSTER",
-		"Shield boosting technology dramatically increases the capability of standard defensive shields."
+		"Shield boosting technology dramatically increases the capability of standard defensive shields.",
+		{
+			condition_script = "oolite-conditions.js";
+		}
 	),
 	(
 		13, 475500, "Military Shield Enhancement",
 		"EQ_NAVAL_SHIELD_BOOSTER",
-		"Military technology, used in conjunction with ordinary shields and shield boosting technology, further increases the capability of standard defensive shields."
+		"Military technology, used in conjunction with ordinary shields and shield boosting technology, further increases the capability of standard defensive shields.",
+		{
+			condition_script = "oolite-conditions.js";
+		}
 	),
 	/* next item was a test item */
 	(
@@ -302,6 +338,7 @@
 		"Additional ceramid-fibre blanketing and tiles, no armour value but provides extra solar insulation.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 		}
 	),
 	(
@@ -310,6 +347,7 @@
 		"The Mössbauer-Krantz Works wormhole scanner integrates into your existing targeting system. It analyzes the residual energy of a wormhole and, in combination with your Galactic Map software, calculates the most likely target system.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 		}
 	),
 	/* renovation price is a dummy value - calculated to be 1% of the value of a fully-maintained ship of that type and equipment */
@@ -319,6 +357,7 @@
 		"Covers dry docking fees, cleaning and replating of damaged hull sections, shield and scoop system de-ionization, systems tune-up, repainting and detailed valeting.",
 		{
 			available_to_all = true;
+			condition_script = "oolite-conditions.js";
 		}
 	),
 	/* next item has a TL too high to be available */

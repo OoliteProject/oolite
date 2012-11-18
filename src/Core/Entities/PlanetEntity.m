@@ -1099,13 +1099,13 @@ static const BaseFace kTexturedFaces[][3] =
 }
 
 
-- (double) radius
+- (GLfloat) radius
 {
 	return collision_radius;
 }
 
 
-- (void) setRadius:(double) rad
+- (void) setRadius:(GLfloat) rad
 {
 	collision_radius = rad;
 }
