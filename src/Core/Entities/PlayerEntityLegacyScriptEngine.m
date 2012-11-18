@@ -1205,7 +1205,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else if ([eqType canCarryMultiple] || ![self hasEquipmentItem:equipString])
 	{
-		[self addEquipmentItem:equipString withValidation:YES];
+		[self addEquipmentItem:equipString withValidation:YES inContext:@"scripted"];
 	}
 }
 
