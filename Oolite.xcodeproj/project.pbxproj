@@ -617,6 +617,7 @@
 		1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */; };
 		1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */; };
 		1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */; };
+		1AB23F07165A5A8C00642977 /* oolite-conditions.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AB23F06165A5A7700642977 /* oolite-conditions.js */; };
 		1AB2AAFA0C4CE0CC0008CF4E /* OOOXPVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */; };
 		1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */; };
 		1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */; };
@@ -1245,6 +1246,7 @@
 			dstPath = Scripts;
 			dstSubfolderSpec = 7;
 			files = (
+				1AB23F07165A5A8C00642977 /* oolite-conditions.js in Copy Scripts */,
 				1A02B4C61643DFF80013749D /* oolite-contracts-cargo.js in Copy Scripts */,
 				1A02B4C71643DFF80013749D /* oolite-contracts-helpers.js in Copy Scripts */,
 				1A02B4C81643DFF80013749D /* oolite-contracts-passengers.js in Copy Scripts */,
@@ -1945,6 +1947,7 @@
 		1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTextureScaling.h; path = ../OOTextureScaling.h; sourceTree = "<group>"; };
 		1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */ = {isa = PBXFileReference; comments = "-O3"; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOTextureScaling.m; path = ../OOTextureScaling.m; sourceTree = "<group>"; };
 		1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFastArithmetic.h; sourceTree = "<group>"; };
+		1AB23F06165A5A7700642977 /* oolite-conditions.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-conditions.js"; sourceTree = "<group>"; };
 		1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifier.h; sourceTree = "<group>"; };
 		1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifier.m; sourceTree = "<group>"; };
 		1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; name = verifyOXP.plist; path = ../../../Resources/Config/verifyOXP.plist; sourceTree = "<group>"; };
@@ -2640,6 +2643,7 @@
 				1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */,
 				1A572FBB0D84B640003D4A26 /* oolite-default-ship-script.js */,
 				1A572FBC0D84B640003D4A26 /* oolite-cloaking-device-mission.js */,
+				1AB23F06165A5A7700642977 /* oolite-conditions.js */,
 				1A572FBD0D84B640003D4A26 /* oolite-constrictor.js */,
 				1A572FBE0D84B640003D4A26 /* oolite-constrictor-hunt-mission.js */,
 				1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */,
