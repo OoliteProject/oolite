@@ -28,6 +28,9 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "OOMacroOpenGL.h"
 
+#import "OOTexture.h"
+#import "OOGraphicsResetManager.h"
+
 
 #define kLaserDuration		(0.09)	// seconds
 
@@ -37,10 +40,14 @@ MA 02110-1301, USA.
 #define kLaserBlue			(0.0f)
 
 // Constant alpha
-#define kLaserAlpha			(0.75f)
+#define kLaserAlpha			(0.45f)
 
-#define kLaserHalfWidth		(0.25f)
+#define kLaserCoreWidth		(0.4f)
+#define kLaserFlareWidth		(1.8f)
+#define kLaserHalfWidth		(3.6f)
 
+static OOTexture *sShotTexture = nil;
+static OOTexture *sShotTexture2 = nil;
 
 @implementation OOLaserShotEntity
 
@@ -95,11 +102,11 @@ MA 02110-1301, USA.
 	_range = [srcEntity weaponRange];
 	_lifetime = kLaserDuration;
 	
-	_color[0] = kLaserRed;
-	_color[1] = kLaserGreen;
-	_color[2] = kLaserBlue;
+	_color[0] = kLaserRed/3.0;
+	_color[1] = kLaserGreen/3.0;
+	_color[2] = kLaserBlue/3.0;
 	_color[3] = kLaserAlpha;
-	
+
 	_offset = (ship == srcEntity) ? offset : middle;
 	_relOrientation = q;
 	
@@ -129,9 +136,9 @@ MA 02110-1301, USA.
 
 - (void) setColor:(OOColor *)color
 {
-	_color[0] = [color redComponent];
-	_color[1] = [color greenComponent];
-	_color[2] = [color blueComponent];
+	_color[0] = [color redComponent]/3.0;
+	_color[1] = [color greenComponent]/3.0;
+	_color[2] = [color blueComponent]/3.0;
 	// Ignore alpha; _color[3] is constant.
 }
 
@@ -166,17 +173,17 @@ MA 02110-1301, USA.
 }
 
 
-static const GLfloat kLaserVertices[] =
+static const GLfloat kLaserVertices[] = 
 {
 	 1.0f, 0.0f, 0.0f,
 	 1.0f, 0.0f, 1.0f,
-	-1.0f, 0.0f, 1.0f,
-	-1.0f, 0.0f, 0.0f,
+	 -1.0f, 0.0f, 1.0f,
+	 -1.0f, 0.0f, 0.0f,
 	
-	0.0f,  1.0f, 0.0f,
-	0.0f,  1.0f, 1.0f,
-	0.0f, -1.0f, 1.0f,
-	0.0f, -1.0f, 0.0f
+	 0.0f,  1.0f, 0.0f,
+	 0.0f,  1.0f, 1.0f,
+	 0.0f, -1.0f, 1.0f,
+	 0.0f, -1.0f, 0.0f,
 };
 
 
@@ -187,19 +194,61 @@ static const GLfloat kLaserVertices[] =
 	OO_ENTER_OPENGL();
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
-	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-	
+
 	/*	FIXME: spread damage across the lifetime of the shot,
 		hurting whatever is hit in a given frame.
 		-- Ahruman 2011-01-31
 	*/
-	
+	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+	OOGL(glEnable(GL_TEXTURE_2D));
+	[[self texture1] apply];
+	GLfloat s = sin([UNIVERSE getTime]);
+	GLfloat phase = s*(_range/50.0);
+	GLfloat phase2 = (1.0+s)*(_range/50.0);
+	GLfloat phase3 = -s*(_range/500.0);
+	GLfloat phase4 = -(1.0+s)*(_range/500.0);
+
+	GLfloat laserTexCoords[] = 
+		{
+			0.0f, phase,	0.0f, phase2,	1.0f, phase2,	1.0f, phase,
+
+			0.0f, phase,	0.0f, phase2,	1.0f, phase2,	1.0f, phase
+		};
+	GLfloat laserTexCoords2[] = 
+		{
+			0.0f, phase3,	0.0f, phase4,	1.0f, phase4,	1.0f, phase3,
+
+			0.0f, phase3,	0.0f, phase4,	1.0f, phase4,	1.0f, phase3
+		};
+
+	OOGL(glPushMatrix());
 	OOGL(glColor4fv(_color));
 	glScaled(kLaserHalfWidth, kLaserHalfWidth, _range);
 	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
+	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
 	glDrawArrays(GL_QUADS, 0, 8);
-	
-	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+	OOGL(glPopMatrix());
+	OOGL(glPopAttrib());
+
+	OOGL(glPushMatrix());
+	glScaled(kLaserCoreWidth, kLaserCoreWidth, _range);
+	OOGL(glColor4f(1.0,1.0,1.0,0.9));
+	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
+	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
+	glDrawArrays(GL_QUADS, 0, 8);
+	OOGL(glPopMatrix());
+
+	[[self texture2] apply];
+	OOGL(glPushMatrix());
+	glScaled(kLaserFlareWidth, kLaserFlareWidth, _range);
+	OOGL(glColor4f(_color[0],_color[1],_color[2],0.9));
+	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
+	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords);
+	glDrawArrays(GL_QUADS, 0, 8);
+	OOGL(glPopMatrix());
+
+	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+	OOGL(glDisable(GL_TEXTURE_2D));
 	
 	OOVerifyOpenGLState();
 	OOCheckOpenGLErrors(@"OOLaserShotEntity after drawing %@", self);
@@ -217,4 +266,61 @@ static const GLfloat kLaserVertices[] =
 	return NO;
 }
 
+- (OOTexture *) texture1
+{
+	return [OOLaserShotEntity outerTexture];
+}
+
+
+- (OOTexture *) texture2
+{
+	return [OOLaserShotEntity innerTexture];
+}
+
+
++ (void) setUpTexture
+{
+	if (sShotTexture == nil)
+	{
+		sShotTexture = [[OOTexture textureWithName:@"oolite-laser-blur.png"
+										  inFolder:@"Textures"
+										   options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
+										anisotropy:kOOTextureDefaultAnisotropy / 2.0
+										   lodBias:0.0] retain];
+		[[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOLaserShotEntity class]];
+
+		sShotTexture2 = [[OOTexture textureWithName:@"oolite-laser-blur2.png"
+										  inFolder:@"Textures"
+										   options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
+										anisotropy:kOOTextureDefaultAnisotropy / 2.0
+										   lodBias:0.0] retain];
+	}
+}
+
+
++ (OOTexture *) innerTexture
+{
+	if (sShotTexture2 == nil)  [self setUpTexture];
+	return sShotTexture2;
+}
+
+
++ (OOTexture *) outerTexture
+{
+	if (sShotTexture == nil)  [self setUpTexture];
+	return sShotTexture;
+}
+
+
++ (void) resetGraphicsState
+{
+	[sShotTexture release];
+	sShotTexture = nil;
+	[sShotTexture2 release];
+	sShotTexture2 = nil;
+}
+
+
 @end
+
+

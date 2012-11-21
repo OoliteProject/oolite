@@ -48,4 +48,11 @@ MA 02110-1301, USA.
 
 - (void) setRange:(GLfloat)range;
 
+- (OOTexture *) texture1;
+- (OOTexture *) texture2;
+
++ (void) setUpTexture;
++ (OOTexture *) innerTexture;
++ (OOTexture *) outerTexture;
+
 @end
