@@ -775,6 +775,10 @@
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
 		B3460D4515285BF1002592D0 /* oolite-default-planet.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */; };
 		B3460D4615285BF1002592D0 /* oolite-default-planet.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */; };
+		B3A963FF165D7FB5001BB5C1 /* oolite-laser-blur.png in Resources */ = {isa = PBXBuildFile; fileRef = B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */; };
+		B3A96400165D7FB5001BB5C1 /* oolite-laser-blur2.png in Resources */ = {isa = PBXBuildFile; fileRef = B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */; };
+		B3A96401165D800D001BB5C1 /* oolite-laser-blur.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */; };
+		B3A96402165D800D001BB5C1 /* oolite-laser-blur2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */; };
 		B3EA93961541480E00AB3C5B /* oolite-missile.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = B3EA9395154147EB00AB3C5B /* oolite-missile.js */; };
 /* End PBXBuildFile section */
 
@@ -1044,6 +1048,8 @@
 			dstPath = Textures;
 			dstSubfolderSpec = 7;
 			files = (
+				B3A96401165D800D001BB5C1 /* oolite-laser-blur.png in Copy Textures */,
+				B3A96402165D800D001BB5C1 /* oolite-laser-blur2.png in Copy Textures */,
 				1A0024961657B5BF00EAE045 /* oolite-star-1-alt.png in Copy Textures */,
 				1A0024971657B5BF00EAE045 /* oolite-star-1-large.png in Copy Textures */,
 				1A0024981657B5BF00EAE045 /* oolite-star-2-large.png in Copy Textures */,
@@ -2122,6 +2128,8 @@
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "javascript-errors.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
 		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-laser-blur.png"; sourceTree = "<group>"; };
+		B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-laser-blur2.png"; sourceTree = "<group>"; };
 		B3EA9395154147EB00AB3C5B /* oolite-missile.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-missile.js"; sourceTree = "<group>"; };
 		B3EC10B6155C154000778240 /* OOLegalStatusReason.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOLegalStatusReason.tbl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -2321,6 +2329,8 @@
 		1A23181D0B9D026D00EF0852 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
+				B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */,
+				B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */,
 				1A817DBE106D441200AA2F97 /* oolite-particle-flash.png */,
 				1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */,
 				1A23181E0B9D026D00EF0852 /* adder_redux.png */,
@@ -3841,6 +3851,8 @@
 				1A033FA313268821006F9DB7 /* OoliteReadMe.pdf in Resources */,
 				1A504D9114DC964A003E5363 /* Oolite.xib in Resources */,
 				1A115ED5158CFB4D005842DA /* splash@2x.png in Resources */,
+				B3A963FF165D7FB5001BB5C1 /* oolite-laser-blur.png in Resources */,
+				B3A96400165D7FB5001BB5C1 /* oolite-laser-blur2.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
