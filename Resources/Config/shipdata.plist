@@ -6,7 +6,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
-		exhaust = ("-5.75 0.0 -22.5 6.0 4.0 4.0", "5.75 0.0 -22.5 6.0 4.0 4.0");
+		exhaust = ("-5.75 0.0 -22.5 6.0 4.0 1.0", "5.75 0.0 -22.5 6.0 4.0 1.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
 		has_ecm = 0.01;
@@ -34,7 +34,7 @@
 	{
 		aft_eject_position = "0.0 -4.5 -23.0";
 		energy_recharge_rate = 2;
-		exhaust = ("-5.75 0.0 -22.5 6.0 4.0 4.0", "5.75 0.0 -22.5 6.0 4.0 4.0");
+		exhaust = ("-5.75 0.0 -22.5 6.0 4.0 1.0", "5.75 0.0 -22.5 6.0 4.0 1.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hud = "hud-small.plist";
 		max_cargo = 2;
@@ -160,7 +160,7 @@
 		energy_recharge_rate = 3;
 		escort_ship = "cobramk1";
 		escorts = 6;
-		exhaust = ("-9.8 5.6 -78.5 10.0 10.0 8.0", "9.8 5.6 -78.5 10.0 10.0 8.0");
+		exhaust = ("-9.8 5.6 -78.5 10.0 10.0 2.0", "9.8 5.6 -78.5 10.0 10.0 2.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
 		has_ecm = 0.95;
@@ -189,7 +189,7 @@
 	{
 		aft_eject_position = "0.0 -20.0 -67.0";
 		energy_recharge_rate = 3;
-		exhaust = ("-9.8 5.6 -78.5 10.0 10.0 8.0", "9.8 5.6 -78.5 10.0 10.0 8.0");
+		exhaust = ("-9.8 5.6 -78.5 10.0 10.0 2.0", "9.8 5.6 -78.5 10.0 10.0 2.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hud = "hud.plist";
 		max_cargo = 750;
@@ -293,7 +293,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
-		exhaust = ("0.0 0.0 -35.0 8.0 6.0 8.0");
+		exhaust = ("0.0 0.0 -35.0 8.0 6.0 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
 		has_ecm = 0.85;
@@ -526,7 +526,7 @@
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		escorts = 4;
-		exhaust = ("0.0 3.67 -56.0 16.0 16.0 14.0");
+		exhaust = ("0.0 3.67 -56.0 16.0 16.0 2.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
 		has_ecm = 0.75;
@@ -560,7 +560,7 @@
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3.2;
 		escorts = 4;
-		exhaust = ("9.75 1.5 -57.5 9.0 9.0 9.0", "-9.75 1.5 -57.5 9.0 9.0 9.0");
+		exhaust = ("9.75 1.5 -57.5 9.0 9.0 1.5", "-9.75 1.5 -57.5 9.0 9.0 1.5");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
 		has_ecm = 0.95;
@@ -590,7 +590,7 @@
 	{
 		aft_eject_position = "0.0 -15.75 -50.75";
 		energy_recharge_rate = 3.2;
-		exhaust = ("9.75 1.5 -57.5 9.0 9.0 9.0", "-9.75 1.5 -57.5 9.0 9.0 9.0");
+		exhaust = ("9.75 1.5 -57.5 9.0 9.0 1.5", "-9.75 1.5 -57.5 9.0 9.0 1.5");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		hud = "hud.plist";
 		max_cargo = 175;
@@ -683,7 +683,7 @@
 	{
 		aft_eject_position = "0.0 -15.0 -50.5";
 		energy_recharge_rate = 3;
-		exhaust = ("0.0 3.67 -56.0 16.0 16.0 14.0");
+		exhaust = ("0.0 3.67 -56.0 16.0 16.0 2.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hud = "hud.plist";
 		max_cargo = 125;
@@ -930,7 +930,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
-		exhaust = ("-19 0.0 -32.5 15.0 7.5 12.5", "19 0.0 -32.5 15.0 7.5 12.5");
+		exhaust = ("-19 0.0 -32.5 15.0 7.5 1.0", "19 0.0 -32.5 15.0 7.5 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
 		has_ecm = 0.15;
@@ -1074,7 +1074,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
-		exhaust = ("8.2 0.0 -27.5 6.0 4.0 4.0", "-8.2 0.0 -27.5 6.0 4.0 4.0");
+		exhaust = ("8.2 0.0 -27.5 6.0 4.0 1.0", "-8.2 0.0 -27.5 6.0 4.0 1.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
 		has_scoop = 0.95;
@@ -1207,7 +1207,7 @@
 		bounty = 250;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 5;
-		exhaust = ("0.0 0.0 -30.0 18.0 12.0 12.0");
+		exhaust = ("0.0 0.0 -30.0 18.0 12.0 2.0");
 		forward_weapon_type = "WEAPON_MILITARY_LASER";
 		fuel = 70;
 		has_ecm = yes;
@@ -1470,7 +1470,7 @@
 		ai_type = "hardMissileAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
-		exhaust = ("0.0 0.0 -3.5 2.0 2.0 4.0");
+		exhaust = ("0.0 0.0 -3.5 2.0 2.0 2.0");
 		forward_weapon_type = "WEAPON_NONE";
 		max_energy = 5;
 		max_flight_pitch = 8;
@@ -1494,9 +1494,9 @@
 		energy_recharge_rate = 2;
 		exhaust =
 		(
-			"0.0 2.96 -1.67 0.5 0.5 0.5",
-			"2.56 -1.48 -1.67 0.5 0.5 0.5",
-			"-2.56 -1.48 -1.67 0.5 0.5 0.5"
+			"0.0 2.96 -1.67 0.5 0.5 1.0",
+			"2.56 -1.48 -1.67 0.5 0.5 1.0",
+			"-2.56 -1.48 -1.67 0.5 0.5 1.0"
 		);
 		forward_weapon_type = "WEAPON_NONE";
 		max_energy = 25;
@@ -1555,7 +1555,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4.5;
-		exhaust = ("0.0 -5.0 -42.5 6.0 6.0 8.0");
+		exhaust = ("0.0 -5.0 -42.5 6.0 6.0 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
 		has_ecm = yes;
@@ -1587,7 +1587,7 @@
 	{
 		aft_eject_position = "0.0 3.0 -38.0";
 		energy_recharge_rate = 4.5;
-		exhaust = ("0.0 -5.0 -42.5 6.0 6.0 8.0");
+		exhaust = ("0.0 -5.0 -42.5 6.0 6.0 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_scoop = yes;
 		hud = "hud.plist";
@@ -1684,7 +1684,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
-		exhaust = ("0.0 0.0 -20.0 5.0 4.0 4.0");
+		exhaust = ("0.0 0.0 -20.0 5.0 4.0 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		hyperspace_motor = no;
 		has_scoop = yes;
@@ -1773,7 +1773,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
-		exhaust = ("-7.5 0.0 -35.58 4.0 4.0 5.0", "7.5 0.0 -35.58 4.0 4.0 5.0");
+		exhaust = ("-7.5 0.0 -35.58 4.0 4.0 1.0", "7.5 0.0 -35.58 4.0 4.0 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
 		hyperspace_motor = no;
@@ -1807,7 +1807,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
-		exhaust = ("0.0 0.0 -27.5 10.0 8.0 12.0");
+		exhaust = ("0.0 0.0 -27.5 10.0 8.0 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		hyperspace_motor = no;
 		has_scoop = 0.95;
@@ -1838,7 +1838,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
-		exhaust = ("0.0 0.0 -27.5 10.0 8.0 12.0");
+		exhaust = ("0.0 0.0 -27.5 10.0 8.0 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		hyperspace_motor = no;
 		likely_cargo = 1;
@@ -1868,7 +1868,7 @@
 		ai_type = "missileAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
-		exhaust = ("0.0 0.0 -3.5 2.0 2.0 4.0");
+		exhaust = ("0.0 0.0 -3.5 2.0 2.0 2.0");
 		forward_weapon_type = "WEAPON_NONE";
 		max_energy = 5;
 		max_flight_pitch = 8;
@@ -1891,7 +1891,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
-		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 16.0");
+		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 1.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
 		has_scoop = yes;
@@ -1919,7 +1919,7 @@
 	{
 		aft_eject_position = "0.0 5.75 -8.0";
 		energy_recharge_rate = 3;
-		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 16.0");
+		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 1.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hud = "hud.plist";
 		max_cargo = 7;
@@ -2015,7 +2015,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
-		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 16.0");
+		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 1.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
 		has_scoop = yes;
@@ -2046,7 +2046,7 @@
 	{
 		aft_eject_position = "0.0 5.75 -8.0";
 		energy_recharge_rate = 2.75;
-		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 16.0");
+		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 1.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hud = "hud.plist";
 		max_cargo = 7;
@@ -2165,7 +2165,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
-		exhaust = ("0.0 0.0 -64.5 12.0 12.0 13.0");
+		exhaust = ("0.0 0.0 -64.5 12.0 12.0 2.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
 		has_escape_pod = 0.75;
@@ -2198,7 +2198,7 @@
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3.5;
 		escorts = 2;
-		exhaust = ("0.0 0.0 -64.5 12.0 12.0 13.0");
+		exhaust = ("0.0 0.0 -64.5 12.0 12.0 2.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
 		has_ecm = 0.75;
@@ -2232,7 +2232,7 @@
 	{
 		aft_eject_position = "0.0 15.5 -50.0";
 		energy_recharge_rate = 2.5;
-		exhaust = ("0.0 0.0 -64.5 12.0 12.0 13.0");
+		exhaust = ("0.0 0.0 -64.5 12.0 12.0 2.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hud = "hud.plist";
 		max_cargo = 100;
@@ -2329,7 +2329,7 @@
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
 		escorts = 2;
-		exhaust = ("0.0 0.0 -64.5 12.0 12.0 13.0");
+		exhaust = ("0.0 0.0 -64.5 12.0 12.0 2.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
 		has_escape_pod = yes;
@@ -2488,10 +2488,10 @@
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 1;
 		exhaust = (
-			"6.7 6.7 -17.5 4.0 4.0 5.0",
-			"-6.7 6.7 -17.5 4.0 4.0 5.0",
-			"6.7 -6.7 -17.5 4.0 4.0 5.0",
-			"-6.7 -6.7 -17.5 4.0 4.0 5.0"
+			"6.7 6.7 -17.5 4.0 4.0 1.5",
+			"-6.7 6.7 -17.5 4.0 4.0 1.5",
+			"6.7 -6.7 -17.5 4.0 4.0 1.5",
+			"-6.7 -6.7 -17.5 4.0 4.0 1.5"
 		);
 		forward_weapon_type = "WEAPON_NONE";
 		hyperspace_motor = no;
@@ -2519,7 +2519,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
-		exhaust = ("0.0 0.0 -17.0 8.0 6.0 12.0");
+		exhaust = ("0.0 0.0 -17.0 8.0 6.0 1.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hyperspace_motor = no;
 		max_energy = 240;
@@ -2545,7 +2545,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
-		exhaust = ("0.0 0.0 -17.0 8.0 6.0 12.0");
+		exhaust = ("0.0 0.0 -17.0 8.0 6.0 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		hyperspace_motor = no;
 		max_energy = 240;
@@ -2671,7 +2671,7 @@
 		ai_type = "nullAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
-		exhaust = ("6.125 -0.75 -17.5 3.0 3.0 4.0", "-6.125 -0.75 -17.5 3.0 3.0 4.0");
+		exhaust = ("6.125 -0.75 -17.5 3.0 3.0 1.5", "-6.125 -0.75 -17.5 3.0 3.0 1.5");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hyperspace_motor = no;
 		max_cargo = 12;
@@ -2712,7 +2712,7 @@
 		ai_type = "route1patrolAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
-		exhaust = ("12.5 0.0 -27.5 6.0 6.0 6.0", "-12.5 0.0 -27.5 6.0 6.0 6.0");
+		exhaust = ("12.5 0.0 -27.5 6.0 6.0 1.5", "-12.5 0.0 -27.5 6.0 6.0 1.5");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_ecm = yes;
 		laser_color = "magentaColor";
@@ -2826,9 +2826,9 @@
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 6;
 		exhaust = (
-			"-21.6 0.0 -28.5 6.0 6.0 8.0",
-			"21.6 0.0 -28.5 6.0 6.0 8.0",
-			"0.0 0.0 -31.0 8.0 8.0 10.0"
+			"-21.6 0.0 -28.5 6.0 6.0 1.5",
+			"21.6 0.0 -28.5 6.0 6.0 1.5",
+			"0.0 0.0 -31.0 8.0 8.0 1.5"
 		);
 		forward_weapon_type = "WEAPON_MILITARY_LASER";
 		fuel = 160;
@@ -2945,7 +2945,7 @@
 		ai_type = "route1patrolAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
-		exhaust = ("12.5 0.0 -27.5 6.0 6.0 6.0", "-12.5 0.0 -27.5 6.0 6.0 6.0");
+		exhaust = ("12.5 0.0 -27.5 6.0 6.0 1.5", "-12.5 0.0 -27.5 6.0 6.0 1.5");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_ecm = yes;
 		laser_color = "magentaColor";
@@ -2972,7 +2972,7 @@
 		ai_type = "nullAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
-		exhaust = ("0.0 0.0 -17.5 7.0 6.0 6.0");
+		exhaust = ("0.0 0.0 -17.5 7.0 6.0 1.5");
 		forward_weapon_type = "WEAPON_NONE";
 		hyperspace_motor = no;
 		likely_cargo = 1;
@@ -2999,7 +2999,7 @@
 		ai_type = "minerAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 1.85;
-		exhaust = ("0.0 0.0 -17.5 6.0 5.0 5.0");
+		exhaust = ("0.0 0.0 -17.5 6.0 5.0 1.5");
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
 		max_cargo = 5;

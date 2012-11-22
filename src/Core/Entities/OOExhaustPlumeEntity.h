@@ -57,6 +57,12 @@ enum
 
 - (void) resetPlume;
 
+- (OOTexture *) texture;
+
++ (void) setUpTexture;
++ (OOTexture *) plumeTexture;
++ (void) resetGraphicsState;
+
 @end
 
 

@@ -30,9 +30,14 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOMacroOpenGL.h"
 
+#import "OOTexture.h"
+#import "OOGraphicsResetManager.h"
 
-#define kOverallAlpha		0.5f
+
+#define kOverallAlpha		0.625f
 #define kTimeStep			0.05
+
+static OOTexture *sPlumeTexture = nil;
 
 
 @interface OOExhaustPlumeEntity (Private)
@@ -106,7 +111,7 @@ MA 02110-1301, USA.
 		_trackTime = now;
 	}
 
-	GLfloat ex_emissive[4]	= {0.6f, 0.8f, 1.0f, 0.9f * kOverallAlpha};   // pale blue
+	GLfloat ex_emissive[4]	= {0.7f, 0.9, 1.0f, 0.9f * kOverallAlpha};   // pale blue
 	const GLfloat s1[8] = { 0.0, M_SQRT1_2, 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2};
 	const GLfloat c1[8] = { 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2, 0.0, M_SQRT1_2};
 	
@@ -122,10 +127,18 @@ MA 02110-1301, USA.
 	
 	GLfloat hyper_fade = 8.0f / (8.0f + speed * speed * speed);
 	
-	GLfloat flare_factor = speed * ex_emissive[3] * hyper_fade;
+	GLfloat flare_factor = fmaxf(speed,1.0) * ex_emissive[3] * hyper_fade;
 	GLfloat red_factor = speed * ex_emissive[0] * (ranrot_rand() % 11) * 0.1;	// random fluctuations
 	GLfloat green_factor = speed * ex_emissive[1] * hyper_fade;
 	
+	// the aft view is far too close to the source and at a bad angle, so cheat
+	// and reduce the opacity of the player's own exhaust when looked at from
+	// inside.
+	if ([[self owner] isPlayer] && [UNIVERSE viewDirection] != VIEW_CUSTOM)
+	{
+		flare_factor *= 0.15;
+	} 
+
 	if (speed > 1.0f)	// afterburner!
 	{
 		red_factor = 1.5;
@@ -151,11 +164,20 @@ MA 02110-1301, USA.
 								currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
 								currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
 	
+	GLfloat exhaust_factor = _exhaustScale.z;
+	if (exhaust_factor < 0.5)
+	{
+		exhaust_factor = 1.0;
+	}
+	else if (exhaust_factor > 2.0)
+	{
+		exhaust_factor = 1.0;
+	}
 	GLfloat i01 = -0.03 * hyper_fade;
-	GLfloat i03 = -0.12;
-	GLfloat i06 = -0.25;
-	GLfloat i08 = -0.32;
-	GLfloat i10 = -0.40;
+	GLfloat i03 = -0.12 * exhaust_factor;
+	GLfloat i06 = -0.25 * exhaust_factor;
+	GLfloat i08 = -0.32 * exhaust_factor;
+	GLfloat i10 = -0.40 * exhaust_factor;
 	GLfloat q01 = i01/i10;	// factor for trail
 	GLfloat q03 = i03/i10;
 	GLfloat q06 = i06/i10;
@@ -178,26 +200,23 @@ MA 02110-1301, USA.
 	int iv = 0;
 	int i;
 	float r1;
+
+	f01.position = vector_subtract(zero.position, vk); // 1m out from zero
 	
 	ex_emissive[3] = flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = red_factor;		// diminish red part towards rear of exhaust
-	_vertices[iv++] = f03.position.x + b03.x;// + zero.k.x * flare_factor * 4.0;
-	_vertices[iv++] = f03.position.y + b03.y;// + zero.k.y * flare_factor * 4.0;
-	_vertices[iv++] = f03.position.z + b03.z;// + zero.k.z * flare_factor * 4.0;
+	_vertices[iv++] = f01.position.x + b01.x;// + zero.k.x * flare_factor * 4.0;
+	_vertices[iv++] = f01.position.y + b01.y;// + zero.k.y * flare_factor * 4.0;
+	_vertices[iv++] = f01.position.z + b01.z;// + zero.k.z * flare_factor * 4.0;
 	_exhaustBaseColors[ci++] = ex_emissive[0];
 	_exhaustBaseColors[ci++] = ex_emissive[1];
 	_exhaustBaseColors[ci++] = ex_emissive[2];
 	_exhaustBaseColors[ci++] = ex_emissive[3];
 	
-	ex_emissive[3] = 0.9 * flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
-	ex_emissive[1] = 0.9 * green_factor;	// diminish green part towards rear of exhaust
-	ex_emissive[0] = 0.9 * red_factor;		// diminish red part towards rear of exhaust
 	Vector k1 = f01.k;
 	Vector j1 = cross_product(master_i, k1);
 	Vector i1 = cross_product(j1, k1);
-	
-	f01.position = vector_subtract(zero.position, vk); // 1m out from zero
 	
 	i1.x *= _exhaustScale.x;	i1.y *= _exhaustScale.x;	i1.z *= _exhaustScale.x;
 	j1.x *= _exhaustScale.y;	j1.y *= _exhaustScale.y;	j1.z *= _exhaustScale.y;
@@ -211,13 +230,14 @@ MA 02110-1301, USA.
 		_exhaustBaseColors[ci++] = ex_emissive[2];
 		_exhaustBaseColors[ci++] = ex_emissive[3];
 	}
-	
-	ex_emissive[3] = 0.6 * flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
-	ex_emissive[1] = 0.6 * green_factor;	// diminish green part towards rear of exhaust
-	ex_emissive[0] = 0.6 * red_factor;		// diminish red part towards rear of exhaust
+
+	ex_emissive[3] = 0.8 * flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
+	ex_emissive[1] = 0.8 * green_factor;	// diminish green part towards rear of exhaust
+	ex_emissive[0] = 0.8 * red_factor;		// diminish red part towards rear of exhaust
+
 	k1 = f03.k;
-	i1 = vector_multiply_scalar(cross_product(j1, k1), _exhaustScale.x);
-	j1 = vector_multiply_scalar(cross_product(master_i, k1), _exhaustScale.y);
+	i1 = vector_multiply_scalar(cross_product(j1, k1), _exhaustScale.x * 0.75);
+	j1 = vector_multiply_scalar(cross_product(master_i, k1), _exhaustScale.y * 0.75);
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
@@ -230,12 +250,13 @@ MA 02110-1301, USA.
 		_exhaustBaseColors[ci++] = ex_emissive[3];
 	}
 	
-	ex_emissive[3] = 0.4 * flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
-	ex_emissive[1] = 0.4 * green_factor;	// diminish green part towards rear of exhaust
-	ex_emissive[0] = 0.4 * red_factor;		// diminish red part towards rear of exhaust
+	ex_emissive[3] = 0.5 * flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
+	ex_emissive[1] = 0.5 * green_factor;	// diminish green part towards rear of exhaust
+	ex_emissive[0] = 0.5 * red_factor;		// diminish red part towards rear of exhaust
+
 	k1 = f06.k;
-	i1 = vector_multiply_scalar(cross_product(j1, k1), 0.8f * _exhaustScale.x);
-	j1 = vector_multiply_scalar(cross_product(master_i, k1), 0.8f * _exhaustScale.y);
+	i1 = vector_multiply_scalar(cross_product(j1, k1), 0.8f * _exhaustScale.x * 0.5);
+	j1 = vector_multiply_scalar(cross_product(master_i, k1), 0.8f * _exhaustScale.y * 0.5);
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
@@ -248,12 +269,12 @@ MA 02110-1301, USA.
 		_exhaustBaseColors[ci++] = ex_emissive[3];
 	}
 	
-	ex_emissive[3] = 0.2 * flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
-	ex_emissive[1] = 0.2 * green_factor;	// diminish green part towards rear of exhaust
-	ex_emissive[0] = 0.2 * red_factor;		// diminish red part towards rear of exhaust
+	ex_emissive[3] = 0.25 * flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
+	ex_emissive[1] = 0.25 * green_factor;	// diminish green part towards rear of exhaust
+	ex_emissive[0] = 0.25 * red_factor;		// diminish red part towards rear of exhaust
 	k1 = f08.k;
-	i1 = vector_multiply_scalar(cross_product(j1, k1), 0.5f * _exhaustScale.x);
-	j1 = vector_multiply_scalar(cross_product(master_i, k1), 0.5f * _exhaustScale.y);
+	i1 = vector_multiply_scalar(cross_product(j1, k1), 0.5f * _exhaustScale.x * 0.25);
+	j1 = vector_multiply_scalar(cross_product(master_i, k1), 0.5f * _exhaustScale.y * 0.25);
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
@@ -285,7 +306,13 @@ GLuint tfan1[10] =    {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1 };		// initial fan 0..9
 GLuint qstrip1[18] =  {	1,	9,	2,	10,	3,	11,	4,	12,	5,	13,	6,	14,	7,	15,	8,	16,	1,	9 };		// first quadstrip 10..27
 GLuint qstrip2[18] =  {	9,	17,	10,	18,	11,	19,	12,	20,	13,	21,	14,	22,	15,	23,	16,	24,	9,	17 };	// second quadstrip 28..45
 GLuint qstrip3[18] =  {	17,	25,	18,	26,	19,	27,	20,	28,	21,	29,	22,	30,	23,	31,	24,	32,	17,	25 };	// third quadstrip 46..63
-GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 64..73
+GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 64..73 
+/*GLuint tstr1[10] = { 0, 1, 5, 9, 13, 17, 21, 25, 29, 33 };
+GLuint tstr2[10] = { 0, 2, 6, 10, 14, 18, 22, 26, 30, 33 };
+GLuint tstr3[10] = { 0, 3, 7, 11, 15, 19, 23, 27, 31, 33 };
+GLuint tstr4[10] = { 0, 4, 8, 12, 16, 20, 24, 28, 32, 33 };*/
+
+GLfloat pA[6] = { 0.5, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 
 
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
@@ -306,23 +333,58 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 	OOGL(glDisable(GL_LIGHTING));
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glDepthMask(GL_FALSE));
-	OOGL(glDisable(GL_TEXTURE_2D));
-	OOGL(glDisable(GL_CULL_FACE));		// face culling
+	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+	OOGL(glEnable(GL_TEXTURE_2D));
+	[[self texture] apply];
+
+//	OOGL(glDisable(GL_CULL_FACE));		// face culling
 	OOGL(glShadeModel(GL_SMOOTH));
-	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
 	OOGL(glEnableClientState(GL_COLOR_ARRAY));
 	OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertices));
 	OOGL(glColorPointer(4, GL_FLOAT, 0, _exhaustBaseColors));
-	
+
+	double intpart, dphase = 1.0-modf((double)[UNIVERSE getTime]*2.5,&intpart), xdphase = modf((double)[UNIVERSE getTime]*0.163,&intpart);
+	GLfloat phase = (GLfloat)dphase;
+	GLfloat xphase = (GLfloat)xdphase;
+	GLfloat texCoords[68] = {
+		0.5+xphase, phase+pA[0],
+
+		0.0+xphase, phase+pA[1], 0.5+xphase, phase+pA[1], 
+		1.0+xphase, phase+pA[1], 1.5+xphase, phase+pA[1], 
+		2.0+xphase, phase+pA[1], 2.5+xphase, phase+pA[1], 
+		3.0+xphase, phase+pA[1], 3.5+xphase, phase+pA[1],
+
+		0.0+xphase, phase+pA[2], 0.5+xphase, phase+pA[2], 
+		1.0+xphase, phase+pA[2], 1.5+xphase, phase+pA[2], 
+		2.0+xphase, phase+pA[2], 2.5+xphase, phase+pA[2], 
+		3.0+xphase, phase+pA[2], 3.5+xphase, phase+pA[2],
+
+		0.0+xphase, phase+pA[3], 0.5+xphase, phase+pA[3], 
+		1.0+xphase, phase+pA[3], 1.5+xphase, phase+pA[3], 
+		2.0+xphase, phase+pA[3], 2.5+xphase, phase+pA[3], 
+		3.0+xphase, phase+pA[3], 3.5+xphase, phase+pA[3],
+
+		0.0+xphase, phase+pA[4], 0.5+xphase, phase+pA[4], 
+		1.0+xphase, phase+pA[4], 1.5+xphase, phase+pA[4], 
+		2.0+xphase, phase+pA[4], 2.5+xphase, phase+pA[4], 
+		3.0+xphase, phase+pA[4], 3.5+xphase, phase+pA[4],
+
+		0.0+xphase, phase+pA[5],
+	};
+	OOGL(glTexCoordPointer(2, GL_FLOAT, 0, texCoords));
+
 	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1));
 	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip1));
 	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip2));
 	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip3));
-	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2));
-	
+	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2)); 
+
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
 	
+	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+	OOGL(glDisable(GL_TEXTURE_2D));
+
 	OOGL(glPopAttrib());
 	
 	OOVerifyOpenGLState();
@@ -429,6 +491,42 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 {
 	_exhaustScale = vector_multiply_scalar(_exhaustScale, factor);
 }
+
+
+- (OOTexture *) texture
+{
+	return [OOExhaustPlumeEntity plumeTexture];
+}
+
+
++ (void) setUpTexture
+{
+	if (sPlumeTexture == nil)
+	{
+		sPlumeTexture = [[OOTexture textureWithName:@"oolite-exhaust-blur.png"
+										  inFolder:@"Textures"
+										   options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS
+										anisotropy:kOOTextureDefaultAnisotropy / 2.0
+										   lodBias:0.0] retain];
+		[[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOExhaustPlumeEntity class]];
+
+	}
+}
+
+
++ (OOTexture *) plumeTexture
+{
+	if (sPlumeTexture == nil)  [self setUpTexture];
+	return sPlumeTexture;
+}
+
+
++ (void) resetGraphicsState
+{
+	[sPlumeTexture release];
+	sPlumeTexture = nil;
+}
+
 
 @end
 
