@@ -779,6 +779,8 @@
 		B3A96400165D7FB5001BB5C1 /* oolite-laser-blur2.png in Resources */ = {isa = PBXBuildFile; fileRef = B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */; };
 		B3A96401165D800D001BB5C1 /* oolite-laser-blur.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */; };
 		B3A96402165D800D001BB5C1 /* oolite-laser-blur2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */; };
+		B3A96404165EE124001BB5C1 /* oolite-exhaust-blur.png in Resources */ = {isa = PBXBuildFile; fileRef = B3A96403165EE124001BB5C1 /* oolite-exhaust-blur.png */; };
+		B3A96405165EE28F001BB5C1 /* oolite-exhaust-blur.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = B3A96403165EE124001BB5C1 /* oolite-exhaust-blur.png */; };
 		B3EA93961541480E00AB3C5B /* oolite-missile.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = B3EA9395154147EB00AB3C5B /* oolite-missile.js */; };
 /* End PBXBuildFile section */
 
@@ -1048,6 +1050,7 @@
 			dstPath = Textures;
 			dstSubfolderSpec = 7;
 			files = (
+				B3A96405165EE28F001BB5C1 /* oolite-exhaust-blur.png in Copy Textures */,
 				B3A96401165D800D001BB5C1 /* oolite-laser-blur.png in Copy Textures */,
 				B3A96402165D800D001BB5C1 /* oolite-laser-blur2.png in Copy Textures */,
 				1A0024961657B5BF00EAE045 /* oolite-star-1-alt.png in Copy Textures */,
@@ -2130,6 +2133,7 @@
 		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-laser-blur.png"; sourceTree = "<group>"; };
 		B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-laser-blur2.png"; sourceTree = "<group>"; };
+		B3A96403165EE124001BB5C1 /* oolite-exhaust-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-exhaust-blur.png"; sourceTree = "<group>"; };
 		B3EA9395154147EB00AB3C5B /* oolite-missile.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-missile.js"; sourceTree = "<group>"; };
 		B3EC10B6155C154000778240 /* OOLegalStatusReason.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOLegalStatusReason.tbl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -2329,10 +2333,6 @@
 		1A23181D0B9D026D00EF0852 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
-				B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */,
-				B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */,
-				1A817DBE106D441200AA2F97 /* oolite-particle-flash.png */,
-				1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */,
 				1A23181E0B9D026D00EF0852 /* adder_redux.png */,
 				1A23181F0B9D026D00EF0852 /* anaconda_redux.png */,
 				1A2318200B9D026D00EF0852 /* arcdetail.png */,
@@ -2370,13 +2370,18 @@
 				1A2318430B9D026D00EF0852 /* MorayMED_bottom.png */,
 				1A2318440B9D026D00EF0852 /* MorayMED_top.png */,
 				1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */,
+				1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */,
+				B3A96403165EE124001BB5C1 /* oolite-exhaust-blur.png */,
 				1AC544F90D4D217900C90E5B /* oolite-font.png */,
+				B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */,
+				B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */,
 				1A3591690C1C375400E52220 /* oolite-nebula-1.png */,
 				1A35916C0C1C375400E52220 /* oolite-nebula-2.png */,
 				1A35916B0C1C375400E52220 /* oolite-nebula-3.png */,
 				1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */,
 				1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */,
 				1A6C6D5C1652E038005D1D3B /* oolite-particle-dust.png */,
+				1A817DBE106D441200AA2F97 /* oolite-particle-flash.png */,
 				1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */,
 				1A35916A0C1C375400E52220 /* oolite-star-1.png */,
 				1A00248B1657B56E00EAE045 /* oolite-star-1-alt.png */,
@@ -3853,6 +3858,7 @@
 				1A115ED5158CFB4D005842DA /* splash@2x.png in Resources */,
 				B3A963FF165D7FB5001BB5C1 /* oolite-laser-blur.png in Resources */,
 				B3A96400165D7FB5001BB5C1 /* oolite-laser-blur2.png in Resources */,
+				B3A96404165EE124001BB5C1 /* oolite-exhaust-blur.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
