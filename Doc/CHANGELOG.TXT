@@ -40,6 +40,7 @@ General:
 * New 'b' key for activation of secondary function of primable
   equipment (e.g. a mode switch)
 * New starfield textures
+* Mac specific: ctrl-cmd-f is the new toggle key for full screen display
 
 Expansion Pack Development:
 ===========================
