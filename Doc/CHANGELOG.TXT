@@ -40,6 +40,8 @@ General:
 * New 'b' key for activation of secondary function of primable
   equipment (e.g. a mode switch)
 * New starfield textures
+* New laser textures
+* New exhaust textures
 * Mac specific: ctrl-cmd-f is the new toggle key for full screen display
 
 Expansion Pack Development:
@@ -77,6 +79,9 @@ Config files:
 * Crosshair plist files separate from HUD
 * Several new descriptions.plist and missiontext.plist entries
 * New effectdata.plist to define visual effects - items with a visual appearance, and perhaps a scanner and compass signal, but no physical presence. These can be used to supplement/replace break patterns, among other effects.
+* shipdata.plist exhaust z-size now acts as a z-scale within the range
+  0.5 to 2.0. Out of range values default to 1.0 = standard size
+* cloud_alpha property in planetinfo.plist to control atmosphere opacity
 
 Scripting:
 ----------
@@ -166,6 +171,7 @@ Bug fixes:
 * Turret declarations now work as intended
 * Planetinfo overrides now cleaned up from savegames
 * guiScreenWillChange fires correctly
+* Fines only applied at main stations
 
 
 System requirements:
