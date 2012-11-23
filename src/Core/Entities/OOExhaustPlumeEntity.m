@@ -34,8 +34,9 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 
 
-#define kOverallAlpha		0.625f
+#define kOverallAlpha		0.70f
 #define kTimeStep			0.05
+#define kInternalAlpha 0.2f
 
 static OOTexture *sPlumeTexture = nil;
 
@@ -136,7 +137,7 @@ static OOTexture *sPlumeTexture = nil;
 	// inside.
 	if ([[self owner] isPlayer] && [UNIVERSE viewDirection] != VIEW_CUSTOM)
 	{
-		flare_factor *= 0.15;
+		flare_factor *= kInternalAlpha;
 	} 
 
 	if (speed > 1.0f)	// afterburner!
@@ -310,7 +311,7 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 /*GLuint tstr1[10] = { 0, 1, 5, 9, 13, 17, 21, 25, 29, 33 };
 GLuint tstr2[10] = { 0, 2, 6, 10, 14, 18, 22, 26, 30, 33 };
 GLuint tstr3[10] = { 0, 3, 7, 11, 15, 19, 23, 27, 31, 33 };
-GLuint tstr4[10] = { 0, 4, 8, 12, 16, 20, 24, 28, 32, 33 };*/
+GLuint tstr4[10] = { 0, 4, 8, 12, 16, 20, 24, 28, 32, 33 }; */
 
 GLfloat pA[6] = { 0.5, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 
@@ -337,7 +338,7 @@ GLfloat pA[6] = { 0.5, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[[self texture] apply];
 
-//	OOGL(glDisable(GL_CULL_FACE));		// face culling
+	OOGL(glDisable(GL_CULL_FACE));		// face culling
 	OOGL(glShadeModel(GL_SMOOTH));
 	
 	OOGL(glEnableClientState(GL_COLOR_ARRAY));
@@ -379,9 +380,8 @@ GLfloat pA[6] = { 0.5, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip2));
 	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip3));
 	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2)); 
-
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
-	
+
 	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glDisable(GL_TEXTURE_2D));
 
