@@ -57,6 +57,7 @@ static JSBool QuaternionRotateX(JSContext *context, uintN argc, jsval *vp);
 static JSBool QuaternionRotateY(JSContext *context, uintN argc, jsval *vp);
 static JSBool QuaternionRotateZ(JSContext *context, uintN argc, jsval *vp);
 static JSBool QuaternionNormalize(JSContext *context, uintN argc, jsval *vp);
+static JSBool QuaternionConjugate(JSContext *context, uintN argc, jsval *vp);
 static JSBool QuaternionVectorForward(JSContext *context, uintN argc, jsval *vp);
 static JSBool QuaternionVectorUp(JSContext *context, uintN argc, jsval *vp);
 static JSBool QuaternionVectorRight(JSContext *context, uintN argc, jsval *vp);
@@ -112,6 +113,7 @@ static JSFunctionSpec sQuaternionMethods[] =
 	{ "dot",					QuaternionDot,				1, },
 	{ "multiply",				QuaternionMultiply,			1, },
 	{ "normalize",				QuaternionNormalize,		0, },
+	{ "conjugate",				QuaternionConjugate,		0, },
 	{ "rotate",					QuaternionRotate,			2, },
 	{ "rotateX",				QuaternionRotateX,			1, },
 	{ "rotateY",				QuaternionRotateY,			1, },
@@ -741,6 +743,23 @@ static JSBool QuaternionNormalize(JSContext *context, uintN argc, jsval *vp)
 	quaternion_normalize(&quat);
 	
 	OOJS_RETURN_QUATERNION(quat);
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+// conjugate() : Quaternion
+static JSBool QuaternionConjugate(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+		Quaternion				quat, result;
+	
+	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &quat, @"conjugate"))) return NO;
+	
+	result = quaternion_conjugate(quat);
+	
+	OOJS_RETURN_QUATERNION(result);
 	
 	OOJS_PROFILE_EXIT
 }
