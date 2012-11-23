@@ -458,7 +458,7 @@
 	"witch-no-motor"				= "Ship incapable of witchspace jump.";
 	"witch-no-target"				= "No target system set.";
 	"witch-no-fuel"					= "Insufficient fuel for witchspace jump.";
-	"witch-too-far"					= "Engines incapable of witchspace jump to that target.";
+	"witch-too-far"					= "Engines incapable of witchspace jump to designated destination.";
 	"witch-engine-malfunction"		= "Witchspace engine malfunction!";
 	"witch-galactic-in-f-seconds"	= "Intergalactic jump in %.0f s.";
 	"witch-user-galactic-abort"		= "Intergalactic jump aborted.";
