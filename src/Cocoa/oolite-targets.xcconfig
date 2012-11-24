@@ -1,5 +1,5 @@
 ARCHS									= i386 x86_64
-SDKROOT									= macosx10.6
+SDKROOT									= macosx10.7
 
 MACOSX_DEPLOYMENT_TARGET[arch=i386]		= 10.5
 MACOSX_DEPLOYMENT_TARGET				= 10.6
