@@ -4,6 +4,11 @@ VAR_DIR_NAME=var
 REPO_DIR_NAME=trunk
 CONFIGURATION=TestRelease
 
+if [ -z "$SVN" ]
+then
+	SVN=`which svn`
+fi
+
 VAR=../$VAR_DIR_NAME/
 LOG=$VAR/log/
 LOG_OLD=$VAR/log-old/
@@ -59,7 +64,7 @@ then
 	CLEAN_CHECKOUT=1
 	
 	echo "Checking out Oolite..."
-	svn checkout --quiet svn://svn.berlios.de/oolite-linux/trunk $REPO_DIR_NAME
+	$SVN checkout --quiet svn://svn.berlios.de/oolite-linux/trunk $REPO_DIR_NAME
 	if [ ! $? ]
 	then
 		fail "Failed to check out."
@@ -137,8 +142,8 @@ if [ $CLEAN_CHECKOUT -eq 0 ]
 then
 	# Revert the file we manipulate for watermarking, then update repo.
 	echo "Updating..."
-	svn revert --quiet $SNAPSHOT_MACRO_FILE
-	svn update > $SVNUP_FILE
+	$SVN revert --quiet $SNAPSHOT_MACRO_FILE
+	$SVN update > $SVNUP_FILE
 	if [ $? -ne 0 ]
 	then
 		echo "Update failed: " > $DIAGNOSTICS_FILE
@@ -149,7 +154,7 @@ fi
 
 
 # Get current revision.
-CURRENT_REVISION=`svn info 2> /dev/null | grep "Revision:" | cut -f 2 -d " "`
+CURRENT_REVISION=`$SVN info 2> /dev/null | grep "Revision:" | cut -f 2 -d " "`
 if [ ! $? ]
 then
 	fail "Could not get revision number."
@@ -206,7 +211,7 @@ fi
 # Write changelog.
 if [ $LAST_REVISION -ne 0 ]
 then
-	svn log -r$CURRENT_REVISION:$[$LAST_REVISION + 1] > $CHANGELOG_FILE
+	$SVN log -r$CURRENT_REVISION:$[$LAST_REVISION + 1] > $CHANGELOG_FILE
 else
 	echo "Initial checkout." > $CHANGELOG_FILE
 fi
@@ -224,13 +229,18 @@ cp -R $LOG $LOG_SUCCESS
 
 
 # Pack up a zip file.
-FULLVERSION=$OOLITE_VERSION.0.$CURRENT_REVISION-dev
+if ! echo "$OOLITE_VERSION" | grep "[0-9]*\.[0-9]*\.[0-9]*" > /dev/null
+then
+	OOLITE_VERSION="$OOLITE_VERSION.0"
+fi
+
+FULLVERSION=$OOLITE_VERSION.$CURRENT_REVISION-dev
 echo "Packaging nightly $FULLVERSION..."
 
 PACKAGE_NAME=Oolite-nightly-$FULLVERSION
 PACKAGE_DIR=$VAR/$PACKAGE_NAME/
 ADDONS_DIR=$PACKAGE_DIR/AddOns/
-ZIP_NAME=oolite-trunk-$FULLVERSION.mac-universal.zip
+ZIP_NAME=oolite-trunk-$FULLVERSION.mac.zip
 echo $ZIP_NAME > "$LATEST_NAME_FILE"
 
 mkdir $PACKAGE_DIR
