@@ -51,9 +51,10 @@ MA 02110-1301, USA.
 	
 	NSUInteger				_state;
 	
-	BOOL					_stayInFullScreenMode;
-	BOOL					_callSuspendAction;
-	BOOL					_switchRez;
+	bool					_stayInFullScreenMode;
+	bool					_callSuspendAction;
+	bool					_switchRez;
+	bool					_cursorHidden;
 }
 
 @property (nonatomic, assign) id <OOMacLegacyFullScreenControllerDelegate> delegate;

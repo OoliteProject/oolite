@@ -64,6 +64,9 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 
 - (void) recenterCursor;
 
+- (void) hideCursor;
+- (void) showCursor;
+
 @end
 
 
@@ -83,9 +86,9 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		NSDictionary		*mode = nil, *mode2 = nil;
 		NSUInteger			modeWidth, modeHeight, color;
 		NSUInteger			modeWidth2, modeHeight2, color2;
-		BOOL				stretched, stretched2, interlaced, interlaced2;
+		bool				stretched, stretched2, interlaced, interlaced2;
 		float				modeRefresh, modeRefresh2;
-		BOOL				deleteFirst;
+		bool				deleteFirst;
 		
 		// Initial settings are current settings of screen.
 		NSDictionary *currentMode = (NSDictionary *)CGDisplayCurrentMode(kCGDirectMainDisplay);
@@ -167,14 +170,14 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 						interlaced and the other isn't, remove the interlaced one.
 						Otherwise, remove the one that comes later in the list.
 					*/
-					deleteFirst = NO;
-					if (color < color2)  deleteFirst = YES;
+					deleteFirst = false;
+					if (color < color2)  deleteFirst = true;
 					else if (color == color2)
 					{
-						if (stretched && !stretched2)  deleteFirst = YES;
+						if (stretched && !stretched2)  deleteFirst = true;
 						else if (stretched == stretched2)
 						{
-							if (interlaced && !interlaced2)  deleteFirst = YES;
+							if (interlaced && !interlaced2)  deleteFirst = true;
 						}
 					}
 					if (deleteFirst)
@@ -230,16 +233,45 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 }
 
 
+- (NSString *) stateString
+{
+	// TEMP - for display.macLegacy (Also, there's a temp display.macLegacy in logcontrol.plist)
+	NSString *result = nil;
+	switch (_state)
+	{
+		case kStateNotFullScreen: result = @"kStateNotFullScreen"; break;
+		case kStateNominallyFullScreen: result = @"kStateNominallyFullScreen"; break;
+		case kStateActuallyFullScreen: result = @"kStateActuallyFullScreen"; break;
+	}
+	if (result == nil)  result = [NSString stringWithFormat:@"<unknown state %i>", _state];
+	
+	if (_stayInFullScreenMode)  result = [result stringByAppendingString:@", stayInFullScreenMode"];
+	if (_callSuspendAction)  result = [result stringByAppendingString:@", callSuspendAction"];
+	if (_switchRez)  result = [result stringByAppendingString:@", switchRez"];
+	if (_cursorHidden)  result = [result stringByAppendingString:@", cursorHidden"];
+	
+	return result;
+}
+
+
 - (void) setFullScreenMode:(BOOL)value
 {
+	OODebugLog(@"display.macLegacy.state", @"-setFullScreenMode:%@ called in state %@.", value ? @"YES" : @"NO", self.stateString);
+	OOLogIndentIf(@"display.macLegacy");
+	
 	if (!value && self.fullScreenMode)
 	{
-		_stayInFullScreenMode = NO;
+		OODebugLog(@"display.macLegacy.state", @"Should switch FROM full screen mode; _stayInFullScreenMode set to NO.");
+		_stayInFullScreenMode = false;
 	}
 	else if (value && !self.fullScreenMode)
 	{
+		OODebugLog(@"display.macLegacy.state", @"Should switch TO full screen mode; calling -beginFullScreenMode.");
+		OOLogIndentIf(@"display.macLegacy");
 		[self beginFullScreenMode];
+		OOLogOutdentIf(@"display.macLegacy");
 	}
+	OOLogOutdentIf(@"display.macLegacy");
 }
 
 - (NSArray *) displayModes
@@ -258,6 +290,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 
 - (BOOL) setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
 {
+	OODebugLog(@"display.macLegacy.state", @"%@ called in state %@.", NSStringFromSelector(_cmd), self.stateString);
 	NSDictionary *mode = [self findDisplayModeForWidth:width height:height refreshRate:refresh];
 	if (mode != nil)
 	{
@@ -266,8 +299,12 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		_refresh = refresh;
 		self.fullScreenDisplayMode = mode;
 		
-		_stayInFullScreenMode = NO;
-		_switchRez = YES;
+		if (self.fullScreenMode)
+		{
+			// Trigger mode switch.
+			_stayInFullScreenMode = false;
+			_switchRez = true;
+		}
 		
 		return YES;
 	}
@@ -277,6 +314,8 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 
 - (NSDictionary *) findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
 {
+	OODebugLog(@"display.macLegacy.state", @"%@ called in state %@.", NSStringFromSelector(_cmd), self.stateString);
+	
 	for (NSDictionary *mode in _displayModes)
 	{
 		NSUInteger modeWidth = [mode oo_unsignedIntegerForKey:kOODisplayWidth];
@@ -294,6 +333,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 
 - (void) runFullScreenModalEventLoop
 {
+	OODebugLog(@"display.macLegacy.state", @"%@ called in state %@.", NSStringFromSelector(_cmd), self.stateString);
 	NSAssert(_state == kStateNominallyFullScreen, @"Internal usage error: %s called in wrong state.", __FUNCTION__);
 	
 	@try
@@ -306,15 +346,20 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		_state = kStateNotFullScreen;
 		self.fullScreenContext = nil;
 	}
+	
+	OODebugLog(@"display.macLegacy.state", @"%@ exiting in state %@.", NSStringFromSelector(_cmd), self.stateString);
 }
 
 
 - (void) suspendFullScreen
 {
+	OODebugLog(@"display.macLegacy.state", @"%@ called in state %@.", NSStringFromSelector(_cmd), self.stateString);
 	NSAssert(_state != kStateNotFullScreen, @"Internal usage error: %s called in wrong state.", __FUNCTION__);
 	
-	_stayInFullScreenMode = NO;
-	_callSuspendAction = YES;
+	_stayInFullScreenMode = false;
+	_callSuspendAction = true;
+	
+	OODebugLog(@"display.macLegacy.state", @"%@ exiting in state %@.", NSStringFromSelector(_cmd), self.stateString);
 }
 
 
@@ -322,6 +367,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 
 - (void) beginFullScreenMode
 {
+	OODebugLog(@"display.macLegacy.state", @"%@ called in state %@.", NSStringFromSelector(_cmd), self.stateString);
 	NSAssert(_state == kStateNotFullScreen, @"Internal usage error: %s called in wrong state.", __FUNCTION__);
 	
 	NSAutoreleasePool *setupPool = [NSAutoreleasePool new];
@@ -335,8 +381,10 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 	
 	self.originalDisplayMode = (NSDictionary *)CGDisplayCurrentMode(kCGDirectMainDisplay);
 	
+	OODebugLog(@"display.macLegacy.state", @"In -beginFullScreenMode; target mode found, switching state to nominally full screen.");
+	
 	_state = kStateNominallyFullScreen;
-	_callSuspendAction = NO;
+	_callSuspendAction = false;
 	
 	// empty the event queue and strip all keys - stop problems with hangover keys
 	while ([NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES] != NULL)  {}
@@ -344,11 +392,14 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 	[self.gameView clearCommandF];	// Avoid immediately switching back to windowed mode.
 	
 	[setupPool drain];
+	
+	OODebugLog(@"display.macLegacy.state", @"%@ exiting in state %@.", NSStringFromSelector(_cmd), self.stateString);
 }
 
 
 - (void) runFullScreenModalEventLoopInner
 {
+	OODebugLog(@"display.macLegacy.state", @"%@ called in state %@.", NSStringFromSelector(_cmd), self.stateString);
 	NSAssert(_state == kStateNominallyFullScreen, @"Internal usage error: %s called in wrong state.", __FUNCTION__);
 	
 	int32_t mouseX = 0, mouseY = 0;
@@ -362,6 +413,9 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 	
 	NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
 	[pixelFormat autorelease];
+	
+	OODebugLog(@"display.macLegacy.state", @"Entering outer full screen loop in state %@.", self.stateString);
+	OOLogIndentIf(@"display.macLegacy");
 	
 	// Outer loop exists to support switching out of full screen mode temporarily to show alerts and such.
 	for (;;)
@@ -384,6 +438,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		/*	Take control of the display where we're about to go full-screen.
 			this stops windows from being shuffled around.
 		*/
+		OODebugLog(@"display.macLegacy.capture", @"Capturing all displays.");
 		CGDisplayErr err = CGCaptureAllDisplays();
 		if (err != CGDisplayNoErr)
 		{
@@ -392,6 +447,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		}
 		
 		// switch resolution!
+		OODebugLog(@"display.macLegacy.switch", @"Switching to display mode %@", self.fullScreenDisplayMode);
 		err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)self.fullScreenDisplayMode);
 		if (err != CGDisplayNoErr)
 		{
@@ -400,7 +456,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		}
 		
 		// Hide the cursor.
-		CGDisplayHideCursor(kCGDirectMainDisplay);
+		[self hideCursor];
 		[self recenterCursor];
 		
 		/*	Enter full-screen mode and make our full-screen context the active
@@ -415,6 +471,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		/*	Save the current swap interval so we can restore it later, and then
 			set the new swap interval to lock us to the display's refresh rate.
 		*/
+		OODebugLog(@"display.macLegacy.setSwapInterval", @"Setting swap interval to 1.");
 		CGLContextObj cglContext = CGLGetCurrentContext();
 		GLint savedSwapInterval;
 		CGLGetParameter(cglContext, kCGLCPSwapInterval, &savedSwapInterval);
@@ -432,9 +489,12 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 			passively receive events handed to us by the AppKit to one in which
 			we are actively driving event processing.
 		*/
-		_stayInFullScreenMode = YES;
+		_stayInFullScreenMode = true;
 		
-		BOOL pastFirstMouseDelta = NO;
+		bool pastFirstMouseDelta = false;
+		
+		OODebugLog(@"display.macLegacy.state", @"Entering main full screen loop in state %@.", self.stateString);
+		OOLogIndentIf(@"display.macLegacy");
 		
 		while (_stayInFullScreenMode)
 		{
@@ -453,7 +513,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 					case NSRightMouseDown:
 						mouseX = mouseY = 0;
 						[gameView setVirtualJoystick:0.0 :0.0];
-						pastFirstMouseDelta = NO;
+						pastFirstMouseDelta = false;
 						break;
 						
 					case NSLeftMouseUp:
@@ -474,7 +534,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 						}
 						else
 						{
-							pastFirstMouseDelta = YES;
+							pastFirstMouseDelta = true;
 						}
 						
 						[gameView setVirtualJoystick:(double)mouseX/_width :(double)mouseY/_height];
@@ -508,6 +568,9 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 			[pool drain];
 		}
 		
+		OOLogOutdentIf(@"display.macLegacy");
+		OODebugLog(@"display.macLegacy.state", @"Exited main full screen loop in state %@.", self.stateString);
+		
 		/*	Clear the front and back framebuffers before switching out of full-
 			screen mode. (This is not strictly necessary, but avoids an untidy
 			flash of garbage.)
@@ -519,6 +582,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		[context flushBuffer];
 		
 		// Restore the previously set swap interval.
+		OODebugLog(@"display.macLegacy.setSwapInterval", @"Restoring old swap interval (%i).", savedSwapInterval);
 		CGLSetParameter(cglContext, kCGLCPSwapInterval, &savedSwapInterval);
 		
 		// Exit full-screen mode and release our full-screen NSOpenGLContext.
@@ -529,6 +593,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		if (!_switchRez)
 		{
 			// set screen resolution back to the original one (windowed mode).
+			OODebugLog(@"display.macLegacy.switch", @"Switching back to original display mode %@", self.originalDisplayMode);
 			err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)self.originalDisplayMode);
 			if (err != CGDisplayNoErr)
 			{
@@ -537,9 +602,10 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 			}
 			
 			// show the cursor
-			CGDisplayShowCursor(kCGDirectMainDisplay);
+			[self showCursor];
 			
 			// Release control of the displays.
+			OODebugLog(@"display.macLegacy.capture", @"Releasing display capture.");
 			CGReleaseAllDisplays();
 		}
 		
@@ -552,13 +618,16 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		
 		if (_callSuspendAction)
 		{
+			OODebugLog(@"display.macLegacy.state", @"callSuspendAction set; calling delegate handleFullScreenSuspendedAction.");
+			_callSuspendAction = false;
 			[self.delegate handleFullScreenSuspendedAction];
 		}
 		else
 		{
 			if (_switchRez)
 			{
-				_switchRez = NO;
+				OODebugLog(@"display.macLegacy.state", @"switchRez set; calling delegate scheduleFullScreenModeRestart.");
+				_switchRez = false;
 				[self.delegate scheduleFullScreenModeRestart];
 			}
 			
@@ -566,13 +635,40 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		}
 	}
 	
+	OOLogOutdentIf(@"display.macLegacy");
+	OODebugLog(@"display.macLegacy.state", @"Exited outer full screen loop in state %@.", self.stateString);
+	
 	_state = kStateNotFullScreen;
+		
+	OODebugLog(@"display.macLegacy.state", @"%@ exiting in state %@.", NSStringFromSelector(_cmd), self.stateString);
 }
 
 
 - (void) recenterCursor
 {
 	CGDisplayMoveCursorToPoint(kCGDirectMainDisplay, (CGPoint){ _width / 2.0f, _height / 2.0f });
+}
+
+
+- (void) hideCursor
+{
+	if (!_cursorHidden)
+	{
+		OODebugLog(@"display.macLegacy.cursor", @"Hiding cursor.");
+		CGDisplayHideCursor(kCGDirectMainDisplay);
+		_cursorHidden = true;
+	}
+}
+
+
+- (void) showCursor
+{
+	if (_cursorHidden)
+	{
+		OODebugLog(@"display.macLegacy.cursor", @"Showing cursor.");
+		CGDisplayShowCursor(kCGDirectMainDisplay);
+		_cursorHidden = false;
+	}
 }
 
 @end
