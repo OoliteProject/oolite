@@ -50,6 +50,14 @@ enum
 };
 
 
+/*
+	To ensure the state manager's notion of GL state remains consistent, we
+	need to switch to the same state in each context when changing to and from
+	full screen mode. It doesn't matter very much which one we use.
+*/
+#define kFullScreenTransitonOpenGLState	OPENGL_STATE_OPAQUE
+
+
 static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 
 
@@ -461,9 +469,14 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		
 		/*	Enter full-screen mode and make our full-screen context the active
 			context for OpenGL commands.
+			
+			Also do a little dance to ensure OpenGLStateID is valid.
 		*/
+		OOSetOpenGLState(kFullScreenTransitonOpenGLState);
 		[context setFullScreen];
 		[context makeCurrentContext];
+		OOResetGLStateVerifier();
+		OOSetOpenGLState(kFullScreenTransitonOpenGLState);
 		
 		// We are now officially in full-screen mode.
 		_state = kStateActuallyFullScreen;
@@ -585,7 +598,10 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 		OODebugLog(@"display.macLegacy.setSwapInterval", @"Restoring old swap interval (%i).", savedSwapInterval);
 		CGLSetParameter(cglContext, kCGLCPSwapInterval, &savedSwapInterval);
 		
-		// Exit full-screen mode and release our full-screen NSOpenGLContext.
+		/*	Exit full-screen mode and release our full-screen NSOpenGLContext.
+			Also ensure GL state is consistent.
+		*/
+		OOSetOpenGLState(kFullScreenTransitonOpenGLState);
 		[NSOpenGLContext clearCurrentContext];
 		[context clearDrawable];
 		self.fullScreenContext = nil;
