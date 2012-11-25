@@ -353,23 +353,23 @@ GLfloat pA[6] = { 0.5, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 
 		0.0+xphase, phase+pA[1], 0.5+xphase, phase+pA[1], 
 		1.0+xphase, phase+pA[1], 1.5+xphase, phase+pA[1], 
-		2.0+xphase, phase+pA[1], 2.5+xphase, phase+pA[1], 
-		3.0+xphase, phase+pA[1], 3.5+xphase, phase+pA[1],
+		2.0+xphase, phase+pA[1], 1.5+xphase, phase+pA[1], 
+		1.0+xphase, phase+pA[1], 0.5+xphase, phase+pA[1],
 
 		0.0+xphase, phase+pA[2], 0.5+xphase, phase+pA[2], 
 		1.0+xphase, phase+pA[2], 1.5+xphase, phase+pA[2], 
-		2.0+xphase, phase+pA[2], 2.5+xphase, phase+pA[2], 
-		3.0+xphase, phase+pA[2], 3.5+xphase, phase+pA[2],
+		2.0+xphase, phase+pA[2], 1.5+xphase, phase+pA[2], 
+		1.0+xphase, phase+pA[2], 0.5+xphase, phase+pA[2],
 
 		0.0+xphase, phase+pA[3], 0.5+xphase, phase+pA[3], 
 		1.0+xphase, phase+pA[3], 1.5+xphase, phase+pA[3], 
-		2.0+xphase, phase+pA[3], 2.5+xphase, phase+pA[3], 
-		3.0+xphase, phase+pA[3], 3.5+xphase, phase+pA[3],
+		2.0+xphase, phase+pA[3], 1.5+xphase, phase+pA[3], 
+		1.0+xphase, phase+pA[3], 0.5+xphase, phase+pA[3],
 
 		0.0+xphase, phase+pA[4], 0.5+xphase, phase+pA[4], 
 		1.0+xphase, phase+pA[4], 1.5+xphase, phase+pA[4], 
-		2.0+xphase, phase+pA[4], 2.5+xphase, phase+pA[4], 
-		3.0+xphase, phase+pA[4], 3.5+xphase, phase+pA[4],
+		2.0+xphase, phase+pA[4], 1.5+xphase, phase+pA[4], 
+		1.0+xphase, phase+pA[4], 0.5+xphase, phase+pA[4],
 
 		0.0+xphase, phase+pA[5],
 	};
