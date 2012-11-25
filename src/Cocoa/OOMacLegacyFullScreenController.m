@@ -602,7 +602,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context);
 			Also ensure GL state is consistent.
 		*/
 		OOSetOpenGLState(kFullScreenTransitonOpenGLState);
-		[NSOpenGLContext clearCurrentContext];
+		[gameView.openGLContext makeCurrentContext];
 		[context clearDrawable];
 		self.fullScreenContext = nil;
 		
