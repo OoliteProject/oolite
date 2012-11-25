@@ -354,6 +354,13 @@ this._initialiseCargoContractsForSystem = function()
 				}
 				share = 100-share;
 				
+				// safety: now multiply the fee by 2 compared with 1.76 contracts
+				// prevents exploit discovered by Mad Hollander at
+				// http://aegidian.org/bb/viewtopic.php?p=188127
+				localValue *= 2;
+				// this may need to be raised further
+
+				// absolute value of profit remains the same
 				var fee = localValue + Math.floor(profit * (share/100));
 				fee -= fee % 20; // round to nearest 20 credits;
 
