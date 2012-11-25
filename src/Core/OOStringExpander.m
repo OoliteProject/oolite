@@ -111,6 +111,7 @@ static SEL LookUpLegacySelector(NSString *key);
 
 static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
 static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
+static NSString *ExpandPercentR(OOStringExpansionContext *context, NSString *input);
 #if WARNINGS
 static void ReportWarningForUnknownKey(OOStringExpansionContext *context, NSString *key);
 #endif
@@ -160,11 +161,12 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 	};
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSString *result = nil;
+	NSString *result = nil, *intermediate = nil;
 	@try
 	{
 		// TODO: profile caching the results. Would need to keep track of whether we've done something nondeterministic (array selection, %R etc).
-		result = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
+		intermediate = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
+		result = ExpandPercentR(&context, intermediate);
 	}
 	@finally
 	{
@@ -197,10 +199,11 @@ NSString *OOExpandKeyWithSeed(NSString *key, Random_Seed seed, NSString *systemN
 	};
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSString *result = nil;
+	NSString *result = nil, *intermediate = nil;
 	@try
 	{
-		result = ExpandStringKey(&context, key, kStackAllocationLimit, kRecursionLimit);
+		intermediate = ExpandStringKey(&context, key, kStackAllocationLimit, kRecursionLimit);
+		result = ExpandPercentR(&context, intermediate);
 	}
 	@finally
 	{
@@ -825,7 +828,9 @@ static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const un
 			return GetRandomNameN(context);
 			
 		case 'R':
-			return GetRandomNameR(context);
+			// to keep planet description generation consistent with earlier versions
+			// this must be done after all other substitutions in a second pass.
+			return @"%R"; //GetRandomNameR(context);
 			
 		case 'J':
 			return ExpandSystemNameEscape(context, characters, size, idx, replaceLength);
@@ -862,6 +867,25 @@ static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const un
 			
 			return nil;
 	}
+}
+
+
+/* ExpandPercentR(context, string) 
+	 Replaces all %R in string with its expansion.
+	 Separate to allow this to be delayed to the end of the string expansion
+	 for compatibility with 1.76 expansion of %R in planet descriptions
+*/
+static NSString *ExpandPercentR(OOStringExpansionContext *context, NSString *input)
+{
+	NSRange containsR = [input rangeOfString:@"%R"];
+	if (containsR.location == NSNotFound)
+	{
+		return input; // no %Rs to replace
+	}
+	NSString *percentR = GetRandomNameR(context);
+	NSMutableString *output = [NSMutableString stringWithString:input];
+	[output replaceOccurrencesOfString:@"%R" withString:percentR options:NSLiteralSearch range:NSMakeRange(0, [output length])];
+	return [NSString stringWithString:output];
 }
 
 
