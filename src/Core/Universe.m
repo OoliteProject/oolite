@@ -6612,7 +6612,10 @@ static void VerifyDesc(NSString *key, id desc)
 - (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed
 {
 	Random_Seed g0 = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
-	int pnum = [self findSystemNumberAtCoords:NSMakePoint(s_seed.d,s_seed.b) withGalaxySeed:g_seed];
+	// do not call this function from g_seed != galaxy_seed
+	// isn't called this way at the moment, and for what it's used for
+	// there's no need to. - CIM 25/11/12
+	int pnum = [self systemIDForSystemSeed:s_seed];
 	int gnum = 0;
 	while (((g_seed.a != g0.a)||(g_seed.b != g0.b)||(g_seed.c != g0.c)||(g_seed.d != g0.d)||(g_seed.e != g0.e)||(g_seed.f != g0.f))&&(gnum < 8))
 	{
