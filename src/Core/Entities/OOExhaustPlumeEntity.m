@@ -162,7 +162,8 @@ static OOTexture *sPlumeTexture = nil;
 								currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
 								currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
 	
-	GLfloat speedScale = fminf(1.0,speed);
+	GLfloat speedScale = fminf(1.0,speed*5.0);
+
 	GLfloat exhaust_factor = _exhaustScale.z;
 	if (exhaust_factor < 0.5)
 	{
@@ -301,8 +302,8 @@ static OOTexture *sPlumeTexture = nil;
 	(void)iv; (void)ci;	// Suppress Clang static analyzer warnings.
 }
 
-
-/*GLuint tfan1[10] =    {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1 };		// initial fan 0..9
+GLuint tfan1[10] =    {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1 };		// initial fan 0..9
+/*
 GLuint qstrip1[18] =  {	1,	9,	2,	10,	3,	11,	4,	12,	5,	13,	6,	14,	7,	15,	8,	16,	1,	9 };		// first quadstrip 10..27
 GLuint qstrip2[18] =  {	9,	17,	10,	18,	11,	19,	12,	20,	13,	21,	14,	22,	15,	23,	16,	24,	9,	17 };	// second quadstrip 28..45
 GLuint qstrip3[18] =  {	17,	25,	18,	26,	19,	27,	20,	28,	21,	29,	22,	30,	23,	31,	24,	32,	17,	25 };	// third quadstrip 46..63
@@ -399,10 +400,43 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 		OOGL(glDrawElements(GL_TRIANGLE_STRIP, 9, GL_UNSIGNED_INT, tstr4));
 	}
 
+	/* Need a different texture and color array for this segment */
+	GLfloat fanTextures[18] = {
+		0.5, 0.0+phase,
+		0.2, 0.0+phase,
+		0.2, 0.1+phase,
+		0.2, 0.2+phase,
+		0.2, 0.3+phase,
+		0.2, 0.4+phase,
+		0.2, 0.3+phase,
+		0.2, 0.2+phase,
+		0.2, 0.1+phase
+	};
+	OOGL(glTexCoordPointer(2, GL_FLOAT, 0, fanTextures));
+	
+	GLfloat fanColors[36];
+	GLfloat fr = _exhaustBaseColors[0], fg = _exhaustBaseColors[1], fb = _exhaustBaseColors[2];
+	unsigned i = 0;
+	fanColors[i++] = fr;
+	fanColors[i++] = fg;
+	fanColors[i++] = fb;
+	fanColors[i++] = 1.0;
+	for (;i<36;)
+	{
+		fanColors[i++] = fr;
+		fanColors[i++] = fg;
+		fanColors[i++] = fb;
+		fanColors[i++] = 0.5;
+	}
+	OOGL(glColorPointer(4, GL_FLOAT, 0, fanColors));
+
+	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1));
+
 	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glDisable(GL_TEXTURE_2D));
 
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
+	
 
 	OOGL(glPopAttrib());
 	
