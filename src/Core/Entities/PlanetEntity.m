@@ -1300,11 +1300,11 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 		vb = temp;
 	}
 	void *key = (void *)(((uintptr_t)va << 16) | vb);
-	unsigned num = (unsigned)NSMapGet(sEdgeToVertex, key);
+	uintptr_t num = (uintptr_t)NSMapGet(sEdgeToVertex, key);
 	if (num != 0)
 	{
 		// Overall cache hit rate is just over 83 %.
-		return num - 1;
+		return (unsigned)num - 1;
 	}
 	else
 	{
