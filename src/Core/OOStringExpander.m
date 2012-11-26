@@ -71,6 +71,7 @@ typedef struct
 	NSDictionary		*legacyLocals;
 	bool				isJavaScript;
 	bool				convertBackslashN;
+	bool				hasPercentR;		// Set to indicate we need an ExpandPercentR() pass.
 	
 	NSString			*systemNameWithIan;	// Cache for %I
 	NSString			*randomNameN;		// Cache for %N
@@ -166,7 +167,14 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 	{
 		// TODO: profile caching the results. Would need to keep track of whether we've done something nondeterministic (array selection, %R etc).
 		intermediate = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
-		result = ExpandPercentR(&context, intermediate);
+		if (!context.hasPercentR)
+		{
+			result = intermediate;
+		}
+		else
+		{
+			result = ExpandPercentR(&context, intermediate);
+		}
 	}
 	@finally
 	{
@@ -830,7 +838,8 @@ static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const un
 		case 'R':
 			// to keep planet description generation consistent with earlier versions
 			// this must be done after all other substitutions in a second pass.
-			return @"%R"; //GetRandomNameR(context);
+			context->hasPercentR = true;
+			return @"%R";
 			
 		case 'J':
 			return ExpandSystemNameEscape(context, characters, size, idx, replaceLength);
