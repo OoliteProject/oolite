@@ -228,7 +228,6 @@ static const GLfloat kLaserVertices[] =
 	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
 	glDrawArrays(GL_QUADS, 0, 8);
 	OOGL(glPopMatrix());
-	OOGL(glPopAttrib());
 
 	OOGL(glPushMatrix());
 	glScaled(kLaserCoreWidth, kLaserCoreWidth, _range);
