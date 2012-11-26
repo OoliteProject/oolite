@@ -201,6 +201,8 @@ static const GLfloat kLaserVertices[] =
 	*/
 	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glEnable(GL_TEXTURE_2D));
+	OOGL(glPushMatrix());
+	
 	[[self texture1] apply];
 	GLfloat s = sin([UNIVERSE getTime]);
 	GLfloat phase = s*(_range/200.0);
@@ -220,32 +222,24 @@ static const GLfloat kLaserVertices[] =
 
 			0.0f, phase3,	0.0f, phase4,	1.0f, phase4,	1.0f, phase3
 		};
-
-	OOGL(glPushMatrix());
+	
 	OOGL(glColor4fv(_color));
 	glScaled(kLaserHalfWidth, kLaserHalfWidth, _range);
 	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
 	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
 	glDrawArrays(GL_QUADS, 0, 8);
-	OOGL(glPopMatrix());
-
-	OOGL(glPushMatrix());
-	glScaled(kLaserCoreWidth, kLaserCoreWidth, _range);
+	
+	glScaled(kLaserCoreWidth / kLaserHalfWidth, kLaserCoreWidth / kLaserHalfWidth, 1.0);
 	OOGL(glColor4f(1.0,1.0,1.0,0.9));
-	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
-	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
 	glDrawArrays(GL_QUADS, 0, 8);
-	OOGL(glPopMatrix());
 
 	[[self texture2] apply];
-	OOGL(glPushMatrix());
-	glScaled(kLaserFlareWidth, kLaserFlareWidth, _range);
+	glScaled(kLaserFlareWidth / kLaserCoreWidth, kLaserFlareWidth / kLaserCoreWidth, 1.0);
 	OOGL(glColor4f(_color[0],_color[1],_color[2],0.9));
-	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
 	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords);
 	glDrawArrays(GL_QUADS, 0, 8);
+	
 	OOGL(glPopMatrix());
-
 	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glDisable(GL_TEXTURE_2D));
 	
