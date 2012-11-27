@@ -279,8 +279,9 @@ this._initialiseParcelContractsForSystem = function()
 				
 
 				// time allowed for delivery is time taken by "fewest jumps"
-				// route, plus 10-110%, plus one day
-				parcel.deadline = clock.seconds + Math.floor((routeToDestination.time * 3600 * (1.1+(Math.random())))) + 86400;
+				// route, plus 10-110%, plus two days (because this is
+				// calculated on system entry, before the clock is adjusted)
+				parcel.deadline = clock.seconds + Math.floor((routeToDestination.time * 3600 * (1.1+(Math.random())))) + (86400*2);
 
 				// total payment is small for these items.
 				parcel.payment = Math.floor(
