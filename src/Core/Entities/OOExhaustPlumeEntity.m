@@ -104,12 +104,6 @@ static OOTexture *sPlumeTexture = nil;
 // also don't draw if the ship isn't visible
 	if (EXPECT_NOT(ship == nil || ![ship isVisible] || ([ship isPlayer] && [ship suppressFlightNotifications]))) return;
 
-// Moved this check to be earlier - CIM
-	GLfloat speed = [ship speedFactor];
-	// don't draw if not moving.
-	if (EXPECT_NOT(speed <= 0.001f)) return;
-
-
 	OOTimeAbsolute now = [UNIVERSE getTime];
 	if ([UNIVERSE getTime] > _trackTime + kTimeStep)
 	{
@@ -130,6 +124,10 @@ static OOTexture *sPlumeTexture = nil;
 		.k = [ship forwardVector]
 	};
 	int dam = [ship damage];
+
+	GLfloat speed = [ship speedFactor];
+	// don't draw if not moving.
+	if (EXPECT_NOT(speed <= 0.001f)) return;
 	
 	GLfloat hyper_fade = 8.0f / (8.0f + speed * speed * speed);
 	
@@ -201,8 +199,8 @@ static OOTexture *sPlumeTexture = nil;
 	int i;
 	float r1;
 
-//	f01.position = vector_subtract(zero.position, vk); // 1m out from zero
-	f01.position = zero.position;
+	f01.position = vector_subtract(zero.position, vk); // 1m out from zero
+//	f01.position = zero.position;
 
 	ex_emissive[3] = flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = green_factor;	// diminish green part towards rear of exhaust
