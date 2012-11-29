@@ -115,6 +115,7 @@ enum
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
+	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
 	kPlayerShip_pitch,							// pitch (overrules Ship)
 	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
 	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
@@ -155,6 +156,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	// manifest defined in OOJSManifest.m
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READONLY_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
+	{ "missilesOnline",      kPlayerShip_missilesOnline,      OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
@@ -324,6 +326,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			// No distinction made internally
 			return JS_NewNumberValue(context, [player shieldRechargeRate], value);
 			
+		case kPlayerShip_missilesOnline:
+			*value = OOJSValueFromBOOL(![player dialIdentEngaged]);
+			return YES;
+
 		case kPlayerShip_galaxyCoordinates:
 			return NSPointToVectorJSValue(context, [player galaxy_coordinates], value);
 			

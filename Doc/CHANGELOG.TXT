@@ -98,54 +98,56 @@ Scripting:
   through effectdata.plist
 
 * New properties
-	ship.beaconCode				
-	ship.*Weapon now editable
-	ship.dataKey
+	clock.adjustedSeconds
+	player.ship.missilesOnline
 	player.ship.price
-	ship.weaponFacings
 	player.ship.serviceLevel
-	ship.pitch, ship.roll, ship.yaw
-	ship.boundingBox
-	ship.autoAI
-	station.hasShipyard
-	ship.commodity
-	ship.commodityCount
-	ship.laserHeatLevel
-	system.breakPattern
-	station.breakPattern
-	ship.currentWeapon
-	ship.weaponPosition*
+	ship.*Weapon now editable
 	ship.AIFoundTarget
 	ship.AIPrimaryAggressor
-	ship.destination
+	ship.autoAI
+	ship.beaconCode				
+	ship.boundingBox
+	ship.commodity
+	ship.commodityCount
+	ship.currentWeapon
+	ship.dataKey
 	ship.desiredRange
+	ship.destination
+	ship.laserHeatLevel
+	ship.pitch, ship.roll, ship.yaw
+	ship.weaponFacings
+	ship.weaponPosition*
+	station.breakPattern
+	station.hasShipyard
 	station.market
+	system.breakPattern
 
 * New methods
-	player.replaceShip(key)
-	ship.setBounty
 	global.autoAIForRole(role)
+	player.replaceShip(key)
+	player.ship.resetCustomView		
+	player.ship.setCustomView(position,orientation)
+	player.ship.takeInternalDamage()
 	ship.dealEnergyDamage
 	ship.getMaterials
 	ship.getShaders
-	player.ship.setCustomView(position,orientation)
-	player.ship.resetCustomView		
-	player.ship.takeInternalDamage()
-	system.addVisualEffect
+	ship.setBounty
 	station.setMarketPrice(cargo,price)
 	station.setMarketQuantity(cargo,price)
+	system.addVisualEffect
 	
 * New events
-	shipHitByECM {new 'whom' argument}
-	shipLandedOnPlanet(planet)
+	cascadeWeaponDetected(weapon)
+	dayChanged(day)
+	equipmentRepaired
 	playerBoughtCargo
 	playerSoldCargo
-	shipScoopedFuel
-	equipmentRepaired
-	shipBountyChanged(delta,reason)
-	dayChanged(day)
-	cascadeWeaponDetected(weapon)
 	shipBeingAttackedUnsuccessfully(attacker)
+	shipBountyChanged(delta,reason)
+	shipHitByECM {new 'whom' argument}
+	shipLandedOnPlanet(planet)
+	shipScoopedFuel
 
 Miscellaneous:
 --------------
@@ -171,7 +173,7 @@ Bug fixes:
 * Turret declarations now work as intended
 * Planetinfo overrides now cleaned up from savegames
 * guiScreenWillChange fires correctly
-* Fines only applied at main stations
+* Fines now only applied at main stations
 
 
 System requirements:
