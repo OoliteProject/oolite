@@ -329,7 +329,7 @@ enum {
 #else
 	#if __clang__
 		#define OOLITE_FAST_ENUMERATION 1
-	#elif defined (__GNU_LIBOBJC__)
+	#elif defined (OOLITE_GNUSTEP)
 		#define OOLITE_FAST_ENUMERATION (OOLITE_GCC_VERSION >= 40600)
 	#endif
 #endif
