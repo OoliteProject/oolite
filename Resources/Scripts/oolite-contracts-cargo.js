@@ -79,7 +79,7 @@ this._addCargoContractToSystem = function(cargo)
 				log(this.name,"Rejected contract: destination missing or invalid");
 				return false;
 		}
-		if (cargo.deadline <= clock.seconds)
+		if (cargo.deadline <= clock.adjustedSeconds)
 		{
 				log(this.name,"Rejected contract: deadline invalid");
 				return false;
@@ -375,7 +375,7 @@ this._initialiseCargoContractsForSystem = function()
 				// time allowed for delivery is time taken by "fewest jumps"
 				// route, plus timer above. Higher reputation makes longer
 				// times available.
-				cargo.deadline = clock.seconds + Math.floor(daysUntilDeparture*86400)+(cargo.route.time*3600);
+				cargo.deadline = clock.adjustedSeconds + Math.floor(daysUntilDeparture*86400)+(cargo.route.time*3600);
 
 				// add parcel to contract list
 				this._addCargoContractToSystem(cargo);

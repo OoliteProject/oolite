@@ -88,7 +88,7 @@ this._addParcelToSystem = function(parcel)
 				log(this.name,"Rejected parcel: destination missing or invalid");
 				return false;
 		}
-		if (parcel.deadline <= clock.seconds)
+		if (parcel.deadline <= clock.adjustedSeconds)
 		{
 				log(this.name,"Rejected parcel: deadline invalid");
 				return false;
@@ -279,9 +279,8 @@ this._initialiseParcelContractsForSystem = function()
 				
 
 				// time allowed for delivery is time taken by "fewest jumps"
-				// route, plus 10-110%, plus two days (because this is
-				// calculated on system entry, before the clock is adjusted)
-				parcel.deadline = clock.seconds + Math.floor((routeToDestination.time * 3600 * (1.1+(Math.random())))) + (86400*2);
+				// route, plus 10-110%
+				parcel.deadline = clock.adjustedSeconds + Math.floor((routeToDestination.time * 3600 * (1.1+(Math.random()))));
 
 				// total payment is small for these items.
 				parcel.payment = Math.floor(

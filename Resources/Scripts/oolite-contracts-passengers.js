@@ -84,7 +84,7 @@ this._addPassengerToSystem = function(passenger)
 				log(this.name,"Rejected passenger: destination missing or invalid");
 				return false;
 		}
-		if (passenger.deadline <= clock.seconds)
+		if (passenger.deadline <= clock.adjustedSeconds)
 		{
 				log(this.name,"Rejected passenger: deadline invalid");
 				return false;
@@ -288,7 +288,7 @@ this._initialisePassengerContractsForSystem = function()
 				// time allowed for delivery is time taken by "fewest jumps"
 				// route, plus timer above. Higher reputation makes longer
 				// times available.
-				passenger.deadline = clock.seconds + Math.floor(daysUntilDeparture*86400)+(passenger.route.time*3600);
+				passenger.deadline = clock.adjustedSeconds + Math.floor(daysUntilDeparture*86400)+(passenger.route.time*3600);
 
 				// total payment is:
 				passenger.payment = Math.floor(
