@@ -257,6 +257,8 @@ typedef enum
 							haveExecutedSpawnAction: 1,
 							noRocks: 1,
 							_lightsActive: 1;
+
+	GLfloat    _scriptedMisjumpRange; 
 	
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
@@ -1073,6 +1075,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) scriptedMisjump;
 - (void) setScriptedMisjump:(BOOL)newValue;
+- (GLfloat) scriptedMisjumpRange;
+- (void) setScriptedMisjumpRange:(GLfloat)newValue;
+
 
 - (Entity *)entityForShaderProperties;
 

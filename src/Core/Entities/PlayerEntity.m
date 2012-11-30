@@ -1576,6 +1576,7 @@ static GLfloat		sBaseMass = 0.0;
 	cursor_coordinates		= galaxy_coordinates;
 	
 	scripted_misjump		= NO;
+	_scriptedMisjumpRange = 0.5;
 	scoopOverride			= NO;
 	
 	forward_shield			= [self maxForwardShieldLevel];
@@ -2742,7 +2743,9 @@ static GLfloat		sBaseMass = 0.0;
 		// Scripted misjump situations should have a lifespan of one jump only, to keep things
 		// simple - Nikos 20090728
 		if ([self scriptedMisjump])  [self setScriptedMisjump:NO];
-		
+		// similarly reset the misjump range to the traditional 0.5
+		[self setScriptedMisjumpRange:0.5];
+
 		[self doScriptEvent:OOJSID("shipExitedWitchspace")];
 		suppressAegisMessages=NO;
 	}
@@ -5510,7 +5513,14 @@ static GLfloat		sBaseMass = 0.0;
 	[self addScannedWormhole:wormhole];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("wormhole"));
-	if ([self scriptedMisjump]) misjump = YES; // a script could just have changed this to true;
+	if ([self scriptedMisjump]) 
+	{
+		misjump = YES; // a script could just have changed this to true;
+	}
+	if (misjump && [self scriptedMisjumpRange] != 0.5)
+	{
+		[w_hole setMisjumpWithRange:[self scriptedMisjumpRange]]; // overrides wormholes, if player also had non-default scriptedMisjumpRange
+	}
 	[self witchJumpTo:[w_hole destination] misjump:misjump];
 }
 
@@ -5557,7 +5567,14 @@ static GLfloat		sBaseMass = 0.0;
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"));
 	[self noteCompassLostTarget];
-	if ([self scriptedMisjump]) misjump = YES; // a script could just have changed this to true;
+	if ([self scriptedMisjump]) 
+	{
+		misjump = YES; // a script could just have changed this to true;
+	}
+	if (misjump)
+	{
+		[wormhole setMisjumpWithRange:[self scriptedMisjumpRange]];
+	}
 	[self witchJumpTo:target_system_seed misjump:misjump];
 }
 
@@ -5575,12 +5592,12 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
 	double distance = distanceBetweenPlanetPositions(sTo.d,sTo.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	ship_clock_adjust += distance * distance * (misjump ? 2700.0 : 3600.0);	// LY * LY hrs - misjumps take 3/4 time of the full jump, they're not the same as a jump of half the length!
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
 	
 	if (!misjump)
 	{
+		ship_clock_adjust += distance * distance * 3600.0;
 		system_seed = sTo;
 		[self setBounty:(legalStatus/2) withReason:kOOLegalStatusReasonNewSystem];	// 'another day, another system'
 		[self witchEnd];
@@ -5591,12 +5608,18 @@ static GLfloat		sBaseMass = 0.0;
 		// Misjump: move halfway there!
 		// misjumps do not change legal status.
 		if (randf() < 0.1) [self erodeReputation];		// once every 10 misjumps - should be much rarer than successful jumps!
-		
-		galaxy_coordinates.x += sTo.d;
-		galaxy_coordinates.y += sTo.b;
-		galaxy_coordinates.x /= 2;
-		galaxy_coordinates.y /= 2;
-		[wormhole setMisjump];
+
+		[wormhole setMisjump]; 
+		// just in case, but this has usually been set already
+
+		// and now the wormhole has travel time and coordinates calculated
+		// so rather than duplicate the calculation we'll just ask it...
+		NSPoint dest = [wormhole destinationCoordinates];
+		galaxy_coordinates.x = dest.x;
+		galaxy_coordinates.y = dest.y;
+
+		ship_clock_adjust += [wormhole travelTime];
+
 		[self playWitchjumpMisjump];
 		[UNIVERSE setUpUniverseFromMisjump];
 	}

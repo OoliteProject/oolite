@@ -203,6 +203,7 @@ enum
 	kShip_scannerRange,			// scanner range, double, read-only
 	kShip_script,				// script, Script, read-only
 	kShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
+	kShip_scriptedMisjumpRange,  // 0..1 range of next misjump, float, read/write
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
 	kShip_speed,				// current flight speed, double, read-only
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read/write
@@ -321,6 +322,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "scannerRange",			kShip_scannerRange,			OOJS_PROP_READONLY_CB },
 	{ "script",					kShip_script,				OOJS_PROP_READONLY_CB },
 	{ "scriptedMisjump",		kShip_scriptedMisjump,		OOJS_PROP_READWRITE_CB },
+	{ "scriptedMisjumpRange",		kShip_scriptedMisjumpRange,		OOJS_PROP_READWRITE_CB },
 	{ "scriptInfo",				kShip_scriptInfo,			OOJS_PROP_READONLY_CB },
 	{ "speed",					kShip_speed,				OOJS_PROP_READONLY_CB },
 	{ "starboardWeapon",		kShip_starboardWeapon,		OOJS_PROP_READWRITE_CB },
@@ -712,6 +714,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_scriptedMisjump:
 			*value = OOJSValueFromBOOL([entity scriptedMisjump]);
 			return YES;
+
+		case kShip_scriptedMisjumpRange:
+			return JS_NewNumberValue(context, [entity scriptedMisjumpRange], value);
 			
 		case kShip_scriptInfo:
 			result = [entity scriptInfo];
@@ -1177,6 +1182,23 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_scriptedMisjumpRange:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue > 0.0 && fValue < 1.0)
+				{
+					[entity setScriptedMisjumpRange:fValue];
+					return YES;
+				}
+				else
+				{
+					OOJSReportError(context, @"ship.%@ must be > 0.0 and < 1.0.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
+					return NO;
+				}
+			}
+			break;
+
 			
 		case kShip_thrust:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;

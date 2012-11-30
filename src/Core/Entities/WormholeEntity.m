@@ -196,9 +196,40 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 }
 
 
+- (void) setMisjumpWithRange:(GLfloat)range
+{
+	if (range <= 0.0 || range >= 1.0)
+	{
+		range = 0.5; // for safety, though nothing should be setting this
+	}
+	_misjumpRange = range;
+	// Test for misjump first - it's entirely possibly that the wormhole
+	// has already been marked for misjumping when another ship enters it.
+	if (!_misjump)
+	{
+		double distance = distanceBetweenPlanetPositions(originCoords.x, originCoords.y, destinationCoords.x, destinationCoords.y);
+		double time_adjust = (distance * (1-_misjumpRange))*(distance * (1-_misjumpRange))*3600.0;
+		// time adjustment ensures that misjumps not faster than normal jumps
+		// formulae for time and distance by mwerle at http://developer.berlios.de/pm/task.php?func=detailtask&project_task_id=4703&group_id=3577&group_project_id=1753
+		arrival_time -= time_adjust;
+		travel_time -= time_adjust;
+	
+		destinationCoords.x = (originCoords.x * (1-_misjumpRange)) + (destinationCoords.x * _misjumpRange);
+		destinationCoords.y = (originCoords.y * (1-_misjumpRange)) + (destinationCoords.y * _misjumpRange);
+		_misjump = YES;
+	}
+}
+
+
 - (BOOL) withMisjump
 {
 	return _misjump;
+}
+
+
+- (GLfloat) misjumpRange
+{
+	return _misjumpRange;
 }
 
 

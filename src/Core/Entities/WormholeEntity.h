@@ -69,6 +69,7 @@ typedef enum
 	WORMHOLE_SCANINFO	scan_info;
 	BOOL			hasExitPosition;
 	BOOL			_misjump;
+	GLfloat   _misjumpRange;
   BOOL      containsPlayer;
 }
 
@@ -85,7 +86,9 @@ typedef enum
 - (NSPoint) destinationCoordinates;
 
 - (void) setMisjump;	// Flags up a wormhole as 'misjumpy'
+- (void) setMisjumpWithRange:(GLfloat)range;	// Flags up a wormhole as 'misjumpy'
 - (BOOL) withMisjump;
+- (GLfloat) misjumpRange;
 
 - (double) exitSpeed;	// exit speed from this wormhole
 - (void) setExitSpeed:(double) speed;	// set exit speed from this wormhole

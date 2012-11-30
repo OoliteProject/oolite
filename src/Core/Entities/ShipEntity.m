@@ -245,6 +245,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// set these flags explicitly.
 	haveExecutedSpawnAction = NO;
 	scripted_misjump		= NO;
+	_scriptedMisjumpRange		= 0.5;
 	being_fined = NO;
 	isNearPlanetSurface = NO;
 	suppressAegisMessages = NO;
@@ -1084,6 +1085,18 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (void) setScriptedMisjump:(BOOL)newValue
 {
 	scripted_misjump = !!newValue;
+}
+
+
+- (GLfloat) scriptedMisjumpRange
+{
+	return _scriptedMisjumpRange;
+}
+
+
+- (void) setScriptedMisjumpRange:(GLfloat)newValue
+{
+	_scriptedMisjumpRange = newValue;
 }
 
 
@@ -11637,7 +11650,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([self scriptedMisjump])
 	{
 		[self setScriptedMisjump:NO];
-		[w_hole setMisjump];
+		[w_hole setMisjumpWithRange:[self scriptedMisjumpRange]];
+		[self setScriptedMisjumpRange:0.5];
 	}
 	[w_hole suckInShip: self];	// removes ship from universe
 }
