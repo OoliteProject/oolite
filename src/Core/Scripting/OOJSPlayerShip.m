@@ -68,6 +68,7 @@ static JSBool PlayerShipRemoveContract(JSContext *context, uintN argc, jsval *vp
 static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
 
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, NSString *functionName);
@@ -179,6 +180,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "addPassenger",					PlayerShipAddPassenger,						0 },
 	{ "awardContract",					PlayerShipAwardContract,					0 },
 	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,		1 },
+	{ "beginHyperspaceCountdown",				PlayerShipBeginHyperspaceCountdown,				0 },
 	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,				0 },
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
 	{ "launch",							PlayerShipLaunch,							0 },
@@ -1016,6 +1018,25 @@ static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval
 	BOOL took = [player takeInternalDamage];
 
 	OOJS_RETURN_BOOL(took);
+	OOJS_NATIVE_EXIT
+}
+
+
+// beginHyperspaceCountdown()
+static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	
+	BOOL begun = NO;
+	if ([player hasHyperspaceMotor] && [player status] == STATUS_IN_FLIGHT && [player witchJumpChecklist:false])
+	{
+		[player beginWitchspaceCountdown];
+		begun = YES;
+	}
+
+	OOJS_RETURN_BOOL(begun);
 	OOJS_NATIVE_EXIT
 }
 

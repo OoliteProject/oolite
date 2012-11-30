@@ -37,5 +37,6 @@ MA 02110-1301, USA.
 - (void) targetNewSystem:(int) direction;
 - (void) switchToMainView;
 - (void) noteSwitchToView:(OOViewID)toView fromView:(OOViewID)fromView;
+- (void) beginWitchspaceCountdown;
 
 @end

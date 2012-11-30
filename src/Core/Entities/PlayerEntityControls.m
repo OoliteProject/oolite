@@ -462,6 +462,21 @@ static NSTimeInterval	time_last_frame;
 }
 
 
+
+-(void) beginWitchspaceCountdown 
+{
+	witchspaceCountdown = hyperspaceMotorSpinTime;
+	[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
+	[self playStandardHyperspace];
+	// say it!
+	[UNIVERSE clearPreviousMessage];
+	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+	[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
+				withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
+	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+}
+
+
 @end
 
 
@@ -1220,15 +1235,7 @@ static NSTimeInterval	time_last_frame;
 						}
 						else if ([self witchJumpChecklist:false])
 						{
-							witchspaceCountdown = hyperspaceMotorSpinTime;
-							[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
-							[self playStandardHyperspace];
-							// say it!
-							[UNIVERSE clearPreviousMessage];
-							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
-							[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
-								  withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
-							[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+							[self beginWitchspaceCountdown];
 						}
 					}
 					hyperspace_pressed = YES;
