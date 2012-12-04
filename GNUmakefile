@@ -24,7 +24,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
     ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags`
     ADDITIONAL_LDFLAGS           += -Wl,--large-address-aware
-    oolite_LIB_DIRS              += -L/usr/local/lib -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib -L$(JS_LIB_DIR)
+    oolite_LIB_DIRS              += -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib -L$(JS_LIB_DIR)
     ifeq ($(ESPEAK),yes)
         ADDITIONAL_OBJC_LIBS     += -lespeak.dll
         ADDITIONAL_OBJCFLAGS     +=-DHAVE_LIBESPEAK=1
