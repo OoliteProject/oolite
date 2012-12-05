@@ -463,17 +463,54 @@ static NSTimeInterval	time_last_frame;
 
 
 
--(void) beginWitchspaceCountdown 
+-(void) beginWitchspaceCountdown:(int)spin_time
 {
-	witchspaceCountdown = hyperspaceMotorSpinTime;
-	[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
-	[self playStandardHyperspace];
+	if ([self hasHyperspaceMotor]) 
+	{
+		if (spin_time == 0) 
+		{
+			witchspaceCountdown = hyperspaceMotorSpinTime;
+		}
+		else 
+		{
+			if (spin_time < 5) 
+			{
+				witchspaceCountdown = 5;
+			} 
+			else 
+			{
+				witchspaceCountdown = spin_time;
+			}
+		}
+		[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
+		[self playStandardHyperspace];
+		// say it!
+		[UNIVERSE clearPreviousMessage];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+		[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
+					withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
+		[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+	}
+}
+
+
+-(void) beginWitchspaceCountdown
+{
+	if ([self hasHyperspaceMotor]) {
+		[self beginWitchspaceCountdown:hyperspaceMotorSpinTime];
+	}
+}
+
+
+-(void) cancelWitchspaceCountdown
+{
+	if ([self status] == STATUS_WITCHSPACE_COUNTDOWN) {
+		[self setStatus:STATUS_IN_FLIGHT];
+		[self playHyperspaceAborted];
+	}
 	// say it!
 	[UNIVERSE clearPreviousMessage];
-	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
-	[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
-				withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
-	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+	[self doScriptEvent:OOJSID("playerCancelledJumpCountdown")];
 }
 
 
@@ -1217,11 +1254,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 						{
-							// abort!
-							[self setStatus:STATUS_IN_FLIGHT];
-							[self playHyperspaceAborted];
-							// say it!
-							[UNIVERSE clearPreviousMessage];
+							[self cancelWitchspaceCountdown];
 							if (galactic_witchjump)
 							{
 								galactic_witchjump = NO;
@@ -1231,11 +1264,10 @@ static NSTimeInterval	time_last_frame;
 							{
 								[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
 							}
-							[self doScriptEvent:OOJSID("playerCancelledJumpCountdown")];
 						}
 						else if ([self witchJumpChecklist:false])
 						{
-							[self beginWitchspaceCountdown];
+							[self beginWitchspaceCountdown:hyperspaceMotorSpinTime];
 						}
 					}
 					hyperspace_pressed = YES;
@@ -1252,12 +1284,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 						{
-							// abort!
-							[self setStatus:STATUS_IN_FLIGHT];
-							[self playHyperspaceAborted];
-							// say it!
-							[UNIVERSE clearPreviousMessage];
-							
+							[self cancelWitchspaceCountdown];
 							if (galactic_witchjump)
 							{
 								galactic_witchjump = NO;
@@ -1267,7 +1294,6 @@ static NSTimeInterval	time_last_frame;
 							{
 								[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
 							}
-							[self doScriptEvent:OOJSID("playerCancelledJumpCountdown")];
 						}
 						else
 						{

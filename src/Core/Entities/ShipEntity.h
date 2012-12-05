@@ -553,6 +553,8 @@ typedef enum
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey inContext:(NSString *)context;
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition inContext:(NSString *)context;
 - (BOOL) hasHyperspaceMotor;
+- (float) hyperspaceSpinTime;
+
 
 - (NSEnumerator *) equipmentEnumerator;
 - (NSUInteger) equipmentCount;

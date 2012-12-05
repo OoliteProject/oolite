@@ -69,6 +69,7 @@ static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp)
 static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
 
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, NSString *functionName);
@@ -114,6 +115,7 @@ enum
 	kPlayerShip_galaxyCoordinatesInLY,			// galaxy coordinates (in LY), Vector3D, read only
 	kPlayerShip_hud,							// hud name identifier, string, read/write
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
+	kPlayerShip_hyperspaceSpinTime,                         // hyperspace spin time, read only
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
@@ -154,6 +156,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "galaxyCoordinatesInLY",			kPlayerShip_galaxyCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "hud",							kPlayerShip_hud,							OOJS_PROP_READWRITE_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
+	{ "hyperspaceSpinTime",                         kPlayerShip_hyperspaceSpinTime,                         OOJS_PROP_READONLY_CB },
 	// manifest defined in OOJSManifest.m
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READONLY_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
@@ -180,13 +183,14 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "addPassenger",					PlayerShipAddPassenger,						0 },
 	{ "awardContract",					PlayerShipAwardContract,					0 },
 	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,		1 },
-	{ "beginHyperspaceCountdown",				PlayerShipBeginHyperspaceCountdown,				0 },
+	{ "beginHyperspaceCountdown",           PlayerShipBeginHyperspaceCountdown,                     0 },
+	{ "cancelHyperspaceCountdown",          PlayerShipCancelHyperspaceCountdown,            0 },
 	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,				0 },
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
 	{ "launch",							PlayerShipLaunch,							0 },
 	{ "removeAllCargo",					PlayerShipRemoveAllCargo,					0 },
 	{ "removeContract",					PlayerShipRemoveContract,					2 },
-	{ "removeParcel",   				PlayerShipRemoveParcel,					1 },
+	{ "removeParcel",                               PlayerShipRemoveParcel,                                         1 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
@@ -282,6 +286,9 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kPlayerShip_hyperspaceSpinTime:
+			return JS_NewNumberValue(context, [player hyperspaceSpinTime], value);
+                       
 		case kPlayerShip_fuelLeakRate:
 			return JS_NewNumberValue(context, [player fuelLeakRate], value);
 			
@@ -1022,23 +1029,64 @@ static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval
 }
 
 
-// beginHyperspaceCountdown()
+// beginHyperspaceCountdown([int: spin_time])
 static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
-	
+	int32                           spin_time;
+	int32                           witchspaceSpinUpTime = 0;
 	BOOL begun = NO;
+	if (argc < 1) 
+	{
+		witchspaceSpinUpTime = 0;
+	}
+	else
+	{
+		if (!JS_ValueToInt32(context, OOJS_ARGV[0], &spin_time) || spin_time < 5 || spin_time > 60)
+		{
+			OOJSReportBadArguments(context, @"PlayerShip", @"beginHyperspaceCountdown", 1, &OOJS_ARGV[0], nil, @"between 5 and 60 seconds");
+			return NO;
+		}
+		if (spin_time < 5) 
+		{
+			witchspaceSpinUpTime = 5;
+		}
+		else
+		{
+			witchspaceSpinUpTime = spin_time;
+		}
+	}
 	if ([player hasHyperspaceMotor] && [player status] == STATUS_IN_FLIGHT && [player witchJumpChecklist:false])
 	{
-		[player beginWitchspaceCountdown];
+		[player beginWitchspaceCountdown:witchspaceSpinUpTime];
 		begun = YES;
 	}
-
 	OOJS_RETURN_BOOL(begun);
 	OOJS_NATIVE_EXIT
 }
+
+
+// cancelHyperspaceCountdown()
+static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+       
+	PlayerEntity            *player = OOPlayerForScripting();
+       
+	BOOL cancelled = NO;
+	if ([player hasHyperspaceMotor] && [player status] == STATUS_WITCHSPACE_COUNTDOWN)
+	{
+		[player cancelWitchspaceCountdown];
+		cancelled = YES;
+	}
+
+	OOJS_RETURN_BOOL(cancelled);
+	OOJS_NATIVE_EXIT
+		
+}
+
 
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, NSString *functionName)
