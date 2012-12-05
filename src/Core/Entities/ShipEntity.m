@@ -10391,7 +10391,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	else
 	{
-		if (direction == VIEW_AFT)
+		if (direction == (OOWeaponFacing)VIEW_AFT)	// two different enums being compared here
 		{
 			plasmaPortOffset = aftWeaponOffset;
 			vel = vector_flip(v_forward);

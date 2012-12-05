@@ -3744,9 +3744,7 @@ static const OOMatrix	starboard_matrix =
 				GLfloat		fogFactor = 0.5 / airResistanceFactor;
 				double 		fog_scale, half_scale;
 				GLfloat 	flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
-				GLfloat 	mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
-				OOSunEntity *the_sun;
-				the_sun = [self sun];				
+				GLfloat 	mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing			
 				
 				OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
 				

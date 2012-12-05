@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OODrawable.h"
 #import "Universe.h"
 #import "ShipEntity.h"
+#import "OOVisualEffectEntity.h"
 
 @implementation OOEntityWithDrawable
 
