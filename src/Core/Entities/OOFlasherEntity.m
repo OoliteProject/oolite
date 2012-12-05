@@ -121,7 +121,8 @@ MA 02110-1301, USA.
 			if (!_justSwitched && wave > _wave)	// don't test for wave >= _wave - could give wrong results with very low frequencies
 			{
 				_justSwitched = YES;
-				_activeColor = ++_activeColor % count;
+				++_activeColor;
+				_activeColor %= count;	//_activeColor = ++_activeColor % count; is potentially undefined operation
 				[self setColor:[_colors objectAtIndex:_activeColor]];
 			}
 		}
