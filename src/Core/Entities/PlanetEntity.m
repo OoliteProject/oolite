@@ -751,10 +751,17 @@ static const BaseFace kTexturedFaces[][3] =
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if ([UNIVERSE breakPatternHide] || translucent || immediate)  return;  // DON'T DRAW
-	if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:([self radius] + ATMOSPHERE_DEPTH)])
+	GLfloat radWithAtmosphere = [self radius] + ATMOSPHERE_DEPTH;
+	if (radWithAtmosphere * radWithAtmosphere * 1.1 < cam_zero_distance)
 	{
-		// Don't draw
-		return;
+		// for some reason this check doesn't work when extremely close to
+		// the planet and with the horizon near the side of the frame (FP
+		// inaccuracy?)
+		if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:radWithAtmosphere])
+		{
+			// Don't draw
+			return;
+		}
 	}
 
 	[self drawUnconditionally];
