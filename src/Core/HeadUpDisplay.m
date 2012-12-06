@@ -1009,7 +1009,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 
 - (void) drawScanner:(NSDictionary *)info
 {
-	if (_scannerUpdated)  return;		// there's never the need to draw the scanner twice per frame!
+	//	if (_scannerUpdated)  return;		// there's never the need to draw the scanner twice per frame!
+	// apparently there are HUDs out there that do this. CIM 6/12/12
 	
 	int				i, x, y;
 	NSSize			siz;
