@@ -151,7 +151,7 @@ void OOPrintLogHeader(void)
 		nil];
 	
 	// systemString: NSString with system type and possibly version.
-	#if OOLITE_MAC_OS_X
+	#if (OOLITE_MAC_OS_X || OOLITE_GNUSTEP_1_20)
 		NSString *systemString = [NSString stringWithFormat:@OS_TYPE_STRING " %@", [[NSProcessInfo processInfo] operatingSystemVersionString]];
 	#else
 		#define systemString @OS_TYPE_STRING
