@@ -117,16 +117,25 @@ NSString* operatingSystemFullVersion(void)
 				osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, osver.szCSDVersion];
 }
 
+/*
+is64bitSystem: Detect operating system bitness. This function is based mainly on code by Mark S. Kolich, as
+seen in http://mark.koli.ch/2009/10/reliably-checking-os-bitness-32-or-64-bit-on-windows-with-a-tiny-c-app.html
+*/
 BOOL is64BitSystem(void)
 {
-	BOOL is64Bit = NO;
+	#if defined(_WIN64)
+		// if we have been compiled as a 64-bit app and we are running, we are obviously on a 64-bit system
+		return YES;
+	#else
+		BOOL is64Bit = NO;
 	
-	IW64PFP IW64P = (IW64PFP)GetProcAddress(GetModuleHandle("kernel32"), "IsWow64Process");
-	if(IW64P != NULL)
-	{
-		IW64P(GetCurrentProcess(), &is64Bit);
-	}
+		IW64PFP IW64P = (IW64PFP)GetProcAddress(GetModuleHandle("kernel32"), "IsWow64Process");
+		if(IW64P != NULL)
+		{
+			IW64P(GetCurrentProcess(), &is64Bit);
+		}
 	
-	return is64Bit;
+		return is64Bit;
+	#endif
 }
-#endif
+#endif	// OOLITE_WINDOWS
