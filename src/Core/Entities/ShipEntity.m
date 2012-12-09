@@ -62,6 +62,7 @@ MA 02110-1301, USA.
 #import "DockEntity.h"
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
+#import "PlanetEntity.h"
 #import "PlayerEntity.h"
 #import "WormholeEntity.h"
 #import "OOFlasherEntity.h"
@@ -6665,7 +6666,6 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		}
 		return AEGIS_NONE;
 	}
-
 	// check planet
 	float			cr = [nearest radius];
 	float			cr2 = cr * cr;
@@ -6676,7 +6676,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	// check if nearing a surface
 	unsigned wasNearPlanetSurface = isNearPlanetSurface;	// isNearPlanetSurface is a bit flag, not an actual BOOL
 	isNearPlanetSurface = (d2 - cr2) < (250000.0f + 1000.0f * cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
-	
+
+
 	if (EXPECT_NOT((wasNearPlanetSurface != isNearPlanetSurface) && !suppressAegisMessages))
 	{
 		if (isNearPlanetSurface)
