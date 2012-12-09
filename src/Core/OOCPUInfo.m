@@ -103,3 +103,30 @@ NSUInteger OOCPUCount(void)
 	if (!sInited)  OOCPUInfoInit();
 	return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;
 }
+
+
+#if OOLITE_WINDOWS
+NSString* operatingSystemFullVersion(void)
+{
+	OSVERSIONINFOW	osver;
+
+	osver.dwOSVersionInfoSize = sizeof(osver);
+	GetVersionExW (&osver);
+	
+	return [NSString stringWithFormat:@"%d.%d.%d %S", 
+				osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, osver.szCSDVersion];
+}
+
+BOOL is64BitSystem(void)
+{
+	BOOL is64Bit = NO;
+	
+	IW64PFP IW64P = (IW64PFP)GetProcAddress(GetModuleHandle("kernel32"), "IsWow64Process");
+	if(IW64P != NULL)
+	{
+		IW64P(GetCurrentProcess(), &is64Bit);
+	}
+	
+	return is64Bit;
+}
+#endif

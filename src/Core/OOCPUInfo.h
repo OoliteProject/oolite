@@ -36,6 +36,11 @@ void OOCPUInfoInit(void);
 */
 NSUInteger OOCPUCount(void);
 
+#if OOLITE_WINDOWS
+typedef BOOL (WINAPI *IW64PFP)(HANDLE, BOOL *);	// for checking for 64/32 bit system
+BOOL is64BitSystem(void);
+NSString*	operatingSystemFullVersion(void);
+#endif
 
 /*	Set up OOLITE_BIG_ENDIAN and OOLITE_LITTLE_ENDIAN macros. Exactly one must
 	be non-zero. If you're porting Oolite to a middle-endian platform, you'll
