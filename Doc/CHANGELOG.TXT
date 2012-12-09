@@ -99,6 +99,7 @@ Scripting:
 
 * New properties
 	clock.adjustedSeconds
+	player.ship.hyperspaceSpinTime
 	player.ship.missilesOnline
 	player.ship.price
 	player.ship.serviceLevel
@@ -126,28 +127,30 @@ Scripting:
 * New methods
 	global.autoAIForRole(role)
 	player.replaceShip(key)
-	player.ship.resetCustomView		
+	player.ship.beginHyperspaceCountdown(delay)
+	player.ship.cancelHyperspaceCountdown([delay])
+	player.ship.resetCustomView()
 	player.ship.setCustomView(position,orientation)
 	player.ship.takeInternalDamage()
-	ship.dealEnergyDamage
-	ship.getMaterials
-	ship.getShaders
-	ship.setBounty
+	ship.dealEnergyDamage()
+	ship.getMaterials()
+	ship.getShaders()
+	ship.setBounty(amount,reason)
 	station.setMarketPrice(cargo,price)
 	station.setMarketQuantity(cargo,price)
-	system.addVisualEffect
+	system.addVisualEffect(key,position)
 	
 * New events
 	cascadeWeaponDetected(weapon)
 	dayChanged(day)
-	equipmentRepaired
-	playerBoughtCargo
-	playerSoldCargo
+	equipmentRepaired(equipment)
+	playerBoughtCargo(commodity, units, price)
+	playerSoldCargo(commodity, units, price)
 	shipBeingAttackedUnsuccessfully(attacker)
 	shipBountyChanged(delta,reason)
 	shipHitByECM {new 'whom' argument}
 	shipLandedOnPlanet(planet)
-	shipScoopedFuel
+	shipScoopedFuel()
 
 Miscellaneous:
 --------------

@@ -328,8 +328,8 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	if (!translucent)  return;
 	
 	ShipEntity *ship = [self owner];
-	if ([ship speedFactor] <= 0.0)  return;	// don't draw if there's no fire!
-	
+	if ([ship speedFactor] <= 0.001f)  return;	// don't draw if not moving according to 'update' calculation
+
 	OO_ENTER_OPENGL();
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
