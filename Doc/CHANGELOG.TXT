@@ -116,6 +116,7 @@ Scripting:
 	ship.desiredRange
 	ship.destination
 	ship.laserHeatLevel
+	ship.maxEscorts
 	ship.pitch, ship.roll, ship.yaw
 	ship.weaponFacings
 	ship.weaponPosition*

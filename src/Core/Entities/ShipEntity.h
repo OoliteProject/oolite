@@ -679,6 +679,10 @@ typedef enum
 - (uint8_t) pendingEscortCount;
 - (void) setPendingEscortCount:(uint8_t)count;
 
+// allow adjustment of escort numbers from shipdata.plist levels
+- (uint8_t) maxEscortCount;
+- (void) setMaxEscortCount:(uint8_t)newCount;
+
 - (NSString *) name;
 - (NSString *) displayName;
 - (void) setName:(NSString *)inName;

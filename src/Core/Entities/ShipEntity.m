@@ -6091,6 +6091,18 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+- (uint8_t) maxEscortCount
+{
+	return _maxEscortCount;
+}
+
+
+- (void) setMaxEscortCount:(uint8_t)newCount
+{
+	_maxEscortCount = newCount;
+}
+
+
 - (Entity*) proximityAlert
 {
 	Entity* prox = [_proximityAlert weakRefUnderlyingObject];
