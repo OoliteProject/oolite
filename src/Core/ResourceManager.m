@@ -718,7 +718,7 @@ static NSMutableDictionary *sStringCache;
 			NSUInteger count = [[arrayToProcess oo_arrayAtIndex:j] count];
 			if (count == 0)  continue;
 			
-			for (k=0; k < count - 1; k++)
+			for (k=0; k < count; k++)
 			{
 				id processValue = [[[arrayToProcess oo_arrayAtIndex:j] oo_arrayAtIndex:k] oo_objectAtIndex:lookupIndex defaultValue:nil];
 				id refValue = [[refArray oo_arrayAtIndex:i] oo_objectAtIndex:lookupIndex defaultValue:nil];
