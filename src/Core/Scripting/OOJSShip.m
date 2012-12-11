@@ -1668,13 +1668,13 @@ static JSBool ShipDealEnergyDamage(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	gotDamage = JS_ValueToNumber(context, OOJS_ARGV[0], &baseDamage);
-	if (EXPECT_NOT(baseDamage < 0))
+	if (EXPECT_NOT(!gotDamage || baseDamage < 0))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"dealEnergyDamage", argc, OOJS_ARGV, nil, @"damage must be positive");
 		return NO;
 	}
 	gotRange = JS_ValueToNumber(context, OOJS_ARGV[1], &range);
-	if (EXPECT_NOT(range < 0))
+	if (EXPECT_NOT(!gotRange || range < 0))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"dealEnergyDamage", argc, OOJS_ARGV, nil, @"range must be positive");
 		return NO;
@@ -1682,11 +1682,16 @@ static JSBool ShipDealEnergyDamage(JSContext *context, uintN argc, jsval *vp)
 	if (argc >= 3) 
 	{
 		gotVBias = JS_ValueToNumber(context, OOJS_ARGV[2], &velocityBias);
+		if (!gotVBias)
+		{
+			OOJSReportBadArguments(context, @"Ship", @"dealEnergyDamage", argc, OOJS_ARGV, nil, @"velocity bias must be a number");
+			return NO;
+		}
 	}
 
 	[thisEnt dealEnergyDamage:(GLfloat)baseDamage atRange:(GLfloat)range withBias:(GLfloat)velocityBias];
 
-	return YES;
+	OOJS_RETURN_VOID;
 
 	OOJS_NATIVE_EXIT
 }
