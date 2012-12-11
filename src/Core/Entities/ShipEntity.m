@@ -7066,6 +7066,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (void) setRawRoll:(double) amount
+{
+	flightRoll = amount;
+}
+
+
 - (void) setPitch:(double) amount
 {
 	flightPitch = amount * M_PI / 2.0;

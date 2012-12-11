@@ -762,6 +762,7 @@ typedef enum
 - (GLfloat) fuelChargeRate;
 
 - (void) setRoll:(double)amount;
+- (void) setRawRoll:(double)amount; // does not multiply by PI/2
 - (void) setPitch:(double)amount;
 - (void) setThrust:(double)amount;
 - (void) applySticks:(double)delta_t;

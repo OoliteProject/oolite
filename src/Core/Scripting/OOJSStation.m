@@ -216,7 +216,8 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 			return YES;
 			
 		case kStation_roll:
-			return JS_NewNumberValue(context, [entity flightRoll] * 2.0 / M_PI, value);
+			// same as in ship definition, but this time read/write below
+			return JS_NewNumberValue(context, [entity flightRoll], value);
 			
 		case kStation_allowsFastDocking:
 			*value = OOJSValueFromBOOL([entity allowsFastDocking]);
@@ -312,9 +313,13 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 		case kStation_roll:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				if (fValue < -2.0)  fValue = -2.0;
+/*				if (fValue < -2.0)  fValue = -2.0;
 				if (fValue > 2.0)  fValue = 2.0;	// clamping to -2.0...2.0 gives us ±M_PI actual maximum rotation
-				[entity setRoll:fValue];
+				[entity setRoll:fValue]; */
+				// use setRawRoll to make the units here equal to those in kShip_roll
+				if (fValue < -M_PI)  fValue = -M_PI;
+				else if (fValue > M_PI)  fValue = M_PI;
+				[entity setRawRoll:fValue];
 				return YES;
 			}
 			break;
