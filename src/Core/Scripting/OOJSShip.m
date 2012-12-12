@@ -1269,7 +1269,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
-				if (iValue < [[entity escortGroup] count] - 1) 
+				if ((NSInteger)iValue < (NSInteger)[[entity escortGroup] count] - 1)
 				{
 					OOJSReportError(context, @"ship.%@ must be >= current escort numbers.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
 					return NO;
