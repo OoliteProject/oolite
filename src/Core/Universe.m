@@ -3638,6 +3638,7 @@ static const OOMatrix	starboard_matrix =
 
 - (void) drawUniverse
 {
+	OOLog(@"universe.profile.draw",@"Begin draw");
 	if (!no_update)
 	{
 		@try
@@ -3752,6 +3753,8 @@ static const OOMatrix	starboard_matrix =
 				
 				OOVerifyOpenGLState();
 				OOCheckOpenGLErrors(@"Universe after setting up for opaque pass");
+				OOLog(@"universe.profile.draw",@"Begin opaque pass");
+
 				
 				//		DRAW ALL THE OPAQUE ENTITIES
 				for (i = furthest; i >= nearest; i--)
@@ -3818,6 +3821,7 @@ static const OOMatrix	starboard_matrix =
 				OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);  // FIXME: should be redundant.
 				
 				OOCheckOpenGLErrors(@"Universe after setting up for translucent pass");
+				OOLog(@"universe.profile.draw",@"Begin translucent pass");
 				for (i = furthest; i >= nearest; i--)
 				{
 					drawthing = my_entities[i];
@@ -3875,7 +3879,7 @@ static const OOMatrix	starboard_matrix =
 			OOGL(glPopMatrix()); //restore saved flat viewpoint
 			
 			OOCheckOpenGLErrors(@"Universe after drawing entities");
-			
+			OOLog(@"universe.profile.draw",@"Begin HUD");
 			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
 
 			GLfloat	lineWidth = [gameView viewSize].width / 1024.0; // restore line size
@@ -3950,6 +3954,7 @@ static const OOMatrix	starboard_matrix =
 			}
 		}
 	}
+	OOLog(@"universe.profile.draw",@"End drawing");
 }
 
 
@@ -5597,7 +5602,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 {
 	volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
 	NSUInteger sessionID = _sessionID;
-	
+	OOLog(@"universe.profile.update",@"Begin update");
 	if (EXPECT(!no_update))
 	{
 		unsigned	i, ent_count = n_entities;
@@ -5714,7 +5719,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			
 			update_stage = @"update:entity";
 			NSMutableSet *zombies = nil;
-			
+			OOLog(@"universe.profile.update",update_stage);
 			for (i = 0; i < ent_count; i++)
 			{
 				Entity *thing = my_entities[i];
@@ -5790,6 +5795,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			
 			// Maintain x/y/z order lists
 			update_stage = @"updating linked lists";
+			OOLog(@"universe.profile.update",update_stage);
 			for (i = 0; i < ent_count; i++)
 			{
 				[my_entities[i] updateLinkedLists];
@@ -5798,6 +5804,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			// detect collisions and light ships that can see the sun
 			
 			update_stage = @"collision and shadow detection";
+			OOLog(@"universe.profile.update",update_stage);
 			[self filterSortedLists];
 			[self findCollisionsAndShadows];
 			
@@ -5827,6 +5834,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		// dispose of the non-mutable copy and everything it references neatly
 		update_stage = @"clean up";
+		OOLog(@"universe.profile.update",update_stage);
 		for (i = 0; i < ent_count; i++)
 		{
 			[my_entities[i] release];	// explicitly release each one
@@ -5845,6 +5853,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 #if NEW_PLANETS
 	[self prunePreloadingPlanetMaterials];
 #endif
+	OOLog(@"universe.profile.update",@"Update complete");
 }
 
 

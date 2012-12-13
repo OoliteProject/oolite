@@ -461,5 +461,9 @@
 	universe.setup.badStation				= $scriptError;		// Message generated if the main station turns out not to be a station (for instance, this could happen if a non-station ship had the role coriolis).
 	universe.maxEntitiesDump				= no;				// Dumps all entities when universe is full (Can be quite verbose)
 	
+	universe.profile = no;
+	universe.profile.update = inherit;
+	universe.profile.draw = inherit;
+
 	verifyOXP.verbose						= yes;
 }

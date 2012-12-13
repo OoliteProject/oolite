@@ -409,6 +409,13 @@ static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region)
 			e2 = e2->collision_chain;
 		}
 	}
+
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_COLLISIONS)
+	{
+		OOLog(@"collisionRegion.debug",@"Collision test checks %d, within range %d, for %d entities",checks_this_tick,checks_within_range,n_entities_to_test);
+	}
+#endif
 }
 
 
