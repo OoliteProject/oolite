@@ -102,6 +102,12 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		// saving/restoring wormholes from dictionaries should know this!
 		expiry_time = [dict oo_doubleForKey:@"expiry_time"];
 		arrival_time = [dict oo_doubleForKey:@"arrival_time"];
+		// just in case an old save game has one with crossed times
+		if (expiry_time > arrival_time)
+		{
+			expiry_time = arrival_time - 1.0; 
+		}
+
 		// Since this is new for 1.75.1, we must give it a default values as we could be loading an old savegame
 		estimated_arrival_time = [dict oo_doubleForKey:@"estimated_arrival_time" defaultValue:arrival_time];
 		position = [dict oo_vectorForKey:@"position"];
@@ -172,6 +178,16 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		travel_time = (distance * distance * 3600); // Taken from PlayerEntity.h
 		arrival_time = now + travel_time;
 		estimated_arrival_time = arrival_time;
+
+		/* There are a number of bugs where the arrival time is < than the
+		 * expiry time (i.e. both ends open at once).
+		 * Rather than try to flatten all of them, having been unsuccessful twice
+		 * it seems easier to declare as a matter of wormhole physics that it 
+		 * _can't_ be open at both ends at once. - CIM: 13/12/12 */
+		if (expiry_time > arrival_time)
+		{
+			expiry_time = arrival_time - 1.0; 
+		}
 		position = [ship position];
 		zero_distance = distance2([PLAYER position], position);
 	}	
@@ -289,6 +305,12 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 						nil]];
 	witch_mass += [ship mass];
 	expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE / shrink_factor);
+	// and, again, cap to be earlier than arrival time
+	if (expiry_time > arrival_time)
+	{
+		expiry_time = arrival_time - 1.0; 
+	}
+
 	collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
 	
 	[UNIVERSE addWitchspaceJumpEffectForShip:ship];
@@ -644,6 +666,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	
 	if (now > expiry_time)
 	{
+		scanClass = CLASS_NO_DRAW; // witch_mass not certain to be limiting factor on extremely short jumps, so make sure now
+
 		// If we're a saved wormhole waiting to disgorge more ships, it's safe
 		// to remove self from UNIVERSE, but we need the current position!
 		[UNIVERSE removeEntity: self];

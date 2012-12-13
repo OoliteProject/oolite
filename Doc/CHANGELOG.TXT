@@ -96,6 +96,7 @@ Scripting:
   properties for mission objects
 * "VisualEffect" entity type, for management of effects defined
   through effectdata.plist
+* guiScreenChanged fires for entering mission screens
 
 * New properties
 	clock.adjustedSeconds
@@ -176,7 +177,7 @@ Bug fixes:
 * Several crash bugs fixed
 * Turret declarations now work as intended
 * Planetinfo overrides now cleaned up from savegames
-* guiScreenWillChange fires correctly
+* Problems with wormholes in zero-distance doubles fixed
 * Fines now only applied at main stations
 
 
