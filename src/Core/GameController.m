@@ -337,7 +337,10 @@ static GameController *sSharedController = nil;
 			OOJSFrameCallbacksInvoke(delta_t);
 		}
 	}
-	@catch (id exception) {}
+	@catch (id exception) 
+	{
+		OOLog(@"exception.backtrace",@"%@",[exception callStackSymbols]);
+	}
 	
 #if OOLITE_MAC_LEGACY_FULLSCREEN
 	if ([self inFullScreenMode])

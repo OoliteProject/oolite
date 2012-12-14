@@ -47,6 +47,7 @@
 	
 	
 	exception								= yes;
+	exception.backtrace     = no;
 	
 	
 	files.notFound							= $error;				// Failure to load a file.

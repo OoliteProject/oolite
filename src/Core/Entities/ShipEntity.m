@@ -1965,7 +1965,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			// in checkCloseCollisionWith: we check if some thing has come within touch range (origin within our collision_radius)
 			// here we check if it has gone outside that range
 			NSString *other_key = nil;
-			foreachkey (other_key, closeContactsInfo)
+
+			// create a temp copy to iterate over, since we may want to
+			// change the original
+			NSDictionary *closeContactsTemp = [[NSDictionary alloc] initWithDictionary:closeContactsInfo];
+			foreachkey (other_key, closeContactsTemp)
 			{
 				ShipEntity* other = [UNIVERSE entityForUniversalID:[other_key intValue]];
 				if ((other != nil) && (other->isShip))
@@ -2013,6 +2017,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					[closeContactsInfo removeObjectForKey: other_key];
 				}
 			}
+			[closeContactsTemp release];
 		} // end if trackCloseContacts
 
 	} // end if !isSubEntity
