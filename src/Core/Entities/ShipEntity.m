@@ -10281,23 +10281,26 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (![self isCloaked])
 		{
 			victim = [self primaryTarget];
-
-			/* player currently gets a bit of an advantage here if they ambush
-			 * without having their target actually targeted. Though in those
-			 * circumstances they shouldn't be missing their first shot
-			 * anyway. */
-			if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal(vector_subtract([victim position],[self position]))) > 0.995)
+			if ([victim isShip]) // it might not be - fixes crash bug
 			{
-				/* plausibly aimed at target. Allows reaction before attacker
-				 * actually hits. But we need to be able to distinguish in AI
-				 * from ATTACKED so that ships in combat aren't bothered by
-				 * amateurs. So should only respond to ATTACKER_MISSED if not
-				 * already fighting */
-				[victim setPrimaryAggressor:self];
-				[victim setFoundTarget:self];
-				[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
-				[victim doScriptEvent:OOJSID("shipBeingAttackedUnsuccessfully") withArgument:self];
 
+				/* player currently gets a bit of an advantage here if they ambush
+				 * without having their target actually targeted. Though in those
+				 * circumstances they shouldn't be missing their first shot
+				 * anyway. */
+				if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal(vector_subtract([victim position],[self position]))) > 0.995)
+				{
+					/* plausibly aimed at target. Allows reaction before attacker
+					 * actually hits. But we need to be able to distinguish in AI
+					 * from ATTACKED so that ships in combat aren't bothered by
+					 * amateurs. So should only respond to ATTACKER_MISSED if not
+					 * already fighting */
+					[victim setPrimaryAggressor:self];
+					[victim setFoundTarget:self];
+					[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
+					[victim doScriptEvent:OOJSID("shipBeingAttackedUnsuccessfully") withArgument:self];
+
+				}
 			}
 		}
 	}
