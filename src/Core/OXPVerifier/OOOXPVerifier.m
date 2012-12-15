@@ -714,10 +714,6 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage)
 static void OpenLogFile(NSString *name)
 {
 	//	Open log file in appropriate application / provide feedback.
-#if !OOLITE_MAC_OS_X
-	// MKW - needed to suppress 'ignoring return value' warning for system() call
-	int ret;
-#endif
 	
 	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
 	{
@@ -725,8 +721,10 @@ static void OpenLogFile(NSString *name)
 		[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
 #elif OOLITE_WINDOWS
 		// start wordpad (for historical reasons wordpad is called write from the command prompt)
-		ret = system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] UTF8String]);
+		system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] UTF8String]);
 #elif  OOLITE_LINUX
+		// MKW - needed to suppress 'ignoring return value' warning for system() call
+		int ret;
 		// Nothing to do here, since we dump to stdout instead of to a file.
 		//OOLogOutputHandlerStopLoggingToStdout();
 		ret = system([[NSString stringWithFormat:@"cat \"%@\"", OOLogHandlerGetLogPath()] UTF8String]);
