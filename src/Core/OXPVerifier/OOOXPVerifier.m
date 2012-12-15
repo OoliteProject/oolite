@@ -724,10 +724,12 @@ static void OpenLogFile(NSString *name)
 		system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] UTF8String]);
 #elif  OOLITE_LINUX
 		// MKW - needed to suppress 'ignoring return value' warning for system() call
-		int ret;
+		//		int ret;
+		// CIM - and now the compiler complains about that too... casting return
+		// value to void seems to keep it quiet for now
 		// Nothing to do here, since we dump to stdout instead of to a file.
 		//OOLogOutputHandlerStopLoggingToStdout();
-		ret = system([[NSString stringWithFormat:@"cat \"%@\"", OOLogHandlerGetLogPath()] UTF8String]);
+		(void) system([[NSString stringWithFormat:@"cat \"%@\"", OOLogHandlerGetLogPath()] UTF8String]);
 #else 
 		do {} while (0);
 #endif
