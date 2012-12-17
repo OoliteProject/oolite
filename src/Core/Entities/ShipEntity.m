@@ -2021,10 +2021,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		} // end if trackCloseContacts
 
 	} // end if !isSubEntity
-	
-	// super update
-	[super update:delta_t];
-	
+
+
 #ifndef NDEBUG
 	// DEBUGGING
 	if (reportAIMessages && (debugLastBehaviour != behaviour))
@@ -2217,6 +2215,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					[se update:delta_t];
 				}
 			}
+			// super update
+			[super update:delta_t];
+
 			return;
 		}
 	}
@@ -2462,6 +2463,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//	reset totalBoundingBox
 	totalBoundingBox = boundingBox;
 	
+	// super update
+	[super update:delta_t];
+
 	// update subentities
 
 	if ([self subEntityCount] > 0)

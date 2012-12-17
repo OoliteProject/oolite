@@ -895,8 +895,11 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		cam_zero_distance = zero_distance;
 	}
 	
-	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
-	
+	if ([self status] != STATUS_COCKPIT_DISPLAY)
+	{
+		position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
+	}
+
 	hasMoved = !vector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
