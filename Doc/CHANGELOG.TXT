@@ -55,17 +55,18 @@ AI:
 	CASCADE_WEAPON_DETECTED
 	ATTACKER_MISSED
 * New commands: 
-	addPrimaryAggressorAsDefenseTarget
 	addFoundTargetAsDefenseTarget
-	findNewDefenseTarget
+	addPrimaryAggressorAsDefenseTarget
+	broadcastEnergyBlastImminent
 	clearDefenseTargets
-	setTargetToRandomStation
-	setTargetToLastStation
+	findNewDefenseTarget
 	performLandOnPlanet
-	storeTarget
-	recallStoredTarget
 	performScriptedAI
 	performScriptedCombatAI
+	recallStoredTarget
+	setTargetToLastStation
+	setTargetToRandomStation
+	storeTarget
 * Higher skill combat AIs available through 'accuracy' setting
 * Full frame-by-frame control over ship AI now available from script
 
@@ -108,7 +109,7 @@ Scripting:
 	ship.AIFoundTarget
 	ship.AIPrimaryAggressor
 	ship.autoAI
-	ship.beaconCode				
+	ship.beaconCode			
 	ship.boundingBox
 	ship.commodity
 	ship.commodityCount
