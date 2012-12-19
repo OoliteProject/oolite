@@ -13,7 +13,6 @@ Doc/OoliteReadMe.doc
 Doc/OoliteReadMe.pdf
 http://wiki.alioth.net/index.php/Oolite_Instruction_Manual#Playing_the_game
 http://wiki.alioth.net/index.php/Pilot%27s_Reference_Manual
-Doc/ReadMe.rtfd
 DebugOXP/Resources/oolite-debug-console.js
 
 
