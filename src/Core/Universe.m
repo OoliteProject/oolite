@@ -7385,6 +7385,9 @@ static NSDictionary	*sCachedSystemData = nil;
 	 max_jump_cost = max_planets * max_jump_cost = 256 * (7 * 256 + 7)
 	 */
 	
+	// no interstellar space for start and/or goal please
+	if (start == -1 || goal == -1)  return nil;
+	
 #ifdef CACHE_ROUTE_FROM_SYSTEM_RESULTS
 	
 	static NSDictionary *c_route = nil;
