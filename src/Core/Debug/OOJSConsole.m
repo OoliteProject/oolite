@@ -834,7 +834,7 @@ static JSBool ConsoleIsExecutableJavaScript(JSContext *context, uintN argc, jsva
 	
 	OOJSResumeTimeLimiter();
 	
-	OOJS_RETURN_BOOL(YES);
+	OOJS_RETURN_BOOL(result);
 	
 	OOJS_NATIVE_EXIT
 }
