@@ -1052,7 +1052,11 @@ static const BaseFace kTexturedFaces[][3] =
 	
 	[self scaleVertices];
 	
-	GLfloat oldCloudAlpha = [atmosphere amb_sea][3] / CLOUD_ALPHA;
+	GLfloat oldCloudAlpha = 0.0;
+	if (atmosphere)
+	{
+		oldCloudAlpha = [atmosphere amb_sea][3] / CLOUD_ALPHA;
+	}
 
 	NSDictionary *atmo_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:@"0", @"percent_cloud", [NSNumber numberWithFloat:oldCloudAlpha], @"cloud_alpha", nil];
 	[atmosphere autorelease];
