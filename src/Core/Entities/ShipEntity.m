@@ -8640,7 +8640,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ((result == nil && _primaryTarget != nil)
 			|| ![self isValidTarget:result])
 	{
-		[self noteLostTarget]; // ensure shipTargetLost fires
+		DESTROY(_primaryTarget);
 		return nil;
 	}
 	else if (EXPECT_NOT(result == self))
@@ -8650,6 +8650,21 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			-- Ahruman 2009-12-17
 		*/
 		DESTROY(_primaryTarget);
+	}
+	return result;
+}
+
+
+// used when we need to check the target - perhaps for a potential
+// noteTargetLost - without invalidating the target first
+- (id) primaryTargetWithoutValidityCheck
+{
+	id result = [_primaryTarget weakRefUnderlyingObject];
+	if (EXPECT_NOT(result == self))
+	{
+		// just in case
+		DESTROY(_primaryTarget);
+		return nil;
 	}
 	return result;
 }
@@ -8692,12 +8707,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) noteLostTarget
 {
-	// this function is called by [self primaryTarget] so can't use that
-	// function to access _primaryTarget nicely
 	id target = nil;
-	if (_primaryTarget != nil && [_primaryTarget weakRefUnderlyingObject] != nil)
+	if ([self primaryTarget] != nil)
 	{
-		ShipEntity* ship = [_primaryTarget weakRefUnderlyingObject];
+		ShipEntity* ship = [self primaryTarget];
 		if ([self isDefenseTarget:ship]) 
 		{
 			[self removeDefenseTarget:ship];
@@ -11305,6 +11318,22 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other]; // always fire, even without commodity.
 	[[other collisionArray] removeObject:self];			// so it can't be scooped twice!
+	// make sure other ships trying to scoop it lose it
+	// probably already happened, but some may have acquired it
+	// after the scooping started, and they might get stuck in a scooping
+	// attempt as a result
+	[self checkScanner];
+	unsigned i;
+	ShipEntity *scooper;
+	for (i = 0; i < n_scanned_ships ; i++)
+	{
+		scooper = (ShipEntity *)scanned_ships[i];
+		if (self != scooper && (id) other == [scooper primaryTargetWithoutValidityCheck])
+		{
+			[scooper noteLostTarget];
+		}
+	}
+
 	[self suppressTargetLost];
 	[UNIVERSE removeEntity:other];
 }

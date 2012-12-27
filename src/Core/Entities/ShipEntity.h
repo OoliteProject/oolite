@@ -912,6 +912,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) addTarget:(Entity *) targetEntity;
 - (void) removeTarget:(Entity *) targetEntity;
 - (id) primaryTarget;
+- (id) primaryTargetWithoutValidityCheck;
 - (StationEntity *) targetStation;
 
 - (BOOL) isFriendlyTo:(ShipEntity *)otherShip;
