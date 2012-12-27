@@ -8640,7 +8640,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ((result == nil && _primaryTarget != nil)
 			|| ![self isValidTarget:result])
 	{
-		DESTROY(_primaryTarget);
+		[self noteLostTarget]; // ensure shipTargetLost fires
 		return nil;
 	}
 	else if (EXPECT_NOT(result == self))
@@ -8692,15 +8692,20 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) noteLostTarget
 {
+	// this function is called by [self primaryTarget] so can't use that
+	// function to access _primaryTarget nicely
 	id target = nil;
-	if ([self primaryTarget] != nil)
+	if (_primaryTarget != nil && [_primaryTarget weakRefUnderlyingObject] != nil)
 	{
-		ShipEntity* ship = [self primaryTarget];
+		ShipEntity* ship = [_primaryTarget weakRefUnderlyingObject];
 		if ([self isDefenseTarget:ship]) 
 		{
 			[self removeDefenseTarget:ship];
 		}
-		target = (ship && ship->isShip) ? (id)ship : nil;
+		// for compatibility with 1.76 behaviour of this function, only pass
+		// the target as a function parameter if the target is still a potential
+		// valid target (e.g. not scooped, docked, hyperspaced, etc.)
+		target = (ship && ship->isShip && [self isValidTarget:ship]) ? (id)ship : nil;
 		if ([self primaryAggressor] == ship) 
 		{
 			DESTROY(_primaryAggressor);
