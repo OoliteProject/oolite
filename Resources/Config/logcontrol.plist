@@ -31,6 +31,7 @@
 	$aiError								= $scriptError;
 	$entityState							= no;
 	$error									= yes;					// Most errors, ranging from minor to major. Should probably always be enabled.
+	$oxpDevelopment             = no;       // Warnings useful to OXP writers but not in general play
 	$scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
 	$scriptError							= $error;
 	$shaderDebugOn							= no;					// Enabled by 's' key while paused, disabled by 'n' while paused.
@@ -340,6 +341,7 @@
 	ship.escort.accept						= inherit;
 	ship.escort.reject						= inherit;
 	
+	ship.setup.docks              = $oxpDevelopment; // Warnings for old-style virtual docks. Generally harmless in actual play.
 	ship.setUp.missiles						= no;					// Warnings when doing extra work to set up missiles without equipment.plist or shipdata.plist entries. Disabled because lots of OXPs trigger them, and there are fallbacks.
 	
 	
