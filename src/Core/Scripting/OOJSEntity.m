@@ -85,6 +85,7 @@ enum
 	kEntity_isSubEntity,		// is subentity, boolean, read-only.
 	kEntity_isSun,				// is sun, boolean, read-only.
 	kEntity_isValid,			// is not stale, boolean, read-only.
+	kEntity_isInSpace,			// is in space, boolean, read-only.
 	kEntity_isVisible,			// is within drawing distance, boolean, read-only.
 	kEntity_isVisualEffect,		// is visual effect, boolean, read-only.
 };
@@ -113,6 +114,7 @@ static JSPropertySpec sEntityProperties[] =
 	{ "isSubEntity",			kEntity_isSubEntity,		OOJS_PROP_READONLY_CB },
 	{ "isSun",					kEntity_isSun,				OOJS_PROP_READONLY_CB },
 	{ "isValid",				kEntity_isValid,			OOJS_PROP_READONLY_CB },
+	{ "isInSpace",				kEntity_isInSpace,			OOJS_PROP_READONLY_CB },
 	{ "isVisible",				kEntity_isVisible,			OOJS_PROP_READONLY_CB },
 	{ "isVisualEffect",			kEntity_isVisualEffect,		OOJS_PROP_READONLY_CB },
 	{ 0 }
@@ -234,6 +236,22 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 		
 		case kEntity_isValid:
 			*value = [entity status] == STATUS_DEAD ? JSVAL_FALSE : JSVAL_TRUE;
+			return YES;
+
+		case kEntity_isInSpace:
+			switch ([entity status])
+			{
+			case STATUS_IN_FLIGHT:
+			case STATUS_DOCKING:
+			case STATUS_LAUNCHING:
+			case STATUS_WITCHSPACE_COUNTDOWN:
+			case STATUS_BEING_SCOOPED:
+			case STATUS_EFFECT:
+				*value = JSVAL_TRUE;
+				break;
+			default:
+				*value = JSVAL_FALSE;
+			}
 			return YES;
 		
 		case kEntity_isShip:
