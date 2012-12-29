@@ -263,7 +263,7 @@ typedef enum
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
 	
-	OOCargoQuantity			likely_cargo;				// likely amount of cargo (for merchantmen, this is what is spilled as loot)
+	OOCargoQuantity			likely_cargo;				// likely amount of cargo (for pirates, this is what is spilled as loot)
 	OOCargoQuantity			max_cargo;					// capacity of cargo hold
 	OOCargoQuantity			extra_cargo;				// capacity of cargo hold extension (if any)
 	OOCargoQuantity			equipment_weight;			// amount of equipment using cargo space (excluding passenger_berth & extra_cargo_bay)

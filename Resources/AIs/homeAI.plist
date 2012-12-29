@@ -27,10 +27,12 @@
 		"APPROACHING_SURFACE" = ("setStateTo: LANDING");
 		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
+		RESTARTED = ("setSpeedFactorTo: 1.0", "setStateTo: HEAD_FOR_PLANET");
 		UPDATE = ("pauseAI: 10.0");
 	};
     "APPROACH" = {
 		ENTER = (setCourseToPlanet, performFlyToRangeFromDestination);
+		RESTARTED = (setCourseToPlanet, performFlyToRangeFromDestination);
 		"APPROACHING_SURFACE" = ("setStateTo: LANDING");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LANDING");
 	}; 
