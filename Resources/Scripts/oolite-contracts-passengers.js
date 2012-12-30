@@ -96,7 +96,7 @@ this._addPassengerToSystem = function(passenger)
 		}
 		if (!passenger.route)
 		{
-				var destinationInfo = System.infoForSystem(galaxyNumber,destination);
+				var destinationInfo = System.infoForSystem(galaxyNumber,passenger.destination);
 				passenger.route = system.info.routeToSystem(destinationInfo);
 				if (!passenger.route)
 				{
@@ -525,7 +525,7 @@ this._passengerContractSummaryPage = function()
 		}
 
 		// now run the mission screen
-		mission.runScreen(missionConfig, this._processPassengerChoice);
+		mission.runScreen(missionConfig, this._processPassengerChoice, this);
 		
 }
 
@@ -654,7 +654,7 @@ this._passengerContractSinglePage = function()
 				missionConfig.overlay = this.$passengerPageOverlay;
 		}
 
-		mission.runScreen(missionConfig,this._processPassengerChoice);
+		mission.runScreen(missionConfig,this._processPassengerChoice, this);
 
 }
 

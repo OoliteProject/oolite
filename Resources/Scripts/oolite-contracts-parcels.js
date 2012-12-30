@@ -100,7 +100,7 @@ this._addParcelToSystem = function(parcel)
 		}
 		if (!parcel.route)
 		{
-				var destinationInfo = System.infoForSystem(galaxyNumber,destination);
+				var destinationInfo = System.infoForSystem(galaxyNumber,parcel.destination);
 				parcel.route = system.info.routeToSystem(destinationInfo);
 				if (!parcel.route)
 				{
@@ -487,7 +487,7 @@ this._parcelContractSummaryPage = function()
 		}
 
 		// now run the mission screen
-		mission.runScreen(missionConfig, this._processParcelChoice);
+		mission.runScreen(missionConfig, this._processParcelChoice, this);
 		
 }
 
@@ -603,7 +603,7 @@ this._parcelContractSinglePage = function()
 				missionConfig.overlay = this.$parcelPageOverlay;
 		}
 
-		mission.runScreen(missionConfig,this._processParcelChoice);
+		mission.runScreen(missionConfig,this._processParcelChoice, this);
 
 }
 

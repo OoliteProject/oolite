@@ -502,6 +502,14 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	
 	if (!JSVAL_IS_NULL(function))
 	{
+
+		/* CIM 30/12/12: This following line causes problems in certain
+		 * cases, but has to be kept for backward
+		 * compatibility. Documenting the third argument of
+		 * mission.runScreen will at least help people get around it in
+		 * multi-world-script mission screens. (Though, since no-one has
+		 * complained yet, perhaps I'm the only one who uses them?) */
+
 		sCallbackScript = [[[OOJSScript currentlyRunningScript] weakRefUnderlyingObject] retain];
 		if (argc > 2)
 		{

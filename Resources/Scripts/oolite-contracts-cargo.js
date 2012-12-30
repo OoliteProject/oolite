@@ -107,7 +107,7 @@ this._addCargoContractToSystem = function(cargo)
 
 		if (!cargo.route)
 		{
-				var destinationInfo = System.infoForSystem(galaxyNumber,destination);
+				var destinationInfo = System.infoForSystem(galaxyNumber,cargo.destination);
 				cargo.route = system.info.routeToSystem(destinationInfo);
 				if (!cargo.route)
 				{
@@ -602,7 +602,7 @@ this._cargoContractSummaryPage = function()
 		}
 
 		// now run the mission screen
-		mission.runScreen(missionConfig, this._processCargoChoice);
+		mission.runScreen(missionConfig, this._processCargoChoice, this);
 		
 }
 
@@ -730,7 +730,7 @@ this._cargoContractSinglePage = function()
 				missionConfig.overlay = this.$cargoPageOverlay;
 		}
 
-		mission.runScreen(missionConfig,this._processCargoChoice);
+		mission.runScreen(missionConfig,this._processCargoChoice, this);
 
 }
 
