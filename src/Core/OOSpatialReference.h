@@ -8,7 +8,7 @@ useful for stuff like positional audio (instead of OOSoundReferencePoint).
 
 
 Oolite
-Copyright (C) 2004-2012 Giles C Williams and contributors
+Copyright (C) 2004-2013 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

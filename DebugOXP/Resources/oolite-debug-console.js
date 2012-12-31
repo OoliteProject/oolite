@@ -164,7 +164,7 @@ function inspect()
 
 Oolite Debug OXP
 
-Copyright © 2007-2012 the Oolite team
+Copyright © 2007-2013 the Oolite team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -189,7 +189,7 @@ SOFTWARE.
 
 this.name			= "oolite-debug-console";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2007-2012 the Oolite team.";
+this.copyright		= "© 2007-2013 the Oolite team.";
 this.description	= "Debug console script.";
 this.version		= "1.77";
 

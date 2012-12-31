@@ -5,7 +5,7 @@ OOPDFView.h
 PDFView subclass which renders images using high-quality interpolation.
 
 
-Copyright (C) 2011-2012 Jens Ayton
+Copyright (C) 2011-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

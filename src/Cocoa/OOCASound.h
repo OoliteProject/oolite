@@ -6,7 +6,7 @@ Abstract base class for sounds, and primary sound loading interface.
 
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2012 Jens Ayton
+Copyright (C) 2005-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

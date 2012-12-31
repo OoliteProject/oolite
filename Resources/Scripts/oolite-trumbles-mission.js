@@ -6,7 +6,7 @@ Script for random offers of trumbles.
 
  
 Oolite
-Copyright © 2004-2012 Giles C Williams and contributors
+Copyright © 2004-2013 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 
 this.name			= "oolite-trumbles";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2008-2012 the Oolite team.";
+this.copyright		= "© 2008-2013 the Oolite team.";
 this.description	= "Random offers of trumbles.";
 this.version		= "1.77";
 

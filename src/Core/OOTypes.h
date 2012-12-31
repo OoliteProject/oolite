@@ -6,7 +6,7 @@ Various simple types that don't require us to pull in the associated class
 headers.
 
 Oolite
-Copyright (C) 2004-2012 Giles C Williams and contributors
+Copyright (C) 2004-2013 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

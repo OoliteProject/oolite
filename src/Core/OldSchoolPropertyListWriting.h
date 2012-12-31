@@ -1,6 +1,6 @@
 /*
 	OldSchoolPropertyListWriting.h
-	Copyright 2006-2012 Jens Ayton
+	Copyright 2006-2013 Jens Ayton
 	
 	A protocol for writing property lists in the OpenStep/simple text format. Why? Because as of
 	Tiger, the system functions to write plists reject the format. I, however, like it, because

@@ -9,7 +9,7 @@ If we had a performance-critical need for regexps, I'd want a real library,
 but this will do for light usage.
 
 
-Copyright (C) 2010-2012 Jens Ayton
+Copyright (C) 2010-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

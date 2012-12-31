@@ -5,7 +5,7 @@ OODebugTCPConsoleClient.m
 
 Oolite Debug OXP
 
-Copyright (C) 2009-2012 Jens Ayton and contributors
+Copyright (C) 2009-2013 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

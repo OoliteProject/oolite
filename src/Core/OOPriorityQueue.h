@@ -16,7 +16,7 @@ detail in most algorithm textbooks.
 This collection is *not* thread-safe.
 
 
-Copyright (C) 2007-2012 Jens Ayton
+Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -10,7 +10,7 @@ a context-specific implementation function.
 This header abstracts that behaviour for cross-platformity.
 
 Oolite
-Copyright (C) 2004-2012 Giles C Williams and contributors
+Copyright (C) 2004-2013 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

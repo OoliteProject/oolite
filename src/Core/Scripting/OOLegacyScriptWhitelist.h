@@ -99,7 +99,7 @@ the sanitized form (with rawString values replaced with "..." for simplicity) is
  
 
 Oolite
-Copyright (C) 2004-2012 Giles C Williams and contributors
+Copyright (C) 2004-2013 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

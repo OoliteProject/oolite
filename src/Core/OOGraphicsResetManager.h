@@ -10,7 +10,7 @@ lists must therefore register with the OOGraphicsResetManager on init, and
 unregister on dealloc.
 
 
-Copyright (C) 2007-2012 Jens Ayton and contributors
+Copyright (C) 2007-2013 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

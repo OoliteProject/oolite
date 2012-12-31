@@ -23,7 +23,7 @@ NOTE: in accordance with Cocoa coding conventions, methods and functions with
 Copy in the name return objects owned by the receiver.
 
 
-Copyright (C) 2009-2012 Jens Ayton
+Copyright (C) 2009-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

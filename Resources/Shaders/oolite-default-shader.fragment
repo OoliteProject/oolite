@@ -3,7 +3,7 @@
 	Default fragment shader for Oolite ships.
 	
 	
-	© 2007–2012 Jens Ayton
+	© 2007–2013 Jens Ayton
 	
 	This is similar to normal ship shaders, but has special controlling
 	macros (like OOSTD_DIFFUSE_MAP, OOSTD_SPECULAR etc.) which are specific
