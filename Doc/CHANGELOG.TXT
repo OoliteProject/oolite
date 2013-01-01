@@ -101,6 +101,7 @@ Scripting:
 
 * New properties
 	clock.adjustedSeconds
+	entity.isInSpace
 	player.ship.hyperspaceSpinTime
 	player.ship.missilesOnline
 	player.ship.price
@@ -180,7 +181,9 @@ Bug fixes:
 * Planetinfo overrides now cleaned up from savegames
 * Problems with wormholes in zero-distance doubles fixed
 * Fines now only applied at main stations
-
+* Attempting to calculate a route to or from interstellar space no
+  longer crashes
+* Scooped and released escape pods work properly
 
 System requirements:
 ====================
