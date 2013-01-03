@@ -435,8 +435,11 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState *sourceState, const OO
 	
 	#include "OOOpenGLStates.tbl"
 	
-	
-	if (sourceState->BLEND_SRC != targetState->BLEND_SRC || sourceState->BLEND_DST != targetState->BLEND_DST)
+	/* some implementations, in non-shader mode, seem to throw out/reset
+	 * BlendFunc if Blend is disabled. Therefore, if coming from Blend=false
+	 * always reset the blend function even if this should be unnecessary
+	 * CIM: 3/1/13 */
+	if (sourceState->BLEND_SRC != targetState->BLEND_SRC || sourceState->BLEND_DST != targetState->BLEND_DST || !sourceState->BLEND)
 	{
 		OOGL(glBlendFunc(targetState->BLEND_SRC, targetState->BLEND_DST));
 	}
