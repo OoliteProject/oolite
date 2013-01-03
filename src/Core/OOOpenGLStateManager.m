@@ -498,8 +498,11 @@ static const OOOpenGLState kStandardStates[OPENGL_STATE_INTERNAL_USE_ONLY + 1] =
 	{
 		.name = "OPENGL_STATE_OPAQUE",
 		.LIGHTING				= true,
-		.LIGHT0					= false,
-		.LIGHT1					= true,
+		.LIGHT0					= kStateMaybe,
+		/* FIXME: in shader mode, these should not be kStateMaybe, but
+		 * false for 0 and true for 1. On the other hand, in shader mode
+		 * these settings are supposed to be irrelevant. */
+		.LIGHT1					= kStateMaybe, // FIXME: see above
 		.LIGHT2					= false,
 		.LIGHT3					= false,
 		.LIGHT4					= false,
@@ -534,8 +537,8 @@ static const OOOpenGLState kStandardStates[OPENGL_STATE_INTERNAL_USE_ONLY + 1] =
 	{
 		.name = "OPENGL_STATE_TRANSLUCENT_PASS",
 		.LIGHTING				= false,
-		.LIGHT0					= false,
-		.LIGHT1					= true,
+		.LIGHT0					= kStateMaybe, // FIXME: see above
+		.LIGHT1					= kStateMaybe, // FIXME: see above
 		.LIGHT2					= false,
 		.LIGHT3					= false,
 		.LIGHT4					= false,
@@ -570,8 +573,8 @@ static const OOOpenGLState kStandardStates[OPENGL_STATE_INTERNAL_USE_ONLY + 1] =
 	{
 		.name = "OPENGL_STATE_ADDITIVE_BLENDING",
 		.LIGHTING				= false,
-		.LIGHT0					= false,
-		.LIGHT1					= true,
+		.LIGHT0					= kStateMaybe, // FIXME: see above
+		.LIGHT1					= kStateMaybe, // FIXME: see above
 		.LIGHT2					= false,
 		.LIGHT3					= false,
 		.LIGHT4					= false,
@@ -606,8 +609,8 @@ static const OOOpenGLState kStandardStates[OPENGL_STATE_INTERNAL_USE_ONLY + 1] =
 	{
 		.name = "OPENGL_STATE_OVERLAY",
 		.LIGHTING				= false,
-		.LIGHT0					= false,
-		.LIGHT1					= true,
+		.LIGHT0					= kStateMaybe, // FIXME: see above
+		.LIGHT1					= kStateMaybe, // FIXME: see above
 		.LIGHT2					= false,
 		.LIGHT3					= false,
 		.LIGHT4					= false,
