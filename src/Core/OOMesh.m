@@ -448,6 +448,12 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 					{
 						OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
 						OOGL(glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray));
+						/*	FIXME: Not including the line below breaks multitexturing in no-shaders mode.
+							However, the OpenGL state manager should probably be handling this;
+							TEXTURE_2D is part of OPENGL_STATE_OPAQUE, which has already been set.
+							- Nikos 20130103
+						*/
+						OOGL(glEnable(GL_TEXTURE_2D));
 					}
 					else
 					{
