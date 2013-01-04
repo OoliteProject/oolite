@@ -162,7 +162,9 @@ static void SynthSpecular(OOMaterialSynthContext *context);
 	if (cacheKey != nil)
 	{
 		cache = [OOCacheManager sharedCache];
-		cacheKey = [NSString stringWithFormat:@"%@/%@", cacheKey, name];
+		// configuration must be in cache key, as otherwise changes in
+		// non-diffuse map can end up miscached
+		cacheKey = [NSString stringWithFormat:@"%@/%@/%@", cacheKey, name, configuration];
 		synthesizedConfig = [cache objectForKey:cacheKey inCache:@"synthesized shader materials"];
 	}
 	
