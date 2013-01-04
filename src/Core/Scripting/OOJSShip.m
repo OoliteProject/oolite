@@ -1872,7 +1872,7 @@ static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 		result = YES;
 		
 		// can't add fuel as equipment.
-		if (![key isEqualToString:@"EQ_FUEL"])  result = NO;
+		if ([key isEqualToString:@"EQ_FUEL"])  result = NO;
 		
 		if (result)  result = [thisEnt canAddEquipment:key inContext:@"scripted"];
 	}
