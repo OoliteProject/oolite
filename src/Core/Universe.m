@@ -3203,7 +3203,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 			-- Ahruman 20070714
 		*/
 		name = [[commodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME];
+		// try display name
 		if ([co_name caseInsensitiveCompare:name] == NSOrderedSame)
+		{
+			return i;
+		}
+		// or internal ID
+		if ([co_name caseInsensitiveCompare:CommodityTypeToString(i)] == NSOrderedSame)
 		{
 			return i;
 		}
