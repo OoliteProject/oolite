@@ -109,3 +109,11 @@ if (this.legacy_setupActions !== undefined)
 	*/
 	this.ship.__runLegacyScriptActions(this.ship, this.legacy_setupActions);
 }
+
+
+// function for missiles and other entities using missile AI
+this.ooliteDetonateAsStandardMissile = function()
+{
+		this.ship.dealEnergyDamage(170, 32.5, 0.25); 
+		this.ship.explode();
+}

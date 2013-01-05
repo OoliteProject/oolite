@@ -38,7 +38,7 @@
 	};
 	DETONATE =
 	{
-		ENTER = ("sendScriptMessage: detonate");
+		ENTER = ("sendScriptMessage: ooliteDetonateAsStandardMissile");
 	};
 	EXPLODE =
 	{

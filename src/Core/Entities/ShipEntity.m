@@ -10609,13 +10609,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 // end special cases
 
-  // set the default missile script if none is assigned
-	// harmless if it's an OXP missile that doesn't need it
-	if ([[[missile shipScript] name] isEqualToString:@"oolite-default-ship-script"]) 
-	{
-		[missile setShipScript:@"oolite-missile.js"];
-	} 
-	
 	[missile setPosition:origin];
 	[missile addTarget:target];	
 	[missile setOrientation:q1];
