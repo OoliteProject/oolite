@@ -7,6 +7,7 @@ The various ports of Oolite are using a number of external libraries for graphic
 2. SDL v1.2.13 - (Windows) window resizing issues, backported fix for setting gamma crash.
 3. SpiderMonkey v1.85 (all platforms) - certain JS macro definitions required by Oolite not guaranteed or non-existent in standard library.
 4. eSpeak v1.43.03 (Windows) - Special build of the Windows speech synthesis libespeak.dll to enable asynchronous playback. Also, defaults the eSpeak data directory to Resources/espeak-data.
+5. SDL_mixer v1.2.7 (Windows) - Bug fix for static heard over OGG music when music loops.
 
 The changes made in the source code of each of these libraries are as follows:
 
@@ -98,6 +99,11 @@ The entire source code of the library can be downloaded from ftp://anonymous@ftp
   - Start up MinGW/MSYS and change working directory to the <espeakSourceFolder>/src folder.
   - Execute 'make libespeak.dll' from the command prompt.
   - The library should compile and at the end of the build you should have a file named libespeak.dll (the actual binary) and the import library file libespeak.dll.a, for use when you want to link libespeak.dll to your project.
+
+
+
+5. SDL_mixer v1.2.7 (Windows)
+- music.c: Commented out lines 334 and 335 of music_mixer function.
 
 
 Certain other Oolite dependencies are built with specific project settings on the Mac platform, without further changes to their source code. These libraries are libpng (uses also a custom pngusr.h header for the Mac version) and libogg/libvorbis. Also, the Mac debug support uses a modified version of RBSplitView, mostly to enable it to build on 64-bit Mac OS X.
