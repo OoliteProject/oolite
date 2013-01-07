@@ -1481,7 +1481,6 @@
 		name = "ECM Hardened Missile";
 		roles = "missile EQ_HARDENED_MISSILE";
 		scan_class = "CLASS_MISSILE";
-		script = "oolite-missile.js";
 		thrust = 250;
 		unpiloted = yes;
 		weapon_energy = 4500;
@@ -1879,7 +1878,6 @@
 		name = "Missile";
 		roles = "missile EQ_MISSILE";
 		scan_class = "CLASS_MISSILE";
-		script = "oolite-missile.js";
 		thrust = 250;
 		unpiloted = yes;
 		weapon_energy = 4500;
