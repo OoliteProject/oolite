@@ -722,7 +722,7 @@ this._acceptContract = function()
 		var passenger = this.$passengers[this.$contractIndex];
 
 		// give the passenger to the player
-		var result = player.ship.addPassenger(passenger.name,system.ID,passenger.destination,passenger.deadline,passenger.payment);
+		var result = player.ship.addPassenger(passenger.name,system.ID,passenger.destination,passenger.deadline,passenger.payment,passenger.advance);
 		
 		if (result)
 		{

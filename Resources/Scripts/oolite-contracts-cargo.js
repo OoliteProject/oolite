@@ -804,7 +804,7 @@ this._acceptContract = function()
 		}
 
 		// give the cargo to the player
-		var result = player.ship.awardContract(cargo.size,cargo.commodity,system.ID,cargo.destination,cargo.deadline,cargo.payment);
+		var result = player.ship.awardContract(cargo.size,cargo.commodity,system.ID,cargo.destination,cargo.deadline,cargo.payment,cargo.deposit);
 		
 		if (result)
 		{

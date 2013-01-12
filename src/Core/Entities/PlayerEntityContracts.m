@@ -982,7 +982,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 */
 
 
-- (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee
+- (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee advance:(double)advance
 {
 	NSDictionary* passenger_info = [NSDictionary dictionaryWithObjectsAndKeys:
 		Name,																	PASSENGER_KEY_NAME,
@@ -991,7 +991,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[NSNumber numberWithDouble:[PLAYER clockTime]],	CONTRACT_KEY_DEPARTURE_TIME,
 		[NSNumber numberWithDouble:eta],										CONTRACT_KEY_ARRIVAL_TIME,
 		[NSNumber numberWithDouble:fee],										CONTRACT_KEY_FEE,
-		[NSNumber numberWithInt:0],												CONTRACT_KEY_PREMIUM,
+		[NSNumber numberWithDouble:advance],												CONTRACT_KEY_PREMIUM,
 		NULL];
 	
 	// extra checks, just in case.
@@ -1071,7 +1071,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 
 - (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start
-						destination:(unsigned)Destination eta:(double)eta fee:(double)fee
+					 destination:(unsigned)Destination eta:(double)eta fee:(double)fee premium:(double)premium
 {
 	OOCommodityType	type = [UNIVERSE commodityForName: commodity];
 	Random_Seed		r_seed = [UNIVERSE marketSeed];
@@ -1099,7 +1099,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[NSNumber numberWithDouble:[PLAYER clockTime]],	CONTRACT_KEY_DEPARTURE_TIME,
 		[NSNumber numberWithDouble:eta],				CONTRACT_KEY_ARRIVAL_TIME,
 		[NSNumber numberWithDouble:fee],				CONTRACT_KEY_FEE,
-		[NSNumber numberWithInt:0],						CONTRACT_KEY_PREMIUM,
+		[NSNumber numberWithDouble:premium],						CONTRACT_KEY_PREMIUM,
 		NULL];
 	
 	// check available space

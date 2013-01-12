@@ -1550,6 +1550,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		}
 		
 		[escorter setPrimaryRole:defaultRole];	//for mothership
+		// in case this hasn't yet been set, make sure escorts get a real scan class
+		// shouldn't happen very often, but is possible
+		if (scanClass == CLASS_NOT_SET)
+		{
+			scanClass = CLASS_NEUTRAL;
+		}
 		[escorter setScanClass:scanClass];		// you are the same as I
 		
 		if ([self bounty] == 0)  [escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];	// Avoid dirty escorts for clean mothers

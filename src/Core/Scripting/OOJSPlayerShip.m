@@ -72,7 +72,7 @@ static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc,
 static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
 
 
-static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, NSString *functionName);
+static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, double *premium, NSString *functionName);
 
 
 static JSClass sPlayerShipClass =
@@ -748,7 +748,7 @@ static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp)
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString 			*name = nil;
 	OOSystemID			start = 0, destination = 0;
-	jsdouble			eta = 0.0, fee = 0.0;
+	jsdouble			eta = 0.0, fee = 0.0, advance = 0.0;
 	
 	if (argc < 5)
 	{
@@ -763,12 +763,12 @@ static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	if (!ValidateContracts(context, argc, vp, NO, &start, &destination, &eta, &fee, @"addPassenger"))  return NO; // always go through validate contracts (passenger)
+	if (!ValidateContracts(context, argc, vp, NO, &start, &destination, &eta, &fee, &advance, @"addPassenger"))  return NO; // always go through validate contracts (passenger)
 	
 	// Ensure there's space.
 	if ([player passengerCount] >= [player passengerCapacity])  OOJS_RETURN_BOOL(NO);
 	
-	BOOL OK = [player addPassenger:name start:start destination:destination eta:eta fee:fee];
+	BOOL OK = [player addPassenger:name start:start destination:destination eta:eta fee:fee advance:advance];
 	OOJS_RETURN_BOOL(OK);
 	
 	OOJS_NATIVE_EXIT
@@ -808,7 +808,7 @@ static JSBool PlayerShipAddParcel(JSContext *context, uintN argc, jsval *vp)
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString 			*name = nil;
 	OOSystemID			start = 0, destination = 0;
-	jsdouble			eta = 0.0, fee = 0.0;
+	jsdouble			eta = 0.0, fee = 0.0, ignore = 0.0;
 	
 	if (argc < 5)
 	{
@@ -823,7 +823,7 @@ static JSBool PlayerShipAddParcel(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	if (!ValidateContracts(context, argc, vp, NO, &start, &destination, &eta, &fee, @"addParcel"))  return NO; // always go through validate contracts (passenger/parcel mode)
+	if (!ValidateContracts(context, argc, vp, NO, &start, &destination, &eta, &fee, &ignore, @"addParcel"))  return NO; // always go through validate contracts (passenger/parcel mode)
 	
 	// Ensure there's space.
 	
@@ -868,7 +868,7 @@ static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp)
 	NSString 			*key = nil;
 	int32 				qty = 0;
 	OOSystemID			start = 0, destination = 0;
-	jsdouble			eta = 0.0, fee = 0.0;
+	jsdouble			eta = 0.0, fee = 0.0, premium = 0.0;
 	
 	if (argc < 6)
 	{
@@ -889,9 +889,9 @@ static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	if (!ValidateContracts(context, argc, vp, YES, &start, &destination, &eta, &fee, @"awardContract"))  return NO; // always go through validate contracts (cargo)
+	if (!ValidateContracts(context, argc, vp, YES, &start, &destination, &eta, &fee, &premium, @"awardContract"))  return NO; // always go through validate contracts (cargo)
 	
-	BOOL OK = [player awardContract:qty commodity:key start:start destination:destination eta:eta fee:fee];
+	BOOL OK = [player awardContract:qty commodity:key start:start destination:destination eta:eta fee:fee premium:premium];
 	OOJS_RETURN_BOOL(OK);
 	
 	OOJS_NATIVE_EXIT
@@ -1089,7 +1089,7 @@ static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc
 
 
 
-static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, NSString *functionName)
+static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, double *premium, NSString *functionName)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -1127,6 +1127,11 @@ static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL is
 		return NO;
 	}
 	*fee = fValue;
+
+	if (argc > offset+4 && JS_ValueToNumber(context, OOJS_ARGV[offset + 4], &fValue) && isfinite(fValue) && fValue >= 0.0)
+	{
+		*premium = fValue;
+	}
 	
 	return YES;
 	

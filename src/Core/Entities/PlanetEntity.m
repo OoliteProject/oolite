@@ -825,7 +825,7 @@ static const BaseFace kTexturedFaces[][3] =
 			}
 			GLMultOOMatrix(rotMatrix);	// rotate the clouds!
 			OOGL(glEnable(GL_BLEND));
-			OOGL(glDisable(GL_LIGHTING));
+//			OOGL(glDisable(GL_LIGHTING));
 			// Fall through.
 
 		case STELLAR_TYPE_MOON:
@@ -955,7 +955,7 @@ static const BaseFace kTexturedFaces[][3] =
 		OOGL(glEnable(GL_DEPTH_TEST));
 	}
 	OOGL(glEnable(GL_TEXTURE_2D));
-	OOGL(glEnable(GL_LIGHTING));
+//	OOGL(glEnable(GL_LIGHTING));
 	OOGL(glDisable(GL_BLEND));
 
 
