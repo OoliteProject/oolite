@@ -540,7 +540,7 @@ static JSBool QuaternionConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Quaternion				quaternion = kZeroQuaternion;
+	Quaternion				quaternion = kIdentityQuaternion;
 	Quaternion				*private = NULL;
 	JSObject				*this = NULL;
 	
