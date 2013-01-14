@@ -5222,7 +5222,10 @@ static GLfloat		sBaseMass = 0.0;
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
+	
+	OOGUIScreenID	oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_MAIN;
+	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayText:NO];

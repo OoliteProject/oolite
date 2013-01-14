@@ -826,6 +826,7 @@ MA 02110-1301, USA.
 	// launch roll/pitch
 	[ship setRoll:[station flightRoll]];
 	[ship setPitch:0.0];
+	[ship setYaw:0.0];
 	[UNIVERSE addEntity:ship];
 	[ship setStatus: STATUS_LAUNCHING];
 	[ship setDesiredSpeed:launchSpeed]; // must be set after initialising the AI to correct any speed set by AI

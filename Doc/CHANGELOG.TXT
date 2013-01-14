@@ -6,6 +6,10 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * Fix for mission screen not allowing exit when HUD off
 * Fix quaternion constructor to produce identity quaternion as
   documented when called as new Quaternion().
+* guiScreenChanged now fires on transition when launching
+* Yaw is now also zeroed when launching from a station
+
+-------------------------------------------------------------------------------
 
 Changes between Oolite 1.76.1 and Oolite 1.77:
 

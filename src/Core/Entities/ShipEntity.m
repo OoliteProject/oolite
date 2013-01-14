@@ -7093,6 +7093,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (void) setYaw:(double) amount
+{
+	flightYaw = amount * M_PI / 2.0;
+}
+
+
 - (void) setThrust:(double) amount
 {
 	thrust = amount;
