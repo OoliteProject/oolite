@@ -1,3 +1,10 @@
+Changes between Oolite 1.77 and Oolite 1.77.1:
+
+* Bug with planetary cloud display fixed
+* Cargo/Passenger contracts correctly report premium/advance again
+* Fix to escort scan class initialisation
+* Fix for mission screen not allowing exit when HUD off
+
 Changes between Oolite 1.76.1 and Oolite 1.77:
 
 Gameplay:

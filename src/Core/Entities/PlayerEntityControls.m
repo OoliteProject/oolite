@@ -3487,6 +3487,7 @@ static BOOL autopilot_pause;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
+	NSUInteger end_row = 21;
 	
 	switch (gui_screen)
 	{
@@ -3553,7 +3554,11 @@ static BOOL autopilot_pause;
 			break;
 			
 		case GUI_SCREEN_MISSION:
-			if ([[gui keyForRow:21] isEqual:@"spacebar"])
+			if ([[self hud] isHidden])
+			{
+				end_row = 27;
+			}
+			if ([[gui keyForRow:end_row] isEqual:@"spacebar"])
 			{
 				if ([gameView isDown:32])	//  '<space>'
 				{
