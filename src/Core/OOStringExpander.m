@@ -893,7 +893,23 @@ static NSString *ExpandPercentR(OOStringExpansionContext *context, NSString *inp
 	}
 	NSString *percentR = GetRandomNameR(context);
 	NSMutableString *output = [NSMutableString stringWithString:input];
-	[output replaceOccurrencesOfString:@"%R" withString:percentR options:NSLiteralSearch range:NSMakeRange(0, [output length])];
+
+	/* This loop should be completely unnecessary, but for some reason
+	 * replaceOccurrencesOfString sometimes only replaces the first
+	 * instance of %R if percentR contains the non-ASCII
+	 * digrams-apostrophe character.  (I guess
+	 * http://lists.gnu.org/archive/html/gnustep-dev/2011-10/msg00048.html
+	 * this bug in GNUstep's implementation here, which is in 1.22) So
+	 * to cover that case, if there are still %R in the string after
+	 * replacement, try again. Affects things like thargoid curses, and
+	 * particularly %Rful expansions of [nom]. Probably this can be
+	 * tidied up once GNUstep 1.22 is ancient history, but that'll be a
+	 * few years yet. - CIM 15/1/2013 */
+
+	do {
+		[output replaceOccurrencesOfString:@"%R" withString:percentR options:NSLiteralSearch range:NSMakeRange(0, [output length])];
+	} while([output rangeOfString:@"%R"].location != NSNotFound);
+
 	return [NSString stringWithString:output];
 }
 
