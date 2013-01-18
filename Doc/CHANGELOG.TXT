@@ -8,6 +8,7 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
   documented when called as new Quaternion().
 * guiScreenChanged now fires on transition when launching
 * Yaw is now also zeroed when launching from a station
+* Autopilot status reset on death
 
 -------------------------------------------------------------------------------
 

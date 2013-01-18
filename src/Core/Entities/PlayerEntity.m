@@ -1471,7 +1471,12 @@ static GLfloat		sBaseMass = 0.0;
 	ship_temperature		= 60.0f;
 	alertFlags				= 0;
 	hyperspeed_engaged		= NO;
+	autopilot_engaged = NO;
 	
+	flightRoll = 0.0f;
+	flightPitch = 0.0f;
+	flightYaw = 0.0f;
+
 	max_passengers = 0;
 	[passengers release];
 	passengers = [[NSMutableArray alloc] init];
