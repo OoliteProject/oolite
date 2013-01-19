@@ -105,7 +105,7 @@ Oolite Development Project Page at: https://developer.berlios.de/projects/oolite
 Browse the Oolite wiki at: http://wiki.alioth.net/index.php/Oolite_Main_Page
 
 Get OXPs at: 	http://wiki.alioth.net/index.php/OXP
-		http://oosat.alioth.net/
+
 
 
 
@@ -292,4 +292,4 @@ Oolite game. The fact that certain elements from OXPs are mentioned does not nec
 these OXPs are recommended by the Oolite Team, as OXP selection and usage is subject to user personal
 preferences. The OXPs mentioned in Advice for New Commanders are Rusties, Bank of the Black Monks,
 Ore Processor, Communist flavour pack, Dictatorship flavour pack, Your Ad Here. All Oolite OXPs are
-available for download from either http://wiki.alioth.net/index.php/OXP or http://oosat.alioth.net/
+available for download from http://wiki.alioth.net/index.php/OXP
