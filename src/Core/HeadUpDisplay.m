@@ -69,7 +69,6 @@ struct CachedInfo
 };
 
 static NSArray *sCurrentDrawItem;
-static unsigned sEnergyBanks;
 
 OOINLINE float useDefined(float val, float validVal) 
 {
@@ -242,9 +241,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	hudUpdating = NO;
 	
 	overallAlpha = [hudinfo oo_floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
-	
-	sEnergyBanks = [hudinfo oo_unsignedIntForKey:N_BARS_KEY defaultValue:[PLAYER dialMaxEnergy] / 64.0];
-	if (sEnergyBanks < 1)  sEnergyBanks = 1;
 	
 	reticleTargetSensitive = [hudinfo oo_boolForKey:@"reticle_target_sensitive" defaultValue:NO];
 	propertiesReticleTargetSensitive = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
@@ -1776,7 +1772,15 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	BOOL				drawSurround, labelled, energyCritical = NO;
 	GLfloat				alpha = overallAlpha;
 	GLfloat				bankHeight, bankY;
-	GLfloat				energy = [PLAYER dialEnergy] * sEnergyBanks;
+	PlayerEntity *player = PLAYER;
+
+	unsigned n_bars = [player dialMaxEnergy]/64.0;
+	n_bars = [info oo_unsignedIntForKey:N_BARS_KEY defaultValue:n_bars];
+	if (n_bars < 1)
+	{
+		n_bars = 1;
+	}
+	GLfloat				energy = [player dialEnergy] * n_bars;
 	struct CachedInfo	cached;
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
@@ -1788,13 +1792,13 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	alpha *= cached.alpha;
 	drawSurround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ENERGY_GAUGE_DRAW_SURROUND];
 	labelled = [info oo_boolForKey:LABELLED_KEY defaultValue:YES];
-	if (sEnergyBanks > 8)  labelled = NO;
+	if (n_bars > 8)  labelled = NO;
 	
 	// MKW - ensure we don't alert the player every time they use energy if they only have 1 energybank
 	//[player setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([player status] == STATUS_IN_FLIGHT))];
-	if(EXPECT([PLAYER status] == STATUS_IN_FLIGHT))
+	if(EXPECT([player status] == STATUS_IN_FLIGHT))
 	{
-		if(sEnergyBanks > 1)
+		if(n_bars > 1)
 		{
 			energyCritical = energy < 1.0 ;
 		}
@@ -1802,7 +1806,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		{
 			energyCritical = energy < 0.8;
 		}
-		[PLAYER setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
+		[player setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
 	}
 	
 	if (drawSurround)
@@ -1812,11 +1816,11 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	
-	bankHeight = siz.height / sEnergyBanks;
+	bankHeight = siz.height / n_bars;
 	// draw energy banks	
 	NSSize barSize = NSMakeSize(siz.width, bankHeight - 2.0);		// leave a gap between bars
 	GLfloat midBank = bankHeight / 2.0f;
-	bankY = y - (sEnergyBanks - 1) * midBank - 1.0;
+	bankY = y - (n_bars - 1) * midBank - 1.0;
 	
 	// avoid constant colour switching...
 	if (labelled)
@@ -1824,16 +1828,16 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		GLColorWithOverallAlpha(green_color, alpha);
 		GLfloat labelStartX = x + 0.5f * barSize.width + 3.0f;
 		NSSize labelSize = NSMakeSize(9.0, (bankHeight < 18.0)? bankHeight : 18.0);
-		for (i = 0; i < sEnergyBanks; i++)
+		for (i = 0; i < n_bars; i++)
 		{
-			OODrawString([NSString stringWithFormat:@"E%x", sEnergyBanks - i], labelStartX, bankY - midBank, z1, labelSize);
+			OODrawString([NSString stringWithFormat:@"E%x", n_bars - i], labelStartX, bankY - midBank, z1, labelSize);
 			bankY += bankHeight;
 		}
 	}
 	
 	GLColorWithOverallAlpha((energyCritical ? red_color : yellow_color), alpha);	
-	bankY = y - (sEnergyBanks - 1) * midBank;
-	for (i = 0; i < sEnergyBanks; i++)
+	bankY = y - (n_bars - 1) * midBank;
+	for (i = 0; i < n_bars; i++)
 	{
 		if (energy > 1.0)
 		{
