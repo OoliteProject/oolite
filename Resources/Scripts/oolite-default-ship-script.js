@@ -36,7 +36,7 @@ this.name			= "oolite-default-ship-script";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007-2013 the Oolite team.";
 this.description	= "Standard script for ships.";
-this.version		= "1.77";
+this.version		= "1.77.1";
 
 
 // launch_actions handled on shipSpawned(). For parity with 1.65, launch_actions don’t fire for the main station.

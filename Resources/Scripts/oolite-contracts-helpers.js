@@ -37,7 +37,7 @@ this.name			= "oolite-contracts-helpers";
 this.author			= "cim";
 this.copyright		= "© 2012-2013 the Oolite team.";
 this.description	= "Helper functions for various contracts.";
-this.version		= "1.77";
+this.version		= "1.77.1";
 
 // returns a string containing the necessary number of "hair spaces" to
 // pad the currentText string to the specified length in 'em'

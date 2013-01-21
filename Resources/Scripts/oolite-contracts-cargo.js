@@ -37,7 +37,7 @@ this.name			= "oolite-contracts-cargo";
 this.author			= "cim";
 this.copyright		= "© 2012-2013 the Oolite team.";
 this.description	= "Cargo delivery contracts.";
-this.version		= "1.77";
+this.version		= "1.77.1";
 
 /**** Configuration options and API ****/
 

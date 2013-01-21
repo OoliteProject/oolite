@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 this.name			= "oolite-constrictor-hunt";
 this.author			= "Eric Walch";
 this.copyright		= "© 2008-2013 the Oolite team.";
-this.version		= "1.77";
+this.version		= "1.77.1";
 
 
 this._cleanUp = function ()

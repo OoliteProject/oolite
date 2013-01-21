@@ -36,7 +36,7 @@
 this.name			= "oolite-cloaking-device-pod";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007-2013 the Oolite team.";
-this.version		= "1.77";
+this.version		= "1.77.1";
 
 
 this.shipWasScooped = function (scooper)

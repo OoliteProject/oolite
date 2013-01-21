@@ -36,6 +36,6 @@ this.name			= "oolite-default-effect-script";
 this.author			= "cim";
 this.copyright		= "© 2012-2013 the Oolite team.";
 this.description	= "Standard script for effects.";
-this.version		= "1.77";
+this.version		= "1.77.1";
 
 // this script does not define default behaviours for any handlers.

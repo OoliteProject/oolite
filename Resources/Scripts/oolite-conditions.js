@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 this.name			= "oolite-conditions";
 this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
-this.version		= "1.77";
+this.version		= "1.77.1";
 
 
 /* contexts: npc, purchase, scripted, newShip, (loading), (damage), (portable) */
