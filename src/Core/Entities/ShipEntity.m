@@ -8607,7 +8607,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([target isShip])
 	{
 		OOEntityStatus tstatus = [target status];
-		if (tstatus == STATUS_ENTERING_WITCHSPACE || tstatus == STATUS_IN_HOLD || tstatus == STATUS_DOCKED)
+		if (tstatus == STATUS_ENTERING_WITCHSPACE || tstatus == STATUS_IN_HOLD || tstatus == STATUS_DOCKED || tstatus == STATUS_DEAD)
+        // 2013-01-13, Eric: added STATUS_DEAD because I keep seeing ships locked on dead ships in attack mode.
 		{
 			return NO;
 		}
