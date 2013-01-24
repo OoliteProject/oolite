@@ -45,7 +45,7 @@ $(LIBJS_BUILD_STAMP): $(LIBJS_CONFIG_STAMP)
 	$(MAKE) -C $(LIBJS_BUILD_DIR) $(LIBJS_BUILD_FLAGS)
 	touch $@
 
-$(LIBJS_CONFIG_STAMP):
+$(LIBJS_CONFIG_STAMP): LIBJS_SRC
 	@echo
 	@echo "Configuring Javascript library..."
 	@echo
