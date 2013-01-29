@@ -290,7 +290,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 				{
 					errorString = [@"    " stringByAppendingString:[errorString substringFromIndex:1]];
 				}
-				OOLog(@"verifyOXP.plist.parseError", errorString);
+				OOLog(@"verifyOXP.plist.parseError", @"%@", errorString);
 			}
 			OOLogOutdent();
 		}

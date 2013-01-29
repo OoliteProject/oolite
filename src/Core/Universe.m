@@ -5725,7 +5725,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			
 			update_stage = @"update:entity";
 			NSMutableSet *zombies = nil;
-			OOLog(@"universe.profile.update",update_stage);
+			OOLog(@"universe.profile.update", @"%@", update_stage);
 			for (i = 0; i < ent_count; i++)
 			{
 				Entity *thing = my_entities[i];
@@ -5801,7 +5801,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			
 			// Maintain x/y/z order lists
 			update_stage = @"updating linked lists";
-			OOLog(@"universe.profile.update",update_stage);
+			OOLog(@"universe.profile.update", @"%@", update_stage);
 			for (i = 0; i < ent_count; i++)
 			{
 				[my_entities[i] updateLinkedLists];
@@ -5810,7 +5810,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			// detect collisions and light ships that can see the sun
 			
 			update_stage = @"collision and shadow detection";
-			OOLog(@"universe.profile.update",update_stage);
+			OOLog(@"universe.profile.update", @"%@", update_stage);
 			[self filterSortedLists];
 			[self findCollisionsAndShadows];
 			
@@ -5840,7 +5840,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		// dispose of the non-mutable copy and everything it references neatly
 		update_stage = @"clean up";
-		OOLog(@"universe.profile.update",update_stage);
+		OOLog(@"universe.profile.update", @"%@", update_stage);
 		for (i = 0; i < ent_count; i++)
 		{
 			[my_entities[i] release];	// explicitly release each one
