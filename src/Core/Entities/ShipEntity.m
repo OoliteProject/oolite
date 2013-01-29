@@ -1211,7 +1211,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (GLfloat)doesHitLine:(Vector)v0: (Vector)v1
+- (GLfloat) doesHitLine:(Vector)v0 :(Vector)v1
 {
 	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
 	Vector u1 = vector_between(position, v1);
@@ -1221,7 +1221,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (GLfloat) doesHitLine:(Vector)v0: (Vector)v1 :(ShipEntity **)hitEntity
+- (GLfloat) doesHitLine:(Vector)v0 :(Vector)v1 :(ShipEntity **)hitEntity
 {
 	if (hitEntity)
 		hitEntity[0] = (ShipEntity*)nil;
@@ -1262,7 +1262,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (GLfloat)doesHitLine:(Vector)v0: (Vector)v1 withPosition:(Vector)o andIJK:(Vector)i :(Vector)j :(Vector)k
+- (GLfloat)doesHitLine:(Vector)v0 :(Vector)v1 withPosition:(Vector)o andIJK:(Vector)i :(Vector)j :(Vector)k
 {
 	Vector u0 = vector_between(o, v0);	// relative to origin of model / octree
 	Vector u1 = vector_between(o, v1);

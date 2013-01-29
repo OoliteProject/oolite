@@ -149,7 +149,7 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 }
 
 
-+ (BOOL) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData width:(GLuint *)textureWidth height:(GLuint *)textureHeight
++ (BOOL) getCloudTextureNameFor:(OOColor*)color :(GLfloat)impress :(GLfloat)bias intoData:(unsigned char **)textureData width:(GLuint *)textureWidth height:(GLuint *)textureHeight
 {
 	int					texture_h = PROC_TEXTURE_SIZE;
 	int					texture_w = PROC_TEXTURE_SIZE;

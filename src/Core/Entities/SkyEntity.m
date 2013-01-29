@@ -52,7 +52,7 @@ MA 02110-1301, USA.
 
 @implementation SkyEntity
 
-- (id) initWithColors:(OOColor *) col1:(OOColor *) col2 andSystemInfo:(NSDictionary *) systemInfo
+- (id) initWithColors:(OOColor *)col1 :(OOColor *)col2 andSystemInfo:(NSDictionary *)systemInfo
 {
 	OOSkyDrawable			*skyDrawable;
 	float					clusterChance,

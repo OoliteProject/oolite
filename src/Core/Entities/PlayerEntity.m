@@ -128,9 +128,9 @@ static GLfloat		sBaseMass = 0.0;
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
 // Cargo & passenger contracts
-- (NSArray*) contractsListForScriptingFromArray:(NSArray *) contracts_array forCargo:(BOOL)forCargo;
+- (NSArray*) contractsListForScriptingFromArray:(NSArray *)contractsArray forCargo:(BOOL)forCargo;
 
-- (void) prepareMarkedDestination:(NSMutableDictionary *)markers:(NSDictionary *)marker;
+- (void) prepareMarkedDestination:(NSMutableDictionary *)markers :(NSDictionary *)marker;
 
 - (void) witchStart;
 - (void) witchJumpTo:(Random_Seed)sTo misjump:(BOOL)misjump;
@@ -6149,7 +6149,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) prepareMarkedDestination:(NSMutableDictionary *)markers:(NSDictionary *)marker
+- (void) prepareMarkedDestination:(NSMutableDictionary *)markers :(NSDictionary *)marker
 {
 	NSNumber *key = [NSNumber numberWithInt:[marker oo_intForKey:@"system"]];
 	NSMutableArray *list = [markers objectForKey:key];
