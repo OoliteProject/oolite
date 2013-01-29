@@ -96,7 +96,10 @@ static BOOL	isHitByOctree(Octree_details axialDetails, Octree_details otherDetai
 		_data = [data copy];
 		_radius = radius;
 		
-		_nodeCount = [_data length] / sizeof *_octree;
+		NSUInteger nodeCount = [_data length] / sizeof *_octree;
+		NSParameterAssert(nodeCount < UINT32_MAX);
+		_nodeCount = (uint32_t)nodeCount;
+		
 		_octree = [_data bytes];
 		
 		_collisionOctree = calloc(1, _nodeCount);

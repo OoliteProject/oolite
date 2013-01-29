@@ -1079,7 +1079,7 @@ static NSString *NewRandomDigrams(void)
 	unsigned length = (gen_rnd_number() % 4) + 1;
 	if ((gen_rnd_number() % 5) < ((length == 1) ? 3 : 1))  ++length;	// Make two-letter names rarer and 10-letter names happen sometimes
 	NSString *digrams = [[UNIVERSE descriptions] objectForKey:@"digrams"];
-	unsigned count = [digrams length] / 2;
+	NSUInteger count = [digrams length] / 2;
 	NSMutableString *name = [NSMutableString stringWithCapacity:length * 2];
 	
 	for (unsigned i = 0; i != length; ++i)
