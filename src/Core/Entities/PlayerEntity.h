@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
-@class OOJoystickManager, OOTexture;
+@class OOJoystickManager, OOTexture, OOLaserShotEntity;
 
 #ifndef FEATURE_REQUEST_5496
 #define FEATURE_REQUEST_5496 1
@@ -555,6 +555,7 @@ typedef enum
 	WormholeEntity			*wormhole;
 
 	ShipEntity				*demoShip; // Used while docked to maintain demo ship rotation.
+	OOLaserShotEntity *lastShot; // used to correctly position laser shots on first frame of firing
 }
 
 + (PlayerEntity *) sharedPlayer;
@@ -880,6 +881,8 @@ typedef enum
 - (void) addMissionDestinationMarker:(NSDictionary *)marker;
 - (BOOL) removeMissionDestinationMarker:(NSDictionary *)marker;
 - (NSMutableDictionary*) getMissionDestinations;
+
+- (void) setLastShot:(OOLaserShotEntity *)shot;
 
 @end
 

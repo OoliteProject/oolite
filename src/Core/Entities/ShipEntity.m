@@ -10341,6 +10341,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	
 	[UNIVERSE addEntity:shot];
+	if ([self isPlayer])
+	{
+		[(PlayerEntity *)self setLastShot:shot];
+	}
 	
 	[self resetShotTime];
 

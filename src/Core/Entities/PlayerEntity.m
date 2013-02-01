@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "ProxyPlayerEntity.h"
 #import "OOQuiriumCascadeEntity.h"
+#import "OOLaserShotEntity.h"
 #import "OOMesh.h"
 
 #import "OOMaths.h"
@@ -1464,6 +1465,7 @@ static GLfloat		sBaseMass = 0.0;
 	aft_weapon_temp			= 0.0f;
 	port_weapon_temp		= 0.0f;
 	starboard_weapon_temp	= 0.0f;
+	lastShot = nil;
 	forward_shot_time		= INITIAL_SHOT_TIME;
 	aft_shot_time			= INITIAL_SHOT_TIME;
 	port_shot_time			= INITIAL_SHOT_TIME;
@@ -2346,6 +2348,13 @@ static GLfloat		sBaseMass = 0.0;
 			bounding_box_add_vector(&totalBoundingBox, sebb.max);
 			bounding_box_add_vector(&totalBoundingBox, sebb.min);
 		}
+	}
+	// and one thing which isn't a subentity. Fixes bug with
+	// mispositioned laser beams particularly noticeable on side view.
+	if (lastShot != nil)
+	{
+		[lastShot update:0.0];
+		lastShot = nil;
 	}
 	
 	STAGE_TRACKING_END
@@ -9603,6 +9612,17 @@ else _dockTarget = NO_TARGET;
 	return missionDestinations;
 }
 
+
+- (void) setLastShot:(OOLaserShotEntity *)shot
+{
+	lastShot = shot; 
+/* No need to retain it, since the universe will be for as long as we
+ * reference it. This is needed because the laser shot update routine
+ * is used to correct its position relative to the ship, but isn't
+ * called by Universe on the frame the shot is added (because updates
+ * never are)
+ */
+}
 
 #ifndef NDEBUG
 - (void)dumpSelfState
