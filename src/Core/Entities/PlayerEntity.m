@@ -5224,7 +5224,14 @@ static GLfloat		sBaseMass = 0.0;
 		// 'leaving with those guns were you sir?'
 		[self markAsOffender:[UNIVERSE legalStatusOfManifest:shipCommodityData] withReason:kOOLegalStatusReasonIllegalExports];
 	}
+	OOGUIScreenID	oldScreen = gui_screen;
+	gui_screen = GUI_SCREEN_MAIN;
+	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+
 	[self loadCargoPods];
+	// do not do anything that calls JS handlers between now and calling
+	// [station launchShip] below, or the cargo returned by JS may be off
+	// CIM - 3.2.2012
 	
 	// clear the way
 	[station autoDockShipsOnApproach];
@@ -5237,9 +5244,6 @@ static GLfloat		sBaseMass = 0.0;
 	scanner_zoom_rate = 0.0f;
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	
-	OOGUIScreenID	oldScreen = gui_screen;
-	gui_screen = GUI_SCREEN_MAIN;
-	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayText:NO];
