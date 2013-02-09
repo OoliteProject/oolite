@@ -15,6 +15,7 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * Bug with manifest checks in guiScreenChanged when launching fixed
 * Reasonably skilled pilots will now remember to look where they're
   going when fleeing
+* Shields now also protect subentities
 
 -------------------------------------------------------------------------------
 

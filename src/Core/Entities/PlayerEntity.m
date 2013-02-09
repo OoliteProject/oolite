@@ -4410,6 +4410,56 @@ static GLfloat		sBaseMass = 0.0;
 	return [self hasEquipmentItem:@"EQ_ENERGY_BOMB"];
 }
 
+// override ShipEntity definition to ensure that 
+// if shields are still up, always hit the main entity and take the damage
+// on the shields
+- (GLfloat) doesHitLine:(Vector)v0 :(Vector)v1 :(ShipEntity **)hitEntity
+{
+	if (hitEntity)
+		hitEntity[0] = (ShipEntity*)nil;
+	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
+	Vector u1 = vector_between(position, v1);
+	Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward));	// in ijk vectors
+	Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
+	GLfloat hit_distance = [octree isHitByLine:w0 :w1];
+	if (hit_distance)
+	{
+		if (hitEntity)
+			hitEntity[0] = self;
+	}
+
+	bool shields = false;
+	if ((w0.z >= 0 && forward_shield > 1) || (w0.z <= 0 && aft_shield > 1))
+	{
+		shields = true;
+	}
+	
+	NSEnumerator	*subEnum = nil;
+	ShipEntity		*se = nil;
+	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
+	{
+		Vector p0 = [se absolutePositionForSubentity];
+		Triangle ijk = [se absoluteIJKForSubentity];
+		u0 = vector_between(p0, v0);
+		u1 = vector_between(p0, v1);
+		w0 = resolveVectorInIJK(u0, ijk);
+		w1 = resolveVectorInIJK(u1, ijk);
+		
+		GLfloat hitSub = [se->octree isHitByLine:w0 :w1];
+		if (hitSub && (hit_distance == 0 || hit_distance > hitSub))
+		{	
+			hit_distance = hitSub;
+			if (hitEntity && !shields)
+			{
+				*hitEntity = se;
+			}
+		}
+	}
+	
+	return hit_distance;
+}
+
+
 
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
