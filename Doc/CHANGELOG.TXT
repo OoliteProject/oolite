@@ -9,6 +9,12 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * guiScreenChanged now fires on transition when launching
 * Yaw is now also zeroed when launching from a station
 * Autopilot status reset on death
+* Regression: HUD n_bars now works again
+* Bug with NPCs continuing to lock on dead ships fixed
+* Laser shot positioning fixed
+* Bug with manifest checks in guiScreenChanged when launching fixed
+* Reasonably skilled pilots will now remember to look where they're
+  going when fleeing
 
 -------------------------------------------------------------------------------
 

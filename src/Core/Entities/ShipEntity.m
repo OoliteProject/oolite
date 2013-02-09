@@ -4877,6 +4877,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
 
+	// remember to look where you're going?
+	if (accuracy >= COMBAT_AI_ISNT_AWFUL && [self hasProximityAlertIgnoringTarget:YES])
+	{
+		[self avoidCollision];
+	}
+
+
 }
 
 
@@ -4939,7 +4946,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	if (cloakAutomatic) [self activateCloakingDevice];
-	
+
+	// remember to look where you're going?
+	if (accuracy >= COMBAT_AI_ISNT_AWFUL && [self hasProximityAlertIgnoringTarget:YES])
+	{
+		[self avoidCollision];
+	}
+
 }
 
 
