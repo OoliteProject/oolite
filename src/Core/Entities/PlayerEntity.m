@@ -4907,6 +4907,14 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (other == nil || [other isSubEntity])  return;
 	
+	if (other == [UNIVERSE station])
+	{
+		// there is no way the player can destroy the main station
+		// and so the explosion will be cancelled, so there shouldn't
+		// be a kill award
+		return;
+	}
+
 	OOCreditsQuantity	score = 10 * [other bounty];
 	OOScanClass			killClass = [other scanClass]; // **tgape** change (+line)
 	BOOL				killAward = [other countsAsKill];
@@ -4929,7 +4937,7 @@ static GLfloat		sBaseMass = 0.0;
 			}
 		}
 	}
-	
+
 	credits += score;
 	
 	if (score > 9)

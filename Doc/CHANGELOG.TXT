@@ -16,6 +16,7 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * Reasonably skilled pilots will now remember to look where they're
   going when fleeing
 * Shields now also protect subentities
+* Edge-case for damage to main station fixed
 
 -------------------------------------------------------------------------------
 

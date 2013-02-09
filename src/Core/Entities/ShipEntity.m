@@ -11538,12 +11538,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[self noteTakingDamage:amount from:other type:damageType];
 		if (cascade) energy = 0.0; // explicit set energy to zero in case an oxp raised the energy in previous line.
 	}
-	
+
 	// die if I'm out of energy
 	if (energy <= 0.0)
 	{
-		if (hunter != nil)  [hunter noteTargetDestroyed:self];
-		[self getDestroyedBy:other damageType:damageType];
+		// backup check just in case scripts have reduced energy
+		if (self != [UNIVERSE station]) 
+		{
+			if (hunter != nil)  [hunter noteTargetDestroyed:self];
+			[self getDestroyedBy:other damageType:damageType];
+		}
 	}
 	else
 	{
