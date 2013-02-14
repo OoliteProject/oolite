@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 
 */
 
-
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
 #import "ShipEntityScriptMethods.h"
@@ -426,6 +425,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	OOJS_PROFILE_EXIT
 }
+
 
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) shipDict
@@ -1101,7 +1101,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (NSArray *)subEntities
+- (NSArray *) subEntities
 {
 	return [[subEntities copy] autorelease];
 }
@@ -11196,7 +11196,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[self setStatus:STATUS_BEING_SCOOPED];
 	[self addTarget:other];
 	[self setOwner:other];
-	[self checkScanner];
+	[self checkScanner]; // should we make this an all rather than first 16? - CIM
 	unsigned i;
 	ShipEntity *scooper;
 	for (i = 0; i < n_scanned_ships ; i++)
@@ -11345,7 +11345,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// probably already happened, but some may have acquired it
 	// after the scooping started, and they might get stuck in a scooping
 	// attempt as a result
-	[self checkScanner];
+	[self checkScanner]; // should we make this an all rather than first 16? - CIM
 	unsigned i;
 	ShipEntity *scooper;
 	for (i = 0; i < n_scanned_ships ; i++)

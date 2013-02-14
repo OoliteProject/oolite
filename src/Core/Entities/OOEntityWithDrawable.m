@@ -91,17 +91,28 @@ MA 02110-1301, USA.
 				OOVisualEffectEntity* veself = (OOVisualEffectEntity*)self;
 				clipradius = [veself frustumRadius];
 			}
-			if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:clipradius])
+			// don't bother with frustum culling within 1km, as potential for
+			// problems with floating point inaccuracy causing unwanted disappearance
+			// maybe fix http://aegidian.org/bb/viewtopic.php?f=3&t=13619
+			// - CIM
+			if (cam_zero_distance > 1000000)
 			{
-				return;
+				if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:clipradius])
+				{
+					return;
+				}
 			}
 		} 
 		else 
 		{
-			// check correct sub-entity position
-			if (![UNIVERSE viewFrustumIntersectsSphereAt:[self absolutePositionForSubentity] withRadius:[self collisionRadius]])
+			// don't bother with frustum culling within 1km, as above - CIM
+			if (cam_zero_distance > 1000000)
 			{
-				return;
+				// check correct sub-entity position
+				if (![UNIVERSE viewFrustumIntersectsSphereAt:[self absolutePositionForSubentity] withRadius:[self collisionRadius]])
+				{
+					return;
+				}
 			}
 		}
 	}	
