@@ -1936,7 +1936,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		maxFlightSpeed = 300;
 	}
 
-	if (![self isSubEntity])
+	bool isSubEnt = [self isSubEntity];
+
+	if (!isSubEnt)
 	{
 		if (scanClass == CLASS_NOT_SET)
 		{
@@ -2056,7 +2058,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// temperature factors
-	if(![self isSubEntity])
+	if(!isSubEnt)
 	{
 		double external_temp = 0.0;
 		OOSunEntity *sun = [UNIVERSE sun];
@@ -2107,7 +2109,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
-	if (![self isSubEntity])
+	if (!isSubEnt)
 	{
 
 		// cloaking device
@@ -2282,6 +2284,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				break;
 
 			case BEHAVIOUR_IDLE :
+				if (isSubEnt)
+				{
+					applyThrust = NO;
+				}
 				[self behaviour_idle: delta_t];
 				break;
 
@@ -2413,6 +2419,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				break;
 		}
 
+		// generally the checks above should be turning this *off* for subents
 		if (applyThrust)
 		{
 			[self applyAttitudeChanges:delta_t];
@@ -2430,7 +2437,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 		
-		if (![self isSubEntity])
+		if (!isSubEnt)
 		{
 		// update destination position for escorts
 			[self refreshEscortPositions];

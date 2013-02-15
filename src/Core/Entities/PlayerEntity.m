@@ -3123,6 +3123,8 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+/* TODO post 1.78: profiling suggests this gets called often enough
+ * that it's worth caching the result per-frame - CIM */
 - (Vector) viewpointPosition
 {
 	Vector		viewpoint = position;

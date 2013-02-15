@@ -1792,7 +1792,8 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	OOJS_PROFILE_EXIT_VOID
 }
 
-
+/* profiling suggests this function takes a lot of time - almost all
+ * the overhead of setting up a new ship is here. - CIM */
 - (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(OOMeshVertexCount)v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup
 {
 	OOJS_PROFILE_ENTER
