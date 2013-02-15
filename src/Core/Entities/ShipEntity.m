@@ -5254,17 +5254,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (turret_owner && turret_target && [turret_owner hasHostileTarget])
 	{
 		aim = [self ballTrackLeadingTarget:delta_t atTarget:turret_target];
-	}
-	if (aim > -1.0) // potential target
-	{
-		Vector p = vector_subtract([turret_target position], [turret_owner position]);
-		double cr = [turret_owner collisionRadius];
-		
-		if (aim > .95)
+		if (aim > -1.0) // potential target
 		{
-			[self fireTurretCannon:magnitude(p) - cr];
+			Vector p = vector_subtract([turret_target position], [turret_owner position]);
+			double cr = [turret_owner collisionRadius];
+			
+			if (aim > .95)
+			{
+				[self fireTurretCannon:magnitude(p) - cr];
+			}
+			return;
 		}
-		return;
 	}
 	
 	// can't fire on primary target; track secondary targets instead

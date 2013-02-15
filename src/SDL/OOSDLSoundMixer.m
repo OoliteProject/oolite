@@ -72,6 +72,7 @@ static OOSoundMixer *sSingleton = nil;
 	if (!OK)
 	{
 		[super release];
+// static analyser complains about this next line; probably nothing - CIM
 		self = nil;
 	}
 	else

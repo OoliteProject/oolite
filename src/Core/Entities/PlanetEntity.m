@@ -406,11 +406,13 @@ static const BaseFace kTexturedFaces[][3] =
 		{
 			[self loadTexture:textureSpec];
 		}
-		if (textureSpec == nil && !procGen && !atmo)
+
+// CIM: nothing actually uses textureSpec after the assignment below, so skip it
+/*		if (textureSpec == nil && !procGen && !atmo)
 		{
 			// Moons use metal.png by default.
 			textureSpec = OOTextureSpecFromObject(@"metal.png", nil);
-		}
+			} */
 		
 		NSString *seedStr = [dict oo_stringForKey:@"seed"];
 		if (seedStr != nil)
