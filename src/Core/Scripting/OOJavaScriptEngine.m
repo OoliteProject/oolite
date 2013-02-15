@@ -2226,6 +2226,11 @@ NSDictionary *OOJSDictionaryFromJSObject(JSContext *context, JSObject *object)
 		}
 		else if (JSID_IS_INT(thisID))
 		{
+			// this causes problems with native functions which expect string keys
+			// e.g. in mission.runScreen with the 'choices' parameter
+			// should this instead be making the objKey a string?
+			// is there anything that relies on the current behaviour?
+			// - CIM 15/2/13
 			objKey = [NSNumber numberWithInt:JSID_TO_INT(thisID)];
 		}
 		else

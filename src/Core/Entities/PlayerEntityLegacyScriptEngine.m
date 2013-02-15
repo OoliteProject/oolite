@@ -1883,6 +1883,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionChoicesDictionary:(NSDictionary *)choicesDict
 {
+	unsigned i;
+	bool keysOK = true;
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	// TODO: MORE STUFF HERE
 	//
@@ -1902,7 +1904,24 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		end_row = 27;
 	}
 
-	NSArray *choiceKeys = [[choicesDict allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+	NSArray *choiceKeys = [choicesDict allKeys];
+	/* Guard against potential for numeric keys in dictionary, which
+	 * would cause an unhandled exception in the sorter. See
+	 * OOJavaScriptEngine::OOJSDictionaryFromJSObject for further
+	 * thoughts. - CIM 15/2/13 */
+	for (i=0; i < [choiceKeys count]; i++)
+	{
+		if (![[choiceKeys objectAtIndex:i] isKindOfClass:[NSString class]])
+		{
+			OOLog(@"test.script.error",@"Choices list in mission screen has non-string value %@",[choiceKeys objectAtIndex:i]);
+			keysOK = false;
+		}
+	}	
+	if (keysOK)
+	{
+		// only try this if they're all strings
+		choiceKeys = [choiceKeys sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+	}
 	
 	[gui setText:@"" forRow:end_row];				// clears out the 'Press spacebar' message
 	[gui setKey:@"" forRow:end_row];					// clears the key to enable pollDemoControls to check for a selection
