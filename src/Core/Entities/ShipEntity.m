@@ -11347,6 +11347,17 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (max_cargo && [cargo count] >= [self maxAvailableCargoSpace])  [shipAI message:@"HOLD_FULL"];
 	}
 	[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other]; // always fire, even without commodity.
+
+	// if shipScoopedOther does something strange to the object, we must
+	// then remove it from the hold, or it will be over-retained
+	if ([other status] != STATUS_IN_HOLD) 
+	{
+		if ([cargo containsObject:other])
+		{
+			[cargo removeObject:other];
+		}
+	}
+
 	[[other collisionArray] removeObject:self];			// so it can't be scooped twice!
 	// make sure other ships trying to scoop it lose it
 	// probably already happened, but some may have acquired it
