@@ -5968,7 +5968,8 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		[previousCondition oo_setInteger:behaviour forKey:@"behaviour"];
 		if ([self primaryTarget] != nil)
 		{
-			[previousCondition setObject:[self primaryTarget] forKey:@"primaryTarget"];
+			// must use the weak ref here to prevent potential over-retention
+			[previousCondition setObject:[[self primaryTarget] weakRetain] forKey:@"primaryTarget"];
 		}
 		[previousCondition oo_setFloat:desired_range forKey:@"desired_range"];
 		[previousCondition oo_setFloat:desired_speed forKey:@"desired_speed"];
@@ -5988,14 +5989,14 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 - (void) resumePostProximityAlert
 {
 	if (!previousCondition)  return;
-	
+
 	behaviour =		[previousCondition oo_intForKey:@"behaviour"];
 	[_primaryTarget release];
-	_primaryTarget =	[[previousCondition objectForKey:@"primaryTarget"] weakRetain];
+	_primaryTarget =	[previousCondition objectForKey:@"primaryTarget"];
 	desired_range =	[previousCondition oo_floatForKey:@"desired_range"];
 	desired_speed =	[previousCondition oo_floatForKey:@"desired_speed"];
 	destination =	[previousCondition oo_vectorForKey:@"destination"];
-	
+
 	[previousCondition release];
 	previousCondition = nil;
 	frustration = 0.0;
@@ -8075,7 +8076,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 	@finally
 	{
-		if (self != PLAYER)  [UNIVERSE removeEntity:self];
+		if (self != PLAYER)
+		{
+			[UNIVERSE removeEntity:self];
+		}
 	}
 }
 
