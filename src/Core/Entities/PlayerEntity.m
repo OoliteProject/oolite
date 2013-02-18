@@ -5464,6 +5464,17 @@ static GLfloat		sBaseMass = 0.0;
 	return YES;
 }
 
+- (void) setJumpType:(BOOL)isGalacticJump
+{
+	if (isGalacticJump)
+	{
+		galactic_witchjump = YES;
+	}
+	else
+	{
+		galactic_witchjump = NO;
+	}
+}
 
 - (double) hyperspaceJumpDistance
 {

@@ -17,6 +17,10 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
   going when fleeing
 * Shields now also protect subentities
 * Edge-case for damage to main station fixed
+* Frustum culling over-enthusiasm fixed
+* Some 'ghost' ship bugs fixed
+* Fix mission screen crash with numeric choice keys
+* Fix bug with cancelling galactic jump by script
 
 -------------------------------------------------------------------------------
 

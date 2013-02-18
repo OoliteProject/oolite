@@ -1079,6 +1079,7 @@ static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc
 	if ([player hasHyperspaceMotor] && [player status] == STATUS_WITCHSPACE_COUNTDOWN)
 	{
 		[player cancelWitchspaceCountdown];
+		[player setJumpType:false];
 		cancelled = YES;
 	}
 
