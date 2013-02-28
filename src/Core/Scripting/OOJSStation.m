@@ -558,15 +558,23 @@ static JSBool StationSetInterface(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	title = OOStringFromJSValue(context, value);
+	if (title == nil || [title length] == 0) 
+	{
+		OOJSReportBadArguments(context, @"Station", @"setInterface", MIN(argc, 1U), OOJS_ARGV, NULL, @"key [, definition]; if definition is set, 'title' property must be a non-empty string.");
+		return NO;
+	}
 
 	// get category with default
 	if (JS_GetProperty(context, params, "category", &value) == JS_FALSE || JSVAL_IS_VOID(value))
 	{
-		category = [NSString stringWithString:DESC(@"interfaces-unspecified-category")];
+		category = [NSString stringWithString:DESC(@"interfaces-category-uncategorised")];
 	}
 	else
 	{
 		category = OOStringFromJSValue(context, value);
+		if (category == nil || [category length] == 0) {
+			category = [NSString stringWithString:DESC(@"interfaces-category-uncategorised")];
+		}
 	}
 
 	// get and validate summary
@@ -576,6 +584,11 @@ static JSBool StationSetInterface(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	summary = OOStringFromJSValue(context, value);
+	if (summary == nil || [summary length] == 0) 
+	{
+		OOJSReportBadArguments(context, @"Station", @"setInterface", MIN(argc, 1U), OOJS_ARGV, NULL, @"key [, definition]; if definition is set, 'summary' property must be a non-empty string.");
+		return NO;
+	}
 
 	// get and validate callback
 	if (JS_GetProperty(context, params, "callback", &callback) == JS_FALSE || JSVAL_IS_VOID(callback))
