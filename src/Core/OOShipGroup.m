@@ -394,9 +394,12 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 	return foundIt;
 }
 
-/* TODO post-1.78: just return _count from this function in deployment
- * builds, as profiling indicates this is a noticeable contributor to
- * ShipEntity::update time - CIM */
+/* TODO post-1.78: profiling indicates this is a noticeable
+ * contributor to ShipEntity::update time. Consider optimisation: may
+ * be possible to return _count if invalidation of weakref and group
+ * removal in ShipEntity::dealloc keeps the data consistent anyway -
+ * CIM */
+
 - (NSUInteger) count
 {
 	NSEnumerator		*memberEnum = nil;

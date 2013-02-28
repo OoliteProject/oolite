@@ -291,8 +291,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSString* contract_cargo_desc = [contract_info oo_stringForKey:CARGO_KEY_DESCRIPTION];
 		int dest = [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		int dest_eta = [contract_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
-		
-		int premium = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_PREMIUM];
+	
+		// no longer needed
+		// int premium = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_PREMIUM];
 		int fee = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_FEE];
 		
 		int contract_cargo_type = [contract_info oo_intForKey:CARGO_KEY_TYPE];
@@ -320,9 +321,12 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 						[shipCommodityData release];
 					shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 					// pay the premium and fee
-					credits += fee + premium;
+					// credits += fee + premium;
+					// not any more: all contracts initially awarded by JS, so fee
+					// is now all that needs to be paid - CIM
 					
-					[result appendFormatLine:DESC(@"cargo-delivered-okay-@-@"), contract_cargo_desc, OOCredits(fee + premium)];
+					credits += fee;
+					[result appendFormatLine:DESC(@"cargo-delivered-okay-@-@"), contract_cargo_desc, OOCredits(fee)];
 					
 					[contracts removeObjectAtIndex:i--];
 					// repute++
@@ -342,9 +346,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 						[manifest replaceObjectAtIndex:contract_cargo_type withObject:commodityInfo];
 						[shipCommodityData release];
 						shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-						// pay the premium and fee
+						// pay the fee
 						int shortfall = 100 - percent_delivered;
-						int payment = percent_delivered * (fee + premium) / 100.0;
+						int payment = percent_delivered * (fee) / 100.0;
 						credits += payment;
 						
 						[result appendFormatLine:DESC(@"cargo-delivered-short-@-@-d"), contract_cargo_desc, OOCredits(payment), shortfall];
