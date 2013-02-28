@@ -138,17 +138,28 @@ MA 02110-1301, USA.
 
 	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:17];
 	OOCommodityType cType;
+	NSString *commodityKey = nil;
 
 	NSArray *commodityKeys = [[NSArray alloc] initWithObjects:@"displayName",@"quantity",@"price",@"marketBasePrice",@"marketEcoAdjustPrice",@"marketEcoAdjustQuantity",@"marketBaseQuantity",@"marketMaskPrice",@"marketMaskQuantity",@"quantityUnit",nil];
+	// displayName not numeric, price and quantity already are
+	// have I missed an obvious "slice of array" function here? - CIM
+	NSArray *numericKeys = [[NSArray alloc] initWithObjects:@"marketBasePrice",@"marketEcoAdjustPrice",@"marketEcoAdjustQuantity",@"marketBaseQuantity",@"marketMaskPrice",@"marketMaskQuantity",@"quantityUnit",nil]; 
 	
 	for (cType=COMMODITY_FOOD; cType <= COMMODITY_ALIEN_ITEMS; cType++)
 	{
 		NSArray *marketLine = [localMarket objectAtIndex:cType];
 		NSMutableDictionary *commodity = [NSMutableDictionary dictionaryWithObjects:marketLine forKeys:commodityKeys];
+		NSEnumerator	*keyEnum = [numericKeys objectEnumerator];
+		while ((commodityKey = [keyEnum nextObject]))
+		{
+			// convert value to int from string
+			[commodity setObject:[NSNumber numberWithInt:[commodity oo_intForKey:commodityKey]] forKey:commodityKey];
+		}
 		[result setObject:commodity forKey:CommodityTypeToString(cType)];
 	}
 
 	[commodityKeys release];
+	[numericKeys release];
 
   return [NSDictionary dictionaryWithDictionary:result];
 }

@@ -22,6 +22,7 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * Fix mission screen crash with numeric choice keys
 * Fix bug with cancelling galactic jump by script
 * Fix bug in validation for station interface creation
+* Use correct types in JS Station.market object
 
 -------------------------------------------------------------------------------
 
