@@ -470,13 +470,13 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
 	int bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
 	int unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
-	
+
 	if (unknown > 0)
 		unknown = 7 - (market_rnd % unknown);
 	else
 		unknown = 7;
 	
-	return (good + unknown - 2 * bad) / 2;	// return a number from -7 to +7
+	return (good + unknown - 3 * bad) / 2;	// return a number from -7 to +7
 }
 
 
@@ -545,7 +545,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	else
 		unknown = 7;
 	
-	return (good + unknown - 2 * bad) / 2;	// return a number from -7 to +7
+	return (good + unknown - 3 * bad) / 2;	// return a number from -7 to +7
 }
 
 
@@ -614,7 +614,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	else
 		unknown = 7;
 	
-	return (good + unknown - 2 * bad) / 2;	// return a number from -7 to +7
+	return (good + unknown - 3 * bad) / 2;	// return a number from -7 to +7
 }
 
 

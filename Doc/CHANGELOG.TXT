@@ -23,6 +23,8 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * Fix bug with cancelling galactic jump by script
 * Fix bug in validation for station interface creation
 * Use correct types in JS Station.market object
+* Fix bug with docking with stations where dock is very slightly off-axis
+* Fix contract reputation calculations so that negative rep works properly
 
 -------------------------------------------------------------------------------
 
