@@ -91,11 +91,11 @@ MA 02110-1301, USA.
 				OOVisualEffectEntity* veself = (OOVisualEffectEntity*)self;
 				clipradius = [veself frustumRadius];
 			}
-			// don't bother with frustum culling within 1km, as potential for
-			// problems with floating point inaccuracy causing unwanted disappearance
-			// maybe fix http://aegidian.org/bb/viewtopic.php?f=3&t=13619
-			// - CIM
-			if (cam_zero_distance > 1000000)
+			// don't bother with frustum culling within/near collision radius, as
+			// potential for problems with floating point inaccuracy causing
+			// unwanted disappearance maybe fix
+			// http://aegidian.org/bb/viewtopic.php?f=3&t=13619 - CIM
+			if (cam_zero_distance > (clipradius+1000)*(clipradius+1000))
 			{
 				if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:clipradius])
 				{
@@ -106,7 +106,7 @@ MA 02110-1301, USA.
 		else 
 		{
 			// don't bother with frustum culling within 1km, as above - CIM
-			if (cam_zero_distance > 1000000)
+			if (cam_zero_distance > (collision_radius+1000)*(collision_radius+1000))
 			{
 				// check correct sub-entity position
 				if (![UNIVERSE viewFrustumIntersectsSphereAt:[self absolutePositionForSubentity] withRadius:[self collisionRadius]])

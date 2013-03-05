@@ -252,7 +252,7 @@ MA 02110-1301, USA.
 
 - (BOOL) isOffCentre
 {
-	if (fabs(position.x) + fabs(position.y) > 0.1f)
+	if (fabs(position.x) + fabs(position.y) > 5.0f)
 	{
 		return YES;
 	}
