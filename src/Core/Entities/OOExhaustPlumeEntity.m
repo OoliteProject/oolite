@@ -171,7 +171,7 @@ static OOTexture *sPlumeTexture = nil;
 	{
 		exhaust_factor = 1.0;
 	}
-	GLfloat i01 = -0.03 * hyper_fade;
+	GLfloat i01 = -0.00 * hyper_fade;
 	GLfloat i03 = -0.12 * exhaust_factor;
 	GLfloat i06 = -0.25 * exhaust_factor;
 	GLfloat i08 = -0.32 * exhaust_factor;
@@ -199,8 +199,8 @@ static OOTexture *sPlumeTexture = nil;
 	int i;
 	float r1;
 
-	f01.position = vector_subtract(zero.position, vk); // 1m out from zero
-//	f01.position = zero.position;
+//	f01.position = vector_subtract(zero.position, vk); // 1m out from zero
+	f01.position = zero.position;
 
 	ex_emissive[3] = flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = green_factor;	// diminish green part towards rear of exhaust
