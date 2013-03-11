@@ -3863,7 +3863,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (missiles) [self considerFiringMissile:delta_t];
 
 	if (cloakAutomatic) [self activateCloakingDevice];
-	[self fireMainWeapon:range];
 
 }
 
@@ -3910,7 +3909,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	flightYaw = 0.0;
-	
+
+	// probably only useful for Thargoids, except for the occasional opportunist
+	[self fireMainWeapon:[self rangeToPrimaryTarget]];
 	
 }
 
