@@ -4087,6 +4087,10 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	else
 	{
+		// check if we were cloaked before firing the missile - can't use
+		// cloaking_device_active directly becausefireMissilewithIdentifier: andTarget:
+		// will reset it in case passive cloak is set - Nikos 20130313
+		BOOL cloakedBeforeMissileFired = cloaking_device_active;
 		if (missile_status != MISSILE_STATUS_TARGET_LOCKED) return nil;
 		//  release this before creating it anew in fireMissileWithIdentifier
 		firedMissile = [self fireMissileWithIdentifier:identifier andTarget:[missile primaryTarget]];
@@ -4095,9 +4099,10 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			if (!replacingMissile) [self removeFromPylon:activeMissile];
 			[self playMissileLaunched];
-			if (cloaking_device_active && cloakPassive)
+			if (cloakedBeforeMissileFired && cloakPassive)
 			{
 				[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
+				[self playCloakingDeviceOff];
 			}
 		}
 	}
@@ -4372,6 +4377,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[self deactivateCloakingDevice];
 		[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
+		[self playCloakingDeviceOff];
 	}	
 	
 	return weaponFired;
