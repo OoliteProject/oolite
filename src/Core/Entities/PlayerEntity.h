@@ -710,6 +710,9 @@ typedef enum
 - (BOOL) fireEnergyBomb;
 - (ShipEntity *) launchMine:(ShipEntity *)mine;
 
+- (void) activateCloakingDevice;
+- (void) deactivateCloakingDevice;
+
 - (BOOL) weaponsOnline;
 - (void) setWeaponsOnline:(BOOL)newValue;
 

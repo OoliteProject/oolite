@@ -10792,6 +10792,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[UNIVERSE addEntity:bomb];	// STATUS_IN_FLIGHT, AI state GLOBAL
 	[bomb release];
 	
+	if (cloaking_device_active && cloakPassive)
+	{
+		[self deactivateCloakingDevice];
+	}
+	
 	if (self != PLAYER)	// get the heck out of here
 	{
 		[self addTarget:bomb];

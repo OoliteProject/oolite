@@ -1326,22 +1326,11 @@ static NSTimeInterval	time_last_frame;
 					{
 						if (!cloaking_device_active)
 						{
-							if ([self activateCloakingDevice])
-							{
-								[UNIVERSE addMessage:DESC(@"cloak-on") forCount:2];
-								[self playCloakingDeviceOn];
-							}
-							else
-							{
-								[UNIVERSE addMessage:DESC(@"cloak-low-juice") forCount:3];
-								[self playCloakingDeviceInsufficientEnergy];
-							}
+							[self activateCloakingDevice];
 						}
 						else
 						{
 							[self deactivateCloakingDevice];
-							[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
-							[self playCloakingDeviceOff];
 						}
 					}
 					cloak_pressed = YES;

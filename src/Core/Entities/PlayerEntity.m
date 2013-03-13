@@ -1642,7 +1642,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
 	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
 	
-	[self setCloaked:NO];
+	cloaking_device_active = NO;
 
 	demoShip = nil;
 	
@@ -4076,6 +4076,11 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (![self weaponsOnline])  return nil;
 	
+	// check if we were cloaked before firing the missile - can't use
+	// cloaking_device_active directly because fireMissilewithIdentifier: andTarget:
+	// will reset it in case passive cloak is set - Nikos 20130313
+	BOOL cloakedPriorToFiring = cloaking_device_active;
+	
 	launchingMissile = YES;
 	replacingMissile = NO;
 
@@ -4087,10 +4092,6 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	else
 	{
-		// check if we were cloaked before firing the missile - can't use
-		// cloaking_device_active directly becausefireMissilewithIdentifier: andTarget:
-		// will reset it in case passive cloak is set - Nikos 20130313
-		BOOL cloakedBeforeMissileFired = cloaking_device_active;
 		if (missile_status != MISSILE_STATUS_TARGET_LOCKED) return nil;
 		//  release this before creating it anew in fireMissileWithIdentifier
 		firedMissile = [self fireMissileWithIdentifier:identifier andTarget:[missile primaryTarget]];
@@ -4099,12 +4100,15 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			if (!replacingMissile) [self removeFromPylon:activeMissile];
 			[self playMissileLaunched];
-			if (cloakedBeforeMissileFired && cloakPassive)
-			{
-				[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
-				[self playCloakingDeviceOff];
-			}
 		}
+	}
+	
+	if (cloakedPriorToFiring && cloakPassive)
+	{
+		// fireMissilewithIdentifier: andTarget: has already taken care of deactivating
+		// the cloak in the case of missiles by the time we get here, but explicitly
+		// calling deactivateCloakingDevice is needed in order to be covered fully with mines too
+		[self deactivateCloakingDevice];
 	}
 	
 	replacingMissile = NO;
@@ -4173,6 +4177,33 @@ static GLfloat		sBaseMass = 0.0;
 	replacingMissile = YES;
 	
 	return YES;
+}
+
+
+- (void) activateCloakingDevice
+{
+	if (![self hasCloakingDevice])  return;
+	
+	if ([super activateCloakingDevice])
+	{
+		[UNIVERSE addMessage:DESC(@"cloak-on") forCount:2];
+		[self playCloakingDeviceOn];
+	}
+	else
+	{
+		[UNIVERSE addMessage:DESC(@"cloak-low-juice") forCount:3];
+		[self playCloakingDeviceInsufficientEnergy];
+	}
+}
+
+
+- (void) deactivateCloakingDevice
+{
+	if (![self hasCloakingDevice])  return;
+
+	[super deactivateCloakingDevice];
+	[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
+	[self playCloakingDeviceOff];
 }
 
 
@@ -4376,8 +4407,6 @@ static GLfloat		sBaseMass = 0.0;
 	if (weaponFired && cloaking_device_active && cloakPassive)
 	{
 		[self deactivateCloakingDevice];
-		[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
-		[self playCloakingDeviceOff];
 	}	
 	
 	return weaponFired;
