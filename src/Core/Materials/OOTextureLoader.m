@@ -436,7 +436,8 @@ static BOOL					sHaveSetUp = NO;
 		// Make space if needed.
 		newSize = desiredWidth * components * desiredHeight;
 		newSize = (newSize * 4) / 3;
-		_generateMipMaps = OOExpandPixMap(&pixMap, newSize);
+		// +1 to fix overrun valgrind spotted - CIM
+		_generateMipMaps = OOExpandPixMap(&pixMap, newSize+1);
 		
 		_data = pixMap.pixels;
 		_width = pixMap.width;

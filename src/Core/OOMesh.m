@@ -2073,6 +2073,9 @@ static void Scribble(void *bytes, size_t size)
 #endif
 
 
+/* valgrind complains that the memory allocated here isn't initialised
+	 at the time OOCacheManager::writeDict is pushing it to the
+	 cache. Not sure if that's a problem or not. - CIM */
 - (void *) allocateBytesWithSize:(size_t)size count:(NSUInteger)count key:(NSString *)key
 {
 	if (count == 0) { count=1; }

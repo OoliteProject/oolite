@@ -6639,6 +6639,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	float bestRange = INFINITY;
 	Vector myPosition = [self position];
 	
+	// valgrind complains about this line here. Might be compiler/GNUstep bug? 
+	// should we go back to a traditional enumerator? - CIM
+	// similar complaints about the other foreach() in this file
 	foreach (planet, [UNIVERSE planets])
 	{
 		// Ignore miniature planets.
