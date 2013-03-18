@@ -504,10 +504,17 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			break;
 		
 		case kShip_defenseTargets:
-			result = [entity allDefenseTargets];
-			if (result == nil)  result = [NSArray array];
+		{
+			result = [NSMutableArray arrayWithCapacity:[entity defenseTargetCount]];
+			NSEnumerator *defTargets = [entity defenseTargetEnumerator];
+			Entity *target = nil;
+			while ((target = [[defTargets nextObject] weakRefUnderlyingObject]))
+			{
+				[result addObject:target];
+			}
 			break;
-			
+		}		
+	
 		case kShip_escorts:
 			result = [[entity escortGroup] memberArrayExcludingLeader];
 			break;

@@ -5278,7 +5278,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// can't fire on primary target; track secondary targets instead
 	NSEnumerator *targetEnum = [turret_owner defenseTargetEnumerator];
 	Entity *target = nil;
-	while ((target = [targetEnum nextObject]))
+	while ((target = [[targetEnum nextObject] weakRefUnderlyingObject]))
 	{
 		if ([target scanClass] == CLASS_NO_DRAW || [(ShipEntity *)target isCloaked] || [target energy] <= 0.0)
 		{
@@ -9658,14 +9658,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		_defenseTargets = [[OOWeakSet alloc] init];
 	}
 	
-	[_defenseTargets addObject:target];
+	[_defenseTargets addObject:[target weakRetain]];
 	return YES;
 }
 
 
 - (BOOL) isDefenseTarget:(Entity *)target
 {
-	return [_defenseTargets containsObject:target];
+	return [_defenseTargets containsObject:[target weakRetain]];
 }
 
 
@@ -9678,7 +9678,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) removeDefenseTarget:(Entity *)target
 {
-	[_defenseTargets removeObject:target];
+	[_defenseTargets removeObject:[target weakRetain]];
 }
 
 
@@ -10178,7 +10178,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	NSEnumerator *targetEnum = [self defenseTargetEnumerator];
 	Entity *target = nil;
-	while ((target = [targetEnum nextObject]))
+	while ((target = [[targetEnum nextObject] weakRefUnderlyingObject]))
 	{
 		if ([target scanClass] == CLASS_NO_DRAW || [(ShipEntity *)target isCloaked] || [target energy] <= 0.0)
 		{
@@ -11687,6 +11687,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) takeHeatDamage:(double)amount
 {
 	if ([self status] == STATUS_DEAD)  return;
+
+	if ([self isSubEntity])
+	{
+		ShipEntity* owner = [self owner];
+		if (![owner isFrangible]) 
+		{
+			return;
+		}
+	}
 	
 	energy -= amount;
 	throw_sparks = YES;
