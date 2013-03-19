@@ -1485,7 +1485,7 @@ static NSTimeInterval	time_last_frame;
 		
 		exceptionContext = @"pause";
 		// Pause game 'p'
-		if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)// look for the 'p' key
+		if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION)// look for the 'p' key
 		{
 			if (!pause_pressed)
 			{
@@ -3347,7 +3347,7 @@ static BOOL autopilot_pause;
 			toggling_music = NO;
 		}
 		// look for the pause game, 'p' key
-		if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)
+		if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION)
 		{
 			if (!autopilot_pause)
 			{
