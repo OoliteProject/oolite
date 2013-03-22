@@ -7,7 +7,7 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * Fix quaternion constructor to produce identity quaternion as
   documented when called as new Quaternion().
 * guiScreenChanged now fires on transition when launching
-* Yaw is now also zeroed when launching from a station
+* Yaw and velocity are now also zeroed when launching from a station
 * Autopilot status reset on death
 * Regression: HUD n_bars now works again
 * Bug with NPCs continuing to lock on dead ships fixed

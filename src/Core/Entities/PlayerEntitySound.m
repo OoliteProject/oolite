@@ -188,7 +188,11 @@ static OOSoundSource		*sAfterburnerSources[2];
 
 - (void) playAutopilotOff
 {
-	[self playInterfaceBeep:@"[autopilot-off]"];
+	// only if still alive
+	if (energy > 0.0)
+	{
+		[self playInterfaceBeep:@"[autopilot-off]"];
+	}
 }
 
 

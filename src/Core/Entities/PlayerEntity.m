@@ -1474,6 +1474,7 @@ static GLfloat		sBaseMass = 0.0;
 	alertFlags				= 0;
 	hyperspeed_engaged		= NO;
 	autopilot_engaged = NO;
+	velocity = kZeroVector;
 	
 	flightRoll = 0.0f;
 	flightPitch = 0.0f;
@@ -5124,6 +5125,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	energy = 0.0f;
 	afterburner_engaged = NO;
+	[self disengageAutopilot];
+
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setViewDirection:VIEW_AFT];
 	
@@ -5350,7 +5353,8 @@ static GLfloat		sBaseMass = 0.0;
 
 	[UNIVERSE forceWitchspaceEntries];
 	ship_clock_adjust += 600.0;			// 10 minutes to leave dock
-	
+	velocity = kZeroVector; // just in case
+
 	[station launchShip:self];
 
 	launchRoll = -flightRoll; // save the station's spin. (inverted for player)
