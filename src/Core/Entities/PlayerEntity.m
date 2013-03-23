@@ -2362,8 +2362,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) updateMovementFlags
-{
+- (void) updateMovementFlags{
 	hasMoved = !vector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
@@ -2520,7 +2519,8 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) performAutopilotUpdates:(OOTimeDelta)delta_t
 {
-	[super update:delta_t];
+
+	[self processBehaviour:delta_t];
 	[self doBookkeeping:delta_t];
 }
 
@@ -5335,7 +5335,8 @@ static GLfloat		sBaseMass = 0.0;
 	[station autoDockShipsOnApproach];
 	[station clearDockingCorridor];
 
-	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
+//	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
+	[self clearAlertFlags];
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 	
 	[hud setScannerZoom:1.0];

@@ -2271,160 +2271,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self noteLostTarget];
 			}
 		}
-		BOOL applyThrust = YES;
-		switch (behaviour)
-		{
-			case BEHAVIOUR_TUMBLE :
-				[self behaviour_tumble: delta_t];
-				break;
 
-			case BEHAVIOUR_STOP_STILL :
-			case BEHAVIOUR_STATION_KEEPING :
-				[self behaviour_stop_still: delta_t];
-				break;
-
-			case BEHAVIOUR_IDLE :
-				if (isSubEnt)
-				{
-					applyThrust = NO;
-				}
-				[self behaviour_idle: delta_t];
-				break;
-
-			case BEHAVIOUR_TRACTORED :
-				[self behaviour_tractored: delta_t];
-				break;
-
-			case BEHAVIOUR_TRACK_TARGET :
-				[self behaviour_track_target: delta_t];
-				break;
-
-			case BEHAVIOUR_INTERCEPT_TARGET :
-			case BEHAVIOUR_COLLECT_TARGET :
-				[self behaviour_intercept_target: delta_t];
-				break;
-
-			case BEHAVIOUR_ATTACK_TARGET :
-				[self behaviour_attack_target: delta_t];
-				break;
-
-			case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX :
-			case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE :
-				[self behaviour_fly_to_target_six: delta_t];
-				break;
-
-			case BEHAVIOUR_ATTACK_MINING_TARGET :
-				[self behaviour_attack_mining_target: delta_t];
-				break;
-
-			case BEHAVIOUR_ATTACK_FLY_TO_TARGET :
-				[self behaviour_attack_fly_to_target: delta_t];
-				break;
-
-			case BEHAVIOUR_ATTACK_FLY_FROM_TARGET :
-				[self behaviour_attack_fly_from_target: delta_t];
-				break;
-
-			case BEHAVIOUR_ATTACK_BREAK_OFF_TARGET :
-				[self behaviour_attack_break_off_target: delta_t];
-				break;
-
-			case BEHAVIOUR_ATTACK_SLOW_DOGFIGHT :
-				[self behaviour_attack_slow_dogfight: delta_t];
-				break;
-
-			case BEHAVIOUR_RUNNING_DEFENSE :
-				[self behaviour_running_defense: delta_t];
-				break;
-
-  		case BEHAVIOUR_ATTACK_BROADSIDE :
-				[self behaviour_attack_broadside: delta_t];
-				break;
-
-  		case BEHAVIOUR_ATTACK_BROADSIDE_LEFT :
-				[self behaviour_attack_broadside_left: delta_t];
-				break;
-
-  		case BEHAVIOUR_ATTACK_BROADSIDE_RIGHT :
-				[self behaviour_attack_broadside_right: delta_t];
-				break;
-
-  		case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE :
-				[self behaviour_close_to_broadside_range: delta_t];
-				break;
-
-  		case BEHAVIOUR_CLOSE_WITH_TARGET :
-				[self behaviour_close_with_target: delta_t];
-				break;
-
-			case BEHAVIOUR_ATTACK_SNIPER :
-				[self behaviour_attack_sniper: delta_t];
-				break;
-
-			case BEHAVIOUR_EVASIVE_ACTION :
-			case BEHAVIOUR_FLEE_EVASIVE_ACTION :
-				[self behaviour_evasive_action: delta_t];
-				break;
-
-			case BEHAVIOUR_FLEE_TARGET :
-				[self behaviour_flee_target: delta_t];
-				break;
-
-			case BEHAVIOUR_FLY_RANGE_FROM_DESTINATION :
-				[self behaviour_fly_range_from_destination: delta_t];
-				break;
-
-			case BEHAVIOUR_FACE_DESTINATION :
-				[self behaviour_face_destination: delta_t];
-				break;
-
-			case BEHAVIOUR_LAND_ON_PLANET :
-				[self behaviour_land_on_planet: delta_t];
-				break;
-				
-			case BEHAVIOUR_FORMATION_FORM_UP :
-				[self behaviour_formation_form_up: delta_t];
-				break;
-
-			case BEHAVIOUR_FLY_TO_DESTINATION :
-				[self behaviour_fly_to_destination: delta_t];
-				break;
-
-			case BEHAVIOUR_FLY_FROM_DESTINATION :
-			case BEHAVIOUR_FORMATION_BREAK :
-				[self behaviour_fly_from_destination: delta_t];
-				break;
-
-			case BEHAVIOUR_AVOID_COLLISION :
-				[self behaviour_avoid_collision: delta_t];
-				break;
-
-			case BEHAVIOUR_TRACK_AS_TURRET :
-				applyThrust = NO;
-				[self behaviour_track_as_turret: delta_t];
-				break;
-
-			case BEHAVIOUR_FLY_THRU_NAVPOINTS :
-				[self behaviour_fly_thru_navpoints: delta_t];
-				break;
-
-			case BEHAVIOUR_SCRIPTED_AI:
-			case BEHAVIOUR_SCRIPTED_ATTACK_AI:
-				[self behaviour_scripted_ai: delta_t];
-				break;
-
-			case BEHAVIOUR_ENERGY_BOMB_COUNTDOWN:
-				applyThrust = NO;
-				// Do nothing
-				break;
-		}
-
-		// generally the checks above should be turning this *off* for subents
-		if (applyThrust)
-		{
-			[self applyAttitudeChanges:delta_t];
-			[self applyThrust:delta_t];
-		}
+		[self processBehaviour:delta_t];
 
 		// manage energy
 		if (energy < maxEnergy)
@@ -2498,6 +2346,165 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 }
 
+
+- (void) processBehaviour:(OOTimeDelta)delta_t
+{
+	BOOL applyThrust = YES;
+	switch (behaviour)
+	{
+	case BEHAVIOUR_TUMBLE :
+		[self behaviour_tumble: delta_t];
+		break;
+
+	case BEHAVIOUR_STOP_STILL :
+	case BEHAVIOUR_STATION_KEEPING :
+		[self behaviour_stop_still: delta_t];
+		break;
+
+	case BEHAVIOUR_IDLE :
+		if ([self isSubEntity])
+		{
+			applyThrust = NO;
+		}
+		[self behaviour_idle: delta_t];
+		break;
+
+	case BEHAVIOUR_TRACTORED :
+		[self behaviour_tractored: delta_t];
+		break;
+
+	case BEHAVIOUR_TRACK_TARGET :
+		[self behaviour_track_target: delta_t];
+		break;
+
+	case BEHAVIOUR_INTERCEPT_TARGET :
+	case BEHAVIOUR_COLLECT_TARGET :
+		[self behaviour_intercept_target: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_TARGET :
+		[self behaviour_attack_target: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX :
+	case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE :
+		[self behaviour_fly_to_target_six: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_MINING_TARGET :
+		[self behaviour_attack_mining_target: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_FLY_TO_TARGET :
+		[self behaviour_attack_fly_to_target: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_FLY_FROM_TARGET :
+		[self behaviour_attack_fly_from_target: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_BREAK_OFF_TARGET :
+		[self behaviour_attack_break_off_target: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_SLOW_DOGFIGHT :
+		[self behaviour_attack_slow_dogfight: delta_t];
+		break;
+
+	case BEHAVIOUR_RUNNING_DEFENSE :
+		[self behaviour_running_defense: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_BROADSIDE :
+		[self behaviour_attack_broadside: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_BROADSIDE_LEFT :
+		[self behaviour_attack_broadside_left: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_BROADSIDE_RIGHT :
+		[self behaviour_attack_broadside_right: delta_t];
+		break;
+
+	case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE :
+		[self behaviour_close_to_broadside_range: delta_t];
+		break;
+
+	case BEHAVIOUR_CLOSE_WITH_TARGET :
+		[self behaviour_close_with_target: delta_t];
+		break;
+
+	case BEHAVIOUR_ATTACK_SNIPER :
+		[self behaviour_attack_sniper: delta_t];
+		break;
+
+	case BEHAVIOUR_EVASIVE_ACTION :
+	case BEHAVIOUR_FLEE_EVASIVE_ACTION :
+		[self behaviour_evasive_action: delta_t];
+		break;
+
+	case BEHAVIOUR_FLEE_TARGET :
+		[self behaviour_flee_target: delta_t];
+		break;
+
+	case BEHAVIOUR_FLY_RANGE_FROM_DESTINATION :
+		[self behaviour_fly_range_from_destination: delta_t];
+		break;
+
+	case BEHAVIOUR_FACE_DESTINATION :
+		[self behaviour_face_destination: delta_t];
+		break;
+
+	case BEHAVIOUR_LAND_ON_PLANET :
+		[self behaviour_land_on_planet: delta_t];
+		break;
+				
+	case BEHAVIOUR_FORMATION_FORM_UP :
+		[self behaviour_formation_form_up: delta_t];
+		break;
+
+	case BEHAVIOUR_FLY_TO_DESTINATION :
+		[self behaviour_fly_to_destination: delta_t];
+		break;
+
+	case BEHAVIOUR_FLY_FROM_DESTINATION :
+	case BEHAVIOUR_FORMATION_BREAK :
+		[self behaviour_fly_from_destination: delta_t];
+		break;
+
+	case BEHAVIOUR_AVOID_COLLISION :
+		[self behaviour_avoid_collision: delta_t];
+		break;
+
+	case BEHAVIOUR_TRACK_AS_TURRET :
+		applyThrust = NO;
+		[self behaviour_track_as_turret: delta_t];
+		break;
+
+	case BEHAVIOUR_FLY_THRU_NAVPOINTS :
+		[self behaviour_fly_thru_navpoints: delta_t];
+		break;
+
+	case BEHAVIOUR_SCRIPTED_AI:
+	case BEHAVIOUR_SCRIPTED_ATTACK_AI:
+		[self behaviour_scripted_ai: delta_t];
+		break;
+
+	case BEHAVIOUR_ENERGY_BOMB_COUNTDOWN:
+		applyThrust = NO;
+		// Do nothing
+		break;
+	}
+
+	// generally the checks above should be turning this *off* for subents
+	if (applyThrust)
+	{
+		[self applyAttitudeChanges:delta_t];
+		[self applyThrust:delta_t];
+	}
+
+}
 
 - (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other
 {

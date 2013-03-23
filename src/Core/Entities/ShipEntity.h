@@ -606,6 +606,7 @@ typedef enum
 - (float) maxThrust;
 - (float) thrust;
 
+- (void) processBehaviour:(OOTimeDelta)delta_t;
 // Behaviours
 - (void) behaviour_stop_still:(double) delta_t;
 - (void) behaviour_idle:(double) delta_t;

@@ -1796,7 +1796,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	// MKW - ensure we don't alert the player every time they use energy if they only have 1 energybank
 	//[player setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([player status] == STATUS_IN_FLIGHT))];
-	if(EXPECT([player status] == STATUS_IN_FLIGHT))
+	if(EXPECT([self checkPlayerInFlight]))
 	{
 		if(n_bars > 1)
 		{
