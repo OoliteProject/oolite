@@ -2140,7 +2140,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	//Bug #11692 CmdrJames added Status entering witchspace
 	OOEntityStatus status = [self status];
-	if ((status != STATUS_AUTOPILOT_ENGAGED)&&(status != STATUS_ESCAPE_SEQUENCE) && (status != STATUS_ENTERING_WITCHSPACE))
+	if ((status != STATUS_ESCAPE_SEQUENCE) && (status != STATUS_ENTERING_WITCHSPACE))
 	{
 		UPDATE_STAGE(@"updating cabin temperature");
 		
