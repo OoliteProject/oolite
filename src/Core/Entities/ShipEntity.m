@@ -5624,14 +5624,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return; // TOO FAR AWAY
 	}
 	
+	OOGL(glPushMatrix());
+	
 	if ([self status] == STATUS_ACTIVE)
 	{
-		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
+		Vector abspos = position;  // STATUS_ACTIVE means it is in control of its own orientation
 		Entity		*last = nil;
 		Entity		*father = [self owner]; 
 		OOMatrix	r_mat;
-		
-		OOGL(glPushMatrix());
 		
 		while ((father)&&(father != last)  &&father != NO_TARGET)
 		{
@@ -5644,21 +5644,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		
 		GLLoadOOMatrix([UNIVERSE viewMatrix]);
 		GLTranslateOOVector(abspos);
-		GLMultOOMatrix(rotMatrix);
-		[self drawImmediate:immediate translucent:translucent];
-		
-		OOGL(glPopMatrix());
 	}
 	else
 	{
-		OOGL(glPushMatrix());
-		
 		GLTranslateOOVector(position);
-		GLMultOOMatrix(rotMatrix);
-		[self drawImmediate:immediate translucent:translucent];
-		
-		OOGL(glPopMatrix());
 	}
+	
+	GLMultOOMatrix(rotMatrix);
+	[self drawImmediate:immediate translucent:translucent];
 	
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_BOUNDING_BOXES)
@@ -5666,6 +5659,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		OODebugDrawBoundingBox([self boundingBox]);
 	}
 #endif
+	
+	OOGL(glPopMatrix());
 	
 	OOVerifyOpenGLState();	
 }
