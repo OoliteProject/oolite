@@ -233,7 +233,8 @@ OOINLINE void AddTriangle(GeometryData *data, Triangle tri)
 
 - (id) initWithCapacity:(NSUInteger)capacity
 {
-	NSParameterAssert(capacity > 0 && capacity < UINT32_MAX);
+	NSParameterAssert(capacity < UINT32_MAX);
+	if (capacity == 0)  capacity = 1;	// Happens for models with no faces.
 	
 	if ((self = [super init]))
 	{
