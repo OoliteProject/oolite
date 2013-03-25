@@ -4953,6 +4953,12 @@ static GLfloat		sBaseMass = 0.0;
 		return;
 	}
 
+	if ([self isCloaked])
+	{
+		// no-one knows about it; no award
+		return;
+	}
+
 	OOCreditsQuantity	score = 10 * [other bounty];
 	OOScanClass			killClass = [other scanClass]; // **tgape** change (+line)
 	BOOL				killAward = [other countsAsKill];
