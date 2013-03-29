@@ -74,6 +74,11 @@ this.$cargoPageOverlay = "";
  */
 this._addCargoContractToSystem = function(cargo)
 {
+		if (!system.mainStation)
+		{
+				log(this.name,"Contracts require a main station");
+				return false;
+		}
 		if (cargo.destination < 0 || cargo.destination > 255)
 		{
 				log(this.name,"Rejected contract: destination missing or invalid");

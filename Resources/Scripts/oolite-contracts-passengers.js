@@ -74,6 +74,11 @@ this.$passengerPageOverlay = "";
  */
 this._addPassengerToSystem = function(passenger)
 {
+		if (!system.mainStation)
+		{
+				log(this.name,"Contracts require a main station");
+				return false;
+		}
 		if (!passenger.name || passenger.name.length > 40)
 		{
 				log(this.name,"Rejected passenger: name missing or too long");

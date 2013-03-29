@@ -611,11 +611,9 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	{
 		isStation = YES;
 		_shipsOnHold = [[OOWeakSet alloc] init];
+		hasBreakPattern = YES;
+		localInterfaces = [[NSMutableDictionary alloc] init];
 	}
-
-	hasBreakPattern = YES;
-	localInterfaces = [[NSMutableDictionary alloc] init];
-	
 	return self;
 	
 	OOJS_PROFILE_EXIT

@@ -874,7 +874,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	DESTROY(_stopwatch);
 #endif
 #if OO_MULTITEXTURE
-	_textureUnitCount = NSNotFound;
+	if (EXPECT(self != nil))
+	{
+		_textureUnitCount = NSNotFound;
+	}
 #endif
 	
 	[pool release];

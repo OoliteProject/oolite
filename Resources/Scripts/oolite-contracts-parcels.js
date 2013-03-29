@@ -73,6 +73,11 @@ this.$parcelPageOverlay = "";
  */
 this._addParcelToSystem = function(parcel)
 {
+		if (!system.mainStation)
+		{
+				log(this.name,"Contracts require a main station");
+				return false;
+		}
 		if (!parcel.sender || parcel.sender.length > 40)
 		{
 				log(this.name,"Rejected parcel: sender missing or too long");
