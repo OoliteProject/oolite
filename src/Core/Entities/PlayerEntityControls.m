@@ -1791,6 +1791,10 @@ static NSTimeInterval	time_last_frame;
 			NSString *commanderFile = [self commanderSelector];
 			if(commanderFile)
 			{
+				// also release the demo ship here (see showShipyardModel and noteGUIDidChangeFrom)
+				[demoShip release];
+				demoShip = nil;
+				
 				[self loadPlayerFromFile:commanderFile];
 			}
 			break;
