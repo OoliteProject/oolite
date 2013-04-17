@@ -1361,6 +1361,8 @@
 	// character descriptions
 	// basic short desc - “A $species from $homeworld”
 	"character-a-@-from-@"			= "a %@ from %@";
+	"character-a-thargoid"			= "an alien from outer space";
+	"character-thargoid-name"		= "a thargoid";
 	
 	// rewards and bounties from escapepods
 	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@ ₢.\n";

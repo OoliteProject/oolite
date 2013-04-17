@@ -618,6 +618,7 @@ static NSMapTable *SpecialSubstitutionSelectors(void)
 		{ @"commander_shipname", @selector(commanderShip_string) },
 		{ @"commander_shipdisplayname", @selector(commanderShipDisplayName_string) },
 		{ @"commander_rank", @selector(commanderRank_string) },
+		{ @"commander_kills", @selector(commanderKillsAsString) },
 		{ @"commander_legal_status", @selector(commanderLegalStatus_string) },
 		{ @"commander_bounty", @selector(commanderBountyAsString) },
 		{ @"credits_number", @selector(creditsFormattedForSubstitution) },

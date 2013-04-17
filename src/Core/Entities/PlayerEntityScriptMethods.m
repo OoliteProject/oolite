@@ -366,6 +366,14 @@ MA 02110-1301, USA.
 	return [NSString stringWithFormat:@"%i", [self legalStatus]];
 }
 
+
+// Implements string expansion code [commander_kills].
+- (NSString *) commanderKillsAsString
+{
+	return [NSString stringWithFormat:@"%i", [self score]];
+}
+
+
 @end
 
 

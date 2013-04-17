@@ -309,8 +309,8 @@ MA 02110-1301, USA.
 	{
 		[self setLegalStatus:100];
 		[self setInsuranceCredits:0];
-		[self setName: @"a thargoid"];
-		[self setShortDescription: @"an alien from outerspace"];
+		[self setName:DESC(@"character-thargoid-name")];
+		[self setShortDescription:DESC(@"character-a-thargoid")];
 		specialSetUpDone = YES;
 	}
 	
