@@ -256,14 +256,14 @@ MA 02110-1301, USA.
 			{
 				char * errStr = SDL_GetError();
 				OOLogERR(@"display.mode.error", @"Could not create display surface: %s", errStr);
-#IF OOLITE_WINDOWS
+#if OOLITE_WINDOWS
 				if (showSplashScreen)
 				{
 					[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"splash-screen"];
 					OOLogWARN(@"display.mode.conflict",@"Possible incompatibility between the splash screen and video drivers detected.");
 					OOLogWARN(@"display.mode.conflict",@"Oolite will start without showing the splash screen from now on. Override with 'oolite.exe -splash'");
 				}
-#ENDIF
+#endif
 				exit(1);
 			}
 		}
