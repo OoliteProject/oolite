@@ -93,10 +93,9 @@ MA 02110-1301, USA.
 #if OOLITE_WINDOWS
 		// Pre setVideoMode adjustments.
 		NSSize tmp = currentWindowSize;
-		updateContext = NO;	//don't update the window!
-		ShowWindow(SDL_Window,SW_HIDE);
-		MoveWindow(SDL_Window,GetSystemMetrics(SM_CXSCREEN)/2,GetSystemMetrics(SM_CYSCREEN)/2,1,1,TRUE);
-		ShowWindow(SDL_Window,SW_MINIMIZE);
+		ShowWindow(SDL_Window,SW_SHOWMINIMIZED);
+		updateContext = NO;	//don't update the (splash screen) window yet!
+		MoveWindow(SDL_Window,GetSystemMetrics(SM_CXSCREEN)/2,GetSystemMetrics(SM_CYSCREEN)/2,1,1,TRUE); // centre the splash screen
 		
 		// Initialise the SDL surface. (need custom SDL.dll)
 		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
@@ -161,7 +160,7 @@ MA 02110-1301, USA.
 		if ([arg isEqual:@"-nosplash"] || [arg isEqual:@"--nosplash"])
 		{
 			showSplashScreen = NO;
-			break;
+			break;	// -nosplash always trumps -splash
 		}
 		else if ([arg isEqual:@"-splash"] || [arg isEqual:@"--splash"])
 		{
@@ -257,6 +256,14 @@ MA 02110-1301, USA.
 			{
 				char * errStr = SDL_GetError();
 				OOLogERR(@"display.mode.error", @"Could not create display surface: %s", errStr);
+#IF OOLITE_WINDOWS
+				if (showSplashScreen)
+				{
+					[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"splash-screen"];
+					OOLogWARN(@"display.mode.conflict",@"Possible incompatibility between the splash screen and video drivers detected.");
+					OOLogWARN(@"display.mode.conflict",@"Oolite will start without showing the splash screen from now on. Override with 'oolite.exe -splash'");
+				}
+#ENDIF
 				exit(1);
 			}
 		}
