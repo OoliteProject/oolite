@@ -1504,7 +1504,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			}
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ",nil] forRow:MANIFEST_SCREEN_ROW_NEXT];
 
-			[gui setSelectableRange:NSMakeRange(r_start,r_end)];
+			[gui setSelectableRange:NSMakeRange(r_start,r_end+1-r_start)];
 			[gui setSelectedRow:r_start];
 
 		}

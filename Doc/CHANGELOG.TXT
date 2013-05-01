@@ -28,6 +28,7 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * Fix inconsistencies with cloaking device behaviour
 * Fix calculation of heat damage to subentities
 * Fix updates of energy, laser temp, alert condition related to autopilot
+* Fix for crash when pressing up on long manifest screen
 
 -------------------------------------------------------------------------------
 
