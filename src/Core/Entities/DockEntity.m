@@ -629,6 +629,10 @@ MA 02110-1301, USA.
 	// control, if allow_docking is false but d_d_c is true
 	
 	StationEntity *station = (StationEntity *)[self parentEntity];
+	if ([station status] == STATUS_DEAD)
+	{
+		return NO;
+	}
 	
 	Quaternion q0 = quaternion_multiply(orientation, [station orientation]);
 	Vector vi = vector_right_from_quaternion(q0);
