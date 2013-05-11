@@ -23,10 +23,20 @@ DEST_BIN                         = $(OBJC_PROGRAM_NAME)$(EXT)$(OS_EXT)
 
 PROGDIR=$(OBJC_PROGRAM_NAME).app
 
-after-all:: 
+after-all::
 	$(MKDIRS) $(PROGDIR)
 	$(MKDIRS) $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources $(PROGDIR)
+	$(CP) $(CP_FLAGS) Resources/README.TXT $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/InfoPlist.strings $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/AIs $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/Config $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/Scripts $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/Shaders $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/Binary/Images $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/Binary/Models $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/Binary/Music $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/Binary/Sounds $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/Binary/Textures $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Schemata $(PROGDIR)/Resources
 ifeq ($(ESPEAK),yes)
     ifeq ($(GNUSTEP_HOST_OS),mingw32)
