@@ -1,0 +1,19 @@
+# Windows cruft
+Thumbs.db
+ehthumbs.db
+
+# Mac OS X cruft
+.DS_Store
+Icon?
+
+# Xcode cruft
+build/
+project.xcworkspace/
+xcuserdata/
+*.mode1
+*.mode1v3
+*.pbxuser
+
+# Directories used for downloaded code
+deps/Cross-platform-deps
+deps/Cocoa-deps/sparkle
