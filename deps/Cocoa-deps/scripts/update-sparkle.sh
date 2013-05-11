@@ -65,7 +65,7 @@ fi
 
 
 # Create temp directory.
-mkdir "$TEMPDIR"
+mkdir -p "$TEMPDIR"
 if [ "$?" -ne "0" ]
 then
 	echo "error: Could not create temporary directory $TEMPDIR."

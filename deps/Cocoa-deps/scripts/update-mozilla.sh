@@ -95,7 +95,7 @@ rm "$TEMPFILE"
 rm -rf "$TARGETDIR"
 
 # Create new root mozilla directory.
-mkdir "$TARGETDIR"
+mkdir -p "$TARGETDIR"
 
 
 MOZILLADIR="$TEMPDIR/mozilla-2.0"

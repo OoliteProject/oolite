@@ -78,14 +78,6 @@
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
 		1A0942CE12D7D5B9003B6273 /* OOJSFrameCallbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */; };
 		1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
-		1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */; };
-		1A0BF3D610DAE2B30099984D /* cobra1_redux2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */; };
-		1A0BF3D810DAE2EC0099984D /* mamba_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D710DAE2EC0099984D /* mamba_redux1.dat */; };
-		1A0BF3DA10DAE30F0099984D /* moray_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3D910DAE30F0099984D /* moray_redux1.dat */; };
-		1A0BF3DD10DAE3490099984D /* python_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3DB10DAE3490099984D /* python_redux1.dat */; };
-		1A0BF3DE10DAE3490099984D /* python_redux2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3DC10DAE3490099984D /* python_redux2.dat */; };
-		1A0BF3E010DAE3610099984D /* transporter_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3DF10DAE3610099984D /* transporter_redux1.dat */; };
-		1A0BF3E210DAE3760099984D /* worm_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A0BF3E110DAE3760099984D /* worm_redux1.dat */; };
 		1A0C3EDE11933076007935E5 /* oolite-dust.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A0C3EDD1193306B007935E5 /* oolite-dust.vertex */; };
 		1A0C3EEB11933274007935E5 /* oolite-dust.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A0C3EEA11933272007935E5 /* oolite-dust.fragment */; };
 		1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */; };
@@ -176,17 +168,12 @@
 		1A2318630B9D026D00EF0852 /* asp_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318220B9D026D00EF0852 /* asp_redux.png */; };
 		1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318240B9D026D00EF0852 /* back_metal.png */; };
 		1A2318660B9D026D00EF0852 /* barrel_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318250B9D026D00EF0852 /* barrel_metal.png */; };
-		1A2318680B9D026D00EF0852 /* boa2_left.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318270B9D026D00EF0852 /* boa2_left.png */; };
-		1A2318690B9D026D00EF0852 /* boa2_rear.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318280B9D026D00EF0852 /* boa2_rear.png */; };
 		1A23186A0B9D026D00EF0852 /* boa2_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318290B9D026D00EF0852 /* boa2_redux.png */; };
-		1A23186B0B9D026D00EF0852 /* boa2_right.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182A0B9D026D00EF0852 /* boa2_right.png */; };
-		1A23186C0B9D026D00EF0852 /* boa2_top.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182B0B9D026D00EF0852 /* boa2_top.png */; };
 		1A23186D0B9D026D00EF0852 /* boa_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182C0B9D026D00EF0852 /* boa_redux.png */; };
 		1A23186E0B9D026D00EF0852 /* bottom_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182D0B9D026D00EF0852 /* bottom_metal.png */; };
 		1A23186F0B9D026D00EF0852 /* cobra1_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182E0B9D026D00EF0852 /* cobra1_redux.png */; };
 		1A2318700B9D026D00EF0852 /* cobra1_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182F0B9D026D00EF0852 /* cobra1_redux1.png */; };
 		1A2318710B9D026D00EF0852 /* cobra1_redux2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318300B9D026D00EF0852 /* cobra1_redux2.png */; };
-		1A2318720B9D026D00EF0852 /* cobra1miner_top.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318310B9D026D00EF0852 /* cobra1miner_top.png */; };
 		1A2318730B9D026D00EF0852 /* cobra3_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318320B9D026D00EF0852 /* cobra3_redux.png */; };
 		1A2318740B9D026D00EF0852 /* cobra3_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318330B9D026D00EF0852 /* cobra3_redux1.png */; };
 		1A2318750B9D026D00EF0852 /* constrictor_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318340B9D026D00EF0852 /* constrictor_redux.png */; };
@@ -428,7 +415,6 @@
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
-		1A49FAE7114C026B0015D5F8 /* cobra3_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */; };
 		1A4DF25D12FDC4880027F43D /* OORingEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */; };
 		1A4DF35312FDF0410027F43D /* OOParticleSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4DF35112FDF0410027F43D /* OOParticleSystem.h */; };
 		1A4DF35412FDF0410027F43D /* OOParticleSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4DF35212FDF0410027F43D /* OOParticleSystem.m */; };
@@ -1077,17 +1063,12 @@
 				1A2318630B9D026D00EF0852 /* asp_redux.png in Copy Textures */,
 				1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */,
 				1A2318660B9D026D00EF0852 /* barrel_metal.png in Copy Textures */,
-				1A2318680B9D026D00EF0852 /* boa2_left.png in Copy Textures */,
-				1A2318690B9D026D00EF0852 /* boa2_rear.png in Copy Textures */,
 				1A23186A0B9D026D00EF0852 /* boa2_redux.png in Copy Textures */,
-				1A23186B0B9D026D00EF0852 /* boa2_right.png in Copy Textures */,
-				1A23186C0B9D026D00EF0852 /* boa2_top.png in Copy Textures */,
 				1A23186D0B9D026D00EF0852 /* boa_redux.png in Copy Textures */,
 				1A23186E0B9D026D00EF0852 /* bottom_metal.png in Copy Textures */,
 				1A23186F0B9D026D00EF0852 /* cobra1_redux.png in Copy Textures */,
 				1A2318700B9D026D00EF0852 /* cobra1_redux1.png in Copy Textures */,
 				1A2318710B9D026D00EF0852 /* cobra1_redux2.png in Copy Textures */,
-				1A2318720B9D026D00EF0852 /* cobra1miner_top.png in Copy Textures */,
 				1A2318730B9D026D00EF0852 /* cobra3_redux.png in Copy Textures */,
 				1A2318740B9D026D00EF0852 /* cobra3_redux1.png in Copy Textures */,
 				1A2318750B9D026D00EF0852 /* constrictor_redux.png in Copy Textures */,
@@ -1134,15 +1115,6 @@
 			dstPath = Models;
 			dstSubfolderSpec = 7;
 			files = (
-				1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Copy Models */,
-				1A0BF3D610DAE2B30099984D /* cobra1_redux2.dat in Copy Models */,
-				1A0BF3D810DAE2EC0099984D /* mamba_redux1.dat in Copy Models */,
-				1A0BF3DA10DAE30F0099984D /* moray_redux1.dat in Copy Models */,
-				1A49FAE7114C026B0015D5F8 /* cobra3_redux1.dat in Copy Models */,
-				1A0BF3DD10DAE3490099984D /* python_redux1.dat in Copy Models */,
-				1A0BF3DE10DAE3490099984D /* python_redux2.dat in Copy Models */,
-				1A0BF3E010DAE3610099984D /* transporter_redux1.dat in Copy Models */,
-				1A0BF3E210DAE3760099984D /* worm_redux1.dat in Copy Models */,
 				1A21149B0DEA980800444CEB /* oolite-ball-turret.dat in Copy Models */,
 				1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */,
 				1A2318E50B9D02AA00EF0852 /* adder_redux.dat in Copy Models */,
@@ -1366,7 +1338,7 @@
 		1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSDictionaryOOExtensions.m; sourceTree = "<group>"; };
 		1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilitySet.h; sourceTree = "<group>"; };
 		1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilitySet.m; sourceTree = "<group>"; };
-		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = Mac-specific/DebugOXP/DebugOXP.xcodeproj; sourceTree = "<group>"; };
+		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = "Mac-specific/DebugOXP/DebugOXP.xcodeproj"; sourceTree = "<group>"; };
 		1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSObjectOOExtensions.h; sourceTree = "<group>"; };
 		1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSObjectOOExtensions.m; sourceTree = "<group>"; };
 		1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundDebugMonitor.h; sourceTree = "<group>"; };
@@ -1377,14 +1349,6 @@
 		1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OldSchoolPropertyListWriting.m; sourceTree = "<group>"; };
 		1A0942C712D7C011003B6273 /* OOJSFrameCallbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSFrameCallbacks.h; sourceTree = "<group>"; };
 		1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSFrameCallbacks.m; sourceTree = "<group>"; };
-		1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux1.dat; sourceTree = "<group>"; };
-		1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux2.dat; sourceTree = "<group>"; };
-		1A0BF3D710DAE2EC0099984D /* mamba_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mamba_redux1.dat; sourceTree = "<group>"; };
-		1A0BF3D910DAE30F0099984D /* moray_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = moray_redux1.dat; sourceTree = "<group>"; };
-		1A0BF3DB10DAE3490099984D /* python_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux1.dat; sourceTree = "<group>"; };
-		1A0BF3DC10DAE3490099984D /* python_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux2.dat; sourceTree = "<group>"; };
-		1A0BF3DF10DAE3610099984D /* transporter_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = transporter_redux1.dat; sourceTree = "<group>"; };
-		1A0BF3E110DAE3760099984D /* worm_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = worm_redux1.dat; sourceTree = "<group>"; };
 		1A0C3EDD1193306B007935E5 /* oolite-dust.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-dust.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A0C3EEA11933272007935E5 /* oolite-dust.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-dust.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSpecialFunctions.h; sourceTree = "<group>"; };
@@ -1479,17 +1443,12 @@
 		1A2318230B9D026D00EF0852 /* asteroid.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = asteroid.png; sourceTree = "<group>"; };
 		1A2318240B9D026D00EF0852 /* back_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = back_metal.png; sourceTree = "<group>"; };
 		1A2318250B9D026D00EF0852 /* barrel_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = barrel_metal.png; sourceTree = "<group>"; };
-		1A2318270B9D026D00EF0852 /* boa2_left.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_left.png; sourceTree = "<group>"; };
-		1A2318280B9D026D00EF0852 /* boa2_rear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_rear.png; sourceTree = "<group>"; };
 		1A2318290B9D026D00EF0852 /* boa2_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_redux.png; sourceTree = "<group>"; };
-		1A23182A0B9D026D00EF0852 /* boa2_right.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_right.png; sourceTree = "<group>"; };
-		1A23182B0B9D026D00EF0852 /* boa2_top.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa2_top.png; sourceTree = "<group>"; };
 		1A23182C0B9D026D00EF0852 /* boa_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = boa_redux.png; sourceTree = "<group>"; };
 		1A23182D0B9D026D00EF0852 /* bottom_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bottom_metal.png; sourceTree = "<group>"; };
 		1A23182E0B9D026D00EF0852 /* cobra1_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra1_redux.png; sourceTree = "<group>"; };
 		1A23182F0B9D026D00EF0852 /* cobra1_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra1_redux1.png; sourceTree = "<group>"; };
 		1A2318300B9D026D00EF0852 /* cobra1_redux2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra1_redux2.png; sourceTree = "<group>"; };
-		1A2318310B9D026D00EF0852 /* cobra1miner_top.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra1miner_top.png; sourceTree = "<group>"; };
 		1A2318320B9D026D00EF0852 /* cobra3_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra3_redux.png; sourceTree = "<group>"; };
 		1A2318330B9D026D00EF0852 /* cobra3_redux1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cobra3_redux1.png; sourceTree = "<group>"; };
 		1A2318340B9D026D00EF0852 /* constrictor_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = constrictor_redux.png; sourceTree = "<group>"; };
@@ -1746,7 +1705,6 @@
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
-		1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra3_redux1.dat; sourceTree = "<group>"; };
 		1A4DF25912FDC4420027F43D /* OORingEffectEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OORingEffectEntity.h; sourceTree = "<group>"; };
 		1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OORingEffectEntity.m; sourceTree = "<group>"; };
 		1A4DF35112FDF0410027F43D /* OOParticleSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOParticleSystem.h; sourceTree = "<group>"; };
@@ -2230,7 +2188,8 @@
 				1A115ED4158CFB4D005842DA /* splash@2x.png */,
 				1A2315510B9C778400EF0852 /* trumblebox.png */,
 			);
-			path = Images;
+			name = Images;
+			path = Binary/Images;
 			sourceTree = "<group>";
 		};
 		1A2316DD0B9CFAD700EF0852 /* Config */ = {
@@ -2326,17 +2285,12 @@
 				1A2318230B9D026D00EF0852 /* asteroid.png */,
 				1A2318240B9D026D00EF0852 /* back_metal.png */,
 				1A2318250B9D026D00EF0852 /* barrel_metal.png */,
-				1A2318270B9D026D00EF0852 /* boa2_left.png */,
-				1A2318280B9D026D00EF0852 /* boa2_rear.png */,
 				1A2318290B9D026D00EF0852 /* boa2_redux.png */,
-				1A23182A0B9D026D00EF0852 /* boa2_right.png */,
-				1A23182B0B9D026D00EF0852 /* boa2_top.png */,
 				1A23182C0B9D026D00EF0852 /* boa_redux.png */,
 				1A23182D0B9D026D00EF0852 /* bottom_metal.png */,
 				1A23182E0B9D026D00EF0852 /* cobra1_redux.png */,
 				1A23182F0B9D026D00EF0852 /* cobra1_redux1.png */,
 				1A2318300B9D026D00EF0852 /* cobra1_redux2.png */,
-				1A2318310B9D026D00EF0852 /* cobra1miner_top.png */,
 				1A2318320B9D026D00EF0852 /* cobra3_redux.png */,
 				1A2318330B9D026D00EF0852 /* cobra3_redux1.png */,
 				1A2318340B9D026D00EF0852 /* constrictor_redux.png */,
@@ -2400,7 +2354,8 @@
 				1A23185D0B9D026D00EF0852 /* worm_redux1.png */,
 				1A23185E0B9D026D00EF0852 /* wreck.png */,
 			);
-			path = Textures;
+			name = Textures;
+			path = Binary/Textures;
 			sourceTree = "<group>";
 		};
 		1A2318A50B9D02A900EF0852 /* Models */ = {
@@ -2420,22 +2375,17 @@
 				1A2318B10B9D02A900EF0852 /* boulder1.dat */,
 				1A2318B20B9D02A900EF0852 /* buoy.dat */,
 				1A2318B30B9D02A900EF0852 /* cobra1_redux.dat */,
-				1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */,
-				1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */,
 				1A2318B60B9D02A900EF0852 /* cobra3_redux.dat */,
 				1A2318B80B9D02A900EF0852 /* constrictor_redux.dat */,
 				1A2318B90B9D02A900EF0852 /* dock-flat.dat */,
 				1A2318BA0B9D02A900EF0852 /* dock.dat */,
-				1A49FAE6114C026B0015D5F8 /* cobra3_redux1.dat */,
 				1A2318BB0B9D02A900EF0852 /* escpod_redux.dat */,
 				1A2318BD0B9D02A900EF0852 /* ferdelance_redux.dat */,
 				1A2318BE0B9D02A900EF0852 /* gecko_redux.dat */,
 				1A2318C10B9D02A900EF0852 /* krait_redux.dat */,
 				1A2318C20B9D02A900EF0852 /* mamba_redux.dat */,
-				1A0BF3D710DAE2EC0099984D /* mamba_redux1.dat */,
 				1A2318C40B9D02A900EF0852 /* missile.dat */,
 				1A2318C50B9D02A900EF0852 /* moray_redux.dat */,
-				1A0BF3D910DAE30F0099984D /* moray_redux1.dat */,
 				1A2318C70B9D02A900EF0852 /* new-dodo.dat */,
 				1A2318C80B9D02A900EF0852 /* new-icos.dat */,
 				1A2318C90B9D02A900EF0852 /* new-rock.dat */,
@@ -2443,8 +2393,6 @@
 				1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */,
 				1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */,
 				1A2318CB0B9D02A900EF0852 /* python_redux.dat */,
-				1A0BF3DB10DAE3490099984D /* python_redux1.dat */,
-				1A0BF3DC10DAE3490099984D /* python_redux2.dat */,
 				1A2318CE0B9D02AA00EF0852 /* qbomb.dat */,
 				1A2318CF0B9D02AA00EF0852 /* ring.dat */,
 				1A2318D00B9D02AA00EF0852 /* rock-box.dat */,
@@ -2458,18 +2406,17 @@
 				1A2318D80B9D02AA00EF0852 /* thargoid_redux.dat */,
 				1A2318D90B9D02AA00EF0852 /* thargon_redux.dat */,
 				1A2318DA0B9D02AA00EF0852 /* transporter_redux.dat */,
-				1A0BF3DF10DAE3610099984D /* transporter_redux1.dat */,
 				1A2318DC0B9D02AA00EF0852 /* viper_redux.dat */,
 				1A2318DD0B9D02AA00EF0852 /* viperi_redux.dat */,
 				1A2318DE0B9D02AA00EF0852 /* worm_redux.dat */,
-				1A0BF3E110DAE3760099984D /* worm_redux1.dat */,
 				1A2318E00B9D02AA00EF0852 /* wreck1.dat */,
 				1A2318E10B9D02AA00EF0852 /* wreck2.dat */,
 				1A2318E20B9D02AA00EF0852 /* wreck3.dat */,
 				1A2318E30B9D02AA00EF0852 /* wreck4.dat */,
 				1A2318E40B9D02AA00EF0852 /* wreck5.dat */,
 			);
-			path = Models;
+			name = Models;
+			path = Binary/Models;
 			sourceTree = "<group>";
 		};
 		1A2319730B9D02F900EF0852 /* Music */ = {
@@ -2478,7 +2425,8 @@
 				1A2319740B9D02F900EF0852 /* BlueDanube.ogg */,
 				1A2319750B9D02F900EF0852 /* OoliteTheme.ogg */,
 			);
-			path = Music;
+			name = Music;
+			path = Binary/Music;
 			sourceTree = "<group>";
 		};
 		1A2319910B9D031D00EF0852 /* Sounds */ = {
@@ -2504,7 +2452,8 @@
 				1A2319A40B9D031D00EF0852 /* warning.ogg */,
 				1A2319A50B9D031D00EF0852 /* witchabort.ogg */,
 			);
-			path = Sounds;
+			name = Sounds;
+			path = Binary/Sounds;
 			sourceTree = "<group>";
 		};
 		1A26D1090BCFA8D40073F257 /* PlayerEntity */ = {
@@ -3679,7 +3628,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 0440;
+				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
