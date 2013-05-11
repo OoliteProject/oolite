@@ -14,6 +14,6 @@ xcuserdata/
 *.mode1v3
 *.pbxuser
 
-# Directories used for downloaded code
-deps/Cross-platform-deps
+
+# Used for downloaded code
 deps/Cocoa-deps/sparkle
