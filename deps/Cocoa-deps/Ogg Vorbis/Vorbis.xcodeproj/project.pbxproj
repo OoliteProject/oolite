@@ -174,7 +174,7 @@
 				F58520BB0191D12B01A802FE /* vorbisfile.h */,
 			);
 			name = vorbis;
-			path = "../../Cross-platform-deps/libvorbis/include/vorbis";
+			path = ../../libvorbis/include/vorbis;
 			sourceTree = SOURCE_ROOT;
 		};
 		F5D8F60803389C830112CE8F /* Source */ = {
@@ -229,7 +229,7 @@
 				F5D8F66103389C830112CE8F /* window.h */,
 			);
 			name = Source;
-			path = "../../Cross-platform-deps/libvorbis/lib";
+			path = ../../libvorbis/lib;
 			sourceTree = "<group>";
 		};
 		F5D8F61003389C830112CE8F /* books */ = {
@@ -310,7 +310,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1ADE328009757FEC00961AE2 /* Build configuration list for PBXNativeTarget "LibVorbis" */;
 			buildPhases = (
-				1AE3450C12CB71CB00FD8C62 /* Update Code */,
 				1ADE327309757FBE00961AE2 /* Headers */,
 				1ADE327409757FBE00961AE2 /* Sources */,
 				1ADE327509757FBE00961AE2 /* Frameworks */,
@@ -369,24 +368,6 @@
 		};
 /* End PBXReferenceProxy section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		1AE3450C12CB71CB00FD8C62 /* Update Code */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Update Code";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/../scripts\"\n./update-library.sh libvorbis tbz\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		1ADE327409757FBE00961AE2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -438,7 +419,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				HEADER_SEARCH_PATHS = (
-					"../../Cross-platform-deps/libvorbis/include",
+					../../libvorbis/include,
 					"$(SYMROOT)/$(CONFIGURATION)/include",
 				);
 				INSTALL_PATH = /usr/local/lib;
@@ -446,7 +427,7 @@
 				PRODUCT_NAME = vorbis_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/vorbis;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "../../Cross-platform-deps/libvorbis/lib";
+				USER_HEADER_SEARCH_PATHS = ../../libvorbis/lib;
 				ZERO_LINK = NO;
 			};
 			name = Deployment;
@@ -469,7 +450,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				HEADER_SEARCH_PATHS = (
-					"../../Cross-platform-deps/libvorbis/include",
+					../../libvorbis/include,
 					"$(SYMROOT)/$(CONFIGURATION)/include",
 				);
 				INSTALL_PATH = /usr/local/lib;
@@ -477,7 +458,7 @@
 				PRODUCT_NAME = vorbis_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/vorbis;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "../../Cross-platform-deps/libvorbis/lib";
+				USER_HEADER_SEARCH_PATHS = ../../libvorbis/lib;
 				ZERO_LINK = NO;
 			};
 			name = Debug;
@@ -500,7 +481,7 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				HEADER_SEARCH_PATHS = (
-					"../../Cross-platform-deps/libvorbis/include",
+					../../libvorbis/include,
 					"$(SYMROOT)/$(CONFIGURATION)/include",
 				);
 				INSTALL_PATH = /usr/local/lib;
@@ -508,7 +489,7 @@
 				PRODUCT_NAME = vorbis_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/vorbis;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "../../Cross-platform-deps/libvorbis/lib";
+				USER_HEADER_SEARCH_PATHS = ../../libvorbis/lib;
 				ZERO_LINK = NO;
 			};
 			name = TestRelease;

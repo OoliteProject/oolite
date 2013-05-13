@@ -67,7 +67,7 @@
 				1AE344CC12CB6EA500FD8C62 /* framing.c */,
 			);
 			name = src;
-			path = "../../Cross-platform-deps/libogg/src";
+			path = ../../libogg/src;
 			sourceTree = "<group>";
 		};
 		730F235F09181A3E00AB638C /* Headers */ = {
@@ -77,7 +77,7 @@
 				1AE344C712CB6E6900FD8C62 /* os_types.h */,
 			);
 			name = Headers;
-			path = "../../Cross-platform-deps/libogg/include/ogg";
+			path = ../../libogg/include/ogg;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -99,7 +99,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1ADE32B7097580C800961AE2 /* Build configuration list for PBXNativeTarget "LibOgg" */;
 			buildPhases = (
-				1AE344FA12CB711800FD8C62 /* Update Code */,
 				1ADE32A00975807900961AE2 /* Headers */,
 				1ADE32A10975807900961AE2 /* Sources */,
 				1ADE32A20975807900961AE2 /* Frameworks */,
@@ -141,24 +140,6 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		1AE344FA12CB711800FD8C62 /* Update Code */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Update Code";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/../scripts\"\n./update-library.sh libogg tgz\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		1ADE32A10975807900961AE2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -180,7 +161,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 3;
-				HEADER_SEARCH_PATHS = "../../Cross-platform-deps/libogg/include";
+				HEADER_SEARCH_PATHS = ../../libogg/include;
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = YES;
 				PRODUCT_NAME = ogg_for_oolite;
@@ -206,7 +187,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 3;
-				HEADER_SEARCH_PATHS = "../../Cross-platform-deps/libogg/include";
+				HEADER_SEARCH_PATHS = ../../libogg/include;
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = YES;
 				PRODUCT_NAME = ogg_for_oolite;
@@ -232,7 +213,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 3;
-				HEADER_SEARCH_PATHS = "../../Cross-platform-deps/libogg/include";
+				HEADER_SEARCH_PATHS = ../../libogg/include;
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = NO;
 				PRODUCT_NAME = ogg_for_oolite;

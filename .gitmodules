@@ -19,3 +19,9 @@
 [submodule "deps/mozilla"]
 	path = deps/mozilla
 	url = ../spidermonkey-ff4.git
+[submodule "deps/libogg"]
+	path = deps/libogg
+	url = ../libogg-1.3.0.git
+[submodule "deps/libvorbis"]
+	path = deps/libvorbis
+	url = ../libvorbis-1.3.3.git
