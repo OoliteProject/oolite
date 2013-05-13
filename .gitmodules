@@ -16,3 +16,6 @@
 [submodule "deps/Cross-platform-deps"]
 	path = deps/Cross-platform-deps
 	url = git@github.com:OoliteProject/oolite-sdl-dependencies.git
+[submodule "deps/mozilla"]
+	path = deps/mozilla
+	url = git://github.com/OoliteProject/spidermonkey-ff4.git

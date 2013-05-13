@@ -11,7 +11,7 @@
 
 include config.make
 
-LIBJS_SRC_DIR                    = deps/Cross-platform-deps/mozilla/js/src
+LIBJS_SRC_DIR                    = deps/mozilla/js/src
 LIBJS_CONFIG_FLAGS               = --disable-shared-js
 LIBJS_CONFIG_FLAGS               += --enable-threadsafe
 LIBJS_CONFIG_FLAGS               += --with-system-nspr
@@ -34,7 +34,7 @@ LIBJS_CONFIG_STAMP               = $(LIBJS_BUILD_DIR)/config_stamp
 
 
 .PHONY: all
-all: LIBJS_SRC $(LIBJS)
+all: $(LIBJS)
 
 $(LIBJS): $(LIBJS_BUILD_STAMP)
 
@@ -45,20 +45,12 @@ $(LIBJS_BUILD_STAMP): $(LIBJS_CONFIG_STAMP)
 	$(MAKE) -C $(LIBJS_BUILD_DIR) $(LIBJS_BUILD_FLAGS)
 	touch $@
 
-$(LIBJS_CONFIG_STAMP): LIBJS_SRC
+$(LIBJS_CONFIG_STAMP):
 	@echo
 	@echo "Configuring Javascript library..."
 	@echo
 	cd $(LIBJS_BUILD_DIR) && ../configure $(LIBJS_CONFIG_FLAGS)
 	touch $@
-
-.PHONY: LIBJS_SRC
-LIBJS_SRC:
-	@echo
-	@echo "Updating Javascript sources..."
-	@echo
-	cd deps/Cocoa-deps/scripts && ./update-mozilla.sh
-	mkdir -p $(LIBJS_BUILD_DIR)
 
 .PHONY: clean
 clean:
@@ -70,4 +62,3 @@ clean:
 .PHONY: distclean
 distclean:
 	-$(RM) -r $(LIBJS_BUILD_DIR)
-
