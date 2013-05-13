@@ -1,18 +1,18 @@
 [submodule "Resources/Binary"]
 	path = Resources/Binary
-	url = git@github.com:OoliteProject/oolite-binary-resources.git
+	url = ../oolite-binary-resources.git
 [submodule "Mac-specific"]
 	path = Mac-specific
-	url = git@github.com:OoliteProject/oolite-mac-components
+	url = ../oolite-mac-components
 [submodule "deps/Linux-deps"]
 	path = deps/Linux-deps
-	url = git@github.com:OoliteProject/oolite-linux-dependencies.git
+	url = ../oolite-linux-dependencies.git
 [submodule "deps/Windows-x86-deps"]
 	path = deps/Windows-x86-deps
-	url = git@github.com:OoliteProject/oolite-windows-dependencies.git
+	url = ../oolite-windows-dependencies.git
 [submodule "tests"]
 	path = tests
-	url = git@github.com:OoliteProject/oolite-tests.git
+	url = ../oolite-tests.git
 [submodule "deps/Cross-platform-deps"]
 	path = deps/Cross-platform-deps
-	url = git@github.com:OoliteProject/oolite-sdl-dependencies.git
+	url = ../oolite-sdl-dependencies.git
