@@ -49,6 +49,7 @@ $(LIBJS_CONFIG_STAMP):
 	@echo
 	@echo "Configuring Javascript library..."
 	@echo
+	mkdir -p $(LIBJS_BUILD_DIR)
 	cd $(LIBJS_BUILD_DIR) && ../configure $(LIBJS_CONFIG_FLAGS)
 	touch $@
 
