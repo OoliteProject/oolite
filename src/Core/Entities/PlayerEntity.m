@@ -7193,6 +7193,10 @@ static NSString *last_outfitting_key=nil;
 - (void) setGuiToInterfacesScreen:(int)skip
 {
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+	if (gui_screen != GUI_SCREEN_INTERFACES)
+	{
+		[self noteGUIWillChangeTo:GUI_SCREEN_INTERFACES];
+	}
 	
 	// build an array of available interfaces
 	NSDictionary *interfaces = [dockedStation localInterfaces];
