@@ -729,7 +729,7 @@ typedef enum
 - (GLfloat) weaponRange;
 - (void) setWeaponRange:(GLfloat) value;
 - (void) setWeaponDataFromType:(OOWeaponType)weapon_type;
-- (float) energyRechargeRate;
+- (float) energyRechargeRate; // final rate after energy units
 - (float) weaponRechargeRate;
 - (void) setWeaponRechargeRate:(float)value;
 - (void) setWeaponEnergy:(float)value;

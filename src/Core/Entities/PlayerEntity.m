@@ -2065,8 +2065,7 @@ static GLfloat		sBaseMass = 0.0;
 	UPDATE_STAGE(@"updating energy and shield charges");
 	
 	// 1. (Over)charge energy banks (will get normalised later)
-	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
-	energy += energy_recharge_rate * energy_multiplier * delta_t;
+	energy += [self energyRechargeRate] * delta_t;
 	
 	// 2. Calculate shield recharge rates
 	float fwdMax = [self maxForwardShieldLevel];
@@ -4229,6 +4228,14 @@ static GLfloat		sBaseMass = 0.0;
 	if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT"])  return ENERGY_UNIT_NORMAL;
 	return ENERGY_UNIT_NONE;
 }
+
+/* Is handled slightly differently for player */
+- (float) energyRechargeRate
+{
+	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
+	return energy_recharge_rate * energy_multiplier;
+}
+
 
 - (OOEnergyUnitType) energyUnitType
 {
