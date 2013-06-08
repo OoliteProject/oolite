@@ -6508,6 +6508,11 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 }
 
 
+- (float) energyRechargeRate
+{
+	return energy_recharge_rate;
+}
+
 - (float) weaponRechargeRate
 {
 	return weapon_recharge_rate;

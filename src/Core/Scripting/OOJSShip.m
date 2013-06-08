@@ -139,6 +139,7 @@ enum
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_destination,			// flight destination, Vector, read/write
 	kShip_displayName,			// name displayed on screen, string, read/write
+	kShip_energyRechargeRate,	// energy recharge rate, float, read-only
 	kShip_entityPersonality,	// per-ship random number, int, read-only
 	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
 	kShip_escortGroup,			// group, ShipGroup, read-only
@@ -259,6 +260,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "desiredSpeed",			kShip_desiredSpeed,			OOJS_PROP_READWRITE_CB },
 	{ "destination",			kShip_destination,			OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
+	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READONLY_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
 	{ "escorts",				kShip_escorts,				OOJS_PROP_READONLY_CB },
@@ -536,6 +538,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_heading:
 			return VectorToJSValue(context, [entity forwardVector], value);
 			
+		case kShip_energyRechargeRate:
+			return JS_NewNumberValue(context, [entity energyRechargeRate], value);
+
 		case kShip_entityPersonality:
 			*value = INT_TO_JSVAL([entity entityPersonalityInt]);
 			return YES;
