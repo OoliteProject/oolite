@@ -2996,6 +2996,12 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (int) legalStatusOfCommodity:(NSString *)commodity
+{
+	return [illegalGoods oo_unsignedIntForKey:commodity defaultValue:0];
+}
+
+
 - (int) legalStatusOfManifest:(NSArray *)manifest
 {
 	unsigned				penalty = 0;

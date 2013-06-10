@@ -155,6 +155,15 @@ MA 02110-1301, USA.
 			// convert value to int from string
 			[commodity setObject:[NSNumber numberWithInt:[commodity oo_intForKey:commodityKey]] forKey:commodityKey];
 		}
+		if (self == [UNIVERSE station])
+		{
+			[commodity setObject:[NSNumber numberWithInt:[UNIVERSE legalStatusOfCommodity:[commodity oo_stringForKey:@"displayName"]]] forKey:@"legalPenalty"];
+		} 
+		else
+		{
+			[commodity setObject:[NSNumber numberWithInt:0] forKey:@"legalPenalty"];
+		}
+
 		[result setObject:commodity forKey:CommodityTypeToString(cType)];
 	}
 

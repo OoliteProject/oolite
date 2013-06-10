@@ -421,6 +421,7 @@ enum
 
 - (OOCreditsQuantity) getEquipmentPriceForKey:(NSString *) eq_key;
 
+- (int) legalStatusOfCommodity:(NSString *)commodity;
 - (int) legalStatusOfManifest:(NSArray *)manifest;
 
 - (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce;
