@@ -825,6 +825,10 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];	// FIXME: should be YES, but was NO before introducing new mouse mode stuff. If set to YES, choices can be selected but not activated.
 }
 
+NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
+{
+	return [[cdr1 objectForKey:@"saved_game_path"] localizedCompare:[cdr2 objectForKey:@"saved_game_path"]];
+}
 
 - (void) lsCommanders: (GuiDisplayGen *)gui
 			directory: (NSString*) directory
@@ -885,6 +889,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[gui setText:DESC(@"loadsavescreen-no-commanders-found") forRow:STARTROW align:GUI_ALIGN_CENTER];
 		return;
 	}
+
+	[cdrDetailArray sortUsingFunction:sortCommanders context:NULL];
 	
 	// Do we need to highlight a name?
 	int highlightRowOnPage=STARTROW;
