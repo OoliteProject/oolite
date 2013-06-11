@@ -3438,7 +3438,10 @@ static BOOL autopilot_pause;
 			exceptionContext = @"undock";
 			if ([gameView isDown:gvFunctionKey1] || [gameView isDown:gvNumberKey1])   // look for the f1 key
 			{
-				[self handleUndockControl];
+				if (EXPECT(gui_screen != GUI_SCREEN_MISSION || _missionAllowInterrupt))
+				{
+					[self handleUndockControl];
+				}
 			}
 		}
 		
