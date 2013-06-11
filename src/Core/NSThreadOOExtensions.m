@@ -30,7 +30,7 @@ SOFTWARE.
 #include <pthread.h>
 
 
-#define OO_HAVE_PTHREAD_SETNAME_NP	OOLITE_MAC_OS_X_10_6
+#define OO_HAVE_PTHREAD_SETNAME_NP	OOLITE_MAC_OS_X
 
 
 @implementation NSThread (OOExtensions)

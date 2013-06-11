@@ -1,7 +1,6 @@
-ARCHS									= i386 x86_64
-SDKROOT									= macosx10.7
+ARCHS									= x86_64
+SDKROOT									= macosx10.8
 
-MACOSX_DEPLOYMENT_TARGET[arch=i386]		= 10.5
 MACOSX_DEPLOYMENT_TARGET				= 10.6
 
 GCC_VERSION								= com.apple.compilers.llvm.clang.1_0

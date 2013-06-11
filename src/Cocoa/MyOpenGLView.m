@@ -59,15 +59,6 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 @end
 
 
-#if !OOLITE_MAC_OS_X_10_6
-@interface NSResponder (SnowLeopard)
-
-- (void) setAcceptsTouchEvents:(BOOL)value;
-
-@end
-#endif
-
-
 #if !OOLITE_MAC_OS_X_10_7
 @interface NSView (Lion)
 

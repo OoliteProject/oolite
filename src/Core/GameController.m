@@ -342,14 +342,6 @@ static GameController *sSharedController = nil;
 		OOLog(@"exception.backtrace",@"%@",[exception callStackSymbols]);
 	}
 	
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-	if ([self inFullScreenMode])
-	{
-		// Mac legacy full screen controller makes its own arrangements for rendering.
-		return;
-	}
-#endif
-	
 	@try
 	{
 		[gameView display];

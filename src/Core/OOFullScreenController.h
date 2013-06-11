@@ -32,11 +32,6 @@ MA 02110-1301, USA.
 @class MyOpenGLView;
 
 
-#if OOLITE_MAC_OS_X && !OOLITE_64_BIT
-#define OOLITE_MAC_LEGACY_FULLSCREEN	1
-#endif
-
-
 #if OOLITE_MAC_OS_X
 #define kOODisplayWidth			((NSString *)kCGDisplayWidth)
 #define kOODisplayHeight		((NSString *)kCGDisplayHeight)

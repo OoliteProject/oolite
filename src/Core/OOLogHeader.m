@@ -198,22 +198,6 @@ NSString *OOPlatformDescription(void)
 #include <sys/sysctl.h>
 
 
-#ifndef CPUFAMILY_INTEL_WESTMERE
-// Copied from OS X 10.6 SDK
-#define CPUFAMILY_INTEL_WESTMERE	0x573b5eec
-#endif
-
-#ifndef CPUFAMILY_INTEL_SANDYBRIDGE
-// Copied from OS X 10.7 SDK
-#define CPUFAMILY_INTEL_SANDYBRIDGE	0x5490b78c
-#endif
-
-#ifndef CPUFAMILY_INTEL_IVYBRIDGE
-// Copied from OS X 10.8 SDK
-#define CPUFAMILY_INTEL_IVYBRIDGE	0x1f65e835
-#endif
-
-
 static NSString *GetSysCtlString(const char *name);
 static unsigned long long GetSysCtlInt(const char *name);
 static NSString *GetCPUDescription(void);
@@ -251,41 +235,12 @@ static NSString *GetCPUDescription(void)
 	{
 		case CPU_TYPE_POWERPC:
 			typeStr = @"PowerPC";
-			switch (sysCPUSubType)
-			{
-				case CPU_SUBTYPE_POWERPC_750:
-					subTypeStr = @" G3 (750)";
-					break;
-					
-				case CPU_SUBTYPE_POWERPC_7400:
-					subTypeStr = @" G4 (7400)";
-					break;
-					
-				case CPU_SUBTYPE_POWERPC_7450:
-					subTypeStr = @" G4 (7450)";
-					break;
-					
-				case CPU_SUBTYPE_POWERPC_970:
-					subTypeStr = @" G5 (970)";
-					break;
-				
-				default:
-					subTypeStr = [NSString stringWithFormat:@":%llu", sysCPUSubType];
-			}
 			break;
 			
 		case CPU_TYPE_I386:
 			typeStr = @"x86";
 			switch (sysCPUFamily)
 			{
-				case CPUFAMILY_INTEL_6_13:
-					subTypeStr = @" (Intel 6:13)";
-					break;
-					
-				case CPUFAMILY_INTEL_YONAH:
-					subTypeStr = @" (Core/Yonah)";
-					break;
-					
 				case CPUFAMILY_INTEL_MEROM:
 					subTypeStr = @" (Core 2/Merom)";
 					break;

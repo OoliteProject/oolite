@@ -75,10 +75,6 @@ MA 02110-1301, USA.
 		#define DESTROY(x) do { id x_ = x; x = nil; [x_ release]; } while (0)
 	#endif
 	
-	#if defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-		#define OOLITE_MAC_OS_X_10_6	1
-	#endif
-	
 	#if defined MAC_OS_X_VERSION_10_7 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
 		#define OOLITE_MAC_OS_X_10_7	1
 	#endif
@@ -88,10 +84,6 @@ MA 02110-1301, USA.
 	#endif
 #endif
 
-
-#ifndef OOLITE_MAC_OS_X_10_6
-	#define OOLITE_MAC_OS_X_10_6	0
-#endif
 
 #ifndef OOLITE_MAC_OS_X_10_7
 	#define OOLITE_MAC_OS_X_10_7	0

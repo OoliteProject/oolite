@@ -300,7 +300,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	// Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
-#if OOLITE_MAC_OS_X_10_6
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0),
 	^{
 		/*
@@ -316,9 +315,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		OOLog(@"speech.setup.end", @"Finished setting up speech synthesizer.");
 		speechSynthesizer = synth;
 	});
-#else
-	speechSynthesizer = [[NSSpeechSynthesizer alloc] init];
-#endif
 #elif OOLITE_ESPEAK
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
 	espeak_SetParameter(espeakPUNCTUATION, espeakPUNCT_NONE, 0);

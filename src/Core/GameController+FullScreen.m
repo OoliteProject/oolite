@@ -31,23 +31,10 @@ MA 02110-1301, USA.
 
 #if OOLITE_MAC_OS_X	// TEMP, should be used for SDL too
 
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-#import "OOMacLegacyFullScreenController.h"
-#import "Universe.h"
-
-@interface GameController (OOMacLegacyFullScreenControllerDelegate) <OOMacLegacyFullScreenControllerDelegate>
-@end
-
-#else
+#if OOLITE_MAC_OS_X
 
 #import "OOMacSnowLeopardFullScreenController.h"
 #import "OOMacSystemStandardFullScreenController.h"
-
-#endif
-
-
-#if OOLITE_MAC_OS_X
-
 #import "OOPrimaryWindow.h"
 
 
@@ -61,10 +48,7 @@ MA 02110-1301, USA.
 
 - (void) setUpDisplayModes
 {
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-	OOMacLegacyFullScreenController *fullScreenController = [[OOMacLegacyFullScreenController alloc] initWithGameView:gameView];
-	fullScreenController.delegate = self;
-#elif OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X
 	OOFullScreenController *fullScreenController = nil;
 	
 #if OO_MAC_SUPPORT_SYSTEM_STANDARD_FULL_SCREEN
@@ -123,11 +107,6 @@ MA 02110-1301, USA.
 
 - (void) setFullScreenMode:(BOOL)value
 {
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-	// HACK: the commandF flag can linger when switching between event loops.
-	[gameView clearCommandF];
-#endif
-	
 	if (value == [self inFullScreenMode])  return;
 	
 	[[NSUserDefaults standardUserDefaults] setBool:value forKey:@"fullscreen"];
@@ -135,20 +114,6 @@ MA 02110-1301, USA.
 	if (value)
 	{
 		[_fullScreenController setFullScreenMode:YES];
-		
-		#if OOLITE_MAC_LEGACY_FULLSCREEN
-			// Mac legacy controller needs to take over the world. By which I mean the event loop.
-			if ([_fullScreenController inFullScreenMode])
-			{
-				[self stopAnimationTimer];
-				[(OOMacLegacyFullScreenController *)_fullScreenController runFullScreenModalEventLoop];
-				[self startAnimationTimer];
-			}
-			else
-			{
-				[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"fullscreen"];
-			}
-		#endif
 	}
 	else
 	{
@@ -204,52 +169,9 @@ MA 02110-1301, USA.
 
 - (void) pauseFullScreenModeToPerform:(SEL)selector onTarget:(id)target
 {
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-	[pauseTarget release];
-	pauseTarget = [target retain];
-	pauseSelector = selector;
-	
-	[(OOMacLegacyFullScreenController *)_fullScreenController suspendFullScreen];
-#else
 	[target performSelector:selector];
-#endif
 }
 
 @end
-
-
-#if OOLITE_MAC_LEGACY_FULLSCREEN
-
-@implementation GameController (OOMacLegacyFullScreenControllerDelegate)
-
-- (void) handleFullScreenSuspendedAction
-{
-	[pauseTarget performSelector:pauseSelector];
-	DESTROY(pauseTarget);
-	pauseSelector = NULL;
-}
-
-
-- (void) handleFullScreenFrameTick
-{
-	[self performGameTick:self];
-	[UNIVERSE drawUniverse];
-}
-
-
-- (void) scheduleFullScreenModeRestart
-{
-	/*
-		We're about to fall out of full screen mode, but should change back
-		immediately. This happens when the user changes full screen resolution
-		in-game while in full screen mode. It shouldn't be necessary, but the
-		obvious "fix" results in windows being messed up.
-	*/
-	[self performSelector:@selector(toggleFullScreenAction:) withObject:nil afterDelay:0.0];
-}
-
-@end
-
-#endif
 
 #endif
