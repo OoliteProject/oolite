@@ -505,8 +505,6 @@
 		1A7B967F0E620C9E00322821 /* OOSoundInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7B967E0E620C9E00322821 /* OOSoundInternal.h */; };
 		1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */; };
 		1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */; };
-		1A7BF96E15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7BF96C15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h */; };
-		1A7BF96F15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */; };
 		1A7C27CA14FA70A500F2D2A8 /* shader-uniform-bindings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */; };
 		1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7C75980CC39D11005D0AA2 /* OOJSSun.m */; };
 		1A7C75C50CC39EC9005D0AA2 /* OOJSSun.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7C75990CC39D11005D0AA2 /* OOJSSun.h */; };
@@ -772,6 +770,13 @@
 			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
 			remoteInfo = "Oolite-docktile";
 		};
+		1A1BB8A31767DD3500050283 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1A0CD53615AF0BCE00970505;
+			remoteInfo = OoliteUnitTests;
+		};
 		1A3E019511C574AC000FF226 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */;
@@ -827,13 +832,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
 			remoteInfo = DebugOXP;
-		};
-		1AB2D62315B86EA500177AAF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 1A0CD53615AF0BCE00970505;
-			remoteInfo = OoliteUnitTests;
 		};
 		1AB7760112CA2E53001478BB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1793,8 +1791,6 @@
 		1A7B967E0E620C9E00322821 /* OOSoundInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundInternal.h; sourceTree = "<group>"; };
 		1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityScriptMethods.h; sourceTree = "<group>"; };
 		1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityScriptMethods.m; sourceTree = "<group>"; };
-		1A7BF96C15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMacLegacyFullScreenController.h; sourceTree = "<group>"; };
-		1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMacLegacyFullScreenController.m; sourceTree = "<group>"; };
 		1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */ = {isa = PBXFileReference; explicitFileType = text; path = "shader-uniform-bindings.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A7C75980CC39D11005D0AA2 /* OOJSSun.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSun.m; sourceTree = "<group>"; };
 		1A7C75990CC39D11005D0AA2 /* OOJSSun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSun.h; sourceTree = "<group>"; };
@@ -1905,7 +1901,7 @@
 		1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifier.h; sourceTree = "<group>"; };
 		1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifier.m; sourceTree = "<group>"; };
 		1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; name = verifyOXP.plist; path = ../../../Resources/Config/verifyOXP.plist; sourceTree = "<group>"; };
-		1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OoliteUnitTests.xcodeproj; path = tests/OCUnitTests/OoliteUnitTests.xcodeproj; sourceTree = "<group>"; };
+		1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OoliteUnitTests.xcodeproj; path = "Mac-specific/OCUnitTests/OoliteUnitTests.xcodeproj"; sourceTree = "<group>"; };
 		1AB4AEB60D688AD9003076D6 /* OOLogHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogHeader.h; sourceTree = "<group>"; };
 		1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogHeader.m; sourceTree = "<group>"; };
 		1AB5E1ED12BD628500C334DD /* OOJoystickManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJoystickManager.h; sourceTree = "<group>"; };
@@ -2148,6 +2144,14 @@
 			isa = PBXGroup;
 			children = (
 				1A01BCE711C569DF0011197F /* Oolite.docktileplugin */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1A1BB8A01767DD3500050283 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A1BB8A41767DD3500050283 /* OoliteUnitTests.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2898,8 +2902,6 @@
 				1A033FB713268ABB006F9DB7 /* OOPDFView.m */,
 				1A54115914B8913E00B8A4BE /* OOMacJoystickManager.h */,
 				1A54115A14B8913E00B8A4BE /* OOMacJoystickManager.m */,
-				1A7BF96C15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h */,
-				1A7BF96D15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m */,
 				1A9FCF2115DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h */,
 				1A9FCF2215DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m */,
 				1A72F86715E14F1100281337 /* OOMacSystemStandardFullScreenController.h */,
@@ -3201,14 +3203,6 @@
 			);
 			name = "OXP Verification";
 			path = OXPVerifier;
-			sourceTree = "<group>";
-		};
-		1AB2D61D15B86EA400177AAF /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1AB2D62415B86EA500177AAF /* OoliteUnitTests.octest */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		1AB775FD12CA2E53001478BB /* Products */ = {
@@ -3568,7 +3562,6 @@
 				1ABA416215ADAB8D00F7E841 /* OOJSDock.h in Headers */,
 				1AF4AF4A15B858AA009243BE /* OOWeakSet.h in Headers */,
 				1AE1A94115D2C4E4003F4D56 /* OOFullScreenController.h in Headers */,
-				1A7BF96E15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.h in Headers */,
 				1A9FCF2315DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h in Headers */,
 				1A97528F15DECA6600108FA5 /* OOFullScreenWindow.h in Headers */,
 				1A72F86515E002E200281337 /* OOMouseInteractionMode.h in Headers */,
@@ -3669,7 +3662,7 @@
 					ProjectRef = 1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */;
 				},
 				{
-					ProductGroup = 1AB2D61D15B86EA400177AAF /* Products */;
+					ProductGroup = 1A1BB8A01767DD3500050283 /* Products */;
 					ProjectRef = 1AB2D61C15B86EA400177AAF /* OoliteUnitTests.xcodeproj */;
 				},
 				{
@@ -3691,6 +3684,13 @@
 			fileType = wrapper.cfbundle;
 			path = Oolite.docktileplugin;
 			remoteRef = 1A01BCE611C569DF0011197F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1A1BB8A41767DD3500050283 /* OoliteUnitTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = OoliteUnitTests.octest;
+			remoteRef = 1A1BB8A31767DD3500050283 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1A3E019611C574AC000FF226 /* Oolite.mdimporter */ = {
@@ -3726,13 +3726,6 @@
 			fileType = wrapper.cfbundle;
 			path = Debug.oxp;
 			remoteRef = 1A8FAA9D12F0E44D008FF5A2 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		1AB2D62415B86EA500177AAF /* OoliteUnitTests.octest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = OoliteUnitTests.octest;
-			remoteRef = 1AB2D62315B86EA500177AAF /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1AB7760212CA2E53001478BB /* libjs_for_oolite.a */ = {
@@ -4044,7 +4037,6 @@
 				1ABA416315ADAB8D00F7E841 /* OOJSDock.m in Sources */,
 				1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */,
 				1AE1A94215D2C4E4003F4D56 /* OOFullScreenController.m in Sources */,
-				1A7BF96F15D7FE6A008DEB7F /* OOMacLegacyFullScreenController.m in Sources */,
 				1A9FCF2415DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m in Sources */,
 				1A9FCF2615DAC9BC00E965D5 /* GameController+FullScreen.m in Sources */,
 				1A97529015DECA6600108FA5 /* OOFullScreenWindow.m in Sources */,

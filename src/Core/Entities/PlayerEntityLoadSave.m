@@ -581,8 +581,6 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
 #if OOLITE_USE_APPKIT_LOAD_SAVE
 
-#if OOLITE_MAC_OS_X_10_6
-
 - (BOOL)loadPlayerWithPanel
 {
 	NSOpenPanel *oPanel = [NSOpenPanel openPanel];
@@ -626,59 +624,6 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 	[self setGuiToStatusScreen];
 }
-
-#else
-
-- (BOOL)loadPlayerWithPanel
-{
-	int				result;
-	NSArray			*fileTypes = nil;
-	NSOpenPanel		*oPanel = nil;
-	
-	fileTypes = [NSArray arrayWithObject:@"oolite-save"];
-	oPanel = [NSOpenPanel openPanel];
-	
-	[oPanel setAllowsMultipleSelection:NO];
-	result = [oPanel runModalForDirectory:nil file:nil types:fileTypes];
-	if (result == NSOKButton)
-	{
-		return [self loadPlayerFromFile:[oPanel filename]];
-	}
-	else
-	{
-		return NO;
-	}
-}
-
-
-- (void) savePlayerWithPanel
-{
-	NSSavePanel		*sp;
-	int				runResult;
-	
-	sp = [NSSavePanel savePanel];
-	[sp setRequiredFileType:@"oolite-save"];
-	[sp setCanSelectHiddenExtension:YES];
-	
-	// display the NSSavePanel
-	runResult = [sp runModalForDirectory:nil file:[self commanderName]];
-	
-	// if successful, save file under designated name
-	if (runResult == NSOKButton)
-	{
-		NSArray*	path_components = [[sp filename] pathComponents];
-		NSString*   new_name = [[path_components objectAtIndex:[path_components count]-1] stringByDeletingPathExtension];
-		
-		ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("STANDARD_SAVE"));
-		
-		[self setCommanderName:new_name];
-		
-		[self writePlayerToPath:[sp filename]];
-	}
-	[self setGuiToStatusScreen];
-}
-
-#endif
 
 #endif
 

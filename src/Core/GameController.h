@@ -35,10 +35,6 @@ MA 02110-1301, USA.
 #import <Quartz/Quartz.h>	// For PDFKit.
 #endif
 
-#if OOLITE_MAC_OS_X && !OOLITE_64_BIT
-#define OOLITE_MAC_LEGACY_FULLSCREEN	1
-#endif
-
 #define MINIMUM_GAME_TICK		0.25
 // * reduced from 0.5s for tgape * //
 
@@ -168,10 +164,6 @@ MA 02110-1301, USA.
 - (IBAction) toggleFullScreenAction:(id)sender;
 #endif
 
-/*	NOTE: on 32-bit Mac OS X (OOLITE_MAC_LEGACY_FULLSCREEN),
-	setFullScreenMode:YES takes over the event loop and doesn't return until
-	exiting full screen mode.
-*/
 - (void) setFullScreenMode:(BOOL)value;
 #endif
 

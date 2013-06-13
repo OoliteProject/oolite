@@ -49,7 +49,7 @@
                BlueprintIdentifier = "1A0CD53515AF0BCE00970505"
                BuildableName = "OoliteUnitTests.octest"
                BlueprintName = "OoliteUnitTests"
-               ReferencedContainer = "container:tests/OCUnitTests/OoliteUnitTests.xcodeproj">
+               ReferencedContainer = "container:Mac-specific/OCUnitTests/OoliteUnitTests.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
