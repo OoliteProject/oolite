@@ -1763,6 +1763,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(compassTarget);
 	DESTROY(hud);
 	DESTROY(commLog);
+	DESTROY(keyconfig_settings);
 	
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
@@ -3306,6 +3307,12 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setAftShieldLevel:(GLfloat)level
 {
 	aft_shield = OOClamp_0_max_f(level, [self maxAftShieldLevel]);
+}
+
+
+- (NSDictionary *) keyConfig
+{
+	return keyconfig_settings;
 }
 
 

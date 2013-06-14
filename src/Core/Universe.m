@@ -3324,7 +3324,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (NSDictionary *) gameSettings
 {
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:8];
+	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:9];
 	
 	[result oo_setBool:reducedDetail forKey:@"reducedDetailGraphics"];
 	[result oo_setBool:[PLAYER isSpeechOn] forKey:@"speechOn"];
@@ -3350,6 +3350,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 						nil];
 	[result setObject:gameWindow forKey:@"gameWindow"];
 	
+	[result setObject:[PLAYER keyConfig] forKey:@"keyConfig"];
+
 	return [[result copy] autorelease];
 }
 
