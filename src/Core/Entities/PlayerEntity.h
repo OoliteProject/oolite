@@ -387,6 +387,8 @@ typedef enum
 	GLfloat					fuel_leak_rate;
 	
 	// keys!
+	NSDictionary   *keyconfig_settings;
+
 	OOKeyCode				key_roll_left;
 	OOKeyCode				key_roll_right;
 	OOKeyCode				key_pitch_forward;
@@ -633,6 +635,8 @@ typedef enum
 - (void) setForwardShieldLevel:(GLfloat)level;
 - (void) setAftShieldLevel:(GLfloat)level;
 
+// return keyconfig.plist settings for scripting
+- (NSDictionary *) keyConfig;
 - (BOOL) isMouseControlOn;
 
 - (GLfloat) dialRoll;

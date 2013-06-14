@@ -205,7 +205,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 	// set default keys.
-#define LOAD_KEY_SETTING(name, default)	name = [kdic oo_unsignedShortForKey:@#name defaultValue:default]
+#define LOAD_KEY_SETTING(name, default)	name = [kdic oo_unsignedShortForKey:@#name defaultValue:default]; [kdic setObject:[NSNumber numberWithUnsignedChar:name] forKey:@#name]
 	
 	LOAD_KEY_SETTING(key_roll_left,				gvArrowKeyLeft		);
 	LOAD_KEY_SETTING(key_roll_right,			gvArrowKeyRight		);
@@ -285,6 +285,8 @@ static NSTimeInterval	time_last_frame;
 	if (key_yaw_right == key_roll_right && key_yaw_right == '.')  key_yaw_right = 0;
 	
 	// other keys are SET and cannot be varied
+	[keyconfig_settings release];
+	keyconfig_settings = [[NSDictionary alloc] initWithDictionary:kdic];
 	
 	// Enable polling
 	pollControls=YES;
