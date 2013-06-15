@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "OORoleSet.h"
 #import "OOJSPlayer.h"
 #import "OOShipGroup.h"
+#import "OOShipRegistry.h"
 #import "OOEquipmentType.h"
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
@@ -87,6 +88,7 @@ static JSBool ShipClearDefenseTargets(JSContext *context, uintN argc, jsval *vp)
 static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp);
 
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
@@ -398,13 +400,20 @@ static JSFunctionSpec sShipMethods[] =
 	{ 0 }
 };
 
+static JSFunctionSpec sShipStaticMethods[] =
+{
+	// JS name					Function					min args
+	{ "keysForRole",		ShipStaticKeysForRole,				1 },
+	{ 0 }
+};
+
 
 DEFINE_JS_OBJECT_GETTER(JSShipGetShipEntity, &sShipClass, sShipPrototype, ShipEntity)
 
 
 void InitOOJSShip(JSContext *context, JSObject *global)
 {
-	sShipPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sShipClass, OOJSUnconstructableConstruct, 0, sShipProperties, sShipMethods, NULL, NULL);
+	sShipPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sShipClass, OOJSUnconstructableConstruct, 0, sShipProperties, sShipMethods, NULL, sShipStaticMethods);
 	OOJSRegisterObjectConverter(&sShipClass, OOJSBasicPrivateObjectConverter);
 	OOJSRegisterSubclass(&sShipClass, JSEntityClass());
 }
@@ -2491,6 +2500,26 @@ static JSBool ShipUpdateEscortFormation(JSContext *context, uintN argc, jsval *v
 	OOJS_RETURN_VOID;
 	
 	OOJS_PROFILE_EXIT
+}
+
+static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context);
+	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
+
+	if (argc > 0)
+	{
+		NSString *role = OOStringFromJSValue(context, OOJS_ARGV[0]);
+		NSArray *keys = [registry shipKeysWithRole:role];
+		OOJS_RETURN_OBJECT(keys);		
+	}
+	else
+	{
+		OOJSReportBadArguments(context, @"Ship", @"shipKeysForRole", MIN(argc, 1U), OOJS_ARGV, nil, @"ship role");
+		return NO;
+	}
+
+	OOJS_NATIVE_EXIT
 }
 
 
