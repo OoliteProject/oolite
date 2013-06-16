@@ -336,6 +336,7 @@ MA 02110-1301, USA.
 	{
 		// if all docks have no ships on approach
 		[shipAI message:@"DOCKING_COMPLETE"];
+		[self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];	
 	}
 }
 
@@ -386,9 +387,17 @@ MA 02110-1301, USA.
 	}
 	
 	[_shipsOnHold makeObjectsPerformSelector:@selector(sendAIMessage:) withObject:@"DOCKING_ABORTED"];
+	NSEnumerator *holdEnum = nil;
+	ShipEntity *hold = nil;
+	for (holdEnum = [_shipsOnHold objectEnumerator]; (hold = [holdEnum nextObject]); )
+	{
+		[hold doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
+	}
+
 	[_shipsOnHold removeAllObjects];
 	
 	[shipAI message:@"DOCKING_COMPLETE"];
+	[self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];
 
 }
 
@@ -418,6 +427,8 @@ MA 02110-1301, USA.
 	[self autoDockShipsOnHold];
 	
 	[shipAI message:@"DOCKING_COMPLETE"];
+	[self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];
+
 }
 
 
@@ -570,6 +581,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	[_shipsOnHold removeObject:ship];
 	
 	[shipAI reactToMessage:@"DOCKING_REQUESTED" context:@"requestDockingCoordinates"];	// react to the request	
+	[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:ship];
 
 	return [chosenDock dockingInstructionsForShip:ship];
 }
@@ -590,6 +602,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 - (void) abortDockingForShip:(ShipEntity *) ship
 {
 	[ship sendAIMessage:@"DOCKING_ABORTED"];
+	[ship doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
 	
 	[_shipsOnHold removeObject:ship];
 	
@@ -849,7 +862,11 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 			{
 				[self sendExpandedMessage:@"[station-docking-clearance-expired]" toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];	// Docking clearance for player has expired.
-				if ([self currentlyInDockingQueues] == 0) [[self getAI] message:@"DOCKING_COMPLETE"];
+				if ([self currentlyInDockingQueues] == 0) 
+				{
+					[[self getAI] message:@"DOCKING_COMPLETE"];
+					[self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];
+				}
 				player_reserved_dock = nil;
 			}
 		}
@@ -859,7 +876,11 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 			if (last_launch_time < unitime)
 			{
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
-				if ([self currentlyInDockingQueues] == 0) [[self getAI] message:@"DOCKING_COMPLETE"];
+				if ([self currentlyInDockingQueues] == 0) 
+				{
+					[[self getAI] message:@"DOCKING_COMPLETE"];
+					[self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];
+				}
 			}
 		}
 
@@ -2013,6 +2034,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		if ([other isPlayer])
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
+		[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
+
 		last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
 		result = @"DOCKING_CLEARANCE_NOT_REQUIRED";
 	}
@@ -2043,7 +2066,11 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 				result = @"DOCKING_CLEARANCE_CANCELLED";
 				player_reserved_dock = nil;
-				if ([self currentlyInDockingQueues] == 0) [shipAI message:@"DOCKING_COMPLETE"];
+				if ([self currentlyInDockingQueues] == 0)
+				{
+					[shipAI message:@"DOCKING_COMPLETE"];
+					[self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];
+				}
 				break;
 			case DOCKING_CLEARANCE_STATUS_NONE:
 			case DOCKING_CLEARANCE_STATUS_NOT_REQUIRED:
@@ -2176,6 +2203,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 		result = @"DOCKING_CLEARANCE_GRANTED";
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
+		[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
+
 	}
 	return result;
 }

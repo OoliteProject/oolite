@@ -2742,6 +2742,8 @@
 	{
 		[self setFoundTarget:blocker];
 		[shipAI reactToMessage:@"WITCHSPACE BLOCKED" context:@"performHyperSpaceExit"];
+		[self doScriptEvent:OOJSID("shipWitchspaceBlocked") withArgument:blocker];
+
 		return NO;
 	}
 	

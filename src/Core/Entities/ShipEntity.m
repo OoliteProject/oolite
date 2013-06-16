@@ -3660,6 +3660,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (range < desired_range)
 		{
 			[shipAI reactToMessage:@"DESIRED_RANGE_ACHIEVED" context:@"BEHAVIOUR_INTERCEPT_TARGET"];
+			[self doScriptEvent:OOJSID("shipAchievedDesiredRange")];
+
 		}
 		desired_speed = maxFlightSpeed * [self trackPrimaryTarget:delta_t:NO];
 	}
@@ -5151,6 +5153,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// desired range achieved
 		[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
+		[self doScriptEvent:OOJSID("shipAchievedDesiredRange")];
+
 		if(!docking_match_rotation) // IDLE stops rotating while docking
 		{
 			behaviour = BEHAVIOUR_IDLE;
@@ -5217,6 +5221,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// desired range achieved
 		[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
+		[self doScriptEvent:OOJSID("shipAchievedDesiredRange")];
+
 		behaviour = BEHAVIOUR_IDLE;
 		frustration = 0.0;
 		desired_speed = 0.0;
@@ -8798,6 +8804,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		[self removeDefenseTarget:target];
 		[shipAI message:@"DEFENSE_TARGET_DESTROYED"];
+		[self doScriptEvent:OOJSID("shipDefenseTargetDestroyed") withArgument:target];
 	}
 }
 
@@ -10885,6 +10892,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[self dumpItem:jetto];	// CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL
 			[cargo removeObjectAtIndex:0];
 			[self broadcastAIMessage:@"CARGO_DUMPED"]; // goes only to 16 nearby ships in range, but that should be enough.
+			unsigned i;
+			// broadcastAIMessage just ran checkScanner, so don't need to do it again
+			for (i = 0; i < n_scanned_ships ; i++)
+			{
+				ShipEntity* other = scanned_ships[i];
+				[other doScriptEvent:OOJSID("cargoDumpedNearby") withArgument:jetto andArgument:self];
+				
+			}
 		}
 	}
 	

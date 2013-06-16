@@ -97,6 +97,7 @@ MA 02110-1301, USA.
 		if ([ship isShip])
 		{
 			[ship sendAIMessage:@"DOCKING_ABORTED"];
+			[ship doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
 		}
 	}
 	[shipsOnApproach removeAllObjects];
