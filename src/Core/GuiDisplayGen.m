@@ -1250,7 +1250,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		GLfloat h1 = 3.0f;
 		GLfloat h3 = 9.0f;
-		OOGL(glColor4f(0.2f, 0.2f, 1.0f, 0.5f));
+		OOGL(glColor4f(0.6f, 0.6f, 1.0f, 0.5f)); // original value of (0.2f, 0.2f, 1.0f, 0.5f) too dark - Nikos 20130616
 		OOGL(GLScaledLineWidth(2.0f));
 		
 		cursor_x += x;
