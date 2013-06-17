@@ -2038,6 +2038,10 @@ static NSMutableDictionary *currentShipyard = nil;
 	
 	[self newShipCommonSetup:shipKey yardInfo:ship_info baseInfo:ship_base_dict];
 
+	// perform the transformation
+	NSDictionary* cmdr_dict = [self commanderDataDictionary];	// gather up all the info
+	if (![self setCommanderDataFromDictionary:cmdr_dict])  return NO;
+
 	// refill from ship_info
 	NSArray* extras = [NSMutableArray arrayWithArray:[[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
 	for (unsigned i = 0; i < [extras count]; i++)
@@ -2053,10 +2057,6 @@ static NSMutableDictionary *currentShipyard = nil;
 			[self addEquipmentItem:eq_key withValidation:YES inContext:@"newShip"]; 
 		}
 	}
-
-	// perform the transformation
-	NSDictionary* cmdr_dict = [self commanderDataDictionary];	// gather up all the info
-	if (![self setCommanderDataFromDictionary:cmdr_dict])  return NO;
 
 	[self setEntityPersonalityInt:[ship_info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
 	
