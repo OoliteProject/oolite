@@ -29,6 +29,14 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * Fix calculation of heat damage to subentities
 * Fix updates of energy, laser temp, alert condition related to autopilot
 * Fix for crash when pressing up on long manifest screen
+* Fix conflict between "pilot" and "unpiloted" shipdata keys
+* Fix equipment condition check in player.replaceShip()
+* Fix flasher scaling in visual effects
+* Add fuel scoop icon to small HUD
+* Lighten mouse cursor cross color
+* Sort save-game list alphabetically
+* Slightly lengthen deadlines on parcel contracts to avoid impossible ones
+* Prevent docking with dead stations
 
 -------------------------------------------------------------------------------
 

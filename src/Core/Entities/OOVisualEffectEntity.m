@@ -485,7 +485,7 @@ MA 02110-1301, USA.
 {
 	// rescale subentities
 	Entity<OOSubEntity>	*se = nil;
-	GLfloat flasher_factor = pow(factor/scaleX,1.0/3.0);
+	GLfloat flasher_factor = pow(factor/scaleY,1.0/3.0);
 	foreach (se, [self subEntities])
 	{
 		Vector move = [se position];
@@ -516,7 +516,7 @@ MA 02110-1301, USA.
 {
 	// rescale subentities
 	Entity<OOSubEntity>	*se = nil;
-	GLfloat flasher_factor = pow(factor/scaleX,1.0/3.0);
+	GLfloat flasher_factor = pow(factor/scaleZ,1.0/3.0);
 	foreach (se, [self subEntities])
 	{
 		Vector move = [se position];
