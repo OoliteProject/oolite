@@ -612,16 +612,21 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// ship skin insulation factor (1.0 is normal)
 	[self setHeatInsulation:[shipDict oo_floatForKey:@"heat_insulation" defaultValue:[self hasHeatShield] ? 2.0 : 1.0]];
 	
-	// crew and passengers
-	NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict oo_stringForKey:@"pilot"]];
-	if (cdict != nil)
-	{
-		OOCharacter	*pilot = [OOCharacter characterWithDictionary:cdict];
-		[self setCrew:[NSArray arrayWithObject:pilot]];
-	}
-	
 	// unpiloted (like missiles asteroids etc.)
-	if ((isUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"]))  [self setCrew:nil];
+	if ((isUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"])) 
+	{
+		[self setCrew:nil];
+	}
+	else 
+	{
+		// crew and passengers
+		NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict oo_stringForKey:@"pilot"]];
+		if (cdict != nil)
+		{
+			OOCharacter	*pilot = [OOCharacter characterWithDictionary:cdict];
+			[self setCrew:[NSArray arrayWithObject:pilot]];
+		}
+	}
 	
 	[self setShipScript:[shipDict oo_stringForKey:@"script"]];
 	
@@ -6921,6 +6926,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	if (isUnpiloted) 
 	{
 		//unpiloted ships cannot have crew
+		// but may have crew before isUnpiloted set, so force *that* to clear too
+		[crew autorelease];
+		crew = nil;
 		return;
 	}
 	//do not set to hulk here when crew is nill (or 0).  Some things like missiles have no crew.
