@@ -571,6 +571,26 @@ MA 02110-1301, USA.
 		[shipsOnApproach removeObjectForKey:shipID];
 	}
 	
+	if ([ship isPlayer])
+	{
+		PlayerEntity* player = PLAYER;
+		if ([player status] == STATUS_IN_FLIGHT &&
+				[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
+		{
+			if (magnitude2(vector_subtract([player position], [self absolutePositionForSubentity])) > 2250000) // within 1500m of the dock
+			{
+				[[self parentEntity] sendExpandedMessage:@"[station-docking-clearance-abort-cancelled]" toShip:player];
+				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+			}
+			else
+			{
+				int playerExtraTime = 10; // when very close to the port, give the player a few seconds to react on the abort message.
+				[[self parentEntity] sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime] toShip:player];
+				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
+			}
+		}
+	}
+
 	// clear any previously owned docking stages
 	[self clearIdLocks:ship];
 }

@@ -394,6 +394,17 @@ MA 02110-1301, USA.
 		[hold doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
 	}
 
+	PlayerEntity *player = PLAYER;
+
+	if ([player getTargetDockStation] == self && [player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
+	{
+		// then docking clearance is requested but hasn't been cancelled
+		// yet by a DockEntity
+		[self sendExpandedMessage:@"[station-docking-clearance-abort-cancelled]" toShip:player];
+		[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+		[player doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
+	}
+
 	[_shipsOnHold removeAllObjects];
 	
 	[shipAI message:@"DOCKING_COMPLETE"];

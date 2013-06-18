@@ -41,6 +41,8 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
+static JSBool StationAbortAllDockings(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationAbortDockingForShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchDefenseShip(JSContext *context, uintN argc, jsval *vp);
@@ -119,6 +121,8 @@ static JSPropertySpec sStationProperties[] =
 static JSFunctionSpec sStationMethods[] =
 {
 	// JS name					Function						min args
+	{ "abortAllDockings",				StationAbortAllDockings,				0 },
+	{ "abortDockingForShip",				StationAbortDockingForShip,				1 },
 	{ "dockPlayer",				StationDockPlayer,				0 },
 	{ "launchDefenseShip",		StationLaunchDefenseShip,		0 },
 	{ "launchMiner",			StationLaunchMiner,				0 },
@@ -159,6 +163,27 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 	if (![entity isKindOfClass:[StationEntity class]])  return NO;
 	
 	*outEntity = (StationEntity *)entity;
+	return YES;
+	
+	OOJS_PROFILE_EXIT
+}
+
+static BOOL JSStationGetShipEntity(JSContext *context, JSObject *shipObj, ShipEntity **outEntity)
+{
+	OOJS_PROFILE_ENTER
+	
+	BOOL						result;
+	Entity						*entity = nil;
+	
+	if (outEntity == NULL)  return NO;
+	*outEntity = nil;
+	
+	result = OOJSEntityGetEntity(context, shipObj, &entity);
+	if (!result)  return NO;
+	
+	if (![entity isKindOfClass:[ShipEntity class]])  return NO;
+	
+	*outEntity = (ShipEntity *)entity;
 	return YES;
 	
 	OOJS_PROFILE_EXIT
@@ -369,6 +394,43 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 
 
 // *** Methods ***
+
+static JSBool StationAbortAllDockings(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	StationEntity *station = nil;
+	JSStationGetStationEntity(context, OOJS_THIS, &station); 
+	[station abortAllDockings];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool StationAbortDockingForShip(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	StationEntity *station = nil;
+	JSStationGetStationEntity(context, OOJS_THIS, &station); 
+	if (argc == 0)
+	{
+			OOJSReportBadArguments(context, @"Station", @"abortDockingForShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship in docking queue");
+		return NO;
+	}
+	ShipEntity *ship = nil;
+	JSStationGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &ship);
+	if (ship != nil)
+	{
+		[station abortDockingForShip:ship];
+	}
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
 
 // dockPlayer()
 // Proposed and written by Frame 20090729
