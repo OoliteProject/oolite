@@ -88,8 +88,11 @@ static JSBool ShipClearDefenseTargets(JSContext *context, uintN argc, jsval *vp)
 static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
-static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipBroadcastCascadeImminent(JSContext *context, uintN argc, jsval *vp);
 
+
+static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
@@ -361,6 +364,8 @@ static JSFunctionSpec sShipMethods[] =
 	{ "abandonShip",			ShipAbandonShip,			0 },
 	{ "addDefenseTarget",		ShipAddDefenseTarget,		1 },
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
+	{ "becomeCascadeExplosion",			ShipBecomeCascadeExplosion,			0 },
+	{ "broadcastCascadeImminent",			ShipBroadcastCascadeImminent,			0 },
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
 	{ "clearDefenseTargets",	ShipClearDefenseTargets,	0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
@@ -2617,6 +2622,32 @@ static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp)
 	result = [[thisEnt mesh] shaders];
 	if (result == nil)  result = [NSDictionary dictionary];
 	OOJS_RETURN_OBJECT(result);
+	
+	OOJS_PROFILE_EXIT
+}
+
+static JSBool ShipBroadcastCascadeImminent(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt broadcastEnergyBlastImminent];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt becomeEnergyBlast];
+	
+	OOJS_RETURN_VOID;
 	
 	OOJS_PROFILE_EXIT
 }
