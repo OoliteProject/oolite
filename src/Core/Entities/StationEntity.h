@@ -194,7 +194,7 @@ typedef enum
 /**Lazygun** added the following line*/
 - (ShipEntity *) launchPirateShip;
 - (ShipEntity *) launchShuttle;
-- (void) launchEscort;
+- (ShipEntity *) launchEscort;
 - (ShipEntity *) launchPatrol;
 
 - (void) launchShipWithRole:(NSString *)role;

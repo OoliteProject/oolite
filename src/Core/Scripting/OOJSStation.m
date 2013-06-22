@@ -46,6 +46,7 @@ static JSBool StationAbortDockingForShip(JSContext *context, uintN argc, jsval *
 static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchDefenseShip(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationLaunchEscort(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchScavenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchMiner(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchPirateShip(JSContext *context, uintN argc, jsval *vp);
@@ -125,6 +126,7 @@ static JSFunctionSpec sStationMethods[] =
 	{ "abortDockingForShip",				StationAbortDockingForShip,				1 },
 	{ "dockPlayer",				StationDockPlayer,				0 },
 	{ "launchDefenseShip",		StationLaunchDefenseShip,		0 },
+	{ "launchEscort",			StationLaunchEscort,			0 },
 	{ "launchMiner",			StationLaunchMiner,				0 },
 	{ "launchPatrol",			StationLaunchPatrol,			0 },
 	{ "launchPirateShip",		StationLaunchPirateShip,		0 },
@@ -502,6 +504,18 @@ static JSBool StationLaunchDefenseShip(JSContext *context, uintN argc, jsval *vp
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
 	OOJS_RETURN_OBJECT([station launchDefenseShip]);
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool StationLaunchEscort(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	StationEntity *station = nil;
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
+	
+	OOJS_RETURN_OBJECT([station launchEscort]);
 	OOJS_NATIVE_EXIT
 }
 

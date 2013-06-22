@@ -1861,7 +1861,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 
 // Exposed to AI
-- (void) launchEscort
+- (ShipEntity *) launchEscort
 {
 	if (![self hasLaunchDock])
 	{

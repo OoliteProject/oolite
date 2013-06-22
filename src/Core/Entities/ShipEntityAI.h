@@ -46,4 +46,6 @@ MA 02110-1301, USA.
 
 - (void) wormholeEscorts;
 
+- (BOOL) suggestEscortTo:(ShipEntity *)mother;
+
 @end

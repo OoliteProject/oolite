@@ -90,6 +90,7 @@ static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBroadcastCascadeImminent(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp);
@@ -384,6 +385,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "getMaterials",			ShipGetMaterials,			0 },
 	{ "getShaders",				ShipGetShaders,				0 },
 	{ "hasRole",				ShipHasRole,				1 },
+	{ "offerToEscort",				ShipOfferToEscort,				1 },
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
@@ -2648,6 +2650,28 @@ static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *
 	[thisEnt becomeEnergyBlast];
 	
 	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	ShipEntity				*mother = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &mother)))))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"offerToEscort", 1U, OOJS_ARGV, nil, @"target");
+		return NO;
+	}
+	
+	BOOL result = [thisEnt suggestEscortTo:mother];
+
+	OOJS_RETURN_BOOL(result);
 	
 	OOJS_PROFILE_EXIT
 }

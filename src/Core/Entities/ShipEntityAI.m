@@ -424,6 +424,50 @@
 	
 }
 
+
+- (BOOL) suggestEscortTo:(ShipEntity *)mother
+{
+	if (mother)
+	{
+#ifndef NDEBUG
+		if (reportAIMessages)
+		{
+			OOLog(@"ai.suggestEscort", @"DEBUG: %@ suggests escorting %@", self, mother);
+		}
+#endif
+		
+		if ([mother acceptAsEscort:self])
+		{
+			// copy legal status across
+			if (([mother legalStatus] > 0)&&(bounty <= 0))
+			{
+				int extra = 1 | (ranrot_rand() & 15);
+//				[mother setBounty: [mother legalStatus] + extra withReason:kOOLegalStatusReasonAssistingOffender];
+				[self markAsOffender:extra withReason:kOOLegalStatusReasonAssistingOffender];
+				//				bounty += extra;	// obviously we're dodgier than we thought!
+			}
+			
+			[self setOwner:mother];
+			[self setGroup:[mother escortGroup]];
+			[shipAI message:@"ESCORTING"];
+			return YES;
+		}
+		
+#ifndef NDEBUG
+		if (reportAIMessages)
+		{
+			OOLog(@"ai.suggestEscort.refused", @"DEBUG: %@ refused by %@", self, mother);
+		}
+#endif
+		
+	}
+	[self setOwner:self];
+	[shipAI message:@"NOT_ESCORTING"];
+	[self doScriptEvent:OOJSID("escortRejected") withArgument:mother];
+	return NO;
+}
+
+
 @end
 
 
@@ -1599,43 +1643,9 @@
 - (void) suggestEscort
 {
 	ShipEntity   *mother = [self primaryTarget];
-	if (mother)
-	{
-#ifndef NDEBUG
-		if (reportAIMessages)
-		{
-			OOLog(@"ai.suggestEscort", @"DEBUG: %@ suggests escorting %@", self, mother);
-		}
-#endif
-		
-		if ([mother acceptAsEscort:self])
-		{
-			// copy legal status across
-			if (([mother legalStatus] > 0)&&(bounty <= 0))
-			{
-				int extra = 1 | (ranrot_rand() & 15);
-//				[mother setBounty: [mother legalStatus] + extra withReason:kOOLegalStatusReasonAssistingOffender];
-				[self markAsOffender:extra withReason:kOOLegalStatusReasonAssistingOffender];
-				//				bounty += extra;	// obviously we're dodgier than we thought!
-			}
-			
-			[self setOwner:mother];
-			[self setGroup:[mother escortGroup]];
-			[shipAI message:@"ESCORTING"];
-			return;
-		}
-		
-#ifndef NDEBUG
-		if (reportAIMessages)
-		{
-			OOLog(@"ai.suggestEscort.refused", @"DEBUG: %@ refused by %@", self, mother);
-		}
-#endif
-		
-	}
-	[self setOwner:self];
-	[shipAI message:@"NOT_ESCORTING"];
+	[self suggestEscortTo:mother];
 }
+
 
 
 - (void) escortCheckMother
