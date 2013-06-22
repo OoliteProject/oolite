@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 #import "OOTypes.h"
+#import "OOTexture.h"
 #import "OOMaths.h"
 
 @class OOColor;
