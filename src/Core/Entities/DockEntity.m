@@ -112,6 +112,7 @@ MA 02110-1301, USA.
 		{
 			[station sendExpandedMessage:@"[station-docking-clearance-abort-cancelled]" toShip:player];
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+			[player doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
 		}
 		else
 		{

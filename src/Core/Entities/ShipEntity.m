@@ -8804,7 +8804,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		[self removeDefenseTarget:target];
 		[shipAI message:@"DEFENSE_TARGET_DESTROYED"];
-		[self doScriptEvent:OOJSID("shipDefenseTargetDestroyed") withArgument:target];
+		[self doScriptEvent:OOJSID("defenseTargetDestroyed") withArgument:target];
 	}
 }
 

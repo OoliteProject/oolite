@@ -1887,6 +1887,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		
 	}
 	[escort_ship release];
+	return escort_ship;
 }
 
 
@@ -2230,6 +2231,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	{
 		soa += [sub countOfShipsInDockingQueue];
 	}
+	soa += [_shipsOnHold count];
 	return soa;
 }
 
