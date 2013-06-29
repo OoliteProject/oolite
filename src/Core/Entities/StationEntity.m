@@ -1867,7 +1867,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	{
 		OOLog(@"station.launchShip.impossible", @"Cancelled launch for an escort ship, as the %@ has no launch docks.",
 			  [self displayName]);
-		return;
+		return nil;
 	}
 	ShipEntity  *escort_ship;
 		
