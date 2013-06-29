@@ -203,12 +203,6 @@ static NSDictionary		*sMissilesRegistry = nil;
 		extra = [info oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
 		if (extra != nil)
 		{
-			// Note: currently strict_mode_compatible is already handled by Universe, but at some point we want to get rid of Universe's equipmentData.
-			BOOL strictModeOnly = [extra oo_boolForKey:@"strict_mode_only" defaultValue:NO];
-			//BOOL strictModeCompatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:strictModeOnly]; // Wrong! Interprets explicitly set strict_mode_only = false as strict_mode_ompatible = false
-			BOOL strictModeCompatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:([extra objectForKey:@"strict_mode_only"] != nil)]; // if strict_mode_only is explicitely set, it's compatible with strict mode!
-			BOOL strict = [UNIVERSE strict];
-			if ((strict && !strictModeCompatible) || (!strict && strictModeOnly))  OK = NO;
 			
 			_isAvailableToAll = [extra oo_boolForKey:@"available_to_all" defaultValue:_isAvailableToAll];
 			_isAvailableToPlayer = [extra oo_boolForKey:@"available_to_player" defaultValue:_isAvailableToPlayer];

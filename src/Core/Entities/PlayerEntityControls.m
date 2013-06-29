@@ -896,8 +896,8 @@ static NSTimeInterval	time_last_frame;
 				}
 				
 				exceptionContext = @"weapons online toggle";
-				// weapons online / offline toggle '_' - non-strict mode only
-				if (([gameView isDown:key_weapons_online_toggle] || joyButtonState[BUTTON_WEAPONSONLINETOGGLE]) && ![UNIVERSE strict])
+				// weapons online / offline toggle '_'
+				if (([gameView isDown:key_weapons_online_toggle] || joyButtonState[BUTTON_WEAPONSONLINETOGGLE]))
 				{
 					if (!weaponsOnlineToggle_pressed)
 					{
@@ -1149,7 +1149,7 @@ static NSTimeInterval	time_last_frame;
 							// user defaults file.
 				if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod])
 				{
-					BOOL	goodToLaunch = [UNIVERSE strict] || [[NSUserDefaults standardUserDefaults] boolForKey:@"escape-pod-activation-immediate"];
+					BOOL	goodToLaunch = [[NSUserDefaults standardUserDefaults] boolForKey:@"escape-pod-activation-immediate"];
 					static	OOTimeDelta 	escapePodKeyResetTime;
 					
 					if (!goodToLaunch)
@@ -1225,8 +1225,8 @@ static NSTimeInterval	time_last_frame;
 				}
 				
 				exceptionContext = @"docking clearance request";
-				// docking clearance request 'L', not available in strict mode
-				if ([gameView isDown:key_docking_clearance_request] && ![UNIVERSE strict])
+
+				if ([gameView isDown:key_docking_clearance_request])
 				{
 					if (!docking_clearance_request_key_pressed)
 					{
@@ -1631,7 +1631,7 @@ static NSTimeInterval	time_last_frame;
 			}
 		case GUI_SCREEN_SHORT_RANGE_CHART:
 			
-			show_info_flag = ([gameView isDown:key_map_info] && ![UNIVERSE strict]);
+			show_info_flag = ([gameView isDown:key_map_info]);
 			
 			// If we have entered this screen with the injectors key pressed, make sure
 			// that injectors switch off when we release it - Nikos.
@@ -1771,19 +1771,6 @@ static NSTimeInterval	time_last_frame;
 			}
 			
 		case GUI_SCREEN_SYSTEM_DATA:
-/*			if ([self status] == STATUS_DOCKED && dockedStation == [UNIVERSE station] && [gameView isDown:key_contract_info] && ![UNIVERSE strict] && [self hasHyperspaceMotor])  // '?' toggle between maps/info and contract screen
-			{
-				if (!queryPressed)
-				{
-					[self setGuiToContractsScreen];
-					if ((oldSelection >= (int)[gui selectableRange].location)&&(oldSelection < (int)[gui selectableRange].location + (int)[gui selectableRange].length))
-						[gui setSelectedRow:oldSelection];
-					[self setGuiToContractsScreen];
-				}
-				queryPressed = YES;
-			}
-			else
-			queryPressed = NO; */
 			break;
 			
 #if OO_USE_CUSTOM_LOAD_SAVE
@@ -3070,60 +3057,58 @@ static NSTimeInterval	time_last_frame;
 		}
 	}
 	
-	if (![UNIVERSE strict])
+	yawing = NO;
+	// if we have roll on the mouse x-axis, then allow using the keyboard yaw keys
+	if (!mouse_control_on || (mouse_control_on && !mouse_x_axis_map_to_yaw))
 	{
-		yawing = NO;
-		// if we have roll on the mouse x-axis, then allow using the keyboard yaw keys
-		if (!mouse_control_on || (mouse_control_on && !mouse_x_axis_map_to_yaw))
+		if ([gameView isDown:key_yaw_left])
 		{
-			if ([gameView isDown:key_yaw_left])
-			{
-				keyboardYawOverride=YES;
-				if (flightYaw < 0.0)  flightYaw = 0.0;
-				[self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
-				yawing = YES;
-			}
-			else if ([gameView isDown:key_yaw_right])
-			{
-				keyboardYawOverride=YES;
-				if (flightYaw > 0.0)  flightYaw = 0.0;
-				[self decrease_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
-				yawing = YES;
-			}
+			keyboardYawOverride=YES;
+			if (flightYaw < 0.0)  flightYaw = 0.0;
+			[self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
+			yawing = YES;
 		}
-		if(((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride)
+		else if ([gameView isDown:key_yaw_right])
 		{
-			// I think yaw is handled backwards in the code,
-			// which is why the negative sign is here.
-			stick_yaw = max_flight_yaw * (-reqYaw);
-			if (flightYaw < stick_yaw)
-			{
-				[self increase_flight_yaw:delta_t*yaw_delta];
-				if (flightYaw > stick_yaw)
-					flightYaw = stick_yaw;
-			}
-			if (flightYaw > stick_yaw)
-			{
-				[self decrease_flight_yaw:delta_t*yaw_delta];
-				if (flightYaw < stick_yaw)
-					flightYaw = stick_yaw;
-			}
-			yawing = (fabs(reqYaw) >= deadzone);
-		}
-		if (!yawing)
-		{
-			if (flightYaw > 0.0)
-			{
-				if (flightYaw > yaw_dampner)	[self decrease_flight_yaw:yaw_dampner];
-				else	flightYaw = 0.0;
-			}
-			if (flightYaw < 0.0)
-			{
-				if (flightYaw < -yaw_dampner)   [self increase_flight_yaw:yaw_dampner];
-				else	flightYaw = 0.0;
-			}
+			keyboardYawOverride=YES;
+			if (flightYaw > 0.0)  flightYaw = 0.0;
+			[self decrease_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
+			yawing = YES;
 		}
 	}
+	if(((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride)
+	{
+		// I think yaw is handled backwards in the code,
+		// which is why the negative sign is here.
+		stick_yaw = max_flight_yaw * (-reqYaw);
+		if (flightYaw < stick_yaw)
+		{
+			[self increase_flight_yaw:delta_t*yaw_delta];
+			if (flightYaw > stick_yaw)
+				flightYaw = stick_yaw;
+		}
+		if (flightYaw > stick_yaw)
+		{
+			[self decrease_flight_yaw:delta_t*yaw_delta];
+			if (flightYaw < stick_yaw)
+				flightYaw = stick_yaw;
+		}
+		yawing = (fabs(reqYaw) >= deadzone);
+	}
+	if (!yawing)
+	{
+		if (flightYaw > 0.0)
+		{
+			if (flightYaw > yaw_dampner)	[self decrease_flight_yaw:yaw_dampner];
+			else	flightYaw = 0.0;
+		}
+		if (flightYaw < 0.0)
+		{
+			if (flightYaw < -yaw_dampner)   [self increase_flight_yaw:yaw_dampner];
+			else	flightYaw = 0.0;
+		}
+	}
+
 }
 
 
@@ -3148,7 +3133,7 @@ static NSTimeInterval	time_last_frame;
 		if (!switching_status_screens)
 		{
 			switching_status_screens = YES;
-			if ((gui_screen == GUI_SCREEN_STATUS)&&(![UNIVERSE strict]))
+			if (gui_screen == GUI_SCREEN_STATUS)
 			{
 				[self noteGUIWillChangeTo:GUI_SCREEN_MANIFEST];
 				[self setGuiToManifestScreen];
@@ -3230,7 +3215,7 @@ static NSTimeInterval	time_last_frame;
 			switching_equipship_screens = NO;
 		}
 		
-		if ((([gameView isDown:gvFunctionKey4])||(fKeyAlias && [gameView isDown:gvNumberKey4])) && ![UNIVERSE strict])
+		if (([gameView isDown:gvFunctionKey4])||(fKeyAlias && [gameView isDown:gvNumberKey4]))
 		{
 			[self setGuiToInterfacesScreen:0];
 			[gui setSelectedRow:GUI_ROW_INTERFACES_START];
@@ -3238,45 +3223,19 @@ static NSTimeInterval	time_last_frame;
 
 		if (([gameView isDown:gvFunctionKey8])||(fKeyAlias && [gameView isDown:gvNumberKey8]))
 		{
-/*			if (!switching_market_screens)
-			{
-				if ((gui_screen == GUI_SCREEN_MARKET)&&(dockedStation == [UNIVERSE station])&&(![UNIVERSE strict] && [self hasHyperspaceMotor]))
-				{
-					[gameView clearKeys];
-					[self setGuiToContractsScreen];
-					[gui setSelectedRow:GUI_ROW_PASSENGERS_START];
-				}
-				else
-				{ */
-					[gameView clearKeys];
-					[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
-					[self setGuiToMarketScreen];
-					[gui setSelectedRow:GUI_ROW_MARKET_START];
-/*				}
-			}
-			switching_market_screens = YES; 
-		}
-		else
-		{
-			switching_market_screens = NO;
-		  */
+			[gameView clearKeys];
+			[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
+			[self setGuiToMarketScreen];
+			[gui setSelectedRow:GUI_ROW_MARKET_START];
 		}
 	}
 	else
 	{
 		if (([gameView isDown:gvFunctionKey8])||(fKeyAlias && [gameView isDown:gvNumberKey8]))
 		{
-/*			if (!switching_market_screens)
-				{ */
-				[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
-				[self setGuiToMarketScreen];
-				[gui setSelectedRow:GUI_ROW_MARKET_START];
-/*			}
-			switching_market_screens = YES;
-		}
-		else
-		{
-		switching_market_screens = NO; */
+			[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
+			[self setGuiToMarketScreen];
+			[gui setSelectedRow:GUI_ROW_MARKET_START];
 		}
 	}
 }

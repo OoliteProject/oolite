@@ -198,7 +198,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) prunePreloadingPlanetMaterials;
 #endif
 
-- (void) filterOutNonStrictEquipment;
 - (BOOL) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged;
 
 // Set shader effects level without logging or triggering a reset -- should only be used directly during startup.
@@ -466,6 +465,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
+/* From 1.79, "strict mode" is "no OXPs mode" as a useful debug tool,
+ * nothing else */
 - (BOOL) strict
 {
 	return strict;
@@ -2314,7 +2315,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	GLfloat		startAngle = 0;
 	GLfloat		aspectRatio = 1;
 	
-	if (!strict && forDocking)
+	if (forDocking)
 	{
 		NSDictionary *info = [[PLAYER dockedStation] shipInfoDictionary];
 		sides = [info oo_unsignedIntForKey:@"tunnel_corners" defaultValue:4];
@@ -2394,17 +2395,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) handleGameOver
 {
-	// In unrestricted mode, reload last save game, if any. In strict mode, always restart as a fresh Jameson.
-	// NOTE: this is also called when loading a game fails, and when the js engine fails to reset properly.
-	
-	if (![self strict] && [[self gameController] playerFileToLoad])
-	{
-		[[self gameController] loadPlayerIfRequired];
-	}
-	else
-	{
-		[self reinitAndShowDemo:NO];
-	}
+	[[self gameController] loadPlayerIfRequired];
 }
 
 
@@ -9493,30 +9484,8 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	[equipmentData autorelease];
 	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
-	if (strict)  [self filterOutNonStrictEquipment];
 
 	[OOEquipmentType loadEquipment];
-}
-
-
-- (void) filterOutNonStrictEquipment
-{
-	NSMutableArray *filteredEq = [NSMutableArray arrayWithCapacity:[equipmentData count]];
-	NSArray *eqDef = nil;
-	foreach (eqDef, equipmentData)
-	{
-		BOOL compatible = NO;
-		if ([eqDef count] > EQUIPMENT_EXTRA_INFO_INDEX)
-		{
-			NSDictionary *extra = [eqDef oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
-			compatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:([extra objectForKey:@"strict_mode_only"] != nil)];
-		}
-		
-		if (compatible)  [filteredEq addObject:eqDef];
-	}
-	
-	[equipmentData release];
-	equipmentData = [filteredEq copy];
 }
 
 
@@ -9625,7 +9594,6 @@ Entity *gOOJSPlayerIfStale = nil;
 	if(showDemo)
 	{
 		[player setGuiToIntroFirstGo:NO];
-		if (strictChanged) [gui setText:(strict)? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
 		[player setStatus:STATUS_START_GAME];
 	}
 	else

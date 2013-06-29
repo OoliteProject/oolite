@@ -908,10 +908,8 @@ static GLfloat		sBaseMass = 0.0;
 	if ([dict oo_boolForKey:@"has_ecm"])					[equipment oo_setBool:YES forKey:@"EQ_ECM"];
 	if ([dict oo_boolForKey:@"has_scoop"])					[equipment oo_setBool:YES forKey:@"EQ_FUEL_SCOOPS"];
 	if ([dict oo_boolForKey:@"has_energy_bomb"])			[equipment oo_setBool:YES forKey:@"EQ_ENERGY_BOMB"];
-	if (!strict)
-	{
-		if ([dict oo_boolForKey:@"has_fuel_injection"])		[equipment oo_setBool:YES forKey:@"EQ_FUEL_INJECTION"];
-	}
+	if ([dict oo_boolForKey:@"has_fuel_injection"])		[equipment oo_setBool:YES forKey:@"EQ_FUEL_INJECTION"];
+	
 	
 	// Legacy energy unit type -> energy unit equipment item
 	if ([dict oo_boolForKey:@"has_energy_unit"] && [self installedEnergyUnitType] == ENERGY_UNIT_NONE)
@@ -933,7 +931,7 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 	
-	/*	Energy bombs are no longer supported in non-strict mode. As compensation,
+	/*	Energy bombs are no longer supported without OXPs. As compensation,
 		we'll award either a Q-mine or some cash. We can't determine what to
 		award until we've handled missiles later on, though.
 	*/
@@ -972,28 +970,15 @@ static GLfloat		sBaseMass = 0.0;
 	[contracts release];
 	[contract_record release];
 	
-	 // Don't load passengers & contracts in strict mode savegames!
-	if ([UNIVERSE strict])
-	{
-		max_passengers = 0;
-		passengers = nil;
-		passenger_record = nil;
-		contracts = nil;
-		contract_record = nil;
-		parcels = nil;
-		parcel_record = nil;
-	}
-	else
-	{
-		max_passengers = [dict oo_intForKey:@"max_passengers" defaultValue:0];
-		passengers = [[dict oo_arrayForKey:@"passengers"] mutableCopy];
-		passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
-		contracts = [[dict oo_arrayForKey:@"contracts"] mutableCopy];
-		contract_record = [[dict oo_dictionaryForKey:@"contract_record"] mutableCopy];
-		parcels = [[dict oo_arrayForKey:@"parcels"] mutableCopy];
-		parcel_record = [[dict oo_dictionaryForKey:@"parcel_record"] mutableCopy];
+	max_passengers = [dict oo_intForKey:@"max_passengers" defaultValue:0];
+	passengers = [[dict oo_arrayForKey:@"passengers"] mutableCopy];
+	passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
+	contracts = [[dict oo_arrayForKey:@"contracts"] mutableCopy];
+	contract_record = [[dict oo_dictionaryForKey:@"contract_record"] mutableCopy];
+	parcels = [[dict oo_arrayForKey:@"parcels"] mutableCopy];
+	parcel_record = [[dict oo_dictionaryForKey:@"parcel_record"] mutableCopy];
 
-	}
+	
 	
 	if (passengers == nil)  passengers = [[NSMutableArray alloc] init];
 	if (passenger_record == nil)  passenger_record = [[NSMutableDictionary alloc] init];
@@ -2641,14 +2626,6 @@ static GLfloat		sBaseMass = 0.0;
 		if (velmag2 < 0.0f)  velocity = kZeroVector;
 		else  velocity = vector_multiply_scalar(velocity, velmag2 / velmag);
 		
-	}
-	if ([UNIVERSE strict])
-	{
-		if (velmag2 < OG_ELITE_FORWARD_DRIFT)
-		{
-			// add acceleration
-			velocity = vector_add(velocity, vector_multiply_scalar(v_forward, (float)delta_t * OG_ELITE_FORWARD_DRIFT * 20.0f));
-		}
 	}
 	
 	UPDATE_STAGE(@"updating joystick");
@@ -4982,20 +4959,17 @@ static GLfloat		sBaseMass = 0.0;
 		[self markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
 	}
 	
-	if (![UNIVERSE strict])	// only mess with the scores if we're not in 'strict' mode
+	BOOL killIsCargo = ((killClass == CLASS_CARGO) && ([other commodityAmount] > 0) && ![other isHulk]);
+	if ((killIsCargo) || (killClass == CLASS_BUOY) || (killClass == CLASS_ROCK))
 	{
-		BOOL killIsCargo = ((killClass == CLASS_CARGO) && ([other commodityAmount] > 0) && ![other isHulk]);
-		if ((killIsCargo) || (killClass == CLASS_BUOY) || (killClass == CLASS_ROCK))
+		// EMMSTRAN: no killaward (but full bounty) for tharglets?
+		if (![other hasRole:@"tharglet"])	// okay, we'll count tharglets as proper kills
 		{
-			// EMMSTRAN: no killaward (but full bounty) for tharglets?
-			if (![other hasRole:@"tharglet"])	// okay, we'll count tharglets as proper kills
-			{
-				score /= 10;	// reduce bounty awarded
-				killAward = NO;	// don't award a kill
-			}
+			score /= 10;	// reduce bounty awarded
+			killAward = NO;	// don't award a kill
 		}
 	}
-
+	
 	credits += score;
 	
 	if (score > 9)
@@ -5088,30 +5062,20 @@ static GLfloat		sBaseMass = 0.0;
 		[self setScriptTarget:self];
 		[UNIVERSE clearPreviousMessage];
 		[self removeEquipmentItem:system_key];
-		if (![UNIVERSE strict])
-		{
-			NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
-			[self addEquipmentItem:damagedKey withValidation: NO inContext:@"damage"];	// for possible future repair.
-			[self doScriptEvent:OOJSID("equipmentDamaged") withArgument:system_key];
+
+		NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
+		[self addEquipmentItem:damagedKey withValidation: NO inContext:@"damage"];	// for possible future repair.
+		[self doScriptEvent:OOJSID("equipmentDamaged") withArgument:system_key];
 			
-			if (![self hasEquipmentItem:system_name] && [self hasEquipmentItem:damagedKey])
-			{
-				/*
-					Display "foo damaged" message only if no script has
-					repaired or removed the equipment item. (If a script does
-					either of those and wants a message, it can write it
-					itself.)
-				*/
-				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
-			}
-		}
-		else
+		if (![self hasEquipmentItem:system_name] && [self hasEquipmentItem:damagedKey])
 		{
-			[self doScriptEvent:OOJSID("equipmentDestroyed") withArgument:system_key];
-			if (![self hasEquipmentItem:system_name])	// Because script may have undestroyed it
-			{
-				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), system_name] forCount:4.5];
-			}
+			/*
+				Display "foo damaged" message only if no script has
+				repaired or removed the equipment item. (If a script does
+				either of those and wants a message, it can write it
+				itself.)
+			*/
+			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
 		}
 		
 		// if Docking Computers have been selected to take damage and they happen to be on, switch them off
@@ -5284,7 +5248,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// Did we fail to observe traffic control regulations? However, due to the state of emergency,
 	// apply no unauthorized docking penalties if a nova is ongoing.
-	if (![UNIVERSE strict] && [dockedStation requiresDockingClearance] &&
+	if ([dockedStation requiresDockingClearance] &&
 			![self clearedToDock] && ![[UNIVERSE sun] willGoNova])
 	{
 		[self penaltyForUnauthorizedDocking];
@@ -5984,7 +5948,7 @@ static GLfloat		sBaseMass = 0.0;
 			{
 				[quip addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
 			}
-			else if (![UNIVERSE strict])
+			else 
 			{
 				// Check for damaged version
 				if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
@@ -6901,7 +6865,7 @@ static NSString *last_outfitting_key=nil;
 		if (minTechLevel != 0 && [self hasEquipmentItem:[eqType damagedIdentifier]])  minTechLevel--;
 		
 		// reduce the minimum techlevel occasionally as a bonus..
-		if (![UNIVERSE strict] && techlevel < minTechLevel && techlevel + 3 > minTechLevel)
+		if (techlevel < minTechLevel && techlevel + 3 > minTechLevel)
 		{
 			unsigned day = i * 13 + (unsigned)floor([UNIVERSE getTime] / 86400.0);
 			unsigned char dayRnd = (day & 0xff) ^ system_seed.a;
@@ -7486,6 +7450,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	else
 	{
+		[gui setText:([UNIVERSE strict])? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
 		text = DESC(@"press-space-commander");
 		[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
@@ -9461,19 +9426,17 @@ static NSString *last_outfitting_key=nil;
 #if MASS_DEPENDENT_FUEL_PRICES
 - (GLfloat) fuelChargeRate
 {
-	GLfloat		rate = 1.0; // Standard (& strict play) charge rate.
+	GLfloat		rate = 1.0; // Standard charge rate.
 	
-	if (![UNIVERSE strict])
+	rate = [super fuelChargeRate];
+	
+	// Experimental: the state of repair affects the fuel charge rate - more fuel needed for jumps, etc... 
+	if (EXPECT(ship_trade_in_factor <= 90 && ship_trade_in_factor >= 75))
 	{
-		rate = [super fuelChargeRate];
-
-		// Experimental: the state of repair affects the fuel charge rate - more fuel needed for jumps, etc... 
-		if (EXPECT(ship_trade_in_factor <= 90 && ship_trade_in_factor >= 75))
-		{
-			rate *= 2.0 - (ship_trade_in_factor / 100); // between 1.1x and 1.25x
-			//OOLog(@"fuelPrices", @"\"%@\" - repair status: %d%%, adjusted rate to:%.2f)", [self shipDataKey], ship_trade_in_factor, rate);
-		}
+		rate *= 2.0 - (ship_trade_in_factor / 100); // between 1.1x and 1.25x
+		//OOLog(@"fuelPrices", @"\"%@\" - repair status: %d%%, adjusted rate to:%.2f)", [self shipDataKey], ship_trade_in_factor, rate);
 	}
+
 	return rate;
 }
 #endif
@@ -9599,7 +9562,7 @@ else _dockTarget = NO_TARGET;
 	OOCreditsQuantity	calculatedFine = credits * 0.05;
 	OOCreditsQuantity	maximumFine = 50000ULL;
 	
-	if ([UNIVERSE strict] || [self clearedToDock])
+	if ([self clearedToDock])
 		return;
 		
 	amountToPay = MIN(maximumFine, calculatedFine);
