@@ -2107,13 +2107,6 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	if (EXPECT_NOT([UNIVERSE strict]))
-	{
-		// It's OK to have a hard error here since only built-in scripts run in strict mode.
-		OOJSReportError(context, @"Cannot set equipment status while in strict mode.");
-		return NO;
-	}
-	
 	if (argc < 2)
 	{
 		OOJSReportBadArguments(context, @"Ship", @"setEquipmentStatus", argc, OOJS_ARGV, nil, @"equipment type and status");

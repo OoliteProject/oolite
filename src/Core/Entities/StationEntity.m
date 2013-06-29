@@ -2263,8 +2263,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 
 - (BOOL) hasShipyard
 {
-	if ([UNIVERSE strict])
-		return NO;
 	if ([UNIVERSE station] == self)
 		return YES;
 	id	determinant = [shipinfoDictionary objectForKey:@"has_shipyard"];

@@ -1016,7 +1016,14 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	{
 		[self showShipyardModel:@"oolite-unknown-ship" shipData:nil personality:personality];
 		shipName = [cdr oo_stringForKey:@"ship_name" defaultValue:@"unknown"];
-		shipName = [shipName stringByAppendingString:@" - OXP not installed"];
+		if ([UNIVERSE strict])
+		{
+			shipName = [shipName stringByAppendingString:@" - OXPs disabled"];
+		}
+		else
+		{
+			shipName = [shipName stringByAppendingString:@" - OXP not installed"];
+		}
 	}
 	
 	// Make a short description of the commander

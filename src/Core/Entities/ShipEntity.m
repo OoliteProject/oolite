@@ -317,15 +317,14 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 			[self addEquipmentItem:@"EQ_QC_MINE" inContext:@"npc"];
 		}
 	}
-	if (![UNIVERSE strict])
-	{
-		// These items are not available in strict mode.
-		if ([shipDict oo_fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipmentItem:@"EQ_FUEL_INJECTION" inContext:@"npc"];
+
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipmentItem:@"EQ_FUEL_INJECTION" inContext:@"npc"];
+
 #if USEMASC
-		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipmentItem:@"EQ_MILITARY_JAMMER" inContext:@"npc"];
-		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER" inContext:@"npc"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipmentItem:@"EQ_MILITARY_JAMMER" inContext:@"npc"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER" inContext:@"npc"];
 #endif
-	}
+	
 	
 	// can it be 'mined' for alloys?
 	canFragment = [shipDict oo_fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
@@ -335,15 +334,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	max_cargo = [shipDict oo_unsignedIntForKey:@"max_cargo"];
 	extra_cargo = [shipDict oo_unsignedIntForKey:@"extra_cargo" defaultValue:15];
 	
-	if (![UNIVERSE strict])
-	{
-		hyperspaceMotorSpinTime = [shipDict oo_floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
-		if(![shipDict oo_boolForKey:@"hyperspace_motor" defaultValue:YES]) hyperspaceMotorSpinTime = -1;
-	}
-	else
-	{
-		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
-	}
+	hyperspaceMotorSpinTime = [shipDict oo_floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
+	if(![shipDict oo_boolForKey:@"hyperspace_motor" defaultValue:YES]) hyperspaceMotorSpinTime = -1;
 	
 	[name autorelease];
 	name = [[shipDict oo_stringForKey:@"name" defaultValue:@"?"] copy];
@@ -2825,7 +2817,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
 		// Equipment list,  consistent with the rest of the API - Kaks
-		isDamaged = ![UNIVERSE strict] && [self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]];
+		isDamaged = [self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]];
 		if ([self hasEquipmentItem:[eqType identifier]] || isDamaged)
 		{
 			[quip addObject:eqType];
@@ -3290,9 +3282,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				_missileRole = nil;	// use generic ship fallback from now on.
 			}
 			
-			// In unrestricted mode, assign random missiles 20% of the time without missile_role (or 10% with valid missile_role)
-			if (chance > 0.8f && ![UNIVERSE strict]) role = @"missile";
-			// otherwise use the standard role (100% of the time in restricted mode).
+			// assign random missiles 20% of the time without missile_role (or 10% with valid missile_role)
+			if (chance > 0.8f) role = @"missile";
+			// otherwise use the standard role
 			else role = @"EQ_MISSILE";
 			
 			missileType = [self verifiedMissileTypeFromRole:role];
@@ -7034,13 +7026,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	
 #if MASS_DEPENDENT_FUEL_PRICES
 	
-	if (![UNIVERSE strict])
+	if (EXPECT(PLAYER != nil && mass> 0 && mass != [PLAYER baseMass]))
 	{
-		if (EXPECT(PLAYER != nil && mass> 0 && mass != [PLAYER baseMass]))
-		{
-			rate = calcFuelChargeRate(mass);
-		}
+		rate = calcFuelChargeRate(mass);
 	}
+
 	OOLog(@"fuelPrices", @"\"%@\" fuel charge rate: %.2f (mass ratio: %.2f/%.2f)", [self shipDataKey], rate, mass, [PLAYER baseMass]);
 #endif
 	

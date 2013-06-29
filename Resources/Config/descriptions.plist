@@ -1073,8 +1073,8 @@
 	"options-begin-new-game"		= " Begin New Game ";
 	"options-game-options"			= " Game Options… ";
 	"options-exit-game"				= " Exit Game ";
-	"options-reset-to-unrestricted-play" = " Reset to Unrestricted Play ";
-	"options-reset-to-strict-play"	= " Reset to Strict Play ";
+	"options-reset-to-unrestricted-play" = " Reset and enable OXPs ";
+	"options-reset-to-strict-play"	= " Reset and disable OXPs ";
 	
 	// Gameoptions screen
 	"gameoptions-autosave-yes"				= " Autosave: On ";
@@ -1269,7 +1269,7 @@
 	"loadfailed-no-file-specified"		= "No file specified.";
 	"loadfailed-could-not-load-file"	= "Could not load file.";
 	"loadfailed-could-not-use-ship-type-@-please-switch-to-unrestricted"
-						= "Unable to use ship type “%@” in strict mode - please switch to unrestricted mode first.";
+						= "Unable to use ship type “%@” when OXPs are disabled. Please re-enable OXPs";
 	"loadfailed-could-not-find-ship-type-@-please-reinstall-the-appropriate-OXP"
 						= "Could not find ship type “%@” - please reinstall the appropriate OXP.";
 	"loadfailed-invalid-saved-game-no-ship-specified"
@@ -1303,8 +1303,8 @@
 	"no-target-string"				= "No target";
 	"communications-log-string"		= "Communications Log";
 	"adjusting-word"				= " (adjusting)";
-	"strict-play-enabled"			= "Strict Play Enabled";
-	"unrestricted-play-enabled"		= "Unrestricted Play Enabled";
+	"strict-play-enabled"			= "OXP loading disabled";
+	"unrestricted-play-enabled"		= "OXP loading enabled";
 	"human-word"					= "human"; // Important – only lower case characters here!
 	"human-colonial-description%0"	= "Human Colonial";
 	"human-colonial-description%1"	= "Human Colonials";
