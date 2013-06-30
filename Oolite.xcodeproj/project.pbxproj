@@ -576,6 +576,8 @@
 		1A9FCF2315DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9FCF2115DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h */; };
 		1A9FCF2415DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9FCF2215DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m */; };
 		1A9FCF2615DAC9BC00E965D5 /* GameController+FullScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9FCF2515DAC9BC00E965D5 /* GameController+FullScreen.m */; };
+		1AA59C6C1780396C007C7373 /* OOJSWormhole.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA59C6A1780396C007C7373 /* OOJSWormhole.h */; };
+		1AA59C6D1780396C007C7373 /* OOJSWormhole.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA59C6B1780396C007C7373 /* OOJSWormhole.m */; };
 		1AA7FCAB10C2B9BA0058FBED /* OOPlanetDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */; };
 		1AA7FCAC10C2B9BA0058FBED /* OOPlanetDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */; };
 		1AA7FCAF10C2BA3B0058FBED /* OOPlanetData.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */; };
@@ -1873,6 +1875,8 @@
 		1A9FCF2115DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMacSnowLeopardFullScreenController.h; sourceTree = "<group>"; };
 		1A9FCF2215DAC8E100E965D5 /* OOMacSnowLeopardFullScreenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMacSnowLeopardFullScreenController.m; sourceTree = "<group>"; };
 		1A9FCF2515DAC9BC00E965D5 /* GameController+FullScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GameController+FullScreen.m"; sourceTree = "<group>"; };
+		1AA59C6A1780396C007C7373 /* OOJSWormhole.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSWormhole.h; sourceTree = "<group>"; };
+		1AA59C6B1780396C007C7373 /* OOJSWormhole.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSWormhole.m; sourceTree = "<group>"; };
 		1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetDrawable.h; sourceTree = "<group>"; };
 		1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetDrawable.m; sourceTree = "<group>"; };
 		1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OOPlanetData.c; sourceTree = "<group>"; };
@@ -2638,6 +2642,8 @@
 		1A43A0D10CB91D3600D0E239 /* Entities */ = {
 			isa = PBXGroup;
 			children = (
+				1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */,
+				1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */,
 				1ABA416015ADAB8D00F7E841 /* OOJSDock.h */,
 				1ABA416115ADAB8D00F7E841 /* OOJSDock.m */,
 				1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */,
@@ -2654,8 +2660,8 @@
 				1A7C75980CC39D11005D0AA2 /* OOJSSun.m */,
 				1A72F87015E5658E00281337 /* OOJSVisualEffect.h */,
 				1A72F87115E5658E00281337 /* OOJSVisualEffect.m */,
-				1A2A8D380BC6765F001E00FB /* EntityOOJavaScriptExtensions.h */,
-				1A2A8D390BC6765F001E00FB /* EntityOOJavaScriptExtensions.m */,
+				1AA59C6A1780396C007C7373 /* OOJSWormhole.h */,
+				1AA59C6B1780396C007C7373 /* OOJSWormhole.m */,
 			);
 			name = Entities;
 			sourceTree = "<group>";
@@ -3413,6 +3419,7 @@
 				1A26D0C70BCF9CF80073F257 /* StationEntity.h in Headers */,
 				1A26D0C80BCF9CF80073F257 /* PlayerEntityControls.h in Headers */,
 				1A26D0CA0BCF9CF80073F257 /* PlayerEntitySound.h in Headers */,
+				1AA59C6C1780396C007C7373 /* OOJSWormhole.h in Headers */,
 				1A26D0CB0BCF9CF80073F257 /* DustEntity.h in Headers */,
 				1A26D0CE0BCF9CF80073F257 /* PlayerEntityLegacyScriptEngine.h in Headers */,
 				1A26D0CF0BCF9CF80073F257 /* PlayerEntityLoadSave.h in Headers */,
@@ -4034,6 +4041,7 @@
 				1A54115C14B8913E00B8A4BE /* OOMacJoystickManager.m in Sources */,
 				1A6F665414DF323900695C11 /* OODefaultShaderSynthesizer.m in Sources */,
 				1ABA415F15ACBB6700F7E841 /* DockEntity.m in Sources */,
+				1AA59C6D1780396C007C7373 /* OOJSWormhole.m in Sources */,
 				1ABA416315ADAB8D00F7E841 /* OOJSDock.m in Sources */,
 				1AF4AF4B15B858AA009243BE /* OOWeakSet.m in Sources */,
 				1AE1A94215D2C4E4003F4D56 /* OOFullScreenController.m in Sources */,
