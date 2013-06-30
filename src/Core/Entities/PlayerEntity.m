@@ -4185,19 +4185,21 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) activateCloakingDevice
+- (BOOL) activateCloakingDevice
 {
-	if (![self hasCloakingDevice])  return;
+	if (![self hasCloakingDevice])  return NO;
 	
 	if ([super activateCloakingDevice])
 	{
 		[UNIVERSE addMessage:DESC(@"cloak-on") forCount:2];
 		[self playCloakingDeviceOn];
+		return YES;
 	}
 	else
 	{
 		[UNIVERSE addMessage:DESC(@"cloak-low-juice") forCount:3];
 		[self playCloakingDeviceInsufficientEnergy];
+		return NO;
 	}
 }
 
@@ -9870,7 +9872,9 @@ else _dockTarget = NO_TARGET;
 	_sysInfoLight.x &&
 	selFunctionIdx &&
 	stickFunctions &&
-	showingLongRangeChart;
+	showingLongRangeChart &&
+	_missionAllowInterrupt &&
+	_missionScreenID;
 }
 #endif
 

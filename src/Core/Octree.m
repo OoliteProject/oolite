@@ -960,4 +960,15 @@ static void SetNode_slow(OOOctreeBuilder *self, uint32_t index, int value)
 	self->_octree[index] = value;
 }
 
+
+#ifndef NDEBUG
+/*	This method exists purely to suppress Clang static analyzer warnings that
+	these ivars are unused (but may be used by categories, which they are).
+*/
+- (BOOL) suppressClangStuff
+{
+	return &_stateStack;
+}
+#endif
+
 @end

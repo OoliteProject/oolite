@@ -285,7 +285,7 @@ typedef enum
 	NSDictionary			*_missionBackgroundDescriptor;
 	OOGUIBackgroundSpecial	_missionBackgroundSpecial;
 	NSDictionary			*_equipScreenBackgroundDescriptor;
-	NSString          *_missionScreenID;
+	NSString				*_missionScreenID;
 	
 	BOOL					found_equipment;
 	
@@ -714,7 +714,7 @@ typedef enum
 - (BOOL) fireEnergyBomb;
 - (ShipEntity *) launchMine:(ShipEntity *)mine;
 
-- (void) activateCloakingDevice;
+- (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;
 
 - (BOOL) weaponsOnline;
