@@ -133,18 +133,18 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	double _cost, _distance, _time;
 }
 
-+ (id) newElementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time;
-- (OOSystemID) getParent;
-- (OOSystemID) getLocation;
-- (double) getCost;
-- (double) getDistance;
-- (double) getTime;
++ (instancetype) elementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time;
+- (OOSystemID) parent;
+- (OOSystemID) location;
+- (double) cost;
+- (double) distance;
+- (double) time;
 
 @end
 
 @implementation RouteElement
 
-+ (id) newElementWithLocation:(OOSystemID) location parent:(OOSystemID) parent cost:(double) cost distance:(double) distance time:(double) time
++ (instancetype) elementWithLocation:(OOSystemID) location parent:(OOSystemID) parent cost:(double) cost distance:(double) distance time:(double) time
 {
 	RouteElement *r = [[RouteElement alloc] init];
 	
@@ -154,14 +154,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	r->_distance = distance;
 	r->_time = time;
 	
-	return r;
+	return [r autorelease];
 }
 
-- (OOSystemID) getParent { return _parent; }
-- (OOSystemID) getLocation { return _location; }
-- (double) getCost { return _cost; }
-- (double) getDistance { return _distance; }
-- (double) getTime { return _time; }
+- (OOSystemID) parent { return _parent; }
+- (OOSystemID) location { return _location; }
+- (double) cost { return _cost; }
+- (double) distance { return _distance; }
+- (double) time { return _time; }
 
 @end
 
@@ -7412,36 +7412,39 @@ static NSDictionary	*sCachedSystemData = nil;
 	if (start > 255 || goal > 255) return nil;
 	
 	NSArray *neighbours[256];
-	for (i = 0; i < 256; i++) neighbours[i] = [self neighboursToSystem:i];
+	for (i = 0; i < 256; i++)
+	{
+		neighbours[i] = [self neighboursToSystem:i];
+	}
 	
-	RouteElement *cheapest[256];
-	for (i = 0; i < 256; i++) cheapest[i] = nil;
+	RouteElement *cheapest[256] = {0};
 	
 	double maxCost = optimizeBy == OPTIMIZED_BY_TIME ? 256 * (7 * 7) : 256 * (7 * 256 + 7);
 	
 	NSMutableArray *curr = [NSMutableArray arrayWithCapacity:256];
-	[curr addObject:cheapest[start] = [RouteElement newElementWithLocation:start parent:-1 cost:0 distance:0 time:0]];
+	[curr addObject:cheapest[start] = [RouteElement elementWithLocation:start parent:-1 cost:0 distance:0 time:0]];
 	
 	NSMutableArray *next = [NSMutableArray arrayWithCapacity:256];
 	while ([curr count] != 0)
 	{
 		for (i = 0; i < [curr count]; i++) {
-			NSArray *ns = neighbours[[[curr objectAtIndex:i] getLocation]];
+			RouteElement *elemI = [curr objectAtIndex:i];
+			NSArray *ns = neighbours[[elemI location]];
 			for (j = 0; j < [ns count]; j++)
 			{
-				RouteElement *ce = cheapest[[[curr objectAtIndex:i] getLocation]];
+				RouteElement *ce = cheapest[[elemI location]];
 				OOSystemID n = [ns oo_intAtIndex:j];
-				OOSystemID c = [ce getLocation];
+				OOSystemID c = [ce location];
 				
 				double lastDistance = distanceBetweenPlanetPositions(systems[c].d, systems[c].b, systems[n].d, systems[n].b);
 				double lastTime = lastDistance * lastDistance;
 				
-				double distance = [ce getDistance] + lastDistance;
-				double time = [ce getTime] + lastTime;
-				double cost = [ce getCost] + (optimizeBy == OPTIMIZED_BY_TIME ? lastTime : 7 * 256 + lastDistance);
+				double distance = [ce distance] + lastDistance;
+				double time = [ce time] + lastTime;
+				double cost = [ce cost] + (optimizeBy == OPTIMIZED_BY_TIME ? lastTime : 7 * 256 + lastDistance);
 				
-				if (cost < maxCost && (cheapest[n] == nil || [cheapest[n] getCost] > cost)) {
-					RouteElement *e = [RouteElement newElementWithLocation:n parent:c cost:cost distance:distance time:time];
+				if (cost < maxCost && (cheapest[n] == nil || [cheapest[n] cost] > cost)) {
+					RouteElement *e = [RouteElement elementWithLocation:n parent:c cost:cost distance:distance time:time];
 					cheapest[n] = e;
 					[next addObject:e];
 					
@@ -7461,23 +7464,24 @@ static NSDictionary	*sCachedSystemData = nil;
 	RouteElement *e = cheapest[goal];
 	for (;;)
 	{
-		[route insertObject:[NSNumber numberWithInt:[e getLocation]] atIndex:0];
-		if ([e getParent] == -1) break;
-		e = cheapest[[e getParent]];
+		[route insertObject:[NSNumber numberWithInt:[e location]] atIndex:0];
+		if ([e parent] == -1) break;
+		e = cheapest[[e parent]];
 	}
 	
 #ifdef CACHE_ROUTE_FROM_SYSTEM_RESULTS
 	c_start = start;
 	c_goal = goal;
 	c_optimizeBy = optimizeBy;
-	c_route = [NSDictionary dictionaryWithObjectsAndKeys: route, @"route", [NSNumber numberWithDouble:[cheapest[goal] getDistance]], @"distance", nil];
+	[c_route release];
+	c_route = [[NSDictionary alloc] initWithObjectsAndKeys: route, @"route", [NSNumber numberWithDouble:[cheapest[goal] distance]], @"distance", nil];
 	
 	return c_route;
 #else
 	return [NSDictionary dictionaryWithObjectsAndKeys:
 			route, @"route",
-			[NSNumber numberWithDouble:[cheapest[goal] getDistance]], @"distance",
-			[NSNumber numberWithDouble:[cheapest[goal] getTime]], @"time",
+			[NSNumber numberWithDouble:[cheapest[goal] distance]], @"distance",
+			[NSNumber numberWithDouble:[cheapest[goal] time]], @"time",
 			nil];
 #endif
 }
