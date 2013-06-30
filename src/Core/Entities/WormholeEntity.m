@@ -265,7 +265,6 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		// if we're no longer at the origin coordinates, can't suck in (handles interstellar space case)
 		return NO;
 	}
-
 	double now = [PLAYER clockTimeAdjusted];
 
 /* CIM: removed test. Not valid for wormholes which last longer than their travel time. Most likely for short distances e.g. zero-distance doubles. equal_seeds test above should cover it, with expiry_time test for safety.  */
@@ -273,7 +272,6 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		return NO;	// far end of the wormhole! */
 	if( now > expiry_time )
 		return NO;
-	
 	// MKW 2010.11.18 - calculate time it takes for ship to reach wormhole
 	// This is for AI ships which get told to enter the wormhole even though they
 	// may still be some distance from it when the player exits the system
@@ -294,8 +292,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		}
 		if (shipSpeed <= 0.0f ) shipSpeed = 0.1f;
 		now += d / shipSpeed;
-		if( now > expiry_time )
+		if( now > expiry_time ) 
+		{
 			return NO;
+		}
 	}
 	
 	[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:

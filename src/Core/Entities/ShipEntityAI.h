@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 - (void) scanForNearestIncomingMissile;
 
 - (void) enterTargetWormhole;
+- (void) enterPlayerWormhole;
 
 - (void) wormholeEscorts;
 

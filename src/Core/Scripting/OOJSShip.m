@@ -380,7 +380,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "dumpCargo",				ShipDumpCargo,				0 },
 	{ "ejectItem",				ShipEjectItem,				1 },
 	{ "ejectSpecificItem",		ShipEjectSpecificItem,		1 },
-	{ "enterWormhole",		ShipEnterWormhole,		1 },
+	{ "enterWormhole",		ShipEnterWormhole,		0 },
 	{ "equipmentStatus",		ShipEquipmentStatus,		1 },
 	{ "exitAI",					ShipExitAI,					0 },
 	{ "exitSystem",				ShipExitSystem,				0 },
@@ -2673,25 +2673,27 @@ static JSBool ShipEnterWormhole(JSContext *context, uintN argc, jsval *vp)
 	ShipEntity *thisEnt = nil;
 	Entity	*hole = nil;
 
-	GET_THIS_SHIP(thisEnt);
-	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !OOJSEntityGetEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &hole)))))
-	{
-		OOJSReportBadArguments(context, @"Ship", @"enterWormhole", 1U, OOJS_ARGV, nil, @"wormhole");
-		return NO;
-	}
-	if (![hole isWormhole])
-	{
-		OOJSReportBadArguments(context, @"Ship", @"enterWormhole", 1U, OOJS_ARGV, nil, @"wormhole");
-		return NO;
-	}
-
 	if ([PLAYER status] != STATUS_ENTERING_WITCHSPACE)
 	{
 		OOJSReportError(context, @"Cannot use this function while player's ship not entering witchspace.");
 		return NO;
 	}
 
-	[thisEnt enterWormhole:(WormholeEntity*)hole];
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !OOJSEntityGetEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &hole)))))
+	{
+		[thisEnt enterPlayerWormhole];
+	}
+	else 
+	{
+		if (![hole isWormhole])
+		{
+			OOJSReportBadArguments(context, @"Ship", @"enterWormhole", 1U, OOJS_ARGV, nil, @"[wormhole]");
+			return NO;
+		}
+
+		[thisEnt enterWormhole:(WormholeEntity*)hole];
+	}
 
 	OOJS_RETURN_VOID;
 	

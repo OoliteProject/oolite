@@ -252,8 +252,6 @@
 
 - (void) addFuel:(NSString *) fuel_number;
 
-- (void) enterPlayerWormhole;
-
 - (void) scriptActionOnTarget:(NSString *) action;
 
 - (void) sendScriptMessage:(NSString *)message;
@@ -352,6 +350,10 @@
 	[self scanForNearestShipWithPredicate:ANDPredicate parameter:&param];
 }
 
+- (void) enterPlayerWormhole
+{
+	[self enterWormhole:[PLAYER wormhole] replacing:NO];
+}
 
 - (void) enterTargetWormhole
 {
@@ -2512,11 +2514,6 @@
 	[self setFuel:[self fuel] + [fuel_number intValue] * 10];
 }
 
-
-- (void) enterPlayerWormhole
-{
-	[self enterWormhole:[PLAYER wormhole] replacing:NO];
-}
 
 
 - (void) scriptActionOnTarget:(NSString *)action
