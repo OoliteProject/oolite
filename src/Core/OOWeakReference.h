@@ -138,4 +138,7 @@ This code is hereby placed in the public domain.
 {
 	OOWeakReference		*weakSelf;
 }
+
+- (id)weakSelf;	// Equivalent to [[self weakRetain] autorelease]
+
 @end

@@ -168,6 +168,12 @@ This code is hereby placed in the public domain.
 	[super dealloc];
 }
 
+
+- (id)weakSelf
+{
+	return [[self weakRetain] autorelease];
+}
+
 @end
 
 
