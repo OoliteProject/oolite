@@ -418,6 +418,7 @@
 	{
 		[ship addTarget:whole];
 		[ship reactToAIMessage:@"ENTER WORMHOLE" context:context];
+		[ship doScriptEvent:OOJSID("wormholeSuggested") withArgument:whole];
 	}
 	
 	// We now have no escorts..
@@ -1385,6 +1386,7 @@
 	{
 		[ship addTarget:whole];
 		[ship reactToAIMessage:@"ENTER WORMHOLE" context:@"wormholeGroup"];
+		[ship doScriptEvent:OOJSID("wormholeSuggested") withArgument:whole];
 	}
 }
 
