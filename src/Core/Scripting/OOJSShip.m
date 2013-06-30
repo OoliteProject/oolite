@@ -24,12 +24,14 @@ MA 02110-1301, USA.
 
 #import "OOJSShip.h"
 #import "OOJSEntity.h"
+#import "OOJSWormhole.h"
 #import "OOJSVector.h"
 #import "OOJSEquipmentInfo.h"
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
 #import "ShipEntityScriptMethods.h"
+#import "WormholeEntity.h"
 #import "AI.h"
 #import "OOStringParsing.h"
 #import "EntityOOJavaScriptExtensions.h"
@@ -91,6 +93,8 @@ static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBroadcastCascadeImminent(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipEnterWormhole(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipThrowSpark(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
@@ -376,6 +380,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "dumpCargo",				ShipDumpCargo,				0 },
 	{ "ejectItem",				ShipEjectItem,				1 },
 	{ "ejectSpecificItem",		ShipEjectSpecificItem,		1 },
+	{ "enterWormhole",		ShipEnterWormhole,		1 },
 	{ "equipmentStatus",		ShipEquipmentStatus,		1 },
 	{ "exitAI",					ShipExitAI,					0 },
 	{ "exitSystem",				ShipExitSystem,				0 },
@@ -403,6 +408,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "spawn",					ShipSpawn,					1 },
 	// spawnOne() is defined in the prefix script.
 	{ "switchAI",				ShipSwitchAI,				1 },
+	{ "throwSpark",				ShipThrowSpark,				0 },
 	{ "updateEscortFormation",	ShipUpdateEscortFormation,	0 },
 	{ 0 }
 };
@@ -2656,6 +2662,52 @@ static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp)
 	BOOL result = [thisEnt suggestEscortTo:mother];
 
 	OOJS_RETURN_BOOL(result);
+	
+	OOJS_PROFILE_EXIT
+}
+
+static JSBool ShipEnterWormhole(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	Entity	*hole = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !OOJSEntityGetEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &hole)))))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"enterWormhole", 1U, OOJS_ARGV, nil, @"wormhole");
+		return NO;
+	}
+	if (![hole isWormhole])
+	{
+		OOJSReportBadArguments(context, @"Ship", @"enterWormhole", 1U, OOJS_ARGV, nil, @"wormhole");
+		return NO;
+	}
+
+	if ([PLAYER status] != STATUS_ENTERING_WITCHSPACE)
+	{
+		OOJSReportError(context, @"Cannot use this function while player's ship not entering witchspace.");
+		return NO;
+	}
+
+	[thisEnt enterWormhole:(WormholeEntity*)hole];
+
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipThrowSpark(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt setThrowSparks:YES];
+	
+	OOJS_RETURN_VOID;
 	
 	OOJS_PROFILE_EXIT
 }
