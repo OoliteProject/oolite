@@ -163,9 +163,9 @@ static NSMutableSet *sPlayingSoundSources;
 		[_channel setDelegate:[self class]];
 		[_channel stop];
 		_channel = nil;
-		[self release];
 		
 		[sPlayingSoundSources removeObject:self];
+		[self release];
 	}
 	
 	OOSoundReleaseLock();

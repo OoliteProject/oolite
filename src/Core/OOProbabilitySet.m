@@ -191,9 +191,17 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 	weights = [plist oo_arrayForKey:kWeightsKey];
 	
 	// Validate
-	if (objects == nil || weights == nil)  return nil;
+	if (objects == nil || weights == nil)
+	{
+		[self release];
+		return nil;
+	}
 	count = [objects count];
-	if (count != [weights count])  return nil;
+	if (count != [weights count])
+	{
+		[self release];
+		return nil;
+	}
 	
 	// Extract contents.
 	rawObjects = malloc(sizeof *rawObjects * count);
@@ -214,6 +222,7 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 	}
 	else
 	{
+		[self release];
 		self = nil;
 	}
 	
