@@ -5975,7 +5975,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		if ([self primaryTarget] != nil)
 		{
 			// must use the weak ref here to prevent potential over-retention
-			[previousCondition setObject:[[self primaryTarget] weakRetain] forKey:@"primaryTarget"];
+			[previousCondition setObject:[[self primaryTarget] weakSelf] forKey:@"primaryTarget"];
 		}
 		[previousCondition oo_setFloat:desired_range forKey:@"desired_range"];
 		[previousCondition oo_setFloat:desired_speed forKey:@"desired_speed"];
@@ -9673,14 +9673,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		_defenseTargets = [[OOWeakSet alloc] init];
 	}
 	
-	[_defenseTargets addObject:[target weakRetain]];
+	[_defenseTargets addObject:[target weakSelf]];
 	return YES;
 }
 
 
 - (BOOL) isDefenseTarget:(Entity *)target
 {
-	return [_defenseTargets containsObject:[target weakRetain]];
+	return [_defenseTargets containsObject:[target weakSelf]];
 }
 
 
@@ -9693,7 +9693,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) removeDefenseTarget:(Entity *)target
 {
-	[_defenseTargets removeObject:[target weakRetain]];
+	[_defenseTargets removeObject:[target weakSelf]];
 }
 
 
