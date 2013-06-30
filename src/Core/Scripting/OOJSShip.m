@@ -101,6 +101,7 @@ static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp
 
 static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipStaticKeys(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipStaticRoles(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sShipClass =
@@ -418,6 +419,7 @@ static JSFunctionSpec sShipStaticMethods[] =
 	// JS name					Function					min args
 	{ "keys",		ShipStaticKeys,				0 },
 	{ "keysForRole",		ShipStaticKeysForRole,				1 },
+	{ "roles",		ShipStaticRoles,				0 },
 	{ 0 }
 };
 
@@ -2744,6 +2746,17 @@ static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportBadArguments(context, @"Ship", @"shipKeysForRole", MIN(argc, 1U), OOJS_ARGV, nil, @"ship role");
 		return NO;
 	}
+
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool ShipStaticRoles(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context);
+	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
+
+	NSArray *keys = [registry shipRoles];
+	OOJS_RETURN_OBJECT(keys);		
 
 	OOJS_NATIVE_EXIT
 }

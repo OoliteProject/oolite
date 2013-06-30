@@ -245,6 +245,11 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	return [_shipData allKeys];
 }
 
+- (NSArray *) shipRoles
+{
+	return [_probabilitySets allKeys];
+}
+
 - (NSArray *) shipKeysWithRole:(NSString *)role
 {
 	return [[self probabilitySetForRole:role] allObjects];

@@ -60,6 +60,7 @@ SOFTWARE.
 @interface OOShipRegistry (OOConveniences)
 
 - (NSArray *) shipKeys;
+- (NSArray *) shipRoles;
 - (NSArray *) shipKeysWithRole:(NSString *)role;
 - (NSString *) randomShipKeyForRole:(NSString *)role;
 
