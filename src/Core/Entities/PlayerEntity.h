@@ -835,6 +835,11 @@ typedef enum
 - (Vector) viewpointPosition;
 - (Vector) breakPatternPosition;
 - (Vector) viewpointOffset;
+- (Vector) viewpointOffsetAft;
+- (Vector) viewpointOffsetForward;
+- (Vector) viewpointOffsetPort;
+- (Vector) viewpointOffsetStarboard;
+
 
 - (NSDictionary *) missionOverlayDescriptor;
 - (NSDictionary *) missionOverlayDescriptorOrDefault;

@@ -240,6 +240,11 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 @implementation OOShipRegistry (OOConveniences)
 
+- (NSArray *) shipKeys
+{
+	return [_shipData allKeys];
+}
+
 - (NSArray *) shipKeysWithRole:(NSString *)role
 {
 	return [[self probabilitySetForRole:role] allObjects];

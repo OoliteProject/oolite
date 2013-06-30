@@ -128,6 +128,10 @@ enum
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-write
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
+	kPlayerShip_viewPositionAft,					// view position offset, vector, read-only
+	kPlayerShip_viewPositionForward,					// view position offset, vector, read-only
+	kPlayerShip_viewPositionPort,					// view position offset, vector, read-only
+	kPlayerShip_viewPositionStarboard,					// view position offset, vector, read-only
 	kPlayerShip_weaponsOnline,					// weapons online status, boolean, read-only
 	kPlayerShip_yaw,							// yaw (overrules Ship)
 };
@@ -170,6 +174,10 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
+	{ "viewPositionAft",					kPlayerShip_viewPositionAft,					OOJS_PROP_READONLY_CB },
+	{ "viewPositionForward",					kPlayerShip_viewPositionForward,					OOJS_PROP_READONLY_CB },
+	{ "viewPositionPort",					kPlayerShip_viewPositionPort,					OOJS_PROP_READONLY_CB },
+	{ "viewPositionStarboard",					kPlayerShip_viewPositionStarboard,					OOJS_PROP_READONLY_CB },
 	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					OOJS_PROP_READONLY_CB },
 	{ "yaw",							kPlayerShip_yaw,							OOJS_PROP_READONLY_CB },
 	{ 0 }			
@@ -386,6 +394,18 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_viewDirection:
 			*value = OOJSValueFromViewID(context, [UNIVERSE viewDirection]);
 			return YES;
+
+		case kPlayerShip_viewPositionAft:
+			return VectorToJSValue(context, [player viewpointOffsetAft], value);
+
+		case kPlayerShip_viewPositionForward:
+			return VectorToJSValue(context, [player viewpointOffsetForward], value);
+
+		case kPlayerShip_viewPositionPort:
+			return VectorToJSValue(context, [player viewpointOffsetPort], value);
+
+		case kPlayerShip_viewPositionStarboard:
+			return VectorToJSValue(context, [player viewpointOffsetStarboard], value);
 
 		case kPlayerShip_currentWeapon:
 			result = [player weaponTypeForFacing:[player currentWeaponFacing]];
