@@ -92,12 +92,11 @@ static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *
 static JSBool ShipBroadcastCascadeImminent(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp);
 
-
-static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp);
-
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
 
+static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipStaticKeys(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sShipClass =
@@ -150,6 +149,7 @@ enum
 	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
 	kShip_escortGroup,			// group, ShipGroup, read-only
 	kShip_escorts,				// deployed escorts, array of Ship, read-only
+	kShip_extraCargo,				// cargo space increase granted by large cargo bay, int, read-only
 	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read/write
 	kShip_fuel,					// fuel, float, read/write
 	kShip_fuelChargeRate,		// fuel scoop rate & charge multiplier, float, read-only
@@ -271,6 +271,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
 	{ "escorts",				kShip_escorts,				OOJS_PROP_READONLY_CB },
 	{ "escortGroup",			kShip_escortGroup,			OOJS_PROP_READONLY_CB },
+	{ "extraCargo",			kShip_extraCargo,			OOJS_PROP_READONLY_CB },
 	{ "forwardWeapon",			kShip_forwardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "fuel",					kShip_fuel,					OOJS_PROP_READWRITE_CB },
 	{ "fuelChargeRate",			kShip_fuelChargeRate,		OOJS_PROP_READONLY_CB },
@@ -358,7 +359,6 @@ static JSPropertySpec sShipProperties[] =
 	{ 0 }
 };
 
-
 static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
@@ -410,6 +410,7 @@ static JSFunctionSpec sShipMethods[] =
 static JSFunctionSpec sShipStaticMethods[] =
 {
 	// JS name					Function					min args
+	{ "keys",		ShipStaticKeys,				0 },
 	{ "keysForRole",		ShipStaticKeysForRole,				1 },
 	{ 0 }
 };
@@ -641,6 +642,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_cargoSpaceAvailable:
 			*value = INT_TO_JSVAL([entity availableCargoSpace]);
+			return YES;
+
+		case kShip_extraCargo:
+			*value = INT_TO_JSVAL([entity extraCargo]);
 			return YES;
 		
 		case kShip_commodity:
@@ -2502,27 +2507,6 @@ static JSBool ShipUpdateEscortFormation(JSContext *context, uintN argc, jsval *v
 	OOJS_PROFILE_EXIT
 }
 
-static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp)
-{
-	OOJS_NATIVE_ENTER(context);
-	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
-
-	if (argc > 0)
-	{
-		NSString *role = OOStringFromJSValue(context, OOJS_ARGV[0]);
-		NSArray *keys = [registry shipKeysWithRole:role];
-		OOJS_RETURN_OBJECT(keys);		
-	}
-	else
-	{
-		OOJSReportBadArguments(context, @"Ship", @"shipKeysForRole", MIN(argc, 1U), OOJS_ARGV, nil, @"ship role");
-		return NO;
-	}
-
-	OOJS_NATIVE_EXIT
-}
-
-
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode)
 {
 	OOJS_PROFILE_ENTER
@@ -2674,4 +2658,38 @@ static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp)
 	OOJS_RETURN_BOOL(result);
 	
 	OOJS_PROFILE_EXIT
+}
+
+
+/** Static methods */
+
+static JSBool ShipStaticKeys(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context);
+	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
+
+	NSArray *keys = [registry shipKeys];
+	OOJS_RETURN_OBJECT(keys);		
+
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context);
+	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
+
+	if (argc > 0)
+	{
+		NSString *role = OOStringFromJSValue(context, OOJS_ARGV[0]);
+		NSArray *keys = [registry shipKeysWithRole:role];
+		OOJS_RETURN_OBJECT(keys);		
+	}
+	else
+	{
+		OOJSReportBadArguments(context, @"Ship", @"shipKeysForRole", MIN(argc, 1U), OOJS_ARGV, nil, @"ship role");
+		return NO;
+	}
+
+	OOJS_NATIVE_EXIT
 }

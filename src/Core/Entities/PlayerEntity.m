@@ -3101,6 +3101,27 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (Vector) viewpointOffsetAft
+{
+	return aftViewOffset;
+}
+
+- (Vector) viewpointOffsetForward
+{
+	return forwardViewOffset;
+}
+
+- (Vector) viewpointOffsetPort
+{
+	return portViewOffset;
+}
+
+- (Vector) viewpointOffsetStarboard
+{
+	return starboardViewOffset;
+}
+
+
 /* TODO post 1.78: profiling suggests this gets called often enough
  * that it's worth caching the result per-frame - CIM */
 - (Vector) viewpointPosition
