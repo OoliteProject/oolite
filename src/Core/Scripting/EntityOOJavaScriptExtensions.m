@@ -33,6 +33,8 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #import "OOVisualEffectEntity.h"
 #import "OOJSVisualEffect.h"
+#import "WormholeEntity.h"
+#import "OOJSWormhole.h"
 
 
 @implementation Entity (OOJavaScriptExtensions)

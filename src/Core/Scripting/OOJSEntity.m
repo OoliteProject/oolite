@@ -88,6 +88,7 @@ enum
 	kEntity_isInSpace,			// is in space, boolean, read-only.
 	kEntity_isVisible,			// is within drawing distance, boolean, read-only.
 	kEntity_isVisualEffect,		// is visual effect, boolean, read-only.
+	kEntity_isWormhole,		// is visual effect, boolean, read-only.
 };
 
 
@@ -117,6 +118,7 @@ static JSPropertySpec sEntityProperties[] =
 	{ "isInSpace",				kEntity_isInSpace,			OOJS_PROP_READONLY_CB },
 	{ "isVisible",				kEntity_isVisible,			OOJS_PROP_READONLY_CB },
 	{ "isVisualEffect",			kEntity_isVisualEffect,		OOJS_PROP_READONLY_CB },
+	{ "isWormhole",			kEntity_isWormhole,		OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -288,6 +290,10 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 
 		case kEntity_isVisualEffect:
 			*value = OOJSValueFromBOOL([entity isVisualEffect]);
+			return YES;
+
+		case kEntity_isWormhole:
+			*value = OOJSValueFromBOOL([entity isWormhole]);
 			return YES;
 			
 		case kEntity_distanceTravelled:

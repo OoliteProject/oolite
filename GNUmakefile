@@ -298,6 +298,7 @@ OOLITE_SCRIPTING_FILES = \
 		OOJSVisualEffect.m \
     OOJSVector.m \
     OOJSWorldScripts.m \
+		OOJSWormhole.m \
     OOLegacyScriptWhitelist.m \
     OOPListScript.m \
     OOScript.m \
