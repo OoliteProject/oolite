@@ -144,7 +144,7 @@
 	if (![textureName isEqual:[self textureName]])
 	{
 		[_material release];
-		NSDictionary *spec = [@"{diffuse_map={repeat_s=yes;};}" propertyList];
+		NSDictionary *spec = [@"{diffuse_map={repeat_s=yes;cube_map=yes};}" propertyList];
 		_material = [[OOSingleTextureMaterial alloc] initWithName:textureName configuration:spec];
 	}
 }
@@ -222,13 +222,28 @@
 	
 	OOGL(glEnable(GL_LIGHTING));
 	OOGL(glEnable(GL_TEXTURE_2D));
+
+#if OO_TEXTURE_CUBE_MAP
+	if ([_material wantsNormalsAsTextureCoordinates])
+	{
+		OOGL(glDisable(GL_TEXTURE_2D));
+		OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
+	}
+#endif
 	
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
 	
 	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 	
 	OOGL(glVertexPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
-	OOGL(glTexCoordPointer(2, GL_FLOAT, 0, kOOPlanetTexCoords));
+	if ([_material wantsNormalsAsTextureCoordinates])
+	{
+		OOGL(glTexCoordPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
+	}
+	else
+	{
+		OOGL(glTexCoordPointer(2, GL_FLOAT, 0, kOOPlanetTexCoords));
+	}
 	
 	// FIXME: instead of GL_RESCALE_NORMAL, consider copying and transforming the vertex array for each planet.
 	OOGL(glEnable(GL_RESCALE_NORMAL));
@@ -242,6 +257,15 @@
 		OODebugDrawBasisAtOrigin(1.5);
 	}
 #endif
+
+#if OO_TEXTURE_CUBE_MAP
+	if ([_material wantsNormalsAsTextureCoordinates])
+	{
+		OOGL(glEnable(GL_TEXTURE_2D));
+		OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
+	}
+#endif
+
 	
 	OOGL(glPopMatrix());
 #ifndef NDEBUG
