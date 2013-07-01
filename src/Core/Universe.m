@@ -1336,8 +1336,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 					// ...for location seed
 					rndlocal = MakeRanrotSeed(rndvalue+locationSeed);
 					rndvalue = RanrotWithSeed(&rndlocal);
-					// ...for iteration
-					RANROTSetFullSeed(MakeRanrotSeed(rndvalue+i));
+					// ...for iteration (63647 is nothing special, just a largish prime)
+					RANROTSetFullSeed(MakeRanrotSeed(rndvalue+(i*63647)));
 				}
 				if (sun == nil)
 				{
@@ -9771,7 +9771,8 @@ Entity *gOOJSPlayerIfStale = nil;
 	}
 	
 	[player completeSetUp];
-	
+	[self populateNormalSpace];
+
 	if(!showDemo)
 	{
 		[player setGuiToStatusScreen];

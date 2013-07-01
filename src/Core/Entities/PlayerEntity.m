@@ -2165,6 +2165,9 @@ static GLfloat		sBaseMass = 0.0;
 			galaxy_coordinates.y = system_seed.b;
 			
 			[UNIVERSE setUpSpace];
+			// run initial system population
+			[UNIVERSE populateNormalSpace];
+
 			[self setDockTarget:[UNIVERSE station]];
 			// send world script events to let oxps know we're in a new system.
 			// all player.ship properties are still disabled at this stage.
