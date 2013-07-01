@@ -83,6 +83,7 @@ MA 02110-1301, USA.
 #import "OOScriptTimer.h"
 #import "OOJSScript.h"
 #import "OOJSFrameCallbacks.h"
+#import "OOJSPopulatorDefinition.h"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -106,9 +107,11 @@ enum
 #define STANDARD_STATION_ROLL				0.4
 #define WOLFPACK_SHIPS_DISTANCE				0.1
 #define FIXED_ASTEROID_FIELDS				0
-
+// currently twice scanner radius
+#define LANE_WIDTH			51200.0
 
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
+static NSString * const kOOLogUniversePopulateError				= @"universe.populate.error";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
 extern NSString * const kOOLogEntityVerificationError;
 static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
@@ -179,6 +182,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) resetSystemDataCache;
 
 - (void) populateSpaceFromActiveWormholes;
+- (Vector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 - (void) populateSpaceFromHyperPoint:(Vector)h1_pos toPlanetPosition:(Vector)p1_pos andSunPosition:(Vector)s1_pos;
 - (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
 - (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(NSUInteger)clusterSize;
@@ -370,6 +374,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	[[GameController sharedController] logProgress:DESC(@"running-scripts")];
 	[player completeSetUp];
+	[self populateNormalSpace];
 	
 #if OO_LOCALIZATION_TOOLS
 	[self runLocalizationTools];
@@ -410,6 +415,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[autoAIMap release];
 	[screenBackgrounds release];
 	[gameView release];
+	[populatorSettings release];
 	
 	[localPlanetInfoOverrides release];
 	[activeWormholes release];				
@@ -597,6 +603,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[self setSystemTo: dest];
 			
 			[self setUpSpace];
+			[self populateNormalSpace];
 			[player setBounty:([player legalStatus]/2) withReason:kOOLegalStatusReasonNewSystem];
 			if ([player random_factor] < 8) [player erodeReputation];		// every 32 systems or so, dro
 		}
@@ -669,6 +676,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		if (!dockedStation || !interstel) 
 		{
 			[self setUpSpace];	// launching from station that jumped from interstellar space to normal space.
+			[self populateNormalSpace];
 			if (dockedStation)
 			{
 				if ([dockedStation maxFlightSpeed] > 0) // we are a carrier: exit near the WitchspaceExitPosition
@@ -729,6 +737,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	
 	[self setUpSpace];
+	[self populateNormalSpace];
 	
 	[player leaveWitchspace];
 	[player release];											// released here
@@ -825,6 +834,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
 	OOLogIndentIf(kOOLogUniversePopulateWitchspace);
 	
+	[self clearSystemPopulator];
+	NSString *populator = [systeminfo oo_stringForKey:@"populator" defaultValue:@"interstellarSpaceWillPopulate"];
+	JSContext *context = OOJSAcquireContext();
+	[PLAYER doWorldScriptEvent:OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+	OOJSRelinquishContext(context);
+	[self populateSystemFromDictionariesWithSun:nil andPlanet:nil];
+
+	/*
 	// actual thargoids and tharglets next...
 	int n_thargs = 2 + (Ranrot() & 3);
 	if (n_thargs < 1)
@@ -866,7 +883,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[thargoid release];
 		}
 	}
-	
+	*/
 	// systeminfo might have a 'script_actions' resource we want to activate now...
 	NSArray *script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
 	if (script_actions != nil)
@@ -913,11 +930,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	return [a_planet autorelease];
 }
 
-
+/* At any time other than game start, any call to this must be followed
+ * by [self populateNormalSpace]. However, at game start, they need to be
+ * separated to allow Javascript startUp routines to be run in-between */
 - (void) setUpSpace
 {
 	Entity				*thing;
-	ShipEntity			*nav_buoy;
+//	ShipEntity			*nav_buoy;
 	StationEntity		*a_station;
 	OOSunEntity			*a_sun;
 	OOPlanetEntity		*a_planet;
@@ -994,7 +1013,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	int			posIterator=0;
 	id			dict_object;
 	Quaternion  q_sun;
-	Vector		sunPos,witchPos;
+	Vector		sunPos;
 	
 	sunDistanceModifier = [systeminfo oo_nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
 	// Any smaller than 6, the main planet can end up inside the sun
@@ -1169,79 +1188,92 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - populate from wormholes");
 	[self populateSpaceFromActiveWormholes];
 	OO_DEBUG_POP_PROGRESS();
-	
-	witchPos = [self randomizeFromSeedAndGetWitchspaceExitPosition]; //we need to use this value a few times, without resetting PRNG
-	
-	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - populate from hyperpoint");
-	[self populateSpaceFromHyperPoint:witchPos toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
-	OO_DEBUG_POP_PROGRESS();
-	
-	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - nav beacons");
-	if (a_station != nil)
-	{
-		/*- nav beacon -*/
-		nav_buoy = [self newShipWithRole:@"buoy"];	// retain count = 1
-		if (nav_buoy)
-		{
-			[nav_buoy setRoll:	0.10];
-			[nav_buoy setPitch:	0.15];
-			[nav_buoy setPosition:[a_station beaconPosition]];
-			[nav_buoy setScanClass: CLASS_BUOY];
-			[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			[nav_buoy release];
-		}
-	}
-	/*--*/
-	
-	/*- nav beacon witchpoint -*/
-	nav_buoy = [self newShipWithRole:@"buoy-witchpoint"];	// retain count = 1
-	if (nav_buoy)
-	{
-		[nav_buoy setRoll:	0.10];
-		[nav_buoy setPitch:	0.15];
-		[nav_buoy setPosition:witchPos];	// There should be no need to reset PRNG now.
-		[nav_buoy setScanClass: CLASS_BUOY];
-		[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		[nav_buoy release];
-	}
-	/*--*/
-	OO_DEBUG_POP_PROGRESS();
-	
-	if (sunGoneNova)
-	{
-		OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - post-nova");
-		
-		Vector v0 = make_vector(0,0,34567.89);
-		Vector planetPos = a_planet->position;
-		double min_safe_dist2 = 5000000.0 * 5000000.0;
-		while (magnitude2(a_sun->position) < min_safe_dist2)	// back off the planetary bodies
-		{
-			v0.z *= 2.0;
-			planetPos = vector_add([a_planet position], v0);
-			[a_planet setPosition:planetPos];
-			
-			sunPos = vector_add(sunPos, v0);
-			[a_sun setPosition:sunPos];  // also sets light origin
-			
-			stationPos = vector_add(stationPos, v0);
-			[a_station setPosition:stationPos];
-		}
-		
-		[self removeEntity:a_planet];	// and Poof! it's gone
-		cachedPlanet = nil;
-		int i;
-		for (i = 0; i < 3; i++)
-		{
-			[self scatterAsteroidsAt:planetPos withVelocity:kZeroVector includingRockHermit:NO asCinders:YES];
-			[self scatterAsteroidsAt:witchPos withVelocity:kZeroVector includingRockHermit:NO asCinders:YES];
-		}
-		
-		OO_DEBUG_POP_PROGRESS();
-	}
-	
+
 	[a_sun release];
 	[a_station release];
+}
+
+- (void) populateNormalSpace
+{	
+	NSDictionary		*systeminfo = [self generateSystemData:system_seed useCache:NO];
+
+//	Vector witchPos = [self randomizeFromSeedAndGetWitchspaceExitPosition]; //we need to use this value a few times, without resetting PRNG
 	
+	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - populate from hyperpoint");
+//	[self populateSpaceFromHyperPoint:witchPos toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
+	[self clearSystemPopulator];
+	NSString *populator = [systeminfo oo_stringForKey:@"populator" defaultValue:@"systemWillPopulate"];
+	JSContext *context = OOJSAcquireContext();
+	[PLAYER doWorldScriptEvent:OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+	OOJSRelinquishContext(context);
+	[self populateSystemFromDictionariesWithSun:cachedSun andPlanet:cachedPlanet];
+
+	OO_DEBUG_POP_PROGRESS();
+	
+	// OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - nav beacons");
+	// if (a_station != nil)
+	// {
+	// 	/*- nav beacon -*/
+	// 	nav_buoy = [self newShipWithRole:@"buoy"];	// retain count = 1
+	// 	if (nav_buoy)
+	// 	{
+	// 		[nav_buoy setRoll:	0.10];
+	// 		[nav_buoy setPitch:	0.15];
+	// 		[nav_buoy setPosition:[a_station beaconPosition]];
+	// 		[nav_buoy setScanClass: CLASS_BUOY];
+	// 		[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
+	// 		[nav_buoy release];
+	// 	}
+	// }
+	// /*--*/
+	
+	// /*- nav beacon witchpoint -*/
+	// nav_buoy = [self newShipWithRole:@"buoy-witchpoint"];	// retain count = 1
+	// if (nav_buoy)
+	// {
+	// 	[nav_buoy setRoll:	0.10];
+	// 	[nav_buoy setPitch:	0.15];
+	// 	[nav_buoy setPosition:witchPos];	// There should be no need to reset PRNG now.
+	// 	[nav_buoy setScanClass: CLASS_BUOY];
+	// 	[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
+	// 	[nav_buoy release];
+	// }
+	// /*--*/
+	// OO_DEBUG_POP_PROGRESS();
+	
+	// if (sunGoneNova)
+	// {
+	// 	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - post-nova");
+		
+	// 	Vector v0 = make_vector(0,0,34567.89);
+	// 	Vector planetPos = a_planet->position;
+	// 	double min_safe_dist2 = 5000000.0 * 5000000.0;
+	// 	while (magnitude2(a_sun->position) < min_safe_dist2)	// back off the planetary bodies
+	// 	{
+	// 		v0.z *= 2.0;
+	// 		planetPos = vector_add([a_planet position], v0);
+	// 		[a_planet setPosition:planetPos];
+			
+	// 		sunPos = vector_add(sunPos, v0);
+	// 		[a_sun setPosition:sunPos];  // also sets light origin
+			
+	// 		stationPos = vector_add(stationPos, v0);
+	// 		[a_station setPosition:stationPos];
+	// 	}
+		
+	// 	[self removeEntity:a_planet];	// and Poof! it's gone
+	// 	cachedPlanet = nil;
+	// 	int i;
+	// 	for (i = 0; i < 3; i++)
+	// 	{
+	// 		[self scatterAsteroidsAt:planetPos withVelocity:kZeroVector includingRockHermit:NO asCinders:YES];
+	// 		[self scatterAsteroidsAt:witchPos withVelocity:kZeroVector includingRockHermit:NO asCinders:YES];
+	// 	}
+		
+	// 	OO_DEBUG_POP_PROGRESS();
+	// }
+	
+
 	// systeminfo might have a 'script_actions' resource we want to activate now...
 	NSArray *script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
 	if (script_actions != nil)
@@ -1253,6 +1285,143 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 													   forTarget:nil];
 		OO_DEBUG_POP_PROGRESS();
 	}
+}
+
+- (void) clearSystemPopulator
+{
+	[populatorSettings release];
+	populatorSettings = [[NSMutableDictionary alloc] initWithCapacity:128];
+}
+
+- (NSDictionary *) populatorSettings
+{
+	return populatorSettings;
+}
+
+- (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting
+{
+	[populatorSettings setObject:setting forKey:key];
+}
+
+- (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet
+{
+	NSArray *blocks = [populatorSettings allValues];
+	NSEnumerator *enumerator = [[blocks sortedArrayUsingFunction:populatorPrioritySort context:nil] objectEnumerator];
+	NSDictionary *populator;
+	Vector location;
+	int locationSeed, groupCount, rndvalue;
+	unsigned i;
+	RANROTSeed rndcache, rndlocal;
+	NSString *locationCode;
+	OOJSPopulatorDefinition *pdef;
+	while ((populator = [enumerator nextObject])) {
+		locationSeed = [populator oo_intForKey:@"locationSeed" defaultValue:0];
+		groupCount = [populator oo_intForKey:@"groupCount" defaultValue:1];
+		
+		for (i=0;i<groupCount;i++)
+		{
+			locationCode = [populator oo_stringForKey:@"location" defaultValue:@"COORDINATES"];
+			if ([locationCode isEqualToString:@"COORDINATES"])
+			{
+				location = [populator oo_vectorForKey:@"coordinates" defaultValue:kZeroVector];
+			}
+			else
+			{
+				if(locationSeed != 0)
+				{
+					rndcache = RANROTGetFullSeed();
+					// different place for system
+					rndlocal = RanrotSeedFromRandomSeed(system_seed);
+					rndvalue = RanrotWithSeed(&rndlocal);
+					// ...for location seed
+					rndlocal = MakeRanrotSeed(rndvalue+locationSeed);
+					rndvalue = RanrotWithSeed(&rndlocal);
+					// ...for iteration
+					RANROTSetFullSeed(MakeRanrotSeed(rndvalue+i));
+				}
+				if (sun == nil)
+				{
+					// all interstellar space locations equal to WITCHPOINT
+					location = [self locationByCode:@"WITCHPOINT" withSun:nil andPlanet:nil];
+				}
+				else
+				{
+					location = [self locationByCode:locationCode withSun:sun andPlanet:planet];
+				}
+				if(locationSeed != 0)
+				{
+					// go back to the main random sequence
+					RANROTSetFullSeed(rndcache);
+				}			
+			}
+			// location now contains a Vector coordinate, one way or another
+			pdef = [populator objectForKey:@"callbackObj"];
+			[pdef runCallback:location];
+		}
+
+	}
+
+}
+
+
+- (Vector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet
+{
+	Vector result = kZeroVector;
+	if ([code isEqualToString:@"WITCHPOINT"])
+	{
+		result = OOVectorRandomSpatial(SCANNER_MAX_RANGE);
+	}
+	// past this point, can assume non-nil sun, planet
+	else if ([code isEqualToString:@"LANE_WP"])
+	{
+		result = OORandomPositionInCylinder(kZeroVector,SCANNER_MAX_RANGE,[planet position],[planet radius]*3,LANE_WIDTH);
+	}
+	else if ([code isEqualToString:@"LANE_WS"])
+	{
+		result = OORandomPositionInCylinder(kZeroVector,SCANNER_MAX_RANGE,[sun position],[sun radius]*3,LANE_WIDTH);
+	}
+	else if ([code isEqualToString:@"LANE_PS"])
+	{
+		result = OORandomPositionInCylinder([planet position],[planet radius]*3,[sun position],[sun radius]*3,LANE_WIDTH);
+	}
+	else if ([code isEqualToString:@"STATION_AEGIS"])
+	{
+		do 
+		{
+			result = OORandomPositionInShell([[self station] position],[[self station] collisionRadius]*1.2,SCANNER_MAX_RANGE*2.0);
+		} while(distance2(result,[planet position])<[planet radius]*[planet radius]*1.5);
+		// loop to make sure not generated too close to the planet's surface
+	}
+	else if ([code isEqualToString:@"PLANET_ORBIT_LOW"])
+	{
+		result = OORandomPositionInShell([planet position],[planet radius]*1.1,[planet radius]*2.0);
+	}
+	else if ([code isEqualToString:@"PLANET_ORBIT"])
+	{
+		result = OORandomPositionInShell([planet position],[planet radius]*2.0,[planet radius]*4.0);
+	}
+	else if ([code isEqualToString:@"PLANET_ORBIT_HIGH"])
+	{
+		result = OORandomPositionInShell([planet position],[planet radius]*4.0,[planet radius]*8.0);
+	}
+	else if ([code isEqualToString:@"STAR_ORBIT_LOW"])
+	{
+		result = OORandomPositionInShell([sun position],[sun radius]*1.1,[sun radius]*2.0);
+	}
+	else if ([code isEqualToString:@"STAR_ORBIT"])
+	{
+		result = OORandomPositionInShell([sun position],[sun radius]*2.0,[sun radius]*4.0);
+	}
+	else if ([code isEqualToString:@"STAR_ORBIT_HIGH"])
+	{
+		result = OORandomPositionInShell([sun position],[sun radius]*4.0,[sun radius]*8.0);
+	}
+	else
+	{
+		OOLog(kOOLogUniversePopulateError,@"Named populator region %@ is not implemented, falling back to WITCHPOINT",code); 
+		result = OOVectorRandomSpatial(SCANNER_MAX_RANGE);
+	}
+	return result;
 }
 
 
@@ -10769,6 +10938,17 @@ static void PreloadOneSound(NSString *soundName)
 }
 
 @end
+
+NSComparisonResult populatorPrioritySort(id a, id b, void *context)
+{
+	NSDictionary *one = (NSDictionary *)a;
+	NSDictionary *two = (NSDictionary *)b;
+	int pri_one = [one oo_intForKey:@"priority" defaultValue:100];
+	int pri_two = [two oo_intForKey:@"priority" defaultValue:100];
+	if (pri_one < pri_two) return NSOrderedAscending;
+	if (pri_one > pri_two) return NSOrderedDescending;
+	return NSOrderedSame;
+}
 
 
 NSString *OOLookUpDescriptionPRIV(NSString *key)

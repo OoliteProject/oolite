@@ -257,6 +257,8 @@ enum
 	OOSunEntity				*cachedSun;
 	NSMutableArray			*allPlanets;
 	
+	NSMutableDictionary		*populatorSettings;
+	
 	NSArray					*closeSystems;
 	
 	BOOL					strict;
@@ -339,6 +341,11 @@ enum
 - (void) setUpWitchspace;
 - (void) setUpWitchspaceBetweenSystem:(Random_Seed)s1 andSystem:(Random_Seed)s2;
 - (void) setUpSpace;
+- (void) populateNormalSpace;
+- (void) clearSystemPopulator;
+- (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
+- (NSDictionary *) populatorSettings;
+- (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
 - (void) setLighting;
 - (void) forceLightSwitch;
 - (void) setMainLightPosition: (Vector) sunPos;
@@ -742,6 +749,7 @@ OOINLINE Universe *OOGetUniverse(void)
 #define DESC_PLURAL(key,count)	(OOLookUpPluralDescriptionPRIV(key "", count))
 
 // Not for direct use.
+NSComparisonResult populatorPrioritySort(id a, id b, void *context);
 NSString *OOLookUpDescriptionPRIV(NSString *key);
 NSString *OOLookUpPluralDescriptionPRIV(NSString *key, NSInteger count);
 

@@ -39,7 +39,7 @@
 #import "OOConstToJSString.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOFilteringEnumerator.h"
-
+#import "OOJSPopulatorDefinition.h"
 
 static JSObject *sSystemPrototype;
 
@@ -74,6 +74,7 @@ static JSBool SystemAddGroup(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddShipsToRoute(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddGroupToRoute(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool SystemLegacyAddShips(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemLegacyAddSystemShips(JSContext *context, uintN argc, jsval *vp);
@@ -123,6 +124,7 @@ enum
 	kSystem_name,					// name, string, read/write
 	kSystem_planets,				// planets in system, array of Planet, read-only
 	kSystem_population,				// population, integer, read/write
+	kSystem_populatorSettings,				// populator settings, dictionary, read-only
 	kSystem_productivity,			// productivity, integer, read/write
 	kSystem_pseudoRandom100,		// constant-per-system pseudorandom number in [0..100), integer, read-only
 	kSystem_pseudoRandom256,		// constant-per-system pseudorandom number in [0..256), integer, read-only
@@ -180,6 +182,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "filteredEntities",				SystemFilteredEntities,				2 },
 	// scrambledPseudoRandomNumber is implemented in oolite-global-prefix.js
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,				1 },
+	{ "setPopulator",				SystemSetPopulator,				2 },
 	{ "shipsWithPrimaryRole",			SystemShipsWithPrimaryRole,			1 },
 	{ "shipsWithRole",					SystemShipsWithRole,				1 },
 	
@@ -286,6 +289,10 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 
 		case kSystem_breakPattern:
 			*value = OOJSValueFromBOOL([UNIVERSE witchspaceBreakPattern]);
+			return YES;
+
+		case kSystem_populatorSettings:
+			*value = OOJSValueFromNativeObject(context, [UNIVERSE populatorSettings]);
 			return YES;
 	}
 	
@@ -1178,6 +1185,64 @@ static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp)
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(result);
+
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString *key;
+	NSMutableDictionary *settings;
+	JSObject			*params = NULL;
+
+	if (argc < 2) 
+	{
+		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"string (key), object (settings)");
+		return NO;
+	}
+	key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, settings");
+		return NO;
+	}
+	if (!JS_ValueToObject(context, OOJS_ARGV[1], &params))
+	{
+		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"key, settings");
+		return NO;
+	}
+	jsval				callback = JSVAL_NULL;
+	if (JS_GetProperty(context, params, "callback", &callback) == JS_FALSE || JSVAL_IS_VOID(callback))
+	{
+		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"settings must have a 'callback' property.");
+		return NO;
+	}
+
+	OOJSPopulatorDefinition *populator = [[OOJSPopulatorDefinition alloc] init];
+	[populator setCallback:callback];
+
+	settings = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]));
+	[settings setObject:populator forKey:@"callbackObj"];
+
+	jsval				coords = JSVAL_NULL;
+	if (JS_GetProperty(context, params, "coordinates", &coords) != JS_FALSE && !JSVAL_IS_VOID(coords))
+	{
+		Vector coordinates = kZeroVector;
+		if (JSValueToVector(context, coords, &coordinates))
+		{
+			// convert vector in NS-storable form
+			[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:coordinates.x],[NSNumber numberWithFloat:coordinates.y],[NSNumber numberWithFloat:coordinates.z],nil] forKey:@"coordinates"];
+		}
+	}
+
+
+	[populator release];
+
+	[UNIVERSE setPopulatorSetting:key to:settings];
+	
+	OOJS_RETURN_VOID;
 
 	OOJS_NATIVE_EXIT
 }
