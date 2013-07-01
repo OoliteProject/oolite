@@ -1416,6 +1416,29 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	{
 		result = OORandomPositionInShell([sun position],[sun radius]*4.0,[sun radius]*8.0);
 	}
+	else if ([code isEqualToString:@"TRIANGLE"])
+	{
+		do {
+			// pick random point in triangle by algorithm at
+			// http://adamswaab.wordpress.com/2009/12/11/random-point-in-a-triangle-barycentric-coordinates/
+			// simplified by using the origin as A
+			OOScalar r = randf();
+			OOScalar s = randf();
+			if (r+s >= 1)
+			{
+				r = 1-r;
+				s = 1-s;
+			}
+			result = vector_add(vector_multiply_scalar([planet position],r),vector_multiply_scalar([sun position],s));
+		}
+		// make sure at least 3 radii from vertices
+		while(distance2(result,[sun position]) < [sun radius]*[sun radius]*9.0 || distance2(result,[planet position]) < [planet radius]*[planet radius]*9.0 || magnitude2(result) < SCANNER_MAX_RANGE2 * 9.0);
+	}
+	/* Some more, waiting for issue #22 */
+	// INNER_SYSTEM
+	// OUTER_SYSTEM
+	// INNER_SYSTEM_OFFPLANE
+	// OUTER_SYSTEM_OFFPLANE
 	else
 	{
 		OOLog(kOOLogUniversePopulateError,@"Named populator region %@ is not implemented, falling back to WITCHPOINT",code); 
