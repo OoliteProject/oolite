@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "Universe.h"
 #import "OOMacroOpenGL.h"
+#import "PlayerEntity.h"
 
 #import "OOTexture.h"
 #import "OOGraphicsResetManager.h"
@@ -335,6 +336,23 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	
 	OOGL(glPopMatrix());	// restore absolute positioning
 	OOGL(glPushMatrix());	// avoid stack underflow
+//	GLTranslateOOVector(vector_flip([self cameraRelativePosition]));
+	HPVector cam = [PLAYER viewpointPosition];
+	for (unsigned n=0;n<34*3;n++)
+	{
+		switch (n%3) 
+		{
+		case 0: // x coordinates
+			_glVertices[n] = (GLfloat)(_vertices[n] - cam.x);
+			break;
+		case 1: // y coordinates
+			_glVertices[n] = (GLfloat)(_vertices[n] - cam.y);
+			break;
+		case 2: // z coordinates
+			_glVertices[n] = (GLfloat)(_vertices[n] - cam.z);
+			break;
+		}
+	}
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
@@ -349,7 +367,7 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	OOGL(glShadeModel(GL_SMOOTH));
 	
 	OOGL(glEnableClientState(GL_COLOR_ARRAY));
-	OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertices));
+	OOGL(glVertexPointer(3, GL_FLOAT, 0, _glVertices));
 	OOGL(glColorPointer(4, GL_FLOAT, 0, _exhaustBaseColors));
 
 	double intpart, dphase = 1.0-modf((double)[UNIVERSE getTime]*2.5,&intpart);

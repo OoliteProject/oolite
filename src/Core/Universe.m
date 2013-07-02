@@ -3817,6 +3817,7 @@ static const OOMatrix	starboard_matrix =
 
 - (BOOL) viewFrustumIntersectsSphereAt:(HPVector)position withRadius:(GLfloat)radius
 {
+	return YES; // HPVect: temporarily, while rest of camera-relative is sorted out
 	int p;
 	for (p = 0; p < 6; p++)
 	{
@@ -3915,7 +3916,7 @@ static const OOMatrix	starboard_matrix =
 					OOGL(GLMultOOMatrix([player rotationMatrix]));
 					// translate the view
 					// HPVect: camera-relative position
-					OOGL(GLTranslateOOVector(vector_flip(position)));
+//					OOGL(GLTranslateOOVector(vector_flip(position)));
 					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 				}
 				else
@@ -3971,7 +3972,7 @@ static const OOMatrix	starboard_matrix =
 						{
 							//translate the object
 							// HPVect: camera relative
-							GLTranslateOOVector(HPVectorToVector([drawthing position]));
+							GLTranslateOOVector([drawthing cameraRelativePosition]);
 							//rotate the object
 							GLMultOOMatrix([drawthing drawRotationMatrix]);
 						}
@@ -4033,7 +4034,7 @@ static const OOMatrix	starboard_matrix =
 						{
 							//translate the object
 							// HPVect: camera relative positions
-							GLTranslateOOVector(HPVectorToVector([drawthing position]));
+							GLTranslateOOVector([drawthing cameraRelativePosition]);
 							//rotate the object
 							GLMultOOMatrix([drawthing drawRotationMatrix]);
 						}

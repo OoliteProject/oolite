@@ -598,6 +598,11 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	return position;
 }
 
+- (Vector) cameraRelativePosition
+{
+	return cameraRelativePosition;
+}
+
 
 // Exposed to uniform bindings.
 // so needs to remain at OpenGL precision levels
@@ -615,6 +620,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (void) setPosition:(HPVector) posn
 {
 	position = posn;
+	cameraRelativePosition = HPVectorToVector(HPvector_subtract(position,[PLAYER viewpointPosition]));
 }
 
 
@@ -888,17 +894,20 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		{
 			zero_distance = [[self owner] zeroDistance];
 			cam_zero_distance = [[self owner] camZeroDistance];
+			cameraRelativePosition = [[self owner] cameraRelativePosition];
 		}
 		else
 		{
 			zero_distance = HPdistance2(PLAYER->position, position);
 			cam_zero_distance = HPdistance2([PLAYER viewpointPosition], position);
+			cameraRelativePosition = HPVectorToVector(HPvector_subtract(position,[PLAYER viewpointPosition]));
 		}
 	}
 	else
 	{
 		zero_distance = HPmagnitude2(position);
 		cam_zero_distance = zero_distance;
+		cameraRelativePosition = HPVectorToVector(position);
 	}
 	
 	if ([self status] != STATUS_COCKPIT_DISPLAY)

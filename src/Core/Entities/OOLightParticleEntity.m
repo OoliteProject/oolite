@@ -127,7 +127,8 @@ static OOTexture *sBlobTexture = nil;
 	OOMatrix temp_matrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX);
 	OOGL(glPopMatrix());  OOGL(glPushMatrix());  // restore zero!
 	// HPVect: camera-relative
-	GLTranslateOOVector(HPVectorToVector(abspos));	// move to absolute position
+	HPVector relpos = HPvector_subtract(abspos,[PLAYER viewpointPosition]);
+	GLTranslateOOVector(HPVectorToVector(relpos));	// move to camera-relative position
 	
 	[self drawImmediate:immediate translucent:translucent];
 	

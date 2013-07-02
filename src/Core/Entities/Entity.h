@@ -109,6 +109,7 @@ enum OOScanClass
 	GLfloat					no_draw_distance;		// 10 km initially
 	GLfloat					collision_radius;
 	HPVector					position; // use high-precision vectors for global position
+	Vector						cameraRelativePosition;
 	Quaternion				orientation;
 	
 	int						zero_index;
@@ -200,6 +201,7 @@ enum OOScanClass
 - (void) setPosition:(HPVector)posn;
 - (void) setPositionX:(OOHPScalar)x y:(OOHPScalar)y z:(OOHPScalar)z;
 - (HPVector) position;
+- (Vector) cameraRelativePosition;
 // gets a low-position relative vector
 - (Vector) vectorTo:(Entity *)entity;
 

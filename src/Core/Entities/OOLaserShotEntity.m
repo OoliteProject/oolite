@@ -65,12 +65,12 @@ static OOTexture *sShotTexture2 = nil;
 	if (ship == srcEntity) 
 	{
 		// main laser offset
-		position = HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix])));
+		[self setPosition:HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix])))];
 	}
 	else
 	{
 		// subentity laser
-		position = [srcEntity absolutePositionForSubentityOffset:vectorToHPVector(middle)];
+		[self setPosition:[srcEntity absolutePositionForSubentityOffset:vectorToHPVector(middle)]];
 	}
 	
 	Quaternion q = kIdentityQuaternion;
