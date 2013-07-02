@@ -469,7 +469,11 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	ShipEntity *ship = [self owner];
 	
 	// Absolute position of self
-	HPVector framePos = OOHPVectorMultiplyMatrix([self position], [ship drawTransformationMatrix]);
+	// normally this would use the transformation matrix, but that
+	// introduces inaccuracies
+	// so just use the rotation matrix, then translate using HPVectors
+	HPVector framePos = OOHPVectorMultiplyMatrix([self position], [ship drawRotationMatrix]);
+	framePos = HPvector_add(framePos,[ship position]);
 	Frame frame = { [UNIVERSE getTime], framePos, [ship normalOrientation], [ship upVector] };
 	
 	_track[_nextFrame] = frame;
