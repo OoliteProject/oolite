@@ -58,6 +58,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 @interface Entity (OOPrivate)
 
 - (BOOL) checkLinkedLists;
+- (void) updateCameraRelativePosition;
 
 @end
 
@@ -620,7 +621,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (void) setPosition:(HPVector) posn
 {
 	position = posn;
-	cameraRelativePosition = HPVectorToVector(HPvector_subtract(position,[PLAYER viewpointPosition]));
+	[self updateCameraRelativePosition];
 }
 
 
@@ -629,6 +630,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	position.x = x;
 	position.y = y;
 	position.z = z;
+	[self updateCameraRelativePosition];
+}
+
+- (void) updateCameraRelativePosition
+{
+	cameraRelativePosition = HPVectorToVector(HPvector_subtract(position,[PLAYER viewpointPosition]));
 }
 
 
@@ -900,7 +907,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		{
 			zero_distance = HPdistance2(PLAYER->position, position);
 			cam_zero_distance = HPdistance2([PLAYER viewpointPosition], position);
-			cameraRelativePosition = HPVectorToVector(HPvector_subtract(position,[PLAYER viewpointPosition]));
+			[self updateCameraRelativePosition];
 		}
 	}
 	else

@@ -60,7 +60,8 @@ MA 02110-1301, USA.
 	if ((self = [super init]))
 	{
 		_count = count;
-		position = pos;
+		[self setPosition:pos];
+		
 		velocity = vel;
 		_duration = duration;
 		_maxSpeed = maxSpeed;
