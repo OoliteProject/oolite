@@ -235,6 +235,7 @@ OOLITE_MATHS_FILES = \
     CollisionRegion.m \
     OOMeshToOctreeConverter.m \
     Octree.m \
+    OOHPVector.m \
     OOMatrix.m \
     OOQuaternion.m \
     OOVector.m \

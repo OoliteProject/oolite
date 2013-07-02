@@ -285,7 +285,7 @@ MA 02110-1301, USA.
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict
 {
 	OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:subentDict];
-	[flasher setPosition:[subentDict oo_vectorForKey:@"position"]];
+	[flasher setPosition:[subentDict oo_hpvectorForKey:@"position"]];
 	[self addSubEntity:flasher];
 	return YES;
 }
@@ -295,7 +295,7 @@ MA 02110-1301, USA.
 {
 	OOVisualEffectEntity			*subentity = nil;
 	NSString			*subentKey = nil;
-	Vector				subPosition;
+	HPVector				subPosition;
 	Quaternion			subOrientation;
 	
 	subentKey = [subentDict oo_stringForKey:@"subentity_key"];
@@ -310,7 +310,7 @@ MA 02110-1301, USA.
 		return NO;
 	}
 	
-	subPosition = [subentDict oo_vectorForKey:@"position"];
+	subPosition = [subentDict oo_hpvectorForKey:@"position"];
 	subOrientation = [subentDict oo_quaternionForKey:@"orientation"];
 	
 	[subentity setPosition:subPosition];
@@ -334,7 +334,7 @@ MA 02110-1301, USA.
 	[subEntities addObject:sub];
 	[sub setOwner:self];
 
-	double distance = magnitude([sub position]) + [sub findCollisionRadius];
+	double distance = HPmagnitude([sub position]) + [sub findCollisionRadius];
 	if (distance > _profileRadius)
 	{
 		_profileRadius = distance;
@@ -391,8 +391,8 @@ MA 02110-1301, USA.
 		return; // TOO FAR AWAY
 	}
 	OOGL(glPushMatrix());
-		
-	GLTranslateOOVector(position);
+	// HPVect: camera position
+	GLTranslateOOVector(HPVectorToVector(position));
 	GLMultOOMatrix(rotMatrix);
 	[self drawImmediate:immediate translucent:translucent];
 
@@ -410,7 +410,7 @@ MA 02110-1301, USA.
 	Entity<OOSubEntity>	*se = nil;
 	foreach (se, [self subEntities])
 	{
-		[se setPosition:vector_multiply_scalar([se position], factor)];
+		[se setPosition:HPvector_multiply_scalar([se position], factor)];
 		[se rescaleBy:factor];
 	}
 
@@ -457,7 +457,7 @@ MA 02110-1301, USA.
 	GLfloat flasher_factor = pow(factor/scaleX,1.0/3.0);
 	foreach (se, [self subEntities])
 	{
-		Vector move = [se position];
+		HPVector move = [se position];
 		move.x *= factor/scaleX;
 		[se setPosition:move];
 		if ([se isVisualEffect])
@@ -488,7 +488,7 @@ MA 02110-1301, USA.
 	GLfloat flasher_factor = pow(factor/scaleY,1.0/3.0);
 	foreach (se, [self subEntities])
 	{
-		Vector move = [se position];
+		HPVector move = [se position];
 		move.y *= factor/scaleY;
 		[se setPosition:move];
 		if ([se isVisualEffect])
@@ -519,7 +519,7 @@ MA 02110-1301, USA.
 	GLfloat flasher_factor = pow(factor/scaleZ,1.0/3.0);
 	foreach (se, [self subEntities])
 	{
-		Vector move = [se position];
+		HPVector move = [se position];
 		move.z *= factor/scaleZ;
 		[se setPosition:move];
 		if ([se isVisualEffect])

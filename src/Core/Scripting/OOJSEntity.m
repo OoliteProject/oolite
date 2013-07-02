@@ -206,7 +206,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return JS_NewNumberValue(context, [entity collisionRadius], value);
 	
 		case kEntity_position:
-			return VectorToJSValue(context, [entity position], value);
+			return VectorToJSValue(context, HPVectorToVector([entity position]), value);
 		
 		case kEntity_orientation:
 			return QuaternionToJSValue(context, [entity normalOrientation], value);
@@ -332,7 +332,7 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kEntity_position:
 			if (JSValueToVector(context, *value, &vValue))
 			{
-				[entity setPosition:vValue];
+				[entity setPosition:vectorToHPVector(vValue)];
 				if ([entity isShip])
 				{
 					[(ShipEntity *)entity resetExhaustPlumes];

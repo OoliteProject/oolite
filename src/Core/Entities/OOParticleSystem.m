@@ -47,7 +47,7 @@ MA 02110-1301, USA.
 /*	Initialize shared aspects of the fragburst entities.
 	Also stashes generated particle speeds in _particleSize[] array.
 */
-- (id) initWithPosition:(Vector)pos
+- (id) initWithPosition:(HPVector)pos
 			   velocity:(Vector)vel
 				  count:(unsigned)count
 			   minSpeed:(float)minSpeed
@@ -151,8 +151,8 @@ do { \
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
-	Vector		viewPosition = [PLAYER viewpointPosition];
-	Vector		selfPosition = [self position];
+	HPVector		viewPosition = [PLAYER viewpointPosition];
+	HPVector		selfPosition = [self position];
 	
 	unsigned	i, count = _count;
 	Vector		*particlePosition = _particlePosition;
@@ -216,7 +216,7 @@ do { \
 			{
 				OOGL(glPushMatrix());
 				GLTranslateOOVector(particlePosition[i]);
-				GLMultOOMatrix(OOMatrixForBillboard(vector_add(selfPosition, vector_multiply_scalar(particlePosition[i], individuality)), viewPosition));
+				GLMultOOMatrix(OOMatrixForBillboard(HPvector_add(selfPosition, vectorToHPVector(vector_multiply_scalar(particlePosition[i], individuality))), viewPosition));
 				
 				glColor4fv(particleColor[i]);
 				OOGLBEGIN(GL_QUADS);
@@ -254,7 +254,7 @@ do { \
 
 @implementation OOSmallFragmentBurstEntity: OOParticleSystem
 
-- (id) initFragmentBurstFrom:(Vector)fragPosition velocity:(Vector)fragVelocity size:(GLfloat)size
+- (id) initFragmentBurstFrom:(HPVector)fragPosition velocity:(Vector)fragVelocity size:(GLfloat)size
 {
 	enum
 	{
@@ -313,7 +313,7 @@ do { \
 
 @implementation OOBigFragmentBurstEntity: OOParticleSystem
 
-- (id) initFragmentBurstFrom:(Vector)fragPosition velocity:(Vector)fragVelocity size:(GLfloat)size
+- (id) initFragmentBurstFrom:(HPVector)fragPosition velocity:(Vector)fragVelocity size:(GLfloat)size
 {
 	float minSpeed = 1.0f + size * 0.5f;
 	float maxSpeed = minSpeed * 4.0f;

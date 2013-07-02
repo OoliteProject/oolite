@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 
 #import "OOJSScript.h"
 #include <jsapi.h>
-#import "OOVector.h"
+#import "OOMaths.h"
 
 @interface OOJSPopulatorDefinition: OOWeakRefObject
 {
@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 - (JSObject *)callbackThis;
 - (void)setCallbackThis:(JSObject *)callbackthis;
 
-- (void)runCallback:(Vector)location;
+- (void)runCallback:(HPVector)location;
 
 @end
 

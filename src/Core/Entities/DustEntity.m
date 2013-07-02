@@ -163,7 +163,7 @@ enum
 	
 	zero_distance = 0.0;
 			
-	Vector offset = [player position];
+	Vector offset = HPVectorToVector([player position]);
 	GLfloat  half_scale = DUST_SCALE * 0.50;
 	int vi;
 	for (vi = 0; vi < DUST_N_PARTICLES; vi++)
@@ -231,7 +231,8 @@ enum
 
 - (Vector) offsetPlayerPosition
 {
-	return vector_subtract([PLAYER position], make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
+	// used as shader uniform, so needs to be low precision
+	return vector_subtract(HPVectorToVector([PLAYER position]), make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
 }
 
 

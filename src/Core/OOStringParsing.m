@@ -103,6 +103,18 @@ BOOL ScanVectorFromString(NSString *xyzString, Vector *outVector)
 	}
 }
 
+BOOL ScanHPVectorFromString(NSString *xyzString, HPVector *outVector)
+{
+	Vector scanVector;
+	assert(outVector != NULL);
+	BOOL result = ScanVectorFromString(xyzString, &scanVector);
+	if (!result)
+	{
+		return NO;
+	}
+	*outVector = vectorToHPVector(scanVector);
+	return YES;
+}
 
 BOOL ScanQuaternionFromString(NSString *wxyzString, Quaternion *outQuaternion)
 {

@@ -361,7 +361,7 @@
 	ShipEntity		*targEnt = [self primaryTarget];
 	double found_d2 = scannerRange * scannerRange;
 	
-	if (targEnt && (distance2(position, [targEnt position]) < found_d2))
+	if (targEnt && (HPdistance2(position, [targEnt position]) < found_d2))
 	{
 		if ([targEnt isWormhole])
 			whole = (WormholeEntity *)targEnt;
@@ -385,7 +385,7 @@
 		for (i = 0; i < wh_count ; i++)
 		{
 			WormholeEntity *wh = wormholes[i];
-			double d2 = distance2(position, wh->position);
+			double d2 = HPdistance2(position, wh->position);
 			if (d2 < found_d2)
 			{
 				whole = wh;
@@ -530,14 +530,14 @@
 - (void) setDestinationToCurrentLocation
 {
 	// randomly add a .5m variance
-	destination = vector_add(position, OOVectorRandomSpatial(0.5));
+	destination = HPvector_add(position, OOHPVectorRandomSpatial(0.5));
 }
 
 
 - (void) setDestinationToJinkPosition
 {
 	Vector front = vector_multiply_scalar([self forwardVector], flightSpeed / max_flight_pitch * 2);
-	destination = vector_add(position, vector_add(front, OOVectorRandomSpatial(100)));
+	destination = HPvector_add(position, vectorToHPVector(vector_add(front, OOVectorRandomSpatial(100))));
 	pitching_over = YES; // don't complete roll first, but immediately start with pitching. 
 }
 
@@ -896,7 +896,7 @@
 	if (!UNIVERSE)
 	{
 		Vector  vr = vector_multiply_scalar(v_forward, maxFlightSpeed * 10.0);  // 10 second flying away
-		coordinates = vector_add(position, vr);
+		coordinates = HPvector_add(position, vectorToHPVector(vr));
 		return;
 	}
 	//
@@ -909,15 +909,15 @@
 										   parameter:nil
 									relativeToEntity:self];
 	
-	if (station && distance2([station position], position) < SCANNER_MAX_RANGE2) // there is a station in range.
+	if (station && HPdistance2([station position], position) < SCANNER_MAX_RANGE2) // there is a station in range.
 	{
 		Vector  vr = vector_multiply_scalar([station rightVector], 10000);  // 10km from station
-		coordinates = vector_add([station position], vr);
+		coordinates = HPvector_add([station position], vectorToHPVector(vr));
 	}
 	else
 	{
 		Vector  vr = vector_multiply_scalar(v_forward, maxFlightSpeed * 10.0);  // 10 second flying away
-		coordinates = vector_add(position, vr);
+		coordinates = HPvector_add(position, vectorToHPVector(vr));
 	}
 }
 
@@ -1028,15 +1028,15 @@
 	if (the_planet)
 	{
 		double variation = (aegis_status == AEGIS_NONE ? 0.5 : 0.2); // more random deviation when far from planet.
-		Vector p_pos = the_planet->position;
+		HPVector p_pos = the_planet->position;
 		double p_cr = the_planet->collision_radius;		// the surface
-		Vector p1 = vector_between(p_pos, position);
-		p1 = vector_normal(p1);			// vector towards ship
+		HPVector p1 = HPvector_between(p_pos, position);
+		p1 = HPvector_normal(p1);			// vector towards ship
 		p1.x += variation * (randf() - variation);
 		p1.y += variation * (randf() - variation);
 		p1.z += variation * (randf() - variation);
-		p1 = vector_normal(p1); 
-		destination = vector_add(p_pos, vector_multiply_scalar(p1, p_cr));	// on surface
+		p1 = HPvector_normal(p1); 
+		destination = HPvector_add(p_pos, HPvector_multiply_scalar(p1, p_cr));	// on surface
 		desired_range = collision_radius + 100.0;	// +100m from the destination
 	}
 	else
@@ -1052,8 +1052,8 @@
 	OOPlanetEntity	*the_planet =  [self findNearestPlanet];
 	if (the_planet)
 	{
-		destination = vector_add([the_planet position], vector_multiply_scalar(
-																			   vector_normal(vector_subtract([the_planet position],position)),-10000.0-the_planet->collision_radius));// 10km straight up
+		destination = HPvector_add([the_planet position], HPvector_multiply_scalar(
+																			   HPvector_normal(HPvector_subtract([the_planet position],position)),-10000.0-the_planet->collision_radius));// 10km straight up
 		desired_range = 50.0;
 	}
 	else
@@ -1167,11 +1167,11 @@
 	Entity *the_target = [self primaryTarget];
 	if (the_target)
 	{
-		Vector pos = the_target->position;
+		HPVector pos = the_target->position;
 		Quaternion q;	quaternion_set_random(&q);
 		Vector v = vector_forward_from_quaternion(q);
 		GLfloat d = (randf() - randf()) * the_target->collision_radius;
-		destination = make_vector(pos.x + d * v.x, pos.y + d * v.y, pos.z + d * v.z);
+		destination = make_HPvector(pos.x + d * v.x, pos.y + d * v.y, pos.z + d * v.z);
 	}
 }
 
@@ -1180,7 +1180,7 @@
 {
 	Entity *hazard = [UNIVERSE hazardOnRouteFromEntity: self toDistance: desired_range fromPoint: destination];
 	
-	if (hazard == nil || ([hazard isShip] && distance(position, [hazard position]) > scannerRange) || ([hazard isPlanet] && aegis_status == AEGIS_NONE)) 
+	if (hazard == nil || ([hazard isShip] && HPdistance(position, [hazard position]) > scannerRange) || ([hazard isPlanet] && aegis_status == AEGIS_NONE)) 
 		[shipAI message:@"COURSE_OK"]; // Avoid going into a waypoint.plist for far away objects, it cripples the main AI a bit in its funtionality.
 	else
 	{
@@ -1541,7 +1541,7 @@
 	
 	double	maxRange2 = scannerRange * scannerRange;
 	
-	if (mother && mother != self && magnitude2(vector_subtract(mother->position, position)) < maxRange2)
+	if (mother && mother != self && HPdistance2(mother->position, position) < maxRange2)
 	{
 		[shipAI message:@"TARGET_FOUND"]; // no need for scanning, we still have our mother.
 	}
@@ -1797,47 +1797,47 @@
 - (void) setPlanetPatrolCoordinates
 {
 	// check we've arrived near the last given coordinates
-	Vector r_pos = vector_subtract(position, coordinates);
-	if (magnitude2(r_pos) < 1000000 || patrol_counter == 0)
+	HPVector r_pos = HPvector_subtract(position, coordinates);
+	if (HPmagnitude2(r_pos) < 1000000 || patrol_counter == 0)
 	{
 		Entity *the_sun = [UNIVERSE sun];
 		ShipEntity *the_station = [[self group] leader];
 		if(!the_station || ![the_station isStation]) the_station = [UNIVERSE station];
 		if ((!the_sun)||(!the_station))
 			return;
-		Vector sun_pos = the_sun->position;
-		Vector stn_pos = the_station->position;
-		Vector sun_dir =  make_vector(sun_pos.x - stn_pos.x, sun_pos.y - stn_pos.y, sun_pos.z - stn_pos.z);
+		HPVector sun_pos = the_sun->position;
+		HPVector stn_pos = the_station->position;
+		HPVector sun_dir = HPvector_subtract(sun_pos,stn_pos);
 		Vector vSun = make_vector(0, 0, 1);
 		if (sun_dir.x||sun_dir.y||sun_dir.z)
-			vSun = vector_normal(sun_dir);
+			vSun = HPVectorToVector(HPvector_normal(sun_dir));
 		Vector v0 = [the_station forwardVector];
 		Vector v1 = cross_product(v0, vSun);
 		Vector v2 = cross_product(v0, v1);
 		switch (patrol_counter)
 		{
 			case 0:		// first go to 5km ahead of the station
-				coordinates = make_vector(stn_pos.x + 5000 * v0.x, stn_pos.y + 5000 * v0.y, stn_pos.z + 5000 * v0.z);
+				coordinates = make_HPvector(stn_pos.x + 5000 * v0.x, stn_pos.y + 5000 * v0.y, stn_pos.z + 5000 * v0.z);
 				desired_range = 250.0;
 				break;
 			case 1:		// go to 25km N of the station
-				coordinates = make_vector(stn_pos.x + 25000 * v1.x, stn_pos.y + 25000 * v1.y, stn_pos.z + 25000 * v1.z);
+				coordinates = make_HPvector(stn_pos.x + 25000 * v1.x, stn_pos.y + 25000 * v1.y, stn_pos.z + 25000 * v1.z);
 				desired_range = 250.0;
 				break;
 			case 2:		// go to 25km E of the station
-				coordinates = make_vector(stn_pos.x + 25000 * v2.x, stn_pos.y + 25000 * v2.y, stn_pos.z + 25000 * v2.z);
+				coordinates = make_HPvector(stn_pos.x + 25000 * v2.x, stn_pos.y + 25000 * v2.y, stn_pos.z + 25000 * v2.z);
 				desired_range = 250.0;
 				break;
 			case 3:		// go to 25km S of the station
-				coordinates = make_vector(stn_pos.x - 25000 * v1.x, stn_pos.y - 25000 * v1.y, stn_pos.z - 25000 * v1.z);
+				coordinates = make_HPvector(stn_pos.x - 25000 * v1.x, stn_pos.y - 25000 * v1.y, stn_pos.z - 25000 * v1.z);
 				desired_range = 250.0;
 				break;
 			case 4:		// go to 25km W of the station
-				coordinates = make_vector(stn_pos.x - 25000 * v2.x, stn_pos.y - 25000 * v2.y, stn_pos.z - 25000 * v2.z);
+				coordinates = make_HPvector(stn_pos.x - 25000 * v2.x, stn_pos.y - 25000 * v2.y, stn_pos.z - 25000 * v2.z);
 				desired_range = 250.0;
 				break;
 			default:	// We should never come here
-				coordinates = make_vector(stn_pos.x + 5000 * v0.x, stn_pos.y + 5000 * v0.y, stn_pos.z + 5000 * v0.z);
+				coordinates = make_HPvector(stn_pos.x + 5000 * v0.x, stn_pos.y + 5000 * v0.y, stn_pos.z + 5000 * v0.z);
 				desired_range = 250.0;
 				break;
 		}
@@ -1870,9 +1870,9 @@
 		return;
 	}
 	
-	Vector v0 = [UNIVERSE getSunSkimStartPositionForShip:self];
+	HPVector v0 = [UNIVERSE getSunSkimStartPositionForShip:self];
 	
-	if (!vector_equal(v0, kZeroVector))
+	if (!HPvector_equal(v0, kZeroHPVector))
 	{
 		coordinates = v0;
 		[shipAI message:@"APPROACH_COORDINATES"];
@@ -1901,11 +1901,11 @@
 {
 	Entity *the_sun = [UNIVERSE sun];
 	if (the_sun == nil)  return;
-	Vector v1 = [UNIVERSE getSunSkimEndPositionForShip:self];
-	Vector vs = the_sun->position;
-	Vector vout = make_vector(v1.x - vs.x, v1.y - vs.y, v1.z - vs.z);
+	HPVector v1 = [UNIVERSE getSunSkimEndPositionForShip:self];
+	HPVector vs = the_sun->position;
+	HPVector vout = HPvector_subtract(v1,vs);
 	if (vout.x||vout.y||vout.z)
-		vout = vector_normal(vout);
+		vout = HPvector_normal(vout);
 	else
 		vout.z = 1.0;
 	v1.x += 10000 * vout.x;	v1.y += 10000 * vout.y;	v1.z += 10000 * vout.z;
@@ -1931,10 +1931,9 @@
 		[shipAI message:@"NOTHING_FOUND"];
 		return;
 	}
-	Vector v0 = motherStation->position;
-	Vector rpos = make_vector(position.x - v0.x, position.y - v0.y, position.z - v0.z);
 	double found_d2 = scannerRange * scannerRange;
-	if (magnitude2(rpos) > found_d2)
+	HPVector v0 = motherStation->position;
+	if (HPdistance2(v0,position) > found_d2)
 	{
 		[shipAI message:@"NOTHING_FOUND"];
 		return;
@@ -2005,7 +2004,7 @@
 	
 	if (oldTarget && ![oldTarget isCloaked])
 	{
-		GLfloat range2 = distance2([oldTarget position], position);
+		GLfloat range2 = HPdistance2([oldTarget position], position);
 		if (range2 <= scannerRange * scannerRange && range2 <= SCANNER_MAX_RANGE2)
 		{
 			found = YES;
@@ -2089,11 +2088,11 @@
 {
 	Entity *the_target = [self targetStation];
 	double bo_distance = 8000; //	8km back off
-	Vector v0 = position;
-	Vector d0 = (the_target) ? the_target->position : kZeroVector;
+	HPVector v0 = position;
+	HPVector d0 = (the_target) ? the_target->position : kZeroHPVector;
 	v0.x += (randf() - 0.5)*collision_radius;	v0.y += (randf() - 0.5)*collision_radius;	v0.z += (randf() - 0.5)*collision_radius;
 	v0.x -= d0.x;	v0.y -= d0.y;	v0.z -= d0.z;
-	v0 = vector_normal_or_fallback(v0, make_vector(0, 0, -1));
+	v0 = HPvector_normal_or_fallback(v0, make_HPvector(0, 0, -1));
 	
 	v0.x *= bo_distance;	v0.y *= bo_distance;	v0.z *= bo_distance;
 	v0.x += d0.x;	v0.y += d0.y;	v0.z += d0.z;
@@ -2341,7 +2340,7 @@
 	if ([zString hasPrefix:@"rand:"])
 		zString = [NSString stringWithFormat:@"%.3f", bellf([(NSString*)[[zString componentsSeparatedByString:@":"] objectAtIndex:1] intValue])];
 	
-	Vector posn = make_vector([xString floatValue], [yString floatValue], [zString floatValue]);
+	HPVector posn = make_HPvector([xString floatValue], [yString floatValue], [zString floatValue]);
 	GLfloat	scalar = 1.0;
 	
 	coordinates = [UNIVERSE coordinatesForPosition:posn withCoordinateSystem:systemString returningScalar:&scalar];
@@ -2376,7 +2375,7 @@
 		if (uni_entities[i]->isStation)
 		{
 			my_station = (StationEntity*)uni_entities[i];
-			if ([my_station maxFlightSpeed] == 0 && [my_station hasNPCTraffic] && distance2(position, [my_station position]) < maxRange2)
+			if ([my_station maxFlightSpeed] == 0 && [my_station hasNPCTraffic] && HPdistance2(position, [my_station position]) < maxRange2)
 			{
 				my_entities[station_count++] = [uni_entities[i] retain];		//	retained
 			}
@@ -2451,7 +2450,7 @@
 										relativeToEntity:self];
 	}
 	
-	distanceToStation2 = distance2([station position], [self position]);
+	distanceToStation2 = HPdistance2([station position], [self position]);
 	
 	// Player check for being inside the aegis already exists in PlayerEntityControls. We just
 	// check here that distance to station is less than 2.5 times scanner range to avoid problems with
@@ -2490,7 +2489,7 @@
 {
 	if (dockingInstructions != nil)
 	{
-		destination = [dockingInstructions oo_vectorForKey:@"destination"];
+		destination = [dockingInstructions oo_hpvectorForKey:@"destination"];
 		desired_speed = fmin([dockingInstructions oo_floatForKey:@"speed"], maxFlightSpeed);
 		desired_range = [dockingInstructions oo_floatForKey:@"range"];
 		if ([dockingInstructions objectForKey:@"station"])
@@ -2672,10 +2671,10 @@
 	}
 	Vector k = ship->v_forward;
 	GLfloat c = ship->collision_radius;
-	Vector o = ship->position;
-	navpoints[0] = make_vector(o.x - c * k.x, o.y - c * k.y, o.z - c * k.z);
-	navpoints[1] = make_vector(o.x + c * k.x, o.y + c * k.y, o.z + c * k.z);
-	navpoints[2] = make_vector(o.x + 2.0 * c * k.x, o.y + 2.0 * c * k.y, o.z + 2.0 * c * k.z);
+	HPVector o = ship->position;
+	navpoints[0] = make_HPvector(o.x - c * k.x, o.y - c * k.y, o.z - c * k.z);
+	navpoints[1] = make_HPvector(o.x + c * k.x, o.y + c * k.y, o.z + c * k.z);
+	navpoints[2] = make_HPvector(o.x + 2.0 * c * k.x, o.y + 2.0 * c * k.y, o.z + 2.0 * c * k.z);
 	number_of_navpoints = 2;
 	next_navpoint_index = 0;
 	destination = navpoints[0];

@@ -105,7 +105,8 @@ Vector OORandomPositionInBoundingBox(BoundingBox bb)
 	return result;
 }
 
-Vector OORandomPositionInCylinder(Vector centre1, OOScalar exclusion1, Vector centre2, OOScalar exclusion2, OOScalar radius)
+// only need high precision versions of these
+/*Vector OORandomPositionInCylinder(Vector centre1, OOScalar exclusion1, Vector centre2, OOScalar exclusion2, OOScalar radius)
 {
 	OOScalar exc12 = exclusion1*exclusion1;
 	OOScalar exc22 = exclusion2*exclusion2;
@@ -127,6 +128,6 @@ Vector OORandomPositionInShell(Vector centre, OOScalar inner, OOScalar outer)
 		result = vector_add(centre,OOVectorRandomSpatial(outer));
 	} while(distance2(result,centre)<inner2);
 	return result;
-}
+	}*/
 
 #endif

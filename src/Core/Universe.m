@@ -175,17 +175,17 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) preloadSounds;
 - (void) setUpSettings;
 - (void) setUpInitialUniverse;
-- (ShipEntity *) spawnPatrolShipFrom:(Vector)startPos alongRoute:(Vector)route withOffset:(double)offset;
-- (void) addWolfpackShipNear:(Vector)launchPos withGroup:(OOShipGroup *)wolfpackGroup andBounty:(unsigned)bounty;
-- (Vector) fractionalPositionFrom:(Vector)point0 to:(Vector)point1 withFraction:(double)routeFraction;
+//- (ShipEntity *) spawnPatrolShipFrom:(Vector)startPos alongRoute:(Vector)route withOffset:(double)offset;
+//- (void) addWolfpackShipNear:(Vector)launchPos withGroup:(OOShipGroup *)wolfpackGroup andBounty:(unsigned)bounty;
+- (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction;
 
 - (void) resetSystemDataCache;
 
 - (void) populateSpaceFromActiveWormholes;
-- (Vector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
-- (void) populateSpaceFromHyperPoint:(Vector)h1_pos toPlanetPosition:(Vector)p1_pos andSunPosition:(Vector)s1_pos;
-- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
-- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(NSUInteger)clusterSize;
+- (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
+//- (void) populateSpaceFromHyperPoint:(Vector)h1_pos toPlanetPosition:(Vector)p1_pos andSunPosition:(Vector)s1_pos;
+//- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders;
+//- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(NSUInteger)clusterSize;
 
 - (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary;
 
@@ -682,7 +682,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				if ([dockedStation maxFlightSpeed] > 0) // we are a carrier: exit near the WitchspaceExitPosition
 				{
 					float		d1 = [self randomDistanceWithinScanner];
-					Vector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
+					HPVector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 					Quaternion	q1;
 					
 					quaternion_set_random(&q1);
@@ -911,7 +911,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	double planet_radius = [a_planet radius];
 	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 9..15 pr (planet radii) ahead
 	
-	[a_planet setPosition:(Vector){ 0, 0, planet_zpos }];
+	[a_planet setPosition:(HPVector){ 0, 0, planet_zpos }];
 	[a_planet setEnergy:1000000.0];
 	
 	if ([allPlanets count]>0)	// F7 sets [UNIVERSE planet], which can lead to some trouble! TODO: track down where exactly that happens!
@@ -941,7 +941,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	OOSunEntity			*a_sun;
 	OOPlanetEntity		*a_planet;
 	
-	Vector				stationPos;
+	HPVector				stationPos;
 	
 	Vector				vf;
 	
@@ -1013,7 +1013,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	int			posIterator=0;
 	id			dict_object;
 	Quaternion  q_sun;
-	Vector		sunPos;
+	HPVector		sunPos;
 	
 	sunDistanceModifier = [systeminfo oo_nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
 	// Any smaller than 6, the main planet can end up inside the sun
@@ -1050,9 +1050,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		[a_planet setOrientation:q_sun];
 		
 		vf = vector_right_from_quaternion(q_sun);
-		sunPos = vector_subtract(sunPos, vector_multiply_scalar(vf, sun_distance)); // back off from the planet by 15..25 planet radii
+		sunPos = HPvector_subtract(sunPos, vectorToHPVector(vector_multiply_scalar(vf, sun_distance))); // back off from the planet by 15..25 planet radii
 		posIterator++;
-	} while (magnitude2(sunPos) < safeDistance && posIterator <= 10);	// try 10 times before giving up
+	} while (HPmagnitude2(sunPos) < safeDistance && posIterator <= 10);	// try 10 times before giving up
 	
 	if (posIterator>10)
 	{
@@ -1097,7 +1097,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	while (vf.z <= 0.0);						// keep station on the correct side of the planet
 	
-	stationPos = vector_subtract(stationPos, vector_multiply_scalar(vf, 2.0 * planet_radius));
+	stationPos = HPvector_subtract(stationPos, vectorToHPVector(vector_multiply_scalar(vf, 2.0 * planet_radius)));
 	
 	defaultStationDesc = @"coriolis";
 	if (techlevel > 10)
@@ -1308,7 +1308,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	NSArray *blocks = [populatorSettings allValues];
 	NSEnumerator *enumerator = [[blocks sortedArrayUsingFunction:populatorPrioritySort context:nil] objectEnumerator];
 	NSDictionary *populator;
-	Vector location;
+	HPVector location;
 	int locationSeed, groupCount, rndvalue;
 	unsigned i;
 	RANROTSeed rndcache, rndlocal;
@@ -1323,7 +1323,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			locationCode = [populator oo_stringForKey:@"location" defaultValue:@"COORDINATES"];
 			if ([locationCode isEqualToString:@"COORDINATES"])
 			{
-				location = [populator oo_vectorForKey:@"coordinates" defaultValue:kZeroVector];
+				location = [populator oo_hpvectorForKey:@"coordinates" defaultValue:kZeroHPVector];
 			}
 			else
 			{
@@ -1364,21 +1364,21 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (Vector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet
+- (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet
 {
-	Vector result = kZeroVector;
+	HPVector result = kZeroHPVector;
 	if ([code isEqualToString:@"WITCHPOINT"])
 	{
-		result = OOVectorRandomSpatial(SCANNER_MAX_RANGE);
+		result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
 	}
 	// past this point, can assume non-nil sun, planet
 	else if ([code isEqualToString:@"LANE_WP"])
 	{
-		result = OORandomPositionInCylinder(kZeroVector,SCANNER_MAX_RANGE,[planet position],[planet radius]*3,LANE_WIDTH);
+		result = OORandomPositionInCylinder(kZeroHPVector,SCANNER_MAX_RANGE,[planet position],[planet radius]*3,LANE_WIDTH);
 	}
 	else if ([code isEqualToString:@"LANE_WS"])
 	{
-		result = OORandomPositionInCylinder(kZeroVector,SCANNER_MAX_RANGE,[sun position],[sun radius]*3,LANE_WIDTH);
+		result = OORandomPositionInCylinder(kZeroHPVector,SCANNER_MAX_RANGE,[sun position],[sun radius]*3,LANE_WIDTH);
 	}
 	else if ([code isEqualToString:@"LANE_PS"])
 	{
@@ -1389,7 +1389,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		do 
 		{
 			result = OORandomPositionInShell([[self station] position],[[self station] collisionRadius]*1.2,SCANNER_MAX_RANGE*2.0);
-		} while(distance2(result,[planet position])<[planet radius]*[planet radius]*1.5);
+		} while(HPdistance2(result,[planet position])<[planet radius]*[planet radius]*1.5);
 		// loop to make sure not generated too close to the planet's surface
 	}
 	else if ([code isEqualToString:@"PLANET_ORBIT_LOW"])
@@ -1429,10 +1429,10 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				r = 1-r;
 				s = 1-s;
 			}
-			result = vector_add(vector_multiply_scalar([planet position],r),vector_multiply_scalar([sun position],s));
+			result = HPvector_add(HPvector_multiply_scalar([planet position],r),HPvector_multiply_scalar([sun position],s));
 		}
 		// make sure at least 3 radii from vertices
-		while(distance2(result,[sun position]) < [sun radius]*[sun radius]*9.0 || distance2(result,[planet position]) < [planet radius]*[planet radius]*9.0 || magnitude2(result) < SCANNER_MAX_RANGE2 * 9.0);
+		while(HPdistance2(result,[sun position]) < [sun radius]*[sun radius]*9.0 || HPdistance2(result,[planet position]) < [planet radius]*[planet radius]*9.0 || HPmagnitude2(result) < SCANNER_MAX_RANGE2 * 9.0);
 	}
 	/* Some more, waiting for issue #22 */
 	// INNER_SYSTEM
@@ -1442,7 +1442,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	else
 	{
 		OOLog(kOOLogUniversePopulateError,@"Named populator region %@ is not implemented, falling back to WITCHPOINT",code); 
-		result = OOVectorRandomSpatial(SCANNER_MAX_RANGE);
+		result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
 	}
 	return result;
 }
@@ -1541,7 +1541,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (ShipEntity *) addShipWithRole:(NSString *)desc launchPos:(Vector)launchPos rfactor:(GLfloat)rfactor
+- (ShipEntity *) addShipWithRole:(NSString *)desc launchPos:(HPVector)launchPos rfactor:(GLfloat)rfactor
 {
 	if (rfactor != 0.0)
 	{
@@ -1586,13 +1586,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		return;
 	}
 	
-	Vector	launchPos = OOVectorInterpolate([self getWitchspaceExitPosition], [theStation position], route_fraction);
+	HPVector	launchPos = OOHPVectorInterpolate([self getWitchspaceExitPosition], [theStation position], route_fraction);
 	
 	[self addShipWithRole:desc launchPos:launchPos rfactor:SCANNER_MAX_RANGE];
 }
 
 
-- (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar
+- (HPVector) coordinatesForPosition:(HPVector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar
 {
 	/*	the point is described using a system selected by a string
 		consisting of a three letter code.
@@ -1631,7 +1631,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	NSString* l_sys = [system lowercaseString];
 	if ([l_sys length] != 3)
-		return kZeroVector;
+		return kZeroHPVector;
 	OOPlanetEntity* the_planet = [self planet];
 	OOSunEntity* the_sun = [self sun];
 	if (the_planet == nil || the_sun == nil || [l_sys isEqualToString:@"abs"])
@@ -1639,12 +1639,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		if (my_scalar)  *my_scalar = 1.0;
 		return pos;
 	}
-	Vector  w_pos = [self getWitchspaceExitPosition];	// don't reset PRNG
-	Vector  p_pos = the_planet->position;
-	Vector  s_pos = the_sun->position;
+	HPVector  w_pos = [self getWitchspaceExitPosition];	// don't reset PRNG
+	HPVector  p_pos = the_planet->position;
+	HPVector  s_pos = the_sun->position;
 	
 	const char* c_sys = [l_sys UTF8String];
-	Vector p0, p1, p2;
+	HPVector p0, p1, p2;
 	
 	switch (c_sys[0])
 	{
@@ -1657,7 +1657,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				case 's':
 					p1 = s_pos;	p2 = p_pos;	break;
 				default:
-					return kZeroVector;
+					return kZeroHPVector;
 			}
 			break;
 		case 'p':		
@@ -1669,7 +1669,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				case 's':
 					p1 = s_pos;	p2 = w_pos;	break;
 				default:
-					return kZeroVector;
+					return kZeroHPVector;
 			}
 			break;
 		case 's':
@@ -1681,17 +1681,17 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				case 'p':
 					p1 = p_pos;	p2 = w_pos;	break;
 				default:
-					return kZeroVector;
+					return kZeroHPVector;
 			}
 			break;
 		default:
-			return kZeroVector;
+			return kZeroHPVector;
 	}
-	Vector k = vector_normal_or_zbasis(vector_subtract(p1, p0));	// 'forward'
-	Vector v = vector_normal_or_xbasis(vector_subtract(p2, p0));	// temporary vector in plane of 'forward' and 'right'
+	HPVector k = HPvector_normal_or_zbasis(HPvector_subtract(p1, p0));	// 'forward'
+	HPVector v = HPvector_normal_or_xbasis(HPvector_subtract(p2, p0));	// temporary vector in plane of 'forward' and 'right'
 	
-	Vector j = cross_product(k, v);	// 'up'
-	Vector i = cross_product(j, k);	// 'right'
+	HPVector j = HPcross_product(k, v);	// 'up'
+	HPVector i = HPcross_product(j, k);	// 'right'
 	
 	GLfloat scale = 1.0;
 	switch (c_sys[2])
@@ -1705,7 +1705,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			break;
 			
 		case 'u':
-			scale = magnitude(vector_subtract(p1, p0));
+			scale = HPmagnitude(HPvector_subtract(p1, p0));
 			break;
 			
 		case 'm':
@@ -1713,13 +1713,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			break;
 			
 		default:
-			return kZeroVector;
+			return kZeroHPVector;
 	}
 	if (my_scalar)
 		*my_scalar = scale;
 	
 	// result = p0 + ijk
-	Vector result = p0;	// origin
+	HPVector result = p0;	// origin
 	result.x += scale * (pos.x * i.x + pos.y * j.x + pos.z * k.x);
 	result.y += scale * (pos.x * i.y + pos.y * j.y + pos.z * k.y);
 	result.z += scale * (pos.x * i.z + pos.y * j.z + pos.z * k.z);
@@ -1728,30 +1728,30 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (NSString *) expressPosition:(Vector) pos inCoordinateSystem:(NSString *) system
+- (NSString *) expressPosition:(HPVector) pos inCoordinateSystem:(NSString *) system
 {
-	Vector result = [self legacyPositionFrom:pos asCoordinateSystem:system];
+	HPVector result = [self legacyPositionFrom:pos asCoordinateSystem:system];
 	return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, result.x, result.y, result.z];
 }
 
 
-- (Vector) legacyPositionFrom:(Vector) pos asCoordinateSystem:(NSString *) system
+- (HPVector) legacyPositionFrom:(HPVector) pos asCoordinateSystem:(NSString *) system
 {
 	NSString* l_sys = [system lowercaseString];
 	if ([l_sys length] != 3)
-		return kZeroVector;
+		return kZeroHPVector;
 	OOPlanetEntity* the_planet = [self planet];
 	OOSunEntity* the_sun = [self sun];
 	if (the_planet == nil || the_sun == nil || [l_sys isEqualToString:@"abs"])
 	{
 		return pos;
 	}
-	Vector  w_pos = [self getWitchspaceExitPosition];	// don't reset PRNG
-	Vector  p_pos = the_planet->position;
-	Vector  s_pos = the_sun->position;
+	HPVector  w_pos = [self getWitchspaceExitPosition];	// don't reset PRNG
+	HPVector  p_pos = the_planet->position;
+	HPVector  s_pos = the_sun->position;
 	
 	const char* c_sys = [l_sys UTF8String];
-	Vector p0, p1, p2;
+	HPVector p0, p1, p2;
 	
 	switch (c_sys[0])
 	{
@@ -1764,7 +1764,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				case 's':
 					p1 = s_pos;	p2 = p_pos;	break;
 				default:
-					return kZeroVector;
+					return kZeroHPVector;
 			}
 			break;
 		case 'p':		
@@ -1776,7 +1776,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				case 's':
 					p1 = s_pos;	p2 = w_pos;	break;
 				default:
-					return kZeroVector;
+					return kZeroHPVector;
 			}
 			break;
 		case 's':
@@ -1788,17 +1788,17 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				case 'p':
 					p1 = p_pos;	p2 = w_pos;	break;
 				default:
-					return kZeroVector;
+					return kZeroHPVector;
 			}
 			break;
 		default:
-			return kZeroVector;
+			return kZeroHPVector;
 	}
-	Vector k = vector_normal_or_zbasis(vector_subtract(p1, p0));	// 'z' axis in m
-	Vector v = vector_normal_or_xbasis(vector_subtract(p2, p0));	// temporary vector in plane of 'forward' and 'right'
+	HPVector k = HPvector_normal_or_zbasis(HPvector_subtract(p1, p0));	// 'z' axis in m
+	HPVector v = HPvector_normal_or_xbasis(HPvector_subtract(p2, p0));	// temporary vector in plane of 'forward' and 'right'
 	
-	Vector j = cross_product(k, v);	// 'y' axis in m
-	Vector i = cross_product(j, k);	// 'x' axis in m
+	HPVector j = HPcross_product(k, v);	// 'y' axis in m
+	HPVector i = HPcross_product(j, k);	// 'x' axis in m
 	
 	GLfloat scale = 1.0;
 	switch (c_sys[2])
@@ -1815,7 +1815,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		}
 			
 		case 'u':
-			scale = 1.0f / magnitude(vector_subtract(p1, p0));
+			scale = 1.0f / HPdistance(p1, p0);
 			break;
 			
 		case 'm':
@@ -1823,12 +1823,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			break;
 			
 		default:
-			return kZeroVector;
+			return kZeroHPVector;
 	}
 	
 	// result = p0 + ijk
-	Vector r_pos = vector_subtract(pos, p0);
-	Vector result = make_vector(scale * (r_pos.x * i.x + r_pos.y * i.y + r_pos.z * i.z),
+	HPVector r_pos = HPvector_subtract(pos, p0);
+	HPVector result = make_HPvector(scale * (r_pos.x * i.x + r_pos.y * i.y + r_pos.z * i.z),
 								scale * (r_pos.x * j.x + r_pos.y * j.y + r_pos.z * j.z),
 								scale * (r_pos.x * k.x + r_pos.y * k.y + r_pos.z * k.z) ); // scale * dot_products
 	
@@ -1836,24 +1836,24 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (Vector) coordinatesFromCoordinateSystemString:(NSString *) system_x_y_z
+- (HPVector) coordinatesFromCoordinateSystemString:(NSString *) system_x_y_z
 {
 	NSArray* tokens = ScanTokensFromString(system_x_y_z);
 	if ([tokens count] != 4)
 	{
 		// Not necessarily an error.
-		return make_vector(0,0,0);
+		return make_HPvector(0,0,0);
 	}
 	GLfloat dummy;
-	return [self coordinatesForPosition:make_vector([tokens oo_floatAtIndex:1], [tokens oo_floatAtIndex:2], [tokens oo_floatAtIndex:3]) withCoordinateSystem:[tokens oo_stringAtIndex:0] returningScalar:&dummy];
+	return [self coordinatesForPosition:make_HPvector([tokens oo_floatAtIndex:1], [tokens oo_floatAtIndex:2], [tokens oo_floatAtIndex:3]) withCoordinateSystem:[tokens oo_stringAtIndex:0] returningScalar:&dummy];
 }
 
 
-- (BOOL) addShipWithRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system
+- (BOOL) addShipWithRole:(NSString *) desc nearPosition:(HPVector) pos withCoordinateSystem:(NSString *) system
 {
 	// initial position
 	GLfloat scalar = 1.0;
-	Vector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
+	HPVector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
 	//	randomise
 	GLfloat rfactor = scalar;
 	if (rfactor > SCANNER_MAX_RANGE)
@@ -1865,14 +1865,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (BOOL) addShips:(int) howMany withRole:(NSString *) desc atPosition:(Vector) pos withCoordinateSystem:(NSString *) system
+- (BOOL) addShips:(int) howMany withRole:(NSString *) desc atPosition:(HPVector) pos withCoordinateSystem:(NSString *) system
 {
 	// initial bounding box
 	GLfloat scalar = 1.0;
-	Vector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
+	HPVector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
 	GLfloat distance_from_center = 0.0;
-	Vector v_from_center, ship_pos;
-	Vector ship_positions[howMany];
+	HPVector v_from_center, ship_pos;
+	HPVector ship_positions[howMany];
 	int i = 0;
 	int	scale_up_after = 0;
 	int	current_shell = 0;
@@ -1888,7 +1888,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		BOOL		safe;
 		int			limit_count = 8;
 		
-		v_from_center = kZeroVector;
+		v_from_center = kZeroHPVector;
 		do
 		{
 			do
@@ -1897,9 +1897,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				v_from_center.y += walk_factor * (randf() - 0.5);
 				v_from_center.z += walk_factor * (randf() - 0.5);	// drunkards walk
 			} while ((v_from_center.x == 0.0)&&(v_from_center.y == 0.0)&&(v_from_center.z == 0.0));
-			v_from_center = vector_normal(v_from_center);	// guaranteed non-zero
+			v_from_center = HPvector_normal(v_from_center);	// guaranteed non-zero
 			
-			ship_pos = make_vector(	launchPos.x + distance_from_center * v_from_center.x,
+			ship_pos = make_HPvector(	launchPos.x + distance_from_center * v_from_center.x,
 									launchPos.y + distance_from_center * v_from_center.y,
 									launchPos.z + distance_from_center * v_from_center.z);
 			
@@ -1908,7 +1908,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			int j = i - 1;
 			while (safe && (j >= current_shell))
 			{
-				safe = (safe && (distance2(ship_pos, ship_positions[j]) > safe_distance2));
+				safe = (safe && (HPdistance2(ship_pos, ship_positions[j]) > safe_distance2));
 				j--;
 			}
 			if (!safe)
@@ -1945,11 +1945,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system
+- (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(HPVector) pos withCoordinateSystem:(NSString *) system
 {
 	// initial bounding box
 	GLfloat scalar = 1.0;
-	Vector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
+	HPVector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
 	GLfloat rfactor = scalar;
 	if (rfactor > SCANNER_MAX_RANGE)
 		rfactor = SCANNER_MAX_RANGE;
@@ -1963,11 +1963,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system withinRadius:(GLfloat) radius
+- (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(HPVector) pos withCoordinateSystem:(NSString *) system withinRadius:(GLfloat) radius
 {
 	// initial bounding box
 	GLfloat scalar = 1.0;
-	Vector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
+	HPVector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
 	GLfloat rfactor = radius;
 	if (rfactor < 1000)
 		rfactor = 1000;
@@ -2017,7 +2017,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	
 	//	randomise within the bounding box (biased towards the center of the box)
-	Vector pos = make_vector(bbox.min.x, bbox.min.y, bbox.min.z);
+	HPVector pos = make_HPvector(bbox.min.x, bbox.min.y, bbox.min.z);
 	pos.x += 0.5 * (randf() + randf()) * (bbox.max.x - bbox.min.x);
 	pos.y += 0.5 * (randf() + randf()) * (bbox.max.y - bbox.min.y);
 	pos.z += 0.5 * (randf() + randf()) * (bbox.max.z - bbox.min.z);
@@ -2040,7 +2040,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	// set any spawning characteristics
 	NSDictionary	*spawndict = [shipdict oo_dictionaryForKey:@"spawn"];
-	Vector			pos, rpos, spos;
+	HPVector			pos, rpos, spos;
 	NSString		*positionString = nil;
 	
 	// position
@@ -2057,7 +2057,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	else
 	{
 		// without position defined, the ship will be added on top of the witchpoint buoy.
-		pos = OOVectorRandomRadial(SCANNER_MAX_RANGE);
+		pos = OOHPVectorRandomRadial(SCANNER_MAX_RANGE);
 		OOLogERR(@"universe.spawnShip.error", @"***** ERROR: failed to find a spawn position for ship %@.", shipdesc);
 	}
 	[ship setPosition:pos];
@@ -2074,15 +2074,15 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		spos = [ship position];
 		Quaternion q1;
 		rpos = [self coordinatesFromCoordinateSystemString:positionString];
-		rpos = vector_subtract(rpos, spos); // position relative to ship
+		rpos = HPvector_subtract(rpos, spos); // position relative to ship
 		
-		if (!vector_equal(rpos, kZeroVector))
+		if (!HPvector_equal(rpos, kZeroHPVector))
 		{
-			rpos = vector_normal(rpos);
+			rpos = HPvector_normal(rpos);
 			
-			if (!vector_equal(rpos, vector_flip(kBasisZVector)))
+			if (!HPvector_equal(rpos, HPvector_flip(kBasisZHPVector)))
 			{
-				q1 = quaternion_rotation_between(rpos, kBasisZVector);
+				q1 = quaternion_rotation_between(HPVectorToVector(rpos), kBasisZVector);
 			}
 			else
 			{
@@ -2164,12 +2164,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	if (entity == nil)  return nil;
 	
 	ShipEntity  *ship = nil;
-	Vector		spawn_pos;
+	HPVector		spawn_pos;
 	Quaternion	spawn_q;
 	GLfloat		offset = (randf() + randf()) * entity->collision_radius;
 	
 	quaternion_set_random(&spawn_q);
-	spawn_pos = vector_add([entity position], vector_multiply_scalar(vector_forward_from_quaternion(spawn_q), offset));
+	spawn_pos = HPvector_add([entity position], vectorToHPVector(vector_multiply_scalar(vector_forward_from_quaternion(spawn_q), offset)));
 	
 	ship = [self addShipWithRole:desc launchPos:spawn_pos rfactor:0.0];
 	[ship setOrientation:spawn_q];
@@ -2178,7 +2178,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (OOVisualEffectEntity *) addVisualEffectAt:(Vector)pos withKey:(NSString *)key
+- (OOVisualEffectEntity *) addVisualEffectAt:(HPVector)pos withKey:(NSString *)key
 {
 	OOJS_PROFILE_ENTER
 	
@@ -2201,7 +2201,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (ShipEntity *) addShipAt:(Vector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius
+- (ShipEntity *) addShipAt:(HPVector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius
 {
 	OOJS_PROFILE_ENTER
 	
@@ -2222,7 +2222,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	else
 	{
-		pos = vector_add(pos, OOVectorRandomSpatial(radius));
+		pos = HPvector_add(pos, OOHPVectorRandomSpatial(radius));
 	}
 	
 	ShipEntity  		*ship = [self newShipWithRole:role]; // is retained
@@ -2269,7 +2269,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			}
 		}
 		
-		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)
+		if (HPdistance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)
 		{
 			// nothing extra to do
 			success = [self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally			
@@ -2307,7 +2307,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (NSArray *) addShipsAt:(Vector)pos withRole:(NSString *)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup
+- (NSArray *) addShipsAt:(HPVector)pos withRole:(NSString *)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup
 {
 	OOJS_PROFILE_ENTER
 	
@@ -2344,7 +2344,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	NSMutableArray			*ships = [NSMutableArray arrayWithCapacity:count];
 	ShipEntity				*ship = nil;
 	Entity<OOStellarBody>	*entity = nil;
-	Vector					pos = kZeroVector, direction = kZeroVector, point0 = kZeroVector, point1 = kZeroVector;
+	HPVector					pos = kZeroHPVector, direction = kZeroHPVector, point0 = kZeroHPVector, point1 = kZeroHPVector;
 	double					radius = 0;
 	
 	if ([route isEqualToString:@"pw"] || [route isEqualToString:@"sw"] || [route isEqualToString:@"ps"])
@@ -2382,8 +2382,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		radius = [entity radius];
 		
 		// shorten the route by scanner range & sun radius, otherwise ships could be created inside it.
-		direction = vector_normal(vector_subtract(point0, point1));
-		point0 = vector_subtract(point0, vector_multiply_scalar(direction, radius0 + SCANNER_MAX_RANGE * 1.1f));
+		direction = HPvector_normal(HPvector_subtract(point0, point1));
+		point0 = HPvector_subtract(point0, HPvector_multiply_scalar(direction, radius0 + SCANNER_MAX_RANGE * 1.1f));
 	}
 	else if ([route isEqualTo:@"st"])
 	{
@@ -2395,8 +2395,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	else return nil;	// no route specifier? We shouldn't be here!
 	
 	// shorten the route by scanner range & radius, otherwise ships could be created inside the route destination.
-	direction = vector_normal(vector_subtract(point1, point0));
-	point1 = vector_subtract(point1, vector_multiply_scalar(direction, radius + SCANNER_MAX_RANGE * 1.1f));
+	direction = HPvector_normal(HPvector_subtract(point1, point0));
+	point1 = HPvector_subtract(point1, HPvector_multiply_scalar(direction, radius + SCANNER_MAX_RANGE * 1.1f));
 	
 	pos = [self fractionalPositionFrom:point0 to:point1 withFraction:routeFraction];
 	if(isGroup)
@@ -2469,7 +2469,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (void) setUpBreakPattern:(Vector) pos orientation:(Quaternion) q forDocking:(BOOL) forDocking
+- (void) setUpBreakPattern:(HPVector) pos orientation:(Quaternion) q forDocking:(BOOL) forDocking
 {
 	int						i;
 	OOBreakPatternEntity	*ring = nil;
@@ -2524,7 +2524,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		}
 		
 		Vector offset = vector_multiply_scalar(v, i * BREAK_PATTERN_RING_SPACING);
-		[ring setPosition:vector_add(pos, offset)];  // ahead of the player
+		[ring setPosition:HPvector_add(pos, vectorToHPVector(offset))];  // ahead of the player
 		[ring setOrientation:q];
 		[ring setVelocity:vel];
 		[ring setLifetime:i * BREAK_PATTERN_RING_SPACING];
@@ -3815,7 +3815,7 @@ static const OOMatrix	starboard_matrix =
 }
 
 
-- (BOOL) viewFrustumIntersectsSphereAt:(Vector)position withRadius:(GLfloat)radius
+- (BOOL) viewFrustumIntersectsSphereAt:(HPVector)position withRadius:(GLfloat)radius
 {
 	int p;
 	for (p = 0; p < 6; p++)
@@ -3851,7 +3851,7 @@ static const OOMatrix	starboard_matrix =
 			if (!displayGUI && wasDisplayGUI)
 			{
 				// reset light1 position for the shaders
-				if (cachedSun) [UNIVERSE setMainLightPosition:[cachedSun position]]; // the main light is the sun.
+				if (cachedSun) [UNIVERSE setMainLightPosition:HPVectorToVector([cachedSun position])]; // the main light is the sun.
 				else [UNIVERSE setMainLightPosition:kZeroVector];
 			}
 			wasDisplayGUI = displayGUI;
@@ -3866,7 +3866,8 @@ static const OOMatrix	starboard_matrix =
 				}
 			}
 			
-			position = [player viewpointPosition];
+			// HPVect: camera relative
+			position = HPVectorToVector([player viewpointPosition]);
 			v_status = [player status];
 			
 			[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
@@ -3913,6 +3914,7 @@ static const OOMatrix	starboard_matrix =
 					// rotate the view
 					OOGL(GLMultOOMatrix([player rotationMatrix]));
 					// translate the view
+					// HPVect: camera-relative position
 					OOGL(GLTranslateOOVector(vector_flip(position)));
 					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 				}
@@ -3968,7 +3970,8 @@ static const OOMatrix	starboard_matrix =
 						if (EXPECT(drawthing != player))
 						{
 							//translate the object
-							GLTranslateOOVector([drawthing position]);
+							// HPVect: camera relative
+							GLTranslateOOVector(HPVectorToVector([drawthing position]));
 							//rotate the object
 							GLMultOOMatrix([drawthing drawRotationMatrix]);
 						}
@@ -4029,7 +4032,8 @@ static const OOMatrix	starboard_matrix =
 						if (EXPECT(drawthing != player))
 						{
 							//translate the object
-							GLTranslateOOVector([drawthing position]);
+							// HPVect: camera relative positions
+							GLTranslateOOVector(HPVectorToVector([drawthing position]));
 							//rotate the object
 							GLMultOOMatrix([drawthing drawRotationMatrix]);
 						}
@@ -4468,9 +4472,9 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		[entity wasAddedToUniverse];
 		
 		// maintain sorted list (and for the scanner relative position)
-		Vector entity_pos = entity->position;
-		Vector delta = vector_between(entity_pos, PLAYER->position);
-		double z_distance = magnitude2(delta);
+		HPVector entity_pos = entity->position;
+		HPVector delta = HPvector_between(entity_pos, PLAYER->position);
+		double z_distance = HPmagnitude2(delta);
 		entity->zero_distance = z_distance;
 		unsigned index = n_entities;
 		sortedEntities[index] = entity;
@@ -4636,14 +4640,14 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
+- (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(HPVector) p2
 {
 	if (!e1)
 		return NO;
 	
-	Vector  f1;
-	Vector p1 = e1->position;
-	Vector v1 = p2;
+	HPVector  f1;
+	HPVector p1 = e1->position;
+	HPVector v1 = p2;
 	v1.x -= p1.x;   v1.y -= p1.y;   v1.z -= p1.z;   // vector from entity to p2
 	
 	double  nearest = sqrt(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z) - dist;  // length of vector
@@ -4658,27 +4662,27 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		my_entities[i] = [sortedEntities[i] retain]; //	retained
 	
 	if (v1.x || v1.y || v1.z)
-		f1 = vector_normal(v1);   // unit vector in direction of p2 from p1
+		f1 = HPvector_normal(v1);   // unit vector in direction of p2 from p1
 	else
-		f1 = make_vector(0, 0, 1);
+		f1 = make_HPvector(0, 0, 1);
 	
 	for (i = 0; i < ent_count ; i++)
 	{
 		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
-			Vector epos = e2->position;
+			HPVector epos = e2->position;
 			epos.x -= p1.x;	epos.y -= p1.y;	epos.z -= p1.z; // epos now holds vector from p1 to this entities position
 			
-			double d_forward = dot_product(epos,f1);	// distance along f1 which is nearest to e2's position
+			double d_forward = HPdot_product(epos,f1);	// distance along f1 which is nearest to e2's position
 			
 			if ((d_forward > 0)&&(d_forward < nearest))
 			{
 				double cr = 1.10 * (e2->collision_radius + e1->collision_radius); //  10% safety margin
-				Vector p0 = e1->position;
+				HPVector p0 = e1->position;
 				p0.x += d_forward * f1.x;	p0.y += d_forward * f1.y;	p0.z += d_forward * f1.z;
 				// p0 holds nearest point on current course to center of incident object
-				Vector epos = e2->position;
+				HPVector epos = e2->position;
 				p0.x -= epos.x;	p0.y -= epos.y;	p0.z -= epos.z;
 				// compare with center of incident object
 				double  dist2 = p0.x * p0.x + p0.y * p0.y + p0.z * p0.z;
@@ -4697,17 +4701,17 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (Entity*) hazardOnRouteFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
+- (Entity*) hazardOnRouteFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(HPVector) p2
 {
 	if (!e1)
 		return nil;
 	
-	Vector f1;
-	Vector p1 = e1->position;
-	Vector v1 = p2;
+	HPVector f1;
+	HPVector p1 = e1->position;
+	HPVector v1 = p2;
 	v1.x -= p1.x;   v1.y -= p1.y;   v1.z -= p1.z;   // vector from entity to p2
 	
-	double  nearest = sqrt(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z) - dist;  // length of vector
+	double  nearest = HPmagnitude(v1) - dist;  // length of vector
 	
 	if (nearest < 0.0)
 		return nil;			// within range already!
@@ -4720,30 +4724,30 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		my_entities[i] = [sortedEntities[i] retain]; //	retained
 	
 	if (v1.x || v1.y || v1.z)
-		f1 = vector_normal(v1);   // unit vector in direction of p2 from p1
+		f1 = HPvector_normal(v1);   // unit vector in direction of p2 from p1
 	else
-		f1 = make_vector(0, 0, 1);
+		f1 = make_HPvector(0, 0, 1);
 	
 	for (i = 0; (i < ent_count) && (!result) ; i++)
 	{
 		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
-			Vector epos = e2->position;
+			HPVector epos = e2->position;
 			epos.x -= p1.x;	epos.y -= p1.y;	epos.z -= p1.z; // epos now holds vector from p1 to this entities position
 			
-			double d_forward = dot_product(epos,f1);	// distance along f1 which is nearest to e2's position
+			double d_forward = HPdot_product(epos,f1);	// distance along f1 which is nearest to e2's position
 			
 			if ((d_forward > 0)&&(d_forward < nearest))
 			{
 				double cr = 1.10 * (e2->collision_radius + e1->collision_radius); //  10% safety margin
-				Vector p0 = e1->position;
+				HPVector p0 = e1->position;
 				p0.x += d_forward * f1.x;	p0.y += d_forward * f1.y;	p0.z += d_forward * f1.z;
 				// p0 holds nearest point on current course to center of incident object
-				Vector epos = e2->position;
+				HPVector epos = e2->position;
 				p0.x -= epos.x;	p0.y -= epos.y;	p0.z -= epos.z;
 				// compare with center of incident object
-				double  dist2 = p0.x * p0.x + p0.y * p0.y + p0.z * p0.z;
+				double  dist2 = HPmagnitude2(p0);
 				if (dist2 < cr*cr)
 					result = e2;
 			}
@@ -4755,51 +4759,51 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2
+- (HPVector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(HPVector) p2
 {
 	// heuristic three
 	
 	if (!e1)
 	{
 		OOLog(kOOLogParameterError, @"***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
-		return kZeroVector;
+		return kZeroHPVector;
 	}
 	
-	Vector  f1;
-	Vector  result = p2;
+	HPVector  f1;
+	HPVector  result = p2;
 	int i;
 	int ent_count = n_entities;
 	Entity* my_entities[ent_count];
 	for (i = 0; i < ent_count; i++)
 		my_entities[i] = [sortedEntities[i] retain];	// retained
-	Vector p1 = e1->position;
-	Vector v1 = p2;
+	HPVector p1 = e1->position;
+	HPVector v1 = p2;
 	v1.x -= p1.x;   v1.y -= p1.y;   v1.z -= p1.z;   // vector from entity to p2
 	
 	double  nearest = sqrt(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z) - dist;  // length of vector
 	
 	if (v1.x || v1.y || v1.z)
-		f1 = vector_normal(v1);   // unit vector in direction of p2 from p1
+		f1 = HPvector_normal(v1);   // unit vector in direction of p2 from p1
 	else
-		f1 = make_vector(0, 0, 1);
+		f1 = make_HPvector(0, 0, 1);
 	
 	for (i = 0; i < ent_count; i++)
 	{
 		Entity *e2 = my_entities[i];
 		if ((e2 != e1)&&([e2 canCollide]))
 		{
-			Vector epos = e2->position;
+			HPVector epos = e2->position;
 			epos.x -= p1.x;	epos.y -= p1.y;	epos.z -= p1.z;
-			double d_forward = dot_product(epos,f1);
+			double d_forward = HPdot_product(epos,f1);
 			if ((d_forward > 0)&&(d_forward < nearest))
 			{
 				double cr = 1.20 * (e2->collision_radius + e1->collision_radius); //  20% safety margin
 				
-				Vector p0 = e1->position;
+				HPVector p0 = e1->position;
 				p0.x += d_forward * f1.x;	p0.y += d_forward * f1.y;	p0.z += d_forward * f1.z;
 				// p0 holds nearest point on current course to center of incident object
 				
-				Vector epos = e2->position;
+				HPVector epos = e2->position;
 				p0.x -= epos.x;	p0.y -= epos.y;	p0.z -= epos.z;
 				// compare with center of incident object
 				
@@ -4819,29 +4823,29 @@ static BOOL MaintainLinkedLists(Universe *uni)
 						result.z += ((int)(Ranrot() % 1024) - 512)/512.0; //   -1.0 .. +1.0
 					}
 					
-					Vector  nearest_point = p1;
+					HPVector  nearest_point = p1;
 					nearest_point.x += d_forward * f1.x;	nearest_point.y += d_forward * f1.y;	nearest_point.z += d_forward * f1.z;
 					// nearest point now holds nearest point on line to center of incident object
 					
-					Vector outward = nearest_point;
+					HPVector outward = nearest_point;
 					outward.x -= result.x;	outward.y -= result.y;	outward.z -= result.z;
 					if (outward.x||outward.y||outward.z)
-						outward = vector_normal(outward);
+						outward = HPvector_normal(outward);
 					else
 						outward.y = 1.0;
 					// outward holds unit vector through the nearest point on the line from the center of incident object
 					
-					Vector backward = p1;
+					HPVector backward = p1;
 					backward.x -= result.x;	backward.y -= result.y;	backward.z -= result.z;
 					if (backward.x||backward.y||backward.z)
-						backward = vector_normal(backward);
+						backward = HPvector_normal(backward);
 					else
 						backward.z = -1.0;
 					// backward holds unit vector from center of the incident object to the center of the ship
 					
-					Vector dd = result;
+					HPVector dd = result;
 					dd.x -= p1.x; dd.y -= p1.y; dd.z -= p1.z;
-					double current_distance = sqrt (dd.x*dd.x + dd.y*dd.y + dd.z*dd.z);
+					double current_distance = HPmagnitude(dd);
 					
 					// sanity check current_distance
 					if (current_distance < cr * 1.25)	// 25% safety margin
@@ -4871,7 +4875,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	ShipEntity		*hit_entity = nil;
 	ShipEntity		*hit_subentity = nil;
-	Vector			p0 = [srcEntity position];
+	HPVector			p0 = [srcEntity position];
 	Quaternion		q1 = [srcEntity normalOrientation];
 	ShipEntity		*parent = [srcEntity parentEntity];
 	
@@ -4879,7 +4883,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	{
 		// we're a subentity!
 		BoundingBox bbox = [srcEntity boundingBox];
-		Vector midfrontplane = make_vector(0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
+		HPVector midfrontplane = make_HPvector(0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
 		p0 = [srcEntity absolutePositionForSubentityOffset:midfrontplane];
 		q1 = [parent orientation];
 		if ([parent isPlayer])  q1.w = -q1.w;
@@ -4903,7 +4907,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	Vector u1, f1, r1;
 	basis_vectors_from_quaternion(q1, &r1, &u1, &f1);
-	p0 = vector_add(p0, OOVectorMultiplyMatrix(offset, OOMatrixFromBasisVectors(r1, u1, f1)));
+	p0 = HPvector_add(p0, vectorToHPVector(OOVectorMultiplyMatrix(offset, OOMatrixFromBasisVectors(r1, u1, f1))));
 	
 	switch (direction)
 	{
@@ -4925,7 +4929,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	}
 	
 	basis_vectors_from_quaternion(q1, &r1, NULL, &f1);
-	Vector p1 = vector_add(p0, vector_multiply_scalar(f1, nearest));	//endpoint
+	HPVector p1 = HPvector_add(p0, vectorToHPVector(vector_multiply_scalar(f1, nearest)));	//endpoint
 	
 	for (i = 0; i < ship_count; i++)
 	{
@@ -4933,7 +4937,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		
 		// check outermost bounding sphere
 		GLfloat cr = e2->collision_radius;
-		Vector rpos = vector_subtract(e2->position, p0);
+		Vector rpos = HPVectorToVector(HPvector_subtract(e2->position, p0));
 		Vector v_off = make_vector(dot_product(rpos, r1), dot_product(rpos, u1), dot_product(rpos, f1));
 		if (v_off.z > 0.0 && v_off.z < nearest + cr &&								// ahead AND within range
 			v_off.x < cr && v_off.x > -cr && v_off.y < cr && v_off.y > -cr &&		// AND not off to one side or another
@@ -4950,7 +4954,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 				}
 				hit_entity = e2;
 				nearest = hit;
-				p1 = vector_add(p0, vector_multiply_scalar(f1, nearest));
+				p1 = HPvector_add(p0, vectorToHPVector(vector_multiply_scalar(f1, nearest)));
 			}
 		}
 	}
@@ -4996,7 +5000,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	basis_vectors_from_quaternion(q1, &r1, &u1, &f1);
 	Vector offset = [player weaponViewOffset];
 	
-	Vector p1 = vector_add([player position], OOVectorMultiplyMatrix(offset, OOMatrixFromBasisVectors(r1, u1, f1)));
+	HPVector p1 = HPvector_add([player position], vectorToHPVector(OOVectorMultiplyMatrix(offset, OOMatrixFromBasisVectors(r1, u1, f1))));
 	
 	// Note: deliberately tied to view direction, not weapon facing. All custom views count as forward for targeting.
 	switch (viewDirection)
@@ -5020,7 +5024,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		Entity *e2 = my_entities[i];
 		if ([e2 canCollide] && [e2 scanClass] != CLASS_NO_DRAW)
 		{
-			Vector rp = vector_subtract([e2 position], p1);
+			Vector rp = HPVectorToVector(HPvector_subtract([e2 position], p1));
 			OOScalar dist2 = magnitude2(rp);
 			if (dist2 < nearest2)
 			{
@@ -5158,13 +5162,13 @@ static BOOL MaintainLinkedLists(Universe *uni)
 								   ofEntity:(Entity *)e1
 {
 	unsigned		i, found = 0;
-	Vector			p1, p2;
+	HPVector			p1;
 	double			distance, cr;
 	
 	if (predicate == NULL)  predicate = YESPredicate;
 	
 	if (e1 != nil)  p1 = e1->position;
-	else  p1 = kZeroVector;
+	else  p1 = kZeroHPVector;
 	
 	for (i = 0; i < n_entities; i++)
 	{
@@ -5174,9 +5178,8 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			if (range < 0)  distance = -1;	// Negative range means infinity
 			else
 			{
-				p2 = vector_subtract(e2->position, p1);
 				cr = range + e2->collision_radius;
-				distance = magnitude2(p2) - cr * cr;
+				distance = HPdistance2(e2->position, p1) - cr * cr;
 			}
 			if (distance < 0)
 			{
@@ -5217,12 +5220,11 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
+OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 	if (range < 0)  return YES;
-	Vector p2 = vector_subtract(e2->position, p1);
 	float cr = range + e2->collision_radius;
-	return magnitude2(p2) < cr * cr;
+	return HPdistance2(e2->position,p1) < cr * cr;
 }
 
 
@@ -5236,7 +5238,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	OOJS_PROFILE_ENTER
 	
 	unsigned		i;
-	Vector			p1;
+	HPVector			p1;
 	NSMutableArray	*result = nil;
 	
 	OOJSPauseTimeLimiter();
@@ -5246,7 +5248,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	result = [NSMutableArray arrayWithCapacity:n_entities];
 	
 	if (e1 != nil)  p1 = [e1 position];
-	else  p1 = kZeroVector;
+	else  p1 = kZeroHPVector;
 	
 	for (i = 0; i < n_entities; i++)
 	{
@@ -5351,19 +5353,19 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					 relativeToEntity:(Entity *)entity
 {
 	unsigned		i;
-	Vector			p1;
+	HPVector			p1;
 	float			rangeSq = INFINITY;
 	id				result = nil;
 	
 	if (predicate == NULL)  predicate = YESPredicate;
 	
 	if (entity != nil)  p1 = [entity position];
-	else  p1 = kZeroVector;
+	else  p1 = kZeroHPVector;
 	
 	for (i = 0; i < n_entities; i++)
 	{
 		Entity *e2 = sortedEntities[i];
-		float distanceToReferenceEntitySquared = (float)distance2(p1, [e2 position]);
+		float distanceToReferenceEntitySquared = (float)HPdistance2(p1, [e2 position]);
 		
 		if (entity != e2 &&
 			distanceToReferenceEntitySquared < rangeSq &&
@@ -5883,7 +5885,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 										[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
 										demo_start_z=DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius;
 										[demo_ship setPositionX:0.0f y:0.0f z:demo_start_z];
-										[demo_ship setDestination: make_vector(0.0f, 0.0f, demo_start_z * 0.01f)];	// ideal position
+										[demo_ship setDestination: make_HPvector(0.0f, 0.0f, demo_start_z * 0.01f)];	// ideal position
 										[demo_ship setVelocity:kZeroVector];
 										[demo_ship setScanClass: CLASS_NO_DRAW];
 										[demo_ship setRoll:M_PI/5.0];
@@ -9089,17 +9091,17 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 }
 
 
-- (Vector) getWitchspaceExitPosition
+- (HPVector) getWitchspaceExitPosition
 {
 	return [self getWitchspaceExitPositionResettingRandomSeed:NO];
 }
 
-- (Vector) randomizeFromSeedAndGetWitchspaceExitPosition
+- (HPVector) randomizeFromSeedAndGetWitchspaceExitPosition
 {
 	return [self getWitchspaceExitPositionResettingRandomSeed:YES];
 }
 
-- (Vector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed
+- (HPVector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed
 {
 	if (resetSeed)
 	{
@@ -9110,7 +9112,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 		gen_rnd_number();
 	}
 	
-	return kZeroVector;
+	return kZeroHPVector;
 }
 
 
@@ -9129,26 +9131,26 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	return q_result;
 }
 
-
-- (Vector) getSunSkimStartPositionForShip:(ShipEntity*) ship
+// FIXME: should use vector functions
+- (HPVector) getSunSkimStartPositionForShip:(ShipEntity*) ship
 {
 	if (!ship)
 	{
 		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimStartPositionForShip:");
-		return kZeroVector;
+		return kZeroHPVector;
 	}
 	OOSunEntity* the_sun = [self sun];
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
 		OOLog(kOOLogInconsistentState, @"***** No sun set in Universe getSunSkimStartPositionForShip:");
-		return kZeroVector;
+		return kZeroHPVector;
 	}
-	Vector v0 = the_sun->position;
-	Vector v1 = ship->position;
+	HPVector v0 = the_sun->position;
+	HPVector v1 = ship->position;
 	v1.x -= v0.x;	v1.y -= v0.y;	v1.z -= v0.z;	// vector from sun to ship
 	if (v1.x||v1.y||v1.z)
-		v1 = vector_normal(v1);
+		v1 = HPvector_normal(v1);
 	else
 		v1.z = 1.0;
 	double radius = SUN_SKIM_RADIUS_FACTOR * the_sun->collision_radius - 250.0; // 250 m inside the skim radius
@@ -9158,36 +9160,36 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	return v1;
 }
 
-
-- (Vector) getSunSkimEndPositionForShip:(ShipEntity*) ship
+// FIXME: should use vector functions
+- (HPVector) getSunSkimEndPositionForShip:(ShipEntity*) ship
 {
 	OOSunEntity* the_sun = [self sun];
 	if (!ship)
 	{
 		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimEndPositionForShip:");
-		return kZeroVector;
+		return kZeroHPVector;
 	}
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
 		OOLog(kOOLogInconsistentState, @"***** No sun set in Universe getSunSkimEndPositionForShip:");
-		return kZeroVector;
+		return kZeroHPVector;
 	}
-	Vector v0 = the_sun->position;
-	Vector v1 = ship->position;
+	HPVector v0 = the_sun->position;
+	HPVector v1 = ship->position;
 	v1.x -= v0.x;	v1.y -= v0.y;	v1.z -= v0.z;
 	if (v1.x||v1.y||v1.z)
-		v1 = vector_normal(v1);
+		v1 = HPvector_normal(v1);
 	else
 		v1.z = 1.0;
-	Vector v2 = make_vector(randf()-0.5, randf()-0.5, randf()-0.5);	// random vector
+	HPVector v2 = make_HPvector(randf()-0.5, randf()-0.5, randf()-0.5);	// random vector
 	if (v2.x||v2.y||v2.z)
-		v2 = vector_normal(v2);
+		v2 = HPvector_normal(v2);
 	else
 		v2.x = 1.0;
-	Vector v3 = cross_product(v1, v2);	// random vector at 90 degrees to v1 and v2 (random Vector)
+	HPVector v3 = HPcross_product(v1, v2);	// random vector at 90 degrees to v1 and v2 (random Vector)
 	if (v3.x||v3.y||v3.z)
-		v3 = vector_normal(v3);
+		v3 = HPvector_normal(v3);
 	else
 		v3.y = 1.0;
 	double radius = SUN_SKIM_RADIUS_FACTOR * the_sun->collision_radius - 250.0; // 250 m inside the skim radius
@@ -9196,7 +9198,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	v1.x += 15000 * v3.x;	v1.y += 15000 * v3.y;	v1.z += 15000 * v3.z;	// point 15000m at a tangent to sun from v1
 	v1.x -= v0.x;	v1.y -= v0.y;	v1.z -= v0.z;
 	if (v1.x||v1.y||v1.z)
-		v1 = vector_normal(v1);
+		v1 = HPvector_normal(v1);
 	else
 		v1.z = 1.0;
 	v1.x *= radius;	v1.y *= radius;	v1.z *= radius;
@@ -9863,7 +9865,7 @@ Entity *gOOJSPlayerIfStale = nil;
 }
 
 
-- (ShipEntity *) spawnPatrolShipFrom:(Vector)startPos alongRoute:(Vector)route withOffset:(double)offset
+/*- (ShipEntity *) spawnPatrolShipFrom:(Vector)startPos alongRoute:(Vector)route withOffset:(double)offset
 
 {
 	ShipEntity			*hunter_ship = nil;
@@ -9916,10 +9918,10 @@ Entity *gOOJSPlayerIfStale = nil;
 		[hunter_ship release];	// addEntity retains!
 	}
 	return hunter_ship;
-}
+	}*/
 
 
-- (void) addWolfpackShipNear:(Vector)launchPos withGroup:(OOShipGroup *)wolfpackGroup andBounty:(unsigned)bounty
+/*- (void) addWolfpackShipNear:(Vector)launchPos withGroup:(OOShipGroup *)wolfpackGroup andBounty:(unsigned)bounty
 {
 	// pirates get their custom random displacement, closer than most ships.
 	launchPos.x += [self randomDistanceWithinScanner] * WOLFPACK_SHIPS_DISTANCE;
@@ -9943,14 +9945,14 @@ Entity *gOOJSPlayerIfStale = nil;
 		[self addEntity:pirate_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 		[pirate_ship release];
 	}
-}
+	}*/
 
 
-- (Vector) fractionalPositionFrom:(Vector)point0 to:(Vector)point1 withFraction:(double)routeFraction
+- (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction
 {
 	if (routeFraction == NSNotFound) routeFraction = randf();
 	
-	point1 = OOVectorInterpolate(point0, point1, routeFraction);
+	point1 = OOHPVectorInterpolate(point0, point1, routeFraction);
 	
 	point1.x += 2 * SCANNER_MAX_RANGE * (randf() - 0.5);
 	point1.y += 2 * SCANNER_MAX_RANGE * (randf() - 0.5);
@@ -10141,7 +10143,7 @@ static void PreloadOneSound(NSString *soundName)
 }
 
 
-- (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos
+/*- (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos
 {
 	unsigned			i, r, escortsWeight;
 	unsigned			totalCliques, totalRocks = 0;
@@ -10217,7 +10219,7 @@ static void PreloadOneSound(NSString *soundName)
 	while ((Ranrot() % 100) < thargoidChance && thargoid_parties < 16)
 		thargoid_parties++;
 	
-	/*
+	//
 		Adjusting parties amounts. Up to 1.76.x the adjustment meant
 		upping the number of asteroid fields. That's inconsistent with
 		the care we've taken to keep suns, planets & main stations exactly
@@ -10228,7 +10230,7 @@ static void PreloadOneSound(NSString *soundName)
 		of Oolite's systems thus far. I provided the option of fixing both
 		asteroid fields positions and hermit presence via the 
 		FIXED_ASTEROID_FIELDS #defined, just in case.  --Kaks 20120902
-	*/
+	//
 	
 	if (trading_parties + raiding_parties + hunting_parties < 10)
 	{
@@ -10580,17 +10582,17 @@ static void PreloadOneSound(NSString *soundName)
 								 clusterSize:1 + (Ranrot() % 6)];
 	}
 
-}
+}*/
 
-- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders
+/*- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders
 {
 	//NSUInteger clusterSize = 1 + (Ranrot() % 6) + (Ranrot() % 6);
 	NSUInteger clusterSize = 1 + (Ranrot() % 11);
 	return [self scatterAsteroidsAt:spawnPos withVelocity:spawnVel includingRockHermit:spawnHermit asCinders:asCinders clusterSize:clusterSize];
-}
+	}*/
 
 
-- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(NSUInteger)clusterSize
+/*- (NSUInteger) scatterAsteroidsAt:(Vector)spawnPos withVelocity:(Vector)spawnVel includingRockHermit:(BOOL)spawnHermit asCinders:(BOOL)asCinders clusterSize:(NSUInteger)clusterSize
 {
 	NSUInteger	rocks = 0;
 //	Vector		launchPos;
@@ -10640,7 +10642,7 @@ static void PreloadOneSound(NSString *soundName)
 		}
 	}
 	return rocks;
-}
+	}*/
 
 
 - (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary

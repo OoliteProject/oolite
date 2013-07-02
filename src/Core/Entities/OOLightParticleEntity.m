@@ -109,7 +109,7 @@ static OOTexture *sBlobTexture = nil;
 	
 	OO_ENTER_OPENGL();
 	
-	Entity *father = [self owner];
+	/*Entity *father = [self owner];
 	Entity *last = nil;
 	Vector abspos = position;
 	
@@ -121,11 +121,13 @@ static OOTexture *sBlobTexture = nil;
 		
 		if (![father isSubEntity])  break;
 		father = [father owner];
-	}
+		}*/
+	HPVector abspos = [self absolutePositionForSubentity];
 	
 	OOMatrix temp_matrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX);
 	OOGL(glPopMatrix());  OOGL(glPushMatrix());  // restore zero!
-	GLTranslateOOVector(abspos);	// move to absolute position
+	// HPVect: camera-relative
+	GLTranslateOOVector(HPVectorToVector(abspos));	// move to absolute position
 	
 	[self drawImmediate:immediate translucent:translucent];
 	

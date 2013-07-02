@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 typedef struct
 {
 	double					timeframe;		// universal time for this frame
-	Vector					position;
+	HPVector					position;
 	Quaternion				orientation;
 	Vector					k;				// direction vectors
 } Frame;

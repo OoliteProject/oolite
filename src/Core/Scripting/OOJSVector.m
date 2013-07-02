@@ -330,7 +330,7 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	{
 		COUNT(entityCount);
 		Entity *entity = JS_GetPrivate(context, vectorObj);
-		*outVector = [entity position];
+		*outVector = HPVectorToVector([entity position]);
 		return YES;
 	}
 	
@@ -956,7 +956,7 @@ static JSBool VectorToCoordinateSystem(JSContext *context, uintN argc, jsval *vp
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
-	result = [UNIVERSE legacyPositionFrom:thisv asCoordinateSystem:coordScheme];
+	result = HPVectorToVector([UNIVERSE legacyPositionFrom:vectorToHPVector(thisv) asCoordinateSystem:coordScheme]);
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VECTOR(result);
@@ -985,7 +985,7 @@ static JSBool VectorFromCoordinateSystem(JSContext *context, uintN argc, jsval *
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
 	NSString *arg = [NSString stringWithFormat:@"%@ %f %f %f", coordScheme, thisv.x, thisv.y, thisv.z];
-	result = [UNIVERSE coordinatesFromCoordinateSystemString:arg];
+	result = HPVectorToVector([UNIVERSE coordinatesFromCoordinateSystemString:arg]);
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VECTOR(result);

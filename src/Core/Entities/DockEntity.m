@@ -108,7 +108,7 @@ MA 02110-1301, USA.
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
 			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
 	{
-		if (magnitude2(vector_subtract([player position], [self absolutePositionForSubentity])) > 2250000) // within 1500m of the dock
+		if (HPmagnitude2(HPvector_subtract([player position], [self absolutePositionForSubentity])) > 2250000) // within 1500m of the dock
 		{
 			[station sendExpandedMessage:@"[station-docking-clearance-abort-cancelled]" toShip:player];
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
@@ -275,19 +275,19 @@ MA 02110-1301, USA.
 	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:ship_id];
 	StationEntity	*station = (StationEntity *)[self parentEntity];
 
-	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
-	Vector temp = (fabs(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
-	temp = cross_product(launchVector, temp);	// 90 deg to launchVector & temp
-	Vector vi = cross_product(launchVector, temp);
-	Vector vj = cross_product(launchVector, vi);
-	Vector vk = launchVector;
+	HPVector launchVector = HPvector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
+	HPVector temp = (fabs(launchVector.x) < 0.8)? make_HPvector(1,0,0) : make_HPvector(0,1,0);
+	temp = HPcross_product(launchVector, temp);	// 90 deg to launchVector & temp
+	HPVector vi = HPcross_product(launchVector, temp);
+	HPVector vj = HPcross_product(launchVector, vi);
+	HPVector vk = launchVector;
 	
 	// check if this is a new ship on approach
 	//
 	if (![shipsOnApproach objectForKey:shipID])
 	{
-		Vector	delta = vector_subtract([ship position], [self absolutePositionForSubentity]);
-		float	ship_distance = magnitude(delta);
+		HPVector	delta = HPvector_subtract([ship position], [self absolutePositionForSubentity]);
+		float	ship_distance = HPmagnitude(delta);
 
 		if (ship_distance > SCANNER_MAX_RANGE)
 		{
@@ -300,12 +300,12 @@ MA 02110-1301, USA.
 		if (ship_distance < 1000.0 + [station collisionRadius] + ship->collision_radius)	// too close - back off
 			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], 0, 5000, @"BACK_OFF", nil, NO);
 		
-		float dot = dot_product(launchVector, delta);
+		float dot = HPdot_product(launchVector, delta);
 		if (dot < 0) // approaching from the wrong side of the station - construct a vector to the side of the station.
 		{
-			Vector approachVector = cross_product(vector_normal(delta), launchVector);
-			approachVector = cross_product(launchVector, approachVector); // vector, 90 degr rotated from launchVector towards target.
-			return OOMakeDockingInstructions(station, OOVectorTowards([self absolutePositionForSubentity], approachVector, [station collisionRadius] + 5000) , 0, 1000, @"APPROACH", nil, NO);
+			HPVector approachVector = HPcross_product(HPvector_normal(delta), launchVector);
+			approachVector = HPcross_product(launchVector, approachVector); // vector, 90 degr rotated from launchVector towards target.
+			return OOMakeDockingInstructions(station, OOHPVectorTowards([self absolutePositionForSubentity], approachVector, [station collisionRadius] + 5000) , 0, 1000, @"APPROACH", nil, NO);
 		}
 		
 		if (ship_distance > 12500.0)
@@ -342,22 +342,22 @@ MA 02110-1301, USA.
 	float rangeAdvised = [nextCoords oo_floatForKey:@"range"];
 	
 	// calculate world coordinates from relative coordinates
-	Vector rel_coords;
-	rel_coords.x = [nextCoords oo_floatForKey:@"rx"];
-	rel_coords.y = [nextCoords oo_floatForKey:@"ry"];
-	rel_coords.z = [nextCoords oo_floatForKey:@"rz"];
-	Vector coords = [self absolutePositionForSubentity];
+	HPVector rel_coords;
+	rel_coords.x = [nextCoords oo_doubleForKey:@"rx"];
+	rel_coords.y = [nextCoords oo_doubleForKey:@"ry"];
+	rel_coords.z = [nextCoords oo_doubleForKey:@"rz"];
+	HPVector coords = [self absolutePositionForSubentity];
 	coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
 	coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
 	coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
 	
 	// check if the ship is at the control point
 	double max_allowed_range = 2.0 * rangeAdvised + ship->collision_radius;	// maximum distance permitted from control point - twice advised range
-	Vector delta = vector_subtract(ship->position, coords);
+	HPVector delta = HPvector_subtract(ship->position, coords);
 	
-	if (magnitude2(delta) > max_allowed_range * max_allowed_range)	// too far from the coordinates - do not remove them from the stack!
+	if (HPmagnitude2(delta) > max_allowed_range * max_allowed_range)	// too far from the coordinates - do not remove them from the stack!
 	{
-		if ((docking_stage == 1) &&(magnitude2(delta) < 1000000.0))	// 1km*1km
+		if ((docking_stage == 1) &&(HPmagnitude2(delta) < 1000000.0))	// 1km*1km
 			speedAdvised *= 0.5;	// half speed
 		
 		return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
@@ -450,11 +450,11 @@ MA 02110-1301, USA.
 	NSNumber		*shipID = [NSNumber numberWithUnsignedShort:[ship universalID]];
 	StationEntity	*station = (StationEntity *)[self parentEntity];
 	
-	Vector launchVector = vector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
-	Vector temp = (fabs(launchVector.x) < 0.8)? make_vector(1,0,0) : make_vector(0,1,0);
-	temp = cross_product(launchVector, temp);	// 90 deg to launchVector & temp
-	Vector rightVector = cross_product(launchVector, temp);
-	Vector upVector = cross_product(launchVector, rightVector);
+	HPVector launchVector = HPvector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
+	HPVector temp = (fabs(launchVector.x) < 0.8)? make_HPvector(1,0,0) : make_HPvector(0,1,0);
+	temp = HPcross_product(launchVector, temp);	// 90 deg to launchVector & temp
+	HPVector rightVector = HPcross_product(launchVector, temp);
+	HPVector upVector = HPcross_product(launchVector, rightVector);
 	
 	// will select a direction for offset based on the entity personality (was ship ID)
 	int offset_id = [ship entityPersonalityInt] & 0xf;	// 16  point compass
@@ -462,18 +462,18 @@ MA 02110-1301, USA.
 	float s = sin(offset_id * M_PI * ONE_EIGHTH);
 	
 	// test if this points at the ship
-	Vector point1 = [self absolutePositionForSubentity];
+	HPVector point1 = [self absolutePositionForSubentity];
 	point1.x += launchVector.x * corridor_offset[corridor_count - 1];
 	point1.y += launchVector.x * corridor_offset[corridor_count - 1];
 	point1.z += launchVector.x * corridor_offset[corridor_count - 1];
-	Vector alt1 = point1;
+	HPVector alt1 = point1;
 	point1.x += c * upVector.x * corridor_offset[corridor_count - 1] + s * rightVector.x * corridor_offset[corridor_count - 1];
 	point1.y += c * upVector.y * corridor_offset[corridor_count - 1] + s * rightVector.y * corridor_offset[corridor_count - 1];
 	point1.z += c * upVector.z * corridor_offset[corridor_count - 1] + s * rightVector.z * corridor_offset[corridor_count - 1];
 	alt1.x -= c * upVector.x * corridor_offset[corridor_count - 1] + s * rightVector.x * corridor_offset[corridor_count - 1];
 	alt1.y -= c * upVector.y * corridor_offset[corridor_count - 1] + s * rightVector.y * corridor_offset[corridor_count - 1];
 	alt1.z -= c * upVector.z * corridor_offset[corridor_count - 1] + s * rightVector.z * corridor_offset[corridor_count - 1];
-	if (distance2(alt1, ship->position) < distance2(point1, ship->position))
+	if (HPdistance2(alt1, ship->position) < HPdistance2(point1, ship->position))
 	{
 		s = -s;
 		c = -c;	// turn 180 degrees
@@ -578,7 +578,7 @@ MA 02110-1301, USA.
 		if ([player status] == STATUS_IN_FLIGHT &&
 				[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
 		{
-			if (magnitude2(vector_subtract([player position], [self absolutePositionForSubentity])) > 2250000) // within 1500m of the dock
+			if (HPmagnitude2(HPvector_subtract([player position], [self absolutePositionForSubentity])) > 2250000) // within 1500m of the dock
 			{
 				[[self parentEntity] sendExpandedMessage:@"[station-docking-clearance-abort-cancelled]" toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
@@ -661,7 +661,7 @@ MA 02110-1301, USA.
 	Vector vj = vector_up_from_quaternion(q0);
 	Vector vk = vector_forward_from_quaternion(q0);
 	
-	Vector port_pos = [self absolutePositionForSubentity];
+	HPVector port_pos = [self absolutePositionForSubentity];
 	
 	BoundingBox shipbb = [ship boundingBox];
 	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition: port_pos InVectors: vi : vj : vk];
@@ -710,9 +710,9 @@ MA 02110-1301, USA.
 		{ // launch-only dock: will collide!
 			[ship takeScrapeDamage: 5 * [UNIVERSE getTimeDelta]*[ship flightSpeed] from:station];
 			// and bounce
-			Vector rel = vector_subtract([ship position],port_pos);
-			rel = vector_multiply_scalar(vector_normal(rel),[ship flightSpeed]*0.4);
-			[ship adjustVelocity:rel];
+			HPVector rel = HPvector_subtract([ship position],port_pos);
+			rel = HPvector_multiply_scalar(HPvector_normal(rel),[ship flightSpeed]*0.4);
+			[ship adjustVelocity:HPVectorToVector(rel)];
 
 			if (arbb.max.z < 0.0)
 			{ // give some warning before exploding...
@@ -762,7 +762,7 @@ MA 02110-1301, USA.
 			}
 				
 			// adjust the ship back to the center of the port
-			Vector pos = [ship position];
+			HPVector pos = [ship position];
 			pos.x -= delta.y * vj.x + delta.x * vi.x;
 			pos.y -= delta.y * vj.y + delta.x * vi.y;
 			pos.z -= delta.y * vj.z + delta.x * vi.z;
@@ -823,7 +823,7 @@ MA 02110-1301, USA.
 	BoundingBox		bb = [ship boundingBox];
 	StationEntity	*station = (StationEntity *)[self parentEntity];
 	
-	Vector launchPos = [self absolutePositionForSubentity];
+	HPVector launchPos = [self absolutePositionForSubentity];
 	Vector launchVel = [station velocity];
 	double launchSpeed = 0.5 * [ship maxFlightSpeed];
 	if ([station maxFlightSpeed] > 0 && [station flightSpeed] > 0) // is self a carrier in flight.
@@ -948,24 +948,24 @@ MA 02110-1301, USA.
 	for (i = 0; (i < ship_count)&&(isEmpty); i++)
 	{
 		ShipEntity*	ship = (ShipEntity*)my_entities[i];
-		double		d2 = distance2([station position], [ship position]);
+		double		d2 = HPdistance2([station position], [ship position]);
 		if ((ship != station) && (d2 < 25000000)&&([ship status] != STATUS_DOCKED))	// within 5km
 		{
-			Vector ppos = [self absolutePositionForSubentity];
-			d2 = distance2(ppos, ship->position);
+			HPVector ppos = [self absolutePositionForSubentity];
+			d2 = HPdistance2(ppos, ship->position);
 			if (d2 < 4000000)	// within 2km of the port entrance
 			{
 				Quaternion q1 = [station orientation];
 				q1 = quaternion_multiply([self orientation], q1);
 				//
-				Vector v_out = vector_forward_from_quaternion(q1);
-				Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
+				HPVector v_out = HPvector_forward_from_quaternion(q1);
+				HPVector r_pos = make_HPvector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
 				if (r_pos.x||r_pos.y||r_pos.z)
-					r_pos = vector_normal(r_pos);
+					r_pos = HPvector_normal(r_pos);
 				else
 					r_pos.z = 1.0;
 				//
-				double vdp = dot_product(v_out, r_pos); //== cos of the angle between r_pos and v_out
+				double vdp = HPdot_product(v_out, r_pos); //== cos of the angle between r_pos and v_out
 				//
 				if (vdp > 0.86)
 				{
@@ -1007,15 +1007,15 @@ MA 02110-1301, USA.
 	for (i = 0; i < ship_count; i++)
 	{
 		ShipEntity	*ship = (ShipEntity*)my_entities[i];
-		double		d2 = distance2([station position], [ship position]);
+		double		d2 = HPdistance2([station position], [ship position]);
 		if ((ship != station)&&(d2 < 25000000)&&([ship status] != STATUS_DOCKED))	// within 5km
 		{
-			Vector ppos = [self absolutePositionForSubentity];
+			HPVector ppos = [self absolutePositionForSubentity];
 			float time_out = -15.00;	// 15 secs
 			do
 			{
 				isClear = YES;
-				d2 = distance2(ppos, ship->position);
+				d2 = HPdistance2(ppos, ship->position);
 				if (d2 < 4000000)	// within 2km of the port entrance
 				{
 					Quaternion q1 = [station orientation];
@@ -1040,8 +1040,8 @@ MA 02110-1301, USA.
 					}
 					if (time_out > 0)
 					{
-						Vector v1 = vector_forward_from_quaternion(orientation);
-						Vector spos = ship->position;
+						HPVector v1 = HPvector_forward_from_quaternion(orientation);
+						HPVector spos = ship->position;
 						spos.x += 3000.0 * v1.x;	spos.y += 3000.0 * v1.y;	spos.z += 3000.0 * v1.z; 
 						[ship setPosition:spos]; // move 3km out of the way
 					}
@@ -1071,15 +1071,15 @@ MA 02110-1301, USA.
 		port_dimensions = make_vector(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
 	}
 
-	Vector vk = vector_forward_from_quaternion(orientation);
+	HPVector vk = HPvector_forward_from_quaternion(orientation);
 	
 	BoundingBox stbb = [station boundingBox];
-	Vector start = position;
+	HPVector start = position;
 	while ((start.x > stbb.min.x)&&(start.x < stbb.max.x) &&
 		   (start.y > stbb.min.y)&&(start.y < stbb.max.y) &&
 		   (start.z > stbb.min.z)&&(start.z < stbb.max.z) )
 	{
-		start = vector_add(start, vector_multiply_scalar(vk, port_dimensions.z));
+		start = HPvector_add(start, HPvector_multiply_scalar(vk, port_dimensions.z));
 	}
 	port_corridor = start.z - position.z;
 	

@@ -1180,7 +1180,7 @@ static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp)
 
 	OOJS_BEGIN_FULL_NATIVE(context)
 
-	result = [UNIVERSE addVisualEffectAt:where withKey:key];
+	result = [UNIVERSE addVisualEffectAt:vectorToHPVector(where) withKey:key];
 
 	OOJS_END_FULL_NATIVE
 	
@@ -1258,6 +1258,7 @@ static JSBool SystemAddShipsOrGroup(JSContext *context, uintN argc, jsval *vp, B
 	int32				count = 0;
 	uintN				consumed = 0;
 	Vector				where;
+	HPVector      hpwhere;
 	double				radius = NSNotFound;	// a negative value means 
 	id					result = nil;
 	
@@ -1277,7 +1278,7 @@ static JSBool SystemAddShipsOrGroup(JSContext *context, uintN argc, jsval *vp, B
 	
 	if (argc < 3)
 	{
-		where = [UNIVERSE getWitchspaceExitPosition];
+		hpwhere = [UNIVERSE getWitchspaceExitPosition];
 		radius = SCANNER_MAX_RANGE;
 	}
 	else
@@ -1296,11 +1297,12 @@ static JSBool SystemAddShipsOrGroup(JSContext *context, uintN argc, jsval *vp, B
 				return NO;
 			}
 		}
+		hpwhere = vectorToHPVector(where);
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
 	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.
-	result = [UNIVERSE addShipsAt:where withRole:role quantity:count withinRadius:radius asGroup:isGroup];
+	result = [UNIVERSE addShipsAt:hpwhere withRole:role quantity:count withinRadius:radius asGroup:isGroup];
 	
 	if (isGroup)
 	{
@@ -1470,8 +1472,8 @@ static NSComparisonResult CompareEntitiesByDistance(id a, id b, void *relativeTo
 	*r = (id)relativeTo;
 	float				d1, d2;
 	
-	d1 = distance2(ea->position, r->position);
-	d2 = distance2(eb->position, r->position);
+	d1 = HPdistance2(ea->position, r->position);
+	d2 = HPdistance2(eb->position, r->position);
 	
 	if (d1 < d2)  return NSOrderedAscending;
 	else if (d1 > d2)  return NSOrderedDescending;

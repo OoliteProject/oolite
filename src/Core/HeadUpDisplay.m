@@ -1128,7 +1128,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				}
 				ms_blip -= floor(ms_blip);
 				
-				relativePosition = vector_subtract([scannedEntity position], [PLAYER position]);
+				relativePosition = [PLAYER vectorTo:scannedEntity];
 				Vector rp = relativePosition;
 				
 				if (act_dist > max_zoomed_range)
@@ -1360,7 +1360,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	alpha = compass_color[3];
 	
 	// draw the compass
-	Vector			position = [PLAYER position];
 	OOMatrix		rotMatrix = [PLAYER rotationMatrix];
 	
 	GLfloat h1 = siz.height * 0.125;
@@ -1443,7 +1442,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		}
 		
 		// translate and rotate the view
-		Vector relativePosition = vector_subtract([reference position], position);
+
+		Vector relativePosition = [PLAYER vectorTo:reference];
 		relativePosition = OOVectorMultiplyMatrix(relativePosition, rotMatrix);
 		relativePosition = vector_normal_or_fallback(relativePosition, kBasisZVector);
 		
@@ -2358,7 +2358,6 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	// draw the direction cue
 	OOMatrix	rotMatrix;
-	Vector		position = [PLAYER position];
 	
 	rotMatrix = [PLAYER rotationMatrix];
 	
@@ -2371,7 +2370,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		const float visMax = 0.984807753012208f;	// cos(10 degrees)
 		
 		// Transform the view
-		Vector rpn = vector_subtract([target position], position);
+		Vector rpn = [PLAYER vectorTo:target];
 		rpn = OOVectorMultiplyMatrix(rpn, rotMatrix);
 		Vector drawPos = rpn;
 		Vector forward = kZeroVector;
@@ -2482,7 +2481,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.width = useDefined(cached.width, FPSINFO_DISPLAY_WIDTH);
 	siz.height = useDefined(cached.height, FPSINFO_DISPLAY_HEIGHT);
 	
-	Vector playerPos = [PLAYER position];
+	HPVector playerPos = [PLAYER position];
 	NSString *positionInfo = [UNIVERSE expressPosition:playerPos inCoordinateSystem:@"pwm"];
 	positionInfo = [NSString stringWithFormat:@"abs %.2f %.2f %.2f / %@", playerPos.x, playerPos.y, playerPos.z, positionInfo];
 	
@@ -2873,7 +2872,8 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	Vector			v1 = vector_up_from_quaternion(back_q);
 	Vector			p1;
 	
-	p1 = vector_subtract([target position], [player1 viewpointPosition]);
+	// by definition close enough that single precision is fine
+	p1 = HPVectorToVector(HPvector_subtract([target position], [player1 viewpointPosition]));
 	
 	GLfloat			rdist = magnitude(p1);
 	GLfloat			rsize = [target collisionRadius];

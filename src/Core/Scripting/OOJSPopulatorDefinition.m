@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 
 #import "OOJSPopulatorDefinition.h"
 #import "OOJavaScriptEngine.h"
-#import "OOVector.h"
+#import "OOMaths.h"
 #import "OOJSVector.h"
 
 @implementation OOJSPopulatorDefinition
@@ -102,13 +102,13 @@ MA 02110-1301, USA.
 }
 
 
-- (void)runCallback:(Vector)location
+- (void)runCallback:(HPVector)location
 {
 	OOJavaScriptEngine *engine = [OOJavaScriptEngine sharedEngine];
 	JSContext			*context = OOJSAcquireContext();		
 	jsval					loc, rval = JSVAL_VOID;
 
-	VectorToJSValue(context, location, &loc);
+	VectorToJSValue(context, HPVectorToVector(location), &loc);
 
 	OOJSScript *owner = [_owningScript retain]; // local copy needed
 	[OOJSScript pushScript:owner];

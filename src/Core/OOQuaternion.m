@@ -80,6 +80,11 @@ Vector vector_forward_from_quaternion(Quaternion quat)
 	else  return make_vector(0.0f, 0.0f, 1.0f);
 }
 
+HPVector HPvector_forward_from_quaternion(Quaternion quat)
+{
+	// HPVect: profile this later
+	return vectorToHPVector(vector_forward_from_quaternion(quat));
+}
 
 Vector vector_up_from_quaternion(Quaternion quat)
 {

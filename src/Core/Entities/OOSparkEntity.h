@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 	GLfloat				_duration, _timeRemaining;
 }
 
-- (id) initWithPosition:(Vector)position
+- (id) initWithPosition:(HPVector)position
 			   velocity:(Vector)velocity
 			   duration:(OOTimeDelta)duration
 				   size:(float)size

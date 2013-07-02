@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 	BOOL				isUniverse;			// if YES location is origin and radius is 0.0f
 	
 	int					crid;				// identifier
-	Vector				location;			// center of the region
+	HPVector				location;			// center of the region
 	GLfloat				radius;				// inner radius of the region
 	GLfloat				border_radius;		// additiønal, border radius of the region (typically 32km or some value > the scanner range)
 
@@ -61,10 +61,10 @@ MA 02110-1301, USA.
 }
 
 - (id) initAsUniverse;
-- (id) initAtLocation:(Vector) locn withRadius:(GLfloat) rad withinRegion:(CollisionRegion*) otherRegion;
+- (id) initAtLocation:(HPVector) locn withRadius:(GLfloat) rad withinRegion:(CollisionRegion*) otherRegion;
 
 - (void) clearSubregions;
-- (void) addSubregionAtPosition:(Vector) pos withRadius:(GLfloat) rad;
+- (void) addSubregionAtPosition:(HPVector) pos withRadius:(GLfloat) rad;
 
 // collision checking
 - (void) clearEntityList;
