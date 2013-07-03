@@ -326,6 +326,15 @@
 }
 
 
+- (void) performBuoyTumble
+{
+	stick_roll = 0.10;
+	stick_pitch = 0.15;
+	behaviour = BEHAVIOUR_TUMBLE;
+	frustration = 0.0;
+}
+
+
 - (void) performStop
 {
 	behaviour = BEHAVIOUR_STOP_STILL;

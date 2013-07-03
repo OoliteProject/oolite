@@ -116,6 +116,7 @@
 		"setCoordinatesFromPosition",
 		"performFaceDestination",
 		"performTumble",
+		"performBuoyTumble",
 		"fightOrFleeMissile",
 		"setCourseToPlanet",
 		"setTakeOffFromPlanet",

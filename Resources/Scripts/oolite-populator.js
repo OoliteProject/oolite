@@ -40,13 +40,9 @@ this.version		= "1.79";
 
 /* TO-DO:
  * Buoys need to be given spin (0.15 pitch, 0.1 roll)
- * Thargoid chance should be lower for non-human systems
- * Nova mission/system needs modifying
  */
 this.systemWillPopulate = function() 
 {
-		log(this.name,"System populator");
-
 		/* Priority range 0-99 used by Oolite default populator */
 
 		/* Add navigation buoys */
@@ -60,6 +56,7 @@ this.systemWillPopulate = function()
 														callback: function(pos) {
 																var nb = system.addShips("buoy",1,pos,0)[0];
 																nb.scanClass = "CLASS_BUOY";
+																nb.reactToAIMessage("START_TUMBLING");
 														},
 														deterministic: true
 												});
@@ -72,6 +69,7 @@ this.systemWillPopulate = function()
 														callback: function(pos) {
 																var wb = system.addShips("buoy-witchpoint",1,pos,0)[0];
 																wb.scanClass = "CLASS_BUOY";
+																wb.reactToAIMessage("START_TUMBLING");
 														},
 														deterministic: true
 												});
@@ -142,16 +140,12 @@ this.systemWillPopulate = function()
 		
 		/* Calculate thargoids */
 		var thargoids = 0;
-		while (Math.random() < 0.1)
+		while (Math.random() < 0.065)
 		{
 				thargoids++;
 		}
 		
 		/* Start adding ship groups */
-		log(this.name,"Adding Traders: "+traders+" to route 1, "+pstraders+" to route 2");
-		log(this.name,"Adding Pirate packs: "+pirates+" to route 1, "+pspirates+" to route 2");
-		log(this.name,"Adding Hunters: "+hunters+" to route 1, "+pshunters+" to route 2");
-		log(this.name,"Adding Thargoids: "+thargoids+" to route 1");
 
 		/* Add traders */
 		system.setPopulator("oolite-route1-traders",
@@ -277,7 +271,6 @@ this.systemWillPopulate = function()
 						var rh = system.addShips("rockhermit",1,pos,0)[0];
 						rh.scanClass = "CLASS_ROCK";
 				}
-				log("oolite-populator","Added "+size+" rocks and "+hermit+" hermit at "+pos);
 		}
 
 		system.setPopulator("oolite-route1-asteroids",
@@ -309,8 +302,6 @@ this.systemWillPopulate = function()
 																if (system.countShipsWithPrimaryRole("rockhermit")==0) {
 																		var rh = system.addShips("rockhermit",1,pos,0)[0];
 																		rh.scanClass = "CLASS_ROCK";
-																		log("oolite-populator","Added offlane hermit at "+pos);
-																		
 																		// just the hermit, no other rocks
 																}
 														},
@@ -333,7 +324,7 @@ this.systemWillRepopulate = function()
 		{
 				if (Math.random() < 0.2)
 				{
-						var newskimmer = system.addShips("sunskim-trader",1,[0,0,0],7500)[0];
+						var newtrader = system.addShips("sunskim-trader",1,[0,0,0],7500)[0];
 						var reqIns = 1000/(1+newskimmer.maxSpeed);
 						if (reqIns > 12) 
 						{
@@ -347,8 +338,9 @@ this.systemWillRepopulate = function()
 				}
 				else
 				{
-						system.addShips("trader",1,[0,0,0],7500)[0];
+						var newtrader = system.addShips("trader",1,[0,0,0],7500)[0];
 				}
+				newtrader.setBounty(0,"setup actions");
 				return;
 		}
 
@@ -368,6 +360,7 @@ this.systemWillRepopulate = function()
 						{
 								newpolice.switchAI("route1patrolAI.plist");
 						}
+						newpolice.setBounty(0,"setup actions");
 				}
 				else
 				{
@@ -388,6 +381,7 @@ this.systemWillRepopulate = function()
 								{
 										newhunter.switchAI("route2patrolAI.plist");
 								}
+								newhunter.setBounty(0,"setup actions");
 						}
 				}		
 				return;
@@ -489,25 +483,24 @@ this.novaSystemWillRepopulate = function()
 }
 */
 
-
 /* Utility functions */
 
-		this._addPirates = function(pos) 
+this._addPirates = function(pos) 
+{
+		var size = Math.random()*4;
+		if (system.government >= 6)
 		{
-				var size = Math.random()*4;
-				if (system.government >= 6)
-				{
-						size = size/2;
-				}
-				else if (system.government <= 1)
-				{
-						size += Math.random()*3;
-				}
-				size = Math.ceil(size);
-				log("oolite-populator","Pirate pack, size: "+size);
-				var pg = system.addGroup("pirate",size,pos,2.5E3);
-				for (var i=0;i<pg.ships.length;i++)
-				{
-						pg.ships[i].setBounty(20+system.government+size+Math.floor(Math.random()*8),"setup actions");
-				}
+				size = size/2;
 		}
+		else if (system.government <= 1)
+		{
+				size += Math.random()*3;
+		}
+		size = Math.ceil(size);
+		log("oolite-populator","Pirate pack, size: "+size);
+		var pg = system.addGroup("pirate",size,pos,2.5E3);
+		for (var i=0;i<pg.ships.length;i++)
+		{
+				pg.ships[i].setBounty(20+system.government+size+Math.floor(Math.random()*8),"setup actions");
+		}
+}
