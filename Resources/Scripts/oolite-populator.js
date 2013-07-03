@@ -171,7 +171,7 @@ this.systemWillPopulate = function()
 														location: "LANE_PS",
 														groupCount: pstraders,
 														callback: function(pos) {
-																var r2t = system.addShips("trader",1,pos,0)[0];
+																var r2t = system.addShips("sunskim-trader",1,pos,0)[0];
 																r2t.setBounty(0,"setup actions");
 																// ensure sufficient insulation
 																// tested at Aenqute - see [Universe makeSunSkimmer]
@@ -191,32 +191,13 @@ this.systemWillPopulate = function()
 												});
 		
 		/* Add pirates */
-		var addPirates = function(pos) 
-		{
-				var size = Math.random()*4;
-				if (system.government >= 6)
-				{
-						size = size/2;
-				}
-				else if (system.government <= 1)
-				{
-						size += Math.random()*3;
-				}
-				size = Math.ceil(size);
-				log("oolite-populator","Pirate pack, size: "+size);
-				var pg = system.addGroup("pirate",size,pos,2.5E3);
-				for (var i=0;i<pg.ships.length;i++)
-				{
-						pg.ships[i].setBounty(20+system.government+size+Math.floor(Math.random()*8),"setup actions");
-				}
-		};
 
 		system.setPopulator("oolite-route1-pirates",
 												{
 														priority: 10,
 														location: "LANE_WP",
 														groupCount: pirates,
-														callback: addPirates
+														callback: this._addPirates
 												});
 
 		system.setPopulator("oolite-route2-pirates",
@@ -224,7 +205,7 @@ this.systemWillPopulate = function()
 														priority: 10,
 														location: "LANE_PS",
 														groupCount: pspirates,
-														callback: addPirates
+														callback: this._addPirates
 												});
 
 		/* Add hunters */
@@ -338,6 +319,113 @@ this.systemWillPopulate = function()
 
 }
 
+
+// function responsible for replenishing system contents
+this.systemWillRepopulate = function()
+{
+		// incoming traders, more frequent in rich economies
+		if (Math.random() < 0.06+0.01*(8-system.info.economy)) 
+		{
+				if (Math.random() < 0.2)
+				{
+						var newskimmer = system.addShips("sunskim-trader",1,[0,0,0],7500)[0];
+						var reqIns = 1000/(1+newskimmer.maxSpeed);
+						if (reqIns > 12) 
+						{
+								reqIns = 12;
+						}
+						if (newskimmer.heatInsulation < reqIns)
+						{
+								newskimmer.heatInsulation = reqIns;
+						}
+						newskimmer.switchAI("route2sunskimAI.plist");
+				}
+				else
+				{
+						system.addShips("trader",1,[0,0,0],7500)[0];
+				}
+				return;
+		}
+
+		// replace lost patrols (more frequently in safe systems)
+		if (Math.random() < 0.05+0.02*(1+system.info.government)) 
+		{
+				var current = system.countShipsWithPrimaryRole("police");
+				var target = system.info.government;
+				if (current < target) 
+				{
+						var newpolice = system.mainStation.launchShipWithRole("police");
+						if (Math.random() < 0.2)
+						{
+								newpolice.switchAI("route2patrolAI.plist");
+						}
+						else
+						{
+								newpolice.switchAI("route1patrolAI.plist");
+						}
+				}
+				else
+				{
+						// enough police, add a bounty hunter instead?
+						current = system.countShipsWithPrimaryRole("hunter");
+						if (system.info.government <= 1)
+						{
+								target = 4;
+						}
+						else
+						{
+								target = system.info.government/2;
+						}
+						if (current < target)
+						{
+								var newhunter = system.addShips("hunter",1,[0,0,0],7500)[0];
+								if (Math.random() < 0.2)
+								{
+										newhunter.switchAI("route2patrolAI.plist");
+								}
+						}
+				}		
+				return;
+		}
+		
+		// replace lost pirates
+		if (Math.random() < 0.02*(8-system.info.government))
+		{
+				var current = system.countShipsWithPrimaryRole("pirate");
+				var target = 3*(8-system.info.government);
+				if (current < target)
+				{
+						// temporary hack: pirates don't currently have the AI to fly
+						// to their raiding grounds, so for now just magically have
+						// them appear on the spacelane when the player isn't looking
+						do
+						{
+								if (Math.random() < 0.15)
+								{
+										var pos = Vector3D.interpolate(system.sun.position, system.mainPlanet.position, 0.3+Math.random()*0.5);
+								}
+								else
+								{
+										var pos = Vector3D.interpolate([0,0,0], system.mainPlanet.position, Math.random()*0.8);
+								}
+						}
+						while (pos.distanceTo(player.ship) < 51200);
+						this._addPirates(pos);
+				}
+				return;
+		}
+
+		// Thargoid invasions
+		if (Math.random() < 0.01)
+		{
+				system.addShips("thargoid",1,[0,0,0],7500);
+		}
+
+}
+
+
+/* And the equivalent functions for interstellar space */
+
 this.interstellarSpaceWillPopulate = function() 
 {
 		log(this.name,"Interstellar populator");
@@ -351,3 +439,43 @@ this.interstellarSpaceWillPopulate = function()
 														}
 												});
 }
+
+this.interstellarSpaceWillRepopulate = function()
+{
+		if (system.countShipsWithPrimaryRole("thargoid") < 2)
+		{
+				if (Math.random() > 0.01)
+				{
+						system.addShips("thargoid",1,[0,0,0],25600);
+				}
+				else
+				{
+						// everyone's getting ambushed today
+						system.addShips("trader",1,[0,0,0],6400);
+				}
+		}
+}
+
+
+
+/* Utility functions */
+
+		this._addPirates = function(pos) 
+		{
+				var size = Math.random()*4;
+				if (system.government >= 6)
+				{
+						size = size/2;
+				}
+				else if (system.government <= 1)
+				{
+						size += Math.random()*3;
+				}
+				size = Math.ceil(size);
+				log("oolite-populator","Pirate pack, size: "+size);
+				var pg = system.addGroup("pirate",size,pos,2.5E3);
+				for (var i=0;i<pg.ships.length;i++)
+				{
+						pg.ships[i].setBounty(20+system.government+size+Math.floor(Math.random()*8),"setup actions");
+				}
+		}

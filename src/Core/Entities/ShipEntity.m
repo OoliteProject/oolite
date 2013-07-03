@@ -11788,7 +11788,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			there's a nova in the works, the AI asked us not to, or we're in
 			interstellar space.
 		*/
-		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];
+		// now handled by system repopulator
+//		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];
 	}
 
 	// MKW 2011.02.27 - Moved here from ShipEntityAI so escorts reliably follow

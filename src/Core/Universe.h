@@ -145,6 +145,8 @@ enum
 #define MIN_DISTANCE_TO_BUOY			750.0f // don't add ships within this distance
 #define MIN_DISTANCE_TO_BUOY2			(MIN_DISTANCE_TO_BUOY * MIN_DISTANCE_TO_BUOY)
 
+#define SYSTEM_REPOPULATION_INTERVAL 20.0f;
+
 #ifndef OO_LOCALIZATION_TOOLS
 #define OO_LOCALIZATION_TOOLS	1
 #endif
@@ -258,7 +260,9 @@ enum
 	NSMutableArray			*allPlanets;
 	
 	NSMutableDictionary		*populatorSettings;
-	
+	OOTimeDelta		next_repopulation;
+	NSString		*system_repopulator;
+
 	NSArray					*closeSystems;
 	
 	BOOL					strict;

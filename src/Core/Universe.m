@@ -416,6 +416,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[screenBackgrounds release];
 	[gameView release];
 	[populatorSettings release];
+	[system_repopulator release];
 	
 	[localPlanetInfoOverrides release];
 	[activeWormholes release];				
@@ -836,6 +837,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	[self clearSystemPopulator];
 	NSString *populator = [systeminfo oo_stringForKey:@"populator" defaultValue:@"interstellarSpaceWillPopulate"];
+	[system_repopulator release];
+	system_repopulator = [[systeminfo oo_stringForKey:@"repopulator" defaultValue:@"interstellarSpaceWillRepopulate"] retain];
 	JSContext *context = OOJSAcquireContext();
 	[PLAYER doWorldScriptEvent:OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
 	OOJSRelinquishContext(context);
@@ -894,6 +897,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 								  forTarget:nil];
 	}
 	
+	next_repopulation = randf() * SYSTEM_REPOPULATION_INTERVAL;
+
 	OOLogOutdentIf(kOOLogUniversePopulateWitchspace);
 }
 
@@ -1203,6 +1208,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 //	[self populateSpaceFromHyperPoint:witchPos toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
 	[self clearSystemPopulator];
 	NSString *populator = [systeminfo oo_stringForKey:@"populator" defaultValue:@"systemWillPopulate"];
+	[system_repopulator release];
+	system_repopulator = [[systeminfo oo_stringForKey:@"repopulator" defaultValue:@"systemWillRepopulate"] retain];
+
 	JSContext *context = OOJSAcquireContext();
 	[PLAYER doWorldScriptEvent:OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
 	OOJSRelinquishContext(context);
@@ -1285,6 +1293,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 													   forTarget:nil];
 		OO_DEBUG_POP_PROGRESS();
 	}
+
+	next_repopulation = randf() * SYSTEM_REPOPULATION_INTERVAL;
 }
 
 - (void) clearSystemPopulator
@@ -5809,6 +5819,15 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 }
 
 
+- (void) repopulateSystem
+{
+	JSContext			*context = OOJSAcquireContext();
+	[PLAYER doWorldScriptEvent:OOJSIDFromString(system_repopulator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+	OOJSRelinquishContext(context);
+	next_repopulation = SYSTEM_REPOPULATION_INTERVAL;
+}
+
+
 - (void) update:(OOTimeDelta)inDeltaT
 {
 	volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
@@ -5816,6 +5835,12 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	OOLog(@"universe.profile.update",@"Begin update");
 	if (EXPECT(!no_update))
 	{
+		next_repopulation -= delta_t;
+		if (next_repopulation < 0)
+		{
+			[self repopulateSystem];
+		}
+
 		unsigned	i, ent_count = n_entities;
 		Entity		*my_entities[ent_count];
 		
