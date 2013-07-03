@@ -38,9 +38,7 @@ this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
 this.version		= "1.79";
 
-/* TO-DO:
- * Buoys need to be given spin (0.15 pitch, 0.1 roll)
- */
+/* Basic system population */
 this.systemWillPopulate = function() 
 {
 		/* Priority range 0-99 used by Oolite default populator */
@@ -73,7 +71,8 @@ this.systemWillPopulate = function()
 														},
 														deterministic: true
 												});
-		
+
+
 		/* Calculate numbers of major groups */
 		var gov = system.info.government; // 0=anarchy, 7=corporate
 		var eco = system.info.economy; // 0=rich ind, 7=poor ag
@@ -476,7 +475,7 @@ this.novaSystemWillPopulate = function()
 }
 
 
-/* // no repopulation is needed
+/* // no repopulation is needed, but other OXPs could use this function
 this.novaSystemWillRepopulate = function()
 {
 
@@ -497,7 +496,6 @@ this._addPirates = function(pos)
 				size += Math.random()*3;
 		}
 		size = Math.ceil(size);
-		log("oolite-populator","Pirate pack, size: "+size);
 		var pg = system.addGroup("pirate",size,pos,2.5E3);
 		for (var i=0;i<pg.ships.length;i++)
 		{

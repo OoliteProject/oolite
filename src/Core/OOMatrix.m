@@ -138,7 +138,8 @@ Vector OOVectorMultiplyMatrix(Vector v, OOMatrix m)
 }
 
 // HPVect: this loses precision because the matrix is single-precision
-// but it's easier to read than casting both input and output
+// Best used for rotation matrices only - use HPvector_add for
+// translations of vectors if possible
 HPVector OOHPVectorMultiplyMatrix(HPVector v, OOMatrix m)
 {
 	OOScalar x, y, z, w;

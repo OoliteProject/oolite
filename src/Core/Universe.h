@@ -348,7 +348,7 @@ enum
 - (void) populateNormalSpace;
 - (void) clearSystemPopulator;
 - (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
-- (NSDictionary *) populatorSettings;
+- (NSDictionary *) getPopulatorSettings;
 - (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
 - (void) setLighting;
 - (void) forceLightSwitch;

@@ -154,6 +154,7 @@ static JSPropertySpec sSystemProperties[] =
 	{ "name",					kSystem_name,					OOJS_PROP_READWRITE_CB },
 	{ "planets",				kSystem_planets,				OOJS_PROP_READONLY_CB },
 	{ "population",				kSystem_population,				OOJS_PROP_READWRITE_CB },
+	{ "populatorSettings",				kSystem_populatorSettings,				OOJS_PROP_READONLY_CB },
 	{ "productivity",			kSystem_productivity,			OOJS_PROP_READWRITE_CB },
 	{ "pseudoRandom100",		kSystem_pseudoRandom100,		OOJS_PROP_READONLY_CB },
 	{ "pseudoRandom256",		kSystem_pseudoRandom256,		OOJS_PROP_READONLY_CB },
@@ -292,7 +293,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return YES;
 
 		case kSystem_populatorSettings:
-			*value = OOJSValueFromNativeObject(context, [UNIVERSE populatorSettings]);
+			*value = OOJSValueFromNativeObject(context, [UNIVERSE getPopulatorSettings]);
 			return YES;
 	}
 	
@@ -1197,7 +1198,7 @@ static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp)
 	NSMutableDictionary *settings;
 	JSObject			*params = NULL;
 
-	if (argc < 2) 
+	if (argc < 1) 
 	{
 		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"string (key), object (settings)");
 		return NO;
@@ -1208,40 +1209,48 @@ static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, settings");
 		return NO;
 	}
-	if (!JS_ValueToObject(context, OOJS_ARGV[1], &params))
+	if (argc < 2)
 	{
-		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"key, settings");
-		return NO;
+		// clearing
+		[UNIVERSE setPopulatorSetting:key to:nil];
 	}
-	jsval				callback = JSVAL_NULL;
-	if (JS_GetProperty(context, params, "callback", &callback) == JS_FALSE || JSVAL_IS_VOID(callback))
+	else
 	{
-		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"settings must have a 'callback' property.");
-		return NO;
-	}
-
-	OOJSPopulatorDefinition *populator = [[OOJSPopulatorDefinition alloc] init];
-	[populator setCallback:callback];
-
-	settings = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]));
-	[settings setObject:populator forKey:@"callbackObj"];
-
-	jsval				coords = JSVAL_NULL;
-	if (JS_GetProperty(context, params, "coordinates", &coords) != JS_FALSE && !JSVAL_IS_VOID(coords))
-	{
-		Vector coordinates = kZeroVector;
-		if (JSValueToVector(context, coords, &coordinates))
+		// adding
+		if (!JS_ValueToObject(context, OOJS_ARGV[1], &params))
 		{
-			// convert vector in NS-storable form
-			[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:coordinates.x],[NSNumber numberWithFloat:coordinates.y],[NSNumber numberWithFloat:coordinates.z],nil] forKey:@"coordinates"];
+			OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"key, settings");
+			return NO;
 		}
-	}
+		jsval				callback = JSVAL_NULL;
+		if (JS_GetProperty(context, params, "callback", &callback) == JS_FALSE || JSVAL_IS_VOID(callback))
+		{
+			OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"settings must have a 'callback' property.");
+			return NO;
+		}
 
+		OOJSPopulatorDefinition *populator = [[OOJSPopulatorDefinition alloc] init];
+		[populator setCallback:callback];
 
-	[populator release];
+		settings = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]));
+		[settings setObject:populator forKey:@"callbackObj"];
 
-	[UNIVERSE setPopulatorSetting:key to:settings];
-	
+		jsval				coords = JSVAL_NULL;
+		if (JS_GetProperty(context, params, "coordinates", &coords) != JS_FALSE && !JSVAL_IS_VOID(coords))
+		{
+			Vector coordinates = kZeroVector;
+			if (JSValueToVector(context, coords, &coordinates))
+			{
+				// convert vector in NS-storable form
+				[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:coordinates.x],[NSNumber numberWithFloat:coordinates.y],[NSNumber numberWithFloat:coordinates.z],nil] forKey:@"coordinates"];
+			}
+		}
+
+		[populator release];
+
+		[UNIVERSE setPopulatorSetting:key to:settings];
+	}	
+
 	OOJS_RETURN_VOID;
 
 	OOJS_NATIVE_EXIT
