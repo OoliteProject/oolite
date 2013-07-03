@@ -75,6 +75,9 @@ HPVector OOHPVectorRandomSpatial(OOHPScalar maxLength);	// Random vector uniform
 HPVector OOHPVectorRandomRadial(OOHPScalar maxLength);		// Random vector with uniform distribution of direction and radius in radius-maxLength sphere. (Causes clustering at centre.)
 HPVector OORandomPositionInCylinder(HPVector centre1, OOHPScalar exclusion1, HPVector centre2, OOHPScalar exclusion2, OOHPScalar radius);
 HPVector OORandomPositionInShell(HPVector centre, OOHPScalar inner, OOHPScalar outer);
+/* returns the projection of 'point' to the plane defined by the point
+	 'plane' and the normal vector 'normal' */
+HPVector OOProjectHPVectorToPlane(HPVector point, HPVector plane, HPVector normal);
 #endif
 
 /* Multiply vector by scalar (in place) */

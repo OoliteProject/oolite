@@ -320,7 +320,7 @@ this.systemWillPopulate = function()
 		/* To ensure there's at least one hermit, for pirates to dock at */
 		system.setPopulator("oolite-offlane-hermit",
 												{
-														priority: 11, // has to be after main asteroids
+														priority: 99, // make sure all other core population is done
 														location: "PLANET_ORBIT_HIGH",
 														locationSeed: 71258,
 														groupCount: 1,

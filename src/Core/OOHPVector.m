@@ -129,4 +129,9 @@ HPVector OORandomPositionInShell(HPVector centre, OOHPScalar inner, OOHPScalar o
 	return result;
 }
 
+HPVector OOProjectHPVectorToPlane(HPVector point, HPVector plane, HPVector normal)
+{
+	return HPvector_subtract(point,HPvector_multiply_scalar(normal,HPdot_product(HPvector_subtract(point, plane), normal)));
+}
+
 #endif

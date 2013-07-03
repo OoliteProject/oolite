@@ -1434,11 +1434,29 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		// make sure at least 3 radii from vertices
 		while(HPdistance2(result,[sun position]) < [sun radius]*[sun radius]*9.0 || HPdistance2(result,[planet position]) < [planet radius]*[planet radius]*9.0 || HPmagnitude2(result) < SCANNER_MAX_RANGE2 * 9.0);
 	}
-	/* Some more, waiting for issue #22 */
-	// INNER_SYSTEM
-	// OUTER_SYSTEM
-	// INNER_SYSTEM_OFFPLANE
-	// OUTER_SYSTEM_OFFPLANE
+	else if ([code isEqualToString:@"INNER_SYSTEM"])
+	{
+		do {
+			result = OORandomPositionInShell([sun position],[sun radius]*3.0,HPdistance([sun position],[planet position]));
+			result = OOProjectHPVectorToPlane(result,kZeroHPVector,HPcross_product([sun position],[planet position]));
+			result = HPvector_add(result,OOHPVectorRandomSpatial([planet radius]));
+    // projection to plane could bring back too close to sun
+		} while (HPdistance2(result,[sun position]) < [sun radius]*[sun radius]*9.0);
+	}
+	else if ([code isEqualToString:@"INNER_SYSTEM_OFFPLANE"])
+	{
+		result = OORandomPositionInShell([sun position],[sun radius]*3.0,HPdistance([sun position],[planet position]));
+	}
+	else if ([code isEqualToString:@"OUTER_SYSTEM"])
+	{
+		result = OORandomPositionInShell([sun position],HPdistance([sun position],[planet position]),10000000); // no more than 10^7 metres from sun
+		result = OOProjectHPVectorToPlane(result,kZeroHPVector,HPcross_product([sun position],[planet position]));
+		result = HPvector_add(result,OOHPVectorRandomSpatial(0.01*HPdistance(result,[sun position]))); // within 1% of plane
+	}
+	else if ([code isEqualToString:@"OUTER_SYSTEM_OFFPLANE"])
+	{
+		result = OORandomPositionInShell([sun position],HPdistance([sun position],[planet position]),10000000); // no more than 10^7 metres from sun
+	}
 	else
 	{
 		OOLog(kOOLogUniversePopulateError,@"Named populator region %@ is not implemented, falling back to WITCHPOINT",code); 
