@@ -770,7 +770,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict
 {
 	OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:subentDict];
-	[flasher setPosition:vectorToHPVector([subentDict oo_vectorForKey:@"position"])];
+	[flasher setPosition:[subentDict oo_hpvectorForKey:@"position"]];
 	[self addSubEntity:flasher];
 	return YES;
 }

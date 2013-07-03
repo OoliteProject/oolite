@@ -759,7 +759,7 @@ static const BaseFace kTexturedFaces[][3] =
 		// for some reason this check doesn't work when extremely close to
 		// the planet and with the horizon near the side of the frame (FP
 		// inaccuracy?)
-		if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:radWithAtmosphere])
+		if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:radWithAtmosphere])
 		{
 			// Don't draw
 			return;
@@ -969,7 +969,7 @@ static const BaseFace kTexturedFaces[][3] =
 	{
 		OOGL(glPopMatrix());	// get old draw matrix back
 		OOGL(glPushMatrix());	// and store it again
-		OOGL(glTranslatef(position.x,position.y,position.z)); // centre on the planet
+		OOGL(glTranslatef(cameraRelativePosition.x,cameraRelativePosition.y,cameraRelativePosition.z)); // centre on the planet
 		// rotate
 //		GLMultOOMatrix([atmosphere rotationMatrix]);
 		// draw atmosphere entity

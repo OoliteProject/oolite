@@ -635,7 +635,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void) updateCameraRelativePosition
 {
-	cameraRelativePosition = HPVectorToVector(HPvector_subtract(position,[PLAYER viewpointPosition]));
+	cameraRelativePosition = HPVectorToVector(HPvector_subtract([self absolutePositionForSubentity],[PLAYER viewpointPosition]));
 }
 
 
@@ -901,7 +901,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		{
 			zero_distance = [[self owner] zeroDistance];
 			cam_zero_distance = [[self owner] camZeroDistance];
-			cameraRelativePosition = [[self owner] cameraRelativePosition];
+			[self updateCameraRelativePosition];
 		}
 		else
 		{

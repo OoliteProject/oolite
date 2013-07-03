@@ -3815,9 +3815,8 @@ static const OOMatrix	starboard_matrix =
 }
 
 
-- (BOOL) viewFrustumIntersectsSphereAt:(HPVector)position withRadius:(GLfloat)radius
+- (BOOL) viewFrustumIntersectsSphereAt:(Vector)position withRadius:(GLfloat)radius
 {
-	return YES; // HPVect: temporarily, while rest of camera-relative is sorted out
 	int p;
 	for (p = 0; p < 6; p++)
 	{

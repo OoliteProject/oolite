@@ -454,7 +454,7 @@ enum
 - (void) drawUniverse;
 
 - (void) defineFrustum;
-- (BOOL) viewFrustumIntersectsSphereAt:(HPVector)position withRadius:(GLfloat)radius;
+- (BOOL) viewFrustumIntersectsSphereAt:(Vector)position withRadius:(GLfloat)radius;
 
 - (void) drawMessage;
 
