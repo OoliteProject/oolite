@@ -323,6 +323,11 @@ this.systemWillPopulate = function()
 // function responsible for replenishing system contents
 this.systemWillRepopulate = function()
 {
+		if (system.sun.isGoingNova)
+		{
+				return;
+		}
+
 		// incoming traders, more frequent in rich economies
 		if (Math.random() < 0.06+0.01*(8-system.info.economy)) 
 		{
@@ -456,6 +461,33 @@ this.interstellarSpaceWillRepopulate = function()
 		}
 }
 
+/* And finally the default nova system populators */
+
+this.novaSystemWillPopulate = function()
+{
+		log(this.name,"Nova populator");
+		// just burnt-out rubble
+		system.setPopulator("oolite-nova-cinders",
+												{
+														priority: 10,
+														location: "WITCHPOINT",
+														groupCount: 1,
+														callback: function(pos) {
+																system.addShips("cinder",10,pos,25600);
+																pos.z += 300000;
+																system.addShips("cinder",10,pos,25600);
+														}
+												});
+
+}
+
+
+/* // no repopulation is needed
+this.novaSystemWillRepopulate = function()
+{
+
+}
+*/
 
 
 /* Utility functions */

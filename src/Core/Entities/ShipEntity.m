@@ -11845,10 +11845,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		d1 = SCANNER_MAX_RANGE * (randf() - randf());
 	}
 	
-	position = [UNIVERSE getWitchspaceExitPosition];
-	position.x += v1.x * d1; // randomise exit position
-	position.y += v1.y * d1;
-	position.z += v1.z * d1;
+	HPVector exitposition = [UNIVERSE getWitchspaceExitPosition];
+	exitposition.x += v1.x * d1; // randomise exit position
+	exitposition.y += v1.y * d1;
+	exitposition.z += v1.z * d1;
+	[self setPosition:exitposition];
 	[self witchspaceLeavingEffects];
 }
 

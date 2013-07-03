@@ -1201,15 +1201,37 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 - (void) populateNormalSpace
 {	
 	NSDictionary		*systeminfo = [self generateSystemData:system_seed useCache:NO];
+	BOOL sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
+	// check for nova
+	if (sunGoneNova)
+	{
+	 	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - post-nova");
+		
+	 	HPVector v0 = make_HPvector(0,0,34567.89);
+	 	double min_safe_dist2 = 6000000.0 * 6000000.0;
+		HPVector sunPos = [cachedSun position];
+	 	while (HPmagnitude2(cachedSun->position) < min_safe_dist2)	// back off the planetary bodies
+	 	{
+	 		v0.z *= 2.0;
+			
+	 		sunPos = HPvector_add(sunPos, v0);
+	 		[cachedSun setPosition:sunPos];  // also sets light origin
+			
+	 	}
+		
+	 	[self removeEntity:cachedPlanet];	// and Poof! it's gone
+	 	cachedPlanet = nil;	
+	 	[self removeEntity:cachedStation];	// also remove main station
+	 	cachedStation = nil;	
+	}
 
-//	Vector witchPos = [self randomizeFromSeedAndGetWitchspaceExitPosition]; //we need to use this value a few times, without resetting PRNG
-	
 	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - populate from hyperpoint");
 //	[self populateSpaceFromHyperPoint:witchPos toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
 	[self clearSystemPopulator];
-	NSString *populator = [systeminfo oo_stringForKey:@"populator" defaultValue:@"systemWillPopulate"];
+	
+	NSString *populator = [systeminfo oo_stringForKey:@"populator" defaultValue:(sunGoneNova)?@"novaSystemWillPopulate":@"systemWillPopulate"];
 	[system_repopulator release];
-	system_repopulator = [[systeminfo oo_stringForKey:@"repopulator" defaultValue:@"systemWillRepopulate"] retain];
+	system_repopulator = [[systeminfo oo_stringForKey:@"repopulator" defaultValue:(sunGoneNova)?@"novaSystemWillRepopulate":@"systemWillRepopulate"] retain];
 
 	JSContext *context = OOJSAcquireContext();
 	[PLAYER doWorldScriptEvent:OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
@@ -1349,9 +1371,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 					// ...for iteration (63647 is nothing special, just a largish prime)
 					RANROTSetFullSeed(MakeRanrotSeed(rndvalue+(i*63647)));
 				}
-				if (sun == nil)
+				if (sun == nil || planet == nil)
 				{
-					// all interstellar space locations equal to WITCHPOINT
+					// all interstellar space and nova locations equal to WITCHPOINT
 					location = [self locationByCode:@"WITCHPOINT" withSun:nil andPlanet:nil];
 				}
 				else
