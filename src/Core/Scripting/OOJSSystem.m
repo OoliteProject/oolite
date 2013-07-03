@@ -941,7 +941,7 @@ static JSBool SystemLegacyAddShipsAt(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
-	Vector				where;
+	HPVector				where;
 	NSString			*role = nil;
 	int32				count;
 	NSString			*coordScheme = nil;
@@ -977,7 +977,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, uintN argc, js
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
-	Vector				where;
+	HPVector				where;
 	NSString			*role = nil;
 	int32				count;
 	NSString			*coordScheme = nil;
@@ -1013,7 +1013,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, uintN argc, j
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
-	Vector				where;
+	HPVector				where;
 	jsdouble			radius;
 	NSString			*role = nil;
 	int32				count;
@@ -1159,7 +1159,7 @@ static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString			*key = nil;
-	Vector         where;
+	HPVector         where;
 	
 	uintN				consumed = 0;
 
@@ -1180,7 +1180,7 @@ static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp)
 
 	OOJS_BEGIN_FULL_NATIVE(context)
 
-	result = [UNIVERSE addVisualEffectAt:vectorToHPVector(where) withKey:key];
+	result = [UNIVERSE addVisualEffectAt:where withKey:key];
 
 	OOJS_END_FULL_NATIVE
 	
@@ -1257,8 +1257,7 @@ static JSBool SystemAddShipsOrGroup(JSContext *context, uintN argc, jsval *vp, B
 	NSString			*role = nil;
 	int32				count = 0;
 	uintN				consumed = 0;
-	Vector				where;
-	HPVector      hpwhere;
+	HPVector				where;
 	double				radius = NSNotFound;	// a negative value means 
 	id					result = nil;
 	
@@ -1278,7 +1277,7 @@ static JSBool SystemAddShipsOrGroup(JSContext *context, uintN argc, jsval *vp, B
 	
 	if (argc < 3)
 	{
-		hpwhere = [UNIVERSE getWitchspaceExitPosition];
+		where = [UNIVERSE getWitchspaceExitPosition];
 		radius = SCANNER_MAX_RANGE;
 	}
 	else
@@ -1297,12 +1296,11 @@ static JSBool SystemAddShipsOrGroup(JSContext *context, uintN argc, jsval *vp, B
 				return NO;
 			}
 		}
-		hpwhere = vectorToHPVector(where);
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
 	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.
-	result = [UNIVERSE addShipsAt:hpwhere withRole:role quantity:count withinRadius:radius asGroup:isGroup];
+	result = [UNIVERSE addShipsAt:where withRole:role quantity:count withinRadius:radius asGroup:isGroup];
 	
 	if (isGroup)
 	{

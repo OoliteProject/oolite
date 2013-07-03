@@ -100,6 +100,7 @@ NSString *QuaternionDescription(Quaternion quaternion);	// @"(w + xi + yj + zk)"
 
 
 Vector quaternion_rotate_vector(Quaternion q, Vector vector) CONST_FUNC;
+HPVector quaternion_rotate_HPvector(Quaternion q, HPVector vector) CONST_FUNC;
 
 
 

@@ -3840,7 +3840,7 @@ static const OOMatrix	starboard_matrix =
 			no_update = YES;	// block other attempts to draw
 			
 			int				i, v_status;
-			Vector			position, view_dir, view_up;
+			Vector			view_dir, view_up;
 			OOMatrix		view_matrix;
 			int				ent_count =	n_entities;
 			Entity			*my_entities[ent_count];
@@ -3867,8 +3867,6 @@ static const OOMatrix	starboard_matrix =
 				}
 			}
 			
-			// HPVect: camera relative
-			position = HPVectorToVector([player viewpointPosition]);
 			v_status = [player status];
 			
 			[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
