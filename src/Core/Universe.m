@@ -6090,7 +6090,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	I currently see no noticeable negative effect while playing, but this change might still give some trouble I missed.
 	*/
 	Entity	*e0, *next, *prev;
-	GLfloat start, finish, next_start, next_finish, prev_start, prev_finish;
+	OOHPScalar start, finish, next_start, next_finish, prev_start, prev_finish;
 	
 	// using the z_list - set or clear collisionTestFilter and clear collision_chain
 	e0 = z_list_start;
