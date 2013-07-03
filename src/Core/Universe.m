@@ -2395,7 +2395,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) handleGameOver
 {
-	[[self gameController] loadPlayerIfRequired];
+	if ([[self gameController] playerFileToLoad])
+  {
+    [[self gameController] loadPlayerIfRequired];
+  }
+  else
+  {
+    [self reinitAndShowDemo:NO];
+  } 
 }
 
 
