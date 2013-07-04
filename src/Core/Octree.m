@@ -967,7 +967,7 @@ static void SetNode_slow(OOOctreeBuilder *self, uint32_t index, int value)
 */
 - (BOOL) suppressClangStuff
 {
-	return &_stateStack;
+	return &_stateStack && 0;
 }
 #endif
 
