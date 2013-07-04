@@ -5022,6 +5022,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// desired facing achieved and movement stabilised.
 		[shipAI message:@"FACING_DESTINATION"];
+		[self doScriptEvent:OOJSID("shipNowFacingDestination")];
 		frustration = 0.0;
 		if(docking_match_rotation)  // IDLE stops rotating while docking
 		{

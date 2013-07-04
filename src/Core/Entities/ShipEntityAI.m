@@ -153,7 +153,6 @@
 
 - (void) commsMessage:(NSString *)valueString;
 - (void) commsMessageByUnpiloted:(NSString *)valueString;
-- (void) broadcastDistressMessage;
 
 - (void) ejectCargo;
 
@@ -604,6 +603,70 @@
 	[shipAI message:@"NOT_ESCORTING"];
 	[self doScriptEvent:OOJSID("escortRejected") withArgument:mother];
 	return NO;
+}
+
+
+- (void) broadcastDistressMessage
+{
+	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
+	
+	[self checkScanner];
+	DESTROY(_foundTarget);
+	
+	ShipEntity	*aggressor_ship = (ShipEntity*)[self primaryAggressor];
+	if (aggressor_ship == nil)  return;
+	
+	// don't send too many distress messages at once, space them out semi-randomly
+	if (messageTime > 2.0 * randf())  return;
+	
+	NSString	*distress_message = nil;
+	BOOL		is_buoy = (scanClass == CLASS_BUOY);
+	if (is_buoy)  distress_message = @"[buoy-distress-call]";
+	else  distress_message = @"[distress-call]";
+	
+	unsigned i;
+	for (i = 0; i < n_scanned_ships; i++)
+	{
+		ShipEntity*	ship = scanned_ships[i];
+
+    // dump cargo if energy is low
+		if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
+		{
+			[self ejectCargo];
+			[self performFlee];
+		}
+		
+		// tell it!
+		if (ship->isPlayer)
+		{
+			if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
+			{
+				[self sendExpandedMessage:@"[beg-for-mercy]" toShip:ship];
+			}
+			else if ([self bounty] == 0)
+			{
+				// only send distress message to player if plausibly sending
+				// one more generally
+				[self sendExpandedMessage:distress_message toShip:ship];
+			}
+			
+			// reset the thanked_ship_id
+			DESTROY(_thankedShip);
+		}
+		else if ([self bounty] == 0 && [ship crew]) // Only clean ships can have their distress calls accepted
+		{
+			[ship doScriptEvent:OOJSID("distressMessageReceived") withArgument:aggressor_ship andArgument:self];
+			
+			// we only can send distressMessages to ships that are known to have a "ACCEPT_DISTRESS_CALL" reaction
+			// in their AI, or they might react wrong on the added found_target.
+
+			// FIXME: this test only works with core AIs
+			if (ship->isStation || [ship hasPrimaryRole:@"police"] || [ship hasPrimaryRole:@"hunter"])
+			{
+				[ship acceptDistressMessageFrom:self];
+			}
+		}
+	}
 }
 
 
@@ -1452,70 +1515,6 @@
 - (void) commsMessageByUnpiloted:(NSString *)valueString
 {
 	[self commsMessage:valueString withUnpilotedOverride:YES];
-}
-
-
-- (void) broadcastDistressMessage
-{
-	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
-	
-	[self checkScanner];
-	DESTROY(_foundTarget);
-	
-	ShipEntity	*aggressor_ship = (ShipEntity*)[self primaryAggressor];
-	if (aggressor_ship == nil)  return;
-	
-	// don't send too many distress messages at once, space them out semi-randomly
-	if (messageTime > 2.0 * randf())  return;
-	
-	NSString	*distress_message = nil;
-	BOOL		is_buoy = (scanClass == CLASS_BUOY);
-	if (is_buoy)  distress_message = @"[buoy-distress-call]";
-	else  distress_message = @"[distress-call]";
-	
-	unsigned i;
-	for (i = 0; i < n_scanned_ships; i++)
-	{
-		ShipEntity*	ship = scanned_ships[i];
-
-    // dump cargo if energy is low
-		if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
-		{
-			[self ejectCargo];
-			[self performFlee];
-		}
-		
-		// tell it!
-		if (ship->isPlayer)
-		{
-			if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
-			{
-				[self sendExpandedMessage:@"[beg-for-mercy]" toShip:ship];
-			}
-			else if ([self bounty] == 0)
-			{
-				// only send distress message to player if plausibly sending
-				// one more generally
-				[self sendExpandedMessage:distress_message toShip:ship];
-			}
-			
-			// reset the thanked_ship_id
-			DESTROY(_thankedShip);
-		}
-		else if ([self bounty] == 0 && [ship crew]) // Only clean ships can have their distress calls accepted
-		{
-			[ship doScriptEvent:OOJSID("distressMessageReceived") withArgument:aggressor_ship andArgument:self];
-			
-			// we only can send distressMessages to ships that are known to have a "ACCEPT_DISTRESS_CALL" reaction
-			// in their AI, or they might react wrong on the added found_target.
-
-			// FIXME: this test only works with core AIs
-			if (ship->isStation || [ship hasPrimaryRole:@"police"] || [ship hasPrimaryRole:@"hunter"])
-			{
-				[ship acceptDistressMessageFrom:self];
-			}
-		}
-	}
 }
 
 

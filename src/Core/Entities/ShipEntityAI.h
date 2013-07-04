@@ -37,8 +37,6 @@ MA 02110-1301, USA.
 - (void) switchAITo:(NSString *)aiString;
 
 - (void) scanForHostiles;
-- (void) performTumble;
-- (void) performStop;
 - (BOOL) performHyperSpaceToSpecificSystem:(OOSystemID)systemID;
 - (void) scanForNearestIncomingMissile;
 
@@ -51,21 +49,22 @@ MA 02110-1301, USA.
 
 - (void) groupAttackTarget;
 
-- (void) performFlyToRangeFromDestination;
-- (void) performIdle;
-- (void) performHold;
 - (void) performAttack;
 - (void) performCollect;
-
-- (void) performIntercept;
-
+- (void) performEscort;
+- (void) performFaceDestination;
 - (void) performFlee;
-
+- (void) performFlyToRangeFromDestination;
+- (void) performHold;
+- (void) performIdle;
+- (void) performIntercept;
+- (void) performLandOnPlanet;
+- (void) performMining;
 - (void) performScriptedAI;
 - (void) performScriptedAttackAI;
-- (void) performFaceDestination;
-- (void) performLandOnPlanet;
-- (void) performEscort;
-- (void) performMining;
+- (void) performStop;
+- (void) performTumble;
+
+- (void) broadcastDistressMessage;
 
 @end

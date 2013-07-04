@@ -93,6 +93,7 @@ static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBroadcastCascadeImminent(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipBroadcastDistressMessage(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipMarkTargetForFines(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipEnterWormhole(JSContext *context, uintN argc, jsval *vp);
@@ -390,6 +391,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
 	{ "becomeCascadeExplosion",			ShipBecomeCascadeExplosion,			0 },
 	{ "broadcastCascadeImminent",			ShipBroadcastCascadeImminent,			0 },
+	{ "broadcastDistressMessage",			ShipBroadcastDistressMessage,			0 },
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
 	{ "clearDefenseTargets",	ShipClearDefenseTargets,	0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
@@ -2995,6 +2997,20 @@ static JSBool ShipPerformTumble(JSContext *context, uintN argc, jsval *vp)
 	ShipEntity *thisEnt = nil;
 	GET_THIS_SHIP(thisEnt);
 	[thisEnt performTumble];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipBroadcastDistressMessage(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt broadcastDistressMessage];
 	
 	OOJS_RETURN_VOID;
 	
