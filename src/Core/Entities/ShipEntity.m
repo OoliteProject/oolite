@@ -158,6 +158,8 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 
 - (void) setShipHitByLaser:(ShipEntity *)ship;
 
+- (void) noteFrustration:(NSString *)context;
+
 @end
 
 
@@ -2500,8 +2502,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self applyAttitudeChanges:delta_t];
 		[self applyThrust:delta_t];
 	}
-
 }
+
+
+// called when behaviour is unable to improve position
+- (void)noteFrustration:(NSString *)context
+{
+	[shipAI reactToMessage:@"FRUSTRATED" context:context];
+	[self doScriptEvent:OOJSID("shipAIFrustrated") withArgument:context];
+}
+
 
 - (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other
 {
@@ -3721,7 +3731,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			frustration += delta_t * 0.9;
 			if (frustration > 10.0)	// 10s of frustration
 			{
-				[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_INTERCEPT_TARGET"];
+				[self noteFrustration:@"BEHAVIOUR_INTERCEPT_TARGET"];
 				frustration -= 5.0;	//repeat after another five seconds' frustration
 			}
 		}
@@ -4289,7 +4299,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		frustration += delta_t;
 		if (frustration > 3.0)	// 3s of frustration
 		{
-			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_ATTACK_BROADSIDE"];
+			
+			[self noteFrustration:@"BEHAVIOUR_ATTACK_BROADSIDE"];
 			[self setEvasiveJink:1000.0];
 			behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 			frustration = 0.0;
@@ -4439,7 +4450,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			frustration += delta_t;
 			if (frustration > 3.0)	// 3s of frustration
 			{
-				[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_ATTACK_SNIPER"];
+				[self noteFrustration:@"BEHAVIOUR_ATTACK_SNIPER"];
 				[self setEvasiveJink:1000.0];
 				behaviour = BEHAVIOUR_ATTACK_TARGET;
 				frustration = 0.0;
@@ -4730,7 +4741,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		frustration += delta_t;
 		if (frustration > 3.0)	// 3s of frustration
 		{
-			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_ATTACK_FLY_TO_TARGET"];
+			[self noteFrustration:@"BEHAVIOUR_ATTACK_FLY_TO_TARGET"];
 			[self setEvasiveJink:1000.0];
 			behaviour = BEHAVIOUR_ATTACK_TARGET;
 			frustration = 0.0;
@@ -4932,7 +4943,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		frustration += delta_t;
 		if (frustration > 15.0)	// 15s of frustration
 		{
-			[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FLEE_TARGET"];
+			[self noteFrustration:@"BEHAVIOUR_FLEE_TARGET"];
 			frustration = 0.0;
 		}
 	}
@@ -5026,7 +5037,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (frustration > 15.0 / max_flight_pitch)	// allow more time for slow ships.
 	{
 		frustration = 0.0;
-		[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FACE_DESTINATION"];
+		[self noteFrustration:@"BEHAVIOUR_FACE_DESTINATION"];
 		if(flightPitch == old_pitch) flightPitch = 0.5 * max_flight_pitch; // hack to get out of frustration.
 	}	
 	
@@ -5128,7 +5139,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		frustration += delta_t;
 		if (frustration > 15.0)
 		{
-			if (!leadShip) [shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FORMATION_FORM_UP"]; // escorts never reach their destination when following leader.
+			if (!leadShip) [self noteFrustration:@"BEHAVIOUR_FORMATION_FORM_UP"]; // escorts never reach their destination when following leader.
 			else if (distance > 0.5 * scannerRange && !pitching_over) 
 			{
 				pitching_over = YES; // Force the ship in a 180 degree turn. Do it here to allow escorts to break out formation for some seconds.
@@ -5200,7 +5211,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			frustration += delta_t;
 			if ((frustration > slowdownTime * 10.0 && slowdownTime > 0)||(frustration > 15.0))	// 10x slowdownTime or 15s of frustration
 			{
-				[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FLY_TO_DESTINATION"];
+				[self noteFrustration:@"BEHAVIOUR_FLY_TO_DESTINATION"];
 				frustration -= slowdownTime * 5.0;	//repeat after another five units of frustration
 			}
 		}
@@ -5396,7 +5407,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			frustration += delta_t;
 			if (frustration > 15.0)	// 15s of frustration
 			{
-				[shipAI reactToMessage:@"FRUSTRATED" context:@"BEHAVIOUR_FLY_THRU_NAVPOINTS"];
+				[self noteFrustration:@"BEHAVIOUR_FLY_THRU_NAVPOINTS"];
 				frustration -= 15.0;	//repeat after another 15s of frustration
 			}
 		}
