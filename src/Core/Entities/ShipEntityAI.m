@@ -823,14 +823,6 @@
 }
 
 
-- (void) performBroadside
-{
-	behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
-	desired_range = 1250 * randf() + 750; // 750 til 2000
-	frustration = 0.0;
-}
-
-
 - (void) scanForNearestMerchantman
 {
 	float				d2, found_d2;
