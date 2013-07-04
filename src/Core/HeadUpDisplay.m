@@ -1147,8 +1147,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				if ([scannedEntity isShip])
 				{
 					ShipEntity *ship = (ShipEntity *)scannedEntity;
-					GLfloat wr = [ship weaponRange];
-					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER)&&(scannedEntity->zero_distance < wr*wr));
+					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
 					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
