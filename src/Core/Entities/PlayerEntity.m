@@ -9042,6 +9042,11 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (int *) targetMemory
+{
+	return target_memory;
+}
+
 - (BOOL) moveTargetMemoryBy:(int)delta
 {
 	unsigned i = 0;

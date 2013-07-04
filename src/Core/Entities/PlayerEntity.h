@@ -480,6 +480,7 @@ typedef enum
 	GLfloat					scanner_zoom_rate;
 	
 	// target memory
+	// TODO: this should use weakrefs
 	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
 	int						target_memory_index;
 	
@@ -814,6 +815,7 @@ typedef enum
 - (void) setScoopsActive;
 
 - (void) clearTargetMemory;
+- (int *) targetMemory;
 - (BOOL) moveTargetMemoryBy:(int)delta;
 
 - (void) printIdentLockedOnForMissile:(BOOL)missile;
