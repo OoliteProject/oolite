@@ -6000,7 +6000,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 	behaviour =		[previousCondition oo_intForKey:@"behaviour"];
 	[_primaryTarget release];
-	_primaryTarget =	[previousCondition objectForKey:@"primaryTarget"];
+	_primaryTarget =	[[previousCondition objectForKey:@"primaryTarget"] weakRetain];
 	desired_range =	[previousCondition oo_floatForKey:@"desired_range"];
 	desired_speed =	[previousCondition oo_floatForKey:@"desired_speed"];
 	destination =	[previousCondition oo_vectorForKey:@"destination"];
