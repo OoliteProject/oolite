@@ -324,16 +324,16 @@ this.systemWillRepopulate = function()
 				if (Math.random() < 0.2)
 				{
 						var newtrader = system.addShips("sunskim-trader",1,[0,0,0],7500)[0];
-						var reqIns = 1000/(1+newskimmer.maxSpeed);
+						var reqIns = 1000/(1+newtrader.maxSpeed);
 						if (reqIns > 12) 
 						{
 								reqIns = 12;
 						}
-						if (newskimmer.heatInsulation < reqIns)
+						if (newtrader.heatInsulation < reqIns)
 						{
-								newskimmer.heatInsulation = reqIns;
+								newtrader.heatInsulation = reqIns;
 						}
-						newskimmer.switchAI("route2sunskimAI.plist");
+						newtrader.switchAI("route2sunskimAI.plist");
 				}
 				else
 				{
