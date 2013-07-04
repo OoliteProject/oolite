@@ -49,4 +49,23 @@ MA 02110-1301, USA.
 
 - (BOOL) suggestEscortTo:(ShipEntity *)mother;
 
+- (void) groupAttackTarget;
+
+- (void) performFlyToRangeFromDestination;
+- (void) performIdle;
+- (void) performHold;
+- (void) performAttack;
+- (void) performCollect;
+
+- (void) performIntercept;
+
+- (void) performFlee;
+
+- (void) performScriptedAI;
+- (void) performScriptedAttackAI;
+- (void) performFaceDestination;
+- (void) performLandOnPlanet;
+- (void) performEscort;
+- (void) performMining;
+
 @end

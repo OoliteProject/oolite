@@ -97,15 +97,8 @@
 
 - (void) setThrustFactorTo:(NSString *)thrustFactorString;
 
-- (void) performFlyToRangeFromDestination;
-
-- (void) performIdle;
-
-- (void) performHold;
 
 - (void) setTargetToPrimaryAggressor;
-
-- (void) performAttack;
 
 - (void) scanForNearestMerchantman;
 - (void) scanForRandomMerchantman;
@@ -118,15 +111,6 @@
 
 - (void) checkForFullHold;
 
-- (void) performCollect;
-
-- (void) performIntercept;
-
-- (void) performFlee;
-
-- (void) performScriptedAI;
-- (void) performScriptedAttackAI;
-
 - (void) requestDockingCoordinates;
 
 - (void) getWitchspaceEntryCoordinates;
@@ -134,12 +118,9 @@
 - (void) setDestinationFromCoordinates;
 - (void) setCoordinatesFromPosition;
 
-- (void) performFaceDestination;
-
 - (void) fightOrFleeMissile;
 
 - (void) setCourseToPlanet;
-- (void) performLandOnPlanet;
 - (void) setTakeOffFromPlanet;
 - (void) landOnPlanet;
 
@@ -189,11 +170,7 @@
 
 - (void) escortCheckMother;
 
-- (void) performEscort;
-
 - (void) checkGroupOddsVersusTarget;
-
-- (void) groupAttackTarget;
 
 - (void) scanForFormationLeader;
 
@@ -221,8 +198,6 @@
 - (void) recallStoredTarget;
 
 - (void) scanForRocks;
-
-- (void) performMining;
 
 - (void) setDestinationToDockingAbort;
 
@@ -317,11 +292,163 @@
 }
 
 
-- (void) performTumble
+- (void) groupAttackTarget
 {
-	stick_roll = max_flight_roll*2.0*(randf() - 0.5);
-	stick_pitch = max_flight_pitch*2.0*(randf() - 0.5);
-	behaviour = BEHAVIOUR_TUMBLE;
+	NSEnumerator		*shipEnum = nil;
+	ShipEntity			*target = nil, *ship = nil;
+
+	target = [self primaryTarget];
+	
+	if (target == nil) return;
+	
+	if ([self group] == nil)		// ship is alone!
+	{
+		[self setFoundTarget:target];
+		[shipAI reactToMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
+		[self doScriptEvent:OOJSID("helpRequestReceived") withArgument:self andArgument:target];
+		return;
+	}
+	
+	// -memberArray creates a new collection, which is needed because the group might be mutated by the members' AIs.
+	NSArray *groupMembers = [[self group] memberArray];
+	for (shipEnum = [groupMembers objectEnumerator]; (ship = [shipEnum nextObject]); )
+	{
+		[ship setFoundTarget:target];
+		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
+		[ship doScriptEvent:OOJSID("helpRequestReceived") withArgument:self andArgument:target];
+
+		if ([ship escortGroup] != [ship group] && [[ship escortGroup] count] > 1) // Ship has a seperate escort group.
+		{
+			ShipEntity		*escort = nil;
+			NSEnumerator	*shipEnum = nil;
+			NSArray			*escortMembers = [[ship escortGroup] memberArrayExcludingLeader];
+			for (shipEnum = [escortMembers objectEnumerator]; (escort = [shipEnum nextObject]); )
+			{
+				[escort setFoundTarget:target];
+				[escort reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
+				[escort doScriptEvent:OOJSID("helpRequestReceived") withArgument:self andArgument:target];
+			}
+		}
+	}
+}
+
+
+- (void) performAttack
+{
+	behaviour = BEHAVIOUR_ATTACK_TARGET;
+	desired_range = 1250 * randf() + 750; // 750 til 2000
+	frustration = 0.0;
+}
+
+
+- (void) performCollect
+{
+	behaviour = BEHAVIOUR_COLLECT_TARGET;
+	frustration = 0.0;
+}
+
+
+- (void) performEscort
+{
+	if(behaviour != BEHAVIOUR_FORMATION_FORM_UP) 
+	{
+		behaviour = BEHAVIOUR_FORMATION_FORM_UP;
+		frustration = 0.0; // behavior changed, reset frustration.
+	}
+}
+
+
+- (void) performFaceDestination
+{
+	behaviour = BEHAVIOUR_FACE_DESTINATION;
+	frustration = 0.0;
+}
+
+
+- (void) performFlee
+{
+	behaviour = BEHAVIOUR_FLEE_TARGET;
+
+	[self setEvasiveJink:400.0];
+
+	frustration = 0.0;
+}
+
+
+- (void) performFlyToRangeFromDestination
+{
+	behaviour = BEHAVIOUR_FLY_RANGE_FROM_DESTINATION;
+	frustration = 0.0;
+}
+
+
+- (void) performHold
+{
+	desired_speed = 0.0;
+	behaviour = BEHAVIOUR_TRACK_TARGET;
+	frustration = 0.0;
+}
+
+
+- (void) performIdle
+{
+	behaviour = BEHAVIOUR_IDLE;
+	frustration = 0.0;
+}
+
+
+- (void) performIntercept
+{
+	behaviour = BEHAVIOUR_INTERCEPT_TARGET;
+	frustration = 0.0;
+}
+
+
+- (void) performLandOnPlanet
+{
+	OOPlanetEntity	*nearest = [self findNearestPlanet];
+	if (isNearPlanetSurface)
+	{
+		destination = [nearest position];
+		behaviour = BEHAVIOUR_LAND_ON_PLANET;
+		planetForLanding = [nearest universalID];
+	}
+	else
+	{
+		behaviour = BEHAVIOUR_IDLE;
+		[shipAI message:@"NO_PLANET_NEARBY"];
+	}
+	
+	frustration = 0.0;
+}
+
+
+- (void) performMining
+{
+	Entity *target = [self primaryTarget];
+	// mining is not seen as hostile behaviour, so ensure it is only used against rocks.
+	if (target &&  [target scanClass] == CLASS_ROCK)
+	{
+		behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
+		frustration = 0.0;
+	}
+	else
+	{	
+		[self noteLostTargetAndGoIdle];
+	}
+}
+
+
+- (void) performScriptedAI
+{
+	behaviour = BEHAVIOUR_SCRIPTED_AI;
+	frustration = 0.0;
+}
+
+
+- (void) performScriptedAttackAI
+{
+	behaviour = BEHAVIOUR_SCRIPTED_ATTACK_AI;
 	frustration = 0.0;
 }
 
@@ -330,6 +457,15 @@
 {
 	behaviour = BEHAVIOUR_STOP_STILL;
 	desired_speed = 0.0;
+	frustration = 0.0;
+}
+
+
+- (void) performTumble
+{
+	stick_roll = max_flight_roll*2.0*(randf() - 0.5);
+	stick_pitch = max_flight_pitch*2.0*(randf() - 0.5);
+	behaviour = BEHAVIOUR_TUMBLE;
 	frustration = 0.0;
 }
 
@@ -552,13 +688,6 @@
 	desired_range = fmax(maxFlightSpeed / max_flight_pitch / 6, 50.0); // some ships need a longer range to reach a waypoint.
 }
 
-- (void) performFlyToRangeFromDestination
-{
-	behaviour = BEHAVIOUR_FLY_RANGE_FROM_DESTINATION;
-	frustration = 0.0;
-}
-
-
 - (void) setSpeedTo:(NSString *)speedString
 {
 	desired_speed = [speedString doubleValue];
@@ -578,21 +707,6 @@
 - (void) setThrustFactorTo:(NSString *)thrustFactorString
 {
 	thrust = OOClamp_0_1_f([thrustFactorString doubleValue]) * max_thrust;
-}
-
-
-- (void) performIdle
-{
-	behaviour = BEHAVIOUR_IDLE;
-	frustration = 0.0;
-}
-
-
-- (void) performHold
-{
-	desired_speed = 0.0;
-	behaviour = BEHAVIOUR_TRACK_TARGET;
-	frustration = 0.0;
 }
 
 
@@ -643,14 +757,6 @@
 	{
 		[self addDefenseTarget:primeAggressor];
 	}
-}
-
-
-- (void) performAttack
-{
-	behaviour = BEHAVIOUR_ATTACK_TARGET;
-	desired_range = 1250 * randf() + 750; // 750 til 2000
-	frustration = 0.0;
 }
 
 
@@ -852,42 +958,7 @@
 }
 
 
-- (void) performCollect
-{
-	behaviour = BEHAVIOUR_COLLECT_TARGET;
-	frustration = 0.0;
-}
 
-
-- (void) performIntercept
-{
-	behaviour = BEHAVIOUR_INTERCEPT_TARGET;
-	frustration = 0.0;
-}
-
-
-- (void) performFlee
-{
-	behaviour = BEHAVIOUR_FLEE_TARGET;
-
-	[self setEvasiveJink:400.0];
-
-	frustration = 0.0;
-}
-
-
-- (void) performScriptedAI
-{
-	behaviour = BEHAVIOUR_SCRIPTED_AI;
-	frustration = 0.0;
-}
-
-
-- (void) performScriptedAttackAI
-{
-	behaviour = BEHAVIOUR_SCRIPTED_ATTACK_AI;
-	frustration = 0.0;
-}
 
 
 - (void) getWitchspaceEntryCoordinates
@@ -931,13 +1002,6 @@
 - (void) setCoordinatesFromPosition
 {
 	coordinates = position;
-}
-
-
-- (void) performFaceDestination
-{
-	behaviour = BEHAVIOUR_FACE_DESTINATION;
-	frustration = 0.0;
 }
 
 
@@ -1060,25 +1124,6 @@
 	{
 		OOLog(@"ai.setTakeOffFromPlanet.noPlanet", @"***** Error. Planet not found during take off!");
 	}
-}
-
-
-- (void) performLandOnPlanet
-{
-	OOPlanetEntity	*nearest = [self findNearestPlanet];
-	if (isNearPlanetSurface)
-	{
-		destination = [nearest position];
-		behaviour = BEHAVIOUR_LAND_ON_PLANET;
-		planetForLanding = [nearest universalID];
-	}
-	else
-	{
-		behaviour = BEHAVIOUR_IDLE;
-		[shipAI message:@"NO_PLANET_NEARBY"];
-	}
-	
-	frustration = 0.0;
 }
 
 
@@ -1671,16 +1716,6 @@
 }
 
 
-- (void) performEscort
-{
-	if(behaviour != BEHAVIOUR_FORMATION_FORM_UP) 
-	{
-		behaviour = BEHAVIOUR_FORMATION_FORM_UP;
-		frustration = 0.0; // behavior changed, reset frustration.
-	}
-}
-
-
 - (void) checkGroupOddsVersusTarget
 {
 	NSUInteger ownGroupCount = [[self group] count] + (ranrot_rand() & 3);			// add a random fudge factor
@@ -1701,41 +1736,6 @@
 }
 
 
-- (void) groupAttackTarget
-{
-	NSEnumerator		*shipEnum = nil;
-	ShipEntity			*target = nil, *ship = nil;
-	
-	if ([self primaryTarget] == nil) return;
-	
-	if ([self group] == nil)		// ship is alone!
-	{
-		[self setFoundTarget:[self primaryTarget]];
-		[shipAI reactToMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
-		return;
-	}
-	
-	target = [self primaryTarget];
-	
-	// -memberArray creates a new collection, which is needed because the group might be mutated by the members' AIs.
-	NSArray *groupMembers = [[self group] memberArray];
-	for (shipEnum = [groupMembers objectEnumerator]; (ship = [shipEnum nextObject]); )
-	{
-		[ship setFoundTarget:target];
-		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
-		if ([ship escortGroup] != [ship group] && [[ship escortGroup] count] > 1) // Ship has a seperate escort group.
-		{
-			ShipEntity		*escort = nil;
-			NSEnumerator	*shipEnum = nil;
-			NSArray			*escortMembers = [[ship escortGroup] memberArrayExcludingLeader];
-			for (shipEnum = [escortMembers objectEnumerator]; (escort = [shipEnum nextObject]); )
-			{
-				[escort setFoundTarget:target];
-				[escort reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
-			}
-		}
-	}
-}
 
 
 - (void) scanForFormationLeader
@@ -2066,22 +2066,6 @@
 	}
 	
 	[self checkFoundTarget];
-}
-
-
-- (void) performMining
-{
-	Entity *target = [self primaryTarget];
-	// mining is not seen as hostile behaviour, so ensure it is only used against rocks.
-	if (target &&  [target scanClass] == CLASS_ROCK)
-	{
-		behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
-		frustration = 0.0;
-	}
-	else
-	{	
-		[self noteLostTargetAndGoIdle];
-	}
 }
 
 
