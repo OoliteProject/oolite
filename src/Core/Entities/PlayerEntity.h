@@ -743,6 +743,8 @@ typedef enum
 
 - (void) setGuiToStatusScreen;
 - (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged).
+- (NSString *) primedEquipmentName:(NSInteger)offset;
+- (NSUInteger) primedEquipmentCount;
 - (NSArray *) cargoList;
 - (NSArray *) cargoListForScripting;
 - (void) setGuiToSystemDataScreen;

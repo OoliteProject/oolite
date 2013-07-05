@@ -6014,6 +6014,27 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (NSUInteger) primedEquipmentCount
+{
+	return [eqScripts count];
+}
+
+
+- (NSString *) primedEquipmentName:(NSInteger)offset
+{
+	NSUInteger c = [self primedEquipmentCount];
+	NSInteger idx = (primedEquipment+offset)%(c+1);
+	if (idx == c)
+	{
+		return DESC(@"equipment-primed-none-hud-label");
+	}
+	else
+	{
+		return [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:idx] oo_stringAtIndex:0]] name];
+	}
+}
+
+
 - (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing
 {
 	OOWeaponType weaponType = WEAPON_NONE;

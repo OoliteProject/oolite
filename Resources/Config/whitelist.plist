@@ -335,6 +335,7 @@
 		"drawMissileDisplay:",
 		"drawStatusLight:",
 		"drawClock:",
+		"drawPrimedEquipment:",
 		"drawWeaponsOfflineText:",
 		"drawFPSInfoCounter:"
 	);

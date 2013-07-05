@@ -184,6 +184,14 @@
 			y		= 6;
 			y_origin	= -1;
 		},
+		{	// primed equipment, x and y give the location, the size defines the character size, n_bars is the number of items to show (default 1)
+			selector	= "drawPrimedEquipment:";
+			y_origin = -1;
+			x = 156;
+			y = -2;
+			width		= 10;
+			height		= 10;
+		},
 		{	// weapons systems offline text, x and y give the location, the size defines the character size
 			height		= 8;
 			selector	= "drawWeaponsOfflineText:";

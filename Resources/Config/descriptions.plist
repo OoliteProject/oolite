@@ -505,6 +505,8 @@
 	// equipment usage
 	"equipment-primed-@"			= "Equipment primed: %@.";
 	"equipment-primed-none"			= "Equipment primed: none.";
+	"equipment-primed-none-hud-label"			= "None";
+	"equipment-primed-hud-@"			= "Primed: %@";
 	"equipment-primed-none-available"	= "No equipment can be primed.";
 	
 	// Assorted messages sent out by ships etc..
