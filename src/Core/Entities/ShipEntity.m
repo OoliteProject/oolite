@@ -9671,14 +9671,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		_defenseTargets = [[OOWeakSet alloc] init];
 	}
 	
-	[_defenseTargets addObject:[target weakSelf]];
+	[_defenseTargets addObject:target];
 	return YES;
 }
 
 
 - (BOOL) isDefenseTarget:(Entity *)target
 {
-	return [_defenseTargets containsObject:[target weakSelf]];
+	return [_defenseTargets containsObject:target];
 }
 
 
@@ -9691,7 +9691,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) removeDefenseTarget:(Entity *)target
 {
-	[_defenseTargets removeObject:[target weakSelf]];
+	[_defenseTargets removeObject:target];
 }
 
 
