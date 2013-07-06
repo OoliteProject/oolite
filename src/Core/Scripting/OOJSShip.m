@@ -691,7 +691,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 
 		case kShip_extraCargo:
-			*value = INT_TO_JSVAL([entity extraCargo]);
+			return JS_NewNumberValue(context, [entity extraCargo], value);
 			return YES;
 		
 		case kShip_commodity:

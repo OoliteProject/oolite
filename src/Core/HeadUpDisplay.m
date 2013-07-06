@@ -2447,26 +2447,31 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 {
 	if ([PLAYER status] == STATUS_DOCKED)
 	{
-		return; // can't activate equipment while docked
+		// Can't activate equipment while docked
+		return;
 	}
-	int					x, y, i, lines, pec;
-	NSSize				siz;
+	
 	GLfloat				itemColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 	struct CachedInfo	cached;
 	
-	lines = [info oo_intForKey:@"n_bars" defaultValue:1];
-	pec = [PLAYER primedEquipmentCount];
+	NSUInteger lines = [info oo_intForKey:@"n_bars" defaultValue:1];
+	NSInteger pec = (NSInteger)[PLAYER primedEquipmentCount];
 
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
-	x = useDefined(cached.x, PRIMED_DISPLAY_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
-	y = useDefined(cached.y, PRIMED_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
-	siz.width = useDefined(cached.width, PRIMED_DISPLAY_WIDTH);
-	siz.height = useDefined(cached.height, PRIMED_DISPLAY_HEIGHT);
+	NSInteger x = useDefined(cached.x, PRIMED_DISPLAY_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	NSInteger y = useDefined(cached.y, PRIMED_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	
+	NSSize size =
+	{
+		.width = useDefined(cached.width, PRIMED_DISPLAY_WIDTH),
+		.height = useDefined(cached.height, PRIMED_DISPLAY_HEIGHT)
+	};
 
 	if (pec == 0)
 	{
-		return; // don't display if no primed equipment fitted
+		// Don't display if no primed equipment fitted
+		return;
 	}
 
 	GetRGBAArrayFromInfo(info, itemColor);
@@ -2475,23 +2480,23 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	if (lines == 1)
 	{
 		OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
-		OODrawString([NSString stringWithFormat:DESC(@"equipment-primed-hud-@"), [PLAYER primedEquipmentName:0]], x, y, z1, siz);
+		OODrawString([NSString stringWithFormat:DESC(@"equipment-primed-hud-@"), [PLAYER primedEquipmentName:0]], x, y, z1, size);
 	}
 	else
 	{
-		int negative = (lines%2)?(lines-1)/2:lines/2;
-		int positive = lines/2;
-		for (i=-negative;i<=positive;i++)
+		NSInteger negative = (lines % 2) ? (lines - 1) / 2 : lines / 2;
+		NSInteger positive = lines / 2;
+		for (NSInteger i = -negative; i <= positive; i++)
 		{
-			if (i >= -(pec)/2 && i <= (pec+1)/2)
+			if (i >= -(pec) / 2 && i <= (pec + 1) / 2)
 			{
 				// don't display loops if we have more equipment than lines
 				// instead compact the display towards its centre
 				GLfloat alphaScale = 1.0/((i<0)?(1.0-i):(1.0+i));
 				OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]*alphaScale));
-				OODrawString([PLAYER primedEquipmentName:i], x, y, z1, siz);
+				OODrawString([PLAYER primedEquipmentName:i], x, y, z1, size);
 			}
-			y -= siz.height;
+			y -= size.height;
 		}	
 	}
 }

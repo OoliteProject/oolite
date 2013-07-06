@@ -6023,7 +6023,7 @@ static GLfloat		sBaseMass = 0.0;
 - (NSString *) primedEquipmentName:(NSInteger)offset
 {
 	NSUInteger c = [self primedEquipmentCount];
-	NSInteger idx = (primedEquipment+offset)%(c+1);
+	NSUInteger idx = (primedEquipment+offset)%(c+1);
 	if (idx == c)
 	{
 		return DESC(@"equipment-primed-none-hud-label");
