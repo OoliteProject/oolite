@@ -531,10 +531,11 @@ static NSMutableDictionary *sStringCache;
 		case MERGE_SMART:
 			mergeType = @"smart";
 			break;
-		
-		default:
-			OOLog(kOOLogParameterError, @"Unknown dictionary merge mode %u for %@. (This is an internal programming error, please report it.)", mergeMode, fileName);
-			return nil;
+	}
+	if (mergeType == nil)
+	{
+		OOLog(kOOLogParameterError, @"Unknown dictionary merge mode %u for %@. (This is an internal programming error, please report it.)", mergeMode, fileName);
+		return nil;
 	}
 	
 	if (cache)

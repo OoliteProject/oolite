@@ -5035,7 +5035,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	// equipment damage
 	NSEnumerator *eqEnum = [self equipmentEnumerator];
-	OOEquipmentType	*eqType;
+	OOEquipmentType	*eqType = nil;
 	NSString		*system_key;
 	unsigned damageableCounter = 0;
 	GLfloat damageableOdds = 0.0;

@@ -2886,7 +2886,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				JSContext			*JScontext = OOJSAcquireContext();
 				BOOL OK;
-				JSBool allow_addition;
+				JSBool allow_addition = false;
 				jsval result;
 				jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey) , OOJSValueFromNativeObject(JScontext, self) , OOJSValueFromNativeObject(JScontext, context)};
 				

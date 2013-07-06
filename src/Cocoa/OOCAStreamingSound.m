@@ -209,7 +209,7 @@ enum
 }
 
 
-+ (void)feederThread:ignored
++ (void)feederThread:(id)ignored
 {
 	uintptr_t						msgID;
 	void							*param1, *param2;
