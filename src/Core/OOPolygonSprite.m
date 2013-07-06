@@ -98,7 +98,6 @@ static void SVGDumpBeginPrimitive(TessPolygonData *data);
 static void SVGDumpEndPrimitive(TessPolygonData *data);
 static void SVGDumpAppendTriangle(TessPolygonData *data, NSPoint v0, NSPoint v1, NSPoint v2);
 #else
-#define SVGDumpBegin(data) do {} while (0)
 #define SVGDumpEnd(data) do {} while (0)
 #define SVGDumpBeginGroup(data, name) do {} while (0)
 #define SVGDumpEndGroup(data) do {} while (0)

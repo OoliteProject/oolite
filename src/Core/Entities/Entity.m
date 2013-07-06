@@ -39,8 +39,6 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 #import "NSObjectOOExtensions.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.Entity"
-
 #ifndef NDEBUG
 uint32_t gLiveEntityCount = 0;
 size_t gTotalEntityMemory = 0;

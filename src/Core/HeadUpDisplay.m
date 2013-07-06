@@ -46,9 +46,6 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 
 
-#define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
-
-
 #define ONE_SIXTEENTH				0.0625
 #define ONE_SIXTYFOURTH				0.015625
 #define DEFAULT_OVERALL_ALPHA		0.75

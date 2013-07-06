@@ -39,9 +39,6 @@ static NSString * const kOOLogPListFoundationParseError		= @"plist.parse.failed"
 static NSString * const kOOLogPListWrongType				= @"plist.wrongType";
 
 
-#define OOLITE_EXCEPTION_XML_PARSING_FAILURE	@"OOXMLException"
-
-
 #ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
 static NSData *ChangeDTDIfApplicable(NSData *data);
 #endif

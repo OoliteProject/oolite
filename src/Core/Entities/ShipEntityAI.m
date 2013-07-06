@@ -44,8 +44,6 @@
 #import "OOConstToJSString.h"
 #import "OOCollectionExtractors.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.ShipEntityAI"
-
 
 @interface ShipEntity (OOAIPrivate)
 

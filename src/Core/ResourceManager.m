@@ -40,8 +40,6 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOPListScript.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.ResourceManager"
-
 
 static NSString * const kOOLogCacheUpToDate				= @"dataCache.upToDate";
 static NSString * const kOOLogCacheExplicitFlush		= @"dataCache.rebuild.explicitFlush";

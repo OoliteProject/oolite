@@ -203,11 +203,3 @@ static JSBool WormholeSetProperty(JSContext *context, JSObject *this, jsid propI
 
 
 // *** Methods ***
-
-#define GET_THIS_WORMHOLE(THISENT) do { \
-	if (EXPECT_NOT(!JSWormholeGetWormholeEntity(context, OOJS_THIS, &THISENT)))  return NO; /* Exception */ \
-	if (OOIsStaleEntity(THISENT))  OOJS_RETURN_VOID; \
-} while (0)
-
-
-

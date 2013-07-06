@@ -39,8 +39,6 @@ MA 02110-1301, USA.
 #import "OOJSFrameCallbacks.h"
 #import "OOOpenGLExtensionManager.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.GameController"
-
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
 #import <Sparkle/Sparkle.h>

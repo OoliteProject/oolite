@@ -91,8 +91,6 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 
 
-#define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
-
 #define USEMASC 1
 
 

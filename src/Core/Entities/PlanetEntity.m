@@ -44,8 +44,6 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 #import "OOGraphicsResetManager.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.PlanetEntity"
-
 
 #if !OOLITE_MAC_OS_X
 #define NSIntegerMapKeyCallBacks	NSIntMapKeyCallBacks

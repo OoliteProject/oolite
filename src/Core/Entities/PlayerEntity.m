@@ -80,10 +80,6 @@ MA 02110-1301, USA.
 #import "PlayerEntityStickMapper.h"
 
 
-#define kOOLogUnconvertedNSLog @"unclassified.PlayerEntity"
-
-// 10m/s forward drift
-#define	OG_ELITE_FORWARD_DRIFT			10.0f
 #define PLAYER_DEFAULT_NAME				@"Jameson"
 
 enum
