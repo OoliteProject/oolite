@@ -211,7 +211,7 @@ fi
 
 
 # Write changelog.
-if [ $LAST_REVISION -ne 0 ]
+if [ $LAST_REVISION != 0 ]
 then
 	"$GIT" log $LAST_REVISION..$CURRENT_REVISION > $CHANGELOG_FILE
 else
