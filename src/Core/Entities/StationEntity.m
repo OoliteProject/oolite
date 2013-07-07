@@ -465,7 +465,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 	[acc oo_setFloat:speed forKey:@"speed"];
 	[acc oo_setFloat:range forKey:@"range"];
 	[acc setObject:[[station weakRetain] autorelease] forKey:@"station"];
-	[acc oo_setInteger:[station universalID] forKey:@"station_id"]; // TODO: remove
 	[acc oo_setBool:match_rotation forKey:@"match_rotation"];
 	if (ai_message)
 	{

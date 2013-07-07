@@ -115,6 +115,9 @@ static JSBool ShipPerformScriptedAttackAI(JSContext *context, uintN argc, jsval 
 static JSBool ShipPerformStop(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipPerformTumble(JSContext *context, uintN argc, jsval *vp);
 
+static JSBool ShipRequestDockingInstructions(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsval *vp);
+
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
 
@@ -168,6 +171,7 @@ enum
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_destination,			// flight destination, Vector, read/write
 	kShip_displayName,			// name displayed on screen, string, read/write
+	kShip_dockingInstructions,			// name displayed on screen, string, read/write
 	kShip_energyRechargeRate,	// energy recharge rate, float, read-only
 	kShip_entityPersonality,	// per-ship random number, int, read-only
 	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
@@ -290,6 +294,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "desiredSpeed",			kShip_desiredSpeed,			OOJS_PROP_READWRITE_CB },
 	{ "destination",			kShip_destination,			OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
+	{ "dockingInstructions",			kShip_dockingInstructions,			OOJS_PROP_READONLY_CB },
 	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READONLY_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
@@ -433,6 +438,8 @@ static JSFunctionSpec sShipMethods[] =
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
 	{ "requestHelpFromGroup", ShipRequestHelpFromGroup, 1},
+	{ "requestDockingInstructions", ShipRequestDockingInstructions, 0},
+	{ "recallDockingInstructions", ShipRecallDockingInstructions, 0},
 	{ "restoreSubEntities",		ShipRestoreSubEntities,		0 },
 	{ "__runLegacyScriptActions", ShipRunLegacyScriptActions, 2 },	// Deliberately not documented
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
@@ -884,6 +891,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity contractListForScripting];
 			break;
 			
+  	case kShip_dockingInstructions:
+			result = [entity dockingInstructions];
+			break;
+
 		case kShip_scannerDisplayColor1:
 			result = [[entity scannerDisplayColor1] normalizedArray];
 			break;
@@ -2999,6 +3010,34 @@ static JSBool ShipPerformTumble(JSContext *context, uintN argc, jsval *vp)
 	[thisEnt performTumble];
 	
 	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipRequestDockingInstructions(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt requestDockingCoordinates];
+	
+	OOJS_RETURN_OBJECT([thisEnt dockingInstructions]);
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt recallDockingInstructions];
+	
+	OOJS_RETURN_OBJECT([thisEnt dockingInstructions]);
 	
 	OOJS_PROFILE_EXIT
 }

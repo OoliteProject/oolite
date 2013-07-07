@@ -67,4 +67,8 @@ MA 02110-1301, USA.
 
 - (void) broadcastDistressMessage;
 
+- (void) requestDockingCoordinates;
+- (void) recallDockingInstructions;
+
+
 @end

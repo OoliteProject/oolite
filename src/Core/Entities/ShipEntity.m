@@ -12352,6 +12352,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (NSDictionary *) dockingInstructions
+{
+	OOLog(@"docking.debug",@"%@",dockingInstructions);
+	return dockingInstructions;
+}
+
+
 - (void) broadcastThargoidDestroyed
 {
 	[[UNIVERSE findShipsMatchingPredicate:HasRolePredicate

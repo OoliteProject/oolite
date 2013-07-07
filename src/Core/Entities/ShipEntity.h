@@ -1043,6 +1043,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) landOnPlanet:(OOPlanetEntity *)planet;
 
 - (void) abortDocking;
+- (NSDictionary *) dockingInstructions;
 
 - (void) broadcastThargoidDestroyed;
 
