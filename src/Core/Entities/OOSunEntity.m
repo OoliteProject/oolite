@@ -419,7 +419,7 @@ MA 02110-1301, USA.
 	{
 		return;
 	}
-
+	
 	OO_ENTER_OPENGL();
 	
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
@@ -474,18 +474,23 @@ MA 02110-1301, USA.
 			r += width/3.0;
 			break;
 		case 1:
-			r += width/5.0;
+			r += width/15.0;
 			break;
 		}
-		GLfloat z = r * r / z_distance;
 		theta = 0.0;
 		for (i = 0 ; i < 360 ; i++)
 		{
+			GLfloat rm = 1.0;
+			if (j >= 1 && j < 4)
+			{
+				rm = 0.98 + (0.04*(pt0 * (rvalue[i]+rvalue[i+1]+rvalue[i+2]) + pt1 * (rvalue[i+360]+rvalue[i+361]+rvalue[i+362])))/3;
+			}
+			GLfloat z = r * r * rm * rm / z_distance;
 			si = sin(theta);
 			ci = cos(theta);
 			theta += delta;
-			sunVertices[k++] = si * r;
-			sunVertices[k++] = ci * r;
+			sunVertices[k++] = si * r * rm;
+			sunVertices[k++] = ci * r * rm;
 			sunVertices[k++] = -z;
 		}
 		theta += delta/2.0;
@@ -511,7 +516,7 @@ MA 02110-1301, USA.
 			alpha = 0.1;
 			break;
 		case 2:
-			color = discColor;
+			color = outerCoronaColor;
 			alpha = 0.6;
 			break;
 		case 1:

@@ -3857,7 +3857,7 @@ static const OOMatrix	starboard_matrix =
 						}
 						
 						// experimental - atmospheric fog
-						fogging = inAtmosphere;
+						fogging = (inAtmosphere && ![drawthing isStellarObject]);
 						
 						if (fogging)
 						{
