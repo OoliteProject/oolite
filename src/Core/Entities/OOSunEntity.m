@@ -42,21 +42,9 @@ MA 02110-1301, USA.
 
 @interface OOSunEntity (Private)
 
-- (void) drawActiveCoronaWithInnerRadius:(float)inner_radius
-								   width:(float)width
-									step:(float)step
-							   zDistance:(float)z_distance
-								   color:(GLfloat[4])color
-									  rv:(int)rv;
-
-- (void) drawActiveCoronasWithInnerRadius:(float)inner_radius
-								   width:(float)width
-									step:(float)step
-							   zDistance:(float)z_distance
-									centreColor:(GLfloat[4])discColor
-								   innerColor:(GLfloat[4])innerColor
-								   middleColor:(GLfloat[4])middleColor
-															 outerColor:(GLfloat[4])outerColor;
+- (void) calculateGLArrays:(GLfloat)inner_radius width:(GLfloat)width zDistance:(GLfloat)z_distance;
+- (void) drawOpaqueParts;
+- (void) drawTranslucentParts;
 
 @end
 
@@ -336,30 +324,42 @@ MA 02110-1301, USA.
 
 
 
-// TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	if (![UNIVERSE breakPatternHide] && !translucent)  [self drawUnconditionally];
+	if (![UNIVERSE breakPatternHide])
+	{
+		if (translucent)
+		{
+			[self drawTranslucentParts];
+		}
+		else
+		{
+			[self drawOpaqueParts];
+		}
+	}
 }
 
 
-- (void) drawUnconditionally
+- (void) drawOpaqueParts
 {
-	int subdivideLevel = 2;		// 4 is probably the maximum!
-	
 	float sqrt_zero_distance = sqrt(cam_zero_distance);
-	float drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
-	float drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
-	
-	if (cam_zero_distance > 0.0)
-	{
-		subdivideLevel = 2 + floor(drawRatio2);
-		if (subdivideLevel > 4)
-			subdivideLevel = 4;
-	}
+
 	OO_ENTER_OPENGL();
 	
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+
+	if ([UNIVERSE reducedDetail])
+	{	
+		int subdivideLevel = 2;		// 4 is probably the maximum!
+		float drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
+		float drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
+	
+		if (cam_zero_distance > 0.0)
+		{
+			subdivideLevel = 2 + floor(drawRatio2);
+			if (subdivideLevel > 4)
+				subdivideLevel = 4;
+		}
 	
 	/*
 	 
@@ -370,69 +370,42 @@ MA 02110-1301, USA.
 	distances.
 	 
 	*/
-	BOOL ignoreDepthBuffer = cam_zero_distance > collision_radius * collision_radius * 25;
+		BOOL ignoreDepthBuffer = cam_zero_distance > collision_radius * collision_radius * 25;
 	
-	int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
+		int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
 
-	if ([UNIVERSE reducedDetail])
-	{	
-	// Close enough not to draw flat?
-	if (ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
-	
-	OOGL(glDisable(GL_BLEND));
-	OOGL(glColor3fv(discColor));
-	
-	// FIXME: use vertex arrays
-	OOGLBEGIN(GL_TRIANGLE_FAN);
-	GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
-	OOGLEND();
-	
-	OOGL(glEnable(GL_BLEND));
+		// Close enough not to draw flat?
+		if (ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
+		
+		OOGL(glColor3fv(discColor));
+		// FIXME: use vertex arrays
+		OOGL(glDisable(GL_BLEND));
+		OOGLBEGIN(GL_TRIANGLE_FAN);
+		GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
+		OOGLEND();
+		OOGL(glEnable(GL_BLEND));
 
-	if (ignoreDepthBuffer)  OOGL(glEnable(GL_DEPTH_TEST)); 
+		if (ignoreDepthBuffer)  OOGL(glEnable(GL_DEPTH_TEST)); 
 	
 	}
 	else
 	{
-/*		if (cam_zero_distance < lim4k)
-		{
-			[self drawActiveCoronaWithInnerRadius:collision_radius
-											width:cor4k
-											 step:steps
-										zDistance:sqrt_zero_distance
-											color:innerCoronaColor
-											   rv:6];
-		}
-		if (0 && cam_zero_distance < lim8k)
-		{
-			[self drawActiveCoronaWithInnerRadius:collision_radius
-											width:cor8k
-											 step:steps
-										zDistance:sqrt_zero_distance
-											color:middleCoronaColor
-											   rv:3];
-		}
-		if (cam_zero_distance < lim16k)
-		{
-			[self drawActiveCoronaWithInnerRadius:collision_radius
+		[self calculateGLArrays:collision_radius
 											width:cor16k
-											 step:steps
-										zDistance:sqrt_zero_distance
-											color:outerCoronaColor
-											   rv:0];
-												 } */
-		if (cam_zero_distance < lim16k)
-		{
-			[self drawActiveCoronasWithInnerRadius:collision_radius
-											width:cor16k
-											 step:1
-										zDistance:sqrt_zero_distance
-											centreColor:discColor
-											innerColor:discColor
-											middleColor:discColor
-											outerColor:outerCoronaColor
-											];
-		}
+									zDistance:sqrt_zero_distance];
+		OOGL(glDisable(GL_BLEND));
+		OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
+		
+		OOGL(glEnableClientState(GL_COLOR_ARRAY));
+		OOGL(glColorPointer(4, GL_FLOAT, 0, sunColors));
+		
+		OOGL(glDrawElements(GL_TRIANGLES, 3*360, GL_UNSIGNED_INT, sunTriangles));
+
+		OOGL(glDisableClientState(GL_COLOR_ARRAY));
+		OOGL(glEnable(GL_BLEND));
+		OOGLEND();
+
+		
 	}
 	
 	OOVerifyOpenGLState();
@@ -440,118 +413,49 @@ MA 02110-1301, USA.
 }
 
 
-- (void) drawActiveCoronaWithInnerRadius:(float)inner_radius
-								   width:(float)width
-									step:(float)step
-							   zDistance:(float)z_distance
-								   color:(GLfloat[4])color
-									  rv:(int)rv
+- (void) drawTranslucentParts
 {
-	if (EXPECT_NOT(inner_radius >= z_distance))  return;	// inside the sphere
-	
-	GLfloat outer_radius = inner_radius + width;
-	
-	NSRange activity = { 0.34, 1.0 };
-	
-	GLfloat				si, ci;
-	GLfloat				s0, c0, s1, c1;
-	
-	GLfloat				r = inner_radius;
-	GLfloat				c = outer_radius;
-	GLfloat				z = z_distance;
-	GLfloat				x = sqrt(z * z - r * r);
-	
-	GLfloat				r1 = r * x / z;
-	GLfloat				z1 = r * r / z;
-	
-	GLfloat				r0 = c * x / z;
-	GLfloat				z0 = c * c / z;
-	
-	GLfloat				rv0, rv1, rv2;
-	GLfloat				pt0, pt1;
-	
-	unsigned short		i;
-	GLfloat				theta = 0.0f, delta;
-	
-	delta = step * M_PI / 180.0f;	// Convert step from degrees to radians
-	pt0=(1.0 - corona_stage) * corona_blending;
-	pt1=corona_stage * corona_blending;
-	
+	if ([UNIVERSE reducedDetail]) 
+	{
+		return;
+	}
+
 	OO_ENTER_OPENGL();
 	
-	OOGLBEGIN(GL_TRIANGLE_STRIP);
-		for (i = 0; i < 360; i += step)
-		{
-			si = sin(theta);
-			ci = cos(theta);
-			theta += delta;
-			
-			rv0 = pt0 * rvalue[i + rv] + pt1 * rvalue[i + rv + 360];
-			rv1 = pt0 * rvalue[i + rv + 1] + pt1 * rvalue[i + rv + 361];
-			rv2 = pt0 * rvalue[i + rv + 2] + pt1 * rvalue[i + rv + 362];
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 
-			s1 = r1 * si;
-			c1 = r1 * ci;
-			glColor4f(color[0] * (activity.location + rv0*activity.length), color[1] * (activity.location + rv1*activity.length), color[2] * (activity.location + rv2*activity.length), color[3]);
-			glVertex3f(s1, c1, -z1);
+	OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
 
-			s0 = r0 * si;
-			c0 = r0 * ci;
-			glColor4f(color[0], color[1], color[2], color[3]/2.0);
-			glVertex3f(s0, c0, -z0);
-		}
-	
-		rv0 = pt0 * rvalue[rv] + pt1 * rvalue[360 + rv];
-		rv1 = pt0 * rvalue[1 + rv] + pt1 * rvalue[361 + rv];
-		rv2 = pt0 * rvalue[2 + rv] + pt1 * rvalue[362 + rv];
-		
-		glColor4f(color[0] * (activity.location + rv0*activity.length), color[1] * (activity.location + rv1*activity.length), color[2] * (activity.location + rv2*activity.length), color[3]);
-		glVertex3f(0.0, r1, -z1);	//repeat the zero value to close
-		glColor4f(color[0], color[1], color[2], 0);
-		glVertex3f(0.0, r0, -z0);	//repeat the zero value to close
+	OOGL(glEnableClientState(GL_COLOR_ARRAY));
+	OOGL(glColorPointer(4, GL_FLOAT, 0, sunColors));
+	OOGL(glDrawElements(GL_TRIANGLES, 24*360, GL_UNSIGNED_INT, sunTriangles+(3*360)));
+
+	OOGL(glDisableClientState(GL_COLOR_ARRAY));
+
 	OOGLEND();
+
+
 }
 
-- (void) drawActiveCoronasWithInnerRadius:(float)inner_radius
-								   width:(float)width
-									step:(float)step
-							   zDistance:(float)z_distance
-									centreColor:(GLfloat[4])centreColor
-								   innerColor:(GLfloat[4])innerColor
-								   middleColor:(GLfloat[4])middleColor
-								   outerColor:(GLfloat[4])outerColor
+- (void) calculateGLArrays:(GLfloat)inner_radius width:(GLfloat)width zDistance:(GLfloat)z_distance
 {
-	if (EXPECT_NOT(inner_radius >= z_distance))  return;	// inside the sphere
+//	if (EXPECT_NOT(inner_radius >= z_distance))  return;	// inside the sphere
 	
 	GLfloat activity[8] = {0.84, 0.74, 0.64, 0.54, 
 												 0.3 , 0.4 , 0.7 , 0.8};
 	
 	GLfloat				si, ci;
-/*	GLfloat				s0, c0, s1, c1;
-	
-	GLfloat				r = inner_radius;
-	GLfloat				c = outer_radius;
-	GLfloat				z = z_distance;
-	GLfloat				x = sqrt(z * z - r * r);
-	
-	GLfloat				r1 = r * x / z;
-	GLfloat				z1 = r * r / z;
-	
-	GLfloat				r0 = c * x / z;
-	GLfloat				z0 = c * c / z;
-*/
 	GLfloat				rv0, rv1, rv2, c0, c1, c2;
 	GLfloat				pt0, pt1; 
 	
 	unsigned short		i, j, k;
 	GLfloat				theta = 0.0f, delta;
-	delta = step * M_PI / 180.0f;	// Convert step from degrees to radians
+	delta = M_PI / 180.0f;	// Convert step from degrees to radians
 	pt0=(1.0 - corona_stage) * corona_blending;
 	pt1=corona_stage * corona_blending;
 	
 	OO_ENTER_OPENGL();
 
-	GLfloat sunVertices[1801*3];
 	sunVertices[0] = 0.0;
 	sunVertices[1] = 0.0;
 	sunVertices[2] = 0.0;
@@ -587,12 +491,7 @@ MA 02110-1301, USA.
 		theta += delta/2.0;
 	}
 
-	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-	OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
-
 	GLfloat blackColor[4] = {0.0,0.0,0.0,0.0};
-	GLfloat whiteColor[4] = {1.0,1.0,1.0,1.0};
-	GLfloat sunColors[1801*4];
 	k=0;
 	sunColors[k++] = discColor[0];
 	sunColors[k++] = discColor[1];
@@ -608,15 +507,15 @@ MA 02110-1301, USA.
 			alpha = 0.0;
 			break;
 		case 3:
-			color = outerColor;
+			color = outerCoronaColor;
 			alpha = 0.1;
 			break;
 		case 2:
-			color = middleColor;
+			color = discColor;
 			alpha = 0.6;
 			break;
 		case 1:
-			color = innerColor;
+			color = discColor;
 			alpha = 0.95;
 			break;
 		case 0:
@@ -653,20 +552,6 @@ MA 02110-1301, USA.
 			}	
 		}
 	}
-
-	OOGL(glEnableClientState(GL_COLOR_ARRAY));
-	OOGL(glColorPointer(4, GL_FLOAT, 0, sunColors));
-
-	OOGL(glDisable(GL_BLEND));
-	OOGL(glDrawElements(GL_TRIANGLES, 3*360, GL_UNSIGNED_INT, sunTriangles));
-	OOGL(glEnable(GL_BLEND));
-
-	OOGL(glDrawElements(GL_TRIANGLES, 24*360, GL_UNSIGNED_INT, sunTriangles+(3*360)));
-
-//	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-	OOGL(glDisableClientState(GL_COLOR_ARRAY));
-
-	OOGLEND();
 }
 
 

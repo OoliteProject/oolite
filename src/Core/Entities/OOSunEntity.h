@@ -60,7 +60,9 @@ MA 02110-1301, USA.
 	float					corona_blending;
 
 	GLuint         sunTriangles[3240*3];
-	
+	GLfloat sunVertices[1801*3];
+	GLfloat sunColors[1801*4];
+
 	OOTimeDelta				_novaCountdown;
 	OOTimeDelta				_novaExpansionTimer;
 	float					_novaExpansionRate;
@@ -80,7 +82,5 @@ MA 02110-1301, USA.
 - (BOOL) willGoNova;
 - (BOOL) goneNova;
 - (void) setGoingNova:(BOOL) yesno inTime:(double)interval;
-
-- (void) drawUnconditionally;
 
 @end
