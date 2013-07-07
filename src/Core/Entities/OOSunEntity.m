@@ -555,6 +555,42 @@ MA 02110-1301, USA.
 }
 
 
+- (void) drawStarGlare
+{
+	OO_ENTER_OPENGL();
+
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+	
+	float sqrt_zero_distance = sqrt(cam_zero_distance);
+	double alt = sqrt_zero_distance - collision_radius;
+	if (EXPECT_NOT(alt < 0))
+	{
+		return;
+	}
+	double corona = cor16k/1.5;
+	if (corona > alt)
+	{
+		double alpha = 1-(alt/corona);
+		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
+		NSSize		siz =	[[UNIVERSE gui]	size];
+		GLfloat z = [[UNIVERSE gameView] display_z];
+		OOGL(glColor4fv(glareColor));
+
+		OOGLBEGIN(GL_QUADS);
+		glVertex3f(siz.width, siz.height, z);
+		glVertex3f(siz.width, -siz.height, z);
+		glVertex3f(-siz.width, -siz.height, z);
+		glVertex3f(-siz.width, siz.height, z);
+		OOGLEND();
+
+	}
+	
+
+	OOGLEND();
+}
+
+
+
 - (BOOL) changeSunProperty:(NSString *)key withDictionary:(NSDictionary*) dict
 {
 	id	object = [dict objectForKey:key];

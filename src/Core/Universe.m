@@ -3885,7 +3885,15 @@ static const OOMatrix	starboard_matrix =
 			}
 			
 			OOGL(glPopMatrix()); //restore saved flat viewpoint
-			
+
+			if (EXPECT(!displayGUI || demoShipMode))
+			{
+				if (cachedSun)
+				{
+					[cachedSun drawStarGlare];
+				}
+			}
+
 			OOCheckOpenGLErrors(@"Universe after drawing entities");
 			OOLog(@"universe.profile.draw",@"Begin HUD");
 			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.

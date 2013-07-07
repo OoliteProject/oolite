@@ -83,4 +83,7 @@ MA 02110-1301, USA.
 - (BOOL) goneNova;
 - (void) setGoingNova:(BOOL) yesno inTime:(double)interval;
 
+- (void) drawStarGlare;
+
+
 @end
