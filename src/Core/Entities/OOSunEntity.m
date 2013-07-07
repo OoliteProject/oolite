@@ -453,8 +453,6 @@ MA 02110-1301, USA.
 	delta = M_PI / 180.0f;	// Convert step from degrees to radians
 	pt0=(1.0 - corona_stage) * corona_blending;
 	pt1=corona_stage * corona_blending;
-	
-	OO_ENTER_OPENGL();
 
 	sunVertices[0] = 0.0;
 	sunVertices[1] = 0.0;
