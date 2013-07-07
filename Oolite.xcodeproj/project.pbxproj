@@ -1347,6 +1347,7 @@
 		1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConvertSystemDescriptions.m; sourceTree = "<group>"; };
 		1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OldSchoolPropertyListWriting.h; sourceTree = "<group>"; };
 		1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OldSchoolPropertyListWriting.m; sourceTree = "<group>"; };
+		1A0730E817888C44008A1829 /* oolite-warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "oolite-warnings.xcconfig"; path = "src/Cocoa/oolite-warnings.xcconfig"; sourceTree = "<group>"; };
 		1A0942C712D7C011003B6273 /* OOJSFrameCallbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSFrameCallbacks.h; sourceTree = "<group>"; };
 		1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSFrameCallbacks.m; sourceTree = "<group>"; };
 		1A0C3EDD1193306B007935E5 /* oolite-dust.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-dust.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
@@ -3167,11 +3168,12 @@
 			isa = PBXGroup;
 			children = (
 				1A9407BF0BAF7032005F6CF3 /* GNUmakefile */,
-				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
-				1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */,
-				1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */,
 				1ABFEE2110507987005AA752 /* oolite-nonshared.xcconfig */,
+				1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */,
 				1A6A3A7E1135E0F200697AF8 /* oolite-snapshot.xcconfig */,
+				1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */,
+				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
+				1A0730E817888C44008A1829 /* oolite-warnings.xcconfig */,
 				1AD5A81A12D3A9FD00B62503 /* exports-debug-32.exp */,
 				1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */,
 				1A1B24C313293ED2007A0940 /* exports-release.exp */,
@@ -4131,7 +4133,6 @@
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
@@ -4181,7 +4182,6 @@
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
@@ -4245,7 +4245,6 @@
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";

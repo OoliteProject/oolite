@@ -533,7 +533,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 
 - (NSString *)description
 {
-	NSString						*result, *stateString;
+	NSString						*result, *stateString = nil;
 	
 	[gOOCASoundSyncLock lock];
 	switch ((States)_state)
@@ -557,9 +557,10 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		case kState_Broken:
 			stateString = [NSString stringWithFormat:@"broken (%@)", AudioErrorShortNSString(_error)];
 			break;
-		
-		default:
-			stateString = [NSString stringWithFormat:@"unknown (%u)", _state];
+	}
+	if (stateString == nil)
+	{
+		stateString = [NSString stringWithFormat:@"unknown (%u)", _state];
 	}
 	
 	result = [NSString stringWithFormat:@"<%@ %p>{ID=%u, state=%@, sound=%@}", [self className], self, _id, stateString, _sound];

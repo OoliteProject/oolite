@@ -18,7 +18,9 @@ This file is hereby placed in the public domain.
 #import <Carbon/Carbon.h>
 
 
+#ifndef NDEBUG
 #define CASE(foo) case foo: return @#foo
+#endif
 
 
 #ifndef NDEBUG

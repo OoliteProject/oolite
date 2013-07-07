@@ -2364,7 +2364,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	NSMutableArray		*flags = nil;
 	NSString			*flagsString = nil;
-	NSString			*alertString = nil;
+	NSString			*alertString = @"*** ERROR: UNKNOWN ALERT LEVEL ***";
 	
 	[super dumpSelfState];
 	
@@ -2381,9 +2381,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		case STATION_ALERT_LEVEL_RED:
 			alertString = @"red";
 			break;
-		
-		default:
-			alertString = @"*** ERROR: UNKNOWN ALERT LEVEL ***";
 	}
 	
 	OOLog(@"dumpState.stationEntity", @"Alert level: %@", alertString);

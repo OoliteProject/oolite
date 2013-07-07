@@ -1,0 +1,43 @@
+// The vast majority of format warnings in 32-bit will be using %l{diux} for
+// NS[U]Integer, which is perfectly safe. It's possible suppressing this will
+// miss some real bugs, but not too likely, and casting everywhere is too ugly.
+OO_ARCH_WARNING_FLAGS					=
+OO_ARCH_WARNING_FLAGS[arch=i386]		= -Wno-format
+
+
+// Start off with all possible warnings, and make a stable subset errors.
+OO_LOTS_OF_WARNINGS						= -Weverything -Werror=all -Werror=extra
+
+// Trim off stylistic warnings from -Wall or -Wextra that we don't want.
+OO_WARNING_EXCEPTIONS					= -Wno-unused-parameter -Wno-missing-field-initializers
+
+// Disable stuff from -Weverything that we don't want.
+// -Wpedantic: Even I can't be bothered to conform to -Wpedantic. Yet.
+// -Wgnu: We use GNU extensions freely.
+// -Wundef: Warns about legal and normal use of the preprocessor.
+// -Wobjc-interface-ivars, Wdirect-ivar-access, -Wno-receiver-forward-class:
+//     Newfangled Objective-C style stuff we can't adopt while being
+//     compatible with old versions of GNUstep and GCC.
+// -Wpadded: Points out normal and exepected compiler behaviour.
+// -Wfloat-equal: Would be a good warning if it ignored comparison to 0.
+// -Wswitch-enum: Extra-pedantic version of -Wswitch which complains about
+//     missed enum cases even if there's a default case.
+// -Wcast-align: rarely a real problem.
+// -Wunused-exception-parameter: Who cares?
+// -Wmissing-noreturn: Bad analysis for a micro-optimization.
+// -Wunreachable-code: Lies.
+// -Wused-but-marked-unused: This is compatible with the semantics of unused.
+// -Wformat-nonliteral: Good warning, but we currently use DESC for format
+//     strings rather a lot.
+// -Wconditional-uninitialized: Too many false positives, use static analyizer
+//     instead.
+// -Wbad-function-cast: Warns about explicit casts of integers to other integer
+//     types. That's what explict casts are for.
+// -Wassign-enum: Correctly warns about Cocoa's abuse of enum types for bit
+//     masks, which we can't do anything sensible about.
+OO_EXTRA_WARNING_EXCEPTIONS				= -Wno-pedantic -Wno-gnu -Wno-undef -Wno-objc-interface-ivars -Wno-direct-ivar-access -Wno-receiver-forward-class -Wno-padded -Wno-float-equal -Wno-switch-enum -Wno-cast-align -Wno-unused-exception-parameter -Wno-missing-noreturn -Wno-unreachable-code -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-conditional-uninitialized -Wno-bad-function-cast -Wno-assign-enum
+
+// Things we don't want to break the build when they're introduced by devs on other platforms.
+OO_WARNING_NO_ERROR						= -Wno-error=deprecated-declarations -Wno-error=semicolon-before-method-body
+
+OO_WARNING_FLAGS						= $OO_LOTS_OF_WARNINGS $OO_WARNING_EXCEPTIONS $OO_EXTRA_WARNING_EXCEPTIONS $OO_WARNING_NO_ERROR $OO_ARCH_WARNING_FLAGS

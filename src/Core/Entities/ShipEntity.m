@@ -91,8 +91,6 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 
 
-#define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
-
 #define USEMASC 1
 
 
@@ -2888,7 +2886,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				JSContext			*JScontext = OOJSAcquireContext();
 				BOOL OK;
-				JSBool allow_addition;
+				JSBool allow_addition = false;
 				jsval result;
 				jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey) , OOJSValueFromNativeObject(JScontext, self) , OOJSValueFromNativeObject(JScontext, context)};
 				

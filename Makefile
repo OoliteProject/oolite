@@ -6,8 +6,8 @@ VER_MAJ     := $(shell echo "${VERSION}" | cut -d '.' -f 1)
 VER_MIN     := $(shell echo "${VERSION}" | cut -d '.' -f 2)
 VER_REV     := $(shell echo "${VERSION}" | cut -d '.' -f 3)
 VER_REV     := $(if ${VER_REV},${VER_REV},0)
-SVNREVISION := $(shell svn info  | grep Revision | cut -d ' ' -f 2)
-VER         := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}.${SVNREVISION}")
+VER_DATE	:= $(shell date +%y%m%d)
+VER         := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}-${VER_DATE}")
 BUILDTIME   := $(shell date "+%Y.%m.%d %H:%M")
 DEB_BUILDTIME   := $(shell date "+%a, %d %b %Y %H:%M:%S %z")
 ifeq (${VER_REV},0)
@@ -17,11 +17,11 @@ DEB_VER     := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}")
 endif
 DEB_REV     := $(shell cat debian/revision)
 # Ubuntu versions are: <upstream version>-<deb ver>ubuntu<build ver>
-# eg: oolite1.74.4.2755-0ubuntu1
-# Oolite versions are: MAJ.min.rev.svn
-# eg. 1.74.0.3275
-# Our .deb versions are: MAJ.min.rev.svn-<pkg rev>[~<type>]
-# eg. 1.74.0.3275-0, 1.74.0.3275-0~test
+# eg: oolite1.74.4-130706-0ubuntu1
+# Oolite versions are: MAJ.min.rev-date (yymmdd)
+# eg. 1.74.0-130706
+# Our .deb versions are: MAJ.min.rev-datestring-<pkg rev>[~<type>]
+# eg. 1.74.0.3275-0, 1.74.0-130706-0~test
 pkg-debtest: DEB_REV             := $(shell echo "0~test${DEB_REV}")
 pkg-debsnapshot: DEB_REV         := $(shell echo "0~trunk${DEB_REV}")
 

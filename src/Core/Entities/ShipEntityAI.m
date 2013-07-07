@@ -44,8 +44,6 @@
 #import "OOConstToJSString.h"
 #import "OOCollectionExtractors.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.ShipEntityAI"
-
 
 @interface ShipEntity (OOAIPrivate)
 
@@ -1377,13 +1375,13 @@
 
 - (void) checkAegis
 {
-	switch(aegis_status)
+	switch (aegis_status)
 	{
 		case AEGIS_CLOSE_TO_MAIN_PLANET: 
 			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];
 			// It's been a few years since 1.71 - it should be safe enough to comment out the line below for 1.77/1.78 -- Kaks 20120917
 			//[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, kept for compatibility with pre-1.72 AI plists.
-			break;
+			return;
 		case AEGIS_CLOSE_TO_ANY_PLANET:
 		{
 			Entity<OOStellarBody> *nearest = [self findNearestStellarBody];
@@ -1404,16 +1402,19 @@
 					[shipAI message:@"CLOSE_TO_SECONDARY_PLANET"];
 				}
 			}
-			break;
+			return;
 		}
 		case AEGIS_IN_DOCKING_RANGE:
 			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
-			break;
+			return;
 		case AEGIS_NONE:
-		default: 
 			[shipAI message:@"AEGIS_NONE"];
-			break;
+			return;
 	}
+	
+	NSLog(@"Aegis status for %@ has taken on invalid value %i. This is an internal error, please report it.", self, aegis_status);
+	aegis_status = AEGIS_NONE;
+	[shipAI message:@"AEGIS_NONE"];
 }
 
 
