@@ -280,7 +280,8 @@ MA 02110-1301, USA.
 				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
 				_novaExpansionTimer += delta_t;
-				[self setRadius: collision_radius + delta_t * _novaExpansionRate];
+				NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate], @"sun_radius", [NSNumber numberWithFloat:0.5], @"corona_flare", nil];
+				[self changeSunProperty:@"sun_radius" withDictionary:dict];
 			}
 			else
 			{
