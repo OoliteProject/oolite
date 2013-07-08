@@ -462,8 +462,8 @@
 	"witch-engine-malfunction"		= "Witchspace engine malfunction!";
 	"witch-galactic-in-f-seconds"	= "Intergalactic jump in %.0f s.";
 	"witch-user-galactic-abort"		= "Intergalactic jump aborted.";
-	"game-paused"					= "Game paused.\nPress F2 for options, P to resume.";
-	"game-paused-docked"			= "Game paused. Press P to resume.";
+	"game-paused-@"					= "Game paused.\nPress F2 for options, '%C' to resume.";
+	"game-paused-docked-@"			= "Game paused. Press '%C' to resume.";
 	"game-saved"					= "Game saved.";
 	"mouse-on"						= "Mouse control on.";
 	"mouse-off"						= "Mouse control off.";
