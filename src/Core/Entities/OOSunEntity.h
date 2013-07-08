@@ -46,12 +46,8 @@ MA 02110-1301, USA.
 	GLfloat					sun_specular[4];
 	
 	GLfloat					discColor[4];
-	GLfloat					innerCoronaColor[4];
-	GLfloat					middleCoronaColor[4];
 	GLfloat					outerCoronaColor[4];
 	
-	GLfloat					cor4k, lim4k;
-	GLfloat					cor8k, lim8k;
 	GLfloat					cor16k, lim16k;
 	
 	double					corona_speed_factor;		// multiply delta_t by this before adding it to corona_stage

@@ -108,15 +108,7 @@ MA 02110-1301, USA.
 		blended with main corona. This produces something vaguely like a bloom
 		effect.
 	*/
-	hue += hue_drift;
-	color = [OOColor colorWithHue:hue saturation:sat * 0.1f brightness:(bri + 2.0)/3.0 alpha:0.25f];
-	[color getRed:&innerCoronaColor[0] green:&innerCoronaColor[1] blue:&innerCoronaColor[2] alpha:&innerCoronaColor[3]];
-	
-	hue += hue_drift;
-	color = [OOColor colorWithHue:hue saturation:sat * 0.1f brightness:bri alpha:0.25f];
-	[color getRed:&middleCoronaColor[0] green:&middleCoronaColor[1] blue:&middleCoronaColor[2] alpha:&middleCoronaColor[3]];
-	
-	hue += hue_drift;
+	hue += hue_drift * 3;
 	// saturation = 1 would shift white to red
 	color = [OOColor colorWithHue:hue saturation:OOClamp_0_1_f(sat*1.0f) brightness:bri * 0.75f alpha:0.45f];
 	[color getRed:&outerCoronaColor[0] green:&outerCoronaColor[1] blue:&outerCoronaColor[2] alpha:&outerCoronaColor[3]];
@@ -672,11 +664,6 @@ MA 02110-1301, USA.
 - (void) setRadius:(GLfloat) rad
 {
 	collision_radius = rad;
-	cor4k =		rad * 4 / 100;
-	lim4k =		cor4k	* cor4k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
-	
-	cor8k =		rad * 8 / 100;
-	lim8k =		cor8k	* cor8k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
 	
 	cor16k =	rad * rad * 16 / 10000000;
 	lim16k =	cor16k	* cor16k* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
