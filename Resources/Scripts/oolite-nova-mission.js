@@ -115,40 +115,54 @@ this._blowUpAllStations = function ()
 this._flareUp = function ()
 {
 	system.info.corona_hues = 1;
-	// This flare up (0.25 to 0.5 flare) will last between 10 and 30 seconds
-	this._flareChange(0.25 + Math.random() * 0.25, this._flareDown, Math.random() * 20 + 10);
+	// This flare up (0.4 to 0.6 flare) will last between 10 and 30 seconds
+	this._flareTarget = 0.4 + Math.random() * 0.2;
+	this._flareCallback = addFrameCallback(this._flareTransition.bind(this));
+	this._flareChange(this._flareDown, Math.random() * 20 + 10);
 };
 
 
 this._flareDown = function ()
 {
 	system.info.corona_hues = 0.8;
-	// This quiet moment (0.1 to 0.2 flare) will last between 30 seconds and 2 minutes
-	this._flareChange(0.1 + Math.random() * 0.1, this._flareUp, Math.random() * 90 + 30);
+	// This quiet moment (0.2 to 0.35 flare) will last between 30 seconds and 2 minutes
+	this._flareTarget = 0.2 + Math.random() * 0.15;
+	this._flareCallback = addFrameCallback(this._flareTransition.bind(this));
+	this._flareChange(this._flareUp, Math.random() * 90 + 30);
 };
 
 
-this._flareChange = function (toValue, callFunc, callDelay, pass)
+this._flareChange = function (callFunc, callDelay)
 {
 	this.flareTimer.stop();
 	delete this.flareTimer;
-	pass = pass || 0;
-	if (pass < 5)
-	{
-		var f = system.info.corona_flare; 
-		system.info.corona_flare = ((f < toValue) ? (toValue * 1.5 + f) : (toValue + f * 1.5)) / 2.5;
-		this.flareTimer = new Timer(this, function ()
-		{
-			this._flareChange(toValue, callFunc, callDelay, ++pass);
-		}, 0.25);
-	}
-	else 
-	{
-		system.info.corona_flare = toValue;
-		this.flareTimer = new Timer(this, callFunc, callDelay);
-	}
+	this.flareTimer = new Timer(this, callFunc, callDelay);
 };
 
+
+this._flareTransition = function(delta)
+{
+		var current = system.info.corona_flare;
+		if (current < this._flareTarget)
+		{
+				current += delta/10;
+		}
+		else
+		{
+				current -= delta/10;
+		}
+		system.info.corona_flare = current;
+		if (this._flareTarget > 0.375 && current > this._flareTarget)
+		{
+				removeFrameCallback(this._flareCallback);
+				delete this._flareCallback;
+		}
+		else if (this._flareTarget < 0.375 && current < this._flareTarget)
+		{
+				removeFrameCallback(this._flareCallback);
+				delete this._flareCallback;
+		}
+}
 
 /**** Event handlers ****/
 
@@ -343,6 +357,11 @@ this.shipExitedWitchspace = function ()
 		{
 			this.flareTimer.stop();
 			delete this.flareTimer;
+		}
+		if (this._flareCallback)
+		{
+				removeFrameCallback(this._flareCallback);
+				delete this._flareCallback;
 		}
 
 		if (system.sun.isGoingNova || system.sun.hasGoneNova)
