@@ -323,11 +323,20 @@ MA 02110-1301, USA.
 	{
 		if (translucent)
 		{
-			[self drawTranslucentParts];
+			// nothing...
 		}
 		else
 		{
 			[self drawOpaqueParts];
+			/* Despite the side effects, we have to draw the translucent
+			 * parts on the opaque pass. Planets, at long range, aren't
+			 * depth-buffered. So if the translucent parts are drawn on the
+			 * translucent pass, they appear in front of planets they are
+			 * actually behind. Telabe in G3 is a good one to test with if
+			 * you have any clever ideas.
+			 *
+			 * - CIM 8/7/2013 */
+			[self drawTranslucentParts];
 		}
 	}
 }
