@@ -39,11 +39,6 @@ MA 02110-1301, USA.
 #endif
 
 
-#define kFullScreenPresentationMode	  ( NSApplicationPresentationFullScreen | \
-										NSApplicationPresentationAutoHideDock | \
-										NSApplicationPresentationAutoHideMenuBar )
-
-
 @implementation OOMacSystemStandardFullScreenController
 
 + (BOOL) shouldUseSystemStandardFullScreenController

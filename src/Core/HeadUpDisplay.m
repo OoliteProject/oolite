@@ -46,9 +46,6 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 
 
-#define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
-
-
 #define ONE_SIXTEENTH				0.0625
 #define ONE_SIXTYFOURTH				0.015625
 #define DEFAULT_OVERALL_ALPHA		0.75
@@ -135,6 +132,7 @@ enum
 - (void) drawStatusLight:(NSDictionary *)info;
 - (void) drawDirectionCue:(NSDictionary *)info;
 - (void) drawClock:(NSDictionary *)info;
+- (void) drawPrimedEquipmentText:(NSDictionary *)info;
 - (void) drawWeaponsOfflineText:(NSDictionary *)info;
 - (void) drawFPSInfoCounter:(NSDictionary *)info;
 - (void) drawScoopStatus:(NSDictionary *)info;
@@ -1147,8 +1145,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				if ([scannedEntity isShip])
 				{
 					ShipEntity *ship = (ShipEntity *)scannedEntity;
-					GLfloat wr = [ship weaponRange];
-					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER)&&(scannedEntity->zero_distance < wr*wr));
+					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
 					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
@@ -2439,6 +2436,65 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
 	OODrawString([PLAYER dial_clock], x, y, z1, siz);
+}
+
+
+- (void) drawPrimedEquipment:(NSDictionary *)info
+{
+	if ([PLAYER status] == STATUS_DOCKED)
+	{
+		// Can't activate equipment while docked
+		return;
+	}
+	
+	GLfloat				itemColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+	struct CachedInfo	cached;
+	
+	NSUInteger lines = [info oo_intForKey:@"n_bars" defaultValue:1];
+	NSInteger pec = (NSInteger)[PLAYER primedEquipmentCount];
+
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	NSInteger x = useDefined(cached.x, PRIMED_DISPLAY_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	NSInteger y = useDefined(cached.y, PRIMED_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	
+	NSSize size =
+	{
+		.width = useDefined(cached.width, PRIMED_DISPLAY_WIDTH),
+		.height = useDefined(cached.height, PRIMED_DISPLAY_HEIGHT)
+	};
+
+	if (pec == 0)
+	{
+		// Don't display if no primed equipment fitted
+		return;
+	}
+
+	GetRGBAArrayFromInfo(info, itemColor);
+	itemColor[3] *= overallAlpha;
+
+	if (lines == 1)
+	{
+		OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
+		OODrawString([NSString stringWithFormat:DESC(@"equipment-primed-hud-@"), [PLAYER primedEquipmentName:0]], x, y, z1, size);
+	}
+	else
+	{
+		NSInteger negative = (lines % 2) ? (lines - 1) / 2 : lines / 2;
+		NSInteger positive = lines / 2;
+		for (NSInteger i = -negative; i <= positive; i++)
+		{
+			if (i >= -(pec) / 2 && i <= (pec + 1) / 2)
+			{
+				// don't display loops if we have more equipment than lines
+				// instead compact the display towards its centre
+				GLfloat alphaScale = 1.0/((i<0)?(1.0-i):(1.0+i));
+				OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]*alphaScale));
+				OODrawString([PLAYER primedEquipmentName:i], x, y, z1, size);
+			}
+			y -= size.height;
+		}	
+	}
 }
 
 

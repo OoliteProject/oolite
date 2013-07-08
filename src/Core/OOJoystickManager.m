@@ -29,9 +29,6 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 
-#define kOOLogUnconvertedNSLog @"unclassified.JoystickHandler"
-
-
 static Class sStickHandlerClass = Nil;
 static id sSharedStickHandler = nil;
 

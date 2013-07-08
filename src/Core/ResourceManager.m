@@ -40,8 +40,6 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOPListScript.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.ResourceManager"
-
 
 static NSString * const kOOLogCacheUpToDate				= @"dataCache.upToDate";
 static NSString * const kOOLogCacheExplicitFlush		= @"dataCache.rebuild.explicitFlush";
@@ -533,10 +531,11 @@ static NSMutableDictionary *sStringCache;
 		case MERGE_SMART:
 			mergeType = @"smart";
 			break;
-		
-		default:
-			OOLog(kOOLogParameterError, @"Unknown dictionary merge mode %u for %@. (This is an internal programming error, please report it.)", mergeMode, fileName);
-			return nil;
+	}
+	if (mergeType == nil)
+	{
+		OOLog(kOOLogParameterError, @"Unknown dictionary merge mode %u for %@. (This is an internal programming error, please report it.)", mergeMode, fileName);
+		return nil;
 	}
 	
 	if (cache)

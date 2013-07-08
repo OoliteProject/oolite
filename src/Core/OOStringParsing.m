@@ -37,7 +37,9 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 
 
+#if DEBUG_GRAPHVIZ
 #define NSMakeRange(loc, len) ((NSRange){loc, len})
+#endif
 
 
 static NSString * const kOOLogStringVectorConversion			= @"strings.conversion.vector";

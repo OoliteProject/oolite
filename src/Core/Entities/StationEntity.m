@@ -465,7 +465,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	[acc oo_setFloat:speed forKey:@"speed"];
 	[acc oo_setFloat:range forKey:@"range"];
 	[acc setObject:[[station weakRetain] autorelease] forKey:@"station"];
-	[acc oo_setInteger:[station universalID] forKey:@"station_id"]; // TODO: remove
 	[acc oo_setBool:match_rotation forKey:@"match_rotation"];
 	if (ai_message)
 	{
@@ -2365,7 +2364,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 {
 	NSMutableArray		*flags = nil;
 	NSString			*flagsString = nil;
-	NSString			*alertString = nil;
+	NSString			*alertString = @"*** ERROR: UNKNOWN ALERT LEVEL ***";
 	
 	[super dumpSelfState];
 	
@@ -2382,9 +2381,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		case STATION_ALERT_LEVEL_RED:
 			alertString = @"red";
 			break;
-		
-		default:
-			alertString = @"*** ERROR: UNKNOWN ALERT LEVEL ***";
 	}
 	
 	OOLog(@"dumpState.stationEntity", @"Alert level: %@", alertString);

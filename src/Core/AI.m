@@ -31,8 +31,6 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.AI"
-
 
 enum
 {

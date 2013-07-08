@@ -1,40 +1,53 @@
 #! /bin/bash
 
-VAR_DIR_NAME=var
-REPO_DIR_NAME=trunk
-CONFIGURATION=TestRelease
+REPOSITORY="https://github.com/OoliteProject/oolite.git"
+BRANCH="maintenance/1.77"
+CONFIGURATION="TestRelease"
 
-if [ -z "$SVN" ]
-then
-	SVN=`which svn`
-fi
+VAR_DIR_NAME="var"
+REPO_DIR_NAME="working_copy"
 
-VAR=../$VAR_DIR_NAME/
-LOG=$VAR/log/
-LOG_OLD=$VAR/log-old/
-LOG_SUCCESS=$VAR/log-success/
-COCOA_SRC_DIR=src/Cocoa/
-SNAPSHOT_MACRO_FILE=$COCOA_SRC_DIR/oolite-snapshot.xcconfig
-BUILD_DIR=build/$CONFIGURATION/
+VAR="`pwd`/$VAR_DIR_NAME/"
+LOG="$VAR/log/"
+LOG_OLD="$VAR/log-old/"
+LOG_SUCCESS="$VAR/log-success/"
+COCOA_SRC_DIR="src/Cocoa/"
+SNAPSHOT_MACRO_FILE="$COCOA_SRC_DIR/oolite-snapshot.xcconfig"
+BUILD_DIR="build/$CONFIGURATION/"
 
-LAST_REVISION_FILE=$VAR/revision
-SUCCESS_REVISION_FILE=$VAR/success_revision
-PREVIOUS_SUCCESS_REVISION_FILE=$VAR/previous_success_revision
-LATEST_NAME_FILE=$VAR/latest
-CHANGELOG_FILE=$LOG/change_log
-DIAGNOSTICS_FILE=$LOG/diagnostics
-STDERR_FILE=$LOG/xcb_stderr.txt
-STDOUT_FILE=$LOG/xcb_stdout.txt
-STATUS_FILE=$LOG/build_log
-SVNUP_FILE=$LOG/svnup.txt
+LAST_REVISION_FILE="$VAR/revision"
+SUCCESS_REVISION_FILE="$VAR/success_revision"
+PREVIOUS_SUCCESS_REVISION_FILE="$VAR/previous_success_revision"
+LATEST_NAME_FILE="$VAR/latest"
+CHANGELOG_FILE="$LOG/change_log"
+DIAGNOSTICS_FILE="$LOG/diagnostics"
+STDERR_FILE="$LOG/xcb_stderr.txt"
+STDOUT_FILE="$LOG/xcb_stdout.txt"
+STATUS_FILE="$LOG/build_log.txt"
+GIT_LOG_FILE="$LOG/git_log.txt"
 LAST_UPDATED_FILE="$VAR/last_updated"
 
-OOLITE_APP_PKG=$BUILD_DIR/Oolite.app
-DEBUG_OXP_PKG=$BUILD_DIR/Debug.oxp
+OOLITE_APP_PKG="$BUILD_DIR/Oolite.app"
+DEBUG_OXP_PKG="$BUILD_DIR/Debug.oxp"
 
-FTP_URL_FILE=../config/ftp_url
-FTP_CREDENTIALS_FILE=../config/ftp_credentials
+FTP_URL_FILE="`pwd`/config/ftp_url"
+FTP_CREDENTIALS_FILE="`pwd`/config/ftp_credentials"
 FTP_INFO_SET=0
+
+if [ ! "$GIT" ]
+then
+	GIT="git"
+fi
+
+if [ ! "$CURL" ]
+then
+	CURL="curl"
+fi
+
+if [ ! "$DITTO" ]
+then
+	DITTO="ditto"
+fi
 
 
 function report
@@ -49,64 +62,13 @@ function report
 
 function fail
 {
-	if [ $FTP_INFO_SET -eq 1 ] && [ -e $LAST_REVISION_FILE ]
+	if [ $FTP_INFO_SET -eq 1 ] && [ -e "$LAST_REVISION_FILE" ]
 	then
 		curl --silent $FTP_CREDENTIALS -T "$LAST_REVISION_FILE" "$FTP_URL/revision"
 	fi
 	report "Oolite nightly build failure" "$1"
 	exit 1
 }
-
-
-if [ ! -e $REPO_DIR_NAME ]
-then
-	# Check out repo if necessary.
-	CLEAN_CHECKOUT=1
-	
-	echo "Checking out Oolite..."
-	$SVN checkout --quiet svn://svn.berlios.de/oolite-linux/trunk $REPO_DIR_NAME
-	if [ ! $? ]
-	then
-		fail "Failed to check out."
-	fi
-	
-	if [ -e $REPO_DIR_NAME/$LAST_REVISION_FILE ]
-	then
-		rm $REPO_DIR_NAME/$LAST_REVISION_FILE
-	fi
-	
-	# Run update-mozilla script up front so there's a bit of feedback.
-	pushd $REPO_DIR_NAME/deps/Cocoa-deps/scripts > /dev/null
-	./update-mozilla.sh
-	UPDATE_RESULT=$1
-	popd > /dev/null
-	
-	if [ ! $UPDATE_RESULT ]
-	then
-		exit 1
-	fi
-else
-	CLEAN_CHECKOUT=0
-fi
-
-
-cd $REPO_DIR_NAME
-
-
-# ftp_url should contain a URL to an upload directory.
-# ftp_credentials should contain command line arguments for curl authentication,
-# such as -u user:password.
-if [ -e $FTP_URL_FILE ] && [ -e $FTP_CREDENTIALS_FILE ]
-then
-	FTP_URL=`head -n 1 "$FTP_URL_FILE"`
-	FTP_CREDENTIALS=`head -n 1 "$FTP_CREDENTIALS_FILE"`
-	FTP_INFO_SET=1
-else
-	FTP_INFO_SET=0
-fi
-
-# Get $OOLITE_VERSION
-source $COCOA_SRC_DIR/oolite-version.xcconfig
 
 
 # Ensure output directories exist.
@@ -125,8 +87,63 @@ then
 	mv $LOG $LOG_OLD
 fi
 
-
 mkdir $LOG
+
+
+# Clear git log so we can append to it freely
+touch "$GIT_LOG_FILE"
+echo "" > "$GIT_LOG_FILE"
+
+
+if [ ! -e "$REPO_DIR_NAME" ]
+then
+	# Clone repo if necessary.
+	CLEAN_CHECKOUT=1
+	
+	echo "Cloning Oolite..."
+	"$GIT" clone --quiet "$REPOSITORY" "$REPO_DIR_NAME" >> "$GIT_LOG_FILE"
+	if [ ! $? ]
+	then
+		fail "Failed to clone repository."
+	fi
+
+	STATUS=0
+
+	cd "$REPO_DIR_NAME"
+	"$GIT" checkout "$BRANCH"
+else
+	# Revert the file we manipulate for watermarking, then update repo.
+	CLEAN_CHECKOUT=0
+	cd "$REPO_DIR_NAME"
+
+	echo "Updating..."
+	"$GIT" checkout -- "$SNAPSHOT_MACRO_FILE" >> "$GIT_LOG_FILE"
+
+	"$GIT" pull --quiet --ff-only >> "$GIT_LOG_FILE"
+	STATUS=$?
+fi
+
+# Get $OOLITE_VERSION
+source $COCOA_SRC_DIR/oolite-version.xcconfig
+
+
+# Make sure we're on the right branch, and update submodules.
+"$GIT" checkout "$BRANCH"
+STATUS=$?
+
+if [ $STATUS ]
+then
+	"$GIT" submodule update --quiet --init --recursive >> "$GIT_LOG_FILE"
+	STATUS=$?
+fi
+
+if [ ! $STATUS ]
+then
+	echo "Update failed: " > $DIAGNOSTICS_FILE
+	cat $GIT_LOG_FILE >> $DIAGNOSTICS_FILE
+	echo $STATUS
+	fail "Code update failed."
+fi
 
 
 # Get last revision.
@@ -138,29 +155,14 @@ else
 fi
 
 
-if [ $CLEAN_CHECKOUT -eq 0 ]
-then
-	# Revert the file we manipulate for watermarking, then update repo.
-	echo "Updating..."
-	$SVN revert --quiet $SNAPSHOT_MACRO_FILE
-	$SVN update > $SVNUP_FILE
-	if [ $? -ne 0 ]
-	then
-		echo "Update failed: " > $DIAGNOSTICS_FILE
-		cat $SVNUP_FILE >> $DIAGNOSTICS_FILE
-		fail "SVN update failed."
-	fi
-fi
-
-
 # Get current revision.
-CURRENT_REVISION=`$SVN info 2> /dev/null | grep "Revision:" | cut -f 2 -d " "`
+CURRENT_REVISION=`"$GIT" rev-parse --short HEAD`
 if [ ! $? ]
 then
-	fail "Could not get revision number."
+	fail "Could not get revision hash."
 fi
 
-if [ $LAST_REVISION -eq $CURRENT_REVISION ]
+if [ $LAST_REVISION == $CURRENT_REVISION ]
 then
 	report "Oolite nightly unchanged" "No change, still at revision $LAST_REVISION."
 	exit 0
@@ -181,16 +183,16 @@ fi
 
 
 # Nastytacular: overwrite the oolite-snapshot.xcconfig file to generate the nightly watermark macros.
-# The backslash jungle builds a string like -DOOLITE_SNAPSHOT_VERSION="\"1.74-3040\"".
-echo "SNAPSHOT_MACROS= -DSNAPSHOT_BUILD=1 -DOOLITE_SNAPSHOT_VERSION=\"\\\"$OOLITE_VERSION-$CURRENT_REVISION\\\"\"" > src/Cocoa/oolite-snapshot.xcconfig
+# The backslash jungle builds a string like -DOOLITE_SNAPSHOT_VERSION="\"1.77.1-130705\"".
+DATESTAMP=`date "+%y%m%d"`
+echo "SNAPSHOT_MACROS= -DSNAPSHOT_BUILD=1 -DOOLITE_SNAPSHOT_VERSION=\"\\\"$OOLITE_VERSION-$DATESTAMP\\\"\"" > src/Cocoa/oolite-snapshot.xcconfig
 
 # Buildez la vache!
 xcodebuild clean build -project Oolite.xcodeproj -target "Build All" -configuration $CONFIGURATION RUN_CLANG_STATIC_ANALYZER=NO >$STDOUT_FILE 2>$STDERR_FILE
 
-# Generate status and diagnostics files. The -mlong-branch bit filters out
-# an unimportant warning generated by a bug in the 10.4 SDK for Xcode 3.2.
+# Generate status and diagnostics files.
 grep "^[^\ ]" $STDOUT_FILE > $STATUS_FILE
-grep -e "warning:" -e "error:" $STDOUT_FILE | grep -v -e "-mlong-branch" > $DIAGNOSTICS_FILE
+grep -e "warning:" -e "error:" $STDOUT_FILE > $DIAGNOSTICS_FILE
 
 
 # Set last revision regardless of success or failure, on the basis that a
@@ -209,9 +211,9 @@ fi
 
 
 # Write changelog.
-if [ $LAST_REVISION -ne 0 ]
+if [ $LAST_REVISION != 0 ]
 then
-	$SVN log -r$CURRENT_REVISION:$[$LAST_REVISION + 1] > $CHANGELOG_FILE
+	"$GIT" log $LAST_REVISION..$CURRENT_REVISION > $CHANGELOG_FILE
 else
 	echo "Initial checkout." > $CHANGELOG_FILE
 fi
@@ -234,7 +236,7 @@ then
 	OOLITE_VERSION="$OOLITE_VERSION.0"
 fi
 
-FULLVERSION=$OOLITE_VERSION.$CURRENT_REVISION-dev
+FULLVERSION=$OOLITE_VERSION.$DATESTAMP-dev
 echo "Packaging nightly $FULLVERSION..."
 
 PACKAGE_NAME=Oolite-nightly-$FULLVERSION
@@ -249,13 +251,26 @@ mkdir $ADDONS_DIR
 cp -R $DEBUG_OXP_PKG $ADDONS_DIR
 
 pushd $VAR > /dev/null
-ditto -ck --noqtn --noacl --nocache --zlibCompressionLevel 9 $PACKAGE_NAME $ZIP_NAME
+"$DITTO" -ck --noqtn --noacl --nocache --zlibCompressionLevel 9 "$PACKAGE_NAME" "$ZIP_NAME"
 if [ ! $? ]
 then
 	fail "Could not create zip archive (ditto failed with exit code $?)."
 fi
 rm -rf $PACKAGE_NAME
 popd > /dev/null
+
+
+# ftp_url should contain a URL to an upload directory.
+# ftp_credentials should contain command line arguments for curl authentication,
+# such as -u user:password.
+if [ -e $FTP_URL_FILE ] && [ -e $FTP_CREDENTIALS_FILE ]
+then
+	FTP_URL=`head -n 1 "$FTP_URL_FILE"`
+	FTP_CREDENTIALS=`head -n 1 "$FTP_CREDENTIALS_FILE"`
+	FTP_INFO_SET=1
+else
+	FTP_INFO_SET=0
+fi
 
 
 # Record date of this momentous event.
@@ -274,7 +289,7 @@ fi
 
 
 echo "Uploading $ZIP_NAME..."
-curl "-#" $FTP_CREDENTIALS -T "$VAR/$ZIP_NAME" "$FTP_URL/$ZIP_NAME"
+"$CURL" "-#" $FTP_CREDENTIALS -T "$VAR/$ZIP_NAME" "$FTP_URL/$ZIP_NAME"
 if [ ! $? ]
 then
 	echo ""
@@ -283,14 +298,14 @@ fi
 
 echo ""
 echo "Uploading metadata..."
-curl --silent $FTP_CREDENTIALS -T "$LAST_UPDATED_FILE" "$FTP_URL/last_updated"
-curl --silent $FTP_CREDENTIALS -T "$CHANGELOG_FILE" "$FTP_URL/change_log"
-curl --silent $FTP_CREDENTIALS -T "$DIAGNOSTICS_FILE" "$FTP_URL/diagnostics"
-curl --silent $FTP_CREDENTIALS -T "$STATUS_FILE" "$FTP_URL/build_log"
-curl --silent $FTP_CREDENTIALS -T "$LAST_REVISION_FILE" "$FTP_URL/revision"
-curl --silent $FTP_CREDENTIALS -T "$PREVIOUS_SUCCESS_REVISION_FILE" "$FTP_URL/previous_successful"
-curl --silent $FTP_CREDENTIALS -T "$LATEST_NAME_FILE" "$FTP_URL/latest"
+"$CURL" --silent $FTP_CREDENTIALS -T "$LAST_UPDATED_FILE" "$FTP_URL/last_updated"
+"$CURL" --silent $FTP_CREDENTIALS -T "$CHANGELOG_FILE" "$FTP_URL/change_log"
+"$CURL" --silent $FTP_CREDENTIALS -T "$DIAGNOSTICS_FILE" "$FTP_URL/diagnostics"
+"$CURL" --silent $FTP_CREDENTIALS -T "$STATUS_FILE" "$FTP_URL/build_log"
+"$CURL" --silent $FTP_CREDENTIALS -T "$LAST_REVISION_FILE" "$FTP_URL/revision"
+"$CURL" --silent $FTP_CREDENTIALS -T "$PREVIOUS_SUCCESS_REVISION_FILE" "$FTP_URL/previous_successful"
+"$CURL" --silent $FTP_CREDENTIALS -T "$LATEST_NAME_FILE" "$FTP_URL/latest"
 
 
 rm $VAR/$ZIP_NAME
-report $"Oolite nightly success" "Successfully built r$CURRENT_REVISION and uploaded as $ZIP_NAME."
+report $"Oolite nightly success" "Successfully built commit $CURRENT_REVISION and uploaded as $ZIP_NAME."

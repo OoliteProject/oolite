@@ -37,8 +37,6 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.SunEntity"
-
 
 @interface OOSunEntity (Private)
 

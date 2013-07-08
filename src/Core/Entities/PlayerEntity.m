@@ -80,10 +80,6 @@ MA 02110-1301, USA.
 #import "PlayerEntityStickMapper.h"
 
 
-#define kOOLogUnconvertedNSLog @"unclassified.PlayerEntity"
-
-// 10m/s forward drift
-#define	OG_ELITE_FORWARD_DRIFT			10.0f
 #define PLAYER_DEFAULT_NAME				@"Jameson"
 
 enum
@@ -5044,7 +5040,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	// equipment damage
 	NSEnumerator *eqEnum = [self equipmentEnumerator];
-	OOEquipmentType	*eqType;
+	OOEquipmentType	*eqType = nil;
 	NSString		*system_key;
 	unsigned damageableCounter = 0;
 	GLfloat damageableOdds = 0.0;
@@ -6016,6 +6012,27 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	return quip;
+}
+
+
+- (NSUInteger) primedEquipmentCount
+{
+	return [eqScripts count];
+}
+
+
+- (NSString *) primedEquipmentName:(NSInteger)offset
+{
+	NSUInteger c = [self primedEquipmentCount];
+	NSUInteger idx = (primedEquipment+offset)%(c+1);
+	if (idx == c)
+	{
+		return DESC(@"equipment-primed-none-hud-label");
+	}
+	else
+	{
+		return [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:idx] oo_stringAtIndex:0]] name];
+	}
 }
 
 

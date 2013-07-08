@@ -74,6 +74,7 @@ static JSBool ShipFireECM(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAbandonShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipRequestHelpFromGroup(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
@@ -92,9 +93,30 @@ static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBroadcastCascadeImminent(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipBroadcastDistressMessage(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipMarkTargetForFines(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipEnterWormhole(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipThrowSpark(JSContext *context, uintN argc, jsval *vp);
+
+static JSBool ShipPerformAttack(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformCollect(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformEscort(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformFaceDestination(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformFlee(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformFlyToRangeFromDestination(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformHold(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformIdle(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformIntercept(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformLandOnPlanet(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformMining(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformScriptedAI(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformScriptedAttackAI(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformStop(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPerformTumble(JSContext *context, uintN argc, jsval *vp);
+
+static JSBool ShipRequestDockingInstructions(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
@@ -149,6 +171,7 @@ enum
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_destination,			// flight destination, Vector, read/write
 	kShip_displayName,			// name displayed on screen, string, read/write
+	kShip_dockingInstructions,			// name displayed on screen, string, read/write
 	kShip_energyRechargeRate,	// energy recharge rate, float, read-only
 	kShip_entityPersonality,	// per-ship random number, int, read-only
 	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
@@ -271,6 +294,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "desiredSpeed",			kShip_desiredSpeed,			OOJS_PROP_READWRITE_CB },
 	{ "destination",			kShip_destination,			OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
+	{ "dockingInstructions",			kShip_dockingInstructions,			OOJS_PROP_READONLY_CB },
 	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READONLY_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
@@ -372,6 +396,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
 	{ "becomeCascadeExplosion",			ShipBecomeCascadeExplosion,			0 },
 	{ "broadcastCascadeImminent",			ShipBroadcastCascadeImminent,			0 },
+	{ "broadcastDistressMessage",			ShipBroadcastDistressMessage,			0 },
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
 	{ "clearDefenseTargets",	ShipClearDefenseTargets,	0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
@@ -391,10 +416,30 @@ static JSFunctionSpec sShipMethods[] =
 	{ "getMaterials",			ShipGetMaterials,			0 },
 	{ "getShaders",				ShipGetShaders,				0 },
 	{ "hasRole",				ShipHasRole,				1 },
+	{ "markTargetForFines",				ShipMarkTargetForFines,				0 },
 	{ "offerToEscort",				ShipOfferToEscort,				1 },
+  { "performAttack",		ShipPerformAttack, 		0 },
+  { "performCollect",		ShipPerformCollect, 		0 },
+  { "performEscort",		ShipPerformEscort, 		0 },
+  { "performFaceDestination",		ShipPerformFaceDestination, 		0 },
+  { "performFlee",		ShipPerformFlee, 		0 },
+  { "performFlyToRangeFromDestination",		ShipPerformFlyToRangeFromDestination, 		0 },
+  { "performHold",		ShipPerformHold, 		0 },
+  { "performIdle",		ShipPerformIdle, 		0 },
+  { "performIntercept",		ShipPerformIntercept, 		0 },
+  { "performLandOnPlanet",		ShipPerformLandOnPlanet, 		0 },
+  { "performMining",		ShipPerformMining, 		0 },
+  { "performScriptedAI",		ShipPerformScriptedAI, 		0 },
+  { "performScriptedAttackAI",		ShipPerformScriptedAttackAI, 		0 },
+  { "performStop",		ShipPerformStop, 		0 },
+  { "performTumble",		ShipPerformTumble, 		0 },
+
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
+	{ "requestHelpFromGroup", ShipRequestHelpFromGroup, 1},
+	{ "requestDockingInstructions", ShipRequestDockingInstructions, 0},
+	{ "recallDockingInstructions", ShipRecallDockingInstructions, 0},
 	{ "restoreSubEntities",		ShipRestoreSubEntities,		0 },
 	{ "__runLegacyScriptActions", ShipRunLegacyScriptActions, 2 },	// Deliberately not documented
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
@@ -653,7 +698,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 
 		case kShip_extraCargo:
-			*value = INT_TO_JSVAL([entity extraCargo]);
+			return JS_NewNumberValue(context, [entity extraCargo], value);
 			return YES;
 		
 		case kShip_commodity:
@@ -846,6 +891,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity contractListForScripting];
 			break;
 			
+  	case kShip_dockingInstructions:
+			result = [entity dockingInstructions];
+			break;
+
 		case kShip_scannerDisplayColor1:
 			result = [[entity scannerDisplayColor1] normalizedArray];
 			break;
@@ -2669,6 +2718,44 @@ static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_EXIT
 }
 
+
+static JSBool ShipRequestHelpFromGroup(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	
+	[thisEnt groupAttackTarget];
+
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipMarkTargetForFines(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+
+	GET_THIS_SHIP(thisEnt);
+
+	ShipEntity *ship = [thisEnt primaryTarget];
+	BOOL ok = NO;
+	if ((ship != nil) && ([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED))
+	{
+		ok = [ship markForFines];
+	}
+
+	OOJS_RETURN_BOOL(ok);
+	
+	OOJS_PROFILE_EXIT
+}
+
+
 static JSBool ShipEnterWormhole(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
@@ -2711,6 +2798,259 @@ static JSBool ShipThrowSpark(JSContext *context, uintN argc, jsval *vp)
 	ShipEntity *thisEnt = nil;
 	GET_THIS_SHIP(thisEnt);
 	[thisEnt setThrowSparks:YES];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+
+static JSBool ShipPerformAttack(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performAttack];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformCollect(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performCollect];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformEscort(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performEscort];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformFaceDestination(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performFaceDestination];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformFlee(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performFlee];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformFlyToRangeFromDestination(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performFlyToRangeFromDestination];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformHold(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performHold];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformIdle(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performIdle];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformIntercept(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performIntercept];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformLandOnPlanet(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performLandOnPlanet];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformMining(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performMining];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformScriptedAI(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performScriptedAI];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformScriptedAttackAI(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performScriptedAttackAI];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformStop(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performStop];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPerformTumble(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt performTumble];
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipRequestDockingInstructions(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt requestDockingCoordinates];
+	
+	OOJS_RETURN_OBJECT([thisEnt dockingInstructions]);
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt recallDockingInstructions];
+	
+	OOJS_RETURN_OBJECT([thisEnt dockingInstructions]);
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipBroadcastDistressMessage(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt broadcastDistressMessage];
 	
 	OOJS_RETURN_VOID;
 	

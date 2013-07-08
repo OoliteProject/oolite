@@ -46,7 +46,9 @@
 
 
 // Name of modifier key used to issue commands. See also -isCommandModifierKeyDown.
+#if OO_USE_CUSTOM_LOAD_SAVE
 #define COMMAND_MODIFIER_KEY		"Ctrl"
+#endif
 
 
 static uint16_t PersonalityForCommanderDict(NSDictionary *dict);

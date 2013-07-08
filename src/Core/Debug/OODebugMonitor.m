@@ -390,7 +390,7 @@ static NSString *SizeString(size_t size)
 		magnitude = 1;
 		suffix = @"KiB";
 	}
-	else if (size < (size_t)(kThreshold << 30))
+	else if (size < ((size_t)kThreshold << 30))
 	{
 		magnitude = 2;
 		suffix = @"MiB";

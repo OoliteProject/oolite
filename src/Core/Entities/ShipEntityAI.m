@@ -44,8 +44,6 @@
 #import "OOConstToJSString.h"
 #import "OOCollectionExtractors.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.ShipEntityAI"
-
 
 @interface ShipEntity (OOAIPrivate)
 
@@ -97,15 +95,8 @@
 
 - (void) setThrustFactorTo:(NSString *)thrustFactorString;
 
-- (void) performFlyToRangeFromDestination;
-
-- (void) performIdle;
-
-- (void) performHold;
 
 - (void) setTargetToPrimaryAggressor;
-
-- (void) performAttack;
 
 - (void) scanForNearestMerchantman;
 - (void) scanForRandomMerchantman;
@@ -118,28 +109,14 @@
 
 - (void) checkForFullHold;
 
-- (void) performCollect;
-
-- (void) performIntercept;
-
-- (void) performFlee;
-
-- (void) performScriptedAI;
-- (void) performScriptedAttackAI;
-
-- (void) requestDockingCoordinates;
-
 - (void) getWitchspaceEntryCoordinates;
 
 - (void) setDestinationFromCoordinates;
 - (void) setCoordinatesFromPosition;
 
-- (void) performFaceDestination;
-
 - (void) fightOrFleeMissile;
 
 - (void) setCourseToPlanet;
-- (void) performLandOnPlanet;
 - (void) setTakeOffFromPlanet;
 - (void) landOnPlanet;
 
@@ -172,7 +149,6 @@
 
 - (void) commsMessage:(NSString *)valueString;
 - (void) commsMessageByUnpiloted:(NSString *)valueString;
-- (void) broadcastDistressMessage;
 
 - (void) ejectCargo;
 
@@ -189,11 +165,7 @@
 
 - (void) escortCheckMother;
 
-- (void) performEscort;
-
 - (void) checkGroupOddsVersusTarget;
-
-- (void) groupAttackTarget;
 
 - (void) scanForFormationLeader;
 
@@ -222,8 +194,6 @@
 
 - (void) scanForRocks;
 
-- (void) performMining;
-
 - (void) setDestinationToDockingAbort;
 
 - (void) requestNewTarget;
@@ -248,7 +218,6 @@
 
 - (void) setTargetToRandomStation;
 - (void) setTargetToLastStation;
-- (void) recallDockingInstructions;
 
 - (void) addFuel:(NSString *) fuel_number;
 
@@ -317,11 +286,163 @@
 }
 
 
-- (void) performTumble
+- (void) groupAttackTarget
 {
-	stick_roll = max_flight_roll*2.0*(randf() - 0.5);
-	stick_pitch = max_flight_pitch*2.0*(randf() - 0.5);
-	behaviour = BEHAVIOUR_TUMBLE;
+	NSEnumerator		*shipEnum = nil;
+	ShipEntity			*target = nil, *ship = nil;
+
+	target = [self primaryTarget];
+	
+	if (target == nil) return;
+	
+	if ([self group] == nil)		// ship is alone!
+	{
+		[self setFoundTarget:target];
+		[shipAI reactToMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
+		[self doScriptEvent:OOJSID("helpRequestReceived") withArgument:self andArgument:target];
+		return;
+	}
+	
+	// -memberArray creates a new collection, which is needed because the group might be mutated by the members' AIs.
+	NSArray *groupMembers = [[self group] memberArray];
+	for (shipEnum = [groupMembers objectEnumerator]; (ship = [shipEnum nextObject]); )
+	{
+		[ship setFoundTarget:target];
+		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
+		[ship doScriptEvent:OOJSID("helpRequestReceived") withArgument:self andArgument:target];
+
+		if ([ship escortGroup] != [ship group] && [[ship escortGroup] count] > 1) // Ship has a seperate escort group.
+		{
+			ShipEntity		*escort = nil;
+			NSEnumerator	*shipEnum = nil;
+			NSArray			*escortMembers = [[ship escortGroup] memberArrayExcludingLeader];
+			for (shipEnum = [escortMembers objectEnumerator]; (escort = [shipEnum nextObject]); )
+			{
+				[escort setFoundTarget:target];
+				[escort reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
+				[escort doScriptEvent:OOJSID("helpRequestReceived") withArgument:self andArgument:target];
+			}
+		}
+	}
+}
+
+
+- (void) performAttack
+{
+	behaviour = BEHAVIOUR_ATTACK_TARGET;
+	desired_range = 1250 * randf() + 750; // 750 til 2000
+	frustration = 0.0;
+}
+
+
+- (void) performCollect
+{
+	behaviour = BEHAVIOUR_COLLECT_TARGET;
+	frustration = 0.0;
+}
+
+
+- (void) performEscort
+{
+	if(behaviour != BEHAVIOUR_FORMATION_FORM_UP) 
+	{
+		behaviour = BEHAVIOUR_FORMATION_FORM_UP;
+		frustration = 0.0; // behavior changed, reset frustration.
+	}
+}
+
+
+- (void) performFaceDestination
+{
+	behaviour = BEHAVIOUR_FACE_DESTINATION;
+	frustration = 0.0;
+}
+
+
+- (void) performFlee
+{
+	behaviour = BEHAVIOUR_FLEE_TARGET;
+
+	[self setEvasiveJink:400.0];
+
+	frustration = 0.0;
+}
+
+
+- (void) performFlyToRangeFromDestination
+{
+	behaviour = BEHAVIOUR_FLY_RANGE_FROM_DESTINATION;
+	frustration = 0.0;
+}
+
+
+- (void) performHold
+{
+	desired_speed = 0.0;
+	behaviour = BEHAVIOUR_TRACK_TARGET;
+	frustration = 0.0;
+}
+
+
+- (void) performIdle
+{
+	behaviour = BEHAVIOUR_IDLE;
+	frustration = 0.0;
+}
+
+
+- (void) performIntercept
+{
+	behaviour = BEHAVIOUR_INTERCEPT_TARGET;
+	frustration = 0.0;
+}
+
+
+- (void) performLandOnPlanet
+{
+	OOPlanetEntity	*nearest = [self findNearestPlanet];
+	if (isNearPlanetSurface)
+	{
+		destination = [nearest position];
+		behaviour = BEHAVIOUR_LAND_ON_PLANET;
+		planetForLanding = [nearest universalID];
+	}
+	else
+	{
+		behaviour = BEHAVIOUR_IDLE;
+		[shipAI message:@"NO_PLANET_NEARBY"];
+	}
+	
+	frustration = 0.0;
+}
+
+
+- (void) performMining
+{
+	Entity *target = [self primaryTarget];
+	// mining is not seen as hostile behaviour, so ensure it is only used against rocks.
+	if (target &&  [target scanClass] == CLASS_ROCK)
+	{
+		behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
+		frustration = 0.0;
+	}
+	else
+	{	
+		[self noteLostTargetAndGoIdle];
+	}
+}
+
+
+- (void) performScriptedAI
+{
+	behaviour = BEHAVIOUR_SCRIPTED_AI;
+	frustration = 0.0;
+}
+
+
+- (void) performScriptedAttackAI
+{
+	behaviour = BEHAVIOUR_SCRIPTED_ATTACK_AI;
 	frustration = 0.0;
 }
 
@@ -343,9 +464,101 @@
 }
 
 
+- (void) performTumble
+{
+	stick_roll = max_flight_roll*2.0*(randf() - 0.5);
+	stick_pitch = max_flight_pitch*2.0*(randf() - 0.5);
+	behaviour = BEHAVIOUR_TUMBLE;
+	frustration = 0.0;
+}
+
+
 - (BOOL) performHyperSpaceToSpecificSystem:(OOSystemID)systemID
 {
 	return [self performHyperSpaceExitReplace:NO toSystem:systemID];
+}
+
+
+- (void) requestDockingCoordinates
+{
+	/*-	requests coordinates from the target station
+	 if the target station can't be found
+	 then use the nearest it can find (which may be a rock hermit) -*/
+	
+	StationEntity	*station =  nil;
+	Entity			*targStation = nil;
+	NSString		*message = nil;
+	double		distanceToStation2 = 0.0;
+	
+	targStation = [self targetStation];
+	if ([targStation isStation])
+	{
+		station = (StationEntity*)targStation;
+	}
+	else
+	{
+		station = [UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
+											   parameter:nil
+										relativeToEntity:self];
+	}
+	
+	distanceToStation2 = HPdistance2([station position], [self position]);
+	
+	// Player check for being inside the aegis already exists in PlayerEntityControls. We just
+	// check here that distance to station is less than 2.5 times scanner range to avoid problems with
+	// NPC ships getting stuck with a dockingAI while just outside the aegis - Nikos 20090630, as proposed by Eric
+	// On very busy systems (> 50 docking ships) docking ships can be sent to a hold position outside the range, 
+	// so also test for presence of dockingInstructions. - Eric 20091130
+	if (station != nil && (distanceToStation2 < SCANNER_MAX_RANGE2 * 6.25 || dockingInstructions != nil))
+	{
+		// remember the instructions
+		[dockingInstructions release];
+		dockingInstructions = [[station dockingInstructionsForShip:self] retain];
+		if (dockingInstructions != nil)
+		{
+			[self recallDockingInstructions];
+			
+			message = [dockingInstructions objectForKey:@"ai_message"];
+			if (message != nil)  [shipAI message:message];
+			message = [dockingInstructions objectForKey:@"comms_message"];
+			if (message != nil)  [station sendExpandedMessage:message toShip:self];
+		}
+		OOLog(@"docking.debug",@"%@",dockingInstructions);
+	}
+	else
+	{
+		DESTROY(dockingInstructions);
+	}
+	
+	if (dockingInstructions == nil)
+	{
+		[shipAI message:@"NO_STATION_FOUND"];
+	}
+}
+
+
+- (void) recallDockingInstructions
+{
+	if (dockingInstructions != nil)
+	{
+		destination = [dockingInstructions oo_vectorForKey:@"destination"];
+		desired_speed = fmin([dockingInstructions oo_floatForKey:@"speed"], maxFlightSpeed);
+		desired_range = [dockingInstructions oo_floatForKey:@"range"];
+		if ([dockingInstructions objectForKey:@"station"])
+		{
+			StationEntity *targetStation = [[dockingInstructions objectForKey:@"station"] weakRefUnderlyingObject];
+			if (targetStation != nil)
+			{
+				[self addTarget:targetStation];
+				[self setTargetStation:targetStation];
+			}
+			else 
+			{
+				[self removeTarget:[self primaryTarget]];
+			}
+		}
+		docking_match_rotation = [dockingInstructions oo_boolForKey:@"match_rotation"];
+	}
 }
 
 
@@ -480,6 +693,70 @@
 }
 
 
+- (void) broadcastDistressMessage
+{
+	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
+	
+	[self checkScanner];
+	DESTROY(_foundTarget);
+	
+	ShipEntity	*aggressor_ship = (ShipEntity*)[self primaryAggressor];
+	if (aggressor_ship == nil)  return;
+	
+	// don't send too many distress messages at once, space them out semi-randomly
+	if (messageTime > 2.0 * randf())  return;
+	
+	NSString	*distress_message = nil;
+	BOOL		is_buoy = (scanClass == CLASS_BUOY);
+	if (is_buoy)  distress_message = @"[buoy-distress-call]";
+	else  distress_message = @"[distress-call]";
+	
+	unsigned i;
+	for (i = 0; i < n_scanned_ships; i++)
+	{
+		ShipEntity*	ship = scanned_ships[i];
+
+    // dump cargo if energy is low
+		if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
+		{
+			[self ejectCargo];
+			[self performFlee];
+		}
+		
+		// tell it!
+		if (ship->isPlayer)
+		{
+			if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
+			{
+				[self sendExpandedMessage:@"[beg-for-mercy]" toShip:ship];
+			}
+			else if ([self bounty] == 0)
+			{
+				// only send distress message to player if plausibly sending
+				// one more generally
+				[self sendExpandedMessage:distress_message toShip:ship];
+			}
+			
+			// reset the thanked_ship_id
+			DESTROY(_thankedShip);
+		}
+		else if ([self bounty] == 0 && [ship crew]) // Only clean ships can have their distress calls accepted
+		{
+			[ship doScriptEvent:OOJSID("distressMessageReceived") withArgument:aggressor_ship andArgument:self];
+			
+			// we only can send distressMessages to ships that are known to have a "ACCEPT_DISTRESS_CALL" reaction
+			// in their AI, or they might react wrong on the added found_target.
+
+			// FIXME: this test only works with core AIs
+			if (ship->isStation || [ship hasPrimaryRole:@"police"] || [ship hasPrimaryRole:@"hunter"])
+			{
+				[ship acceptDistressMessageFrom:self];
+			}
+		}
+	}
+}
+
+
 @end
 
 
@@ -561,13 +838,6 @@
 	desired_range = fmax(maxFlightSpeed / max_flight_pitch / 6, 50.0); // some ships need a longer range to reach a waypoint.
 }
 
-- (void) performFlyToRangeFromDestination
-{
-	behaviour = BEHAVIOUR_FLY_RANGE_FROM_DESTINATION;
-	frustration = 0.0;
-}
-
-
 - (void) setSpeedTo:(NSString *)speedString
 {
 	desired_speed = [speedString doubleValue];
@@ -587,21 +857,6 @@
 - (void) setThrustFactorTo:(NSString *)thrustFactorString
 {
 	thrust = OOClamp_0_1_f([thrustFactorString doubleValue]) * max_thrust;
-}
-
-
-- (void) performIdle
-{
-	behaviour = BEHAVIOUR_IDLE;
-	frustration = 0.0;
-}
-
-
-- (void) performHold
-{
-	desired_speed = 0.0;
-	behaviour = BEHAVIOUR_TRACK_TARGET;
-	frustration = 0.0;
 }
 
 
@@ -652,22 +907,6 @@
 	{
 		[self addDefenseTarget:primeAggressor];
 	}
-}
-
-
-- (void) performAttack
-{
-	behaviour = BEHAVIOUR_ATTACK_TARGET;
-	desired_range = 1250 * randf() + 750; // 750 til 2000
-	frustration = 0.0;
-}
-
-
-- (void) performBroadside
-{
-	behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
-	desired_range = 1250 * randf() + 750; // 750 til 2000
-	frustration = 0.0;
 }
 
 
@@ -861,42 +1100,7 @@
 }
 
 
-- (void) performCollect
-{
-	behaviour = BEHAVIOUR_COLLECT_TARGET;
-	frustration = 0.0;
-}
 
-
-- (void) performIntercept
-{
-	behaviour = BEHAVIOUR_INTERCEPT_TARGET;
-	frustration = 0.0;
-}
-
-
-- (void) performFlee
-{
-	behaviour = BEHAVIOUR_FLEE_TARGET;
-
-	[self setEvasiveJink:400.0];
-
-	frustration = 0.0;
-}
-
-
-- (void) performScriptedAI
-{
-	behaviour = BEHAVIOUR_SCRIPTED_AI;
-	frustration = 0.0;
-}
-
-
-- (void) performScriptedAttackAI
-{
-	behaviour = BEHAVIOUR_SCRIPTED_ATTACK_AI;
-	frustration = 0.0;
-}
 
 
 - (void) getWitchspaceEntryCoordinates
@@ -940,13 +1144,6 @@
 - (void) setCoordinatesFromPosition
 {
 	coordinates = position;
-}
-
-
-- (void) performFaceDestination
-{
-	behaviour = BEHAVIOUR_FACE_DESTINATION;
-	frustration = 0.0;
 }
 
 
@@ -1072,25 +1269,6 @@
 }
 
 
-- (void) performLandOnPlanet
-{
-	OOPlanetEntity	*nearest = [self findNearestPlanet];
-	if (isNearPlanetSurface)
-	{
-		destination = [nearest position];
-		behaviour = BEHAVIOUR_LAND_ON_PLANET;
-		planetForLanding = [nearest universalID];
-	}
-	else
-	{
-		behaviour = BEHAVIOUR_IDLE;
-		[shipAI message:@"NO_PLANET_NEARBY"];
-	}
-	
-	frustration = 0.0;
-}
-
-
 - (void) landOnPlanet
 {
 	// Selects the nearest planet it can find.
@@ -1206,13 +1384,13 @@
 
 - (void) checkAegis
 {
-	switch(aegis_status)
+	switch (aegis_status)
 	{
 		case AEGIS_CLOSE_TO_MAIN_PLANET: 
 			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];
 			// It's been a few years since 1.71 - it should be safe enough to comment out the line below for 1.77/1.78 -- Kaks 20120917
 			//[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, kept for compatibility with pre-1.72 AI plists.
-			break;
+			return;
 		case AEGIS_CLOSE_TO_ANY_PLANET:
 		{
 			Entity<OOStellarBody> *nearest = [self findNearestStellarBody];
@@ -1233,16 +1411,19 @@
 					[shipAI message:@"CLOSE_TO_SECONDARY_PLANET"];
 				}
 			}
-			break;
+			return;
 		}
 		case AEGIS_IN_DOCKING_RANGE:
 			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
-			break;
+			return;
 		case AEGIS_NONE:
-		default: 
 			[shipAI message:@"AEGIS_NONE"];
-			break;
+			return;
 	}
+	
+	NSLog(@"Aegis status for %@ has taken on invalid value %i. This is an internal error, please report it.", self, aegis_status);
+	aegis_status = AEGIS_NONE;
+	[shipAI message:@"AEGIS_NONE"];
 }
 
 
@@ -1416,70 +1597,6 @@
 - (void) commsMessageByUnpiloted:(NSString *)valueString
 {
 	[self commsMessage:valueString withUnpilotedOverride:YES];
-}
-
-
-- (void) broadcastDistressMessage
-{
-	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
-	
-	[self checkScanner];
-	DESTROY(_foundTarget);
-	
-	ShipEntity	*aggressor_ship = (ShipEntity*)[self primaryAggressor];
-	if (aggressor_ship == nil)  return;
-	
-	// don't send too many distress messages at once, space them out semi-randomly
-	if (messageTime > 2.0 * randf())  return;
-	
-	NSString	*distress_message = nil;
-	BOOL		is_buoy = (scanClass == CLASS_BUOY);
-	if (is_buoy)  distress_message = @"[buoy-distress-call]";
-	else  distress_message = @"[distress-call]";
-	
-	unsigned i;
-	for (i = 0; i < n_scanned_ships; i++)
-	{
-		ShipEntity*	ship = scanned_ships[i];
-
-    // dump cargo if energy is low
-		if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
-		{
-			[self ejectCargo];
-			[self performFlee];
-		}
-		
-		// tell it!
-		if (ship->isPlayer)
-		{
-			if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
-			{
-				[self sendExpandedMessage:@"[beg-for-mercy]" toShip:ship];
-			}
-			else if ([self bounty] == 0)
-			{
-				// only send distress message to player if plausibly sending
-				// one more generally
-				[self sendExpandedMessage:distress_message toShip:ship];
-			}
-			
-			// reset the thanked_ship_id
-			DESTROY(_thankedShip);
-		}
-		else if ([self bounty] == 0 && [ship crew]) // Only clean ships can have their distress calls accepted
-		{
-			[ship doScriptEvent:OOJSID("distressMessageReceived") withArgument:aggressor_ship andArgument:self];
-			
-			// we only can send distressMessages to ships that are known to have a "ACCEPT_DISTRESS_CALL" reaction
-			// in their AI, or they might react wrong on the added found_target.
-
-			// FIXME: this test only works with core AIs
-			if (ship->isStation || [ship hasPrimaryRole:@"police"] || [ship hasPrimaryRole:@"hunter"])
-			{
-				[ship acceptDistressMessageFrom:self];
-			}
-		}
-	}
 }
 
 
@@ -1680,16 +1797,6 @@
 }
 
 
-- (void) performEscort
-{
-	if(behaviour != BEHAVIOUR_FORMATION_FORM_UP) 
-	{
-		behaviour = BEHAVIOUR_FORMATION_FORM_UP;
-		frustration = 0.0; // behavior changed, reset frustration.
-	}
-}
-
-
 - (void) checkGroupOddsVersusTarget
 {
 	NSUInteger ownGroupCount = [[self group] count] + (ranrot_rand() & 3);			// add a random fudge factor
@@ -1710,41 +1817,6 @@
 }
 
 
-- (void) groupAttackTarget
-{
-	NSEnumerator		*shipEnum = nil;
-	ShipEntity			*target = nil, *ship = nil;
-	
-	if ([self primaryTarget] == nil) return;
-	
-	if ([self group] == nil)		// ship is alone!
-	{
-		[self setFoundTarget:[self primaryTarget]];
-		[shipAI reactToMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
-		return;
-	}
-	
-	target = [self primaryTarget];
-	
-	// -memberArray creates a new collection, which is needed because the group might be mutated by the members' AIs.
-	NSArray *groupMembers = [[self group] memberArray];
-	for (shipEnum = [groupMembers objectEnumerator]; (ship = [shipEnum nextObject]); )
-	{
-		[ship setFoundTarget:target];
-		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
-		if ([ship escortGroup] != [ship group] && [[ship escortGroup] count] > 1) // Ship has a seperate escort group.
-		{
-			ShipEntity		*escort = nil;
-			NSEnumerator	*shipEnum = nil;
-			NSArray			*escortMembers = [[ship escortGroup] memberArrayExcludingLeader];
-			for (shipEnum = [escortMembers objectEnumerator]; (escort = [shipEnum nextObject]); )
-			{
-				[escort setFoundTarget:target];
-				[escort reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
-			}
-		}
-	}
-}
 
 
 - (void) scanForFormationLeader
@@ -2074,22 +2146,6 @@
 	}
 	
 	[self checkFoundTarget];
-}
-
-
-- (void) performMining
-{
-	Entity *target = [self primaryTarget];
-	// mining is not seen as hostile behaviour, so ensure it is only used against rocks.
-	if (target &&  [target scanClass] == CLASS_ROCK)
-	{
-		behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
-		frustration = 0.0;
-	}
-	else
-	{	
-		[self noteLostTargetAndGoIdle];
-	}
 }
 
 
@@ -2434,88 +2490,6 @@
 		[self setTargetStation:nil];
 	}
 	
-}
-
-- (void) requestDockingCoordinates
-{
-	/*-	requests coordinates from the target station
-	 if the target station can't be found
-	 then use the nearest it can find (which may be a rock hermit) -*/
-	
-	StationEntity	*station =  nil;
-	Entity			*targStation = nil;
-	NSString		*message = nil;
-	double		distanceToStation2 = 0.0;
-	
-	targStation = [self targetStation];
-	if ([targStation isStation])
-	{
-		station = (StationEntity*)targStation;
-	}
-	else
-	{
-		station = [UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
-											   parameter:nil
-										relativeToEntity:self];
-	}
-	
-	distanceToStation2 = HPdistance2([station position], [self position]);
-	
-	// Player check for being inside the aegis already exists in PlayerEntityControls. We just
-	// check here that distance to station is less than 2.5 times scanner range to avoid problems with
-	// NPC ships getting stuck with a dockingAI while just outside the aegis - Nikos 20090630, as proposed by Eric
-	// On very busy systems (> 50 docking ships) docking ships can be sent to a hold position outside the range, 
-	// so also test for presence of dockingInstructions. - Eric 20091130
-	if (station != nil && (distanceToStation2 < SCANNER_MAX_RANGE2 * 6.25 || dockingInstructions != nil))
-	{
-		// remember the instructions
-		[dockingInstructions release];
-		dockingInstructions = [[station dockingInstructionsForShip:self] retain];
-		if (dockingInstructions != nil)
-		{
-			[self recallDockingInstructions];
-			
-			message = [dockingInstructions objectForKey:@"ai_message"];
-			if (message != nil)  [shipAI message:message];
-			message = [dockingInstructions objectForKey:@"comms_message"];
-			if (message != nil)  [station sendExpandedMessage:message toShip:self];
-		}
-		
-	}
-	else
-	{
-		DESTROY(dockingInstructions);
-	}
-	
-	if (dockingInstructions == nil)
-	{
-		[shipAI message:@"NO_STATION_FOUND"];
-	}
-}
-
-
-- (void) recallDockingInstructions
-{
-	if (dockingInstructions != nil)
-	{
-		destination = [dockingInstructions oo_hpvectorForKey:@"destination"];
-		desired_speed = fmin([dockingInstructions oo_floatForKey:@"speed"], maxFlightSpeed);
-		desired_range = [dockingInstructions oo_floatForKey:@"range"];
-		if ([dockingInstructions objectForKey:@"station"])
-		{
-			StationEntity *targetStation = [[dockingInstructions objectForKey:@"station"] weakRefUnderlyingObject];
-			if (targetStation != nil)
-			{
-				[self addTarget:targetStation];
-				[self setTargetStation:targetStation];
-			}
-			else 
-			{
-				[self removeTarget:[self primaryTarget]];
-			}
-		}
-		docking_match_rotation = [dockingInstructions oo_boolForKey:@"match_rotation"];
-	}
 }
 
 

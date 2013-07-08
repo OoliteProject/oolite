@@ -22,7 +22,9 @@
 #include <mach/mach_error.h>
 
 
+#if DEBUG
 #define kOOLogUnconvertedNSLog @"unclassified.VirtualRingBuffer"
+#endif
 
 
 @implementation VirtualRingBuffer

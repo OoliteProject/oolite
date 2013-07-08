@@ -37,8 +37,6 @@ MA 02110-1301, USA.
 - (void) switchAITo:(NSString *)aiString;
 
 - (void) scanForHostiles;
-- (void) performTumble;
-- (void) performStop;
 - (BOOL) performHyperSpaceToSpecificSystem:(OOSystemID)systemID;
 - (void) scanForNearestIncomingMissile;
 
@@ -48,5 +46,29 @@ MA 02110-1301, USA.
 - (void) wormholeEscorts;
 
 - (BOOL) suggestEscortTo:(ShipEntity *)mother;
+
+- (void) groupAttackTarget;
+
+- (void) performAttack;
+- (void) performCollect;
+- (void) performEscort;
+- (void) performFaceDestination;
+- (void) performFlee;
+- (void) performFlyToRangeFromDestination;
+- (void) performHold;
+- (void) performIdle;
+- (void) performIntercept;
+- (void) performLandOnPlanet;
+- (void) performMining;
+- (void) performScriptedAI;
+- (void) performScriptedAttackAI;
+- (void) performStop;
+- (void) performTumble;
+
+- (void) broadcastDistressMessage;
+
+- (void) requestDockingCoordinates;
+- (void) recallDockingInstructions;
+
 
 @end

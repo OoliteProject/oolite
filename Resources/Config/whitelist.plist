@@ -99,7 +99,6 @@
 		"performHold",
 		"setTargetToPrimaryAggressor",
 		"performAttack",
-		"performBroadside",
 		"scanForNearestMerchantman",
 		"scanForRandomMerchantman",
 		"scanForLoot",
@@ -337,6 +336,7 @@
 		"drawMissileDisplay:",
 		"drawStatusLight:",
 		"drawClock:",
+		"drawPrimedEquipment:",
 		"drawWeaponsOfflineText:",
 		"drawFPSInfoCounter:"
 	);
