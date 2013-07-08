@@ -683,6 +683,18 @@ static const BaseFace kTexturedFaces[][3] =
 										blue:0.9 * aleph
 									   alpha:aleph];
 				}
+				else if (alt > 0 && alt <= atmo * 1.5)
+				{
+					/* Without this, if you leave the atmosphere at very low
+					 * frame rates, you might still have skyalpha > 0 when you
+					 * go sun-skimming. Since skyalpha > 0 simulates atmospheric
+					 * friction and continually pumps heat into the ship, this
+					 * is rapidly fatal - CIM */
+					[UNIVERSE setSkyColorRed:0.0f
+														 green:0.0f
+															blue:0.0f
+														 alpha:0.0f];
+				}
 			}
 		case STELLAR_TYPE_MOON:
 			{
