@@ -960,7 +960,16 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
 	[self addEntity:thing];
-	bgcolor = [(SkyEntity *)thing skyColor];
+//	bgcolor = [(SkyEntity *)thing skyColor];
+//
+	h1 = randf()/3.0;
+	if (h1 > 0.17)
+	{
+		h1 += 0.33;
+	}
+	// pick a main sequence colour
+
+	bgcolor = [OOColor colorWithHue:h1 saturation:0.75*randf() brightness:0.65+randf()/5.0 alpha:1.0];
 	pale_bgcolor = [bgcolor blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]];
 	[thing release];
 	/*--*/
@@ -972,12 +981,15 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[(DustEntity *)thing setDustColor:pale_bgcolor]; 
 	[thing release];
 	/*--*/
+
+	float defaultSunFlare = randf()*0.1;
+	float defaultSunHues = 0.5+randf()*0.5;
 	OO_DEBUG_POP_PROGRESS();
 	
 	// actual entities next...
 	
 	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - planet");
-	a_planet=[self setUpPlanet];
+	a_planet=[self setUpPlanet]; // resets RNG when called
 	double planet_radius = [a_planet radius];
 	OO_DEBUG_POP_PROGRESS();
 	
@@ -1044,11 +1056,25 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	dict_object=[systeminfo objectForKey: @"corona_shimmer"];
 	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_shimmer"];
 	dict_object=[systeminfo objectForKey: @"corona_hues"];
-	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_hues"];
+	if (dict_object!=nil)
+	{
+		[sun_dict setObject:dict_object forKey:@"corona_hues"];
+	}
+	else
+	{
+		[sun_dict setObject:[NSNumber numberWithFloat:defaultSunHues] forKey:@"corona_hues"];
+	}
 	dict_object=[systeminfo objectForKey: @"corona_flare"];
-	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_flare"];
+	if (dict_object!=nil) 
+	{
+		[sun_dict setObject:dict_object forKey:@"corona_flare"];
+	}
+	else
+	{
+		[sun_dict setObject:[NSNumber numberWithFloat:defaultSunFlare] forKey:@"corona_flare"];
+	}
 	
-	a_sun = [[OOSunEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!
+	a_sun = [[OOSunEntity alloc] initSunWithColor:bgcolor andDictionary:sun_dict];	// alloc retains!
 	
 	[a_sun setStatus:STATUS_ACTIVE];
 	[a_sun setPosition:sunPos]; // sets also light origin
