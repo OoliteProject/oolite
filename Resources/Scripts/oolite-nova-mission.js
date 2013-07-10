@@ -115,8 +115,8 @@ this._blowUpAllStations = function ()
 this._flareUp = function ()
 {
 	system.info.corona_hues = 1;
-	// This flare up (0.4 to 0.6 flare) will last between 10 and 30 seconds
-	this._flareTarget = 0.4 + Math.random() * 0.2;
+	// This flare up (0.3 to 0.5 flare) will last between 10 and 30 seconds
+	this._flareTarget = 0.3 + Math.random() * 0.2;
 	this._flareCallback = addFrameCallback(this._flareTransition.bind(this));
 	this._flareChange(this._flareDown, Math.random() * 20 + 10);
 };
@@ -125,8 +125,8 @@ this._flareUp = function ()
 this._flareDown = function ()
 {
 	system.info.corona_hues = 0.8;
-	// This quiet moment (0.2 to 0.35 flare) will last between 30 seconds and 2 minutes
-	this._flareTarget = 0.2 + Math.random() * 0.15;
+	// This quiet moment (0.1 to 0.25 flare) will last between 30 seconds and 2 minutes
+	this._flareTarget = 0.1 + Math.random() * 0.15;
 	this._flareCallback = addFrameCallback(this._flareTransition.bind(this));
 	this._flareChange(this._flareUp, Math.random() * 90 + 30);
 };
