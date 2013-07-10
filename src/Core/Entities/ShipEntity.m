@@ -471,7 +471,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	[shipAI autorelease];
 	shipAI = [[AI alloc] init];
 	[shipAI setOwner:self];
-	[shipAI setStateMachine:[shipDict oo_stringForKey:@"ai_type" defaultValue:@"nullAI.plist"]];
+	[self setAITo:[shipDict oo_stringForKey:@"ai_type" defaultValue:@"nullAI.plist"]];
 	
 	likely_cargo = [shipDict oo_unsignedIntForKey:@"likely_cargo"];
 	noRocks = [shipDict oo_fuzzyBooleanForKey:@"no_boulders"];
@@ -933,6 +933,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(scanner_display_color1);
 	DESTROY(scanner_display_color2);
 	DESTROY(script);
+	DESTROY(aiScript);
 	DESTROY(previousCondition);
 	DESTROY(dockingInstructions);
 	DESTROY(crew);
@@ -1184,6 +1185,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (OOScript *)shipScript
 {
 	return script;
+}
+
+
+- (OOScript *)shipAIScript
+{
+	return aiScript;
 }
 
 
@@ -12981,6 +12988,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 {
 	// This method is a bottleneck so that PlayerEntity can override at one point.
 	[script callMethod:message inContext:context withArguments:argv count:argc result:NULL];
+	[aiScript callMethod:message inContext:context withArguments:argv count:argc result:NULL];
 }
 
 

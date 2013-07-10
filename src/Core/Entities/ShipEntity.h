@@ -206,6 +206,7 @@ typedef enum
 	
 	//scripting
 	OOJSScript				*script;
+	OOJSScript				*aiScript;
 	
 	//docking instructions
 	NSDictionary			*dockingInstructions;
@@ -448,6 +449,7 @@ typedef enum
 - (void) setShipScript:(NSString *)script_name;
 - (void) removeScript;
 - (OOScript *) shipScript;
+- (OOScript *) shipAIScript;
 - (double) frustration;
 - (void) setLaunchDelay:(double)delay;
 

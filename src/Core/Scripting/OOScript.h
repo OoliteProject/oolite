@@ -53,6 +53,8 @@ MA 02110-1301, USA.
 
 //	Load a single JavaScript script.
 + (id)jsScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties;
+//  As above, but load from the "AIs" directory
++ (id)jsAIScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties;
 
 - (NSString *)name;
 - (NSString *)scriptDescription;

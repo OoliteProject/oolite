@@ -57,6 +57,8 @@
 
 - (void) acceptDistressMessageFrom:(ShipEntity *)other;
 
+- (void) setAIScript:(NSString *)aiString;
+
 @end
 
 
@@ -250,13 +252,24 @@
 
 - (void) setAITo:(NSString *)aiString
 {
-	[[self getAI] setStateMachine:aiString];
+	if ([aiString hasSuffix:@".plist"])
+	{
+		[[self getAI] setStateMachine:aiString];
+		[self setAIScript:@"nullAI.js"];
+	}
+	else if ([aiString hasSuffix:@".js"])
+	{
+		[[self getAI] setStateMachine:@"nullAI.plist"];
+		[self setAIScript:aiString];
+	}
+	/* TODO: if it doesn't have either prefix, then if x.js exists, load that
+	 * otherwise load x.plist */
 }
 
 
 - (void) switchAITo:(NSString *)aiString
 {
-	[[self getAI] setStateMachine:aiString];
+	[self setAITo:aiString];
 	[[self getAI] clearStack];
 }
 
@@ -2668,6 +2681,25 @@
 
 
 @implementation ShipEntity (OOAIPrivate)
+
+
+- (void) setAIScript:(NSString *)aiString
+{
+	NSMutableDictionary		*properties = nil;
+	
+	properties = [NSMutableDictionary dictionary];
+	[properties setObject:self forKey:@"ship"];
+	
+	[aiScript autorelease];
+	aiScript = [OOScript jsAIScriptFromFileNamed:aiString properties:properties];
+	if (aiScript == nil)
+	{
+		OOLog(@"ai.load.failed.unknownAI",@"Unable to load JS AI %@",aiString);
+		aiScript = [OOScript jsAIScriptFromFileNamed:@"nullAI.js" properties:properties];
+	}
+	[aiScript retain];
+}
+
 
 - (void) checkFoundTarget
 {

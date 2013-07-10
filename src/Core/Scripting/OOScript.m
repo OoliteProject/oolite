@@ -208,6 +208,35 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 }
 
 
++ (id)jsAIScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties
+{
+	NSString			*extension = nil;
+	NSString			*path = nil;
+	
+	if ([fileName length] == 0)  return nil;
+	
+	extension = [[fileName pathExtension] lowercaseString];
+	if ([extension isEqualToString:@"js"] || [extension isEqualToString:@"es"])
+	{
+		path = [ResourceManager pathForFileNamed:fileName inFolder:@"AIs"];
+		if (path == nil)
+		{
+			OOLogERR(@"script.load.notFound", @"Could not find script file %@.", fileName);
+			return nil;
+		}
+		return [OOJSScript scriptWithPath:path properties:properties];
+	}
+	else if ([extension isEqualToString:@"plist"])
+	{
+		OOLogERR(@"script.load.badName", @"Can't load script named %@ - legacy scripts are not supported in this context.", fileName);
+		return nil;
+	}
+	
+	OOLogERR(@"script.load.badName", @"Don't know how to load a script from %@.", fileName);
+	return nil;
+}
+
+
 - (NSString *)descriptionComponents
 {
 	return [NSString stringWithFormat:@"\"%@\" version %@", [self name], [self version]];
