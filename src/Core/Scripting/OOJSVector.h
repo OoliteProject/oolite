@@ -33,20 +33,24 @@ void InitOOJSVector(JSContext *context, JSObject *global);
 
 
 JSObject *JSVectorWithVector(JSContext *context, Vector vector)  NONNULL_FUNC;
+JSObject *JSVectorWithHPVector(JSContext *context, HPVector vector)  NONNULL_FUNC;
 
 BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue)  NONNULL_FUNC;
+BOOL HPVectorToJSValue(JSContext *context, HPVector vector, jsval *outValue)  NONNULL_FUNC;
 BOOL NSPointToVectorJSValue(JSContext *context, NSPoint point, jsval *outValue)  NONNULL_FUNC;
 BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)  NONNULL_FUNC;
+BOOL JSValueToHPVector(JSContext *context, jsval value, HPVector *outVector)  NONNULL_FUNC;
 
 /*	Given a JS Vector object, get the corresponding Vector struct. Given a JS
 	Entity, get its position. Given a JS Array with exactly three elements,
 	all of them numbers, treat them as [x, y, z]  components. For anything
 	else, return NO. (Other implicit conversions may be added in future.)
 */
-BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector)  GCC_ATTR((nonnull (1, 3)));
+BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, HPVector *outVector)  GCC_ATTR((nonnull (1, 3)));
 
 //	Set the value of a JS vector object.
 BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)  GCC_ATTR((nonnull (1)));
+BOOL JSVectorSetHPVector(JSContext *context, JSObject *vectorObj, HPVector vector)  GCC_ATTR((nonnull (1)));
 
 
 /*	VectorFromArgumentList()
@@ -62,10 +66,10 @@ BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)  
 	DEPRECATED in favour of JSObjectGetVector(), since the list-of-number form
 	is no longer used.
 */
-BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)  GCC_ATTR((nonnull (1, 5, 6)));
+BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, HPVector *outVector, uintN *outConsumed)  GCC_ATTR((nonnull (1, 5, 6)));
 
 /*	VectorFromArgumentListNoError()
 	
 	Like VectorFromArgumentList(), but does not report an error on failure.
 */
-BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)  GCC_ATTR((nonnull (1, 3, 4)));
+BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, HPVector *outVector, uintN *outConsumed)  GCC_ATTR((nonnull (1, 3, 4)));

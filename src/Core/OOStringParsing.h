@@ -36,6 +36,7 @@ NSMutableArray *ScanTokensFromString(NSString *values);
 
 // Note: these functions will leave their out values untouched if they fail (and return NO). They will not log an error if passed a NULL string (but will return NO). This means they can be used to, say, read dictionary entries which might not exist. They also ignore any extra components in the string.
 BOOL ScanVectorFromString(NSString *xyzString, Vector *outVector);
+BOOL ScanHPVectorFromString(NSString *xyzString, HPVector *outVector);
 BOOL ScanQuaternionFromString(NSString *wxyzString, Quaternion *outQuaternion);
 BOOL ScanVectorAndQuaternionFromString(NSString *xyzwxyzString, Vector *outVector, Quaternion *outQuaternion);
 

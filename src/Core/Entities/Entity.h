@@ -108,7 +108,8 @@ enum OOScanClass
 	GLfloat					cam_zero_distance;
 	GLfloat					no_draw_distance;		// 10 km initially
 	GLfloat					collision_radius;
-	Vector					position;
+	HPVector					position; // use high-precision vectors for global position
+	Vector						cameraRelativePosition;
 	Quaternion				orientation;
 	
 	int						zero_index;
@@ -127,7 +128,7 @@ enum OOScanClass
 	CollisionRegion			*collisionRegion;		// initially nil - then maintained
 	
 @protected
-	Vector					lastPosition;
+	HPVector					lastPosition;
 	Quaternion				lastOrientation;
 	
 	GLfloat					distanceTravelled;		// set to zero initially
@@ -197,12 +198,15 @@ enum OOScanClass
 - (ShipEntity *) parentEntity;		// owner if self is subentity of owner, otherwise nil.
 - (ShipEntity *) rootShipEntity;	// like parentEntity, but recursive.
 
-- (void) setPosition:(Vector)posn;
-- (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
-- (Vector) position;
+- (void) setPosition:(HPVector)posn;
+- (void) setPositionX:(OOHPScalar)x y:(OOHPScalar)y z:(OOHPScalar)z;
+- (HPVector) position;
+- (Vector) cameraRelativePosition;
+// gets a low-position relative vector
+- (Vector) vectorTo:(Entity *)entity;
 
-- (Vector) absolutePositionForSubentity;
-- (Vector) absolutePositionForSubentityOffset:(Vector) offset;
+- (HPVector) absolutePositionForSubentity;
+- (HPVector) absolutePositionForSubentityOffset:(HPVector) offset;
 
 - (double) zeroDistance;
 - (double) camZeroDistance;

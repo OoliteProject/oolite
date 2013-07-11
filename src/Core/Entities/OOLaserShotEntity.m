@@ -65,12 +65,12 @@ static OOTexture *sShotTexture2 = nil;
 	if (ship == srcEntity) 
 	{
 		// main laser offset
-		position = vector_add([ship position], OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix]));
+		[self setPosition:HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix])))];
 	}
 	else
 	{
 		// subentity laser
-		position = [srcEntity absolutePositionForSubentityOffset:middle];
+		[self setPosition:[srcEntity absolutePositionForSubentityOffset:vectorToHPVector(middle)]];
 	}
 	
 	Quaternion q = kIdentityQuaternion;
@@ -162,7 +162,7 @@ static OOTexture *sShotTexture2 = nil;
 			velocity in -[Entity update:], which is considered sufficient for
 			NPC ships.
 		*/
-		position = vector_add([ship position], OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix]));
+		position = HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix])));
 		[self setOrientation:quaternion_multiply(_relOrientation, [ship normalOrientation])];
 	}
 

@@ -28,6 +28,6 @@ MA 02110-1301, USA.
 
 @interface OOPlasmaBurstEntity: OOLightParticleEntity
 
-- (id) initWithPosition:(Vector)position;
+- (id) initWithPosition:(HPVector)position;
 
 @end
