@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "ProxyPlayerEntity.h"
 #import "HeadUpDisplay.h"
 
+#import "ShipEntityAI.h"
 #import "Universe.h"
 #import "AI.h"
 #import "OOColor.h"
