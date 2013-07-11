@@ -2564,9 +2564,10 @@ static GLfloat		sBaseMass = 0.0;
 - (void) resetAutopilotAI
 {
 	AI *myAI = [self getAI];
+	// JSAI: will need changing if dockingAI.js written
 	if (![[myAI name] isEqualToString:PLAYER_DOCKING_AI_NAME])
 	{
-		[myAI setStateMachine:PLAYER_DOCKING_AI_NAME];
+		[self setAITo:PLAYER_DOCKING_AI_NAME ];
 	}
 	[myAI clearAllData];
 	[myAI setState:@"GLOBAL"];

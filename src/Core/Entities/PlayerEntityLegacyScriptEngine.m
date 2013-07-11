@@ -2209,7 +2209,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			{
 				AI*	se1AI = [se1 getAI];
 				[se1 setFuel:MAX(PLAYER_MAX_FUEL, [se1 fuelCapacity])];
-				[se1AI setStateMachine:@"exitingTraderAI.plist"];	// lets them return to their previous state after the jump
+				[se1 setAITo:@"exitingTraderAI.plist"];	// lets them return to their previous state after the jump
 				[se1AI setState:@"EXIT_SYSTEM"];
 				// The following should prevent all ships leaving at once (freezes oolite on slower machines)
 				[se1AI setNextThinkTime:[UNIVERSE getTime] + 3 + (ranrot_rand() & 15)];

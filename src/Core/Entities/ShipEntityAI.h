@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 //	AI methods also used in other code.
 
 - (void) setAITo:(NSString *)aiString;
+- (void) setAIScript:(NSString *)aiString;
 - (void) switchAITo:(NSString *)aiString;
 
 - (void) scanForHostiles;

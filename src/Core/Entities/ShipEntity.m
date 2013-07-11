@@ -6959,7 +6959,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setStateMachine:(NSString *) ai_desc
 {
-	[shipAI setStateMachine: ai_desc];
+	[self setAITo:ai_desc];
 }
 
 
@@ -11653,7 +11653,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			OK = YES;
 			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
-			[shipAI setStateMachine:@"nullAI.plist"];
+			[self setAITo:@"nullAI.plist"];
 			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
 			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
@@ -12192,7 +12192,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	for (escortEnum = [idleEscorts objectEnumerator]; (escort = [escortEnum nextObject]); )
 	{
 		[escort addTarget:target];
-		[escort setStateMachine:@"interceptAI.plist"];
+		[escort setAITo:@"interceptAI.plist"];
 		[escort doScriptEvent:OOJSID("escortAttack") withArgument:target];
 		
 		if (--deployCount == 0)  break;
@@ -12222,8 +12222,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if ([escort group] == escortGroup)  [escort setGroup:nil];
 		if ([escort owner] == self)  [escort setOwner:escort];
 		if(target && [target isStation]) [escort setTargetStation:target];
-		
-		[ai setStateMachine:@"dockingAI.plist" afterDelay:delay];
+		// JSAI: needs slightly different implementation of delay
+		[escort setAITo:@"dockingAI.plist"];
 		[ai setState:@"ABORT" afterDelay:delay + 0.25];
 		[escort doScriptEvent:OOJSID("escortDock") withArgument:[NSNumber numberWithFloat:delay]];
 	}
@@ -12738,7 +12738,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	[station launchShipWithRole:@"pilot"];
 	[self setReportAIMessages:YES];
 	OOLog(@"claimAsSalvage.success", @"claimAsSalvage setting own state machine to capturedShipAI.plist");
-	[self setStateMachine:@"capturedShipAI.plist"];
+	[self setAITo:@"capturedShipAI.plist"];
 }
 
 
@@ -12785,7 +12785,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		OOLog(@"ship.pilotage", @"becoming pilot target and setting AI");
 		[pilot setReportAIMessages:YES];
 		[pilot addTarget:self];
-		[pilot setStateMachine:@"pilotAI.plist"];
+		[pilot setAITo:@"pilotAI.plist"];
 		[self reactToAIMessage:@"FOUND_PILOT" context:@"flight update"];
 	}
 }

@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 #import "ShipEntity.h"
+#import "ShipEntityAI.h"
 
 
 enum
@@ -63,7 +64,7 @@ static AI *sCurrentlyRunningAI = nil;
 - (void) directSetState:(NSString *)state;
 
 // Loading/whitelisting
-- (NSDictionary *) loadStateMachine:(NSString *)smName;
+- (NSDictionary *) loadStateMachine:(NSString *)smName jsName:(NSString *)script;
 - (NSDictionary *) cleanHandlers:(NSDictionary *)handlers forState:(NSString *)stateKey stateMachine:(NSString *)smName;
 - (NSArray *) cleanActions:(NSArray *)actions forHandler:(NSString *)handlerKey state:(NSString *)stateKey stateMachine:(NSString *)smName;
 
@@ -82,18 +83,20 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	NSString			*_name;
 	NSString			*_state;
 	NSMutableSet		*_pendingMessages;
+	NSString      *_jsScript;
 }
 
 - (id) initWithStateMachine:(NSDictionary *)stateMachine
 					   name:(NSString *)name
 					  state:(NSString *)state
-			pendingMessages:(NSSet *)pendingMessages;
+			pendingMessages:(NSSet *)pendingMessages
+									 jsScript:(NSString *)script;
 
 - (NSDictionary *) stateMachine;
 - (NSString *) name;
 - (NSString *) state;
 - (NSSet *) pendingMessages;
-
+- (NSString *) jsScript;
 
 @end
 
@@ -137,7 +140,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 {
 	if ((self = [self init]))
 	{
-		if (smName != nil)  [self setStateMachine:smName];
+		if (smName != nil)  [self setStateMachine:smName withJSScript:@"nullAI.js"];
 		if (stateName != nil)  currentState = [stateName retain];
 	}
 	
@@ -159,6 +162,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	DESTROY(stateMachineName);
 	DESTROY(currentState);
 	DESTROY(pendingMessages);
+	DESTROY(jsScript);
 	
 	[super dealloc];
 }
@@ -244,7 +248,8 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 												   initWithStateMachine:stateMachine
 																   name:stateMachineName
 																  state:currentState
-														pendingMessages:pendingMessages];
+														pendingMessages:pendingMessages
+																									jsScript:[stateMachine objectForKey:@"jsScript"]];
 	
 #ifndef NDEBUG
 	if ([[self owner] reportAIMessages])  OOLog(@"ai.stack.push", @"Pushing state machine for %@", self);
@@ -271,6 +276,9 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	
 	[self directSetState:[preservedMachine state]];
 	
+	// restore JS script
+	[[self owner] setAIScript:[preservedMachine jsScript]];
+
 	[pendingMessages release];
 	pendingMessages = [[preservedMachine pendingMessages] mutableCopy];  // restore a MUTABLE set
 	
@@ -295,9 +303,9 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 }
 
 
-- (void) setStateMachine:(NSString *)smName
+- (void) setStateMachine:(NSString *)smName withJSScript:(NSString *)script
 {
-	NSDictionary *newSM = [self loadStateMachine:smName];
+	NSDictionary *newSM = [self loadStateMachine:smName jsName:script];
 	
 	if (newSM)
 	{
@@ -356,6 +364,12 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 - (NSString *) name
 {
 	return [[stateMachineName retain] autorelease];
+}
+
+
+- (NSString *) associatedJS
+{
+	return [stateMachine objectForKey:@"jsScript"];
 }
 
 
@@ -784,7 +798,7 @@ static AIStackElement *sStack = NULL;
 }
 
 
-- (NSDictionary *) loadStateMachine:(NSString *)smName
+- (NSDictionary *) loadStateMachine:(NSString *)smName jsName:(NSString *)script
 {
 	NSDictionary			*newSM = nil;
 	NSMutableDictionary		*cleanSM = nil;
@@ -794,8 +808,12 @@ static AIStackElement *sStack = NULL;
 	NSDictionary			*stateHandlers = nil;
 	NSAutoreleasePool		*pool = nil;
 	
-	newSM = [cacheMgr objectForKey:smName inCache:@"AIs"];
-	if (newSM != nil && ![newSM isKindOfClass:[NSDictionary class]])  return nil;	// catches use of @"nil" to indicate no AI found.
+	if (![smName isEqualToString:@"nullAI.plist"])
+	{
+		// don't cache nullAI since they're different depending on associated JS AI
+		newSM = [cacheMgr objectForKey:smName inCache:@"AIs"];
+		if (newSM != nil && ![newSM isKindOfClass:[NSDictionary class]])  return nil;	// catches use of @"nil" to indicate no AI found.
+	}
 	
 	if (newSM == nil)
 	{
@@ -834,7 +852,8 @@ static AIStackElement *sStack = NULL;
 				stateHandlers = [self cleanHandlers:stateHandlers forState:stateKey stateMachine:smName];
 				[cleanSM setObject:stateHandlers forKey:stateKey];
 			}
-			
+			[cleanSM setObject:script forKey:@"jsScript"];
+
 			// Make immutable.
 			newSM = [[cleanSM copy] autorelease];
 			
@@ -971,6 +990,7 @@ static AIStackElement *sStack = NULL;
 					   name:(NSString *)name
 					  state:(NSString *)state
 			pendingMessages:(NSSet *)pendingMessages
+									 jsScript:(NSString *)script
 {
 	if ((self = [super init]))
 	{
@@ -978,6 +998,7 @@ static AIStackElement *sStack = NULL;
 		_name = [name copy];
 		_state = [state copy];
 		_pendingMessages = [pendingMessages copy];
+		_jsScript = [script copy];
 	}
 	
 	return self;
@@ -990,6 +1011,7 @@ static AIStackElement *sStack = NULL;
 	[_name autorelease];
 	[_state autorelease];
 	[_pendingMessages autorelease];
+	[_jsScript autorelease];
 	
 	[super dealloc];
 }
@@ -1016,6 +1038,11 @@ static AIStackElement *sStack = NULL;
 - (NSSet *) pendingMessages
 {
 	return _pendingMessages;
+}
+
+- (NSString *) jsScript
+{
+	return _jsScript;
 }
 
 @end

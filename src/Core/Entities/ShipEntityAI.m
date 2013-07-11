@@ -43,6 +43,8 @@
 #import "OOConstToString.h"
 #import "OOConstToJSString.h"
 #import "OOCollectionExtractors.h"
+#import "ResourceManager.h"
+
 
 
 @interface ShipEntity (OOAIPrivate)
@@ -56,8 +58,6 @@
 - (void)scanForNearestShipWithNegatedPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter;
 
 - (void) acceptDistressMessageFrom:(ShipEntity *)other;
-
-- (void) setAIScript:(NSString *)aiString;
 
 @end
 
@@ -254,16 +254,48 @@
 {
 	if ([aiString hasSuffix:@".plist"])
 	{
-		[[self getAI] setStateMachine:aiString];
+		[[self getAI] setStateMachine:aiString withJSScript:@"nullAI.js"];
 		[self setAIScript:@"nullAI.js"];
 	}
 	else if ([aiString hasSuffix:@".js"])
 	{
-		[[self getAI] setStateMachine:@"nullAI.plist"];
+		[[self getAI] setStateMachine:@"nullAI.plist" withJSScript:aiString];
 		[self setAIScript:aiString];
 	}
-	/* TODO: if it doesn't have either prefix, then if x.js exists, load that
-	 * otherwise load x.plist */
+	else
+	{
+		NSString *path = [ResourceManager pathForFileNamed:[aiString stringByAppendingString:@".js"] inFolder:@"AIs"];
+		if (path == nil) // no js, use plist
+		{
+			[self setAITo:[aiString stringByAppendingString:@".plist"]];
+		}
+		else
+		{
+			[self setAITo:[aiString stringByAppendingString:@".js"]];
+		}
+	}
+}
+
+
+- (void) setAIScript:(NSString *)aiString
+{
+	NSMutableDictionary		*properties = nil;
+	
+	properties = [NSMutableDictionary dictionary];
+	[properties setObject:self forKey:@"ship"];
+	
+	[aiScript autorelease];
+	aiScript = [OOScript jsAIScriptFromFileNamed:aiString properties:properties];
+	if (aiScript == nil)
+	{
+		OOLog(@"ai.load.failed.unknownAI",@"Unable to load JS AI %@",aiString);
+		aiScript = [OOScript jsAIScriptFromFileNamed:@"nullAI.js" properties:properties];
+	}
+	else
+	{
+		[self doScriptEvent:OOJSID("aiStarted")];
+	}
+	[aiScript retain];
 }
 
 
@@ -1712,7 +1744,7 @@
 	// now we're just a bunch of alien artefacts!
 	scanClass = CLASS_CARGO;
 	reportAIMessages = NO;
-	[shipAI setStateMachine:@"dumbAI.plist"];
+	[self setAITo:@"dumbAI.plist"];
 	DESTROY(_primaryTarget);
 	[self setSpeed: 0.0];
 	[self setGroup:nil];
@@ -1851,7 +1883,7 @@
 		if ([self hasPrimaryRole:@"wingman"])
 		{
 			// become free-lance police :)
-			[shipAI setStateMachine:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
+			[self setAITo:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
 			[self setPrimaryRole:@"police"]; // other wingman can now select this ship as leader.
 		}
 	}
@@ -2681,24 +2713,6 @@
 
 
 @implementation ShipEntity (OOAIPrivate)
-
-
-- (void) setAIScript:(NSString *)aiString
-{
-	NSMutableDictionary		*properties = nil;
-	
-	properties = [NSMutableDictionary dictionary];
-	[properties setObject:self forKey:@"ship"];
-	
-	[aiScript autorelease];
-	aiScript = [OOScript jsAIScriptFromFileNamed:aiString properties:properties];
-	if (aiScript == nil)
-	{
-		OOLog(@"ai.load.failed.unknownAI",@"Unable to load JS AI %@",aiString);
-		aiScript = [OOScript jsAIScriptFromFileNamed:@"nullAI.js" properties:properties];
-	}
-	[aiScript retain];
-}
 
 
 - (void) checkFoundTarget
