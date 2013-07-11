@@ -206,7 +206,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return JS_NewNumberValue(context, [entity collisionRadius], value);
 	
 		case kEntity_position:
-			return VectorToJSValue(context, [entity position], value);
+			return HPVectorToJSValue(context, [entity position], value);
 		
 		case kEntity_orientation:
 			return QuaternionToJSValue(context, [entity normalOrientation], value);
@@ -321,7 +321,7 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	Entity				*entity = nil;
 	double				fValue;
-	Vector				vValue;
+	HPVector				hpvValue;
 	Quaternion			qValue;
 	
 	if (EXPECT_NOT(!OOJSEntityGetEntity(context, this, &entity)))  return NO;
@@ -330,9 +330,9 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 	switch (JSID_TO_INT(propID))
 	{
 		case kEntity_position:
-			if (JSValueToVector(context, *value, &vValue))
+			if (JSValueToHPVector(context, *value, &hpvValue))
 			{
-				[entity setPosition:vValue];
+				[entity setPosition:hpvValue];
 				if ([entity isShip])
 				{
 					[(ShipEntity *)entity resetExhaustPlumes];

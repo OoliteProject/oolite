@@ -1,6 +1,6 @@
 /*
 
-OOPlasmaShotEntity.h
+OOJSPopulatorDefinition.h
 
 
 Oolite
@@ -23,19 +23,24 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#import "OOJSScript.h"
+#include <jsapi.h>
+#import "OOMaths.h"
 
-
-@interface OOPlasmaShotEntity: OOLightParticleEntity
+@interface OOJSPopulatorDefinition: OOWeakRefObject
 {
 @private
-	OOTimeDelta					_duration;
+	jsval				_callback;
+	JSObject			*_callbackThis;
+	OOJSScript			*_owningScript;
 }
 
-- (id) initWithPosition:(HPVector)position
-			   velocity:(Vector)velocity
-				 energy:(float)energy
-			   duration:(OOTimeDelta)duration
-				  color:(OOColor *)color;
+- (jsval)callback;
+- (void)setCallback:(jsval)callback;
+- (JSObject *)callbackThis;
+- (void)setCallbackThis:(JSObject *)callbackthis;
+
+- (void)runCallback:(HPVector)location;
 
 @end
+

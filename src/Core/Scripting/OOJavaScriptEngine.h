@@ -675,5 +675,6 @@ do { \
 } while (0)
 
 #define OOJS_RETURN_VECTOR(value)		OOJS_RETURN_WITH_HELPER(VectorToJSValue, value)
+#define OOJS_RETURN_HPVECTOR(value)		OOJS_RETURN_WITH_HELPER(HPVectorToJSValue, value)
 #define OOJS_RETURN_QUATERNION(value)	OOJS_RETURN_WITH_HELPER(QuaternionToJSValue, value)
 #define OOJS_RETURN_DOUBLE(value)		OOJS_RETURN_WITH_HELPER(JS_NewNumberValue, value)

@@ -729,7 +729,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return JS_NewNumberValue(context, [entity desiredSpeed], value);
 			
 		case kShip_destination:
-			return VectorToJSValue(context, [entity destination], value);
+			return HPVectorToJSValue(context, [entity destination], value);
 		
 		case kShip_maxEscorts:
 			return JS_NewNumberValue(context, [entity maxEscortCount], value);
@@ -834,7 +834,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return JS_NewNumberValue(context, [entity missileLoadTime], value);
 		
 		case kShip_savedCoordinates:
-			return VectorToJSValue(context, [entity coordinates], value);
+			return HPVectorToJSValue(context,[entity coordinates], value);
 		
 		case kShip_equipment:
 			result = [entity equipmentListForScripting];
@@ -979,6 +979,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	int32						iValue;
 	JSBool						bValue;
 	Vector						vValue;
+	HPVector						hpvValue;
 	OOShipGroup					*group = nil;
 	OOColor						*colorForScript = nil;
 	BOOL exists;
@@ -1215,11 +1216,11 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 		case kShip_destination:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
 			
-			if (JSValueToVector(context, *value, &vValue))
+			if (JSValueToHPVector(context, *value, &hpvValue))
 			{
 				// use setEscortDestination rather than setDestination as
 				// scripted amendments shouldn't necessarily reset frustration
-				[entity setEscortDestination:vValue];
+				[entity setEscortDestination:hpvValue];
 				return YES;
 			}
 			break;
@@ -1245,9 +1246,9 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 		
 		case kShip_savedCoordinates:
-			if (JSValueToVector(context, *value, &vValue))
+			if (JSValueToHPVector(context, *value, &hpvValue))
 			{
-				[entity setCoordinate:vValue];
+				[entity setCoordinate:hpvValue];
 				return YES;
 			}
 			break;

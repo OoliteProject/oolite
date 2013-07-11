@@ -200,7 +200,7 @@ MA 02110-1301, USA.
 
 - (NSString*) descriptionComponents
 {
-	NSString *result = [NSString stringWithFormat:@"ID: %u position: %@ radius: %.3fkm", [self universalID], VectorDescription([self position]), 0.001 * [self radius]];
+	NSString *result = [NSString stringWithFormat:@"ID: %u position: %@ radius: %.3fkm", [self universalID], HPVectorDescription([self position]), 0.001 * [self radius]];
 	if ([self goneNova])
 	{
 		result = [result stringByAppendingString:@" (gone nova)"];
@@ -678,10 +678,10 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setPosition:(Vector) posn
+- (void) setPosition:(HPVector) posn
 {
 	[super setPosition: posn];
-	[UNIVERSE setMainLightPosition: posn];
+	[UNIVERSE setMainLightPosition: HPVectorToVector(posn)];
 }
 
 

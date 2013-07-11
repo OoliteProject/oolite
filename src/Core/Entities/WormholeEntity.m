@@ -110,7 +110,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 		// Since this is new for 1.75.1, we must give it a default values as we could be loading an old savegame
 		estimated_arrival_time = [dict oo_doubleForKey:@"estimated_arrival_time" defaultValue:arrival_time];
-		position = [dict oo_vectorForKey:@"position"];
+		position = [dict oo_hpvectorForKey:@"position"];
 		_misjump = [dict oo_boolForKey:@"misjump" defaultValue:NO];
 		
 		
@@ -189,7 +189,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			expiry_time = arrival_time - 1.0; 
 		}
 		position = [ship position];
-		zero_distance = distance2([PLAYER position], position);
+		zero_distance = HPdistance2([PLAYER position], position);
 	}	
 	return self;
 }
@@ -275,7 +275,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	// MKW 2010.11.18 - calculate time it takes for ship to reach wormhole
 	// This is for AI ships which get told to enter the wormhole even though they
 	// may still be some distance from it when the player exits the system
-	float d = distance(position, [ship position]);
+	float d = HPdistance(position, [ship position]);
 	d -= [ship collisionRadius] + [self collisionRadius];
 	if (d > 0.0f)
 	{
@@ -379,7 +379,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			
 			if (hasExitPosition && (!containsPlayer || useExitXYScatter))
 			{
-				Vector shippos;
+				HPVector shippos;
 				Vector exit_vector_x = vector_right_from_quaternion([UNIVERSE getWitchspaceExitRotation]);			
 				Vector exit_vector_y = vector_up_from_quaternion([UNIVERSE getWitchspaceExitRotation]);
 // entry wormhole has a radius of around 100m (or perhaps more)
@@ -468,7 +468,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	{
 		// ships exiting the wormhole after now are following the player
 		// so appear behind them
-		position = vector_add([PLAYER position], vector_multiply_scalar([PLAYER forwardVector], -500.0f));
+		position = HPvector_add([PLAYER position], vectorToHPVector(vector_multiply_scalar([PLAYER forwardVector], -500.0f)));
 		containsPlayer = NO;
 	}
 // else, the wormhole doesn't now (or never) contained the player, so
@@ -482,7 +482,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 }
 
 
-- (void) setExitPosition:(Vector)pos
+- (void) setExitPosition:(HPVector)pos
 {
 	[self setPosition: pos];
 	hasExitPosition = YES;
@@ -793,7 +793,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	[myDict oo_setFloat:(expiry_time) forKey:@"expiry_time"];
 	[myDict oo_setFloat:(arrival_time) forKey:@"arrival_time"];
 	[myDict oo_setFloat:(estimated_arrival_time) forKey:@"estimated_arrival_time"];
-	[myDict oo_setVector:position forKey:@"position"];
+	[myDict oo_setHPVector:position forKey:@"position"];
 	[myDict oo_setBool:_misjump forKey:@"misjump"];
 	
 	NSMutableArray * shipArray = [NSMutableArray arrayWithCapacity:[shipsInTransit count]];

@@ -137,6 +137,22 @@ Vector OOVectorMultiplyMatrix(Vector v, OOMatrix m)
 	return make_vector(x * w, y * w, z * w);
 }
 
+// HPVect: this loses precision because the matrix is single-precision
+// Best used for rotation matrices only - use HPvector_add for
+// translations of vectors if possible
+HPVector OOHPVectorMultiplyMatrix(HPVector v, OOMatrix m)
+{
+	OOScalar x, y, z, w;
+	
+	x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0];
+	y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1];
+	z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2];
+	w = m.m[0][3] * v.x + m.m[1][3] * v.y + m.m[2][3] * v.z + m.m[3][3];
+	
+	w = 1.0f/w;
+	return make_HPvector(x * w, y * w, z * w);
+}
+
 
 OOMatrix OOMatrixOrthogonalize(OOMatrix m)
 {
@@ -170,11 +186,13 @@ NSString *OOMatrixDescription(OOMatrix matrix)
 #endif
 
 
-OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos)
+OOMatrix OOMatrixForBillboard(HPVector bbPos, HPVector eyePos)
 {
 	Vector			v0, v1, v2, arbv;
 	
-	v0 = vector_subtract(bbPos, eyePos);
+	v0 = HPVectorToVector(HPvector_subtract(bbPos, eyePos));
+	// once the subtraction is done safe to lose precision since
+	// we're now dealing with relatively small vectors
 	v0 = vector_normal_or_fallback(v0, kBasisZVector);
 	
 	// arbitrary axis - not aligned with v0
