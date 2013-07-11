@@ -608,7 +608,7 @@ static const BaseFace kTexturedFaces[][3] =
 		default:
 			typeString = @"UNKNOWN";
 	}
-	return [NSString stringWithFormat:@"ID: %u position: %@ type: %@ radius: %.3fkm", [self universalID], VectorDescription([self position]), typeString, 0.001 * [self radius]];
+	return [NSString stringWithFormat:@"ID: %u position: %@ type: %@ radius: %.3fkm", [self universalID], HPVectorDescription([self position]), typeString, 0.001 * [self radius]];
 }
 
 
@@ -649,7 +649,7 @@ static const BaseFace kTexturedFaces[][3] =
 #ifndef NDEBUG
 		if ([ship reportAIMessages])
 		{
-			Vector p1 = ship->position;
+			HPVector p1 = ship->position;
 			OOLog(@"planet.collide.shipHit", @"DEBUG: %@ %d collided with planet at (%.1f,%.1f,%.1f)",[ship name], [ship universalID], p1.x,p1.y,p1.z);
 		}
 #endif
@@ -729,7 +729,7 @@ static const BaseFace kTexturedFaces[][3] =
 }
 
 
-- (void) setPosition:(Vector)posn
+- (void) setPosition:(HPVector)posn
 {
 	position = posn;
 	[atmosphere setPosition:posn];
@@ -769,7 +769,7 @@ static const BaseFace kTexturedFaces[][3] =
 		// for some reason this check doesn't work when extremely close to
 		// the planet and with the horizon near the side of the frame (FP
 		// inaccuracy?)
-		if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:radWithAtmosphere])
+		if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:radWithAtmosphere])
 		{
 			// Don't draw
 			return;
@@ -979,7 +979,7 @@ static const BaseFace kTexturedFaces[][3] =
 	{
 		OOGL(glPopMatrix());	// get old draw matrix back
 		OOGL(glPushMatrix());	// and store it again
-		OOGL(glTranslatef(position.x,position.y,position.z)); // centre on the planet
+		OOGL(glTranslatef(cameraRelativePosition.x,cameraRelativePosition.y,cameraRelativePosition.z)); // centre on the planet
 		// rotate
 //		GLMultOOMatrix([atmosphere rotationMatrix]);
 		// draw atmosphere entity
@@ -1170,7 +1170,7 @@ static const BaseFace kTexturedFaces[][3] =
 {
 	ShipEntity  *shuttle_ship;
 	Quaternion  q1;
-	Vector		launch_pos = position;
+	HPVector		launch_pos = position;
 	double		start_distance = collision_radius + 125.0;
 
 	quaternion_set_random(&q1);

@@ -69,6 +69,9 @@ OOINLINE Vector2D MakeVector2D(OOScalar vx, OOScalar vy) INLINE_CONST_FUNC;
 Vector OORandomUnitVector(void);
 Vector OOVectorRandomSpatial(OOScalar maxLength);	// Random vector uniformly distributed in radius-maxLength sphere. (Longer vectors are more common.)
 Vector OOVectorRandomRadial(OOScalar maxLength);		// Random vector with uniform distribution of direction and radius in radius-maxLength sphere. (Causes clustering at centre.)
+// only needed in high-precision forms so far
+//Vector OORandomPositionInCylinder(Vector centre1, OOScalar exclusion1, Vector centre2, OOScalar exclusion2, OOScalar radius);
+//Vector OORandomPositionInShell(Vector centre, OOScalar inner, OOScalar outer);
 #endif
 
 /* Multiply vector by scalar (in place) */

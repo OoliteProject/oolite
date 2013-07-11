@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 typedef struct
 {
 	double					timeframe;		// universal time for this frame
-	Vector					position;
+	HPVector					position;
 	Quaternion				orientation;
 	Vector					k;				// direction vectors
 } Frame;
@@ -45,7 +45,8 @@ enum
 {
 @private
 	Vector			_exhaustScale;
-	GLfloat			_vertices[34 * 3];
+	OOHPScalar			_vertices[34 * 3];
+	GLfloat			_glVertices[34 * 3];
 	GLfloat			_exhaustBaseColors[34 * 4];
 	Frame			_track[kExhaustFrameCount];
 	OOTimeAbsolute	_trackTime;

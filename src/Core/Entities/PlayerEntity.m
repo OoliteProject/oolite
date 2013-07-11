@@ -2161,6 +2161,9 @@ static GLfloat		sBaseMass = 0.0;
 			galaxy_coordinates.y = system_seed.b;
 			
 			[UNIVERSE setUpSpace];
+			// run initial system population
+			[UNIVERSE populateNormalSpace];
+
 			[self setDockTarget:[UNIVERSE station]];
 			// send world script events to let oxps know we're in a new system.
 			// all player.ship properties are still disabled at this stage.
@@ -2311,7 +2314,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// scanner sanity check - lose any targets further than maximum scanner range
 	ShipEntity *primeTarget = [self primaryTarget];
-	if (primeTarget && distance2([primeTarget position], [self position]) > SCANNER_MAX_RANGE2 && !autopilot_engaged)
+	if (primeTarget && HPdistance2([primeTarget position], [self position]) > SCANNER_MAX_RANGE2 && !autopilot_engaged)
 	{
 		[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
 		[self removeTarget:primeTarget];
@@ -2344,7 +2347,7 @@ static GLfloat		sBaseMass = 0.0;
 
 
 - (void) updateMovementFlags{
-	hasMoved = !vector_equal(position, lastPosition);
+	hasMoved = !HPvector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
 	lastOrientation = orientation;
@@ -2590,7 +2593,7 @@ static GLfloat		sBaseMass = 0.0;
 	UPDATE_STAGE(@"applying newtonian drift");
 	assert(VELOCITY_CLEANUP_FULL > VELOCITY_CLEANUP_MIN);
 	
-	position = vector_add(position, vector_multiply_scalar(velocity, (float)delta_t));
+	position = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(velocity, (float)delta_t)));
 	
 	GLfloat thrust_factor = 1.0;
 	if (flightSpeed > maxFlightSpeed)
@@ -3040,7 +3043,8 @@ static GLfloat		sBaseMass = 0.0;
 - (OOMatrix) drawTransformationMatrix
 {
 	OOMatrix result = playerRotMatrix;
-	return OOMatrixTranslate(result, position);
+	// HPVect: modify to use camera-relative positioning
+	return OOMatrixTranslate(result, HPVectorToVector(position));
 }
 
 
@@ -3059,13 +3063,13 @@ static GLfloat		sBaseMass = 0.0;
 - (void) moveForward:(double) amount
 {
 	distanceTravelled += (float)amount;
-	position = vector_add(position, vector_multiply_scalar(v_forward, (float)amount));
+	position = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(v_forward, (float)amount)));
 }
 
 
-- (Vector) breakPatternPosition
+- (HPVector) breakPatternPosition
 {
-	return vector_add(position,quaternion_rotate_vector(quaternion_conjugate(orientation),forwardViewOffset));
+	return HPvector_add(position,vectorToHPVector(quaternion_rotate_vector(quaternion_conjugate(orientation),forwardViewOffset)));
 }
 
 
@@ -3121,9 +3125,9 @@ static GLfloat		sBaseMass = 0.0;
 
 /* TODO post 1.78: profiling suggests this gets called often enough
  * that it's worth caching the result per-frame - CIM */
-- (Vector) viewpointPosition
+- (HPVector) viewpointPosition
 {
-	Vector		viewpoint = position;
+	HPVector		viewpoint = position;
 	Vector		offset = [self viewpointOffset];
 	
 	// FIXME: this ought to be done with matrix or quaternion functions.
@@ -4462,12 +4466,12 @@ static GLfloat		sBaseMass = 0.0;
 // override ShipEntity definition to ensure that 
 // if shields are still up, always hit the main entity and take the damage
 // on the shields
-- (GLfloat) doesHitLine:(Vector)v0 :(Vector)v1 :(ShipEntity **)hitEntity
+- (GLfloat) doesHitLine:(HPVector)v0 :(HPVector)v1 :(ShipEntity **)hitEntity
 {
 	if (hitEntity)
 		hitEntity[0] = (ShipEntity*)nil;
-	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
-	Vector u1 = vector_between(position, v1);
+	Vector u0 = HPVectorToVector(HPvector_between(position, v0));	// relative to origin of model / octree
+	Vector u1 = HPVectorToVector(HPvector_between(position, v1));
 	Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward));	// in ijk vectors
 	Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
 	GLfloat hit_distance = [octree isHitByLine:w0 :w1];
@@ -4487,10 +4491,10 @@ static GLfloat		sBaseMass = 0.0;
 	ShipEntity		*se = nil;
 	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		Vector p0 = [se absolutePositionForSubentity];
+		HPVector p0 = [se absolutePositionForSubentity];
 		Triangle ijk = [se absoluteIJKForSubentity];
-		u0 = vector_between(p0, v0);
-		u1 = vector_between(p0, v1);
+		u0 = HPVectorToVector(HPvector_between(p0, v0));
+		u1 = HPVectorToVector(HPvector_between(p0, v1));
 		w0 = resolveVectorInIJK(u0, ijk);
 		w1 = resolveVectorInIJK(u1, ijk);
 		
@@ -4512,7 +4516,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
-	Vector		rel_pos;
+	HPVector		rel_pos;
 	double		d_forward;
 	BOOL		internal_damage = NO;	// base chance
 	
@@ -4534,13 +4538,13 @@ static GLfloat		sBaseMass = 0.0;
 	[[ent retain] autorelease];
 	[[other retain] autorelease];
 	
-	rel_pos = (ent != nil) ? [ent position] : kZeroVector;
-	rel_pos = vector_subtract(rel_pos, position);
+	rel_pos = (ent != nil) ? [ent position] : kZeroHPVector;
+	rel_pos = HPvector_subtract(rel_pos, position);
 	
 	[self doScriptEvent:OOJSID("shipBeingAttacked") withArgument:ent];
 	if ([ent isShip]) [(ShipEntity *)ent doScriptEvent:OOJSID("shipAttackedOther") withArgument:self];
 
-	d_forward = dot_product(rel_pos, v_forward);
+	d_forward = dot_product(HPVectorToVector(rel_pos), v_forward);
 	
 	[self playShieldHit];
 
@@ -4607,7 +4611,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) takeScrapeDamage:(double) amount from:(Entity *) ent
 {
-	Vector  rel_pos;
+	HPVector  rel_pos;
 	double  d_forward;
 	BOOL	internal_damage = NO;	// base chance
 	
@@ -4621,9 +4625,10 @@ static GLfloat		sBaseMass = 0.0;
 	OOLog(@"player.ship.damage",  @"Player took %.3f scrape damage from %@", amount, ent);
 	
 	[[ent retain] autorelease];
-	rel_pos = ent ? [ent position] : kZeroVector;
-	rel_pos = vector_subtract(rel_pos, position);
-	d_forward = dot_product(rel_pos, v_forward);
+	rel_pos = ent ? [ent position] : kZeroHPVector;
+	rel_pos = HPvector_subtract(rel_pos, position);
+	// rel_pos is now small
+	d_forward = dot_product(HPVectorToVector(rel_pos), v_forward);
 	
 	[self playScrapeDamage];
 	if (d_forward >= 0)
@@ -4779,7 +4784,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self adjustVelocity:launchVector];
 	
 	float sheight = (float)(boundingBox.max.y - boundingBox.min.y);
-	position = vector_subtract(position, vector_multiply_scalar(v_up, sheight));
+	position = HPvector_subtract(position, vectorToHPVector(vector_multiply_scalar(v_up, sheight)));
 	
 	//remove escape pod
 	[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
@@ -5765,9 +5770,9 @@ static GLfloat		sBaseMass = 0.0;
 - (void) leaveWitchspace
 {
 	float		d1 = (float)(SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5));
-	Vector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
+	HPVector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 	Quaternion	q1;
-	Vector		whpos, exitpos;
+	HPVector		whpos, exitpos;
 
 	GLfloat min_d1 = [UNIVERSE safeWitchspaceExitDistance];
 	quaternion_set_random(&q1);
@@ -5775,8 +5780,8 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		d1 += ((d1 > 0.0)? min_d1: -min_d1); // not too close to the buoy.
 	}
-	Vector		v1 = vector_forward_from_quaternion(q1);
-	exitpos = vector_add(pos, vector_multiply_scalar(v1, d1)); // randomise exit position
+	HPVector		v1 = HPvector_forward_from_quaternion(q1);
+	exitpos = HPvector_add(pos, HPvector_multiply_scalar(v1, d1)); // randomise exit position
 	position = exitpos;
 	[self setOrientation:[UNIVERSE getWitchspaceExitRotation]];
 
@@ -5793,25 +5798,25 @@ static GLfloat		sBaseMass = 0.0;
 			if (wh_arrival_time > 0)
 			{
 				// Player is following other ship 
-				whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], 1000.0f));
+				whpos = HPvector_add(exitpos, vectorToHPVector(vector_multiply_scalar([self forwardVector], 1000.0f)));
 				[wormhole setContainsPlayer:YES];
 			}
 			else
 			{
 				// Player is the leadship 
-				whpos = vector_add(exitpos, vector_multiply_scalar([self forwardVector], -500.0f));
+				whpos = HPvector_add(exitpos, vectorToHPVector(vector_multiply_scalar([self forwardVector], -500.0f)));
 				// so it won't contain the player by the time they exit
 				[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
 			} 
 
-			Vector distance = vector_subtract(whpos, pos);
-			if (magnitude2(distance) < min_d1*min_d1 ) // within safety distance from the buoy?
+			HPVector distance = HPvector_subtract(whpos, pos);
+			if (HPmagnitude2(distance) < min_d1*min_d1 ) // within safety distance from the buoy?
 			{
 				// the wormhole is to close to the buoy. Move both player and wormhole away from it in the x-y plane.
 				distance.z = 0;
-				distance = vector_multiply_scalar(vector_normal(distance), min_d1);
-				whpos = vector_add(whpos, distance);
-				position = vector_add(position, distance);
+				distance = HPvector_multiply_scalar(HPvector_normal(distance), min_d1);
+				whpos = HPvector_add(whpos, distance);
+				position = HPvector_add(position, distance);
 			}
 			[wormhole setExitPosition: whpos];
 		}

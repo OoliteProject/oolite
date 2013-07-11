@@ -56,7 +56,7 @@ enum
 /*	Initialize particle effect with particles flying out randomly.
 	Initiali _particleSize[] is equal to speed.
  */
-- (id) initWithPosition:(Vector)position
+- (id) initWithPosition:(HPVector)position
 			   velocity:(Vector)velocity
 				  count:(unsigned)count
 			   minSpeed:(float)minSpeed
