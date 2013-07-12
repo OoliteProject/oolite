@@ -164,6 +164,10 @@ this.AILib = function(ship)
 						// something which has caused us to flee still nearby)
 						return true; // losing if less than 1/4 energy
 				}
+				// TODO: if there's a missile on the defense target list and
+				// it's pointed at us, we're losing (if the ECM worked, then
+				// we can go back to normal in a few seconds)
+
 				// TODO: add some reassessment of odds based on group size
 				return false; // not losing yet
 		}
@@ -195,13 +199,18 @@ this.AILib = function(ship)
 
 		/* ****************** Behaviour functions ************** */
 
-		/* Behaviours. Behaviours are effectively a state definition, defining a set of events and responses.  */
+		/* Behaviours. Behaviours are effectively a state definition,
+		 * defining a set of events and responses. They are aided in this
+		 * by the 'responses', which mean that the event handlers for the
+		 * behaviour within the definition can itself be templated.  */
 
 		this.behaviourFleeCombat = function()
 		{
-				var handlers = this.standardReconsiderations();
+				var handlers = {};
+				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
-				// TODO: select a random hostile instead
+				// TODO: select a random hostile instead if primary aggressor
+				// is out of range
 				this.ship.target = this.ship.AIPrimaryAggressor;
 				this.ship.performFlee();
 		}
@@ -209,7 +218,8 @@ this.AILib = function(ship)
 
 		this.behaviourDestroyCurrentTarget = function()
 		{
-				var handlers = this.standardReconsiderations();
+				var handlers = {};
+				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
 				this.ship.performAttack();
 		}
@@ -217,11 +227,47 @@ this.AILib = function(ship)
 
 		this.behaviourApproachDestination = function()
 		{
-				var handlers = this.standardReconsiderations();
+				var handlers = {};
+				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
+				// TODO: set a waypoint list in the parameters
+				// TODO: fly to waypoints (FILO) if they exist rather than destination
+				// TODO: use checkCourseToDestination / getSafeVector to see if more waypoints needed
+				// TODO: make checkCourseToDestination / getSafeVector legal JS methods for Ship
 				this.ship.performFlyToRangeFromDestination();
 		}
 
+		
+		this.behaviourDockWithStation = function()
+		{
+				var station = this.getParameter("oolite_dockingStation");
+				this.ship.target = station;
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.responsesAddDocking(handlers);
+				this.ship.requestDockingInstructions();
+				switch (this.ship.dockingInstructions.ai_message)
+				{
+				case "TOO_BIG_TO_DOCK":
+				case "DOCKING_REFUSED":
+						this.ship.setParameter("oolite_dockingStation",null);
+						this.ship.target = null;
+						this.reconsider();
+						break;
+				case "HOLD_POSITION":
+				case "TRY_AGAIN_LATER":
+						this.ship.destination = this.ship.target.position;
+						this.ship.performFaceDestination();
+						// and will reconsider in a little bit
+						break;
+				case "APPROACH":				
+				case "APPROACH_COORDINATES":
+				case "BACK_OFF":
+						this.ship.performFlyToRangeFromDestination();
+						break;
+				}
+				this.setUpHandlers(handlers);
+		}
 
 		/* ****************** Configuration functions ************** */
 
@@ -254,58 +300,74 @@ this.AILib = function(ship)
 		 * priorities. Many behaviours will need to supplement the standard
 		 * responses with additional definitions. */
 
-		this.standardReconsiderations = function() {
-				return {
-						//				"cascadeWeaponDetected" : TODO
-						"shipAttackedWithMissile" : function(missile,whom)
+		this.responsesAddStandard = function(handlers) {
+				//				"cascadeWeaponDetected" : TODO
+				handlers.shipAttackedWithMissile = function(missile,whom)
+				{
+						if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 						{
-								if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
-								{
-										this.ship.fireECM();
-										this.ship.addDefenseTarget(missile);
-										this.ship.addDefenseTarget(whom);
-										// but don't reconsider immediately
-								}
-								else
-								{
-										this.ship.addDefenseTarget(missile);
-										this.ship.addDefenseTarget(whom);
-										this.reconsider();
-								}
-						},
-						"shipBeingAttacked" : function(whom)
+								this.ship.fireECM();
+								this.ship.addDefenseTarget(missile);
+								this.ship.addDefenseTarget(whom);
+								// but don't reconsider immediately
+						}
+						else
 						{
-								if (this.ship.defenseTargets.indexOf(whom) < 0)
-								{
-										this.ship.addDefenseTarget(whom);
-										this.reconsider();
-								}
-								else 
-								{
-										// else we know about this attacker already
-										if (this.ship.energy * 4 < this.ship.maxEnergy)
-										{
-												// but at low energy still reconsider
-												this.reconsider();
-										}
-								}
-						},
-						"shipBeingAttackedUnsuccessfully" : function(whom)
-						{
-								if (this.ship.defenseTargets.indexOf(whom) < 0)
-								{
-										this.ship.addDefenseTarget(whom);
-										this.reconsider();
-								}
-						},
-						"shipTargetLost" : function(target)
-						{
+								this.ship.addDefenseTarget(missile);
+								this.ship.addDefenseTarget(whom);
 								this.reconsider();
-						},
-						// TODO: more event handlers
-				}
+						}
+				};
+				
+				handlers.shipBeingAttacked = function(whom)
+				{
+						if (this.ship.defenseTargets.indexOf(whom) < 0)
+						{
+								this.ship.addDefenseTarget(whom);
+								this.reconsider();
+						}
+						else 
+						{
+								// else we know about this attacker already
+								if (this.ship.energy * 4 < this.ship.maxEnergy)
+								{
+										// but at low energy still reconsider
+										this.reconsider();
+								}
+						}
+				};
+				handlers.shipBeingAttackedUnsuccessfully = function(whom)
+				{
+						if (this.ship.defenseTargets.indexOf(whom) < 0)
+						{
+								this.ship.addDefenseTarget(whom);
+								this.reconsider();
+						}
+				};
+				handlers.shipTargetLost = function(target)
+				{
+						this.reconsider();
+				};
+				// TODO: more event handlers
 		}
 
+		this.responsesAddDocking = function(handlers) {
+				handlers.stationWithdrewDockingClearance = function()
+				{
+						this.setParameter("oolite_dockingStation",null);
+						this.reconsider();
+				};
+				
+				handlers.shipAchievedDesiredRange = function()
+				{
+						var message = this.ship.dockingInstructions.ai_message;
+						if (message == "APPROACH" || message == "BACK_OFF" || message == "APPROACH_COORDINATES")
+						{
+								this.reconsider();
+						}
+				};
+
+		}
 
 
 }; // end object constructor
