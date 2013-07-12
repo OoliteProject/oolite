@@ -112,7 +112,9 @@ static OOTexture *sPlumeTexture = nil;
 		_trackTime = now;
 	}
 
-	GLfloat ex_emissive[4]	= {0.7f, 0.9, 1.0f, 0.9f * kOverallAlpha};   // pale blue
+	//GLfloat ex_emissive[4]	= {0.7f, 0.9, 1.0f, 0.9f * kOverallAlpha};   // pale blue - old definition
+	GLfloat ex_emissive[4];
+	[[ship exhaustEmissiveColor] getRed:&ex_emissive[0] green:&ex_emissive[1] blue:&ex_emissive[2] alpha:&ex_emissive[3]];
 	const GLfloat s1[8] = { 0.0, M_SQRT1_2, 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2};
 	const GLfloat c1[8] = { 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2, 0.0, M_SQRT1_2};
 	
