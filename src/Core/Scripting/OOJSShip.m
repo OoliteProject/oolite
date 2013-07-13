@@ -89,6 +89,7 @@ static JSBool ShipExitSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipUpdateEscortFormation(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipClearDefenseTargets(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipRemoveDefenseTarget(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *vp);
@@ -197,6 +198,7 @@ enum
 	kShip_isCloaked,			// cloaked, boolean, read/write (if cloaking device installed)
 	kShip_isDerelict,			// is an abandoned ship, boolean, read-only
 	kShip_isFrangible,			// frangible, boolean, read-only
+	kShip_isFleeing,			// is fleeing, boolean, read-only
 	kShip_isJamming,			// jamming scanners, boolean, read/write (if jammer installed)
 	kShip_isMine,				// is mine, boolean, read-only
 	kShip_isMissile,			// is missile, boolean, read-only
@@ -320,6 +322,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "isCargo",				kShip_isCargo,				OOJS_PROP_READONLY_CB },
 	{ "isDerelict",				kShip_isDerelict,			OOJS_PROP_READONLY_CB },
 	{ "isFrangible",			kShip_isFrangible,			OOJS_PROP_READONLY_CB },
+	{ "isFleeing",				kShip_isFleeing,			OOJS_PROP_READONLY_CB },
 	{ "isJamming",				kShip_isJamming,			OOJS_PROP_READONLY_CB },
 	{ "isMine",					kShip_isMine,				OOJS_PROP_READONLY_CB },
 	{ "isMissile",				kShip_isMissile,			OOJS_PROP_READONLY_CB },
@@ -444,6 +447,7 @@ static JSFunctionSpec sShipMethods[] =
 
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
+	{ "removeDefenseTarget",   ShipRemoveDefenseTarget,   1 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
 	{ "requestHelpFromGroup", ShipRequestHelpFromGroup, 1},
 	{ "requestDockingInstructions", ShipRequestDockingInstructions, 0},
@@ -800,6 +804,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_isBoulder:
 			*value = OOJSValueFromBOOL([entity isBoulder]);
+			return YES;
+
+		case kShip_isFleeing:
+			*value = OOJSValueFromBOOL([entity behaviour] == BEHAVIOUR_FLEE_TARGET || [entity behaviour] == BEHAVIOUR_FLEE_EVASIVE_ACTION);
 			return YES;
 			
 		case kShip_isCargo:
@@ -2641,6 +2649,28 @@ static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	[thisEnt addDefenseTarget:target];
+
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipRemoveDefenseTarget(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	ShipEntity				*target = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"removeDefenseTarget", 1U, OOJS_ARGV, nil, @"target");
+		return NO;
+	}
+	
+	[thisEnt removeDefenseTarget:target];
 
 	OOJS_RETURN_VOID;
 	
