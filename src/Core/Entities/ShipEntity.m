@@ -2199,6 +2199,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
 			[self setStatus:STATUS_IN_FLIGHT];
+			// awaken JS-based AIs
+			[self doScriptEvent:OOJSID("aiStarted")];
 			[self doScriptEvent:OOJSID("shipLaunchedFromStation") withArgument:stationLaunchedFrom];
 			[shipAI reactToMessage:@"LAUNCHED OKAY" context:@"launched"];
 		}
@@ -12178,9 +12180,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	idleEscorts = [NSMutableSet set];
 	for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
 	{
-		if (![[[escort getAI] name] isEqualToString:@"interceptAI.plist"])
+		if (![[[escort getAI] name] isEqualToString:@"interceptAI.plist"] && ![[[escort getAI] name] isEqualToString:@"nullAI.plist"])
 		{
 			[idleEscorts addObject:escort];
+		}
+		else if ([[[escort getAI] name] isEqualToString:@"nullAI.plist"])
+		{
+			// JS-based escorts get a help request
+			[escort doScriptEvent:OOJSID("helpRequestReceived") withArgument:self andArgument:[self primaryTarget]];
 		}
 	}
 	
@@ -12225,7 +12232,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if ([escort owner] == self)  [escort setOwner:escort];
 		if(target && [target isStation]) [escort setTargetStation:target];
 		// JSAI: needs slightly different implementation of delay
-		[escort setAITo:@"dockingAI.plist"];
+		if (![[[escort getAI] name] isEqualToString:@"nullAI.plist"])
+		{
+			[escort setAITo:@"dockingAI.plist"];
+		}
 		[ai setState:@"ABORT" afterDelay:delay + 0.25];
 		[escort doScriptEvent:OOJSID("escortDock") withArgument:[NSNumber numberWithFloat:delay]];
 	}

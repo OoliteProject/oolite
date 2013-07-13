@@ -230,6 +230,37 @@ this.AILib = function(ship)
 				}
 		}
 
+		this.friendlyStation = function(station)
+		{
+				return (station.target != this.ship || !station.hasHostileTarget);
+		}
+
+		this.cruiseSpeed = function()
+		{
+				var cruise = this.ship.maxSpeed * 0.8;
+				if (this.ship.group)
+				{
+						for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+						{
+								if (cruise > this.ship.group.ships[i].maxSpeed)
+								{
+										cruise = this.ship.group.ships[i].maxSpeed;
+								}
+						}
+				}
+				if (this.ship.escortGroup)
+				{
+						for (var i = 0 ; i < this.ship.escortGroup.ships.length ; i++)
+						{
+								if (cruise > this.ship.escortGroup.ships[i].maxSpeed)
+								{
+										cruise = this.ship.escortGroup.ships[i].maxSpeed;
+								}
+						}
+				}
+				return cruise;
+		}
+
 
 		/* ****************** Condition functions ************** */
 
@@ -324,6 +355,82 @@ this.AILib = function(ship)
 				return false;
 		}
 
+		this.conditionHasMothership = function()
+		{
+				return (this.ship.group && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship));
+		}
+
+		this.conditionMothershipInCombat = function()
+		{
+				if (this.ship.group && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship))
+				{
+						var leader = this.ship.group.leader;
+						if (leader.position.distanceTo(this.ship) > this.ship.scannerRange)
+						{
+								return false; // can't tell
+						}
+						if (leader.hasHostileTarget)
+						{
+								return true;
+						}
+						if (leader.target && leader.target.target == leader && leader.target.hasHostileTarget)
+						{
+								return true;
+						}
+						var dts = leader.defenseTargets;
+						for (var i = 0 ; i < dts.length ; i++)
+						{
+								if (dts[i].target == leader && dts[i].hasHostileTarget)
+								{
+										return true;
+								}
+						}
+						return false;
+				}
+				else
+				{
+						// no mothership
+						return false;
+				}
+		}
+
+		this.conditionMothershipUnderAttack = function()
+		{
+				if (this.ship.group && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship))
+				{
+						var leader = this.ship.group.leader;
+						if (leader.target.target == leader && leader.target.hasHostileTarget && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+						{
+								return true;
+						}
+						var dts = leader.defenseTargets;
+						for (var i = 0 ; i < dts.length ; i++)
+						{
+								if (dts[i].target == leader && dts[i].hasHostileTarget && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+								{
+										return true;
+								}
+						}
+						return false;
+				}
+				else
+				{
+						return false;
+				}
+		}
+
+		this.conditionMothershipIsAttacking = function()
+		{
+				if (this.ship.group && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship))
+				{
+						var leader = this.ship.group.leader;
+						if (leader.target && leader.hasHostileTarget && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+						{
+								return true;
+						}
+				}
+				return false;
+		}
 
 		this.conditionNearDestination = function()
 		{
@@ -348,7 +455,7 @@ this.AILib = function(ship)
 
 		this.conditionScannerContainsSalvage = function()
 		{
-				if (this.ship.cargoSpaceAvailable == 0)
+				if (this.ship.cargoSpaceAvailable == 0 || this.ship.equipmentStatus("EQ_FUEL_SCOOPS") != "EQUIPMENT_OK")
 				{
 						return false;
 				}
@@ -379,6 +486,71 @@ this.AILib = function(ship)
 		this.conditionInInterstellarSpace = function()
 		{
 				return system.isInterstellarSpace;
+		}
+
+		this.conditionWitchspaceEntryRequested = function()
+		{
+				return (this.getParameter("oolite_witchspaceWormhole") != null);
+		}
+
+		this.conditionFriendlyStationNearby = function()
+		{
+				var stations = system.stations;
+				for (var i = 0 ; i < stations.length ; i++)
+				{
+						var station = stations[i];
+						if (this.friendlyStation(station))
+						{
+								// this is not a very good check for friendliness, but
+								// it will have to do for now
+								if (station.position.distanceTo(this.ship) < this.ship.scannerRange)
+								{
+										return true;
+								}
+						}
+				}
+				return false;
+		}
+
+		this.conditionFriendlyStationExists = function()
+		{
+				var stations = system.stations;
+				for (var i = 0 ; i < stations.length ; i++)
+				{
+						var station = stations[i];
+						if (this.friendlyStation(station))
+						{
+								// this is not a very good check for friendliness, but
+								// it will have to do for now
+								return true;
+						}
+				}
+				return false;
+		}
+
+		this.conditionScannerContainsShipNeedingEscort = function()
+		{
+				if (this.ship.bounty == 0)
+				{
+						return this.checkScannerWithPredicate(function(s) { 
+								return s.bounty == 0 && (!s.escortGroup || s.escortGroup.count <= s.maxEscorts);
+						});
+				}
+				else
+				{
+						return this.checkScannerWithPredicate(function(s) { 
+								return s.bounty > 0 && (!s.escortGroup || s.escortGroup.count <= s.maxEscorts);
+						});
+				}
+		}
+
+		this.conditionCanWitchspaceOut = function()
+		{
+				if (!this.ship.hasHyperspaceMotor)
+				{
+						return false;
+				}
+				return (system.info.systemsInRange(this.ship.fuel).length > 0);
 		}
 
 		/* ****************** Behaviour functions ************** */
@@ -441,6 +613,30 @@ this.AILib = function(ship)
 						this.communicate("oolite_beginningAttack",this.ship.target.displayName);
 				}
 				this.ship.performAttack();
+		}
+
+
+		this.behaviourRepelCurrentTarget = function()
+		{
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.setUpHandlers(handlers);
+				if (this.ship.target.isFleeing || this.ship.target.isDerelict)
+				{
+						// repelling succeeded
+						this.ship.removeDefenseTarget(this.ship.target);
+						this.ship.target = null;
+						this.reconsiderNow();
+				}
+				else
+				{
+						if (!this.ship.hasHostileTarget)
+						{
+								// entering attack mode
+								this.communicate("oolite_beginningAttack",this.ship.target.displayName);
+						}
+						this.ship.performAttack();
+				}
 		}
 
 
@@ -609,6 +805,15 @@ this.AILib = function(ship)
 						// the wormhole we were trying for has expired
 						this.setParameter("oolite_witchspaceWormhole",null);
 				}
+				else if (wormhole)
+				{
+						this.ship.destination = wormhole.position;
+						this.ship.desiredRange = 0;
+						this.ship.desiredSpeed = this.ship.maxSpeed;
+						this.ship.performFlyToRangeFromDestination();
+						this.setUpHandlers(handlers);
+						return;
+				}
 
 				var destID = this.getParameter("oolite_witchspaceDestination");
 				if (destID == null)
@@ -645,7 +850,7 @@ this.AILib = function(ship)
 						{
 								this.ship.setDestination = blocker.position;
 								this.ship.setDesiredRange = 30000;
-								this.ship.setDesiredSpeed = this.ship.maxSpeed;
+								this.ship.setDesiredSpeed = this.cruiseSpeed();
 								this.ship.performFlyToRangeFromDestination();
 								// no reconsidering yet
 						}
@@ -658,6 +863,56 @@ this.AILib = function(ship)
 						{
 								this.reconsiderNow(); // reconsider AI on arrival
 						}
+				}
+		}
+
+
+		this.behaviourEscortMothership = function()
+		{
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.responsesAddEscort(handlers);
+				this.setUpHandlers(handlers);
+				this.ship.desiredRange = 0;
+				this.ship.performEscort();
+		}
+
+
+		// Separate behaviour just in case we want to change it later
+		// This is the one to catch up with a distant mothership
+		this.behaviourRejoinMothership = function()
+		{
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.responsesAddEscort(handlers);
+				this.setUpHandlers(handlers);
+				// to consider: should this behaviour use injectors if
+				// possible? so few escorts have them that it's probably not
+				// worth it.
+				this.ship.desiredRange = 0;
+				this.ship.performEscort();
+		}
+
+
+		this.behaviourOfferToEscort = function()
+		{
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.setUpHandlers(handlers);
+				
+				var possible = this.getParameter("oolite_scanResultSpecific");
+				if (possible == null)
+				{
+						this.reconsiderNow();
+				}
+				else
+				{
+						if (this.ship.offerToEscort(possible))
+						{
+								// accepted
+								this.reconsiderNow();
+						}
+						// if rejected, wait for next scheduled reconsideration
 				}
 		}
 
@@ -676,10 +931,13 @@ this.AILib = function(ship)
 						return;
 				}
 				var dts = this.ship.defenseTargets
-				if (dts.length > 0)
+				for (var i = 0; i < dts.length ; i++)
 				{
-						this.ship.target = dts[0];
-						return;
+						if (dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+						{
+								this.ship.target = dts[0];
+								return;
+						}
 				}
 				if (this.ship.group != null)
 				{
@@ -687,7 +945,7 @@ this.AILib = function(ship)
 						{
 								if (this.ship.group.ships[i] != this.ship)
 								{
-										if (this.ship.group.ships[i].target && this.ship.group.ships[i].hasHostileTarget)
+										if (this.ship.group.ships[i].target && this.ship.group.ships[i].hasHostileTarget && this.ship.group.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange)
 										{
 												this.ship.target = this.ship.group.ships[i].target;
 												return;
@@ -701,12 +959,59 @@ this.AILib = function(ship)
 						{
 								if (this.ship.escortGroup.ships[i] != this.ship)
 								{
-										if (this.ship.escortGroup.ships[i].target && this.ship.escortGroup.ships[i].hasHostileTarget)
+										if (this.ship.escortGroup.ships[i].target && this.ship.escortGroup.ships[i].hasHostileTarget && this.ship.escortGroup.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange)
 										{
 												this.ship.target = this.ship.escortGroup.ships[i].target;
 												return;
 										}
 								}
+						}
+				}
+		}
+
+		this.configurationAcquireOffensiveEscortTarget = function()
+		{
+				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.hasHostileTarget)
+				{
+						if (this.ship.distanceTo(this.ship.group.leader.target) < this.ship.scannerRange)
+						{
+								this.ship.target = this.ship.group.leader.target;
+								this.ship.addDefenseTarget(this.ship.target);
+						}
+				}
+		}
+
+		this.configurationAcquireDefensiveEscortTarget = function()
+		{
+				if (this.ship.group && this.ship.group.leader)
+				{
+						var leader = this.ship.group.leader;
+						if (leader.target.target == leader && leader.hasHostileTarget && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+						{
+								this.ship.target = leader.target;
+						}
+						else
+						{
+								var dts = leader.defenseTargets;
+								for (var i = 0 ; i < dts.length ; i++)
+								{
+										if (dts[i].target == leader && dts[i].hasHostileTarget && !dts[i].isFleeing && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+										{
+												this.ship.target = dts[i];
+										}
+								}
+						}
+				}
+		}
+
+		this.configurationAcquireOffensiveEscortTarget = function()
+		{
+				if (this.ship.group && this.ship.group.leader)
+				{
+						var leader = this.ship.group.leader;
+						if (leader.hasHostileTarget)
+						{
+								this.ship.target = leader.target;
 						}
 				}
 		}
@@ -722,11 +1027,49 @@ this.AILib = function(ship)
 				this.ship.target = this.getParameter("oolite_scanResultSpecific");
 		}
 
+		this.configurationSetDestinationToWitchpoint = function()
+		{
+				this.ship.destination = new Vector3D(0,0,0);
+				this.ship.desiredRange = 10000;
+				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+
+		this.configurationSetDestinationToNearestFriendlyStation = function()
+		{
+				var stations = system.stations;
+				var threshold = 1E16;
+				var chosenStation = null;
+				for (var i = 0 ; i < stations.length ; i++)
+				{
+						var station = stations[i];
+						if (this.friendlyStation(station))
+						{
+								var distance = station.position.distanceTo(this.ship);
+								if (distance < threshold)
+								{
+										threshold = distance;
+										chosenStation = station;
+								}
+						}
+				}
+				if (chosenStation == null)
+				{
+						this.ship.destination = this.ship.position;
+						this.ship.desiredRange = 0;
+				}
+				else
+				{
+						this.ship.destination = chosenStation.position;
+						this.ship.desiredRange = 15000;
+						this.ship.desiredSpeed = this.cruiseSpeed();
+				}
+		}
+
 		this.configurationSetDestinationFromPatrolRoute = function()
 		{
 				this.ship.destination = this.getParameter("oolite_patrolRoute");
 				this.ship.desiredRange = this.getParameter("oolite_patrolRouteRange");
-				this.ship.desiredSpeed = this.ship.maxSpeed;
+				this.ship.desiredSpeed = this.cruiseSpeed();
 		}
 
 		this.configurationMakeSpacelanePatrolRoute = function()
@@ -845,6 +1188,26 @@ this.AILib = function(ship)
 				this.setParameter("oolite_witchspaceDestination",possible[Math.floor(Math.random()*possible.length)].systemID);
 		}
 
+		this.configurationSetNearbyFriendlyStationForDocking = function()
+		{
+				var stations = system.stations;
+				for (var i = 0 ; i < stations.length ; i++)
+				{
+						var station = stations[i];
+						if (this.friendlyStation(station))
+						{
+								// this is not a very good check for friendliness, but
+								// it will have to do for now
+								if (station.position.distanceTo(this.ship) < this.ship.scannerRange)
+								{
+										this.setParameter("oolite_dockingStation",station)
+										return;
+								}
+						}
+				}
+		}
+
+
 		/* ****************** Response definition functions ************** */
 
 		/* Standard state-machine responses. These set up a set of standard
@@ -853,7 +1216,8 @@ this.AILib = function(ship)
 		 * priorities. Many behaviours will need to supplement the standard
 		 * responses with additional definitions. */
 
-		this.responsesAddStandard = function(handlers) {
+		this.responsesAddStandard = function(handlers) 
+		{
 				handlers.cascadeWeaponDetected = function(weapon)
 				{
 						this.ship.clearDefenseTargets();
@@ -957,6 +1321,15 @@ this.AILib = function(ship)
 				{
 						this.reconsiderNow();
 				}
+				handlers.shipLaunchedFromStation = function()
+				{
+						this.reconsiderNow();
+				}
+				handlers.shipExitedWormhole = function()
+				{
+						this.reconsiderNow();
+				}
+
 				handlers.distressMessageReceived = function(aggressor, sender)
 				{
 						if (this.getParameter("oolite_flag_listenForDistressCall") != true)
@@ -967,10 +1340,25 @@ this.AILib = function(ship)
 						this.setParameter("oolite_distressSender",sender);
 						this.reconsiderNow();
 				}
+				handlers.playerWillEnterWitchspace = function()
+				{
+						var wormhole = this.getParameter("oolite_witchspaceWormhole");
+						if (wormhole != null)
+						{
+								this.ship.enterWormhole(wormhole);
+						} 
+				}
+				handlers.wormholeSuggested = function(hole)
+				{
+						this.setParameter("oolite_witchspaceWormhole",hole);
+						this.reconsiderNow();
+				}
 				// TODO: more event handlers
 		}
 
-		this.responsesAddDocking = function(handlers) {
+		/* Additional handlers for use while docking */
+		this.responsesAddDocking = function(handlers) 
+		{
 				handlers.stationWithdrewDockingClearance = function()
 				{
 						this.setParameter("oolite_dockingStation",null);
@@ -985,8 +1373,47 @@ this.AILib = function(ship)
 								this.reconsiderNow();
 						}
 				};
+		}
+
+		/* Override of standard handlers for use while escorting */
+		this.responsesAddEscort = function(handlers) 
+		{
+				handlers.helpRequestReceived = function(ally, enemy)
+				{
+						// always help the leader
+						if (ally == this.ship.group.leader)
+						{
+								if (!this.ship.target || this.ship.target.target != ally)
+								{
+										this.ship.target = enemy;
+										this.reconsiderNow();
+										return;
+								}
+						}
+						this.ship.addDefenseTarget(enemy);
+						if (!this.ship.hasHostileTarget)
+						{
+								this.reconsiderNow();
+								return; // not in a combat mode
+						}
+						if (ally.energy / ally.maxEnergy < this.ship.energy / this.ship.maxEnergy)
+						{
+								// not in worse shape than ally
+								if (this.ship.target.target != ally && this.ship.target != ally.target)
+								{
+										// not already helping, go for it...
+										this.ship.target = enemy;
+										this.reconsiderNow();
+								}
+						}
+				}
+				handlers.escortDock = function()
+				{
+						this.reconsiderNow();
+				}
 
 		}
+
 
 
 }; // end object constructor

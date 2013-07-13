@@ -433,8 +433,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			}
 			[ship setSpeed:[self exitSpeed]]; // all ships from this wormhole have same velocity
 
-			
-			// Should probably pass the wormhole, but they have no JS representation
+			// awaken JS-based AIs
+			[ship doScriptEvent:OOJSID("aiStarted")];
+
+			// Wormholes now have a JS representation, so we could provide it
+			// but is it worth it for the exit wormhole?
 			[ship doScriptEvent:OOJSID("shipExitedWormhole") andReactToAIMessage:@"EXITED WITCHSPACE"];
 		
 			// update the ships's position

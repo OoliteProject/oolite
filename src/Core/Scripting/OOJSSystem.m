@@ -130,6 +130,7 @@ enum
 	kSystem_pseudoRandom256,		// constant-per-system pseudorandom number in [0..256), integer, read-only
 	kSystem_pseudoRandomNumber,		// constant-per-system pseudorandom number in [0..1), double, read-only
 	kSystem_sun,					// system's sun, Planet, read-only
+	kSystem_stations,     // list of dockable entities, read-only
 	kSystem_techLevel,				// tech level ID, integer, read/write
 };
 
@@ -159,6 +160,7 @@ static JSPropertySpec sSystemProperties[] =
 	{ "pseudoRandom100",		kSystem_pseudoRandom100,		OOJS_PROP_READONLY_CB },
 	{ "pseudoRandom256",		kSystem_pseudoRandom256,		OOJS_PROP_READONLY_CB },
 	{ "pseudoRandomNumber",		kSystem_pseudoRandomNumber,		OOJS_PROP_READONLY_CB },
+	{ "stations",					kSystem_stations,					OOJS_PROP_READONLY_CB },
 	{ "sun",					kSystem_sun,					OOJS_PROP_READONLY_CB },
 	{ "techLevel",				kSystem_techLevel,				OOJS_PROP_READWRITE_CB },
 	{ 0 }
@@ -259,6 +261,16 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			handled = YES;
 			break;
 			
+		case kSystem_stations:
+			/* Optimise? This may be called enough times that it's worth
+			 * having a list of stations cached and edited on station
+			 * creation/destruction, as we do for planets - CIM 13/7/2013 */
+			OOJS_BEGIN_FULL_NATIVE(context)
+			result = [UNIVERSE findShipsMatchingPredicate:IsStationPredicate parameter:NULL inRange:-1 ofEntity:nil];
+			OOJS_END_FULL_NATIVE
+			handled = YES;
+			break;
+
 		case kSystem_allShips:
 			OOJS_BEGIN_FULL_NATIVE(context)
 			result = [UNIVERSE findShipsMatchingPredicate:JSEntityIsJavaScriptSearchablePredicate parameter:NULL inRange:-1 ofEntity:nil];
