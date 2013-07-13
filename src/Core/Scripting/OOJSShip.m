@@ -117,6 +117,8 @@ static JSBool ShipPerformTumble(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool ShipRequestDockingInstructions(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipCheckCourseToDestination(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipGetSafeCourseToDestination(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
@@ -400,6 +402,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "broadcastCascadeImminent",			ShipBroadcastCascadeImminent,			0 },
 	{ "broadcastDistressMessage",			ShipBroadcastDistressMessage,			0 },
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
+	{ "checkCourseToDestination",		ShipCheckCourseToDestination,		0 },
 	{ "clearDefenseTargets",	ShipClearDefenseTargets,	0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ "dealEnergyDamage",		ShipDealEnergyDamage,		2 },
@@ -416,6 +419,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "fireECM",				ShipFireECM,				0 },
 	{ "fireMissile",			ShipFireMissile,			0 },
 	{ "getMaterials",			ShipGetMaterials,			0 },
+	{ "getSafeCourseToDestination",		ShipGetSafeCourseToDestination,		0 },
 	{ "getShaders",				ShipGetShaders,				0 },
 	{ "hasRole",				ShipHasRole,				1 },
 	{ "markTargetForFines",				ShipMarkTargetForFines,				0 },
@@ -3063,6 +3067,36 @@ static JSBool ShipBroadcastDistressMessage(JSContext *context, uintN argc, jsval
 	OOJS_PROFILE_EXIT
 }
 
+
+static JSBool ShipCheckCourseToDestination(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+
+	Entity *hazard = [UNIVERSE hazardOnRouteFromEntity:thisEnt toDistance:[thisEnt desiredRange] fromPoint:[thisEnt destination]];
+
+	OOJS_RETURN_OBJECT(hazard);
+
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipGetSafeCourseToDestination(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+
+	HPVector waypoint = [UNIVERSE getSafeVectorFromEntity:thisEnt toDistance:[thisEnt desiredRange] fromPoint:[thisEnt destination]];
+
+	OOJS_RETURN_HPVECTOR(waypoint);
+
+	OOJS_PROFILE_EXIT
+
+}
 
 /** Static methods */
 

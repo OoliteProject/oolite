@@ -229,11 +229,66 @@ this.AILib = function(ship)
 		{
 				var handlers = {};
 				this.responsesAddStandard(handlers);
+
+				handlers.shipAchievedDesiredRange = function() 
+				{
+						var waypoints = this.getParameter("oolite_waypoints");
+						log(this.name,"Reached desired range");
+						if (waypoints != null)
+						{
+								if (waypoints.length > 0)
+								{
+										waypoints.pop();
+										log(this.name,"Reached waypoint");
+										if (waypoints.length == 0)
+										{
+												waypoints = null;
+										}
+										this.setParameter("oolite_waypoints",waypoints);
+								}
+						}
+						this.reconsider();
+				};
+
+				var waypoints = this.getParameter("oolite_waypoints");
+				if (waypoints != null)
+				{
+						this.ship.destination = waypoints[waypoints.length-1];
+						this.ship.desiredRange = 1000;
+				}
+				var blocker = this.ship.checkCourseToDestination();
+				if (blocker)
+				{
+						if (blocker.isPlanet || blocker.isSun)
+						{
+								if (this.ship.position.distanceTo(blocker) < blocker.radius * 3)
+								{
+										if (waypoints == null)
+										{
+												waypoints = [];
+										}
+										waypoints.push(this.ship.getSafeCourseToDestination());
+										log(this.name,"Set new waypoint "+waypoints[waypoints.length-1]);
+										this.ship.destination = waypoints[waypoints.length-1];
+										this.ship.desiredRange = 1000;
+								}
+						}
+						else if (blocker.isShip)
+						{
+								if (this.ship.position.distanceTo(blocker) < 25600)
+								{
+										if (waypoints == null)
+										{
+												waypoints = [];
+										}
+										waypoints.push(this.ship.getSafeCourseToDestination());
+										this.ship.destination = waypoints[waypoints.length-1];
+										this.ship.desiredRange = 1000;
+								}
+						}
+				}
+				this.setParameter("oolite_waypoints",waypoints);
 				this.setUpHandlers(handlers);
-				// TODO: set a waypoint list in the parameters
-				// TODO: fly to waypoints (FILO) if they exist rather than destination
-				// TODO: use checkCourseToDestination / getSafeVector to see if more waypoints needed
-				// TODO: make checkCourseToDestination / getSafeVector legal JS methods for Ship
 				this.ship.performFlyToRangeFromDestination();
 		}
 
