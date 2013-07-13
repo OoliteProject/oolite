@@ -1,6 +1,38 @@
+/*
+
+oolite-ailib.js
+
+Priority-based Javascript AI library
+
+
+Oolite
+Copyright © 2004-2013 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+"use strict";
+
 /* AI Library */
 this.name = "oolite-libPriorityAI";
 this.version = "1.79";
+this.copyright		= "© 2008-2013 the Oolite team.";
+this.author = "cim";
+
 
 /* Constructor */
 
@@ -14,6 +46,7 @@ this.AILib = function(ship)
 
 		/* Private utility functions */
 
+		/* Considers a priority list, potentially recursively */
 		function _reconsiderList(priorities) {
 				var l = priorities.length;
 				for (var i = 0; i < l; i++)
@@ -118,7 +151,7 @@ this.AILib = function(ship)
 				}
 				var newBehaviour = _reconsiderList.call(this,priorityList);
 				if (newBehaviour == null) {
-						log(this.name,"AI ("+this.ship.AIScript.name+") had all priorities fail. All priority based AIs should end with an unconditional entry.");
+						log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" had all priorities fail. All priority based AIs should end with an unconditional entry.");
 						return false;
 				}
 
@@ -134,6 +167,20 @@ this.AILib = function(ship)
 				{
 						delete this.ship.AIScript[activeHandlers[i]];
 				}
+
+				if (handlers.entityDestroyed)
+				{
+						handlers.oolite_entityDestroyedAux = handlers.entityDestroyed;
+				}
+				handlers.entityDestroyed = function()
+				{
+						if (reconsiderationTimer != null)
+						{
+								reconsiderationTimer.stop();
+								reconsiderationTimer = null;
+						}
+						this.ship.AIScript.oolite_entityDestroyedAux();
+				};
 
 				// step 2: go through the keys in handlers and put those handlers
 				// into this.ship.AIScript and the keys into activeHandlers
@@ -153,21 +200,50 @@ this.AILib = function(ship)
 
 		this.conditionLosingCombat = function()
 		{
+				var cascade = this.getParameter("oolite_cascadeDetected");
+				if (cascade != null)
+				{
+						if (cascade.distanceTo(this.ship) < 25600)
+						{
+								return true;
+						}
+						else
+						{
+								this.setParameter("oolite_cascadeDetected",null);
+						}
+				}
 				if (!this.conditionInCombat()) 
 				{
+						if (this.ship.energy == this.ship.maxEnergy)
+						{
+								// forget previous defeats
+								this.setParameter("oolite_lastFleeing",null);
+						}
 						return false;
+				}
+				var lastThreat = this.getParameter("oolite_lastFleeing");
+				if (lastThreat != null && this.ship.position.distanceTo(lastThreat) < 25600)
+				{
+						// the thing that attacked us is still nearby
+						return true;
 				}
 				if (this.ship.energy * 4 < this.ship.maxEnergy)
 				{
-						// TODO: adjust threshold based on entityPersonality,
-						// accuracy, and tactical situation (especially: is there
-						// something which has caused us to flee still nearby)
+						// TODO: adjust threshold based on group odds
 						return true; // losing if less than 1/4 energy
 				}
-				// TODO: if there's a missile on the defense target list and
-				// it's pointed at us, we're losing (if the ECM worked, then
-				// we can go back to normal in a few seconds)
-
+				var dts = this.ship.defenseTargets;
+				for (var i = 0 ; i < dts.length ; i++)
+				{
+						if (dts[i].scanClass == "CLASS_MISSILE" && dts[i].target == this.ship)
+						{
+								return true;
+						}
+						if (dts[i].scanClass == "CLASS_MINE")
+						{
+								return true;
+						}
+				}
 				// TODO: add some reassessment of odds based on group size
 				return false; // not losing yet
 		}
@@ -186,7 +262,26 @@ this.AILib = function(ship)
 								return true;
 						}
 				}
-				// TODO: check if other group members are in combat 
+				if (this.ship.group != null)
+				{
+						for (var i = 0 ; i < this.ship.group.length ; i++)
+						{
+								if (this.ship.group[i].hasHostileTarget)
+								{
+										return true;
+								}
+						}
+				}
+				if (this.ship.escortGroup != null)
+				{
+						for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
+						{
+								if (this.ship.escortGroup[i].hasHostileTarget)
+								{
+										return true;
+								}
+						}
+				}
 				return false;
 		}
 
@@ -209,9 +304,35 @@ this.AILib = function(ship)
 				var handlers = {};
 				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
-				// TODO: select a random hostile instead if primary aggressor
-				// is out of range
+
+				var cascade = this.getParameter("oolite_cascadeDetected");
+				if (cascade != null)
+				{
+						if (cascade.distanceTo(this.ship) < 25600)
+						{
+								this.ship.destination = cascade;
+								this.ship.desiredRange = 30000;
+								this.ship.desiredSpeed = 10*this.ship.maxSpeed;
+								this.ship.performFlyToRangeFromDestination();
+								return;
+						}
+						else
+						{
+								this.setParameter("oolite_cascadeDetected",null);
+						}
+				}
 				this.ship.target = this.ship.AIPrimaryAggressor;
+				if (this.ship.position.distanceTo(this.ship.target) > 25600)
+				{
+						var dts = this.ship.defenseTargets;
+						for (var i = 0 ; i < dts.length ; i++)
+						{
+								this.ship.position.distanceTo(dts[i]) < 25600;
+								this.ship.target = dts[i];
+								break;
+						}
+				}
+				this.setParameter("oolite_lastFleeing",this.ship.target);
 				this.ship.performFlee();
 		}
 
@@ -342,8 +463,36 @@ this.AILib = function(ship)
 				if (dts.length > 0)
 				{
 						this.ship.target = dts[0];
+						return;
 				}
-				// TODO: pick a target of another group member
+				if (this.ship.group != null)
+				{
+						for (var i = 0 ; i < this.ship.group.length ; i++)
+						{
+								if (this.ship.group.ships[i] != this.ship)
+								{
+										if (this.ship.group.ships[i].target && this.ship.group.ships[i].hasHostileTarget)
+										{
+												this.ship.target = this.ship.group.ships[i].target;
+												return;
+										}
+								}
+						}
+				}
+				if (this.ship.escortGroup != null)
+				{
+						for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
+						{
+								if (this.ship.escortGroup.ships[i] != this.ship)
+								{
+										if (this.ship.escortGroup.ships[i].target && this.ship.escortGroup.ships[i].hasHostileTarget)
+										{
+												this.ship.target = this.ship.escortGroup.ships[i].target;
+												return;
+										}
+								}
+						}
+				}
 		}
 
 
@@ -356,7 +505,16 @@ this.AILib = function(ship)
 		 * responses with additional definitions. */
 
 		this.responsesAddStandard = function(handlers) {
-				//				"cascadeWeaponDetected" : TODO
+				handlers.cascadeWeaponDetected = function(weapon)
+				{
+						this.ship.clearDefenseTargets();
+						this.ship.addDefenseTarget(weapon);
+						this.setParameter("oolite_cascadeDetected",weapon.position);
+						this.ship.target = weapon;
+						this.ship.performFlee();
+						this.reconsider();
+				};
+
 				handlers.shipAttackedWithMissile = function(missile,whom)
 				{
 						if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
@@ -370,6 +528,10 @@ this.AILib = function(ship)
 						{
 								this.ship.addDefenseTarget(missile);
 								this.ship.addDefenseTarget(whom);
+								var tmp = this.ship.target;
+								this.ship.target = whom;
+								this.ship.requestHelpFromGroup();
+								this.ship.target = tmp;
 								this.reconsider();
 						}
 				};
@@ -388,7 +550,12 @@ this.AILib = function(ship)
 								{
 										// but at low energy still reconsider
 										this.reconsider();
+										this.ship.requestHelpFromGroup();
 								}
+						}
+						if (this.ship.escortGroup != null)
+						{
+								this.ship.requestHelpFromGroup();
 						}
 				};
 				handlers.shipBeingAttackedUnsuccessfully = function(whom)
@@ -403,6 +570,29 @@ this.AILib = function(ship)
 				{
 						this.reconsider();
 				};
+				// TODO: this one needs overriding for escorts
+				handlers.helpRequestReceived = function(ally, enemy)
+				{
+						this.ship.addDefenseTarget(enemy);
+						if (!this.ship.hasHostileTarget)
+						{
+								return; // not in a combat mode
+						}
+						if (ally.energy / ally.maxEnergy < this.ship.energy / this.ship.maxEnergy)
+						{
+								// not in worse shape than ally
+								if (this.ship.target.target != ally && this.ship.target != ally.target)
+								{
+										// not already helping, go for it...
+										this.ship.target = enemy;
+										this.reconsider();
+								}
+						}
+				}
+				handlers.approachingPlanetSurface = function()
+				{
+						this.reconsider();
+				}
 				// TODO: more event handlers
 		}
 
