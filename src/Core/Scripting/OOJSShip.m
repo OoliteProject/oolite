@@ -119,6 +119,7 @@ static JSBool ShipRequestDockingInstructions(JSContext *context, uintN argc, jsv
 static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipCheckCourseToDestination(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetSafeCourseToDestination(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipCheckScanner(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
@@ -403,6 +404,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "broadcastDistressMessage",			ShipBroadcastDistressMessage,			0 },
 	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },
 	{ "checkCourseToDestination",		ShipCheckCourseToDestination,		0 },
+	{ "checkScanner",		ShipCheckScanner,		0 },
 	{ "clearDefenseTargets",	ShipClearDefenseTargets,	0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ "dealEnergyDamage",		ShipDealEnergyDamage,		2 },
@@ -3097,6 +3099,28 @@ static JSBool ShipGetSafeCourseToDestination(JSContext *context, uintN argc, jsv
 	OOJS_PROFILE_EXIT
 
 }
+
+
+static JSBool ShipCheckScanner(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+
+	[thisEnt checkScanner];
+	ShipEntity **scannedShips = [thisEnt scannedShips];
+	unsigned num = [thisEnt numberOfScannedShips];
+	NSMutableArray *scanResult = [NSMutableArray array];
+	for (unsigned i = 0; i < num ; i++)
+	{
+		[scanResult addObject:scannedShips[i]];
+	}
+	OOJS_RETURN_OBJECT(scanResult);
+
+	OOJS_PROFILE_EXIT
+}
+
 
 /** Static methods */
 
