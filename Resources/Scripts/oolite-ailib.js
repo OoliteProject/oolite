@@ -39,6 +39,7 @@ this.author = "cim";
 this.AILib = function(ship)
 {
 		this.ship = ship;
+		this.ship.AIScript.oolite_intership = {};
 		var activeHandlers = [];
 		var priorityList = null;
 		var reconsiderationTimer = null;
@@ -58,6 +59,14 @@ this.AILib = function(ship)
 						if (priority.preconfiguration)
 						{
 								priority.preconfiguration.call(this);
+						}
+						// allow inverted conditions
+						if (priority.notcondition)
+						{
+								priority.condition = function()
+								{
+										return !priority.notcondition.call(this);
+								}
 						}
 						// absent condition is always true
 						if (!priority.condition || priority.condition.call(this))
@@ -222,16 +231,20 @@ this.AILib = function(ship)
 		}
 
 
-		this.communicate = function(key,parameter)
+		this.communicate = function(key,parameter1,parameter2)
 		{
 				if (key in communications)
 				{
-						this.ship.commsMessage(expandDescription(communications[key],{"p1":parameter}));
+						this.ship.commsMessage(expandDescription(communications[key],{"p1":parameter1,"p2":parameter2}));
 				}
 		}
 
 		this.friendlyStation = function(station)
 		{
+				if (station.isMainStation && this.ship.bounty > 50)
+				{
+						return false;
+				}
 				return (station.target != this.ship || !station.hasHostileTarget);
 		}
 
@@ -314,6 +327,15 @@ this.AILib = function(ship)
 								return true;
 						}
 				}
+				// if we've dumped cargo or the group leader has, then we're losing
+				if (this.ship.AIScript.oolite_intership.cargodemandpaid)
+				{
+						return true;
+				}
+				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership && this.ship.group.leader.AIScript.oolite_intership.cargodemandpaid)
+				{
+						return true;
+				}
 				// TODO: add some reassessment of odds based on group size
 				return false; // not losing yet
 		}
@@ -352,6 +374,8 @@ this.AILib = function(ship)
 								}
 						}
 				}
+				
+				delete this.ship.AIScript.oolite_intership.cargodemandpaid;
 				return false;
 		}
 
@@ -483,6 +507,17 @@ this.AILib = function(ship)
 				return this.getParameter("oolite_patrolRoute") != null;
 		}
 
+		this.conditionHasSelectedStation = function()
+		{
+				var station = this.getParameter("oolite_selectedStation");
+				if (station && !station.isValid)
+				{
+						this.setParameter("oolite_selectedStation",null);
+						return false;
+				}
+				return station != null;
+		}
+
 		this.conditionInInterstellarSpace = function()
 		{
 				return system.isInterstellarSpace;
@@ -492,6 +527,44 @@ this.AILib = function(ship)
 		{
 				return (this.getParameter("oolite_witchspaceWormhole") != null);
 		}
+
+		this.conditionSelectedStationNearby = function()
+		{
+				var station = this.getParameter("oolite_selectedStation");
+				if (station && station.position.distanceTo(this.ship) < this.ship.scannerRange)
+				{
+						return true;
+				}
+				return false;
+		}
+
+		this.conditionSelectedStationNearMainPlanet = function()
+		{
+				if (!system.mainPlanet)
+				{
+						return false;
+				}
+				var station = this.getParameter("oolite_selectedStation");
+				if (station && station.position.distanceTo(system.mainPlanet) < system.mainPlanet.radius * 4)
+				{
+						return true;
+				}
+				return false;
+		}
+
+		this.conditionNearMainPlanet = function()
+		{
+				if (!system.mainPlanet)
+				{
+						return false;
+				}
+				if (this.ship.position.distanceTo(system.mainPlanet) < system.mainPlanet.radius * 4)
+				{
+						return true;
+				}
+				return false;
+		}
+
 
 		this.conditionFriendlyStationNearby = function()
 		{
@@ -553,6 +626,78 @@ this.AILib = function(ship)
 				return (system.info.systemsInRange(this.ship.fuel).length > 0);
 		}
 
+		this.conditionCargoIsProfitableHere = function()
+		{
+				if (!system.mainStation)
+				{
+						return false;
+				}
+				if (this.ship.cargoSpaceUsed == 0)
+				{
+						return false;
+				}
+				var cargo = this.ship.cargoList;
+				var profit = 0;
+				var multiplier = (system.info.economy <= 3)?-1:1;
+				for (var i = 0 ; i < cargo.length ; i++)
+				{
+						var commodity = cargo[i].commodity;
+						var quantity = cargo[i].quantity;
+						var adjust = system.mainStation.market[commodity].marketEcoAdjustPrice * multiplier * quantity / system.mainStation.market[commodity].marketMaskPrice;
+						profit += adjust;
+				}
+				return (profit >= 0);
+		}
+
+		this.conditionReadyToSunskim = function()
+		{
+				return (this.ship.position.distanceTo(system.sun) < system.sun.radius * 1.15);
+		}
+
+		this.conditionSunskimPossible = function()
+		{
+				return (system.sun && 
+								!system.sun.hasGoneNova && 
+								!system.sun.isGoingNova && 
+								this.ship.fuel < 7 && 
+								this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK" &&
+								(this.ship.heatInsulation > 1000/this.ship.maxSpeed || this.ship.heatInsulation >= 12));
+		}
+
+		this.conditionPiratesCanBePaidOff = function()
+		{
+				if (this.ship.AIScript.oolite_intership.cargodemandpaid)
+				{
+						return false;
+				}
+				// TODO: need some way for the player to set this
+				if (!this.ship.AIScript.oolite_intership.cargodemand)
+				{
+						return false;
+				}
+				if (this.ship.cargoSpaceUsed < this.ship.AIScript.oolite_intership.cargodemand)
+				{
+						return false;
+				}
+				return true;
+		}
+
+		this.conditionAllEscortsInFlight = function()
+		{
+				if (!this.ship.escortGroup)
+				{
+						return true; // there are no escorts not in flight
+				}
+				for (var i = 0 ; i < this.ship.escortGroup.ships.length ; i++)
+				{
+						if (this.ship.escortGroup.ships[i].status != "STATUS_IN_FLIGHT")
+						{
+								return false;
+						}
+				}
+				return true;
+		}
+
 		/* ****************** Behaviour functions ************** */
 
 		/* Behaviours. Behaviours are effectively a state definition,
@@ -604,6 +749,8 @@ this.AILib = function(ship)
 
 		this.behaviourDestroyCurrentTarget = function()
 		{
+				this.setParameter("oolite_witchspaceEntry",null);
+
 				var handlers = {};
 				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
@@ -618,6 +765,8 @@ this.AILib = function(ship)
 
 		this.behaviourRepelCurrentTarget = function()
 		{
+				this.setParameter("oolite_witchspaceEntry",null);
+
 				var handlers = {};
 				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
@@ -707,19 +856,25 @@ this.AILib = function(ship)
 										waypoints.push(this.ship.getSafeCourseToDestination());
 										this.ship.destination = waypoints[waypoints.length-1];
 										this.ship.desiredRange = 1000;
+										log(this.ship,"Avoiding blocker "+blocker);
 								}
 						}
 						else if (blocker.isShip)
 						{
 								if (this.ship.position.distanceTo(blocker) < 25600)
 								{
-										if (waypoints == null)
+										if (!blocker.group || !blocker.group.leader == this.ship)
 										{
-												waypoints = [];
+												// our own escorts are not a blocker!
+												if (waypoints == null)
+												{
+														waypoints = [];
+												}
+												waypoints.push(this.ship.getSafeCourseToDestination());
+												this.ship.destination = waypoints[waypoints.length-1];
+												this.ship.desiredRange = 1000;
+												log(this.ship,"Avoiding blocker "+blocker);
 										}
-										waypoints.push(this.ship.getSafeCourseToDestination());
-										this.ship.destination = waypoints[waypoints.length-1];
-										this.ship.desiredRange = 1000;
 								}
 						}
 				}
@@ -731,6 +886,11 @@ this.AILib = function(ship)
 		
 		this.behaviourDockWithStation = function()
 		{
+				// may need to release escorts
+				if (this.ship.escortGroup && this.ship.escortGroup.count > 1)
+				{
+						this.ship.dockEscorts();
+				}
 				var station = this.getParameter("oolite_dockingStation");
 				this.ship.target = station;
 				var handlers = {};
@@ -745,8 +905,16 @@ this.AILib = function(ship)
 						this.ship.target = null;
 						this.reconsiderNow();
 						break;
-				case "HOLD_POSITION":
 				case "TRY_AGAIN_LATER":
+						if (this.ship.target.position.distanceTo(this.ship) < 10000)
+						{
+								this.ship.destination = this.ship.target.position;
+								this.ship.desiredRange = 12500;
+								this.ship.desiredSpeed = this.cruiseSpeed();
+								this.ship.performFlyToRangeFromDestination();
+						}
+						// else fall through
+				case "HOLD_POSITION":
 						this.ship.destination = this.ship.target.position;
 						this.ship.performFaceDestination();
 						// and will reconsider in a little bit
@@ -852,16 +1020,51 @@ this.AILib = function(ship)
 								this.ship.setDesiredRange = 30000;
 								this.ship.setDesiredSpeed = this.cruiseSpeed();
 								this.ship.performFlyToRangeFromDestination();
+								this.setParameter("oolite_witchspaceEntry",null);
 								// no reconsidering yet
 						}
 						// set up the handlers before trying it
 						this.setUpHandlers(handlers);
-
-						// this should work
-						var result = this.ship.exitSystem(destID);
-						if (result)
+						
+						var entry = this.getParameter("oolite_witchspaceEntry");
+						// wait for escorts to launch
+						if (!this.conditionAllEscortsInFlight())
 						{
-								this.reconsiderNow(); // reconsider AI on arrival
+								this.ship.destination = this.ship.position;
+								this.ship.desiredRange = 10000;
+								this.ship.desiredSpeed = this.cruiseSpeed();
+								if (this.ship.checkCourseToDestination())
+								{
+										this.ship.destination = this.ship.getSafeCourseToDestination();
+								}
+								this.ship.performFlyToRangeFromDestination();
+
+						}
+						else if (entry != null && entry < clock.seconds)
+						{
+								// this should work
+								var result = this.ship.exitSystem(destID);
+								// if it doesn't, we'll get blocked
+								if (result)
+								{
+										this.setParameter("oolite_witchspaceEntry",null);
+								}
+						}
+						else
+						{
+								if (entry == null)
+								{
+										this.communicate("oolite_engageWitchspaceDrive");
+										this.setParameter("oolite_witchspaceEntry",clock.seconds + 15);
+								}
+								this.ship.destination = this.ship.position;
+								this.ship.desiredRange = 10000;
+								this.ship.desiredSpeed = this.cruiseSpeed();
+								if (this.ship.checkCourseToDestination())
+								{
+										this.ship.destination = this.ship.getSafeCourseToDestination();
+								}
+								this.ship.performFlyToRangeFromDestination();
 						}
 				}
 		}
@@ -914,6 +1117,31 @@ this.AILib = function(ship)
 						}
 						// if rejected, wait for next scheduled reconsideration
 				}
+		}
+
+		this.behaviourSunskim = function()
+		{
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.responsesAddScooping(handlers);
+				this.setUpHandlers(handlers);
+				this.ship.performFlyToRangeFromDestination();
+		}
+
+		this.behaviourPayOffPirates = function()
+		{
+				this.ship.dumpCargo(this.ship.AIScript.oolite_intership.cargodemand);
+				delete this.ship.AIScript.oolite_intership.cargodemand;
+				this.ship.AIScript.oolite_intership.cargodemandpaid = true;
+				this.behaviourFleeCombat();
+		}
+
+		this.behaviourReconsider = function()
+		{
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.setUpHandlers(handlers);
+				this.reconsiderNow();
 		}
 
 		/* ****************** Configuration functions ************** */
@@ -1004,18 +1232,6 @@ this.AILib = function(ship)
 				}
 		}
 
-		this.configurationAcquireOffensiveEscortTarget = function()
-		{
-				if (this.ship.group && this.ship.group.leader)
-				{
-						var leader = this.ship.group.leader;
-						if (leader.hasHostileTarget)
-						{
-								this.ship.target = leader.target;
-						}
-				}
-		}
-
 		this.configurationCheckScanner = function()
 		{
 				this.setParameter("oolite_scanResults",this.ship.checkScanner());
@@ -1027,11 +1243,94 @@ this.AILib = function(ship)
 				this.ship.target = this.getParameter("oolite_scanResultSpecific");
 		}
 
+		this.configurationSelectRandomTradeStation = function()
+		{
+				var stations = system.stations;
+				var threshold = 1E16;
+				var chosenStation = null;
+				if (this.ship.bounty == 0)
+				{
+						if (Math.random() < 0.9 && this.friendlyStation(system.mainStation))
+						{
+								this.setParameter("oolite_selectedStation",system.mainStation);
+								return;
+						}
+				} 
+				else if (this.ship.bounty <= 50)
+				{
+						if (Math.random() < 0.5 && this.friendlyStation(system.mainStation))
+						{
+								this.setParameter("oolite_selectedStation",system.mainStation);
+								return;
+						}
+				}
+				var friendlies = 0;
+				for (var i = 0 ; i < stations.length ; i++)
+				{
+						var station = stations[i];
+						if (this.friendlyStation(station))
+						{
+								friendlies++;
+								if (Math.random() < 1/friendlies)
+								{
+										chosenStation = station;
+								}
+						}
+				}
+				this.setParameter("oolite_selectedStation",system.mainStation);
+				this.communicate("oolite_selectedStation",system.mainStation.displayName);
+		}
+
+
 		this.configurationSetDestinationToWitchpoint = function()
 		{
 				this.ship.destination = new Vector3D(0,0,0);
 				this.ship.desiredRange = 10000;
 				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+
+		this.configurationSetDestinationToMainPlanet = function()
+		{
+				this.ship.destination = system.mainPlanet.position;
+				this.ship.desiredRange = system.mainPlanet.radius * 3;
+				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+
+		this.configurationSetDestinationToMainStation = function()
+		{
+				this.ship.destination = system.mainStation.position;
+				this.ship.desiredRange = this.ship.scannerRange/2;
+
+				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+
+		this.configurationSetDestinationToSelectedStation = function()
+		{
+				var station = this.getParameter("oolite_selectedStation");
+				if (station)
+				{
+						this.ship.destination = station.position;
+						this.ship.desiredRange = this.ship.scannerRange/2;
+						this.ship.desiredSpeed = this.cruiseSpeed();
+				}
+		}
+
+		this.configurationSetDestinationToSunskimStart = function()
+		{
+				this.ship.destination = system.sun.position;
+				// max sunskim height is sqrt(4/3) radius 
+				this.ship.desiredRange = system.sun.radius * 1.125;
+				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+
+		this.configurationSetDestinationToSunskimEnd = function()
+		{
+				var direction = Vector3D.random().cross(this.ship.position.subtract(system.sun.position));
+				// 2km parallel to local sun surface for every LY of fuel
+				this.ship.destination = this.ship.position.add(direction.multiply(2000*(7-this.ship.fuel)));
+				// max sunskim height is sqrt(4/3) radius 
+				this.ship.desiredRange = 0;
+				this.ship.desiredSpeed = this.ship.maxSpeed;
 		}
 
 		this.configurationSetDestinationToNearestFriendlyStation = function()
@@ -1184,8 +1483,16 @@ this.AILib = function(ship)
 						this.setParameter("oolite_witchspaceDestination",null);
 						return;
 				}
+				var preselected = this.getParameter("oolite_witchspaceDestination");
+				if (preselected != system.ID && system.info.distanceToSystem(System.infoForSystem(galaxyNumber,preselected)) <= this.ship.fuel)
+				{
+						// we've already got a destination
+						return;
+				}
 				var possible = system.info.systemsInRange(this.ship.fuel);
-				this.setParameter("oolite_witchspaceDestination",possible[Math.floor(Math.random()*possible.length)].systemID);
+				var selected = possible[Math.floor(Math.random()*possible.length)];
+				this.setParameter("oolite_witchspaceDestination",selected.systemID);
+				this.communicate("oolite_selectedWitchspaceDestination",selected.name);
 		}
 
 		this.configurationSetNearbyFriendlyStationForDocking = function()
@@ -1205,6 +1512,12 @@ this.AILib = function(ship)
 								}
 						}
 				}
+		}
+
+
+		this.configurationSetSelectedStationForDocking = function()
+		{
+				this.setParameter("oolite_dockingStation",this.getParameter("oolite_selectedStation"));
 		}
 
 
@@ -1321,13 +1634,17 @@ this.AILib = function(ship)
 				{
 						this.reconsiderNow();
 				}
-				handlers.shipLaunchedFromStation = function()
+				handlers.shipLaunchedFromStation = function(station)
 				{
-						this.reconsiderNow();
+						// clear the station
+						this.ship.destination = station.position;
+						this.ship.desiredSpeed = this.cruiseSpeed();
+						this.ship.desiredRange = 15000;
+						this.ship.performFlyToRangeFromDestination();
 				}
 				handlers.shipExitedWormhole = function()
 				{
-						this.reconsiderNow();
+//						this.reconsiderNow();
 				}
 
 				handlers.distressMessageReceived = function(aggressor, sender)
@@ -1414,6 +1731,20 @@ this.AILib = function(ship)
 
 		}
 
+		this.responsesAddScooping = function(handlers)
+		{
+				handlers.shipAchievedDesiredRange = function()
+				{
+						this.reconsiderNow();
+				}
+				handlers.shipScoopedFuel = function()
+				{
+						if (this.ship.fuel == 7)
+						{
+								this.reconsiderNow();
+						}
+				}
+		}
 
 
 }; // end object constructor

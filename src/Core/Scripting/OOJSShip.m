@@ -815,7 +815,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 
 		case kShip_isFleeing:
-			*value = OOJSValueFromBOOL([entity behaviour] == BEHAVIOUR_FLEE_TARGET || [entity behaviour] == BEHAVIOUR_FLEE_EVASIVE_ACTION);
+			if ([entity isPlayer])
+			{
+				*value = OOJSValueFromBOOL(![(PlayerEntity*)entity weaponsOnline]);
+			}
+			else
+			{
+				*value = OOJSValueFromBOOL([entity behaviour] == BEHAVIOUR_FLEE_TARGET || [entity behaviour] == BEHAVIOUR_FLEE_EVASIVE_ACTION);
+			}
 			return YES;
 			
 		case kShip_isCargo:
@@ -1730,7 +1737,24 @@ static JSBool ShipDumpCargo(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportWarningForCaller(context, @"PlayerShip", @"dumpCargo", @"Can't dump cargo while docked, ignoring.");
 		OOJS_RETURN_NULL;
 	}
-	
+	// NPCs can queue multiple items to dump
+	if (!EXPECT_NOT([thisEnt isPlayer]))
+	{
+		int32					i, count = 1;
+		BOOL					gotCount = YES;
+		if (argc > 0)  gotCount = JS_ValueToInt32(context, OOJS_ARGV[0], &count);
+		if (EXPECT_NOT(!gotCount || count < 1 || count > 15))
+		{
+			OOJSReportBadArguments(context, @"Ship", @"dumpCargo", MIN(argc, 1U), OOJS_ARGV, nil, @"optional quantity (1 to 64)");
+			return NO;
+		}
+
+		for (i = 1; i < count; i++)
+		{
+			[thisEnt performSelector:@selector(dumpCargo) withObject:nil afterDelay:0.75 * i];	// drop 3 canisters per 2 seconds
+		}
+	}
+
 	OOJS_RETURN_OBJECT([thisEnt dumpCargoItem]);
 	
 	OOJS_NATIVE_EXIT

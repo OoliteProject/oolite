@@ -3208,20 +3208,20 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (ShipEntity *) cargoPodFromTemplate:(ShipEntity *)cargoObj
 {
-	ShipEntity *container;
+	ShipEntity *container = nil;
 	// this is a template container, so we need to make a real one
 	OOCommodityType co_type = [cargoObj commodityType];
 	OOCargoQuantity co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];
 	if (randf() < 0.5) // stops OXP monopolising pods for commodities
 	{
-		container = [UNIVERSE newShipWithRole: [UNIVERSE symbolicNameForCommodity:co_type]]; // retains
+		container = [UNIVERSE newShipWithRole: [UNIVERSE symbolicNameForCommodity:co_type]]; 
 	}
 	if (container == nil)
 	{
-		container = [UNIVERSE newShipWithRole:@"cargopod"]; // retains
+		container = [UNIVERSE newShipWithRole:@"cargopod"]; 
 	}
 	[container setCommodity:co_type andAmount:co_amount];
-	return [container autorelease];
+	return container;
 }
 
 

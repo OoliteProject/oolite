@@ -2075,6 +2075,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			double	alt1 = sun_cr * sun_cr / sun_zd;
 			external_temp = SUN_TEMPERATURE * alt1;
 			if ([sun goneNova])  external_temp *= 100;
+
+			if ([self hasScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
+			{
+				fuel_accumulator += (float)(delta_t * flightSpeed * 0.010 / [self fuelChargeRate]);
+			// are we fast enough to collect any fuel?
+				while (fuel_accumulator > 1.0f)
+				{
+					[self setFuel:[self fuel] + 1];
+					fuel_accumulator -= 1.0f;
+					[self doScriptEvent:OOJSID("shipScoopedFuel")];
+				}
+			}
 		}
 
 		// work on the ship temperature
@@ -7388,11 +7400,20 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		{
 			num = [self maxAvailableCargoSpace];
 		}
+		if (num > 200)
+		{
+			num = 200; 
+			/* no core NPC ship carries this much when generated (the
+			 * Anaconda could, but doesn't): let's not waste time generating
+			 * thousands of pods - even if they are semi-virtual - for some
+			 * massive OXP ship */
+		}
 		switch (cargo_flag)
 		{
 		case CARGO_FLAG_FULL_UNIFORM:
 			newCargo = [UNIVERSE getContainersOfCommodity:[shipinfoDictionary oo_stringForKey:@"cargo_carried"] :num];
 			break;
+			// TODO: PLENTIFUL AND SCARCE shouldn't contain illegal goods
 		case CARGO_FLAG_FULL_PLENTIFUL:
 			newCargo = [UNIVERSE getContainersOfGoods:num scarce:NO];
 			break;
