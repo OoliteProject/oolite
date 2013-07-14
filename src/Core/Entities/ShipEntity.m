@@ -7336,7 +7336,39 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setCargoFlag:(OOCargoFlag) flag
 {
-	cargo_flag = flag;
+	if (cargo_flag != flag)
+	{
+		cargo_flag = flag;
+		NSArray *newCargo;
+		unsigned num = [self maxAvailableCargoSpace];
+		switch (cargo_flag)
+		{
+		case CARGO_FLAG_FULL_UNIFORM:
+			newCargo = [UNIVERSE getContainersOfCommodity:[shipinfoDictionary oo_stringForKey:@"cargo_carried"] :num];
+			break;
+		case CARGO_FLAG_FULL_PLENTIFUL:
+			newCargo = [UNIVERSE getContainersOfGoods:num scarce:NO];
+			break;
+		case CARGO_FLAG_FULL_SCARCE:
+			newCargo = [UNIVERSE getContainersOfGoods:num scarce:YES];
+			break;
+		case CARGO_FLAG_FULL_MEDICAL:
+			newCargo = [UNIVERSE getContainersOfCommodity:@"Narcotics" :num];
+			break;
+		case CARGO_FLAG_FULL_CONTRABAND:
+			// TODO: mixed contraband
+			newCargo = [UNIVERSE getContainersOfCommodity:@"Firearms" :num];
+		case CARGO_FLAG_PIRATE:
+			newCargo = [UNIVERSE getContainersOfGoods:(Ranrot() % num) scarce:YES];
+			break;
+		case CARGO_FLAG_FULL_PASSENGERS:
+			// TODO: allow passengers to survive
+		case CARGO_FLAG_NONE:
+		default:
+			break;
+		}
+		[self setCargo:newCargo];
+	}
 }
 
 
@@ -7767,7 +7799,6 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) becomeExplosion
 {
-	OOCargoQuantity cargo_to_go;
 	
 	// check if we're destroying a subentity
 	ShipEntity *parent = [self parentEntity];
@@ -7839,59 +7870,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				// we need to throw out cargo at this point.
 				NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
 				unsigned cargo_chance = 10;
-				if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
-				{
-					cargo_to_go = [self maxAvailableCargoSpace] * cargo_chance / 100;
-					while (cargo_to_go > 15)
-					{
-						cargo_to_go = ranrot_rand() % cargo_to_go;
-					}
-					[self setCargo:[UNIVERSE getContainersOfDrugs:cargo_to_go]];
-					cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
-					cargo_flag = CARGO_FLAG_CANISTERS;
-				}
-				
-				cargo_to_go = [self maxAvailableCargoSpace] * cargo_chance / 100;
-				while (cargo_to_go > 15)
-				{
-					cargo_to_go = ranrot_rand() % cargo_to_go;
-				}
-				cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
-				switch (cargo_flag)
-				{
-					case CARGO_FLAG_NONE:
-					case CARGO_FLAG_FULL_PASSENGERS:
-						break;
-					
-					case CARGO_FLAG_FULL_UNIFORM :
-						{
-							NSString* commodity_name = [shipinfoDictionary oo_stringForKey:@"cargo_carried"];
-							jetsam = [UNIVERSE getContainersOfCommodity:commodity_name :cargo_to_go];
-						}
-						break;
-					
-					case CARGO_FLAG_FULL_PLENTIFUL :
-						jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:NO];
-						break;
-					
-					case CARGO_FLAG_PIRATE :
-						cargo_to_go = likely_cargo;
-						while (cargo_to_go > 15)
-							cargo_to_go = ranrot_rand() % cargo_to_go;
-						cargo_chance = 65;	// 35% chance of spoilage
-						jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:YES];
-						break;
-					
-					case CARGO_FLAG_FULL_SCARCE :
-						jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:YES];
-						break;
-					
-					case CARGO_FLAG_CANISTERS:
-						jetsam = [NSArray arrayWithArray:cargo];   // what the ship is carrying
-						[cargo removeAllObjects];   // dispense with it!
-						break;
-				}
-				
+				jetsam = [NSArray arrayWithArray:cargo];   // what the ship is carrying
+				[cargo removeAllObjects];   // dispense with it!
+				unsigned limit = 15;
 				//  Throw out cargo
 				if (jetsam)
 				{
@@ -7901,7 +7882,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					{
 						if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
 						{
-							ShipEntity* container = [jetsam objectAtIndex:i];
+							limit--;
+							ShipEntity* cargoObj = [jetsam objectAtIndex:i];
+							ShipEntity* container = nil;
+							if ([[cargoObj primaryRole] isEqualToString:@"oolite-template-cargopod"])
+							{
+								container = [UNIVERSE cargoPodFromTemplate:cargoObj];
+							}
+							else
+							{
+								container = cargoObj;
+								// the template path retains, so we need to retain
+								// here too to keep the count the same
+							}
 							HPVector  rpos = xposition;
 							Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
 							rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
@@ -7919,6 +7912,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[container setTemperature:[self randomEjectaTemperature]];
 							[container setScanClass: CLASS_CARGO];
 							[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
+							[container release]; // UNIVERSE is looking after it now
 							AI *containerAI = [container getAI];
 							if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
 							{
@@ -7927,8 +7921,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 								[container setOwner:container];
 							}
 						}
+						if (limit <= 0)
+						{
+							break; // even really big ships won't have too much cargo survive an explosion
+						}
 					}
-				}
+				} // end jetsam
 				
 				//  Throw out rocks and alloys to be scooped up
 				if ([self hasRole:@"asteroid"])
@@ -10923,10 +10921,22 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (OOCargoType) dumpItem: (ShipEntity*) jetto
+- (OOCargoType) dumpItem: (ShipEntity*) cargoObj
 {
-	if (!jetto)
+	if (!cargoObj)
 		return 0;
+
+	ShipEntity* jetto;
+	if ([[cargoObj primaryRole] isEqualToString:@"oolite-template-cargopod"])
+	{
+		jetto = [UNIVERSE cargoPodFromTemplate:cargoObj];
+	}
+	else
+	{
+		jetto = cargoObj;
+	}
+
+
 	int		result = [jetto cargoType];
 	AI		*jettoAI = nil;
 	Vector	start;

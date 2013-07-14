@@ -1648,27 +1648,13 @@
 - (void) ejectCargo
 {
 	unsigned i;
-	if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL || cargo_flag == CARGO_FLAG_FULL_SCARCE)
+	int cargo_to_go = 0.1 * [self maxAvailableCargoSpace];
+	while (cargo_to_go > 15)
 	{
-		NSArray *jetsam;
-		int cargo_to_go = 0.1 * [self maxAvailableCargoSpace];
-		while (cargo_to_go > 15)
-		{
-			cargo_to_go = ranrot_rand() % cargo_to_go;
-		}
-		
-		jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:cargo_flag == CARGO_FLAG_FULL_SCARCE];
-		
-		if (cargo == nil)
-		{
-			cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo];
-		}
-		
-		[cargo addObjectsFromArray:jetsam];
-		cargo_flag = CARGO_FLAG_CANISTERS;
+		cargo_to_go = ranrot_rand() % cargo_to_go;
 	}
 	[self dumpCargo];
-	for (i = 1; i < [cargo count]; i++)
+	for (i = 1; i < cargo_to_go; i++)
 	{
 		[self performSelector:@selector(dumpCargo) withObject:nil afterDelay:0.75 * i];	// drop 3 canisters per 2 seconds
 	}

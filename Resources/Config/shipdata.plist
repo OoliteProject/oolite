@@ -3042,6 +3042,13 @@
 		/* Special entity definitions required by Oolite. There should be
 		 * no need to override these by OXP. */
 
+	"oolite-cargopod-virtual" =
+	{
+			/* Used to pack holds without requiring massive allocation of
+			 * cargo data. */
+			like_ship = "oolite_template_barrel";
+			roles = "oolite-template-cargopod";
+	};
 	"oolite-dock-virtual" =
 	{ 
 			/* Used for virtual docks for stations without a defined dock

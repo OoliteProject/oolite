@@ -1006,6 +1006,13 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity)))  return NO;
 	if (OOIsStaleEntity(entity))  return YES;
+
+	if ([[entity primaryRole] isEqualToString:@"oolite-template-cargopod"])
+	{
+		OOJSReportError(context, @"This cargo pod is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
+		return NO;
+	}
+
 	
 	switch (JSID_TO_INT(propID))
 	{

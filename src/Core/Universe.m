@@ -173,6 +173,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (BOOL) doRemoveEntity:(Entity *)entity;
 - (void) preloadSounds;
 - (void) setUpSettings;
+- (void) setUpCargoPods;
 - (void) setUpInitialUniverse;
 - (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction;
 
@@ -350,6 +351,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[OOLightParticleEntity setUpTexture];
 	[OOFlashEffectEntity setUpTexture];
 	
+	// set up cargopod templates
+	[self setUpCargoPods];
+
 	player = [PlayerEntity sharedPlayer];
 	[player deferredInit];
 	[self addEntity:player];
@@ -416,7 +420,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[activeWormholes release];				
 	[characterPool release];
 	[universeRegion release];
-	
+	[cargoPods release];
+
 	DESTROY(_firstBeacon);
 	DESTROY(_lastBeacon);
 	
@@ -3201,6 +3206,25 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (ShipEntity *) cargoPodFromTemplate:(ShipEntity *)cargoObj
+{
+	ShipEntity *container;
+	// this is a template container, so we need to make a real one
+	OOCommodityType co_type = [cargoObj commodityType];
+	OOCargoQuantity co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];
+	if (randf() < 0.5) // stops OXP monopolising pods for commodities
+	{
+		container = [UNIVERSE newShipWithRole: [UNIVERSE symbolicNameForCommodity:co_type]]; // retains
+	}
+	if (container == nil)
+	{
+		container = [UNIVERSE newShipWithRole:@"cargopod"]; // retains
+	}
+	[container setCommodity:co_type andAmount:co_amount];
+	return [container autorelease];
+}
+
+
 - (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce
 {
 	/*	build list of goods allocating 0..100 for each based on how much of
@@ -3229,7 +3253,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	// quantities is now used to determine which good get into the containers
 	for (i = 0; i < how_many; i++)
 	{
-		ShipEntity* container = [self newShipWithRole:@"cargopod"];	// retained
+/*		ShipEntity* container = [self newShipWithRole:@"cargopod"];	// retained
 		
 		// look for a pre-set filling
 		OOCommodityType co_type = [container commodityType];
@@ -3261,7 +3285,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 					[container release];
 					container = special_container;
 				}
-			}
+				} 
+		
 		}
 		
 		// into the barrel it goes...
@@ -3271,6 +3296,34 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 			[container setCommodity:co_type andAmount:co_amount];
 			[accumulator addObject:container];
 			[container release];	// released
+			} */
+
+		OOCommodityType co_type = COMMODITY_FOOD;
+		
+		int qr=0;
+		if(total_quantity)
+		{
+			qr = 1+(Ranrot() % total_quantity);
+		
+			co_type = 0;
+			while (qr > 0)
+			{
+				NSAssert((NSUInteger)co_type < commodityCount, @"Commodity type index out of range.");
+				qr -= quantities[co_type++];
+			}
+			co_type--;
+		}
+
+		ShipEntity *container = [cargoPods objectForKey:[NSNumber numberWithInt:co_type]];
+		
+		if (container != nil)
+		{
+			[accumulator addObject:container];
+		}
+		else
+		{
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %d.", co_type);
+
 		}
 	}
 	return [NSArray arrayWithArray:accumulator];	
@@ -3288,12 +3341,12 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	NSMutableArray	*accumulator = [NSMutableArray arrayWithCapacity:how_many];
 	OOCommodityType	commodity_type = [self commodityForName:commodity_name];
 	if (commodity_type == COMMODITY_UNDEFINED)  return [NSArray array]; // empty array
-	OOCargoQuantity	commodity_units = [self unitsForCommodity:commodity_type];
+//	OOCargoQuantity	commodity_units = [self unitsForCommodity:commodity_type];
 	OOCargoQuantity	how_much = how_many;
 	
 	while (how_much > 0)
 	{
-		ShipEntity		*container = [self newShipWithRole: commodity_name];	// try the commodity name first
+/*		ShipEntity		*container = [self newShipWithRole: commodity_name];	// try the commodity name first
 		if (!container)  container = [self newShipWithRole:@"cargopod"];
 		OOCargoQuantity	amount = 1;
 		if (commodity_units != 0)
@@ -3311,8 +3364,18 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		else
 		{
 			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %@.", commodity_name);
+			} */
+		ShipEntity *container = [cargoPods objectForKey:[NSNumber numberWithInt:commodity_type]];
+		if (container)
+		{
+			[accumulator addObject:container];
 		}
-		how_much -= amount;
+		else
+		{
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %d.", commodity_type);
+		}
+
+		how_much--;
 	}
 	return [NSArray arrayWithArray:accumulator];	
 }
@@ -9370,6 +9433,23 @@ Entity *gOOJSPlayerIfStale = nil;
 	[OOEquipmentType loadEquipment];
 }
 
+
+- (void) setUpCargoPods
+{
+	NSMutableDictionary *tmp = [[NSMutableDictionary alloc] initWithCapacity:17];
+	OOCommodityType type;
+	for (type = COMMODITY_FOOD ; type <= COMMODITY_ALIEN_ITEMS ; type++)
+	{
+		ShipEntity *container = [self newShipWithRole:@"oolite-template-cargopod"];
+		[container setScanClass:CLASS_CARGO];
+		[container setCommodity:type andAmount:1];
+		[tmp setObject:container forKey:[NSNumber numberWithInt:type]];
+		[container release];
+	}
+	[cargoPods release];
+	cargoPods = [[NSDictionary alloc] initWithDictionary:tmp];
+	[tmp release];
+}
 
 - (void) verifyEntitySessionIDs
 {
