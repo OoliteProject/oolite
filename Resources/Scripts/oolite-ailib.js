@@ -179,10 +179,21 @@ this.AILib = function(ship)
 		}
 
 		/* Requests reconsideration of behaviour ahead of schedule. */
-		this.reconsiderNow = function() {
+		this.reconsiderNow = function() 
+		{
 				_resetReconsideration.call(this,0.25);
 		}
 
+		/* Stops timer (for script shutdown) */
+		this.stopTimer = function() 
+		{
+				if (reconsiderationTimer != null)
+				{
+						reconsiderationTimer.stop();
+						reconsiderationTimer = null;
+				}
+		}
+		
 
 		this.setUpHandlers = function(handlers)
 		{
@@ -1543,6 +1554,10 @@ this.AILib = function(ship)
 
 				handlers.shipAttackedWithMissile = function(missile,whom)
 				{
+						if (!this.ship.hasHostileTarget && this.ship.getParameter("oolite_flag_sendsDistressCalls"))
+						{
+								this.ship.broadcastDistressMessage();
+						}
 						if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 						{
 								this.ship.fireECM();
@@ -1579,6 +1594,10 @@ this.AILib = function(ship)
 										return;
 								}
 						}
+						if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
+						{
+								this.ship.broadcastDistressMessage();
+						}
 						if (this.ship.defenseTargets.indexOf(whom) < 0)
 						{
 								this.ship.addDefenseTarget(whom);
@@ -1601,6 +1620,10 @@ this.AILib = function(ship)
 				};
 				handlers.shipBeingAttackedUnsuccessfully = function(whom)
 				{
+						if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
+						{
+								this.ship.broadcastDistressMessage();
+						}
 						if (this.ship.defenseTargets.indexOf(whom) < 0)
 						{
 								this.ship.addDefenseTarget(whom);
@@ -1611,7 +1634,7 @@ this.AILib = function(ship)
 				{
 						this.reconsiderNow();
 				};
-				// TODO: this one needs overriding for escorts
+				// overridden for escorts
 				handlers.helpRequestReceived = function(ally, enemy)
 				{
 						this.ship.addDefenseTarget(enemy);
@@ -1642,8 +1665,14 @@ this.AILib = function(ship)
 						this.ship.desiredRange = 15000;
 						this.ship.performFlyToRangeFromDestination();
 				}
+				handlers.shipWillEnterWormhole = function()
+				{
+						this.setUpHandlers({});
+						this.stopTimer();
+				}
 				handlers.shipExitedWormhole = function()
 				{
+						this.ship.AIScript.oolite_intership = {};
 //						this.reconsiderNow();
 				}
 
@@ -1731,6 +1760,7 @@ this.AILib = function(ship)
 
 		}
 
+		/* Additional handlers for scooping */
 		this.responsesAddScooping = function(handlers)
 		{
 				handlers.shipAchievedDesiredRange = function()

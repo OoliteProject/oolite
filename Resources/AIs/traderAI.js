@@ -32,7 +32,7 @@ this.version = "1.79";
 this.aiStarted = function() {
 		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
-		ai.setParameter("oolite_sendsDistressCalls",true);
+		ai.setParameter("oolite_flag_sendsDistressCalls",true);
 
 		/* Communications currently for debugging purposes. Need to either
 		 * be removed or given a much bigger set of phrases to choose from

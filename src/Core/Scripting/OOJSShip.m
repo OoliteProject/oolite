@@ -3177,7 +3177,7 @@ static JSBool ShipBroadcastDistressMessage(JSContext *context, uintN argc, jsval
 	
 	ShipEntity *thisEnt = nil;
 	GET_THIS_SHIP(thisEnt);
-	[thisEnt broadcastDistressMessage];
+	[thisEnt broadcastDistressMessageWithDumping:NO];
 	
 	OOJS_RETURN_VOID;
 	

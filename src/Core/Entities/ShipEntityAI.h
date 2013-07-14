@@ -67,6 +67,7 @@ MA 02110-1301, USA.
 - (void) performTumble;
 
 - (void) broadcastDistressMessage;
+- (void) broadcastDistressMessageWithDumping:(BOOL)dumpCargo;
 
 - (void) requestDockingCoordinates;
 - (void) recallDockingInstructions;

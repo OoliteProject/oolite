@@ -741,7 +741,11 @@
 - (void) broadcastDistressMessage
 {
 	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
-	
+	[self broadcastDistressMessageWithDumping:YES];
+}	
+
+- (void) broadcastDistressMessageWithDumping:(BOOL)dumpCargo
+{
 	[self checkScanner];
 	DESTROY(_foundTarget);
 	
@@ -762,7 +766,7 @@
 		ShipEntity*	ship = scanned_ships[i];
 
     // dump cargo if energy is low
-		if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
+		if (dumpCargo && !is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
 		{
 			[self ejectCargo];
 			[self performFlee];
