@@ -7797,6 +7797,74 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (void) releaseCargoPodsDebris
+{
+	HPVector xposition = position;
+	NSUInteger i;
+	Vector v;
+	Quaternion q;
+	int speed_low = 200;
+
+	NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
+	unsigned cargo_chance = 10;
+	jetsam = [NSArray arrayWithArray:cargo];   // what the ship is carrying
+	[cargo removeAllObjects];   // dispense with it!
+	unsigned limit = 15;
+	//  Throw out cargo
+	if (jetsam)
+	{
+		NSUInteger n_jetsam = [jetsam count];
+					
+		for (i = 0; i < n_jetsam; i++)
+		{
+			if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
+			{
+				limit--;
+				ShipEntity* cargoObj = [jetsam objectAtIndex:i];
+				ShipEntity* container = nil;
+				if ([[cargoObj primaryRole] isEqualToString:@"oolite-template-cargopod"])
+				{
+					container = [UNIVERSE cargoPodFromTemplate:cargoObj];
+				}
+				else
+				{
+					container = cargoObj;
+				}
+				HPVector  rpos = xposition;
+				Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
+				rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
+				rpos.x += (ranrot_rand() % 7) - 3;
+				rpos.y += (ranrot_rand() % 7) - 3;
+				rpos.z += (ranrot_rand() % 7) - 3;
+				[container setPosition:rpos];
+				v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+				v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+				v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+				[container setVelocity:v];
+				quaternion_set_random(&q);
+				[container setOrientation:q];
+							
+				[container setTemperature:[self randomEjectaTemperature]];
+				[container setScanClass: CLASS_CARGO];
+				[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
+
+				AI *containerAI = [container getAI];
+				if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
+				{
+					[containerAI exitStateMachineWithMessage:nil];
+					[container setThrust:[container maxThrust]]; // restore old value. Was set to zero on previous scooping.
+					[container setOwner:container];
+				}
+			}
+			if (limit <= 0)
+			{
+				break; // even really big ships won't have too much cargo survive an explosion
+			}
+		}
+	} // end jetsam
+
+}
+
 - (void) becomeExplosion
 {
 	
@@ -7868,65 +7936,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if (add_debris)
 			{
 				// we need to throw out cargo at this point.
-				NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
-				unsigned cargo_chance = 10;
-				jetsam = [NSArray arrayWithArray:cargo];   // what the ship is carrying
-				[cargo removeAllObjects];   // dispense with it!
-				unsigned limit = 15;
-				//  Throw out cargo
-				if (jetsam)
-				{
-					NSUInteger n_jetsam = [jetsam count];
-					
-					for (i = 0; i < n_jetsam; i++)
-					{
-						if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
-						{
-							limit--;
-							ShipEntity* cargoObj = [jetsam objectAtIndex:i];
-							ShipEntity* container = nil;
-							if ([[cargoObj primaryRole] isEqualToString:@"oolite-template-cargopod"])
-							{
-								container = [UNIVERSE cargoPodFromTemplate:cargoObj];
-							}
-							else
-							{
-								container = cargoObj;
-								// the template path retains, so we need to retain
-								// here too to keep the count the same
-							}
-							HPVector  rpos = xposition;
-							Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
-							rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
-							rpos.x += (ranrot_rand() % 7) - 3;
-							rpos.y += (ranrot_rand() % 7) - 3;
-							rpos.z += (ranrot_rand() % 7) - 3;
-							[container setPosition:rpos];
-							v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-							v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-							v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-							[container setVelocity:v];
-							quaternion_set_random(&q);
-							[container setOrientation:q];
-							
-							[container setTemperature:[self randomEjectaTemperature]];
-							[container setScanClass: CLASS_CARGO];
-							[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
-							[container release]; // UNIVERSE is looking after it now
-							AI *containerAI = [container getAI];
-							if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
-							{
-								[containerAI exitStateMachineWithMessage:nil];
-								[container setThrust:[container maxThrust]]; // restore old value. Was set to zero on previous scooping.
-								[container setOwner:container];
-							}
-						}
-						if (limit <= 0)
-						{
-							break; // even really big ships won't have too much cargo survive an explosion
-						}
-					}
-				} // end jetsam
+				[self releaseCargoPodsDebris];
 				
 				//  Throw out rocks and alloys to be scooped up
 				if ([self hasRole:@"asteroid"])
@@ -8278,9 +8288,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) becomeLargeExplosion:(double)factor
 {
-	HPVector xposition = position;
-	OOCargoQuantity n_cargo = (ranrot_rand() % (likely_cargo + 1));
-	OOCargoQuantity cargo_to_go;
 	
 	if ([self status] == STATUS_DEAD)  return;
 	[self setStatus:STATUS_DEAD];
@@ -8302,51 +8309,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
 			how_many -= 1.0f;
 		}
-		
-		// we need to throw out cargo at this point.
-		unsigned cargo_chance = 10;
-		if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
-		{
-			cargo_to_go = [self maxAvailableCargoSpace] * cargo_chance / 100;
-			while (cargo_to_go > 15)
-			{
-				cargo_to_go = ranrot_rand() % cargo_to_go;
-			}
-			[self setCargo:[UNIVERSE getContainersOfDrugs:cargo_to_go]];
-			cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
-			cargo_flag = CARGO_FLAG_CANISTERS;
-		}
-		if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL || cargo_flag == CARGO_FLAG_FULL_SCARCE)
-		{
-			cargo_to_go = [self maxAvailableCargoSpace] / 10;
-			while (cargo_to_go > 15)
-			{
-				cargo_to_go = ranrot_rand() % cargo_to_go;
-			}
-			[self setCargo:[UNIVERSE getContainersOfGoods:cargo_to_go scarce:(cargo_flag == CARGO_FLAG_FULL_SCARCE)]];
-			cargo_chance = 100;
-		}
-		while ([cargo count] > 0)
-		{
-			if (Ranrot() % 100 < cargo_chance)  //  10% chance of any given piece of cargo surviving decompression
-			{
-				ShipEntity *container = [[cargo objectAtIndex:0] retain];
-				HPVector  rpos = xposition;
-				Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
-				rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
-				rpos.x += (ranrot_rand() % 7) - 3;
-				rpos.y += (ranrot_rand() % 7) - 3;
-				rpos.z += (ranrot_rand() % 7) - 3;
-				[container setPosition:rpos];
-				[container setScanClass: CLASS_CARGO];
-				[container setTemperature:[self randomEjectaTemperature]];
-				[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
-				[container release];
-				if (n_cargo > 0)
-					n_cargo--;  // count down extra cargo
-			}
-			[cargo removeObjectAtIndex:0];
-		}
+
+		[self releaseCargoPodsDebris];
 		
 		NSEnumerator	*subEnum = nil;
 		ShipEntity		*se = nil;
