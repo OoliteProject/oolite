@@ -177,7 +177,7 @@ static GLfloat		sBaseMass = 0.0;
 			OOLog(@"fuelPrices", @"Setting Cobra3 base mass to: %.2f ", [self mass]);
 			sBaseMass = [self mass];
 		}
-		else 
+		else
 		{
 			// This happened on startup when [UNIVERSE setUpSpace] was called before player init, inside [UNIVERSE setUpInitialUniverse].
 			OOLog(@"fuelPrices", @"Player ship not initialised properly yet, using precalculated base mass.");
@@ -193,8 +193,8 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSInteger i, cargoCount = [cargo count];
 	if (cargoCount == 0)  return;
-	
-	// step through the cargo pods adding in the quantities	
+
+	// step through the cargo pods adding in the quantities
 	for (i =  cargoCount - 1; i >= 0 ; i--)
 	{
 		ShipEntity *cargoItem = [cargo objectAtIndex:i];
@@ -203,7 +203,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			if (commodityType == type)
 			{
-				NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:commodityType]];	
+				NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:commodityType]];
 				OOCargoQuantity amount = [commodityInfo oo_unsignedIntAtIndex:MARKET_QUANTITY] + [cargoItem commodityAmount];
 				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithUnsignedInt:amount]]; // enter the adjusted amount
 				[manifest replaceObjectAtIndex:commodityType withObject:commodityInfo];
@@ -223,13 +223,13 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSInteger			i, n_cargo = [cargo count];
 	if (n_cargo == 0)  return;
-	
+
 	ShipEntity			*cargoItem = nil;
 	OOCommodityType		co_type;
 	OOCargoQuantity		amount;
 	OOCargoQuantity		cargoToGo = quantity;
 
-	// step through the cargo pods removing pods or quantities	
+	// step through the cargo pods removing pods or quantities
 	for (i =  n_cargo - 1; (i >= 0 && cargoToGo > 0) ; i--)
 	{
 		cargoItem = [cargo objectAtIndex:i];
@@ -249,7 +249,7 @@ static GLfloat		sBaseMass = 0.0;
 					// we only need to remove a part of the cargo to meet our target
 					[cargoItem setCommodity:co_type andAmount:(amount - cargoToGo)];
 					cargoToGo = 0;
-					
+
 				}
 			}
 			else	// undefined
@@ -259,16 +259,16 @@ static GLfloat		sBaseMass = 0.0;
 			}
 		}
 	}
-	
+
 	// now check if we are ready. When not, proceed with quantities in the manifest.
 	if (cargoToGo > 0)
 	{
 		NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
-		NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:type]];	
+		NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:type]];
 		amount = [commodityInfo oo_unsignedIntAtIndex:MARKET_QUANTITY] - cargoToGo;
 		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithUnsignedInt:amount]]; // enter the adjusted amount
 		[manifest replaceObjectAtIndex:type withObject:commodityInfo];
-		
+
 		[shipCommodityData release];
 		shipCommodityData = manifest;
 	}
@@ -281,11 +281,11 @@ static GLfloat		sBaseMass = 0.0;
 	NSUInteger i;
 	NSMutableArray* localMarket = [dockedStation localMarket];
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:localMarket] retain];  // retain
-	
+
 	// copy the quantities in ShipCommodityData to the manifest
 	// (was: zero the quantities in the manifest, making a mutable array of mutable arrays)
 	OOCargoQuantity amount = 0;
-	
+
 	for (i = 0; i < [manifest count]; i++)
 	{
 		NSMutableArray *commodityInfo = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:i]];
@@ -295,10 +295,10 @@ static GLfloat		sBaseMass = 0.0;
 		[manifest replaceObjectAtIndex:i withObject:commodityInfo];
 		[self unloadAllCargoPodsForType:i fromArray:manifest];
 	}
-	
+
 	[shipCommodityData release];
 	shipCommodityData = manifest;
-	
+
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
 }
 
@@ -329,11 +329,11 @@ static GLfloat		sBaseMass = 0.0;
 {
 	// load commodities from the ships manifest into individual cargo pods
 	unsigned j;
-	
+
 	NSMutableArray	*commodityInfo = [[NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]] retain];  // retain
 	OOCargoQuantity	quantity = [commodityInfo oo_unsignedIntAtIndex:MARKET_QUANTITY];
 	OOMassUnit		units =	[UNIVERSE unitsForCommodity:type];
-	
+
 	if (quantity > 0)
 	{
 		if (units == UNITS_TONS)
@@ -351,7 +351,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			OOCargoQuantity podsRequiredForQuantity, amountToLoadInCargopod, tmpQuantity;
 			// reserve up to 1/2 ton of each commodity for the safe
-			if (units == UNITS_KILOGRAMS) 
+			if (units == UNITS_KILOGRAMS)
 			{
 				if (quantity <= MAX_KILOGRAMS_IN_SAFE)
 				{
@@ -381,7 +381,7 @@ static GLfloat		sBaseMass = 0.0;
 			if (quantity > 0)
 			{
 				podsRequiredForQuantity = 1 + (quantity/amountToLoadInCargopod);
-				
+
 				// put each ton or part-ton beyond that in a separate container
 				for (j = 0; j < podsRequiredForQuantity; j++)
 				{
@@ -406,7 +406,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) loadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity)quantity
 {
 	OOMassUnit unit = [UNIVERSE unitsForCommodity:type];
-	
+
 	while (quantity)
 	{
 		if (unit != UNITS_TONS)
@@ -431,16 +431,16 @@ static GLfloat		sBaseMass = 0.0;
 				else
 				{
 					// try to squeeze any surplus, up to half a ton, in the manifest.
-					int amount;		
+					int amount;
 					NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
-					NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:type]];	
+					NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:type]];
 					amount = [commodityInfo oo_intAtIndex:MARKET_QUANTITY] + smaller_quantity;
 					if (amount > MAX_GRAMS_IN_SAFE && unit == UNITS_GRAMS) amount = MAX_GRAMS_IN_SAFE;
 					else if (amount > MAX_KILOGRAMS_IN_SAFE && unit == UNITS_KILOGRAMS) amount = MAX_KILOGRAMS_IN_SAFE;
 
 					[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]]; // enter the adjusted amount
 					[manifest replaceObjectAtIndex:type withObject:commodityInfo];
-					
+
 					[shipCommodityData release];
 					shipCommodityData = manifest;
 				}
@@ -478,9 +478,9 @@ static GLfloat		sBaseMass = 0.0;
 	unsigned i;
 
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];  // retain
-	
+
 	if (cargo == nil)  cargo = [[NSMutableArray alloc] init];
-	
+
 	for (i = 0; i < [manifest count]; i++)
 	{
 		[self loadCargoPodsForType:i fromArray: manifest];
@@ -595,7 +595,7 @@ static GLfloat		sBaseMass = 0.0;
 - (NSDictionary *) commanderDataDictionary
 {
 	NSMutableDictionary *result = [NSMutableDictionary dictionary];
-	
+
 	[result setObject:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] forKey:@"written_by_version"];
 
 	NSString	*gal_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d", galaxy_seed.a, galaxy_seed.b, galaxy_seed.c, galaxy_seed.d, galaxy_seed.e, galaxy_seed.f];
@@ -604,24 +604,24 @@ static GLfloat		sBaseMass = 0.0;
 	// Variable requiredCargoSpace not suitable for Oolite as it currently stands: it retroactively changes a savegame cargo space.
 	//unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
 	//if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
-	
+
 	[result setObject:gal_seed		forKey:@"galaxy_seed"];
 	[result setObject:gal_coords	forKey:@"galaxy_coordinates"];
 	[result setObject:tgt_coords	forKey:@"target_coordinates"];
-	
+
 	if (!equal_seeds(found_system_seed,kNilRandomSeed))
 	{
 		NSString *found_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d", found_system_seed.a, found_system_seed.b, found_system_seed.c, found_system_seed.d, found_system_seed.e, found_system_seed.f];
 		[result setObject:found_seed	forKey:@"found_system_seed"];
 	}
-	
+
 	// Write the name of the current system. Useful for looking up saved game information and for overlapping systems.
 	[result setObject:[UNIVERSE getSystemName:[self system_seed]] forKey:@"current_system_name"];
 	// Write the name of the targeted system. Useful for overlapping systems.
 	[result setObject:[UNIVERSE getSystemName:[self target_system_seed]] forKey:@"target_system_name"];
-	
+
 	[result setObject:[self commanderName] forKey:@"player_name"];
-	
+
 	/*
 		BUG: GNUstep truncates integer values to 32 bits when loading XML plists.
 		Workaround: store credits as a double. 53 bits of precision ought to
@@ -631,21 +631,21 @@ static GLfloat		sBaseMass = 0.0;
 	*/
 	[result oo_setFloat:credits				forKey:@"credits"];
 	[result oo_setUnsignedInteger:fuel		forKey:@"fuel"];
-	
+
 	[result oo_setInteger:galaxy_number	forKey:@"galaxy_number"];
-	
+
 	[result oo_setBool:[self weaponsOnline]	forKey:@"weapons_online"];
-	
+
 	[result oo_setInteger:forward_weapon_type	forKey:@"forward_weapon"];
 	[result oo_setInteger:aft_weapon_type		forKey:@"aft_weapon"];
 	[result oo_setInteger:port_weapon_type		forKey:@"port_weapon"];
 	[result oo_setInteger:starboard_weapon_type	forKey:@"starboard_weapon"];
 	[result setObject:[self serializeShipSubEntities] forKey:@"subentities_status"];
-	
+
 	[result oo_setInteger:max_cargo + PASSENGER_BERTH_SPACE * max_passengers	forKey:@"max_cargo"];
-	
+
 	[result setObject:shipCommodityData		forKey:@"shipCommodityData"];
-	
+
 	// sanitise commodity units - the savegame might contain the wrong units
 	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 	NSInteger i;
@@ -659,7 +659,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	[shipCommodityData release];
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	
+
 	// Deprecated equipment flags. New equipment shouldn't be added here (it'll be handled by the extra_equipment dictionary).
 	[result oo_setBool:[self hasDockingComputer]		forKey:@"has_docking_computer"];
 	[result oo_setBool:[self hasGalacticHyperdrive]		forKey:@"has_galactic_hyperdrive"];
@@ -668,7 +668,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setBool:[self hasScoop]					forKey:@"has_scoop"];
 	[result oo_setBool:[self hasEnergyBomb]				forKey:@"has_energy_bomb"];
 	[result oo_setBool:[self hasFuelInjection]			forKey:@"has_fuel_injection"];
-	
+
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])
 	{
 		[result oo_setBool:YES forKey:@"has_energy_unit"];
@@ -679,9 +679,9 @@ static GLfloat		sBaseMass = 0.0;
 		[result oo_setBool:YES forKey:@"has_energy_unit"];
 		[result oo_setInteger:OLD_ENERGY_UNIT_NORMAL forKey:@"energy_unit"];
 	}
-	
+
 	NSMutableArray* missileRoles = [NSMutableArray arrayWithCapacity:max_missiles];
-	
+
 	for (i = 0; i < (int)max_missiles; i++)
 	{
 		if (missile_entity[i])
@@ -694,9 +694,9 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 	[result setObject:missileRoles forKey:@"missile_roles"];
-	
+
 	[result oo_setInteger:missiles forKey:@"missiles"];
-	
+
 	[result oo_setInteger:legalStatus forKey:@"legal_status"];
 	[result oo_setInteger:market_rnd forKey:@"market_rnd"];
 	[result oo_setInteger:ship_kills forKey:@"ship_kills"];
@@ -713,9 +713,9 @@ static GLfloat		sBaseMass = 0.0;
 	// communications log
 	NSArray *log = [self commLog];
 	if (log != nil)  [result setObject:log forKey:@"comm_log"];
-	
+
 	[result oo_setUnsignedInteger:entity_personality forKey:@"entity_personality"];
-	
+
 	// extra equipment flags
 	NSMutableDictionary	*equipment = [NSMutableDictionary dictionary];
 	NSEnumerator		*eqEnum = nil;
@@ -729,10 +729,10 @@ static GLfloat		sBaseMass = 0.0;
 		[result setObject:equipment forKey:@"extra_equipment"];
 	}
 	if (primedEquipment < [eqScripts count]) [result setObject:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0] forKey:@"primed_equipment"];
-	
+
 	// reputation
 	[result setObject:reputation forKey:@"reputation"];
-	
+
 	// initialise parcel reputations in dictionary if not set
 	int pGood = [reputation oo_intForKey:PARCEL_GOOD_KEY];
 	int pBad = [reputation oo_intForKey:PARCEL_BAD_KEY];
@@ -752,10 +752,10 @@ static GLfloat		sBaseMass = 0.0;
 	// parcels
 	[result setObject:parcels forKey:@"parcels"];
 	[result setObject:parcel_record forKey:@"parcel_record"];
-	
+
 	//specialCargo
 	if (specialCargo)  [result setObject:specialCargo forKey:@"special_cargo"];
-	
+
 	// contracts
 	[result setObject:contracts forKey:@"contracts"];
 	[result setObject:contract_record forKey:@"contract_record"];
@@ -777,7 +777,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	// gamma control
 	[result setObject:[NSNumber numberWithFloat:[[UNIVERSE gameView] gammaValue]] forKey:@"gamma_control"];
-	
+
 	// docking clearance
 	[result setObject:[NSNumber numberWithBool:[UNIVERSE dockingClearanceProtocolActive]] forKey:@"docking_clearance_protocol"];
 
@@ -824,7 +824,7 @@ static GLfloat		sBaseMass = 0.0;
 	munge_checksum(credits);		munge_checksum(fuel);
 	munge_checksum(max_cargo);		munge_checksum(missiles);
 	munge_checksum(legalStatus);	munge_checksum(market_rnd);		munge_checksum(ship_kills);
-	
+
 	if (mission_variables != nil)
 	{
 		munge_checksum([[mission_variables description] length]);
@@ -833,12 +833,12 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		munge_checksum([[equipment description] length]);
 	}
-	
+
 	int final_checksum = munge_checksum([[self shipDataKey] length]);
 
 	//set checksum
 	[result oo_setInteger:final_checksum forKey:@"checksum"];
-	
+
 	return result;
 }
 
@@ -846,37 +846,37 @@ static GLfloat		sBaseMass = 0.0;
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
 	NSUInteger	i;
-	
+
 	[[UNIVERSE gameView] resetTypedString];
-	
+
 	// Required keys
 	if ([dict oo_stringForKey:@"ship_desc"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_coordinates"] == nil)  return NO;
-	
+
 	BOOL strict = [dict oo_boolForKey:@"strict" defaultValue:NO];
 	if (![UNIVERSE setStrict:strict fromSaveGame:YES]) return NO;
-	
+
 	//base ship description
 	[self setShipDataKey:[dict oo_stringForKey:@"ship_desc"]];
-	
+
 	NSDictionary *shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]];
 	if (shipDict == nil)  return NO;
 	if (![self setUpShipFromDictionary:shipDict])  return NO;
 	OOLog(@"fuelPrices", @"Got \"%@\", fuel charge rate: %.2f", [self shipDataKey],[self fuelChargeRate]);
-	
+
 	// ship depreciation
 	ship_trade_in_factor = [dict oo_intForKey:@"ship_trade_in_factor" defaultValue:95];
-	
+
 	galaxy_seed = RandomSeedFromString([dict oo_stringForKey:@"galaxy_seed"]);
 	if (is_nil_seed(galaxy_seed))  return NO;
 	[UNIVERSE setGalaxySeed: galaxy_seed andReinit:YES];
-	
+
 	NSArray *coord_vals = ScanTokensFromString([dict oo_stringForKey:@"galaxy_coordinates"]);
 	galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 	galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	cursor_coordinates = galaxy_coordinates;
-	
+
 	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
 	if (keyStringValue != nil)
 	{
@@ -884,19 +884,19 @@ static GLfloat		sBaseMass = 0.0;
 		cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	}
-	
+
 	keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
 	found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
-	
+
 	[self setCommanderName:[dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME]];
-	
+
 	[shipCommodityData autorelease];
 	shipCommodityData = [[dict oo_arrayForKey:@"shipCommodityData" defaultValue:shipCommodityData] copy];
-	
+
 	// extra equipment flags
 	[self removeAllEquipment];
 	NSMutableDictionary *equipment = [NSMutableDictionary dictionaryWithDictionary:[dict oo_dictionaryForKey:@"extra_equipment"]];
-	
+
 	// Equipment flags	(deprecated in favour of equipment dictionary, keep for compatibility)
 	if ([dict oo_boolForKey:@"has_docking_computer"])		[equipment oo_setBool:YES forKey:@"EQ_DOCK_COMP"];
 	if ([dict oo_boolForKey:@"has_galactic_hyperdrive"])	[equipment oo_setBool:YES forKey:@"EQ_GAL_DRIVE"];
@@ -905,8 +905,8 @@ static GLfloat		sBaseMass = 0.0;
 	if ([dict oo_boolForKey:@"has_scoop"])					[equipment oo_setBool:YES forKey:@"EQ_FUEL_SCOOPS"];
 	if ([dict oo_boolForKey:@"has_energy_bomb"])			[equipment oo_setBool:YES forKey:@"EQ_ENERGY_BOMB"];
 	if ([dict oo_boolForKey:@"has_fuel_injection"])		[equipment oo_setBool:YES forKey:@"EQ_FUEL_INJECTION"];
-	
-	
+
+
 	// Legacy energy unit type -> energy unit equipment item
 	if ([dict oo_boolForKey:@"has_energy_unit"] && [self installedEnergyUnitType] == ENERGY_UNIT_NONE)
 	{
@@ -917,7 +917,7 @@ static GLfloat		sBaseMass = 0.0;
 			case OLD_ENERGY_UNIT_NAVAL:
 				[equipment oo_setBool:YES forKey:@"EQ_NAVAL_ENERGY_UNIT"];
 				break;
-			
+
 			case OLD_ENERGY_UNIT_NORMAL:
 				[equipment oo_setBool:YES forKey:@"EQ_ENERGY_UNIT"];
 				break;
@@ -926,7 +926,7 @@ static GLfloat		sBaseMass = 0.0;
 				break;
 		}
 	}
-	
+
 	/*	Energy bombs are no longer supported without OXPs. As compensation,
 		we'll award either a Q-mine or some cash. We can't determine what to
 		award until we've handled missiles later on, though.
@@ -937,27 +937,27 @@ static GLfloat		sBaseMass = 0.0;
 		energyBombCompensation = YES;
 		[equipment removeObjectForKey:@"EQ_ENERGY_BOMB"];
 	}
-	
+
 	eqScripts = [[NSMutableArray alloc] init];
 	[self addEquipmentFromCollection:equipment];
 	primedEquipment = [self eqScriptIndexForKey:[dict oo_stringForKey:@"primed_equipment"]];	// if key not found primedEquipment is set to primed-none
-	
+
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
 	else  compassMode = COMPASS_MODE_BASIC;
 	DESTROY(compassTarget);
-	
+
 	// speech
 	isSpeechOn = [dict oo_boolForKey:@"speech_on"];
 #if OOLITE_ESPEAK
 	voice_gender_m = [dict oo_boolForKey:@"speech_gender" defaultValue:YES];
 	voice_no = [UNIVERSE setVoice:[UNIVERSE voiceNumber:[dict oo_stringForKey:@"speech_voice" defaultValue:nil]] withGenderM:voice_gender_m];
 #endif
-	
+
 	// reputation
 	[reputation release];
 	reputation = [[dict oo_dictionaryForKey:@"reputation"] mutableCopy];
 	if (reputation == nil)  reputation = [[NSMutableDictionary alloc] init];
-	
+
 	// passengers and contracts
 	[parcels release];
 	[parcel_record release];
@@ -965,7 +965,7 @@ static GLfloat		sBaseMass = 0.0;
 	[passenger_record release];
 	[contracts release];
 	[contract_record release];
-	
+
 	max_passengers = [dict oo_intForKey:@"max_passengers" defaultValue:0];
 	passengers = [[dict oo_arrayForKey:@"passengers"] mutableCopy];
 	passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
@@ -974,35 +974,35 @@ static GLfloat		sBaseMass = 0.0;
 	parcels = [[dict oo_arrayForKey:@"parcels"] mutableCopy];
 	parcel_record = [[dict oo_dictionaryForKey:@"parcel_record"] mutableCopy];
 
-	
-	
+
+
 	if (passengers == nil)  passengers = [[NSMutableArray alloc] init];
 	if (passenger_record == nil)  passenger_record = [[NSMutableDictionary alloc] init];
 	if (contracts == nil)  contracts = [[NSMutableArray alloc] init];
 	if (contract_record == nil)  contract_record = [[NSMutableDictionary alloc] init];
 	if (parcels == nil)  parcels = [[NSMutableArray alloc] init];
 	if (parcel_record == nil)  parcel_record = [[NSMutableDictionary alloc] init];
-	
+
 	//specialCargo
 	[specialCargo release];
 	specialCargo = [[dict oo_stringForKey:@"special_cargo"] copy];
-	
+
 	// mission destinations
 	NSArray *legacyDestinations = [dict oo_arrayForKey:@"missionDestinations"];
 
 	NSDictionary *newDestinations = [dict oo_dictionaryForKey:@"mission_destinations"];
 	[self initialiseMissionDestinations:newDestinations andLegacy:legacyDestinations];
-	
+
 	// shipyard
 	shipyard_record = [[dict oo_dictionaryForKey:@"shipyard_record"] mutableCopy];
 	if (shipyard_record == nil)  shipyard_record = [[NSMutableDictionary alloc] init];
-	
+
 	// Normalize cargo capacity
 	unsigned	original_hold_size = [UNIVERSE maxCargoForShip:[self shipDataKey]];
 	// Not Suitable For Oolite
 	//unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
 	//if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
-	
+
 	max_cargo = [dict oo_unsignedIntForKey:@"max_cargo" defaultValue:max_cargo];
 	if (max_cargo > original_hold_size)  [self addEquipmentItem:@"EQ_CARGO_BAY" inContext:@"loading"];
 	max_cargo = original_hold_size + ([self hasExpandedCargoBay] ? extra_cargo : 0);
@@ -1014,7 +1014,7 @@ static GLfloat		sBaseMass = 0.0;
 		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.max_passengers", @"player ship %@ had max_passengers set to a value requiring more cargo space than currently available (%u). Setting max_passengers to maximum possible value (%u).", [self name], originalMaxPassengers, max_passengers);
 	}
 	max_cargo -= max_passengers * PASSENGER_BERTH_SPACE;
-	
+
 	// Do we have extra passengers?
 	if (passengers && ([passengers count] > max_passengers))
 	{
@@ -1025,20 +1025,20 @@ static GLfloat		sBaseMass = 0.0;
 			[passengers removeObjectAtIndex:i];
 		}
 	}
-	
-	// too much cargo?	
+
+	// too much cargo?
 	int excessCargo = [self cargoQuantityOnBoard] - [self maxAvailableCargoSpace];
 	if (excessCargo > 0)
 	{
 		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.cargo", @"player ship %@ had more cargo (%i) than it can hold (%u). Removing extra cargo.", [self name], [self cargoQuantityOnBoard], [self maxAvailableCargoSpace]);
-		
+
 		NSMutableArray		*manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 		OOCommodityType		type;
 		OOMassUnit			units;
 		OOCargoQuantity		oldAmount, toRemove;
-		
+
 		i = excessCargo;
-		
+
 		// manifest always contains entries for all 17 commodities, even if their quantity is 0.
 		for (type = [manifest count]; i > 0 && type >= 0; type--)
 		{
@@ -1071,7 +1071,7 @@ static GLfloat		sBaseMass = 0.0;
 						partAmount = 0;
 					}
 				}
-				
+
 				[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt: oldAmount - toRemove]];
 				[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
 			}
@@ -1079,9 +1079,9 @@ static GLfloat		sBaseMass = 0.0;
 		[shipCommodityData release];
 		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 	}
-	
+
 	credits = OODeciCreditsFromObject([dict objectForKey:@"credits"]);
-	
+
 	fuel = [dict oo_unsignedIntForKey:@"fuel" defaultValue:fuel];
 	galaxy_number = [dict oo_intForKey:@"galaxy_number"];
 //
@@ -1107,43 +1107,43 @@ static GLfloat		sBaseMass = 0.0;
 		starboard_weapon_type = [dict oo_intForKey:@"starboard_weapon"];
 	else
 		starboard_weapon_type = WEAPON_NONE;
-	
+
 	weapons_online = [dict oo_boolForKey:@"weapons_online" defaultValue:YES];
-	
+
 	legalStatus = [dict oo_intForKey:@"legal_status"];
 	market_rnd = [dict oo_intForKey:@"market_rnd"];
 	ship_kills = [dict oo_intForKey:@"ship_kills"];
-	
+
 	ship_clock = [dict oo_doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START];
 	fps_check_time = ship_clock;
-	
+
 	// mission_variables
 	[mission_variables release];
 	mission_variables = [[dict oo_dictionaryForKey:@"mission_variables"] mutableCopy];
 	if (mission_variables == nil)  mission_variables = [[NSMutableDictionary alloc] init];
-	
+
 	// persistant UNIVERSE info
 	NSDictionary *planetInfoOverrides = [dict oo_dictionaryForKey:@"local_planetinfo_overrides"];
 	if (planetInfoOverrides != nil)  [UNIVERSE setLocalPlanetInfoOverrides:planetInfoOverrides];
-	
+
 	// communications log
 	[commLog release];
 	commLog = [[NSMutableArray alloc] initWithCapacity:kCommLogTrimThreshold];
-	
+
 	NSArray *savedCommLog = [dict oo_arrayForKey:@"comm_log"];
 	NSUInteger commCount = [savedCommLog count];
 	for (i = 0; i < commCount; i++)
 	{
 		[UNIVERSE addCommsMessage:[savedCommLog objectAtIndex:i] forCount:0 andShowComms:NO logOnly:YES];
 	}
-	
+
 	/*	entity_personality for scripts and shaders. If undefined, we fall back
 		to old behaviour of using a random value each time game is loaded (set
 		up in -setUp). Saving of entity_personality was added in 1.74.
 		-- Ahruman 2009-09-13
 	*/
 	entity_personality = [dict oo_unsignedShortForKey:@"entity_personality" defaultValue:entity_personality];
-	
+
 	// set up missiles
 	[self setActiveMissile:0];
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
@@ -1182,7 +1182,7 @@ static GLfloat		sBaseMass = 0.0;
 																			// in the base package.
 		}
 	}
-	
+
 	if (energyBombCompensation)
 	{
 		/*
@@ -1200,30 +1200,30 @@ static GLfloat		sBaseMass = 0.0;
 			OOLog(@"load.upgrade.replacedEnergyBomb", @"Compensated legacy energy bomb with 900 credits.");
 		}
 	}
-	
+
 	[self setActiveMissile:0];
-	
+
 	forward_shield = [self maxForwardShieldLevel];
 	aft_shield = [self maxAftShieldLevel];
-	
+
 	// Where are we? What system are we targeting?
 	// current_system_name and target_system_name, if present on the savegame,
 	// are the only way - at present - to distinguish between overlapping systems. Kaks 20100706
-	
+
 	// If we have the current system name, let's see if it matches the current system.
 	NSString *sysName = [dict oo_stringForKey:@"current_system_name"];
 	system_seed = [UNIVERSE findSystemFromName:sysName];
-	
+
 	if (is_nil_seed(system_seed) || (galaxy_coordinates.x != system_seed.d && galaxy_coordinates.y != system_seed.b))
 	{
 		// no match found, find the system from the coordinates.
 		system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 	}
-	
+
 	// If we have a target system name, let's see if it matches the system at the cursor coordinates.
 	sysName = [dict oo_stringForKey:@"target_system_name"];
 	target_system_seed = [UNIVERSE findSystemFromName:sysName];
-	
+
 	if (is_nil_seed(target_system_seed) || (cursor_coordinates.x != target_system_seed.d && cursor_coordinates.y != target_system_seed.b))
 	{
 		// no match found, find the system from the coordinates.
@@ -1231,10 +1231,10 @@ static GLfloat		sBaseMass = 0.0;
 		if (sameCoords) target_system_seed = system_seed;
 		else target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	}
-	
+
 	// restore subentities status
 	[self deserializeShipSubEntitiesFrom:[dict oo_stringForKey:@"subentities_status"]];
-	
+
 	// wormholes
 	NSArray * whArray;
 	whArray = [dict objectForKey:@"wormholes"];
@@ -1247,7 +1247,7 @@ static GLfloat		sBaseMass = 0.0;
 		WormholeEntity * wh = [[WormholeEntity alloc] initWithDict:whCurrDict];
 		[scannedWormholes addObject:wh];
 		/* TODO - add to Universe if the wormhole hasn't expired yet; but in this case
-		 * we need to save/load position and mass as well, which we currently 
+		 * we need to save/load position and mass as well, which we currently
 		 * don't
 		if (equal_seeds([wh origin], system_seed))
 		{
@@ -1255,7 +1255,7 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		*/
 	}
-	
+
 	// custom view no.
 	if (_customViews != nil)
 		_customViewIndex = [dict oo_unsignedIntForKey:@"custom_view_index"] % [_customViews count];
@@ -1266,7 +1266,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	// docking clearance protocol
 	[UNIVERSE setDockingClearanceProtocolActive:[dict oo_boolForKey:@"docking_clearance_protocol" defaultValue:NO]];
-	
+
 	// trumble information
 	[self setUpTrumbles];
 	[self setTrumbleValueFrom:[dict objectForKey:@"trumbles"]];	// if it doesn't exist we'll check user-defaults
@@ -1302,32 +1302,32 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSAssert(gOOPlayer == self, @"Expected only one PlayerEntity to exist at a time.");
 	NSAssert([super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]] == self, @"PlayerEntity requires -[ShipEntity initWithKey:definition:] to return unmodified self.");
-	
+
 	compassMode = COMPASS_MODE_BASIC;
-	
+
 	afterburnerSoundLooping = NO;
-	
+
 	isPlayer = YES;
-	
+
 	int i;
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
 		missile_entity[i] = nil;
 	}
 	[self setUpAndConfirmOK:NO];
-	
+
 	save_path = nil;
-	
+
 	[self setUpSound];
-	
+
 	scoopsActive = NO;
-	
+
 	target_memory_index = 0;
-	
+
 	dockingReport = [[NSMutableString alloc] init];
 	[hud resetGuis:[NSDictionary dictionaryWithObjectsAndKeys:[NSDictionary dictionaryWithObjectsAndKeys:nil], @"message_gui",
 														[NSDictionary dictionaryWithObjectsAndKeys:nil], @"comm_log_gui", nil]];
-	
+
 	[self initControls];
 }
 
@@ -1342,18 +1342,18 @@ static GLfloat		sBaseMass = 0.0;
 {
 	unsigned i;
 	Random_Seed gal_seed = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
-	
+
 	showDemoShips = NO;
 	show_info_flag = NO;
-	
+
 	// Reset JavaScript.
 	[OOScriptTimer noteGameReset];
 	[OOScriptTimer updateTimers];
-	
+
 	GameController		*gc = [[UNIVERSE gameView] gameController];
-	
+
 	if (![gc inFullScreenMode] && stopOnError)	[gc stopAnimationTimer];	// start of critical section
-	
+
 	if (EXPECT_NOT(![[OOJavaScriptEngine sharedEngine] reset] && stopOnError)) // always (try to) reset the engine, then find out if we need to stop.
 	{
 		/*
@@ -1361,73 +1361,73 @@ static GLfloat		sBaseMass = 0.0;
 			and the js engine needing to be reset: the engine reset stops the timers
 			from being deleted, and undeleted timers don't allow the engine to reset
 			itself properly.
-			
+
 			If the engine can't reset, let's give ourselves an extra 20ms to allow the
 			timers to delete themselves.
-			
-			We'll piggyback performDeadUpdates: when STATUS_DEAD, the engine waits until 
+
+			We'll piggyback performDeadUpdates: when STATUS_DEAD, the engine waits until
 			kDeadResetTime then restarts Oolite via [UNIVERSE updateGameOver]
 			The variable shot_time is used to keep track of how long ago we were
 			shot.
-			
+
 			If we're loading a savegame the code will try a new JS reset immediately
 			after failing this reset...
 		*/
-		
+
 		// set up STATUS_DEAD
 		dockedStation = nil;	// needed for STATUS_DEAD
 		[self setStatus:STATUS_DEAD];
 		OOLog(@"script.javascript.init.error", @"Scheduling new JavaScript reset.");
 		shot_time = kDeadResetTime - 0.02f;	// schedule reinit 20 milliseconds from now.
-		
+
 		if (![gc inFullScreenMode])	[gc startAnimationTimer];	// keep the game ticking over.
 		return NO;
 	}
-	
+
 	// end of critical section
 	if (![gc inFullScreenMode] && stopOnError)	[gc startAnimationTimer];
-	
+
 	// Load locale script before any regular scripts.
 	[OOJSScript jsScriptFromFileNamed:@"oolite-locale-functions.js"
 						   properties:nil];
-	
+
 	[[GameController sharedController] logProgress:DESC(@"loading-scripts")];
-	
+
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
 	worldScripts = [[ResourceManager loadScripts] retain];
 	[UNIVERSE loadConditionScripts];
-	
+
 	[[GameController sharedController] logProgress:OOExpandKeyRandomized(@"loading-miscellany")];
-	
+
 	// if there is cargo remaining from previously (e.g. a game restart), remove it
 	if ([self cargoList] != nil)
 	{
 		[self removeAllCargo:YES];		// force removal of cargo
 	}
-	
+
 	[self setShipDataKey:PLAYER_SHIP_DESC];
 	ship_trade_in_factor = 95;
-	
+
 	// reset HUD & default commlog behaviour
 	[UNIVERSE setAutoCommLog:YES];
 	[UNIVERSE setPermanentCommLog:NO];
-	
-	[self switchHudTo:@"hud.plist"];	
+
+	[self switchHudTo:@"hud.plist"];
 	scanner_zoom_rate = 0.0f;
-	
+
 	[mission_variables release];
 	mission_variables = [[NSMutableDictionary alloc] init];
-	
+
 	[localVariables release];
 	localVariables = [[NSMutableDictionary alloc] init];
-	
+
 	[self setScriptTarget:nil];
 	[self resetMissionChoice];
 	[[UNIVERSE gameView] resetTypedString];
 	found_system_seed = kNilRandomSeed;
-	
+
 	[reputation release];
 	reputation = [[NSMutableDictionary alloc] initWithCapacity:6];
 	[reputation oo_setInteger:0 forKey:CONTRACTS_GOOD_KEY];
@@ -1439,7 +1439,7 @@ static GLfloat		sBaseMass = 0.0;
 	[reputation oo_setInteger:0 forKey:PARCEL_GOOD_KEY];
 	[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
 	[reputation oo_setInteger:7 forKey:PARCEL_UNKNOWN_KEY];
-	
+
 	energy					= 256;
 	weapon_temp				= 0.0f;
 	forward_weapon_temp		= 0.0f;
@@ -1456,7 +1456,7 @@ static GLfloat		sBaseMass = 0.0;
 	hyperspeed_engaged		= NO;
 	autopilot_engaged = NO;
 	velocity = kZeroVector;
-	
+
 	flightRoll = 0.0f;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;
@@ -1466,7 +1466,7 @@ static GLfloat		sBaseMass = 0.0;
 	passengers = [[NSMutableArray alloc] init];
 	[passenger_record release];
 	passenger_record = [[NSMutableDictionary alloc] init];
-	
+
 	[contracts release];
 	contracts = [[NSMutableArray alloc] init];
 	[contract_record release];
@@ -1476,22 +1476,22 @@ static GLfloat		sBaseMass = 0.0;
 	parcels = [[NSMutableArray alloc] init];
 	[parcel_record release];
 	parcel_record = [[NSMutableDictionary alloc] init];
-	
+
 	[missionDestinations release];
 	missionDestinations = [[NSMutableDictionary alloc] init];
-	
+
 	[shipyard_record release];
 	shipyard_record = [[NSMutableDictionary alloc] init];
-	
+
 	[self setMissionOverlayDescriptor:nil];
 	[self setMissionBackgroundDescriptor:nil];
 	[self setMissionBackgroundSpecial:nil];
 	[self setEquipScreenBackgroundDescriptor:nil];
-	
+
 	script_time = 0.0;
 	script_time_check = SCRIPT_TIMER_INTERVAL;
 	script_time_interval = SCRIPT_TIMER_INTERVAL;
-	
+
 	NSCalendarDate *nowDate = [NSCalendarDate calendarDate];
 	ship_clock = PLAYER_SHIP_CLOCK_START;
 	ship_clock += [nowDate hourOfDay] * 3600.0;
@@ -1499,52 +1499,52 @@ static GLfloat		sBaseMass = 0.0;
 	ship_clock += [nowDate secondOfMinute];
 	fps_check_time = ship_clock;
 	ship_clock_adjust = 0.0;
-	
+
 	isSpeechOn = NO;
 #if OOLITE_ESPEAK
 	voice_gender_m = YES;
 	voice_no = [UNIVERSE setVoice:-1 withGenderM:voice_gender_m];
 #endif
-	
+
 	[_customViews release];
 	_customViews = nil;
 	_customViewIndex = 0;
-	
+
 	mouse_control_on = NO;
-	
+
 	// player commander data
 	// Most of this is probably also set more than once
-	
+
 	[self setCommanderName:PLAYER_DEFAULT_NAME];
-	
+
 	galaxy_coordinates		= NSMakePoint(0x14,0xAD);	// 20,173
 	galaxy_seed				= gal_seed;
 	credits					= 1000;
 	fuel					= PLAYER_MAX_FUEL;
 	fuel_accumulator		= 0.0f;
 	fuel_leak_rate			= 0.0f;
-	
+
 	galaxy_number			= 0;
 	forward_weapon_type		= WEAPON_PULSE_LASER;
 	aft_weapon_type			= WEAPON_NONE;
 	port_weapon_type		= WEAPON_NONE;
 	starboard_weapon_type	= WEAPON_NONE;
-	scannerRange = (float)SCANNER_MAX_RANGE; 
-	
+	scannerRange = (float)SCANNER_MAX_RANGE;
+
 	weapons_online			= YES;
-	
+
 	ecm_in_operation = NO;
 	compassMode = COMPASS_MODE_BASIC;
 	ident_engaged = NO;
-	
+
 	max_cargo				= 20; // will be reset later
-	
+
 	shipCommodityData = [[[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] objectForKey:@"default"] retain];
-	
+
 	// set up missiles
 	missiles				= PLAYER_STARTING_MISSILES;
 	max_missiles			= PLAYER_STARTING_MAX_MISSILES;
-	
+
 	[eqScripts release];
 	eqScripts = [[NSMutableArray alloc] init];
 	primedEquipment = 0;
@@ -1555,79 +1555,79 @@ static GLfloat		sBaseMass = 0.0;
 		missile_entity[i] = nil;
 	}
 	[self safeAllMissiles];
-	
+
 	[self clearSubEntities];
-	
+
 	legalStatus				= 0;
-	
+
 	market_rnd				= 0;
 	ship_kills				= 0;
 	cursor_coordinates		= galaxy_coordinates;
-	
+
 	scripted_misjump		= NO;
 	_scriptedMisjumpRange = 0.5;
 	scoopOverride			= NO;
-	
+
 	forward_shield			= [self maxForwardShieldLevel];
 	aft_shield				= [self maxAftShieldLevel];
-	
+
 	scanClass				= CLASS_PLAYER;
-	
+
 	[UNIVERSE clearGUIs];
-	
+
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_GRANTED;
 	targetDockStation = nil;
-	
+
 	dockedStation = [UNIVERSE station];
-	
+
 	[commLog release];
 	commLog = nil;
-	
+
 	[specialCargo release];
 	specialCargo = nil;
-	
+
 	// views
 	forwardViewOffset		= kZeroVector;
 	aftViewOffset			= kZeroVector;
 	portViewOffset			= kZeroVector;
 	starboardViewOffset		= kZeroVector;
 	customViewOffset		= kZeroVector;
-	
+
 	currentWeaponFacing		= WEAPON_FACING_FORWARD;
 	[self currentWeaponStats];
-	
+
 	[save_path autorelease];
 	save_path = nil;
-	
+
 	[scannedWormholes release];
 	scannedWormholes = [[NSMutableArray alloc] init];
-	
+
 	[self setUpTrumbles];
-	
+
 	suppressTargetLost = NO;
-	
+
 	scoopsActive = NO;
-	
+
 	[dockingReport release];
 	dockingReport = [[NSMutableString alloc] init];
-	
+
 	[shipAI release];
 	shipAI = [[AI alloc] initWithStateMachine:PLAYER_DOCKING_AI_NAME andState:@"GLOBAL"];
 	[self resetAutopilotAI];
-	
+
 	lastScriptAlertCondition = [self alertCondition];
-	
+
 	entity_personality = ranrot_rand() & 0x7FFF;
-	
+
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
-	
+
 	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
 	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
-	
+
 	cloaking_device_active = NO;
 
 	demoShip = nil;
-	
+
 	[[OOMusicController sharedController] justStop];
 	return YES;
 }
@@ -1644,10 +1644,10 @@ static GLfloat		sBaseMass = 0.0;
 	[OOSoundSource stopAll];
 	dockedStation = [UNIVERSE station];
 	[self setLastAegisLock:[UNIVERSE planet]];
-		
+
 	// If loading from a savegame don't reset the targetted system.
 	if (setTarget) target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	
+
 	JSContext *context = OOJSAcquireContext();
 	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
 	OOJSRelinquishContext(context);
@@ -1658,30 +1658,30 @@ static GLfloat		sBaseMass = 0.0;
 {
 	DESTROY(compassTarget);
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
-	
+
 	if (![super setUpFromDictionary:shipDict]) return NO;
-	
+
 	// Player-only settings.
 	//
 	// set control factors..
 	roll_delta =		2.0f * max_flight_roll;
 	pitch_delta =		2.0f * max_flight_pitch;
 	yaw_delta =			2.0f * max_flight_yaw;
-	
+
 	energy = maxEnergy;
-	//if (forward_weapon_type == WEAPON_NONE) [self setWeaponDataFromType:forward_weapon_type]; 
-	scannerRange = (float)SCANNER_MAX_RANGE; 
-	
+	//if (forward_weapon_type == WEAPON_NONE) [self setWeaponDataFromType:forward_weapon_type];
+	scannerRange = (float)SCANNER_MAX_RANGE;
+
 	[roleSet release];
 	roleSet = nil;
 	[self setPrimaryRole:@"player"];
-	
+
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[shipDict objectForKey:@"extra_equipment"]];
-	
+
 	[self resetHud];
 	[hud setHidden:NO];
-	
+
 	// set up missiles
 	// sanity check the number of missiles...
 	if (max_missiles > PLAYER_MAX_MISSILES)  max_missiles = PLAYER_MAX_MISSILES;
@@ -1699,21 +1699,21 @@ static GLfloat		sBaseMass = 0.0;
 		missile_list[i] = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
 		missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
 	}
-	
+
 	DESTROY(_primaryTarget);
 	[self safeAllMissiles];
 	[self setActiveMissile:0];
-	
+
 	// set view offsets
 	[self setDefaultViewOffsets];
-	
+
 	forwardViewOffset = [shipDict oo_vectorForKey:@"view_position_forward" defaultValue:forwardViewOffset];
 	aftViewOffset = [shipDict oo_vectorForKey:@"view_position_aft" defaultValue:aftViewOffset];
 	portViewOffset = [shipDict oo_vectorForKey:@"view_position_port" defaultValue:portViewOffset];
 	starboardViewOffset = [shipDict oo_vectorForKey:@"view_position_starboard" defaultValue:starboardViewOffset];
-	
+
 	[self setDefaultCustomViews];
-	
+
 	NSArray *customViews = [shipDict oo_arrayForKey:@"custom_views"];
 	if (customViews != nil)
 	{
@@ -1721,11 +1721,11 @@ static GLfloat		sBaseMass = 0.0;
 		_customViews = [customViews retain];
 		_customViewIndex = 0;
 	}
-	
+
 	// Load js script
 	[script autorelease];
 	NSDictionary *scriptProperties = [NSDictionary dictionaryWithObject:self forKey:@"ship"];
-	script = [OOScript jsScriptFromFileNamed:[shipDict oo_stringForKey:@"script"] 
+	script = [OOScript jsScriptFromFileNamed:[shipDict oo_stringForKey:@"script"]
 										 properties:scriptProperties];
 	if (script == nil)
 	{
@@ -1734,7 +1734,7 @@ static GLfloat		sBaseMass = 0.0;
 											 properties:scriptProperties];
 	}
 	[script retain];
-	
+
 	return YES;
 }
 
@@ -1745,15 +1745,15 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(hud);
 	DESTROY(commLog);
 	DESTROY(keyconfig_settings);
-	
+
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
 	DESTROY(mission_variables);
-	
+
 	DESTROY(localVariables);
-	
+
 	DESTROY(lastTextKey);
-	
+
 	DESTROY(reputation);
 	DESTROY(passengers);
 	DESTROY(passenger_record);
@@ -1763,31 +1763,31 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(parcel_record);
 	DESTROY(missionDestinations);
 	DESTROY(shipyard_record);
-	
+
 	DESTROY(_missionOverlayDescriptor);
 	DESTROY(_missionBackgroundDescriptor);
 	DESTROY(_equipScreenBackgroundDescriptor);
-	
+
 	DESTROY(_commanderName);
 	DESTROY(shipCommodityData);
-	
+
 	DESTROY(specialCargo);
-	
+
 	DESTROY(save_path);
-	
+
 	DESTROY(_customViews);
-	
+
 	DESTROY(dockingReport);
-	
+
 	[self destroySound];
-	
+
 	DESTROY(scannedWormholes);
 	DESTROY(wormhole);
-	
+
 	int i;
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)  DESTROY(missile_entity[i]);
 	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)  DESTROY(trumble[i]);
-	
+
 	[super dealloc];
 }
 
@@ -1815,7 +1815,7 @@ static GLfloat		sBaseMass = 0.0;
 		case STATUS_DEAD:
 		case STATUS_ESCAPE_SEQUENCE:
 			return NO;
-		
+
 		default:
 			return YES;
 	}
@@ -1856,40 +1856,40 @@ static GLfloat		sBaseMass = 0.0;
 - (void) update:(OOTimeDelta)delta_t
 {
 	STAGE_TRACKING_BEGIN
-	
+
 	UPDATE_STAGE(@"updateMovementFlags");
 	[self updateMovementFlags];
 	UPDATE_STAGE(@"updateAlertCondition");
 	[self updateAlertCondition];
 	UPDATE_STAGE(@"updateFuelScoops:");
 	[self updateFuelScoops:delta_t];
-	
+
 	UPDATE_STAGE(@"updateClocks:");
 	[self updateClocks:delta_t];
-	
+
 	// scripting
 	UPDATE_STAGE(@"updateTimers");
 	[OOScriptTimer updateTimers];
 	UPDATE_STAGE(@"checkScriptsIfAppropriate");
 	[self checkScriptsIfAppropriate];
-	
+
 	// deal with collisions
 	UPDATE_STAGE(@"manageCollisions");
 	[self manageCollisions];
-	
+
 	UPDATE_STAGE(@"pollControls:");
 	[self pollControls:delta_t];
-	
+
 	UPDATE_STAGE(@"updateTrumbles:");
 	[self updateTrumbles:delta_t];
-	
+
 	OOEntityStatus status = [self status];
 	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2))
 	{
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
 		[self setGuiToIntroFirstGo:YES];	//set up demo mode
 	}
-	
+
 	if (status == STATUS_AUTOPILOT_ENGAGED || status == STATUS_ESCAPE_SEQUENCE)
 	{
 		UPDATE_STAGE(@"performAutopilotUpdates:");
@@ -1900,7 +1900,7 @@ static GLfloat		sBaseMass = 0.0;
 		UPDATE_STAGE(@"performInFlightUpdates:");
 		[self performInFlightUpdates:delta_t];
 	}
-	
+
 	/*	NOTE: status-contingent updates are not a switch since they can
 		cascade when status changes.
 	*/
@@ -1934,10 +1934,10 @@ static GLfloat		sBaseMass = 0.0;
 		UPDATE_STAGE(@"performDeadUpdates:");
 		[self performDeadUpdates:delta_t];
 	}
-	
+
 	UPDATE_STAGE(@"updateWormholes");
 	[self updateWormholes];
-	
+
 	STAGE_TRACKING_END
 }
 
@@ -1945,14 +1945,14 @@ static GLfloat		sBaseMass = 0.0;
 - (void) doBookkeeping:(double) delta_t
 {
 	STAGE_TRACKING_BEGIN
-	
+
 	double speed_delta = 5.0 * thrust;
-	
+
 	OOSunEntity	*sun = [UNIVERSE sun];
 	double		external_temp = 0;
 	GLfloat		air_friction = 0.0f;
 	air_friction = 0.5f * [UNIVERSE airResistanceFactor];
-	
+
 	UPDATE_STAGE(@"updating weapon temperatures and shot times");
 	// cool all weapons.
 	float coolAmount = WEAPON_COOLING_FACTOR * delta_t;
@@ -1960,13 +1960,13 @@ static GLfloat		sBaseMass = 0.0;
 	aft_weapon_temp = fdim(aft_weapon_temp, coolAmount);
 	port_weapon_temp = fdim(port_weapon_temp, coolAmount);
 	starboard_weapon_temp = fdim(starboard_weapon_temp, coolAmount);
-	
+
 	// update shot times.
 	forward_shot_time += delta_t;
 	aft_shot_time += delta_t;
 	port_shot_time += delta_t;
 	starboard_shot_time += delta_t;
-		
+
 	// copy new temp & shot time to main temp & shot time
 	switch (currentWeaponFacing)
 	{
@@ -1986,26 +1986,26 @@ static GLfloat		sBaseMass = 0.0;
 			weapon_temp = starboard_weapon_temp;
 			shot_time = starboard_shot_time;
 			break;
-			
+
 		case WEAPON_FACING_NONE:
 			break;
 	}
-	
+
 	// cloaking device
 	if ([self hasCloakingDevice] && cloaking_device_active)
 	{
 		UPDATE_STAGE(@"updating cloaking device");
-		
+
 		energy -= (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
 		if (energy < CLOAKING_DEVICE_MIN_ENERGY)
 			[self deactivateCloakingDevice];
 	}
-	
+
 	// military_jammer
 	if ([self hasMilitaryJammer])
 	{
 		UPDATE_STAGE(@"updating military jammer");
-		
+
 		if (military_jammer_active)
 		{
 			energy -= (float)delta_t * MILITARY_JAMMER_ENERGY_RATE;
@@ -2018,12 +2018,12 @@ static GLfloat		sBaseMass = 0.0;
 				military_jammer_active = YES;
 		}
 	}
-	
+
 	// ecm
 	if (ecm_in_operation)
 	{
 		UPDATE_STAGE(@"updating ECM");
-		
+
 		if (energy > 0.0)
 			energy -= (float)(ECM_ENERGY_DRAIN_FACTOR * delta_t);		// drain energy because of the ECM
 		else
@@ -2036,26 +2036,26 @@ static GLfloat		sBaseMass = 0.0;
 			ecm_in_operation = NO;
 		}
 	}
-	
+
 	// Energy Banks and Shields
-	
+
 	/* Shield-charging behaviour, as per Eric's proposal:
 	   1. If shields are less than a threshold, recharge with all available energy
 	   2. If energy banks are below threshold, recharge with generated energy
 	   3. Charge shields with any surplus energy
 	*/
 	UPDATE_STAGE(@"updating energy and shield charges");
-	
+
 	// 1. (Over)charge energy banks (will get normalised later)
 	energy += [self energyRechargeRate] * delta_t;
-	
+
 	// 2. Calculate shield recharge rates
 	float fwdMax = [self maxForwardShieldLevel];
 	float aftMax = [self maxAftShieldLevel];
 	float shieldRecharge = [self shieldRechargeRate] * delta_t;
 	float rechargeFwd = MIN(shieldRecharge, fwdMax - forward_shield);
 	float rechargeAft = MIN(shieldRecharge, aftMax - aft_shield);
-	
+
 	// Note: we've simplified this a little, so if either shield is below
 	//       the critical threshold, we allocate all energy.  Ideally we
 	//       would only allocate the full recharge to the critical shield,
@@ -2067,7 +2067,7 @@ static GLfloat		sBaseMass = 0.0;
 		float minEnergyBankLevel = [[UNIVERSE planetInfo] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.25];
 		energyForShields = MAX(0.0, energy -0.1 - (maxEnergy * minEnergyBankLevel)); // NB: The - 0.1 ensures the energy value does not 'bounce' across the critical energy message and causes spurious energy-low warnings
 	}
-	
+
 	if( forward_shield < aft_shield )
 	{
 		rechargeFwd = MIN(rechargeFwd, energyForShields);
@@ -2078,20 +2078,20 @@ static GLfloat		sBaseMass = 0.0;
 		rechargeAft = MIN(rechargeAft, energyForShields);
 		rechargeFwd = MIN(rechargeFwd, energyForShields - rechargeAft);
 	}
-	
+
 	// 3. Recharge shields, drain banks, and clamp values
 	forward_shield += rechargeFwd;
 	aft_shield += rechargeAft;
 	energy -= rechargeFwd + rechargeAft;
-	
+
 	forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
 	aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
 	energy = OOClamp_0_max_f(energy, maxEnergy);
-	
+
 	if (sun)
 	{
 		UPDATE_STAGE(@"updating sun effects");
-		
+
 		// set the ambient temperature here
 		double  sun_zd = sun->zero_distance;	// square of distance
 		double  sun_cr = sun->collision_radius;
@@ -2102,7 +2102,7 @@ static GLfloat		sBaseMass = 0.0;
 		// fuel scooping during the nova mission very unlikely
 		if ([sun willGoNova])
 			external_temp *= 3;
-			
+
 		// do Revised sun-skimming check here...
 		if ([self hasScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
 		{
@@ -2118,19 +2118,19 @@ static GLfloat		sBaseMass = 0.0;
 			[UNIVERSE displayCountdownMessage:DESC(@"fuel-scoop-active") forCount:1.0];
 		}
 	}
-	
+
 	//Bug #11692 CmdrJames added Status entering witchspace
 	OOEntityStatus status = [self status];
 	if ((status != STATUS_ESCAPE_SEQUENCE) && (status != STATUS_ENTERING_WITCHSPACE))
 	{
 		UPDATE_STAGE(@"updating cabin temperature");
-		
+
 		// work on the cabin temperature
 		float heatInsulation = [self heatInsulation]; // Optimisation, suggested by EricW
 		float deltaInsulation = delta_t/heatInsulation;
 		float heatThreshold = heatInsulation * 100.0f;
 		ship_temperature += (float)( flightSpeed * air_friction * deltaInsulation);	// wind_speed
-		
+
 		if (external_temp > heatThreshold && external_temp > ship_temperature)
 			ship_temperature += (float)((external_temp - ship_temperature) * SHIP_INSULATION_FACTOR  * deltaInsulation);
 		else
@@ -2138,11 +2138,11 @@ static GLfloat		sBaseMass = 0.0;
 			if (ship_temperature > SHIP_MIN_CABIN_TEMP)
 				ship_temperature += (float)((external_temp - heatThreshold - ship_temperature) * SHIP_COOLING_FACTOR  * deltaInsulation);
 		}
-		
+
 		if (ship_temperature > SHIP_MAX_CABIN_TEMP)
 			[self takeHeatDamage: delta_t * ship_temperature];
 	}
-	
+
 	if ((status == STATUS_ESCAPE_SEQUENCE)&&(shot_time > ESCAPE_SEQUENCE_TIME))
 	{
 		UPDATE_STAGE(@"resetting after escape");
@@ -2151,7 +2151,7 @@ static GLfloat		sBaseMass = 0.0;
 		[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
 		bounty = 0;
 		// no access to all player.ship properties while inside the escape pod,
-		// we're not supposed to be inside our ship anymore! 
+		// we're not supposed to be inside our ship anymore!
 		[self doScriptEvent:OOJSID("escapePodSequenceOver")];	// allow oxps to override the escape pod target
 		if (!equal_seeds(target_system_seed, system_seed)) // overridden: we're going to a nearby system!
 		{
@@ -2159,7 +2159,7 @@ static GLfloat		sBaseMass = 0.0;
 			[UNIVERSE setSystemTo:system_seed];
 			galaxy_coordinates.x = system_seed.d;
 			galaxy_coordinates.y = system_seed.b;
-			
+
 			[UNIVERSE setUpSpace];
 			// run initial system population
 			[UNIVERSE populateNormalSpace];
@@ -2170,11 +2170,11 @@ static GLfloat		sBaseMass = 0.0;
 			[UNIVERSE setWitchspaceBreakPattern:YES];
 			[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
 			[self doScriptEvent:OOJSID("shipExitedWitchspace")];
-			
+
 			[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 			[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 		}
-		
+
 		Entity	*dockTargetEntity = [UNIVERSE entityForUniversalID:_dockTarget];	// main station in the original system, unless overridden.
 		if ([dockTargetEntity isStation]) // fails if _dockTarget is NO_TARGET
 		{
@@ -2201,25 +2201,25 @@ static GLfloat		sBaseMass = 0.0;
 			[self showGameOver];
 		}
 	}
-	
-	
+
+
 	// MOVED THE FOLLOWING FROM PLAYERENTITY POLLFLIGHTCONTROLS:
 	travelling_at_hyperspeed = (flightSpeed > maxFlightSpeed);
 	if (hyperspeed_engaged)
 	{
 		UPDATE_STAGE(@"updating hyperspeed");
-		
+
 		// increase speed up to maximum hyperspeed
 		if (flightSpeed < maxFlightSpeed * HYPERSPEED_FACTOR)
 			flightSpeed += (float)(speed_delta * delta_t * HYPERSPEED_FACTOR);
 		if (flightSpeed > maxFlightSpeed * HYPERSPEED_FACTOR)
 			flightSpeed = (float)(maxFlightSpeed * HYPERSPEED_FACTOR);
-		
+
 		// check for mass lock
 		hyperspeed_locked = [self massLocked];
 		// check for mass lock & external temperature?
 		//hyperspeed_locked = flightSpeed * air_friction > 40.0f+(ship_temperature - external_temp ) * SHIP_COOLING_FACTOR || [self massLocked];
-		
+
 		if (hyperspeed_locked)
 		{
 			[self playJumpMassLocked];
@@ -2232,7 +2232,7 @@ static GLfloat		sBaseMass = 0.0;
 		if (afterburner_engaged)
 		{
 			UPDATE_STAGE(@"updating afterburner");
-			
+
 			float abFactor = [self afterburnerFactor];
 			float maxInjectionSpeed = maxFlightSpeed * abFactor;
 			if (flightSpeed > maxInjectionSpeed)
@@ -2258,7 +2258,7 @@ static GLfloat		sBaseMass = 0.0;
 		else
 		{
 			UPDATE_STAGE(@"slowing from hyperspeed");
-			
+
 			// slow back down...
 			if (travelling_at_hyperspeed)
 			{
@@ -2269,14 +2269,14 @@ static GLfloat		sBaseMass = 0.0;
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	// fuel leakage
 	if ((fuel_leak_rate > 0.0)&&(fuel > 0))
 	{
 		UPDATE_STAGE(@"updating fuel leakage");
-		
+
 		fuel_accumulator -= (float)(fuel_leak_rate * delta_t);
 		while ((fuel_accumulator < 0)&&(fuel > 0))
 		{
@@ -2286,7 +2286,7 @@ static GLfloat		sBaseMass = 0.0;
 		if (fuel == 0)
 			fuel_leak_rate = 0;
 	}
-	
+
 	// smart_zoom
 	UPDATE_STAGE(@"updating scanner zoom");
 	if (scanner_zoom_rate)
@@ -2311,7 +2311,7 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		[hud setScannerZoom:z1];
 	}
-	
+
 	// scanner sanity check - lose any targets further than maximum scanner range
 	ShipEntity *primeTarget = [self primaryTarget];
 	if (primeTarget && HPdistance2([primeTarget position], [self position]) > SCANNER_MAX_RANGE2 && !autopilot_engaged)
@@ -2319,7 +2319,7 @@ static GLfloat		sBaseMass = 0.0;
 		[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
 		[self removeTarget:primeTarget];
 	}
-	
+
 	// update subentities
 	UPDATE_STAGE(@"updating subentities");
 	totalBoundingBox = boundingBox; //	reset totalBoundingBox
@@ -2341,7 +2341,7 @@ static GLfloat		sBaseMass = 0.0;
 		[lastShot update:0.0];
 		lastShot = nil;
 	}
-	
+
 	STAGE_TRACKING_END
 }
 
@@ -2410,9 +2410,9 @@ static GLfloat		sBaseMass = 0.0;
 			ship_clock_adjust += fine_adjust;
 		}
 	}
-	else 
+	else
 		ship_clock_adjust = 0.0;
-	
+
 	unsigned now_day = floor(ship_clock / 86400.0);
 	while (prev_day < now_day)
 	{
@@ -2446,7 +2446,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) checkScriptsIfAppropriate
 {
 	if (script_time <= script_time_check)  return;
-	
+
 	if ([self status] != STATUS_IN_FLIGHT)
 	{
 		switch (gui_screen)
@@ -2466,7 +2466,7 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_REPORT:
 				return;
 				break;
-			
+
 			// Screens from which it's safe to jump to the mission screen
 //			case GUI_SCREEN_CONTRACTS:
 			case GUI_SCREEN_EQUIP_SHIP:
@@ -2481,7 +2481,7 @@ static GLfloat		sBaseMass = 0.0;
 				break;
 		}
 	}
-	
+
 	// Test either passed or never ran, run scripts.
 	[self checkScript];
 	script_time_check += script_time_interval;
@@ -2492,7 +2492,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	OOTrumble	**trumbles = [self trumbleArray];
 	NSUInteger	i;
-	
+
 	for (i = [self trumbleCount] ; i > 0; i--)
 	{
 		OOTrumble* trum = trumbles[i - 1];
@@ -2513,12 +2513,12 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (stationForDocking == nil)   return NO;
 	if ([self isDocked])  return NO;
-	
+
 	if (autopilot_engaged && [self targetStation] == stationForDocking)
-	{	
+	{
 		return YES;
 	}
-		
+
 	[self setTargetStation:stationForDocking];
 	DESTROY(_primaryTarget);
 	autopilot_engaged = YES;
@@ -2532,7 +2532,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self doScriptEvent:OOJSID("playerStartedAutoPilot") withArgument:stationForDocking];
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 	[[OOMusicController sharedController] playDockingMusic];
-		
+
 	if (afterburner_engaged)
 	{
 		afterburner_engaged = NO;
@@ -2558,7 +2558,7 @@ static GLfloat		sBaseMass = 0.0;
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 		[[OOMusicController sharedController] stopDockingMusic];
 		[self doScriptEvent:OOJSID("playerCancelledAutoPilot")];
-		
+
 		[self resetAutopilotAI];
 	}
 }
@@ -2586,14 +2586,14 @@ static GLfloat		sBaseMass = 0.0;
 - (void) performInFlightUpdates:(OOTimeDelta)delta_t
 {
 	STAGE_TRACKING_BEGIN
-	
+
 	// do flight routines
 	//// velocity stuff
 	UPDATE_STAGE(@"applying newtonian drift");
 	assert(VELOCITY_CLEANUP_FULL > VELOCITY_CLEANUP_MIN);
-	
+
 	position = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(velocity, (float)delta_t)));
-	
+
 	GLfloat thrust_factor = 1.0;
 	if (flightSpeed > maxFlightSpeed)
 	{
@@ -2606,14 +2606,14 @@ static GLfloat		sBaseMass = 0.0;
 			thrust_factor = HYPERSPEED_FACTOR;
 		}
 	}
-	
+
 
 	GLfloat velmag = magnitude(velocity);
 	GLfloat velmag2 = velmag - (float)delta_t * thrust * thrust_factor;
 	if (velmag > 0)
 	{
 		UPDATE_STAGE(@"applying power braking");
-		
+
 		if (velmag > VELOCITY_CLEANUP_MIN)
 		{
 			GLfloat rate;
@@ -2624,22 +2624,22 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		if (velmag2 < 0.0f)  velocity = kZeroVector;
 		else  velocity = vector_multiply_scalar(velocity, velmag2 / velmag);
-		
+
 	}
-	
+
 	UPDATE_STAGE(@"updating joystick");
 	[self applyRoll:(float)delta_t*flightRoll andClimb:(float)delta_t*flightPitch];
 	if (flightYaw != 0.0)
 	{
 		[self applyYaw:(float)delta_t*flightYaw];
 	}
-	
+
 	UPDATE_STAGE(@"applying para-newtonian thrust");
 	[self moveForward:delta_t*flightSpeed];
-	
+
 	UPDATE_STAGE(@"updating targeting");
 	[self updateTargeting];
-	
+
 	STAGE_TRACKING_END
 }
 
@@ -2647,13 +2647,13 @@ static GLfloat		sBaseMass = 0.0;
 - (void) performWitchspaceCountdownUpdates:(OOTimeDelta)delta_t
 {
 	STAGE_TRACKING_BEGIN
-	
+
 	UPDATE_STAGE(@"doing bookkeeping");
 	[self doBookkeeping:delta_t];
-	
+
 	UPDATE_STAGE(@"updating countdown timer");
 	witchspaceCountdown = fdim(witchspaceCountdown, delta_t);
-	
+
 	// damaged gal drive? abort!
 	if (EXPECT_NOT(galactic_witchjump && ![self hasEquipmentItem:@"EQ_GAL_DRIVE"]))
 	{
@@ -2663,7 +2663,7 @@ static GLfloat		sBaseMass = 0.0;
 		ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("malfunction"));
 		return;
 	}
-	
+
 	if (galactic_witchjump)
 	{
 		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
@@ -2672,7 +2672,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 	}
-	
+
 	if (witchspaceCountdown == 0.0)
 	{
 		UPDATE_STAGE(@"preloading planet textures");
@@ -2698,7 +2698,7 @@ static GLfloat		sBaseMass = 0.0;
 		else  [self enterWitchspace];
 		galactic_witchjump = NO;
 	}
-	
+
 	STAGE_TRACKING_END
 }
 
@@ -2712,7 +2712,7 @@ static GLfloat		sBaseMass = 0.0;
 		[self checkScript];
 		// next check in 10s
 		[self resetScriptTimer];	// reset the in-system timer
-		
+
 		// announce arrival
 		if ([UNIVERSE planet])
 		{
@@ -2727,9 +2727,9 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			if ([UNIVERSE inInterstellarSpace])  [UNIVERSE addMessage:DESC(@"witch-engine-malfunction") forCount:3.0]; // if sun gone nova, print nothing
 		}
-		
+
 		[self setStatus:STATUS_IN_FLIGHT];
-		
+
 		// If we are exiting witchspace after a scripted misjump. then make sure it gets reset now.
 		// Scripted misjump situations should have a lifespan of one jump only, to keep things
 		// simple - Nikos 20090728
@@ -2750,13 +2750,13 @@ static GLfloat		sBaseMass = 0.0;
 		flightRoll = launchRoll;	// synchronise player's & launching station's spins.
 		[self doBookkeeping:delta_t];	// don't show ghost exhaust plumes from previous docking!
 	}
-	
+
 	if ([UNIVERSE breakPatternOver])
 	{
 		// time to check the legacy scripts!
 		[self checkScript];
 		// next check in 10s
-		
+
 		[self setStatus:STATUS_IN_FLIGHT];
 
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
@@ -2817,12 +2817,12 @@ static GLfloat		sBaseMass = 0.0;
 	}
 
 	// If target is an unexpired wormhole and the player has bought the Wormhole Scanner and we're in ID mode
-	if ([target isWormhole] && [target scanClass] != CLASS_NO_DRAW && 
+	if ([target isWormhole] && [target scanClass] != CLASS_NO_DRAW &&
 		[self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"] && ident_engaged)
 	{
 		return YES;
 	}
-	
+
 	// Target is neither a wormhole nor a ship
 	return NO;
 }
@@ -2832,7 +2832,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSString *scoreMS = [NSString stringWithFormat:OOExpandKey(@"gameoverscreen-score-@"),
 							KillCountToRatingAndKillString(ship_kills)];
-	
+
 	[UNIVERSE displayMessage:OOExpandKey(@"gameoverscreen-game-over") forCount:kDeadResetTime];
 	[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
 	[UNIVERSE displayMessage:scoreMS forCount:kDeadResetTime];
@@ -2853,7 +2853,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) updateTargeting
 {
 	STAGE_TRACKING_BEGIN
-	
+
 	// check for lost ident target and ensure the ident system is actually scanning
 	UPDATE_STAGE(@"checking ident target");
 	if (ident_engaged && [self primaryTarget] != nil)
@@ -2903,7 +2903,7 @@ static GLfloat		sBaseMass = 0.0;
 	// if we don't have a primary target, and we're scanning, then check for a new
 	// target to lock on to
 	UPDATE_STAGE(@"looking for new target");
-	if ([self primaryTarget] == nil && 
+	if ([self primaryTarget] == nil &&
 			(ident_engaged || missile_status != MISSILE_STATUS_SAFE) &&
 			([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
 	{
@@ -2913,7 +2913,7 @@ static GLfloat		sBaseMass = 0.0;
 			[self addTarget:target];
 		}
 	}
-	
+
 	// If our primary target is a wormhole, check to see if we have additional
 	// information
 	UPDATE_STAGE(@"checking for additional wormhole information");
@@ -2968,7 +2968,7 @@ static GLfloat		sBaseMass = 0.0;
 				break;
 		}
 	}
-	
+
 	STAGE_TRACKING_END
 }
 
@@ -2978,7 +2978,7 @@ static GLfloat		sBaseMass = 0.0;
 	quaternion_normalize(&orientation);
 	rotMatrix = OOMatrixForQuaternionRotation(orientation);
 	OOMatrixGetBasisVectors(rotMatrix, &v_right, &v_up, &v_forward);
-	
+
 	orientation.w = -orientation.w;
 	playerRotMatrix = OOMatrixForQuaternionRotation(orientation);	// this is the rotation similar to ordinary ships
 	orientation.w = -orientation.w;
@@ -3001,7 +3001,7 @@ static GLfloat		sBaseMass = 0.0;
 		quaternion_rotate_about_z(&orientation, -roll1);
 	if (climb1)
 		quaternion_rotate_about_x(&orientation, -climb1);
-	
+
 	/*	Bugginess may put us in a state where the orientation quat is all
 		zeros, at which point it’s impossible to move.
 	*/
@@ -3016,7 +3016,7 @@ static GLfloat		sBaseMass = 0.0;
 			orientation = kIdentityQuaternion;
 		}
 	}
-	
+
 	[self orientationChanged];
 }
 
@@ -3028,7 +3028,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) applyYaw:(GLfloat) yaw
 {
 	quaternion_rotate_about_y(&orientation, -yaw);
-	
+
 	[self orientationChanged];
 }
 
@@ -3092,7 +3092,7 @@ static GLfloat		sBaseMass = 0.0;
 		case VIEW_CUSTOM:
 			return customViewOffset;
 		/* -- */
-		
+
 		default:
 			break;
 	}
@@ -3128,14 +3128,14 @@ static GLfloat		sBaseMass = 0.0;
 {
 	HPVector		viewpoint = position;
 	Vector		offset = [self viewpointOffset];
-	
+
 	// FIXME: this ought to be done with matrix or quaternion functions.
 	OOMatrix r = rotMatrix;
-	
+
 	viewpoint.x += offset.x * r.m[0][0];	viewpoint.y += offset.x * r.m[1][0];	viewpoint.z += offset.x * r.m[2][0];
 	viewpoint.x += offset.y * r.m[0][1];	viewpoint.y += offset.y * r.m[1][1];	viewpoint.z += offset.y * r.m[2][1];
 	viewpoint.x += offset.z * r.m[0][2];	viewpoint.y += offset.z * r.m[1][2];	viewpoint.z += offset.z * r.m[2][2];
-	
+
 	return viewpoint;
 }
 
@@ -3149,11 +3149,11 @@ static GLfloat		sBaseMass = 0.0;
 		case STATUS_DOCKED:
 		case STATUS_START_GAME:
 			return;
-			
+
 		default:
 			if ([UNIVERSE breakPatternHide])  return;
 	}
-	
+
 	[super drawImmediate:immediate translucent:translucent];
 }
 
@@ -3229,16 +3229,16 @@ static GLfloat		sBaseMass = 0.0;
 	BOOL 			wasHidden = NO;
 	BOOL 			wasCompassActive = YES;
 	double			scannerZoom = 1.0;
-	
+
 	if (!hudFileName)  return NO;
-	
+
 	// is the HUD in the process of being rendered? If yes, set it to defer state and abort the switching now
 	if (hud != nil && [hud isUpdating])
 	{
 		[hud setDeferredHudName:hudFileName];
 		return NO;
 	}
-	
+
 	hudDict = [ResourceManager dictionaryFromFilesNamed:hudFileName inFolder:@"Config" andMerge:YES];
 	// hud defined, but buggy?
 	if (hudDict == nil)
@@ -3246,7 +3246,7 @@ static GLfloat		sBaseMass = 0.0;
 		OOLog(@"PlayerEntity.switchHudTo.failed", @"HUD dictionary file %@ to switch to not found or invalid.", hudFileName);
 		return NO;
 	}
-	
+
 	if (hud != nil)
 	{
 		// remember these values
@@ -3254,7 +3254,7 @@ static GLfloat		sBaseMass = 0.0;
 		wasCompassActive = [hud isCompassActive];
 		scannerZoom = [hud scannerZoom];
 	}
-	
+
 	// buggy oxp could override hud.plist with a non-dictionary.
 	if (hudDict != nil)
 	{
@@ -3267,7 +3267,7 @@ static GLfloat		sBaseMass = 0.0;
 		[hud setCompassActive:wasCompassActive];
 		[hud setHidden:wasHidden];
 	}
-	
+
 	return YES;
 }
 
@@ -3458,17 +3458,17 @@ static GLfloat		sBaseMass = 0.0;
 - (GLfloat) dialAltitude
 {
 	if ([self isDocked])  return 0.0f;
-	
+
 	// find nearest planet type entity...
 	assert(UNIVERSE != nil);
-	
+
 	Entity	*nearestPlanet = [self findNearestStellarBody];
 	if (nearestPlanet == nil)  return 1.0f;
-	
+
 	GLfloat	zd = nearestPlanet->zero_distance;
 	GLfloat	cr = nearestPlanet->collision_radius;
 	GLfloat	alt = sqrt(zd) - cr;
-	
+
 	return OOClamp_0_1_f(alt / (GLfloat)PLAYER_DIAL_MAX_ALTITUDE);
 }
 
@@ -3511,7 +3511,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (NSString *) dial_fpsinfo
 {
-	unsigned fpsVal = fps_counter;	
+	unsigned fpsVal = fps_counter;
 	return [NSString stringWithFormat:@"FPS: %3d", fpsVal];
 }
 
@@ -3522,7 +3522,7 @@ static GLfloat		sBaseMass = 0.0;
 #ifndef NDEBUG
 	result = [NSString stringWithFormat:@"%@ (%d, %zu KiB, avg %lu bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
 #endif
-	
+
 	return result;
 }
 
@@ -3598,7 +3598,7 @@ static GLfloat		sBaseMass = 0.0;
 - (NSMutableArray *) commLog
 {
 	assert(kCommLogTrimSize < kCommLogTrimThreshold);
-	
+
 	if (commLog != nil)
 	{
 		NSUInteger count = [commLog count];
@@ -3611,7 +3611,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		commLog = [[NSMutableArray alloc] init];
 	}
-	
+
 	return commLog;
 }
 
@@ -3651,7 +3651,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	OOAegisStatus	aegis = AEGIS_NONE;
 	Entity <OOBeaconEntity>		*beacon = nil;
-	
+
 	switch (compassMode)
 	{
 		case COMPASS_MODE_INACTIVE:
@@ -3663,7 +3663,7 @@ static GLfloat		sBaseMass = 0.0;
 				beacon = [beacon prevBeacon];
 			}
 			[self setNextBeacon:beacon];
-			
+
 			if (beacon != nil)
 			{
 				[self setCompassMode:COMPASS_MODE_BEACONS];
@@ -3678,7 +3678,7 @@ static GLfloat		sBaseMass = 0.0;
 				beacon = [beacon prevBeacon];
 			} while (beacon != nil && [beacon isJammingScanning]);
 			[self setNextBeacon:beacon];
-			
+
 			if (beacon == nil)
 			{
 				if ([self primaryTarget])
@@ -3700,13 +3700,13 @@ static GLfloat		sBaseMass = 0.0;
 		case COMPASS_MODE_SUN:
 			aegis = [self checkForAegis];
 			if (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE)
-			{ 
+			{
 				[self setCompassMode:COMPASS_MODE_STATION];
 			}
 			else
 			{
 				[self setCompassMode:COMPASS_MODE_PLANET];
-			} 
+			}
 			break;
 
 		case COMPASS_MODE_STATION:
@@ -3720,7 +3720,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	OOAegisStatus	aegis = AEGIS_NONE;
 	Entity <OOBeaconEntity>		*beacon = nil;
-	
+
 	switch (compassMode)
 	{
 		case COMPASS_MODE_INACTIVE:
@@ -3728,7 +3728,7 @@ static GLfloat		sBaseMass = 0.0;
 		case COMPASS_MODE_PLANET:
 			aegis = [self checkForAegis];
 			if ([UNIVERSE station] && (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE))
-			{ 
+			{
 				[self setCompassMode:COMPASS_MODE_STATION];
 			}
 			else
@@ -3736,11 +3736,11 @@ static GLfloat		sBaseMass = 0.0;
 				[self setCompassMode:COMPASS_MODE_SUN];
 			}
 			break;
-			
+
 		case COMPASS_MODE_STATION:
 			[self setCompassMode:COMPASS_MODE_SUN];
 			break;
-			
+
 		case COMPASS_MODE_SUN:
 			if ([self primaryTarget])
 			{
@@ -3748,7 +3748,7 @@ static GLfloat		sBaseMass = 0.0;
 				break;
 			}
 			// else fall through to switch to beacon mode.
-			
+
 		case COMPASS_MODE_TARGET:
 			beacon = [UNIVERSE firstBeacon];
 			while (beacon != nil && [beacon isJammingScanning])
@@ -3756,7 +3756,7 @@ static GLfloat		sBaseMass = 0.0;
 				beacon = [beacon nextBeacon];
 			}
 			[self setNextBeacon:beacon];
-			
+
 			if (beacon != nil)  [self setCompassMode:COMPASS_MODE_BEACONS];
 			else  [self setCompassMode:COMPASS_MODE_PLANET];
 			break;
@@ -3768,7 +3768,7 @@ static GLfloat		sBaseMass = 0.0;
 				beacon = [beacon nextBeacon];
 			} while (beacon != nil && [beacon isJammingScanning]);
 			[self setNextBeacon:beacon];
-			
+
 			if (beacon == nil)
 			{
 				[self setCompassMode:COMPASS_MODE_PLANET];
@@ -3818,19 +3818,19 @@ static GLfloat		sBaseMass = 0.0;
 {
 	Entity		*target_entity = [self primaryTarget];
 	NSString	*result = nil;
-	
+
 	if (target_entity == nil)
 	{
 		result = DESC(@"no-target-string");
 	}
-	
+
 	if ([target_entity respondsToSelector:@selector(identFromShip:)])
 	{
 		result = [(ShipEntity*)target_entity identFromShip:self];
 	}
-	
+
 	if (result == nil)  result = DESC(@"unknown-target");
-	
+
 	return result;
 }
 
@@ -3846,7 +3846,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) safeAllMissiles
 {
 	//	sets all missile targets to NO_TARGET
-	
+
 	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
@@ -3882,7 +3882,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) selectNextMissile
 {
 	if (![self weaponsOnline])  return;
-	
+
 	unsigned i;
 	for (i = 1; i < max_missiles; i++)
 	{
@@ -3964,9 +3964,9 @@ static GLfloat		sBaseMass = 0.0;
 {
 	OOAlertCondition old_alert_condition = alertCondition;
 	alertCondition = ALERT_CONDITION_GREEN;
-	
+
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:[self status] == STATUS_DOCKED];
-	
+
 	if (alertFlags & ALERT_FLAG_DOCKED)
 	{
 		alertCondition = ALERT_CONDITION_DOCKED;
@@ -3982,7 +3982,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[self playAlertConditionRed];
 	}
-	
+
 	return alertCondition;
 }
 
@@ -4046,7 +4046,7 @@ static GLfloat		sBaseMass = 0.0;
 - (BOOL) mountMissile:(ShipEntity *)missile
 {
 	if (missile == nil)  return NO;
-	
+
 	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
@@ -4059,7 +4059,7 @@ static GLfloat		sBaseMass = 0.0;
 			return YES;
 		}
 	}
-	
+
 	return NO;
 }
 
@@ -4078,14 +4078,14 @@ static GLfloat		sBaseMass = 0.0;
 	ShipEntity	*firedMissile = nil;
 
 	if (missile == nil) return nil;
-	
+
 	if (![self weaponsOnline])  return nil;
-	
+
 	// check if we were cloaked before firing the missile - can't use
 	// cloaking_device_active directly because fireMissilewithIdentifier: andTarget:
 	// will reset it in case passive cloak is set - Nikos 20130313
 	BOOL cloakedPriorToFiring = cloaking_device_active;
-	
+
 	launchingMissile = YES;
 	replacingMissile = NO;
 
@@ -4107,7 +4107,7 @@ static GLfloat		sBaseMass = 0.0;
 			[self playMissileLaunched];
 		}
 	}
-	
+
 	if (cloakedPriorToFiring && cloakPassive)
 	{
 		// fireMissilewithIdentifier: andTarget: has already taken care of deactivating
@@ -4115,10 +4115,10 @@ static GLfloat		sBaseMass = 0.0;
 		// calling deactivateCloakingDevice is needed in order to be covered fully with mines too
 		[self deactivateCloakingDevice];
 	}
-	
+
 	replacingMissile = NO;
 	launchingMissile = NO;
-	
+
 	return firedMissile;
 }
 
@@ -4127,15 +4127,15 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (!mine)
 		return nil;
-		
+
 	if (![self weaponsOnline])
 		return nil;
-		
+
 	[mine setOwner: self];
 	[mine setBehaviour: BEHAVIOUR_IDLE];
 	[self dumpItem: mine];	// includes UNIVERSE addEntity: CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL ( the last one starts the timer !)
 	[mine setScanClass: CLASS_MINE];
-	
+
 	float  mine_speed = 500.0f;
 	Vector mvel = vector_subtract([mine velocity], vector_multiply_scalar(v_forward, mine_speed));
 	[mine setVelocity: mvel];
@@ -4147,9 +4147,9 @@ static GLfloat		sBaseMass = 0.0;
 - (BOOL) assignToActivePylon:(NSString *)equipmentKey
 {
 	if (!launchingMissile) return NO;
-	
+
 	OOEquipmentType			*eqType = nil;
-	
+
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
 		return NO;
@@ -4158,7 +4158,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	}
-	
+
 	// missiles with techlevel above 99 (kOOVariableTechLevel) are never available to the player
 	if (![eqType isMissileOrMine] || [eqType effectiveTechLevel] > kOOVariableTechLevel)
 	{
@@ -4166,21 +4166,21 @@ static GLfloat		sBaseMass = 0.0;
 	}
 
 	ShipEntity *amiss = [UNIVERSE newShipWithRole:equipmentKey];
-	
+
 	if (!amiss) return NO;
 
 	// replace the missile now.
 	[missile_entity[activeMissile] release];
 	missile_entity[activeMissile] = amiss;
 	missile_list[activeMissile] = eqType;
-	
+
 	// make sure the new missile is properly activated.
 	if (activeMissile > 0) activeMissile--;
 	else activeMissile = max_missiles - 1;
 	[self selectNextMissile];
-	
+
 	replacingMissile = YES;
-	
+
 	return YES;
 }
 
@@ -4188,7 +4188,7 @@ static GLfloat		sBaseMass = 0.0;
 - (BOOL) activateCloakingDevice
 {
 	if (![self hasCloakingDevice])  return NO;
-	
+
 	if ([super activateCloakingDevice])
 	{
 		[UNIVERSE addMessage:DESC(@"cloak-on") forCount:2];
@@ -4276,7 +4276,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	[UNIVERSE addMessage:DESC(@"energy-bomb-activated") forCount:4.5];
 	[self playEnergyBombFired];
-	
+
 	return YES;
 }
 
@@ -4285,10 +4285,10 @@ static GLfloat		sBaseMass = 0.0;
 {
 	OOWeaponType currentWeapon = [self currentWeapon];
 	// Did find & correct a minor mismatch between player and NPC weapon stats. This is the resulting code - Kaks 20101027
-	
+
 	// Basic stats: weapon_damage & weaponRange (weapon_recharge_rate is not used by the player)
 	[self setWeaponDataFromType:currentWeapon];
-	
+
 	// Advanced stats: all the other stats used by the player!
 	switch (currentWeapon)
 	{
@@ -4296,28 +4296,28 @@ static GLfloat		sBaseMass = 0.0;
 			weapon_energy_use =		6.0f;
 			weapon_reload_time =	0.25f;
 			break;
-			
+
 		case WEAPON_PULSE_LASER:
 			weapon_energy_use =		0.8f;
 			weapon_reload_time =	0.5f;
 			break;
-			
+
 		case WEAPON_BEAM_LASER:
 			weapon_energy_use =		1.0f;
 			weapon_reload_time =	0.1f;
 			break;
-			
+
 		case WEAPON_MINING_LASER:
 			weapon_energy_use =		1.4f;
 			weapon_reload_time =	2.5f;
 			break;
-			
+
 		case WEAPON_THARGOID_LASER:
 		case WEAPON_MILITARY_LASER:
 			weapon_energy_use =		1.2f;
 			weapon_reload_time =	0.1f;
 			break;
-			
+
 		case WEAPON_NONE:
 		case WEAPON_UNDEFINED:
 			weapon_energy_use =		0.0f;
@@ -4348,7 +4348,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		return NO;
 	}
-	
+
 	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT)
 	{
 		[self playWeaponOverheated];
@@ -4379,26 +4379,26 @@ static GLfloat		sBaseMass = 0.0;
 			forward_weapon_temp += weapon_shot_temperature;
 			forward_shot_time = 0.0;
 			break;
-			
+
 		case WEAPON_FACING_AFT:
 			aft_weapon_temp += weapon_shot_temperature;
 			aft_shot_time = 0.0;
 			break;
-			
+
 		case WEAPON_FACING_PORT:
 			port_weapon_temp += weapon_shot_temperature;
 			port_shot_time = 0.0;
 			break;
-			
+
 		case WEAPON_FACING_STARBOARD:
 			starboard_weapon_temp += weapon_shot_temperature;
 			starboard_shot_time = 0.0;
 			break;
-			
+
 		case WEAPON_FACING_NONE:
 			break;
 	}
-	
+
 	BOOL	weaponFired = NO;
 	switch (weapon_to_be_fired)
 	{
@@ -4414,16 +4414,16 @@ static GLfloat		sBaseMass = 0.0;
 			[self fireLaserShotInDirection:currentWeaponFacing];
 			weaponFired = YES;
 			break;
-		
+
 		case WEAPON_THARGOID_LASER:
 			break;
 	}
-	
+
 	if (weaponFired && cloaking_device_active && cloakPassive)
 	{
 		[self deactivateCloakingDevice];
-	}	
-	
+	}
+
 	return weaponFired;
 }
 
@@ -4434,16 +4434,16 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		case WEAPON_FACING_FORWARD:
 			return forward_weapon_type;
-			
+
 		case WEAPON_FACING_AFT:
 			return aft_weapon_type;
-			
+
 		case WEAPON_FACING_PORT:
 			return port_weapon_type;
-			
+
 		case WEAPON_FACING_STARBOARD:
 			return starboard_weapon_type;
-			
+
 		case WEAPON_FACING_NONE:
 			break;
 	}
@@ -4462,7 +4462,7 @@ static GLfloat		sBaseMass = 0.0;
 	return [self hasEquipmentItem:@"EQ_ENERGY_BOMB"];
 }
 
-// override ShipEntity definition to ensure that 
+// override ShipEntity definition to ensure that
 // if shields are still up, always hit the main entity and take the damage
 // on the shields
 - (GLfloat) doesHitLine:(HPVector)v0 :(HPVector)v1 :(ShipEntity **)hitEntity
@@ -4485,7 +4485,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		shields = true;
 	}
-	
+
 	NSEnumerator	*subEnum = nil;
 	ShipEntity		*se = nil;
 	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
@@ -4496,10 +4496,10 @@ static GLfloat		sBaseMass = 0.0;
 		u1 = HPVectorToVector(HPvector_between(p0, v1));
 		w0 = resolveVectorInIJK(u0, ijk);
 		w1 = resolveVectorInIJK(u1, ijk);
-		
+
 		GLfloat hitSub = [se->octree isHitByLine:w0 :w1];
 		if (hitSub && (hit_distance == 0 || hit_distance > hitSub))
-		{	
+		{
 			hit_distance = hitSub;
 			if (hitEntity && !shields)
 			{
@@ -4507,7 +4507,7 @@ static GLfloat		sBaseMass = 0.0;
 			}
 		}
 	}
-	
+
 	return hit_distance;
 }
 
@@ -4518,33 +4518,33 @@ static GLfloat		sBaseMass = 0.0;
 	HPVector		rel_pos;
 	double		d_forward;
 	BOOL		internal_damage = NO;	// base chance
-	
+
 	OOLog(@"player.ship.damage",  @"Player took damage from %@ becauseOf %@", ent, other);
-	
+
 	if ([self status] == STATUS_DEAD)  return;
 	if (amount == 0.0)  return;
-	
+
 	BOOL cascadeWeapon = [ent isCascadeWeapon];
 	BOOL cascading = NO;
 	if (cascadeWeapon)
 	{
 		cascading = [self cascadeIfAppropriateWithDamageAmount:amount cascadeOwner:[ent owner]];
 	}
-	
+
 	// make sure ent (& its position) is the attacking _ship_/missile !
 	if (ent && [ent isSubEntity]) ent = [ent owner];
-	
+
 	[[ent retain] autorelease];
 	[[other retain] autorelease];
-	
+
 	rel_pos = (ent != nil) ? [ent position] : kZeroHPVector;
 	rel_pos = HPvector_subtract(rel_pos, position);
-	
+
 	[self doScriptEvent:OOJSID("shipBeingAttacked") withArgument:ent];
 	if ([ent isShip]) [(ShipEntity *)ent doScriptEvent:OOJSID("shipAttackedOther") withArgument:self];
 
 	d_forward = dot_product(HPVectorToVector(rel_pos), v_forward);
-	
+
 	[self playShieldHit];
 
 	// firing on an innocent ship is an offence
@@ -4579,9 +4579,9 @@ static GLfloat		sBaseMass = 0.0;
 			amount = 0.0;
 		}
 	}
-	
+
 	OOShipDamageType damageType = cascadeWeapon ? kOODamageTypeCascadeWeapon : kOODamageTypeEnergy;
-	
+
 	if (amount > 0.0)
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
@@ -4591,14 +4591,14 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	[self noteTakingDamage:amount from:other type:damageType];
 	if (cascading) energy = 0.0; // explicitly set energy to zero when cascading, in case an oxp raised the energy in noteTakingDamage.
-	
+
 	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
 	{
 		if ([other isShip])
 		{
 			[(ShipEntity *)other noteTargetDestroyed:self];
 		}
-		
+
 		[self getDestroyedBy:other damageType:damageType];
 	}
 	else
@@ -4613,22 +4613,22 @@ static GLfloat		sBaseMass = 0.0;
 	HPVector  rel_pos;
 	double  d_forward;
 	BOOL	internal_damage = NO;	// base chance
-	
+
 	if ([self status] == STATUS_DEAD)  return;
-	
-	if (amount < 0) 
+
+	if (amount < 0)
 	{
 		OOLog(@"player.ship.damage",  @"Player took negative scrape damage %.3f so we made it positive", amount);
 		amount = -amount;
 	}
 	OOLog(@"player.ship.damage",  @"Player took %.3f scrape damage from %@", amount, ent);
-	
+
 	[[ent retain] autorelease];
 	rel_pos = ent ? [ent position] : kZeroHPVector;
 	rel_pos = HPvector_subtract(rel_pos, position);
 	// rel_pos is now small
 	d_forward = dot_product(HPVectorToVector(rel_pos), v_forward);
-	
+
 	[self playScrapeDamage];
 	if (d_forward >= 0)
 	{
@@ -4656,12 +4656,12 @@ static GLfloat		sBaseMass = 0.0;
 			amount = 0.0;
 		}
 	}
-	
+
 	if (amount)
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 	}
-	
+
 	[super takeScrapeDamage:amount from:ent];
 
 	if (internal_damage)
@@ -4674,7 +4674,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) takeHeatDamage:(double) amount
 {
 	if ([self status] == STATUS_DEAD || amount < 0)  return;
-	
+
 	// hit the shields first!
 	float fwd_amount = (float)(0.5 * amount);
 	float aft_amount = (float)(0.5 * amount);
@@ -4702,7 +4702,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 
 	double residual_amount = fwd_amount + aft_amount;
-	
+
 	[super takeHeatDamage:residual_amount];
 }
 
@@ -4710,7 +4710,7 @@ static GLfloat		sBaseMass = 0.0;
 - (ProxyPlayerEntity *) createDoppelganger
 {
 	ProxyPlayerEntity *result = (ProxyPlayerEntity *)[[UNIVERSE newShipWithName:[self shipDataKey] usePlayerProxy:YES] autorelease];
-	
+
 	if (result != nil)
 	{
 		[result setPosition:[self position]];
@@ -4725,7 +4725,7 @@ static GLfloat		sBaseMass = 0.0;
 		[result setTemperature:[self temperature]];
 		[result copyValuesFromPlayer:self];
 	}
-	
+
 	return result;
 }
 
@@ -4734,24 +4734,24 @@ static GLfloat		sBaseMass = 0.0;
 {
 	ShipEntity		*doppelganger = nil;
 	ShipEntity		*escapePod = nil;
-	
+
 	if ([UNIVERSE displayGUI]) [self switchToMainView];	// Clear the F7 screen!
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
-	
+
 	if ([self status] == STATUS_DEAD) return NO;
-	
+
 	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// now set up the escape sequence.
-	
+
 	/*
 		While inside the escape pod, we need to block access to all player.ship properties,
 		since we're not supposed to be inside our ship anymore! -- Kaks 20101114
 	*/
-	
+
 	[UNIVERSE setBlockJSPlayerShipProps:YES]; 	// no player.ship properties while inside the pod!
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
 	flightSpeed = fmax(flightSpeed, 50.0f);
-	
+
 	doppelganger = [self createDoppelganger];
 	if (doppelganger)
 	{
@@ -4760,7 +4760,7 @@ static GLfloat		sBaseMass = 0.0;
 		[doppelganger setOwner:self];
 		[UNIVERSE addEntity:doppelganger];
 	}
-	
+
 	// set up you
 	escapePod = [UNIVERSE newShipWithName:@"escape-capsule"];	// retained
 	if (escapePod != nil)
@@ -4768,11 +4768,11 @@ static GLfloat		sBaseMass = 0.0;
 		// FIXME: this should use OOShipType, which should exist. -- Ahruman
 		[self setMesh:[escapePod mesh]];
 	}
-	
+
 	flightSpeed = 1.0f;
 	flightPitch = 0.2f * (randf() - 0.5f);
 	flightRoll = 0.2f * (randf() - 0.5f);
-	
+
 	/*	Add an impulse upwards and backwards to the escape pod. This avoids
 		flying straight through the doppelganger in interstellar space or when
 		facing the main station/escape target, and generally looks cool.
@@ -4781,42 +4781,42 @@ static GLfloat		sBaseMass = 0.0;
 	Vector launchVector = vector_add(vector_multiply_scalar(v_up, 60.0f),
 									 vector_multiply_scalar(v_forward, -10.0f));
 	[self adjustVelocity:launchVector];
-	
+
 	float sheight = (float)(boundingBox.max.y - boundingBox.min.y);
 	position = HPvector_subtract(position, vectorToHPVector(vector_multiply_scalar(v_up, sheight)));
-	
+
 	//remove escape pod
 	[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
-	
+
 	// set up the standard location where the escape pod will dock.
 	target_system_seed = system_seed;			// we're staying in this system
 	[self setDockTarget:[UNIVERSE station]];	// we're docking at the main station, if there is one
-	
+
 	[self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:escapePod];	// no player.ship properties should be available to script
-	
+
 	// reset legal status
 	[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
 	bounty = 0;
-	
+
 	// reset trumbles
 	if (trumbleCount != 0)  trumbleCount = 1;
-	
+
 	// remove cargo
 	[cargo removeAllObjects];
-	
+
 	energy = 25;
 	[UNIVERSE addMessage:DESC(@"escape-sequence") forCount:4.5];
 	[self resetShotTime];
-	
+
 	// need to zero out all facings shot_times too, otherwise we may end up
 	// with a broken escape pod sequence - Nikos 20100909
 	forward_shot_time = 0.0;
 	aft_shot_time = 0.0;
 	port_shot_time = 0.0;
 	starboard_shot_time = 0.0;
-	
+
 	[escapePod release];
-	
+
 	return doppelganger;
 }
 
@@ -4843,12 +4843,12 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSInteger i, n_cargo = [cargo count];
 	if (n_cargo == 0)  return;
-	
+
 	ShipEntity *pod = (ShipEntity *)[[cargo objectAtIndex:0] retain];
 	OOCommodityType current_contents = [pod commodityType];
 	OOCommodityType contents;
 	NSInteger rotates = 0;
-	
+
 	do
 	{
 		[cargo removeObjectAtIndex:0];	// take it from the eject position
@@ -4859,7 +4859,7 @@ static GLfloat		sBaseMass = 0.0;
 		rotates++;
 	} while ((contents == current_contents)&&(rotates < n_cargo));
 	[pod release];
-	
+
 	if (contents != CARGO_NOT_CARGO)
 	{
 		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ready-to-eject"), [UNIVERSE displayNameForCommodity:contents]] forCount:3.0];
@@ -4901,7 +4901,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setBounty:(OOCreditsQuantity)amount withReasonAsString:(NSString *)reason
 {
 	JSContext *context = OOJSAcquireContext();
-	
+
 	jsval amountVal = JSVAL_VOID;
 	int amountVal2 = (int)amount-(int)legalStatus;
 	JS_NewNumberValue(context, amountVal2, &amountVal);
@@ -4909,9 +4909,9 @@ static GLfloat		sBaseMass = 0.0;
 	legalStatus = (int)amount; // can't set the new bounty until the size of the change is known
 
 	jsval reasonVal = OOJSValueFromNativeObject(context,reason);
-		
+
 	ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
-		
+
 	OOJSRelinquishContext(context);
 }
 
@@ -4939,7 +4939,7 @@ static GLfloat		sBaseMass = 0.0;
 	if (![self isCloaked])
 	{
 		JSContext *context = OOJSAcquireContext();
-	
+
 		jsval amountVal = JSVAL_VOID;
 		int amountVal2 = (legalStatus | offence_value) - legalStatus;
 		JS_NewNumberValue(context, amountVal2, &amountVal);
@@ -4947,9 +4947,9 @@ static GLfloat		sBaseMass = 0.0;
 		legalStatus |= offence_value; // can't set the new bounty until the size of the change is known
 
 		jsval reasonVal = OOJSValueFromLegalStatusReason(context, reason);
-		
+
 		ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
-		
+
 		OOJSRelinquishContext(context);
 
 	}
@@ -4959,7 +4959,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) collectBountyFor:(ShipEntity *)other
 {
 	if (other == nil || [other isSubEntity])  return;
-	
+
 	if (other == [UNIVERSE station])
 	{
 		// there is no way the player can destroy the main station
@@ -4977,12 +4977,12 @@ static GLfloat		sBaseMass = 0.0;
 	OOCreditsQuantity	score = 10 * [other bounty];
 	OOScanClass			killClass = [other scanClass]; // **tgape** change (+line)
 	BOOL				killAward = [other countsAsKill];
-	
+
 	if ([other isPolice])   // oops, we shot a copper!
 	{
 		[self markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
 	}
-	
+
 	BOOL killIsCargo = ((killClass == CLASS_CARGO) && ([other commodityAmount] > 0) && ![other isHulk]);
 	if ((killIsCargo) || (killClass == CLASS_BUOY) || (killClass == CLASS_ROCK))
 	{
@@ -4993,16 +4993,16 @@ static GLfloat		sBaseMass = 0.0;
 			killAward = NO;	// don't award a kill
 		}
 	}
-	
+
 	credits += score;
-	
+
 	if (score > 9)
 	{
 		NSString *bonusMsg = [NSString stringWithFormat:DESC(@"bounty-@-total-@"), OOCredits(score), OOCredits(credits)];
-		
+
 		[UNIVERSE addDelayedMessage:bonusMsg forCount:6 afterDelay:0.15];
 	}
-	
+
 	if (killAward)
 	{
 		ship_kills++;
@@ -5063,7 +5063,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			eqType = [OOEquipmentType equipmentTypeWithIdentifier:system_key];
 			accumulator += [eqType damageProbability];
-			if (accumulator > target) 
+			if (accumulator > target)
 			{
 				[system_key retain];
 				break;
@@ -5090,7 +5090,7 @@ static GLfloat		sBaseMass = 0.0;
 		NSString *damagedKey = [NSString stringWithFormat:@"%@_DAMAGED", system_key];
 		[self addEquipmentItem:damagedKey withValidation: NO inContext:@"damage"];	// for possible future repair.
 		[self doScriptEvent:OOJSID("equipmentDamaged") withArgument:system_key];
-			
+
 		if (![self hasEquipmentItem:system_name] && [self hasEquipmentItem:damagedKey])
 		{
 			/*
@@ -5101,9 +5101,9 @@ static GLfloat		sBaseMass = 0.0;
 			*/
 			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
 		}
-		
+
 		// if Docking Computers have been selected to take damage and they happen to be on, switch them off
-		if ([system_key isEqualToString:@"EQ_DOCK_COMP"] && autopilot_engaged)  
+		if ([system_key isEqualToString:@"EQ_DOCK_COMP"] && autopilot_engaged)
 		{
 			[self disengageAutopilot];
 		}
@@ -5123,27 +5123,27 @@ static GLfloat		sBaseMass = 0.0;
 - (void) getDestroyedBy:(Entity *)whom damageType:(OOShipDamageType)type
 {
 	if ([self isDocked])  return;	// Can't die while docked. (Doing so would cause breakage elsewhere.)
-	
-	OOLog(@"player.ship.damage",  @"Player destroyed by %@ due to %@", whom, OOStringFromShipDamageType(type));	
-	
+
+	OOLog(@"player.ship.damage",  @"Player destroyed by %@ due to %@", whom, OOStringFromShipDamageType(type));
+
 	if (![[UNIVERSE gameController] playerFileToLoad])
 	{
 		[[UNIVERSE gameController] setPlayerFileToLoad: save_path];	// make sure we load the correct game
 	}
-	
+
 	energy = 0.0f;
 	afterburner_engaged = NO;
 	[self disengageAutopilot];
 
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setViewDirection:VIEW_AFT];
-	
+
 	// Let scripts know the player died.
 	[self noteKilledBy:whom damageType:type]; // called before exploding, consistant with npc ships.
-	
+
 	[self becomeLargeExplosion:4.0]; // also sets STATUS_DEAD
 	[self moveForward:100.0];
-	
+
 	flightSpeed = 160.0f;
 	[[UNIVERSE messageGUI] clear];		// No messages for the dead.
 	[self suppressTargetLost];			// No target lost messages when dead.
@@ -5187,34 +5187,34 @@ static GLfloat		sBaseMass = 0.0;
 - (void) enterDock:(StationEntity *)station
 {
 	if ([self status] == STATUS_DEAD)  return;
-	
+
 	[self setStatus:STATUS_DOCKING];
 	dockedStation = station;
 	[self doScriptEvent:OOJSID("shipWillDockWithStation") withArgument:station];
-	
+
 	ident_engaged = NO;
 	afterburner_engaged = NO;
 	autopilot_engaged = NO;
 	[self resetAutopilotAI];
-	
+
 	cloaking_device_active = NO;
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
 	[self safeAllMissiles];
 	DESTROY(_primaryTarget); // must happen before showing break_pattern to supress active reticule.
 	[self clearTargetMemory];
-	
+
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
 	[[UNIVERSE gameController] setMouseInteractionModeForFlight];
 	if ([self status] == STATUS_LAUNCHING)  return; // a JS script has aborted the docking.
-	
+
 	[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
 	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:YES];
 	[self playDockWithStation];
 	[station noteDockedShip:self];
-	
+
 	[[UNIVERSE gameView] clearKeys];	// try to stop key bounces
 }
 
@@ -5226,23 +5226,23 @@ static GLfloat		sBaseMass = 0.0;
 		[self setStatus:STATUS_IN_FLIGHT];
 		return;
 	}
-	
+
 	[self setStatus:STATUS_DOCKED];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
-	
+
 	[self loseTargetStatus];
-	
+
 	[self setPosition:[dockedStation position]];
 	[self setOrientation:kIdentityQuaternion];	// reset orientation to dock
-	
+
 	flightRoll = 0.0f;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;
 	flightSpeed = 0.0f;
-	
+
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
-	
+
 	forward_shield =	[self maxForwardShieldLevel];
 	aft_shield =		[self maxAftShieldLevel];
 	energy =			maxEnergy;
@@ -5258,18 +5258,18 @@ static GLfloat		sBaseMass = 0.0;
 
 	NSString *escapepodReport = [self processEscapePods];
 	[self addMessageToReport:escapepodReport];
-	
+
 	[self unloadCargoPods];	// fill up the on-ship commodities before...
 
 	// check contracts
 	NSString *passengerAndCargoReport = [self checkPassengerContracts]; // Is also processing cargo and parcel contracts.
 	[self addMessageToReport:passengerAndCargoReport];
-		
+
 	[UNIVERSE setDisplayText:YES];
-	
+
 	[[OOMusicController sharedController] stopDockingMusic];
 	[[OOMusicController sharedController] playDockedMusic];
-	
+
 	// Did we fail to observe traffic control regulations? However, due to the state of emergency,
 	// apply no unauthorized docking penalties if a nova is ongoing.
 	if ([dockedStation requiresDockingClearance] &&
@@ -5277,7 +5277,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[self penaltyForUnauthorizedDocking];
 	}
-		
+
 	// apply any pending fines. (No need to check gui_screen as fines is no longer an on-screen message).
 	if (dockedStation == [UNIVERSE station])
 	{
@@ -5288,7 +5288,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	// it's time to check the script - can trigger legacy missions
 	if (gui_screen != GUI_SCREEN_MISSION)  [self checkScript]; // a scripted pilot could have created a mission screen.
-	
+
 	OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
 	[self doScriptEvent:OOJSID("shipDockedWithStation") withArgument:dockedStation];
 	OOJSStopTimeLimiter();
@@ -5301,7 +5301,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	[[OOCacheManager sharedCache] flush];
 	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity];
-	
+
 	// When a mission screen is started, any on-screen message is removed immediately.
 	[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// also displays docking reports first.
 }
@@ -5310,10 +5310,10 @@ static GLfloat		sBaseMass = 0.0;
 - (void) leaveDock:(StationEntity *)station
 {
 	if (station == nil)  return;
-	
+
 	// ensure we've not left keyboard entry on
 	[[UNIVERSE gameView] allowStringInput: NO];
-	
+
 	if (gui_screen == GUI_SCREEN_MISSION)
 	{
 		[[UNIVERSE gui] clearBackground];
@@ -5324,7 +5324,7 @@ static GLfloat		sBaseMass = 0.0;
 		// notify older scripts, but do not trigger missionScreenOpportunity.
 		[self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")];
 	}
-	
+
 	if (station == [UNIVERSE station])
 	{
 		// 'leaving with those guns were you sir?'
@@ -5338,7 +5338,7 @@ static GLfloat		sBaseMass = 0.0;
 	// do not do anything that calls JS handlers between now and calling
 	// [station launchShip] below, or the cargo returned by JS may be off
 	// CIM - 3.2.2012
-	
+
 	// clear the way
 	[station autoDockShipsOnApproach];
 	[station clearDockingCorridor];
@@ -5346,18 +5346,18 @@ static GLfloat		sBaseMass = 0.0;
 //	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
 	[self clearAlertFlags];
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
-	
+
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
-	
+
 	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayText:NO];
 	[[UNIVERSE gameController] setMouseInteractionModeForFlight];
 
 	[[UNIVERSE gameView] clearKeys];	// try to stop keybounces
-	
+
 	[[OOMusicController sharedController] stop];
 
 	[UNIVERSE forceWitchspaceEntries];
@@ -5371,17 +5371,17 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:YES];
 
 	dockedStation = nil;
-	
+
 	suppressAegisMessages = YES;
 	[self checkForAegis];
 	suppressAegisMessages = NO;
 	ident_engaged = NO;
-	
+
 	[UNIVERSE removeDemoShips];
 	// MKW - ensure GUI Screen ship is removed
 	[demoShip release];
 	demoShip = nil;
-	
+
 	[self playLaunchFromStation];
 }
 
@@ -5391,7 +5391,7 @@ static GLfloat		sBaseMass = 0.0;
 	// chances of entering witchspace with autopilot on are very low, but as Berlios bug #18307 has shown us, entirely possible
 	// so in such cases we need to ensure that at least the docking music stops playing
 	if (autopilot_engaged)  [self disengageAutopilot];
-	
+
 	[self safeAllMissiles];
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
@@ -5399,23 +5399,23 @@ static GLfloat		sBaseMass = 0.0;
 	[self transitionToAegisNone];
 	suppressAegisMessages=YES;
 	hyperspeed_engaged = NO;
-	
+
 	if ([self primaryTarget] != nil)
 	{
 		[self noteLostTarget];	// losing target? Fire lost target event!
 		DESTROY(_primaryTarget);
 	}
-	
+
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
-	
+
 	if ( ![self wormhole] && !galactic_witchjump)	// galactic hyperspace does not generate a wormhole
 	{
 		OOLog(kOOLogInconsistentState, @"Internal Error : Player entering witchspace with no wormhole.");
 	}
 	[UNIVERSE allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
-	
+
 	// set the new market seed now!
 	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
@@ -5488,7 +5488,7 @@ static GLfloat		sBaseMass = 0.0;
 			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("too far"));
 		}
 		else  [self playHyperspaceDistanceTooGreat];
-		
+
 		return NO;
 	}
 
@@ -5504,7 +5504,7 @@ static GLfloat		sBaseMass = 0.0;
 			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("insufficient fuel"));
 		}
 		else  [self playHyperspaceNoFuel];
-		
+
 		return NO;
 	}
 
@@ -5551,7 +5551,7 @@ static GLfloat		sBaseMass = 0.0;
 		jsval jsmode = OOJSValueFromCompassMode(context, [self compassMode]);
 		ShipScriptEvent(context, self, "compassTargetChanged", JSVAL_VOID, jsmode);
 		OOJSRelinquishContext(context);
-		
+
 		[[self hud] setCompassActive:NO];	// ensure a target change when returning to normal space.
 	}
 }
@@ -5565,22 +5565,22 @@ static GLfloat		sBaseMass = 0.0;
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("galactic jump"));
 	[self noteCompassLostTarget];
-	
+
 	[self witchStart];
-	
+
 	[UNIVERSE removeAllEntitiesExceptPlayer];
-	
+
 	// remove any contracts and parcels for the old galaxy
 	if (contracts)
 		[contracts removeAllObjects];
 
 	if (parcels)
 		[parcels removeAllObjects];
-	
+
 	// remove any mission destinations for the old galaxy
 	if (missionDestinations)
 		[missionDestinations removeAllObjects];
-	
+
 	// expire passenger contracts for the old galaxy
 	if (passengers)
 	{
@@ -5593,9 +5593,9 @@ static GLfloat		sBaseMass = 0.0;
 			[passengers replaceObjectAtIndex:i withObject:passenger_info];
 		}
 	}
-	
+
 	[self removeEquipmentItem:@"EQ_GAL_DRIVE"];
-	
+
 	galaxy_number++;
 	galaxy_number &= 7;
 
@@ -5615,7 +5615,7 @@ static GLfloat		sBaseMass = 0.0;
 	// used in the fixed coordinates case and specifies the exact coordinates for the intergalactic jump.
 	switch (galacticHyperspaceBehaviour)
 	{
-		case GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES:			
+		case GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES:
 			system_seed = [UNIVERSE findSystemAtCoords:galacticHyperspaceFixedCoords withGalaxySeed:galaxy_seed];
 			break;
 		case GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE:
@@ -5628,13 +5628,13 @@ static GLfloat		sBaseMass = 0.0;
 			break;
 	}
 	target_system_seed = system_seed;
-	
+
 	[self setBounty:0 withReason:kOOLegalStatusReasonNewGalaxy];	// let's make a fresh start!
 	cursor_coordinates.x = system_seed.d;
 	cursor_coordinates.y = system_seed.b;
-	
+
 	[self witchEnd];
-	
+
 	[self doScriptEvent:OOJSID("playerEnteredNewGalaxy") withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
 }
 
@@ -5653,7 +5653,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self addScannedWormhole:wormhole];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("wormhole"));
-	if ([self scriptedMisjump]) 
+	if ([self scriptedMisjump])
 	{
 		misjump = YES; // a script could just have changed this to true;
 	}
@@ -5668,7 +5668,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) enterWitchspace
 {
 	if (![self witchJumpChecklist:false])  return;
-	
+
 	//  perform any check here for forced witchspace encounters
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
@@ -5693,21 +5693,21 @@ static GLfloat		sBaseMass = 0.0;
 			[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
 		}
 	}
-	
+
 	// From this point forward we are -definitely- witchjumping
-	
+
 	// burn the full fuel amount to create the wormhole
 	fuel -= [self fuelRequiredForJump];
-	
+
 	// Create the players' wormhole
 	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_seed fromShip:self];
 	[UNIVERSE addEntity:wormhole]; // Add new wormhole to Universe to let other ships target it. Required for ships following the player.
 	[self addScannedWormhole:wormhole];
-	
+
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"));
 	[self noteCompassLostTarget];
-	if ([self scriptedMisjump]) 
+	if ([self scriptedMisjump])
 	{
 		misjump = YES; // a script could just have changed this to true;
 	}
@@ -5729,12 +5729,12 @@ static GLfloat		sBaseMass = 0.0;
 		// every eight jumps or so drop the price down towards 75%
 		[self adjustTradeInFactorBy:-(1 + (market_rnd & 3))];
 	}
-	
-	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
+
+	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother.
 	double distance = distanceBetweenPlanetPositions(sTo.d,sTo.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	
+
 	[UNIVERSE removeAllEntitiesExceptPlayer];
-	
+
 	if (!misjump)
 	{
 		ship_clock_adjust += distance * distance * 3600.0;
@@ -5749,7 +5749,7 @@ static GLfloat		sBaseMass = 0.0;
 		// misjumps do not change legal status.
 		if (randf() < 0.1) [self erodeReputation];		// once every 10 misjumps - should be much rarer than successful jumps!
 
-		[wormhole setMisjump]; 
+		[wormhole setMisjump];
 		// just in case, but this has usually been set already
 
 		// and now the wormhole has travel time and coordinates calculated
@@ -5784,9 +5784,9 @@ static GLfloat		sBaseMass = 0.0;
 	position = exitpos;
 	[self setOrientation:[UNIVERSE getWitchspaceExitRotation]];
 
-	// While setting the wormhole position to the player position looks very nice for ships following the player, 
+	// While setting the wormhole position to the player position looks very nice for ships following the player,
 	// the more common case of the player following other ships, the player tends to
-	// ram the back of the ships, or even jump on top of is when the ship jumped without initial speed, which is messy. 
+	// ram the back of the ships, or even jump on top of is when the ship jumped without initial speed, which is messy.
 	// To avoid this problem, a small wormhole displacement is added.
 	if (wormhole)	// will be nil for galactic jump
 	{
@@ -5796,17 +5796,17 @@ static GLfloat		sBaseMass = 0.0;
 			double	wh_arrival_time = ([PLAYER clockTimeAdjusted] - [wormhole arrivalTime]);
 			if (wh_arrival_time > 0)
 			{
-				// Player is following other ship 
+				// Player is following other ship
 				whpos = HPvector_add(exitpos, vectorToHPVector(vector_multiply_scalar([self forwardVector], 1000.0f)));
 				[wormhole setContainsPlayer:YES];
 			}
 			else
 			{
-				// Player is the leadship 
+				// Player is the leadship
 				whpos = HPvector_add(exitpos, vectorToHPVector(vector_multiply_scalar([self forwardVector], -500.0f)));
 				// so it won't contain the player by the time they exit
 				[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
-			} 
+			}
 
 			HPVector distance = HPvector_subtract(whpos, pos);
 			if (HPmagnitude2(distance) < min_d1*min_d1 ) // within safety distance from the buoy?
@@ -5856,7 +5856,7 @@ static GLfloat		sBaseMass = 0.0;
 	NSString		*systemName = nil;
 	NSString		*targetSystemName = nil;
 	NSString		*text = nil;
-	
+
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIScreenID	oldScreen = gui_screen;
 	if (oldScreen != GUI_SCREEN_STATUS)
@@ -5866,11 +5866,11 @@ static GLfloat		sBaseMass = 0.0;
 
 	gui_screen = GUI_SCREEN_STATUS;
 	BOOL			guiChanged = (oldScreen != gui_screen);
-	
+
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
-	
+
 	// Both system_seed & target_system_seed are != nil at all times when this function is called.
-	
+
 	systemName = [UNIVERSE inInterstellarSpace] ? DESC(@"interstellar-space") : [UNIVERSE getSystemName:system_seed];
 	if ([self isDocked] && dockedStation != [UNIVERSE station])
 	{
@@ -5885,27 +5885,27 @@ static GLfloat		sBaseMass = 0.0;
 		NSString			*legal_desc = nil, *rating_desc = nil,
 							*alert_desc = nil, *fuel_desc = nil,
 							*credits_desc = nil;
-		
+
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 20;
 		tab_stops[1] = 160;
 		tab_stops[2] = 290;
 		[gui setTabStops:tab_stops];
-		
+
 		NSString	*lightYearsDesc = DESC(@"status-light-years-desc");
-		
+
 		legal_desc = OODisplayStringFromLegalStatus(legalStatus);
 		rating_desc = KillCountToRatingAndKillString(ship_kills);
 		alert_desc = OODisplayStringFromAlertCondition([self alertCondition]);
 		fuel_desc = [NSString stringWithFormat:@"%.1f %@", fuel/10.0, lightYearsDesc];
 		credits_desc = OOCredits(credits);
-		
+
 		[gui clearAndKeepBackground:!guiChanged];
 		text = DESC(@"status-commander-@");
 		[gui setTitle:[NSString stringWithFormat:text, [self commanderName]]];
-		
+
 		[gui setText:shipName forRow:0 align:GUI_ALIGN_CENTER];
-		
+
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-present-system"), systemName, nil]	forRow:1];
 		if ([self hasHyperspaceMotor]) [gui setArray:[NSArray arrayWithObjects:DESC(@"status-hyperspace-system"), targetSystemName, nil] forRow:2];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-condition"), alert_desc, nil]			forRow:3];
@@ -5913,9 +5913,9 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-cash"), credits_desc, nil]			forRow:5];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-legal-status"), legal_desc, nil]		forRow:6];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-rating"), rating_desc, nil]			forRow:7];
-		
+
 		[gui setText:DESC(@"status-equipment") forRow:9];
-		
+
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
@@ -5925,12 +5925,12 @@ static GLfloat		sBaseMass = 0.0;
 		[lastTextKey release];
 		lastTextKey = nil;
 	}
-	
+
 	[[UNIVERSE gameView] clearMouse];
-		
+
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
-	
+
 	if (guiChanged)
 	{
 		NSDictionary *fgDescriptor = nil, *bgDescriptor = nil;
@@ -5945,12 +5945,12 @@ static GLfloat		sBaseMass = 0.0;
 			if (alertCondition == ALERT_CONDITION_RED) bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status_red_alert"];
 			else bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status_in_flight"];
 		}
-		
+
 		[gui setForegroundTextureDescriptor:fgDescriptor];
-		
+
 		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"status"];
 		[gui setBackgroundTextureDescriptor:bgDescriptor];
-		
+
 		[gui setStatusPage:0];
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
@@ -5972,7 +5972,7 @@ static GLfloat		sBaseMass = 0.0;
 			{
 				[quip addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
 			}
-			else 
+			else
 			{
 				// Check for damaged version
 				if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
@@ -5983,13 +5983,13 @@ static GLfloat		sBaseMass = 0.0;
 			}
 		}
 	}
-	
+
 	if (max_passengers > 0)
 	{
 		desc = [NSString stringWithFormat:DESC_PLURAL(@"equipment-pass-berth-@", max_passengers), max_passengers];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
-	
+
 	if (forward_weapon_type > WEAPON_NONE)
 	{
 		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(forward_weapon_type)] name]];
@@ -6010,7 +6010,7 @@ static GLfloat		sBaseMass = 0.0;
 		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(starboard_weapon_type)] name]];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
-	
+
 	return quip;
 }
 
@@ -6039,25 +6039,25 @@ static GLfloat		sBaseMass = 0.0;
 - (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing
 {
 	OOWeaponType weaponType = WEAPON_NONE;
-	
+
 	switch (facing)
 	{
 		case WEAPON_FACING_FORWARD:
 			weaponType = forward_weapon_type;
 			break;
-			
+
 		case WEAPON_FACING_AFT:
 			weaponType = aft_weapon_type;
 			break;
-			
+
 		case WEAPON_FACING_PORT:
 			weaponType = port_weapon_type;
 			break;
-			
+
 		case WEAPON_FACING_STARBOARD:
 			weaponType = starboard_weapon_type;
 			break;
-			
+
 		case WEAPON_FACING_NONE:
 			break;
 	}
@@ -6079,9 +6079,9 @@ static GLfloat		sBaseMass = 0.0;
 	NSArray			*list = [self cargoListForScripting];
 	NSEnumerator	*cargoEnum = nil;
 	NSDictionary	*commodity;
-	
+
 	if (specialCargo) [manifest addObject:specialCargo];
-	
+
 	for (cargoEnum = [list objectEnumerator]; (commodity = [cargoEnum nextObject]); )
 	{
 		NSString *desc = [commodity oo_stringForKey:@"displayName"];
@@ -6089,7 +6089,7 @@ static GLfloat		sBaseMass = 0.0;
 		[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"),
 							[commodity oo_intForKey:@"quantity"], units, desc]];
 	}
-	
+
 	return manifest;
 }
 
@@ -6097,10 +6097,10 @@ static GLfloat		sBaseMass = 0.0;
 - (NSArray *) cargoListForScripting
 {
 	NSMutableArray		*list = [NSMutableArray array];
-	
+
 	NSUInteger			i, commodityCount = [shipCommodityData count];
 	OOCargoQuantity		quantityInHold[commodityCount];
-	
+
 	// following changed to work whether docked or not
 	for (i = 0; i < commodityCount; i++)
 	{
@@ -6111,7 +6111,7 @@ static GLfloat		sBaseMass = 0.0;
 		ShipEntity *container = [cargo objectAtIndex:i];
 		quantityInHold[[container commodityType]] += [container commodityAmount];
 	}
-	
+
 	for (i = 0; i < commodityCount; i++)
 	{
 		if (quantityInHold[i] > 0)
@@ -6121,8 +6121,8 @@ static GLfloat		sBaseMass = 0.0;
 			// commodity, quantity - keep consistency between .manifest and .contracts
 			[commodity setObject:CommodityTypeToString(i) forKey:@"commodity"];
 			[commodity setObject:[NSNumber numberWithUnsignedInt:quantityInHold[i]] forKey:@"quantity"];
-			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"displayName"]; 
-			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
+			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"displayName"];
+			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"];
 			[list addObject:commodity];
 		}
 	}
@@ -6151,7 +6151,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			[contract setObject:[dict oo_stringForKey:PASSENGER_KEY_NAME] forKey:PASSENGER_KEY_NAME];
 		}
-		
+
 		OOSystemID 	planet = [dict oo_intForKey:CONTRACT_KEY_DESTINATION];
 		NSString 	*planetName = [UNIVERSE getSystemName: [UNIVERSE systemSeedForSystemNumber:planet]];
 		[contract setObject:[NSNumber numberWithUnsignedInt:planet] forKey:CONTRACT_KEY_DESTINATION];
@@ -6160,12 +6160,12 @@ static GLfloat		sBaseMass = 0.0;
 		planetName = [UNIVERSE getSystemName: [UNIVERSE systemSeedForSystemNumber:planet]];
 		[contract setObject:[NSNumber numberWithUnsignedInt:planet] forKey:CONTRACT_KEY_START];
 		[contract setObject:planetName forKey:@"startName"];
-		
+
 		int 		dest_eta = [dict oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
 		[contract setObject:[NSNumber numberWithInt:dest_eta] forKey:@"eta"];
 		[contract setObject:[UNIVERSE shortTimeDescription:dest_eta] forKey:@"etaDescription"];
-		[contract setObject:[NSNumber numberWithInt:[dict oo_intForKey:CONTRACT_KEY_PREMIUM]] forKey:CONTRACT_KEY_PREMIUM]; 
-		[contract setObject:[NSNumber numberWithInt:[dict oo_intForKey:CONTRACT_KEY_FEE]] forKey:CONTRACT_KEY_FEE]; 
+		[contract setObject:[NSNumber numberWithInt:[dict oo_intForKey:CONTRACT_KEY_PREMIUM]] forKey:CONTRACT_KEY_PREMIUM];
+		[contract setObject:[NSNumber numberWithInt:[dict oo_intForKey:CONTRACT_KEY_FEE]] forKey:CONTRACT_KEY_FEE];
 		[result addObject:contract];
 	}
 
@@ -6195,19 +6195,19 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSDictionary	*targetSystemData;
 	NSString		*targetSystemName;
-	
+
 	targetSystemData = [[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
 	targetSystemName = [targetSystemData oo_stringForKey:KEY_NAME];
-	
+
 	BOOL			sunGoneNova = ([targetSystemData oo_boolForKey:@"sun_gone_nova"]);
 	OOGUIScreenID	oldScreen = gui_screen;
-	
+
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	gui_screen = GUI_SCREEN_SYSTEM_DATA;
 	BOOL			guiChanged = (oldScreen != gui_screen);
-	
+
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
-	
+
 	// GUI stuff
 	{
 		OOGUITabSettings tab_stops;
@@ -6215,17 +6215,17 @@ static GLfloat		sBaseMass = 0.0;
 		tab_stops[1] = 96;
 		tab_stops[2] = 144;
 		[gui setTabStops:tab_stops];
-		
+
 		int techlevel =		[targetSystemData oo_intForKey:KEY_TECHLEVEL];
 		int population =	[targetSystemData oo_intForKey:KEY_POPULATION];
 		int productivity =	[targetSystemData oo_intForKey:KEY_PRODUCTIVITY];
 		int radius =		[targetSystemData oo_intForKey:KEY_RADIUS];
-		
+
 		NSString	*government_desc =	OODisplayStringFromGovernmentID([targetSystemData oo_intForKey:KEY_GOVERNMENT]);
 		NSString	*economy_desc =		OODisplayStringFromEconomyID([targetSystemData oo_intForKey:KEY_ECONOMY]);
 		NSString	*inhabitants =		[targetSystemData oo_stringForKey:KEY_INHABITANTS];
 		NSString	*system_desc =		[targetSystemData oo_stringForKey:KEY_DESCRIPTION];
-		
+
 		if (sunGoneNova)
 		{
 			population = 0;
@@ -6237,12 +6237,12 @@ static GLfloat		sBaseMass = 0.0;
 			inhabitants = DESC(@"nova-system-inhabitants");
 			system_desc = OOExpandKeyWithSeed(@"nova-system-description", target_system_seed, nil);
 		}
-		
+
 		[gui clearAndKeepBackground:!guiChanged];
 		[UNIVERSE removeDemoShips];
-		
+
 		[gui setTitle:[NSString stringWithFormat:DESC(@"sysdata-planet-name-@"),   targetSystemName]];
-		
+
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-eco"), economy_desc, nil]					forRow:1];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-govt"), government_desc, nil]				forRow:3];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-tl"), [NSString stringWithFormat:@"%d", techlevel + 1], nil]	forRow:5];
@@ -6250,26 +6250,26 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setArray:[NSArray arrayWithObjects:@"", [NSString stringWithFormat:@"(%@)", inhabitants], nil]				forRow:8];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-prod"), @"", [NSString stringWithFormat:DESC(@"sysdata-prod-worth"), productivity], nil]	forRow:10];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-radius"), @"", [NSString stringWithFormat:@"%5d km", radius], nil]	forRow:12];
-		
+
 		OOGUIRow i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
 		missionTextRow = i;
 		for (i-- ; i > 14 ; i--)
 			[gui setColor:[OOColor greenColor] forRow:i];
-		
+
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
-	
+
 	[lastTextKey release];
 	lastTextKey = nil;
-	
+
 	[[UNIVERSE gameView] clearMouse];
-	
+
 	[targetSystemData release];
-	
+
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
-	
+
 	// if the system has gone nova, there's no planet to display
 	if (!sunGoneNova)
 	{
@@ -6277,7 +6277,7 @@ static GLfloat		sBaseMass = 0.0;
 		// When normal planets are displayed, the PRNG is reset. This happens not with procedural planet display.
 		RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
 		RNG_Seed saved_seed = currentRandomSeed();
-		
+
 		if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]])
 		{
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
@@ -6286,16 +6286,16 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
 		}
-		
+
 		setRandomSeed(saved_seed);
 		RANROTSetFullSeed(ranrotSavedSeed);
 	}
-	
+
 	if (guiChanged)
 	{
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		[gui setBackgroundTextureKey:sunGoneNova ? @"system_data_nova" : @"system_data"];
-		
+
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 		[self checkScript];	// Still needed by some OXPs?
 	}
@@ -6353,7 +6353,7 @@ static GLfloat		sBaseMass = 0.0;
 		marker = [missionDestinations objectForKey:key];
 		[self prepareMarkedDestination:destinations:marker];
 	}
-	
+
 	return destinations;
 }
 
@@ -6362,19 +6362,19 @@ static GLfloat		sBaseMass = 0.0;
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIScreenID	oldScreen = gui_screen;
-	
+
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
 	BOOL			guiChanged = (oldScreen != gui_screen);
-	
+
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
-	
+
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 			target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	
+
 	NSString *targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
-	
+
 	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
-	
+
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
@@ -6387,31 +6387,31 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			[gui setTitle:[UNIVERSE descriptionForKey:gal_key]];
 		}
-		
+
 		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
 		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:17];
 		[gui setColor:[OOColor cyanColor] forRow:17];
-		
+
 		[gui setShowTextCursor:YES];
 		[gui setCurrentRow:17];
 	}
 	/* ends */
-	
+
 	[[UNIVERSE gameView] clearMouse];
-	
+
 	[targetSystemName release];
-	
+
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
-	
+
 	if (guiChanged)
 	{
 		NSDictionary *bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:[NSString stringWithFormat:@"long_range_chart%d", galaxy_number+1]];
 		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"long_range_chart"];
 		[gui setBackgroundTextureDescriptor:bgDescriptor];
-		
+
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-		
+
 		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] exactMatch:YES];
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
@@ -6422,28 +6422,28 @@ static GLfloat		sBaseMass = 0.0;
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIScreenID	oldScreen = gui_screen;
-	
+
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
 	BOOL			guiChanged = (oldScreen != gui_screen);
-	
+
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
-	
+
 	// don't target planets outside the immediate vicinity.
 	if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
 			cursor_coordinates = galaxy_coordinates;	// home
-	
+
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 	{
 		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	}
-	
+
 	// now calculate the distance.
 	double			distance = [self hyperspaceJumpDistance];
 	double			estimatedTravelTime = distance * distance;
-	
+
 	NSString		*targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
 	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
-	
+
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
@@ -6457,18 +6457,18 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
-	
+
 	[[UNIVERSE gameView] clearMouse];
-	
+
 	[targetSystemName release]; // released
-	
+
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
-	
+
 	if (guiChanged)
 	{
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-		
+
 		[gui setBackgroundTextureKey:@"short_range_chart"];
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
@@ -6480,9 +6480,9 @@ static GLfloat		sBaseMass = 0.0;
 #ifdef GNUSTEP
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 #endif
-	
+
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
-	
+
 	// GUI stuff
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
@@ -6492,17 +6492,17 @@ static GLfloat		sBaseMass = 0.0;
 
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), [self commanderName]]]; // Same title as status screen.
-		
+
 #if OO_RESOLUTION_OPTION
 		GameController	*controller = [UNIVERSE gameController];
-		
+
 		NSUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
 		if (displayModeIndex == NSNotFound)
 		{
 			OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
 			displayModeIndex = 0;
 		}
-		
+
 		NSArray			*modeList = [controller displayModes];
 		NSDictionary	*mode = nil;
 		if ([modeList count])
@@ -6510,11 +6510,11 @@ static GLfloat		sBaseMass = 0.0;
 			mode = [modeList objectAtIndex:displayModeIndex];
 		}
 		if (mode == nil)  return;	// Got a better idea?
-		
+
 		unsigned modeWidth = [mode oo_unsignedIntForKey:kOODisplayWidth];
 		unsigned modeHeight = [mode oo_unsignedIntForKey:kOODisplayHeight];
 		float modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
-		
+
 		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 		[gui setText:displayModeString forRow:GUI_ROW(GAME,DISPLAY) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DISPLAY)];
@@ -6525,7 +6525,7 @@ static GLfloat		sBaseMass = 0.0;
 		else
 			[gui setText:DESC(@"gameoptions-autosave-no") forRow:GUI_ROW(GAME,AUTOSAVE) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,AUTOSAVE)];
-	
+
 		// volume control
 		if ([OOSound respondsToSelector:@selector(masterVolume)])
 		{
@@ -6547,8 +6547,8 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setText:DESC(@"gameoptions-volume-external-only") forRow:GUI_ROW(GAME,VOLUME) align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,VOLUME)];
 		}
-		
-#if OOLITE_SDL		
+
+#if OOLITE_SDL
 		// gamma control
 		float gamma = [gameView gammaValue];
 		int gamma5 = (gamma * 5);
@@ -6560,7 +6560,7 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setText:[NSString stringWithFormat:@"%@%@%@ (%.1f) ", gammaWordDesc, v1_string, v0_string, gamma] forRow:GUI_ROW(GAME,GAMMA) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,GAMMA)];
 #endif
-		
+
 #if OOLITE_SPEECH_SYNTH
 		// Speech control
 		if (isSpeechOn)
@@ -6592,7 +6592,7 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		[gui setKey: GUI_KEY_OK forRow: GUI_ROW(GAME,DISPLAYSTYLE)];
 #endif
-		
+
 		[gui setText:DESC(@"gameoptions-joystick-configuration") forRow: GUI_ROW(GAME,STICKMAPPER) align: GUI_ALIGN_CENTER];
 		if ([[OOJoystickManager sharedStickHandler] joystickCount])
 		{
@@ -6602,7 +6602,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,STICKMAPPER)];
 		}
-		
+
 		NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-music-mode-@"), [UNIVERSE descriptionForArrayKey:@"music-mode" index:[[OOMusicController sharedController] mode]]];
 		[gui setText:message forRow:GUI_ROW(GAME,MUSIC)  align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,MUSIC)];
@@ -6612,7 +6612,7 @@ static GLfloat		sBaseMass = 0.0;
 		else
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-no") forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)];
-		
+
 #if !NEW_PLANETS
 		if ([UNIVERSE doProcedurallyTexturedPlanets])
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-yes") forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
@@ -6620,14 +6620,14 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-no") forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS)];
 #endif
-		
+
 		if ([UNIVERSE reducedDetail])
 			[gui setText:DESC(@"gameoptions-reduced-detail-yes") forRow:GUI_ROW(GAME,DETAIL) align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:DESC(@"gameoptions-reduced-detail-no") forRow:GUI_ROW(GAME,DETAIL) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DETAIL)];
-	
-		// Shader effects level.	
+
+		// Shader effects level.
 		int shaderEffects = [UNIVERSE shaderEffectsLevel];
 		NSString* shaderEffectsOptionsString = nil;
 		if (shaderEffects == SHADERS_NOT_SUPPORTED)
@@ -6641,7 +6641,7 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setText:shaderEffectsOptionsString forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
 		}
-		
+
 		if ([UNIVERSE dockingClearanceProtocolActive])
 		{
 			[gui setText:DESC(@"gameoptions-docking-clearance-yes") forRow:GUI_ROW(GAME,DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
@@ -6651,7 +6651,7 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setText:DESC(@"gameoptions-docking-clearance-no") forRow:GUI_ROW(GAME,DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
 		}
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DOCKINGCLEARANCE)];
-		
+
 		// Back menu option
 		[gui setText:DESC(@"gui-back") forRow:GUI_ROW(GAME,BACK) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,BACK)];
@@ -6678,7 +6678,7 @@ static GLfloat		sBaseMass = 0.0;
 	BOOL			canLoadOrSave = NO;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	OOGUIScreenID	oldScreen = gui_screen;
-	
+
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 
 	if ([self status] == STATUS_DOCKED)
@@ -6689,9 +6689,9 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		canLoadOrSave = (dockedStation == [UNIVERSE station] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]));
 	}
-	
+
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));
-	
+
 	// GUI stuff
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
@@ -6703,7 +6703,7 @@ static GLfloat		sBaseMass = 0.0;
 
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), [self commanderName]]]; //Same title as status screen.
-		
+
 		[gui setText:DESC(@"options-quick-save") forRow:GUI_ROW(,QUICKSAVE) align:GUI_ALIGN_CENTER];
 		if (canQuickSave)
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(,QUICKSAVE)];
@@ -6728,16 +6728,16 @@ static GLfloat		sBaseMass = 0.0;
 
 		[gui setText:DESC(@"options-game-options") forRow:GUI_ROW(,GAMEOPTIONS) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(,GAMEOPTIONS)];
-		
+
 #if OOLITE_SDL
 		// GNUstep needs a quit option at present (no Cmd-Q) but
 		// doesn't need speech.
-		
+
 		// quit menu option
 		[gui setText:DESC(@"options-exit-game") forRow:GUI_ROW(,QUIT) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(,QUIT)];
 #endif
-		
+
 		if ([UNIVERSE strict])
 			[gui setText:DESC(@"options-reset-to-unrestricted-play") forRow:GUI_ROW(,STRICT) align:GUI_ALIGN_CENTER];
 		else
@@ -6754,16 +6754,16 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			[gui setSelectedRow: first_sel_row];
 		}
-		
+
 		[gui setShowTextCursor:NO];
-		
+
 		if ([gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"] && [UNIVERSE pauseMessageVisible])
 					[[UNIVERSE messageGUI] clear];
 		// Graphically, this screen is analogous to the various settings screens
 		[gui setBackgroundTextureKey:@"settings"];
 	}
 	/* ends */
-	
+
 	[[UNIVERSE gameView] clearMouse];
 
 	[self setShowDemoShips:NO];
@@ -6771,7 +6771,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
-	[self noteGUIDidChangeFrom:oldScreen to:gui_screen]; 
+	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
 
 
@@ -6789,11 +6789,11 @@ static NSString *last_outfitting_key=nil;
 	[self setGuiToEquipShipScreen:-1];
 	key = last_outfitting_key;
 	// TODO: redo the equipShipScreen in a way that isn't broken. this whole method 'works'
-	// based on the way setGuiToEquipShipScreen  'worked' on 20090913 - Kaks 
-	
+	// based on the way setGuiToEquipShipScreen  'worked' on 20090913 - Kaks
+
 	// setGuiToEquipShipScreen doesn't take a page number, it takes an offset from the beginning
 	// of the dictionary, the first line will show the key at that offset...
-	
+
 	// try the last page first - 10 pages max.
 	while (otherKey)
 	{
@@ -6831,7 +6831,7 @@ static NSString *last_outfitting_key=nil;
 	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
 	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
 	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
-	
+
 	return available_facings & VALID_WEAPON_FACINGS;
 }
 
@@ -6839,7 +6839,7 @@ static NSString *last_outfitting_key=nil;
 - (void) setGuiToEquipShipScreen:(int)skipParam selectingFacingFor:(NSString *)eqKeyForSelectFacing
 {
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
-	
+
 	missiles = [self countMissiles];
 	OOEntityStatus searchStatus; // use STATUS_TEST, STATUS_DEAD & STATUS_ACTIVE
 	NSString *showKey = nil;
@@ -6872,21 +6872,21 @@ static NSString *last_outfitting_key=nil;
 
 	// build an array of all equipment - and take away that which has been bought (or is not permitted)
 	NSMutableArray		*equipmentAllowed = [NSMutableArray array];
-	
+
 	// find options that agree with this ship
 	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
 	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
 	NSMutableSet		*options = [NSMutableSet setWithArray:[shipyardInfo oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
-	
+
 	// add standard items too!
 	[options addObjectsFromArray:[[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-	
+
 	unsigned			i = 0;
 	NSEnumerator		*eqEnum = nil;
 	OOEquipmentType		*eqType = nil;
 	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
 
-	
+
 	if (eqKeyForSelectFacing != nil) // Weapons purchase subscreen.
 	{
 		skip = 1;	// show the back button
@@ -6899,30 +6899,30 @@ static NSString *last_outfitting_key=nil;
 	{
 		NSString			*eqKey = [eqType identifier];
 		OOTechLevelID		minTechLevel = [eqType effectiveTechLevel];
-		
+
 		// set initial availability to NO
 		BOOL isOK = NO;
-		
+
 		// check special availability
 		if ([eqType isAvailableToAll])  [options addObject:eqKey];
-		
+
 		// if you have a damaged system you can get it repaired at a tech level one less than that required to buy it
 		if (minTechLevel != 0 && [self hasEquipmentItem:[eqType damagedIdentifier]])  minTechLevel--;
-		
+
 		// reduce the minimum techlevel occasionally as a bonus..
 		if (techlevel < minTechLevel && techlevel + 3 > minTechLevel)
 		{
 			unsigned day = i * 13 + (unsigned)floor([UNIVERSE getTime] / 86400.0);
 			unsigned char dayRnd = (day & 0xff) ^ system_seed.a;
 			OOTechLevelID originalMinTechLevel = minTechLevel;
-			
+
 			while (minTechLevel > 0 && minTechLevel > originalMinTechLevel - 3 && !(dayRnd & 7))	// bargain tech days every 1/8 days
 			{
 				dayRnd = dayRnd >> 2;
 				minTechLevel--;	// occasional bonus items according to TL
 			}
 		}
-		
+
 		// check initial availability against options AND standard extras
 		if ([options containsObject:eqKey])
 		{
@@ -6937,7 +6937,7 @@ static NSString *last_outfitting_key=nil;
 			if (available_facings == 0 && [eqType isPrimaryWeapon]) isOK = NO;
 			if (isOK)  [equipmentAllowed addObject:eqKey];
 		}
-		
+
 		if (searchStatus == STATUS_DEAD && isOK)
 		{
 			showKey = eqKey;
@@ -6946,7 +6946,7 @@ static NSString *last_outfitting_key=nil;
 		if (searchStatus == STATUS_TEST)
 		{
 			if (isOK) showKey = eqKey;
-			if ([eqKey isEqualToString:last_outfitting_key]) 
+			if ([eqKey isEqualToString:last_outfitting_key])
 				searchStatus = isOK ? STATUS_ACTIVE : STATUS_DEAD;
 		}
 	}
@@ -6955,7 +6955,7 @@ static NSString *last_outfitting_key=nil;
 		[last_outfitting_key release];
 		last_outfitting_key = [showKey copy];
 	}
-	
+
 	// GUI stuff
 	{
 		GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -6968,14 +6968,14 @@ static NSString *last_outfitting_key=nil;
 
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"equip-title")];
-		
+
 		[gui setText:[NSString stringWithFormat:DESC(@"equip-cash-@"), OOCredits(credits)]  forRow: GUI_ROW_EQUIPMENT_CASH];
-		
+
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
 		tab_stops[1] = -380;
 		[gui setTabStops:tab_stops];
-		
+
 		unsigned n_rows = GUI_MAX_ROWS_EQUIPMENT;
 		NSUInteger count = [equipmentAllowed count];
 
@@ -6989,7 +6989,7 @@ static NSString *last_outfitting_key=nil;
 					previous = 0;					// single page
 				else
 				{
-					previous = skip - (n_rows - 2);	// multi-page. 
+					previous = skip - (n_rows - 2);	// multi-page.
 					if (previous < 2)
 						previous = 0;				// if only one previous item, just show it
 				}
@@ -7008,7 +7008,7 @@ static NSString *last_outfitting_key=nil;
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
 				row++;
 			}
-			
+
 			for (i = skip; i < count && (row - start_row < (OOGUIRow)n_rows); i++)
 			{
 				NSString			*eqKey = [equipmentAllowed oo_stringAtIndex:i];
@@ -7017,7 +7017,7 @@ static NSString *last_outfitting_key=nil;
 				NSString			*desc = [NSString stringWithFormat:@" %@ ", [eqInfo name]];
 				NSString			*eq_key_damaged	= [eqInfo damagedIdentifier];
 				double				price;
-				
+
 				if ([eqKey isEqual:@"EQ_FUEL"])
 				{
 					price = (PLAYER_MAX_FUEL - fuel) * pricePerUnit * [self fuelChargeRate];
@@ -7028,9 +7028,9 @@ static NSString *last_outfitting_key=nil;
 					[gui setColor:[OOColor orangeColor] forRow:row]; // color renovation in orange
 				}
 				else price = pricePerUnit;
-				
+
 				price *= priceFactor;  // increased prices at some stations
-				
+
 				// is this item damaged?
 				if ([self hasEquipmentItem:eq_key_damaged])
 				{
@@ -7038,9 +7038,9 @@ static NSString *last_outfitting_key=nil;
 					price /= 2.0;
 					[gui setColor:[OOColor orangeColor] forRow:row];	// color repair items in orange
 				}
-				
+
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
-				
+
 				if ([eqKeyForSelectFacing isEqualToString:eqKey])
 				{
 					// Weapons purchase subscreen.
@@ -7050,32 +7050,32 @@ static NSString *last_outfitting_key=nil;
 						{
 							case 0:
 								break;
-								
+
 							case 1:
 								displayRow = available_facings & WEAPON_FACING_FORWARD;
 								desc = FORWARD_FACING_STRING;
 								weaponMounted = forward_weapon_type > WEAPON_NONE;
 								break;
-								
+
 							case 2:
 								displayRow = available_facings & WEAPON_FACING_AFT;
 								desc = AFT_FACING_STRING;
 								weaponMounted = aft_weapon_type > WEAPON_NONE;
 								break;
-								
+
 							case 3:
 								displayRow = available_facings & WEAPON_FACING_PORT;
 								desc = PORT_FACING_STRING;
 								weaponMounted = port_weapon_type > WEAPON_NONE;
 								break;
-								
+
 							case 4:
 								displayRow = available_facings & WEAPON_FACING_STARBOARD;
 								desc = STARBOARD_FACING_STRING;
 								weaponMounted = starboard_weapon_type > WEAPON_NONE;
 								break;
 						}
-						
+
 						if(weaponMounted)
 						{
 							[gui setColor:[OOColor colorWithRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
@@ -7109,7 +7109,7 @@ static NSString *last_outfitting_key=nil;
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row - 1];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", i - 1] forRow:row - 1];
 			}
-			
+
 			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
 
 			if ([gui selectedRow] != start_row)
@@ -7129,14 +7129,14 @@ static NSString *last_outfitting_key=nil;
 		{
 			[gui setText:DESC(@"equip-no-equipment-available-for-purchase") forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_SHIPS];
-			
+
 			[gui setSelectableRange:NSMakeRange(0,0)];
 			[gui setNoSelectedRow];
 			[self showInformationForSelectedUpgrade];
 		}
-		
+
 		[gui setShowTextCursor:NO];
-		
+
 		// TODO: split the mount_weapon sub-screen into a separate screen, and use it for pylon mounted wepons as well?
 		if (guiChanged)
 		{
@@ -7177,13 +7177,13 @@ static NSString *last_outfitting_key=nil;
 	[self showInformationForSelectedUpgradeWithFormatString:nil];
 }
 
-	
+
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)formatString
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	NSString* eqKey = [gui selectedRowKey];
 	int i;
-	
+
 	for (i = GUI_ROW_EQUIPMENT_DETAIL; i < GUI_MAX_ROWS; i++)
 	{
 		[gui setText:@"" forRow:i];
@@ -7220,12 +7220,12 @@ static NSString *last_outfitting_key=nil;
 	{
 		[self noteGUIWillChangeTo:GUI_SCREEN_INTERFACES];
 	}
-	
+
 	// build an array of available interfaces
 	NSDictionary *interfaces = [dockedStation localInterfaces];
 	NSArray		*interfaceKeys = [interfaces keysSortedByValueUsingSelector:@selector(interfaceCompare:)]; // sorts by category, then title
 	int i;
-	
+
 	// GUI stuff
 	{
 		GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -7235,13 +7235,13 @@ static NSString *last_outfitting_key=nil;
 
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"interfaces-title")];
-		
-		
+
+
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
 		tab_stops[1] = -480;
 		[gui setTabStops:tab_stops];
-		
+
 		unsigned n_rows = GUI_MAX_ROWS_INTERFACES;
 		NSUInteger count = [interfaceKeys count];
 
@@ -7250,26 +7250,26 @@ static NSString *last_outfitting_key=nil;
 			if (skip > 0)	// lose the first row to Back <--
 			{
 				unsigned previous;
-				
+
 				if (count <= n_rows || skip < (NSInteger)n_rows)
 				{
 					previous = 0;					// single page
 				}
 				else
 				{
-					previous = skip - (n_rows - 2);	// multi-page. 
+					previous = skip - (n_rows - 2);	// multi-page.
 					if (previous < 2)
 					{
 						previous = 0;				// if only one previous item, just show it
 					}
 				}
-				
+
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				[gui setColor:[OOColor greenColor] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
 				row++;
 			}
-			
+
 			for (i = skip; i < (NSInteger)count && (row - start_row < (OOGUIRow)n_rows); i++)
 			{
 				NSString *interfaceKey = [interfaceKeys objectAtIndex:i];
@@ -7288,7 +7288,7 @@ static NSString *last_outfitting_key=nil;
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row - 1];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", i - 1] forRow:row - 1];
 			}
-			
+
 			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
 
 			if ([gui selectedRow] != start_row)
@@ -7302,19 +7302,19 @@ static NSString *last_outfitting_key=nil;
 		{
 			[gui setText:DESC(@"interfaces-no-interfaces-available-for-use") forRow:GUI_ROW_NO_INTERFACES align:GUI_ALIGN_LEFT];
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_INTERFACES];
-			
+
 			[gui setSelectableRange:NSMakeRange(0,0)];
 			[gui setNoSelectedRow];
 
 		}
-		
+
 		[gui setShowTextCursor:NO];
 
 		NSString *desc = [NSString stringWithFormat:DESC(@"interfaces-for-ship-@-and-station-@"), [self displayName], [dockedStation displayName]];
 		[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_INTERFACES_HEADING];
 		[gui setText:desc forRow:GUI_ROW_INTERFACES_HEADING];
 
-		
+
 		if (guiChanged)
 		{
 			[gui setForegroundTextureKey:@"docked_overlay"];
@@ -7326,11 +7326,11 @@ static NSString *last_outfitting_key=nil;
 
 
 	[self setShowDemoShips:NO];
-	
+
 	OOGUIScreenID	oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_INTERFACES;
 	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
-	
+
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 
@@ -7341,15 +7341,15 @@ static NSString *last_outfitting_key=nil;
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	NSString* interfaceKey = [gui selectedRowKey];
-	
+
 	int i;
-	
+
 	for (i = GUI_ROW_EQUIPMENT_DETAIL; i < GUI_MAX_ROWS; i++)
 	{
 		[gui setText:@"" forRow:i];
 		[gui setColor:[OOColor greenColor] forRow:i];
 	}
-	
+
 	if (interfaceKey && ![interfaceKey hasPrefix:@"More:"])
 	{
 		NSDictionary *interfaces = [dockedStation localInterfaces];
@@ -7401,7 +7401,7 @@ static NSString *last_outfitting_key=nil;
 	NSString 		*text = nil;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIRow 		msgLine = 2;
-	
+
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
 
 	if (justCobra)
@@ -7410,22 +7410,22 @@ static NSString *last_outfitting_key=nil;
 	}
 	[gui clear];
 	[gui setTitle:@"Oolite"];
-	
+
 	if (justCobra)
 	{
 		text = DESC(@"game-copyright");
 		[gui setText:text forRow:15 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor whiteColor] forRow:15];
-		
+
 		text = DESC(@"theme-music-credit");
 		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor grayColor] forRow:17];
-		
+
         text = DESC(@"load-previous-commander");
         [gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
         [gui setColor:[OOColor yellowColor] forRow:19];
 
-		
+
 		// check for error messages from Resource Manager
 		//[ResourceManager paths]; done in Universe already
 		NSString *errors = [ResourceManager errors];
@@ -7436,13 +7436,13 @@ static NSString *last_outfitting_key=nil;
 			for (i-- ; i >= ms_start ; i--) [gui setColor:[OOColor redColor] forRow:i];
 			msgLine++;
 		}
-		
+
 		// check for messages from OXPs
 		NSArray *OXPsWithMessages = [ResourceManager OXPsWithMessagesFound];
 		if ([OXPsWithMessages count] > 0)
 		{
 			NSString *messageToDisplay = @"";
-			
+
 			// Show which OXPs were found with messages, but don't spam the screen if more than
 			// a certain number of them exist
 			if ([OXPsWithMessages count] < 5)
@@ -7465,7 +7465,7 @@ static NSString *last_outfitting_key=nil;
 			}
 			msgLine++;
 		}
-		
+
 		// check for messages from the command line
 		NSArray* arguments = [[NSProcessInfo processInfo] arguments];
 		unsigned i;
@@ -7500,17 +7500,17 @@ static NSString *last_outfitting_key=nil;
 		[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
 	}
-	
+
 	[gui setShowTextCursor:NO];
-	
+
 	[UNIVERSE setupIntroFirstGo: justCobra];
-	
-	if (gui != nil)  
+
+	if (gui != nil)
 	{
 		gui_screen = justCobra ? GUI_SCREEN_INTRO1 : GUI_SCREEN_INTRO2;
 	}
 	[[OOMusicController sharedController] playThemeMusic];
-	
+
 	[self setShowDemoShips:YES];
 	[gui setBackgroundTextureKey:@"intro"];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
@@ -7586,9 +7586,9 @@ static NSString *last_outfitting_key=nil;
 
 		return;
 	}
-	
+
 	NSString		*itemText = [gui selectedRowText];
-	
+
 	// FIXME: this is nuts, should be associating lines with keys in some sensible way. --Ahruman 20080311
 	if ([itemText isEqual:FORWARD_FACING_STRING])
 		chosen_weapon_facing = WEAPON_FACING_FORWARD;
@@ -7598,7 +7598,7 @@ static NSString *last_outfitting_key=nil;
 		chosen_weapon_facing = WEAPON_FACING_PORT;
 	if ([itemText isEqual:STARBOARD_FACING_STRING])
 		chosen_weapon_facing = WEAPON_FACING_STARBOARD;
-	
+
 	OOCreditsQuantity old_credits = credits;
 	if ([self tryBuyingItem:key])
 	{
@@ -7610,8 +7610,8 @@ static NSString *last_outfitting_key=nil;
 		else
 		{
 			[self playBuyCommodity];
-		}			
-			
+		}
+
 		if(credits != old_credits || ![key hasPrefix:@"EQ_WEAPON_"])
 		{
 			// adjust time before playerBoughtEquipment gets to change credits dynamically
@@ -7619,10 +7619,10 @@ static NSString *last_outfitting_key=nil;
 			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
 			[UNIVERSE forceWitchspaceEntries];
 			ship_clock_adjust += time_adjust + 600.0;
-			
+
 			[self doScriptEvent:OOJSID("playerBoughtEquipment") withArgument:key];
 			if (gui_screen == GUI_SCREEN_EQUIP_SHIP) //if we haven't changed gui screen inside playerBoughtEquipment
-			{ 
+			{
 				// show any change due to playerBoughtEquipment
 				[self setGuiToEquipShipScreen:0];
 				// then try to go back where we were
@@ -7649,31 +7649,31 @@ static NSString *last_outfitting_key=nil;
 	double					priceFactor		= 1.0;
 	OOCreditsQuantity		tradeIn			= 0;
 	BOOL	isRepair = NO;
-	
+
 	// repairs cost 50%
 	if ([self hasEquipmentItem:eqKeyDamaged])
 	{
 		price /= 2.0;
 		isRepair = YES;
 	}
-	
+
 	if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 	{
 		price = [self renovationCosts];
 	}
-	
+
 	if (dockedStation)
 	{
 		priceFactor = [dockedStation equipmentPriceFactor];
 	}
-	
+
 	price *= priceFactor;  // increased prices at some stations
-	
+
 	if (price > credits)
 	{
 		return NO;
 	}
-	
+
 	if ([eqType isPrimaryWeapon])
 	{
 		if (chosen_weapon_facing == WEAPON_FACING_NONE)
@@ -7681,65 +7681,65 @@ static NSString *last_outfitting_key=nil;
 			[self setGuiToEquipShipScreen:0 selectingFacingFor:eqKey];	// reset
 			return YES;
 		}
-		
+
 		OOWeaponType chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
 		OOWeaponType current_weapon = WEAPON_NONE;
-		
+
 		switch (chosen_weapon_facing)
 		{
 			case WEAPON_FACING_FORWARD:
 				current_weapon = forward_weapon_type;
 				forward_weapon_type = chosen_weapon;
 				break;
-				
+
 			case WEAPON_FACING_AFT:
 				current_weapon = aft_weapon_type;
 				aft_weapon_type = chosen_weapon;
 				break;
-				
+
 			case WEAPON_FACING_PORT:
 				current_weapon = port_weapon_type;
 				port_weapon_type = chosen_weapon;
 				break;
-				
+
 			case WEAPON_FACING_STARBOARD:
 				current_weapon = starboard_weapon_type;
 				starboard_weapon_type = chosen_weapon;
 				break;
-				
+
 			case WEAPON_FACING_NONE:
 				break;
 		}
-		
+
 		credits -= price;
-		
+
 		// Refund current_weapon
 		if (current_weapon != WEAPON_NONE)
 		{
 			tradeIn = [UNIVERSE getEquipmentPriceForKey:OOEquipmentIdentifierFromWeaponType(current_weapon)];
 		}
-		
+
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		// If equipped, remove damaged weapon after repairs. -- But there's no way we should get a damaged weapon. Ever.
 		[self removeEquipmentItem:eqKeyDamaged];
 		return YES;
 	}
-	
+
 	if ([eqType isMissileOrMine] && missiles >= max_missiles)
 	{
 		OOLog(@"equip.buy.mounted.failed.full", @"rejecting missile because already full");
 		return NO;
 	}
-	
+
 	// NSFO!
 	//unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
 	//if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
-	
+
 	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"] && [self availableCargoSpace] < PASSENGER_BERTH_SPACE)
 	{
 		return NO;
 	}
-	
+
 	if ([eqKey isEqualToString:@"EQ_FUEL"])
 	{
 #if MASS_DEPENDENT_FUEL_PRICES
@@ -7758,7 +7758,7 @@ static NSString *last_outfitting_key=nil;
 			return NO;
 		}
 	}
-	
+
 	// check energy unit replacement
 	if ([eqKey hasSuffix:@"ENERGY_UNIT"] && [self energyUnitType] != ENERGY_UNIT_NONE)
 	{
@@ -7786,30 +7786,30 @@ static NSString *last_outfitting_key=nil;
 		}
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 	}
-	
+
 	// maintain ship
 	if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 	{
 		OOTechLevelID techLevel = NSNotFound;
 		if (dockedStation != nil)  techLevel = [dockedStation equivalentTechLevel];
 		if (techLevel == NSNotFound)  techLevel = [[UNIVERSE generateSystemData:system_seed] oo_unsignedIntForKey:KEY_TECHLEVEL];
-		
+
 		credits -= price;
 		ship_trade_in_factor += 5 + techLevel;	// you get better value at high-tech repair bases
 		if (ship_trade_in_factor > 100) ship_trade_in_factor = 100;
-		
+
 		[self clearSubEntities];
 		[self setUpSubEntities];
-		
+
 		return YES;
 	}
-	
+
 	if ([eqKey hasSuffix:@"MISSILE"] || [eqKey hasSuffix:@"MINE"])
 	{
 		ShipEntity* weapon = [[UNIVERSE newShipWithRole:eqKey] autorelease];
 		if (weapon)  OOLog(kOOLogBuyMountedOK, @"Got ship for mounted weapon role %@", eqKey);
 		else  OOLog(kOOLogBuyMountedFailed, @"Could not find ship for mounted weapon role %@", eqKey);
-		
+
 		BOOL mounted_okay = [self mountMissile:weapon];
 		if (mounted_okay)
 		{
@@ -7820,21 +7820,21 @@ static NSString *last_outfitting_key=nil;
 		}
 		return mounted_okay;
 	}
-	
+
 	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 	{
 		[self changePassengerBerths:+1];
 		credits -= price;
 		return YES;
 	}
-	
+
 	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
 	{
 		[self changePassengerBerths:-1];
 		credits -= price;
 		return YES;
 	}
-	
+
 	if ([eqKey isEqualToString:@"EQ_MISSILE_REMOVAL"])
 	{
 		credits -= price;
@@ -7842,7 +7842,7 @@ static NSString *last_outfitting_key=nil;
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		return YES;
 	}
-	
+
 	if ([self canAddEquipment:eqKey inContext:@"purchase"])
 	{
 		credits -= price;
@@ -7853,7 +7853,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		return YES;
 	}
-	
+
 	return NO;
 }
 
@@ -7862,47 +7862,47 @@ static NSString *last_outfitting_key=nil;
 {
 	NSDictionary		*shipyardInfo = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:[self shipDataKey]];
 	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
-	
+
 	// facing exists?
-	if (!(available_facings & facing)) 
+	if (!(available_facings & facing))
 	{
 		return NO;
 	}
-	
+
 	// weapon allowed (or NONE)?
-	if (![eqKey isEqualToString:@"EQ_WEAPON_NONE"]) 
+	if (![eqKey isEqualToString:@"EQ_WEAPON_NONE"])
 	{
-		if (![self canAddEquipment:eqKey inContext:@"purchase"]) 
+		if (![self canAddEquipment:eqKey inContext:@"purchase"])
 		{
 			return NO;
 		}
 	}
-	
+
 	// sets WEAPON_NONE if not recognised
 	int chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
-	
+
 	switch (facing)
 	{
 		case WEAPON_FACING_FORWARD:
 			forward_weapon_type = chosen_weapon;
 			break;
-			
+
 		case WEAPON_FACING_AFT:
 			aft_weapon_type = chosen_weapon;
 			break;
-			
+
 		case WEAPON_FACING_PORT:
 			port_weapon_type = chosen_weapon;
 			break;
-			
+
 		case WEAPON_FACING_STARBOARD:
 			starboard_weapon_type = chosen_weapon;
 			break;
-			
+
 		case WEAPON_FACING_NONE:
 			break;
 	}
-	
+
 	return YES;
 }
 
@@ -7929,17 +7929,17 @@ static NSString *last_outfitting_key=nil;
 	for (i = 0; i < missiles; i++)
 	{
 		NSString *weapon_key = [missile_list[i] identifier];
-		
+
 		if (weapon_key != nil)
 			tradeIn += (int)[UNIVERSE getEquipmentPriceForKey:weapon_key];
 	}
-	
+
 	for (i = 0; i < max_missiles; i++)
 	{
 		[missile_entity[i] release];
 		missile_entity[i] = nil;
 	}
-	
+
 	missiles = 0;
 	return tradeIn;
 }
@@ -7958,13 +7958,13 @@ static NSString *last_outfitting_key=nil;
 - (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type
 {
 	OOCargoQuantity 	amount = [[shipCommodityData oo_arrayAtIndex:type] oo_intAtIndex:MARKET_QUANTITY];
-	
+
 	if  ([self status] != STATUS_DOCKED)
 	{
 		NSInteger		i;
 		OOCommodityType co_type;
 		ShipEntity		*cargoItem = nil;
-		
+
 		for (i = [cargo count] - 1; i >= 0 ; i--)
 		{
 			cargoItem = [cargo objectAtIndex:i];
@@ -7975,7 +7975,7 @@ static NSString *last_outfitting_key=nil;
 			}
 		}
 	}
-	
+
 	return amount;
 }
 
@@ -7984,18 +7984,18 @@ static NSString *last_outfitting_key=nil;
 {
 	OOMassUnit			unit = [UNIVERSE unitsForCommodity:type];
 	if([self specialCargo] && unit == UNITS_TONS) return 0;	// don't do anything if we've got a special cargo...
-	
+
 	OOCargoQuantity		oldAmount = [self cargoQuantityForType:type];
 	OOCargoQuantity		available = [self availableCargoSpace];
 	BOOL				inPods = ([self status] != STATUS_DOCKED);
-	
+
 	// check it against the max amount.
 	if (unit == UNITS_TONS && (available + oldAmount) < amount)
 	{
 		amount =  available + oldAmount;
 	}
 	// if we have 1499 kg the ship registers only 1 ton, so it's possible to exceed the max cargo:
-	// eg: with maxAvailableCargoSpace 2 & gold 1499kg, you can still add 1 ton alloy. 
+	// eg: with maxAvailableCargoSpace 2 & gold 1499kg, you can still add 1 ton alloy.
 	else if (unit == UNITS_KILOGRAMS && amount > oldAmount)
 	{
 		// Allow up to 0.5 ton of kg (& g) goods above the cargo capacity but respect existing quantities.
@@ -8007,7 +8007,7 @@ static NSString *last_outfitting_key=nil;
 		OOCargoQuantity		safeAmount = available * GRAMS_PER_POD + MAX_GRAMS_IN_SAFE;
 		if (safeAmount < amount) amount = (safeAmount < oldAmount) ? oldAmount : safeAmount;
 	}
-	
+
 	if (inPods)
 	{
 		if (amount > oldAmount) // increase
@@ -8046,41 +8046,41 @@ static NSString *last_outfitting_key=nil;
 	if ([self specialCargo] != nil)
 	{
 		return [self maxAvailableCargoSpace];
-	}	
-	
+	}
+
 	/*
 		The cargo array is nil when the player ship is docked, due to action in unloadCargopods. For
 		this reason, we must use a slightly more complex method to determine the quantity of cargo
 		carried in this case - Nikos 20090830
-		
+
 		Optimised this method, to compensate for increased usage - Kaks 20091002
 	*/
 	NSArray				*manifest = [NSArray arrayWithArray:[self shipCommodityData]];
 	NSInteger			i, count = [manifest count];
 	OOCargoQuantity		cargoQtyOnBoard = 0;
-	
+
 	for (i = count - 1; i >= 0 ; i--)
 	{
 		NSArray *commodityInfo = [NSArray arrayWithArray:[manifest objectAtIndex:i]];
 		OOCargoQuantity quantity = [commodityInfo oo_intAtIndex:MARKET_QUANTITY];
-		
+
 		// manifest contains entries for all 17 commodities, even when their quantity is 0.
 		OOMassUnit commodityUnits = [UNIVERSE unitsForCommodity:i];
-		
+
 		if (commodityUnits != UNITS_TONS)
 		{
 			// calculate the number of pods that would be used
 			// we're using integer math, so 99/100 = 0 ,  100/100 = 1, etc...
-			
+
 			assert(KILOGRAMS_PER_POD > MAX_KILOGRAMS_IN_SAFE && GRAMS_PER_POD > MAX_GRAMS_IN_SAFE); // otherwise we're in trouble!
-			
+
 			if (commodityUnits == UNITS_KILOGRAMS)  quantity = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + quantity) / KILOGRAMS_PER_POD;
 			else  quantity = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + quantity) / GRAMS_PER_POD;
 		}
 		cargoQtyOnBoard += quantity;
 	}
 	cargoQtyOnBoard += [[self cargo] count];
-	
+
 	return cargoQtyOnBoard;
 }
 
@@ -8089,12 +8089,12 @@ static NSString *last_outfitting_key=nil;
 {
 	StationEntity			*station = nil;
 	NSMutableArray 			*localMarket = nil;
-	
+
 	if ([self isDocked])  station = dockedStation;
 	else  station = [UNIVERSE station];
 	localMarket = [station localMarket];
 	if (localMarket == nil)  localMarket = [station initialiseLocalMarketWithRandomFactor:market_rnd];
-	
+
 	return localMarket;
 }
 
@@ -8104,12 +8104,12 @@ static NSString *last_outfitting_key=nil;
 	NSArray			*localMarket = [self localMarket];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIScreenID	oldScreen = gui_screen;
-	
+
 	gui_screen = GUI_SCREEN_MARKET;
 	BOOL			guiChanged = (oldScreen != gui_screen);
-	
+
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
-	
+
 	// fix problems with economies in witchspace
 	if ([UNIVERSE station] == nil)
 	{
@@ -8124,7 +8124,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		localMarket = [NSArray arrayWithArray:ourEconomy];
 	}
-	
+
 	// GUI stuff
 	{
 		OOGUIRow			start_row = GUI_ROW_MARKET_START;
@@ -8132,9 +8132,9 @@ static NSString *last_outfitting_key=nil;
 		NSUInteger			i, commodityCount = [shipCommodityData count];
 		OOCargoQuantity		quantityInHold[commodityCount];
 		NSArray				*marketDef = nil;
-		
+
 		// following changed to work whether docked or not
-		
+
 		for (i = 0; i < commodityCount; i++)
 		{
 			quantityInHold[i] = [[shipCommodityData oo_arrayAtIndex:i] oo_unsignedIntAtIndex:MARKET_QUANTITY];
@@ -8144,9 +8144,9 @@ static NSString *last_outfitting_key=nil;
 			ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
 			quantityInHold[[container commodityType]] += [container commodityAmount];
 		}
-		
+
 		[gui clearAndKeepBackground:!guiChanged];
-		
+
 		if (dockedStation == nil || dockedStation == [UNIVERSE station])
 		{
 			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
@@ -8155,47 +8155,47 @@ static NSString *last_outfitting_key=nil;
 		{
 			[gui setTitle:[NSString stringWithFormat:DESC(@"@-station-commodity-market"), [dockedStation displayName]]];
 		}
-		
+
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
 		tab_stops[1] = 192;
 		tab_stops[2] = 272;
 		tab_stops[3] = 346;
 		[gui setTabStops:tab_stops];
-		
+
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
 		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringTo(DESC(@"price-column-title"),7.0),
 							 OOPadStringTo(DESC(@"for-sale-column-title"),11.0), OOPadStringTo(DESC(@"in-hold-column-title"),15.0), nil] forRow:GUI_ROW_MARKET_KEY];
-		
+
 		for (i = 0; i < commodityCount; i++)
 		{
 			marketDef = [localMarket oo_arrayAtIndex:i];
-			
+
 			NSString* desc = [NSString stringWithFormat:@" %@ ", CommodityDisplayNameForCommodityArray(marketDef)];
 			OOCargoQuantity available_units = [marketDef oo_unsignedIntAtIndex:MARKET_QUANTITY];
 			OOCargoQuantity units_in_hold = quantityInHold[i];
 			OOCreditsQuantity pricePerUnit = [marketDef oo_unsignedIntAtIndex:MARKET_PRICE];
 			OOMassUnit unit = [UNIVERSE unitsForCommodity:i];
-			
+
 			NSString *available = OOPadStringTo(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 6.0);
 			NSString *price = OOPadStringTo([NSString stringWithFormat:@" %.1f ",0.1 * pricePerUnit],7.0);
-			
+
 			// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
-			
+
 			NSString *owned = OOPadStringTo((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 10.0);
 			NSString *units = DisplayStringForMassUnit(unit);
 			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
-			
+
 			[gui setKey:[NSString stringWithFormat:@"%ld",i] forRow:row];
 			[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
 		}
 		 // actually count the containers and  valuables (may be > max_cargo)
 		current_cargo = [self cargoQuantityOnBoard];
-		if (current_cargo > [self maxAvailableCargoSpace]) current_cargo = [self maxAvailableCargoSpace]; 
-		
+		if (current_cargo > [self maxAvailableCargoSpace]) current_cargo = [self maxAvailableCargoSpace];
+
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
-		
+
 		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
 		{
 			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
@@ -8206,15 +8206,15 @@ static NSString *last_outfitting_key=nil;
 		{
 			[gui setNoSelectedRow];
 		}
-		
+
 		[gui setShowTextCursor:NO];
 	}
-	
+
 	[[UNIVERSE gameView] clearMouse];
-	
+
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:[self status] == STATUS_DOCKED];
-	
+
 	if (guiChanged)
 	{
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
@@ -8234,7 +8234,7 @@ static NSString *last_outfitting_key=nil;
 {
 	NSArray *commodityArray = [[self localMarket] oo_arrayAtIndex:index];
 	int available_units = [commodityArray oo_intAtIndex:MARKET_QUANTITY];
-	
+
 	return (available_units >= 127);
 }
 
@@ -8242,7 +8242,7 @@ static NSString *last_outfitting_key=nil;
 - (BOOL) tryBuyingCommodity:(OOCommodityType)index all:(BOOL)all
 {
 	if (![self isDocked])  return NO; // can't buy if not docked.
-	
+
 	NSMutableArray		*localMarket = [self localMarket];
 	NSArray				*commodityArray	= [localMarket objectAtIndex:index];
 	OOCreditsQuantity	pricePerUnit	= [commodityArray oo_unsignedIntAtIndex:MARKET_PRICE];
@@ -8257,7 +8257,7 @@ static NSString *last_outfitting_key=nil;
 	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
 	int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
 	int market_quantity = [market_commodity oo_intAtIndex:MARKET_QUANTITY];
-	
+
 	int purchase = all ? 127 : 1;
 	if (purchase > market_quantity)
 	{
@@ -8301,25 +8301,25 @@ static NSString *last_outfitting_key=nil;
 	{
 		return NO;									// stop if that results in nothing to be bought
 	}
-	
+
 	manifest_quantity += purchase;
 	market_quantity -= purchase;
 	credits -= pricePerUnit * purchase;
-	
+
 	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
 	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
 	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
 	[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
-	
+
 	[shipCommodityData release];
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	
+
 	[self calculateCurrentCargo];
-	
+
 	if ([UNIVERSE autoSave])  [UNIVERSE setAutoSaveNow:YES];
-	
+
 	[self doScriptEvent:OOJSID("playerBoughtCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:purchase], [NSNumber numberWithUnsignedLongLong:pricePerUnit], nil]];
-	
+
 	return YES;
 }
 
@@ -8327,19 +8327,19 @@ static NSString *last_outfitting_key=nil;
 - (BOOL) trySellingCommodity:(OOCommodityType)index all:(BOOL)all
 {
 	if (![self isDocked])  return NO; // can't sell if not docked.
-	
+
 	NSMutableArray *localMarket = [self localMarket];
 	int available_units = [[shipCommodityData oo_arrayAtIndex:index] oo_intAtIndex:MARKET_QUANTITY];
 	int pricePerUnit = [[localMarket oo_arrayAtIndex:index] oo_intAtIndex:MARKET_PRICE];
-	
+
 	if (available_units == 0)  return NO;
-	
+
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
 	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:index]];
 	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
 	int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
 	int market_quantity =   [market_commodity oo_intAtIndex:MARKET_QUANTITY];
-	
+
 	int sell = all ? 127 : 1;
 	if (sell > available_units)
 		sell = available_units;					// limit to what's in the hold
@@ -8347,24 +8347,24 @@ static NSString *last_outfitting_key=nil;
 		sell = 127 - market_quantity;			// avoid flooding the market
 	if (sell <= 0)
 		return NO;								// stop if that results in nothing to be sold
-	
+
 	current_cargo -= sell;
 	manifest_quantity -= sell;
 	market_quantity += sell;
 	credits += pricePerUnit * sell;
-	
+
 	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
 	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
 	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
 	[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
-	
+
 	[shipCommodityData release];
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	
+
 	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
-	
+
 	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:sell], [NSNumber numberWithInt: pricePerUnit], nil]];
-	
+
 	return YES;
 }
 
@@ -8385,10 +8385,10 @@ static NSString *last_outfitting_key=nil;
 {
 	if ([equipmentKey isEqualToString:@"EQ_RENOVATION"] && !(ship_trade_in_factor < 85 || [[[self shipSubEntityEnumerator] allObjects] count] < [self maxShipSubEntities]))  return NO;
 	if (![super canAddEquipment:equipmentKey inContext:context])  return NO;
-	
+
 	NSArray *conditions = [[OOEquipmentType equipmentTypeWithIdentifier:equipmentKey] conditions];
 	if (conditions != nil && ![self scriptTestConditions:conditions])  return NO;
-	
+
 	return YES;
 }
 
@@ -8418,13 +8418,13 @@ static NSString *last_outfitting_key=nil;
 		}
 		return NO;
 	}
-	
+
 	BOOL OK = [super addEquipmentItem:equipmentKey withValidation:validateAddition inContext:context];
-	
+
 	if (OK)
 	{
 		if ([equipmentKey isEqual:@"EQ_ADVANCED_COMPASS"])	[self setCompassMode:COMPASS_MODE_PLANET];
-		
+
 		[self addEqScriptForKey:equipmentKey];
 	}
 	return OK;
@@ -8444,7 +8444,7 @@ static NSString *last_outfitting_key=nil;
 	NSDictionary	*dict = nil;
 	NSEnumerator	*eqEnum = nil;
 	NSString	*eqDesc = nil;
-	
+
 	// Pass 1: Load the entire collection.
 	if ([equipment isKindOfClass:[NSDictionary class]])
 	{
@@ -8463,7 +8463,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		return;
 	}
-	
+
 	while ((eqDesc = [eqEnum nextObject]))
 	{
 		/*	Bug workaround: extra_equipment should never contain EQ_TRUMBLE,
@@ -8474,16 +8474,16 @@ static NSString *last_outfitting_key=nil;
 			to awardEquipment:EQ_TRUMBLE would exit early because there was an
 			EQ_TRUMBLE in the equipment list. as a result, it would no longer
 			be possible to infect the player after the current infection ended.
-			
+
 			The bug is fixed in 1.70.1. The following line is to fix old saved
 			games which had been "corrupted" by the bug.
 			-- Ahruman 2007-12-04
 		 */
 		if ([eqDesc isEqualToString:@"EQ_TRUMBLE"])  continue;
-		
+
 		// Traditional form is a dictionary of booleans; we only accept those where the value is true.
 		if (dict != nil && ![dict oo_boolForKey:eqDesc])  continue;
-		
+
 		// We need to add the entire collection without validation first and then remove the items that are
 		// not compliant (like items that do not satisfy the requiresEquipment criterion). This is to avoid
 		// unintentionally excluding valid equipment, just because the required equipment existed but had
@@ -8491,7 +8491,7 @@ static NSString *last_outfitting_key=nil;
 		// Nikos, 20080817.
 		[self addEquipmentItem:eqDesc withValidation:NO inContext:@"loading"];
 	}
-	
+
 	// Pass 2: Remove items that do not satisfy validation criteria (like requires_equipment etc.).
 	if ([equipment isKindOfClass:[NSDictionary class]])
 	{
@@ -8520,7 +8520,7 @@ static NSString *last_outfitting_key=nil;
 {
 	// Check basic equipment the normal way.
 	if ([super hasOneEquipmentItem:itemKey includeMissiles:NO whileLoading:NO])  return YES;
-	
+
 	// Custom handling for player missiles.
 	if (includeMissiles)
 	{
@@ -8530,12 +8530,12 @@ static NSString *last_outfitting_key=nil;
 			if ([[self missileForPylon:i] hasPrimaryRole:itemKey])  return YES;
 		}
 	}
-	
+
 	if ([itemKey isEqualToString:@"EQ_TRUMBLE"])
 	{
 		return [self trumbleCount] > 0;
 	}
-	
+
 	return NO;
 }
 
@@ -8544,7 +8544,7 @@ static NSString *last_outfitting_key=nil;
 {
 	if (forward_weapon_type == weaponType || aft_weapon_type == weaponType)  return YES;
 	if (port_weapon_type == weaponType || starboard_weapon_type == weaponType)  return YES;
-	
+
 	return [super hasPrimaryWeapon:weaponType];
 }
 
@@ -8552,7 +8552,7 @@ static NSString *last_outfitting_key=nil;
 - (BOOL) removeExternalStore:(OOEquipmentType *)eqType
 {
 	NSString	*identifier = [eqType identifier];
-	
+
 	// Look for matching missile.
 	unsigned i;
 	for (i = 0; i < max_missiles; i++)
@@ -8560,7 +8560,7 @@ static NSString *last_outfitting_key=nil;
 		if ([[self missileForPylon:i] hasPrimaryRole:identifier])
 		{
 			[self removeFromPylon:i];
-			
+
 			// Just remove one at a time.
 			return YES;
 		}
@@ -8572,7 +8572,7 @@ static NSString *last_outfitting_key=nil;
 - (BOOL) removeFromPylon:(NSUInteger)pylon
 {
 	if (pylon >= max_missiles) return NO;
-	
+
 	if (missile_entity[pylon] != nil)
 	{
 		NSString	*identifier = [missile_entity[pylon] primaryRole];
@@ -8581,19 +8581,19 @@ static NSString *last_outfitting_key=nil;
 		// Remove the missile (must wait until we've finished with its identifier string!)
 		[missile_entity[pylon] release];
 		missile_entity[pylon] = nil;
-		
+
 		[self tidyMissilePylons];
-		
+
 		// This should be the currently selected missile, deselect it.
 		if (pylon >= activeMissile)
 		{
 			if (activeMissile == missiles && missiles > 0) activeMissile--;
 			if (activeMissile > 0) activeMissile--;
 			else activeMissile = max_missiles - 1;
-			
+
 			[self selectNextMissile];
 		}
-		
+
 		return YES;
 	}
 
@@ -8636,7 +8636,7 @@ static NSString *last_outfitting_key=nil;
 - (void) getFined
 {
 	if (legalStatus == 0)  return;				// nothing to pay for
-	
+
 	OOGovernmentID local_gov = [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT];
 	if ([UNIVERSE inInterstellarSpace])  local_gov = 1;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
 	OOCreditsQuantity fine = 500 + ((local_gov < 2 || local_gov > 5) ? 500 : 0);
@@ -8652,7 +8652,7 @@ static NSString *last_outfitting_key=nil;
 		[self setBounty:0 withReason:kOOLegalStatusReasonPaidFine];
 		credits -= fine;
 	}
-	
+
 	// one of the fined-@-credits strings includes expansion tokens
 	NSString *fined_message = [NSString stringWithFormat:OOExpandKey(@"fined-@-credits"), OOCredits(fine)];
 	[self addMessageToReport:fined_message];
@@ -8701,7 +8701,7 @@ static NSString *last_outfitting_key=nil;
 - (void) setDefaultCustomViews
 {
 	NSArray *customViews = [[[OOShipRegistry sharedRegistry] shipInfoForKey:PLAYER_SHIP_DESC] oo_arrayForKey:@"custom_views"];
-	
+
 	[_customViews release];
 	_customViews = nil;
 	_customViewIndex = 0;
@@ -8724,7 +8724,7 @@ static NSString *last_outfitting_key=nil;
 			return portViewOffset;
 		case WEAPON_FACING_STARBOARD:
 			return starboardViewOffset;
-			
+
 		case WEAPON_FACING_NONE:
 			// N.b.: this case should never happen.
 			return customViewOffset;
@@ -8761,9 +8761,9 @@ static NSString *last_outfitting_key=nil;
 		[trumble[i] release];
 		trumble[i] = [[OOTrumble alloc] initForPlayer:self digram:digramstring];
 	}
-	
+
 	trumbleCount = 0;
-	
+
 	trumbleAppetiteAccumulator = 0.0f;
 }
 
@@ -8788,7 +8788,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	NSUInteger	trumble_index = NSNotFound;
 	NSUInteger	i;
-	
+
 	for (i = 0; (trumble_index == NSNotFound)&&(i < trumbleCount); i++)
 	{
 		if (trumble[i] == deadTrumble)
@@ -8821,22 +8821,22 @@ static NSString *last_outfitting_key=nil;
 {
 	NSString	*namekey = [NSString stringWithFormat:@"%@-humbletrash", [self commanderName]];
 	int			trumbleHash;
-	
+
 	clear_checksum();
 	[self mungChecksumWithNSString:[self commanderName]];
 	munge_checksum(credits);
 	munge_checksum(ship_kills);
 	trumbleHash = munge_checksum(trumbleCount);
-	
+
 	[[NSUserDefaults standardUserDefaults] setInteger:trumbleHash forKey:namekey];
-	
+
 	int i;
 	NSMutableArray *trumbleArray = [NSMutableArray arrayWithCapacity:PLAYER_MAX_TRUMBLES];
 	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
 	{
 		[trumbleArray addObject:[trumble[i] dictionary]];
 	}
-	
+
 	return [NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:trumbleCount], [NSNumber numberWithInt:trumbleHash], trumbleArray, nil];
 }
 
@@ -8850,9 +8850,9 @@ static NSString *last_outfitting_key=nil;
 	NSArray *putativeTrumbleArray = nil;
 	int i;
 	NSString *namekey = [NSString stringWithFormat:@"%@-humbletrash", [self commanderName]];
-	
+
 	[self setUpTrumbles];
-	
+
 	if (trumbleValue)
 	{
 		BOOL possible_cheat = NO;
@@ -8874,16 +8874,16 @@ static NSString *last_outfitting_key=nil;
 		munge_checksum(credits);
 		munge_checksum(ship_kills);
 		trumbleHash = munge_checksum(putativeNTrumbles);
-		
+
 		if (putativeHash != trumbleHash)
 			info_failed = YES;
-		
+
 		if (info_failed)
 		{
 			OOLog(@"cheat.tentative", @"POSSIBLE CHEAT DETECTED");
 			possible_cheat = YES;
 		}
-		
+
 		for (i = 1; (info_failed)&&(i < PLAYER_MAX_TRUMBLES); i++)
 		{
 			// try to determine trumbleCount from the key in the saved game
@@ -8898,11 +8898,11 @@ static NSString *last_outfitting_key=nil;
 				putativeNTrumbles = i;
 			}
 		}
-		
+
 		if (possible_cheat && !info_failed)
 			OOLog(@"cheat.verified", @"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
 	}
-	
+
 	if (info_failed && [[NSUserDefaults standardUserDefaults] objectForKey:namekey])
 	{
 		// try to determine trumbleCount from the key in user defaults
@@ -8920,7 +8920,7 @@ static NSString *last_outfitting_key=nil;
 				putativeNTrumbles = i;
 			}
 		}
-		
+
 		if (!info_failed)
 			OOLog(@"cheat.verified", @"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
 	}
@@ -8932,13 +8932,13 @@ static NSString *last_outfitting_key=nil;
 		for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
 			[trumble[i] setFromDictionary:[putativeTrumbleArray oo_dictionaryAtIndex:i]];
 	}
-	
+
 	clear_checksum();
 	[self mungChecksumWithNSString:[self commanderName]];
 	munge_checksum(credits);
 	munge_checksum(ship_kills);
 	trumbleHash = munge_checksum(trumbleCount);
-	
+
 	[[NSUserDefaults standardUserDefaults]  setInteger:trumbleHash forKey:namekey];
 }
 
@@ -8946,7 +8946,7 @@ static NSString *last_outfitting_key=nil;
 - (void) mungChecksumWithNSString:(NSString *)str
 {
 	if (str == nil)  return;
-	
+
 	NSUInteger i, length = [str length];
 	for (i = 0; i < length; i++)
 	{
@@ -8985,15 +8985,15 @@ static NSString *last_outfitting_key=nil;
 {
 	if ([self status] != STATUS_IN_FLIGHT && [self status] != STATUS_WITCHSPACE_COUNTDOWN)  return;
 	if (targetEntity == self)  return;
-	
+
 	[super addTarget:targetEntity];
-	
+
 	if ([targetEntity isWormhole])
 	{
 		assert ([self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
 		[self addScannedWormhole:(WormholeEntity*)targetEntity];
 	}
-	
+
 	if ([self hasEquipmentItem:@"EQ_TARGET_MEMORY"])
 	{
 		int i = 0;
@@ -9008,7 +9008,7 @@ static NSString *last_outfitting_key=nil;
 				break;
 			}
 		}
-		
+
 		if (!foundSlot)
 		{
 			// find and use a blank space in memory
@@ -9030,7 +9030,7 @@ static NSString *last_outfitting_key=nil;
 			target_memory[target_memory_index] = [[self primaryTarget] universalID];
 		}
 	}
-	
+
 	if (ident_engaged)
 	{
 		[self playIdentLockedOn];
@@ -9072,10 +9072,10 @@ static NSString *last_outfitting_key=nil;
 		target_memory_index += delta;
 		while (target_memory_index < 0)  target_memory_index += PLAYER_TARGET_MEMORY_SIZE;
 		while (target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)  target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
-		
+
 		int targ_id = target_memory[target_memory_index];
 		ShipEntity *potential_target = [UNIVERSE entityForUniversalID: targ_id];
-		
+
 		if ((potential_target)&&(potential_target->isShip))
 		{
 			if (potential_target->zero_distance < SCANNER_MAX_RANGE2 && (![potential_target isCloaked]))
@@ -9108,7 +9108,7 @@ static NSString *last_outfitting_key=nil;
 		else
 			target_memory[target_memory_index] = NO_TARGET;	// tidy up
 	}
-	
+
 	[self playNoTargetInMemory];
 	return NO;
 }
@@ -9118,10 +9118,10 @@ static NSString *last_outfitting_key=nil;
 {
 	NSString			*fmt = nil;
 	if ([self primaryTarget] == nil) return;
-	
+
 	if (missile)  fmt = DESC(@"missile-locked-onto-@");
 	else  fmt = DESC(@"ident-locked-onto-@");
-	
+
 	[UNIVERSE addMessage:[NSString stringWithFormat:fmt, [[self primaryTarget] identFromShip:self]]
 				forCount:4.5];
 }
@@ -9180,20 +9180,20 @@ static NSString *last_outfitting_key=nil;
 	customViewMatrix = kIdentityMatrix;
 	customViewOffset = kZeroVector;
 	if (viewDict == nil)  return;
-	
+
 	customViewQuaternion = [viewDict oo_quaternionForKey:@"view_orientation"];
-	
+
 	customViewRightVector = vector_right_from_quaternion(customViewQuaternion);
 	customViewUpVector = vector_up_from_quaternion(customViewQuaternion);
 	customViewForwardVector = vector_forward_from_quaternion(customViewQuaternion);
-	
+
 	Quaternion q1 = customViewQuaternion;
 	q1.w = -q1.w;
 	customViewMatrix = OOMatrixForQuaternionRotation(q1);
-	
+
 	customViewOffset = [viewDict oo_vectorForKey:@"view_position"];
 	customViewDescription = [viewDict oo_stringForKey:@"view_description"];
-	
+
 	NSString *facing = [[viewDict oo_stringForKey:@"weapon_facing"] lowercaseString];
 	if ([facing isEqual:@"aft"])
 	{
@@ -9211,7 +9211,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		currentWeaponFacing = WEAPON_FACING_FORWARD;
 	}
-	// if the weapon facing is unset / unknown, 
+	// if the weapon facing is unset / unknown,
 	// don't change current weapon facing!
 }
 
@@ -9236,7 +9236,7 @@ static NSString *last_outfitting_key=nil;
 		if ([missionTitle length] == 0)  result = [UNIVERSE screenTextureDescriptorForKey:@"mission_overlay_no_title"];
 		else  result = [UNIVERSE screenTextureDescriptorForKey:@"mission_overlay_with_title"];
 	}
-	
+
 	return result;
 }
 
@@ -9264,7 +9264,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		result = [UNIVERSE screenTextureDescriptorForKey:@"mission"];
 	}
-	
+
 	return result;
 }
 
@@ -9319,8 +9319,8 @@ static NSString *last_outfitting_key=nil;
 		{
 			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG;
 		}
-	} 
-	else 
+	}
+	else
 	{
 		_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
 	}
@@ -9386,21 +9386,21 @@ static NSString *last_outfitting_key=nil;
 		[[UNIVERSE messageGUI] clear];
 		return YES;
 	}
-	
+
 	JSContext *context = OOJSAcquireContext();
 	while ((theScript = [scriptEnum nextObject]) && gui_screen != GUI_SCREEN_MISSION && [self isDocked])
 	{
 		[theScript callMethod:message inContext:context withArguments:NULL count:0 result:NULL];
 	}
 	OOJSRelinquishContext(context);
-	
+
 	if (gui_screen == GUI_SCREEN_MISSION)
 	{
 		// remove any comms/console messages from the screen!
 		[[UNIVERSE messageGUI] clear];
 		return YES;
 	}
-	
+
 	return NO;
 }
 
@@ -9408,10 +9408,10 @@ static NSString *last_outfitting_key=nil;
 - (void) doWorldScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc timeLimit:(OOTimeDelta)limit
 {
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
-	
+
 	NSEnumerator			*scriptEnum = nil;
 	OOScript				*theScript = nil;
-	
+
 	for (scriptEnum = [worldScripts objectEnumerator]; (theScript = [scriptEnum nextObject]); )
 	{
 		OOJSStartTimeLimiterWithTimeLimit(limit);
@@ -9472,10 +9472,10 @@ static NSString *last_outfitting_key=nil;
 - (GLfloat) fuelChargeRate
 {
 	GLfloat		rate = 1.0; // Standard charge rate.
-	
+
 	rate = [super fuelChargeRate];
-	
-	// Experimental: the state of repair affects the fuel charge rate - more fuel needed for jumps, etc... 
+
+	// Experimental: the state of repair affects the fuel charge rate - more fuel needed for jumps, etc...
 	if (EXPECT(ship_trade_in_factor <= 90 && ship_trade_in_factor >= 75))
 	{
 		rate *= 2.0 - (ship_trade_in_factor / 100); // between 1.1x and 1.25x
@@ -9512,14 +9512,14 @@ else _dockTarget = NO_TARGET;
 - (BOOL) isDocked
 {
 	BOOL isDockedStatus = NO;
-	
+
 	switch ([self status])
 	{
 		case STATUS_DOCKED:
 		case STATUS_DOCKING:
         case STATUS_START_GAME:
             isDockedStatus = YES;
-            break;   
+            break;
 		case STATUS_EFFECT:
 		case STATUS_ACTIVE:
 		case STATUS_COCKPIT_DISPLAY:
@@ -9539,7 +9539,7 @@ else _dockTarget = NO_TARGET;
             break;
 		//no default, so that we get notified by the compiler if something is missing
 	}
-	
+
 #ifndef NDEBUG
 	// Sanity check
 	if (isDockedStatus)
@@ -9562,7 +9562,7 @@ else _dockTarget = NO_TARGET;
 		}
 	}
 #endif
-	
+
 	return isDockedStatus;
 }
 
@@ -9606,10 +9606,10 @@ else _dockTarget = NO_TARGET;
 	OOCreditsQuantity	amountToPay = 0;
 	OOCreditsQuantity	calculatedFine = credits * 0.05;
 	OOCreditsQuantity	maximumFine = 50000ULL;
-	
+
 	if ([self clearedToDock])
 		return;
-		
+
 	amountToPay = MIN(maximumFine, calculatedFine);
 	credits -= amountToPay;
 	[self addMessageToReport:[NSString stringWithFormat:DESC(@"station-docking-clearance-fined-@-cr"), OOCredits(amountToPay)]];
@@ -9623,7 +9623,7 @@ else _dockTarget = NO_TARGET;
 {
 	assert(scannedWormholes != nil);
 	assert(whole != nil);
-	
+
 	// Only add if we don't have it already!
 	NSEnumerator *wormholes = [scannedWormholes objectEnumerator];
 	WormholeEntity *wh = nil;
@@ -9641,7 +9641,7 @@ else _dockTarget = NO_TARGET;
 - (void)updateWormholes
 {
 	assert(scannedWormholes != nil);
-	
+
 	if ([scannedWormholes count] == 0)
 		return;
 
@@ -9705,7 +9705,7 @@ else _dockTarget = NO_TARGET;
 			}
 		}
 	}
-	
+
 	if (legacy != nil)
 	{
 		OOSystemID dest;
@@ -9729,11 +9729,11 @@ else _dockTarget = NO_TARGET;
 - (void) addMissionDestinationMarker:(NSDictionary *)marker
 {
 	NSDictionary *validated = [self validatedMarker:marker];
-	if (validated == nil) 
+	if (validated == nil)
 	{
 		return;
 	}
-	
+
 	[missionDestinations setObject:validated forKey:[self markerKey:validated]];
 }
 
@@ -9741,7 +9741,7 @@ else _dockTarget = NO_TARGET;
 - (BOOL) removeMissionDestinationMarker:(NSDictionary *)marker
 {
 	NSDictionary *validated = [self validatedMarker:marker];
-	if (validated == nil) 
+	if (validated == nil)
 	{
 		return NO;
 	}
@@ -9762,7 +9762,7 @@ else _dockTarget = NO_TARGET;
 
 - (void) setLastShot:(OOLaserShotEntity *)shot
 {
-	lastShot = shot; 
+	lastShot = shot;
 /* No need to retain it, since the universe will be for as long as we
  * reference it. This is needed because the laser shot update routine
  * is used to correct its position relative to the ship, but isn't
@@ -9776,9 +9776,9 @@ else _dockTarget = NO_TARGET;
 {
 	NSMutableArray		*flags = nil;
 	NSString			*flagsString = nil;
-	
+
 	[super dumpSelfState];
-	
+
 	OOLog(@"dumpState.playerEntity", @"Script time: %g", script_time);
 	OOLog(@"dumpState.playerEntity", @"Script time check: %g", script_time_check);
 	OOLog(@"dumpState.playerEntity", @"Script time interval: %g", script_time_interval);
@@ -9789,7 +9789,7 @@ else _dockTarget = NO_TARGET;
 	OOLog(@"dumpState.playerEntity", @"Energy unit: %@", EnergyUnitTypeToString([self installedEnergyUnitType]));
 	OOLog(@"dumpState.playerEntity", @"Fuel leak rate: %g", fuel_leak_rate);
 	OOLog(@"dumpState.playerEntity", @"Trumble count: %lu", trumbleCount);
-	
+
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
 	ADD_FLAG_IF_SET(found_equipment);
@@ -9829,7 +9829,7 @@ else _dockTarget = NO_TARGET;
 	these ivars are unused (but may be used by categories, which they are).
 	FIXME: there must be a feature macro we can use to avoid actually building
 	this into the app, but I can't find it in docs.
-	
+
 	Mind you, we could suppress some of this by using civilized accessors.
 */
 - (BOOL) suppressClangStuff
@@ -9844,6 +9844,14 @@ else _dockTarget = NO_TARGET;
 	key_pitch_back &&
 	key_yaw_left &&
 	key_yaw_right &&
+	key_view_forward &&
+	key_view_aft &&
+	key_view_port &&
+	key_view_starboard &&
+	key_gui_screen_status &&
+	key_gui_chart_screens &&
+	key_gui_system_data &&
+	key_gui_market &&
 	key_increase_speed &&
 	key_decrease_speed &&
 	key_inject_fuel &&

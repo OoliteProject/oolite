@@ -77,7 +77,17 @@ enum GameViewKeys
 	gvNumberKey6,
 	gvNumberKey7,
 	gvNumberKey8,
-	gvNumberKey9 //57
+	gvNumberKey9, //57
+	gvNumberPadKey0 = 310,
+	gvNumberPadKey1,
+	gvNumberPadKey2,
+	gvNumberPadKey3,
+	gvNumberPadKey4,
+	gvNumberPadKey5,
+	gvNumberPadKey6,
+	gvNumberPadKey7,
+	gvNumberPadKey8,
+	gvNumberPadKey9 //319
 };
 
 enum StringInput
@@ -110,7 +120,7 @@ extern int debug;
 
 	BOOL				m_glContextInitialized;
     NSPoint				mouseDragStartPoint;
-	
+
 	BOOL				mouseWarped;
 
 	NSTimeInterval		timeIntervalAtLastClick;
@@ -126,7 +136,7 @@ extern int debug;
 
     double				squareX,squareY;
 	NSRect				bounds;
-	
+
 	float				_gamma;
 
    // Full screen sizes
@@ -137,9 +147,9 @@ extern int debug;
 	// Windowed mode
 	NSSize				currentWindowSize;
 	SDL_Surface			*surface;
-	
+
 	BOOL				showSplashScreen;
-	
+
 #if OOLITE_WINDOWS
 
 	BOOL				wasFullScreen;
