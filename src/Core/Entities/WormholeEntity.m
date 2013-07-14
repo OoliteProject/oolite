@@ -413,10 +413,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			// - MKW 2011.03.10	
 			if (!_misjump)  [ship setBounty:[ship bounty]/2 withReason:kOOLegalStatusReasonNewSystem];	// adjust legal status for new system
 			
-			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
+			// now the cargo is defined in advance, this is unnecessary
+/*			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 			{
 				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
-			}
+				}*/
 			
 			if (time_passed < 2.0)
 			{

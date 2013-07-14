@@ -261,7 +261,7 @@
 		has_scoop = 0.95;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 7;
+		likely_cargo = 125;
 		max_cargo = 750;
 		max_energy = 500;
 		max_flight_pitch = 0.4;
@@ -589,7 +589,7 @@
 		has_scoop = 0.75;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 12;
+		likely_cargo = 100;
 		max_cargo = 125;
 		max_energy = 450;
 		max_flight_pitch = 1;
@@ -700,7 +700,7 @@
 		has_scoop = yes;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 15;
+		likely_cargo = 125;
 		max_cargo = 175;
 		max_energy = 525;
 		max_flight_pitch = 1;
@@ -935,7 +935,7 @@
 		has_escape_pod = 0.95;
 		has_scoop = 0.95;
 		is_template = 1;
-		likely_cargo = 3;
+		likely_cargo = 15;
 		max_cargo = 20;
 		max_energy = 256;
 		max_flight_pitch = 1;
@@ -1083,7 +1083,7 @@
 		has_scoop = 0.95;
 		hud = "hud-small.plist";
 		is_template = 1;
-		likely_cargo = 2;
+		likely_cargo = 5;
 		max_cargo = 10;
 		max_energy = 150;
 		max_flight_pitch = 1.2;
@@ -1959,7 +1959,7 @@
 		has_shield_booster = 0.75;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 10;
+		likely_cargo = 75;
 		max_cargo = 100;
 		max_energy = 450;
 		max_flight_pitch = 0.8;

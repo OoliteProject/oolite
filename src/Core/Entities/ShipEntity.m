@@ -7316,6 +7316,41 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (NSArray *) cargoListForScripting
+{
+	NSMutableArray		*list = [NSMutableArray array];
+	
+	NSUInteger			i, commodityCount = 1+COMMODITY_ALIEN_ITEMS;
+	OOCargoQuantity		quantityInHold[commodityCount];
+	
+	for (i = 0; i < commodityCount; i++)
+	{
+		quantityInHold[i] = 0;
+	}
+	for (i = 0; i < [cargo count]; i++)
+	{
+		ShipEntity *container = [cargo objectAtIndex:i];
+		quantityInHold[[container commodityType]] += [container commodityAmount];
+	}
+	
+	for (i = 0; i < commodityCount; i++)
+	{
+		if (quantityInHold[i] > 0)
+		{
+			NSMutableDictionary	*commodity = [NSMutableDictionary dictionaryWithCapacity:4];
+			NSString *symName = [UNIVERSE symbolicNameForCommodity:i];
+			// commodity, quantity - keep consistency between .manifest and .contracts
+			[commodity setObject:CommodityTypeToString(i) forKey:@"commodity"];
+			[commodity setObject:[NSNumber numberWithUnsignedInt:quantityInHold[i]] forKey:@"quantity"];
+			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"displayName"]; 
+			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
+			[list addObject:commodity];
+		}
+	}
+
+	return [[list copy] autorelease];	// return an immutable copy
+}
+
 - (void) setCargo:(NSArray *) some_cargo
 {
 	[cargo removeAllObjects];
@@ -7340,7 +7375,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		cargo_flag = flag;
 		NSArray *newCargo;
-		unsigned num = [self maxAvailableCargoSpace];
+		unsigned num;
+		if (likely_cargo > 0)
+		{
+			num = likely_cargo * (0.5+randf());
+			if (num > [self maxAvailableCargoSpace])
+			{
+				num = [self maxAvailableCargoSpace];
+			}
+		}
+		else
+		{
+			num = [self maxAvailableCargoSpace];
+		}
 		switch (cargo_flag)
 		{
 		case CARGO_FLAG_FULL_UNIFORM:

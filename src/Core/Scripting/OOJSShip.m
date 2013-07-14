@@ -121,6 +121,7 @@ static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsva
 static JSBool ShipCheckCourseToDestination(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetSafeCourseToDestination(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipCheckScanner(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipSetCargoType(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
@@ -161,6 +162,7 @@ enum
 	kShip_beaconCode,			// beacon code, string, read/write
 	kShip_boundingBox,			// boundingBox, vector, read-only
 	kShip_bounty,				// bounty, unsigned int, read/write
+	kShip_cargoList,		// cargo on board, array of objects, read-only
 	kShip_cargoSpaceAvailable,	// free cargo space, integer, read-only
 	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
 	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
@@ -285,9 +287,10 @@ static JSPropertySpec sShipProperties[] =
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
 	{ "boundingBox",			kShip_boundingBox,			OOJS_PROP_READONLY_CB },
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
-	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
+	{ "cargoList",			kShip_cargoList,		OOJS_PROP_READONLY_CB },	
+	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },
 	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
-	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },	// Documented as PlayerShip property because it isn't reliable for NPCs.
+	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },
 	{ "commodity",				kShip_commodity,			OOJS_PROP_READONLY_CB },
 	{ "commodityAmount",		kShip_commodityAmount,		OOJS_PROP_READONLY_CB },
 	// contracts instead of cargo to distinguish them from the manifest
@@ -459,6 +462,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "setAI",					ShipSetAI,					1 },
 	{ "setBounty",				ShipSetBounty,				2 },
 	{ "setCargo",				ShipSetCargo,				1 },
+	{ "setCargoType",				ShipSetCargoType,				1 },
 	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
 	{ "setMaterials",			ShipSetMaterials,			1 },
 	{ "setScript",				ShipSetScript,				1 },
@@ -708,6 +712,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_cargoSpaceAvailable:
 			*value = INT_TO_JSVAL([entity availableCargoSpace]);
 			return YES;
+
+	  case kShip_cargoList:
+			result = [entity cargoListForScripting];
+			break;
 
 		case kShip_extraCargo:
 			return JS_NewNumberValue(context, [entity extraCargo], value);
@@ -1007,12 +1015,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity)))  return NO;
 	if (OOIsStaleEntity(entity))  return YES;
 
-	if ([[entity primaryRole] isEqualToString:@"oolite-template-cargopod"])
-	{
-		OOJSReportError(context, @"This cargo pod is read-only.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
-		return NO;
-	}
-
+	NSCAssert(![[entity primaryRole] isEqualToString:@"oolite-template-cargopod"], @"-OOJSShip: a template cargo pod has become accessible to Javascript");
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -2421,6 +2424,57 @@ static JSBool ShipSetCargo(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_EXIT
 }
 
+
+// setCargoType(cargoType : String)
+static JSBool ShipSetCargoType(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	ShipEntity				*thisEnt = nil;
+	NSString				*cargoType = nil;
+	
+	GET_THIS_SHIP(thisEnt);
+	
+	if (argc > 0)  cargoType = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(cargoType == nil))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"setCargoType", argc, OOJS_ARGV, nil, @"cargo type name");
+		return NO;
+	}
+	if ([thisEnt cargoType] != CARGO_NOT_CARGO)
+	{
+		OOJSReportBadArguments(context, @"Ship", @"setCargoType", argc, OOJS_ARGV, nil, @"Can only be used on cargo pod carriers, not cargo pods");
+		return NO;
+	}
+	BOOL ok = YES;
+	if ([cargoType isEqualToString:@"SCARCE_GOODS"])
+	{
+		[thisEnt setCargoFlag:CARGO_FLAG_FULL_SCARCE];
+	}
+	else if ([cargoType isEqualToString:@"PLENTIFUL_GOODS"])
+	{
+		[thisEnt setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
+	}
+	else if ([cargoType isEqualToString:@"MEDICAL_GOODS"])
+	{
+		[thisEnt setCargoFlag:CARGO_FLAG_FULL_MEDICAL];
+	}
+	else if ([cargoType isEqualToString:@"ILLEGAL_GOODS"])
+	{
+		[thisEnt setCargoFlag:CARGO_FLAG_FULL_CONTRABAND];
+	}
+	else if ([cargoType isEqualToString:@"PIRATE_GOODS"])
+	{
+		[thisEnt setCargoFlag:CARGO_FLAG_PIRATE];
+	}	
+	else
+	{
+		ok = NO;
+	}
+	OOJS_RETURN_BOOL(ok);
+
+	OOJS_NATIVE_EXIT
+}
 
 // setMaterials(params: dict, [shaders: dict])  // sets materials dictionary. Optional parameter sets the shaders dictionary too.
 static JSBool ShipSetMaterials(JSContext *context, uintN argc, jsval *vp)
