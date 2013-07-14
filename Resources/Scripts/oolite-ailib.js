@@ -480,6 +480,23 @@ this.AILib = function(ship)
 				});
 		}
 
+		this.conditionScannerContainsHunters = function()
+		{
+				return this.checkScannerWithPredicate(function(s) { 
+						return s.primaryRole == "hunter" || s.scanClass == "CLASS_POLICE" || (s.isStation && s.isMainStation);
+				});
+		}
+
+		this.conditionScannerContainsPirateVictims = function()
+		{
+				return this.checkScannerWithPredicate(function(s) { 
+						// is a pirate victim
+						// has some cargo on board
+						// hasn't already paid up
+						return s.isPirateVictim && s.cargoSpaceUsed > 0 && (!s.AIScript.oolite_intership || !s.AIScript.oolite_intership.cargodemandpaid);
+				});
+		}
+
 		this.conditionScannerContainsHuntableOffender = function()
 		{
 				return this.checkScannerWithPredicate(function(s) { 
@@ -709,6 +726,109 @@ this.AILib = function(ship)
 				return true;
 		}
 
+		this.conditionCargoDemandsMet = function()
+		{
+				if (!this.getParameter("oolite_flag_watchForCargo"))
+				{
+						log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" is asking if cargo demands are met but has not set 'oolite_flag_watchForCargo'");
+						return true;
+				}
+				var seen = this.getParameter("oolite_cargoDropped");
+				if (seen != null)
+				{
+						var demand = 0;
+						if (this.group)
+						{
+								if (this.group.leader && this.group.leader.AIScript.oolite_intership && this.group.leader.AIScript.oolite_intership.cargodemanded > 0)
+								{
+										demand = this.group.leader.AIScript.oolite_intership.cargodemanded;
+								}
+								else if (this.group.ships[0].AIScript.oolite_intership && this.group.ships[0].AIScript.oolite_intership.cargodemanded > 0)
+
+								{
+										demand = this.group.ships[0].AIScript.oolite_intership.cargodemanded;							
+								}
+						}
+						else
+						{
+								if (this.ship.AIScript.oolite_intership.cargodemanded > 0)
+								{
+										demand = this.ship.AIScript.oolite_intership.cargodemanded;
+								}
+						}
+						if (demand == 0)
+						{
+								return false; // no demand made, so it can't have been met
+						}
+						if (demand <= seen)
+						{
+								return true;
+						}
+				}
+				return false;
+		}
+
+		this.conditionGroupIsSeparated = function()
+		{
+				if (!this.ship.group || !this.ship.group.leader)
+				{
+						return false;
+				}
+				return (this.ship.position.distanceTo(this.ship.group.leader) > this.ship.scannerRange);
+		}
+
+		this.conditionCombatOddsGood = function()
+		{
+				// TODO: this should consider what the ships are, somehow
+				var us = 1;
+				if (this.ship.group)
+				{
+						us += this.ship.group.count - 1;
+				}
+				if (this.ship.escortGroup)
+				{
+						us += this.ship.escortGroup.count - 1;
+				}
+
+				var them = 1;
+				if (this.ship.target.group)
+				{
+						them += this.ship.target.group.count - 1;
+				}
+				if (this.ship.target.escortGroup)
+				{
+						them += this.ship.target.escortGroup.count - 1;
+				}
+				return us >= them;
+		}
+
+		this.conditionGroupHasEnoughLoot = function()
+		{
+				var used = 0;
+				var available = 0;
+				if (!this.ship.group)
+				{
+						used = this.ship.cargoSpaceUsed;
+						available = this.ship.cargoSpaceAvailable;
+				}
+				else
+				{
+						for (var i = 0; i < this.ship.group.ships.length; i++)
+						{
+								used += this.ship.group.ships[i].cargoSpaceUsed;
+								available += this.ship.group.ships[i].cargoSpaceAvailable;
+						}
+				}
+				if (available < used || available == 0)
+				{
+						/* Over half-full. This will do for now. TODO: cutting
+						 * losses if group is taking damage, losing ships, running
+						 * low on consumables, etc. */
+						return true;
+				}
+				return false;
+		}
+
 		/* ****************** Behaviour functions ************** */
 
 		/* Behaviours. Behaviours are effectively a state definition,
@@ -806,6 +926,7 @@ this.AILib = function(ship)
 				this.responsesAddStandard(handlers);
 				handlers.shipScoopedOther = function(other)
 				{
+						this.setParameter("oolite_cargoDropped",null);
 						this.reconsiderNow();
 				}
 				this.setUpHandlers(handlers);
@@ -1142,9 +1263,72 @@ this.AILib = function(ship)
 		this.behaviourPayOffPirates = function()
 		{
 				this.ship.dumpCargo(this.ship.AIScript.oolite_intership.cargodemand);
+				this.communicate("oolite_agreeingToDumpCargo");
 				delete this.ship.AIScript.oolite_intership.cargodemand;
 				this.ship.AIScript.oolite_intership.cargodemandpaid = true;
 				this.behaviourFleeCombat();
+		}
+
+		this.behaviourLeaveVicinityOfTarget = function()
+		{
+				if (!this.ship.target)
+				{
+						this.reconsiderNow();
+						return;
+				}
+				this.ship.destination = this.ship.target.position;
+				this.ship.desiredRange = 27500;
+				this.ship.desiredSpeed = this.ship.maxSpeed;
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.setUpHandlers(handlers);
+				this.ship.performFlyToRangeFromDestination();
+		}
+
+		this.behaviourRobTarget = function()
+		{
+				var demand = null;
+				if (this.ship.group && this.ship.group.leader)
+				{
+						if (this.ship.group.leader.AIScript.oolite_intership && this.ship.group.leader.AIScript.oolite_intership.cargodemanded)
+						{
+								demand = this.ship.group.leader.AIScript.oolite_intership.cargodemanded;
+						}
+				}
+				else
+				{
+						if (this.ship.AIScript.oolite_intership.cargodemanded)
+						{
+								demand = this.ship.AIScript.oolite_intership.cargodemanded;
+						}
+				}
+				if (demand == null)
+				{
+						var hascargo = this.ship.target.cargoSpaceUsed;
+						var discount = hascargo/10; // if we blow them up we likely won't get more than this anyway
+						demand = Math.ceil(discount); // but round it up...
+
+						/* Record our demand with the group leader */
+						if (this.ship.group && this.ship.group.leader)
+						{
+								this.ship.group.leader.AIScript.oolite_intership.cargodemanded = demand;
+						}
+						else
+						{
+								this.ship.AIScript.oolite_intership.cargodemanded = demand;
+						}
+						/* Inform the victim of the demand, if possible */
+						if (this.ship.target.AIScript.oolite_intership)
+						{
+								this.ship.target.AIScript.oolite_intership.cargodemand = demand;
+						}
+						this.communicate("oolite_piracyAlert",this.ship.target,demand);
+						this.ship.requestHelpFromGroup();
+				}
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.setUpHandlers(handlers);
+				this.ship.performAttack();
 		}
 
 		this.behaviourReconsider = function()
@@ -1375,6 +1559,20 @@ this.AILib = function(ship)
 				}
 		}
 
+		this.configurationSetDestinationToGroupLeader = function()
+		{
+				if (!this.ship.group || !this.ship.group.leader)
+				{
+						this.ship.destination = this.ship.position;
+				}
+				else
+				{
+						this.ship.destination = this.ship.group.leader.position;
+				}
+				this.ship.desiredRange = 2000;
+				this.ship.desiredSpeed = this.ship.maxSpeed;
+		}
+
 		this.configurationSetDestinationFromPatrolRoute = function()
 		{
 				this.ship.destination = this.getParameter("oolite_patrolRoute");
@@ -1532,6 +1730,14 @@ this.AILib = function(ship)
 		}
 
 
+		this.configurationAppointGroupLeader = function()
+		{
+				if (this.ship.group && !this.ship.group.leader)
+				{
+						this.ship.group.leader = this.ship.group.ships[0];
+				}
+		}
+
 		/* ****************** Response definition functions ************** */
 
 		/* Standard state-machine responses. These set up a set of standard
@@ -1651,6 +1857,19 @@ this.AILib = function(ship)
 										this.ship.target = enemy;
 										this.reconsiderNow();
 								}
+						}
+				}
+				handlers.cargoDumpedNearby = function(cargo,ship)
+				{
+						if (this.getParameter("oolite_flag_watchForCargo"))
+						{
+								var previously = this.getParameter("oolite_cargoDropped");
+								if (previously == null)
+								{
+										previously = 0;
+								}
+								previously++;
+								this.setParameter("oolite_cargoDropped",previously);
 						}
 				}
 				handlers.approachingPlanetSurface = function()

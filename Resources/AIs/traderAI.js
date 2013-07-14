@@ -39,7 +39,8 @@ this.aiStarted = function() {
 		 * before 1.79 */
 		ai.setCommunication("oolite_selectedStation","Heading for [p1]");
 		ai.setCommunication("oolite_selectedWitchspaceDestination","Prepare for witchspace jump to [p1]");
-		ai.setCommunication("oolite_engageWitchspaceDrive","Commencing witchspace countdown");
+		ai.setCommunication("oolite_agreeingToDumpCargo","Take our cargo but please let us go!");
+
 
 		ai.setPriorities([
 				{
