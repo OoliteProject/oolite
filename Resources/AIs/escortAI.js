@@ -105,7 +105,8 @@ this.aiStarted = function() {
 						behaviour: ai.behaviourEnterWitchspace,
 						reconsider: 20
 				},
-				/* And we're stuck here */
+				/* And we're stuck here, but something to escort will probably
+				 * show up at the witchpoint sooner or later */
 				{
 						configuration: ai.configurationSetDestinationToWitchpoint,
 						behaviour: ai.approachDestination,

@@ -426,7 +426,6 @@ this.systemWillRepopulate = function()
 
 this.interstellarSpaceWillPopulate = function() 
 {
-		log(this.name,"Interstellar populator");
 		system.setPopulator("oolite-interstellar-thargoids",
 												{
 														priority: 10,
@@ -458,7 +457,6 @@ this.interstellarSpaceWillRepopulate = function()
 
 this.novaSystemWillPopulate = function()
 {
-		log(this.name,"Nova populator");
 		// just burnt-out rubble
 		system.setPopulator("oolite-nova-cinders",
 												{

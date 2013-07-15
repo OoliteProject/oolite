@@ -50,7 +50,7 @@ this.aiStarted = function() {
 						truebranch: [
 								{
 										condition: ai.conditionInCombat,
-										configuration: ai.configurationAcquireCombatTarget,
+										configuration: ai.configurationAcquireHostileCombatTarget,
 										behaviour: ai.behaviourRepelCurrentTarget,
 										reconsider: 5
 								}
@@ -66,10 +66,23 @@ this.aiStarted = function() {
 				},
 				{
 						preconfiguration: ai.configurationCheckScanner,
-						condition: ai.conditionScannerContainsSalvage,
-						configuration: ai.configurationAcquireScannedTarget,
-						behaviour: ai.behaviourCollectSalvage,
-						reconsider: 20
+						condition: ai.conditionScannerContainsSalvageForGroup,
+						truebranch: [
+								{
+										condition: ai.conditionScannerContainsSalvageForMe,
+										configuration: ai.configurationAcquireScannedTarget,
+										behaviour: ai.behaviourCollectSalvage,
+										reconsider: 20
+								},
+								// if can't scoop, hang around waiting for the others,
+								// unless the entire group has enough cargo
+								{
+										notcondition: ai.conditionGroupHasEnoughLoot,
+										configuration: ai.configurationAcquireScannedTarget,
+										behaviour: ai.behaviourGuardTarget,
+										reconsider: 15
+								}
+						]
 				},
 				/* Stay out of the way of hunters */
 				{
@@ -91,21 +104,62 @@ this.aiStarted = function() {
 						/* Find a station to dock at */
 						truebranch: [
 								/* TODO */
+								{
+										condition: ai.conditionIsGroupLeader,
+										truebranch: [
+												{
+														condition: ai.conditionFriendlyStationNearby,
+														configuration: ai.configurationSetNearbyFriendlyStationForDocking,
+														behaviour: ai.behaviourDockWithStation,
+														reconsider: 30
+												},
+												{
+														condition: ai.conditionFriendlyStationExists,
+														configuration: ai.configurationSetDestinationToNearestFriendlyStation,
+														behaviour: ai.behaviourApproachDestination,
+														reconsider: 30
+												},
+												{
+														condition: ai.conditionCanWitchspaceOut,
+														configuration: ai.configurationSelectWitchspaceDestination,
+														behaviour: ai.behaviourEnterWitchspace,
+														reconsider: 20
+												}
+										]
+								},
+								/* Once the group leader has docked, another one gets
+								 * appointed, and they can decide what to do next */
+								{
+										behaviour: ai.behaviourFollowGroupLeader,
+										reconsider: 15
+								}
 
 						],
 						/* Look for more loot */
 						falsebranch: [
 								{
+										preconfiguration: ai.configurationForgetCargoDemand,
 										condition: ai.conditionScannerContainsPirateVictims,
 										configuration: ai.configurationAcquireScannedTarget,
 										truebranch: [
-												condition: ai.conditionCombatOddsGood,
-												behaviour: ai.behaviourRobTarget,
-												reconsider: 5
+												{
+														condition: ai.conditionCombatOddsGood,
+														behaviour: ai.behaviourRobTarget,
+														reconsider: 5
+												}
 										]
 								},
-								/* TODO: move to a position on one of the space lanes, preferring lane 1 */
-
+								/* move to a position on one of the space lanes, preferring lane 1 */
+								{
+										condition: ai.conditionIsGroupLeader,
+										configuration: ai.configurationSetDestinationToPirateLurk,
+										behaviour: ai.behaviourApproachDestination,
+										reconsider: 30
+								},
+								{
+										behaviour: ai.behaviourFollowGroupLeader,
+										reconsider: 15
+								}
 						]
 				},
 				{
