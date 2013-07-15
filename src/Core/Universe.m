@@ -1266,18 +1266,18 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	NSEnumerator *enumerator = [[blocks sortedArrayUsingFunction:populatorPrioritySort context:nil] objectEnumerator];
 	NSDictionary *populator;
 	HPVector location;
-	int locationSeed, groupCount, rndvalue;
-	unsigned i;
+	unsigned i, locationSeed, groupCount, rndvalue;
 	RANROTSeed rndcache, rndlocal;
 	NSString *locationCode;
 	OOJSPopulatorDefinition *pdef;
-	while ((populator = [enumerator nextObject])) {
+	while ((populator = [enumerator nextObject]))
+	{
 		// for now, the "deterministic" setting does nothing
 
-		locationSeed = [populator oo_intForKey:@"locationSeed" defaultValue:0];
-		groupCount = [populator oo_intForKey:@"groupCount" defaultValue:1];
+		locationSeed = [populator oo_unsignedIntForKey:@"locationSeed" defaultValue:0];
+		groupCount = [populator oo_unsignedIntForKey:@"groupCount" defaultValue:1];
 		
-		for (i=0;i<groupCount;i++)
+		for (i = 0; i < groupCount; i++)
 		{
 			locationCode = [populator oo_stringForKey:@"location" defaultValue:@"COORDINATES"];
 			if ([locationCode isEqualToString:@"COORDINATES"])
@@ -1286,7 +1286,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			}
 			else
 			{
-				if(locationSeed != 0)
+				if (locationSeed != 0)
 				{
 					rndcache = RANROTGetFullSeed();
 					// different place for each system
