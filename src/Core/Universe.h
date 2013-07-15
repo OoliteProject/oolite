@@ -352,6 +352,7 @@ enum
 - (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 - (NSDictionary *) getPopulatorSettings;
 - (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
+- (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 - (void) setLighting;
 - (void) forceLightSwitch;
 - (void) setMainLightPosition: (Vector) sunPos;

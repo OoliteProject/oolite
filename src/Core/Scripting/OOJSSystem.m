@@ -69,6 +69,7 @@ static JSBool SystemShipsWithRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemEntitiesWithScanClass(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemFilteredEntities(JSContext *context, uintN argc, jsval *vp);
 
+static JSBool SystemLocationFromCode(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddShips(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddGroup(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddShipsToRoute(JSContext *context, uintN argc, jsval *vp);
@@ -183,6 +184,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "countShipsWithRole",				SystemCountShipsWithRole,			1 },
 	{ "entitiesWithScanClass",			SystemEntitiesWithScanClass,		1 },
 	{ "filteredEntities",				SystemFilteredEntities,				2 },
+	{ "locationFromCode",				SystemLocationFromCode,				1 },
 	// scrambledPseudoRandomNumber is implemented in oolite-global-prefix.js
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,				1 },
 	{ "setPopulator",				SystemSetPopulator,				2 },
@@ -858,6 +860,39 @@ static JSBool SystemFilteredEntities(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_RETURN_OBJECT(result);
 	
+	OOJS_NATIVE_EXIT
+}
+
+
+// locationFromCode(populator_named_region : String)
+static JSBool SystemLocationFromCode(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString			*code = nil;
+	if (argc > 0)  
+	{
+		code = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
+	if (EXPECT_NOT(code == nil))
+	{
+		OOJSReportBadArguments(context, @"System", @"locationFromCode", argc, OOJS_ARGV, nil, @"location code");
+		return NO;
+	}
+	OOSunEntity *sun = [UNIVERSE sun];
+	OOPlanetEntity *planet = [UNIVERSE planet];
+	HPVector position = kZeroHPVector;
+	if (sun == nil || planet == nil)
+	{
+		position = [UNIVERSE locationByCode:@"WITCHPOINT" withSun:nil andPlanet:nil];
+	}
+	else
+	{
+		position = [UNIVERSE locationByCode:code withSun:sun andPlanet:planet];
+	}
+
+	OOJS_RETURN_HPVECTOR(position);
+
 	OOJS_NATIVE_EXIT
 }
 

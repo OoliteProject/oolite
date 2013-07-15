@@ -180,7 +180,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) resetSystemDataCache;
 
 - (void) populateSpaceFromActiveWormholes;
-- (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 
 - (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary;
 
