@@ -27,4 +27,4 @@ DebugOXP/requires.plist
 AddOns/
 
 # Debug output
-core
+/core
