@@ -437,6 +437,7 @@ enum
 - (int) legalStatusOfCommodity:(NSString *)commodity;
 - (int) legalStatusOfManifest:(NSArray *)manifest;
 
+- (ShipEntity *) reifyCargoPod:(ShipEntity *)cargoObj;
 - (ShipEntity *) cargoPodFromTemplate:(ShipEntity *)cargoObj;
 - (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce;
 - (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many;

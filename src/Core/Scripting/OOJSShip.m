@@ -1022,7 +1022,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity)))  return NO;
 	if (OOIsStaleEntity(entity))  return YES;
 
-	NSCAssert(![[entity primaryRole] isEqualToString:@"oolite-template-cargopod"], @"-OOJSShip: a template cargo pod has become accessible to Javascript");
+	NSCAssert(![entity isTemplateCargoPod], @"-OOJSShip: a template cargo pod has become accessible to Javascript");
 	
 	switch (JSID_TO_INT(propID))
 	{

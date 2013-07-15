@@ -786,6 +786,7 @@ typedef enum
 
 - (int) legalStatus;
 
+- (BOOL) isTemplateCargoPod;
 - (void) setUpCargoType:(NSString *)cargoString;
 - (void) setCommodity:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;
 - (void) setCommodityForPod:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;

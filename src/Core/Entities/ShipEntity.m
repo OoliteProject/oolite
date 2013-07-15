@@ -855,6 +855,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (BOOL) isTemplateCargoPod
+{
+	return [[self primaryRole] isEqualToString:@"oolite-template-cargopod"];
+}
+
+
 - (void) setUpCargoType:(NSString *) cargoString
 {
 	cargo_type = StringToCargoType(cargoString);
@@ -7322,6 +7328,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+/* Note: this array probably contains some template cargo pods. Do not
+ * pass it to Javascript without reifying them first. */
 - (NSMutableArray*) cargo
 {
 	return cargo;
@@ -7879,57 +7887,46 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	[cargo removeAllObjects];   // dispense with it!
 	unsigned limit = 15;
 	//  Throw out cargo
-	if (jetsam)
-	{
-		NSUInteger n_jetsam = [jetsam count];
+	NSUInteger n_jetsam = [jetsam count];
 					
-		for (i = 0; i < n_jetsam; i++)
+	for (i = 0; i < n_jetsam; i++)
+	{
+		if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
 		{
-			if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
-			{
-				limit--;
-				ShipEntity* cargoObj = [jetsam objectAtIndex:i];
-				ShipEntity* container = nil;
-				if ([[cargoObj primaryRole] isEqualToString:@"oolite-template-cargopod"])
-				{
-					container = [UNIVERSE cargoPodFromTemplate:cargoObj];
-				}
-				else
-				{
-					container = cargoObj;
-				}
-				HPVector  rpos = xposition;
-				Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
-				rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
-				rpos.x += (ranrot_rand() % 7) - 3;
-				rpos.y += (ranrot_rand() % 7) - 3;
-				rpos.z += (ranrot_rand() % 7) - 3;
-				[container setPosition:rpos];
-				v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-				v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-				v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-				[container setVelocity:v];
-				quaternion_set_random(&q);
-				[container setOrientation:q];
+			limit--;
+			ShipEntity* cargoObj = [jetsam objectAtIndex:i];
+			ShipEntity* container = [UNIVERSE reifyCargoPod:cargoObj];
+			HPVector  rpos = xposition;
+			Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
+			rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
+			rpos.x += (ranrot_rand() % 7) - 3;
+			rpos.y += (ranrot_rand() % 7) - 3;
+			rpos.z += (ranrot_rand() % 7) - 3;
+			[container setPosition:rpos];
+			v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+			v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+			v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
+			[container setVelocity:v];
+			quaternion_set_random(&q);
+			[container setOrientation:q];
 							
-				[container setTemperature:[self randomEjectaTemperature]];
-				[container setScanClass: CLASS_CARGO];
-				[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
+			[container setTemperature:[self randomEjectaTemperature]];
+			[container setScanClass: CLASS_CARGO];
+			[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
 
-				AI *containerAI = [container getAI];
-				if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
-				{
-					[containerAI exitStateMachineWithMessage:nil];
-					[container setThrust:[container maxThrust]]; // restore old value. Was set to zero on previous scooping.
-					[container setOwner:container];
-				}
-			}
-			if (limit <= 0)
+			AI *containerAI = [container getAI];
+			if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
 			{
-				break; // even really big ships won't have too much cargo survive an explosion
+				[containerAI exitStateMachineWithMessage:nil];
+				[container setThrust:[container maxThrust]]; // restore old value. Was set to zero on previous scooping.
+				[container setOwner:container];
 			}
 		}
-	} // end jetsam
+		if (limit <= 0)
+		{
+			break; // even really big ships won't have too much cargo survive an explosion
+		}
+	}
 
 }
 
@@ -10958,16 +10955,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (!cargoObj)
 		return 0;
 
-	ShipEntity* jetto;
-	if ([[cargoObj primaryRole] isEqualToString:@"oolite-template-cargopod"])
-	{
-		jetto = [UNIVERSE cargoPodFromTemplate:cargoObj];
-	}
-	else
-	{
-		jetto = cargoObj;
-	}
-
+	ShipEntity* jetto = [UNIVERSE reifyCargoPod:cargoObj];
 
 	int		result = [jetto cargoType];
 	AI		*jettoAI = nil;
