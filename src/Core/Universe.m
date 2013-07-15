@@ -104,8 +104,6 @@ enum
 
 #define MAX_NUMBER_OF_ENTITIES				200
 #define STANDARD_STATION_ROLL				0.4
-#define WOLFPACK_SHIPS_DISTANCE				0.1
-#define FIXED_ASTEROID_FIELDS				0
 // currently twice scanner radius
 #define LANE_WIDTH			51200.0
 
