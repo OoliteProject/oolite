@@ -47,10 +47,10 @@ this.AILib = function(ship)
 		var parameters = {};
 		var communications = {};
 
-		/* Private utility functions */
+		/* Private utility functions. Do not call these from external code */
 
 		/* Considers a priority list, potentially recursively */
-		function _reconsiderList(priorities) {
+		this._reconsiderList = function(priorities) {
 				var l = priorities.length;
 				for (var i = 0; i < l; i++)
 				{
@@ -82,14 +82,14 @@ this.AILib = function(ship)
 								{
 										if (priority.reconsider) 
 										{
-												_resetReconsideration.call(this,priority.reconsider);
+												this._resetReconsideration.call(this,priority.reconsider);
 										}
 										return priority.behaviour;
 								}
 								// otherwise this is what we might be doing
 								if (priority.truebranch)
 								{
-										var branch = _reconsiderList.call(this,priority.truebranch);
+										var branch = this._reconsiderList.call(this,priority.truebranch);
 										if (branch != null)
 										{
 												return branch;
@@ -101,7 +101,7 @@ this.AILib = function(ship)
 						{
 								if (priority.falsebranch)
 								{
-										var branch = _reconsiderList.call(this,priority.falsebranch);
+										var branch = this._reconsiderList.call(this,priority.falsebranch);
 										if (branch != null)
 										{
 												return branch;
@@ -114,36 +114,34 @@ this.AILib = function(ship)
 		};
 
 		/* Only call this from the timer to avoid loops */
-		function _reconsider() {
-				if (reconsiderationTimer != null)
-				{
-						reconsiderationTimer.stop();
-						reconsiderationTimer = null;
-				}
+		this._reconsider = function() {
 				if (!this.ship || !this.ship.isValid || !this.ship.isInSpace)
 				{
 						return;
 				}
-				var newBehaviour = _reconsiderList.call(this,priorityList);
+				var newBehaviour = this._reconsiderList.call(this,priorityList);
 				if (newBehaviour == null) {
 						log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" had all priorities fail. All priority based AIs should end with an unconditional entry.");
 						return false;
 				}
 
+				if (this.getParameter("oolite_flag_behaviourLogging"))
+				{
+						log(this.ship.name,newBehaviour);
+				}
 				newBehaviour.call(this);
 				return true;
 		};
 
 
 		/* Resets the reconsideration timer. */
-		function _resetReconsideration(delay)
+		this._resetReconsideration = function(delay)
 		{
 				if (reconsiderationTimer != null)
 				{
 						reconsiderationTimer.stop();
-						reconsiderationTimer = null;
 				}
-				reconsiderationTimer = new Timer(this, _reconsider.bind(this), delay);
+				reconsiderationTimer = new Timer(this.ship.AIScript, this._reconsider.bind(this), delay);
 		};
 
 
@@ -182,7 +180,7 @@ this.AILib = function(ship)
 		/* Requests reconsideration of behaviour ahead of schedule. */
 		this.reconsiderNow = function() 
 		{
-				_resetReconsideration.call(this,0.25);
+				this._resetReconsideration.call(this,0.25);
 		}
 
 		/* Stops timer (for script shutdown) */
@@ -354,15 +352,15 @@ this.AILib = function(ship)
 								this.setParameter("oolite_cascadeDetected",null);
 						}
 				}
-				if (!this.conditionInCombat()) 
-				{
+//				if (!this.conditionInCombat()) 
+//				{
 						if (this.ship.energy == this.ship.maxEnergy)
 						{
 								// forget previous defeats
 								this.setParameter("oolite_lastFleeing",null);
 						}
 						return false;
-				}
+//				}
 				var lastThreat = this.getParameter("oolite_lastFleeing");
 				if (lastThreat != null && this.ship.position.distanceTo(lastThreat) < 25600)
 				{
@@ -876,13 +874,20 @@ this.AILib = function(ship)
 				}
 
 				var them = 1;
-				if (this.ship.target.group)
+				if (!this.ship.target)
 				{
-						them += this.ship.target.group.count - 1;
+						return false;
 				}
-				if (this.ship.target.escortGroup)
+				else
 				{
-						them += this.ship.target.escortGroup.count - 1;
+						if (this.ship.target.group)
+						{
+								them += this.ship.target.group.count - 1;
+						}
+						if (this.ship.target.escortGroup)
+						{
+								them += this.ship.target.escortGroup.count - 1;
+						}
 				}
 				return us >= them;
 		}
@@ -1009,7 +1014,6 @@ this.AILib = function(ship)
 								}
 						}
 						this.ship.target = null;
-						this.reconsiderNow();
 				}
 				else
 				{
@@ -1427,13 +1431,20 @@ this.AILib = function(ship)
 				if (demand == null)
 				{
 						var hascargo = this.ship.target.cargoSpaceUsed;
-						// blowing them up probably gets 10%, so how much we feel
+						// blowing them up probably gets ~10%, so how much we feel
 						// confident in demanding depends on how likely patrols
 						// are to come along and interfere.
 						demand = (hascargo/20)*(8-system.info.government)*(1+Math.random()); 
 						// between 5% and 80% of cargo
 						demand = Math.ceil(demand); // round it up so there's always at least 1
+						demand = 2+(demand%10); //
+/* 
+// since cargo dumping detection uses checkScanner, this doesn't work
+// for any substantial volume of cargo. Consider reinstating if
+// increasing the max-count on checkScanner doesn't break things
+
 						var maxdemand = 0;
+						var gc = 1;
 						if (!this.ship.group)
 						{
 								if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
@@ -1443,12 +1454,13 @@ this.AILib = function(ship)
 						}
 						else
 						{
-								for (var i = 0; i < this.ship.group.ships.length ; i++)
+								gc = this.ship.group.ships.length;
+								for (var i = 0; i < gc ; i++)
 								{
 										var ship = this.ship.group.ships[i];
-										if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+										if (ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
 										{
-												maxdemand += this.ship.cargoSpaceAvailable;
+												maxdemand += ship.cargoSpaceAvailable;
 										}
 								}
 						}
@@ -1456,6 +1468,17 @@ this.AILib = function(ship)
 						{
 								demand = maxdemand; // don't ask for more than we can carry
 						}
+						while (demand > gc * 5)
+						{
+								// asking for more than 5TC each probably means there
+								// won't be time to pick it all up anyway
+								demand = Math.ceil(demand/2);
+						}
+						if (demand < 2)
+						{
+								demand = 2;
+						}
+*/
 
 						/* Record our demand with the group leader */
 						if (this.ship.group && this.ship.group.leader)
@@ -2055,7 +2078,7 @@ this.AILib = function(ship)
 
 				handlers.shipAttackedWithMissile = function(missile,whom)
 				{
-						if (!this.ship.hasHostileTarget && this.ship.getParameter("oolite_flag_sendsDistressCalls"))
+						if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
 						{
 								this.ship.broadcastDistressMessage();
 						}
@@ -2083,7 +2106,7 @@ this.AILib = function(ship)
 						if (whom.target != this.ship && whom != player.ship)
 						{
 								// was accidental
-								if (this.allied(whom,this))
+								if (this.allied(whom,this.ship))
 								{
 										this.communicate("oolite_friendlyFire",whom.displayName);
 										// ignore it

@@ -30,7 +30,7 @@ this.name = "Oolite Pirate AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+		this.ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
 		ai.setParameter("oolite_flag_watchForCargo",true);
 		/* This communication is necessary but needs more variety and moving to descriptions.plist so it can be translated */
@@ -88,7 +88,7 @@ this.aiStarted = function() {
 				{
 						condition: ai.conditionScannerContainsHunters,
 						configuration: ai.configurationAcquireScannedTarget,
-						behaviour: ai.behaviourVicinityOfTarget,
+						behaviour: ai.behaviourLeaveVicinityOfTarget,
 						reconsider: 20
 				},
 				/* Regroup if necessary */

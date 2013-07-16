@@ -498,5 +498,6 @@ this._addPirates = function(pos)
 		for (var i=0;i<pg.ships.length;i++)
 		{
 				pg.ships[i].setBounty(20+system.government+size+Math.floor(Math.random()*8),"setup actions");
+//				pg.ships[i].switchAI("pirateAI.js"); // testing only!
 		}
 }
