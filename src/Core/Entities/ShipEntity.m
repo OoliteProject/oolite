@@ -4797,7 +4797,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// if we're right in their gunsights, dodge!
 		// need to dodge sooner if in aft sights
-		if (aspect > 0.99999 || aspect < -0.999) 
+		if ((aspect > 0.99999 && [target weaponTypeForFacing:WEAPON_FACING_FORWARD] != WEAPON_NONE) || (aspect < -0.999 && [target weaponTypeForFacing:WEAPON_FACING_AFT] != WEAPON_NONE)) 
 		{
 			frustration = 0.0;
 			behaviour = BEHAVIOUR_EVASIVE_ACTION;
