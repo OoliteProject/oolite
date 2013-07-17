@@ -43,7 +43,6 @@ this.AILib = function(ship)
 		this.ship.AIScript.oolite_priorityai = this;
 		var activeHandlers = [];
 		var priorityList = null;
-		var reconsiderationTimer = null;
 		var parameters = {};
 		var communications = {};
 
@@ -55,6 +54,17 @@ this.AILib = function(ship)
 				for (var i = 0; i < l; i++)
 				{
 						var priority = priorities[i];
+						if (this.getParameter("oolite_flag_behaviourLogging"))
+						{
+								if (priority.label) 
+								{
+										log(this.ship.name,"Considering: "+priority.label);
+								}
+								else
+								{
+										log(this.ship.name,"Considering: entry "+i);
+								}
+						}
 						// always call the preconfiguration function at this point
 						// to set up condition parameters
 						if (priority.preconfiguration)
@@ -62,16 +72,23 @@ this.AILib = function(ship)
 								priority.preconfiguration.call(this);
 						}
 						// allow inverted conditions
+						var condmet = true;
 						if (priority.notcondition)
 						{
-								priority.condition = function()
-								{
-										return !priority.notcondition.call(this);
-								}
+								condmet = !priority.notcondition.call(this);
+						}
+						else if (priority.condition)
+						{
+								condmet = priority.condition.call(this);
 						}
 						// absent condition is always true
-						if (!priority.condition || priority.condition.call(this))
+						if (condmet)
 						{
+								if (this.getParameter("oolite_flag_behaviourLogging"))
+								{
+										log(this.ship.name,"Conditions met");
+								}
+
 								// always call the configuration function at this point
 								if (priority.configuration)
 								{
@@ -80,6 +97,11 @@ this.AILib = function(ship)
 								// this is what we're doing
 								if (priority.behaviour) 
 								{
+										if (this.getParameter("oolite_flag_behaviourLogging"))
+										{
+												log(this.ship.name,"Executing behaviour");
+										}
+
 										if (priority.reconsider) 
 										{
 												this._resetReconsideration.call(this,priority.reconsider);
@@ -89,6 +111,11 @@ this.AILib = function(ship)
 								// otherwise this is what we might be doing
 								if (priority.truebranch)
 								{
+										if (this.getParameter("oolite_flag_behaviourLogging"))
+										{
+												log(this.ship.name,"Entering truebranch");
+										}
+
 										var branch = this._reconsiderList.call(this,priority.truebranch);
 										if (branch != null)
 										{
@@ -101,6 +128,11 @@ this.AILib = function(ship)
 						{
 								if (priority.falsebranch)
 								{
+										if (this.getParameter("oolite_flag_behaviourLogging"))
+										{
+												log(this.ship.name,"Entering falsebranch");
+										}
+
 										var branch = this._reconsiderList.call(this,priority.falsebranch);
 										if (branch != null)
 										{
@@ -110,6 +142,11 @@ this.AILib = function(ship)
 								}
 						}
 				}
+				if (this.getParameter("oolite_flag_behaviourLogging"))
+				{
+						log(this.ship.name,"Exiting branch");
+				}
+
 				return null; // nothing in the list is usable, so return
 		};
 
@@ -137,11 +174,11 @@ this.AILib = function(ship)
 		/* Resets the reconsideration timer. */
 		this._resetReconsideration = function(delay)
 		{
-				if (reconsiderationTimer != null)
+				if (this.ship.AIScript.oolite_reconsiderationTimer != null)
 				{
-						reconsiderationTimer.stop();
+						this.ship.AIScript.oolite_reconsiderationTimer.stop();
 				}
-				reconsiderationTimer = new Timer(this.ship.AIScript, this._reconsider.bind(this), delay);
+				this.ship.AIScript.oolite_reconsiderationTimer = new Timer(this.ship.AIScript, this._reconsider.bind(this), delay);
 		};
 
 
@@ -186,10 +223,10 @@ this.AILib = function(ship)
 		/* Stops timer (for script shutdown) */
 		this.stopTimer = function() 
 		{
-				if (reconsiderationTimer != null)
+				if (this.ship.AIScript.oolite_reconsiderationTimer != null)
 				{
-						reconsiderationTimer.stop();
-						reconsiderationTimer = null;
+						this.ship.AIScript.oolite_reconsiderationTimer.stop();
+						this.ship.AIScript.oolite_reconsiderationTimer = null;
 				}
 		}
 		
@@ -203,21 +240,12 @@ this.AILib = function(ship)
 						delete this.ship.AIScript[activeHandlers[i]];
 				}
 
-				handlers.entityDestroyed = function()
-				{
-						if (reconsiderationTimer != null)
-						{
-								reconsiderationTimer.stop();
-								reconsiderationTimer = null;
-						}
-				};
-
 				handlers.shipDied = function()
 				{
-						if (reconsiderationTimer != null)
+						if (this.ship.AIScript.oolite_reconsiderationTimer != null)
 						{
-								reconsiderationTimer.stop();
-								reconsiderationTimer = null;
+								this.ship.AIScript.oolite_reconsiderationTimer.stop();
+								this.ship.AIScript.oolite_reconsiderationTimer = null;
 						}
 				};
 
@@ -352,15 +380,15 @@ this.AILib = function(ship)
 								this.setParameter("oolite_cascadeDetected",null);
 						}
 				}
-//				if (!this.conditionInCombat()) 
-//				{
-						if (this.ship.energy == this.ship.maxEnergy)
-						{
-								// forget previous defeats
-								this.setParameter("oolite_lastFleeing",null);
-						}
+				if (this.ship.energy == this.ship.maxEnergy)
+				{
+						// forget previous defeats
+						this.setParameter("oolite_lastFleeing",null);
+				}
+				if (!this.conditionInCombat()) 
+				{
 						return false;
-//				}
+				}
 				var lastThreat = this.getParameter("oolite_lastFleeing");
 				if (lastThreat != null && this.ship.position.distanceTo(lastThreat) < 25600)
 				{
@@ -415,7 +443,7 @@ this.AILib = function(ship)
 				{
 						for (var i = 0 ; i < this.ship.group.length ; i++)
 						{
-								if (this.ship.group[i].hasHostileTarget)
+								if (this.ship.group.ships[i].hasHostileTarget)
 								{
 										return true;
 								}
@@ -425,7 +453,7 @@ this.AILib = function(ship)
 				{
 						for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
 						{
-								if (this.ship.escortGroup[i].hasHostileTarget)
+								if (this.ship.escortGroup.ships[i].hasHostileTarget)
 								{
 										return true;
 								}
@@ -435,6 +463,47 @@ this.AILib = function(ship)
 				delete this.ship.AIScript.oolite_intership.cargodemandpaid;
 				return false;
 		}
+
+		/* Ships being attacked are firing back */
+		this.conditionInCombatWithHostiles = function()
+		{
+				if (this.ship.hasHostileTarget && this.isAggressive(this.ship.target))
+				{
+						return true;
+				}
+				var dts = this.ship.defenseTargets;
+				for (var i=0; i < dts.length; i++)
+				{
+						if (this.isAggressive(dts[i]) && dts[i].position.squaredDistanceTo(this.ship) < this.ship.scannerRange * this.ship.scannerRange)
+						{
+								return true;
+						}
+				}
+				if (this.ship.group != null)
+				{
+						for (var i = 0 ; i < this.ship.group.length ; i++)
+						{
+								if (this.ship.group.ships[i].hasHostileTarget && this.isAggressive(this.ship.group.ships[i].target))
+								{
+										return true;
+								}
+						}
+				}
+				if (this.ship.escortGroup != null)
+				{
+						for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
+						{
+								if (this.ship.escortGroup.ships[i].hasHostileTarget && this.isAggressive(this.ship.escortGroup.ships[i].target))
+								{
+										return true;
+								}
+						}
+				}
+				
+				delete this.ship.AIScript.oolite_intership.cargodemandpaid;
+				return false;
+		}
+
 
 		this.conditionHasMothership = function()
 		{
@@ -560,9 +629,10 @@ this.AILib = function(ship)
 
 		this.conditionScannerContainsSalvageForGroup = function()
 		{
+				var maxspeed = 0;
 				if (this.conditionCanScoopCargo())
 				{
-						var maxspeed = this.ship.maxSpeed;
+						maxspeed = this.ship.maxSpeed;
 				}
 				if (this.ship.group)
 				{
@@ -818,24 +888,40 @@ this.AILib = function(ship)
 				var seen = this.getParameter("oolite_cargoDropped");
 				if (seen != null)
 				{
+						var recorder = null;
 						var demand = 0;
 						if (this.ship.group)
 						{
 								if (this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership && this.ship.group.leader.AIScript.oolite_intership.cargodemanded > 0)
 								{
+										if (this.ship.group.leader.AIScript.oolite_intership.cargodemandmet)
+										{
+												return true;
+										}
+										recorder = this.ship.group.leader;
 										demand = this.ship.group.leader.AIScript.oolite_intership.cargodemanded;
 								}
 								else if (this.ship.group.ships[0].AIScript.oolite_intership && this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded > 0)
 
 								{
 										demand = this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded;							
+										if (this.ship.group.ships[0].AIScript.oolite_intership.cargodemandmet)
+										{
+												return true;
+										}
+										recorder = this.ship.group.ships[0];
 								}
 						}
 						else
 						{
 								if (this.ship.AIScript.oolite_intership.cargodemanded > 0)
 								{
+										if (this.ship.AIScript.oolite_intership.cargodemandmet)
+										{
+												return true;
+										}
 										demand = this.ship.AIScript.oolite_intership.cargodemanded;
+										recorder = this.ship;
 								}
 						}
 
@@ -845,6 +931,7 @@ this.AILib = function(ship)
 						}
 						if (demand <= seen)
 						{
+								recorder.AIScript.oolite_intership.cargodemandmet = true;
 								return true;
 						}
 				}
@@ -981,7 +1068,7 @@ this.AILib = function(ship)
 				var handlers = {};
 				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
-				if (!this.ship.hasHostileTarget)
+				if (this.ship.target && !this.ship.hasHostileTarget)
 				{
 						// entering attack mode
 						this.communicate("oolite_beginningAttack",this.ship.target.displayName);
@@ -997,6 +1084,11 @@ this.AILib = function(ship)
 				var handlers = {};
 				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
+				if (!this.ship.target)
+				{
+						this.reconsiderNow();
+						return;
+				}
 				if (!this.isAggressive(this.ship.target))
 				{
 						// repelling succeeded
@@ -1543,6 +1635,10 @@ this.AILib = function(ship)
 						this.ship.removeDefenseTarget(this.ship.target);
 						this.ship.target = null;
 				}
+				if (this.ship.target && this.ship.target.scanClass == "CLASS_CARGO")
+				{
+						this.ship.target = null;
+				}
 				/* Iff the ship does not currently have a target, select a new one
 				 * from the defense target list. */
 				if (this.ship.target && this.ship.target.isInSpace)
@@ -2048,11 +2144,24 @@ this.AILib = function(ship)
 /*				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership.cargodemanded)
 				{
 						delete this.ship.group.leader.AIScript.oolite_intership.cargodemanded;
-				} */ // not sure about this
+				} */ // not sure about this, maybe not needed
 
 				if (this.ship.AIScript.oolite_intership.cargodemanded)
 				{
 						delete this.ship.AIScript.oolite_intership.cargodemanded;
+						delete this.ship.AIScript.oolite_intership.cargodemandmet;
+						// and make the group lose the cargo count from the last demand
+						if (this.ship.group)
+						{
+								for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+								{
+										var ship = this.ship.group.ships[i];
+										if (ship.AIScript && ship.AIScript.oolite_priorityai)
+										{
+												ship.AIScript.oolite_priorityai.setParameter("oolite_cargoDropped",0);
+										}
+								}
+						}
 				}
 		}
 

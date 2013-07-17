@@ -49,7 +49,7 @@ this.aiStarted = function() {
 						/* Let them go if they've dropped enough cargo and stop firing back */
 						truebranch: [
 								{
-										condition: ai.conditionInCombat,
+										condition: ai.conditionInCombatWithHostiles,
 										configuration: ai.configurationAcquireHostileCombatTarget,
 										behaviour: ai.behaviourRepelCurrentTarget,
 										reconsider: 5
@@ -78,8 +78,8 @@ this.aiStarted = function() {
 								// unless the entire group has enough cargo
 								{
 										notcondition: ai.conditionGroupHasEnoughLoot,
-										configuration: ai.configurationAcquireScannedTarget,
-										behaviour: ai.behaviourGuardTarget,
+										configuration: ai.configurationSetDestinationToGroupLeader,
+										behaviour: ai.behaviourApproachDestination,
 										reconsider: 15
 								}
 						]

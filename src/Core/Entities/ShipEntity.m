@@ -7437,6 +7437,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		case CARGO_FLAG_FULL_CONTRABAND:
 			// TODO: mixed contraband
 			newCargo = [UNIVERSE getContainersOfCommodity:@"Firearms" :num];
+			break;
 		case CARGO_FLAG_PIRATE:
 			newCargo = [UNIVERSE getContainersOfGoods:(Ranrot() % num) scarce:YES];
 			break;
