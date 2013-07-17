@@ -1937,7 +1937,7 @@ static JSBool ShipCommsMessage(JSContext *context, uintN argc, jsval *vp)
 	GET_THIS_SHIP(thisEnt);
 	
 	if (argc > 0)  message = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	if (EXPECT_NOT(message == nil || (argc > 1 && (!JSVAL_IS_OBJECT(OOJS_ARGV[1]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]), &target)))))
+	if (EXPECT_NOT(message == nil || (argc > 1 && (JSVAL_IS_NULL(OOJS_ARGV[1]) || !JSVAL_IS_OBJECT(OOJS_ARGV[1]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]), &target)))))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"commsMessage", MIN(argc, 1U), OOJS_ARGV, nil, @"message and optional target");
 		return NO;
@@ -2727,7 +2727,7 @@ static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp)
 	ShipEntity				*target = nil;
 
 	GET_THIS_SHIP(thisEnt);
-	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (JSVAL_IS_NULL(OOJS_ARGV[0]) || !JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"addDefenseTarget", 1U, OOJS_ARGV, nil, @"target");
 		return NO;
@@ -2749,7 +2749,7 @@ static JSBool ShipRemoveDefenseTarget(JSContext *context, uintN argc, jsval *vp)
 	ShipEntity				*target = nil;
 
 	GET_THIS_SHIP(thisEnt);
-	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (JSVAL_IS_NULL(OOJS_ARGV[0]) || !JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"removeDefenseTarget", 1U, OOJS_ARGV, nil, @"target");
 		return NO;
@@ -2832,7 +2832,7 @@ static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp)
 	ShipEntity				*mother = nil;
 
 	GET_THIS_SHIP(thisEnt);
-	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &mother)))))
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (JSVAL_IS_NULL(OOJS_ARGV[0]) || !JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &mother)))))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"offerToEscort", 1U, OOJS_ARGV, nil, @"target");
 		return NO;
