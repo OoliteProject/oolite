@@ -12607,6 +12607,12 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
+- (BOOL) markedForFines
+{
+	return being_fined;
+}
+
+
 - (BOOL) markForFines
 {
 	if (being_fined)

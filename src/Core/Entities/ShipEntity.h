@@ -1062,6 +1062,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) receiveCommsMessage:(NSString *) message_text from:(ShipEntity *) other;
 - (void) commsMessage:(NSString *)valueString withUnpilotedOverride:(BOOL)unpilotedOverride;
 
+- (BOOL) markedForFines;
 - (BOOL) markForFines;
 
 - (BOOL) isMining;

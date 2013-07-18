@@ -218,6 +218,7 @@ enum
 	kShip_laserHeatLevelPort,		// port laser temperature, float, read-only
 	kShip_laserHeatLevelStarboard,	// starboard laser temperature, float, read-only
 	kShip_lightsActive,			// flasher/shader light flag, boolean, read/write
+	kShip_markedForFines,   // has been marked for fines
 	kShip_maxEscorts,     // maximum escort count, int, read/write
 	kShip_maxPitch,				// maximum flight pitch, double, read-only
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
@@ -344,6 +345,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "laserHeatLevelPort",		kShip_laserHeatLevelPort,	OOJS_PROP_READONLY_CB },
 	{ "laserHeatLevelStarboard",	kShip_laserHeatLevelStarboard,	OOJS_PROP_READONLY_CB },
 	{ "lightsActive",			kShip_lightsActive,			OOJS_PROP_READWRITE_CB },
+	{ "markedForFines",				kShip_markedForFines,				OOJS_PROP_READONLY_CB },
 	{ "maxEscorts",				kShip_maxEscorts,				OOJS_PROP_READWRITE_CB },
 	{ "maxPitch",				kShip_maxPitch,				OOJS_PROP_READONLY_CB },
 	{ "maxSpeed",				kShip_maxSpeed,				OOJS_PROP_READONLY_CB },
@@ -751,6 +753,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_destination:
 			return HPVectorToJSValue(context, [entity destination], value);
 		
+		case kShip_markedForFines:
+			*value = OOJSValueFromBOOL([entity markedForFines]);
+			return YES;
+
 		case kShip_maxEscorts:
 			return JS_NewNumberValue(context, [entity maxEscortCount], value);
 
