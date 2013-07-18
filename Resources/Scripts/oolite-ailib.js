@@ -57,8 +57,7 @@ this.AILib = function(ship)
 						if (this.getParameter("oolite_flag_behaviourLogging"))
 						{
 								if (priority.label) 
-								{
-										log(this.ship.name,"Considering: "+priority.label);
+								{										log(this.ship.name,"Considering: "+priority.label);
 								}
 								else
 								{
@@ -619,11 +618,27 @@ this.AILib = function(ship)
 						return s.isInSpace && s.bounty > threshold; 
 				});
 		}
+
+		this.conditionScannerContainsFineableOffender = function()
+		{
+				return this.checkScannerWithPredicate(function(s) { 
+						var threshold = 50 - (system.info.government * 7);
+						return s.isInSpace && s.bounty <= threshold && s.bounty > 0 && !s.markedForFines && (s.scanClass == "CLASS_NEUTRAL" || s.isPlayer) && !s.isDerelict; 
+				});
+		}
+
 		
 		this.conditionScannerContainsSalvageForMe = function()
 		{
 				return this.checkScannerWithPredicate(function(s) { 
 						return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.ship.maxSpeed && this.conditionCanScoopCargo(); 
+				});
+		}
+
+		this.conditionScannerContainsEscapePods = function()
+		{
+				return this.checkScannerWithPredicate(function(s) { 
+						return  s.primaryRole == "escape-capsule" && s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.ship.maxSpeed && this.conditionCanScoopCargo(); 
 				});
 		}
 
@@ -768,13 +783,13 @@ this.AILib = function(ship)
 				if (this.ship.bounty == 0)
 				{
 						return this.checkScannerWithPredicate(function(s) { 
-								return s.bounty == 0 && (!s.escortGroup || s.escortGroup.count <= s.maxEscorts);
+								return s.scanClass == this.ship.scanClass && s.bounty == 0 && (!s.escortGroup || s.escortGroup.count <= s.maxEscorts);
 						});
 				}
 				else
 				{
 						return this.checkScannerWithPredicate(function(s) { 
-								return s.bounty > 0 && (!s.escortGroup || s.escortGroup.count <= s.maxEscorts);
+								return s.scanClass == this.ship.scanClass && s.bounty > 0 && (!s.escortGroup || s.escortGroup.count <= s.maxEscorts);
 						});
 				}
 		}
@@ -851,6 +866,19 @@ this.AILib = function(ship)
 						return true;
 				}
 				return (this.ship.group.leader == this.ship);
+		}
+
+		this.conditionIsEscorting = function()
+		{
+				if (!this.ship.group || !this.ship.group.leader || this.ship.group.leader == this.ship)
+				{
+						return false;
+				}
+				if (this.ship.group.leader.escortGroup && this.ship.group.leader.escortGroup.containsShip(this.ship))
+				{
+						return true;
+				}
+				return false;
 		}
 
 		this.conditionAllEscortsInFlight = function()
@@ -1116,6 +1144,23 @@ this.AILib = function(ship)
 						}
 						this.ship.performAttack();
 				}
+		}
+
+
+		this.behaviourFineCurrentTarget = function()
+		{
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.setUpHandlers(handlers);
+				
+				if (this.ship.scanClass == "CLASS_POLICE" && this.ship.target)
+				{
+						this.communicate("oolite_markForFines",this.ship.target.displayName);
+				
+						this.ship.markTargetForFines();
+				}
+
+				this.ship.performIdle();
 		}
 
 
@@ -2127,17 +2172,48 @@ this.AILib = function(ship)
 		{
 				if (this.ship.group && !this.ship.group.leader)
 				{
+						this.ship.group.leader = this.ship.group.ships[0];
 						for (var i = 0 ; i < this.ship.group.ships.length ; i++)
 						{
 								if (this.ship.group.ships[i].hasHyperspaceMotor)
 								{
 										// bias towards jump-capable ships
 										this.ship.group.leader = this.ship.group.ships[i];
+										break;
 								}
 						}
-						this.ship.group.leader = this.ship.group.ships[0];
+						var leadrole = this.getParameter("oolite_leaderRole")
+						if (leadrole != null)
+						{
+								this.ship.group.leader.primaryRole = leadrole;
+						}
 				}
 		}
+
+		this.configurationEscortGroupLeader = function()
+		{
+				if (!this.ship.group || !this.ship.group.leader || this.ship.group.leader == this.ship)
+				{
+						return;
+				}
+				if (this.ship.group.leader.escortGroup && this.ship.group.leader.escortGroup.containsShip(this.ship))
+				{
+						return;
+				}
+				var escrole = this.getParameter("oolite_escortRole")
+				if (escrole != null)
+				{
+						var oldrole = this.ship.primaryRole;
+						this.ship.primaryRole = escrole;
+						var accepted = this.ship.offerToEscort(this.ship.group.leader);
+						if (!accepted)
+						{
+								this.ship.primaryRole = oldrole;
+						}
+				}
+				
+		}
+
 
 		this.configurationForgetCargoDemand = function()
 		{

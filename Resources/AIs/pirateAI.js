@@ -34,7 +34,7 @@ this.aiStarted = function() {
 
 		ai.setParameter("oolite_flag_watchForCargo",true);
 		/* This communication is necessary but needs more variety and moving to descriptions.plist so it can be translated */
-		ai.setCommunication("oolite_piracyAlert","Your cargo or your life, [p1]! Give us [p2] containers and we'll let you go.");
+		ai.setCommunication("oolite_piracyAlert","You're outnumbered, [p1]! Power down your weapons, dump [p2] containers and we'll let you go.");
 
 
 		ai.setPriorities([

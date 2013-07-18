@@ -1,8 +1,8 @@
 /*
 
-bountyHunterAI.js
+policeLanePatrolAI.js
 
-Priority-based AI for bounty hunters
+Priority-based AI for police
 
 Oolite
 Copyright © 2004-2013 Giles C Williams and contributors
@@ -26,23 +26,17 @@ MA 02110-1301, USA.
 
 "use strict";
 
-this.name = "Oolite Bounty Hunter AI";
+this.name = "Oolite Police (lane patrol) AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
 		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
 		ai.setParameter("oolite_flag_listenForDistressCall",true);
-
-		/* Communications currently for debugging purposes. Need to either
-		 * be removed or given a much bigger set of phrases to choose from
-		 * before 1.79 */
-		ai.setCommunication("oolite_spacelanePatrol","Setting course for the [p1]");
-		ai.setCommunication("oolite_distressResponseSender","Hold on, [p1]!");
-		ai.setCommunication("oolite_distressResponseAggressor","[p1]. Cease your attack or be destroyed!");
-		ai.setCommunication("oolite_beginningAttack","Scan confirms criminal status of [p1]. Commencing attack run");
-		ai.setCommunication("oolite_quiriumCascade","%N! Q-bomb!");
-		ai.setCommunication("oolite_friendlyFire","Hey! Watch where you're shooting, [p1].");
+		ai.setParameter("oolite_leaderRole","police");
+		ai.setParameter("oolite_escortRole","wingman");
+		/* Needs to use existing entries in descriptions.plist */
+		ai.setCommunication("oolite_markForFines","Attention, [p1]. Your offences will result in a fine if you dock at %H station..");
 
 		ai.setPriorities([
 				/* Fight */
@@ -77,32 +71,58 @@ this.aiStarted = function() {
 						behaviour: ai.behaviourDestroyCurrentTarget,
 						reconsider: 1
 				},
-				/* What about loot? */
 				{
-						condition: ai.conditionScannerContainsSalvageForMe,
+						condition: ai.conditionScannerContainsFineableOffender,
+						configuration: ai.configurationAcquireScannedTarget,
+						behaviour: ai.behaviourFineCurrentTarget,
+						reconsider: 10
+				},
+				/* What about escape pods? */
+				{
+						condition: ai.conditionScannerContainsEscapePods,
 						configuration: ai.configurationAcquireScannedTarget,
 						behaviour: ai.behaviourCollectSalvage,
 						reconsider: 20
 				},
-				/* Check we're in a real system */
+				/* Regroup if necessary */
 				{
-						condition: ai.conditionInInterstellarSpace,
-						configuration: ai.configurationSelectWitchspaceDestination,
-						behaviour: ai.behaviourEnterWitchspace,
-						reconsider: 20
-				},
-				/* Nothing interesting here. Patrol for a bit */
-				{
-						condition: ai.conditionHasPatrolRoute,
-						configuration: ai.configurationSetDestinationFromPatrolRoute,
+						preconfiguration: ai.configurationAppointGroupLeader,
+						condition: ai.conditionGroupIsSeparated,
+						configuration: ai.configurationSetDestinationToGroupLeader,
 						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
+						reconsider: 15
 				},
-				/* No patrol route set up. Make one */
 				{
-						configuration: ai.configurationMakeSpacelanePatrolRoute,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
+						condition: ai.conditionIsGroupLeader,
+						truebranch: [
+								/* Nothing interesting here. Patrol for a bit */
+								{
+										condition: ai.conditionHasPatrolRoute,
+										configuration: ai.configurationSetDestinationFromPatrolRoute,
+										behaviour: ai.behaviourApproachDestination,
+										reconsider: 30
+								},
+								/* No patrol route set up. Make one */
+								{
+										configuration: ai.configurationMakeSpacelanePatrolRoute,
+										behaviour: ai.behaviourApproachDestination,
+										reconsider: 30
+								}
+						],
+						falsebranch: [
+								{
+										preconfiguration: ai.configurationEscortGroupLeader,
+										condition: ai.conditionIsEscorting,
+										behaviour: ai.behaviourEscortMothership,
+										reconsider: 30
+								},
+								/* if we can't set up as an escort */
+								{
+										behaviour: ai.behaviourFollowGroupLeader,
+										reconsider: 15
+								}
+						]
 				}
 		]);
+
 }
