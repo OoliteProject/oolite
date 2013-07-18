@@ -38,12 +38,6 @@ SOFTWARE.
 #import "OOShaderUniformMethodType.h"
 
 
-OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
-{
-	return kOOShaderUniformTypeInt <= type && type <= kOOShaderUniformTypeDouble;
-}
-
-
 @interface OOShaderUniform (OOPrivate)
 
 - (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram;

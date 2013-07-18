@@ -212,6 +212,7 @@ typedef enum
 	NSDictionary			*dockingInstructions;
 	
 	OOColor					*laser_color;
+	OOColor					*exhaust_emissive_color;
 	OOColor					*scanner_display_color1;
 	OOColor					*scanner_display_color2;
 	
@@ -971,7 +972,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) fireStarboardWeapon:(double)range;
 - (BOOL) fireTurretCannon:(double)range;
 - (void) setLaserColor:(OOColor *)color;
+- (void) setExhaustEmissiveColor:(OOColor *)color;
 - (OOColor *)laserColor;
+- (OOColor *)exhaustEmissiveColor;
 - (BOOL) fireSubentityLaserShot:(double)range;
 - (BOOL) fireDirectLaserShot:(double)range;
 - (BOOL) fireDirectLaserDefensiveShot;

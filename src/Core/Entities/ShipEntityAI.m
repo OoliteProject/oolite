@@ -568,7 +568,6 @@
 			message = [dockingInstructions objectForKey:@"comms_message"];
 			if (message != nil)  [station sendExpandedMessage:message toShip:self];
 		}
-		OOLog(@"docking.debug",@"%@",dockingInstructions);
 	}
 	else
 	{

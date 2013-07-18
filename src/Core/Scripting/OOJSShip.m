@@ -184,6 +184,7 @@ enum
 	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
 	kShip_escortGroup,			// group, ShipGroup, read-only
 	kShip_escorts,				// deployed escorts, array of Ship, read-only
+	kShip_exhaustEmissiveColor,	// exhaust emissive color, array, read/write
 	kShip_extraCargo,				// cargo space increase granted by large cargo bay, int, read-only
 	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read/write
 	kShip_fuel,					// fuel, float, read/write
@@ -305,13 +306,14 @@ static JSPropertySpec sShipProperties[] =
 	{ "desiredSpeed",			kShip_desiredSpeed,			OOJS_PROP_READWRITE_CB },
 	{ "destination",			kShip_destination,			OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
-	{ "dockingInstructions",			kShip_dockingInstructions,			OOJS_PROP_READONLY_CB },
+	{ "dockingInstructions",	kShip_dockingInstructions,	OOJS_PROP_READONLY_CB },
 	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READONLY_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
 	{ "escorts",				kShip_escorts,				OOJS_PROP_READONLY_CB },
 	{ "escortGroup",			kShip_escortGroup,			OOJS_PROP_READONLY_CB },
-	{ "extraCargo",			kShip_extraCargo,			OOJS_PROP_READONLY_CB },
+	{ "exhaustEmissiveColor",	kShip_exhaustEmissiveColor,	OOJS_PROP_READWRITE_CB },
+	{ "extraCargo",				kShip_extraCargo,			OOJS_PROP_READONLY_CB },
 	{ "forwardWeapon",			kShip_forwardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "fuel",					kShip_fuel,					OOJS_PROP_READWRITE_CB },
 	{ "fuelChargeRate",			kShip_fuelChargeRate,		OOJS_PROP_READONLY_CB },
@@ -944,6 +946,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [[entity scannerDisplayColor2] normalizedArray];
 			break;
 			
+		case kShip_exhaustEmissiveColor:
+			result = [[entity exhaustEmissiveColor] normalizedArray];
+			break;
+			
 		case kShip_maxThrust:
 			return JS_NewNumberValue(context, [entity maxThrust], value);
 			
@@ -1310,6 +1316,15 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			if (colorForScript != nil || JSVAL_IS_NULL(*value))
 			{
 				[entity setScannerDisplayColor2:colorForScript];
+				return YES;
+			}
+			break;
+			
+		case kShip_exhaustEmissiveColor:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setExhaustEmissiveColor:colorForScript];
 				return YES;
 			}
 			break;

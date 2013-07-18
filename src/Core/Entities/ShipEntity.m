@@ -362,8 +362,19 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
 	
 	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
+	
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
+	
+	// exhaust emissive color
+	OORGBAComponents defaultExhaustEmissiveColorComponents; // pale blue is exhaust default color
+	defaultExhaustEmissiveColorComponents.r = 0.7f;
+	defaultExhaustEmissiveColorComponents.g = 0.9f;
+	defaultExhaustEmissiveColorComponents.b = 1.0f;
+	defaultExhaustEmissiveColorComponents.a = 0.9f;
+	color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"exhaust_emissive_color"]];
+	if (color == nil)  color = [OOColor colorWithRGBAComponents:defaultExhaustEmissiveColorComponents];
+	[self setExhaustEmissiveColor:color];
 	
 	[self clearSubEntities];
 	[self setUpSubEntities];
@@ -936,6 +947,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(roleSet);
 	DESTROY(primaryRole);
 	DESTROY(laser_color);
+	DESTROY(exhaust_emissive_color);
 	DESTROY(scanner_display_color1);
 	DESTROY(scanner_display_color2);
 	DESTROY(script);
@@ -10141,9 +10153,25 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (void) setExhaustEmissiveColor:(OOColor *) color
+{
+	if (color)
+	{
+		[exhaust_emissive_color release];
+		exhaust_emissive_color = [color retain];
+	}
+}
+
+
 - (OOColor *)laserColor
 {
 	return [[laser_color retain] autorelease];
+}
+
+
+- (OOColor *)exhaustEmissiveColor
+{
+	return [[exhaust_emissive_color retain] autorelease];
 }
 
 
@@ -12405,7 +12433,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (NSDictionary *) dockingInstructions
 {
-	OOLog(@"docking.debug",@"%@",dockingInstructions);
 	return dockingInstructions;
 }
 

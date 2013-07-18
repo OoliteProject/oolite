@@ -161,9 +161,6 @@ enum
 	if (shaderMode == kShaderModeOn)  return;
 #endif
 	
-	PlayerEntity* player = PLAYER;
-	assert(player != nil);
-	
 	zero_distance = 0.0;
 			
 	Vector offset = vector_flip(cameraRelativePosition);
