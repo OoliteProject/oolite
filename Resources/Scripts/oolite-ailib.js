@@ -45,6 +45,7 @@ this.AILib = function(ship)
 		var priorityList = null;
 		var parameters = {};
 		var communications = {};
+		var waypointgenerator = null;
 
 		/* Private utility functions. Do not call these from external code */
 
@@ -212,6 +213,18 @@ this.AILib = function(ship)
 				}
 				return null;
 		}
+
+		// set the waypoint generator function
+		this.setWaypointGenerator = function(value)
+		{
+				waypointgenerator = value;
+		}
+
+		this.getWaypointGenerator = function()
+		{
+				return waypointgenerator;
+		}
+
 
 		/* Requests reconsideration of behaviour ahead of schedule. */
 		this.reconsiderNow = function() 
@@ -679,9 +692,9 @@ this.AILib = function(ship)
 				return true;
 		}
 
-		this.conditionHasPatrolRoute = function()
+		this.conditionHasWaypoint = function()
 		{
-				return this.getParameter("oolite_patrolRoute") != null;
+				return this.getParameter("oolite_waypoint") != null;
 		}
 
 		this.conditionHasSelectedStation = function()
@@ -1200,13 +1213,22 @@ this.AILib = function(ship)
 						}
 						else
 						{
-								var patrol = this.getParameter("oolite_patrolRoute");
-								if (patrol != null && this.ship.destination.distanceTo(patrol) < 1000)
+								var patrol = this.getParameter("oolite_waypoint");
+								if (patrol != null && this.ship.destination.distanceTo(patrol) < 1000+this.getParameter("oolite_waypointRange"))
 								{
 										// finished patrol to waypoint
 										// clear route
 										this.communicate("oolite_waypointReached");
-										this.setParameter("oolite_patrolRoute",null);
+										this.setParameter("oolite_waypoint",null);
+										this.setParameter("oolite_waypointRange",null);
+										if (this.getParameter("oolite_flag_patrolStation"))
+										{
+												var station = this.getParameter("oolite_patrolStation");
+												if (station != null && station.isStation)
+												{
+														this.ship.patrolReportIn(station);
+												}
+										}
 								}
 						}
 						this.reconsiderNow();
@@ -2011,115 +2033,21 @@ this.AILib = function(ship)
 				this.ship.desiredSpeed = this.ship.maxSpeed;
 		}
 
-		this.configurationSetDestinationFromPatrolRoute = function()
+		this.configurationSetWaypoint = function()
 		{
-				this.ship.destination = this.getParameter("oolite_patrolRoute");
-				this.ship.desiredRange = this.getParameter("oolite_patrolRouteRange");
-				this.ship.desiredSpeed = this.cruiseSpeed();
+				var gen = this.getWaypointGenerator();
+				if(gen != null)
+				{
+						gen.call(this);
+						this.configurationSetDestinationToWaypoint();
+				}
 		}
 
-		this.configurationMakeSpacelanePatrolRoute = function()
+		this.configurationSetDestinationToWaypoint = function()
 		{
-				var p = this.ship.position;
-				var choice = "";
-				if (p.magnitude() < 10000)
-				{
-						// near witchpoint
-						if (Math.random() < 0.9)
-						{ 
-								// mostly return to planet
-								choice = "PLANET";
-						}
-						else
-						{
-								choice = "SUN";
-						}
-				}
-				else if (p.distanceTo(system.mainPlanet) < system.mainPlanet.radius * 2)
-				{
-						// near planet
-						if (Math.random() < 0.75)
-						{ 
-								// mostly go to witchpoint
-								choice = "WITCHPOINT";
-						}
-						else
-						{
-								choice = "SUN";
-						}
-				}
-				else if (p.distanceTo(system.sun) < system.sun.radius * 3)
-				{
-						// near sun
-						if (Math.random() < 0.9)
-						{ 
-								// mostly return to planet
-								choice = "PLANET";
-						}
-						else
-						{
-								choice = "SUN";
-						}
-				}
-				else if (p.z < system.mainPlanet.position.z && ((p.x * p.x) + (p.y * p.y)) < system.mainPlanet.radius * 3)
-				{
-						// on lane 1
-						if (Math.random() < 0.5)
-						{
-								choice = "PLANET";
-						}
-						else
-						{
-								choice = "WITCHPOINT";
-						}
-				}
-				else if (p.subtract(system.mainPlanet).dot(p.subtract(system.sun)) < -0.9)
-				{
-						// on lane 2
-						if (Math.random() < 0.5)
-						{
-								choice = "PLANET";
-						}
-						else
-						{
-								choice = "SUN";
-						}
-				}
-				else if (p.dot(system.sun.position) > 0.9)
-				{
-						// on lane 3
-						if (Math.random() < 0.5)
-						{
-								choice = "WITCHPOINT";
-						}
-						else
-						{
-								choice = "SUN";
-						}
-				}
-				else
-				{
-						// we're not on any lane. Return to the planet
-						choice = "PLANET";
-				}
-				// having chosen, now set up the next stop on the patrol
-				switch (choice) {
-				case "WITCHPOINT":
-						this.setParameter("oolite_patrolRoute",new Vector3D(0,0,0));
-						this.setParameter("oolite_patrolRouteRange",7500);
-						break;
-				case "PLANET":
-						this.setParameter("oolite_patrolRoute",system.mainPlanet.position);
-						this.setParameter("oolite_patrolRouteRange",system.mainPlanet.radius*2);
-						break;
-				case "SUN":
-						this.setParameter("oolite_patrolRoute",system.sun.position);
-						this.setParameter("oolite_patrolRouteRange",system.sun.radius*2.5);
-						break;
-				}
-				this.communicate("oolite_spacelanePatrol",choice.toLowerCase());
-
-				this.configurationSetDestinationFromPatrolRoute();
+				this.ship.destination = this.getParameter("oolite_waypoint");
+				this.ship.desiredRange = this.getParameter("oolite_waypointRange");
+				this.ship.desiredSpeed = this.cruiseSpeed();
 		}
 
 
@@ -2405,6 +2333,9 @@ this.AILib = function(ship)
 						this.ship.desiredSpeed = this.cruiseSpeed();
 						this.ship.desiredRange = 15000;
 						this.ship.performFlyToRangeFromDestination();
+						if (this.getParameter("oolite_flag_patrolStation")) {
+								this.setParameter("oolite_patrolStation",station);
+						}
 				}
 				handlers.shipWillEnterWormhole = function()
 				{
@@ -2426,6 +2357,15 @@ this.AILib = function(ship)
 						this.setParameter("oolite_distressAggressor",aggressor);
 						this.setParameter("oolite_distressSender",sender);
 						this.reconsiderNow();
+				}
+				handlers.offenceCommittedNearby = function(attacker, victim)
+				{
+						if (this.getParameter("oolite_flag_markOffenders")) 
+						{
+								attacker.setBounty(attacker.bounty | 7,"seen by police");
+								this.addDefenseTarget(attacker);
+								this.reconsiderNow();
+						}
 				}
 				handlers.playerWillEnterWitchspace = function()
 				{
@@ -2515,6 +2455,158 @@ this.AILib = function(ship)
 								this.reconsiderNow();
 						}
 				}
+		}
+
+
+		/* ******************* Waypoint generators *********************** */
+		
+		/* Waypoint generators. When these are called, they should set up
+		 * the next waypoint for the ship. Ideally ships should either
+		 * reach that waypoint or formally give up on it before asking for
+		 * the next one, but the generator shouldn't assume that unless
+		 * it's one written specifically for a particular AI. */
+
+		this.waypointsSpacelanePatrol = function()
+		{
+				var p = this.ship.position;
+				var choice = "";
+				if (p.magnitude() < 10000)
+				{
+						// near witchpoint
+						if (Math.random() < 0.9)
+						{ 
+								// mostly return to planet
+								choice = "PLANET";
+						}
+						else
+						{
+								choice = "SUN";
+						}
+				}
+				else if (p.distanceTo(system.mainPlanet) < system.mainPlanet.radius * 2)
+				{
+						// near planet
+						if (Math.random() < 0.75)
+						{ 
+								// mostly go to witchpoint
+								choice = "WITCHPOINT";
+						}
+						else
+						{
+								choice = "SUN";
+						}
+				}
+				else if (p.distanceTo(system.sun) < system.sun.radius * 3)
+				{
+						// near sun
+						if (Math.random() < 0.9)
+						{ 
+								// mostly return to planet
+								choice = "PLANET";
+						}
+						else
+						{
+								choice = "SUN";
+						}
+				}
+				else if (p.z < system.mainPlanet.position.z && ((p.x * p.x) + (p.y * p.y)) < system.mainPlanet.radius * 3)
+				{
+						// on lane 1
+						if (Math.random() < 0.5)
+						{
+								choice = "PLANET";
+						}
+						else
+						{
+								choice = "WITCHPOINT";
+						}
+				}
+				else if (p.subtract(system.mainPlanet).dot(p.subtract(system.sun)) < -0.9)
+				{
+						// on lane 2
+						if (Math.random() < 0.5)
+						{
+								choice = "PLANET";
+						}
+						else
+						{
+								choice = "SUN";
+						}
+				}
+				else if (p.dot(system.sun.position) > 0.9)
+				{
+						// on lane 3
+						if (Math.random() < 0.5)
+						{
+								choice = "WITCHPOINT";
+						}
+						else
+						{
+								choice = "SUN";
+						}
+				}
+				else
+				{
+						// we're not on any lane. Return to the planet
+						choice = "PLANET";
+				}
+				// having chosen, now set up the next stop on the patrol
+				switch (choice) {
+				case "WITCHPOINT":
+						this.setParameter("oolite_waypoint",new Vector3D(0,0,0));
+						this.setParameter("oolite_waypointRange",7500);
+						break;
+				case "PLANET":
+						this.setParameter("oolite_waypoint",system.mainPlanet.position);
+						this.setParameter("oolite_waypointRange",system.mainPlanet.radius*2);
+						break;
+				case "SUN":
+						this.setParameter("oolite_waypoint",system.sun.position);
+						this.setParameter("oolite_waypointRange",system.sun.radius*2.5);
+						break;
+				}
+
+		}
+
+
+		this.waypointsStationPatrol = function()
+		{
+				var station = this.getParameter("oolite_patrolStation");
+				if (!station)
+				{
+						station = system.mainStation;
+						if (!station)
+						{
+								this.setParameter("oolite_waypoint",new Vector3D(0,0,0));
+								this.setParameter("oolite_waypointRange",7500);
+								return;
+						}
+				}
+				var z = station.vectorForward;
+				var tmp = z.cross(system.sun.position.direction());
+				var x = z.cross(tmp);
+				var y = z.cross(x);
+				// x and y now consistent vectors relative to a rotating station
+
+				var waypoints = [
+						station.position.add(x.multiply(25000)),
+						station.position.add(y.multiply(25000)),
+						station.position.add(x.multiply(-25000)),
+						station.position.add(y.multiply(-25000))
+				];
+				
+				var waypoint = waypoints[0];
+				for (var i=0;i<=3;i++)
+				{
+						if (this.ship.position.distanceTo(waypoints[i]) < 500)
+						{
+								waypoint = waypoints[(i+1)%4];
+								break;
+						}
+				}
+				this.setParameter("oolite_waypoint",waypoint);
+				this.setParameter("oolite_waypointRange",100);
+
 		}
 
 

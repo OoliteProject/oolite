@@ -33,11 +33,11 @@ this.aiStarted = function() {
 		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
 		ai.setParameter("oolite_flag_listenForDistressCall",true);
+		ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
 
 		/* Communications currently for debugging purposes. Need to either
 		 * be removed or given a much bigger set of phrases to choose from
 		 * before 1.79 */
-		ai.setCommunication("oolite_spacelanePatrol","Setting course for the [p1]");
 		ai.setCommunication("oolite_distressResponseSender","Hold on, [p1]!");
 		ai.setCommunication("oolite_distressResponseAggressor","[p1]. Cease your attack or be destroyed!");
 		ai.setCommunication("oolite_beginningAttack","Scan confirms criminal status of [p1]. Commencing attack run");
@@ -93,14 +93,14 @@ this.aiStarted = function() {
 				},
 				/* Nothing interesting here. Patrol for a bit */
 				{
-						condition: ai.conditionHasPatrolRoute,
-						configuration: ai.configurationSetDestinationFromPatrolRoute,
+						condition: ai.conditionHasWaypoint,
+						configuration: ai.configurationSetDestinationToWaypoint,
 						behaviour: ai.behaviourApproachDestination,
 						reconsider: 30
 				},
 				/* No patrol route set up. Make one */
 				{
-						configuration: ai.configurationMakeSpacelanePatrolRoute,
+						configuration: ai.configurationSetWaypoint,
 						behaviour: ai.behaviourApproachDestination,
 						reconsider: 30
 				}

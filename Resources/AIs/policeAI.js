@@ -1,6 +1,6 @@
 /*
 
-policeLanePatrolAI.js
+policeAI.js
 
 Priority-based AI for police
 
@@ -26,18 +26,31 @@ MA 02110-1301, USA.
 
 "use strict";
 
-this.name = "Oolite Police (lane patrol) AI";
+this.name = "Oolite Police AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
 		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
 		ai.setParameter("oolite_flag_listenForDistressCall",true);
+		ai.setParameter("oolite_flag_markOffenders",true);
+
+		if (false) // TODO: some way to determine whether this ship should launch as station patrol
+		{
+				ai.setWaypointGenerator(ai.waypointsStationPatrol);
+				ai.setParameter("oolite_flag_patrolStation",true);
+		}
+		else
+		{
+				ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
+		}
 		ai.setParameter("oolite_leaderRole","police");
+
 		ai.setParameter("oolite_escortRole","wingman");
 		/* Needs to use existing entries in descriptions.plist */
 		ai.setCommunication("oolite_markForFines","Attention, [p1]. Your offences will result in a fine if you dock at %H station..");
 
+		// TODO: return to base after long patrols
 		ai.setPriorities([
 				/* Fight */
 				{
@@ -97,14 +110,14 @@ this.aiStarted = function() {
 						truebranch: [
 								/* Nothing interesting here. Patrol for a bit */
 								{
-										condition: ai.conditionHasPatrolRoute,
-										configuration: ai.configurationSetDestinationFromPatrolRoute,
+										condition: ai.conditionHasWaypoint,
+										configuration: ai.configurationSetDestinationToWaypoint,
 										behaviour: ai.behaviourApproachDestination,
 										reconsider: 30
 								},
 								/* No patrol route set up. Make one */
 								{
-										configuration: ai.configurationMakeSpacelanePatrolRoute,
+										configuration: ai.configurationSetWaypoint,
 										behaviour: ai.behaviourApproachDestination,
 										reconsider: 30
 								}

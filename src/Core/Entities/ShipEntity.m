@@ -12680,12 +12680,6 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 				[self sendExpandedMessage:@"[thanks-for-assist]" toShip:rescueShip];
 			}
 			[self setThankedShip:rescuer];
-			// we don't want clean ships that change target from one pirate to the other pirate getting a bounty.
-			// removed after discussion at http://aegidian.org/bb/viewtopic.php?f=2&t=12151 - CIM
-/*			if ([switchingShip bounty] > 0 || [rescueShip bounty] == 0)
-			{	
-				[switchingShip setBounty:[switchingShip bounty] + 5 + (ranrot_rand() & 15) withReason:kOOLegalStatusReasonAttackedInnocent];	// reward
-				} */
 		}
 	}
 }

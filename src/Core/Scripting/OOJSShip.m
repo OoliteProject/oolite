@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
 #import "ShipEntityScriptMethods.h"
+#import "StationEntity.h"
 #import "WormholeEntity.h"
 #import "AI.h"
 #import "OOStringParsing.h"
@@ -75,6 +76,8 @@ static JSBool ShipAbandonShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRequestHelpFromGroup(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipPatrolReportIn(JSContext *context, uintN argc, jsval *vp);
+
 static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
@@ -436,6 +439,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "hasRole",				ShipHasRole,				1 },
 	{ "markTargetForFines",				ShipMarkTargetForFines,				0 },
 	{ "offerToEscort",				ShipOfferToEscort,				1 },
+	{ "patrolReportIn", ShipPatrolReportIn, 1},
   { "performAttack",		ShipPerformAttack, 		0 },
   { "performCollect",		ShipPerformCollect, 		0 },
   { "performEscort",		ShipPerformEscort, 		0 },
@@ -2876,6 +2880,31 @@ static JSBool ShipRequestHelpFromGroup(JSContext *context, uintN argc, jsval *vp
 	GET_THIS_SHIP(thisEnt);
 	
 	[thisEnt groupAttackTarget];
+
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipPatrolReportIn(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	ShipEntity				*target = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (JSVAL_IS_NULL(OOJS_ARGV[0]) || !JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"addDefenseTarget", 1U, OOJS_ARGV, nil, @"target");
+		return NO;
+	}
+	if ([target isStation])
+	{
+		StationEntity *station = (StationEntity*)station;
+		[station acceptPatrolReportFrom:thisEnt];
+	}
 
 	OOJS_RETURN_VOID;
 	
