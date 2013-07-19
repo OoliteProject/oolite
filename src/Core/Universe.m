@@ -2120,11 +2120,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 			if ([ship hasRole:@"sunskim-trader"] && randf() < 0.25) // select 1/4 of the traders suitable for sunskimming.
 			{
+				[ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 				[self makeSunSkimmer:ship andSetAI:YES];
 			}
 			else
 			{
-				[ship switchAITo:@"route1traderAI.plist"];
+				[ship switchAITo:@"traderAI.js"];
 			}
 			
 			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
@@ -2272,11 +2273,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
 				if ([ship hasRole:@"sunskim-trader"] && randf() < 0.25) 
 				{
+					[ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 					[self makeSunSkimmer:ship andSetAI:YES];
 				}
 				else
 				{
-					[ship switchAITo:@"route1traderAI.plist"];
+					[ship switchAITo:@"traderAI.js"];
 				}
 			}
 			else if ([role isEqual:@"pirate"])
@@ -8036,7 +8038,8 @@ static NSDictionary	*sCachedSystemData = nil;
 
 - (void) makeSunSkimmer:(ShipEntity *) ship andSetAI:(BOOL)setAI
 {
-	if (setAI) [ship switchAITo:@"route2sunskimAI.plist"];	// perfectly acceptable for both route 2 & 3
+	if (setAI) [ship switchAITo:@"traderAI.js"];	// perfectly acceptable for both route 2 & 3
+	[ship setFuel:(Ranrot()&31)];
 	// slow ships need extra insulation or they will burn up when sunskimming. (Tested at biggest sun in G3: Aenqute)
 	float minInsulation = 1000 / [ship maxFlightSpeed] + 1;
 	if ([ship heatInsulation] < minInsulation) [ship setHeatInsulation:minInsulation];

@@ -561,7 +561,7 @@ this.AILib = function(ship)
 				if (this.ship.group && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship))
 				{
 						var leader = this.ship.group.leader;
-						if (leader.target.target == leader && leader.target.hasHostileTarget && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+						if (leader.target && leader.target.target == leader && leader.target.hasHostileTarget && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
 						{
 								return true;
 						}
@@ -1125,7 +1125,7 @@ this.AILib = function(ship)
 				var handlers = {};
 				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
-				if (!this.ship.target)
+				if (!this.ship.target || !this.ship.target.isValid || !this.ship.target.isShip)
 				{
 						this.reconsiderNow();
 						return;
@@ -1133,7 +1133,6 @@ this.AILib = function(ship)
 				if (!this.isAggressive(this.ship.target))
 				{
 						// repelling succeeded
-						this.ship.removeDefenseTarget(this.ship.target);
 						if (this.ship.escortGroup)
 						{
 								// also tell escorts to stop attacking it
@@ -1146,6 +1145,7 @@ this.AILib = function(ship)
 										}
 								}
 						}
+						this.ship.removeDefenseTarget(this.ship.target);
 						this.ship.target = null;
 				}
 				else
@@ -1810,7 +1810,7 @@ this.AILib = function(ship)
 		{
 				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.hasHostileTarget)
 				{
-						if (this.ship.distanceTo(this.ship.group.leader.target) < this.ship.scannerRange)
+						if (this.ship.position.distanceTo(this.ship.group.leader.target) < this.ship.scannerRange)
 						{
 								this.ship.target = this.ship.group.leader.target;
 								this.ship.addDefenseTarget(this.ship.target);
@@ -2363,7 +2363,7 @@ this.AILib = function(ship)
 						if (this.getParameter("oolite_flag_markOffenders")) 
 						{
 								attacker.setBounty(attacker.bounty | 7,"seen by police");
-								this.addDefenseTarget(attacker);
+								this.ship.addDefenseTarget(attacker);
 								this.reconsiderNow();
 						}
 				}

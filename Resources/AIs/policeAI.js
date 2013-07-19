@@ -35,16 +35,17 @@ this.aiStarted = function() {
 		ai.setParameter("oolite_flag_listenForDistressCall",true);
 		ai.setParameter("oolite_flag_markOffenders",true);
 
-		if (false) // TODO: some way to determine whether this ship should launch as station patrol
+		if (this.ship.primaryRole == "police-station-patrol") // TODO: some way to determine whether this ship should launch as station patrol
 		{
+				ai.setParameter("oolite_leaderRole","police-station-patrol");
 				ai.setWaypointGenerator(ai.waypointsStationPatrol);
 				ai.setParameter("oolite_flag_patrolStation",true);
 		}
 		else
 		{
+				ai.setParameter("oolite_leaderRole","police");
 				ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
 		}
-		ai.setParameter("oolite_leaderRole","police");
 
 		ai.setParameter("oolite_escortRole","wingman");
 		/* Needs to use existing entries in descriptions.plist */

@@ -184,7 +184,7 @@
 	{
 		aft_eject_position = "0.0 -20.0 -67.0";
 		aft_weapon_type = "WEAPON_PULSE_LASER";
-		ai_type = "route1traderAI.plist";
+		ai_type = "traderAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -294,7 +294,7 @@
 	};
 	"oolite_template_asp" = {
 		aft_eject_position = "0.0 -8.0 -21.5";
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -513,7 +513,7 @@
 	{
 		aft_eject_position = "0.0 -15.0 -50.5";
 		aft_weapon_type = "WEAPON_BEAM_LASER";
-		ai_type = "route1traderAI.plist";
+		ai_type = "traderAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -624,7 +624,7 @@
 	{
 		aft_eject_position = "0.0 -18.75 -50.75";
 		aft_weapon_type = "WEAPON_BEAM_LASER";
-		ai_type = "route1traderAI.plist";
+		ai_type = "traderAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -861,7 +861,7 @@
 	"oolite_template_cobra3" = 
 	{
 		aft_eject_position = "0.0 15.5 -33.0";
-		ai_type = "route1traderAI.plist";
+		ai_type = "traderAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -988,7 +988,7 @@
 	{
 		like_ship = "oolite_template_cobra3";
 		is_template = 1;
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		bounty = 50;
 		energy_recharge_rate = 3;
 		forward_weapon_type = "WEAPON_PULSE_LASER";
@@ -1010,7 +1010,7 @@
 	};
 	"oolite_template_cobramk1" = {
 		aft_eject_position = "0.0 7.5 -21.0";
-		ai_type = "route1traderAI.plist";
+		ai_type = "traderAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -1111,7 +1111,7 @@
 	{
 		like_ship = "oolite_template_cobramk1";
 		is_template = 1;
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		energy_recharge_rate = 3.75;
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_fuel_injection = 0.25;
@@ -1461,7 +1461,7 @@
 	};
 	"oolite_template_ferdelance" = {
 		aft_eject_position = "0.0 3.0 -38.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -1573,7 +1573,7 @@
 	"oolite_template_gecko" =
 	{
 		aft_eject_position = "0.0 4.5 -11.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
@@ -1650,7 +1650,7 @@
 	"oolite_template_krait" = 
 	{
 		aft_eject_position = "0.0 7.5 -16.5";
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
@@ -1684,7 +1684,7 @@
 	};
 	"oolite_template_mamba" = {
 		aft_eject_position = "0.0 5.5 -17.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
@@ -1748,7 +1748,7 @@
 	"oolite_template_moray" = 
 	{
 		aft_eject_position = "0.0 5.75 -8.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -1857,7 +1857,7 @@
 	{
 		like_ship = "oolite_template_moray";
 		is_template = 1;
-		ai_type = "route1traderAI.plist";
+		ai_type = "traderAI.js";
 		likely_cargo = 7;
 		max_cargo = 22;
 		materials =
@@ -1884,7 +1884,7 @@
 	"oolite_template_python" = 
 	{
 		aft_eject_position = "0.0 15.5 -50.0";
-		ai_type = "route1traderAI.plist";
+		ai_type = "traderAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -1987,7 +1987,7 @@
 	{
 		like_ship = "oolite_template_python";
 		is_template = 1;
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		energy_recharge_rate = 3.5;
 		escorts = 2;
 		has_ecm = 0.75;
@@ -2174,7 +2174,7 @@
 	};
 	"oolite_template_sidewinder" = {
 		aft_eject_position = "0.0 7.5 -18.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "pirateAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
@@ -2342,7 +2342,7 @@
 	"oolite_template_viper" = 
 	{
 		aft_eject_position = "0.0 6.5 -28.0";
-		ai_type = "route1patrolAI.plist";
+		ai_type = "policeAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("12.5 0.0 -27.5 6.0 6.0 1.5", "-12.5 0.0 -27.5 6.0 6.0 1.5");
@@ -2456,7 +2456,7 @@
 	"oolite_template_viper-interceptor" = 
 	{
 		aft_eject_position = "0.0 10.5 -22.0";
-		ai_type = "route1patrolAI.plist";
+		ai_type = "policeAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 6;
 		exhaust = (

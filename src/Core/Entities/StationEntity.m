@@ -1391,13 +1391,15 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			[ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 			if (sunskimmer) 
 			{
+				[ship setFuel:(Ranrot()&31)];
 				[UNIVERSE makeSunSkimmer:ship andSetAI:YES];
 			}
 			else
 			{
-				[ship switchAITo:@"exitingTraderAI.plist"];
+// JSAI: not needed - traderAI.js handles exiting if full fuel and plentiful cargo
+//				[ship switchAITo:@"exitingTraderAI.plist"];
 				if([ship fuel] == 0) [ship setFuel:70];
-				if ([ship hasRole:@"sunskim-trader"]) [UNIVERSE makeSunSkimmer:ship andSetAI:NO];
+//				if ([ship hasRole:@"sunskim-trader"]) [UNIVERSE makeSunSkimmer:ship andSetAI:NO];
 			}
 		}
 		
@@ -1464,7 +1466,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 					[escort_ship setGroup:escortGroup];
 					[escort_ship setOwner:ship];
 					
-					[escort_ship switchAITo:@"escortAI.plist"];
+					[escort_ship switchAITo:@"escortAI.js"];
 					[self addShipToLaunchQueue:escort_ship withPriority:NO];
 					
 				}
@@ -1881,7 +1883,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 				
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
-		[escort_ship switchAITo:@"escortAI.plist"];
+		[escort_ship switchAITo:@"escortAI.js"];
 		[self addShipToLaunchQueue:escort_ship withPriority:NO];
 		
 	}
@@ -1932,10 +1934,10 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 				[patrol_ship setScanClass: CLASS_POLICE];
 			if ([patrol_ship heatInsulation] < [self heatInsulation])
 				[patrol_ship setHeatInsulation:[self heatInsulation]];
-			[patrol_ship setPrimaryRole:@"police"];
+			[patrol_ship setPrimaryRole:@"police-station-patrol"];
 			[patrol_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			[patrol_ship setGroup:[self stationGroup]];	// who's your Daddy
-			[patrol_ship switchAITo:@"planetPatrolAI.plist"];
+			[patrol_ship switchAITo:@"policeAI.js"];
 			[self addShipToLaunchQueue:patrol_ship withPriority:NO];
 			[self acceptPatrolReportFrom:patrol_ship];
 			[patrol_ship autorelease];

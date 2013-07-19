@@ -12293,12 +12293,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if ([escort group] == escortGroup)  [escort setGroup:nil];
 		if ([escort owner] == self)  [escort setOwner:escort];
 		if(target && [target isStation]) [escort setTargetStation:target];
-		// JSAI: needs slightly different implementation of delay
+		// JSAI: handles own delay
 		if (![[[escort getAI] name] isEqualToString:@"nullAI.plist"])
 		{
 			[escort setAITo:@"dockingAI.plist"];
+			[ai setState:@"ABORT" afterDelay:delay + 0.25];
 		}
-		[ai setState:@"ABORT" afterDelay:delay + 0.25];
 		[escort doScriptEvent:OOJSID("escortDock") withArgument:[NSNumber numberWithFloat:delay]];
 	}
 	

@@ -179,7 +179,7 @@ this.systemWillPopulate = function()
 																{
 																		r2t.heatInsulation = reqInsulation;
 																}
-																r2t.switchAI("route2sunskimAI.plist");
+																r2t.switchAI("traderAI.js");
 														}
 												});
 		
@@ -216,10 +216,13 @@ this.systemWillPopulate = function()
 						{
 								var hunter = system.addShips("police",1,pos,0)[0];
 						}								
+						hunter.switchAI("policeAI.js");
 				}
 				else
 				{
 						var hunter = system.addShips("hunter",1,pos,0)[0];
+						hunter.switchAI("bountyHunterAI.js");
+
 				}
 				hunter.setBounty(0,"setup actions");
 				return hunter;
@@ -239,8 +242,6 @@ this.systemWillPopulate = function()
 														groupCount: hunters,
 														callback: function(pos) {
 																var hunter = addHunter(pos);
-																hunter.switchAI("route2patrolAI.plist");
-																hunter.AIState = (Math.random()<0.5)?"HEAD_FOR_PLANET":"HEAD_FOR_SUN";
 														}
 												});
 		
@@ -333,11 +334,16 @@ this.systemWillRepopulate = function()
 						{
 								newtrader.heatInsulation = reqIns;
 						}
-						newtrader.switchAI("route2sunskimAI.plist");
+						newtrader.primaryRole = "trader";
+						newtrader.switchAI("traderAI.js");
+						// and encourage sunskimming
+						newtrader.fuel = Math.random()*2;
+						newtrader.setCargoType("PLENTIFUL_GOODS"); 
 				}
 				else
 				{
 						var newtrader = system.addShips("trader",1,[0,0,0],7500)[0];
+						newtrader.setCargoType("SCARCE_GOODS"); 
 				}
 				newtrader.setBounty(0,"setup actions");
 				return;
@@ -351,14 +357,7 @@ this.systemWillRepopulate = function()
 				if (current < target) 
 				{
 						var newpolice = system.mainStation.launchShipWithRole("police");
-						if (Math.random() < 0.2)
-						{
-								newpolice.switchAI("route2patrolAI.plist");
-						}
-						else
-						{
-								newpolice.switchAI("route1patrolAI.plist");
-						}
+						newpolice.switchAI("policeAI.js");
 						newpolice.setBounty(0,"setup actions");
 				}
 				else
@@ -376,10 +375,7 @@ this.systemWillRepopulate = function()
 						if (current < target)
 						{
 								var newhunter = system.addShips("hunter",1,[0,0,0],7500)[0];
-								if (Math.random() < 0.2)
-								{
-										newhunter.switchAI("route2patrolAI.plist");
-								}
+								newhunter.switchAI("bountyHunterAI.js");
 								newhunter.setBounty(0,"setup actions");
 						}
 				}		
