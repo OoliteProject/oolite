@@ -9744,6 +9744,25 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (void) validateDefenseTargets
+{
+	if (_defenseTargets == nil)
+	{
+		return;
+	}
+	// get enumerator from array as we'll be modifying original during enumeration
+	NSEnumerator *defTargets = [[self allDefenseTargets] objectEnumerator];
+	Entity *target = nil;
+	while ((target = [[defTargets nextObject] weakRefUnderlyingObject]))
+	{
+		if ([target status] == STATUS_DEAD)
+		{
+			[self removeDefenseTarget:target];
+		}
+	}
+}
+
+
 - (BOOL) isDefenseTarget:(Entity *)target
 {
 	return [_defenseTargets containsObject:target];

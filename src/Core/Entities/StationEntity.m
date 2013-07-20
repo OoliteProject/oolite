@@ -1,24 +1,24 @@
 /*
 
-StationEntity.m
+	StationEntity.m
 
-Oolite
-Copyright (C) 2004-2013 Giles C Williams and contributors
+	Oolite
+	Copyright (C) 2004-2013 Giles C Williams and contributors
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+	MA 02110-1301, USA.
 
 */
 
@@ -203,29 +203,29 @@ MA 02110-1301, USA.
 
 
 /*- (NSMutableArray *) localPassengers
-{
+	{
 	return localPassengers;
-}
+	}
 
 
-- (void) setLocalPassengers:(NSArray *) some_market
-{
+	- (void) setLocalPassengers:(NSArray *) some_market
+	{
 	if (localPassengers)
-		[localPassengers release];
+	[localPassengers release];
 	localPassengers = [[NSMutableArray alloc] initWithArray:some_market];
-}
+	}
 
 
-- (NSMutableArray *) localContracts
-{
+	- (NSMutableArray *) localContracts
+	{
 	return localContracts;
-}
+	}
 
 
-- (void) setLocalContracts:(NSArray *) some_market
-{
+	- (void) setLocalContracts:(NSArray *) some_market
+	{
 	if (localContracts)
-		[localContracts release];
+	[localContracts release];
 	localContracts = [[NSMutableArray alloc] initWithArray:some_market];
 	} */
 
@@ -496,8 +496,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	}
 	
 	if	(magnitude2(velocity) > 1.0 ||
-		 fabs(flightPitch) > 0.01 ||
-		 fabs(flightYaw) > 0.01)
+			 fabs(flightPitch) > 0.01 ||
+			 fabs(flightYaw) > 0.01)
 	{
 		// no docking while station is moving, pitching or yawing
 		return [self holdPositionInstructionForShip:ship];
@@ -638,7 +638,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 {
 	OOJS_PROFILE_ENTER
 	
-	self = [super initWithKey:key definition:dict];
+		self = [super initWithKey:key definition:dict];
 	if (self != nil)
 	{
 		isStation = YES;
@@ -649,7 +649,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	return self;
 	
 	OOJS_PROFILE_EXIT
-}
+		}
 
 
 - (void) dealloc
@@ -669,7 +669,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 {
 	OOJS_PROFILE_ENTER
 	
-	isShip = YES;
+		isShip = YES;
 	isStation = YES;
 	alertLevel = STATION_ALERT_LEVEL_GREEN;
 	
@@ -684,8 +684,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if ([tokens count] == 3)
 		{
 			port_dimensions = make_vector([[tokens objectAtIndex:0] floatValue],
-										  [[tokens objectAtIndex:1] floatValue],
-										  [[tokens objectAtIndex:2] floatValue]);
+																		[[tokens objectAtIndex:1] floatValue],
+																		[[tokens objectAtIndex:2] floatValue]);
 		}
 	}
 	
@@ -718,7 +718,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		docked_shuttles = ranrot_rand() & 3;   // 0..3;
 		shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
 		last_shuttle_launch_time = unitime - (ranrot_rand() & 63) * shuttle_launch_interval / 60.0;
-		
+			
 		docked_traders = 3 + (ranrot_rand() & 7);   // 1..3;
 		trader_launch_interval = 3600.0 / docked_traders;  // every few minutes
 		last_trader_launch_time = unitime + 60.0 - trader_launch_interval; // in one minute's time
@@ -925,36 +925,44 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		approach_spacing -= delta_t * 10.0;	// reduce by 10 m/s
 		if (approach_spacing < 0.0)   approach_spacing = 0.0;
 	}
-	if ((docked_shuttles > 0)&&(!isRockHermit))
-	{
-		if (unitime > last_shuttle_launch_time + shuttle_launch_interval)
-		{
-			if (([self hasNPCTraffic])&&(aegis_status != AEGIS_NONE))
-			{
-				[self launchShuttle];
-			}
-			last_shuttle_launch_time = unitime;
-		}
-	}
 
-	if ((docked_traders > 0)&&(!isRockHermit))
+	/* JSAI: JS-based AIs handle their own traffic either alone or 
+	 * in conjunction with the system repopulator */
+	if (![[[self getAI] name] isEqualToString:@"nullAI.plist"])
 	{
-		if (unitime > last_trader_launch_time + trader_launch_interval)
+		// begin launch of shuttles, traders, patrols
+		if ((docked_shuttles > 0)&&(!isRockHermit))
 		{
-			if ([self hasNPCTraffic])
+			if (unitime > last_shuttle_launch_time + shuttle_launch_interval)
 			{
-				[self launchIndependentShip:@"trader"];
-				docked_traders--;
+				if (([self hasNPCTraffic])&&(aegis_status != AEGIS_NONE))
+				{
+					[self launchShuttle];
+				}
+				last_shuttle_launch_time = unitime;
 			}
-			last_trader_launch_time = unitime;
 		}
-	}
+
+		if ((docked_traders > 0)&&(!isRockHermit))
+		{
+			if (unitime > last_trader_launch_time + trader_launch_interval)
+			{
+				if ([self hasNPCTraffic])
+				{
+					[self launchIndependentShip:@"trader"];
+					docked_traders--;
+				}
+				last_trader_launch_time = unitime;
+			}
+		}
 	
-	// testing patrols
-	if (unitime > (last_patrol_report_time + patrol_launch_interval))
-	{
-		if (!((isMainStation && [self hasNPCTraffic]) || hasPatrolShips) || [self launchPatrol] != nil)
-			last_patrol_report_time = unitime;
+		// testing patrols
+		if (unitime > (last_patrol_report_time + patrol_launch_interval))
+		{
+			if (!((isMainStation && [self hasNPCTraffic]) || hasPatrolShips) || [self launchPatrol] != nil)
+				last_patrol_report_time = unitime;
+		}
+
 	}
 }
 

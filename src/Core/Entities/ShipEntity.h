@@ -723,6 +723,7 @@ typedef enum
 - (NSUInteger) defenseTargetCount;
 - (NSArray *) allDefenseTargets;
 - (NSEnumerator *) defenseTargetEnumerator;
+- (void) validateDefenseTargets;
 - (BOOL) addDefenseTarget:(Entity *)target;
 - (BOOL) isDefenseTarget:(Entity *)target;
 - (void) removeDefenseTarget:(Entity *)target;

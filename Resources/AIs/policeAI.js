@@ -51,6 +51,8 @@ this.aiStarted = function() {
 		/* Needs to use existing entries in descriptions.plist */
 		ai.setCommunication("oolite_markForFines","Attention, [p1]. Your offences will result in a fine if you dock at %H station..");
 
+		ai.setCommunication("oolite_patrolReportIn","[p1], sector is clear");
+
 		// TODO: return to base after long patrols
 		ai.setPriorities([
 				/* Fight */
@@ -71,7 +73,7 @@ this.aiStarted = function() {
 						behaviour: ai.behaviourRespondToDistressCall,
 						reconsider: 20
 				},
-				/* Check for profitable targets */
+				/* Check for offenders */
 				{
 						preconfiguration: ai.configurationCheckScanner,
 						condition: ai.conditionScannerContainsFugitive,
@@ -107,9 +109,10 @@ this.aiStarted = function() {
 						reconsider: 15
 				},
 				{
-						condition: ai.conditionIsGroupLeader,
+						condition: ai.conditionGroupLeaderIsStation,
+						/* Group leader is the station: a short-range patrol or
+						 * defense ship */
 						truebranch: [
-								/* Nothing interesting here. Patrol for a bit */
 								{
 										condition: ai.conditionHasWaypoint,
 										configuration: ai.configurationSetDestinationToWaypoint,
@@ -123,17 +126,43 @@ this.aiStarted = function() {
 										reconsider: 30
 								}
 						],
+						/* Group leader is not station: i.e. this is a long-range
+						 * patrol unit */
 						falsebranch: [
 								{
-										preconfiguration: ai.configurationEscortGroupLeader,
-										condition: ai.conditionIsEscorting,
-										behaviour: ai.behaviourEscortMothership,
-										reconsider: 30
-								},
-								/* if we can't set up as an escort */
-								{
-										behaviour: ai.behaviourFollowGroupLeader,
-										reconsider: 15
+										/* The group leader leads the patrol */
+										condition: ai.conditionIsGroupLeader,
+										truebranch: [
+												/* Nothing interesting here. Patrol for a bit */
+												{
+														condition: ai.conditionHasWaypoint,
+														configuration: ai.configurationSetDestinationToWaypoint,
+														behaviour: ai.behaviourApproachDestination,
+														reconsider: 30
+												},
+												/* No patrol route set up. Make one */
+												{
+														configuration: ai.configurationSetWaypoint,
+														behaviour: ai.behaviourApproachDestination,
+														reconsider: 30
+												}
+										],
+										/* Other ships in the group will set themselves up
+										 * as escorts if possible, or looser followers if
+										 * not */
+										falsebranch: [
+												{
+														preconfiguration: ai.configurationEscortGroupLeader,
+														condition: ai.conditionIsEscorting,
+														behaviour: ai.behaviourEscortMothership,
+														reconsider: 30
+												},
+												/* if we can't set up as an escort */
+												{
+														behaviour: ai.behaviourFollowGroupLeader,
+														reconsider: 15
+												}
+										]
 								}
 						]
 				}

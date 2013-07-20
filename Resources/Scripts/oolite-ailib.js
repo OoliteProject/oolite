@@ -314,9 +314,12 @@ this.AILib = function(ship)
 				{
 						for (var i = 0 ; i < this.ship.group.ships.length ; i++)
 						{
-								if (cruise > this.ship.group.ships[i].maxSpeed)
+								if (this.ship.group.ships[i].maxSpeed >= this.ship.maxSpeed/4)
 								{
-										cruise = this.ship.group.ships[i].maxSpeed;
+										if (cruise > this.ship.group.ships[i].maxSpeed)
+										{
+												cruise = this.ship.group.ships[i].maxSpeed;
+										}
 								}
 						}
 				}
@@ -324,9 +327,12 @@ this.AILib = function(ship)
 				{
 						for (var i = 0 ; i < this.ship.escortGroup.ships.length ; i++)
 						{
-								if (cruise > this.ship.escortGroup.ships[i].maxSpeed)
+								if (this.ship.escortGroup.ships[i].maxSpeed >= this.ship.maxSpeed/4)
 								{
-										cruise = this.ship.escortGroup.ships[i].maxSpeed;
+										if (cruise > this.ship.escortGroup.ships[i].maxSpeed)
+										{
+												cruise = this.ship.escortGroup.ships[i].maxSpeed;
+										}
 								}
 						}
 				}
@@ -371,6 +377,12 @@ this.AILib = function(ship)
 		{
 				return ship && ship.hasHostileTarget && !ship.isFleeing && !ship.isDerelict;
 		}
+
+		this.isFighting = function(ship)
+		{
+				return ship && (ship.hasHostileTarget || (ship.isStation && ship.alertCondition > 1));
+		}
+
 
 		/* ****************** Condition functions ************** */
 
@@ -439,7 +451,7 @@ this.AILib = function(ship)
 
 		this.conditionInCombat = function()
 		{
-				if (this.ship.hasHostileTarget)
+				if (this.isFighting(this.ship))
 				{
 						return true;
 				}
@@ -455,7 +467,7 @@ this.AILib = function(ship)
 				{
 						for (var i = 0 ; i < this.ship.group.length ; i++)
 						{
-								if (this.ship.group.ships[i].hasHostileTarget)
+								if (this.isFighting(this.ship.group.ships[i]))
 								{
 										return true;
 								}
@@ -465,7 +477,7 @@ this.AILib = function(ship)
 				{
 						for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
 						{
-								if (this.ship.escortGroup.ships[i].hasHostileTarget)
+								if (this.isFighting(this.ship.escortGroup.ships[i]))
 								{
 										return true;
 								}
@@ -479,7 +491,7 @@ this.AILib = function(ship)
 		/* Ships being attacked are firing back */
 		this.conditionInCombatWithHostiles = function()
 		{
-				if (this.ship.hasHostileTarget && this.isAggressive(this.ship.target))
+				if (this.isFighting(ship) && this.isAggressive(this.ship.target))
 				{
 						return true;
 				}
@@ -495,7 +507,7 @@ this.AILib = function(ship)
 				{
 						for (var i = 0 ; i < this.ship.group.length ; i++)
 						{
-								if (this.ship.group.ships[i].hasHostileTarget && this.isAggressive(this.ship.group.ships[i].target))
+								if (this.isFighting(this.ship.group.ships[i]) && this.isAggressive(this.ship.group.ships[i].target))
 								{
 										return true;
 								}
@@ -505,7 +517,7 @@ this.AILib = function(ship)
 				{
 						for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
 						{
-								if (this.ship.escortGroup.ships[i].hasHostileTarget && this.isAggressive(this.ship.escortGroup.ships[i].target))
+								if (this.isFighting(this.ship.escortGroup.ships[i]) && this.isAggressive(this.ship.escortGroup.ships[i].target))
 								{
 										return true;
 								}
@@ -531,7 +543,7 @@ this.AILib = function(ship)
 						{
 								return false; // can't tell
 						}
-						if (leader.hasHostileTarget)
+						if (this.isFighting(leader))
 						{
 								return true;
 						}
@@ -586,7 +598,7 @@ this.AILib = function(ship)
 				if (this.ship.group && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship))
 				{
 						var leader = this.ship.group.leader;
-						if (leader.target && leader.hasHostileTarget && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+						if (leader.target && this.isFighting(leader) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
 						{
 								return true;
 						}
@@ -979,13 +991,26 @@ this.AILib = function(ship)
 				return false;
 		}
 
+		this.conditionGroupLeaderIsStation = function()
+		{
+				return (this.ship.group && this.ship.group.leader && this.ship.group.leader.isStation);
+		}
+
 		this.conditionGroupIsSeparated = function()
 		{
 				if (!this.ship.group || !this.ship.group.leader)
 				{
 						return false;
 				}
-				return (this.ship.position.distanceTo(this.ship.group.leader) > this.ship.scannerRange);
+				if (this.ship.group.leader.isStation)
+				{
+						// can get 2x as far from station
+						return (this.ship.position.distanceTo(this.ship.group.leader) > this.ship.scannerRange * 2);
+				}
+				else
+				{
+						return (this.ship.position.distanceTo(this.ship.group.leader) > this.ship.scannerRange);
+				}
 		}
 
 		this.conditionCombatOddsGood = function()
@@ -1132,20 +1157,21 @@ this.AILib = function(ship)
 				}
 				if (!this.isAggressive(this.ship.target))
 				{
+						var target = this.ship.target;
 						// repelling succeeded
 						if (this.ship.escortGroup)
 						{
 								// also tell escorts to stop attacking it
 								for (var i = 0 ; i < this.ship.escortGroup.ships.length ; i++)
 								{
-										this.ship.escortGroup.ships[i].removeDefenseTarget(this.ship.target);
-										if (this.ship.escortGroup.ships[i].target == this.ship.target)
+										this.ship.escortGroup.ships[i].removeDefenseTarget(target);
+										if (this.ship.escortGroup.ships[i].target == target)
 										{
 												this.ship.escortGroup.ships[i].target = null;
 										}
 								}
 						}
-						this.ship.removeDefenseTarget(this.ship.target);
+						this.ship.removeDefenseTarget(target);
 						this.ship.target = null;
 				}
 				else
@@ -1223,10 +1249,14 @@ this.AILib = function(ship)
 										this.setParameter("oolite_waypointRange",null);
 										if (this.getParameter("oolite_flag_patrolStation"))
 										{
-												var station = this.getParameter("oolite_patrolStation");
-												if (station != null && station.isStation)
+												if (this.ship.group)
 												{
-														this.ship.patrolReportIn(station);
+														var station = this.ship.group.leader;
+														if (station != null && station.isStation)
+														{
+																this.communicate("oolite_patrolReportIn",station.displayName);
+																this.ship.patrolReportIn(station);
+														}
 												}
 										}
 								}
@@ -1727,7 +1757,7 @@ this.AILib = function(ship)
 						{
 								if (this.ship.group.ships[i] != this.ship)
 								{
-										if (this.ship.group.ships[i].target && this.ship.group.ships[i].hasHostileTarget && this.ship.group.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange)
+										if (this.ship.group.ships[i].target && this.isFighting(this.ship.group.ships[i]) && this.ship.group.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange)
 										{
 												this.ship.target = this.ship.group.ships[i].target;
 												return;
@@ -1741,7 +1771,7 @@ this.AILib = function(ship)
 						{
 								if (this.ship.escortGroup.ships[i] != this.ship)
 								{
-										if (this.ship.escortGroup.ships[i].target && this.ship.escortGroup.ships[i].hasHostileTarget && this.ship.escortGroup.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange)
+										if (this.ship.escortGroup.ships[i].target && this.isFighting(this.ship.escortGroup.ships[i]) && this.ship.escortGroup.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange)
 										{
 												this.ship.target = this.ship.escortGroup.ships[i].target;
 												return;
@@ -1781,7 +1811,7 @@ this.AILib = function(ship)
 						{
 								if (this.ship.group.ships[i] != this.ship)
 								{
-										if (this.ship.group.ships[i].target && this.ship.group.ships[i].hasHostileTarget && this.ship.group.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange && this.isAggressive(this.ship.group.ships[i].target))
+										if (this.ship.group.ships[i].target && this.isFighting(this.ship.group.ships[i]) && this.ship.group.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange && this.isAggressive(this.ship.group.ships[i].target))
 										{
 												this.ship.target = this.ship.group.ships[i].target;
 												return;
@@ -1795,7 +1825,7 @@ this.AILib = function(ship)
 						{
 								if (this.ship.escortGroup.ships[i] != this.ship)
 								{
-										if (this.ship.escortGroup.ships[i].target && this.ship.escortGroup.ships[i].hasHostileTarget && this.ship.escortGroup.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange && this.isAggressive(this.ship.escortGroup.ships[i].target))
+										if (this.ship.escortGroup.ships[i].target && this.isFighting(this.ship.escortGroup.ships[i]) && this.ship.escortGroup.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange && this.isAggressive(this.ship.escortGroup.ships[i].target))
 										{
 												this.ship.target = this.ship.escortGroup.ships[i].target;
 												return;
@@ -1823,7 +1853,7 @@ this.AILib = function(ship)
 				if (this.ship.group && this.ship.group.leader)
 				{
 						var leader = this.ship.group.leader;
-						if (leader.target.target == leader && leader.hasHostileTarget && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+						if (leader.target.target == leader && this.isFighting(leader) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
 						{
 								this.ship.target = leader.target;
 						}
@@ -2333,9 +2363,6 @@ this.AILib = function(ship)
 						this.ship.desiredSpeed = this.cruiseSpeed();
 						this.ship.desiredRange = 15000;
 						this.ship.performFlyToRangeFromDestination();
-						if (this.getParameter("oolite_flag_patrolStation")) {
-								this.setParameter("oolite_patrolStation",station);
-						}
 				}
 				handlers.shipWillEnterWormhole = function()
 				{
@@ -2571,7 +2598,11 @@ this.AILib = function(ship)
 
 		this.waypointsStationPatrol = function()
 		{
-				var station = this.getParameter("oolite_patrolStation");
+				var station = null;
+				if (this.ship.group)
+				{
+						station = this.ship.group.leader;
+				}
 				if (!station)
 				{
 						station = system.mainStation;
@@ -2583,7 +2614,11 @@ this.AILib = function(ship)
 						}
 				}
 				var z = station.vectorForward;
-				var tmp = z.cross(system.sun.position.direction());
+				var tmp = new Vector3D(0,1,0);
+				if (system.sun)
+				{
+						tmp = z.cross(system.sun.position.direction());
+				}
 				var x = z.cross(tmp);
 				var y = z.cross(x);
 				// x and y now consistent vectors relative to a rotating station

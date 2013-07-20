@@ -601,6 +601,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_defenseTargets:
 		{
+			[entity validateDefenseTargets];
 			result = [NSMutableArray arrayWithCapacity:[entity defenseTargetCount]];
 			NSEnumerator *defTargets = [entity defenseTargetEnumerator];
 			Entity *target = nil;
@@ -2902,7 +2903,7 @@ static JSBool ShipPatrolReportIn(JSContext *context, uintN argc, jsval *vp)
 	}
 	if ([target isStation])
 	{
-		StationEntity *station = (StationEntity*)station;
+		StationEntity *station = (StationEntity*)target;
 		[station acceptPatrolReportFrom:thisEnt];
 	}
 
