@@ -16,6 +16,11 @@
 	key_gui_system_data			= "7";
 	key_gui_market				= "8";
 
+	key_gui_arrow_left			= 253;
+	key_gui_arrow_right			= 252;
+	key_gui_arrow_up			= 255;
+	key_gui_arrow_down			= 254;
+
 	key_increase_speed			= "w";
 	key_decrease_speed			= "s";
 	key_inject_fuel				= "i";

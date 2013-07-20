@@ -406,6 +406,11 @@ typedef enum
 	OOKeyCode				key_gui_system_data;
 	OOKeyCode				key_gui_market;
 
+	OOKeyCode				key_gui_arrow_left;
+	OOKeyCode				key_gui_arrow_right;
+	OOKeyCode				key_gui_arrow_up;
+	OOKeyCode				key_gui_arrow_down;
+
 	OOKeyCode				key_increase_speed;
 	OOKeyCode				key_decrease_speed;
 	OOKeyCode				key_inject_fuel;

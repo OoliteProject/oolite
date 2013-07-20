@@ -9852,6 +9852,10 @@ else _dockTarget = NO_TARGET;
 	key_gui_chart_screens &&
 	key_gui_system_data &&
 	key_gui_market &&
+	key_gui_arrow_left &&
+	key_gui_arrow_right &&
+	key_gui_arrow_up &&
+	key_gui_arrow_down &&
 	key_increase_speed &&
 	key_decrease_speed &&
 	key_inject_fuel &&
