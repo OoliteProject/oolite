@@ -158,6 +158,7 @@ enum
 	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read/write
 	kShip_AI,					// AI state machine name, string, read-only
 	kShip_AIScript,				// AI script, Script, read-only
+	kShip_AIScriptWakeTime,				// next wakeup time, integer, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_AIFoundTarget,		// AI "found target", entity, read/write
 	kShip_AIPrimaryAggressor,	// AI "primary aggressor", entity, read/write
@@ -285,6 +286,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "aftWeapon",				kShip_aftWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "AI",						kShip_AI,					OOJS_PROP_READONLY_CB },
 	{ "AIScript",					kShip_AIScript,				OOJS_PROP_READONLY_CB },
+	{ "AIScriptWakeTime",					kShip_AIScriptWakeTime,				OOJS_PROP_READWRITE_CB },
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
 	{ "AIFoundTarget",			kShip_AIFoundTarget,		OOJS_PROP_READWRITE_CB },
 	{ "AIPrimaryAggressor",		kShip_AIPrimaryAggressor,	OOJS_PROP_READWRITE_CB },
@@ -786,6 +788,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_AIScript:
 			result = [entity shipAIScript];
 			break;
+
+		case kShip_AIScriptWakeTime:
+			return JS_NewNumberValue(context, [entity shipAIScriptWakeTime], value);
+			break;
 			
 		case kShip_isPirate:
 			*value = OOJSValueFromBOOL([entity isPirate]);
@@ -1197,6 +1203,14 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 		
+		case kShip_AIScriptWakeTime:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setAIScriptWakeTime:fValue];
+				return YES;
+			}
+			break;
+
 		case kShip_temperature:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{

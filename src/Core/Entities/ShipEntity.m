@@ -211,6 +211,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	starboard_weapon_temp	= 0.0f;
 
 	_nextAegisCheck = -0.1f;
+	aiScriptWakeTime = 0;
 
 	if (![self setUpShipFromDictionary:dict])
 	{
@@ -1209,6 +1210,18 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (OOScript *)shipAIScript
 {
 	return aiScript;
+}
+
+
+- (OOTimeAbsolute) shipAIScriptWakeTime
+{
+	return aiScriptWakeTime;
+}
+
+
+- (void) setAIScriptWakeTime:(OOTimeAbsolute) t
+{
+	aiScriptWakeTime = t;
 }
 
 
@@ -2380,6 +2393,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				bounding_box_add_vector(&totalBoundingBox, sebb.min);
 			}
 		}
+	}
+	
+	if (aiScriptWakeTime > 0 && [PLAYER clockTimeAdjusted] > aiScriptWakeTime)
+	{
+		aiScriptWakeTime = 0;
+		[self doScriptEvent:OOJSID("aiAwoken")];
 	}
 }
 

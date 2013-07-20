@@ -293,6 +293,7 @@
 	}
 	else
 	{
+		aiScriptWakeTime = 0;
 		[self doScriptEvent:OOJSID("aiStarted")];
 	}
 	[aiScript retain];

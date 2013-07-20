@@ -150,7 +150,7 @@ this.AILib = function(ship)
 				return null; // nothing in the list is usable, so return
 		};
 
-		/* Only call this from the timer to avoid loops */
+		/* Only call this from aiAwoken to avoid loops */
 		this._reconsider = function() {
 				if (!this.ship || !this.ship.isValid || !this.ship.isInSpace)
 				{
@@ -174,11 +174,7 @@ this.AILib = function(ship)
 		/* Resets the reconsideration timer. */
 		this._resetReconsideration = function(delay)
 		{
-				if (this.ship.AIScript.oolite_reconsiderationTimer != null)
-				{
-						this.ship.AIScript.oolite_reconsiderationTimer.stop();
-				}
-				this.ship.AIScript.oolite_reconsiderationTimer = new Timer(this.ship.AIScript, this._reconsider.bind(this), delay);
+				this.ship.AIScriptWakeTime = clock.adjustedSeconds + delay;
 		};
 
 
@@ -188,6 +184,7 @@ this.AILib = function(ship)
 		this.setPriorities = function(prioritylist) 
 		{
 				priorityList = prioritylist;
+				this.setUpHandlers({});
 				this.reconsiderNow();
 		}
 
@@ -232,16 +229,6 @@ this.AILib = function(ship)
 				this._resetReconsideration.call(this,0.25);
 		}
 
-		/* Stops timer (for script shutdown) */
-		this.stopTimer = function() 
-		{
-				if (this.ship.AIScript.oolite_reconsiderationTimer != null)
-				{
-						this.ship.AIScript.oolite_reconsiderationTimer.stop();
-						this.ship.AIScript.oolite_reconsiderationTimer = null;
-				}
-		}
-		
 
 		this.setUpHandlers = function(handlers)
 		{
@@ -252,14 +239,11 @@ this.AILib = function(ship)
 						delete this.ship.AIScript[activeHandlers[i]];
 				}
 
-				handlers.shipDied = function()
+				/* This handler must always exist for a priority AI */
+				handlers.aiAwoken = function()
 				{
-						if (this.ship.AIScript.oolite_reconsiderationTimer != null)
-						{
-								this.ship.AIScript.oolite_reconsiderationTimer.stop();
-								this.ship.AIScript.oolite_reconsiderationTimer = null;
-						}
-				};
+						this._reconsider();
+				}
 
 				// step 2: go through the keys in handlers and put those handlers
 				// into this.ship.AIScript and the keys into activeHandlers
@@ -2367,7 +2351,6 @@ this.AILib = function(ship)
 				handlers.shipWillEnterWormhole = function()
 				{
 						this.setUpHandlers({});
-						this.stopTimer();
 				}
 				handlers.shipExitedWormhole = function()
 				{

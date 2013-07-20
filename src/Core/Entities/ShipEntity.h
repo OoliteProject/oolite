@@ -207,6 +207,7 @@ typedef enum
 	//scripting
 	OOJSScript				*script;
 	OOJSScript				*aiScript;
+	OOTimeAbsolute    aiScriptWakeTime;
 	
 	//docking instructions
 	NSDictionary			*dockingInstructions;
@@ -451,6 +452,8 @@ typedef enum
 - (void) removeScript;
 - (OOScript *) shipScript;
 - (OOScript *) shipAIScript;
+- (OOTimeAbsolute) shipAIScriptWakeTime;
+- (void) setAIScriptWakeTime:(OOTimeAbsolute) t;
 - (double) frustration;
 - (void) setLaunchDelay:(double)delay;
 
