@@ -1860,7 +1860,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		docked_shuttles--;
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
-		[shuttle_ship switchAITo:@"fallingShuttleAI.plist"];
+		[shuttle_ship switchAITo:@"shuttleAI.js"];
 		[self addShipToLaunchQueue:shuttle_ship withPriority:NO];
 		
 		[shuttle_ship autorelease];

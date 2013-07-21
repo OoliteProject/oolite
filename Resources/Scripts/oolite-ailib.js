@@ -520,7 +520,7 @@ this.AILib = function(ship)
 
 		this.conditionMothershipInCombat = function()
 		{
-				if (this.ship.group && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship))
+				if (this.ship.group && this.ship.group.leader && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship))
 				{
 						var leader = this.ship.group.leader;
 						if (leader.position.distanceTo(this.ship) > this.ship.scannerRange)
@@ -710,13 +710,25 @@ this.AILib = function(ship)
 		this.conditionHasSelectedStation = function()
 		{
 				var station = this.getParameter("oolite_selectedStation");
-				if (station && !station.isValid)
+				if (station && (!station.isValid || !station.isStation))
 				{
 						this.setParameter("oolite_selectedStation",null);
 						return false;
 				}
 				return station != null;
 		}
+
+		this.conditionHasSelectedPlanet = function()
+		{
+				var planet = this.getParameter("oolite_selectedPlanet");
+				if (planet && (!planet.isValid || !planet.isPlanet))
+				{
+						this.setParameter("oolite_selectedPlanet",null);
+						return false;
+				}
+				return planet != null;
+		}
+
 
 		this.conditionInInterstellarSpace = function()
 		{
@@ -1297,16 +1309,19 @@ this.AILib = function(ship)
 				{
 						if (blocker.isPlanet || blocker.isSun)
 						{
-								if (this.ship.position.distanceTo(blocker) < blocker.radius * 3)
+								// the selected planet can't block
+								if (blocker.isSun || this.getParameter("oolite_selectedPlanet") != blocker)
 								{
-										if (waypoints == null)
+										if (this.ship.position.distanceTo(blocker) < blocker.radius * 3)
 										{
-												waypoints = [];
+												if (waypoints == null)
+												{
+														waypoints = [];
+												}
+												waypoints.push(this.ship.getSafeCourseToDestination());
+												this.ship.destination = waypoints[waypoints.length-1];
+												this.ship.desiredRange = 1000;
 										}
-										waypoints.push(this.ship.getSafeCourseToDestination());
-										this.ship.destination = waypoints[waypoints.length-1];
-										this.ship.desiredRange = 1000;
-										log(this.ship,"Avoiding blocker "+blocker);
 								}
 						}
 						else if (blocker.isShip)
@@ -1323,7 +1338,6 @@ this.AILib = function(ship)
 												waypoints.push(this.ship.getSafeCourseToDestination());
 												this.ship.destination = waypoints[waypoints.length-1];
 												this.ship.desiredRange = 1000;
-												log(this.ship,"Avoiding blocker "+blocker);
 										}
 								}
 						}
@@ -1775,6 +1789,15 @@ this.AILib = function(ship)
 				this.ship.performTumble();
 		}
 
+		this.behaviourLandOnPlanet = function()
+		{
+				this.ship.desiredSpeed = this.ship.maxSpeed / 4;
+				this.ship.performLandOnPlanet();
+				this.ship.AIScriptWakeTime = 0; // cancel reconsiderations
+				this.setUpHandlers({}); // cancel interruptions
+				this.communicate("oolite_landingOnPlanet");
+		}
+
 		/* ****************** Configuration functions ************** */
 
 		/* Configurations. Configurations are set up actions for a behaviour
@@ -1939,6 +1962,55 @@ this.AILib = function(ship)
 				this.ship.target = this.getParameter("oolite_scanResultSpecific");
 		}
 
+		this.configurationSelectShuttleDestination = function()
+		{
+				var possibles = system.planets.concat(system.stations);
+				var destinations1 = [];
+				var destinations2 = [];
+				for (var i = 0; i < possibles.length ; i++)
+				{
+						var possible = possibles[i];
+						// travel at least a little way
+						var distance = possible.position.distanceTo(this.ship);
+						if (distance > possible.collisionRadius + 10000)
+						{
+								// must be friendly destination and not moving too fast
+								if (possible.isPlanet || this.friendlyStation(possible) || possible.maxSpeed > this.ship.maxSpeed / 5)
+								{
+										if (distance > system.mainPlanet.radius * 5)
+										{
+												destinations2.push(possible);
+										}
+										else
+										{
+												destinations1.push(possible);
+										}
+								}
+						}
+				}
+				// no nearby destinations
+				if (destinations1.length == 0)
+				{
+						destinations1 = destinations2;
+				}
+				// no destinations
+				if (destinations1.length == 0)
+				{
+						return;
+				}
+				var destination = destinations1[Math.floor(Math.random()*destinations1.length)];
+				if (destination.isPlanet)
+				{
+						this.setParameter("oolite_selectedPlanet",destination);
+						this.setParameter("oolite_selectedStation",null);
+				}
+				else
+				{
+						this.setParameter("oolite_selectedStation",destination);
+						this.setParameter("oolite_selectedPlanet",null);
+				}
+		}
+
 		this.configurationSelectRandomTradeStation = function()
 		{
 				var stations = system.stations;
@@ -2010,6 +2082,18 @@ this.AILib = function(ship)
 						this.ship.desiredSpeed = this.cruiseSpeed();
 				}
 		}
+
+		this.configurationSetDestinationToSelectedPlanet = function()
+		{
+				var planet = this.getParameter("oolite_selectedPlanet");
+				if (planet)
+				{
+						this.ship.destination = planet.position;
+						this.ship.desiredRange = planet.radius+100;
+						this.ship.desiredSpeed = this.cruiseSpeed();
+				}
+		}
+
 
 		this.configurationSetDestinationToPirateLurk = function()
 		{
@@ -2412,7 +2496,18 @@ this.AILib = function(ship)
 				}
 				handlers.approachingPlanetSurface = function()
 				{
-						this.reconsiderNow();
+						if (this.getParameter("oolite_flag_allowPlanetaryLanding"))
+						{
+								this.ship.desiredSpeed = this.ship.maxSpeed / 4;
+								this.ship.performLandOnPlanet();
+								this.ship.AIScriptWakeTime = 0; // cancel reconsiderations
+								this.setUpHandlers({}); // cancel interruptions
+								this.communicate("oolite_landingOnPlanet");
+						}
+						else
+						{
+								this.reconsiderNow();
+						}
 				}
 				handlers.shipLaunchedFromStation = function(station)
 				{
