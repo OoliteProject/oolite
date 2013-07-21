@@ -1623,7 +1623,7 @@ keys[a] = NO; keys[b] = NO; \
                         }
                         else
                         {
-							KEYCODE_UP_BOTH (35, gvNumberKey5);				// # or 3
+							KEYCODE_UP_BOTH (35, gvNumberKey3);				// # or 3
                         }
                         break;
 #else
