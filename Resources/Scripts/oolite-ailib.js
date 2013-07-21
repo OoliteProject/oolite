@@ -361,7 +361,7 @@ this.AILib = function(ship)
 		{
 				return ship && ship.hasHostileTarget && !ship.isFleeing && !ship.isDerelict;
 		}
-
+		
 		this.isFighting = function(ship)
 		{
 				return ship && (ship.hasHostileTarget || (ship.isStation && ship.alertCondition > 1));
@@ -515,7 +515,7 @@ this.AILib = function(ship)
 
 		this.conditionHasMothership = function()
 		{
-				return (this.ship.group && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship));
+				return (this.ship.group && this.ship.group.leader && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup && this.ship.group.leader.escortGroup.containsShip(this.ship));
 		}
 
 		this.conditionMothershipInCombat = function()
@@ -633,6 +633,20 @@ this.AILib = function(ship)
 				return this.checkScannerWithPredicate(function(s) { 
 						var threshold = 50 - (system.info.government * 7);
 						return s.isInSpace && s.bounty <= threshold && s.bounty > 0 && !s.markedForFines && (s.scanClass == "CLASS_NEUTRAL" || s.isPlayer) && !s.isDerelict; 
+				});
+		}
+
+		this.conditionScannerContainsNonThargoid = function()
+		{
+				var prioritytargets = this.checkScannerWithPredicate(function(s) { 
+						return s.scanClass != "CLASS_THARGOID" && s.scanClass != "CLASS_ROCK" && s.scanClass != "CLASS_CARGO";
+				});
+				if (prioritytargets) 
+				{
+						return true;
+				}
+				return this.checkScannerWithPredicate(function(s) { 
+						return s.scanClass != "CLASS_THARGOID";
 				});
 		}
 
@@ -785,6 +799,25 @@ this.AILib = function(ship)
 						}
 				}
 				return false;
+		}
+
+		this.conditionHasNonThargoidTarget = function()
+		{
+				return (this.ship.target && this.ship.target.scanClass != "CLASS_THARGOID");
+		}
+
+		this.conditionScannerContainsThargoidMothership = function()
+		{
+				return this.checkScannerWithPredicate(function(s) { 
+						return s.hasRole("thargoid-mothership");
+				});
+		}
+
+		this.conditionScannerContainsReadyThargoidMothership = function()
+		{
+				return this.checkScannerWithPredicate(function(s) { 
+						return s.hasRole("thargoid-mothership") && (!s.escortGroup || s.escortGroup.count <= 16);
+				});
 		}
 
 		this.conditionScannerContainsShipNeedingEscort = function()
@@ -1062,6 +1095,11 @@ this.AILib = function(ship)
 				return false;
 		}
 
+		this.conditionThargonIsActive = function()
+		{
+				return this.ship.scanClass == "CLASS_THARGOID" && this.ship.hasRole("EQ_THARGON");
+		}
+
 		/* ****************** Behaviour functions ************** */
 
 		/* Behaviours. Behaviours are effectively a state definition,
@@ -1179,7 +1217,7 @@ this.AILib = function(ship)
 				if (this.ship.scanClass == "CLASS_POLICE" && this.ship.target)
 				{
 						this.communicate("oolite_markForFines",this.ship.target.displayName);
-				
+						
 						this.ship.markTargetForFines();
 				}
 
@@ -1611,47 +1649,47 @@ this.AILib = function(ship)
 						// between 5% and 80% of cargo
 						demand = Math.ceil(demand); // round it up so there's always at least 1
 						demand = 2+(demand%10); //
-/* 
-// since cargo dumping detection uses checkScanner, this doesn't work
-// for any substantial volume of cargo. Consider reinstating if
-// increasing the max-count on checkScanner doesn't break things
+						/* 
+						// since cargo dumping detection uses checkScanner, this doesn't work
+						// for any substantial volume of cargo. Consider reinstating if
+						// increasing the max-count on checkScanner doesn't break things
 
 						var maxdemand = 0;
 						var gc = 1;
 						if (!this.ship.group)
 						{
-								if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
-								{
-										maxdemand = this.ship.cargoSpaceAvailable;
-								}
+						if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+						{
+						maxdemand = this.ship.cargoSpaceAvailable;
+						}
 						}
 						else
 						{
-								gc = this.ship.group.ships.length;
-								for (var i = 0; i < gc ; i++)
-								{
-										var ship = this.ship.group.ships[i];
-										if (ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
-										{
-												maxdemand += ship.cargoSpaceAvailable;
-										}
-								}
+						gc = this.ship.group.ships.length;
+						for (var i = 0; i < gc ; i++)
+						{
+						var ship = this.ship.group.ships[i];
+						if (ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+						{
+						maxdemand += ship.cargoSpaceAvailable;
+						}
+						}
 						}
 						if (demand > maxdemand)
 						{
-								demand = maxdemand; // don't ask for more than we can carry
+						demand = maxdemand; // don't ask for more than we can carry
 						}
 						while (demand > gc * 5)
 						{
-								// asking for more than 5TC each probably means there
-								// won't be time to pick it all up anyway
-								demand = Math.ceil(demand/2);
+						// asking for more than 5TC each probably means there
+						// won't be time to pick it all up anyway
+						demand = Math.ceil(demand/2);
 						}
 						if (demand < 2)
 						{
-								demand = 2;
+						demand = 2;
 						}
-*/
+						*/
 
 						/* Record our demand with the group leader */
 						if (this.ship.group && this.ship.group.leader)
@@ -1669,10 +1707,10 @@ this.AILib = function(ship)
 						}
 						this.communicate("oolite_piracyAlert",this.ship.target.displayName,demand);
 						this.ship.requestHelpFromGroup();
-/*				}
-				else
-				{
-				log(this.ship.displayName,"Already asked for "+demand); */
+						/*				}
+											else
+											{
+											log(this.ship.displayName,"Already asked for "+demand); */
 				}
 				var handlers = {};
 				this.responsesAddStandard(handlers);
@@ -1700,6 +1738,41 @@ this.AILib = function(ship)
 				this.responsesAddStandard(handlers);
 				this.setUpHandlers(handlers);
 				this.reconsiderNow();
+		}
+
+		this.behaviourBecomeInactiveThargon = function()
+		{
+				this.setUpHandlers({});
+				this.ship.scanClass = "CLASS_CARGO";
+				this.ship.target = null;
+				this.ship.clearDefenseTargets();
+				if (this.ship.group)
+				{
+						this.ship.group.removeShip(this.ship);
+						this.ship.group = null;
+				}
+				if (this.ship.escortGroup)
+				{
+						this.ship.escortGroup.removeShip(this.ship);
+				}
+				this.ship.desiredSpeed = 0;
+				this.ship.performStop();
+				var nearby = this.ship.checkScanner();
+				for (var i = 0 ; i < nearby.length ; i++)
+				{
+						var ship = nearby[i];
+						if (ship.target == this.ship && !ship.isPlayer && ship.hasHostileTarget)
+						{
+								ship.target = null;
+						}
+						ship.removeDefenseTarget(this.ship);
+				}
+		}
+
+		this.behaviourTumble = function()
+		{
+				this.setUpHandlers({});
+				this.ship.performTumble();
 		}
 
 		/* ****************** Configuration functions ************** */
@@ -1822,7 +1895,7 @@ this.AILib = function(ship)
 
 		this.configurationAcquireOffensiveEscortTarget = function()
 		{
-				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.hasHostileTarget)
+				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.target && this.ship.group.leader.hasHostileTarget)
 				{
 						if (this.ship.position.distanceTo(this.ship.group.leader.target) < this.ship.scannerRange)
 						{
@@ -2159,10 +2232,10 @@ this.AILib = function(ship)
 
 		this.configurationForgetCargoDemand = function()
 		{
-/*				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership.cargodemanded)
-				{
-						delete this.ship.group.leader.AIScript.oolite_intership.cargodemanded;
-				} */ // not sure about this, maybe not needed
+				/*				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership.cargodemanded)
+									{
+									delete this.ship.group.leader.AIScript.oolite_intership.cargodemanded;
+									} */ // not sure about this, maybe not needed
 
 				if (this.ship.AIScript.oolite_intership.cargodemanded)
 				{
@@ -2182,6 +2255,7 @@ this.AILib = function(ship)
 						}
 				}
 		}
+
 
 		/* ****************** Response definition functions ************** */
 
@@ -2355,7 +2429,7 @@ this.AILib = function(ship)
 				handlers.shipExitedWormhole = function()
 				{
 						this.ship.AIScript.oolite_intership = {};
-//						this.reconsiderNow();
+						//						this.reconsiderNow();
 				}
 
 				handlers.distressMessageReceived = function(aggressor, sender)

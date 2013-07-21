@@ -2242,7 +2242,7 @@
 	};
 	"oolite_template_tharglet" = 
 	{
-		ai_type = "thargletAI.plist";
+		ai_type = "thargletAI.js";
 		bounty = 50;
 		cargo_type = "CARGO_THARGOID";
 		energy_recharge_rate = 3;
@@ -2271,7 +2271,7 @@
 	{
 		aft_eject_position = "0.0 0.0 -20.5";
 		aft_weapon_type = "WEAPON_THARGOID_LASER";
-		ai_type = "thargoidAI.plist";
+		ai_type = "thargoidAI.js";
 		bounty = 100;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;

@@ -6444,7 +6444,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 - (BOOL)isEscort
 {
-	return [self hasPrimaryRole:@"escort"] || [self hasPrimaryRole:@"wingman"];
+	return [self hasPrimaryRole:@"escort"] || [self hasPrimaryRole:@"wingman"] || [self hasPrimaryRole:@"EQ_THARGON"];
 }
 
 
@@ -8568,7 +8568,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	scan = z_previous;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_previous;	// skip non-ships
 	while ((scan)&&(scan->position.z > position.z - scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
-		if (scan->isShip)
+		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
 		{
 			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
 			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
@@ -8580,7 +8580,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	scan = z_next;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_next;	// skip non-ships
 	while ((scan)&&(scan->position.z < position.z + scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
-		if (scan->isShip)
+		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
 		{
 			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
 			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
@@ -12104,7 +12104,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		return NO;
 	}
-	if (scanClass != [potentialEscort scanClass]) // this makes sure that wingman can only select police.
+	if (scanClass != [potentialEscort scanClass]) // this makes sure that wingman can only select police, thargons only thargoids.
 	{
 		return NO;
 	}
@@ -12112,9 +12112,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		return NO;
 	}
-	if (![self isEscort]) // self is NOT wingman or escort
+	if (![self isEscort]) // self is NOT wingman or escort or thargon
 	{
-		return [potentialEscort isEscort]; // is wingman or escort
+		return [potentialEscort isEscort]; // is wingman or escort or thargon
 	}
 	return NO;
 }
@@ -12144,7 +12144,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		
 		// check total number acceptable
 		// the system's patrols don't have escorts set inside their dictionary, but accept max escorts.
-		if (_maxEscortCount == 0 && ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"])) 
+		if (_maxEscortCount == 0 && ([self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"hunter"] || [self hasRole:@"thargoid-mothership"])) 
 		{
 			_maxEscortCount = MAX_ESCORTS;
 		}
