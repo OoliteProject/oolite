@@ -380,6 +380,10 @@ this.AILib = function(ship)
 
 		this.isAggressive = function(ship)
 		{
+				if (ship && ship.isPlayer)
+				{
+						return !ship.isFleeing;
+				}
 				return ship && ship.hasHostileTarget && !ship.isFleeing && !ship.isDerelict;
 		}
 		
@@ -541,7 +545,7 @@ this.AILib = function(ship)
 
 		this.conditionMothershipInCombat = function()
 		{
-				if (this.ship.group && this.ship.group.leader && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship))
+				if (this.ship.group && this.ship.group.leader && this.ship.group.leader != this.ship)
 				{
 						var leader = this.ship.group.leader;
 						if (leader.position.distanceTo(this.ship) > this.ship.scannerRange)
@@ -600,7 +604,7 @@ this.AILib = function(ship)
 
 		this.conditionMothershipIsAttacking = function()
 		{
-				if (this.ship.group && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup.containsShip(this.ship))
+				if (this.ship.group && this.ship.group.leader != this.ship)
 				{
 						var leader = this.ship.group.leader;
 						if (leader.target && this.isFighting(leader) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
@@ -610,6 +614,21 @@ this.AILib = function(ship)
 				}
 				return false;
 		}
+
+		// as MothershipIsAttacking, but leader.target must be aggressive
+		this.conditionMothershipIsAttackingHostileTarget = function()
+		{
+				if (this.ship.group && this.ship.group.leader != this.ship)
+				{
+						var leader = this.ship.group.leader;
+						if (leader.target && this.isFighting(leader) && this.isAggressive(leader.target) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+						{
+								return true;
+						}
+				}
+				return false;
+		}
+
 
 		this.conditionNearDestination = function()
 		{

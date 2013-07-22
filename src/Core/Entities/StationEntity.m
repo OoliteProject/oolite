@@ -1559,7 +1559,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			[police_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			if ([police_ship heatInsulation] < [self heatInsulation])
 				[police_ship setHeatInsulation:[self heatInsulation]];
-			[police_ship switchAITo:@"policeInterceptAI.plist"];
+			[police_ship switchAITo:@"defenseShipAI.js"];
 			[self addShipToLaunchQueue:police_ship withPriority:YES];
 			defenders_launched++;
 			[result addObject:police_ship];
@@ -1586,7 +1586,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	NSString	*defense_ship_key = nil,
 				*defense_ship_role = nil,
 				*default_defense_ship_role = nil;
-	NSString	*defense_ship_ai = @"policeInterceptAI.plist";
+	NSString	*defense_ship_ai = @"defenseShipAI.js";
 	
 	OOTechLevelID	techlevel;
 	
