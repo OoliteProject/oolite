@@ -1713,7 +1713,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if ([scavenger_ship heatInsulation] < [self heatInsulation])
 			[scavenger_ship setHeatInsulation:[self heatInsulation]];
 		[scavenger_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
-		[scavenger_ship switchAITo:@"scavengerAI.plist"];
+		[scavenger_ship switchAITo:@"scavengerAI.js"];
 		[self addShipToLaunchQueue:scavenger_ship withPriority:NO];
 		[scavenger_ship autorelease];
 	}
@@ -1761,7 +1761,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if ([miner_ship heatInsulation] < [self heatInsulation])
 			[miner_ship setHeatInsulation:[self heatInsulation]];
 		[miner_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
-		[miner_ship switchAITo:@"minerAI.plist"];
+		[miner_ship switchAITo:@"scavengerAI.js"];
 		[self addShipToLaunchQueue:miner_ship withPriority:NO];
 		[miner_ship autorelease];
 	}

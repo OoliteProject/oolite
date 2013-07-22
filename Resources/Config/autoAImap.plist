@@ -19,11 +19,11 @@
 	"escort"			= "escortAI.js";
 	"hunter"			= "bountyHunterAI.js";
 	"interceptor"		= "policeAI.js";
-	"miner"				= "minerAI.plist";
+	"miner"				= "scavengerAI.js";
 	"pirate"			= "pirateAI.js";
 	"police"			= "policeAI.js";
 	"trader"			= "traderAI.js";
-	"scavenger"			= "scavengerAI.plist";
+	"scavenger"			= "scavengerAI.js";
 	"shuttle"			= "shuttleAI.js";
 	"sunskim-trader"	= "traderAI.js";
 	"wingman"			= "policeAI.js";

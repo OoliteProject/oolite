@@ -47,7 +47,7 @@
 	"oolite_template_adder" =
 	{
 		aft_eject_position = "0.0 -4.5 -23.0";
-		ai_type = "scavengerAI.plist";
+		ai_type = "scavengerAI.js";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
@@ -1128,7 +1128,7 @@
 	{
 		like_ship = "oolite_template_cobramk1";
 		is_template = 1;
-		ai_type = "minerAI.plist";
+		ai_type = "scavengerAI.js";
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
 		materials =
@@ -2329,7 +2329,7 @@
 	{
 		like_ship = "oolite_template_transporter";
 		is_template = 1;
-		ai_type = "minerAI.plist";
+		ai_type = "scavengerAI.js";
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
 		materials =
@@ -2615,7 +2615,7 @@
 	{
 		like_ship = "oolite_template_worm";
 		is_template = 1;
-		ai_type = "minerAI.plist";
+		ai_type = "scavengerAI.js";
 		energy_recharge_rate = 1.85;
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;

@@ -291,6 +291,27 @@ this.AILib = function(ship)
 				return (station.target != this.ship || !station.hasHostileTarget);
 		}
 
+		this.homeStation = function() 
+		{
+				// home station might be the owner of the ship, or might just
+				// be a group member
+				if (this.ship.owner && this.ship.owner.isStation && this.friendlyStation(this.ship.owner))
+				{
+						return this.ship.owner;
+				}
+				if (this.ship.group)
+				{
+						for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+						{
+								if (this.ship.group.ships[i] != this.ship && this.ship.group.ships[i].isStation && this.friendlyStation(this.ship.group.ships[i].isStation))
+								{
+										return this.ship.group.ships[i];
+								}
+						}
+				}
+				return null;
+		}
+
 		this.cruiseSpeed = function()
 		{
 				var cruise = this.ship.maxSpeed * 0.8;
@@ -653,10 +674,40 @@ this.AILib = function(ship)
 		
 		this.conditionScannerContainsSalvageForMe = function()
 		{
+				if (!this.conditionCanScoopCargo())
+				{
+						return false;
+				}
 				return this.checkScannerWithPredicate(function(s) { 
-						return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.ship.maxSpeed && this.conditionCanScoopCargo(); 
+						return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.ship.maxSpeed; 
 				});
 		}
+
+		this.conditionScannerContainsMiningOpportunity = function()
+		{
+				// if hold full, no
+				if (!this.conditionCanScoopCargo())
+				{
+						return false;
+				}
+				// need a mining laser, and for now a forward one
+				if (!this.ship.forwardWeapon == "EQ_WEAPON_MINING_LASER")
+				{
+						return false;
+				}
+				var scan1 = this.checkScannerWithPredicate(function(s) { 
+						return s.isInSpace && s.isBoulder;
+				});
+				if (scan1)
+				{
+						return true;
+				}
+				// no boulders, what about asteroids?
+				return this.checkScannerWithPredicate(function(s) { 
+						return s.isInSpace && s.hasRole("asteroid");
+				});
+		}
+
 
 		this.conditionScannerContainsEscapePods = function()
 		{
@@ -778,6 +829,23 @@ this.AILib = function(ship)
 		}
 
 
+		this.conditionHomeStationNearby = function()
+		{
+				var home = this.homeStation();
+				if (home == null)
+				{
+						return false;
+				}
+				return this.ship.position.distanceTo(home) < this.ship.scannerRange;
+		}
+
+
+		this.conditionHomeStationExists = function()
+		{
+				return (this.homeStation() != null);
+		}
+
+
 		this.conditionFriendlyStationNearby = function()
 		{
 				var stations = system.stations;
@@ -796,6 +864,7 @@ this.AILib = function(ship)
 				}
 				return false;
 		}
+
 
 		this.conditionFriendlyStationExists = function()
 		{
@@ -1234,6 +1303,15 @@ this.AILib = function(ship)
 				}
 
 				this.ship.performIdle();
+		}
+
+
+		this.behaviourMineTarget = function()
+		{
+				var handlers = {};
+				this.responsesAddStandard(handlers);
+				this.setUpHandlers(handlers);
+				this.ship.performMining();
 		}
 
 
@@ -2190,6 +2268,24 @@ this.AILib = function(ship)
 				}
 		}
 
+
+		this.configurationSetDestinationToHomeStation = function()
+		{
+				var home = this.homeStation();
+				if (home != null)
+				{
+						this.ship.destination = home.position;
+						this.ship.desiredRange = 15000;
+						this.ship.desiredSpeed = this.cruiseSpeed();
+				}
+				else
+				{
+						this.ship.destination = this.ship.position;
+						this.ship.desiredRange = 0;
+				}
+		}
+
+
 		this.configurationSetDestinationToGroupLeader = function()
 		{
 				if (!this.ship.group || !this.ship.group.leader)
@@ -2257,6 +2353,16 @@ this.AILib = function(ship)
 										return;
 								}
 						}
+				}
+		}
+
+
+		this.configurationSetHomeStationForDocking = function()
+		{
+				if (this.ship.owner && this.ship.owner.isStation && this.friendlyStation(this.ship.owner))
+				{
+						this.setParameter("oolite_dockingStation",this.ship.owner)
+						return;
 				}
 		}
 
