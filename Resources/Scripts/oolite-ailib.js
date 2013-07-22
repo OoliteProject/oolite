@@ -1454,6 +1454,7 @@ this.AILib = function(ship)
 								this.ship.desiredRange = 12500;
 								this.ship.desiredSpeed = this.cruiseSpeed();
 								this.ship.performFlyToRangeFromDestination();
+								break;
 						}
 						// else fall through
 				case "HOLD_POSITION":
