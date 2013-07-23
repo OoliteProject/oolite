@@ -462,7 +462,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "remove",					ShipRemove,					0 },
 	{ "removeDefenseTarget",   ShipRemoveDefenseTarget,   1 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
-	{ "requestHelpFromGroup", ShipRequestHelpFromGroup, 1},
+	{ "requestHelpFromGroup", ShipRequestHelpFromGroup, 0},
 	{ "requestDockingInstructions", ShipRequestDockingInstructions, 0},
 	{ "recallDockingInstructions", ShipRecallDockingInstructions, 0},
 	{ "restoreSubEntities",		ShipRestoreSubEntities,		0 },

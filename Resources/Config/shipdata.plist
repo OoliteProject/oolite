@@ -1182,7 +1182,7 @@
 	};
 	"oolite_template_coriolis-station" = 
 	{
-		ai_type = "stationAI.plist";
+		ai_type = "stationAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1344,7 +1344,7 @@
 	};
 	"oolite_template_dodecahedron-station" =
 	{
-		ai_type = "stationAI.plist";
+		ai_type = "stationAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1603,7 +1603,7 @@
 	};
 	"oolite_template_icosahedron-station" = 
 	{
-		ai_type = "stationAI.plist";
+		ai_type = "stationAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
