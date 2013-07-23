@@ -718,6 +718,11 @@ this.AILib = function(ship)
 				{
 						return false;
 				}
+				return this.conditionScannerContainsRocks();
+		}
+
+		this.conditionScannerContainsRocks = function()
+		{
 				var scan1 = this.checkScannerWithPredicate(function(s) { 
 						return s.isInSpace && s.isBoulder;
 				});
@@ -780,14 +785,6 @@ this.AILib = function(ship)
 				});
 		}
 				
-
-		this.conditionScannerContainsPatrol = function()
-		{
-				return this.checkScannerWithPredicate(function(s) { 
-						return s.isInSpace && s.primaryRole == this.getParameter("oolite_stationPatrolRole");
-				});
-		}
-		
 
 		this.conditionHasReceivedDistressCall = function()
 		{
@@ -1987,9 +1984,32 @@ this.AILib = function(ship)
 
 		}
 
+		this.behaviourStationLaunchMiner = function() 
+		{
+				if (this.alertCondition > 1)
+				{
+						this.alertCondition--;
+				}
+				var handlers = {};
+				this.responsesAddStation(handlers);
+				this.setUpHandlers(handlers);
+				if (this.ship.group)
+				{
+						for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+						{
+								if (this.ship.group.ships[i].primaryRole == "miner")
+								{
+										// only one in flight at once
+										return;
+								}
+						}
+				}
+				this.ship.launchMiner();
+		}
+
+
 		this.behaviourStationLaunchPatrol = function() 
 		{
-				this.ship.launchPatrol();
 				if (this.alertCondition > 1)
 				{
 						this.alertCondition--;
@@ -1998,6 +2018,19 @@ this.AILib = function(ship)
 				this.responsesAddStation(handlers);
 				this.setUpHandlers(handlers);
 
+				if (this.ship.group)
+				{
+						for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+						{
+								if (this.ship.group.ships[i].primaryRole == this.getParameter("oolite_stationPatrolRole"))
+								{
+										// only one in flight at once
+										return;
+								}
+						}
+				}
+
+				this.ship.launchPatrol();
 		}
 
 		this.behaviourStationManageTraffic = function() 
@@ -2158,7 +2191,7 @@ this.AILib = function(ship)
 				if (this.ship.group && this.ship.group.leader)
 				{
 						var leader = this.ship.group.leader;
-						if (leader.target.target == leader && this.isFighting(leader) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+						if (leader.target && leader.target.target == leader && this.isFighting(leader) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
 						{
 								this.ship.target = leader.target;
 						}

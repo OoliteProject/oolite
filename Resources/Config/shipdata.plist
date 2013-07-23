@@ -2033,7 +2033,7 @@
 	};
 	"oolite_template_rock-hermit" = 
 	{
-		ai_type = "rockHermitAI.plist";
+		ai_type = "rockHermitAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 5;
 		"equipment_price_factor" = 4.5;
