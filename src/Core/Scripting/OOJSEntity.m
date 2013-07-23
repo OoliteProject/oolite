@@ -249,6 +249,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 			case STATUS_WITCHSPACE_COUNTDOWN:
 			case STATUS_BEING_SCOOPED:
 			case STATUS_EFFECT:
+			case STATUS_ACTIVE:
 				*value = JSVAL_TRUE;
 				break;
 			default:
