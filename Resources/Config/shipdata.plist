@@ -1399,7 +1399,7 @@
 	};
 	"oolite_template_escape-capsule" = {
 		aft_eject_position = "0.0 0.0 -2.0";
-		ai_type = "homeAI.plist";
+		ai_type = "shuttleAI.js";
 		cargo_type = "CARGO_SLAVES";
 		energy_recharge_rate = 2;
 		exhaust =
