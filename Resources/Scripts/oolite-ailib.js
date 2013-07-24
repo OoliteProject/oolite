@@ -542,6 +542,17 @@ this.AILib = function(ship)
 		}
 
 
+		this.conditionHasTarget = function()
+		{
+				return this.ship.target != null;
+		}
+
+		this.conditionHasInterceptCoordinates = function()
+		{
+				return (this.getParameter("oolite_interceptCoordinates") != null);
+		}
+
+
 		this.conditionHasMothership = function()
 		{
 				return (this.ship.group && this.ship.group.leader && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup && this.ship.group.leader.escortGroup.containsShip(this.ship));
@@ -1229,6 +1240,16 @@ this.AILib = function(ship)
 		this.conditionThargonIsActive = function()
 		{
 				return this.ship.scanClass == "CLASS_THARGOID" && this.ship.hasRole("EQ_THARGON");
+		}
+
+		this.conditionMissileOutOfFuel = function()
+		{
+				var range = 30000; // 30 km default
+				if (this.ship.scriptInfo.oolite_missile_range)
+				{
+						range = this.ship.scriptInfo.oolite_missile_range;
+				}
+				return range < this.ship.distanceTravelled;
 		}
 
 		/* ****************** Behaviour functions ************** */
@@ -2053,6 +2074,59 @@ this.AILib = function(ship)
 						// TODO: integrate with system repopulator rather than just
 						// launching ships at random
 				}
+		}
+
+		/* Missile behaviours: have different standard handler sets */
+
+		this.behaviourMissileInterceptTarget = function()
+		{
+				var handlers = {};
+				this.responsesAddMissile(handlers);
+				this.setUpHandlers(handlers);
+				if (this.ship.scriptInfo.oolite_missile_proximity)
+				{
+						this.ship.desiredRange = this.ship.scriptInfo.oolite_missile_proximity;
+				}
+				else
+				{
+						this.ship.desiredRange = 25;					
+				}
+
+				this.ship.performIntercept();
+		}
+
+		this.behaviourMissileInterceptCoordinates = function()
+		{
+				var handlers = {};
+				this.responsesAddMissile(handlers);
+				this.setUpHandlers(handlers);
+				if (this.ship.scriptInfo.oolite_missile_proximity)
+				{
+						this.ship.desiredRange = this.ship.scriptInfo.oolite_missile_proximity;
+				}
+				else
+				{
+						this.ship.desiredRange = 25;					
+				}
+				var dest = this.getParameter("oolite_interceptCoordinates");
+				if (dest == null)
+				{
+						return;
+				}
+				this.ship.destination = dest
+				this.ship.desiredSpeed = this.ship.maxSpeed;
+				this.ship.performFlyToRangeFromDestination();
+				
+				// if we have an intercept target, try to restore it
+				var oldtarget = this.getParameter("oolite_interceptTarget");
+				if (oldtarget && !oldtarget.isCloaked && oldtarget.isInSpace)
+				{
+						this.ship.target = oldtarget;
+				}
+		}
+
+		this.behaviourMissileSelfDestruct = function() {
+				this.ship.explode();
 		}
 
 
@@ -3067,6 +3141,106 @@ this.AILib = function(ship)
 								}
 								this.reconsiderNow();
 						}
+				}
+		}
+
+		
+		this.responsesAddMissile = function(handlers) {
+				handlers.shipHitByECM = function()
+				{
+						if (this.ship.scriptInfo.oolite_missile_ecmResponse)
+						{
+								var fn = this.ship.scriptInfo.oolite_missile_ecmResponse;
+								if (this.ship.AIScript[fn])
+								{
+										this.ship.AIScript[fn]();
+										this.reconsiderNow();
+										return;
+								}
+								if (this.ship.script[fn])
+								{
+										this.ship.script[fn]();
+										this.reconsiderNow();
+										return;
+								}
+						}
+
+						/* This section for the hardheads should be an ECM
+						 * response function, and that is used in the default
+						 * shipdata.plist, but for compatibility with older OXPs
+						 * it's also hardcoded here for now.
+						 *
+						 * OXPs wanting to overrule this for hardheads can set a
+						 * response function to do so.
+						 */
+						if (this.ship.primaryRole == "EQ_HARDENED_MISSILE")
+						{
+								if (Math.random() < 0.1) //10% chance per pulse
+								{
+										if (Math.random() < 0.5)
+										{
+												// 50% chance responds by detonation
+												this.ship.AIScript.shipAchievedDesiredRange();
+												return;
+										}
+										// otherwise explode as normal below
+								}
+								else // 90% chance unaffected
+								{
+										return;
+								}
+						}
+
+						this.ship.explode();
+				}
+				handlers.shipTargetCloaked = function()
+				{
+						this.setParameter("oolite_interceptCoordinates",this.ship.target.position);
+						this.setParameter("oolite_interceptTarget",this.ship.target);
+						// stops performIntercept sending AchievedDesiredRange
+						this.ship.performIdle();
+				}
+				handlers.shipTargetLost = function()
+				{
+						this.reconsiderNow();
+				}
+				handlers.shipAchievedDesiredRange = function()
+				{
+						if (this.ship.scriptInfo.oolite_missile_detonation)
+						{
+								var fn = this.ship.scriptInfo.oolite_missile_detonation;
+								if (this.ship.AIScript[fn])
+								{
+										this.ship.AIScript[fn]();
+										this.reconsiderNow();
+										return;
+								}
+								if (this.ship.script[fn])
+								{
+										this.ship.script[fn]();
+										this.reconsiderNow();
+										return;
+								}
+						}
+						/* Defaults to standard missile settings, in case they're
+						 * not specified in scriptInfo */
+						var blastpower = 170;
+						var blastradius = 32.5;
+						var blastshaping = 0.25;
+						if (this.ship.scriptInfo.oolite_missile_blastPower)
+						{
+								blastpower = this.ship.scriptInfo.oolite_missile_blastPower;
+						}
+						if (this.ship.scriptInfo.oolite_missile_blastRadius)
+						{
+								blastradius = this.ship.scriptInfo.oolite_missile_blastRadius;
+						}
+						if (this.ship.scriptInfo.oolite_missile_blastShaping)
+						{
+								blastshaping = this.ship.scriptInfo.oolite_missile_blastShaping;
+						}
+						this.ship.dealEnergyDamage(blastpower,blastradius,blastshaping);
+						this.ship.explode();
 				}
 		}
 

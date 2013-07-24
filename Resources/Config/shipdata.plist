@@ -1393,8 +1393,17 @@
 	{
 		like_ship = "oolite_template_missile";
 		is_template = 1;
-		ai_type = "hardMissileAI.plist";
+		ai_type = "missileAI.js";
 		name = "ECM Hardened Missile";
+		script_info = 
+		{
+			oolite_missile_blastPower = 170;
+			oolite_missile_blastRadius = 32.5;
+			oolite_missile_blastShaping = 0.25;
+			oolite_missile_ecmResponse = "_ecmProofMissileResponse";				
+			oolite_missile_proximity = 25;
+			oolite_missile_range = 30000;
+		};
 		roles = "missile EQ_HARDENED_MISSILE";
 	};
 	"oolite_template_escape-capsule" = {
@@ -1726,7 +1735,7 @@
 	};
 	"oolite_template_missile" = 
 	{
-		ai_type = "missileAI.plist";
+		ai_type = "missileAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
 		exhaust = ("0.0 0.0 -3.5 2.0 2.0 2.0");
@@ -1741,6 +1750,14 @@
 		name = "Missile";
 		roles = "missile EQ_MISSILE";
 		scan_class = "CLASS_MISSILE";
+		script_info = 
+		{
+			oolite_missile_blastPower = 170;
+			oolite_missile_blastRadius = 32.5;
+			oolite_missile_blastShaping = 0.25;
+			oolite_missile_proximity = 25;
+			oolite_missile_range = 30000;
+		};
 		thrust = 250;
 		unpiloted = yes;
 		weapon_energy = 4500;
