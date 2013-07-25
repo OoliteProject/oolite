@@ -1272,7 +1272,7 @@ this.AILib = function(ship)
 						{
 								if (this.ship.destination != cascade)
 								{
-										this.communication("oolite_quiriumCascade");
+										this.communicate("oolite_quiriumCascade");
 								}
 								this.ship.destination = cascade;
 								this.ship.desiredRange = 30000;
@@ -3049,6 +3049,11 @@ this.AILib = function(ship)
 				
 				handlers.shipBeingAttacked = function(whom)
 				{
+						if (!whom) 
+						{
+								this.reconsiderNow();
+								return;
+						}
 						if (whom.target != this.ship && whom != player.ship)
 						{
 								// was accidental
