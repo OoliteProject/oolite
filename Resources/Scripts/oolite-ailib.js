@@ -907,6 +907,12 @@ this.AILib = function(ship)
 		}
 
 
+		this.conditionPlayerNearby = function()
+		{
+				return this.ship.position.distanceTo(player.ship) < this.ship.scannerRange;
+		}
+
+
 		this.conditionFriendlyStationNearby = function()
 		{
 				var stations = system.stations;
@@ -1297,6 +1303,7 @@ this.AILib = function(ship)
 						}
 				}
 				this.setParameter("oolite_lastFleeing",this.ship.target);
+				this.ship.desiredRange = this.ship.scannerRange;
 				this.ship.performFlee();
 		}
 
@@ -1510,6 +1517,12 @@ this.AILib = function(ship)
 				this.responsesAddStandard(handlers);
 				this.responsesAddDocking(handlers);
 				this.ship.requestDockingInstructions();
+				if (!this.ship.dockingInstructions)
+				{
+						this.ship.performIdle();
+						this.reconsiderNow();
+						return;
+				}
 				switch (this.ship.dockingInstructions.ai_message)
 				{
 				case "TOO_BIG_TO_DOCK":
@@ -2283,11 +2296,19 @@ this.AILib = function(ship)
 				}
 		}
 
+
+		this.configurationAcquirePlayerAsTarget = function()
+		{
+				this.ship.target = player.ship;
+		}
+
+
 		this.configurationCheckScanner = function()
 		{
 				this.setParameter("oolite_scanResults",this.ship.checkScanner());
 				this.setParameter("oolite_scanResultSpecific",null);
 		}
+
 
 		this.configurationAcquireScannedTarget = function()
 		{

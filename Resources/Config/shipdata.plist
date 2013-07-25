@@ -1146,7 +1146,7 @@
 	"oolite_template_constrictor" =
 	{
 		aft_eject_position = "0.0 5.5 -19.0";
-		ai_type = "oolite-constrictor-AI.plist";
+		ai_type = "ooliteConstrictorAI.js";
 		bounty = 250;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 5;
