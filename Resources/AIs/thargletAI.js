@@ -56,7 +56,7 @@ this.aiStarted = function() {
 										reconsider: 5
 								},
 								{
-										condition: ai.conditionThargonIsActive,
+										condition: ai.conditionIsActiveThargon,
 										behaviour: ai.behaviourBecomeInactiveThargon,
 										reconsider: 10
 								},

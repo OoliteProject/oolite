@@ -81,7 +81,7 @@ this.aiStarted = function() {
 														condition: ai.conditionSelectedStationNearMainPlanet,
 														truebranch: [
 																{
-																		notcondition: ai.conditionNearMainPlanet,
+																		notcondition: ai.conditionMainPlanetNearby,
 																		configuration: ai.configurationSetDestinationToMainPlanet,
 																		behaviour: ai.behaviourApproachDestination,
 																		reconsider: 30
