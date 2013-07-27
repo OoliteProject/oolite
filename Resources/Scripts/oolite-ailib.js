@@ -38,7 +38,15 @@ this.author = "cim";
 
 this.AILib = function(ship)
 {
-		this.ship = ship;
+		// the ship property must be read-only
+		Object.defineProperty(this,	"ship", {
+				value: ship,
+				writable: false,
+				enumerable: true,
+				configurable: false
+		});
+
+
 		this.ship.AIScript.oolite_intership = {};
 		this.ship.AIScript.oolite_priorityai = this;
 		var activeHandlers = [];
@@ -180,59 +188,10 @@ this.AILib = function(ship)
 
 		/* ****************** General AI functions. ************** */
 		
-		/* These functions interface with the private functions and
-		 * variables. Do not override them. */
+		/* These privileged functions interface with the private functions
+		 * and variables. Do not override them. */
 
-		this.setPriorities = function(priorities) 
-		{
-				priorityList = priorities;
-				this.setUpHandlers({});
-				this.reconsiderNow();
-		}
-
-
-		// parameters created by Oolite must always be prefixed oolite_
-		this.setCommunication = function(key, value)
-		{
-				communications[key] = value;
-		}
-
-
-		// parameters created by Oolite must always be prefixed oolite_
-		this.setParameter = function(key, value)
-		{
-				parameters[key] = value;
-		}
-
-		this.getParameter = function(key)
-		{
-				if (key in parameters)
-				{
-						return parameters[key];
-				}
-				return null;
-		}
-
-		// set the waypoint generator function
-		this.setWaypointGenerator = function(value)
-		{
-				waypointgenerator = value;
-		}
-
-		this.getWaypointGenerator = function()
-		{
-				return waypointgenerator;
-		}
-
-
-		/* Requests reconsideration of behaviour ahead of schedule. */
-		this.reconsiderNow = function() 
-		{
-				_resetReconsideration.call(this,0.25);
-		}
-
-
-		this.setUpHandlers = function(handlers)
+		this.applyHandlers = function(handlers)
 		{
 				// step 1: go through activeHandlers, and delete those
 				// functions from this.ship.AIScript
@@ -265,6 +224,56 @@ this.AILib = function(ship)
 						this.ship.commsMessage(expandDescription(communications[key],{"p1":parameter1,"p2":parameter2}));
 				}
 		}
+
+
+		this.getParameter = function(key)
+		{
+				if (key in parameters)
+				{
+						return parameters[key];
+				}
+				return null;
+		}
+
+		this.getWaypointGenerator = function()
+		{
+				return waypointgenerator;
+		}
+
+		/* Requests reconsideration of behaviour ahead of schedule. */
+		this.reconsiderNow = function() 
+		{
+				_resetReconsideration.call(this,0.05);
+		}
+
+
+		// parameters created by Oolite must always be prefixed oolite_
+		this.setCommunication = function(key, value)
+		{
+				communications[key] = value;
+		}
+
+
+		// parameters created by Oolite must always be prefixed oolite_
+		this.setParameter = function(key, value)
+		{
+				parameters[key] = value;
+		}
+
+		this.setPriorities = function(priorities) 
+		{
+				priorityList = priorities;
+				this.applyHandlers({});
+				this.reconsiderNow();
+		}
+
+
+		// set the waypoint generator function
+		this.setWaypointGenerator = function(value)
+		{
+				waypointgenerator = value;
+		}
+
 
 }; // end object constructor
 
@@ -364,9 +373,15 @@ AILib.prototype.cruiseSpeed = function()
 }
 
 
+AILib.prototype.fineThreshold = function()
+{
+		return 50 - (system.info.government * 7);
+}
+
+
 AILib.prototype.friendlyStation = function(station)
 {
-		if (station.isMainStation && this.ship.bounty > 50)
+		if (station.isMainStation && this.ship.bounty > this.fineThreshold())
 		{
 				return false;
 		}
@@ -999,7 +1014,7 @@ AILib.prototype.conditionScannerContainsEscapePods = function()
 AILib.prototype.conditionScannerContainsFineableOffender = function()
 {
 		return this.checkScannerWithPredicate(function(s) { 
-				var threshold = 50 - (system.info.government * 7);
+				var threshold = this.fineThreshold();
 				return s.isInSpace && s.bounty <= threshold && s.bounty > 0 && !s.markedForFines && (s.scanClass == "CLASS_NEUTRAL" || s.isPlayer) && !s.isDerelict; 
 		});
 }
@@ -1015,7 +1030,7 @@ AILib.prototype.conditionScannerContainsFugitive = function()
 AILib.prototype.conditionScannerContainsHuntableOffender = function()
 {
 		return this.checkScannerWithPredicate(function(s) { 
-				var threshold = 50 - (system.info.government * 7);
+				var threshold = this.fineThreshold();
 				return s.isInSpace && s.bounty > threshold; 
 		});
 }
@@ -1421,14 +1436,14 @@ AILib.prototype.behaviourApproachDestination = function()
 				}
 		}
 		this.setParameter("oolite_waypoints",waypoints);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		this.ship.performFlyToRangeFromDestination();
 }
 
 
 AILib.prototype.behaviourBecomeInactiveThargon = function()
 {
-		this.setUpHandlers({});
+		this.applyHandlers({});
 		this.ship.scanClass = "CLASS_CARGO";
 		this.ship.target = null;
 		this.ship.clearDefenseTargets();
@@ -1465,7 +1480,7 @@ AILib.prototype.behaviourCollectSalvage = function()
 				this.setParameter("oolite_cargoDropped",null);
 				this.reconsiderNow();
 		}
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		this.ship.performCollect();
 }
 
@@ -1476,7 +1491,7 @@ AILib.prototype.behaviourDestroyCurrentTarget = function()
 
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		if (this.ship.target && !this.ship.hasHostileTarget)
 		{
 				// entering attack mode
@@ -1534,7 +1549,7 @@ AILib.prototype.behaviourDockWithStation = function()
 				this.ship.performFlyToRangeFromDestination();
 				break;
 		}
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 }
 
 
@@ -1554,7 +1569,7 @@ AILib.prototype.behaviourEnterWitchspace = function()
 				this.ship.desiredRange = 0;
 				this.ship.desiredSpeed = this.ship.maxSpeed;
 				this.ship.performFlyToRangeFromDestination();
-				this.setUpHandlers(handlers);
+				this.applyHandlers(handlers);
 				return;
 		}
 
@@ -1584,7 +1599,7 @@ AILib.prototype.behaviourEnterWitchspace = function()
 								this.ship.enterWormhole();
 						}
 				}
-				this.setUpHandlers(handlers);
+				this.applyHandlers(handlers);
 				return;
 		}
 		else
@@ -1599,7 +1614,7 @@ AILib.prototype.behaviourEnterWitchspace = function()
 						// no reconsidering yet
 				}
 				// set up the handlers before trying it
-				this.setUpHandlers(handlers);
+				this.applyHandlers(handlers);
 				
 				var entry = this.getParameter("oolite_witchspaceEntry");
 				// wait for escorts to launch
@@ -1650,7 +1665,7 @@ AILib.prototype.behaviourEscortMothership = function()
 		var handlers = {};
 		this.responsesAddStandard(handlers);
 		this.responsesAddEscort(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		this.ship.desiredRange = 0;
 		this.ship.performEscort();
 }
@@ -1660,7 +1675,7 @@ AILib.prototype.behaviourFineCurrentTarget = function()
 {
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		
 		if (this.ship.scanClass == "CLASS_POLICE" && this.ship.target)
 		{
@@ -1677,22 +1692,33 @@ AILib.prototype.behaviourFleeCombat = function()
 {
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 
 		var cascade = this.getParameter("oolite_cascadeDetected");
 		if (cascade != null)
 		{
 				if (cascade.distanceTo(this.ship) < 25600)
 				{
-						if (this.ship.destination != cascade)
+						if (this.ship.defenseTargets.length > 0 && this.ship.defenseTargets[0].scanClass == "CLASS_MINE")
 						{
-								this.communicate("oolite_quiriumCascade");
+								// if the mine is still visible, conventional fleeing works
+								this.ship.target = this.ship.defenseTargets[0];
+								this.ship.desiredRange = 30000;
+								this.ship.performFlee();
+								return;
 						}
-						this.ship.destination = cascade;
-						this.ship.desiredRange = 30000;
-						this.ship.desiredSpeed = 10*this.ship.maxSpeed;
-						this.ship.performFlyToRangeFromDestination();
-						return;
+						else
+						{
+								if (this.ship.destination != cascade)
+								{
+										this.communicate("oolite_quiriumCascade");
+								}
+								this.ship.destination = cascade;
+								this.ship.desiredRange = 30000;
+								this.ship.desiredSpeed = 10*this.ship.maxSpeed;
+								this.ship.performFlyToRangeFromDestination();
+								return;
+						}
 				}
 				else
 				{
@@ -1721,7 +1747,7 @@ AILib.prototype.behaviourFollowGroupLeader = function()
 {
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		if (!this.ship.group || !this.ship.group.leader)
 		{
 				this.ship.performIdle();
@@ -1750,7 +1776,7 @@ AILib.prototype.behaviourGuardTarget = function()
 		this.ship.desiredRange = 2500;
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		this.ship.performFlyToRangeFromDestination();
 }
 
@@ -1760,7 +1786,7 @@ AILib.prototype.behaviourLandOnPlanet = function()
 		this.ship.desiredSpeed = this.ship.maxSpeed / 4;
 		this.ship.performLandOnPlanet();
 		this.ship.AIScriptWakeTime = 0; // cancel reconsiderations
-		this.setUpHandlers({}); // cancel interruptions
+		this.applyHandlers({}); // cancel interruptions
 		this.communicate("oolite_landingOnPlanet");
 }
 
@@ -1777,7 +1803,7 @@ AILib.prototype.behaviourLeaveVicinityOfTarget = function()
 		this.ship.desiredSpeed = this.ship.maxSpeed;
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		this.ship.performFlyToRangeFromDestination();
 }
 
@@ -1786,7 +1812,7 @@ AILib.prototype.behaviourMineTarget = function()
 {
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		this.ship.performMining();
 }
 
@@ -1795,7 +1821,7 @@ AILib.prototype.behaviourOfferToEscort = function()
 {
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		
 		var possible = this.getParameter("oolite_scanResultSpecific");
 		if (possible == null)
@@ -1828,7 +1854,7 @@ AILib.prototype.behaviourReconsider = function()
 {
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		this.reconsiderNow();
 }
 
@@ -1840,7 +1866,7 @@ AILib.prototype.behaviourRejoinMothership = function()
 		var handlers = {};
 		this.responsesAddStandard(handlers);
 		this.responsesAddEscort(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		// to consider: should this behaviour use injectors if
 		// possible? so few escorts have them that it's probably not
 		// worth it.
@@ -1855,7 +1881,7 @@ AILib.prototype.behaviourRepelCurrentTarget = function()
 
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		if (!this.ship.target || !this.ship.target.isValid || !this.ship.target.isShip)
 		{
 				this.reconsiderNow();
@@ -1926,7 +1952,7 @@ AILib.prototype.behaviourRespondToDistressCall = function()
 		}
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 }
 
 
@@ -2022,7 +2048,7 @@ AILib.prototype.behaviourRobTarget = function()
 		}
 		var handlers = {};
 		this.responsesAddStandard(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		this.ship.performAttack();
 }
 
@@ -2032,147 +2058,17 @@ AILib.prototype.behaviourSunskim = function()
 		var handlers = {};
 		this.responsesAddStandard(handlers);
 		this.responsesAddScooping(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		this.ship.performFlyToRangeFromDestination();
 }
 
 
 AILib.prototype.behaviourTumble = function()
 {
-		this.setUpHandlers({});
+		this.applyHandlers({});
 		this.ship.performTumble();
 }
 
-
-
-
-/* Station behaviours: have different standard handler sets */
-
-AILib.prototype.behaviourStationLaunchDefenseShips = function() 
-{
-		if (this.ship.target && this.isAggressive(this.ship.target))
-		{
-				this.alertCondition = 3;
-				this.ship.launchDefenseShip();
-				this.ship.requestHelpFromGroup();
-		}
-		var handlers = {};
-		this.responsesAddStation(handlers);
-		this.setUpHandlers(handlers);
-}
-
-AILib.prototype.behaviourStationRespondToDistressCall = function() 
-{
-		var aggressor = this.getParameter("oolite_distressAggressor");
-		var sender = this.getParameter("oolite_distressSender");
-		if (sender.bounty > aggressor.bounty)
-		{
-				var tmp = sender;
-				sender = aggressor;
-				aggressor = tmp;
-		}
-		if (aggressor.position.distanceTo(this.ship) < this.ship.scannerRange)
-		{
-				this.ship.target = aggressor;
-				this.ship.alertCondition = 3;
-				this.ship.launchDefenseShip();
-				this.communicate("oolite_distressResponseAggressor",aggressor.displayName);
-				this.ship.requestHelpFromGroup();
-		}
-		else
-		{
-				this.communicate("oolite_distressResponseSender",sender.displayName);
-		}
-
-		var handlers = {};
-		this.responsesAddStation(handlers);
-		this.setUpHandlers(handlers);
-}
-
-AILib.prototype.behaviourStationLaunchSalvager = function() 
-{
-		if (this.alertCondition > 1)
-		{
-				this.alertCondition--;
-		}
-		this.ship.launchScavenger();
-		
-		var handlers = {};
-		this.responsesAddStation(handlers);
-		this.setUpHandlers(handlers);
-
-}
-
-AILib.prototype.behaviourStationLaunchMiner = function() 
-{
-		if (this.alertCondition > 1)
-		{
-				this.alertCondition--;
-		}
-		var handlers = {};
-		this.responsesAddStation(handlers);
-		this.setUpHandlers(handlers);
-		if (this.ship.group)
-		{
-				for (var i = 0 ; i < this.ship.group.ships.length ; i++)
-				{
-						if (this.ship.group.ships[i].primaryRole == "miner")
-						{
-								// only one in flight at once
-								return;
-						}
-				}
-		}
-		this.ship.launchMiner();
-}
-
-
-AILib.prototype.behaviourStationLaunchPatrol = function() 
-{
-		if (this.alertCondition > 1)
-		{
-				this.alertCondition--;
-		}
-		var handlers = {};
-		this.responsesAddStation(handlers);
-		this.setUpHandlers(handlers);
-
-		if (this.ship.group)
-		{
-				for (var i = 0 ; i < this.ship.group.ships.length ; i++)
-				{
-						if (this.ship.group.ships[i].primaryRole == this.getParameter("oolite_stationPatrolRole"))
-						{
-								// only one in flight at once
-								return;
-						}
-				}
-		}
-
-		this.ship.launchPatrol();
-}
-
-AILib.prototype.behaviourStationManageTraffic = function() 
-{
-		var handlers = {};
-		this.responsesAddStation(handlers);
-		this.setUpHandlers(handlers);
-		if (this.ship.hasNPCTraffic)
-		{
-				if (Math.random() < 0.3) 
-				{
-						var trader = this.ship.launchShipWithRole("trader");
-						trader.setCargoType("PLENTIFUL_GOODS");
-				}
-				if (Math.random() < 0.1)
-				{
-						this.ship.launchShuttle();
-				}
-				
-				// TODO: integrate with system repopulator rather than just
-				// launching ships at random
-		}
-}
 
 /* Missile behaviours: have different standard handler sets */
 
@@ -2180,7 +2076,7 @@ AILib.prototype.behaviourMissileInterceptTarget = function()
 {
 		var handlers = {};
 		this.responsesAddMissile(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		if (this.ship.scriptInfo.oolite_missile_proximity)
 		{
 				this.ship.desiredRange = this.ship.scriptInfo.oolite_missile_proximity;
@@ -2197,7 +2093,7 @@ AILib.prototype.behaviourMissileInterceptCoordinates = function()
 {
 		var handlers = {};
 		this.responsesAddMissile(handlers);
-		this.setUpHandlers(handlers);
+		this.applyHandlers(handlers);
 		if (this.ship.scriptInfo.oolite_missile_proximity)
 		{
 				this.ship.desiredRange = this.ship.scriptInfo.oolite_missile_proximity;
@@ -2228,11 +2124,146 @@ AILib.prototype.behaviourMissileSelfDestruct = function() {
 }
 
 
+
+/* Station behaviours: have different standard handler sets */
+
+AILib.prototype.behaviourStationLaunchDefenseShips = function() 
+{
+		if (this.ship.target && this.isAggressive(this.ship.target))
+		{
+				this.alertCondition = 3;
+				this.ship.launchDefenseShip();
+				this.ship.requestHelpFromGroup();
+		}
+		var handlers = {};
+		this.responsesAddStation(handlers);
+		this.applyHandlers(handlers);
+}
+
+
+AILib.prototype.behaviourStationLaunchMiner = function() 
+{
+		if (this.alertCondition > 1)
+		{
+				this.alertCondition--;
+		}
+		var handlers = {};
+		this.responsesAddStation(handlers);
+		this.applyHandlers(handlers);
+		if (this.ship.group)
+		{
+				for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+				{
+						if (this.ship.group.ships[i].primaryRole == "miner")
+						{
+								// only one in flight at once
+								return;
+						}
+				}
+		}
+		this.ship.launchMiner();
+}
+
+
+AILib.prototype.behaviourStationLaunchPatrol = function() 
+{
+		if (this.alertCondition > 1)
+		{
+				this.alertCondition--;
+		}
+		var handlers = {};
+		this.responsesAddStation(handlers);
+		this.applyHandlers(handlers);
+
+		if (this.ship.group)
+		{
+				for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+				{
+						if (this.ship.group.ships[i].primaryRole == this.getParameter("oolite_stationPatrolRole"))
+						{
+								// only one in flight at once
+								return;
+						}
+				}
+		}
+
+		this.ship.launchPatrol();
+}
+
+
+AILib.prototype.behaviourStationLaunchSalvager = function() 
+{
+		if (this.alertCondition > 1)
+		{
+				this.alertCondition--;
+		}
+		this.ship.launchScavenger();
+		
+		var handlers = {};
+		this.responsesAddStation(handlers);
+		this.applyHandlers(handlers);
+}
+
+
+AILib.prototype.behaviourStationManageTraffic = function() 
+{
+		var handlers = {};
+		this.responsesAddStation(handlers);
+		this.applyHandlers(handlers);
+		if (this.ship.hasNPCTraffic)
+		{
+				if (Math.random() < 0.3) 
+				{
+						var trader = this.ship.launchShipWithRole("trader");
+						trader.setCargoType("PLENTIFUL_GOODS");
+				}
+				if (Math.random() < 0.1)
+				{
+						this.ship.launchShuttle();
+				}
+				
+				// TODO: integrate with system repopulator rather than just
+				// launching ships at random
+		}
+}
+
+
+AILib.prototype.behaviourStationRespondToDistressCall = function() 
+{
+		var aggressor = this.getParameter("oolite_distressAggressor");
+		var sender = this.getParameter("oolite_distressSender");
+		if (sender.bounty > aggressor.bounty)
+		{
+				var tmp = sender;
+				sender = aggressor;
+				aggressor = tmp;
+		}
+		if (aggressor.position.distanceTo(this.ship) < this.ship.scannerRange)
+		{
+				this.ship.target = aggressor;
+				this.ship.alertCondition = 3;
+				this.ship.launchDefenseShip();
+				this.communicate("oolite_distressResponseAggressor",aggressor.displayName);
+				this.ship.requestHelpFromGroup();
+		}
+		else
+		{
+				this.communicate("oolite_distressResponseSender",sender.displayName);
+		}
+
+		var handlers = {};
+		this.responsesAddStation(handlers);
+		this.applyHandlers(handlers);
+}
+
+
 /* ****************** Configuration functions ************** */
 
 /* Configurations. Configurations are set up actions for a behaviour
  * or behaviours. They can also be used on a fall-through conditional
  * to set parameters for later tests */
+
+/*** Target acquisition configuration ***/
 
 AILib.prototype.configurationAcquireCombatTarget = function()
 {
@@ -2290,6 +2321,31 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 				}
 		}
 }
+
+
+AILib.prototype.configurationAcquireDefensiveEscortTarget = function()
+{
+		if (this.ship.group && this.ship.group.leader)
+		{
+				var leader = this.ship.group.leader;
+				if (leader.target && leader.target.target == leader && this.isFighting(leader) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+				{
+						this.ship.target = leader.target;
+				}
+				else
+				{
+						var dts = leader.defenseTargets;
+						for (var i = 0 ; i < dts.length ; i++)
+						{
+								if (dts[i].target == leader && this.isAggressive(dts[i]) && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+								{
+										this.ship.target = dts[i];
+								}
+						}
+				}
+		}
+}
+
 
 // TODO: reuse code from AcquireCombatTarget better
 AILib.prototype.configurationAcquireHostileCombatTarget = function()
@@ -2358,33 +2414,15 @@ AILib.prototype.configurationAcquireOffensiveEscortTarget = function()
 		}
 }
 
-AILib.prototype.configurationAcquireDefensiveEscortTarget = function()
-{
-		if (this.ship.group && this.ship.group.leader)
-		{
-				var leader = this.ship.group.leader;
-				if (leader.target && leader.target.target == leader && this.isFighting(leader) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
-				{
-						this.ship.target = leader.target;
-				}
-				else
-				{
-						var dts = leader.defenseTargets;
-						for (var i = 0 ; i < dts.length ; i++)
-						{
-								if (dts[i].target == leader && this.isAggressive(dts[i]) && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
-								{
-										this.ship.target = dts[i];
-								}
-						}
-				}
-		}
-}
-
-
 AILib.prototype.configurationAcquirePlayerAsTarget = function()
 {
 		this.ship.target = player.ship;
+}
+
+
+AILib.prototype.configurationAcquireScannedTarget = function()
+{
+		this.ship.target = this.getParameter("oolite_scanResultSpecific");
 }
 
 
@@ -2395,10 +2433,49 @@ AILib.prototype.configurationCheckScanner = function()
 }
 
 
-AILib.prototype.configurationAcquireScannedTarget = function()
+/*** Navigation configuration ***/
+
+
+AILib.prototype.configurationSelectRandomTradeStation = function()
 {
-		this.ship.target = this.getParameter("oolite_scanResultSpecific");
+		var stations = system.stations;
+		var threshold = 1E16;
+		var chosenStation = null;
+		if (this.ship.bounty == 0)
+		{
+				if (Math.random() < 0.9 && this.friendlyStation(system.mainStation))
+				{
+						this.setParameter("oolite_selectedStation",system.mainStation);
+						return;
+				}
+		} 
+		else if (this.ship.bounty <= this.fineThreshold())
+		{
+				if (Math.random() < 0.5 && this.friendlyStation(system.mainStation))
+				{
+						this.setParameter("oolite_selectedStation",system.mainStation);
+						return;
+				}
+		}
+		var friendlies = 0;
+		for (var i = 0 ; i < stations.length ; i++)
+		{
+				var station = stations[i];
+				if (this.friendlyStation(station))
+				{
+						friendlies++;
+						// equivalent to filtering the list to only contain
+						// friendlies, then picking a random element.
+						if (Math.random() < 1/friendlies)
+						{
+								chosenStation = station;
+						}
+				}
+		}
+		this.setParameter("oolite_selectedStation",system.mainStation);
+		this.communicate("oolite_selectedStation",system.mainStation.displayName);
 }
+
 
 AILib.prototype.configurationSelectShuttleDestination = function()
 {
@@ -2449,153 +2526,28 @@ AILib.prototype.configurationSelectShuttleDestination = function()
 		}
 }
 
-AILib.prototype.configurationSelectRandomTradeStation = function()
+
+AILib.prototype.configurationSelectWitchspaceDestination = function()
 {
-		var stations = system.stations;
-		var threshold = 1E16;
-		var chosenStation = null;
-		if (this.ship.bounty == 0)
+		if (!this.ship.hasHyperspaceMotor)
 		{
-				if (Math.random() < 0.9 && this.friendlyStation(system.mainStation))
-				{
-						this.setParameter("oolite_selectedStation",system.mainStation);
-						return;
-				}
-		} 
-		else if (this.ship.bounty <= 50)
-		{
-				if (Math.random() < 0.5 && this.friendlyStation(system.mainStation))
-				{
-						this.setParameter("oolite_selectedStation",system.mainStation);
-						return;
-				}
+				this.setParameter("oolite_witchspaceDestination",null);
+				return;
 		}
-		var friendlies = 0;
-		for (var i = 0 ; i < stations.length ; i++)
+		var preselected = this.getParameter("oolite_witchspaceDestination");
+		if (preselected != system.ID && system.info.distanceToSystem(System.infoForSystem(galaxyNumber,preselected)) <= this.ship.fuel)
 		{
-				var station = stations[i];
-				if (this.friendlyStation(station))
-				{
-						friendlies++;
-						if (Math.random() < 1/friendlies)
-						{
-								chosenStation = station;
-						}
-				}
+				// we've already got a destination
+				return;
 		}
-		this.setParameter("oolite_selectedStation",system.mainStation);
-		this.communicate("oolite_selectedStation",system.mainStation.displayName);
+		var possible = system.info.systemsInRange(this.ship.fuel);
+		var selected = possible[Math.floor(Math.random()*possible.length)];
+		this.setParameter("oolite_witchspaceDestination",selected.systemID);
+		this.communicate("oolite_selectedWitchspaceDestination",selected.name);
 }
 
 
-AILib.prototype.configurationSetDestinationToWitchpoint = function()
-{
-		this.ship.destination = new Vector3D(0,0,0);
-		this.ship.desiredRange = 10000;
-		this.ship.desiredSpeed = this.cruiseSpeed();
-}
-
-AILib.prototype.configurationSetDestinationToMainPlanet = function()
-{
-		this.ship.destination = system.mainPlanet.position;
-		this.ship.desiredRange = system.mainPlanet.radius * 3;
-		this.ship.desiredSpeed = this.cruiseSpeed();
-}
-
-AILib.prototype.configurationSetDestinationToMainStation = function()
-{
-		this.ship.destination = system.mainStation.position;
-		this.ship.desiredRange = this.ship.scannerRange/2;
-
-		this.ship.desiredSpeed = this.cruiseSpeed();
-}
-
-AILib.prototype.configurationSetDestinationToSelectedStation = function()
-{
-		var station = this.getParameter("oolite_selectedStation");
-		if (station)
-		{
-				this.ship.destination = station.position;
-				this.ship.desiredRange = this.ship.scannerRange/2;
-				this.ship.desiredSpeed = this.cruiseSpeed();
-		}
-}
-
-AILib.prototype.configurationSetDestinationToSelectedPlanet = function()
-{
-		var planet = this.getParameter("oolite_selectedPlanet");
-		if (planet)
-		{
-				this.ship.destination = planet.position;
-				this.ship.desiredRange = planet.radius+100;
-				this.ship.desiredSpeed = this.cruiseSpeed();
-		}
-}
-
-
-AILib.prototype.configurationSetDestinationToPirateLurk = function()
-{
-		var lurk = this.getParameter("oolite_pirateLurk");
-		if (lurk != null)
-		{
-				this.ship.destination = lurk;
-		}
-		else
-		{
-				var code = "WITCHPOINT";
-				var p = this.ship.position;
-				// if already on a lane, stay on it
-				if (p.z < system.mainPlanet.position.z && ((p.x * p.x) + (p.y * p.y)) < system.mainPlanet.radius * 3)
-				{
-						lurk = p;
-				}
-				else if (p.subtract(system.mainPlanet).dot(p.subtract(system.sun)) < -0.9)
-				{
-						lurk = p;
-				}
-				else if (p.dot(system.sun.position) > 0.9)
-				{
-						lurk = p;
-				}
-				else // not on a lane, so pick somewhere at random
-				{
-						var choice = Math.random();
-						if (choice < 0.8)
-						{
-								code = "LANE_WP";
-						}
-						else
-						{
-								code = "LANE_PS";
-						}
-						// code = "LANE_WS"? "WITCHPOINT"? 
-						// what about other locations in less policed systems?
-						lurk = system.locationFromCode(code);
-				}
-				this.setParameter("oolite_pirateLurk",lurk);
-		}
-		this.ship.desiredRange = 1000;
-		this.ship.desiredSpeed = this.cruiseSpeed();
-}
-
-
-AILib.prototype.configurationSetDestinationToSunskimStart = function()
-{
-		this.ship.destination = system.sun.position;
-		// max sunskim height is sqrt(4/3) radius 
-		this.ship.desiredRange = system.sun.radius * 1.125;
-		this.ship.desiredSpeed = this.cruiseSpeed();
-}
-
-AILib.prototype.configurationSetDestinationToSunskimEnd = function()
-{
-		var direction = Vector3D.random().cross(this.ship.position.subtract(system.sun.position));
-		// 2km parallel to local sun surface for every LY of fuel
-		this.ship.destination = this.ship.position.add(direction.multiply(2000*(7-this.ship.fuel)));
-		// max sunskim height is sqrt(4/3) radius 
-		this.ship.desiredRange = 0;
-		this.ship.desiredSpeed = this.ship.maxSpeed;
-}
+/*** Destination configuration ***/
 
 AILib.prototype.configurationSetDestinationToNearestFriendlyStation = function()
 {
@@ -2660,6 +2612,142 @@ AILib.prototype.configurationSetDestinationToGroupLeader = function()
 		this.ship.desiredSpeed = this.ship.maxSpeed;
 }
 
+
+AILib.prototype.configurationSetDestinationToMainPlanet = function()
+{
+		if (system.mainPlanet)
+		{
+				this.ship.destination = system.mainPlanet.position;
+				this.ship.desiredRange = system.mainPlanet.radius * 3;
+				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+}
+
+
+AILib.prototype.configurationSetDestinationToMainStation = function()
+{
+		this.ship.destination = system.mainStation.position;
+		this.ship.desiredRange = 15000;
+
+		this.ship.desiredSpeed = this.cruiseSpeed();
+}
+
+
+AILib.prototype.configurationSetDestinationToPirateLurk = function()
+{
+		var lurk = this.getParameter("oolite_pirateLurk");
+		if (lurk != null)
+		{
+				this.ship.destination = lurk;
+		}
+		else
+		{
+				var code = "WITCHPOINT";
+				var p = this.ship.position;
+				// if already on a lane, stay on it
+				if (p.z < system.mainPlanet.position.z && ((p.x * p.x) + (p.y * p.y)) < this.scannerRange * this.scannerRange * 4)
+				{
+						lurk = p;
+				}
+				else if (p.subtract(system.mainPlanet).dot(p.subtract(system.sun)) < -0.9)
+				{
+						lurk = p;
+				}
+				else if (p.dot(system.sun.position) > 0.9)
+				{
+						lurk = p;
+				}
+				else // not on a lane, so pick somewhere at random
+				{
+						var choice = Math.random();
+						if (choice < 0.8)
+						{
+								code = "LANE_WP";
+						}
+						else
+						{
+								code = "LANE_PS";
+						}
+						// code = "LANE_WS"? "WITCHPOINT"? 
+						// what about other locations in less policed systems?
+						lurk = system.locationFromCode(code);
+				}
+				this.setParameter("oolite_pirateLurk",lurk);
+		}
+		this.ship.desiredRange = 1000;
+		this.ship.desiredSpeed = this.cruiseSpeed();
+}
+
+
+AILib.prototype.configurationSetDestinationToSelectedPlanet = function()
+{
+		var planet = this.getParameter("oolite_selectedPlanet");
+		if (planet)
+		{
+				this.ship.destination = planet.position;
+				this.ship.desiredRange = planet.radius+100;
+				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+}
+
+
+AILib.prototype.configurationSetDestinationToSelectedStation = function()
+{
+		var station = this.getParameter("oolite_selectedStation");
+		if (station)
+		{
+				this.ship.destination = station.position;
+				this.ship.desiredRange = 15000;
+				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+}
+
+
+AILib.prototype.configurationSetDestinationToSunskimEnd = function()
+{
+		if (system.sun)
+		{
+				var direction = Vector3D.random().cross(this.ship.position.subtract(system.sun.position));
+				// 2km parallel to local sun surface for every LY of fuel
+				this.ship.destination = this.ship.position.add(direction.multiply(2000*(7-this.ship.fuel)));
+				// max sunskim height is sqrt(4/3) radius 
+				this.ship.desiredRange = 0;
+				this.ship.desiredSpeed = this.ship.maxSpeed;
+		}
+}
+
+
+AILib.prototype.configurationSetDestinationToSunskimStart = function()
+{
+		if (system.sun)
+		{
+				this.ship.destination = system.sun.position;
+				// max sunskim height is sqrt(4/3) radius 
+				this.ship.desiredRange = system.sun.radius * 1.125;
+				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+}
+
+
+AILib.prototype.configurationSetDestinationToWaypoint = function()
+{
+		if (this.getParameter("oolite_waypoint") != null && this.getParameter("oolite_waypointRange") != null)
+		{
+				this.ship.destination = this.getParameter("oolite_waypoint");
+				this.ship.desiredRange = this.getParameter("oolite_waypointRange");
+				this.ship.desiredSpeed = this.cruiseSpeed();
+		}
+}
+
+
+AILib.prototype.configurationSetDestinationToWitchpoint = function()
+{
+		this.ship.destination = new Vector3D(0,0,0);
+		this.ship.desiredRange = 10000;
+		this.ship.desiredSpeed = this.cruiseSpeed();
+}
+
+
 AILib.prototype.configurationSetWaypoint = function()
 {
 		var gen = this.getWaypointGenerator();
@@ -2670,32 +2758,12 @@ AILib.prototype.configurationSetWaypoint = function()
 		}
 }
 
-AILib.prototype.configurationSetDestinationToWaypoint = function()
-{
-		this.ship.destination = this.getParameter("oolite_waypoint");
-		this.ship.desiredRange = this.getParameter("oolite_waypointRange");
-		this.ship.desiredSpeed = this.cruiseSpeed();
-}
 
 
-AILib.prototype.configurationSelectWitchspaceDestination = function()
-{
-		if (!this.ship.hasHyperspaceMotor)
-		{
-				this.setParameter("oolite_witchspaceDestination",null);
-				return;
-		}
-		var preselected = this.getParameter("oolite_witchspaceDestination");
-		if (preselected != system.ID && system.info.distanceToSystem(System.infoForSystem(galaxyNumber,preselected)) <= this.ship.fuel)
-		{
-				// we've already got a destination
-				return;
-		}
-		var possible = system.info.systemsInRange(this.ship.fuel);
-		var selected = possible[Math.floor(Math.random()*possible.length)];
-		this.setParameter("oolite_witchspaceDestination",selected.systemID);
-		this.communicate("oolite_selectedWitchspaceDestination",selected.name);
-}
+
+/*** Docking configurations ***/
+
+
 
 AILib.prototype.configurationSetNearbyFriendlyStationForDocking = function()
 {
@@ -2731,6 +2799,9 @@ AILib.prototype.configurationSetSelectedStationForDocking = function()
 {
 		this.setParameter("oolite_dockingStation",this.getParameter("oolite_selectedStation"));
 }
+
+
+/*** Miscellaneous configuration ***/
 
 
 AILib.prototype.configurationAppointGroupLeader = function()
@@ -2805,6 +2876,8 @@ AILib.prototype.configurationForgetCargoDemand = function()
 				}
 		}
 }
+
+/*** Station configuration ***/
 
 AILib.prototype.configurationStationReduceAlertLevel = function() 
 {
@@ -2986,7 +3059,7 @@ AILib.prototype.responsesAddStandard = function(handlers)
 						this.ship.desiredSpeed = this.ship.maxSpeed / 4;
 						this.ship.performLandOnPlanet();
 						this.ship.AIScriptWakeTime = 0; // cancel reconsiderations
-						this.setUpHandlers({}); // cancel interruptions
+						this.applyHandlers({}); // cancel interruptions
 						this.communicate("oolite_landingOnPlanet");
 				}
 				else
@@ -3004,7 +3077,7 @@ AILib.prototype.responsesAddStandard = function(handlers)
 		}
 		handlers.shipWillEnterWormhole = function()
 		{
-				this.setUpHandlers({});
+				this.applyHandlers({});
 		}
 		handlers.shipExitedWormhole = function()
 		{
@@ -3407,7 +3480,7 @@ AILib.prototype.waypointsSpacelanePatrol = function()
 						choice = "SUN";
 				}
 		}
-		else if (p.z < system.mainPlanet.position.z && ((p.x * p.x) + (p.y * p.y)) < system.mainPlanet.radius * 3)
+		else if (p.z < system.mainPlanet.position.z && ((p.x * p.x) + (p.y * p.y)) < this.ship.scannerRange * this.ship.scannerRange * 4)
 		{
 				// on lane 1
 				if (Math.random() < 0.5)
@@ -3514,8 +3587,4 @@ AILib.prototype.waypointsStationPatrol = function()
 		this.setParameter("oolite_waypointRange",100);
 
 }
-
-
-
-
 
