@@ -1038,7 +1038,7 @@ AILib.prototype.conditionScannerContainsFineableOffender = function()
 AILib.prototype.conditionScannerContainsFugitive = function()
 {
 		return this.checkScannerWithPredicate(function(s) { 
-				return s.isInSpace && s.bounty > 50; 
+				return s.isInSpace && s.bounty > 50 && s.scanClass != "CLASS_CARGO" && s.scanClass != "CLASS_ROCK"; 
 		});
 }
 
@@ -1046,7 +1046,7 @@ AILib.prototype.conditionScannerContainsHuntableOffender = function()
 {
 		return this.checkScannerWithPredicate(function(s) { 
 				var threshold = this.fineThreshold();
-				return s.isInSpace && s.bounty > threshold; 
+				return s.isInSpace && s.bounty > threshold && s.scanClass != "CLASS_CARGO" && s.scanClass != "CLASS_ROCK"; 
 		});
 }
 
