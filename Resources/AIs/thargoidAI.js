@@ -35,6 +35,11 @@ this.aiStarted = function() {
 		ai.setPriorities([
 				/* Fight */
 				{
+						condition: ai.conditionCascadeDetected,
+						behaviour: ai.behaviourAvoidCascadeExplosion,
+						reconsider: 5
+				},
+				{
 						condition: ai.conditionHasNonThargoidTarget,
 						behaviour: ai.behaviourDestroyCurrentTarget,
 						reconsider: 5

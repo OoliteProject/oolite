@@ -440,6 +440,21 @@ AILib.prototype.isFighting = function(ship)
 /*** Combat-related conditions ***/
 
 
+AILib.prototype.conditionCascadeDetected = function()
+{
+		var cpos = this.getParameter("oolite_cascadeDetected");
+		if (cpos != null)
+		{
+				if (cpos.distanceTo(this.ship) < this.ship.scannerRange)
+				{
+						return true;
+				}
+				this.setParameter("oolite_cascadeDetected",null);
+		}
+		return false;
+}
+
+
 AILib.prototype.conditionCombatOddsGood = function()
 {
 		// TODO: this should consider what the ships are, somehow
@@ -1438,6 +1453,46 @@ AILib.prototype.behaviourApproachDestination = function()
 		this.setParameter("oolite_waypoints",waypoints);
 		this.applyHandlers(handlers);
 		this.ship.performFlyToRangeFromDestination();
+}
+
+
+AILib.prototype.behaviourAvoidCascadeExplosion = function()
+{
+		var handlers = {};
+		this.responsesAddStandard(handlers);
+		this.applyHandlers(handlers);
+
+		var cascade = this.getParameter("oolite_cascadeDetected");
+		if (cascade != null)
+		{
+				if (cascade.distanceTo(this.ship) < 25600)
+				{
+						if (this.ship.defenseTargets.length > 0 && this.ship.defenseTargets[0].scanClass == "CLASS_MINE")
+						{
+								// if the mine is still visible, conventional fleeing works
+								this.ship.target = this.ship.defenseTargets[0];
+								this.ship.desiredRange = 30000;
+								this.ship.performFlee();
+								return;
+						}
+						else
+						{
+								if (this.ship.destination != cascade)
+								{
+										this.communicate("oolite_quiriumCascade");
+								}
+								this.ship.destination = cascade;
+								this.ship.desiredRange = 30000;
+								this.ship.desiredSpeed = 10*this.ship.maxSpeed;
+								this.ship.performFlyToRangeFromDestination();
+								return;
+						}
+				}
+				else
+				{
+						this.setParameter("oolite_cascadeDetected",null);
+				}
+		}
 }
 
 
@@ -2876,6 +2931,21 @@ AILib.prototype.configurationForgetCargoDemand = function()
 				}
 		}
 }
+
+
+AILib.prototype.configurationLeaveEscortGroup = function()
+{
+		if (this.ship.group && this.ship.group.leader && this.ship.group.leader != this.ship && this.ship.group.leader.escortGroup && this.ship.group.leader.escortGroup.containsShip(this.ship))
+		{
+				this.ship.group.leader.escortGroup.removeShip(this.ship);
+				if (this.ship.group)
+				{
+						this.ship.group.removeShip(this.ship);
+						this.ship.group = null;
+				}
+		}
+}
+
 
 /*** Station configuration ***/
 

@@ -38,6 +38,16 @@ this.aiStarted = function() {
 						condition: ai.conditionHasMothership,
 						truebranch: [
 								{
+										condition: ai.conditionGroupIsSeparated,
+										configuration: ai.configurationLeaveEscortGroup,
+										behaviour: ai.behaviourReconsider
+								},
+								{
+										condition: ai.conditionCascadeDetected,
+										behaviour: ai.behaviourAvoidCascadeExplosion,
+										reconsider: 5
+								},
+								{
 										condition: ai.conditionMothershipInCombat,
 										configuration: ai.configurationAcquireOffensiveEscortTarget,
 										behaviour: ai.behaviourDestroyCurrentTarget,
